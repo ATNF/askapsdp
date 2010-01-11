@@ -3,5 +3,5 @@
 #
 Ice.Default.Locator=IceGrid/Locator:tcp -h localhost -p 4061
 
-tMetadataAdapter.AdapterId=tMetadataAdapter
-tMetadataAdapter.Endpoints=tcp
+MetadataSnoopAdapter.AdapterId=MetadataSnoopAdapter
+MetadataSnoopAdapter.Endpoints=tcp

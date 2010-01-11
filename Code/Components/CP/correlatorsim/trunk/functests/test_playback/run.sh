@@ -8,11 +8,11 @@ source $ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/init_package_env.sh
 sleep 2
 
 # Start the metadata subscriber (don't use the script so this scripts can kill it)
-$ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/tMetadata --Ice.Config=config.tMetadata > tMetadata.log 2>&1 &
+$ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/msnoop --Ice.Config=config.msnoop > msnoop.log 2>&1 &
 MDPID=$!
 
 # Start the visibilities receiver (don't use the script so this scripts can kill it)
-$ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/tVisibilities 3000 > tVisibilities.log 2>&1 &
+$ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/vsnoop 3000 > vsnoop.log 2>&1 &
 VISPID=$!
 
 # Run the test

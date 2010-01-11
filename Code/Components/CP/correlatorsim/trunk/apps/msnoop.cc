@@ -1,4 +1,4 @@
-/// @file tMetadata.cc
+/// @file msnoop.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
 
     Ice::ObjectPrx obj = ic->stringToProxy("IceStorm/TopicManager");
     IceStorm::TopicManagerPrx topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
-    Ice::ObjectAdapterPtr adapter = ic->createObjectAdapter("tMetadataAdapter");
+    Ice::ObjectAdapterPtr adapter = ic->createObjectAdapter("MetadataSnoopAdapter");
     ITimeTaggedTypedValueMapPublisherPtr metadataStream = new MetadataSubscriber;
     Ice::ObjectPrx proxy = adapter->addWithUUID(metadataStream)->ice_twoway();
     IceStorm::TopicPrx topic;
