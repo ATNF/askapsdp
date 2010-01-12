@@ -97,9 +97,10 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       MEParallel(comms), itsParset(parset), 
       itsPerfectModel(new scimath::Params())
 {
+  // set up image handler, needed for both master and worker
+  SynthesisParamsHelper::setUpImageHandler(itsParset);
+  
   if (itsComms.isMaster()) {
-      // set up image handler
-      SynthesisParamsHelper::setUpImageHandler(itsParset);
       
       // itsModel has gain parameters for calibration, populate them with
       // an initial guess
