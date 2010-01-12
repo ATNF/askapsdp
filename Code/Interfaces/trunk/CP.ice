@@ -45,43 +45,6 @@ module cp
         ["ami"] void abortObs();
     };
 
-    /////////////////////////////////////////////////////////////////
-    // Visiblitiy Stream
-    /////////////////////////////////////////////////////////////////
-
-    /**
-     * This visibilities structure exists to encapsulate the raw binary
-     * visibilities payload and allow it to be published via an IceStorm topic.
-     * This structure however does contain a timestamp and coarse channel
-     * number to provide basic identification of the payload. Such information
-     * can be used for routing of the structure.
-     **/
-    struct Visibilities {
-        /**
-         * Timestamp - Binary Atomic Time (BAT). The number of microseconds
-         * since Modified Julian Day (MJD) = 0
-         **/
-        long timestamp;
-
-        /**
-         * Coarse Channel - Which coarse channel this block of data relates to.
-         **/
-        int coarseChannel;
-
-        /**
-         * Payload - Raw binary payload
-         **/
-        askap::interfaces::ByteSeq payload;
-    };
-
-    /**
-     * The interface to  the Visibilities stream
-     **/
-    interface IVisStream
-    {
-        void publish(Visibilities vis);
-    };
-
 }; // End module cp
 }; // End module interfaces
 }; // End module askap
