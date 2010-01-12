@@ -35,6 +35,7 @@
 #include <sstream>
 #include <iomanip>
 #include <vector>
+#include <cmath>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -184,7 +185,7 @@ bool MSReader::fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata,
             casa::Vector<double> freqs = spwc.chanFreq()(descSpwId);
             const double baseFreq = std::min(freqs(0), freqs(freqs.size() - 1));
             const casa::Vector<double> chanWidth = spwc.chanWidth()(descSpwId);
-            const double freqInc = chanWidth(0);
+            const double freqInc = fabs(chanWidth(0));
 
             const double centreFreq = baseFreq + (freqInc * (16416 / 2));
 
@@ -231,7 +232,7 @@ bool MSReader::fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata,
             // <antenna name>.flag.hw_error
             // TODO: Current no flagging, but it would be good to read this from the 
             // actual measurement set
-            metadata.data[makeMapKey(name, "flag.hw_error")] = new TypedValueBool(TypeBool, true);
+            metadata.data[makeMapKey(name, "flag.hw_error")] = new TypedValueBool(TypeBool, false);
         }
 
         {
@@ -292,7 +293,7 @@ bool MSReader::fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata,
         const casa::Matrix<casa::Complex> data = msc.data()(itsCurrentRow);
         for (unsigned int chan = 0; chan < n_fine_per_coarse; ++chan) {
             for (unsigned int pol = 0; pol < n_pol; ++pol) {
-                const int idx = chan + (n_fine_per_coarse * pol);
+                const int idx = pol + (n_pol * chan);
                 payload.vis[idx].real = data(pol, chan).real();
                 payload.vis[idx].imag = data(pol, chan).imag();
             }

@@ -32,6 +32,7 @@
 
 // System includes
 #include <string>
+#include <unistd.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"

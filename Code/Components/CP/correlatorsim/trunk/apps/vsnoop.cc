@@ -30,31 +30,117 @@
 // System includes
 #include <iostream>
 #include <cstdlib>
+#include <csignal>
+#include <unistd.h>
 
 // ASKAPsoft includes
 #include "cpcommon/VisPayload.h"
 #include "boost/asio.hpp"
 #include "boost/array.hpp"
+#include "CommandLineParser.h"
 
 using boost::asio::ip::udp;
 using askap::cp::VisPayload;
+using namespace askap::cp;
 
+// Globals
+static unsigned int verbose = 0;
+static unsigned long count = 0;
+
+// When a SIGTERM is sent to the process this signal handler is called
+// in order to report the number of UDP datagrams received
+static void termination_handler (int signum)
+{
+    std::cout << "Received " << count << " datagrams" << std::endl;
+    exit(0);
+}
+
+// Indexing function for indexing into the VisPayload vis and
+// nSamples arrays
+int index(int pol, int chan) {
+    return pol + ((n_pol) * chan);
+}
+
+// Print the visibilities. Only called when verbose == 2
+// The format of the output is:
+//
+// Visibilities:
+//     ch0 [ (0.123, 0.456), (0, 0), (0, 0), (0.123, 0.456) ]
+//     ch1 [ (0.123, 0.456), (0, 0), (0, 0), (0.123, 0.456) ]
+//     ..
+//     ..
+static void printAdditional(const VisPayload& v)
+{
+    std::cout << "\tVisibilities:" << std::endl;
+    for (unsigned int i = 0; i < n_fine_per_coarse; ++i) {
+        std::cout << "\t\tch" << i << " [ ";
+        for (unsigned int j = 0; j < n_pol; ++j) {
+            std::cout << "(" << v.vis[index(j, i)].real <<
+                ", " << v.vis[index(j, i)].imag << ")";
+            if (j != (n_pol - 1)) {
+                std::cout << ", ";
+            }
+        }
+        std::cout << " ] "<< std::endl;
+    }
+}
+
+// Print the contents of the payload (except the visibilities). This is only
+// called when verbose == 2.
+// The format of the output is:
+//
+// Timestamp:  4679919826828364
+//    Coarse channel: 0
+//    Antenna1:   0
+//    Antenna2:   1
+//    Beam1:      0
+//    Beam2:      0
+//    ..
+//    ..
+static void printPayload(const VisPayload& v)
+{
+    std::cout << "Timestamp:\t" << v.timestamp << std::endl;
+    std::cout << "\tCoarse channel:\t" << v.coarseChannel << std::endl;
+    std::cout << "\tAntenna1:\t" << v.antenna1 << std::endl;
+    std::cout << "\tAntenna2:\t" << v.antenna2 << std::endl;
+    std::cout << "\tBeam1:\t\t" << v.beam1 << std::endl;
+    std::cout << "\tBeam2:\t\t" << v.beam2 << std::endl;
+    if (verbose == 2) {
+        printAdditional(v);
+    }
+    std::cout << std::endl;
+}
+
+// main()
 int main(int argc, char *argv[])
 {
-    if (argc != 2) {
-        std::cerr << "usage: " << argv[0] << " <udp port#>" << std::endl;
+    // Parse additional command line parameters
+    cmdlineparser::Parser parser;
+    cmdlineparser::FlagParameter verbosePar("-v");
+    cmdlineparser::FlagParameter veryVerbosePar("-vv");
+    cmdlineparser::FlaggedParameter<int> portPar("-p", 3000);
+    parser.add(verbosePar, cmdlineparser::Parser::return_default);
+    parser.add(veryVerbosePar, cmdlineparser::Parser::return_default);
+    parser.add(portPar, cmdlineparser::Parser::return_default);
+
+    try {
+        parser.process(argc, const_cast<char**> (argv));
+        if (verbosePar.defined()) verbose = 1;
+        if (veryVerbosePar.defined()) verbose = 2;
+    } catch (const cmdlineparser::XParserExtra&) {
+        std::cerr << "usage: " << argv[0] << " [-v] [-vv] [-p <udp port#>]" << std::endl;
+        std::cerr << "  -v            \t Verbose, partially display payload" << std::endl;
+        std::cerr << "  -vv           \t Very vebose, display netire payload" << std::endl;
+        std::cerr << "  -p <udp port#>\t UDP Port number to listen on" << std::endl;
         return 1;
     }
 
-    const int port = atoi(argv[1]);
-    if (port <= 1) {
-        std::cerr << "Invalid port number: " << port << std::endl;
-        return 1;
-    }
+    // Setup a signal handler for SIGTERM
+    signal(SIGTERM, termination_handler);
 
     // Create socket
     boost::asio::io_service io_service;
-    udp::socket socket(io_service, udp::endpoint(udp::v4(), port));
+    udp::socket socket(io_service, udp::endpoint(udp::v4(), portPar));
 
     // Set an 16MB receive buffer to help deal with the bursty nature of the
     // communication
@@ -69,21 +155,24 @@ int main(int argc, char *argv[])
     VisPayload vis;
 
     // Receive a buffer
-    std::cout << "Listening on UDP port " << port << std::endl;
-    unsigned long count = 0;
+    std::cout << "Listening on UDP port " << portPar << 
+        " (press CTRL-C to exit)..." <<  std::endl;
     while (true) {
         udp::endpoint remote_endpoint;
         boost::system::error_code error;
-        size_t len = socket.receive_from(boost::asio::buffer(&vis, sizeof(VisPayload)), remote_endpoint, 0, error);
+        const size_t len = socket.receive_from(boost::asio::buffer(&vis, sizeof(VisPayload)), remote_endpoint, 0, error);
         if (error) {
             throw boost::system::system_error(error);
         }
         if (len != sizeof(VisPayload)) {
             std::cout << "Error: Failed to read a full VisPayload struct" << std::endl;
         }
-
-        if (count % 10000 == 0) {
-            std::cout << "Received " << count << std::endl;
+        if (verbose) {
+            printPayload(vis);
+        } else {
+            if (count % 10000 == 0) {
+                std::cout << "Received " << count << " datagrams" << std::endl;
+            }
         }
         count++;
     }

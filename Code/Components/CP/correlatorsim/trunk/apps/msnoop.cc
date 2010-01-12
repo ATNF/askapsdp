@@ -34,6 +34,7 @@
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
+#include "CommandLineParser.h"
 
 // Local package includes
 #include "cpinterfaces/CommonTypes.h"
@@ -41,6 +42,9 @@
 
 using namespace askap::interfaces;
 using namespace askap::interfaces::datapublisher;
+
+// Globals
+static bool verbose = false;
 
 class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
     public:
@@ -67,7 +71,7 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
             switch (tv->type) {
                 // Scalar
                 case TypeNull :
-                    print();
+                    printNull();
                     newline();
                     break;
 
@@ -147,6 +151,21 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
                     newline();
                     break;
 
+                case TypeFloatComplexSeq :
+                    print(TypedValueFloatComplexSeqPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeDoubleComplexSeq :
+                    print(TypedValueDoubleComplexSeqPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
+                case TypeDirectionSeq :
+                    print(TypedValueDirectionSeqPtr::dynamicCast(tv)->value);
+                    newline();
+                    break;
+
                 default:
                     std::cout << "< Unknown type >" << std::endl;
             }
@@ -156,20 +175,13 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
             std::cout << std::endl;
         }
 
-        void print(void) {
+        template <class T>
+        void print(const T v) {
+            std::cout << v;
+        }
+
+        void printNull(void) {
             std::cout << "<null>";
-        }
-
-        void print(const int v) {
-            std::cout << v;
-        }
-
-        void print(const long v) {
-            std::cout << v;
-        }
-
-        void print(const std::string& v) {
-            std::cout << v;
         }
 
         void print(const bool v) {
@@ -205,6 +217,12 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
 
         template <class T>
         void print(std::vector<T>& v) {
+            if (!verbose) {
+                std::cout << "< Vector of size " << v.size()
+                    << " - To display contents enable verbose mode >"
+                    << std::endl;
+                return;
+            }
             typename std::vector<T>::iterator it = v.begin();
             std::cout << "[ ";
             while (it != v.end()) {
@@ -218,10 +236,30 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
         }
 };
 
+// main()
 int main(int argc, char *argv[])
 {
     Ice::CommunicatorPtr ic = Ice::initialize(argc, argv);
 
+    // Parse additional command line parameters
+    cmdlineparser::Parser parser;
+    cmdlineparser::FlagParameter verbosePar("-v");
+    cmdlineparser::FlaggedParameter<std::string> topicPar("-t", "tosmetadata");
+    parser.add(verbosePar, cmdlineparser::Parser::return_default);
+    parser.add(topicPar, cmdlineparser::Parser::return_default);
+
+    try {
+        parser.process(argc, const_cast<char**> (argv));
+        verbose = verbosePar.defined();
+    } catch (const cmdlineparser::XParserExtra&) {
+        std::cout << "usage: " << argv[0] << " [-v] [-t topic]" << std::endl;
+        std::cerr << "  -v      \tEnable more verbose output" << std::endl;
+        std::cerr << "  -t topic\tIceStorm topic name for metadata subscription" << std::endl;
+
+        return 1;
+    }
+
+    // Locate and subscribe to the IceStorm topic
     Ice::ObjectPrx obj = ic->stringToProxy("IceStorm/TopicManager");
     IceStorm::TopicManagerPrx topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
     Ice::ObjectAdapterPtr adapter = ic->createObjectAdapter("MetadataSnoopAdapter");
@@ -230,15 +268,14 @@ int main(int argc, char *argv[])
     IceStorm::TopicPrx topic;
 
     try {
-        topic = topicManager->retrieve("tosmetadata");
-    }
-    catch (const IceStorm::NoSuchTopic&) {
+        topic = topicManager->retrieve(topicPar);
+    } catch (const IceStorm::NoSuchTopic&) {
         std::cout << "Topic not found. Creating..." << std::endl;
         try {
-            topic = topicManager->create("tosmetadata");
+            topic = topicManager->create(topicPar);
         } catch (const IceStorm::TopicExists&) {
             // Someone else has already created it
-            topic = topicManager->retrieve("tosmetadata");
+            topic = topicManager->retrieve(topicPar);
         }
     }
 
@@ -252,4 +289,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
