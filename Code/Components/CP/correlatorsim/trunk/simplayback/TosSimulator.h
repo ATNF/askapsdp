@@ -1,6 +1,6 @@
-/// @file MSReader.h
+/// @file TosSimulator.h
 ///
-/// @copyright (c) 2009 CSIRO
+/// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MSREADER_H
-#define ASKAP_CP_MSREADER_H
+#ifndef ASKAP_CP_TOSSIMULATOR_H
+#define ASKAP_CP_TOSSIMULATOR_H
 
 // System includes
 #include <string>
@@ -33,7 +33,6 @@
 
 // ASKAPsoft includes
 #include "ms/MeasurementSets/MeasurementSet.h"
-#include "cpcommon/VisPayload.h"
 
 // Local package includes
 #include "cpinterfaces/TypedValues.h"
@@ -42,19 +41,27 @@ namespace askap
 {
     namespace cp
     {
-        class MSReader
+        class TosSimulator
         {
             public:
-                MSReader(const std::string& filename);
-                ~MSReader();
+                /// Constructor
+                TosSimulator(const std::string& filename);
 
-                bool fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata,
-                        std::vector<askap::cp::VisPayload>& visVec);
+                /// Destructor
+                ~TosSimulator();
+
+                /// Fill the TimeTaggedTypedValueMap with metadata for the next integration
+                /// cycle
+                bool fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata);
 
             private:
+                // Utility function, used to build a string out of two 
                 std::string makeMapKey(const std::string &prefix, const std::string &suffix);
 
+                // Measurement set
                 casa::MeasurementSet itsMS;
+
+                // Cursor (index) for the main table of the measurement set
                 unsigned int itsCurrentRow;
         };
     };

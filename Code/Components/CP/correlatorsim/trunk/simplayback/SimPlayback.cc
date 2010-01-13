@@ -28,11 +28,10 @@
 #include "SimPlayback.h"
 
 // Include package level header file
-#include <askap_correlatorsim.h>
+#include "askap_correlatorsim.h"
 
 // System includes
 #include <string>
-#include <unistd.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -42,7 +41,8 @@
 
 // Local package includes
 #include "cpinterfaces/TypedValues.h"
-#include "simplayback/MSReader.h"
+#include "simplayback/CorrelatorSimulator.h"
+#include "simplayback/TosSimulator.h"
 #include "simplayback/MetadataPort.h"
 #include "simplayback/VisPort.h"
 
@@ -65,9 +65,9 @@ void SimPlayback::run(void)
     // Get the filename for the measurement set and create a reader
     const std::string dataset = itsParset.getString("playback.dataset");
     ASKAPLOG_INFO_STR(logger, "Streaming dataset " << dataset);
-    MSReader reader(dataset);
+    TosSimulator tosSim(dataset);
+    CorrelatorSimulator corrSim(dataset);
 
-    unsigned long count = 1; // Just for debugging, can be removed
     bool moreData = true;
     while (moreData) {
         // Structures to be populated and sent
@@ -75,13 +75,16 @@ void SimPlayback::run(void)
         std::vector<askap::cp::VisPayload> visibilities;
 
         // Populate the structures
-        moreData = reader.fillNext(metadata, visibilities);
+        moreData = tosSim.fillNext(metadata);
+        bool corrMore = corrSim.fillNext(visibilities);
+        if (corrMore != moreData) {
+            ASKAPLOG_FATAL_STR(logger, "TosSimulator and CorrelatorSimulator state mismatch, aborting.");
+            return;
+        }
 
         // Send
-        ASKAPLOG_DEBUG_STR(logger, "Sending payload " << count);
         itsMetadataPort.send(metadata);
         itsVisPort.send(visibilities);
-        count++; // Just for debugging, can be removed
     }
     ASKAPLOG_INFO_STR(logger, "Completed streaming " << dataset);
 }
