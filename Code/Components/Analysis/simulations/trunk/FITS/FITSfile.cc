@@ -510,7 +510,7 @@ namespace askap {
                     double *newwld = new double[3];
                     std::ofstream outfile;
 
-                    int countGauss = 0, countPoint = 0;
+                    int countGauss = 0, countPoint = 0, countMiss=0, countDud=0;
 
 		    Continuum cont;
 		    HIprofileS3SEX profSEX;
@@ -609,14 +609,14 @@ namespace askap {
                                 outfile << "\n";
                             }
 
-			    bool lookAtSource = this->itsArrayAllocated && (this->itsAddSources || this->itsDryRun);
+			    bool lookAtSource = (this->itsArrayAllocated && this->itsAddSources) || this->itsDryRun;
 
 			    if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
 			      // check the frequency limits for this source to see whether we need to look at it.
 			      std::pair<double,double> freqLims = profSAX.freqLimits();
 			      bool isGood = (freqLims.first < maxFreq) && (freqLims.second > minFreq);
-// 			      if(isGood) ASKAPLOG_DEBUG_STR(logger, "Source (" << freqLims.second<<"-"<<freqLims.first<<") lies within freq limits");
-// 			      else ASKAPLOG_DEBUG_STR(logger, "Outside freq limits! (" << freqLims.second<<"-"<<freqLims.first<<")");
+			      if(isGood) ASKAPLOG_DEBUG_STR(logger, "Source (" << freqLims.second<<"-"<<freqLims.first<<") lies within freq limits");
+			      else ASKAPLOG_DEBUG_STR(logger, "Outside freq limits! (" << freqLims.second<<"-"<<freqLims.first<<")");
 			      lookAtSource = lookAtSource && isGood;
 			    }
 
@@ -659,12 +659,15 @@ namespace askap {
                                     if (!this->itsDryRun) addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
                                     else if (doAddGaussian(this->itsAxes, gauss))
                                         countGauss++;
+				    else countMiss++;
                                 } else {
                                     if (!this->itsDryRun) addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
                                     else if (doAddPointSource(this->itsAxes, pix))
                                         countPoint++;
+				    else countMiss++;
                                 }
                             }
+			    else if(this->itsDryRun) countDud++;
 
                         } else {
                             // Write all commented lines directly into the output file
@@ -677,7 +680,7 @@ namespace askap {
                     srclist.close();
 
                     if (this->itsDryRun)
-                        ASKAPLOG_INFO_STR(logger, "Would add " << countPoint << " point sources and " << countGauss << " Gaussians");
+		        ASKAPLOG_INFO_STR(logger, "Would add " << countPoint << " point sources and " << countGauss << " Gaussians, with " << countMiss<<" misses and " << countDud << " duds");
 
 
                     ASKAPLOG_DEBUG_STR(logger, "Finished adding sources");
