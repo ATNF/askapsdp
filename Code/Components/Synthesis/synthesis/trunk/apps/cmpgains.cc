@@ -39,6 +39,8 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <fitting/Params.h>
 #include <askap/Log4cxxLogSink.h>
+// just for logging
+#include <askapparallel/AskapParallel.h>
 
 // command line parser
 #include <CommandLineParser.h>
@@ -59,10 +61,14 @@ bool exists(const Cont &cnt, const typename Cont::value_type &val)
   return  ci != cnt.end();
 }
 
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
    using namespace askap;
    using namespace askap::synthesis;
+
+   // This class must have scope outside the main try/catch block
+   // we need it to initialise the logging properly
+   mwbase::AskapParallel comms(argc, argv);
 
    try {
       // Ensure that CASA log messages are captured
@@ -78,7 +84,7 @@ int main(int argc, char **argv)
       parser.add(gainsFileName1);
       parser.add(gainsFileName2);
       
-      parser.process(argc,argv);
+      parser.process(argc,const_cast<char**>(argv));
       
       ASKAPLOG_INFO_STR(logger,"Loading gains from file "<<gainsFileName1.getValue());
       scimath::Params gains1;
@@ -94,11 +100,14 @@ int main(int argc, char **argv)
       std::set_union(names1.begin(),names1.end(),names2.begin(),names2.end(),std::inserter(allnames,allnames.begin()));
       std::ofstream os("out.dat");
       for (std::set<std::string>::const_iterator ci = allnames.begin(); ci!=allnames.end(); ++ci) {
-           ASKAPCHECK(exists(names1,*ci), "Gain parameter "<<*ci<<" is missing in the first parameter set");
-           ASKAPCHECK(exists(names2,*ci), "Gain parameter "<<*ci<<" is missing in the second parameter set");
+           if (!exists(names1,*ci) || !exists(names2,*ci)) {
+               ASKAPLOG_INFO_STR(logger,"Gain parameter "<<*ci<<" is not present in both parameter sets");
+               continue;
+           }
            const casa::Complex g1 = gains1.complexValue(*ci);
            const casa::Complex g2 = gains2.complexValue(*ci);           
-           os<<*ci<<" "<<abs(g1)<<" "<<abs(g2)<<std::endl;
+           //os<<*ci<<" "<<arg(g1)*180./casa::C::pi<<" "<<arg(g2)*180./casa::C::pi<<std::endl;
+           os<<*ci<<" "<<real(g1*conj(g2))<<" "<<imag(g1*conj(g2))<<std::endl;
       }
    }
    catch (const cmdlineparser::XParser &ex) {
