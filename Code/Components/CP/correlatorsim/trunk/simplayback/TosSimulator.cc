@@ -58,18 +58,25 @@ using namespace casa;
 
 ASKAP_LOGGER(logger, ".TosSimulator");
 
-TosSimulator::TosSimulator(const std::string& filename)
-: itsMS(filename, casa::Table::Old), itsCurrentRow(0)
+TosSimulator::TosSimulator(const LOFAR::ParameterSet& parset)
+: itsParset(parset), itsCurrentRow(0)
 {
+    const std::string filename = itsParset.getString("playback.corrsim.shelf1.dataset");
+    itsMS.reset(new casa::MeasurementSet(filename, casa::Table::Old));
+
+    itsPort.reset(new askap::cp::MetadataPort(itsParset));
 }
 
 TosSimulator::~TosSimulator()
 {
+    itsMS.reset();
+    itsPort.reset();
 }
 
-bool TosSimulator::fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata)
+bool TosSimulator::fillNext(void)
 {
-    ROMSColumns msc(itsMS);
+    askap::interfaces::TimeTaggedTypedValueMap metadata;
+    ROMSColumns msc(*itsMS);
 
     // Get a reference to the columns of interest
     const casa::ROMSAntennaColumns& antc = msc.antenna();
@@ -245,6 +252,9 @@ bool TosSimulator::fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata
     while (itsCurrentRow != nRow && (currentIntegration == msc.time()(itsCurrentRow))) {
         itsCurrentRow++;
     }
+
+    // Send the payload
+    itsPort->send(metadata);
 
     if (itsCurrentRow == nRow) {
         return false; // Indicate there is no more data after this payload

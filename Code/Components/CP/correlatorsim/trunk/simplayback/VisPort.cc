@@ -37,7 +37,6 @@
 #include "boost/asio.hpp"
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
-#include "Common/ParameterSet.h"
 #include "cpcommon/VisPayload.h"
 
 // Local package includes
@@ -49,21 +48,9 @@ using boost::asio::ip::udp;
 
 ASKAP_LOGGER(logger, ".VisPort");
 
-VisPort::VisPort(const LOFAR::ParameterSet& parset)
-    : itsParset(parset), itsSocket(itsIOService)
+VisPort::VisPort(const std::string& hostname, const std::string& port)
+    : itsSocket(itsIOService)
 {
-    // Ensure the hostname and port numbers are present in the parset
-    const std::string hostnameKey = "playback.visibilities.hostname";
-    const std::string portKey = "playback.visibilities.port";
-    if (!itsParset.isDefined(hostnameKey)) {
-        ASKAPTHROW(AskapError, "visibilities.hostname not present in parset");
-    }
-    if (!itsParset.isDefined(portKey)) {
-        ASKAPTHROW(AskapError, "visibilities.port not present in parset");
-    }
-    const std::string hostname = itsParset.getString(hostnameKey);
-    const std::string port = itsParset.getString(portKey);
-
     // Open the socket using UDP protocol
     boost::system::error_code operror;
     itsSocket.open(udp::v4(), operror);

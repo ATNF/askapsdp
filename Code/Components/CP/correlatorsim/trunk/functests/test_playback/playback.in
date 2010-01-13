@@ -1,11 +1,17 @@
-playback.dataset                            = ../../dataset/askap_cchan0.ms
+#
+# Telescope Operating Simulator Configuration
+#
+playback.tossim.ice.locator_host            = localhost
+playback.tossim.ice.locator_port            = 4061
+playback.tossim.icestorm.topicmanager       = IceStorm/TopicManager
+playback.tossim.icestorm.topic              = tosmetadata
 
-playback.ice.locator_host                   = localhost
-playback.ice.locator_port                   = 4061
+#
+# Correlator Simulator
+#
+playback.corrsim.n_shelves                  = 1
 
-playback.metadata.icestorm.topicmanager     = IceStorm/TopicManager
-playback.metadata.icestorm.topic            = tosmetadata
-
-playback.visibilities.hostname              = localhost
-playback.visibilities.port                  = 3000
-
+# Correlator Shelf 1
+playback.corrsim.shelf1.dataset             = ../../dataset/askap_cchan0.ms
+playback.corrsim.shelf1.out.hostname        = localhost
+playback.corrsim.shelf1.out.port            = 3000

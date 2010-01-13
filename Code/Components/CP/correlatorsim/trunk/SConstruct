@@ -18,6 +18,10 @@ pkg.AddSubPackage("cpinterfaces")
 pkg.AddInterfaces("CommonTypes.ice", "cpinterfaces")
 pkg.AddInterfaces("TypedValues.ice", "cpinterfaces")
 
+env["CC"] = "mpicc"
+env["CXX"] = "mpicxx"
+env["LINK"] = "mpicxx"
+env["SHLINK"] = "mpicxx"
 env.Append(CCFLAGS=['-O2', '-g'])
 
 # run the build process

@@ -33,36 +33,46 @@
 
 // ASKAPsoft includes
 #include "ms/MeasurementSets/MeasurementSet.h"
+#include "Common/ParameterSet.h"
+#include "boost/scoped_ptr.hpp"
 
 // Local package includes
+#include "simplayback/ISimulator.h"
+#include "simplayback/MetadataPort.h"
 #include "cpinterfaces/TypedValues.h"
 
 namespace askap
 {
     namespace cp
     {
-        class TosSimulator
+        class TosSimulator : public ISimulator
         {
             public:
                 /// Constructor
-                TosSimulator(const std::string& filename);
+                TosSimulator(const LOFAR::ParameterSet& parset);
 
                 /// Destructor
-                ~TosSimulator();
+                virtual ~TosSimulator();
 
                 /// Fill the TimeTaggedTypedValueMap with metadata for the next integration
                 /// cycle
-                bool fillNext(askap::interfaces::TimeTaggedTypedValueMap& metadata);
+                bool fillNext(void);
 
             private:
                 // Utility function, used to build a string out of two 
                 std::string makeMapKey(const std::string &prefix, const std::string &suffix);
 
-                // Measurement set
-                casa::MeasurementSet itsMS;
+                // ParameterSet (configuration)
+                const LOFAR::ParameterSet itsParset;
 
                 // Cursor (index) for the main table of the measurement set
                 unsigned int itsCurrentRow;
+
+                // Measurement set
+                boost::scoped_ptr<casa::MeasurementSet> itsMS;
+
+                // Port for output of metadata
+                boost::scoped_ptr<askap::cp::MetadataPort> itsPort;
         };
     };
 };

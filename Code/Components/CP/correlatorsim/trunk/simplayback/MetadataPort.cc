@@ -62,9 +62,9 @@ MetadataPort::MetadataPort(const LOFAR::ParameterSet& parset)
     // IceGrid/Locator:tcp -h localhost -p 4061
     std::ostringstream ss;
     ss << "IceGrid/Locator:tcp -h ";
-    ss << itsParset.getString("playback.ice.locator_host");
+    ss << itsParset.getString("playback.tossim.ice.locator_host");
     ss << " -p ";
-    ss << itsParset.getString("playback.ice.locator_port");
+    ss << itsParset.getString("playback.tossim.ice.locator_port");
     std::string locatorParam = ss.str();
 
     props->setProperty("Ice.Default.Locator", locatorParam);
@@ -78,9 +78,9 @@ MetadataPort::MetadataPort(const LOFAR::ParameterSet& parset)
 
     // Get the topic for the metadata stream
     const std::string mdTopicManager =
-        itsParset.getString("playback.metadata.icestorm.topicmanager");
+        itsParset.getString("playback.tossim.icestorm.topicmanager");
     const std::string mdTopic =
-        itsParset.getString("playback.metadata.icestorm.topic");
+        itsParset.getString("playback.tossim.icestorm.topic");
     itsMetadataStream = ITimeTaggedTypedValueMapPublisherPrx::uncheckedCast(
             getProxy(mdTopicManager, mdTopic));
 }

@@ -33,31 +33,42 @@
 
 // ASKAPsoft includes
 #include "ms/MeasurementSets/MeasurementSet.h"
-#include "cpcommon/VisPayload.h"
+#include "Common/ParameterSet.h"
+#include "boost/scoped_ptr.hpp"
+
+// Local package includes
+#include "simplayback/ISimulator.h"
+#include "simplayback/VisPort.h"
 
 namespace askap
 {
     namespace cp
     {
-        class CorrelatorSimulator
+        class CorrelatorSimulator : public ISimulator
         {
             public:
                 // Constructor
-                CorrelatorSimulator(const std::string& filename);
+                CorrelatorSimulator(const LOFAR::ParameterSet& parset);
 
                 // Destructor
-                ~CorrelatorSimulator();
+                virtual ~CorrelatorSimulator();
 
                 /// Fill the TimeTaggedTypedValueMap with metadata for the next integration
                 /// cycle
-                bool fillNext(std::vector<askap::cp::VisPayload>& visVec);
+                bool fillNext(void);
 
             private:
-                // Measurement set
-                casa::MeasurementSet itsMS;
+                // ParameterSet (configuration)
+                const LOFAR::ParameterSet itsParset;
 
                 // Cursor (index) for the main table of the measurement set
                 unsigned int itsCurrentRow;
+
+                // Measurement set
+                boost::scoped_ptr<casa::MeasurementSet> itsMS;
+
+                // Port for output of metadata
+                boost::scoped_ptr<askap::cp::VisPort> itsPort;
         };
     };
 };

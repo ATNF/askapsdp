@@ -32,19 +32,19 @@
 
 // System includes
 #include <string>
+#include <mpi.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "Common/ParameterSet.h"
-#include "cpcommon/VisPayload.h"
+#include "boost/scoped_ptr.hpp"
+
 
 // Local package includes
-#include "cpinterfaces/TypedValues.h"
+#include "simplayback/ISimulator.h"
 #include "simplayback/CorrelatorSimulator.h"
 #include "simplayback/TosSimulator.h"
-#include "simplayback/MetadataPort.h"
-#include "simplayback/VisPort.h"
 
 // Using
 using namespace askap::cp;
@@ -52,8 +52,10 @@ using namespace askap::cp;
 ASKAP_LOGGER(logger, ".SimPlayback");
 
 SimPlayback::SimPlayback(const LOFAR::ParameterSet& parset)
-    : itsParset(parset), itsMetadataPort(parset), itsVisPort(parset)
+    : itsParset(parset)
 {
+    MPI_Comm_rank(MPI_COMM_WORLD, &itsRank);
+    MPI_Comm_size(MPI_COMM_WORLD, &itsNumProcs);
 }
 
 SimPlayback::~SimPlayback()
@@ -62,29 +64,27 @@ SimPlayback::~SimPlayback()
 
 void SimPlayback::run(void)
 {
-    // Get the filename for the measurement set and create a reader
-    const std::string dataset = itsParset.getString("playback.dataset");
-    ASKAPLOG_INFO_STR(logger, "Streaming dataset " << dataset);
-    TosSimulator tosSim(dataset);
-    CorrelatorSimulator corrSim(dataset);
+    if (itsRank == 0) {
+        // Check there are enough ranks
+        const int nShelves = itsParset.getUint32("playback.corrsim.n_shelves");
+        ASKAPCHECK(itsNumProcs == (nShelves+1),
+                "Incorrect number of ranks for the requested configration");
+    }
 
+    boost::scoped_ptr<ISimulator> sim;
+    if (itsRank == 0) {
+        sim.reset(new TosSimulator(itsParset));
+    } else {
+        sim.reset(new CorrelatorSimulator(itsParset));
+    }
+
+    ASKAPLOG_INFO_STR(logger, "Starting... ");
     bool moreData = true;
     while (moreData) {
-        // Structures to be populated and sent
-        askap::interfaces::TimeTaggedTypedValueMap metadata;
-        std::vector<askap::cp::VisPayload> visibilities;
-
-        // Populate the structures
-        moreData = tosSim.fillNext(metadata);
-        bool corrMore = corrSim.fillNext(visibilities);
-        if (corrMore != moreData) {
-            ASKAPLOG_FATAL_STR(logger, "TosSimulator and CorrelatorSimulator state mismatch, aborting.");
-            return;
-        }
-
-        // Send
-        itsMetadataPort.send(metadata);
-        itsVisPort.send(visibilities);
+        MPI_Barrier(MPI_COMM_WORLD);
+        moreData = sim->fillNext();
     }
-    ASKAPLOG_INFO_STR(logger, "Completed streaming " << dataset);
+
+    ASKAPLOG_INFO_STR(logger, "Completed");
+    sim.reset();
 }

@@ -1,6 +1,6 @@
-/// @file SimPlayback.h
+/// @file ISimulator.cc
 ///
-/// @copyright (c) 2009 CSIRO
+/// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,34 +24,9 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SIMPLAYBACK_H
-#define ASKAP_CP_SIMPLAYBACK_H
+// Include own header file first
+#include "simplayback/ISimulator.h"
 
-// ASKAPsoft includes
-#include "Common/ParameterSet.h"
-
-namespace askap
+askap::cp::ISimulator::~ISimulator()
 {
-    namespace cp
-    {
-        class SimPlayback
-        {
-            public:
-                SimPlayback(const LOFAR::ParameterSet& parset);
-                ~SimPlayback();
-
-                void run(void);
-
-            private:
-                // ParameterSet (configuration)
-                const LOFAR::ParameterSet itsParset;
-
-                // Rank of this process
-                int itsRank;
-
-                // Total number of processes
-                int itsNumProcs;
-        };
-    };
-};
-#endif
+}

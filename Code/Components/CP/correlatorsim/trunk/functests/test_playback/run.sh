@@ -16,9 +16,8 @@ $ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/vsnoop -p 3000 > vsnoop.
 VISPID=$!
 
 # Run the test
-$ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/playback.sh -inputs playback.in
+mpirun -np 2 $ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/playback.sh -inputs playback.in
 STATUS=$?
-sleep 1
 
 # Give the subscriber a moment to get the last messages then exit
 sleep 5

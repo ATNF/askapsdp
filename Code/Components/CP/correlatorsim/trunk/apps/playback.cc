@@ -30,7 +30,9 @@
 // System includes
 #include <unistd.h>
 #include <string>
+#include <sstream>
 #include <stdexcept>
+#include <mpi.h>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -51,32 +53,44 @@ ASKAP_LOGGER(logger, ".main");
 
 static std::string getNodeName(void)
 {
-    const int HOST_NAME_MAXLEN = 256;
-    char name[HOST_NAME_MAXLEN];
-    gethostname(name, HOST_NAME_MAXLEN);
+    // Also set the nodename
+    char name[MPI_MAX_PROCESSOR_NAME];
+    int resultlen;
+    MPI_Get_processor_name(name, &resultlen);
     std::string nodename(name);
-
     std::string::size_type idx = nodename.find_first_of('.');
     if (idx != std::string::npos) {
         // Extract just the hostname part
         nodename = nodename.substr(0, idx);
     }
-
     return nodename;
+}
+
+static std::string getRank(void)
+{
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    std::ostringstream ss;
+    ss << rank;
+    return ss.str();
 }
 
 int main(int argc, char* argv[])
 {
+    MPI_Init(&argc, &argv);
+
     try {
         // Initialise the logger
         std::ostringstream ss;
         ss << argv[0] << ".log_cfg";
         ASKAPLOG_INIT(ss.str().c_str());
 
-        // Tell the logger the hostname
-        std::string hostname = getNodeName();
+        // To aid in debugging, the logger needs to know the
+        // MPI rank and nodename
+        ASKAPLOG_REMOVECONTEXT("mpirank");
+        ASKAPLOG_PUTCONTEXT("mpirank", getRank().c_str());
         ASKAPLOG_REMOVECONTEXT("hostname");
-        ASKAPLOG_PUTCONTEXT("hostname", hostname.c_str());
+        ASKAPLOG_PUTCONTEXT("hostname", getNodeName().c_str());
 
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
@@ -97,7 +111,7 @@ int main(int argc, char* argv[])
 
         const std::string parsetFile = inputsPar;
 
-        // Create a parset
+        // Create a parset from the config file
         LOFAR::ParameterSet parset(parsetFile);
 
         askap::cp::SimPlayback pb(parset);
@@ -120,6 +134,8 @@ int main(int argc, char* argv[])
             << std::endl;
         return 1;
     }
+
+    MPI_Finalize();
 
     return 0;
 }

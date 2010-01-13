@@ -53,18 +53,37 @@ using namespace casa;
 
 ASKAP_LOGGER(logger, ".CorrelatorSimulator");
 
-CorrelatorSimulator::CorrelatorSimulator(const std::string& filename)
-: itsMS(filename, casa::Table::Old), itsCurrentRow(0)
+CorrelatorSimulator::CorrelatorSimulator(const LOFAR::ParameterSet& parset)
+: itsParset(parset), itsCurrentRow(0)
 {
+    const std::string filename = itsParset.getString("playback.corrsim.shelf1.dataset");
+    itsMS.reset(new casa::MeasurementSet(filename, casa::Table::Old));
+
+    // Ensure the hostname and port numbers are present in the parset
+    const std::string hostnameKey = "playback.corrsim.shelf1.out.hostname";
+    const std::string portKey = "playback.corrsim.shelf1.out.port";
+    if (!itsParset.isDefined(hostnameKey)) {
+        ASKAPTHROW(AskapError, "visibilities.hostname not present in parset");
+    }
+    if (!itsParset.isDefined(portKey)) {
+        ASKAPTHROW(AskapError, "visibilities.port not present in parset");
+    }
+    const std::string hostname = itsParset.getString(hostnameKey);
+    const std::string port = itsParset.getString(portKey);
+
+    itsPort.reset(new askap::cp::VisPort(hostname, port));
 }
 
 CorrelatorSimulator::~CorrelatorSimulator()
 {
+    itsMS.reset();
+    itsPort.reset();
 }
 
-bool CorrelatorSimulator::fillNext(std::vector<askap::cp::VisPayload>& visVec)
+bool CorrelatorSimulator::fillNext(void)
 {
-    ROMSColumns msc(itsMS);
+    std::vector<askap::cp::VisPayload> visVec;
+    ROMSColumns msc(*itsMS);
 
     // Get a reference to the columns of interest
     //const casa::ROMSAntennaColumns& antc = msc.antenna();
@@ -143,6 +162,8 @@ bool CorrelatorSimulator::fillNext(std::vector<askap::cp::VisPayload>& visVec)
         visVec.push_back(payload);
         itsCurrentRow++;
     }
+
+    itsPort->send(visVec);
 
     if (itsCurrentRow == nRow) {
         return false; // Indicate there is no more data after this payload

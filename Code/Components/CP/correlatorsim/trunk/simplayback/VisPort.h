@@ -32,7 +32,6 @@
 
 // ASKAPsoft includes
 #include "boost/asio.hpp"
-#include "Common/ParameterSet.h"
 #include "cpcommon/VisPayload.h"
 
 // Local package includes
@@ -44,15 +43,12 @@ namespace askap
         class VisPort
         {
             public:
-                VisPort(const LOFAR::ParameterSet& parset);
+                VisPort(const std::string& hostname, const std::string& port);
                 ~VisPort();
 
                 void send(const std::vector<askap::cp::VisPayload>& payload);
 
             private:
-                // ParameterSet (configuration)
-                const LOFAR::ParameterSet itsParset;
-
                 // io_service
                 boost::asio::io_service itsIOService;
 
