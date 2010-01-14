@@ -6,4 +6,4 @@ askapparallel=Code/Base/mwbase/askapparallel/trunk
 casacore=3rdParty/casacore/tags/casacore-1.0.0;casa_ms casa_images casa_components casa_mirlib casa_coordinates casa_fits casa_lattices casa_measures casa_scimath casa_scimath_f casa_tables casa_casa
 boost=3rdParty/boost/tags/boost-1.37.0
 askap=Code/Base/askap/trunk
-cmdlineparser=3rdParty/cmdlineparser/tags/cmdlineparser-0.1.0
+cmdlineparser=3rdParty/cmdlineparser/tags/cmdlineparser-0.1.1
