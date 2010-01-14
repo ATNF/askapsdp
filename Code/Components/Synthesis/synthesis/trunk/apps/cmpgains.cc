@@ -100,6 +100,9 @@ int main(int argc, const char **argv)
       std::set_union(names1.begin(),names1.end(),names2.begin(),names2.end(),std::inserter(allnames,allnames.begin()));
       std::ofstream os("out.dat");
       for (std::set<std::string>::const_iterator ci = allnames.begin(); ci!=allnames.end(); ++ci) {
+           if (ci->find("g11") == std::string::npos) {
+               continue;
+           }
            if (!exists(names1,*ci) || !exists(names2,*ci)) {
                ASKAPLOG_INFO_STR(logger,"Gain parameter "<<*ci<<" is not present in both parameter sets");
                continue;
@@ -107,7 +110,7 @@ int main(int argc, const char **argv)
            const casa::Complex g1 = gains1.complexValue(*ci);
            const casa::Complex g2 = gains2.complexValue(*ci);           
            //os<<*ci<<" "<<arg(g1)*180./casa::C::pi<<" "<<arg(g2)*180./casa::C::pi<<std::endl;
-           os<<*ci<<" "<<real(g1*conj(g2))<<" "<<imag(g1*conj(g2))<<std::endl;
+           os<<*ci<<" "<<abs(g1*conj(g2))<<" "<<arg(g1*conj(g2))<<std::endl;
       }
    }
    catch (const cmdlineparser::XParser &ex) {
