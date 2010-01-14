@@ -39,11 +39,11 @@ int main(int argc, const char** argv) {
      const casa::IPosition shape = img.shape();
      
      casa::IPosition blc(shape.nelements(),0);
-     blc[2] = startchan;
+     blc[3] = startchan;
      casa::IPosition trc(shape);
-     trc[2] = nchan;
-     ASKAPCHECK(blc[2]>=0 && blc[2]<shape[2], "Start channel is outside the number of channels or negative, shape: "<<shape);
-     ASKAPCHECK(trc[2]+blc[2]<=shape[2], "Subcube extends beyond the original cube, shape:"<<shape);
+     trc[3] = nchan;
+     ASKAPCHECK(blc[3]>=0 && blc[3]<shape[3], "Start channel is outside the number of channels or negative, shape: "<<shape);
+     ASKAPCHECK(trc[3]+blc[3]<=shape[3], "Subcube extends beyond the original cube, shape:"<<shape);
      
      casa::Slicer slc(blc,trc,casa::IPosition(shape.nelements(),1));
      
