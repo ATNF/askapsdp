@@ -29,6 +29,11 @@
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
+#include "boost/shared_ptr.hpp"
+
+// Local package includes
+#include "simplayback/CorrelatorSimulator.h"
+#include "simplayback/TosSimulator.h"
 
 namespace askap
 {
@@ -43,6 +48,12 @@ namespace askap
                 void run(void);
 
             private:
+                void validateConfig(void);
+
+                boost::shared_ptr<TosSimulator> makeTosSim(void);
+
+                boost::shared_ptr<CorrelatorSimulator> makeCorrelatorSim(void);
+
                 // ParameterSet (configuration)
                 const LOFAR::ParameterSet itsParset;
 

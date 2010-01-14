@@ -33,7 +33,6 @@
 
 // ASKAPsoft includes
 #include "ms/MeasurementSets/MeasurementSet.h"
-#include "Common/ParameterSet.h"
 #include "boost/scoped_ptr.hpp"
 
 // Local package includes
@@ -48,19 +47,16 @@ namespace askap
         {
             public:
                 // Constructor
-                CorrelatorSimulator(const LOFAR::ParameterSet& parset);
+                CorrelatorSimulator(const std::string& dataset,
+                        const std::string& hostname,
+                        const std::string& port);
 
                 // Destructor
                 virtual ~CorrelatorSimulator();
 
-                /// Fill the TimeTaggedTypedValueMap with metadata for the next integration
-                /// cycle
-                bool fillNext(void);
+                bool sendNext(void);
 
             private:
-                // ParameterSet (configuration)
-                const LOFAR::ParameterSet itsParset;
-
                 // Cursor (index) for the main table of the measurement set
                 unsigned int itsCurrentRow;
 

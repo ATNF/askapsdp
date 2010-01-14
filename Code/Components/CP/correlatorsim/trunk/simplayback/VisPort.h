@@ -48,6 +48,8 @@ namespace askap
 
                 void send(const std::vector<askap::cp::VisPayload>& payload);
 
+                void send(const askap::cp::VisPayload& payload);
+
             private:
                 // io_service
                 boost::asio::io_service itsIOService;

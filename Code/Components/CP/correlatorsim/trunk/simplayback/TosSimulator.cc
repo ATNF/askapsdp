@@ -58,13 +58,16 @@ using namespace casa;
 
 ASKAP_LOGGER(logger, ".TosSimulator");
 
-TosSimulator::TosSimulator(const LOFAR::ParameterSet& parset)
-: itsParset(parset), itsCurrentRow(0)
+TosSimulator::TosSimulator(const std::string& dataset,
+        const std::string& locatorHost,
+        const std::string& locatorPort,
+        const std::string& topicManager,                
+        const std::string& topic)
+: itsCurrentRow(0)
 {
-    const std::string filename = itsParset.getString("playback.corrsim.shelf1.dataset");
-    itsMS.reset(new casa::MeasurementSet(filename, casa::Table::Old));
-
-    itsPort.reset(new askap::cp::MetadataPort(itsParset));
+    itsMS.reset(new casa::MeasurementSet(dataset, casa::Table::Old));
+    itsPort.reset(new askap::cp::MetadataPort(locatorHost, locatorPort,
+                  topicManager, topic));
 }
 
 TosSimulator::~TosSimulator()
@@ -73,7 +76,7 @@ TosSimulator::~TosSimulator()
     itsPort.reset();
 }
 
-bool TosSimulator::fillNext(void)
+bool TosSimulator::sendNext(void)
 {
     askap::interfaces::TimeTaggedTypedValueMap metadata;
     ROMSColumns msc(*itsMS);
@@ -102,7 +105,7 @@ bool TosSimulator::fillNext(void)
     // being processed
     casa::Double currentIntegration = msc.time()(itsCurrentRow);
     ASKAPLOG_DEBUG_STR(logger, "Processing integration with timestamp "
-            << std::setprecision (13) << currentIntegration);
+                           << std::setprecision(13) << currentIntegration);
 
 
     //////////////////////////////////////////////////////////////
@@ -130,7 +133,7 @@ bool TosSimulator::fillNext(void)
         metadata.data["n_coarse_chan"] = new TypedValueInt(TypeInt, nCoarseChan);
     }
 
-    // n_antennas 
+    // n_antennas
     {
         metadata.data["n_antennas"] = new TypedValueInt(TypeInt, nAntenna);
     }
@@ -148,13 +151,15 @@ bool TosSimulator::fillNext(void)
         metadata.data["n_pol"] = new TypedValueInt(TypeInt, nCorr);
     }
 
-    // antenna_names 
+    // antenna_names
     {
         casa::Vector<casa::String> v  = antc.name().getColumn();
         StringSeq sseq;
+
         for (unsigned int i = 0; i < v.size(); ++i) {
             sseq.push_back(v(i));
         }
+
         TypedValueStringSeqPtr tv = new TypedValueStringSeq(TypeStringSeq, sseq);
         metadata.data["antenna_names"] = tv;
     }
@@ -201,29 +206,33 @@ bool TosSimulator::fillNext(void)
             // <antenna name>.phase_tracking_centre
             DirectionSeq ptc;
             ptc.resize(nBeam * nCoarseChan);
+
             for (unsigned int i = 0; i < ptc.size(); ++i) {
                 ptc[i].coord1 = direction.getAngle().getValue()(0);
                 ptc[i].coord2 = direction.getAngle().getValue()(1);
             }
-            metadata.data[makeMapKey(name, "phase_tracking_centre")] = new TypedValueDirectionSeq(TypeDirectionSeq, ptc);
+
+            metadata.data[makeMapKey(name, "phase_tracking_centre")] =
+                new TypedValueDirectionSeq(TypeDirectionSeq, ptc);
         }
 
         {
             // <antenna name>.parallactic_angle
             casa::Double parAngle = 0.0; // TODO
-            metadata.data[makeMapKey(name, "parallactic_angle")] = new TypedValueDouble(TypeDouble, parAngle);
+            metadata.data[makeMapKey(name, "parallactic_angle")] =
+                new TypedValueDouble(TypeDouble, parAngle);
         }
 
         {
             // <antenna name>.flag.on_source
-            // TODO: Current no flagging, but it would be good to read this from the 
+            // TODO: Current no flagging, but it would be good to read this from the
             // actual measurement set
             metadata.data[makeMapKey(name, "flag.on_source")] = new TypedValueBool(TypeBool, true);
         }
 
         {
             // <antenna name>.flag.hw_error
-            // TODO: Current no flagging, but it would be good to read this from the 
+            // TODO: Current no flagging, but it would be good to read this from the
             // actual measurement set
             metadata.data[makeMapKey(name, "flag.hw_error")] = new TypedValueBool(TypeBool, false);
         }
@@ -231,7 +240,7 @@ bool TosSimulator::fillNext(void)
         {
             // <antenna name>.flag.detailed
             BoolSeq flag;
-            // TODO: Current no flagging, but it would be good to read this from the 
+            // TODO: Current no flagging, but it would be good to read this from the
             // actual measurement set
             flag.assign(nBeam * nCoarseChan * nCorr, false);
             metadata.data[makeMapKey(name, "flag.detailed")] = new TypedValueBoolSeq(TypeBoolSeq, flag);

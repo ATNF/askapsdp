@@ -39,8 +39,6 @@
 #include "askap/AskapLogging.h"
 #include "cpcommon/VisPayload.h"
 
-// Local package includes
-
 // Using
 using namespace askap;
 using namespace askap::cp;
@@ -91,14 +89,19 @@ VisPort::~VisPort()
     itsSocket.close();
 }
 
+void VisPort::send(const askap::cp::VisPayload& payload)
+{
+    boost::system::error_code error;
+    itsSocket.send(boost::asio::buffer(&payload, sizeof(VisPayload)), 0, error);
+    if (error) {
+        ASKAPLOG_ERROR_STR(logger, "UDP send failed: " << error);
+    }
+}
+
 void VisPort::send(const std::vector<askap::cp::VisPayload>& payload)
 {
     // Send each payload in the vector
     for (unsigned int i = 0; i < payload.size(); ++i) {
-        boost::system::error_code error;
-        itsSocket.send(boost::asio::buffer(&payload[i], sizeof(VisPayload)), 0, error);
-        if (error) {
-            ASKAPLOG_ERROR_STR(logger, "UDP send failed: " << error);
-        }
+        send(payload[i]);
     }
 }

@@ -37,7 +37,7 @@ namespace askap
                 /// @brief Destructor.
                 virtual ~ISimulator();
 
-                virtual bool fillNext(void) = 0;
+                virtual bool sendNext(void) = 0;
         };
     };
 };

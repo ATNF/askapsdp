@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
 {
     MPI_Init(&argc, &argv);
 
+    int error = 0;
     try {
         // Initialise the logger
         std::ostringstream ss;
@@ -119,23 +120,26 @@ int main(int argc, char* argv[])
     } catch (const Ice::Exception& e) {
         ASKAPLOG_FATAL_STR(logger, "Ice exception in: " << argv[0] << ": " << e);
         std::cerr << "Ice exception in " << argv[0] << ": " << e << std::endl;
-        return 1;
+        error = 1;
     } catch (const cmdlineparser::XParser& e) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;
-        return 1;
+        error = 1;
     } catch (const askap::AskapError& e) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
         std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;
-        return 1;
+        error = 1;
     } catch (const std::exception& e) {
         ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << e.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << e.what()
-            << std::endl;
-        return 1;
+        std::cerr << "Unexpected exception in " << argv[0] << ": " << e.what() << std::endl;
+        error = 1;
     }
 
-    MPI_Finalize();
+    if (error) {
+        MPI_Abort(MPI_COMM_WORLD, error);
+    } else {
+        MPI_Finalize();
+    }
 
-    return 0;
+    return error;
 }

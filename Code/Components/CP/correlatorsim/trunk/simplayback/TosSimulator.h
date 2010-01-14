@@ -33,7 +33,6 @@
 
 // ASKAPsoft includes
 #include "ms/MeasurementSets/MeasurementSet.h"
-#include "Common/ParameterSet.h"
 #include "boost/scoped_ptr.hpp"
 
 // Local package includes
@@ -49,21 +48,20 @@ namespace askap
         {
             public:
                 /// Constructor
-                TosSimulator(const LOFAR::ParameterSet& parset);
+                TosSimulator(const std::string& dataset,
+                        const std::string& locatorHost,
+                        const std::string& locatorPort,
+                        const std::string& topicManager,
+                        const std::string& topic);
 
                 /// Destructor
                 virtual ~TosSimulator();
 
-                /// Fill the TimeTaggedTypedValueMap with metadata for the next integration
-                /// cycle
-                bool fillNext(void);
+                bool sendNext(void);
 
             private:
                 // Utility function, used to build a string out of two 
                 std::string makeMapKey(const std::string &prefix, const std::string &suffix);
-
-                // ParameterSet (configuration)
-                const LOFAR::ParameterSet itsParset;
 
                 // Cursor (index) for the main table of the measurement set
                 unsigned int itsCurrentRow;

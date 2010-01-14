@@ -31,7 +31,6 @@
 #include <string>
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
 #include "Ice/Ice.h"
 
 // Local package includes
@@ -44,7 +43,11 @@ namespace askap
         class MetadataPort
         {
             public:
-                MetadataPort(const LOFAR::ParameterSet& parset);
+                MetadataPort(const std::string& locatorHost,
+                        const std::string& locatorPort,
+                        const std::string& topicManager,
+                        const std::string& topic);
+
                 ~MetadataPort();
 
                 void send(const askap::interfaces::TimeTaggedTypedValueMap& payload);
@@ -53,9 +56,6 @@ namespace askap
                 // Get an IceStorm topic publisher proxy
                 Ice::ObjectPrx getProxy(const std::string& topicManager,
                         const std::string& topic);
-
-                // ParameterSet (configuration)
-                const LOFAR::ParameterSet itsParset;
 
                 // Ice Communicator
                 Ice::CommunicatorPtr itsComm;

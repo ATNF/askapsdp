@@ -35,7 +35,6 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
-#include "Common/ParameterSet.h"
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
 
@@ -48,8 +47,10 @@ using namespace askap::interfaces::datapublisher;
 
 ASKAP_LOGGER(logger, ".MetadataPort");
 
-MetadataPort::MetadataPort(const LOFAR::ParameterSet& parset)
-    : itsParset(parset)
+MetadataPort::MetadataPort(const std::string& locatorHost,
+        const std::string& locatorPort,
+        const std::string& topicManager,
+        const std::string& topic)
 {
     // Initialise an IceCommunicator from the parset
     Ice::PropertiesPtr props = Ice::createProperties();
@@ -62,9 +63,9 @@ MetadataPort::MetadataPort(const LOFAR::ParameterSet& parset)
     // IceGrid/Locator:tcp -h localhost -p 4061
     std::ostringstream ss;
     ss << "IceGrid/Locator:tcp -h ";
-    ss << itsParset.getString("playback.tossim.ice.locator_host");
+    ss << locatorHost;
     ss << " -p ";
-    ss << itsParset.getString("playback.tossim.ice.locator_port");
+    ss << locatorPort;
     std::string locatorParam = ss.str();
 
     props->setProperty("Ice.Default.Locator", locatorParam);
@@ -77,12 +78,8 @@ MetadataPort::MetadataPort(const LOFAR::ParameterSet& parset)
     ASKAPCHECK(itsComm, "Communicator failed to initialise");
 
     // Get the topic for the metadata stream
-    const std::string mdTopicManager =
-        itsParset.getString("playback.tossim.icestorm.topicmanager");
-    const std::string mdTopic =
-        itsParset.getString("playback.tossim.icestorm.topic");
     itsMetadataStream = ITimeTaggedTypedValueMapPublisherPrx::uncheckedCast(
-            getProxy(mdTopicManager, mdTopic));
+            getProxy(topicManager, topic));
 }
 
 MetadataPort::~MetadataPort()
