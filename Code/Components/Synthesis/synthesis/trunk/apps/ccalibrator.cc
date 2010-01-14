@@ -63,7 +63,7 @@ int main(int argc, const char** argv)
             parser.add(inputsPar, cmdlineparser::Parser::return_default);
 
             // I hope const_cast is temporary here
-            parser.process(argc, const_cast<char**>(argv));
+            parser.process(argc, argv);
 
             LOFAR::ParameterSet parset(inputsPar);
             LOFAR::ParameterSet subset(parset.makeSubset("Ccalibrator."));

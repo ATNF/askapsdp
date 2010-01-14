@@ -84,7 +84,7 @@ int main(int argc, const char **argv)
       parser.add(gainsFileName1);
       parser.add(gainsFileName2);
       
-      parser.process(argc,const_cast<char**>(argv));
+      parser.process(argc,argv);
       
       ASKAPLOG_INFO_STR(logger,"Loading gains from file "<<gainsFileName1.getValue());
       scimath::Params gains1;
