@@ -1,5 +1,5 @@
-spws.names = [Correlator, Correlator304_0]
+spws.names = [Correlator, BETA_0]
 
-spws.Correlator         =[16416, 1.420GHz, -18.5185kHz, "XX XY YX YY"]
+spws.Correlator     = [16416, 1.420GHz, 18.5185kHz, "XX XY YX YY"]
 
-spws.Correlator304_0    =[54, 1.420GHz, -1MHz, "XX XY YX YY"]
+spws.BETA_0         = [54, 1.420GHz, 18.5185kHz, "XX XY YX YY"]
