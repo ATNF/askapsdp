@@ -47,7 +47,7 @@ int main(int argc, const char** argv) {
      
      casa::Slicer slc(blc,trc,casa::IPosition(shape.nelements(),1));
      
-     casa::SubImage<casa::Float> si = casa::SubImage<casa::Float>(img,slc,casa::AxesSpecifier(casa::False));
+     casa::SubImage<casa::Float> si = casa::SubImage<casa::Float>(img,slc,casa::AxesSpecifier(casa::True));
      casa::PagedImage<casa::Float> res(si.shape(),si.coordinates(),std::string(outfile.getValue()));
      res.put(si.get());
   }
