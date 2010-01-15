@@ -8,18 +8,12 @@ from askapenv import env
 # create build object with library name
 pkg = env.AskapPackage("cpfrontend")
 
-pkg.AddSubPackage("streams")
-pkg.AddSubPackage("activities")
 pkg.AddSubPackage("runtime")
 
 # first argument is a slice file or list of slice files
 # second argument is the sub-package where the slice generated code should appear
 # third argument is the location of the source file relative to this SConstruct
 # file, or omit this argument for a system interface (i.e. Code/Interfaces)
-pkg.AddInterfaces("SimpleNumber.ice", "streams", "interfaces")
-pkg.AddInterfaces("Visibilities.ice", "streams", "interfaces")
-pkg.AddInterfaces("Metadata.ice", "streams", "interfaces")
-pkg.AddInterfaces("Frontend.ice", "runtime", "../../interfaces/trunk")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
