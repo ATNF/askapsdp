@@ -87,7 +87,7 @@ struct TimeTaggedGainSolution {
   GainSolution gains;
 };
  
- struct TimeTaggedLeakageSolution {
+struct TimeTaggedLeakageSolution {
    long timestamp;
    LeakageSolution leakages;
 };
