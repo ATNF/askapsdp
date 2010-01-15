@@ -1,0 +1,4 @@
+#
+# Locator service config
+#
+Ice.Default.Locator=IceGrid/Locator:tcp -h localhost -p 4061
