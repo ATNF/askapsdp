@@ -139,11 +139,8 @@ namespace askap
 
         AskapParallel::~AskapParallel()
         {
-            if (isParallel())
-            {
-                ASKAPLOG_INFO_STR(logger, "Exiting MPI");
-                MPIConnection::endMPI();
-            }
+            ASKAPLOG_INFO_STR(logger, "Exiting MPI");
+            MPIConnection::endMPI();
         }
 
         /// Is this running in parallel?
