@@ -1,5 +1,31 @@
-spws.names = [Correlator, Coarse304]
+spws.names = [Correlator, Coarse, Coarse2_0,Coarse2_1, Coarse16_0,Coarse16_1,Coarse16_2,Coarse16_3,Coarse16_4,Coarse16_5,Coarse16_6,Coarse16_7,Coarse16_8,Coarse16_9,Coarse16_10,Coarse16_11,Coarse16_12,Coarse16_13,Coarse16_14,Coarse16_15]
 
 spws.Correlator     = [16416, 1.420GHz, 18.5185kHz, "XX XY YX YY"]
 
-spws.Coarse304      = [304, 1.420GHz, 1MHz, "XX XY YX YY"]
+
+# The below configurations are useful for running the correlator simulator
+# in a mode where all 54 fine channels within a coarse channel use the same
+# data for each of the 54 fine channels. This can be good for simulating
+# high data rates without needing to spend 1000's of CPU hours simulating
+# visibilities for 16K channels.
+spws.Coarse         = [304, 1.420GHz, 1MHz, "XX XY YX YY"]
+
+spws.Coarse2_0      = [152, 1.420GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse2_1      = [152, 1.572GHz, 1MHz, "XX XY YX YY"]
+
+spws.Coarse16_0     = [19, 1.420GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_1     = [19, 1.439GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_2     = [19, 1.458GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_3     = [19, 1.477GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_4     = [19, 1.496GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_5     = [19, 1.515GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_6     = [19, 1.534GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_7     = [19, 1.553GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_8     = [19, 1.572GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_9     = [19, 1.591GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_10    = [19, 1.610GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_11    = [19, 1.629GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_12    = [19, 1.648GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_13    = [19, 1.667GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_14    = [19, 1.686GHz, 1MHz, "XX XY YX YY"]
+spws.Coarse16_15    = [19, 1.705GHz, 1MHz, "XX XY YX YY"]
