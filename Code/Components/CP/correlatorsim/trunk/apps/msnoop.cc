@@ -219,8 +219,7 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
         void print(std::vector<T>& v) {
             if (!verbose) {
                 std::cout << "< Vector of size " << v.size()
-                    << " - To display contents enable verbose mode >"
-                    << std::endl;
+                    << " - To display contents enable verbose mode >";
                 return;
             }
             typename std::vector<T>::iterator it = v.begin();
