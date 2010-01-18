@@ -12,6 +12,6 @@ playback.tossim.icestorm.topic              = tosmetadata
 playback.corrsim.n_shelves                  = 1
 
 # Correlator Shelf 1
-playback.corrsim.shelf1.dataset             = ../../dataset/beta_0.ms
+playback.corrsim.shelf1.dataset             = ../../dataset/beta.ms
 playback.corrsim.shelf1.out.hostname        = localhost
 playback.corrsim.shelf1.out.port            = 3000

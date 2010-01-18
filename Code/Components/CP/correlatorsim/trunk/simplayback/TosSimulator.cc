@@ -99,7 +99,7 @@ bool TosSimulator::sendNext(void)
     //const unsigned int nChan = spwc.numChan()(descSpwId);
     const unsigned int nAntenna = antc.nrow();
     const unsigned int nBeam = feedc.nrow() / nAntenna;
-    const unsigned int nCoarseChan = 1;
+    const unsigned int nCoarseChan = 304;
 
     // Record the timestamp for the current integration that is
     // being processed

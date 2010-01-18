@@ -48,6 +48,13 @@
                     -     propagation failures)
                     -->
                     <property name="${service}.Trace.Subscriber" value="1"/>
+
+                    <!--
+                    - Increase maximum message size from default of 1MB to
+                    - 128MB
+                    -->
+                    <property name="Ice.MessageSizeMax" value="131072"/>
+
                 </properties>
             </service>
 

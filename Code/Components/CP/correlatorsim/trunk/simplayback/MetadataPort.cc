@@ -59,6 +59,9 @@ MetadataPort::MetadataPort(const std::string& locatorHost,
     props->setProperty("Ice.Trace.Network", "0");
     props->setProperty("Ice.Trace.Protocol", "0");
 
+    // Increase maximum message size from 1MB to 128MB
+    props->setProperty("Ice.MessageSizeMax", "131072");
+
     // Syntax example:
     // IceGrid/Locator:tcp -h localhost -p 4061
     std::ostringstream ss;

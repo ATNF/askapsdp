@@ -114,10 +114,6 @@ bool CorrelatorSimulator::sendNext(void)
         ASKAPCHECK(msc.dataDescId()(itsCurrentRow) == dataDescId,
                 "Data description ID must remain constant for a given integration");
 
-        ASKAPCHECK(nChan == n_fine_per_coarse,
-                "Number of channels in this spectral window should be "
-                << n_fine_per_coarse);
-
         // Populate the VisPayload
         askap::cp::VisPayload payload;
         const long timestamp =
@@ -136,16 +132,19 @@ bool CorrelatorSimulator::sendNext(void)
 
         // This matrix is: Matrix<Complex> data(nCorr, nChan)
         const casa::Matrix<casa::Complex> data = msc.data()(itsCurrentRow);
-        for (unsigned int chan = 0; chan < n_fine_per_coarse; ++chan) {
-            for (unsigned int pol = 0; pol < n_pol; ++pol) {
-                const int idx = pol + (n_pol * chan);
-                payload.vis[idx].real = data(pol, chan).real();
-                payload.vis[idx].imag = data(pol, chan).imag();
+        for (unsigned int coarseChan = 0; coarseChan < nChan; ++coarseChan) {
+            for (unsigned int fineChan = 0; fineChan < n_fine_per_coarse; ++fineChan) {
+                for (unsigned int pol = 0; pol < n_pol; ++pol) {
+                    const int idx = pol + (n_pol * fineChan);
+                    payload.vis[idx].real = data(pol, coarseChan).real();
+                    payload.vis[idx].imag = data(pol, coarseChan).imag();
+                }
             }
+            // Finished populating, send this payload but then reuse it in the
+            // next iteration of the loop for the next coarse channel
+            itsPort->send(payload);
         }
 
-        // Finished populating
-        itsPort->send(payload);
         itsCurrentRow++;
     }
 

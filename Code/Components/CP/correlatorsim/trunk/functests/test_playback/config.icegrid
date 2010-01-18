@@ -42,3 +42,5 @@ Ice.Trace.Network=0
 #
 Ice.Trace.Protocol=0
 
+# Increase maximum message size from 1MB to 128MB
+Ice.MessageSizeMax = 131072
