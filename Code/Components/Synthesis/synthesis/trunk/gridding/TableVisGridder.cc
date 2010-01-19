@@ -329,6 +329,16 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 	   
 	   for (uint chan=0; chan<nChan; ++chan) {
 		   
+		   const double reciprocalToWavelength = frequencyList[chan]/casa::C::c;
+		   if (chan == 0) {
+		      // check for ridiculous frequency to pick up a possible error with input file,
+		      // not essential for processing as such
+		      ASKAPCHECK((reciprocalToWavelength>0.1) && (reciprocalToWavelength<1000), 
+		          "Check frequencies in the input file as the order of magnitude is likely to be wrong, "
+		          "comment this statement in the code if you're trying something non-standard. Frequency = "<<
+		          frequencyList[chan]/1e9<<" GHz");
+		   }
+		   
 		   /// Scale U,V to integer pixels plus fractional terms
 		   double uScaled=frequencyList[chan]*outUVW(i)(0)/(casa::C::c *itsUVCellSize(0));
 		   int iu = askap::nint(uScaled);
