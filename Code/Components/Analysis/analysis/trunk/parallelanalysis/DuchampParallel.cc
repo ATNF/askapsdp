@@ -262,7 +262,7 @@ namespace askap {
 
                 if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
 
-                // Send out the OK to the workers, so that they know that the subimages have been created.
+                // Send out the OK to the workers, so that they access the file in turn
                 bool OK;
 
                 for (int i = 1; i < this->itsNNode; i++) {
@@ -284,6 +284,7 @@ namespace askap {
                     in6.getEnd();
                 }
 
+		// Broadcast a message to all workers, effectively saying that we're all done
                 LOFAR::BlobString bs7;
                 bs7.resize(0);
                 LOFAR::BlobOBufString bob7(bs7);
@@ -345,7 +346,7 @@ namespace askap {
                                               << "About to read data from image " << this->itsCube.pars().getFullImageFile());
                         result = this->itsCube.getCube();
                     } else { // if it's a CASA image
-		      this->itsCube.pars().setFlagSubsection(false); // temporary - casaImageToCube will change this.
+// 		      this->itsCube.pars().setFlagSubsection(false); // temporary - casaImageToCube will change this.
                         result = casaImageToCube(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
                     }
 
@@ -379,6 +380,7 @@ namespace askap {
                         out2.putEnd();
                         this->itsConnectionSet->write(0, bs2);
 
+			// Wait to find out if all workers have finished
                         do {
                             LOFAR::BlobString bs3;
                             bs3.resize(0);
@@ -593,7 +595,7 @@ namespace askap {
                     src.setNoiseLevel(this->itsCube, this->itsFitter);
                     src.setDetectionThreshold(thresholdForFitting);
                     src.setHeader(head);
-                    src.defineBox(this->itsCube.pars().section(), this->itsFitter);
+                    src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
                     // Only do fit if object is not next to boundary
                     src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
 
@@ -636,7 +638,7 @@ namespace askap {
                     // send the start positions of the subimage
                     out << this->itsCube.pars().section().getStart(0)
                         << this->itsCube.pars().section().getStart(1)
-                        << this->itsCube.pars().section().getStart(2);
+                        << this->itsCube.pars().section().getStart(this->itsCube.header().getWCS()->spec);
                     std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
 
                     for (; src < this->itsSourceList.end(); src++) {
@@ -698,6 +700,10 @@ namespace askap {
                     LOFAR::BlobString bs;
                     int16 rank, numObj;
 
+		    // don't do fit if we have a spectral axis.
+		    bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
+		    this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
+
                     for (int i = 1; i < this->itsNNode; i++) {
                         this->itsConnectionSet->read(i - 1, bs);
                         LOFAR::BlobIBufString bib(bs);
@@ -728,7 +734,7 @@ namespace askap {
 
                             // And now set offsets to those of the full image as we are in the master cube
                             src.setOffsets(this->itsCube.pars());
-                            src.defineBox(this->itsCube.pars().section(), this->itsFitter);
+                            src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
                             src.fitparams() = this->itsFitter;
                             this->itsSourceList.push_back(src);
 
@@ -859,8 +865,8 @@ namespace askap {
                         src.setNoiseLevel(noise);
                         src.setDetectionThreshold(thresholdForFitting);
                         src.setHeader(head);
-                        src.defineBox(this->itsCube.pars().section(), this->itsFitter);
-
+                        src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+			
                         if (this->itsFlagDoFit){
 			  src.fitGauss(&this->itsVoxelList, this->itsFitter);
 			  src.findAlpha(this->itsImage);

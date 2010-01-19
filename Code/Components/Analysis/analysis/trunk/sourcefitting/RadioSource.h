@@ -170,7 +170,7 @@ namespace askap {
                     void setAtEdge(duchamp::Cube &cube, SubimageDef &subimage, int workerNum);
 
                     /// @brief Define the boundaries of the box
-                    void defineBox(duchamp::Section &sec, FittingParameters &fitParams);
+                    void defineBox(duchamp::Section &sec, FittingParameters &fitParams, int spectralAxis=2);
 
                     /// @brief Commands to return the extent and size of the box
                     /// surrounding the object.
