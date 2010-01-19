@@ -134,7 +134,8 @@ namespace askap {
                            w*freq<<" wavelengths");
                 ASKAPCHECK(iw>-1,
                           "W scaling error: recommend allowing larger range of w, you have w="<<
-                           w*freq<<" wavelengths");
+                           w*freq<<" wavelengths, freq="<<freq/1e9<<" GHz, w(before rotation)="<<
+                           acc.uvw()(i)(2)/casa::C::c*freq<<" wavelengths");
 	  
                 for (int pol=0; pol<nPol; ++pol) {
                      /// Order is (iw, chan, feed)
