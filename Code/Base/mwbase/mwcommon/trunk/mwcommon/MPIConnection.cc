@@ -30,6 +30,7 @@
 
 // System includes
 #include <unistd.h>
+#include <limits>
 
 #include <mwcommon/MPIConnection.h>
 #include <mwcommon/MWError.h>
