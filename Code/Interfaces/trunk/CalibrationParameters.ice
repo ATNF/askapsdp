@@ -55,14 +55,14 @@ struct JonesJTerm {
 };
  
 // only one independent value, i.e. leakage + cross-pol phase
-DoubleComplex JonesDTerm;
+// so DoubleComplex == JonesDTerm;
 
 // sequence of J-terms, i.e. a bandpass
-sequence<JonesGTerm> JonesJTermSeq;
+sequence<JonesJTerm> JonesJTermSeq;
  
 struct FrequencyDependentJTerm {
   int nchan;
-  JonesGTermSeq bandpass;
+  JonesJTermSeq bandpass;
   // some frequency vs. channel mapping
   // parameters can come here, e.g. freqID
   // but we don't need them for processing
@@ -74,7 +74,7 @@ struct FrequencyDependentJTerm {
 dictionary<JonesIndex,JonesJTerm> GainSolution;
 
 // leakage solution indexed with JonesIndex
-dictionary<JonesIndex,JonesDTerm> LeakageSolution;
+dictionary<JonesIndex,DoubleComplex> LeakageSolution;
 
 // bandpass solution indexed with JonesIndex
 dictionary<JonesIndex,FrequencyDependentJTerm> BandpassSolution;
