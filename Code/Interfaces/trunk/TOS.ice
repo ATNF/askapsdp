@@ -91,6 +91,14 @@ module tos
       extends askap::interfaces::AskapIceException
     {
     };
+
+    /**
+     * Exception for if the requested scan does not exist.
+     **/
+    exception NoSuchScanException
+      extends askap::interfaces::AskapIceException
+    {
+    };
     
 
 
@@ -138,9 +146,11 @@ module tos
          **/
         void startScan(string clientid,
                        string arrayid,
-                       askap::interfaces::ParameterMap params)
+                       askap::interfaces::ParameterMap params,
+                       int scannum)
           throws AntNotAllocException,
-                 NoSuchComponentException;
+                 NoSuchComponentException,
+                 NoSuchScanException;
 
         /**
          * Stop any scans which the specified component, and children thereof,
