@@ -28,9 +28,8 @@ Cimager.Images.cellsize	        		= [8.0arcsec, 8.0arcsec]
 
 Cimager.Images.image.frequency	= [1.40e9,1.40e9]
 Cimager.Images.image.nchan	= 1
-Cimager.Images.image.nterms     = 3
-#Cimager.Images.image.polarisation     = ["RRLL"]
-Cimager.Images.image.polarisation     = ["RR"]
+Cimager.Images.image.nterms     = 2
+Cimager.Images.image.polarisation     = ["RRLL"]
 Cimager.Images.image.direction	= [19h59m28.5000, +40.44.01.5000, J2000]   
 
 #
