@@ -314,11 +314,13 @@ namespace askap {
 
 			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#"<<i<<" done.");
                             if (!OK) ASKAPTHROW(AskapError, "Staged writing of image failed.");
+			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#"<<i<<" done.");
                         }
 
                     } else if (this->itsComms.isWorker()) {
                         OK = true;
                         int rank;
+			int version;
 
                         if (this->itsComms.isParallel()) {
                             do {
@@ -326,8 +328,7 @@ namespace askap {
                                 this->itsComms.connectionSet()->read(0, bs);
                                 LOFAR::BlobIBufString bib(bs);
                                 LOFAR::BlobIStream in(bib);
-                                std::stringstream ss;
-                                int version = in.getStart("goInput");
+                                version = in.getStart("goInput");
                                 ASKAPASSERT(version == 1);
                                 in >> rank;
                                 in.getEnd();

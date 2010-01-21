@@ -300,6 +300,8 @@ namespace askap {
 
             ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " is using subsection " << subsection.getSection());
             Slicer slice = subsectionToSlicer(subsection);
+	    fixSlicer(slice, cube.header().getWCS());
+
             const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
             //      sub->unlock();
 
@@ -471,6 +473,8 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, "casaImageToMetadata: subsection string is " << cube.pars().getSubsection());
 
             Slicer slice = subsectionToSlicer(cube.pars().section());
+	    fixSlicer(slice, cube.header().getWCS());
+
             const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
 
             if (casaImageToMetadata(sub, cube) == duchamp::FAILURE) return duchamp::FAILURE;
@@ -753,6 +757,20 @@ namespace askap {
         }
 
         //**************************************************************//
+
+      void fixSlicer(Slicer &slice, wcsprm *wcs)
+      {	
+	for(int i=0;i<slice.start().size();i++){
+	  // set all axes that aren't position or spectral to just the first value.
+	  if(i!=wcs->lng && i!=wcs->lat && i!=wcs->spec){
+	    slice.start()[i] = 0;
+	    slice.end()[i] = 0;
+	  }
+	}
+
+      }
+
+
 
     }
 
