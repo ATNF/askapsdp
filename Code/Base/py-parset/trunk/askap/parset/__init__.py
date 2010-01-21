@@ -62,4 +62,4 @@ except ImportError:
 # module attributes
 logger = logging.getLogger(__name__)
 
-from askap.parset.parset import ParameterSet, decode, encode, extract
+from askap.parset.parset import ParameterSet, decode, encode, extract, to_dict

@@ -25,6 +25,14 @@ import re
 
 from askap.parset import logger
 
+def to_dict(parmap):
+    if isinstance(parmap, dict):
+        return parmap
+    elif isinstance(parmap, ParameterSet):
+        return parmap.to_flat_dict()
+    else:
+        raise TypeError("argument not a ParamterSet (or dict)")
+
 class ParameterSet(object):
     """
     The default constructor creates an empty ParameterSet instance.
