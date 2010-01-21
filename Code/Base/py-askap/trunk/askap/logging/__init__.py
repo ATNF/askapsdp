@@ -40,7 +40,7 @@ following functionality:
     everyone is using version above 2.6.2
 
 """
-
+import os
 # pylint: disable-msg=W0401
 from logging import *
 # python 2.6 now has __all__, which means not everything gets in
@@ -94,3 +94,24 @@ Example::
         # pylint: disable-msg=W0142
         return func(*args, **kwargs)
     return postlog
+
+def init_logging(args):
+    """Parse `args` for --log-config=filename and initialise loggers using
+    the configuration file.
+
+        :param args: a list of arguments usually sys.argv
+
+    """
+    key = "--log-config"
+    fname = "askap.log_cfg"
+    for arg in args:
+        if arg.startswith(key):
+            k, v = arg.split("=")
+            if os.path.exists(v):
+                fname = v
+            break
+
+    if os.path.exists(fname):
+        config.fileConfig(fname)
+    else:
+        raise IOError("No log configuration file found")
