@@ -180,6 +180,14 @@ namespace askap
       }
       // Loop through degridding the data
       ASKAPLOG_INFO_STR(logger, "Starting to degrid model" );
+      
+      // report every 5000000 degridded rows into log in the debug mode
+      #ifdef ASKAP_DEBUG
+      unsigned long report_every = 5000000; 
+      unsigned long total_rows = 0;
+      unsigned long current_rows = 0;
+      #endif // #ifdef ASKAP_DEBUG
+      
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
         itsIdi->rwVisibility().set(0.0);
@@ -194,6 +202,15 @@ namespace askap
           string imageName("image"+(*it));
           itsModelGridders[imageName]->degrid(*itsIdi);
         }
+        #ifdef ASKAP_DEBUG
+        const casa::uInt nRow = itsIdi->nRow();
+        total_rows += nRow;
+        current_rows += nRow;
+        if (current_rows > report_every) {
+            current_rows = 0;
+            ASKAPLOG_INFO_STR(logger, "Degridded "<<total_rows<<" rows of data"); 
+        }
+        #endif // #ifdef ASKAP_DEBUG
       }
       ASKAPLOG_INFO_STR(logger, "Finished degridding model" );
     };
