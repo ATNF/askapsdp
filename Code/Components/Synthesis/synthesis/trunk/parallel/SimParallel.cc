@@ -72,8 +72,9 @@ namespace synthesis
 
 SimParallel::SimParallel(askap::mwbase::AskapParallel& comms,
                          const ParameterSet& parset) :
-        SynParallel(comms), itsParset(parset)
+        SynParallel(comms), itsParset(parset), itsModelReadByMaster(true)
 {
+  itsModelReadByMaster = itsParset.getBool("modelReadByMaster", true);
 }
 
 void SimParallel::init()
@@ -81,9 +82,10 @@ void SimParallel::init()
     if (itsComms.isMaster()) {
         // set up image handler
         SynthesisParamsHelper::setUpImageHandler(itsParset);
-
-        readModels();
-        broadcastModel();
+        if (itsModelReadByMaster) {
+            readModels();
+            broadcastModel();
+        }
     }
 
     if (itsComms.isWorker()) {
@@ -102,7 +104,11 @@ void SimParallel::init()
 
         // Get the source definitions and get the model from the master
         readSources();
-        receiveModel();
+        if (itsModelReadByMaster) {
+            receiveModel();
+        } else {
+            readModels();
+        }
 
         // Get the feed definitions
         readFeeds();
@@ -274,7 +280,7 @@ void SimParallel::readModels()
             const std::string modelPar = "sources." + *it + ".model";
 
             if (parset.isDefined(modelPar)) {
-                string model = parset.getString(modelPar);
+                string model = substitute(parset.getString(modelPar));
                 ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for " << *it);
                 const string paramName = "image.i." + *it;
                 SynthesisParamsHelper::loadImageParameter(*itsModel, paramName, model);

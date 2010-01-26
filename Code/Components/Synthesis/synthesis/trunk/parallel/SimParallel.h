@@ -181,6 +181,12 @@ namespace askap
 
                 /// ParameterSet
                 LOFAR::ParameterSet itsParset;
+                
+                /// @brief model is read by the master and distributed?
+                /// @details Depending on the model file name (containing %w or not), the model
+                /// can either be read in the master and distributed across the workers or read
+                /// by workers directly. This data member is true, if the model is read by the master
+                bool itsModelReadByMaster;
 
                 /// Read the telescope info from the parset specified in the main parset
                 void readAntennas();
