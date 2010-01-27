@@ -230,7 +230,7 @@ namespace askap {
 
             std::vector<float> array;
             imagePtr->get().tovector(array);
-            cube.saveArray(array);
+	    cube.saveArray(array);
 
             std::stringstream logmsg;
             logmsg << "casaImageToCubeData: Data array has dimensions: ";
@@ -279,7 +279,8 @@ namespace askap {
 
             for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
-            subDef.define(casaImageToWCS(imagePtr));
+	    wcsprm *tempwcs = casaImageToWCS(imagePtr);
+            subDef.define(tempwcs);
             subDef.setImage(cube.pars().getImageFile());
             subDef.setImageDim(dim);
 
@@ -300,6 +301,8 @@ namespace askap {
 
             ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " is using subsection " << subsection.getSection());
             Slicer slice = subsectionToSlicer(subsection);
+	    fixSlicer(slice, tempwcs);
+
             const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
             //      sub->unlock();
 
@@ -449,7 +452,8 @@ namespace askap {
 
             for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
-            subDef.define(casaImageToWCS(imagePtr));
+	    wcsprm *tempwcs = casaImageToWCS(imagePtr);
+            subDef.define(tempwcs);
             subDef.setImage(cube.pars().getImageFile());
             subDef.setImageDim(dim);
 
@@ -471,6 +475,8 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, "casaImageToMetadata: subsection string is " << cube.pars().getSubsection());
 
             Slicer slice = subsectionToSlicer(cube.pars().section());
+	    fixSlicer(slice, tempwcs);
+
             const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
 
             if (casaImageToMetadata(sub, cube) == duchamp::FAILURE) return duchamp::FAILURE;
@@ -753,6 +759,30 @@ namespace askap {
         }
 
         //**************************************************************//
+
+      void fixSlicer(Slicer &slice, wcsprm *wcs)
+      {	
+	IPosition start = slice.start();
+	IPosition end = slice.end();
+	IPosition stride = slice.stride();
+	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
+	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: lng="<<wcs->lng<<", lat="<<wcs->lat<<", spec="<<wcs->spec);
+	for(size_t i=0;i<start.size();i++){
+	  // set all axes that aren't position or spectral to just the first value.
+	  int index = int(i);
+	  ASKAPLOG_DEBUG_STR(logger,index);
+	  if(index!=wcs->lng && index!=wcs->lat && index!=wcs->spec){
+	    ASKAPLOG_DEBUG_STR(logger, "Changing " << index);
+	    start(i) = 0;
+	    end(i) = 0;
+	  }
+	}
+
+	slice = Slicer(start,end,stride,Slicer::endIsLast);
+	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
+      }
+
+
 
     }
 
