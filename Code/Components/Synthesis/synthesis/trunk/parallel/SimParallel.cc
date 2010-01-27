@@ -79,9 +79,9 @@ SimParallel::SimParallel(askap::mwbase::AskapParallel& comms,
 
 void SimParallel::init()
 {
+    // set up image handler
+    SynthesisParamsHelper::setUpImageHandler(itsParset);
     if (itsComms.isMaster()) {
-        // set up image handler
-        SynthesisParamsHelper::setUpImageHandler(itsParset);
         if (itsModelReadByMaster) {
             readModels();
             broadcastModel();
