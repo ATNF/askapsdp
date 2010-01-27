@@ -1,3 +1,6 @@
+#
+# ASKAPsoft bootstrap.py
+#
 import os
 import optparse
 import shutil
