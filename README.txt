@@ -3,9 +3,9 @@ Building ASKAPsoft                                           17 June 2009
 
 These notes provide just a brief outline.
 More detailed information can be found on the ASKAPsoft Trac site
-https://svn.atnf.csiro.au/trac/askapsoft/wiki/
+https://pm.atnf.csiro.au/askap/wiki/cmpt
 and in particular
-https://svn.atnf.csiro.au/trac/askapsoft/wiki/AS05_BuildInfraStructure/AskapSoftwareDevelopmentEnvironment
+https://pm.atnf.csiro.au/askap/wiki/cmpt/AS05_BuildInfraStructureAskapSoftwareDevelopmentEnvironment
 
 Introduction
 ============
@@ -32,10 +32,10 @@ point for the repository is $ASKAP_ROOT.
 Quick Start
 ===========
 
-svn co https://svn.atnf.csiro.au/askapsoft/trunk ASKAPsoft
+svn co https://svn.atnf.csiro.au/askapsoft/Src/trunk ASKAPsoft
 cd ASKAPsoft
-python2.6 bootstrap.py  # only once
-. initaskap.sh           # execute everytime a new session is started
+/usr/bin/python2.6 bootstrap.py  # only once
+. initaskap.sh                   # execute everytime a new session is started
 
 The above steps make installs go to the ASKAPsoft hierarchy
 $ASKAP_ROOT/{bin, lib/python<version>} and thus do not require
@@ -82,6 +82,42 @@ rbuild system
 The rbuild system is the infrastructure underlying the rbuild command.
 At the package level it can be run via the command 
 
+rbuild -h
+Usage: rbuild [options] <package_path>
+
+The ASKAP build command for users/developers. It handles dependencies and
+performs updates from subversion. Note - the subversion update only applies to
+the following TARGETs [doc, extract, install, stage, release, signature,
+symlink].
+
+Options:
+  -h, --help            show this help message and exit
+  -n, --no-update       do not perform subversion update
+  -q, --quiet           do not show all builder output [default=True]
+  -v, --verbose         show all builder output
+  -N, --no-virtualenv   do not include virtualenv in a release
+  --no-parallel         Disable parallel build of packages for build tools
+                        which allow this (e.g. -jN in make/scons). The default
+                        is to use N+1 processes where N is the number of CPUs.
+  -p EXTRAOPTS, --pass-options=EXTRAOPTS
+                        pass on package specific build options, e.g. 'mpich=1'
+  --release-name=RELEASE_NAME
+                        The name of the staging directory and the release
+                        tarball.
+  -t TARGET, --target=TARGET
+                        select TARGET from: clean, format, functest, pylint,
+                        test, doc, extract, install, stage, release,
+                        signature, symlink [default=install]
+
+  Internal Options:
+    Caution: The following options are for scripts internal use only.  Use
+    these options at your own risk.
+
+    --update-myself     [default=True]
+
+
+Alternatively can use:
+
 python build.py [-q|-x] <target>
 
 It provides the following command-line options
@@ -89,13 +125,7 @@ It provides the following command-line options
 -q        suppress messages to stdout and just print errors
 -x        exit recursivebuild when an error is encountered
 
-and targets
-
-install   install the packages
-clean     clean up the build directories (doesn't remove the installed eggs)
-doc       build documentation
-test      run unit tests
-pylint    run pylint on the module
+and targets  as for rbuild.
 
 
 Express install (for the very brave - takes a long time)
