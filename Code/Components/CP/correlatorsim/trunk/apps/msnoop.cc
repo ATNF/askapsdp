@@ -1,5 +1,9 @@
 /// @file msnoop.cc
 ///
+/// @description
+/// This program snoops the metadata stream being published by the telescope
+/// operating system (TOS), decodes the output and writes it to stdout.
+///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -25,6 +29,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include package level header file
+#include "askap_correlatorsim.h"
 
 // System includes
 #include <string>

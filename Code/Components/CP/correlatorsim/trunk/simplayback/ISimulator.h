@@ -27,18 +27,24 @@
 #ifndef ASKAP_CP_ISIMULATOR_H
 #define ASKAP_CP_ISIMULATOR_H
 
-namespace askap
-{
-    namespace cp
-    {
-        class ISimulator
-        {
-            public:
-                /// @brief Destructor.
-                virtual ~ISimulator();
+namespace askap {
+namespace cp {
 
-                virtual bool sendNext(void) = 0;
-        };
-    };
+/// @brief Interface to the simulator classes, so the TosSimulator and
+/// CorrelatorSimulator can be treated polymorphically.
+class ISimulator {
+    public:
+        /// @brief Destructor.
+        virtual ~ISimulator();
+
+        /// @brief Send the next correlator integration.
+        ///
+        /// @return true if there are more integrations in the dataset,
+        ///         otherwise false. If false is returned, sendNext()
+        ///         should not be called again.
+        virtual bool sendNext(void) = 0;
+};
+
+};
 };
 #endif

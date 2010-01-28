@@ -1,5 +1,10 @@
-/// @file tVisibilities.cc
+/// @file vsnoop.cc
 ///
+/// @description
+/// This program is used to receive the UDP visibility stream from the
+/// correlator (or correlator control computer). It decoded the stream
+/// and writes it to stdout.
+/// 
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -25,7 +30,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include package level header file
-#include <askap_correlatorsim.h>
+#include "askap_correlatorsim.h"
 
 // System includes
 #include <iostream>

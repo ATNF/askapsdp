@@ -36,27 +36,48 @@
 
 // Local package includes
 
-namespace askap
-{
-    namespace cp
-    {
-        class VisPort
-        {
-            public:
-                VisPort(const std::string& hostname, const std::string& port);
-                ~VisPort();
+namespace askap {
+namespace cp {
 
-                void send(const std::vector<askap::cp::VisPayload>& payload);
+/// @brief This class acts as a port to the visibility reciever. This class
+/// encapsulates a UDP port which is related to a specific host & port as is
+/// specified in the constructor. VisPayload objects can be "sent" using this
+/// port.
+class VisPort {
+    public:
 
-                void send(const askap::cp::VisPayload& payload);
+        /// @brief Constructor.
+        //
+        /// @param[in] hostname hostname or IP address of the host to which the
+        ///                     UDP data stream will be sent.
+        /// @param[in] port     UDP port number to which the UDP data stream will
+        ///                     be sent.
+        VisPort(const std::string& hostname, const std::string& port);
+        
+        /// @brief Destructor.
+        ~VisPort();
 
-            private:
-                // io_service
-                boost::asio::io_service itsIOService;
+        /// @brief Sends all payload objects in the vector to the host/port
+        /// that was specified when the object was instantiated.
+        ///
+        /// @param[in] payload  vector of VisPayload objects to send.
+        void send(const std::vector<askap::cp::VisPayload>& payload);
 
-                // Network socket
-                boost::asio::ip::udp::socket itsSocket;
-        };
-    };
+        /// @brief Sends the payload object to the host/port that was specified
+        /// when the object was instantiated.
+        ///
+        /// @param[in] payload  VisPayload object to send.
+        void send(const askap::cp::VisPayload& payload);
+
+    private:
+        // io_service
+        boost::asio::io_service itsIOService;
+
+        // Network socket
+        boost::asio::ip::udp::socket itsSocket;
 };
+};
+
+};
+
 #endif

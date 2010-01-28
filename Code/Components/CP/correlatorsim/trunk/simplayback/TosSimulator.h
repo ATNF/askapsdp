@@ -40,38 +40,56 @@
 #include "simplayback/MetadataPort.h"
 #include "cpinterfaces/TypedValues.h"
 
-namespace askap
-{
-    namespace cp
-    {
-        class TosSimulator : public ISimulator
-        {
-            public:
-                /// Constructor
-                TosSimulator(const std::string& dataset,
-                        const std::string& locatorHost,
-                        const std::string& locatorPort,
-                        const std::string& topicManager,
-                        const std::string& topic);
+namespace askap {
+namespace cp {
 
-                /// Destructor
-                virtual ~TosSimulator();
+/// @brief Simulates the metadata stream from the telescope operating
+/// system. This metadata stream results in a metadata payload being
+/// sent via an IceStorm topic for each correlator integration cycle.
+class TosSimulator : public ISimulator {
+    public:
+        /// Constructor
+        ///
+        /// @param[in] dataset filename for the measurement set which
+        ///                    will be used to source the metadata.
+        /// @param[in] locatorHost hostname or IP address of the host
+        ///                     where the Ice locator service is running.
+        /// @param[in] locatorPort network port for the Ice locator service.
+        /// @param[in] topicManager identify of the IceStorm topic manager
+        ///                     within the Ice locator service.
+        /// @param[in] topic    IceStorm topic to which the metadata will be
+        ///                     published.
+        TosSimulator(const std::string& dataset,
+                     const std::string& locatorHost,
+                     const std::string& locatorPort,
+                     const std::string& topicManager,
+                     const std::string& topic);
 
-                bool sendNext(void);
+        /// Destructor
+        virtual ~TosSimulator();
 
-            private:
-                // Utility function, used to build a string out of two 
-                std::string makeMapKey(const std::string &prefix, const std::string &suffix);
+        /// @brief Send the next correlator integration.
+        ///
+        /// @return true if there are more integrations in the dataset,
+        ///         otherwise false. If false is returned, sendNext()
+        ///         should not be called again.
+        bool sendNext(void);
 
-                // Cursor (index) for the main table of the measurement set
-                unsigned int itsCurrentRow;
+    private:
+        // Utility function, used to build a string out of two
+        std::string makeMapKey(const std::string &prefix, const std::string &suffix);
 
-                // Measurement set
-                boost::scoped_ptr<casa::MeasurementSet> itsMS;
+        // Cursor (index) for the main table of the measurement set
+        unsigned int itsCurrentRow;
 
-                // Port for output of metadata
-                boost::scoped_ptr<askap::cp::MetadataPort> itsPort;
-        };
-    };
+        // Measurement set
+        boost::scoped_ptr<casa::MeasurementSet> itsMS;
+
+        // Port for output of metadata
+        boost::scoped_ptr<askap::cp::MetadataPort> itsPort;
 };
+};
+
+};
+
 #endif

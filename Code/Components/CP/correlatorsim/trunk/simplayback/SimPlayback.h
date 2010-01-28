@@ -35,34 +35,53 @@
 #include "simplayback/CorrelatorSimulator.h"
 #include "simplayback/TosSimulator.h"
 
-namespace askap
-{
-    namespace cp
-    {
-        class SimPlayback
-        {
-            public:
-                SimPlayback(const LOFAR::ParameterSet& parset);
-                ~SimPlayback();
+namespace askap {
+namespace cp {
 
-                void run(void);
+/// @brief Main class which simulates the ASKAP Correlator and Telescope
+/// Operating System for the Central Processor.
+///
+/// @description The purpose of this software is to simulate the ASKAP 
+/// correlator for the purposes of testing the central processor. This
+/// simulator described here is actually a playback simulator and relies on 
+/// other software (e.g. csimulator) to actually create a simulated
+/// measurement set which will be played back by this software.
+class SimPlayback {
+    public:
+        /// @brief Constructor.
+        ///
+        /// @param[in] parset   configuration parameter set.
+        SimPlayback(const LOFAR::ParameterSet& parset);
 
-            private:
-                void validateConfig(void);
+        /// @brief Destructor.
+        ~SimPlayback();
 
-                boost::shared_ptr<TosSimulator> makeTosSim(void);
+        /// @brief Starts the playback.
+        void run(void);
 
-                boost::shared_ptr<CorrelatorSimulator> makeCorrelatorSim(void);
+    private:
+        // Validates the configuration parameter set, throwing an
+        // exception if it is not suitable.
+        void validateConfig(void);
 
-                // ParameterSet (configuration)
-                const LOFAR::ParameterSet itsParset;
+        // Factory method of sorts, creates the TosSimulator instance.
+        boost::shared_ptr<TosSimulator> makeTosSim(void);
 
-                // Rank of this process
-                int itsRank;
+        // Factory method of sorts, creates the Correlator Simulator
+        // instance.
+        boost::shared_ptr<CorrelatorSimulator> makeCorrelatorSim(void);
 
-                // Total number of processes
-                int itsNumProcs;
-        };
-    };
+        // ParameterSet (configuration)
+        const LOFAR::ParameterSet itsParset;
+
+        // Rank of this process
+        int itsRank;
+
+        // Total number of processes
+        int itsNumProcs;
 };
+};
+
+};
+
 #endif

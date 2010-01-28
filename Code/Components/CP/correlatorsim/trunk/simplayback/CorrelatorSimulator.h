@@ -39,33 +39,45 @@
 #include "simplayback/ISimulator.h"
 #include "simplayback/VisPort.h"
 
-namespace askap
-{
-    namespace cp
-    {
-        class CorrelatorSimulator : public ISimulator
-        {
-            public:
-                // Constructor
-                CorrelatorSimulator(const std::string& dataset,
-                        const std::string& hostname,
-                        const std::string& port);
+namespace askap {
+namespace cp {
 
-                // Destructor
-                virtual ~CorrelatorSimulator();
+/// @brief Simulates the visibility stream from the correlator.
+class CorrelatorSimulator : public ISimulator {
+    public:
+        /// Constructor
+        ///
+        /// @param[in] dataset  filename for the measurement set which will be
+        ///                     used to source the visibilities.
+        /// @param[in] hostname hostname or IP address of the host to which the
+        ///                     UDP data stream will be sent.
+        /// @param[in] port     UDP port number to which the UDP data stream will
+        ///                     be sent.
+        CorrelatorSimulator(const std::string& dataset,
+                            const std::string& hostname,
+                            const std::string& port);
 
-                bool sendNext(void);
+        /// Destructor
+        virtual ~CorrelatorSimulator();
 
-            private:
-                // Cursor (index) for the main table of the measurement set
-                unsigned int itsCurrentRow;
+        /// @brief Send the next correlator integration.
+        ///
+        /// @return true if there are more integrations in the dataset,
+        ///         otherwise false. If false is returned, sendNext()
+        ///         should not be called again.
+        bool sendNext(void);
 
-                // Measurement set
-                boost::scoped_ptr<casa::MeasurementSet> itsMS;
+    private:
+        // Cursor (index) for the main table of the measurement set
+        unsigned int itsCurrentRow;
 
-                // Port for output of metadata
-                boost::scoped_ptr<askap::cp::VisPort> itsPort;
-        };
-    };
+        // Measurement set
+        boost::scoped_ptr<casa::MeasurementSet> itsMS;
+
+        // Port for output of metadata
+        boost::scoped_ptr<askap::cp::VisPort> itsPort;
+};
+
+};
 };
 #endif

@@ -36,33 +36,53 @@
 // Local package includes
 #include "cpinterfaces/TypedValues.h"
 
-namespace askap
-{
-    namespace cp
-    {
-        class MetadataPort
-        {
-            public:
-                MetadataPort(const std::string& locatorHost,
-                        const std::string& locatorPort,
-                        const std::string& topicManager,
-                        const std::string& topic);
+namespace askap {
+namespace cp {
 
-                ~MetadataPort();
+/// @brief This class acts as a port to the metadata topic. Metadata messages
+/// can be "sent" using this port which will publish them to the topic
+/// specified in the constructor call.
+class MetadataPort {
+    public:
 
-                void send(const askap::interfaces::TimeTaggedTypedValueMap& payload);
+        /// @brief Constructor.
+        ///
+        /// @param[in] dataset filename for the measurement set which
+        ///                    will be used to source the metadata.
+        /// @param[in] locatorHost hostname or IP address of the host
+        ///                     where the Ice locator service is running.
+        /// @param[in] locatorPort network port for the Ice locator service.
+        /// @param[in] topicManager identify of the IceStorm topic manager
+        ///                     within the Ice locator service.
+        /// @param[in] topic    IceStorm topic to which the metadata will be
+        ///                     published.
+        MetadataPort(const std::string& locatorHost,
+                     const std::string& locatorPort,
+                     const std::string& topicManager,
+                     const std::string& topic);
 
-            private:
-                // Get an IceStorm topic publisher proxy
-                Ice::ObjectPrx getProxy(const std::string& topicManager,
-                        const std::string& topic);
+        /// @brief Destructor.
+        ~MetadataPort();
 
-                // Ice Communicator
-                Ice::CommunicatorPtr itsComm;
+        /// @brief Publishes the payload to the IceStorm topic specified when
+        /// this object was instantiated.
+        ///
+        /// @param[in]  payload the payload to publish.
+        void send(const askap::interfaces::TimeTaggedTypedValueMap& payload);
 
-                // Ice proxy for the metadata stream topic
-                askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsMetadataStream;
-        };
-    };
+    private:
+        // Get an IceStorm topic publisher proxy
+        Ice::ObjectPrx getProxy(const std::string& topicManager,
+                                const std::string& topic);
+
+        // Ice Communicator
+        Ice::CommunicatorPtr itsComm;
+
+        // Ice proxy for the metadata stream topic
+        askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsMetadataStream;
 };
+
+};
+};
+
 #endif
