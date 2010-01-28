@@ -58,7 +58,7 @@ static void termination_handler (int signum)
 // Indexing function for indexing into the VisPayload vis and
 // nSamples arrays
 int index(int pol, int chan) {
-    return pol + ((n_pol) * chan);
+    return pol + ((N_POL) * chan);
 }
 
 // Print the visibilities. Only called when verbose == 2
@@ -72,12 +72,12 @@ int index(int pol, int chan) {
 static void printAdditional(const VisPayload& v)
 {
     std::cout << "\tVisibilities:" << std::endl;
-    for (unsigned int i = 0; i < n_fine_per_coarse; ++i) {
+    for (unsigned int i = 0; i < N_FINE_PER_COARSE; ++i) {
         std::cout << "\t\tch" << i << " [ ";
-        for (unsigned int j = 0; j < n_pol; ++j) {
+        for (unsigned int j = 0; j < N_POL; ++j) {
             std::cout << "(" << v.vis[index(j, i)].real <<
                 ", " << v.vis[index(j, i)].imag << ")";
-            if (j != (n_pol - 1)) {
+            if (j != (N_POL - 1)) {
                 std::cout << ", ";
             }
         }
@@ -166,6 +166,12 @@ int main(int argc, char *argv[])
         }
         if (len != sizeof(VisPayload)) {
             std::cout << "Error: Failed to read a full VisPayload struct" << std::endl;
+            continue;
+        }
+        if (vis.version != VISPAYLOAD_VERSION) {
+            std::cout << "Version mismatch. Expected " << VISPAYLOAD_VERSION
+                << " got " << vis.version << std::endl;
+            continue;
         }
         if (verbose) {
             printPayload(vis);

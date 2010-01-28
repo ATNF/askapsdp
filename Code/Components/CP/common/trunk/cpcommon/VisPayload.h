@@ -29,22 +29,45 @@
 
 namespace askap {
     namespace cp {
+
+        /// @brief Encoding of a single precision complex floating point number
+        /// for the correlator to central processor interface.
         struct FloatComplex
         {
             float real;
             float imag;
         };
 
-        static const unsigned int n_fine_per_coarse = 54;
-        static const unsigned int n_pol = 4;
+        /// @brief Version number for the VisPayload.
+        static const unsigned int VISPAYLOAD_VERSION = 0x1;
 
+        /// @brief Number of fine channels per coarse channel in the VisPayload.
+        /// This is hardcoded to the standard ASKAP configuration so fixed size
+        /// UDP datagrams can be used.
+        static const unsigned int N_FINE_PER_COARSE = 54;
+
+        /// @brief Number of polarisations present in the VisPayload. This is
+        /// hardcoded to the standard ASKAP configuration so fixed size UDP
+        /// datagrams can be used.
+        static const unsigned int N_POL = 4;
+
+        /// @brief This structure specifies the UDP datagram which is sent from
+        /// the correlator to the central processor. It contains all correlations
+        /// for a single baseline, beam and coarse channel.
         struct VisPayload
         {
+            /// A version number for this structure. Also doubles as a magic
+            /// number which can be used to verify if the datagram is of this
+            /// type.
+            unsigned int version;
+
             /// Timestamp - Binary Atomic Time (BAT). The number of microseconds
             /// since Modified Julian Day (MJD) = 0
             unsigned long timestamp;
 
-            /// Coarse Channel - Which coarse channel this block of data relates to.
+            /// Coarse Channel. Which coarse channel this block of data relates
+            /// to. This is a one based number and should be in the range of
+            /// 1 to 304 for ASKAP.
             unsigned int coarseChannel;
 
             /// First antenna
@@ -60,14 +83,14 @@ namespace askap {
             unsigned int beam2;
 
             /// Visibilities
-            FloatComplex vis[n_fine_per_coarse * n_pol];
+            FloatComplex vis[N_FINE_PER_COARSE * N_POL];
 
             /// The number of voltage samples that made up the visibility for this
             /// integration. This has the same dimension as "vis. i.e. one nSamples
             /// value per visibility in the "vis" array. An nSamples value of zero for
             /// any channel/polarization indicates that visibility has been flagged by
             /// the correlator as bad.
-            unsigned int nSamples[n_fine_per_coarse * n_pol];
+            unsigned char nSamples[N_FINE_PER_COARSE * N_POL];
         };
 
     };

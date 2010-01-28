@@ -116,6 +116,7 @@ bool CorrelatorSimulator::sendNext(void)
 
         // Populate the VisPayload
         askap::cp::VisPayload payload;
+        payload.version = VISPAYLOAD_VERSION;
         const long timestamp =
             static_cast<long>(msc.time()(itsCurrentRow) * 1000 * 1000);
         payload.timestamp = timestamp;
@@ -126,16 +127,16 @@ bool CorrelatorSimulator::sendNext(void)
         payload.beam2 = msc.feed2()(itsCurrentRow);
 
         // Set all nSamples to 1 and ensure nominalNSamples is also 1
-        for (unsigned int i = 0; i < n_fine_per_coarse * n_pol; ++i) {
+        for (unsigned int i = 0; i < N_FINE_PER_COARSE * N_POL; ++i) {
             payload.nSamples[i] = 1;
         }
 
         // This matrix is: Matrix<Complex> data(nCorr, nChan)
         const casa::Matrix<casa::Complex> data = msc.data()(itsCurrentRow);
         for (unsigned int coarseChan = 0; coarseChan < nChan; ++coarseChan) {
-            for (unsigned int fineChan = 0; fineChan < n_fine_per_coarse; ++fineChan) {
-                for (unsigned int pol = 0; pol < n_pol; ++pol) {
-                    const int idx = pol + (n_pol * fineChan);
+            for (unsigned int fineChan = 0; fineChan < N_FINE_PER_COARSE; ++fineChan) {
+                for (unsigned int pol = 0; pol < N_POL; ++pol) {
+                    const int idx = pol + (N_POL * fineChan);
                     payload.vis[idx].real = data(pol, coarseChan).real();
                     payload.vis[idx].imag = data(pol, coarseChan).imag();
                 }
