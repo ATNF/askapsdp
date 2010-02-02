@@ -59,8 +59,8 @@ class ParameterSet(object):
         >>> print p.get_value('x.y.a', 10)
         10
 
-    To test if a key exists us the `in` keyword. Note that the key must start at
-    the root value::
+    To test if a key exists us the `in` keyword. Note that the key must start 
+    at the root value::
 
         >>> p = ParameterSet('x.y.z', 1)
         >>> print 'x' in p
@@ -68,12 +68,14 @@ class ParameterSet(object):
         >>> print 'y' in p
         False
 
-    :param args: if only one argument, this is assumed to be the file name of
-                 a ParameterSet file. If two arguments are provided this is
+    :param args: if only one argument, it has to be a string
+                 which is assumed to be the file name of
+                 a ParameterSet file or a `dict` object.
+                 If two arguments are provided this is
                  assumed to be a key and a value.
     :param kw:   key/value parameters
 
-    Example::
+    Examples::
 
         >>> p0 = ParameterSet()
         >>> p1 = ParameterSet('x.y', 1)
@@ -86,14 +88,13 @@ class ParameterSet(object):
         3
         >>> p3 = ParameterSet('xyz.parset')
         >>> p1.set_value('x.a', 2)
+        >>> p4 = ParameterSet({'x.y': 1})
+        >>> p5 = ParameterSet(**{'x.y': 1})
 
     """
-
-    _reserved = ["get_value", "set_value", "to_dict", "to_flat_dict",
-                 "keys", "items"]
-
     def __init__(self, *args, **kw):
         object.__setattr__(self, "_keys", [])
+        object.__setattr__(self, "_pdict", {})
         # from file
         if len(args) == 1:
             if isinstance(args[0], basestring) and os.path.exists(args[0]):
@@ -110,8 +111,11 @@ class ParameterSet(object):
                                                                        ex.message))
                     i += 1
                 logger.info("Read ParameterSet file %s" % args[0])
+            elif isinstance(args[0], dict):
+                for k,v in args[0].iteritems():
+                    self.set_value(k, v)
             else:
-                raise ValueError("Given (single) argument is not a file name")
+                raise ValueError("Given (single) argument is not a file name or dict")
         # from key, value
         elif len(args) == 2:
             self.set_value(*args)
@@ -134,7 +138,7 @@ class ParameterSet(object):
         inkey = k
         k, tail = self._split(inkey)
         if k in self._keys:
-            child = self.__dict__[k]
+            child = self._pdict[k]
             if isinstance(child, self.__class__):
                 if tail is not None:
                     return child.get_value(tail, default)
@@ -151,7 +155,7 @@ class ParameterSet(object):
     def keys(self):
         out = []
         for k in self._keys:
-            child = self.__dict__[k]
+            child = self._pdict[k]
             if isinstance(child, self.__class__):
                 for key in child.keys():
                     out.append(".".join([k, key]))
@@ -185,24 +189,22 @@ class ParameterSet(object):
         """
         inkey = k
         k, tail = self._split(k)
-        if k in self._reserved:
-            raise KeyError("Key '%s' is a reserved keyword" % k)
         if k in self._keys:
-            child = self.__dict__[k]
+            child = self._pdict[k]
             if isinstance(child, self.__class__):
                 child.set_value(tail, v)
             else:
                 if tail:
                     raise ValueError("Leaf node %s can't be extended" % k)
                 else:
-                    self.__dict__[k] = v
+                    self._pdict[k] = v
         else:
             if not tail:
-                self.__dict__[k] = v
+                self._pdict[k] = v
             else:
                 child = ParameterSet()
                 child.set_value(tail, v)
-                self.__dict__[k] = child
+                self._pdict[k] = child
             self._keys.append(k)
 
     def __setitem__(self, k, v):
@@ -212,6 +214,9 @@ class ParameterSet(object):
         self.set_value(k, v)
 
     def __getitem__(self, k):
+        return self.get_value(k)
+
+    def __getattr__(self, k):
         return self.get_value(k)
 
     def _split(self, k):
@@ -225,7 +230,7 @@ class ParameterSet(object):
     def __contains__(self, k):
         k, tail = self._split(k)
         if k in self._keys:
-            child = self.__dict__[k]
+            child = self._pdict[k]
             if isinstance(child, self.__class__):
                 if tail is not None:
                     return child.__contains__(tail)
@@ -244,10 +249,10 @@ class ParameterSet(object):
         """
         out = {}
         for k in self._keys:
-            if isinstance(self.__dict__[k], self.__class__):
-                out[k] = self.__dict__[k].to_dict()
+            if isinstance(self._pdict[k], self.__class__):
+                out[k] = self._pdict[k].to_dict()
             else:
-                out[k] = decode(self.__dict__[k])
+                out[k] = decode(self._pdict[k])
         return out
 
     def to_flat_dict(self):
@@ -281,7 +286,11 @@ class ParameterSet(object):
         return [(k, self.get_value(k)) for k in self.keys()]
 
 def encode(value):
-    """Encode a python value as ParameterSet string"""
+    """Encode a python value as ParameterSet string.
+    
+       Note that python hex values are `int`s, so the only way to encode
+       handle hex values is to make them strings.
+    """
 
     def single_str(value):
         if isinstance(value, bool):
@@ -338,6 +347,7 @@ def decode(value):
     rxbool = re.compile(r"([tT]rue|[fF]alse)")
     rxisrange = re.compile(r"(\d+)\.{2}(\d+)")
     rxisnum = re.compile(r"^([+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)$")
+    rxhex = re.compile("^0x\d+$")
     # lists/arrays
     match = rxislist.match(value)
     if match:
@@ -396,7 +406,7 @@ def decode(value):
 def extract(line):
     """
     Return a key/value pair from a string. This will most likely be a line in a
-    ParameterSet file
+    ParameterSet file.
     """
     line = line.strip()
     if len(line) == 0 or line.startswith("#"):

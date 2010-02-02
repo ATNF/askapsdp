@@ -33,6 +33,11 @@ def test_fileconstructor():
     testfile = os.path.join(os.path.split(__file__)[0], 'example.parset')
     p = ParameterSet(testfile)
 
+# from file
+def test_dictconstructor():
+    p1 = ParameterSet({'x.y': 1})
+    p2 = ParameterSet(**{'x.y': 1})
+
 # call constructor with args
 def constructor(args):
     if not hasattr(args, "__len__"):
@@ -87,6 +92,12 @@ def test_get_value():
     v = p.x.y.z
     # test default value for non existing key
     assert p.get_value('x.y.x', 10) == 10
+
+def test_decoded():
+    p = ParameterSet('x.y.z', '1')
+    assert_equals(p.get_value('x.y.z'), 1)
+    assert_equals(p['x.y.z'], 1)
+    assert_equals(p.x.y.z, 1)
 
 @raises(KeyError)
 def test_get_fail():
