@@ -45,8 +45,8 @@ module cp
         ["ami"] void abortObs();
     };
 
-}; // End module cp
-}; // End module interfaces
-}; // End module askap
+};
+};
+};
 
 #endif

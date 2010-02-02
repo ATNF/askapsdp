@@ -164,11 +164,11 @@ struct AppliedCalibration {
   CalibrationParametersSeq data;
 };
 
-}; // module calibparams
+};
 
-}; // module interfaces
+};
 
-}; // module askap
+};
 
 #endif // #ifndef ASKAP_CALIBRATION_PARAMETERS_ICE
 

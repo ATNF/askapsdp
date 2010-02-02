@@ -112,7 +112,7 @@ module interfaces
      */
     sequence<Direction> DirectionSeq;
 
-}; // End module interfaces
-}; // End module askap
+};
+};
 
 #endif
