@@ -74,12 +74,10 @@ module tos
     };
     
     /**
-     * Exception thrown when there was an attempt to register illegal settings,
-     * which may include the case that the settings are intrinsically valid but
-     * are incompatible with already registered settings for global/shared
-     * resources.
+     * Exception thrown when supplied parameters are missing, have values
+     * which cannot be parsed, or conflict with already registered clients.
      **/
-    exception IllegalSettingsException
+    exception BadParamsException
       extends askap::interfaces::AskapIceException
     {
     };
@@ -113,7 +111,7 @@ module tos
         string allocate(string clientid, 
                         askap::interfaces::ParameterMap params)
           throws AntAlreadyAllocException,
-                 IllegalSettingsException;
+                 BadParamsException;
         
         /**
          * Release control of all resources which have been allocated to the 
@@ -140,9 +138,7 @@ module tos
           throws NoSuchComponentException;
 
         /**
-         * Command the specified component to begin execution of a new scan. If
-         * another scan is already in progress then it will be stopped prior to
-         * commencing the new scan.
+         * Command the specified component to begin execution of a new scan.
          **/
         void startScan(string clientid,
                        string arrayid,
@@ -150,6 +146,7 @@ module tos
                        int scannum)
           throws AntNotAllocException,
                  NoSuchComponentException,
+                 BadParamsException,
                  NoSuchScanException;
 
         /**
@@ -170,7 +167,17 @@ module tos
                          int timeoutms)
           throws TimeoutException,
                  NoSuchComponentException;
-         
+
+        /**
+         * Block until all antennas (below the specified component) are 
+         * on-source. A TimeoutException will be thrown if the antennas have
+         * not finished slewing within the specified duration.
+         */
+        void waitUntilOnSource(string arrayid,
+                               int timeoutms)
+          throws TimeoutException,
+                 NoSuchComponentException;
+
         /**
          * Stow the specified component. If the antennas are currently scanning
          * the scan will be stopped.
