@@ -387,6 +387,7 @@ void SimParallel::simulate()
             ostringstream oos;
             oos << "observe.scan" << scan;
             vector<string> line = parset.getStringVector(oos.str());
+            ASKAPCHECK(line.size()>=4, "Expect at least 4-elements in observe.scanN, you have "<<line);
             string source = substitute(line[0]);
             string spw = substitute(line[1]);
             ASKAPLOG_INFO_STR(logger, "Observing scan " << scan << " on source " << source

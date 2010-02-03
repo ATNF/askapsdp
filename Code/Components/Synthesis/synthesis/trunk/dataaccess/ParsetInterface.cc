@@ -77,7 +77,7 @@ void askap::synthesis::operator<<(const boost::shared_ptr<IDataSelector> &sel,
                     parset.getUint32("SpectralWindow")));
   }
   if (parset.isDefined("Polarizations")) {
-      sel->choosePolarizations(parset.getString("Polarizations"));
+      sel->choosePolarizations(parset.getString("Polarisations"));
   }
   if (parset.isDefined("Cycles")) {
       std::vector<LOFAR::uint32> cycles = parset.getUint32Vector("Cycles");

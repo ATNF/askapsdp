@@ -116,6 +116,7 @@ namespace askap
                          *it);               
               int nchan=parset.getInt32(*it+".nchan");
               std::vector<double> freq=parset.getDoubleVector(*it+".frequency");
+              ASKAPCHECK(freq.size()>=2, "Parameter "<<*it<<".frequency should have at least 2-elements, you have "<<freq.size());
               std::vector<std::string> direction=parset.getStringVector(*it+".direction");
               if (parset.isDefined(*it+".shape")) {
                   if (shape.size()!=0) {
