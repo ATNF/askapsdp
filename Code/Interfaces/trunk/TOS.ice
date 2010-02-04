@@ -81,6 +81,16 @@ module tos
       extends askap::interfaces::AskapIceException
     {
     };
+
+    /**
+     * Exception thrown when the TOS cannot continue normally because of a
+     * fatal problem with a subsystem, eg. because an antenna is not driving
+     * or the correlator is not responding to commands.
+     **/
+    exception SubsystemErrorException
+      extends askap::interfaces::AskapIceException
+    {
+    };
     
     /**
      * Exception for when a specified timeout is exceeded.
@@ -111,7 +121,8 @@ module tos
         string allocate(string clientid, 
                         askap::interfaces::ParameterMap params)
           throws AntAlreadyAllocException,
-                 BadParamsException;
+                 BadParamsException,
+                 SubsystemErrorException;
         
         /**
          * Release control of all resources which have been allocated to the 
@@ -147,7 +158,8 @@ module tos
           throws AntNotAllocException,
                  NoSuchComponentException,
                  BadParamsException,
-                 NoSuchScanException;
+                 NoSuchScanException,
+                 SubsystemErrorException;
 
         /**
          * Stop any scans which the specified component, and children thereof,
@@ -161,22 +173,28 @@ module tos
         /**
          * Block until all antennas (below the specified component) are no 
          * longer executing a scan. A TimeoutException will be thrown if the
-         * scan has not completed within the specified duration.
+         * scan has not completed within the specified duration. A
+         * SubsystemErrorException will be thrown if there was a fault while
+         * we were waiting.
          */
         void waitForScan(string arrayid,
                          int timeoutms)
           throws TimeoutException,
-                 NoSuchComponentException;
+                 NoSuchComponentException,
+                 SubsystemErrorException;
 
         /**
          * Block until all antennas (below the specified component) are 
          * on-source. A TimeoutException will be thrown if the antennas have
-         * not finished slewing within the specified duration.
+         * not finished slewing within the specified duration. A
+         * SubsystemErrorException will be thrown if there was a fault while
+         * we were waiting.
          */
         void waitUntilOnSource(string arrayid,
                                int timeoutms)
           throws TimeoutException,
-                 NoSuchComponentException;
+                 NoSuchComponentException,
+                 SubsystemErrorException;
 
         /**
          * Stow the specified component. If the antennas are currently scanning
