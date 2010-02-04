@@ -1,4 +1,4 @@
-boost=3rdParty/boost/tags/boost-1.37.0
+boost=3rdParty/boost/tags/boost-1.41.0
 askap=Code/Base/askap/trunk
 common=3rdParty/LOFAR/Common/tags/Common-3.3
 cmdlineparser=3rdParty/cmdlineparser/tags/cmdlineparser-0.1.1

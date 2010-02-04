@@ -1,4 +1,4 @@
-boost=3rdParty/boost/tags/boost-1.37.0
+boost=3rdParty/boost/tags/boost-1.41.0
 common=3rdParty/LOFAR/Common/tags/Common-3.3
 blob=3rdParty/LOFAR/Blob/tags/Blob-1.2
 askap=Code/Base/askap/trunk
