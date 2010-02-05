@@ -253,7 +253,7 @@ public class LoggerIce extends Logger {
           }
         }
 
-        Ice.ObjectPrx pub = topic.getPublisher().ice_oneway();
+        Ice.ObjectPrx pub = topic.getPublisher().ice_twoway();
         itsLoggingService = ILoggerPrxHelper.uncheckedCast(pub);
 
         if (itsLoggingService == null) {
