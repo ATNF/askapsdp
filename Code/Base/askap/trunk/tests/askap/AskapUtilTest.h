@@ -1,3 +1,8 @@
+/// @file
+/// 
+/// @brief This file contains tests for macros defined in AskapError.
+/// @details The tests cover the ASKAPASSERT and ASKAPCHECK macros
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,27 +25,37 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+#ifndef ASKAP_UTIL_TEST_H
+#define ASKAP_UTIL_TEST_H
 
-// Test includes
-#include <askap_askap.h>
-#include <IndexedCompareTest.h>
-#include <AskapErrorTest.h>
-#include <MapKeyIteratorTest.h>
-#include <AskapUtilTest.h>
+#include <askap/AskapUtil.h>
+#include <cppunit/extensions/HelperMacros.h>
 
-int main(int argc, char *argv[])
+namespace askap
 {
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
+  
+  class AskapUtilTest : public CppUnit::TestFixture {
+    
+    CPPUNIT_TEST_SUITE(AskapUtilTest);
+    CPPUNIT_TEST(testNint);
+    CPPUNIT_TEST_SUITE_END();
+    
+  public:
+    
+    void testNint() {
+      const double testvals[] = {0.9, 2.2, 4.499999, 4.5,-0.1,-0.5, -3.9};
+      const int results[] = {1, 2, 4, 5, 0, -1, -4};
+      const size_t nVal = 7;
+      for (size_t i = 0; i<nVal; ++i) {
+           CPPUNIT_ASSERT(askap::nint(testvals[i]) == results[i]);
+           CPPUNIT_ASSERT(askap::nint(float(testvals[i])) == results[i]);
+      }
+    }
 
-    runner.addTest(askap::utility::IndexedLessTest::suite());
-    runner.addTest(askap::AskapErrorTest::suite());
-    runner.addTest(askap::utility::MapKeyIteratorTest::suite());
-    runner.addTest(askap::AskapUtilTest::suite());
+  };
 
-    bool wasSucessful = runner.run();
+} // namespace askap
 
-    return wasSucessful ? 0 : 1;
-}
+#endif // #ifndef
