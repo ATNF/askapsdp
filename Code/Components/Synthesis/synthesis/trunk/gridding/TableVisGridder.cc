@@ -352,7 +352,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 		   fracu=askap::nint(itsOverSample*(double(iu)-uScaled));
 		   ASKAPCHECK(fracu>-1, "Fractional offset in u is negative");
 		   ASKAPCHECK(fracu<itsOverSample,
-				   "Fractional offset in u exceeds oversampling");
+				   "Fractional offset in u exceeds oversampling, iu="<<iu<<" oversample="<<itsOverSample<<" fracu="<<fracu);
 		   iu+=itsShape(0)/2;
 		   
 		   double vScaled=frequencyList[chan]*outUVW(i)(1)/(casa::C::c *itsUVCellSize(1));
@@ -365,7 +365,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			   iv-=1;
 		   }
 		   fracv=askap::nint(itsOverSample*(double(iv)-vScaled));
-		   ASKAPCHECK(fracv>-1, "Fractional offset in v is negative");
+		   ASKAPCHECK(fracv>-1, "Fractional offset in v is negative, iv="<<iv<<" oversample="<<itsOverSample<<" fracv="<<fracv);
 		   ASKAPCHECK(fracv<itsOverSample,
 				   "Fractional offset in v exceeds oversampling");
 		   iv+=itsShape(1)/2;
