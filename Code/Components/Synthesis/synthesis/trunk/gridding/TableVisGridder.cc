@@ -367,7 +367,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 		   fracv=askap::nint(itsOverSample*(double(iv)-vScaled));
 		   ASKAPCHECK(fracv>-1, "Fractional offset in v is negative, iv="<<iv<<" oversample="<<itsOverSample<<" fracv="<<fracv);
 		   ASKAPCHECK(fracv<itsOverSample,
-				   "Fractional offset in v exceeds oversampling");
+				   "Fractional offset in v exceeds oversampling, iv="<<iv<<" oversample="<<itsOverSample<<" fracv="<<fracv);
 		   iv+=itsShape(1)/2;
 		   
 		   // Calculate the delay phasor
