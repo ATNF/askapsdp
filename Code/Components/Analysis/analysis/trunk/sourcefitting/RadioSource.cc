@@ -151,7 +151,6 @@ namespace askap {
 	      start(2) = std::max(long(sec.getStart(spectralAxis) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
 	      end(2)   = std::min(long(sec.getEnd(spectralAxis) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
 	      this->itsBox = casa::Slicer(start,end,stride,Slicer::endIsLast);
-	      ASKAPLOG_DEBUG_STR(logger, sec.getStart(spectralAxis) << " " << sec.getEnd(spectralAxis) << " " << this->getZmin() << " " << this->getZmax() << " " << this->zSubOffset);
             }
 
 
