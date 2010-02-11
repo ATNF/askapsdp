@@ -1066,7 +1066,7 @@ namespace askap {
                     if (this->itsCube.pars().getFlagATrous()) this->itsCube.ReconCube();
                     else if (this->itsCube.pars().getFlagSmooth()) this->itsCube.SmoothCube();
 
-                    int32 size = this->itsCube.getSize();
+                    int64 size = this->itsCube.getSize();
                     float mean = 0., rms;
                     float *array;
                     // make a mask in case there are blank pixels.
@@ -1138,7 +1138,7 @@ namespace askap {
                 }
 
                 // use it to calculate the rms for this section
-                int32 size = this->itsCube.getSize();
+                int64 size = this->itsCube.getSize();
                 double rms = 0.;
                 float *array;
 
@@ -1198,7 +1198,7 @@ namespace askap {
                     int version = in.getStart("meanW2M");
                     ASKAPASSERT(version == 1);
                     double newav;
-                    int32 newsize;
+                    int64 newsize;
                     int16 rank;
                     in >> rank >> newav >> newsize;
                     in.getEnd();
@@ -1254,7 +1254,7 @@ namespace askap {
                 // get the means from the workers
                 ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Receiving RMS values and combining");
                 LOFAR::BlobString bs;
-                int size = 0;
+                long size = 0;
                 double rms = 0;
 
                 for (int i = 1; i < itsNNode; i++) {
@@ -1264,7 +1264,7 @@ namespace askap {
                     int version = in.getStart("rmsW2M");
                     ASKAPASSERT(version == 1);
                     double newrms;
-                    int32 newsize;
+                    int64 newsize;
                     int16 rank;
                     in >> rank >> newrms >> newsize;
                     in.getEnd();
