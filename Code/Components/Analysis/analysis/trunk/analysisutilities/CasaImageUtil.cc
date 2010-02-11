@@ -765,21 +765,21 @@ namespace askap {
 	IPosition start = slice.start();
 	IPosition end = slice.end();
 	IPosition stride = slice.stride();
-	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
-	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: lng="<<wcs->lng<<", lat="<<wcs->lat<<", spec="<<wcs->spec);
+// 	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
+// 	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: lng="<<wcs->lng<<", lat="<<wcs->lat<<", spec="<<wcs->spec);
 	for(size_t i=0;i<start.size();i++){
 	  // set all axes that aren't position or spectral to just the first value.
 	  int index = int(i);
-	  ASKAPLOG_DEBUG_STR(logger,index);
+// 	  ASKAPLOG_DEBUG_STR(logger,index);
 	  if(index!=wcs->lng && index!=wcs->lat && index!=wcs->spec){
-	    ASKAPLOG_DEBUG_STR(logger, "Changing " << index);
+// 	    ASKAPLOG_DEBUG_STR(logger, "Changing " << index);
 	    start(i) = 0;
 	    end(i) = 0;
 	  }
 	}
 
 	slice = Slicer(start,end,stride,Slicer::endIsLast);
-	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
+// 	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
       }
 
 

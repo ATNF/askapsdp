@@ -475,8 +475,7 @@ namespace askap {
                 // merge the objects, and grow them if necessary.
                 this->itsCube.ObjectMerger();
                 this->itsCube.calcObjectWCSparams();
-                int16 num = this->itsCube.getNumObj();
-                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Found " << num << " objects.");
+                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " objects.");
 
                 if (isParallel()) {
                     this->itsCube.pars().setMinPix(minpix);
@@ -566,7 +565,7 @@ namespace askap {
                         threshold = std::min(threshold, this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut()));
                 }
 
-                int numObj = this->itsCube.getNumObj();
+		long numObj = this->itsCube.getNumObj();
 
                 for (int i = 0; i < numObj; i++) {
                     if (this->itsFlagDoFit)
@@ -620,13 +619,13 @@ namespace askap {
             /// @details The RadioSource objects on each worker, which
             /// contain each detected object, are sent to the Master node
             /// via LOFAR Blobs.
-            /// @todo Voxellist is really only needed for the boundary sources.
             ///
             /// In the non-parallel case, we put together a voxel list. Not
             /// sure whether this is necessary at this point.
             /// @todo Sort out voxelList necessity.
             if (this->isWorker()) {
-                int16 num = this->itsCube.getNumObj(), rank = this->itsRank;
+	      int32 num = this->itsCube.getNumObj();
+	      int16 rank = this->itsRank;
 
                 if (this->isParallel()) {
                     LOFAR::BlobString bs;
@@ -698,7 +697,8 @@ namespace askap {
 
                 if (this->isParallel()) {
                     LOFAR::BlobString bs;
-                    int16 rank, numObj;
+                    int16 rank;
+		    int32 numObj;
 
 		    // don't do fit if we have a spectral axis.
 		    bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
@@ -822,7 +822,7 @@ namespace askap {
                     this->calcObjectParams();
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());
 
-                    for (int i = 0; i < this->itsCube.getNumObj(); i++) {
+                    for (long i = 0; i < this->itsCube.getNumObj(); i++) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
