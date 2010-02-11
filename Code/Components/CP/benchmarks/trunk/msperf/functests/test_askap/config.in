@@ -10,9 +10,9 @@ msperf.stman.tilenchan  = 16
 msperf.integrationTime  = 5
 
 # Number of channels per task
-msperf.nChan            = 8192
+msperf.nChan            = 1024
 
-msperf.nIntegrations    = 60
+msperf.nIntegrations    = 120
 msperf.nAntenna         = 36
 msperf.nFeeds           = 36
 msperf.nPol             = 4
