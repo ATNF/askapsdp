@@ -344,30 +344,30 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 		   int iu = askap::nint(uScaled);
 		   int fracu=askap::nint(itsOverSample*(double(iu)-uScaled));
 		   if (fracu<0) {
-			   iu+=1;
+                       iu+=1;
+                       fracu += itsOverSample;
+		   } else if (fracu>=itsOverSample) {
+                       iu-=1;
+                       fracu -= itsOverSample;
 		   }
-		   if (fracu>=itsOverSample) {
-			   iu-=1;
-		   }
-		   fracu=askap::nint(itsOverSample*(double(iu)-uScaled));
-		   ASKAPCHECK(fracu>-1, "Fractional offset in u is negative");
+		   ASKAPCHECK(fracu>-1, "Fractional offset in u is negative, uScaled="<<uScaled<<" iu="<<iu<<" oversample="<<itsOverSample<<" fracu="<<fracu);
 		   ASKAPCHECK(fracu<itsOverSample,
-				   "Fractional offset in u exceeds oversampling, iu="<<iu<<" oversample="<<itsOverSample<<" fracu="<<fracu);
+				   "Fractional offset in u exceeds oversampling, uScaled="<<uScaled<<" iu="<<iu<<" oversample="<<itsOverSample<<" fracu="<<fracu);
 		   iu+=itsShape(0)/2;
 		   
 		   double vScaled=frequencyList[chan]*outUVW(i)(1)/(casa::C::c *itsUVCellSize(1));
 		   int iv = askap::nint(vScaled);
 		   int fracv=askap::nint(itsOverSample*(double(iv)-vScaled));
 		   if (fracv<0) {
-			   iv+=1;
+                       iv+=1;
+                       fracv += itsOverSample;
+		   } else if (fracv>=itsOverSample) {
+                       iv-=1;
+                       fracv -= itsOverSample;
 		   }
-		   if (fracv>=itsOverSample) {
-			   iv-=1;
-		   }
-		   fracv=askap::nint(itsOverSample*(double(iv)-vScaled));
-		   ASKAPCHECK(fracv>-1, "Fractional offset in v is negative, iv="<<iv<<" oversample="<<itsOverSample<<" fracv="<<fracv);
+		   ASKAPCHECK(fracv>-1, "Fractional offset in v is negative, vScaled="<<vScaled<<" iv="<<iv<<" oversample="<<itsOverSample<<" fracv="<<fracv);
 		   ASKAPCHECK(fracv<itsOverSample,
-				   "Fractional offset in v exceeds oversampling, iv="<<iv<<" oversample="<<itsOverSample<<" fracv="<<fracv);
+				   "Fractional offset in v exceeds oversampling, vScaled="<<vScaled<<" iv="<<iv<<" oversample="<<itsOverSample<<" fracv="<<fracv);
 		   iv+=itsShape(1)/2;
 		   
 		   // Calculate the delay phasor
