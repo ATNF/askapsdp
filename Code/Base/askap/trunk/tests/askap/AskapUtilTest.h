@@ -43,6 +43,24 @@ namespace askap
     CPPUNIT_TEST_SUITE_END();
     
   public:
+    void testV(double vScaled) {
+       // section of the gridder code for debugging
+       const int oversample = 4;
+       int iv = askap::nint(vScaled);
+       int fracv=askap::nint(oversample*(double(iv)-vScaled));
+        if (fracv<0) {
+            iv+=1;
+            //fracv+=oversample;
+        }
+        if (fracv>=oversample) {
+            iv-=1;
+            //fracv-=oversample;
+        }
+        fracv=askap::nint(oversample*(double(iv)-vScaled));
+        ASKAPCHECK(fracv>-1, "Fractional offset in v is negative, vScaled="<<" iv="<<iv<<" oversample="<<oversample<<" fracv="<<fracv);
+        ASKAPCHECK(fracv<oversample, "Fractional offset in v exceeds oversampling, vScaled="<<vScaled<<" iv="<<iv<<" oversample="<<oversample<<" fracv="<<fracv);
+        //std::cerr<<vScaled<<" "<<iv<<" "<<fracv<<" "<<double(iv)-double(fracv)/double(oversample)<<std::endl;
+    }
     
     void testNint() {
       const double testvals[] = {0.9, 2.2, 4.499999, 4.5,-0.1,-0.5, -3.9};
@@ -52,6 +70,14 @@ namespace askap
            CPPUNIT_ASSERT(askap::nint(testvals[i]) == results[i]);
            CPPUNIT_ASSERT(askap::nint(float(testvals[i])) == results[i]);
       }
+      
+      testV(-272.75);
+      
+      for (size_t i = 0; i<200; ++i) {
+          double val = -273+double(i)/100.;
+          testV(val);
+      }
+      
     }
 
   };
