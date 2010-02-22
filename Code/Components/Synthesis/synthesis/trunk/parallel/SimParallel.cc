@@ -138,13 +138,14 @@ void SimParallel::readAntennas()
     }
 
     /// Csimulator.name = ASKAP
-    string telName = parset.getString("antennas.telescope");
+    const std::string telName = parset.getString("antennas.telescope");
     ASKAPLOG_INFO_STR(logger, "Simulating " << telName);
     ostringstream oos;
     oos << "antennas." << telName << ".";
     ParameterSet antParset(parset.makeSubset(oos.str()));
 
     /// Csimulator.ASKAP.number=45
+    ASKAPCHECK(antParset.isDefined("names"), "Subset (antennas."<<telName<<") of the antenna definition parset does not have 'names' keyword.");
     vector<string> antNames(antParset.getStringVector("names"));
     int nAnt = antNames.size();
     ASKAPCHECK(nAnt > 0, "No antennas defined in parset file");
