@@ -110,7 +110,8 @@ int main(int argc, const char** argv)
                 imager.broadcastModel();
                 imager.receiveModel();
                 imager.calcNE();
-                imager.receiveNE();
+                imager.solveNE();
+                //imager.receiveNE();
             } else {
                 /// Perform multiple major cycles
                 for (int cycle = 0; cycle < nCycles; ++cycle) {
