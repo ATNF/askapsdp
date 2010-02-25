@@ -278,10 +278,8 @@ namespace askap
              }
              // end of the code storing residual image
 
-             casa::Array<double> valueSlice = planeIter.getPlane(itsParams->value(indit->first));
-             const casa::IPosition vecShape(1, valueSlice.nelements());
-	         casa::Vector<double> value(valueSlice.reform(vecShape));
-             const casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
+	         casa::Vector<double> value(planeIter.getPlaneVector(itsParams->value(indit->first)));
+             const casa::Vector<float> dirtyVector(dirtyArray.reform(value.shape()));
              for (uint elem=0; elem<dv.nelements(); ++elem) {
                   value(elem) += dirtyVector(elem);
              }
