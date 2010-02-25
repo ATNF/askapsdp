@@ -211,51 +211,60 @@ namespace askap
       ASKAPCHECK(nParameters>0, "No free parameters in ImageSolver");
 
       for (map<string, uint>::const_iterator indit=indices.begin(); indit
-          !=indices.end(); indit++)
-      {
+          !=indices.end(); indit++) {
         // Axes are dof, dof for each parameter
-        casa::IPosition arrShape(itsParams->value(indit->first).shape());
-        casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-        ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for solution");
-        const casa::Vector<double> & diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
-        ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present for solution");
-        const casa::Vector<double> &dv = normalEquations().dataVector(indit->first);
-	ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
-        const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
+        //casa::IPosition arrShape(itsParams->value(indit->first).shape());
+        for (scimath::MultiDimArrayPlaneIter planeIter(itsParams->value(indit->first).shape());
+             planeIter.hasMore(); planeIter.next()) {
+        
+             ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for solution");
+             const casa::Vector<double> & diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
+             ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present for solution");
+             casa::Vector<double> dv = normalEquations().dataVector(indit->first);
+	         ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
+             casa::Vector<double> slice(normalEquations().normalMatrixSlice().find(indit->first)->second);
 
-	casa::Array<float> dirtyArray(arrShape);
-        casa::convertArray<float, double>(dirtyArray, dv.reform(arrShape));
-        casa::Array<float> psfArray(arrShape);
-        casa::convertArray<float, double>(psfArray, slice.reform(arrShape));
+             if (planeIter.tag() != "") {
+                 // it is not a single plane case, there is something to report
+                 ASKAPLOG_INFO_STR(logger, "Processing plane "<<planeIter.sequenceNumber()<<
+                                           " tagged as "<<planeIter.tag());
+             }
+
+
+	         casa::Array<float> dirtyArray(planeIter.planeShape());
+             casa::convertArray<float, double>(dirtyArray, planeIter.getPlane(dv));
+             casa::Array<float> psfArray(planeIter.planeShape());
+             casa::convertArray<float, double>(psfArray, planeIter.getPlane(slice));
 	
-	// Normalize by the diagonal
-	doNormalization(diag,tol(),psfArray,dirtyArray);
+             // Normalize by the diagonal
+             doNormalization(diag,tol(),psfArray,dirtyArray);
 
-	// Do the preconditioning
-	if(doPreconditioning(psfArray,dirtyArray))
-	{
-	
-	 // Save the new PSFs to disk
-         Axes axes(itsParams->axes(indit->first));
-	 string psfName="psf."+(indit->first);
-	 casa::Array<double> anothertemp(arrShape);
-	 casa::convertArray<double,float>(anothertemp,psfArray);
-	 const casa::Array<double> & APSF(anothertemp);
-	 if (!itsParams->has(psfName)) {
-		 itsParams->add(psfName, APSF, axes);
-	 }
-	 else {
-		 itsParams->update(psfName, APSF);
-	 }
-	}
+             // Do the preconditioning
+             if (doPreconditioning(psfArray,dirtyArray)) {	
 
-	casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
-	casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
-	for (uint elem=0; elem<dv.nelements(); elem++)
-	{
-		value(elem) += dirtyVector(elem);
-	}
-      }
+                 // Save the new PSFs to disk
+                 Axes axes(itsParams->axes(indit->first));
+                 const string psfName="psf."+(indit->first);
+                 casa::Array<double> anothertemp(planeIter.planeShape());
+                 casa::convertArray<double,float>(anothertemp,psfArray);
+                 const casa::Array<double> & APSF(anothertemp);
+                 if (!itsParams->has(psfName)) {
+                     itsParams->add(psfName, planeIter.shape(), axes);
+                 } 
+                 itsParams->update(psfName, APSF, planeIter.position());                 
+             } // if - doPreconditioning
+
+             ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
+
+             casa::Array<double> valueSlice = planeIter.getPlane(itsParams->value(indit->first));
+             const casa::IPosition vecShape(1, valueSlice.nelements());
+	         casa::Vector<double> value(valueSlice.reform(vecShape));
+             const casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
+             for (uint elem=0; elem<dv.nelements(); ++elem) {
+                  value(elem) += dirtyVector(elem);
+             }
+        } // iteration over image planes (polarisation, spectral channels)
+      } // iteration over free image parameters (e.g. facets)
       quality.setDOF(nParameters);
       quality.setRank(0);
       quality.setCond(0.0);
