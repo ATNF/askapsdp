@@ -1055,6 +1055,23 @@ namespace askap
        }     
     }                       
     
+    /// @brief zero all free model images
+    /// @details I (MV) hope that this method is temporary. In the current design of the code we need to 
+    /// discard the solution of the model updates in the case of a dirty image. Otherwise, the restored image
+    /// is wrong. This method iterates over all free model image parameters and sets them to 0.
+    /// @param[in] params collection of parameters
+    void SynthesisParamsHelper::zeroAllModelImages(const askap::scimath::Params::ShPtr& params) {        
+         ASKAPDEBUGASSERT(params);
+         // Find all the free parameters beginning with image
+         vector<string> names(params->completions("image"));
+         for (vector<string>::const_iterator it=names.begin(); it!=names.end(); ++it) {
+              const std::string name="image"+*it;
+              if (params->isFree(name)) {
+                  params->value(name).set(0.);
+              }
+         }        
+    }
+    
     
     /// @brief load component-related parameters from a parset file
     /// @details Parameter layout is different in scimath::Params and

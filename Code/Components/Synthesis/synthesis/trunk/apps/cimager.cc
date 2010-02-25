@@ -112,6 +112,7 @@ int main(int argc, const char** argv)
                 imager.calcNE();
                 imager.solveNE();
                 //imager.receiveNE();
+                imager.zeroAllModelImages();
             } else {
                 /// Perform multiple major cycles
                 for (int cycle = 0; cycle < nCycles; ++cycle) {

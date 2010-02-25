@@ -125,6 +125,11 @@ namespace askap
       /// (used to separate images at different iterations)
       virtual void writeModel(const std::string &postfix = std::string());
 
+      /// @brief Helper method to zero all model images
+      /// @details We need this for dirty solver only, as otherwise restored image 
+      /// (which is crucial for faceting) will be wrong.
+      void zeroAllModelImages() const;
+
   protected:
       
       /// @brief a helper method to extract peak residual

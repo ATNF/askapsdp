@@ -330,6 +330,17 @@ namespace askap
       }
     }
     
+    /// @brief Helper method to zero all model images
+    /// @details We need this for dirty solver only, as otherwise restored image 
+    /// (which is crucial for faceting) will be wrong.
+    void ImagerParallel::zeroAllModelImages() const 
+    {
+      ASKAPCHECK(itsModel, "Model should not be empty at this stage!");
+      ASKAPLOG_INFO_STR(logger, "Dirty solver mode, setting all model images to 0."); 
+      SynthesisParamsHelper::zeroAllModelImages(itsModel);
+    }
+    
+    
     /// @brief a helper method to extract peak residual
     /// @details This object actually manipulates with the normal equations. We need
     /// to be able to stop iterations on the basis of maximum residual, which is a 

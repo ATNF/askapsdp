@@ -81,6 +81,13 @@ namespace askap
         /// @return a reference to image handler
         static IImageAccess& imageHandler();
         
+        /// @brief zero all free model images
+        /// @details I (MV) hope that this method is temporary. In the current design of the code we need to 
+        /// discard the solution of the model updates in the case of a dirty image. Otherwise, the restored image
+        /// is wrong. This method iterates over all free model image parameters and sets them to 0.
+        /// @param[in] params collection of parameters
+        static void zeroAllModelImages(const askap::scimath::Params::ShPtr& params);        
+        
         /// @brief set up images according to the parset file
 		/// @param[in] params Images to be created here
 		/// @param[in] parset a parset object to read the parameters from
