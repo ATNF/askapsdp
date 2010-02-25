@@ -256,6 +256,28 @@ namespace askap
 
              ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
 
+             // uncomment the code below to save the residual image
+             // This takes up some memory and we have to ship the residual image out inside
+             // the parameter class. Therefore, we may not need this functionality in the 
+             // production version (or may need to implement it in a different way).
+
+             {
+                Axes axes(itsParams->axes(indit->first));
+                ASKAPDEBUGASSERT(indit->first.find("image")==0);
+                ASKAPCHECK(indit->first.size()>5, 
+                        "Image parameter name should have something appended to word image")           
+                    const string residName="residual"+indit->first.substr(5);
+                    casa::Array<double> anothertemp(planeIter.planeShape());
+                    casa::convertArray<double,float>(anothertemp,dirtyArray);
+                    const casa::Array<double> & AResidual(anothertemp);
+                    if (!itsParams->has(residName)) {
+                        // create an empty parameter with the full shape
+                        itsParams->add(residName, planeIter.shape(), axes);
+                    }
+                    itsParams->update(residName, AResidual, planeIter.position());                     
+             }
+             // end of the code storing residual image
+
              casa::Array<double> valueSlice = planeIter.getPlane(itsParams->value(indit->first));
              const casa::IPosition vecShape(1, valueSlice.nelements());
 	         casa::Vector<double> value(valueSlice.reform(vecShape));
