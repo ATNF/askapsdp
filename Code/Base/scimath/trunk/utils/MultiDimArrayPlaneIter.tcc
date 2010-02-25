@@ -101,6 +101,19 @@ casa::Vector<T> MultiDimArrayPlaneIter::getPlaneVector(casa::Vector<T> &in) cons
   return plane.reform(casa::IPosition(1,plane.nelements())); 
 }
    
+/// @brief extract a single plane into a flattened vector
+/// @details This method extracts a single plane slice from an array. 
+/// The slice corresponds to the current position of the iterator. Unlike getPlane, the result 
+/// is returned as a flattened vector.
+/// @param[in] in input vector
+/// @return output vector (single plane)
+template<typename T>
+casa::Vector<T> MultiDimArrayPlaneIter::getPlaneVector(casa::Array<T> &in) const
+{
+  casa::Array<T> plane = getPlane(in);
+  return plane.reform(casa::IPosition(1,plane.nelements())); 
+}
+
 
 } // namespace scimath
 

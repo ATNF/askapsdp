@@ -95,10 +95,13 @@ namespace scimath {
                    
                    casa::Vector<double> flattenedPlane = iter.getPlaneVector(flattened);
                    CPPUNIT_ASSERT(flattenedPlane.nelements() == mtr.nelements());
+                   casa::Vector<double> flattenedPlane2 = iter.getPlaneVector(itsArray);
+                   CPPUNIT_ASSERT(flattenedPlane2.nelements() == mtr.nelements());
+                   
                    for (casa::uInt index = 0; index<flattenedPlane.nelements(); ++index) {
                         CPPUNIT_ASSERT(fabs(flattenedPlane[index]-double(counter))<1e-6);
-                   }
-                   
+                        CPPUNIT_ASSERT(fabs(flattenedPlane2[index]-double(counter))<1e-6);
+                   }                   
               }
               CPPUNIT_ASSERT( counter == 12);
               
