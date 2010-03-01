@@ -150,6 +150,17 @@ namespace askap
       /// @details Change itsUseAllDataForPSF
       /// @param[in] useAll new value of the flag
       void inline useAllDataForPSF(const bool useAll) { itsUseAllDataForPSF = useAll;} 
+
+      /// @brief set the largest angular separation between the pointing centre and the image centre
+      /// @details If the threshold is positive, it is interpreted as the largest allowed angular
+      /// separation between the beam (feed in the accessor terminology) pointing centre and the
+      /// image centre. We need this to allow imaging of a subset of data (i.e. smaller field of view)
+      /// and reject all pointings located outside this smaller image. All accessor rows with
+      /// pointingDir1 separated from the image centre by more than this threshold will be ignored.
+      /// If the threshold is negative (default), no data rejection based on the pointing direction is done.
+      /// The gridder is initialised by default with the negative threshold, i.e. all data are used by default.
+      /// @param[in] threshold largest allowed angular separation in radians, use negative value to select all data
+      void inline maxPointingSeparation(double threshold = -1.) { itsMaxPointingSeparation = threshold; }
       
   protected:
       /// @brief shape of the grid
@@ -393,6 +404,20 @@ namespace askap
       /// @details Correspondence between planes of the image cube and accessor channels may be
       /// non-trivial. This class takes care of the mapping.
       FrequencyMapper itsFreqMapper;
+      
+      /// @brief largest angular separation between the pointing centre and the image centre
+      /// @details If the value is positive, it is interpreted as the largest allowed angular
+      /// separation between the beam (feed in the accessor terminology) pointing centre and the
+      /// image centre. It is intended to allow imaging of a subset of data (i.e. smaller field of view)
+      /// and reject all pointings located outside this smaller image. All accessor rows with
+      /// pointingDir1 separated from the image centre by more than this threshold are ignored.
+      /// If the value is negative, no data rejection based on the pointing direction is done.
+      /// Values are in radians.
+      double itsMaxPointingSeparation;
+      
+      /// @brief number of rows rejected due to itsMaxPointingSeparation
+      /// @details Accumulated to get proper statistics/debugging info.
+      long itsRowsRejectedDueToMaxPointingSeparation;
     };
   }
 }

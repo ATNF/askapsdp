@@ -86,7 +86,8 @@ TableVisGridder::TableVisGridder() : itsSumWeights(),
 	itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
 	itsTimeDegridded(0.0), itsDopsf(false),
 	itsPaddingFactor(1),
-	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false)
+	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false),
+	itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0)
 
 {}
 
@@ -98,7 +99,8 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 		itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
 		itsTimeDegridded(0.0), itsDopsf(false),
 		itsPaddingFactor(padding),
-		itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false)
+		itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false), 	
+		itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0)		
 	{
 		
 		ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
@@ -128,7 +130,9 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
      itsFeedUsedForPSF(other.itsFeedUsedForPSF),
      itsPointingUsedForPSF(other.itsPointingUsedForPSF),
      itsUseAllDataForPSF(other.itsUseAllDataForPSF),
-     itsFreqMapper(other.itsFreqMapper)
+     itsFreqMapper(other.itsFreqMapper),
+     itsMaxPointingSeparation(other.itsMaxPointingSeparation),
+     itsRowsRejectedDueToMaxPointingSeparation(other.itsRowsRejectedDueToMaxPointingSeparation)     
 {
    deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
    deepCopyOfSTDVector(other.itsGrid, itsGrid);   
@@ -218,8 +222,15 @@ TableVisGridder::~TableVisGridder() {
 		ASKAPLOG_INFO_STR(logger, "   Performance           = "
 				<< 8.0 * 1e-9 * itsNumberDegridded/itsTimeDegridded << " GFlops");
 	}
+	if (itsMaxPointingSeparation > 0.) {
+	    ASKAPLOG_INFO_STR(logger, "   Samples rejected due to MaxPointingSeparation = "<<
+	                               itsRowsRejectedDueToMaxPointingSeparation);
+	}
 	if((itsNumberGridded<1) && (itsNumberDegridded<1)) {
 	  ASKAPLOG_WARN_STR(logger, "Unused gridder");
+	  if (itsRowsRejectedDueToMaxPointingSeparation != 0) {
+          ASKAPLOG_WARN_STR(logger, "It looks like all samples were rejected due to MaxPointingSeparation!");
+	  }
 	} else {
 	  ASKAPLOG_INFO_STR(logger, "   Padding factor    = " << itsPaddingFactor);
 	  if(itsName!="") {
@@ -312,7 +323,18 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    ASKAPDEBUGASSERT(casa::uInt(nChan) <= frequencyList.nelements());
    ASKAPDEBUGASSERT(casa::uInt(nSamples) == acc.uvw().nelements());
    
+   const casa::MVDirection imageCentre = getImageCentre();
+   
    for (uint i=0; i<nSamples; ++i) {
+       if (itsMaxPointingSeparation > 0.) {
+           // need to reject samples, if too far from the image centre
+           const casa::MVDirection thisPointing  = acc.pointingDir1()(i);
+           if (imageCentre.separation(thisPointing) > itsMaxPointingSeparation) {
+               ++itsRowsRejectedDueToMaxPointingSeparation;
+               continue;
+           }
+       }
+   
        if (itsFirstGriddedVis && isPSFGridder()) {
            // data members related to representative feed and field are used for
            // reverse problem only (from visibilities to image). 

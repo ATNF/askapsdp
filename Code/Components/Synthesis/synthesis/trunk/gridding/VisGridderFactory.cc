@@ -131,6 +131,21 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 	} else {
             ASKAPLOG_INFO_STR(logger,"No padding at the gridder level");
     }
+    
+    if (parset.isDefined("gridder.MaxPointingSeparation")) {
+        const double threshold = SynthesisParamsHelper::convertQuantity(
+                    parset.getString("gridder.MaxPointingSeparation","-1rad"),"rad");
+        ASKAPLOG_INFO_STR(logger,"MaxPointingSeparation is used, data from pointing centres further than "<<
+                threshold*180./casa::C::pi<<" deg from the image centre will be rejected");
+        boost::shared_ptr<TableVisGridder> tvg = 
+	        boost::dynamic_pointer_cast<TableVisGridder>(gridder);
+	    ASKAPCHECK(tvg, "Gridder type ("<<gridderName<<") is incompatible with the MaxPointingSeparation option");
+	    tvg->maxPointingSeparation(threshold);        
+    } else {
+            ASKAPLOG_INFO_STR(logger,"MaxPointingSeparation is not used for gridder: "<<gridderName<<
+                                     ", all data will be used");
+    }
+    
 	if (parset.isDefined("gridder.alldatapsf")) {
 	    const bool useAll = parset.getBool("gridder.alldatapsf");
 	    if (useAll) {
