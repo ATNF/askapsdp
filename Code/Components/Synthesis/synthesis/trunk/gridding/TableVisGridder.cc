@@ -47,6 +47,7 @@ ASKAP_LOGGER(logger, ".gridding");
 
 #include <utils/PaddingUtils.h>
 #include <measurementequation/ImageParamsHelper.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 
 using namespace askap::scimath;
 using namespace askap;
@@ -257,6 +258,27 @@ void TableVisGridder::save(const std::string& name) {
 		}
 	}
 	iptable.setParameters(ip);
+	const std::string imgName = name + ".img";
+	// number of planes before oversampling
+	const unsigned long nPlanes = itsConvFunc.size()/itsOverSample/itsOverSample; 
+	if (nPlanes > 0) {
+	    ASKAPLOG_INFO_STR(logger, "Saving convolution functions into a cube with " << nPlanes<<
+	                          " planes (first oversampled plane only)");
+	    ASKAPDEBUGASSERT(itsConvFunc.size()>0);
+	    casa::Cube<casa::Float> imgBuffer(itsConvFunc[0].shape()[0], itsConvFunc[0].shape()[1], nPlanes);
+	    for (unsigned int plane = 0; plane<nPlanes; ++plane) {
+	        for (unsigned int x = 0; x<imgBuffer.nrow(); ++x) {
+	             for (unsigned int y = 0; y<imgBuffer.ncolumn(); ++y) {
+	                  const casa::Matrix<casa::Complex> thisCF = itsConvFunc[plane];
+	                  if ( (x >= thisCF.nrow()) || (y >= thisCF.ncolumn())) {
+	                       continue;
+	                  }
+	                  imgBuffer(x,y,plane) = casa::abs(itsConvFunc[plane](x,y));	                  
+	             }
+	        }
+	    }
+	    SynthesisParamsHelper::saveAsCasaImage(imgName,imgBuffer);
+	}                          
 }
 
 /// This is a generic grid/degrid
