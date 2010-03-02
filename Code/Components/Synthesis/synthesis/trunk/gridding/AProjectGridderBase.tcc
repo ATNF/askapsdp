@@ -60,7 +60,7 @@ boost::shared_ptr<IVisGridder> AProjectGridderBase::createAProjectGridder(const 
   double freqTol = -1.;
   const std::string freqTolString = toLower(parset.getString("freqtolerance", "undefined"));
   if (freqTolString != "infinite") {
-      freqTol = parset.getDouble("gridder.AProjectWStack.freqtolerance", 1e-6);
+      freqTol = parset.getDouble("freqtolerance", 1e-6);
 		    ASKAPCHECK(freqTol>=0., 
 		        "Frequency tolerance parameter is supposed to be either a non-negative number or a word infinite to by pass checks");
   }
@@ -69,7 +69,7 @@ boost::shared_ptr<IVisGridder> AProjectGridderBase::createAProjectGridder(const 
   const int nwplanes = parset.getInt32("nwplanes", 65);
   // strictly speaking cutoff is required for AWProject gridder only, we may need to think about a more
   // tidy way of working around this situation.
-  const double cutoff=parset.getDouble("gridder.AWProject.cutoff", 1e-3);
+  const double cutoff=parset.getDouble("cutoff", 1e-3);
   const int oversample = parset.getInt32("oversample", 8);
   const int maxSupport = parset.getInt32("maxsupport",128);
   const int limitSupport = parset.getInt32("limitsupport",0);
@@ -79,7 +79,7 @@ boost::shared_ptr<IVisGridder> AProjectGridderBase::createAProjectGridder(const 
       ASKAPLOG_WARN_STR(logger,"maxantennas is no longer used! Update your parset");
   }
   const bool freqDep=parset.getBool("frequencydependent", true);
-  const string tablename=parset.getString("gridder.AProjectWStack.tablename","");
+  const string tablename=parset.getString("tablename","");
   ASKAPLOG_INFO_STR(logger,"Gridding with Antenna Illumination projection and W stacking");
   if (freqDep) {
       ASKAPLOG_INFO_STR(logger,	"Antenna illumination scales with frequency");
