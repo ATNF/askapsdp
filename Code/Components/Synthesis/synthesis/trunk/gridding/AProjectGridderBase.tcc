@@ -80,7 +80,7 @@ boost::shared_ptr<IVisGridder> AProjectGridderBase::createAProjectGridder(const 
   }
   const bool freqDep=parset.getBool("frequencydependent", true);
   const string tablename=parset.getString("tablename","");
-  ASKAPLOG_INFO_STR(logger,"Gridding with Antenna Illumination projection and W stacking");
+  ASKAPLOG_INFO_STR(logger,"Gridding with Antenna Illumination projection");
   if (freqDep) {
       ASKAPLOG_INFO_STR(logger,	"Antenna illumination scales with frequency");
   } else {
