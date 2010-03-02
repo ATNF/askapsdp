@@ -241,11 +241,12 @@ TableVisGridder::~TableVisGridder() {
 }
 
 void TableVisGridder::save(const std::string& name) {
-	askap::scimath::ParamsCasaTable iptable(name, false);
-	askap::scimath::Params ip;
-	ASKAPLOG_INFO_STR(logger, "Saving " << itsConvFunc.size() << " entries in convolution function");
-	for (unsigned int i=0; i<itsConvFunc.size(); i++) {
-		{
+    if (name.find("image:") != 0) {
+	    askap::scimath::ParamsCasaTable iptable(name, false);
+	    askap::scimath::Params ip;
+	    ASKAPLOG_INFO_STR(logger, "Saving " << itsConvFunc.size() << " entries in convolution function");
+	    for (unsigned int i=0; i<itsConvFunc.size(); i++) {
+		   
 			casa::Array<double> realC(itsConvFunc[i].shape());
 			toDouble(realC, itsConvFunc[i]);
 			//			ASKAPLOG_INFO_STR(logger, "Entry[" <<  i <<  "] has shape " <<  itsConvFunc[i].shape());
@@ -255,30 +256,40 @@ void TableVisGridder::save(const std::string& name) {
 			os.fill('0');
 			os<<i;
 			ip.add(os.str(), realC);
-		}
-	}
-	iptable.setParameters(ip);
-	const std::string imgName = name + ".img";
-	// number of planes before oversampling
-	const unsigned long nPlanes = itsConvFunc.size()/itsOverSample/itsOverSample; 
-	if (nPlanes > 0) {
-	    ASKAPLOG_INFO_STR(logger, "Saving convolution functions into a cube with " << nPlanes<<
-	                          " planes (first oversampled plane only)");
-	    ASKAPDEBUGASSERT(itsConvFunc.size()>0);
-	    casa::Cube<casa::Float> imgBuffer(itsConvFunc[0].shape()[0], itsConvFunc[0].shape()[1], nPlanes);
-	    for (unsigned int plane = 0; plane<nPlanes; ++plane) {
-	        for (unsigned int x = 0; x<imgBuffer.nrow(); ++x) {
-	             for (unsigned int y = 0; y<imgBuffer.ncolumn(); ++y) {
-	                  const casa::Matrix<casa::Complex> thisCF = itsConvFunc[plane];
-	                  if ( (x >= thisCF.nrow()) || (y >= thisCF.ncolumn())) {
-	                       continue;
-	                  }
-	                  imgBuffer(x,y,plane) = casa::abs(itsConvFunc[plane](x,y));	                  
-	             }
-	        }
 	    }
-	    SynthesisParamsHelper::saveAsCasaImage(imgName,imgBuffer);
-	}                          
+	    iptable.setParameters(ip);
+	} else {
+	    if (itsNumberGridded == 0) {
+	        ASKAPLOG_INFO_STR(logger, "Ignore tablename="<<name<<" option as no visibilities were gridded");
+	        return;
+        }
+	    if (isPSFGridder()) {
+	        ASKAPLOG_INFO_STR(logger, "Ignore tablename="<<name<<" option for the PSF gridder");
+	        return;
+	    }
+   
+	    const std::string imgName = name.substr(6);
+	    // number of planes before oversampling
+	    const unsigned long nPlanes = itsConvFunc.size()/itsOverSample/itsOverSample; 
+	    if (nPlanes > 0) {
+	        ASKAPLOG_INFO_STR(logger, "Saving convolution functions into a cube "<<imgName<<" with " << nPlanes<<
+	                              " planes (first oversampling plane only)");
+	        ASKAPDEBUGASSERT(itsConvFunc.size()>0);
+	        casa::Cube<casa::Float> imgBuffer(itsConvFunc[0].shape()[0], itsConvFunc[0].shape()[1], nPlanes);
+	        for (unsigned int plane = 0; plane<nPlanes; ++plane) {
+	            for (unsigned int x = 0; x<imgBuffer.nrow(); ++x) {
+	                 for (unsigned int y = 0; y<imgBuffer.ncolumn(); ++y) {
+	                      const casa::Matrix<casa::Complex> thisCF = itsConvFunc[plane*itsOverSample*itsOverSample];
+	                      if ( (x >= thisCF.nrow()) || (y >= thisCF.ncolumn())) {
+	                           continue;
+	                      }
+	                      imgBuffer(x,y,plane) = casa::abs(itsConvFunc[plane](x,y));	                  
+	                 }
+	            }
+	        }
+	        SynthesisParamsHelper::saveAsCasaImage(imgName,imgBuffer);
+	    }       
+	}                   
 }
 
 /// This is a generic grid/degrid
