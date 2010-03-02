@@ -283,7 +283,7 @@ void TableVisGridder::save(const std::string& name) {
 	                      if ( (x >= thisCF.nrow()) || (y >= thisCF.ncolumn())) {
 	                           continue;
 	                      }
-	                      imgBuffer(x,y,plane) = casa::abs(itsConvFunc[plane](x,y));	                  
+	                      imgBuffer(x,y,plane) = casa::abs(thisCF(x,y));	                  
 	                 }
 	            }
 	        }
