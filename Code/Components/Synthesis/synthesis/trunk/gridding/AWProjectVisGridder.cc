@@ -396,7 +396,6 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		ASKAPLOG_INFO_STR(logger, "Maximum extent = "
 				  << itsSupport*cell << " (m) sampled at "<< cell
 				  /itsOverSample << " (m)");
-		itsCCenter=itsSupport;
 		ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
 				  << itsConvFunc.size()<<" or "<<itsConvFunc.size()/itsOverSample/itsOverSample<<
 				     " before oversampling with factor "<<itsOverSample);
@@ -418,7 +417,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		  // insert it into the convolution function
 		  for (int iy=-itsSupport; iy<itsSupport; iy++) {
 		    for (int ix=-itsSupport; ix<itsSupport; ix++) {
-		      itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter)
+		      itsConvFunc[plane](ix+itsSupport, iy+itsSupport)
 			= rescale*thisPlane(ix*itsOverSample+fracu+nx/2,
 					    iy*itsOverSample+fracv+ny/2);
 		    } // for ix
@@ -501,10 +500,9 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	  /// Work space
 	  casa::Matrix<casa::Complex> thisPlane(cnx, cny);
 	  thisPlane.set(0.0);
-	  ASKAPDEBUGASSERT(itsCCenter == itsSupport);
 	  for (int iy=-itsSupport; iy<+itsSupport; iy++) {
 	    for (int ix=-itsSupport; ix<+itsSupport; ix++) {
-	      thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter);
+	      thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+itsSupport, iy+itsSupport);
 	    }
 	  }	  
 	  

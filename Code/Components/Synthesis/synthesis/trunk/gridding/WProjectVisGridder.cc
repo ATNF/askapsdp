@@ -282,7 +282,6 @@ namespace askap
           ASKAPLOG_INFO_STR(logger, "Convolution function support = "
               << itsSupport << " pixels, convolution function size = "
               << cSize<< " pixels");
-          itsCCenter=(cSize-1)/2;
         }
 	ASKAPCHECK(itsConvFunc.size()>0, "Convolution function not sized correctly");
         const int cSize=2*itsSupport+1;
@@ -296,14 +295,14 @@ namespace askap
             // insert it into the convolution function
             for (int iy=-itsSupport; iy<itsSupport; ++iy) {
                  for (int ix=-itsSupport; ix<itsSupport; ++ix) {
-                      ASKAPDEBUGASSERT((ix + itsCCenter >= 0) && (iy + itsCCenter >= 0));
-                      ASKAPDEBUGASSERT(ix+itsCCenter < int(itsConvFunc[plane].nrow()));
-                      ASKAPDEBUGASSERT(iy+itsCCenter < int(itsConvFunc[plane].ncolumn()));
+                      ASKAPDEBUGASSERT((ix + itsSupport >= 0) && (iy + itsSupport >= 0));
+                      ASKAPDEBUGASSERT(ix+itsSupport < int(itsConvFunc[plane].nrow()));
+                      ASKAPDEBUGASSERT(iy+itsSupport < int(itsConvFunc[plane].ncolumn()));
                       ASKAPDEBUGASSERT(ix*itsOverSample+fracu+nx/2 >= 0);
                       ASKAPDEBUGASSERT(iy*itsOverSample+fracv+ny/2 >= 0);
                       ASKAPDEBUGASSERT(ix*itsOverSample+fracu+nx/2 < int(thisPlane.nrow()));
                       ASKAPDEBUGASSERT(iy*itsOverSample+fracv+ny/2 < int(thisPlane.ncolumn()));                      
-                      itsConvFunc[plane](ix+itsCCenter, iy+itsCCenter) =
+                      itsConvFunc[plane](ix+itsSupport, iy+itsSupport) =
                           thisPlane(ix*itsOverSample+fracu+nx/2, iy*itsOverSample+fracv+ny/2);
                  } // for ix
             } // for iy

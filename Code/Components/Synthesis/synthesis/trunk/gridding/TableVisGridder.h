@@ -317,8 +317,6 @@ namespace askap
       int itsSupport;
       /// Oversampling of convolution function
       int itsOverSample;
-      /// Center of convolution function
-      int itsCCenter;
       /// Name of table to save to
       std::string itsName;
 
