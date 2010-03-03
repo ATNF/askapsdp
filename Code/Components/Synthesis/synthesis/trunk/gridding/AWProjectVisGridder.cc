@@ -398,9 +398,10 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 				  /itsOverSample << " (m)");
 		itsCCenter=itsSupport;
 		ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
-				  << itsConvFunc.size());
+				  << itsConvFunc.size()<<" or "<<itsConvFunc.size()/itsOverSample/itsOverSample<<
+				     " excluding oversampling of "<<itsOverSample);
 	      }
-	      int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
+	      const int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
 	      
 	      // Since we are decimating, we need to rescale by the
 	      // decimation factor
