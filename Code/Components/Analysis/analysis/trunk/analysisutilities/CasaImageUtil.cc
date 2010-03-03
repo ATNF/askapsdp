@@ -246,6 +246,9 @@ namespace askap {
                 cube.pars().setMinChannels(0);
             }
 
+	    // Check for 2D images
+	    cube.checkDim();
+
             delete [] dim;
             return duchamp::SUCCESS;
         }
