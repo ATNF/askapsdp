@@ -149,6 +149,7 @@ namespace askap {
             this->itsImage = substitute(parset.getString("image"));
             ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsImage);
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
+	    this->itsWeightImage = parset.getString("weightimage","");
 
             this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch", false);
             this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
@@ -456,6 +457,16 @@ namespace askap {
                     this->itsCube.pars().setMinChannels(1);
                 }
 
+		DuchampParallel *weight;
+		if(this->itsWeightImage!=""){
+		  *weight = *this;
+		  weight->setImage(this->itsWeightImage);
+		  weight->readData();
+		  ASKAPCHECK(weight->cube().getSize() == this->itsCube.getSize(), "Sizes of image & weights image do not match");
+		  for(size_t i=0;i<this->itsCube.getSize();i++) this->itsCube.getArray()[i] /= weight->cube().getArray()[i];
+		}
+
+
                 if (this->itsCube.getSize() > 0) {
                     if (this->itsFlagDoMedianSearch) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after median filtering");
@@ -471,6 +482,11 @@ namespace askap {
                         this->itsCube.CubicSearch();
                     }
                 }
+
+		if(this->itsWeightImage!=""){
+		  for(size_t i=0;i<this->itsCube.getSize();i++) this->itsCube.getArray()[i] *= weight->cube().getArray()[i];
+		}
+		  
 
                 // merge the objects, and grow them if necessary.
                 this->itsCube.ObjectMerger();

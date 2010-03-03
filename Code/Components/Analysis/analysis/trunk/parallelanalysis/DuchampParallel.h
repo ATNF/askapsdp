@@ -74,6 +74,9 @@ namespace askap {
 
                 virtual ~DuchampParallel() {};
 
+		std::string image(){return itsImage;};
+		void setImage(std::string s){itsImage = s;};
+
                 /// @brief Return a reference to the duchamp::Cube object
                 duchamp::Cube &cube() {duchamp::Cube &rcube = itsCube; return rcube;};
 
@@ -165,6 +168,9 @@ namespace askap {
 
                 /// Is the image a FITS file or not (if not, probably a casa image...)
                 bool itsIsFITSFile;
+
+		/// An image showing relative weights of pixels
+		std::string itsWeightImage;
 
                 /// The Cube of data, which contains the list of Detections.
                 duchamp::Cube itsCube;
