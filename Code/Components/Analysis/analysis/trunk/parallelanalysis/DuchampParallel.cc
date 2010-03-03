@@ -150,6 +150,8 @@ namespace askap {
             ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsImage);
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
 	    this->itsWeightImage = parset.getString("weightimage","");
+	    if(this->itsWeightImage != "")
+	      ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
 
             this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch", false);
             this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
@@ -362,6 +364,28 @@ namespace askap {
                         if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
                     }
 
+		if(this->itsWeightImage!=""){
+		  ASKAPLOG_INFO_STR(logger, "Applying weights");
+		  duchamp::Section wsec = this->itsCube.pars().section();
+		  for(int i=2;i<=3;i++) {
+		    wsec.setStart(i,0);
+		    wsec.setEnd(i,0);
+		  }
+		  casa::Vector<casa::Double> weights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
+// 		  if(weight.cube().getSize() == this->itsCube.getSize()){
+// 		    ASKAPLOG_INFO_STR(logger, "Sizes of image & weights image match, so correcting point by point");
+// 		    for(size_t i=0;i<this->itsCube.getSize();i++) this->itsCube.getArray()[i] *= weight.cube().getArray()[i];
+// 		  }
+// 		  else if(weight.cube().getDimX()==this->itsCube.getDimX() && weight.cube().getDimY()==this->itsCube.getDimY()){
+		     ASKAPLOG_INFO_STR(logger, "Spatial sizes of image & weights image match, so correcting each plane in the same way");
+		     for(size_t z=0;z<this->itsCube.getDimZ();z++)
+		       for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
+			 this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= weights[i];
+// 		  }
+// 		  else ASKAPTHROW(AskapError, "Sizes of image & weights image are incompatible!");
+
+		}
+
                     if (this->itsCube.pars().getFlagATrous()) {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing");
                         this->itsCube.ReconCube();
@@ -369,6 +393,7 @@ namespace askap {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Smoothing");
                         this->itsCube.SmoothCube();
                     }
+
 
                     // Return the OK to the master to say that we've read the image
                     if (this->isParallel()) {
@@ -411,6 +436,9 @@ namespace askap {
                         this->itsConnectionSet->write(0, bs4);
                     }
                 }
+
+
+
             }
         }
 
@@ -457,15 +485,6 @@ namespace askap {
                     this->itsCube.pars().setMinChannels(1);
                 }
 
-		DuchampParallel *weight;
-		if(this->itsWeightImage!=""){
-		  *weight = *this;
-		  weight->setImage(this->itsWeightImage);
-		  weight->readData();
-		  ASKAPCHECK(weight->cube().getSize() == this->itsCube.getSize(), "Sizes of image & weights image do not match");
-		  for(size_t i=0;i<this->itsCube.getSize();i++) this->itsCube.getArray()[i] /= weight->cube().getArray()[i];
-		}
-
 
                 if (this->itsCube.getSize() > 0) {
                     if (this->itsFlagDoMedianSearch) {
@@ -484,7 +503,24 @@ namespace askap {
                 }
 
 		if(this->itsWeightImage!=""){
-		  for(size_t i=0;i<this->itsCube.getSize();i++) this->itsCube.getArray()[i] *= weight->cube().getArray()[i];
+		  ASKAPLOG_INFO_STR(logger, "Removing weights");
+		  duchamp::Section wsec = this->itsCube.pars().section();
+		  for(int i=2;i<=3;i++) {
+		    wsec.setStart(i,0);
+		    wsec.setEnd(i,0);
+		  }
+		  casa::Vector<casa::Double> weights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
+// 		  if(weight.cube().getSize() == this->itsCube.getSize()){
+// 		    ASKAPLOG_INFO_STR(logger, "Sizes of image & weights image match, so correcting point by point");
+// 		    for(size_t i=0;i<this->itsCube.getSize();i++) this->itsCube.getArray()[i] /= weight.cube().getArray()[i];
+// 		  }
+// 		  else if(weight.cube().getDimX()==this->itsCube.getDimX() && weight.cube().getDimY()==this->itsCube.getDimY()){
+		     ASKAPLOG_INFO_STR(logger, "Spatial sizes of image & weights image match, so correcting each plane in the same way");
+		     for(size_t z=0;z<this->itsCube.getDimZ();z++)
+		       for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
+			 this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= weights[i];
+// 		  }
+// 		  else ASKAPTHROW(AskapError, "Sizes of image & weights image are incompatible!");
 		}
 		  
 

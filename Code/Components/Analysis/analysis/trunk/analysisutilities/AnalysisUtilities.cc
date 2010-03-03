@@ -221,11 +221,15 @@ namespace askap {
 
                 for (int i = 0; i < size; i++) arrayCopy[i] = fabs(array[i] - middle);
 
-                std::sort(arrayCopy, arrayCopy + size);
-
-                if ((size % 2) == 0) spread = (arrayCopy[size/2-1] + arrayCopy[size/2]) / 2;
-                else spread = arrayCopy[size/2];
-
+		bool isEven = ((size/2)==0);
+		std::nth_element(arrayCopy,arrayCopy+size/2,arrayCopy+size);
+		spread = arrayCopy[size/2];
+		if(isEven){
+		  std::nth_element(arrayCopy,arrayCopy+size/2-1,arrayCopy+size);
+		  spread += arrayCopy[size/2-1];
+		  spread /= 2.;
+		}
+		
                 delete [] arrayCopy;
                 spread = Statistics::madfmToSigma(spread);
             } else {
@@ -260,10 +264,14 @@ namespace askap {
 
                 for (int i = 0; i < size; i++) if (mask[i]) arrayCopy[j++] = fabs(array[i] - middle);
 
-                std::sort(arrayCopy, arrayCopy + goodSize);
-
-                if ((goodSize % 2) == 0) spread = (arrayCopy[goodSize/2-1] + arrayCopy[goodSize/2]) / 2;
-                else spread = arrayCopy[goodSize/2];
+		bool isEven = ((goodSize/2)==0);
+		std::nth_element(arrayCopy,arrayCopy+goodSize/2,arrayCopy+goodSize);
+		spread = arrayCopy[goodSize/2];
+		if(isEven){
+		  std::nth_element(arrayCopy,arrayCopy+goodSize/2-1,arrayCopy+goodSize);
+		  spread += arrayCopy[goodSize/2-1];
+		  spread /= 2.;
+		}
 
                 delete [] arrayCopy;
                 spread = Statistics::madfmToSigma(spread);
