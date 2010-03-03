@@ -317,8 +317,6 @@ namespace askap
       int itsSupport;
       /// Oversampling of convolution function
       int itsOverSample;
-      /// Size of convolution function on first two axes (square)
-      int itsCSize;
       /// Center of convolution function
       int itsCCenter;
       /// Name of table to save to

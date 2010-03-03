@@ -278,18 +278,19 @@ namespace askap
 	      << "set to limit = " << itsLimitSupport << " pixels");
 	    itsSupport = itsLimitSupport;
 	  }
-          itsCSize=2*itsSupport+1;
+          const int cSize=2*itsSupport+1;
           ASKAPLOG_INFO_STR(logger, "Convolution function support = "
               << itsSupport << " pixels, convolution function size = "
-              << itsCSize<< " pixels");
-          itsCCenter=(itsCSize-1)/2;
+              << cSize<< " pixels");
+          itsCCenter=(cSize-1)/2;
         }
 	ASKAPCHECK(itsConvFunc.size()>0, "Convolution function not sized correctly");
+        const int cSize=2*itsSupport+1;
         for (int fracu=0; fracu<itsOverSample; ++fracu) {
           for (int fracv=0; fracv<itsOverSample; ++fracv) {
             const int plane=fracu+itsOverSample*(fracv+itsOverSample*iw);
             ASKAPDEBUGASSERT(plane < int(itsConvFunc.size()));
-            itsConvFunc[plane].resize(itsCSize, itsCSize);
+            itsConvFunc[plane].resize(cSize, cSize);
             itsConvFunc[plane].set(0.0);
             // Now cut out the inner part of the convolution function and
             // insert it into the convolution function

@@ -384,12 +384,12 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 				      << "set to limit = " << itsLimitSupport << " pixels");
 		    itsSupport = itsLimitSupport;
 		  }
-		itsCSize=2*itsSupport+1;
+		const int cSize=2*itsSupport+1;
 		ASKAPLOG_INFO_STR(
 				  logger,
 				  "Convolution function support = " << itsSupport
 				  << " pixels, convolution function size = "
-				  << itsCSize << " pixels");
+				  << cSize << " pixels");
 		// just for log output					
 		const double cell=std::abs(itsUVCellSize(0)*(casa::C::c
 							     /acc.frequency()[chan]));
@@ -399,19 +399,20 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		itsCCenter=itsSupport;
 		ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
 				  << itsConvFunc.size()<<" or "<<itsConvFunc.size()/itsOverSample/itsOverSample<<
-				     " excluding oversampling of "<<itsOverSample);
+				     " before oversampling with factor "<<itsOverSample);
 	      }
 	      const int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
 	      
 	      // Since we are decimating, we need to rescale by the
 	      // decimation factor
-	      float rescale=float(itsOverSample*itsOverSample);
+	      const float rescale=float(itsOverSample*itsOverSample);
+		  const int cSize=2*itsSupport+1;
 	      for (int fracu=0; fracu<itsOverSample; fracu++) {
 		for (int fracv=0; fracv<itsOverSample; fracv++) {
 		  int plane=fracu+itsOverSample*(fracv+itsOverSample
 						 *zIndex);
 		  ASKAPDEBUGASSERT(plane>=0 && plane<int(itsConvFunc.size()));
-		  itsConvFunc[plane].resize(itsCSize, itsCSize);
+		  itsConvFunc[plane].resize(cSize, cSize);
 		  itsConvFunc[plane].set(0.0);
 		  // Now cut out the inner part of the convolution function and
 		  // insert it into the convolution function

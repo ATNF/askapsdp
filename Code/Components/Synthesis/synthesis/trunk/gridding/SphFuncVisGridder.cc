@@ -71,7 +71,7 @@ namespace askap
       itsOverSample=128;
       itsConvFunc.resize(itsOverSample*itsOverSample);
 
-      itsCSize=2*itsSupport+1; // 7;
+      const int cSize=2*itsSupport+1; // 7;
       itsCCenter=itsSupport; // 3
 
       /// This must be changed for non-MFS
@@ -80,12 +80,12 @@ namespace askap
         for (int fracu=0; fracu<itsOverSample; ++fracu) {
           const int plane=fracu+itsOverSample*fracv;
           ASKAPDEBUGASSERT(plane>=0 && plane<int(itsConvFunc.size()));
-          itsConvFunc[plane].resize(itsCSize, itsCSize);
+          itsConvFunc[plane].resize(cSize, cSize);
           itsConvFunc[plane].set(0.0);
-          for (int ix=0; ix<itsCSize; ++ix) {
+          for (int ix=0; ix<cSize; ++ix) {
             double nux=std::abs(double(itsOverSample*(ix-itsCCenter)+fracu))/double(itsSupport*itsOverSample);
             double fx=grdsf(nux)*(1.0-std::pow(nux, 2));
-            for (int iy=0; iy<itsCSize; ++iy) {
+            for (int iy=0; iy<cSize; ++iy) {
               double nuy=std::abs(double(itsOverSample*(iy-itsCCenter)+fracv))/double(itsSupport*itsOverSample);
               double fy=grdsf(nuy)*(1.0-std::pow(nuy, 2));
               itsConvFunc[plane](ix, iy)=fx*fy;

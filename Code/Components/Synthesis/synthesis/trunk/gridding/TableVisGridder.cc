@@ -118,7 +118,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 	     itsUVCellSize(other.itsUVCellSize.copy()), 
 	     itsSumWeights(other.itsSumWeights.copy()), 
      itsSupport(other.itsSupport), itsOverSample(other.itsOverSample),
-     itsCSize(other.itsCSize), itsCCenter(other.itsCCenter), itsName(other.itsName),
+     itsCCenter(other.itsCCenter), itsName(other.itsName),
      itsModelIsEmpty(other.itsModelIsEmpty), itsSamplesGridded(other.itsSamplesGridded),
      itsSamplesDegridded(other.itsSamplesDegridded), itsVectorsFlagged(other.itsVectorsFlagged),
      itsNumberGridded(other.itsNumberGridded),
@@ -277,15 +277,23 @@ void TableVisGridder::save(const std::string& name) {
 	        ASKAPDEBUGASSERT(itsConvFunc.size()>0);
 	        casa::Cube<casa::Float> imgBuffer(itsConvFunc[0].shape()[0], itsConvFunc[0].shape()[1], nPlanes);
 	        for (unsigned int plane = 0; plane<nPlanes; ++plane) {
+	            unsigned int peakX = 0, peakY = 0;
+	            casa::Float peakVal = -1.;
 	            for (unsigned int x = 0; x<imgBuffer.nrow(); ++x) {
 	                 for (unsigned int y = 0; y<imgBuffer.ncolumn(); ++y) {
 	                      const casa::Matrix<casa::Complex> thisCF = itsConvFunc[plane*itsOverSample*itsOverSample];
 	                      if ( (x >= thisCF.nrow()) || (y >= thisCF.ncolumn())) {
 	                           continue;
 	                      }
-	                      imgBuffer(x,y,plane) = casa::abs(thisCF(x,y));	                  
+	                      imgBuffer(x,y,plane) = casa::abs(thisCF(x,y));
+	                      if (peakVal < imgBuffer(x,y,plane)) {
+	                           peakX = x;
+	                           peakY = y;
+	                           peakVal = imgBuffer(x,y,plane);
+	                      }
 	                 }
 	            }
+	            ASKAPLOG_INFO_STR(logger, "CF plane "<<plane<<" peak of "<<peakVal<<" at "<<peakX<<" , "<<peakY);
 	        }
 	        SynthesisParamsHelper::saveAsCasaImage(imgName,imgBuffer);
 	    }       
