@@ -491,20 +491,30 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					   "Index into convolution functions exceeds number of planes");
 			   
 			      casa::Matrix<casa::Complex> & convFunc(itsConvFunc[cInd]);
-			   
+			      
+			      // support only square convolution functions at the moment
+			      ASKAPDEBUGASSERT(convFunc.nrow() == convFunc.ncolumn());
+			      ASKAPCHECK(convFunc.nrow() % 2 == 1, 
+			            "Expect convolution function with an odd number of pixels for each axis, CF["<<cInd<<
+			            "] has shape="<<convFunc.shape());
+			      // we now use support size for this given plane in the CF cache; itsSupport is a maximum
+			      // support across all CFs (this allows plane-dependent support size)      
+			      const int support = (int(convFunc.nrow()) - 1) / 2;
+			      ASKAPCHECK(support > 0, "Support must be greater than zero, CF["<<cInd<<"] has shape="<<
+			                 convFunc.shape()<<" giving a support of "<<support);
+			                 
 			      casa::Array<casa::Complex> aGrid(itsGrid[gInd](slicer));
 			      casa::Matrix<casa::Complex> grid(aGrid.nonDegenerate());
 			   
 			      /// Need to check if this point lies on the grid (taking into 
 			      /// account the support)
-			      if (((iu-itsSupport)>0)&&((iv-itsSupport)>0)&&((iu
-							   +itsSupport) <itsShape(0))&&((iv+itsSupport)
-							   <itsShape(1))) {
+			      if (((iu-support)>0)&&((iv-support)>0)&&
+			          ((iu+support) <itsShape(0))&&((iv+support)<itsShape(1))) {
 	                  if (forward) {
                           casa::Complex cVis(imagePolFrameVis[pol]);
-                          GridKernel::degrid(cVis, convFunc, grid, iu, iv, itsSupport);
+                          GridKernel::degrid(cVis, convFunc, grid, iu, iv, support);
                           itsSamplesDegridded+=1.0;
-                          itsNumberDegridded+=double((2*itsSupport+1)*(2*itsSupport+1));
+                          itsNumberDegridded+=double((2*support+1)*(2*support+1));
                           if (itsVisWeight) {
                               cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
                           }
@@ -517,10 +527,10 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                                   rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
                               }
 				   
-                              GridKernel::grid(grid, convFunc, rVis, iu, iv, itsSupport);
+                              GridKernel::grid(grid, convFunc, rVis, iu, iv, support);
 			           
                               itsSamplesGridded+=1.0;
-                              itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
+                              itsNumberGridded+=double((2*support+1)*(2*support+1));
 			       
                               ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
                               ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)),
@@ -537,10 +547,10 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                               if (itsVisWeight) {
                                   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
                               }
-                              GridKernel::grid(grid, convFunc, uVis, iu, iv, itsSupport);
+                              GridKernel::grid(grid, convFunc, uVis, iu, iv, support);
                       
                               itsSamplesGridded+=1.0;
-                              itsNumberGridded+=double((2*itsSupport+1)*(2*itsSupport+1));
+                              itsNumberGridded+=double((2*support+1)*(2*support+1));
 			       
                               ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
                               ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
