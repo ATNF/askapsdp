@@ -50,7 +50,8 @@ namespace askap
     WProjectVisGridder::WProjectVisGridder(const double wmax,
         const int nwplanes, const double cutoff, const int overSample,
 	const int maxSupport, const int limitSupport, const std::string& name) :
-	    itsMaxSupport(maxSupport), itsCutoff(cutoff), itsLimitSupport(limitSupport)
+	    itsMaxSupport(maxSupport), itsCutoff(cutoff), itsLimitSupport(limitSupport),
+	    itsPlaneDependentCFSupport(false)
     {
       ASKAPCHECK(wmax>0.0, "Baseline length must be greater than zero");
       ASKAPCHECK(nwplanes>0, "Number of w planes must be greater than zero");
@@ -84,7 +85,8 @@ namespace askap
          SphFuncVisGridder(other), itsWScale(other.itsWScale), 
          itsNWPlanes(other.itsNWPlanes), 
          itsCMap(other.itsCMap.copy()), itsMaxSupport(other.itsMaxSupport),
-         itsCutoff(other.itsCutoff), itsLimitSupport(other.itsLimitSupport) {}
+         itsCutoff(other.itsCutoff), itsLimitSupport(other.itsLimitSupport),
+         itsPlaneDependentCFSupport(other.itsPlaneDependentCFSupport) {}
            
 
     /// Clone a copy of this Gridder
@@ -260,16 +262,27 @@ namespace askap
         //
         // If the support is not yet set, find it and size the
         // convolution function appropriately
-        if (itsSupport==0)
-        {
-          itsSupport = extractSupport(thisPlane).itsSize;
+       
+        // by default the common support without offset is used
+        CFSupport cfSupport(itsSupport);
+        if (isSupportPlaneDependent() || (itsSupport == 0)) {
+            const int support = extractSupport(thisPlane).itsSize;
 
-          ASKAPCHECK(itsSupport*itsOverSample<nx/2,
-              "Overflowing convolution function - increase maxSupport or decrease overSample")
-	      itsSupport = limitSupportIfNecessary(itsSupport);
+            ASKAPCHECK(support*itsOverSample<nx/2,
+              "Overflowing convolution function for w-plane "<<iw<<
+              " - increase maxSupport or decrease overSample; support="<<support<<" oversample="<<itsOverSample<<
+              " nx="<<nx);
+	        cfSupport.itsSize = limitSupportIfNecessary(support);
+	        if (itsSupport == 0) {
+	          itsSupport = cfSupport.itsSize;
+	        }
         }
-	ASKAPCHECK(itsConvFunc.size()>0, "Convolution function not sized correctly");
-        const int cSize=2*itsSupport+1;
+        ASKAPCHECK(itsConvFunc.size()>0, "Convolution function not sized correctly");
+        // use either support determined for this particular plane or a generic one,
+        // determined from the first plane (largest support as we have the largest w-term)
+        const int support = isSupportPlaneDependent() ? cfSupport.itsSize : itsSupport;
+        
+        const int cSize=2*support+1;
         for (int fracu=0; fracu<itsOverSample; ++fracu) {
           for (int fracv=0; fracv<itsOverSample; ++fracv) {
             const int plane=fracu+itsOverSample*(fracv+itsOverSample*iw);
@@ -278,16 +291,16 @@ namespace askap
             itsConvFunc[plane].set(0.0);
             // Now cut out the inner part of the convolution function and
             // insert it into the convolution function
-            for (int iy=-itsSupport; iy<itsSupport; ++iy) {
-                 for (int ix=-itsSupport; ix<itsSupport; ++ix) {
-                      ASKAPDEBUGASSERT((ix + itsSupport >= 0) && (iy + itsSupport >= 0));
-                      ASKAPDEBUGASSERT(ix+itsSupport < int(itsConvFunc[plane].nrow()));
-                      ASKAPDEBUGASSERT(iy+itsSupport < int(itsConvFunc[plane].ncolumn()));
+            for (int iy=-support; iy<support; ++iy) {
+                 for (int ix=-support; ix<support; ++ix) {
+                      ASKAPDEBUGASSERT((ix + support >= 0) && (iy + support >= 0));
+                      ASKAPDEBUGASSERT(ix+support < int(itsConvFunc[plane].nrow()));
+                      ASKAPDEBUGASSERT(iy+support < int(itsConvFunc[plane].ncolumn()));
                       ASKAPDEBUGASSERT(ix*itsOverSample+fracu+nx/2 >= 0);
                       ASKAPDEBUGASSERT(iy*itsOverSample+fracv+ny/2 >= 0);
                       ASKAPDEBUGASSERT(ix*itsOverSample+fracu+nx/2 < int(thisPlane.nrow()));
                       ASKAPDEBUGASSERT(iy*itsOverSample+fracv+ny/2 < int(thisPlane.ncolumn()));                      
-                      itsConvFunc[plane](ix+itsSupport, iy+itsSupport) =
+                      itsConvFunc[plane](ix+support, iy+support) =
                           thisPlane(ix*itsOverSample+fracu+nx/2, iy*itsOverSample+fracv+ny/2);
                  } // for ix
             } // for iy
@@ -299,8 +312,8 @@ namespace askap
 				 // this plane of the cache is unused
 				 continue;
              }
-		 const double norm = sum(casa::real(itsConvFunc[plane]));
-		 //		 ASKAPLOG_INFO_STR(logger, "Sum of convolution function = " << norm);
+             const double norm = sum(casa::real(itsConvFunc[plane]));
+             // ASKAPLOG_INFO_STR(logger, "Sum of convolution function = " << norm);
              
 	         ASKAPDEBUGASSERT(norm>0.);
 	         if(norm>0.) {
@@ -308,12 +321,21 @@ namespace askap
 	         }
         } // for plane					        
       } // for iw
-      ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
+      if (isSupportPlaneDependent()) {
+          ASKAPLOG_INFO_STR(logger, "Convolution function cache has "<<itsConvFunc.size()<<" planes");
+          ASKAPLOG_INFO_STR(logger, "Variable support size is used:");
+          const size_t step = casa::max(itsConvFunc.size()/itsOverSample/itsOverSample/10,1);          
+          for (size_t plane = 0; plane<itsConvFunc.size(); plane += step*itsOverSample*itsOverSample) {
+               ASKAPLOG_INFO_STR(logger, "CF cache plane "<<plane<<" ("<<plane/itsOverSample/itsOverSample<<
+                " prior to oversampling) shape is "<<itsConvFunc[plane].shape());
+          }
+      } else {
+         ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
           << itsConvFunc[0].shape() << " by "<< itsConvFunc.size() << " planes");
+      }
       if (itsName!="")
         save(itsName);
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
-
     }
 
     /// @brief search for support parameters
@@ -345,7 +367,7 @@ namespace askap
 	           << "set to limit = " << itsLimitSupport << " pixels");
 	      support = itsLimitSupport;
 	  }
-      const int cSize=2*itsSupport+1;
+      const int cSize=2*support+1;
       ASKAPLOG_INFO_STR(logger, "Convolution function support = "
            << support << " pixels, convolution function size = "
               << cSize<< " pixels");
@@ -377,8 +399,16 @@ namespace askap
        const int limitSupport=parset.getInt32("limitsupport", 0);
        const string tablename=parset.getString("tablename", "");
        ASKAPLOG_INFO_STR(logger, "Gridding using W projection " << nwplanes);
-       return IVisGridder::ShPtr(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
+       boost::shared_ptr<WProjectVisGridder> gridder(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
 								  maxSupport, limitSupport, tablename));      
+       const bool planeDependentSupport = parset.getBool("variablesupport",false);
+       if (planeDependentSupport) {
+          ASKAPLOG_INFO_STR(logger, "Support size will be calculated separately for each w-plane");
+       } else {
+          ASKAPLOG_INFO_STR(logger, "Common support size will be used for all w-planes");
+       }
+       gridder->planeDependentSupport(planeDependentSupport);
+	   return gridder;
     }
 
 

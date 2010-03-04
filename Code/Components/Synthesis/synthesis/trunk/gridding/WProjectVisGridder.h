@@ -150,6 +150,14 @@ namespace askap
       /// @return an instance of CFSupport with support parameters 
       CFSupport extractSupport(const casa::Matrix<casa::Complex> &cfPlane) const;
       
+      /// @brief support is plane-dependent?
+      /// @return true, if support should be searched individually for every CF cache plane 
+      inline bool isSupportPlaneDependent() const { return itsPlaneDependentCFSupport; }
+
+      /// @brief configure support search
+      /// @param[in] flag true to search for plane-dependent support, false (default) otherwise
+      inline void planeDependentSupport(bool flag) { itsPlaneDependentCFSupport = flag; }
+            
       /// Scaling
       double itsWScale;
       /// Number of w planes
@@ -163,6 +171,9 @@ namespace askap
       double itsCutoff;
       /// Upper limit of support
       int itsLimitSupport;
+      /// @brief true to search for plane-dependent support
+      /// @details itsSupport is the support for the first plane in this case (usually the largest)
+      bool itsPlaneDependentCFSupport;
     };
   }
 }

@@ -275,17 +275,35 @@ void TableVisGridder::save(const std::string& name) {
 	        ASKAPLOG_INFO_STR(logger, "Saving convolution functions into a cube "<<imgName<<" with " << nPlanes<<
 	                              " planes (first oversampling plane only)");
 	        ASKAPDEBUGASSERT(itsConvFunc.size()>0);
-	        casa::Cube<casa::Float> imgBuffer(itsConvFunc[0].shape()[0], itsConvFunc[0].shape()[1], nPlanes);
+	        int support = -1;
+	        for (unsigned int plane = 0; plane<nPlanes; ++plane) {
+	             const int x = int(itsConvFunc[plane*itsOverSample*itsOverSample].nrow());
+	             const int y = int(itsConvFunc[plane*itsOverSample*itsOverSample].ncolumn());
+	             if (support < x) {
+	                 support = x;
+	             }
+	             if (support < y) {
+	                 support = y;
+	             }
+	        }
+	        casa::Cube<casa::Float> imgBuffer(support, support, nPlanes);
+	        imgBuffer.set(0.);
 	        for (unsigned int plane = 0; plane<nPlanes; ++plane) {
 	            unsigned int peakX = 0, peakY = 0;
 	            casa::Float peakVal = -1.;
-	            for (unsigned int x = 0; x<imgBuffer.nrow(); ++x) {
-	                 for (unsigned int y = 0; y<imgBuffer.ncolumn(); ++y) {
+	            for (int x = 0; x<imgBuffer.nrow(); ++x) {
+	                 for (int y = 0; y<imgBuffer.ncolumn(); ++y) {
 	                      const casa::Matrix<casa::Complex> thisCF = itsConvFunc[plane*itsOverSample*itsOverSample];
-	                      if ( (x >= thisCF.nrow()) || (y >= thisCF.ncolumn())) {
+	                      const int xOff = (support - int(thisCF.nrow()))/2;
+	                      const int yOff = (support - int(thisCF.ncolumn()))/2;
+	                      ASKAPDEBUGASSERT((xOff >= 0) && (yOff >= 0)); 
+	                      if ( (x - xOff>= thisCF.nrow()) || (y - yOff >= thisCF.ncolumn())) {
 	                           continue;
 	                      }
-	                      imgBuffer(x,y,plane) = casa::abs(thisCF(x,y));
+	                      if ( (x - xOff < 0) || (y - yOff < 0) ) {
+	                           continue;
+	                      }
+	                      imgBuffer(x,y,plane) = casa::abs(thisCF(x - xOff,y - yOff));
 	                      if (peakVal < imgBuffer(x,y,plane)) {
 	                           peakX = x;
 	                           peakY = y;
