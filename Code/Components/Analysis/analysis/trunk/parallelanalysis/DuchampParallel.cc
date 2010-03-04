@@ -366,23 +366,18 @@ namespace askap {
 
 		if(this->itsWeightImage!=""){
 		  ASKAPLOG_INFO_STR(logger, "Applying weights");
+		  // use the same spatial section, but only the first plane
 		  duchamp::Section wsec = this->itsCube.pars().section();
 		  for(int i=2;i<=3;i++) {
 		    wsec.setStart(i,0);
 		    wsec.setEnd(i,0);
 		  }
 		  casa::Vector<casa::Double> weights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
-// 		  if(weight.cube().getSize() == this->itsCube.getSize()){
-// 		    ASKAPLOG_INFO_STR(logger, "Sizes of image & weights image match, so correcting point by point");
-// 		    for(size_t i=0;i<this->itsCube.getSize();i++) this->itsCube.getArray()[i] *= weight.cube().getArray()[i];
-// 		  }
-// 		  else if(weight.cube().getDimX()==this->itsCube.getDimX() && weight.cube().getDimY()==this->itsCube.getDimY()){
-		     ASKAPLOG_INFO_STR(logger, "Spatial sizes of image & weights image match, so correcting each plane in the same way");
-		     for(size_t z=0;z<this->itsCube.getDimZ();z++)
-		       for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
-			 this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= weights[i];
-// 		  }
-// 		  else ASKAPTHROW(AskapError, "Sizes of image & weights image are incompatible!");
+		  casa::Double maxweight = *std::max_element(weights.begin(),weights.end());
+		  for(size_t i=0;i<weights.size();i++) weights[i] /= maxweight;
+		  for(size_t z=0;z<this->itsCube.getDimZ();z++)
+		    for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
+		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= weights[i];
 
 		}
 
@@ -510,17 +505,11 @@ namespace askap {
 		    wsec.setEnd(i,0);
 		  }
 		  casa::Vector<casa::Double> weights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
-// 		  if(weight.cube().getSize() == this->itsCube.getSize()){
-// 		    ASKAPLOG_INFO_STR(logger, "Sizes of image & weights image match, so correcting point by point");
-// 		    for(size_t i=0;i<this->itsCube.getSize();i++) this->itsCube.getArray()[i] /= weight.cube().getArray()[i];
-// 		  }
-// 		  else if(weight.cube().getDimX()==this->itsCube.getDimX() && weight.cube().getDimY()==this->itsCube.getDimY()){
-		     ASKAPLOG_INFO_STR(logger, "Spatial sizes of image & weights image match, so correcting each plane in the same way");
-		     for(size_t z=0;z<this->itsCube.getDimZ();z++)
-		       for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
-			 this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= weights[i];
-// 		  }
-// 		  else ASKAPTHROW(AskapError, "Sizes of image & weights image are incompatible!");
+		  casa::Double maxweight = *std::max_element(weights.begin(),weights.end());
+		  for(size_t i=0;i<weights.size();i++) weights[i] /= maxweight;
+		  for(size_t z=0;z<this->itsCube.getDimZ();z++)
+		    for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
+		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= weights[i];
 		}
 		  
 
