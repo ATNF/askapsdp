@@ -201,7 +201,16 @@ namespace askap {
             readBeamInfo(imagePtr, cube.header(), cube.pars());
             cube.header().setFluxUnits(imagePtr->units().getName());
 
+	    // check the true dimensionality and set the 2D flag in the cube header.
+	    int numDim=0;
+	    for(uint i=0;i<shape.size();i++) if(dim[i]>1) numDim++;
+	    cube.header().set2D(numDim<=2);
+
+	    // set up the various flux units
             if (wcs->spec >= 0) cube.header().fixUnits(cube.pars());
+
+	    if(cube.header().is2D()) ASKAPLOG_DEBUG_STR(logger, "Image is two-dimensional: int.flux.units = " << cube.header().getIntFluxUnits());
+	    else ASKAPLOG_DEBUG_STR(logger, "Image has more than two dimensions: int.flux.units = " << cube.header().getIntFluxUnits());
 
             cube.initialiseCube(dim, false);
             delete [] dim;
@@ -245,9 +254,6 @@ namespace askap {
             if (cube.getDimZ() == 1) {
                 cube.pars().setMinChannels(0);
             }
-
-	    // Check for 2D images
-	    cube.checkDim();
 
             delete [] dim;
             return duchamp::SUCCESS;
