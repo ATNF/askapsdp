@@ -355,32 +355,41 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	      	      	    
 	      // If the support is not yet set, find it and size the
 	      // convolution function appropriately
-	      if (itsSupport==0) {	
-              //  SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
-              itsSupport = extractSupport(thisPlane).itsSize;
-              
-              ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
+	      
+	      // by default the common support without offset is used
+          CFSupport cfSupport(itsSupport);
+          if (isSupportPlaneDependent() || (itsSupport == 0)) {
+	          //  SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
+	          const int support = extractSupport(thisPlane).itsSize;
+	          
+              ASKAPCHECK(support*itsOverSample<int(nx)/2,
                          "Overflowing convolution function - increase maxSupport or decrease overSample. "<<
-                         "Current support size = "<<itsSupport<<" oversampling factor="<<itsOverSample<<
+                         "Current support size = "<<support<<" oversampling factor="<<itsOverSample<<
                          " image size nx="<<nx)
         
-              itsSupport = limitSupportIfNecessary(itsSupport); 	   
-		      
+              cfSupport.itsSize = limitSupportIfNecessary(support); 	   
+			  if (itsSupport == 0) {     
+			      itsSupport = cfSupport.itsSize;
+                  ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
+				      << itsConvFunc.size()<<" or "<<itsConvFunc.size()/itsOverSample/itsOverSample<<
+				        " before oversampling with factor "<<itsOverSample);
+              }		      
 		      // just for log output					
 		      const double cell=std::abs(itsUVCellSize(0)*(casa::C::c
 							     /acc.frequency()[chan]));
-		      ASKAPLOG_INFO_STR(logger, "Maximum extent = "
-				     << itsSupport*cell << " (m) sampled at "<< cell/itsOverSample << " (m)");
-              ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
-				  << itsConvFunc.size()<<" or "<<itsConvFunc.size()/itsOverSample/itsOverSample<<
-				     " before oversampling with factor "<<itsOverSample);
+		      ASKAPLOG_INFO_STR(logger, "CF cache w-plane="<<iw<<" feed="<<feed<<" field="<<currentField()<<
+		             ": maximum extent = "<< support*cell << " (m) sampled at "<< cell/itsOverSample << " (m)");
 	      }
 	      const int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
+	      
+	      // use either support determined for this particular plane or a generic one,
+          // determined from the first plane (largest support as we have the largest w-term)
+          const int support = isSupportPlaneDependent() ? cfSupport.itsSize : itsSupport;
 	      
 	      // Since we are decimating, we need to rescale by the
 	      // decimation factor
 	      const float rescale=float(itsOverSample*itsOverSample);
-		  const int cSize=2*itsSupport+1;
+		  const int cSize=2*support+1;
 	      for (int fracu=0; fracu<itsOverSample; fracu++) {
 		for (int fracv=0; fracv<itsOverSample; fracv++) {
 		  int plane=fracu+itsOverSample*(fracv+itsOverSample
@@ -390,9 +399,9 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		  itsConvFunc[plane].set(0.0);
 		  // Now cut out the inner part of the convolution function and
 		  // insert it into the convolution function
-		  for (int iy=-itsSupport; iy<itsSupport; iy++) {
-		    for (int ix=-itsSupport; ix<itsSupport; ix++) {
-		      itsConvFunc[plane](ix+itsSupport, iy+itsSupport)
+		  for (int iy=-support; iy<support; iy++) {
+		    for (int ix=-support; ix<support; ix++) {
+		      itsConvFunc[plane](ix+support, iy+support)
 			= rescale*thisPlane(ix*itsOverSample+fracu+nx/2,
 					    iy*itsOverSample+fracv+ny/2);
 		    } // for ix
@@ -402,14 +411,24 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	      } // for fracu
 	    } // w loop
 	  } // chan loop
-	}
+	  
+	} // row of the accessor
       }
       
       
       if (nDone == itsMaxFeeds*itsMaxFields*itsNWPlanes) {
-	ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
-			  << itsConvFunc[0].shape() << " by "<< itsConvFunc.size()
-			  << " planes");
+            if (isSupportPlaneDependent()) {
+                ASKAPLOG_INFO_STR(logger, "Convolution function cache has "<<itsConvFunc.size()<<" planes");
+                ASKAPLOG_INFO_STR(logger, "Variable support size is used:");
+                const size_t step = casa::max(itsConvFunc.size()/itsOverSample/itsOverSample/10,1);          
+                for (size_t plane = 0; plane<itsConvFunc.size(); plane += step*itsOverSample*itsOverSample) {
+                     ASKAPLOG_INFO_STR(logger, "CF cache plane "<<plane<<" ("<<plane/itsOverSample/itsOverSample<<
+                        " prior to oversampling) shape is "<<itsConvFunc[plane].shape());
+                }
+            } else {
+                ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
+                     << itsConvFunc[0].shape() << " by "<< itsConvFunc.size() << " planes");
+            }
       }
       
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
@@ -475,9 +494,16 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	  /// Work space
 	  casa::Matrix<casa::Complex> thisPlane(cnx, cny);
 	  thisPlane.set(0.0);
-	  for (int iy=-itsSupport; iy<+itsSupport; iy++) {
-	    for (int ix=-itsSupport; ix<+itsSupport; ix++) {
-	      thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+itsSupport, iy+itsSupport);
+
+	  // use either support determined for this particular plane or a generic one,
+      // determined from the first plane (largest support as we have the largest w-term)
+      const int support = (int(itsConvFunc[plane].nrow()) - 1) / 2;
+      ASKAPDEBUGASSERT(itsConvFunc[plane].nrow() % 2 == 1);
+      ASKAPDEBUGASSERT(itsConvFunc[plane].nrow() == itsConvFunc[plane].ncolumn());
+
+	  for (int iy=-support; iy<+support; ++iy) {
+	    for (int ix=-support; ix<+support; ++ix) {
+	      thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+support, iy+support);
 	    }
 	  }	  
 	  
@@ -519,96 +545,11 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
     }
 
-/*
-// this is an experimental version in Max's tree. Commented out for a check in
-    /// This is the default implementation
-void AWProjectVisGridder::finaliseGrid(casa::Array<double>& out) {
-   
-   ASKAPDEBUGASSERT(isPSFGridder());
-   // we need to do all calculations on a limited support (e.g. because the convolution correction is
-   // done for the image of that size)
-   casa::IPosition limitedSupportShape(out.shape());
-   ASKAPDEBUGASSERT(limitedSupportShape.nelements()>=2);
-   limitedSupportShape(0) = std::min(maxSupport(), limitedSupportShape(0));
-   limitedSupportShape(1) = std::min(maxSupport(), limitedSupportShape(1));
-   // a buffer, which will be padded to the full size at the end
-   casa::Array<double> cOut(limitedSupportShape);
-
-   /// Loop over all grids Fourier transforming and accumulating
-   for (unsigned int i=0; i<itsGrid.size(); i++) {
-		casa::Array<casa::Complex> scratch(itsGrid[i].copy());
-        std::cout<<itsGrid[i].shape()<<std::endl;
-        
-		scimath::fft2d(scratch, false);
-		
-        if (i==0) {
-            toDouble(cOut, scratch);
-        } else {
-            casa::Array<double> work(out.shape());
-            toDouble(work, scratch);
-            cOut+=work;
-        }
-    }
-    // Now we can do the convolution correction    
-    correctConvolution(cOut);
-    cOut*=double(cOut.shape()(0))*double(cOut.shape()(1)); 
-    
-    casa::Array<float> test(cOut.shape());
-    convertArray(test,cOut);
-    SynthesisParamsHelper::saveAsCasaImage("dbg.img", test);
-	throw 1;
-    scimath::PaddingUtils::fftPad(cOut,out);
-}
-*/    
 
 /// Correct for gridding convolution function
 /// @param image image to be corrected
 void AWProjectVisGridder::correctConvolution(casa::Array<double>& image)
-{
-   /*
-     ASKAPDEBUGASSERT(itsShape.nelements()>=2);      
-     
-     casa::IPosition limitedSupportShape(image.shape());
-     ASKAPDEBUGASSERT(limitedSupportShape.nelements()>=2);
-        
-      const casa::Int xHalfSize = limitedSupportShape(0)/2;
-      const casa::Int yHalfSize = limitedSupportShape(1)/2;
-      
-      
-      casa::Vector<double> ccfx(limitedSupportShape(0));
-      casa::Vector<double> ccfy(limitedSupportShape(1));
-      for (int ix=0; ix<limitedSupportShape(0); ++ix)
-      {
-        const double nux=std::abs(double(ix-xHalfSize))/double(xHalfSize*itsOverSample);
-        ccfx(ix)=1.0/grdsf(nux);
-      }
-      for (int iy=0; iy<limitedSupportShape(1); ++iy)
-      {
-        const double nuy=std::abs(double(iy-yHalfSize))/double(yHalfSize*itsOverSample);
-        ccfy(iy)=1.0/grdsf(nuy);
-      }
-
-      casa::ArrayIterator<double> it(image, 2);
-      while (!it.pastEnd())
-      {
-        casa::Matrix<double> mat(it.array());
-        for (int ix=0; ix<limitedSupportShape(0); ix++)
-        {
-          for (int iy=0; iy<limitedSupportShape(1); iy++)
-          {
-            mat(ix, iy)*=ccfx(ix)*ccfy(iy);
-          }
-        }
-        it.next();
-      }
-      */     
-      /*   
-      casa::Array<float> test(image.shape());
-      convertArray(test,image);
-      SynthesisParamsHelper::saveAsCasaImage("dbg.img", test);
-	  throw 1;
-*/
-}
+{}
         
     int AWProjectVisGridder::cIndex(int row, int pol, int chan) {
       return itsCMap(row, pol, chan);
@@ -625,7 +566,15 @@ void AWProjectVisGridder::correctConvolution(casa::Array<double>& image)
 /// @return a shared pointer to the gridder instance					 
 IVisGridder::ShPtr AWProjectVisGridder::createGridder(const LOFAR::ParameterSet& parset)
 {
-  return createAProjectGridder<AWProjectVisGridder>(parset);
+  boost::shared_ptr<AWProjectVisGridder> gridder = createAProjectGridder<AWProjectVisGridder>(parset);
+  const bool planeDependentSupport = parset.getBool("variablesupport",false);
+  if (planeDependentSupport) {
+      ASKAPLOG_INFO_STR(logger, "Support size will be calculated separately for each plane of the CF cache");
+  } else {
+      ASKAPLOG_INFO_STR(logger, "Common support size will be used for all planes of the CF cache");
+  }
+  gridder->planeDependentSupport(planeDependentSupport);
+  return gridder;
 }
     
     

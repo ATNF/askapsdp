@@ -49,7 +49,7 @@ namespace synthesis {
 /// @param[in] parset parameter set containing description of the gridder to create
 /// @return shared pointer to the gridder
 template<typename GridderType>
-boost::shared_ptr<IVisGridder> AProjectGridderBase::createAProjectGridder(const LOFAR::ParameterSet &parset)
+boost::shared_ptr<GridderType> AProjectGridderBase::createAProjectGridder(const LOFAR::ParameterSet &parset)
 {
   const double pointingTol = parset.getDouble("pointingtolerance", 0.0001);
   const double paTol = parset.getDouble("patolerance", 0.1);
@@ -94,7 +94,7 @@ boost::shared_ptr<IVisGridder> AProjectGridderBase::createAProjectGridder(const 
 	                   " (equivalent to "<<freqTol*3e5<<" km/s)"); 
   }
 
-  return IVisGridder::ShPtr(new GridderType(makeIllumination(parset),
+  return boost::shared_ptr<GridderType>(new GridderType(makeIllumination(parset),
                 wmax, nwplanes, cutoff, oversample, maxSupport, limitSupport, maxFeeds, maxFields,
                 pointingTol, paTol, freqTol, freqDep, tablename));
 }

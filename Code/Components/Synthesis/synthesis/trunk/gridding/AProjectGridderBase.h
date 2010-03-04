@@ -157,7 +157,7 @@ protected:
   /// @param[in] parset parameter set containing description of the gridder to create
   /// @return shared pointer to the gridder
   template<typename GridderType>
-  static boost::shared_ptr<IVisGridder> createAProjectGridder(const LOFAR::ParameterSet &parset);
+  static boost::shared_ptr<GridderType> createAProjectGridder(const LOFAR::ParameterSet &parset);
      
 private:
   /// Pointing tolerance in radians
