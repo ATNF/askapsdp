@@ -242,6 +242,14 @@ namespace askap {
                         ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
 
                     result = this->itsCube.getMetadata();
+		    // check the true dimensionality and set the 2D flag in the cube header.
+		    int numDim=0;
+		    long *dim = this->itsCube.getDimArray();
+		    for(int i=0;i<this->itsCube.getNumDim();i++) if(dim[i]>1) numDim++;
+		    this->itsCube.header().set2D(numDim<=2);
+		    // set up the various flux units
+		    if (this->itsCube.header().getWCS()->spec >= 0) this->itsCube.header().fixUnits(this->itsCube.pars());
+
                 } else {
                     result = casaImageToMetadata(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
                 }
@@ -372,12 +380,12 @@ namespace askap {
 		    wsec.setStart(i,0);
 		    wsec.setEnd(i,0);
 		  }
-		  casa::Vector<casa::Double> weights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
-		  casa::Double maxweight = *std::max_element(weights.begin(),weights.end());
-		  for(size_t i=0;i<weights.size();i++) weights[i] /= maxweight;
+		  this->itsWeights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
+		  casa::Double maxweight = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
+		  for(size_t i=0;i<this->itsWeights.size();i++) this->itsWeights[i] /= maxweight;
 		  for(size_t z=0;z<this->itsCube.getDimZ();z++)
 		    for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
-		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= weights[i];
+		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= this->itsWeights[i];
 
 		}
 
@@ -499,17 +507,9 @@ namespace askap {
 
 		if(this->itsWeightImage!=""){
 		  ASKAPLOG_INFO_STR(logger, "Removing weights");
-		  duchamp::Section wsec = this->itsCube.pars().section();
-		  for(int i=2;i<=3;i++) {
-		    wsec.setStart(i,0);
-		    wsec.setEnd(i,0);
-		  }
-		  casa::Vector<casa::Double> weights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
-		  casa::Double maxweight = *std::max_element(weights.begin(),weights.end());
-		  for(size_t i=0;i<weights.size();i++) weights[i] /= maxweight;
 		  for(size_t z=0;z<this->itsCube.getDimZ();z++)
 		    for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
-		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= weights[i];
+		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= this->itsWeights[i];
 		}
 		  
 

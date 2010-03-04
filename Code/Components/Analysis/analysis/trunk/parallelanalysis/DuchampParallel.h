@@ -172,6 +172,9 @@ namespace askap {
 		/// An image showing relative weights of pixels
 		std::string itsWeightImage;
 
+		/// The weights values
+		casa::Vector<casa::Double> itsWeights;
+
                 /// The Cube of data, which contains the list of Detections.
                 duchamp::Cube itsCube;
 
