@@ -533,35 +533,48 @@ namespace askap {
             ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "About to find median & MADFM arrays, and use these to search");
             casa::IPosition box(2, this->itsMedianBoxWidth, this->itsMedianBoxWidth);
             casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
-            casa::Array<Float> base(shape, this->itsCube.getArray());
-            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth);
-            casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
-            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth);
-            casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
-            ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Constructing SNR map");
-            casa::Array<Float> snr = (base - median);
 
-            // Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
-            uInt ntotal = snr.nelements();
-            Bool snrDelete, madfmDelete;
-            Float *snrStorage = snr.getStorage(snrDelete);
-            Float *ss = snrStorage;
-            const Float *madfmStorage = madfm.getStorage(madfmDelete);
-            const Float *ms = madfmStorage;
+	    int spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
+	    float *snrAll = new float[this->itsCube.getSize()];
+	    long *imdim = new long[2];
+	    imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
+	    duchamp::Image *chanIm = new duchamp::Image(imdim);
 
-            while (ntotal--) {
-                if (*ms > 0) *ss++ /= *ms++;
+	    for(int z=0; z < this->itsCube.getDimZ(); z++){
+
+	      chanIm->extractImage(this->itsCube, z);
+	      casa::Array<Float> base(shape, chanIm->getArray());
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth);
+	      casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth);
+	      casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Constructing SNR map");
+	      casa::Array<Float> snr = (base - median);
+
+	      // Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
+	      uInt ntotal = snr.nelements();
+	      Bool snrDelete, madfmDelete;
+	      Float *snrStorage = snr.getStorage(snrDelete);
+	      Float *ss = snrStorage;
+	      const Float *madfmStorage = madfm.getStorage(madfmDelete);
+	      const Float *ms = madfmStorage;
+	      
+	      while (ntotal--) {
+		if (*ms > 0) *ss++ /= *ms++;
                 else {
-                    *ss++ = 0.;
-                    *ms++;
+		  *ss++ = 0.;
+		  ms++;
                 }
-            }
+	      }
+	      
+	      snr.putStorage(snrStorage, snrDelete);
+	      madfm.freeStorage(madfmStorage, madfmDelete);
 
-            snr.putStorage(snrStorage, snrDelete);
-            madfm.freeStorage(madfmStorage, madfmDelete);
+	      for(int i=0;i<spatSize;i++) snrAll[i+z*spatSize] = snr.data()[i];
+	    }
 
             ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
-            this->itsCube.saveRecon(snr.data(), long(snr.nelements()));
+            this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
             this->itsCube.setReconFlag(true);
 
             if (!this->itsCube.pars().getFlagUserThreshold()) {
