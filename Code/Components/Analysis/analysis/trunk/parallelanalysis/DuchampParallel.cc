@@ -383,8 +383,8 @@ namespace askap {
 		  this->itsWeights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
 		  casa::Double maxweight = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
 		  for(size_t i=0;i<this->itsWeights.size();i++) this->itsWeights[i] /= maxweight;
-		  for(size_t z=0;z<this->itsCube.getDimZ();z++)
-		    for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
+		  for(int z=0;z<this->itsCube.getDimZ();z++)
+		    for(int i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
 		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= this->itsWeights[i];
 
 		}
@@ -507,8 +507,8 @@ namespace askap {
 
 		if(this->itsWeightImage!=""){
 		  ASKAPLOG_INFO_STR(logger, "Removing weights");
-		  for(size_t z=0;z<this->itsCube.getDimZ();z++)
-		    for(size_t i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
+		  for(int z=0;z<this->itsCube.getDimZ();z++)
+		    for(int i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
 		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= this->itsWeights[i];
 		}
 		  
