@@ -49,7 +49,8 @@ namespace askap
 
     WProjectVisGridder::WProjectVisGridder(const double wmax,
         const int nwplanes, const double cutoff, const int overSample,
-	const int maxSupport, const int limitSupport, const std::string& name)
+	const int maxSupport, const int limitSupport, const std::string& name) :
+	    itsMaxSupport(maxSupport), itsCutoff(cutoff), itsLimitSupport(limitSupport)
     {
       ASKAPCHECK(wmax>0.0, "Baseline length must be greater than zero");
       ASKAPCHECK(nwplanes>0, "Number of w planes must be greater than zero");
@@ -66,9 +67,6 @@ namespace askap
          itsWScale=1.0;
       }
       itsOverSample=overSample;
-      itsCutoff=cutoff;
-      itsMaxSupport=maxSupport;
-      itsLimitSupport=limitSupport;
       itsName=name;
 
       itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);
@@ -84,9 +82,9 @@ namespace askap
     /// @param[in] other input object
     WProjectVisGridder::WProjectVisGridder(const WProjectVisGridder &other) :
          SphFuncVisGridder(other), itsWScale(other.itsWScale), 
-         itsNWPlanes(other.itsNWPlanes), itsCutoff(other.itsCutoff),
+         itsNWPlanes(other.itsNWPlanes), 
          itsCMap(other.itsCMap.copy()), itsMaxSupport(other.itsMaxSupport),
-         itsLimitSupport(other.itsLimitSupport) {}
+         itsCutoff(other.itsCutoff), itsLimitSupport(other.itsLimitSupport) {}
            
 
     /// Clone a copy of this Gridder
@@ -185,10 +183,10 @@ namespace askap
       /// Limit the size of the convolution function since
       /// we don't need it finely sampled in image space. This
       /// will reduce the time taken to calculate it.
-      //      int nx=std::min(itsMaxSupport, itsShape(0));
-      //      int ny=std::min(itsMaxSupport, itsShape(1));
-      int nx=itsMaxSupport;
-      int ny=itsMaxSupport;
+      //      int nx=std::min(maxSupport(), itsShape(0));
+      //      int ny=std::min(maxSupport(), itsShape(1));
+      int nx=maxSupport();
+      int ny=maxSupport();
       /// We want nx * ccellx = overSample * itsShape(0) * cellx
 
       int qnx=nx/itsOverSample;
@@ -264,24 +262,11 @@ namespace askap
         // convolution function appropriately
         if (itsSupport==0)
         {
-          SupportSearcher ss(itsCutoff);
-          ss.search(thisPlane);
-          itsSupport = ss.symmetricalSupport(thisPlane.shape())/2/itsOverSample;
+          itsSupport = extractSupport(thisPlane).itsSize;
 
-          ASKAPCHECK(itsSupport>0,
-              "Unable to determine support of convolution function");
           ASKAPCHECK(itsSupport*itsOverSample<nx/2,
               "Overflowing convolution function - increase maxSupport or decrease overSample")
-	  if (itsLimitSupport > 0  &&  itsSupport > itsLimitSupport) {
-	    ASKAPLOG_INFO_STR(logger, "Convolution function support = "
-	      << itsSupport << " pixels exceeds upper support limit; "
-	      << "set to limit = " << itsLimitSupport << " pixels");
-	    itsSupport = itsLimitSupport;
-	  }
-          const int cSize=2*itsSupport+1;
-          ASKAPLOG_INFO_STR(logger, "Convolution function support = "
-              << itsSupport << " pixels, convolution function size = "
-              << cSize<< " pixels");
+	      itsSupport = limitSupportIfNecessary(itsSupport);
         }
 	ASKAPCHECK(itsConvFunc.size()>0, "Convolution function not sized correctly");
         const int cSize=2*itsSupport+1;
@@ -329,6 +314,42 @@ namespace askap
         save(itsName);
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
 
+    }
+
+    /// @brief search for support parameters
+    /// @details This method encapsulates support search operation, taking into account the 
+    /// cutoff parameter and whether or not an offset is allowed.
+    /// @param[in] cfPlane const reference to 2D plane with the convolution function
+    /// @return an instance of CFSupport with support parameters 
+    WProjectVisGridder::CFSupport WProjectVisGridder::extractSupport(const casa::Matrix<casa::Complex> &cfPlane) const
+    {
+       CFSupport result(-1);
+       SupportSearcher ss(itsCutoff);
+       ss.search(cfPlane);
+       result.itsSize = ss.symmetricalSupport(cfPlane.shape())/2/itsOverSample;
+       //std::cout<<itsSupport<<" "<<nx<<" "<<itsCutoff<<" "<<itsOverSample<<std::endl;       
+       ASKAPCHECK(result.itsSize>0, "Unable to determine support of convolution function");
+       return result;
+    }
+    
+    /// @brief truncate support, if necessary
+    /// @details This method encapsulates all usage of itsLimitSupport. It truncates the support
+    /// if necessary and reports the new value back.
+    /// @param[in] support support size to truncate according to itsLimitSupport
+    /// @return support size to use (after possible truncation)
+    int WProjectVisGridder::limitSupportIfNecessary(int support) const
+    {
+      if (itsLimitSupport > 0  &&  support > itsLimitSupport) {
+	      ASKAPLOG_INFO_STR(logger, "Convolution function support = "
+	           << support << " pixels exceeds upper support limit; "
+	           << "set to limit = " << itsLimitSupport << " pixels");
+	      support = itsLimitSupport;
+	  }
+      const int cSize=2*itsSupport+1;
+      ASKAPLOG_INFO_STR(logger, "Convolution function support = "
+           << support << " pixels, convolution function size = "
+              << cSize<< " pixels");
+      return support;
     }
 
     int WProjectVisGridder::cIndex(int row, int pol, int chan)

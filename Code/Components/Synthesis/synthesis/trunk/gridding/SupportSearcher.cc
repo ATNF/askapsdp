@@ -120,7 +120,7 @@ casa::uInt SupportSearcher::symmetricalSupport(const casa::IPosition &shape) con
 /// that the cutoff is an absolute cutoff (default).
 /// @param[in] in input 2D matrix with an image 
 /// @param[in] value assumed peak value
-void SupportSearcher::searchCentered(casa::Matrix<casa::Complex> &in, double value)
+void SupportSearcher::searchCentered(const casa::Matrix<casa::Complex> &in, double value)
 {
   itsPeakVal = value;
   itsPeakPos.resize(in.shape().nelements(), casa::False);
@@ -136,7 +136,7 @@ void SupportSearcher::searchCentered(casa::Matrix<casa::Complex> &in, double val
 /// normally called from one of the search methods, but could be called
 /// separately.
 /// @param[in] in input 2D matrix with an image
-void SupportSearcher::findPeak(casa::Matrix<casa::Complex> &in)
+void SupportSearcher::findPeak(const casa::Matrix<casa::Complex> &in)
 { 
   itsPeakPos.resize(in.shape().nelements(),casa::False);
   itsPeakPos = 0;
@@ -159,7 +159,7 @@ void SupportSearcher::findPeak(casa::Matrix<casa::Complex> &in)
 /// edges and progresses towards the peak. The edge of the support region
 /// is where the value first time exceeds the cutoff*peakVal.
 /// @param[in] in input 2D matrix with an image 
-void SupportSearcher::search(casa::Matrix<casa::Complex> &in)
+void SupportSearcher::search(const casa::Matrix<casa::Complex> &in)
 {
   findPeak(in);
   doSupportSearch(in);
@@ -169,7 +169,7 @@ void SupportSearcher::search(casa::Matrix<casa::Complex> &in)
 /// @details This method assumes that peak has already been found and
 /// implements the actual search of blc and trc of the support region.
 /// @param[in] in input 2D matrix with an image 
-void SupportSearcher::doSupportSearch(casa::Matrix<casa::Complex> &in)
+void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
 {
   ASKAPDEBUGASSERT(in.shape().nelements() == 2);
   ASKAPDEBUGASSERT(itsPeakPos.nelements() == 2);

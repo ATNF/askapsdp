@@ -118,16 +118,49 @@ namespace askap
       /// @param[in] acc const data accessor to work with
       virtual void initConvolutionFunction(const IConstDataAccessor& acc);
 
+      inline int maxSupport() const { return itsMaxSupport; }
+      
+      /// @brief truncate support, if necessary
+      /// @details This method encapsulates all usage of itsLimitSupport. It truncates the support
+      /// if necessary and reports the new value back.
+      /// @param[in] support support size to truncate according to itsLimitSupport
+      /// @return support size to use (after possible truncation)
+      int limitSupportIfNecessary(int support) const;
+      
+      /// @brief a structure describing the region of the CF
+      /// @details Define the region of significant power in CF using support + offsets.
+      struct CFSupport {
+         /// @brief support size
+         int itsSize; 
+         /// @brief offset in u of the centre w.r.t. the centre of the array (i.e. centred gaussian would have 0)
+         int itsOffsetU;
+         /// @brief offset in v of the centre w.r.t. the centre of the array (i.e. centred gaussian would have 0)
+         int itsOffsetV;
+         /// @brief constructor to simplify making the class
+         /// @param[in] size support size
+         /// @param[in] u offset in u
+         /// @param[in] v offset in v
+         explicit CFSupport(int size, int u = 0, int v = 0) : itsSize(size), itsOffsetU(u), itsOffsetV(v) {}
+      };
+      
+      /// @brief search for support parameters
+      /// @details This method encapsulates support search operation, taking into account the 
+      /// cutoff parameter and whether or not an offset is allowed.
+      /// @param[in] cfPlane const reference to 2D plane with the convolution function
+      /// @return an instance of CFSupport with support parameters 
+      CFSupport extractSupport(const casa::Matrix<casa::Complex> &cfPlane) const;
+      
       /// Scaling
       double itsWScale;
       /// Number of w planes
       int itsNWPlanes;
-      /// Threshold for cutoff of convolution function
-      double itsCutoff;
       /// Mapping from row, pol, and channel to planes of convolution function
       casa::Cube<int> itsCMap;
+  private:    
       /// Maximum support
       int itsMaxSupport;
+      /// Threshold for cutoff of convolution function
+      double itsCutoff;
       /// Upper limit of support
       int itsLimitSupport;
     };

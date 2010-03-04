@@ -73,10 +73,6 @@ namespace askap {
       ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
       ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
       ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
-      itsSupport=0;
-      itsOverSample=overSample;
-      itsMaxSupport=maxSupport;
-      itsLimitSupport=limitSupport;
       itsName=name;
     }
     
@@ -183,8 +179,8 @@ void AWProjectVisGridder::initialiseGrid(const scimath::Axes& axes,  const casa:
     /// Limit the size of the convolution function since
     /// we don't need it finely sampled in image space. This
     /// will reduce the time taken to calculate it.
-    const casa::uInt nx=std::min(itsMaxSupport, int(itsShape(0)));
-    const casa::uInt ny=std::min(itsMaxSupport, int(itsShape(1)));
+    const casa::uInt nx=std::min(maxSupport(), int(itsShape(0)));
+    const casa::uInt ny=std::min(maxSupport(), int(itsShape(1)));
 
     ASKAPLOG_INFO_STR(logger, "Shape for calculating gridding convolution function = "
             << nx << " by " << ny << " pixels");
@@ -207,8 +203,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
     /// Limit the size of the convolution function since
     /// we don't need it finely sampled in image space. This
     /// will reduce the time taken to calculate it.
-    const casa::uInt nx=std::min(itsMaxSupport, int(itsShape(0)));
-    const casa::uInt ny=std::min(itsMaxSupport, int(itsShape(1)));
+    const casa::uInt nx=std::min(maxSupport(), int(itsShape(0)));
+    const casa::uInt ny=std::min(maxSupport(), int(itsShape(1)));
 
     ASKAPLOG_INFO_STR(logger, "Shape for calculating degridding convolution function = "
             << nx << " by " << ny << " pixels");
@@ -253,8 +249,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       /// Limit the size of the convolution function since
       /// we don't need it finely sampled in image space. This
       /// will reduce the time taken to calculate it.
-      casa::uInt nx=std::min(itsMaxSupport, int(itsShape(0)));
-      casa::uInt ny=std::min(itsMaxSupport, int(itsShape(1)));
+      casa::uInt nx=std::min(maxSupport(), int(itsShape(0)));
+      casa::uInt ny=std::min(maxSupport(), int(itsShape(1)));
       
       casa::uInt qnx=nx/itsOverSample;
       casa::uInt qny=ny/itsOverSample;
@@ -361,42 +357,21 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	      // convolution function appropriately
 	      if (itsSupport==0) {	
               //  SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
-              SupportSearcher ss(itsCutoff);
-              ss.search(thisPlane);
+              itsSupport = extractSupport(thisPlane).itsSize;
               
-              
-              itsSupport = ss.symmetricalSupport(thisPlane.shape())/2/itsOverSample;
-              //std::cout<<itsSupport<<" "<<nx<<" "<<itsCutoff<<" "<<itsOverSample<<std::endl;
-
-              ASKAPCHECK(itsSupport>0,
-                         "Unable to determine support of convolution function");
               ASKAPCHECK(itsSupport*itsOverSample<int(nx)/2,
                          "Overflowing convolution function - increase maxSupport or decrease overSample. "<<
                          "Current support size = "<<itsSupport<<" oversampling factor="<<itsOverSample<<
                          " image size nx="<<nx)
         
-        //SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
-	    //throw 1;
-        	   
-		  if (itsLimitSupport > 0  &&  itsSupport > itsLimitSupport) {
-		    ASKAPLOG_INFO_STR(logger, "Convolution function support = "
-				      << itsSupport << " pixels exceeds upper support limit; "
-				      << "set to limit = " << itsLimitSupport << " pixels");
-		    itsSupport = itsLimitSupport;
-		  }
-		const int cSize=2*itsSupport+1;
-		ASKAPLOG_INFO_STR(
-				  logger,
-				  "Convolution function support = " << itsSupport
-				  << " pixels, convolution function size = "
-				  << cSize << " pixels");
-		// just for log output					
-		const double cell=std::abs(itsUVCellSize(0)*(casa::C::c
+              itsSupport = limitSupportIfNecessary(itsSupport); 	   
+		      
+		      // just for log output					
+		      const double cell=std::abs(itsUVCellSize(0)*(casa::C::c
 							     /acc.frequency()[chan]));
-		ASKAPLOG_INFO_STR(logger, "Maximum extent = "
-				  << itsSupport*cell << " (m) sampled at "<< cell
-				  /itsOverSample << " (m)");
-		ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
+		      ASKAPLOG_INFO_STR(logger, "Maximum extent = "
+				     << itsSupport*cell << " (m) sampled at "<< cell/itsOverSample << " (m)");
+              ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
 				  << itsConvFunc.size()<<" or "<<itsConvFunc.size()/itsOverSample/itsOverSample<<
 				     " before oversampling with factor "<<itsOverSample);
 	      }
@@ -461,8 +436,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       
       /// We must pad the convolution function to full size, reverse transform
       /// square, and sum multiplied by the corresponding weight
-      const int cnx=std::min(itsMaxSupport, nx);
-      const int cny=std::min(itsMaxSupport, ny);
+      const int cnx=std::min(maxSupport(), nx);
+      const int cny=std::min(maxSupport(), ny);
       const int ccenx=cnx/2;
       const int cceny=cny/2;
       
@@ -554,8 +529,8 @@ void AWProjectVisGridder::finaliseGrid(casa::Array<double>& out) {
    // done for the image of that size)
    casa::IPosition limitedSupportShape(out.shape());
    ASKAPDEBUGASSERT(limitedSupportShape.nelements()>=2);
-   limitedSupportShape(0) = std::min(itsMaxSupport, limitedSupportShape(0));
-   limitedSupportShape(1) = std::min(itsMaxSupport, limitedSupportShape(1));
+   limitedSupportShape(0) = std::min(maxSupport(), limitedSupportShape(0));
+   limitedSupportShape(1) = std::min(maxSupport(), limitedSupportShape(1));
    // a buffer, which will be padded to the full size at the end
    casa::Array<double> cOut(limitedSupportShape);
 
