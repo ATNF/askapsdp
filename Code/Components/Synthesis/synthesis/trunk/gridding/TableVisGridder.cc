@@ -987,6 +987,50 @@ int TableVisGridder::gIndex(int row, int pol, int chan) {
 	return 0;
 }
 
+/// @brief Obtain offset for the given convolution function
+/// @details To conserve memory and speed the gridding up, convolution functions stored in the cache
+/// may have an offset (i.e. essentially each CF should be defined on a bigger support and placed at a 
+/// pixel other than the centre of this support). This method returns this offset, which is the
+/// position of the peak of the given CF on a bigger support w.r.t. the centre of this support. 
+/// The value of (0,0) means no offset from the centre (i.e. support is already centred). 
+/// @param[in] cfPlane plane of the convolution function cache to get the offset for
+/// @return a pair with offsets for each axis
+/// @note if there is no offset defined for a given cfPlane (default behavior), this method returns (0,0)
+std::pair<int,int> TableVisGridder::getConvFuncOffset(int cfPlane) const
+{
+  ASKAPDEBUGASSERT(cfPlane>=0);
+  if (cfPlane >= itsConvFuncOffsets.size()) {
+      return std::pair<int,int>(0,0);
+  }
+  return itsConvFuncOffsets[cfPlane];
+}
+      
+/// @brief initialise convolution function offsets for a given number of planes
+/// @details The vector with offsets is resized and filled with (0,0).
+/// @param[in] nPlanes number of planes in the cache 
+void TableVisGridder::initConvFuncOffsets(size_t nPlanes)
+{
+  itsConvFuncOffsets.resize(nPlanes);
+  for (std::vector<std::pair<int,int> >::iterator it = itsConvFuncOffsets.begin(); it != itsConvFuncOffsets.end(); ++it) {
+       it->first = 0;
+       it->second = 0;
+  }
+}
+      
+/// @brief Assign offset to a particular convolution function
+/// @details
+/// @param[in] cfPlane plane of the convolution function cache to assign the offset for
+/// @param[in] x offset in the first coordinate
+/// @param[in] y offset in the second coordinate
+/// @note For this method, cfPlane should be within the range [0..nPlanes-1].
+void TableVisGridder::setConvFuncOffset(int cfPlane, int x, int y)
+{
+  ASKAPDEBUGASSERT(cfPlane>=0);
+  ASKAPDEBUGASSERT(cfPlane<itsConvFuncOffsets.size());
+  itsConvFuncOffsets[cfPlane] = std::pair<int,int>(x,y);
+}
+
+
 }
 
 }

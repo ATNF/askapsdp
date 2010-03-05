@@ -250,6 +250,33 @@ namespace askap
       /// use any of a number of functions. The index is calculated by cIndex.
       std::vector<casa::Matrix<casa::Complex> > itsConvFunc;
 
+      /// @brief Obtain offset for the given convolution function
+      /// @details To conserve memory and speed the gridding up, convolution functions stored in the cache
+      /// may have an offset (i.e. essentially each CF should be defined on a bigger support and placed at a 
+      /// pixel other than the centre of this support). This method returns this offset, which is the
+      /// position of the peak of the given CF on a bigger support w.r.t. the centre of this support. 
+      /// The value of (0,0) means no offset from the centre (i.e. support is already centred). 
+      /// @param[in] cfPlane plane of the convolution function cache to get the offset for
+      /// @return a pair with offsets for each axis
+      /// @note if there is no offset defined for a given cfPlane (default behavior), this method returns (0,0)
+      std::pair<int,int> getConvFuncOffset(int cfPlane) const;
+      
+      /// @brief initialise convolution function offsets for a given number of planes
+      /// @details The vector with offsets is resized and filled with (0,0).
+      /// @param[in] nPlanes number of planes in the cache 
+      void initConvFuncOffsets(size_t nPlanes);
+      
+      /// @brief Assign offset to a particular convolution function
+      /// @details
+      /// @param[in] cfPlane plane of the convolution function cache to assign the offset for
+      /// @param[in] x offset in the first coordinate
+      /// @param[in] y offset in the second coordinate
+      /// @note For this method, cfPlane should be within the range [0..nPlanes-1].
+      void setConvFuncOffset(int cfPlane, int x, int y);
+      
+      /// @brief assign a given offset to the CF plane
+      /// @details 
+
       /// Return the index into the convolution function for a given
       /// row, polarisation, and channel
       /// @param row Row of accessor
@@ -414,6 +441,16 @@ namespace askap
       /// @brief number of rows rejected due to itsMaxPointingSeparation
       /// @details Accumulated to get proper statistics/debugging info.
       long itsRowsRejectedDueToMaxPointingSeparation;
+      
+      /// @brief offsets of convolution functions
+      /// @details To conserve memory and speed the gridding up, convolution functions stored in the cache
+      /// may have an offset (i.e. essentially each CF should be defined on a bigger support and placed at a 
+      /// pixel other than the centre of this support). This data field defines this offset, which is the
+      /// position of the peak of the given CF on a bigger support w.r.t. the centre of this support. 
+      /// The value of (0,0) means no offset from the centre (i.e. support is already centred). If the index
+      /// of CF is beyond the size of this vector, (0,0) offset is assumed. By default this vector is empty,
+      /// which means no offset. 
+      std::vector<std::pair<int,int> > itsConvFuncOffsets;
     };
   }
 }
