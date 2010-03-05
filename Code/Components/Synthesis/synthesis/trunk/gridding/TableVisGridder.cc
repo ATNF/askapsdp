@@ -291,13 +291,13 @@ void TableVisGridder::save(const std::string& name) {
 	        for (unsigned int plane = 0; plane<nPlanes; ++plane) {
 	            unsigned int peakX = 0, peakY = 0;
 	            casa::Float peakVal = -1.;
-	            for (int x = 0; x<imgBuffer.nrow(); ++x) {
-	                 for (int y = 0; y<imgBuffer.ncolumn(); ++y) {
+	            for (int x = 0; x<int(imgBuffer.nrow()); ++x) {
+	                 for (int y = 0; y<int(imgBuffer.ncolumn()); ++y) {
 	                      const casa::Matrix<casa::Complex> thisCF = itsConvFunc[plane*itsOverSample*itsOverSample];
 	                      const int xOff = (support - int(thisCF.nrow()))/2;
 	                      const int yOff = (support - int(thisCF.ncolumn()))/2;
 	                      ASKAPDEBUGASSERT((xOff >= 0) && (yOff >= 0)); 
-	                      if ( (x - xOff>= thisCF.nrow()) || (y - yOff >= thisCF.ncolumn())) {
+	                      if ( (x - xOff >= int(thisCF.nrow())) || (y - yOff >= int(thisCF.ncolumn()))) {
 	                           continue;
 	                      }
 	                      if ( (x - xOff < 0) || (y - yOff < 0) ) {
