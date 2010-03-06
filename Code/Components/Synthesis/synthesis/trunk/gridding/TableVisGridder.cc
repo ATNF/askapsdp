@@ -133,7 +133,8 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
      itsUseAllDataForPSF(other.itsUseAllDataForPSF),
      itsFreqMapper(other.itsFreqMapper),
      itsMaxPointingSeparation(other.itsMaxPointingSeparation),
-     itsRowsRejectedDueToMaxPointingSeparation(other.itsRowsRejectedDueToMaxPointingSeparation)     
+     itsRowsRejectedDueToMaxPointingSeparation(other.itsRowsRejectedDueToMaxPointingSeparation),
+     itsConvFuncOffsets(other.itsConvFuncOffsets)
 {
    deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
    deepCopyOfSTDVector(other.itsGrid, itsGrid);   

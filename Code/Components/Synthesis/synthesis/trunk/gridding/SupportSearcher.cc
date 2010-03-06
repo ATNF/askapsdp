@@ -206,6 +206,6 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
   }
   
   ASKAPCHECK((itsBLC(0)>=0) && (itsBLC(1)>=0) && (itsTRC(0)>=0) && 
-             (itsTRC(1)>=0), "Unable to find the support on one of the coorinates. Effective support is 0.");
+             (itsTRC(1)>=0), "Unable to find the support on one of the coorinates. Effective support is 0. itsBLC="<<itsBLC<<" itsTRC="<<itsTRC);
 }
 
