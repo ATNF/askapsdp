@@ -140,7 +140,7 @@ void SupportSearcher::findPeak(const casa::Matrix<casa::Complex> &in)
 { 
   itsPeakPos.resize(in.shape().nelements(),casa::False);
   itsPeakPos = 0;
-  itsPeakVal = -1.;
+  itsPeakVal = 0.0;
   for (int iy=0;iy<int(in.ncolumn());++iy) {
        for (int ix=0;ix<int(in.nrow());++ix) {
             const double curVal = casa::abs(in(ix,iy));
@@ -151,6 +151,7 @@ void SupportSearcher::findPeak(const casa::Matrix<casa::Complex> &in)
             }
        }
   }
+  ASKAPCHECK(itsPeakVal>0.0, "Unable to find the support on one of the coordinates. Peak value of gridding function is " << itsPeakVal);
 }
 
 /// @brief full search which determines the peak
@@ -177,6 +178,8 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
   itsTRC.resize(2,casa::False);
   itsBLC = -1;
   itsTRC = -1;
+  ASKAPCHECK(itsPeakVal>0.0, "Unable to find the support on one of the coordinates. Peak value of gridding function is " << itsPeakVal);
+
   const double absCutoff = itsCutoff*itsPeakVal;
   for (int ix = 0; ix<itsPeakPos(0); ++ix) {
        if (casa::abs(in(ix, itsPeakPos(1))) > absCutoff) {
@@ -206,6 +209,6 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
   }
   
   ASKAPCHECK((itsBLC(0)>=0) && (itsBLC(1)>=0) && (itsTRC(0)>=0) && 
-             (itsTRC(1)>=0), "Unable to find the support on one of the coorinates. Effective support is 0. itsBLC="<<itsBLC<<" itsTRC="<<itsTRC);
+             (itsTRC(1)>=0), "Unable to find the support on one of the coordinates. Try decreasing the value of .gridder.cutoff");
 }
 
