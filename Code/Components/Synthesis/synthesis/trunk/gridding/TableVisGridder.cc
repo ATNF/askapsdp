@@ -1000,7 +1000,7 @@ int TableVisGridder::gIndex(int row, int pol, int chan) {
 std::pair<int,int> TableVisGridder::getConvFuncOffset(int cfPlane) const
 {
   ASKAPDEBUGASSERT(cfPlane>=0);
-  if (cfPlane >= itsConvFuncOffsets.size()) {
+  if (cfPlane >= int(itsConvFuncOffsets.size())) {
       return std::pair<int,int>(0,0);
   }
   return itsConvFuncOffsets[cfPlane];
@@ -1027,7 +1027,7 @@ void TableVisGridder::initConvFuncOffsets(size_t nPlanes)
 void TableVisGridder::setConvFuncOffset(int cfPlane, int x, int y)
 {
   ASKAPDEBUGASSERT(cfPlane>=0);
-  ASKAPDEBUGASSERT(cfPlane<itsConvFuncOffsets.size());
+  ASKAPDEBUGASSERT(cfPlane < int(itsConvFuncOffsets.size()));
   itsConvFuncOffsets[cfPlane] = std::pair<int,int>(x,y);
 }
 

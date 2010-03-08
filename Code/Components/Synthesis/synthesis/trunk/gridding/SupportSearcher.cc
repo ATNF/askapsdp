@@ -132,7 +132,7 @@ void SupportSearcher::searchCentered(const casa::Matrix<casa::Complex> &in, doub
 }
 
 /// @brief determine the peak and its position
-/// @details This method fillss only itsPeakPos and itsPeakVal. It is
+/// @details This method fills only itsPeakPos and itsPeakVal. It is
 /// normally called from one of the search methods, but could be called
 /// separately.
 /// @param[in] in input 2D matrix with an image
@@ -140,7 +140,7 @@ void SupportSearcher::findPeak(const casa::Matrix<casa::Complex> &in)
 { 
   itsPeakPos.resize(in.shape().nelements(),casa::False);
   itsPeakPos = 0;
-  itsPeakVal = 0.0;
+  itsPeakVal = -1;
   for (int iy=0;iy<int(in.ncolumn());++iy) {
        for (int ix=0;ix<int(in.nrow());++ix) {
             const double curVal = casa::abs(in(ix,iy));
@@ -151,7 +151,15 @@ void SupportSearcher::findPeak(const casa::Matrix<casa::Complex> &in)
             }
        }
   }
-  ASKAPCHECK(itsPeakVal>0.0, "Unable to find the support on one of the coordinates. Peak value of gridding function is " << itsPeakVal);
+#ifdef ASKAP_DEBUG  
+  if (itsPeakVal<0) {
+      ASKAPTHROW(CheckError, "An empty matrix has been passed to SupportSearcher::findPeak, please investigate. Shape="<<
+                 in.shape());
+  }
+#endif // #ifdef ASKAP_DEBUG
+
+  ASKAPCHECK(itsPeakVal>0.0, "Unable to find peak of the convolution function, all values appear to be zero. itsPeakVal=" 
+             << itsPeakVal);
 }
 
 /// @brief full search which determines the peak
@@ -178,7 +186,8 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
   itsTRC.resize(2,casa::False);
   itsBLC = -1;
   itsTRC = -1;
-  ASKAPCHECK(itsPeakVal>0.0, "Unable to find the support on one of the coordinates. Peak value of gridding function is " << itsPeakVal);
+  ASKAPCHECK(itsPeakVal>0.0, "A positive peak value of the convolution function is expected inside doSupportSearch, itsPeakVal" << 
+                             itsPeakVal);
 
   const double absCutoff = itsCutoff*itsPeakVal;
   for (int ix = 0; ix<itsPeakPos(0); ++ix) {
@@ -209,6 +218,6 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
   }
   
   ASKAPCHECK((itsBLC(0)>=0) && (itsBLC(1)>=0) && (itsTRC(0)>=0) && 
-             (itsTRC(1)>=0), "Unable to find the support on one of the coordinates. Try decreasing the value of .gridder.cutoff");
+             (itsTRC(1)>=0), "Unable to find the support on one of the coordinates (try decreasing the value of .gridder.cutoff) Effective support is 0. itsBLC="<<itsBLC<<" itsTRC="<<itsTRC);
 }
 
