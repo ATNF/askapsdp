@@ -188,7 +188,11 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
   itsTRC = -1;
   ASKAPCHECK(itsPeakVal>0.0, "A positive peak value of the convolution function is expected inside doSupportSearch, itsPeakVal" << 
                              itsPeakVal);
-
+  ASKAPCHECK(itsPeakPos[0]>0 && itsPeakPos[1]>0, "Peak position of the convolution function "<<itsPeakPos<<
+             " is too close to the edge, increase maxsupport");
+  ASKAPCHECK(itsPeakPos[0] + 1 < int(in.nrow()) && itsPeakPos[1] + 1 < int(in.ncolumn()), 
+             "Peak position of the convolution function "<<itsPeakPos<<" is too close to the edge, increase maxsupport");
+  
   const double absCutoff = itsCutoff*itsPeakVal;
   for (int ix = 0; ix<itsPeakPos(0); ++ix) {
        if (casa::abs(in(ix, itsPeakPos(1))) > absCutoff) {
@@ -196,6 +200,7 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
            break;
        }
   }
+  
   for (int iy = 0; iy<itsPeakPos(1); ++iy) {
        if (casa::abs(in(itsPeakPos(0),iy)) > absCutoff) {
            itsBLC(1) = iy;
