@@ -91,6 +91,7 @@ namespace askap
       /// @brief Save to a table (for debugging)
       /// @param name Name of table
       void save(const std::string& name);
+      
 
       /// @brief Initialise the gridding
       /// @param axes axes specifications
@@ -163,6 +164,13 @@ namespace askap
       void inline maxPointingSeparation(double threshold = -1.) { itsMaxPointingSeparation = threshold; }
       
   protected:
+      /// @brief helper method to print CF cache stats in the log
+      /// @details This method is largely intended for debugging. It writes down
+      /// to the log the support sizes/offsets for all convolution functions in the cache and
+      /// summarises the memory taken up by this cache (per gridder).
+      void logCFCacheStats() const;
+  
+  
       /// @brief shape of the grid
       /// @details The could be a number of grids indexed though gIndex (for each row, polarisation and channel). However, all should
       /// have exactly the same shape. 

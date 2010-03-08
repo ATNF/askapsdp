@@ -235,6 +235,7 @@ TableVisGridder::~TableVisGridder() {
 	  }
 	} else {
 	  ASKAPLOG_INFO_STR(logger, "   Padding factor    = " << itsPaddingFactor);
+	  logCFCacheStats();
 	  if(itsName!="") {
 	    save(itsName);
 	  }
@@ -312,12 +313,50 @@ void TableVisGridder::save(const std::string& name) {
 	                      }
 	                 }
 	            }
-	            ASKAPLOG_INFO_STR(logger, "CF plane "<<plane<<" peak of "<<peakVal<<" at "<<peakX<<" , "<<peakY);
+	            //ASKAPLOG_INFO_STR(logger, "CF plane "<<plane<<" peak of "<<peakVal<<" at "<<peakX<<" , "<<peakY);
 	        }
 	        SynthesisParamsHelper::saveAsCasaImage(imgName,imgBuffer);
 	    }       
 	}                   
 }
+
+/// @brief helper method to print CF cache stats in the log
+/// @details This method is largely intended for debugging. It writes down
+/// to the log the support sizes/offsets for all convolution functions in the cache and
+/// summarises the memory taken up by this cache (per gridder).
+void TableVisGridder::logCFCacheStats() const
+{
+   // number of planes before oversampling
+   const unsigned long nPlanes = itsConvFunc.size()/itsOverSample/itsOverSample; 
+   unsigned long memUsed = 0;
+   for (unsigned int plane = 0; plane<nPlanes; ++plane) {
+        ASKAPDEBUGASSERT(plane*itsOverSample*itsOverSample < itsConvFunc.size());
+        const casa::IPosition shape = itsConvFunc[plane*itsOverSample*itsOverSample].shape();
+        if (shape.nelements() < 2) {
+            ASKAPLOG_INFO_STR(logger, "CF plane="<<plane<<" (before oversampling) is malformed");
+            continue;
+        }
+        if (shape.product() == 0) {
+            ASKAPLOG_INFO_STR(logger, "CF plane="<<plane<<" (before oversampling) is unused");
+            memUsed += sizeof(casa::Matrix<casa::Complex>);
+            continue;
+        }
+        if ((shape[0] != shape[1]) || (shape[0] % 2 != 1)) {
+            ASKAPLOG_INFO_STR(logger, "CF plane="<<plane<<" (before oversampling) has a rectangular support or even size");
+            memUsed += sizeof(casa::Matrix<casa::Complex>)+sizeof(casa::Complex)*shape.product()*itsOverSample*itsOverSample;
+            continue;
+        }
+        const int support = (shape[0] - 1) / 2;
+        const std::pair<int,int> cfOffset = getConvFuncOffset(plane);
+        ASKAPLOG_INFO_STR(logger, "CF plane="<<plane<<" (before oversampling): support="<<support<<", size="<<shape[0]<<
+                                  " at offset ("<<cfOffset.first<<","<<cfOffset.second<<")");
+        memUsed += sizeof(casa::Matrix<casa::Complex>)+sizeof(casa::Complex)*shape[0]*shape[1]*itsOverSample*itsOverSample;
+   }
+   if (nPlanes > 0) {
+       ASKAPLOG_INFO_STR(logger, "Cache of convolution functions take "<<float(memUsed)/1024/1024<<" Mb of memory");
+   }
+}
+
 
 /// This is a generic grid/degrid
 void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
@@ -485,7 +524,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			 if (!isPSFGridder()) {
 			     // both forward and reverse are covered, isPSFGridder returns false for the forward gridder
 			     imagePolFrameVis = gridPolConv(acc.visibility().yzPlane(i).row(chan));			     
-			 }
+			 }			 
 		     
 		     // Now loop over all image polarizations
 		     for (uint pol=0; pol<nImagePols; ++pol) {
@@ -510,7 +549,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 					   "Index into convolution functions exceeds number of planes");
 			   
 			      casa::Matrix<casa::Complex> & convFunc(itsConvFunc[cInd]);
-			      
+			      			      
 			      // support only square convolution functions at the moment
 			      ASKAPDEBUGASSERT(convFunc.nrow() == convFunc.ncolumn());
 			      ASKAPCHECK(convFunc.nrow() % 2 == 1, 
@@ -525,13 +564,18 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			      casa::Array<casa::Complex> aGrid(itsGrid[gInd](slicer));
 			      casa::Matrix<casa::Complex> grid(aGrid.nonDegenerate());
 			   
+                  // the following accounts for a possible offset of the convolution function
+			      const std::pair<int,int> cfOffset = getConvFuncOffset(cIndex(i,pol,chan));
+			      const int iuOffset = iu + cfOffset.first;
+			      const int ivOffset = iv + cfOffset.second;
+			   
 			      /// Need to check if this point lies on the grid (taking into 
 			      /// account the support)
-			      if (((iu-support)>0)&&((iv-support)>0)&&
-			          ((iu+support) <itsShape(0))&&((iv+support)<itsShape(1))) {
+			      if (((iuOffset-support)>0)&&((ivOffset-support)>0)&&
+			          ((iuOffset+support) <itsShape(0))&&((ivOffset+support)<itsShape(1))) {
 	                  if (forward) {
                           casa::Complex cVis(imagePolFrameVis[pol]);
-                          GridKernel::degrid(cVis, convFunc, grid, iu, iv, support);
+                          GridKernel::degrid(cVis, convFunc, grid, iuOffset, ivOffset, support);
                           itsSamplesDegridded+=1.0;
                           itsNumberDegridded+=double((2*support+1)*(2*support+1));
                           if (itsVisWeight) {
@@ -546,14 +590,14 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                                   rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
                               }
 				   
-                              GridKernel::grid(grid, convFunc, rVis, iu, iv, support);
+                              GridKernel::grid(grid, convFunc, rVis, iuOffset, ivOffset, support);
 			           
                               itsSamplesGridded+=1.0;
                               itsNumberGridded+=double((2*support+1)*(2*support+1));
 			       
                               ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
                               ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)),
-					 "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
+                                         "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
                               ASKAPDEBUGASSERT(pol < uint(itsSumWeights.shape()(1)));
                               ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 				
@@ -566,7 +610,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                               if (itsVisWeight) {
                                   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
                               }
-                              GridKernel::grid(grid, convFunc, uVis, iu, iv, support);
+                              GridKernel::grid(grid, convFunc, uVis, iuOffset, ivOffset, support);
                       
                               itsSamplesGridded+=1.0;
                               itsNumberGridded+=double((2*support+1)*(2*support+1));
