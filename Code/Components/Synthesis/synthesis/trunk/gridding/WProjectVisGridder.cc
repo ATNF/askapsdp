@@ -348,9 +348,13 @@ namespace askap
        CFSupport result(-1);
        SupportSearcher ss(itsCutoff);
        ss.search(cfPlane);
-       result.itsSize = ss.symmetricalSupport(cfPlane.shape())/2/itsOverSample;
+       result.itsSize = ss.symmetricalSupport(cfPlane.shape());
+       ASKAPCHECK(result.itsSize>0, "Unable to determine support of convolution function");       
+       result.itsSize /= 2*itsOverSample;
+       if (result.itsSize<3) {
+           result.itsSize = 3;
+       } 
        //std::cout<<itsSupport<<" "<<nx<<" "<<itsCutoff<<" "<<itsOverSample<<std::endl;       
-       ASKAPCHECK(result.itsSize>0, "Unable to determine support of convolution function");
        return result;
     }
     
