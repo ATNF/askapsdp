@@ -413,9 +413,16 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
             /// Work space
             casa::Matrix<casa::Complex> thisPlane(cnx, cny);
             thisPlane.set(0.0);
+            const std::pair<int,int> cfOffset = getConvFuncOffset(iz);
+            
             for (int iy=-itsSupport; iy<+itsSupport; ++iy) {
                 for (int ix=-itsSupport; ix<+itsSupport; ++ix) {
-                    thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+itsSupport, iy+itsSupport);
+                	 const int xPos = ix + ccenx + cfOffset.first;
+	                 const int yPos = iy + cceny + cfOffset.second;
+	                 if ((xPos<0) || (yPos<0) || (xPos>=int(thisPlane.nrow())) || (yPos>=int(thisPlane.ncolumn()))) {
+	                     continue;
+	                 }                
+                     thisPlane(xPos, yPos)=itsConvFunc[plane](ix+itsSupport, iy+itsSupport);
                 }
             }
 

@@ -51,7 +51,7 @@ namespace askap
         const int nwplanes, const double cutoff, const int overSample,
 	const int maxSupport, const int limitSupport, const std::string& name) :
 	    itsMaxSupport(maxSupport), itsCutoff(cutoff), itsLimitSupport(limitSupport),
-	    itsPlaneDependentCFSupport(false)
+	    itsPlaneDependentCFSupport(false), itsOffsetSupportAllowed(false)
     {
       ASKAPCHECK(wmax>0.0, "Baseline length must be greater than zero");
       ASKAPCHECK(nwplanes>0, "Number of w planes must be greater than zero");
@@ -86,7 +86,8 @@ namespace askap
          itsNWPlanes(other.itsNWPlanes), 
          itsCMap(other.itsCMap.copy()), itsMaxSupport(other.itsMaxSupport),
          itsCutoff(other.itsCutoff), itsLimitSupport(other.itsLimitSupport),
-         itsPlaneDependentCFSupport(other.itsPlaneDependentCFSupport) {}
+         itsPlaneDependentCFSupport(other.itsPlaneDependentCFSupport),
+         itsOffsetSupportAllowed(other.itsOffsetSupportAllowed) {}
            
 
     /// Clone a copy of this Gridder
@@ -177,6 +178,11 @@ namespace askap
       }
 
       itsSupport=0;
+      if (isOffsetSupportAllowed()) {
+          // this command is executed only once when itsSupport is not set.
+	      initConvFuncOffsets(itsNWPlanes);
+	  }
+      
 
       /// These are the actual cell sizes used
       float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
@@ -266,7 +272,8 @@ namespace askap
         // by default the common support without offset is used
         CFSupport cfSupport(itsSupport);
         if (isSupportPlaneDependent() || (itsSupport == 0)) {
-            const int support = extractSupport(thisPlane).itsSize;
+            cfSupport = extractSupport(thisPlane);
+            const int support = cfSupport.itsSize;
 
             ASKAPCHECK(support*itsOverSample<nx/2,
               "Overflowing convolution function for w-plane "<<iw<<
@@ -275,6 +282,9 @@ namespace askap
 	        cfSupport.itsSize = limitSupportIfNecessary(support);
 	        if (itsSupport == 0) {
 	          itsSupport = cfSupport.itsSize;
+	        }
+	        if (isOffsetSupportAllowed()) {
+	            setConvFuncOffset(iw,cfSupport.itsOffsetU,cfSupport.itsOffsetV);
 	        }
         }
         ASKAPCHECK(itsConvFunc.size()>0, "Convolution function not sized correctly");
@@ -289,6 +299,7 @@ namespace askap
             ASKAPDEBUGASSERT(plane < int(itsConvFunc.size()));
             itsConvFunc[plane].resize(cSize, cSize);
             itsConvFunc[plane].set(0.0);
+            
             // Now cut out the inner part of the convolution function and
             // insert it into the convolution function
             for (int iy=-support; iy<support; ++iy) {
@@ -296,12 +307,13 @@ namespace askap
                       ASKAPDEBUGASSERT((ix + support >= 0) && (iy + support >= 0));
                       ASKAPDEBUGASSERT(ix+support < int(itsConvFunc[plane].nrow()));
                       ASKAPDEBUGASSERT(iy+support < int(itsConvFunc[plane].ncolumn()));
-                      ASKAPDEBUGASSERT(ix*itsOverSample+fracu+nx/2 >= 0);
-                      ASKAPDEBUGASSERT(iy*itsOverSample+fracv+ny/2 >= 0);
-                      ASKAPDEBUGASSERT(ix*itsOverSample+fracu+nx/2 < int(thisPlane.nrow()));
-                      ASKAPDEBUGASSERT(iy*itsOverSample+fracv+ny/2 < int(thisPlane.ncolumn()));                      
+                      ASKAPDEBUGASSERT((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+nx/2 >= 0);
+                      ASKAPDEBUGASSERT((iy+cfSupport.itsOffsetV)*itsOverSample+fracv+ny/2 >= 0);
+                      ASKAPDEBUGASSERT((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+nx/2 < int(thisPlane.nrow()));
+                      ASKAPDEBUGASSERT((iy+cfSupport.itsOffsetV)*itsOverSample+fracv+ny/2 < int(thisPlane.ncolumn()));                      
                       itsConvFunc[plane](ix+support, iy+support) =
-                          thisPlane(ix*itsOverSample+fracu+nx/2, iy*itsOverSample+fracv+ny/2);
+                          thisPlane((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+nx/2, 
+                                    (iy+cfSupport.itsOffsetV)*itsOverSample+fracv+ny/2);
                  } // for ix
             } // for iy
           } // for fracv
@@ -348,8 +360,16 @@ namespace askap
        CFSupport result(-1);
        SupportSearcher ss(itsCutoff);
        ss.search(cfPlane);
-       result.itsSize = ss.symmetricalSupport(cfPlane.shape());
-       ASKAPCHECK(result.itsSize>0, "Unable to determine support of convolution function");       
+       if (isOffsetSupportAllowed()) {
+           result.itsSize= ss.support();
+           const casa::IPosition peakPos = ss.peakPos();
+           ASKAPDEBUGASSERT(peakPos.nelements() == 2);
+           result.itsOffsetU = (peakPos[0]-int(cfPlane.nrow())/2)/itsOverSample;
+           result.itsOffsetV = (peakPos[1]-int(cfPlane.ncolumn())/2)/itsOverSample;
+       } else {
+           result.itsSize = ss.symmetricalSupport(cfPlane.shape());
+           ASKAPCHECK(result.itsSize>0, "Unable to determine support of convolution function");       
+       }
        result.itsSize /= 2*itsOverSample;
        if (result.itsSize<3) {
            result.itsSize = 3;
@@ -412,6 +432,12 @@ namespace askap
           ASKAPLOG_INFO_STR(logger, "Common support size will be used for all w-planes");
        }
        gridder->planeDependentSupport(planeDependentSupport);
+       
+       const bool offsetSupport = parset.getBool("offsetsupport",false);
+       ASKAPCHECK((!offsetSupport && !planeDependentSupport) || planeDependentSupport, 
+             "offsetsupport option of the gridder should only be used together with variablesupport option");
+       gridder->offsetSupport(offsetSupport);            
+       
 	   return gridder;
     }
 

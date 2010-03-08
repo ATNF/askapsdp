@@ -242,6 +242,9 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
          itsConvFunc.resize(itsOverSample*itsOverSample*itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan);
          itsSumWeights.resize(itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
          itsSumWeights.set(0.0);
+         if (isOffsetSupportAllowed()) {
+             initConvFuncOffsets(itsNWPlanes*itsMaxFeeds*itsMaxFields);
+	     }         
       }
       
       const int cenw=(itsNWPlanes-1)/2;
@@ -352,6 +355,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	      // Now correct for normalization of FFT
 	      thisPlane*=casa::Complex(1.0/(double(nx)*double(ny)));
 	      maxCF/=double(nx)*double(ny);
+
+	      const int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
 	      	      	    
 	      // If the support is not yet set, find it and size the
 	      // convolution function appropriately
@@ -360,7 +365,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
           CFSupport cfSupport(itsSupport);
           if (isSupportPlaneDependent() || (itsSupport == 0)) {
 	          //  SynthesisParamsHelper::saveAsCasaImage("dbg.img", amplitude(thisPlane));
-	          const int support = extractSupport(thisPlane).itsSize;
+	          cfSupport = extractSupport(thisPlane);
+	          const int support = cfSupport.itsSize;
 	          
               ASKAPCHECK(support*itsOverSample<int(nx)/2,
                          "Overflowing convolution function - increase maxSupport or decrease overSample. "<<
@@ -374,13 +380,16 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 				      << itsConvFunc.size()<<" or "<<itsConvFunc.size()/itsOverSample/itsOverSample<<
 				        " before oversampling with factor "<<itsOverSample);
               }		      
+              if (isOffsetSupportAllowed()) {
+	              setConvFuncOffset(zIndex,cfSupport.itsOffsetU,cfSupport.itsOffsetV);
+	          }
 		      // just for log output					
 		      const double cell=std::abs(itsUVCellSize(0)*(casa::C::c
 							     /acc.frequency()[chan]));
 		      ASKAPLOG_INFO_STR(logger, "CF cache w-plane="<<iw<<" feed="<<feed<<" field="<<currentField()<<
-		             ": maximum extent = "<< support*cell << " (m) sampled at "<< cell/itsOverSample << " (m)");
+		             ": maximum extent = "<< support*cell << " (m) sampled at "<< cell/itsOverSample << " (m)"<<
+		             " offset (m): "<<cfSupport.itsOffsetU*cell<<" "<<cfSupport.itsOffsetV*cell);
 	      }
-	      const int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
 	      
 	      // use either support determined for this particular plane or a generic one,
           // determined from the first plane (largest support as we have the largest w-term)
@@ -401,9 +410,17 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		  // insert it into the convolution function
 		  for (int iy=-support; iy<support; iy++) {
 		    for (int ix=-support; ix<support; ix++) {
+		         ASKAPDEBUGASSERT((ix + support >= 0) && (iy + support >= 0));
+                 ASKAPDEBUGASSERT(ix+support < int(itsConvFunc[plane].nrow()));
+                 ASKAPDEBUGASSERT(iy+support < int(itsConvFunc[plane].ncolumn()));
+                 ASKAPDEBUGASSERT((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+nx/2 >= 0);
+                 ASKAPDEBUGASSERT((iy+cfSupport.itsOffsetV)*itsOverSample+fracv+ny/2 >= 0);
+                 ASKAPDEBUGASSERT((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+nx/2 < int(thisPlane.nrow()));
+                 ASKAPDEBUGASSERT((iy+cfSupport.itsOffsetV)*itsOverSample+fracv+ny/2 < int(thisPlane.ncolumn()));                      
+		    
 		      itsConvFunc[plane](ix+support, iy+support)
-			= rescale*thisPlane(ix*itsOverSample+fracu+nx/2,
-					    iy*itsOverSample+fracv+ny/2);
+			        = rescale*thisPlane((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+nx/2,
+					    (iy+cfSupport.itsOffsetV)*itsOverSample+fracv+ny/2);
 		    } // for ix
 		  } // for iy
 		   		  
@@ -500,10 +517,17 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       const int support = (int(itsConvFunc[plane].nrow()) - 1) / 2;
       ASKAPDEBUGASSERT(itsConvFunc[plane].nrow() % 2 == 1);
       ASKAPDEBUGASSERT(itsConvFunc[plane].nrow() == itsConvFunc[plane].ncolumn());
+      
+      const std::pair<int,int> cfOffset = getConvFuncOffset(iz);
 
 	  for (int iy=-support; iy<+support; ++iy) {
 	    for (int ix=-support; ix<+support; ++ix) {
-	      thisPlane(ix+ccenx, iy+cceny)=itsConvFunc[plane](ix+support, iy+support);
+	      const int xPos = ix + ccenx + cfOffset.first;
+	      const int yPos = iy + cceny + cfOffset.second;
+	      if ((xPos<0) || (yPos<0) || (xPos>=int(thisPlane.nrow())) || (yPos>=int(thisPlane.ncolumn()))) {
+	          continue;
+	      }
+	      thisPlane(xPos, yPos)=itsConvFunc[plane](ix+support, iy+support);
 	    }
 	  }	  
 	  
@@ -574,6 +598,11 @@ IVisGridder::ShPtr AWProjectVisGridder::createGridder(const LOFAR::ParameterSet&
       ASKAPLOG_INFO_STR(logger, "Common support size will be used for all planes of the CF cache");
   }
   gridder->planeDependentSupport(planeDependentSupport);
+  
+  const bool offsetSupport = parset.getBool("offsetsupport",false);
+  ASKAPCHECK((!offsetSupport && !planeDependentSupport) || planeDependentSupport, 
+             "offsetsupport option of the gridder should only be used together with variablesupport option");
+  gridder->offsetSupport(offsetSupport);            
   return gridder;
 }
     

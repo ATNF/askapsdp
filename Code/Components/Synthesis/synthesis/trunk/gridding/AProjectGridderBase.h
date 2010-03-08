@@ -231,7 +231,8 @@ private:
   bool itsCFInvalidDueToPA;
   
   /// @brief flag showing that CFs are rebuilt due to frequency axis change
-  bool itsCFInvalidDueToFreq;         
+  bool itsCFInvalidDueToFreq; 
+  
 };
 
 } // namespace synthesis

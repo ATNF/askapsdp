@@ -157,7 +157,14 @@ namespace askap
       /// @brief configure support search
       /// @param[in] flag true to search for plane-dependent support, false (default) otherwise
       inline void planeDependentSupport(bool flag) { itsPlaneDependentCFSupport = flag; }
-            
+
+      /// @brief support can be offset?
+      inline bool isOffsetSupportAllowed() const { return itsOffsetSupportAllowed; }
+      
+      /// @brief configure offset support option
+      /// @param[in] flag true to search for plane-dependent support, false (default) otherwise
+      inline void offsetSupport(bool flag) { itsOffsetSupportAllowed = flag; }
+      
       /// Scaling
       double itsWScale;
       /// Number of w planes
@@ -173,7 +180,10 @@ namespace askap
       int itsLimitSupport;
       /// @brief true to search for plane-dependent support
       /// @details itsSupport is the support for the first plane in this case (usually the largest)
-      bool itsPlaneDependentCFSupport;
+      bool itsPlaneDependentCFSupport;      
+      /// @brief true if the support can be offset        
+      /// @details If this parameter is true, offset convolution functions will be built.
+      bool itsOffsetSupportAllowed;      
     };
   }
 }
