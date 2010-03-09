@@ -191,6 +191,11 @@ void AWProjectVisGridder::initialiseGrid(const scimath::Axes& axes,  const casa:
     // passing 1 instead of itsOverSample, but it caused scaling problems for
     // offset feeds).
     initUVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
+
+    // this is a buffer for full-sized convolution function (nx by ny) before
+    // a support is cut out. We initialise it here to put intensive operation
+    // out of the loop.
+    initCFBuffer(nx,ny);
 }
 
 /// @brief Initialise the degridding
@@ -215,6 +220,11 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
     // passing 1 instead of itsOverSample, but it caused scaling problems for
     // offset feeds).
     initUVPattern(nx,ny, itsUVCellSize(0),itsUVCellSize(1),itsOverSample);
+    
+    // this is a buffer for full-sized convolution function (nx by ny) before
+    // a support is cut out. We initialise it here to put intensive operation
+    // out of the loop.
+    initCFBuffer(nx,ny);
 }
     
     
@@ -275,7 +285,10 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       }
       
       UVPattern &pattern = uvPattern();
-      
+      casa::Matrix<casa::Complex> thisPlane = getCFBuffer();
+      ASKAPDEBUGASSERT(thisPlane.nrow() == nx);
+      ASKAPDEBUGASSERT(thisPlane.ncolumn() == ny);
+	    	    
       int nDone=0;
       for (int row=0; row<nSamples; ++row) {
            const int feed=acc.feed1()(row);
@@ -303,8 +316,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	    
                     /// Calculate the total convolution function including
                     /// the w term and the antenna convolution function
-                    casa::Matrix<casa::Complex> thisPlane(nx, ny);
-	    	    
+              
                     for (int iw=0; iw<itsNWPlanes; ++iw) {
                          thisPlane.set(0.0);
 	      
@@ -413,10 +425,10 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		         ASKAPDEBUGASSERT((ix + support >= 0) && (iy + support >= 0));
                  ASKAPDEBUGASSERT(ix+support < int(itsConvFunc[plane].nrow()));
                  ASKAPDEBUGASSERT(iy+support < int(itsConvFunc[plane].ncolumn()));
-                 ASKAPDEBUGASSERT((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+nx/2 >= 0);
-                 ASKAPDEBUGASSERT((iy+cfSupport.itsOffsetV)*itsOverSample+fracv+ny/2 >= 0);
-                 ASKAPDEBUGASSERT((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+nx/2 < int(thisPlane.nrow()));
-                 ASKAPDEBUGASSERT((iy+cfSupport.itsOffsetV)*itsOverSample+fracv+ny/2 < int(thisPlane.ncolumn()));                      
+                 ASKAPDEBUGASSERT((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+int(nx)/2 >= 0);
+                 ASKAPDEBUGASSERT((iy+cfSupport.itsOffsetV)*itsOverSample+fracv+int(ny)/2 >= 0);
+                 ASKAPDEBUGASSERT((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+int(nx)/2 < int(thisPlane.nrow()));
+                 ASKAPDEBUGASSERT((iy+cfSupport.itsOffsetV)*itsOverSample+fracv+int(ny)/2 < int(thisPlane.ncolumn()));                      
 		    
 		      itsConvFunc[plane](ix+support, iy+support)
 			        = rescale*thisPlane((ix+cfSupport.itsOffsetU)*itsOverSample+fracu+nx/2,

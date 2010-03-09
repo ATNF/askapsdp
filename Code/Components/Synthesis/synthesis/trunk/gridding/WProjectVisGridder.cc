@@ -195,6 +195,11 @@ namespace askap
       //      int ny=std::min(maxSupport(), itsShape(1));
       int nx=maxSupport();
       int ny=maxSupport();
+      
+      // initialise the buffer for full-sized CF
+      ASKAPDEBUGASSERT((nx>0) && (ny>0));
+      initCFBuffer(casa::uInt(nx),casa::uInt(ny));
+      
       /// We want nx * ccellx = overSample * itsShape(0) * cellx
 
       int qnx=nx/itsOverSample;
@@ -224,9 +229,9 @@ namespace askap
 
       // We pad here to do sinc interpolation of the convolution
       // function in uv space
-      casa::Matrix<casa::Complex> thisPlane(nx, ny);
-      ASKAPDEBUGASSERT(nx>0);
-      ASKAPDEBUGASSERT(ny>0);     
+      casa::Matrix<casa::Complex> thisPlane = getCFBuffer();
+      ASKAPDEBUGASSERT(thisPlane.nrow() == casa::uInt(nx));
+      ASKAPDEBUGASSERT(thisPlane.ncolumn() == casa::uInt(ny));     
 
       for (int iw=0; iw<itsNWPlanes; iw++)
       {
@@ -345,9 +350,12 @@ namespace askap
          ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
           << itsConvFunc[0].shape() << " by "<< itsConvFunc.size() << " planes");
       }
-      if (itsName!="")
-        save(itsName);
+      if (itsName!="") {
+          save(itsName);
+      }
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
+      // we can free up the memory because for WProject gridder this method is called only once!
+      itsCFBuffer.reset();
     }
 
     /// @brief search for support parameters
@@ -441,6 +449,14 @@ namespace askap
 	   return gridder;
     }
 
+    /// @brief obtain buffer used to create convolution functions
+    /// @return a reference to the buffer held as a shared pointer   
+    casa::Matrix<casa::Complex> WProjectVisGridder::getCFBuffer() const
+    {
+       ASKAPDEBUGASSERT(itsCFBuffer);
+       return *itsCFBuffer;
+    }
 
-  }
-}
+
+  } // namespace askap
+} // namespace synthesis

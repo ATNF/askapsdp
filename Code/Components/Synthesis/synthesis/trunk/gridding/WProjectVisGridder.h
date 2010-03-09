@@ -96,6 +96,17 @@ namespace askap
       static IVisGridder::ShPtr createGridder(const LOFAR::ParameterSet& parset);
 
   protected:
+  
+      /// @brief obtain buffer used to create convolution functions
+      /// @return a reference to the buffer held as a shared pointer   
+      casa::Matrix<casa::Complex> getCFBuffer() const; 
+      
+      /// @brief initialise buffer for full-sized convolution function
+      /// @param[in] uSize size in U
+      /// @param[in] vSize size in V
+      inline void initCFBuffer(casa::uInt uSize, casa::uInt vSize) 
+         { itsCFBuffer.reset(new casa::Matrix<casa::Complex>(uSize,vSize)); } 
+  
       /// @brief initialise sum of weights
       /// @details We keep track the number of times each convolution function is used per
       /// channel and polarisation (sum of weights). This method is made virtual to be able
@@ -183,7 +194,15 @@ namespace askap
       bool itsPlaneDependentCFSupport;      
       /// @brief true if the support can be offset        
       /// @details If this parameter is true, offset convolution functions will be built.
-      bool itsOffsetSupportAllowed;      
+      bool itsOffsetSupportAllowed;
+      
+      /// @brief buffer for full-sized convolution function
+      /// @details We have to calculate convolution functions on a larger grid and then cut out
+      /// a limited support out of it. Mosaicing gridders may need to compute a significant number
+      /// of convolution functions. To speed things up, the allocation of the buffer is taken
+      /// outside initConvolutionFunction method. A shared pointer to this buffer is held as a 
+      /// data member as initialisation and usage happen in different methods of this class.
+      boost::shared_ptr<casa::Matrix<casa::Complex> > itsCFBuffer;            
     };
   }
 }

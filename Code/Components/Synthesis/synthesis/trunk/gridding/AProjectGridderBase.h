@@ -158,7 +158,7 @@ protected:
   /// @return shared pointer to the gridder
   template<typename GridderType>
   static boost::shared_ptr<GridderType> createAProjectGridder(const LOFAR::ParameterSet &parset);
-     
+          
 private:
   /// Pointing tolerance in radians
   double itsPointingTolerance;
@@ -183,7 +183,7 @@ private:
   /// @brief buffer in the uv-space
   /// @details It is used to compute convolution functions (buffer for illumination pattern)
   boost::shared_ptr<UVPattern> itsPattern;
-    
+      
   // stats for CF cache rebuilds
   /// @brief number of iterations when CFs were generated
   /// @details This number is incremented for each accessor which leads to recomputation of the 
