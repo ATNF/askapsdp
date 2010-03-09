@@ -333,22 +333,22 @@ void TableVisGridder::logCFCacheStats() const
         ASKAPDEBUGASSERT(plane*itsOverSample*itsOverSample < itsConvFunc.size());
         const casa::IPosition shape = itsConvFunc[plane*itsOverSample*itsOverSample].shape();
         if (shape.nelements() < 2) {
-            ASKAPLOG_INFO_STR(logger, "CF plane="<<plane<<" (before oversampling) is malformed");
+            ASKAPLOG_DEBUG_STR(logger, "CF plane="<<plane<<" (before oversampling) is malformed");
             continue;
         }
         if (shape.product() == 0) {
-            ASKAPLOG_INFO_STR(logger, "CF plane="<<plane<<" (before oversampling) is unused");
+            ASKAPLOG_DEBUG_STR(logger, "CF plane="<<plane<<" (before oversampling) is unused");
             memUsed += sizeof(casa::Matrix<casa::Complex>);
             continue;
         }
         if ((shape[0] != shape[1]) || (shape[0] % 2 != 1)) {
-            ASKAPLOG_INFO_STR(logger, "CF plane="<<plane<<" (before oversampling) has a rectangular support or even size");
+            ASKAPLOG_DEBUG_STR(logger, "CF plane="<<plane<<" (before oversampling) has a rectangular support or even size");
             memUsed += sizeof(casa::Matrix<casa::Complex>)+sizeof(casa::Complex)*shape.product()*itsOverSample*itsOverSample;
             continue;
         }
         const int support = (shape[0] - 1) / 2;
         const std::pair<int,int> cfOffset = getConvFuncOffset(plane);
-        ASKAPLOG_INFO_STR(logger, "CF plane="<<plane<<" (before oversampling): support="<<support<<", size="<<shape[0]<<
+        ASKAPLOG_DEBUG_STR(logger, "CF plane="<<plane<<" (before oversampling): support="<<support<<", size="<<shape[0]<<
                                   " at offset ("<<cfOffset.first<<","<<cfOffset.second<<")");
         memUsed += sizeof(casa::Matrix<casa::Complex>)+sizeof(casa::Complex)*shape[0]*shape[1]*itsOverSample*itsOverSample;
    }
