@@ -43,6 +43,10 @@ struct JonesIndex {
    short AntennaID;
    short BeamID;
 };
+
+// sequence of indices (used for group operations
+// on a number of parameters)
+sequence<JonesIndex> JonesIndexSeq;
  
 // sequence may be an overkill here, but one
 // have to account for the possibility that
