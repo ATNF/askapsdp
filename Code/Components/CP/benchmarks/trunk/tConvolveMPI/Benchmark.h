@@ -68,16 +68,15 @@ class Benchmark
         void degridKernel(const std::vector<Value>& grid, const int gSize, const int support,
                 const std::vector<Value>&C, std::vector<Value>& data);
 
-        void initC(const int nSamples, const std::vector<Coord>& w,
-                const std::vector<Coord>& freq, const Coord cellSize,
-                const Coord baseline,
-                const int wSize, const int gSize, int& support, int& overSample,
+	void initC(const std::vector<Coord>& freq,
+                const Coord cellSize, const int wSize,
+                int& support, int& overSample,
                 Coord& wCellSize, std::vector<Value>& C);
 
         void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
                 const std::vector<Coord>& w, const std::vector<Coord>& freq,
-                const Coord cellSize, const Coord wCellSize, const Coord baseline,
-                const int wSize, const int gSize, const int support, const int overSample);
+                const Coord cellSize, const Coord wCellSize, const int wSize,
+		const int gSize, const int support, const int overSample);
 
         int getSupport();
 

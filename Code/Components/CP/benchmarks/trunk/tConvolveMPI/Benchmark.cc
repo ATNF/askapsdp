@@ -46,7 +46,7 @@ Benchmark::Benchmark()
 {
 }
 
-// Return a pseudo-random integer in the rand 0..2147483647
+// Return a pseudo-random integer in the range 0..2147483647
 // Based on an algorithm in Kernighan & Ritchie, "The C Programming Language"
 int Benchmark::randomInt()
 {
@@ -88,9 +88,8 @@ void Benchmark::init()
   }
 
   // Initialize convolution function and offsets
-  initC(nSamples, w, freq, cellSize, baseline, wSize, gSize, support,
-      overSample, wCellSize, C);
-  initCOffset(u, v, w, freq, cellSize, wCellSize, baseline, wSize, gSize,
+  initC(freq, cellSize, wSize, support, overSample, wCellSize, C);
+  initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize,
       support, overSample);
 }
 
@@ -122,8 +121,8 @@ void Benchmark::runDegrid()
 // grid - Output grid: shape (gSize, *)
 // gSize - size of one axis of grid
 void Benchmark::gridKernel(const int support,
-    const std::vector<Value>& C,
-    std::vector<Value>& grid, const int gSize)
+		const std::vector<Value>& C,
+		std::vector<Value>& grid, const int gSize)
 {
   const int sSize=2*support+1;
   for (int dind=0; dind<int(samples.size()); ++dind)
@@ -154,9 +153,10 @@ void Benchmark::gridKernel(const int support,
 }
 
 // Perform degridding
-void Benchmark::degridKernel(const std::vector<Value>& grid, const int gSize, const int support,
-    const std::vector<Value>& C,
-    std::vector<Value>& data)
+void Benchmark::degridKernel(const std::vector<Value>& grid,
+		const int gSize, const int support,
+		const std::vector<Value>& C,
+		std::vector<Value>& data)
 {
   const int sSize=2*support+1;
 
@@ -197,18 +197,15 @@ void Benchmark::degridKernel(const std::vector<Value>& grid, const int gSize, co
 // Initialize W project convolution function 
 // - This is application specific and should not need any changes.
 //
-// nSamples - number of visibility samples
 // freq - temporal frequency (inverse wavelengths)
 // cellSize - size of one grid cell in wavelengths
-// gSize - size of grid in pixels (per axis)
+// wSize - Size of lookup table in w
 // support - Total width of convolution function=2*support+1
 // wCellSize - size of one w grid cell in wavelengths
-// wSize - Size of lookup table in w
-void Benchmark::initC(const int nSamples, const std::vector<Coord>& w,
-    const std::vector<Coord>& freq, const Coord cellSize, 
-    const Coord baseline,
-    const int wSize, const int gSize, int& support, int& overSample,
-    Coord& wCellSize, std::vector<Value>& C)
+void Benchmark::initC(const std::vector<Coord>& freq,
+		const Coord cellSize, const int wSize,
+		int& support, int& overSample,
+		Coord& wCellSize, std::vector<Value>& C)
 {
   std::cout << "Initializing W projection convolution function" << std::endl;
   support=static_cast<int>(1.5*sqrt(std::abs(baseline) *static_cast<Coord>(cellSize)
@@ -279,7 +276,6 @@ void Benchmark::initC(const int nSamples, const std::vector<Coord>& w,
 // Initialize Lookup function
 // - This is application specific and should not need any changes.
 //
-// nSamples - number of visibility samples
 // freq - temporal frequency (inverse wavelengths)
 // cellSize - size of one grid cell in wavelengths
 // gSize - size of grid in pixels (per axis)
@@ -287,9 +283,10 @@ void Benchmark::initC(const int nSamples, const std::vector<Coord>& w,
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
 void Benchmark::initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
-    const std::vector<Coord>& w, const std::vector<Coord>& freq,
-    const Coord cellSize, const Coord wCellSize, const Coord baseline,
-    const int wSize, const int gSize, const int support, const int overSample)
+		const std::vector<Coord>& w, const std::vector<Coord>& freq,
+		const Coord cellSize, const Coord wCellSize,
+		const int wSize, const int gSize, const int support,
+		const int overSample)
 {
   const int nSamples = u.size();
   const int nChan = freq.size();
@@ -334,4 +331,3 @@ int Benchmark::getSupport()
 {
     return support;
 };
-

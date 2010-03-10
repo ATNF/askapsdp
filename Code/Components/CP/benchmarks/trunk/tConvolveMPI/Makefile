@@ -21,7 +21,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
 CXX=mpicxx
-CFLAGS=-O3 -fstrict-aliasing -fcx-limited-range -Wall
+CFLAGS=-O3 -fstrict-aliasing -fcx-limited-range -Wall -Wextra
 LIBS=
 
 EXENAME = tConvolveMPI
