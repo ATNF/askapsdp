@@ -26,8 +26,7 @@
 
 #include <sys/times.h>
 
-class Stopwatch
-{
+class Stopwatch {
     public:
         Stopwatch();
         ~Stopwatch();

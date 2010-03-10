@@ -74,162 +74,164 @@ typedef std::complex<Real> Value;
 // grid - Output grid: shape (gSize, *)
 // gSize - size of one axis of grid
 void gridKernel(const std::vector<Value>& data, const int support,
-        const std::vector<Value>& C, const std::vector<int>& cOffset,
-        const std::vector<int>& iu, const std::vector<int>& iv,
-        std::vector<Value>& grid, const int gSize)
+                const std::vector<Value>& C, const std::vector<int>& cOffset,
+                const std::vector<int>& iu, const std::vector<int>& iv,
+                std::vector<Value>& grid, const int gSize)
 {
-    const int sSize=2*support+1;
-    for (int dind=0; dind<int(data.size()); ++dind)
-    {
-        // The actual grid point
-        int gind=iu[dind]+gSize*iv[dind]-support;
-        // The Convoluton function point from which we offset
-        int cind=cOffset[dind];
+    const int sSize = 2 * support + 1;
 
-        for (int suppv=0; suppv<sSize; suppv++)
-        {
+    for (int dind = 0; dind < int(data.size()); ++dind) {
+        // The actual grid point
+        int gind = iu[dind] + gSize * iv[dind] - support;
+        // The Convoluton function point from which we offset
+        int cind = cOffset[dind];
+
+        for (int suppv = 0; suppv < sSize; suppv++) {
 #ifdef USEBLAS
             CAXPY(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
 #else
-            Value* gptr=&grid[gind];
-            const Value* cptr=&C[cind];
-            const Value d=data[dind];
-            for (int suppu=0; suppu<sSize; suppu++)
-            {
-                *(gptr++)+=d*(*(cptr++));
+            Value* gptr = &grid[gind];
+            const Value* cptr = &C[cind];
+            const Value d = data[dind];
+
+            for (int suppu = 0; suppu < sSize; suppu++) {
+                *(gptr++) += d * (*(cptr++));
             }
+
 #endif
-            gind+=gSize;
-            cind+=sSize;
+            gind += gSize;
+            cind += sSize;
         }
     }
 }
 
 int gridKernelOMP(const std::vector<Value>& data, const int support,
-        const std::vector<Value>& C, const std::vector<int>& cOffset,
-        const std::vector<int>& iu, const std::vector<int>& iv,
-        std::vector<Value>& grid, const int gSize)
+                  const std::vector<Value>& C, const std::vector<int>& cOffset,
+                  const std::vector<int>& iu, const std::vector<int>& iv,
+                  std::vector<Value>& grid, const int gSize)
 {
     int nthreads = -1;
 
-    const int sSize=2*support+1;
-    for (int dind=0; dind<int(data.size()); ++dind)
-    {
-        // The actual grid point
-        const int gind=iu[dind]+gSize*iv[dind]-support;
-        // The Convoluton function point from which we offset
-        const int cind=cOffset[dind];
+    const int sSize = 2 * support + 1;
 
-        #pragma omp parallel for \
+    for (int dind = 0; dind < int(data.size()); ++dind) {
+        // The actual grid point
+        const int gind = iu[dind] + gSize * iv[dind] - support;
+        // The Convoluton function point from which we offset
+        const int cind = cOffset[dind];
+
+#pragma omp parallel for \
             default(shared)   \
             schedule(dynamic, 10)
-        for (int suppv=0; suppv<sSize; suppv++)
-        {
+
+        for (int suppv = 0; suppv < sSize; suppv++) {
             const int l_gind = (suppv * gSize) + gind;
             const int l_cind = (suppv * sSize) + cind;
 #ifdef USEBLAS
             CAXPY(sSize, &data[dind], &C[l_cind], 1, &grid[l_gind], 1);
 #else
-            Value* gptr=&grid[l_gind];
-            const Value* cptr=&C[l_cind];
-            const Value d=data[dind];
-            for (int suppu=0; suppu<sSize; suppu++)
-            {
-                *(gptr++)+=d*(*(cptr++));
+            Value* gptr = &grid[l_gind];
+            const Value* cptr = &C[l_cind];
+            const Value d = data[dind];
+
+            for (int suppu = 0; suppu < sSize; suppu++) {
+                *(gptr++) += d * (*(cptr++));
             }
+
 #endif
         }
     }
+
     return nthreads;
 }
 
 // Perform degridding
 void degridKernel(const std::vector<Value>& grid, const int gSize, const int support,
-        const std::vector<Value>& C, const std::vector<int>& cOffset,
-        const std::vector<int>& iu, const std::vector<int>& iv,
-        std::vector<Value>& data)
+                  const std::vector<Value>& C, const std::vector<int>& cOffset,
+                  const std::vector<int>& iu, const std::vector<int>& iv,
+                  std::vector<Value>& data)
 {
-    const int sSize=2*support+1;
+    const int sSize = 2 * support + 1;
 
-    for (int dind=0; dind<int(data.size()); ++dind)
-    {
-        data[dind]=0.0;
+    for (int dind = 0; dind < int(data.size()); ++dind) {
+        data[dind] = 0.0;
 
         // The actual grid point from which we offset
-        int gind=iu[dind]+gSize*iv[dind]-support;
+        int gind = iu[dind] + gSize * iv[dind] - support;
         // The Convoluton function point from which we offset
-        int cind=cOffset[dind];
+        int cind = cOffset[dind];
 
-        for (int suppv=0; suppv<sSize; suppv++)
-        {
+        for (int suppv = 0; suppv < sSize; suppv++) {
 #ifdef USEBLAS
             Value dot;
             CDOTU_SUB(sSize, &grid[gind], 1, &C[cind], 1, &dot);
-            data[dind]+=dot;
+            data[dind] += dot;
 #else
-            Value* d=&data[dind];
-            const Value* gptr=&grid[gind];
-            const Value* cptr=&C[cind];
-            for (int suppu=0; suppu<sSize; suppu++)
-            {
-                (*d)+=(*(gptr++))*(*(cptr++));
+            Value* d = &data[dind];
+            const Value* gptr = &grid[gind];
+            const Value* cptr = &C[cind];
+
+            for (int suppu = 0; suppu < sSize; suppu++) {
+                (*d) += (*(gptr++)) * (*(cptr++));
             }
+
 #endif
-            gind+=gSize;
-            cind+=sSize;
+            gind += gSize;
+            cind += sSize;
         }
 
     }
 }
 
 int degridKernelOMP(const std::vector<Value>& grid, const int gSize, const int support,
-        const std::vector<Value>& C, const std::vector<int>& cOffset,
-        const std::vector<int>& iu, const std::vector<int>& iv,
-        std::vector<Value>& data)
+                    const std::vector<Value>& C, const std::vector<int>& cOffset,
+                    const std::vector<int>& iu, const std::vector<int>& iv,
+                    std::vector<Value>& data)
 {
     int nthreads = -1;
 
-    const int sSize=2*support+1;
+    const int sSize = 2 * support + 1;
 
-    #pragma omp parallel for  \
+#pragma omp parallel for  \
         default(shared)   \
         schedule(dynamic, 32)
-    for (int dind=0; dind<int(data.size()); ++dind)
-    {
+
+    for (int dind = 0; dind < int(data.size()); ++dind) {
         nthreads = omp_get_num_threads();
 
-        data[dind]=0.0;
+        data[dind] = 0.0;
 
         // The actual grid point from which we offset
-        int gind=iu[dind]+gSize*iv[dind]-support;
+        int gind = iu[dind] + gSize * iv[dind] - support;
         // The Convoluton function point from which we offset
-        int cind=cOffset[dind];
+        int cind = cOffset[dind];
 
-        for (int suppv=0; suppv<sSize; suppv++)
-        {
+        for (int suppv = 0; suppv < sSize; suppv++) {
 #ifdef USEBLAS
             Value dot;
             CDOTU_SUB(sSize, &grid[gind], 1, &C[cind], 1, &dot);
-            data[dind]+=dot;
+            data[dind] += dot;
 #else
-            Value* d=&data[dind];
-            const Value* gptr=&grid[gind];
-            const Value* cptr=&C[cind];
-            for (int suppu=0; suppu<sSize; suppu++)
-            {
-                (*d)+=(*(gptr++))*(*(cptr++));
+            Value* d = &data[dind];
+            const Value* gptr = &grid[gind];
+            const Value* cptr = &C[cind];
+
+            for (int suppu = 0; suppu < sSize; suppu++) {
+                (*d) += (*(gptr++)) * (*(cptr++));
             }
+
 #endif
-            gind+=gSize;
-            cind+=sSize;
+            gind += gSize;
+            cind += sSize;
         }
 
     }
+
     return nthreads;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-// Initialize W project convolution function 
+// Initialize W project convolution function
 // - This is application specific and should not need any changes.
 //
 // freq - temporal frequency (inverse wavelengths)
@@ -237,17 +239,17 @@ int degridKernelOMP(const std::vector<Value>& grid, const int gSize, const int s
 // support - Total width of convolution function=2*support+1
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
-void initC(const std::vector<Coord>& freq, const Coord cellSize, 
-        const Coord baseline,
-        const int wSize, int& support, int& overSample,
-        Coord& wCellSize, std::vector<Value>& C)
+void initC(const std::vector<Coord>& freq, const Coord cellSize,
+           const Coord baseline,
+           const int wSize, int& support, int& overSample,
+           Coord& wCellSize, std::vector<Value>& C)
 {
     cout << "Initializing W projection convolution function" << endl;
-    support=static_cast<int>(1.5*sqrt(abs(baseline) *static_cast<Coord>(cellSize)
-                *freq[0])/cellSize);
-    overSample=8;
+    support = static_cast<int>(1.5 * sqrt(abs(baseline) * static_cast<Coord>(cellSize)
+                                          * freq[0]) / cellSize);
+    overSample = 8;
     cout << "Support = " << support << " pixels" << endl;
-    wCellSize=2*baseline*freq[0]/wSize;
+    wCellSize = 2 * baseline * freq[0] / wSize;
     cout << "W cellsize = " << wCellSize << " wavelengths" << endl;
 
     // Convolution function. This should be the convolution of the
@@ -256,38 +258,33 @@ void initC(const std::vector<Coord>& freq, const Coord cellSize,
     // suppress aliasing. In practice, we calculate entire function
     // by Fourier transformation. Here we take an approximation that
     // is good enough.
-    int sSize=2*support+1;
+    int sSize = 2 * support + 1;
 
-    int cCenter=(sSize-1)/2;
+    int cCenter = (sSize - 1) / 2;
 
     C.resize(sSize*sSize*overSample*overSample*wSize);
     cout << "Size of convolution function = " << sSize*sSize*overSample
-        *overSample*wSize*8/(1024*1024) << " MB" << std::endl;
+         *overSample*wSize*8 / (1024*1024) << " MB" << std::endl;
     cout << "Shape of convolution function = [" << sSize << ", " << sSize << ", "
-        << overSample << ", " << overSample << ", " << wSize << "]" << std::endl;
+             << overSample << ", " << overSample << ", " << wSize << "]" << std::endl;
 
-    for (int k=0; k<wSize; k++)
-    {
-        double w=double(k-wSize/2);
-        double fScale=sqrt(abs(w)*wCellSize*freq[0])/cellSize;
-        for (int osj=0; osj<overSample; osj++)
-        {
-            for (int osi=0; osi<overSample; osi++)
-            {
-                for (int j=0; j<sSize; j++)
-                {
-                    double j2=std::pow((double(j-cCenter)+double(osj)/double(overSample)), 2);
-                    for (int i=0; i<sSize; i++)
-                    {
-                        double r2=j2+std::pow((double(i-cCenter)+double(osi)/double(overSample)), 2);
-                        long int cind=i+sSize*(j+sSize*(osi+overSample*(osj+overSample*k)));
-                        if (w!=0.0)
-                        {
-                            C[cind]=static_cast<Value>(std::cos(r2/(w*fScale)));
-                        }
-                        else
-                        {
-                            C[cind]=static_cast<Value>(std::exp(-r2));
+    for (int k = 0; k < wSize; k++) {
+        double w = double(k - wSize / 2);
+        double fScale = sqrt(abs(w) * wCellSize * freq[0]) / cellSize;
+
+        for (int osj = 0; osj < overSample; osj++) {
+            for (int osi = 0; osi < overSample; osi++) {
+                for (int j = 0; j < sSize; j++) {
+                    double j2 = std::pow((double(j - cCenter) + double(osj) / double(overSample)), 2);
+
+                    for (int i = 0; i < sSize; i++) {
+                        double r2 = j2 + std::pow((double(i - cCenter) + double(osi) / double(overSample)), 2);
+                        long int cind = i + sSize * (j + sSize * (osi + overSample * (osj + overSample * k)));
+
+                        if (w != 0.0) {
+                            C[cind] = static_cast<Value>(std::cos(r2 / (w * fScale)));
+                        } else {
+                            C[cind] = static_cast<Value>(std::exp(-r2));
                         }
                     }
                 }
@@ -296,15 +293,14 @@ void initC(const std::vector<Coord>& freq, const Coord cellSize,
     }
 
     // Now normalise the convolution function
-    Real sumC=0.0;
-    for (int i=0; i<sSize*sSize*overSample*overSample*wSize; i++)
-    {
-        sumC+=abs(C[i]);
+    Real sumC = 0.0;
+
+    for (int i = 0; i < sSize*sSize*overSample*overSample*wSize; i++) {
+        sumC += abs(C[i]);
     }
 
-    for (int i=0; i<sSize*sSize*overSample*overSample*wSize; i++)
-    {
-        C[i]*=Value(wSize*overSample*overSample/sumC);
+    for (int i = 0; i < sSize*sSize*overSample*overSample*wSize; i++) {
+        C[i] *= Value(wSize * overSample * overSample / sumC);
     }
 }
 
@@ -318,50 +314,51 @@ void initC(const std::vector<Coord>& freq, const Coord cellSize,
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
 void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
-        const std::vector<Coord>& w, const std::vector<Coord>& freq,
-        const Coord cellSize, const Coord wCellSize,
-        const int wSize, const int gSize, const int support, const int overSample,
-        std::vector<int>& cOffset, std::vector<int>& iu,
-        std::vector<int>& iv)
+                 const std::vector<Coord>& w, const std::vector<Coord>& freq,
+                 const Coord cellSize, const Coord wCellSize,
+                 const int wSize, const int gSize, const int support, const int overSample,
+                 std::vector<int>& cOffset, std::vector<int>& iu,
+                 std::vector<int>& iv)
 {
     const int nSamples = u.size();
     const int nChan = freq.size();
 
-    int sSize=2*support+1;
+    const int sSize = 2 * support + 1;
 
     // Now calculate the offset for each visibility point
     cOffset.resize(nSamples*nChan);
     iu.resize(nSamples*nChan);
     iv.resize(nSamples*nChan);
-    for (int i=0; i<nSamples; i++)
-    {
-        for (int chan=0; chan<nChan; chan++)
-        {
 
-            int dind=i*nChan+chan;
+    for (int i = 0; i < nSamples; i++) {
+        for (int chan = 0; chan < nChan; chan++) {
 
-            Coord uScaled=freq[chan]*u[i]/cellSize;
-            iu[dind]=int(uScaled);
-            if (uScaled<Coord(iu[dind]))
-            {
-                iu[dind]-=1;
+            int dind = i * nChan + chan;
+
+            Coord uScaled = freq[chan] * u[i] / cellSize;
+            iu[dind] = int(uScaled);
+
+            if (uScaled < Coord(iu[dind])) {
+                iu[dind] -= 1;
             }
-            int fracu=int(overSample*(uScaled-Coord(iu[dind])));
-            iu[dind]+=gSize/2;
 
-            Coord vScaled=freq[chan]*v[i]/cellSize;
-            iv[dind]=int(vScaled);
-            if (vScaled<Coord(iv[dind]))
-            {
-                iv[dind]-=1;
+            int fracu = int(overSample * (uScaled - Coord(iu[dind])));
+            iu[dind] += gSize / 2;
+
+            Coord vScaled = freq[chan] * v[i] / cellSize;
+            iv[dind] = int(vScaled);
+
+            if (vScaled < Coord(iv[dind])) {
+                iv[dind] -= 1;
             }
-            int fracv=int(overSample*(vScaled-Coord(iv[dind])));
-            iv[dind]+=gSize/2;
+
+            int fracv = int(overSample * (vScaled - Coord(iv[dind])));
+            iv[dind] += gSize / 2;
 
             // The beginning of the convolution function for this point
-            Coord wScaled=freq[chan]*w[i]/wCellSize;
-            int woff=wSize/2+int(wScaled);
-            cOffset[dind]=sSize*sSize*(fracu+overSample*(fracv+overSample*woff));
+            Coord wScaled = freq[chan] * w[i] / wCellSize;
+            int woff = wSize / 2 + int(wScaled);
+            cOffset[dind] = sSize * sSize * (fracu + overSample * (fracv + overSample * woff));
         }
     }
 
@@ -371,14 +368,14 @@ void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
 int main()
 {
     // Change these if necessary to adjust run time
-    const int nSamples=160000; // Number of data samples
-    const int wSize=33; // Number of lookup planes in w projection
-    const int nChan=1; // Number of spectral channels
+    const int nSamples = 160000; // Number of data samples
+    const int wSize = 33; // Number of lookup planes in w projection
+    const int nChan = 1; // Number of spectral channels
 
     // Don't change any of these numbers unless you know what you are doing!
-    const int gSize=4096; // Size of output grid in pixels
-    const Coord cellSize=6.0; // Cellsize of output grid in wavelengths
-    const int baseline=2000; // Maximum baseline in meters
+    const int gSize = 4096; // Size of output grid in pixels
+    const Coord cellSize = 6.0; // Cellsize of output grid in wavelengths
+    const int baseline = 2000; // Maximum baseline in meters
 
     // Initialize the data to be gridded
     std::vector<Coord> u(nSamples);
@@ -388,16 +385,15 @@ int main()
     std::vector<Value> cpuoutdata(nSamples*nChan);
     std::vector<Value> ompoutdata(nSamples*nChan);
 
-    for (int i=0; i<nSamples; i++)
-    {
-        u[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
-        v[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
-        w[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
-        for (int chan=0; chan<nChan; chan++)
-        {
-            data[i*nChan+chan]=1.0;
-            cpuoutdata[i*nChan+chan]=0.0;
-            ompoutdata[i*nChan+chan]=0.0;
+    for (int i = 0; i < nSamples; i++) {
+        u[i] = baseline * Coord(rand()) / Coord(RAND_MAX) - baseline / 2;
+        v[i] = baseline * Coord(rand()) / Coord(RAND_MAX) - baseline / 2;
+        w[i] = baseline * Coord(rand()) / Coord(RAND_MAX) - baseline / 2;
+
+        for (int chan = 0; chan < nChan; chan++) {
+            data[i*nChan+chan] = 1.0;
+            cpuoutdata[i*nChan+chan] = 0.0;
+            ompoutdata[i*nChan+chan] = 0.0;
         }
     }
 
@@ -406,9 +402,9 @@ int main()
 
     // Measure frequency in inverse wavelengths
     std::vector<Coord> freq(nChan);
-    for (int i=0; i<nChan; i++)
-    {
-        freq[i]=(1.4e9-2.0e5*Coord(i)/Coord(nChan))/2.998e8;
+
+    for (int i = 0; i < nChan; i++) {
+        freq[i] = (1.4e9 - 2.0e5 * Coord(i) / Coord(nChan)) / 2.998e8;
     }
 
     // Initialize convolution function and offsets
@@ -420,12 +416,12 @@ int main()
     std::vector<int> iv;
     Coord wCellSize;
 
-    initC(freq, cellSize, baseline, wSize,support, overSample, wCellSize, C);
+    initC(freq, cellSize, baseline, wSize, support, overSample, wCellSize, C);
     initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize, support,
-            overSample, cOffset, iu, iv);
-    const int sSize=2*support+1;
+                overSample, cOffset, iu, iv);
+    const int sSize = 2 * support + 1;
 
-    const double griddings = (double(nSamples*nChan)* double((sSize)*(sSize)));
+    const double griddings = (double(nSamples * nChan) * double((sSize) * (sSize)));
 
     ///////////////////////////////////////////////////////////////////////////
     // DO GRIDDING
@@ -443,8 +439,8 @@ int main()
 
         // Report on timings
         cout << "    Time " << time << " (s) " << endl;
-        cout << "    Time per visibility spectral sample " << 1e6*time/double(data.size()) << " (us) " << endl;
-        cout << "    Time per gridding   " << 1e9*time/(double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
+        cout << "    Time per visibility spectral sample " << 1e6*time / double(data.size()) << " (us) " << endl;
+        cout << "    Time per gridding   " << 1e9*time / (double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
         cout << "    Gridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << endl;
 
         cout << "Done" << endl;
@@ -459,20 +455,21 @@ int main()
         // Time is measured inside this function call, unlike the CPU versions
         Stopwatch sw;
         sw.start();
-        int nthreads = gridKernelOMP(data, support, C, cOffset, iu, iv, ompgrid, gSize);
-        double time = sw.stop();
+        const int nthreads = gridKernelOMP(data, support, C, cOffset, iu, iv, ompgrid, gSize);
+        const double time = sw.stop();
 
         // Report on timings
         cout << "    Num threads: " << nthreads << endl;
         cout << "    Time " << time << " (s) " << endl;
-        cout << "    Time per visibility spectral sample " << 1e6*time/double(data.size()) << " (us) " << endl;
-        cout << "    Time per gridding   " << 1e9*time/(double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
+        cout << "    Time per visibility spectral sample " << 1e6*time / double(data.size()) << " (us) " << endl;
+        cout << "    Time per gridding   " << 1e9*time / (double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
         cout << "    Gridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << endl;
 
         cout << "Done" << endl;
     }
 
     cout << "Verifying result...";
+
     if (cpugrid.size() != ompgrid.size()) {
         cout << "Fail (Grid sizes differ)" << std::endl;
         return 0;
@@ -481,11 +478,12 @@ int main()
     for (unsigned int i = 0; i < cpugrid.size(); ++i) {
         if (fabs(cpugrid[i].real() - ompgrid[i].real()) > 0.00001) {
             cout << "Fail (Expected " << cpugrid[i].real() << " got "
-                << ompgrid[i].real() << " at index " << i << ")"
-                << std::endl;
+                     << ompgrid[i].real() << " at index " << i << ")"
+                     << std::endl;
             return 0;
         }
     }
+
     cout << "Pass" << std::endl;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -499,12 +497,12 @@ int main()
         Stopwatch sw;
         sw.start();
         degridKernel(cpugrid, gSize, support, C, cOffset, iu, iv, cpuoutdata);
-        double time = sw.stop();
+        const double time = sw.stop();
 
         // Report on timings
         cout << "    Time " << time << " (s) " << endl;
-        cout << "    Time per visibility spectral sample " << 1e6*time/double(data.size()) << " (us) " << endl;
-        cout << "    Time per degridding   " << 1e9*time/(double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
+        cout << "    Time per visibility spectral sample " << 1e6*time / double(data.size()) << " (us) " << endl;
+        cout << "    Time per degridding   " << 1e9*time / (double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
         cout << "    Degridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << endl;
 
         cout << "Done" << endl;
@@ -518,14 +516,14 @@ int main()
         // Time is measured inside this function call, unlike the CPU versions
         Stopwatch sw;
         sw.start();
-        int nthreads = degridKernelOMP(ompgrid, gSize, support, C, cOffset, iu, iv, ompoutdata);
-        double time = sw.stop();
+        const int nthreads = degridKernelOMP(ompgrid, gSize, support, C, cOffset, iu, iv, ompoutdata);
+        const double time = sw.stop();
 
         // Report on timings
         cout << "    Num threads: " << nthreads << endl;
         cout << "    Time " << time << " (s) " << endl;
-        cout << "    Time per visibility spectral sample " << 1e6*time/double(data.size()) << " (us) " << endl;
-        cout << "    Time per degridding   " << 1e9*time/(double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
+        cout << "    Time per visibility spectral sample " << 1e6*time / double(data.size()) << " (us) " << endl;
+        cout << "    Time per degridding   " << 1e9*time / (double(data.size())* double((sSize)*(sSize))) << " (ns) " << endl;
         cout << "    Degridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << endl;
 
         cout << "Done" << endl;
@@ -533,6 +531,7 @@ int main()
 
     // Verify degridding results
     cout << "Verifying result...";
+
     if (cpuoutdata.size() != ompoutdata.size()) {
         cout << "Fail (Data vector sizes differ)" << std::endl;
         return 0;
@@ -541,11 +540,12 @@ int main()
     for (unsigned int i = 0; i < cpuoutdata.size(); ++i) {
         if (fabs(cpuoutdata[i].real() - ompoutdata[i].real()) > 0.00001) {
             cout << "Fail (Expected " << cpuoutdata[i].real() << " got "
-                << ompoutdata[i].real() << " at index " << i << ")"
-                << std::endl;
+                     << ompoutdata[i].real() << " at index " << i << ")"
+                     << std::endl;
             return 0;
         }
     }
+
     cout << "Pass" << std::endl;
 
     return 0;
