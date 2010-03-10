@@ -47,7 +47,6 @@
 
 using std::cout;
 using std::endl;
-using std::complex;
 using std::abs;
 
 // Typedefs for easy testing
@@ -230,21 +229,17 @@ int degridKernelOMP(const std::vector<Value>& grid, const int gSize, const int s
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-
 // Initialize W project convolution function 
 // - This is application specific and should not need any changes.
 //
-// nSamples - number of visibility samples
 // freq - temporal frequency (inverse wavelengths)
 // cellSize - size of one grid cell in wavelengths
-// gSize - size of grid in pixels (per axis)
 // support - Total width of convolution function=2*support+1
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
-void initC(const int nSamples, const std::vector<Coord>& w,
-        const std::vector<Coord>& freq, const Coord cellSize, 
+void initC(const std::vector<Coord>& freq, const Coord cellSize, 
         const Coord baseline,
-        const int wSize, const int gSize, int& support, int& overSample,
+        const int wSize, int& support, int& overSample,
         Coord& wCellSize, std::vector<Value>& C)
 {
     cout << "Initializing W projection convolution function" << endl;
@@ -316,7 +311,6 @@ void initC(const int nSamples, const std::vector<Coord>& w,
 // Initialize Lookup function
 // - This is application specific and should not need any changes.
 //
-// nSamples - number of visibility samples
 // freq - temporal frequency (inverse wavelengths)
 // cellSize - size of one grid cell in wavelengths
 // gSize - size of grid in pixels (per axis)
@@ -325,7 +319,7 @@ void initC(const int nSamples, const std::vector<Coord>& w,
 // wSize - Size of lookup table in w
 void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
         const std::vector<Coord>& w, const std::vector<Coord>& freq,
-        const Coord cellSize, const Coord wCellSize, const Coord baseline,
+        const Coord cellSize, const Coord wCellSize,
         const int wSize, const int gSize, const int support, const int overSample,
         std::vector<int>& cOffset, std::vector<int>& iu,
         std::vector<int>& iv)
@@ -394,7 +388,6 @@ int main()
     std::vector<Value> cpuoutdata(nSamples*nChan);
     std::vector<Value> ompoutdata(nSamples*nChan);
 
-
     for (int i=0; i<nSamples; i++)
     {
         u[i]=baseline*Coord(rand())/Coord(RAND_MAX)-baseline/2;
@@ -427,13 +420,12 @@ int main()
     std::vector<int> iv;
     Coord wCellSize;
 
-    initC(nSamples, w, freq, cellSize, baseline, wSize, gSize, support,
-            overSample, wCellSize, C);
-    initCOffset(u, v, w, freq, cellSize, wCellSize, baseline, wSize, gSize,
-            support, overSample, cOffset, iu, iv);
-    int sSize=2*support+1;
+    initC(freq, cellSize, baseline, wSize,support, overSample, wCellSize, C);
+    initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize, support,
+            overSample, cOffset, iu, iv);
+    const int sSize=2*support+1;
 
-    double griddings = (double(nSamples*nChan)* double((sSize)*(sSize)));
+    const double griddings = (double(nSamples*nChan)* double((sSize)*(sSize)));
 
     ///////////////////////////////////////////////////////////////////////////
     // DO GRIDDING
