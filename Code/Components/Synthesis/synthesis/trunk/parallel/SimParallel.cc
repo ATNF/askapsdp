@@ -480,16 +480,11 @@ void SimParallel::predict(const string& ms)
             const double variance = itsParset.getDouble("noise.variance");
             ASKAPLOG_INFO_STR(logger, "Gaussian noise (variance=" << variance <<
                               ") will be added to visibilities");
-            casa::Int seed1 = itsParset.getInt32("noise.seed1", 0);
-            casa::Int seed2 = itsParset.getInt32("noise.seed2", 10);
+            const casa::Int seed1 = getSeed("noise.seed1","time");                  
+            const casa::Int seed2 = getSeed("noise.seed2","%w");                  
 
-            if (itsParset.isDefined("noise.seed1")) {
-                ASKAPLOG_INFO_STR(logger, "Set seed1 to " << seed1);
-            }
-
-            if (itsParset.isDefined("noise.seed2")) {
-                ASKAPLOG_INFO_STR(logger, "Set seed2 to " << seed2);
-            }
+            ASKAPLOG_INFO_STR(logger, "Set seed1 to " << seed1);
+            ASKAPLOG_INFO_STR(logger, "Set seed2 to " << seed2);
 
             boost::shared_ptr<GaussianNoiseME const> noiseME(new
                     GaussianNoiseME(variance, seed1, seed2));
@@ -499,6 +494,21 @@ void SimParallel::predict(const string& ms)
         equation->predict();
         ASKAPLOG_INFO_STR(logger,  "Predicted data for " << ms << " in " << timer.real() << " seconds ");
     }
+}
+
+/// @brief read seed for the random generator
+/// @details This is a helper method to read in seed used to set up random number generator.
+/// It applies nesessary substitution rules.
+/// @param[in] parname name of the parameter
+/// @param[in] defval default value (as string)
+/// @return seed
+casa::Int SimParallel::getSeed(const std::string &parname,const std::string &defval) const
+{
+   const std::string seedStr(itsParset.getString(parname,defval));
+   if (seedStr == "time") {
+       return casa::Int(time(0));
+   }    
+   return utility::fromString<casa::Int>(substitute(seedStr));
 }
 
 /// @brief a helper method to corrupt the data (opposite to calibration)

@@ -77,7 +77,7 @@ namespace askap
       /// Substitute %w by worker number, and %n by number of workers (one less than the number
       // of nodes). This allows workers to do different work! This just calls
       // through to the AskapParallel version of substitute()
-      std::string substitute(const std::string& s);
+      std::string substitute(const std::string& s) const;
 
   protected:
 

@@ -172,6 +172,14 @@ namespace askap
                 void corruptEquation(boost::shared_ptr<scimath::Equation> &equation,
                         const IDataSharedIter &it);
 
+                /// @brief read seed for the random generator
+                /// @details This is a helper method to read in seed used to set up random number generator.
+                /// It applies nesessary substitution rules.
+                /// @param[in] parname name of the parameter
+                /// @param[in] defval default value (as string)                
+                /// @return seed
+                casa::Int getSeed(const std::string &parname,const std::string &defval) const;
+
             private:
                 /// Simulator
                 boost::shared_ptr<Simulator> itsSim;

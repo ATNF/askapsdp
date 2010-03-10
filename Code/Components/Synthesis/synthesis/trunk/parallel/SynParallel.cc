@@ -128,7 +128,7 @@ namespace askap
       }
     }
 
-    std::string SynParallel::substitute(const std::string& s)
+    std::string SynParallel::substitute(const std::string& s) const
     {
        return itsComms.substitute(s);
     }
