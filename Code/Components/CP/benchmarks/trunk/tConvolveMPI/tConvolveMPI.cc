@@ -21,14 +21,21 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @detail
-/// This C++ program has been written to demonstrate the convolutional resampling algorithm used in radio
-/// interferometry. It should compile with:
-/// $ g++ -O3 -fstrict-aliasing -Wall -c tConvolveMPI.cc
-/// $ g++ -O3 -fstrict-aliasing -Wall -c Stopwatch.cc
-/// $ g++ -O3 -fstrict-aliasing -Wall -c Benchmark.cc
-/// $ g++ -o tConvolveMPI tConvolveMPI.o Stopwatch.o Benchmark.o -lpthread
+/// This C++ program has been written to demonstrate the convolutional resampling
+/// algorithm used in radio interferometry. It should compile with:
+/// mpicxx -O3 -fstrict-aliasing -fcx-limited-range -Wall -c tConvolveMPI.cc
+/// mpicxx -O3 -fstrict-aliasing -fcx-limited-range -Wall -c Stopwatch.cc
+/// mpicxx -O3 -fstrict-aliasing -fcx-limited-range -Wall -c Benchmark.cc
+/// mpicxx -o tConvolveMPI tConvolveMPI.o Stopwatch.o Benchmark.o 
 ///
-/// Strict-aliasing tells the compiler that there are no memory locations accessed through aliases.
+/// -fstrict-aliasing - tells the compiler that there are no memory locations
+///                     accessed through aliases.
+/// -fcx-limited-range - states that a range reduction step is not needed when
+///                      performing complex division. This is an acceptable
+///                      optimization.
+///
+/// @author Ben Humphreys <ben.humphreys@csiro.au>
+/// @author Tim Cornwell  <tim.cornwell@csiro.au>
 
 // Include own header file first
 #include "tConvolveMPI.h"
@@ -55,9 +62,10 @@
 int main(int argc, char *argv[])
 {
     // Initialize MPI
-    int rc = MPI_Init(&argc,&argv);
+    int rc = MPI_Init(&argc, &argv);
+
     if (rc != MPI_SUCCESS) {
-        printf ("Error starting MPI program. Terminating.\n");
+        printf("Error starting MPI program. Terminating.\n");
         MPI_Abort(MPI_COMM_WORLD, rc);
     }
 
@@ -72,11 +80,12 @@ int main(int argc, char *argv[])
 
     // Determine how much work will be done across all ranks
     const int sSize = 2 * bmark.getSupport() + 1;
-    const double griddings = (double(nSamples*nChan)* double((sSize)*(sSize))) * double(numtasks);
+    const double griddings = (double(nSamples * nChan) * double((sSize) * (sSize))) * double(numtasks);
 
     if (rank == 0) {
         std::cout << "+++++ Forward processing (MPI) +++++" << std::endl;
     }
+
     Stopwatch sw;
     MPI_Barrier(MPI_COMM_WORLD);
     sw.start();
@@ -88,12 +97,13 @@ int main(int argc, char *argv[])
     if (rank == 0) {
         std::cout << "    Number of processes: " << numtasks << std::endl;
         std::cout << "    Time " << time << " (s) " << std::endl;
-        std::cout << "    Time per visibility spectral sample " << 1e6*time/double(nSamples*nChan) << " (us) " << std::endl;
-        std::cout << "    Time per gridding   " << 1e9*time/(double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
+        std::cout << "    Time per visibility spectral sample " << 1e6*time / double(nSamples*nChan) << " (us) " << std::endl;
+        std::cout << "    Time per gridding   " << 1e9*time / (double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
         std::cout << "    Gridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << std::endl;
 
         std::cout << "+++++ Reverse processing (MPI) +++++" << std::endl;
     }
+
     MPI_Barrier(MPI_COMM_WORLD);
     sw.start();
     bmark.runDegrid();
@@ -104,8 +114,8 @@ int main(int argc, char *argv[])
     if (rank == 0) {
         std::cout << "    Number of processes: " << numtasks << std::endl;
         std::cout << "    Time " << time << " (s) " << std::endl;
-        std::cout << "    Time per visibility spectral sample " << 1e6*time/double(nSamples*nChan) << " (us) " << std::endl;
-        std::cout << "    Time per degridding " << 1e9*time/(double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
+        std::cout << "    Time per visibility spectral sample " << 1e6*time / double(nSamples*nChan) << " (us) " << std::endl;
+        std::cout << "    Time per degridding " << 1e9*time / (double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
         std::cout << "    Degridding rate " << (griddings / 1000000) / time << " (million grid points per second)" << std::endl;
 
         std::cout << "Done" << std::endl;

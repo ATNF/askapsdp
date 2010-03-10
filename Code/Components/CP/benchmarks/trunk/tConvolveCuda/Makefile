@@ -22,7 +22,7 @@
 #
 
 CXX = g++
-CFLAGS = -Wall -O2 -fstrict-aliasing -fPIC
+CFLAGS = -Wall -Wextra -O2 -fstrict-aliasing -fPIC
 
 EXENAME = tConvolveCuda
 EXEOBJS = $(EXENAME).o Stopwatch.o

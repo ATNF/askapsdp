@@ -21,15 +21,22 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @detail
-/// This C++ program has been written to demonstrate the convolutional resampling algorithm used in radio
-/// interferometry. It should compile with:
-/// $ g++ -O3 -fstrict-aliasing -Wall -c tConvolveMT.cc
-/// $ g++ -O3 -fstrict-aliasing -Wall -c Stopwatch.cc
-/// $ g++ -O3 -fstrict-aliasing -Wall -c Benchmark.cc
+/// This C++ program has been written to demonstrate the convolutional resampling
+/// algorithm used in radio interferometry. It should compile with:
+///
+/// $ g++ -O3 -fstrict-aliasing -fcx-limited-range -Wall -c tConvolveMT.cc
+/// $ g++ -O3 -fstrict-aliasing -fcx-limited-range -Wall -c Stopwatch.cc
+/// $ g++ -O3 -fstrict-aliasing -fcx-limited-range -Wall -c Benchmark.cc
 /// $ g++ -o tConvolveMT tConvolveMT.o Stopwatch.o Benchmark.o -lpthread
 ///
-/// Strict-aliasing tells the compiler that there are no memory locations accessed through aliases.
-
+/// -fstrict-aliasing - tells the compiler that there are no memory locations
+///                     accessed through aliases.
+/// -fcx-limited-range - states that a range reduction step is not needed when
+///                      performing complex division. This is an acceptable
+///                      optimization.
+///
+/// @author Ben Humphreys <ben.humphreys@csiro.au>
+/// @author Tim Cornwell  <tim.cornwell@csiro.au>
 
 // Include own header file first
 #include "tConvolveMT.h"
@@ -57,79 +64,86 @@
 
 void *gridThread(void *arg)
 {
-  Benchmark *gp = static_cast<Benchmark*>(arg);
-  gp->runGrid();
-  return NULL;
+    Benchmark *gp = static_cast<Benchmark*>(arg);
+    gp->runGrid();
+    return NULL;
 }
 
 void *degridThread(void *arg)
 {
-  Benchmark *gp = static_cast<Benchmark*>(arg);
-  gp->runDegrid();
-  return NULL;
+    Benchmark *gp = static_cast<Benchmark*>(arg);
+    gp->runDegrid();
+    return NULL;
 }
 
 // Main testing routine
 int main(int argc, char *argv[])
 {
-  if (argc != 2) {
-	  std::cerr << "usage: " << argv[0] << " < # threads >" << std::endl;
-	  return 1;
-  }
-  const int nthreads = atoi(argv[1]);
+    if (argc != 2) {
+        std::cerr << "usage: " << argv[0] << " < # threads >" << std::endl;
+        return 1;
+    }
 
-  std::vector<Benchmark> gp(nthreads);
-  for (int i = 0; i < nthreads; ++i) {
-    gp[i].init();
-  }
+    const int nthreads = atoi(argv[1]);
 
-  std::vector<pthread_t> gridThreads(nthreads);
-  std::vector<pthread_t> degridThreads(nthreads);
+    std::vector<Benchmark> gp(nthreads);
 
-  const int sSize = 2 * gp[0].getSupport() + 1;
-  double griddings = (double(nSamples*nChan)* double((sSize)*(sSize))) * double(nthreads);
+    for (int i = 0; i < nthreads; ++i) {
+        gp[i].init();
+    }
 
-  // Now we can do the timing
-  std::cout << "+++++ Forward processing +++++" << std::endl;
+    std::vector<pthread_t> gridThreads(nthreads);
+    std::vector<pthread_t> degridThreads(nthreads);
 
+    const int sSize = 2 * gp[0].getSupport() + 1;
+    double griddings = (double(nSamples * nChan) * double((sSize) * (sSize))) * double(nthreads);
 
-  Stopwatch sw;
-
-  sw.start();
-  for (int i = 0; i < nthreads; ++i) {
-	  pthread_create(&gridThreads[i], NULL, gridThread, (void *)&(gp[i]));
-  }
-  for (int i = 0; i < nthreads; ++i) {
-	  pthread_join(gridThreads[i], 0);
-  }
-  double time = sw.stop();
-
-  // Report on timings
-  std::cout << "    Time " << time << " (s) " << std::endl;
-  std::cout << "    Time per visibility spectral sample " << 1e6*time/double(nSamples*nChan) << " (us) " << std::endl;
-  std::cout << "    Time per gridding   " << 1e9*time/(double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
-  std::cout << "    Gridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << std::endl;
+    // Now we can do the timing
+    std::cout << "+++++ Forward processing +++++" << std::endl;
 
 
-  std::cout << "+++++ Reverse processing +++++" << std::endl;
-  //grid.assign(grid.size(), Value(1.0));
-  
-  sw.start();
-  for (int i = 0; i < nthreads; ++i) {
-	  pthread_create(&degridThreads[i], NULL, degridThread, (void *)&(gp[i]));
-  }
-  for (int i = 0; i < nthreads; ++i) {
-	  pthread_join(degridThreads[i], 0);
-  }
-  time = sw.stop();
+    Stopwatch sw;
 
-  // Report on timings
-  std::cout << "    Time " << time << " (s) " << std::endl;
-  std::cout << "    Time per visibility spectral sample " << 1e6*time/double(nSamples*nChan) << " (us) " << std::endl;
-  std::cout << "    Time per degridding " << 1e9*time/(double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
-  std::cout << "    Degridding rate " << (griddings / 1000000) / time << " (million grid points per second)" << std::endl;
+    sw.start();
 
-  std::cout << "Done" << std::endl;
+    for (int i = 0; i < nthreads; ++i) {
+        pthread_create(&gridThreads[i], NULL, gridThread, (void *)&(gp[i]));
+    }
 
-  return 0;
+    for (int i = 0; i < nthreads; ++i) {
+        pthread_join(gridThreads[i], 0);
+    }
+
+    double time = sw.stop();
+
+    // Report on timings
+    std::cout << "    Time " << time << " (s) " << std::endl;
+    std::cout << "    Time per visibility spectral sample " << 1e6*time / double(nSamples*nChan) << " (us) " << std::endl;
+    std::cout << "    Time per gridding   " << 1e9*time / (double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
+    std::cout << "    Gridding rate   " << (griddings / 1000000) / time << " (million grid points per second)" << std::endl;
+
+
+    std::cout << "+++++ Reverse processing +++++" << std::endl;
+
+    sw.start();
+
+    for (int i = 0; i < nthreads; ++i) {
+        pthread_create(&degridThreads[i], NULL, degridThread, (void *)&(gp[i]));
+    }
+
+    for (int i = 0; i < nthreads; ++i) {
+        pthread_join(degridThreads[i], 0);
+    }
+
+    time = sw.stop();
+
+    // Report on timings
+    std::cout << "    Time " << time << " (s) " << std::endl;
+    std::cout << "    Time per visibility spectral sample " << 1e6*time / double(nSamples*nChan) << " (us) " << std::endl;
+    std::cout << "    Time per degridding " << 1e9*time / (double(nSamples*nChan)* double((sSize)*(sSize))) << " (ns) " << std::endl;
+    std::cout << "    Degridding rate " << (griddings / 1000000) / time << " (million grid points per second)" << std::endl;
+
+    std::cout << "Done" << std::endl;
+
+    return 0;
 }

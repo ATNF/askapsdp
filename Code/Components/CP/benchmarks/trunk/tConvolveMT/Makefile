@@ -25,7 +25,7 @@
 #
 
 CXX=g++
-CFLAGS=-O3 -fstrict-aliasing -fcx-limited-range -Wall
+CFLAGS=-O3 -fstrict-aliasing -fcx-limited-range -Wall -Wextra
 LIBS=-lpthread
 
 EXENAME = tConvolveMT

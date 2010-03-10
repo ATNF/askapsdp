@@ -20,23 +20,23 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 #ifndef STOPWATCH_H
 #define STOPWATCH_H
 
 #include <sys/times.h>
 
-class Stopwatch
-{
-public:
-	Stopwatch();
-	~Stopwatch();
+class Stopwatch {
+    public:
+        Stopwatch();
+        ~Stopwatch();
 
-	void start();
-	double stop();
+        void start();
+        double stop();
 
-private:
-	clock_t m_start;
+    private:
+        clock_t m_start;
 };
 
 #endif
