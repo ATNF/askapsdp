@@ -69,7 +69,6 @@ void gridKernel(const std::vector<Value>& data, const int support,
                 const std::vector<int>& iu, const std::vector<int>& iv,
                 std::vector<Value>& grid, const int gSize)
 {
-
     const int sSize = 2 * support + 1;
 
     for (int dind = 0; dind < int(data.size()); ++dind) {
@@ -101,7 +100,6 @@ void degridKernel(const std::vector<Value>& grid, const int gSize, const int sup
                   const std::vector<int>& iu, const std::vector<int>& iv,
                   std::vector<Value>& data)
 {
-
     const int sSize = 2 * support + 1;
 
     for (int dind = 0; dind < int(data.size()); ++dind) {
@@ -135,18 +133,14 @@ void degridKernel(const std::vector<Value>& grid, const int gSize, const int sup
 // Initialize W project convolution function
 // - This is application specific and should not need any changes.
 //
-// nSamples - number of visibility samples
 // freq - temporal frequency (inverse wavelengths)
 // cellSize - size of one grid cell in wavelengths
-// gSize - size of grid in pixels (per axis)
 // support - Total width of convolution function=2*support+1
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
-void initC(const int nSamples, const std::vector<Coord>& w,
-           const std::vector<Coord>& freq, const Coord cellSize,
-           const Coord baseline,
-           const int wSize, const int gSize, int& support, int& overSample,
-           Coord& wCellSize, std::vector<Value>& C)
+void initC(const std::vector<Coord>& freq, const Coord cellSize,
+           const Coord baseline, const int wSize, int& support,
+           int& overSample, Coord& wCellSize, std::vector<Value>& C)
 {
     cout << "Initializing W projection convolution function" << endl;
     support = static_cast<int>(1.5 * sqrt(abs(baseline) * static_cast<Coord>(cellSize)
@@ -220,8 +214,8 @@ void initC(const int nSamples, const std::vector<Coord>& w,
 // wSize - Size of lookup table in w
 void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
                  const std::vector<Coord>& w, const std::vector<Coord>& freq,
-                 const Coord cellSize, const Coord wCellSize, const Coord baseline,
-                 const int wSize, const int gSize, const int support, const int overSample,
+                 const Coord cellSize, const Coord wCellSize, const int wSize,
+                 const int gSize, const int support, const int overSample,
                  std::vector<int>& cOffset, std::vector<int>& iu,
                  std::vector<int>& iv)
 {
@@ -327,10 +321,9 @@ int main()
     std::vector<int> iv;
     Coord wCellSize;
 
-    initC(nSamples, w, freq, cellSize, baseline, wSize, gSize, support,
-          overSample, wCellSize, C);
-    initCOffset(u, v, w, freq, cellSize, wCellSize, baseline, wSize, gSize,
-                support, overSample, cOffset, iu, iv);
+    initC(freq, cellSize, baseline, wSize, support, overSample, wCellSize, C);
+    initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize, support,
+            overSample, cOffset, iu, iv);
     const int sSize = 2 * support + 1;
     const double griddings = (double(nSamples * nChan) * double((sSize) * (sSize)));
 
