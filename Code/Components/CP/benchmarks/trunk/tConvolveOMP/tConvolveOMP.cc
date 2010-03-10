@@ -122,10 +122,9 @@ int gridKernelOMP(const std::vector<Value>& data, const int support,
         // The Convoluton function point from which we offset
         const int cind = cOffset[dind];
 
-#pragma omp parallel for \
+        #pragma omp parallel for \
             default(shared)   \
             schedule(dynamic, 10)
-
         for (int suppv = 0; suppv < sSize; suppv++) {
             const int l_gind = (suppv * gSize) + gind;
             const int l_cind = (suppv * sSize) + cind;
@@ -194,12 +193,13 @@ int degridKernelOMP(const std::vector<Value>& grid, const int gSize, const int s
 
     const int sSize = 2 * support + 1;
 
-#pragma omp parallel for  \
+    #pragma omp parallel for  \
         default(shared)   \
         schedule(dynamic, 32)
-
     for (int dind = 0; dind < int(data.size()); ++dind) {
-        nthreads = omp_get_num_threads();
+        if (nthreads == -1) {
+            nthreads = omp_get_num_threads();
+        }
 
         data[dind] = 0.0;
 
