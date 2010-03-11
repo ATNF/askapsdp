@@ -1071,7 +1071,8 @@ void TableVisGridder::initConvFuncOffsets(size_t nPlanes)
 void TableVisGridder::setConvFuncOffset(int cfPlane, int x, int y)
 {
   ASKAPDEBUGASSERT(cfPlane>=0);
-  ASKAPDEBUGASSERT(cfPlane < int(itsConvFuncOffsets.size()));
+  ASKAPCHECK(cfPlane < int(itsConvFuncOffsets.size()), "An attempt to set offset for plane (before oversampling) "<<
+             cfPlane<<" while the buffer has been initialised to handle "<<itsConvFuncOffsets.size()<<" planes only");
   itsConvFuncOffsets[cfPlane] = std::pair<int,int>(x,y);
 }
 

@@ -253,7 +253,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
          itsSumWeights.resize(itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
          itsSumWeights.set(0.0);
          if (isOffsetSupportAllowed()) {
-             initConvFuncOffsets(itsNWPlanes*itsMaxFeeds*itsMaxFields);
+             initConvFuncOffsets(itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan);
 	     }         
       }
       
