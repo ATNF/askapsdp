@@ -454,7 +454,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 		   if (chan == 0) {
 		      // check for ridiculous frequency to pick up a possible error with input file,
 		      // not essential for processing as such
-		      ASKAPCHECK((reciprocalToWavelength>0.1) && (reciprocalToWavelength<1000), 
+		      ASKAPCHECK((reciprocalToWavelength>0.1) && (reciprocalToWavelength<30000), 
 		          "Check frequencies in the input file as the order of magnitude is likely to be wrong, "
 		          "comment this statement in the code if you're trying something non-standard. Frequency = "<<
 		          frequencyList[chan]/1e9<<" GHz");
