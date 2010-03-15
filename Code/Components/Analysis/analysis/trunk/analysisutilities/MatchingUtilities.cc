@@ -75,7 +75,7 @@ namespace askap {
             /// @return A list of sources from the file
             std::vector<matching::Point> pixlist;
             std::string raS, decS, sdud, id;
-            double flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, chisq, rms, noise;
+            double flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, chisq, rms, noise, alpha, beta;
             int nfree, ndof, npixfit, npixobj;
 
             double *wld = new double[3];
@@ -96,7 +96,7 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
 
             // now at start of object list
-            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
+            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> alpha >> beta >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
                     !fin.eof()) {
                 if (fluxUseFit == "no") {
                     flux = iflux1;
@@ -165,8 +165,8 @@ namespace askap {
             /// @param radius The search radius within which points are kept. Objects
             /// @return A list of sources from the file
             std::vector<matching::Point> pixlist;
-            std::string raS, decS, id;
-            double flux, maj, min, pa;
+            std::string line, raS, decS, id;
+            double flux, maj, min, pa, alpha, beta;
             int ct = 1;
 
             double *wld = new double[3];
@@ -180,10 +180,13 @@ namespace askap {
             double xBase = pix[0];
             double yBase = pix[1];
 
-            while (fin >> raS >> decS >> flux >> maj >> min >> pa,
-                    !fin.eof()) {
-                std::stringstream ss;
-                ss << ct++;
+            while (getline(fin, line),
+		   !fin.eof()) {
+	      //	      fin >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa,
+	      //                    !fin.eof()) {
+	      if(line[0]!='#'){
+                std::stringstream ss(line);
+		ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
 
                 if (posType == "dms") {
                     wld[0] = analysis::dmsToDec(raS) * 15.;
@@ -194,17 +197,19 @@ namespace askap {
                 } else
                     ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
 
-                id = ss.str() + "_" + analysis::decToDMS(wld[0], "RA") + "_" + analysis::decToDMS(wld[1], "DEC");
+		std::stringstream idString;
+                idString << ct++ << "_" << analysis::decToDMS(wld[0], "RA") << "_" << analysis::decToDMS(wld[1], "DEC");
 
                 if (header.wcsToPix(wld, pix)) {
-                    ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << id
-                                           << ", wld=(" << std::setprecision(6) << wld[0] << "," << std::setprecision(6) << wld[1] << ")");
+		  ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << idString.str()
+				     << ", wld=(" << std::setprecision(6) << wld[0] << "," << std::setprecision(6) << wld[1] << "), line = " << line);
                 }
 
                 if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
-                    matching::Point pt(pix[0], pix[1], flux, id, maj, min, pa);
+                    matching::Point pt(pix[0], pix[1], flux, idString.str(), maj, min, pa);
                     pixlist.push_back(pt);
                 }
+	      }
             }
 
             delete [] wld;
@@ -235,7 +240,7 @@ namespace askap {
             std::string raS, decS, sdud, id;
             double raBase = analysis::dmsToDec(raBaseStr) * 15.;
             double decBase = analysis::dmsToDec(decBaseStr);
-            double xpt, ypt, ra, dec, flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, chisq, rms, noise;
+            double xpt, ypt, ra, dec, flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, chisq, rms, noise, alpha, beta;
             int nfree, ndof, npixfit, npixobj;
             char line[501];
             fin.getline(line, 500);
@@ -244,7 +249,7 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
 
             // now at start of object list
-            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
+            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> alpha >> beta >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
                     !fin.eof()) {
                 if (fluxUseFit == "no") {
                     flux = iflux1;
@@ -315,16 +320,19 @@ namespace askap {
             /// @return A list of sources from the file
 
             std::vector<matching::Point> pixlist;
-            std::string raS, decS, id;
+            std::string line, raS, decS, id;
             double raBase = analysis::dmsToDec(raBaseStr) * 15.;
             double decBase = analysis::dmsToDec(decBaseStr);
-            double ra, dec, xpt, ypt, flux, maj, min, pa;
+            double ra, dec, xpt, ypt, flux, maj, min, pa, alpha, beta;
             int ct = 1;
 
-            while (fin >> raS >> decS >> flux >> maj >> min >> pa,
-                    !fin.eof()) {
-                std::stringstream ss;
-                ss << ct++;
+            while (getline(fin, line),
+		   !fin.eof()) {
+	      //fin >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa,
+	      //    !fin.eof()) {
+	      if(line[0]!='#'){
+                std::stringstream ss(line);
+		ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
 
                 if (posType == "dms") {
                     ra = analysis::dmsToDec(raS) * 15.;
@@ -335,7 +343,8 @@ namespace askap {
                 } else
                     ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
 
-                id = ss.str() + "_" + analysis::decToDMS(ra, "RA") + "_" + analysis::decToDMS(dec, "DEC");
+		std::stringstream idString;
+                idString << ct++ << "_" << analysis::decToDMS(ra, "RA") << "_" << analysis::decToDMS(dec, "DEC");
                 xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
                 if (ra > raBase) xpt *= -1.;
@@ -344,9 +353,10 @@ namespace askap {
                 ypt = (dec - decBase) * 3600.;
 
                 if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
-                    matching::Point pix(xpt, ypt, flux, id, maj, min, pa);
+                    matching::Point pix(xpt, ypt, flux, idString.str(), maj, min, pa);
                     pixlist.push_back(pix);
                 }
+	      }
             }
 
             stable_sort(pixlist.begin(), pixlist.end());
