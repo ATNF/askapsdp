@@ -8,7 +8,7 @@ import os
 import askap.parset as parset
 import math
 
-SKADS_host = "gijane.atnf.csiro.au"
+SKADS_host = "delphinus.atnf.csiro.au"
 SKADS_user = "skads"
 SKADS_pass = "skads"
 #SKADS_db = "S3SEX"

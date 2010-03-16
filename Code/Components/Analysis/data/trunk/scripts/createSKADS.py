@@ -8,7 +8,7 @@ import os
 import askap.parset as parset
 import math
 
-S3SEX_host = "gijane.atnf.csiro.au"
+S3SEX_host = "delphinus.atnf.csiro.au"
 S3SEX_user = "skads"
 S3SEX_pass = "skads"
 S3SEX_db = "S3SEX"
