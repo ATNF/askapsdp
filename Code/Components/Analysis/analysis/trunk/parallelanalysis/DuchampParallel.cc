@@ -273,58 +273,58 @@ namespace askap {
 
                 if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
 
-                // Send out the OK to the workers, so that they access the file in turn
-                bool OK;
+//                 // Send out the OK to the workers, so that they access the file in turn
+//                 bool OK;
 
-                for (int i = 1; i < this->itsNNode; i++) {
-                    LOFAR::BlobString bs5;
-                    bs5.resize(0);
-                    LOFAR::BlobOBufString bob5(bs5);
-                    LOFAR::BlobOStream out5(bob5);
-                    out5.putStart("goInput", 1);
-                    out5 << i ;
-                    out5.putEnd();
-                    this->itsConnectionSet->writeAll(bs5);
-                    LOFAR::BlobString bs6;
-                    this->itsConnectionSet->read(i - 1, bs6);
-                    LOFAR::BlobIBufString bib6(bs6);
-                    LOFAR::BlobIStream in6(bib6);
-                    int version = in6.getStart("inputDone");
-                    ASKAPASSERT(version == 1);
-                    in6 >> OK;
-                    in6.getEnd();
-                }
+//                 for (int i = 1; i < this->itsNNode; i++) {
+//                     LOFAR::BlobString bs5;
+//                     bs5.resize(0);
+//                     LOFAR::BlobOBufString bob5(bs5);
+//                     LOFAR::BlobOStream out5(bob5);
+//                     out5.putStart("goInput", 1);
+//                     out5 << i ;
+//                     out5.putEnd();
+//                     this->itsConnectionSet->writeAll(bs5);
+//                     LOFAR::BlobString bs6;
+//                     this->itsConnectionSet->read(i - 1, bs6);
+//                     LOFAR::BlobIBufString bib6(bs6);
+//                     LOFAR::BlobIStream in6(bib6);
+//                     int version = in6.getStart("inputDone");
+//                     ASKAPASSERT(version == 1);
+//                     in6 >> OK;
+//                     in6.getEnd();
+//                 }
 
-		// Broadcast a message to all workers, effectively saying that we're all done
-                LOFAR::BlobString bs7;
-                bs7.resize(0);
-                LOFAR::BlobOBufString bob7(bs7);
-                LOFAR::BlobOStream out7(bob7);
-                out7.putStart("goInput", 1);
-                out7 << this->itsNNode;
-                out7.putEnd();
-                this->itsConnectionSet->writeAll(bs7);
+// 		// Broadcast a message to all workers, effectively saying that we're all done
+//                 LOFAR::BlobString bs7;
+//                 bs7.resize(0);
+//                 LOFAR::BlobOBufString bob7(bs7);
+//                 LOFAR::BlobOStream out7(bob7);
+//                 out7.putStart("goInput", 1);
+//                 out7 << this->itsNNode;
+//                 out7.putEnd();
+//                 this->itsConnectionSet->writeAll(bs7);
                 //
                 //
             } else if (this->isWorker()) {
                 bool OK = true;
                 int rank;
 
-                if (this->isParallel()) {
-                    do {
-                        LOFAR::BlobString bs1;
-                        bs1.resize(0);
-                        this->itsConnectionSet->read(0, bs1);
-                        LOFAR::BlobIBufString bib1(bs1);
-                        LOFAR::BlobIStream in1(bib1);
-                        std::stringstream ss;
-                        int version = in1.getStart("goInput");
-                        ASKAPASSERT(version == 1);
-                        in1 >> rank;
-                        in1.getEnd();
-                        OK = (rank == this->itsRank);
-                    } while (!OK);
-                }
+//                 if (this->isParallel()) {
+//                     do {
+//                         LOFAR::BlobString bs1;
+//                         bs1.resize(0);
+//                         this->itsConnectionSet->read(0, bs1);
+//                         LOFAR::BlobIBufString bib1(bs1);
+//                         LOFAR::BlobIStream in1(bib1);
+//                         std::stringstream ss;
+//                         int version = in1.getStart("goInput");
+//                         ASKAPASSERT(version == 1);
+//                         in1 >> rank;
+//                         in1.getEnd();
+//                         OK = (rank == this->itsRank);
+//                     } while (!OK);
+//                 }
 
                 if (OK) {
                     ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read data from image " << this->itsCube.pars().getFullImageFile());
@@ -398,46 +398,46 @@ namespace askap {
                     }
 
 
-                    // Return the OK to the master to say that we've read the image
-                    if (this->isParallel()) {
-                        LOFAR::BlobString bs2;
-                        bs2.resize(0);
-                        LOFAR::BlobOBufString bob2(bs2);
-                        LOFAR::BlobOStream out2(bob2);
-                        out2.putStart("inputDone", 1);
-                        out2 << OK;
-                        out2.putEnd();
-                        this->itsConnectionSet->write(0, bs2);
+//                     // Return the OK to the master to say that we've read the image
+//                     if (this->isParallel()) {
+//                         LOFAR::BlobString bs2;
+//                         bs2.resize(0);
+//                         LOFAR::BlobOBufString bob2(bs2);
+//                         LOFAR::BlobOStream out2(bob2);
+//                         out2.putStart("inputDone", 1);
+//                         out2 << OK;
+//                         out2.putEnd();
+//                         this->itsConnectionSet->write(0, bs2);
 
-			// Wait to find out if all workers have finished
-                        do {
-                            LOFAR::BlobString bs3;
-                            bs3.resize(0);
-                            this->itsConnectionSet->read(0, bs3);
-                            LOFAR::BlobIBufString bib3(bs3);
-                            LOFAR::BlobIStream in3(bib3);
-                            std::stringstream ss;
-                            int version = in3.getStart("goInput");
-                            ASKAPASSERT(version == 1);
-                            in3 >> rank;
-                            in3.getEnd();
-                        }  while (rank != this->itsNNode);
-                    }
+// 			// Wait to find out if all workers have finished
+//                         do {
+//                             LOFAR::BlobString bs3;
+//                             bs3.resize(0);
+//                             this->itsConnectionSet->read(0, bs3);
+//                             LOFAR::BlobIBufString bib3(bs3);
+//                             LOFAR::BlobIStream in3(bib3);
+//                             std::stringstream ss;
+//                             int version = in3.getStart("goInput");
+//                             ASKAPASSERT(version == 1);
+//                             in3 >> rank;
+//                             in3.getEnd();
+//                         }  while (rank != this->itsNNode);
+//                     }
                 } else {
                     ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read data from image " << this->itsImage << " as it's not ready.");
                     ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsImage);
 
-                    // Return a message to the master to say that we've failed.
-                    if (isParallel()) {
-                        LOFAR::BlobString bs4;
-                        bs4.resize(0);
-                        LOFAR::BlobOBufString bob4(bs4);
-                        LOFAR::BlobOStream out4(bob4);
-                        out4.putStart("inputDone", 1);
-                        out4 << this->itsRank << false;
-                        out4.putEnd();
-                        this->itsConnectionSet->write(0, bs4);
-                    }
+//                     // Return a message to the master to say that we've failed.
+//                     if (isParallel()) {
+//                         LOFAR::BlobString bs4;
+//                         bs4.resize(0);
+//                         LOFAR::BlobOBufString bob4(bs4);
+//                         LOFAR::BlobOStream out4(bob4);
+//                         out4.putStart("inputDone", 1);
+//                         out4 << this->itsRank << false;
+//                         out4.putEnd();
+//                         this->itsConnectionSet->write(0, bs4);
+//                     }
                 }
 
 

@@ -87,7 +87,8 @@ class MyAskapParallel: public askap::mwbase::AskapParallel {
 
 };
 
-bool getSubImage(std::string name, SubImage<Float> &subimage, MyAskapParallel &parl)
+// bool getSubImage(std::string name, SubImage<Float> &subimage, MyAskapParallel &parl)
+bool getSubImage(std::string name, SubImage<Float> &subimage, AskapParallel &parl)
 {
     /// Trying ways of accessing an image in a way that allows
     /// simultaneous access from different workers.
@@ -106,7 +107,8 @@ bool getSubImage(std::string name, SubImage<Float> &subimage, MyAskapParallel &p
     IPosition shape = imagePtr->shape();
     ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": Shape of original image = " << shape);
     IPosition newLength = shape;
-    newLength(0) = newLength(0) / (parl.nnode() - 1);
+ //    newLength(0) = newLength(0) / (parl.nnode() - 1);
+    newLength(0) = newLength(0) / (parl.nNodes() - 1);
     ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": New shape = " << newLength);
     int startpos = (parl.rank() - 1) * newLength(0);
     IPosition start(shape.size(), 0);
@@ -148,7 +150,8 @@ int main(int argc, const char *argv[])
         else imageName = argv[1];
 
         ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-        MyAskapParallel parl(argc, argv);
+//         MyAskapParallel parl(argc, argv);
+        AskapParallel parl(argc, argv);
 
         if (!parl.isParallel()) {
             ASKAPLOG_ERROR_STR(logger, "This needs to be run in parallel!");
@@ -156,7 +159,8 @@ int main(int argc, const char *argv[])
         }
 
         if (parl.isMaster()) {
-            ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nnode() << ")");
+//             ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nnode() << ")");
+            ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nNodes() << ")");
             ASKAPLOG_INFO_STR(logger, "Master done!");
         } else if (parl.isWorker()) {
             ASKAPLOG_INFO_STR(logger, "In Worker #" << parl.rank());
