@@ -107,9 +107,9 @@ if __name__ == '__main__':
 #        for type in types:
 #            for x in centres:
 #                for y in centres:
-         for x in centres:
-             for y in centres:
-                 for type in types:
+        for x in centres:
+            for y in centres:
+                for type in types:
 
                     tabname = getTabName(x,y,type)
 
