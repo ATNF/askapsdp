@@ -60,11 +60,6 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/ImageParamsHelper.h>
 #include <fitting/Params.h>
 
-// These three includes can be removed when ImageRestoreSolver goes out of here
-#include <measurementequation/IImagePreconditioner.h>
-#include <measurementequation/WienerPreconditioner.h>
-#include <measurementequation/GaussianTaperPreconditioner.h>
-
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
 
@@ -99,15 +94,6 @@ namespace askap
         SynthesisParamsHelper::setUpImageHandler(itsParset);
       
         itsRestore=itsParset.getBool("restore", false);
-
-        if (itsRestore) {
-            itsQbeam.resize(3);
-            vector<string> beam = itsParset.getStringVector("restore.beam");
-            ASKAPCHECK(beam.size() == 3, "Need three elements for beam");
-            for (int i=0; i<3; ++i) {
-                 casa::Quantity::read(itsQbeam(i), beam[i]);
-            }
-        }
         
         bool reuseModel = itsParset.getBool("Images.reuse", false);
         
@@ -412,17 +398,16 @@ namespace askap
         if (itsRestore && postfix == "")
         {
           ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
-          ASKAPDEBUGASSERT(itsQbeam.size() == 3);
-          ImageRestoreSolver ir(*itsModel, itsQbeam);
-          ir.setThreshold(itsSolver->threshold());
-          ir.setVerbose(itsSolver->verbose());
-          boost::shared_ptr<ImageSolver> solverPtr(&ir,utility::NullDeleter());
-          ImageSolverFactory::configurePreconditioners(itsParset,solverPtr);
-          ir.copyNormalEquations(*itsSolver);
-          Quality q;
-          ir.solveNormalEquations(q);
           ASKAPDEBUGASSERT(itsModel);
-          *itsModel = ir.parameters();
+          boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(itsParset.makeSubset("restore."), 
+                                                                *itsModel);
+          ASKAPDEBUGASSERT(ir);
+          ir->setThreshold(itsSolver->threshold());
+          ir->setVerbose(itsSolver->verbose());
+          ir->copyNormalEquations(*itsSolver);
+          Quality q;
+          ir->solveNormalEquations(q);
+          *itsModel = ir->parameters();
           // merged image should be a fixed parameter without facet suffixes
           resultimages=itsModel->fixedNames();
           for (vector<string>::const_iterator ci=resultimages.begin(); ci!=resultimages.end(); ++ci) {

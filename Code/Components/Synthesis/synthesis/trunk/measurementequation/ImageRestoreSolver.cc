@@ -24,6 +24,11 @@
 #include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageParamsHelper.h>
+#include <measurementequation/ImageSolverFactory.h>
+#include <measurementequation/IImagePreconditioner.h>
+#include <measurementequation/WienerPreconditioner.h>
+#include <measurementequation/GaussianTaperPreconditioner.h>
+
 #include <utils/PaddingUtils.h>
 
 #include <askap_synthesis.h>
@@ -246,9 +251,34 @@ namespace askap
     {
 	    return Solver::ShPtr(new ImageRestoreSolver(*this));
     }
+    
+    /// @brief static method to create solver
+    /// @details Each solver should have a static factory method, which is
+    /// able to create a particular type of the solver and initialise it with
+    /// the parameters taken from the given parset. It is assumed that the method
+    /// receives a subset of parameters where the solver name, if it was present in
+    /// the parset, is already taken out
+    /// @param[in] parset input parset file
+    /// @param[in] ip model parameters
+    /// @return a shared pointer to the solver instance
+    boost::shared_ptr<ImageRestoreSolver> ImageRestoreSolver::createSolver(const LOFAR::ParameterSet &parset,
+                  const askap::scimath::Params &ip)
+    {
+       casa::Vector<casa::Quantum<double> > qBeam(3);
+       const vector<string> beam = parset.getStringVector("beam");
+       ASKAPCHECK(beam.size() == 3, "Need three elements for beam");
+       for (int i=0; i<3; ++i) {
+            casa::Quantity::read(qBeam(i), beam[i]);
+       }
+       
+       boost::shared_ptr<ImageRestoreSolver> result(new ImageRestoreSolver(ip, qBeam));
+       ImageSolverFactory::configurePreconditioners(parset,result);       
+       return result;
+    }
+    
 
-  }
-}
+  } // namespace synthesis
+} // namespace askap
 
 
 

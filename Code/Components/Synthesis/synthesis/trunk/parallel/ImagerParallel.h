@@ -171,9 +171,6 @@ namespace askap
       /// Names of measurement sets, one per prediffer
       vector<string> itsMs;
 
-      /// Restoring beam
-      casa::Vector<casa::Quantum<double> > itsQbeam;
-
       /// Gridder to be used
       IVisGridder::ShPtr itsGridder;
 

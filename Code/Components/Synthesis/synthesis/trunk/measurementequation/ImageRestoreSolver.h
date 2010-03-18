@@ -35,6 +35,8 @@
 #include <casa/Arrays/Vector.h>
 #include <casa/Quanta.h>
 #include <lattices/Lattices/ArrayLattice.h>
+#include <Common/ParameterSet.h>
+
 
 namespace askap
 {
@@ -71,6 +73,18 @@ namespace askap
         /// @return a shared pointer to a cloned object
         virtual askap::scimath::Solver::ShPtr clone() const;
     
+        /// @brief static method to create solver
+        /// @details Each solver should have a static factory method, which is
+        /// able to create a particular type of the solver and initialise it with
+        /// the parameters taken from the given parset. It is assumed that the method
+        /// receives a subset of parameters where the solver name, if it was present in
+        /// the parset, is already taken out
+        /// @param[in] parset input parset file
+        /// @param[in] ip model parameters
+        /// @return a shared pointer to the solver instance
+        static boost::shared_ptr<ImageRestoreSolver> createSolver(const LOFAR::ParameterSet &parset,
+                   const askap::scimath::Params &ip);
+        
       protected:
       
         /// @brief solves for and adds residuals
