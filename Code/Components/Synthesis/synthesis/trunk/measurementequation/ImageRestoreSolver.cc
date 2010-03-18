@@ -71,7 +71,7 @@ namespace askap
   {
     ImageRestoreSolver::ImageRestoreSolver(const askap::scimath::Params& ip,
 		    const casa::Vector<casa::Quantum<double> >& beam) :
-	    ImageSolver(ip), itsBeam(beam)
+	    ImageSolver(ip), itsBeam(beam), itsEqualiseNoise(false)
     {
     }
     
@@ -233,11 +233,31 @@ namespace askap
        casa::Array<float> psfArray(shape);
        casa::convertArray<float, double>(psfArray, slice.reform(shape));
 
+       // uninitialised mask shared pointer means that we don't need it (i.e. no weight equalising)
+       boost::shared_ptr<casa::Array<float> > mask;
+       if (itsEqualiseNoise) {
+           ASKAPLOG_INFO_STR(logger, "Residual will be multiplied by sqrt(normalised weight) during restoration");
+           // mask will have a noramised sqrt(weight) pattern after doNormalization
+           mask.reset(new casa::Array<float>(dirtyArray.shape()));
+       } else {
+           ASKAPLOG_INFO_STR(logger, "Restored image will have primary beam corrected noise (no equalisation)");
+       }
+       
 	   // Normalize by the diagonal
-	   doNormalization(diag,tol(),psfArray,dirtyArray);
+	   doNormalization(diag,tol(),psfArray,dirtyArray,mask);
 	  
 	   // Do the preconditioning
 	   doPreconditioning(psfArray,dirtyArray);
+	   
+	   // we have to do noise equalisation for final residuals after preconditioning
+	   if (itsEqualiseNoise) {
+	       const casa::IPosition vecShape(1,dirtyArray.nelements());
+           casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
+	       const casa::Vector<float> maskVector(mask->reform(vecShape));
+	       for (int i = 0; i<vecShape[0]; ++i) {
+	            dirtyVector[i] *= maskVector[i];
+	       }
+	   }
 	  
 	   // Add the residual image        
 	   // the code below involves an extra copying. We can replace it later with a copyless version
@@ -272,7 +292,9 @@ namespace askap
        }
        
        boost::shared_ptr<ImageRestoreSolver> result(new ImageRestoreSolver(ip, qBeam));
-       ImageSolverFactory::configurePreconditioners(parset,result);       
+       ImageSolverFactory::configurePreconditioners(parset,result);
+       const bool equalise = parset.getBool("equalise",false);
+       result->equaliseNoise(equalise);
        return result;
     }
     

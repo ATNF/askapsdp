@@ -86,6 +86,9 @@ namespace askap
                    const askap::scimath::Params &ip);
         
       protected:
+        /// @brief set noise equalisation flag
+        /// @param[in] flag true, to switch noise equalisation on
+        inline void equaliseNoise(bool flag) { itsEqualiseNoise = flag; }
       
         /// @brief solves for and adds residuals
         /// @details Restore solver convolves the current model with the beam and adds the
@@ -107,6 +110,14 @@ namespace askap
       private:
         /// @brief Major, minor axes, and position angle of beam
         casa::Vector<casa::Quantum<double> > itsBeam;
+        
+        /// @brief true if the mosaicing weight is to be equalised
+        /// @details We optionally can multiply the residual to the weight before
+        /// adding to the model convolved with the restoring beam. As per Sault et al.
+        /// (1996) this gives aesthetically pleasing images. However, as not all flux is
+        /// recovered in the model, this weighting scheme potentially introduces some 
+        /// direction-dependent flux error (but gives flat noise).
+        bool itsEqualiseNoise; 
     };
 
   }
