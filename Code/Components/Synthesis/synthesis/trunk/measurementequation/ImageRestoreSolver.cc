@@ -216,7 +216,7 @@ namespace askap
     ///                   the case for faceting).
     /// @param[in] out output array
     void ImageRestoreSolver::addResiduals(const std::string &name, const casa::IPosition &shape,
-                         casa::Array<double> out)
+                         casa::Array<double> out) const
     {
 	   // Axes are dof, dof for each parameter
 	   casa::IPosition vecShape(1, out.shape().product());
@@ -265,6 +265,19 @@ namespace askap
 	   casa::Array<double> convertedResidual(out.shape());
 	   convertArray(convertedResidual, scimath::PaddingUtils::centeredSubArray(dirtyArray,out.shape()));
 	   out += convertedResidual;
+    }
+    
+    /// @brief obtain an estimate of the restoring beam
+    /// @details This method fits a 2D Gaussian into the central area of the PSF
+    /// (a support is searched assuming 50% cutoff) if the appropriate option
+    /// is set. Otherwise, it just returns the beam parameters passed in the constructor
+    /// (i.e. user override).
+    /// @param[in] name name of the parameter to work with
+    /// @param[in] shape shape of the parameter
+    casa::Vector<casa::Quantum<double> > ImageRestoreSolver::getBeam(const std::string &name, 
+                                             const casa::IPosition &shape) const
+    {
+        return itsBeam;
     }
 	
     Solver::ShPtr ImageRestoreSolver::clone() const

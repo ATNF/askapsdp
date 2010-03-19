@@ -103,7 +103,7 @@ namespace askap
 	/// over an existing array reference.
     float ImageSolver::doNormalization(const casa::Vector<double>& diag, const float& tolerance, 
                       casa::Array<float>& psf, float psfRefPeak, casa::Array<float>& dirty, 
-				      const boost::shared_ptr<casa::Array<float> > &mask)
+				      const boost::shared_ptr<casa::Array<float> > &mask) const
     {
         const double maxDiag(casa::max(diag));
         const double sumDiag(casa::sum(diag));
@@ -167,7 +167,7 @@ namespace askap
     }
 
     // Apply all the preconditioners in the order in which they were created.
-    bool ImageSolver::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty)
+    bool ImageSolver::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
     {
         casa::Array<float> oldPSF(psf.copy());
 	    bool status=false;

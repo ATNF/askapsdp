@@ -105,7 +105,16 @@ namespace askap
         ///                   the case for faceting).
         /// @param[in] out output array
         void addResiduals(const std::string &name, const casa::IPosition &shape,
-                         casa::Array<double> out);        
+                         casa::Array<double> out) const;
+        
+        /// @brief obtain an estimate of the restoring beam
+        /// @details This method fits a 2D Gaussian into the central area of the PSF
+        /// (a support is searched assuming 50% cutoff) if the appropriate option
+        /// is set. Otherwise, it just returns the beam parameters passed in the constructor
+        /// (i.e. user override).
+        /// @param[in] name name of the parameter to work with
+        /// @param[in] shape shape of the parameter
+        casa::Vector<casa::Quantum<double> > getBeam(const std::string &name, const casa::IPosition &shape) const;
         
       private:
         /// @brief Major, minor axes, and position angle of beam
