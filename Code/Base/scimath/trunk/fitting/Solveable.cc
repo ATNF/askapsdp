@@ -45,34 +45,34 @@ namespace askap
     Solveable::~Solveable(){};
 
 /// Get and set gain
-    double Solveable::gain() {return itsGain;}
+    double Solveable::gain() const {return itsGain;}
     void Solveable::setGain(const double gain) {itsGain=gain;};
 
 /// Get and set number of iterations
-    int Solveable::niter() {return itsNiter;}
+    int Solveable::niter() const {return itsNiter;}
     void Solveable::setNiter(const int niter) {itsNiter=niter;};
 
 /// Get and set tolerance for solution
-    double Solveable::tol() {return itsTol;};
+    double Solveable::tol() const {return itsTol;};
     void Solveable::setTol(const double tol) {itsTol=tol;};
 
 /// Get and set algorithm
-    const std::string& Solveable::algorithm() {return itsAlgorithm;};
+    const std::string& Solveable::algorithm() const {return itsAlgorithm;};
     void Solveable::setAlgorithm(const std::string& algorithm) {itsAlgorithm=algorithm;};
 
 /// Get and set subalgorithm
-    const std::string& Solveable::subAlgorithm() {return itsSubAlgorithm;};
+    const std::string& Solveable::subAlgorithm() const {return itsSubAlgorithm;};
     void Solveable::setSubAlgorithm(const std::string& subalgorithm) {itsSubAlgorithm=subalgorithm;};
     
     void Solveable::setVerbose(bool verbose) {itsVerbose=verbose;};
-    bool Solveable::verbose() {return itsVerbose;};
+    bool Solveable::verbose() const {return itsVerbose;};
 
     void Solveable::setThreshold(const casa::Quantity& threshold) 
     {
       itsThreshold=threshold;
     }
 
-    const casa::Quantity& Solveable::threshold() 
+    const casa::Quantity& Solveable::threshold() const
     {
       return itsThreshold;
     }
