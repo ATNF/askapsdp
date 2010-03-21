@@ -1,4 +1,4 @@
-// @file TOS.ice
+// @file TOM.ice
 //
 // @copyright (c) 2009 CSIRO
 // Australia Telescope National Facility (ATNF)
@@ -22,8 +22,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
-#ifndef ASKAP_TOS_ICE
-#define ASKAP_TOS_ICE
+#ifndef ASKAP_TOM_ICE
+#define ASKAP_TOM_ICE
 
 #include <CommonTypes.ice>
 
@@ -33,11 +33,11 @@ module askap
 module interfaces
 {
 
-module tos
+module tom
 {  
     /**
      * Exception for when a specified antenna cannot be allocated because it
-     * has already been allocated by the TOS Manager.
+     * has already been allocated by the TOM.
      **/
     exception AntAlreadyAllocException
       extends askap::interfaces::AskapIceException
@@ -83,9 +83,9 @@ module tos
     };
 
     /**
-     * Exception thrown when the TOS cannot continue normally because of a
-     * fatal problem with a subsystem, eg. because an antenna is not driving
-     * or the correlator is not responding to commands.
+     * Exception thrown when the TOM observation cannot continue normally
+     * because of a fatal problem with a subsystem, eg. because an antenna
+     * is not driving or the correlator is not responding to commands.
      **/
     exception SubsystemErrorException
       extends askap::interfaces::AskapIceException
@@ -110,7 +110,7 @@ module tos
     
 
 
-    interface ITOSService
+    interface ITOMService
     {        
         /** 
          * Request excusive control of one or more antennas as specified (using
