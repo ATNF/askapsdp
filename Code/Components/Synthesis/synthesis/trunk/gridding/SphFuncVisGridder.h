@@ -47,6 +47,7 @@ namespace askap
 		/// The gridding function is (1-nu**2)*grdsf(nu) where nu is the distance
 		/// to the edge. the grid correction function is just 1/grdsf(nu) where nu
 		/// is now the distance to the edge of the image.
+		/// @ingroup gridding
 		class SphFuncVisGridder : public TableVisGridder
 		{
 			public:
