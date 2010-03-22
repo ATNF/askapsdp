@@ -308,7 +308,7 @@ namespace askap {
                 //
             } else if (this->isWorker()) {
                 bool OK = true;
-                int rank;
+//                int rank;
 
 //                 if (this->isParallel()) {
 //                     do {
@@ -978,27 +978,31 @@ namespace askap {
                 std::vector<PixelInfo::Voxel> templist[numObj];
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
+		  
+		  if(this->itsCube.getObject(i).hasParams()){ // only do this for sources that have been merged. Those that haven't have already had their parameters calculated.
+
                     // for each object, make a vector list of voxels that appear in it.
                     std::vector<PixelInfo::Voxel>
-                    objVoxList = this->itsCube.getObject(i).getPixelSet();
+		      objVoxList = this->itsCube.getObject(i).getPixelSet();
                     std::vector<PixelInfo::Voxel>::iterator vox;
 
                     // get the fluxes of each voxel
                     for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
-                        int ct = 0;
+		      int ct = 0;
 
-                        while (ct < numVox && !vox->match(this->itsVoxelList[ct])) {
-                            ct++;
-                        }
+		      while (ct < numVox && !vox->match(this->itsVoxelList[ct])) {
+			ct++;
+		      }
 
-                        if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
-                            ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("
-                                                   << vox->getX() << "," << vox->getY() << ") in the object lists that doesn't appear in the base list.");
-                        } else vox->setF(this->itsVoxelList[ct].getF());
+		      if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
+			ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("
+					   << vox->getX() << "," << vox->getY() << ") in the object lists that doesn't appear in the base list.");
+		      } else vox->setF(this->itsVoxelList[ct].getF());
                     }
 
                     templist[i] = objVoxList;
-                }
+		  }
+		}
 
                 std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
