@@ -176,7 +176,10 @@ namespace askap {
             IPosition shape = imagePtr->shape();
             long *dim = new long[shape.size()];
 
-            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
+            for (uint i = 0; i < shape.size(); i++){
+	      dim[i] = shape(i);
+	      ASKAPCHECK(dim[i]>0, "Negative dimension: dim["<<i<<"]="<<dim[i]);
+	    }
 
             // Set the number of good axes for the fitsHeader class.
             uint naxis = 0;
@@ -231,7 +234,10 @@ namespace askap {
             IPosition shape = imagePtr->shape();
             long *dim = new long[shape.size()];
 
-            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
+            for (uint i = 0; i < shape.size(); i++) {
+	      dim[i] = shape(i);
+	      ASKAPCHECK(dim[i]>0, "Negative dimension: dim["<<i<<"]="<<dim[i]);
+	    }
 
             cube.initialiseCube(dim);
 
