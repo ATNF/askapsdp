@@ -979,7 +979,7 @@ namespace askap {
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
 		  
-		  if(this->itsCube.getObject(i).hasParams()){ // only do this for sources that have been merged. Those that haven't have already had their parameters calculated.
+		  //		  if(this->itsCube.getObject(i).hasParams()){ // only do this for sources that have been merged. Those that haven't have already had their parameters calculated.
 
                     // for each object, make a vector list of voxels that appear in it.
                     std::vector<PixelInfo::Voxel>
@@ -1001,7 +1001,7 @@ namespace askap {
                     }
 
                     templist[i] = objVoxList;
-		  }
+		    //		  }
 		}
 
                 std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
