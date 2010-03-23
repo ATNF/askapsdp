@@ -877,8 +877,10 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());
 
                     for (long i = 0; i < this->itsCube.getNumObj(); i++) {
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
-                        sourcefitting::RadioSource src(this->itsCube.getObject(i));
+                        if(this->itsFlagDoFit)
+			  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
+
+			sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
                         // Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
                         // Also find the effective detection threshold

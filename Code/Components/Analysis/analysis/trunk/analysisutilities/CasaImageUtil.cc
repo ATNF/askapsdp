@@ -399,7 +399,6 @@ namespace askap {
             std::sort(array.begin(), array.end());
             float madfm = (arrsize % 2 == 0) ? 0.5 * (array[arrsize/2] + array[arrsize/2-1]) : array[arrsize/2];
             madfm = Statistics::madfmToSigma(madfm);
-            ASKAPLOG_DEBUG_STR(logger, "findSurroundingNoise: retrieved array of size " << arrsize << " with median = " << median << " and MADFM = " << madfm);
             delete lattPtr;
             return madfm;
         }
