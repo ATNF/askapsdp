@@ -85,7 +85,22 @@ int main(int argc, const char** argv) {
      // print peak in the image and position of the peak 
      std::cout<<tmax<<" ";
      printDirection(cout,res);
-     std::cout<<std::endl;
+     std::cout<<" # Max RA Dec (Epoch)"<<std::endl;
+     
+     std::cout<<std::setprecision(15)<<res.getValue().getLong("deg").getValue()<<" "<<
+                res.getValue().getLat("deg").getValue()<<" # RA DEC"<<std::endl;
+     
+     casa::Array<float> statBuf;
+     if (imstat.getConvertedStatistic(statBuf,casa::LatticeStatsBase::RMS)) {
+         casa::Vector<float> statVec(statBuf.reform(casa::IPosition(1,statBuf.nelements())));
+         ASKAPCHECK(statVec.nelements() == 1, "Expect exactly one element in the array returned by getConvertedStatistics; you have: "<<statVec);         
+         std::cout<<statVec[0]<<" ";
+     }
+     if (imstat.getConvertedStatistic(statBuf,casa::LatticeStatsBase::MEDIAN)) {
+         casa::Vector<float> statVec(statBuf.reform(casa::IPosition(1,statBuf.nelements())));
+         ASKAPCHECK(statVec.nelements() == 1, "Expect exactly one element in the array returned by getConvertedStatistics; you have: "<<statVec);         
+         std::cout<<statVec[0]<<" # RMS MEDIAN"<<std::endl;
+     }     
   }
   ///==============================================================================
   catch (const cmdlineparser::XParser &ex) {
