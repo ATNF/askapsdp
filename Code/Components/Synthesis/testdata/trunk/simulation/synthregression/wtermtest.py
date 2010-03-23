@@ -1,7 +1,7 @@
 # regression tests with gridders taking w-term into account
 # some fixed parameters are given in wtermtest_template.in
 
-import os
+import os,math
 
 # helper class to run a program from synthesis
 # can be moved into a separate file eventually
@@ -105,9 +105,47 @@ class SynthesisProgramRunner:
          f.close()
       return result
       
+# angular distance in degrees of the peak from the given point
+# ra and dec are J2000 coordinates in degrees
+# stats - dictionary with 'ra' and 'dec' field giving the position of the peak
+def getDistance(stats, ra, dec):
+   ra1 = stats['ra']
+   dec1 = stats['dec']
+   cosd = math.sin(math.pi/180.*dec1)*math.sin(math.pi/180.*dec)+math.cos(math.pi/180.*dec1)*math.cos(math.pi/180.*dec)* math.cos(math.pi/180.*(ra1-ra));
+   return math.acos(cosd)*180./math.pi;
+
+# formulae for SIN-projection to test that position is at the right spot
+def sinProjection(ref,l,m):
+   '''
+      ref - a list or tuple with 2 elements being ra and dec in degrees of the tangent point
+      l,m - offsets in the tangent plane in degrees
+
+      Return: two element tuple with ra and dec of the offset position (degrees)
+   '''
+   if len(ref)!=2:
+      raise RuntimeError, "Expected two-element list or tuple, you have: %s" % (ref,)
+   # offsets in radians
+   L = l/180.*math.pi
+   M = m/180.*math.pi
+   # sin and cos of ref. declination
+   cDelta0 = math.cos(ref[1]/180.*math.pi)
+   sDelta0 = math.sin(ref[1]/180.*math.pi)
+   # actual result
+   dec = math.asin(M*cDelta0+sDelta0*math.sqrt(1.-L*L-M*M))/math.pi*180.
+   ra = ref[0] + math.atan2(L,cDelta0*math.sqrt(1.-L*L-M*M)-M*sDelta0)/math.pi*180.
+   return (ra,dec)
 
 spr = SynthesisProgramRunner()
 spr.runSimulator()
 spr.runImager()
-print spr.imageStats('image.field1.restored')
+#true_peak1 = [-169.667367,-43.0250467]
+src_offset = 0.006/math.pi*180.
+true_peak=sinProjection([-172.5,-45],src_offset,src_offset)
+stats = spr.imageStats('image.field1.restored')
+print "Statistics for restored image: ",stats
+disterr = getDistance(stats,true_peak[0],true_peak[1])*3600.
+if disterr > 8:
+   raise RuntimeError, "Offset between true and expected position exceeds 1 cell size (8 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
+if abs(stats['peak']-1.)>0.01:
+   raise RuntimeError, "Peak flux in the image is notably different from 1 Jy, F=%f" % stats['peak']
 print spr.imageStats('image.field1')

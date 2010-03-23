@@ -7,8 +7,8 @@ Csimulator.sources.names                        =       [field1]
 Csimulator.sources.field1.direction              =       [12h30m00.000, -45.00.00.000, J2000]
 Csimulator.sources.field1.components             =       [src1]
 Csimulator.sources.src1.flux.i                  = 1.0
-Csimulator.sources.src1.direction.ra           = 0.035
-Csimulator.sources.src1.direction.dec           = 0.035
+Csimulator.sources.src1.direction.ra           = 0.006
+Csimulator.sources.src1.direction.dec           = 0.006
 
 #
 # Define the antenna locations, feed locations, and spectral window definitions
@@ -67,7 +67,8 @@ Cimager.Images.cellsize	                        = [4.0arcsec, 4.0arcsec]
 Cimager.Images.image.field1.frequency	        = [1.164e9,1.420e9]
 Cimager.Images.image.field1.nchan		= 1
 Cimager.Images.image.field1.polarisation       = ["I"]
-Cimager.Images.image.field1.direction	        = [12h40m50.00, -43.00.00.00, J2000]
+#Cimager.Images.image.field1.direction	        = [12h40m50.00, -43.00.00.00, J2000]
+Cimager.Images.image.field1.direction	        = [12h30m00.00, -45.00.00.00, J2000]
 
 #
 Cimager.gridder                          	= WProject
