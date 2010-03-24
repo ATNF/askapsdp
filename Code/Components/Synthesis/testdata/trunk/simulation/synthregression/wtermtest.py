@@ -197,6 +197,11 @@ def analyseResult(spr):
    if abs(stats['rms']-stats['peak'])>0.1 or abs(stats['rms']-stats['median'])>0.1 or abs(stats['peak']-stats['median'])>0.1:
       raise RuntimeError, "Weight image is expected to be constant for WProject and WStack gridders"
 
+   stats = spr.imageStats('residual.field1')
+   print "Statistics for residual image: ",stats
+   if stats['rms']>0.01 or abs(stats['median'])>0.0001:
+      raise RuntimeError, "Residual image has too high rms or median. Please verify"
+
 
 spr = SynthesisProgramRunner()
 spr.runSimulator()
