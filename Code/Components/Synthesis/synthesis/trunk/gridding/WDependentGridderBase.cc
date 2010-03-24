@@ -41,9 +41,10 @@ using namespace askap::synthesis;
 /// @details
 /// @param[in] wmax Maximum baseline (wavelengths)
 /// @param[in] nwplanes Number of w planes   
-WDependentGridderBase::WDependentGridderBase(const double wmax, const double nwplanes) : itsWScale(wmax),
+WDependentGridderBase::WDependentGridderBase(const double wmax, const int nwplanes) : itsWScale(wmax),
      itsNWPlanes(nwplanes) 
 {
+  ASKAPDEBUGASSERT(nwplanes>=0);
   if (nwplanes>1) {
       itsWScale /= double((nwplanes-1)/2);
   } else {

@@ -38,6 +38,8 @@
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 
+#include <cmath>
+
 using namespace askap;
 using namespace askap::synthesis;
 
@@ -160,11 +162,11 @@ void SupportSearcher::findPeak(const casa::Matrix<casa::Complex> &in)
       ASKAPTHROW(CheckError, "An empty matrix has been passed to SupportSearcher::findPeak, please investigate. Shape="<<
                  in.shape());
   }
-  if (isinf(itsPeakVal) || isnan(itsPeakVal)) {
+  if (std::isinf(itsPeakVal) || std::isnan(itsPeakVal)) {
       SynthesisParamsHelper::saveAsCasaImage("dbg.img",amplitude(in));
   }
-  ASKAPCHECK(!isnan(itsPeakVal), "Peak value is not a number, please investigate. itsPeakPos="<<itsPeakPos);
-  ASKAPCHECK(!isinf(itsPeakVal), "Peak value is infinite, please investigate. itsPeakPos="<<itsPeakPos);
+  ASKAPCHECK(!std::isnan(itsPeakVal), "Peak value is not a number, please investigate. itsPeakPos="<<itsPeakPos);
+  ASKAPCHECK(!std::isinf(itsPeakVal), "Peak value is infinite, please investigate. itsPeakPos="<<itsPeakPos);
 #endif // #ifdef ASKAP_DEBUG
 
   ASKAPCHECK(itsPeakVal>0.0, "Unable to find peak of the convolution function, all values appear to be zero. itsPeakVal=" 
@@ -197,7 +199,7 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
   itsTRC = -1;
   ASKAPCHECK(itsPeakVal>0.0, "A positive peak value of the convolution function is expected inside doSupportSearch, itsPeakVal" << 
                              itsPeakVal);
-  ASKAPCHECK(!isinf(itsPeakVal), "Peak value is infinite, this shouldn't happen. itsPeakPos="<<itsPeakPos);
+  ASKAPCHECK(!std::isinf(itsPeakVal), "Peak value is infinite, this shouldn't happen. itsPeakPos="<<itsPeakPos);
   ASKAPCHECK(itsPeakPos[0]>0 && itsPeakPos[1]>0, "Peak position of the convolution function "<<itsPeakPos<<
              " is too close to the edge, increase maxsupport");
   ASKAPCHECK(itsPeakPos[0] + 1 < int(in.nrow()) && itsPeakPos[1] + 1 < int(in.ncolumn()), 

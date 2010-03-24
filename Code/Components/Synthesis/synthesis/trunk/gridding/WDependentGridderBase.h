@@ -50,7 +50,7 @@ public:
    /// @details
    /// @param[in] wmax Maximum baseline (wavelengths)
    /// @param[in] nwplanes Number of w planes   
-   WDependentGridderBase(const double wmax, const double nwplanes); 
+   WDependentGridderBase(const double wmax, const int nwplanes); 
    
    /// @brief obtain the number of w-planes
    /// @details 
