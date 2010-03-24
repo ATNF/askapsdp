@@ -38,10 +38,29 @@ class SynthesisProgramRunner:
           raise RuntimeError, "imgstat is missing at %s" % self.imgstat
 
       self.tmp_parset = "temp_parset.in"
+      self.initParset()
+      
+   
+   def initParset(self):
+      '''
+         Initialise temporary parset to the template
+
+      '''
       if os.path.exists(self.tmp_parset):
          print "WARNING. File %s is overwritten" % self.tmp_parset
       os.system("rm -f %s" %  self.tmp_parset)
       os.system("cp %s %s" % (self.template_parset, self.tmp_parset))
+      
+
+   def addToParset(self,str):
+      '''
+         Add the given string to the temporary parset file (created in
+         the constructor and passed to all commands executed throughout
+         the lifetime of this object
+  
+         str string to add
+      '''
+      os.system("echo \'%s\' >> %s" % (str, self.tmp_parset))
 
    def runCommand(self,cmd):
       '''
@@ -135,17 +154,33 @@ def sinProjection(ref,l,m):
    ra = ref[0] + math.atan2(L,cDelta0*math.sqrt(1.-L*L-M*M)-M*sDelta0)/math.pi*180.
    return (ra,dec)
 
+def analyseResult(spr):
+   '''
+      spr - synthesis program runner (to run imageStats)
+
+      throws exceptions if something is wrong, otherwise just
+      returns
+   '''
+   src_offset = 0.006/math.pi*180.
+   true_peak=sinProjection([-172.5,-45],src_offset,src_offset)
+   stats = spr.imageStats('image.field1.restored')
+   print "Statistics for restored image: ",stats
+   disterr = getDistance(stats,true_peak[0],true_peak[1])*3600.
+   if disterr > 8:
+      raise RuntimeError, "Offset between true and expected position exceeds 1 cell size (8 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
+   if abs(stats['peak']-1.)>0.01:
+      raise RuntimeError, "Peak flux in the image is notably different from 1 Jy, F=%f" % stats['peak']
+   print spr.imageStats('image.field1')
+
+
 spr = SynthesisProgramRunner()
 spr.runSimulator()
+
+spr.addToParset("Cimager.gridder = WProject")
 spr.runImager()
-#true_peak1 = [-169.667367,-43.0250467]
-src_offset = 0.006/math.pi*180.
-true_peak=sinProjection([-172.5,-45],src_offset,src_offset)
-stats = spr.imageStats('image.field1.restored')
-print "Statistics for restored image: ",stats
-disterr = getDistance(stats,true_peak[0],true_peak[1])*3600.
-if disterr > 8:
-   raise RuntimeError, "Offset between true and expected position exceeds 1 cell size (8 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
-if abs(stats['peak']-1.)>0.01:
-   raise RuntimeError, "Peak flux in the image is notably different from 1 Jy, F=%f" % stats['peak']
-print spr.imageStats('image.field1')
+analyseResult(spr)
+
+spr.initParset()
+spr.addToParset("Cimager.gridder = WStack")
+spr.runImager()
+analyseResult(spr)

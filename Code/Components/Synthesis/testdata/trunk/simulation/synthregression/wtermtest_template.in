@@ -71,7 +71,7 @@ Cimager.Images.image.field1.polarisation       = ["I"]
 Cimager.Images.image.field1.direction	        = [12h30m00.00, -45.00.00.00, J2000]
 
 #
-Cimager.gridder                          	= WProject
+#Cimager.gridder                          	= WProject
 #Cimager.gridder                          	= WStack
 Cimager.gridder.WProject.wmax                   = 30000
 Cimager.gridder.WProject.nwplanes               = 33
@@ -79,7 +79,7 @@ Cimager.gridder.WProject.oversample             = 8
 Cimager.gridder.WProject.maxsupport       = 1024
 Cimager.gridder.WProject.cutoff           = 0.001
 Cimager.gridder.WStack.wmax              = 30000
-Cimager.gridder.WStack.nwplanes          = 3
+Cimager.gridder.WStack.nwplanes          = 25
 Cimager.gridder.WProject.variablesupport = true
 Cimager.gridder.WProject.offsetsupport = true
 
