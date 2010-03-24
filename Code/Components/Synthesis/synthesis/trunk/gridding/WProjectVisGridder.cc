@@ -430,7 +430,7 @@ namespace askap
        const int maxSupport=parset.getInt32("maxsupport", 256);
        const int limitSupport=parset.getInt32("limitsupport", 0);
        const string tablename=parset.getString("tablename", "");
-       ASKAPLOG_INFO_STR(logger, "Gridding using W projection " << nwplanes);
+       ASKAPLOG_INFO_STR(logger, "Gridding using W projection with " << nwplanes<<" w-planes");
        boost::shared_ptr<WProjectVisGridder> gridder(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
 								  maxSupport, limitSupport, tablename));      
        const bool planeDependentSupport = parset.getBool("variablesupport",false);

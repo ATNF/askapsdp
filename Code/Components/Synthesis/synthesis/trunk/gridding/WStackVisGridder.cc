@@ -299,9 +299,9 @@ namespace askap
     /// @return a shared pointer to the gridder instance					 
     IVisGridder::ShPtr WStackVisGridder::createGridder(const LOFAR::ParameterSet& parset)
     {
-      double wmax=parset.getDouble("gridder.WStack.wmax", 35000.0);
-      int nwplanes=parset.getInt32("gridder.WStack.nwplanes", 65);
-      ASKAPLOG_INFO_STR(logger, "Gridding using W stacking ");
+      double wmax=parset.getDouble("WStack.wmax", 35000.0);
+      int nwplanes=parset.getInt32("WStack.nwplanes", 65);
+      ASKAPLOG_INFO_STR(logger, "Gridding using W stacking with "<<nwplanes<<" w-planes in the stack");
       return IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes)); 
     }
 
