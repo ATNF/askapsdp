@@ -3,4 +3,4 @@ log4j=3rdParty/apache-log4j/tags/apache-log4j-1.2.15
 ice=3rdParty/Ice/tags/Ice-3.3.0;IceStorm Ice IceUtil
 interfaces=Code/Interfaces/trunk
 iceutils=Code/Base/py-iceutils/trunk
-atoms-time=3rdParty/atoms-time/tags/atoms-time-r246
+atoms-time=3rdParty/atoms-time/tags/atoms-time-r284
