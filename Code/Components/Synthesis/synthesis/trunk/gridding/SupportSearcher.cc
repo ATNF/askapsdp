@@ -149,7 +149,10 @@ void SupportSearcher::findPeak(const casa::Matrix<casa::Complex> &in)
   itsPeakVal = -1;
   for (int iy=0;iy<int(in.ncolumn());++iy) {
        for (int ix=0;ix<int(in.nrow());++ix) {
-            const double curVal = casa::abs(in(ix,iy));
+	    // the following line has been commented out until we find a better work around on the delphinus/minicp bug
+	    // See ticket:2307
+            //const double curVal = std::abs(in(ix,iy));
+	    const double curVal = std::abs(casa::DComplex(in(ix,iy)));
             if(itsPeakVal< curVal) {
                itsPeakPos(0)=ix;
                itsPeakPos(1)=iy;
@@ -199,7 +202,7 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
   itsTRC = -1;
   ASKAPCHECK(itsPeakVal>0.0, "A positive peak value of the convolution function is expected inside doSupportSearch, itsPeakVal" << 
                              itsPeakVal);
-  ASKAPCHECK(!std::isinf(itsPeakVal), "Peak value is infinite, this shouldn't happen. itsPeakPos="<<itsPeakPos);
+  ASKAPCHECK(!std::isinf(itsPeakVal), "Peak value is infinite, this shouldn't happen. itsPeakPos="<<itsPeakPos); 
   ASKAPCHECK(itsPeakPos[0]>0 && itsPeakPos[1]>0, "Peak position of the convolution function "<<itsPeakPos<<
              " is too close to the edge, increase maxsupport");
   ASKAPCHECK(itsPeakPos[0] + 1 < int(in.nrow()) && itsPeakPos[1] + 1 < int(in.ncolumn()), 

@@ -204,6 +204,7 @@ namespace askap
 
       int qnx=nx/itsOverSample;
       int qny=ny/itsOverSample;
+      ASKAPDEBUGASSERT((qnx!=0) && (qny!=0));
 
       // Find the actual cellsizes in x and y (radians) after over
       // oversampling (in uv space)
@@ -267,6 +268,14 @@ namespace askap
         // Now we have to calculate the Fourier transform to get the
         // convolution function in uv space
         scimath::fft2d(thisPlane, true);
+
+	/*
+        for (uint xx=0;xx<thisPlane.nrow();++xx) {
+	     for (uint yy=0;yy<thisPlane.ncolumn();++yy) {
+	          ASKAPCHECK(!std::isinf(casa::abs(thisPlane(xx,yy))), "Infinite value detected for plane="<<iw<<" at "<<xx<<","<<yy<<" "<<thisPlane(xx,yy));
+             }
+	}
+	*/
 
         // Now thisPlane is filled with convolution function
         // sampled on a finer grid in u,v
