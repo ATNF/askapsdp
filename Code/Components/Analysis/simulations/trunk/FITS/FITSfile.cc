@@ -64,7 +64,7 @@
 #include <fitsio.h>
 #include <duchamp/duchamp.hh>
 #include <duchamp/Utils/utils.hh>
-#include <duchamp/Utils/GaussSmooth.hh>
+#include <duchamp/Utils/GaussSmooth2D.hh>
 
 #include <iostream>
 #include <sstream>
@@ -697,7 +697,7 @@ namespace askap {
             void FITSfile::convolveWithBeam()
             {
                 /// @brief The array is convolved with the Gaussian beam
-                /// specified in itsBeamInfo. The GaussSmooth class from the
+                /// specified in itsBeamInfo. The GaussSmooth2D class from the
                 /// Duchamp library is used. Note that this is only done if
                 /// itsHaveBeam is set true.
                 if (!this->itsHaveBeam) {
@@ -707,7 +707,7 @@ namespace askap {
                     float maj = this->itsBeamInfo[0] / fabs(this->itsWCS->cdelt[0]);
                     float min = this->itsBeamInfo[1] / fabs(this->itsWCS->cdelt[1]);
                     float pa = this->itsBeamInfo[2];
-                    GaussSmooth<float> smoother(maj, min, pa);
+                    GaussSmooth2D<float> smoother(maj, min, pa);
                     ASKAPLOG_DEBUG_STR(logger, "Defined the smoother, now to do the smoothing");
                     float *newArray = smoother.smooth(this->itsArray, this->itsAxes[0], this->itsAxes[1]);
                     ASKAPLOG_DEBUG_STR(logger, "Smoothing done.");

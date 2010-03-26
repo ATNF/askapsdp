@@ -5,5 +5,5 @@ askapparallel=Code/Base/mwbase/askapparallel/trunk
 analysis=Code/Components/Analysis/analysis/trunk
 cfitsio=3rdParty/cfitsio/tags/cfitsio-3.0.6
 wcslib=3rdParty/wcslib/tags/wcslib-4.2
-duchamp=3rdParty/Duchamp/tags/Duchamp-1.1.8
+duchamp=3rdParty/Duchamp/tags/Duchamp-1.1.9
 casacore3rdParty/casacore/tags/casacore-1.0.0;casa_casa

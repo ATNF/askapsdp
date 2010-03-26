@@ -308,12 +308,12 @@ namespace askap {
                 smlIm.setMinSize(1);
                 float thresh = (this->itsDetectionThreshold + this->peakFlux) / 2.;
                 smlIm.stats().setThreshold(thresh);
-                std::vector<PixelInfo::Object2D> objlist = smlIm.lutz_detect();
+                std::vector<PixelInfo::Object2D> objlist = smlIm.findSources2D();
                 std::vector<PixelInfo::Object2D>::iterator o;
 
                 for (o = objlist.begin(); o < objlist.end(); o++) {
                     duchamp::Detection tempobj;
-                    tempobj.pixels().addChannel(0, *o);
+                    tempobj.addChannel(0, *o);
                     tempobj.calcFluxes(fluxarray, dim); // we need to know where the peak is.
 
                     if ((tempobj.getXPeak() + this->boxXmin()) == this->getXPeak()  &&
@@ -331,8 +331,8 @@ namespace askap {
             std::vector<SubComponent> RadioSource::getSubComponentList(casa::Vector<casa::Double> &f)
             {
                 std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(f);
-                float dx = this->getXAverage() - this->getXPeak();
-                float dy = this->getYAverage() - this->getYPeak();
+                float dx = this->getXaverage() - this->getXPeak();
+                float dy = this->getYaverage() - this->getYPeak();
 
                 if (hypot(dx, dy) > 2.) {
                     SubComponent antipus;
@@ -393,7 +393,7 @@ namespace askap {
                 long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image smlIm(dim);
                 float *fluxarray = new float[this->boxSize()];
-                PixelInfo::Object2D spatMap = this->pixelArray.getSpatialMap();
+                PixelInfo::Object2D spatMap = this->getSpatialMap();
 
                 for (int i = 0; i < this->boxSize(); i++) {
                     if (spatMap.isInObject(i % this->boxXsize() + this->boxXmin(), i / this->boxXsize() + this->boxYmin()))
@@ -425,7 +425,7 @@ namespace askap {
                     threshCtr++;
                     thresh = pow(10., baseThresh + threshCtr * threshIncrement);
                     smlIm.stats().setThreshold(thresh);
-                    objlist = smlIm.lutz_detect();
+                    objlist = smlIm.findSources2D();
                     keepGoing = (objlist.size() == 1);
                 } while (keepGoing && (threshCtr < numThresh));
 
@@ -434,10 +434,10 @@ namespace askap {
                         RadioSource newsrc;
                         newsrc.setFitParams(this->itsFitParams);
                         newsrc.setDetectionThreshold(thresh);
-                        newsrc.pixels().addChannel(0, *obj);
+                        newsrc.addChannel(0, *obj);
                         newsrc.calcFluxes(fluxarray, dim);
                         newsrc.setBox(this->box());
-                        newsrc.pixels().addOffsets(this->boxXmin(), this->boxYmin(), 0);
+                        newsrc.addOffsets(this->boxXmin(), this->boxYmin(), 0);
                         newsrc.xpeak += this->boxXmin();
                         newsrc.ypeak += this->boxYmin();
                         std::vector<SubComponent> newlist = newsrc.getThresholdedSubComponentList(f);
@@ -484,17 +484,17 @@ namespace askap {
                 smlIm.setMinSize(1);
                 float baseThresh = log10(this->itsDetectionThreshold);
                 float threshIncrement = (log10(this->peakFlux) - baseThresh) / float(numThresh);
-                PixelInfo::Object2D spatMap = this->pixelArray.getSpatialMap();
+                PixelInfo::Object2D spatMap = this->getSpatialMap();
 
                 for (int i = 1; i <= numThresh; i++) {
                     float thresh = pow(10., baseThresh + i * threshIncrement);
                     smlIm.stats().setThreshold(thresh);
-                    std::vector<PixelInfo::Object2D> objlist = smlIm.lutz_detect();
+                    std::vector<PixelInfo::Object2D> objlist = smlIm.findSources2D();
                     std::vector<PixelInfo::Object2D>::iterator o;
 
                     for (o = objlist.begin(); o < objlist.end(); o++) {
                         duchamp::Detection tempobj;
-                        tempobj.pixels().addChannel(0, *o);
+                        tempobj.addChannel(0, *o);
                         tempobj.calcFluxes(fluxarray, dim);
                         bool pkInObj = spatMap.isInObject(tempobj.getXPeak() + this->boxXmin(),
                                                           tempobj.getYPeak() + this->boxYmin());

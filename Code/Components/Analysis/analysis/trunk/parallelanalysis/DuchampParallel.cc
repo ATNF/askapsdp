@@ -718,7 +718,7 @@ namespace askap {
                             for (int32 x = xmin; x <= xmax; x++) {
                                 for (int32 y = ymin; y <= ymax; y++) {
                                     for (int32 z = zmin; z <= zmax; z++) {
-                                        bool inObject = src->pixels().isInObject(x, y, z);
+                                        bool inObject = src->isInObject(x, y, z);
                                         float flux = this->itsCube.getPixValue(x, y, z);
                                         out << inObject << x << y << z << flux;
 
