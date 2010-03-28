@@ -29,7 +29,7 @@ EXEOBJS = $(EXENAME).o Stopwatch.o
 EXELIBS = -lCudaGridder
 
 LIBNAME=libCudaGridder.so
-LIBOBJS=CudaGridder.o CudaGridKernel.o 
+LIBOBJS=CudaGridder.o CudaGridKernel.o Stopwatch.o
 
 NVCCFLAGS=-O3 --compiler-options -fPIC
 
