@@ -108,7 +108,6 @@ namespace askap {
       itsCMap.resize(nSamples, nPol, nChan);
       itsCMap.set(0);
       
-      const int cenw=(itsNWPlanes-1)/2;
       const casa::Vector<casa::RigidVector<double, 3> > &rotatedUVW = acc.rotatedUVW(getTangentPoint());
       
       
@@ -121,28 +120,17 @@ namespace askap {
 	
            for (int chan=0; chan<nChan; ++chan) {
                 const double freq=acc.frequency()[chan];
-                int iw=0;
-                if (itsNWPlanes>1) {
-                    iw=cenw+int(w*freq/itsWScale);
-                }
-                ASKAPCHECK(iw<itsNWPlanes,
-                          "W scaling error: recommend allowing larger range of w, you have w="<<
-                           w*freq<<" wavelengths");
-                ASKAPCHECK(iw>-1,
-                          "W scaling error: recommend allowing larger range of w, you have w="<<
-                           w*freq<<" wavelengths, freq="<<freq/1e9<<" GHz, w(before rotation)="<<
-                           acc.uvw()(i)(2)/casa::C::c*freq<<" wavelengths");
-	  
+                const int iw=getWPlane(w*freq);	  
                 for (int pol=0; pol<nPol; ++pol) {
                      /// Order is (iw, chan, feed)
                      if (itsFreqDep) {
-                         itsCMap(i, pol, chan)=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
-                         ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan, 
+                         itsCMap(i, pol, chan)=iw+nWPlanes()*(chan+nChan*(feed+itsMaxFeeds*currentField()));
+                         ASKAPCHECK(itsCMap(i, pol, chan)<nWPlanes()*itsMaxFeeds*itsMaxFields*nChan, 
                                     "CMap index too large");
                          ASKAPCHECK(itsCMap(i, pol, chan)>-1,"CMap index less than zero");
                      } else {
-                         itsCMap(i, pol, chan)=iw+itsNWPlanes*(feed+itsMaxFeeds*currentField());
-                         ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes*itsMaxFeeds*itsMaxFields, 
+                         itsCMap(i, pol, chan)=iw+nWPlanes()*(feed+itsMaxFeeds*currentField());
+                         ASKAPCHECK(itsCMap(i, pol, chan)<nWPlanes()*itsMaxFeeds*itsMaxFields, 
                                 "CMap index too large");
                          ASKAPCHECK(itsCMap(i, pol, chan)>-1,"CMap index less than zero");
                      }
@@ -249,16 +237,14 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       const int nChan=itsFreqDep ? acc.nChannel() : 1;
       
       if(itsSupport==0) {
-         itsConvFunc.resize(itsOverSample*itsOverSample*itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan);
-         itsSumWeights.resize(itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
+         itsConvFunc.resize(itsOverSample*itsOverSample*nWPlanes()*itsMaxFeeds*itsMaxFields*nChan);
+         itsSumWeights.resize(nWPlanes()*itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
          itsSumWeights.set(0.0);
          if (isOffsetSupportAllowed()) {
-             initConvFuncOffsets(itsNWPlanes*itsMaxFeeds*itsMaxFields*nChan);
+             initConvFuncOffsets(nWPlanes()*itsMaxFeeds*itsMaxFields*nChan);
 	     }         
       }
-      
-      const int cenw=(itsNWPlanes-1)/2;
-      
+           
       /// Limit the size of the convolution function since
       /// we don't need it finely sampled in image space. This
       /// will reduce the time taken to calculate it.
@@ -317,7 +303,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                     /// Calculate the total convolution function including
                     /// the w term and the antenna convolution function
               
-                    for (int iw=0; iw<itsNWPlanes; ++iw) {
+                    for (int iw=0; iw<nWPlanes(); ++iw) {
                          thisPlane.set(0.0);
 	      
 	      
@@ -325,7 +311,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                          // of the phase screen and the spheroidal function
                          double maxCF=0.0;
                          double peak=0.0;
-                         double w=2.0f*casa::C::pi*double(iw-cenw)*itsWScale;
+                         double w=2.0f*casa::C::pi*getWTerm(iw);
                          //std::cout<<"plane "<<iw<<" w="<<w<<std::endl;
 	      
 	      for (int iy=0; iy<int(ny); ++iy) {
@@ -368,7 +354,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	      thisPlane*=casa::Complex(1.0/(double(nx)*double(ny)));
 	      maxCF/=double(nx)*double(ny);
 
-	      const int zIndex=iw+itsNWPlanes*(chan+nChan*(feed+itsMaxFeeds*currentField()));
+	      const int zIndex=iw+nWPlanes()*(chan+nChan*(feed+itsMaxFeeds*currentField()));
 	      	      	    
 	      // If the support is not yet set, find it and size the
 	      // convolution function appropriately
@@ -413,7 +399,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		  const int cSize=2*support+1;
 	      for (int fracu=0; fracu<itsOverSample; fracu++) {
 		for (int fracv=0; fracv<itsOverSample; fracv++) {
-		  int plane=fracu+itsOverSample*(fracv+itsOverSample
+		  const int plane=fracu+itsOverSample*(fracv+itsOverSample
 						 *zIndex);
 		  ASKAPDEBUGASSERT(plane>=0 && plane<int(itsConvFunc.size()));
 		  itsConvFunc[plane].resize(cSize, cSize);
@@ -445,7 +431,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       }
       
       
-      if (nDone == itsMaxFeeds*itsMaxFields*itsNWPlanes) {
+      if (nDone == itsMaxFeeds*itsMaxFields*nWPlanes()) {
             if (isSupportPlaneDependent()) {
                 ASKAPLOG_INFO_STR(logger, "Convolution function cache has "<<itsConvFunc.size()<<" planes");
                 ASKAPLOG_INFO_STR(logger, "Variable support size is used:");

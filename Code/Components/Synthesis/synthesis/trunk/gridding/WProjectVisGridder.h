@@ -29,7 +29,7 @@
 #ifndef ASKAP_SYNTHESIS_WPROJECTVISGRIDDER_H_
 #define ASKAP_SYNTHESIS_WPROJECTVISGRIDDER_H_
 
-#include <gridding/SphFuncVisGridder.h>
+#include <gridding/WDependentGridderBase.h>
 #include <dataaccess/IConstDataAccessor.h>
 
 namespace askap
@@ -50,7 +50,7 @@ namespace askap
     /// The scaling is slow in data points, fast in w planes.
     ///
     /// @ingroup gridding
-    class WProjectVisGridder : public SphFuncVisGridder
+    class WProjectVisGridder : public WDependentGridderBase
     {
   public:
 
@@ -176,10 +176,6 @@ namespace askap
       /// @param[in] flag true to search for plane-dependent support, false (default) otherwise
       inline void offsetSupport(bool flag) { itsOffsetSupportAllowed = flag; }
       
-      /// Scaling
-      double itsWScale;
-      /// Number of w planes
-      int itsNWPlanes;
       /// Mapping from row, pol, and channel to planes of convolution function
       casa::Cube<int> itsCMap;
   private:    

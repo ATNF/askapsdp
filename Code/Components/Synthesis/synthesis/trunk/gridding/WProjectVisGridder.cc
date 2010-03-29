@@ -50,27 +50,19 @@ namespace askap
     WProjectVisGridder::WProjectVisGridder(const double wmax,
         const int nwplanes, const double cutoff, const int overSample,
 	const int maxSupport, const int limitSupport, const std::string& name) :
+	    WDependentGridderBase(wmax,nwplanes),
 	    itsMaxSupport(maxSupport), itsCutoff(cutoff), itsLimitSupport(limitSupport),
 	    itsPlaneDependentCFSupport(false), itsOffsetSupportAllowed(false)
     {
-      ASKAPCHECK(wmax>0.0, "Baseline length must be greater than zero");
-      ASKAPCHECK(nwplanes>0, "Number of w planes must be greater than zero");
-      ASKAPCHECK(nwplanes%2==1, "Number of w planes must be odd");
       ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
       ASKAPCHECK(cutoff>0.0, "Cutoff must be positive");
       ASKAPCHECK(cutoff<1.0, "Cutoff must be less than 1.0");
       ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
       itsSupport=0;
-      itsNWPlanes=nwplanes;
-      if (nwplanes>1) {
-         itsWScale=wmax/double((nwplanes-1)/2);
-      } else {
-         itsWScale=1.0;
-      }
       itsOverSample=overSample;
       itsName=name;
 
-      itsConvFunc.resize(itsNWPlanes*itsOverSample*itsOverSample);
+      itsConvFunc.resize(nWPlanes()*itsOverSample*itsOverSample);
     }
 
     WProjectVisGridder::~WProjectVisGridder()
@@ -82,8 +74,7 @@ namespace askap
     /// object and the copy.
     /// @param[in] other input object
     WProjectVisGridder::WProjectVisGridder(const WProjectVisGridder &other) :
-         SphFuncVisGridder(other), itsWScale(other.itsWScale), 
-         itsNWPlanes(other.itsNWPlanes), 
+         WDependentGridderBase(other), 
          itsCMap(other.itsCMap.copy()), itsMaxSupport(other.itsMaxSupport),
          itsCutoff(other.itsCutoff), itsLimitSupport(other.itsLimitSupport),
          itsPlaneDependentCFSupport(other.itsPlaneDependentCFSupport),
@@ -104,7 +95,7 @@ namespace askap
     /// been initialised by the time this method is called.
     void WProjectVisGridder::initialiseSumOfWeights()
     {
-       itsSumWeights.resize(itsNWPlanes, itsShape.nelements()>=3 ? itsShape(2) : 1, 
+       itsSumWeights.resize(nWPlanes(), itsShape.nelements()>=3 ? itsShape(2) : 1, 
                               itsShape.nelements()>=4 ? itsShape(3) : 1);
        itsSumWeights.set(0.0);
     }
@@ -129,7 +120,6 @@ namespace askap
       itsCMap.set(-1);
       #endif
       
-      int cenw=(itsNWPlanes-1)/2;
       const casa::Vector<casa::RigidVector<double, 3> > &rotatedUVW = acc.rotatedUVW(getTangentPoint());
       
       for (int i=0; i<nSamples; ++i)
@@ -139,25 +129,9 @@ namespace askap
         {
           for (int pol=0; pol<nPol; ++pol)
           {
-            double freq=acc.frequency()[chan];
+            const double freq=acc.frequency()[chan];
             /// Calculate the index into the convolution functions
-            if (itsNWPlanes>1)
-            {
-              itsCMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
-            }
-            else
-            {
-              itsCMap(i, pol, chan)=0;
-            }
-            if (itsCMap(i, pol, chan)<0)
-            {
-              ASKAPLOG_WARN_STR(logger, w << " "<< freq << " "<< itsWScale
-                  << " "<< itsCMap(i, pol, chan) );
-            }
-            ASKAPCHECK(itsCMap(i, pol, chan)<itsNWPlanes,
-                "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
-            ASKAPCHECK(itsCMap(i, pol, chan)>-1,
-                "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
+            itsCMap(i, pol, chan) = getWPlane(w*freq);
           }
         }
       }
@@ -170,8 +144,7 @@ namespace askap
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
-      const int cenw=(itsNWPlanes-1)/2;
-
+ 
       if (itsSupport>0)
       {
         return;
@@ -180,7 +153,7 @@ namespace askap
       itsSupport=0;
       if (isOffsetSupportAllowed()) {
           // this command is executed only once when itsSupport is not set.
-	      initConvFuncOffsets(itsNWPlanes);
+	      initConvFuncOffsets(nWPlanes());
 	  }
       
 
@@ -234,11 +207,11 @@ namespace askap
       ASKAPDEBUGASSERT(thisPlane.nrow() == casa::uInt(nx));
       ASKAPDEBUGASSERT(thisPlane.ncolumn() == casa::uInt(ny));     
 
-      for (int iw=0; iw<itsNWPlanes; iw++)
+      for (int iw=0; iw<nWPlanes(); ++iw)
       {
         thisPlane.set(0.0);
 
-        const float w=2.0f*casa::C::pi*float(iw-cenw)*itsWScale;
+        const float w = 2.0f*casa::C::pi*getWTerm(iw);
         // Loop over the central nx, ny region, setting it to the product
         // of the phase screen and the spheroidal function
         for (int iy=0; iy<qny; iy++)
