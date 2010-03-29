@@ -135,8 +135,6 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
     itsGMap.resize(nSamples, nPol, nChan);
     itsGMap.set(0);
 
-    const int cenw=(itsNWPlanes-1)/2;
-
     const casa::Vector<casa::RigidVector<double, 3> > &rotatedUVW = acc.rotatedUVW(getTangentPoint());
 
     for (int i=0; i<nSamples; ++i) {
@@ -164,15 +162,7 @@ void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
                 itsCMap(i, pol, chan) = index;
                 
                 /// Calculate the index into the grids
-                if (itsNWPlanes>1) {
-                    itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
-                } else {
-                    itsGMap(i, pol, chan)=0;
-                }
-                ASKAPCHECK(itsGMap(i, pol, chan)<itsNWPlanes,
-                        "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
-                ASKAPCHECK(itsGMap(i, pol, chan)>-1,
-                        "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
+                itsGMap(i, pol, chan) = getWPlane(w*freq);
             }
         }
     }

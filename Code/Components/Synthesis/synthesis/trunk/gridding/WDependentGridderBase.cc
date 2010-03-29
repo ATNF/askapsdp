@@ -33,6 +33,10 @@
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -44,7 +48,10 @@ using namespace askap::synthesis;
 WDependentGridderBase::WDependentGridderBase(const double wmax, const int nwplanes) : itsWScale(wmax),
      itsNWPlanes(nwplanes) 
 {
-  ASKAPDEBUGASSERT(nwplanes>=0);
+  ASKAPCHECK(wmax>0.0, "Baseline length must be greater than zero, you have wmax="<<wmax);
+  ASKAPCHECK(nwplanes>0, "Number of w planes must be greater than zero, you have nwplanes="<<nwplanes);
+  ASKAPCHECK(nwplanes%2==1, "Number of w planes must be odd, you have nwplanes="<<nwplanes);
+ 
   if (nwplanes>1) {
       itsWScale /= double((nwplanes-1)/2);
   } else {
@@ -59,7 +66,13 @@ WDependentGridderBase::WDependentGridderBase(const double wmax, const int nwplan
 /// @note an exception is thrown if the requested w-term lies outside (-wmax,wmax) range
 int WDependentGridderBase::getWPlane(const double w) const
 {
-  int result = itsNWPlanes>1 ? (itsNWPlanes-1)/2 + nint(w/itsWScale) : 0;
+  const int result = itsNWPlanes>1 ? (itsNWPlanes-1)/2 + nint(w/itsWScale) : 0;
+#ifdef ASKAP_DEBUG  
+  if (result < 0) {
+      ASKAPLOG_DEBUG_STR(logger, w << " " << itsWScale << " "<< result );
+  }
+#endif // #ifdef ASKAP_DEBUG
+  
   ASKAPCHECK(result < itsNWPlanes,
            "W scaling error: recommend allowing larger range of w, you have w="<< w <<" wavelengths");
   ASKAPCHECK(result > -1,
@@ -74,6 +87,7 @@ int WDependentGridderBase::getWPlane(const double w) const
 /// @note an exception is thrown (in debug mode) if the plane is outside [0.plane) range
 double WDependentGridderBase::getWTerm(const int plane) const
 {
+  ASKAPDEBUGASSERT( (plane >=0 ) && (plane<itsNWPlanes) );
   return float(plane - (itsNWPlanes-1)/2)*itsWScale;
 }
 

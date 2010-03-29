@@ -55,7 +55,7 @@ public:
    /// @brief obtain the number of w-planes
    /// @details 
    /// @return the number of w-planes
-   int nWPlanes() const { return itsNWPlanes;}
+   inline int nWPlanes() const { return itsNWPlanes;}
    
    /// @brief obtain plane number
    /// @details

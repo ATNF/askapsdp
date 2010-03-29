@@ -29,7 +29,7 @@
 #ifndef ASKAP_SYNTHESIS_WSTACKVISGRIDDER_H_
 #define ASKAP_SYNTHESIS_WSTACKVISGRIDDER_H_
 
-#include <gridding/SphFuncVisGridder.h>
+#include <gridding/WDependentGridderBase.h>
 #include <dataaccess/IConstDataAccessor.h>
 
 namespace askap
@@ -47,7 +47,7 @@ namespace askap
 		/// The scaling is fast in data points, slow in w planes.
 		///
 		/// @ingroup gridding
-		class WStackVisGridder : public SphFuncVisGridder
+		class WStackVisGridder : public WDependentGridderBase
 		{
 			public:
 
@@ -116,11 +116,6 @@ namespace askap
 				/// @param i Index
 				void multiply(casa::Array<casa::Complex>& scratch, int i);
 				
-				/// Scaling
-				double itsWScale;
-				/// Number of w planes
-				int itsNWPlanes;
-
 				/// Mapping from row, pol, and channel to planes of grid
 				casa::Cube<int> itsGMap;
 		};

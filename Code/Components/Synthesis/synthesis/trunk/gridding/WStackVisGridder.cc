@@ -46,32 +46,17 @@ namespace askap
   namespace synthesis
   {
 
-    WStackVisGridder::WStackVisGridder(const double wmax, const int nwplanes)
-    {
-      ASKAPCHECK(wmax>0.0, "Baseline length must be greater than zero");
-      ASKAPCHECK(nwplanes>0, "Number of w planes must be greater than zero");
-      ASKAPCHECK(nwplanes%2==1, "Number of w planes must be odd");
+    WStackVisGridder::WStackVisGridder(const double wmax, const int nwplanes) :
+           WDependentGridderBase(wmax,nwplanes) {}
 
-      itsNWPlanes=nwplanes;
-      itsWScale=wmax;
-      if (nwplanes>1) {
-          itsWScale/=double((nwplanes-1)/2);
-      }
-    }
-
-    WStackVisGridder::~WStackVisGridder()
-    {
-    }
+    WStackVisGridder::~WStackVisGridder() {}
     
     /// @brief copy constructor
     /// @details It is required to decouple internal arrays between
     /// input object and the copy
     /// @param[in] other input object
     WStackVisGridder::WStackVisGridder(const WStackVisGridder &other) :
-      SphFuncVisGridder(other), itsWScale(other.itsWScale),
-      itsNWPlanes(other.itsNWPlanes), itsGMap(other.itsGMap.copy()) 
-    {
-    }
+       WDependentGridderBase(other), itsGMap(other.itsGMap.copy()) {}
     
     
     /// Clone a copy of this Gridder
@@ -92,7 +77,6 @@ namespace askap
       const int nPol = acc.nPol();
 
       itsGMap.resize(nSamples, nPol, nChan);
-      int cenw=(itsNWPlanes-1)/2;
       const casa::Vector<casa::RigidVector<double, 3> > &rotatedUVW = acc.rotatedUVW(getTangentPoint());      
       for (int i=0; i<nSamples; ++i)
       {
@@ -103,15 +87,7 @@ namespace askap
           {
             const double freq=acc.frequency()[chan];
             /// Calculate the index into the grids
-            itsGMap(i, pol, chan)=cenw+nint(w*freq/itsWScale);
-            if (itsGMap(i, pol, chan)<0)
-            {
-              ASKAPLOG_INFO_STR(logger, w << " "<< freq << " "<< itsWScale << " "<< itsGMap(i, pol, chan) );
-            }
-            ASKAPCHECK(itsGMap(i, pol, chan)<itsNWPlanes,
-                "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
-            ASKAPCHECK(itsGMap(i, pol, chan)>-1,
-                "W scaling error: recommend allowing larger range of w, you have w="<<w*freq<<" wavelengths");
+            itsGMap(i, pol, chan) = getWPlane(w*freq);
           }
         }
       }
@@ -131,8 +107,8 @@ namespace askap
       configureForPSF(dopsf);
 
       /// We need one grid for each plane
-      itsGrid.resize(itsNWPlanes);
-      for (int i=0; i<itsNWPlanes; i++)
+      itsGrid.resize(nWPlanes());
+      for (int i=0; i<nWPlanes(); ++i)
       {
         itsGrid[i].resize(itsShape);
         itsGrid[i].set(0.0);
@@ -156,20 +132,14 @@ namespace askap
 
     void WStackVisGridder::multiply(casa::Array<casa::Complex>& scratch, int i)
     {
-      if(itsWScale==0.0) return;
-
       /// These are the actual cell sizes used
-      float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
-      float celly=1.0/(float(itsShape(1))*itsUVCellSize(1));
+      const float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
+      const float celly=1.0/(float(itsShape(1))*itsUVCellSize(1));
 
-      int nx=itsShape(0);
-      int ny=itsShape(1);
+      const int nx=itsShape(0);
+      const int ny=itsShape(1);
 
-      int cenw=(itsNWPlanes-1)/2;
-      if(cenw==0) return;
-      if(i==cenw) return;
-
-      float w=2.0f*casa::C::pi*float(i-cenw)*itsWScale;
+      const float w=2.0f*casa::C::pi*getWTerm(i);
       casa::ArrayIterator<casa::Complex> it(scratch, 2);
       while (!it.pastEnd())
       {
@@ -186,11 +156,11 @@ namespace askap
             {
               float x2=float(ix-nx/2)*cellx;
               x2*=x2;
-              float r2=x2+y2;
-	      if(r2<1.0) {
-		float phase=w*(1.0-sqrt(1.0-r2));
-		mat(ix, iy)*=casa::Complex(cos(phase), -sin(phase));
-	      }
+              const float r2=x2+y2;
+              if (r2<1.0) {
+                  const float phase=w*(1.0-sqrt(1.0-r2));
+                  mat(ix, iy)*=casa::Complex(cos(phase), -sin(phase));
+              }
             }
           }
         }
@@ -202,10 +172,10 @@ namespace askap
     void WStackVisGridder::finaliseGrid(casa::Array<double>& out)
     {
       if (!isPSFGridder()) {
-          ASKAPLOG_INFO_STR(logger, "Stacking " << itsNWPlanes
+          ASKAPLOG_INFO_STR(logger, "Stacking " << nWPlanes()
                           << " planes of W stack to get final image");
       } else {
-          ASKAPLOG_INFO_STR(logger, "Stacking " << itsNWPlanes
+          ASKAPLOG_INFO_STR(logger, "Stacking " << nWPlanes()
                           << " planes of W stack to get final PSF");
       }
       ASKAPDEBUGASSERT(itsGrid.size()>0);
@@ -253,16 +223,16 @@ namespace askap
   
       initialiseFreqMapping();      
 
-      itsGrid.resize(itsNWPlanes);
+      itsGrid.resize(nWPlanes());
       if (casa::max(casa::abs(in))>0.0)
       {
         itsModelIsEmpty=false;
-        ASKAPLOG_INFO_STR(logger, "Filling " << itsNWPlanes
+        ASKAPLOG_INFO_STR(logger, "Filling " << nWPlanes()
                            << " planes of W stack with model");
         casa::Array<double> scratch(itsShape);
         scimath::PaddingUtils::extract(scratch, paddingFactor()) = in;
         correctConvolution(scratch);
-        for (int i=0; i<itsNWPlanes; i++)
+        for (int i=0; i<nWPlanes(); ++i)
         {
           itsGrid[i].resize(itsShape);
           toComplex(itsGrid[i], scratch);
@@ -276,7 +246,7 @@ namespace askap
       {
         itsModelIsEmpty=true;
         ASKAPLOG_INFO_STR(logger, "No need to fill W stack: model is empty");
-        for (int i=0; i<itsNWPlanes; i++)
+        for (int i=0; i<nWPlanes(); ++i)
         {
           itsGrid[i].resize(casa::IPosition(1, 1));
           itsGrid[i].set(casa::Complex(0.0));
