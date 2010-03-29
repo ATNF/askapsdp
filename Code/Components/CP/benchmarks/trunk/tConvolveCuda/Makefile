@@ -25,7 +25,7 @@ CXX = g++
 CFLAGS = -Wall -Wextra -O2 -fstrict-aliasing -fPIC
 
 EXENAME = tConvolveCuda
-EXEOBJS = $(EXENAME).o Stopwatch.o
+EXEOBJS = $(EXENAME).o
 EXELIBS = -lCudaGridder
 
 LIBNAME=libCudaGridder.so
@@ -38,7 +38,7 @@ all:		$(EXENAME) $(LIBNAME)
 %.o:		%.cc %.h
 		$(CXX) $(CFLAGS) -c $<
 
-$(LIBNAME):	CudaGridder.cc CudaGridder.h CudaGridKernel.cu
+$(LIBNAME):	CudaGridder.cc CudaGridder.h CudaGridKernel.cu Stopwatch.o
 		nvcc $(NVCCFLAGS) -I/usr/local/cuda/include -c CudaGridKernel.cu
 		$(CXX) $(CFLAGS) -I/usr/local/cuda/include -c CudaGridder.cc
 		nvcc $(NVCCFLAGS) -shared -o $(LIBNAME) $(LIBOBJS)
