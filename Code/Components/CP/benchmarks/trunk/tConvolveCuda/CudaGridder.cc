@@ -27,6 +27,7 @@
 #include "CudaGridder.h"
 
 // System includes
+#include <cstdlib>
 #include <vector>
 #include <complex>
 
@@ -45,6 +46,7 @@ void checkerror(cudaError_t err)
     if (err != cudaSuccess)
     {
         printf("CUDA Error: %s\n", cudaGetErrorString(err));
+        exit(1);
     }
 }
 
