@@ -870,7 +870,7 @@ namespace askap {
 
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube = " << this->itsCube.getNumObj());
                     bool growthflag = this->itsCube.pars().getFlagGrowth();
-                    this->itsCube.pars().setFlagGrowth(false);
+                    this->itsCube.pars().setFlagGrowth(false);  // can't grow as don't have flux array in itsCube
                     this->itsCube.ObjectMerger();
                     this->itsCube.pars().setFlagGrowth(growthflag);
                     this->calcObjectParams();
@@ -1028,6 +1028,13 @@ namespace askap {
                 //    this->itsCube.sortDetections();
                 //  }
                 this->itsCube.outputDetectionList();
+
+		if(this->itsCube.pars().getFlagLog() && (this->itsCube.getNumObj()>0)){
+		  std::ofstream logfile(this->itsCube.pars().getLogFile().c_str(),std::ios::app);
+		  logfile << "=-=-=-=-=-=-=-\nCube summary\n=-=-=-=-=-=-=-\n";
+		  logfile << this->itsCube;
+		  logfile.close();
+		}
 
                 if (this->itsCube.pars().getFlagKarma()) {
                     std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());
