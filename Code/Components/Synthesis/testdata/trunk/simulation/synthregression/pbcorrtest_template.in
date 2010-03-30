@@ -14,10 +14,10 @@ Csimulator.sources.src1.direction.dec           = 0.006
 # Define the antenna locations, feed locations, and spectral window definitions
 #
 Csimulator.antennas.definition                  =       A27CR3P6B.in
-Csimulator.feeds.definition                     =       ASKAP1feed.in
+Csimulator.feeds.definition                     =       ASKAP1OffFeed.in
 
 Csimulator.spws.names                      =       [Wide0]
-Csimulator.spws.Wide0  =[ 1, 1.420GHz, -16MHz, "I"]
+Csimulator.spws.Wide0  =[ 1, 1.420GHz, -16MHz, "XX XY YX YY"]
 #
 # Standard settings for the simulaton step
 #
@@ -62,27 +62,45 @@ Cimager.memorybuffers                           = true
 Cimager.Images.Names                            = [image.field1]
 Cimager.Images.writeAtMajorCycle                = false
 Cimager.Images.reuse                            = false
-Cimager.Images.shape	                        = [1024,1024]
+Cimager.Images.shape	                        = [2048,2048]
 Cimager.Images.cellsize	                        = [4.0arcsec, 4.0arcsec]
 Cimager.Images.image.field1.frequency	        = [1.164e9,1.420e9]
 Cimager.Images.image.field1.nchan		= 1
 Cimager.Images.image.field1.polarisation       = ["I"]
-#Cimager.Images.image.field1.direction	        = [12h40m50.00, -43.00.00.00, J2000]
-Cimager.Images.image.field1.direction	        = [12h30m00.00, -45.00.00.00, J2000]
+Cimager.Images.image.field1.direction          = [12h30m00.00, -45.00.00.00, J2000]
 
 #
-#Cimager.gridder                          	= WProject
-#Cimager.gridder                          	= WStack
-Cimager.gridder.WProject.wmax                   = 30000
-Cimager.gridder.WProject.nwplanes               = 33
-Cimager.gridder.WProject.oversample             = 8
-Cimager.gridder.WProject.maxsupport       = 1024
-Cimager.gridder.WProject.cutoff           = 0.001
-Cimager.gridder.WStack.wmax              = 30000
-Cimager.gridder.WStack.nwplanes          = 25
-Cimager.gridder.WProject.variablesupport = true
-Cimager.gridder.WProject.offsetsupport = true
-
+Cimager.gridder                                 = AWProject
+Cimager.gridder.AProjectWStack.freqtolerance   = infinite
+Cimager.gridder.AProjectWStack.wmax             = 30000
+Cimager.gridder.AProjectWStack.nwplanes         = 7
+Cimager.gridder.AProjectWStack.oversample       = 4
+Cimager.gridder.AProjectWStack.diameter         = 12m
+Cimager.gridder.AProjectWStack.blockage         = 2m
+Cimager.gridder.AProjectWStack.maxfeeds         = 1
+Cimager.gridder.AProjectWStack.maxsupport       = 1024
+Cimager.gridder.AProjectWStack.frequencydependent     = true
+Cimager.gridder.AProjectWStack.illumination     = disk
+Cimager.gridder.AProjectWStack.illumination.tapering         = true
+Cimager.gridder.AProjectWStack.illumination.tapering.defocusing = 0deg
+Cimager.gridder.AProjectWStack.illumination.feedlegs         = true
+Cimager.gridder.AProjectWStack.illumination.feedlegs.width   = 1.8m
+Cimager.gridder.AProjectWStack.illumination.feedlegs.rotation = 45deg
+Cimager.gridder.AProjectWStack.illumination.feedlegs.shadowing = 0.75
+Cimager.gridder.AProjectWStack.illumination.feedlegs.wedges = true
+Cimager.gridder.AProjectWStack.illumination.feedlegs.wedges.shadowing = [0.6,0.5]
+Cimager.gridder.AProjectWStack.illumination.feedlegs.wedges.angle = 15deg
+Cimager.gridder.AProjectWStack.illumination.feedlegs.wedges.startradius = 3.5m
+Cimager.gridder.AWProject.variablesupport = true
+Cimager.gridder.AWProject.offsetsupport = true
+Cimager.gridder.AWProject.wmax                  = 30000
+Cimager.gridder.AWProject.nwplanes              = 33
+Cimager.gridder.AWProject.oversample            = 4
+Cimager.gridder.AWProject.diameter              = 12m
+Cimager.gridder.AWProject.blockage              = 2m
+Cimager.gridder.AWProject.maxfeeds              = 1
+Cimager.gridder.AWProject.maxsupport       = 1024
+Cimager.gridder.AWProject.frequencydependent     = false
 
 #
 # Use a multiscale Clean solver
@@ -98,13 +116,13 @@ Cimager.threshold.minorcycle                    = [15%]
 #Cimager.threshold.majorcycle                    = 10mJy
 
 #
-Cimager.preconditioner.Names                    = [GaussianTaper]
-Cimager.preconditioner.Wiener.noisepower        = 30.
-Cimager.preconditioner.GaussianTaper            = [20arcsec,20arcsec,0deg]
+#Cimager.preconditioner.Names                    = [GaussianTaper]
+#Cimager.preconditioner.Wiener.noisepower        = 30.
+#Cimager.preconditioner.GaussianTaper            = [20arcsec,20arcsec,0deg]
 #
 
 #
-Cimager.ncycles                                 = 5
+Cimager.ncycles                                 = 3
 #
 # Restore the image at the end
 #
