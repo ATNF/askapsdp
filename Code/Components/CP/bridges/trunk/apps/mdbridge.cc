@@ -35,11 +35,11 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/Log4cxxLogSink.h"
+#include "Common/ParameterSet.h"
+#include "CommandLineParser.h"
 
 // Local package includes
-
-// Using
-using namespace askap;
+#include "mdbridge/MetadataBridge.h"
 
 ASKAP_LOGGER(logger, ".main");
 
@@ -83,7 +83,24 @@ int main(int argc, char *argv[])
             << ASKAP_PACKAGE_VERSION);
 
     try {
-        Ice::CommunicatorPtr ic = Ice::initialize(argc, argv);
+        // Command line parser
+        cmdlineparser::Parser parser;
+
+        // Command line parameter
+        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "mdbridge.in");
+
+        // Throw an exception if the parameter is not present
+        parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
+
+        parser.process(argc, const_cast<char**> (argv));
+
+        const std::string parsetFile = inputsPar;
+
+        // Create a parset from the config file
+        LOFAR::ParameterSet parset(parsetFile);
+
+        askap::cp::MetadataBridge mdbridge(parset);
+        mdbridge.run();
     } catch (const askap::AskapError& e) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
         std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;

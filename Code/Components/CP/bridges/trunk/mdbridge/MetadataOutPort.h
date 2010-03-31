@@ -1,4 +1,4 @@
-/// @file MetadataBridge.cc
+/// @file MetadataOutPort.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,39 +24,31 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "MetadataBridge.h"
+#ifndef ASKAP_CP_METADATAOUTPORT_H
+#define ASKAP_CP_METADATAOUTPORT_H
 
-// Include package level header file
-#include "askap_bridges.h"
+// System includes
+#include <string>
 
 // ASKAPsoft includes
-#include "askap/AskapError.h"
-#include "askap/AskapLogging.h"
-#include "Common/ParameterSet.h"
 #include "boost/scoped_ptr.hpp"
+#include "cms/TextMessage.h"
+#include "cms/MessageProducer.h"
 
-// Local package includes
-#include "MetadataOutPort.h"
+namespace askap {
+    namespace cp {
+        class MetadataOutPort
+        {
+            public:
+                MetadataOutPort(const std::string brokerURI, const std::string destURI);
+                ~MetadataOutPort();
+                void send(cms::Message* message);
 
-// Using
-using namespace askap::cp;
+            private:
+                boost::scoped_ptr<cms::MessageProducer> itsProducer;
+        };
 
-ASKAP_LOGGER(logger, ".MetadataBridge");
+    };
+};
 
-MetadataBridge::MetadataBridge(const LOFAR::ParameterSet& parset)
-{
-    const LOFAR::ParameterSet subset = parset.makeSubset("mdbridge");
-    const std::string brokerURI = subset.getString("activemq.broker_uri");
-    const std::string destURI = subset.getString("activemq.dest_uri");
-    itsOutPort.reset(new MetadataOutPort(brokerURI, destURI));
-}
-
-MetadataBridge::~MetadataBridge()
-{
-    itsOutPort.reset();
-}
-
-void MetadataBridge::run(void)
-{
-}
+#endif
