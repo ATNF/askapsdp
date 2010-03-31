@@ -6,7 +6,7 @@ echo Running test cases...
 FAIL=0
 
 # test_ports testcase
-cd test_playback
+cd test_mdbridge
 ./run.sh
 if [ $? -eq 0 ]; then
     R1="test_mdbridge  PASS"
