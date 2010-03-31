@@ -3,6 +3,7 @@
 #
 mdbridge.ice.locator_host        = localhost
 mdbridge.ice.locator_port        = 4061
+mdbridge.ice.adapter_name        = CPMetadataBridgeAdapter
 mdbridge.icestorm.topicmanager   = IceStorm/TopicManager
 mdbridge.icestorm.topic          = tosmetadata
 

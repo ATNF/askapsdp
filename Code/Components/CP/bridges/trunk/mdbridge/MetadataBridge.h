@@ -28,23 +28,32 @@
 #define ASKAP_CP_METADATABRIDGE_H
 
 // ASKAPsoft includes
+#include "Ice/Ice.h"
+#include "IceStorm/IceStorm.h"
 #include "Common/ParameterSet.h"
 #include "boost/scoped_ptr.hpp"
 
 // Local package includes
+#include "interfaces/CommonTypes.h"
+#include "interfaces/TypedValues.h"
 #include "MetadataOutPort.h"
 
 namespace askap {
     namespace cp {
-        class MetadataBridge
+        class MetadataBridge :
+            virtual public askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisher
         {
             public:
                 MetadataBridge(const LOFAR::ParameterSet& parset);
-                ~MetadataBridge();
-                void run(void);
+                virtual ~MetadataBridge();
+                virtual void publish(const askap::interfaces::TimeTaggedTypedValueMap& msg,
+                        const Ice::Current& c);
+                virtual void run(void);
 
             private:
+                const LOFAR::ParameterSet itsParset;
                 boost::scoped_ptr<MetadataOutPort> itsOutPort;
+                Ice::CommunicatorPtr itsComm;
         };
 
     };

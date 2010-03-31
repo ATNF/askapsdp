@@ -85,6 +85,7 @@ class MetadataOutPort {
 
         void send(const askap::interfaces::TimeTaggedTypedValueMap& payload)
         {
+            std::cout << "Sending message via IceStorm" << std::endl;
             itsMetadataStream->publish(payload);
         }
 

@@ -38,25 +38,114 @@
 
 // Local package includes
 #include "MetadataOutPort.h"
+#include "interfaces/CommonTypes.h"
+#include "interfaces/TypedValues.h"
 
 // Using
 using namespace askap::cp;
+using namespace askap::interfaces;
+using namespace askap::interfaces;
+using namespace askap::interfaces::datapublisher;
 
 ASKAP_LOGGER(logger, ".MetadataBridge");
 
 MetadataBridge::MetadataBridge(const LOFAR::ParameterSet& parset)
+    : itsParset(parset.makeSubset("mdbridge."))
 {
-    const LOFAR::ParameterSet subset = parset.makeSubset("mdbridge");
-    const std::string brokerURI = subset.getString("activemq.broker_uri");
-    const std::string destURI = subset.getString("activemq.dest_uri");
+    // Setup the ActiveMQ topic for output
+    const std::string brokerURI = itsParset.getString("activemq.broker_uri");
+    const std::string destURI = itsParset.getString("activemq.dest_uri");
     itsOutPort.reset(new MetadataOutPort(brokerURI, destURI));
+
+    // Setup the Ice interface for input
+    const std::string locatorHost = itsParset.getString("ice.locator_host");
+    const std::string locatorPort = itsParset.getString("ice.locator_port");
+    const std::string adapterName = itsParset.getString("ice.adapter_name");
+    Ice::PropertiesPtr props = Ice::createProperties();
+
+    // Make sure that network and protocol tracing are off.
+    props->setProperty("Ice.Trace.Network", "0");
+    props->setProperty("Ice.Trace.Protocol", "0");
+
+    // Increase maximum message size from 1MB to 128MB
+    props->setProperty("Ice.MessageSizeMax", "131072");
+
+    // Syntax example:
+    // IceGrid/Locator:tcp -h localhost -p 4061
+    std::ostringstream ss;
+    ss << "IceGrid/Locator:tcp -h ";
+    ss << locatorHost;
+    ss << " -p ";
+    ss << locatorPort;
+    std::string locatorParam = ss.str();
+
+    props->setProperty("Ice.Default.Locator", locatorParam);
+
+    // Create adapter property
+    // Syntax example:
+    // CPMetadataBridgeAdapter.AdapterId=CPMetadataBridgeAdapter
+    // CPMetadataBridgeAdapter.Endpoints=tcp
+    std::ostringstream adapterId;
+    adapterId << adapterName << ".AdapterId";
+    props->setProperty(adapterId.str(), adapterName);
+
+    std::ostringstream endpoints;
+    endpoints << adapterName << ".Endpoints";
+    props->setProperty(endpoints.str(), "tcp");
+
+    // Initialize a communicator with these properties.
+    Ice::InitializationData id;
+    id.properties = props;
+    itsComm = Ice::initialize(id);
+    ASKAPDEBUGASSERT(itsComm);
 }
 
 MetadataBridge::~MetadataBridge()
 {
+    ASKAPLOG_INFO_STR(logger, "CP Metadata bridge is shutting down");
     itsOutPort.reset();
 }
 
 void MetadataBridge::run(void)
 {
+    ASKAPDEBUGASSERT(itsComm);
+
+    // Locate and subscribe to the IceStorm topic
+    const std::string toicManager = itsParset.getString("icestorm.topicmanager");
+    const std::string topicName = itsParset.getString("icestorm.topic");
+    const std::string adapterName = itsParset.getString("ice.adapter_name");
+
+    Ice::ObjectPrx obj = itsComm->stringToProxy("IceStorm/TopicManager");
+    IceStorm::TopicManagerPrx topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
+    Ice::ObjectAdapterPtr adapter = itsComm->createObjectAdapter(adapterName);
+    Ice::ObjectPrx proxy = adapter->addWithUUID(this)->ice_twoway();
+    IceStorm::TopicPrx topic;
+
+    ASKAPLOG_INFO_STR(logger, "Subscribing to topic: " << topicName);
+
+    try {
+        topic = topicManager->retrieve(topicName);
+    } catch (const IceStorm::NoSuchTopic&) {
+        std::cout << "Topic not found. Creating..." << std::endl;
+        try {
+            topic = topicManager->create(topicName);
+        } catch (const IceStorm::TopicExists&) {
+            // Someone else has already created it
+            topic = topicManager->retrieve(topicName);
+        }
+    }
+
+    IceStorm::QoS qos;
+    qos["reliability"] = "ordered";
+    topic->subscribeAndGetPublisher(qos, proxy);
+
+    adapter->activate();
+    ASKAPLOG_INFO_STR(logger, "CP Metadata bridge is running");
+    itsComm->waitForShutdown();
+}
+
+void MetadataBridge::publish(const TimeTaggedTypedValueMap& msg,
+                        const Ice::Current& c)
+{
+    ASKAPLOG_INFO_STR(logger, "Got a message");
 }
