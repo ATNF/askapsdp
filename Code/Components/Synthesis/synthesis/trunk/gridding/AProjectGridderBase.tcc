@@ -94,9 +94,11 @@ boost::shared_ptr<GridderType> AProjectGridderBase::createAProjectGridder(const 
 	                   " (equivalent to "<<freqTol*3e5<<" km/s)"); 
   }
 
-  return boost::shared_ptr<GridderType>(new GridderType(makeIllumination(parset),
+  boost::shared_ptr<GridderType> gridder(new GridderType(makeIllumination(parset),
                 wmax, nwplanes, cutoff, oversample, maxSupport, limitSupport, maxFeeds, maxFields,
                 pointingTol, paTol, freqTol, freqDep, tablename));
+  gridder->configureWSampling(parset);
+  return gridder;              
 }
 
 

@@ -29,7 +29,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#include "WDependentGridderBase.h"
+#include <gridding/WDependentGridderBase.h>
+#include <gridding/PowerWSampling.h>
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
@@ -103,5 +104,33 @@ double WDependentGridderBase::getWTerm(const int plane) const
       return itsWSampling->map(scaledPlaneNumber)*getWMax();
   }
   return double(plane - halfNPlanes)*itsWScale;
+}
+
+/// @brief enable power law sampling in the w-space
+/// @details After this method is called, w-planes will be spaced non-linearly 
+/// (power law with the given exponent)
+/// @param[in] exponent exponent of the power law
+void WDependentGridderBase::powerLawWSampling(const double exponent)
+{ 
+  itsWSampling.reset(new PowerWSampling(exponent));
+}
+
+/// @brief configure w-sampling from the parset
+/// @details This method hides all details about w-sampling common for all derived gridders
+/// @param[in] parset parameter set (gridder name already removed)
+void WDependentGridderBase::configureWSampling(const LOFAR::ParameterSet& parset)
+{
+  const std::string sampling = parset.getString("wsampling","linear");
+  if (sampling != "linear") {
+      if (sampling == "powerlaw") {
+          const double exponent = parset.getDouble("wsampling.exponent");
+          ASKAPLOG_INFO_STR(logger, "Power law sampling of the w-space, exponent = "<<exponent);
+          powerLawWSampling(exponent);
+      } else {
+        ASKAPTHROW(AskapError, "W-sampling "<<sampling<<" is not implemented");
+      }
+  } else {
+     ASKAPLOG_INFO_STR(logger, "Linear sampling of the w-space");
+  }
 }
 

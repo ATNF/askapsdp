@@ -428,6 +428,7 @@ namespace askap
              "offsetsupport option of the gridder should only be used together with variablesupport option");
        gridder->offsetSupport(offsetSupport);            
        
+       gridder->configureWSampling(parset);       
 	   return gridder;
     }
 

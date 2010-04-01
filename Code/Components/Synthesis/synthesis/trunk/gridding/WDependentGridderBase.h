@@ -37,6 +37,8 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <Common/ParameterSet.h>
+
 namespace askap {
 
 namespace synthesis {
@@ -73,6 +75,17 @@ public:
    /// @return w-term (in wavelengths) corresponding to the given plane
    /// @note an exception is thrown (in debug mode) if the plane is outside [0.plane) range
    double getWTerm(const int plane) const;
+   
+   /// @brief enable power law sampling in the w-space
+   /// @details After this method is called, w-planes will be spaced non-linearly 
+   /// (power law with the given exponent)
+   /// @param[in] exponent exponent of the power law
+   void powerLawWSampling(const double exponent);
+
+   /// @brief configure w-sampling from the parset
+   /// @details This method hides all details about w-sampling common for all derived gridders
+   /// @param[in] parset parameter set (gridder name already removed)
+   void configureWSampling(const LOFAR::ParameterSet& parset);
 
 protected:
    /// @brief obtain wmax
@@ -84,7 +97,7 @@ protected:
    /// sufficient.
    /// @return maximum w-term in wavelengths
    inline double getWMax() const { return itsWScale * ((itsNWPlanes-1)/2); }
-   
+      
 private:
    /// Scaling
    double itsWScale;

@@ -272,7 +272,9 @@ namespace askap
       double wmax=parset.getDouble("wmax", 35000.0);
       int nwplanes=parset.getInt32("nwplanes", 65);
       ASKAPLOG_INFO_STR(logger, "Gridding using W stacking with "<<nwplanes<<" w-planes in the stack");
-      return IVisGridder::ShPtr(new WStackVisGridder(wmax, nwplanes)); 
+      boost::shared_ptr<WStackVisGridder> gridder(new WStackVisGridder(wmax, nwplanes)); 
+      gridder->configureWSampling(parset);       
+      return gridder;
     }
 
   }
