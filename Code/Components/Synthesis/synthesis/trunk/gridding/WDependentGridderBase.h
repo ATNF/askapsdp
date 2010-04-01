@@ -29,10 +29,13 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#include <gridding/SphFuncVisGridder.h>
-
 #ifndef W_DEPENDENT_GRIDDER_BASE_H
 #define W_DEPENDENT_GRIDDER_BASE_H
+
+#include <gridding/SphFuncVisGridder.h>
+#include <gridding/IWSampling.h>
+
+#include <boost/shared_ptr.hpp>
 
 namespace askap {
 
@@ -70,12 +73,32 @@ public:
    /// @return w-term (in wavelengths) corresponding to the given plane
    /// @note an exception is thrown (in debug mode) if the plane is outside [0.plane) range
    double getWTerm(const int plane) const;
+
+protected:
+   /// @brief obtain wmax
+   /// @details This is a helper method to obtain maximum w-term (corresponding to extreme w-planes).
+   /// We don't store the original wmax passed in the constructor. Instead, it is recalculated from
+   /// scale and number of planes. This also allows to cap it if number of planes is 1 (and so the
+   /// result doesn't really depend on the w-plane number as the corresponding w-term is always 0).
+   /// This method is only used for non-linear sampling, otherwise scale and number of planes are 
+   /// sufficient.
+   /// @return maximum w-term in wavelengths
+   inline double getWMax() const { return itsWScale * ((itsNWPlanes-1)/2); }
    
 private:
    /// Scaling
    double itsWScale;
    /// Number of w planes
-   int itsNWPlanes;
+   int itsNWPlanes;   
+   /// @brief shared pointer to w-sampling helper
+   /// @details We use helper classes to implement an arbitrary non-linear sampling in the w-space.
+   /// Such a class just maps [-1,1] to [-1,1] taking into account the desired curvature. Implementing
+   /// non-linear sampling this way allows us to specify the tranform using meaningful parameters such as
+   /// the maximum w-term or number of planes covering 50% of the w-term range. An empty shared pointer 
+   /// means that the linear sampling is used. The state of this helper class depends only on the 
+   /// actual mapping and is not changed after construction. Therefore, several gridders may reuse the same
+   /// mapper class instance and no cloning operation is needed. 
+   boost::shared_ptr<IWSampling> itsWSampling;
 };
 
 } // namespace synthesis

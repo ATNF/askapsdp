@@ -66,7 +66,15 @@ WDependentGridderBase::WDependentGridderBase(const double wmax, const int nwplan
 /// @note an exception is thrown if the requested w-term lies outside (-wmax,wmax) range
 int WDependentGridderBase::getWPlane(const double w) const
 {
-  const int result = itsNWPlanes>1 ? (itsNWPlanes-1)/2 + nint(w/itsWScale) : 0;
+  int result = -1;
+  if (itsWSampling && (itsNWPlanes>1)) {
+      // non-linear sampling of w-space is probably used
+      const int halfNPlanes = (itsNWPlanes-1)/2;
+      const double scaledPlaneNumber = itsWSampling->index(w/getWMax());
+      result = halfNPlanes + nint(scaledPlaneNumber*halfNPlanes);
+  } else {
+      result = itsNWPlanes>1 ? (itsNWPlanes-1)/2 + nint(w/itsWScale) : 0;
+  }
 #ifdef ASKAP_DEBUG  
   if (result < 0) {
       ASKAPLOG_DEBUG_STR(logger, w << " " << itsWScale << " "<< result );
@@ -88,6 +96,12 @@ int WDependentGridderBase::getWPlane(const double w) const
 double WDependentGridderBase::getWTerm(const int plane) const
 {
   ASKAPDEBUGASSERT( (plane >=0 ) && (plane<itsNWPlanes) );
-  return float(plane - (itsNWPlanes-1)/2)*itsWScale;
+  const int halfNPlanes = (itsNWPlanes-1)/2;
+  if (itsWSampling && (itsNWPlanes>1)) {
+      // non-linear sampling of w-space is probably used
+      const double scaledPlaneNumber = double(plane-halfNPlanes)/double(halfNPlanes);
+      return itsWSampling->map(scaledPlaneNumber)*getWMax();
+  }
+  return double(plane - halfNPlanes)*itsWScale;
 }
 
