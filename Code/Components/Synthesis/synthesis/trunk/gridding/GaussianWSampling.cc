@@ -7,7 +7,7 @@
 /// class is parameterised with a single parameter being the number of w-planes covering 50% of w-term range.
 /// Other parameters of the distribution formula 
 ///
-///     y = sign(x)*A*exp(-x*x/(2*sigma*sigma))
+///     y = sign(x)*A*(1-exp(-x*x/(2*sigma*sigma)))
 ///
 /// are derived from this single parameter under assumption that the whole [-wmax,wmax] interval should be sampled,
 /// so the first and the last w-planes should always correspond to -wmax and +wmax, and the middle w-plane should always
@@ -41,6 +41,9 @@
 ///
 
 #include <gridding/GaussianWSampling.h>
+#include <askap/AskapError.h>
+
+#include <cmath>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -49,7 +52,7 @@ using namespace askap::synthesis;
 /// @details
 /// @param[in] nwplanes50 The number of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
 /// w-planes always correspond to -wmax and +wmax, while the mid-plane always corresponds to zero w-term.
-GaussianWSampling::GaussianWSampling(const double nwplanes50) : itsSigma(1.), itsAmplitude(0.) 
+GaussianWSampling::GaussianWSampling(const double nwplanes50) : itsTwoSigmaSquared(1.), itsAmplitude(0.) 
 {
   calculateDistributionParameters(nwplanes50);
 }
@@ -61,6 +64,14 @@ GaussianWSampling::GaussianWSampling(const double nwplanes50) : itsSigma(1.), it
 /// @note The result is unpredictable, if the plane is outside [-1;1] interval
 double GaussianWSampling::map(double plane) const
 {
+  ASKAPDEBUGASSERT((plane>=-1.) && (plane<=1.));
+  // y = sign(x)*A*(1-exp(-x*x/(2*sigma*sigma)))
+  const double absval = itsAmplitude*(1-exp(-plane*plane/itsTwoSigmaSquared));
+  if (plane<0) {
+      return -absval;
+  } else if (plane>0) {
+      return absval;
+  } 
   return 0.;
 }
 
@@ -71,6 +82,19 @@ double GaussianWSampling::map(double plane) const
 /// @note The result is unpredictable, if the input w-term is outside [-1;1] interval
 double GaussianWSampling::index(double wterm) const
 {
+  ASKAPDEBUGASSERT((wterm>=-1.) && (wterm<=1.));
+  ASKAPDEBUGASSERT(itsAmplitude!=0.);
+  const double expterm = 1.-fabs(wterm)/itsAmplitude;
+  ASKAPCHECK(expterm>0., "Unable to invert the formula for w-term sampling, wterm = "<<wterm<<
+             " implies infinite plane number");
+  const double planeSquared = -log(expterm)*itsTwoSigmaSquared;
+  ASKAPCHECK(planeSquared>=0., "Unable to invert the formula for w-term sampling, wterm = "<<wterm<<
+             " implies a negative planeSquared = "<<planeSquared);
+  if (wterm<0) {
+      return -sqrt(planeSquared);
+  } else if (wterm>0) {
+      return sqrt(planeSquared);
+  }             
   return 0.;
 }
 
@@ -82,5 +106,6 @@ double GaussianWSampling::index(double wterm) const
 /// w-planes always correspond to -wmax and +wmax, while the mid-plane always corresponds to zero w-term.
 void GaussianWSampling::calculateDistributionParameters(const double nwplanes50)
 {
+  ASKAPTHROW(AskapError, "Gaussian w-sampling has not yet been fully implemented. nwplanes50="<<nwplanes50);   
 }
 

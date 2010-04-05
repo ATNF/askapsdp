@@ -75,12 +75,6 @@ public:
    /// @return w-term (in wavelengths) corresponding to the given plane
    /// @note an exception is thrown (in debug mode) if the plane is outside [0.plane) range
    double getWTerm(const int plane) const;
-   
-   /// @brief enable power law sampling in the w-space
-   /// @details After this method is called, w-planes will be spaced non-linearly 
-   /// (power law with the given exponent)
-   /// @param[in] exponent exponent of the power law
-   void powerLawWSampling(const double exponent);
 
    /// @brief configure w-sampling from the parset
    /// @details This method hides all details about w-sampling common for all derived gridders
@@ -88,6 +82,20 @@ public:
    void configureWSampling(const LOFAR::ParameterSet& parset);
 
 protected:
+   
+   /// @brief enable power law sampling in the w-space
+   /// @details After this method is called, w-planes will be spaced non-linearly 
+   /// (power law with the given exponent)
+   /// @param[in] exponent exponent of the power law
+   void powerLawWSampling(const double exponent);
+   
+   /// @brief enable gaussian sampling in the w-space
+   /// @details After this method is called, w-planes will be spaced non-linearly
+   /// (gaussian distribution defined by the given parameter)
+   /// @param[in] nwplanes50 The number of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
+   /// w-planes always correspond to -wmax and +wmax, while the mid-plane always corresponds to zero w-term.
+   void gaussianWSampling(const double nwplanes50);
+
    /// @brief obtain wmax
    /// @details This is a helper method to obtain maximum w-term (corresponding to extreme w-planes).
    /// We don't store the original wmax passed in the constructor. Instead, it is recalculated from

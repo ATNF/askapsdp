@@ -31,6 +31,7 @@
 
 #include <gridding/WDependentGridderBase.h>
 #include <gridding/PowerWSampling.h>
+#include <gridding/GaussianWSampling.h>
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
@@ -115,6 +116,17 @@ void WDependentGridderBase::powerLawWSampling(const double exponent)
   itsWSampling.reset(new PowerWSampling(exponent));
 }
 
+/// @brief enable gaussian sampling in the w-space
+/// @details After this method is called, w-planes will be spaced non-linearly
+/// (gaussian distribution defined by the given parameter)
+/// @param[in] nwplanes50 The number of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
+/// w-planes always correspond to -wmax and +wmax, while the mid-plane always corresponds to zero w-term.
+void WDependentGridderBase::gaussianWSampling(const double nwplanes50)
+{
+  itsWSampling.reset(new GaussianWSampling(nwplanes50));
+}
+
+
 /// @brief configure w-sampling from the parset
 /// @details This method hides all details about w-sampling common for all derived gridders
 /// @param[in] parset parameter set (gridder name already removed)
@@ -126,6 +138,11 @@ void WDependentGridderBase::configureWSampling(const LOFAR::ParameterSet& parset
           const double exponent = parset.getDouble("wsampling.exponent");
           ASKAPLOG_INFO_STR(logger, "Power law sampling of the w-space, exponent = "<<exponent);
           powerLawWSampling(exponent);
+      } else if (sampling == "gaussian") {
+           const double nwplanes50 = parset.getDouble("wsampling.nwplanes50");
+           ASKAPLOG_INFO_STR(logger, "Gaussian sampling of the w-space, number of w-planes covering 50% of sampled w-range is "<<
+                                      nwplanes50);
+           gaussianWSampling(nwplanes50);                           
       } else {
         ASKAPTHROW(AskapError, "W-sampling "<<sampling<<" is not implemented");
       }

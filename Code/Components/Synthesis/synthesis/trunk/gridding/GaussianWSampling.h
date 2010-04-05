@@ -7,7 +7,7 @@
 /// class is parameterised with a single parameter being the number of w-planes covering 50% of w-term range.
 /// Other parameters of the distribution formula 
 ///
-///     y = sign(x)*A*exp(-x*x/(2*sigma*sigma))
+///     y = sign(x)*A*(1-exp(-x*x/(2*sigma*sigma)))
 ///
 /// are derived from this single parameter under assumption that the whole [-wmax,wmax] interval should be sampled,
 /// so the first and the last w-planes should always correspond to -wmax and +wmax, and the middle w-plane should always
@@ -56,7 +56,7 @@ namespace synthesis {
 /// class is parameterised with a single parameter being the number of w-planes covering 50% of w-term range.
 /// Other parameters of the distribution formula 
 ///
-///     y = sign(x)*A*exp(-x*x/(2*sigma*sigma))
+///     y = sign(x)*A*(1-exp(-x*x/(2*sigma*sigma)))
 ///
 /// are derived from this single parameter under assumption that the whole [-wmax,wmax] interval should be sampled,
 /// so the first and the last w-planes should always correspond to -wmax and +wmax, and the middle w-plane should always
@@ -96,8 +96,8 @@ protected:
   void calculateDistributionParameters(const double nwplanes50);    
 
 private:
-  /// @brief sigma of the Gaussian
-  double itsSigma;
+  /// @brief two sigma squared (sigma is the parameter of the Gaussian)
+  double itsTwoSigmaSquared;
   
   /// @brief amplitude of the Gaussian
   double itsAmplitude;
