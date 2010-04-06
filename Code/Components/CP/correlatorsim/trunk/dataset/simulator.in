@@ -37,8 +37,8 @@ Csimulator.observe.scan0                        =       [10uJy, Coarse, 0h, 0h01
 # Use a gridder to apply primary beam during the W projection step.
 #
 Csimulator.gridder                              = AWProject
-Csimulator.gridder.AWProject.wmax               = 2000
-Csimulator.gridder.AWProject.nwplanes           = 33
+Csimulator.gridder.AWProject.wmax               = 3000
+Csimulator.gridder.AWProject.nwplanes           = 11
 Csimulator.gridder.AWProject.oversample         = 2
 Csimulator.gridder.AWProject.diameter           = 12m
 Csimulator.gridder.AWProject.blockage           = 2m
