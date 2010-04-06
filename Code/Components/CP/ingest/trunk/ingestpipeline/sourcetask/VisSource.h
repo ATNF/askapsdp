@@ -30,9 +30,9 @@
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "boost/scoped_ptr.hpp"
+#include "boost/thread.hpp"
 #include "boost/thread/mutex.hpp"
 #include "boost/thread/condition.hpp"
-#include "boost/thread.hpp"
 #include "boost/circular_buffer.hpp"
 #include "boost/asio.hpp"
 #include "cpcommon/VisPayload.h"
@@ -50,7 +50,11 @@ namespace askap {
                 boost::shared_ptr<VisPayload> next(void);
 
             private:
-                // Service thread entry point
+                void start_receive(void);
+
+                void handle_receive(const boost::system::error_code& error,
+                        std::size_t bytes);
+
                 void run(void);
 
                 // Circular buffer of metadata payloads
@@ -69,10 +73,14 @@ namespace askap {
                 bool itsStopRequested;
 
                 // Boost io_service
-                boost::asio::io_service itsIoService;
+                boost::asio::io_service itsIOService;
 
                 // UDP socket
                 boost::scoped_ptr<boost::asio::ip::udp::socket> itsSocket;
+
+                boost::asio::ip::udp::endpoint itsRemoteEndpoint;
+
+                boost::shared_ptr<VisPayload> itsRecvBuffer;
         };
 
     };

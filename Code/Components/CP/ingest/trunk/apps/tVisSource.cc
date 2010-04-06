@@ -98,7 +98,6 @@ class VisOutPort {
             }
         }
 
-
     private:
         // io_service
         boost::asio::io_service itsIOService;
@@ -114,7 +113,7 @@ int main(int argc, char *argv[])
     const std::string hostname = "localhost";
     const unsigned int port = 3000;
     const std::string portStr = "3000";
-    const unsigned int bufSize = 630 * 19 * 36 * 2; // Enough for two integrations
+    const unsigned int bufSize = 15 * 304 * 36 * 2; // Enough for two BETA integrations
 
     std::cerr << "Creating instance of VisOutPort...";
     VisOutPort out(hostname, portStr);
@@ -125,46 +124,37 @@ int main(int argc, char *argv[])
     std::cerr << "Done" << std::endl;
 
     // Test simple send, recv, send, recv case
-    unsigned long time = 1234;;
-    const int count = 10;
-    for (int i = 0; i < count; ++i) {
+    unsigned long time = 1234;
+    const unsigned int count = 10;
+    for (unsigned int i = 0; i < count; ++i) {
         VisPayload outvis;
         outvis.timestamp = time;
         outvis.version = VISPAYLOAD_VERSION;
-        std::cerr << "Publishing a VisPayload message...";
         out.send(outvis);
 
-        std::cerr << "Done" << std::endl;
-
-        std::cerr << "Waiting for class under test to receive it...";
         boost::shared_ptr<VisPayload> recvd = source.next();
-        std::cerr << "Received" << std::endl;
         if (recvd->timestamp != time) {
             std::cerr << "Messages do not match" << std::endl;
             return 1;
         }
     }
 
-    /*
     // Test the buffering abilities of MetadataSource
     time = 9876;
-    for (int i = 0; i < bufSize; ++i) {
-        askap::interfaces::TimeTaggedTypedValueMap metadata;
-        metadata.timestamp = time;
-        metadata.data["time"] = new askap::interfaces::TypedValueLong(askap::interfaces::TypeLong, time);
-        std::cerr << "Publishing a metadata message...";
-        out.send(metadata);
-        std::cerr << "Done" << std::endl;
+    for (unsigned int i = 0; i < bufSize; ++i) {
+        VisPayload outvis;
+        outvis.timestamp = time;
+        outvis.version = VISPAYLOAD_VERSION;
+        out.send(outvis);
+        usleep(10);
     }
-    for (int i = 0; i < bufSize; ++i) {
-        std::cerr << "Waiting for class under test to receive message...";
-        boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> recvd = source.next();
-        std::cerr << "Received" << std::endl;
+    for (unsigned int i = 0; i < bufSize; ++i) {
+        boost::shared_ptr<VisPayload> recvd = source.next();
         if (recvd->timestamp != time) {
             std::cerr << "Messages do not match" << std::endl;
             return 1;
         }
-    }*/
+    }
 
     return 0;
 }

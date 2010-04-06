@@ -54,7 +54,7 @@ VisSource::VisSource(const unsigned int port, const unsigned int bufSize) :
     }
 
     // Create socket
-    itsSocket.reset(new udp::socket(itsIoService, udp::endpoint(udp::v4(), port)));
+    itsSocket.reset(new udp::socket(itsIOService, udp::endpoint(udp::v4(), port)));
 
     // Set an 16MB receive buffer to help deal with the bursty nature of the
     // communication
@@ -66,58 +66,75 @@ VisSource::VisSource(const unsigned int port, const unsigned int bufSize) :
                 << soerror);
     }
 
+    start_receive();
+
     // Start the thread
     itsThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&VisSource::run, this)));
 }
 
 VisSource::~VisSource()
 {
+    // Signal stopped so now more calls to start_receive() will be made
     itsStopRequested = true;
+
+    // Stop the io_service (non-blocking) and cancel an outstanding requests
+    itsIOService.stop();
+    itsSocket->cancel();
+
+    // Wait for the thread running the io_service to finish
     if (itsThread.get()) {
         itsThread->join();
-        itsThread.reset();
     }
 
-    if (itsSocket.get()) {
-        itsSocket->close();
-        itsSocket.reset();
+    // Finally close the socket
+    itsSocket->close();
+}
+
+void VisSource::start_receive(void)
+{
+    itsRecvBuffer.reset(new VisPayload);
+    itsSocket->async_receive_from(
+            boost::asio::buffer(boost::asio::buffer(itsRecvBuffer.get(), sizeof(VisPayload))),
+            itsRemoteEndpoint,
+            boost::bind(&VisSource::handle_receive, this,
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred));
+}
+
+void VisSource::handle_receive(const boost::system::error_code& error,
+        std::size_t bytes)
+{
+    if (!error || error == boost::asio::error::message_size) {
+        if (bytes != sizeof(VisPayload)) {
+            ASKAPLOG_WARN_STR(logger, "Error: Failed to read a full VisPayload struct");
+        }
+        if (itsRecvBuffer->version != VISPAYLOAD_VERSION) {
+            ASKAPLOG_ERROR_STR(logger, "Version mismatch. Expected "
+                    << VISPAYLOAD_VERSION
+                    << " got " << itsRecvBuffer->version);
+        }
+
+        // Add a pointer to the message to the back of the circular burrer
+        boost::mutex::scoped_lock lock(itsMutex);
+        itsBuffer.push_back(itsRecvBuffer);
+        itsRecvBuffer.reset();
+
+        // Notify any waiters
+        lock.unlock();
+        itsCondVar.notify_all();
+    } else {
+        ASKAPLOG_WARN_STR(logger, "Error reading visibilities from UDP socket. Error Code: "
+                << error);
+    }
+
+    if (!itsStopRequested) {
+        start_receive();
     }
 }
 
 void VisSource::run(void)
 {
-    ASKAPLOG_DEBUG_STR(logger, "VisSource thread is running...");
-
-    while (!itsStopRequested) {
-        // Create receive buffer
-        boost::shared_ptr<VisPayload> vis(new VisPayload);
-
-        udp::endpoint remote_endpoint;
-        boost::system::error_code error;
-        const size_t len = itsSocket->receive_from(boost::asio::buffer(vis.get(), sizeof(VisPayload)), remote_endpoint, 0, error);
-        if (error) {
-            ASKAPLOG_WARN_STR(logger, "Error: Failed to read a VisPayload struct");
-            continue;
-        }
-        if (len != sizeof(VisPayload)) {
-            ASKAPLOG_WARN_STR(logger, "Error: Failed to read a full VisPayload struct");
-            continue;
-        }
-        if (vis->version != VISPAYLOAD_VERSION) {
-            ASKAPLOG_ERROR_STR(logger, "Version mismatch. Expected "
-                    << VISPAYLOAD_VERSION
-                    << " got " << vis->version);
-            continue;
-        }
-
-        // Add a pointer to the message to the back of the circular burrer
-        boost::mutex::scoped_lock lock(itsMutex);
-        itsBuffer.push_back(vis);
-
-        // Notify any waiters
-        lock.unlock();
-        itsCondVar.notify_all();
-    }
+    itsIOService.run();    
 }
 
 boost::shared_ptr<VisPayload> VisSource::next(void)
