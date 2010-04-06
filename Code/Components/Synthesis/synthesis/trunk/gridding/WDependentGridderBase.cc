@@ -39,6 +39,8 @@
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".gridding");
 
+#include <fstream>
+#include <boost/shared_ptr.hpp>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -148,6 +150,27 @@ void WDependentGridderBase::configureWSampling(const LOFAR::ParameterSet& parset
       }
   } else {
      ASKAPLOG_INFO_STR(logger, "Linear sampling of the w-space");
+  }
+  
+  // optionally export w-terms corresponding to each w-plane into dat file (largely for debugging)
+  const std::string dbgExportFileName = parset.getString("wsampling.export","");
+  if (dbgExportFileName != "") {
+      ASKAPLOG_INFO_STR(logger, "Exporing w-term for each w-plane and reverse translation into "<<dbgExportFileName);
+      boost::shared_ptr<std::ofstream> os;
+      if (dbgExportFileName != "log") {
+          os.reset(new std::ofstream(dbgExportFileName.c_str()));
+          ASKAPCHECK(*os, "Unable to open file "<<dbgExportFileName<<" for writing");
+          *os<<"# plane  w-term  plane(w-term)"<<std::endl;
+      }
+      for (int plane = 0; plane<nWPlanes(); ++plane) {
+           const double wTerm = getWTerm(plane);
+           if (os) {
+               *os<<plane<<" "<<wTerm<<" "<<getWPlane(wTerm)<<std::endl;
+           } else {
+              // exporting to the log instead
+              ASKAPLOG_INFO_STR(logger, "w-plane="<<plane<<" -> w-term="<<wTerm<<" wavelengths -> plane="<<getWPlane(wTerm));
+           }
+      }
   }
 }
 
