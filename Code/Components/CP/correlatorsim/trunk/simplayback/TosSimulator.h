@@ -38,7 +38,7 @@
 // Local package includes
 #include "simplayback/ISimulator.h"
 #include "simplayback/MetadataPort.h"
-#include "cpinterfaces/TypedValues.h"
+#include "iceinterfaces/TypedValues.h"
 
 namespace askap {
 namespace cp {

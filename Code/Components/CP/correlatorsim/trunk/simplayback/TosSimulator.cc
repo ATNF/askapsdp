@@ -46,8 +46,8 @@
 #include "measures/Measures/MDirection.h"
 
 // Local package includes
-#include "cpinterfaces/CommonTypes.h"
-#include "cpinterfaces/TypedValues.h"
+#include "iceinterfaces/CommonTypes.h"
+#include "iceinterfaces/TypedValues.h"
 
 // Using
 using namespace askap;

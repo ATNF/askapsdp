@@ -42,8 +42,8 @@
 #include "CommandLineParser.h"
 
 // Local package includes
-#include "cpinterfaces/CommonTypes.h"
-#include "cpinterfaces/TypedValues.h"
+#include "iceinterfaces/CommonTypes.h"
+#include "iceinterfaces/TypedValues.h"
 
 using namespace askap::interfaces;
 using namespace askap::interfaces::datapublisher;

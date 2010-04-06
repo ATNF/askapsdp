@@ -34,7 +34,7 @@
 #include "Ice/Ice.h"
 
 // Local package includes
-#include "cpinterfaces/TypedValues.h"
+#include "iceinterfaces/TypedValues.h"
 
 namespace askap {
 namespace cp {

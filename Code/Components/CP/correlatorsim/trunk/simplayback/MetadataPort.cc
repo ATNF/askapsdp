@@ -39,7 +39,7 @@
 #include "IceStorm/IceStorm.h"
 
 // Local package includes
-#include "cpinterfaces/TypedValues.h"
+#include "iceinterfaces/TypedValues.h"
 
 // Using
 using namespace askap::cp;
