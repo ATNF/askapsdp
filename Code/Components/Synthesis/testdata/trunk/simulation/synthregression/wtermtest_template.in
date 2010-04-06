@@ -82,7 +82,9 @@ Cimager.gridder.WStack.wmax              = 30000
 Cimager.gridder.WStack.nwplanes          = 25
 Cimager.gridder.WProject.variablesupport = true
 Cimager.gridder.WProject.offsetsupport = true
-
+#Cimager.gridder.WProject.wsampling = powerlaw
+#Cimager.gridder.WProject.wsampling.exponent = 0.5
+Cimager.gridder.WProject.wsampling.export = log
 
 #
 # Use a multiscale Clean solver
