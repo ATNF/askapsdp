@@ -1,4 +1,4 @@
-/// @file IngestPipeline.cc
+/// @file MergedSource.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "IngestPipeline.h"
+#include "MergedSource.h"
 
 // Include package level header file
 #include <askap_cpingest.h>
@@ -40,24 +40,16 @@
 
 // Local includes
 
-ASKAP_LOGGER(logger, ".IngestPipeline");
+ASKAP_LOGGER(logger, ".MergedSource");
 
 using namespace askap;
 using namespace askap::cp;
 
-IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset)
+MergedSource::MergedSource(const LOFAR::ParameterSet& parset)
     : itsParset(parset)
 {
 }
 
-IngestPipeline::~IngestPipeline()
-{
-}
-
-void IngestPipeline::start(void)
-{
-}
-
-void IngestPipeline::abort(void)
+MergedSource::~MergedSource()
 {
 }

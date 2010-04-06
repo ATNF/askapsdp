@@ -1,4 +1,4 @@
-/// @file IngestPipeline.cc
+/// @file MergedSource.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,40 +24,33 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "IngestPipeline.h"
-
-// Include package level header file
-#include <askap_cpingest.h>
-
-// Boost includes
-#include <boost/scoped_ptr.hpp>
+#ifndef ASKAP_CP_MERGEDSOURCE_H
+#define ASKAP_CP_MERGEDSOURCE_H
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
-#include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
+#include "boost/shared_ptr.hpp"
 
-// Local includes
+// Local package includes
+#include "ingestpipeline/datadef/VisChunk.h"
 
-ASKAP_LOGGER(logger, ".IngestPipeline");
+namespace askap {
+    namespace cp {
 
-using namespace askap;
-using namespace askap::cp;
+        class MergedSource
+        {
+            public:
+                MergedSource(const LOFAR::ParameterSet& parset);
+                ~MergedSource();
 
-IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset)
-    : itsParset(parset)
-{
-}
+                // Blocking
+                boost::shared_ptr<askap::cp::VisChunk> next(void);
 
-IngestPipeline::~IngestPipeline()
-{
-}
+            private:
+                const LOFAR::ParameterSet itsParset;
+        };
 
-void IngestPipeline::start(void)
-{
-}
+    };
+};
 
-void IngestPipeline::abort(void)
-{
-}
+#endif
