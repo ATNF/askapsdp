@@ -52,7 +52,7 @@ if [ ! -f $1 ]; then
 fi
 
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/bridges/trunk/init_package_env.sh
+source $ASKAP_ROOT/Code/Components/CP/ingest/trunk/init_package_env.sh
 
 # Create directories for IceGrid and IceStorm
 mkdir -p data/registry
