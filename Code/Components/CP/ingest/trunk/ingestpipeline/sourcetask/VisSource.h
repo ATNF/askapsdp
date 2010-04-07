@@ -31,11 +31,11 @@
 #include "boost/shared_ptr.hpp"
 #include "boost/scoped_ptr.hpp"
 #include "boost/thread.hpp"
-#include "boost/thread/mutex.hpp"
-#include "boost/thread/condition.hpp"
-#include "boost/circular_buffer.hpp"
 #include "boost/asio.hpp"
 #include "cpcommon/VisPayload.h"
+
+// Local package includes
+#include "ingestpipeline/sourcetask/CircularBuffer.h"
 
 namespace askap {
     namespace cp {
@@ -57,14 +57,8 @@ namespace askap {
 
                 void run(void);
 
-                // Circular buffer of metadata payloads
-                boost::circular_buffer< boost::shared_ptr<VisPayload> > itsBuffer;
-
-                // Lock to protect itsBuffer
-                boost::mutex itsMutex;
-
-                // Condition variable signaling between threads
-                boost::condition itsCondVar;
+                // Circular buffer of VisPayload objects
+                askap::cp::CircularBuffer< VisPayload > itsBuffer;
 
                 // Service thread
                 boost::shared_ptr<boost::thread> itsThread;

@@ -31,11 +31,11 @@
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
 #include "boost/shared_ptr.hpp"
-#include "boost/circular_buffer.hpp"
-#include "boost/thread/mutex.hpp"
-#include "boost/thread/condition.hpp"
 #include "iceinterfaces/CommonTypes.h"
 #include "iceinterfaces/TypedValues.h"
+
+// Local package includes
+#include "ingestpipeline/sourcetask/CircularBuffer.h"
 
 namespace askap {
     namespace cp {
@@ -67,13 +67,7 @@ namespace askap {
 
             private:
                 // Circular buffer of metadata payloads
-                boost::circular_buffer< boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> > itsBuffer;
-
-                // Lock to protect itsBuffer
-                boost::mutex itsMutex;
-
-                // Condition variable signaling between threads
-                boost::condition itsCondVar;
+                askap::cp::CircularBuffer< askap::interfaces::TimeTaggedTypedValueMap > itsBuffer;
 
                 // Ice Communicator
                 Ice::CommunicatorPtr itsComm;

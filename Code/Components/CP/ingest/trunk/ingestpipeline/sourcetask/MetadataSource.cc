@@ -30,15 +30,12 @@
 // Include package level header file
 #include <askap_cpingest.h>
 
-// Boost includes
-#include <boost/scoped_ptr.hpp>
-
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
-#include "boost/circular_buffer.hpp"
+#include <boost/shared_ptr.hpp>
 
 // Local includes
 #include "iceinterfaces/CommonTypes.h"
@@ -56,13 +53,9 @@ MetadataSource::MetadataSource(const std::string& locatorHost,
         const std::string& topicManager,
         const std::string& topic,
         const std::string& adapterName,
-        const unsigned int bufSize)
+        const unsigned int bufSize) :
+    itsBuffer(bufSize)
 {
-    if (bufSize > 0) {
-        itsBuffer.set_capacity(bufSize);
-    } else {
-        itsBuffer.set_capacity(1);
-    }
     configureIce(locatorHost, locatorPort, topicManager, topic, adapterName);
 }
 
@@ -140,10 +133,8 @@ void MetadataSource::configureIce(const std::string& locatorHost,
 
 MetadataSource::~MetadataSource()
 {
-    ASKAPLOG_DEBUG_STR(logger, "Shutting down");
     itsComm->shutdown();
     itsComm->waitForShutdown();
-    ASKAPLOG_DEBUG_STR(logger, "Shutdown completed");
 }
 
 void MetadataSource::publish(const TimeTaggedTypedValueMap& msg,
@@ -153,32 +144,13 @@ void MetadataSource::publish(const TimeTaggedTypedValueMap& msg,
     boost::shared_ptr<TimeTaggedTypedValueMap>
         metadata(new TimeTaggedTypedValueMap(msg));
 
-    // Add a pointer to the message to the back of the circular burrer
-    boost::mutex::scoped_lock lock(itsMutex);
-    ASKAPLOG_DEBUG_STR(logger, "Before: "  << itsBuffer.size());
-    itsBuffer.push_back(metadata);
-    ASKAPLOG_DEBUG_STR(logger, "After: "  << itsBuffer.size());
-
-    // Notify any waiters
-    lock.unlock();
-    itsCondVar.notify_all();
+    // Add a pointer to the message to the back of the circular buffer.
+    // Waiters are notified.
+    itsBuffer.add(metadata);
 }
 
 // Blocking
 boost::shared_ptr<TimeTaggedTypedValueMap> MetadataSource::next(void)
 {
-    boost::mutex::scoped_lock lock(itsMutex);
-    while (itsBuffer.empty()) {
-        // While this call sleeps/blocks the mutex is released
-        itsCondVar.wait(lock);
-    }
-
-    // Get the pointer on the front of the circular buffer
-    boost::shared_ptr<TimeTaggedTypedValueMap> metadata(itsBuffer[0]);
-    itsBuffer.pop_front();
-
-    // No need to notify producer. The producer doesn't block because the
-    // buffer is a circular buffer.
-
-    return metadata;
+    return itsBuffer.next();
 }

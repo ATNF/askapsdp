@@ -36,23 +36,16 @@
 #include "boost/scoped_ptr.hpp"
 #include "boost/thread.hpp"
 
-// Local includes
-
-ASKAP_LOGGER(logger, ".VisSource");
-
+// Using
 using namespace askap;
 using namespace askap::cp;
 using boost::asio::ip::udp;
 
-VisSource::VisSource(const unsigned int port, const unsigned int bufSize) :
-    itsStopRequested(false)
-{
-    if (bufSize > 0) {
-        itsBuffer.set_capacity(bufSize);
-    } else {
-        itsBuffer.set_capacity(1);
-    }
+ASKAP_LOGGER(logger, ".VisSource");
 
+VisSource::VisSource(const unsigned int port, const unsigned int bufSize) :
+    itsBuffer(bufSize), itsStopRequested(false)
+{
     // Create socket
     itsSocket.reset(new udp::socket(itsIOService, udp::endpoint(udp::v4(), port)));
 
@@ -114,14 +107,10 @@ void VisSource::handle_receive(const boost::system::error_code& error,
                     << " got " << itsRecvBuffer->version);
         }
 
-        // Add a pointer to the message to the back of the circular burrer
-        boost::mutex::scoped_lock lock(itsMutex);
-        itsBuffer.push_back(itsRecvBuffer);
+        // Add a pointer to the message to the back of the circular buffer.
+        // Waiters are notified.
+        itsBuffer.add(itsRecvBuffer);
         itsRecvBuffer.reset();
-
-        // Notify any waiters
-        lock.unlock();
-        itsCondVar.notify_all();
     } else {
         ASKAPLOG_WARN_STR(logger, "Error reading visibilities from UDP socket. Error Code: "
                 << error);
@@ -139,18 +128,5 @@ void VisSource::run(void)
 
 boost::shared_ptr<VisPayload> VisSource::next(void)
 {
-    boost::mutex::scoped_lock lock(itsMutex);
-    while (itsBuffer.empty()) {
-        // While this call sleeps/blocks the mutex is released
-        itsCondVar.wait(lock);
-    }
-
-    // Get the pointer on the front of the circular buffer
-    boost::shared_ptr<VisPayload> vis(itsBuffer[0]);
-    itsBuffer.pop_front();
-
-    // No need to notify producer. The producer doesn't block because the
-    // buffer is a circular buffer.
-
-    return vis;
+    return itsBuffer.next();
 }
