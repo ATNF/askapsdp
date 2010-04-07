@@ -1,8 +1,0 @@
-boost=3rdParty/boost/tags/boost-1.41.0
-askap=Code/Base/askap/trunk
-common=3rdParty/LOFAR/Common/tags/Common-3.3
-ice=3rdParty/Ice/tags/Ice-3.3.0;IceStorm Ice IceUtil
-cmdlineparser=3rdParty/cmdlineparser/tags/cmdlineparser-0.1.1
-interfaces=Code/Interfaces/trunk
-activemqcpp=3rdParty/activemq-cpp-library/tags/activemq-cpp-library-3.1.1
-activemq=3rdParty/apache-activemq/tags/apache-activemq-5.3.1
