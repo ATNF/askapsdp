@@ -118,8 +118,8 @@ void GaussianWSampling::calculateDistributionParameters(const double wplanes50)
   // This asymptotic behavior can be used to derive search range for numerical solution of the equation
   // sigma -> infinity, x -> 1/sqrt(2)
   // sigma -> 0, x/sigma -> sqrt(2*log(2))
-  // Two estimates for sigma are (x/1.2, sqrt(0.05/(1/sqrt(2)-x))) or directly for twosigmasquared are
-  // (x/0.72, 0.1/(1/sqrt(2)-x)), the first estimate is using small sigma approximation, the second using large
+  // Two estimates for sigma are (x/sqrt(2*log(2)), sqrt(0.05/(1/sqrt(2)-x))) or directly for twosigmasquared are
+  // (x*x/log(2), 0.1/(1/sqrt(2)-x)), the first estimate is using small sigma approximation, the second using large
   // sigma approximation.
   
   ASKAPCHECK(wplanes50>0, "Fraction of w-planes containing 50% of -wmax,wmax range of w-terms should be positive, you have normalised wplanes50="
@@ -127,13 +127,12 @@ void GaussianWSampling::calculateDistributionParameters(const double wplanes50)
   ASKAPCHECK(wplanes50*sqrt(2)<1., "Normalised fraction of w-planes containing 50% of -wmax,wmax range of wterms should not exceed 1/sqrt(2)."<< 
          " Otherwise, the solution for gaussian distribution does not exist. You have normalised wplanes50="<<wplanes50);
 
-  double minTwoSigmaSquared = wplanes50 / 0.72;
-  double maxTwoSigmaSquared = 0.1/(1/sqrt(2) - wplanes50);
+  double minTwoSigmaSquared = wplanes50*wplanes50 / log(2.) / 2.; // scaled down with factor of 2, just in case
+  double maxTwoSigmaSquared = 0.2/(1/sqrt(2) - wplanes50); // scaled up with factor of 2, just in case
   if (maxTwoSigmaSquared < minTwoSigmaSquared) {
       minTwoSigmaSquared = maxTwoSigmaSquared;
       maxTwoSigmaSquared = 5.; // value well outside the ambiguity region
   }
-  
   ASKAPLOG_INFO_STR(logger, "Gaussian w-sampling: searching for twoSigmaSquared in ("<<minTwoSigmaSquared<<","<<
                             maxTwoSigmaSquared<<
                             ") interval for normalised fraction of w-planes containing 50% of -wmax,wmax range of w-terms equal to "<<
@@ -149,9 +148,9 @@ void GaussianWSampling::calculateDistributionParameters(const double wplanes50)
   for (size_t it = 0; it < maxNiter; ++it) {
        itsTwoSigmaSquared = (minTwoSigmaSquared + maxTwoSigmaSquared) / 2.;
        if (targetFunction() < wplanes50) {
-           maxTwoSigmaSquared = itsTwoSigmaSquared;
-       } else {
            minTwoSigmaSquared = itsTwoSigmaSquared;
+       } else {
+           maxTwoSigmaSquared = itsTwoSigmaSquared;
        }
        if (maxTwoSigmaSquared - minTwoSigmaSquared < tolerance) {
            ASKAPLOG_INFO_STR(logger, "Search converged at iteration = "<<it<<" itsTwoSigmaSquared="<<itsTwoSigmaSquared);
