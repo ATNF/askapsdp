@@ -61,7 +61,7 @@ namespace askap
             // Test the addition and retrieval of a large number of pointers
             void testMultiple()
             {
-                const int count = 1024 * 1024 * 10;
+                const int count = 1024 * 1024;
                 CircularBuffer<int> instance(count);
                 for (int i = 0; i < count; ++i) {
                     boost::shared_ptr<int> inPtr(new int);
