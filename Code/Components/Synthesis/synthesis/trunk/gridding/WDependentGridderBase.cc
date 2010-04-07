@@ -144,7 +144,10 @@ void WDependentGridderBase::configureWSampling(const LOFAR::ParameterSet& parset
            const double nwplanes50 = parset.getDouble("wsampling.nwplanes50");
            ASKAPLOG_INFO_STR(logger, "Gaussian sampling of the w-space, number of w-planes covering 50% of sampled w-range is "<<
                                       nwplanes50);
-           gaussianWSampling(nwplanes50);                           
+           ASKAPCHECK( (nwplanes50>0.) && (nwplanes50 < double(itsNWPlanes)/sqrt(2.)), 
+               "Number of w-planes covering 50% of w-range has to be a positive number not exceeding total number of w-planes "<<
+               itsNWPlanes<<" divided by sqrt(2) or "<<double(itsNWPlanes)/sqrt(2.));
+           gaussianWSampling(nwplanes50/itsNWPlanes);                           
       } else {
         ASKAPTHROW(AskapError, "W-sampling "<<sampling<<" is not implemented");
       }
