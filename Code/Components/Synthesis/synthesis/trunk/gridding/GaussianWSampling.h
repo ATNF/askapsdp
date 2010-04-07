@@ -44,6 +44,7 @@
 #define GAUSSIAN_W_SAMPLING_H
 
 #include <gridding/IWSampling.h>
+#include <cmath>
 
 namespace askap {
 
@@ -67,9 +68,9 @@ struct GaussianWSampling : public IWSampling {
 
   /// @brief initialise the class
   /// @details
-  /// @param[in] nwplanes50 The number of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
+  /// @param[in] wplanes50 the fraction of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
   /// w-planes always correspond to -wmax and +wmax, while the mid-plane always corresponds to zero w-term.
-  explicit GaussianWSampling(const double nwplanes50);
+  explicit GaussianWSampling(const double wplanes50);
     
   /// @brief plane to w-term conversion (mapping)
   /// @details This is a forward method mapping scaled w-plane to scaled w-term.
@@ -91,10 +92,17 @@ protected:
   /// @details This method has been designed to calculate distribution parameters (sigma and amplitude) stored
   /// as members of this class from the input parameter being the number of w-planes containing 50% of the w-term
   /// range [-wmax,wmax] or to be exact [-1,1] as this class works with the normalised w-term. 
-  /// @param[in] nwplanes50 The number of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
+  /// @param[in] wplanes50 the fraction of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
   /// w-planes always correspond to -wmax and +wmax, while the mid-plane always corresponds to zero w-term.
-  void calculateDistributionParameters(const double nwplanes50);    
+  void calculateDistributionParameters(const double wplanes50);    
 
+  /// @brief target function to solve equation numerically
+  /// @details This method is called from inside the dichotomy algorithm, it uses 
+  /// itsTwoSigmaSquared as an input and does not have any arguments.
+  /// @return value of the target function (equal to wplanes50/2 for the match)
+  inline double targetFunction() const 
+    { return sqrt(-itsTwoSigmaSquared*log(0.5+0.5*exp(-1./itsTwoSigmaSquared))); }
+  
 private:
   /// @brief two sigma squared (sigma is the parameter of the Gaussian)
   double itsTwoSigmaSquared;

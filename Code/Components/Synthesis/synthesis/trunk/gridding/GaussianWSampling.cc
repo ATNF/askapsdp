@@ -43,6 +43,11 @@
 #include <gridding/GaussianWSampling.h>
 #include <askap/AskapError.h>
 
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
+
+
 #include <cmath>
 
 using namespace askap;
@@ -50,11 +55,11 @@ using namespace askap::synthesis;
 
 /// @brief initialise the class
 /// @details
-/// @param[in] nwplanes50 The number of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
+/// @param[in] wplanes50 the fraction of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
 /// w-planes always correspond to -wmax and +wmax, while the mid-plane always corresponds to zero w-term.
-GaussianWSampling::GaussianWSampling(const double nwplanes50) : itsTwoSigmaSquared(1.), itsAmplitude(0.) 
+GaussianWSampling::GaussianWSampling(const double wplanes50) : itsTwoSigmaSquared(1.), itsAmplitude(0.) 
 {
-  calculateDistributionParameters(nwplanes50);
+  calculateDistributionParameters(wplanes50);
 }
 
 /// @brief plane to w-term conversion (mapping)
@@ -102,10 +107,59 @@ double GaussianWSampling::index(double wterm) const
 /// @details This method has been designed to calculate distribution parameters (sigma and amplitude) stored
 /// as members of this class from the input parameter being the number of w-planes containing 50% of the w-term
 /// range [-wmax,wmax] or to be exact [-1,1] as this class works with the normalised w-term. 
-/// @param[in] nwplanes50 The number of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
+/// @param[in] wplanes50 the fraction of w-planes covering 50% of the w-term range [-wmax,wmax]. The first and the last
 /// w-planes always correspond to -wmax and +wmax, while the mid-plane always corresponds to zero w-term.
-void GaussianWSampling::calculateDistributionParameters(const double nwplanes50)
+void GaussianWSampling::calculateDistributionParameters(const double wplanes50)
 {
-  ASKAPTHROW(AskapError, "Gaussian w-sampling has not yet been fully implemented. nwplanes50="<<nwplanes50);   
+  // we have to solve the equation
+  // x=sqrt(-twosigmasquared*log(0.5+0.5*exp(-1/twosigmasquared)))
+  // numerically to get twosigmasquared from x=wplanes50 
+  // This equation has an interesting asymptotic behavior at both large and small sigmas. 
+  // This asymptotic behavior can be used to derive search range for numerical solution of the equation
+  // sigma -> infinity, x -> 1/sqrt(2)
+  // sigma -> 0, x/sigma -> sqrt(2*log(2))
+  // Two estimates for sigma are (x/1.2, sqrt(0.05/(1/sqrt(2)-x))) or directly for twosigmasquared are
+  // (x/0.72, 0.1/(1/sqrt(2)-x)), the first estimate is using small sigma approximation, the second using large
+  // sigma approximation.
+  
+  ASKAPCHECK(wplanes50>0, "Fraction of w-planes containing 50% of -wmax,wmax range of w-terms should be positive, you have normalised wplanes50="
+                          << wplanes50);
+  ASKAPCHECK(wplanes50*sqrt(2)<1., "Normalised fraction of w-planes containing 50% of -wmax,wmax range of wterms should not exceed 1/sqrt(2)."<< 
+         " Otherwise, the solution for gaussian distribution does not exist. You have normalised wplanes50="<<wplanes50);
+
+  double minTwoSigmaSquared = wplanes50 / 0.72;
+  double maxTwoSigmaSquared = 0.1/(1/sqrt(2) - wplanes50);
+  if (maxTwoSigmaSquared < minTwoSigmaSquared) {
+      minTwoSigmaSquared = maxTwoSigmaSquared;
+      maxTwoSigmaSquared = 5.; // value well outside the ambiguity region
+  }
+  
+  ASKAPLOG_INFO_STR(logger, "Gaussian w-sampling: searching for twoSigmaSquared in ("<<minTwoSigmaSquared<<","<<
+                            maxTwoSigmaSquared<<
+                            ") interval for normalised fraction of w-planes containing 50% of -wmax,wmax range of w-terms equal to "<<
+                            wplanes50);
+  // first verify that interval selection is correct
+  itsTwoSigmaSquared = minTwoSigmaSquared;
+  ASKAPCHECK(targetFunction() <= wplanes50, "lower end of the search interval corresponds to higher fraction of w-planes. This is a bug!");
+  itsTwoSigmaSquared = maxTwoSigmaSquared;
+  ASKAPCHECK(targetFunction() >= wplanes50, "lower end of the search interval corresponds to lower fraction of w-planes. This is a bug!");  
+  // now do dichotomy                         
+  size_t maxNiter = 100;
+  const double tolerance = 1e-5;
+  for (size_t it = 0; it < maxNiter; ++it) {
+       itsTwoSigmaSquared = (minTwoSigmaSquared + maxTwoSigmaSquared) / 2.;
+       if (targetFunction() < wplanes50) {
+           maxTwoSigmaSquared = itsTwoSigmaSquared;
+       } else {
+           minTwoSigmaSquared = itsTwoSigmaSquared;
+       }
+       if (maxTwoSigmaSquared - minTwoSigmaSquared < tolerance) {
+           ASKAPLOG_INFO_STR(logger, "Search converged at iteration = "<<it<<" itsTwoSigmaSquared="<<itsTwoSigmaSquared);
+           break;
+       }
+       ASKAPCHECK(it + 1 != maxNiter, "Failed to converge within "<<maxNiter<<
+                  " iterations with tolerance="<<tolerance<<", please investigate");
+  }    
+  itsAmplitude = 1./(1.-exp(-1./itsTwoSigmaSquared));
 }
 
