@@ -55,8 +55,8 @@ VisSource::VisSource(const unsigned int port, const unsigned int bufSize) :
     boost::system::error_code soerror;
     itsSocket->set_option(option, soerror);
     if (soerror) {
-        ASKAPTHROW(AskapError, "Could not set socket options. Error code: "
-                << soerror);
+        ASKAPLOG_WARN_STR(logger, "Setting UDP receive buffer size failed. " <<
+                "This may result in dropped datagrams");
     }
 
     start_receive();

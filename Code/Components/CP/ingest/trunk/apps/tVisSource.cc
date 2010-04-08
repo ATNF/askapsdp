@@ -27,6 +27,7 @@
 // System includes
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <unistd.h>
 
 // ASKAPsoft includes
@@ -64,7 +65,7 @@ class VisOutPort {
             boost::system::error_code soerror;
             itsSocket.set_option(option, soerror);
             if (soerror) {
-                throw soerror;
+                std::cerr << "Warning: Could not set socket buffer size" << std::endl;
             }
 
             // Query the nameservice
@@ -113,21 +114,18 @@ int main(int argc, char *argv[])
     const std::string hostname = "localhost";
     const unsigned int port = 3000;
     const std::string portStr = "3000";
-    const unsigned int bufSize = 15 * 304 * 36 * 2; // Enough for two BETA integrations
+    const unsigned int bufSize = 15 * 304 * 36; // Enough for one BETA sized integration
 
-    std::cerr << "Creating instance of VisOutPort...";
     VisOutPort out(hostname, portStr);
-    std::cerr << "Done" << std::endl;
-    std::cerr << "Creating instance of VisSource (class under test)...";
     VisSource source(port, bufSize);
     sleep(1);
-    std::cerr << "Done" << std::endl;
 
     // Test simple send, recv, send, recv case
     unsigned long time = 1234;
     const unsigned int count = 10;
     for (unsigned int i = 0; i < count; ++i) {
         VisPayload outvis;
+        std::memset(&outvis, 0, sizeof (VisPayload));
         outvis.timestamp = time;
         outvis.version = VISPAYLOAD_VERSION;
         out.send(outvis);
@@ -139,14 +137,16 @@ int main(int argc, char *argv[])
         }
     }
 
+
     // Test the buffering abilities of MetadataSource
     time = 9876;
     for (unsigned int i = 0; i < bufSize; ++i) {
         VisPayload outvis;
+        std::memset(&outvis, 0, sizeof (VisPayload));
         outvis.timestamp = time;
         outvis.version = VISPAYLOAD_VERSION;
         out.send(outvis);
-        usleep(10);
+        usleep(10); // Throttle the sending slightly
     }
     for (unsigned int i = 0; i < bufSize; ++i) {
         boost::shared_ptr<VisPayload> recvd = source.next();
