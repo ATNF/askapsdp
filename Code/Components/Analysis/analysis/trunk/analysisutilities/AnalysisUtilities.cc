@@ -158,8 +158,13 @@ namespace askap {
             par.setStatSec(parset.getString("statsec", par.getStatSec()));
             par.setVerbosity(parset.getBool("verbose", false));
             par.setFlagLog(true);
-            par.setBeamSize(parset.getFloat("beamSize", 4.));
-            par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
+	    if(parset.isDefined("beamSize")){
+	      par.setBeamSize(parset.getFloat("beamSize"));
+	      ASKAPLOG_WARN_STR(logger, "Parset has beamSize parameter. This is deprecated from Duchamp 1.1.9 onwards - use beamArea instead. Setting beamArea="<<par.getBeamSize());
+	    }
+	    par.setBeamSize(parset.getFloat("beamArea", 4.)); 
+	    par.setBeamFWHM(parset.getFloat("beamFWHM", 4.));
+           par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
             par.setCut(parset.getFloat("snrCut", 4.));
 
             if (parset.isDefined("threshold")) {
