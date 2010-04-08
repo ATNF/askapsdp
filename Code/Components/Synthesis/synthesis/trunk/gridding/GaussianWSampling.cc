@@ -89,9 +89,12 @@ double GaussianWSampling::index(double wterm) const
 {
   ASKAPDEBUGASSERT((wterm>=-1.) && (wterm<=1.));
   ASKAPDEBUGASSERT(itsAmplitude!=0.);
+  if ((wterm == -1.) || (wterm == 1.)) {
+      return wterm;
+  }
   const double expterm = 1.-fabs(wterm)/itsAmplitude;
   ASKAPCHECK(expterm>0., "Unable to invert the formula for w-term sampling, wterm = "<<wterm<<
-             " implies infinite plane number");
+             " implies infinite plane number; expterm="<<expterm);
   const double planeSquared = -log(expterm)*itsTwoSigmaSquared;
   ASKAPCHECK(planeSquared>=0., "Unable to invert the formula for w-term sampling, wterm = "<<wterm<<
              " implies a negative planeSquared = "<<planeSquared);

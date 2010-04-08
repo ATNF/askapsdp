@@ -28,6 +28,7 @@
 #include <TableVisGridderTest.h>
 #include <SupportSearcherTest.h>
 #include <FrequencyMapperTest.h>
+#include <NonLinearWSamplingTest.h>
 
 int main(int argc, char *argv[])
 {
@@ -36,6 +37,7 @@ int main(int argc, char *argv[])
     runner.addTest( askap::synthesis::TableVisGridderTest::suite());
     runner.addTest( askap::synthesis::SupportSearcherTest::suite());
     runner.addTest( askap::synthesis::FrequencyMapperTest::suite());
+    runner.addTest( askap::synthesis::NonLinearWSamplingTest::suite());
 
     bool wasSucessful = runner.run();
 
