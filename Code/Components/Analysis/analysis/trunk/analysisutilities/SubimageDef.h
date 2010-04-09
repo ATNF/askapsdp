@@ -125,6 +125,12 @@ namespace askap {
                 std::vector<long> itsFullImageDim;
                 /// @brief The name of the image
                 std::string itsImageName;
+		/// @brief Which axis in the longitude axis
+		int itsLng;
+		/// @brief Which axis in the latitude axis
+		int itsLat;
+		/// @brief Which axis in the spectral axis
+		int itsSpec;
         };
 
     }

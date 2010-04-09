@@ -871,7 +871,9 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube = " << this->itsCube.getNumObj());
                     bool growthflag = this->itsCube.pars().getFlagGrowth();
                     this->itsCube.pars().setFlagGrowth(false);  // can't grow as don't have flux array in itsCube
+                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Merging edge sources");
                     this->itsCube.ObjectMerger();
+                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());
                     this->itsCube.pars().setFlagGrowth(growthflag);
                     this->calcObjectParams();
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());

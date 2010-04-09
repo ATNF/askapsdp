@@ -156,22 +156,22 @@ namespace askap {
             ///
             /// @param wcs The WCSLIB definition of the world coordinate system
             this->itsNAxis = wcs->naxis;
-            const int lng  = wcs->lng;
-            const int lat  = wcs->lat;
-            const int spec = wcs->spec;
+            this->itsLng  = wcs->lng;
+            this->itsLat  = wcs->lat;
+            this->itsSpec = wcs->spec;
 
             if (this->itsNAxis > 0) {
                 this->itsNSub = new int[this->itsNAxis];
                 this->itsOverlap = new int[this->itsNAxis];
 
                 for (int i = 0; i < this->itsNAxis; i++) {
-                    if (i == lng) {
+                    if (i == this->itsLng) {
                         this->itsNSub[i] = this->itsNSubX;
                         this->itsOverlap[i] = this->itsOverlapX;
-                    } else if (i == lat) {
+                    } else if (i == this->itsLat) {
                         this->itsNSub[i] = this->itsNSubY;
                         this->itsOverlap[i] = this->itsOverlapY;
-                    } else if (i == spec) {
+                    } else if (i == this->itsSpec) {
                         this->itsNSub[i] = this->itsNSubZ;
                         this->itsOverlap[i] = this->itsOverlapZ;
                     } else {
@@ -227,14 +227,14 @@ namespace askap {
                 duchamp::Section inputSec(inputSubsection);
                 inputSec.parse(this->itsFullImageDim);
                 ASKAPLOG_INFO_STR(logger, "Input subsection is OK");
-                long sub[3];
-                sub[0] = workerNum % this->itsNSub[0];
-                sub[1] = (workerNum % (this->itsNSub[0] * this->itsNSub[1])) / this->itsNSub[0];
-                sub[2] = workerNum / (this->itsNSub[0] * this->itsNSub[1]);
+                long *sub = new long[this->itsNAxis];
+		for(int i=0;i<this->itsNAxis;i++) sub[i]=0;
+                sub[this->itsLng] = workerNum % this->itsNSub[0];
+                sub[this->itsLat] = (workerNum % (this->itsNSub[0] * this->itsNSub[1])) / this->itsNSub[0];
+                sub[this->itsSpec] = workerNum / (this->itsNSub[0] * this->itsNSub[1]);
                 std::stringstream section;
-                int numAxes = this->itsFullImageDim.size();
 
-                for (int i = 0; i < numAxes; i++) {
+                for (int i = 0; i < this->itsNAxis; i++) {
                     if (this->itsNSub[i] > 1) {
                         int length = inputSec.getDim(i);
                         float sublength = float(length) / float(this->itsNSub[i]);
@@ -244,7 +244,7 @@ namespace askap {
                     } else
                         section << inputSec.getSection(i);
 
-                    if (i != numAxes - 1) section << ",";
+                    if (i != this->itsNAxis - 1) section << ",";
                 }
 
                 std::string secstring = "[" + section.str() + "]";
