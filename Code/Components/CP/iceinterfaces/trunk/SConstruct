@@ -8,7 +8,7 @@ from askapenv import env
 # create build object with library name
 pkg = env.AskapPackage("iceinterfaces")
 
-pkg.AddSubPackage("iceinterfaces")
+pkg.AddSubPackage("icegenerated")
 
 # first argument is a slice file or list of slice files
 # second argument is the sub-package where the slice generated code should appear
@@ -16,12 +16,12 @@ pkg.AddSubPackage("iceinterfaces")
 # file, or omit this argument for a system interface (i.e. Code/Interfaces)
 #
 # These are the ASKAPsoft component interfaces:
-pkg.AddInterfaces("CommonTypes.ice", "iceinterfaces")
-pkg.AddInterfaces("TypedValues.ice", "iceinterfaces")
-pkg.AddInterfaces("CP.ice", "iceinterfaces")
+pkg.AddInterfaces("CommonTypes.ice", "icegenerated")
+pkg.AddInterfaces("TypedValues.ice", "icegenerated")
+pkg.AddInterfaces("CP.ice", "icegenerated")
 #
 # These are the CP internal interfaces:
-pkg.AddInterfaces("IngestPipeline.ice", "iceinterfaces", "cpinterfaces")
+pkg.AddInterfaces("IngestPipeline.ice", "icegenerated", "cpinterfaces")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
