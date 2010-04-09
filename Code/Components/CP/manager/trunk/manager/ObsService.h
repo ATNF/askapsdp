@@ -30,8 +30,8 @@
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 
-// Interface includes
-#include "manager/CP.h"
+// ICE Interface includes
+#include "CP.h"
 
 namespace askap {
     namespace cp {

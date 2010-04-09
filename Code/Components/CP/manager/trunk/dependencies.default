@@ -3,5 +3,5 @@ cmdlineparser=3rdParty/cmdlineparser/tags/cmdlineparser-0.1.1
 common=3rdParty/LOFAR/Common/tags/Common-3.3
 boost=3rdParty/boost/tags/boost-1.41.0
 ice=3rdParty/Ice/tags/Ice-3.3.0;IceStorm Ice IceUtil
-interfaces=Code/Interfaces/trunk
+iceinterfaces=Code/Components/CP/iceinterfaces/trunk
 logappenders=Code/Base/logappenders/trunk

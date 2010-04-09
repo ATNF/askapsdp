@@ -28,11 +28,13 @@
 #define ASKAP_CP_ADMININTERFACE_H
 
 // ASKAPsoft includes
-#include <Ice/Ice.h>
+#include "Ice/Ice.h"
 
-// Interface includes
-#include <manager/Component.h>
-#include <manager/ObsService.h>
+// ICE Interface includes
+#include "Component.h"
+
+// Local package includes
+#include "manager/ObsService.h"
 
 namespace askap {
     namespace cp {
