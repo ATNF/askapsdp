@@ -31,7 +31,6 @@
 #include <string>
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include <Ice/Ice.h>
 #include <IceStorm/IceStorm.h>
