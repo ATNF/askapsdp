@@ -1,0 +1,2 @@
+libs=askap_iceinterfaces
+incdir=include/iceinterfaces

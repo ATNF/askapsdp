@@ -35,11 +35,11 @@
 #include "askap/AskapError.h"
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
-// Local includes
-#include "iceinterfaces/CommonTypes.h"
-#include "iceinterfaces/TypedValues.h"
+// CP Ice interfaces
+#include "CommonTypes.h"
+#include "TypedValues.h"
 
 ASKAP_LOGGER(logger, ".MetadataSource");
 

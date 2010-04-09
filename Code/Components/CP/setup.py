@@ -6,8 +6,9 @@ for pkg, msg in nobuild.iteritems():
     print("warn: %s no install. %s" % (pkg, msg))
 
 build(['common/trunk/build.py',
+       'iceinterfaces/trunk/build.py',
+       'icewrapper/trunk/build.py',
        'imager/trunk/build.py',
-       'frontend/trunk/build.py',
        'manager/trunk/build.py',
        'ingest/trunk/build.py',
        'correlatorsim/trunk/build.py',

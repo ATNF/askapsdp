@@ -34,9 +34,12 @@
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
 #include "boost/shared_ptr.hpp"
+#include "tosmetadata/MetadataOutputPort.h"
+
+// CP Ice interfaces
+#include "TypedValues.h"
 
 // Local package includes
-#include "iceinterfaces/TypedValues.h"
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 
 // Using
@@ -45,76 +48,6 @@ using namespace askap::interfaces;
 using namespace askap::interfaces::datapublisher;
 
 ASKAP_LOGGER(logger, ".tMetadataSource");
-
-class MetadataOutPort {
-    public:
-        MetadataOutPort(const std::string& locatorHost,
-                const std::string& locatorPort,
-                const std::string& topicManager,
-                const std::string& topic)
-        {
-            Ice::PropertiesPtr props = Ice::createProperties();
-
-            // Make sure that network and protocol tracing are off.
-            props->setProperty("Ice.Trace.Network", "0");
-            props->setProperty("Ice.Trace.Protocol", "0");
-
-            // Increase maximum message size from 1MB to 128MB
-            props->setProperty("Ice.MessageSizeMax", "131072");
-
-            // Syntax example:
-            // IceGrid/Locator:tcp -h localhost -p 4061
-            std::ostringstream ss;
-            ss << "IceGrid/Locator:tcp -h ";
-            ss << locatorHost;
-            ss << " -p ";
-            ss << locatorPort;
-            std::string locatorParam = ss.str();
-
-            props->setProperty("Ice.Default.Locator", locatorParam);
-
-            // Initialize a communicator with these properties.
-            Ice::InitializationData id;
-            id.properties = props;
-            itsComm = Ice::initialize(id);
-
-            // Get the topic for the metadata stream
-            itsMetadataStream = ITimeTaggedTypedValueMapPublisherPrx::uncheckedCast(
-                    getProxy(topicManager, topic));
-        }
-
-        void send(const askap::interfaces::TimeTaggedTypedValueMap& payload)
-        {
-            itsMetadataStream->publish(payload);
-        }
-
-
-    private:
-        Ice::ObjectPrx getProxy(const std::string& topicManager,
-                const std::string& topic)
-        {
-            Ice::ObjectPrx obj = itsComm->stringToProxy(topicManager);
-            IceStorm::TopicManagerPrx manager =
-                IceStorm::TopicManagerPrx::checkedCast(obj);
-            IceStorm::TopicPrx topicPrx;
-            try {
-                topicPrx = manager->retrieve(topic);
-            } catch (const IceStorm::NoSuchTopic&) {
-                try {
-                    topicPrx = manager->create(topic);
-                } catch (const IceStorm::TopicExists&) {
-                    // Something eles has since created the topic
-                    topicPrx = manager->retrieve(topic);
-                }
-            }
-
-            return topicPrx->getPublisher()->ice_twoway();
-        }
-
-        Ice::CommunicatorPtr itsComm;
-
-        askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsMetadataStream;
-};
 
 int main(int argc, char *argv[])
 {
@@ -128,7 +61,7 @@ int main(int argc, char *argv[])
     const std::string adapterName = argv[0];
     const int bufSize = 24;
 
-    MetadataOutPort out(locatorHost, locatorPort, topicManager, topic);
+    MetadataOutputPort out(locatorHost, locatorPort, topicManager, topic);
     MetadataSource source(locatorHost, locatorPort, topicManager, topic,
             adapterName, bufSize);
 

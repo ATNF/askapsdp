@@ -25,7 +25,7 @@
 #ifndef ASKAP_CP_INGESTPIPELINE_ICE
 #define ASKAP_CP_INGESTPIPELINE_ICE
 
-#include <CommonTypes.ice>
+//#include <CommonTypes.ice>
 
 module askap {
     module cpinterfaces {
@@ -34,15 +34,15 @@ module askap {
          * This exception is thrown by the methods of the IngestPipeline
          * interface.
          **/
-        exception IngestException extends askap::interfaces::AskapIceException
-        {
-        };
+        //exception IngestException extends askap::interfaces::AskapIceException
+        //{
+        //};
 
         /**
          * This is the interface fulfilled by the IngestPipeline (internal
          * to the central processor).
          */
-        interface IIngestPipeline {
+        //interface IIngestPipeline {
 
             /**
              * Calling this method instructs the ingest pipeline instance to
@@ -66,8 +66,8 @@ module askap {
              *          running. The "reason" member of the exception object
              *          will indicate the reason for the exception.
              */
-            ["ami"] void start(askap::interfaces::ParameterMap parmap)
-                throws IngestException;
+            //["ami"] void start(askap::interfaces::ParameterMap parmap)
+            //    throws IngestException;
 
             /**
              * Wait until the current ingest activity has completed. This
@@ -81,8 +81,8 @@ module askap {
              * The "reason" member of the exception object will indicate
              * the nature of the error which led to premature termination.
              */
-            ["ami"] void wait()
-                throws IngestException;
+            //["ami"] void wait()
+            //    throws IngestException;
 
             /**
              * Calling this method instructs the ingest pipeline instance to
@@ -95,10 +95,10 @@ module askap {
              *          completed because no ingest task is currently
              *          executing.
              */
-            ["ami"] void abort()
-                throws IngestException;
+            //["ami"] void abort()
+            //    throws IngestException;
 
-        };
+        //};
 
     };
 };

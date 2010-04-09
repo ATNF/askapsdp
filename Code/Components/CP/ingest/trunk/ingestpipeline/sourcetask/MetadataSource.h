@@ -31,8 +31,10 @@
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
 #include "boost/shared_ptr.hpp"
-#include "iceinterfaces/CommonTypes.h"
-#include "iceinterfaces/TypedValues.h"
+
+// CP Ice interfaces
+#include "CommonTypes.h"
+#include "TypedValues.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/CircularBuffer.h"

@@ -1,4 +1,4 @@
-# @file
+# @file SConstruct
 # SConstruct build script for this module.
 #
 
@@ -6,9 +6,10 @@
 from askapenv import env
 
 # create build object with library name
-pkg = env.AskapPackage("cpingest")
+pkg = env.AskapPackage("icewrapper")
 
-pkg.AddSubPackage("ingestpipeline")
+pkg.AddSubPackage("iceutils")
+pkg.AddSubPackage("tosmetadata")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
