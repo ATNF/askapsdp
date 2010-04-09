@@ -51,7 +51,7 @@ namespace askap {
 
                 void removeAdapter(const std::string& name);
 
-                Ice::PropertiesPtr convertToIceProperties(void);
+                Ice::PropertiesPtr convertToIceProperties(void) const;
 
             private:
                 std::map<std::string, std::string> itsProperties;

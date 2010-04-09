@@ -46,22 +46,41 @@ namespace askap {
         class MetadataOutputPort
         {
             public:
+                /// @brief Constructor.
+                ///
+                /// @param[in] the hostname or IP-address of the locator
+                ///     service (registry).
+                /// @param[in] locatorPort the port number of the locator
+                ///     service which is running on the host specified by
+                ///     the locatorHost parameter.
+                /// @param[in] topicManager the identity of the topic manager
+                ///     from where the topic subscription should be requested.
+                /// @param[in] topic the name of the topic to attach the port
+                ///     to. This is the topic where messages wil be sent.
                 MetadataOutputPort(const std::string& locatorHost,
                         const std::string& locatorPort,
                         const std::string& topicManager,
                         const std::string& topic);
 
+                /// @brief Destructor
                 ~MetadataOutputPort();
 
+                /// @brief Send a TimeTaggedTypedValueMap message via this port.
+                ///
+                /// @param[in] message the message to send.
                 void send(const askap::interfaces::TimeTaggedTypedValueMap& message);
 
             private:
+                // Type of the output port (templated)
                 typedef OutputPort<askap::interfaces::TimeTaggedTypedValueMap,
                         askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx>
                             OutputPortType;
 
+                // Pointer to the output port instance
                 boost::scoped_ptr<OutputPortType> itsOutputPort;
 
+
+                // The proxy via which messages are published
                 askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsProxy;
         };
 

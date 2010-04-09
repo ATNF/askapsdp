@@ -24,6 +24,9 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_COMMUNICATORFACTORY_H
+#define ASKAP_CP_COMMUNICATORFACTORY_H
+
 // System includes
 #include <string>
 #include <map>
@@ -31,8 +34,8 @@
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 
-#ifndef ASKAP_CP_COMMUNICATORFACTORY_H
-#define ASKAP_CP_COMMUNICATORFACTORY_H
+// Local package includes
+#include "CommunicatorConfig.h"
 
 namespace askap {
     namespace cp {
@@ -44,16 +47,13 @@ namespace askap {
                 /// @brief Creates an IceCommunicator given a locator hostname
                 /// or IP-address plus a port number.
                 ///
-                /// @param[in] locatorHost the hostname or IP-address of the
-                ///     locator instance the created IceCommunicator instance
-                ///     will use.
-                /// @param[in] locatorPort the port of the locator instance
-                ///     the created IceCommunicator instance will use.
+                /// @param[in] config   an instance of CommunicatorConfig, which
+                ///     specifies the configuration of the communicator to be
+                ///     instantiated.
                 ///
                 /// @return a pointer to an Ice communicator.
                 Ice::CommunicatorPtr createCommunicator(
-                        const std::string& locatorHost,
-                        const std::string& locatorPort);
+                        const CommunicatorConfig& config);
         };
 
     };

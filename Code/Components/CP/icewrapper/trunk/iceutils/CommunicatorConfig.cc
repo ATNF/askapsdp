@@ -100,7 +100,7 @@ void CommunicatorConfig::removeAdapter(const std::string& name)
     removeProperty(epprop.str());
 }
 
-Ice::PropertiesPtr CommunicatorConfig::convertToIceProperties(void)
+Ice::PropertiesPtr CommunicatorConfig::convertToIceProperties(void) const
 {
     Ice::PropertiesPtr props = Ice::createProperties();
     std::map<std::string, std::string>::const_iterator it;

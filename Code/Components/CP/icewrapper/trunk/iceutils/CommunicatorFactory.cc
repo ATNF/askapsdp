@@ -44,11 +44,8 @@ using namespace askap::cp;
 ASKAP_LOGGER(logger, ".CommunicatorFactory");
 
 Ice::CommunicatorPtr CommunicatorFactory::createCommunicator(
-        const std::string& locatorHost,
-        const std::string& locatorPort)
+        const CommunicatorConfig& config)
 {
-    CommunicatorConfig config(locatorHost, locatorPort);
-
     // Initialize a communicator with these properties.
     Ice::InitializationData id;
     id.properties = config.convertToIceProperties();

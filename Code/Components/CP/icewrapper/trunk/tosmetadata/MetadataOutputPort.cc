@@ -40,6 +40,7 @@
 #include "TypedValues.h"
 
 // Local package includes
+#include "iceutils/CommunicatorConfig.h"
 #include "iceutils/CommunicatorFactory.h"
 
 // Using
@@ -55,12 +56,14 @@ MetadataOutputPort::MetadataOutputPort(const std::string& locatorHost,
         const std::string& topicManager,
         const std::string& topic)
 {
+    CommunicatorConfig config(locatorHost, locatorPort);
     CommunicatorFactory commFactory;
-    Ice::CommunicatorPtr comm = commFactory.createCommunicator(locatorHost, locatorPort);
+    Ice::CommunicatorPtr comm = commFactory.createCommunicator(config);
 
     itsOutputPort.reset(new OutputPortType(comm));
     itsOutputPort->attach(topic, topicManager);
     itsProxy = itsOutputPort->getProxy();
+    ASKAPCHECK(itsProxy, "Topic proxy was not initialised");
 }
 
 MetadataOutputPort::~MetadataOutputPort()
