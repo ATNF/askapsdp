@@ -63,12 +63,23 @@ namespace askap { namespace cp {
                 detach();
             }
 
+            /// @brief Returns the direction of this port, either input
+            /// or output.
+            ///
+            /// @return Direction:IN or Direction:OUT.
             virtual askap::cp::IPort::Direction getDirection(void) const
             {
                 return IPort::IN;
             };
 
-            virtual void attach(const std::string& topic) 
+            /// @brief Attach the port instance to a topic, where the topic
+            /// is obtained from the specified topic manager.
+            ///
+            /// @param[in] topic the name of the topic to attach the port to.
+            /// @param[in] topicManager the identity of the topic manager from
+            ///                         where the topic subscription should be
+            ///                         requested.
+            virtual void attach(const std::string& topic, const std::string& topicManager) 
             {
                 boost::mutex::scoped_lock lock(itsMutex);
 
@@ -77,22 +88,25 @@ namespace askap { namespace cp {
                 itsProxy = itsAdapter->addWithUUID(callback)->ice_oneway();
 
                 // Obtain the topic
-                Ice::ObjectPrx obj = itsComm->stringToProxy("IceStorm/TopicManager");
-                IceStorm::TopicManagerPrx topicManager =
+                Ice::ObjectPrx obj = itsComm->stringToProxy(topicManager);
+                IceStorm::TopicManagerPrx topicManagerPrx =
                     IceStorm::TopicManagerPrx::checkedCast(obj);
                 try {
-                    itsTopicPrx = topicManager->retrieve(topic);
+                    itsTopicPrx = topicManagerPrx->retrieve(topic);
                 } catch (const IceStorm::NoSuchTopic&) {
-                    itsTopicPrx = topicManager->create(topic);
+                    itsTopicPrx = topicManagerPrx->create(topic);
                 } catch (const IceStorm::TopicExists&) {
                     // Something else has since created the topic
-                    topicPrx = manager->retrieve(topic);
+                    topicPrx = topicManagerPrx->retrieve(topic);
                 }
 
                 IceStorm::QoS qos;
                 itsTopicPrx->subscribeAndGetPublisher(qos, itsProxy);
             };
 
+            /// @brief Detach from the attached topic.
+            /// This has no effect if a call to attach() has not yet been made,
+            /// or if detach has already been called.
             virtual void detach(void) 
             {
                 boost::mutex::scoped_lock lock(itsMutex);

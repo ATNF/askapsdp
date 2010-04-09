@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CORRELATORSIMULATOR_H
-#define ASKAP_CP_CORRELATORSIMULATOR_H
+#ifndef ASKAP_CP_SIMPLAYBACK_CORRELATORSIMULATOR_H
+#define ASKAP_CP_SIMPLAYBACK_CORRELATORSIMULATOR_H
 
 // System includes
 #include <string>

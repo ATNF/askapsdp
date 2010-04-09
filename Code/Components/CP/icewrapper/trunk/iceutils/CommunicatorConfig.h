@@ -1,4 +1,4 @@
-/// @file MetadataOutputPort.cc
+/// @file CommunicatorConfig.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,51 +24,40 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "MetadataOutputPort.h"
+#ifndef ASKAP_CP_COMMUNICATORCONFIG_H
+#define ASKAP_CP_COMMUNICATORCONFIG_H
 
 // System includes
 #include <string>
+#include <map>
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
-#include "askap/AskapError.h"
 #include "Ice/Ice.h"
-#include "boost/shared_ptr.hpp"
 
-// CP Ice interfaces
-#include "TypedValues.h"
+namespace askap {
+    namespace cp {
 
-// Local package includes
-#include "iceutils/CommunicatorFactory.h"
+        class CommunicatorConfig
+        {
+            public:
+                CommunicatorConfig(const std::string& locatorHost,
+                        const std::string& locatorPort);
 
-// Using
-using namespace askap;
-using namespace askap::cp;
-using namespace askap::interfaces;
-using namespace askap::interfaces::datapublisher;
+                void setProperty(const std::string& key, const std::string& value);
 
-ASKAP_LOGGER(logger, ".MetadataOutputPort");
+                void removeProperty(const std::string& key);
 
-MetadataOutputPort::MetadataOutputPort(const std::string& locatorHost,
-        const std::string& locatorPort,
-        const std::string& topicManager,
-        const std::string& topic)
-{
-    CommunicatorFactory commFactory;
-    Ice::CommunicatorPtr comm = commFactory.createCommunicator(locatorHost, locatorPort);
+                void setAdapter(const std::string& name, const std::string& endpoints);
 
-    itsOutputPort.reset(new OutputPortType(comm));
-    itsOutputPort->attach(topic, topicManager);
-    itsProxy = itsOutputPort->getProxy();
-}
+                void removeAdapter(const std::string& name);
 
-MetadataOutputPort::~MetadataOutputPort()
-{
-    itsOutputPort->detach();
-}
+                Ice::PropertiesPtr convertToIceProperties(void);
 
-void MetadataOutputPort::send(const askap::interfaces::TimeTaggedTypedValueMap& message)
-{
-    itsProxy->publish(message);
-}
+            private:
+                std::map<std::string, std::string> itsProperties;
+        };
+
+    };
+};
+
+#endif

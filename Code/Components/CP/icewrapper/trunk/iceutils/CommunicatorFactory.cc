@@ -35,6 +35,9 @@
 #include "askap/AskapError.h"
 #include "Ice/Ice.h"
 
+// Local package includes
+#include "CommunicatorConfig.h"
+
 // Using
 using namespace askap::cp;
 
@@ -44,29 +47,11 @@ Ice::CommunicatorPtr CommunicatorFactory::createCommunicator(
         const std::string& locatorHost,
         const std::string& locatorPort)
 {
-    Ice::PropertiesPtr props = Ice::createProperties();
-
-    // Make sure that network and protocol tracing are off.
-    props->setProperty("Ice.Trace.Network", "0");
-    props->setProperty("Ice.Trace.Protocol", "0");
-
-    // Increase maximum message size from 1MB to 128MB
-    props->setProperty("Ice.MessageSizeMax", "131072");
-
-    // Syntax example:
-    // IceGrid/Locator:tcp -h localhost -p 4061
-    std::ostringstream ss;
-    ss << "IceGrid/Locator:tcp -h ";
-    ss << locatorHost;
-    ss << " -p ";
-    ss << locatorPort;
-    std::string locatorParam = ss.str();
-
-    props->setProperty("Ice.Default.Locator", locatorParam);
+    CommunicatorConfig config(locatorHost, locatorPort);
 
     // Initialize a communicator with these properties.
     Ice::InitializationData id;
-    id.properties = props;
+    id.properties = config.convertToIceProperties();
     Ice::CommunicatorPtr comm = Ice::initialize(id);
 
     return comm;

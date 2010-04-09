@@ -44,6 +44,7 @@
 #include "ms/MeasurementSets/MSColumns.h"
 #include "casa/Arrays/Vector.h"
 #include "measures/Measures/MDirection.h"
+#include "tosmetadata/MetadataOutputPort.h"
 
 // ICE interface includes
 #include "CommonTypes.h"
@@ -66,7 +67,7 @@ TosSimulator::TosSimulator(const std::string& dataset,
 : itsCurrentRow(0)
 {
     itsMS.reset(new casa::MeasurementSet(dataset, casa::Table::Old));
-    itsPort.reset(new askap::cp::MetadataPort(locatorHost, locatorPort,
+    itsPort.reset(new askap::cp::MetadataOutputPort(locatorHost, locatorPort,
                   topicManager, topic));
 }
 

@@ -36,6 +36,9 @@
 namespace askap {
     namespace cp {
 
+        /// @brief An interface for the InputPort and Outport classes.
+        ///
+        /// This specifies the interface to publish/subscribe ports.
         class IPort
         {
             public:
@@ -43,16 +46,32 @@ namespace askap {
             /// @brief Destructor.
             virtual ~IPort() {};
 
+            /// @bried Direction enumeration
             enum Direction
             {
                 IN,
                 OUT
             };
 
+            /// @brief Returns the direction of this port, either input
+            /// or output.
+            ///
+            /// @return Direction:IN or Direction:OUT.
             virtual Direction getDirection(void) const = 0;
 
-            virtual void attach(const std::string& topic) = 0;
+            /// @brief Attach the port instance to a topic, where the topic
+            /// is obtained from the specified topic manager.
+            ///
+            /// @param[in] topic the name of the topic to attach the port to.
+            /// @param[in] topicManager the identity of the topic manager from
+            ///                         where the topic subscription should be
+            ///                         requested.
+            virtual void attach(const std::string& topic,
+                    const std::string& topicManager) = 0;
 
+            /// @brief Detach from the attached topic.
+            /// This has no effect if a call to attach() has not yet been made,
+            /// or if detach has already been called.
             virtual void detach(void) = 0;
 
             /// Shared pointer definition

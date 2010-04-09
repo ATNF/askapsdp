@@ -34,13 +34,13 @@
 // ASKAPsoft includes
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "boost/scoped_ptr.hpp"
+#include "tosmetadata/MetadataOutputPort.h"
 
 // ICE interface includes
 #include "TypedValues.h"
 
 // Local package includes
 #include "simplayback/ISimulator.h"
-#include "simplayback/MetadataPort.h"
 
 namespace askap {
 namespace cp {
@@ -88,7 +88,7 @@ class TosSimulator : public ISimulator {
         boost::scoped_ptr<casa::MeasurementSet> itsMS;
 
         // Port for output of metadata
-        boost::scoped_ptr<askap::cp::MetadataPort> itsPort;
+        boost::scoped_ptr<askap::cp::MetadataOutputPort> itsPort;
 };
 };
 

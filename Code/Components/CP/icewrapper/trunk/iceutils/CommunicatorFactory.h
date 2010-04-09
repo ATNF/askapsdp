@@ -26,6 +26,7 @@
 
 // System includes
 #include <string>
+#include <map>
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
@@ -39,13 +40,23 @@ namespace askap {
         class CommunicatorFactory
         {
             public:
-            Ice::CommunicatorPtr createCommunicator(
-                    const std::string& locatorHost,
-                    const std::string& locatorPort);
+
+                /// @brief Creates an IceCommunicator given a locator hostname
+                /// or IP-address plus a port number.
+                ///
+                /// @param[in] locatorHost the hostname or IP-address of the
+                ///     locator instance the created IceCommunicator instance
+                ///     will use.
+                /// @param[in] locatorPort the port of the locator instance
+                ///     the created IceCommunicator instance will use.
+                ///
+                /// @return a pointer to an Ice communicator.
+                Ice::CommunicatorPtr createCommunicator(
+                        const std::string& locatorHost,
+                        const std::string& locatorPort);
         };
 
     };
 };
 
 #endif
-

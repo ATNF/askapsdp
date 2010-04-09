@@ -55,17 +55,26 @@ namespace askap { namespace cp {
             /// @brief Destructor.
             virtual ~OutputPort()
             {
+                detach();
             }
 
+            /// @brief Returns the direction of this port, either input
+            /// or output.
+            ///
+            /// @return Direction:IN or Direction:OUT.
             virtual askap::cp::IPort::Direction getDirection(void) const
             {
                 return IPort::OUT;
             };
 
-            virtual void attach(const std::string& topic)
+            /// @param[in] topic the name of the topic to attach the port to.
+            /// @param[in] topicManager the identity of the topic manager from
+            ///                         where the topic subscription should be
+            ///                         requested.
+            virtual void attach(const std::string& topic, const std::string& topicManager)
             {
                 // Obtain the topic
-                Ice::ObjectPrx obj = itsComm->stringToProxy("IceStorm/TopicManager");
+                Ice::ObjectPrx obj = itsComm->stringToProxy(topicManager);
                 IceStorm::TopicManagerPrx topicManagerPrx =
                     IceStorm::TopicManagerPrx::checkedCast(obj);
                 IceStorm::TopicPrx topicPrx;
@@ -83,6 +92,9 @@ namespace askap { namespace cp {
                 itsProxy = P::uncheckedCast(pub);
             };
 
+            /// @brief Detach from the attached topic.
+            /// This has no effect if a call to attach() has not yet been made,
+            /// or if detach has already been called.
             virtual void detach(void)
             {
                 itsProxy = 0;
