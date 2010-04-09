@@ -38,8 +38,8 @@
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
 
-// Local package includes
-#include "iceinterfaces/TypedValues.h"
+// ICE interface includes
+#include "TypedValues.h"
 
 // Using
 using namespace askap::cp;

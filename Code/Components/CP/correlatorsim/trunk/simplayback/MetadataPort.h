@@ -33,8 +33,8 @@
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 
-// Local package includes
-#include "iceinterfaces/TypedValues.h"
+// Ice interface includes
+#include "TypedValues.h"
 
 namespace askap {
 namespace cp {

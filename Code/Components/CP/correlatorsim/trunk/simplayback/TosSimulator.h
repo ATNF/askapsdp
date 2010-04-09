@@ -35,10 +35,12 @@
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "boost/scoped_ptr.hpp"
 
+// ICE interface includes
+#include "TypedValues.h"
+
 // Local package includes
 #include "simplayback/ISimulator.h"
 #include "simplayback/MetadataPort.h"
-#include "iceinterfaces/TypedValues.h"
 
 namespace askap {
 namespace cp {

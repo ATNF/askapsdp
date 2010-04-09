@@ -41,9 +41,9 @@
 #include "IceStorm/IceStorm.h"
 #include "CommandLineParser.h"
 
-// Local package includes
-#include "iceinterfaces/CommonTypes.h"
-#include "iceinterfaces/TypedValues.h"
+// ICE interface includes
+#include "CommonTypes.h"
+#include "TypedValues.h"
 
 using namespace askap::interfaces;
 using namespace askap::interfaces::datapublisher;

@@ -45,9 +45,9 @@
 #include "casa/Arrays/Vector.h"
 #include "measures/Measures/MDirection.h"
 
-// Local package includes
-#include "iceinterfaces/CommonTypes.h"
-#include "iceinterfaces/TypedValues.h"
+// ICE interface includes
+#include "CommonTypes.h"
+#include "TypedValues.h"
 
 // Using
 using namespace askap;
