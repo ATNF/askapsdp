@@ -117,6 +117,9 @@ void AProjectWStackVisGridder::initialiseSumOfWeights()
     if (itsSupport == 0) {
         WStackVisGridder::initialiseSumOfWeights();
     }
+    // Reset the weights
+    itsSumWeights.set(0.0);
+
 }
 
 /// Initialize the indices into the cube.

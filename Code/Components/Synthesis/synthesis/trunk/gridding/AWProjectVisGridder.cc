@@ -153,6 +153,8 @@ namespace askap {
       if (itsSupport == 0) {
           WProjectVisGridder::initialiseSumOfWeights();
       }
+      // Reset the weights
+      itsSumWeights.set(0.0);
     }
     
 /// @brief Initialise the gridding
