@@ -31,8 +31,8 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "Ice/Ice.h"
-#include "IceStorm/IceStorm.h"
+#include "CommandLineParser.h"
+#include "Common/ParameterSet.h"
 #include "boost/shared_ptr.hpp"
 #include "tosmetadata/MetadataOutputPort.h"
 
@@ -53,12 +53,30 @@ int main(int argc, char *argv[])
 {
     ASKAPLOG_INIT("tMetadataSource.log_cfg");
 
-    const std::string locatorHost = "localhost";
-    const std::string locatorPort = "4061";
-    const std::string topicManager = "IceStorm/TopicManager";
-    const std::string topic = "tosmetadata";
+    // Command line parser
+    cmdlineparser::Parser parser;
 
-    const std::string adapterName = argv[0];
+    // Command line parameters
+    cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "tMetadataSource.in");
+
+    // Set handler for case where parameter is not set
+    parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
+
+    try {
+        parser.process(argc, const_cast<char**> (argv));
+    } catch (const cmdlineparser::XParser&) {
+        std::cout << "usage: " << argv[0] << " [-v] -inputs <filename>" << std::endl;
+        std::cerr << "  -inputs <filename>\tFilename for the config file" << std::endl;
+
+        return 1;
+    }
+
+    LOFAR::ParameterSet parset(inputsPar);
+    const std::string locatorHost = parset.getString("ice.locator_host");
+    const std::string locatorPort = parset.getString("ice.locator_port");
+    const std::string topicManager = parset.getString("icestorm.topicmanager");
+    const std::string topic = parset.getString("icestorm.topic");
+    const std::string adapterName = parset.getString("ice.adapter_name");
     const int bufSize = 24;
 
     MetadataOutputPort out(locatorHost, locatorPort, topicManager, topic);

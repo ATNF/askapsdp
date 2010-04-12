@@ -7,11 +7,11 @@ source $ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/init_package_env.sh
 ../start_services.sh config.icegrid
 sleep 2
 
-# Start the metadata subscriber (don't use the script so this scripts can kill it)
-$ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/msnoop --Ice.Config=config.msnoop > msnoop.log 2>&1 &
+# Start the metadata subscriber (don't use the script so this script can kill it)
+$ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/msnoop -inputs msnoop.in > msnoop.log 2>&1 &
 MDPID=$!
 
-# Start the visibilities receiver (don't use the script so this scripts can kill it)
+# Start the visibilities receiver (don't use the script so this script can kill it)
 $ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/vsnoop -p 3000 > vsnoop.log 2>&1 &
 VISPID=$!
 

@@ -1,8 +1,8 @@
 #
-# tMetadataSource configuration file
+# msnoop configuration file
 #
 ice.locator_host        = localhost
 ice.locator_port        = 4061
 icestorm.topicmanager   = IceStorm/TopicManager
 icestorm.topic          = tosmetadata
-ice.adapter_name        = tMetadataSource
+ice.adapter_name        = MetadataSnoopAdapter

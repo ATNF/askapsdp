@@ -42,7 +42,6 @@
 #include "CommandLineParser.h"
 #include "casa/Logging/LogIO.h"
 #include "casa/Logging/LogSinkInterface.h"
-#include "Ice/Ice.h"
 
 // Local package includes
 #include "simplayback/SimPlayback.h"
@@ -117,10 +116,6 @@ int main(int argc, char* argv[])
 
         askap::cp::SimPlayback pb(parset);
         pb.run();
-    } catch (const Ice::Exception& e) {
-        ASKAPLOG_FATAL_STR(logger, "Ice exception in: " << argv[0] << ": " << e);
-        std::cerr << "Ice exception in " << argv[0] << ": " << e << std::endl;
-        error = 1;
     } catch (const cmdlineparser::XParser& e) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;

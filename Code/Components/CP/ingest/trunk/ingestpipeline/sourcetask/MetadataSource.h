@@ -28,9 +28,8 @@
 #define ASKAP_CP_METADATASOURCE_H
 
 // ASKAPsoft includes
-#include "Ice/Ice.h"
-#include "IceStorm/IceStorm.h"
 #include "boost/shared_ptr.hpp"
+#include "tosmetadata/MetadataReceiver.h"
 
 // CP Ice interfaces
 #include "CommonTypes.h"
@@ -43,7 +42,7 @@ namespace askap {
     namespace cp {
 
         class MetadataSource :
-            virtual public askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisher
+            virtual public askap::cp::MetadataReceiver
         {
             public:
                 MetadataSource(const std::string& locatorHost,
@@ -54,15 +53,7 @@ namespace askap {
                         const unsigned int bufSize);
                 ~MetadataSource();
 
-                void configureIce(const std::string& locatorHost,
-                        const std::string& locatorPort,
-                        const std::string& topicManager,
-                        const std::string& topic,
-                        const std::string& adapterName);
-
-                virtual void publish(
-                        const askap::interfaces::TimeTaggedTypedValueMap& msg,
-                        const Ice::Current& c);
+                virtual void receive(const askap::interfaces::TimeTaggedTypedValueMap& msg);
 
                 // Blocking
                 boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> next(void);
@@ -70,9 +61,6 @@ namespace askap {
             private:
                 // Circular buffer of metadata payloads
                 askap::cp::CircularBuffer< askap::interfaces::TimeTaggedTypedValueMap > itsBuffer;
-
-                // Ice Communicator
-                Ice::CommunicatorPtr itsComm;
         };
 
     };

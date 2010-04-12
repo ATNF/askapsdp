@@ -33,8 +33,6 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "Ice/Ice.h"
-#include "IceStorm/IceStorm.h"
 #include "boost/shared_ptr.hpp"
 
 // CP Ice interfaces
@@ -54,91 +52,16 @@ MetadataSource::MetadataSource(const std::string& locatorHost,
         const std::string& topic,
         const std::string& adapterName,
         const unsigned int bufSize) :
+    MetadataReceiver(locatorHost, locatorPort, topicManager, topic, adapterName),
     itsBuffer(bufSize)
 {
-    configureIce(locatorHost, locatorPort, topicManager, topic, adapterName);
-}
-
-void MetadataSource::configureIce(const std::string& locatorHost,
-        const std::string& locatorPort,
-        const std::string& topicManager,
-        const std::string& topic,
-        const std::string& adapterName)
-{
-    Ice::PropertiesPtr props = Ice::createProperties();
-
-    // Make sure that network and protocol tracing are off.
-    props->setProperty("Ice.Trace.Network", "0");
-    props->setProperty("Ice.Trace.Protocol", "0");
-
-    // Increase maximum message size from 1MB to 128MB
-    props->setProperty("Ice.MessageSizeMax", "131072");
-
-    // Syntax example:
-    // IceGrid/Locator:tcp -h localhost -p 4061
-    std::ostringstream ss;
-    ss << "IceGrid/Locator:tcp -h ";
-    ss << locatorHost;
-    ss << " -p ";
-    ss << locatorPort;
-    std::string locatorParam = ss.str();
-
-    props->setProperty("Ice.Default.Locator", locatorParam);
-
-    // Create adapter property
-    // Syntax example:
-    // IngestPipeline1Adapter.AdapterId=IngestPipeline1Adapter
-    // IngestPipeline1Adapter.Endpoints=tcp
-    std::ostringstream adapterId;
-    adapterId << adapterName << ".AdapterId";
-    props->setProperty(adapterId.str(), adapterName);
-
-    std::ostringstream endpoints;
-    endpoints << adapterName << ".Endpoints";
-    props->setProperty(endpoints.str(), "tcp");
-
-    // Initialize a communicator with these properties.
-    Ice::InitializationData id;
-    id.properties = props;
-    itsComm = Ice::initialize(id);
-    ASKAPDEBUGASSERT(itsComm);
-
-    // Now subscribe to the topic
-    Ice::ObjectPrx obj = itsComm->stringToProxy(topicManager);
-    IceStorm::TopicManagerPrx topicManagerPrx = IceStorm::TopicManagerPrx::checkedCast(obj);
-    Ice::ObjectAdapterPtr adapter = itsComm->createObjectAdapter(adapterName);
-    Ice::ObjectPrx proxy = adapter->addWithUUID(this)->ice_twoway();
-    IceStorm::TopicPrx topicPrx;
-
-    ASKAPLOG_DEBUG_STR(logger, "Subscribing to topic: " << topic);
-
-    try {
-        topicPrx = topicManagerPrx->retrieve(topic);
-    } catch (const IceStorm::NoSuchTopic&) {
-        ASKAPLOG_DEBUG_STR(logger, "Topic not found, creating.");
-        try {
-            topicPrx = topicManagerPrx->create(topic);
-        } catch (const IceStorm::TopicExists&) {
-            // Someone else has already created it
-            topicPrx = topicManagerPrx->retrieve(topic);
-        }
-    }
-
-    IceStorm::QoS qos;
-    qos["reliability"] = "ordered";
-    topicPrx->subscribeAndGetPublisher(qos, proxy);
-
-    adapter->activate();
 }
 
 MetadataSource::~MetadataSource()
 {
-    itsComm->shutdown();
-    itsComm->waitForShutdown();
 }
 
-void MetadataSource::publish(const TimeTaggedTypedValueMap& msg,
-        const Ice::Current& c)
+void MetadataSource::receive(const TimeTaggedTypedValueMap& msg)
 {
     // Make a copy of the message on the heap
     boost::shared_ptr<TimeTaggedTypedValueMap>

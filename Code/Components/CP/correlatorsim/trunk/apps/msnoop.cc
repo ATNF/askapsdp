@@ -35,27 +35,41 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <unistd.h>
 
 // ASKAPsoft includes
-#include "Ice/Ice.h"
-#include "IceStorm/IceStorm.h"
+#include "askap/AskapError.h"
+#include "askap/AskapLogging.h"
 #include "CommandLineParser.h"
+#include "Common/ParameterSet.h"
+#include "tosmetadata/MetadataReceiver.h"
 
 // ICE interface includes
 #include "CommonTypes.h"
 #include "TypedValues.h"
 
+using namespace askap::cp;
 using namespace askap::interfaces;
 using namespace askap::interfaces::datapublisher;
 
 // Globals
 static bool verbose = false;
 
-class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
-    public:
-        virtual void publish(const TimeTaggedTypedValueMap& msg,
-                const Ice::Current& c) {
+ASKAP_LOGGER(logger, ".msnoop");
 
+class MetadataSubscriber : virtual public MetadataReceiver {
+    public:
+        MetadataSubscriber(const std::string& locatorHost,
+                const std::string& locatorPort,
+                const std::string& topicManager,
+                const std::string& topic,
+                const std::string& adapterName) :
+            MetadataReceiver(locatorHost, locatorPort, topicManager, topic, adapterName)
+    {
+    }
+
+        virtual void receive(const TimeTaggedTypedValueMap& msg)
+        {
             // Print out the header
             std::cout << "Header:" << std::endl;
             std::cout << "\ttimestamp: " << msg.timestamp << std::endl;
@@ -125,7 +139,7 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
                     newline();
                     break;
 
-                // Sequences
+                    // Sequences
                 case TypeIntSeq :
                     print(TypedValueIntSeqPtr::dynamicCast(tv)->value);
                     newline();
@@ -181,9 +195,9 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
         }
 
         template <class T>
-        void print(const T v) {
-            std::cout << v;
-        }
+            void print(const T v) {
+                std::cout << v;
+            }
 
         void printNull(void) {
             std::cout << "<null>";
@@ -221,75 +235,69 @@ class MetadataSubscriber : virtual public ITimeTaggedTypedValueMapPublisher{
         }
 
         template <class T>
-        void print(std::vector<T>& v) {
-            if (!verbose) {
-                std::cout << "< Vector of size " << v.size()
-                    << " - To display contents enable verbose mode >";
-                return;
-            }
-            typename std::vector<T>::iterator it = v.begin();
-            std::cout << "[ ";
-            while (it != v.end()) {
-                if (it != v.begin()) {
-                    std::cout << ", ";
+            void print(std::vector<T>& v) {
+                if (!verbose) {
+                    std::cout << "< Vector of size " << v.size()
+                        << " - To display contents enable verbose mode >";
+                    return;
                 }
-                print(*it);
-                ++it;
+                typename std::vector<T>::iterator it = v.begin();
+                std::cout << "[ ";
+                while (it != v.end()) {
+                    if (it != v.begin()) {
+                        std::cout << ", ";
+                    }
+                    print(*it);
+                    ++it;
+                }
+                std::cout << " ]";
             }
-            std::cout << " ]";
-        }
 };
 
 // main()
 int main(int argc, char *argv[])
 {
-    Ice::CommunicatorPtr ic = Ice::initialize(argc, argv);
+    // Initialise the logger
+    std::ostringstream ss;
+    ss << argv[0] << ".log_cfg";
+    ASKAPLOG_INIT(ss.str().c_str());
 
-    // Parse additional command line parameters
+    // Command line parser
     cmdlineparser::Parser parser;
+
+    // Command line parameters
+    cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "msnoop.in");
     cmdlineparser::FlagParameter verbosePar("-v");
-    cmdlineparser::FlaggedParameter<std::string> topicPar("-t", "tosmetadata");
+
+    // Set handler for case where parameter is not set
+    parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
     parser.add(verbosePar, cmdlineparser::Parser::return_default);
-    parser.add(topicPar, cmdlineparser::Parser::return_default);
 
     try {
         parser.process(argc, const_cast<char**> (argv));
         verbose = verbosePar.defined();
-    } catch (const cmdlineparser::XParserExtra&) {
-        std::cout << "usage: " << argv[0] << " [-v] [-t topic]" << std::endl;
+    } catch (const cmdlineparser::XParser&) {
+        std::cout << "usage: " << argv[0] << " [-v] -inputs <filename>" << std::endl;
         std::cerr << "  -v      \tEnable more verbose output" << std::endl;
-        std::cerr << "  -t topic\tIceStorm topic name for metadata subscription" << std::endl;
+        std::cerr << "  -inputs <filename>\tFilename for the config file" << std::endl;
 
         return 1;
     }
 
-    // Locate and subscribe to the IceStorm topic
-    Ice::ObjectPrx obj = ic->stringToProxy("IceStorm/TopicManager");
-    IceStorm::TopicManagerPrx topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
-    Ice::ObjectAdapterPtr adapter = ic->createObjectAdapter("MetadataSnoopAdapter");
-    ITimeTaggedTypedValueMapPublisherPtr metadataStream = new MetadataSubscriber;
-    Ice::ObjectPrx proxy = adapter->addWithUUID(metadataStream)->ice_twoway();
-    IceStorm::TopicPrx topic;
+    LOFAR::ParameterSet parset(inputsPar);
+    const std::string locatorHost = parset.getString("ice.locator_host");
+    const std::string locatorPort = parset.getString("ice.locator_port");
+    const std::string topicManager = parset.getString("icestorm.topicmanager");
+    const std::string topic = parset.getString("icestorm.topic");
+    const std::string adapterName = parset.getString("ice.adapter_name");
 
-    try {
-        topic = topicManager->retrieve(topicPar);
-    } catch (const IceStorm::NoSuchTopic&) {
-        std::cout << "Topic not found. Creating..." << std::endl;
-        try {
-            topic = topicManager->create(topicPar);
-        } catch (const IceStorm::TopicExists&) {
-            // Someone else has already created it
-            topic = topicManager->retrieve(topicPar);
-        }
-    }
+    MetadataSubscriber subscriber(locatorHost, locatorPort , topicManager,
+            topic, adapterName);
 
-    IceStorm::QoS qos;
-    qos["reliability"] = "ordered";
-    topic->subscribeAndGetPublisher(qos, proxy);
-
-    adapter->activate();
     std::cout << "Waiting for messages (press CTRL-C to exit)..." << std::endl;
-    ic->waitForShutdown();
+    while (true) {
+        sleep(1);
+    }
 
     return 0;
 }

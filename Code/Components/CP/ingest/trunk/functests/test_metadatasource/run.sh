@@ -9,7 +9,7 @@ sleep 2
 
 # Run the test harness
 echo "Running the testcase..."
-$ASKAP_ROOT/Code/Components/CP/ingest/trunk/apps/tMetadataSource.sh
+$ASKAP_ROOT/Code/Components/CP/ingest/trunk/apps/tMetadataSource.sh -inputs tMetadataSource.in
 STATUS=$?
 echo "Testcase finished"
 
