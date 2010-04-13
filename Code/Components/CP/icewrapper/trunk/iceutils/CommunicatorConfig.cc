@@ -79,10 +79,13 @@ void CommunicatorConfig::setAdapter(const std::string& name, const std::string& 
     // Syntax example:
     // MyAdapterName.AdapterId=MyAdapterName
     // MyAdapterName.Endpoints=tcp
-    std::ostringstream adapterId;
-    adapterId << name << ".AdapterId";
-    setProperty(adapterId.str(), name);
+    //std::ostringstream adapterId;
+    //adapterId << name << ".AdapterId";
+    //setProperty(adapterId.str(), name);
 
+    // NOTE: The creation of the AdapterId is disabled (above) so that Ice
+    // creates a unique Id for each instance of an application.
+    
     std::ostringstream epprop;
     epprop << name << ".Endpoints";
     setProperty(epprop.str(), "tcp");
