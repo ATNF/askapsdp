@@ -10,6 +10,7 @@ pkg = env.AskapPackage("cpcommon")
 
 pkg.AddSubPackage("cpcommon")
 
+env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
 
 # run the build process
