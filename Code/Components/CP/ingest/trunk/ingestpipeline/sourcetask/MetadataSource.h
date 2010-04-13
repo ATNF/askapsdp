@@ -36,13 +36,14 @@
 #include "TypedValues.h"
 
 // Local package includes
+#include "ingestpipeline/sourcetask/IMetadataSource.h"
 #include "ingestpipeline/sourcetask/CircularBuffer.h"
 
 namespace askap {
     namespace cp {
 
         class MetadataSource :
-            virtual public askap::cp::MetadataReceiver
+            virtual public askap::cp::MetadataReceiver, public askap::cp::IMetadataSource
         {
             public:
                 MetadataSource(const std::string& locatorHost,

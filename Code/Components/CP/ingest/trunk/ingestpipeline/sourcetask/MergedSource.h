@@ -28,10 +28,11 @@
 #define ASKAP_CP_MERGEDSOURCE_H
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
 #include "boost/shared_ptr.hpp"
 
 // Local package includes
+#include "ingestpipeline/sourcetask/IVisSource.h"
+#include "ingestpipeline/sourcetask/IMetadataSource.h"
 #include "ingestpipeline/datadef/VisChunk.h"
 
 namespace askap {
@@ -40,14 +41,15 @@ namespace askap {
         class MergedSource
         {
             public:
-                MergedSource(const LOFAR::ParameterSet& parset);
+                MergedSource(IMetadataSource::ShPtr metadataSource, IVisSource::ShPtr visSource);
                 ~MergedSource();
 
                 // Blocking
-                boost::shared_ptr<askap::cp::VisChunk> next(void);
+                VisChunk::ShPtr next(void);
 
             private:
-                const LOFAR::ParameterSet itsParset;
+                IMetadataSource::ShPtr itsMetadataSrc;
+                IVisSource::ShPtr itsVisSrc;
         };
 
     };

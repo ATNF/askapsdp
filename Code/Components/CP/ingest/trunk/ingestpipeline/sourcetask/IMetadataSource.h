@@ -1,4 +1,4 @@
-/// @file MergedSource.cc
+/// @file IMetadataSource.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,43 +24,29 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "MergedSource.h"
-
-// Include package level header file
-#include "askap_cpingest.h"
+#ifndef ASKAP_CP_IMETADATASOURCE_H
+#define ASKAP_CP_IMETADATASOURCE_H
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
-#include "askap/AskapError.h"
-#include "boost/scoped_ptr.hpp"
+#include "boost/shared_ptr.hpp"
 
-// Local package includes
-#include "ingestpipeline/sourcetask/IVisSource.h"
-#include "ingestpipeline/sourcetask/IMetadataSource.h"
+// CP Ice interfaces
+#include "TypedValues.h"
 
-ASKAP_LOGGER(logger, ".MergedSource");
+namespace askap {
+    namespace cp {
 
-using namespace askap;
-using namespace askap::cp;
-using namespace askap::interfaces;
+        class IMetadataSource
+        {
+            public:
+                // Blocking
+                virtual boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> next(void) = 0;
 
-MergedSource::MergedSource(IMetadataSource::ShPtr metadataSrc, IVisSource::ShPtr visSrc) :
-    itsMetadataSrc(metadataSrc), itsVisSrc(visSrc)
-{
-}
+                // Shared pointer definition
+                typedef boost::shared_ptr<IMetadataSource> ShPtr;
+        };
 
-MergedSource::~MergedSource()
-{
-}
+    };
+};
 
-VisChunk::ShPtr MergedSource::next(void)
-{
-    VisChunk::ShPtr vischunk(new VisChunk);
-
-    // Get the metadata
-    boost::shared_ptr<TimeTaggedTypedValueMap> metadata;
-    metadata = itsMetadataSrc->next();
-
-    return vischunk;
-}
+#endif

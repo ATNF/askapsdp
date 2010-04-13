@@ -1,4 +1,4 @@
-/// @file MergedSource.cc
+/// @file MockVisSource.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,43 +24,38 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "MergedSource.h"
-
-// Include package level header file
-#include "askap_cpingest.h"
+#ifndef ASKAP_CP_MOCKVISSOURCE_H
+#define ASKAP_CP_MOCKVISSOURCE_H
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
-#include "askap/AskapError.h"
-#include "boost/scoped_ptr.hpp"
+#include "boost/shared_ptr.hpp"
+#include "cpcommon/VisPayload.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
-#include "ingestpipeline/sourcetask/IMetadataSource.h"
+#include "ingestpipeline/sourcetask/test/DequeWrapper.h"
 
-ASKAP_LOGGER(logger, ".MergedSource");
+namespace askap {
+    namespace cp {
 
-using namespace askap;
-using namespace askap::cp;
-using namespace askap::interfaces;
+        class MockVisSource : public askap::cp::IVisSource
+        {
+            public:
+                MockVisSource();
+                ~MockVisSource();
 
-MergedSource::MergedSource(IMetadataSource::ShPtr metadataSrc, IVisSource::ShPtr visSrc) :
-    itsMetadataSrc(metadataSrc), itsVisSrc(visSrc)
-{
-}
+                void add(boost::shared_ptr< VisPayload > obj);
 
-MergedSource::~MergedSource()
-{
-}
+                boost::shared_ptr< VisPayload > next(void);
 
-VisChunk::ShPtr MergedSource::next(void)
-{
-    VisChunk::ShPtr vischunk(new VisChunk);
+                // Shared pointer definition
+                typedef boost::shared_ptr<MockVisSource> ShPtr;
 
-    // Get the metadata
-    boost::shared_ptr<TimeTaggedTypedValueMap> metadata;
-    metadata = itsMetadataSrc->next();
+            private:
+                DequeWrapper< VisPayload > itsBuffer;
+        };
 
-    return vischunk;
-}
+    };
+};
+
+#endif

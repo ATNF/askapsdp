@@ -35,12 +35,13 @@
 #include "cpcommon/VisPayload.h"
 
 // Local package includes
+#include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/CircularBuffer.h"
 
 namespace askap {
     namespace cp {
 
-        class VisSource
+        class VisSource : public IVisSource
         {
             public:
                 VisSource(const unsigned int port, const unsigned int bufSize);

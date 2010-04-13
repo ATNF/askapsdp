@@ -28,14 +28,15 @@
 #define ASKAP_CP_VISCHUNK_H
 
 // ASKAPsoft includes
-#include <casa/aips.h>
-#include <casa/Arrays/Vector.h>
-#include <casa/Arrays/Matrix.h>
-#include <casa/Arrays/Cube.h>
-#include <casa/Quanta/MVDirection.h>
-#include <measures/Measures/MDirection.h>
-#include <scimath/Mathematics/RigidVector.h>
-#include <measures/Measures/Stokes.h>
+#include "casa/aips.h"
+#include "casa/Arrays/Vector.h"
+#include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/Cube.h"
+#include "casa/Quanta/MVDirection.h"
+#include "measures/Measures/MDirection.h"
+#include "scimath/Mathematics/RigidVector.h"
+#include "measures/Measures/Stokes.h"
+#include "boost/shared_ptr.hpp"
 
 namespace askap {
 
@@ -152,6 +153,9 @@ namespace askap {
                 /// @note All rows of the accessor have the same structure of the visibility
                 /// cube, i.e. polarisation types returned by this method are valid for all rows.
                 casa::Vector<casa::Stokes::StokesTypes>& stokes();
+
+                /// @brief Shared pointer typedef
+                typedef boost::shared_ptr<VisChunk> ShPtr;
 
             private:
 

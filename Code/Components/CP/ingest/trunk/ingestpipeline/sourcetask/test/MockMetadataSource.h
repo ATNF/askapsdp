@@ -1,4 +1,4 @@
-/// @file MergedSource.cc
+/// @file MockMetadataSource.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,43 +24,41 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "MergedSource.h"
-
-// Include package level header file
-#include "askap_cpingest.h"
+#ifndef ASKAP_CP_MOCKMETADATASOURCE_H
+#define ASKAP_CP_MOCKMETADATASOURCE_H
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
-#include "askap/AskapError.h"
-#include "boost/scoped_ptr.hpp"
+#include "boost/shared_ptr.hpp"
+
+// CP Ice interfaces
+#include "CommonTypes.h"
+#include "TypedValues.h"
 
 // Local package includes
-#include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
+#include "ingestpipeline/sourcetask/test/DequeWrapper.h"
 
-ASKAP_LOGGER(logger, ".MergedSource");
+namespace askap {
+    namespace cp {
 
-using namespace askap;
-using namespace askap::cp;
-using namespace askap::interfaces;
+        class MockMetadataSource : public askap::cp::IMetadataSource
+        {
+            public:
+                MockMetadataSource();
+                ~MockMetadataSource();
 
-MergedSource::MergedSource(IMetadataSource::ShPtr metadataSrc, IVisSource::ShPtr visSrc) :
-    itsMetadataSrc(metadataSrc), itsVisSrc(visSrc)
-{
-}
+                void add(boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> obj);
 
-MergedSource::~MergedSource()
-{
-}
+                boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> next(void);
 
-VisChunk::ShPtr MergedSource::next(void)
-{
-    VisChunk::ShPtr vischunk(new VisChunk);
+                // Shared pointer definition
+                typedef boost::shared_ptr<MockMetadataSource> ShPtr;
 
-    // Get the metadata
-    boost::shared_ptr<TimeTaggedTypedValueMap> metadata;
-    metadata = itsMetadataSrc->next();
+            private:
+                DequeWrapper< askap::interfaces::TimeTaggedTypedValueMap > itsBuffer;
+        };
 
-    return vischunk;
-}
+    };
+};
+
+#endif
