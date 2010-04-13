@@ -404,6 +404,7 @@ namespace askap
           ASKAPDEBUGASSERT(ir);
           ir->setThreshold(itsSolver->threshold());
           ir->setVerbose(itsSolver->verbose());
+          ir->setTol(itsSolver->tol());
           ir->copyNormalEquations(*itsSolver);
           Quality q;
           ir->solveNormalEquations(q);
