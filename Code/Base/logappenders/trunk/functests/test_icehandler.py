@@ -3,6 +3,7 @@ import sys
 import os
 import subprocess
 import time
+import socket
 from nose.tools import assert_equals
 
 import initenv
@@ -27,7 +28,7 @@ class LoggerImpl(ILogger):
     def send(self, event, current=None):
         global last_event
         last_event = [event.origin, event.level, event.created,
-                      event.message]
+                      event.message, event.hostname]
 
 class LogSubscriber(object):
     def __init__(self, comm):
@@ -77,7 +78,8 @@ class TestIceAppender(object):
         subprocess.call(['./tIceAppender'], shell=True)
         time.sleep(1)
         assert_equals(last_event[0], log_origin)
-        assert_equals(last_event[-1], log_msg)
+        assert_equals(last_event[-2], log_msg)
+        assert_equals(last_event[-1], socket.gethostname())
 
     def teardown(self):
         self.igsession.shutdown()

@@ -34,6 +34,7 @@
 
 // ASKAPsoft includes
 #include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 #include <Ice/Ice.h>
 #include <IceUtil/IceUtil.h>
 #include <IceStorm/IceStorm.h>
@@ -62,6 +63,7 @@ IceAppender::IceAppender()
         levelMap[Level::getError()] = askap::interfaces::logging::ERROR;
         levelMap[Level::getFatal()] = askap::interfaces::logging::FATAL;
     }
+    itsLogHost = getHostName(true);
 }
 
 IceAppender::~IceAppender()
@@ -84,13 +86,13 @@ void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*pool*/)
         askap::interfaces::logging::ILogEvent iceevent;
         iceevent.origin = event->getLoggerName();
 
-        // The ASKAPsoft log archiver interface expects Unix time in seconds
-        // (the parameter is a double precision float) where log4cxx returns
-        // microseconds.
+        // The ASKAPsoft log archiver interface expects Unix (posix) time in
+        // seconds (the parameter is a double precision float) where log4cxx
+        // returns microseconds.
         iceevent.created = event->getTimeStamp() / 1000.0 / 1000.0;
         iceevent.level = levelMap[event->getLevel()];
         iceevent.message = event->getMessage();
-
+        iceevent.hostname = itsLogHost;
         // Send
         itsLogService->send(iceevent);
     }
@@ -174,7 +176,7 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& /*pool*/)
 	try {
 	  topic = topicManager->retrieve(itsLoggingTopic);
 	} catch  (const IceStorm::NoSuchTopic&) {
-	  std::cerr << "Topic creation/retrieval failed after two attempts" 
+	  std::cerr << "Topic creation/retrieval failed after two attempts"
 		    << std::endl;
 	}
       }

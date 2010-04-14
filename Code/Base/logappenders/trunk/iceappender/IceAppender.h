@@ -114,7 +114,7 @@ namespace askap {
             ///
             /// @param[in]  option  the key (or option).
             /// @param[in]  value the value.
-            virtual void setOption(const log4cxx::LogString& option, 
+            virtual void setOption(const log4cxx::LogString& option,
 				   const log4cxx::LogString& value);
 
             /// @brief A callback method which is called by the log4cxx framework
@@ -152,6 +152,9 @@ namespace askap {
 
             static std::map<log4cxx::LevelPtr,
 	      ::askap::interfaces::logging::LogLevel> levelMap;
+
+            // the name of the host where this logger instance lives
+            std::string itsLogHost;
 
     };
 
