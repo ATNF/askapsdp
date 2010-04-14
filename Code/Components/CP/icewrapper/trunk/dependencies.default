@@ -1,4 +1,5 @@
 boost=3rdParty/boost/tags/boost-1.41.0
 askap=Code/Base/askap/trunk
+cpcommon=Code/Components/CP/common/trunk
 ice=3rdParty/Ice/tags/Ice-3.3.0;IceStorm Ice IceUtil
 iceinterfaces=Code/Components/CP/iceinterfaces/trunk
