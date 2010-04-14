@@ -57,7 +57,7 @@ module logging
      **/
     struct ILogEvent
     {
-        // the  logger name e.g. askap.scimath
+        // the logger name reflecting the software package e.g. askap.scimath
         string origin;
         // the creation time of the log event (POSIX timestamp)
         double created;
@@ -65,6 +65,12 @@ module logging
         LogLevel level;
         // the actual log message
         string message;
+        // an optional tag to group log messages across log origins (different
+        // packages). This can be a simple lower case string e.g. "antenna1" or
+        // a comma-separated string "antenna1,subarray1"
+        string tag;
+        // the (optional) host name where the log message originated from
+        string hostname;
     };
 
     /** a list of ILogEvents **/
@@ -98,6 +104,12 @@ module logging
         // The log levels to query on
         LogLevelSeq levels;
 
+        // query by tag
+        string tag;
+
+        // query by hostname
+        string hostname;
+
         // The number maximum number of ILogEvent to return
         int limit;
     };
@@ -112,6 +124,12 @@ module logging
 
         // Get the logger names (origin) with an optional name to match
         idempotent askap::interfaces::StringSeq getLoggers(string name);
+
+        // Get the log message tags with an optional pattern to match
+        idempotent askap::interfaces::StringSeq getTags(string pattern);
+
+        // Get the log message hostnames with an optional pattern to match
+        idempotent askap::interfaces::StringSeq getHostnames(string pattern);
 
         // Get the available log levels from the LogLevel enum as strings
         idempotent askap::interfaces::StringSeq getLevels();
