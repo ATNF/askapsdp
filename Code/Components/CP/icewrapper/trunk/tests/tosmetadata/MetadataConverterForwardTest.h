@@ -36,6 +36,8 @@
 #include "boost/scoped_ptr.hpp"
 #include "TypedValues.h"
 #include "cpcommon/TosMetadata.h"
+#include "tosmetadata/TypedValueMapMapper.h"
+#include "casa/aips.h"
 
 // Classes to test
 #include "tosmetadata/MetadataConverter.h"
@@ -46,7 +48,6 @@ using namespace askap::interfaces;
 
 namespace askap {
     namespace cp {
-
 
         class MetadataConverterForwardTest : public CppUnit::TestFixture {
             CPPUNIT_TEST_SUITE(MetadataConverterForwardTest);
@@ -89,79 +90,43 @@ namespace askap {
 
                 // Convert
                 MetadataConverter converter;
-                itsDest.reset(new TimeTaggedTypedValueMap(converter.convert(*itsSource)));
+                TimeTaggedTypedValueMap timeTaggedMap(converter.convert(*itsSource));
+                CPPUNIT_ASSERT(timeTaggedMap.timestamp == timestamp);
+                TypedValueMap& data = timeTaggedMap.data;
+                itsMapper.reset(new TypedValueMapMapper(data));
             }
 
             void tearDown() {
                 itsSource.reset();
-                itsDest.reset();
+                itsMapper.reset();
             }
 
             void testTime() {
-                // First check the timestamp on the message
-                CPPUNIT_ASSERT(itsDest->timestamp == timestamp);
-
-                // Now check the timestamp in the data payload
-                TypedValueMap& data = itsDest->data;
-                const std::string key = "time";
-                CPPUNIT_ASSERT(valExists(key, data));
-                TypedValuePtr tv = data[key];
-                CPPUNIT_ASSERT(tv->type == TypeLong);
-                CPPUNIT_ASSERT(TypedValueLongPtr::dynamicCast(tv)->value == timestamp);
+                CPPUNIT_ASSERT(itsMapper->getLong("time") == timestamp);
             }
 
             void testPeriod() {
-                TypedValueMap& data = itsDest->data;
-                const std::string key = "period";
-                CPPUNIT_ASSERT(valExists(key, data));
-                TypedValuePtr tv = data[key];
-                CPPUNIT_ASSERT(tv->type == TypeLong);
-                CPPUNIT_ASSERT(TypedValueLongPtr::dynamicCast(tv)->value == period);
+                CPPUNIT_ASSERT(itsMapper->getLong("period") == period);
             }
 
             void testNBeams() {
-                TypedValueMap& data = itsDest->data;
-                const std::string key = "n_coarse_chan";
-                CPPUNIT_ASSERT(valExists(key, data));
-                TypedValuePtr tv = data[key];
-                CPPUNIT_ASSERT(tv->type == TypeInt);
-                CPPUNIT_ASSERT(TypedValueIntPtr::dynamicCast(tv)->value == nCoarseChan);
+                //CPPUNIT_ASSERT(itsMapper->getLong("n_beams") == nBeams);
             }
 
             void testNCoarseChan() {
-                TypedValueMap& data = itsDest->data;
-                const std::string key = "n_coarse_chan";
-                CPPUNIT_ASSERT(valExists(key, data));
-                TypedValuePtr tv = data[key];
-                CPPUNIT_ASSERT(tv->type == TypeInt);
-                CPPUNIT_ASSERT(TypedValueIntPtr::dynamicCast(tv)->value == nCoarseChan);
+                CPPUNIT_ASSERT(itsMapper->getInt("n_coarse_chan") == nCoarseChan);
             }
 
             void testNAntennas() {
-                TypedValueMap& data = itsDest->data;
-                const std::string key = "n_antennas";
-                CPPUNIT_ASSERT(valExists(key, data));
-                TypedValuePtr tv = data[key];
-                CPPUNIT_ASSERT(tv->type == TypeInt);
-                CPPUNIT_ASSERT(TypedValueIntPtr::dynamicCast(tv)->value == nAntenna);
+                CPPUNIT_ASSERT(itsMapper->getInt("n_antennas") == nAntenna);
             }
 
             void testNPol() {
-                TypedValueMap& data = itsDest->data;
-                const std::string key = "n_pol";
-                CPPUNIT_ASSERT(valExists(key, data));
-                TypedValuePtr tv = data[key];
-                CPPUNIT_ASSERT(tv->type == TypeInt);
-                CPPUNIT_ASSERT(TypedValueIntPtr::dynamicCast(tv)->value == nPol);
+                CPPUNIT_ASSERT(itsMapper->getInt("n_pol") == nPol);
             }
 
             void testAntennaNames() {
-                TypedValueMap& data = itsDest->data;
-                const std::string key = "antenna_names";
-                CPPUNIT_ASSERT(valExists(key, data));
-                TypedValuePtr tv = data[key];
-                CPPUNIT_ASSERT(tv->type == TypeStringSeq);
-                StringSeq names = TypedValueStringSeqPtr::dynamicCast(tv)->value;
+                std::vector<casa::String> names = itsMapper->getStringSeq("antenna_names");
                 CPPUNIT_ASSERT_EQUAL(static_cast<unsigned int>(nAntenna),
                         static_cast<unsigned int>(names.size()));
             }
@@ -175,7 +140,7 @@ namespace askap {
 
             // Support classes
             boost::scoped_ptr<TosMetadata> itsSource;
-            boost::scoped_ptr<TimeTaggedTypedValueMap> itsDest;
+            boost::scoped_ptr<TypedValueMapMapper> itsMapper;
 
             // Some constants
             casa::Int nCoarseChan;

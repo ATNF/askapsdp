@@ -36,6 +36,9 @@
 // CP Ice interfaces
 #include "TypedValues.h"
 
+// Local package includes
+#include "TypedValueMapMapper.h"
+
 // Using
 using namespace askap::cp;
 using namespace askap::interfaces;
@@ -43,7 +46,18 @@ using namespace casa;
 
 askap::cp::TosMetadata MetadataConverter::convert(const askap::interfaces::TimeTaggedTypedValueMap& source)
 {
-    TosMetadata dest(1,1,1);
+    // Use a mapper to easily get access to the elements and map them
+    // to native types
+    TypedValueMapMapper mapper(source.data);
+
+    // First need to determine the number of beams, coarse channels and
+    // polarisations before the askap::cp::TosMetadata object can be
+    // instantiated
+    const casa::Int nCoarseChan = mapper.getInt("n_coarse_chan");
+    const std::vector<casa::Int> nBeam = mapper.getIntSeq("n_beams");
+    const casa::Int nPol = mapper.getInt("n_pol");
+
+    TosMetadata dest(nCoarseChan, nBeam[0], nPol);
     return dest;
 }
 
