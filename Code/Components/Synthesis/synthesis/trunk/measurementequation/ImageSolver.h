@@ -167,12 +167,44 @@ namespace askap
     /// @param[in] in const reference to the input array
     /// @return the array with the first plane
     static casa::Array<float> getFirstPlane(const casa::Array<float> &in);
+    
+    /// @breif query weight cutoff behavior
+    /// @return true if image pixels corresponding to the weight cutoff area are set to zero during
+    /// normalisation.
+    inline bool zeroWeightCutoffArea() const { return itsZeroWeightCutoffArea; }
+    
+    /// @brief query weight cutoff clean mask behavior
+    /// @return true if mask is set to zero during normalisation for those pixels which are in the 
+    /// weight cutoff area (i.e. not to be cleaned for S/N-based clean)
+    inline bool zeroWeightCutoffMask() const { return itsZeroWeightCutoffMask; }
+
+    /// @breif set weight cutoff behavior
+    /// @param[in] flag true to set image pixels corresponding to the weight cutoff area to zero during
+    /// normalisation.
+    inline void zeroWeightCutoffArea(bool flag) { itsZeroWeightCutoffArea = flag; }
+      
+    /// @brief set weight cutoff clean mask behavior
+    /// @param[in] flag true to set mask to zero during normalisation for those pixels which are in the 
+    /// weight cutoff area (i.e. to ensure that they are not cleaned during S/N-based clean)
+    inline void zeroWeightCutoffMask(bool flag) { itsZeroWeightCutoffMask = flag;}      
              
-      private:
+private:
 	/// Instance of a preconditioner
 	// IImagePreconditioner::ShPtr itsPreconditioner;
         //std::map<std::int, boost::shared_ptr<askap::synthesis::IImagePreconditioner> > itsPreconditioners;
         std::map<int, IImagePreconditioner::ShPtr> itsPreconditioners;
+
+    /// @brief controls weight normalisation
+    /// @details If true, area outside weight cutoff area is set to zero. Otherwise, the normalisation is
+    /// done by dividing to maximum weight. The default is false;
+    bool itsZeroWeightCutoffArea;
+      
+    /// @brief controls mask used for S/N-based clean
+    /// @details If true, the mask in the weight cutoff area is set to zero. This ensures that nothing is cleaned
+    /// in those areas for the S/N-based clean. Otherwise, the mask is set to sqrt(tolerance), which corresponds to
+    /// normalisation done by dividing to maximum weight. The default is true.
+    bool itsZeroWeightCutoffMask; 
+
     };
 
   }

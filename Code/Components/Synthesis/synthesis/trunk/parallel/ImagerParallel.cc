@@ -402,10 +402,12 @@ namespace askap
           boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(itsParset.makeSubset("restore."), 
                                                                 *itsModel);
           ASKAPDEBUGASSERT(ir);
-          ir->setThreshold(itsSolver->threshold());
-          ir->setVerbose(itsSolver->verbose());
-          ir->setTol(itsSolver->tol());
-          ir->copyNormalEquations(*itsSolver);
+          ASKAPDEBUGASSERT(itsSolver);
+          // configure restore solver the same way as normal imaging solver
+          boost::shared_ptr<ImageSolver> template_solver = boost::dynamic_pointer_cast<ImageSolver>(itsSolver);
+          ASKAPDEBUGASSERT(template_solver);
+          ir->configureSolver(*template_solver);
+          ir->copyNormalEquations(*template_solver);
           Quality q;
           ir->solveNormalEquations(q);
           *itsModel = ir->parameters();

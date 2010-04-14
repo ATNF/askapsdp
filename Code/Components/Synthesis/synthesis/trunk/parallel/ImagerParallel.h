@@ -142,6 +142,7 @@ namespace askap
       /// equations
       double getPeakResidual() const;
       
+      
   private:
 
       /// Calculate normal equations for one data set
@@ -184,6 +185,7 @@ namespace askap
       /// first use and then passed as the perfect MeasurementEquation, if
       /// required. We could have created a brand new object each time.
       boost::shared_ptr<IMeasurementEquation> itsVoidME;
+      
     };
 
   }

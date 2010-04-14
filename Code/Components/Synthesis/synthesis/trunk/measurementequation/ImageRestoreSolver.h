@@ -84,6 +84,16 @@ namespace askap
         /// @return a shared pointer to the solver instance
         static boost::shared_ptr<ImageRestoreSolver> createSolver(const LOFAR::ParameterSet &parset,
                    const askap::scimath::Params &ip);
+                   
+        /// @brief configure basic parameters of the restore solver
+        /// @details This method configures basic parameters of this restore solver the same way as
+        /// they are configured for normal imaging solver. We want to share the same parameters between
+        /// these two types of solvers (e.g. weight cutoff tolerance, preconditioning, etc), but the 
+        /// appropriate parameters are given in a number of places of the parset, sometimes with 
+        /// solver-specific prefies, so parsing a parset in createSolver is not a good idea. This method
+        /// does the job and encapsulates all related code.
+        /// @param[in] ts template solver (to take parameters from)
+        void configureSolver(const ImageSolver &ts);
         
       protected:
         /// @brief set noise equalisation flag

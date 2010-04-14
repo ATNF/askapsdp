@@ -40,7 +40,6 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <lattices/Lattices/ArrayLattice.h>
 #include <lattices/Lattices/LatticeFFT.h>
 
-
 using namespace askap;
 using namespace askap::scimath;
 
@@ -64,7 +63,7 @@ namespace askap
   {
 
     ImageSolver::ImageSolver(const askap::scimath::Params& ip) :
-      askap::scimath::Solver(ip)
+      askap::scimath::Solver(ip), itsZeroWeightCutoffArea(false), itsZeroWeightCutoffMask(true)
     {
     }
 
@@ -108,6 +107,8 @@ namespace askap
         const double maxDiag(casa::max(diag));
         const double sumDiag(casa::sum(diag));
 
+        ASKAPCHECK(maxDiag>0., "Maximum diagonal element is supposed to be positive, check that at least some data were gridded, maxDiag="
+                   <<maxDiag<<" sumDiag="<<sumDiag);
 	ASKAPLOG_INFO_STR(logger, "Solid angle = " << sumDiag/maxDiag << " pixels");
 
         const double cutoff=tolerance*maxDiag;
@@ -152,8 +153,10 @@ namespace askap
                 }
                 nAbove++;
              } else {
+                //dirtyVector(elem) = 0.;
                 dirtyVector(elem)/=maxDiag;
                 if (mask) {
+                    //maskVector(elem)=sqrt(tolerance);
                     maskVector(elem)=0.0;
                 } // if mask required
              }  // if element > cutoff

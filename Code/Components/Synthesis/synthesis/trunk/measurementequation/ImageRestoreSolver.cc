@@ -127,13 +127,13 @@ namespace askap
 	      ASKAPLOG_INFO_STR(logger, "Restoring " << *ci );
 
 	      // Create a temporary image
-	      boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(*itsParams, *ci));
+	      boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(*itsParams, *ci));	      
 	      casa::Image2DConvolver<float> convolver;	
 	      const casa::IPosition pixelAxes(2, 0, 1);	
 	      casa::LogIO logio;
 	      convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
 			     pixelAxes, itsBeam, true, 1.0, false);
-	      SynthesisParamsHelper::update(*itsParams, *ci, *image);
+          SynthesisParamsHelper::update(*itsParams, *ci, *image);
 	      // for some reason update makes the parameter free as well
 	      itsParams->fix(*ci);
 	  
@@ -309,6 +309,21 @@ namespace askap
        const bool equalise = parset.getBool("equalise",false);
        result->equaliseNoise(equalise);
        return result;
+    }
+
+    /// @brief configure basic parameters of the restore solver
+    /// @details This method configures basic parameters of this restore solver the same way as
+    /// they are configured for normal imaging solver. We want to share the same parameters between
+    /// these two types of solvers (e.g. weight cutoff tolerance, preconditioning, etc), but the 
+    /// appropriate parameters are given in a number of places of the parset, sometimes with 
+    /// solver-specific prefies, so parsing a parset in createSolver is not a good idea. This method
+    /// does the job and encapsulates all related code.
+    /// @param[in] ts template solver (to take parameters from)
+    void ImageRestoreSolver::configureSolver(const ImageSolver &ts) 
+    {
+      setThreshold(ts.threshold());
+      setVerbose(ts.verbose());
+      setTol(ts.tol());    
     }
     
 
