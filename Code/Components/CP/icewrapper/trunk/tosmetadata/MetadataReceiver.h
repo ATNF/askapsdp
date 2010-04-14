@@ -24,6 +24,9 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_METADATARECEIVER_H
+#define ASKAP_CP_METADATARECEIVER_H
+
 // System includes
 #include <string>
 
@@ -33,11 +36,6 @@
 
 // CP ice interfaces
 #include "TypedValues.h"
-
-// Local package includes
-
-#ifndef ASKAP_CP_METADATARECEIVER_H
-#define ASKAP_CP_METADATARECEIVER_H
 
 namespace askap {
     namespace cp {

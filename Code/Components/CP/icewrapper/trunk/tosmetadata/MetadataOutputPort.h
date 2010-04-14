@@ -24,11 +24,13 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_METADATAOUTPUTPORT_H
+#define ASKAP_CP_METADATAOUTPUTPORT_H
+
 // System includes
 #include <string>
 
 // ASKAPsoft includes
-#include "Ice/Ice.h"
 #include "boost/scoped_ptr.hpp"
 
 // CP ice interfaces
@@ -36,9 +38,6 @@
 
 // Local package includes
 #include "iceutils/OutputPort.h"
-
-#ifndef ASKAP_CP_METADATAOUTPUTPORT_H
-#define ASKAP_CP_METADATAOUTPUTPORT_H
 
 namespace askap {
     namespace cp {
