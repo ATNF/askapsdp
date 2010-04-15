@@ -1,5 +1,5 @@
-//#  MWIos.cc:
-//#
+///  @file
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -22,8 +22,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-//#
-//#  $Id$
+
 
 #include <mwcommon/MWIos.h>
 

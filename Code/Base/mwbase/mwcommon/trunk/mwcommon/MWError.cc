@@ -1,5 +1,6 @@
-//# MWError.cc: Basic exception for mwcontrol related errors
-//#
+/// @file
+/// @brief Basic exception for mwcontrol related errors
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -22,9 +23,8 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-//# @author Ger van Diepen <diepen AT astron nl>
-//#
-//# $Id$
+/// @author Ger van Diepen <diepen@astron.nl>
+
 
 #include <mwcommon/MWError.h>
 
