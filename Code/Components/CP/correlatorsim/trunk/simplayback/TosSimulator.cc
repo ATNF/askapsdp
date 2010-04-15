@@ -205,8 +205,7 @@ bool TosSimulator::sendNext(void)
 
         {
             // <antenna name>.phase_tracking_centre
-            DirectionSeq ptc;
-            ptc.resize(nBeam * nCoarseChan);
+            DirectionSeq ptc(nBeam * nCoarseChan);
 
             for (unsigned int i = 0; i < ptc.size(); ++i) {
                 ptc[i].coord1 = direction.getAngle().getValue()(0);
