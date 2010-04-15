@@ -38,7 +38,7 @@ def analyseResult(spr, expected_flux = 1.):
 
    stats = spr.imageStats('residual.field1')
    print "Statistics for residual image: ",stats
-   if stats['rms']>0.01 or abs(stats['median'])>0.0001:
+   if stats['rms']>0.03 or abs(stats['median'])>0.0001:
       raise RuntimeError, "Residual image has too high rms or median. Please verify"
 
 
@@ -47,10 +47,10 @@ spr = SynthesisProgramRunner(template_parset = 'pbcorrtest_template.in')
 spr.runSimulator()
 
 spr.runImager()
-analyseResult(spr,3.556)
+analyseResult(spr,3.853)
 
 spr.initParset()
 spr.addToParset("Cimager.restore.equalise = True")
 spr.runImager()
-analyseResult(spr,3.52)
+analyseResult(spr,3.712)
 

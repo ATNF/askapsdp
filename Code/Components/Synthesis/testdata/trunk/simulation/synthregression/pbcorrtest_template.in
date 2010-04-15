@@ -5,10 +5,13 @@ Csimulator.dataset                              =       field1.ms
 #
 Csimulator.sources.names                        =       [field1]
 Csimulator.sources.field1.direction              =       [12h30m00.000, -45.00.00.000, J2000]
-Csimulator.sources.field1.components             =       [src1]
+Csimulator.sources.field1.components             =       [src1,src2]
 Csimulator.sources.src1.flux.i                  = 1.0
 Csimulator.sources.src1.direction.ra           = 0.006
 Csimulator.sources.src1.direction.dec           = 0.006
+Csimulator.sources.src2.flux.i                  = 2.0
+Csimulator.sources.src2.direction.ra           = -0.01
+Csimulator.sources.src2.direction.dec          = -0.01
 
 #
 # Define the antenna locations, feed locations, and spectral window definitions
@@ -112,6 +115,8 @@ Cimager.solver.Clean.niter                     	= 100
 Cimager.solver.Clean.gain                      	= 0.1
 Cimager.solver.Clean.tolerance                  = 0.1
 Cimager.solver.Clean.verbose                   	= True
+Cimager.solver.Clean.weightcutoff               = truncate
+Cimager.solver.Clean.weightcutoff.clean         = false
 Cimager.threshold.minorcycle                    = [15%]
 #Cimager.threshold.majorcycle                    = 10mJy
 
