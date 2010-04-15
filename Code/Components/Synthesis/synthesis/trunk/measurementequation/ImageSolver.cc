@@ -469,13 +469,12 @@ namespace askap
     void ImageSolver::configure(const LOFAR::ParameterSet &parset) {
         setTol(parset.getFloat("tolerance", 0.1));
         setVerbose(parset.getBool("verbose", true));
-
-        zeroWeightCutoffMask(parset.getBool("weightcutoff.clean",false));        
+        zeroWeightCutoffMask(!parset.getBool("weightcutoff.clean",false));        
         const std::string weightCutoff = parset.getString("weightcutoff","truncate");
         if (weightCutoff == "zero") {
             zeroWeightCutoffArea(true);
             ASKAPLOG_INFO_STR(logger, "Solver is configured to zero pixels in the area where weight is below cutoff (tolerance parameter)");
-            ASKAPCHECK(zeroWeightCutoffMask() == false, "With weightcutoff="<<weightCutoff<<
+            ASKAPCHECK(zeroWeightCutoffMask() == true, "With weightcutoff="<<weightCutoff<<
                        " only weightcutoff.clean = false makes sense");
         } else if (weightCutoff == "truncate") {
             ASKAPLOG_INFO_STR(logger, "Solver is configured to normalise pixels in the area where weight is below cutoff (tolerance parameter) with the maximum diagonal");
