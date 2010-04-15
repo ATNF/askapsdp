@@ -38,6 +38,9 @@
 #include <measurementequation/IImagePreconditioner.h>
 #include <boost/shared_ptr.hpp>
 
+#include <Common/ParameterSet.h>
+
+
 #include <map>
 using std::map;
 
@@ -149,25 +152,11 @@ namespace askap
 			               boost::shared_ptr<casa::Array<float> >()) const
       { return doNormalization(diag,tolerance, psf, -1., dirty, mask); }
 
-  protected:
-     
-    /// @brief estimate sensitivity loss due to preconditioning
-    /// @details Preconditioning (i.e. Wiener filter, tapering) makes the synthesized beam look nice, 
-    /// but the price paid is a sensitivity loss. This method gives an estimate (accurate calculations require
-    /// gridless weights, which we don't have in our current approach). The method just requires the two
-    /// PSFs before and after preconditioning.
-    /// @param[in] psfOld an array with original psf prior to preconditioning
-    /// @param[in] psfNew an array with the psf after preconditioning has been applied
-    /// @return sensitivity loss factor (should be grater than or equal to 1)
-    static double sensitivityLoss(const casa::Array<float>& psfOld, const casa::Array<float>& psfNew);
-    
-    /// @brief a helper method to extract the first plane out of the multi-dimensional array
-    /// @details This method just uses MultiDimArrayPlaneIter to extract the first plane
-    /// out of the array. It accepts a const reference to the array (which is a conseptual const).
-    /// @param[in] in const reference to the input array
-    /// @return the array with the first plane
-    static casa::Array<float> getFirstPlane(const casa::Array<float> &in);
-    
+    /// @brief configure basic parameters of the solver
+    /// @details This method encapsulates extraction of basic solver parameters from the parset.
+    /// @param[in] parset parset's subset (should have solver.Clean or solver.Dirty removed)
+    void configure(const LOFAR::ParameterSet &parset); 
+
     /// @breif query weight cutoff behavior
     /// @return true if image pixels corresponding to the weight cutoff area are set to zero during
     /// normalisation.
@@ -187,7 +176,26 @@ namespace askap
     /// @param[in] flag true to set mask to zero during normalisation for those pixels which are in the 
     /// weight cutoff area (i.e. to ensure that they are not cleaned during S/N-based clean)
     inline void zeroWeightCutoffMask(bool flag) { itsZeroWeightCutoffMask = flag;}      
-             
+
+  protected:
+     
+    /// @brief estimate sensitivity loss due to preconditioning
+    /// @details Preconditioning (i.e. Wiener filter, tapering) makes the synthesized beam look nice, 
+    /// but the price paid is a sensitivity loss. This method gives an estimate (accurate calculations require
+    /// gridless weights, which we don't have in our current approach). The method just requires the two
+    /// PSFs before and after preconditioning.
+    /// @param[in] psfOld an array with original psf prior to preconditioning
+    /// @param[in] psfNew an array with the psf after preconditioning has been applied
+    /// @return sensitivity loss factor (should be grater than or equal to 1)
+    static double sensitivityLoss(const casa::Array<float>& psfOld, const casa::Array<float>& psfNew);
+    
+    /// @brief a helper method to extract the first plane out of the multi-dimensional array
+    /// @details This method just uses MultiDimArrayPlaneIter to extract the first plane
+    /// out of the array. It accepts a const reference to the array (which is a conseptual const).
+    /// @param[in] in const reference to the input array
+    /// @return the array with the first plane
+    static casa::Array<float> getFirstPlane(const casa::Array<float> &in);
+                 
 private:
 	/// Instance of a preconditioner
 	// IImagePreconditioner::ShPtr itsPreconditioner;

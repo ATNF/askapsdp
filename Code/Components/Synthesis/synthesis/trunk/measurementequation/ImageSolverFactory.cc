@@ -213,31 +213,34 @@ namespace askap
 	     string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
 	     std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 	
-            if(algorithm=="MSMFS"){
+         if (algorithm=="MSMFS"){
                ASKAPCHECK(!parset.isDefined("solver.nterms"), "Specify nterms for each image instead of using solver.nterms");
                ASKAPCHECK(!parset.isDefined("solver.Clean.nterms"), "Specify nterms for each image instead of using solver.Clean.nterms");
                solver.reset(new ImageMSMFSolver(ip, casa::Vector<float>(scales)));
                ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
                solver->setAlgorithm(algorithm);
-	     } else {
+         } else {
                solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
                ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
                //solver->setAlgorithm(algorithm);
                solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
-	     }
-        
-	     solver->setTol(parset.getFloat("solver.Clean.tolerance", 0.1));
+         }
+         solver->configure(parset.makeSubset("solver.Clean."));
          solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
-         solver->setVerbose(parset.getBool("solver.Clean.verbose", true));
          solver->setNiter(parset.getInt32("solver.Clean.niter", 100));
+         
          if (parset.isDefined("solver.Clean.speedup")) {
              boost::shared_ptr<ImageMultiScaleSolver> mss = boost::dynamic_pointer_cast<ImageMultiScaleSolver>(solver);
              boost::shared_ptr<ImageMSMFSolver> mfmss = boost::dynamic_pointer_cast<ImageMSMFSolver>(solver);
              ASKAPCHECK(mss || mfmss, "speed up can currently be used with multi scale solvers only");
              const float factor = parset.getFloat("solver.Clean.speedup");
              ASKAPLOG_INFO_STR(logger,"Using speed up factor of "<<factor<<" in lattice clean");
-	     if(mss) mss->setSpeedUp(factor);                   
-	     if(mfmss) mfmss->setSpeedUp(factor);                   
+             if (mss) {
+                 mss->setSpeedUp(factor);
+             }
+             if (mfmss) {
+                 mfmss->setSpeedUp(factor);
+             }
          }
       } else {
          // temporary
@@ -247,7 +250,7 @@ namespace askap
       
          ASKAPLOG_INFO_STR(logger, "Constructing dirty image solver" );
          solver = ImageSolver::ShPtr(new ImageSolver(ip));
-         solver->setTol(parset.getFloat("solver.Dirty.tolerance", 0.1));
+         solver->configure(parset.makeSubset("solver.Dirty."));
       }
       configureThresholds(parset, solver);               
       configurePreconditioners(parset, solver);  

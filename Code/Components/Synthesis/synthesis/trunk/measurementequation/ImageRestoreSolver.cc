@@ -324,6 +324,10 @@ namespace askap
       setThreshold(ts.threshold());
       setVerbose(ts.verbose());
       setTol(ts.tol());    
+      
+      // behavior in the weight cutoff area
+      zeroWeightCutoffMask(ts.zeroWeightCutoffMask());
+      zeroWeightCutoffArea(ts.zeroWeightCutoffArea());
     }
     
 

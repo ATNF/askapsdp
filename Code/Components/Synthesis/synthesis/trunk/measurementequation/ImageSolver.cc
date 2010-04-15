@@ -153,11 +153,19 @@ namespace askap
                 }
                 nAbove++;
              } else {
-                //dirtyVector(elem) = 0.;
-                dirtyVector(elem)/=maxDiag;
+                // a number of actions are possible in the weights cutoff area depending
+                // on the state of the solver
+                if (zeroWeightCutoffArea()) {
+                    dirtyVector(elem) = 0.;
+                } else {
+                    dirtyVector(elem)/=maxDiag;
+                }
                 if (mask) {
-                    //maskVector(elem)=sqrt(tolerance);
-                    maskVector(elem)=0.0;
+                    if (zeroWeightCutoffMask()) {
+                        maskVector(elem)=0.0;
+                    } else {
+                        maskVector(elem)=sqrt(tolerance);
+                    }
                 } // if mask required
              }  // if element > cutoff
         } // loop over elements (image pixels)
@@ -453,6 +461,33 @@ namespace askap
        const double loss = sqrt(sumwt2New/sumwt2Old)*sumwtOld/sumwtNew;
        ASKAPLOG_INFO_STR(logger, "The estimate of the sensitivity loss is "<<loss);
        return loss;
+    }
+    
+    /// @brief configure basic parameters of the solver
+    /// @details This method encapsulates extraction of basic solver parameters from the parset.
+    /// @param[in] parset parset's subset (should have solver.Clean or solver.Dirty removed)
+    void ImageSolver::configure(const LOFAR::ParameterSet &parset) {
+        setTol(parset.getFloat("tolerance", 0.1));
+        setVerbose(parset.getBool("verbose", true));
+
+        zeroWeightCutoffMask(parset.getBool("weightcutoff.clean",false));        
+        const std::string weightCutoff = parset.getString("weightcutoff","truncate");
+        if (weightCutoff == "zero") {
+            zeroWeightCutoffArea(true);
+            ASKAPLOG_INFO_STR(logger, "Solver is configured to zero pixels in the area where weight is below cutoff (tolerance parameter)");
+            ASKAPCHECK(zeroWeightCutoffMask() == false, "With weightcutoff="<<weightCutoff<<
+                       " only weightcutoff.clean = false makes sense");
+        } else if (weightCutoff == "truncate") {
+            ASKAPLOG_INFO_STR(logger, "Solver is configured to normalise pixels in the area where weight is below cutoff (tolerance parameter) with the maximum diagonal");
+            zeroWeightCutoffArea(false);
+        } else {
+            ASKAPTHROW(AskapError, "Only 'zero' and 'truncate' are allowed values for weightcutoff parameter, you have "<<weightCutoff);
+        }
+        if (zeroWeightCutoffMask()) {
+            ASKAPLOG_INFO_STR(logger, "Pixels in this area are masked out, and no S/N-based cleaning will be done");
+        } else {
+            ASKAPLOG_INFO_STR(logger, "S/N-based clean will search optimum of flux * sqrt(tolerance) in this area");
+        }
     }
 
   } // namespace synthesis
