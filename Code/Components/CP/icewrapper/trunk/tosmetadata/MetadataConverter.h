@@ -50,7 +50,7 @@ class MetadataConverter {
                             const askap::cp::TosMetadata& source,
                             askap::interfaces::TimeTaggedTypedValueMap& dest);
 
-        void convertAntenna(unsigned int antId,
+        void convertAntenna(const std::string& antennaName,
                             const askap::interfaces::TimeTaggedTypedValueMap& source,
                             askap::cp::TosMetadata& dest);
 

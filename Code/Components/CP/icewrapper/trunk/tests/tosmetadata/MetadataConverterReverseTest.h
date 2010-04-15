@@ -56,7 +56,6 @@ class MetadataConverterReverseTest : public CppUnit::TestFixture {
         CPPUNIT_TEST(testNCoarseChan);
         CPPUNIT_TEST(testNAntennas);
         CPPUNIT_TEST(testNPol);
-        CPPUNIT_TEST(testAntennaNames);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -94,6 +93,18 @@ class MetadataConverterReverseTest : public CppUnit::TestFixture {
             // n_pol
             mapper.setInt("n_pol", nPol);
 
+            // antenna_names
+            std::vector<casa::String> antennaNames;
+            for (int i = 0; i < nAntenna; ++i) {
+                std::stringstream ss;
+                ss << "ASKAP" << i;
+                antennaNames.push_back(ss.str());
+
+
+            }
+            mapper.setStringSeq("antenna_names", antennaNames);
+
+
             // Convert
             MetadataConverter converter;
             itsDest.reset(new TosMetadata(converter.convert(*itsSource)));
@@ -112,6 +123,7 @@ class MetadataConverterReverseTest : public CppUnit::TestFixture {
 
         void testPeriod()
         {
+            CPPUNIT_ASSERT_EQUAL(period, static_cast<casa::Long>(itsDest->period()));
         }
 
         void testNBeams()
@@ -120,21 +132,23 @@ class MetadataConverterReverseTest : public CppUnit::TestFixture {
 
         void testNCoarseChan()
         {
+            CPPUNIT_ASSERT_EQUAL(nCoarseChan, static_cast<casa::Int>(itsDest->nCoarseChannels()));
         }
 
         void testNAntennas()
         {
+            CPPUNIT_ASSERT_EQUAL(nAntenna, static_cast<casa::Int>(itsDest->nAntenna()));
         }
 
         void testNPol()
         {
-        }
-
-        void testAntennaNames()
-        {
+            CPPUNIT_ASSERT_EQUAL(nPol, static_cast<casa::Int>(itsDest->nPol()));
         }
 
     private:
+
+
+
         // Support classes
         boost::scoped_ptr<TimeTaggedTypedValueMap> itsSource;
         boost::scoped_ptr<TosMetadata> itsDest;

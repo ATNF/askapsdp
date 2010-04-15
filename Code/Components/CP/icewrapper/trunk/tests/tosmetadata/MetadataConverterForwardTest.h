@@ -58,6 +58,7 @@ namespace askap {
             CPPUNIT_TEST(testNAntennas);
             CPPUNIT_TEST(testNPol);
             CPPUNIT_TEST(testAntennaNames);
+            CPPUNIT_TEST(testAntennaFrequency);
             CPPUNIT_TEST_SUITE_END();
 
             public:
@@ -69,6 +70,7 @@ namespace askap {
                 nAntenna = 1;
                 timestamp = 1234567890;
                 period = 5 * 1000 * 1000;
+                frequency = 1.4 * 1000000.0;
 
                 // Setup the source object
                 itsSource.reset(new TosMetadata(nCoarseChan, nBeam, nPol));
@@ -84,14 +86,22 @@ namespace askap {
                 for (int i = 0; i < nAntenna; ++i) {
                     std::stringstream ss;
                     ss << "ASKAP" << i;
-                    itsSource->addAntenna(ss.str());
+                    int id = itsSource->addAntenna(ss.str());
                     antennaNames.push_back(ss.str());
+
+                    // Add a frequency to the antenna
+                    TosMetadataAntenna& ant = itsSource->antenna(id);
+                    ant.frequency(frequency);
                 }
 
                 // Convert
                 MetadataConverter converter;
                 TimeTaggedTypedValueMap timeTaggedMap(converter.convert(*itsSource));
+
+                // Check the timestamp is ok
                 CPPUNIT_ASSERT(timeTaggedMap.timestamp == timestamp);
+
+                // Wrap with the TypedValueMapConstMapper for simplified access
                 TypedValueMap& data = timeTaggedMap.data;
                 itsMapper.reset(new TypedValueMapConstMapper(data));
             }
@@ -131,6 +141,10 @@ namespace askap {
                         static_cast<unsigned int>(names.size()));
             }
 
+            void testAntennaFrequency()
+            {
+                CPPUNIT_ASSERT(itsMapper->getDouble("ASKAP0.frequency") == frequency);
+            }
 
             private:
             bool valExists(const std::string& key, const TypedValueMap& map)
@@ -149,6 +163,7 @@ namespace askap {
             casa::Int nAntenna;
             casa::Long timestamp;
             casa::Long period;
+            casa::Double frequency;
         };
 
     }   // End namespace cp

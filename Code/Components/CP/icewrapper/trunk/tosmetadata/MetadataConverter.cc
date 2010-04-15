@@ -59,16 +59,38 @@ askap::cp::TosMetadata MetadataConverter::convert(const askap::interfaces::TimeT
     const casa::Int nPol = srcMapper.getInt("n_pol");
     const casa::Int nAntenna = srcMapper.getInt("n_antennas");
 
+    // Ensure nBeams is the same for all coarse channels. Currently this code
+    // nor the TosMetadata object support differing beam counts per coarse
+    // channel
+    for (unsigned int i = 0; i < nBeam.size(); ++i) {
+        if (nBeam[i] != nBeam[0]) {
+            ASKAPTHROW(AskapError,
+                    "Error: No support for coarse channels dependent number of beams");
+        }
+    }
+
+    // A copy of this object will be returned from this method
     TosMetadata dest(nCoarseChan, nBeam[0], nPol);
 
     // time
     dest.time(srcMapper.getLong("time"));
 
+    // period
+    dest.period(srcMapper.getLong("period"));
+
+    // antenna_names
+    std::vector<casa::String> antennaNames = srcMapper.getStringSeq("antenna_names");
+
+    if (antennaNames.size() != static_cast<casa::uInt>(nAntenna)) {
+        ASKAPTHROW(AskapError,
+                "Error: Value of n_antennas and number of antenna_names does not match");
+    }
+
     /////////////////////////
     // Metadata per antenna
     /////////////////////////
     for (int i = 0; i < nAntenna; ++i) {
-        convertAntenna(i, source, dest);
+        convertAntenna(antennaNames[i], source, dest);
     }
 
     return dest;
@@ -77,11 +99,10 @@ askap::cp::TosMetadata MetadataConverter::convert(const askap::interfaces::TimeT
 askap::interfaces::TimeTaggedTypedValueMap MetadataConverter::convert(const askap::cp::TosMetadata& source)
 {
     TimeTaggedTypedValueMap dest;
+    dest.timestamp = source.time();
 
     // Use a mapper to easily convert native (or casa types) to TypedValues
     TypedValueMapMapper destMapper(dest.data);
-
-    dest.timestamp = source.time();
 
     // For indexing into array, matrices and cubes
     const casa::uInt nCoarseChan = source.nCoarseChannels();
@@ -159,18 +180,6 @@ void MetadataConverter::convertAntenna(unsigned int antId,
     destMapper.setString(makeMapKey(antennaName, "scan_id"),
             antenna.scanId());
 
-    // <antenna name>.phase_tracking_centre
-    // Need to convert this Matrix to a 1D array with appropriate indexing
-    std::vector<casa::MDirection> ptcVector(nBeam * nCoarseChan);
-    for (unsigned int beam = 0; beam < nBeam; ++beam) {
-        for (unsigned int coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-            const int idx = beam + ((nBeam) * coarseChan);
-            ptcVector[idx] = antenna.phaseTrackingCentre(beam, coarseChan);
-        }
-    }
-    destMapper.setDirectionSeq(makeMapKey(antennaName, "phase_tracking_centre"),
-            ptcVector);
-
     // <antenna name>.parallactic_angle
     destMapper.setDouble(makeMapKey(antennaName, "parallactic_angle"),
             antenna.parallacticAngle());
@@ -183,43 +192,109 @@ void MetadataConverter::convertAntenna(unsigned int antId,
     destMapper.setBool(makeMapKey(antennaName, "flag.hw_error"),
             antenna.hwError());
 
+    // Need to convert these cubes and matrices to a 1D array with
+    // appropriate indexing
+ 
+    // <antenna name>.phase_tracking_centre
+    std::vector<casa::MDirection> ptcVector(nBeam * nCoarseChan);
     // <antenna name>.flag.detailed
-    // Need to convert this Cube to a 1D array with appropriate indexing
     std::vector<casa::Bool> flagVector(nBeam * nCoarseChan * nPol);
+    // <antenna name>.system_temp
+    std::vector<casa::Float> systemTempVec(nBeam * nCoarseChan * nPol);
+
     for (unsigned int beam = 0; beam < nBeam; ++beam) {
         for (unsigned int coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
+            const int idxMatrix = beam + ((nBeam) * coarseChan);
+            ptcVector[idxMatrix] = antenna.phaseTrackingCentre(beam, coarseChan);
             for (unsigned int pol = 0; pol < nPol; ++pol) {
-                const unsigned int idx = beam + ((nBeam) * coarseChan) +
+                const unsigned int idxCube = beam + ((nBeam) * coarseChan) +
                                             ((nBeam * nCoarseChan) * pol);
-                flagVector[idx] = antenna.flagDetailed(beam, coarseChan, pol);
+                flagVector[idxCube] = antenna.flagDetailed(beam, coarseChan, pol);
+                systemTempVec[idxCube] = antenna.systemTemp(beam, coarseChan, pol);
             }
         }
     }
+    destMapper.setDirectionSeq(makeMapKey(antennaName, "phase_tracking_centre"),
+            ptcVector);
     destMapper.setBoolSeq(makeMapKey(antennaName, "flag.detailed"),
             flagVector);
-
-    // <antenna name>.system_temp
-    // Need to convert this Cube to a 1D array with appropriate indexing
-    std::vector<casa::Float> systemTempVec(nBeam * nCoarseChan * nPol);
-    for (unsigned int beam = 0; beam < nBeam; ++beam) {
-        for (unsigned int coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-            for (unsigned int pol = 0; pol < nPol; ++pol) {
-                const unsigned int idx = beam + ((nBeam) * coarseChan) +
-                                            ((nBeam * nCoarseChan) * pol);
-                systemTempVec[idx] = antenna.systemTemp(beam, coarseChan, pol);
-            }
-        }
-    }
     destMapper.setFloatSeq(makeMapKey(antennaName, "system_temp"),
             systemTempVec);
 }
 
 // Convert antenna portion of the Tos Metadata from
 // askap::interfaces::TimeTaggedTypedValueMap to askap::cp::TosMetadata
-void MetadataConverter::convertAntenna(unsigned int antId,
+void MetadataConverter::convertAntenna(const std::string& antennaName,
         const askap::interfaces::TimeTaggedTypedValueMap& source,
         askap::cp::TosMetadata& dest)
 {
+    // Use a mapper to easily get access to the elements and map them
+    // to native (or casa) types
+    TypedValueMapConstMapper srcMapper(source.data);
+
+    // First need to determine the number of beams, coarse channels and
+    // polarisations before the askap::cp::TosMetadata object can be
+    // instantiated
+    const casa::Int nCoarseChan = srcMapper.getInt("n_coarse_chan");
+    const std::vector<casa::Int> nBeamVec = srcMapper.getIntSeq("n_beams");
+    const casa::Int nBeam = nBeamVec[0];
+    const casa::Int nPol = srcMapper.getInt("n_pol");
+
+    const unsigned int id = dest.addAntenna(antennaName);
+    TosMetadataAntenna& ant = dest.antenna(id);
+
+    // dish_pointing
+    ant.dishPointing(srcMapper.getDirection(makeMapKey(antennaName,
+                    "dish_pointing")));
+    // frequency
+    ant.frequency(srcMapper.getDouble(makeMapKey(antennaName,
+                    "frequency")));
+    // client_id
+    ant.clientId(srcMapper.getString(makeMapKey(antennaName,
+                    "client_id")));
+    // scan_id
+    ant.scanId(srcMapper.getString(makeMapKey(antennaName,
+                    "scan_id")));
+    // parallactic_angle
+    ant.parallacticAngle(srcMapper.getDouble(makeMapKey(antennaName,
+                    "parallactic_angle")));
+    // flag.on_source
+    ant.onSource(srcMapper.getBool(makeMapKey(antennaName,
+                    "flag.on_source")));
+    // flag.hw_error
+    ant.hwError(srcMapper.getBool(makeMapKey(antennaName,
+                    "flag.hw_error")));
+
+    // Need to convert these cubes and matrices from a 1D array with
+    // appropriate indexing
+ 
+    std::vector<casa::MDirection> ptcVector =
+        srcMapper.getDirectionSeq(makeMapKey(antennaName, "phase_tracking_centre"));
+
+    std::vector<casa::Bool> flagVector =
+        srcMapper.getBoolSeq(makeMapKey(antennaName, "flag.detailed"));
+
+    std::vector<casa::Float> systemTempVector = 
+        srcMapper.getFloatSeq(makeMapKey(antennaName, "system_temp"));
+
+    for (casa::Int beam = 0; beam < nBeam; ++beam) {
+        for (casa::Int coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
+
+            // phase_tracking_centre
+            const int idxMatrix = beam + (nBeam * coarseChan);
+            ant.phaseTrackingCentre(ptcVector[idxMatrix], beam, coarseChan);
+
+            for (casa::Int pol = 0; pol < nPol; ++pol) {
+                // flag.detailed
+                const unsigned int idxCube = beam + ((nBeam) * coarseChan) +
+                                            ((nBeam * nCoarseChan) * pol);
+                ant.flagDetailed(flagVector[idxCube], beam, coarseChan, pol);
+
+                // system_temp
+                ant.systemTemp(systemTempVector[idxCube], beam, coarseChan, pol);
+            }
+        }
+    }
 }
 
 std::string MetadataConverter::makeMapKey(const std::string& prefix,
