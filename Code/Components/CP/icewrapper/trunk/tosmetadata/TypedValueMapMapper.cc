@@ -27,203 +27,177 @@
 // Include own header file first
 #include "TypedValueMapMapper.h"
 
+// System includes
+#include <vector>
+
 // ASKAPsoft includes
 #include "askap/AskapError.h"
-
 #include "measures/Measures/MDirection.h"
 
 // CP Ice interfaces
 #include "TypedValues.h"
+
+// Local package includes
+#include "TypedValueMapConstMapper.h"
 
 // Using
 using namespace askap;
 using namespace askap::cp;
 using namespace askap::interfaces;
 
-TypedValueMapMapper::TypedValueMapMapper(const TypedValueMap& map) :
-    itsMap(map)
+TypedValueMapMapper::TypedValueMapMapper(TypedValueMap& map) :
+    TypedValueMapConstMapper(map), itsMap(map)
 {
 }
 
-int TypedValueMapMapper::getInt(const std::string& key) const
+void TypedValueMapMapper::setInt(const std::string& key, const casa::Int& val)
 {
-    return get<int, TypeInt, TypedValueIntPtr>(key);
+    set<casa::Int, TypeInt, TypedValueInt>(key, val);
 }
 
-long TypedValueMapMapper::getLong(const std::string& key) const
+void TypedValueMapMapper::setLong(const std::string& key, const casa::Long& val)
 {
-    return get<long, TypeLong, TypedValueLongPtr>(key);
+    set<casa::Long, TypeLong, TypedValueLong>(key, val);
 }
 
-casa::String TypedValueMapMapper::getString(const std::string& key) const
+void TypedValueMapMapper::setString(const std::string& key, const casa::String& val)
 {
-    return get<casa::String, TypeString, TypedValueStringPtr>(key);
+    set<casa::String, TypeString, TypedValueString>(key, val);
 }
 
-casa::Bool TypedValueMapMapper::getBool(const std::string& key) const
+void TypedValueMapMapper::setBool(const std::string& key, const casa::Bool& val)
 {
-    return get<casa::Bool, TypeBool, TypedValueBoolPtr>(key);
+    set<casa::Bool, TypeBool, TypedValueBool>(key, val);
 }
 
-casa::Float TypedValueMapMapper::getFloat(const std::string& key) const
+void TypedValueMapMapper::setFloat(const std::string& key, const casa::Float& val)
 {
-    return get<casa::Float, TypeFloat, TypedValueFloatPtr>(key);
+    set<casa::Float, TypeFloat, TypedValueFloat>(key, val);
 }
 
-casa::Double TypedValueMapMapper::getDouble(const std::string& key) const
+void TypedValueMapMapper::setDouble(const std::string& key, const casa::Double& val)
 {
-    return get<casa::Double, TypeDouble, TypedValueDoublePtr>(key);
+    set<casa::Double, TypeDouble, TypedValueDouble>(key, val);
 }
 
-casa::Complex TypedValueMapMapper::getFloatComplex(const std::string& key) const
+void TypedValueMapMapper::setFloatComplex(const std::string& key, const casa::Complex& val)
 {
-    askap::interfaces::FloatComplex val =
-        get<askap::interfaces::FloatComplex, TypeFloatComplex,
-        TypedValueFloatComplexPtr>(key);
-
-    return casa::Complex(val.real, val.imag);
+    askap::interfaces::FloatComplex obj;
+    obj.real = val.real();
+    obj.imag = val.imag();
+    set<FloatComplex, TypeFloatComplex, TypedValueFloatComplex>(key, obj);
 }
 
-casa::DComplex TypedValueMapMapper::getDoubleComplex(const std::string& key) const
+void TypedValueMapMapper::setDoubleComplex(const std::string& key, const casa::DComplex& val)
 {
-    askap::interfaces::FloatComplex val =
-        get<askap::interfaces::FloatComplex, TypeFloatComplex,
-        TypedValueFloatComplexPtr>(key);
-
-    return casa::DComplex(val.real, val.imag);
+    askap::interfaces::DoubleComplex obj;
+    obj.real = val.real();
+    obj.imag = val.imag();
+    set<DoubleComplex, TypeDoubleComplex, TypedValueDoubleComplex>(key, obj);
 }
 
-casa::MDirection TypedValueMapMapper::getDirection(const std::string& key) const
+void TypedValueMapMapper::setDirection(const std::string& key, const casa::MDirection& val)
 {
-    askap::interfaces::Direction val =
-        get<askap::interfaces::Direction, TypeDirection,
-        TypedValueDirectionPtr>(key);
-
-    return convertDirection(val);
+    askap::interfaces::Direction obj = convertDirection(val);
+    set<Direction, TypeDirection, TypedValueDirection>(key, obj);
 }
 
-std::vector<casa::Int> TypedValueMapMapper::getIntSeq(const std::string& key) const
+
+void TypedValueMapMapper::setIntSeq(const std::string& key, const std::vector<casa::Int>& val)
 {
-    return get<std::vector<casa::Int>, TypeIntSeq, TypedValueIntSeqPtr>(key);
+    set<std::vector<casa::Int>, TypeIntSeq, TypedValueIntSeq>(key, val);
 }
 
-std::vector<casa::Long> TypedValueMapMapper::getLongSeq(const std::string& key) const
+void TypedValueMapMapper::setLongSeq(const std::string& key, const std::vector<casa::Long>& val)
 {
-    return get<std::vector<casa::Long>, TypeLongSeq, TypedValueLongSeqPtr>(key);
+    set<std::vector<casa::Long>, TypeLongSeq, TypedValueLongSeq>(key, val);
 }
 
-std::vector<casa::String> TypedValueMapMapper::getStringSeq(const std::string& key) const
+void TypedValueMapMapper::setStringSeq(const std::string& key, const std::vector<casa::String>& val)
 {
-    askap::interfaces::StringSeq val =
-        get<askap::interfaces::StringSeq, TypeStringSeq,
-        TypedValueStringSeqPtr>(key);
-
-    // Populate this vector before returning it
-    std::vector<casa::String> container;
-
-    askap::interfaces::StringSeq::const_iterator it;
+    StringSeq seq;
+    std::vector<casa::String>::const_iterator it;
     for (it = val.begin(); it != val.end(); ++it) {
-        container.push_back(casa::String(*it));
+        seq.push_back(*it);
     }
-
-    return container;
+    set<StringSeq, TypeStringSeq, TypedValueStringSeq>(key, seq);
 }
 
-std::vector<casa::Bool> TypedValueMapMapper::getBoolSeq(const std::string& key) const
+void TypedValueMapMapper::setBoolSeq(const std::string& key, const std::vector<casa::Bool>& val)
 {
-    return get<std::vector<casa::Bool>, TypeBoolSeq, TypedValueBoolSeqPtr>(key);
+    set<std::vector<casa::Bool>, TypeBoolSeq, TypedValueBoolSeq>(key, val);
 }
 
-std::vector<casa::Float> TypedValueMapMapper::getFloatSeq(const std::string& key) const
+void TypedValueMapMapper::setFloatSeq(const std::string& key, const std::vector<casa::Float>& val)
 {
-    return get<std::vector<casa::Float>, TypeFloatSeq, TypedValueFloatSeqPtr>(key);
+    set<std::vector<casa::Float>, TypeFloatSeq, TypedValueFloatSeq>(key, val);
 }
 
-std::vector<casa::Double> TypedValueMapMapper::getDoubleSeq(const std::string& key) const
+void TypedValueMapMapper::setDoubleSeq(const std::string& key, const std::vector<casa::Double>& val)
 {
-    return get<std::vector<casa::Double>, TypeDoubleSeq, TypedValueDoubleSeqPtr>(key);
+    set<std::vector<casa::Double>, TypeDoubleSeq, TypedValueDoubleSeq>(key, val);
 }
 
-std::vector<casa::Complex> TypedValueMapMapper::getFloatComplexSeq(const std::string& key) const
+void TypedValueMapMapper::setFloatComplexSeq(const std::string& key, const std::vector<casa::Complex>& val)
 {
-    askap::interfaces::FloatComplexSeq val =
-        get<askap::interfaces::FloatComplexSeq, TypeFloatComplexSeq,
-        TypedValueFloatComplexSeqPtr>(key);
-
-    // Populate this vector before returning it
-    std::vector<casa::Complex> container;
-
-    askap::interfaces::FloatComplexSeq::const_iterator it = val.begin();
+    askap::interfaces::FloatComplexSeq seq;
+    std::vector<casa::Complex>::const_iterator it;
     for (it = val.begin(); it != val.end(); ++it) {
-        container.push_back(casa::Complex(it->real, it->imag));
+        askap::interfaces::FloatComplex obj;
+        obj.real = it->real();
+        obj.imag = it->imag();
+        seq.push_back(obj);
     }
-
-    return container;
+    set<FloatComplexSeq, TypeFloatComplexSeq, TypedValueFloatComplexSeq>(key, seq);
 }
 
-std::vector<casa::DComplex> TypedValueMapMapper::getDoubleComplexSeq(const std::string& key) const
+void TypedValueMapMapper::setDoubleComplexSeq(const std::string& key, const std::vector<casa::DComplex>& val)
 {
-    askap::interfaces::DoubleComplexSeq val =
-        get<askap::interfaces::DoubleComplexSeq, TypeDoubleComplexSeq,
-        TypedValueDoubleComplexSeqPtr>(key);
-
-    // Populate this vector before returning it
-    std::vector<casa::DComplex> container;
-
-    askap::interfaces::DoubleComplexSeq::const_iterator it = val.begin();
+    askap::interfaces::DoubleComplexSeq seq;
+    std::vector<casa::DComplex>::const_iterator it;
     for (it = val.begin(); it != val.end(); ++it) {
-        container.push_back(casa::DComplex(it->real, it->imag));
+        askap::interfaces::DoubleComplex obj;
+        obj.real = it->real();
+        obj.imag = it->imag();
+        seq.push_back(obj);
     }
-
-    return container;
+    set<DoubleComplexSeq, TypeDoubleComplexSeq, TypedValueDoubleComplexSeq>(key, seq);
 }
 
-std::vector<casa::MDirection> TypedValueMapMapper::getDirectionSeq(const std::string& key) const
+void TypedValueMapMapper::setDirectionSeq(const std::string& key, const std::vector<casa::MDirection>& val)
 {
-    askap::interfaces::DirectionSeq val =
-        get<askap::interfaces::DirectionSeq, TypeDirectionSeq,
-        TypedValueDirectionSeqPtr>(key);
-
-    // Populate this vector before returning it
-    std::vector<casa::MDirection> container;
-
-    askap::interfaces::DirectionSeq::const_iterator it = val.begin();
+    DirectionSeq seq;
+    std::vector<casa::MDirection>::const_iterator it;
     for (it = val.begin(); it != val.end(); ++it) {
-        container.push_back(convertDirection(*it));
+        askap::interfaces::Direction obj = convertDirection(*it);
+        seq.push_back(obj);
     }
-
-    return container;
+    set<DirectionSeq, TypeDirectionSeq, TypedValueDirectionSeq>(key, seq);
 }
 
-template <class T, askap::interfaces::TypedValueType E, class P>
-T TypedValueMapMapper::get(const std::string& key) const
+template <class T, askap::interfaces::TypedValueType TVType, class TVClass>
+void TypedValueMapMapper::set(const std::string& key, const T& val)
 {
-    if (itsMap.count(key) == 0) {
-        ASKAPTHROW(AskapError, "Specified key (" << key << ") does not exist");
-    }
-    const TypedValuePtr tv = itsMap.find(key)->second;
-    if (tv->type != E) {
-        ASKAPTHROW(AskapError, "Specified key (" << key << ") not of type Int");
-    }
-
-    return P::dynamicCast(tv)->value;
+    itsMap[key] = new TVClass(TVType, val);
 }
 
-casa::MDirection TypedValueMapMapper::convertDirection(const askap::interfaces::Direction& dir) const
+
+askap::interfaces::Direction TypedValueMapMapper::convertDirection(const casa::MDirection& dir) const
 {
-    switch (dir.sys) {
-        case J2000 :
-            return casa::MDirection(casa::Quantity(dir.coord1, "rad"),
-                    casa::Quantity(dir.coord2, "rad"),
-                    casa::MDirection::Ref(casa::MDirection::J2000));
+    askap::interfaces::Direction obj;
+    obj.coord1 = dir.getAngle().getValue()(0);
+    obj.coord2 = dir.getAngle().getValue()(1);
+
+    switch (dir.getRef().getType()) {
+        case casa::MDirection::J2000 :
+            obj.sys = J2000;
             break;
-        case AZEL :
-            return casa::MDirection(casa::Quantity(dir.coord1, "rad"),
-                    casa::Quantity(dir.coord2, "rad"),
-                    casa::MDirection::Ref(casa::MDirection::AZEL));
+        case casa::MDirection::AZEL :
+            obj.sys = AZEL;
             break;
-    }
+        default:
+            ASKAPTHROW(AskapError, "Coordinate system not supported");
 
-    // This is the default case
-   ASKAPTHROW(AskapError, "Invalid coordinate system");
+    }
+    return obj;
 }

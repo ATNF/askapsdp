@@ -38,42 +38,50 @@
 // CP ice interfaces
 #include "TypedValues.h"
 
+// Local package includes
+#include "TypedValueMapConstMapper.h"
+
 namespace askap {
 namespace cp {
 
-class TypedValueMapMapper {
+class TypedValueMapMapper : public TypedValueMapConstMapper {
     public:
-        TypedValueMapMapper(const askap::interfaces::TypedValueMap& map);
+        TypedValueMapMapper(askap::interfaces::TypedValueMap& map);
         
-        casa::Int getInt(const std::string& key) const;
-        casa::Long getLong(const std::string& key) const;
-        casa::String getString(const std::string& key) const;
-        casa::Bool getBool(const std::string& key) const;
-        casa::Float getFloat(const std::string& key) const;
-        casa::Double getDouble(const std::string& key) const;
-        casa::Complex getFloatComplex(const std::string& key) const;
-        casa::DComplex getDoubleComplex(const std::string& key) const;
-        casa::MDirection getDirection(const std::string& key) const;
+        void setInt(const std::string& key, const casa::Int& val);
+        void setLong(const std::string& key, const casa::Long& val);
+        void setString(const std::string& key, const casa::String& val);
+        void setBool(const std::string& key, const casa::Bool& val);
+        void setFloat(const std::string& key, const casa::Float& val);
+        void setDouble(const std::string& key, const casa::Double& val);
+        void setFloatComplex(const std::string& key, const casa::Complex& val);
+        void setDoubleComplex(const std::string& key, const casa::DComplex& val);
+        void setDirection(const std::string& key, const casa::MDirection& val);
 
-        std::vector<casa::Int> getIntSeq(const std::string& key) const;
-        std::vector<casa::Long> getLongSeq(const std::string& key) const;
-        std::vector<casa::String> getStringSeq(const std::string& key) const;
-        std::vector<casa::Bool> getBoolSeq(const std::string& key) const;
-        std::vector<casa::Float> getFloatSeq(const std::string& key) const;
-        std::vector<casa::Double> getDoubleSeq(const std::string& key) const;
-        std::vector<casa::Complex> getFloatComplexSeq(const std::string& key) const;
-        std::vector<casa::DComplex> getDoubleComplexSeq(const std::string& key) const;
-        std::vector<casa::MDirection> getDirectionSeq(const std::string& key) const;
+        void setIntSeq(const std::string& key, const std::vector<casa::Int>& val);
+        void setLongSeq(const std::string& key, const std::vector<casa::Long>& val);
+        void setStringSeq(const std::string& key, const std::vector<casa::String>& val);
+        void setBoolSeq(const std::string& key, const std::vector<casa::Bool>& val);
+        void setFloatSeq(const std::string& key, const std::vector<casa::Float>& val);
+        void setDoubleSeq(const std::string& key, const std::vector<casa::Double>& val);
+        void setFloatComplexSeq(const std::string& key, const std::vector<casa::Complex>& val);
+        void setDoubleComplexSeq(const std::string& key, const std::vector<casa::DComplex>& val);
+        void setDirectionSeq(const std::string& key, const std::vector<casa::MDirection>& val);
 
     private:
         // Methods
-        template <class T, askap::interfaces::TypedValueType E, class P>
-        T get(const std::string& key) const;
 
-        casa::MDirection convertDirection(const askap::interfaces::Direction& dir) const;
+        // Template params are:
+        // T - Native (or casa) type
+        // TVType - Enum value from TypedValueType enum
+        // TVClass - TypedValue type
+        template <class T, askap::interfaces::TypedValueType TVType, class TVClass>
+        void set(const std::string& key, const T& val);
+
+        askap::interfaces::Direction convertDirection(const casa::MDirection& dir) const;
 
         // Attributes
-        const askap::interfaces::TypedValueMap itsMap;
+        askap::interfaces::TypedValueMap& itsMap;
 };
 
 };

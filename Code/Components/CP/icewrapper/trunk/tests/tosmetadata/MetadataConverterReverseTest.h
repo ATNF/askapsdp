@@ -36,6 +36,7 @@
 #include "boost/scoped_ptr.hpp"
 #include "TypedValues.h"
 #include "cpcommon/TosMetadata.h"
+#include "tosmetadata/TypedValueMapMapper.h"
 
 // Classes to test
 #include "tosmetadata/MetadataConverter.h"
@@ -45,102 +46,108 @@ using namespace casa;
 using namespace askap::interfaces;
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class MetadataConverterReverseTest : public CppUnit::TestFixture {
-            CPPUNIT_TEST_SUITE(MetadataConverterReverseTest);
-            CPPUNIT_TEST(testTime);
-            CPPUNIT_TEST(testPeriod);
-            CPPUNIT_TEST(testNBeams);
-            CPPUNIT_TEST(testNCoarseChan);
-            CPPUNIT_TEST(testNAntennas);
-            CPPUNIT_TEST(testNPol);
-            CPPUNIT_TEST(testAntennaNames);
-            CPPUNIT_TEST_SUITE_END();
+class MetadataConverterReverseTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(MetadataConverterReverseTest);
+        CPPUNIT_TEST(testTime);
+        CPPUNIT_TEST(testPeriod);
+        CPPUNIT_TEST(testNBeams);
+        CPPUNIT_TEST(testNCoarseChan);
+        CPPUNIT_TEST(testNAntennas);
+        CPPUNIT_TEST(testNPol);
+        CPPUNIT_TEST(testAntennaNames);
+        CPPUNIT_TEST_SUITE_END();
 
-            public:
-            void setUp() {
-                // Initialize test values
-                nCoarseChan = 304;
-                nBeam = 36;
-                nPol = 4;
-                nAntenna = 1;
-                timestamp = 1234567890;
-                period = 5 * 1000 * 1000;
+    public:
+        void setUp()
+        {
+            // Initialize test values
+            nCoarseChan = 304;
+            nBeam = 36;
+            nPol = 4;
+            nAntenna = 1;
+            timestamp = 1234567890;
+            period = 5 * 1000 * 1000;
 
-                // Setup the source object
-                itsSource.reset(new TimeTaggedTypedValueMap);
+            // Setup the source object
+            itsSource.reset(new TimeTaggedTypedValueMap);
+            TypedValueMapMapper mapper(itsSource->data);
 
-                // time
-                itsSource->data["time"] = new TypedValueLong(TypeLong, timestamp);
+            // time
+            mapper.setLong("time", timestamp);
 
-                // period
-                itsSource->data["period"] = new TypedValueLong(TypeLong, period);
+            // period
+            mapper.setLong("period", period);
 
-                // n_coarse_chan
-                itsSource->data["n_coarse_chan"] = new TypedValueInt(TypeInt, nCoarseChan);
+            // n_coarse_chan
+            mapper.setInt("n_coarse_chan", nCoarseChan);
 
-                // n_antennas
-                itsSource->data["n_antennas"] = new TypedValueInt(TypeInt, nAntenna);
+            // n_antennas
+            mapper.setInt("n_antennas", nAntenna);
 
-                // n_beams
-                {
-                    IntSeq iseq;
-                    iseq.assign(nCoarseChan, nBeam);
-                    TypedValueIntSeqPtr tv = new TypedValueIntSeq(TypeIntSeq, iseq);
-                    itsSource->data["n_beams"] = tv;
-                }
+            // n_beams
+            std::vector<casa::Int> nBeamsVec;
+            nBeamsVec.assign(nCoarseChan, nBeam);
+            mapper.setIntSeq("n_beams", nBeamsVec);
 
-                // n_pol
-                itsSource->data["n_pol"] = new TypedValueInt(TypeInt, nPol);
+            // n_pol
+            mapper.setInt("n_pol", nPol);
 
+            // Convert
+            MetadataConverter converter;
+            itsDest.reset(new TosMetadata(converter.convert(*itsSource)));
+        }
 
-                // Convert
-                MetadataConverter converter;
-                itsDest.reset(new TosMetadata(converter.convert(*itsSource)));
-            }
+        void tearDown()
+        {
+            itsSource.reset();
+            itsDest.reset();
+        }
 
-            void tearDown() {
-                itsSource.reset();
-                itsDest.reset();
-            }
+        void testTime()
+        {
+            CPPUNIT_ASSERT_EQUAL(timestamp, static_cast<casa::Long>(itsDest->time()));
+        }
 
-            void testTime() {
-            }
+        void testPeriod()
+        {
+        }
 
-            void testPeriod() {
-            }
+        void testNBeams()
+        {
+        }
 
-            void testNBeams() {
-            }
+        void testNCoarseChan()
+        {
+        }
 
-            void testNCoarseChan() {
-            }
+        void testNAntennas()
+        {
+        }
 
-            void testNAntennas() {
-            }
+        void testNPol()
+        {
+        }
 
-            void testNPol() {
-            }
+        void testAntennaNames()
+        {
+        }
 
-            void testAntennaNames() {
-            }
+    private:
+        // Support classes
+        boost::scoped_ptr<TimeTaggedTypedValueMap> itsSource;
+        boost::scoped_ptr<TosMetadata> itsDest;
 
+        // Some constants
+        casa::Int nCoarseChan;
+        casa::Int nBeam;
+        casa::Int nPol;
+        casa::Int nAntenna;
+        casa::Long timestamp;
+        casa::Long period;
+};
 
-            private:
-            // Support classes
-            boost::scoped_ptr<TimeTaggedTypedValueMap> itsSource;
-            boost::scoped_ptr<TosMetadata> itsDest;
-
-            // Some constants
-            casa::Int nCoarseChan;
-            casa::Int nBeam;
-            casa::Int nPol;
-            casa::Int nAntenna;
-            casa::Long timestamp;
-            casa::Long period;
-        };
-
-    }   // End namespace cp
+}   // End namespace cp
 
 }   // End namespace askap

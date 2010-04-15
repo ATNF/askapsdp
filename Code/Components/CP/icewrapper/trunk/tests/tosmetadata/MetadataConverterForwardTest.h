@@ -36,7 +36,7 @@
 #include "boost/scoped_ptr.hpp"
 #include "TypedValues.h"
 #include "cpcommon/TosMetadata.h"
-#include "tosmetadata/TypedValueMapMapper.h"
+#include "tosmetadata/TypedValueMapConstMapper.h"
 #include "casa/aips.h"
 
 // Classes to test
@@ -93,7 +93,7 @@ namespace askap {
                 TimeTaggedTypedValueMap timeTaggedMap(converter.convert(*itsSource));
                 CPPUNIT_ASSERT(timeTaggedMap.timestamp == timestamp);
                 TypedValueMap& data = timeTaggedMap.data;
-                itsMapper.reset(new TypedValueMapMapper(data));
+                itsMapper.reset(new TypedValueMapConstMapper(data));
             }
 
             void tearDown() {
@@ -140,7 +140,7 @@ namespace askap {
 
             // Support classes
             boost::scoped_ptr<TosMetadata> itsSource;
-            boost::scoped_ptr<TypedValueMapMapper> itsMapper;
+            boost::scoped_ptr<TypedValueMapConstMapper> itsMapper;
 
             // Some constants
             casa::Int nCoarseChan;
