@@ -272,7 +272,7 @@ namespace askap
 			return os;
 		}
 
-// increment this if there is any change to the stuff written into blob
+/// @brief increment this if there is any change to the stuff written into blob
 #define BLOBVERSION 2
 
 		LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Axes& axes)

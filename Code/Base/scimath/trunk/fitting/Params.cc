@@ -527,7 +527,7 @@ bool Params::isChanged(const std::string &name, const ChangeMonitor &cm) const
 			return itsCounts[name];
 		}
 
-// increment this if there is any change to the stuff written into blob
+/// @brief increment this if there is any change to the stuff written into blob
 #define BLOBVERSION 1
 
 		// These are the items that we need to write to and read from a blob stream
