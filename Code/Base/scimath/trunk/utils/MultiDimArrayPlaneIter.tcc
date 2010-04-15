@@ -74,7 +74,7 @@ casa::Array<T> MultiDimArrayPlaneIter::getPlane(casa::Array<T> &in) const
 }
 
 /// @brief extract a single plane form a 1D array
-/// @This method extracts a single slice from an array flattened to a 1D vector. The slice 
+/// @details This method extracts a single slice from an array flattened to a 1D vector. The slice 
 /// corresponds to the current position of the iterator. This method preserves the degenerate
 /// dimensions.
 /// @param[in] in input vector
