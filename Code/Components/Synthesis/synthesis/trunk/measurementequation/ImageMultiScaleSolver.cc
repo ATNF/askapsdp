@@ -203,7 +203,7 @@ namespace askap
              }
         
         
-             /*
+             
              // uncomment the code below to save the mask
              {
                 Axes axes(itsParams->axes(indit->first));
@@ -217,7 +217,9 @@ namespace askap
 	            }
 	            itsParams->update(maskName, AMask, planeIter.position());	               
              }
-             */
+             // end of mask-related code
+             
+             
              // Create a lattice cleaner to do the dirty work :)
              /// @todo More checks on reuse of LatticeCleaner
              // every plane should have its own LatticeCleaner, therefore we should ammend the 
