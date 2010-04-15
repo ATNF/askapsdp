@@ -1,6 +1,6 @@
 /// @file
 /// @brief log4cxx LogSink for Casa log messages
-
+///
 /// @copyright (c) 2008 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)

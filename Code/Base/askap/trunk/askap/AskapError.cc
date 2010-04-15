@@ -1,5 +1,7 @@
 //#  AskapError.cc: Base class for ASKAP exceptions
 //#
+/// @file
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
