@@ -20,7 +20,7 @@ def analyseResult(spr, expected_flux = 1.):
    disterr = getDistance(stats,true_peak[0],true_peak[1])*3600.
    if disterr > 8:
       raise RuntimeError, "Offset between true and expected position exceeds 1 cell size (8 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
-   if abs(stats['peak']-expected_flux)>0.01:
+   if abs(stats['peak']-expected_flux)>0.02:
       raise RuntimeError, "Peak flux in the image is notably different from %f Jy (pb-corrected value), F=%f" % (expected_flux,stats['peak'])
 
    stats = spr.imageStats('weights.field1')
