@@ -33,6 +33,7 @@
 #include <PreconditionerTests.h>
 #include <SynthesisParamsHelperTest.h>
 #include <ImageParamsHelperTest.h>
+#include <GaussianNoiseTest.h>
 
 int main( int argc, char **argv)
 {
@@ -46,6 +47,7 @@ int main( int argc, char **argv)
     runner.addTest(askap::synthesis::PreconditionerTests::suite());
     runner.addTest(askap::synthesis::SynthesisParamsHelperTest::suite());
     runner.addTest(askap::synthesis::ImageParamsHelperTest::suite());
+    runner.addTest(askap::synthesis::GaussianNoiseMETest::suite());
 
     const bool wasSucessful = runner.run();
 
