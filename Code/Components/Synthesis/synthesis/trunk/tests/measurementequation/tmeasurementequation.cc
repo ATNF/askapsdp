@@ -33,7 +33,7 @@
 #include <PreconditionerTests.h>
 #include <SynthesisParamsHelperTest.h>
 #include <ImageParamsHelperTest.h>
-#include <GaussianNoiseTest.h>
+#include <GaussianNoiseMETest.h>
 
 int main( int argc, char **argv)
 {
