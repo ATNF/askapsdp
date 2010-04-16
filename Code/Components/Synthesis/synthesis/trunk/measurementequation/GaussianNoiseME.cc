@@ -46,7 +46,7 @@ using namespace askap::synthesis;
 
 /// @brief constructor, initializes random distribution required.
 /// @param[in] variance required variance of the noise (same as rms
-/// here because the mean is always zero.
+/// squared here because the mean is always zero)
 /// @param[in] seed1 a first seed to initialize the random generator
 /// @param[in] seed2 a second seed to initialize the random generator 
 GaussianNoiseME::GaussianNoiseME(double variance, casa::Int seed1, casa::Int seed2) :

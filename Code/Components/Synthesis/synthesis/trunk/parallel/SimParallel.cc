@@ -479,7 +479,7 @@ void SimParallel::predict(const string& ms)
             ASKAPCHECK(itsParset.isDefined("noise.variance"), "noise.variance  is missing in the input parset. It should contain a variance of the noise to be simulated.");
             const double variance = itsParset.getDouble("noise.variance");
             ASKAPLOG_INFO_STR(logger, "Gaussian noise (variance=" << variance <<
-                              ") will be added to visibilities");
+                              " Jy^2 or sigma="<<sqrt(variance)<<" Jy) will be added to visibilities");
             const casa::Int seed1 = getSeed("noise.seed1","time");                  
             const casa::Int seed2 = getSeed("noise.seed2","%w");                  
 
