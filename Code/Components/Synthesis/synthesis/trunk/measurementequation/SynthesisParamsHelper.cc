@@ -1054,6 +1054,47 @@ namespace askap
             }
        }     
     }                       
+   
+    /// @brief fit gaussian beam into PSF
+    /// @details This method fits a 2D Gaussian into the given PSF image. If no parameter
+    /// name is given (i.e. an empty string is passed to this method), the most appropriate
+    /// parameter is automatically selected (i.e. psf.image.something if preconditioning is
+    /// done and psf.something if not). First match is always used. If the image is
+    /// multi-dimensional, only first plane is used. A warning is given in the case of
+    /// a potential ambiguity.  
+    /// @param[in] ip parameters
+    /// @param[in] name full name of the parameter representing the PSF (default is to figure this out)        
+    casa::Vector<casa::Quantum<double> > SynthesisParamsHelper::fitBeam(askap::scimath::Params &ip, 
+                                     const std::string &name)
+    {
+       std::string psfName = name;
+       if (name == "") {
+           // we have to figure out the name
+           // Find all the free parameters beginning with image
+           vector<string> names(ip.completions("image"));
+           for (vector<string>::const_iterator it = names.begin(); it!=names.end(); ++it) {
+                std::string curName = "psf.image";
+                if (ip.has(curName + *it)) {
+                    if (psfName != "") {
+                        ASKAPLOG_WARN_STR(logger, "Multiple PSF parameters are present, using "<<
+                                 psfName<<" which was first encountered");
+                        break;          
+                    }
+                    psfName = curName + *it;
+                } else if (ip.has(string("psf") + *it)) {
+                    if (psfName != "") {
+                        ASKAPLOG_WARN_STR(logger, "Multiple PSF parameters are present, using "<<
+                                 psfName<<" which was first encountered");
+                        break;          
+                    }
+                    psfName = string("psf") + *it;
+                }
+           }
+       }
+       ASKAPLOG_INFO_STR(logger, "Fitting Gaussian into PSF parameter "<<psfName);
+       return casa::Vector<casa::Quantum<double> >(3);
+    }
+   
     
     /// @brief zero all free model images
     /// @details I (MV) hope that this method is temporary. In the current design of the code we need to 

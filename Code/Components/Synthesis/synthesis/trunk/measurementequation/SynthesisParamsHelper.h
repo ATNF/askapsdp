@@ -212,7 +212,16 @@ namespace askap
         static void setBeam(askap::scimath::Params &ip, const string &name,
                             const casa::Vector<casa::Quantum<double> > &beam);
         
-        
+        /// @brief fit gaussian beam into PSF
+        /// @details This method fits a 2D Gaussian into the given PSF image. If no parameter
+        /// name is given (i.e. an empty string is passed to this method), the most appropriate
+        /// parameter is automatically selected (i.e. psf.image.something if preconditioning is
+        /// done and psf.something if not). First match is always used. If the image is
+        /// multi-dimensional, only first plane is used. A warning is given in the case of
+        /// a potential ambiguity.  
+        /// @param[in] ip parameters
+        /// @param[in] name full name of the parameter representing the PSF (default is to figure this out)        
+        static casa::Vector<casa::Quantum<double> > fitBeam(askap::scimath::Params &ip, const std::string &name = "");
               
         /// @brief obtain an array corresponding to a single facet of a merged faceted image
         /// @details Each facet is represented by a number of independent parameters with
