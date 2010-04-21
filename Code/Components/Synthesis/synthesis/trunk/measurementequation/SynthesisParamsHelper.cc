@@ -26,6 +26,8 @@
 #include <imageaccess/ImageAccessFactory.h>
 #include <dataaccess/PolConverter.h>
 #include <fitting/Axes.h>
+#include <utils/MultiDimArrayPlaneIter.h>
+#include <lattices/LatticeMath/Fit2D.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -1064,7 +1066,7 @@ namespace askap
     /// a potential ambiguity.  
     /// @param[in] ip parameters
     /// @param[in] name full name of the parameter representing the PSF (default is to figure this out)        
-    casa::Vector<casa::Quantum<double> > SynthesisParamsHelper::fitBeam(askap::scimath::Params &ip, 
+    casa::Vector<casa::Quantum<double> > SynthesisParamsHelper::fitBeam(const askap::scimath::Params &ip, 
                                      const std::string &name)
     {
        std::string psfName = name;
@@ -1091,8 +1093,60 @@ namespace askap
                 }
            }
        }
-       ASKAPLOG_INFO_STR(logger, "Fitting Gaussian into PSF parameter "<<psfName);
-       return casa::Vector<casa::Quantum<double> >(3);
+       ASKAPLOG_INFO_STR(logger, "Fitting 2D Gaussian into PSF parameter "<<psfName);
+       casa::Array<double> psfArray = ip.value(psfName);
+       const casa::IPosition shape = psfArray.shape();
+       ASKAPCHECK(shape.nelements()>=2,"PSF image is supposed to be at least 2-dimensional, shape="<<psfArray.shape());
+       if (shape.product() != shape[0]*shape[1]) {
+           ASKAPLOG_WARN_STR(logger, "Multi-dimensional PSF is present (shape="<<shape<<
+                             "), using the first 2D plane only to fit the beam");
+       }
+       casa::Array<double> psfSlice = MultiDimArrayPlaneIter::getFirstPlane(psfArray).nonDegenerate();
+       casa::Array<float> floatPSFSlice(psfSlice.shape());
+       casa::convertArray<float, double>(floatPSFSlice, psfSlice);
+       // normalise to 1
+       const float maxPSF = casa::max(floatPSFSlice);
+       if (fabs(maxPSF-1.)>1e-6) {
+           floatPSFSlice /= maxPSF;
+       }
+       //
+       
+       casa::Vector<casa::Double> initialEstimate(6,0.);
+       initialEstimate[0]=1.; // PSF peak is always 1
+       initialEstimate[1]=shape[0]/2.; // centre
+       initialEstimate[2]=shape[1]/2.; // centre
+       initialEstimate[3]=1;  // 1 pixel wide
+       initialEstimate[4]=0.9;  // 1 pixel wide
+       initialEstimate[5]=casa::C::pi/4.; // quire arbitrary  pa.
+       casa::Vector<casa::Bool> parameterMask(6,casa::False);
+       parameterMask[3] = casa::True; // fit maj
+       parameterMask[4] = casa::True; // fit min
+       parameterMask[5] = casa::True; // fit pa
+       
+       casa::LogIO os;
+       casa::Fit2D fitter(os);
+       fitter.addModel(casa::Fit2D::GAUSSIAN,initialEstimate,parameterMask);
+       casa::Array<casa::Float> sigma(floatPSFSlice.shape(),1.);
+       const casa::Fit2D::ErrorTypes fitError = fitter.fit(floatPSFSlice,sigma);
+       ASKAPCHECK(fitError == casa::Fit2D::OK, "Error fitting the beam. fitError="<<fitError<<
+                  " message: "<<fitter.errorMessage()); 
+       casa::Vector<casa::Double> result = fitter.availableSolution();
+       ASKAPLOG_INFO_STR(logger, "Got fit result (in pixels) "<<result<<" and uncertainties "<<fitter.availableErrors());
+       ASKAPCHECK(result.nelements() == 6, "Expect 6 parameters for 2D gaussian, result vector has "<<result.nelements());
+       const scimath::Axes axes(ip.axes(psfName));
+       ASKAPCHECK(axes.hasDirection(), "Direction axes are missing from the PSF parameter, unable to convert pixels to angular units");
+       const casa::Vector<casa::Double> increments = axes.directionAxis().increment();
+       ASKAPCHECK(increments.nelements() == 2, "Expect just two elements for increments of the direction axis, you have "<<
+                  increments);
+       ASKAPCHECK(increments[1]>0, "Expect positive increment on the declination axis. increments="<<increments);       
+       ASKAPCHECK(fabs(fabs(increments[0])-fabs(increments[1]))<1e-6, 
+                  "Different cell sizes mean that the current beam fitting code would give a wrong position angle. increments="
+                  <<increments);
+       casa::Vector<casa::Quantum<double> > beam(3);
+       beam[0] = casa::Quantum<double>(fabs(increments[0])*result[3],"rad");
+       beam[1] = casa::Quantum<double>(fabs(increments[1])*result[4],"rad");
+       beam[2] = casa::Quantum<double>(increments[0]<0 ? result[5] - casa::C::pi/2 : casa::C::pi/2 - result[5],"rad");       
+       return beam;
     }
    
     

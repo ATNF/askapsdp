@@ -221,7 +221,7 @@ namespace askap
         /// a potential ambiguity.  
         /// @param[in] ip parameters
         /// @param[in] name full name of the parameter representing the PSF (default is to figure this out)        
-        static casa::Vector<casa::Quantum<double> > fitBeam(askap::scimath::Params &ip, const std::string &name = "");
+        static casa::Vector<casa::Quantum<double> > fitBeam(const askap::scimath::Params &ip, const std::string &name = "");
               
         /// @brief obtain an array corresponding to a single facet of a merged faceted image
         /// @details Each facet is represented by a number of independent parameters with

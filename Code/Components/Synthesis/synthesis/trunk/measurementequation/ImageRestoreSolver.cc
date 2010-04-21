@@ -299,11 +299,23 @@ namespace askap
     {
        casa::Vector<casa::Quantum<double> > qBeam(3);
        const vector<string> beam = parset.getStringVector("beam");
-       ASKAPCHECK(beam.size() == 3, "Need three elements for beam");
-       for (int i=0; i<3; ++i) {
-            casa::Quantity::read(qBeam(i), beam[i]);
+       if (beam.size() == 1) {
+           ASKAPCHECK(beam[0] == "fit", 
+               "beam parameter should be either equal to 'fit' or contain 3 elements defining the beam size. You have "<<beam[0]);
+           // we use the feature here that the restoring solver is created when the imaging is completed, so
+           // there is a PSF image in the parameters. Fitting of the beam has to be moved to restore solver to
+           // be more flexible
+           qBeam = SynthesisParamsHelper::fitBeam(ip);           
+       } else {
+          ASKAPCHECK(beam.size() == 3, "Need three elements for beam or a single word 'fit'. You have "<<beam);
+          for (int i=0; i<3; ++i) {
+               casa::Quantity::read(qBeam(i), beam[i]);
+          }
        }
-       
+       ASKAPDEBUGASSERT(qBeam.size() == 3);
+       ASKAPLOG_INFO_STR(logger, "Restore solver will convolve with the 2D gaussian: "<<qBeam[0].getValue("arcsec")<<
+                 " x "<<qBeam[1].getValue("arcsec")<<" arcsec at position angle "<<qBeam[2].getValue("deg")<<" deg");
+       //
        boost::shared_ptr<ImageRestoreSolver> result(new ImageRestoreSolver(ip, qBeam));
        ImageSolverFactory::configurePreconditioners(parset,result);
        const bool equalise = parset.getBool("equalise",false);
