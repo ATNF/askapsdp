@@ -1,3 +1,11 @@
+/// @file
+/// 
+/// @brief test of the helper cache template representing a map of a fixed size 
+/// @details Cache of some object can be based on a maps of shared pointers. Sometimes,
+/// we need to limit the number of elements in the cache to stop map from growing infinitely.
+/// This tested template provides such a cache class.  
+///
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,25 +28,30 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+#ifndef PADDING_UTILS_TEST_H
+#define PADDING_UTILS_TEST_H
 
-// Test includes
-#include <MultiDimArrayPlaneIterTest.h>
-#include <FixedSizeCacheTest.h>
-#include <CasaProjectionTest.h>
-#include <ChangeMonitorTest.h>
-#include <PaddingUtils.h>
+#include <cppunit/extensions/HelperMacros.h>
 
-int main(int argc, char *argv[])
+namespace askap {
+
+namespace scimath {
+
+class PaddingUtilsTest : public CppUnit::TestFixture 
 {
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::scimath::MultiDimArrayPlaneIterTest::suite());
-    runner.addTest(askap::scimath::FixedSizeCacheTest::suite());
-    runner.addTest(askap::scimath::ChangeMonitorTest::suite());
-    runner.addTest(askap::scimath::PaddingUtilsTest::suite());
-    bool wasSucessful = runner.run();
+   CPPUNIT_TEST_SUITE(PaddingUtilsTest);
+   CPPUNIT_TEST(testPaddedShape);
+   CPPUNIT_TEST_SUITE_END();
+public:
+   void testPaddedShape() {
+   }  
+};
 
-    return wasSucessful ? 0 : 1;
-}
+} // namespace scimath
+
+} // namespace askap
+
+#endif // #ifndef PADDING_UTILS_TEST_H
+
