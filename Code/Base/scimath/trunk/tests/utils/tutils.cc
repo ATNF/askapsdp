@@ -29,7 +29,7 @@
 #include <FixedSizeCacheTest.h>
 #include <CasaProjectionTest.h>
 #include <ChangeMonitorTest.h>
-#include <PaddingUtils.h>
+#include <PaddingUtilsTest.h>
 
 int main(int argc, char *argv[])
 {
