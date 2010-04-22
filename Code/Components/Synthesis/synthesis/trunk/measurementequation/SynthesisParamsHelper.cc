@@ -1104,6 +1104,11 @@ namespace askap
        casa::Array<double> psfSlice = MultiDimArrayPlaneIter::getFirstPlane(psfArray).nonDegenerate();
        casa::Array<float> floatPSFSlice(psfSlice.shape());
        casa::convertArray<float, double>(floatPSFSlice, psfSlice);
+
+       // hack for debugging only
+       //floatPSFSlice = imageHandler().read("tmp.img").nonDegenerate();
+       //
+
        // normalise to 1
        const float maxPSF = casa::max(floatPSFSlice);
        if (fabs(maxPSF-1.)>1e-6) {
@@ -1145,7 +1150,12 @@ namespace askap
        casa::Vector<casa::Quantum<double> > beam(3);
        beam[0] = casa::Quantum<double>(fabs(increments[0])*result[3],"rad");
        beam[1] = casa::Quantum<double>(fabs(increments[1])*result[4],"rad");
-       beam[2] = casa::Quantum<double>(increments[0]<0 ? result[5] - casa::C::pi/2 : casa::C::pi/2 - result[5],"rad");       
+       // position angle in radians
+       double pa = increments[0]<0 ? result[5] - casa::C::pi/2 : casa::C::pi/2 - result[5];
+       if (pa < -casa::C::pi/2) {
+           pa += casa::C::pi;
+       }
+       beam[2] = casa::Quantum<double>(pa,"rad");       
        return beam;
     }
    
