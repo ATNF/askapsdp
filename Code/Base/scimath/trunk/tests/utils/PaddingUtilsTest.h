@@ -35,6 +35,10 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <utils/PaddingUtils.h>
+#include <casa/Arrays/Matrix.h>
+
+
 namespace askap {
 
 namespace scimath {
@@ -43,10 +47,30 @@ class PaddingUtilsTest : public CppUnit::TestFixture
 {
    CPPUNIT_TEST_SUITE(PaddingUtilsTest);
    CPPUNIT_TEST(testPaddedShape);
+   CPPUNIT_TEST(testExtract);
    CPPUNIT_TEST_SUITE_END();
 public:
    void testPaddedShape() {
+      const casa::IPosition shape(3,10,5,2);
+      const casa::IPosition padded = PaddingUtils::paddedShape(shape,2);
+      CPPUNIT_ASSERT(padded.nelements() == shape.nelements());
+      CPPUNIT_ASSERT(padded[0] == 20);
+      CPPUNIT_ASSERT(padded[1] == 10);
+      CPPUNIT_ASSERT(padded[2] == 2);      
    }  
+   
+   void testExtract() {
+      const casa::IPosition shape(2,3,2);
+      casa::Matrix<bool> paddedArray(PaddingUtils::paddedShape(shape,2),false);
+      PaddingUtils::extract(paddedArray,2).set(true);
+      CPPUNIT_ASSERT(paddedArray.nrow() == 6);
+      CPPUNIT_ASSERT(paddedArray.ncolumn() == 4);
+      for (uint row=0; row<paddedArray.nrow(); ++row) {
+           for (uint column=0; column<paddedArray.ncolumn(); ++column) {
+                CPPUNIT_ASSERT(paddedArray(row,column) == ((row>=1) && (row<=3) && (column>=1) && (column<=2))); 
+           }
+      }     
+   }
 };
 
 } // namespace scimath
