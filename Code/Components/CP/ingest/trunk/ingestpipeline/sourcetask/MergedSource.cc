@@ -34,6 +34,7 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "boost/scoped_ptr.hpp"
+#include "cpcommon/TosMetadata.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
@@ -43,7 +44,6 @@ ASKAP_LOGGER(logger, ".MergedSource");
 
 using namespace askap;
 using namespace askap::cp;
-using namespace askap::interfaces;
 
 MergedSource::MergedSource(IMetadataSource::ShPtr metadataSrc, IVisSource::ShPtr visSrc) :
     itsMetadataSrc(metadataSrc), itsVisSrc(visSrc)
@@ -59,7 +59,7 @@ VisChunk::ShPtr MergedSource::next(void)
     VisChunk::ShPtr vischunk(new VisChunk);
 
     // Get the metadata
-    boost::shared_ptr<TimeTaggedTypedValueMap> metadata;
+    boost::shared_ptr<TosMetadata> metadata;
     metadata = itsMetadataSrc->next();
 
     return vischunk;

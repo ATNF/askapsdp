@@ -30,10 +30,7 @@
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "tosmetadata/MetadataReceiver.h"
-
-// CP Ice interfaces
-#include "CommonTypes.h"
-#include "TypedValues.h"
+#include "cpcommon/TosMetadata.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
@@ -54,14 +51,14 @@ namespace askap {
                         const unsigned int bufSize);
                 ~MetadataSource();
 
-                virtual void receive(const askap::interfaces::TimeTaggedTypedValueMap& msg);
+                virtual void receive(const askap::cp::TosMetadata& msg);
 
                 // Blocking
-                boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> next(void);
+                boost::shared_ptr<askap::cp::TosMetadata> next(void);
 
             private:
                 // Circular buffer of metadata payloads
-                askap::cp::CircularBuffer< askap::interfaces::TimeTaggedTypedValueMap > itsBuffer;
+                askap::cp::CircularBuffer< askap::cp::TosMetadata > itsBuffer;
         };
 
     };

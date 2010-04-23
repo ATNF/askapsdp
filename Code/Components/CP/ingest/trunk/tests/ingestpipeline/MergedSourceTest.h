@@ -32,14 +32,10 @@
 #include "ingestpipeline/sourcetask/test/MockMetadataSource.h"
 #include "ingestpipeline/sourcetask/test/MockVisSource.h"
 #include "cpcommon/VisPayload.h"
-#include "CommonTypes.h"
-#include "TypedValues.h"
+#include "cpcommon/TosMetadata.h"
 
 // Classes to test
 #include "ingestpipeline/sourcetask/MergedSource.h"
-
-// Using
-using namespace askap::interfaces;
 
 namespace askap
 {
@@ -73,8 +69,8 @@ namespace askap
             void testMockMetadataSource()
             {
                 const long time = 1234;
-                boost::shared_ptr<TimeTaggedTypedValueMap> md(new TimeTaggedTypedValueMap);
-                md->timestamp = time;
+                boost::shared_ptr<TosMetadata> md(new TosMetadata(1,1,1));
+                md->time(time);
                 itsMetadataSrc->add(md);
                 CPPUNIT_ASSERT(itsMetadataSrc->next() == md);
             };
@@ -100,39 +96,16 @@ namespace askap
 
                 // Create a mock metadata object and program it, then
                 // add to the MockMetadataSource
-                boost::shared_ptr<TimeTaggedTypedValueMap> metadata(new TimeTaggedTypedValueMap);
-                metadata->timestamp = timestamp;
-                metadata->data["time"] = new TypedValueLong(TypeLong, timestamp);
-                metadata->data["period"] = new TypedValueLong(TypeLong, period);
-                metadata->data["n_coarse_chan"] = new TypedValueInt(TypeInt, nCoarseChan);
-                metadata->data["n_antennas"] = new TypedValueInt(TypeInt, nAntenna);
-
-                // n_beams
-                {
-                    IntSeq iseq;
-                    iseq.assign(nCoarseChan, nBeam);
-                    TypedValueIntSeqPtr tv = new TypedValueIntSeq(TypeIntSeq, iseq);
-                    metadata->data["n_beams"] = tv;
-                }
-
-                // n_pol
-                {
-                    metadata->data["n_pol"] = new TypedValueInt(TypeInt, nCorr);
-                }
+                boost::shared_ptr<TosMetadata> metadata(new TosMetadata(nCoarseChan, nBeam, nCorr));
+                metadata->time(timestamp);
+                metadata->period(period);
 
                 // antenna_names
-                {
-                    StringSeq sseq;
-                    for (int i = 0; i < nAntenna; ++i) {
-                        std::stringstream ss;
-                        ss << "ASKAP" << i;
-                        sseq.push_back(ss.str());
-                    }
-
-                    TypedValueStringSeqPtr tv = new TypedValueStringSeq(TypeStringSeq, sseq);
-                    metadata->data["antenna_names"] = tv;
+                for (int i = 0; i < nAntenna; ++i) {
+                    std::stringstream ss;
+                    ss << "ASKAP" << i;
+                    metadata->addAntenna(ss.str());
                 }
-
 
                 itsMetadataSrc->add(metadata);
 

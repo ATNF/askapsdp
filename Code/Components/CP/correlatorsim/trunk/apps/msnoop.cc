@@ -42,7 +42,7 @@
 #include "askap/AskapLogging.h"
 #include "CommandLineParser.h"
 #include "Common/ParameterSet.h"
-#include "tosmetadata/MetadataReceiver.h"
+#include "tosmetadata/RawMetadataReceiver.h"
 
 // ICE interface includes
 #include "CommonTypes.h"
@@ -57,14 +57,14 @@ static bool verbose = false;
 
 ASKAP_LOGGER(logger, ".msnoop");
 
-class MetadataSubscriber : virtual public MetadataReceiver {
+class MetadataSubscriber : virtual public RawMetadataReceiver {
     public:
         MetadataSubscriber(const std::string& locatorHost,
                 const std::string& locatorPort,
                 const std::string& topicManager,
                 const std::string& topic,
                 const std::string& adapterName) :
-            MetadataReceiver(locatorHost, locatorPort, topicManager, topic, adapterName)
+            RawMetadataReceiver(locatorHost, locatorPort, topicManager, topic, adapterName)
     {
     }
 
@@ -270,8 +270,8 @@ int main(int argc, char *argv[])
     cmdlineparser::FlagParameter verbosePar("-v");
 
     // Set handler for case where parameter is not set
-    parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
     parser.add(verbosePar, cmdlineparser::Parser::return_default);
+    parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
 
     try {
         parser.process(argc, const_cast<char**> (argv));

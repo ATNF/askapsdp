@@ -29,13 +29,10 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
+#include "cpcommon/TosMetadata.h"
 
-// CP Ice interfaces
-#include "CommonTypes.h"
-#include "TypedValues.h"
 
 using namespace askap::cp;
-using askap::interfaces::TimeTaggedTypedValueMap;
 
 MockMetadataSource::MockMetadataSource()
 {
@@ -45,12 +42,12 @@ MockMetadataSource::~MockMetadataSource()
 {
 }
 
-void MockMetadataSource::add(boost::shared_ptr<TimeTaggedTypedValueMap> obj)
+void MockMetadataSource::add(boost::shared_ptr<TosMetadata> obj)
 {
     itsBuffer.add(obj);
 }
 
-boost::shared_ptr<TimeTaggedTypedValueMap>
+boost::shared_ptr<TosMetadata>
 MockMetadataSource::next(void)
 {
     return itsBuffer.next();

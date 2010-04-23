@@ -34,17 +34,12 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "boost/shared_ptr.hpp"
-
-// CP Ice interfaces
-#include "CommonTypes.h"
-#include "TypedValues.h"
+#include "cpcommon/TosMetadata.h"
 
 ASKAP_LOGGER(logger, ".MetadataSource");
 
 using namespace askap;
 using namespace askap::cp;
-using namespace askap::interfaces;
-using namespace askap::interfaces::datapublisher;
 
 MetadataSource::MetadataSource(const std::string& locatorHost,
         const std::string& locatorPort,
@@ -61,11 +56,11 @@ MetadataSource::~MetadataSource()
 {
 }
 
-void MetadataSource::receive(const TimeTaggedTypedValueMap& msg)
+void MetadataSource::receive(const TosMetadata& msg)
 {
     // Make a copy of the message on the heap
-    boost::shared_ptr<TimeTaggedTypedValueMap>
-        metadata(new TimeTaggedTypedValueMap(msg));
+    boost::shared_ptr<TosMetadata>
+        metadata(new TosMetadata(msg));
 
     // Add a pointer to the message to the back of the circular buffer.
     // Waiters are notified.
@@ -73,7 +68,7 @@ void MetadataSource::receive(const TimeTaggedTypedValueMap& msg)
 }
 
 // Blocking
-boost::shared_ptr<TimeTaggedTypedValueMap> MetadataSource::next(void)
+boost::shared_ptr<TosMetadata> MetadataSource::next(void)
 {
     return itsBuffer.next();
 }

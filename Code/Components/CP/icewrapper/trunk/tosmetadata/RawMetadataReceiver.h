@@ -1,4 +1,4 @@
-/// @file MetadataOutputPort.h
+/// @file RawMetadataReceiver.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,26 +24,24 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_METADATAOUTPUTPORT_H
-#define ASKAP_CP_METADATAOUTPUTPORT_H
+#ifndef ASKAP_CP_RAWMETADATARECEIVER_H
+#define ASKAP_CP_RAWMETADATARECEIVER_H
 
 // System includes
 #include <string>
 
 // ASKAPsoft includes
-#include "boost/scoped_ptr.hpp"
-#include "cpcommon/TosMetadata.h"
+#include "Ice/Ice.h"
+#include "IceStorm/IceStorm.h"
 
 // CP ice interfaces
 #include "TypedValues.h"
 
-// Local package includes
-#include "iceutils/OutputPort.h"
-
 namespace askap {
     namespace cp {
 
-        class MetadataOutputPort
+        class RawMetadataReceiver :
+            virtual public askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisher
         {
             public:
                 /// @brief Constructor.
@@ -57,31 +55,29 @@ namespace askap {
                 ///     from where the topic subscription should be requested.
                 /// @param[in] topic the name of the topic to attach the port
                 ///     to. This is the topic where messages wil be sent.
-                MetadataOutputPort(const std::string& locatorHost,
+                RawMetadataReceiver(const std::string& locatorHost,
                         const std::string& locatorPort,
                         const std::string& topicManager,
-                        const std::string& topic);
+                        const std::string& topic,
+                        const std::string& adapterName);
 
                 /// @brief Destructor
-                ~MetadataOutputPort();
+                ~RawMetadataReceiver();
 
-                /// @brief Send a TimeTaggedTypedValueMap message via this port.
-                ///
-                /// @param[in] message the message to send.
-                void send(const askap::cp::TosMetadata& message);
+                virtual void receive(const askap::interfaces::TimeTaggedTypedValueMap& msg) = 0;
 
             private:
-                // Type of the output port (templated)
-                typedef OutputPort<askap::interfaces::TimeTaggedTypedValueMap,
-                        askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx>
-                            OutputPortType;
+                virtual void publish(
+                        const askap::interfaces::TimeTaggedTypedValueMap& msg,
+                        const Ice::Current& c);
 
-                // Pointer to the output port instance
-                boost::scoped_ptr<OutputPortType> itsOutputPort;
+                // An Ice proxy to the object this class registers
+                // (what happens to be itself)
+                Ice::ObjectPrx itsProxy;
 
+                // Proxy to the topic manager
+                IceStorm::TopicPrx itsTopicPrx;
 
-                // The proxy via which messages are published
-                askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsProxy;
         };
 
     };

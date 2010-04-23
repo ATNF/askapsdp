@@ -33,6 +33,7 @@
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
+#include "cpcommon/TosMetadata.h"
 
 // CP ice interfaces
 #include "TypedValues.h"
@@ -64,7 +65,7 @@ namespace askap {
                 /// @brief Destructor
                 ~MetadataReceiver();
 
-                virtual void receive(const askap::interfaces::TimeTaggedTypedValueMap& msg) = 0;
+                virtual void receive(const askap::cp::TosMetadata& msg) = 0;
 
             private:
                 virtual void publish(

@@ -36,6 +36,7 @@
 #include "Ice/Ice.h"
 #include "IceStorm/IceStorm.h"
 #include "boost/shared_ptr.hpp"
+#include "cpcommon/TosMetadata.h"
 
 // CP Ice interfaces
 #include "TypedValues.h"
@@ -43,6 +44,7 @@
 // Local package includes
 #include "iceutils/CommunicatorConfig.h"
 #include "iceutils/CommunicatorFactory.h"
+#include "tosmetadata/MetadataConverter.h"
 
 // Using
 using namespace askap;
@@ -103,5 +105,6 @@ void MetadataReceiver::publish(
         const askap::interfaces::TimeTaggedTypedValueMap& msg,
         const Ice::Current& c)
 {
-    receive(msg);
+    MetadataConverter converter;
+    receive(converter.convert(msg));
 }

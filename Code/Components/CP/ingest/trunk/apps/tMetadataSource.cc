@@ -35,17 +35,13 @@
 #include "Common/ParameterSet.h"
 #include "boost/shared_ptr.hpp"
 #include "tosmetadata/MetadataOutputPort.h"
-
-// CP Ice interfaces
-#include "TypedValues.h"
+#include "cpcommon/TosMetadata.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 
 // Using
 using namespace askap::cp;
-using namespace askap::interfaces;
-using namespace askap::interfaces::datapublisher;
 
 ASKAP_LOGGER(logger, ".tMetadataSource");
 
@@ -84,20 +80,19 @@ int main(int argc, char *argv[])
             adapterName, bufSize);
 
     // Test simple send, recv, send, recv case
-    long time = 1234;
+    unsigned long time = 1234;
     const int count = 10;
     for (int i = 0; i < count; ++i) {
-        askap::interfaces::TimeTaggedTypedValueMap metadata;
-        metadata.timestamp = time;
-        metadata.data["time"] = new askap::interfaces::TypedValueLong(askap::interfaces::TypeLong, time);
+        TosMetadata metadata(304, 32, 4);
+        metadata.time(time);
         std::cout << "Publishing a metadata message...";
         out.send(metadata);
         std::cout << "Done" << std::endl;
 
         std::cout << "Waiting for class under test to receive it...";
-        boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> recvd = source.next();
+        boost::shared_ptr<TosMetadata> recvd = source.next();
         std::cout << "Received" << std::endl;
-        if (recvd->timestamp != time) {
+        if (recvd->time() != time) {
             std::cout << "Messages do not match" << std::endl;
             return 1;
         }
@@ -106,18 +101,17 @@ int main(int argc, char *argv[])
     // Test the buffering abilities of MetadataSource
     time = 9876;
     for (int i = 0; i < bufSize; ++i) {
-        askap::interfaces::TimeTaggedTypedValueMap metadata;
-        metadata.timestamp = time;
-        metadata.data["time"] = new askap::interfaces::TypedValueLong(askap::interfaces::TypeLong, time);
+        TosMetadata metadata(304, 32, 4);
+        metadata.time(time);
         std::cout << "Publishing a metadata message...";
         out.send(metadata);
         std::cout << "Done" << std::endl;
     }
     for (int i = 0; i < bufSize; ++i) {
         std::cout << "Waiting for class under test to receive message...";
-        boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> recvd = source.next();
+        boost::shared_ptr<TosMetadata> recvd = source.next();
         std::cout << "Received" << std::endl;
-        if (recvd->timestamp != time) {
+        if (recvd->time() != time) {
             std::cout << "Messages do not match" << std::endl;
             return 1;
         }

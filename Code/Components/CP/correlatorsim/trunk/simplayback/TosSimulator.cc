@@ -79,7 +79,6 @@ TosSimulator::~TosSimulator()
 
 bool TosSimulator::sendNext(void)
 {
-    askap::interfaces::TimeTaggedTypedValueMap metadata;
     ROMSColumns msc(*itsMS);
 
     // Get a reference to the columns of interest
@@ -116,54 +115,17 @@ bool TosSimulator::sendNext(void)
     // Some constraints
     ASKAPCHECK(fieldc.nrow() == 1, "Currently only support a single field");
 
+    // Initialize the metadata message
+    askap::cp::TosMetadata metadata(nCoarseChan, nBeam, nCorr);
+
     // time
-    {
-        const long timestamp = static_cast<long>(currentIntegration * 1000 * 1000);
-        metadata.timestamp = timestamp;
-        metadata.data["time"] = new TypedValueLong(TypeLong, timestamp);
-    }
+    const long timestamp = static_cast<long>(currentIntegration * 1000 * 1000);
+    metadata.time(timestamp);
 
     // period
-    {
-        const long interval = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
-        metadata.data["period"] = new TypedValueLong(TypeLong, interval);
-    }
+    const long interval = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
+    metadata.period(interval);
 
-    // n_coarse_chan
-    {
-        metadata.data["n_coarse_chan"] = new TypedValueInt(TypeInt, nCoarseChan);
-    }
-
-    // n_antennas
-    {
-        metadata.data["n_antennas"] = new TypedValueInt(TypeInt, nAntenna);
-    }
-
-    // n_beams
-    {
-        IntSeq iseq;
-        iseq.assign(nCoarseChan, nBeam);
-        TypedValueIntSeqPtr tv = new TypedValueIntSeq(TypeIntSeq, iseq);
-        metadata.data["n_beams"] = tv;
-    }
-
-    // n_pol
-    {
-        metadata.data["n_pol"] = new TypedValueInt(TypeInt, nCorr);
-    }
-
-    // antenna_names
-    {
-        casa::Vector<casa::String> v  = antc.name().getColumn();
-        StringSeq sseq;
-
-        for (unsigned int i = 0; i < v.size(); ++i) {
-            sseq.push_back(v(i));
-        }
-
-        TypedValueStringSeqPtr tv = new TypedValueStringSeq(TypeStringSeq, sseq);
-        metadata.data["antenna_names"] = tv;
-    }
 
     ////////////////////////////////////////
     // Metadata - per antenna
@@ -171,88 +133,68 @@ bool TosSimulator::sendNext(void)
     for (unsigned int i = 0; i < nAntenna; ++i) {
         const std::string name = antc.name().getColumn()(i);
 
+        const casa::uInt id = metadata.addAntenna(name);
+        TosMetadataAntenna& antMetadata = metadata.antenna(id);
+
         const int fieldId = msc.fieldId()(itsCurrentRow);
         const casa::Vector<casa::MDirection> dirVec = fieldc.phaseDirMeasCol()(fieldId);
         const casa::MDirection direction = dirVec(0);
 
-        {
-            // <antenna name>.dish_pointing
-            Direction dishPointing;
-            dishPointing.coord1 = direction.getAngle().getValue()(0);
-            dishPointing.coord2 = direction.getAngle().getValue()(1);
-            dishPointing.sys = J2000;
-            metadata.data[makeMapKey(name, "dish_pointing")] = new TypedValueDirection(TypeDirection, dishPointing);
-        }
+        // <antenna name>.dish_pointing
+        antMetadata.dishPointing(direction);
 
-        {
-            // <antenna name>.frequency
-            // TODO: Currently this is ignored by the CP, but if possible it would be good
-            // to use the correct figure
-            metadata.data[makeMapKey(name, "frequency")] = new TypedValueDouble(TypeDouble, 0.0);
-        }
+        // <antenna name>.frequency
+        // TODO: Currently this is ignored by the CP, but if possible it would be good
+        // to use the correct figure
+        antMetadata.frequency(0.0);
 
-        {
-            // <antenna name>.client_id
-            const std::string clientId = "N/A";
-            metadata.data[makeMapKey(name, "client_id")] = new TypedValueString(TypeString, clientId);
-        }
+        // <antenna name>.client_id
+        antMetadata.clientId("N/A");
 
-        {
-            // <antenna name>.scan_id
-            const std::string scanId = "0";
-            metadata.data[makeMapKey(name, "scan_id")] = new TypedValueString(TypeString, scanId);
-        }
+        // <antenna name>.scan_id
+        antMetadata.scanId("0");
 
-        {
-            // <antenna name>.phase_tracking_centre
-            DirectionSeq ptc(nBeam * nCoarseChan);
-
-            for (unsigned int i = 0; i < ptc.size(); ++i) {
-                ptc[i].coord1 = direction.getAngle().getValue()(0);
-                ptc[i].coord2 = direction.getAngle().getValue()(1);
+        // <antenna name>.phase_tracking_centre
+        for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
+            for (casa::uInt beam = 0; beam < nBeam; ++beam) {
+                antMetadata.phaseTrackingCentre(direction, beam, coarseChan);
             }
-
-            metadata.data[makeMapKey(name, "phase_tracking_centre")] =
-                new TypedValueDirectionSeq(TypeDirectionSeq, ptc);
         }
 
-        {
-            // <antenna name>.parallactic_angle
-            casa::Double parAngle = 0.0; // TODO
-            metadata.data[makeMapKey(name, "parallactic_angle")] =
-                new TypedValueDouble(TypeDouble, parAngle);
+        // <antenna name>.parallactic_angle
+        // TODO: Should not be zero.
+        antMetadata.parallacticAngle(0.0);
+
+        // <antenna name>.flag.on_source
+        // TODO: Current no flagging, but it would be good to read this from the
+        // actual measurement set
+        antMetadata.onSource(true);
+
+        // <antenna name>.flag.hw_error
+        // TODO: Current no flagging, but it would be good to read this from the
+        // actual measurement set
+        antMetadata.hwError(false);
+
+        // <antenna name>.flag.detailed
+        // TODO: Current no flagging, but it would be good to read this from the
+        // actual measurement set
+        for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
+            for (casa::uInt beam = 0; beam < nBeam; ++beam) {
+                for (casa::uInt pol = 0; pol < nCorr; ++pol) {
+                    antMetadata.flagDetailed(false, beam, coarseChan, pol);
+                }
+            }
         }
 
-        {
-            // <antenna name>.flag.on_source
-            // TODO: Current no flagging, but it would be good to read this from the
-            // actual measurement set
-            metadata.data[makeMapKey(name, "flag.on_source")] = new TypedValueBool(TypeBool, true);
-        }
-
-        {
-            // <antenna name>.flag.hw_error
-            // TODO: Current no flagging, but it would be good to read this from the
-            // actual measurement set
-            metadata.data[makeMapKey(name, "flag.hw_error")] = new TypedValueBool(TypeBool, false);
-        }
-
-        {
-            // <antenna name>.flag.detailed
-            BoolSeq flag;
-            // TODO: Current no flagging, but it would be good to read this from the
-            // actual measurement set
-            flag.assign(nBeam * nCoarseChan * nCorr, false);
-            metadata.data[makeMapKey(name, "flag.detailed")] = new TypedValueBoolSeq(TypeBoolSeq, flag);
-        }
-
-        {
-            // <antenna name>.system_temp
-            FloatSeq systemTemp;
-            // TODO: Current no system temperature, but it would be good to read this
-            // from the actual measurement set
-            systemTemp.assign(nBeam * nCoarseChan * nCorr, 0.0);
-            metadata.data[makeMapKey(name, "system_temp")] = new TypedValueFloatSeq(TypeFloatSeq, systemTemp);
+        // <antenna name>.system_temp
+        // TODO: Current no system temperature, but it would be good to read this
+        // from the actual measurement set
+        for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
+            for (casa::uInt beam = 0; beam < nBeam; ++beam) {
+                for (casa::uInt pol = 0; pol < nCorr; ++pol) {
+                    antMetadata.systemTemp(0.0, beam, coarseChan, pol);
+                }
+            }
         }
     }
 

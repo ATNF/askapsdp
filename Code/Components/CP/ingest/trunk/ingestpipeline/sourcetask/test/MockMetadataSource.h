@@ -29,10 +29,7 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
-
-// CP Ice interfaces
-#include "CommonTypes.h"
-#include "TypedValues.h"
+#include "cpcommon/TosMetadata.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
@@ -47,15 +44,15 @@ namespace askap {
                 MockMetadataSource();
                 ~MockMetadataSource();
 
-                void add(boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> obj);
+                void add(boost::shared_ptr<askap::cp::TosMetadata> obj);
 
-                boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> next(void);
+                boost::shared_ptr<askap::cp::TosMetadata> next(void);
 
                 // Shared pointer definition
                 typedef boost::shared_ptr<MockMetadataSource> ShPtr;
 
             private:
-                DequeWrapper< askap::interfaces::TimeTaggedTypedValueMap > itsBuffer;
+                DequeWrapper< askap::cp::TosMetadata > itsBuffer;
         };
 
     };

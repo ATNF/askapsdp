@@ -29,9 +29,7 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
-
-// CP Ice interfaces
-#include "TypedValues.h"
+#include "cpcommon/TosMetadata.h"
 
 namespace askap {
     namespace cp {
@@ -40,7 +38,7 @@ namespace askap {
         {
             public:
                 // Blocking
-                virtual boost::shared_ptr<askap::interfaces::TimeTaggedTypedValueMap> next(void) = 0;
+                virtual boost::shared_ptr<askap::cp::TosMetadata> next(void) = 0;
 
                 // Shared pointer definition
                 typedef boost::shared_ptr<IMetadataSource> ShPtr;

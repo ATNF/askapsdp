@@ -1,4 +1,4 @@
-/// @file MetadataOutputPort.cc
+/// @file RawMetadataReceiver.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "MetadataOutputPort.h"
+#include "RawMetadataReceiver.h"
 
 // System includes
 #include <string>
@@ -34,8 +34,8 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "Ice/Ice.h"
+#include "IceStorm/IceStorm.h"
 #include "boost/shared_ptr.hpp"
-#include "cpcommon/TosMetadata.h"
 
 // CP Ice interfaces
 #include "TypedValues.h"
@@ -43,7 +43,6 @@
 // Local package includes
 #include "iceutils/CommunicatorConfig.h"
 #include "iceutils/CommunicatorFactory.h"
-#include "tosmetadata/MetadataConverter.h"
 
 // Using
 using namespace askap;
@@ -51,32 +50,58 @@ using namespace askap::cp;
 using namespace askap::interfaces;
 using namespace askap::interfaces::datapublisher;
 
-ASKAP_LOGGER(logger, ".MetadataOutputPort");
+ASKAP_LOGGER(logger, ".RawMetadataReceiver");
 
-MetadataOutputPort::MetadataOutputPort(const std::string& locatorHost,
+RawMetadataReceiver::RawMetadataReceiver(const std::string& locatorHost,
         const std::string& locatorPort,
         const std::string& topicManager,
-        const std::string& topic)
+        const std::string& topic,
+        const std::string& adapterName)
 {
     CommunicatorConfig config(locatorHost, locatorPort);
+    config.setAdapter(adapterName, "tcp");
     CommunicatorFactory commFactory;
     Ice::CommunicatorPtr comm = commFactory.createCommunicator(config);
 
-    itsOutputPort.reset(new OutputPortType(comm));
-    itsOutputPort->attach(topic, topicManager);
-    itsProxy = itsOutputPort->getProxy();
-    ASKAPCHECK(itsProxy, "Topic proxy was not initialised");
+    ASKAPDEBUGASSERT(comm);
+
+    // Now subscribe to the topic
+    Ice::ObjectPrx obj = comm->stringToProxy(topicManager);
+    IceStorm::TopicManagerPrx topicManagerPrx = IceStorm::TopicManagerPrx::checkedCast(obj);
+    Ice::ObjectAdapterPtr adapter = comm->createObjectAdapter(adapterName);
+    itsProxy = adapter->addWithUUID(this)->ice_twoway();
+
+    ASKAPLOG_DEBUG_STR(logger, "Subscribing to topic: " << topic);
+
+    try {
+        itsTopicPrx = topicManagerPrx->retrieve(topic);
+    } catch (const IceStorm::NoSuchTopic&) {
+        ASKAPLOG_DEBUG_STR(logger, "Topic not found, creating.");
+        try {
+            itsTopicPrx = topicManagerPrx->create(topic);
+        } catch (const IceStorm::TopicExists&) {
+            // Someone else has already created it
+            itsTopicPrx = topicManagerPrx->retrieve(topic);
+        }
+    }
+
+    IceStorm::QoS qos;
+    qos["reliability"] = "ordered";
+    itsTopicPrx->subscribeAndGetPublisher(qos, itsProxy);
+
+    adapter->activate();
 }
 
-MetadataOutputPort::~MetadataOutputPort()
+RawMetadataReceiver::~RawMetadataReceiver()
 {
-    itsOutputPort->detach();
+    if (itsTopicPrx && itsProxy) {
+        itsTopicPrx->unsubscribe(itsProxy);
+    }
 }
 
-void MetadataOutputPort::send(const askap::cp::TosMetadata& message)
+void RawMetadataReceiver::publish(
+        const askap::interfaces::TimeTaggedTypedValueMap& msg,
+        const Ice::Current& c)
 {
-    MetadataConverter converter;
-    const TimeTaggedTypedValueMap mapmessage = converter.convert(message);
-
-    itsProxy->publish(mapmessage);
+    receive(msg);
 }
