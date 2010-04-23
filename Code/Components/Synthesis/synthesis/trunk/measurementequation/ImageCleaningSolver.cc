@@ -29,7 +29,17 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+
+ASKAP_LOGGER(logger, ".measurementequation");
+
 #include <measurementequation/ImageCleaningSolver.h>
+#include <askap/AskapError.h>
+#include <utils/PaddingUtils.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayMath.h>
+
 
 namespace askap {
 
@@ -40,7 +50,7 @@ namespace synthesis {
 /// solutions formed by the solveNormalEquation method
 /// @param[in] ip input parameters
 ImageCleaningSolver::ImageCleaningSolver(const askap::scimath::Params &ip) :
-   ImageSolver(ip), itsFractionalThreshold(0.), itsMaskingThreshold(-1.) {}
+   ImageSolver(ip), itsFractionalThreshold(0.), itsMaskingThreshold(-1.), itsPaddingFactor(1.) {}
    
 /// @brief access to a fractional threshold
 /// @return current fractional threshold
@@ -73,6 +83,71 @@ void ImageCleaningSolver::setMaskingThreshold(double mThreshold)
 {
   itsMaskingThreshold = mThreshold;
 }
+
+/// @brief set padding factor for this solver
+/// @details Because cleaning usually utilises FFT for performance (to calculate convolution with PSF),
+/// some padding is necessary to avoid wrap around. This parameter controlls the amount of padding.
+/// 1.0 means no padding, the value should be greater than or equal to 1.0.
+/// @param[in] padding padding factor
+void ImageCleaningSolver::setPaddingFactor(float padding)
+{
+  ASKAPCHECK(padding>=1.0, "Padding in the solver is supposed to be greater than or equal to 1.0, you have "<<padding);
+  itsPaddingFactor = padding;
+}
+
+/// @brief helper method to pad an image
+/// @details This method encapsulates all padding logic. In addition double to float conversion happens
+/// here. 
+/// @param[in] img input image (to be padded, with double precision at the moment) 
+/// @return padded image converted to floats
+casa::Array<float> ImageCleaningSolver::padImage(const casa::Array<double> &image) const
+{
+  casa::Array<float> result(scimath::PaddingUtils::paddedShape(image.shape(),paddingFactor()),0.);
+  casa::Array<float> subImage = scimath::PaddingUtils::extract(result,paddingFactor());
+  casa::convertArray<float, double>(subImage, image);
+  return result;  
+}
+
+/// @brief helper method to pad diagonal
+/// @details The difference from padImage is that we don't need double to float conversion for diagonal and
+/// the output array is flattened into a 1D vector
+/// @param[in] diag diagonal array
+/// @return flattened padded vector
+casa::Vector<double> ImageCleaningSolver::padDiagonal(const casa::Array<double> &diag) const
+{
+  if (scimath::PaddingUtils::paddedShape(diag.shape(),paddingFactor()) == diag.shape()) {
+      return casa::Vector<double>(diag.reform(casa::IPosition(1,diag.nelements())));
+  }
+  casa::Array<double> result(scimath::PaddingUtils::paddedShape(diag.shape(),paddingFactor()),0.);
+  scimath::PaddingUtils::extract(result,paddingFactor()) = diag;
+  return casa::Vector<double>(result.reform(casa::IPosition(1,result.nelements())));
+}
+
+   
+/// @brief helper method to pad an image
+/// @details This method encapsulates all padding logic. In addition double to float conversion happens
+/// here. 
+/// @param[in] img input padded image (with single precision at the moment) 
+/// @return image of original (unpadded) shape converted to double precision
+casa::Array<double> ImageCleaningSolver::unpadImage(const casa::Array<float> &image) const
+{
+  casa::Array<float> wrapper(image);
+  const casa::Array<float> subImage = scimath::PaddingUtils::extract(wrapper,paddingFactor());
+  casa::Array<double> result(subImage.shape());
+  casa::convertArray<double,float>(result,subImage);
+  return result;
+}
+
+/// @brief configure basic parameters of the solver
+/// @details This method encapsulates extraction of basic solver parameters from the parset.
+/// @param[in] parset parset's subset (should have solver.Clean or solver.Dirty removed)
+void ImageCleaningSolver::configure(const LOFAR::ParameterSet &parset)
+{
+  ImageSolver::configure(parset);
+  setPaddingFactor(parset.getFloat("padding",1.));
+  ASKAPLOG_INFO_STR(logger,"Solver padding of "<<paddingFactor()<<" will be used");       
+}
+
 
 } // namespace synthesis
 

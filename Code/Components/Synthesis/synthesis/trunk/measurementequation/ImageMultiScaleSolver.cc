@@ -147,16 +147,14 @@ namespace askap
                                            " tagged as "<<planeIter.tag());
 		     }
 		
-             casa::Array<float> dirtyArray(planeIter.planeShape());
-             casa::convertArray<float, double>(dirtyArray, planeIter.getPlane(dv));
-             casa::Array<float> psfArray(planeIter.planeShape());
-             casa::convertArray<float, double>(psfArray, planeIter.getPlane(slice));
-             casa::Array<float> cleanArray(planeIter.planeShape());
-             casa::convertArray<float, double>(cleanArray, planeIter.getPlane(itsParams->value(indit->first)));
-             casa::Array<float> maskArray(planeIter.planeShape());
-
-	         // Normalize
-	         doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray, 
+             casa::Array<float> dirtyArray = padImage(planeIter.getPlane(dv));
+             casa::Array<float> psfArray = padImage(planeIter.getPlane(slice));
+             casa::Array<float> cleanArray = padImage(planeIter.getPlane(itsParams->value(indit->first)));
+             casa::Array<float> maskArray(dirtyArray.shape());
+             ASKAPLOG_INFO_STR(logger, "Plane shape "<<planeIter.planeShape()<<" becomes "<<
+                             dirtyArray.shape()<<" after padding");
+	         // Normalize	         
+	         doNormalization(padDiagonal(planeIter.getPlane(diag)),tol(),psfArray,dirtyArray, 
 	             boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
     
 	         // Precondition the PSF and DIRTY images before solving.
@@ -164,8 +162,7 @@ namespace askap
 	            // Save the new PSFs to disk
 	            Axes axes(itsParams->axes(indit->first));
 	            string psfName="psf."+(indit->first);
-	            casa::Array<double> anothertemp(planeIter.planeShape());
-	            casa::convertArray<double,float>(anothertemp,psfArray);
+	            casa::Array<double> anothertemp = unpadImage(psfArray);
 	            const casa::Array<double> & APSF(anothertemp);
 	            if (!itsParams->has(psfName)) {
 	                // create an empty parameter with the full shape
@@ -192,8 +189,7 @@ namespace askap
                 ASKAPCHECK(indit->first.size()>5, 
                         "Image parameter name should have something appended to word image")           
 	            const string residName="residual"+indit->first.substr(5);
-	            casa::Array<double> anothertemp(planeIter.planeShape());
-	            casa::convertArray<double,float>(anothertemp,dirtyArray);
+	            casa::Array<double> anothertemp = unpadImage(dirtyArray);
 	            const casa::Array<double> & AResidual(anothertemp);
 	            if (!itsParams->has(residName)) {
 	                // create an empty parameter with the full shape
@@ -208,8 +204,7 @@ namespace askap
              {
                 Axes axes(itsParams->axes(indit->first));
 	            string maskName="mask."+(indit->first);
-	            casa::Array<double> anothertemp(planeIter.planeShape());
-	            casa::convertArray<double,float>(anothertemp,maskArray);
+	            casa::Array<double> anothertemp = unpadImage(maskArray);
 	            const casa::Array<double> & AMask(anothertemp);
 	            if (!itsParams->has(maskName)) {
 	                // create an empty parameter with the full shape
@@ -265,9 +260,7 @@ namespace askap
 	             itsParams->add(peakResParam, lc->strengthOptimum());
              }
              itsParams->fix(peakResParam);	    
-	
-	         casa::Array<double> outputPlane = planeIter.getPlane(itsParams->value(indit->first));
-             casa::convertArray<double, float>(outputPlane,cleanArray);
+	         planeIter.getPlane(itsParams->value(indit->first)) = unpadImage(cleanArray);
         } // loop over all planes of the image cube
       } // loop over map of indices
       

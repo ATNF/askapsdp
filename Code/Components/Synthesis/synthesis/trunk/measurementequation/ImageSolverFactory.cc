@@ -223,7 +223,7 @@ namespace askap
                solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
                ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
                //solver->setAlgorithm(algorithm);
-               solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
+               solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));               
          }
          solver->configure(parset.makeSubset("solver.Clean."));
          solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));

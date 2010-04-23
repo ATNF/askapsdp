@@ -155,7 +155,7 @@ namespace askap
     /// @brief configure basic parameters of the solver
     /// @details This method encapsulates extraction of basic solver parameters from the parset.
     /// @param[in] parset parset's subset (should have solver.Clean or solver.Dirty removed)
-    void configure(const LOFAR::ParameterSet &parset); 
+    virtual void configure(const LOFAR::ParameterSet &parset); 
 
     /// @breif query weight cutoff behavior
     /// @return true if image pixels corresponding to the weight cutoff area are set to zero during
