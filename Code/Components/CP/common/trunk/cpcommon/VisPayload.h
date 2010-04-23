@@ -34,7 +34,10 @@ namespace askap {
         /// for the correlator to central processor interface.
         struct FloatComplex
         {
+            /// The real part of the complex number.
             float real;
+
+            /// The imaginary part of the complex number.
             float imag;
         };
 
@@ -86,7 +89,7 @@ namespace askap {
             ///
             /// Both the vis and nSamples arrays are indexed like so: [fine_channel][pol]
             /// An example of an indexing function:
-            /// \code
+            /// @verbatim
             /// /*
             ///  * Both pol and fine_channel are zero based and must be between
             ///  * zero and (n_pol - 1) and (n_fine_per_coarse - 1) respectively.
@@ -94,7 +97,7 @@ namespace askap {
             /// int index(unsigned int pol, unsigned int fine_channel) {
             ///     return pol + ((n_pol) * fine_channel));
             ///     }
-            /// \endcode
+            /// @endverbatim
             FloatComplex vis[N_FINE_PER_COARSE * N_POL];
 
             /// The number of voltage samples that made up the visibility for this

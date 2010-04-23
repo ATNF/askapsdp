@@ -1,0 +1,16 @@
+/// @mainpage ASKAP Central Processor Ingest Pipeline
+///
+/// @section cpingest_intro Introduction
+/// The Central Processor Ingest Pipeline is responsible for the following:
+///
+/// @li Ingesting visibilities from the correlator
+/// @li Ingesting metadata from the telescope operating system
+/// @li Annotating visibility stream with metadata
+/// @li Flagging suspect data (e.g. RFI impacted data)
+/// @li Calculation of calibration parameters
+/// @li Applying calibration to the observed visibilities
+/// @li Writing out of measurement set or similar
+///
+/// @note This package does not provide an externally consumable library & API.
+/// This package provides a set of programs.
+

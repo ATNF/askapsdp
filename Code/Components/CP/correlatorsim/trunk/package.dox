@@ -1,0 +1,14 @@
+/// @mainpage ASKAP Central Processor - Correlator Simulator
+///
+/// @section correlatorsim_intro Introduction
+/// The correlatorsim package provides a simulation of the datastreams coming
+/// from the ASKAP correlator and Telescope Operating System (TOS).
+///
+/// The purpose of this software is to simulate the ASKAP correlator for the
+/// purposes of testing the central processor. This simulator described here
+/// is actually a playback simulator and relies on other software
+/// (e.g. csimulator) to actually create a simulated measurement set which
+/// will be played back by the software described here.
+///
+/// @note This package does not provide an externally consumable library & API.
+/// This package provides a set of programs.

@@ -1,4 +1,4 @@
-/// @file IISolverTask.cc
+/// @file ISolverTask.cc
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)

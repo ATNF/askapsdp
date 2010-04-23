@@ -37,48 +37,51 @@
 #include "manager/ObsService.h"
 
 namespace askap {
-    namespace cp {
-        class AdminInterface : public askap::interfaces::component::IComponent
-        {
-            public:
-                /// @brief Constructor.
-                AdminInterface(const Ice::CommunicatorPtr ic);
+namespace cp {
 
-                /// @brief Destructor.
-                virtual ~AdminInterface();
+/// @brief This class implements the Central Processing component
+/// administration interface.
+class AdminInterface : public askap::interfaces::component::IComponent {
+    public:
+        /// @brief Constructor.
+        AdminInterface(const Ice::CommunicatorPtr ic);
 
-                /// @brief Runs the administration interface and will block
-                ///  until ICE is shutdown.
-                void run(void);
+        /// @brief Destructor.
+        virtual ~AdminInterface();
 
-                // Ice "IComponent" interfaces
-                void startup(const askap::interfaces::ParameterMap& params, const Ice::Current& cur);
-                void shutdown(const Ice::Current& cur);
-                void activate(const Ice::Current& cur);
-                void deactivate(const Ice::Current& cur);
-                askap::interfaces::component::ComponentTestResultSeq selfTest(const Ice::Current& cur);
-                askap::interfaces::component::ComponentState getState(const Ice::Current& cur);
+        /// @brief Runs the administration interface and will block
+        ///  until ICE is shutdown.
+        void run(void);
 
-            private:
-                // ICE Communicator
-                Ice::CommunicatorPtr itsComm;
+        // Ice "IComponent" interfaces
+        void startup(const askap::interfaces::ParameterMap& params, const Ice::Current& cur);
+        void shutdown(const Ice::Current& cur);
+        void activate(const Ice::Current& cur);
+        void deactivate(const Ice::Current& cur);
+        askap::interfaces::component::ComponentTestResultSeq selfTest(const Ice::Current& cur);
+        askap::interfaces::component::ComponentState getState(const Ice::Current& cur);
 
-                // ICE Object adapter
-                Ice::ObjectAdapterPtr itsAdapter;
+    private:
+        // ICE Communicator
+        Ice::CommunicatorPtr itsComm;
 
-                // State
-                askap::interfaces::component::ComponentState itsState;
+        // ICE Object adapter
+        Ice::ObjectAdapterPtr itsAdapter;
 
-                // A smart pointer to an ObsService instance
-                askap::interfaces::cp::ICPObsServicePtr itsObsService;
+        // State
+        askap::interfaces::component::ComponentState itsState;
 
-                // No support for assignment
-                AdminInterface& operator=(const AdminInterface& rhs);
+        // A smart pointer to an ObsService instance
+        askap::interfaces::cp::ICPObsServicePtr itsObsService;
 
-                // No support for copy constructor
-                AdminInterface(const AdminInterface& src);
-        };
-    };
+        // No support for assignment
+        AdminInterface& operator=(const AdminInterface& rhs);
+
+        // No support for copy constructor
+        AdminInterface(const AdminInterface& src);
 };
+
+}
+}
 
 #endif

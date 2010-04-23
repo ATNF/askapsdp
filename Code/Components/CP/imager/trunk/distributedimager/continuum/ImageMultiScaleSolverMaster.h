@@ -1,4 +1,4 @@
-/// @file ImageMultiScaleSolverMaster
+/// @file ImageMultiScaleSolverMaster.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)

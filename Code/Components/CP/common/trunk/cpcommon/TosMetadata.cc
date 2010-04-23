@@ -90,6 +90,14 @@ void TosMetadata::period(const casa::uLong& period)
 
 casa::uInt TosMetadata::addAntenna(const casa::String& name)
 {
+    // Ensure an antenna of this name does not already exist
+    std::vector<TosMetadataAntenna>::const_iterator it;
+    for (it = itsAntenna.begin(); it != itsAntenna.end(); ++it) {
+        if (it->name() == name) {
+            ASKAPTHROW(AskapError, "An antenna with this name already exists");
+        }
+    }
+
     TosMetadataAntenna antenna(name, itsNumCoarseChannels,
             itsNumBeams, itsNumPol);
 

@@ -35,29 +35,30 @@
 #include "Ice/Ice.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class CommunicatorConfig
-        {
-            public:
-                CommunicatorConfig(const std::string& locatorHost,
-                        const std::string& locatorPort);
+/// @brief TODO
+/// @ingroup iceutils
+class CommunicatorConfig {
+    public:
+        CommunicatorConfig(const std::string& locatorHost,
+                           const std::string& locatorPort);
 
-                void setProperty(const std::string& key, const std::string& value);
+        void setProperty(const std::string& key, const std::string& value);
 
-                void removeProperty(const std::string& key);
+        void removeProperty(const std::string& key);
 
-                void setAdapter(const std::string& name, const std::string& endpoints);
+        void setAdapter(const std::string& name, const std::string& endpoints);
 
-                void removeAdapter(const std::string& name);
+        void removeAdapter(const std::string& name);
 
-                Ice::PropertiesPtr convertToIceProperties(void) const;
+        Ice::PropertiesPtr convertToIceProperties(void) const;
 
-            private:
-                std::map<std::string, std::string> itsProperties;
-        };
+    private:
+        std::map<std::string, std::string> itsProperties;
+};
 
-    };
+};
 };
 
 #endif

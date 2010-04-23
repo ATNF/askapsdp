@@ -44,6 +44,8 @@
 namespace askap {
 namespace cp {
 
+/// @brief TODO
+/// @ingroup tosmetadata
 class TypedValueMapMapper : public TypedValueMapConstMapper {
     public:
         TypedValueMapMapper(askap::interfaces::TypedValueMap& map);

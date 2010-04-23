@@ -43,6 +43,8 @@
 namespace askap {
     namespace cp {
 
+        /// @brief TODO
+        /// @ingroup tosmetadata
         class MetadataOutputPort
         {
             public:

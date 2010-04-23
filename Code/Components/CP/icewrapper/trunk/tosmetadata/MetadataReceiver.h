@@ -41,6 +41,8 @@
 namespace askap {
     namespace cp {
 
+        /// @brief TODO
+        /// @ingroup tosmetadata
         class MetadataReceiver :
             virtual public askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisher
         {

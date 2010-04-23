@@ -1,0 +1,8 @@
+/// @mainpage ASKAP Central Processor Imager
+///
+/// @section cpimager_intro Introduction
+/// The imager (Central Processor Imager) package contains classes and data
+/// for an experimental imager, similar to the cimager (Synthesis).
+/// The purpose of this software is to perform imaging in a
+/// parallel/distributed environment. The software leverages MPI,
+/// however can be run on a simple laptop or a large supercomputer.

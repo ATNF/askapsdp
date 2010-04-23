@@ -39,91 +39,89 @@
 // Local package includes
 #include "iceutils/IPort.h"
 
-namespace askap { namespace cp {
+namespace askap {
+namespace cp {
 
-    template<class T, class P>
-    class OutputPort : public IPort
-    {
-        public:
+/// @brief TODO
+/// @ingroup iceutils
+template<class T, class P>
+class OutputPort : public IPort {
+    public:
 
-            /// @brief Constructor
-            OutputPort(const Ice::CommunicatorPtr ic)
-                : itsComm(ic)
-            {
+        /// @brief Constructor
+        OutputPort(const Ice::CommunicatorPtr ic)
+                : itsComm(ic) {
+        }
+
+        /// @brief Destructor.
+        virtual ~OutputPort() {
+            detach();
+        }
+
+        /// @brief Returns the direction of this port, either input
+        /// or output.
+        ///
+        /// @return Direction:IN or Direction:OUT.
+        virtual askap::cp::IPort::Direction getDirection(void) const {
+            return IPort::OUT;
+        };
+
+        /// @param[in] topic the name of the topic to attach the port to.
+        /// @param[in] topicManager the identity of the topic manager from
+        ///                         where the topic subscription should be
+        ///                         requested.
+        virtual void attach(const std::string& topic, const std::string& topicManager) {
+            // Obtain the topic
+            Ice::ObjectPrx obj = itsComm->stringToProxy(topicManager);
+            IceStorm::TopicManagerPrx topicManagerPrx =
+                IceStorm::TopicManagerPrx::checkedCast(obj);
+            IceStorm::TopicPrx topicPrx;
+
+            try {
+                topicPrx = topicManagerPrx->retrieve(topic);
+            } catch (const IceStorm::NoSuchTopic&) {
+                topicPrx = topicManagerPrx->create(topic);
+            } catch (const IceStorm::TopicExists&) {
+                // Something else has since created the topic
+                topicPrx = topicManagerPrx->retrieve(topic);
             }
 
-            /// @brief Destructor.
-            virtual ~OutputPort()
-            {
-                detach();
+            // Get the proxy
+            Ice::ObjectPrx pub = topicPrx->getPublisher()->ice_oneway();
+            itsProxy = P::uncheckedCast(pub);
+        };
+
+        /// @brief Detach from the attached topic.
+        /// This has no effect if a call to attach() has not yet been made,
+        /// or if detach has already been called.
+        virtual void detach(void) {
+            itsProxy = 0;
+        };
+
+        virtual P getProxy(void) {
+            if (itsProxy) {
+                return itsProxy;
+            } else {
+                ASKAPTHROW(AskapError, "Proxy is not initialized");
             }
+        };
 
-            /// @brief Returns the direction of this port, either input
-            /// or output.
-            ///
-            /// @return Direction:IN or Direction:OUT.
-            virtual askap::cp::IPort::Direction getDirection(void) const
-            {
-                return IPort::OUT;
-            };
+        // Shared pointer definition
+        typedef boost::shared_ptr<OutputPort> ShPtr;
 
-            /// @param[in] topic the name of the topic to attach the port to.
-            /// @param[in] topicManager the identity of the topic manager from
-            ///                         where the topic subscription should be
-            ///                         requested.
-            virtual void attach(const std::string& topic, const std::string& topicManager)
-            {
-                // Obtain the topic
-                Ice::ObjectPrx obj = itsComm->stringToProxy(topicManager);
-                IceStorm::TopicManagerPrx topicManagerPrx =
-                    IceStorm::TopicManagerPrx::checkedCast(obj);
-                IceStorm::TopicPrx topicPrx;
-                try {
-                    topicPrx = topicManagerPrx->retrieve(topic);
-                } catch (const IceStorm::NoSuchTopic&) {
-                    topicPrx = topicManagerPrx->create(topic);
-                } catch (const IceStorm::TopicExists&) {
-                    // Something else has since created the topic
-                    topicPrx = topicManagerPrx->retrieve(topic);
-                }
-                
-                // Get the proxy
-                Ice::ObjectPrx pub = topicPrx->getPublisher()->ice_oneway();
-                itsProxy = P::uncheckedCast(pub);
-            };
+    private:
 
-            /// @brief Detach from the attached topic.
-            /// This has no effect if a call to attach() has not yet been made,
-            /// or if detach has already been called.
-            virtual void detach(void)
-            {
-                itsProxy = 0;
-            };
+        // Ice Communicator
+        const Ice::CommunicatorPtr itsComm;
 
-            virtual P getProxy(void)
-            {
-                if (itsProxy) {
-                    return itsProxy;
-                } else {
-                    ASKAPTHROW(AskapError, "Proxy is not initialized");
-                }
-            };
+        // Proxy object via which publishing occurs
+        P itsProxy;
 
-            // Shared pointer definition
-            typedef boost::shared_ptr<OutputPort> ShPtr;
+        // Proxy to the topic manager
+        IceStorm::TopicPrx itsTopicPrx;
+};
 
-        private:
-
-            // Ice Communicator
-            const Ice::CommunicatorPtr itsComm;
-
-            // Proxy object via which publishing occurs
-            P itsProxy;
-
-            // Proxy to the topic manager
-            IceStorm::TopicPrx itsTopicPrx;
-    };
-
-}; };
+};
+};
 
 #endif

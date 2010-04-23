@@ -47,8 +47,8 @@ class MPIBasicComms : public IBasicComms
 public:
     /// @brief Constructor
     ///
-    /// @params [in] argc argc as passed to main().
-    /// @params [in] argv argv as passed to main().
+    /// @param[in] argc argc as passed to main().
+    /// @param[in] argv argv as passed to main().
     MPIBasicComms(int argc, char *argv[]);
 
     /// @brief Destructor
@@ -85,27 +85,27 @@ private:
     /// @brief MPI_Send a raw buffer to the specified destination
     /// process.
     ///
-    /// @params[in] buf a pointer to the buffer to send.
-    /// @params[in] size    the number of bytes to send.
-    /// @params[in] dest    the id of the process to send to.
-    /// @params[in] tag the MPI tag to be used in the communication.
+    /// @param[in] buf a pointer to the buffer to send.
+    /// @param[in] size    the number of bytes to send.
+    /// @param[in] dest    the id of the process to send to.
+    /// @param[in] tag the MPI tag to be used in the communication.
     void send(const void* buf, size_t size, int dest, int tag);
 
     /// @brief MPI_Recv a raw buffer from the specified source process.
     ///
-    /// @params[out] buf a pointer to the buffer to receive data into.
-    /// @params[in] size    the number of bytes to receive.
-    /// @params[in] source  the id of the process to receive from.
-    /// @params[in] tag the MPI tag to be used in the communication.
-    /// @params[out] status MPI_Status structure returned by the call to
+    /// @param[out] buf a pointer to the buffer to receive data into.
+    /// @param[in] size    the number of bytes to receive.
+    /// @param[in] source  the id of the process to receive from.
+    /// @param[in] tag the MPI tag to be used in the communication.
+    /// @param[out] status MPI_Status structure returned by the call to
     ///                     MPI_Recv()
     void receive(void* buf, size_t size, int source, int tag, MPI_Status& status);
 
     /// @brief MPI_Bcast a raw buffer.
     ///
-    /// @params [in,out] buf    data buffer.
-    /// @params [in] size       number of bytes to broadcast.
-    /// @params [in] root       id of the root process.
+    /// @param[in,out] buf    data buffer.
+    /// @param[in] size       number of bytes to broadcast.
+    /// @param[in] root       id of the root process.
     void broadcast(void* buf, size_t size, int root);
 
     // Check for error status and handle accordingly
@@ -127,7 +127,7 @@ private:
     MPIBasicComms(const MPIBasicComms& src);
 };
 
-};
-};
+}
+}
 
 #endif

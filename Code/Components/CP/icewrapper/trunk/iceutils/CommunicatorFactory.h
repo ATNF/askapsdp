@@ -38,25 +38,26 @@
 #include "CommunicatorConfig.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class CommunicatorFactory
-        {
-            public:
+/// @brief TODO
+/// @ingroup iceutils
+class CommunicatorFactory {
+    public:
 
-                /// @brief Creates an IceCommunicator given a locator hostname
-                /// or IP-address plus a port number.
-                ///
-                /// @param[in] config   an instance of CommunicatorConfig, which
-                ///     specifies the configuration of the communicator to be
-                ///     instantiated.
-                ///
-                /// @return a pointer to an Ice communicator.
-                Ice::CommunicatorPtr createCommunicator(
-                        const CommunicatorConfig& config);
-        };
+        /// @brief Creates an IceCommunicator given a locator hostname
+        /// or IP-address plus a port number.
+        ///
+        /// @param[in] config   an instance of CommunicatorConfig, which
+        ///     specifies the configuration of the communicator to be
+        ///     instantiated.
+        ///
+        /// @return a pointer to an Ice communicator.
+        Ice::CommunicatorPtr createCommunicator(
+            const CommunicatorConfig& config);
+};
 
-    };
+};
 };
 
 #endif

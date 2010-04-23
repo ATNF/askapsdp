@@ -41,11 +41,11 @@ namespace cp {
 /// @brief Main class which simulates the ASKAP Correlator and Telescope
 /// Operating System for the Central Processor.
 ///
-/// @description The purpose of this software is to simulate the ASKAP 
-/// correlator for the purposes of testing the central processor. This
-/// simulator described here is actually a playback simulator and relies on 
-/// other software (e.g. csimulator) to actually create a simulated
-/// measurement set which will be played back by this software.
+/// The purpose of this software is to simulate the ASKAP correlator
+/// for the purposes of testing the central processor. This simulator
+/// described here is actually a playback simulator and relies on other
+/// software (e.g. csimulator) to actually create a simulated measurement
+/// set which will be played back by this software.
 class SimPlayback {
     public:
         /// @brief Constructor.

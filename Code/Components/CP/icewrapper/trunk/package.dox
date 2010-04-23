@@ -1,0 +1,18 @@
+/// @defgroup iceutils Common Ice utilities
+/// @defgroup tosmetadata Ice wrappers for access to the TOS metadata pub/sub stream
+
+/// @mainpage ASKAP Central Processor - Ice Wrappers
+///
+/// @section icewrappers_intro Introduction
+/// The icewrappers package provides classes and data structures which provide
+/// abstraction layer via which central processor can use the ICE middleware
+/// without needing to know the details of using ICE.
+///
+/// This package aims to contain ICE specific code such that a move from ICE to
+/// another middleware would involve mainly changes to this package, and little
+/// to the users of this package.
+///
+/// @section icewrappers_subpackages Subpackages
+///
+/// @li @ref iceutils
+/// @li @ref tosmetadata

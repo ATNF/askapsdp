@@ -1,0 +1,5 @@
+/// @mainpage ASKAP Central Processor Manager
+///
+/// @section cpmanager_intro Introduction
+/// The manager (Central Processor Manager) package contains the "manager"
+/// sub-component of the central processor.

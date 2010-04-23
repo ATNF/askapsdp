@@ -39,6 +39,8 @@
 namespace askap {
 namespace cp {
 
+/// @brief TODO
+/// @ingroup tosmetadata
 class MetadataConverter {
     public:
         askap::cp::TosMetadata convert(const askap::interfaces::TimeTaggedTypedValueMap& source);

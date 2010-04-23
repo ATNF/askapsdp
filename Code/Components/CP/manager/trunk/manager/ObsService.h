@@ -1,4 +1,4 @@
-/// @file ObsInterface.h
+/// @file ObsService.h
 ///
 /// @copyright (c) 2009 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -34,32 +34,34 @@
 #include "CP.h"
 
 namespace askap {
-    namespace cp {
-        class ObsService : public askap::interfaces::cp::ICPObsService
-        {
-            public:
-                /// @brief Constructor.
-                ObsService(const Ice::CommunicatorPtr ic);
+namespace cp {
 
-                /// @brief Destructor.
-                virtual ~ObsService();
+/// @brief This class implements the Central Processor observation service.
+class ObsService : public askap::interfaces::cp::ICPObsService {
+    public:
+        /// @brief Constructor.
+        ObsService(const Ice::CommunicatorPtr ic);
 
-                // Ice "IComponent" interfaces
-                void startObs(const askap::interfaces::ParameterMap& parmap,
-			      const Ice::Current& cur);
-                void abortObs(const Ice::Current& cur);
+        /// @brief Destructor.
+        virtual ~ObsService();
 
-            private:
-                // ICE communicator
-                Ice::CommunicatorPtr itsComm;
+        // Ice "IComponent" interfaces
+        void startObs(const askap::interfaces::ParameterMap& parmap,
+                      const Ice::Current& cur);
+        void abortObs(const Ice::Current& cur);
 
-                // No support for assignment
-                ObsService& operator=(const ObsService& rhs);
+    private:
+        // ICE communicator
+        Ice::CommunicatorPtr itsComm;
 
-                // No support for copy constructor
-                ObsService(const ObsService& src);
-        };
-    };
+        // No support for assignment
+        ObsService& operator=(const ObsService& rhs);
+
+        // No support for copy constructor
+        ObsService(const ObsService& src);
 };
+
+}
+}
 
 #endif

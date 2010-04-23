@@ -37,70 +37,250 @@
 namespace askap {
 namespace cp {
 
+/// @brief This class encapsulates the per-antenna part of the dataset which
+/// comes from the Telescope Operating System (TOS) for each correlator
+/// integration cycle.
+///
+/// This class is used by the TosMetdata class, with one instance of this class
+/// existing for each physical antenna.
 class TosMetadataAntenna {
 
     public:
+        /// @brief Constructor
+        ///
+        /// This object is constructed with three dimensions. These are
+        /// used to size the internal arrays, matrices and cubes.
+        ///
+        /// @param[in] name the name of the antenna.
+        /// @param[in] nCoarseChannels  number of coarse channels.
+        /// @param[in] nBeams   number of beams.
+        /// @param[in] nPol     number of polarisations.
         TosMetadataAntenna(const casa::String& name,
                            const casa::uInt& nCoarseChannels,
                            const casa::uInt& nBeams,
                            const casa::uInt& nPol);
 
+        /// @brief Get the name of the antenna.
+        /// @return the name of the antenna.
         casa::String name(void) const;
 
+        /// @brief Get the number of coarse channels.
+        /// @return the number of coarse channels.
         casa::uInt nCoarseChannels(void) const;
 
+        /// @brief Get the number of beams.
+        /// @return the number of beams.
         casa::uInt nBeams(void) const;
 
+        /// @brief Get the number of polarisations.
+        /// @return the number of polarisations.
         casa::uInt nPol(void) const;
 
+        /// @brief Get the physical dish pointing.
+        /// @return the pyhsical dish pointing.
         casa::MDirection dishPointing(void) const;
 
+        /// @brief Set the physical dish pointing.
+        /// @param[in] val the physical dish pointing.
         void dishPointing(const casa::MDirection& val);
 
+        /// @brief Get the centre frequency for this antenna.
+        /// @return the centre frequency for this antenna.
         casa::Double frequency(void) const;
 
+        /// @brief Set the centre frequency for this antenna.
+        /// @param[in] val the centre frequency for this antenna.
         void frequency(const casa::Double& val);
 
+        /// @brief Get the client id.
+        /// The client id is typically scheduling block id that the antenna
+        /// is allocated to.
+        ///
+        /// @return the client id.
         casa::String clientId(void) const;
 
+        /// @brief Set the client id.
+        /// The client id is typically scheduling block id that the antenna
+        /// @param[in] val the client id.
         void clientId(const casa::String& val);
 
+        /// @brief Get the scan id.
+        /// The scan id is the TOS scan id the antenna is currently performing.
+        /// @return the scan id.
         casa::String scanId(void) const;
 
+        /// @brief Set the scan id.
+        /// The scan id is the TOS scan id the antenna is currently performing.
+        /// @param[in] val the scan id.
         void scanId(const casa::String& val);
 
+        /// @brief Get the phase tracking centre for a given beam and coarse
+        /// channel.
+        ///
+        /// @li The value of beam must be between 0 and(nBeams() - 1).
+        /// @li The value of coarseChannel must be between 0 and
+        ///     (nCoarseChannels() - 1).
+        ///
+        /// @param[in] beam the beam for which the phase tracking centre is
+        ///     desired.
+        /// @param[in] coarseChannel    the coarse channel for which the phase
+        ///     tracking centre is desired.
+        ///
+        /// @throw AskapError if the value of beam or coarseChannel is invalid
+        ///     for this antenna.
+        ///
+        /// @return the phase tracking centre for the given beam and coarse
+        ///     channel.
         casa::MDirection phaseTrackingCentre(const casa::uInt& beam,
-                             const casa::uInt& coarseChannel) const;
+                                             const casa::uInt& coarseChannel) const;
 
+        /// @brief Set the phase tracking centre for a given beam and
+        /// coarse channel.
+        ///
+        /// @li The value of beam must be between 0 and(nBeams() - 1).
+        /// @li The value of coarseChannel must be between 0 and
+        ///     (nCoarseChannels() - 1).
+        ///
+        /// @param[in] beam the beam for which the phase tracking centre is
+        ///     to be set.
+        /// @param[in] coarseChannel    the coarse channel for which the phase
+        ///     tracking centre is to be set.
+        /// @param[in] val 
+        ///
+        /// @throw AskapError if the value of beam or coarseChannel is invalid
+        ///     for this antenna.
         void phaseTrackingCentre(const casa::MDirection& val,
                                  const casa::uInt& beam,
                                  const casa::uInt& coarseChannel);
 
+        /// @brief Get the parallactic angle.
+        /// @return the parallactic angle (in radians).
         casa::Double parallacticAngle(void) const;
 
+        /// @brief Set the parallactic angle.
+        /// @param[in] val the parallactic angle (in radians).
         void parallacticAngle(const casa::Double& val);
 
+        /// @brief Get the value of the onSource flag.
+        ///
+        /// @return True if antenna was within tolerance thresholds of the
+        /// target trajectory throughout the entire integration cycle. If
+        /// this is false then all data from this antenna should be flagged.
         casa::Bool onSource(void) const;
 
+        /// @brief Set the value of the onSource flag.
+        ///
+        /// @param[in] val the value of the on source flag. True if antenna
+        /// was within tolerance thresholds of the target trajectory throughout
+        /// the entire integration cycle.
         void onSource(const casa::Bool& val);
 
+        /// @brief Get the value of the hwError (hardware error) flag.
+        ///
+        /// @return true if hardware monitoring reveals a problem
+        /// (eg. LO out of lock) that means all data from this antenna
+        /// should be flagged.
         casa::Bool hwError(void) const;
 
+        /// @brief Set the value of the hwError (hardware error) flag.
+        /// @param[in] val teh value of the hardware error flag. Use true to
+        /// indicate a hardware error, otherwise false.
         void hwError(const casa::Bool& val);
 
+        /// @brief Get the flag value for a given beam, coarse channel,
+        /// or polarisation.
+        ///
+        /// @note If the value of onSource() if false, or the value of
+        /// hwError() is true, this detailed flagging information should
+        /// be ignored and all data for this antenna for this integration
+        /// should be considered bad.
+        ///
+        /// @li The value of beam must be between 0 and(nBeams() - 1).
+        /// @li The value of coarseChannel must be between 0 and
+        ///     (nCoarseChannels() - 1).
+        /// @li The value of pol must be between 0 and (nPol() - 1).
+        ///
+        /// @param[in] beam the beam for which the flagging information is
+        ///     desired.
+        /// @param[in] coarseChannel the coarse channel for which the
+        ///     flagging information is desired.
+        /// @param[in] pol] the polarisation for which the flagging information
+        ///     is desired.
+        ///
+        /// @throw AskapError if the value of beam, coarseChannel or pol
+        ///     is invalid for this antenna.
+        ///
+        /// @return true if the visibility is flagged (i.e. suspect or bad),
+        ///     otherwise false.
         casa::Bool flagDetailed(const casa::uInt& beam,
                                 const casa::uInt& coarseChannel,
                                 const casa::uInt& pol) const;
 
+        /// @brief Set the
+        ///
+        /// @li The value of beam must be between 0 and(nBeams() - 1).
+        /// @li The value of coarseChannel must be between 0 and
+        ///     (nCoarseChannels() - 1).
+        /// @li The value of pol must be between 0 and (nPol() - 1).
+        ///
+        /// @param[in] val true if the visibility should be flagged (i.e
+        ///     treated as suspect or bad) otherwise false.
+        /// @param[in] beam the beam for which the flagging information is
+        ///     to be set.
+        /// @param[in] coarseChannel the coarse channel for which the
+        ///     flagging information is to be set.
+        /// @param[in] pol] the polarisation for which the flagging information
+        ///     is to be set.
+        ///
+        /// @throw AskapError if the value of beam, coarseChannel or pol
+        ///     is invalid for this antenna.
+        ///
         void flagDetailed(const casa::Bool& val,
                           const casa::uInt& beam,
                           const casa::uInt& coarseChannel,
                           const casa::uInt& pol);
 
+        /// @brief Get the
+        ///
+        /// @li The value of beam must be between 0 and(nBeams() - 1).
+        /// @li The value of coarseChannel must be between 0 and
+        ///     (nCoarseChannels() - 1).
+        /// @li The value of pol must be between 0 and (nPol() - 1).
+        ///
+        /// @param[in] beam the beam for which the system temperature is
+        ///     desired.
+        /// @param[in] coarseChannel the coarse channel for which the
+        ///     system temperature is desired.
+        /// @param[in] pol] the polarisation for which the system temperature 
+        ///     is desired.
+        ///
+        /// @throw AskapError if the value of beam, coarseChannel or pol
+        ///     is invalid for this antenna.
+        ///
+        /// @return the system temperature value for the given beam, coarse
+        ///     channel and polarisation (units in Kelvin).
         casa::Float systemTemp(const casa::uInt& beam,
                                const casa::uInt& coarseChannel,
                                const casa::uInt& pol) const;
 
+        /// @brief Set the system temperature for a given beam, coarse channel
+        /// and polarisation.
+        ///
+        /// @li The value of beam must be between 0 and(nBeams() - 1).
+        /// @li The value of coarseChannel must be between 0 and
+        ///     (nCoarseChannels() - 1).
+        /// @li The value of pol must be between 0 and (nPol() - 1).
+        ///
+        /// @param[in] val the system temperature (units in Kelvin).
+        /// @param[in] beam the beam for which the system temperature is
+        ///     to be set.
+        /// @param[in] coarseChannel the coarse channel for which the
+        ///     system temperature is to be set.
+        /// @param[in] pol] the polarisation for which the system temperature 
+        ///     is to be set.
+        ///
+        /// @throw AskapError if the value of beam, coarseChannel or pol
+        ///     is invalid for this antenna.
         void systemTemp(const casa::Float& val,
                         const casa::uInt& beam,
                         const casa::uInt& coarseChannel,
@@ -108,26 +288,65 @@ class TosMetadataAntenna {
 
     private:
 
+        /// Throws an exception if the given beam is invalid.
         void checkBeam(const casa::uInt& beam) const;
 
+        /// Throws an exception if the given coarse channel is invalid.
         void checkCoarseChannel(const casa::uInt& coarseChannel) const;
 
+        /// Throws an exception if the given polarisation is invalid.
         void checkPol(const casa::uInt& pol) const;
 
+        /// The name of the antenna
         casa::String itsName;
+
+        /// The number of coarse channels
         casa::uInt itsNumCoarseChannels;
+
+        /// The number of beams. This is the same for each
+        /// coarse channel.
         casa::uInt itsNumBeams;
+
+        /// The number of polarisations.
         casa::uInt itsNumPol;
 
+        /// The physical dish pointing
         casa::MDirection itsDishPointing;
+
+        /// The centre frequency (in Hz)
         casa::Double itsFrequency;
+
+        /// The The client id (ie. normally scheduling block id) that
+        /// the antenna is allocated to.
         casa::String itsClientId;
+
+        /// The TOS scan id the antenna is currently performing.
         casa::String itsScanId;
+
+        /// The phase tracking centre, per beam and per coarse channel.
         casa::Matrix<casa::MDirection> itsPhaseTrackingCentre;
+
+        /// The parallactic angle (in Radians).
         casa::Double itsParallacticAngle;
+
+        /// True if antenna was within tolerance thresholds of the target
+        /// trajectory throughout the entire integration cycle. If this is
+        /// false then all data from this antenna should be flagged.
         casa::Bool itsOnSource;
+
+        /// True if hardware monitoring reveals a problem (eg. LO out of lock)
+        /// that means all data from this antenna should be flagged.
         casa::Bool itsHwError;
+
+        /// Detailed, per beam, per coarse channel, per polarisation flagging
+        /// information.
+        ///
+        /// @note This cube of flag data is independant of the onSource and
+        /// hwError flags.
         casa::Cube<casa::Bool> itsFlagDetailed;
+
+        /// The system temperature, per beam, per coarse channel, per
+        /// polarisation.
         casa::Cube<casa::Float> itsSystemTemp;
 };
 
