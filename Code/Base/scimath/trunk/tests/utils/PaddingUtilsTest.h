@@ -48,6 +48,7 @@ class PaddingUtilsTest : public CppUnit::TestFixture
    CPPUNIT_TEST_SUITE(PaddingUtilsTest);
    CPPUNIT_TEST(testPaddedShape);
    CPPUNIT_TEST(testExtract);
+   CPPUNIT_TEST(testNonIntegralPadding);
    CPPUNIT_TEST_SUITE_END();
 public:
    void testPaddedShape() {
@@ -70,6 +71,29 @@ public:
                 CPPUNIT_ASSERT(paddedArray(row,column) == ((row>=1) && (row<=3) && (column>=1) && (column<=2))); 
            }
       }     
+   }
+   
+   void testNonIntegralPadding() {
+      doNonIntegralPaddingTest(casa::IPosition(2,31,19),2.2);
+      doNonIntegralPaddingTest(casa::IPosition(2,1,7),2.5234);
+      doNonIntegralPaddingTest(casa::IPosition(2,32,64),casa::C::pi);
+      doNonIntegralPaddingTest(casa::IPosition(2,32,63),sqrt(2.));
+   }
+
+protected:   
+   /// @param[in] shape unpadded shape
+   /// @param[in] factor padding factor
+   void doNonIntegralPaddingTest(const casa::IPosition &shape, float factor) {
+     CPPUNIT_ASSERT(shape.nelements() == 2);
+     casa::Matrix<bool> paddedArray(PaddingUtils::paddedShape(shape,factor),false);
+     casa::Matrix<bool> subArray = PaddingUtils::extract(paddedArray,factor);
+     subArray.set(true);
+     const casa::uInt expectedX = casa::uInt(std::floor(factor*shape[0]));
+     const casa::uInt expectedY = casa::uInt(std::floor(factor*shape[1]));     
+     CPPUNIT_ASSERT(paddedArray.nrow() == expectedX);
+     CPPUNIT_ASSERT(paddedArray.ncolumn() == expectedY);
+     CPPUNIT_ASSERT(int(subArray.nrow()) == shape[0]);
+     CPPUNIT_ASSERT(int(subArray.ncolumn()) == shape[1]);     
    }
 };
 

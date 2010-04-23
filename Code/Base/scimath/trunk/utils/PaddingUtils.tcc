@@ -72,14 +72,20 @@ casa::Array<T> PaddingUtils::centeredSubArray(casa::Array<T> &source,
 /// @param[in] padding padding factor (should be a positive number)
 /// @return extracted subarray
 template<typename T>
-casa::Array<T> PaddingUtils::extract(casa::Array<T> &source, const int padding)
+casa::Array<T> PaddingUtils::extract(casa::Array<T> &source, const float padding)
 {
    casa::IPosition shape(source.shape());
    ASKAPDEBUGASSERT(shape.nelements()>=2);
    ASKAPDEBUGASSERT(padding>0);
    // form desired shape
-   shape(0) /= padding;
-   shape(1) /= padding;
+   for (size_t dim=0; dim<2; ++dim) {
+        shape(dim) = int(shape(dim) / padding);
+        // rounding off operation does not commute with division/multiplication, hence an extra check is required
+        if (int(padding*shape(dim))<source.shape()(dim)) {
+            ++shape(dim);
+        }
+   }
+   ASKAPDEBUGASSERT(paddedShape(shape,padding) == source.shape());
    return centeredSubArray(source, shape);
 }
 

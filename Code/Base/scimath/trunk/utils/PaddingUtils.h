@@ -75,7 +75,7 @@ struct PaddingUtils {
   /// @param[in] padding padding factor (should be a positive number)
   /// @return extracted subarray
   template<typename T>
-  static casa::Array<T> extract(casa::Array<T> &source, const int padding);
+  static casa::Array<T> extract(casa::Array<T> &source, const float padding);
   
   /// @brief helper method to get padded shape
   /// @details Most padding applications in the ASKAPsoft require operations on just two
@@ -83,7 +83,7 @@ struct PaddingUtils {
   /// @param[in] shape shape of the original array
   /// @param[in] padding padding factor
   /// @return shape of the padded array
-  static casa::IPosition paddedShape(const casa::IPosition &shape, const int padding);
+  static casa::IPosition paddedShape(const casa::IPosition &shape, const float padding);
   
   /// @brief padding with fft
   /// @details Sometimes it is necessary to do padding in the other domain. This routine 
