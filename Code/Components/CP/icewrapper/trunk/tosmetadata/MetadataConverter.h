@@ -39,28 +39,46 @@
 namespace askap {
 namespace cp {
 
-/// @brief TODO
+/// @brief Utility class to convert between native Ice implementation of
+/// the Telescope Operating System metadata and a simple OO representation.
 /// @ingroup tosmetadata
 class MetadataConverter {
     public:
+        /// @brief Convert from a TimeTaggedTypedValueMap (Ice native) to
+        /// a TosMetadata object.
+        ///
+        /// @param[in] source   source object.
+        /// @return converted from source object.
         askap::cp::TosMetadata convert(const askap::interfaces::TimeTaggedTypedValueMap& source);
 
+        /// @brief Convert from a TosMetdata object to an (Ice native)
+        /// TimeTaggedTypedValueMap.
+        ///
+        /// @param[in] source   source object.
+        /// @return converted from source object.
         askap::interfaces::TimeTaggedTypedValueMap convert(const askap::cp::TosMetadata& source);
 
     private:
+        /// Utility class to convert an antenna given by antId.
         void convertAntenna(unsigned int antId,
                             const askap::cp::TosMetadata& source,
                             askap::interfaces::TimeTaggedTypedValueMap& dest);
 
+        /// Utility class to convert an antenna given by antenna name.
         void convertAntenna(const std::string& antennaName,
                             const askap::interfaces::TimeTaggedTypedValueMap& source,
                             askap::cp::TosMetadata& dest);
 
+        /// @brief Makes a map key given a profix (typically an antenna name),
+        /// and a suffix.
+        ///
+        /// If for example the prefix is "askap01" and the suffix is
+        /// "dish_pointing" then the return will be "askap01.dish_pointing"
         std::string makeMapKey(const std::string& prefix,
                 const std::string& suffix);
 };
 
-};
-};
+}
+}
 
 #endif

@@ -40,7 +40,8 @@
 namespace askap {
 namespace cp {
 
-/// @brief TODO
+/// @brief Creates instances of Ice::Communicator given a configuration
+/// object.
 /// @ingroup iceutils
 class CommunicatorFactory {
     public:
@@ -57,7 +58,7 @@ class CommunicatorFactory {
             const CommunicatorConfig& config);
 };
 
-};
-};
+}
+}
 
 #endif

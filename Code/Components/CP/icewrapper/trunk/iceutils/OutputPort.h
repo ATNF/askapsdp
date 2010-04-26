@@ -42,7 +42,11 @@
 namespace askap {
 namespace cp {
 
-/// @brief TODO
+/// @brief A publish port via which pub/sub messages can be sent via IceStorm.
+///
+/// @tparam T   Type which will be sent via the port.
+/// @tparam P   Type of the topic proxy
+///
 /// @ingroup iceutils
 template<class T, class P>
 class OutputPort : public IPort {
@@ -66,6 +70,8 @@ class OutputPort : public IPort {
             return IPort::OUT;
         };
 
+        /// @brief Attach to a topic.
+        ///
         /// @param[in] topic the name of the topic to attach the port to.
         /// @param[in] topicManager the identity of the topic manager from
         ///                         where the topic subscription should be
@@ -98,6 +104,9 @@ class OutputPort : public IPort {
             itsProxy = 0;
         };
 
+        /// @brief Get the proxy object.
+        ///
+        /// @return the proxy object.
         virtual P getProxy(void) {
             if (itsProxy) {
                 return itsProxy;
@@ -121,7 +130,7 @@ class OutputPort : public IPort {
         IceStorm::TopicPrx itsTopicPrx;
 };
 
-};
-};
+}
+}
 
 #endif

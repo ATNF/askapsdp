@@ -45,7 +45,11 @@
 namespace askap {
 namespace cp {
 
-/// @brief TODO
+/// @brief A templated input port for an IceStorm subscription.
+///
+/// @tparam T   Slice type (C++ version of it) which will be received.
+/// @tparam S   Slice interface to inherit from.
+///
 /// @ingroup iceutils
 template<class T, class S>
 class InputPort : public IPort, public S {

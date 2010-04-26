@@ -41,10 +41,17 @@
 namespace askap {
 namespace cp {
 
-/// @brief TODO
+/// @brief Used to map between an askap::interfaces::TypedValueMap instance
+/// and native Casa types.
+///
+/// This class provides read-only access to the TypedValueMap. If read/write
+/// access is required the TypedValueMapMapper may be used.
+/// 
 /// @ingroup tosmetadata
 class TypedValueMapConstMapper {
     public:
+        /// @brief Constructor
+        /// @param[in] map  the TypedValueMap this mapper maps from/to
         TypedValueMapConstMapper(const askap::interfaces::TypedValueMap& map);
         
         virtual casa::Int getInt(const std::string& key) const;
@@ -68,22 +75,27 @@ class TypedValueMapConstMapper {
         virtual std::vector<casa::MDirection> getDirectionSeq(const std::string& key) const;
 
     private:
-        // Methods
-
         // Template params are:
-        // T - Native (or casa) type
-        // TVType - Enum value from TypedValueType enum
-        // TVPtr - TypedValue pointer type
+        /// @brief Parse the value of element identified by "key" and return in
+        /// the appropriate type.
+        ///
+        /// @tparam T        Native (or casa) type
+        /// @tparam TVType   Enum value from TypedValueType enum
+        /// @tparam TVPtr    TypedValue pointer type
+        ///
+        /// @return the value for map element identified by the parameter "key".
         template <class T, askap::interfaces::TypedValueType TVType, class TVPtr>
         T get(const std::string& key) const;
 
+        /// @brief Convert a TypedValue (Slice) direction type to a
+        /// casa::MDirection
         casa::MDirection convertDirection(const askap::interfaces::Direction& dir) const;
 
-        // Attributes
+        /// @brief The TypedValueMap this mapper maps from/to.
         const askap::interfaces::TypedValueMap itsConstMap;
 };
 
-};
-};
+}
+}
 
 #endif

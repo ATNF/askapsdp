@@ -39,51 +39,57 @@
 #include "TypedValues.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        /// @brief TODO
-        /// @ingroup tosmetadata
-        class MetadataReceiver :
-            virtual public askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisher
-        {
-            public:
-                /// @brief Constructor.
-                ///
-                /// @param[in] the hostname or IP-address of the locator
-                ///     service (registry).
-                /// @param[in] locatorPort the port number of the locator
-                ///     service which is running on the host specified by
-                ///     the locatorHost parameter.
-                /// @param[in] topicManager the identity of the topic manager
-                ///     from where the topic subscription should be requested.
-                /// @param[in] topic the name of the topic to attach the port
-                ///     to. This is the topic where messages wil be sent.
-                MetadataReceiver(const std::string& locatorHost,
-                        const std::string& locatorPort,
-                        const std::string& topicManager,
-                        const std::string& topic,
-                        const std::string& adapterName);
+/// @brief A class used to receive TosMetadata (via a callback) from an IceStorm
+/// topic.
+/// @ingroup tosmetadata
+class MetadataReceiver :
+            virtual public askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisher {
+    public:
+        /// @brief Constructor.
+        ///
+        /// @param[in] the hostname or IP-address of the locator
+        ///     service (registry).
+        /// @param[in] locatorPort the port number of the locator
+        ///     service which is running on the host specified by
+        ///     the locatorHost parameter.
+        /// @param[in] topicManager the identity of the topic manager
+        ///     from where the topic subscription should be requested.
+        /// @param[in] topic the name of the topic to attach the port
+        ///     to. This is the topic where messages wil be sent.
+        MetadataReceiver(const std::string& locatorHost,
+                         const std::string& locatorPort,
+                         const std::string& topicManager,
+                         const std::string& topic,
+                         const std::string& adapterName);
 
-                /// @brief Destructor
-                ~MetadataReceiver();
+        /// @brief Destructor
+        ~MetadataReceiver();
 
-                virtual void receive(const askap::cp::TosMetadata& msg) = 0;
+        /// @brief Callback method that must be implemented by the sub-class.
+        /// Messages are delivered to the sub-class via this callback.
+        ///
+        /// @param[in] msg  the message received from the topic.
+        virtual void receive(const askap::cp::TosMetadata& msg) = 0;
 
-            private:
-                virtual void publish(
-                        const askap::interfaces::TimeTaggedTypedValueMap& msg,
-                        const Ice::Current& c);
+    private:
+        // Callback method that Ice will call when a message is received
+        // from the topic.
+        virtual void publish(
+            const askap::interfaces::TimeTaggedTypedValueMap& msg,
+            const Ice::Current& c);
 
-                // An Ice proxy to the object this class registers
-                // (what happens to be itself)
-                Ice::ObjectPrx itsProxy;
+        // An Ice proxy to the object this class registers
+        // (what happens to be itself)
+        Ice::ObjectPrx itsProxy;
 
-                // Proxy to the topic manager
-                IceStorm::TopicPrx itsTopicPrx;
+        // Proxy to the topic manager
+        IceStorm::TopicPrx itsTopicPrx;
 
-        };
+};
 
-    };
+};
 };
 
 #endif

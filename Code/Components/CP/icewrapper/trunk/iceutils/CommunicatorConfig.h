@@ -37,28 +37,58 @@
 namespace askap {
 namespace cp {
 
-/// @brief TODO
+/// @brief The class encapsulates a set of configuration options
+/// for configuring the Ice communicator.
+///
 /// @ingroup iceutils
 class CommunicatorConfig {
+
     public:
+        /// @brief Constructor
+        ///
+        /// @param[in] locatorHost  the hostname or IP address of the Ice
+        ///     locator service.
+        /// @param[in] locatorPort  the port number on which the Ice locator
+        ///     service is running.
         CommunicatorConfig(const std::string& locatorHost,
                            const std::string& locatorPort);
 
+        /// @brief Add or modify an Ice Property in the CommunicatorConfig.
+        ///
+        /// @param[in] key      key to set
+        /// @param[in] value    value to set
         void setProperty(const std::string& key, const std::string& value);
 
+        /// @brief Remove an Ice Property from the CommunicatorConfig.
+        ///
+        /// @param[in] key      key to remove.
         void removeProperty(const std::string& key);
 
+        /// @brief Add or modify an Ice adapter in the CommunicatorConfig.
+        ///
+        /// @param[in] name name of the adapter to configure.
+        /// @param[in] endpoints    Endpoints for the adapter (eg. "tcp").
         void setAdapter(const std::string& name, const std::string& endpoints);
 
+        /// @brief Remove an adapter from the CommunicatorConfig.
+        ///
+        /// @param[in] name name of the adapter to remove.
         void removeAdapter(const std::string& name);
 
+        /// @brief Convert this instance of CommunicatorConfig to IceProperties.
+        ///
+        /// @note This method is called by the CommunicatorFactory and
+        /// generally should not be necessary elsewhere.
+        ///
+        /// @return a pointer to IceProperties.
         Ice::PropertiesPtr convertToIceProperties(void) const;
 
     private:
+        /// Map of properties
         std::map<std::string, std::string> itsProperties;
 };
 
-};
-};
+}
+}
 
 #endif
