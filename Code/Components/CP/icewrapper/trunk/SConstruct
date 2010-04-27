@@ -12,7 +12,6 @@ pkg.AddSubPackage("iceutils")
 pkg.AddSubPackage("tosmetadata")
 
 env.Append(CCFLAGS=['-Wall'])
-env.Append(CCFLAGS=['-Wextra'])
 env.Append(CCFLAGS=['-g'])
 
 # run the build process

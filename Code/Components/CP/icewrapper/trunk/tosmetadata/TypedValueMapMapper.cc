@@ -121,17 +121,16 @@ void TypedValueMapMapper::setLongSeq(const std::string& key, const std::vector<c
 #ifndef __LP64__
     ASKAPTHROW(AskapError, "This platform does not support 64-bit long");
 #else
-    set<std::vector<casa::Long>, TypeLongSeq, TypedValueLongSeq>(key, val);
+    // Use assign on this sequence instead of calling set directly and having
+    // the copy constructor do the conversion. This was a problem on Mac OSX 10.6
+    LongSeq seq(val.begin(), val.end());
+    set<LongSeq, TypeLongSeq, TypedValueLongSeq>(key, seq);
 #endif
 }
 
 void TypedValueMapMapper::setStringSeq(const std::string& key, const std::vector<casa::String>& val)
 {
-    StringSeq seq;
-    std::vector<casa::String>::const_iterator it;
-    for (it = val.begin(); it != val.end(); ++it) {
-        seq.push_back(*it);
-    }
+    StringSeq seq(val.begin(), val.end());
     set<StringSeq, TypeStringSeq, TypedValueStringSeq>(key, seq);
 }
 

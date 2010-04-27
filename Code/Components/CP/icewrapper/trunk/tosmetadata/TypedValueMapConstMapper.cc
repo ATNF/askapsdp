@@ -121,7 +121,9 @@ std::vector<casa::Long> TypedValueMapConstMapper::getLongSeq(const std::string& 
 #ifndef __LP64__
     ASKAPTHROW(AskapError, "This platform does not support 64-bit long");
 #else
-    return get<std::vector<casa::Long>, TypeLongSeq, TypedValueLongSeqPtr>(key);
+    //return get<std::vector<casa::Long>, TypeLongSeq, TypedValueLongSeqPtr>(key);
+    LongSeq seq = get<LongSeq, TypeLongSeq, TypedValueLongSeqPtr>(key);
+    return std::vector<casa::Long>(seq.begin(), seq.end());
 #endif
 }
 
@@ -131,15 +133,7 @@ std::vector<casa::String> TypedValueMapConstMapper::getStringSeq(const std::stri
         get<askap::interfaces::StringSeq, TypeStringSeq,
         TypedValueStringSeqPtr>(key);
 
-    // Populate this vector before returning it
-    std::vector<casa::String> container;
-
-    askap::interfaces::StringSeq::const_iterator it;
-    for (it = val.begin(); it != val.end(); ++it) {
-        container.push_back(casa::String(*it));
-    }
-
-    return container;
+    return std::vector<casa::String>(val.begin(), val.end());
 }
 
 std::vector<casa::Bool> TypedValueMapConstMapper::getBoolSeq(const std::string& key) const
