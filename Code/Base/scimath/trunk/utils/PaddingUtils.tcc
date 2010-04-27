@@ -89,6 +89,61 @@ casa::Array<T> PaddingUtils::extract(casa::Array<T> &source, const float padding
    return centeredSubArray(source, shape);
 }
 
+/// @brief clip outer edges
+/// @details To make padding effective we need to fill the outer edges with zeros after non-linear
+/// operations such as preconditioning. This method leaves the inner subarray of the given 2D shape 
+/// intact and fills the rest of the array with zeros. Any type is supported which allows assignment of
+/// a float (0.).
+/// @param[in] source array to modify
+/// @param[in] size shape of the inner subarray to be left intact
+/// @note At the moment, clipping can only happen on the first two axes and the inner subarray must be 
+/// two-dimensional
+template<typename T>
+void PaddingUtils::clip(casa::Array<T> & source, const casa::IPosition &size)
+{
+   const casa::IPosition shape = source.shape();
+   ASKAPDEBUGASSERT(shape.nelements()>=2);
+   ASKAPASSERT(size.nelements() == 2);
+   casa::IPosition end(shape);
+   for (uint index=0;index<end.nelements();++index) {
+        ASKAPDEBUGASSERT(end[index]>=1);
+        end[index]--;
+   }
+
+       if (shape[0]>size[0]+1) {
+           // need clipping along the first axis
+           casa::IPosition start(shape.nelements(),0);
+           end[0] = (shape[0]-size[0])/2-1;
+           end[1] = shape[1]-1; // although this step is strictly speaking unnecessary
+           source(start,end).set(0.); 
+           
+           end[0] = shape[0]-1;
+           start[0] = (shape[0]+size[0])/2;
+           source(start,end).set(0.);
+       }
+       
+       if (shape[1]>size[1]+1) {
+           // need clipping along the second axis
+           casa::IPosition start(shape.nelements(),0);
+           start[0]=(shape[0]-size[0])/2;
+           end[0]=(shape[0]+size[0])/2;
+           if (start[0]<0) {
+               start[0] = 0;
+           }
+           if (end[0]+1 > shape[0]) {
+               end[0] = shape[0] - 1;
+           }
+           start[1] = 0;
+           end[1] = (shape[1]-size[1])/2-1;
+           source(start,end).set(0.);
+           
+           start[1] = (shape[1]+size[1])/2;
+           end[1] = shape[1]-1;
+           source(start,end).set(0.);
+       }       
+}
+
+
 } // namespace scimath
 
 } // namespace askap

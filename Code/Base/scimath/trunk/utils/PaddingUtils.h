@@ -77,6 +77,18 @@ struct PaddingUtils {
   template<typename T>
   static casa::Array<T> extract(casa::Array<T> &source, const float padding);
   
+  /// @brief clip outer edges
+  /// @details To make padding effective we need to fill the outer edges with zeros after non-linear
+  /// operations such as preconditioning. This method leaves the inner subarray of the given 2D shape 
+  /// intact and fills the rest of the array with zeros. Any type is supported which allows assignment of
+  /// a float (0.).
+  /// @param[in] source array to modify
+  /// @param[in] size shape of the inner subarray to be left intact
+  /// @note At the moment, clipping can only happen on the first two axes and the inner subarray must be 
+  /// two-dimensional
+  template<typename T>
+  static void clip(casa::Array<T> & source, const casa::IPosition &size);
+  
   /// @brief helper method to get padded shape
   /// @details Most padding applications in the ASKAPsoft require operations on just two
   /// axes. This method froms a shape of an array padded on first two axes with the given factor.
