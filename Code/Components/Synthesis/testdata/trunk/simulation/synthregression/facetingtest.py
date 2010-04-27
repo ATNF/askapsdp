@@ -55,8 +55,15 @@ def analyseResult(spr):
 spr = SynthesisProgramRunner(template_parset = 'facetingtest_template.in')
 spr.runSimulator()
 
-#spr.addToParset("Cimager.gridder = WProject")
+print "Testing faceting with overlap"
+spr.addToParset("Cimager.Images.shape  = [1024,1024]")
+spr.addToParset("Cimager.Images.image.field1.facetstep = 512")
 spr.runImager()
 analyseResult(spr)
 
-#spr.initParset()
+print "Testing faceting with padding"
+spr.initParset()
+spr.addToParset("Cimager.Images.shape  = [512,512]")
+spr.addToParset("Cimager.gridder.padding  = 2")
+spr.runImager()
+analyseResult(spr)
