@@ -28,15 +28,11 @@
 #include <AskapTestRunner.h>
 
 // Test includes
-#include "MetadataConverterForwardTest.h"
-#include "MetadataConverterReverseTest.h"
 #include "MetadataConverterTest.h"
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-    //runner.addTest(askap::cp::MetadataConverterForwardTest::suite());
-    //runner.addTest(askap::cp::MetadataConverterReverseTest::suite());
     runner.addTest(askap::cp::MetadataConverterTest::suite());
     bool wasSucessful = runner.run();
 

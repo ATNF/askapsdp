@@ -33,6 +33,7 @@
 #include <vector>
 
 // Support classes
+#include "askap/AskapError.h"
 #include "boost/scoped_ptr.hpp"
 #include "TypedValues.h"
 #include "cpcommon/TosMetadata.h"
@@ -51,8 +52,11 @@ namespace askap {
 
         class MetadataConverterTest : public CppUnit::TestFixture {
             CPPUNIT_TEST_SUITE(MetadataConverterTest);
+            CPPUNIT_TEST(testNonLP64);
+#ifdef __LP64__
             CPPUNIT_TEST(testConverter);
             CPPUNIT_TEST(testConverterAntenna);
+#endif
             CPPUNIT_TEST_SUITE_END();
 
             public:
@@ -119,6 +123,9 @@ namespace askap {
 
                 }
 
+#ifndef __LP64__
+                try {
+#endif
                 ///////////////////////////////////////////////////
                 // Convert (TosMetadata -> TimeTaggedTypedValueMap)
                 ///////////////////////////////////////////////////
@@ -129,12 +136,24 @@ namespace askap {
                 // Convert back to a TosMetadata
                 ////////////////////////////////
                 itsResult.reset(new TosMetadata(converter.convert(intermediate)));
+#ifndef __LP64__
+                CPPUNIT_FAIL("Expected exception not thrown");
+                } catch (askap::AskapError&) {
+                    // This is expected for 32-bit platforms
+                }
+#endif
             }
 
             void tearDown()
             {
                 itsSource.reset();
                 itsResult.reset();
+            }
+
+            void testNonLP64()
+            {
+                // This is here to ensure setUp() is attempted on 32-bit platforms.
+                // The other tests are for LP64 platforms only.
             }
 
             void testConverter()
