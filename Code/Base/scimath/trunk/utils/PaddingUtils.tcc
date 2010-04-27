@@ -74,19 +74,7 @@ casa::Array<T> PaddingUtils::centeredSubArray(casa::Array<T> &source,
 template<typename T>
 casa::Array<T> PaddingUtils::extract(casa::Array<T> &source, const float padding)
 {
-   casa::IPosition shape(source.shape());
-   ASKAPDEBUGASSERT(shape.nelements()>=2);
-   ASKAPDEBUGASSERT(padding>0);
-   // form desired shape
-   for (size_t dim=0; dim<2; ++dim) {
-        shape(dim) = int(shape(dim) / padding);
-        // rounding off operation does not commute with division/multiplication, hence an extra check is required
-        if (int(padding*shape(dim))<source.shape()(dim)) {
-            ++shape(dim);
-        }
-   }
-   ASKAPDEBUGASSERT(paddedShape(shape,padding) == source.shape());
-   return centeredSubArray(source, shape);
+   return centeredSubArray(source, unpadShape(source.shape(),padding));
 }
 
 /// @brief clip outer edges

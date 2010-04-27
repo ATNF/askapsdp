@@ -187,3 +187,28 @@ void PaddingUtils::fftPad(const casa::Array<double>& in, casa::Array<double>& ou
   }
 }
 
+/// @brief helper method to get shape before padding
+/// @details Most padding applications in the ASKAPsoft require operations on just two
+/// axes. This method froms a shape of an array before padding from the padded shape
+/// @param[in] shape shape of the padded array
+/// @param[in] padding padding factor (should be a positive number)
+/// @return shape before padding
+casa::IPosition PaddingUtils::unpadShape(const casa::IPosition &shape, const float padding)
+{
+   ASKAPDEBUGASSERT(shape.nelements()>=2);
+   ASKAPDEBUGASSERT(padding>0);
+   casa::IPosition outShape(shape);
+   // form desired shape
+   for (size_t dim=0; dim<2; ++dim) {
+        outShape(dim) = int(outShape(dim) / padding);
+        // rounding off operation does not commute with division/multiplication, hence an extra check is required
+        if (int(padding*outShape(dim))<shape(dim)) {
+            ++outShape(dim);
+        }
+   }
+   // ensure that this method does reverse operation to paddedShape
+   ASKAPDEBUGASSERT(paddedShape(outShape,padding) == shape);
+   return outShape;
+}
+
+

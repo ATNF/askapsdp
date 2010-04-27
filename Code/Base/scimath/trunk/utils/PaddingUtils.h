@@ -77,6 +77,14 @@ struct PaddingUtils {
   template<typename T>
   static casa::Array<T> extract(casa::Array<T> &source, const float padding);
   
+  /// @brief helper method to get shape before padding
+  /// @details Most padding applications in the ASKAPsoft require operations on just two
+  /// axes. This method froms a shape of an array before padding from the padded shape
+  /// @param[in] shape shape of the padded array
+  /// @param[in] padding padding factor (should be a positive number)
+  /// @return shape before padding
+  static casa::IPosition unpadShape(const casa::IPosition &shape, const float padding);
+  
   /// @brief clip outer edges
   /// @details To make padding effective we need to fill the outer edges with zeros after non-linear
   /// operations such as preconditioning. This method leaves the inner subarray of the given 2D shape 
