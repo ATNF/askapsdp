@@ -30,7 +30,7 @@
 // Test includes
 #include "MetadataConverterTest.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char /* *argv[] */)
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
     runner.addTest(askap::cp::MetadataConverterTest::suite());
