@@ -37,6 +37,8 @@ namespace askap {
         class IVisSource
         {
             public:
+                virtual ~IVisSource() {};
+
                 // Blocking
                 virtual boost::shared_ptr<VisPayload> next(void) = 0;
 

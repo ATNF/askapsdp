@@ -42,7 +42,7 @@ namespace askap {
         {
             public:
                 MockVisSource();
-                ~MockVisSource();
+                virtual ~MockVisSource();
 
                 void add(boost::shared_ptr< VisPayload > obj);
 

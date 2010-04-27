@@ -53,6 +53,9 @@ class TypedValueMapConstMapper {
         /// @brief Constructor
         /// @param[in] map  the TypedValueMap this mapper maps from/to
         TypedValueMapConstMapper(const askap::interfaces::TypedValueMap& map);
+
+        /// @brief Destructor.
+        virtual ~TypedValueMapConstMapper() {};
         
         virtual casa::Int getInt(const std::string& key) const;
         virtual casa::Long getLong(const std::string& key) const;

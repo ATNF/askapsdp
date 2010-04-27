@@ -37,6 +37,8 @@ namespace askap {
         class IMetadataSource
         {
             public:
+                virtual ~IMetadataSource() {};
+
                 // Blocking
                 virtual boost::shared_ptr<askap::cp::TosMetadata> next(void) = 0;
 

@@ -42,7 +42,7 @@ namespace askap {
         {
             public:
                 MockMetadataSource();
-                ~MockMetadataSource();
+                virtual ~MockMetadataSource();
 
                 void add(boost::shared_ptr<askap::cp::TosMetadata> obj);
 

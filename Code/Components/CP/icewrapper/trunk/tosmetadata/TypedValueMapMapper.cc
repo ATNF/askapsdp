@@ -57,7 +57,13 @@ void TypedValueMapMapper::setInt(const std::string& key, const casa::Int& val)
 
 void TypedValueMapMapper::setLong(const std::string& key, const casa::Long& val)
 {
+    // ::Ice::Long is 64-bit (even on 32-bit x86) whereas casa::Long will be 
+    // 32-bit. Using this mapper on such a system will likely lead to grief.
+#ifndef __LP64__
+    ASKAPTHROW(AskapError, "This platform does not support 64-bit long");
+#else
     set<casa::Long, TypeLong, TypedValueLong>(key, val);
+#endif
 }
 
 void TypedValueMapMapper::setString(const std::string& key, const casa::String& val)
@@ -110,7 +116,13 @@ void TypedValueMapMapper::setIntSeq(const std::string& key, const std::vector<ca
 
 void TypedValueMapMapper::setLongSeq(const std::string& key, const std::vector<casa::Long>& val)
 {
+    // ::Ice::Long is 64-bit (even on 32-bit x86) whereas casa::Long will be 
+    // 32-bit. Using this mapper on such a system will likely lead to grief.
+#ifndef __LP64__
+    ASKAPTHROW(AskapError, "This platform does not support 64-bit long");
+#else
     set<std::vector<casa::Long>, TypeLongSeq, TypedValueLongSeq>(key, val);
+#endif
 }
 
 void TypedValueMapMapper::setStringSeq(const std::string& key, const std::vector<casa::String>& val)

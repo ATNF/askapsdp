@@ -29,6 +29,7 @@
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
+#include "casa/aips.h"
 
 #include "measures/Measures/MDirection.h"
 
@@ -52,7 +53,13 @@ int TypedValueMapConstMapper::getInt(const std::string& key) const
 
 long TypedValueMapConstMapper::getLong(const std::string& key) const
 {
+    // ::Ice::Long is 64-bit (even on 32-bit x86) whereas casa::Long will be 
+    // 32-bit. Using this mapper on such a system will likely lead to grief.
+#ifndef __LP64__
+    ASKAPTHROW(AskapError, "This platform does not support 64-bit long");
+#else
     return get<long, TypeLong, TypedValueLongPtr>(key);
+#endif
 }
 
 casa::String TypedValueMapConstMapper::getString(const std::string& key) const
@@ -109,7 +116,13 @@ std::vector<casa::Int> TypedValueMapConstMapper::getIntSeq(const std::string& ke
 
 std::vector<casa::Long> TypedValueMapConstMapper::getLongSeq(const std::string& key) const
 {
+    // ::Ice::Long is 64-bit (even on 32-bit x86) whereas casa::Long will be 
+    // 32-bit. Using this mapper on such a system will likely lead to grief.
+#ifndef __LP64__
+    ASKAPTHROW(AskapError, "This platform does not support 64-bit long");
+#else
     return get<std::vector<casa::Long>, TypeLongSeq, TypedValueLongSeqPtr>(key);
+#endif
 }
 
 std::vector<casa::String> TypedValueMapConstMapper::getStringSeq(const std::string& key) const
