@@ -101,7 +101,7 @@ RawMetadataReceiver::~RawMetadataReceiver()
 
 void RawMetadataReceiver::publish(
         const askap::interfaces::TimeTaggedTypedValueMap& msg,
-        const Ice::Current& c)
+        const Ice::Current& /* c */)
 {
     receive(msg);
 }

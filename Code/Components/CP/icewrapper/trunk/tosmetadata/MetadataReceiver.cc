@@ -103,7 +103,7 @@ MetadataReceiver::~MetadataReceiver()
 
 void MetadataReceiver::publish(
         const askap::interfaces::TimeTaggedTypedValueMap& msg,
-        const Ice::Current& c)
+        const Ice::Current& /* c */)
 {
     MetadataConverter converter;
     receive(converter.convert(msg));

@@ -88,7 +88,7 @@ void CommunicatorConfig::setAdapter(const std::string& name, const std::string& 
     
     std::ostringstream epprop;
     epprop << name << ".Endpoints";
-    setProperty(epprop.str(), "tcp");
+    setProperty(epprop.str(), endpoints);
 
 }
 
