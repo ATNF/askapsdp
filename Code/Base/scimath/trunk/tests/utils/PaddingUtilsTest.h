@@ -49,6 +49,7 @@ class PaddingUtilsTest : public CppUnit::TestFixture
    CPPUNIT_TEST(testPaddedShape);
    CPPUNIT_TEST(testExtract);
    CPPUNIT_TEST(testNonIntegralPadding);
+   CPPUNIT_TEST(testClip);
    CPPUNIT_TEST_SUITE_END();
 public:
    void testPaddedShape() {
@@ -78,6 +79,35 @@ public:
       doNonIntegralPaddingTest(casa::IPosition(2,1,7),2.5234);
       doNonIntegralPaddingTest(casa::IPosition(2,32,64),casa::C::pi);
       doNonIntegralPaddingTest(casa::IPosition(2,32,63),sqrt(2.));
+   }
+   
+   void testClip() {
+      casa::Matrix<float> image(6,3,1.);
+      PaddingUtils::clip(image,casa::IPosition(2,3,1));
+      for (uint row=0; row<image.nrow(); ++row) {
+           for (uint column=0; column<image.ncolumn();++column) {
+                if ((column == 1) && (row>=1) && (row<=3)) {
+                    CPPUNIT_ASSERT(fabs(image(row,column)-1.)<1e-6);
+                } else {
+                    CPPUNIT_ASSERT(fabs(image(row,column))<1e-6);
+                }
+           }
+      }
+      
+      // larger scale test similar to practical use
+      casa::Cube<float> cube(1024,512,2,1.);
+      const casa::IPosition  innerShape(2,512,256);
+      PaddingUtils::clip(cube,innerShape);      
+      PaddingUtils::centeredSubArray(cube,innerShape.concatenate(casa::IPosition(1,2))).set(2.);
+      for (uint plane=0; plane<cube.nplane(); ++plane) {
+           for (uint row=0; row<cube.nrow(); ++row) {
+                for (uint column=0; column<cube.ncolumn(); ++column) {
+                     if (fabs(cube(row,column,plane)) > 1e-6) {
+                         CPPUNIT_ASSERT(fabs(cube(row,column,plane)-2.)<1e-6);
+                     }
+                }
+           }
+      }
    }
 
 protected:   
