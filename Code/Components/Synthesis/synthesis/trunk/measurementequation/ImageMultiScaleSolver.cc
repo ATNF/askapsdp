@@ -170,7 +170,11 @@ namespace askap
 	            } 
 	            itsParams->update(psfName, APSF, planeIter.position());	       
 	         } // if there was preconditioning
-	         ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
+	         // optionally clip the image and psf if there was padding
+	         ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) before clipping "<<max(dirtyArray));
+	         clipImage(dirtyArray);
+	         clipImage(psfArray);
+	         ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) after clipping "<<max(dirtyArray));
 		
              // We need lattice equivalents. We can use ArrayLattice which involves
              // no copying

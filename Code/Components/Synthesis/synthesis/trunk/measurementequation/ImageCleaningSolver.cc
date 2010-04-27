@@ -108,6 +108,20 @@ casa::Array<float> ImageCleaningSolver::padImage(const casa::Array<double> &imag
   return result;  
 }
 
+/// @brief helper method to clip the edges of padded image
+/// @details This method fills the edges of a padded image with 0 (original subimage is left intact, so
+/// unpadImage would return the same result before and after this method). This operation is required
+/// after non-linear transformation of an image in the other domain (i.e. some types of preconditioning).
+/// @param[in] img input padded image to be clipped
+void ImageCleaningSolver::clipImage(casa::Array<float> &img) const
+{
+  const casa::IPosition origShape = scimath::PaddingUtils::unpadShape(img.shape(),paddingFactor());
+  if (origShape != img.shape()) {
+      scimath::PaddingUtils::clip(img,origShape);
+  }
+}
+
+
 /// @brief helper method to pad diagonal
 /// @details The difference from padImage is that we don't need double to float conversion for diagonal and
 /// the output array is flattened into a 1D vector
