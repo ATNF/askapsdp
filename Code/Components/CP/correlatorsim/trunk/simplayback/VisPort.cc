@@ -37,7 +37,7 @@
 #include "boost/asio.hpp"
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
-#include "cpcommon/VisPayload.h"
+#include "cpcommon/VisDatagram.h"
 
 // Using
 using namespace askap;
@@ -89,16 +89,16 @@ VisPort::~VisPort()
     itsSocket.close();
 }
 
-void VisPort::send(const askap::cp::VisPayload& payload)
+void VisPort::send(const askap::cp::VisDatagram& payload)
 {
     boost::system::error_code error;
-    itsSocket.send(boost::asio::buffer(&payload, sizeof(VisPayload)), 0, error);
+    itsSocket.send(boost::asio::buffer(&payload, sizeof(VisDatagram)), 0, error);
     if (error) {
         ASKAPLOG_ERROR_STR(logger, "UDP send failed: " << error);
     }
 }
 
-void VisPort::send(const std::vector<askap::cp::VisPayload>& payload)
+void VisPort::send(const std::vector<askap::cp::VisDatagram>& payload)
 {
     // Send each payload in the vector
     for (unsigned int i = 0; i < payload.size(); ++i) {

@@ -90,10 +90,10 @@ class VisOutPort {
             itsSocket.close();
         }
 
-        void send(const VisPayload& payload)
+        void send(const VisDatagram& payload)
         {
             boost::system::error_code error;
-            itsSocket.send(boost::asio::buffer(&payload, sizeof(VisPayload)), 0, error);
+            itsSocket.send(boost::asio::buffer(&payload, sizeof(VisDatagram)), 0, error);
             if (error) {
                 std::cerr << "UDP send failed: " << error << std::endl;
             }
@@ -124,13 +124,13 @@ int main(int argc, char *argv[])
     unsigned long time = 1234;
     const unsigned int count = 10;
     for (unsigned int i = 0; i < count; ++i) {
-        VisPayload outvis;
-        std::memset(&outvis, 0, sizeof (VisPayload));
+        VisDatagram outvis;
+        std::memset(&outvis, 0, sizeof (VisDatagram));
         outvis.timestamp = time;
         outvis.version = VISPAYLOAD_VERSION;
         out.send(outvis);
 
-        boost::shared_ptr<VisPayload> recvd = source.next();
+        boost::shared_ptr<VisDatagram> recvd = source.next();
         if (recvd->timestamp != time) {
             std::cerr << "Messages do not match" << std::endl;
             return 1;
@@ -141,15 +141,15 @@ int main(int argc, char *argv[])
     // Test the buffering abilities of MetadataSource
     time = 9876;
     for (unsigned int i = 0; i < bufSize; ++i) {
-        VisPayload outvis;
-        std::memset(&outvis, 0, sizeof (VisPayload));
+        VisDatagram outvis;
+        std::memset(&outvis, 0, sizeof (VisDatagram));
         outvis.timestamp = time;
         outvis.version = VISPAYLOAD_VERSION;
         out.send(outvis);
         usleep(10); // Throttle the sending slightly
     }
     for (unsigned int i = 0; i < bufSize; ++i) {
-        boost::shared_ptr<VisPayload> recvd = source.next();
+        boost::shared_ptr<VisDatagram> recvd = source.next();
         if (recvd->timestamp != time) {
             std::cerr << "Messages do not match" << std::endl;
             return 1;

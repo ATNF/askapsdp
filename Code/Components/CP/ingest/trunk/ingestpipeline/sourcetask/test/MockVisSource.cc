@@ -32,7 +32,7 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
-#include "cpcommon/VisPayload.h"
+#include "cpcommon/VisDatagram.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
@@ -48,12 +48,12 @@ MockVisSource::~MockVisSource()
 {
 }
 
-void MockVisSource::add(boost::shared_ptr< VisPayload > obj)
+void MockVisSource::add(boost::shared_ptr< VisDatagram > obj)
 {
     itsBuffer.add(obj);
 }
 
-boost::shared_ptr< VisPayload >
+boost::shared_ptr< VisDatagram >
 MockVisSource::next(void)
 {
     return itsBuffer.next();

@@ -138,8 +138,7 @@ namespace askap {
                 casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw();
 
                 /// Timestamp for each row
-                /// @return a timestamp for this buffer (it is always the same
-                ///         for all rows. 
+                /// @return a timestamp for this buffer. Units are seconds.
                 casa::Double time();
 
                 /// Frequency for each channel

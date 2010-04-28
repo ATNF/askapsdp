@@ -31,7 +31,7 @@
 #include "boost/shared_ptr.hpp"
 #include "ingestpipeline/sourcetask/test/MockMetadataSource.h"
 #include "ingestpipeline/sourcetask/test/MockVisSource.h"
-#include "cpcommon/VisPayload.h"
+#include "cpcommon/VisDatagram.h"
 #include "cpcommon/TosMetadata.h"
 
 // Classes to test
@@ -46,7 +46,8 @@ namespace askap
             CPPUNIT_TEST_SUITE(MergedSourceTest);
             CPPUNIT_TEST(testMockMetadataSource);
             CPPUNIT_TEST(testMockVisSource);
-            CPPUNIT_TEST(testSimple);
+            CPPUNIT_TEST(testMetadataOnly);
+            //CPPUNIT_TEST(testSingleIntegration);
             CPPUNIT_TEST_SUITE_END();
 
             public:
@@ -79,13 +80,57 @@ namespace askap
             void testMockVisSource()
             {
                 const long time = 1234;
-                boost::shared_ptr<VisPayload> vis(new VisPayload);
+                boost::shared_ptr<VisDatagram> vis(new VisDatagram);
                 vis->timestamp = time;
                 itsVisSrc->add(vis);
                 CPPUNIT_ASSERT(itsVisSrc->next() == vis);
             };
 
-            void testSimple()
+            // This test runs a scenario (using the mock objects) where only
+            // TOS metadata is recieved, no visibilities. The expected
+            // behaviour is that one VisChunk will be received for each
+            // TOS metadata payload, however all visibilities will be
+            // flagged.
+            void testMetadataOnly()
+            {
+                const long starttime = 1000;
+                const long period = 5 * 1000 * 1000;
+                const int nAntenna = 2;
+                const unsigned  int nCoarseChan = 304;
+                const int nBeam = 1;
+                const int nCorr = N_POL;
+
+                // Create a mock metadata object and program it, then
+                // add to the MockMetadataSource
+                TosMetadata metadata(nCoarseChan, nBeam, nCorr);
+                metadata.time(starttime);
+                metadata.period(period);
+
+                // antenna_names
+                for (int i = 0; i < nAntenna; ++i) {
+                    std::stringstream ss;
+                    ss << "ASKAP" << i;
+                    metadata.addAntenna(ss.str());
+                }
+
+                // Make a copy of the metadata and add it to the mock
+                // Metadata source
+                boost::shared_ptr<TosMetadata> copy1(new TosMetadata(metadata));
+                itsMetadataSrc->add(copy1);
+
+                // Increment the time and add another copy.
+                // NOTE: This second copy is never read out of the source task,
+                // it merely exists to prompt the MergedSource to "complete"
+                // the first VisChunk.
+                metadata.time(starttime + period);
+                boost::shared_ptr<TosMetadata> copy2(new TosMetadata(metadata));
+                itsMetadataSrc->add(copy2);
+
+                // Get the first vischunk instance
+                VisChunk::ShPtr vischunk(instance->next());
+            }
+
+            void testSingleIntegration()
             {
                 const long timestamp = 1234;
                 const long period = 5 * 1000 * 1000;
@@ -112,8 +157,8 @@ namespace askap
                 // Create a mock vis and program it, then add to the
                 // MockVisSource
 
-                // Populate the VisPayload
-                askap::cp::VisPayload payload;
+                // Populate the VisDatagram
+                askap::cp::VisDatagram payload;
                 payload.version = VISPAYLOAD_VERSION;
                 payload.timestamp = timestamp;
 
@@ -138,18 +183,20 @@ namespace askap
                                     payload.vis[idx].imag = 2.0;
                                 }
                             }
-                            // Finished populating, save this payload but then reuse it in the
-                            // next iteration of the loop for the next coarse channel
-                            boost::shared_ptr<VisPayload> vis(new VisPayload(payload));
+                            // Finished populating, copy & save this payload but then reuse
+                            // it in the next iteration of the loop for the next coarse
+                            // channel
+                            boost::shared_ptr<VisDatagram> vis(new VisDatagram(payload));
                             itsVisSrc->add(vis);
                         }
                     }
                 }
 
                 // Now the data has been added to the two data sources, can use the
-                // MergedSource
+                // MergedSource to retrieve it
                 VisChunk::ShPtr vischunk(instance->next());
                 CPPUNIT_ASSERT(vischunk.get() != 0);
+                CPPUNIT_ASSERT(vischunk->time() == timestamp);
             }
 
         private:

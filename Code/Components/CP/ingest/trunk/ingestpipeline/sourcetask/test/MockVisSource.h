@@ -29,7 +29,7 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
-#include "cpcommon/VisPayload.h"
+#include "cpcommon/VisDatagram.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
@@ -44,15 +44,15 @@ namespace askap {
                 MockVisSource();
                 virtual ~MockVisSource();
 
-                void add(boost::shared_ptr< VisPayload > obj);
+                void add(boost::shared_ptr< VisDatagram > obj);
 
-                boost::shared_ptr< VisPayload > next(void);
+                boost::shared_ptr< VisDatagram > next(void);
 
                 // Shared pointer definition
                 typedef boost::shared_ptr<MockVisSource> ShPtr;
 
             private:
-                DequeWrapper< VisPayload > itsBuffer;
+                DequeWrapper< VisDatagram > itsBuffer;
         };
 
     };

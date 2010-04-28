@@ -29,7 +29,7 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
-#include "cpcommon/VisPayload.h"
+#include "cpcommon/VisDatagram.h"
 
 namespace askap {
     namespace cp {
@@ -40,7 +40,7 @@ namespace askap {
                 virtual ~IVisSource() {};
 
                 // Blocking
-                virtual boost::shared_ptr<VisPayload> next(void) = 0;
+                virtual boost::shared_ptr<VisDatagram> next(void) = 0;
 
                 // Shared pointer definition
                 typedef boost::shared_ptr<IVisSource> ShPtr;

@@ -1,4 +1,4 @@
-/// @file VisPayload.h
+/// @file VisDatagram.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_VISPAYLOAD_H
-#define ASKAP_CP_VISPAYLOAD_H
+#ifndef ASKAP_CP_VISDATAGRAM_H
+#define ASKAP_CP_VISDATAGRAM_H
 
 namespace askap {
     namespace cp {
@@ -41,15 +41,15 @@ namespace askap {
             float imag;
         };
 
-        /// @brief Version number for the VisPayload.
+        /// @brief Version number for the VisDatagram.
         static const unsigned int VISPAYLOAD_VERSION = 0x1;
 
-        /// @brief Number of fine channels per coarse channel in the VisPayload.
+        /// @brief Number of fine channels per coarse channel in the VisDatagram.
         /// This is hardcoded to the standard ASKAP configuration so fixed size
         /// UDP datagrams can be used.
         static const unsigned int N_FINE_PER_COARSE = 54;
 
-        /// @brief Number of polarisations present in the VisPayload. This is
+        /// @brief Number of polarisations present in the VisDatagram. This is
         /// hardcoded to the standard ASKAP configuration so fixed size UDP
         /// datagrams can be used.
         static const unsigned int N_POL = 4;
@@ -57,7 +57,7 @@ namespace askap {
         /// @brief This structure specifies the UDP datagram which is sent from
         /// the correlator to the central processor. It contains all correlations
         /// for a single baseline, beam and coarse channel.
-        struct VisPayload
+        struct VisDatagram
         {
             /// A version number for this structure. Also doubles as a magic
             /// number which can be used to verify if the datagram is of this

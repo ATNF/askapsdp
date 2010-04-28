@@ -32,7 +32,7 @@
 #include "boost/scoped_ptr.hpp"
 #include "boost/thread.hpp"
 #include "boost/asio.hpp"
-#include "cpcommon/VisPayload.h"
+#include "cpcommon/VisDatagram.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
@@ -48,7 +48,7 @@ namespace askap {
                 ~VisSource();
 
                 // Blocking
-                boost::shared_ptr<VisPayload> next(void);
+                boost::shared_ptr<VisDatagram> next(void);
 
             private:
                 void start_receive(void);
@@ -58,8 +58,8 @@ namespace askap {
 
                 void run(void);
 
-                // Circular buffer of VisPayload objects
-                askap::cp::CircularBuffer< VisPayload > itsBuffer;
+                // Circular buffer of VisDatagram objects
+                askap::cp::CircularBuffer< VisDatagram > itsBuffer;
 
                 // Service thread
                 boost::shared_ptr<boost::thread> itsThread;
@@ -75,7 +75,7 @@ namespace askap {
 
                 boost::asio::ip::udp::endpoint itsRemoteEndpoint;
 
-                boost::shared_ptr<VisPayload> itsRecvBuffer;
+                boost::shared_ptr<VisDatagram> itsRecvBuffer;
         };
 
     };

@@ -85,9 +85,9 @@ VisSource::~VisSource()
 
 void VisSource::start_receive(void)
 {
-    itsRecvBuffer.reset(new VisPayload);
+    itsRecvBuffer.reset(new VisDatagram);
     itsSocket->async_receive_from(
-            boost::asio::buffer(boost::asio::buffer(itsRecvBuffer.get(), sizeof(VisPayload))),
+            boost::asio::buffer(boost::asio::buffer(itsRecvBuffer.get(), sizeof(VisDatagram))),
             itsRemoteEndpoint,
             boost::bind(&VisSource::handle_receive, this,
                 boost::asio::placeholders::error,
@@ -98,8 +98,8 @@ void VisSource::handle_receive(const boost::system::error_code& error,
         std::size_t bytes)
 {
     if (!error || error == boost::asio::error::message_size) {
-        if (bytes != sizeof(VisPayload)) {
-            ASKAPLOG_WARN_STR(logger, "Error: Failed to read a full VisPayload struct");
+        if (bytes != sizeof(VisDatagram)) {
+            ASKAPLOG_WARN_STR(logger, "Error: Failed to read a full VisDatagram struct");
         }
         if (itsRecvBuffer->version != VISPAYLOAD_VERSION) {
             ASKAPLOG_ERROR_STR(logger, "Version mismatch. Expected "
@@ -126,7 +126,7 @@ void VisSource::run(void)
     itsIOService.run();    
 }
 
-boost::shared_ptr<VisPayload> VisSource::next(void)
+boost::shared_ptr<VisDatagram> VisSource::next(void)
 {
     return itsBuffer.next();
 }

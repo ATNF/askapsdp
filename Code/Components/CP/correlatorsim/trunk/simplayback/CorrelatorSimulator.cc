@@ -44,7 +44,7 @@
 #include "ms/MeasurementSets/MSColumns.h"
 #include "casa/Arrays/Matrix.h"
 #include "measures/Measures/MDirection.h"
-#include "cpcommon/VisPayload.h"
+#include "cpcommon/VisDatagram.h"
 
 // Using
 using namespace askap;
@@ -114,8 +114,8 @@ bool CorrelatorSimulator::sendNext(void)
         ASKAPCHECK(msc.dataDescId()(itsCurrentRow) == dataDescId,
                 "Data description ID must remain constant for a given integration");
 
-        // Populate the VisPayload
-        askap::cp::VisPayload payload;
+        // Populate the VisDatagram
+        askap::cp::VisDatagram payload;
         payload.version = VISPAYLOAD_VERSION;
         const long timestamp =
             static_cast<long>(msc.time()(itsCurrentRow) * 1000 * 1000);
