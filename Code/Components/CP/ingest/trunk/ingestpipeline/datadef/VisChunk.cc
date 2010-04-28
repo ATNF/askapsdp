@@ -33,7 +33,6 @@
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Cube.h>
-#include <casa/Quanta/MVDirection.h>
 #include <measures/Measures/MDirection.h>
 #include <scimath/Mathematics/RigidVector.h>
 #include <measures/Measures/Stokes.h>
@@ -95,22 +94,22 @@ casa::Vector<casa::Float>& VisChunk::feed2PA()
     return itsFeed2PA;
 }
 
-casa::Vector<casa::MVDirection>& VisChunk::pointingDir1()
+casa::Vector<casa::MDirection>& VisChunk::pointingDir1()
 {
     return itsPointingDir1;
 }
 
-casa::Vector<casa::MVDirection>& VisChunk::pointingDir2()
+casa::Vector<casa::MDirection>& VisChunk::pointingDir2()
 {
     return itsPointingDir2;
 }
 
-casa::Vector<casa::MVDirection>& VisChunk::dishPointing1()
+casa::Vector<casa::MDirection>& VisChunk::dishPointing1()
 {
     return itsDishPointing1;
 }
 
-casa::Vector<casa::MVDirection>& VisChunk::dishPointing2()
+casa::Vector<casa::MDirection>& VisChunk::dishPointing2()
 {
     return itsDishPointing2;
 }
@@ -130,7 +129,7 @@ casa::Vector<casa::RigidVector<casa::Double, 3> >& VisChunk::uvw()
     return itsUVW;
 }
 
-casa::Double VisChunk::time()
+casa::Double& VisChunk::time()
 {
     return itsTime;
 }

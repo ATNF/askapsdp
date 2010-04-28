@@ -32,7 +32,6 @@
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Cube.h"
-#include "casa/Quanta/MVDirection.h"
 #include "measures/Measures/MDirection.h"
 #include "scimath/Mathematics/RigidVector.h"
 #include "measures/Measures/Stokes.h"
@@ -64,6 +63,11 @@ namespace askap {
                 /// The number of polarization products (equal for all rows)
                 /// @return the number of polarization products (can be 1,2 or 4)
                 casa::uInt& nPol();
+
+                /// Timestamp for this correlator integration
+                /// @return a timestamp for this buffer. Absolute time expressed as
+                /// seconds since MJD=0.
+                casa::Double &time();
 
                 /// First antenna IDs for all rows
                 /// @return a vector with IDs of the first antenna corresponding
@@ -99,27 +103,25 @@ namespace askap {
                 /// @return a vector with direction measures (coordinate system
                 /// is set via IDataConverter), one direction for each
                 /// visibility/row
-                casa::Vector<casa::MVDirection>& pointingDir1();
+                casa::Vector<casa::MDirection>& pointingDir1();
 
                 /// Pointing centre directions of the second antenna/feed
-                /// @return a vector with direction measures (coordinate system
-                /// is is set via IDataConverter), one direction for each
-                /// visibility/row
-                casa::Vector<casa::MVDirection>& pointingDir2();
+                /// @return a vector with direction measures 
+                ///  one direction for each visibility/row
+                casa::Vector<casa::MDirection>& pointingDir2();
 
                 /// pointing direction for the centre of the first antenna 
                 /// @details The same as pointingDir1, if the feed offsets are zero
-                /// @return a vector with direction measures (coordinate system
-                /// is is set via IDataConverter), one direction for each
-                /// visibility/row
-                casa::Vector<casa::MVDirection>& dishPointing1();
+                /// @return a vector with direction measures, 
+                /// one direction for each visibility/row
+                casa::Vector<casa::MDirection>& dishPointing1();
 
                 /// pointing direction for the centre of the first antenna 
                 /// @details The same as pointingDir2, if the feed offsets are zero
                 /// @return a vector with direction measures (coordinate system
                 /// is is set via IDataConverter), one direction for each
                 /// visibility/row
-                casa::Vector<casa::MVDirection>& dishPointing2();
+                casa::Vector<casa::MDirection>& dishPointing2();
 
                 /// VisChunk (a cube is nRow x nChannel x nPol; each element is
                 /// a complex visibility)
@@ -136,10 +138,6 @@ namespace askap {
                 /// @return a reference to vector containing uvw-coordinates
                 /// packed into a 3-D rigid vector
                 casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw();
-
-                /// Timestamp for each row
-                /// @return a timestamp for this buffer. Units are seconds.
-                casa::Double time();
 
                 /// Frequency for each channel
                 /// @return a reference to vector containing frequencies for each
@@ -183,14 +181,14 @@ namespace askap {
                 casa::Vector<casa::Float> itsFeed2PA;
 
                 /// Pointing direction of the first antenna/feed
-                casa::Vector<casa::MVDirection> itsPointingDir1;
+                casa::Vector<casa::MDirection> itsPointingDir1;
                 /// Pointing direction of the second antenna/feed
-                casa::Vector<casa::MVDirection> itsPointingDir2;
+                casa::Vector<casa::MDirection> itsPointingDir2;
 
                 /// Pointing direction of the centre of the first antenna
-                casa::Vector<casa::MVDirection> itsDishPointing1;
+                casa::Vector<casa::MDirection> itsDishPointing1;
                 /// Pointing direction of the centre of the second antenna
-                casa::Vector<casa::MVDirection> itsDishPointing2;
+                casa::Vector<casa::MDirection> itsDishPointing2;
 
                 /// Visibility
                 casa::Cube<casa::Complex> itsVisibility;
