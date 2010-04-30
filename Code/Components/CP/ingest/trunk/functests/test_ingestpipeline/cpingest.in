@@ -1,0 +1,17 @@
+#
+# Central Processor Ingest Pipeline Configuration
+#
+
+# Visibilities Source
+cp.ingest.metadata_source.ice.locator_host          = localhost
+cp.ingest.metadata_source.ice.locator_port          = 4061
+cp.ingest.metadata_source.icestorm.topicmanager     = IceStorm/TopicManager
+cp.ingest.metadata_source.icestorm.topic            = tosmetadata
+#cp.ingest.metadata_source.buffer_size              =
+            
+#Visibilities Source
+cp.ingest.vis_source.port                           = 3000
+#cp.ingest.vis_source.buffer_size                   = 
+            
+# Measurement Set Sink
+cp.ingest.ms_sink.filename                          = ingest_test.ms

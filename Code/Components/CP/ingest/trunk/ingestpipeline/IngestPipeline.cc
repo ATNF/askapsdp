@@ -42,6 +42,7 @@
 #include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 #include "ingestpipeline/sourcetask/VisSource.h"
+#include "ingestpipeline/sourcetask/MergedSource.h"
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
 
@@ -71,20 +72,49 @@ void IngestPipeline::abort(void)
 void IngestPipeline::ingest(void)
 {
     // 1) Setup tasks
-    IMetadataSource::ShPtr metadataSrc(new MetadataSource("localhost", "4061", "TopicManager", "tosmetadata", "IngestPipeline", 30));
-    VisSource::ShPtr visSrc(new VisSource(3000, 666 * 36 * 304 * 2));
-    itsSource.reset(new MergedSource(metadataSrc, visSrc));
+    createSource();
 
     // 2) Process correlator integrations, one at a time
     while (itsRunning) {
-        ingestOne();
+        bool endOfStream = ingestOne();
+        if (endOfStream) {
+            itsRunning = false;
+        }
     }
 
     // 3) Clean up tasks
     itsSource.reset();
 }
 
-void IngestPipeline::ingestOne(void)
+bool IngestPipeline::ingestOne(void)
 {
+    ASKAPLOG_DEBUG_STR(logger, "Waiting for data");
     VisChunk::ShPtr chunk(itsSource->next());
+    ASKAPLOG_DEBUG_STR(logger, "Received one VisChunk. Timestamp: "
+            << chunk->time());
+    return false; // Not finished
+}
+
+void IngestPipeline::createSource(void)
+{
+    // 1) Configure and create the metadata source
+    const LOFAR::ParameterSet mdSubset = itsParset.makeSubset("metadata_source.");
+    const std::string mdLocatorHost = mdSubset.getString("ice.locator_host");
+    const std::string mdLocatorPort = mdSubset.getString("ice.locator_port");
+    const std::string mdTopicManager = mdSubset.getString("icestorm.topicmanager");
+    const std::string mdTopic = mdSubset.getString("icestorm.topic");
+    const unsigned int mdBufSz = mdSubset.getUint32("buffer_size", 12);
+    const std::string mdAdapterName = "IngestPipeline";
+    IMetadataSource::ShPtr metadataSrc(new MetadataSource(mdLocatorHost,
+                mdLocatorPort, mdTopicManager, mdTopic, mdAdapterName, mdBufSz));
+
+    // 2) Configure and create the visibility source
+    const LOFAR::ParameterSet visSubset = itsParset.makeSubset("vis_source.");
+    const unsigned int visPort = visSubset.getUint32("port");
+    const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
+    const unsigned int visBufSz= visSubset.getUint32("buffer_size", defaultBufSz);
+    VisSource::ShPtr visSrc(new VisSource(visPort, visBufSz));
+
+    // 3) Create and configure the merged source
+    itsSource.reset(new MergedSource(metadataSrc, visSrc));
 }

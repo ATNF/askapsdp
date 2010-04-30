@@ -87,7 +87,8 @@ int main(int argc, char *argv[])
         ASKAPLOG_REMOVECONTEXT("hostname");
         ASKAPLOG_PUTCONTEXT("hostname", hostname.c_str());
 
-        ASKAPLOG_INFO_STR(logger, "ASKAP Distributed Continuum Imager - " << ASKAP_PACKAGE_VERSION);
+        ASKAPLOG_INFO_STR(logger, "ASKAP Central Processor Ingest Pipeline - "
+                << ASKAP_PACKAGE_VERSION);
 
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
@@ -108,9 +109,10 @@ int main(int argc, char *argv[])
 
         // Create a subset
         LOFAR::ParameterSet parset(parsetFile);
+        const LOFAR::ParameterSet subset = parset.makeSubset("cp.ingest.");
 
         // Run the pipeline
-        IngestPipeline pipeline(parset);
+        IngestPipeline pipeline(subset);
         pipeline.start();
 
     } catch (const cmdlineparser::XParser& e) {

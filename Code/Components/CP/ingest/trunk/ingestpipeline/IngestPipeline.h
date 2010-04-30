@@ -48,7 +48,8 @@ namespace askap {
 
             private:
                 void ingest(void);
-                void ingestOne(void);
+                bool ingestOne(void);
+                void createSource(void);
 
                 const LOFAR::ParameterSet itsParset;
                 bool itsRunning;

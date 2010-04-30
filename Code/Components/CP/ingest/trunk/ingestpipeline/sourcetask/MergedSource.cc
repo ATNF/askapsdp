@@ -58,9 +58,13 @@ MergedSource::~MergedSource()
 
 VisChunk::ShPtr MergedSource::next(void)
 {
-    // Get the metadata and vis datagram
+    // Get the next TosMetadata
     itsMetadata = itsMetadataSrc->next();
-    itsVis = itsVisSrc->next();
+
+    // Get the next VisDatagram if there isn't already one in the buffer
+    if (!itsVis) {
+        itsVis = itsVisSrc->next();
+    }
 
     // Find data with matching timestamps
     while (itsMetadata->time() != itsVis->timestamp) {
@@ -82,6 +86,15 @@ VisChunk::ShPtr MergedSource::next(void)
     VisChunk::ShPtr chunk(new VisChunk);
     initVisChunk(chunk, *itsMetadata);
 
+    // Determine how many VisDatagrams are expected for a single integration
+    const casa::uInt nAntenna = itsMetadata->nAntenna();
+    const casa::uInt nCoarseChannels = itsMetadata->nCoarseChannels();
+    const casa::uInt nBeams = itsMetadata->nBeams();
+    const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
+    const casa::uInt datagramsExpected = nBaselines * nCoarseChannels * nBeams;
+
+    // Read VisDatagrams and add them to the VisChunk
+    casa::uInt datagramCount = 1; 
     while (itsMetadata->time() >= itsVis->timestamp) {
         if (itsMetadata->time() > itsVis->timestamp) {
             // If the VisDatagram is from a prior integration then discard it
@@ -91,10 +104,21 @@ VisChunk::ShPtr MergedSource::next(void)
         }
         addVis(chunk, *itsVis);
         itsVis = itsVisSrc->next();
+        if (datagramCount == datagramsExpected) {
+            // This integration is finished
+            break;
+        }
+        datagramCount++;
+
     }
 
+    ASKAPLOG_DEBUG_STR(logger, "Integration completed with " << datagramCount <<
+            " of expected " << datagramsExpected << " visibility datagrams");
+
+    // Apply any flagging specified in the TOS metadata
     doFlagging(chunk, *itsMetadata);
 
+    itsMetadata.reset();
     return chunk;
 }
 
@@ -250,9 +274,11 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
 
     if (mdAnt1.flagDetailed(beam1, coarseChan, pol)) {
         chunk->flag()(row, chan, pol) = true;
+        return;
     }
     if (mdAnt2.flagDetailed(beam2, coarseChan, pol)) {
         chunk->flag()(row, chan, pol) = true;
+        return;
     }
 
 }
