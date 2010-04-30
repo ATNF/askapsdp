@@ -29,6 +29,8 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
+#include "cpcommon/TosMetadata.h"
+#include "cpcommon/VisDatagram.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
@@ -36,23 +38,39 @@
 #include "ingestpipeline/datadef/VisChunk.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class MergedSource
-        {
-            public:
-                MergedSource(IMetadataSource::ShPtr metadataSource, IVisSource::ShPtr visSource);
-                ~MergedSource();
+class MergedSource {
+    public:
+        MergedSource(IMetadataSource::ShPtr metadataSource,
+                IVisSource::ShPtr visSource);
+        ~MergedSource();
 
-                // Blocking
-                VisChunk::ShPtr next(void);
+        // Blocking
+        VisChunk::ShPtr next(void);
 
-            private:
-                IMetadataSource::ShPtr itsMetadataSrc;
-                IVisSource::ShPtr itsVisSrc;
-        };
+    private:
 
-    };
+        void initVisChunk(VisChunk::ShPtr chunk, const TosMetadata& metadata);
+        void addVis(VisChunk::ShPtr chunk, const VisDatagram& vis);
+        void doFlagging(VisChunk::ShPtr chunk, const TosMetadata& metadata);
+        void doFlaggingSample(VisChunk::ShPtr chunk, 
+                const TosMetadata& metadata,
+                const unsigned int row,
+                const unsigned int chan,
+                const unsigned int pol);
+
+
+        IMetadataSource::ShPtr itsMetadataSrc;
+        IVisSource::ShPtr itsVisSrc;
+
+        // Pointers to the two constituent datatypes
+        boost::shared_ptr<TosMetadata> itsMetadata;
+        boost::shared_ptr<VisDatagram> itsVis;
+
 };
+
+}
+}
 
 #endif

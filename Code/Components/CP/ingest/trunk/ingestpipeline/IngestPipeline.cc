@@ -38,7 +38,10 @@
 #include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
 
-// Local includes
+// Local package includes
+#include "ingestpipeline/datadef/VisChunk.h"
+#include "ingestpipeline/sourcetask/MetadataSource.h"
+#include "ingestpipeline/sourcetask/VisSource.h"
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
 
@@ -46,7 +49,7 @@ using namespace askap;
 using namespace askap::cp;
 
 IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset)
-    : itsParset(parset)
+    : itsParset(parset), itsRunning(false)
 {
 }
 
@@ -56,8 +59,32 @@ IngestPipeline::~IngestPipeline()
 
 void IngestPipeline::start(void)
 {
+    itsRunning = true;
+    ingest();
 }
 
 void IngestPipeline::abort(void)
 {
+    itsRunning = false;
+}
+
+void IngestPipeline::ingest(void)
+{
+    // 1) Setup tasks
+    IMetadataSource::ShPtr metadataSrc(new MetadataSource("localhost", "4061", "TopicManager", "tosmetadata", "IngestPipeline", 30));
+    VisSource::ShPtr visSrc(new VisSource(3000, 666 * 36 * 304 * 2));
+    itsSource.reset(new MergedSource(metadataSrc, visSrc));
+
+    // 2) Process correlator integrations, one at a time
+    while (itsRunning) {
+        ingestOne();
+    }
+
+    // 3) Clean up tasks
+    itsSource.reset();
+}
+
+void IngestPipeline::ingestOne(void)
+{
+    VisChunk::ShPtr chunk(itsSource->next());
 }

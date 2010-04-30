@@ -70,21 +70,33 @@ namespace askap {
                 casa::Double &time();
 
                 /// First antenna IDs for all rows
+                ///
+                /// @note Antenna ID is zero based
+                ///
                 /// @return a vector with IDs of the first antenna corresponding
                 /// to each visibility (one for each row)
                 casa::Vector<casa::uInt>& antenna1();
 
                 /// Second antenna IDs for all rows
+                ///
+                /// @note Antenna ID is zero based
+                ///
                 /// @return a vector with IDs of the second antenna corresponding
                 /// to each visibility (one for each row)
                 casa::Vector<casa::uInt>& antenna2();
 
                 /// First feed IDs for all rows
+                ///
+                /// @note feed ID is zero based
+                ///
                 /// @return a vector with IDs of the first feed corresponding
                 /// to each visibility (one for each row)
                 casa::Vector<casa::uInt>& feed1();
 
                 /// Second feed IDs for all rows
+                ///
+                /// @note feed ID is zero based.
+                ///
                 /// @return a vector with IDs of the second feed corresponding
                 /// to each visibility (one for each row)
                 casa::Vector<casa::uInt>& feed2();

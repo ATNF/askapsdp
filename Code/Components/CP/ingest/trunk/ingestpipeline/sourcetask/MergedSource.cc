@@ -35,8 +35,10 @@
 #include "askap/AskapError.h"
 #include "boost/scoped_ptr.hpp"
 #include "cpcommon/TosMetadata.h"
+#include "cpcommon/VisDatagram.h"
 
 // Local package includes
+#include "ingestpipeline/IngestUtils.h"
 #include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
 
@@ -56,11 +58,201 @@ MergedSource::~MergedSource()
 
 VisChunk::ShPtr MergedSource::next(void)
 {
-    VisChunk::ShPtr vischunk(new VisChunk);
+    // Get the metadata and vis datagram
+    itsMetadata = itsMetadataSrc->next();
+    itsVis = itsVisSrc->next();
 
-    // Get the metadata
-    boost::shared_ptr<TosMetadata> metadata;
-    metadata = itsMetadataSrc->next();
+    // Find data with matching timestamps
+    while (itsMetadata->time() != itsVis->timestamp) {
 
-    return vischunk;
+        // If the VisDatagram timestamps are in the past (with respect to the
+        // TosMetadata) then read VisDatagrams until they catch up
+        while (itsMetadata->time() > itsVis->timestamp) {
+            itsVis = itsVisSrc->next();
+        }
+
+        // But if the timestamp in the VisDatagram is in the future (with
+        // respect to the TosMetadata) then it is time to fetch new TosMetadata
+        if (itsMetadata->time() < itsVis->timestamp) {
+            itsMetadata = itsMetadataSrc->next();
+        }
+    }
+
+    // Now the streams are synced, start building a VisChunk
+    VisChunk::ShPtr chunk(new VisChunk);
+    initVisChunk(chunk, *itsMetadata);
+
+    while (itsMetadata->time() >= itsVis->timestamp) {
+        if (itsMetadata->time() > itsVis->timestamp) {
+            // If the VisDatagram is from a prior integration then discard it
+            ASKAPLOG_WARN_STR(logger, "Received VisDatagram from past integration");
+            itsVis = itsVisSrc->next();
+            continue;
+        }
+        addVis(chunk, *itsVis);
+        itsVis = itsVisSrc->next();
+    }
+
+    doFlagging(chunk, *itsMetadata);
+
+    return chunk;
+}
+
+void MergedSource::initVisChunk(VisChunk::ShPtr chunk, const TosMetadata& metadata)
+{
+    const casa::uInt nAntenna = metadata.nAntenna();
+    const casa::uInt nCoarseChannels = metadata.nCoarseChannels();
+    const casa::uInt nChannels = nCoarseChannels * N_FINE_PER_COARSE;
+    const casa::uInt nBeams = metadata.nBeams();
+    const casa::uInt nPol = metadata.nPol();
+    const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
+    const casa::uInt nRow = nBaselines * nBeams;
+    const casa::uInt period = metadata.period();
+
+    // Convert the time from integration start in microseconds to an
+    // integration mid-point in seconds
+    const casa::uInt midpoint = metadata.time() + (period / 2ul);
+    chunk->time() = (static_cast<casa::Double>(midpoint)) / 1000000.0;
+    chunk->nRow() = nRow;
+    chunk->nChannel() = nChannels;
+    chunk->nPol() = nPol;
+
+    // Resize these rather than add row-by-row. It is faster this way
+    chunk->antenna1().resize(nRow);
+    chunk->antenna2().resize(nRow);
+    chunk->feed1().resize(nRow);
+    chunk->feed2().resize(nRow);
+    chunk->feed1PA().resize(nRow);
+    chunk->feed2PA().resize(nRow);
+    chunk->pointingDir1().resize(nRow);
+    chunk->pointingDir2().resize(nRow);
+    chunk->dishPointing1().resize(nRow);
+    chunk->dishPointing2().resize(nRow);
+    chunk->visibility().resize(nRow, nChannels, nPol);
+    chunk->flag().resize(nRow, nChannels, nPol);
+    chunk->uvw().resize(nRow);
+    chunk->frequency().resize(nChannels);
+    chunk->stokes().resize(nPol);
+
+    // All visibilities get flagged as bad, then as the visibility data 
+    // arrives they are unflagged
+    chunk->flag() = true;
+    chunk->visibility() = 0.0;
+
+    // For now polarisation data is hardcoded.
+    // TODO: In the long run this needs to come from some sort of
+    // correlator configuration database
+    ASKAPCHECK(nPol == 4, "Only supporting 4 polarisation products");
+    chunk->stokes()(0) = casa::Stokes::XX;
+    chunk->stokes()(1) = casa::Stokes::XY;
+    chunk->stokes()(2) = casa::Stokes::YX;
+    chunk->stokes()(3) = casa::Stokes::YY;
+
+    casa::uInt row = 0;
+    for (casa::uInt beam = 0; beam < nBeams; ++beam) {
+        for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
+            const TosMetadataAntenna& mdAnt1 = metadata.antenna(ant1);
+            for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
+                ASKAPCHECK(row <= nRow, "Row index (" << row <<
+                        ") should not exceed nRow (" << nRow <<")");
+                const TosMetadataAntenna& mdAnt2 = metadata.antenna(ant2);
+
+                chunk->antenna1()(row) = ant1;
+                chunk->antenna2()(row) = ant2;
+                chunk->feed1()(row) = beam;
+                chunk->feed2()(row) = beam;
+                chunk->feed1PA()(row) = mdAnt1.parallacticAngle();
+                chunk->feed2PA()(row) = mdAnt2.parallacticAngle();
+                chunk->pointingDir1()(row) = mdAnt1.dishPointing();
+                chunk->pointingDir2()(row) = mdAnt2.dishPointing();
+                chunk->dishPointing1()(row) = mdAnt1.dishPointing();
+                chunk->dishPointing2()(row) = mdAnt2.dishPointing();
+                chunk->frequency()(row) = 0.0;
+                chunk->uvw()(row) = 0.0;
+
+                row++;
+            }
+        }
+    }
+}
+
+void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis)
+{
+    // 1) Find the row for the given beam and baseline
+    // TODO: This is slow, need to develop an indexing method
+    casa::uInt row = 0;
+    while (row < chunk->nRow()) {
+        if ((chunk->antenna1()(row) == vis.antenna1) &&
+            (chunk->antenna2()(row) == vis.antenna2) &&
+            (chunk->feed1()(row) == vis.beam1) &&
+            (chunk->feed2()(row) == vis.beam2)) {
+                break;
+            }
+        ++row;
+    }
+ 
+    // 2) Determine the channel offset and add the visibilities
+    ASKAPCHECK(vis.coarseChannel < 304, "Invalid coarse channel");
+    const casa::uInt chanOffset = (vis.coarseChannel) * N_FINE_PER_COARSE;
+    for (casa::uInt chan = 0; chan < N_FINE_PER_COARSE; ++chan) {
+        for (casa::uInt pol = 0; pol < N_POL; ++pol) {
+            const casa::uInt index = pol + ((N_POL) * chan);
+            casa::Complex sample(vis.vis[index].real, vis.vis[index].imag);
+            ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
+            chunk->visibility()(row, chanOffset + chan, pol) = sample;
+
+            // Unflag the sample, if nSamples is non-zero. A zero value can
+            // indicate the correlator has flagged the sample.
+            if (vis.nSamples[index] > 0) {
+                chunk->flag()(row, chanOffset + chan, pol) = false;
+            }
+        }
+    }
+}
+
+// Flag based on information in the TosMetadata
+void MergedSource::doFlagging(VisChunk::ShPtr chunk, const TosMetadata& metadata)
+{
+    for (unsigned int row = 0; row < chunk->nRow(); ++row) {
+        for (unsigned int chan = 0; chan < chunk->nChannel(); ++chan) {
+            for (unsigned int pol = 0; pol < chunk->nPol(); ++pol) {
+                doFlaggingSample(chunk, metadata, row, chan, pol);
+            }
+        }
+    }
+}
+
+void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
+        const TosMetadata& metadata,
+        const unsigned int row,
+        const unsigned int chan,
+        const unsigned int pol)
+{
+    const unsigned int ant1 = chunk->antenna1()(row);
+    const unsigned int ant2 = chunk->antenna2()(row);
+    const TosMetadataAntenna& mdAnt1 = metadata.antenna(ant1);
+    const TosMetadataAntenna& mdAnt2 = metadata.antenna(ant2);
+
+    // Flag the sample if one of the antenna was not on source or had a
+    // hardware error
+    if ((!mdAnt1.onSource()) || (!mdAnt2.onSource()) ||
+            mdAnt1.hwError() || mdAnt2.hwError()) {
+        chunk->flag()(row, chan, pol) = true;
+        return;
+    }
+
+    // Flag if detailed flagging is set in the metadata for this sample.
+    // Note flagging in metadata is per coarse channel so if a coarse channel
+    // is flagged then the whole 54 fine channels are flagged
+    const unsigned int beam1 = chunk->feed1()(row);
+    const unsigned int beam2 = chunk->feed2()(row);
+    const unsigned int coarseChan = IngestUtils::fineToCoarseChannel(chan);
+
+    if (mdAnt1.flagDetailed(beam1, coarseChan, pol)) {
+        chunk->flag()(row, chan, pol) = true;
+    }
+    if (mdAnt2.flagDetailed(beam2, coarseChan, pol)) {
+        chunk->flag()(row, chan, pol) = true;
+    }
+
 }

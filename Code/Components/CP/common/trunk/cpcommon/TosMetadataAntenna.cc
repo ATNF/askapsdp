@@ -46,7 +46,7 @@ TosMetadataAntenna::TosMetadataAntenna(const casa::String& name,
         itsNumBeams(nBeams), itsNumPol(nPol), itsFrequency(0.0),
         itsPhaseTrackingCentre(nBeams, nCoarseChannels),
         itsParallacticAngle(0.0), itsOnSource(false),
-        itsHwError(false),
+        itsHwError(true),
         itsFlagDetailed(nBeams, nCoarseChannels, nPol, false),
         itsSystemTemp(nBeams, nCoarseChannels, nPol, -1.0)
 {

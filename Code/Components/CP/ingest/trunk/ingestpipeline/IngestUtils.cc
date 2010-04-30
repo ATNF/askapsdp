@@ -1,4 +1,4 @@
-/// @file IngestPipeline.h
+/// @file IngestUtils.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,39 +24,22 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGESTPIPELINE_H
-#define ASKAP_CP_INGESTPIPELINE_H
+// Include own header file first
+#include "IngestUtils.h"
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
-#include "boost/scoped_ptr.hpp"
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "cpcommon/VisDatagram.h"
 
-// Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
-#include "ingestpipeline/sourcetask/MergedSource.h"
+// Local includes
 
-namespace askap {
-    namespace cp {
+ASKAP_LOGGER(logger, ".IngestUtils");
 
-        class IngestPipeline
-        {
-            public:
-                IngestPipeline(const LOFAR::ParameterSet& parset);
-                ~IngestPipeline();
-                void start(void);
-                void abort(void);
+using namespace askap;
+using namespace askap::cp;
 
-            private:
-                void ingest(void);
-                void ingestOne(void);
-
-                const LOFAR::ParameterSet itsParset;
-                bool itsRunning;
-
-                boost::scoped_ptr< MergedSource > itsSource;
-        };
-
-    };
-};
-
-#endif
+unsigned int IngestUtils::fineToCoarseChannel(const unsigned int& fineChannel)
+{
+    return ((fineChannel - (fineChannel % N_FINE_PER_COARSE)) / 304);
+}
