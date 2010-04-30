@@ -59,6 +59,7 @@ namespace askap
       CPPUNIT_TEST(testFacetCreationAndMerging);
       CPPUNIT_TEST(testCoordinates);
       CPPUNIT_TEST(testClipImage);
+      CPPUNIT_TEST(testGaussianPreconditioner);
       //CPPUNIT_TEST(test4Debugging);
       CPPUNIT_TEST_SUITE_END();
       
@@ -114,6 +115,33 @@ namespace askap
            CPPUNIT_ASSERT(taylormap["image.src"] == 3);
            CPPUNIT_ASSERT(taylormap.find("image.src2")!=taylormap.end());
            CPPUNIT_ASSERT(taylormap["image.src2"] == 1);                     
+        }
+        
+        void testGaussianPreconditioner()
+        { 
+           askap::scimath::Params params;
+           makeParameter(params,"testsrc",1);
+           const askap::scimath::Axes axes = params.axes("testsrc");
+           CPPUNIT_ASSERT(axes.hasDirection());
+           casa::Vector<casa::Double> increments = axes.directionAxis().increment();
+           CPPUNIT_ASSERT(increments.nelements() == 2);
+           CPPUNIT_ASSERT(fabs(fabs(increments[0])-fabs(increments[1]))<1e-6);
+           casa::IPosition shape = params.value("testsrc").shape();
+           CPPUNIT_ASSERT(shape.nonDegenerate().nelements() == 2);
+           CPPUNIT_ASSERT(shape[0] == shape[1]);
+           casa::Array<float> dirty(shape,0.);
+           casa::Array<float> psfArray(shape,0.);
+           casa::Matrix<float> psf(psfArray.nonDegenerate());
+           psf(shape[0]/2,shape[1]/2) = 1.;           
+           const double factor = fabs(increments[0]) * shape[0]/2;
+           GaussianTaperPreconditioner gp(factor/SynthesisParamsHelper::convertQuantity("20arcsec","rad"));
+           gp.doPreconditioning(psfArray,dirty);  
+           casa::Array<double> temp(psfArray.shape());
+           casa::convertArray<float,double>(psfArray,temp);
+           params.update("testsrc",temp);
+           //LOFAR::ParameterSet parset;
+           //SynthesisParamsHelper::setUpImageHandler(parset);
+           //SynthesisParamsHelper::saveImageParameter(params,"testsrc","test.img");
         }
         
         void testFacetCreationAndMerging()
@@ -290,7 +318,7 @@ namespace askap
         /// @param[in] nfacets number of facets
         /// @param[in] facetstep step in pixels between facet centres          
         static void makeParameter(askap::scimath::Params &params, const std::string &name,
-                           const int nfacets, const int facetstep)  
+                           const int nfacets, const int facetstep = 256)  
         {
            std::vector<std::string> direction(3);
            direction[0]="12h30m00.0";
@@ -299,8 +327,13 @@ namespace askap
            std::vector<int> shape(2,256);
            std::vector<std::string> cellsize(2,"8arcsec");
            casa::Vector<casa::Stokes::StokesTypes> stokes(1, casa::Stokes::I);
-           SynthesisParamsHelper::add(params,name,direction,cellsize,shape,1.4e9,
+           if (nfacets != 1) {
+               SynthesisParamsHelper::add(params,name,direction,cellsize,shape,1.4e9,
                                       1.4e9,1,stokes, nfacets,facetstep);
+           } else {
+               SynthesisParamsHelper::add(params,name,direction,cellsize,shape,1.4e9,
+                                      1.4e9,1,stokes);
+           }
         }
         
    };
