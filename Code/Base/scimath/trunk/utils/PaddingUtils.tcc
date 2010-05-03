@@ -91,7 +91,7 @@ void PaddingUtils::clip(casa::Array<T> & source, const casa::IPosition &size)
 {
    const casa::IPosition shape = source.shape();
    ASKAPDEBUGASSERT(shape.nelements()>=2);
-   ASKAPASSERT(size.nelements() == 2);
+   ASKAPASSERT(size.nelements() >= 2);
    casa::IPosition end(shape);
    for (uint index=0;index<end.nelements();++index) {
         ASKAPDEBUGASSERT(end[index]>=1);
