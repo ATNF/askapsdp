@@ -167,9 +167,14 @@ namespace askap
                 const std::vector<int> shape = parset.getInt32Vector("Images.shape");
                 ASKAPCHECK((cellsize.size() == 2) && (shape.size() == 2), 
                 "Images.cellsize and Images.shape parameters should have exactly two values");
+
+                // additional scaling factor due to padding. by default - no padding
+                const boost::shared_ptr<ImageCleaningSolver> ics = boost::dynamic_pointer_cast<ImageCleaningSolver>(solver);
+                const double paddingFactor = ics ? ics->paddingFactor() : 1.;                
+                
                 // factors which appear in nominator are effectively half sizes in radians
-                const double xFactor = 4. * log(2.) * cellsize[0]*double(shape[0]) / casa::C::pi;
-                const double yFactor = 4. * log(2.) * cellsize[1]*double(shape[1]) / casa::C::pi;
+                const double xFactor = 4. * log(2.) * cellsize[0]*double(shape[0])*paddingFactor / casa::C::pi;
+                const double yFactor = 4. * log(2.) * cellsize[1]*double(shape[1])*paddingFactor / casa::C::pi;
 	    
                 if (taper.size() == 3) {
 	      
