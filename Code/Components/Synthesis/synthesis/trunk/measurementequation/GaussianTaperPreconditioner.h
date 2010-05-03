@@ -51,6 +51,10 @@ public:
    /// @param[in] minFWHM full width at half maximum of the minor axis in the uv-plane 
    /// (given as a fraction of the uv-cell size).
    /// @param[in] pa position angle in radians
+   /// @note Gaussian taper is set up in the uv-space. Constructors accept sizes given as FWHM expressed
+   /// as fractions of uv-cell size. The relation between FWHMs in fourier and image plane is 
+   /// uvFWHM = (Npix*cellsize / FWHM) * (4*log(2)/pi), where Npix is the number of pixels
+   /// cellsize and FWHM are image-plane cell size and FWHM in angular units.
    GaussianTaperPreconditioner(double majFWHM, double minFWHM, double pa);
    
    /// @brief set up the preconditioner for the circularly symmetric taper 
@@ -58,6 +62,10 @@ public:
    /// The size is full width at half maximum expressed in the units of uv-cell.
    /// @param[in] fwhm full width at half maximum of the taper in the uv-plane
    /// (given as a fraction of the uv-cell size).
+   /// @note Gaussian taper is set up in the uv-space. Constructors accept sizes given as FWHM expressed
+   /// as fractions of uv-cell size. The relation between FWHMs in fourier and image plane is 
+   /// uvFWHM = (Npix*cellsize / FWHM) * (4*log(2)/pi), where Npix is the number of pixels
+   /// cellsize and FWHM are image-plane cell size and FWHM in angular units.
    GaussianTaperPreconditioner(double fwhm);
    
    /// @brief Clone this object

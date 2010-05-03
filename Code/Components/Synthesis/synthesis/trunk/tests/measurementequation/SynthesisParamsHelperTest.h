@@ -120,28 +120,40 @@ namespace askap
         void testGaussianPreconditioner()
         { 
            askap::scimath::Params params;
-           makeParameter(params,"testsrc",1);
-           const askap::scimath::Axes axes = params.axes("testsrc");
+           makeParameter(params,"psf.testsrc",1);
+           const askap::scimath::Axes axes = params.axes("psf.testsrc");
            CPPUNIT_ASSERT(axes.hasDirection());
            casa::Vector<casa::Double> increments = axes.directionAxis().increment();
            CPPUNIT_ASSERT(increments.nelements() == 2);
            CPPUNIT_ASSERT(fabs(fabs(increments[0])-fabs(increments[1]))<1e-6);
-           casa::IPosition shape = params.value("testsrc").shape();
+           casa::IPosition shape = params.value("psf.testsrc").shape();
            CPPUNIT_ASSERT(shape.nonDegenerate().nelements() == 2);
            CPPUNIT_ASSERT(shape[0] == shape[1]);
            casa::Array<float> dirty(shape,0.);
            casa::Array<float> psfArray(shape,0.);
            casa::Matrix<float> psf(psfArray.nonDegenerate());
            psf(shape[0]/2,shape[1]/2) = 1.;           
-           const double factor = fabs(increments[0]) * shape[0]/2;
+           const double factor = 4.*log(2.) * fabs(increments[0]) * shape[0] / casa::C::pi;
            GaussianTaperPreconditioner gp(factor/SynthesisParamsHelper::convertQuantity("20arcsec","rad"));
            gp.doPreconditioning(psfArray,dirty);  
+           
+           // update the parameter
            casa::Array<double> temp(psfArray.shape());
-           casa::convertArray<float,double>(psfArray,temp);
-           params.update("testsrc",temp);
-           //LOFAR::ParameterSet parset;
-           //SynthesisParamsHelper::setUpImageHandler(parset);
-           //SynthesisParamsHelper::saveImageParameter(params,"testsrc","test.img");
+           casa::convertArray<double,float>(temp,psfArray);
+           params.update("psf.testsrc",temp);
+           //
+
+           casa::Vector<casa::Quantum<double> > fit = SynthesisParamsHelper::fitBeam(params,"psf.testsrc");
+           CPPUNIT_ASSERT(fit.nelements() == 3);
+           // the cell size is 8 arcsec, so the tolerance of 0.5 arcsec seems good enough
+           CPPUNIT_ASSERT(fabs(fit[0].getValue("arcsec")-20.)<0.5);
+           CPPUNIT_ASSERT(fabs(fit[1].getValue("arcsec")-20.)<0.5);
+           /*
+           // writing the image for debugging
+           LOFAR::ParameterSet parset;
+           SynthesisParamsHelper::setUpImageHandler(parset);
+           SynthesisParamsHelper::saveImageParameter(params,"psf.testsrc","test.img");
+           */
         }
         
         void testFacetCreationAndMerging()

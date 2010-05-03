@@ -168,8 +168,8 @@ namespace askap
                 ASKAPCHECK((cellsize.size() == 2) && (shape.size() == 2), 
                 "Images.cellsize and Images.shape parameters should have exactly two values");
                 // factors which appear in nominator are effectively half sizes in radians
-                const double xFactor = cellsize[0]*double(shape[0])/2.;
-                const double yFactor = cellsize[1]*double(shape[1])/2.;
+                const double xFactor = 4. * log(2.) * cellsize[0]*double(shape[0]) / casa::C::pi;
+                const double yFactor = 4. * log(2.) * cellsize[1]*double(shape[1]) / casa::C::pi;
 	    
                 if (taper.size() == 3) {
 	      

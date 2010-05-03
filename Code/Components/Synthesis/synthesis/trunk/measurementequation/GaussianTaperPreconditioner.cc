@@ -59,14 +59,23 @@ namespace synthesis {
 /// @param[in] minFWHM full width at half maximum of the minor axis in the uv-plane 
 /// (given as a fraction of the uv-cell size).
 /// @param[in] pa position angle in radians
+/// @note Gaussian taper is set up in the uv-space. Constructors accept sizes given as FWHM expressed
+/// as fractions of uv-cell size. The relation between FWHMs in fourier and image plane is 
+/// uvFWHM = (Npix*cellsize / FWHM) * (4*log(2)/pi), where Npix is the number of pixels
+/// cellsize and FWHM are image-plane cell size and FWHM in angular units.
 GaussianTaperPreconditioner::GaussianTaperPreconditioner(double majFWHM, double minFWHM, double pa) :
-     itsMajorAxis(majFWHM/sqrt(8.*log(2.))), itsMinorAxis(minFWHM/sqrt(8.*log(2.))),itsPA(pa) {}
+     itsMajorAxis(majFWHM/sqrt(8.*log(2.))), itsMinorAxis(minFWHM/sqrt(8.*log(2.))),
+     itsPA(pa) {}
    
 /// @brief set up the preconditioner for the circularly symmetric taper 
 /// @details This constructor just sets the taper size, same for both axis.
 /// The size is full width at half maximum expressed in the units of uv-cell.
 /// @param[in] fwhm full width at half maximum of the taper in the uv-plane
 /// (given as a fraction of the uv-cell size).
+/// @note Gaussian taper is set up in the uv-space. Constructors accept sizes given as FWHM expressed
+/// as fractions of uv-cell size. The relation between FWHMs in fourier and image plane is 
+/// uvFWHM = (Npix*cellsize / FWHM) * (4*log(2)/pi), where Npix is the number of pixels
+/// cellsize and FWHM are image-plane cell size and FWHM in angular units.
 GaussianTaperPreconditioner::GaussianTaperPreconditioner(double fwhm) : 
      itsMajorAxis(fwhm/sqrt(8.*log(2.))), itsPA(0.) 
 {
