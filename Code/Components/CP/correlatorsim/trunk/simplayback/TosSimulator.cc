@@ -85,21 +85,21 @@ bool TosSimulator::sendNext(void)
     const casa::ROMSAntennaColumns& antc = msc.antenna();
     const casa::ROMSFeedColumns& feedc = msc.feed();
     const casa::ROMSFieldColumns& fieldc = msc.field();
-    //const casa::ROMSSpWindowColumns& spwc = msc.spectralWindow();
+    const casa::ROMSSpWindowColumns& spwc = msc.spectralWindow();
     const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
     const casa::ROMSPolarizationColumns& polc = msc.polarization();
     //const casa::ROMSPointingColumns& pointingc = msc.pointing();
 
     // Define some useful variables
-    const int dataDescId = msc.dataDescId()(itsCurrentRow);
-    const unsigned int descPolId = ddc.polarizationId()(dataDescId);
-    //const unsigned int descSpwId = ddc.spectralWindowId()(dataDescId);
-    const unsigned int nRow = msc.nrow(); // In the whole table, not just for this integration
-    const unsigned int nCorr = polc.numCorr()(descPolId);
-    //const unsigned int nChan = spwc.numChan()(descSpwId);
-    const unsigned int nAntenna = antc.nrow();
-    const unsigned int nBeam = feedc.nrow() / nAntenna;
-    const unsigned int nCoarseChan = 304;
+    const casa::Int dataDescId = msc.dataDescId()(itsCurrentRow);
+    const casa::uInt descPolId = ddc.polarizationId()(dataDescId);
+    const casa::uInt descSpwId = ddc.spectralWindowId()(dataDescId);
+    const casa::uInt nRow = msc.nrow(); // In the whole table, not just for this integration
+    const casa::uInt nCorr = polc.numCorr()(descPolId);
+    //const casa::uInt nChan = spwc.numChan()(descSpwId);
+    const casa::uInt nAntenna = antc.nrow();
+    const casa::uInt nBeam = feedc.nrow() / nAntenna;
+    const casa::uInt nCoarseChan = 304;
 
     // Record the timestamp for the current integration that is
     // being processed
@@ -119,24 +119,24 @@ bool TosSimulator::sendNext(void)
     askap::cp::TosMetadata metadata(nCoarseChan, nBeam, nCorr);
 
     // time
-    const long timestamp = static_cast<long>(currentIntegration * 1000 * 1000);
+    const casa::Long timestamp = static_cast<long>(currentIntegration * 1000 * 1000);
     metadata.time(timestamp);
 
     // period
-    const long interval = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
+    const casa::Long interval = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
     metadata.period(interval);
 
 
     ////////////////////////////////////////
     // Metadata - per antenna
     ////////////////////////////////////////
-    for (unsigned int i = 0; i < nAntenna; ++i) {
+    for (casa::uInt i = 0; i < nAntenna; ++i) {
         const std::string name = antc.name().getColumn()(i);
 
         const casa::uInt id = metadata.addAntenna(name);
         TosMetadataAntenna& antMetadata = metadata.antenna(id);
 
-        const int fieldId = msc.fieldId()(itsCurrentRow);
+        const casa::Int fieldId = msc.fieldId()(itsCurrentRow);
         const casa::Vector<casa::MDirection> dirVec = fieldc.phaseDirMeasCol()(fieldId);
         const casa::MDirection direction = dirVec(0);
 
@@ -144,15 +144,19 @@ bool TosSimulator::sendNext(void)
         antMetadata.dishPointing(direction);
 
         // <antenna name>.frequency
-        // TODO: Currently this is ignored by the CP, but if possible it would be good
-        // to use the correct figure
-        antMetadata.frequency(0.0);
+        // TODO: This is actually just the start frequency, not the centre
+        // frequency so it breaks the interface contract. Anyway, it is ignored
+        // by the central processor.
+        casa::Vector<casa::Double> chanFreq = spwc.chanFreq()(descSpwId);
+        antMetadata.frequency(chanFreq(0));
 
         // <antenna name>.client_id
         antMetadata.clientId("N/A");
 
         // <antenna name>.scan_id
-        antMetadata.scanId("0");
+        std::ostringstream ss;
+        ss << msc.scanNumber()(itsCurrentRow);
+        antMetadata.scanId(ss.str());
 
         // <antenna name>.phase_tracking_centre
         for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
@@ -162,7 +166,8 @@ bool TosSimulator::sendNext(void)
         }
 
         // <antenna name>.parallactic_angle
-        // TODO: Should not be zero.
+        // TODO: Zero is ok for data coming from the csimulator when an
+        // equatorial mount is simulated.
         antMetadata.parallacticAngle(0.0);
 
         // <antenna name>.flag.on_source
@@ -187,8 +192,9 @@ bool TosSimulator::sendNext(void)
         }
 
         // <antenna name>.system_temp
-        // TODO: Current no system temperature, but it would be good to read this
-        // from the actual measurement set
+        // TODO: The csimulator does not write a SYSCAL table henece no system
+        // temperature is available. It would be nice to perhaps read this
+        // table if it does exist.
         for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
             for (casa::uInt beam = 0; beam < nBeam; ++beam) {
                 for (casa::uInt pol = 0; pol < nCorr; ++pol) {
