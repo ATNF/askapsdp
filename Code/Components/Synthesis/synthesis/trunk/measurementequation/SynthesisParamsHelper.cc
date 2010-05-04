@@ -27,6 +27,8 @@
 #include <dataaccess/PolConverter.h>
 #include <fitting/Axes.h>
 #include <utils/MultiDimArrayPlaneIter.h>
+#include <utils/PaddingUtils.h>
+#include <gridding/SupportSearcher.h>
 #include <lattices/LatticeMath/Fit2D.h>
 
 #include <askap_synthesis.h>
@@ -1102,8 +1104,24 @@ namespace askap
                              "), using the first 2D plane only to fit the beam");
        }
        casa::Array<double> psfSlice = MultiDimArrayPlaneIter::getFirstPlane(psfArray).nonDegenerate();
-       casa::Array<float> floatPSFSlice(psfSlice.shape());
-       casa::convertArray<float, double>(floatPSFSlice, psfSlice);
+       ASKAPDEBUGASSERT(psfSlice.shape().nelements() == 2);
+       casa::Matrix<double> psfSliceMatrix = psfSlice;
+       
+       // search for support to speed up beam fitting
+       const double cutoff = 5e-2;
+       ASKAPLOG_INFO_STR(logger, "Searching for support with the relative cutoff of "<<cutoff<<" to speed fitting up");
+       SupportSearcher ss(cutoff);
+       ss.search(psfSliceMatrix);
+       const casa::uInt support = ss.symmetricalSupport(psfSlice.shape());
+       ASKAPLOG_INFO_STR(logger, "Extracting support of "<<support<<" pixels for 2D gaussian fitting");
+       const casa::IPosition newShape(2,support,support);
+       for (int dim=0; dim<2; ++dim) {
+            ASKAPCHECK(psfSlice.shape()[dim] >= int(support), "Support is greater than the original size, shape="<<
+                       psfSlice.shape());
+       }
+       //
+       casa::Array<float> floatPSFSlice(newShape);
+       casa::convertArray<float, double>(floatPSFSlice, scimath::PaddingUtils::centeredSubArray(psfSlice,newShape));
 
        // hack for debugging only
        //floatPSFSlice = imageHandler().read("tmp.img").nonDegenerate();
@@ -1116,10 +1134,11 @@ namespace askap
        }
        //
        
+       // actual fitting
        casa::Vector<casa::Double> initialEstimate(6,0.);
        initialEstimate[0]=1.; // PSF peak is always 1
-       initialEstimate[1]=shape[0]/2.; // centre
-       initialEstimate[2]=shape[1]/2.; // centre
+       initialEstimate[1]=newShape[0]/2.; // centre
+       initialEstimate[2]=newShape[1]/2.; // centre
        initialEstimate[3]=1;  // 1 pixel wide
        initialEstimate[4]=0.9;  // 1 pixel wide
        initialEstimate[5]=casa::C::pi/4.; // quire arbitrary  pa.
