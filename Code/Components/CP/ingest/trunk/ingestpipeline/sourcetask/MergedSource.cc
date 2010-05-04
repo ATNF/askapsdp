@@ -187,8 +187,8 @@ void MergedSource::initVisChunk(VisChunk::ShPtr chunk, const TosMetadata& metada
                 chunk->feed2()(row) = beam;
                 chunk->feed1PA()(row) = mdAnt1.parallacticAngle();
                 chunk->feed2PA()(row) = mdAnt2.parallacticAngle();
-                chunk->pointingDir1()(row) = mdAnt1.dishPointing();
-                chunk->pointingDir2()(row) = mdAnt2.dishPointing();
+                chunk->pointingDir1()(row) = mdAnt1.phaseTrackingCentre(beam, 0);
+                chunk->pointingDir2()(row) = mdAnt2.phaseTrackingCentre(beam, 0);
                 chunk->dishPointing1()(row) = mdAnt1.dishPointing();
                 chunk->dishPointing2()(row) = mdAnt2.dishPointing();
                 chunk->frequency()(row) = 0.0;
