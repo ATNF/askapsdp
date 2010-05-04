@@ -5,5 +5,4 @@ import pbcorrtest
 print "noisetest: testing that the noise in the output image is as expected"
 import noisetest
 print "facetingtest: test of faceted imaging with spherical function gridder"
-print "temporary switched off"
-#import facetingtest
+import facetingtest

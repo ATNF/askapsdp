@@ -21,32 +21,35 @@ def analyseResult(spr):
    if abs(stats['peak']-1.)>0.3:
       raise RuntimeError, "Peak flux in the image is notably different from 1 Jy, F=%f" % stats['peak']
 
-   stats = spr.imageStats('image.field1')
+   stats = spr.imageStats('image.field1.facet.0.1')
    print "Statistics for modelimage: ",stats
    disterr = getDistance(stats,true_peak[0],true_peak[1])*3600.
    if disterr > 8:
       raise RuntimeError, "Offset between true and expected position exceeds 1 cell size (8 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
 
-   stats = spr.imageStats('psf.field1')
+   stats = spr.imageStats('psf.field1.facet.0.1')
    print "Statistics for psf image: ",stats
-   disterr = getDistance(stats,psf_peak[0],psf_peak[1])*3600.
+   # 256 is facetstep of 512 divided by 2, cell is 4 arcsec
+   facet_offset = 4.*256./3600.
+   facet_psf_peak = sinProjection(psf_peak,facet_offset,facet_offset)
+   disterr = getDistance(stats,facet_psf_peak[0],facet_psf_peak[1])*3600.
    if disterr > 8:
       raise RuntimeError, "Offset between true and expected position exceeds 1 cell size (8 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
 
-   stats = spr.imageStats('psf.image.field1')
+   stats = spr.imageStats('psf.image.field1.facet.0.1')
    print "Statistics for preconditioned psf image: ",stats
-   disterr = getDistance(stats,psf_peak[0],psf_peak[1])*3600.
+   disterr = getDistance(stats,facet_psf_peak[0],facet_psf_peak[1])*3600.
    if disterr > 8:
       raise RuntimeError, "Offset between true and expected position exceeds 1 cell size (8 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
    if abs(stats['peak']-1.)>0.01:
       raise RuntimeError, "Peak flux in the preconditioned psf image is notably different from 1.0, F=%f" % stats['peak']
 
-   stats = spr.imageStats('weights.field1')
+   stats = spr.imageStats('weights.field1.facet.0.1')
    print "Statistics for weight image: ",stats
    if abs(stats['rms']-stats['peak'])>0.1 or abs(stats['rms']-stats['median'])>0.1 or abs(stats['peak']-stats['median'])>0.1:
-      raise RuntimeError, "Weight image is expected to be constant for WProject and WStack gridders"
+      raise RuntimeError, "Weight image is expected to be constant for SphFunc gridder"
 
-   stats = spr.imageStats('residual.field1')
+   stats = spr.imageStats('residual.field1.facet.0.1')
    print "Statistics for residual image: ",stats
    if stats['rms']>0.01 or abs(stats['median'])>0.0001:
       raise RuntimeError, "Residual image has too high rms or median. Please verify"
