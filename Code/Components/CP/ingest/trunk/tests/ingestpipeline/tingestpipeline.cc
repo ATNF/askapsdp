@@ -30,12 +30,16 @@
 // Test includes
 #include "CircularBufferTest.h"
 #include "MergedSourceTest.h"
+#include "CalcUVWTaskTest.h"
+#include "AntennaPositionsTest.h"
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
     runner.addTest(askap::cp::CircularBufferTest::suite());
     runner.addTest(askap::cp::MergedSourceTest::suite());
+    runner.addTest(askap::cp::AntennaPositionsTest::suite());
+    //runner.addTest(askap::cp::CalcUVWTaskTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;
