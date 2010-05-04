@@ -1,4 +1,4 @@
-/// @file IngestPipeline.h
+/// @file CalcUVWTask.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,49 +24,33 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGESTPIPELINE_H
-#define ASKAP_CP_INGESTPIPELINE_H
-
-// System includes
-#include <vector>
+#ifndef ASKAP_CP_CALCUVWTASK_H
+#define ASKAP_CP_CALCUVWTASK_H
 
 // ASKAPsoft includes
+#include "boost/shared_ptr.hpp"
 #include "Common/ParameterSet.h"
-#include "boost/scoped_ptr.hpp"
 
 // Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
-#include "ingestpipeline/sourcetask/MergedSource.h"
 #include "ingestpipeline/ITask.h"
+#include "ingestpipeline/datadef/VisChunk.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class IngestPipeline
-        {
-            public:
-                IngestPipeline(const LOFAR::ParameterSet& parset);
-                ~IngestPipeline();
-                void start(void);
-                void abort(void);
+class CalcUVWTask : public askap::cp::ITask {
+    public:
+        CalcUVWTask(const LOFAR::ParameterSet& parset);
+        virtual ~CalcUVWTask();
 
-            private:
-                void ingest(void);
-                bool ingestOne(void);
-                void createSource(void);
+        virtual void process(VisChunk::ShPtr chunk);
 
-                template <class T>
-                void createTask(const LOFAR::ParameterSet& parset);
+    private:
+        const LOFAR::ParameterSet itsParset;
 
-                const LOFAR::ParameterSet itsParset;
-                bool itsRunning;
-
-                boost::scoped_ptr< MergedSource > itsSource;
-
-                std::vector<ITask::ShPtr> itsTasks;
-        };
-
-    };
 };
+
+}
+}
 
 #endif

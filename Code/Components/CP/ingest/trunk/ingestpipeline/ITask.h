@@ -1,4 +1,4 @@
-/// @file IngestPipeline.h
+/// @file ITask.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,49 +24,29 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGESTPIPELINE_H
-#define ASKAP_CP_INGESTPIPELINE_H
-
-// System includes
-#include <vector>
+#ifndef ASKAP_CP_ITASK_H
+#define ASKAP_CP_ITASK_H
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
-#include "boost/scoped_ptr.hpp"
+#include "boost/shared_ptr.hpp"
 
 // Local package includes
 #include "ingestpipeline/datadef/VisChunk.h"
-#include "ingestpipeline/sourcetask/MergedSource.h"
-#include "ingestpipeline/ITask.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class IngestPipeline
-        {
-            public:
-                IngestPipeline(const LOFAR::ParameterSet& parset);
-                ~IngestPipeline();
-                void start(void);
-                void abort(void);
+class ITask {
+    public:
+        virtual ~ITask();
+        virtual void process(VisChunk::ShPtr chunk) = 0;
 
-            private:
-                void ingest(void);
-                bool ingestOne(void);
-                void createSource(void);
+        // Shared pointer definition
+        typedef boost::shared_ptr<ITask> ShPtr;
 
-                template <class T>
-                void createTask(const LOFAR::ParameterSet& parset);
-
-                const LOFAR::ParameterSet itsParset;
-                bool itsRunning;
-
-                boost::scoped_ptr< MergedSource > itsSource;
-
-                std::vector<ITask::ShPtr> itsTasks;
-        };
-
-    };
 };
+
+}
+}
 
 #endif

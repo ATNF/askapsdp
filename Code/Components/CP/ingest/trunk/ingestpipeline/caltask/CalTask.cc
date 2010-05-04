@@ -1,4 +1,4 @@
-/// @file IngestPipeline.h
+/// @file CalTask.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,49 +24,37 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGESTPIPELINE_H
-#define ASKAP_CP_INGESTPIPELINE_H
+// Include own header file first
+#include "CalTask.h"
 
-// System includes
-#include <vector>
+// Include package level header file
+#include "askap_cpingest.h"
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
 #include "boost/scoped_ptr.hpp"
 
 // Local package includes
 #include "ingestpipeline/datadef/VisChunk.h"
-#include "ingestpipeline/sourcetask/MergedSource.h"
-#include "ingestpipeline/ITask.h"
 
-namespace askap {
-    namespace cp {
+ASKAP_LOGGER(logger, ".CalTask");
 
-        class IngestPipeline
-        {
-            public:
-                IngestPipeline(const LOFAR::ParameterSet& parset);
-                ~IngestPipeline();
-                void start(void);
-                void abort(void);
+using namespace askap;
+using namespace askap::cp;
 
-            private:
-                void ingest(void);
-                bool ingestOne(void);
-                void createSource(void);
+CalTask::CalTask(const LOFAR::ParameterSet& parset) :
+    itsParset(parset)
+{
+    ASKAPLOG_DEBUG_STR(logger, "Constructor");
+}
 
-                template <class T>
-                void createTask(const LOFAR::ParameterSet& parset);
+CalTask::~CalTask()
+{
+    ASKAPLOG_DEBUG_STR(logger, "Destructor");
+}
 
-                const LOFAR::ParameterSet itsParset;
-                bool itsRunning;
-
-                boost::scoped_ptr< MergedSource > itsSource;
-
-                std::vector<ITask::ShPtr> itsTasks;
-        };
-
-    };
-};
-
-#endif
+void CalTask::process(VisChunk::ShPtr chunk)
+{
+    ASKAPLOG_DEBUG_STR(logger, "process()");
+}

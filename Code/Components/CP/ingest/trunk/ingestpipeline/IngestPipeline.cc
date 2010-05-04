@@ -39,10 +39,14 @@
 #include "Common/ParameterSet.h"
 
 // Local package includes
+#include "ingestpipeline/ITask.h"
 #include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 #include "ingestpipeline/sourcetask/VisSource.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
+#include "ingestpipeline/calcuvwtask/CalcUVWTask.h"
+#include "ingestpipeline/caltask/CalTask.h"
+#include "ingestpipeline/sinktask/MSSink.h"
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
 
@@ -73,6 +77,9 @@ void IngestPipeline::ingest(void)
 {
     // 1) Setup tasks
     createSource();
+    createTask<CalcUVWTask>(itsParset);
+    createTask<CalTask>(itsParset);
+    createTask<MSSink>(itsParset);
 
     // 2) Process correlator integrations, one at a time
     while (itsRunning) {
@@ -92,6 +99,12 @@ bool IngestPipeline::ingestOne(void)
     VisChunk::ShPtr chunk(itsSource->next());
     ASKAPLOG_DEBUG_STR(logger, "Received one VisChunk. Timestamp: "
             << chunk->time());
+
+    // For each task call process on the VisChunk
+    for (unsigned int i = 0; i < itsTasks.size(); ++i) {
+        itsTasks[i]->process(chunk);
+    }
+
     return false; // Not finished
 }
 
@@ -117,4 +130,11 @@ void IngestPipeline::createSource(void)
 
     // 3) Create and configure the merged source
     itsSource.reset(new MergedSource(metadataSrc, visSrc));
+}
+
+template <class T>
+void IngestPipeline::createTask(const LOFAR::ParameterSet& parset)
+{
+    ITask::ShPtr task(new T(parset));
+    itsTasks.push_back(task);
 }
