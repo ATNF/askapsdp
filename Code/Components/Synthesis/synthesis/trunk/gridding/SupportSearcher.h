@@ -103,14 +103,16 @@ public:
    /// that the cutoff is an absolute cutoff (default).
    /// @param[in] in input 2D matrix with an image 
    /// @param[in] value assumed peak value
-   void searchCentered(const casa::Matrix<casa::Complex> &in, double value = 1.);
+   template<typename T>
+   void searchCentered(const casa::Matrix<T> &in, double value = 1.);
    
    /// @brief determine the peak and its position
    /// @details This method fillss only itsPeakPos and itsPeakVal. It is
    /// normally called from one of the search methods, but could be called
    /// separately.
    /// @param[in] in input 2D matrix with an image
-   void findPeak(const casa::Matrix<casa::Complex> &in);
+   template<typename T>
+   void findPeak(const casa::Matrix<T> &in);
    
    /// @brief full search which determines the peak
    /// @details This search method doesn't assume anything about the peak and
@@ -118,15 +120,25 @@ public:
    /// edges and progresses towards the peak. The edge of the support region
    /// is where the value first time exceeds the cutoff*peakVal.
    /// @param[in] in input 2D matrix with an image 
-   void search(const casa::Matrix<casa::Complex> &in);
+   template<typename T>
+   void search(const casa::Matrix<T> &in);
 protected:
     
    /// @brief do actual support search
    /// @details This method assumes that peak has already been found and
    /// implements the actual search of blc and trc of the support region.
    /// @param[in] in input 2D matrix with an image 
-   void doSupportSearch(const casa::Matrix<casa::Complex> &in);
-      
+   template<typename T>
+   void doSupportSearch(const casa::Matrix<T> &in);
+
+   /// @brief debug method to save the matrix
+   /// @details This method is used for debugging only and stores given
+   /// complex matrix (i.e. if NaN appears in the CF calculation). It does
+   /// nothing for the generic value type.
+   /// @param[in] in input 2D matrix with an image
+   template<typename T>
+   static void debugStoreImage(const casa::Matrix<T> &in) {}
+         
 private:
    /// @brief relative cutoff level (from the absolute peak)
    double itsCutoff;
@@ -143,5 +155,8 @@ private:
 } // namespace synthesis
 
 } // namespace askap
+
+// implementation of template functions
+#include <gridding/SupportSearcher.tcc>
 
 #endif // #ifndef SUPPORT_SEARCHER_H

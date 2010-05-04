@@ -118,126 +118,16 @@ casa::uInt SupportSearcher::symmetricalSupport(const casa::IPosition &shape) con
   return casa::uInt(std::max(xMax,yMax)*2);
 }
 
-/// @brief search assuming the peak is in the centre
-/// @details This search method assumes the peak is in the centre of the
-/// image and has a given value. The search starts at the edges and
-/// terminated as soon as the absolute value higher than 
-/// cutoff*value has been found. Giving value of 1. effectively means 
-/// that the cutoff is an absolute cutoff (default).
-/// @param[in] in input 2D matrix with an image 
-/// @param[in] value assumed peak value
-void SupportSearcher::searchCentered(const casa::Matrix<casa::Complex> &in, double value)
-{
-  itsPeakVal = value;
-  itsPeakPos.resize(in.shape().nelements(), casa::False);
-  ASKAPDEBUGASSERT(itsPeakPos.nelements() == 2);
-  itsPeakPos = in.shape();
-  itsPeakPos(0)/=2;
-  itsPeakPos(1)/=2;
-  doSupportSearch(in);  
-}
-
-/// @brief determine the peak and its position
-/// @details This method fills only itsPeakPos and itsPeakVal. It is
-/// normally called from one of the search methods, but could be called
-/// separately.
+/// @brief debug method to save the matrix
+/// @details This method is used for debugging only and stores given
+/// complex matrix (i.e. if NaN appears in the CF calculation). It does
+/// nothing for the generic value type.
 /// @param[in] in input 2D matrix with an image
-void SupportSearcher::findPeak(const casa::Matrix<casa::Complex> &in)
-{ 
-  itsPeakPos.resize(in.shape().nelements(),casa::False);
-  itsPeakPos = 0;
-  itsPeakVal = -1;
-  for (int iy=0;iy<int(in.ncolumn());++iy) {
-       for (int ix=0;ix<int(in.nrow());++ix) {
-	    // the following line has been commented out until we find a better work around on the delphinus/minicp bug
-	    // See ticket:2307
-            //const double curVal = std::abs(in(ix,iy));
-	    const double curVal = std::abs(casa::DComplex(in(ix,iy)));
-            if(itsPeakVal< curVal) {
-               itsPeakPos(0)=ix;
-               itsPeakPos(1)=iy;
-               itsPeakVal = curVal;
-            }
-       }
-  }
-#ifdef ASKAP_DEBUG  
-  if (itsPeakVal<0) {
-      ASKAPTHROW(CheckError, "An empty matrix has been passed to SupportSearcher::findPeak, please investigate. Shape="<<
-                 in.shape());
-  }
-  if (std::isinf(itsPeakVal) || std::isnan(itsPeakVal)) {
-      SynthesisParamsHelper::saveAsCasaImage("dbg.img",amplitude(in));
-  }
-  ASKAPCHECK(!std::isnan(itsPeakVal), "Peak value is not a number, please investigate. itsPeakPos="<<itsPeakPos);
-  ASKAPCHECK(!std::isinf(itsPeakVal), "Peak value is infinite, please investigate. itsPeakPos="<<itsPeakPos);
-#endif // #ifdef ASKAP_DEBUG
-
-  ASKAPCHECK(itsPeakVal>0.0, "Unable to find peak of the convolution function, all values appear to be zero. itsPeakVal=" 
-             << itsPeakVal);
-}
-
-/// @brief full search which determines the peak
-/// @details This search method doesn't assume anything about the peak and
-/// searches for its position and peak beforehand. The search starts at the
-/// edges and progresses towards the peak. The edge of the support region
-/// is where the value first time exceeds the cutoff*peakVal.
-/// @param[in] in input 2D matrix with an image 
-void SupportSearcher::search(const casa::Matrix<casa::Complex> &in)
+template<>
+void SupportSearcher::debugStoreImage(const casa::Matrix<casa::Complex> &in)
 {
-  findPeak(in);
-  doSupportSearch(in);
+  SynthesisParamsHelper::saveAsCasaImage("dbg.img",amplitude(in));
 }
 
-/// @brief do actual support search
-/// @details This method assumes that peak has already been found and
-/// implements the actual search of blc and trc of the support region.
-/// @param[in] in input 2D matrix with an image 
-void SupportSearcher::doSupportSearch(const casa::Matrix<casa::Complex> &in)
-{
-  ASKAPDEBUGASSERT(in.shape().nelements() == 2);
-  ASKAPDEBUGASSERT(itsPeakPos.nelements() == 2);
-  itsBLC.resize(2,casa::False);
-  itsTRC.resize(2,casa::False);
-  itsBLC = -1;
-  itsTRC = -1;
-  ASKAPCHECK(itsPeakVal>0.0, "A positive peak value of the convolution function is expected inside doSupportSearch, itsPeakVal" << 
-                             itsPeakVal);
-  ASKAPCHECK(!std::isinf(itsPeakVal), "Peak value is infinite, this shouldn't happen. itsPeakPos="<<itsPeakPos); 
-  ASKAPCHECK(itsPeakPos[0]>0 && itsPeakPos[1]>0, "Peak position of the convolution function "<<itsPeakPos<<
-             " is too close to the edge, increase maxsupport");
-  ASKAPCHECK(itsPeakPos[0] + 1 < int(in.nrow()) && itsPeakPos[1] + 1 < int(in.ncolumn()), 
-             "Peak position of the convolution function "<<itsPeakPos<<" is too close to the edge, increase maxsupport");
-  
-  const double absCutoff = itsCutoff*itsPeakVal;
-  for (int ix = 0; ix<=itsPeakPos(0); ++ix) {
-       if (casa::abs(in(ix, itsPeakPos(1))) > absCutoff) {
-           itsBLC(0) = ix;
-           break;
-       }
-  }
-  
-  for (int iy = 0; iy<=itsPeakPos(1); ++iy) {
-       if (casa::abs(in(itsPeakPos(0),iy)) > absCutoff) {
-           itsBLC(1) = iy;
-           break;
-       }
-  }
 
-  for (int ix = int(in.nrow())-1; ix>=itsPeakPos(0); --ix) {
-       if (casa::abs(in(ix, itsPeakPos(1))) > absCutoff) {
-           itsTRC(0) = ix;
-           break;
-       }
-  }
-  
-  for (int iy = int(in.ncolumn())-1; iy>=itsPeakPos(1); --iy) {
-       if (casa::abs(in(itsPeakPos(0),iy)) > absCutoff) {
-           itsTRC(1) = iy;
-           break;
-       }
-  }
-  
-  ASKAPCHECK((itsBLC(0)>=0) && (itsBLC(1)>=0) && (itsTRC(0)>=0) && 
-             (itsTRC(1)>=0), "Unable to find the support on one of the coordinates (try decreasing the value of .gridder.cutoff) Effective support is 0. itsBLC="<<itsBLC<<" itsTRC="<<itsTRC<<" itsPeakPos="<<itsPeakPos<<" in.shape()="<<in.shape()<<" absCutoff="<<absCutoff<<" itsPeakVal="<<itsPeakVal);
-}
 
