@@ -45,6 +45,7 @@ class SupportSearcherTest : public CppUnit::TestFixture
    CPPUNIT_TEST_SUITE(SupportSearcherTest);
    CPPUNIT_TEST(testSupportSearch);
    CPPUNIT_TEST(testPeakFind);
+   CPPUNIT_TEST(testSupportSearchFloat);
    CPPUNIT_TEST_SUITE_END();
 public:
    void setUp() {
@@ -73,6 +74,21 @@ public:
       const double cutoff = 1e-2;
       SupportSearcher ss(cutoff);
       ss.search(itsBuffer);
+      doSupportSearcherTest(ss);
+   }
+   
+   void testSupportSearchFloat() {
+      casa::Matrix<casa::Float> floatBuffer = amplitude(itsBuffer);
+      const double cutoff = 1e-2;
+      SupportSearcher ss(cutoff);
+      ss.search(floatBuffer);
+      doSupportSearcherTest(ss);      
+   }
+
+protected:
+      
+   void doSupportSearcherTest(SupportSearcher &ss) {
+      const double cutoff = ss.cutoff();   
       const double expectedHalfWidth = 5.*sqrt(-2.*log(cutoff));
       CPPUNIT_ASSERT(casa::abs(double(ss.support())-2.*expectedHalfWidth)<1.);
       CPPUNIT_ASSERT(casa::abs(double(ss.symmetricalSupport(itsBuffer.shape()))-
