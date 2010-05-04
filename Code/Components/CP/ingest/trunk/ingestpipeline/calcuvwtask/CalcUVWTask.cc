@@ -30,22 +30,36 @@
 // Include package level header file
 #include "askap_cpingest.h"
 
+// System includes
+#include <string>
+#include <vector>
+
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "boost/scoped_ptr.hpp"
+#include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/MatrixMath.h"
+#include "measures/Measures.h"
+#include "measures/Measures/MeasConvert.h"
+#include "measures/Measures/MCEpoch.h"
+#include "measures/Measures/MDirection.h"
+#include "measures/Measures/MEpoch.h"
+#include "casa/Quanta/MVAngle.h"
 
 // Local package includes
 #include "ingestpipeline/datadef/VisChunk.h"
 
 ASKAP_LOGGER(logger, ".CalcUVWTask");
 
+using namespace casa;
 using namespace askap;
 using namespace askap::cp;
 
 CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset) :
     itsParset(parset)
 {
+    const LOFAR::ParameterSet antSubset(itsParset.makeSubset("uvw.antennas."));
+    itsAntennaPositions.reset(new AntennaPositions(antSubset));
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
 }
 
@@ -57,4 +71,62 @@ CalcUVWTask::~CalcUVWTask()
 void CalcUVWTask::process(VisChunk::ShPtr chunk)
 {
     ASKAPLOG_DEBUG_STR(logger, "process()");
+
+    for (casa::uInt row = 0; row < chunk->nRow(); ++row) {
+        calcForRow(chunk, row);
+    }
+}
+
+void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
+{
+    const casa::uInt ant1 = chunk->antenna1()(row);
+    const casa::uInt ant2 = chunk->antenna2()(row);
+    const casa::uInt feed1 = chunk->feed1()(row);
+    const casa::uInt feed2 = chunk->feed2()(row);
+    ASKAPCHECK(feed1 == feed2, "Only supporting case where same feeds are used");
+
+    // The antenna positions. Size is 3 (x, y & z) rows by nAntenna columns.
+    // Rows are x, y, z and columns are indexed by antenna id.
+    casa::Matrix<double> antXYZ = itsAntennaPositions->getPositionMatrix();
+    const casa::uInt nAnt = antXYZ.ncolumn();
+
+    // Determine Greenwich Mean Sidereal Time
+    MEpoch epUT1(chunk->time(), MEpoch::UTC);
+    MEpoch::Ref refGMST1(MEpoch::GMST1);
+    MEpoch::Convert epGMST1(epUT1, refGMST1);
+    double gmst = epGMST1().get("d").getValue("d");
+    gmst = (gmst - Int(gmst)) * C::_2pi; // Into Radians
+
+    // Current phase center
+    casa::MDirection feedPhaseCenter = chunk->pointingDir1()(row);
+    const double ra = feedPhaseCenter.getAngle().getValue()(0);
+    const double dec = feedPhaseCenter.getAngle().getValue()(1);
+
+    // Transformation from antenna position difference (ant2-ant1) to uvw
+    const double H0 = gmst - ra;
+    const double sH0 = sin(H0);
+    const double cH0 = cos(H0);
+    const double sd = sin(dec);
+    const double cd = cos(dec);
+    Matrix<double> trans(3, 3, 0);
+    trans(0, 0) = -sH0; trans(0, 1) = -cH0;
+    trans(1, 0) = sd * cH0; trans(1, 1) = -sd * sH0; trans(1, 2) = -cd;
+    trans(2, 0) = -cd * cH0; trans(2, 1) = cd * sH0; trans(2, 2) = -sd;
+
+    // Rotate antennas to correct frame
+    Matrix<double> antUVW(3, nAnt);
+
+    for (uInt i = 0; i < nAnt; ++i) {
+        antUVW.column(i) = casa::product(trans, antXYZ.column(i));
+    }
+
+    double x1 = antUVW(0, ant1), y1 = antUVW(1, ant1), z1 = antUVW(2, ant1);
+    double x2 = antUVW(0, ant2), y2 = antUVW(1, ant2), z2 = antUVW(2, ant2);
+    Vector<double> uvwvec(3);
+    uvwvec(0) = x2 - x1;
+    uvwvec(1) = y2 - y1;
+    uvwvec(2) = z2 - z1;
+
+    // Finally set the uvwvec in the VisChunk
+    chunk->uvw()(row) = uvwvec;
 }

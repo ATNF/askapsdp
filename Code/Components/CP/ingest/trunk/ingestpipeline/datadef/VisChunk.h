@@ -29,6 +29,7 @@
 
 // ASKAPsoft includes
 #include "casa/aips.h"
+#include "casa/Quanta/MVEpoch.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Cube.h"
@@ -67,7 +68,7 @@ namespace askap {
                 /// Timestamp for this correlator integration
                 /// @return a timestamp for this buffer. Absolute time expressed as
                 /// seconds since MJD=0.
-                casa::Double &time();
+                casa::MVEpoch& time();
 
                 /// First antenna IDs for all rows
                 ///
@@ -212,7 +213,7 @@ namespace askap {
                 casa::Vector<casa::RigidVector<casa::Double, 3> > itsUVW;
 
                 /// Time
-                casa::Double itsTime;
+                casa::MVEpoch itsTime;
 
                 /// Frequency
                 casa::Vector<casa::Double> itsFrequency;

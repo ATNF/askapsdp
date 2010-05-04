@@ -29,13 +29,14 @@
 #include "VisChunk.h"
 
 // ASKAPsoft includes
-#include <casa/aips.h>
-#include <casa/Arrays/Vector.h>
-#include <casa/Arrays/Matrix.h>
-#include <casa/Arrays/Cube.h>
-#include <measures/Measures/MDirection.h>
-#include <scimath/Mathematics/RigidVector.h>
-#include <measures/Measures/Stokes.h>
+#include "casa/aips.h"
+#include "casa/Quanta/MVEpoch.h"
+#include "casa/Arrays/Vector.h"
+#include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/Cube.h"
+#include "measures/Measures/MDirection.h"
+#include "scimath/Mathematics/RigidVector.h"
+#include "measures/Measures/Stokes.h"
 
 // Using
 using namespace askap::cp;
@@ -129,7 +130,7 @@ casa::Vector<casa::RigidVector<casa::Double, 3> >& VisChunk::uvw()
     return itsUVW;
 }
 
-casa::Double& VisChunk::time()
+casa::MVEpoch& VisChunk::time()
 {
     return itsTime;
 }

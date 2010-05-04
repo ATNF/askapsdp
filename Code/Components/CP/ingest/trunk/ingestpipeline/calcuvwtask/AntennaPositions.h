@@ -61,7 +61,7 @@ class AntennaPositions {
         /// @return a matrix containing antenna coordinates. Size is 3 rows by
         /// nAntenna columns. Rows are x, y, z and columns are indexed by
         /// antenna id.
-        casa::Matrix<double> getPositionMatrix(void);
+        casa::Matrix<double> getPositionMatrix(void) const;
 
     private:
         void local2global(casa::Vector<double>& xGeo, casa::Vector<double>& yGeo,

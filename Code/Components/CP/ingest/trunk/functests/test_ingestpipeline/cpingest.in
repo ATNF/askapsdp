@@ -12,6 +12,19 @@ cp.ingest.metadata_source.icestorm.topic            = tosmetadata
 #Visibilities Source
 cp.ingest.vis_source.port                           = 3000
 #cp.ingest.vis_source.buffer_size                   = 
+
+# Calc UVW Task
+cp.ingest.uvw.antennas.location     =   [+117.471deg, -25.692deg, 192m, WGS84]
+cp.ingest.uvw.antennas.names        =   [A0, A1, A2, A3, A4, A5]
+cp.ingest.uvw.antennas.diameter     =   12m
+cp.ingest.uvw.antennas.scale        =   1.0
+cp.ingest.uvw.antennas.mount        =   equatorial
+cp.ingest.uvw.antennas.A0           =  [-175.233429,  -1673.460938,  0.0000]
+cp.ingest.uvw.antennas.A1           =  [261.119019,   -796.922119,   0.0000]
+cp.ingest.uvw.antennas.A2           =  [-29.200520,   -744.432068,   0.0000]
+cp.ingest.uvw.antennas.A3           =  [-289.355286,  -586.936035,   0.0000]
+cp.ingest.uvw.antennas.A4           =  [-157.031570,  -815.570068,   0.0000]
+cp.ingest.uvw.antennas.A5           =  [-521.311646,  -754.674927,   0.0000]
             
 # Measurement Set Sink
 cp.ingest.ms_sink.filename                          = ingest_test.ms

@@ -36,6 +36,7 @@
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/TosMetadataAntenna.h"
 #include "ingestpipeline/datadef/VisChunk.h"
+#include "measures/Measures.h"
 
 // Classes to test
 #include "ingestpipeline/sourcetask/MergedSource.h"
@@ -148,7 +149,8 @@ namespace askap
                 // measurement set specification used integration midpoint in
                 // seconds.
                 const double midpoint = 3.5;
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(midpoint, chunk->time(), 1.0E-10);
+                casa::Quantity chunkMidpoint = chunk->time().getTime();
+                CPPUNIT_ASSERT_DOUBLES_EQUAL(midpoint, chunkMidpoint.getValue("s"), 1.0E-10);
 
                 // Ensure other metadata is as expected
                 CPPUNIT_ASSERT_EQUAL(nCoarseChan * N_FINE_PER_COARSE, chunk->nChannel());

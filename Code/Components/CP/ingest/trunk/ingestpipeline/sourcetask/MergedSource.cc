@@ -36,6 +36,8 @@
 #include "boost/scoped_ptr.hpp"
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/VisDatagram.h"
+#include "measures/Measures.h"
+#include "casa/Quanta/MVEpoch.h"
 
 // Local package includes
 #include "ingestpipeline/IngestUtils.h"
@@ -136,7 +138,7 @@ void MergedSource::initVisChunk(VisChunk::ShPtr chunk, const TosMetadata& metada
     // Convert the time from integration start in microseconds to an
     // integration mid-point in seconds
     const casa::uInt midpoint = metadata.time() + (period / 2ul);
-    chunk->time() = (static_cast<casa::Double>(midpoint)) / 1000000.0;
+    chunk->time() = casa::MVEpoch(casa::Quantity((static_cast<casa::Double>(midpoint) / 1000000.0), "s"));
     chunk->nRow() = nRow;
     chunk->nChannel() = nChannels;
     chunk->nPol() = nPol;

@@ -122,7 +122,7 @@ AntennaPositions::AntennaPositions(const LOFAR::ParameterSet& parset)
     }
 }
 
-casa::Matrix<double> AntennaPositions::getPositionMatrix(void)
+casa::Matrix<double> AntennaPositions::getPositionMatrix(void) const
 {
     return itsAntXYZ;
 }

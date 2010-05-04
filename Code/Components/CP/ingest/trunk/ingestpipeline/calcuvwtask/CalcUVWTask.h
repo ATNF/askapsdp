@@ -28,12 +28,13 @@
 #define ASKAP_CP_CALCUVWTASK_H
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
+#include "boost/scoped_ptr.hpp"
 #include "Common/ParameterSet.h"
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/datadef/VisChunk.h"
+#include "ingestpipeline/calcuvwtask/AntennaPositions.h"
 
 namespace askap {
 namespace cp {
@@ -46,8 +47,11 @@ class CalcUVWTask : public askap::cp::ITask {
         virtual void process(VisChunk::ShPtr chunk);
 
     private:
+        void calcForRow(VisChunk::ShPtr chunk, const casa::uInt row);
+
         const LOFAR::ParameterSet itsParset;
 
+        boost::scoped_ptr<AntennaPositions> itsAntennaPositions;
 };
 
 }
