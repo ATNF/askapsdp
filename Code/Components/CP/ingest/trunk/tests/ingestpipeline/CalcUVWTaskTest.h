@@ -28,40 +28,94 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 // Support classes
-#include "boost/shared_ptr.hpp"
+#include "Common/ParameterSet.h"
+#include "ingestpipeline/datadef/VisChunk.h"
+#include "measures/Measures.h"
+#include "measures/Measures/MEpoch.h"
+#include "measures/Measures/MDirection.h"
+#include "casa/Quanta/MVEpoch.h"
+#include "casa/Arrays/Vector.h"
 
 // Classes to test
 #include "ingestpipeline/calcuvwtask/CalcUVWTask.h"
-#include "ingestpipeline/datadef/VisChunk.h"
 
-namespace askap
+using namespace casa;
+
+namespace askap {
+namespace cp {
+
+class CalcUVWTaskTest : public CppUnit::TestFixture
 {
-    namespace cp
+    CPPUNIT_TEST_SUITE(CalcUVWTaskTest);
+    CPPUNIT_TEST(testSimple);
+    CPPUNIT_TEST_SUITE_END();
+
+    public:
+    void setUp()
     {
-        class CalcUVWTaskTest : public CppUnit::TestFixture
-        {
-            CPPUNIT_TEST_SUITE(CalcUVWTaskTest);
-            CPPUNIT_TEST(testSimple);
-            CPPUNIT_TEST_SUITE_END();
+        // Setup a parameter set
+        itsParset.add("uvw.antennas.location", "[+117.471deg, -25.692deg, 192m, WGS84]");
+        itsParset.add("uvw.antennas.names", "[A0, A1, A2, A3, A4, A5]");
+        itsParset.add("uvw.antenna.sscale", "1.0");
+        itsParset.add("uvw.antennas.A0", "[-175.233429,  -1673.460938,  0.0000]");
+        itsParset.add("uvw.antennas.A1", "[261.119019,   -796.922119,   0.0000]");
+        itsParset.add("uvw.antennas.A2", "[-29.200520,   -744.432068,   0.0000]");
+        itsParset.add("uvw.antennas.A3", "[-289.355286,  -586.936035,   0.0000]");
+        itsParset.add("uvw.antennas.A4", "[-157.031570,  -815.570068,   0.0000]");
+        itsParset.add("uvw.antennas.A5", "[-521.311646,  -754.674927,   0.0000]");
+    };
 
-            public:
-            void testSimple()
-            {
-                /*
-                const unsigned long starttime = 1000000; // One second after epoch
-                const unsigned long period = 5 * 1000 * 1000;
-                const unsigned int nAntenna = 2;
-                const unsigned  int nCoarseChan = 304;
-                const unsigned int nBeam = 1;
-                const unsigned int nCorr = N_POL;
+    void tearDown()
+    {
+        itsParset.clear();
+    }
 
-                VisChunk::ShPtr chunk(new VisChunk);
-                chunk->time() = starttime;
-                */
-            };
+    void testSimple()
+    {
+        const unsigned int row = 0;
+        MEpoch starttime(MVEpoch(Quantity(50237.29, "d")),
+                MEpoch::Ref(MEpoch::UTC));
+        MDirection fieldCenter(Quantity( 20, "deg"),
+                               Quantity(-10, "deg"),
+                               MDirection::Ref(MDirection::J2000));
 
-        };
+        // Create a simple chunk with 1 row, 1 channel and 1 pol
+        VisChunk::ShPtr chunk(new VisChunk(1, 1, 1));
+        chunk->time() = starttime.getValue();
+        chunk->antenna1()(row) = 0;
+        chunk->antenna2()(row) = 1;
+        chunk->feed1()(row) = 0;
+        chunk->feed2()(row) = 0;
+        chunk->feed1PA()(row) = 0.0;
+        chunk->feed2PA()(row) = 0.0;
+        chunk->pointingDir1()(row) = fieldCenter;
+        chunk->pointingDir2()(row) = fieldCenter;
+        chunk->dishPointing1()(row) = fieldCenter;
+        chunk->dishPointing2()(row) = fieldCenter;
+        chunk->frequency()(0) = 1400000;
 
-    }   // End namespace cp
+        // Instantiate the class under test and call process() to
+        // add UVW coordinates to the VisChunk
+        CalcUVWTask task(itsParset);
+        task.process(chunk);
+
+        CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
+        CPPUNIT_ASSERT(chunk->uvw().size() == 1);
+        casa::RigidVector<casa::Double, 3> uvw = chunk->uvw()(row);
+
+        // Tolerance for uvw equality
+        const double tol = 1.0E-8;
+        CPPUNIT_ASSERT_DOUBLES_EQUAL(-347.517826227471, uvw(0), tol); //u
+        CPPUNIT_ASSERT_DOUBLES_EQUAL(-698.816518342588, uvw(1), tol); //v
+        CPPUNIT_ASSERT_DOUBLES_EQUAL(591.278777468775, uvw(2), tol); //w
+    };
+
+    private:
+
+    LOFAR::ParameterSet itsParset;
+
+};
+
+}   // End namespace cp
 
 }   // End namespace askap

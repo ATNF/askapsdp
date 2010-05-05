@@ -85,8 +85,7 @@ VisChunk::ShPtr MergedSource::next(void)
     }
 
     // Now the streams are synced, start building a VisChunk
-    VisChunk::ShPtr chunk(new VisChunk);
-    initVisChunk(chunk, *itsMetadata);
+    VisChunk::ShPtr chunk = createVisChunk(*itsMetadata);
 
     // Determine how many VisDatagrams are expected for a single integration
     const casa::uInt nAntenna = itsMetadata->nAntenna();
@@ -124,7 +123,7 @@ VisChunk::ShPtr MergedSource::next(void)
     return chunk;
 }
 
-void MergedSource::initVisChunk(VisChunk::ShPtr chunk, const TosMetadata& metadata)
+VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 {
     const casa::uInt nAntenna = metadata.nAntenna();
     const casa::uInt nCoarseChannels = metadata.nCoarseChannels();
@@ -135,30 +134,12 @@ void MergedSource::initVisChunk(VisChunk::ShPtr chunk, const TosMetadata& metada
     const casa::uInt nRow = nBaselines * nBeams;
     const casa::uInt period = metadata.period();
 
+    VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol));
+
     // Convert the time from integration start in microseconds to an
     // integration mid-point in seconds
     const casa::uLong midpoint = metadata.time() + (period / 2ul);
     chunk->time() = casa::MVEpoch(casa::Quantity((static_cast<casa::Double>(midpoint) / 1000000.0), "s"));
-    chunk->nRow() = nRow;
-    chunk->nChannel() = nChannels;
-    chunk->nPol() = nPol;
-
-    // Resize these rather than add row-by-row. It is faster this way
-    chunk->antenna1().resize(nRow);
-    chunk->antenna2().resize(nRow);
-    chunk->feed1().resize(nRow);
-    chunk->feed2().resize(nRow);
-    chunk->feed1PA().resize(nRow);
-    chunk->feed2PA().resize(nRow);
-    chunk->pointingDir1().resize(nRow);
-    chunk->pointingDir2().resize(nRow);
-    chunk->dishPointing1().resize(nRow);
-    chunk->dishPointing2().resize(nRow);
-    chunk->visibility().resize(nRow, nChannels, nPol);
-    chunk->flag().resize(nRow, nChannels, nPol);
-    chunk->uvw().resize(nRow);
-    chunk->frequency().resize(nChannels);
-    chunk->stokes().resize(nPol);
 
     // All visibilities get flagged as bad, then as the visibility data 
     // arrives they are unflagged
@@ -200,6 +181,8 @@ void MergedSource::initVisChunk(VisChunk::ShPtr chunk, const TosMetadata& metada
             }
         }
     }
+
+    return chunk;
 }
 
 void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis)

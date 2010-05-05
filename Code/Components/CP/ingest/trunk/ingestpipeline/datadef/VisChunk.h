@@ -45,8 +45,24 @@ namespace askap {
         class VisChunk
         {
             public:
-                /// Constructor
+                /// @brief Constructor.
+                /// Construct a VisChunk where its containers are created with
+                /// a zero size.
                 VisChunk();
+
+                /// @brief Constructor.
+                /// Construct a VisChunk where its containers are created with
+                /// the dimensions specified.
+                /// 
+                /// @param[in] nRow containers with a nRow dimension will be created
+                ///                 with this size for that dimension.
+                /// @param[in] nChannel containers with a nChannel dimension will
+                ///                     be created with this size for that dimension.
+                /// @param[in] nPol containers with a nPol dimension will be created
+                ///                 with this size for that dimension.
+                VisChunk(const casa::uInt nRow,
+                         const casa::uInt nChannel,
+                         const casa::uInt nPol);
 
                 /// Destructor
                 ~VisChunk();

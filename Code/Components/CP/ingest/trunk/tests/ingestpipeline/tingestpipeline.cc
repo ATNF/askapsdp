@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::cp::CircularBufferTest::suite());
     runner.addTest(askap::cp::MergedSourceTest::suite());
     runner.addTest(askap::cp::AntennaPositionsTest::suite());
-    //runner.addTest(askap::cp::CalcUVWTaskTest::suite());
+    runner.addTest(askap::cp::CalcUVWTaskTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

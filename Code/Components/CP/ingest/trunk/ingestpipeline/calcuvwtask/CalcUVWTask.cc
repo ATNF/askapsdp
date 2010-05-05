@@ -81,14 +81,14 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
 {
     const casa::uInt ant1 = chunk->antenna1()(row);
     const casa::uInt ant2 = chunk->antenna2()(row);
-    const casa::uInt feed1 = chunk->feed1()(row);
-    const casa::uInt feed2 = chunk->feed2()(row);
-    ASKAPCHECK(feed1 == feed2, "Only supporting case where same feeds are used");
 
     // The antenna positions. Size is 3 (x, y & z) rows by nAntenna columns.
     // Rows are x, y, z and columns are indexed by antenna id.
     casa::Matrix<double> antXYZ = itsAntennaPositions->getPositionMatrix();
     const casa::uInt nAnt = antXYZ.ncolumn();
+
+    ASKAPCHECK(ant1 < nAnt, "Antenna index (" << ant1 << ") is invalid");
+    ASKAPCHECK(ant2 < nAnt, "Antenna index (" << ant2 << ") is invalid");
 
     // Determine Greenwich Mean Sidereal Time
     MEpoch epUT1(chunk->time(), MEpoch::UTC);

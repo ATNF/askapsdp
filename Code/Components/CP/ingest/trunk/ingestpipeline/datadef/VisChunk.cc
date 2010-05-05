@@ -23,7 +23,7 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
-/// 
+///
 
 // Include own header file first
 #include "VisChunk.h"
@@ -42,8 +42,31 @@
 using namespace askap::cp;
 
 VisChunk::VisChunk()
-    : itsNumberOfRows(0), itsNumberOfChannels(0), itsNumberOfPolarisations(0)
+        : itsNumberOfRows(0), itsNumberOfChannels(0), itsNumberOfPolarisations(0)
 {
+}
+
+VisChunk::VisChunk(const casa::uInt nRow,
+                   const casa::uInt nChannel,
+                   const casa::uInt nPol)
+        : itsNumberOfRows(nRow), itsNumberOfChannels(nChannel),
+        itsNumberOfPolarisations(nPol)
+{
+    itsAntenna1.resize(nRow);
+    itsAntenna2.resize(nRow);
+    itsFeed1.resize(nRow);
+    itsFeed2.resize(nRow);
+    itsFeed1PA.resize(nRow);
+    itsFeed2PA.resize(nRow);
+    itsPointingDir1.resize(nRow);
+    itsPointingDir2.resize(nRow);
+    itsDishPointing1.resize(nRow);
+    itsDishPointing2.resize(nRow);
+    itsVisibility.resize(nRow, nChannel, nPol);
+    itsFlag.resize(nRow, nChannel, nPol);
+    itsUVW.resize(nRow);
+    itsFrequency.resize(nChannel);
+    itsStokes.resize(nPol);
 }
 
 VisChunk::~VisChunk()
