@@ -153,7 +153,8 @@ int main(int argc, char *argv[])
     boost::system::error_code soerror;
     socket.set_option(option, soerror);
     if (soerror) {
-        throw boost::system::system_error(soerror);
+        std::cerr << "Warning: Could not set socket option. "
+            << " This may result in dropped packets" << std::endl;
     }
 
     // Create receive buffer
