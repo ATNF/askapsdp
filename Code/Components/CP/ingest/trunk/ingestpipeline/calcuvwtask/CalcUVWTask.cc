@@ -58,9 +58,9 @@ using namespace askap::cp;
 CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset) :
     itsParset(parset)
 {
+    ASKAPLOG_DEBUG_STR(logger, "Constructor");
     const LOFAR::ParameterSet antSubset(itsParset.makeSubset("uvw.antennas."));
     itsAntennaPositions.reset(new AntennaPositions(antSubset));
-    ASKAPLOG_DEBUG_STR(logger, "Constructor");
 }
 
 CalcUVWTask::~CalcUVWTask()
@@ -98,9 +98,9 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     gmst = (gmst - Int(gmst)) * C::_2pi; // Into Radians
 
     // Current phase center
-    casa::MDirection feedPhaseCenter = chunk->pointingDir1()(row);
-    const double ra = feedPhaseCenter.getAngle().getValue()(0);
-    const double dec = feedPhaseCenter.getAngle().getValue()(1);
+    const casa::MDirection fpc = chunk->pointingDir1()(row);
+    const double ra = fpc.getAngle().getValue()(0);
+    const double dec = fpc.getAngle().getValue()(1);
 
     // Transformation from antenna position difference (ant2-ant1) to uvw
     const double H0 = gmst - ra;
