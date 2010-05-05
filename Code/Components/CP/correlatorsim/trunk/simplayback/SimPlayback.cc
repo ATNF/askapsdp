@@ -166,6 +166,14 @@ void SimPlayback::run(void)
 
         // Wait before sending the next integration
         unsigned long now = static_cast<unsigned int>(MPI_Wtime() * 1000.0 * 1000.0);
+       
+        // But first check and report if we are behind schedule
+        if (itsRank == 0) {
+            if (now > nextTime) {
+                ASKAPLOG_WARN_STR(logger, "Running slower than integration cycle period");
+            }
+        }
+
         while (now < nextTime) {
             usleep(nextTime - now);
             now = static_cast<unsigned int>(MPI_Wtime() * 1000.0 * 1000.0);
