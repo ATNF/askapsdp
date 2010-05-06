@@ -57,6 +57,7 @@ casa::Array<T> PaddingUtils::centeredSubArray(casa::Array<T> &source,
        ASKAPDEBUGASSERT(srcShape[i]>0);
        ASKAPDEBUGASSERT(shape[i]>0);          
        trc[i] = (srcShape[i]+shape[i])/2-1; 
+       ASKAPDEBUGASSERT(trc[i]<srcShape[i]);
        
        ASKAPDEBUGASSERT(trc[i]-blc[i]+1 == shape[i]);
   }
