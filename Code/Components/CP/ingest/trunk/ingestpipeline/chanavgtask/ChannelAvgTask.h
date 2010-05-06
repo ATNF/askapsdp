@@ -1,4 +1,4 @@
-/// @file tingestpipeline.cc
+/// @file ChannelAvgTask.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,25 +24,49 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_CHANNELAVGTASK_H
+#define ASKAP_CP_CHANNELAVGTASK_H
+
 // ASKAPsoft includes
-#include <AskapTestRunner.h>
+#include "Common/ParameterSet.h"
+#include "casa/aips.h"
 
-// Test includes
-#include "CircularBufferTest.h"
-#include "MergedSourceTest.h"
-#include "AntennaPositionsTest.h"
-#include "CalcUVWTaskTest.h"
-#include "ChannelAvgTaskTest.h"
+// Local package includes
+#include "ingestpipeline/ITask.h"
+#include "ingestpipeline/datadef/VisChunk.h"
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::CircularBufferTest::suite());
-    runner.addTest(askap::cp::MergedSourceTest::suite());
-    runner.addTest(askap::cp::AntennaPositionsTest::suite());
-    runner.addTest(askap::cp::CalcUVWTaskTest::suite());
-    runner.addTest(askap::cp::ChannelAvgTaskTest::suite());
-    bool wasSucessful = runner.run();
+namespace askap {
+namespace cp {
 
-    return wasSucessful ? 0 : 1;
+class ChannelAvgTask : public askap::cp::ITask {
+    public:
+        /// @brief Constructor.
+        ChannelAvgTask(const LOFAR::ParameterSet& parset);
+
+        /// @brief Destructor.
+        virtual ~ChannelAvgTask();
+
+        /// TODO: Add comments
+        virtual void process(VisChunk::ShPtr chunk);
+
+    private:
+
+        void averageFreq(VisChunk::ShPtr chunk,
+                         const casa::uInt nChanOriginal,
+                         const casa::uInt nChanNew);
+
+        void averageVis(VisChunk::ShPtr chunk,
+                        const casa::uInt nChanOriginal,
+                        const casa::uInt nChanNew);
+
+        // Parameter set
+        const LOFAR::ParameterSet itsParset;
+
+        // Number of channels to average to one
+        casa::uInt itsAveraging;
+};
+
 }
+}
+
+#endif
