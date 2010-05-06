@@ -174,6 +174,9 @@ namespace askap
             ASKAPLOG_INFO_STR(logger, "Converted truncated weights image to clean mask");
         } // if mask required
         ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
+#ifdef ASKAP_DEBUG
+        ASKAPLOG_INFO_STR(logger,"Peak of the dirty vector after normalisation "<<casa::max(dirtyVector));
+#endif // ASKAP_DEBUG        
         return unnormalisedMaxPSF;
     }
 
