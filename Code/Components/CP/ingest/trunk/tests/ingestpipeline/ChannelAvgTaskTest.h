@@ -50,7 +50,10 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture
 {
     CPPUNIT_TEST_SUITE(ChannelAvgTaskTest);
     CPPUNIT_TEST(testFourToOne);
-    CPPUNIT_TEST(testFourToThree);
+    CPPUNIT_TEST(testFiftyFourToOne);
+    CPPUNIT_TEST(testEightToTwo);
+    CPPUNIT_TEST(testFullFineToCoarse);
+    CPPUNIT_TEST(testInvalid);
     CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -68,7 +71,22 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture
         averageTest(4, 4);
     }
 
-    void testFourToThree()
+    void testFiftyFourToOne()
+    {
+        averageTest(54, 54);
+    }
+
+    void testEightToTwo()
+    {
+        averageTest(8, 4);
+    }
+
+    void testFullFineToCoarse()
+    {
+        averageTest(304 * 54, 304);
+    }
+
+    void testInvalid()
     {
         // This is an invalid configuraion, so should throw an exception
         try {
@@ -109,20 +127,34 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture
         chunk->dishPointing1()(row) = fieldCenter;
         chunk->dishPointing2()(row) = fieldCenter;
 
+        // Determine how many channels will exist after averaging
+        const casa::uInt nChanNew = nChan / channelAveraging;
+        
+        // Add the VisChunk is built (below) keep track of the sums
+        // in these vectors so they can later be used to determine
+        // the averages.
+        casa::Vector<casa::Complex> visSum(nChanNew, 0.0);
+        casa::Vector<double> freqSum(nChanNew, 0.0);
+
         // Add visibilities and unset flag
+        // also keep track of the sums of visibilities and frequencies
+        // for each of the new channels
         const unsigned int pol = 0;
-        casa::Complex visSum(0.0, 0.0);
-        double freqSum = 0.0;
+        unsigned int newIdx = 0;
         for (unsigned int chan = 0; chan < nChan; ++chan) {
+            if ((chan != 0) && (chan % channelAveraging == 0)) {
+                newIdx++;
+            }
+
             casa::Complex val(static_cast<float>(chan + 1),
                     static_cast<float>(chan + 2));
             chunk->visibility()(row, chan, pol) = val;
-            visSum += val;
+            visSum(newIdx) += val;
             chunk->flag()(row, chan, pol) = false;
 
             // Also set frequency information
             chunk->frequency()(chan) = startFreq + (chan * freqInc);
-            freqSum += chunk->frequency()(chan);
+            freqSum(newIdx) += chunk->frequency()(chan);
         }
 
         // Check pre-conditions
@@ -133,25 +165,26 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture
         ChannelAvgTask task(itsParset);
         task.process(chunk);
 
-        // Determine the values for post-conditions
-        const unsigned int nChanNew = nChan / channelAveraging;
-        const float realAvg = visSum.real() / nChan;
-        const float imagAvg = visSum.imag() / nChan;
-        const double freqAvg = freqSum / nChan;
-
-
         // Tolerance for double equality
         const double tol = 1.0E-10;
 
-        // Check post-conditions
-        CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
-        CPPUNIT_ASSERT_EQUAL(nChanNew, chunk->nChannel());
-        CPPUNIT_ASSERT_EQUAL(nChanNew,
-                static_cast<unsigned int>(chunk->frequency().size()));
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(freqAvg, chunk->frequency()(0), tol);
+        // Iterate over each of the new channels
+        for (unsigned int i = 0; i < nChanNew; ++i) {
+            // Determine the values for post-conditions
+            const float realAvg = visSum(i).real() / channelAveraging;
+            const float imagAvg = visSum(i).imag() / channelAveraging;
+            const double freqAvg = freqSum(i) / channelAveraging;
 
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(realAvg, chunk->visibility()(row, 0, pol).real(), tol);
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(imagAvg, chunk->visibility()(row, 0, pol).imag(), tol);
+            // Check post-conditions
+            CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
+            CPPUNIT_ASSERT_EQUAL(nChanNew, chunk->nChannel());
+            CPPUNIT_ASSERT_EQUAL(nChanNew,
+                    static_cast<unsigned int>(chunk->frequency().size()));
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(freqAvg, chunk->frequency()(i), tol);
+
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(realAvg, chunk->visibility()(row, i, pol).real(), tol);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(imagAvg, chunk->visibility()(row, i, pol).imag(), tol);
+        }
     };
 
     private:

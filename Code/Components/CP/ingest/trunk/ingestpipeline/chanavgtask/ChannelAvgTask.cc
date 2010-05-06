@@ -105,12 +105,13 @@ void ChannelAvgTask::averageVis(VisChunk::ShPtr chunk,
     casa::Cube<casa::Complex> newVis(nRow, nChanNew, nPol);
     casa::Cube<casa::Bool> newFlag(nRow, nChanNew, nPol);
 
-    // Track the samples added, since those flagged are not
-    casa::uInt numGoodSamples = 0;
 
     for (casa::uInt row = 0; row < nRow; ++row) {
         for (casa::uInt newIdx = 0; newIdx < nChanNew; ++newIdx) {
             for (casa::uInt pol = 0; pol < nPol; ++pol) {
+
+                // Track the samples added, since those flagged are not
+                casa::uInt numGoodSamples = 0;
 
                 // Calculate the average over the number of samples to
                 // be averaged together (itsAveraging)
