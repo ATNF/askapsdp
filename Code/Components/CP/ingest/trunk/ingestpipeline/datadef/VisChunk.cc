@@ -50,23 +50,23 @@ VisChunk::VisChunk(const casa::uInt nRow,
                    const casa::uInt nChannel,
                    const casa::uInt nPol)
         : itsNumberOfRows(nRow), itsNumberOfChannels(nChannel),
-        itsNumberOfPolarisations(nPol)
+        itsNumberOfPolarisations(nPol),
+        itsAntenna1(nRow),
+        itsAntenna2(nRow),
+        itsFeed1(nRow),
+        itsFeed2(nRow),
+        itsFeed1PA(nRow),
+        itsFeed2PA(nRow),
+        itsPointingDir1(nRow),
+        itsPointingDir2(nRow),
+        itsDishPointing1(nRow),
+        itsDishPointing2(nRow),
+        itsVisibility(nRow, nChannel, nPol),
+        itsFlag(nRow, nChannel, nPol),
+        itsUVW(nRow),
+        itsFrequency(nChannel),
+        itsStokes(nPol)
 {
-    itsAntenna1.resize(nRow);
-    itsAntenna2.resize(nRow);
-    itsFeed1.resize(nRow);
-    itsFeed2.resize(nRow);
-    itsFeed1PA.resize(nRow);
-    itsFeed2PA.resize(nRow);
-    itsPointingDir1.resize(nRow);
-    itsPointingDir2.resize(nRow);
-    itsDishPointing1.resize(nRow);
-    itsDishPointing2.resize(nRow);
-    itsVisibility.resize(nRow, nChannel, nPol);
-    itsFlag.resize(nRow, nChannel, nPol);
-    itsUVW.resize(nRow);
-    itsFrequency.resize(nChannel);
-    itsStokes.resize(nPol);
 }
 
 VisChunk::~VisChunk()
