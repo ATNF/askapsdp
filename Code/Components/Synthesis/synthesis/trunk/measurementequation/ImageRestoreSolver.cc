@@ -317,7 +317,6 @@ namespace askap
                  " x "<<qBeam[1].getValue("arcsec")<<" arcsec at position angle "<<qBeam[2].getValue("deg")<<" deg");
        //
        boost::shared_ptr<ImageRestoreSolver> result(new ImageRestoreSolver(ip, qBeam));
-       ImageSolverFactory::configurePreconditioners(parset,result);
        const bool equalise = parset.getBool("equalise",false);
        result->equaliseNoise(equalise);
        return result;

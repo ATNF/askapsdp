@@ -397,7 +397,7 @@ namespace askap
 
         if (itsRestore && postfix == "")
         {
-          ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
+          ASKAPLOG_INFO_STR(logger, "Restore images and writing them to disk");
           ASKAPDEBUGASSERT(itsModel);
           boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(itsParset.makeSubset("restore."), 
                                                                 *itsModel);
@@ -406,6 +406,7 @@ namespace askap
           // configure restore solver the same way as normal imaging solver
           boost::shared_ptr<ImageSolver> template_solver = boost::dynamic_pointer_cast<ImageSolver>(itsSolver);
           ASKAPDEBUGASSERT(template_solver);
+	  ImageSolverFactory::configurePreconditioners(itsParset,ir);
           ir->configureSolver(*template_solver);
           ir->copyNormalEquations(*template_solver);
           Quality q;
