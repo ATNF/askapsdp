@@ -40,6 +40,7 @@
 
 #include <askap/AskapUtil.h>
 #include <askap/AskapError.h>
+#include <utils/DeepCopyUtils.h>
 
 #include <iostream>
 #include <map>
@@ -58,9 +59,11 @@ namespace askap
 		{
 		}
 
-		Params::Params(const Params& other) : itsArrays(other.itsArrays), itsAxes(other.itsAxes),
+		Params::Params(const Params& other) :  itsAxes(other.itsAxes),
 		      itsFree(other.itsFree), itsCounts(other.itsCounts)
 		{
+            deepCopyOfSTDMap(other.itsArrays, itsArrays);
+ 
 			// itsChangeMonitors is not copied deliberately
 			ASKAPDEBUGASSERT(itsChangeMonitors.size() == 0);
 		}
@@ -69,7 +72,7 @@ namespace askap
 		{
 			if(this!=&other)
 			{
-				itsArrays=other.itsArrays;
+                deepCopyOfSTDMap(other.itsArrays, itsArrays);
 				itsAxes=other.itsAxes;
 				itsFree=other.itsFree;
 				itsCounts=other.itsCounts;

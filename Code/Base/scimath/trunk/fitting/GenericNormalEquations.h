@@ -69,6 +69,12 @@ struct GenericNormalEquations : public INormalEquations {
   /// @details It creates an empty normal equations class
   GenericNormalEquations();
   
+  /// @brief copy constructor
+  /// @details It is required because this class has non-trivial types (std containers
+  /// of casa containers)
+  /// @param[in] src other class
+  GenericNormalEquations(const GenericNormalEquations &src);
+  
   /// @brief constructor from a design matrix
   /// @details This version of the constructor is equivalent to an
   /// empty constructor plus a call to add method with the given

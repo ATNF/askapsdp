@@ -88,6 +88,7 @@ namespace scimath
          solver.addNormalEquations(ne);
          solver.setAlgorithm("SVD");
          solver.solveNormalEquations(q);  
+         itsGuessedGains = solver.parameters();
          for (casa::uInt ant=0;ant<itsNAnt;++ant) {
               CPPUNIT_ASSERT(abs(itsGuessedGains.scalarValue(parName(ant))-
                                  trueGains[ant])<0.05);
@@ -119,6 +120,7 @@ namespace scimath
               solver.addNormalEquations(ne);
               solver.setAlgorithm("SVD");
               solver.solveNormalEquations(q);
+              itsGuessedGains = solver.parameters();              
          }  
          for (casa::uInt ant=0;ant<itsNAnt;++ant) {
              const std::string name = parName(ant); 

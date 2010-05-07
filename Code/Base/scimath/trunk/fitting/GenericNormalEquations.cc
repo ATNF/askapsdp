@@ -38,6 +38,7 @@
 #include <fitting/GenericNormalEquations.h>
 #include <fitting/DesignMatrix.h>
 #include <askap/AskapError.h>
+#include <utils/DeepCopyUtils.h>
 
 #include <Blob/BlobArray.h>
 #include <Blob/BlobSTL.h>
@@ -73,6 +74,20 @@ GenericNormalEquations::GenericNormalEquations(const DesignMatrix& dm)
 {
   add(dm);
 }
+
+/// @brief copy constructor
+/// @details It is required because this class has non-trivial types (std containers
+/// of casa containers)
+/// @param[in] src other class
+GenericNormalEquations::GenericNormalEquations(const GenericNormalEquations &src)
+{
+  deepCopyOfSTDMap(src.itsDataVector, itsDataVector);  
+  for (std::map<string, MapOfMatrices>::const_iterator ci = src.itsNormalMatrix.begin();
+       ci!=src.itsNormalMatrix.end(); ++ci) {
+       deepCopyOfSTDMap(ci->second, itsNormalMatrix[ci->first]);
+  }
+}
+
       
 /// @brief reset the normal equation object
 /// @details After a call to this method the object has the same pristine
