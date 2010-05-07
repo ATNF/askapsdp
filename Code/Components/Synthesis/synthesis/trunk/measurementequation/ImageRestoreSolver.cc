@@ -228,6 +228,8 @@ namespace askap
 	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(name)>0, "PSF Slice not present");
        const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(name)->second);
 
+	   ASKAPLOG_INFO_STR(logger, "Maximum of data vector corresponding to "<<name<<" is "<<casa::max(dv));
+
 	   casa::Array<float> dirtyArray(shape);
        casa::convertArray<float, double>(dirtyArray, dv.reform(shape));
        casa::Array<float> psfArray(shape);

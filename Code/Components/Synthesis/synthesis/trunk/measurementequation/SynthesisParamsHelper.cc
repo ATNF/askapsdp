@@ -678,6 +678,7 @@ namespace askap
       
       casa::Array<float> floatImagePixels(imagePixels.shape());
       casa::convertArray<float, double>(floatImagePixels, imagePixels);
+      ASKAPLOG_DEBUG_STR(logger, "Data of "<<name<<" parameter peak at "<<casa::max(floatImagePixels));
       
       imageHandler().create(imagename, floatImagePixels.shape(), imageCoords);
       imageHandler().write(imagename, floatImagePixels);
