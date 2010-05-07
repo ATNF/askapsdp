@@ -67,6 +67,23 @@ namespace askap
   namespace scimath
   {
 
+/// @brief a helper method for a deep copy of casa arrays held in
+/// stl maps
+/// @details Can be moved to utils if found useful somewhere else
+/// @param[in] in input array
+/// @param[out] out output array (will be resized)
+template<typename Key, typename T>
+void deepCopyOfSTDMap(const std::map<Key, T> &in,
+                         std::map<Key, T> &out)
+{
+   out = std::map<Key, T>();
+   const typename std::map<Key, T>::const_iterator inEnd = in.end();
+   for (typename std::map<Key, T>::const_iterator inIt = in.begin();
+        inIt != inEnd; ++inIt) {
+        out[inIt->first] = inIt->second.copy();
+   }
+}
+
     ImagingNormalEquations::ImagingNormalEquations() {};
     
     ImagingNormalEquations::ImagingNormalEquations(const Params& ip) : itsParams(ip.clone())
@@ -82,6 +99,20 @@ namespace askap
         itsNormalMatrixSlice[*iterRow]=casa::Vector<double>(0);
         itsNormalMatrixDiagonal[*iterRow]=casa::Vector<double>(0);
       }
+    }
+
+
+    /// @brief copy constructor
+    /// @details Data members of this class are non-trivial types including
+    /// std containers of casa containers. The letter are copied by reference by default. We,
+    /// therefore, need this copy constructor to achieve proper copying.
+    /// @param[in] src input measurement equations to copy from
+    ImagingNormalEquations::ImagingNormalEquations(const ImagingNormalEquations &src) :
+         itsParams(src.itsParams), itsShape(src.itsShape), itsReference(src.itsReference)
+    {
+      deepCopyOfSTDMap(src.itsNormalMatrixSlice, itsNormalMatrixSlice);
+      deepCopyOfSTDMap(src.itsNormalMatrixDiagonal, itsNormalMatrixDiagonal);
+      deepCopyOfSTDMap(src.itsDataVector, itsDataVector);      
     }
 
 

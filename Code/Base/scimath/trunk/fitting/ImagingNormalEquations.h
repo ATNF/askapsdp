@@ -76,6 +76,13 @@ namespace askap
       /// Initialisation does not allocate much memory.
       /// @param ip Parameters
       ImagingNormalEquations(const Params& ip);
+
+      /// @brief copy constructor
+      /// @details Data members of this class are non-trivial types including
+      /// std containers of casa containers. The letter are copied by reference by default. We,
+      /// therefore, need this copy constructor to achieve proper copying.
+      /// @param[in] src input measurement equations to copy from
+      ImagingNormalEquations(const ImagingNormalEquations &src);
         
       virtual ~ImagingNormalEquations();
             

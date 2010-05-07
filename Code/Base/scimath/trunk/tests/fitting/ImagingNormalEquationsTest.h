@@ -51,6 +51,7 @@ namespace askap
       CPPUNIT_TEST(testFillMatrix);
       CPPUNIT_TEST(testMerge);
       CPPUNIT_TEST(testAdd);
+      CPPUNIT_TEST(testCopySemantics);
 #ifdef ASKAP_DEBUG
 // the check is done and exception is thrown in the debug mode only
       CPPUNIT_TEST_EXCEPTION(testAddWrongDimension, askap::AskapError);
@@ -131,6 +132,60 @@ namespace askap
           CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value0") != params.end());
           CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value1") != params.end());
           CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value2") != params.end());                    
+        }
+        
+        void testCopySemantics()
+        {
+          testFillMatrix();
+          CPPUNIT_ASSERT(p2);
+          p3 = boost::dynamic_pointer_cast<ImagingNormalEquations>(p2->clone());
+          CPPUNIT_ASSERT(p3);
+
+          // test that values are as expected after testFillMatrix
+          testAllElements(extractVector(p2->normalMatrixDiagonal(), "Value1"),5,1.);
+          testAllElements(extractVector(p2->normalMatrixSlice(), "Value1"),5,0.1);
+          testAllElements(extractVector(p2->dataVector(), "Value1"),5,-40.);
+          testAllElements(p2->dataVector("Value1"),5,-40.);
+          testAllElements(extractVector(p2->normalMatrixDiagonal(), "Value2"),3,1.);
+          testAllElements(extractVector(p2->normalMatrixSlice(), "Value2"),0,0.);
+          testAllElements(extractVector(p2->dataVector(), "Value2"),3,10.);
+          testAllElements(p2->dataVector("Value2"),3,10.);
+
+          // test that copy worked
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,1.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
+          testAllElements(extractVector(p3->dataVector(), "Value1"),5,-40.);
+          testAllElements(p3->dataVector("Value1"),5,-40.);
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value2"),3,1.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value2"),0,0.);
+          testAllElements(extractVector(p3->dataVector(), "Value2"),3,10.);
+          testAllElements(p3->dataVector("Value2"),3,10.);
+          
+          // change original values
+          p2->addSlice("Value1", casa::Vector<double>(5,0.1), 
+                  casa::Vector<double>(5, 1.), casa::Vector<double>(5,-40.),
+                  casa::IPosition(1,0));
+          p2->addDiagonal("Value2", casa::Vector<double>(3, 1.), casa::Vector<double>(3, 10.));
+          
+          // test that they were indeed changed
+          testAllElements(extractVector(p2->normalMatrixDiagonal(), "Value1"),5,2.);
+          testAllElements(extractVector(p2->normalMatrixSlice(), "Value1"),5,0.2);
+          testAllElements(extractVector(p2->dataVector(), "Value1"),5,-80.);
+          testAllElements(p2->dataVector("Value1"),5,-80.);
+          testAllElements(extractVector(p2->normalMatrixDiagonal(), "Value2"),3,2.);
+          testAllElements(extractVector(p2->normalMatrixSlice(), "Value2"),0,0.);
+          testAllElements(extractVector(p2->dataVector(), "Value2"),3,20.);
+          testAllElements(p2->dataVector("Value2"),3,20.);
+          
+          // test that the cloned equations have the old values
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,1.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
+          testAllElements(extractVector(p3->dataVector(), "Value1"),5,-40.);
+          testAllElements(p3->dataVector("Value1"),5,-40.);
+          testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value2"),3,1.);
+          testAllElements(extractVector(p3->normalMatrixSlice(), "Value2"),0,0.);
+          testAllElements(extractVector(p3->dataVector(), "Value2"),3,10.);
+          testAllElements(p3->dataVector("Value2"),3,10.);          
         }
         
         void testMerge() 
