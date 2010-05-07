@@ -137,12 +137,6 @@ void ChannelAvgTask::averageVis(VisChunk::ShPtr chunk,
             }
         }
     }
-    // Should be able assign like so, but due to a casacore bug we can't
-    //    chunk->visibility().assign(newVis);
-    //    chunk->flag().assign(flag);
-    // do this instead:
-    chunk->visibility().resize(newVis.shape());
-    chunk->visibility() = newVis;
-    chunk->flag().resize(newFlag.shape());
-    chunk->flag() = newFlag;
+    chunk->visibility().assign(newVis);
+    chunk->flag().assign(newFlag);
 }
