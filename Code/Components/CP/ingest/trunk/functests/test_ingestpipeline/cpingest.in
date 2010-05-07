@@ -2,16 +2,17 @@
 # Central Processor Ingest Pipeline Configuration
 #
 
-# Visibilities Source
+# Metdata Source
 cp.ingest.metadata_source.ice.locator_host          = localhost
 cp.ingest.metadata_source.ice.locator_port          = 4061
 cp.ingest.metadata_source.icestorm.topicmanager     = IceStorm/TopicManager
 cp.ingest.metadata_source.icestorm.topic            = tosmetadata
-#cp.ingest.metadata_source.buffer_size              =
+cp.ingest.metadata_source.buffer_size               = 12
             
-#Visibilities Source
+# Visibilities Source
 cp.ingest.vis_source.port                           = 3000
-#cp.ingest.vis_source.buffer_size                   = 
+cp.ingest.vis_source.buffer_size                   = 2757888
+# The above is 21 (baselines) * 36 (beams) * 304 (coarse channels) * 12 cycles
 
 # Calc UVW Task
 cp.ingest.uvw.antennas.location     =   [+117.471deg, -25.692deg, 192m, WGS84]

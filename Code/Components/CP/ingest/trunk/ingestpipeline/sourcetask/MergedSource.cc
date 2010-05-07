@@ -237,6 +237,11 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
         const unsigned int chan,
         const unsigned int pol)
 {
+    // Don't bother if the sample is already flagged
+    if (chunk->flag()(row, chan, pol)) {
+        return;
+    }
+
     const unsigned int ant1 = chunk->antenna1()(row);
     const unsigned int ant2 = chunk->antenna2()(row);
     const TosMetadataAntenna& mdAnt1 = metadata.antenna(ant1);
