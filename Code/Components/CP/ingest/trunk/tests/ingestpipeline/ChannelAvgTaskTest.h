@@ -128,7 +128,12 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture
         chunk->dishPointing2()(row) = fieldCenter;
 
         // Determine how many channels will exist after averaging
-        const casa::uInt nChanNew = nChan / channelAveraging;
+        casa::uInt nChanNew = nChan / channelAveraging;
+
+        // To support the "invalid configuration test"
+        if (nChan % channelAveraging != 0) {
+            nChanNew += channelAveraging;
+        }
         
         // Add the VisChunk is built (below) keep track of the sums
         // in these vectors so they can later be used to determine
