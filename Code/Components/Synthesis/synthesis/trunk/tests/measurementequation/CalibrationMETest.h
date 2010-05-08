@@ -121,7 +121,7 @@ namespace askap
           }
        
           p2.reset(new ComponentEquation(*params2, idi));
-          eq2.reset(new METype(*params2,idi,p2));
+          //eq2.reset(new METype(*params2,idi,p2));
 
         }
 
@@ -136,9 +136,12 @@ namespace askap
                    params2->fix(*it);
                }
           }
-          for (size_t iter=0; iter<10; ++iter) {
+          for (size_t iter=0; iter<5; ++iter) {
                // Calculate gradients using "imperfect" parameters"
                GenericNormalEquations ne; //(*params2);
+            
+               eq2.reset(new METype(*params2,idi,p2));
+            
                eq2->calcEquations(ne);
                Quality q;
                LinearSolver solver1(*params2);
@@ -163,7 +166,7 @@ namespace askap
                     } 
                }
                
-          std::cout<<*params2<<std::endl;
+          //std::cout<<*params2<<std::endl;
           }
         
           // checking that solved gains should be close to 1 for g11 
@@ -180,7 +183,7 @@ namespace askap
                } else if (it->find(".g11") == 0) {
                    const casa::Complex diff = params2->complexValue(parname)-
                           params1->complexValue(parname);
-                   std::cout<<parname<<" "<<diff<<" "<<abs(diff)<<std::endl;        
+                   //std::cout<<parname<<" "<<diff<<" "<<abs(diff)<<std::endl;        
                    CPPUNIT_ASSERT(abs(diff)<1e-7);
                } else {
                  ASKAPTHROW(AskapError, "an invalid gain parameter "<<parname<<" has been detected");
