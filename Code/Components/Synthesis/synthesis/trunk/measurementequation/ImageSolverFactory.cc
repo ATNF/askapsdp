@@ -34,6 +34,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/ImageMSMFSolver.h>
 #include <measurementequation/IImagePreconditioner.h>
 #include <measurementequation/WienerPreconditioner.h>
+#include <measurementequation/NormWienerPreconditioner.h>
 #include <measurementequation/RobustPreconditioner.h>
 #include <measurementequation/GaussianTaperPreconditioner.h>
 #include <measurementequation/SynthesisParamsHelper.h>
@@ -143,6 +144,9 @@ namespace askap
             if ( (*pc)=="Wiener" ) {
 	            const float noisepower = parset.getFloat("preconditioner.Wiener.noisepower",0.0);
                 solver->addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner(noisepower)));
+	        } else if ( (*pc)=="NormWiener" ) {
+	            const float robustness = parset.getFloat("preconditioner.NormWiener.robustness",0.0);
+                solver->addPreconditioner(IImagePreconditioner::ShPtr(new NormWienerPreconditioner(robustness)));
 	        } else if ( (*pc)=="Robust" ) {
 	            const float robustness = parset.getFloat("preconditioner.Robust.robustness",0.0);
                 solver->addPreconditioner(IImagePreconditioner::ShPtr(new RobustPreconditioner(robustness)));
