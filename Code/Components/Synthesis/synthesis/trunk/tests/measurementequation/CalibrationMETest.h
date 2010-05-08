@@ -136,7 +136,7 @@ namespace askap
                    params2->fix(*it);
                }
           }
-          for (size_t iter=0; iter<5; ++iter) {
+          for (size_t iter=0; iter<10; ++iter) {
                // Calculate gradients using "imperfect" parameters"
                GenericNormalEquations ne; //(*params2);
                eq2->calcEquations(ne);
@@ -145,25 +145,26 @@ namespace askap
                solver1.addNormalEquations(ne);
                solver1.setAlgorithm("SVD");
                solver1.solveNormalEquations(q);  
-               //std::cout<<q<<std::endl;
-               
+               //std::cout<<q<<std::endl;               
+                              
                // taking care of the absolute phase uncertainty
                const casa::uInt refAnt = 0;
                const casa::Complex refPhaseTerm = casa::polar(1.f,
-                       -arg(params2->complexValue("gain.g11."+toString(refAnt))));
+                       -arg(solver1.parameters().complexValue("gain.g11."+toString(refAnt))));
                        
-               std::vector<std::string> freeNames(params2->freeNames());
+               std::vector<std::string> freeNames(solver1.parameters().freeNames());
                for (std::vector<std::string>::const_iterator it=freeNames.begin();
                                                    it!=freeNames.end();++it)  {
                     const std::string parname = *it;
-                    if (parname.find("gain") == 0) {                    
+                    if (parname.find("gain") == 0) {
+                        CPPUNIT_ASSERT(params2->has(parname));                    
                         params2->update(parname,
-                             params2->complexValue(parname)*refPhaseTerm);                                 
+                             solver1.parameters().complexValue(parname)*refPhaseTerm);                                 
                     } 
                }
                
+          std::cout<<*params2<<std::endl;
           }
-          //std::cout<<*params2<<std::endl;
         
           // checking that solved gains should be close to 1 for g11 
           // and to 0.9 for g22 (we don't have data to solve for the second
@@ -179,7 +180,7 @@ namespace askap
                } else if (it->find(".g11") == 0) {
                    const casa::Complex diff = params2->complexValue(parname)-
                           params1->complexValue(parname);
-                   //std::cout<<parname<<" "<<diff<<" "<<abs(diff)<<std::endl;        
+                   std::cout<<parname<<" "<<diff<<" "<<abs(diff)<<std::endl;        
                    CPPUNIT_ASSERT(abs(diff)<1e-7);
                } else {
                  ASKAPTHROW(AskapError, "an invalid gain parameter "<<parname<<" has been detected");
