@@ -56,7 +56,7 @@ class CalcUVWTaskTest : public CppUnit::TestFixture
         // Setup a parameter set
         itsParset.add("uvw.antennas.location", "[+117.471deg, -25.692deg, 192m, WGS84]");
         itsParset.add("uvw.antennas.names", "[A0, A1, A2, A3, A4, A5]");
-        itsParset.add("uvw.antenna.sscale", "1.0");
+        itsParset.add("uvw.antenna.scale", "1.0");
         itsParset.add("uvw.antennas.A0", "[-175.233429,  -1673.460938,  0.0000]");
         itsParset.add("uvw.antennas.A1", "[261.119019,   -796.922119,   0.0000]");
         itsParset.add("uvw.antennas.A2", "[-29.200520,   -744.432068,   0.0000]");
