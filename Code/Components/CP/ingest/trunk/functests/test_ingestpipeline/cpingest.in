@@ -26,6 +26,9 @@ cp.ingest.uvw.antennas.A2           =  [-29.200520,   -744.432068,   0.0000]
 cp.ingest.uvw.antennas.A3           =  [-289.355286,  -586.936035,   0.0000]
 cp.ingest.uvw.antennas.A4           =  [-157.031570,  -815.570068,   0.0000]
 cp.ingest.uvw.antennas.A5           =  [-521.311646,  -754.674927,   0.0000]
+
+# Channel Averaging Task
+cp.ingest.chanavg.averaging         = 54
             
 # Measurement Set Sink
 cp.ingest.ms_sink.filename                          = ingest_test.ms

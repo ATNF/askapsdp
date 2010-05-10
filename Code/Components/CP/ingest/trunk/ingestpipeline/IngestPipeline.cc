@@ -46,6 +46,7 @@
 #include "ingestpipeline/sourcetask/MergedSource.h"
 #include "ingestpipeline/calcuvwtask/CalcUVWTask.h"
 #include "ingestpipeline/caltask/CalTask.h"
+#include "ingestpipeline/chanavgtask/ChannelAvgTask.h"
 #include "ingestpipeline/sinktask/MSSink.h"
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
@@ -79,6 +80,7 @@ void IngestPipeline::ingest(void)
     createSource();
     createTask<CalcUVWTask>(itsParset);
     createTask<CalTask>(itsParset);
+    createTask<ChannelAvgTask>(itsParset);
     createTask<MSSink>(itsParset);
 
     // 2) Process correlator integrations, one at a time
