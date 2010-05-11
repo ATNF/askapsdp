@@ -88,7 +88,8 @@ __host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int s
 		Complex *grid, const int gSize,
 		const int *h_iu, const int *h_iv)
 {
-	// Execute the kernel on the GPU
+    cudaFuncSetCacheConfig(d_gridKernel, cudaFuncCachePreferL1);
+
 	const int sSize=2*support+1;
 	int step = 1;
 
@@ -177,7 +178,9 @@ __host__ void cuda_degridKernel(const Complex *grid, const int gSize, const int 
                 const int *iu, const int *iv,
                 Complex  *data, const int dSize)
 {
-        int sSize = 2 * support + 1;
+    cudaFuncSetCacheConfig(d_degridKernel, cudaFuncCachePreferL1);
+
+    int sSize = 2 * support + 1;
 	if (sSize > cg_maxSupport) {
 		printf("Support size of %d exceeds max support size of %d\n",
 			sSize, cg_maxSupport);
@@ -186,15 +189,15 @@ __host__ void cuda_degridKernel(const Complex *grid, const int gSize, const int 
 	int dimGrid = 4096;	// 4096 is starting size
 	for (int dind = 0; dind < dSize; dind += dimGrid) {
 		if ((dSize - dind) < dimGrid) {
-			// If there are less than 4096 elements left,
-			// just do the remaining
-			dimGrid = dSize - dind;
-		}
+            // If there are less than 4096 elements left,
+            // just do the remaining
+            dimGrid = dSize - dind;
+        }
 
-		for (int row = 0; row < sSize; ++row) {
-                        d_degridKernel<<< dimGrid, sSize >>>(grid, gSize, support,
-                                        C, cOffset, iu, iv, data, dind, row);
-                        checkError();
-		}
-	}
+        for (int row = 0; row < sSize; ++row) {
+            d_degridKernel<<< dimGrid, sSize >>>(grid, gSize, support,
+                    C, cOffset, iu, iv, data, dind, row);
+            checkError();
+        }
+    }
 }
