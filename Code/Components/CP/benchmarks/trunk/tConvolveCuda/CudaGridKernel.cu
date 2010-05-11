@@ -78,7 +78,7 @@ __global__ void d_gridKernel(const Complex *data, const int support,
 	cind += sSize * blockIdx.x;
 
 	// threadIdx.x gives the support location in the u dirction
-	grid[gind+threadIdx.x] = cuCaddf(grid[gind+threadIdx.x], cuCmulf(l_data, C[cind+threadIdx.x]));
+    grid[gind+threadIdx.x] = cuCfmaf(l_data, C[cind+threadIdx.x], grid[gind+threadIdx.x]);
 }
 
 // Perform Gridding (Host Function)
