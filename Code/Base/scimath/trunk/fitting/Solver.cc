@@ -43,20 +43,15 @@ namespace askap
     {
     }
     
-    Solver::Solver(const Solver& other) {
-    	operator=(other);
+    Solver::Solver(const Solver& other) : Solveable(other) {
+        if (other.itsParams) {
+            itsParams = other.itsParams->clone();
+        }
+        if (other.itsNormalEquations) {
+            itsNormalEquations = other.itsNormalEquations->clone();
+        }
     }
     
-    Solver& Solver::operator=(const Solver& other)
-    {
-    	if(this!=&other) 
-    	{
-    		itsParams=other.itsParams;
-    		itsNormalEquations=other.itsNormalEquations;
-    	}
-    	return *this;
-    }
-
     /// @return a reference to normal equations object
     const INormalEquations& Solver::normalEquations() const
     {

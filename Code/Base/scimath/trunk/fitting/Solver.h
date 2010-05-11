@@ -55,10 +55,6 @@ namespace askap
         /// @param other Other
         Solver(const Solver& other);
         
-        /// Assignment
-        /// @param other Other
-        Solver& operator=(const Solver& other);
-
         virtual ~Solver();
 
 /// Initialize this solver
