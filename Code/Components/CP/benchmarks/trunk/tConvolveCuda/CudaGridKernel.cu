@@ -102,20 +102,16 @@ __host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int s
 	// work to do allows it to hide memory latency better.
 	for (int dind = 0; dind < dSize; dind += step) {
 		if ((dind+1) < dSize && (
-		(h_iu[dind] - h_iu[dind+1]) > sSize ||
-		(h_iv[dind] - h_iv[dind+1]) > sSize)) {
-			step = 2;
-        		dim3 gridDim(sSize, step);
-			d_gridKernel<<< gridDim, sSize >>>(data, support,
-					C, cOffset, iu, iv, grid, gSize, dind);
-                	checkError();
+		        (h_iu[dind] - h_iu[dind+1]) > sSize ||
+		        (h_iv[dind] - h_iv[dind+1]) > sSize)) {
+		    step = 2;
 		} else {
 			step = 1;
-        		dim3 gridDim(sSize, step);
-			d_gridKernel<<< gridDim, sSize >>>(data, support,
-				C, cOffset, iu, iv, grid, gSize, dind);
-                	checkError();
 		}
+   		dim3 gridDim(sSize, step);
+		d_gridKernel<<< gridDim, sSize >>>(data, support,
+			C, cOffset, iu, iv, grid, gSize, dind);
+           	checkError();
 	}
 }
 
