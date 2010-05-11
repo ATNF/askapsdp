@@ -28,8 +28,6 @@
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".measurementequation");
 
-#include <utils/MultiDimArrayPlaneIter.h>
-
 #include <askap/AskapError.h>
 
 #include <casa/aips.h>
@@ -39,6 +37,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <lattices/Lattices/ArrayLattice.h>
 #include <lattices/Lattices/LatticeFFT.h>
+#include <utils/MultiDimArrayPlaneIter.h>
 
 using namespace askap;
 using namespace askap::scimath;
@@ -232,7 +231,7 @@ namespace askap
              planeIter.hasMore(); planeIter.next()) {
         
              ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for solution");
-             const casa::Vector<double> & diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
+             casa::Vector<double>  diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
              ASKAPCHECK(normalEquations().dataVector(indit->first).size()>0, "Data vector not present for solution");
              casa::Vector<double> dv = normalEquations().dataVector(indit->first);
 	         ASKAPCHECK(normalEquations().normalMatrixSlice().count(indit->first)>0, "PSF Slice not present");
@@ -251,7 +250,7 @@ namespace askap
              casa::convertArray<float, double>(psfArray, planeIter.getPlane(slice));
 	
              // Normalize by the diagonal
-             doNormalization(diag,tol(),psfArray,dirtyArray);
+             doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray);
 
              // Do the preconditioning
              if (doPreconditioning(psfArray,dirtyArray)) {	
