@@ -77,44 +77,29 @@ namespace askap
        casa::ArrayLattice<float> lpsf(psf);
        casa::ArrayLattice<float> ldirty(dirty);
 
-       // we need to pad to twice the size in the image plane in order to avoid wraparound
-       IPosition paddedShape = lpsf.shape();
-       paddedShape(0)*=2;
-       paddedShape(1)*=2;       
-       casa::IPosition corner(paddedShape.nelements(),0);
-       corner(0) = paddedShape(0)/4;
-       corner(1) = paddedShape(1)/4;
-       // set up slicer to work with inner quarter of a padded lattice
-       casa::Slicer slicer(corner, lpsf.shape());
-       casa::ArrayLattice<casa::Complex> scratch(paddedShape);
-       scratch.set(0.);
-       casa::SubLattice<casa::Complex> innerScratch(scratch, slicer, True);       
-       //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
-       scimath::PaddingUtils::inject(scratch, lpsf);
-      
+       const casa::IPosition shape = lpsf.shape();
+       casa::ArrayLattice<casa::Complex> scratch(shape);
+       //scratch.set(0.);
+       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));       
        
-       LatticeFFT::cfft2d(innerScratch, True);
+       LatticeFFT::cfft2d(scratch, True);
        
        // Construct a Wiener filter
        
-       casa::ArrayLattice<casa::Complex> wienerfilter(paddedShape);
-       wienerfilter.set(0.);
+       casa::ArrayLattice<casa::Complex> wienerfilter(shape);
+       //wienerfilter.set(0.);
+      
       // Normalize relative to the average weight
        const double noisepower(pow(10.0, 2*itsRobust));
        const double np(noisepower*maxPSFBefore);
-       casa::SubLattice<casa::Complex> innerWF(wienerfilter, slicer, True);       
-       casa::LatticeExpr<casa::Complex> wf(maxPSFBefore*conj(innerScratch)/(real(innerScratch*conj(innerScratch)) + np*np));
-       innerWF.copyData(wf);
-       // two FTs to do padding in the image plane
-       LatticeFFT::cfft2d(innerWF, False);
-       LatticeFFT::cfft2d(wienerfilter, True);                
+       wienerfilter.copyData(casa::LatticeExpr<casa::Complex>(maxPSFBefore*conj(scratch)/(real(scratch*conj(scratch)) + np*np)));
               
        // Apply the filter to the lpsf
        // (reuse the ft(lpsf) currently held in 'scratch')
        
        // need to rebuild ft(lpsf) with padding, otherwise there is a scaling error
-       scratch.set(0.);
-       scimath::PaddingUtils::inject(scratch, lpsf);
+       //scratch.set(0.);
+       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));       
        LatticeFFT::cfft2d(scratch, True);      
        //
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
@@ -126,22 +111,23 @@ namespace askap
        */
        
        LatticeFFT::cfft2d(scratch, False);       
-       scimath::PaddingUtils::extract(lpsf, scratch);
+       lpsf.copyData(casa::LatticeExpr<float>(real(scratch)));
+       
        float maxPSFAfter=casa::max(psf);
        ASKAPLOG_INFO_STR(logger, "Peak of PSF after Normalised Wiener filtering  = " << maxPSFAfter); 
        psf*=maxPSFBefore/maxPSFAfter;
        ASKAPLOG_INFO_STR(logger, "Normalized to unit peak");
       
        // Apply the filter to the dirty image
-       scratch.set(0.);
-       scimath::PaddingUtils::inject(scratch, ldirty);
-       //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
+       //scratch.set(0.);
+       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
        
        LatticeFFT::cfft2d(scratch, True);
  
        scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        LatticeFFT::cfft2d(scratch, False);
-       scimath::PaddingUtils::extract(ldirty, scratch);
+       
+       ldirty.copyData(casa::LatticeExpr<float>(real(scratch)));
        dirty*=maxPSFBefore/maxPSFAfter;
 	  
        return true;
