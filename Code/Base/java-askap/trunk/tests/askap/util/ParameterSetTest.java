@@ -18,7 +18,7 @@
  * 330, Boston, MA 02111-1307 USA
  */
 
-package askap.util.test;
+package askap.util;
 
 import org.junit.*;
 import static org.junit.Assert.*;
