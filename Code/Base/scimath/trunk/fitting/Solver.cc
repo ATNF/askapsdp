@@ -52,6 +52,18 @@ namespace askap
         }
     }
     
+    /// @brief assignment operator
+    /// @param[in] other solver to take the data from
+    /// @return reference to itself
+    Solver& Solver::operator=(const Solver& other)  {
+        if (other.itsParams) {
+            itsParams = other.itsParams->clone();
+        }
+        if (other.itsNormalEquations) {
+            itsNormalEquations = other.itsNormalEquations->clone();
+        }    
+    }
+    
     /// @return a reference to normal equations object
     const INormalEquations& Solver::normalEquations() const
     {
