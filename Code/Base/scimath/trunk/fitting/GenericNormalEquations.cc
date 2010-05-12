@@ -88,6 +88,25 @@ GenericNormalEquations::GenericNormalEquations(const GenericNormalEquations &src
   }
 }
 
+/// @brief assignment operator
+/// @details It is required because this class has non-trivial types (std containers
+/// of casa containers)
+/// @param[in] src other class
+/// @return reference to this object
+GenericNormalEquations& GenericNormalEquations::operator=(const GenericNormalEquations &src)
+{
+  if (&src != this) {
+      itsDataVector.clear();
+      deepCopyOfSTDMap(src.itsDataVector, itsDataVector);  
+      itsNormalMatrix.clear();
+      for (std::map<string, MapOfMatrices>::const_iterator ci = src.itsNormalMatrix.begin();
+           ci!=src.itsNormalMatrix.end(); ++ci) {           
+           deepCopyOfSTDMap(ci->second, itsNormalMatrix[ci->first]);
+      }      
+  }
+  return *this;
+}
+
       
 /// @brief reset the normal equation object
 /// @details After a call to this method the object has the same pristine

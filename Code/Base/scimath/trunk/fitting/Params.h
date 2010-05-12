@@ -64,10 +64,10 @@ namespace askap
          /// Default constructor
         Params();
 
-        /// Copy constructor
+        /// Assignment operator
         Params& operator=(const Params& other);
         
-        /// Assignment operator
+        /// Copy constructor
         Params(const Params& other);
         
         /// Destructor

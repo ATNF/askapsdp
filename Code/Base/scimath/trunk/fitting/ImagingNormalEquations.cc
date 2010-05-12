@@ -100,6 +100,26 @@ namespace askap
       deepCopyOfSTDMap(src.itsNormalMatrixDiagonal, itsNormalMatrixDiagonal);
       deepCopyOfSTDMap(src.itsDataVector, itsDataVector);      
     }
+    
+    /// @brief assignment operator
+    /// @details Data members of this class are non-trivial types including
+    /// std containers of casa containers. The letter are copied by reference by default. We,
+    /// therefore, need this copy constructor to achieve proper copying.
+    /// @param[in] src input measurement equations to copy from
+    /// @return reference to this object
+    ImagingNormalEquations& ImagingNormalEquations::operator=(const ImagingNormalEquations &src)
+    {
+      if (&src != this) {
+          itsParams = src.itsParams;
+          itsShape = src.itsShape;
+          itsReference = src.itsReference;
+          deepCopyOfSTDMap(src.itsNormalMatrixSlice, itsNormalMatrixSlice);
+          deepCopyOfSTDMap(src.itsNormalMatrixDiagonal, itsNormalMatrixDiagonal);
+          deepCopyOfSTDMap(src.itsDataVector, itsDataVector);      
+      }
+      return *this;
+    }
+    
 
 
     ImagingNormalEquations::~ImagingNormalEquations()
