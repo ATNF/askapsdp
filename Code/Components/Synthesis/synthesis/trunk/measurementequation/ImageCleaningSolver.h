@@ -88,14 +88,14 @@ protected:
    /// @brief helper method to pad an image
    /// @details This method encapsulates all padding logic. In addition double to float conversion happens
    /// here. 
-   /// @param[in] img input image (to be padded, with double precision at the moment) 
+   /// @param[in] image input image (to be padded, with double precision at the moment) 
    /// @return padded image converted to floats
    casa::Array<float> padImage(const casa::Array<double> &image) const;
    
    /// @brief helper method to pad an image
    /// @details This method encapsulates all padding logic. In addition double to float conversion happens
    /// here. 
-   /// @param[in] img input padded image (with single precision at the moment) 
+   /// @param[in] image input padded image (with single precision at the moment) 
    /// @return image of original (unpadded) shape converted to double precision
    casa::Array<double> unpadImage(const casa::Array<float> &image) const;
    

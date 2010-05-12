@@ -59,8 +59,7 @@ namespace askap
       /// @brief Constructor 
       /// @details The command line inputs are needed solely for MPI - currently no
       /// application specific information is passed on the command line.
-      /// @param argc Number of command line inputs
-      /// @param argv Command line inputs
+      /// @param comms communications object
       SynParallel(askap::mwbase::AskapParallel& comms);
 
       ~SynParallel();

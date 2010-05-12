@@ -159,7 +159,7 @@ namespace askap
     /// @param[in] parset parset's subset (should have solver.Clean or solver.Dirty removed)
     virtual void configure(const LOFAR::ParameterSet &parset); 
 
-    /// @breif query weight cutoff behavior
+    /// @brief query weight cutoff behavior
     /// @return true if image pixels corresponding to the weight cutoff area are set to zero during
     /// normalisation.
     inline bool zeroWeightCutoffArea() const { return itsZeroWeightCutoffArea; }
@@ -169,7 +169,7 @@ namespace askap
     /// weight cutoff area (i.e. not to be cleaned for S/N-based clean)
     inline bool zeroWeightCutoffMask() const { return itsZeroWeightCutoffMask; }
 
-    /// @breif set weight cutoff behavior
+    /// @brief set weight cutoff behavior
     /// @param[in] flag true to set image pixels corresponding to the weight cutoff area to zero during
     /// normalisation.
     inline void zeroWeightCutoffArea(bool flag) { itsZeroWeightCutoffArea = flag; }

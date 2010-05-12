@@ -129,6 +129,9 @@ namespace askap
       /// @param[in] acc const data accessor to work with
       virtual void initConvolutionFunction(const IConstDataAccessor& acc);
 
+      /// @brief largest possible support size
+      /// @details Gridders search for support starting from the size returned by this method.
+      /// @return maximum possible support of convolution function 
       inline int maxSupport() const { return itsMaxSupport; }
       
       /// @brief truncate support, if necessary

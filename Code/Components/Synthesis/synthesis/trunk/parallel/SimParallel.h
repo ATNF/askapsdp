@@ -119,8 +119,7 @@ namespace askap
                 /// @brief Constructor from ParameterSet
                 /// The command line inputs are needed solely for MPI - currently no
                 /// application specific information is passed on the command line.
-                /// @param argc Number of command line inputs
-                /// @param argv Command line inputs
+                /// @param comms communication object
                 /// @param parset ParameterSet for inputs
                 SimParallel(askap::mwbase::AskapParallel& comms,
                         const LOFAR::ParameterSet& parset);

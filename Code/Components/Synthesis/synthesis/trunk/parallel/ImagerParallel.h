@@ -101,8 +101,7 @@ namespace askap
       /// also support construction from a python dictionary (for example).
       /// The command line inputs are needed solely for MPI - currently no
       /// application specific information is passed on the command line.
-      /// @param argc Number of command line inputs
-      /// @param argv Command line inputs
+      /// @param comms communication object 
       /// @param parset ParameterSet for inputs
       ImagerParallel(askap::mwbase::AskapParallel& comms,
           const LOFAR::ParameterSet& parset);

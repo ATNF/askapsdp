@@ -71,7 +71,7 @@ namespace synthesis
 {
 
 SimParallel::SimParallel(askap::mwbase::AskapParallel& comms,
-                         const ParameterSet& parset) :
+                         const LOFAR::ParameterSet& parset) :
         SynParallel(comms), itsParset(parset), itsModelReadByMaster(true)
 {
   itsModelReadByMaster = itsParset.getBool("modelReadByMaster", true);

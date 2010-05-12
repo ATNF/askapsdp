@@ -46,7 +46,6 @@ namespace askap {
 namespace synthesis {
 
 /// @brief default constructor
-/// @param[in] ip input parameters
 ImageCleaningSolver::ImageCleaningSolver() :
    itsFractionalThreshold(0.), itsMaskingThreshold(-1.), itsPaddingFactor(1.) {}
    
@@ -110,7 +109,7 @@ casa::Array<float> ImageCleaningSolver::padImage(const casa::Array<double> &imag
 /// @details This method fills the edges of a padded image with 0 (original subimage is left intact, so
 /// unpadImage would return the same result before and after this method). This operation is required
 /// after non-linear transformation of an image in the other domain (i.e. some types of preconditioning).
-/// @param[in] img input padded image to be clipped
+/// @param[in] image input padded image to be clipped
 void ImageCleaningSolver::clipImage(casa::Array<float> &img) const
 {
   const casa::IPosition origShape = scimath::PaddingUtils::unpadShape(img.shape(),paddingFactor());
@@ -139,7 +138,7 @@ casa::Vector<double> ImageCleaningSolver::padDiagonal(const casa::Array<double> 
 /// @brief helper method to pad an image
 /// @details This method encapsulates all padding logic. In addition double to float conversion happens
 /// here. 
-/// @param[in] img input padded image (with single precision at the moment) 
+/// @param[in] image input padded image (with single precision at the moment) 
 /// @return image of original (unpadded) shape converted to double precision
 casa::Array<double> ImageCleaningSolver::unpadImage(const casa::Array<float> &image) const
 {

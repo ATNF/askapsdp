@@ -64,6 +64,7 @@ namespace askap
       /// @param illum Antenna illumination model
       /// @param wmax Maximum baseline (wavelengths)
       /// @param nwplanes Number of w planes
+      /// @param cutoff  dummy parameter (not used), added to have a common interface to be able to template the factory
       /// @param overSample Oversampling (currently limited to <=1)
       /// @param maxSupport Maximum support to be allowed
       /// @param limitSupport Upper limit of support
@@ -78,7 +79,7 @@ namespace askap
       /// @note cutoff parameter (after nwplanes) is missing, because it is not required 
       /// for this gridder. We however want to have the same signatures for both mosaicing gridders.
       AProjectWStackVisGridder(const boost::shared_ptr<IBasicIllumination const> &illum,
-          const double wmax, const int nwplanes, const double, const int overSample,
+          const double wmax, const int nwplanes, const double cutoff, const int overSample,
           const int maxSupport, const int limitSupport,
 			       const int maxFeeds=1, const int maxFields=1, 
 			       const double pointingTol=0.0001,
