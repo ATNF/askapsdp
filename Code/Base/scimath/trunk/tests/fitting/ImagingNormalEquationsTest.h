@@ -79,10 +79,6 @@ namespace askap
           ip.add("Value1");
           ip.add("Value2");
           p1.reset(new ImagingNormalEquations(ip));
-          CPPUNIT_ASSERT(p1->parameters().names().size()==3);
-          CPPUNIT_ASSERT(p1->parameters().names()[0]=="Value0");
-          CPPUNIT_ASSERT(p1->parameters().names()[1]=="Value1");
-          CPPUNIT_ASSERT(p1->parameters().names()[2]=="Value2");
           std::vector<std::string> params = p1->unknowns();
           CPPUNIT_ASSERT(params.size() == 3);
           CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value0") != params.end());
@@ -99,10 +95,6 @@ namespace askap
           p1.reset(new ImagingNormalEquations(ip));
           CPPUNIT_ASSERT(p1);
           p2.reset(new ImagingNormalEquations(*p1));
-          CPPUNIT_ASSERT(p2->parameters().names().size()==3);
-          CPPUNIT_ASSERT(p2->parameters().names()[0]=="Value0");
-          CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value1");
-          CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value2");
           std::vector<std::string> params = p2->unknowns();
           CPPUNIT_ASSERT(params.size() == 3);
           CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value0") != params.end());
@@ -250,17 +242,18 @@ namespace askap
           CPPUNIT_ASSERT(p3);
           CPPUNIT_ASSERT(p2);
           p3->merge(*p2);
-          CPPUNIT_ASSERT(p3->parameters().names().size()==3);
-          CPPUNIT_ASSERT(p3->parameters().names()[0]=="Value0");
-          CPPUNIT_ASSERT(p3->parameters().names()[1]=="Value1");
-          CPPUNIT_ASSERT(p3->parameters().names()[2]=="Value2");           
+          
+          std::vector<std::string> params = p3->unknowns();
+          CPPUNIT_ASSERT(params.size() == 3);
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value0") != params.end());
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value1") != params.end());
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value2") != params.end());                    
           testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,1.);
           testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
           testAllElements(p3->dataVector("Value1"),5,-40.);          
 
           CPPUNIT_ASSERT(pempty);
           p3->merge(*pempty);
-          CPPUNIT_ASSERT(p3->parameters().names().size()==3);
           testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,1.);
           testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
           testAllElements(p3->dataVector("Value1"),5,-40.);
@@ -280,23 +273,18 @@ namespace askap
                   casa::IPosition(1,0));
           
           p3->merge(*p1);
-          CPPUNIT_ASSERT(p3->parameters().names().size()==4);
-          CPPUNIT_ASSERT(p3->parameters().names()[0]=="Value0");
-          CPPUNIT_ASSERT(p3->parameters().names()[1]=="Value1");
-          CPPUNIT_ASSERT(p3->parameters().names()[2]=="Value2");           
-          CPPUNIT_ASSERT(p3->parameters().names()[3]=="Value4");
+        
+          params = p3->unknowns();
+          CPPUNIT_ASSERT(params.size() == 4);
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value0") != params.end());
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value1") != params.end());
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value2") != params.end());                    
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value4") != params.end());                    
           
           testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,2.);
           testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
           testAllElements(p3->dataVector("Value1"),5,-30.);                    
-        
-          std::vector<std::string> params = p3->unknowns();
-          CPPUNIT_ASSERT(params.size() == 4);
-          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value0") != params.end());
-          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value1") != params.end());
-          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value2") != params.end());
-          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value4") != params.end());
-          
+           
           // Value2 should not change
           testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value2"),3,1.);
           testAllElements(extractVector(p3->normalMatrixSlice(), "Value2"),0,0.);
@@ -312,11 +300,13 @@ namespace askap
           
           //now Value2 is expected to be overwritten, because the shape has been changed
           p3->merge(*p2);
-          CPPUNIT_ASSERT(p3->parameters().names().size()==4);
-          CPPUNIT_ASSERT(p3->parameters().names()[0]=="Value0");
-          CPPUNIT_ASSERT(p3->parameters().names()[1]=="Value1");
-          CPPUNIT_ASSERT(p3->parameters().names()[2]=="Value2");           
-          CPPUNIT_ASSERT(p3->parameters().names()[3]=="Value4");
+        
+          params = p3->unknowns();
+          CPPUNIT_ASSERT(params.size() == 4);
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value0") != params.end());
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value1") != params.end());
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value2") != params.end());                    
+          CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value4") != params.end());                    
 
           testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value1"),5,2.);
           testAllElements(extractVector(p3->normalMatrixSlice(), "Value1"),5,0.1);
@@ -387,10 +377,6 @@ namespace askap
           p2.reset(new ImagingNormalEquations());
           CPPUNIT_ASSERT(p2);
           bis >> *p2;
-          CPPUNIT_ASSERT(p2->parameters().names().size()==3);
-          CPPUNIT_ASSERT(p2->parameters().names()[0]=="Image2");
-          CPPUNIT_ASSERT(p2->parameters().names()[1]=="Value0");
-          CPPUNIT_ASSERT(p2->parameters().names()[2]=="Value1");
 
           std::vector<std::string> params = p2->unknowns();
           CPPUNIT_ASSERT(params.size() == 3);

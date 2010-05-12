@@ -381,12 +381,12 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
       casa::IPosition shape(1, datavector.nelements());
       addDiagonal(name, normalmatrixdiagonal, datavector, shape);
     }
-
+/*
     const Params& ImagingNormalEquations::parameters() const
     {
       return *itsParams;
     }
-
+*/
     INormalEquations::ShPtr ImagingNormalEquations::clone() const
     {
       return INormalEquations::ShPtr(new ImagingNormalEquations(*this));

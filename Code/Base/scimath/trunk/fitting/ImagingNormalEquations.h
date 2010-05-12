@@ -95,7 +95,7 @@ namespace askap
       virtual ~ImagingNormalEquations();
             
       /// Return the specified parameters (const)
-      const Params& parameters() const;
+      //const Params& parameters() const;
             
       /// @param[in] name parameter name
       /// @param[in] normalmatrixslice Slice of normal matrix for this parameter
