@@ -62,6 +62,7 @@ namespace askap
         if (other.itsNormalEquations) {
             itsNormalEquations = other.itsNormalEquations->clone();
         }    
+        return *this;
     }
     
     /// @return a reference to normal equations object
