@@ -58,4 +58,8 @@ cp.ingest.ms_sink.feeds.feed29             = [2.5, -0.5]
 cp.ingest.ms_sink.feeds.feed30             = [2.5,  0.5]
 cp.ingest.ms_sink.feeds.feed31             = [2.5,  1.5]
 
-cp.ingest.ms_sink.spws                     = [16416, 1.420GHz, 18.5185kHz, "XX XY YX YY"]
+cp.ingest.ms_sink.spw.name                 = ASKAPCorrelator
+cp.ingest.ms_sink.spw.nchan                = 16416
+cp.ingest.ms_sink.spw.start_freq           = 1.420GHz
+cp.ingest.ms_sink.spw.freq_inc             = 18.5185kHz
+cp.ingest.ms_sink.spw.stokes               = "XX XY YX YY"

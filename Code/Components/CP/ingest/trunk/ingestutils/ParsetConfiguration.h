@@ -1,4 +1,4 @@
-/// @file MSSink.h
+/// @file ParsetConfiguration.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,47 +24,52 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MSSINK_H
-#define ASKAP_CP_MSSINK_H
+#ifndef ASKAP_CP_PARSETCONFIGURATION_H
+#define ASKAP_CP_PARSETCONFIGURATION_H
+
+// System includes
+#include <string>
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
-#include "boost/scoped_ptr.hpp"
 #include "Common/ParameterSet.h"
-#include "ms/MeasurementSets/MeasurementSet.h"
+#include "casa/aips.h"
 #include "casa/Quanta.h"
+#include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/Vector.h"
+#include "measures/Measures/MPosition.h"
 
 // Local package includes
-#include "ingestpipeline/ITask.h"
-#include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestutils/IConfiguration.h"
 
 namespace askap {
 namespace cp {
 
-class MSSink : public askap::cp::ITask {
+class ParsetConfiguration : public IConfiguration {
     public:
-        MSSink(const LOFAR::ParameterSet& parset);
-        virtual ~MSSink();
+        ParsetConfiguration(const LOFAR::ParameterSet& parset);
 
-        virtual void process(VisChunk::ShPtr chunk);
+        virtual void getAntennas(casa::Vector<std::string>& names,
+                                 std::string& station,
+                                 casa::Matrix<double>& antXYZ,
+                                 casa::Matrix<double>& offset,
+                                 casa::Vector<casa::Double>& dishDiameter,
+                                 casa::Vector<std::string>& mount);
+
+        virtual void getFeeds(casa::String& mode,
+                              casa::Vector<double>& x,
+                              casa::Vector<double>& y,
+                              casa::Vector<casa::String>& pol);
+
+        virtual void getSpWindows(casa::String& spWindowName, int& nChan,
+                                  casa::Quantity& startFreq, casa::Quantity& freqInc,
+                                  casa::String& stokesString);
 
     private:
-        void initAntennas(void);
-        void initFeeds(void);
-        void initSpws(void);
 
-        // Create the measurement set
-        void create(void);
+        casa::Quantity asQuantity(const std::string& str);
 
         // Parameter set
         const LOFAR::ParameterSet itsParset;
-
-        // Configuration wrapper (around parset)
-        boost::scoped_ptr<IConfiguration> itsConfig;
-
-        // Measurement set
-        boost::scoped_ptr<casa::MeasurementSet> itsMs;
 };
 
 }

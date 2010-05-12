@@ -51,6 +51,7 @@
 
 // Local package includes
 #include "ingestpipeline/datadef/VisChunk.h"
+#include "ingestutils/ParsetConfiguration.h"
 #include "ingestutils/AntennaPositions.h"
 
 ASKAP_LOGGER(logger, ".MSSink");
@@ -67,6 +68,8 @@ MSSink::MSSink(const LOFAR::ParameterSet& parset) :
     itsParset(parset.makeSubset("cp.ingest.ms_sink."))
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
+
+    itsConfig.reset(new ParsetConfiguration(itsParset));
     create();
     initAntennas();
     initFeeds();
@@ -77,6 +80,8 @@ MSSink::MSSink(const LOFAR::ParameterSet& parset) :
 MSSink::~MSSink()
 {
     ASKAPLOG_DEBUG_STR(logger, "Destructor");
+    itsMs.reset();
+    itsConfig.reset();
 }
 
 void MSSink::process(VisChunk::ShPtr chunk)
@@ -172,25 +177,15 @@ void MSSink::initAntennas(void)
 {
     const LOFAR::ParameterSet antSubset(itsParset.makeSubset("antennas."));
 
-    // Get station name
-    const std::string station = antSubset.getString("station", "");
-    // Get antenna names and number
-    const casa::Vector<std::string> names(antSubset.getStringVector("names"));
-    const casa::uInt nAnt = names.size();
-    ASKAPCHECK(nAnt > 0, "No antennas defined in parset file");
+    std::string station;
+    casa::Vector<std::string> name;
+    casa::Matrix<double> antXYZ;
+    casa::Matrix<double> offset;
+    casa::Vector<casa::Double> dishDiameter;
+    casa::Vector<std::string> mount;
 
-    // Get antenna positions
-    AntennaPositions antPos(antSubset);
-    casa::Matrix<double> antXYZ = antPos.getPositionMatrix();
-
-    // Get antenna diameter
-    const casa::Double diameter = asQuantity(antSubset.getString("diameter",
-                "12m")).getValue("m");
-    ASKAPCHECK(diameter > 0.0, "Antenna diameter not positive");
-
-    // Get mount type
-    const std::string mount = antSubset.getString("mount", "equatorial");
-    ASKAPCHECK((mount == "equatorial") || (mount == "alt-az"), "Antenna mount type unknown");
+    itsConfig->getAntennas(name, station, antXYZ, offset, dishDiameter, mount);
+    casa::uInt nAnt = name.size();
 
     // Write the rows to the measurement set
     MSColumns msc(*itsMs);
@@ -202,27 +197,239 @@ void MSSink::initAntennas(void)
 
     antc.type().fillColumn("GROUND-BASED");
     antc.station().fillColumn(station);
-    antc.mount().fillColumn(mount);
     antc.flagRow().fillColumn(false);
-    antc.dishDiameter().fillColumn(diameter);
     antc.position().putColumn(antXYZ);
+
     for (unsigned int row = 0; row < nAnt; ++row) {
-        antc.name().put(row, names(row));
+        antc.name().put(row, name(row));
+        antc.mount().put(row, mount(row));
+        antc.dishDiameter().put(row, dishDiameter(row));
     }
 }
 
 void MSSink::initFeeds(void)
 {
+    casa::String mode;
+    casa::Vector<double> x;
+    casa::Vector<double> y;
+    casa::Vector<casa::String> pol;
+
+    itsConfig->getFeeds(mode, x, y, pol);
+
+    MSColumns msc(*itsMs);
+    MSAntennaColumns& antc = msc.antenna();
+    Int nAnt = antc.nrow();
+
+    if (nAnt <= 0) {
+        ASKAPLOG_INFO_STR(logger, "initFeeds: must call initAntenna() first");
+    }
+
+    Int nFeed = x.nelements();
+
+    String feedPol0 = "R", feedPol1 = "L";
+    Bool isList = False;
+
+    if (nFeed > 0) {
+        isList = True;
+
+        if (x.nelements() != y.nelements()) {
+            ASKAPLOG_FATAL_STR(logger, "Feed x and y must be the same length");
+        }
+
+        ASKAPCHECK(pol.nelements() == x.nelements(),
+                   "Feed polarization list must be same length as the number of positions");
+        ASKAPLOG_INFO_STR(logger, "Constructing FEED table from list");
+    } else {
+        nFeed = 1;
+
+        // mode == "perfect R L" OR "perfect X Y"
+        if (mode.contains("X", 0)) {
+            feedPol0 = "X";
+            feedPol1 = "Y";
+        }
+    }
+
+    const Int nRow = nFeed * nAnt;
+    Vector<Int> feedAntId(nRow);
+    Vector<Int> feedId(nRow);
+    Vector<Int> feedSpWId(nRow);
+    Vector<Int> feedBeamId(nRow);
+
+    Vector<Int> feedNumRec(nRow);
+    Cube<double> beamOffset(2, 2, nRow);
+
+    Matrix<String> feedPol(2, nRow);
+    Matrix<double> feedXYZ(3, nRow);
+    Matrix<double> feedAngle(2, nRow);
+    Cube<Complex> polResp(2, 2, nRow);
+
+    Int iRow = 0;
+
+    if (isList) {
+        polResp = Complex(0.0, 0.0);
+
+        for (Int i = 0; i < nAnt; i++) {
+            for (Int j = 0; j < nFeed; j++) {
+                feedAntId(iRow) = i;
+                feedId(iRow) = j;
+                feedSpWId(iRow) = -1;
+                feedBeamId(iRow) = 0;
+                feedNumRec(iRow) = 2;
+                beamOffset(0, 0, iRow) = x(j);
+                beamOffset(1, 0, iRow) = y(j);
+                beamOffset(0, 1, iRow) = x(j);
+                beamOffset(1, 1, iRow) = y(j);
+                feedXYZ(0, iRow) = 0.0;
+                feedXYZ(1, iRow) = 0.0;
+                feedXYZ(2, iRow) = 0.0;
+                feedAngle(0, iRow) = 0.0;
+                feedAngle(1, iRow) = 0.0;
+
+                if (pol(j).contains("X", 0)) {
+                    feedPol(0, iRow) = "X";
+                    feedPol(1, iRow) = "Y";
+                } else {
+                    feedPol(0, iRow) = "L";
+                    feedPol(1, iRow) = "R";
+                }
+
+                polResp(0, 0, iRow) = polResp(1, 1, iRow) = Complex(1.0, 0.0);
+                iRow++;
+            }
+        }
+    } else {
+        polResp = Complex(0.0, 0.0);
+
+        for (Int i = 0; i < nAnt; i++) {
+            feedAntId(iRow) = i;
+            feedId(iRow) = 0;
+            feedSpWId(iRow) = -1;
+            feedBeamId(iRow) = 0;
+            feedNumRec(iRow) = 2;
+            beamOffset(0, 0, iRow) = 0.0;
+            beamOffset(1, 0, iRow) = 0.0;
+            beamOffset(0, 1, iRow) = 0.0;
+            beamOffset(1, 1, iRow) = 0.0;
+            feedXYZ(0, iRow) = 0.0;
+            feedXYZ(1, iRow) = 0.0;
+            feedXYZ(2, iRow) = 0.0;
+            feedAngle(0, iRow) = 0.0;
+            feedAngle(1, iRow) = 0.0;
+            feedPol(0, iRow) = feedPol0;
+            feedPol(1, iRow) = feedPol1;
+            polResp(0, 0, iRow) = polResp(1, 1, iRow) = Complex(1.0, 0.0);
+            iRow++;
+        }
+    }
+
+    // fill Feed table - don't check to see if any of the positions match
+    MSFeedColumns& feedc = msc.feed();
+    Int numFeeds = feedc.nrow();
+    Slicer feedSlice(IPosition(1, numFeeds), IPosition(1, nRow + numFeeds - 1),
+                     IPosition(1, 1), Slicer::endIsLast);
+    itsMs->feed().addRow(nRow);
+    feedc.antennaId().putColumnRange(feedSlice, feedAntId);
+    feedc.feedId().putColumnRange(feedSlice, feedId);
+    feedc.spectralWindowId().putColumnRange(feedSlice, feedSpWId);
+    feedc.beamId().putColumnRange(feedSlice, feedBeamId);
+    feedc.numReceptors().putColumnRange(feedSlice, feedNumRec);
+    feedc.position().putColumnRange(feedSlice, feedXYZ);
+    const double forever = 1.e30;
+
+    for (Int i = numFeeds; i < (nRow + numFeeds); i++) {
+        feedc.beamOffset().put(i, beamOffset.xyPlane(i - numFeeds));
+        feedc.polarizationType().put(i, feedPol.column(i - numFeeds));
+        feedc.polResponse().put(i, polResp.xyPlane(i - numFeeds));
+        feedc.receptorAngle().put(i, feedAngle.column(i - numFeeds));
+        feedc.time().put(i, 0.0);
+        feedc.interval().put(i, forever);
+    }
 }
 
 void MSSink::initSpws(void)
 {
-}
+    casa::String spWindowName;
+    int nChan;
+    casa::Quantity startFreq;
+    casa::Quantity freqInc;
+    casa::String stokesString;
 
-casa::Quantity MSSink::asQuantity(const std::string& str)
-{
-    casa::Quantity q;
-    casa::Quantity::read(q, str);
-    return q;
-}
+    itsConfig->getSpWindows(spWindowName, nChan, startFreq, freqInc, stokesString);
 
+    Vector<Int> stokesTypes(4);
+    stokesTypes = Stokes::Undefined;
+    String myStokesString = stokesString;
+    Int nCorr = 0;
+
+    for (Int j = 0; j < 4; j++) {
+        while (myStokesString.at(0, 1) == " ") {
+            myStokesString.del(0, 1);
+        }
+
+        if (myStokesString.length() == 0)
+            break;
+
+        stokesTypes(j) = Stokes::type(myStokesString.at(0, 2));
+        myStokesString.del(0, 2);
+        nCorr = j + 1;
+
+        if (stokesTypes(j) == Stokes::Undefined) {
+            ASKAPLOG_INFO_STR(logger, " Undefined polarization type in input");
+        }
+    }
+
+    MSColumns msc(*itsMs);
+    MSSpWindowColumns& spwc = msc.spectralWindow();
+    MSDataDescColumns& ddc = msc.dataDescription();
+    MSPolarizationColumns& polc = msc.polarization();
+    Int baseSpWID = spwc.nrow();
+    ASKAPLOG_INFO_STR(logger, "Creating new spectral window " << spWindowName << ", ID "
+                          << baseSpWID + 1);
+    // fill spectralWindow table
+    itsMs->spectralWindow().addRow(1);
+    itsMs->polarization().addRow(1);
+    itsMs->dataDescription().addRow(1);
+    spwc.numChan().put(baseSpWID, nChan);
+    spwc.name().put(baseSpWID, spWindowName);
+    spwc.netSideband().fillColumn(1);
+    spwc.ifConvChain().fillColumn(0);
+    spwc.freqGroup().fillColumn(0);
+    spwc.freqGroupName().fillColumn("Group 1");
+    spwc.flagRow().fillColumn(False);
+    spwc.measFreqRef().fillColumn(MFrequency::TOPO);
+    polc.flagRow().fillColumn(False);
+    ddc.flagRow().fillColumn(False);
+    polc.numCorr().put(baseSpWID, nCorr);
+    Vector <double> freqs(nChan), bandwidth(nChan);
+    bandwidth = freqInc.getValue("Hz");
+    ddc.spectralWindowId().put(baseSpWID, baseSpWID);
+    ddc.polarizationId().put(baseSpWID, baseSpWID);
+    double vStartFreq(startFreq.getValue("Hz"));
+    double vFreqInc(freqInc.getValue("Hz"));
+
+    for (Int chan = 0; chan < nChan; chan++) {
+        freqs(chan) = vStartFreq + chan * vFreqInc;
+    }
+
+    // translate stokesTypes into receptor products, catch invalid
+    // fallibles.
+    Matrix<Int> corrProduct(uInt(2), uInt(nCorr));
+    Fallible<Int> fi;
+    stokesTypes.resize(nCorr, True);
+
+    for (Int j = 0; j < nCorr; j++) {
+        fi = Stokes::receptor1(Stokes::type(stokesTypes(j)));
+        corrProduct(0, j) = (fi.isValid() ? fi.value() : 0);
+        fi = Stokes::receptor2(Stokes::type(stokesTypes(j)));
+        corrProduct(1, j) = (fi.isValid() ? fi.value() : 0);
+    }
+
+    spwc.refFrequency().put(baseSpWID, vStartFreq);
+    spwc.chanFreq().put(baseSpWID, freqs);
+    spwc.chanWidth().put(baseSpWID, bandwidth);
+    spwc.effectiveBW().put(baseSpWID, bandwidth);
+    spwc.resolution().put(baseSpWID, bandwidth);
+    spwc.totalBandwidth().put(baseSpWID, nChan*vFreqInc);
+    polc.corrType().put(baseSpWID, stokesTypes);
+    polc.corrProduct().put(baseSpWID, corrProduct);
+}

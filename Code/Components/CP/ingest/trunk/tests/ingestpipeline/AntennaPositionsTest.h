@@ -31,7 +31,7 @@
 #include "Common/ParameterSet.h"
 
 // Classes to test
-#include "ingestpipeline/calcuvwtask/AntennaPositions.h"
+#include "ingestutils/AntennaPositions.h"
 
 namespace askap
 {
