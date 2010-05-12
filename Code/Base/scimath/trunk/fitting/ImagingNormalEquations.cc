@@ -72,7 +72,7 @@ namespace askap
 
     ImagingNormalEquations::ImagingNormalEquations() {};
     
-    ImagingNormalEquations::ImagingNormalEquations(const Params& ip) : itsParams(ip.clone())
+    ImagingNormalEquations::ImagingNormalEquations(const Params& ip)
     {
       vector<string> names=ip.freeNames();
       vector<string>::iterator iterRow;
@@ -94,7 +94,7 @@ namespace askap
     /// therefore, need this copy constructor to achieve proper copying.
     /// @param[in] src input measurement equations to copy from
     ImagingNormalEquations::ImagingNormalEquations(const ImagingNormalEquations &src) :
-         itsParams(src.itsParams), itsShape(src.itsShape), itsReference(src.itsReference)
+         itsShape(src.itsShape), itsReference(src.itsReference)
     {
       deepCopyOfSTDMap(src.itsNormalMatrixSlice, itsNormalMatrixSlice);
       deepCopyOfSTDMap(src.itsNormalMatrixDiagonal, itsNormalMatrixDiagonal);
@@ -110,7 +110,6 @@ namespace askap
     ImagingNormalEquations& ImagingNormalEquations::operator=(const ImagingNormalEquations &src)
     {
       if (&src != this) {
-          itsParams = src.itsParams;
           itsShape = src.itsShape;
           itsReference = src.itsReference;
           deepCopyOfSTDMap(src.itsNormalMatrixSlice, itsNormalMatrixSlice);
@@ -138,23 +137,32 @@ namespace askap
   {
     try {
       const ImagingNormalEquations &other = 
-                         dynamic_cast<const ImagingNormalEquations&>(src);    
-      if (!other.itsParams) {
+                         dynamic_cast<const ImagingNormalEquations&>(src); 
+
+      // list of parameters covered by input normal equations
+      const std::vector<std::string> otherParams = other.unknowns();
+      if (!otherParams.size()) {
           // do nothing, src is empty
           return;
       }
-      if (!itsParams) {
+
+      vector<string> names = unknowns();
+
+      if (!names.size()) {
           // this object is empty, just do an assignment
           operator=(other);
           return;
       }
-      ASKAPDEBUGASSERT(itsParams && other.itsParams);
-      itsParams->merge(*other.itsParams);
-      const vector<string> names=itsParams->freeNames();
-      //vector<string>::const_iterator iterRow;
-      vector<string>::const_iterator iterCol;
-
-      for (iterCol=names.begin();iterCol!=names.end();++iterCol)
+      // merge in parameters of input normal equations
+      vector<string>::const_iterator iterCol = otherParams.begin();
+      for (; iterCol != otherParams.end(); ++iterCol) {
+           if (std::find(names.begin(),names.end(),*iterCol) == names.end()) {
+               names.push_back(*iterCol);
+           }
+      }      
+      //
+      
+      for (iterCol = names.begin(); iterCol != names.end(); ++iterCol)
       {
         if (other.itsDataVector.find(*iterCol) == other.itsDataVector.end()) {
             continue;
@@ -270,7 +278,6 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
     void ImagingNormalEquations::reset()
     {
       map<string, casa::Vector<double> >::iterator iterRow;
-      map<string, casa::Matrix<double> >::iterator iterCol;
       for (iterRow=itsDataVector.begin();iterRow!=itsDataVector.end();iterRow++)
       {
         itsDataVector[iterRow->first].resize();
@@ -381,12 +388,7 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
       casa::IPosition shape(1, datavector.nelements());
       addDiagonal(name, normalmatrixdiagonal, datavector, shape);
     }
-/*
-    const Params& ImagingNormalEquations::parameters() const
-    {
-      return *itsParams;
-    }
-*/
+
     INormalEquations::ShPtr ImagingNormalEquations::clone() const
     {
       return INormalEquations::ShPtr(new ImagingNormalEquations(*this));
@@ -396,7 +398,7 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
     /// @param[in] os the output stream
     void ImagingNormalEquations::writeToBlob(LOFAR::BlobOStream& os) const
     {
-      os << *(itsParams) << itsNormalMatrixSlice 
+      os << itsNormalMatrixSlice 
         << itsNormalMatrixDiagonal << itsShape << itsReference << itsDataVector; 
     }
     
@@ -405,8 +407,7 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
     /// @note Not sure whether the parameter should be made const or not 
     void ImagingNormalEquations::readFromBlob(LOFAR::BlobIStream& is) 
     {
-      itsParams = Params::ShPtr(new Params());
-      is >> *(itsParams)  >> itsNormalMatrixSlice 
+      is >> itsNormalMatrixSlice 
          >> itsNormalMatrixDiagonal >> itsShape >> itsReference 
          >> itsDataVector;
     }

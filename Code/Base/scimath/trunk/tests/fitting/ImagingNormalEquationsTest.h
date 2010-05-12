@@ -261,8 +261,7 @@ namespace askap
           testAllElements(extractVector(p3->normalMatrixDiagonal(), "Value2"),3,1.);
           testAllElements(extractVector(p3->normalMatrixSlice(), "Value2"),0,0.);
           testAllElements(p3->dataVector("Value2"),3,10.);
-                    
-
+                                   
           Params ip;
           ip.add("Value1");
           ip.add("Value4");
@@ -271,10 +270,10 @@ namespace askap
           p1->addSlice("Value1", casa::Vector<double>(5,0.), 
                   casa::Vector<double>(5, 1.), casa::Vector<double>(5,10.),
                   casa::IPosition(1,0));
-          
+        
           p3->merge(*p1);
         
-          params = p3->unknowns();
+          params = p3->unknowns();          
           CPPUNIT_ASSERT(params.size() == 4);
           CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value0") != params.end());
           CPPUNIT_ASSERT(std::find(params.begin(),params.end(),"Value1") != params.end());

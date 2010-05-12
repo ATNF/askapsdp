@@ -93,10 +93,7 @@ namespace askap
       ImagingNormalEquations& operator=(const ImagingNormalEquations &src);
         
       virtual ~ImagingNormalEquations();
-            
-      /// Return the specified parameters (const)
-      //const Params& parameters() const;
-            
+                        
       /// @param[in] name parameter name
       /// @param[in] normalmatrixslice Slice of normal matrix for this parameter
       /// @param[in] normalmatrixdiagonal Diagonal of normal matrix for
@@ -233,8 +230,6 @@ namespace askap
       virtual void readFromBlob(LOFAR::BlobIStream& is); 
               
     protected:
-      /// Parameters
-      Params::ShPtr itsParams;
       /// A slice through a specified plane
       std::map<string, casa::Vector<double> > itsNormalMatrixSlice;
       /// The diagonal 
