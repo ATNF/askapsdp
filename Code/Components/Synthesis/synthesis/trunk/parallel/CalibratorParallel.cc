@@ -117,7 +117,7 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       
       
       /// Create the solver  
-      itsSolver.reset(new LinearSolver(*itsModel));
+      itsSolver.reset(new LinearSolver);
       ASKAPCHECK(itsSolver, "Solver not defined correctly");
       itsRefGain = itsParset.getString("refgain","");
   }
@@ -242,7 +242,6 @@ void CalibratorParallel::calcNE()
       } else {
           ASKAPCHECK(itsSolver, "Solver not defined correctly");
           itsSolver->init();
-          itsSolver->setParameters(*itsModel);
           for (size_t iMs=0; iMs<itsMs.size(); ++iMs) {
             calcOne(itsMs[iMs]);
             itsSolver->addNormalEquations(*itsNe);
@@ -265,9 +264,8 @@ void CalibratorParallel::solveNE()
       Quality q;
       ASKAPDEBUGASSERT(itsSolver);
       itsSolver->setAlgorithm("SVD");     
-      itsSolver->solveNormalEquations(q);
+      itsSolver->solveNormalEquations(*itsModel,q);
       ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds ");
-      *itsModel=itsSolver->parameters();
       if (itsRefGain != "") {
           ASKAPLOG_INFO_STR(logger, "Rotating phases to have that of "<<itsRefGain<<" equal to 0");
           rotatePhases();

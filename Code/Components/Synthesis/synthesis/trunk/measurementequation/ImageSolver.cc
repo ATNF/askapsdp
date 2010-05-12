@@ -61,8 +61,8 @@ namespace askap
   namespace synthesis
   {
 
-    ImageSolver::ImageSolver(const askap::scimath::Params& ip) :
-      askap::scimath::Solver(ip), itsZeroWeightCutoffArea(false), itsZeroWeightCutoffMask(true)
+    ImageSolver::ImageSolver() :
+      itsZeroWeightCutoffArea(false), itsZeroWeightCutoffMask(true)
     {
     }
 
@@ -198,9 +198,14 @@ namespace askap
 	    return status;
     }
 
-    // Solve for update simply by scaling the data vector by the diagonal term of the
-    // normal equations i.e. the residual image
-    bool ImageSolver::solveNormalEquations(askap::scimath::Quality& quality)
+    /// @brief Solve for parameters, updating the values kept internally
+    /// The solution is constructed from the normal equations. The parameters named 
+    /// image* are interpreted as images and solved for.
+    /// @param[in] ip current model (to be updated)
+    /// @param[in] quality Solution quality information
+    /// @note Solve for update simply by scaling the data vector by the diagonal term of the
+    /// normal equations i.e. the residual image
+    bool ImageSolver::solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality)
     {
 
       ASKAPLOG_INFO_STR(logger, "Calculating principal solution");
@@ -209,16 +214,16 @@ namespace askap
       uint nParameters=0;
 
       // Find all the free parameters beginning with image
-      vector<string> names(itsParams->completions("image"));
+      vector<string> names(ip.completions("image"));
       map<string, uint> indices;
 
       for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
       {
         string name="image"+*it;
-        if (itsParams->isFree(name))
+        if (ip.isFree(name))
         {
           indices[name]=nParameters;
-          nParameters+=itsParams->value(name).nelements();
+          nParameters+=ip.value(name).nelements();
         }
       }
       ASKAPCHECK(nParameters>0, "No free parameters in ImageSolver");
@@ -227,7 +232,7 @@ namespace askap
           !=indices.end(); indit++) {
         // Axes are dof, dof for each parameter
         //casa::IPosition arrShape(itsParams->value(indit->first).shape());
-        for (scimath::MultiDimArrayPlaneIter planeIter(itsParams->value(indit->first).shape());
+        for (scimath::MultiDimArrayPlaneIter planeIter(ip.value(indit->first).shape());
              planeIter.hasMore(); planeIter.next()) {
         
              ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for solution");
@@ -256,15 +261,15 @@ namespace askap
              if (doPreconditioning(psfArray,dirtyArray)) {	
 
                  // Save the new PSFs to disk
-                 Axes axes(itsParams->axes(indit->first));
+                 Axes axes(ip.axes(indit->first));
                  const string psfName="psf."+(indit->first);
                  casa::Array<double> anothertemp(planeIter.planeShape());
                  casa::convertArray<double,float>(anothertemp,psfArray);
                  const casa::Array<double> & APSF(anothertemp);
-                 if (!itsParams->has(psfName)) {
-                     itsParams->add(psfName, planeIter.shape(), axes);
+                 if (!ip.has(psfName)) {
+                     ip.add(psfName, planeIter.shape(), axes);
                  } 
-                 itsParams->update(psfName, APSF, planeIter.position());                 
+                 ip.update(psfName, APSF, planeIter.position());                 
              } // if - doPreconditioning
 
              ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
@@ -275,7 +280,7 @@ namespace askap
              // production version (or may need to implement it in a different way).
 
              {
-                Axes axes(itsParams->axes(indit->first));
+                Axes axes(ip.axes(indit->first));
                 ASKAPDEBUGASSERT(indit->first.find("image")==0);
                 ASKAPCHECK(indit->first.size()>5, 
                         "Image parameter name should have something appended to word image")           
@@ -283,15 +288,15 @@ namespace askap
                     casa::Array<double> anothertemp(planeIter.planeShape());
                     casa::convertArray<double,float>(anothertemp,dirtyArray);
                     const casa::Array<double> & AResidual(anothertemp);
-                    if (!itsParams->has(residName)) {
+                    if (!ip.has(residName)) {
                         // create an empty parameter with the full shape
-                        itsParams->add(residName, planeIter.shape(), axes);
+                        ip.add(residName, planeIter.shape(), axes);
                     }
-                    itsParams->update(residName, AResidual, planeIter.position());                     
+                    ip.update(residName, AResidual, planeIter.position());                     
              }
              // end of the code storing residual image
 
-	         casa::Vector<double> value(planeIter.getPlaneVector(itsParams->value(indit->first)));
+	         casa::Vector<double> value(planeIter.getPlaneVector(ip.value(indit->first)));
              const casa::Vector<float> dirtyVector(dirtyArray.reform(value.shape()));
              for (uint elem=0; elem<dv.nelements(); ++elem) {
                   value(elem) += dirtyVector(elem);
@@ -304,56 +309,56 @@ namespace askap
       quality.setInfo("Scaled residual calculated");
       
       /// Save the PSF and Weight
-      saveWeights();
-      savePSF();
+      saveWeights(ip);
+      savePSF(ip);
       return true;
     }
     
-    void ImageSolver::saveWeights()
+    void ImageSolver::saveWeights(askap::scimath::Params& ip)
     {
       // Save weights image
-      vector<string> names(itsParams->completions("image"));
+      vector<string> names(ip.completions("image"));
       for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
       {
         string name="image"+*it;
         if (normalEquations().normalMatrixDiagonal().count(name))
         {
           const casa::IPosition arrShape(normalEquations().shape().find(name)->second);
-          Axes axes(itsParams->axes(name));
+          Axes axes(ip.axes(name));
           string weightsName="weights"+*it;
           const casa::Array<double> & ADiag(normalEquations().normalMatrixDiagonal().find(name)->second.reform(arrShape));
-          if (!itsParams->has(weightsName))
+          if (!ip.has(weightsName))
           {
-            itsParams->add(weightsName, ADiag, axes);
+            ip.add(weightsName, ADiag, axes);
           }
           else
           {
-            itsParams->update(weightsName, ADiag);
+            ip.update(weightsName, ADiag);
           }
         }
       }
     }
 
-    void ImageSolver::savePSF()
+    void ImageSolver::savePSF(askap::scimath::Params& ip)
     {
       // Save PSF image
-      vector<string> names(itsParams->completions("image"));
+      vector<string> names(ip.completions("image"));
       for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
       {
         string name="image"+*it;
         if (normalEquations().normalMatrixSlice().count(name))
         {
           const casa::IPosition arrShape(normalEquations().shape().find(name)->second);
-          Axes axes(itsParams->axes(name));
+          Axes axes(ip.axes(name));
           string psfName="psf"+*it;
           const casa::Array<double> & APSF(normalEquations().normalMatrixSlice().find(name)->second.reform(arrShape));
-          if (!itsParams->has(psfName))
+          if (!ip.has(psfName))
           {
-            itsParams->add(psfName, APSF, axes);
+            ip.add(psfName, APSF, axes);
           }
           else
           {
-            itsParams->update(psfName, APSF);
+            ip.update(psfName, APSF);
           }
         }
       }

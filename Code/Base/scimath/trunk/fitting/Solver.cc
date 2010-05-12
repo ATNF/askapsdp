@@ -35,18 +35,10 @@ namespace askap
   namespace scimath
   {
 
-    Solver::Solver(const Params& ip) : itsParams(ip.clone())
-    {
-    };
-
-    Solver::~Solver()
-    {
-    }
+    /// @brief default constructor
+    Solver::Solver() {};
     
     Solver::Solver(const Solver& other) : Solveable(other) {
-        if (other.itsParams) {
-            itsParams = other.itsParams->clone();
-        }
         if (other.itsNormalEquations) {
             itsNormalEquations = other.itsNormalEquations->clone();
         }
@@ -57,9 +49,6 @@ namespace askap
     /// @return reference to itself
     Solver& Solver::operator=(const Solver& other)  {
         Solveable::operator=(other);
-        if (other.itsParams) {
-            itsParams = other.itsParams->clone();
-        }
         if (other.itsNormalEquations) {
             itsNormalEquations = other.itsNormalEquations->clone();
         }    
@@ -82,23 +71,11 @@ namespace askap
     }
     
     
-    void Solver::setParameters(const Params& ip)
-    {
-      itsParams=ip.clone();
-    }
-    
-/// Return current values of params
-    const Params& Solver::parameters() const
-    {
-    	ASKAPCHECK(itsParams, "Params not defined in Solver");
-      return *itsParams;
-    };
-
     void Solver::copyNormalEquations(const Solver& other)
     {
-    	ASKAPCHECK(other.itsNormalEquations, "NormalEquations not defined in other Solver");
-      itsNormalEquations=other.itsNormalEquations->clone();
-    	ASKAPCHECK(itsNormalEquations, "NormalEquations not defined in Solver after copy");
+      ASKAPCHECK(other.itsNormalEquations, "NormalEquations not defined in other Solver");
+      itsNormalEquations=other.normalEquations().clone();
+      ASKAPCHECK(itsNormalEquations, "NormalEquations not defined in Solver after copy");
     }
 
     void Solver::addNormalEquations(const INormalEquations& normeq)
@@ -110,7 +87,12 @@ namespace askap
       }
     }
     
-    bool Solver::solveNormalEquations(askap::scimath::Quality& q)
+    /// @brief solve for parameters
+    /// The solution is constructed from the normal equations and given
+    /// parameters are updated
+    /// @param[in] params parameters to be updated 
+    /// @param[in] q Quality of solution
+    bool Solver::solveNormalEquations(Params &params, Quality& q)
     {
      return false;
     }

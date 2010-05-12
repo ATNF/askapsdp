@@ -48,29 +48,23 @@ namespace askap {
         class ImageMultiScaleSolver : public ImageCleaningSolver {
             public:
 
-                /// @brief Constructor from parameters.
-                /// The parameters named image* will be interpreted as images and
-                /// solutions formed by the method described.
+                /// @brief default constructor
                 /// The default scales are 0, 10, 30 pixels
-                /// @param ip Parameters i.e. the images
-                ImageMultiScaleSolver(const askap::scimath::Params& ip);
+                ImageMultiScaleSolver();
 
-                /// @brief Constructor from parameters and scales.
-                /// The parameters named image* will be interpreted as images and
-                /// solutions formed by the method described.
-                /// @param ip Parameters i.e. the images
+                /// @brief Constructor from scales.
                 /// @param scales Scales to be solved in pixels
-                ImageMultiScaleSolver(const askap::scimath::Params& ip,
-                                      const casa::Vector<float>& scales);
+                ImageMultiScaleSolver(const casa::Vector<float>& scales);
 
                 /// @brief Initialize this solver
                 virtual void init();
-
+ 
                 /// @brief Solve for parameters, updating the values kept internally
-                /// The solution is constructed from the normal equations
-                /// @param[in] q Solution quality information
-                /// @return true, if successful
-                virtual bool solveNormalEquations(askap::scimath::Quality& q);
+                /// The solution is constructed from the normal equations. The parameters named 
+                /// image* are interpreted as images and solved for.
+                /// @param[in] ip current model (to be updated)
+                /// @param[in] quality Solution quality information
+                virtual bool solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality);
 
                 /// @brief Clone this object
                 /// @return a shared pointer to the clone

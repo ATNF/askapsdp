@@ -67,17 +67,16 @@ namespace askap
   {
     
       
-    ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip) : 
-      ImageCleaningSolver(ip), itsScales(3,0.), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
+    ImageMSMFSolver::ImageMSMFSolver() : 
+      itsScales(3,0.), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
     {
       ASKAPDEBUGASSERT(itsScales.size() == 3);
       itsScales(1)=10;
       itsScales(2)=30;
     }
 
-    ImageMSMFSolver::ImageMSMFSolver(const askap::scimath::Params& ip,
-      const casa::Vector<float>& scales) : 
-          ImageCleaningSolver(ip),itsScales(scales)
+    ImageMSMFSolver::ImageMSMFSolver(const casa::Vector<float>& scales) : 
+          itsScales(scales)
     {
     }
     
@@ -100,15 +99,19 @@ namespace askap
     }
               
     
-// Solve for update simply by scaling the data vector by the diagonal term of the
-// normal equations i.e. the residual image
-    bool ImageMSMFSolver::solveNormalEquations(askap::scimath::Quality& quality)
+    /// @brief Solve for parameters
+    /// The solution is constructed from the normal equations
+    /// The solution is constructed from the normal equations. The parameters named 
+    /// image* are interpreted as images and solved for.
+    /// @param[in] ip current model (to be updated)        
+    /// @param[in] quality Solution quality information
+    bool ImageMSMFSolver::solveNormalEquations(askap::scimath::Params& ip,askap::scimath::Quality& quality)
     {
 
       // Solving A^T Q^-1 V = (A^T Q^-1 A) P
      
       // Find all the free parameters beginning with image
-      vector<string> names(itsParams->completions("image"));
+      vector<string> names(ip.completions("image"));
       for (vector<string>::iterator it = names.begin(); it!=names.end(); ++it) {
            *it = "image" + *it;
       }
@@ -154,7 +157,7 @@ namespace askap
                ImageParamsHelper iph(tmIt->first);
                // make it 0-order Taylor term
                iph.makeTaylorTerm(0);
-               const casa::IPosition imageShape = itsParams->value(iph.paramName()).shape();               
+               const casa::IPosition imageShape = ip.value(iph.paramName()).shape();               
                const uint nPol = imageShape.nelements()>=3 ? uint(imageShape(2)) : 1;
                ASKAPLOG_INFO_STR(logger, "There are " << nPol << " polarisation planes to solve for." );
                nParameters += imageShape.product(); // add up the number of pixels for zero order
@@ -162,7 +165,7 @@ namespace askap
 	           for (int order=1;order<tmIt->second;++order) {
 	                // make the helper a Taylor term of the given order
 	                iph.makeTaylorTerm(order);
-                    const casa::IPosition thisShape = itsParams->value(iph.paramName()).shape();               
+                    const casa::IPosition thisShape = ip.value(iph.paramName()).shape();               
                     const uint thisNPol = thisShape.nelements()>=3 ? uint(thisShape(2)) : 1;
 	                ASKAPCHECK(thisNPol == nPol, "Number of polarisations are supposed to be consistent for all Taylor terms, order="<<
 	                           order<<" has "<<thisNPol<<" polarisation planes");
@@ -262,7 +265,7 @@ namespace askap
                         casa::convertArray<float, double>(dirtyArray, planeIter.getPlane(dv));
                         casa::Array<float> cleanArray(planeIter.planeShape());
                         casa::convertArray<float, double>(cleanArray, 
-                                           planeIter.getPlane(itsParams->value(thisOrderParam)));
+                                           planeIter.getPlane(ip.value(thisOrderParam)));
                         if (order == 0) {
                             zeroPSFPeak = doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfArray,dirtyArray);
                         } else {
@@ -281,17 +284,17 @@ namespace askap
                         if( doPreconditioning(psfZeroArray,psfArray) ) {
                            // Write PSFs to disk.
                            ASKAPLOG_INFO_STR(logger, "Exporting preconditioned psfs (to be stored to disk later)");
-                           Axes axes(itsParams->axes(thisOrderParam));
+                           Axes axes(ip.axes(thisOrderParam));
                            const std::string psfName="psf."+thisOrderParam;
                            casa::Array<double> aargh(planeIter.planeShape());
                            casa::convertArray<double,float>(aargh,psfArray);
                            const casa::Array<double> & APSF(aargh);
-                           if (!itsParams->has(psfName)) {
+                           if (!ip.has(psfName)) {
                                // create an empty parameter with the full shape
-                               itsParams->add(psfName, planeIter.shape(), axes);
+                               ip.add(psfName, planeIter.shape(), axes);
                            }
                            // insert the slice at the proper place  
-                           itsParams->update(psfName, APSF, planeIter.position());                           
+                           ip.update(psfName, APSF, planeIter.position());                           
 	                    }
 	   
                         casa::ArrayLattice<float> psf(psfArray);
@@ -328,7 +331,7 @@ namespace askap
                         ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<plane<<" Taylor order="<<order<<
                                                   " for image "<<tmIt->first);
                         itsCleaners[imageTag]->getmodel(order,clean);
-                        casa::Array<double> slice = planeIter.getPlane(itsParams->value(thisOrderParam));
+                        casa::Array<double> slice = planeIter.getPlane(ip.value(thisOrderParam));
                         casa::convertArray<double, float>(slice, cleanArray);
                     }
                     // add extra parameters (cross-terms) to the to-be-fixed list
@@ -348,8 +351,8 @@ namespace askap
 	           // (MV) probably this part needs another careful look
 	           for (std::set<std::string>::const_iterator ci = parametersToBeFixed.begin(); 
 	                ci != parametersToBeFixed.end(); ++ci) {
-	                if (itsParams->isFree(*ci)) {
-	                    itsParams->fix(*ci);
+	                if (ip.isFree(*ci)) {
+	                    ip.fix(*ci);
 	                }
 	           }
            } // try
@@ -366,8 +369,8 @@ namespace askap
       quality.setInfo("Multi-Scale Multi-Frequency Clean");
       
       /// Save PSFs and Weights into parameter class (to be exported later)
-      saveWeights();
-      savePSF();
+      saveWeights(ip);
+      savePSF(ip);
 
       return true;
     };

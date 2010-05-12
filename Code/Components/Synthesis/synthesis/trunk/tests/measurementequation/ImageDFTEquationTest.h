@@ -116,12 +116,12 @@ namespace askap
           GenericNormalEquations ne; //(*params2);
           p2->calcEquations(ne);
           {
-            LinearSolver solver1(*params2);
+            LinearSolver solver1;
             solver1.addNormalEquations(ne);
             Quality q;
             solver1.setAlgorithm("SVD");
-            solver1.solveNormalEquations(q);
-            casa::Array<double> improved=solver1.parameters().value("image.i.cena");
+            solver1.solveNormalEquations(*params2,q);
+            casa::Array<double> improved = params2->value("image.i.cena");
             uint npix=16;
             std::cout << q << std::endl;
             CPPUNIT_ASSERT(std::abs(q.cond()/1115634013709.060-1.0)<0.0001);
@@ -139,9 +139,9 @@ namespace askap
           p2->calcEquations(ne);
           Quality q;
           params2->fix("image.i.cena");
-          LinearSolver solver1(*params2);
+          LinearSolver solver1;
           solver1.addNormalEquations(ne);
-          solver1.solveNormalEquations(q);
+          solver1.solveNormalEquations(*params2,q);
         }
     };
 

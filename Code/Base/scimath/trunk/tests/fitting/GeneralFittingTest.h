@@ -84,11 +84,10 @@ namespace scimath
          GenericNormalEquations ne;
          calcEquationsReal(ne);
          Quality q;
-         LinearSolver solver(itsGuessedGains);
+         LinearSolver solver;
          solver.addNormalEquations(ne);
          solver.setAlgorithm("SVD");
-         solver.solveNormalEquations(q);  
-         itsGuessedGains = solver.parameters();
+         solver.solveNormalEquations(itsGuessedGains,q);  
          for (casa::uInt ant=0;ant<itsNAnt;++ant) {
               CPPUNIT_ASSERT(abs(itsGuessedGains.scalarValue(parName(ant))-
                                  trueGains[ant])<0.05);
@@ -116,11 +115,10 @@ namespace scimath
               GenericNormalEquations ne;
               calcEquationsComplex(ne);
               Quality q;
-              LinearSolver solver(itsGuessedGains);
+              LinearSolver solver;
               solver.addNormalEquations(ne);
               solver.setAlgorithm("SVD");
-              solver.solveNormalEquations(q);
-              itsGuessedGains = solver.parameters();              
+              solver.solveNormalEquations(itsGuessedGains,q);
          }  
          for (casa::uInt ant=0;ant<itsNAnt;++ant) {
              const std::string name = parName(ant); 

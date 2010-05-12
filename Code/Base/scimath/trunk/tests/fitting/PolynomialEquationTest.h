@@ -51,13 +51,14 @@ namespace askap
       CPPUNIT_TEST_SUITE_END();
 
       private:
-        PolynomialEquation *itsPolyPerfect, *itsPolyWrong;
+        boost::shared_ptr<PolynomialEquation> itsPolyPerfect, itsPolyWrong;
         casa::Vector<double> itsArguments;
         casa::Vector<double> itsDataPerfect;
         casa::Vector<double> itsDataWrong;
         casa::Vector<double> itsWeights;
         casa::Vector<double> itsModelPerfect;
         casa::Vector<double> itsModelWrong;
+        Params itsIPWrong;
 
       public:
         void setUp()
@@ -89,30 +90,25 @@ namespace askap
           quadratic(2)=3;
           ipPerfect.add("poly", quadratic);
           
-          Params ipWrong;
           casa::Vector<double> guess(3);
           guess(0)=2;
           guess(1)=-3;
           guess(2)=5;
-          ipWrong.add("poly", guess);
+          itsIPWrong.add("poly", guess);
 
-          itsPolyPerfect = new PolynomialEquation(ipPerfect, itsDataPerfect, itsWeights, itsArguments, itsModelPerfect);
+          itsPolyPerfect.reset(new PolynomialEquation(ipPerfect, itsDataPerfect, itsWeights, 
+                               itsArguments, itsModelPerfect));
           itsPolyPerfect->predict();
           itsDataPerfect=itsModelPerfect.copy();
-          delete itsPolyPerfect;
-          itsPolyPerfect = new PolynomialEquation(ipPerfect, itsDataPerfect, itsWeights, itsArguments, itsModelPerfect);
+          itsPolyPerfect.reset(new PolynomialEquation(ipPerfect, itsDataPerfect, itsWeights, 
+                               itsArguments, itsModelPerfect));
           itsPolyPerfect->predict();
-                    
-          itsDataWrong=itsDataPerfect.copy();
-          itsPolyWrong = new PolynomialEquation(ipWrong, itsDataWrong, itsWeights, itsArguments, itsModelWrong);
+           
+          itsDataWrong = itsDataPerfect.copy();          
+          itsPolyWrong.reset(new PolynomialEquation(itsIPWrong, itsDataWrong, itsWeights, itsArguments, itsModelWrong));
           itsPolyWrong->predict();
         }
 
-        void tearDown()
-        {
-          delete itsPolyPerfect;
-          delete itsPolyWrong;
-        }
 
         void testConstructors()
         {
@@ -140,34 +136,35 @@ namespace askap
           // the data points used are far from perfect to discriminate between
           // two parabolas (need to go far from the origin), as a result we
           // need to increase the limit on the condition number.
-          LinearSolver solver(itsPolyWrong->parameters(),1e5);
-          GenericNormalEquations normeq; //(itsPolyWrong->parameters());
+          LinearSolver solver(1e5);
+          GenericNormalEquations normeq;
           itsPolyWrong->calcEquations(normeq);
           solver.addNormalEquations(normeq);
           
           Quality q;
           solver.setAlgorithm("SVD");
-          //std::cout << "Before " << solver.parameters().value("poly") << std::endl;
-          solver.solveNormalEquations(q);
-          //std::cout << "After  " << solver.parameters().value("poly") << std::endl;
+          //std::cout << "Before " << itsIPWrong.value("poly") << std::endl;
+          solver.solveNormalEquations(itsIPWrong,q);
+          //std::cout << "After  " << itsIPWrong.value("poly") << std::endl;
           
           CPPUNIT_ASSERT(abs(q.cond()-11500.5)<1.0);
-          const casa::Vector<double> result = solver.parameters().value("poly");
+          const casa::Vector<double> result = itsIPWrong.value("poly");
           //std::cout<<result<<std::endl;
           CPPUNIT_ASSERT(fabs(result[0]-1.)<1e-5 && fabs(result[1]-2.)<1e-5 && fabs(result[2]-3.)<1e-5);
         }
         
         void testSolutionNEChol()
         {
-          GenericNormalEquations normeq; //(itsPolyWrong->parameters());
+          GenericNormalEquations normeq;
           itsPolyWrong->calcEquations(normeq);
-          LinearSolver solver(itsPolyWrong->parameters());
+          LinearSolver solver;
           solver.addNormalEquations(normeq);
 
           Quality q;
 //          std::cout << "Before " << solver.parameters().value("poly") << std::endl;
-          solver.solveNormalEquations(q);
-//          std::cout << "After  " << solver.parameters().value("poly") << std::endl;
+          Params params = itsPolyWrong->parameters();
+          solver.solveNormalEquations(params,q);
+//          std::cout << "After  " << params.value("poly") << std::endl;
 //          std::cout << q << std::endl;
         }
 
@@ -186,11 +183,11 @@ namespace askap
           // condition number will be large, need to adjust the threshold
           // test here that a negative value specified by a static constant 
           // works and means no limit on the condition number
-          LinearSolver solver(ip,LinearSolver::KeepAllSingularValues);
+          LinearSolver solver(LinearSolver::KeepAllSingularValues);
           solver.addNormalEquations(normeq);
           Quality q;
           solver.setAlgorithm("SVD");
-          solver.solveNormalEquations(q);
+          solver.solveNormalEquations(ip,q);
           CPPUNIT_ASSERT(abs(q.cond()-11500.5)<1.0);
         }
 

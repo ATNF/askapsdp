@@ -71,8 +71,8 @@ namespace askap
     // ideally it should be the number of spectral channels times number of facets
     // processed by every thread.
       
-    ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip) : 
-          ImageCleaningSolver(ip), itsCleaners(8), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
+    ImageMultiScaleSolver::ImageMultiScaleSolver() : 
+          itsCleaners(8), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
     {
       itsScales.resize(3);
       itsScales(0)=0;
@@ -80,9 +80,8 @@ namespace askap
       itsScales(2)=30;
     }
 
-    ImageMultiScaleSolver::ImageMultiScaleSolver(const askap::scimath::Params& ip,
-      const casa::Vector<float>& scales) : 
-          ImageCleaningSolver(ip), itsCleaners(8), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
+    ImageMultiScaleSolver::ImageMultiScaleSolver(const casa::Vector<float>& scales) : 
+          itsCleaners(8), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
     {
       itsScales.resize(scales.size());
       itsScales=scales;
@@ -102,24 +101,27 @@ namespace askap
     }
        
     
-// Solve for update simply by scaling the data vector by the diagonal term of the
-// normal equations i.e. the residual image
-    bool ImageMultiScaleSolver::solveNormalEquations(askap::scimath::Quality& quality)
+    /// @brief Solve for parameters, updating the values kept internally
+    /// The solution is constructed from the normal equations. The parameters named 
+    /// image* are interpreted as images and solved for.
+    /// @param[in] ip current model (to be updated)
+    /// @param[in] quality Solution quality information
+    bool ImageMultiScaleSolver::solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality)
     {
 
 // Solving A^T Q^-1 V = (A^T Q^-1 A) P
       uint nParameters=0;
 
 // Find all the free parameters beginning with image
-      vector<string> names(itsParams->completions("image"));
+      vector<string> names(ip.completions("image"));
       map<string, uint> indices;
       
       for (vector<string>::const_iterator  it=names.begin();it!=names.end();it++)
       {
         const std::string name="image"+*it;
-        if(itsParams->isFree(name)) {
+        if(ip.isFree(name)) {
           indices[name]=nParameters;
-          nParameters+=itsParams->value(name).nelements();
+          nParameters+=ip.value(name).nelements();
         }
       }
       ASKAPCHECK(nParameters>0, "No free parameters in ImageMultiScaleSolver");
@@ -127,8 +129,8 @@ namespace askap
       for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();++indit)
       {
 // Axes are dof, dof for each parameter
-        //const casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-        for (scimath::MultiDimArrayPlaneIter planeIter(itsParams->value(indit->first).shape());
+        //const casa::IPosition vecShape(1, ip.value(indit->first).nelements());
+        for (scimath::MultiDimArrayPlaneIter planeIter(ip.value(indit->first).shape());
                          planeIter.hasMore(); planeIter.next()) {
         
              ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present for "<<
@@ -149,7 +151,7 @@ namespace askap
 		
              casa::Array<float> dirtyArray = padImage(planeIter.getPlane(dv));
              casa::Array<float> psfArray = padImage(planeIter.getPlane(slice));
-             casa::Array<float> cleanArray = padImage(planeIter.getPlane(itsParams->value(indit->first)));
+             casa::Array<float> cleanArray = padImage(planeIter.getPlane(ip.value(indit->first)));
              casa::Array<float> maskArray(dirtyArray.shape());
              ASKAPLOG_INFO_STR(logger, "Plane shape "<<planeIter.planeShape()<<" becomes "<<
                              dirtyArray.shape()<<" after padding");
@@ -160,15 +162,15 @@ namespace askap
 	         // Precondition the PSF and DIRTY images before solving.
              if(doPreconditioning(psfArray,dirtyArray)) {
 	            // Save the new PSFs to disk
-	            Axes axes(itsParams->axes(indit->first));
+	            Axes axes(ip.axes(indit->first));
 	            string psfName="psf."+(indit->first);
 	            casa::Array<double> anothertemp = unpadImage(psfArray);
 	            const casa::Array<double> & APSF(anothertemp);
-	            if (!itsParams->has(psfName)) {
+	            if (!ip.has(psfName)) {
 	                // create an empty parameter with the full shape
-	                itsParams->add(psfName, planeIter.shape(), axes);
+	                ip.add(psfName, planeIter.shape(), axes);
 	            } 
-	            itsParams->update(psfName, APSF, planeIter.position());	       
+	            ip.update(psfName, APSF, planeIter.position());	       
 	         } // if there was preconditioning
 	         // optionally clip the image and psf if there was padding
 	         ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) before clipping "<<max(dirtyArray));
@@ -188,33 +190,33 @@ namespace askap
              // the parameter class. Therefore, we may not need this functionality in the 
              // production version (or may need to implement it in a different way).
              {
-                Axes axes(itsParams->axes(indit->first));
+                Axes axes(ip.axes(indit->first));
                 ASKAPDEBUGASSERT(indit->first.find("image")==0);
                 ASKAPCHECK(indit->first.size()>5, 
                         "Image parameter name should have something appended to word image")           
 	            const string residName="residual"+indit->first.substr(5);
 	            casa::Array<double> anothertemp = unpadImage(dirtyArray);
 	            const casa::Array<double> & AResidual(anothertemp);
-	            if (!itsParams->has(residName)) {
+	            if (!ip.has(residName)) {
 	                // create an empty parameter with the full shape
-	                itsParams->add(residName, planeIter.shape(), axes);
+	                ip.add(residName, planeIter.shape(), axes);
 	            }
-	            itsParams->update(residName, AResidual, planeIter.position());	               
+	            ip.update(residName, AResidual, planeIter.position());	               
              }
         
         
              
              // uncomment the code below to save the mask
              {
-                Axes axes(itsParams->axes(indit->first));
+                Axes axes(ip.axes(indit->first));
 	            string maskName="mask."+(indit->first);
 	            casa::Array<double> anothertemp = unpadImage(maskArray);
 	            const casa::Array<double> & AMask(anothertemp);
-	            if (!itsParams->has(maskName)) {
+	            if (!ip.has(maskName)) {
 	                // create an empty parameter with the full shape
-	                itsParams->add(maskName, planeIter.shape(), axes);
+	                ip.add(maskName, planeIter.shape(), axes);
 	            }
-	            itsParams->update(maskName, AMask, planeIter.position());	               
+	            ip.update(maskName, AMask, planeIter.position());	               
              }
              // end of mask-related code
              
@@ -254,17 +256,15 @@ namespace askap
 	         } // if cleaner found in the cache, else case - new cleaner needed
 	         lc->clean(clean);
 	         ASKAPLOG_INFO_STR(logger, "Peak flux of the clean image "<<max(cleanArray));
-
-	         ASKAPDEBUGASSERT(itsParams);
 	
 	         const std::string peakResParam = std::string("peak_residual.") + cleanerKey;
-	         if (itsParams->has(peakResParam)) {
-	             itsParams->update(peakResParam, lc->strengthOptimum());
+	         if (ip.has(peakResParam)) {
+	             ip.update(peakResParam, lc->strengthOptimum());
              } else {
-	             itsParams->add(peakResParam, lc->strengthOptimum());
+	             ip.add(peakResParam, lc->strengthOptimum());
              }
-             itsParams->fix(peakResParam);	    
-	         planeIter.getPlane(itsParams->value(indit->first)) = unpadImage(cleanArray);
+             ip.fix(peakResParam);	    
+	         planeIter.getPlane(ip.value(indit->first)) = unpadImage(cleanArray);
         } // loop over all planes of the image cube
       } // loop over map of indices
       
@@ -274,8 +274,8 @@ namespace askap
       quality.setInfo("Multiscale Clean");
       
       /// Save the PSF and Weight
-      saveWeights();      
-      savePSF();
+      saveWeights(ip);      
+      savePSF(ip);
       
       return true;
     };

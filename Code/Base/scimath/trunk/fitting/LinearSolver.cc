@@ -59,7 +59,6 @@ namespace askap
     /// @brief Constructor
     /// @details Optionally, it is possible to limit the condition number of
     /// normal equation matrix to a given number.
-    /// @param ip Parameters for this solver
     /// @param maxCondNumber maximum allowed condition number of the range
     /// of the normal equation matrix for the SVD algorithm. Effectively this
     /// puts the limit on the singular values, which are considered to be
@@ -68,32 +67,37 @@ namespace askap
     /// if you don't want to drop any singular values (may be a not very wise
     /// thing to do!). A very large threshold has the same effect. Zero
     /// threshold is not allowed and will cause an exception.
-    LinearSolver::LinearSolver(const Params& ip, double maxCondNumber) : 
-           Solver(ip), itsMaxCondNumber(maxCondNumber) 
+    LinearSolver::LinearSolver(double maxCondNumber) : 
+           itsMaxCondNumber(maxCondNumber) 
     {
       ASKAPASSERT(itsMaxCondNumber!=0);
     };
 
-    LinearSolver::~LinearSolver() {
-    }
     
     void LinearSolver::init()
     {
       resetNormalEquations();
     }
 
-// Fully general solver for the normal equations for any shape
-// parameters.
-    bool LinearSolver::solveNormalEquations(Quality& quality)
+    /// @brief solve for parameters
+    /// The solution is constructed from the normal equations and given
+    /// parameters are updated. If there are no free parameters in the
+    /// given Params class, all unknowns in the normal
+    /// equatons will be solved for.
+    /// @param[in] params parameters to be updated 
+    /// @param[in] quality Quality of solution
+    /// @note This is fully general solver for the normal equations for any shape
+    /// parameters.        
+    bool LinearSolver::solveNormalEquations(Params &params, Quality& quality)
     {
-
+      
 // Solving A^T Q^-1 V = (A^T Q^-1 A) P
       int nParameters=0;
 
 // Find all the free parameters
-      vector<string> names(itsParams->freeNames());
-      if (itsParams->names().size() == 0) {
-          // internal list of parameters is empty, will solve for all 
+      vector<string> names(params.freeNames());
+      if (names.size() == 0) {
+          // list of parameters is empty, will solve for all 
           // unknowns in the equation 
           names = normalEquations().unknowns();
       }
@@ -105,7 +109,7 @@ namespace askap
         indices[*it] = nParameters;
         const casa::uInt newParameters = normalEquations().dataVector(*it).nelements();
         nParameters += newParameters;
-        ASKAPDEBUGASSERT((itsParams->isFree(*it) ? itsParams->value(*it).nelements() : newParameters) == newParameters);        
+        ASKAPDEBUGASSERT((params.isFree(*it) ? params.value(*it).nelements() : newParameters) == newParameters);        
       }
       ASKAPCHECK(nParameters>0, "No free parameters in Linear Solver");
 
@@ -234,8 +238,8 @@ namespace askap
         map<string, int>::const_iterator indit;
         for (indit=indices.begin();indit!=indices.end();++indit)
         {
-          casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-          casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
+          casa::IPosition vecShape(1, params.value(indit->first).nelements());
+          casa::Vector<double> value(params.value(indit->first).reform(vecShape));
           for (size_t i=0; i<value.nelements(); ++i)
           {
 //          	std::cout << value(i) << " " << gsl_vector_get(X, indit->second+i) << std::endl;
@@ -255,8 +259,8 @@ namespace askap
         map<string, int>::const_iterator indit;
         for (indit=indices.begin();indit!=indices.end();++indit)
         {
-          casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-          casa::Vector<double> value(itsParams->value(indit->first).reform(vecShape));
+          casa::IPosition vecShape(1, params.value(indit->first).nelements());
+          casa::Vector<double> value(params.value(indit->first).reform(vecShape));
           for (size_t i=0; i<value.nelements(); ++i)
           {
             value(i)+=gsl_vector_get(X, indit->second+i);

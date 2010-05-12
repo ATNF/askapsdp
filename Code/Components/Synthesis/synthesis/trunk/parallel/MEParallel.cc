@@ -63,7 +63,7 @@ namespace askap
     MEParallel::MEParallel(askap::mwbase::AskapParallel& comms) :
       SynParallel(comms)
     {
-      itsSolver = Solver::ShPtr(new Solver(*itsModel));
+      itsSolver = Solver::ShPtr(new Solver);
       itsNe = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*itsModel));
     }
 
@@ -101,7 +101,6 @@ namespace askap
       {
         ASKAPLOG_INFO_STR(logger, "Initialising solver");
         itsSolver->init();
-        itsSolver->setParameters(*itsModel);
 
         ASKAPLOG_INFO_STR(logger, "Waiting to receive normal equations");
         casa::Timer timer;

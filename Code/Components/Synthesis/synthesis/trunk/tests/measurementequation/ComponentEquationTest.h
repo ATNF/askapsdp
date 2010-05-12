@@ -129,7 +129,7 @@ namespace askap
           p1->predict();
 // Calculate gradients using "imperfect" parameters"
           p2->calcEquations(ne);
-          LinearSolver solver1(*params2);
+          LinearSolver solver1;
           solver1.addNormalEquations(ne);
         }
 
@@ -158,13 +158,13 @@ namespace askap
           GenericNormalEquations ne; //(*params2);
           p2->calcEquations(ne);
           Quality q;
-          LinearSolver solver1(*params2,LinearSolver::KeepAllSingularValues);
+          LinearSolver solver1(LinearSolver::KeepAllSingularValues);
           solver1.addNormalEquations(ne);
           solver1.setAlgorithm("SVD");
-          solver1.solveNormalEquations(q);  
+          solver1.solveNormalEquations(*params2,q);  
           //CPPUNIT_ASSERT(abs(q.cond()/4.99482e+12-1.0)<0.001);
           // check that it converged to a correct result
-          const Params &solution = solver1.parameters();
+          const Params &solution = *params2;
           CPPUNIT_ASSERT(abs(solution.scalarValue("direction.dec.cena")+0.3)<1e-5);
           CPPUNIT_ASSERT(abs(solution.scalarValue("direction.ra.cena")-0.5)<1e-5);
           CPPUNIT_ASSERT(abs(solution.scalarValue("flux.i.cena")-100)<3e-1);
@@ -183,20 +183,20 @@ namespace askap
           {
             Quality q;
             params2->fix("flux.i.cena");
-            LinearSolver solver1(*params2,LinearSolver::KeepAllSingularValues);
+            LinearSolver solver1(LinearSolver::KeepAllSingularValues);
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
-            solver1.solveNormalEquations(q); 
+            solver1.solveNormalEquations(*params2,q); 
             CPPUNIT_ASSERT(abs(q.cond()/6.07565e+09-1.0)<0.001);
           }
           {
             Quality q;
             params2->fix("flux.i.cena");
             params2->fix("direction.ra.cena");
-            LinearSolver solver1(*params2,LinearSolver::KeepAllSingularValues);
+            LinearSolver solver1(LinearSolver::KeepAllSingularValues);
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
-            solver1.solveNormalEquations(q);
+            solver1.solveNormalEquations(*params2,q);
             CPPUNIT_ASSERT(abs(q.cond()/3.54341e+09-1.0)<0.001);
           }
           {
@@ -204,10 +204,10 @@ namespace askap
             params2->fix("flux.i.cena");
             params2->fix("direction.ra.cena");
             params2->fix("direction.dec.cena");
-            LinearSolver solver1(*params2,LinearSolver::KeepAllSingularValues);
+            LinearSolver solver1(LinearSolver::KeepAllSingularValues);
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
-            solver1.solveNormalEquations(q);
+            solver1.solveNormalEquations(*params2,q);
             CPPUNIT_ASSERT(abs(q.cond()/6.85634e+08-1.0)<0.001);
           }
           {
@@ -216,10 +216,10 @@ namespace askap
             params2->fix("direction.ra.cena");
             params2->fix("direction.dec.cena");
             params2->fix("shape.bpa.cena");
-            LinearSolver solver1(*params2,LinearSolver::KeepAllSingularValues);
+            LinearSolver solver1(LinearSolver::KeepAllSingularValues);
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
-            solver1.solveNormalEquations(q);
+            solver1.solveNormalEquations(*params2,q);
             CPPUNIT_ASSERT(abs(q.cond()/8.37068-1.0)<0.001);
           }
           {
@@ -229,10 +229,10 @@ namespace askap
             params2->fix("direction.dec.cena");
             params2->fix("shape.bmin.cena");
             params2->fix("shape.bpa.cena");
-            LinearSolver solver1(*params2,LinearSolver::KeepAllSingularValues);
+            LinearSolver solver1(LinearSolver::KeepAllSingularValues);
             solver1.addNormalEquations(ne);
             solver1.setAlgorithm("SVD");
-            solver1.solveNormalEquations(q);
+            solver1.solveNormalEquations(*params2,q);
             CPPUNIT_ASSERT(abs(q.cond()-1.0)<0.001);
           }
         }
@@ -241,7 +241,7 @@ namespace askap
         {
           GenericNormalEquations ne; //(*params1);
           p1->predict();
-          p2->calcEquations(ne);
+          //p2->calcEquations(ne);
           Quality q;
           params2->fix("flux.i.cena");
           params2->fix("direction.ra.cena");
@@ -249,9 +249,10 @@ namespace askap
           params2->fix("shape.bmaj.cena");
           params2->fix("shape.bmin.cena");
           params2->fix("shape.bpa.cena");
-          LinearSolver solver1(*params2,LinearSolver::KeepAllSingularValues);
+          LinearSolver solver1(LinearSolver::KeepAllSingularValues);
           solver1.addNormalEquations(ne);
-          solver1.solveNormalEquations(q);
+          // the following line is not supposed to throw exceptions any more
+          solver1.solveNormalEquations(*params2,q);
         }
 
     };

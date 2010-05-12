@@ -264,7 +264,6 @@ namespace askap
         {
           ASKAPCHECK(itsSolver, "Solver not defined correctly");
           itsSolver->init();
-          itsSolver->setParameters(*itsModel);
           for (size_t iMs=0; iMs<itsMs.size(); iMs++)
           {
             calcOne(itsMs[iMs]);
@@ -287,11 +286,10 @@ namespace askap
         casa::Timer timer;
         timer.mark();
         Quality q;
-        itsSolver->solveNormalEquations(q);
+        ASKAPDEBUGASSERT(itsModel);
+        itsSolver->solveNormalEquations(*itsModel,q);
         ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds "
                            );
-        ASKAPDEBUGASSERT(itsModel);
-        *itsModel=itsSolver->parameters();
         
         // we will probably send all of them out in the future, but for now
         // let's extract the largest residual
@@ -406,12 +404,11 @@ namespace askap
           // configure restore solver the same way as normal imaging solver
           boost::shared_ptr<ImageSolver> template_solver = boost::dynamic_pointer_cast<ImageSolver>(itsSolver);
           ASKAPDEBUGASSERT(template_solver);
-	  ImageSolverFactory::configurePreconditioners(itsParset,ir);
+          ImageSolverFactory::configurePreconditioners(itsParset,ir);
           ir->configureSolver(*template_solver);
           ir->copyNormalEquations(*template_solver);
           Quality q;
-          ir->solveNormalEquations(q);
-          *itsModel = ir->parameters();
+          ir->solveNormalEquations(*itsModel,q);
           // merged image should be a fixed parameter without facet suffixes
           resultimages=itsModel->fixedNames();
           for (vector<string>::const_iterator ci=resultimages.begin(); ci!=resultimages.end(); ++ci) {

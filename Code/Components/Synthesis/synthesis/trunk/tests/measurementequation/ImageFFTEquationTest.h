@@ -132,16 +132,12 @@ namespace askap
              ImagingNormalEquations ne(*params2);
              p2->calcEquations(ne);
              Quality q;
-             ImageMultiScaleSolver solver1(*params2);
+             ImageMultiScaleSolver solver1;
              solver1.setAlgorithm("Hogbom");
              solver1.addNormalEquations(ne);
-             solver1.solveNormalEquations(q);
-             improved=solver1.parameters().value("image.i.cena");
+             solver1.solveNormalEquations(*params2,q);
+             improved = params2->value("image.i.cena");
         }
-        //        {
-        //          ParamsCasaTable pt("ImageFFTEquationTest_SphFun.tab", false);
-        //          pt.setParameters(solver1.parameters());
-        //        }
         // This only works for the pixels with emission but it's a good test nevertheless
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
             -1.0)<0.003);
@@ -163,14 +159,10 @@ namespace askap
         ImagingNormalEquations ne(*params2);
         p2->calcEquations(ne);
         Quality q;
-        ImageSolver solver1(*params2);
+        ImageSolver solver1;
         solver1.addNormalEquations(ne);
-        solver1.solveNormalEquations(q);
-        const casa::Array<double> improved=solver1.parameters().value("image.i.cena");
-        //        {
-        //          ParamsCasaTable pt("ImageFFTEquationTest_AntIllum.tab", false);
-        //          pt.setParameters(solver1.parameters());
-        //        }
+        solver1.solveNormalEquations(*params2,q);
+        const casa::Array<double> improved = params2->value("image.i.cena");
         // This only works for the pixels with emission but it's a good test nevertheless
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
             -1.0)<0.005);
@@ -185,9 +177,9 @@ namespace askap
         p2->calcEquations(ne);
         Quality q;
         params2->fix("image.i.cena");
-        ImageSolver solver1(*params2);
+        ImageSolver solver1;
         solver1.addNormalEquations(ne);
-        solver1.solveNormalEquations(q);
+        solver1.solveNormalEquations(*params2,q);
       }
     };
 

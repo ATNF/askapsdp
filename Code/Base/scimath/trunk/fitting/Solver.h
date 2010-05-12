@@ -47,11 +47,10 @@ namespace askap
     class Solver : public Solveable
     {
       public:
-/// Constructor from parameters
-/// @param ip Parameters
-        explicit Solver(const Params& ip);
+        /// @brief default constructor
+        Solver();
         
-/// Copy constructor
+        /// Copy constructor
         /// @param other Other
         Solver(const Solver& other);
         
@@ -60,17 +59,8 @@ namespace askap
         /// @return reference to itself
         Solver& operator=(const Solver& other);
         
-        virtual ~Solver();
-
-/// Initialize this solver
+        /// @brief Initialize this solver
         virtual void init();
-
-/// Set the parameters
-/// @param ip Parameters
-        void setParameters(const Params& ip);
-
-/// Return current values of params (const)
-        const Params& parameters() const;
 
 /// Add the normal equations
 /// @param normeq Normal Equations
@@ -80,12 +70,14 @@ namespace askap
 /// @param other Another solver
         virtual void copyNormalEquations(const Solver& other);
 
-/// Solve for parameters, updating the values kept internally
-/// The solution is constructed from the normal equations
-/// @param q Quality of solution
-        virtual bool solveNormalEquations(Quality& q);
+        /// @brief solve for parameters
+        /// The solution is constructed from the normal equations and given
+        /// parameters are updated
+        /// @param[in] params parameters to be updated 
+        /// @param[in] q Quality of solution
+        virtual bool solveNormalEquations(Params &params, Quality& q);
 
-/// Shared pointer definition
+        /// Shared pointer definition
         typedef boost::shared_ptr<Solver> ShPtr;
 
 /// Clone this into a shared pointer
@@ -97,9 +89,6 @@ namespace askap
         /// @brief reset normal equations
         void resetNormalEquations() const;
 
-      protected:
-        /// Parameters
-        Params::ShPtr itsParams;
       private:  
         /// Normal equations
         INormalEquations::ShPtr itsNormalEquations;

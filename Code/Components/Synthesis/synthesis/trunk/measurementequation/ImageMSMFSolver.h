@@ -54,20 +54,12 @@ namespace askap
     {
       public:
 
-        /// @brief Constructor from parameters.
-        /// The parameters named image* will be interpreted as images and
-        /// solutions formed by the method described.
-        /// The default scales are 0, 10, 30 pixels
-        /// @param ip Parameters i.e. the images
-        ImageMSMFSolver(const askap::scimath::Params& ip);
+        /// @brief default constructor
+        ImageMSMFSolver();
 
-        /// @brief Constructor from parameters and scales and ntaylorterms
-        /// The parameters named image* will be interpreted as images and
-        /// solutions formed by the method described.
-        /// @param[in] ip Parameters i.e. the images
+        /// @brief Constructor from scales
         /// @param[in] scales Scales to be solved in pixels
-        ImageMSMFSolver(const askap::scimath::Params& ip,
-          const casa::Vector<float>& scales);
+        explicit ImageMSMFSolver(const casa::Vector<float>& scales);
           
         /// @brief Initialize this solver
         virtual void init();
@@ -76,10 +68,13 @@ namespace askap
 	/// TODO Send in a parset to specify params for diff kinds of preconditioning.
 	///virtual void preconditionNormalEquations();
 
-        /// @brief Solve for parameters, updating the values kept internally
+        /// @brief Solve for parameters
         /// The solution is constructed from the normal equations
-        /// @param q Solution quality information
-        virtual bool solveNormalEquations(askap::scimath::Quality& q);
+        /// The solution is constructed from the normal equations. The parameters named 
+        /// image* are interpreted as images and solved for.
+        /// @param[in] ip current model (to be updated)        
+        /// @param[in] quality Solution quality information
+        virtual bool solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality);
         
 /// @brief Clone this object
         virtual askap::scimath::Solver::ShPtr clone() const;

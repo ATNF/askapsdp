@@ -69,9 +69,8 @@ namespace askap
 {
   namespace synthesis
   {
-    ImageRestoreSolver::ImageRestoreSolver(const askap::scimath::Params& ip,
-		    const casa::Vector<casa::Quantum<double> >& beam) :
-	    ImageSolver(ip), itsBeam(beam), itsEqualiseNoise(false)
+    ImageRestoreSolver::ImageRestoreSolver(const casa::Vector<casa::Quantum<double> >& beam) :
+	    itsBeam(beam), itsEqualiseNoise(false)
     {
     }
     
@@ -79,24 +78,26 @@ namespace askap
     {
 	    resetNormalEquations();
     }
-    
-    // Solve for update simply by scaling the data vector by the diagonal term of the
-    // normal equations i.e. the residual image
-    bool ImageRestoreSolver::solveNormalEquations(
-		    askap::scimath::Quality& quality)
+
+    /// @brief Solve for parameters, updating the values kept internally
+    /// The solution is constructed from the normal equations. The parameters named 
+    /// image* are interpreted as images and solved for.
+    /// @param[in] ip current model (to be updated)
+    /// @param[in] quality Solution quality information
+    bool ImageRestoreSolver::solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality)
     {
 	// Solving A^T Q^-1 V = (A^T Q^-1 A) P
 	
 	// Find all the free parameters beginning with image
-	vector<string> names(itsParams->completions("image"));
+	vector<string> names(ip.completions("image"));
 	uint nParameters=0;
 	for (vector<string>::iterator it=names.begin(); it!=names.end(); ++it)
 	{
 		const string name="image"+*it;
 		// completions should return only free parameters according to its code in Code/Base
-		ASKAPDEBUGASSERT(itsParams->isFree(name));
+		ASKAPDEBUGASSERT(ip.isFree(name));
 		*it = name; // append the common part to the front of the parameter name
-		nParameters+=itsParams->value(name).nelements();
+		nParameters+=ip.value(name).nelements();
 	}
 
 	ASKAPCHECK(nParameters>0, "No free parameters in ImageRestoreSolver");
@@ -110,8 +111,8 @@ namespace askap
 	         // this is a multi-facet image, add a fixed parameter representing the whole image
 	         ASKAPLOG_INFO_STR(logger, "Adding a fixed parameter " << ci->first<<
                            " representing faceted image with "<<ci->second<<" facets");                 
-	         SynthesisParamsHelper::add(*itsParams,ci->first,ci->second);
-	         itsParams->fix(ci->first);
+	         SynthesisParamsHelper::add(ip,ci->first,ci->second);
+	         ip.fix(ci->first);
 	     }
 	}
 	//
@@ -127,23 +128,23 @@ namespace askap
 	      ASKAPLOG_INFO_STR(logger, "Restoring " << *ci );
 
 	      // Create a temporary image
-	      boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(*itsParams, *ci));	      
+	      boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(ip, *ci));	      
 	      casa::Image2DConvolver<float> convolver;	
 	      const casa::IPosition pixelAxes(2, 0, 1);	
 	      casa::LogIO logio;
 	      convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
 			     pixelAxes, itsBeam, true, 1.0, false);
-          SynthesisParamsHelper::update(*itsParams, *ci, *image);
+          SynthesisParamsHelper::update(ip, *ci, *image);
 	      // for some reason update makes the parameter free as well
-	      itsParams->fix(*ci);
+	      ip.fix(*ci);
 	  
-	      addResiduals(*ci,itsParams->value(*ci).shape(),itsParams->value(*ci));
-	      SynthesisParamsHelper::setBeam(*itsParams, *ci, itsBeam);
+	      addResiduals(*ci,ip.value(*ci).shape(),ip.value(*ci));
+	      SynthesisParamsHelper::setBeam(ip, *ci, itsBeam);
       } else {
           // this is a single facet of a larger image, just fill in the bigger image with the model
           ASKAPLOG_INFO_STR(logger, "Inserting facet " << iph.paramName()<<" into merged image "<<name);
-          casa::Array<double> patch = SynthesisParamsHelper::getFacet(*itsParams,iph.paramName());
-          const casa::Array<double> model = scimath::PaddingUtils::centeredSubArray(itsParams->value(iph.paramName()),
+          casa::Array<double> patch = SynthesisParamsHelper::getFacet(ip,iph.paramName());
+          const casa::Array<double> model = scimath::PaddingUtils::centeredSubArray(ip.value(iph.paramName()),
                                           patch.shape());
           patch = model;
       }
@@ -155,15 +156,15 @@ namespace askap
 	         // this is a multi-facet image
 	         ASKAPLOG_INFO_STR(logger, "Restoring faceted image " << ci->first );
             
-             boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(*itsParams, ci->first));
+             boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(ip, ci->first));
 	         casa::Image2DConvolver<float> convolver;	
 	         const casa::IPosition pixelAxes(2, 0, 1);	
 	         casa::LogIO logio;
 	         convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
 			       pixelAxes, itsBeam, true, 1.0, false);
-	         SynthesisParamsHelper::update(*itsParams, ci->first, *image);
+	         SynthesisParamsHelper::update(ip, ci->first, *image);
 	         // for some reason update makes the parameter free as well
-	         itsParams->fix(ci->first);
+	         ip.fix(ci->first);
 	        
 	         // add residuals
 	         for (int xFacet = 0; xFacet<ci->second; ++xFacet) {
@@ -173,13 +174,13 @@ namespace askap
 	                   // ci->first may have taylor suffix defined, load it first and then add facet indices
 	                   ImageParamsHelper iph(ci->first);	                   
 	                   iph.makeFacet(xFacet,yFacet);
-	                   addResiduals(iph.paramName(),itsParams->value(iph.paramName()).shape(),
-	                                SynthesisParamsHelper::getFacet(*itsParams,iph.paramName()));
+	                   addResiduals(iph.paramName(),ip.value(iph.paramName()).shape(),
+	                                SynthesisParamsHelper::getFacet(ip,iph.paramName()));
 	                   
 	              }
 	         }
 	         
-	         SynthesisParamsHelper::setBeam(*itsParams, ci->first, itsBeam);
+	         SynthesisParamsHelper::setBeam(ip, ci->first, itsBeam);
 	         
 	     }
 	}
@@ -189,7 +190,7 @@ namespace askap
 	     ImageParamsHelper iph(*ci);
          if (iph.isFacet()) {
              ASKAPLOG_INFO_STR(logger, "Remove facet patch "<<*ci<<" from the parameters");
-             itsParams->remove(*ci);
+             ip.remove(*ci);
          }
 	}
 	
@@ -318,7 +319,7 @@ namespace askap
        ASKAPLOG_INFO_STR(logger, "Restore solver will convolve with the 2D gaussian: "<<qBeam[0].getValue("arcsec")<<
                  " x "<<qBeam[1].getValue("arcsec")<<" arcsec at position angle "<<qBeam[2].getValue("deg")<<" deg");
        //
-       boost::shared_ptr<ImageRestoreSolver> result(new ImageRestoreSolver(ip, qBeam));
+       boost::shared_ptr<ImageRestoreSolver> result(new ImageRestoreSolver(qBeam));
        const bool equalise = parset.getBool("equalise",false);
        result->equaliseNoise(equalise);
        return result;

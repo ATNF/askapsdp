@@ -225,11 +225,11 @@ namespace askap
          if (algorithm=="MSMFS"){
                ASKAPCHECK(!parset.isDefined("solver.nterms"), "Specify nterms for each image instead of using solver.nterms");
                ASKAPCHECK(!parset.isDefined("solver.Clean.nterms"), "Specify nterms for each image instead of using solver.Clean.nterms");
-               solver.reset(new ImageMSMFSolver(ip, casa::Vector<float>(scales)));
+               solver.reset(new ImageMSMFSolver(casa::Vector<float>(scales)));
                ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
                solver->setAlgorithm(algorithm);
          } else {
-               solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(ip, casa::Vector<float>(scales)));
+               solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(casa::Vector<float>(scales)));
                ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
                //solver->setAlgorithm(algorithm);
                solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));               
@@ -258,7 +258,7 @@ namespace askap
          //
       
          ASKAPLOG_INFO_STR(logger, "Constructing dirty image solver" );
-         solver = ImageSolver::ShPtr(new ImageSolver(ip));
+         solver = ImageSolver::ShPtr(new ImageSolver);
          solver->configure(parset.makeSubset("solver.Dirty."));
       }
       configureThresholds(parset, solver);               

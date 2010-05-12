@@ -46,11 +46,8 @@ namespace synthesis {
 /// @ingroup measurementequation
 class ImageCleaningSolver : public ImageSolver {
 public:
-   /// @brief constructor from parameters
-   /// @details Free parameters named image* will be interpreted as images and
-   /// solutions formed by the solveNormalEquation method
-   /// @param[in] ip input parameters
-   ImageCleaningSolver(const askap::scimath::Params &ip);
+   /// @brief default constructor
+   ImageCleaningSolver();
    
    /// @brief access to a fractional threshold
    /// @return current fractional threshold

@@ -144,25 +144,25 @@ namespace askap
             
                eq2->calcEquations(ne);
                Quality q;
-               LinearSolver solver1(*params2);
+               LinearSolver solver1;
                solver1.addNormalEquations(ne);
                solver1.setAlgorithm("SVD");
-               solver1.solveNormalEquations(q);  
+               solver1.solveNormalEquations(*params2,q);  
                //std::cout<<q<<std::endl;               
                               
                // taking care of the absolute phase uncertainty
                const casa::uInt refAnt = 0;
                const casa::Complex refPhaseTerm = casa::polar(1.f,
-                       -arg(solver1.parameters().complexValue("gain.g11."+toString(refAnt))));
+                       -arg(params2->complexValue("gain.g11."+toString(refAnt))));
                        
-               std::vector<std::string> freeNames(solver1.parameters().freeNames());
+               std::vector<std::string> freeNames(params2->freeNames());
                for (std::vector<std::string>::const_iterator it=freeNames.begin();
                                                    it!=freeNames.end();++it)  {
                     const std::string parname = *it;
                     if (parname.find("gain") == 0) {
                         CPPUNIT_ASSERT(params2->has(parname));                    
                         params2->update(parname,
-                             solver1.parameters().complexValue(parname)*refPhaseTerm);                                 
+                             params2->complexValue(parname)*refPhaseTerm);                                 
                     } 
                }
                

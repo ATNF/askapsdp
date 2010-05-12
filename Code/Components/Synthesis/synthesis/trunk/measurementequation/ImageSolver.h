@@ -61,27 +61,29 @@ namespace askap
         /// @brief typedef of the shared pointer to ImageSolver
 	    typedef boost::shared_ptr<ImageSolver> ShPtr;
 	
-        /// @brief Constructor from parameters.
-        /// The parameters named image* will be interpreted as images and
-        /// solutions formed by the method described.
-        ImageSolver(const askap::scimath::Params& ip);
+        /// @brief default constructor
+        ImageSolver();
 
         /// @brief Initialize this solver
         virtual void init();
 
         /// @brief Solve for parameters, updating the values kept internally
-        /// The solution is constructed from the normal equations
-        /// @param q Solution quality information
-        virtual bool solveNormalEquations(askap::scimath::Quality& q);
+        /// The solution is constructed from the normal equations. The parameters named 
+        /// image* are interpreted as images and solved for.
+        /// @param[in] ip current model (to be updated)
+        /// @param[in] quality Solution quality information
+        virtual bool solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality);
         
         /// @brief Clone this object
         virtual askap::scimath::Solver::ShPtr clone() const;
         
         /// @brief Save the weights as a parameter
-        virtual void saveWeights();
+        /// @param[in] ip current model (to be updated)        
+        virtual void saveWeights(askap::scimath::Params& ip);
 
         /// @brief Save the PSFs as a parameter
-        virtual void savePSF();
+        /// @param[in] ip current model (to be updated)        
+        virtual void savePSF(askap::scimath::Params& ip);
 
         /// @return a reference to normal equations object
         /// @note In this class and derived classes the type returned

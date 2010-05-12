@@ -67,7 +67,7 @@ namespace askap
 				defaultScales[1]=10.0;
 				defaultScales[2]=30.0;
 				std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
-				solver = askap::scimath::Solver::ShPtr(new ImageMultiScaleSolver(params, casa::Vector<float>(scales)));
+				solver = askap::scimath::Solver::ShPtr(new ImageMultiScaleSolver(casa::Vector<float>(scales)));
 				ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
 				solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
 				solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
@@ -79,7 +79,7 @@ namespace askap
 			}
 			else
 			{
-				solver = askap::scimath::Solver::ShPtr(new ImageSolver(params));
+				solver = askap::scimath::Solver::ShPtr(new ImageSolver);
 				casa::Quantity threshold;
 				casa::Quantity::read(threshold, parset.getString("solver.Dirty.threshold", "0Jy"));
 				solver->setThreshold(threshold);

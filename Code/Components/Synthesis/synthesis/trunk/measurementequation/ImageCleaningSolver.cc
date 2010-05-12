@@ -45,12 +45,10 @@ namespace askap {
 
 namespace synthesis {
 
-/// @brief constructor from parameters
-/// @details Free parameters named image* will be interpreted as images and
-/// solutions formed by the solveNormalEquation method
+/// @brief default constructor
 /// @param[in] ip input parameters
-ImageCleaningSolver::ImageCleaningSolver(const askap::scimath::Params &ip) :
-   ImageSolver(ip), itsFractionalThreshold(0.), itsMaskingThreshold(-1.), itsPaddingFactor(1.) {}
+ImageCleaningSolver::ImageCleaningSolver() :
+   itsFractionalThreshold(0.), itsMaskingThreshold(-1.), itsPaddingFactor(1.) {}
    
 /// @brief access to a fractional threshold
 /// @return current fractional threshold

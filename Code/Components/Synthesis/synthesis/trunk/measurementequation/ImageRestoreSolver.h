@@ -52,22 +52,19 @@ namespace askap
     {
       public:
 
-        /// @brief Constructor from existing params
-        /// The parameters named image* will be interpreted as images and
-        /// solutions formed by the method described.
-        /// @param ip Parameters
+        /// @brief default constructor
         /// @param beam Major, minor, pa of beam as Quanta
-        ImageRestoreSolver(const askap::scimath::Params& ip,
-          const casa::Vector<casa::Quantum<double> >& beam);
+        explicit ImageRestoreSolver(const casa::Vector<casa::Quantum<double> >& beam);
 
         /// @brief Initialize this solver
         virtual void init();
 
         /// @brief Solve for parameters, updating the values kept internally
-        /// The solution is constructed from the normal equations
-        /// @param q Solution quality information
-        /// @return one needs to figure it out and write here
-        virtual bool solveNormalEquations(askap::scimath::Quality& q);
+        /// The solution is constructed from the normal equations. The parameters named 
+        /// image* are interpreted as images and solved for.
+        /// @param[in] ip current model (to be updated)
+        /// @param[in] quality Solution quality information
+        virtual bool solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality);
         
         /// @brief Clone this object
         /// @return a shared pointer to a cloned object

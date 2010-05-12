@@ -49,7 +49,6 @@ namespace askap
        /// @brief Constructor
        /// @details Optionally, it is possible to limit the condition number of
        /// normal equation matrix to a given number.
-       /// @param ip Parameters for this solver
        /// @param maxCondNumber maximum allowed condition number of the range
        /// of the normal equation matrix for the SVD algorithm. Effectively this
        /// puts the limit on the singular values, which are considered to be
@@ -58,21 +57,19 @@ namespace askap
        /// if you don't want to drop any singular values (may be a not very wise
        /// thing to do!). A very large threshold has the same effect. Zero
        /// threshold is not allowed and will cause an exception.
-       explicit LinearSolver(const Params& ip, double maxCondNumber = 1e3);
+       explicit LinearSolver(double maxCondNumber = 1e3);
         
-/// Destructor
-        virtual ~LinearSolver();
-
-/// Initialize this solver
+        /// Initialize this solver
         virtual void init();
 
-        /// @brief solve normal equations
-        /// @details This method solves for parameters, updating the 
-        /// values kept internally. If there are no free parameters in the
-        /// Params class held inside this solver, all unknowns in the normal
-        /// equatons will be solved for. 
-        /// @param[in] q Quality information
-        virtual bool solveNormalEquations(Quality& q);
+        /// @brief solve for parameters
+        /// The solution is constructed from the normal equations and given
+        /// parameters are updated. If there are no free parameters in the
+        /// given Params class, all unknowns in the normal
+        /// equatons will be solved for.
+        /// @param[in] params parameters to be updated 
+        /// @param[in] quality Quality of solution
+        virtual bool solveNormalEquations(Params &params, Quality& quality);
         
         /// @brief Clone this object
         virtual Solver::ShPtr clone() const;
