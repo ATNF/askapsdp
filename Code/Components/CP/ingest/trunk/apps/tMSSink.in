@@ -1,0 +1,61 @@
+#
+# Measurement Set Sink
+#
+cp.ingest.ms_sink.filename                 = ingest_test.ms
+cp.ingest.ms_sink.stman.bucketsize         = 104448
+cp.ingest.ms_sink.stman.tilencorr          = 4
+cp.ingest.ms_sink.stman.tilenchan          = 1
+
+cp.ingest.ms_sink.antennas.station         = ASKAP-BETA
+cp.ingest.ms_sink.antennas.location        = [+117.471deg, -25.692deg, 192m, WGS84]
+cp.ingest.ms_sink.antennas.names           = [A0, A1, A2, A3, A4, A5]
+cp.ingest.ms_sink.antennas.diameter        = 12m
+cp.ingest.ms_sink.antennas.scale           = 1.0
+cp.ingest.ms_sink.antennas.mount           = equatorial
+cp.ingest.ms_sink.antennas.A0              = [-175.233429,  -1673.460938,  0.0000]
+cp.ingest.ms_sink.antennas.A1              = [261.119019,   -796.922119,   0.0000]
+cp.ingest.ms_sink.antennas.A2              = [-29.200520,   -744.432068,   0.0000]
+cp.ingest.ms_sink.antennas.A3              = [-289.355286,  -586.936035,   0.0000]
+cp.ingest.ms_sink.antennas.A4              = [-157.031570,  -815.570068,   0.0000]
+cp.ingest.ms_sink.antennas.A5              = [-521.311646,  -754.674927,   0.0000]
+
+cp.ingest.ms_sink.feeds.names              = [feed0, feed1, feed2, feed3, feed4, feed5, feed6, 
+feed7, feed8, feed9, feed10, feed11, feed12, feed13, feed14, feed15, feed16, feed17, feed18, feed19, 
+feed20, feed21, feed22, feed23, feed24, feed25, feed26, feed27, feed28, feed29, feed30, feed31]
+
+cp.ingest.ms_sink.feeds.spacing            = 1deg
+
+cp.ingest.ms_sink.feeds.feed0              = [-2.5, -1.5]
+cp.ingest.ms_sink.feeds.feed1              = [-2.5, -0.5]
+cp.ingest.ms_sink.feeds.feed2              = [-2.5,  0.5]
+cp.ingest.ms_sink.feeds.feed3              = [-2.5,  1.5]
+cp.ingest.ms_sink.feeds.feed4              = [-1.5, -2.5]
+cp.ingest.ms_sink.feeds.feed5              = [-1.5, -1.5]
+cp.ingest.ms_sink.feeds.feed6              = [-1.5, -0.5]
+cp.ingest.ms_sink.feeds.feed7              = [-1.5,  0.5]
+cp.ingest.ms_sink.feeds.feed8              = [-1.5,  1.5]
+cp.ingest.ms_sink.feeds.feed9              = [-1.5,  2.5]
+cp.ingest.ms_sink.feeds.feed10             = [-0.5, -2.5]
+cp.ingest.ms_sink.feeds.feed11             = [-0.5, -1.5]
+cp.ingest.ms_sink.feeds.feed12             = [-0.5, -0.5]
+cp.ingest.ms_sink.feeds.feed13             = [-0.5,  0.5]
+cp.ingest.ms_sink.feeds.feed14             = [-0.5,  1.5]
+cp.ingest.ms_sink.feeds.feed15             = [-0.5,  2.5]
+cp.ingest.ms_sink.feeds.feed16             = [0.5, -2.5]
+cp.ingest.ms_sink.feeds.feed17             = [0.5, -1.5]
+cp.ingest.ms_sink.feeds.feed18             = [0.5, -0.5]
+cp.ingest.ms_sink.feeds.feed19             = [0.5,  0.5]
+cp.ingest.ms_sink.feeds.feed20             = [0.5,  1.5]
+cp.ingest.ms_sink.feeds.feed21             = [0.5,  2.5]
+cp.ingest.ms_sink.feeds.feed22             = [1.5, -2.5]
+cp.ingest.ms_sink.feeds.feed23             = [1.5, -1.5]
+cp.ingest.ms_sink.feeds.feed24             = [1.5, -0.5]
+cp.ingest.ms_sink.feeds.feed25             = [1.5,  0.5]
+cp.ingest.ms_sink.feeds.feed26             = [1.5,  1.5]
+cp.ingest.ms_sink.feeds.feed27             = [1.5,  2.5]
+cp.ingest.ms_sink.feeds.feed28             = [2.5, -1.5]
+cp.ingest.ms_sink.feeds.feed29             = [2.5, -0.5]
+cp.ingest.ms_sink.feeds.feed30             = [2.5,  0.5]
+cp.ingest.ms_sink.feeds.feed31             = [2.5,  1.5]
+
+cp.ingest.ms_sink.spws                     = [16416, 1.420GHz, 18.5185kHz, "XX XY YX YY"]

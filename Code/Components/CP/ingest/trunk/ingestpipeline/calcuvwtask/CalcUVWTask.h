@@ -34,7 +34,7 @@
 // Local package includes
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/datadef/VisChunk.h"
-#include "ingestpipeline/calcuvwtask/AntennaPositions.h"
+#include "ingestutils/AntennaPositions.h"
 
 namespace askap {
 namespace cp {

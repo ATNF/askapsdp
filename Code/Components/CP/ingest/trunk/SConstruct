@@ -8,6 +8,7 @@ from askapenv import env
 # create build object with library name
 pkg = env.AskapPackage("cpingest")
 
+pkg.AddSubPackage("ingestutils")
 pkg.AddSubPackage("ingestpipeline")
 
 env.Append(CCFLAGS=['-Wall'])

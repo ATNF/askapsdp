@@ -1,4 +1,4 @@
-/// @file MSSink.cc
+/// @file MSWriter.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,22 +25,17 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "MSSink.h"
+#include "MSWriter.h"
 
 // Include package level header file
 #include "askap_cpingest.h"
 
+// System includes
+#include <algorithm>
+
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "boost/scoped_ptr.hpp"
-
-// Casecore includes
-#include "casa/aips.h"
-#include "casa/Quanta.h"
-#include "casa/Arrays/Vector.h"
-#include "casa/Arrays/Matrix.h"
-#include "casa/Arrays/Cube.h"
 #include "tables/Tables/TableDesc.h"
 #include "tables/Tables/SetupNewTab.h"
 #include "tables/Tables/IncrementalStMan.h"
@@ -48,61 +43,26 @@
 #include "tables/Tables/TiledShapeStMan.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
+#include "scimath/Mathematics/RigidVector.h"
 
-// Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
-#include "ingestutils/AntennaPositions.h"
-
-ASKAP_LOGGER(logger, ".MSSink");
+ASKAP_LOGGER(logger, ".MSWriter");
 
 using namespace askap;
 using namespace askap::cp;
 using namespace casa;
 
-//////////////////////////////////
-// Public methods
-//////////////////////////////////
-
-MSSink::MSSink(const LOFAR::ParameterSet& parset) :
-    itsParset(parset.makeSubset("cp.ingest.ms_sink."))
+MSWriter::MSWriter(const std::string& filename,
+        unsigned int bucketSize,
+        unsigned int tileNcorr,
+        unsigned int tileNchan)
 {
-    ASKAPLOG_DEBUG_STR(logger, "Constructor");
-    create();
-    initAntennas();
-    initFeeds();
-    initSpws();
-    itsMs->addRow();
-}
-
-MSSink::~MSSink()
-{
-    ASKAPLOG_DEBUG_STR(logger, "Destructor");
-}
-
-void MSSink::process(VisChunk::ShPtr chunk)
-{
-    ASKAPLOG_DEBUG_STR(logger, "process()");
-}
-
-//////////////////////////////////
-// Private methods
-//////////////////////////////////
-
-void MSSink::create(void)
-{
-    // Get configuration first to ensure all parameters are present
-    casa::uInt bucketSize = itsParset.getUint32("stman.bucketsize", 1024 * 1024);
-    casa::uInt tileNcorr = itsParset.getUint32("stman.tilencorr", 4);
-    casa::uInt tileNchan = itsParset.getUint32("stman.tilenchan", 1);
-    const std::string filename = itsParset.getString("filename");
-
     if (bucketSize < 8192) {
         bucketSize = 8192;
     }
-    if (tileNcorr < 1) {
+    if (tileNcorr <= 1) {
         tileNcorr = 1;
     }
-    if (tileNchan < 1) {
+    if (tileNchan <= 1) {
         tileNchan = 1;
     }
 
@@ -168,61 +128,34 @@ void MSSink::create(void)
     }
 }
 
-void MSSink::initAntennas(void)
+MSWriter::~MSWriter()
 {
-    const LOFAR::ParameterSet antSubset(itsParset.makeSubset("antennas."));
+    itsMs.reset();
+}
 
-    // Get station name
-    const std::string station = antSubset.getString("station", "");
-    // Get antenna names and number
-    const casa::Vector<std::string> names(antSubset.getStringVector("names"));
-    const casa::uInt nAnt = names.size();
-    ASKAPCHECK(nAnt > 0, "No antennas defined in parset file");
-
-    // Get antenna positions
-    AntennaPositions antPos(antSubset);
-    casa::Matrix<double> antXYZ = antPos.getPositionMatrix();
-
-    // Get antenna diameter
-    const casa::Double diameter = asQuantity(antSubset.getString("diameter",
-                "12m")).getValue("m");
-    ASKAPCHECK(diameter > 0.0, "Antenna diameter not positive");
-
-    // Get mount type
-    const std::string mount = antSubset.getString("mount", "equatorial");
-    ASKAPCHECK((mount == "equatorial") || (mount == "alt-az"), "Antenna mount type unknown");
-
-    // Write the rows to the measurement set
+casa::uInt MSWriter::addAntennaRow(const std::string& name,
+        const std::string& station,
+        const std::string& type,
+        const std::string& mount,
+        const casa::MPosition& position,
+        const casa::MPosition& offset,
+        const casa::Double& dishDiameter)
+{
     MSColumns msc(*itsMs);
     MSAntennaColumns& antc = msc.antenna();
-    ASKAPCHECK(antc.nrow() == 0, "Antenna table already has data");
+    const casa::uInt row = antc.nrow();
 
     MSAntenna& ant = itsMs->antenna();
-    ant.addRow(nAnt);
+    ant.addRow();
 
-    antc.type().fillColumn("GROUND-BASED");
-    antc.station().fillColumn(station);
-    antc.mount().fillColumn(mount);
-    antc.flagRow().fillColumn(false);
-    antc.dishDiameter().fillColumn(diameter);
-    antc.position().putColumn(antXYZ);
-    for (unsigned int row = 0; row < nAnt; ++row) {
-        antc.name().put(row, names(row));
-    }
+    antc.name().put(row, name);
+    antc.station().put(row, station);
+    antc.type().put(row, type);
+    antc.mount().put(row, mount);
+    //antc.position().put(row, position);
+    //antc.offset().put(row, offset);
+    antc.dishDiameter().put(row,dishDiameter);
+    antc.flagRow().put(row, false);
+
+    return row;
 }
-
-void MSSink::initFeeds(void)
-{
-}
-
-void MSSink::initSpws(void)
-{
-}
-
-casa::Quantity MSSink::asQuantity(const std::string& str)
-{
-    casa::Quantity q;
-    casa::Quantity::read(q, str);
-    return q;
-}
-

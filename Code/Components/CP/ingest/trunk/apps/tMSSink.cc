@@ -1,4 +1,4 @@
-/// @file MSSink.h
+/// @file tMSWriter.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,48 +24,22 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MSSINK_H
-#define ASKAP_CP_MSSINK_H
+// System includes
+#include <iostream>
+#include <string>
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
-#include "boost/scoped_ptr.hpp"
-#include "Common/ParameterSet.h"
-#include "ms/MeasurementSets/MeasurementSet.h"
-#include "casa/Quanta.h"
 
 // Local package includes
-#include "ingestpipeline/ITask.h"
-#include "ingestpipeline/datadef/VisChunk.h"
+#include "ingestpipeline/sinktask/MSSink.h"
 
-namespace askap {
-namespace cp {
+// Using
+using namespace askap::cp;
 
-class MSSink : public askap::cp::ITask {
-    public:
-        MSSink(const LOFAR::ParameterSet& parset);
-        virtual ~MSSink();
+int main(int argc, char *argv[])
+{
+    LOFAR::ParameterSet parset("tMSSink.in");
+    MSSink sink(parset);
 
-        virtual void process(VisChunk::ShPtr chunk);
-
-    private:
-        void initAntennas(void);
-        void initFeeds(void);
-        void initSpws(void);
-
-        casa::Quantity asQuantity(const std::string& str);
-
-        // Create the measurement set
-        void create(void);
-
-        // Parameter set
-        const LOFAR::ParameterSet itsParset;
-
-        // Measurement set
-        boost::scoped_ptr<casa::MeasurementSet> itsMs;
-};
-
+    return 0;
 }
-}
-
-#endif
