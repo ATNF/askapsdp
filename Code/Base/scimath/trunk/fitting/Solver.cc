@@ -56,6 +56,7 @@ namespace askap
     /// @param[in] other solver to take the data from
     /// @return reference to itself
     Solver& Solver::operator=(const Solver& other)  {
+        Solveable::operator=(other);
         if (other.itsParams) {
             itsParams = other.itsParams->clone();
         }
