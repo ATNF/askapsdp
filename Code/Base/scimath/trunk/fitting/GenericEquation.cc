@@ -47,7 +47,7 @@ GenericEquation::GenericEquation() {}
     
 /// @brief construct from specified parameters
 /// @param[in] ip parameters
-GenericEquation::GenericEquation(const Params &ip) : Equation(ip) {setParameters(ip);}
+GenericEquation::GenericEquation(const Params &ip) : Equation(ip) {}
 
 /// @brief calculate normal equations
 /// @details This is the main method defined in the base class which can

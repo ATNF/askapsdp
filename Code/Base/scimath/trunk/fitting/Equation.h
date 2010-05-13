@@ -47,11 +47,11 @@
 ///    GenericNormalEquations normeq;
 ///    poly.calcEquations(normeq);
 ///
-///    LinearSolver solver(ip);
+///    LinearSolver solver;
 ///    solver.addNormalEquations(normeq);
 ///    Quality q;
 ///    solver.setAlgorithm("SVD");
-///    solver.solveNormalEquations(q);
+///    solver.solveNormalEquations(ip,q);
 /// @endcode
 ///
 /// The class PolynomialEquation holds the C++ code responsible for
