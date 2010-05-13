@@ -29,6 +29,8 @@
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
 
+#include <sourcefitting/Component.h>
+
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 

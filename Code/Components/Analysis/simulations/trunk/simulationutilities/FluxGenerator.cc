@@ -28,6 +28,7 @@
 ///
 #include <simulationutilities/FluxGenerator.h>
 #include <simulationutilities/Spectrum.h>
+#include <simulationutilities/FullStokesContinuum.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -46,13 +47,17 @@ namespace askap {
         FluxGenerator::FluxGenerator()
         {
             this->itsNChan = 0;
+            this->itsNStokes = 1;
         }
 
-        FluxGenerator::FluxGenerator(int numChan)
+      FluxGenerator::FluxGenerator(int numChan, int numStokes)
         {
             ASKAPASSERT(numChan >= 0);
+            ASKAPASSERT(numStokes >= 1);
             this->itsNChan = numChan;
-            this->itsFluxValues = std::vector<float>(numChan, 0.);
+            this->itsNStokes = numStokes;
+            this->itsFluxValues = std::vector< std::vector<float> >(numStokes);
+	    for(int s=0;s<numStokes;s++) this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
         }
 
         FluxGenerator::FluxGenerator(const FluxGenerator& f)
@@ -65,6 +70,7 @@ namespace askap {
             if (this == &f) return *this;
 
             this->itsNChan      = f.itsNChan;
+            this->itsNStokes    = f.itsNStokes;
             this->itsFluxValues = f.itsFluxValues;
             return *this;
         }
@@ -73,8 +79,19 @@ namespace askap {
         {
             ASKAPASSERT(numChan >= 0);
             this->itsNChan = numChan;
-            this->itsFluxValues = std::vector<float>(numChan, 0.);
+            this->itsFluxValues = std::vector< std::vector<float> >(itsNStokes);
+	    for(int s=0;s<this->itsNStokes;s++) this->itsFluxValues[s] = std::vector<float>(numChan, 0.);
         }
+
+        void FluxGenerator::setNumStokes(int numStokes)
+        {
+            ASKAPASSERT(numStokes >= 1);
+            this->itsNStokes = numStokes;
+            this->itsFluxValues = std::vector< std::vector<float> >(numStokes);
+	    if(this->itsNChan>0){
+	      for(int s=0;s<this->itsNStokes;s++) this->itsFluxValues[s] = std::vector<float>(this->itsNChan, 0.);
+	    }
+	}
 
         void FluxGenerator::addSpectrum(Spectrum &spec, double &x, double &y, struct wcsprm *wcs)
         {
@@ -99,8 +116,42 @@ namespace askap {
                 pix[2] = z;
                 pixToWCSSingle(wcs, pix, wld);
                 float freq = wld[2];
-                this->itsFluxValues[int(z)] += spec.flux(freq);
+                this->itsFluxValues[0][int(z)] += spec.flux(freq);
             }
+
+            delete [] pix;
+            delete [] wld;
+
+        }
+
+        void FluxGenerator::addSpectrumStokes(FullStokesContinuum &stokes, double &x, double &y, struct wcsprm *wcs)
+        {
+            /// @details This version of the add spectrum function simply
+            /// uses the Spectrum object to find the flux at the centre of
+            /// each channel. The x & y position are used along with the
+            /// WCS specification to find the frequency value of each
+            /// channel.
+            /// @param spec The spectral profile being used.
+            /// @param x The x-pixel location in the flux array
+            /// @param y The y-pixel location in the flux array
+            /// @param wcs The world coordinate system specfication
+	    /// @todo Improve the polymorphism of this function...
+
+            if (this->itsNChan <= 0)
+                ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
+
+            double *pix = new double[3];
+            double *wld = new double[3];
+            pix[0] = x; pix[1] = y;
+
+	    for(int istokes=0; istokes < this->itsNStokes; istokes++){
+	      for (double z = 0; z < this->itsNChan; z++) {
+                pix[2] = z;
+                pixToWCSSingle(wcs, pix, wld);
+                float freq = wld[2];
+                this->itsFluxValues[istokes][int(z)] += stokes.flux(istokes,freq);
+	      }
+	    }
 
             delete [] pix;
             delete [] wld;
@@ -141,7 +192,7 @@ namespace askap {
                 else df = fabs(wld[i] - wld[i-3]);
 
 //      ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
-                this->itsFluxValues[z] += spec.flux(wld[i] - df / 2., wld[i] + df / 2.);
+                this->itsFluxValues[0][z] += spec.flux(wld[i] - df / 2., wld[i] + df / 2.);
             }
 
             delete [] pix;

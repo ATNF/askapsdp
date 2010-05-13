@@ -30,6 +30,7 @@
 #define ASKAP_SIMS_FLUXGEN_H_
 
 #include <simulationutilities/Spectrum.h>
+#include <simulationutilities/FullStokesContinuum.h>
 
 #include <wcslib/wcs.h>
 
@@ -49,8 +50,8 @@ namespace askap {
             public:
                 /// @brief Default constructor
                 FluxGenerator();
-                /// @brief Constructor based on a certain number of channels
-                FluxGenerator(int numChan);
+                /// @brief Constructor based on a certain number of channels & Stokes parameters
+                FluxGenerator(int numChan, int numStokes=1);
                 /// @brief Destructor
                 virtual ~FluxGenerator() {};
                 /// @brief Copy constructor for FluxGenerator.
@@ -61,22 +62,29 @@ namespace askap {
 
                 /// @brief Set the number of channels
                 void setNumChan(int num);
+                /// @brief Set the number of Stokes parameters
+                void setNumStokes(int num);
                 /// @brief Return the number of channels
                 int  nChan() {return itsNChan;};
+                /// @brief Return the number of Stokes parameters
+                int  nStokes() {return itsNStokes;};
 
                 /// @brief Add a spectral profile to the flux values, using single flux points
                 void addSpectrum(Spectrum &spec, double &x, double &y, wcsprm *wcs);
+		/// @brief Add a spectral profile for a polarised continuum source.
+		void addSpectrumStokes(FullStokesContinuum &stokes, double &x, double &y, struct wcsprm *wcs);
                 /// @brief Add a spectral profile to the flux values, integrating over the channels
                 void addSpectrumInt(Spectrum &spec, double &x, double &y, struct wcsprm *wcs);
 
-                /// @brief Return the flux in channel i
-                float getFlux(int i) {return itsFluxValues.at(i);};
+                /// @brief Return the flux in channel i and Stokes plane s
+                float getFlux(int i, int s=0) {return itsFluxValues.at(s).at(i);};
 
             protected:
                 /// @brief Number of channels
                 int   itsNChan;
-                /// @brief The set of flux values for each channel
-                std::vector<float> itsFluxValues;
+		int   itsNStokes;
+                /// @brief The set of flux values for each channel & Stokes parameter
+		std::vector< std::vector<float> > itsFluxValues;
 
         };
 

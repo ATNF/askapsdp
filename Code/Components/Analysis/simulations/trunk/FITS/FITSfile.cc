@@ -35,6 +35,7 @@
 #include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/FluxGenerator.h>
 #include <simulationutilities/Continuum.h>
+#include <simulationutilities/FullStokesContinuum.h>
 #include <simulationutilities/HIprofile.h>
 #include <simulationutilities/HIprofileS3SEX.h>
 #include <simulationutilities/HIprofileS3SAX.h>
@@ -233,13 +234,6 @@ namespace askap {
                     ASKAPLOG_WARN_STR(logger, "Input parameter sourcelisttype needs to be *either* 'continuum' or 'spectralline'. Setting to continuum.");
                 }
 
-                this->itsDatabaseOrigin = parset.getString("database", "S3SAX"); // only used for spectralline case
-
-                if (this->itsDatabaseOrigin != "S3SAX" && this->itsDatabaseOrigin != "S3SEX") {
-                    this->itsDatabaseOrigin = "S3SAX";
-                    ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin needs to be *either* 'S3SEX' or 'S3SAX'. Setting to S3SAX.");
-                }
-
                 this->itsPosType = parset.getString("posType", "dms");
                 this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
                 this->itsPAunits = casa::Unit(parset.getString("PAunits", "rad"));
@@ -300,6 +294,7 @@ namespace askap {
                     ss << "x" << this->itsAxes[i];
                 }
 
+
                 this->itsHaveBeam = parset.isDefined("beam");
 
                 if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
@@ -328,6 +323,11 @@ namespace askap {
                 this->itsDoContinuum = parset.getBool("doContinuum", true);
                 this->itsDoHI = parset.getBool("doHI", false);
                 this->itsDryRun = parset.getBool("dryRun", false);
+                this->itsDatabaseOrigin = parset.getString("database", ""); // only used for spectralline case
+                if (this->itsDoHI && (this->itsDatabaseOrigin != "S3SAX" && this->itsDatabaseOrigin != "S3SEX")) {
+                    this->itsDatabaseOrigin = "S3SAX";
+                    ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin needs to be *either* 'S3SEX' or 'S3SAX' for HI case. Setting to S3SAX.");
+                }
 
                 if (this->itsDryRun) {
                     this->itsFITSOutput = false;
@@ -513,6 +513,7 @@ namespace askap {
                     int countGauss = 0, countPoint = 0, countMiss=0, countDud=0;
 
 		    Continuum cont;
+		    FullStokesContinuum stokes;
 		    HIprofileS3SEX profSEX;
 		    HIprofileS3SAX profSAX;
 		    HIprofile &prof = profSAX;
@@ -534,17 +535,28 @@ namespace askap {
 
                         if (line[0] != '#') {  // ignore commented lines
 
-                            if (this->itsHaveSpectralInfo) {
-//                                 cont = Continuum(line);
+			  if(this->itsDoContinuum){
+			    
+			    if(this->itsDatabaseOrigin == "POSSUM"){
+			      stokes.define(line);
+			      stokes.setNuZero(this->itsBaseFreq);
+			      src = stokes;
+			    }
+			    else {
+			      if (this->itsHaveSpectralInfo) {
+				//                                 cont = Continuum(line);
                                 cont.define(line);
                                 cont.setNuZero(this->itsBaseFreq);
                                 src = cont;
-                            } else {
-//                                 cont = Spectrum(line);
+			      } else {
+				//                                 cont = Spectrum(line);
                                 cont.define(line);
                                 cont.setNuZero(this->itsBaseFreq);
                                 src = cont;
-                            }
+			      }
+			    }
+			  }
+
 
                             if (this->itsSourceListType == "spectralline") {
                                 if (this->itsDatabaseOrigin == "S3SEX") {
@@ -622,11 +634,17 @@ namespace askap {
 
                             if (lookAtSource) {
 
+			        if( this->itsDatabaseOrigin == "POSSUM") fluxGen.setNumStokes(4);
+
                                 if (this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
                                 else fluxGen.setNumChan(1);
 
-                                if (this->itsDoContinuum)
+                                if (this->itsDoContinuum) {
+				  if (this->itsDatabaseOrigin=="POSSUM")
+				    fluxGen.addSpectrumStokes(stokes, pix[0], pix[1], this->itsWCS);
+				  else
                                     fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
+				}
 
                                 if (this->itsDoHI) {
                                     if (this->itsDatabaseOrigin == "S3SEX")
@@ -965,7 +983,9 @@ namespace askap {
                     for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
 
                     if (createFile) {
-                        casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS);
+		        int nstokes = (this->itsDatabaseOrigin == "POSSUM")?4:1;
+			ASKAPLOG_DEBUG_STR(logger, "Dimension of stokes axis = " << nstokes << ", databaseOrigin = " << this->itsDatabaseOrigin);
+                        casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
 
                         ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape);
                         casa::PagedImage<float> img(casa::TiledShape(shape), csys, newName);

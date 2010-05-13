@@ -234,10 +234,12 @@ namespace askap {
                             }
 
                             // For this pixel, loop over all channels and assign the correctly-scaled pixel value.
-                            for (int z = 0; z < fluxGen.nChan(); z++) {
-                                pix = x + y * axes[0] + z * axes[0] * axes[1];
-                                array[pix] += pixelVal * fluxGen.getFlux(z);
-                            }
+			    for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
+			      for (int z = 0; z < fluxGen.nChan(); z++) {
+                                pix = x + y * axes[0] + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
+                                array[pix] += pixelVal * fluxGen.getFlux(z,istokes);
+			      }
+			    }
 
                         }
                     }
@@ -318,10 +320,12 @@ namespace askap {
                 if (addPixel) { // only add points if we're in the array boundaries
                     pixelVal = 0.5 * (erf((length + increment - zeroPointMax) / (M_SQRT2 * majorSigma)) - erf((length - zeroPointMax) / (M_SQRT2 * majorSigma)));
 
-                    for (int z = 0; z < fluxGen.nChan(); z++) {
-                        pix = spatialPixel + z * axes[0] * axes[1];
-                        array[pix] += pixelVal * fluxGen.getFlux(z);
-                    }
+		    for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
+		      for (int z = 0; z < fluxGen.nChan(); z++) {
+                        pix = spatialPixel + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
+                        array[pix] += pixelVal * fluxGen.getFlux(z,istokes);
+		      }
+		    }
                 }
 
                 x += increment * sinpa;
@@ -352,13 +356,15 @@ namespace askap {
                                        << "  to  axes = [" << axes[0] << "," << axes[1] << "]");
 
 		int loc = 0;
-                for (int z = 0 ; z < fluxGen.nChan(); z++) {
+		for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
+		  for (int z = 0 ; z < fluxGen.nChan(); z++) {
 
-                    loc = xpix + axes[0] * ypix + z * axes[0] * axes[1];
+                    loc = xpix + axes[0] * ypix + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
 
-                    array[loc] += fluxGen.getFlux(z);
+                    array[loc] += fluxGen.getFlux(z,istokes);
 
-                }
+		  }
+		}
 
             }
 
