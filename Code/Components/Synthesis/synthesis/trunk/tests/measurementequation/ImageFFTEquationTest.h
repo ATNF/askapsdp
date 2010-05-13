@@ -146,7 +146,7 @@ namespace askap
       }
 
       void testSolveAntIllum()
-      {
+      {  
         // Predict with the "perfect" parameters"
         boost::shared_ptr<IBasicIllumination> illum(new DiskIllumination(12.0, 1.0));
         

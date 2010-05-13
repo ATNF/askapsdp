@@ -28,6 +28,7 @@
 ///
 #include <fitting/Params.h>
 #include <fitting/Equation.h>
+#include <askap/AskapError.h>
 
 #include <stdexcept>
 
@@ -56,13 +57,16 @@ namespace askap
 
 // Using specified parameters
     Equation::Equation(const Params& ip) : itsParams(ip.clone()) 
-    {
+    { 
     };
 
     Equation::~Equation(){};
 
 // Access the parameters
-    const Params& Equation::parameters() const {return *itsParams;};
+    const Params& Equation::parameters() const {
+      ASKAPDEBUGASSERT(itsParams);
+      return *itsParams;
+    };
 
 // Set the parameters to new values
     void Equation::setParameters(const Params& ip) 
