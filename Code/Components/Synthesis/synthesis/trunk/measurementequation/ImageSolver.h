@@ -77,14 +77,6 @@ namespace askap
         /// @brief Clone this object
         virtual askap::scimath::Solver::ShPtr clone() const;
         
-        /// @brief Save the weights as a parameter
-        /// @param[in] ip current model (to be updated)        
-        virtual void saveWeights(askap::scimath::Params& ip);
-
-        /// @brief Save the PSFs as a parameter
-        /// @param[in] ip current model (to be updated)        
-        virtual void savePSF(askap::scimath::Params& ip);
-
         /// @return a reference to normal equations object
         /// @note In this class and derived classes the type returned
         /// by this method is narrowed to always provide image-specific 
@@ -197,6 +189,29 @@ namespace askap
     /// @param[in] in const reference to the input array
     /// @return the array with the first plane
     static casa::Array<float> getFirstPlane(const casa::Array<float> &in);
+        
+    /// @brief Save the weights as a parameter
+    /// @param[in] ip current model (to be updated)        
+    inline void saveWeights(askap::scimath::Params& ip) const 
+        { saveNEPartIntoParameter(ip,"weights",normalEquations().normalMatrixDiagonal());}
+
+    /// @brief Save the PSFs as a parameter
+    /// @param[in] ip current model (to be updated)        
+    inline void savePSF(askap::scimath::Params& ip) const
+        { saveNEPartIntoParameter(ip,"psf",normalEquations().normalMatrixSlice());}
+    
+    
+    /// @brief helper method to save part of the NE
+    /// @details We need to save slice and diagonal of the normal equations as 
+    /// PSF and weights image (savePSF and saveWeights methods) with very similar
+    /// operations. This method encapsulates the common code to avoid duplication.
+    /// It iterates over all parameters with names starting with "image". 
+    /// @param[in] ip model (to be updated with the appropriate parameter) 
+    /// @param[in] prefix name prefix for stored parameter (image will be replaced with this prefix, i.e.
+    /// "psf" or "weights"
+    /// @param[in] nePart part of the normal equations to save (map of vectors)
+    void saveNEPartIntoParameter(askap::scimath::Params& ip, const std::string &prefix,
+                 const std::map<std::string, casa::Vector<double> > &nePart) const;
                  
 private:
 	/// Instance of a preconditioner

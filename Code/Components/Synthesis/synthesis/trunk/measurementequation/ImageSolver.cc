@@ -313,54 +313,38 @@ namespace askap
       savePSF(ip);
       return true;
     }
-    
-    void ImageSolver::saveWeights(askap::scimath::Params& ip)
+        
+    /// @brief helper method to save part of the NE
+    /// @details We need to save slice and diagonal of the normal equations as 
+    /// PSF and weights image (savePSF and saveWeights methods) with very similar
+    /// operations. This method encapsulates the common code to avoid duplication.
+    /// It iterates over all parameters with names starting with "image". 
+    /// @param[in] ip model (to be updated with the appropriate parameter) 
+    /// @param[in] prefix name prefix for stored parameter (image will be replaced with this prefix, i.e.
+    /// "psf" or "weights"
+    /// @param[in] nePart part of the normal equations to save (map of vectors)    
+    void ImageSolver::saveNEPartIntoParameter(askap::scimath::Params& ip, const std::string &prefix,
+                      const std::map<std::string, casa::Vector<double> > &nePart) const 
     {
-      // Save weights image
-      vector<string> names(ip.completions("image"));
-      for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
-      {
-        string name="image"+*it;
-        if (normalEquations().normalMatrixDiagonal().count(name))
-        {
-          const casa::IPosition arrShape(normalEquations().shape().find(name)->second);
-          Axes axes(ip.axes(name));
-          string weightsName="weights"+*it;
-          const casa::Array<double> & ADiag(normalEquations().normalMatrixDiagonal().find(name)->second.reform(arrShape));
-          if (!ip.has(weightsName))
-          {
-            ip.add(weightsName, ADiag, axes);
-          }
-          else
-          {
-            ip.update(weightsName, ADiag);
-          }
-        }
-      }
-    }
-
-    void ImageSolver::savePSF(askap::scimath::Params& ip)
-    {
-      // Save PSF image
-      vector<string> names(ip.completions("image"));
-      for (vector<string>::const_iterator it=names.begin(); it!=names.end(); it++)
-      {
-        string name="image"+*it;
-        if (normalEquations().normalMatrixSlice().count(name))
-        {
-          const casa::IPosition arrShape(normalEquations().shape().find(name)->second);
-          Axes axes(ip.axes(name));
-          string psfName="psf"+*it;
-          const casa::Array<double> & APSF(normalEquations().normalMatrixSlice().find(name)->second.reform(arrShape));
-          if (!ip.has(psfName))
-          {
-            ip.add(psfName, APSF, axes);
-          }
-          else
-          {
-            ip.update(psfName, APSF);
-          }
-        }
+      // get list of all image parameters and iterate over it
+      const vector<string> names(ip.completions("image"));
+      for (vector<string>::const_iterator it=names.begin(); it!=names.end(); ++it) {
+           const std::string name = "image" + *it;
+           std::map<std::string, casa::Vector<double> >::const_iterator parIt = nePart.find(name);
+        
+           if (parIt != nePart.end()) {
+               std::map<std::string, casa::IPosition>::const_iterator shpIt = normalEquations().shape().find(name);
+               ASKAPDEBUGASSERT(shpIt != normalEquations().shape().end());
+               const casa::IPosition arrShape(shpIt->second);
+               std::string parName = prefix + *it;
+               casa::Array<double> temp(parIt->second.reform(arrShape));
+               if (ip.has(parName)) {
+                   ip.update(parName, temp);
+               } else {
+                   scimath::Axes axes(ip.axes(name));
+                   ip.add(parName, temp, axes);
+               }
+           }
       }
     }
 
