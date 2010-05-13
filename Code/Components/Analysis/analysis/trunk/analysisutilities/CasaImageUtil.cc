@@ -710,7 +710,7 @@ namespace askap {
 
         //**************************************************************//
 
-      casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs)
+      casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs, int nstokes)
         {
             /// @details Convert a wcslib WCS specification to a casa-compatible specification. 
 
@@ -733,7 +733,14 @@ namespace askap {
 					   wcs->crpix[wcs->spec]-1,
 					   wcs->restfrq);
 
-	  Vector<Int> stokes(1); stokes(0) = casa::Stokes::I;
+	  
+	  Vector<Int> stokes(nstokes);
+	  stokes(0) = casa::Stokes::I;
+	  if(nstokes == 4){
+	    stokes(1) = casa::Stokes::Q;
+	    stokes(2) = casa::Stokes::U;
+	    stokes(3) = casa::Stokes::V;
+	  }
 	  casa::StokesCoordinate stokesCoo(stokes);
 
 // 	  csys.addCoordinate(dirCoo);
