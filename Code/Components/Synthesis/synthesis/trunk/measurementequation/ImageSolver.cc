@@ -347,6 +347,32 @@ namespace askap
            }
       }
     }
+    
+    /// @brief helper method to save a given array
+    /// @details This method encapsulates common functionality to store a given array
+    /// as a parameter or a part of the parameter. The idea is similar to saveNEPartIntoParameter,
+    /// but functionality is slightly different (the key is to allow storage of a part of the parameter)
+    /// @param[in] ip model (to be updated with the appropriate parameter) 
+    /// @param[in] imgName image parameter name (to take axes from and to for the output name)
+    /// @param[in] shape full shape of the output parameter (arr may be a part of the full parameter)
+    /// @param[in] prefix name prefix for stored parameter ("image" in imgName will be replaced by prefix)
+    /// @param[in] arr array to save
+    /// @param[in] pos position to save (arr is a part of the parameter)
+    void ImageSolver::saveArrayIntoParameter(askap::scimath::Params& ip, const std::string &imgName, 
+              const casa::IPosition &shape, const std::string &prefix, const casa::Array<double> &arr, 
+              const casa::IPosition &pos)
+    {
+      ASKAPDEBUGASSERT(imgName.find("image")==0);
+      ASKAPCHECK(imgName.size()>5, 
+                 "Image parameter name should have something appended to word image")           
+	  const string parName = prefix + imgName.substr(5);
+	  if (!ip.has(parName)) {
+	      // create an empty parameter with the full shape
+          scimath::Axes axes(ip.axes(imgName));
+	      ip.add(parName, shape, axes);
+	  }
+      ip.update(parName, arr, pos);      
+    }
 
     /// @note itsPreconditioner is not cloned, only the ShPtr is.
     Solver::ShPtr ImageSolver::clone() const

@@ -161,17 +161,11 @@ namespace askap
     
 	         // Precondition the PSF and DIRTY images before solving.
              if(doPreconditioning(psfArray,dirtyArray)) {
-	            // Save the new PSFs to disk
-	            Axes axes(ip.axes(indit->first));
-	            string psfName="psf."+(indit->first);
-	            casa::Array<double> anothertemp = unpadImage(psfArray);
-	            const casa::Array<double> & APSF(anothertemp);
-	            if (!ip.has(psfName)) {
-	                // create an empty parameter with the full shape
-	                ip.add(psfName, planeIter.shape(), axes);
-	            } 
-	            ip.update(psfName, APSF, planeIter.position());	       
+	            // Store the new PSF in parameter class to be saved to disk later
+	            saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "psf.image", unpadImage(psfArray),
+                                    planeIter.position());
 	         } // if there was preconditioning
+
 	         // optionally clip the image and psf if there was padding
 	         ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) before clipping "<<max(dirtyArray));
 	         clipImage(dirtyArray);
@@ -189,36 +183,12 @@ namespace askap
              // This takes up some memory and we have to ship the residual image out inside
              // the parameter class. Therefore, we may not need this functionality in the 
              // production version (or may need to implement it in a different way).
-             {
-                Axes axes(ip.axes(indit->first));
-                ASKAPDEBUGASSERT(indit->first.find("image")==0);
-                ASKAPCHECK(indit->first.size()>5, 
-                        "Image parameter name should have something appended to word image")           
-	            const string residName="residual"+indit->first.substr(5);
-	            casa::Array<double> anothertemp = unpadImage(dirtyArray);
-	            const casa::Array<double> & AResidual(anothertemp);
-	            if (!ip.has(residName)) {
-	                // create an empty parameter with the full shape
-	                ip.add(residName, planeIter.shape(), axes);
-	            }
-	            ip.update(residName, AResidual, planeIter.position());	               
-             }
-        
-        
-             
+             saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "residual", unpadImage(dirtyArray),
+                                    planeIter.position());
+                          
              // uncomment the code below to save the mask
-             {
-                Axes axes(ip.axes(indit->first));
-	            string maskName="mask."+(indit->first);
-	            casa::Array<double> anothertemp = unpadImage(maskArray);
-	            const casa::Array<double> & AMask(anothertemp);
-	            if (!ip.has(maskName)) {
-	                // create an empty parameter with the full shape
-	                ip.add(maskName, planeIter.shape(), axes);
-	            }
-	            ip.update(maskName, AMask, planeIter.position());	               
-             }
-             // end of mask-related code
+             saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "mask", unpadImage(maskArray),
+                                    planeIter.position());
              
              
              // Create a lattice cleaner to do the dirty work :)
