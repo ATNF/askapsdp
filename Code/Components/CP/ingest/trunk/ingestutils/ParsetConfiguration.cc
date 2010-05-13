@@ -39,6 +39,7 @@
 #include "askap/AskapError.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Vector.h"
+#include "measures/Measures/MDirection.h"
 
 // Local package includes
 #include "ingestutils/AntennaPositions.h"
@@ -140,6 +141,16 @@ void ParsetConfiguration::getSpWindows(casa::String& spWindowName, int& nChan,
     stokesString = itsParset.getString("spw.stokes");
 }
 
+void ParsetConfiguration::getFields(casa::String& fieldName,
+        casa::MDirection& fieldDirection,
+        casa::String& calCode)
+{
+    fieldName = itsParset.getString("field.name");
+    fieldDirection = asMDirection(itsParset.getStringVector("field.direction"));
+    calCode = "";
+}
+
+
 //////////////////////////////////////////
 // Private Methods
 //////////////////////////////////////////
@@ -150,3 +161,18 @@ casa::Quantity ParsetConfiguration::asQuantity(const std::string& str)
     casa::Quantity::read(q, str);
     return q;
 }
+
+casa::MDirection ParsetConfiguration::asMDirection(const std::vector<std::string>& direction)
+{
+    ASKAPCHECK(direction.size()==3, "Not a valid direction");
+
+    casa::Quantity lng;
+    casa::Quantity::read(lng, direction[0]);
+    casa::Quantity lat;
+    casa::Quantity::read(lat, direction[1]);
+    casa::MDirection::Types type;
+    casa::MDirection::getType(type, direction[2]);
+    casa::MDirection dir(lng, lat, type);
+    return dir;
+}
+

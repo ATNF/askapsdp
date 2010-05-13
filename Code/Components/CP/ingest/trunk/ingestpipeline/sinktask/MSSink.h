@@ -53,6 +53,8 @@ class MSSink : public askap::cp::ITask {
         void initAntennas(void);
         void initFeeds(void);
         void initSpws(void);
+        void initFields(void);
+        void initObs(void);
 
         // Create the measurement set
         void create(void);

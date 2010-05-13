@@ -35,6 +35,7 @@
 #include "casa/Quanta.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
+#include "measures/Measures/MDirection.h"
 
 // Local package includes
 #include "ingestutils/AntennaPositions.h"
@@ -63,6 +64,11 @@ namespace cp {
             virtual void getSpWindows(casa::String& spWindowName, int& nChan,
                     casa::Quantity& startFreq, casa::Quantity& freqInc,
                     casa::String& stokesString) = 0;
+
+            virtual void getFields(casa::String& fieldName,
+                    casa::MDirection& fieldDirection,
+                    casa::String& calCode) = 0;
+
     };
 
 };

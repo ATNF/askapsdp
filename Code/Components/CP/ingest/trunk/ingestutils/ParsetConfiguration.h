@@ -36,7 +36,7 @@
 #include "casa/Quanta.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Vector.h"
-#include "measures/Measures/MPosition.h"
+#include "measures/Measures/MDirection.h"
 
 // Local package includes
 #include "ingestutils/IConfiguration.h"
@@ -64,9 +64,14 @@ class ParsetConfiguration : public IConfiguration {
                                   casa::Quantity& startFreq, casa::Quantity& freqInc,
                                   casa::String& stokesString);
 
+        virtual void getFields(casa::String& fieldName,
+                              casa::MDirection& fieldDirection,
+                              casa::String& calCode);
+
     private:
 
         casa::Quantity asQuantity(const std::string& str);
+        casa::MDirection asMDirection(const std::vector<std::string>& direction);
 
         // Parameter set
         const LOFAR::ParameterSet itsParset;

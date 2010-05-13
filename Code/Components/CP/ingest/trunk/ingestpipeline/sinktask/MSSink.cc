@@ -74,7 +74,8 @@ MSSink::MSSink(const LOFAR::ParameterSet& parset) :
     initAntennas();
     initFeeds();
     initSpws();
-    itsMs->addRow();
+    initFields();
+    initObs();
 }
 
 MSSink::~MSSink()
@@ -87,6 +88,11 @@ MSSink::~MSSink()
 void MSSink::process(VisChunk::ShPtr chunk)
 {
     ASKAPLOG_DEBUG_STR(logger, "process()");
+
+    MSColumns msc(*itsMs);
+    //const casa::uInt baseRow = msc.nrow();
+    const casa::uInt newRows = chunk->nRow();
+    itsMs->addRow(newRows);
 }
 
 //////////////////////////////////
@@ -218,13 +224,13 @@ void MSSink::initFeeds(void)
 
     MSColumns msc(*itsMs);
     MSAntennaColumns& antc = msc.antenna();
-    Int nAnt = antc.nrow();
+    const uInt nAnt = antc.nrow();
 
     if (nAnt <= 0) {
         ASKAPLOG_INFO_STR(logger, "initFeeds: must call initAntenna() first");
     }
 
-    Int nFeed = x.nelements();
+    uInt nFeed = x.nelements();
 
     String feedPol0 = "R", feedPol1 = "L";
     Bool isList = False;
@@ -249,7 +255,7 @@ void MSSink::initFeeds(void)
         }
     }
 
-    const Int nRow = nFeed * nAnt;
+    const uInt nRow = nFeed * nAnt;
     Vector<Int> feedAntId(nRow);
     Vector<Int> feedId(nRow);
     Vector<Int> feedSpWId(nRow);
@@ -268,8 +274,8 @@ void MSSink::initFeeds(void)
     if (isList) {
         polResp = Complex(0.0, 0.0);
 
-        for (Int i = 0; i < nAnt; i++) {
-            for (Int j = 0; j < nFeed; j++) {
+        for (uInt i = 0; i < nAnt; i++) {
+            for (uInt j = 0; j < nFeed; j++) {
                 feedAntId(iRow) = i;
                 feedId(iRow) = j;
                 feedSpWId(iRow) = -1;
@@ -300,7 +306,7 @@ void MSSink::initFeeds(void)
     } else {
         polResp = Complex(0.0, 0.0);
 
-        for (Int i = 0; i < nAnt; i++) {
+        for (uInt i = 0; i < nAnt; i++) {
             feedAntId(iRow) = i;
             feedId(iRow) = 0;
             feedSpWId(iRow) = -1;
@@ -324,7 +330,7 @@ void MSSink::initFeeds(void)
 
     // fill Feed table - don't check to see if any of the positions match
     MSFeedColumns& feedc = msc.feed();
-    Int numFeeds = feedc.nrow();
+    const uInt numFeeds = feedc.nrow();
     Slicer feedSlice(IPosition(1, numFeeds), IPosition(1, nRow + numFeeds - 1),
                      IPosition(1, 1), Slicer::endIsLast);
     itsMs->feed().addRow(nRow);
@@ -336,7 +342,7 @@ void MSSink::initFeeds(void)
     feedc.position().putColumnRange(feedSlice, feedXYZ);
     const double forever = 1.e30;
 
-    for (Int i = numFeeds; i < (nRow + numFeeds); i++) {
+    for (uInt i = numFeeds; i < (nRow + numFeeds); i++) {
         feedc.beamOffset().put(i, beamOffset.xyPlane(i - numFeeds));
         feedc.polarizationType().put(i, feedPol.column(i - numFeeds));
         feedc.polResponse().put(i, polResp.xyPlane(i - numFeeds));
@@ -382,7 +388,7 @@ void MSSink::initSpws(void)
     MSSpWindowColumns& spwc = msc.spectralWindow();
     MSDataDescColumns& ddc = msc.dataDescription();
     MSPolarizationColumns& polc = msc.polarization();
-    Int baseSpWID = spwc.nrow();
+    const uInt baseSpWID = spwc.nrow();
     ASKAPLOG_INFO_STR(logger, "Creating new spectral window " << spWindowName << ", ID "
                           << baseSpWID + 1);
     // fill spectralWindow table
@@ -432,4 +438,48 @@ void MSSink::initSpws(void)
     spwc.totalBandwidth().put(baseSpWID, nChan*vFreqInc);
     polc.corrType().put(baseSpWID, stokesTypes);
     polc.corrProduct().put(baseSpWID, corrProduct);
+}
+
+void MSSink::initFields(void)
+{
+    casa::String fieldName;
+    casa::MDirection fieldDirection;
+    casa::String calCode;
+
+    itsConfig->getFields(fieldName, fieldDirection, calCode);
+
+    MSColumns msc(*itsMs);
+    MSFieldColumns& fieldc = msc.field();
+    const uInt baseFieldID = fieldc.nrow();
+
+    ASKAPLOG_INFO_STR(logger, "Creating new field " << fieldName << ", ID " << baseFieldID
+            + 1);
+
+    itsMs->field().addRow(1);
+    fieldc.name().put(baseFieldID, fieldName);
+    fieldc.code().put(baseFieldID, calCode);
+    fieldc.time().put(baseFieldID, 0.0);
+    fieldc.numPoly().put(baseFieldID, 0);
+    fieldc.sourceId().put(baseFieldID, 0);
+    Vector<MDirection> direction(1);
+    direction(0) = fieldDirection;
+    fieldc.delayDirMeasCol().put(baseFieldID, direction);
+    fieldc.phaseDirMeasCol().put(baseFieldID, direction);
+    fieldc.referenceDirMeasCol().put(baseFieldID, direction);
+
+}
+
+void MSSink::initObs(void)
+{
+    MSColumns msc(*itsMs);
+    MSObservation& obs = itsMs->observation();
+    MSObservationColumns& obsc = msc.observation();
+    const uInt nobsrow = obsc.nrow();
+    obs.addRow();
+    obsc.telescopeName().put(nobsrow, "ASKAP");
+    Vector<double> timeRange(2);
+    timeRange(0) = 0;
+    timeRange(1) = 0;
+    obsc.timeRange().put(nobsrow, timeRange);
+    obsc.observer().put(nobsrow, "");
 }

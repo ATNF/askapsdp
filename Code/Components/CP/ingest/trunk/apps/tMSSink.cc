@@ -32,6 +32,7 @@
 
 // Local package includes
 #include "ingestpipeline/sinktask/MSSink.h"
+#include "ingestpipeline/datadef/VisChunk.h"
 
 // Using
 using namespace askap::cp;
@@ -40,6 +41,11 @@ int main(int argc, char *argv[])
 {
     LOFAR::ParameterSet parset("tMSSink.in");
     MSSink sink(parset);
+
+    VisChunk::ShPtr chunk(new VisChunk(21, 8, 4));
+
+    sink.process(chunk);
+
 
     return 0;
 }

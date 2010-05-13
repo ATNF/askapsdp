@@ -63,3 +63,6 @@ cp.ingest.ms_sink.spw.nchan                = 16416
 cp.ingest.ms_sink.spw.start_freq           = 1.420GHz
 cp.ingest.ms_sink.spw.freq_inc             = 18.5185kHz
 cp.ingest.ms_sink.spw.stokes               = "XX XY YX YY"
+
+cp.ingest.ms_sink.field.name               = test-field
+cp.ingest.ms_sink.field.direction          = [12h30m00.000, -45.00.00.000, J2000]
