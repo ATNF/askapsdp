@@ -229,7 +229,7 @@ namespace askap
       /// @note Not sure whether the parameter should be made const or not 
       virtual void readFromBlob(LOFAR::BlobIStream& is); 
               
-    protected:
+    private:
       /// A slice through a specified plane
       std::map<string, casa::Vector<double> > itsNormalMatrixSlice;
       /// The diagonal 
