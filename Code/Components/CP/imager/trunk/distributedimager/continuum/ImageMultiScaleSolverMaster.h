@@ -57,21 +57,13 @@ namespace askap
             public:
 
                 /// @brief Constructor from parameters.
-                /// The parameters named image* will be interpreted as images and
-                /// solutions formed by the method described.
                 /// The default scales are 0, 10, 30 pixels
-                /// @param ip Parameters i.e. the images
-                ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
-                        const LOFAR::ParameterSet& parset,
+                ImageMultiScaleSolverMaster(const LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
 
                 /// @brief Constructor from parameters and scales.
-                /// The parameters named image* will be interpreted as images and
-                /// solutions formed by the method described.
-                /// @param ip Parameters i.e. the images
                 /// @param scales Scales to be solved in pixels
-                ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
-                        const casa::Vector<float>& scales,
+                ImageMultiScaleSolverMaster(const casa::Vector<float>& scales,
                         const LOFAR::ParameterSet& parset,
                         askap::cp::IBasicComms& comms);
 
@@ -80,8 +72,9 @@ namespace askap
 
                 /// @brief Solve for parameters, updating the values kept internally
                 /// The solution is constructed from the normal equations
+                /// @param ip Parameters i.e. the images
                 /// @param q Solution quality information
-                virtual bool solveNormalEquations(askap::scimath::Quality& q);
+                virtual bool solveNormalEquations(askap::scimath::Params &ip, askap::scimath::Quality& q);
 
                 /// @brief Clone this object
                 virtual askap::scimath::Solver::ShPtr clone() const;

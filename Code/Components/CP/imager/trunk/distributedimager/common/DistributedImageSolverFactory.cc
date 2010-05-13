@@ -157,7 +157,7 @@ Solver::ShPtr DistributedImageSolverFactory::make(askap::scimath::Params &ip,
     std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 
     ImageSolver::ShPtr solver 
-        = ImageSolver::ShPtr(new ImageMultiScaleSolverMaster(ip, casa::Vector<float>(scales), parset, comms));
+        = ImageSolver::ShPtr(new ImageMultiScaleSolverMaster(casa::Vector<float>(scales), parset, comms));
     ASKAPLOG_INFO_STR(logger, "Constructed distributed image multiscale solver" );
     solver->setAlgorithm("MultiScale");
     solver->setTol(parset.getFloat("solver.Clean.tolerance", 0.1));

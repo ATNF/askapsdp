@@ -92,14 +92,13 @@ void SolverCore::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
     timer.mark();
 
     itsSolver->init();
-    itsSolver->setParameters(*itsModel);
     itsSolver->addNormalEquations(*ne_p);
 
     ASKAPLOG_INFO_STR(logger, "Solving Normal Equations");
     askap::scimath::Quality q;
 
-    itsSolver->solveNormalEquations(q);
-    *itsModel = itsSolver->parameters();
+    ASKAPDEBUGASSERT(itsModel);
+    itsSolver->solveNormalEquations(*itsModel, q);
     ASKAPLOG_DEBUG_STR(logger, "Solved normal equations in "<< timer.real()
             << " seconds ");
 
@@ -202,16 +201,15 @@ void SolverCore::writeModel(const std::string &postfix)
     if (restore && postfix == "") {
         ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
         ASKAPDEBUGASSERT(itsQbeam.size() == 3);
-        ImageRestoreSolver ir(*itsModel, itsQbeam);
+        ImageRestoreSolver ir(itsQbeam);
         ir.setThreshold(itsSolver->threshold());
         ir.setVerbose(itsSolver->verbose());
         boost::shared_ptr<ImageSolver> solverPtr(&ir,utility::NullDeleter());
         ImageSolverFactory::configurePreconditioners(itsParset,solverPtr);
         ir.copyNormalEquations(*itsSolver);
         Quality q;
-        ir.solveNormalEquations(q);
+        ir.solveNormalEquations(*itsModel, q);
         ASKAPDEBUGASSERT(itsModel);
-        *itsModel = ir.parameters();
         // merged image should be a fixed parameter without facet suffixes
         resultimages=itsModel->fixedNames();
         for (vector<string>::const_iterator ci=resultimages.begin(); ci!=resultimages.end(); ++ci) {

@@ -62,10 +62,10 @@ using namespace askap::cp;
 
 ASKAP_LOGGER(logger, ".ImageMultiScaleSolverMaster");
 
-ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
+ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(
         const LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms)
-    : ImageCleaningSolver(ip), itsParset(parset), itsComms(comms) 
+    : itsParset(parset), itsComms(comms) 
 {
     itsScales.resize(3);
     itsScales(0) = 0;
@@ -73,11 +73,11 @@ ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::P
     itsScales(2) = 30;
 }
 
-ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(const askap::scimath::Params& ip,
+ImageMultiScaleSolverMaster::ImageMultiScaleSolverMaster(
         const casa::Vector<float>& scales,
         const LOFAR::ParameterSet& parset,
         askap::cp::IBasicComms& comms)
-    : ImageCleaningSolver(ip), itsParset(parset), itsComms(comms)
+    :  itsParset(parset), itsComms(comms)
 {
     itsScales.resize(scales.size());
     itsScales = scales;
@@ -90,21 +90,21 @@ void ImageMultiScaleSolverMaster::init()
 
 // Solve for update simply by scaling the data vector by the diagonal term of the
 // normal equations i.e. the residual image
-bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& quality)
+bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Params &ip, askap::scimath::Quality& quality)
 {
     // Solving A^T Q^-1 V = (A^T Q^-1 A) P
     uint nParameters=0;
 
     // Find all the free parameters beginning with image
-    std::vector<std::string> names(itsParams->completions("image"));
+    std::vector<std::string> names(ip.completions("image"));
     std::map<std::string, uint> indices;
 
     for (std::vector<std::string>::const_iterator  it=names.begin();it!=names.end();it++)
     {
         std::string name="image"+*it;
-        if(itsParams->isFree(name)) {
+        if(ip.isFree(name)) {
             indices[name]=nParameters;
-            nParameters+=itsParams->value(name).nelements();
+            nParameters+=ip.value(name).nelements();
         }
     }
     ASKAPCHECK(nParameters>0, "No free parameters in ImageMultiScaleSolver");
@@ -112,8 +112,8 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
     for (std::map<std::string, uint>::const_iterator indit=indices.begin(); indit!=indices.end(); ++indit)
     {
         // Axes are dof, dof for each parameter
-        const casa::IPosition vecShape(1, itsParams->value(indit->first).nelements());
-        const casa::IPosition valShape(itsParams->value(indit->first).shape());
+        const casa::IPosition vecShape(1, ip.value(indit->first).nelements());
+        const casa::IPosition valShape(ip.value(indit->first).shape());
 
         ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(indit->first)>0, "Diagonal not present");
         const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(indit->first)->second);
@@ -127,7 +127,7 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
         casa::Array<float> psfArray(valShape);
         casa::convertArray<float, double>(psfArray, slice.reform(valShape));
         casa::Array<float> cleanArray(valShape);
-        casa::convertArray<float, double>(cleanArray, itsParams->value(indit->first));
+        casa::convertArray<float, double>(cleanArray, ip.value(indit->first));
         casa::Array<float> maskArray(valShape);
 
         // Normalize
@@ -137,15 +137,15 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
         // Precondition the PSF and DIRTY images before solving.
         if(doPreconditioning(psfArray,dirtyArray)) {
             // Save the new PSFs to disk
-            Axes axes(itsParams->axes(indit->first));
+            Axes axes(ip.axes(indit->first));
             std::string psfName="psf."+(indit->first);
             casa::Array<double> anothertemp(valShape);
             casa::convertArray<double,float>(anothertemp,psfArray);
             const casa::Array<double> & APSF(anothertemp);
-            if (!itsParams->has(psfName)) {
-                itsParams->add(psfName, APSF, axes);
+            if (!ip.has(psfName)) {
+                ip.add(psfName, APSF, axes);
             } else {
-                itsParams->update(psfName, APSF);
+                ip.update(psfName, APSF);
             }
         } // if there was preconditioning
         ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
@@ -162,7 +162,7 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
         // the parameter class. Therefore, we may not need this functionality in the
         // production version (or may need to implement it in a different way).
         {
-           Axes axes(itsParams->axes(indit->first));
+           Axes axes(ip.axes(indit->first));
            ASKAPDEBUGASSERT(indit->first.find("image")==0);
            ASKAPCHECK(indit->first.size()>5,
                    "Image parameter name should have something appended to word image")
@@ -170,10 +170,10 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
            casa::Array<double> anothertemp(valShape);
            casa::convertArray<double,float>(anothertemp,dirtyArray);
            const casa::Array<double> & AResidual(anothertemp);
-           if (!itsParams->has(residName)) {
-               itsParams->add(residName, AResidual, axes);
+           if (!ip.has(residName)) {
+               ip.add(residName, AResidual, axes);
            } else {
-               itsParams->update(residName, AResidual);
+               ip.update(residName, AResidual);
            }
         }
 
@@ -327,14 +327,14 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
         ASKAPLOG_INFO_STR(logger, "Peak flux of the clean image " << max(cleanArray));
 
         const std::string peakResParam = std::string("peak_residual.") + indit->first;
-        if (itsParams->has(peakResParam)) {
-            itsParams->update(peakResParam, strengthOptimum);
+        if (ip.has(peakResParam)) {
+            ip.update(peakResParam, strengthOptimum);
         } else {
-            itsParams->add(peakResParam, strengthOptimum);
+            ip.add(peakResParam, strengthOptimum);
         }
-        itsParams->fix(peakResParam);
+        ip.fix(peakResParam);
 
-        casa::convertArray<double, float>(itsParams->value(indit->first), cleanArray);
+        casa::convertArray<double, float>(ip.value(indit->first), cleanArray);
 
     }
 
@@ -344,8 +344,8 @@ bool ImageMultiScaleSolverMaster::solveNormalEquations(askap::scimath::Quality& 
     quality.setInfo("Multiscale Clean");
 
     /// Save the PSF and Weight
-    saveWeights();
-    savePSF();
+    saveWeights(ip);
+    savePSF(ip);
 
     return true;
 };
