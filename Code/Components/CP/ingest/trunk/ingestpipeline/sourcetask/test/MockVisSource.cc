@@ -54,7 +54,9 @@ void MockVisSource::add(boost::shared_ptr< VisDatagram > obj)
 }
 
 boost::shared_ptr< VisDatagram >
-MockVisSource::next(void)
+MockVisSource::next(const long timeout)
 {
+    // Timeout is ignored for the MockVisSource. It is expected that anything
+    // you wish to get out of it, you must have added to it with the add() call
     return itsBuffer.next();
 }

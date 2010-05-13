@@ -2,6 +2,8 @@
 # Central Processor Ingest Pipeline Configuration
 #
 
+cp.ingest.integrations_expected                    = 12
+
 # Metdata Source
 cp.ingest.metadata_source.ice.locator_host          = localhost
 cp.ingest.metadata_source.ice.locator_port          = 4061

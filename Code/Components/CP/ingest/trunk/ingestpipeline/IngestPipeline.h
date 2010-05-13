@@ -64,6 +64,9 @@ namespace askap {
                 boost::scoped_ptr< MergedSource > itsSource;
 
                 std::vector<ITask::ShPtr> itsTasks;
+
+                unsigned long itsIntegrationsCount;
+                unsigned long itsIntegrationsExpected;
         };
 
     };

@@ -43,6 +43,7 @@ namespace askap
             CPPUNIT_TEST(testSingle);
             CPPUNIT_TEST(testMultiple);
             CPPUNIT_TEST(testOverflow);
+            CPPUNIT_TEST(testTimeout);
             CPPUNIT_TEST_SUITE_END();
 
             public:
@@ -87,6 +88,18 @@ namespace askap
                     instance.add(inPtr);
                 }
             };
+
+            // Test the timeout parameter. Just make sure this does not block
+            // forever.
+            void testTimeout()
+            {
+                const long timeout = 10; // milliseconds
+                CircularBuffer<int> instance(2);
+
+                boost::shared_ptr<int> outPtr(instance.next(timeout));
+                CPPUNIT_ASSERT(outPtr.get() == 0);
+            };
+
 
         };
 

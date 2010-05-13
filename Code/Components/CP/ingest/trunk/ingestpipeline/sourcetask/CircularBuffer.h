@@ -31,6 +31,7 @@
 #include "boost/shared_ptr.hpp"
 #include "boost/thread/mutex.hpp"
 #include "boost/thread/condition.hpp"
+#include "boost/thread/xtime.hpp"
 #include "boost/circular_buffer.hpp"
 
 namespace askap {
@@ -62,12 +63,34 @@ namespace askap {
                     itsCondVar.notify_all();
                 };
 
-                boost::shared_ptr<T> next(void)
+                // timeout is in microseconds, and anything less than zero
+                // results in no timeout
+                boost::shared_ptr<T> next(const long timeout = -1)
                 {
+                    // Determine when to sleep to if timeout is set
+                    boost::xtime xt;
+                    if (timeout > 0) {
+                        const long NANOSECONDS_PER_MICROSECOND = 1000;
+                        const long MICROSECONDS_PER_SECOND = 1000000;
+                        boost::xtime_get(&xt, boost::TIME_UTC);
+                        if (timeout > MICROSECONDS_PER_SECOND) {
+                            const long sec = timeout / MICROSECONDS_PER_SECOND;
+                            xt.sec += sec;
+                        }
+                        xt.nsec += (timeout % MICROSECONDS_PER_SECOND) * NANOSECONDS_PER_MICROSECOND;
+                    }
+
                     boost::mutex::scoped_lock lock(itsMutex);
                     while (itsBuffer.empty()) {
                         // While this call sleeps/blocks the mutex is released
-                        itsCondVar.wait(lock);
+                        if (timeout > 0) {
+                            itsCondVar.timed_wait(lock, xt);
+                            if (itsBuffer.empty()) {
+                                return boost::shared_ptr<T>(); // Null pointer
+                            }
+                        } else {
+                            itsCondVar.wait(lock);
+                        }
                     }
 
                     // Get the pointer on the front of the circular buffer

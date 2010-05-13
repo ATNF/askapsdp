@@ -46,7 +46,7 @@ namespace askap {
 
                 void add(boost::shared_ptr< VisDatagram > obj);
 
-                boost::shared_ptr< VisDatagram > next(void);
+                boost::shared_ptr< VisDatagram > next(const long timeout = -1);
 
                 // Shared pointer definition
                 typedef boost::shared_ptr<MockVisSource> ShPtr;

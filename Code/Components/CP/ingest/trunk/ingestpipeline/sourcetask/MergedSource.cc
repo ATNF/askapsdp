@@ -93,18 +93,22 @@ VisChunk::ShPtr MergedSource::next(void)
     const casa::uInt nBeams = itsMetadata->nBeams();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
     const casa::uInt datagramsExpected = nBaselines * nCoarseChannels * nBeams;
+    const casa::uInt timeout = itsMetadata->period() * 2;
 
-    // Read VisDatagrams and add them to the VisChunk
+    // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
+    // returns a null pointer this indicates the timeout has been reached.
+    // In this case assume no more VisDatagrams for this integration will
+    // be recieved and move on
     casa::uInt datagramCount = 1; 
-    while (itsMetadata->time() >= itsVis->timestamp) {
+    while (itsVis && itsMetadata->time() >= itsVis->timestamp) {
         if (itsMetadata->time() > itsVis->timestamp) {
             // If the VisDatagram is from a prior integration then discard it
             ASKAPLOG_WARN_STR(logger, "Received VisDatagram from past integration");
-            itsVis = itsVisSrc->next();
+            itsVis = itsVisSrc->next(timeout);
             continue;
         }
         addVis(chunk, *itsVis);
-        itsVis = itsVisSrc->next();
+        itsVis = itsVisSrc->next(timeout);
         if (datagramCount == datagramsExpected) {
             // This integration is finished
             break;

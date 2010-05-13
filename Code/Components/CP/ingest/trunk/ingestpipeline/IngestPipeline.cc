@@ -55,8 +55,10 @@ using namespace askap;
 using namespace askap::cp;
 
 IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset)
-    : itsParset(parset), itsRunning(false)
+    : itsParset(parset), itsRunning(false),
+    itsIntegrationsCount(0)
 {
+    itsIntegrationsExpected = itsParset.getUint32("integrations_expected");
 }
 
 IngestPipeline::~IngestPipeline()
@@ -84,8 +86,9 @@ void IngestPipeline::ingest(void)
     createTask<MSSink>(itsParset);
 
     // 2) Process correlator integrations, one at a time
-    while (itsRunning) {
+    while (itsRunning && (itsIntegrationsCount < itsIntegrationsExpected))  {
         bool endOfStream = ingestOne();
+        itsIntegrationsCount++;
         if (endOfStream) {
             itsRunning = false;
         }

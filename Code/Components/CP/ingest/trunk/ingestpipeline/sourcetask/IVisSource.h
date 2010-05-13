@@ -39,8 +39,7 @@ namespace askap {
             public:
                 virtual ~IVisSource() {};
 
-                // Blocking
-                virtual boost::shared_ptr<VisDatagram> next(void) = 0;
+                virtual boost::shared_ptr<VisDatagram> next(const long timeout = -1) = 0;
 
                 // Shared pointer definition
                 typedef boost::shared_ptr<IVisSource> ShPtr;

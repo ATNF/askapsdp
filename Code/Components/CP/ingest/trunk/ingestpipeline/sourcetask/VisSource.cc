@@ -126,7 +126,7 @@ void VisSource::run(void)
     itsIOService.run();    
 }
 
-boost::shared_ptr<VisDatagram> VisSource::next(void)
+boost::shared_ptr<VisDatagram> VisSource::next(const long timeout)
 {
-    return itsBuffer.next();
+    return itsBuffer.next(timeout);
 }

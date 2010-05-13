@@ -47,8 +47,7 @@ namespace askap {
                 VisSource(const unsigned int port, const unsigned int bufSize);
                 ~VisSource();
 
-                // Blocking
-                boost::shared_ptr<VisDatagram> next(void);
+                boost::shared_ptr<VisDatagram> next(const long timeout = -1);
 
             private:
                 void start_receive(void);
