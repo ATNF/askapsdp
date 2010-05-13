@@ -86,6 +86,9 @@ namespace askap {
                 /// seconds since MJD=0.
                 casa::MVEpoch& time();
 
+                /// Data sampling interval in seconds.
+                casa::Double& interval();
+
                 /// First antenna IDs for all rows
                 ///
                 /// @note Antenna ID is zero based
@@ -230,6 +233,9 @@ namespace askap {
 
                 /// Time
                 casa::MVEpoch itsTime;
+
+                /// Interval
+                casa::Double itsInterval;
 
                 /// Frequency
                 casa::Vector<casa::Double> itsFrequency;

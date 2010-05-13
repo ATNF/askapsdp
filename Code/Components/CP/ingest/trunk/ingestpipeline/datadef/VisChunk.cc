@@ -158,6 +158,11 @@ casa::MVEpoch& VisChunk::time()
     return itsTime;
 }
 
+casa::Double& VisChunk::interval()
+{
+    return itsInterval;
+}
+
 casa::Vector<casa::Double>& VisChunk::frequency()
 {
     return itsFrequency;

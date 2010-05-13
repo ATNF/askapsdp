@@ -40,7 +40,9 @@ using namespace askap::cp;
 int main(int argc, char *argv[])
 {
     LOFAR::ParameterSet parset("tMSSink.in");
-    MSSink sink(parset);
+    const LOFAR::ParameterSet subset = parset.makeSubset("cp.ingest.");
+
+    MSSink sink(subset);
 
     VisChunk::ShPtr chunk(new VisChunk(21, 8, 4));
 

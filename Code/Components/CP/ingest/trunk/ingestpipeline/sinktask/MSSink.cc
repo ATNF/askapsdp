@@ -65,7 +65,7 @@ using namespace casa;
 //////////////////////////////////
 
 MSSink::MSSink(const LOFAR::ParameterSet& parset) :
-    itsParset(parset.makeSubset("cp.ingest.ms_sink."))
+    itsParset(parset.makeSubset("ms_sink."))
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
 
@@ -90,9 +90,47 @@ void MSSink::process(VisChunk::ShPtr chunk)
     ASKAPLOG_DEBUG_STR(logger, "process()");
 
     MSColumns msc(*itsMs);
-    //const casa::uInt baseRow = msc.nrow();
+    const casa::uInt baseRow = msc.nrow();
     const casa::uInt newRows = chunk->nRow();
     itsMs->addRow(newRows);
+
+    // First set the constant things outside the loop,
+    // as they apply to all rows
+    msc.scanNumber().put(baseRow, 0);
+    msc.fieldId().put(baseRow, 0);
+    msc.dataDescId().put(baseRow, 0);
+
+    casa::Quantity chunkMidpoint = chunk->time().getTime();
+    msc.time().put(baseRow, chunkMidpoint.getValue("s"));
+    msc.time().put(baseRow, chunkMidpoint.getValue("s"));
+    msc.timeCentroid().put(baseRow, chunkMidpoint.getValue("s"));
+
+    msc.arrayId().put(baseRow, 0);
+    msc.processorId().put(baseRow, 0);
+    msc.exposure().put(baseRow, 5000000);
+    msc.interval().put(baseRow, 5000000);
+    msc.observationId().put(baseRow, 0);
+    msc.stateId().put(baseRow, -1);
+
+    for (casa::uInt i = 0; i < newRows; ++i) {
+        const casa::uInt row = i + baseRow;
+        msc.antenna1().put(row, chunk->antenna1()(row));
+        msc.antenna2().put(row, chunk->antenna2()(row));
+        msc.feed1().put(row, chunk->feed1()(row));
+        msc.feed2().put(row, chunk->feed2()(row));
+        msc.uvw().put(row, chunk->uvw()(row).vector());
+
+        msc.data().put(row, chunk->visibility().yzPlane(i));
+
+        msc.flag().put(row, chunk->flag().yzPlane(i));
+        msc.flagRow().put(row, False);
+
+        Vector<Float> tmp(chunk->nPol(), 1.0);
+        msc.weight().put(row, tmp);
+        msc.sigma().put(row, tmp);
+
+    }
+
 }
 
 //////////////////////////////////
