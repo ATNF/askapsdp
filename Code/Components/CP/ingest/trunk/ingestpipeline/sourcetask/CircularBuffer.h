@@ -69,10 +69,10 @@ namespace askap {
                 {
                     // Determine when to sleep to if timeout is set
                     boost::xtime xt;
+                    boost::xtime_get(&xt, boost::TIME_UTC);
                     if (timeout > 0) {
                         const long NANOSECONDS_PER_MICROSECOND = 1000;
                         const long MICROSECONDS_PER_SECOND = 1000000;
-                        boost::xtime_get(&xt, boost::TIME_UTC);
                         if (timeout > MICROSECONDS_PER_SECOND) {
                             const long sec = timeout / MICROSECONDS_PER_SECOND;
                             xt.sec += sec;
