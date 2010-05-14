@@ -199,6 +199,10 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis)
     // TODO: This is slow, need to develop an indexing method
     casa::uInt row = 0;
     while (row < chunk->nRow()) {
+        ASKAPCHECK(vis.antenna1 < 36, "Antenna 1 index is invalid");
+        ASKAPCHECK(vis.antenna2 < 36, "Antenna 2 index is invalid");
+        ASKAPCHECK(vis.beam1 < 36, "Beam 1 index is invalid");
+        ASKAPCHECK(vis.beam2 < 36, "Beam 2 index is invalid");
         if ((chunk->antenna1()(row) == vis.antenna1) &&
             (chunk->antenna2()(row) == vis.antenna2) &&
             (chunk->feed1()(row) == vis.beam1) &&
@@ -209,7 +213,7 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis)
     }
  
     // 2) Determine the channel offset and add the visibilities
-    ASKAPCHECK(vis.coarseChannel < 304, "Invalid coarse channel");
+    ASKAPCHECK(vis.coarseChannel < 304, "Coarse channel index is invalid");
     const casa::uInt chanOffset = (vis.coarseChannel) * N_FINE_PER_COARSE;
     for (casa::uInt chan = 0; chan < N_FINE_PER_COARSE; ++chan) {
         for (casa::uInt pol = 0; pol < N_POL; ++pol) {

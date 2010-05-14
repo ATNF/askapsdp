@@ -41,6 +41,7 @@
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Cube.h"
+#include "casa/Arrays/MatrixMath.h"
 #include "tables/Tables/TableDesc.h"
 #include "tables/Tables/SetupNewTab.h"
 #include "tables/Tables/IncrementalStMan.h"
@@ -114,15 +115,15 @@ void MSSink::process(VisChunk::ShPtr chunk)
 
     for (casa::uInt i = 0; i < newRows; ++i) {
         const casa::uInt row = i + baseRow;
-        msc.antenna1().put(row, chunk->antenna1()(row));
-        msc.antenna2().put(row, chunk->antenna2()(row));
-        msc.feed1().put(row, chunk->feed1()(row));
-        msc.feed2().put(row, chunk->feed2()(row));
-        msc.uvw().put(row, chunk->uvw()(row).vector());
+        msc.antenna1().put(row, chunk->antenna1()(i));
+        msc.antenna2().put(row, chunk->antenna2()(i));
+        msc.feed1().put(row, chunk->feed1()(i));
+        msc.feed2().put(row, chunk->feed2()(i));
+        msc.uvw().put(row, chunk->uvw()(i).vector());
 
-        msc.data().put(row, chunk->visibility().yzPlane(i));
+        msc.data().put(row, casa::transpose(chunk->visibility().yzPlane(i)));
 
-        msc.flag().put(row, chunk->flag().yzPlane(i));
+        msc.flag().put(row, casa::transpose(chunk->flag().yzPlane(i)));
         msc.flagRow().put(row, False);
 
         Vector<Float> tmp(chunk->nPol(), 1.0);
