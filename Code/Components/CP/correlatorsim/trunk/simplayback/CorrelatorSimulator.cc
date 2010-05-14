@@ -120,7 +120,6 @@ bool CorrelatorSimulator::sendNext(void)
         const long timestamp =
             static_cast<long>(msc.time()(itsCurrentRow) * 1000 * 1000);
         payload.timestamp = timestamp;
-        payload.coarseChannel = 0;
         payload.antenna1 = msc.antenna1()(itsCurrentRow);
         payload.antenna2 = msc.antenna2()(itsCurrentRow);
         payload.beam1 = msc.feed1()(itsCurrentRow);
@@ -134,6 +133,7 @@ bool CorrelatorSimulator::sendNext(void)
         // This matrix is: Matrix<Complex> data(nCorr, nChan)
         const casa::Matrix<casa::Complex> data = msc.data()(itsCurrentRow);
         for (unsigned int coarseChan = 0; coarseChan < nChan; ++coarseChan) {
+            payload.coarseChannel = coarseChan;
             for (unsigned int fineChan = 0; fineChan < N_FINE_PER_COARSE; ++fineChan) {
                 for (unsigned int pol = 0; pol < N_POL; ++pol) {
                     const int idx = pol + (N_POL * fineChan);

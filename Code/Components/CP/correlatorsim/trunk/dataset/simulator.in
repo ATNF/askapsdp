@@ -21,7 +21,7 @@ Csimulator.spws.definition                      =       definitions/ASKAPspws.in
 #
 Csimulator.simulation.blockage                  =       0.01
 Csimulator.simulation.elevationlimit            =       8deg
-Csimulator.simulation.autocorrwt                =       0.0
+Csimulator.simulation.autocorrwt                =       1.0
 Csimulator.simulation.usehourangles             =       True
 Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
 #

@@ -12,7 +12,7 @@ $ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/msnoop -inputs msnoop.in
 MDPID=$!
 
 # Start the visibilities receiver (don't use the script so this script can kill it)
-$ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/vsnoop -p 3000 > vsnoop.log 2>&1 &
+$ASKAP_ROOT/Code/Components/CP/correlatorsim/trunk/apps/vsnoop -v -p 3000 > vsnoop.log 2>&1 &
 VISPID=$!
 
 # Run the test
