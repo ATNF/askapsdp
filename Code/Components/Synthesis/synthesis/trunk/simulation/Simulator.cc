@@ -452,19 +452,6 @@ void Simulator::initSpWindows(const casa::String& spWindowName, const int& nChan
     spwc.totalBandwidth().put(baseSpWID, nChan*vFreqInc);
     polc.corrType().put(baseSpWID, stokesTypes);
     polc.corrProduct().put(baseSpWID, corrProduct);
-
-    {
-        MSSpWindowColumns msSpW(ms_p->spectralWindow());
-        Int nSpw = ms_p->spectralWindow().nrow();
-
-        if (nSpw == 0)
-            nSpw = 1;
-
-        Matrix<Int> selection(2, nSpw);
-        selection.row(0) = 0; //start
-        selection.row(1) = msSpW.numChan().getColumn();
-    }
-
 }
 
 // NOTE:  initAnt and initSpWindows must be called before this one!
@@ -947,7 +934,6 @@ void Simulator::observe(const casa::String& sourceName,
                     msc.uvw().put(row, uvwvec);
 
                     data.set(Complex(0., 0.));
-                    msc.data().put(row, data);
                     msc.data().put(row, data);
                     msc.flag().put(row, flag);
                     msc.flagRow().put(row, False);
