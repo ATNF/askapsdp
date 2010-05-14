@@ -118,13 +118,15 @@ bool TosSimulator::sendNext(void)
     // Initialize the metadata message
     askap::cp::TosMetadata metadata(nCoarseChan, nBeam, nCorr);
 
-    // time
-    const casa::Long timestamp = static_cast<long>(currentIntegration * 1000 * 1000);
-    metadata.time(timestamp);
-
-    // period
-    const casa::Long interval = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
-    metadata.period(interval);
+    // time and period
+    // Note: The time read from the measurement set is the integration midpoint,
+    // while the TOS metadata specification calls for the integration start time.
+    // Hence the below conversion.
+    const casa::Long Tmid = static_cast<long>(currentIntegration * 1000 * 1000);
+    const casa::Long Tint = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
+    const casa::Long Tstart = Tmid - (Tint / 2);
+    metadata.time(Tstart);
+    metadata.period(Tint);
 
 
     ////////////////////////////////////////

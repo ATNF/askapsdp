@@ -117,9 +117,14 @@ bool CorrelatorSimulator::sendNext(void)
         // Populate the VisDatagram
         askap::cp::VisDatagram payload;
         payload.version = VISPAYLOAD_VERSION;
-        const long timestamp =
-            static_cast<long>(msc.time()(itsCurrentRow) * 1000 * 1000);
-        payload.timestamp = timestamp;
+
+        // Note, the measurement set stores integration midpoint (in seconds), while the TOS
+        // (and it is assumed the correlator) deal with integration start (in microseconds)
+        const long Tmid = static_cast<long>(currentIntegration * 1000 * 1000);
+        const long Tint = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
+        const long Tstart = Tmid - (Tint / 2);
+
+        payload.timestamp = Tstart;
         payload.antenna1 = msc.antenna1()(itsCurrentRow);
         payload.antenna2 = msc.antenna2()(itsCurrentRow);
         payload.beam1 = msc.feed1()(itsCurrentRow);
