@@ -390,14 +390,27 @@ namespace askap {
             end(1) = std::min(size_t(ypt) + noiseBoxSize / 2, size_t(shape(1) - 1));
             std::vector<float> array;
             imagePtr->getSlice(Slicer(start, end, stride, Slicer::endIsLast)).tovector(array);
-            std::sort(array.begin(), array.end());
             size_t arrsize = array.size();
-            float median = (arrsize % 2 == 0) ? 0.5 * (array[arrsize/2] + array[arrsize/2-1]) : array[arrsize/2];
+	    std::nth_element(array.begin(),array.begin()+arrsize/2,array.end());
+	    float median = array[arrsize/2];
+	    if(arrsize%2==0){
+	      std::nth_element(array.begin(),array.begin()+arrsize/2-1,array.end());
+	      median += array[arrsize/2-1];
+	      median /= 2.;
+	    }
+//             std::sort(array.begin(), array.end());
+//             float median = (arrsize % 2 == 0) ? 0.5 * (array[arrsize/2] + array[arrsize/2-1]) : array[arrsize/2];
 
             for (size_t i = 0; i < arrsize; i++) array[i] = fabs(array[i] - median);
 
-            std::sort(array.begin(), array.end());
-            float madfm = (arrsize % 2 == 0) ? 0.5 * (array[arrsize/2] + array[arrsize/2-1]) : array[arrsize/2];
+//             std::sort(array.begin(), array.end());
+//             float madfm = (arrsize % 2 == 0) ? 0.5 * (array[arrsize/2] + array[arrsize/2-1]) : array[arrsize/2];
+	    float madfm = array[arrsize/2];
+	    if(arrsize%2==0){
+	      std::nth_element(array.begin(),array.begin()+arrsize/2-1,array.end());
+	      median += array[arrsize/2-1];
+	      median /= 2.;
+	    }
             madfm = Statistics::madfmToSigma(madfm);
             delete lattPtr;
             return madfm;
