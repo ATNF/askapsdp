@@ -146,7 +146,7 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     chunk->time() = casa::MVEpoch(casa::Quantity((static_cast<casa::Double>(midpoint) / 1000000.0), "s"));
 
     // Convert the interval from microseconds (long) to seconds (double)
-    const casa::Double interval = metadata.period() / 1024.0 / 1024.0;
+    const casa::Double interval = metadata.period() / 1000.0 / 1000.0;
     chunk->interval() = interval;
 
     // All visibilities get flagged as bad, then as the visibility data 

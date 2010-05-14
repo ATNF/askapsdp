@@ -108,8 +108,8 @@ void MSSink::process(VisChunk::ShPtr chunk)
 
     msc.arrayId().put(baseRow, 0);
     msc.processorId().put(baseRow, 0);
-    msc.exposure().put(baseRow, 5000000);
-    msc.interval().put(baseRow, 5000000);
+    msc.exposure().put(baseRow, chunk->interval());
+    msc.interval().put(baseRow, chunk->interval());
     msc.observationId().put(baseRow, 0);
     msc.stateId().put(baseRow, -1);
 
@@ -122,16 +122,33 @@ void MSSink::process(VisChunk::ShPtr chunk)
         msc.uvw().put(row, chunk->uvw()(i).vector());
 
         msc.data().put(row, casa::transpose(chunk->visibility().yzPlane(i)));
-
         msc.flag().put(row, casa::transpose(chunk->flag().yzPlane(i)));
         msc.flagRow().put(row, False);
 
+        // TODO: Need to get this data from somewhere
         Vector<Float> tmp(chunk->nPol(), 1.0);
         msc.weight().put(row, tmp);
         msc.sigma().put(row, tmp);
-
     }
 
+    //
+    // Update the observation table
+    //
+    // If this is the first integration cycle update the start time,
+    // otherwise just update the end time.
+    const casa::Double Tmid = chunkMidpoint.getValue("s");
+    const casa::Double Tint = chunk->interval();
+
+    MSObservationColumns& obsc = msc.observation();
+    casa::Vector<casa::Double> timeRange = obsc.timeRange()(0);
+    if (timeRange(0) == 0) {
+        const casa::Double Tstart = Tmid - (Tint / 2);
+        timeRange(0) = Tstart; 
+    }
+
+    const casa::Double Tend = Tmid - (Tint / 2);
+    timeRange(1) = Tend;
+    obsc.timeRange().put(0, timeRange);
 }
 
 //////////////////////////////////
