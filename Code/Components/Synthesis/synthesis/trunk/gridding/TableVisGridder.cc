@@ -574,7 +574,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			      if (((iuOffset-support)>0)&&((ivOffset-support)>0)&&
 			          ((iuOffset+support) <itsShape(0))&&((ivOffset+support)<itsShape(1))) {
 	                  if (forward) {
-                          casa::Complex cVis(imagePolFrameVis[pol]);
+                          casa::Complex cVis(0.,0.);
                           GridKernel::degrid(cVis, convFunc, grid, iuOffset, ivOffset, support);
                           itsSamplesDegridded+=1.0;
                           itsNumberDegridded+=double((2*support+1)*(2*support+1));
