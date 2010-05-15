@@ -33,6 +33,7 @@
 
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/Cube.h>
 #include <measures/Measures/MPosition.h>
 #include <casa/Quanta/Quantum.h>
 #include <casa/Quanta/MVPosition.h>
@@ -62,6 +63,7 @@ namespace askap
       CPPUNIT_TEST(testSolveSphFun);
       CPPUNIT_TEST(testSolveAntIllum);
       CPPUNIT_TEST_EXCEPTION(testFixed, CheckError);
+      CPPUNIT_TEST(testFullPol);
       CPPUNIT_TEST_SUITE_END();
 
   private:
@@ -107,10 +109,6 @@ namespace askap
 
       }
 
-      void tearDown()
-      {
-      }
-
       void testPredict()
       {
         //        {
@@ -118,6 +116,54 @@ namespace askap
         //          pt.setParameters(*params1);
         //        }
         p1->predict();
+      }
+      
+      void testFullPol() {
+         // tests of the full stokes simulation
+         CPPUNIT_ASSERT(params1);
+         CPPUNIT_ASSERT(params2);
+         
+         casa::Array<casa::Double> pix = params1->value("image.i.cena").copy().reform(casa::IPosition(4,npix/2,npix/2,4,1));
+         pix.set(0.);
+         pix(casa::IPosition(4, npix/4+1, npix/4+1, 0, 0))=1.0;
+         pix(casa::IPosition(4, npix/4+1, npix/4+1, 1, 0))=0.01;
+         pix(casa::IPosition(4, npix/4+1, npix/4+1, 2, 0))=-0.01;         
+         pix(casa::IPosition(4, npix/4+1, npix/4+1, 3, 0))=0.9;
+         //pix(casa::IPosition(4, 3*npix/16, 7*npix/32, 0, 0))=0.7;
+         casa::Vector<casa::Stokes::StokesTypes> stokes(4);
+         stokes[0] = casa::Stokes::XX;
+         stokes[1] = casa::Stokes::XY;
+         stokes[2] = casa::Stokes::YX;
+         stokes[3] = casa::Stokes::YY;         
+         params1->axes("image.i.cena").addStokesAxis(stokes);
+         // overwrite direction axis because we now have a smaller image
+         const double arcsec=casa::C::pi/(3600.0*180.0);
+         const double cell=8.0*arcsec;
+         casa::Matrix<double> xform(2,2,0.);
+         xform.diagonal().set(1.);
+         params1->axes("image.i.cena").addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
+                     casa::Projection(casa::Projection::SIN), 0.,0.,cell,cell,xform,npix/4.,npix/4.));
+         
+         params1->value("image.i.cena").assign(pix);
+        
+         DataAccessorStub &da = dynamic_cast<DataAccessorStub&>(*idi);
+         da.itsStokes.assign(stokes.copy());
+         da.itsVisibility.resize(da.nRow(), da.nChannel(),4);
+         da.itsVisibility.set(casa::Complex(-10.,15.));
+         da.itsNoise.resize(da.nRow(),da.nChannel(),da.nPol());
+         da.itsNoise.set(1.);
+         da.itsFlag.resize(da.nRow(),da.nChannel(),da.nPol());
+         da.itsFlag.set(casa::False);
+      
+         
+         p1->predict();
+         CPPUNIT_ASSERT(da.nPol() == 4);
+                  
+         for (casa::uInt row=0; row<da.nRow(); ++row) {
+             // std::cout<<da.antenna1()[row]<<" "<<da.antenna2()[row]<<" "<<casa::abs(da.itsVisibility(row,0,0))<<" "<<
+               //          casa::abs(da.itsVisibility(row,0,1))<<" "<<casa::abs(da.itsVisibility(row,0,2))<<" "<<casa::abs(da.itsVisibility(row,0,3))<<std::endl;              
+              //CPPUNIT_ASSERT(casa::abs(casa::DComplex(1.,0.) - casa::DComplex(da.visibility()(row,0,0)))<1e-5);
+         }
       }
 
       void testSolveSphFun()
