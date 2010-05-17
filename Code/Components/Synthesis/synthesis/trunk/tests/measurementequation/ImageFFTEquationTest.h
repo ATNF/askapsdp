@@ -43,6 +43,8 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+//#include <measurementequation/SynthesisParamsHelper.h>
+
 #include <stdexcept>
 
 #include <boost/shared_ptr.hpp>
@@ -125,10 +127,10 @@ namespace askap
          
          casa::Array<casa::Double> pix = params1->value("image.i.cena").copy().reform(casa::IPosition(4,npix/2,npix/2,4,1));
          pix.set(0.);
-         pix(casa::IPosition(4, npix/4+1, npix/4+1, 0, 0))=1.0;
-         pix(casa::IPosition(4, npix/4+1, npix/4+1, 1, 0))=0.01;
-         pix(casa::IPosition(4, npix/4+1, npix/4+1, 2, 0))=-0.01;         
-         pix(casa::IPosition(4, npix/4+1, npix/4+1, 3, 0))=0.9;
+         pix(casa::IPosition(4, npix/4, npix/4, 0, 0))=1.0;
+         pix(casa::IPosition(4, npix/4, npix/4, 1, 0))=0.01;
+         pix(casa::IPosition(4, npix/4, npix/4, 2, 0))=-0.01;         
+         pix(casa::IPosition(4, npix/4, npix/4, 3, 0))=0.9;
          //pix(casa::IPosition(4, 3*npix/16, 7*npix/32, 0, 0))=0.7;
          casa::Vector<casa::Stokes::StokesTypes> stokes(4);
          stokes[0] = casa::Stokes::XX;
@@ -144,11 +146,12 @@ namespace askap
          params1->axes("image.i.cena").addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
                      casa::Projection(casa::Projection::SIN), 0.,0.,cell,cell,xform,npix/4.,npix/4.));
          
-         params1->value("image.i.cena").assign(pix);
-        
+         params1->value("image.i.cena").assign(pix);         
+         p1.reset(new ImageFFTEquation(*params1, idi));
+                 
          DataAccessorStub &da = dynamic_cast<DataAccessorStub&>(*idi);
          da.itsStokes.assign(stokes.copy());
-         da.itsVisibility.resize(da.nRow(), da.nChannel(),4);
+         da.itsVisibility.resize(da.nRow(), 2 ,4);
          da.itsVisibility.set(casa::Complex(-10.,15.));
          da.itsNoise.resize(da.nRow(),da.nChannel(),da.nPol());
          da.itsNoise.set(1.);
@@ -158,11 +161,15 @@ namespace askap
          
          p1->predict();
          CPPUNIT_ASSERT(da.nPol() == 4);
+         CPPUNIT_ASSERT(da.nChannel() == 2);
                   
          for (casa::uInt row=0; row<da.nRow(); ++row) {
-             // std::cout<<da.antenna1()[row]<<" "<<da.antenna2()[row]<<" "<<casa::abs(da.itsVisibility(row,0,0))<<" "<<
-               //          casa::abs(da.itsVisibility(row,0,1))<<" "<<casa::abs(da.itsVisibility(row,0,2))<<" "<<casa::abs(da.itsVisibility(row,0,3))<<std::endl;              
-              //CPPUNIT_ASSERT(casa::abs(casa::DComplex(1.,0.) - casa::DComplex(da.visibility()(row,0,0)))<1e-5);
+              for (casa::uInt ch=0; ch<da.nChannel(); ++ch) {
+                   CPPUNIT_ASSERT(casa::abs(casa::DComplex(1.,0.) - casa::DComplex(da.visibility()(row,ch,0)))<1e-5);
+                   CPPUNIT_ASSERT(casa::abs(casa::DComplex(0.01,0.) - casa::DComplex(da.visibility()(row,ch,1)))<1e-5);
+                   CPPUNIT_ASSERT(casa::abs(casa::DComplex(-0.01,0.) - casa::DComplex(da.visibility()(row,ch,2)))<1e-5);
+                   CPPUNIT_ASSERT(casa::abs(casa::DComplex(0.9,0.) - casa::DComplex(da.visibility()(row,ch,3)))<1e-5);              
+              }
          }
       }
 

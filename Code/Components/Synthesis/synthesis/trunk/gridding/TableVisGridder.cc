@@ -941,7 +941,7 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		const casa::Array<double>& in) {
     configureForPSF(false);
 	itsShape = scimath::PaddingUtils::paddedShape(in.shape(),itsPaddingFactor);
-
+	
 	initialiseCellSize(axes);
     initStokes();
 
