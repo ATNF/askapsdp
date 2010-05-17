@@ -45,9 +45,11 @@
 #include "measures/Measures/MDirection.h"
 #include "measures/Measures/MEpoch.h"
 #include "casa/Quanta/MVAngle.h"
+#include "scimath/Mathematics/RigidVector.h"
 
 // Local package includes
 #include "ingestpipeline/datadef/VisChunk.h"
+#include "ingestutils/ParsetConfiguration.h"
 
 ASKAP_LOGGER(logger, ".CalcUVWTask");
 
@@ -56,11 +58,13 @@ using namespace askap;
 using namespace askap::cp;
 
 CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset) :
-    itsParset(parset)
+    itsParset(parset.makeSubset("uvw."))
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
-    const LOFAR::ParameterSet antSubset(itsParset.makeSubset("uvw.antennas."));
+    const LOFAR::ParameterSet antSubset(itsParset.makeSubset("antennas."));
     itsAntennaPositions.reset(new AntennaPositions(antSubset));
+    itsConfig.reset(new ParsetConfiguration(itsParset));
+    setupBeamOffsets();
 }
 
 CalcUVWTask::~CalcUVWTask()
@@ -98,7 +102,12 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     gmst = (gmst - Int(gmst)) * C::_2pi; // Into Radians
 
     // Current phase center
-    const casa::MDirection fpc = chunk->pointingDir1()(row);
+    casa::MDirection fpc = chunk->pointingDir1()(row);
+
+    // Shift per feed offsets
+    RigidVector<double, 2> beamOffset = itsBeamOffset(chunk->feed1()(row));
+    fpc.shift(-beamOffset(0), beamOffset(1), True);
+
     const double ra = fpc.getAngle().getValue()(0);
     const double dec = fpc.getAngle().getValue()(1);
 
@@ -129,4 +138,25 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
 
     // Finally set the uvwvec in the VisChunk
     chunk->uvw()(row) = uvwvec;
+}
+
+void CalcUVWTask::setupBeamOffsets(void)
+{
+        casa::String mode;
+        casa::Vector<double> x;
+        casa::Vector<double> y;
+        casa::Vector<casa::String> pol;
+
+        itsConfig->getFeeds(mode, x, y, pol);
+
+        ASKAPCHECK(x.nelements() > 0, "No feed offset information present");
+        ASKAPCHECK(x.nelements() == y.nelements(), "Feed x and y must be the same length");
+        uInt nFeeds = x.nelements();
+
+        itsBeamOffset.resize(nFeeds);
+
+        for (uInt feed = 0; feed < nFeeds; feed++) {
+            itsBeamOffset(feed)(0) = x(feed);
+            itsBeamOffset(feed)(1) = y(feed);
+        }
 }

@@ -28,6 +28,45 @@ cp.ingest.uvw.antennas.A2           =  [-29.200520,   -744.432068,   0.0000]
 cp.ingest.uvw.antennas.A3           =  [-289.355286,  -586.936035,   0.0000]
 cp.ingest.uvw.antennas.A4           =  [-157.031570,  -815.570068,   0.0000]
 cp.ingest.uvw.antennas.A5           =  [-521.311646,  -754.674927,   0.0000]
+cp.ingest.uvw.feeds.names              = [feed0, feed1, feed2, feed3, feed4, feed5, feed6,
+feed7, feed8, feed9, feed10, feed11, feed12, feed13, feed14, feed15, feed16, feed17, feed18, feed19,
+feed20, feed21, feed22, feed23, feed24, feed25, feed26, feed27, feed28, feed29, feed30, feed31]
+
+cp.ingest.uvw.feeds.spacing            = 1deg
+
+cp.ingest.uvw.feeds.feed0              = [-2.5, -1.5]
+cp.ingest.uvw.feeds.feed1              = [-2.5, -0.5]
+cp.ingest.uvw.feeds.feed2              = [-2.5,  0.5]
+cp.ingest.uvw.feeds.feed3              = [-2.5,  1.5]
+cp.ingest.uvw.feeds.feed4              = [-1.5, -2.5]
+cp.ingest.uvw.feeds.feed5              = [-1.5, -1.5]
+cp.ingest.uvw.feeds.feed6              = [-1.5, -0.5]
+cp.ingest.uvw.feeds.feed7              = [-1.5,  0.5]
+cp.ingest.uvw.feeds.feed8              = [-1.5,  1.5]
+cp.ingest.uvw.feeds.feed9              = [-1.5,  2.5]
+cp.ingest.uvw.feeds.feed10             = [-0.5, -2.5]
+cp.ingest.uvw.feeds.feed11             = [-0.5, -1.5]
+cp.ingest.uvw.feeds.feed12             = [-0.5, -0.5]
+cp.ingest.uvw.feeds.feed13             = [-0.5,  0.5]
+cp.ingest.uvw.feeds.feed14             = [-0.5,  1.5]
+cp.ingest.uvw.feeds.feed15             = [-0.5,  2.5]
+cp.ingest.uvw.feeds.feed16             = [0.5, -2.5]
+cp.ingest.uvw.feeds.feed17             = [0.5, -1.5]
+cp.ingest.uvw.feeds.feed18             = [0.5, -0.5]
+cp.ingest.uvw.feeds.feed19             = [0.5,  0.5]
+cp.ingest.uvw.feeds.feed20             = [0.5,  1.5]
+cp.ingest.uvw.feeds.feed21             = [0.5,  2.5]
+cp.ingest.uvw.feeds.feed22             = [1.5, -2.5]
+cp.ingest.uvw.feeds.feed23             = [1.5, -1.5]
+cp.ingest.uvw.feeds.feed24             = [1.5, -0.5]
+cp.ingest.uvw.feeds.feed25             = [1.5,  0.5]
+cp.ingest.uvw.feeds.feed26             = [1.5,  1.5]
+cp.ingest.uvw.feeds.feed27             = [1.5,  2.5]
+cp.ingest.uvw.feeds.feed28             = [2.5, -1.5]
+cp.ingest.uvw.feeds.feed29             = [2.5, -0.5]
+cp.ingest.uvw.feeds.feed30             = [2.5,  0.5]
+cp.ingest.uvw.feeds.feed31             = [2.5,  1.5]
+
 
 # Channel Averaging Task
 cp.ingest.chanavg.averaging         = 54

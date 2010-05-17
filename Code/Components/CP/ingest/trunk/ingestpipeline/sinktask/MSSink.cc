@@ -295,12 +295,11 @@ void MSSink::initFeeds(void)
         isList = True;
 
         if (x.nelements() != y.nelements()) {
-            ASKAPLOG_FATAL_STR(logger, "Feed x and y must be the same length");
+            ASKAPLOG_ERROR_STR(logger, "Feed x and y must be the same length");
         }
 
         ASKAPCHECK(pol.nelements() == x.nelements(),
                    "Feed polarization list must be same length as the number of positions");
-        ASKAPLOG_INFO_STR(logger, "Constructing FEED table from list");
     } else {
         nFeed = 1;
 

@@ -63,6 +63,10 @@ class CalcUVWTaskTest : public CppUnit::TestFixture
         itsParset.add("uvw.antennas.A3", "[-289.355286,  -586.936035,   0.0000]");
         itsParset.add("uvw.antennas.A4", "[-157.031570,  -815.570068,   0.0000]");
         itsParset.add("uvw.antennas.A5", "[-521.311646,  -754.674927,   0.0000]");
+
+        itsParset.add("uvw.feeds.names", "[feed0]");
+        itsParset.add("uvw.feeds.spacing", "1deg");
+        itsParset.add("uvw.feeds.feed0", "[0.0, 0.0]");
     };
 
     void tearDown()

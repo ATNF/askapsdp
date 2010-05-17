@@ -30,11 +30,14 @@
 // ASKAPsoft includes
 #include "boost/scoped_ptr.hpp"
 #include "Common/ParameterSet.h"
+#include "scimath/Mathematics/RigidVector.h"
+#include "casa/Arrays/Vector.h"
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestutils/AntennaPositions.h"
+#include "ingestutils/IConfiguration.h"
 
 namespace askap {
 namespace cp {
@@ -90,11 +93,20 @@ class CalcUVWTask : public askap::cp::ITask {
         // Calculates UVW coordinates for the specified "row" in the "chunk"
         void calcForRow(VisChunk::ShPtr chunk, const casa::uInt row);
 
+        void setupBeamOffsets(void);
+
         // Parameter set
         const LOFAR::ParameterSet itsParset;
 
         // Antenna positions
         boost::scoped_ptr<AntennaPositions> itsAntennaPositions;
+        
+        // Configuration (from parset)
+        // Currently used for obtaining beam offsets
+        // TODO: Unify configuration
+        boost::scoped_ptr<IConfiguration> itsConfig;
+
+        casa::Vector< casa::RigidVector<double, 2> > itsBeamOffset;
 };
 
 }
