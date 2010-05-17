@@ -160,13 +160,13 @@ void SimPlayback::run(void)
     bool moreData = true;
     while (moreData) {
         const unsigned long nextTime =
-            static_cast<unsigned int>(MPI_Wtime() * 1000.0 * 1000.0) + period ;
+            static_cast<unsigned int>(MPI_Wtime() * 1000.0 * 1000.0) + period;
         MPI_Barrier(MPI_COMM_WORLD);
         moreData = sim->sendNext();
 
         // Wait before sending the next integration
         unsigned long now = static_cast<unsigned int>(MPI_Wtime() * 1000.0 * 1000.0);
-       
+
         // But first check and report if we are behind schedule
         if (itsRank == 0) {
             if (now > nextTime) {
@@ -175,7 +175,8 @@ void SimPlayback::run(void)
         }
 
         while (now < nextTime) {
-            usleep(nextTime - now);
+            const unsigned long sleepTime = nextTime - now;
+            usleep(sleepTime);
             now = static_cast<unsigned int>(MPI_Wtime() * 1000.0 * 1000.0);
         }
     }
