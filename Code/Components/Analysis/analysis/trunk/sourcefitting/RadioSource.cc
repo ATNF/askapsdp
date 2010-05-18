@@ -269,17 +269,17 @@ namespace askap {
                     }
                 }
 
-		std::nth_element(localArray.begin(),localArray.begin()+arrsize/2,localArray.end());
+		std::nth_element(localArray,localArray+arrsize/2,localArray+arrsize);
 		float median = localArray[size/2];
 		if(size%2==0){
-		  std::nth_element(localArray.begin(),localArray.begin()+arrsize/2-1,localArray.end());
+		  std::nth_element(localArray,localArray+arrsize/2-1,localArray+arrsize);
 		  median += localArray[size/2-1];
 		  median /= 2.;
 		}
 		for (size_t i = 0; i < rsize; i++) localArray[i] = fabs(localArray[i] - median);
 		float madfm = localArray[size/2];
 		if(size%2==0){
-		  std::nth_element(localArray.begin(),localArray.begin()+arrsize/2-1,localArray.end());
+		  std::nth_element(localArray,localArray+arrsize/2-1,localArray+arrsize);
 		  median += localArray[size/2-1];
 		  median /= 2.;
 		}
