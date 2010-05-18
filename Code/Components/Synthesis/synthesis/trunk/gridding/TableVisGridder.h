@@ -86,6 +86,14 @@ namespace askap
       /// @param[in] other input object
       TableVisGridder(const TableVisGridder &other);
       
+      /// @brief assignment operator
+      /// @details it is required to decouple arrays between the input object
+      /// and the copy.
+      /// @param[in] other input object
+      /// @return reference to itself
+      TableVisGridder& operator=(const TableVisGridder &other);
+      
+      
       virtual ~TableVisGridder();
 
       /// @brief Save to a table (for debugging)

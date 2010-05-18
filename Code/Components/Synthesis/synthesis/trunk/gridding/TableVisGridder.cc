@@ -144,6 +144,52 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
       itsVisWeight = other.itsVisWeight;
    }
 }
+
+/// @brief assignment operator
+/// @details it is required to decouple arrays between the input object
+/// and the copy.
+/// @param[in] other input object
+/// @return reference to itself
+TableVisGridder& TableVisGridder::operator=(const TableVisGridder &other)
+{
+  if (&other != this) {
+      itsAxes = other.itsAxes; 
+      itsShape = other.itsShape; 
+      itsUVCellSize = other.itsUVCellSize.copy();
+      itsSumWeights = other.itsSumWeights.copy(); 
+      itsSupport = other.itsSupport;
+      itsOverSample = other.itsOverSample;
+      itsName = other.itsName;
+      itsModelIsEmpty = other.itsModelIsEmpty;
+      itsSamplesGridded = other.itsSamplesGridded;
+      itsSamplesDegridded = other.itsSamplesDegridded;
+      itsVectorsFlagged = other.itsVectorsFlagged;
+      itsNumberGridded = other.itsNumberGridded;
+      itsNumberDegridded = other.itsNumberDegridded;
+      itsTimeCoordinates = other.itsTimeCoordinates;
+      itsTimeConvFunctions = other.itsTimeConvFunctions;
+      itsTimeGridded = other.itsTimeGridded;
+      itsTimeDegridded = other.itsTimeDegridded;
+      itsDopsf = other.itsDopsf;
+      itsPaddingFactor = other.itsPaddingFactor;
+      itsFirstGriddedVis = other.itsFirstGriddedVis;
+      itsFeedUsedForPSF = other.itsFeedUsedForPSF;
+      itsPointingUsedForPSF = other.itsPointingUsedForPSF;
+      itsUseAllDataForPSF = other.itsUseAllDataForPSF;
+      itsFreqMapper = other.itsFreqMapper;
+      itsMaxPointingSeparation = other.itsMaxPointingSeparation;
+      itsRowsRejectedDueToMaxPointingSeparation = other.itsRowsRejectedDueToMaxPointingSeparation;
+      itsConvFuncOffsets = other.itsConvFuncOffsets;
+      deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
+      deepCopyOfSTDVector(other.itsGrid, itsGrid);   
+      if(other.itsVisWeight) {
+         itsVisWeight = other.itsVisWeight->clone();
+      } else {
+         itsVisWeight = other.itsVisWeight;
+      }  
+  }
+  return *this;
+}
      
 
 TableVisGridder::~TableVisGridder() {
