@@ -260,7 +260,7 @@ namespace askap {
                 long ymin = max(0, this->ypeak - hw);
                 long xmax = min(dim[0] - 1, this->xpeak + hw);
                 long ymax = min(dim[1] - 1, this->ypeak + hw);
-                int size = 0;
+                size_t size = 0;
 
                 for (int x = xmin; x <= xmax; x++) {
                     for (int y = ymin; y <= ymax; y++) {
