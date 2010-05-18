@@ -121,7 +121,7 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
     
 	ASKAPASSERT(gridder);
 	if (parset.isDefined("gridder.padding")) {
-	    const int padding =parset.getInt32("gridder.padding");
+	    const float padding =parset.getFloat("gridder.padding");
 	    ASKAPLOG_INFO_STR(logger, "Use padding at the gridder level, padding factor = "<<padding);
 	    boost::shared_ptr<TableVisGridder> tvg = 
 	        boost::dynamic_pointer_cast<TableVisGridder>(gridder);

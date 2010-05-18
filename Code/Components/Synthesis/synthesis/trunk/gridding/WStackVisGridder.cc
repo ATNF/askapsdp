@@ -96,10 +96,8 @@ namespace askap
     void WStackVisGridder::initialiseGrid(const scimath::Axes& axes,
         const casa::IPosition& shape, const bool dopsf)
     {
-      itsShape=shape;
       ASKAPDEBUGASSERT(shape.nelements()>=2);
-      itsShape(0) *= paddingFactor();
-      itsShape(1) *= paddingFactor();
+      itsShape=scimath::PaddingUtils::paddedShape(shape,paddingFactor());
 
       initialiseCellSize(axes);
       

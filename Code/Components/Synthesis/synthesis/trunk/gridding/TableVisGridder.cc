@@ -86,14 +86,14 @@ TableVisGridder::TableVisGridder() : itsSumWeights(),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
 	itsTimeDegridded(0.0), itsDopsf(false),
-	itsPaddingFactor(1),
+	itsPaddingFactor(1.),
 	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false),
 	itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0)
 
 {}
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
-        const int padding, const std::string& name) : itsSumWeights(),
+        const float padding, const std::string& name) : itsSumWeights(),
 		 itsSupport(support), itsOverSample(overSample), itsName(name),
 				itsModelIsEmpty(false), itsSamplesGridded(0),
 				itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
@@ -713,34 +713,11 @@ casa::MVDirection TableVisGridder::getTangentPoint() const
 /// @param[in] in double input array
 /// @param[in] padding padding factor
 void TableVisGridder::toComplex(casa::Array<casa::Complex>& out,
-		const casa::Array<double>& in, const int padding) {
-	casa::IPosition outShape(in.shape());
-    // effectively its in.shape
-	const int nx=outShape(0);
-	const int ny=outShape(1);
-
-	ASKAPDEBUGASSERT(outShape.nelements()>=2);
-	outShape(0) *= padding;
-	outShape(1) *= padding;
-	out.resize(outShape);
-	
-	const int xOffset = (outShape(0) - in.shape()(0))/2;
-	const int yOffset = (outShape(1) - in.shape()(1))/2;
-
-
-	casa::ReadOnlyArrayIterator<double> inIt(in, 2);
-	casa::ArrayIterator<casa::Complex> outIt(out, 2);
-	while (!inIt.pastEnd()&&!outIt.pastEnd()) {
-		casa::Matrix<double> inMat(inIt.array());
-		casa::Matrix<casa::Complex> outMat(outIt.array());
-		for (int iy=0; iy<ny; iy++) {
-			for (int ix=0; ix<nx; ix++) {
-				outMat(ix + xOffset, iy + yOffset)=casa::Complex(float(inMat(ix,iy)));
-			}
-		}
-		inIt.next();
-		outIt.next();
-	}
+		const casa::Array<double>& in, const float padding) {	
+	out.resize(scimath::PaddingUtils::paddedShape(in.shape(),padding));
+	out.set(0.);
+    casa::Array<casa::Complex> subImage = scimath::PaddingUtils::extract(out,padding);
+    casa::convertArray<casa::Complex, double>(subImage, in);				
 }
 
 /// @brief Conversion helper function
@@ -750,31 +727,12 @@ void TableVisGridder::toComplex(casa::Array<casa::Complex>& out,
 /// @param[in] in complex input array
 /// @param[in] padding padding factor      
 void TableVisGridder::toDouble(casa::Array<double>& out,
-		const casa::Array<casa::Complex>& in, const int padding) {
-	casa::IPosition outShape(in.shape());
-	ASKAPDEBUGASSERT(outShape.nelements()>=2);
-	outShape(0) /= padding;
-	outShape(1) /= padding;
-	out.resize(outShape);
-	const int nx=outShape(0);
-	const int ny=outShape(1);
-	
-	const int xOffset = (in.shape()(0) - outShape(0))/2;
-	const int yOffset = (in.shape()(1) - outShape(1))/2;
-	
-	casa::ReadOnlyArrayIterator<casa::Complex> inIt(in, 2);
-	casa::ArrayIterator<double> outIt(out, 2);
-	while (!inIt.pastEnd()&&!outIt.pastEnd()) {
-		casa::Matrix<casa::Complex> inMat(inIt.array());
-		casa::Matrix<double> outMat(outIt.array());
-		for (int iy=0; iy<ny; ++iy) {
-			for (int ix=0; ix<nx; ++ix) {
-				outMat(ix, iy)=double(casa::real(inMat(ix + xOffset,iy + yOffset)));
-			}
-		}
-		inIt.next();
-		outIt.next();
-	}
+		const casa::Array<casa::Complex>& in, const float padding) {
+		
+  casa::Array<casa::Complex> wrapper(in);
+  const casa::Array<casa::Complex> subImage = scimath::PaddingUtils::extract(wrapper,padding);
+  out.resize(subImage.shape());
+  casa::convertArray<double,float>(out,real(subImage));
 }
 
 /// @brief set up itsStokes using the information from itsAxes and itsShape
@@ -795,10 +753,8 @@ void TableVisGridder::initStokes()
 
 void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		const casa::IPosition& shape, const bool dopsf) {
-	itsShape=shape;
 	ASKAPDEBUGASSERT(shape.nelements()>=2);
-	itsShape(0) *= itsPaddingFactor;
-	itsShape(1) *= itsPaddingFactor;
+	itsShape=scimath::PaddingUtils::paddedShape(shape,paddingFactor());
 
 	initialiseCellSize(axes);
 	

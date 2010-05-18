@@ -77,7 +77,7 @@ namespace askap
       /// @param[in] padding padding factor (default is 1, i.e. no padding)
       /// @param name Name of table to save convolution function into
       TableVisGridder(const int overSample, const int support,
-          const int padding = 1, 
+          const float padding = 1., 
           const std::string& name=std::string(""));
 
       /// @brief copy constructor
@@ -141,11 +141,11 @@ namespace askap
 
       /// @brief return padding factor
       /// @return current padding factor
-      int inline paddingFactor() const { return itsPaddingFactor;}
+      float inline paddingFactor() const { return itsPaddingFactor;}
 
       /// @brief set padding factor
       /// @param[in] padding new padding factor
-      void inline setPaddingFactor(const int padding) { itsPaddingFactor = padding;}
+      void inline setPaddingFactor(const float padding) { itsPaddingFactor = padding;}
 
       /// @brief set or reset flag forcing gridder to use all data for PSF
       /// @details Change itsUseAllDataForPSF
@@ -318,7 +318,7 @@ namespace askap
       /// @param[in] in double input array
       /// @param[in] padding padding factor
       static void toComplex(casa::Array<casa::Complex>& out, const casa::Array<double>& in, 
-                     const int padding = 1);
+                     const float padding = 1.);
 
       /// @brief Conversion helper function
       /// @details Copies real part of in into double array and
@@ -327,7 +327,7 @@ namespace askap
       /// @param[in] in complex input array      
       /// @param[in] padding padding factor
       static void toDouble(casa::Array<double>& out, const casa::Array<casa::Complex>& in,
-                    const int padding = 1);
+                    const float padding = 1.);
 
       /// @brief a helper method to initialize gridding of the PSF
       /// @details The PSF is calculated using the data for a
@@ -391,7 +391,7 @@ namespace askap
       bool itsDopsf;
       
       /// @brief internal padding factor, 1 by default
-      int itsPaddingFactor;
+      float itsPaddingFactor;
   
       /// Generic grid/degrid - this is the heart of this framework. It should never
       /// need to be overridden
