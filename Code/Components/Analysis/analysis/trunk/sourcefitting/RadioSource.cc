@@ -269,20 +269,22 @@ namespace askap {
                     }
                 }
 
-                std::sort(localArray, localArray + size);
-                float median, madfm;
+		std::nth_element(localArray.begin(),localArray.begin()+arrsize/2,localArray.end());
+		float median = localArray[size/2];
+		if(size%2==0){
+		  std::nth_element(localArray.begin(),localArray.begin()+arrsize/2-1,localArray.end());
+		  median += localArray[size/2-1];
+		  median /= 2.;
+		}
+		for (size_t i = 0; i < rsize; i++) localArray[i] = fabs(localArray[i] - median);
+		float madfm = localArray[size/2];
+		if(size%2==0){
+		  std::nth_element(localArray.begin(),localArray.begin()+arrsize/2-1,localArray.end());
+		  median += localArray[size/2-1];
+		  median /= 2.;
+		}
+		this->itsNoiseLevel= Statistics::madfmToSigma(madfm);
 
-                if (size % 2 == 0) median = (localArray[size/2] + localArray[size/2-1]) / 2.;
-                else median = localArray[size/2];
-
-                for (int i = 0; i < size; i++) localArray[i] = fabs(localArray[i] - median);
-
-                std::sort(localArray, localArray + size);
-
-                if ((size % 2) == 0) madfm = (localArray[size/2] + localArray[size/2-1]) / 2.;
-                else madfm = localArray[size/2];
-
-                this->itsNoiseLevel = Statistics::madfmToSigma(madfm);
                 delete [] localArray;
             }
 

@@ -398,13 +398,9 @@ namespace askap {
 	      median += array[arrsize/2-1];
 	      median /= 2.;
 	    }
-//             std::sort(array.begin(), array.end());
-//             float median = (arrsize % 2 == 0) ? 0.5 * (array[arrsize/2] + array[arrsize/2-1]) : array[arrsize/2];
 
             for (size_t i = 0; i < arrsize; i++) array[i] = fabs(array[i] - median);
 
-//             std::sort(array.begin(), array.end());
-//             float madfm = (arrsize % 2 == 0) ? 0.5 * (array[arrsize/2] + array[arrsize/2-1]) : array[arrsize/2];
 	    float madfm = array[arrsize/2];
 	    if(arrsize%2==0){
 	      std::nth_element(array.begin(),array.begin()+arrsize/2-1,array.end());
