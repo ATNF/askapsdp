@@ -919,8 +919,11 @@ namespace askap {
                             src.setPeakSNR(maxSNR);
                         } else thresholdForFitting = threshold;
 
-                        float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
-                        src.setNoiseLevel(noise);
+			if(!this->itsCube.pars().getFlagUserThreshold()){
+			  float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
+			  src.setNoiseLevel(noise);
+			}
+			else src.setNoiseLevel(1);
                         src.setDetectionThreshold(thresholdForFitting);
                         src.setHeader(head);
                         src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);

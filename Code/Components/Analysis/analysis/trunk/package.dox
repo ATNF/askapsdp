@@ -1,6 +1,7 @@
 /// @defgroup parallelanalysis Parallel processing routines
 /// @defgroup analysisutilities Utility functions to support analysis package
 /// @defgroup sourcefitting Source fitting routines and classes
+/// @defgroup patternmatching Routines to match source lists
 
 /// The package namespace
 namespace askap::analysis {};
