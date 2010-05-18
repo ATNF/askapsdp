@@ -919,7 +919,7 @@ namespace askap {
                             src.setPeakSNR(maxSNR);
                         } else thresholdForFitting = threshold;
 
-			if(!this->itsCube.pars().getFlagUserThreshold()){
+			if(this->itsFitter.useNoise() && !this->itsCube.pars().getFlagUserThreshold()){
 			  float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
 			  src.setNoiseLevel(noise);
 			}
