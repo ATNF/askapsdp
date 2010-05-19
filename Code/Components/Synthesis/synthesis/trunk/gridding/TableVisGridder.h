@@ -85,15 +85,7 @@ namespace askap
       /// and the copy.
       /// @param[in] other input object
       TableVisGridder(const TableVisGridder &other);
-      
-      /// @brief assignment operator
-      /// @details it is required to decouple arrays between the input object
-      /// and the copy.
-      /// @param[in] other input object
-      /// @return reference to itself
-      TableVisGridder& operator=(const TableVisGridder &other);
-      
-      
+                  
       virtual ~TableVisGridder();
 
       /// @brief Save to a table (for debugging)
@@ -370,6 +362,15 @@ namespace askap
       std::vector<casa::Array<casa::Complex> > itsGrid;
             
   private:
+      /// @brief assignment operator
+      /// @details it is required to decouple arrays between the input object
+      /// and the copy.
+      /// @param[in] other input object
+      /// @return reference to itself
+      /// @note assignment operator is made private, so wouldn't need to support both copy constructor and
+      /// assignment operator. In the case of inadvertent use, compiler should give an error
+      TableVisGridder& operator=(const TableVisGridder &other);
+  
       /// @brief polarisation frame for the grid
       /// @details Assumed to be the same for all elements of itsGrid vector.
       /// This field is filled in initialiseGrid or initialiseDegrid using the Axes 

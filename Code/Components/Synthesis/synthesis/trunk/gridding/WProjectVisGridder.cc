@@ -440,6 +440,17 @@ namespace askap
        return *itsCFBuffer;
     }
 
+    /// @brief assignment operator
+    /// @details Defined as private, so it can't be called (to enforce usage of the 
+    /// copy constructor
+    /// @param[in] other input object
+    /// @return reference to itself
+    WProjectVisGridder& WProjectVisGridder::operator=(const WProjectVisGridder &)
+    {
+      ASKAPTHROW(AskapError, "This method is not supposed to be called!");
+      return *this;
+    }
+
 
   } // namespace askap
 } // namespace synthesis

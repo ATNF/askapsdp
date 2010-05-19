@@ -160,6 +160,13 @@ protected:
   static boost::shared_ptr<GridderType> createAProjectGridder(const LOFAR::ParameterSet &parset);
           
 private:
+  /// @brief assignment operator (never to be called)
+  /// @details It is defined as private, so we can't call it and use copy constructor instead.
+  /// @param[in] other input object
+  /// @return reference to itself
+  AProjectGridderBase& operator=(const AProjectGridderBase &other);
+
+
   /// Pointing tolerance in radians
   double itsPointingTolerance;
    

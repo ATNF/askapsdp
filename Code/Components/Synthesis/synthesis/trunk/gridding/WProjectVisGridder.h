@@ -182,6 +182,13 @@ namespace askap
       /// Mapping from row, pol, and channel to planes of convolution function
       casa::Cube<int> itsCMap;
   private:    
+      /// @brief assignment operator
+      /// @details Defined as private, so it can't be called (to enforce usage of the 
+      /// copy constructor
+      /// @param[in] other input object
+      /// @return reference to itself
+      WProjectVisGridder& operator=(const WProjectVisGridder &other);
+
       /// Maximum support
       int itsMaxSupport;
       /// Threshold for cutoff of convolution function

@@ -118,6 +118,12 @@ namespace askap
 				
 				/// Mapping from row, pol, and channel to planes of grid
 				casa::Cube<int> itsGMap;
+            private:
+    	        /// @brief assignment operator
+				/// @details It is required as private to avoid being called
+				/// @param[in] other input object
+				/// @return reference to itself
+				WStackVisGridder& operator=(const WStackVisGridder &other);    
 		};
 	}
 }

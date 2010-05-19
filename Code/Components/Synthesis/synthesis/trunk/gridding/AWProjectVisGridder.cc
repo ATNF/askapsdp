@@ -579,6 +579,15 @@ void AWProjectVisGridder::correctConvolution(casa::Array<double>& image)
       return itsCMap(row, pol, chan);
     }
 
+/// @brief assignment operator (not to be called)
+/// @details It is made private, so we can't call it inadvertently
+/// @param[in] other input object
+AWProjectVisGridder& AWProjectVisGridder::operator=(const AWProjectVisGridder &)
+{
+  ASKAPTHROW(AskapError, "This method is not supposed to be called!");
+  return *this;
+}
+
 
 /// @brief static method to create gridder
 /// @details Each gridder should have a static factory method, which is

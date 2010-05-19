@@ -476,10 +476,10 @@ void SimParallel::predict(const string& ms)
         ASKAPCHECK(equation, "Equation is not defined correctly");
 
         if (itsParset.getBool("noise", false)) {
-            ASKAPCHECK(itsParset.isDefined("noise.variance"), "noise.variance  is missing in the input parset. It should contain a variance of the noise to be simulated.");
-            const double variance = itsParset.getDouble("noise.variance");
+            const double variance = getNoise(itsParset.makeSubset("noise."));
             ASKAPLOG_INFO_STR(logger, "Gaussian noise (variance=" << variance <<
                               " Jy^2 or sigma="<<sqrt(variance)<<" Jy) will be added to visibilities");
+
             const casa::Int seed1 = getSeed("noise.seed1","time");                  
             const casa::Int seed2 = getSeed("noise.seed2","%w");                  
 
@@ -494,6 +494,51 @@ void SimParallel::predict(const string& ms)
         equation->predict();
         ASKAPLOG_INFO_STR(logger,  "Predicted data for " << ms << " in " << timer.real() << " seconds ");
     }
+}
+
+/// @brief helper method to obtain the noise per visibility
+/// @details Depending on the parameters, the noise is either read
+/// directly from the parset (parameters should not have any prefix, e.g.
+/// just variance, rms, etc) or calculated using the simulator settings
+/// and specified parameters such as Tsys and efficiency (should also be
+/// defined without any prefix).
+/// @param[in] parset ParameterSet for inputs
+/// @return noise variance per visibility in Jy
+double SimParallel::getNoise(const LOFAR::ParameterSet& parset) const
+{
+   ASKAPCHECK(parset.isDefined("Tsys") == parset.isDefined("efficiency"), 
+      "Tsys and efficiency parset parameters should either be both defined (for automatic noise calculation) or not "
+      "if noise magnitude is overridden with an explicit value given by rms or variance");
+   if (parset.isDefined("Tsys")) {
+       // automatic noise estimate
+       ASKAPCHECK(!parset.isDefined("rms") && !parset.isDefined("variance"), 
+          "If an automatic noise estimate is used, neither 'rms', nor 'variance' parset parameters should be given");
+   
+       const double Tsys = parset.getDouble("Tsys");
+       const double eff = parset.getDouble("efficiency");
+       ASKAPLOG_INFO_STR(logger, "Noise level is estimated automatically using Tsys="<<Tsys<<
+                                 " K and efficiency="<<eff);
+       ASKAPCHECK((eff > 0) && (eff <= 1.), "Efficiency is supposed to be from (0,1] interval");
+       ASKAPCHECK(Tsys>0, "Tsys is supposed to be positive");
+       ASKAPASSERT(itsSim);                          
+       const double rms = 1e26*sqrt(2.)*1.38e-23*Tsys/eff/itsSim->areaTimesSqrtBT();
+       ASKAPLOG_INFO_STR(logger, " resulting in rms of "<<rms<<" Jy");
+       return rms*rms;
+   } 
+    
+   ASKAPCHECK(parset.isDefined("rms") || parset.isDefined("variance"), 
+      "If the noise level is explicitly given, either 'rms', or 'variance' parset parameters should be defined");
+                    
+   ASKAPCHECK(parset.isDefined("rms") != parset.isDefined("variance"), 
+      "Please give either 'rms' or 'variance' parset parameter, but not both!");
+   if (parset.isDefined("rms")) {
+       const double rms = parset.getDouble("rms");
+       ASKAPLOG_INFO_STR(logger, "Noise level is given explicitly as rms of "<<rms<<" Jy");
+       return rms*rms;
+   }
+   const double variance = parset.getDouble("variance");
+   ASKAPLOG_INFO_STR(logger, "Noise level is given explicitly as a variance of "<<variance<<" Jy^2");
+   return variance;
 }
 
 /// @brief read seed for the random generator

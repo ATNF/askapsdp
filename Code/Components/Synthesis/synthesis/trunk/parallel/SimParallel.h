@@ -137,6 +137,17 @@ namespace askap
                 void simulate();
 
             protected:
+                /// @brief helper method to obtain the noise per visibility
+                /// @details Depending on the parameters, the noise is either read
+                /// directly from the parset (parameters should not have any prefix, e.g.
+                /// just variance, rms, etc) or calculated using the simulator settings
+                /// and specified parameters such as Tsys and efficiency (should also be
+                /// defined without any prefix).
+                /// @param[in] parset ParameterSet for inputs
+                /// @return noise variance per visibility in Jy
+                double getNoise(const LOFAR::ParameterSet& parset) const;
+                
+            
                 /// @brief a helper method to add up an equation
                 /// @details Some times it is necessary to replace a measurement equation
                 /// with a sum of two equations. Typical use cases are adding noise to

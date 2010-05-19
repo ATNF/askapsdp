@@ -275,5 +275,15 @@ namespace askap
       return gridder;
     }
 
+    /// @brief assignment operator
+    /// @details It is required as private to avoid being called
+    /// @param[in] other input object
+    /// @return reference to itself
+    WStackVisGridder& WStackVisGridder::operator=(const WStackVisGridder &)
+    {
+      ASKAPTHROW(AskapError, "This method is not supposed to be called!");
+      return *this;
+    }    
+
   }
 }

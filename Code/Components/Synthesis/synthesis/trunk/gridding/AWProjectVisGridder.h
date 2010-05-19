@@ -162,6 +162,11 @@ namespace askap
       /// @param image image to be corrected
       virtual void correctConvolution(casa::Array<double>& image);
   private:
+      /// @brief assignment operator (not to be called)
+      /// @details It is made private, so we can't call it inadvertently
+      /// @param[in] other input object
+      AWProjectVisGridder& operator=(const AWProjectVisGridder &other);
+
       /// Reference frequency for illumination pattern. 
       double itsReferenceFrequency;
       /// Antenna illumination model

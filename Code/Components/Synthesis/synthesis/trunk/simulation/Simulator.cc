@@ -131,7 +131,7 @@ void Simulator::defaults()
 
 Simulator::Simulator(const casa::String& MSName, int bucketSize,
                      int tileNcorr, int tileNchan) :
-        ms_p(0)
+        ms_p(0), itsDishDiamForNoise(-1.), itsChanBandwidthForNoise(-100.)
 {
     try {
         defaults();
@@ -213,7 +213,7 @@ Simulator::Simulator(const casa::String& MSName, int bucketSize,
 }
 
 Simulator::Simulator(casa::MeasurementSet& theMS) :
-        ms_p(0)
+        ms_p(0), itsDishDiamForNoise(-1.), itsChanBandwidthForNoise(-100.)
 {
     defaults();
 
@@ -268,6 +268,15 @@ void Simulator::initAnt(const casa::String& telescope, const casa::Vector<double
         longlat2global(xx, yy, zz, mRefLocation, x, y, z);
     } else {
         ASKAPLOG_INFO_STR(logger, "Unknown coordinate system type: " << coordsystem);
+    }
+    
+    for (size_t i = 0; i<dishDiameter.size(); ++i) {
+         if (i == 0) {
+             itsDishDiamForNoise = dishDiameter[i];
+         } else if (fabs(itsDishDiamForNoise - dishDiameter[i])>1e-6) {
+             itsDishDiamForNoise = -1.;
+             break;
+         }
     }
 
     Vector<Int> antId(nAnt);
@@ -598,6 +607,7 @@ Simulator & Simulator::operator=(const Simulator & other)
 {
     if (this == &other) return *this;
 
+    ASKAPTHROW(AskapError, "Copy constructor or assignment operator of Simulator are not supposed to be called");
     // copy state...
     return *this;
 }
@@ -682,6 +692,17 @@ void Simulator::observe(const casa::String& sourceName,
                               << "     number of channels : " << nChan << endl
                               << "     total bandwidth : " << nChan*freqInc / 1.0e9 << "GHz" << endl
                               << "     number of correlations : " << nCorr << endl);
+    }
+    
+    if (itsChanBandwidthForNoise < -10) {
+        // negative value less than -10 means that the first spectral window is processed
+        itsChanBandwidthForNoise = fabs(freqInc);
+    } else if (itsChanBandwidthForNoise > 0) {
+        // check this spectral window for conformance
+        if (fabs(itsChanBandwidthForNoise - fabs(freqInc))>0.1) {
+            // this flag means that spectral windows which are observed had inhomogeneous resolutions
+            itsChanBandwidthForNoise = -1;
+        }
     }
 
     // Field
@@ -1145,6 +1166,30 @@ String Simulator::formatTime(const double time)
     MVTime mvtime(Quantity(time, "s"));
     return mvtime.string(MVTime::DMY, 7);
 }
+
+/// @brief return area times sqrt(bandwidth*int_time)
+/// @details This quantity is used for automatic noise estimates. It is 
+/// composed from itsChanBandwidthForNoise and itsDishDiamForNoise.
+/// An exception is thrown if either array is inhomogeneous or 
+/// multiple spectral resolutions are simulated. This method is supposed
+/// to be called when the simulator is fully defined.
+/// @return antenna area (m^2) multiplied by square root of the product of bandwidth(Hz) 
+/// and integration time (s)
+double Simulator::areaTimesSqrtBT() const
+{
+   ASKAPCHECK(itsDishDiamForNoise > 0., "Inhomogeneous antenna sizes have been detected (or sizes not defined at all). "
+              "Automatic noise estimate is impossible. Please override with explicit value of 'rms' or 'variance'");
+   ASKAPLOG_INFO_STR(logger, " Using antenna diameter of "<<itsDishDiamForNoise<<" m to estimate noise per visibility");
+   ASKAPCHECK(itsChanBandwidthForNoise > 0., "Simulated observations contain multiple spectral resolutions "
+              "(or they are not defined at all). "
+              "Automatic noise estimate is impossible. Please override with explicit value of 'rms' or 'variance'");
+   ASKAPLOG_INFO_STR(logger, " Using channel bandwidth of "<<itsChanBandwidthForNoise/1e3<<" kHz to estimate noise per visibility");
+
+   const double inttime = qIntegrationTime_p.getValue("s");
+   ASKAPCHECK(inttime > 0., "Integration time is supposed to be positive. You have "<<inttime<<" seconds");
+   return casa::C::pi*casa::square(itsDishDiamForNoise)/4.*sqrt(itsChanBandwidthForNoise*inttime);
+}
+
 
 } // End namespace synthesis
 

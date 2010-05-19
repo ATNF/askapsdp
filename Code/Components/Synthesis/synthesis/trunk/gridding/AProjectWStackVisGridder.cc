@@ -471,6 +471,15 @@ IVisGridder::ShPtr AProjectWStackVisGridder::createGridder(const LOFAR::Paramete
   return createAProjectGridder<AProjectWStackVisGridder>(parset);
 }
 
+/// @brief assignment operator (not to be called)
+/// @details It is defined as private, so we can't call it inadvertently 
+/// @param[in] other input object
+/// @return reference to itself
+AProjectWStackVisGridder& AProjectWStackVisGridder::operator=(const AProjectWStackVisGridder &)
+{
+  ASKAPTHROW(AskapError, "This method is not supposed to be called!");
+  return *this;
+}
 
 }
 }

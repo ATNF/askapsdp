@@ -67,16 +67,8 @@ namespace askap
                 /// @param ms Existing MeasurementSet object
                 Simulator(casa::MeasurementSet& ms);
 
-                /// Copy constructor - for completeness only
-                /// @param mss Simulator to be copied
-                Simulator(const Simulator & mss);
-
                 // Destructor
                 ~Simulator();
-
-                /// Assignment
-                /// @param mss Simulator to be assigned from 
-                Simulator & operator=(const Simulator & mss);
 
                 /// @brief Set the antenna and array data. 
                 /// @details These are written immediately to the
@@ -168,12 +160,33 @@ namespace askap
                         const casa::String& spwindowname, const casa::Quantity& starttime,
                         const casa::Quantity& stoptime);
 
+                /// @brief return area times sqrt(bandwidth*int_time)
+                /// @details This quantity is used for automatic noise estimates. It is 
+                /// composed from itsChanBandwidthForNoise and itsDishDiamForNoise.
+                /// An exception is thrown if either array is inhomogeneous or 
+                /// multiple spectral resolutions are simulated. This method is supposed
+                /// to be called when the simulator is fully defined.
+                /// @return antenna area (m^2) multiplied by square root of the product of bandwidth(Hz) 
+                /// and integration time (s)
+                double areaTimesSqrtBT() const;
+
             private:
 
                 /// Prevent use of default constructor
                 Simulator()
                 {
                 }
+
+                /// @brief Copy constructor
+                /// @details made private to avoid it being called inadvertently
+                /// @param mss Simulator to be copied
+                Simulator(const Simulator & mss);
+
+                /// @brief assignment operator
+                /// @details made private to avoid it being called inadvertently
+                /// @param mss Simulator to be assigned from 
+                /// @return reference to itself
+                Simulator & operator=(const Simulator & mss);
 
                 /// Fractional blockage limit
                 double fractionBlockageLimit_p;
@@ -243,7 +256,27 @@ namespace askap
 
                 /// Restore default values
                 void defaults();
-
+                
+                /// @brief dish diameter (to get noise)
+                /// @details We have a simplified noise model at the moment with the constant noise
+                /// for all visibilities. This data field contains the dish diameter in metres used
+                /// to estimate noise. Non-positive number means that the array is inhomogeneous
+                /// (this case is not supported yet and will cause an exception if an automatic noise
+                /// estimate is requested). 
+                double itsDishDiamForNoise;
+                
+                /// @brief channel bandwidth (to get noise)
+                /// @details We have a simplified noise model at the moment with the constant noise
+                /// for all visibilities. This data field contains the bandwidth of a single channel in Hz
+                /// used to estimate noise. Non-positive number means that the observations contain a
+                /// number of setups with different frequency increments. This case is not yet
+                /// supported and will cause an exception if an automatic noise estimate is
+                /// requested.
+                /// @note The value is initialised with -100 in the constructor to be able to distinguish 
+                /// uninitialised value when no spectral windows are processed and mismatching resolutions
+                /// (the value is -1). These are internal flags, which are completely hidden from the user of
+                /// this class.
+                double itsChanBandwidthForNoise;
         };
 
     }

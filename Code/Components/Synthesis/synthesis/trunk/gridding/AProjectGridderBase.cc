@@ -244,6 +244,17 @@ void AProjectGridderBase::validateCFCache(const IConstDataAccessor &acc, bool sy
   } 
 }
 
+/// @brief assignment operator (never to be called)
+/// @details It is defined as private, so we can't call it and use copy constructor instead.
+/// @param[in] other input object
+/// @return reference to itself
+AProjectGridderBase& AProjectGridderBase::operator=(const AProjectGridderBase &other)
+{
+  ASKAPTHROW(AskapError, "This method is not supposed to be called!");
+  return *this;
+}
+
+
 /// @brief update statistics
 /// @details This class maintains cache rebuild statistics. It is impossible to update them 
 /// directly in validateCFCache because a priori it is not known how many CFs are recalculated
