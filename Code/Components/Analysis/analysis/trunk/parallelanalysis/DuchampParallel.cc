@@ -157,6 +157,7 @@ namespace askap {
             this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
+	    this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
@@ -657,8 +658,10 @@ namespace askap {
                     if (!src.isAtEdge() && this->itsFlagDoFit) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
                         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
-			src.findAlpha(this->itsImage);
-			src.findBeta(this->itsImage);
+			if(this->itsFlagFindSpectralIndex){
+			  src.findAlpha(this->itsImage);
+			  src.findBeta(this->itsImage);
+			}
                     }
 
                     this->itsSourceList.push_back(src);
@@ -930,8 +933,10 @@ namespace askap {
 			
                         if (this->itsFlagDoFit){
 			  src.fitGauss(&this->itsVoxelList, this->itsFitter);
-			  src.findAlpha(this->itsImage);
-			  src.findBeta(this->itsImage);
+			  if(this->itsFlagFindSpectralIndex){
+			    src.findAlpha(this->itsImage);
+			    src.findBeta(this->itsImage);
+			  }
 			}
 
                         this->itsSourceList.push_back(src);

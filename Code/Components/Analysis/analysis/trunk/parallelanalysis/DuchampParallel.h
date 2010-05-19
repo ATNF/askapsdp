@@ -196,6 +196,9 @@ namespace askap {
                 /// Shall we fit to the sources?
                 bool itsFlagDoFit;
 
+		/// Shall we find spectral index information?
+		bool itsFlagFindSpectralIndex;
+
                 /// Name of the summary file
                 std::string itsSummaryFile;
 
