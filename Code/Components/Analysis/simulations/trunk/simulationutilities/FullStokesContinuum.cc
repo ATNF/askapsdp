@@ -107,7 +107,10 @@ namespace askap {
 	    this->itsStokesUref = stokesU;
 	    this->itsStokesVref = 0.;     // Setting Stokes V to be zero for now!
 	    this->itsPolFracRef = fracPol;
-	    this->itsPolAngleRef = acos(stokesQ/polFlux);
+	    if(polFlux>0.)
+	      this->itsPolAngleRef = acos(stokesQ/polFlux);
+	    else 
+	      this->itsPolAngleRef = 0.;
 	    this->itsRM = rm;
 	    this->itsAlpha = (log10(i1420)-i610L)/log10(1420./610.);
         }
