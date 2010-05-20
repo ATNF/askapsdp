@@ -47,11 +47,6 @@ namespace askap {
             public:
                 /// @brief Constructor.
                 /// Construct a VisChunk where its containers are created with
-                /// a zero size.
-                VisChunk();
-
-                /// @brief Constructor.
-                /// Construct a VisChunk where its containers are created with
                 /// the dimensions specified.
                 /// 
                 /// @param[in] nRow containers with a nRow dimension will be created
@@ -75,7 +70,7 @@ namespace askap {
 
                 /// The number of spectral channels (equal for all rows)
                 /// @return the number of spectral channels
-                casa::uInt& nChannel();
+                casa::uInt nChannel() const;
 
                 /// The number of polarization products (equal for all rows)
                 /// @return the number of polarization products (can be 1,2 or 4)
@@ -83,7 +78,7 @@ namespace askap {
 
                 /// Timestamp for this correlator integration
                 /// @return a timestamp for this buffer. Absolute time expressed as
-                /// seconds since MJD=0.
+                /// seconds since MJD=0 UTC.
                 casa::MVEpoch& time();
 
                 /// @copydoc VisChunk::time()
@@ -234,9 +229,29 @@ namespace askap {
                 /// @copydoc VisChunk::stokes()
                 const casa::Vector<casa::Stokes::StokesTypes>& stokes() const;
 
-                //void resize(const casa::Cube<casa::Complex>& visibility,
-                //        const casa::Cube<casa::Bool>& flag,
-                //        const casa::Vector<casa::Double>& frequency);
+                /// Allows the VisChunk's nChannel dimension to be resized.
+                /// This allows resizing in the nChannel dimension only, and by
+                /// allowing new visibility, flag and frequency containers to
+                /// be assigned.
+                ///
+                /// @note This exists to support the channel averaging task.
+                ///
+                /// The following conditions must be met otherwise an
+                /// AskapError exception is thrown:
+                /// @li The visibility and flag cubes must have the same number
+                ///     of rows and polarisations as the existing cubes.
+                /// @li The visibility and flag cubes and the frequency vector
+                ///     must have the same size channel dimension.
+                ///
+                /// @throw AskapError If one of the above mentioned conditions
+                ///     not met.
+                ///
+                /// @param[in] visibility the new visibility cube to assign.
+                /// @param[in] flag  the new flag cube to assign.
+                /// @param[in] frequency the new frequency vector to assign.
+                void resize(const casa::Cube<casa::Complex>& visibility,
+                        const casa::Cube<casa::Bool>& flag,
+                        const casa::Vector<casa::Double>& frequency);
 
                 /// @brief Shared pointer typedef
                 typedef boost::shared_ptr<VisChunk> ShPtr;
@@ -252,28 +267,39 @@ namespace askap {
                 /// Number of polarisations
                 casa::uInt itsNumberOfPolarisations;
 
+                /// Time
+                casa::MVEpoch itsTime;
+
+                /// Interval
+                casa::Double itsInterval;
+
                 /// Antenna1
                 casa::Vector<casa::uInt> itsAntenna1;
+
                 /// Antenna2
                 casa::Vector<casa::uInt> itsAntenna2;
 
                 /// Beam1
                 casa::Vector<casa::uInt> itsBeam1;
+
                 /// Beam2
                 casa::Vector<casa::uInt> itsBeam2;
 
                 /// Beam1 position angle
                 casa::Vector<casa::Float> itsBeam1PA;
+
                 /// Beam2 position angle
                 casa::Vector<casa::Float> itsBeam2PA;
 
                 /// Pointing direction of the first antenna/beam
                 casa::Vector<casa::MDirection> itsPointingDir1;
+
                 /// Pointing direction of the second antenna/beam
                 casa::Vector<casa::MDirection> itsPointingDir2;
 
                 /// Pointing direction of the centre of the first antenna
                 casa::Vector<casa::MDirection> itsDishPointing1;
+
                 /// Pointing direction of the centre of the second antenna
                 casa::Vector<casa::MDirection> itsDishPointing2;
 
@@ -285,12 +311,6 @@ namespace askap {
 
                 /// UVW
                 casa::Vector<casa::RigidVector<casa::Double, 3> > itsUVW;
-
-                /// Time
-                casa::MVEpoch itsTime;
-
-                /// Interval
-                casa::Double itsInterval;
 
                 /// Frequency
                 casa::Vector<casa::Double> itsFrequency;

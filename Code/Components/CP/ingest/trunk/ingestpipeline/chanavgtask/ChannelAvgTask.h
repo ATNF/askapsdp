@@ -51,14 +51,6 @@ class ChannelAvgTask : public askap::cp::ITask {
 
     private:
 
-        void averageFreq(VisChunk::ShPtr chunk,
-                         const casa::uInt nChanOriginal,
-                         const casa::uInt nChanNew);
-
-        void averageVis(VisChunk::ShPtr chunk,
-                        const casa::uInt nChanOriginal,
-                        const casa::uInt nChanNew);
-
         // Parameter set
         const LOFAR::ParameterSet itsParset;
 

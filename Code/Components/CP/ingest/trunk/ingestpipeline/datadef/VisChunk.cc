@@ -29,6 +29,7 @@
 #include "VisChunk.h"
 
 // ASKAPsoft includes
+#include "askap/AskapError.h"
 #include "casa/aips.h"
 #include "casa/Quanta/MVEpoch.h"
 #include "casa/Arrays/Vector.h"
@@ -41,16 +42,13 @@
 // Using
 using namespace askap::cp;
 
-VisChunk::VisChunk()
-        : itsNumberOfRows(0), itsNumberOfChannels(0), itsNumberOfPolarisations(0)
-{
-}
-
 VisChunk::VisChunk(const casa::uInt nRow,
                    const casa::uInt nChannel,
                    const casa::uInt nPol)
         : itsNumberOfRows(nRow), itsNumberOfChannels(nChannel),
         itsNumberOfPolarisations(nPol),
+        itsTime(-1),
+        itsInterval(-1),
         itsAntenna1(nRow),
         itsAntenna2(nRow),
         itsBeam1(nRow),
@@ -78,7 +76,7 @@ casa::uInt VisChunk::nRow() const
     return itsNumberOfRows;
 }
 
-casa::uInt& VisChunk::nChannel()
+casa::uInt VisChunk::nChannel() const
 {
     return itsNumberOfChannels;
 }
@@ -256,4 +254,30 @@ casa::Vector<casa::Stokes::StokesTypes>& VisChunk::stokes()
 const casa::Vector<casa::Stokes::StokesTypes>& VisChunk::stokes() const
 {
     return itsStokes;
+}
+
+void VisChunk::resize(const casa::Cube<casa::Complex>& visibility,
+        const casa::Cube<casa::Bool>& flag,
+        const casa::Vector<casa::Double>& frequency)
+{
+    if ((visibility.nrow() != itsNumberOfRows) && (flag.nrow() != itsNumberOfRows)) {
+        ASKAPTHROW(AskapError,
+                "New cubes must have the same number of rows as the existing cubes");
+    }
+
+    if ((visibility.nplane() != itsNumberOfPolarisations) && (flag.nplane() != itsNumberOfPolarisations)) {
+        ASKAPTHROW(AskapError,
+                "New cubes must have the same number of polarisations as the existing cubes");
+    }
+
+    const casa::uInt newNChan = visibility.ncolumn();
+    if (newNChan != flag.ncolumn() || newNChan != frequency.size()) {
+        ASKAPTHROW(AskapError, "Number of channels must be equal for all input containers");
+    }
+
+    itsVisibility.assign(visibility);
+    itsFlag.assign(flag);
+    itsFrequency.assign(frequency);
+
+    itsNumberOfChannels = newNChan;
 }

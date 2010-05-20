@@ -65,20 +65,13 @@ void ChannelAvgTask::process(VisChunk::ShPtr chunk)
         return;
     }
 
-    const casa::uInt nChan = chunk->nChannel();
-    if (nChan % itsAveraging != 0) {
+    const casa::uInt nChanOriginal = chunk->nChannel();
+    if (nChanOriginal % itsAveraging != 0) {
         ASKAPTHROW(AskapError, "Number of channels not a multiple of averaging number");
     }
-    const casa::uInt nChanNew = nChan / itsAveraging;
-    averageFreq(chunk, nChan, nChanNew);
-    averageVis(chunk, nChan, nChanNew);
-    chunk->nChannel() = nChanNew;
-}
+    const casa::uInt nChanNew = nChanOriginal / itsAveraging;
 
-void ChannelAvgTask::averageFreq(VisChunk::ShPtr chunk,
-        const casa::uInt nChanOriginal,
-        const casa::uInt nChanNew)
-{
+    // Average frequencies vector
     const casa::Vector<casa::Double>& origFreq = chunk->frequency();
     casa::Vector<casa::Double> newFreq(nChanNew);
 
@@ -91,20 +84,13 @@ void ChannelAvgTask::averageFreq(VisChunk::ShPtr chunk,
         newFreq(newIdx) = sum / itsAveraging;
     }
 
-    chunk->frequency().assign(newFreq);
-}
-
-void ChannelAvgTask::averageVis(VisChunk::ShPtr chunk,
-        const casa::uInt nChanOriginal,
-        const casa::uInt nChanNew)
-{
+    // Average vis and flag cubes
     const casa::uInt nRow = chunk->nRow();
     const casa::uInt nPol = chunk->nPol();
     const casa::Cube<casa::Complex>& origVis = chunk->visibility();
     const casa::Cube<casa::Bool>& origFlag = chunk->flag();
     casa::Cube<casa::Complex> newVis(nRow, nChanNew, nPol);
     casa::Cube<casa::Bool> newFlag(nRow, nChanNew, nPol);
-
 
     for (casa::uInt row = 0; row < nRow; ++row) {
         for (casa::uInt newIdx = 0; newIdx < nChanNew; ++newIdx) {
@@ -137,6 +123,6 @@ void ChannelAvgTask::averageVis(VisChunk::ShPtr chunk,
             }
         }
     }
-    chunk->visibility().assign(newVis);
-    chunk->flag().assign(newFlag);
+
+    chunk->resize(newVis, newFlag, newFreq);
 }
