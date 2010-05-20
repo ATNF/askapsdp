@@ -483,7 +483,7 @@ const casa::Vector<double>& GenericNormalEquations::dataVector(const std::string
 {
   std::map<string, casa::Vector<double> >::const_iterator cIt = 
                                            itsDataVector.find(par);
-  ASKAPASSERT(cIt != itsDataVector.end());
+  ASKAPCHECK(cIt != itsDataVector.end(),"Parameter "<<par<<" is not found in the normal equations");
   return cIt->second;                                  
 }                          
   

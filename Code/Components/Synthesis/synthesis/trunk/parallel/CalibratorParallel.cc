@@ -108,7 +108,8 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       
       
       // initial assumption of the parameters
-      const casa::uInt nAnt = 28; // hard coded at this stage 
+      const casa::uInt nAnt = itsParset.getInt32("nAnt",36); // 28  
+      ASKAPLOG_INFO_STR(logger, "Initialise gains (unknowns) for "<<nAnt<<" antennas.");
       for (casa::uInt ant = 0; ant<nAnt; ++ant) {
            itsModel->add("gain.g11."+utility::toString(ant),casa::Complex(1.,0.));
            itsModel->add("gain.g22."+utility::toString(ant),casa::Complex(1.,0.));
