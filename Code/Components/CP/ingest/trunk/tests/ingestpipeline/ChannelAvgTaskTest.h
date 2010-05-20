@@ -118,10 +118,10 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture
         chunk->time() = starttime.getValue();
         chunk->antenna1()(row) = 0;
         chunk->antenna2()(row) = 1;
-        chunk->feed1()(row) = 0;
-        chunk->feed2()(row) = 0;
-        chunk->feed1PA()(row) = 0.0;
-        chunk->feed2PA()(row) = 0.0;
+        chunk->beam1()(row) = 0;
+        chunk->beam2()(row) = 0;
+        chunk->beam1PA()(row) = 0.0;
+        chunk->beam2PA()(row) = 0.0;
         chunk->pointingDir1()(row) = fieldCenter;
         chunk->pointingDir2()(row) = fieldCenter;
         chunk->dishPointing1()(row) = fieldCenter;

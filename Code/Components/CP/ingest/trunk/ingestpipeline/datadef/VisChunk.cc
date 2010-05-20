@@ -53,10 +53,10 @@ VisChunk::VisChunk(const casa::uInt nRow,
         itsNumberOfPolarisations(nPol),
         itsAntenna1(nRow),
         itsAntenna2(nRow),
-        itsFeed1(nRow),
-        itsFeed2(nRow),
-        itsFeed1PA(nRow),
-        itsFeed2PA(nRow),
+        itsBeam1(nRow),
+        itsBeam2(nRow),
+        itsBeam1PA(nRow),
+        itsBeam2PA(nRow),
         itsPointingDir1(nRow),
         itsPointingDir2(nRow),
         itsDishPointing1(nRow),
@@ -73,7 +73,7 @@ VisChunk::~VisChunk()
 {
 }
 
-casa::uInt& VisChunk::nRow()
+casa::uInt VisChunk::nRow() const
 {
     return itsNumberOfRows;
 }
@@ -83,7 +83,7 @@ casa::uInt& VisChunk::nChannel()
     return itsNumberOfChannels;
 }
 
-casa::uInt& VisChunk::nPol()
+casa::uInt VisChunk::nPol() const
 {
     return itsNumberOfPolarisations;
 }
@@ -93,32 +93,67 @@ casa::Vector<casa::uInt>& VisChunk::antenna1()
     return itsAntenna1;
 }
 
+const casa::Vector<casa::uInt>& VisChunk::antenna1() const
+{
+    return itsAntenna1;
+}
+
 casa::Vector<casa::uInt>& VisChunk::antenna2()
 {
     return itsAntenna2;
 }
 
-casa::Vector<casa::uInt>& VisChunk::feed1()
+const casa::Vector<casa::uInt>& VisChunk::antenna2() const
 {
-    return itsFeed1;
+    return itsAntenna2;
 }
 
-casa::Vector<casa::uInt>& VisChunk::feed2()
+casa::Vector<casa::uInt>& VisChunk::beam1()
 {
-    return itsFeed2;
+    return itsBeam1;
 }
 
-casa::Vector<casa::Float>& VisChunk::feed1PA()
+const casa::Vector<casa::uInt>& VisChunk::beam1() const
 {
-    return itsFeed1PA;
+    return itsBeam1;
 }
 
-casa::Vector<casa::Float>& VisChunk::feed2PA()
+casa::Vector<casa::uInt>& VisChunk::beam2()
 {
-    return itsFeed2PA;
+    return itsBeam2;
+}
+
+const casa::Vector<casa::uInt>& VisChunk::beam2() const
+{
+    return itsBeam2;
+}
+
+casa::Vector<casa::Float>& VisChunk::beam1PA()
+{
+    return itsBeam1PA;
+}
+
+const casa::Vector<casa::Float>& VisChunk::beam1PA() const
+{
+    return itsBeam1PA;
+}
+
+casa::Vector<casa::Float>& VisChunk::beam2PA()
+{
+    return itsBeam2PA;
+}
+
+const casa::Vector<casa::Float>& VisChunk::beam2PA() const
+{
+    return itsBeam2PA;
 }
 
 casa::Vector<casa::MDirection>& VisChunk::pointingDir1()
+{
+    return itsPointingDir1;
+}
+
+const casa::Vector<casa::MDirection>& VisChunk::pointingDir1() const
 {
     return itsPointingDir1;
 }
@@ -128,7 +163,17 @@ casa::Vector<casa::MDirection>& VisChunk::pointingDir2()
     return itsPointingDir2;
 }
 
+const casa::Vector<casa::MDirection>& VisChunk::pointingDir2() const
+{
+    return itsPointingDir2;
+}
+
 casa::Vector<casa::MDirection>& VisChunk::dishPointing1()
+{
+    return itsDishPointing1;
+}
+
+const casa::Vector<casa::MDirection>& VisChunk::dishPointing1() const
 {
     return itsDishPointing1;
 }
@@ -138,7 +183,17 @@ casa::Vector<casa::MDirection>& VisChunk::dishPointing2()
     return itsDishPointing2;
 }
 
+const casa::Vector<casa::MDirection>& VisChunk::dishPointing2() const
+{
+    return itsDishPointing2;
+}
+
 casa::Cube<casa::Complex>& VisChunk::visibility()
+{
+    return itsVisibility;
+}
+
+const casa::Cube<casa::Complex>& VisChunk::visibility() const
 {
     return itsVisibility;
 }
@@ -148,7 +203,17 @@ casa::Cube<casa::Bool>& VisChunk::flag()
     return itsFlag;
 }
 
+const casa::Cube<casa::Bool>& VisChunk::flag() const
+{
+    return itsFlag;
+}
+
 casa::Vector<casa::RigidVector<casa::Double, 3> >& VisChunk::uvw()
+{
+    return itsUVW;
+}
+
+const casa::Vector<casa::RigidVector<casa::Double, 3> >& VisChunk::uvw() const
 {
     return itsUVW;
 }
@@ -158,7 +223,17 @@ casa::MVEpoch& VisChunk::time()
     return itsTime;
 }
 
+const casa::MVEpoch& VisChunk::time() const
+{
+    return itsTime;
+}
+
 casa::Double& VisChunk::interval()
+{
+    return itsInterval;
+}
+
+const casa::Double& VisChunk::interval() const
 {
     return itsInterval;
 }
@@ -168,7 +243,17 @@ casa::Vector<casa::Double>& VisChunk::frequency()
     return itsFrequency;
 }
 
+const casa::Vector<casa::Double>& VisChunk::frequency() const
+{
+    return itsFrequency;
+}
+
 casa::Vector<casa::Stokes::StokesTypes>& VisChunk::stokes()
+{
+    return itsStokes;
+}
+
+const casa::Vector<casa::Stokes::StokesTypes>& VisChunk::stokes() const
 {
     return itsStokes;
 }

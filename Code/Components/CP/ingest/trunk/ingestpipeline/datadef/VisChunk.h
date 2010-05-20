@@ -69,7 +69,7 @@ namespace askap {
 
                 /// The number of rows in this chunk
                 /// @return the number of rows in this chunk
-                casa::uInt& nRow();
+                casa::uInt nRow() const;
 
                 // The following methods implement metadata access
 
@@ -79,15 +79,21 @@ namespace askap {
 
                 /// The number of polarization products (equal for all rows)
                 /// @return the number of polarization products (can be 1,2 or 4)
-                casa::uInt& nPol();
+                casa::uInt nPol() const;
 
                 /// Timestamp for this correlator integration
                 /// @return a timestamp for this buffer. Absolute time expressed as
                 /// seconds since MJD=0.
                 casa::MVEpoch& time();
 
+                /// @copydoc VisChunk::time()
+                const casa::MVEpoch& time() const;
+
                 /// Data sampling interval in seconds.
                 casa::Double& interval();
+
+                /// @copydoc VisChunk::interval()
+                const casa::Double& interval() const;
 
                 /// First antenna IDs for all rows
                 ///
@@ -97,6 +103,9 @@ namespace askap {
                 /// to each visibility (one for each row)
                 casa::Vector<casa::uInt>& antenna1();
 
+                /// @copydoc VisChunk::antenna1()
+                const casa::Vector<casa::uInt>& antenna1() const;
+
                 /// Second antenna IDs for all rows
                 ///
                 /// @note Antenna ID is zero based
@@ -105,55 +114,82 @@ namespace askap {
                 /// to each visibility (one for each row)
                 casa::Vector<casa::uInt>& antenna2();
 
-                /// First feed IDs for all rows
+                /// @copydoc VisChunk::antenna2()
+                const casa::Vector<casa::uInt>& antenna2() const;
+
+                /// First beam IDs for all rows
                 ///
-                /// @note feed ID is zero based
+                /// @note beam ID is zero based
                 ///
-                /// @return a vector with IDs of the first feed corresponding
+                /// @return a vector with IDs of the first beam corresponding
                 /// to each visibility (one for each row)
-                casa::Vector<casa::uInt>& feed1();
+                casa::Vector<casa::uInt>& beam1();
 
-                /// Second feed IDs for all rows
+                /// @copydoc VisChunk::beam1()
+                const casa::Vector<casa::uInt>& beam1() const;
+
+                /// Second beam IDs for all rows
                 ///
-                /// @note feed ID is zero based.
+                /// @note beam ID is zero based.
                 ///
-                /// @return a vector with IDs of the second feed corresponding
+                /// @return a vector with IDs of the second beam corresponding
                 /// to each visibility (one for each row)
-                casa::Vector<casa::uInt>& feed2();
+                casa::Vector<casa::uInt>& beam2();
 
-                /// Position angles of the first feed for all rows
+                /// @copydoc VisChunk::beam2()
+                const casa::Vector<casa::uInt>& beam2() const;
+
+                /// Position angles of the first beam for all rows
                 /// @return a vector with position angles (in radians) of the
-                /// first feed corresponding to each visibility
-                casa::Vector<casa::Float>& feed1PA();
+                /// first beam corresponding to each visibility
+                casa::Vector<casa::Float>& beam1PA();
 
-                /// Position angles of the second feed for all rows
+                /// @copydoc VisChunk::beam1PA()
+                const casa::Vector<casa::Float>& beam1PA() const;
+
+                /// Position angles of the second beam for all rows
                 /// @return a vector with position angles (in radians) of the
-                /// second feed corresponding to each visibility
-                casa::Vector<casa::Float>& feed2PA();
+                /// second beam corresponding to each visibility
+                casa::Vector<casa::Float>& beam2PA();
 
-                /// Return pointing centre directions of the first antenna/feed
+                /// @copydoc VisChunk::beamsPA()
+                const casa::Vector<casa::Float>& beam2PA() const;
+
+                /// Return pointing centre directions of the first antenna/beam
                 /// @return a vector with direction measures (coordinate system
                 /// is set via IDataConverter), one direction for each
                 /// visibility/row
                 casa::Vector<casa::MDirection>& pointingDir1();
 
-                /// Pointing centre directions of the second antenna/feed
+                /// @copydoc VisChunk::pointingDir1()
+                const casa::Vector<casa::MDirection>& pointingDir1() const;
+
+                /// Pointing centre directions of the second antenna/beam
                 /// @return a vector with direction measures 
                 ///  one direction for each visibility/row
                 casa::Vector<casa::MDirection>& pointingDir2();
 
+                /// @copydoc VisChunk::pointingDir2()
+                const casa::Vector<casa::MDirection>& pointingDir2() const;
+
                 /// pointing direction for the centre of the first antenna 
-                /// @details The same as pointingDir1, if the feed offsets are zero
+                /// @details The same as pointingDir1, if the beam offsets are zero
                 /// @return a vector with direction measures, 
                 /// one direction for each visibility/row
                 casa::Vector<casa::MDirection>& dishPointing1();
 
+                /// @copydoc VisChunk::dishPointing1
+                const casa::Vector<casa::MDirection>& dishPointing1() const;
+
                 /// pointing direction for the centre of the first antenna 
-                /// @details The same as pointingDir2, if the feed offsets are zero
+                /// @details The same as pointingDir2, if the beam offsets are zero
                 /// @return a vector with direction measures (coordinate system
                 /// is is set via IDataConverter), one direction for each
                 /// visibility/row
                 casa::Vector<casa::MDirection>& dishPointing2();
+
+                /// @copydoc VisChunk::dishPointing2()
+                const casa::Vector<casa::MDirection>& dishPointing2() const;
 
                 /// VisChunk (a cube is nRow x nChannel x nPol; each element is
                 /// a complex visibility)
@@ -161,20 +197,32 @@ namespace askap {
                 /// all visibility data
                 casa::Cube<casa::Complex>& visibility();
 
+                /// @copydoc VisChunk::visibility()
+                const casa::Cube<casa::Complex>& visibility() const;
+
                 /// Cube of flags corresponding to the output of visibility() 
                 /// @return a reference to nRow x nChannel x nPol cube with flag 
                 ///         information. If True, the corresponding element is flagged.
                 casa::Cube<casa::Bool>& flag();
+
+                /// @copydoc VisChunk::flag()
+                const casa::Cube<casa::Bool>& flag() const;
 
                 /// UVW
                 /// @return a reference to vector containing uvw-coordinates
                 /// packed into a 3-D rigid vector
                 casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw();
 
+                /// @copydoc VisChunk::uvw()
+                const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw() const;
+
                 /// Frequency for each channel
                 /// @return a reference to vector containing frequencies for each
                 ///         spectral channel (vector size is nChannel).
                 casa::Vector<casa::Double>& frequency();
+
+                /// @copydoc VisChunk::frequency()
+                const casa::Vector<casa::Double>& frequency() const;
 
                 /// @brief polarisation type for each product
                 /// @return a reference to vector containing polarisation types for
@@ -182,6 +230,13 @@ namespace askap {
                 /// @note All rows of the accessor have the same structure of the visibility
                 /// cube, i.e. polarisation types returned by this method are valid for all rows.
                 casa::Vector<casa::Stokes::StokesTypes>& stokes();
+
+                /// @copydoc VisChunk::stokes()
+                const casa::Vector<casa::Stokes::StokesTypes>& stokes() const;
+
+                //void resize(const casa::Cube<casa::Complex>& visibility,
+                //        const casa::Cube<casa::Bool>& flag,
+                //        const casa::Vector<casa::Double>& frequency);
 
                 /// @brief Shared pointer typedef
                 typedef boost::shared_ptr<VisChunk> ShPtr;
@@ -202,19 +257,19 @@ namespace askap {
                 /// Antenna2
                 casa::Vector<casa::uInt> itsAntenna2;
 
-                /// Feed1
-                casa::Vector<casa::uInt> itsFeed1;
-                /// Feed2
-                casa::Vector<casa::uInt> itsFeed2;
+                /// Beam1
+                casa::Vector<casa::uInt> itsBeam1;
+                /// Beam2
+                casa::Vector<casa::uInt> itsBeam2;
 
-                /// Feed1 position angle
-                casa::Vector<casa::Float> itsFeed1PA;
-                /// Feed2 position angle
-                casa::Vector<casa::Float> itsFeed2PA;
+                /// Beam1 position angle
+                casa::Vector<casa::Float> itsBeam1PA;
+                /// Beam2 position angle
+                casa::Vector<casa::Float> itsBeam2PA;
 
-                /// Pointing direction of the first antenna/feed
+                /// Pointing direction of the first antenna/beam
                 casa::Vector<casa::MDirection> itsPointingDir1;
-                /// Pointing direction of the second antenna/feed
+                /// Pointing direction of the second antenna/beam
                 casa::Vector<casa::MDirection> itsPointingDir2;
 
                 /// Pointing direction of the centre of the first antenna

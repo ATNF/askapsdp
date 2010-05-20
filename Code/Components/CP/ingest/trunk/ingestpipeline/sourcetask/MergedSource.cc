@@ -174,10 +174,10 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 
                 chunk->antenna1()(row) = ant1;
                 chunk->antenna2()(row) = ant2;
-                chunk->feed1()(row) = beam;
-                chunk->feed2()(row) = beam;
-                chunk->feed1PA()(row) = mdAnt1.parallacticAngle();
-                chunk->feed2PA()(row) = mdAnt2.parallacticAngle();
+                chunk->beam1()(row) = beam;
+                chunk->beam2()(row) = beam;
+                chunk->beam1PA()(row) = mdAnt1.parallacticAngle();
+                chunk->beam2PA()(row) = mdAnt2.parallacticAngle();
                 chunk->pointingDir1()(row) = mdAnt1.phaseTrackingCentre(beam, 0);
                 chunk->pointingDir2()(row) = mdAnt2.phaseTrackingCentre(beam, 0);
                 chunk->dishPointing1()(row) = mdAnt1.dishPointing();
@@ -205,8 +205,8 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis)
         ASKAPCHECK(vis.beam2 < 36, "Beam 2 index is invalid");
         if ((chunk->antenna1()(row) == vis.antenna1) &&
             (chunk->antenna2()(row) == vis.antenna2) &&
-            (chunk->feed1()(row) == vis.beam1) &&
-            (chunk->feed2()(row) == vis.beam2)) {
+            (chunk->beam1()(row) == vis.beam1) &&
+            (chunk->beam2()(row) == vis.beam2)) {
                 break;
             }
         ++row;
@@ -270,8 +270,8 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
     // Flag if detailed flagging is set in the metadata for this sample.
     // Note flagging in metadata is per coarse channel so if a coarse channel
     // is flagged then the whole 54 fine channels are flagged
-    const unsigned int beam1 = chunk->feed1()(row);
-    const unsigned int beam2 = chunk->feed2()(row);
+    const unsigned int beam1 = chunk->beam1()(row);
+    const unsigned int beam2 = chunk->beam2()(row);
     const unsigned int coarseChan = IngestUtils::fineToCoarseChannel(chan);
 
     if (mdAnt1.flagDetailed(beam1, coarseChan, pol)) {

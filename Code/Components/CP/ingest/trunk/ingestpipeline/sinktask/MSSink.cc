@@ -117,8 +117,8 @@ void MSSink::process(VisChunk::ShPtr chunk)
         const casa::uInt row = i + baseRow;
         msc.antenna1().put(row, chunk->antenna1()(i));
         msc.antenna2().put(row, chunk->antenna2()(i));
-        msc.feed1().put(row, chunk->feed1()(i));
-        msc.feed2().put(row, chunk->feed2()(i));
+        msc.feed1().put(row, chunk->beam1()(i));
+        msc.feed2().put(row, chunk->beam2()(i));
         msc.uvw().put(row, chunk->uvw()(i).vector());
 
         msc.data().put(row, casa::transpose(chunk->visibility().yzPlane(i)));

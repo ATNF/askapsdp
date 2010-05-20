@@ -104,8 +104,8 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     // Current phase center
     casa::MDirection fpc = chunk->pointingDir1()(row);
 
-    // Shift per feed offsets
-    RigidVector<double, 2> beamOffset = itsBeamOffset(chunk->feed1()(row));
+    // Shift per beam offsets
+    RigidVector<double, 2> beamOffset = itsBeamOffset(chunk->beam1()(row));
     fpc.shift(-beamOffset(0), beamOffset(1), True);
 
     const double ra = fpc.getAngle().getValue()(0);

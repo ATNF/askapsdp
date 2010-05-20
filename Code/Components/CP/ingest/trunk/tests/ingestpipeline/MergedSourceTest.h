@@ -172,8 +172,8 @@ namespace askap
                                     chan < endChan &&
                                     chunk->antenna1()(row) == vis.antenna1 &&
                                     chunk->antenna2()(row) == vis.antenna2 &&
-                                    chunk->feed1()(row) == vis.beam1 &&
-                                    chunk->feed2()(row) == vis.beam2) {
+                                    chunk->beam1()(row) == vis.beam1 &&
+                                    chunk->beam2()(row) == vis.beam2) {
                                 // If this is one of the visibilities that were added above
                                 CPPUNIT_ASSERT_EQUAL(false, chunk->flag()(row, chan, pol));
                             } else {
