@@ -7,3 +7,5 @@ import noisetest
 print "facetingtest: test of faceted imaging with spherical function gridder"
 print "temporary disabled"
 #import facetingtest
+print "calibratortest: test of ccalibrator"
+import calibratortest

@@ -23,6 +23,7 @@ class SynthesisProgramRunner:
          os.environ['AIPSPATH'] = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/testdata/trunk')
       self.simulator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/trunk/install/bin/csimulator.sh')
       self.imager = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/trunk/install/bin/cimager.sh')
+      self.calibrator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/trunk/install/bin/ccalibrator.sh')
       self.imgstat = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/trunk/install/bin/imgstat.sh')
 
       if not os.path.exists(self.simulator):
@@ -30,6 +31,9 @@ class SynthesisProgramRunner:
 
       if not os.path.exists(self.imager):
           raise RuntimeError, "cimager is missing at %s" % self.imager
+
+      if not os.path.exists(self.calibrator):
+          raise RuntimeError, "ccalibrator is missing at %s" % self.calibrator
 
       if not os.path.exists(self.imgstat):
           raise RuntimeError, "imgstat is missing at %s" % self.imgstat
@@ -74,6 +78,12 @@ class SynthesisProgramRunner:
          Run csimulator on a current parset
       '''
       self.runCommand(self.simulator)
+         
+   def runCalibrator(self):
+      '''
+         Run ccalibrator on a current parset
+      '''
+      self.runCommand(self.calibrator)
          
 
    def runImager(self):

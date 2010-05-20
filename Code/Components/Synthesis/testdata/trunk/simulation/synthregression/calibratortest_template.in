@@ -106,7 +106,7 @@ Cimager.restore                                 = True
 Cimager.restore.beam                            = fit
 
 # parameters for calibrator
-Ccalibrator.dataset                              = 10uJy_simtest.ms
+Ccalibrator.dataset                              = field1.ms
 Ccalibrator.nAnt                                 = 36
 Ccalibrator.refgain                              = gain.g11.0
 
