@@ -33,6 +33,7 @@
 #include "AntennaPositionsTest.h"
 #include "CalcUVWTaskTest.h"
 #include "ChannelAvgTaskTest.h"
+#include "CalTaskTest.h"
 
 int main(int argc, char *argv[])
 {
@@ -42,6 +43,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::cp::AntennaPositionsTest::suite());
     runner.addTest(askap::cp::CalcUVWTaskTest::suite());
     runner.addTest(askap::cp::ChannelAvgTaskTest::suite());
+    runner.addTest(askap::cp::CalTaskTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;
