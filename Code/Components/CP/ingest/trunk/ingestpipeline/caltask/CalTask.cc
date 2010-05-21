@@ -30,9 +30,14 @@
 // Include package level header file
 #include "askap_cpingest.h"
 
+// CASA includes
+#include <casa/Arrays/MatrixMath.h>
+#include <casa/Arrays/Vector.h>
+
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "boost/scoped_ptr.hpp"
 
 // Local package includes
@@ -43,18 +48,125 @@ ASKAP_LOGGER(logger, ".CalTask");
 using namespace askap;
 using namespace askap::cp;
 
+/// @brief constructor
+/// @details Initialise calibration task by passing parameters
+/// coded in the parset
+/// @param[in] parset parameters
 CalTask::CalTask(const LOFAR::ParameterSet& parset) :
-    itsParset(parset)
+    itsParset(parset), itsGainsParset(parset)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
+    if (itsParset.isDefined("gainsfile")) {
+        itsGainsParset = LOFAR::ParameterSet(itsParset.getString("gainsfile"));
+    }
 }
 
+/// @brief destructor
 CalTask::~CalTask()
 {
     ASKAPLOG_DEBUG_STR(logger, "Destructor");
 }
 
+/// @brief main method to apply calibration
+/// @details It modifies the visibility chunk in situ by applying
+/// current calibration
+/// @param[in] chunk shared pointer to visibility chunk
 void CalTask::process(VisChunk::ShPtr chunk)
 {
     ASKAPLOG_DEBUG_STR(logger, "process()");
+    ASKAPDEBUGASSERT(chunk);
+    casa::Matrix<casa::Complex> matr(4,4);
+    casa::Matrix<casa::Complex> reciprocal;
+    for (casa::uInt row=0; row<chunk->nRow(); ++row) {
+         fillMuellerMatrix(matr, chunk->antenna1()[row], chunk->antenna2()[row],
+	        chunk->beam1()[row],chunk->beam2()[row]);
+         casa::Complex det = 0.;
+	 casa::invertSymPosDef(reciprocal, det, matr);
+	 const float tolerance = 1e-5;
+         if (casa::abs(det)<tolerance)  {
+	     // throw an exception for now, but will probably do an intelligent flagging in the future
+	     ASKAPTHROW(AskapError, "Unable to apply gains, determinate too close to 0. D="<<casa::abs(det));
+	 }
+	 casa::Matrix<casa::Complex> thisRow = chunk->visibility().yzPlane(row);
+	 // current gains are not frequency-dependent. Same matrix can be applied to all channels
+         for (casa::uInt chan = 0; chan<chunk->nChannel();++chan) {
+	      ASKAPDEBUGASSERT(chan < thisRow.nrow());
+	      casa::Vector<casa::Complex> polVector = thisRow.row(chan);
+	      ASKAPDEBUGASSERT(reciprocal.ncolumn() == polVector.nelements());
+	      ASKAPDEBUGASSERT(reciprocal.nrow() == polVector.nelements());
+              casa::Vector<casa::Complex> calibratedVector(polVector.nelements(),0.);
+	      for (casa::uInt pol=0; pol<polVector.nelements();++pol) {
+		   for (casa::uInt index = 0; index<polVector.nelements(); ++index) {
+	                calibratedVector[pol] += reciprocal(pol,index) * polVector[index];
+		   }
+	      }
+	      polVector = calibratedVector;
+	 }
+    }
+}
+
+/// @brief obtain gain for a given antenna/beam/pol
+/// @details This is a helper method to separate extraction of
+/// the values from the parset file from the actual calculation.
+/// Based on the given number of antenna, beam and polarisation
+/// (X or Y coded as 0 and 1), it returns the value of the 
+/// parallel-hand gain (i.e. Gxx or Gyy)
+/// @param[in] ant 0-based antenna id
+/// @param[in] beam 0-based beam id
+/// @param[in] pol Either 0 for XX or 1 for YY
+casa::Complex CalTask::getGain(casa::uInt ant, casa::uInt beam, casa::uInt pol) const
+{
+  ASKAPCHECK(beam == 0, "Only single beam case is supported at the moment. Beam="<<beam<<" has been encountered for Ant="<<ant);
+  std::string name("gain.");
+  if (pol == 0) {
+      name += "g11.";
+  } else if (pol == 1) {
+      name += "g22.";
+  } else {
+     ASKAPTHROW(AskapError, "Polarisation index is supposed to be either 0 or 1, you have pol="<<pol);
+  }
+  name += askap::utility::toString<casa::uInt>(ant);
+  return readComplex(name);
+}
+
+/// @brief helper method to load complex parameter
+/// @details It reads the value from itsGainsParset and
+/// forms a complex number.
+/// @param[in] name parameter name
+/// @return complex number
+casa::Complex CalTask::readComplex(const std::string &name) const 
+{
+  casa::Vector<float> val = itsGainsParset.getFloatVector(name);
+  ASKAPCHECK(val.nelements() > 0, "Expect at least one element for "<<name<<" gain parameter");
+  if (val.nelements() == 1) {
+      return val[0];
+  }
+  ASKAPCHECK(val.nelements() == 2, "Expect either one or two elements to define complex value, you have: "<<val);
+  return casa::Complex(val[0],val[1]);
+}
+
+/// @brief fill Mueller matrix
+/// @details This method forms the measurement equation
+/// defined by Mueller matrix for a given baseline and beams.
+/// The method is implemented in a general way, so it supports
+/// correlations corresponding to a different beam. However, in
+/// practice beam1 and beam2 are likely to be the same most of 
+/// the time.
+/// @param[in] matr Mueler matrix to fill (must already be resized to 4x4)
+/// @param[in] ant1 first antenna id (0-based)
+/// @param[in] ant2 second antenna id (0-based)
+/// @param[in] beam1 beam id at the first antenna (0-based)
+/// @param[in] beam2 beam id at the second antenna (0-based)
+void CalTask::fillMuellerMatrix(casa::Matrix<casa::Complex> &matr, casa::uInt ant1, 
+         casa::uInt ant2, casa::uInt beam1, casa::uInt beam2) const
+{
+  ASKAPDEBUGASSERT((matr.nrow() == 4) && (matr.ncolumn() == 4));
+  matr.set(0.);
+  // without cross-pols Mueller matrix is just diagonal
+  for (casa::uInt pol1 = 0, cnt=0; pol1 < 2; ++pol1) {
+       for (casa::uInt pol2 = 0; pol2 < 2; ++pol2,++cnt) {
+	    ASKAPDEBUGASSERT(cnt<4);
+            matr(cnt,cnt) = getGain(ant1,beam1,pol1) * conj(getGain(ant2,beam2,pol2));
+       }
+  }
 }

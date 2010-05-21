@@ -50,6 +50,10 @@ class CalTaskTest : public CppUnit::TestFixture
     public:
     void setUp()
     {
+	itsParset.add("gain.g11.0", "[1.0]");
+	itsParset.add("gain.g11.1", "[0.9,0.1]");
+	itsParset.add("gain.g22.0", "[0.0,-0.5]");
+	itsParset.add("gain.g22.1", "[0.9,0.1]");
     };
 
     void tearDown()
@@ -62,7 +66,7 @@ class CalTaskTest : public CppUnit::TestFixture
         const int row = 0;
         const int nRows = 1;
         const int nChans = 1;
-        const int nPols = 1;
+        const int nPols = 4;
         MVEpoch time(Quantity(50237.29, "d"));
 
         VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols));
@@ -71,6 +75,7 @@ class CalTaskTest : public CppUnit::TestFixture
         chunk->antenna2()(row) = 1;
         chunk->beam1()(row) = 0;
         chunk->beam2()(row) = 0;
+	chunk->visibility().set(1.);
 
         CalTask task(itsParset);
         task.process(chunk);
