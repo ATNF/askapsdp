@@ -30,6 +30,7 @@
 #include <measurementequation/GaussianTaperPreconditioner.h>
 
 #include <utils/PaddingUtils.h>
+#include <utils/MultiDimArrayPlaneIter.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -220,54 +221,85 @@ namespace askap
                          casa::Array<double> out) const
     {
 	   // Axes are dof, dof for each parameter
-	   casa::IPosition vecShape(1, out.shape().product());
+	   //casa::IPosition vecShape(1, out.shape().product());
+	   for (scimath::MultiDimArrayPlaneIter planeIter(shape); planeIter.hasMore(); planeIter.next()) {
 	   
-	   ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(name)>0, "Diagonal not present");
-	   const casa::Vector<double>& diag(normalEquations().normalMatrixDiagonal().find(name)->second);
-	   ASKAPCHECK(normalEquations().dataVector(name).size()>0, "Data vector not present");
-	   const casa::Vector<double> &dv = normalEquations().dataVector(name);
-	   ASKAPCHECK(normalEquations().normalMatrixSlice().count(name)>0, "PSF Slice not present");
-       const casa::Vector<double>& slice(normalEquations().normalMatrixSlice().find(name)->second);
+	        ASKAPCHECK(normalEquations().normalMatrixDiagonal().count(name)>0, "Diagonal not present");
+	        casa::Vector<double> diag(normalEquations().normalMatrixDiagonal().find(name)->second);
+	        ASKAPCHECK(normalEquations().dataVector(name).size()>0, "Data vector not present");
+	        casa::Vector<double> dv = normalEquations().dataVector(name);
+	        ASKAPCHECK(normalEquations().normalMatrixSlice().count(name)>0, "PSF Slice not present");
+            casa::Vector<double> slice(normalEquations().normalMatrixSlice().find(name)->second);
+ 
+            if (planeIter.tag()!="") {
+                // it is not a single plane case, there is something to report
+                ASKAPLOG_INFO_STR(logger, "Processing plane "<<planeIter.sequenceNumber()<<
+                                       " tagged as "<<planeIter.tag());
+            }
+  
+	        ASKAPLOG_INFO_STR(logger, "Maximum of data vector corresponding to "<<name<<" is "<<casa::max(dv));
 
-	   ASKAPLOG_INFO_STR(logger, "Maximum of data vector corresponding to "<<name<<" is "<<casa::max(dv));
+            casa::Array<float> dirtyArray(planeIter.planeShape());
+	        casa::convertArray<float, double>(dirtyArray,planeIter.getPlane(dv));
+	        
+	        ASKAPLOG_INFO_STR(logger, "Maximum of data vector corresponding to "<<name<<" and plane "<<
+	                 planeIter.sequenceNumber()<<" is "<<casa::max(dirtyArray));
+	                 	        
+            casa::Array<float> psfArray(planeIter.planeShape());
+            casa::convertArray<float, double>(psfArray, planeIter.getPlane(slice));
 
-	   casa::Array<float> dirtyArray(shape);
-       casa::convertArray<float, double>(dirtyArray, dv.reform(shape));
-       casa::Array<float> psfArray(shape);
-       casa::convertArray<float, double>(psfArray, slice.reform(shape));
-
-       // uninitialised mask shared pointer means that we don't need it (i.e. no weight equalising)
-       boost::shared_ptr<casa::Array<float> > mask;
-       if (itsEqualiseNoise) {
-           ASKAPLOG_INFO_STR(logger, "Residual will be multiplied by sqrt(normalised weight) during restoration");
-           // mask will have a noramised sqrt(weight) pattern after doNormalization
-           mask.reset(new casa::Array<float>(dirtyArray.shape()));
-       } else {
-           ASKAPLOG_INFO_STR(logger, "Restored image will have primary beam corrected noise (no equalisation)");
-       }
+            // uninitialised mask shared pointer means that we don't need it (i.e. no weight equalising)
+            boost::shared_ptr<casa::Array<float> > mask;
+            if (itsEqualiseNoise) {
+                ASKAPLOG_INFO_STR(logger, "Residual will be multiplied by sqrt(normalised weight) during restoration");
+                // mask will have a noramised sqrt(weight) pattern after doNormalization
+                mask.reset(new casa::Array<float>(dirtyArray.shape()));
+            } else {
+                ASKAPLOG_INFO_STR(logger, "Restored image will have primary beam corrected noise (no equalisation)");
+            }
        
-	   // Normalize by the diagonal
-	   doNormalization(diag,tol(),psfArray,dirtyArray,mask);
+            // Normalize by the diagonal
+            doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray,mask);
 	  
-	   // Do the preconditioning
-	   doPreconditioning(psfArray,dirtyArray);
+	        // Do the preconditioning
+	        doPreconditioning(psfArray,dirtyArray);
 	   
-	   // we have to do noise equalisation for final residuals after preconditioning
-	   if (itsEqualiseNoise) {
-	       const casa::IPosition vecShape(1,dirtyArray.nelements());
-           casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
-	       const casa::Vector<float> maskVector(mask->reform(vecShape));
-	       for (int i = 0; i<vecShape[0]; ++i) {
-	            dirtyVector[i] *= maskVector[i];
-	       }
-	   }
+	        // we have to do noise equalisation for final residuals after preconditioning
+	        if (itsEqualiseNoise) {
+	            const casa::IPosition vecShape(1,dirtyArray.nelements());
+                casa::Vector<float> dirtyVector(dirtyArray.reform(vecShape));
+                ASKAPDEBUGASSERT(mask);
+	            const casa::Vector<float> maskVector(mask->reform(vecShape));
+	            for (int i = 0; i<vecShape[0]; ++i) {
+	                 dirtyVector[i] *= maskVector[i];
+	            }
+	        }
 	  
-	   // Add the residual image        
-	   // the code below involves an extra copying. We can replace it later with a copyless version
-	   // doing element by element adding explicitly.
-	   casa::Array<double> convertedResidual(out.shape());
-	   convertArray(convertedResidual, scimath::PaddingUtils::centeredSubArray(dirtyArray,out.shape()));
-	   out += convertedResidual;
+	        // Add the residual image        
+	        // the code below involves an extra copying. We can replace it later with a copyless version
+	        // doing element by element adding explicitly.
+	        const casa::IPosition outSliceShape = planeIter.planeShape(out.shape());
+	        // convertedResidual contains just one plane of residuals
+	        casa::Array<double> convertedResidual(outSliceShape);
+	        convertArray(convertedResidual, scimath::PaddingUtils::centeredSubArray(dirtyArray,
+	                     outSliceShape));
+	        // figure out where to put the slice to (can't use planeIter functionality directly because out
+	        // array can have a different shape
+	        casa::IPosition blc(out.shape().nelements(),0);
+	        casa::IPosition trc(out.shape());
+	        const casa::IPosition curPos(planeIter.position());
+	        for (casa::uInt dim = 0; dim<trc.nelements(); ++dim) {
+	             trc[dim] -= 1;
+	             ASKAPDEBUGASSERT(trc[dim]<out.shape()[dim]);
+	             if ( (dim>=2) && (dim<curPos.nelements()) ) {
+	                 blc[dim] = curPos[dim];
+	                 trc[dim] = curPos[dim];
+	             }
+	        }
+	        // copy stuff
+	        Array<double> outSlice = out(blc,trc);
+	        outSlice += convertedResidual;
+	   }
     }
     
     /// @brief obtain an estimate of the restoring beam
