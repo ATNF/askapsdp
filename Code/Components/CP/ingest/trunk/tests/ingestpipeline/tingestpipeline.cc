@@ -29,6 +29,7 @@
 
 // Test includes
 #include "CircularBufferTest.h"
+#include "VisChunkTest.h"
 #include "MergedSourceTest.h"
 #include "AntennaPositionsTest.h"
 #include "CalcUVWTaskTest.h"
@@ -39,6 +40,7 @@ int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
     runner.addTest(askap::cp::CircularBufferTest::suite());
+    runner.addTest(askap::cp::VisChunkTest::suite());
     runner.addTest(askap::cp::MergedSourceTest::suite());
     runner.addTest(askap::cp::AntennaPositionsTest::suite());
     runner.addTest(askap::cp::CalcUVWTaskTest::suite());
