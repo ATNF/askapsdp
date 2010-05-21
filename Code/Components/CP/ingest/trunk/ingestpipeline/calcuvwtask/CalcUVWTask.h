@@ -93,6 +93,9 @@ class CalcUVWTask : public askap::cp::ITask {
         // Calculates UVW coordinates for the specified "row" in the "chunk"
         void calcForRow(VisChunk::ShPtr chunk, const casa::uInt row);
 
+        // Populates the antenna Position Matrix
+        void setupAntennaPositions(void);
+
         // Populates the itsBeamOffset vector
         void setupBeamOffsets(void);
 
@@ -106,6 +109,11 @@ class CalcUVWTask : public askap::cp::ITask {
         // Currently used for obtaining beam offsets
         // TODO: Unify configuration
         boost::scoped_ptr<IConfiguration> itsConfig;
+
+        // A matrix containing antenna positions.
+        // The antenna positions. Size is 3 (x, y & z) rows by nAntenna columns.
+        // Rows are x, y, z and columns are indexed by antenna id.
+        casa::Matrix<double> itsAntXYZ;
 
         // A vector with one element per beam. Each element then is a
         // two element vector containing the x and y offsets at index

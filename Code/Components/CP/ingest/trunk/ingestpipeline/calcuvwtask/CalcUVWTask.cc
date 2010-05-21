@@ -64,6 +64,8 @@ CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset) :
     const LOFAR::ParameterSet antSubset(itsParset.makeSubset("antennas."));
     itsAntennaPositions.reset(new AntennaPositions(antSubset));
     itsConfig.reset(new ParsetConfiguration(itsParset));
+
+    setupAntennaPositions();
     setupBeamOffsets();
 }
 
@@ -88,8 +90,7 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
 
     // The antenna positions. Size is 3 (x, y & z) rows by nAntenna columns.
     // Rows are x, y, z and columns are indexed by antenna id.
-    casa::Matrix<double> antXYZ = itsAntennaPositions->getPositionMatrix();
-    const casa::uInt nAnt = antXYZ.ncolumn();
+    const casa::uInt nAnt = itsAntXYZ.ncolumn();
 
     ASKAPCHECK(ant1 < nAnt, "Antenna index (" << ant1 << ") is invalid");
     ASKAPCHECK(ant2 < nAnt, "Antenna index (" << ant2 << ") is invalid");
@@ -105,7 +106,9 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     casa::MDirection fpc = chunk->pointingDir1()(row);
 
     // Shift per beam offsets
-    RigidVector<double, 2> beamOffset = itsBeamOffset(chunk->beam1()(row));
+    const casa::uInt beam = chunk->beam1()(row);
+    ASKAPCHECK(beam < itsBeamOffset.size(), "Beam index (" << beam << ") is invalid");
+    RigidVector<double, 2> beamOffset = itsBeamOffset(beam);
     fpc.shift(-beamOffset(0), beamOffset(1), True);
 
     const double ra = fpc.getAngle().getValue()(0);
@@ -126,7 +129,7 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     Matrix<double> antUVW(3, nAnt);
 
     for (uInt i = 0; i < nAnt; ++i) {
-        antUVW.column(i) = casa::product(trans, antXYZ.column(i));
+        antUVW.column(i) = casa::product(trans, itsAntXYZ.column(i));
     }
 
     double x1 = antUVW(0, ant1), y1 = antUVW(1, ant1), z1 = antUVW(2, ant1);
@@ -138,6 +141,11 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
 
     // Finally set the uvwvec in the VisChunk
     chunk->uvw()(row) = uvwvec;
+}
+
+void CalcUVWTask::setupAntennaPositions(void)
+{
+    itsAntXYZ.assign(itsAntennaPositions->getPositionMatrix());
 }
 
 void CalcUVWTask::setupBeamOffsets(void)

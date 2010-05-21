@@ -28,6 +28,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 // Support classes
+ #include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
 #include "ingestpipeline/datadef/VisChunk.h"
 #include "measures/Measures.h"
@@ -44,79 +45,121 @@ using namespace casa;
 namespace askap {
 namespace cp {
 
-class CalcUVWTaskTest : public CppUnit::TestFixture
-{
-    CPPUNIT_TEST_SUITE(CalcUVWTaskTest);
-    CPPUNIT_TEST(testSimple);
-    CPPUNIT_TEST_SUITE_END();
+class CalcUVWTaskTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(CalcUVWTaskTest);
+        CPPUNIT_TEST(testOffset);
+        CPPUNIT_TEST(testAutoCorrelation);
+        CPPUNIT_TEST(testInvalidAntenna);
+        CPPUNIT_TEST(testInvalidBeam);
+        CPPUNIT_TEST_SUITE_END();
 
     public:
-    void setUp()
-    {
-        // Setup a parameter set
-        itsParset.add("uvw.antennas.location", "[+117.471deg, -25.692deg, 192m, WGS84]");
-        itsParset.add("uvw.antennas.names", "[A0, A1, A2, A3, A4, A5]");
-        itsParset.add("uvw.antenna.scale", "1.0");
-        itsParset.add("uvw.antennas.A0", "[-175.233429,  -1673.460938,  0.0000]");
-        itsParset.add("uvw.antennas.A1", "[261.119019,   -796.922119,   0.0000]");
-        itsParset.add("uvw.antennas.A2", "[-29.200520,   -744.432068,   0.0000]");
-        itsParset.add("uvw.antennas.A3", "[-289.355286,  -586.936035,   0.0000]");
-        itsParset.add("uvw.antennas.A4", "[-157.031570,  -815.570068,   0.0000]");
-        itsParset.add("uvw.antennas.A5", "[-521.311646,  -754.674927,   0.0000]");
+        void setUp() {
+            // Setup a parameter set
+            itsParset.add("uvw.antennas.location", "[+117.471deg, -25.692deg, 192m, WGS84]");
+            itsParset.add("uvw.antennas.names", "[A0, A1, A2, A3, A4, A5]");
+            itsParset.add("uvw.antenna.scale", "1.0");
+            itsParset.add("uvw.antennas.A0", "[-175.233429,  -1673.460938,  0.0000]");
+            itsParset.add("uvw.antennas.A1", "[261.119019,   -796.922119,   0.0000]");
+            itsParset.add("uvw.antennas.A2", "[-29.200520,   -744.432068,   0.0000]");
+            itsParset.add("uvw.antennas.A3", "[-289.355286,  -586.936035,   0.0000]");
+            itsParset.add("uvw.antennas.A4", "[-157.031570,  -815.570068,   0.0000]");
+            itsParset.add("uvw.antennas.A5", "[-521.311646,  -754.674927,   0.0000]");
 
-        itsParset.add("uvw.feeds.names", "[feed0]");
-        itsParset.add("uvw.feeds.spacing", "1deg");
-        itsParset.add("uvw.feeds.feed0", "[0.0, 0.0]");
-    };
+            itsParset.add("uvw.feeds.names", "[feed0, feed1, feed2, feed3]");
+            itsParset.add("uvw.feeds.spacing", "1deg");
+            itsParset.add("uvw.feeds.feed0", "[-2.5, -1.5]");
+            itsParset.add("uvw.feeds.feed1", "[-2.5, -0.5]");
+            itsParset.add("uvw.feeds.feed2", "[-2.5,  0.5]");
+            itsParset.add("uvw.feeds.feed3", "[-2.5,  1.5]");
 
-    void tearDown()
-    {
-        itsParset.clear();
-    }
+        };
 
-    void testSimple()
-    {
-        const unsigned int row = 0;
-        MEpoch starttime(MVEpoch(Quantity(50237.29, "d")),
-                MEpoch::Ref(MEpoch::UTC));
-        MDirection fieldCenter(Quantity( 20, "deg"),
-                               Quantity(-10, "deg"),
-                               MDirection::Ref(MDirection::J2000));
+        void tearDown() {
+            itsParset.clear();
+        }
 
-        // Create a simple chunk with 1 row, 1 channel and 1 pol
-        VisChunk::ShPtr chunk(new VisChunk(1, 1, 1));
-        chunk->time() = starttime.getValue();
-        chunk->antenna1()(row) = 0;
-        chunk->antenna2()(row) = 1;
-        chunk->beam1()(row) = 0;
-        chunk->beam2()(row) = 0;
-        chunk->beam1PA()(row) = 0.0;
-        chunk->beam2PA()(row) = 0.0;
-        chunk->pointingDir1()(row) = fieldCenter;
-        chunk->pointingDir2()(row) = fieldCenter;
-        chunk->dishPointing1()(row) = fieldCenter;
-        chunk->dishPointing2()(row) = fieldCenter;
-        chunk->frequency()(0) = 1400000;
+        void testOffset() {
+            //      ant1, ant2, beam,    u,      v,      w
+            testDriver(0,    1,    0,    -411.4, -838.4, 294.1);
+            testDriver(0,    2,    0,    -120.2, -874.0, 325.5);
 
-        // Instantiate the class under test and call process() to
-        // add UVW coordinates to the VisChunk
-        CalcUVWTask task(itsParset);
-        task.process(chunk);
+            testDriver(0,    1,    1,    -411.9, -843.1, 279.8);
+            testDriver(0,    2,    1,    -120.7, -879.4, 310.4);
+        }
 
-        CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
-        CPPUNIT_ASSERT(chunk->uvw().size() == 1);
-        casa::RigidVector<casa::Double, 3> uvw = chunk->uvw()(row);
+        void testAutoCorrelation() {
+            //      ant1, ant2, beam,    u,   v,   w
+            testDriver(0,    0,    0,    0.0, 0.0, 0.0);
+        }
 
-        // Tolerance for uvw equality
-        const double tol = 1.0E-1;
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(-347.5, uvw(0), tol); //u
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(-698.8, uvw(1), tol); //v
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(591.2, uvw(2), tol); //w
-    };
+        void testInvalidAntenna() {
+            try {
+                //       ant1, ant2, beam,    u,   v,   w
+                testDriver(7,    0,    0,    0.0, 0.0, 0.0);
+                CPPUNIT_FAIL("Expected exception not thrown");
+            } catch (askap::AskapError&) {
+                // This is good
+            }
+        }
+
+        void testInvalidBeam() {
+            try {
+                //      ant1, ant2, beam,    u,   v,   w
+                testDriver(0,    0,    4,    0.0, 0.0, 0.0);
+                CPPUNIT_FAIL("Expected exception not thrown");
+            } catch (askap::AskapError&) {
+                // This is good
+            }
+        }
+
+        void testDriver(const unsigned int antenna1,
+                        const unsigned int antenna2,
+                        const unsigned int beam,
+                        const double u,
+                        const double v,
+                        const double w) {
+            const unsigned int row = 0;
+            MEpoch starttime(MVEpoch(Quantity(54165.73871, "d")),
+                             MEpoch::Ref(MEpoch::UTC));
+            MDirection fieldCenter(Quantity(187.5, "deg"),
+                                   Quantity(-45, "deg"),
+                                   MDirection::Ref(MDirection::J2000));
+
+            // Create a simple chunk with 1 row, 1 channel and 1 pol
+            VisChunk::ShPtr chunk(new VisChunk(1, 1, 1));
+            chunk->time() = starttime.getValue();
+            chunk->antenna1()(row) = antenna1;
+            chunk->antenna2()(row) = antenna2;
+            chunk->beam1()(row) = beam;
+            chunk->beam2()(row) = beam;
+            chunk->beam1PA()(row) = 0.0;
+            chunk->beam2PA()(row) = 0.0;
+            chunk->pointingDir1()(row) = fieldCenter;
+            chunk->pointingDir2()(row) = fieldCenter;
+            chunk->dishPointing1()(row) = fieldCenter;
+            chunk->dishPointing2()(row) = fieldCenter;
+            chunk->frequency()(0) = 1400000;
+
+            // Instantiate the class under test and call process() to
+            // add UVW coordinates to the VisChunk
+            CalcUVWTask task(itsParset);
+            task.process(chunk);
+
+            CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
+            CPPUNIT_ASSERT(chunk->uvw().size() == 1);
+            casa::RigidVector<casa::Double, 3> uvw = chunk->uvw()(row);
+
+            // Tolerance for uvw equality
+            const double tol = 1.0E-1;
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(u, uvw(0), tol); //u
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(v, uvw(1), tol); //v
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(w, uvw(2), tol); //w
+        };
 
     private:
 
-    LOFAR::ParameterSet itsParset;
+        LOFAR::ParameterSet itsParset;
 
 };
 
