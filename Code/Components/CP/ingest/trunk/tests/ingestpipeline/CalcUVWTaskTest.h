@@ -108,10 +108,10 @@ class CalcUVWTaskTest : public CppUnit::TestFixture
         casa::RigidVector<casa::Double, 3> uvw = chunk->uvw()(row);
 
         // Tolerance for uvw equality
-        const double tol = 1.0E-8;
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(-347.517826227471, uvw(0), tol); //u
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(-698.816518342588, uvw(1), tol); //v
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(591.278777468775, uvw(2), tol); //w
+        const double tol = 1.0E-1;
+        CPPUNIT_ASSERT_DOUBLES_EQUAL(-347.5, uvw(0), tol); //u
+        CPPUNIT_ASSERT_DOUBLES_EQUAL(-698.8, uvw(1), tol); //v
+        CPPUNIT_ASSERT_DOUBLES_EQUAL(591.2, uvw(2), tol); //w
     };
 
     private:
