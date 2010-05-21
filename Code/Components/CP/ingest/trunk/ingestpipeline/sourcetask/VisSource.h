@@ -39,45 +39,44 @@
 #include "ingestpipeline/sourcetask/CircularBuffer.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class VisSource : public IVisSource
-        {
-            public:
-                VisSource(const unsigned int port, const unsigned int bufSize);
-                ~VisSource();
+class VisSource : public IVisSource {
+    public:
+        VisSource(const unsigned int port, const unsigned int bufSize);
+        ~VisSource();
 
-                boost::shared_ptr<VisDatagram> next(const long timeout = -1);
+        boost::shared_ptr<VisDatagram> next(const long timeout = -1);
 
-            private:
-                void start_receive(void);
+    private:
+        void start_receive(void);
 
-                void handle_receive(const boost::system::error_code& error,
-                        std::size_t bytes);
+        void handle_receive(const boost::system::error_code& error,
+                            std::size_t bytes);
 
-                void run(void);
+        void run(void);
 
-                // Circular buffer of VisDatagram objects
-                askap::cp::CircularBuffer< VisDatagram > itsBuffer;
+        // Circular buffer of VisDatagram objects
+        askap::cp::CircularBuffer< VisDatagram > itsBuffer;
 
-                // Service thread
-                boost::shared_ptr<boost::thread> itsThread;
+        // Service thread
+        boost::shared_ptr<boost::thread> itsThread;
 
-                // Used to request the service thread to stop
-                bool itsStopRequested;
+        // Used to request the service thread to stop
+        bool itsStopRequested;
 
-                // Boost io_service
-                boost::asio::io_service itsIOService;
+        // Boost io_service
+        boost::asio::io_service itsIOService;
 
-                // UDP socket
-                boost::scoped_ptr<boost::asio::ip::udp::socket> itsSocket;
+        // UDP socket
+        boost::scoped_ptr<boost::asio::ip::udp::socket> itsSocket;
 
-                boost::asio::ip::udp::endpoint itsRemoteEndpoint;
+        boost::asio::ip::udp::endpoint itsRemoteEndpoint;
 
-                boost::shared_ptr<VisDatagram> itsRecvBuffer;
-        };
+        boost::shared_ptr<VisDatagram> itsRecvBuffer;
+};
 
-    };
+};
 };
 
 #endif

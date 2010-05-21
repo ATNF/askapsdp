@@ -43,7 +43,7 @@ namespace cp {
 class MergedSource {
     public:
         MergedSource(IMetadataSource::ShPtr metadataSource,
-                IVisSource::ShPtr visSource);
+                     IVisSource::ShPtr visSource);
         ~MergedSource();
 
         // Blocking
@@ -54,12 +54,13 @@ class MergedSource {
         VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
         void addVis(VisChunk::ShPtr chunk, const VisDatagram& vis);
         void doFlagging(VisChunk::ShPtr chunk, const TosMetadata& metadata);
-        void doFlaggingSample(VisChunk::ShPtr chunk, 
-                const TosMetadata& metadata,
-                const unsigned int row,
-                const unsigned int chan,
-                const unsigned int pol);
+        void doFlaggingSample(VisChunk::ShPtr chunk,
+                              const TosMetadata& metadata,
+                              const unsigned int row,
+                              const unsigned int chan,
+                              const unsigned int pol);
 
+        unsigned int fineToCoarseChannel(const unsigned int& fineChannel);
 
         IMetadataSource::ShPtr itsMetadataSrc;
         IVisSource::ShPtr itsVisSrc;

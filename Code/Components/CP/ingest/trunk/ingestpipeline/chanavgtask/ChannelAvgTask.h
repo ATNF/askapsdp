@@ -38,15 +38,31 @@
 namespace askap {
 namespace cp {
 
+/// @brief Channel averaging task for the central processor ingest pipeline.
+///
+/// This task requires a configuration entry in the parset passed to the
+/// constructor. This configuration entry specifies how many channels to be
+/// averaged to one. For example:
+/// @verbatim
+///     chanavg.averaging                = 54
+/// @endverbatim
+/// The above results in 54 channels being averaged to one. Note the number of
+/// channels in the VisChunk must be a multple of this number.
 class ChannelAvgTask : public askap::cp::ITask {
     public:
         /// @brief Constructor.
+        /// @param[in] parset   the parameter set used to configure this task.
         ChannelAvgTask(const LOFAR::ParameterSet& parset);
 
         /// @brief Destructor.
         virtual ~ChannelAvgTask();
 
-        /// TODO: Add comments
+        /// @brief Averages channels in the VisChunk.
+        ///
+        /// @param[in,out] chunk the instance of VisChunk for which channels will
+        ///             be averaged. This method manipulates the VisChunk
+        ///             instance which is passed in, hence the value of the
+        ///             pointer will be unchanged.
         virtual void process(VisChunk::ShPtr chunk);
 
     private:

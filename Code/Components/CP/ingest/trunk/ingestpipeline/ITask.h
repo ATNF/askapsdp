@@ -38,10 +38,23 @@ namespace cp {
 
 class ITask {
     public:
+        /// Destructor.
         virtual ~ITask();
+
+        /// Process a VisChunk.
+        ///
+        /// This method is called once for each correlator integration.
+        /// 
+        /// @param[in,out] a shared pointer to a VisChunk object. The VisChunk
+        ///             contains all the visibilities and associated metadata
+        ///             for a single correlator integration. This method is
+        ///             expected to take this VisChunk as input, perform any
+        ///             transformations on it and return it is output. This
+        ///             parameter is a pointer, so the method is free to change
+        ///             the pointer to point to a new object.
         virtual void process(VisChunk::ShPtr chunk) = 0;
 
-        // Shared pointer definition
+        /// Shared pointer definition
         typedef boost::shared_ptr<ITask> ShPtr;
 
 };

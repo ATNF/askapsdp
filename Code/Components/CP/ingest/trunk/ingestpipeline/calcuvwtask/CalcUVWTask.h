@@ -85,14 +85,15 @@ class CalcUVWTask : public askap::cp::ITask {
         /// @brief Calculates UVW coordinates for each for in the
         /// specified VisChunk.
         ///
-        /// @param[in,out] the instance of VisChunk for which UVW coordinates
-        /// are to be calculated.
+        /// @param[in,out] chunk  the instance of VisChunk for which UVW
+        ///                       coordinates are to be calculated.
         virtual void process(VisChunk::ShPtr chunk);
 
     private:
         // Calculates UVW coordinates for the specified "row" in the "chunk"
         void calcForRow(VisChunk::ShPtr chunk, const casa::uInt row);
 
+        // Populates the itsBeamOffset vector
         void setupBeamOffsets(void);
 
         // Parameter set
@@ -106,6 +107,9 @@ class CalcUVWTask : public askap::cp::ITask {
         // TODO: Unify configuration
         boost::scoped_ptr<IConfiguration> itsConfig;
 
+        // A vector with one element per beam. Each element then is a
+        // two element vector containing the x and y offsets at index
+        // 0 and 1 respectivly
         casa::Vector< casa::RigidVector<double, 2> > itsBeamOffset;
 };
 

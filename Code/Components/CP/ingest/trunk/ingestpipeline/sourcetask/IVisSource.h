@@ -32,20 +32,31 @@
 #include "cpcommon/VisDatagram.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class IVisSource
-        {
-            public:
-                virtual ~IVisSource() {};
+/// @brief An interface for a class that can be used as a source of VisDatagram
+/// objects.
+class IVisSource {
+    public:
+        /// @brief Destructor.
+        virtual ~IVisSource() {};
 
-                virtual boost::shared_ptr<VisDatagram> next(const long timeout = -1) = 0;
+        /// @brief Returns the next VisDatagram object.
+        ///
+        /// @param[in] timeout how long to wait for data before returning
+        ///         a null pointer, in the case where the
+        ///         buffer is empty. The timeout is in microseconds,
+        ///         and anything less than zero will result in no
+        ///         timeout (i.e. blocking functionality).
+        ///
+        /// @return a shared pointer to a VisDatagram object.
+        virtual boost::shared_ptr<VisDatagram> next(const long timeout = -1) = 0;
 
-                // Shared pointer definition
-                typedef boost::shared_ptr<IVisSource> ShPtr;
-        };
+        // Shared pointer definition
+        typedef boost::shared_ptr<IVisSource> ShPtr;
+};
 
-    };
+};
 };
 
 #endif

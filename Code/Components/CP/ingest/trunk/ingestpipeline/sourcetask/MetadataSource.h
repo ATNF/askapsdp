@@ -37,31 +37,54 @@
 #include "ingestpipeline/sourcetask/CircularBuffer.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class MetadataSource :
-            virtual public askap::cp::MetadataReceiver, public askap::cp::IMetadataSource
-        {
-            public:
-                MetadataSource(const std::string& locatorHost,
-                        const std::string& locatorPort,
-                        const std::string& topicManager,
-                        const std::string& topic,
-                        const std::string& adapterName,
-                        const unsigned int bufSize);
-                ~MetadataSource();
+class MetadataSource :
+            virtual public askap::cp::MetadataReceiver, public askap::cp::IMetadataSource {
+    public:
+        /// @brief Constructor.
+        ///
+        /// @param[in] locatorHost  the hostname or IP address of the host that
+        ///                         the ICE locator service is running on.
+        /// @param[in] locatorPort  the port number the ICE locator service is
+        ///                         running on.
+        /// @param[in] topicManager the name of the IceStorm topic manager.
+        /// @param[in] topic        the topic name of the IceStorm topic which
+        ///                         should be subscribed to.
+        /// @param[in] adapterName  the name of the adapter. This is a quirk of
+        ///                         IceStorm being built on top of Ice. Subscribers
+        ///                         need to be connected via an adapter which is
+        ///                         identified by a name.
+        /// @param[in] bufSize      the number of TosMetadata objects to buffer
+        ///                         internally. If objects are being received faster
+        ///                         than they are being consumed, and if this buffer
+        ///                         becomes full then the older objects are discarded
+        ///                         to make room for the newer incoming objects.
+        MetadataSource(const std::string& locatorHost,
+                       const std::string& locatorPort,
+                       const std::string& topicManager,
+                       const std::string& topic,
+                       const std::string& adapterName,
+                       const unsigned int bufSize);
 
-                virtual void receive(const askap::cp::TosMetadata& msg);
+        /// @brief Destructor.
+        ~MetadataSource();
 
-                // Blocking
-                boost::shared_ptr<askap::cp::TosMetadata> next(void);
+        /// @brief Callback method, called when a new TosMetadata object is
+        /// available.
+        ///
+        /// @param[in] msg  the metadata object.
+        virtual void receive(const askap::cp::TosMetadata& msg);
 
-            private:
-                // Circular buffer of metadata payloads
-                askap::cp::CircularBuffer< askap::cp::TosMetadata > itsBuffer;
-        };
+        /// @copydoc askap::cp::IMetadataSource::next()
+        boost::shared_ptr<askap::cp::TosMetadata> next(void);
 
-    };
+    private:
+        // Circular buffer of metadata objects
+        askap::cp::CircularBuffer< askap::cp::TosMetadata > itsBuffer;
+};
+
+};
 };
 
 #endif

@@ -32,21 +32,26 @@
 #include "cpcommon/TosMetadata.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class IMetadataSource
-        {
-            public:
-                virtual ~IMetadataSource() {};
+/// @brief An interface for a class that can be used as a source of TosMetadata
+/// objects.
+class IMetadataSource {
+    public:
+        virtual ~IMetadataSource() {};
 
-                // Blocking
-                virtual boost::shared_ptr<askap::cp::TosMetadata> next(void) = 0;
+        /// @brief Returns the next TosMetadata object.
+        /// This call is blocking, it will not return until an object is
+        /// available to return.
+        ///
+        /// @return a shared pointer to a TosMetadata object.
+        virtual boost::shared_ptr<askap::cp::TosMetadata> next(void) = 0;
 
-                // Shared pointer definition
-                typedef boost::shared_ptr<IMetadataSource> ShPtr;
-        };
+        // Shared pointer definition
+        typedef boost::shared_ptr<IMetadataSource> ShPtr;
+};
 
-    };
+};
 };
 
 #endif

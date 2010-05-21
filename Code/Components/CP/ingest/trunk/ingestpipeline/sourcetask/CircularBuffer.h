@@ -35,81 +35,104 @@
 #include "boost/circular_buffer.hpp"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        template<class T>
-        class CircularBuffer
-        {
-            public:
-                CircularBuffer(const unsigned int bufSize)
-                {
-                    if (bufSize > 0) {
-                        itsBuffer.set_capacity(bufSize);
-                    } else {
-                        itsBuffer.set_capacity(1);
-                    }
-                };
+/// @brief A simple thread safe circular buffer.
+template<class T>
+class CircularBuffer {
+    public:
 
-                ~CircularBuffer() {};
-
-                void add(boost::shared_ptr<T> obj)
-                {
-                    // Add a pointer to the message to the back of the circular burrer
-                    boost::mutex::scoped_lock lock(itsMutex);
-                    itsBuffer.push_back(obj);
-
-                    // Notify any waiters
-                    lock.unlock();
-                    itsCondVar.notify_all();
-                };
-
-                // timeout is in microseconds, and anything less than zero
-                // results in no timeout
-                boost::shared_ptr<T> next(const long timeout = -1)
-                {
-                    // Determine when to sleep to if timeout is set
-                    boost::xtime xt;
-                    boost::xtime_get(&xt, boost::TIME_UTC);
-                    if (timeout > 0) {
-                        const long NANOSECONDS_PER_MICROSECOND = 1000;
-                        const long MICROSECONDS_PER_SECOND = 1000000;
-                        if (timeout > MICROSECONDS_PER_SECOND) {
-                            const long sec = timeout / MICROSECONDS_PER_SECOND;
-                            xt.sec += sec;
-                        }
-                        xt.nsec += (timeout % MICROSECONDS_PER_SECOND) * NANOSECONDS_PER_MICROSECOND;
-                    }
-
-                    boost::mutex::scoped_lock lock(itsMutex);
-                    while (itsBuffer.empty()) {
-                        // While this call sleeps/blocks the mutex is released
-                        if (timeout > 0) {
-                            itsCondVar.timed_wait(lock, xt);
-                            if (itsBuffer.empty()) {
-                                return boost::shared_ptr<T>(); // Null pointer
-                            }
-                        } else {
-                            itsCondVar.wait(lock);
-                        }
-                    }
-
-                    // Get the pointer on the front of the circular buffer
-                    boost::shared_ptr<T> obj(itsBuffer[0]);
-                    itsBuffer.pop_front();
-
-                    // No need to notify producer. The producer doesn't block because the
-                    // buffer is a circular buffer.
-
-                    return obj;
-                };
-
-            private:
-                boost::circular_buffer< boost::shared_ptr<T> > itsBuffer;
-                boost::mutex itsMutex;
-                boost::condition itsCondVar;
+        /// @brief Constructor.
+        /// @param[in] bufSize  the maximum number of elements (of type T)
+        ///                     that the circular buffer can contain.
+        CircularBuffer(const unsigned int bufSize) {
+            if (bufSize > 0) {
+                itsBuffer.set_capacity(bufSize);
+            } else {
+                itsBuffer.set_capacity(1);
+            }
         };
 
-    };
+        /// @brief Destructor.
+        ~CircularBuffer() {};
+
+        /// @brief Add an element to the cirtular buffer.
+        /// @param[in]  obj a pointer to be added to the circular
+        ///                 buffer. The pointer is added to the "back"
+        ///                 of the buffer.
+        void add(const boost::shared_ptr<T> obj) {
+            // Add a pointer to the message to the back of the circular burrer
+            boost::mutex::scoped_lock lock(itsMutex);
+            itsBuffer.push_back(obj);
+
+            // Notify any waiters
+            lock.unlock();
+            itsCondVar.notify_all();
+        };
+
+        /// @brief Get the next object from the "front" of the circular
+        /// buffer.
+        /// Calling this method pops the pointer from the buffer.
+        ///
+        /// @param[in] timeout how long to wait for data before returning
+        ///         a null pointer, in the case where the
+        ///         buffer is empty. The timeout is in microseconds,
+        ///         and anything less than zero will result in no
+        ///         timeout (i.e. blocking functionality).
+        boost::shared_ptr<T> next(const long timeout = -1) {
+            // Determine when to sleep to if timeout is set
+            boost::xtime xt;
+            boost::xtime_get(&xt, boost::TIME_UTC);
+
+            if (timeout > 0) {
+                const long NANOSECONDS_PER_MICROSECOND = 1000;
+                const long MICROSECONDS_PER_SECOND = 1000000;
+
+                if (timeout > MICROSECONDS_PER_SECOND) {
+                    const long sec = timeout / MICROSECONDS_PER_SECOND;
+                    xt.sec += sec;
+                }
+
+                xt.nsec += (timeout % MICROSECONDS_PER_SECOND) * NANOSECONDS_PER_MICROSECOND;
+            }
+
+            boost::mutex::scoped_lock lock(itsMutex);
+
+            while (itsBuffer.empty()) {
+                // While this call sleeps/blocks the mutex is released
+                if (timeout > 0) {
+                    itsCondVar.timed_wait(lock, xt);
+
+                    if (itsBuffer.empty()) {
+                        return boost::shared_ptr<T>(); // Null pointer
+                    }
+                } else {
+                    itsCondVar.wait(lock);
+                }
+            }
+
+            // Get the pointer on the front of the circular buffer
+            boost::shared_ptr<T> obj(itsBuffer[0]);
+            itsBuffer.pop_front();
+
+            // No need to notify producer. The producer doesn't block because the
+            // buffer is a circular buffer.
+
+            return obj;
+        };
+
+    private:
+        /// The circular buffer this class wraps
+        boost::circular_buffer< boost::shared_ptr<T> > itsBuffer;
+
+        // Mutex used for synchronisation between threads
+        boost::mutex itsMutex;
+
+        // Condition variable user for synchronisation between threads
+        boost::condition itsCondVar;
+};
+
+};
 };
 
 #endif

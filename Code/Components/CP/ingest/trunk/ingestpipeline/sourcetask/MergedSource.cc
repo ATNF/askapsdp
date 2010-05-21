@@ -40,7 +40,6 @@
 #include "casa/Quanta/MVEpoch.h"
 
 // Local package includes
-#include "ingestpipeline/IngestUtils.h"
 #include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
 
@@ -272,7 +271,7 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
     // is flagged then the whole 54 fine channels are flagged
     const unsigned int beam1 = chunk->beam1()(row);
     const unsigned int beam2 = chunk->beam2()(row);
-    const unsigned int coarseChan = IngestUtils::fineToCoarseChannel(chan);
+    const unsigned int coarseChan = fineToCoarseChannel(chan);
 
     if (mdAnt1.flagDetailed(beam1, coarseChan, pol)) {
         chunk->flag()(row, chan, pol) = true;
@@ -283,4 +282,9 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
         return;
     }
 
+}
+
+unsigned int MergedSource::fineToCoarseChannel(const unsigned int& fineChannel)
+{
+        return ((fineChannel - (fineChannel % N_FINE_PER_COARSE)) / 304);
 }

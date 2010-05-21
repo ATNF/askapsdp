@@ -42,18 +42,39 @@
 namespace askap {
 namespace cp {
 
+/// @brief A sink task for the central processor ingest pipeline which writes
+/// the data out to a measurement set.
 class MSSink : public askap::cp::ITask {
     public:
+        /// @brief Constructor.
+        /// @param[in] parset   the parameter set used to configure this task.
         MSSink(const LOFAR::ParameterSet& parset);
+
+        /// @brief Destructor.
         virtual ~MSSink();
 
+        /// @brief Writes out the data in the VisChunk parameter to the 
+        /// measurement set.
+        ///
+        /// @param[in,out] chunk    the instance of VisChunk to write out. Note
+        ///                         the VisChunk pointed to by "chunk" nor the pointer
+        ///                         itself are modified by this function.
         virtual void process(VisChunk::ShPtr chunk);
 
     private:
+        // Initialises the ANTENNA table
         void initAntennas(void);
+
+        // Initialises the FEED table
         void initFeeds(void);
+
+        // Initialises the  SPECTRAL WINDOW table
         void initSpws(void);
+
+        // Initialises the FIELDS table
         void initFields(void);
+
+        // Initialises the OBSERVATION table
         void initObs(void);
 
         // Create the measurement set

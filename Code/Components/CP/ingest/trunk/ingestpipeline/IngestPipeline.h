@@ -40,36 +40,57 @@
 #include "ingestpipeline/ITask.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
 
-        class IngestPipeline
-        {
-            public:
-                IngestPipeline(const LOFAR::ParameterSet& parset);
-                ~IngestPipeline();
-                void start(void);
-                void abort(void);
+class IngestPipeline {
+    public:
+        /// @brief Constructor.
+        IngestPipeline(const LOFAR::ParameterSet& parset);
 
-            private:
-                void ingest(void);
-                bool ingestOne(void);
-                void createSource(void);
+        /// @brief Destructor.
+        ~IngestPipeline();
 
-                template <class T>
-                void createTask(const LOFAR::ParameterSet& parset);
+        /// @brief Start running the pipeline.
+        /// This is a blocking call, the IngestPipeline runs using the calling
+        /// thread. It will return only when the observation has completed
+        /// or when abort() is called.
+        void start(void);
 
-                const LOFAR::ParameterSet itsParset;
-                bool itsRunning;
+        /// Brief Abort the pipeline as soon as possible.
+        /// Calling this method instructs the pipeline to finish up as soon
+        /// as possible, however this method returns immediatly and does not
+        /// wait.
+        void abort(void);
 
-                boost::scoped_ptr< MergedSource > itsSource;
+    private:
+        void ingest(void);
 
-                std::vector<ITask::ShPtr> itsTasks;
+        bool ingestOne(void);
 
-                unsigned long itsIntegrationsCount;
-                unsigned long itsIntegrationsExpected;
-        };
+        void createSource(void);
 
-    };
+        template <class T>
+        void createTask(const LOFAR::ParameterSet& parset);
+
+        const LOFAR::ParameterSet itsParset;
+
+        bool itsRunning;
+
+        boost::scoped_ptr< MergedSource > itsSource;
+
+        std::vector<ITask::ShPtr> itsTasks;
+
+        // A count of how many correlator integrations have been
+        // processed.
+        unsigned long itsIntegrationsCount;
+
+        // Number of correlator integrations expected. When itsIntegrationsCount
+        // equals this number the pipeline will be stopped and start will
+        // return.
+        unsigned long itsIntegrationsExpected;
+};
+
+};
 };
 
 #endif
