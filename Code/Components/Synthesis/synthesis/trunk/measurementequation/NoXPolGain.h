@@ -138,8 +138,6 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
    const casa::uInt ant1 = chunk.antenna1()[row];
    const casa::uInt ant2 = chunk.antenna2()[row];
    
-   ASKAPASSERT(ant1!=ant2); // not yet implemented
-   
    scimath::ComplexDiffMatrix calFactor(nPol, nPol, 0.);
 
    for (casa::uInt pol=0; pol<nPol; ++pol) {
