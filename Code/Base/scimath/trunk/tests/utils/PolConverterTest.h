@@ -31,12 +31,12 @@
 // cppunit includes
 #include <cppunit/extensions/HelperMacros.h>
 // own includes
-#include <dataaccess/PolConverter.h>
+#include <utils/PolConverter.h>
 #include <askap/AskapError.h>
 
 namespace askap {
 
-namespace synthesis {
+namespace scimath {
 
 class PolConverterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(PolConverterTest);
@@ -252,7 +252,7 @@ public:
   
 };
 
-} // namespace synthesis
+} // namespace scimath
 
 } // namespace askap
 

@@ -26,7 +26,7 @@
 #include <askap/AskapLogging.h>
 #include <dataaccess/IDataAccessor.h>
 #include <dataaccess/OnDemandBufferDataAccessor.h>
-#include <dataaccess/PolConverter.h>
+#include <utils/PolConverter.h>
 ASKAP_LOGGER(logger, ".gridding");
 
 #include <askap/AskapError.h>
@@ -416,8 +416,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
    // of the matrices for every accessor. More intelligent caching is possible with a bit
    // more effort (i.e. one has to detect whether polarisation frames change from the
    // previous call). Need to think about parallactic angle dependence.
-   PolConverter gridPolConv(acc.stokes(), getStokes());
-   PolConverter degridPolConv(getStokes(),acc.stokes(), false);
+   scimath::PolConverter gridPolConv(acc.stokes(), getStokes());
+   scimath::PolConverter degridPolConv(getStokes(),acc.stokes(), false);
 			      
    ASKAPDEBUGASSERT(itsShape.nelements()>=2);
    const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);

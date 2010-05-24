@@ -34,7 +34,6 @@
 #include "DataConverterTest.h"
 #include "TableDataAccessTest.h"
 #include "UVWMachineCacheTest.h"
-#include "PolConverterTest.h"
 #include "OnDemandBufferDataAccessorTest.h"
 
 #include "TableTestRunner.h"
@@ -48,7 +47,6 @@ int main(int argc, char *argv[])
    runner.addTest(askap::synthesis::DataAccessTest::suite());
    runner.addTest(askap::synthesis::TableDataAccessTest::suite());
    runner.addTest(askap::synthesis::UVWMachineCacheTest::suite());
-   runner.addTest(askap::synthesis::PolConverterTest::suite());
    runner.addTest(askap::synthesis::OnDemandBufferDataAccessorTest::suite());
    runner.run();
    return 0;

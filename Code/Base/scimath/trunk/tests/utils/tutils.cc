@@ -30,6 +30,8 @@
 #include <CasaProjectionTest.h>
 #include <ChangeMonitorTest.h>
 #include <PaddingUtilsTest.h>
+#include <PolConverterTest.h>
+
 
 int main(int argc, char *argv[])
 {
@@ -38,6 +40,8 @@ int main(int argc, char *argv[])
     runner.addTest(askap::scimath::FixedSizeCacheTest::suite());
     runner.addTest(askap::scimath::ChangeMonitorTest::suite());
     runner.addTest(askap::scimath::PaddingUtilsTest::suite());
+    runner.addTest(askap::scimath::PolConverterTest::suite());
+
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

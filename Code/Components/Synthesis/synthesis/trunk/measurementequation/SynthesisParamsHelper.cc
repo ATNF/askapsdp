@@ -24,7 +24,7 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageParamsHelper.h>
 #include <imageaccess/ImageAccessFactory.h>
-#include <dataaccess/PolConverter.h>
+#include <utils/PolConverter.h>
 #include <fitting/Axes.h>
 #include <utils/MultiDimArrayPlaneIter.h>
 #include <utils/PaddingUtils.h>
@@ -162,7 +162,7 @@ namespace askap
               for (size_t i=0; i<stokesVec.size(); ++i) {
                    stokesStr += stokesVec[i];
               }
-              casa::Vector<casa::Stokes::StokesTypes> stokes = PolConverter::fromString(stokesStr);
+              casa::Vector<casa::Stokes::StokesTypes> stokes = scimath::PolConverter::fromString(stokesStr);
 
  
               const int nTaylorTerms = parset.getInt32(*it+".nterms",1);                           
@@ -191,7 +191,7 @@ namespace askap
 		           }
 		      }
 		      ASKAPLOG_INFO_STR(logger, "Number of channels = "<<nchan);
-		      ASKAPLOG_INFO_STR(logger, "Polarisation planes correspond to "<<PolConverter::toString(stokes));		      
+		      ASKAPLOG_INFO_STR(logger, "Polarisation planes correspond to "<<scimath::PolConverter::toString(stokes));		      
 	     }
 	  }
 	  catch (const LOFAR::APSException &ex) {

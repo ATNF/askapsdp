@@ -30,11 +30,11 @@
 ///
 
 
-#include <dataaccess/PolConverter.h>
+#include <utils/PolConverter.h>
 #include <askap/AskapError.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::scimath;
 
 /// @brief constructor of the converter between two frames
 /// @details

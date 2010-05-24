@@ -43,7 +43,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace scimath {
 
 /// @brief Converter of polarisation frames
 /// @details This is the class which handles polarisation frame conversion and contains some
@@ -52,7 +52,7 @@ namespace synthesis {
 /// @note At this stage this class is incompatible with the converters used to create data iterator.
 /// It is not clear at the moment whether this class should be modified to be used as such converter 
 /// too.
-/// @ingroup dataaccess_conv
+/// @ingroup utils
 struct PolConverter {
 
   /// @brief constructor of the converter between two frames
@@ -221,7 +221,7 @@ private:
   const bool itsCheckUnspecifiedProducts;
 };
 
-} // namespace synthesis
+} // namespace scimath
 
 } // namespace askap
 
