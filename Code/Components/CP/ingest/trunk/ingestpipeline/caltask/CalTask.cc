@@ -38,7 +38,10 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
-#include "boost/scoped_ptr.hpp"
+#include "utils/PolConverter.h"
+
+// boost includes
+//#include "boost/scoped_ptr.hpp"
 
 // Local package includes
 #include "ingestpipeline/datadef/VisChunk.h"
@@ -75,8 +78,22 @@ void CalTask::process(VisChunk::ShPtr chunk)
 {
     ASKAPLOG_DEBUG_STR(logger, "process()");
     ASKAPDEBUGASSERT(chunk);
+    const casa::Vector<casa::Stokes::StokesTypes> &stokes = chunk->stokes();
+    ASKAPCHECK(scimath::PolConverter::isLinear(stokes), "Calibration task requires Linear polarisation!");
+    ASKAPDEBUGASSERT(stokes.nelements() > 0);
+    // form indices to account for possibility of incomplete polarisation vectors
+    casa::Vector<casa::uInt> polIndices(stokes.nelements());
+    for (casa::uInt pol = 0; pol<polIndices.nelements(); ++pol) {
+         ASKAPCHECK(scimath::PolConverter::isValid(stokes[pol]), "Unrecognised polarisation type "<<stokes[pol]<<" is found");
+	 polIndices[pol] = scimath::PolConverter::getIndex(stokes[pol]);
+	 ASKAPDEBUGASSERT(polIndices[pol]<4);
+	 ASKAPDEBUGASSERT(polIndices[pol]>=0);
+    }
+    //
+
     casa::Matrix<casa::Complex> matr(4,4);
     casa::Matrix<casa::Complex> reciprocal;
+    casa::Vector<casa::Complex> calibratedVector(polIndices.nelements());
     for (casa::uInt row=0; row<chunk->nRow(); ++row) {
          fillMuellerMatrix(matr, chunk->antenna1()[row], chunk->antenna2()[row],
 	        chunk->beam1()[row],chunk->beam2()[row]);
@@ -92,12 +109,11 @@ void CalTask::process(VisChunk::ShPtr chunk)
          for (casa::uInt chan = 0; chan<chunk->nChannel();++chan) {
 	      ASKAPDEBUGASSERT(chan < thisRow.nrow());
 	      casa::Vector<casa::Complex> polVector = thisRow.row(chan);
-	      ASKAPDEBUGASSERT(reciprocal.ncolumn() == polVector.nelements());
-	      ASKAPDEBUGASSERT(reciprocal.nrow() == polVector.nelements());
-              casa::Vector<casa::Complex> calibratedVector(polVector.nelements(),0.);
-	      for (casa::uInt pol=0; pol<polVector.nelements();++pol) {
-		   for (casa::uInt index = 0; index<polVector.nelements(); ++index) {
-	                calibratedVector[pol] += reciprocal(pol,index) * polVector[index];
+	      ASKAPDEBUGASSERT(polVector.nelements() == polIndices.nelements());
+              calibratedVector.set(0.);
+	      for (casa::uInt pol1=0; pol1<polIndices.nelements();++pol1) {
+		   for (casa::uInt pol2 = 0; pol2<polIndices.nelements(); ++pol2) {
+	                calibratedVector[pol1] += reciprocal(polIndices[pol1],polIndices[pol2]) * polVector[pol2];
 		   }
 	      }
 	      polVector = calibratedVector;

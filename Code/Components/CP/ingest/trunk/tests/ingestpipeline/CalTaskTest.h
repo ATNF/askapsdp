@@ -32,6 +32,7 @@
 #include "Common/ParameterSet.h"
 #include "measures/Measures.h"
 #include "casa/Quanta/MVEpoch.h"
+#include "utils/PolConverter.h"
 
 // Classes to test
 #include "ingestpipeline/caltask/CalTask.h"
@@ -76,6 +77,7 @@ class CalTaskTest : public CppUnit::TestFixture
         chunk->beam1()(row) = 0;
         chunk->beam2()(row) = 0;
 	chunk->visibility().set(1.);
+	chunk->stokes() = scimath::PolConverter::fromString("XX,XY,YX,YY");
 
         CalTask task(itsParset);
         task.process(chunk);
