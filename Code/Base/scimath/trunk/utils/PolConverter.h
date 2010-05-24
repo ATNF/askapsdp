@@ -140,8 +140,6 @@ struct PolConverter {
   /// @return number of polarisation planes in the output visibility vector
   inline casa::uInt nOutputDim() const { return itsPolFrameOut.nelements();}
   
-protected:
-
   /// @brief test if frame matches a given stokes enum
   /// @param[in] polFrame polarisation frame defined as a vector of Stokes enums
   /// @param[in] stokes a single stokes enum defining the frame (should be the first in the set)
@@ -166,7 +164,17 @@ protected:
   /// @note This method is actually used only to provide a sensible message in the exception. No
   /// other code depends on it.
   static casa::Stokes::StokesTypes stokesFromIndex(casa::uInt index, casa::Stokes::StokesTypes stokes);
+
+  /// @brief check whether stokes parameter correspond to cross-correlation
+  /// @details casacore allows to code single-dish polarisation and there are some reserved codes
+  /// as well. As we're doing lots of indexing, it is good to check that given parameter is
+  /// valid before doing any further work.
+  /// @note Technically, this and a few other helper methods should be part of casa::Stokes
+  /// @param[in] pol polarisation type
+  /// @return true, if it is a normal cross-correlation or I,Q,U or V.
+  static bool isValid(casa::Stokes::StokesTypes pol);
   
+protected:
   /// @brief build transformation matrix
   /// @details This is the core of the algorithm, this method builds the transformation matrix
   /// given the two frames .
@@ -180,15 +188,6 @@ protected:
   /// @param[in] pa1 parallactic angle on the first antenna
   /// @param[in] pa2 parallactic angle on the second antenna
   void fillPARotationMatrix(double pa1, double pa2);
-  
-  /// @brief check whether stokes parameter correspond to cross-correlation
-  /// @details casacore allows to code single-dish polarisation and there are some reserved codes
-  /// as well. As we're doing lots of indexing, it is good to check that given parameter is
-  /// valid before doing any further work.
-  /// @note Technically, this and a few other helper methods should be part of casa::Stokes
-  /// @param[in] pol polarisation type
-  /// @return true, if it is a normal cross-correlation or I,Q,U or V.
-  static bool isValid(casa::Stokes::StokesTypes pol);
   
 private:
   /// @brief no operation flag
