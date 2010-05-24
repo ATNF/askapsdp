@@ -73,12 +73,14 @@ VisChunk::ShPtr MergedSource::next(void)
         // If the VisDatagram timestamps are in the past (with respect to the
         // TosMetadata) then read VisDatagrams until they catch up
         while (itsMetadata->time() > itsVis->timestamp) {
+            ASKAPLOG_DEBUG_STR(logger, "Reading an extra VisDatagram to catch up");
             itsVis = itsVisSrc->next();
         }
 
         // But if the timestamp in the VisDatagram is in the future (with
         // respect to the TosMetadata) then it is time to fetch new TosMetadata
         if (itsMetadata->time() < itsVis->timestamp) {
+            ASKAPLOG_DEBUG_STR(logger, "Reading an extra TosMetadata to catch up");
             itsMetadata = itsMetadataSrc->next();
         }
     }
@@ -98,7 +100,7 @@ VisChunk::ShPtr MergedSource::next(void)
     // returns a null pointer this indicates the timeout has been reached.
     // In this case assume no more VisDatagrams for this integration will
     // be recieved and move on
-    casa::uInt datagramCount = 1; 
+    casa::uInt datagramCount = 0; 
     while (itsVis && itsMetadata->time() >= itsVis->timestamp) {
         if (itsMetadata->time() > itsVis->timestamp) {
             // If the VisDatagram is from a prior integration then discard it
@@ -106,17 +108,17 @@ VisChunk::ShPtr MergedSource::next(void)
             itsVis = itsVisSrc->next(timeout);
             continue;
         }
+
+        datagramCount++;
         addVis(chunk, *itsVis);
         itsVis = itsVisSrc->next(timeout);
         if (datagramCount == datagramsExpected) {
             // This integration is finished
             break;
         }
-        datagramCount++;
-
     }
 
-    ASKAPLOG_DEBUG_STR(logger, "Integration completed with " << datagramCount <<
+    ASKAPLOG_DEBUG_STR(logger, "VisChunk built with " << datagramCount <<
             " of expected " << datagramsExpected << " visibility datagrams");
 
     // Apply any flagging specified in the TOS metadata
