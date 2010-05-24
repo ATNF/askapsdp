@@ -52,7 +52,7 @@
 #include <dataaccess/IDataSelector.h>
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/SharedIter.h>
-#include <dataaccess/PolConverter.h>
+#include <utils/PolConverter.h>
 #include <Common/ParameterSet.h>
 #include <Common/Exceptions.h>
 #include <casa/OS/Timer.h>
@@ -246,7 +246,7 @@ void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params,
         for (size_t i=0; i<stokesVec.size(); ++i) {
             stokesStr += stokesVec[i];
         }
-        const casa::Vector<casa::Stokes::StokesTypes> stokes = PolConverter::fromString(stokesStr);
+        const casa::Vector<casa::Stokes::StokesTypes> stokes = scimath::PolConverter::fromString(stokesStr);
 
         ASKAPCHECK(nfacets > 0, "Number of facets is supposed to be a positive number, you gave "<<nfacets);
         ASKAPCHECK(shape.size() >= 2, "Image is supposed to be at least two dimensional. "<<
