@@ -161,16 +161,6 @@ namespace askap
 	       // Normalize	         
 	       doNormalization(padDiagonal(planeIter.getPlane(diag)),tol(),psfArray,dirtyArray, 
 	             boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-	            // Save the new PSFs to disk
-	            Axes axes(itsParams->axes(indit->first));
-	            string psfName="psf."+(indit->first);
-	            casa::Array<double> anothertemp = unpadImage(psfArray);
-	            const casa::Array<double> & APSF(anothertemp);
-	            if (!itsParams->has(psfName)) {
-	                // create an empty parameter with the full shape
-	                itsParams->add(psfName, planeIter.shape(), axes);
-	            } 
-	            itsParams->update(psfName, APSF, planeIter.position());	       
 	            // Store the new PSF in parameter class to be saved to disk later
 	            saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "psf.image", unpadImage(psfArray),
                                     planeIter.position());
