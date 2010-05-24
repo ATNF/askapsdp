@@ -45,7 +45,9 @@ namespace cp {
 class CalTaskTest : public CppUnit::TestFixture
 {
     CPPUNIT_TEST_SUITE(CalTaskTest);
-    CPPUNIT_TEST(testCal);
+    CPPUNIT_TEST(testCalFullPol);
+    CPPUNIT_TEST(testCalXXandYY);
+    CPPUNIT_TEST(testCalXX);
     CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -62,26 +64,68 @@ class CalTaskTest : public CppUnit::TestFixture
         itsParset.clear();
     }
 
-    void testCal()
+    void testCalXX()
     {
-        const int row = 0;
+        const int nRows = 1;
+        const int nChans = 1;
+        const int nPols = 1;
+
+        VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols));
+	configureDataChunk(chunk);
+	chunk->stokes() = scimath::PolConverter::fromString("XX");
+
+        CalTask task(itsParset);
+        task.process(chunk);
+
+        // check results of calibration
+        for (int row = 0; row<nRows; ++row) {
+	     CPPUNIT_ASSERT(row < int(chunk->visibility().nrow()));
+	     for (int chan=0; chan<nChans; ++chan) {
+	          CPPUNIT_ASSERT(chan < int(chunk->visibility().ncolumn()));
+		  CPPUNIT_ASSERT(chunk->visibility().nplane() == 1);
+		  testProduct(chunk->visibility()(row,chan,0),casa::Complex(0.9,-0.1));
+	     }
+        }
+    }
+
+    void testCalXXandYY()
+    {
+        const int nRows = 1;
+        const int nChans = 1;
+        const int nPols = 2;
+
+        VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols));
+	configureDataChunk(chunk);
+	chunk->stokes() = scimath::PolConverter::fromString("XX,YY");
+
+        CalTask task(itsParset);
+        task.process(chunk);
+
+        // check results of calibration
+        for (int row = 0; row<nRows; ++row) {
+	     CPPUNIT_ASSERT(row < int(chunk->visibility().nrow()));
+	     for (int chan=0; chan<nChans; ++chan) {
+	          CPPUNIT_ASSERT(chan < int(chunk->visibility().ncolumn()));
+		  CPPUNIT_ASSERT(chunk->visibility().nplane() == 2);
+		  testProduct(chunk->visibility()(row,chan,0),casa::Complex(0.9,-0.1));
+		  testProduct(chunk->visibility()(row,chan,1),casa::Complex(-0.05,-0.45));
+	     }
+	}
+    }
+
+    void testCalFullPol()
+    {
         const int nRows = 1;
         const int nChans = 1;
         const int nPols = 4;
-        MVEpoch time(Quantity(50237.29, "d"));
 
         VisChunk::ShPtr chunk(new VisChunk(nRows, nChans, nPols));
-        chunk->time() = time;
-        chunk->antenna1()(row) = 0;
-        chunk->antenna2()(row) = 1;
-        chunk->beam1()(row) = 0;
-        chunk->beam2()(row) = 0;
-	chunk->visibility().set(1.);
+	configureDataChunk(chunk);
 	chunk->stokes() = scimath::PolConverter::fromString("XX,XY,YX,YY");
 
         CalTask task(itsParset);
         task.process(chunk);
-        CPPUNIT_ASSERT_EQUAL(time, chunk->time());
+
         // check results of calibration
         for (int row = 0; row<nRows; ++row) {
 	     CPPUNIT_ASSERT(row < int(chunk->visibility().nrow()));
@@ -98,6 +142,23 @@ class CalTaskTest : public CppUnit::TestFixture
     };
 
     protected:
+
+    /// @brief common code to set up a single data chunk
+    void configureDataChunk(const VisChunk::ShPtr &chunk) {
+        CPPUNIT_ASSERT(chunk);
+        const int row = 0;
+
+        MVEpoch time(Quantity(50237.29, "d"));
+
+        chunk->time() = time;
+        chunk->antenna1()(row) = 0;
+        chunk->antenna2()(row) = 1;
+        chunk->beam1()(row) = 0;
+        chunk->beam2()(row) = 0;
+	chunk->visibility().set(1.);
+        CPPUNIT_ASSERT_EQUAL(time, chunk->time());
+    }
+
     /// @brief helper method 
     /// @details tests that the product of two complex numbers is close to 1.0
     static void testProduct(const casa::Complex &a, const casa::Complex &b) {
