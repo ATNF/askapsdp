@@ -80,9 +80,28 @@ class CalTaskTest : public CppUnit::TestFixture
         CalTask task(itsParset);
         task.process(chunk);
         CPPUNIT_ASSERT_EQUAL(time, chunk->time());
+        // check results of calibration
+        for (int row = 0; row<nRows; ++row) {
+	     CPPUNIT_ASSERT(row < int(chunk->visibility().nrow()));
+	     for (int chan=0; chan<nChans; ++chan) {
+	          CPPUNIT_ASSERT(chan < int(chunk->visibility().ncolumn()));
+		  CPPUNIT_ASSERT(chunk->visibility().nplane() == 4);
+		  testProduct(chunk->visibility()(row,chan,0),casa::Complex(0.9,-0.1));
+		  testProduct(chunk->visibility()(row,chan,1),casa::Complex(0.9,-0.1));
+		  testProduct(chunk->visibility()(row,chan,2),casa::Complex(-0.05,-0.45));
+		  testProduct(chunk->visibility()(row,chan,3),casa::Complex(-0.05,-0.45));
+	     }
+	}
 
     };
 
+    protected:
+    /// @brief helper method 
+    /// @details tests that the product of two complex numbers is close to 1.0
+    static void testProduct(const casa::Complex &a, const casa::Complex &b) {
+       CPPUNIT_ASSERT(std::abs(a*b-casa::Complex(1.,0.))<1e-6);
+    }
+      
     private:
 
     LOFAR::ParameterSet itsParset;
