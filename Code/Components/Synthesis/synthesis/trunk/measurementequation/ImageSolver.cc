@@ -258,7 +258,7 @@ namespace askap
              if (doPreconditioning(psfArray,dirtyArray)) {	
 
 	       // Normalize by the diagonal
-	       doNormalization(diag,tol(),psfArray,dirtyArray);
+	       doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray);
 
                  // Save the new PSFs to disk
                  Axes axes(ip.axes(indit->first));
@@ -273,7 +273,7 @@ namespace askap
              } // if - doPreconditioning
 	     else {
 	       // Normalize by the diagonal
-	       doNormalization(diag,tol(),psfArray,dirtyArray);
+	       doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray);
 	     }
 
 

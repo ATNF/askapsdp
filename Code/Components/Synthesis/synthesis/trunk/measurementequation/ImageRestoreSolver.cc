@@ -262,7 +262,7 @@ namespace askap
 	   doPreconditioning(psfArray,dirtyArray);
 	   
 	   // Normalize by the diagonal
-	   doNormalization(diag,tol(),psfArray,dirtyArray,mask);
+	   doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray,mask);
 	  
 	        // we have to do noise equalisation for final residuals after preconditioning
 	        if (itsEqualiseNoise) {
