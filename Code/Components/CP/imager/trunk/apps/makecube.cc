@@ -89,13 +89,14 @@ int main(int argc, char *argv[])
         return 1;
     }
     const int xyDims = refShape(0);
+    const int nStokes = refShape(2);
     const casa::CoordinateSystem csys = getCoordinameSystem(refImageName);
     const casa::Unit units = getUnits(refImageName);
 
     // Create new image cube
-    const casa::IPosition cubeShape(4, xyDims, xyDims, 1, nChan);
+    const casa::IPosition cubeShape(4, xyDims, xyDims, nStokes, nChan);
 
-    double size = static_cast<double>(xyDims) * xyDims * nChan * sizeof(float);
+    double size = static_cast<double>(xyDims) * xyDims * nStokes * nChan * sizeof(float);
     size = size / 1024.0 / 1024.0 / 1024.0;
     std::cout << "Creating image cube of size ~" << size
         << "GB. This may take a few minutes." << std::endl;
