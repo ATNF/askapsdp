@@ -27,6 +27,8 @@
 // Include package level header file
 #include <askap_imager.h>
 
+#include <askap/AskapError.h>
+
 // System includes
 #include <cstdlib>
 
@@ -34,7 +36,10 @@
 #include <casa/Arrays/Array.h>
 #include <casa/Quanta/Unit.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/SpectralCoordinate.h>
 #include <images/Images/PagedImage.h>
+
+using namespace askap;
 
 std::string getName(const std::string& base, int chan)
 {
@@ -90,7 +95,34 @@ int main(int argc, char *argv[])
     }
     const int xyDims = refShape(0);
     const int nStokes = refShape(2);
-    const casa::CoordinateSystem csys = getCoordinameSystem(refImageName);
+    
+    casa::CoordinateSystem csys = getCoordinameSystem(refImageName);
+    // csys has spectral axis corresponding to 1 channel we need to expand it
+    // to many channels by correcting reference channel/value
+  
+    const int whichSpectral = csys.findCoordinate(casa::Coordinate::SPECTRAL);
+    ASKAPCHECK(whichSpectral>-1, "No spectral coordinate present in the coordinate system of the first image.");
+   
+    const casa::Vector<casa::Int> axesSpectral = csys.pixelAxes(whichSpectral);
+    ASKAPCHECK(axesSpectral.nelements() == 1, "Spectral axis "<<whichSpectral<<
+                 " is expected to correspond to just one pixel axes, you have "<<axesSpectral);
+    ASKAPASSERT(casa::uInt(axesSpectral[0])<refShape.nelements());
+    casa::SpectralCoordinate freq(csys.spectralCoordinate(whichSpectral));
+    double startFreq;
+    freq.toWorld(startFreq,1.0);
+    const double endFreq = startFreq + freq.increment()[0]*(nChan-1);
+    freq.setReferencePixel(casa::Vector<double>(1,(double(nChan)-1.)/2.));
+    freq.setReferenceValue(casa::Vector<double>(1,(startFreq+endFreq)/2.));
+    casa::CoordinateSystem newCSys;
+    for (casa::uInt axis = 0; axis<csys.nCoordinates(); ++axis) {
+         if (csys.type(axis) != casa::Coordinate::SPECTRAL) {
+             newCSys.addCoordinate(csys.coordinate(axis));
+         } else {
+             newCSys.addCoordinate(freq);
+         }
+    }   
+
+    //
     const casa::Unit units = getUnits(refImageName);
 
     // Create new image cube
@@ -101,7 +133,7 @@ int main(int argc, char *argv[])
     std::cout << "Creating image cube of size ~" << size
         << "GB. This may take a few minutes." << std::endl;
 
-    casa::PagedImage<float> cube(casa::TiledShape(cubeShape), csys, name);
+    casa::PagedImage<float> cube(casa::TiledShape(cubeShape), newCSys, name);
     cube.setUnits(units);
 
     // Open source images and write the slices into the cube
