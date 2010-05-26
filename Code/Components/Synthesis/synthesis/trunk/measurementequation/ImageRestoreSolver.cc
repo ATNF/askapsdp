@@ -258,11 +258,11 @@ namespace askap
                 ASKAPLOG_INFO_STR(logger, "Restored image will have primary beam corrected noise (no equalisation)");
             }
        
-	   // Do the preconditioning
-	   doPreconditioning(psfArray,dirtyArray);
+            // Do the preconditioning
+            doPreconditioning(psfArray,dirtyArray);
 	   
-	   // Normalize by the diagonal
-	   doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray,mask);
+            // Normalize by the diagonal
+            doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray,mask);
 	  
 	        // we have to do noise equalisation for final residuals after preconditioning
 	        if (itsEqualiseNoise) {

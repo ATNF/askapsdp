@@ -877,7 +877,8 @@ namespace askap
       casa::StokesCoordinate stokes(iquv);
       imageCoords.addCoordinate(stokes);
       
-      int nchan=ip.value(name).shape()(2);
+      const casa::IPosition shape = ip.value(name).shape();
+      int nchan = shape.nelements() >= 4 ? shape(3) : 1;
       double restfreq = 0.0;
       double crpix = (nchan-1)/2;
       double crval = (axes.start("FREQUENCY")+axes.end("FREQUENCY"))/2.0;
