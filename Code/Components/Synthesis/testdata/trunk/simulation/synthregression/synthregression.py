@@ -5,7 +5,6 @@ import pbcorrtest
 print "noisetest: testing that the noise in the output image is as expected"
 import noisetest
 print "facetingtest: test of faceted imaging with spherical function gridder"
-print "temporary disabled"
-#import facetingtest
+import facetingtest
 print "calibratortest: test of ccalibrator"
 import calibratortest
