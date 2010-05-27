@@ -129,6 +129,8 @@ namespace askap
       while (!it.pastEnd())
       {
         casa::Matrix<double> mat(it.array());
+        ASKAPDEBUGASSERT(int(mat.nrow()) <= itsShape(0));
+        ASKAPDEBUGASSERT(int(mat.ncolumn()) <= itsShape(1));        
         for (int ix=0; ix<itsShape(0); ix++)
         {
           for (int iy=0; iy<itsShape(1); iy++)

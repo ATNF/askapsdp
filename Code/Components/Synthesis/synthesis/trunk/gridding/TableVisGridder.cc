@@ -920,7 +920,7 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 
 	if (casa::max(casa::abs(in))>0.0) {
 		itsModelIsEmpty=false;
-		casa::Array<double> scratch(itsShape);
+		casa::Array<double> scratch(itsShape,0.);
 		scimath::PaddingUtils::extract(scratch, itsPaddingFactor) = in;
 		correctConvolution(scratch);
 		toComplex(itsGrid[0], scratch);
