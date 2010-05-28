@@ -258,12 +258,12 @@ namespace askap
                 ASKAPLOG_INFO_STR(logger, "Restored image will have primary beam corrected noise (no equalisation)");
             }
        
-            // Do the preconditioning
-            doPreconditioning(psfArray,dirtyArray);
-	   
             // Normalize by the diagonal
             doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray,mask);
 	  
+	        // Do the preconditioning
+	        doPreconditioning(psfArray,dirtyArray);
+	   
 	        // we have to do noise equalisation for final residuals after preconditioning
 	        if (itsEqualiseNoise) {
 	            const casa::IPosition vecShape(1,dirtyArray.nelements());

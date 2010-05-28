@@ -146,7 +146,7 @@ namespace askap
         casa::Vector<float> maskVector(mask ? mask->reform(vecShape) : casa::Vector<float>());
         for (casa::uInt elem=0; elem<diag.nelements(); ++elem) {
              if(diag(elem)>cutoff) {
-	       dirtyVector(elem)/=diag(elem);
+                dirtyVector(elem)/=diag(elem);
                 if (mask) {
                     maskVector(elem)=sqrt(diag(elem)/float(maxDiag));
                 }
@@ -254,11 +254,11 @@ namespace askap
              casa::Array<float> psfArray(planeIter.planeShape());
              casa::convertArray<float, double>(psfArray, planeIter.getPlane(slice));
 	
+             // Normalize by the diagonal
+             doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray);
+
              // Do the preconditioning
              if (doPreconditioning(psfArray,dirtyArray)) {	
-
-	       // Normalize by the diagonal
-	       doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray);
 
                  // Save the new PSFs to disk
                  Axes axes(ip.axes(indit->first));
@@ -271,11 +271,6 @@ namespace askap
                  } 
                  ip.update(psfName, APSF, planeIter.position());                 
              } // if - doPreconditioning
-	     else {
-	       // Normalize by the diagonal
-	       doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray);
-	     }
-
 
              ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
 
