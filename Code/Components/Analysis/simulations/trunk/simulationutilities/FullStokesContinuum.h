@@ -73,6 +73,8 @@ namespace askap {
 
       double flux(int istokes, double freq);
 
+      double polAngle(){return itsPolAngleRef;};
+
     protected:
 		
       double itsStokesRefFreq;

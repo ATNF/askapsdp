@@ -627,8 +627,8 @@ namespace askap {
 			      // check the frequency limits for this source to see whether we need to look at it.
 			      std::pair<double,double> freqLims = profSAX.freqLimits();
 			      bool isGood = (freqLims.first < maxFreq) && (freqLims.second > minFreq);
-			      if(isGood) ASKAPLOG_DEBUG_STR(logger, "Source (" << freqLims.second<<"-"<<freqLims.first<<") lies within freq limits");
-			      else ASKAPLOG_DEBUG_STR(logger, "Outside freq limits! (" << freqLims.second<<"-"<<freqLims.first<<")");
+			      //			      if(isGood) ASKAPLOG_DEBUG_STR(logger, "Source (" << freqLims.second<<"-"<<freqLims.first<<") lies within freq limits");
+			      //			      else ASKAPLOG_DEBUG_STR(logger, "Outside freq limits! (" << freqLims.second<<"-"<<freqLims.first<<")");
 			      lookAtSource = lookAtSource && isGood;
 			    }
 
@@ -675,17 +675,29 @@ namespace askap {
                                     gauss.setFlux(src.fluxZero());
 
                                     if (!this->itsDryRun) addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
-                                    else if (doAddGaussian(this->itsAxes, gauss))
+                                    else if (doAddGaussian(this->itsAxes, gauss)){
+				      if( this->itsDatabaseOrigin == "POSSUM") 
+					ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<stokes.ra()<<", Dec="<<stokes.dec()<<", angle="<<stokes.polAngle());
                                         countGauss++;
+				    }
 				    else countMiss++;
                                 } else {
                                     if (!this->itsDryRun) addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
-                                    else if (doAddPointSource(this->itsAxes, pix))
-                                        countPoint++;
+                                    else if (doAddPointSource(this->itsAxes, pix)){
+				      if( this->itsDatabaseOrigin == "POSSUM") 
+					ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<stokes.ra()<<", Dec="<<stokes.dec()<<", angle="<<stokes.polAngle());
+                                       countPoint++;
+				    }
 				    else countMiss++;
                                 }
                             }
-			    else if(this->itsDryRun) countDud++;
+			    else{
+			      if(this->itsDryRun){
+				countDud++;
+				ASKAPLOG_DEBUG_STR(logger, "Dud source: input line = " << line );
+				std::cerr << profSAX<< "\n";
+			      }
+			    }
 
                         } else {
                             // Write all commented lines directly into the output file
