@@ -107,7 +107,7 @@ namespace askap {
             return (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]);
         }
 
-        void addGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
+        bool addGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
         {
             /// @details Adds the flux of a given 2D Gaussian to the pixel
             /// array.  Only look at pixels within a box defined by the
@@ -135,7 +135,8 @@ namespace askap {
             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPointMax), 0);
             int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPointMax), int(axes[1] - 1));
 
-            if ((xmax >= xmin) && (ymax >= ymin)) {  // if there are object pixels falling within the image boundaries
+	    bool addSource = (xmax >= xmin) && (ymax >= ymin);
+            if (addSource) {  // if there are object pixels falling within the image boundaries
 
                 std::stringstream ss;
 
@@ -249,6 +250,8 @@ namespace askap {
                 }
 
             }
+
+	    return addSource;
         }
 
         void add1DGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
@@ -336,7 +339,7 @@ namespace askap {
             }
         }
 
-        void addPointSource(float *array, std::vector<unsigned int> axes, double *pix, FluxGenerator &fluxGen)
+        bool addPointSource(float *array, std::vector<unsigned int> axes, double *pix, FluxGenerator &fluxGen)
         {
             /// @details Adds the flux of a given point source to the
             /// appropriate pixel in the given pixel array Checks are
@@ -350,7 +353,9 @@ namespace askap {
             unsigned int xpix = int(pix[0] + 0.5);
             unsigned int ypix = int(pix[1] + 0.5);
 
-            if (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]) {
+	    bool addSource = (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]);
+
+            if(addSource)  {
 
                 ASKAPLOG_DEBUG_STR(logger, "Adding Point Source with x=" << pix[0] << " & y=" << pix[1]
                                        << "  to  axes = [" << axes[0] << "," << axes[1] << "]");
@@ -367,6 +372,8 @@ namespace askap {
 		}
 
             }
+
+	    return addSource;
 
         }
 

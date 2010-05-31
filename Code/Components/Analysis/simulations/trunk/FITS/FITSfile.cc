@@ -195,6 +195,7 @@ namespace askap {
                 }
 
                 this->itsFlagOutputList = f.itsFlagOutputList;
+                this->itsFlagOutputListGoodOnly = f.itsFlagOutputListGoodOnly;
                 this->itsOutputSourceList = f.itsOutputSourceList;
 
                 return *this;
@@ -336,6 +337,7 @@ namespace askap {
                 }
 
                 this->itsFlagOutputList = parset.getBool("outputList", false);
+                this->itsFlagOutputListGoodOnly = parset.getBool("outputListGoodOnly", false);
 
                 if (this->itsSourceList.size() == 0) this->itsFlagOutputList = false;
 
@@ -595,24 +597,24 @@ namespace askap {
                             else                      wcsToPixSingle(this->itsWCS, wld, pix);
 
                             if (this->itsFlagOutputList) {
-                               pixToWCSSingle(this->itsWCS, pix, newwld);
+			      pixToWCSSingle(this->itsWCS, pix, newwld);
 			      if(this->itsDatabaseOrigin == "POSSUM"){
-				FullStokesContinuum newstokes(stokes);
-				if (this->itsPosType == "dms") {
-				  newstokes.setRA(analysis::decToDMS(newwld[0],"RA"));
-				  newstokes.setDec(analysis::decToDMS(newwld[1],"DEC"));
+				if(!this->itsFlagOutputListGoodOnly){
+				  FullStokesContinuum newstokes(stokes);
+				  if (this->itsPosType == "dms") {
+				    newstokes.setRA(analysis::decToDMS(newwld[0],"RA"));
+				    newstokes.setDec(analysis::decToDMS(newwld[1],"DEC"));
+				  }
+				  else{
+				    newstokes.setRA(newwld[0]);
+				    newstokes.setDec(newwld[1]);
+				  }
+				  outfile << newstokes << '\n';
 				}
-				else{
-				  ASKAPLOG_DEBUG_STR(logger, wld[0] << " " << wld[1] << " --> " <<newwld[0] << " " << newwld[1]);
-				  newstokes.setRA(newwld[0]);
-				  newstokes.setDec(newwld[1]);
-				  ASKAPLOG_DEBUG_STR(logger, newstokes.ra() << " " << newstokes.dec());
-			}
-				outfile << newstokes << '\n';
 			      }
 			      else{
-                                 outfile.setf(std::ios::fixed);
-                                outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
+				outfile.setf(std::ios::fixed);
+				outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
 					<< std::setw(10) << std::setprecision(6) << newwld[1] << " ";
 
 				if(this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX")
@@ -669,6 +671,7 @@ namespace askap {
                                         fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
                                 }
 
+				bool addedSource=false;
                                 if (src.maj() > 0) {
                                     // convert widths from arcsec to pixels
                                     src.setMaj(casa::Quantity(src.maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
@@ -690,22 +693,37 @@ namespace askap {
                                     gauss.setPA(casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
                                     gauss.setFlux(src.fluxZero());
 
-                                    if (!this->itsDryRun) addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
-                                    else if (doAddGaussian(this->itsAxes, gauss)){
+                                    if (!this->itsDryRun) addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
+                                    else if (addedSource=doAddGaussian(this->itsAxes, gauss)){
 				      if( this->itsDatabaseOrigin == "POSSUM") 
 					ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<stokes.ra()<<", Dec="<<stokes.dec()<<", angle="<<stokes.polAngle());
                                         countGauss++;
 				    }
 				    else countMiss++;
                                 } else {
-                                    if (!this->itsDryRun) addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
-                                    else if (doAddPointSource(this->itsAxes, pix)){
+                                    if (!this->itsDryRun) addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
+                                    else if (addedSource=doAddPointSource(this->itsAxes, pix)){
 				      if( this->itsDatabaseOrigin == "POSSUM") 
 					ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<stokes.ra()<<", Dec="<<stokes.dec()<<", angle="<<stokes.polAngle());
                                        countPoint++;
 				    }
 				    else countMiss++;
                                 }
+				if(addedSource){
+				  if(this->itsDatabaseOrigin == "POSSUM" && this->itsFlagOutputList && this->itsFlagOutputListGoodOnly){
+				    FullStokesContinuum newstokes(stokes);
+				    if (this->itsPosType == "dms") {
+				      newstokes.setRA(analysis::decToDMS(newwld[0],"RA"));
+				      newstokes.setDec(analysis::decToDMS(newwld[1],"DEC"));
+				    }
+				    else{
+				      newstokes.setRA(newwld[0]);
+				      newstokes.setDec(newwld[1]);
+				    }
+				    outfile << newstokes << '\n';
+				  }
+				}
+
                             }
 			    else{
 			      if(this->itsDryRun){

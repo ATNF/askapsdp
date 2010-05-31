@@ -212,6 +212,8 @@ namespace askap {
                     bool itsFlagPrecess;
                     /// @brief Whether to save the source list with new positions
                     bool itsFlagOutputList;
+                    /// @brief Whether to save the source list with new positions for only the sources in the image
+                    bool itsFlagOutputListGoodOnly;
                     /// @brief The file to save the new source list to.
                     std::string itsOutputSourceList;
 
