@@ -72,19 +72,42 @@ namespace askap {
       void define(std::string &line);
 
       double flux(int istokes, double freq);
+      double flux(int istokes, double freq1, double freq2);
 
       double polAngle(){return itsPolAngleRef;};
 
+      void setRA(double r, int prec=5);
+      void setRA(std::string r){itsRA=r;};
+      void setDec(double d, int prec=5);
+      void setDec(std::string d){itsDec=d;};
+
+      friend std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes);
+
     protected:
 		
+      int    itsSourceID;
+      int    itsClusterID;
+      int    itsGalaxyID;
+      int    itsSFtype;
+      int    itsAGNtype;
+      int    itsStructure;
+      double itsDistance;
+      double itsRedshift;
+      double itsI151L;
+      double itsI610L;
+      double itsI4p8L;
+      double itsI18L;
+      double itsCosVA;
+
       double itsStokesRefFreq;
       double itsStokesQref;
       double itsStokesUref;
       double itsStokesVref;
+      double itsPolFluxRef;
       double itsPolFracRef;
       double itsPolAngleRef;
       double itsRM;
-
+      double itsRMflag;
 
     };
 

@@ -84,6 +84,8 @@ namespace askap {
 
                 /// @brief Return the flux at a given frequency
                 double flux(double freq);
+                /// @brief Return the flux integrated between two frequencies
+                double flux(double freq1, double freq2);
 
             protected:
                 /// @brief The spectral index

@@ -83,16 +83,16 @@ namespace askap {
             /// text from an ascii file. The format of the line is currently taken from the POSSUM catalogue supplied by Jeroen Stil.
             /// @param line A line from the ascii input file
 
-	    int sourceID,clusterID,GalaxyID,SFtype,AGNtype,structure;
-	    std::string ra,dec;
-            double distance,redshift,pa,maj,min,i151L,i610L,i1420,stokesQ,stokesU,polFlux,fracPol,i4p8L,i18L,cosva,rm,rmflag;
+            double pa,maj,min,i1420;
             std::stringstream ss(line);
-            ss >> sourceID >> clusterID >> GalaxyID >> SFtype >> AGNtype >> structure >> 
-	      ra >> dec >> distance >> redshift >> pa >> maj >> min >> 
-	      i151L >> i610L >> i1420 >> stokesQ >> stokesU >> polFlux >> fracPol >> i4p8L >> i18L >> 
-	      cosva >> rm >> rmflag;
-	    this->itsRA = ra;
-	    this->itsDec = dec;
+            ss >> this->itsSourceID >> this->itsClusterID >> this->itsGalaxyID 
+	       >> this->itsSFtype >> this->itsAGNtype >> this->itsStructure 
+	       >> this->itsRA >> this->itsDec >> this->itsDistance >> this->itsRedshift 
+	       >> pa >> maj >> min 
+	       >> this->itsI151L >> this->itsI610L >> i1420 
+	       >> this->itsStokesQref >> this->itsStokesUref >> this->itsPolFluxRef >> this->itsPolFracRef 
+	       >> this->itsI4p8L >> this->itsI18L >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
+
             this->itsComponent.setPeak(i1420);
 	    if(maj>=min){
 	      this->itsComponent.setMajor(maj);
@@ -103,17 +103,34 @@ namespace askap {
 	    }
             this->itsComponent.setPA(pa);
 	    this->itsStokesRefFreq = 1.4e9;
-	    this->itsStokesQref = stokesQ;
-	    this->itsStokesUref = stokesU;
 	    this->itsStokesVref = 0.;     // Setting Stokes V to be zero for now!
-	    this->itsPolFracRef = fracPol;
-	    if(polFlux>0.)
-	      this->itsPolAngleRef = acos(stokesQ/polFlux);
+	    if(this->itsPolFluxRef>0.)
+	      this->itsPolAngleRef = acos(this->itsStokesQref/this->itsPolFluxRef);
 	    else 
 	      this->itsPolAngleRef = 0.;
-	    this->itsRM = rm;
-	    this->itsAlpha = (log10(i1420)-i610L)/log10(1420./610.);
+	    this->itsAlpha = (log10(i1420)-this->itsI610L)/log10(1420./610.);
         }
+
+      std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes)
+      {
+	theStream.setf(std::ios::showpoint);
+	theStream << stokes.itsSourceID << std::setw(7)<<stokes.itsClusterID << std::setw(11)<<stokes.itsGalaxyID 
+		  << std::setw(3)<<stokes.itsSFtype << std::setw(3)<<stokes.itsAGNtype << std::setw(3)<<stokes.itsStructure;
+	theStream << std::setw(12)<<stokes.itsRA << std::setw(12)<<stokes.itsDec;
+	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
+	theStream << std::setprecision(3)<<std::setw(11)<<stokes.itsDistance << std::setprecision(6)<<std::setw(11)<<stokes.itsRedshift;
+	theStream.precision(3);
+	theStream << std::setw(10)<<stokes.itsComponent.pa() << std::setw(10)<<stokes.itsComponent.maj() << std::setw(10)<<stokes.itsComponent.min();
+	theStream.precision(4);
+	theStream << std::setw(10)<<stokes.itsI151L << std::setw(10)<<stokes.itsI610L;
+	theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed); 
+	theStream << std::setw(12)<<stokes.itsComponent.peak() << std::setw(12)<<stokes.itsStokesQref << std::setw(12)<<stokes.itsStokesUref << std::setw(12)<<stokes.itsPolFluxRef;
+	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
+	theStream << std::setw(10)<<stokes.itsPolFracRef << std::setw(10)<<stokes.itsI4p8L << std::setw(10)<<stokes.itsI18L << std::setw(10)<<stokes.itsCosVA 
+		  << std::setw(11)<<stokes.itsRM << std::setw(11)<<stokes.itsRMflag;
+	return theStream;
+      }
+
 
         FullStokesContinuum::FullStokesContinuum(const FullStokesContinuum& c):
                 Continuum(c)
@@ -126,13 +143,28 @@ namespace askap {
             if (this == &c) return *this;
 
             ((Spectrum &) *this) = c;
+	    this->itsSourceID = c.itsSourceID;
+	    this->itsClusterID = c.itsClusterID;
+	    this->itsGalaxyID = c.itsGalaxyID;
+	    this->itsSFtype = c.itsSFtype;
+	    this->itsAGNtype = c.itsAGNtype;
+	    this->itsStructure = c.itsStructure;
+	    this->itsDistance = c.itsDistance;
+	    this->itsRedshift = c.itsRedshift;
+	    this->itsI151L = c.itsI151L;
+	    this->itsI610L = c.itsI610L;
+	    this->itsI4p8L = c.itsI4p8L;
+	    this->itsI18L = c.itsI18L;
+	    this->itsCosVA = c.itsCosVA;
 	    this->itsStokesRefFreq = c.itsStokesRefFreq;
 	    this->itsStokesQref = c.itsStokesQref;
 	    this->itsStokesUref = c.itsStokesUref;
 	    this->itsStokesVref = c.itsStokesVref;
+	    this->itsPolFluxRef = c.itsPolFluxRef;
 	    this->itsPolFracRef = c.itsPolFracRef;
 	    this->itsPolAngleRef = c.itsPolAngleRef;
 	    this->itsRM = c.itsRM;
+	    this->itsRMflag = c.itsRMflag;
             return *this;
         }
 
@@ -153,6 +185,20 @@ namespace askap {
             this->defineSource(0., 0., 1400.);
             return *this;
         }
+
+      void FullStokesContinuum::setRA(double r, int prec)
+      {
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(prec) << r;
+	this->itsRA = ss.str();
+      }
+
+      void FullStokesContinuum::setDec(double d, int prec)
+      {
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(prec) << d;
+	this->itsDec = ss.str();
+      }
 
       double FullStokesContinuum::flux(int istokes, double freq)
       {

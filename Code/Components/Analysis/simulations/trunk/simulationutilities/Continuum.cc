@@ -141,6 +141,18 @@ namespace askap {
             return this->fluxZero() * pow(freq / this->itsNuZero, powerTerm);
         }
 
+      double Continuum::flux(double freq1, double freq2)
+      {
+	
+	if(fabs(this->itsBeta)>0) ASKAPLOG_ERROR_STR(logger,"Cannot yet integrate with non-zero curvature.");
+
+	double powerTerm = this->itsAlpha;
+
+	double flux = this->fluxZero() * (pow(std::max(freq1,freq2),powerTerm+1) - pow(std::min(freq1,freq2),powerTerm+1)) /
+	  ((powerTerm+1) * pow(this->itsNuZero,powerTerm));
+	
+	return flux;
+      }
 
     }
 

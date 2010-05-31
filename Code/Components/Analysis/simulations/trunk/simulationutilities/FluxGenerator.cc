@@ -184,16 +184,18 @@ namespace askap {
 
             pixToWCSMulti(wcs, pix, wld, this->itsNChan);
 
-            for (int z = 0; z < this->itsNChan; z++) {
+	    for(int istokes=0; istokes < this->itsNStokes; istokes++){
+	      for (int z = 0; z < this->itsNChan; z++) {
                 int i = 3 * z + 2;
                 double df;
-
+		
                 if (z < this->itsNChan - 1) df = fabs(wld[i] - wld[i+3]);
                 else df = fabs(wld[i] - wld[i-3]);
 
 //      ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
-                this->itsFluxValues[0][z] += spec.flux(wld[i] - df / 2., wld[i] + df / 2.);
-            }
+                this->itsFluxValues[istokes][z] += spec.flux(wld[i] - df / 2., wld[i] + df / 2.);
+	      }
+	    }
 
             delete [] pix;
             delete [] wld;

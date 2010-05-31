@@ -595,8 +595,23 @@ namespace askap {
                             else                      wcsToPixSingle(this->itsWCS, wld, pix);
 
                             if (this->itsFlagOutputList) {
-                                pixToWCSSingle(this->itsWCS, pix, newwld);
-                                outfile.setf(std::ios::fixed);
+                               pixToWCSSingle(this->itsWCS, pix, newwld);
+			      if(this->itsDatabaseOrigin == "POSSUM"){
+				FullStokesContinuum newstokes(stokes);
+				if (this->itsPosType == "dms") {
+				  newstokes.setRA(analysis::decToDMS(newwld[0],"RA"));
+				  newstokes.setDec(analysis::decToDMS(newwld[1],"DEC"));
+				}
+				else{
+				  ASKAPLOG_DEBUG_STR(logger, wld[0] << " " << wld[1] << " --> " <<newwld[0] << " " << newwld[1]);
+				  newstokes.setRA(newwld[0]);
+				  newstokes.setDec(newwld[1]);
+				  ASKAPLOG_DEBUG_STR(logger, newstokes.ra() << " " << newstokes.dec());
+			}
+				outfile << newstokes << '\n';
+			      }
+			      else{
+                                 outfile.setf(std::ios::fixed);
                                 outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
 					<< std::setw(10) << std::setprecision(6) << newwld[1] << " ";
 
@@ -619,6 +634,7 @@ namespace askap {
                                         << std::setw(5) << sourceType << " ";
 
                                 outfile << "\n";
+			      }
                             }
 
 			    bool lookAtSource = (this->itsArrayAllocated && this->itsAddSources) || this->itsDryRun;

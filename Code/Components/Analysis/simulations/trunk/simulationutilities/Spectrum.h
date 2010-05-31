@@ -70,6 +70,8 @@ namespace askap {
                 /// @brief Return the position angle
                 double pa() {return itsComponent.pa();};
 
+		virtual void setRA(std::string r){itsRA=r;};
+		virtual void setDec(std::string d){itsDec=d;};
                 /// @brief Set the flux normalisation
                 void setFluxZero(float f) {itsComponent.setPeak(f);};
                 /// @brief Set the major axis
