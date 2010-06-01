@@ -34,7 +34,6 @@ module interfaces
 module schedblock
 {
 
-    }
     /**
      * An interface to present a view of all SchedulingBlocks in the SCHEDULED
      * state sorted by scheduled date/time
@@ -50,7 +49,6 @@ module schedblock
          * returned.
          **/
         long peek();
-
     };
 };
 };
