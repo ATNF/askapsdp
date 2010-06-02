@@ -38,7 +38,7 @@
 #include <dataaccess/IConstDataAccessor.h>
 #include <askap/AskapError.h>
 #include <measurementequation/ParameterizedMEComponent.h>
-
+#include <utils/PolConverter.h>
 
 // std includes
 #include <string>
@@ -133,7 +133,10 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
                                       casa::uInt row) const
 {
    const casa::uInt nPol = chunk.nPol();
-   ASKAPDEBUGASSERT(nPol);   
+   ASKAPDEBUGASSERT(nPol != 0);   
+   const casa::Vector<casa::Stokes::StokesTypes> stokes = chunk.stokes();   
+   ASKAPDEBUGASSERT(stokes.nelements() == nPol);
+   ASKAPDEBUGASSERT(!scimath::PolConverter::isStokes(stokes));
    
    const casa::uInt ant1 = chunk.antenna1()[row];
    const casa::uInt ant2 = chunk.antenna2()[row];
@@ -141,13 +144,17 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
    scimath::ComplexDiffMatrix calFactor(nPol, nPol, 0.);
 
    for (casa::uInt pol=0; pol<nPol; ++pol) {
-             
+        
+        const casa::uInt polIndex = scimath::PolConverter::getIndex(stokes[pol]);
+        // polIndex is index in the polarisation frame, i.e.
+        // XX is 0, XY is 1, YX is 2 and YY is 3
+        // we need an index into matrix 
         const std::pair<casa::uInt, casa::uInt> pInd = polIndices(pol, nPol);
-        // gains for antenna 1, polarisation pInd.first
-        const std::string g1name = paramName(ant1,pInd.first);
+        // gains for antenna 1, polarisation X if XX or XY, or Y if YX or YY
+        const std::string g1name = paramName(ant1, polIndex / 2);
             
-        // gains for antenna 2, polarisation polInd.second
-        const std::string g2name = paramName(ant2,pInd.second);
+        // gains for antenna 2, polarisation X if XX or YX, or Y if XY or YY
+        const std::string g2name = paramName(ant2, polIndex % 2);
             
         calFactor(pol,pol) = getParameter(g1name)*conj(getParameter(g2name));            
    }

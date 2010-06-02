@@ -70,12 +70,16 @@ namespace askap
         boost::shared_ptr<ComponentEquation> p1, p2;
         boost::shared_ptr<METype> eq1,eq2;
         boost::shared_ptr<Params> params1, params2;
-        IDataSharedIter idi;
+        SharedIter<DataIteratorStub> idi;
 
       public:
         void setUp()
         {
-          idi = IDataSharedIter(new DataIteratorStub(1));
+          idi = boost::shared_ptr<DataIteratorStub>(new DataIteratorStub(1));
+          DataAccessorStub &da = dynamic_cast<DataAccessorStub&>(*idi);
+          ASKAPASSERT(da.itsStokes.nelements() == 1);
+          da.itsStokes[0] = casa::Stokes::XX;
+          
           const casa::uInt nAnt = 30;
           //const casa::uInt nAnt1 = 6;
           const double realGains[nAnt] = {1.1, 0.9, 1.05, 0.87, 1.333,
