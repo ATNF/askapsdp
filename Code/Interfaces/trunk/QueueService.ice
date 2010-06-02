@@ -25,6 +25,8 @@
 #ifndef ASKAP_QUEUESERVICE_ICE
 #define ASKAP_QUEUESERVICE_ICE
 
+#include <CommonTypes.ice>
+
 module askap
 {
 
@@ -41,12 +43,9 @@ module schedblock
     interface IQueueService
     {
         /**
-         * Look at the first item in the Queue and determine if it is ready
-         * for execution, i.e. the scheduled time has arrived. The item has
-         * to be in SCHEDULED state. It returns the id of the SchedulingBlock
-         * if it is raedy to be executed.
-         * A typical use would be to call peek periodically until an id is
-         * returned.
+         * Return the id of the first Scheduling Block in the queue. The item
+         * has to be in SCHEDULED state.
+         * A typical use would be to call peek periodically.
          **/
         long peek();
     };
