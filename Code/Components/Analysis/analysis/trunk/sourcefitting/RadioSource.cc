@@ -767,7 +767,7 @@ namespace askap {
 
             //**************************************************************//
 
-	  void RadioSource::findAlpha(std::string imageName)
+	  void RadioSource::findAlpha(std::string imageName, bool doCalc)
 	  {
 	    /// @details This function finds the value of the spectral
 	    /// index for each Gaussian component fitted to the zeroth
@@ -785,14 +785,14 @@ namespace askap {
 	    /// fit type.
 	    /// Note that if the imageName provided is not of the correct format, nothing is done.
 	    /// @param imageName The name of the image in which sources have been found
-
-	    ASKAPLOG_DEBUG_STR(logger, "About to find the spectral index, for image " << imageName);
+	    /// @param doCalc If true, do all the calculations. If false, fill the alpha values to -99. for all fit types.
 
 	    size_t pos = imageName.rfind(".taylor.0");
-	    if(pos == std::string::npos) {
+	    if(!doCalc || pos == std::string::npos) {
 	      // image provided is not a Taylor series term - notify and do nothing
-	      ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
-				<<imageName<<") is not a Taylor term. Cannot find spectral index.");
+	      if(doCalc)
+		ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
+				  <<imageName<<") is not a Taylor term. Cannot find spectral index.");
 
 	      std::vector<std::string>::iterator type;
 	      std::vector<std::string> typelist = availableFitTypes;
@@ -807,6 +807,8 @@ namespace askap {
 	    }
 	    else {
 	      
+	      ASKAPLOG_DEBUG_STR(logger, "About to find the spectral index, for image " << imageName);
+
 	      // Get Taylor 1 name
 	      std::string taylor1Name = imageName.replace(pos,9,".taylor.1");
 
@@ -877,7 +879,7 @@ namespace askap {
 
             //**************************************************************//
 
-	  void RadioSource::findBeta(std::string imageName)
+	  void RadioSource::findBeta(std::string imageName, bool doCalc)
 	  {
 	    /// @details This function finds the value of the spectral
 	    /// curvature for each Gaussian component fitted to the zeroth
@@ -895,14 +897,14 @@ namespace askap {
 	    /// fit type.
 	    /// Note that if the imageName provided is not of the correct format, nothing is done.
 	    /// @param imageName The name of the image in which sources have been found
-
-	    ASKAPLOG_DEBUG_STR(logger, "About to find the spectral curvature, for image " << imageName);
+	    /// @param doCalc If true, do all the calculations. If false, fill the alpha values to -99. for all fit types.
 
 	    size_t pos = imageName.rfind(".taylor.0");
-	    if(pos == std::string::npos) {
+	    if(!doCalc || pos == std::string::npos) {
 	      // image provided is not a Taylor series term - notify and do nothing
-	      ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
-				<<imageName<<") is not a Taylor term. Cannot find spectral index.");
+	      if(doCalc)
+		ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
+				  <<imageName<<") is not a Taylor term. Cannot find spectral index.");
 
 	      std::vector<std::string>::iterator type;
 	      std::vector<std::string> typelist = availableFitTypes;
@@ -913,10 +915,12 @@ namespace askap {
 		  this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numGauss(), -99.);
 	      }
 	      this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
-
+	      
 	    }
 	    else {
 	      
+	      ASKAPLOG_DEBUG_STR(logger, "About to find the spectral curvature, for image " << imageName);
+
 	      // Get Taylor 2 name
 	      std::string taylor2Name = imageName.replace(pos,9,".taylor.2");
 

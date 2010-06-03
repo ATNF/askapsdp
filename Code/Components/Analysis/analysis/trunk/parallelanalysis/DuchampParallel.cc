@@ -658,10 +658,8 @@ namespace askap {
                     if (!src.isAtEdge() && this->itsFlagDoFit) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
                         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
-			if(this->itsFlagFindSpectralIndex){
-			  src.findAlpha(this->itsImage);
-			  src.findBeta(this->itsImage);
-			}
+			src.findAlpha(this->itsImage,this->itsFlagFindSpectralIndex);
+			src.findBeta(this->itsImage,this->itsFlagFindSpectralIndex);
                     }
 
                     this->itsSourceList.push_back(src);
@@ -933,10 +931,8 @@ namespace askap {
 			
                         if (this->itsFlagDoFit){
 			  src.fitGauss(&this->itsVoxelList, this->itsFitter);
-			  if(this->itsFlagFindSpectralIndex){
-			    src.findAlpha(this->itsImage);
-			    src.findBeta(this->itsImage);
-			  }
+			  src.findAlpha(this->itsImage,this->itsFlagFindSpectralIndex);
+			  src.findBeta(this->itsImage,this->itsFlagFindSpectralIndex);
 			}
 
                         this->itsSourceList.push_back(src);
