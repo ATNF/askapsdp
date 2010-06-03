@@ -26,6 +26,7 @@
 #define ASKAP_SCHEDULINGBLOCKSERVICE_ICE
 
 #include <CommonTypes.ice>
+#include <DataServiceExceptions.ice>
 
 module askap
 {
