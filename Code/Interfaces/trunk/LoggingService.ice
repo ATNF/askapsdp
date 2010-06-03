@@ -93,25 +93,31 @@ module logging
     struct IQueryObject
     {
         // The log origin/logger name , e.g. 'askap.test'
+	// SQL like match
         string origin;
 
-        // The minimum date for the query
+        // The minimum UTC date for the query in ISO 8601.
         string datemin;
 
-        // The maximum date for the query
+        // The maximum UTC date for the query in ISO 8601.
         string datemax;
 
         // The log levels to query on
         LogLevelSeq levels;
 
         // query by tag
+	// SQL like match
         string tag;
 
         // query by hostname
+	// SQL like match
         string hostname;
 
-        // The number maximum number of ILogEvent to return
+        // The maximum number of ILogEvents (rows) to return
         int limit;
+
+	// The row number to start at
+	//int start;
     };
 
     /**
@@ -120,6 +126,7 @@ module logging
     interface ILogQuery
     {
         // Query the logarchive database returning the list of matches
+	// ordered by ascending date
         idempotent EventSeq query(IQueryObject q) throws LogQueryException;
 
         // Get the logger names (origin) with an optional name to match
