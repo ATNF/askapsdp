@@ -119,8 +119,7 @@ module schedblock
          * @param userparams The Obseravtion User Parameters
          * @return The id of the newly created Scheduling Block
          **/
-        long create(long programid, long siid,
-                    askap::interfaces::ParameterMap userparams)
+        long create(long programid, long siid)
              throws NoSuchSoftwareInstrumentException,
                     ParameterException;
 
