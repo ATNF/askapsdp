@@ -903,7 +903,7 @@ namespace askap {
 	    if(!doCalc || pos == std::string::npos) {
 	      // image provided is not a Taylor series term - notify and do nothing
 	      if(doCalc)
-		ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
+		ASKAPLOG_WARN_STR(logger, "radioSource::findBeta : Image name provided ("
 				  <<imageName<<") is not a Taylor term. Cannot find spectral index.");
 
 	      std::vector<std::string>::iterator type;
