@@ -74,11 +74,30 @@ __global__ void d_gridKernel(const Complex *data, const int support,
 
 	// blockIdx.x gives the support location in the v direction
 	int sSize = 2 * support + 1;
-	gind += gSize * blockIdx.x;
-	cind += sSize * blockIdx.x;
+    gind += gSize * blockIdx.x;
+    cind += sSize * blockIdx.x;
 
-	// threadIdx.x gives the support location in the u dirction
+    // threadIdx.x gives the support location in the u dirction
     grid[gind+threadIdx.x] = cuCfmaf(l_data, C[cind+threadIdx.x], grid[gind+threadIdx.x]);
+}
+
+// Calculates, for a given dind, how many of the next samples can
+// be gridded without an overlap occuring
+__host__ __inline__ int gridStep(const int *h_iu, const int *h_iv,
+        const int dSize, const int dind, const int sSize)
+{
+    const int maxsamples = 8;  // Maximum number of samples to grid
+    for (int step = 1; step <= maxsamples; step++) {
+        for (int check = (step - 1); check >= 0; check--) {
+            if (!((dind+step) < dSize && (
+                            (h_iu[dind+step] - h_iu[dind+check]) > sSize ||
+                            (h_iv[dind+step] - h_iv[dind+check]) > sSize))) {
+                return step;
+            }
+        }
+    }
+
+    return maxsamples;
 }
 
 // Perform Gridding (Host Function)
@@ -94,20 +113,16 @@ __host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int s
 	int step = 1;
 
 	// This loop begs some explanation. It steps through each spectral
-	// sample either one at a time or two at a time. It will do two samples
-	// if the two regions involved do not overlap. If they do, only a 
-	// single point is gridded.
+	// sample either one at a time or two at a time. It will do multiple
+	// samples if the regions involved do not overlap. If they do, only the
+    // non-overlapping samples are gridded.
 	//
-	// Gridding two point is better than one because giving the GPU more
-	// work to do allows it to hide memory latency better.
+	// Gridding multiple points is better because giving the GPU more
+	// work to do allows it to hide memory latency better. The call to
+    // d_gridKernel() is asynchronous so subsequent calls to gridStep()
+    // overlap with the actual gridding.
 	for (int dind = 0; dind < dSize; dind += step) {
-		if ((dind+1) < dSize && (
-		        (h_iu[dind] - h_iu[dind+1]) > sSize ||
-		        (h_iv[dind] - h_iv[dind+1]) > sSize)) {
-		    step = 2;
-		} else {
-			step = 1;
-		}
+        step = gridStep(h_iu, h_iv, dSize, dind, sSize);
    		dim3 gridDim(sSize, step);
 		d_gridKernel<<< gridDim, sSize >>>(data, support,
 			C, cOffset, iu, iv, grid, gSize, dind);
@@ -122,50 +137,50 @@ __global__ void d_degridKernel(const Complex *grid, const int gSize, const int s
                 Complex  *data, const int dind,
 		int row)
 {
-	// Private data for each thread. Eventually summed by the
-	// master thread (i.e. threadIdx.x == 0). Currently 
-	__shared__ Complex s_data[cg_maxSupport];
-	s_data[threadIdx.x] = make_cuFloatComplex(0, 0);
+    // Private data for each thread. Eventually summed by the
+    // master thread (i.e. threadIdx.x == 0).
+    __shared__ Complex s_data[cg_maxSupport];
+    s_data[threadIdx.x] = make_cuFloatComplex(0, 0);
 
-	const int l_dind = dind + blockIdx.x;
+    const int l_dind = dind + blockIdx.x;
 
-        // The actual starting grid point
-        __shared__ int s_gind;
-        // The Convoluton function point from which we offset
-        __shared__ int s_cind;
+    // The actual starting grid point
+    __shared__ int s_gind;
+    // The Convoluton function point from which we offset
+    __shared__ int s_cind;
 
-        if (threadIdx.x == 0) {
-                s_gind = iu[l_dind] + gSize * iv[l_dind] - support;
-                s_cind = cOffset[l_dind];
+    if (threadIdx.x == 0) {
+        s_gind = iu[l_dind] + gSize * iv[l_dind] - support;
+        s_cind = cOffset[l_dind];
+    }
+    __syncthreads();
+
+    // Make a local copy from shared memory
+    int gind = s_gind;
+    int cind = s_cind;
+
+    // row gives the support location in the v direction
+    const int sSize = 2 * support + 1;
+    gind += gSize * row;
+    cind += sSize * row;
+
+    // threadIdx.x gives the support location in the u dirction
+    s_data[threadIdx.x] = cuCmulf(grid[gind+threadIdx.x], C[cind+threadIdx.x]);
+
+    // Sum all the private data elements and accumulate to the
+    // device memory
+    __syncthreads();
+    if (threadIdx.x == 0) {
+        Complex sum = make_cuFloatComplex(0, 0);
+        Complex original;
+        original = data[l_dind];
+        #pragma unroll 129
+        for (int i = 0; i < sSize; ++i) {
+            sum = cuCaddf(sum, s_data[i]);
         }
-        __syncthreads();
-
-        // Make a local copy from shared memory
-        int gind = s_gind;
-        int cind = s_cind;
-
-        // row gives the support location in the v direction
-        int sSize = 2 * support + 1;
-        gind += gSize * row;
-        cind += sSize * row;
-
-	// threadIdx.x gives the support location in the u dirction
-	s_data[threadIdx.x] = cuCmulf(grid[gind+threadIdx.x], C[cind+threadIdx.x]);
-
-	// Sum all the private data elements and accumulate to the
-	// device memory
-        __syncthreads();
-	if (threadIdx.x == 0) {
-		Complex sum = make_cuFloatComplex(0, 0);
-		Complex original;
-		original = data[l_dind];
-		#pragma unroll 129
-		for (int i = 0; i < sSize; ++i) {
-			sum = cuCaddf(sum, s_data[i]);
-		}
-		original = cuCaddf(original, sum);
-		data[l_dind] = original;
-	}
+        original = cuCaddf(original, sum);
+        data[l_dind] = original;
+    }
 }
 
 // Perform De-Gridding (Host Function)
@@ -176,16 +191,16 @@ __host__ void cuda_degridKernel(const Complex *grid, const int gSize, const int 
 {
     cudaFuncSetCacheConfig(d_degridKernel, cudaFuncCachePreferL1);
 
-    int sSize = 2 * support + 1;
+    const int sSize = 2 * support + 1;
 	if (sSize > cg_maxSupport) {
 		printf("Support size of %d exceeds max support size of %d\n",
 			sSize, cg_maxSupport);
 	}
 
-	int dimGrid = 4096;	// 4096 is starting size
+	int dimGrid = 16384;	// is starting size, will be reduced as required
 	for (int dind = 0; dind < dSize; dind += dimGrid) {
 		if ((dSize - dind) < dimGrid) {
-            // If there are less than 4096 elements left,
+            // If there are less than dimGrid elements left,
             // just do the remaining
             dimGrid = dSize - dind;
         }
