@@ -75,6 +75,8 @@ void ContinuumImager::run(void)
     // Setup the model (master only)
     if (isMaster()) {
         itsModel.reset(new Params());
+        // Set up image handler
+        SynthesisParamsHelper::setUpImageHandler(itsParset);
 
         bool reuseModel = itsParset.getBool("Images.reuse", false);
         if (reuseModel) {
