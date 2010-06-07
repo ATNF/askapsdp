@@ -143,7 +143,7 @@ namespace askap
        for (vector<string>::const_iterator pc = preconditioners.begin(); pc != preconditioners.end(); ++pc) {
             if ( (*pc)=="Wiener" ) {
 	            const float noisepower = parset.getFloat("preconditioner.Wiener.noisepower",0.0);
-                solver->addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner(noisepower)));
+                solver->addPreconditioner(IImagePreconditioner::ShPtr(new WienerPreconditioner(noisepower,false)));
 	        } else if ( (*pc)=="NormWiener" ) {
 	            const float robustness = parset.getFloat("preconditioner.NormWiener.robustness",0.0);
                 solver->addPreconditioner(IImagePreconditioner::ShPtr(new NormWienerPreconditioner(robustness)));

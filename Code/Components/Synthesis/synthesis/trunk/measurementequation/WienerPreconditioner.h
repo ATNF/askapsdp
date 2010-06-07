@@ -51,29 +51,45 @@ namespace askap
     {
       public:
 
-        /// @brief default constructor with zero noise power
-        /// @note do we really need it?
-        WienerPreconditioner();
+     /// @brief default constructor with zero noise power
+     /// @note do we really need it?
+     WienerPreconditioner();
+     
+     /// @brief constructor with explicitly defined noise power
+     /// @param[in] noisepower parameter of the 
+     /// @param[in] normalise if true, PSF is normalised during filter construction
+     WienerPreconditioner(float noisepower, bool normalise);
+
+     /// @brief constructor with explicitly defined robustness
+     /// @details In this version, the noise power is calculated from
+     /// the robustness parameter 
+     /// @param[in] robustness robustness parameter (roughly matching Briggs' weighting)
+     /// @note Normalisation of PSF is always used when noise power is defined via robustness
+     WienerPreconditioner(float robustness);
         
-        /// @brief constructor with explicitly defined noise power
-        /// @param[in] noisepower parameter of the 
-        WienerPreconditioner(const float& noisepower);
+      /// @brief Clone this object
+      /// @return shared pointer to a cloned copy
+      virtual IImagePreconditioner::ShPtr clone();
         
-        /// @brief Clone this object
-        /// @return shared pointer to a cloned copy
-        virtual IImagePreconditioner::ShPtr clone();
-        
-	    /// @brief Apply preconditioning to Image Arrays
-	    /// @details This is the actual method, which does preconditioning.
-	    /// It is applied to the PSF as well as the current residual image.
-	    /// @param[in] psf array with PSF
-	    /// @param[in] dirty array with dirty image
-	    /// @return true if psf and dirty have been altered
-	    virtual bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const;
+      /// @brief Apply preconditioning to Image Arrays
+      /// @details This is the actual method, which does preconditioning.
+      /// It is applied to the PSF as well as the current residual image.
+      /// @param[in] psf array with PSF
+      /// @param[in] dirty array with dirty image
+      /// @return true if psf and dirty have been altered
+      virtual bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const;
 
       private:
-  	    /// @brief Noise Power Spectrum
-	    float itsNoisePower;
+      /// @brief Parameter of the filter
+      /// @details Depending on the mode, it can either be the noise power value directly or the 
+      /// robustness parameter roughly matching Briggs' weighting.
+      float itsParameter;
+
+      /// @brief Use normalised PSF in filter construction?
+      bool itsDoNormalise;
+
+      /// @brief true, if parameter is robustness, false if it is the noise power
+      bool itsUseRobustness;
    };
 
   }
