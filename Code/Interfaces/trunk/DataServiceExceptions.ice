@@ -37,15 +37,6 @@ module schedblock
 {
 
     /**
-     * This exception is thrown when a state transition fails. The base
-     * class includes a "reason" data member (of type string) which shall
-     * be used to indicate why the state transition failed.
-     **/
-    exception TransitionException extends askap::interfaces::AskapIceException
-    {
-    };
-
-    /**
      * This exceptions is thrown when a ParameterMap with illegal values is
      * passed into the method.
      **/
@@ -69,10 +60,10 @@ module schedblock
     {
     };
 
-    /** This exceptions is thrown when the given Software Instrument id doesn't
-     * exists.
+    /** This exceptions is thrown when the given Sscheduling Block Template id 
+     * doesn't exists.
      **/
-    exception NoSuchSoftwareInstrumentException
+    exception NoSuchSBTemplateException
         extends askap::interfaces::AskapIceException
     {
     };

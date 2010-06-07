@@ -46,39 +46,6 @@ module schedblock
     {
     };
 
-
-    /**
-     * This exceptions is thrown when a ParameterMap with illegal values is
-     * passed into the method.
-     **/
-    exception ParameterException extends askap::interfaces::AskapIceException
-    {
-    };
-
-    /** This exceptions is thrown when the given Scheduling Block id doesn't
-     * exists.
-     **/
-    exception NoSuchSchedulingBlockException
-        extends askap::interfaces::AskapIceException
-    {
-    };
-
-    /** This exceptions is thrown when the given Observation Program id doesn't
-     * exists.
-     **/
-    exception NoSuchProgramException
-        extends askap::interfaces::AskapIceException
-    {
-    };
-
-    /** This exceptions is thrown when the given Software Instrument id doesn't
-     * exists.
-     **/
-    exception NoSuchSoftwareInstrumentException
-        extends askap::interfaces::AskapIceException
-    {
-    };
-
     /**
      * Enumeration of states for SchedulingBlock
      **/
@@ -102,8 +69,9 @@ module schedblock
          * @param newstate The state to transition to.
          **/
         void transition(long sbid,
-                        ObsState newstate) throws TransitionException,
-                                                  NoSuchSchedulingBlockException;
+                        ObsState newstate) throws 
+		TransitionException,
+		NoSuchSchedulingBlockException;
 
         /**
          * Get all Scheduling Block ids matching the given state.
@@ -116,12 +84,12 @@ module schedblock
          * This will have and empty set of ObsVariables and ill be in DRAFT
          * state.
          * @param programid The id of the Owner Observation Program.
-         * @param siid The id of the Software Instrument to use
+         * @param sbtid The id of the Scheduling BlockTemplate to use
          * @param userparams The Obseravtion User Parameters
          * @return The id of the newly created Scheduling Block
          **/
-        long create(long programid, long siid)
-             throws NoSuchSoftwareInstrumentException,
+        long create(long programid, long sbtid)
+             throws NoSuchSBTemplateException,
                     ParameterException;
 
         /**
@@ -151,7 +119,7 @@ module schedblock
 
         /**
          * Return the actual Observation Parameters which are the result of
-         * a merge of the Software Instrument template and the Observation User
+         * a merge of the SBTemplate and the Observation User
          * Parameters. This is used in the execution of the Scheduling Block.
          * @param sbid The id of the Scheduling Block
          * @return a ParameterMap
@@ -197,13 +165,13 @@ module schedblock
                        NoSuchSchedulingBlockException;
 
         /**
-         * Set the Software Instrument id.
-         * This would typically only be used to bump the version of the Software
-         * Instrument.
+         * Set the Template id.
+         * This would typically only be used to bump the version of the 
+         * Template.
          **/
-        void setSoftwareInstrument(long sbid, long siid)
+        void setSBTemplate(long sbid, long sbtid)
                 throws NoSuchSchedulingBlockException,
-                       NoSuchSoftwareInstrumentException;
+                       NoSuchSBTemplateException;
     };
 };
 };
