@@ -140,6 +140,31 @@ namespace askap
 
     }
 
+    /// @brief static factory method to create preconditioner from a parset
+    /// @details
+    /// @param[in] parset subset of parset file (with preconditioner.Wiener. removed)
+    /// @return shared pointer
+    boost::shared_ptr<WienerPreconditioner> WienerPreconditioner::createPreconditioner(const LOFAR::ParameterSet &parset) 
+    {
+      ASKAPCHECK(parset.isDefined("noisepower") != parset.isDefined("robustness"), 
+           "Exactly one parameter, either noisepower or robustness parameter must be given. You gave either none or both of them.");
+
+      if (parset.isDefined("noisepower")) {
+          const float noisepower = parset.getFloat("noisepower");
+          const bool normalise = parset.getBool("normalise",false);
+          return boost::shared_ptr<WienerPreconditioner>(new WienerPreconditioner(noisepower,normalise));
+      }
+      
+      ASKAPDEBUGASSERT(parset.isDefined("robustness"));
+     
+      const float robustness = parset.getFloat("robustness");
+      ASKAPCHECK((robustness >= -2.00001) && (robustness <= 2.0001), "Robustness parameter is supposed to be between -2 and 2, you have = "<<robustness);
+      ASKAPCHECK(!parset.isDefined("normalise"), "Normalise option of the Wiener preconditioner is not compatible with the "
+                 "preconditioner definition via robustness (as normalisation of PSF is always done in this case)");
+      return boost::shared_ptr<WienerPreconditioner>(new WienerPreconditioner(robustness));
+    }
+
+
   }
 }
 

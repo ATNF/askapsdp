@@ -125,6 +125,7 @@ int main(int argc, char **argv) {
      
      const float noisepower = 100.;
      WienerPreconditioner wp(noisepower,false);
+     //WienerPreconditioner wp(-1);
      
      std::cerr<<"Initialization of preconditioner: "<<timer.real()<<std::endl;            
      timer.mark();     

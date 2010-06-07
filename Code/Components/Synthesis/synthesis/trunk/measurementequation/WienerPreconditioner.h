@@ -34,6 +34,7 @@
 #include <casa/Arrays/Vector.h>
 #include <fitting/Axes.h>
 
+#include <Common/ParameterSet.h>
 #include <boost/shared_ptr.hpp>
 
 #include <measurementequation/IImagePreconditioner.h>
@@ -78,6 +79,12 @@ namespace askap
       /// @param[in] dirty array with dirty image
       /// @return true if psf and dirty have been altered
       virtual bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const;
+
+      /// @brief static factory method to create preconditioner from a parset
+      /// @details
+      /// @param[in] parset subset of parset file (with preconditioner.Wiener. removed)
+      /// @return shared pointer 
+      static boost::shared_ptr<WienerPreconditioner> createPreconditioner(const LOFAR::ParameterSet &parset);
 
       private:
       /// @brief Parameter of the filter
