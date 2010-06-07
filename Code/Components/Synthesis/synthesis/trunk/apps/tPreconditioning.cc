@@ -28,9 +28,9 @@
 #include <stdexcept>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, "");
-
 #include <askap/AskapError.h>
+#include <casa/Logging/LogIO.h>
+#include <askap/Log4cxxLogSink.h>
 #include <casa/OS/Timer.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Array.h>
@@ -43,6 +43,10 @@ ASKAP_LOGGER(logger, "");
 #include <measurementequation/SynthesisParamsHelper.h>
 
 #include <mwcommon/MPIConnection.h>
+#include <askapparallel/AskapParallel.h>
+
+ASKAP_LOGGER(logger, ".tpreconditioner");
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -90,13 +94,20 @@ void fillArray(casa::Array<float> &in, const RandomGenerator &rg)
   }  
 }
 
+
 int main(int argc, char **argv) {
   try {
      casa::Timer timer;
 
      timer.mark();
      // Initialize MPI (also succeeds if no MPI available).
-     askap::mwbase::MPIConnection::initMPI(argc, (const char **&)argv);
+     //askap::mwbase::MPIConnection::initMPI(argc, (const char **&)argv);
+     askap::mwbase::AskapParallel ap(argc, (const char **&)argv);
+
+     // Ensure that CASA log messages are captured
+     casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+     casa::LogSink::globalSink(globalSink);
+
      RandomGenerator rg(0.01);
      // hard coded parameters of the test
      const casa::Int size = 1024;
@@ -113,7 +124,7 @@ int main(int argc, char **argv) {
      timer.mark();
      
      const float noisepower = 100.;
-     WienerPreconditioner wp(noisepower);
+     WienerPreconditioner wp(noisepower,false);
      
      std::cerr<<"Initialization of preconditioner: "<<timer.real()<<std::endl;            
      timer.mark();     
@@ -128,6 +139,8 @@ int main(int argc, char **argv) {
      SynthesisParamsHelper::saveAsCasaImage("outpsf.casa",psf);
      SynthesisParamsHelper::saveAsCasaImage("outimg.casa",img);     
      std::cerr<<"Storing results: "<<timer.real()<<std::endl;     
+     // just to keep it active
+     ap.isParallel();
   }
   catch(const AskapError &ce) {
      std::cerr<<"AskapError has been caught. "<<ce.what()<<std::endl;
