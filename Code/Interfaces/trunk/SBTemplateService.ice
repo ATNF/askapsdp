@@ -47,8 +47,8 @@ module schedblock
     };
 
 
-    /** 
-     * The possible status a SBTemplate can have. This tags tth SBTemplate 
+    /**
+     * The possible status a SBTemplate can have. This tags the SBTemplate
      * for the various different users/use cases.
      **/
     enum SBTemplateStatus
@@ -60,7 +60,7 @@ module schedblock
 
 
     /**
-     * The interface to create/access and maintain SB Templates 
+     * The interface to create/access and maintain SB Templates
      * (SBTemplate).
      **/
     interface ISBTemplateService
@@ -73,12 +73,12 @@ module schedblock
          * @param template The ObsParameterTemplate describing the SBTemplate
          * @param obsproc The ObsProcedure script
          * @param status The SBTemplate Status
-         * @param version The version number to set
+         * @param vers The version number to set
          *
          **/
         long create(string name,
                     askap::interfaces::ParameterMap template,
-                    string obsproc, SBTemplateStatus status, Version version);
+                    string obsproc, SBTemplateStatus status, Version vers);
 
         /**
          * Make an identical copy and return th new id
@@ -101,7 +101,7 @@ module schedblock
         /**
          * Set the version of the given SBTemplate
          **/
-        void setVersion(long sbtid, Version version)
+        void setVersion(long sbtid, Version vers)
             throws NoSuchSBTemplateException;
 
 
@@ -109,7 +109,7 @@ module schedblock
          * Update the SBTemplate's template and procedure. It is required to specify
          * a new version as well.
          **/
-        void setTemplate(long sbtid, Version version,
+        void setTemplate(long sbtid, Version vers,
                          askap::interfaces::ParameterMap template,
                          string obsproc);
 
@@ -125,10 +125,10 @@ module schedblock
         StringSeq getByStatus(SBTemplateStatus status);
 
         /**
-         * Get the SB Template id for a named SBTemplate with an 
+         * Get the SB Template id for a named SBTemplate with an
 	 * optional version (uses the  default version if version empty).
          **/
-        long getByName(string name, Version version);
+        long getByName(string name, Version vers);
 
         /**
          * Retrieve the parameters making up the template
