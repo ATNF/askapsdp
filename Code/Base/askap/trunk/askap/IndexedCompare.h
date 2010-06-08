@@ -71,6 +71,7 @@ struct IndexedCompare : public std::binary_function<IndexType,IndexType,bool> {
    /// A comparator (which type is a template parameter) is set up using a
    /// a copy constructor
    /// @param[in] iter random access iterator to work with
+   /// @param[in] cmp user defined comparator (i.e. less operator)
    IndexedCompare(const Iter &iter, const Cmp &cmp) : itsIter(iter),
                   itsComparator(cmp) {}
    
@@ -107,6 +108,11 @@ IndexedCompare<IndexType,Iter,Cmp> indexedCompare(const Iter &iter, const Cmp &c
    return IndexedCompare<IndexType,Iter,Cmp>(iter,cmp);
 }
 
+/// @brief helper function to construct IndexedCompare object
+/// @details It is handy to have a helper method to avoid 
+/// writing type names all the time. This function can extract the 
+/// template parameter from the argument type, i.e. automatically
+/// @param[in] iter random access iterator to work with
 template<typename IndexType, typename Iter>
 IndexedCompare<IndexType,Iter> indexedCompare(const Iter &iter) 
 {
