@@ -46,7 +46,7 @@ class ObsService : public askap::interfaces::cp::ICPObsService {
         virtual ~ObsService();
 
         // Ice "IComponent" interfaces
-        void startObs(const askap::interfaces::ParameterMap& parmap,
+        void startObs(const long sbid, const askap::interfaces::ParameterMap& parmap,
                       const Ice::Current& cur);
         void abortObs(const Ice::Current& cur);
 

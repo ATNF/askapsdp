@@ -42,7 +42,7 @@ using namespace askap::interfaces::cp;
 ASKAP_LOGGER(logger, ".ObsService");
 
 ObsService::ObsService(const Ice::CommunicatorPtr ic)
-    : itsComm(ic)
+        : itsComm(ic)
 {
     ASKAPLOG_DEBUG_STR(logger, "Creating ObsService");
 }
@@ -53,8 +53,9 @@ ObsService::~ObsService()
 }
 
 // Ice "IComponent" interfaces
-void ObsService::startObs(const askap::interfaces::ParameterMap& parmap,
-			  const Ice::Current& cur)
+void ObsService::startObs(const long sbid,
+                          const askap::interfaces::ParameterMap& parmap,
+                          const Ice::Current& cur)
 {
 }
 

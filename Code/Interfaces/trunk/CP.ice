@@ -53,7 +53,7 @@ module cp
          * prepare for an observation (on the order of a few seconds), hence the
          * need to indicate when it is ready by blocking.
          */
-        ["ami"] void startObs(askap::interfaces::ParameterMap parmap);
+        ["ami"] void startObs(long sbid, askap::interfaces::ParameterMap parmap);
 
         /**
          * Calling this method instructs the central processor to abort the
