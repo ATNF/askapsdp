@@ -551,6 +551,47 @@ namespace askap {
 
             //**************************************************************//
 
+            bool RadioSource::fitGaussNew(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter)
+            {
+                /// @details First defines the pixel array with the flux
+                /// values by extracting the voxels from voxelList that are
+                /// within the box surrounding the object. Their flux values
+                /// are placed in the flux matrix, which is passed to
+                /// fitGauss(casa::Matrix<casa::Double> pos,
+                /// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
+                /// sigma).
+                if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
+
+                casa::Matrix<casa::Double> pos;
+                casa::Vector<casa::Double> f;
+                casa::Vector<casa::Double> sigma;
+                pos.resize(this->getSize(), 2);
+                f.resize(this->getSize());
+                sigma.resize(this->getSize());
+                casa::Vector<casa::Double> curpos(2);
+                curpos = 0;
+
+                if (this->getZcentre() != this->getZmin() || this->getZcentre() != this->getZmax()) {
+                    ASKAPLOG_ERROR(logger, "Can only do fitting for two-dimensional objects!");
+                    return false;
+                }
+
+		int i=0;
+		std::vector<PixelInfo::Voxel>::iterator vox = voxelList->begin();
+		for( ; vox<voxelList->end();vox++){
+		  sigma(i) = this->itsNoiseLevel;
+		  curpos(0) = vox->getX();
+		  curpos(1) = vox->getY();
+		  pos.row(i) = curpos;
+		  f(i) = vox->getF();
+		  i++;
+                }
+
+                return fitGauss(pos, f, sigma, baseFitter);
+            }
+
+            //**************************************************************//
+
             bool RadioSource::fitGauss(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter)
             {
                 /// @details First defines the pixel array with the flux
@@ -570,24 +611,24 @@ namespace askap {
                 sigma.resize(this->boxSize());
                 casa::Vector<casa::Double> curpos(2);
                 curpos = 0;
-                bool failure = false;
 
                 if (this->getZcentre() != this->getZmin() || this->getZcentre() != this->getZmax()) {
                     ASKAPLOG_ERROR(logger, "Can only do fitting for two-dimensional objects!");
-                    return failure;
+                    return false;
                 }
 
                 long z = this->getZPeak();
 
-                for (long x = this->boxXmin(); x <= this->boxXmax() && !failure; x++) {
-                    for (long y = this->boxYmin(); y <= this->boxYmax() && !failure; y++) {
+                bool failed = false;
+                for (long x = this->boxXmin(); x <= this->boxXmax() && !failed; x++) {
+                    for (long y = this->boxYmin(); y <= this->boxYmax() && !failed; y++) {
                         int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
                         PixelInfo::Voxel tempvox(x, y, z, 0.);
                         std::vector<PixelInfo::Voxel>::iterator vox = voxelList->begin();
 
                         while (!tempvox.match(*vox) && vox != voxelList->end()) vox++;
 
-                        if (vox == voxelList->end()) failure = true;
+                        if (vox == voxelList->end()) failed = true;
                         else f(i) = vox->getF();
 
                         sigma(i) = this->itsNoiseLevel;
@@ -597,11 +638,11 @@ namespace askap {
                     }
                 }
 
-                if (failure) {
+                if (failed) {
                     ASKAPLOG_ERROR_STR(logger, "RadioSource: Failed to allocate flux array for object at ("
                                            << this->getXcentre() << "," << this->getYcentre() << "," << this->getZcentre() << "), or "
                                            << this->ra << " " << this->dec << " " << this->vel);
-                    return !failure;
+                    return false;
                 }
 
                 return fitGauss(pos, f, sigma, baseFitter);

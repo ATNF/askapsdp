@@ -157,6 +157,7 @@ namespace askap {
             this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
+	    this->itsFlagFitJustDetection = parset.getBool("fitJustDetection",false);
 	    this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
@@ -657,7 +658,12 @@ namespace askap {
 
                     if (!src.isAtEdge() && this->itsFlagDoFit) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
-                        src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
+			if(this->itsFlagFitJustDetection){
+			  std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
+			  src.fitGaussNew(&voxlist, this->itsFitter);
+			}
+			else
+			  src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
 			src.findAlpha(this->itsImage,this->itsFlagFindSpectralIndex);
 			src.findBeta(this->itsImage,this->itsFlagFindSpectralIndex);
                     }
@@ -930,7 +936,18 @@ namespace askap {
                         src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
 			
                         if (this->itsFlagDoFit){
-			  src.fitGauss(&this->itsVoxelList, this->itsFitter);
+			    
+			  if(this->itsFlagFitJustDetection){
+			    // get a list of just the detected voxels
+			    std::vector<PixelInfo::Voxel> voxlist;
+                            std::vector<PixelInfo::Voxel>::iterator vox = this->itsVoxelList.begin();
+			    for(;vox<this->itsVoxelList.end();vox++) 
+			      if(src.isInObject(*vox)) voxlist.push_back(*vox);
+                            src.fitGaussNew(&voxlist, this->itsFitter);
+			  }
+			  else{
+			    src.fitGauss(&this->itsVoxelList, this->itsFitter);
+			  }
 			  src.findAlpha(this->itsImage,this->itsFlagFindSpectralIndex);
 			  src.findBeta(this->itsImage,this->itsFlagFindSpectralIndex);
 			}

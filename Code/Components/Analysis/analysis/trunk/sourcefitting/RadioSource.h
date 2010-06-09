@@ -107,6 +107,7 @@ namespace askap {
                     /// @brief Fit Gaussian components to the Detection.
                     /// @name
                     ///@{
+                    bool fitGaussNew(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter);
                     bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter);
                     bool fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter);
                     bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,

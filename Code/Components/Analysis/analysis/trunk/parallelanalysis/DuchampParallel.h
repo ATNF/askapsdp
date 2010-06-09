@@ -196,6 +196,9 @@ namespace askap {
                 /// Shall we fit to the sources?
                 bool itsFlagDoFit;
 
+		/// Shall we fit to just the detected voxels?
+		bool itsFlagFitJustDetection;
+
 		/// Shall we find spectral index information?
 		bool itsFlagFindSpectralIndex;
 
