@@ -43,9 +43,9 @@ module cp
     {
         /**
          * Calling this method instructs the central processor to carry out the
-         * observation described in the parameter map. This includes both data
-         * ingest and data processing (i.e. running the ingest and processing
-         * pipelines).
+         * observation described in the parameter set associated with the
+         * scheduling block. This includes both data ingest and data processing
+         * (i.e. running the ingest and processing pipelines).
          * 
          * This method, when called will block until such times as the central
          * processor is ready to begin receiving data from the correlator and
@@ -53,14 +53,14 @@ module cp
          * prepare for an observation (on the order of a few seconds), hence the
          * need to indicate when it is ready by blocking.
          */
-        ["ami"] void startObs(long sbid, askap::interfaces::ParameterMap parmap);
+        ["ami"] void startObs(long sbid);
 
         /**
          * Calling this method instructs the central processor to abort the
          * current observation. This stops the data acquisition  process,
          * however does not necessarily prevent the observation from moving to
-         * the post-processing stage. The configuration parameters passed to
-         * the startObs() method indicate if data processing should be attempted
+         * the post-processing stage. The configuration parameters in the 
+         * scheduling block indicate if data processing should be attempted
          * for an aborted observation.
          *
          * This method will block until the observation has been aborted and

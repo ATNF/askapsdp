@@ -54,7 +54,6 @@ ObsService::~ObsService()
 
 // Ice "IComponent" interfaces
 void ObsService::startObs(const long sbid,
-                          const askap::interfaces::ParameterMap& parmap,
                           const Ice::Current& cur)
 {
 }
