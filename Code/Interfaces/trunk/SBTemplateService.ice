@@ -48,6 +48,17 @@ module schedblock
 
 
     /**
+     * This enum described the possible version number fields. These will be
+     * used when specifing which veriosn to increment.
+     **/
+    enum VersionType
+    {
+        MAJOR,
+        MINOR
+    };
+
+
+    /**
      * The Version to associate with an instance of the SBTemplate.
      **/
     struct Version
@@ -58,8 +69,8 @@ module schedblock
 
 
     /**
-     * The possible status a SBTemplate can have. This tags the SBTemplate
-     * for the various different users/use cases.
+     * The possible status a SBTemplate can have. It is used to tag the
+     * SBTemplate for the various users/use cases.
      **/
     enum SBTemplateStatus
     {
@@ -75,25 +86,29 @@ module schedblock
      * versioned for tracebility. These templates have a name associated with
      * them. When accessing the interface by name the latest version of the
      * SBTemplate is returned. Template and procedure can't be separated as the
-     * template describes the parameters used in the prtocedure.
+     * template describes the parameters used in the procedure.
+     * <p>
+     * Version numbering is done in the service. The consumer has to specify
+     * which part of the version (major or minor) they want to increment.
      *
      **/
     interface ISBTemplateService
     {
 
         /**
-         * Create a new SB Template with the given parameters.
+         * Create a new SBTemplate with the given parameters. It throws a
+         * VersionException if the template name exists already. The new
+         * template will be versioned 0.1.
          *
          * @param name The SBTemplate name
          * @param template The ObsParameterTemplate describing the SBTemplate
          * @param obsproc The ObsProcedure script
          * @param status The SBTemplate Status
-         * @param vers The version number to set
          *
          **/
         long create(string name,
                     askap::interfaces::ParameterMap template,
-                    string obsproc, SBTemplateStatus status, Version vers)
+                    string obsproc, SBTemplateStatus status)
             throws VersionException;
 
         /**
@@ -107,48 +122,39 @@ module schedblock
             throws NoSuchSBTemplateException;
 
         /**
-         * Modify the name of the specified SBTemplate.
+         * Bump the major or minor version of the given SBTemplate.
          *
          * @param sbtid the id of the template to access
-         * @param name the new name of the template
+         * @param vtype which version part to bump.
          *
          **/
-        void setName(long sbtid, string name)
-            throws NoSuchSBTemplateException;
-
-        /**
-         * Set the version of the given SBTemplate.
-         *
-         * @param sbtid the id of the template to access
-         *
-         **/
-        void setVersion(long sbtid, Version vers)
+        void updateVersion(long sbtid, VersionType vtype)
             throws NoSuchSBTemplateException,
                    VersionException;
 
         /**
          * Update the SBTemplate's template and procedure. It is required to
-         * specify a new version as well.
+         * specify what version should be incremented.
          *
          * @param sbtid the id of the template to access
-         * @param vers The version number to set
+         * @param vtype The VersionType to bump
          * @param template The ObsParameterTemplate describing the SBTemplate
          * @param obsproc The ObsProcedure script
          *
          **/
-        void setTemplate(long sbtid, Version vers,
-                         askap::interfaces::ParameterMap template,
-                         string obsproc)
+        void updateTemplate(long sbtid, VersionType vtype,
+                            askap::interfaces::ParameterMap template,
+                            string obsproc)
             throws NoSuchSBTemplateException,
                    VersionException;
 
         /**
-         * Get a sequence of all available SB Template names.
+         * Get a sequence of all available SBTemplate names.
          **/
         StringSeq getNames();
 
         /**
-         * Get the SB Template names filtering by SBTemplateStatus.
+         * Get the SBTemplate names filtering by SBTemplateStatus.
          *
          * @param status the SBTemplateStatus to filter by
          *
@@ -156,7 +162,7 @@ module schedblock
         StringSeq getByStatus(SBTemplateStatus status);
 
         /**
-         * Get the SB Template id for a named SBTemplate at the latest version.
+         * Get the SBTemplate id for a named SBTemplate at the latest version.
          *
          * @param name the name of the template
          *
@@ -164,7 +170,7 @@ module schedblock
         long getByName(string name) throws NoSuchSBTemplateException;
 
         /**
-         * Get the SB Template id for a named SBTemplate the specified version.
+         * Get the SBTemplate id for a named SBTemplate the specified version.
 
          * @param name the name of the template
          * @param vers The version number to retrieve
