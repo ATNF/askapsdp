@@ -122,17 +122,6 @@ module schedblock
             throws NoSuchSBTemplateException;
 
         /**
-         * Bump the major or minor version of the given SBTemplate.
-         *
-         * @param sbtid the id of the template to access
-         * @param vtype which version part to bump.
-         *
-         **/
-        void updateVersion(long sbtid, VersionType vtype)
-            throws NoSuchSBTemplateException,
-                   VersionException;
-
-        /**
          * Update the SBTemplate's template and procedure. It is required to
          * specify what version should be incremented.
          *
