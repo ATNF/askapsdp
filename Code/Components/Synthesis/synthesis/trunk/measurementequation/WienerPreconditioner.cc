@@ -70,6 +70,19 @@ namespace askap
     /// @note Normalisation of PSF is always used when noise power is defined via robustness
     WienerPreconditioner::WienerPreconditioner(float robustness) : itsParameter(robustness), 
             itsDoNormalise(true), itsUseRobustness(true)  {}
+
+    /// @brief copy constructor
+    /// @param[in] other object to copy from
+    WienerPreconditioner::WienerPreconditioner(const WienerPreconditioner &other) :
+          itsParameter(other.itsParameter), itsDoNormalise(other.itsDoNormalise),
+          itsUseRobustness(other.itsUseRobustness)
+    {
+        if (other.itsTaper) {
+            boost::shared_ptr<IImagePreconditioner> taper = other.itsTaper->clone();
+            itsTaper = boost::dynamic_pointer_cast<GaussianTaperPreconditioner>(taper);
+            ASKAPCHECK(itsTaper, "Dynamic cast failed, it is not supposed to happen");
+        }
+    }
         
     IImagePreconditioner::ShPtr WienerPreconditioner::clone()
     {
@@ -93,14 +106,27 @@ namespace askap
       if (itsDoNormalise) {
           ASKAPLOG_INFO_STR(logger, "The PSF will be normalised to 1 before filter construction");
       }
-
-      casa::ArrayLattice<float> lpsf(psf);
+      // we may need to transform PSF before filter is constructed
+      // use reference semantics of casa arrays,, so there is no copying overhead if the psf passed unchanged
+      casa::Array<float> psf4filter(psf);
+            
+      if (itsTaper) {
+          // now we have to copy, because the values are going to be changed by the taper
+          psf4filter.assign(psf.copy());
+          itsTaper->applyTaper(psf4filter);
+          const float maxPSFAfterTaper = casa::max(psf4filter);
+          ASKAPLOG_INFO_STR(logger, "Peak of PSF after Gaussian tapering = " << maxPSFAfterTaper);
+          ASKAPCHECK(maxPSFAfterTaper > 0., "Peak of PSF after Gaussian tapering is supposed to be positive");
+          ASKAPLOG_INFO_STR(logger, "Renormalising PSF back to have peak = "<< maxPSFBefore);
+          psf4filter *= maxPSFBefore / maxPSFAfterTaper;          
+      }
+      
+      casa::ArrayLattice<float> lpsf4filter(psf4filter);      
       casa::ArrayLattice<float> ldirty(dirty);
-
-      const casa::IPosition shape = lpsf.shape();
+      const casa::IPosition shape = lpsf4filter.shape();
 
       casa::ArrayLattice<casa::Complex> scratch(shape);
-      scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
+      scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf4filter)));
        
       LatticeFFT::cfft2d(scratch, True);
        
@@ -113,8 +139,13 @@ namespace askap
       ASKAPLOG_INFO_STR(logger, "Effective noise power of the Wiener filter = " << noisePower);
       wienerfilter.copyData(casa::LatticeExpr<casa::Complex>(normFactor*conj(scratch)/(real(scratch*conj(scratch)) + noisePower)));
 
-      // Apply the filter to the lpsf
-       
+      casa::ArrayLattice<float> lpsf(psf);          
+      // Apply the filter to scratch equal to FT(lpsf) if there is no tapering, otherwise regenerate FT of psf before
+      // applying the filter
+      if (itsTaper) {
+          scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));       
+          LatticeFFT::cfft2d(scratch, True);          
+      }   
       scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
        
       LatticeFFT::cfft2d(scratch, False);       
@@ -149,19 +180,53 @@ namespace askap
       ASKAPCHECK(parset.isDefined("noisepower") != parset.isDefined("robustness"), 
            "Exactly one parameter, either noisepower or robustness parameter must be given. You gave either none or both of them.");
 
+      boost::shared_ptr<WienerPreconditioner> result;
       if (parset.isDefined("noisepower")) {
           const float noisepower = parset.getFloat("noisepower");
           const bool normalise = parset.getBool("normalise",false);
-          return boost::shared_ptr<WienerPreconditioner>(new WienerPreconditioner(noisepower,normalise));
-      }
+          result.reset(new WienerPreconditioner(noisepower,normalise));
+      } else {
       
-      ASKAPDEBUGASSERT(parset.isDefined("robustness"));
+          ASKAPDEBUGASSERT(parset.isDefined("robustness"));
      
-      const float robustness = parset.getFloat("robustness");
-      ASKAPCHECK((robustness >= -2.00001) && (robustness <= 2.0001), "Robustness parameter is supposed to be between -2 and 2, you have = "<<robustness);
-      ASKAPCHECK(!parset.isDefined("normalise"), "Normalise option of the Wiener preconditioner is not compatible with the "
-                 "preconditioner definition via robustness (as normalisation of PSF is always done in this case)");
-      return boost::shared_ptr<WienerPreconditioner>(new WienerPreconditioner(robustness));
+          const float robustness = parset.getFloat("robustness");
+          ASKAPCHECK((robustness >= -2.00001) && (robustness <= 2.0001), 
+                     "Robustness parameter is supposed to be between -2 and 2, you have = "<<robustness);
+          ASKAPCHECK(!parset.isDefined("normalise"), 
+                     "Normalise option of the Wiener preconditioner is not compatible with the "
+                     "preconditioner definition via robustness (as normalisation of PSF is always done in this case)");
+          result.reset(new WienerPreconditioner(robustness));
+      }
+      ASKAPASSERT(result);
+      // configure PSF tapering
+      if (parset.isDefined("psftaper")) {
+          const double fwhm = parset.getDouble("psftaper");
+          result->configurePSFTaper(fwhm);
+      }
+      //
+      
+      return result;
+    }
+
+    /// @brief assignment operator, to ensure it is not called
+    WienerPreconditioner& WienerPreconditioner::operator=(const WienerPreconditioner &other) 
+    {
+      ASKAPTHROW(AskapError, "Assignment operator is not supposed to be used");
+      return *this;
+    }
+
+    /// @brief configure PSF tapering 
+    /// @details PSF can be tapered before filter is constructed. This mode is intended to reduce the
+    /// effect of the uv-coverage gap at shortest baselines (wiener filter tries to deconcolve it).
+    /// @param[in] fwhm full width at half maximum of the taper in the uv-plane
+    /// (given as a fraction of the uv-cell size).
+    /// @note Gaussian taper is set up in the uv-space. Size is given as FWHM expressed
+    /// as fractions of uv-cell size. The relation between FWHMs in fourier and image plane is 
+    /// uvFWHM = (Npix*cellsize / FWHM) * (4*log(2)/pi), where Npix is the number of pixels
+    /// cellsize and FWHM are image-plane cell size and FWHM in angular units.
+    void WienerPreconditioner::configurePSFTaper(double fwhm)
+    {
+      itsTaper.reset(new GaussianTaperPreconditioner(fwhm)); 
     }
 
 

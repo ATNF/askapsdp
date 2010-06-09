@@ -79,14 +79,16 @@ public:
    /// @param[in] dirty array with dirty image
    /// @return true if psf and dirty have been altered
    virtual bool doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const;
-protected:
+
    /// @brief a helper method to apply the taper to one given array
    /// @details We need exactly the same operation for psf and dirty image. This method
    /// encapsulates the code which is actually doing the job. It is called twice from
-   /// doPreconditioning.
+   /// doPreconditioning. In addition, this method is used in Wiener preconditioner to 
+   /// smooth PSF before filter construction 
    /// @param[in] image an image to apply the taper to
    void applyTaper(casa::Array<float> &image) const;
-   
+
+protected:
    /// @brief a helper method to build the lattice representing the taper
    /// @details applyTaper can be reused many times for the same taper. This 
    /// method populates the cached array with proper values corresponding
