@@ -53,7 +53,7 @@ ObsService::~ObsService()
 }
 
 // Ice "IComponent" interfaces
-void ObsService::startObs(const long sbid,
+void ObsService::startObs(const Ice::Long sbid,
                           const Ice::Current& cur)
 {
 }
