@@ -25,8 +25,6 @@
 #ifndef ASKAP_QUEUESERVICE_ICE
 #define ASKAP_QUEUESERVICE_ICE
 
-#include <CommonTypes.ice>
-
 module askap
 {
 
