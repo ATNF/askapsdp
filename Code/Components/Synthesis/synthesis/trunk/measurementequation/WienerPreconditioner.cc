@@ -71,6 +71,18 @@ namespace askap
     WienerPreconditioner::WienerPreconditioner(float robustness) : itsParameter(robustness), 
             itsDoNormalise(true), itsUseRobustness(true)  {}
         
+        
+    /// @brief copy constructor
+    /// @param[in] other an opject to copy from
+    WienerPreconditioner::WienerPreconditioner(const WienerPreconditioner &other) :
+          itsParameter(other.itsParameter), itsDoNormalise(other.itsDoNormalise), 
+          itsUseRobustness(other.itsUseRobustness) 
+    {
+       if (other.itsTaperCache) {
+           itsTaperCache.reset(new GaussianTaperCache(*(other.itsTaperCache)));
+       }
+    }      
+        
     IImagePreconditioner::ShPtr WienerPreconditioner::clone()
     {
 	    return IImagePreconditioner::ShPtr(new WienerPreconditioner(*this));
@@ -109,8 +121,20 @@ namespace askap
        
       casa::ArrayLattice<casa::Complex> wienerfilter(shape);
 
-      ASKAPLOG_INFO_STR(logger, "Effective noise power of the Wiener filter = " << noisePower);
+      ASKAPLOG_INFO_STR(logger, "Effective noise power of the Wiener filter = " << noisePower);     
       wienerfilter.copyData(casa::LatticeExpr<casa::Complex>(normFactor*conj(scratch)/(real(scratch*conj(scratch)) + noisePower)));
+      
+      if (itsTaperCache) {
+          // back to image domain
+          LatticeFFT::cfft2d(wienerfilter, False);       
+          // apply taper
+          casa::Array<casa::Complex> taperArray(itsTaperCache->taper(shape));
+          casa::ArrayLattice<casa::Complex> taperLattice(taperArray);
+          
+          wienerfilter.copyData(casa::LatticeExpr<casa::Complex>(wienerfilter * taperLattice));
+          // transform back
+          LatticeFFT::cfft2d(wienerfilter, True);
+      }
 
       /*
       // for debugging - to export Wiener filter
@@ -194,7 +218,7 @@ namespace askap
     /// @param[in] fwhm full width at half maximum of the taper given in image cells
     void WienerPreconditioner::enableTapering(double fwhm)
     {
-      itsTaperFWHM = fwhm;
+      itsTaperCache.reset(new GaussianTaperCache(fwhm));
     }    
 
   }

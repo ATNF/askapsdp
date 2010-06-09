@@ -25,7 +25,8 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author Urvashi Rau <rurvashi@aoc.nrao.edu>
+/// @author Max Voronkov <Maxim.Voronkov@csiro.au>
+/// original code by Urvashi Rau <rurvashi@aoc.nrao.edu>
 ///
 #ifndef SYN_WEINER_PRECONDITIONER_H_
 #define SYN_WEINER_PRECONDITIONER_H_
@@ -38,6 +39,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <measurementequation/IImagePreconditioner.h>
+#include <measurementequation/GaussianTaperCache.h>
 
 namespace askap
 {
@@ -67,6 +69,10 @@ namespace askap
       /// @param[in] robustness robustness parameter (roughly matching Briggs' weighting)
       /// @note Normalisation of PSF is always used when noise power is defined via robustness
       explicit WienerPreconditioner(float robustness);
+      
+      /// @brief copy constructor
+      /// @param[in] other an opject to copy from
+      WienerPreconditioner(const WienerPreconditioner &other);
              
       /// @brief Clone this object
       /// @return shared pointer to a cloned copy
@@ -110,12 +116,9 @@ namespace askap
       /// @brief true, if parameter is robustness, false if it is the noise power
       bool itsUseRobustness;
   
-      /// @brief FWHM of the gaussian taper in the image domain (in cells)
-      /// @details Wiener filter can optionally be multipled by a Gaussian 
-      /// in the image domain to restrict field of view to a single beam
-      /// (PSF artificially extends to the whole field of view. Negative
-      /// value means no taper is applied.
-      double itsTaperFWHM;
+      /// @brief gaussian taper in the image domain (in pixels)
+      /// @details fwhm is stored inside cache class. 
+      boost::shared_ptr<GaussianTaperCache> itsTaperCache;
    };
 
   }
