@@ -61,21 +61,30 @@ module schedblock
         ERRORED
     };
 
+    /**
+     * The SchedulingBlockService provides and interface to the main ASKAP
+     * obseravtion entity - the Scheduling Block. The Scheduling Block describes
+     * and observation and its execution which is done througth the Executive.
+     **/
     interface ISchedulingBlockService
     {
         /**
          * Transition the Scheduling Block to the given state.
+         *
          * @param sbid The id of the Scheduling Block
          * @param newstate The state to transition to.
+         *
          **/
         void transition(long sbid,
-                        ObsState newstate) throws 
+                        ObsState newstate) throws
 		TransitionException,
 		NoSuchSchedulingBlockException;
 
         /**
          * Get all Scheduling Block ids matching the given state.
+         *
          * @return a sequence of Scheduling Block ids
+         *
          **/
         LongSeq getByState(ObsState state);
 
@@ -83,10 +92,11 @@ module schedblock
          * Create a new Scheduling Block with the given initial configuration.
          * This will have and empty set of ObsVariables and ill be in DRAFT
          * state.
+         *
          * @param programid The id of the Owner Observation Program.
          * @param sbtid The id of the Scheduling BlockTemplate to use
-         * @param userparams The Obseravtion User Parameters
          * @return The id of the newly created Scheduling Block
+         *
          **/
         long create(long programid, long sbtid)
              throws NoSuchSBTemplateException,
@@ -101,25 +111,20 @@ module schedblock
                                       NoSuchSchedulingBlockException;
 
         /**
-         * Make an identical copy of the given SchedulingBlock giving it a new
-         * id.
-         * @param sbid The id of the Scheduling Block
-         * @return The id of the newly created Scheduling Block
-         **/
-        long clone(long sbid) throws NoSuchSchedulingBlockException;
-
-        /**
          * Get the UTC date/time the given Scheduling Block
-         * has been scheduled for.
+         * has been scheduled for. If the Scheduling Block isn't in SCHEDULED
+         * state return an empty string.
+         *
          * @param sbid The id of the Scheduling Block
-         * @return an ISO 8601 UTC date string
+         * @return an ISO 8601 UTC date string or an empty string
+         *
          **/
         string getScheduledTime(long sbid)
                throws NoSuchSchedulingBlockException;
 
         /**
          * Return the actual Observation Parameters which are the result of
-         * a merge of the SBTemplate and the Observation User
+         * a merge of the SBTemplate's Obs Parameters and the Obs User
          * Parameters. This is used in the execution of the Scheduling Block.
          * @param sbid The id of the Scheduling Block
          * @return a ParameterMap
@@ -127,47 +132,80 @@ module schedblock
         askap::interfaces::ParameterMap getObsParameters(long sbid)
                 throws NoSuchSchedulingBlockException;
 
-        /**
-         * get the Observation Variables given an optional entry point
-         * for a component.
-         * @param sbid The id of the Scheduling Block
-         * @param nodekey The optional key of the ParameterMap subset to return
-         * @return a ParameterMap
-         **/
-        askap::interfaces::ParameterMap getObsVariables(long sbid,
-                                                        string nodekey)
-                throws NoSuchSchedulingBlockException,
-                       ParameterException;
 
         /**
-         * Get the Observation Procedure
+         * Get the Observation Procedure i.e. the python script
+         *
          * @param sbid The id of the Scheduling Block
-         * @return a string containing the python script
+         * @return a string
+         *
          **/
         string getObsProcedure(long sbid) throws NoSuchSchedulingBlockException;
 
         /**
-         * Update the UserParameters to the given values.
+         * Set the UserParameters to the given values. This replaces the
+         * UserParameters and any keys which exist in the Scheduling Block but
+         * not in the given userparams will be deleted.
+         *
          * @param sbid The id of the Scheduling Block
-         * @param userparams The Obseravtion User Parameters to set/overwrite
+         * @param userparams The Observation User Parameters to set/overwrite
+         *
          **/
         void setObsUserParameters(long sbid,
                                   askap::interfaces::ParameterMap userparams)
                 throws ParameterException,
                        NoSuchSchedulingBlockException;
 
+
         /**
-         * Update the Observation Variables to the given values.
+         * Get the Observation Variables. This allows for
+         * returning a subset e.g. for component. If all ObsVariables are to
+         * be returned specify and empty string.
+         *
+         * @param sbid The id of the Scheduling Block
+         * @param key The key of the ObsVariable subset to return
+         * @return a ParameterMap
+         *
+         **/
+        askap::interfaces::ParameterMap getObsVariables(long sbid,
+                                                        string key)
+                throws NoSuchSchedulingBlockException,
+                       ParameterException;
+
+        /**
+         * Set the Observation Variables to the given values.
+         * This overwrites existing and creates newly specified ObsVariables.
+         * Omitted variables remain unmodified.
+         * in the Scheduling Block but are not in the given in obsvars will
+         * be deleted
+         *
+         * @param sbid The id of the Scheduling Block
+         * @param obsvars the new Obs Variables
+         *
          **/
         void setObsVariables(long sbid,
-                            askap::interfaces::ParameterMap uservars)
+                            askap::interfaces::ParameterMap obsvars)
+                throws ParameterException,
+                       NoSuchSchedulingBlockException;
+
+        /**
+         * Remove the specified keys from the ObsVariables.
+         *
+         * @param sbid The id of the Scheduling Block
+         * @param obsvarkeys The Obs Variables to remove
+         *
+         **/
+        void removeObsVariables(long sbid,
+                                 askap::interfaces::StringSeq obsvarkeys)
                 throws ParameterException,
                        NoSuchSchedulingBlockException;
 
         /**
          * Set the Template id.
-         * This would typically only be used to bump the version of the 
+         * This would typically only be used to bump the version of the
          * Template.
+         *
+         * @param sbid The id of the Scheduling Block
          **/
         void setSBTemplate(long sbid, long sbtid)
                 throws NoSuchSchedulingBlockException,
