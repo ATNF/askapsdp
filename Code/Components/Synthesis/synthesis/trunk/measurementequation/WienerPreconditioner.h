@@ -38,8 +38,6 @@
 #include <boost/shared_ptr.hpp>
 
 #include <measurementequation/IImagePreconditioner.h>
-// to reuse convolution with a gaussian
-#include <measurementequation/GaussianTaperPreconditioner.h>
 
 namespace askap
 {
@@ -69,11 +67,7 @@ namespace askap
       /// @param[in] robustness robustness parameter (roughly matching Briggs' weighting)
       /// @note Normalisation of PSF is always used when noise power is defined via robustness
       explicit WienerPreconditioner(float robustness);
-     
-      /// @brief copy constructor
-      /// @param[in] other object to copy from
-      WienerPreconditioner(const WienerPreconditioner &other);      
-        
+             
       /// @brief Clone this object
       /// @return shared pointer to a cloned copy
       virtual IImagePreconditioner::ShPtr clone();
@@ -93,16 +87,11 @@ namespace askap
       static boost::shared_ptr<WienerPreconditioner> createPreconditioner(const LOFAR::ParameterSet &parset);
     
     protected:
-      /// @brief configure PSF tapering 
-      /// @details PSF can be tapered before filter is constructed. This mode is intended to reduce the
-      /// effect of the uv-coverage gap at shortest baselines (wiener filter tries to deconcolve it).
-      /// @param[in] fwhm full width at half maximum of the taper in the uv-plane
-      /// (given as a fraction of the uv-cell size).
-      /// @note Gaussian taper is set up in the uv-space. Size is given as FWHM expressed
-      /// as fractions of uv-cell size. The relation between FWHMs in fourier and image plane is 
-      /// uvFWHM = (Npix*cellsize / FWHM) * (4*log(2)/pi), where Npix is the number of pixels
-      /// cellsize and FWHM are image-plane cell size and FWHM in angular units.
-      void configurePSFTaper(double fwhm); 
+      /// @brief enable Filter tapering 
+      /// @details Wiener filter can optionally be tapered in the image domain, so it is not extended over
+      /// the whole field of view.
+      /// @param[in] fwhm full width at half maximum of the taper given in image cells
+      void enableTapering(double fwhm); 
       
     private:
       /// @brief assignment operator, to ensure it is not called
@@ -121,9 +110,12 @@ namespace askap
       /// @brief true, if parameter is robustness, false if it is the noise power
       bool itsUseRobustness;
   
-      /// @brief gaussian taper (to reuse convolution with 2D Gaussian)
-      /// @note if undefined, no taper is applied
-      boost::shared_ptr<GaussianTaperPreconditioner> itsTaper;
+      /// @brief FWHM of the gaussian taper in the image domain (in cells)
+      /// @details Wiener filter can optionally be multipled by a Gaussian 
+      /// in the image domain to restrict field of view to a single beam
+      /// (PSF artificially extends to the whole field of view. Negative
+      /// value means no taper is applied.
+      double itsTaperFWHM;
    };
 
   }
