@@ -32,6 +32,7 @@
 #define GAUSSIAN_TAPER_PRECONDITIONER_H
 
 #include <measurementequation/IImagePreconditioner.h>
+#include <measurementequation/GaussianTaperCache.h>
 
 namespace askap {
 
@@ -41,7 +42,7 @@ namespace synthesis {
 /// @details This preconditioner applies gaussian taper in the uv-space to the normal
 /// equations.
 /// @ingroup measurementequation
-class GaussianTaperPreconditioner : public IImagePreconditioner {
+class GaussianTaperPreconditioner : public IImagePreconditioner, private GaussianTaperCache {
 public:
    /// @brief set up the preconditioner 
    /// @details This constructor just sets the taper size. The size is full width at
@@ -87,25 +88,6 @@ public:
    /// smooth PSF before filter construction 
    /// @param[in] image an image to apply the taper to
    void applyTaper(casa::Array<float> &image) const;
-
-protected:
-   /// @brief a helper method to build the lattice representing the taper
-   /// @details applyTaper can be reused many times for the same taper. This 
-   /// method populates the cached array with proper values corresponding
-   /// to the taper.
-   /// @param[in] shape shape of the required array
-   void initTaperCache(const casa::IPosition &shape) const;
-   
-private:
-   /// @brief Major axis (sigma, rather than FWHM) in the units of uv-cells
-   double itsMajorAxis;
-   /// @brief Minor axis (sigma, rather than FWHM) in the units of uv-cells
-   double itsMinorAxis;
-   /// @brief position angle in radians
-   double itsPA;
-   /// @brief cache of the taper image
-   /// @note May be we can make it float?
-   mutable casa::Array<casa::Complex> itsTaperCache;
 };
 
 } // namespace synthesis

@@ -97,7 +97,7 @@ GaussianTaperCache& GaussianTaperCache::operator=(const GaussianTaperCache &othe
 /// @return array with the taper (casa arrays use reference semantics)
 casa::Array<casa::Complex> GaussianTaperCache::taper(const casa::IPosition &shape) const
 {
-  if (shape != itsTaperCache.shape()) {
+  if (!shape.isEqual(itsTaperCache.shape())) {
       initTaperCache(shape);
   }
   return itsTaperCache;

@@ -79,6 +79,15 @@ public:
    /// @return array with the taper (casa arrays use reference semantics)
    casa::Array<casa::Complex> taper(const casa::IPosition &shape) const;
    
+   /// @return major axis in pixels
+   inline double majorAxis() const {return itsMajorAxis;}
+
+   /// @return minor axis in pixels
+   inline double minorAxis() const {return itsMinorAxis;}
+   
+   /// @return position angle in radians
+   inline double posAngle() const {return itsPA;}
+   
 protected:           
    /// @brief build the cache 
    /// @details This method populates the cache using the values of

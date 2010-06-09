@@ -44,8 +44,6 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <scimath/Mathematics/SquareMatrix.h>
 #include <scimath/Mathematics/RigidVector.h>
 
-#include <utils/PaddingUtils.h>
-
 namespace askap {
 
 namespace synthesis {
@@ -64,8 +62,7 @@ namespace synthesis {
 /// uvFWHM = (Npix*cellsize / FWHM) * (4*log(2)/pi), where Npix is the number of pixels
 /// cellsize and FWHM are image-plane cell size and FWHM in angular units.
 GaussianTaperPreconditioner::GaussianTaperPreconditioner(double majFWHM, double minFWHM, double pa) :
-     itsMajorAxis(majFWHM/sqrt(8.*log(2.))), itsMinorAxis(minFWHM/sqrt(8.*log(2.))),
-     itsPA(pa) {}
+     GaussianTaperCache(majFWHM, minFWHM, pa) {}
    
 /// @brief set up the preconditioner for the circularly symmetric taper 
 /// @details This constructor just sets the taper size, same for both axis.
@@ -77,10 +74,7 @@ GaussianTaperPreconditioner::GaussianTaperPreconditioner(double majFWHM, double 
 /// uvFWHM = (Npix*cellsize / FWHM) * (4*log(2)/pi), where Npix is the number of pixels
 /// cellsize and FWHM are image-plane cell size and FWHM in angular units.
 GaussianTaperPreconditioner::GaussianTaperPreconditioner(double fwhm) : 
-     itsMajorAxis(fwhm/sqrt(8.*log(2.))), itsPA(0.) 
-{
-  itsMinorAxis = itsMajorAxis;
-}
+     GaussianTaperCache(fwhm) { }
    
 /// @brief Clone this object
 /// @return shared pointer to a cloned copy
@@ -101,8 +95,8 @@ bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, cas
   const float maxPSFBefore=casa::max(psf);
   ASKAPLOG_INFO_STR(logger, "Peak of PSF before Gaussian taper = " << maxPSFBefore);
   
-  ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper "<<itsMajorAxis*sqrt(8.*log(2.))<<" x "<<
-                    itsMinorAxis*sqrt(8.*log(2.))<<" uv cells at the position angle of "<<itsPA/M_PI*180.<<" degrees");
+  ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper "<<majorAxis()*sqrt(8.*log(2.))<<" x "<<
+                    minorAxis()*sqrt(8.*log(2.))<<" uv cells at the position angle of "<<posAngle()/M_PI*180.<<" degrees");
   ASKAPDEBUGASSERT(psf.shape().isEqual(dirty.shape()));
   
   applyTaper(psf);
@@ -141,78 +135,20 @@ void GaussianTaperPreconditioner::applyTaper(casa::Array<float> &image) const
   const casa::IPosition shape = lattice.shape();
   //const casa::IPosition shape = paddedShape;
   casa::ArrayLattice<casa::Complex> scratch(shape);
-    
-  if (!shape.isEqual(itsTaperCache.shape())) {
-      initTaperCache(shape);
-  }
-  
+      
   // fft to transform the image into uv-domain
   scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lattice)));
-  //PaddingUtils::inject(scratch, lattice);
   casa::LatticeFFT::cfft2d(scratch, true);
   
   // apply the taper
-  casa::ArrayLattice<casa::Complex> taper(itsTaperCache);
+  casa::Array<casa::Complex> taperCache = taper(shape); 
+  casa::ArrayLattice<casa::Complex> taperLattice(taperCache);
   
-  scratch.copyData(casa::LatticeExpr<casa::Complex> (taper * scratch));
+  scratch.copyData(casa::LatticeExpr<casa::Complex> (taperLattice * scratch));
   
   // transform back to the image domain
   casa::LatticeFFT::cfft2d(scratch, false);
   lattice.copyData(casa::LatticeExpr<float> ( real(scratch) ));
-  //PaddingUtils::extract(lattice,scratch);
-}
-
-/// @brief a helper method to build the lattice representing the taper
-/// @details applyTaper can be reused many times for the same taper. This 
-/// method populates the cached array with proper values corresponding
-/// to the taper.
-/// @param[in] shape shape of the required array
-void GaussianTaperPreconditioner::initTaperCache(const casa::IPosition &shape) const
-{
-  ASKAPDEBUGASSERT(shape.nelements() >= 2);
-
-#ifdef ASKAP_DEBUG
-  // if shape is exactly 2, nonDegenerate(2) would throw an exception. Hence, we need
-  // a special check to avoid this.
-  if (shape.nelements() > 2) {
-     ASKAPASSERT(shape.nonDegenerate(2).nelements() == 2);
-  }
-#endif  
-
-  itsTaperCache.resize(shape);
-  const casa::Int nx = shape[0];
-  const casa::Int ny = shape[1];
-  casa::IPosition index(shape.nelements(),0);
-  casa::SquareMatrix<casa::Double, 2> rotation(casa::SquareMatrix<casa::Double, 2>::General);
-  // rotation direction is flipped here as we rotate the gaussian, not
-  // the coordinate
-
-  rotation(0,0) = rotation(1,1) = sin(itsPA);
-  rotation(1,0) = cos(itsPA);
-  rotation(0,1) = -rotation(1,0);
-  
-  // the following formula introduces some error if position angle is not 0
-  // may be we need just to sum values?
-  //const double normFactor = 2.*M_PI*itsMajorAxis*itsMinorAxis*erf(double(nx)/(2.*sqrt(2.)*itsMajorAxis))*
-  //            erf(double(ny)/(2.*sqrt(2.)*itsMinorAxis));
-  double sum = 0.;            
-  for (index[0] = 0; index[0]<nx; ++index[0]) {
-       for (index[1] = 0; index[1]<ny; ++index[1]) {
-            casa::RigidVector<casa::Double, 2> offset;
-            offset(0) = (double(index[0])-double(nx)/2.);
-            offset(1) = (double(index[1])-double(ny)/2.);
-            // operator* is commented out in RigidVector due to
-            // problems with some compilers. We have to use operator*= instead.
-            // according to manual it is equivalent to v=Mv, rather than to v=v*M
-            offset *= rotation;
-            const double taperingFactor = exp(-casa::square(offset(0)/itsMajorAxis)/2.-
-                       casa::square(offset(1)/itsMinorAxis)/2.);
-            sum += taperingFactor;
-            itsTaperCache(index) = taperingFactor;
-       }
-  }
-  //std::cout<<"normFactor/sum: "<<normFactor/sum<<std::endl;
-  //  itsTaperCache /= casa::Complex(sum,0.);
 }
 
 } // namespace synthesis
