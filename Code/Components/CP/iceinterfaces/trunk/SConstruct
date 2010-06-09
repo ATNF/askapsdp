@@ -19,7 +19,6 @@ pkg.AddSubPackage("icegenerated")
 pkg.AddInterfaces("CommonTypes.ice", "icegenerated")
 pkg.AddInterfaces("TypedValues.ice", "icegenerated")
 pkg.AddInterfaces("Component.ice", "icegenerated")
-pkg.AddInterfaces("SchedulingBlock.ice", "icegenerated")
 pkg.AddInterfaces("CP.ice", "icegenerated")
 #
 # These are the CP internal interfaces:
