@@ -81,12 +81,6 @@ module schedblock
                     string obsproc, SBTemplateStatus status, Version vers);
 
         /**
-         * Make an identical copy and return th new id
-         **/
-        long clone(long sbtid)
-            throws NoSuchSBTemplateException;
-
-        /**
          * Modify the Status of the specified SBTemplate
          **/
         void setStatus(long sbtid, SBTemplateStatus status)
