@@ -979,7 +979,26 @@ namespace askap {
                         this->itsSourceList.push_back(*src);
                 }
 
-                std::stable_sort(this->itsSourceList.begin(), this->itsSourceList.end());
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have a total of " << this->itsSourceList.size() << " sources.");
+
+                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Starting sort of source list");
+//                 std::stable_sort(this->itsSourceList.begin(), this->itsSourceList.end());
+                std::map<float, int> detlist;
+
+                for (size_t i = 0; i < this->itsSourceList.size(); i++) {
+                    float val = this->is2D() ? this->itsSourceList[i].getXcentre() : this->itsSourceList[i].getVel();
+                    detlist.insert(std::pair<float, int>(val, int(i)));
+                }
+
+                std::vector<sourcefitting::RadioSource> newlist;
+                std::map<float, int>::iterator det;
+
+                for (det = detlist.begin(); det != detlist.end(); det++) newlist.push_back(this->itsSourceList[det->second]);
+
+                this->itsSourceList.clear();
+                this->itsSourceList = newlist;
+                newlist.clear();
+                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished sort of source list");
                 this->itsCube.clearDetectionList();
 
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
