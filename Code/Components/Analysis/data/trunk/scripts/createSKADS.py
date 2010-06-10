@@ -99,10 +99,13 @@ if __name__ == '__main__':
         cursor = db.cursor()
     
         catfile = file(origCatFile,"w")
+        catfile2 = file("outputcatalogue.dat","w")
         if(haveFreqInfo):
             catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang"))
         else:
             catfile.write("#%9s %10s %20s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Maj_axis","Min_axis","Pos_ang"))
+
+        catfile2.write("#%10s%10s%10s%16s%12s%15s%11s%11s%8s%8s%8s%8s%8s\n"%("component","galaxy","structure","right_ascension","declination","position_angle","major_axis","minor_axis","i_151","i_610","i_1400","i_4860","i_18000"))
 
 #        for type in types:
 #            for x in centres:
@@ -113,7 +116,8 @@ if __name__ == '__main__':
 
                     tabname = getTabName(x,y,type)
 
-                    query = "SELECT right_ascension,declination,pow(10,i_1400) as flux14,pow(10,i_610) as flux6,major_axis,minor_axis,position_angle,component FROM %s WHERE i_1400>=%s"%(tabname,math.log10(fluxLimit))
+#                    query = "SELECT right_ascension,declination,pow(10,i_1400) as flux14,pow(10,i_610) as flux6,major_axis,minor_axis,position_angle,component FROM %s WHERE i_1400>=%s"%(tabname,math.log10(fluxLimit))
+                    query = "SELECT component,galaxy,structure,right_ascension,declination,position_angle,major_axis,minor_axis,i_151,i_610,i_1400,i_4860,i_18000 FROM %s WHERE i_1400>=%s"%(tabname,math.log10(fluxLimit))
                     print query
 
                     cursor.execute(query)
@@ -123,19 +127,31 @@ if __name__ == '__main__':
                     for r in results:
 
                         # Label the results values clearly so we know what we are working with!
-                        ra = r[0]
-                        dec = r[1]
-                        s1400 = r[2]
-                        s0610 = r[3]
-                        maj = r[4]
-                        min = r[5]
-                        pa = r[6]
-                        compNum = r[7]
+#                        ra = r[0]
+#                        dec = r[1]
+#                        s1400 = r[2]
+#                        s0610 = r[3]
+#                        maj = r[4]
+#                        min = r[5]
+#                        pa = r[6]
+#                        compNum = r[7]
 
-                        if(compNum == SuperBrightSource): 
+#                        if(compNum == SuperBrightSource): 
+                        if(r[0] == SuperBrightSource): 
                             # This fixes the super-bright source, on the assumption that its fluxes are lacking a minus sign
-                            s1400 = 1. / s1400
-                            s0610 = 1. / s0610
+                            r[10] = -1. * r[10]
+                            r[9] = -1. *r[9]
+#                            s1400 = 1. / s1400
+#                            s0610 = 1. / s0610
+
+                        ra = r[3]
+                        dec = r[4]
+                        s1400 = r[10]
+                        s0610 = r[9]
+                        maj = r[6]
+                        min = r[7]
+                        pa = r[5]
+                        compNum = r[0]
 
                         alpha = log10(s1400/s0610)/log10(1400./610.)
                         beta  = 0.  # Only using two fluxes to interpolate, so can't get a curvature term.
@@ -145,8 +161,10 @@ if __name__ == '__main__':
                         else:
                             catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,maj,min,pa))
 
-        catfile.close()
+                        catfile2.write("%11d%10d%10d%16s%12s%15s%11s%11s%8.4f%8.4f%8.4f%8.4f%8.4f\n"%(r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[10],r[11],r[12]))
 
+        catfile.close()
+        catfile2.close()
 ############
 # Make FITS image
 #   use simFITS code in askapsoft

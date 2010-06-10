@@ -72,32 +72,37 @@ def getQueryStringS3SAX(radius,max_redshift,min_redshift,hiMassLimit=0.,hiFluxLi
 
     hiQuery = 'himass>%f and hiintflux>%f and zapparent < %f and zapparent > %f'%(hiMassLimit,hiFluxLimit,max_redshift,min_redshift)
 
-    return 'SELECT right_ascension,declination,zapparent,himass,hiintflux,himajoraxis_msunpc as "major axis", hiaxisratio*himajoraxis_msunpc as "minor axis", diskpositionangle,hilumcenter,hilumpeak,hiwidthpeak,hiwidth50,hiwidth20 from Galaxies where %s%s'%(sepQuery,hiQuery)
+#    return 'SELECT right_ascension,declination,zapparent,himass,hiintflux,himajoraxis_msunpc as "major axis", hiaxisratio*himajoraxis_msunpc as "minor axis", diskpositionangle,hilumcenter,hilumpeak,hiwidthpeak,hiwidth50,hiwidth20 from Galaxies where %s%s'%(sepQuery,hiQuery)
+    return 'SELECT * from Galaxies where %s%s'%(sepQuery,hiQuery)
 
 ############
 
-def writeHeaderLine(catfile, database):
+def writeHeaderLine(catfile, database,catfile2="/tmp/nulldata"):
 
     if(database=='S3SEX'):
         catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s %10s %10s %5s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang","Redshift","M_HI","Type"))
     elif(database=='S3SAX'):
         catfile.write("#%9s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n"%("RA","Dec","HI_Flux","Alpha","Beta","Maj_axis","Min_axis","Pos_ang","Redshift","M_HI","F_0", "Fpeak", "Wpeak", "W50", "W20"))
+        catfile2.write("#%20s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s\n"%("galaxy","cluster","galaxyid       ","clusterid     ","box","hubbletype","right_ascension","declination","distance","zapparent  ","himass     ","h2mass     ","hiintflux","cointflux_1","cointflux_2","cointflux_3","cointflux_4","cointflux_5","cointflux_6","cointflux_7","cointflux_8","cointflux_9","cointflux_10","diskpositionangle","diskinclination","gasscaleradius","rmolc  ","hiaxisratio","himajoraxis_msunpc","himajoraxis_max","himajoraxis_50max","himajoraxis_10max","himajoraxis_halfmass","h2axisratio","h2majoraxis_msunpc","h2majoraxis_50max","h2majoraxis_10max","h2majoraxis_halfmass","balancemajoraxis","hilumcenter","hilumpeak ","hiwidthpeak","hiwidth50","hiwidth20","columcenter","columpeak","cowidthpeak","cowidth50","cowidth20","cofillingfactor"))
 
 ############
 
-def writeResults(catfile, results, database, haveFreqInfo):
+def writeResults(catfile, results, database, haveFreqInfo, catfile2="/tmp/nulldata"):
 
     for r in results:
         
         # Label the results values clearly so we know what we are working with!
-        ra = r[0]
-        dec = r[1]
-        z = r[2]
+#        ra = r[0]
+#        dec = r[1]
+#        z = r[2]
         
         alpha = 0.
         beta = 0.
 
         if(database=='S3SEX'):
+            ra = r[0]
+            dec = r[1]
+            z = r[2]
             mHI = pow(10,r[3])
             s1400 = r[4]
             s0610 = r[5]
@@ -112,21 +117,39 @@ def writeResults(catfile, results, database, haveFreqInfo):
             if(haveFreqInfo):
                 alpha = log10(s1400/s0610)/log10(1400./610.)
         elif(database=='S3SAX'):
-            mHI = r[3]
-            intflux=r[4]
-            maj = r[5]
-            min = r[6]
-            pa = r[7]
-            f0 = r[8]
-            fpeak = r[9]
-            wpeak = r[10]
-            w50 = r[11]
-            w20 = r[12]
+#            ra = r[0]
+#            dec = r[1]
+#            z = r[2]
+#            mHI = r[3]
+#            intflux=r[4]
+#            maj = r[5]
+#            min = r[6]
+#            pa = r[7]
+#            f0 = r[8]
+#            fpeak = r[9]
+#            wpeak = r[10]
+#            w50 = r[11]
+#            w20 = r[12]
+            ra = float(r[6])
+            dec = float(r[7])
+            z = float(r[9])
+            mHI = float(r[11])
+            intflux=float(r[13])
+            maj = float(r[29])
+            axisratio = float(r[28])
+            min = maj * axisratio
+            pa = float(r[24])
+            f0 = float(r[40])
+            fpeak = float(r[41])
+            wpeak = float(r[42])
+            w50 = float(r[43])
+            w20 = float(r[44])
             
         if(database=='S3SEX'):
             catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %5d\n"%(ra,dec,s1400,alpha,beta,maj,min,pa,z,mHI,defaultTypes[type]))
         elif(database=='S3SAX'):
             catfile.write("%10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f\n"%(ra,dec,intflux,alpha,beta,maj,min,pa,z,mHI,f0,fpeak,wpeak,w50,w20))
+            catfile2.write("%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s\n"%(r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[10],r[11],r[12],r[13],r[14],r[15],r[16],r[17],r[18],r[19],r[20],r[21],r[22],r[23],r[24],r[25],r[26],r[27],r[28],r[29],r[30],r[31],r[32],r[33],r[34],r[35],r[36],r[37],r[38],r[39],r[40],r[41],r[42],r[43],r[44],r[45],r[46],r[47],r[48],r[49]))
 
 
 ############
@@ -202,7 +225,8 @@ if __name__ == '__main__':
         cursor = db.cursor()
     
         catfile = file(origCatFile,"w")
-        writeHeaderLine(catfile,database)
+        catfile2 = file("outputcatalogueS3SAX","w")
+        writeHeaderLine(catfile,database,catfile2)
 
         centres = range(-int(fieldAngSize/2),int(fieldAngSize/2)+1,1)
         if(database=='S3SAX'):
@@ -229,9 +253,10 @@ if __name__ == '__main__':
                     results=array(cursor.fetchall())
                     print shape(results)
                     
-                    writeResults(catfile, results, database, haveFreqInfo)
+                    writeResults(catfile, results, database, haveFreqInfo,catfile2)
 
         catfile.close()
+        catfile2.close()
 
 ############
 # Make FITS image
