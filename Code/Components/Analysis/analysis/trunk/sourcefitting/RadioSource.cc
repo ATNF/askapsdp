@@ -305,12 +305,12 @@ namespace askap {
                 /// same peak location as the base object.
 
                 long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
-                duchamp::Image smlIm(dim);
-                smlIm.saveArray(fluxarray, this->boxSize());
-                smlIm.setMinSize(1);
+                duchamp::Image *smlIm = new duchamp::Image(dim);
+                smlIm->saveArray(fluxarray, this->boxSize());
+                smlIm->setMinSize(1);
                 float thresh = (this->itsDetectionThreshold + this->peakFlux) / 2.;
-                smlIm.stats().setThreshold(thresh);
-                std::vector<PixelInfo::Object2D> objlist = smlIm.findSources2D();
+                smlIm->stats().setThreshold(thresh);
+                std::vector<PixelInfo::Object2D> objlist = smlIm->findSources2D();
                 std::vector<PixelInfo::Object2D>::iterator o;
 
                 for (o = objlist.begin(); o < objlist.end(); o++) {
@@ -326,7 +326,8 @@ namespace askap {
                         min = std::min(axes.first, axes.second);
                     }
                 }
-            }
+ 		delete smlIm;
+           }
 
             //**************************************************************//
 
@@ -344,10 +345,15 @@ namespace askap {
 
 		for(int i=0;i<this->boxSize();i++) fluxarray[i] = 0.;
 		for(size_t i=0;i<f.size();i++) {
-		  int x = int(pos(i,0))-this->boxXmin();
-		  int y = int(pos(i,1))-this->boxYmin();
-		  if(spatMap.isInObject(x,y)) fluxarray[x+this->boxXsize()*y] = f(i);
+		  int x = int(pos(i,0));
+		  int y = int(pos(i,1));
+		  if(spatMap.isInObject(x,y)){
+		    int loc = (x-this->boxXmin()) + this->boxXsize()*(y-this->boxYmin());
+		    fluxarray[loc] = f(i);
+ 		    ASKAPLOG_DEBUG_STR(logger, "Adding flux " << f(i) << " to position ("<<x<<","<<y<<") which is box pixel " << loc);
+		  }
 		}
+ 		ASKAPLOG_DEBUG_STR(logger, "Defined flux array in getSubComponentList");
 
 		std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
                 float dx = this->getXaverage() - this->getXPeak();
@@ -412,14 +418,21 @@ namespace askap {
 
                 std::vector<SubComponent> fullList;
                 long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
-                duchamp::Image smlIm(dim);
-                smlIm.saveArray(fluxarray, this->boxSize());
-                smlIm.setMinSize(1);
+                duchamp::Image *smlIm = new duchamp::Image(dim);
+                smlIm->saveArray(fluxarray, this->boxSize());
+                smlIm->setMinSize(1);
                 SubComponent base;
                 base.setPeak(this->peakFlux);
                 base.setX(this->xpeak);
                 base.setY(this->ypeak);
                 double a, b, c;
+		if(this->getSize()<3){
+		  base.setPA(0);
+		  base.setMajor(1.);
+		  base.setMinor(1.);
+		  fullList.push_back(base);
+		  return fullList;
+		}
                 this->getFWHMestimate(fluxarray, a, b, c);
                 base.setPA(a);
                 base.setMajor(b);
@@ -427,6 +440,7 @@ namespace askap {
                 const int numThresh = this->itsFitParams.numSubThresholds();
                 float baseThresh = this->itsDetectionThreshold > 0 ? log10(this->itsDetectionThreshold) : -6.;
                 float threshIncrement = (log10(this->peakFlux) - baseThresh) / float(numThresh + 1);
+		//		ASKAPLOG_DEBUG_STR(logger, "Subthresholding: peakFlux = "<<log10(this->peakFlux)<<", numThresh="<<numThresh<<", baseThresh="<<baseThresh<<", incr="<<threshIncrement);
                 float thresh;
                 int threshCtr = 0;
                 std::vector<PixelInfo::Object2D> objlist;
@@ -436,10 +450,12 @@ namespace askap {
                 do {
                     threshCtr++;
                     thresh = pow(10., baseThresh + threshCtr * threshIncrement);
-                    smlIm.stats().setThreshold(thresh);
-                    objlist = smlIm.findSources2D();
+                    smlIm->stats().setThreshold(thresh);
+                    objlist = smlIm->findSources2D();
                     keepGoing = (objlist.size() == 1);
                 } while (keepGoing && (threshCtr < numThresh));
+
+		delete smlIm;
 
                 if (!keepGoing) {
                     for (obj = objlist.begin(); obj < objlist.end(); obj++) {
@@ -452,14 +468,27 @@ namespace askap {
                         newsrc.addOffsets(this->boxXmin(), this->boxYmin(), 0);
                         newsrc.xpeak += this->boxXmin();
                         newsrc.ypeak += this->boxYmin();
-                        std::vector<SubComponent> newlist = newsrc.getThresholdedSubComponentList(fluxarray);
+			// now change the flux array so that we only see the current object
+			float *newfluxarray = new float[this->boxSize()];
+			for(int i=0;i<this->boxSize();i++){
+			  int xbox=i%this->boxXsize();
+			  int ybox=i/this->boxXsize();
+			  PixelInfo::Object2D spatMap = newsrc.getSpatialMap();
+			  if(spatMap.isInObject(xbox+this->boxXmin(),ybox+this->boxYmin())) newfluxarray[i]=fluxarray[i];
+			  else newfluxarray[i]=0.;
+			}
+                        std::vector<SubComponent> newlist = newsrc.getThresholdedSubComponentList(newfluxarray);
+			delete [] newfluxarray;
 
                         for (uInt i = 0; i < newlist.size(); i++) fullList.push_back(newlist[i]);
                     }
                 } else fullList.push_back(base);
 
-                std::sort(fullList.begin(), fullList.end());
-                std::reverse(fullList.begin(), fullList.end());
+		if(fullList.size()>1){
+		  std::sort(fullList.begin(), fullList.end());
+		  std::reverse(fullList.begin(), fullList.end());
+		}
+
                 return fullList;
             }
 
@@ -639,6 +668,8 @@ namespace askap {
 
                         if (vox == voxelList->end()) failed = true;
                         else f(i) = vox->getF();
+
+                        if (failed) ASKAPLOG_ERROR_STR(logger, "Failed on voxel (" << x << "," << y << "," << z << ")");
 
                         sigma(i) = this->itsNoiseLevel;
                         curpos(0) = x;
