@@ -4,19 +4,25 @@
 
 cp.ingest.integrations_expected                    = 12
 
+#
 # Metdata Source
+# #
 cp.ingest.metadata_source.ice.locator_host          = localhost
 cp.ingest.metadata_source.ice.locator_port          = 4061
 cp.ingest.metadata_source.icestorm.topicmanager     = IceStorm/TopicManager
 cp.ingest.metadata_source.icestorm.topic            = tosmetadata
 cp.ingest.metadata_source.buffer_size               = 48
-            
+
+#        
 # Visibilities Source
+#
 cp.ingest.vis_source.port                           = 3000
 cp.ingest.vis_source.buffer_size                   = 1838592
 # The above is 21 (baselines) * 36 (beams) * 304 (coarse channels) * 8 cycles
 
+#
 # Calc UVW Task
+#
 cp.ingest.uvw.antennas.location     =   [+117.471deg, -25.692deg, 192m, WGS84]
 cp.ingest.uvw.antennas.names        =   [A0, A1, A2, A3, A4, A5]
 cp.ingest.uvw.antennas.diameter     =   12m
@@ -67,11 +73,30 @@ cp.ingest.uvw.feeds.feed29             = [2.5, -0.5]
 cp.ingest.uvw.feeds.feed30             = [2.5,  0.5]
 cp.ingest.uvw.feeds.feed31             = [2.5,  1.5]
 
-
+#
 # Channel Averaging Task
+#
 cp.ingest.chanavg.averaging         = 54
             
+#
+# Cal task
+#
+cp.ingest.gain.g11.0 = [1.0]
+cp.ingest.gain.g11.1 = [1.0]
+cp.ingest.gain.g11.2 = [1.0]
+cp.ingest.gain.g11.3 = [1.0]
+cp.ingest.gain.g11.4 = [1.0]
+cp.ingest.gain.g11.5 = [1.0]
+cp.ingest.gain.g22.0 = [1.0]
+cp.ingest.gain.g22.1 = [1.0]
+cp.ingest.gain.g22.2 = [1.0]
+cp.ingest.gain.g22.3 = [1.0]
+cp.ingest.gain.g22.4 = [1.0]
+cp.ingest.gain.g22.5 = [1.0]
+
+#
 # Measurement Set Sink
+#
 cp.ingest.ms_sink.filename                 = ingest_test.ms
 cp.ingest.ms_sink.stman.bucketsize         = 104448
 cp.ingest.ms_sink.stman.tilencorr          = 4
@@ -137,3 +162,4 @@ cp.ingest.ms_sink.spw.stokes               = "XX XY YX YY"
 
 cp.ingest.ms_sink.field.name               = test-field
 cp.ingest.ms_sink.field.direction          = [12h30m00.000, -45.00.00.000, J2000]
+
