@@ -222,8 +222,8 @@ public class IceAppender extends AppenderSkeleton
 
             // The ASKAPsoft log archiver interface expects Unix time in seconds
             // (the parameter is a double precision float) where log4j returns
-            // microseconds.
-            iceevent.created = event.getTimeStamp() / 1000.0 / 1000.0;
+            // millisec
+            iceevent.created = event.getTimeStamp() / 1000.0;
             iceevent.level = itsLevelMap.get(event.getLevel());
             iceevent.message = event.getRenderedMessage();
 
