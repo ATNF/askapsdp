@@ -40,9 +40,9 @@ using namespace askap::cp;
 
 int main(int argc, char *argv[])
 {
-    MQSessionSingleton::initialize("failover:(tcp://localhost:61616)");
-    MQSessionSingleton& mq = MQSessionSingleton::getInstance();
-    MQSessionSingleton::shutdown();
+    //MQSessionSingleton::initialize("failover:(tcp://localhost:61616)");
+    //MQSessionSingleton& mq = MQSessionSingleton::getInstance();
+    //MQSessionSingleton::shutdown();
 
     return 0;
 }
