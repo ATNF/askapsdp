@@ -1,0 +1,6 @@
+askap=Code/Base/askap/trunk
+cmdlineparser=3rdParty/cmdlineparser/tags/cmdlineparser-0.1.1
+common=3rdParty/LOFAR/Common/tags/Common-3.3
+activemq=3rdParty/apache-activemq/tags/apache-activemq-5.3.1
+activemq-cpp=3rdParty/activemq-cpp-library/tags/activemq-cpp-library-3.1.3
+boost=3rdParty/boost/tags/boost-1.41.0
