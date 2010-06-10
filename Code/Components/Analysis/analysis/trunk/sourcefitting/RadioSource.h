@@ -100,9 +100,9 @@ namespace askap {
                     void getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min);
 
                     /// @brief Return a list of subcomponents.
-                    std::vector<SubComponent> getSubComponentList(casa::Vector<casa::Double> &f);
+                    std::vector<SubComponent> getSubComponentList(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
                     /// @brief Return a list of subcomponents that lie above a flux threshold
-                    std::vector<SubComponent> getThresholdedSubComponentList(casa::Vector<casa::Double> &f);
+                    std::vector<SubComponent> getThresholdedSubComponentList(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
 
                     /// @brief Fit Gaussian components to the Detection.
                     /// @name
