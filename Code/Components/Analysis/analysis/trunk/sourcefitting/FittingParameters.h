@@ -161,7 +161,7 @@ namespace askap {
                     void setUseNoise(bool b) {itsUseNoise = b;};
                     void setFlagFitThisParam(int i, bool b) {itsFlagFitThisParam[i] = b;};
                     void setFlagFitThisParam(std::string type);
-		    void setNegativeFluxPossible(bool b) {itsNegativeFluxPossible = b;};
+                    void setNegativeFluxPossible(bool b) {itsNegativeFluxPossible = b;};
 
                     int    maxNumGauss() {return itsMaxNumGauss;};
                     int    boxPadSize() {return itsBoxPadSize;};
@@ -177,7 +177,7 @@ namespace askap {
                     uInt   maxIter() {return itsMaxIter;};
                     bool   useNoise() {return itsUseNoise;};
                     bool   flagFitThisParam(int i) {return itsFlagFitThisParam[i];};
-		    bool   negativeFluxPossible(){return itsNegativeFluxPossible;};
+                    bool   negativeFluxPossible() {return itsNegativeFluxPossible;};
 
                     std::vector<std::string> fitTypes() {return itsFitTypes;};
                     std::string fitType(int i) {return itsFitTypes[i];};
@@ -194,10 +194,10 @@ namespace askap {
                     /// one pair for each axis (only x- and y-axes required, as elements 0 and
                     /// 1 respectively).
                     void saveBox(casa::Slicer box) {
-		      this->itsXmin = box.start()[0];
-		      this->itsXmax = box.end()[0];
-		      this->itsYmin = box.start()[1];
-		      this->itsYmax = box.end()[1];
+                        this->itsXmin = box.start()[0];
+                        this->itsXmax = box.end()[0];
+                        this->itsYmin = box.start()[1];
+                        this->itsYmax = box.end()[1];
                     };
 
                     friend class Fitter;
@@ -252,8 +252,8 @@ namespace askap {
                     /// @brief Whether to calculate the noise surrounding the object and use it as the sigma in casa::FitGaussian::fit()
                     bool itsUseNoise;
 
-		    /// @brief Whether the flux of a fitted component can be negative
-		    bool itsNegativeFluxPossible;
+                    /// @brief Whether the flux of a fitted component can be negative
+                    bool itsNegativeFluxPossible;
 
                     /// @brief The extent of the box surrounding the object used for the fitting
                     /// @{
@@ -267,10 +267,10 @@ namespace askap {
                     std::vector<bool> itsFlagFitThisParam;
 
                     /// @brief List of types of fits to be done: can be:
-		    /// @li "full" (meaning all parameters are free to be fitted)
-		    /// @li "psf" (meaning the major/minor axes and the position angle are kept fixed at the beam size)
-		    /// @li "shape" (meaning the height is kept fixed, but the shape is fitted)
-		    /// @li "height" (meaning the shape AND location are fixed, and only the height is fitted)
+                    /// @li "full" (meaning all parameters are free to be fitted)
+                    /// @li "psf" (meaning the major/minor axes and the position angle are kept fixed at the beam size)
+                    /// @li "shape" (meaning the height is kept fixed, but the shape is fitted)
+                    /// @li "height" (meaning the shape AND location are fixed, and only the height is fitted)
                     std::vector<std::string> itsFitTypes;
             };
 

@@ -87,22 +87,22 @@ namespace askap {
         /// @}
 
         /// @ingroup analysisutilities
-	/// @brief Convert a WCS struct to a casa coordinate specification
-	casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs, int nstokes);
+        /// @brief Convert a WCS struct to a casa coordinate specification
+        casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs, int nstokes);
 
         /// @ingroup analysisutilities
         /// @brief Convert a duchamp subsection to a casa Slicer
         Slicer subsectionToSlicer(duchamp::Section &subsection);
 
-	/// @ingroup analysisutilities
-	/// @brief Fix axes that aren't position or spectral
-	void fixSlicer(Slicer &slice, wcsprm *wcs);
+        /// @ingroup analysisutilities
+        /// @brief Fix axes that aren't position or spectral
+        void fixSlicer(Slicer &slice, wcsprm *wcs);
 
         /// @brief Find the noise within a box surrounding a location in an image.
         float findSurroundingNoise(std::string filename, float xpt, float ypt, int noiseBoxSize);
 
-	/// @brief Return a vector of pixel values in a box subsection of an image.
-	casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box);
+        /// @brief Return a vector of pixel values in a box subsection of an image.
+        casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box);
 
     }
 

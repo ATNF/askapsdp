@@ -149,16 +149,17 @@ namespace askap {
             this->itsImage = substitute(parset.getString("image"));
             ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsImage);
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
-	    this->itsWeightImage = parset.getString("weightimage","");
-	    if(this->itsWeightImage != "")
-	      ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
+            this->itsWeightImage = parset.getString("weightimage", "");
+
+            if (this->itsWeightImage != "")
+                ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
 
             this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch", false);
             this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
-	    this->itsFlagFitJustDetection = parset.getBool("fitJustDetection",false);
-	    this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
+            this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", false);
+            this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
@@ -178,8 +179,8 @@ namespace askap {
                     this->itsSubimageDef = SubimageDef(parset);
                 } else if (this->isWorker()) {
                     this->itsSubimageDef = SubimageDef(parset);
-// 		    this->itsCube.pars().setFlagSubsection(true);
-		      
+//          this->itsCube.pars().setFlagSubsection(true);
+
                 }
             }
 
@@ -244,13 +245,16 @@ namespace askap {
                         ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
 
                     result = this->itsCube.getMetadata();
-		    // check the true dimensionality and set the 2D flag in the cube header.
-		    int numDim=0;
-		    long *dim = this->itsCube.getDimArray();
-		    for(int i=0;i<this->itsCube.getNumDim();i++) if(dim[i]>1) numDim++;
-		    this->itsCube.header().set2D(numDim<=2);
-		    // set up the various flux units
-		    if (this->itsCube.header().getWCS()->spec >= 0) this->itsCube.header().fixUnits(this->itsCube.pars());
+                    // check the true dimensionality and set the 2D flag in the cube header.
+                    int numDim = 0;
+                    long *dim = this->itsCube.getDimArray();
+
+                    for (int i = 0; i < this->itsCube.getNumDim(); i++) if (dim[i] > 1) numDim++;
+
+                    this->itsCube.header().set2D(numDim <= 2);
+
+                    // set up the various flux units
+                    if (this->itsCube.header().getWCS()->spec >= 0) this->itsCube.header().fixUnits(this->itsCube.pars());
 
                 } else {
                     result = casaImageToMetadata(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
@@ -297,7 +301,7 @@ namespace askap {
 //                     in6.getEnd();
 //                 }
 
-// 		// Broadcast a message to all workers, effectively saying that we're all done
+//      // Broadcast a message to all workers, effectively saying that we're all done
 //                 LOFAR::BlobString bs7;
 //                 bs7.resize(0);
 //                 LOFAR::BlobOBufString bob7(bs7);
@@ -348,7 +352,7 @@ namespace askap {
                         if (this->isParallel()) {
                             duchamp::Section subsection = this->itsSubimageDef.section(this->itsRank - 1, this->itsCube.pars().getSubsection());
                             this->itsCube.pars().setSubsection(subsection.getSection());
-			    this->itsCube.pars().setFlagSubsection(true);
+                            this->itsCube.pars().setFlagSubsection(true);
                         }
 
                         if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
@@ -359,7 +363,7 @@ namespace askap {
                                               << "About to read data from image " << this->itsCube.pars().getFullImageFile());
                         result = this->itsCube.getCube();
                     } else { // if it's a CASA image
-// 		      this->itsCube.pars().setFlagSubsection(false); // temporary - casaImageToCube will change this.
+//            this->itsCube.pars().setFlagSubsection(false); // temporary - casaImageToCube will change this.
                         result = casaImageToCube(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
                     }
 
@@ -374,22 +378,26 @@ namespace askap {
                         if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
                     }
 
-		if(this->itsWeightImage!=""){
-		  ASKAPLOG_INFO_STR(logger, "Applying weights");
-		  // use the same spatial section, but only the first plane
-		  duchamp::Section wsec = this->itsCube.pars().section();
-		  for(int i=2;i<=3;i++) {
-		    wsec.setStart(i,0);
-		    wsec.setEnd(i,0);
-		  }
-		  this->itsWeights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
-		  casa::Double maxweight = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
-		  for(size_t i=0;i<this->itsWeights.size();i++) this->itsWeights[i] /= maxweight;
-		  for(int z=0;z<this->itsCube.getDimZ();z++)
-		    for(int i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
-		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= this->itsWeights[i];
+                    if (this->itsWeightImage != "") {
+                        ASKAPLOG_INFO_STR(logger, "Applying weights");
+                        // use the same spatial section, but only the first plane
+                        duchamp::Section wsec = this->itsCube.pars().section();
 
-		}
+                        for (int i = 2; i <= 3; i++) {
+                            wsec.setStart(i, 0);
+                            wsec.setEnd(i, 0);
+                        }
+
+                        this->itsWeights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
+                        casa::Double maxweight = *std::max_element(this->itsWeights.begin(), this->itsWeights.end());
+
+                        for (size_t i = 0; i < this->itsWeights.size(); i++) this->itsWeights[i] /= maxweight;
+
+                        for (int z = 0; z < this->itsCube.getDimZ(); z++)
+                            for (int i = 0; i < this->itsCube.getDimX()*this->itsCube.getDimY(); i++)
+                                this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= this->itsWeights[i];
+
+                    }
 
                     if (this->itsCube.pars().getFlagATrous()) {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing");
@@ -411,7 +419,7 @@ namespace askap {
 //                         out2.putEnd();
 //                         this->itsConnectionSet->write(0, bs2);
 
-// 			// Wait to find out if all workers have finished
+//          // Wait to find out if all workers have finished
 //                         do {
 //                             LOFAR::BlobString bs3;
 //                             bs3.resize(0);
@@ -444,7 +452,7 @@ namespace askap {
 
 
 
-	    }
+            }
         }
 
         //**************************************************************//
@@ -507,13 +515,14 @@ namespace askap {
                     }
                 }
 
-		if(this->itsWeightImage!=""){
-		  ASKAPLOG_INFO_STR(logger, "Removing weights");
-		  for(int z=0;z<this->itsCube.getDimZ();z++)
-		    for(int i=0;i<this->itsCube.getDimX()*this->itsCube.getDimY();i++) 
-		      this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= this->itsWeights[i];
-		}
-		  
+                if (this->itsWeightImage != "") {
+                    ASKAPLOG_INFO_STR(logger, "Removing weights");
+
+                    for (int z = 0; z < this->itsCube.getDimZ(); z++)
+                        for (int i = 0; i < this->itsCube.getDimX()*this->itsCube.getDimY(); i++)
+                            this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= this->itsWeights[i];
+                }
+
 
                 // merge the objects, and grow them if necessary.
                 this->itsCube.ObjectMerger();
@@ -536,44 +545,44 @@ namespace askap {
             casa::IPosition box(2, this->itsMedianBoxWidth, this->itsMedianBoxWidth);
             casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
 
-	    int spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
-	    float *snrAll = new float[this->itsCube.getSize()];
-	    long *imdim = new long[2];
-	    imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
-	    duchamp::Image *chanIm = new duchamp::Image(imdim);
+            int spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
+            float *snrAll = new float[this->itsCube.getSize()];
+            long *imdim = new long[2];
+            imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
+            duchamp::Image *chanIm = new duchamp::Image(imdim);
 
-	    for(int z=0; z < this->itsCube.getDimZ(); z++){
+            for (int z = 0; z < this->itsCube.getDimZ(); z++) {
 
-	      chanIm->extractImage(this->itsCube, z);
-	      casa::Array<Float> base(shape, chanIm->getArray());
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth);
-	      casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth);
-	      casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Constructing SNR map");
-	      casa::Array<Float> snr = (base - median);
+                chanIm->extractImage(this->itsCube, z);
+                casa::Array<Float> base(shape, chanIm->getArray());
+                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth);
+                casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
+                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth);
+                casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
+                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Constructing SNR map");
+                casa::Array<Float> snr = (base - median);
 
-	      // Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
-	      uInt ntotal = snr.nelements();
-	      Bool snrDelete, madfmDelete;
-	      Float *snrStorage = snr.getStorage(snrDelete);
-	      Float *ss = snrStorage;
-	      const Float *madfmStorage = madfm.getStorage(madfmDelete);
-	      const Float *ms = madfmStorage;
-	      
-	      while (ntotal--) {
-		if (*ms > 0) *ss++ /= *ms++;
-                else {
-		  *ss++ = 0.;
-		  ms++;
+                // Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
+                uInt ntotal = snr.nelements();
+                Bool snrDelete, madfmDelete;
+                Float *snrStorage = snr.getStorage(snrDelete);
+                Float *ss = snrStorage;
+                const Float *madfmStorage = madfm.getStorage(madfmDelete);
+                const Float *ms = madfmStorage;
+
+                while (ntotal--) {
+                    if (*ms > 0) *ss++ /= *ms++;
+                    else {
+                        *ss++ = 0.;
+                        ms++;
+                    }
                 }
-	      }
-	      
-	      snr.putStorage(snrStorage, snrDelete);
-	      madfm.freeStorage(madfmStorage, madfmDelete);
 
-	      for(int i=0;i<spatSize;i++) snrAll[i+z*spatSize] = snr.data()[i];
-	    }
+                snr.putStorage(snrStorage, snrDelete);
+                madfm.freeStorage(madfmStorage, madfmDelete);
+
+                for (int i = 0; i < spatSize; i++) snrAll[i+z*spatSize] = snr.data()[i];
+            }
 
             ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
             this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
@@ -621,7 +630,7 @@ namespace askap {
                         threshold = std::min(threshold, this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut()));
                 }
 
-		long numObj = this->itsCube.getNumObj();
+                long numObj = this->itsCube.getNumObj();
 
                 for (int i = 0; i < numObj; i++) {
                     if (this->itsFlagDoFit)
@@ -658,14 +667,15 @@ namespace askap {
 
                     if (!src.isAtEdge() && this->itsFlagDoFit) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
-			if(this->itsFlagFitJustDetection){
-			  std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
-			  src.fitGaussNew(&voxlist, this->itsFitter);
-			}
-			else
-			  src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
-			src.findAlpha(this->itsImage,this->itsFlagFindSpectralIndex);
-			src.findBeta(this->itsImage,this->itsFlagFindSpectralIndex);
+
+                        if (this->itsFlagFitJustDetection) {
+                            std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
+                            src.fitGaussNew(&voxlist, this->itsFitter);
+                        } else
+                            src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
+
+                        src.findAlpha(this->itsImage, this->itsFlagFindSpectralIndex);
+                        src.findBeta(this->itsImage, this->itsFlagFindSpectralIndex);
                     }
 
                     this->itsSourceList.push_back(src);
@@ -685,8 +695,8 @@ namespace askap {
             /// sure whether this is necessary at this point.
             /// @todo Sort out voxelList necessity.
             if (this->isWorker()) {
-	      int32 num = this->itsCube.getNumObj();
-	      int16 rank = this->itsRank;
+                int32 num = this->itsCube.getNumObj();
+                int16 rank = this->itsRank;
 
                 if (this->isParallel()) {
                     LOFAR::BlobString bs;
@@ -759,11 +769,11 @@ namespace askap {
                 if (this->isParallel()) {
                     LOFAR::BlobString bs;
                     int16 rank;
-		    int32 numObj;
+                    int32 numObj;
 
-		    // don't do fit if we have a spectral axis.
-		    bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
-		    this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
+                    // don't do fit if we have a spectral axis.
+                    bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
+                    this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
 
                     for (int i = 1; i < this->itsNNode; i++) {
                         this->itsConnectionSet->read(i - 1, bs);
@@ -886,19 +896,19 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());
 
                     for (long i = 0; i < this->itsCube.getNumObj(); i++) {
-                        if(this->itsFlagDoFit)
-			  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
+                        if (this->itsFlagDoFit)
+                            ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
 
-			sourcefitting::RadioSource src(this->itsCube.getObject(i));
+                        sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
                         // Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
                         // Also find the effective detection threshold
-                        float thresholdForFitting=0.;
+                        float thresholdForFitting = 0.;
 
                         if (this->itsFlagDoMedianSearch) {
                             std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
                             std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
-                            float maxSNR=0.;
+                            float maxSNR = 0.;
 
                             for (; vox < voxSet.end(); vox++) {
                                 std::vector<PixelInfo::Voxel>::iterator pixvox = this->itsVoxelList.begin();
@@ -926,31 +936,33 @@ namespace askap {
                             src.setPeakSNR(maxSNR);
                         } else thresholdForFitting = threshold;
 
-			if(this->itsFitter.useNoise() && !this->itsCube.pars().getFlagUserThreshold()){
-			  float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
-			  src.setNoiseLevel(noise);
-			}
-			else src.setNoiseLevel(1);
+                        if (this->itsFitter.useNoise() && !this->itsCube.pars().getFlagUserThreshold()) {
+                            float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
+                            src.setNoiseLevel(noise);
+                        } else src.setNoiseLevel(1);
+
                         src.setDetectionThreshold(thresholdForFitting);
                         src.setHeader(head);
                         src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
-			
-                        if (this->itsFlagDoFit){
-			    
-			  if(this->itsFlagFitJustDetection){
-			    // get a list of just the detected voxels
-			    std::vector<PixelInfo::Voxel> voxlist;
-                            std::vector<PixelInfo::Voxel>::iterator vox = this->itsVoxelList.begin();
-			    for(;vox<this->itsVoxelList.end();vox++) 
-			      if(src.isInObject(*vox)) voxlist.push_back(*vox);
-                            src.fitGaussNew(&voxlist, this->itsFitter);
-			  }
-			  else{
-			    src.fitGauss(&this->itsVoxelList, this->itsFitter);
-			  }
-			  src.findAlpha(this->itsImage,this->itsFlagFindSpectralIndex);
-			  src.findBeta(this->itsImage,this->itsFlagFindSpectralIndex);
-			}
+
+                        if (this->itsFlagDoFit) {
+
+                            if (this->itsFlagFitJustDetection) {
+                                // get a list of just the detected voxels
+                                std::vector<PixelInfo::Voxel> voxlist;
+                                std::vector<PixelInfo::Voxel>::iterator vox = this->itsVoxelList.begin();
+
+                                for (; vox < this->itsVoxelList.end(); vox++)
+                                    if (src.isInObject(*vox)) voxlist.push_back(*vox);
+
+                                src.fitGaussNew(&voxlist, this->itsFitter);
+                            } else {
+                                src.fitGauss(&this->itsVoxelList, this->itsFitter);
+                            }
+
+                            src.findAlpha(this->itsImage, this->itsFlagFindSpectralIndex);
+                            src.findBeta(this->itsImage, this->itsFlagFindSpectralIndex);
+                        }
 
                         this->itsSourceList.push_back(src);
                     }
@@ -1003,31 +1015,31 @@ namespace askap {
                 std::vector<PixelInfo::Voxel> templist[numObj];
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
-		  
-		  //		  if(this->itsCube.getObject(i).hasParams()){ // only do this for sources that have been merged. Those that haven't have already had their parameters calculated.
+
+                    //          if(this->itsCube.getObject(i).hasParams()){ // only do this for sources that have been merged. Those that haven't have already had their parameters calculated.
 
                     // for each object, make a vector list of voxels that appear in it.
                     std::vector<PixelInfo::Voxel>
-		      objVoxList = this->itsCube.getObject(i).getPixelSet();
+                    objVoxList = this->itsCube.getObject(i).getPixelSet();
                     std::vector<PixelInfo::Voxel>::iterator vox;
 
                     // get the fluxes of each voxel
                     for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
-		      int ct = 0;
+                        int ct = 0;
 
-		      while (ct < numVox && !vox->match(this->itsVoxelList[ct])) {
-			ct++;
-		      }
+                        while (ct < numVox && !vox->match(this->itsVoxelList[ct])) {
+                            ct++;
+                        }
 
-		      if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
-			ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("
-					   << vox->getX() << "," << vox->getY() << ") in the object lists that doesn't appear in the base list.");
-		      } else vox->setF(this->itsVoxelList[ct].getF());
+                        if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
+                            ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("
+                                                   << vox->getX() << "," << vox->getY() << ") in the object lists that doesn't appear in the base list.");
+                        } else vox->setF(this->itsVoxelList[ct].getF());
                     }
 
                     templist[i] = objVoxList;
-		    //		  }
-		}
+                    //        }
+                }
 
                 std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
@@ -1052,12 +1064,12 @@ namespace askap {
                 //  }
                 this->itsCube.outputDetectionList();
 
-		if(this->itsCube.pars().getFlagLog() && (this->itsCube.getNumObj()>0)){
-		  std::ofstream logfile(this->itsCube.pars().getLogFile().c_str(),std::ios::app);
-		  logfile << "=-=-=-=-=-=-=-\nCube summary\n=-=-=-=-=-=-=-\n";
-		  logfile << this->itsCube;
-		  logfile.close();
-		}
+                if (this->itsCube.pars().getFlagLog() && (this->itsCube.getNumObj() > 0)) {
+                    std::ofstream logfile(this->itsCube.pars().getLogFile().c_str(), std::ios::app);
+                    logfile << "=-=-=-=-=-=-=-\nCube summary\n=-=-=-=-=-=-=-\n";
+                    logfile << this->itsCube;
+                    logfile.close();
+                }
 
                 if (this->itsCube.pars().getFlagKarma()) {
                     std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());

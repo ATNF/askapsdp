@@ -85,7 +85,7 @@ namespace askap {
 
             void Fitter::setEstimates(std::vector<SubComponent> cmpntList, duchamp::FitsHeader &head)
             {
-	      ASKAPLOG_DEBUG_STR(logger, "About to set the initial estimates");
+                ASKAPLOG_DEBUG_STR(logger, "About to set the initial estimates");
 
                 this->itsFitter.setDimensions(2);
                 this->itsFitter.setNumGaussians(this->itsNumGauss);
@@ -97,7 +97,7 @@ namespace askap {
 
                 for (uInt g = 0; g < this->itsNumGauss; g++) {
                     uInt cmpnt = g % nCmpnt;
-		  ASKAPLOG_DEBUG_STR(logger, "Setting estimate for #"<<g << " with " << cmpntList[cmpnt]);
+                    ASKAPLOG_DEBUG_STR(logger, "Setting estimate for #" << g << " with " << cmpntList[cmpnt]);
                     estimate(g, 0) = cmpntList[cmpnt].peak();
                     estimate(g, 1) = cmpntList[cmpnt].x();
                     estimate(g, 2) = cmpntList[cmpnt].y();
@@ -234,15 +234,15 @@ namespace askap {
 
                     if (!this->itsFitter.converged()) fitloop = 9999;
                     else {
-		      if(!this->itsParams.negativeFluxPossible()){
-			// If we don't allow negative fluxes, set all negative components to zero flux
-                        for (uint i = 0; i < this->itsNumGauss; i++) {
-			  if (this->itsSolution(i, 0) < 0) {
-			    this->itsSolution(i, 0) = 0.;
-			    ASKAPLOG_INFO_STR(logger, "Setting negative component #" << i + 1 << " to zero flux.");
-			  }
+                        if (!this->itsParams.negativeFluxPossible()) {
+                            // If we don't allow negative fluxes, set all negative components to zero flux
+                            for (uint i = 0; i < this->itsNumGauss; i++) {
+                                if (this->itsSolution(i, 0) < 0) {
+                                    this->itsSolution(i, 0) = 0.;
+                                    ASKAPLOG_INFO_STR(logger, "Setting negative component #" << i + 1 << " to zero flux.");
+                                }
+                            }
                         }
-		      }
 
                         this->itsFitter.setFirstEstimate(this->itsSolution);
                     }
@@ -261,17 +261,18 @@ namespace askap {
                     logparameters(this->itsSolution);
                 } else ASKAPLOG_INFO_STR(logger, "Fit did not converge");
 
-		std::string result;
-		if(this->itsFitter.converged()) result = "Converged";
-		else result = "Failed";
+                std::string result;
 
-		ASKAPLOG_INFO_STR(logger, 
-				  "Num Gaussians = " << this->itsNumGauss 
-				  << ", " << result 
-				  << ", chisq = " << this->itsFitter.chisquared()
-				  << ", chisq/nu =  "  << this->itsRedChisq 
-				  << ", dof = " << this->itsNDoF 
-				  << ", RMS = " << this->itsFitter.RMS() );
+                if (this->itsFitter.converged()) result = "Converged";
+                else result = "Failed";
+
+                ASKAPLOG_INFO_STR(logger,
+                                  "Num Gaussians = " << this->itsNumGauss
+                                      << ", " << result
+                                      << ", chisq = " << this->itsFitter.chisquared()
+                                      << ", chisq/nu =  "  << this->itsRedChisq
+                                      << ", dof = " << this->itsNDoF
+                                      << ", RMS = " << this->itsFitter.RMS());
             }
 
             //**************************************************************//

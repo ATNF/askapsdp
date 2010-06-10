@@ -181,35 +181,35 @@ namespace askap {
             double yBase = pix[1];
 
             while (getline(fin, line),
-		   !fin.eof()) {
-	      //	      fin >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa,
-	      //                    !fin.eof()) {
-	      if(line[0]!='#'){
-                std::stringstream ss(line);
-		ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
+                    !fin.eof()) {
+                //          fin >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa,
+                //                    !fin.eof()) {
+                if (line[0] != '#') {
+                    std::stringstream ss(line);
+                    ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
 
-                if (posType == "dms") {
-                    wld[0] = analysis::dmsToDec(raS) * 15.;
-                    wld[1] = analysis::dmsToDec(decS);
-                } else if (posType == "deg") {
-                    wld[0] = atof(raS.c_str());
-                    wld[1] = atof(decS.c_str());
-                } else
-                    ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
+                    if (posType == "dms") {
+                        wld[0] = analysis::dmsToDec(raS) * 15.;
+                        wld[1] = analysis::dmsToDec(decS);
+                    } else if (posType == "deg") {
+                        wld[0] = atof(raS.c_str());
+                        wld[1] = atof(decS.c_str());
+                    } else
+                        ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
 
-		std::stringstream idString;
-                idString << ct++ << "_" << analysis::decToDMS(wld[0], "RA") << "_" << analysis::decToDMS(wld[1], "DEC");
+                    std::stringstream idString;
+                    idString << ct++ << "_" << analysis::decToDMS(wld[0], "RA") << "_" << analysis::decToDMS(wld[1], "DEC");
 
-                if (header.wcsToPix(wld, pix)) {
-		  ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << idString.str()
-				     << ", wld=(" << std::setprecision(6) << wld[0] << "," << std::setprecision(6) << wld[1] << "), line = " << line);
+                    if (header.wcsToPix(wld, pix)) {
+                        ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << idString.str()
+                                               << ", wld=(" << std::setprecision(6) << wld[0] << "," << std::setprecision(6) << wld[1] << "), line = " << line);
+                    }
+
+                    if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
+                        matching::Point pt(pix[0], pix[1], flux, idString.str(), maj, min, pa);
+                        pixlist.push_back(pt);
+                    }
                 }
-
-                if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
-                    matching::Point pt(pix[0], pix[1], flux, idString.str(), maj, min, pa);
-                    pixlist.push_back(pt);
-                }
-	      }
             }
 
             delete [] wld;
@@ -327,36 +327,36 @@ namespace askap {
             int ct = 1;
 
             while (getline(fin, line),
-		   !fin.eof()) {
-	      //fin >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa,
-	      //    !fin.eof()) {
-	      if(line[0]!='#'){
-                std::stringstream ss(line);
-		ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
+                    !fin.eof()) {
+                //fin >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa,
+                //    !fin.eof()) {
+                if (line[0] != '#') {
+                    std::stringstream ss(line);
+                    ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
 
-                if (posType == "dms") {
-                    ra = analysis::dmsToDec(raS) * 15.;
-                    dec = analysis::dmsToDec(decS);
-                } else if (posType == "deg") {
-                    ra = atof(raS.c_str());
-                    dec = atof(decS.c_str());
-                } else
-                    ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
+                    if (posType == "dms") {
+                        ra = analysis::dmsToDec(raS) * 15.;
+                        dec = analysis::dmsToDec(decS);
+                    } else if (posType == "deg") {
+                        ra = atof(raS.c_str());
+                        dec = atof(decS.c_str());
+                    } else
+                        ASKAPTHROW(AskapError, "Unknown position type in getRefPixList: " << posType);
 
-		std::stringstream idString;
-                idString << ct++ << "_" << analysis::decToDMS(ra, "RA") << "_" << analysis::decToDMS(dec, "DEC");
-                xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
+                    std::stringstream idString;
+                    idString << ct++ << "_" << analysis::decToDMS(ra, "RA") << "_" << analysis::decToDMS(dec, "DEC");
+                    xpt = analysis::angularSeparation(ra, decBase, raBase, decBase) * 3600.;
 
-                if (ra > raBase) xpt *= -1.;
+                    if (ra > raBase) xpt *= -1.;
 
-                //    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
-                ypt = (dec - decBase) * 3600.;
+                    //    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
+                    ypt = (dec - decBase) * 3600.;
 
-                if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
-                    matching::Point pix(xpt, ypt, flux, idString.str(), maj, min, pa);
-                    pixlist.push_back(pix);
+                    if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
+                        matching::Point pix(xpt, ypt, flux, idString.str(), maj, min, pa);
+                        pixlist.push_back(pix);
+                    }
                 }
-	      }
             }
 
             stable_sort(pixlist.begin(), pixlist.end());

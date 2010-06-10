@@ -84,15 +84,17 @@ namespace askap {
                 this->hasFit = false;
                 this->atEdge = false;
                 this->itsNoiseLevel = 1.;
-		std::vector<std::string>::iterator type;
-		std::vector<std::string> typelist = availableFitTypes;
-		for (type = typelist.begin(); type < typelist.end(); type++) {
-		  this->itsAlphaMap[*type] = std::vector<float>(1,-99.);
-		  this->itsBetaMap[*type] = std::vector<float>(1,-99.);
-		}
-		this->itsAlphaMap["best"] = std::vector<float>(1,-99.);
-		this->itsBetaMap["best"] = std::vector<float>(1,-99.);
-	    }
+                std::vector<std::string>::iterator type;
+                std::vector<std::string> typelist = availableFitTypes;
+
+                for (type = typelist.begin(); type < typelist.end(); type++) {
+                    this->itsAlphaMap[*type] = std::vector<float>(1, -99.);
+                    this->itsBetaMap[*type] = std::vector<float>(1, -99.);
+                }
+
+                this->itsAlphaMap["best"] = std::vector<float>(1, -99.);
+                this->itsBetaMap["best"] = std::vector<float>(1, -99.);
+            }
 
             RadioSource::RadioSource(duchamp::Detection obj):
                     duchamp::Detection(obj)
@@ -100,15 +102,17 @@ namespace askap {
                 this->hasFit = false;
                 this->atEdge = false;
                 this->itsNoiseLevel = 1.;
-		std::vector<std::string>::iterator type;
-		std::vector<std::string> typelist = availableFitTypes;
-		for (type = typelist.begin(); type < typelist.end(); type++) {
-		  this->itsAlphaMap[*type] = std::vector<float>(1,-99.);
-		  this->itsBetaMap[*type] = std::vector<float>(1,-99.);
-		}
-		this->itsAlphaMap["best"] = std::vector<float>(1,-99.);
-		this->itsBetaMap["best"] = std::vector<float>(1,-99.);
-	    }
+                std::vector<std::string>::iterator type;
+                std::vector<std::string> typelist = availableFitTypes;
+
+                for (type = typelist.begin(); type < typelist.end(); type++) {
+                    this->itsAlphaMap[*type] = std::vector<float>(1, -99.);
+                    this->itsBetaMap[*type] = std::vector<float>(1, -99.);
+                }
+
+                this->itsAlphaMap["best"] = std::vector<float>(1, -99.);
+                this->itsBetaMap["best"] = std::vector<float>(1, -99.);
+            }
 
             RadioSource::RadioSource(const RadioSource& src):
                     duchamp::Detection(src)
@@ -128,29 +132,29 @@ namespace askap {
                 this->itsHeader = src.itsHeader;
                 this->itsBox = src.itsBox;
                 this->itsFitParams = src.itsFitParams;
-		this->itsBestFitMap = src.itsBestFitMap;
-		this->itsAlphaMap = src.itsAlphaMap;
-		this->itsBetaMap = src.itsBetaMap;
+                this->itsBestFitMap = src.itsBestFitMap;
+                this->itsAlphaMap = src.itsAlphaMap;
+                this->itsBetaMap = src.itsBetaMap;
                 return *this;
             }
 
             //**************************************************************//
 
-	  void RadioSource::defineBox(duchamp::Section &sec, FittingParameters &fitParams, int spectralAxis)
+            void RadioSource::defineBox(duchamp::Section &sec, FittingParameters &fitParams, int spectralAxis)
             {
                 /// @details Defines the maximum and minimum points of the box
                 /// in each axis direction. The size of the image array is
                 /// taken into account, using the axes array, so that the box
                 /// does not go outside the allowed pixel area.
 
-	      casa::IPosition start(3,0),end(3,0),stride(3,1);
-	      start(0) = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
-	      end(0)   = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
-              start(1) = std::max(long(sec.getStart(1) - this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
-              end(1)   = std::min(long(sec.getEnd(1) - this->ySubOffset), this->getYmax() + fitParams.boxPadSize());
-	      start(2) = std::max(long(sec.getStart(spectralAxis) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
-	      end(2)   = std::min(long(sec.getEnd(spectralAxis) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
-	      this->itsBox = casa::Slicer(start,end,stride,Slicer::endIsLast);
+                casa::IPosition start(3, 0), end(3, 0), stride(3, 1);
+                start(0) = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
+                end(0)   = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
+                start(1) = std::max(long(sec.getStart(1) - this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
+                end(1)   = std::min(long(sec.getEnd(1) - this->ySubOffset), this->getYmax() + fitParams.boxPadSize());
+                start(2) = std::max(long(sec.getStart(spectralAxis) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
+                end(2)   = std::min(long(sec.getEnd(spectralAxis) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
+                this->itsBox = casa::Slicer(start, end, stride, Slicer::endIsLast);
             }
 
 
@@ -269,21 +273,26 @@ namespace askap {
                     }
                 }
 
-		std::nth_element(localArray,localArray+size/2,localArray+size);
-		float median = localArray[size/2];
-		if(size%2==0){
-		  std::nth_element(localArray,localArray+size/2-1,localArray+size);
-		  median += localArray[size/2-1];
-		  median /= 2.;
-		}
-		for (size_t i = 0; i < size; i++) localArray[i] = fabs(localArray[i] - median);
-		float madfm = localArray[size/2];
-		if(size%2==0){
-		  std::nth_element(localArray,localArray+size/2-1,localArray+size);
-		  median += localArray[size/2-1];
-		  median /= 2.;
-		}
-		this->itsNoiseLevel= Statistics::madfmToSigma(madfm);
+                std::nth_element(localArray, localArray + size / 2, localArray + size);
+                float median = localArray[size/2];
+
+                if (size % 2 == 0) {
+                    std::nth_element(localArray, localArray + size / 2 - 1, localArray + size);
+                    median += localArray[size/2-1];
+                    median /= 2.;
+                }
+
+                for (size_t i = 0; i < size; i++) localArray[i] = fabs(localArray[i] - median);
+
+                float madfm = localArray[size/2];
+
+                if (size % 2 == 0) {
+                    std::nth_element(localArray, localArray + size / 2 - 1, localArray + size);
+                    median += localArray[size/2-1];
+                    median /= 2.;
+                }
+
+                this->itsNoiseLevel = Statistics::madfmToSigma(madfm);
 
                 delete [] localArray;
             }
@@ -326,8 +335,9 @@ namespace askap {
                         min = std::min(axes.first, axes.second);
                     }
                 }
- 		delete smlIm;
-           }
+
+                delete smlIm;
+            }
 
             //**************************************************************//
 
@@ -343,19 +353,22 @@ namespace askap {
 //                     else fluxarray[i] = 0.;
 //                 }
 
-		for(int i=0;i<this->boxSize();i++) fluxarray[i] = 0.;
-		for(size_t i=0;i<f.size();i++) {
-		  int x = int(pos(i,0));
-		  int y = int(pos(i,1));
-		  if(spatMap.isInObject(x,y)){
-		    int loc = (x-this->boxXmin()) + this->boxXsize()*(y-this->boxYmin());
-		    fluxarray[loc] = f(i);
- 		    ASKAPLOG_DEBUG_STR(logger, "Adding flux " << f(i) << " to position ("<<x<<","<<y<<") which is box pixel " << loc);
-		  }
-		}
- 		ASKAPLOG_DEBUG_STR(logger, "Defined flux array in getSubComponentList");
+                for (int i = 0; i < this->boxSize(); i++) fluxarray[i] = 0.;
 
-		std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
+                for (size_t i = 0; i < f.size(); i++) {
+                    int x = int(pos(i, 0));
+                    int y = int(pos(i, 1));
+
+                    if (spatMap.isInObject(x, y)) {
+                        int loc = (x - this->boxXmin()) + this->boxXsize() * (y - this->boxYmin());
+                        fluxarray[loc] = f(i);
+                        ASKAPLOG_DEBUG_STR(logger, "Adding flux " << f(i) << " to position (" << x << "," << y << ") which is box pixel " << loc);
+                    }
+                }
+
+                ASKAPLOG_DEBUG_STR(logger, "Defined flux array in getSubComponentList");
+
+                std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
                 float dx = this->getXaverage() - this->getXPeak();
                 float dy = this->getYaverage() - this->getYPeak();
 
@@ -426,13 +439,15 @@ namespace askap {
                 base.setX(this->xpeak);
                 base.setY(this->ypeak);
                 double a, b, c;
-		if(this->getSize()<3){
-		  base.setPA(0);
-		  base.setMajor(1.);
-		  base.setMinor(1.);
-		  fullList.push_back(base);
-		  return fullList;
-		}
+
+                if (this->getSize() < 3) {
+                    base.setPA(0);
+                    base.setMajor(1.);
+                    base.setMinor(1.);
+                    fullList.push_back(base);
+                    return fullList;
+                }
+
                 this->getFWHMestimate(fluxarray, a, b, c);
                 base.setPA(a);
                 base.setMajor(b);
@@ -440,7 +455,7 @@ namespace askap {
                 const int numThresh = this->itsFitParams.numSubThresholds();
                 float baseThresh = this->itsDetectionThreshold > 0 ? log10(this->itsDetectionThreshold) : -6.;
                 float threshIncrement = (log10(this->peakFlux) - baseThresh) / float(numThresh + 1);
-		//		ASKAPLOG_DEBUG_STR(logger, "Subthresholding: peakFlux = "<<log10(this->peakFlux)<<", numThresh="<<numThresh<<", baseThresh="<<baseThresh<<", incr="<<threshIncrement);
+                //      ASKAPLOG_DEBUG_STR(logger, "Subthresholding: peakFlux = "<<log10(this->peakFlux)<<", numThresh="<<numThresh<<", baseThresh="<<baseThresh<<", incr="<<threshIncrement);
                 float thresh;
                 int threshCtr = 0;
                 std::vector<PixelInfo::Object2D> objlist;
@@ -455,7 +470,7 @@ namespace askap {
                     keepGoing = (objlist.size() == 1);
                 } while (keepGoing && (threshCtr < numThresh));
 
-		delete smlIm;
+                delete smlIm;
 
                 if (!keepGoing) {
                     for (obj = objlist.begin(); obj < objlist.end(); obj++) {
@@ -468,26 +483,29 @@ namespace askap {
                         newsrc.addOffsets(this->boxXmin(), this->boxYmin(), 0);
                         newsrc.xpeak += this->boxXmin();
                         newsrc.ypeak += this->boxYmin();
-			// now change the flux array so that we only see the current object
-			float *newfluxarray = new float[this->boxSize()];
-			for(int i=0;i<this->boxSize();i++){
-			  int xbox=i%this->boxXsize();
-			  int ybox=i/this->boxXsize();
-			  PixelInfo::Object2D spatMap = newsrc.getSpatialMap();
-			  if(spatMap.isInObject(xbox+this->boxXmin(),ybox+this->boxYmin())) newfluxarray[i]=fluxarray[i];
-			  else newfluxarray[i]=0.;
-			}
+                        // now change the flux array so that we only see the current object
+                        float *newfluxarray = new float[this->boxSize()];
+
+                        for (int i = 0; i < this->boxSize(); i++) {
+                            int xbox = i % this->boxXsize();
+                            int ybox = i / this->boxXsize();
+                            PixelInfo::Object2D spatMap = newsrc.getSpatialMap();
+
+                            if (spatMap.isInObject(xbox + this->boxXmin(), ybox + this->boxYmin())) newfluxarray[i] = fluxarray[i];
+                            else newfluxarray[i] = 0.;
+                        }
+
                         std::vector<SubComponent> newlist = newsrc.getThresholdedSubComponentList(newfluxarray);
-			delete [] newfluxarray;
+                        delete [] newfluxarray;
 
                         for (uInt i = 0; i < newlist.size(); i++) fullList.push_back(newlist[i]);
                     }
                 } else fullList.push_back(base);
 
-		if(fullList.size()>1){
-		  std::sort(fullList.begin(), fullList.end());
-		  std::reverse(fullList.begin(), fullList.end());
-		}
+                if (fullList.size() > 1) {
+                    std::sort(fullList.begin(), fullList.end());
+                    std::reverse(fullList.begin(), fullList.end());
+                }
 
                 return fullList;
             }
@@ -614,15 +632,16 @@ namespace askap {
                     return false;
                 }
 
-		int i=0;
-		std::vector<PixelInfo::Voxel>::iterator vox = voxelList->begin();
-		for( ; vox<voxelList->end();vox++){
-		  sigma(i) = this->itsNoiseLevel;
-		  curpos(0) = vox->getX();
-		  curpos(1) = vox->getY();
-		  pos.row(i) = curpos;
-		  f(i) = vox->getF();
-		  i++;
+                int i = 0;
+                std::vector<PixelInfo::Voxel>::iterator vox = voxelList->begin();
+
+                for (; vox < voxelList->end(); vox++) {
+                    sigma(i) = this->itsNoiseLevel;
+                    curpos(0) = vox->getX();
+                    curpos(1) = vox->getY();
+                    pos.row(i) = curpos;
+                    f(i) = vox->getF();
+                    i++;
                 }
 
                 return fitGauss(pos, f, sigma, baseFitter);
@@ -658,6 +677,7 @@ namespace askap {
                 long z = this->getZPeak();
 
                 bool failed = false;
+
                 for (long x = this->boxXmin(); x <= this->boxXmax() && !failed; x++) {
                     for (long y = this->boxYmin(); y <= this->boxYmax() && !failed; y++) {
                         int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
@@ -798,7 +818,7 @@ namespace askap {
                         int bestFit = 0;
                         float bestRChisq = 9999.;
 
-			int maxGauss = std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
+                        int maxGauss = std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
 
                         for (int g = 1; g <= maxGauss; g++) {
                             fit[ctr].setParams(this->itsFitParams);
@@ -822,7 +842,7 @@ namespace askap {
                         if (fitIsGood) {
                             this->hasFit = true;
 
-			    this->itsBestFitMap[*type].saveResults(fit[bestFit]);
+                            this->itsBestFitMap[*type].saveResults(fit[bestFit]);
 
                             bestChisqMap.insert(std::pair<float, std::string>(fit[bestFit].redChisq(), *type));
                         }
@@ -831,14 +851,14 @@ namespace askap {
 
                 if (this->hasFit) {
 
-		  this->itsBestFitType = bestChisqMap.begin()->second;
-		  this->itsBestFitMap["best"] = this->itsBestFitMap[this->itsBestFitType];
+                    this->itsBestFitType = bestChisqMap.begin()->second;
+                    this->itsBestFitMap["best"] = this->itsBestFitMap[this->itsBestFitType];
 
                     ASKAPLOG_INFO_STR(logger, "BEST FIT: " << this->itsBestFitMap["best"].numGauss() << " Gaussians"
-				      << " with fit type \"" << bestChisqMap.begin()->second << "\""
-				      << ", chisq = " << this->itsBestFitMap["best"].chisq()
-				      << ", chisq/nu =  "  << this->itsBestFitMap["best"].redchisq()
-				      << ", RMS = " << this->itsBestFitMap["best"].RMS());
+                                          << " with fit type \"" << bestChisqMap.begin()->second << "\""
+                                          << ", chisq = " << this->itsBestFitMap["best"].chisq()
+                                          << ", chisq/nu =  "  << this->itsBestFitMap["best"].redchisq()
+                                          << ", RMS = " << this->itsBestFitMap["best"].RMS());
                 } else {
                     this->hasFit = false;
                     ASKAPLOG_INFO_STR(logger, "No good fit found.");
@@ -850,223 +870,237 @@ namespace askap {
 
             //**************************************************************//
 
-	  void RadioSource::findAlpha(std::string imageName, bool doCalc)
-	  {
-	    /// @details This function finds the value of the spectral
-	    /// index for each Gaussian component fitted to the zeroth
-	    /// Taylor term image. The procedure is:
-	    /// @li Find the Taylor 1 image from the provided image
-	    /// name (must be of format *.taylor.0*)
-	    /// @li Extract pixel values within the source's box
-	    /// @li For each Gaussian component of the source, and for
-	    /// each fit type, fit the same shape & location Gaussian
-	    /// (that is, only fit the height of the Gaussian).
-	    /// @li Calculate the spectral index using the ratio of
-	    /// the fluxes of the Taylor1 & Taylor0 Gaussian
-	    /// components
-	    /// @li Store the spectral index value in a map indexed by
-	    /// fit type.
-	    /// Note that if the imageName provided is not of the correct format, nothing is done.
-	    /// @param imageName The name of the image in which sources have been found
-	    /// @param doCalc If true, do all the calculations. If false, fill the alpha values to -99. for all fit types.
+            void RadioSource::findAlpha(std::string imageName, bool doCalc)
+            {
+                /// @details This function finds the value of the spectral
+                /// index for each Gaussian component fitted to the zeroth
+                /// Taylor term image. The procedure is:
+                /// @li Find the Taylor 1 image from the provided image
+                /// name (must be of format *.taylor.0*)
+                /// @li Extract pixel values within the source's box
+                /// @li For each Gaussian component of the source, and for
+                /// each fit type, fit the same shape & location Gaussian
+                /// (that is, only fit the height of the Gaussian).
+                /// @li Calculate the spectral index using the ratio of
+                /// the fluxes of the Taylor1 & Taylor0 Gaussian
+                /// components
+                /// @li Store the spectral index value in a map indexed by
+                /// fit type.
+                /// Note that if the imageName provided is not of the correct format, nothing is done.
+                /// @param imageName The name of the image in which sources have been found
+                /// @param doCalc If true, do all the calculations. If false, fill the alpha values to -99. for all fit types.
 
-	    size_t pos = imageName.rfind(".taylor.0");
-	    if(!doCalc || pos == std::string::npos) {
-	      // image provided is not a Taylor series term - notify and do nothing
-	      if(doCalc)
-		ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
-				  <<imageName<<") is not a Taylor term. Cannot find spectral index.");
+                size_t pos = imageName.rfind(".taylor.0");
 
-	      std::vector<std::string>::iterator type;
-	      std::vector<std::string> typelist = availableFitTypes;
-	      for (type = typelist.begin(); type < typelist.end(); type++) {
-		if(!this->itsBestFitMap[*type].isGood())
-		  this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numGauss(), -99.);
-	      }
-	      this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
+                if (!doCalc || pos == std::string::npos) {
+                    // image provided is not a Taylor series term - notify and do nothing
+                    if (doCalc)
+                        ASKAPLOG_WARN_STR(logger, "radioSource::findAlpha : Image name provided ("
+                                              << imageName << ") is not a Taylor term. Cannot find spectral index.");
 
-	    }
-	    else {
-	      
-	      ASKAPLOG_DEBUG_STR(logger, "About to find the spectral index, for image " << imageName);
+                    std::vector<std::string>::iterator type;
+                    std::vector<std::string> typelist = availableFitTypes;
 
-	      // Get Taylor 1 name
-	      std::string taylor1Name = imageName.replace(pos,9,".taylor.1");
+                    for (type = typelist.begin(); type < typelist.end(); type++) {
+                        if (!this->itsBestFitMap[*type].isGood())
+                            this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numGauss(), -99.);
+                    }
 
-	      ASKAPLOG_DEBUG_STR(logger, "Using Taylor 1 image " << taylor1Name);
+                    this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
 
-	      // Get taylor1 values for box, and define positions
-	      casa::Matrix<casa::Double> pos;
-	      casa::Vector<casa::Double> sigma;
-	      pos.resize(this->boxSize(), 2);
-	      sigma.resize(this->boxSize());
-	      casa::Vector<casa::Double> curpos(2);
-	      curpos = 0;
-	      
-	      for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
-		for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
-		  int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
-		  sigma(i) = 1.;
-		  curpos(0) = x;
-		  curpos(1) = y;
-		  pos.row(i) = curpos;
-		}
-	      }
-	      casa::Vector<casa::Double> f = getPixelsInBox(taylor1Name,this->itsBox);
-	      
-	      ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor 1 term");
+                } else {
 
-	      // Set up fit with same parameters and do the fit
-	      std::vector<std::string>::iterator type;
-	      std::vector<std::string> typelist = availableFitTypes;
-	      for (type = typelist.begin(); type < typelist.end(); type++) {
-		std::vector<float> alphaValues(this->itsBestFitMap[*type].numGauss(), -99.);
-		ASKAPLOG_DEBUG_STR(logger, "Finding alpha values for fit type \""<<*type<<"\", with " <<this->itsBestFitMap[*type].numGauss()<< " components ");
-		if(!this->itsBestFitMap[*type].isGood())
-		  ASKAPLOG_DEBUG_STR(logger, "Actually, not doing this one...");
-		else{
-		  Fitter fit;
-		  fit.setParams(this->itsFitParams);
-		  fit.rparams().setFlagFitThisParam("height");
-		  fit.rparams().setNegativeFluxPossible(true);
-		  fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
-		  fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
-		  fit.setRetries();
-		  fit.setMasks();
-		  fit.fit(pos, f, sigma);
-	      
-		  // Calculate alpha.
+                    ASKAPLOG_DEBUG_STR(logger, "About to find the spectral index, for image " << imageName);
 
-		  if(fit.passConverged() && fit.passChisq()) { // the fit is OK
-		    ASKAPLOG_DEBUG_STR(logger, "Alpha fitting worked! Values (" << this->itsBestFitMap[*type].numGauss()<<" of them) follow:");
-		    for(int i=0;i<this->itsBestFitMap[*type].numGauss();i++){
-		      alphaValues[i] = fit.gaussian(i).flux() / this->itsBestFitMap[*type].gaussian(i).flux();
-		      ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << alphaValues[i]);
-		    }
-		  }
+                    // Get Taylor 1 name
+                    std::string taylor1Name = imageName.replace(pos, 9, ".taylor.1");
 
-		}
-		this->itsAlphaMap[*type] = alphaValues;
-	      }
-	      
-	      ASKAPLOG_DEBUG_STR(logger, "Finished finding the alpha values");
+                    ASKAPLOG_DEBUG_STR(logger, "Using Taylor 1 image " << taylor1Name);
 
-	    }
+                    // Get taylor1 values for box, and define positions
+                    casa::Matrix<casa::Double> pos;
+                    casa::Vector<casa::Double> sigma;
+                    pos.resize(this->boxSize(), 2);
+                    sigma.resize(this->boxSize());
+                    casa::Vector<casa::Double> curpos(2);
+                    curpos = 0;
 
-	    this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
+                    for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+                        for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+                            int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+                            sigma(i) = 1.;
+                            curpos(0) = x;
+                            curpos(1) = y;
+                            pos.row(i) = curpos;
+                        }
+                    }
 
-	  }
+                    casa::Vector<casa::Double> f = getPixelsInBox(taylor1Name, this->itsBox);
+
+                    ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor 1 term");
+
+                    // Set up fit with same parameters and do the fit
+                    std::vector<std::string>::iterator type;
+                    std::vector<std::string> typelist = availableFitTypes;
+
+                    for (type = typelist.begin(); type < typelist.end(); type++) {
+                        std::vector<float> alphaValues(this->itsBestFitMap[*type].numGauss(), -99.);
+                        ASKAPLOG_DEBUG_STR(logger, "Finding alpha values for fit type \"" << *type << "\", with " << this->itsBestFitMap[*type].numGauss() << " components ");
+
+                        if (!this->itsBestFitMap[*type].isGood())
+                            ASKAPLOG_DEBUG_STR(logger, "Actually, not doing this one...");
+                        else {
+                            Fitter fit;
+                            fit.setParams(this->itsFitParams);
+                            fit.rparams().setFlagFitThisParam("height");
+                            fit.rparams().setNegativeFluxPossible(true);
+                            fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
+                            fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
+                            fit.setRetries();
+                            fit.setMasks();
+                            fit.fit(pos, f, sigma);
+
+                            // Calculate alpha.
+
+                            if (fit.passConverged() && fit.passChisq()) { // the fit is OK
+                                ASKAPLOG_DEBUG_STR(logger, "Alpha fitting worked! Values (" << this->itsBestFitMap[*type].numGauss() << " of them) follow:");
+
+                                for (int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
+                                    alphaValues[i] = fit.gaussian(i).flux() / this->itsBestFitMap[*type].gaussian(i).flux();
+                                    ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << alphaValues[i]);
+                                }
+                            }
+
+                        }
+
+                        this->itsAlphaMap[*type] = alphaValues;
+                    }
+
+                    ASKAPLOG_DEBUG_STR(logger, "Finished finding the alpha values");
+
+                }
+
+                this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
+
+            }
 
 
             //**************************************************************//
 
-	  void RadioSource::findBeta(std::string imageName, bool doCalc)
-	  {
-	    /// @details This function finds the value of the spectral
-	    /// curvature for each Gaussian component fitted to the zeroth
-	    /// Taylor term image. The procedure is:
-	    /// @li Find the Taylor 2 image from the provided image
-	    /// name (must be of format *.taylor.0*)
-	    /// @li Extract pixel values within the source's box
-	    /// @li For each Gaussian component of the source, and for
-	    /// each fit type, fit the same shape & location Gaussian
-	    /// (that is, only fit the height of the Gaussian).
-	    /// @li Calculate the spectral curvature using the ratio of
-	    /// the fluxes of the Taylor2 & Taylor0 Gaussian
-	    /// components, and subtracting off \f$\alpha(\alpha-1)/2\f$.
-	    /// @li Store the spectral curvature value in a map indexed by
-	    /// fit type.
-	    /// Note that if the imageName provided is not of the correct format, nothing is done.
-	    /// @param imageName The name of the image in which sources have been found
-	    /// @param doCalc If true, do all the calculations. If false, fill the alpha values to -99. for all fit types.
+            void RadioSource::findBeta(std::string imageName, bool doCalc)
+            {
+                /// @details This function finds the value of the spectral
+                /// curvature for each Gaussian component fitted to the zeroth
+                /// Taylor term image. The procedure is:
+                /// @li Find the Taylor 2 image from the provided image
+                /// name (must be of format *.taylor.0*)
+                /// @li Extract pixel values within the source's box
+                /// @li For each Gaussian component of the source, and for
+                /// each fit type, fit the same shape & location Gaussian
+                /// (that is, only fit the height of the Gaussian).
+                /// @li Calculate the spectral curvature using the ratio of
+                /// the fluxes of the Taylor2 & Taylor0 Gaussian
+                /// components, and subtracting off \f$\alpha(\alpha-1)/2\f$.
+                /// @li Store the spectral curvature value in a map indexed by
+                /// fit type.
+                /// Note that if the imageName provided is not of the correct format, nothing is done.
+                /// @param imageName The name of the image in which sources have been found
+                /// @param doCalc If true, do all the calculations. If false, fill the alpha values to -99. for all fit types.
 
-	    size_t pos = imageName.rfind(".taylor.0");
-	    if(!doCalc || pos == std::string::npos) {
-	      // image provided is not a Taylor series term - notify and do nothing
-	      if(doCalc)
-		ASKAPLOG_WARN_STR(logger, "radioSource::findBeta : Image name provided ("
-				  <<imageName<<") is not a Taylor term. Cannot find spectral index.");
+                size_t pos = imageName.rfind(".taylor.0");
 
-	      std::vector<std::string>::iterator type;
-	      std::vector<std::string> typelist = availableFitTypes;
-	      for (type = typelist.begin(); type < typelist.end(); type++) {
-		if(!this->itsBestFitMap[*type].isGood())
-		  this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numGauss(), -99.);
-	      }
-	      this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
-	      
-	    }
-	    else {
-	      
-	      ASKAPLOG_DEBUG_STR(logger, "About to find the spectral curvature, for image " << imageName);
+                if (!doCalc || pos == std::string::npos) {
+                    // image provided is not a Taylor series term - notify and do nothing
+                    if (doCalc)
+                        ASKAPLOG_WARN_STR(logger, "radioSource::findBeta : Image name provided ("
+                                              << imageName << ") is not a Taylor term. Cannot find spectral index.");
 
-	      // Get Taylor 2 name
-	      std::string taylor2Name = imageName.replace(pos,9,".taylor.2");
+                    std::vector<std::string>::iterator type;
+                    std::vector<std::string> typelist = availableFitTypes;
 
-	      ASKAPLOG_DEBUG_STR(logger, "Using Taylor 2 image " << taylor2Name);
+                    for (type = typelist.begin(); type < typelist.end(); type++) {
+                        if (!this->itsBestFitMap[*type].isGood())
+                            this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numGauss(), -99.);
+                    }
 
-	      // Get taylor1 values for box, and define positions
-	      casa::Matrix<casa::Double> pos;
-	      casa::Vector<casa::Double> sigma;
-	      pos.resize(this->boxSize(), 2);
-	      sigma.resize(this->boxSize());
-	      casa::Vector<casa::Double> curpos(2);
-	      curpos = 0;
-	      
-	      for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
-		for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
-		  int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
-		  sigma(i) = 1.;
-		  curpos(0) = x;
-		  curpos(1) = y;
-		  pos.row(i) = curpos;
-		}
-	      }
-	      casa::Vector<casa::Double> f = getPixelsInBox(taylor2Name,this->itsBox);
-	      
-	      ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor 2 term");
+                    this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
 
-	      // Set up fit with same parameters and do the fit
-	      std::vector<std::string>::iterator type;
-	      std::vector<std::string> typelist = availableFitTypes;
-	      for (type = typelist.begin(); type < typelist.end(); type++) {
-		std::vector<float> betaValues(this->itsBestFitMap[*type].numGauss(), -99.);
-		ASKAPLOG_DEBUG_STR(logger, "Finding beta values for fit type \""<<*type<<"\", with " <<this->itsBestFitMap[*type].numGauss()<< " components ");
-		if(!this->itsBestFitMap[*type].isGood())
-		  ASKAPLOG_DEBUG_STR(logger, "Actually, not doing this one...");
-		else{
-		  Fitter fit;
-		  fit.setParams(this->itsFitParams);
-		  fit.rparams().setFlagFitThisParam("height");
-		  fit.rparams().setNegativeFluxPossible(true);
-		  fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
-		  fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
-		  fit.setRetries();
-		  fit.setMasks();
-		  fit.fit(pos, f, sigma);
-	      
-		  // Calculate beta.
+                } else {
 
-		  if(fit.passConverged() && fit.passChisq()) { // the fit is OK
-		    ASKAPLOG_DEBUG_STR(logger, "Beta fitting worked! Values (" << this->itsBestFitMap[*type].numGauss()<<" of them) follow:");
-		    for(int i=0;i<this->itsBestFitMap[*type].numGauss();i++){
-		      float alpha = this->itsAlphaMap[*type][i];
-		      betaValues[i] = fit.gaussian(i).flux() / this->itsBestFitMap[*type].gaussian(i).flux() - 0.5*alpha*(alpha-1.);
-		      ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << betaValues[i]);
-		    }
-		  }
+                    ASKAPLOG_DEBUG_STR(logger, "About to find the spectral curvature, for image " << imageName);
 
-		}
-		this->itsBetaMap[*type] = betaValues;
-	      }
-	      
-	      ASKAPLOG_DEBUG_STR(logger, "Finished finding the beta values");
+                    // Get Taylor 2 name
+                    std::string taylor2Name = imageName.replace(pos, 9, ".taylor.2");
 
-	    }
+                    ASKAPLOG_DEBUG_STR(logger, "Using Taylor 2 image " << taylor2Name);
 
-	    this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
+                    // Get taylor1 values for box, and define positions
+                    casa::Matrix<casa::Double> pos;
+                    casa::Vector<casa::Double> sigma;
+                    pos.resize(this->boxSize(), 2);
+                    sigma.resize(this->boxSize());
+                    casa::Vector<casa::Double> curpos(2);
+                    curpos = 0;
 
-	  }
+                    for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+                        for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+                            int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+                            sigma(i) = 1.;
+                            curpos(0) = x;
+                            curpos(1) = y;
+                            pos.row(i) = curpos;
+                        }
+                    }
+
+                    casa::Vector<casa::Double> f = getPixelsInBox(taylor2Name, this->itsBox);
+
+                    ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor 2 term");
+
+                    // Set up fit with same parameters and do the fit
+                    std::vector<std::string>::iterator type;
+                    std::vector<std::string> typelist = availableFitTypes;
+
+                    for (type = typelist.begin(); type < typelist.end(); type++) {
+                        std::vector<float> betaValues(this->itsBestFitMap[*type].numGauss(), -99.);
+                        ASKAPLOG_DEBUG_STR(logger, "Finding beta values for fit type \"" << *type << "\", with " << this->itsBestFitMap[*type].numGauss() << " components ");
+
+                        if (!this->itsBestFitMap[*type].isGood())
+                            ASKAPLOG_DEBUG_STR(logger, "Actually, not doing this one...");
+                        else {
+                            Fitter fit;
+                            fit.setParams(this->itsFitParams);
+                            fit.rparams().setFlagFitThisParam("height");
+                            fit.rparams().setNegativeFluxPossible(true);
+                            fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
+                            fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
+                            fit.setRetries();
+                            fit.setMasks();
+                            fit.fit(pos, f, sigma);
+
+                            // Calculate beta.
+
+                            if (fit.passConverged() && fit.passChisq()) { // the fit is OK
+                                ASKAPLOG_DEBUG_STR(logger, "Beta fitting worked! Values (" << this->itsBestFitMap[*type].numGauss() << " of them) follow:");
+
+                                for (int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
+                                    float alpha = this->itsAlphaMap[*type][i];
+                                    betaValues[i] = fit.gaussian(i).flux() / this->itsBestFitMap[*type].gaussian(i).flux() - 0.5 * alpha * (alpha - 1.);
+                                    ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << betaValues[i]);
+                                }
+                            }
+
+                        }
+
+                        this->itsBetaMap[*type] = betaValues;
+                    }
+
+                    ASKAPLOG_DEBUG_STR(logger, "Finished finding the beta values");
+
+                }
+
+                this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
+
+            }
 
 
             //**************************************************************//
@@ -1089,7 +1123,7 @@ namespace askap {
                 /// @li Number of free parameters and degrees of freedom in the fit
                 /// @li Number of pixels used in the fit, and the number in the object itself
 
-	        FitResults results = this->itsBestFitMap[fittype];
+                FitResults results = this->itsBestFitMap[fittype];
 
                 stream.setf(std::ios::fixed);
                 int suffixCtr = 0;
@@ -1148,8 +1182,8 @@ namespace askap {
                                 majFit.getWidth() +
                                 minFit.getWidth() +
                                 paFit.getWidth() +
-		                alpha.getWidth() +
-		                beta.getWidth() +
+                                alpha.getWidth() +
+                                beta.getWidth() +
                                 chisqFit.getWidth() +
                                 rmsIm.getWidth() +
                                 rmsFit.getWidth() +
@@ -1184,57 +1218,56 @@ namespace askap {
                     npixFit.printEntry(stream, zero);
                     npixObj.printEntry(stream, this->getSize());
                     stream << "\n";
+                } else {
+                    std::vector<casa::Gaussian2D<Double> > fitSet = results.fitSet();
+                    std::vector<casa::Gaussian2D<Double> >::iterator fit = fitSet.begin();
+                    std::vector<float>::iterator alphaIter = this->itsAlphaMap[fittype].begin();
+                    std::vector<float>::iterator betaIter = this->itsBetaMap[fittype].begin();
+                    ASKAPCHECK(fitSet.size() == this->itsAlphaMap[fittype].size(),
+                               "Sizes of fitSet (" << fitSet.size() << ") and alpha Set (" << this->itsAlphaMap[fittype].size() << ") don't match!");
+                    ASKAPCHECK(fitSet.size() == this->itsBetaMap[fittype].size(),
+                               "Sizes of fitSet (" << fitSet.size() << ") and beta Set (" << this->itsBetaMap[fittype].size() << ") don't match!");
+
+                    for (; fit < fitSet.end(); fit++, alphaIter++, betaIter++) {
+                        std::stringstream id;
+                        id << this->getID() << char(firstSuffix + suffixCtr++);
+                        double *pix = new double[3];
+                        pix[0] = fit->xCenter();
+                        pix[1] = fit->yCenter();
+                        pix[2] = this->getZcentre();
+                        double *wld = new double[3];
+                        this->itsHeader.pixToWCS(pix, wld);
+                        double thisRA = wld[0];
+                        double thisDec = wld[1];
+                        delete [] pix;
+                        delete [] wld;
+                        float intfluxfit = fit->flux();
+
+                        if (this->itsHeader.needBeamSize())
+                            intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
+
+                        columns[duchamp::Column::NUM].printEntry(stream, id.str());
+                        columns[duchamp::Column::RAJD].printEntry(stream, thisRA);
+                        columns[duchamp::Column::DECJD].printEntry(stream, thisDec);
+                        columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
+                        columns[duchamp::Column::FPEAK].printEntry(stream, this->getPeakFlux());
+                        fIntfit.printEntry(stream, intfluxfit);
+                        fPkfit.printEntry(stream, fit->height());
+                        majFit.printEntry(stream, fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
+                        minFit.printEntry(stream, fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
+                        paFit.printEntry(stream, fit->PA()*180. / M_PI);
+                        alpha.printEntry(stream, *alphaIter);
+                        beta.printEntry(stream, *betaIter);
+                        chisqFit.printEntry(stream, results.chisq());
+                        rmsIm.printEntry(stream, this->itsNoiseLevel);
+                        rmsFit.printEntry(stream, results.RMS());
+                        nfree.printEntry(stream, results.numFreeParam());
+                        ndofFit.printEntry(stream, results.ndof());
+                        npixFit.printEntry(stream, this->boxSize());
+                        npixObj.printEntry(stream, this->getSize());
+                        stream << "\n";
+                    }
                 }
-		else{
-		  std::vector<casa::Gaussian2D<Double> > fitSet = results.fitSet();
-		  std::vector<casa::Gaussian2D<Double> >::iterator fit = fitSet.begin();
-		  std::vector<float>::iterator alphaIter = this->itsAlphaMap[fittype].begin();
-		  std::vector<float>::iterator betaIter = this->itsBetaMap[fittype].begin();
-		  ASKAPCHECK(fitSet.size() == this->itsAlphaMap[fittype].size(), 
-			     "Sizes of fitSet ("<<fitSet.size()<<") and alpha Set ("<<this->itsAlphaMap[fittype].size()<<") don't match!");
-		  ASKAPCHECK(fitSet.size() == this->itsBetaMap[fittype].size(), 
-			     "Sizes of fitSet ("<<fitSet.size()<<") and beta Set ("<<this->itsBetaMap[fittype].size()<<") don't match!");
-
-		  for (; fit < fitSet.end(); fit++, alphaIter++, betaIter++) {
-                    std::stringstream id;
-                    id << this->getID() << char(firstSuffix + suffixCtr++);
-                    double *pix = new double[3];
-                    pix[0] = fit->xCenter();
-                    pix[1] = fit->yCenter();
-                    pix[2] = this->getZcentre();
-                    double *wld = new double[3];
-                    this->itsHeader.pixToWCS(pix, wld);
-                    double thisRA = wld[0];
-                    double thisDec = wld[1];
-                    delete [] pix;
-                    delete [] wld;
-                    float intfluxfit = fit->flux();
-
-                    if (this->itsHeader.needBeamSize())
-		      intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
-
-                    columns[duchamp::Column::NUM].printEntry(stream, id.str());
-                    columns[duchamp::Column::RAJD].printEntry(stream, thisRA);
-                    columns[duchamp::Column::DECJD].printEntry(stream, thisDec);
-                    columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
-                    columns[duchamp::Column::FPEAK].printEntry(stream, this->getPeakFlux());
-                    fIntfit.printEntry(stream, intfluxfit);
-                    fPkfit.printEntry(stream, fit->height());
-                    majFit.printEntry(stream, fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
-                    minFit.printEntry(stream, fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
-                    paFit.printEntry(stream, fit->PA()*180. / M_PI);
-                    alpha.printEntry(stream, *alphaIter);
-                    beta.printEntry(stream, *betaIter);
-                    chisqFit.printEntry(stream, results.chisq());
-                    rmsIm.printEntry(stream, this->itsNoiseLevel);
-                    rmsFit.printEntry(stream, results.RMS());
-                    nfree.printEntry(stream, results.numFreeParam());
-                    ndofFit.printEntry(stream, results.ndof());
-                    npixFit.printEntry(stream, this->boxSize());
-                    npixObj.printEntry(stream, this->getSize());
-                    stream << "\n";
-		  }
-		}
             }
 
             //**************************************************************//

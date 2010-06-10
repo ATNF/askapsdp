@@ -74,8 +74,8 @@ namespace askap {
             this->itsNSubZ = 1;
             this->itsOverlapX = this->itsOverlapY = this->itsOverlapZ = 0;
             this->itsImageName = "";
-	    this->itsNSub = 0;
-	    this->itsOverlap = 0;
+            this->itsNSub = 0;
+            this->itsOverlap = 0;
         }
 
         SubimageDef::~SubimageDef()
@@ -116,8 +116,9 @@ namespace askap {
             this->itsImageName = s.itsImageName;
 
             if (this->itsNAxis > 0) {
-	        this->itsNSub = new int[this->itsNAxis];
-	        this->itsOverlap = new int[this->itsNAxis];
+                this->itsNSub = new int[this->itsNAxis];
+                this->itsOverlap = new int[this->itsNAxis];
+
                 for (int i = 0; i < this->itsNAxis; i++) {
                     this->itsNSub[i] = s.itsNSub[i];
                     this->itsOverlap[i] = s.itsOverlap[i];
@@ -228,7 +229,9 @@ namespace askap {
                 inputSec.parse(this->itsFullImageDim);
                 ASKAPLOG_INFO_STR(logger, "Input subsection is OK");
                 long *sub = new long[this->itsNAxis];
-		for(int i=0;i<this->itsNAxis;i++) sub[i]=0;
+
+                for (int i = 0; i < this->itsNAxis; i++) sub[i] = 0;
+
                 sub[this->itsLng] = workerNum % this->itsNSub[0];
                 sub[this->itsLat] = (workerNum % (this->itsNSub[0] * this->itsNSub[1])) / this->itsNSub[0];
                 sub[this->itsSpec] = workerNum / (this->itsNSub[0] * this->itsNSub[1]);
@@ -293,8 +296,8 @@ namespace askap {
                 fAnnot << "TEXT " << xcentre << " " << ycentre << " " << w + 1 << "\n";
             }
 
-	    delete [] pix;
-	    delete [] wld;
+            delete [] pix;
+            delete [] wld;
 
             fAnnot.close();
 

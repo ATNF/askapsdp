@@ -176,10 +176,10 @@ namespace askap {
             IPosition shape = imagePtr->shape();
             long *dim = new long[shape.size()];
 
-            for (uint i = 0; i < shape.size(); i++){
-	      dim[i] = shape(i);
-	      ASKAPCHECK(dim[i]>0, "Negative dimension: dim["<<i<<"]="<<dim[i]);
-	    }
+            for (uint i = 0; i < shape.size(); i++) {
+                dim[i] = shape(i);
+                ASKAPCHECK(dim[i] > 0, "Negative dimension: dim[" << i << "]=" << dim[i]);
+            }
 
             // Set the number of good axes for the fitsHeader class.
             uint naxis = 0;
@@ -204,16 +204,18 @@ namespace askap {
             readBeamInfo(imagePtr, cube.header(), cube.pars());
             cube.header().setFluxUnits(imagePtr->units().getName());
 
-	    // check the true dimensionality and set the 2D flag in the cube header.
-	    int numDim=0;
-	    for(uint i=0;i<shape.size();i++) if(dim[i]>1) numDim++;
-	    cube.header().set2D(numDim<=2);
+            // check the true dimensionality and set the 2D flag in the cube header.
+            int numDim = 0;
 
-	    // set up the various flux units
+            for (uint i = 0; i < shape.size(); i++) if (dim[i] > 1) numDim++;
+
+            cube.header().set2D(numDim <= 2);
+
+            // set up the various flux units
             if (wcs->spec >= 0) cube.header().fixUnits(cube.pars());
 
-	    if(cube.header().is2D()) ASKAPLOG_DEBUG_STR(logger, "Image is two-dimensional: int.flux.units = " << cube.header().getIntFluxUnits());
-	    else ASKAPLOG_DEBUG_STR(logger, "Image has more than two dimensions: int.flux.units = " << cube.header().getIntFluxUnits());
+            if (cube.header().is2D()) ASKAPLOG_DEBUG_STR(logger, "Image is two-dimensional: int.flux.units = " << cube.header().getIntFluxUnits());
+            else ASKAPLOG_DEBUG_STR(logger, "Image has more than two dimensions: int.flux.units = " << cube.header().getIntFluxUnits());
 
             cube.initialiseCube(dim, false);
             delete [] dim;
@@ -235,9 +237,9 @@ namespace askap {
             long *dim = new long[shape.size()];
 
             for (uint i = 0; i < shape.size(); i++) {
-	      dim[i] = shape(i);
-	      ASKAPCHECK(dim[i]>0, "Negative dimension: dim["<<i<<"]="<<dim[i]);
-	    }
+                dim[i] = shape(i);
+                ASKAPCHECK(dim[i] > 0, "Negative dimension: dim[" << i << "]=" << dim[i]);
+            }
 
             cube.initialiseCube(dim);
 
@@ -245,7 +247,7 @@ namespace askap {
 
             std::vector<float> array;
             imagePtr->get().tovector(array);
-	    cube.saveArray(array);
+            cube.saveArray(array);
 
             std::stringstream logmsg;
             logmsg << "casaImageToCubeData: Data array has dimensions: ";
@@ -282,8 +284,9 @@ namespace askap {
             /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
-	    if(lattPtr==0)
-	      ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() <<"\" does not exist or could not be opened.");
+
+            if (lattPtr == 0)
+                ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() << "\" does not exist or could not be opened.");
 
             //      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read);
 //      lattPtr->unlock();
@@ -294,7 +297,7 @@ namespace askap {
 
             for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
-	    wcsprm *tempwcs = casaImageToWCS(imagePtr);
+            wcsprm *tempwcs = casaImageToWCS(imagePtr);
             subDef.define(tempwcs);
             subDef.setImage(cube.pars().getImageFile());
             subDef.setImageDim(dim);
@@ -316,7 +319,7 @@ namespace askap {
 
             ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " is using subsection " << subsection.getSection());
             Slicer slice = subsectionToSlicer(subsection);
-	    fixSlicer(slice, tempwcs);
+            fixSlicer(slice, tempwcs);
 
             const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
             //      sub->unlock();
@@ -342,8 +345,9 @@ namespace askap {
             /// @return An STL vector with all axis dimensions.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(filename);
-	    if(lattPtr==0)
-	      ASKAPTHROW(AskapError, "Requested image \"" << filename <<"\" does not exist or could not be opened.");
+
+            if (lattPtr == 0)
+                ASKAPTHROW(AskapError, "Requested image \"" << filename << "\" does not exist or could not be opened.");
 
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             IPosition shape = imagePtr->shape();
@@ -376,8 +380,9 @@ namespace askap {
 
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(filename);
-	    if(lattPtr==0)
-	      ASKAPTHROW(AskapError, "Requested image \"" << filename <<"\" does not exist or could not be opened.");
+
+            if (lattPtr == 0)
+                ASKAPTHROW(AskapError, "Requested image \"" << filename << "\" does not exist or could not be opened.");
 
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             IPosition shape = imagePtr->shape();
@@ -391,22 +396,25 @@ namespace askap {
             std::vector<float> array;
             imagePtr->getSlice(Slicer(start, end, stride, Slicer::endIsLast)).tovector(array);
             size_t arrsize = array.size();
-	    std::nth_element(array.begin(),array.begin()+arrsize/2,array.end());
-	    float median = array[arrsize/2];
-	    if(arrsize%2==0){
-	      std::nth_element(array.begin(),array.begin()+arrsize/2-1,array.end());
-	      median += array[arrsize/2-1];
-	      median /= 2.;
-	    }
+            std::nth_element(array.begin(), array.begin() + arrsize / 2, array.end());
+            float median = array[arrsize/2];
+
+            if (arrsize % 2 == 0) {
+                std::nth_element(array.begin(), array.begin() + arrsize / 2 - 1, array.end());
+                median += array[arrsize/2-1];
+                median /= 2.;
+            }
 
             for (size_t i = 0; i < arrsize; i++) array[i] = fabs(array[i] - median);
 
-	    float madfm = array[arrsize/2];
-	    if(arrsize%2==0){
-	      std::nth_element(array.begin(),array.begin()+arrsize/2-1,array.end());
-	      median += array[arrsize/2-1];
-	      median /= 2.;
-	    }
+            float madfm = array[arrsize/2];
+
+            if (arrsize % 2 == 0) {
+                std::nth_element(array.begin(), array.begin() + arrsize / 2 - 1, array.end());
+                median += array[arrsize/2-1];
+                median /= 2.;
+            }
+
             madfm = Statistics::madfmToSigma(madfm);
             delete lattPtr;
             return madfm;
@@ -414,22 +422,23 @@ namespace askap {
 
         //**************************************************************//
 
-	casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box)
-	{
-	  /// @details Extract a set of pixel values from a region of
-	  /// an image. The region is defined by a casa::Slicer
-	  /// object, and the pixel values are returned in a
-	  /// casa::Vector object - this is suitable for
-	  /// RadioSource::findAlpha() etc.
-	  /// @param imageName The image to get the data from
-	  /// @param box The region within in the image
-	  /// @return A casa::Vector of casa::Double pixel values
+        casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box)
+        {
+            /// @details Extract a set of pixel values from a region of
+            /// an image. The region is defined by a casa::Slicer
+            /// object, and the pixel values are returned in a
+            /// casa::Vector object - this is suitable for
+            /// RadioSource::findAlpha() etc.
+            /// @param imageName The image to get the data from
+            /// @param box The region within in the image
+            /// @return A casa::Vector of casa::Double pixel values
 
-	    ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName);
+            ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName);
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
-	    if(lattPtr==0)
-	      ASKAPTHROW(AskapError, "Requested image \"" << imageName <<"\" does not exist or could not be opened.");
+
+            if (lattPtr == 0)
+                ASKAPTHROW(AskapError, "Requested image \"" << imageName << "\" does not exist or could not be opened.");
 
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
 
@@ -441,15 +450,17 @@ namespace askap {
             start(1) = box.start()[1];
             end(0) = box.end()[0];
             end(1) = box.end()[1];
-	    casa::Slicer newSlicer(start,end,stride,Slicer::endIsLast);
-	    
-	    casa::Array<Float> array = imagePtr->getSlice(newSlicer);
-	    float *data = array.data();
-	    casa::Vector<Double> vec(array.size());
-	    for(size_t i=0;i<vec.size();i++) vec(i) = casa::Double(data[i]);
-	    delete lattPtr;
-	    return vec;
-	}
+            casa::Slicer newSlicer(start, end, stride, Slicer::endIsLast);
+
+            casa::Array<Float> array = imagePtr->getSlice(newSlicer);
+            float *data = array.data();
+            casa::Vector<Double> vec(array.size());
+
+            for (size_t i = 0; i < vec.size(); i++) vec(i) = casa::Double(data[i]);
+
+            delete lattPtr;
+            return vec;
+        }
 
         //**************************************************************//
 
@@ -466,8 +477,9 @@ namespace askap {
             /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
-	    if(lattPtr==0)
-	      ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() <<"\" does not exist or could not be opened.");
+
+            if (lattPtr == 0)
+                ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() << "\" does not exist or could not be opened.");
 
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             IPosition shape = imagePtr->shape();
@@ -475,7 +487,7 @@ namespace askap {
 
             for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
 
-	    wcsprm *tempwcs = casaImageToWCS(imagePtr);
+            wcsprm *tempwcs = casaImageToWCS(imagePtr);
             subDef.define(tempwcs);
             subDef.setImage(cube.pars().getImageFile());
             subDef.setImageDim(dim);
@@ -498,7 +510,7 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, "casaImageToMetadata: subsection string is " << cube.pars().getSubsection());
 
             Slicer slice = subsectionToSlicer(cube.pars().section());
-	    fixSlicer(slice, tempwcs);
+            fixSlicer(slice, tempwcs);
 
             const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
 
@@ -550,8 +562,9 @@ namespace askap {
             /// @return A wcsprm pointer containing the wcs information of the image.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
-	    if(lattPtr==0)
-	      ASKAPTHROW(AskapError, "Requested image \"" << imageName <<"\" does not exist or could not be opened.");
+
+            if (lattPtr == 0)
+                ASKAPTHROW(AskapError, "Requested image \"" << imageName << "\" does not exist or could not be opened.");
 
             //      LatticeLocker lock1 (*lattPtr, FileLocker::Read);
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
@@ -719,57 +732,58 @@ namespace askap {
 
         //**************************************************************//
 
-      casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs, int nstokes)
+        casa::CoordinateSystem wcsToCASAcoord(wcsprm *wcs, int nstokes)
         {
-            /// @details Convert a wcslib WCS specification to a casa-compatible specification. 
+            /// @details Convert a wcslib WCS specification to a casa-compatible specification.
 
-	  casa::CoordinateSystem csys;
+            casa::CoordinateSystem csys;
 
-	  ASKAPLOG_INFO_STR(logger, "Defining direction coords");
+            ASKAPLOG_INFO_STR(logger, "Defining direction coords");
 
-	  Matrix<Double> xform(2,2);
-	  xform = 0.0; xform.diagonal()=1.0;
-	  casa::DirectionCoordinate dirCoo(MDirection::J2000,
-					   Projection(Projection::SIN),
-					   wcs->crval[wcs->lng]*casa::C::pi/180., wcs->crval[wcs->lat]*casa::C::pi/180.,
-					   wcs->cdelt[wcs->lng]*casa::C::pi/180., wcs->cdelt[wcs->lat]*casa::C::pi/180.,
-					   xform,
-					   wcs->crpix[wcs->lng]-1, wcs->crpix[wcs->lat]-1);
+            Matrix<Double> xform(2, 2);
+            xform = 0.0; xform.diagonal() = 1.0;
+            casa::DirectionCoordinate dirCoo(MDirection::J2000,
+                                             Projection(Projection::SIN),
+                                             wcs->crval[wcs->lng]*casa::C::pi / 180., wcs->crval[wcs->lat]*casa::C::pi / 180.,
+                                             wcs->cdelt[wcs->lng]*casa::C::pi / 180., wcs->cdelt[wcs->lat]*casa::C::pi / 180.,
+                                             xform,
+                                             wcs->crpix[wcs->lng] - 1, wcs->crpix[wcs->lat] - 1);
 
-	  casa::SpectralCoordinate specCoo(MFrequency::TOPO,
-					   wcs->crval[wcs->spec],
-					   wcs->cdelt[wcs->spec],
-					   wcs->crpix[wcs->spec]-1,
-					   wcs->restfrq);
-
-	  
-	  Vector<Int> stokes(nstokes);
-	  stokes(0) = casa::Stokes::I;
-	  if(nstokes == 4){
-	    stokes(1) = casa::Stokes::Q;
-	    stokes(2) = casa::Stokes::U;
-	    stokes(3) = casa::Stokes::V;
-	  }
-	  casa::StokesCoordinate stokesCoo(stokes);
-
-// 	  csys.addCoordinate(dirCoo);
-// 	  if(wcs->naxis==4) 
-// 	    csys.addCoordinate(stokesCoo);
-// 	  csys.addCoordinate(specCoo);
-
-	  for(int i=0;i<wcs->naxis;i++){
-	    if(i == wcs->lng || i == wcs->lat){
-	      i++;
-	      csys.addCoordinate(dirCoo);
-	    }
-	    else if(i == wcs->spec) csys.addCoordinate(specCoo);
-	    else if(wcs->naxis == 4) csys.addCoordinate(stokesCoo);
-	  }
+            casa::SpectralCoordinate specCoo(MFrequency::TOPO,
+                                             wcs->crval[wcs->spec],
+                                             wcs->cdelt[wcs->spec],
+                                             wcs->crpix[wcs->spec] - 1,
+                                             wcs->restfrq);
 
 
-	  return csys;
+            Vector<Int> stokes(nstokes);
+            stokes(0) = casa::Stokes::I;
 
-	}
+            if (nstokes == 4) {
+                stokes(1) = casa::Stokes::Q;
+                stokes(2) = casa::Stokes::U;
+                stokes(3) = casa::Stokes::V;
+            }
+
+            casa::StokesCoordinate stokesCoo(stokes);
+
+//    csys.addCoordinate(dirCoo);
+//    if(wcs->naxis==4)
+//      csys.addCoordinate(stokesCoo);
+//    csys.addCoordinate(specCoo);
+
+            for (int i = 0; i < wcs->naxis; i++) {
+                if (i == wcs->lng || i == wcs->lat) {
+                    i++;
+                    csys.addCoordinate(dirCoo);
+                } else if (i == wcs->spec) csys.addCoordinate(specCoo);
+                else if (wcs->naxis == 4) csys.addCoordinate(stokesCoo);
+            }
+
+
+            return csys;
+
+        }
         //**************************************************************//
 
         Slicer subsectionToSlicer(duchamp::Section &subsection)
@@ -790,27 +804,29 @@ namespace askap {
 
         //**************************************************************//
 
-      void fixSlicer(Slicer &slice, wcsprm *wcs)
-      {	
-	IPosition start = slice.start();
-	IPosition end = slice.end();
-	IPosition stride = slice.stride();
-// 	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
-// 	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: lng="<<wcs->lng<<", lat="<<wcs->lat<<", spec="<<wcs->spec);
-	for(size_t i=0;i<start.size();i++){
-	  // set all axes that aren't position or spectral to just the first value.
-	  int index = int(i);
-// 	  ASKAPLOG_DEBUG_STR(logger,index);
-	  if(index!=wcs->lng && index!=wcs->lat && index!=wcs->spec){
-// 	    ASKAPLOG_DEBUG_STR(logger, "Changing " << index);
-	    start(i) = 0;
-	    end(i) = 0;
-	  }
-	}
+        void fixSlicer(Slicer &slice, wcsprm *wcs)
+        {
+            IPosition start = slice.start();
+            IPosition end = slice.end();
+            IPosition stride = slice.stride();
 
-	slice = Slicer(start,end,stride,Slicer::endIsLast);
-// 	ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
-      }
+//  ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
+//  ASKAPLOG_DEBUG_STR(logger, "fixSlicer: lng="<<wcs->lng<<", lat="<<wcs->lat<<", spec="<<wcs->spec);
+            for (size_t i = 0; i < start.size(); i++) {
+                // set all axes that aren't position or spectral to just the first value.
+                int index = int(i);
+
+//    ASKAPLOG_DEBUG_STR(logger,index);
+                if (index != wcs->lng && index != wcs->lat && index != wcs->spec) {
+//      ASKAPLOG_DEBUG_STR(logger, "Changing " << index);
+                    start(i) = 0;
+                    end(i) = 0;
+                }
+            }
+
+            slice = Slicer(start, end, stride, Slicer::endIsLast);
+//  ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
+        }
 
 
 

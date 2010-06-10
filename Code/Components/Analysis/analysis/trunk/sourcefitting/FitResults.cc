@@ -88,11 +88,11 @@ namespace askap {
 
             void FitResults::saveResults(Fitter &fit)
             {
-	      /// @details This stores the results of a Gaussian fit,
-	      /// extracting all relevant parameters and Gaussian
-	      /// components.
-	      /// @param fit A Fitter object that has performed a
-	      /// Gaussian fit to data.
+                /// @details This stores the results of a Gaussian fit,
+                /// extracting all relevant parameters and Gaussian
+                /// components.
+                /// @param fit A Fitter object that has performed a
+                /// Gaussian fit to data.
 
                 this->itsFitIsGood = true;
                 this->itsChisq = fit.chisq();
@@ -112,25 +112,27 @@ namespace askap {
 
             //**************************************************************//
 
-	  std::vector<SubComponent> FitResults::getCmpntList()
-	   {
-	     /// @details This function converts the set of Gaussian
-	     /// components in itsGaussFitSet and returns them as a
-	     /// vector list of SubComponent objects.
-	     std::vector<SubComponent> output(this->itsGaussFitSet.size());
-	     std::vector<casa::Gaussian2D<Double> >::iterator gauss = this->itsGaussFitSet.begin();
-	     int comp=0;
-	     for(;gauss<this->itsGaussFitSet.end();gauss++){
-	       output[comp].setX(gauss->xCenter());
-	       output[comp].setY(gauss->yCenter());
-	       output[comp].setPeak(gauss->height());
-	       output[comp].setMajor(gauss->majorAxis());
-	       output[comp].setMinor(gauss->minorAxis());
-	       output[comp].setPA(gauss->PA());
-	       comp++;
-	     }
-	     return output;
-	   }
+            std::vector<SubComponent> FitResults::getCmpntList()
+            {
+                /// @details This function converts the set of Gaussian
+                /// components in itsGaussFitSet and returns them as a
+                /// vector list of SubComponent objects.
+                std::vector<SubComponent> output(this->itsGaussFitSet.size());
+                std::vector<casa::Gaussian2D<Double> >::iterator gauss = this->itsGaussFitSet.begin();
+                int comp = 0;
+
+                for (; gauss < this->itsGaussFitSet.end(); gauss++) {
+                    output[comp].setX(gauss->xCenter());
+                    output[comp].setY(gauss->yCenter());
+                    output[comp].setPeak(gauss->height());
+                    output[comp].setMajor(gauss->majorAxis());
+                    output[comp].setMinor(gauss->minorAxis());
+                    output[comp].setPA(gauss->PA());
+                    comp++;
+                }
+
+                return output;
+            }
 
 
         }

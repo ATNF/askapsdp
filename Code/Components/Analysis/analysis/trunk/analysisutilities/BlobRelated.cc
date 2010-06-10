@@ -239,7 +239,7 @@ namespace askap {
                 l = src.xSubOffset; blob << l;
                 l = src.ySubOffset; blob << l;
                 l = src.zSubOffset; blob << l;
-		b = src.haveParams; blob << b;
+                b = src.haveParams; blob << b;
                 f = src.totalFlux;  blob << f;
                 f = src.peakFlux;   blob << f;
                 f = src.intFlux;    blob << f;
@@ -263,24 +263,24 @@ namespace askap {
                 f = src.dec;        blob << f;
                 f = src.raWidth;    blob << f;
                 f = src.decWidth;   blob << f;
-		f = src.majorAxis;  blob << f;
-		f = src.minorAxis;  blob << f;
-		f = src.posang;     blob << f;
-		s = src.specUnits;  blob << s;
-		s = src.fluxUnits;  blob << s;
-		s = src.intFluxUnits; blob << s;
-		s = src.lngtype;    blob << s;
-		s = src.lattype;    blob << s;
+                f = src.majorAxis;  blob << f;
+                f = src.minorAxis;  blob << f;
+                f = src.posang;     blob << f;
+                s = src.specUnits;  blob << s;
+                s = src.fluxUnits;  blob << s;
+                s = src.intFluxUnits; blob << s;
+                s = src.lngtype;    blob << s;
+                s = src.lattype;    blob << s;
                 f = src.vel;        blob << f;
                 f = src.velWidth;   blob << f;
                 f = src.velMin;     blob << f;
                 f = src.velMax;     blob << f;
-		f = src.w20;        blob << f;
-		f = src.v20min;     blob << f;
-		f = src.v20max;     blob << f;
-		f = src.w50;        blob << f;
-		f = src.v50min;     blob << f;
-		f = src.v50max;     blob << f;
+                f = src.w20;        blob << f;
+                f = src.v20min;     blob << f;
+                f = src.v20max;     blob << f;
+                f = src.w50;        blob << f;
+                f = src.v50min;     blob << f;
+                f = src.v50max;     blob << f;
                 i = src.posPrec;    blob << i;
                 i = src.xyzPrec;    blob << i;
                 i = src.fintPrec;   blob << i;
@@ -292,30 +292,38 @@ namespace askap {
                 f = src.itsDetectionThreshold; blob << f;
                 f = src.itsNoiseLevel; blob << f;
                 blob << src.itsFitParams;
-	        size = src.itsBestFitMap.size();
-		blob << size;
-		std::map<std::string, FitResults>::iterator fit;
-		for(fit=src.itsBestFitMap.begin();fit!=src.itsBestFitMap.end();fit++){
-		  blob << fit->first;
-		  blob << fit->second;
-		}
-		size = src.itsAlphaMap.size();
-		blob << size;
-		std::map<std::string, std::vector<float> >::iterator val;
-		for(val=src.itsAlphaMap.begin();val!=src.itsAlphaMap.end();val++){
-		  blob << val->first;
-		  size = val->second.size();
-		  blob << size;
-		  for(int i=0;i<size;i++) blob << val->second[i];
-		}
-		size = src.itsBetaMap.size();
-		blob << size;
-		for(val=src.itsBetaMap.begin();val!=src.itsBetaMap.end();val++){
-		  blob << val->first;
-		  size = val->second.size();
-		  blob << size;
-		  for(int i=0;i<size;i++) blob << val->second[i];
-		}
+                size = src.itsBestFitMap.size();
+                blob << size;
+                std::map<std::string, FitResults>::iterator fit;
+
+                for (fit = src.itsBestFitMap.begin(); fit != src.itsBestFitMap.end(); fit++) {
+                    blob << fit->first;
+                    blob << fit->second;
+                }
+
+                size = src.itsAlphaMap.size();
+                blob << size;
+                std::map<std::string, std::vector<float> >::iterator val;
+
+                for (val = src.itsAlphaMap.begin(); val != src.itsAlphaMap.end(); val++) {
+                    blob << val->first;
+                    size = val->second.size();
+                    blob << size;
+
+                    for (int i = 0; i < size; i++) blob << val->second[i];
+                }
+
+                size = src.itsBetaMap.size();
+                blob << size;
+
+                for (val = src.itsBetaMap.begin(); val != src.itsBetaMap.end(); val++) {
+                    blob << val->first;
+                    size = val->second.size();
+                    blob << size;
+
+                    for (int i = 0; i < size; i++) blob << val->second[i];
+                }
+
                 return blob;
             }
 
@@ -344,7 +352,7 @@ namespace askap {
                 blob >> l; src.xSubOffset = l;
                 blob >> l; src.ySubOffset = l;
                 blob >> l; src.zSubOffset = l;
-		blob >> b; src.haveParams = b;
+                blob >> b; src.haveParams = b;
                 blob >> f; src.totalFlux = f;
                 blob >> f; src.peakFlux = f;
                 blob >> f; src.intFlux = f;
@@ -368,24 +376,24 @@ namespace askap {
                 blob >> f; src.dec = f;
                 blob >> f; src.raWidth = f;
                 blob >> f; src.decWidth = f;
-		blob >> f; src.majorAxis = f;
-		blob >> f; src.minorAxis = f;
-		blob >> f; src.posang = f;
-		blob >> s; src.specUnits = s;
-		blob >> s; src.fluxUnits = s;
-		blob >> s; src.intFluxUnits = s;
-		blob >> s; src.lngtype = s;
-		blob >> s; src.lattype = s;
+                blob >> f; src.majorAxis = f;
+                blob >> f; src.minorAxis = f;
+                blob >> f; src.posang = f;
+                blob >> s; src.specUnits = s;
+                blob >> s; src.fluxUnits = s;
+                blob >> s; src.intFluxUnits = s;
+                blob >> s; src.lngtype = s;
+                blob >> s; src.lattype = s;
                 blob >> f; src.vel = f;
                 blob >> f; src.velWidth = f;
                 blob >> f; src.velMin = f;
                 blob >> f; src.velMax = f;
-		blob >> f; src.w20 = f;
-		blob >> f; src.v20min = f;
-		blob >> f; src.v20max = f;
-		blob >> f; src.w50 = f;
-		blob >> f; src.v50min = f;
-		blob >> f; src.v50max = f;
+                blob >> f; src.w20 = f;
+                blob >> f; src.v20min = f;
+                blob >> f; src.v20max = f;
+                blob >> f; src.w50 = f;
+                blob >> f; src.v50min = f;
+                blob >> f; src.v50max = f;
                 blob >> i; src.posPrec = i;
                 blob >> i; src.xyzPrec = i;
                 blob >> i; src.fintPrec = i;
@@ -397,28 +405,38 @@ namespace askap {
                 blob >> f; src.itsDetectionThreshold = f;
                 blob >> f; src.itsNoiseLevel = f;
                 blob >> src.itsFitParams;
-		blob >> size;
-		for(int i=0;i<size;i++){
-		  FitResults res;
-		  blob >> s >> res;
-		  src.itsBestFitMap[s]=res;
-		}
-		blob >> size;
-		for(int i=0;i<size;i++){
-		  int32 vecsize;
-		  blob >> s >> vecsize;
-		  std::vector<float> vec(vecsize);
-		  for(int i=0;i<vecsize;i++) blob>>vec[i];
-		  src.itsAlphaMap[s]=vec;
-		}
-		blob >> size;
-		for(int i=0;i<size;i++){
-		  int32 vecsize;
-		  blob >> s >> vecsize;
-		  std::vector<float> vec(vecsize);
-		  for(int i=0;i<vecsize;i++) blob>>vec[i];
-		  src.itsBetaMap[s]=vec;
-		}
+                blob >> size;
+
+                for (int i = 0; i < size; i++) {
+                    FitResults res;
+                    blob >> s >> res;
+                    src.itsBestFitMap[s] = res;
+                }
+
+                blob >> size;
+
+                for (int i = 0; i < size; i++) {
+                    int32 vecsize;
+                    blob >> s >> vecsize;
+                    std::vector<float> vec(vecsize);
+
+                    for (int i = 0; i < vecsize; i++) blob >> vec[i];
+
+                    src.itsAlphaMap[s] = vec;
+                }
+
+                blob >> size;
+
+                for (int i = 0; i < size; i++) {
+                    int32 vecsize;
+                    blob >> s >> vecsize;
+                    std::vector<float> vec(vecsize);
+
+                    for (int i = 0; i < vecsize; i++) blob >> vec[i];
+
+                    src.itsBetaMap[s] = vec;
+                }
+
                 return blob;
             }
 

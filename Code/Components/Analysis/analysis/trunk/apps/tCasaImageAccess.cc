@@ -121,7 +121,7 @@ int main(int argc, const char *argv[])
         casaImageToMetadata(subimage, subcube);
         casaImageToCubeData(subimage, subcube);
         std::cout << "Success!\n";
-	delete subimage;
+        delete subimage;
     } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;

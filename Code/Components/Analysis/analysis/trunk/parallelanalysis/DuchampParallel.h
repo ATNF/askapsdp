@@ -74,8 +74,8 @@ namespace askap {
 
                 virtual ~DuchampParallel() {};
 
-		std::string image(){return itsImage;};
-		void setImage(std::string s){itsImage = s;};
+                std::string image() {return itsImage;};
+                void setImage(std::string s) {itsImage = s;};
 
                 /// @brief Return a reference to the duchamp::Cube object
                 duchamp::Cube &cube() {duchamp::Cube &rcube = itsCube; return rcube;};
@@ -169,11 +169,11 @@ namespace askap {
                 /// Is the image a FITS file or not (if not, probably a casa image...)
                 bool itsIsFITSFile;
 
-		/// An image showing relative weights of pixels
-		std::string itsWeightImage;
+                /// An image showing relative weights of pixels
+                std::string itsWeightImage;
 
-		/// The weights values
-		casa::Vector<casa::Double> itsWeights;
+                /// The weights values
+                casa::Vector<casa::Double> itsWeights;
 
                 /// The Cube of data, which contains the list of Detections.
                 duchamp::Cube itsCube;
@@ -196,11 +196,11 @@ namespace askap {
                 /// Shall we fit to the sources?
                 bool itsFlagDoFit;
 
-		/// Shall we fit to just the detected voxels?
-		bool itsFlagFitJustDetection;
+                /// Shall we fit to just the detected voxels?
+                bool itsFlagFitJustDetection;
 
-		/// Shall we find spectral index information?
-		bool itsFlagFindSpectralIndex;
+                /// Shall we find spectral index information?
+                bool itsFlagFindSpectralIndex;
 
                 /// Name of the summary file
                 std::string itsSummaryFile;

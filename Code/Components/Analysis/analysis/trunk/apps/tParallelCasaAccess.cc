@@ -107,7 +107,7 @@ bool getSubImage(std::string name, SubImage<Float> &subimage, AskapParallel &par
     IPosition shape = imagePtr->shape();
     ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": Shape of original image = " << shape);
     IPosition newLength = shape;
- //    newLength(0) = newLength(0) / (parl.nnode() - 1);
+//    newLength(0) = newLength(0) / (parl.nnode() - 1);
     newLength(0) = newLength(0) / (parl.nNodes() - 1);
     ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": New shape = " << newLength);
     int startpos = (parl.rank() - 1) * newLength(0);

@@ -171,7 +171,7 @@ namespace askap {
                     void setAtEdge(duchamp::Cube &cube, SubimageDef &subimage, int workerNum);
 
                     /// @brief Define the boundaries of the box
-                    void defineBox(duchamp::Section &sec, FittingParameters &fitParams, int spectralAxis=2);
+                    void defineBox(duchamp::Section &sec, FittingParameters &fitParams, int spectralAxis = 2);
 
                     /// @brief Commands to return the extent and size of the box
                     /// surrounding the object.
@@ -198,7 +198,7 @@ namespace askap {
                     long boxSize() {return boxXsize()*boxYsize();};
 
                     /// Return the full box description
-		    casa::Slicer box() {return itsBox;};
+                    casa::Slicer box() {return itsBox;};
                     /// Define the box in one shot
                     void setBox(casa::Slicer box) {itsBox = box;};
 
@@ -216,11 +216,11 @@ namespace askap {
                     /// @brief Set the fitting parameters by passing a set
                     void setFitParams(FittingParameters &fitpars) {itsFitParams = fitpars;};
 
-		    /// @brief Find the spectral index for each fitted component
-		    void findAlpha(std::string imageName, bool doCalc=true);
+                    /// @brief Find the spectral index for each fitted component
+                    void findAlpha(std::string imageName, bool doCalc = true);
 
-		    /// @brief Find the spectral curvature for each fitted component
-		    void findBeta(std::string imageName, bool doCalc=true);
+                    /// @brief Find the spectral curvature for each fitted component
+                    void findBeta(std::string imageName, bool doCalc = true);
 
                 protected:
 
@@ -239,22 +239,22 @@ namespace askap {
                     /// @brief The detection threshold used for the object
                     float itsDetectionThreshold;
 
-		    /// @brief The set of best fit results for different types of fits, plus the overall best 
-		    std::map<std::string, FitResults> itsBestFitMap;
+                    /// @brief The set of best fit results for different types of fits, plus the overall best
+                    std::map<std::string, FitResults> itsBestFitMap;
 
-		    /// @brief The type of the best fit
-		    std::string itsBestFitType;
+                    /// @brief The type of the best fit
+                    std::string itsBestFitType;
 
                     /// @brief The parameters used to control the fitting
                     FittingParameters itsFitParams;
 
                     /// @brief The extent of the box, taking into account the borders of the data array
-		    casa::Slicer itsBox;
+                    casa::Slicer itsBox;
 
-		    /// @brief The spectral indices of the source components
-		    std::map<std::string, std::vector<float> > itsAlphaMap;
-		    /// @brief The spectral curvature of the source components
-		    std::map<std::string, std::vector<float> > itsBetaMap;
+                    /// @brief The spectral indices of the source components
+                    std::map<std::string, std::vector<float> > itsAlphaMap;
+                    /// @brief The spectral curvature of the source components
+                    std::map<std::string, std::vector<float> > itsBetaMap;
 
             };
         }

@@ -152,19 +152,23 @@ namespace askap {
             if (outputfile != "") par.setOutFile(outputfile);
 
             par.setFlagSubsection(parset.getBool("flagSubsection", false));
-            if(par.getFlagSubsection())
-	      par.setSubsection(parset.getString("subsection", ""));
+
+            if (par.getFlagSubsection())
+                par.setSubsection(parset.getString("subsection", ""));
+
             par.setFlagStatSec(parset.getBool("flagStatSec", false));
             par.setStatSec(parset.getString("statsec", par.getStatSec()));
             par.setVerbosity(parset.getBool("verbose", false));
             par.setFlagLog(true);
-	    if(parset.isDefined("beamSize")){
-	      par.setBeamSize(parset.getFloat("beamSize"));
-	      ASKAPLOG_WARN_STR(logger, "Parset has beamSize parameter. This is deprecated from Duchamp 1.1.9 onwards - use beamArea instead. Setting beamArea="<<par.getBeamSize());
-	    }
-	    par.setBeamSize(parset.getFloat("beamArea", 4.)); 
-	    par.setBeamFWHM(parset.getFloat("beamFWHM", 4.));
-           par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
+
+            if (parset.isDefined("beamSize")) {
+                par.setBeamSize(parset.getFloat("beamSize"));
+                ASKAPLOG_WARN_STR(logger, "Parset has beamSize parameter. This is deprecated from Duchamp 1.1.9 onwards - use beamArea instead. Setting beamArea=" << par.getBeamSize());
+            }
+
+            par.setBeamSize(parset.getFloat("beamArea", 4.));
+            par.setBeamFWHM(parset.getFloat("beamFWHM", 4.));
+            par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
             par.setCut(parset.getFloat("snrCut", 4.));
 
             if (parset.isDefined("threshold")) {
@@ -226,15 +230,16 @@ namespace askap {
 
                 for (int i = 0; i < size; i++) arrayCopy[i] = fabs(array[i] - middle);
 
-		bool isEven = ((size/2)==0);
-		std::nth_element(arrayCopy,arrayCopy+size/2,arrayCopy+size);
-		spread = arrayCopy[size/2];
-		if(isEven){
-		  std::nth_element(arrayCopy,arrayCopy+size/2-1,arrayCopy+size);
-		  spread += arrayCopy[size/2-1];
-		  spread /= 2.;
-		}
-		
+                bool isEven = ((size / 2) == 0);
+                std::nth_element(arrayCopy, arrayCopy + size / 2, arrayCopy + size);
+                spread = arrayCopy[size/2];
+
+                if (isEven) {
+                    std::nth_element(arrayCopy, arrayCopy + size / 2 - 1, arrayCopy + size);
+                    spread += arrayCopy[size/2-1];
+                    spread /= 2.;
+                }
+
                 delete [] arrayCopy;
                 spread = Statistics::madfmToSigma(spread);
             } else {
@@ -269,14 +274,15 @@ namespace askap {
 
                 for (int i = 0; i < size; i++) if (mask[i]) arrayCopy[j++] = fabs(array[i] - middle);
 
-		bool isEven = ((goodSize/2)==0);
-		std::nth_element(arrayCopy,arrayCopy+goodSize/2,arrayCopy+goodSize);
-		spread = arrayCopy[goodSize/2];
-		if(isEven){
-		  std::nth_element(arrayCopy,arrayCopy+goodSize/2-1,arrayCopy+goodSize);
-		  spread += arrayCopy[goodSize/2-1];
-		  spread /= 2.;
-		}
+                bool isEven = ((goodSize / 2) == 0);
+                std::nth_element(arrayCopy, arrayCopy + goodSize / 2, arrayCopy + goodSize);
+                spread = arrayCopy[goodSize/2];
+
+                if (isEven) {
+                    std::nth_element(arrayCopy, arrayCopy + goodSize / 2 - 1, arrayCopy + goodSize);
+                    spread += arrayCopy[goodSize/2-1];
+                    spread /= 2.;
+                }
 
                 delete [] arrayCopy;
                 spread = Statistics::madfmToSigma(spread);

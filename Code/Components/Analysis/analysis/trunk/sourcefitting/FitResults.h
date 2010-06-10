@@ -65,7 +65,7 @@ namespace askap {
             class FitResults {
                 public:
                     /// @brief Default constructor: bad fit, 0 components
-	            FitResults() {itsFitIsGood = false; itsNumGauss=0;}
+                    FitResults() {itsFitIsGood = false; itsNumGauss = 0;}
                     /// @brief Destructor
                     virtual ~FitResults() {};
                     /// @brief Copy constructor
@@ -96,11 +96,11 @@ namespace askap {
                     std::vector<casa::Gaussian2D<Double> >& fits() {
                         std::vector<casa::Gaussian2D<Double> >& rfit = itsGaussFitSet; return rfit;
                     };
-		    /// @brief Return the set of Gaussian fits in SubComponent format
-		    std::vector<SubComponent> getCmpntList();
+                    /// @brief Return the set of Gaussian fits in SubComponent format
+                    std::vector<SubComponent> getCmpntList();
 
-		    /// @brief Return a given Gaussian from the FitSet
-		    casa::Gaussian2D<Double> gaussian(int num){return itsGaussFitSet[num];};
+                    /// @brief Return a given Gaussian from the FitSet
+                    casa::Gaussian2D<Double> gaussian(int num) {return itsGaussFitSet[num];};
 
                     /// @brief The number of fitted components
                     int numFits() {return itsGaussFitSet.size();};
