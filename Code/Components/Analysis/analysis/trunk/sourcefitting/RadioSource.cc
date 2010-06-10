@@ -332,7 +332,24 @@ namespace askap {
 
             std::vector<SubComponent> RadioSource::getSubComponentList(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f)
             {
-	      std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(pos, f);
+
+                float *fluxarray = new float[this->boxSize()];
+                PixelInfo::Object2D spatMap = this->getSpatialMap();
+
+//                 for (int i = 0; i < this->boxSize(); i++) {
+//                     if (spatMap.isInObject(i % this->boxXsize() + this->boxXmin(), i / this->boxXsize() + this->boxYmin()))
+//                         fluxarray[i] = f(i);
+//                     else fluxarray[i] = 0.;
+//                 }
+
+		for(int i=0;i<this->boxSize();i++) fluxarray[i] = 0.;
+		for(size_t i=0;i<f.size();i++) {
+		  int x = int(pos(i,0))-this->boxXmin();
+		  int y = int(pos(i,1))-this->boxYmin();
+		  if(spatMap.isInObject(x,y)) fluxarray[x+this->boxXsize()*y] = f(i);
+		}
+
+		std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
                 float dx = this->getXaverage() - this->getXPeak();
                 float dy = this->getYaverage() - this->getYPeak();
 
@@ -367,10 +384,12 @@ namespace askap {
                     cmpntlist.push_back(centre);
                 }
 
+                delete [] fluxarray;
+
                 return cmpntlist;
             }
 
-            std::vector<SubComponent> RadioSource::getThresholdedSubComponentList(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f)
+            std::vector<SubComponent> RadioSource::getThresholdedSubComponentList(float *fluxarray)
             {
                 /// @details This function returns a vector list of
                 /// subcomponents that make up the Detection. The pixel array
@@ -394,21 +413,6 @@ namespace askap {
                 std::vector<SubComponent> fullList;
                 long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image smlIm(dim);
-                float *fluxarray = new float[this->boxSize()];
-                PixelInfo::Object2D spatMap = this->getSpatialMap();
-
-//                 for (int i = 0; i < this->boxSize(); i++) {
-//                     if (spatMap.isInObject(i % this->boxXsize() + this->boxXmin(), i / this->boxXsize() + this->boxYmin()))
-//                         fluxarray[i] = f(i);
-//                     else fluxarray[i] = 0.;
-//                 }
-
-		for(int i=0;i<this->boxSize();i++) fluxarray[i] = 0.;
-		for(size_t i=0;i<f.size();i++) {
-		  int loc = (pos(i,0)-this->boxXmin())+this->boxXsize()*(pos(i,1)-this->boxYmin());
-		  fluxarray[loc] = f(i);
-		}
-
                 smlIm.saveArray(fluxarray, this->boxSize());
                 smlIm.setMinSize(1);
                 SubComponent base;
@@ -448,7 +452,7 @@ namespace askap {
                         newsrc.addOffsets(this->boxXmin(), this->boxYmin(), 0);
                         newsrc.xpeak += this->boxXmin();
                         newsrc.ypeak += this->boxYmin();
-                        std::vector<SubComponent> newlist = newsrc.getThresholdedSubComponentList(pos,f);
+                        std::vector<SubComponent> newlist = newsrc.getThresholdedSubComponentList(fluxarray);
 
                         for (uInt i = 0; i < newlist.size(); i++) fullList.push_back(newlist[i]);
                     }
@@ -456,7 +460,6 @@ namespace askap {
 
                 std::sort(fullList.begin(), fullList.end());
                 std::reverse(fullList.begin(), fullList.end());
-                delete [] fluxarray;
                 return fullList;
             }
 

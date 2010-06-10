@@ -102,7 +102,7 @@ namespace askap {
                     /// @brief Return a list of subcomponents.
                     std::vector<SubComponent> getSubComponentList(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
                     /// @brief Return a list of subcomponents that lie above a flux threshold
-                    std::vector<SubComponent> getThresholdedSubComponentList(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
+                    std::vector<SubComponent> getThresholdedSubComponentList(float *fluxarray);
 
                     /// @brief Fit Gaussian components to the Detection.
                     /// @name
