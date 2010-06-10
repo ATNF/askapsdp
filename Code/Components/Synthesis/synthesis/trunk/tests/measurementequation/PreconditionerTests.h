@@ -30,14 +30,16 @@
 
 // own includes
 #include <measurementequation/GaussianTaperPreconditioner.h>
+#include <measurementequation/GaussianTaperCache.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayMath.h>
 #include <casa/BasicSL/Complex.h>
 #include <askap/AskapError.h>
 #include <lattices/LatticeMath/Fit2D.h>
 #include <lattices/Lattices/ArrayLattice.h>
 #include <lattices/Lattices/LatticeFFT.h>
 #include <lattices/Lattices/LatticeExpr.h>
-
 
 
 #include <cppunit/extensions/HelperMacros.h>
@@ -63,10 +65,42 @@ namespace askap
 
       CPPUNIT_TEST_SUITE(PreconditionerTests);
       CPPUNIT_TEST(testGaussianTaper);
+      CPPUNIT_TEST(testGaussianTaperCache);      
       CPPUNIT_TEST_SUITE_END();
 
       
     public:
+        void testGaussianTaperCache() 
+        {
+          GaussianTaperCache gtc(25.,15.,-M_PI/18.);
+          casa::Array<casa::Complex> taper = gtc.taper(casa::IPosition(4,128,128,1,1));
+          
+          std::vector<std::string> direction(3);
+          direction[0]="12h30m00.0";
+          direction[1]="-15.00.00.00";
+          direction[2]="J2000";
+        
+          std::vector<int> shape(2,128);
+          std::vector<std::string> cellsize(2,"1arcsec");
+          casa::Vector<casa::Stokes::StokesTypes> stokes(1, casa::Stokes::I);
+          
+          scimath::Params params;
+          SynthesisParamsHelper::add(params,"psf.test",direction,cellsize,shape,1.4e9,
+                              1.4e9,1,stokes);
+          
+          casa::Array<double> temp(taper.shape());
+          casa::convertArray<double,float>(temp, amplitude(taper));
+          params.update("psf.test",temp);
+          
+          casa::Vector<casa::Quantum<double> > fit = SynthesisParamsHelper::fitBeam(params,"psf.test");
+          CPPUNIT_ASSERT(fit.nelements() == 3);
+          // the cell size is 1 arcsec, so the tolerance of 0.1 arcsec seems good enough
+          CPPUNIT_ASSERT(fabs(fit[0].getValue("arcsec")-25.)<0.1);
+          CPPUNIT_ASSERT(fabs(fit[1].getValue("arcsec")-15.)<0.1);
+          CPPUNIT_ASSERT(fabs(fit[2].getValue("rad") + M_PI/18.)<0.1);
+          
+            
+        }
         void testGaussianTaper()
         {
           GaussianTaperPreconditioner gtp(25.,15.,M_PI/18.);

@@ -125,6 +125,7 @@ namespace askap
       wienerfilter.copyData(casa::LatticeExpr<casa::Complex>(normFactor*conj(scratch)/(real(scratch*conj(scratch)) + noisePower)));
       
       if (itsTaperCache) {
+          ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper to the Wiener filter in the image domain");
           // back to image domain
           LatticeFFT::cfft2d(wienerfilter, False);       
           // apply taper
@@ -138,7 +139,8 @@ namespace askap
 
       /*
       // for debugging - to export Wiener filter
-      lpsf.copyData(casa::LatticeExpr<float>(real(scratch*conj(scratch))));
+      LatticeFFT::cfft2d(wienerfilter, False);       
+      lpsf.copyData(casa::LatticeExpr<float>(real(wienerfilter*conj(wienerfilter))));
       SynthesisParamsHelper::saveAsCasaImage("dbg.img",psf);
       throw 1;
       */
@@ -218,6 +220,8 @@ namespace askap
     /// @param[in] fwhm full width at half maximum of the taper given in image cells
     void WienerPreconditioner::enableTapering(double fwhm)
     {
+      ASKAPLOG_INFO_STR(logger, "Wiener filter will be tapered by a circular Gaussian with FWHM="<<fwhm<<
+                        " pixels in the image plane");
       itsTaperCache.reset(new GaussianTaperCache(fwhm));
     }    
 
