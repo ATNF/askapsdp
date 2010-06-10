@@ -140,7 +140,7 @@ module schedblock
         /**
          * Get a sequence of all available SBTemplate names.
          **/
-        StringSeq getNames();
+        idempotent askap::interfaces::StringSeq getNames();
 
         /**
          * Get the SBTemplate names filtering by SBTemplateStatus.
@@ -148,7 +148,7 @@ module schedblock
          * @param status the SBTemplateStatus to filter by
          *
          **/
-        StringSeq getByStatus(SBTemplateStatus status);
+        idempotent askap::interfaces::StringSeq getByStatus(SBTemplateStatus status);
 
         /**
          * Get the SBTemplate id for a named SBTemplate at the latest version.
@@ -156,7 +156,7 @@ module schedblock
          * @param name the name of the template
          *
          **/
-        long getByName(string name) throws NoSuchSBTemplateException;
+        idempotent long getByName(string name) throws NoSuchSBTemplateException;
 
         /**
          * Get the SBTemplate id for a named SBTemplate the specified version.
@@ -165,14 +165,14 @@ module schedblock
          * @param vers The version number to retrieve
          *
          **/
-        long getByVersion(string name, Version vers)
+        idempotent long getByVersion(string name, Version vers)
             throws NoSuchSBTemplateException,
                     VersionException;
 
         /**
          * Retrieve the parameters making up the template
          **/
-        askap::interfaces::ParameterMap getObsParamTemplate(long sbtid)
+        idempotent askap::interfaces::ParameterMap getObsParamTemplate(long sbtid)
             throws NoSuchSBTemplateException;
 
         /**
@@ -181,7 +181,7 @@ module schedblock
          * @param sbtid The id of the template to access
          *
          **/
-        string getObsProcedure(long sbtid)
+        idempotent string getObsProcedure(long sbtid)
             throws NoSuchSBTemplateException;
 
         /**
@@ -190,7 +190,7 @@ module schedblock
          * @param sbtid the id of the template to access
          *
          **/
-        string getName(long sbtid) throws NoSuchSBTemplateException;
+        idempotent string getName(long sbtid) throws NoSuchSBTemplateException;
 
         /**
          * Get the version of the specified SBTemplate.
@@ -198,7 +198,8 @@ module schedblock
          * @param sbtid the id of the template to access
          *
          **/
-        Version getVersion(long sbtid) throws NoSuchSBTemplateException;
+        idempotent Version getVersion(long sbtid)
+            throws NoSuchSBTemplateException;
 
     };
 
