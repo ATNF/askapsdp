@@ -127,7 +127,7 @@ struct PaddingUtils {
   /// @param[in] in input array 
   /// @param[in] out output array (should already be resized to a desired size) 
   /// @param[in] factor additional padding of the output array
-  static void fftPad(const casa::Array<double>& in, casa::Array<double>& out, int factor);
+  static void fftPad(const casa::Array<double>& in, casa::Array<double>& out, float factor);
   
 };
 

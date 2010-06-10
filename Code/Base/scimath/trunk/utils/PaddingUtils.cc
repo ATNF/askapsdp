@@ -175,13 +175,15 @@ void PaddingUtils::fftPad(const casa::Array<double>& in, casa::Array<double>& ou
 /// @param[in] in input array 
 /// @param[in] out output array (should already be resized to a desired size) 
 /// @param[in] factor additional padding of the output array
-void PaddingUtils::fftPad(const casa::Array<double>& in, casa::Array<double>& out, int factor)
+void PaddingUtils::fftPad(const casa::Array<double>& in, casa::Array<double>& out, float factor)
 {
-  if (factor == 1) {
+  ASKAPDEBUGASSERT(factor>0);
+  const casa::IPosition shape = paddedShape(out.shape(),factor);
+  if (shape.isEqual(out.shape())) {
+      // factor == 1 case, by comparing shapes we can avoid problems with rounding off errors
       fftPad(in,out);
   } else {
-      ASKAPDEBUGASSERT(factor>0);
-      casa::Array<double> tempOut(paddedShape(out.shape(),factor));
+      casa::Array<double> tempOut(shape);
       fftPad(in,tempOut);
       out = centeredSubArray(tempOut,out.shape()).copy();
   }
