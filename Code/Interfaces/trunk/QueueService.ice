@@ -45,7 +45,7 @@ module schedblock
          * has to be in SCHEDULED state.
          * A typical use would be to call peek periodically.
          **/
-        long peek();
+        idempotent long peek();
     };
 };
 };
