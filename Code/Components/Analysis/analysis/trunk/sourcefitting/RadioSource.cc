@@ -798,7 +798,9 @@ namespace askap {
                         int bestFit = 0;
                         float bestRChisq = 9999.;
 
-                        for (int g = 1; g <= this->itsFitParams.maxNumGauss(); g++) {
+			int maxGauss = std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
+
+                        for (int g = 1; g <= maxGauss; g++) {
                             fit[ctr].setParams(this->itsFitParams);
                             fit[ctr].setNumGauss(g);
                             fit[ctr].setEstimates(cmpntList, this->itsHeader);
