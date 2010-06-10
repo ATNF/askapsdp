@@ -86,7 +86,7 @@ module schedblock
          * @return a sequence of Scheduling Block ids
          *
          **/
-        LongSeq getByState(ObsState state);
+        idempotent askap::interfaces::LongSeq getByState(ObsState state);
 
         /**
          * Create a new Scheduling Block with the given initial configuration.
@@ -119,7 +119,7 @@ module schedblock
          * @return an ISO 8601 UTC date string or an empty string
          *
          **/
-        string getScheduledTime(long sbid)
+        idempotent string getScheduledTime(long sbid)
                throws NoSuchSchedulingBlockException;
 
         /**
@@ -129,7 +129,7 @@ module schedblock
          * @param sbid The id of the Scheduling Block
          * @return a ParameterMap
          **/
-        askap::interfaces::ParameterMap getObsParameters(long sbid)
+        idempotent askap::interfaces::ParameterMap getObsParameters(long sbid)
                 throws NoSuchSchedulingBlockException;
 
 
@@ -140,7 +140,8 @@ module schedblock
          * @return a string
          *
          **/
-        string getObsProcedure(long sbid) throws NoSuchSchedulingBlockException;
+        idempotent string getObsProcedure(long sbid)
+            throws NoSuchSchedulingBlockException;
 
         /**
          * Set the UserParameters to the given values. This replaces the
@@ -167,8 +168,8 @@ module schedblock
          * @return a ParameterMap
          *
          **/
-        askap::interfaces::ParameterMap getObsVariables(long sbid,
-                                                        string key)
+        idempotent askap::interfaces::ParameterMap getObsVariables(long sbid,
+                                                                    string key)
                 throws NoSuchSchedulingBlockException,
                        ParameterException;
 
@@ -210,6 +211,44 @@ module schedblock
         void setSBTemplate(long sbid, long sbtid)
                 throws NoSuchSchedulingBlockException,
                        NoSuchSBTemplateException;
+
+        /**
+         * Get the ObsProgram which owns the given Scheduling Block.
+         *
+         * @param sbid The id of the Scheduling Block
+         * @returns a list of ObsProgram ids
+         *
+         **/
+        idempotent long getOwner(long sbid);
+
+        /**
+         * Get a list of all ObsPrograms associated  with the given Scheduling
+         * Block.
+         *
+         * @param sbid The id of the Scheduling Block
+         * @returns a list of ObsProgram ids
+         *
+         **/
+        idempotent askap::interfaces::LongSeq getObsPrograms();
+
+        /**
+         * Associate the given ObsProgram with the given Scheduling Block.
+         *
+         * @param sbid The id of the Scheduling Block
+         * @param opid The id of the ObsProgram
+         *
+         **/
+        void addObsProgram(long sbid, long opid);
+
+        /**
+         * Disassociate an ObsProgram from the given Scheduling Block.
+         *
+         * @param sbid The id of the Scheduling Block
+         * @param opid The id of the ObsProgram
+         *
+         **/
+        void removeObsProgram(long sbid, long opid);
+
     };
 };
 };
