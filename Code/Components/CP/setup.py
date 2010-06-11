@@ -5,11 +5,11 @@ nobuild = {'benchmarks'  : "Not integrated into build system yet."}
 for pkg, msg in nobuild.iteritems():
     print("warn: %s no install. %s" % (pkg, msg))
 
-build(['common/trunk/build.py',
-       'iceinterfaces/trunk/build.py',
-       'icewrapper/trunk/build.py',
-       'imager/trunk/build.py',
-       'manager/trunk/build.py',
-       'ingest/trunk/build.py',
-       'correlatorsim/trunk/build.py',
+build(['common/current/build.py',
+       'iceinterfaces/current/build.py',
+       'icewrapper/current/build.py',
+       'imager/current/build.py',
+       'manager/current/build.py',
+       'ingest/current/build.py',
+       'correlatorsim/current/build.py',
       ])

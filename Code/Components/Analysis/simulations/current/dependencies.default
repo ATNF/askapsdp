@@ -1,0 +1,9 @@
+askap=Code/Base/askap/current
+common=3rdParty/LOFAR/Common/Common-3.3
+mwcommon=Code/Base/mwbase/mwcommon/current
+askapparallel=Code/Base/mwbase/askapparallel/current
+analysis=Code/Components/Analysis/analysis/current
+cfitsio=3rdParty/cfitsio/cfitsio-3.0.6
+wcslib=3rdParty/wcslib/wcslib-4.2
+duchamp=3rdParty/Duchamp/Duchamp-1.1.9
+casacore3rdParty/casacore/casacore-1.0.0;casa_casa

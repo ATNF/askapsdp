@@ -1,3 +1,3 @@
 from askapdev.rbuild import build
 
-build(['trunk/build.py'])
+build(['current/build.py'])
