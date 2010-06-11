@@ -9,7 +9,7 @@
 from askapenv import env
 import os
 
-os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Components/Synthesis/testdata/trunk'
+os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Components/Synthesis/testdata/current'
 env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 #env.Append(CCFLAGS=['-O2', '-DASKAP_DEBUG', '-DASKAP_GRID_WITH_BLAS', '-g'])
