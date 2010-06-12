@@ -8,10 +8,10 @@ cd $PBS_O_WORKDIR
 
 module load openmpi
 
-export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk
+export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current
 
 echo "This is the ASKAPsoft stdtest. It will run for about 50 minutes."  | tee stdtest.$PBS_JOBID.out
-tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk/simulation/models/10uJy.model.small.tgz  | tee -a stdtest.$PBS_JOBID.out
+tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/models/10uJy.model.small.tgz  | tee -a stdtest.$PBS_JOBID.out
 
 prun="mpirun -np 2 -x AIPSPATH time"
 
@@ -61,7 +61,7 @@ Csimulator.gridder.AWProject.frequencydependent = false
 Csimulator.gridder.AWProject.tablename          = AWProject.tab
 EOF
 echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
-$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/install/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
+$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
 
 cat > stdtest.dirty.in <<EOF
 Cimager.dataset                                 = 10uJy_stdtest.ms
@@ -92,7 +92,7 @@ Cimager.ncycles                                 = 0
 Cimager.preconditioner.Names                    = None
 EOF
 echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
-$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/install/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
+$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
 
 cat > stdtest.clean.in <<EOF
 Cimager.dataset                                 = 10uJy_stdtest.ms
@@ -138,4 +138,4 @@ Cimager.preconditioner.GaussianTaper            = [20arcsec, 20arcsec, 0deg]
 EOF
 echo "Running cimager to form Clean image of single pointing" | tee -a  stdtest.$HOSTNAME.out
 
-$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/install/bin/cimager.sh -inputs stdtest.clean.in | tee -a stdtest.$HOSTNAME.out
+$prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.clean.in | tee -a stdtest.$HOSTNAME.out

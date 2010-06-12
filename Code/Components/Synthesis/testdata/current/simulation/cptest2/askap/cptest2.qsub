@@ -8,8 +8,8 @@ cd $PBS_O_WORKDIR
 
 module load openmpi
 
-export AIPSPATH=$ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk
+export AIPSPATH=$ASKAP_ROOT/Code/Components/Synthesis/testdata/current
 
-mpirun -x AIPSPATH $ASKAP_ROOT/Code/Components/Synthesis/synthesis/trunk/install/bin/csimulator.sh -inputs cptest2.in > cptest2.out.$PBS_JOBID
+mpirun -x AIPSPATH $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh -inputs cptest2.in > cptest2.out.$PBS_JOBID
 
-mpirun -x AIPSPATH $ASKAP_ROOT/Code/Components/Synthesis/synthesis/trunk/install/bin/cimager.sh -inputs cptest2.in >> cptest2.out.$PBS_JOBID
+mpirun -x AIPSPATH $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs cptest2.in >> cptest2.out.$PBS_JOBID

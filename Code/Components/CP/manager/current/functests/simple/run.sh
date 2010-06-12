@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/manager/trunk/init_package_env.sh
+source $ASKAP_ROOT/Code/Components/CP/manager/current/init_package_env.sh
 
 # Remove the IceGrid log files
 rm -f icegrid.stdout
@@ -15,7 +15,7 @@ icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add cpman
 sleep 2
 
 # Run the test
-INTERFACEDIR=$ASKAP_ROOT/Code/Interfaces/trunk
+INTERFACEDIR=$ASKAP_ROOT/Code/Interfaces/current
 slice2py -I $INTERFACEDIR $INTERFACEDIR/CommonTypes.ice
 slice2py -I $INTERFACEDIR $INTERFACEDIR/Component.ice
 python test_transitions.py --Ice.Config=config.icegridadmin

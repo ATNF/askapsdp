@@ -96,7 +96,7 @@ ia.close()
 
     sublistCommand = ''
     if(doOutputCat):
-        sublistCommand = '%s/Code/Components/Analysis/data/trunk/install/bin/createSubLists.py -i %s'%(os.environ['ASKAP_ROOT'],sublistParsetFile)
+        sublistCommand = '%s/Code/Components/Analysis/data/current/install/bin/createSubLists.py -i %s'%(os.environ['ASKAP_ROOT'],sublistParsetFile)
 
     if(doCduchamp):
 
@@ -115,7 +115,7 @@ ia.close()
             cduchampParFile.write("%s"%inputPars)
         cduchampParFile.close()
 
-        pathToAnalysis = "%s/Code/Components/Analysis/analysis/trunk/install/bin/"%os.environ['ASKAP_ROOT']
+        pathToAnalysis = "%s/Code/Components/Analysis/analysis/current/install/bin/"%os.environ['ASKAP_ROOT']
 
         if(useMPI):
             if(os.uname()[1].split('.')[0]=='minicp'):

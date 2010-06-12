@@ -81,10 +81,10 @@ TableTestRunner::TableTestRunner(const std::string& name)
   }
   theirTestMSName="./.test.ms";
 
-  std::string path2TestMS="../../testdata/trunk/testdataset.ms";
+  std::string path2TestMS="../../testdata/current/testdataset.ms";
   if (casa::EnvironmentVariable::isDefined("ASKAP_ROOT")) {
       path2TestMS=casa::EnvironmentVariable::get("ASKAP_ROOT")+
-                "/Code/Components/Synthesis/testdata/trunk/testdataset.ms";
+                "/Code/Components/Synthesis/testdata/current/testdataset.ms";
   }
   try {
     casa::Table originalMS(path2TestMS);

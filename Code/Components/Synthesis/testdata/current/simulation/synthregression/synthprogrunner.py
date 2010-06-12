@@ -20,11 +20,11 @@ class SynthesisProgramRunner:
           raise RuntimeError, "ASKAP_ROOT should be initialised first!"
 
       if 'AIPSPATH' not in os.environ:
-         os.environ['AIPSPATH'] = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/testdata/trunk')
-      self.simulator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/trunk/install/bin/csimulator.sh')
-      self.imager = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/trunk/install/bin/cimager.sh')
-      self.calibrator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/trunk/install/bin/ccalibrator.sh')
-      self.imgstat = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/trunk/install/bin/imgstat.sh')
+         os.environ['AIPSPATH'] = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/testdata/current')
+      self.simulator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh')
+      self.imager = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh')
+      self.calibrator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/ccalibrator.sh')
+      self.imgstat = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/imgstat.sh')
 
       if not os.path.exists(self.simulator):
           raise RuntimeError, "csimulator is missing at %s" % self.simulator

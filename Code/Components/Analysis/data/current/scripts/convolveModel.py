@@ -89,10 +89,10 @@ if __name__ == '__main__':
         pathToData =  "%s/Code/Components/Analysis/data/tags/data-end2end1/install/bin"%os.environ['ASKAP_ROOT']
         pathToCat = "%s/Code/Components/Analysis/data/tags/data-end2end1/catalogues/"%os.environ['ASKAP_ROOT']
     else:
-        pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
-        pathToAnalysis =  "%s/Code/Components/Analysis/analysis/trunk/install/bin"%os.environ['ASKAP_ROOT']
-        pathToData =  "%s/Code/Components/Analysis/data/trunk/install/bin"%os.environ['ASKAP_ROOT']
-        pathToCat = "%s/Code/Components/Analysis/data/trunk/catalogues"%os.environ['ASKAP_ROOT']
+        pathToSims = "%s/Code/Components/Analysis/simulations/current/install/bin"%os.environ['ASKAP_ROOT']
+        pathToAnalysis =  "%s/Code/Components/Analysis/analysis/current/install/bin"%os.environ['ASKAP_ROOT']
+        pathToData =  "%s/Code/Components/Analysis/data/current/install/bin"%os.environ['ASKAP_ROOT']
+        pathToCat = "%s/Code/Components/Analysis/data/current/catalogues"%os.environ['ASKAP_ROOT']
         
     cwd = os.getcwd()
 

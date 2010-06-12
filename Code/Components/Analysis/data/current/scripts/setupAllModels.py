@@ -5,7 +5,7 @@ import sys
 
 if __name__ == '__main__':
 
-    baseDir = '%s/Code/Components/Analysis/data/trunk'%os.environ['ASKAP_ROOT']
+    baseDir = '%s/Code/Components/Analysis/data/current'%os.environ['ASKAP_ROOT']
     scriptDir = baseDir+'/build/scripts-'+sys.version[:3]
     parsetDir = baseDir+'/parsets'
 

@@ -4,7 +4,7 @@
             <server id="CpManager"
                 exe="cpmanager.sh"
                 activation="always">
-                <env>PATH=$PATH:$ASKAP_ROOT/Code/Components/CP/manager/trunk/apps</env>
+                <env>PATH=$PATH:$ASKAP_ROOT/Code/Components/CP/manager/current/apps</env>
                 <adapter name="AdminAdapter"
                     id="CentralProcessorAdminAdapter"
                     endpoints="tcp">

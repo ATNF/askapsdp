@@ -2,7 +2,7 @@ This is a simple test program to be used to measure the performance of a filesys
 
 It is run like so:
 
-mpirun -np 2 $ASKAP_ROOT/Code/Components/CP/benchmarks/trunk/msperf/apps/msperf -inputs config.in
+mpirun -np 2 $ASKAP_ROOT/Code/Components/CP/benchmarks/current/msperf/apps/msperf -inputs config.in
 
 This will start two writer processes, each executing per the configuration file passed to them. An example configuration file is provided below, which simulates the I/O from a 1 hour BETA (6 antenna) observation:
 

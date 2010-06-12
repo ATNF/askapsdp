@@ -322,12 +322,12 @@ createFITS.fitsOutput       = false
 
     if(makeImage):
         print "About to run createFITS to make the FITS file."
-        pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
+        pathToSims = "%s/Code/Components/Analysis/simulations/current/install/bin"%os.environ['ASKAP_ROOT']
         createFITScall = "%s/createFITS.sh -inputs %s"%(pathToSims,imageParsetFile)
         os.system(createFITScall)
     else:
         if(translateLoc):
             print "Not making an image, but using convertPositions to make a new source list."
-            pathToSims = "%s/Code/Components/Analysis/simulations/trunk/install/bin"%os.environ['ASKAP_ROOT']
+            pathToSims = "%s/Code/Components/Analysis/simulations/current/install/bin"%os.environ['ASKAP_ROOT']
             convertPosCall = "%s/convertPositions.sh -inputs %s"%(pathToSims,imageParsetFile)
             os.system(convertPosCall)

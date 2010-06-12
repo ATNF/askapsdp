@@ -7,4 +7,4 @@ cd $PBS_O_WORKDIR
 
 module load openmpi
 
-mpirun -np 13 $ASKAP_ROOT/Code/Components/Analysis/analysis/trunk/bin/cduchamp.sh -inputs $ASKAP_ROOT/Code/Components/Analysis/analysis/trunk/apps/cduchamp.in > cduchamp.out
+mpirun -np 13 $ASKAP_ROOT/Code/Components/Analysis/analysis/current/bin/cduchamp.sh -inputs $ASKAP_ROOT/Code/Components/Analysis/analysis/current/apps/cduchamp.in > cduchamp.out

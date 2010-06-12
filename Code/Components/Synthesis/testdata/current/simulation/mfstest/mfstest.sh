@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk
+#export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current
 
 HOSTNAME=`hostname -s`
 
@@ -7,7 +7,7 @@ echo "This is the ASKAPsoft mfstest. It will run for about 3 minutes."  | tee mf
 echo "Started " `date` " on " $HOSTNAME  | tee -a mfstest.$HOSTNAME.out
 
 echo "Extracting Urvashi's test measurement set" | tee -a mfstest.$HOSTNAME.out
-tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/trunk/simulation/mfstest/mfsdata.tgz | tee -a mfstest.$HOSTNAME.out
+tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/mfstest/mfsdata.tgz | tee -a mfstest.$HOSTNAME.out
 
 cat > mfstest.clean.in <<EOF
 Cimager.dataset                                 = ptest.ms
@@ -61,5 +61,5 @@ Cimager.preconditioner.Names			= [None]
 
 EOF
 echo "Running cimager to form MSMFS images" | tee -a  mfstest.$HOSTNAME.out
-${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/trunk/install/bin/cimager.sh -inputs mfstest.clean.in | tee -a mfstest.$HOSTNAME.out
+${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs mfstest.clean.in | tee -a mfstest.$HOSTNAME.out
 echo "Ended " `date` " on " $HOSTNAME  | tee -a mfstest.$HOSTNAME.out

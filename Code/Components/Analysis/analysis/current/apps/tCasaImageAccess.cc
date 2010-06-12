@@ -67,7 +67,7 @@ int main(int argc, const char *argv[])
     try {
         std::string imageName;
 
-        if (argc == 1) imageName = "$ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
+        if (argc == 1) imageName = "$ASKAP_ROOT/Code/Components/Synthesis/testdata/current/simulation/stdtest/image.i.10uJy_clean_stdtest";
         else imageName = argv[1];
 
         std::cout << "Loading " << imageName << " using casa::LatticeBase\n";

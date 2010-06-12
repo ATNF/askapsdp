@@ -4,7 +4,7 @@
 #PBS -v ASKAP_ROOT
 cd $PBS_O_WORKDIR
 
-setenv AIPSPATH $ASKAP_ROOT/Code/Components/Synthesis/testdata/trunk
+setenv AIPSPATH $ASKAP_ROOT/Code/Components/Synthesis/testdata/current
 
 yod -sz all -x AIPSPATH ./csimulator -inputs cptest2.in > cptest2.out.$PBS_JOBID
 

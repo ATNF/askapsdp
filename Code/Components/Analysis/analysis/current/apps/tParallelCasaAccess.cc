@@ -146,7 +146,7 @@ int main(int argc, const char *argv[])
     try {
         std::string imageName = std::string(getenv("ASKAP_ROOT"));
 
-        if (argc == 1) imageName += "/Code/Components/Synthesis/testdata/trunk/simulation/stdtest/image.i.10uJy_clean_stdtest";
+        if (argc == 1) imageName += "/Code/Components/Synthesis/testdata/current/simulation/stdtest/image.i.10uJy_clean_stdtest";
         else imageName = argv[1];
 
         ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
