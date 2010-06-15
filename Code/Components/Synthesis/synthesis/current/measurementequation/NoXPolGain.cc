@@ -41,10 +41,10 @@ namespace synthesis {
 
 /// @brief obtain a name of the parameter
 /// @details This method returns the parameter name for a gain of the
-/// given antenna and polarisation. In the future, we may add time and/or
-/// feed number as well.
+/// given antenna and polarisation. 
 /// @param[in] ant antenna number (0-based)
 /// @param[in] pol index of the polarisation product
+/// @return name of the parameter
 std::string NoXPolGain::paramName(casa::uInt ant, casa::uInt pol)
 {
   std::string res("gain.");
@@ -57,6 +57,18 @@ std::string NoXPolGain::paramName(casa::uInt ant, casa::uInt pol)
   }
 
   return res+utility::toString<casa::uInt>(ant);
+}
+
+
+/// @brief obtain a name of the parameter
+/// @details This version takes into account beam number
+/// @param[in] ant antenna number (0-based)
+/// @param[in] beam beam number (0-based)
+/// @param[in] pol index of the polarisation product
+/// @return name of the parameter
+std::string NoXPolGain::paramName(casa::uInt ant, casa::uInt beam, casa::uInt pol)
+{
+  return paramName(ant,pol)+"."+utility::toString<casa::uInt>(beam);
 }
 
 
