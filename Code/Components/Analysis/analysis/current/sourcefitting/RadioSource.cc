@@ -609,21 +609,23 @@ namespace askap {
 
             bool RadioSource::fitGaussNew(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter)
             {
-                /// @details First defines the pixel array with the flux
-                /// values by extracting the voxels from voxelList that are
-                /// within the box surrounding the object. Their flux values
-                /// are placed in the flux matrix, which is passed to
+                /// @details First defines the pixel array with the
+                /// flux values of just the detected pixels by
+                /// extracting the voxels from the given
+                /// voxelList. Their flux values are placed in the
+                /// flux matrix, which is passed to
                 /// fitGauss(casa::Matrix<casa::Double> pos,
-                /// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
-                /// sigma).
+                /// casa::Vector<casa::Double> f,
+                /// casa::Vector<casa::Double> sigma).
                 if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
+		int size = this->getSize();
                 casa::Matrix<casa::Double> pos;
                 casa::Vector<casa::Double> f;
                 casa::Vector<casa::Double> sigma;
-                pos.resize(this->getSize(), 2);
-                f.resize(this->getSize());
-                sigma.resize(this->getSize());
+                pos.resize(size, 2);
+                f.resize(size);
+                sigma.resize(size);
                 casa::Vector<casa::Double> curpos(2);
                 curpos = 0;
 
@@ -636,12 +638,14 @@ namespace askap {
                 std::vector<PixelInfo::Voxel>::iterator vox = voxelList->begin();
 
                 for (; vox < voxelList->end(); vox++) {
+		  if(this->isInObject(*vox)){ // just to make sure it is a source pixel
                     sigma(i) = this->itsNoiseLevel;
                     curpos(0) = vox->getX();
                     curpos(1) = vox->getY();
                     pos.row(i) = curpos;
                     f(i) = vox->getF();
                     i++;
+		  }
                 }
 
                 return fitGauss(pos, f, sigma, baseFitter);

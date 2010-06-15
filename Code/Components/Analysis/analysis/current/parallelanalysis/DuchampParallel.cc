@@ -948,12 +948,17 @@ namespace askap {
                         if (this->itsFlagDoFit) {
 
                             if (this->itsFlagFitJustDetection) {
-                                // get a list of just the detected voxels
-                                std::vector<PixelInfo::Voxel> voxlist;
-                                std::vector<PixelInfo::Voxel>::iterator vox = this->itsVoxelList.begin();
-
-                                for (; vox < this->itsVoxelList.end(); vox++)
-                                    if (src.isInObject(*vox)) voxlist.push_back(*vox);
+                                 // get a list of just the detected voxels, with correct fluxes
+                                std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet();
+				std::vector<PixelInfo::Voxel>::iterator vox = voxlist.begin();
+				for(;vox<voxlist.end();vox++){
+				  std::vector<PixelInfo::Voxel>::iterator voxcomp = this->itsVoxelList.begin();
+				  while(voxcomp<this->itsVoxelList.end()&&!vox->match(*voxcomp))
+				    voxcomp++;
+				  if(voxcomp==this->itsVoxelList.end())
+				    ASKAPLOG_ERROR_STR(logger, "Voxel lists mismatch: source pixel " << *vox << " does not have a match");
+				  else vox->setF(voxcomp->getF());
+				}
 
                                 src.fitGaussNew(&voxlist, this->itsFitter);
                             } else {
