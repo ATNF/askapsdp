@@ -174,7 +174,6 @@ namespace askap {
             if (parset.isDefined("threshold")) {
                 par.setFlagUserThreshold(true);
                 par.setThreshold(parset.getFloat("threshold"));
-                //  ASKAPLOG_INFO_STR(logger, "Setting threshold to " << threshold << ".");
             } else {
                 par.setFlagUserThreshold(false);
             }

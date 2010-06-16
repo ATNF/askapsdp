@@ -288,10 +288,7 @@ namespace askap {
             if (lattPtr == 0)
                 ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() << "\" does not exist or could not be opened.");
 
-            //      LatticeLocker *lock1 = new LatticeLocker (*lattPtr, FileLocker::Read);
-//      lattPtr->unlock();
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-            //    imagePtr->unlock();
             IPosition shape = imagePtr->shape();
             std::vector<long> dim(shape.size());
 
@@ -328,10 +325,7 @@ namespace askap {
 
             if (casaImageToCubeData(sub, cube) == duchamp::FAILURE) return duchamp::FAILURE;
 
-//       delete lock1;
             delete imagePtr;
-//      delete lattPtr;
-            //      delete [] dim;
             return duchamp::SUCCESS;
         }
 
@@ -566,7 +560,6 @@ namespace askap {
             if (lattPtr == 0)
                 ASKAPTHROW(AskapError, "Requested image \"" << imageName << "\" does not exist or could not be opened.");
 
-            //      LatticeLocker lock1 (*lattPtr, FileLocker::Read);
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
             return casaImageToWCS(imagePtr);
         }
@@ -767,11 +760,6 @@ namespace askap {
 
             casa::StokesCoordinate stokesCoo(stokes);
 
-//    csys.addCoordinate(dirCoo);
-//    if(wcs->naxis==4)
-//      csys.addCoordinate(stokesCoo);
-//    csys.addCoordinate(specCoo);
-
             for (int i = 0; i < wcs->naxis; i++) {
                 if (i == wcs->lng || i == wcs->lat) {
                     i++;
@@ -810,22 +798,17 @@ namespace askap {
             IPosition end = slice.end();
             IPosition stride = slice.stride();
 
-//  ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
-//  ASKAPLOG_DEBUG_STR(logger, "fixSlicer: lng="<<wcs->lng<<", lat="<<wcs->lat<<", spec="<<wcs->spec);
             for (size_t i = 0; i < start.size(); i++) {
                 // set all axes that aren't position or spectral to just the first value.
                 int index = int(i);
 
-//    ASKAPLOG_DEBUG_STR(logger,index);
                 if (index != wcs->lng && index != wcs->lat && index != wcs->spec) {
-//      ASKAPLOG_DEBUG_STR(logger, "Changing " << index);
                     start(i) = 0;
                     end(i) = 0;
                 }
             }
 
             slice = Slicer(start, end, stride, Slicer::endIsLast);
-//  ASKAPLOG_DEBUG_STR(logger, "fixSlicer: " << slice);
         }
 
 

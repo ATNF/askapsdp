@@ -455,7 +455,6 @@ namespace askap {
                 const int numThresh = this->itsFitParams.numSubThresholds();
                 float baseThresh = this->itsDetectionThreshold > 0 ? log10(this->itsDetectionThreshold) : -6.;
                 float threshIncrement = (log10(this->peakFlux) - baseThresh) / float(numThresh + 1);
-                //      ASKAPLOG_DEBUG_STR(logger, "Subthresholding: peakFlux = "<<log10(this->peakFlux)<<", numThresh="<<numThresh<<", baseThresh="<<baseThresh<<", incr="<<threshIncrement);
                 float thresh;
                 int threshCtr = 0;
                 std::vector<PixelInfo::Object2D> objlist;
@@ -619,7 +618,7 @@ namespace askap {
                 /// casa::Vector<casa::Double> sigma).
                 if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
-		int size = this->getSize();
+                int size = this->getSize();
                 casa::Matrix<casa::Double> pos;
                 casa::Vector<casa::Double> f;
                 casa::Vector<casa::Double> sigma;
@@ -638,14 +637,14 @@ namespace askap {
                 std::vector<PixelInfo::Voxel>::iterator vox = voxelList->begin();
 
                 for (; vox < voxelList->end(); vox++) {
-		  if(this->isInObject(*vox)){ // just to make sure it is a source pixel
-                    sigma(i) = this->itsNoiseLevel;
-                    curpos(0) = vox->getX();
-                    curpos(1) = vox->getY();
-                    pos.row(i) = curpos;
-                    f(i) = vox->getF();
-                    i++;
-		  }
+                    if (this->isInObject(*vox)) { // just to make sure it is a source pixel
+                        sigma(i) = this->itsNoiseLevel;
+                        curpos(0) = vox->getX();
+                        curpos(1) = vox->getY();
+                        pos.row(i) = curpos;
+                        f(i) = vox->getF();
+                        i++;
+                    }
                 }
 
                 return fitGauss(pos, f, sigma, baseFitter);
@@ -906,7 +905,7 @@ namespace askap {
                     std::vector<std::string> typelist = availableFitTypes;
 
                     for (type = typelist.begin(); type < typelist.end(); type++) {
-		      this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), -99.);
+                        this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), -99.);
                     }
 
                     this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
@@ -1022,7 +1021,7 @@ namespace askap {
                     std::vector<std::string> typelist = availableFitTypes;
 
                     for (type = typelist.begin(); type < typelist.end(); type++) {
-		      this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), -99.);
+                        this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), -99.);
                     }
 
                     this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
@@ -1306,28 +1305,31 @@ namespace askap {
                     this->itsHeader.pixToWCS(pix, world);
                     stream.setf(std::ios::fixed);
                     stream.precision(6);
-		    if(doEllipse){
-		      stream << "ELLIPSE "
-			     << world[0] << " "
-			     << world[1] << " "
-			     << fit->majorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
-			     << fit->minorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
-			     << fit->PA() * 180. / M_PI << "\n";
-		    }
-		}
+
+                    if (doEllipse) {
+                        stream << "ELLIPSE "
+                            << world[0] << " "
+                            << world[1] << " "
+                            << fit->majorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
+                            << fit->minorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
+                            << fit->PA() * 180. / M_PI << "\n";
+                    }
+                }
 
                 pix[0] = pix[9] = this->getXmin() - this->itsFitParams.boxPadSize() - 0.5;
                 pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
                 pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
                 pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
                 this->itsHeader.pixToWCS(pix, world, 4);
-		if(doBox){
-		  stream << "CLINES ";
-		  
-		  for (int i = 0; i < 4; i++) stream << world[i*3] << " " << world[i*3+1] << " ";
-		
-		  stream << world[0] << " " << world[1] << "\n";
-		}
+
+                if (doBox) {
+                    stream << "CLINES ";
+
+                    for (int i = 0; i < 4; i++) stream << world[i*3] << " " << world[i*3+1] << " ";
+
+                    stream << world[0] << " " << world[1] << "\n";
+                }
+
                 delete [] pix;
                 delete [] world;
             }

@@ -240,11 +240,6 @@ namespace askap {
                         pix->setPA(pa0 / 2.);
                     } else  pix->setPA(0.);
 
-//    if(!(pix->majorAxis()>0)){
-//      pix->setMajorAxis(beam[0]*3600.);
-//      pix->setMinorAxis(beam[1]*3600.);
-//      pix->setPA(beam[2]);
-//    }
                 }
             }
 
@@ -305,17 +300,6 @@ namespace askap {
                         dy[i] = this->itsMatchingPixList[i].first.y() + this->itsMatchingPixList[i].second.y();
                     }
 
-//    std::cout.precision(3);
-//    std::cout.setf(std::ios::fixed);
-//    std::cout << "[" << this->itsMatchingPixList[i].first.ID() << "]\t"
-//          << std::setw(10) << this->itsMatchingPixList[i].first.x()  << " "
-//          << std::setw(10) << this->itsMatchingPixList[i].first.y()  << " "
-//          << std::setw(10) << this->itsMatchingPixList[i].first.flux() << "\t"
-//          << "[" << this->itsMatchingPixList[i].second.ID() << "]\t"
-//          << std::setw(10) << this->itsMatchingPixList[i].second.x()  << " "
-//          << std::setw(10) << this->itsMatchingPixList[i].second.y()  << " "
-//          << std::setw(10) << this->itsMatchingPixList[i].second.flux() << "\t"
-//          << "dx = " << std::setw(7) << dx[i] <<"\t" << "dy = " << std::setw(7) << dy[i] <<"\n";
                 }
 
                 for (int i = 0; i < this->itsNumMatch1; i++) {
@@ -402,11 +386,6 @@ namespace askap {
                 if (this->itsMatchingPixList.size() < 2) return;
 
                 std::vector<std::pair<Point, Point> >::iterator alice, bob;
-//  // DEBUG OUTPUT
-//  for(alice=this->itsMatchingPixList.begin(); alice<this->itsMatchingPixList.end(); alice++)
-//    std::cout << alice->first.ID() << "\t" << alice->first.flux() << "\t"
-//          << alice->second.ID() << "\t" << alice->second.flux() << "\n";
-//  std::cout << "\n";
                 alice = this->itsMatchingPixList.begin();
 
                 while (alice < this->itsMatchingPixList.end() - 1) {
@@ -426,7 +405,6 @@ namespace askap {
                                 df_bob   = bob->first.flux() - bob->second.flux();
                             }
 
-//        if(fabs(alice->first.flux()-alice->second.flux()) < fabs(bob->first.flux()-bob->second.flux())){
                             if (fabs(df_alice) < fabs(df_bob)) {
                                 // delete bob
                                 this->itsMatchingPixList.erase(bob);
@@ -477,29 +455,8 @@ namespace askap {
                 }
 
                 fout.setf(std::ios::fixed);
-//  std::cout.setf(std::ios::fixed);
                 int ct = 0;
                 char matchType;
-//  std::cout << "Matching sources:\n"
-//        << "Type\tSource ID\t\t\t"
-//        << std::setw(10) << "x_pix" << " "
-//        << std::setw(10) << "y_pix" << " "
-//        << std::setw(10) << "flux"  << " "
-//        << std::setw(10) << "maj"  << " "
-//        << std::setw(10) << "min"  << " "
-//        << std::setw(10) << "pa" << " ";
-//  itsMatchingPixList[0].first.stuff().printTitle(std::cout);
-//  std::cout <<"\t"
-//        << "Reference ID\t\t\t"
-//        << std::setw(10) << "x_pix" << " "
-//        << std::setw(10) << "y_pix" << " "
-//        << std::setw(10) << "flux" << " "
-//        << std::setw(10) << "maj"  << " "
-//        << std::setw(10) << "min"  << " "
-//        << std::setw(10) << "pa" << "\t"
-//        << std::setw(8) << "dist" << " "
-//        << std::setw(8) << "f_s-f_r" << " "
-//        << std::setw(8) << "(f_s-f_r)/f_r" << "\n";
 
                 for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end(); match++) {
                     if (ct++ < this->itsNumMatch1) matchType = '1';
@@ -524,25 +481,6 @@ namespace askap {
                         << std::setw(8)  << std::setprecision(3) << match->first.sep(match->second) << " "
                         << std::setw(8)  << std::setprecision(8) << match->first.flux() - match->second.flux() << " "
                         << std::setw(8)  << std::setprecision(6) << (match->first.flux() - match->second.flux()) / match->second.flux() << "\n";
-//    std::cout << matchType << "\t"
-//          << "[" << match->first.ID() << "]\t"
-//          << std::setw(10) << std::setprecision(3) << match->first.x()  << " "
-//          << std::setw(10) << std::setprecision(3) << match->first.y()  << " "
-//          << std::setw(10) << std::setprecision(8) << match->first.flux() << " "
-//          << std::setw(10) << std::setprecision(3) << match->first.majorAxis() << " "
-//          << std::setw(10) << std::setprecision(3) << match->first.minorAxis() << " "
-//          << std::setw(10) << std::setprecision(3) << match->first.PA()  << " "
-//          << std::setw(10) << match->first.stuff() << "\t"
-//          << "[" << match->second.ID() << "]\t"
-//          << std::setw(10) << std::setprecision(3) << match->second.x()  << " "
-//          << std::setw(10) << std::setprecision(3) << match->second.y()  << " "
-//          << std::setw(10) << std::setprecision(8) << match->second.flux() << " "
-//          << std::setw(10) << std::setprecision(3) << match->second.majorAxis() << " "
-//          << std::setw(10) << std::setprecision(3) << match->second.minorAxis() << " "
-//          << std::setw(10) << std::setprecision(3) << match->second.PA() << "\t"
-//          << std::setw(8)  << std::setprecision(3) << match->first.sep(match->second) << " "
-//          << std::setw(8)  << std::setprecision(8) << (match->first.flux()-match->second.flux())<<" "
-//          << std::setw(8)  << std::setprecision(6) << (match->first.flux()-match->second.flux())/match->second.flux()<<"\n";
                 }
 
                 fout.close();
@@ -558,7 +496,6 @@ namespace askap {
                 /// Flux. The "type of point" is either R for reference point
                 /// or S for source point.
                 std::ofstream fout(this->itsOutputMissFile.c_str());
-//  fout.precision(3);
                 fout.setf(std::ios::fixed);
                 std::vector<Point>::iterator pt;
                 std::vector<std::pair<Point, Point> >::iterator match;
@@ -584,12 +521,6 @@ namespace askap {
                     }
                 }
 
-//  std::cout << "\nSources with no match:\n"
-//        << "Source ID\t\t\t"
-//        << std::setw(10) << "x_pix" << " "
-//        << std::setw(10) << "y_pix" << " "
-//        << std::setw(10) << "flux" << "\n";
-
                 for (pt = this->itsSrcPixList.begin(); pt < this->itsSrcPixList.end(); pt++) {
                     bool isMatch = false;
                     match = this->itsMatchingPixList.begin();
@@ -607,14 +538,9 @@ namespace askap {
                             << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
                             << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
                             << std::setw(10) << pt->stuff() << "\n";
-//      std::cout << "[" << pt->ID() << "]\t"
-//            << std::setw(10) << std::setprecision(3) << pt->x()  << " "
-//            << std::setw(10) << std::setprecision(3) << pt->y()  << " "
-//            << std::setw(10) << std::setprecision(8) << pt->flux() << "\n";
                     }
                 }
 
-//  std::cout << "\n\n";
             }
 
 

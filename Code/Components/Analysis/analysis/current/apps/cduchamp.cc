@@ -97,11 +97,6 @@ int main(int argc, const char** argv)
         duchamp.receiveObjects();
         duchamp.cleanup();
         duchamp.printResults();
-        //    duchamp.findLists();
-        //    duchamp.condenseLists();
-        //    duchamp.calcFluxes();
-        //    duchamp.printResults();
-        //    duchamp.fitSources();
         ASKAPLOG_INFO_STR(logger, "Time for execution of cduchamp = " << timer.real() << " sec");
         ///==============================================================================
     } catch (askap::AskapError& x) {

@@ -259,7 +259,6 @@ namespace askap {
                 /// @details Create a list of triangles from a list of Points.
                 std::vector<Triangle> triList;
                 int npix = pixlist.size();
-                //  ASKAPLOG_INFO_STR(logger, "Pixel list of size "<<npix);
 
                 for (int i = 0; i < npix - 2; i++) {
                     for (int j = i + 1; j < npix - 1; j++) {
@@ -409,7 +408,6 @@ namespace askap {
                     for (unsigned int i = 0; i < size; i++) {
                         mag = trilist[i].first.perimeter() - trilist[i].second.perimeter();
 
-                        //      std::cout << mag << " " <<(mag-mean)/rms << "\n";
                         if (fabs((mag - mean) / rms) > scale) {
                         } else {
                             newlist.push_back(trilist[i]);
@@ -490,13 +488,6 @@ namespace askap {
                 if (voteList.rbegin()->first == 1) // largest vote was 1 -- no match;
                     return outlist;
 
-//  for(vote=voteList.begin();vote!=voteList.end();vote++){
-//    std::cout << vote->first << ": "
-//          << "#"<<vote->second.first.ID() << " "
-//          << vote->second.first.x() << " " << vote->second.first.y() << "  "
-//          << "#"<<vote->second.second.ID() << " "
-//          << vote->second.second.x() << " " << vote->second.second.y() << "\n";
-//  }
                 bool stop = false;
                 int prevVote = voteList.rbegin()->first;
 

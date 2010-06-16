@@ -182,8 +182,6 @@ namespace askap {
 
             while (getline(fin, line),
                     !fin.eof()) {
-                //          fin >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa,
-                //                    !fin.eof()) {
                 if (line[0] != '#') {
                     std::stringstream ss(line);
                     ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
@@ -286,7 +284,6 @@ namespace askap {
 
                 if (ra > raBase) xpt *= -1.;
 
-                //    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
                 ypt = (dec - decBase) * 3600.;
 
                 if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
@@ -328,8 +325,6 @@ namespace askap {
 
             while (getline(fin, line),
                     !fin.eof()) {
-                //fin >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa,
-                //    !fin.eof()) {
                 if (line[0] != '#') {
                     std::stringstream ss(line);
                     ss >> raS >> decS >> flux >> alpha >> beta >> maj >> min >> pa;
@@ -349,7 +344,6 @@ namespace askap {
 
                     if (ra > raBase) xpt *= -1.;
 
-                    //    ypt = angularSeparation(raBase,dec, raBase,decBase) * 3600.;
                     ypt = (dec - decBase) * 3600.;
 
                     if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
@@ -376,9 +370,6 @@ namespace askap {
             std::sort(outList.begin(), outList.end()); // sort by flux, ascending order
             std::reverse(outList.begin(), outList.end());
 
-//       std::vector<matching::Point>::reverse_iterator pt;
-//       for(pt=outList.rbegin(); pt!=outList.rend() && outList.size()<maxSize; pt++)
-//  outList.push_back(*pt);
             if (outList.size() > maxSize) {
                 std::vector<matching::Point>::iterator pt = outList.begin() + maxSize;
 

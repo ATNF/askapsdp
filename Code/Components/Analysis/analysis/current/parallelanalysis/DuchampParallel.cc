@@ -180,8 +180,6 @@ namespace askap {
                     this->itsSubimageDef = SubimageDef(parset);
                 } else if (this->isWorker()) {
                     this->itsSubimageDef = SubimageDef(parset);
-//          this->itsCube.pars().setFlagSubsection(true);
-
                 }
             }
 
@@ -280,176 +278,81 @@ namespace askap {
 
                 if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
 
-//                 // Send out the OK to the workers, so that they access the file in turn
-//                 bool OK;
-
-//                 for (int i = 1; i < this->itsNNode; i++) {
-//                     LOFAR::BlobString bs5;
-//                     bs5.resize(0);
-//                     LOFAR::BlobOBufString bob5(bs5);
-//                     LOFAR::BlobOStream out5(bob5);
-//                     out5.putStart("goInput", 1);
-//                     out5 << i ;
-//                     out5.putEnd();
-//                     this->itsConnectionSet->writeAll(bs5);
-//                     LOFAR::BlobString bs6;
-//                     this->itsConnectionSet->read(i - 1, bs6);
-//                     LOFAR::BlobIBufString bib6(bs6);
-//                     LOFAR::BlobIStream in6(bib6);
-//                     int version = in6.getStart("inputDone");
-//                     ASKAPASSERT(version == 1);
-//                     in6 >> OK;
-//                     in6.getEnd();
-//                 }
-
-//      // Broadcast a message to all workers, effectively saying that we're all done
-//                 LOFAR::BlobString bs7;
-//                 bs7.resize(0);
-//                 LOFAR::BlobOBufString bob7(bs7);
-//                 LOFAR::BlobOStream out7(bob7);
-//                 out7.putStart("goInput", 1);
-//                 out7 << this->itsNNode;
-//                 out7.putEnd();
-//                 this->itsConnectionSet->writeAll(bs7);
-                //
-                //
             } else if (this->isWorker()) {
-                bool OK = true;
-//                int rank;
 
-//                 if (this->isParallel()) {
-//                     do {
-//                         LOFAR::BlobString bs1;
-//                         bs1.resize(0);
-//                         this->itsConnectionSet->read(0, bs1);
-//                         LOFAR::BlobIBufString bib1(bs1);
-//                         LOFAR::BlobIStream in1(bib1);
-//                         std::stringstream ss;
-//                         int version = in1.getStart("goInput");
-//                         ASKAPASSERT(version == 1);
-//                         in1 >> rank;
-//                         in1.getEnd();
-//                         OK = (rank == this->itsRank);
-//                     } while (!OK);
-//                 }
+                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read data from image " << this->itsCube.pars().getFullImageFile());
 
-                if (OK) {
-                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read data from image " << this->itsCube.pars().getFullImageFile());
+                if (this->itsIsFITSFile) ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reading with FITS code");
+                else                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reading with CASA code");
 
-                    if (this->itsIsFITSFile) ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reading with FITS code");
-                    else                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reading with CASA code");
+                int result;
 
-                    int result;
+                if (this->itsIsFITSFile) {
+                    this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
+                    this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
 
-                    if (this->itsIsFITSFile) {
-                        this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
-                        this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
-
-                        if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
-                            this->itsCube.pars().setFlagSubsection(true);
-                            this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
-                        }
-
-                        if (this->isParallel()) {
-                            duchamp::Section subsection = this->itsSubimageDef.section(this->itsRank - 1, this->itsCube.pars().getSubsection());
-                            this->itsCube.pars().setSubsection(subsection.getSection());
-                            this->itsCube.pars().setFlagSubsection(true);
-                        }
-
-                        if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
-                            ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
-
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Using subsection " << this->itsCube.pars().getSubsection());
-                        ASKAPLOG_INFO_STR(logger,  this->workerPrefix()
-                                              << "About to read data from image " << this->itsCube.pars().getFullImageFile());
-                        result = this->itsCube.getCube();
-                    } else { // if it's a CASA image
-//            this->itsCube.pars().setFlagSubsection(false); // temporary - casaImageToCube will change this.
-                        result = casaImageToCube(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
+                    if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
+                        this->itsCube.pars().setFlagSubsection(true);
+                        this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
                     }
 
-                    if (result == duchamp::FAILURE) {
-                        ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in data from image " << this->itsImage);
-                        ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsImage);
-                    } else {
-                        ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read data from image " << this->itsImage);
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
-                                              << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ());
-
-                        if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
+                    if (this->isParallel()) {
+                        duchamp::Section subsection = this->itsSubimageDef.section(this->itsRank - 1, this->itsCube.pars().getSubsection());
+                        this->itsCube.pars().setSubsection(subsection.getSection());
+                        this->itsCube.pars().setFlagSubsection(true);
                     }
 
-                    if (this->itsWeightImage != "") {
-                        ASKAPLOG_INFO_STR(logger, "Applying weights");
-                        // use the same spatial section, but only the first plane
-                        duchamp::Section wsec = this->itsCube.pars().section();
+                    if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
+                        ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
 
-                        for (int i = 2; i <= 3; i++) {
-                            wsec.setStart(i, 0);
-                            wsec.setEnd(i, 0);
-                        }
-
-                        this->itsWeights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
-                        casa::Double maxweight = *std::max_element(this->itsWeights.begin(), this->itsWeights.end());
-
-                        for (size_t i = 0; i < this->itsWeights.size(); i++) this->itsWeights[i] /= maxweight;
-
-                        for (int z = 0; z < this->itsCube.getDimZ(); z++)
-                            for (int i = 0; i < this->itsCube.getDimX()*this->itsCube.getDimY(); i++)
-                                this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= this->itsWeights[i];
-
-                    }
-
-                    if (this->itsCube.pars().getFlagATrous()) {
-                        ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing");
-                        this->itsCube.ReconCube();
-                    } else if (this->itsCube.pars().getFlagSmooth()) {
-                        ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Smoothing");
-                        this->itsCube.SmoothCube();
-                    }
-
-
-//                     // Return the OK to the master to say that we've read the image
-//                     if (this->isParallel()) {
-//                         LOFAR::BlobString bs2;
-//                         bs2.resize(0);
-//                         LOFAR::BlobOBufString bob2(bs2);
-//                         LOFAR::BlobOStream out2(bob2);
-//                         out2.putStart("inputDone", 1);
-//                         out2 << OK;
-//                         out2.putEnd();
-//                         this->itsConnectionSet->write(0, bs2);
-
-//          // Wait to find out if all workers have finished
-//                         do {
-//                             LOFAR::BlobString bs3;
-//                             bs3.resize(0);
-//                             this->itsConnectionSet->read(0, bs3);
-//                             LOFAR::BlobIBufString bib3(bs3);
-//                             LOFAR::BlobIStream in3(bib3);
-//                             std::stringstream ss;
-//                             int version = in3.getStart("goInput");
-//                             ASKAPASSERT(version == 1);
-//                             in3 >> rank;
-//                             in3.getEnd();
-//                         }  while (rank != this->itsNNode);
-//                     }
-                } else {
-                    ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read data from image " << this->itsImage << " as it's not ready.");
-                    ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsImage);
-
-//                     // Return a message to the master to say that we've failed.
-//                     if (isParallel()) {
-//                         LOFAR::BlobString bs4;
-//                         bs4.resize(0);
-//                         LOFAR::BlobOBufString bob4(bs4);
-//                         LOFAR::BlobOStream out4(bob4);
-//                         out4.putStart("inputDone", 1);
-//                         out4 << this->itsRank << false;
-//                         out4.putEnd();
-//                         this->itsConnectionSet->write(0, bs4);
-//                     }
+                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Using subsection " << this->itsCube.pars().getSubsection());
+                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix()
+                                          << "About to read data from image " << this->itsCube.pars().getFullImageFile());
+                    result = this->itsCube.getCube();
+                } else { // if it's a CASA image
+                    result = casaImageToCube(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
                 }
+
+                if (result == duchamp::FAILURE) {
+                    ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in data from image " << this->itsImage);
+                    ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsImage);
+                } else {
+                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read data from image " << this->itsImage);
+                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
+                                          << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ());
+
+                    if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
+                }
+
+                if (this->itsWeightImage != "") {
+                    ASKAPLOG_INFO_STR(logger, "Applying weights");
+                    // use the same spatial section, but only the first plane
+                    duchamp::Section wsec = this->itsCube.pars().section();
+
+                    for (int i = 2; i <= 3; i++) {
+                        wsec.setStart(i, 0);
+                        wsec.setEnd(i, 0);
+                    }
+
+                    this->itsWeights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
+                    casa::Double maxweight = *std::max_element(this->itsWeights.begin(), this->itsWeights.end());
+
+                    for (size_t i = 0; i < this->itsWeights.size(); i++) this->itsWeights[i] /= maxweight;
+
+                    for (int z = 0; z < this->itsCube.getDimZ(); z++)
+                        for (int i = 0; i < this->itsCube.getDimX()*this->itsCube.getDimY(); i++)
+                            this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= this->itsWeights[i];
+
+                }
+
+                if (this->itsCube.pars().getFlagATrous()) {
+                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing");
+                    this->itsCube.ReconCube();
+                } else if (this->itsCube.pars().getFlagSmooth()) {
+                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Smoothing");
+                    this->itsCube.SmoothCube();
+                }
+
 
 
 
@@ -868,7 +771,6 @@ namespace askap {
                 std::vector<sourcefitting::RadioSource> edgeSources, goodSources;
                 std::vector<sourcefitting::RadioSource>::iterator src;
 
-//  ASKAPLOG_DEBUG_STR(logger, "Source list size = " << this->itsSourceList.size());
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
                     if (src->isAtEdge()) edgeSources.push_back(*src);
                     else goodSources.push_back(*src);
@@ -882,7 +784,6 @@ namespace askap {
                 if (this->itsCube.pars().getFlagUserThreshold()) threshold = this->itsCube.pars().getThreshold();
                 else threshold = this->itsCube.stats().getThreshold();
 
-//  ASKAPLOG_DEBUG_STR(logger, "Good list size = " << goodSources.size() << " Edge list size = " << edgeSources.size());
                 if (edgeSources.size() > 0) { // if there are edge sources
                     for (src = edgeSources.begin(); src < edgeSources.end(); src++) this->itsCube.addObject(*src);
 
@@ -949,17 +850,20 @@ namespace askap {
                         if (this->itsFlagDoFit) {
 
                             if (this->itsFlagFitJustDetection) {
-                                 // get a list of just the detected voxels, with correct fluxes
+                                // get a list of just the detected voxels, with correct fluxes
                                 std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet();
-				std::vector<PixelInfo::Voxel>::iterator vox = voxlist.begin();
-				for(;vox<voxlist.end();vox++){
-				  std::vector<PixelInfo::Voxel>::iterator voxcomp = this->itsVoxelList.begin();
-				  while(voxcomp<this->itsVoxelList.end()&&!vox->match(*voxcomp))
-				    voxcomp++;
-				  if(voxcomp==this->itsVoxelList.end())
-				    ASKAPLOG_ERROR_STR(logger, "Voxel lists mismatch: source pixel " << *vox << " does not have a match");
-				  else vox->setF(voxcomp->getF());
-				}
+                                std::vector<PixelInfo::Voxel>::iterator vox = voxlist.begin();
+
+                                for (; vox < voxlist.end(); vox++) {
+                                    std::vector<PixelInfo::Voxel>::iterator voxcomp = this->itsVoxelList.begin();
+
+                                    while (voxcomp < this->itsVoxelList.end() && !vox->match(*voxcomp))
+                                        voxcomp++;
+
+                                    if (voxcomp == this->itsVoxelList.end())
+                                        ASKAPLOG_ERROR_STR(logger, "Voxel lists mismatch: source pixel " << *vox << " does not have a match");
+                                    else vox->setF(voxcomp->getF());
+                                }
 
                                 src.fitGaussNew(&voxlist, this->itsFitter);
                             } else {
@@ -988,7 +892,6 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have a total of " << this->itsSourceList.size() << " sources.");
 
                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Starting sort of source list");
-//                 std::stable_sort(this->itsSourceList.begin(), this->itsSourceList.end());
                 std::map<float, int> detlist;
 
                 for (size_t i = 0; i < this->itsSourceList.size(); i++) {
@@ -1009,7 +912,6 @@ namespace askap {
 
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
                     src->setID(src - this->itsSourceList.begin() + 1);
-//          if(this->itsCube.objAtSpatialEdge(*src)) src->addToFlagText("E");
                     src->setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
 
                     if (src->isAtEdge()) src->addToFlagText("E");
@@ -1041,8 +943,6 @@ namespace askap {
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
 
-                    //          if(this->itsCube.getObject(i).hasParams()){ // only do this for sources that have been merged. Those that haven't have already had their parameters calculated.
-
                     // for each object, make a vector list of voxels that appear in it.
                     std::vector<PixelInfo::Voxel>
                     objVoxList = this->itsCube.getObject(i).getPixelSet();
@@ -1063,7 +963,6 @@ namespace askap {
                     }
 
                     templist[i] = objVoxList;
-                    //        }
                 }
 
                 std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
@@ -1082,11 +981,6 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
 
                 this->itsCube.prepareOutputFile();
-                //  if(this->itsCube.getNumObj()>0){
-                //    // no flag-setting, as it's hard to do when we don't have
-                //    // all the pixels. Particularly the negative flux flags
-                //    this->itsCube.sortDetections();
-                //  }
                 this->itsCube.outputDetectionList();
 
                 if (this->itsCube.pars().getFlagLog() && (this->itsCube.getNumObj() > 0)) {
@@ -1140,31 +1034,32 @@ namespace askap {
                 outfile << "COORD W\n";
                 outfile << "PA SKY\n";
                 outfile << "FONT lucidasans-12\n";
-		std::ofstream outfile2;
-		if(this->itsFitAnnotationFile!=this->itsFitBoxAnnotationFile){
-		  outfile2.open(this->itsFitBoxAnnotationFile.c_str());
-		  outfile << "COLOR BLUE\n";
-		  outfile << "COORD W\n";
-		  outfile << "FONT lucidasans-12\n";
-		}
+                std::ofstream outfile2;
+
+                if (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile) {
+                    outfile2.open(this->itsFitBoxAnnotationFile.c_str());
+                    outfile << "COLOR BLUE\n";
+                    outfile << "COORD W\n";
+                    outfile << "FONT lucidasans-12\n";
+                }
 
                 std::vector<sourcefitting::RadioSource>::iterator src;
 
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-		  if(this->itsFitAnnotationFile!=this->itsFitBoxAnnotationFile){
-                    outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
-                    src->writeFitToAnnotationFile(outfile,true,false);
-                    outfile2 << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
-                    src->writeFitToAnnotationFile(outfile2,false,true);
-		  }
-		  else{
-                    outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
-                    src->writeFitToAnnotationFile(outfile,true,true);
-		  }
-		}
+                    if (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile) {
+                        outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
+                        src->writeFitToAnnotationFile(outfile, true, false);
+                        outfile2 << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
+                        src->writeFitToAnnotationFile(outfile2, false, true);
+                    } else {
+                        outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
+                        src->writeFitToAnnotationFile(outfile, true, true);
+                    }
+                }
 
                 outfile.close();
-		if(this->itsFitAnnotationFile!=this->itsFitBoxAnnotationFile) outfile2.close();
+
+                if (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile) outfile2.close();
             }
         }
 
