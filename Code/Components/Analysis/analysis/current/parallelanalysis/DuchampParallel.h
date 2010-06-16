@@ -210,6 +210,8 @@ namespace askap {
 
                 /// Name of the Karma annotation file with the fitted Gaussian components
                 std::string itsFitAnnotationFile;
+                /// Name of the Karma annotation file with the boxes surrounding the fitted Gaussian components
+                std::string itsFitBoxAnnotationFile;
 
                 /// The list of fits to the detected sources.
                 std::vector<sourcefitting::RadioSource> itsSourceList;

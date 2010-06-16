@@ -150,7 +150,7 @@ namespace askap {
                                       std::string fittype, bool doHeader = false);
 
                     /// @brief Write the description of the fits to an annotation file.
-                    void writeFitToAnnotationFile(std::ostream &stream);
+                    void writeFitToAnnotationFile(std::ostream &stream, bool doEllipse, bool doBox);
 
                     /// @brief Functions allowing RadioSource objects to be passed over LOFAR Blobs
                     /// @name

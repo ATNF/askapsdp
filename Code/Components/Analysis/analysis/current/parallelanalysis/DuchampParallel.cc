@@ -163,6 +163,7 @@ namespace askap {
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
+            this->itsFitBoxAnnotationFile = parset.getString("fitBoxAnnotationFile", this->itsFitAnnotationFile);
             LOFAR::ParameterSet fitParset = parset.makeSubset("Fitter.");
             this->itsFitter = sourcefitting::FittingParameters(fitParset);
 
@@ -1139,14 +1140,31 @@ namespace askap {
                 outfile << "COORD W\n";
                 outfile << "PA SKY\n";
                 outfile << "FONT lucidasans-12\n";
+		std::ofstream outfile2;
+		if(this->itsFitAnnotationFile!=this->itsFitBoxAnnotationFile){
+		  outfile2.open(this->itsFitBoxAnnotationFile.c_str());
+		  outfile << "COLOR BLUE\n";
+		  outfile << "COORD W\n";
+		  outfile << "FONT lucidasans-12\n";
+		}
+
                 std::vector<sourcefitting::RadioSource>::iterator src;
 
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
+		  if(this->itsFitAnnotationFile!=this->itsFitBoxAnnotationFile){
                     outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
-                    src->writeFitToAnnotationFile(outfile);
-                }
+                    src->writeFitToAnnotationFile(outfile,true,false);
+                    outfile2 << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
+                    src->writeFitToAnnotationFile(outfile2,false,true);
+		  }
+		  else{
+                    outfile << "# Source " << int(src - this->itsSourceList.begin()) + 1 << ":\n";
+                    src->writeFitToAnnotationFile(outfile,true,true);
+		  }
+		}
 
                 outfile.close();
+		if(this->itsFitAnnotationFile!=this->itsFitBoxAnnotationFile) outfile2.close();
             }
         }
 

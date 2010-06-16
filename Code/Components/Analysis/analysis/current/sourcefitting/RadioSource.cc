@@ -1274,7 +1274,7 @@ namespace askap {
 
             //**************************************************************//
 
-            void RadioSource::writeFitToAnnotationFile(std::ostream &stream)
+            void RadioSource::writeFitToAnnotationFile(std::ostream &stream, bool doEllipse, bool doBox)
             {
                 /// @details
                 ///
@@ -1306,24 +1306,28 @@ namespace askap {
                     this->itsHeader.pixToWCS(pix, world);
                     stream.setf(std::ios::fixed);
                     stream.precision(6);
-                    stream << "ELLIPSE "
-                        << world[0] << " "
-                        << world[1] << " "
-                        << fit->majorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
-                        << fit->minorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
-                        << fit->PA() * 180. / M_PI << "\n";
-                }
+		    if(doEllipse){
+		      stream << "ELLIPSE "
+			     << world[0] << " "
+			     << world[1] << " "
+			     << fit->majorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
+			     << fit->minorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
+			     << fit->PA() * 180. / M_PI << "\n";
+		    }
+		}
 
                 pix[0] = pix[9] = this->getXmin() - this->itsFitParams.boxPadSize() - 0.5;
                 pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
                 pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
                 pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
                 this->itsHeader.pixToWCS(pix, world, 4);
-                stream << "CLINES ";
-
-                for (int i = 0; i < 4; i++) stream << world[i*3] << " " << world[i*3+1] << " ";
-
-                stream << world[0] << " " << world[1] << "\n";
+		if(doBox){
+		  stream << "CLINES ";
+		  
+		  for (int i = 0; i < 4; i++) stream << world[i*3] << " " << world[i*3+1] << " ";
+		
+		  stream << world[0] << " " << world[1] << "\n";
+		}
                 delete [] pix;
                 delete [] world;
             }
