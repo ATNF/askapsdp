@@ -71,11 +71,9 @@ struct NoXPolGain : public ParameterizedMEComponent {
                                 casa::uInt row) const;
 protected:
    /// @brief obtain a value of the parameter
-   /// @details This helper method checks whether a particular parameter
-   /// is defined in the internal Params object. If yes, the appropriate
-   /// value is returned wrapped around in a ComplexDiff class. If not,
-   /// a default value of (1.,0.) is returned. This method encapsulates
-   /// the assignment of default values.
+   /// @details This helper method returns the parameter wrapped 
+   /// around in a ComplexDiff class. An exception is thrown if the parameter
+   /// is not defined.
    /// @param[in] name parameter name
    /// @return value of the parameter wrapped in a complex diff object
    inline scimath::ComplexDiff getParameter(const std::string &name) const;

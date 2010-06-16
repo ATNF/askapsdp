@@ -103,9 +103,9 @@ namespace askap
           params1->add("shape.bmin.cena", 2.0e-3*casa::C::arcsec);
           params1->add("shape.bpa.cena", -55*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
-               params1->add("gain.g11."+toString(ant),
+               params1->add("gain.g11."+toString(ant)+".0",
                             casa::Complex(realGains[ant],imagGains[ant]));
-               params1->add("gain.g22."+toString(ant),1.);
+               params1->add("gain.g22."+toString(ant)+".0",1.);
           }
 
           p1.reset(new ComponentEquation(*params1, idi));
@@ -119,9 +119,9 @@ namespace askap
           params2->add("shape.bmin.cena", 2.0e-3*casa::C::arcsec);
           params2->add("shape.bpa.cena", -55*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
-               params2->add("gain.g11."+toString(ant),casa::Complex(1.0,0.0));
-               params2->add("gain.g22."+toString(ant),1.0);
-               params2->fix("gain.g22."+toString(ant));
+               params2->add("gain.g11."+toString(ant)+".0",casa::Complex(1.0,0.0));
+               params2->add("gain.g22."+toString(ant)+".0",1.0);
+               params2->fix("gain.g22."+toString(ant)+".0");
           }
        
           p2.reset(new ComponentEquation(*params2, idi));
@@ -157,7 +157,7 @@ namespace askap
                // taking care of the absolute phase uncertainty
                const casa::uInt refAnt = 0;
                const casa::Complex refPhaseTerm = casa::polar(1.f,
-                       -arg(params2->complexValue("gain.g11."+toString(refAnt))));
+                       -arg(params2->complexValue("gain.g11."+toString(refAnt)+".0")));
                        
                std::vector<std::string> freeNames(params2->freeNames());
                for (std::vector<std::string>::const_iterator it=freeNames.begin();

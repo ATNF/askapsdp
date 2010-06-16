@@ -44,23 +44,18 @@ namespace synthesis {
 
 
 /// @brief obtain a value of the parameter
-/// @details This helper method checks whether a particular parameter
-/// is defined in the internal Params object. If yes, the appropriate
-/// value is returned wrapped around in a ComplexDiff class. If not,
-/// a default value of (1.,0.) is returned. This method encapsulates
-/// the assignment of default values.
+/// @details This helper method returns the parameter wrapped 
+/// around in a ComplexDiff class. An exception is thrown if the parameter
+/// is not defined.
 /// @param[in] name parameter name
 /// @return value of the parameter wrapped in a complex diff object
 inline scimath::ComplexDiff NoXPolGain::getParameter(const std::string &name) const
 {
    ASKAPDEBUGASSERT(parameters());
-   if (parameters()->has(name)) {
-       // there is a parameter defined with the given name
-       const casa::Complex gain = parameters()->complexValue(name);
-       return scimath::ComplexDiff(name, gain);
-   }
-   // return the default
-   return scimath::ComplexDiff(name,casa::Complex(1.,0.));
+   ASKAPCHECK(parameters()->has(name), "Parameter "<<name<<" is not defined in NoXPolGain::getParameter");
+
+   const casa::Complex gain = parameters()->complexValue(name);
+   return scimath::ComplexDiff(name, gain);
 }
 
 
@@ -84,6 +79,10 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
    const casa::uInt ant1 = chunk.antenna1()[row];
    const casa::uInt ant2 = chunk.antenna2()[row];
    
+   const casa::uInt beam1 = chunk.feed1()[row];
+   const casa::uInt beam2 = chunk.feed2()[row];
+   
+   
    scimath::ComplexDiffMatrix calFactor(nPol, nPol, 0.);
 
    for (casa::uInt pol=0; pol<nPol; ++pol) {
@@ -94,10 +93,10 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const IConstDataAccessor &chun
         // we need an index into matrix 
 
         // gains for antenna 1, polarisation X if XX or XY, or Y if YX or YY
-        const std::string g1name = paramName(ant1, polIndex / 2);
+        const std::string g1name = paramName(ant1, beam1, polIndex / 2);
             
         // gains for antenna 2, polarisation X if XX or YX, or Y if XY or YY
-        const std::string g2name = paramName(ant2, polIndex % 2);
+        const std::string g2name = paramName(ant2, beam2, polIndex % 2);
             
         calFactor(pol,pol) = getParameter(g1name)*conj(getParameter(g2name));            
    }

@@ -108,7 +108,8 @@ Cimager.restore.beam                            = fit
 # parameters for calibrator
 Ccalibrator.dataset                              = field1.ms
 Ccalibrator.nAnt                                 = 36
-Ccalibrator.refgain                              = gain.g11.0
+Ccalibrator.nBeam                                = 1
+Ccalibrator.refgain                              = gain.g11.0.0
 
 #
 # The name of the model source is 10uJy. Specify direction and model file

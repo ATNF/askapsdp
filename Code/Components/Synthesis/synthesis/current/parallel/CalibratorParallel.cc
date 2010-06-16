@@ -109,11 +109,14 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       
       // initial assumption of the parameters
       const casa::uInt nAnt = itsParset.getInt32("nAnt",36); // 28  
-      ASKAPLOG_INFO_STR(logger, "Initialise gains (unknowns) for "<<nAnt<<" antennas.");
+      const casa::uInt nBeam = itsParset.getInt32("nBeam",1); 
+      ASKAPLOG_INFO_STR(logger, "Initialise gains (unknowns) for "<<nAnt<<" antennas and "<<nBeam<<" beam(s).");
       for (casa::uInt ant = 0; ant<nAnt; ++ant) {
-           itsModel->add("gain.g11."+utility::toString(ant),casa::Complex(1.,0.));
-           itsModel->add("gain.g22."+utility::toString(ant),casa::Complex(1.,0.));
-           //itsModel->fix("gain.g11."+utility::toString(ant));
+           for (casa::uInt beam = 0; beam<nBeam; ++beam) {
+                itsModel->add("gain.g11."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(1.,0.));
+                itsModel->add("gain.g22."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(1.,0.));
+                //itsModel->fix("gain.g11."+utility::toString(ant));
+           }
       }
       
       
