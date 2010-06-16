@@ -693,21 +693,31 @@ namespace askap {
                                     gauss.setPA(casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
                                     gauss.setFlux(src.fluxZero());
 
-                                    if (!this->itsDryRun) addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
-                                    else if (addedSource=doAddGaussian(this->itsAxes, gauss)){
-				      if( this->itsDatabaseOrigin == "POSSUM") 
-					ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<stokes.ra()<<", Dec="<<stokes.dec()<<", angle="<<stokes.polAngle());
-                                        countGauss++;
+                                    if (!this->itsDryRun){
+				      addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
 				    }
-				    else countMiss++;
+                                    else{
+				      addedSource=doAddGaussian(this->itsAxes, gauss);
+				      if ( addedSource ){
+                                        countGauss++;
+					if( this->itsDatabaseOrigin == "POSSUM") 
+					  ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<stokes.ra()<<", Dec="<<stokes.dec()<<", angle="<<stokes.polAngle());
+				      }
+				      else countMiss++;
+				    }
                                 } else {
-                                    if (!this->itsDryRun) addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
-                                    else if (addedSource=doAddPointSource(this->itsAxes, pix)){
+				  if (!this->itsDryRun){
+				    addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
+				  }
+				  else{
+				    addedSource=doAddPointSource(this->itsAxes, pix);
+				    if ( addedSource ){
+				      countPoint++;
 				      if( this->itsDatabaseOrigin == "POSSUM") 
 					ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<stokes.ra()<<", Dec="<<stokes.dec()<<", angle="<<stokes.polAngle());
-                                       countPoint++;
 				    }
 				    else countMiss++;
+				  }
                                 }
 				if(addedSource){
 				  if(this->itsDatabaseOrigin == "POSSUM" && this->itsFlagOutputList && this->itsFlagOutputListGoodOnly){
