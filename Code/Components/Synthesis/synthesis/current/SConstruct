@@ -32,6 +32,7 @@ pkg.AddSubPackage("gridding")
 pkg.AddSubPackage("parallel")
 pkg.AddSubPackage("simulation")
 pkg.AddSubPackage("imageaccess")
+pkg.AddSubPackage("deconvolution")
 
 # run the build process
 pkg()

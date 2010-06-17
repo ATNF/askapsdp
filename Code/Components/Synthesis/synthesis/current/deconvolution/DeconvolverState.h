@@ -1,0 +1,133 @@
+/// @file
+/// @brief Defines the state for a deconvolve
+/// @details This interface class defines a deconvolver used to estimate an
+/// image from a dirty image, psf optionally using a mask and a weights image.
+/// @ingroup Deconvolver
+///  
+///
+/// @copyright (c) 2007 CSIRO
+/// Australia Telescope National Facility (ATNF)
+/// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+/// PO Box 76, Epping NSW 1710, Australia
+/// atnf-enquiries@csiro.au
+///
+/// This file is part of the ASKAP software distribution.
+///
+/// The ASKAP software distribution is free software: you can redistribute it
+/// and/or modify it under the terms of the GNU General Public License as
+/// published by the Free Software Foundation; either version 2 of the License,
+/// or (at your option) any later version.
+///
+/// This program is distributed in the hope that it will be useful,
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/// GNU General Public License for more details.
+///
+/// You should have received a copy of the GNU General Public License
+/// along with this program; if not, write to the Free Software
+/// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+///
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
+///
+
+#ifndef I_DECONVOLVERSTATE_H
+#define I_DECONVOLVERSTATE_H
+#include <casa/aips.h>
+#include <boost/shared_ptr.hpp>
+
+#include <casa/Arrays/Array.h>
+
+#include <string>
+
+using namespace casa;
+
+namespace askap {
+
+namespace synthesis {
+
+/// @brief Interface class for a deconvolver state
+/// @details This interface class defines a deconvolver used to estimate an
+/// image from a dirty image, psf optionally using a mask and a weights image.
+/// @ingroup Deconvolver
+template<class T> class DeconvolverState {
+
+public:
+    typedef boost::shared_ptr<DeconvolverState<T> > ShPtr;
+  virtual ~DeconvolverState() {};
+
+    Int currentIter() const
+    {
+        return itsCurrentIter;
+    }
+
+    Int endIter() const
+    {
+        return itsEndIter;
+    }
+
+    T peakResidual() const
+    {
+        return itsPeakResidual;
+    }
+
+    T rmsResidual() const
+    {
+        return itsRmsResidual;
+    }
+
+    Int startIter() const
+    {
+        return itsStartIter;
+    }
+
+    void setObjectiveFunction(T objectiveFunction) {
+    	itsObjectiveFunction = objectiveFunction;
+    }
+
+    T objectiveFunction() const {
+    	return itsObjectiveFunction;
+    }
+
+    void setCurrentIter(Int currentIter)
+    {
+        itsCurrentIter = currentIter;
+    }
+
+    void setEndIter(Int endIter)
+    {
+        itsEndIter = endIter;
+    }
+
+    void setPeakResidual(T peakResidual)
+    {
+        itsPeakResidual = peakResidual;
+    }
+
+    void setRmsResidual(T rmsResidual)
+    {
+        itsRmsResidual = rmsResidual;
+    }
+
+    void setStartIter(Int startIter)
+    {
+        itsStartIter = startIter;
+    }
+
+private:
+    Int itsCurrentIter;
+    Int itsStartIter;
+    Int itsEndIter;
+    T itsPeakResidual;
+    T itsRmsResidual;
+    T itsObjectiveFunction;
+
+};
+
+} // namespace synthesis
+
+} // namespace askap
+
+
+#endif  // #ifndef I_DECONVOLVER_H
+
+
