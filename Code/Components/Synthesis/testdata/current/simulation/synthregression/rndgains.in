@@ -3,7 +3,7 @@
 # for 36 antennae and 2 polarisation products
 # 1 feeds will be simulated
 
-gain.g11.0.0 = [0.234456,0.745964]
+gain.g11.0.0 = [0.834456,0.000000]
 gain.g22.0.0 = [-0.461323,-0.890775]
 gain.g11.1.0 = [-0.857029,0.54175]
 gain.g22.1.0 = [-1.21342,0.245326]
