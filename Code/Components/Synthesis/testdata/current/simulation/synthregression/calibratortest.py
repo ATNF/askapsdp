@@ -1,5 +1,5 @@
-# regression tests with gridders taking w-term into account
-# some fixed parameters are given in wtermtest_template.in
+# regression tests of calibrator
+# some fixed parameters are given in calibratortest_template.in
 
 from synthprogrunner import *
 
@@ -19,7 +19,7 @@ def analyseResult(spr):
       throws exceptions if something is wrong, otherwise just
       returns
    '''
-   src_offset = 0.006/math.pi*180.
+   src_offset = 0.004/math.pi*180.
    psf_peak=[-172.5,-45]
    true_peak=sinProjection(psf_peak,src_offset,src_offset)
    stats = spr.imageStats('image.field1.restored')
@@ -53,7 +53,36 @@ def analyseResult(spr):
       raise RuntimeError, "Residual image has too high rms or median. Please verify"
 
 
+def loadParset(fname):
+    """
+       Helper method to read parset file with gains into a python dictionary. Most likely we wouldn't need this method
+       if importing of py-parset was a bit more straightforward. 
 
+       fname - file name of the parset file to read
+       Return: dictionary with gains (name is the key, value is the complex value).
+
+       For simplicity we assume that both real and imaginary parts are given as this is the case for all parset files
+       this helper method is likely to be used for.
+    """
+    res = {}
+    f = open(fname)
+    try:
+       for line in f:
+          if line.startswith("gain"):
+	     parts = line.split()
+	     if len(parts)!=3:
+	        raise RuntimeError, "Expect 3 parts in the line of parset file, you have %s" % (parts,)
+             if parts[1]!="=":
+	        raise RuntimeError, "Value and key are supposed to be separated by '=', you have %s" % (parts,)
+	     if not parts[2].startswith('[') or not parts[2].endswith(']'):
+	        raise RuntimeErrror, "Value is supposed to be in square brackets, you have <%s>" % parts[2]
+             values = parts[2][1:-1].split(",")
+	     if len(values)!=2:
+	        raise RuntimeError, "Two numbers are expected, you have %s" % (values,)
+	     res[parts[0]] = float(values[0])+(1j)*float(values[1])
+    finally:
+       f.close()
+    return res
 
 spr = SynthesisProgramRunner(template_parset = 'calibratortest_template.in')
 spr.addToParset("Csimulator.corrupt = false")
@@ -64,7 +93,12 @@ spr.runImager()
 analyseResult(spr)
 
 spr.runCalibrator()
-# here result.in should be close to (1.,0) within 0.02 or so
+# here result.dat should be close to (1.,0) within 0.03 or so
+
+res_gains = loadParset("result.dat")
+for k,v in res_gains.items():
+   if abs(v-1)>0.03:
+      raise RuntimeError, "Gain parameter %s has a value of %s which is notably different from (1,0)" % (k,v)
 
 # now repeat the simulation, but with corruption of visibilities
 spr.initParset()
@@ -75,3 +109,14 @@ spr.runSimulator()
 spr.runCalibrator()
 
 # gains should now be close to rndgains.in
+
+res_gains = loadParset("result.dat")
+orig_gains = loadParset("rndgains.in")
+for k,v in res_gains.items():
+   if k not in orig_gains:
+      raise RintimeError, "Gain parameter %s found in the result is missing in the model!" % k
+   orig_val = orig_gains[k]
+   if "gain.g22." in k:
+      continue
+   if abs(v-orig_val)>0.03:
+      raise RuntimeError, "Gain parameter %s has a value of %s which is notably different from model value %s" % (k,v,orig_val)
