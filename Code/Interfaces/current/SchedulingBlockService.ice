@@ -111,15 +111,15 @@ module schedblock
                                       NoSuchSchedulingBlockException;
 
         /**
-         * Get the UTC date/time the given Scheduling Block
+         * Get the POSIX time the given Scheduling Block
          * has been scheduled for. If the Scheduling Block isn't in SCHEDULED
-         * state return an empty string.
+         * state return a value less than 0. 
          *
          * @param sbid The id of the Scheduling Block
-         * @return an ISO 8601 UTC date string or an empty string
+         * @return an POSIX time double
          *
          **/
-        idempotent string getScheduledTime(long sbid)
+        idempotent double getScheduledTime(long sbid)
                throws NoSuchSchedulingBlockException;
 
         /**
