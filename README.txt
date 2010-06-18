@@ -64,7 +64,7 @@ Options:
   -q, --quiet           do not show all builder output [default=True]
   -v, --verbose         show all builder output
   -p EXTRAOPTS, --pass-options=EXTRAOPTS
-                        pass on package specific build options, e.g. 'mpich=1'
+                        pass on package specific build options, e.g. 'mpi=1'
   -t TARGET, --target=TARGET
                         select TARGET from: clean, format, functest, pylint,
                         test, doc, extract, install, release [default=install]
@@ -100,7 +100,7 @@ Options:
                         which allow this (e.g. -jN in make/scons). The default
                         is to use N+1 processes where N is the number of CPUs.
   -p EXTRAOPTS, --pass-options=EXTRAOPTS
-                        pass on package specific build options, e.g. 'mpich=1'
+                        pass on package specific build options, e.g. 'mpi=1'
   --release-name=RELEASE_NAME
                         The name of the staging directory and the release
                         tarball.
