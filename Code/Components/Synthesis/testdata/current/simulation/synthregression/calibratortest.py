@@ -53,12 +53,14 @@ def analyseResult(spr):
       raise RuntimeError, "Residual image has too high rms or median. Please verify"
 
 
-def loadParset(fname):
+def loadParset(fname,rotate=True):
     """
        Helper method to read parset file with gains into a python dictionary. Most likely we wouldn't need this method
        if importing of py-parset was a bit more straightforward. 
 
        fname - file name of the parset file to read
+       rotate - if True, phases of all gains will be rotated, so the first antenna will get 0 phase on both polarisations
+
        Return: dictionary with gains (name is the key, value is the complex value).
 
        For simplicity we assume that both real and imaginary parts are given as this is the case for all parset files
@@ -82,6 +84,21 @@ def loadParset(fname):
 	     res[parts[0]] = float(values[0])+(1j)*float(values[1])
     finally:
        f.close()
+    if rotate:
+       first_pol = 1.
+       second_pol = 1.
+       if "gain.g11.0.0" in res:
+          first_pol = res["gain.g11.0.0"].conjugate()
+	  first_pol /= abs(first_pol)
+       if "gain.g22.0.0" in res:
+          second_pol = res["gain.g22.0.0"].conjugate()
+	  second_pol /= abs(first_pol)
+       for k,v in res.items():
+          if "gain.g11" in k:
+	     res[k] *= first_pol
+          if "gain.g22" in k:
+	     res[k] *= second_pol
+	  
     return res
 
 spr = SynthesisProgramRunner(template_parset = 'calibratortest_template.in')
@@ -116,7 +133,5 @@ for k,v in res_gains.items():
    if k not in orig_gains:
       raise RintimeError, "Gain parameter %s found in the result is missing in the model!" % k
    orig_val = orig_gains[k]
-   if "gain.g22." in k:
-      continue
    if abs(v-orig_val)>0.03:
       raise RuntimeError, "Gain parameter %s has a value of %s which is notably different from model value %s" % (k,v,orig_val)
