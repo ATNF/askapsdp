@@ -1,6 +1,6 @@
 /// @file
-/// @brief Base class for Control of Deconvolver
-/// @details All the Controling is delegated to this class so that
+/// @brief Base class for State of Deconvolver
+/// @details All the Stateing is delegated to this class so that
 /// more control is possible.
 /// @ingroup Deconvolver
 ///  
@@ -30,15 +30,11 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_DECONVOLVERCONTROL_H
-#define I_DECONVOLVERCONTROL_H
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+
 #include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
-
-#include <string>
-
+#include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverState.h>
 
 using namespace casa;
@@ -47,48 +43,13 @@ namespace askap {
 
 namespace synthesis {
 
-/// @brief Base class for Control of Deconvolver
-/// @details All the controlling is delegated to this class so that
-/// more control is possible.
-/// @ingroup Deconvolver
-
-template<typename T> class DeconvolverControl {
-
-public:
-    typedef boost::shared_ptr<DeconvolverControl<T> > ShPtr;
-
-    enum TerminationCause {
-    	CONVERGED,
-        DIVERGED,
-        EXCEEDEDITERATIONS
-    };
-
-    virtual ~DeconvolverControl() {};
-
-    /// Terminate?
-    Bool terminate(const DeconvolverState<T>& ds);
-
-    /// Termination cause returned as String
-    String terminationString() const;
-
-    /// Set the termination cause
-    void setTerminationCause(const TerminationCause cause);
-
-    /// Termination cause returned as an enum
-    TerminationCause terminationCause() const {
-    	return itsTerminationCause;
-    };
-
-private:
-    TerminationCause itsTerminationCause;
-};
-
+    /// State the current state
+    template<class T>
+    DeconvolverState<T>::DeconvolverState() : itsCurrentIter(0), itsStartIter(0),
+      itsEndIter(0), itsPeakResidual(T(0)), itsRmsResidual(T(0)), itsObjectiveFunction(T(0)) {};
+  
 } // namespace synthesis
 
 } // namespace askap
-
-#include <deconvolution/DeconvolverControl.tcc>
-
-#endif
 
 

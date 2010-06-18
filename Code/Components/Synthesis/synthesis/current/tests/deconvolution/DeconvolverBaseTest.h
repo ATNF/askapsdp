@@ -1,9 +1,7 @@
 /// @file
-/// @brief Base class for monitor of Deconvolver
-/// @details All the monitoring is delegated to this class so that
-/// more flexibility is possible.
-/// @ingroup Deconvolver
-///  
+///
+/// Unit test for the deconvolution base class
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -28,27 +26,46 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
-///
 
-#include <askap_synthesis.h>
-#include <askap/AskapLogging.h>
+#include <deconvolution/DeconvolverBase.h>
+#include <cppunit/extensions/HelperMacros.h>
 
-#include <casa/aips.h>
-#include <deconvolution/DeconvolverMonitor.h>
+#include <casa/BasicSL/Complex.h>
+
+#include <boost/shared_ptr.hpp>
+
+using namespace casa;
 
 namespace askap {
 
 namespace synthesis {
 
-    /// Monitor the current state
-    template<class T>
-    void DeconvolverMonitor<T>::monitor(const DeconvolverState<T>& ds) {
-    	ASKAPLOG_INFO_STR(logger, "Iteration " << ds.currentIter() << " of " << ds.endIter());
-    	ASKAPLOG_INFO_STR(logger, "Peak residual " << ds.peakResidual());
-    }
-
+class DeconvolverBaseTest : public CppUnit::TestFixture
+{
+   CPPUNIT_TEST_SUITE(DeconvolverBaseTest);
+   CPPUNIT_TEST(testCreate);
+   CPPUNIT_TEST_SUITE_END();
+public:
+   
+   void testCreate() {
+     {
+       {
+         Array<Float> dirty(IPosition(2,100,100));
+         Array<Float> psf(IPosition(2,100,100));
+         itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
+         CPPUNIT_ASSERT(itsDB);
+         itsDB.reset();
+         CPPUNIT_ASSERT(!itsDB);
+       }
+     }
+   }
+   
+private:
+   /// @brief DeconvolutionBase class
+  boost::shared_ptr<DeconvolverBase<Float, Complex> > itsDB;
+};
+    
 } // namespace synthesis
 
 } // namespace askap
-
 

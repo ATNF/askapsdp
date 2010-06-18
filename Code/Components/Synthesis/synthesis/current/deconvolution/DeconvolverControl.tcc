@@ -27,7 +27,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author Max Voronkov <maxim.voronkov@csiro.au>
+/// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
 #include <askap_synthesis.h>
@@ -46,7 +46,7 @@ namespace synthesis {
     /// Control the current state
     template<class T>
     Bool DeconvolverControl<T>::terminate(const DeconvolverState<T>& ds) {
-    	if((ds.endIter()>0)&&(ds.currentIter()>=ds.endIter())) {
+      if((ds.currentIter()>-1)&&(ds.endIter()>0)&&(ds.currentIter()>=ds.endIter())) {
     		itsTerminationCause = EXCEEDEDITERATIONS;
     		return True;
     	}

@@ -30,8 +30,8 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_DECONVOLVER_H
-#define I_DECONVOLVER_H
+#ifndef I_DECONVOLVERBASE_H
+#define I_DECONVOLVERBASE_H
 #include <casa/aips.h>
 #include <boost/shared_ptr.hpp>
 
@@ -53,19 +53,24 @@ namespace askap {
     /// The template argument T is the type, and FT is the transform
     /// e.g. Deconvolver<Double, DComplex>
     /// @ingroup Deconvolver
-    template<class T, class FT> class Deconvolver {
+    template<class T, class FT> class DeconvolverBase {
 
     public:
-      typedef boost::shared_ptr<Deconvolver<T> > ShPtr;
+      typedef boost::shared_ptr<DeconvolverBase<T, FT> > ShPtr;
   
-      virtual ~Deconvolver();
+      virtual ~DeconvolverBase();
   
       /// @brief Construct from dirty image and psf
       /// @detailed Construct a deconvolver from a dirty image and
       /// the corresponding PSF
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
-      Deconvolver(const Array<T>& dirty, const Array<T>& psf) : itsDirty(dirty), itsPSF(psf) {};
+      DeconvolverBase(const Array<T>& dirty, const Array<T>& psf);
+
+      /// @brief Set the initial model
+      /// @detailed Set the model from which iteration will start
+      /// @param[in] model Model image (array)
+      void setModel(const Array<T>& model);
 
       /// @brief Update only the dirty image
       /// @detailed Update an existing deconvolver for a changed dirty image
@@ -76,58 +81,30 @@ namespace askap {
       /// @detailed The mask image is used to limit where flux is allowed in
       /// the image
       /// @param[in] mask Mask (array)
-      void setMask(const Array<T> & mask) {
-    	itsMask = mask;
-      }
+      void setMask(const Array<T> & mask);
 
       /// @brief Set the weight image otherwise there is no weight image
       /// @detailed The weights image (actually the sqrt) is used to 
       /// aid the deconvolution. The weights image is proportional
       /// to 1/sigma**2
       /// @param[in] weights Weights (array)
-      void setWeight(const Array<T> & weight) {
-    	itsWeight = mask;
-      }
+      void setWeight(const Array<T> & weight);
 
-      const Array<T> & mask() const
-      {
-        return itsMask;
-      }
+      const Array<T> & mask() const;
 
-      const Array<T> & weight() const
-      {
-        return itsWeight;
-      }
+      const Array<T> & weight() const;
 
-      boost::shared_ptr<DeconvolverControl<T> > DC() const
-      {
-        return itsDC;
-      }
+      boost::shared_ptr<DeconvolverControl<T> > DC() const;
 
-      void setDC(boost::shared_ptr<DeconvolverControl<T> > DC)
-      {
-        itsDC = DC;
-      }
+      void setDC(boost::shared_ptr<DeconvolverControl<T> > DC);
 
-      boost::shared_ptr<DeconvolverMonitor<T> > DM() const
-      {
-        return itsDM;
-      }
+      boost::shared_ptr<DeconvolverMonitor<T> > DM() const;
 
-      void setDM(boost::shared_ptr<DeconvolverMonitor<T> > DM)
-      {
-        itsDM = DM;
-      }
+      void setDM(boost::shared_ptr<DeconvolverMonitor<T> > DM);
 
-      boost::shared_ptr<DeconvolverState<T> > DS() const
-      {
-        return itsDS;
-      }
+      boost::shared_ptr<DeconvolverState<T> > DS() const;
 
-      void setDS(boost::shared_ptr<DeconvolverState<T> > DS)
-      {
-        itsDS = DS;
-      }
+      void setDS(boost::shared_ptr<DeconvolverState<T> > DS);
 
     private:
 
@@ -140,15 +117,17 @@ namespace askap {
       /// The monitor used for the deconvolver
       boost::shared_ptr<DeconvolverMonitor<T> > itsDM;
 
-      const Array<T>& itsDirty;
+      const Array<T> itsDirty;
 
-      const Array<T>& itsPSF;
+      const Array<T> itsPSF;
 
-      const Array<FT>& itsXFR;
+      const Array<T> itsModel;
 
-      const Array<T>& itsMask;
+      const Array<FT> itsXFR;
 
-      const Array<T>& itsWeight;
+      const Array<T> itsMask;
+
+      const Array<T> itsWeight;
 
     };
 
@@ -156,6 +135,8 @@ namespace askap {
 
 } // namespace askap
 
-#endif  // #ifndef I_DECONVOLVER_H
+#include <deconvolution/DeconvolverBase.tcc>
+
+#endif  // #ifndef I_DECONVOLVERBASE_H
 
 

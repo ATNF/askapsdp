@@ -27,7 +27,7 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
-/// @author Max Voronkov <maxim.voronkov@csiro.au>
+/// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
 #ifndef I_DECONVOLVERSTATE_H
@@ -45,14 +45,18 @@ namespace askap {
 
 namespace synthesis {
 
-/// @brief Interface class for a deconvolver state
-/// @details This interface class defines a deconvolver used to estimate an
-/// image from a dirty image, psf optionally using a mask and a weights image.
+/// @brief Class to hold the state of deconvolution
+/// @details This class attempts to encapsulate the state of 
+/// a deconvolver in a standard way so that termination
+/// and monitoring can be generic.
 /// @ingroup Deconvolver
 template<class T> class DeconvolverState {
 
 public:
     typedef boost::shared_ptr<DeconvolverState<T> > ShPtr;
+
+  DeconvolverState();
+
   virtual ~DeconvolverState() {};
 
     Int currentIter() const
@@ -127,6 +131,7 @@ private:
 
 } // namespace askap
 
+#include <deconvolution/DeconvolverState.tcc>
 
 #endif  // #ifndef I_DECONVOLVER_H
 
