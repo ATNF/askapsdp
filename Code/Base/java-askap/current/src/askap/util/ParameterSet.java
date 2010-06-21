@@ -20,10 +20,13 @@
 
 package askap.util;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.util.Iterator;
-import java.util.Properties;
 import java.util.Map;
-import java.io.*;
+import java.util.Properties;
 
 /**
  * Java representation of a ParameterSet.
@@ -390,4 +393,128 @@ public class ParameterSet extends Properties
         }
         return res;
     }
+    
+
+    /**
+     * Get a parameter as an Object of a given type
+     * 
+     * @param key The name of the parameter to get.
+     * @param the type of the object to be returned
+     * @return The typed Object value of the parameter.
+     */
+	public Object getObject(String key, String type) throws NumberFormatException {
+		String value = getProperty(key);
+		return getTypedValue(value, type);
+	}
+	
+	/**
+	 * Given a string value and type, convert hte string value to a typed object
+	 * 
+	 * @param value
+	 * @param type
+	 * @return
+	 * @throws NumberFormatException
+	 */
+	public static Object getTypedValue(String value, String type) throws NumberFormatException {
+		if (value==null || value.length()==0)
+			return null;
+		
+		if (value.startsWith("[") && value.endsWith("]"))
+			return getVector(value, type);
+		else
+			return getSimpleObject(value, type);
+	}
+	
+	
+	/**
+	 * value should begin and end with [], values are delimited by ","
+	 * white spaces are trimmed
+	 * 
+	 * @param value
+	 * @param type
+	 * @return an array of Objects
+	 * @throws NumberFormatException
+	 */
+	private static Object getVector(String value, String type)  throws NumberFormatException {
+		
+		if (value==null || value.length()<2 || !value.startsWith("[") || !value.endsWith("]"))
+			throw new NumberFormatException("Value " + value + " is null or in wrong formate for vector");
+		
+		String str = value.substring(1, value.length()-1);
+		
+		if (str.length()==0)
+			return new Object[0];
+		
+		String strValues[] = str.split(",");
+		Object objValues[] = new Object[strValues.length];
+		
+		for (int i=0; i<strValues.length; i++) {
+			objValues[i] = getSimpleObject(strValues[i].trim(), type);
+		}
+		
+		return objValues;
+	}
+
+	private static Object getSimpleObject(String value, String type) throws NumberFormatException {
+		Object o = null;
+		if (type==null || type.length()==0 || type.equalsIgnoreCase("string"))
+			return value;
+		
+		if (value==null || value.length()==0)
+			return null;
+		
+		if (type.equalsIgnoreCase("short")
+				|| type.equalsIgnoreCase("byte")
+				|| type.equalsIgnoreCase("long")
+				|| type.equalsIgnoreCase("boolean")
+				|| type.equalsIgnoreCase("integer")
+				|| type.equalsIgnoreCase("double")
+				|| type.equalsIgnoreCase("float")){
+			// handle simple types such Integer, Double etc
+			Class<?> c;
+			try {
+				c = Class.forName("java.lang." + type);
+				Class<String> strArgsClass = String.class;
+				Constructor<?> constructor = c.getConstructor(strArgsClass);
+				o = constructor.newInstance(value);
+			} catch (Exception e) {
+				String msg = "Could not convert " + value + " to " + type;
+				if (e.getMessage() != null)
+					msg = msg + ": " + e.getMessage();
+				throw new NumberFormatException(msg);
+			}
+		} else {
+			throw new NumberFormatException("Unknown type " + type);
+		}
+		
+		return o;	
+	}
+	
+	/**
+	 * print object out in proper ParameterSet format
+	 * @param o
+	 * @return
+	 */
+	public static String getStrValue(Object o) {
+		if (o==null)
+			return null;
+		
+		if (o instanceof Object[]) {
+			Object[] list = (Object[]) o;
+			String val = "[";
+			for (Object x : list) {
+				val = val + x.toString() + ",";
+			}
+			// get rid of last ,
+			if (val.length()>1)
+			val = val.substring(0, val.length()-1);
+			val = val + "]";
+			
+			return val;
+			
+		} else {
+			return o.toString();
+		}
+		
+	}
 };

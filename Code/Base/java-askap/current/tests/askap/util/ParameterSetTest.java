@@ -40,6 +40,46 @@ public class ParameterSetTest
         theirTestSet.put("integer", "1234");
         theirTestSet.put("boolean", "true");
         theirTestSet.put("prefix.suffix", "bar");
+        
+        theirTestSet.put("short", "[5, 6, 8, 10]");
+        theirTestSet.put("byte", "[]");
+        
+        
+    }
+    @Test
+    public void test_SimpleTypedObject() {
+    	assertTrue("float type", ((Float)theirTestSet.getObject("float", "Float")).floatValue()==3.141f);
+    	assertTrue("string type", theirTestSet.getObject("string", null).equals("foo"));
+    	assertTrue("integer type", ((Integer)theirTestSet.getObject("integer", "Integer")).intValue()==1234);
+    	assertTrue("boolean type", ((Boolean)theirTestSet.getObject("boolean", "Boolean")).booleanValue());
+    }
+    
+    @Test
+    public void test_ArrayObject() {
+    	Object shortArray[] = (Object[]) theirTestSet.getObject("short", "Short");
+    	
+    	assertTrue("short array should have 4 elements", shortArray.length==4);
+    	assertTrue("shortArray[0]=5", ((Short)shortArray[0]).shortValue()==5);
+    	assertTrue("shortArray[1]=6", ((Short)shortArray[1]).shortValue()==6);
+    	assertTrue("shortArray[2]=8", ((Short)shortArray[2]).shortValue()==8);
+    	assertTrue("shortArray[3]=10", ((Short)shortArray[3]).shortValue()==10);
+    	
+    	Object byteArray[] = (Object[]) theirTestSet.getObject("byte", "Byte");
+    	assertTrue("byte array should have 0 element", byteArray.length==0);
+    }
+
+    @Test
+    public void test_ObjectToString() {
+    	Integer intArray[] = new Integer[5];
+    	intArray[0] = new Integer(1);
+    	intArray[1] = new Integer(5);
+    	intArray[2] = new Integer(10);
+    	intArray[3] = new Integer(55);
+    	intArray[4] = new Integer(80);
+    	
+    	assertTrue("should convert to [1,5,10,55,80]", ParameterSet.getStrValue(intArray).equals("[1,5,10,55,80]"));    	
+    	
+    	assertTrue("should convert to []", ParameterSet.getStrValue(new Double[0]).equals("[]"));    	
     }
 
     @Test
