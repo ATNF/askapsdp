@@ -28,6 +28,12 @@ from nose.tools import raises, assert_equals
 def test_constructor():
     p = ParameterSet()
 
+
+def test_stringconstructor():
+    pset = """a.b.c = 1
+a.b.d = x"""
+    p = ParameterSet(pset)
+
 # from file
 def test_fileconstructor():
     testfile = os.path.join(os.path.split(__file__)[0], 'example.parset')
@@ -44,10 +50,14 @@ def constructor(args):
         args = (args,)
     p = ParameterSet(*args)
 
-# generator for contructor arguments
+# generator for constructor arguments
 def test_args():
     for t in [('x.y', 1), ('x', [1,2])]:
         yield constructor, t
+
+@raises(OSError)
+def test_failconstructor():
+    p = ParameterSet("xxx.parset")
 
 # test set_value
 def test_set_value():

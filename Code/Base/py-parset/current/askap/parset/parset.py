@@ -59,7 +59,7 @@ class ParameterSet(object):
         >>> print p.get_value('x.y.a', 10)
         10
 
-    To test if a key exists us the `in` keyword. Note that the key must start 
+    To test if a key exists us the `in` keyword. Note that the key must start
     at the root value::
 
         >>> p = ParameterSet('x.y.z', 1)
@@ -97,8 +97,13 @@ class ParameterSet(object):
         object.__setattr__(self, "_pdict", {})
         # from file
         if len(args) == 1:
-            if isinstance(args[0], basestring) and os.path.exists(args[0]):
-                pfile = file(args[0], "r")
+            if isinstance(args[0], basestring):
+                if args[0].find("=") > -1:
+                    pfile = args[0].splitlines()
+                elif os.path.exists(args[0]):
+                    pfile = file(args[0], "r")
+                else:
+                    raise OSError("Given (single) argument is not filename.")
                 i = 1
                 for line in pfile:
                     pair = extract(line)
@@ -287,7 +292,7 @@ class ParameterSet(object):
 
 def encode(value):
     """Encode a python value as ParameterSet string.
-    
+
        Note that python hex values are `int`s, so the only way to encode
        handle hex values is to make them strings.
     """
