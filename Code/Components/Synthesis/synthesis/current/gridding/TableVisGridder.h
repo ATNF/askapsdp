@@ -109,6 +109,13 @@ namespace askap
       /// Form the final output image
       /// @param out Output double precision image or PSF
       virtual void finaliseGrid(casa::Array<double>& out);
+      
+      /// @brief store given grid
+      /// @details This is a helper method for debugging, it stores the amplitude of a given
+      /// grid into a CASA image (prior to FFT done as part of finaliseGrid)
+      /// @param[in] name image name
+      /// @param[in] numGrid number of the grid to store
+      void storeGrid(const std::string &name, casa::uInt numGrid) const;
 
       /// @brief Calculate weights image
       /// @details Form the sum of the convolution function squared, 

@@ -877,6 +877,21 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 	out = scimath::PaddingUtils::extract(dBuffer,itsPaddingFactor);
 }
 
+/// @brief store given grid
+/// @details This is a helper method for debugging, it stores the amplitude of a given
+/// grid into a CASA image (prior to FFT done as part of finaliseGrid)
+/// @param[in] name image name
+/// @param[in] numGrid number of the grid to store
+void TableVisGridder::storeGrid(const std::string &name, casa::uInt numGrid) const
+{
+   ASKAPCHECK(numGrid < itsGrid.size(), "Requested grid number of "<<numGrid<<
+              " exceeds or equal to "<<itsGrid.size()<<", the number of grids available");
+   casa::Array<float> buffer(itsGrid[numGrid].shape());
+   buffer = amplitude(itsGrid[numGrid]);
+   SynthesisParamsHelper::saveAsCasaImage(name, buffer);       
+}
+
+
 
 /// This is the default implementation
 void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
