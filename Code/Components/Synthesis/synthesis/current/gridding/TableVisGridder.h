@@ -317,7 +317,7 @@ namespace askap
       /// @param[out] out complex output array
       /// @param[in] in double input array
       /// @param[in] padding padding factor
-      static void toComplex(casa::Array<casa::Complex>& out, const casa::Array<double>& in, 
+      static void toComplex(casa::Array<casa::DComplex>& out, const casa::Array<double>& in, 
                      const float padding = 1.);
 
       /// @brief Conversion helper function
@@ -326,7 +326,7 @@ namespace askap
       /// @param[out] out real output array
       /// @param[in] in complex input array      
       /// @param[in] padding padding factor
-      static void toDouble(casa::Array<double>& out, const casa::Array<casa::Complex>& in,
+      static void toDouble(casa::Array<double>& out, const casa::Array<casa::DComplex>& in,
                     const float padding = 1.);
 
       /// @brief a helper method to initialize gridding of the PSF

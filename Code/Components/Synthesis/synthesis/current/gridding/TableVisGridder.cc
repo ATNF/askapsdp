@@ -35,6 +35,7 @@ ASKAP_LOGGER(logger, ".gridding");
 
 #include <casa/BasicSL/Constants.h>
 #include <casa/Arrays/ArrayIter.h>
+#include <casa/Arrays/ArrayMath.h>
 #include <casa/Arrays/Slicer.h>
 
 #include <measures/Measures/MDirection.h>
@@ -261,7 +262,7 @@ void TableVisGridder::save(const std::string& name) {
 	    for (unsigned int i=0; i<itsConvFunc.size(); i++) {
 		   
 			casa::Array<double> realC(itsConvFunc[i].shape());
-			toDouble(realC, itsConvFunc[i]);
+			casa::convertArray<double,float>(realC,real(itsConvFunc[i]));
 			//			ASKAPLOG_INFO_STR(logger, "Entry[" <<  i <<  "] has shape " <<  itsConvFunc[i].shape());
 			std::ostringstream os;
 			os<<"Real.Convolution";
@@ -723,12 +724,12 @@ casa::MVDirection TableVisGridder::getTangentPoint() const
 /// @param[out] out complex output array
 /// @param[in] in double input array
 /// @param[in] padding padding factor
-void TableVisGridder::toComplex(casa::Array<casa::Complex>& out,
+void TableVisGridder::toComplex(casa::Array<casa::DComplex>& out,
 		const casa::Array<double>& in, const float padding) {	
 	out.resize(scimath::PaddingUtils::paddedShape(in.shape(),padding));
 	out.set(0.);
-    casa::Array<casa::Complex> subImage = scimath::PaddingUtils::extract(out,padding);
-    casa::convertArray<casa::Complex, double>(subImage, in);				
+    casa::Array<casa::DComplex> subImage = scimath::PaddingUtils::extract(out,padding);
+    casa::convertArray<casa::DComplex, double>(subImage, in);				
 }
 
 /// @brief Conversion helper function
@@ -738,12 +739,11 @@ void TableVisGridder::toComplex(casa::Array<casa::Complex>& out,
 /// @param[in] in complex input array
 /// @param[in] padding padding factor      
 void TableVisGridder::toDouble(casa::Array<double>& out,
-		const casa::Array<casa::Complex>& in, const float padding) {
-		
-  casa::Array<casa::Complex> wrapper(in);
-  const casa::Array<casa::Complex> subImage = scimath::PaddingUtils::extract(wrapper,padding);
+		const casa::Array<casa::DComplex>& in, const float padding) {
+  casa::Array<casa::DComplex> wrapper(in);
+  const casa::Array<casa::DComplex> subImage = scimath::PaddingUtils::extract(wrapper,padding);
   out.resize(subImage.shape());
-  casa::convertArray<double,float>(out,real(subImage));
+  out = real(subImage);
 }
 
 /// @brief set up itsStokes using the information from itsAxes and itsShape
@@ -860,7 +860,8 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 
     /// Loop over all grids Fourier transforming and accumulating
 	for (unsigned int i=0; i<itsGrid.size(); i++) {
-		casa::Array<casa::Complex> scratch(itsGrid[i].copy());
+	    casa::Array<casa::DComplex> scratch(itsGrid[i].shape());
+	    casa::convertArray<casa::DComplex,casa::Complex>(scratch, itsGrid[i]);
 		fft2d(scratch, false);
 		if (i==0) {
 			toDouble(dBuffer, scratch);
@@ -923,8 +924,10 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		casa::Array<double> scratch(itsShape,0.);
 		scimath::PaddingUtils::extract(scratch, itsPaddingFactor) = in;
 		correctConvolution(scratch);
-		toComplex(itsGrid[0], scratch);
-		fft2d(itsGrid[0], true);
+		casa::Array<casa::DComplex> scratch2(itsGrid[0].shape());
+		toComplex(scratch2, scratch);
+		fft2d(scratch2, true);
+		casa::convertArray<casa::Complex,casa::DComplex>(itsGrid[0],scratch2);
 	} else {
 		ASKAPLOG_INFO_STR(logger, "No need to degrid: model is empty");
 		itsModelIsEmpty=true;

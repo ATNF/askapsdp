@@ -114,7 +114,7 @@ namespace askap
 				/// Multiply by the phase screen
 				/// @param scratch To be multiplied
 				/// @param i Index
-				void multiply(casa::Array<casa::Complex>& scratch, int i);
+				void multiply(casa::Array<casa::DComplex>& scratch, int i);
 				
 				/// Mapping from row, pol, and channel to planes of grid
 				casa::Cube<int> itsGMap;

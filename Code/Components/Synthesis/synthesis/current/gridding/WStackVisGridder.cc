@@ -128,7 +128,7 @@ namespace askap
       
     }
 
-    void WStackVisGridder::multiply(casa::Array<casa::Complex>& scratch, int i)
+    void WStackVisGridder::multiply(casa::Array<casa::DComplex>& scratch, int i)
     {
       /// These are the actual cell sizes used
       const float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
@@ -138,10 +138,10 @@ namespace askap
       const int ny=itsShape(1);
 
       const float w=2.0f*casa::C::pi*getWTerm(i);
-      casa::ArrayIterator<casa::Complex> it(scratch, 2);
+      casa::ArrayIterator<casa::DComplex> it(scratch, 2);
       while (!it.pastEnd())
       {
-        casa::Matrix<casa::Complex> mat(it.array());
+        casa::Matrix<casa::DComplex> mat(it.array());
 
         /// @todo Optimise multiply loop
         for (int iy=0; iy<ny; iy++)
@@ -157,7 +157,7 @@ namespace askap
               const float r2=x2+y2;
               if (r2<1.0) {
                   const float phase=w*(1.0-sqrt(1.0-r2));
-                  mat(ix, iy)*=casa::Complex(cos(phase), -sin(phase));
+                  mat(ix, iy)*=casa::DComplex(cos(phase), -sin(phase));
               }
             }
           }
@@ -187,20 +187,16 @@ namespace askap
       {
         if (casa::max(casa::amplitude(itsGrid[i]))>0.0)
         {
-          casa::Array<casa::Complex> scratch(itsGrid[i].copy());
+          casa::Array<casa::DComplex> scratch(itsGrid[i].shape());
+          casa::convertArray<casa::DComplex,casa::Complex>(scratch,itsGrid[i]);
           scimath::fft2d(scratch, false);
           multiply(scratch, i);
 
-          if (first)
-          {
+          if (first)  {
             first=false;
-            toDouble(dBuffer, scratch);
-          }
-          else
-          {
-            casa::Array<double> work(dBuffer.shape());
-            toDouble(work, scratch);
-            dBuffer+=work;
+            dBuffer = real(scratch);
+          } else {
+            dBuffer += real(scratch);
           }
         }
       }
@@ -222,8 +218,7 @@ namespace askap
       initialiseFreqMapping();      
 
       itsGrid.resize(nWPlanes());
-      if (casa::max(casa::abs(in))>0.0)
-      {
+      if (casa::max(casa::abs(in))>0.0) {
         itsModelIsEmpty=false;
         ASKAPLOG_INFO_STR(logger, "Filling " << nWPlanes()
                            << " planes of W stack with model");
@@ -232,20 +227,19 @@ namespace askap
         correctConvolution(scratch);
         for (int i=0; i<nWPlanes(); ++i)
         {
-          itsGrid[i].resize(itsShape);
-          toComplex(itsGrid[i], scratch);
-          multiply(itsGrid[i], i);
+          casa::Array<casa::DComplex> work(itsShape);          
+          toComplex(work, scratch);
+          multiply(work, i);
           /// Need to conjugate to get sense of w correction correct
-          itsGrid[i]=casa::conj(itsGrid[i]);
-          scimath::fft2d(itsGrid[i], true);
+          work = casa::conj(work);
+          scimath::fft2d(work, true);
+          itsGrid[i].resize(itsShape);
+          casa::convertArray<casa::Complex,casa::DComplex>(itsGrid[i],work);
         }
-      }
-      else
-      {
+      } else {
         itsModelIsEmpty=true;
         ASKAPLOG_INFO_STR(logger, "No need to fill W stack: model is empty");
-        for (int i=0; i<nWPlanes(); ++i)
-        {
+        for (int i=0; i<nWPlanes(); ++i) {
           itsGrid[i].resize(casa::IPosition(1, 1));
           itsGrid[i].set(casa::Complex(0.0));
         }
