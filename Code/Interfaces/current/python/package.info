@@ -1,0 +1,3 @@
+pymodule=askap.ice
+# pure python module
+libs=
