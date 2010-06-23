@@ -61,7 +61,7 @@ module executive
      * TEMPORARY method to allow loading a "Scheduling Block" made up from
      * the Procedure string and a ParameterMap (parset).
      **/
-    void upload(string procedure, askap::interfaces::ParameterMap pmap);
+    ["ami"] void upload(string procedure, askap::interfaces::ParameterMap pmap);
   };
 };
 };
