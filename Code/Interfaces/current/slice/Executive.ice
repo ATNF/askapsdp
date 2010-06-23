@@ -56,6 +56,12 @@ module executive
      * Abort the Executive, interrupting the current SchedulingBlock.
      **/
     ["ami"] void abort();
+
+    /**
+     * TEMPORARY method to allow loading a "Scheduling Block" made up from
+     * the Procedure string and a ParameterMap (parset).
+     **/
+    void upload(string procedure, askap::interfaces::ParameterMap pmap);
   };
 };
 };
