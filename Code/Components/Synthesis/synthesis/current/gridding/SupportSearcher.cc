@@ -31,9 +31,7 @@
 
 #include <gridding/SupportSearcher.h>
 
-#ifdef ASKAP_DEBUG  
 #include <measurementequation/SynthesisParamsHelper.h>
-#endif // ASKAP_DEBUG
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
