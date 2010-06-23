@@ -146,8 +146,7 @@ namespace askap {
 
             // First do the setup needed for both workers and master
             this->itsCube.pars() = parseParset(parset);
-            this->itsImage = substitute(parset.getString("image"));
-            ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsImage);
+            ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsCube.pars().getImageFile());
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
             this->itsWeightImage = parset.getString("weightimage", "");
 
@@ -171,8 +170,6 @@ namespace askap {
                 ASKAPLOG_WARN_STR(logger, "No valid fit types given, so setting doFit flag to false.");
 
             this->itsCube.pars().setFlagRobustStats(parset.getBool("flagRobust", true));
-            // Now read the correct image name according to worker/master state.
-            this->itsCube.pars().setImageFile(this->itsImage);
 
             if (this->isParallel()) {
                 if (this->isMaster()) {
@@ -267,10 +264,10 @@ namespace askap {
                 }
 
                 if (result == duchamp::FAILURE) {
-                    ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsImage << ".");
-                    ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsImage)
+		  ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsCube.pars().getImageFile() << ".");
+                    ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsCube.pars().getImageFile())
                 } else {
-                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read metadata from image " << this->itsImage);
+                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read metadata from image " << this->itsCube.pars().getImageFile());
                 }
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
@@ -314,10 +311,10 @@ namespace askap {
                 }
 
                 if (result == duchamp::FAILURE) {
-                    ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in data from image " << this->itsImage);
-                    ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsImage);
+                    ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in data from image " << this->itsCube.pars().getImageFile());
+                    ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsCube.pars().getImageFile());
                 } else {
-                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read data from image " << this->itsImage);
+                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read data from image " << this->itsCube.pars().getImageFile());
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
                                           << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ());
 
@@ -578,8 +575,8 @@ namespace askap {
                         } else
                             src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
 
-                        src.findAlpha(this->itsImage, this->itsFlagFindSpectralIndex);
-                        src.findBeta(this->itsImage, this->itsFlagFindSpectralIndex);
+                        src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
+                        src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
                     }
 
                     this->itsSourceList.push_back(src);
@@ -870,8 +867,8 @@ namespace askap {
                                 src.fitGauss(&this->itsVoxelList, this->itsFitter);
                             }
 
-                            src.findAlpha(this->itsImage, this->itsFlagFindSpectralIndex);
-                            src.findBeta(this->itsImage, this->itsFlagFindSpectralIndex);
+                            src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
+                            src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
                         }
 
                         this->itsSourceList.push_back(src);

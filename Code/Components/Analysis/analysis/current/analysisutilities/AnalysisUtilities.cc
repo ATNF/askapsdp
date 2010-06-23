@@ -144,6 +144,9 @@ namespace askap {
             /// master or worker. These should be set by the calling
             /// function.
             duchamp::Param par;
+
+	    par.setImageFile( parset.getString("image") );
+
             std::string outputfile;
             outputfile = parset.getString("outfile", "");
 

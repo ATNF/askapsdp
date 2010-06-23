@@ -74,9 +74,6 @@ namespace askap {
 
                 virtual ~DuchampParallel() {};
 
-                std::string image() {return itsImage;};
-                void setImage(std::string s) {itsImage = s;};
-
                 /// @brief Return a reference to the duchamp::Cube object
                 duchamp::Cube &cube() {duchamp::Cube &rcube = itsCube; return rcube;};
 
@@ -163,9 +160,6 @@ namespace askap {
 
             protected:
 
-                /// The name of the file containing the image data.
-                std::string itsImage;
-
                 /// Is the image a FITS file or not (if not, probably a casa image...)
                 bool itsIsFITSFile;
 
@@ -215,9 +209,6 @@ namespace askap {
 
                 /// The list of fits to the detected sources.
                 std::vector<sourcefitting::RadioSource> itsSourceList;
-
-                /// The list of sections corresponding to all workers' images (only used by the master).
-                std::vector<duchamp::Section> itsSectionList;
 
                 /// The definition of the subimage being used (only relevant for the workers)
                 SubimageDef itsSubimageDef;
