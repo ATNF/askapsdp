@@ -3,20 +3,7 @@
     <!-- Ice dependencies -->
     <property name="slice.dir" value="${dep_interfaces}"/>
     <fileset id="slice.files" dir="${dep_interfaces}">
-      <include name="CP.ice" />
-      <include name="CalibrationParameters.ice" />
-      <include name="CommonTypes.ice" />
-      <include name="Component.ice" />
-      <include name="DataServiceExceptions.ice" />
-      <include name="Executive.ice" />
-      <include name="LoggingService.ice" />
-      <include name="MoniCA.ice" />
-      <include name="ObsProgramService.ice" />
-      <include name="QueueService.ice" />
-      <include name="SBTemplateService.ice" />
-      <include name="SchedulingBlockService.ice" />
-      <include name="TOM.ice" />
-      <include name="TypedValues.ice" />
+      <include name="**.ice" />
     </fileset>
 
     <!-- Read in the environment so $ASKAP_ROOT can be used -->
