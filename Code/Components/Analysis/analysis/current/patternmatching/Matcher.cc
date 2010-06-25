@@ -119,8 +119,8 @@ namespace askap {
                 this->itsRefFile = parset.getString("refFile", "");
                 this->itsFluxMethod = parset.getString("fluxMethod", "peak");
                 this->itsFluxUseFit = parset.getString("fluxUseFit", "best");
-                this->itsRA  = parset.getString("RA");
-                this->itsDec = parset.getString("Dec");
+                this->itsRA  = parset.getString("RA","00:00:00");
+                this->itsDec = parset.getString("Dec","00:00:00");
                 this->itsSrcPosType = parset.getString("srcPosType", "deg");
                 this->itsRefPosType = parset.getString("refPosType", "deg");
                 this->itsRadius = parset.getDouble("radius", -1.);
@@ -278,6 +278,10 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, "After voting, have found " << this->itsMatchingPixList.size() << " matching points\n");
                     this->itsSenseMatch = (this->itsMatchingTriList[0].first.isClockwise() ==
                                            this->itsMatchingTriList[0].second.isClockwise());
+		    if(this->itsSenseMatch)
+		      ASKAPLOG_INFO_STR(logger, "The two lists have the same sense.");
+		    else
+		      ASKAPLOG_INFO_STR(logger, "The two lists have the opposite sense.");
                 }
             }
 
@@ -288,8 +292,8 @@ namespace askap {
             {
                 /// @details The mean and rms offsets in the x- and
                 /// y-directions are measured for the matching points.
-                float *dx = new float[this->itsNumMatch1];
-                float *dy = new float[this->itsNumMatch1];
+                double *dx = new double[this->itsNumMatch1];
+                double *dy = new double[this->itsNumMatch1];
 
                 for (int i = 0; i < this->itsNumMatch1; i++) {
                     if (this->itsSenseMatch) {
@@ -302,6 +306,7 @@ namespace askap {
 
                 }
 
+		this->itsMeanDx = this->itsMeanDy = 0.;
                 for (int i = 0; i < this->itsNumMatch1; i++) {
                     this->itsMeanDx += dx[i];
                     this->itsMeanDy += dy[i];
@@ -310,6 +315,7 @@ namespace askap {
                 this->itsMeanDx /= double(this->itsNumMatch1);
                 this->itsMeanDy /= double(this->itsNumMatch1);
 
+		this->itsRmsDx = this->itsRmsDy = 0.;
                 for (int i = 0; i < this->itsNumMatch1; i++) {
                     this->itsRmsDx += (dx[i] - this->itsMeanDx) * (dx[i] - this->itsMeanDx);
                     this->itsRmsDy += (dy[i] - this->itsMeanDy) * (dy[i] - this->itsMeanDy);
@@ -317,8 +323,11 @@ namespace askap {
 
                 this->itsRmsDx = sqrt(this->itsRmsDx / (double(this->itsNumMatch1 - 1)));
                 this->itsRmsDy = sqrt(this->itsRmsDy / (double(this->itsNumMatch1 - 1)));
-                ASKAPLOG_INFO_STR(logger, "Offsets between the two is dx=" << this->itsMeanDx << "+-" << this->itsRmsDx
-                                      << ", dy=" << this->itsMeanDy << "+-" << this->itsRmsDy << "\n");
+		std::stringstream ss;
+		ss.setf(std::ios::fixed);
+		ss << "Offsets between the two is dx=" << this->itsMeanDx << "+-" << this->itsRmsDx
+		   << ", dy=" << this->itsMeanDy << "+-" << this->itsRmsDy;
+                ASKAPLOG_INFO_STR(logger, ss.str());
             }
 
             //**************************************************************//
