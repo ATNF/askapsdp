@@ -38,98 +38,149 @@
 #include <string>
 
 #include <deconvolution/DeconvolverBase.h>
+#include <deconvolution/DeconvolverState.h>
 
 namespace askap {
-
+  
   namespace synthesis {
-
+    
     /// @brief Base class for a deconvolver
     /// @details This base class defines a deconvolver used to estimate an
     /// image from a dirty image, psf optionally using a mask and a weights image.
     /// The template argument T is the type, and FT is the transform
     /// e.g. Deconvolver<Double, DComplex>
     /// @ingroup Deconvolver
+    
+    template<class T, class FT>
+    
+    DeconvolverBase<T,FT>::~DeconvolverBase() {
+    };
+    
+    template<class T, class FT>
+    DeconvolverBase<T,FT>::DeconvolverBase(Array<T>& dirty, Array<T>& psf)
+      : itsDirty(dirty), itsPSF(psf)
+    {
+      itsDS = boost::shared_ptr<DeconvolverState<T> >(new DeconvolverState<T>());
+      ASKAPASSERT(itsDS);
+      itsDC = boost::shared_ptr<DeconvolverControl<T> >(new DeconvolverControl<T>());
+      ASKAPASSERT(itsDC);
+      itsDM = boost::shared_ptr<DeconvolverMonitor<T> >(new DeconvolverMonitor<T>());
+      ASKAPASSERT(itsDM);
+    };
+    
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::setModel(const Array<T>& model) {
+      itsModel = model.copy();
+    }
+    
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::updateDirty(Array<T>& dirty) {
+      if (dirty.shape()!=itsDirty.shape()) {
+        throw(AskapError("Updated dirty image has different shape"));
+      }
+      itsDirty = dirty;
+    }
+    
+    template<class T, class FT>
+    bool DeconvolverBase<T,FT>::deconvolve()
+    {
+      throw(AskapError("Called base class deconvolver"));
+    }
+    
+    template<class T, class FT>
+    bool DeconvolverBase<T,FT>::oneIteration()
+    {
+      throw(AskapError("Called base class single iteration"));
+    }
+    
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::setMask(Array<T> & mask) {
+      itsMask = mask;
+    }
+    
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::setWeight(Array<T> & weight) {
+      itsWeight = weight;
+    }
+    
+    template<class T, class FT>
+    Array<T> & DeconvolverBase<T,FT>::mask()
+    {
+      return itsMask;
+    }
+    
+    template<class T, class FT>
+    Array<T> & DeconvolverBase<T,FT>::weight()
+    {
+      return itsWeight;
+    }
+    
+    template<class T, class FT>
+    boost::shared_ptr<DeconvolverControl<T> > DeconvolverBase<T,FT>::control() const
+    {
+      ASKAPASSERT(itsDC);
+      return itsDC;
+    }
+    
+    template<class T, class FT>
+    bool DeconvolverBase<T,FT>::setControl(boost::shared_ptr<DeconvolverControl<T> > DC)
+    {
+      itsDC = DC;
+      ASKAPASSERT(itsDC);
+      return True;
+    }
+    
+    template<class T, class FT>
+    boost::shared_ptr<DeconvolverMonitor<T> > DeconvolverBase<T,FT>::monitor() const
+    {
+      ASKAPASSERT(itsDM);
+      return itsDM;
+    }
+    
+    template<class T, class FT>
+    bool DeconvolverBase<T,FT>::setMonitor(boost::shared_ptr<DeconvolverMonitor<T> > DM)
+    {
+      itsDM = DM;
+      ASKAPASSERT(itsDM);
+      return True;
+    }
+    
+    template<class T, class FT>
+    boost::shared_ptr<DeconvolverState<T> > DeconvolverBase<T,FT>::state() const
+    {
+      ASKAPASSERT(itsDS);
+      return itsDS;
+    }
+    
+    template<class T, class FT>
+    bool DeconvolverBase<T,FT>::setState(boost::shared_ptr<DeconvolverState<T> > DS)
+    {
+      itsDS = DS;
+      ASKAPASSERT(itsDS);
+      return True;
+    }
+    
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::validateShapes()
+    {
+      ASKAPASSERT(this->model().shape()==this->dirty().shape());
+      ASKAPASSERT(this->mask().shape()==this->dirty().shape());
+      ASKAPASSERT(this->weight().shape()==this->dirty().shape());
+    }
+    
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::initialise()
+    {
+      this->validateShapes();
+    }
 
     template<class T, class FT>
-      DeconvolverBase<T,FT>::~DeconvolverBase() {
-      };
-  
-      template<class T, class FT>
-      DeconvolverBase<T,FT>::DeconvolverBase(const Array<T>& dirty, const Array<T>& psf)
-        : itsDirty(dirty), itsPSF(psf) 
-      {
-      };
-
-      template<class T, class FT>
-      void DeconvolverBase<T,FT>::setModel(const Array<T>& model) {
-        itsModel = model;
-      }
-
-      template<class T, class FT>
-      void DeconvolverBase<T,FT>::updateDirty(const Array<T>& dirty) {
-        itsDirty = dirty;
-      }
-
-      template<class T, class FT>
-      void DeconvolverBase<T,FT>::setMask(const Array<T> & mask) {
-    	itsMask = mask;
-      }
-
-      template<class T, class FT>
-      void DeconvolverBase<T,FT>::setWeight(const Array<T> & weight) {
-    	itsWeight = mask;
-      }
-
-      template<class T, class FT>
-      const Array<T> & DeconvolverBase<T,FT>::mask() const
-      {
-        return itsMask;
-      }
-
-      template<class T, class FT>
-      const Array<T> & DeconvolverBase<T,FT>::weight() const
-      {
-        return itsWeight;
-      }
-
-      template<class T, class FT>
-      boost::shared_ptr<DeconvolverControl<T> > DeconvolverBase<T,FT>::DC() const
-      {
-        return itsDC;
-      }
-
-      template<class T, class FT>
-      void DeconvolverBase<T,FT>::setDC(boost::shared_ptr<DeconvolverControl<T> > DC)
-      {
-        itsDC = DC;
-      }
-
-      template<class T, class FT>
-      boost::shared_ptr<DeconvolverMonitor<T> > DeconvolverBase<T,FT>::DM() const
-      {
-        return itsDM;
-      }
-
-      template<class T, class FT>
-      void DeconvolverBase<T,FT>::setDM(boost::shared_ptr<DeconvolverMonitor<T> > DM)
-      {
-        itsDM = DM;
-      }
-
-      template<class T, class FT>
-      boost::shared_ptr<DeconvolverState<T> > DeconvolverBase<T,FT>::DS() const
-      {
-        return itsDS;
-      }
-
-      template<class T, class FT>
-      void DeconvolverBase<T,FT>::setDS(boost::shared_ptr<DeconvolverState<T> > DS)
-      {
-        itsDS = DS;
-      }
+    void DeconvolverBase<T,FT>::finalise()
+    {
+    }
 
   } // namespace synthesis
-
+  
 } // namespace askap
 
 

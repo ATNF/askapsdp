@@ -43,8 +43,8 @@ namespace synthesis {
     /// Monitor the current state
     template<class T>
     void DeconvolverMonitor<T>::monitor(const DeconvolverState<T>& ds) {
-    	ASKAPLOG_INFO_STR(logger, "Iteration " << ds.currentIter() << " of " << ds.endIter());
-    	ASKAPLOG_INFO_STR(logger, "Peak residual " << ds.peakResidual());
+      ASKAPLOG_INFO_STR(logger, "Iteration " << ds.currentIter()
+                        << ", Objective function " << ds.objectiveFunction());
     }
 
 } // namespace synthesis

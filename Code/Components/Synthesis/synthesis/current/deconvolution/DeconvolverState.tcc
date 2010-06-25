@@ -43,10 +43,20 @@ namespace askap {
 
 namespace synthesis {
 
-    /// State the current state
+    /// The current state
     template<class T>
     DeconvolverState<T>::DeconvolverState() : itsCurrentIter(0), itsStartIter(0),
       itsEndIter(0), itsPeakResidual(T(0)), itsRmsResidual(T(0)), itsObjectiveFunction(T(0)) {};
+
+    template<class T>
+    void DeconvolverState<T>::reset() {
+      itsCurrentIter = 0;
+      itsStartIter = 0;
+      itsEndIter = 0;
+      itsPeakResidual = T(0);
+      itsRmsResidual = T(0);
+      itsObjectiveFunction = T(0);
+    }
   
 } // namespace synthesis
 

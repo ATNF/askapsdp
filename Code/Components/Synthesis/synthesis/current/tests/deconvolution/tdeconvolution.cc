@@ -30,6 +30,7 @@ ASKAP_LOGGER(logger, ".deconvolution");
 
 // Test includes
 #include <DeconvolverBaseTest.h>
+#include <DeconvolverHogbomTest.h>
 #include <DeconvolverControlTest.h>
 #include <DeconvolverMonitorTest.h>
 #include <DeconvolverStateTest.h>
@@ -39,6 +40,7 @@ int main(int argc, char *argv[])
     askapdev::testutils::AskapTestRunner runner(argv[0]);
 
     runner.addTest( askap::synthesis::DeconvolverBaseTest::suite());
+    runner.addTest( askap::synthesis::DeconvolverHogbomTest::suite());
     runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
     runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
     runner.addTest( askap::synthesis::DeconvolverStateTest::suite());

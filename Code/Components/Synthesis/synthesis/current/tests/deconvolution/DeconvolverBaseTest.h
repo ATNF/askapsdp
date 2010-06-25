@@ -42,23 +42,40 @@ namespace synthesis {
 
 class DeconvolverBaseTest : public CppUnit::TestFixture
 {
-   CPPUNIT_TEST_SUITE(DeconvolverBaseTest);
-   CPPUNIT_TEST(testCreate);
-   CPPUNIT_TEST_SUITE_END();
+  CPPUNIT_TEST_SUITE(DeconvolverBaseTest);
+  CPPUNIT_TEST(testCreate);
+  CPPUNIT_TEST(testCreatePlugins);
+  CPPUNIT_TEST_EXCEPTION(testWrongShape, AskapError);
+  CPPUNIT_TEST_SUITE_END();
 public:
    
-   void testCreate() {
-     {
-       {
-         Array<Float> dirty(IPosition(2,100,100));
-         Array<Float> psf(IPosition(2,100,100));
-         itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
-         CPPUNIT_ASSERT(itsDB);
-         itsDB.reset();
-         CPPUNIT_ASSERT(!itsDB);
-       }
-     }
-   }
+  void testCreate() {
+    Array<Float> dirty(IPosition(2,100,100));
+    Array<Float> psf(IPosition(2,100,100));
+    itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
+    CPPUNIT_ASSERT(itsDB);
+    CPPUNIT_ASSERT(itsDB->control());
+    CPPUNIT_ASSERT(itsDB->monitor());
+    CPPUNIT_ASSERT(itsDB->state());
+    Array<Float> newDirty(IPosition(2,100,100));
+    itsDB->updateDirty(newDirty);
+  }
+  void testCreatePlugins() {
+    Array<Float> dirty(IPosition(2,100,100));
+    Array<Float> psf(IPosition(2,100,100));
+    itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
+    CPPUNIT_ASSERT(itsDB);
+    boost::shared_ptr<DeconvolverControl<Float> > DC(new DeconvolverControl<Float>::DeconvolverControl());
+    CPPUNIT_ASSERT(itsDB->setControl(DC));
+  }
+  void testWrongShape() {
+    Array<Float> dirty(IPosition(2,100,100));
+    Array<Float> psf(IPosition(2,100,100));
+    itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
+    CPPUNIT_ASSERT(itsDB);
+    Array<Float> newDirty(IPosition(2,200,200));
+    itsDB->updateDirty(newDirty);
+  }
    
 private:
    /// @brief DeconvolutionBase class

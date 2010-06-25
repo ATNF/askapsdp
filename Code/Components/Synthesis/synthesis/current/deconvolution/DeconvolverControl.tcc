@@ -40,37 +40,55 @@
 using namespace casa;
 
 namespace askap {
-
-namespace synthesis {
-
+  
+  namespace synthesis {
+    
+    
+    template<class T>
+    DeconvolverControl<T>::DeconvolverControl() :
+      itsTerminationCause(NOTTERMINATED), itsTargetIter(0),
+      itsTargetObjectiveFunction(T(0)), itsGain(1.0), itsTolerance(1e-4) 
+    {};
+    
     /// Control the current state
     template<class T>
-    Bool DeconvolverControl<T>::terminate(const DeconvolverState<T>& ds) {
-      if((ds.currentIter()>-1)&&(ds.endIter()>0)&&(ds.currentIter()>=ds.endIter())) {
-    		itsTerminationCause = EXCEEDEDITERATIONS;
-    		return True;
-    	}
-    	return False;
+    Bool DeconvolverControl<T>::terminate(const DeconvolverState<T>& state) {
+      // Check for convergence
+      if(state.objectiveFunction()<itsTargetObjectiveFunction) {
+        itsTerminationCause = CONVERGED;
+        return True;
+      }
+      // Check for too many iterations
+      if((state.currentIter()>-1)&&(this->targetIter()>0)&&(state.currentIter()>=this->targetIter())) {
+        itsTerminationCause = EXCEEDEDITERATIONS;
+        return True;
+      }
+      return False;
     }
     template<class T>
     String DeconvolverControl<T>::terminationString() const {
-    	switch (itsTerminationCause) {
-    	case CONVERGED:
-    		return String("Converged");
-    		break;
-    	case DIVERGED:
-    		return String("Diverged");
-    		break;
-    	case EXCEEDEDITERATIONS:
-    		return String("Exceeded maximum number of iterations");
-    		break;
-    	default:
-    		return String("Unknown reason");
-    	}
+      switch (itsTerminationCause) {
+      case CONVERGED:
+        return String("Converged");
+        break;
+      case DIVERGED:
+        return String("Diverged");
+        break;
+      case EXCEEDEDITERATIONS:
+        return String("Exceeded maximum number of iterations");
+        break;
+      case NOTTERMINATED:
+        return String("Not yet terminated");
+        break;
+      case UNKNOWN:
+        return String("Termination for unknown reason");
+        break;
+      default:
+        return String("Logic error in termination");
+        break;
+      }
     }
-
-} // namespace synthesis
-
+    
+  } // namespace synthesis
+  
 } // namespace askap
-
-

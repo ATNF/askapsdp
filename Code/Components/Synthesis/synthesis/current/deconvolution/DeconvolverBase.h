@@ -65,48 +65,90 @@ namespace askap {
       /// the corresponding PSF
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
-      DeconvolverBase(const Array<T>& dirty, const Array<T>& psf);
+      DeconvolverBase(Array<T>& dirty, Array<T>& psf);
 
       /// @brief Set the initial model
       /// @detailed Set the model from which iteration will start
       /// @param[in] model Model image (array)
       void setModel(const Array<T>& model);
 
+      /// @brief Get the current model
+      /// @detailed Get the current model
+      /// @param[in] model Model image (array)
+      Array<T>& model() { return itsModel;};
+
+      /// @brief Get the current dirty
+      /// @detailed Get the current dirty
+      /// @param[in] dirty Dirty image (array)
+      Array<T>& dirty() { return itsDirty;};
+
       /// @brief Update only the dirty image
       /// @detailed Update an existing deconvolver for a changed dirty image
       /// @param[in] dirty Dirty image (array)
-      void updateDirty(const Array<T>& dirty);
+      void updateDirty(Array<T>& dirty);
 
       /// @brief Set the mask image otherwise there is no mask
       /// @detailed The mask image is used to limit where flux is allowed in
       /// the image
       /// @param[in] mask Mask (array)
-      void setMask(const Array<T> & mask);
+      void setMask(Array<T> & mask);
 
-      /// @brief Set the weight image otherwise there is no weight image
+      /// @brief Set the weight image
       /// @detailed The weights image (actually the sqrt) is used to 
       /// aid the deconvolution. The weights image is proportional
       /// to 1/sigma**2
       /// @param[in] weights Weights (array)
-      void setWeight(const Array<T> & weight);
+      void setWeight(Array<T> & weight);
 
-      const Array<T> & mask() const;
+      Array<T> & mask();
 
-      const Array<T> & weight() const;
+      Array<T> & weight();
 
-      boost::shared_ptr<DeconvolverControl<T> > DC() const;
+      boost::shared_ptr<DeconvolverControl<T> > control() const;
 
-      void setDC(boost::shared_ptr<DeconvolverControl<T> > DC);
+      bool setControl(boost::shared_ptr<DeconvolverControl<T> > control);
 
-      boost::shared_ptr<DeconvolverMonitor<T> > DM() const;
+      boost::shared_ptr<DeconvolverMonitor<T> > monitor() const;
 
-      void setDM(boost::shared_ptr<DeconvolverMonitor<T> > DM);
+      bool setMonitor(boost::shared_ptr<DeconvolverMonitor<T> > monitor);
 
-      boost::shared_ptr<DeconvolverState<T> > DS() const;
+      boost::shared_ptr<DeconvolverState<T> > state() const;
 
-      void setDS(boost::shared_ptr<DeconvolverState<T> > DS);
+      bool setState(boost::shared_ptr<DeconvolverState<T> > state);
+
+      // @brief Perform the deconvolution
+      // @detailed This is the main deconvolution method.
+      virtual bool deconvolve();
+
+      // @brief Perform the deconvolution
+      // @detailed This is the main deconvolution method.
+      virtual bool oneIteration();
+
+      /// @brief Initialize the deconvolution
+      /// @detailed Initialise e.g. set weighted mask
+      virtual void initialise();
+
+      /// @brief Finalise the deconvolution
+      /// @detailed Finalise any calculations needed at the end
+      /// of iteration
+      virtual void finalise();
+
+    protected:
+      void validateShapes();
 
     private:
+
+      Array<T> itsDirty;
+
+      Array<T> itsPSF;
+
+      Array<T> itsModel;
+
+      Array<FT> itsXFR;
+
+      Array<T> itsMask;
+
+      Array<T> itsWeight;
 
       /// The state of the deconvolver
       boost::shared_ptr<DeconvolverState<T> > itsDS;
@@ -116,18 +158,6 @@ namespace askap {
 
       /// The monitor used for the deconvolver
       boost::shared_ptr<DeconvolverMonitor<T> > itsDM;
-
-      const Array<T> itsDirty;
-
-      const Array<T> itsPSF;
-
-      const Array<T> itsModel;
-
-      const Array<FT> itsXFR;
-
-      const Array<T> itsMask;
-
-      const Array<T> itsWeight;
 
     };
 

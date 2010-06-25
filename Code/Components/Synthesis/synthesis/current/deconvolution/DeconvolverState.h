@@ -53,20 +53,21 @@ namespace synthesis {
 template<class T> class DeconvolverState {
 
 public:
-    typedef boost::shared_ptr<DeconvolverState<T> > ShPtr;
+
+  typedef boost::shared_ptr<DeconvolverState<T> > ShPtr;
 
   DeconvolverState();
 
   virtual ~DeconvolverState() {};
 
+    void incIter()
+    {
+      itsCurrentIter++;
+    }
+
     Int currentIter() const
     {
         return itsCurrentIter;
-    }
-
-    Int endIter() const
-    {
-        return itsEndIter;
     }
 
     T peakResidual() const
@@ -97,11 +98,6 @@ public:
         itsCurrentIter = currentIter;
     }
 
-    void setEndIter(Int endIter)
-    {
-        itsEndIter = endIter;
-    }
-
     void setPeakResidual(T peakResidual)
     {
         itsPeakResidual = peakResidual;
@@ -117,7 +113,11 @@ public:
         itsStartIter = startIter;
     }
 
+  /// Reset the state
+  void reset();
+
 private:
+
     Int itsCurrentIter;
     Int itsStartIter;
     Int itsEndIter;

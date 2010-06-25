@@ -45,6 +45,7 @@ class DeconvolverStateTest : public CppUnit::TestFixture
 {
    CPPUNIT_TEST_SUITE(DeconvolverStateTest);
    CPPUNIT_TEST(testSetGet);
+   CPPUNIT_TEST(testReset);
    CPPUNIT_TEST_SUITE_END();
 public:
    
@@ -52,14 +53,24 @@ public:
      {
        itsDS.setCurrentIter(100);
        CPPUNIT_ASSERT(itsDS.currentIter()==100);
-       itsDS.setEndIter(200);
-       CPPUNIT_ASSERT(itsDS.endIter()==200);
        itsDS.setPeakResidual(1.4);
        CPPUNIT_ASSERT(itsDS.peakResidual()==Float(1.4));
        itsDS.setRmsResidual(0.3);
        CPPUNIT_ASSERT(itsDS.rmsResidual()==Float(0.3));
        itsDS.setObjectiveFunction(10.3);
        CPPUNIT_ASSERT(itsDS.objectiveFunction()==Float(10.3));
+       itsDS.setCurrentIter(0);
+       CPPUNIT_ASSERT(itsDS.currentIter()==0);
+       itsDS.incIter();
+       CPPUNIT_ASSERT(itsDS.currentIter()==1);
+     }
+   }
+   void testReset() {
+     {
+       itsDS.setCurrentIter(100);
+       CPPUNIT_ASSERT(itsDS.currentIter()==100);
+       itsDS.reset();
+       CPPUNIT_ASSERT(itsDS.currentIter()==0);
      }
    }
    

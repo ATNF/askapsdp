@@ -50,10 +50,9 @@ public:
    void testMonitor() {
      {
        DeconvolverState<Float> ds;
-       ds.setEndIter(10);
-       for (int iter=0;iter<ds.endIter();iter++) {
+       for (int iter=0;iter<10;iter++) {
          ds.setCurrentIter(iter);
-         ds.setPeakResidual(1.0/Float(iter+1));
+         ds.setObjectiveFunction(1.0/Float(iter+1));
          itsDM.monitor(ds);
        }
      }

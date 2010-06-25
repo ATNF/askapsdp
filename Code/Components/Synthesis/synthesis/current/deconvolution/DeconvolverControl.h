@@ -44,47 +44,95 @@
 using namespace casa;
 
 namespace askap {
-
-namespace synthesis {
-
-/// @brief Base class for Control of Deconvolver
-/// @details All the controlling is delegated to this class so that
-/// more control is possible.
-/// @ingroup Deconvolver
-
-template<typename T> class DeconvolverControl {
-
-public:
-    typedef boost::shared_ptr<DeconvolverControl<T> > ShPtr;
-
-    enum TerminationCause {
+  
+  namespace synthesis {
+    
+    /// @brief Base class for Control of Deconvolver
+    /// @details All the controlling is delegated to this class so that
+    /// more control is possible.
+    /// @ingroup Deconvolver
+    
+    template<typename T> class DeconvolverControl {
+      
+    public:
+      typedef boost::shared_ptr<DeconvolverControl<T> > ShPtr;
+      
+      enum TerminationCause {
     	CONVERGED,
         DIVERGED,
-        EXCEEDEDITERATIONS
-    };
-
-    virtual ~DeconvolverControl() {};
-
-    /// Terminate?
-    Bool terminate(const DeconvolverState<T>& ds);
-
-    /// Termination cause returned as String
-    String terminationString() const;
-
-    /// Set the termination cause
-    void setTerminationCause(const TerminationCause cause);
-
-    /// Termination cause returned as an enum
-    TerminationCause terminationCause() const {
+        EXCEEDEDITERATIONS,
+        NOTTERMINATED,
+        UNKNOWN
+      };
+      
+      DeconvolverControl();
+      
+      virtual ~DeconvolverControl() {};
+      
+      /// Terminate?
+      Bool terminate(const DeconvolverState<T>& ds);
+      
+      /// Termination cause returned as String
+      String terminationString() const;
+      
+      /// Set the termination cause
+      void setTerminationCause(const TerminationCause cause) {
+        itsTerminationCause=cause;
+      };
+      
+      /// Termination cause returned as an enum
+      TerminationCause terminationCause() const {
     	return itsTerminationCause;
+      };
+      
+      void setGain(Float gain)
+      {
+        itsGain = gain;
+      }
+
+      Float gain() const
+      {
+        return itsGain;
+      }
+
+      void setTolerance(Float tolerance)
+      {
+        itsTolerance = tolerance;
+      }
+
+      Float tolerance() const
+      {
+        return itsTolerance;
+      }
+
+      void setTargetIter(Int targetIter)
+      {
+        itsTargetIter = targetIter;
+      }
+
+      Int targetIter() const
+      {
+        return itsTargetIter;
+      }
+
+      void setTargetObjectiveFunction(T objectiveFunction) {
+    	itsTargetObjectiveFunction = objectiveFunction;
+      }
+      
+      T targetObjectiveFunction() const {
+    	return itsTargetObjectiveFunction;
+      }
+
+    private:
+      TerminationCause itsTerminationCause;
+      Int itsTargetIter;
+      T itsTargetObjectiveFunction;
+      Float itsGain;
+      Float itsTolerance;
     };
-
-private:
-    TerminationCause itsTerminationCause;
-};
-
-} // namespace synthesis
-
+    
+  } // namespace synthesis
+  
 } // namespace askap
 
 #include <deconvolution/DeconvolverControl.tcc>
