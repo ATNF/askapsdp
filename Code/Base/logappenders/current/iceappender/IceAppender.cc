@@ -40,8 +40,8 @@
 #include <IceStorm/IceStorm.h>
 #include <log4cxx/helpers/stringhelper.h>
 
-// Local package includes
-#include <iceappender/LoggingService.h>
+// Ice interfaces includes
+#include "LoggingService.h"
 
 // Using
 using namespace log4cxx;

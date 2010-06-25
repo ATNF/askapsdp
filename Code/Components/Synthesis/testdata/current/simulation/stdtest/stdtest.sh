@@ -34,7 +34,7 @@ Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
 #
 # Undersample in time by ~ 10 to make the processing run quickly
 #
-Csimulator.simulation.integrationtime           =       150s
+Csimulator.simulation.integrationtime           =       1500s
 #
 # Observe source 10uJy for 12 hours with a single channel spectral window
 #

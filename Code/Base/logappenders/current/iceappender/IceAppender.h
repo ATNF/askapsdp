@@ -36,8 +36,8 @@
 #include <log4cxx/spi/loggingevent.h>
 #include <Ice/Ice.h>
 
-// Local package includes
-#include <iceappender/LoggingService.h>
+// Ice interfaces includes
+#include "LoggingService.h"
 
 // This is usually frowned upon, but is somewhat necessary for
 // the below log4cxx macros. Given nobody actually needs to
