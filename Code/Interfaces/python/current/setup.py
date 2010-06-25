@@ -6,7 +6,7 @@ import glob
 dep = Dependency()
 dep.add_package()
 
-slice_files = glob.glob('../slice/*.ice')
+slice_files = glob.glob('../../slice/current/*.ice')
 
 ROOTPKG = "askap"
 PKGNAME = "slice"

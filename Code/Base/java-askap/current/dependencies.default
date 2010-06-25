@@ -1,6 +1,6 @@
 java-logappenders=Code/Base/java-logappenders/current
 log4j=3rdParty/apache-log4j/apache-log4j-1.2.15
 ice=3rdParty/Ice/Ice-3.3.0;IceStorm Ice IceUtil
-interfaces=Code/Interfaces/current/slice
+interfaces=Code/Interfaces/slice/current
 iceutils=Code/Base/py-iceutils/current
 atoms-time=3rdParty/atoms-time/atoms-time-r284
