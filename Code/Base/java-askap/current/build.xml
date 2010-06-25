@@ -1,13 +1,5 @@
 <?xml version="1.0"?>
 <project name="java-askap" basedir="." default="install">
-    <!-- Ice dependencies -->
-    <property name="slice.dir" value="${dep_interfaces}"/>
-    <fileset id="slice.files" dir="${dep_interfaces}">
-        <include name="CommonTypes.ice" />
-        <include name="LoggingService.ice" />
-        <include name="TypedValues.ice" />
-    </fileset>
-
     <!-- Read in the environment so $ASKAP_ROOT can be used -->
     <property environment="env"/>
 
