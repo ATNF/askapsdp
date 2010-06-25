@@ -1,0 +1,2 @@
+ice=3rdParty/Ice/Ice-3.3.0;IceStorm Ice IceUtil
+interfaces=Code/Interfaces/slice/current
