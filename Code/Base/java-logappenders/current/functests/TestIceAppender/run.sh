@@ -59,7 +59,7 @@ icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add icest
 waitIceStorm
 
 # Run the test
-java -cp ../../install/lib/java-logappenders.jar:$ASKAP_ROOT/lib/log4j-1.2.15.jar:$ASKAP_ROOT/lib/Ice.jar askap.test.TestIceAppender TestIceAppender.log_cfg --Ice.Config=config.TestIceAppender
+java -cp ../../install/lib/java-logappenders.jar:$ASKAP_ROOT/Code/Interfaces/java/current/install/lib/askap-interfaces.jar:$ASKAP_ROOT/3rdParty/apache-log4j/apache-log4j-1.2.15/install/lib/log4j-1.2.15.jar:$ASKAP_ROOT/3rdParty/Ice/Ice-3.3.0/install/lib/Ice-3.3.0.jar askap.test.TestIceAppender TestIceAppender.log_cfg --Ice.Config=config.TestIceAppender
 STATUS=$?
 
 # Request IceGrid shutdown and wait
