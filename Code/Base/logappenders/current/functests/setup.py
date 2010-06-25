@@ -7,7 +7,5 @@ dep.add_package()
 
 setup(name = "logappender_test",
       dependency = dep,
-      ice_interfaces = {".": ["CommonTypes.ice",
-                              "LoggingService.ice"] },
       test_suite = "nose.collector",
 )
