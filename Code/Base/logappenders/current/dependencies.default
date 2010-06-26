@@ -1,7 +1,7 @@
 askap=Code/Base/askap/current
 log4cxx=3rdParty/log4cxx/log4cxx-0.10.0
 ice=3rdParty/Ice/Ice-3.3.0;IceStorm Ice IceUtil
-iceinterfaces=Code/Interfaces/cpp/current
+cpppyiceinterfaces=Code/Interfaces/cpp/current
 iceutils=Code/Base/py-iceutils/current
 # for functests
 slice=Code/Interfaces/python/current
