@@ -26,7 +26,7 @@
 ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <askap/AskapError.h>
-#include <fft/FFTWrapper.h>
+//#include <fft/FFTWrapper.h>
 
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/MemBufferDataAccessor.h>
@@ -337,12 +337,14 @@ namespace askap
         */
 
         itsPSFGridders[imageName]->finaliseGrid(imagePSF);
+        /*
         casa::Array<casa::DComplex> temp(imagePSF.shape());
         casa::convertArray<casa::DComplex,double>(temp,imagePSF);
         scimath::fft2d(temp,true);
         casa::Array<float> buf(imagePSF.shape());
         casa::convertArray<float,double>(buf,amplitude(temp));
         SynthesisParamsHelper::saveAsCasaImage("uvcoverage"+(*it),buf);
+        */
 
         itsResidualGridders[imageName]->finaliseWeights(imageWeight);
         { 
