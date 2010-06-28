@@ -187,4 +187,4 @@ CopyDocs("javadocs", "current/doc", "stylesheet.css")
 print "info: Sphinx"
 CopyDocs("sphinx", "current/doc/_build/html", "objects.inv")
 print "info: Ice"
-CopyDocs("ice", "current/slice/doc", "_sindex.html")
+CopyDocs("ice", "slice/current/doc", "_sindex.html")
