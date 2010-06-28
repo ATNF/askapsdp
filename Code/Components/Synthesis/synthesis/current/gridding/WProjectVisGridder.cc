@@ -240,7 +240,12 @@ namespace askap
 
         // Now we have to calculate the Fourier transform to get the
         // convolution function in uv space
-        scimath::fft2d(thisPlane, true);
+        casa::Matrix<casa::DComplex> buffer(thisPlane.nrow(),thisPlane.ncolumn());
+        casa::convertArray<casa::DComplex,casa::Complex>(buffer,thisPlane);
+        //scimath::fft2d(thisPlane, true);
+        scimath::fft2d(buffer, true);
+        casa::convertArray<casa::Complex,casa::DComplex>(thisPlane,buffer);
+        
 
 	/*
         for (uint xx=0;xx<thisPlane.nrow();++xx) {
