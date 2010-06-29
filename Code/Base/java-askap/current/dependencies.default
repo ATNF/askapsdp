@@ -1,7 +1,7 @@
 java-logappenders=Code/Base/java-logappenders/current
 log4j=3rdParty/apache-log4j/apache-log4j-1.2.15
 ice=3rdParty/Ice/Ice-3.3.0
-javapyiceinterfaces=Code/Interfaces/java/current
+javaiceinterfaces=Code/Interfaces/java/current
 iceutils=Code/Base/py-iceutils/current
 atoms-time=3rdParty/atoms-time/atoms-time-r284
 # for functest
