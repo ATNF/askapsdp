@@ -5,4 +5,4 @@ javaiceinterfaces=Code/Interfaces/java/current
 iceutils=Code/Base/py-iceutils/current
 atoms-time=3rdParty/atoms-time/atoms-time-r284
 # for functest
-slice-py=Code/Interfaces/python/current
+pyiceinterfaces=Code/Interfaces/python/current
