@@ -70,6 +70,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/CalibrationME.h>
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/NoXPolGain.h>
+#include <measurementequation/LeakageTerm.h>
 #include <measurementequation/ImagingEquationAdapter.h>
 #include <gridding/VisGridderFactory.h>
 #include <askapparallel/AskapParallel.h>
