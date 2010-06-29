@@ -70,14 +70,6 @@ struct NoXPolGain : public ParameterizedMEComponent {
    inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
                                 casa::uInt row) const;
 protected:
-   /// @brief obtain a value of the parameter
-   /// @details This helper method returns the parameter wrapped 
-   /// around in a ComplexDiff class. An exception is thrown if the parameter
-   /// is not defined.
-   /// @param[in] name parameter name
-   /// @return value of the parameter wrapped in a complex diff object
-   inline scimath::ComplexDiff getParameter(const std::string &name) const;
-
 
    /// @brief obtain a name of the parameter
    /// @details This method returns the parameter name for a gain of the

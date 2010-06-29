@@ -43,22 +43,6 @@ namespace askap {
 namespace synthesis {
 
 
-/// @brief obtain a value of the parameter
-/// @details This helper method returns the parameter wrapped 
-/// around in a ComplexDiff class. An exception is thrown if the parameter
-/// is not defined.
-/// @param[in] name parameter name
-/// @return value of the parameter wrapped in a complex diff object
-inline scimath::ComplexDiff NoXPolGain::getParameter(const std::string &name) const
-{
-   ASKAPDEBUGASSERT(parameters());
-   ASKAPCHECK(parameters()->has(name), "Parameter "<<name<<" is not defined in NoXPolGain::getParameter");
-
-   const casa::Complex gain = parameters()->complexValue(name);
-   return scimath::ComplexDiff(name, gain);
-}
-
-
 /// @brief main method returning Mueller matrix and derivatives
 /// @details This method has to be overloaded (in the template sense) for
 /// all classes representing various calibration effects. CalibrationME

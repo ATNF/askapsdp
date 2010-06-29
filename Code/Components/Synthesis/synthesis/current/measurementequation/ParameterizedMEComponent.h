@@ -33,9 +33,14 @@
 #ifndef PARAMETERIZED_ME_COMPONENT_H
 #define PARAMETERIZED_ME_COMPONENT_H
 
+#include <string>
+
 // own includes
 #include <fitting/Params.h>
 #include <measurementequation/MEComponent.h>
+#include <fitting/ComplexDiff.h>
+#include <askap/AskapError.h>
+
 
 namespace askap {
 
@@ -56,6 +61,15 @@ struct ParameterizedMEComponent : public MEComponent {
 protected:
    /// @return reference to parameters
    inline scimath::Params::ShPtr parameters() const { return itsParameters; }
+   
+   /// @brief obtain a value of the parameter
+   /// @details This helper method returns the parameter wrapped 
+   /// around in a ComplexDiff class. An exception is thrown if the parameter
+   /// is not defined.
+   /// @param[in] name parameter name
+   /// @return value of the parameter wrapped in a complex diff object
+   inline scimath::ComplexDiff getParameter(const std::string &name) const;
+   
 private:
    /// @brief shared pointer to paramters
    scimath::Params::ShPtr itsParameters;
@@ -65,5 +79,6 @@ private:
 
 } // namespace askap
 
+#include <measurementequation/ParameterizedMEComponent.tcc>
 
 #endif // #define PARAMETERIZED_ME_COMPONENT_H
