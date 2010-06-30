@@ -75,9 +75,9 @@ public:
         return itsPeakResidual;
     }
 
-    T rmsResidual() const
+    T totalFlux() const
     {
-        return itsRmsResidual;
+        return itsTotalFlux;
     }
 
     Int startIter() const
@@ -103,9 +103,9 @@ public:
         itsPeakResidual = peakResidual;
     }
 
-    void setRmsResidual(T rmsResidual)
+    void setTotalFlux(T totalFlux)
     {
-        itsRmsResidual = rmsResidual;
+        itsTotalFlux = totalFlux;
     }
 
     void setStartIter(Int startIter)
@@ -122,7 +122,7 @@ private:
     Int itsStartIter;
     Int itsEndIter;
     T itsPeakResidual;
-    T itsRmsResidual;
+    T itsTotalFlux;
     T itsObjectiveFunction;
 
 };

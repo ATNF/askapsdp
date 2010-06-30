@@ -44,7 +44,8 @@ namespace synthesis {
     template<class T>
     void DeconvolverMonitor<T>::monitor(const DeconvolverState<T>& ds) {
       ASKAPLOG_INFO_STR(logger, "Iteration " << ds.currentIter()
-                        << ", Objective function " << ds.objectiveFunction());
+                        << ", Objective function " << ds.objectiveFunction()
+                        << ", Total flux " << ds.totalFlux());
     }
 
 } // namespace synthesis

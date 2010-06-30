@@ -57,7 +57,7 @@ namespace askap {
     };
     
     template<class T, class FT>
-    DeconvolverBase<T,FT>::DeconvolverBase(Array<T>& dirty, Array<T>& psf)
+    DeconvolverBase<T,FT>::DeconvolverBase(Array<T> dirty, Array<T> psf)
       : itsDirty(dirty), itsPSF(psf)
     {
       itsDS = boost::shared_ptr<DeconvolverState<T> >(new DeconvolverState<T>());
@@ -69,12 +69,12 @@ namespace askap {
     };
     
     template<class T, class FT>
-    void DeconvolverBase<T,FT>::setModel(const Array<T>& model) {
+    void DeconvolverBase<T,FT>::setModel(const Array<T> model) {
       itsModel = model.copy();
     }
     
     template<class T, class FT>
-    void DeconvolverBase<T,FT>::updateDirty(Array<T>& dirty) {
+    void DeconvolverBase<T,FT>::updateDirty(Array<T> dirty) {
       if (dirty.shape()!=itsDirty.shape()) {
         throw(AskapError("Updated dirty image has different shape"));
       }
@@ -94,12 +94,12 @@ namespace askap {
     }
     
     template<class T, class FT>
-    void DeconvolverBase<T,FT>::setMask(Array<T> & mask) {
+    void DeconvolverBase<T,FT>::setMask(Array<T>  mask) {
       itsMask = mask;
     }
     
     template<class T, class FT>
-    void DeconvolverBase<T,FT>::setWeight(Array<T> & weight) {
+    void DeconvolverBase<T,FT>::setWeight(Array<T>  weight) {
       itsWeight = weight;
     }
     

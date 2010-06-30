@@ -80,6 +80,12 @@ namespace askap {
       virtual void initialise();
 
     private:
+
+      // Peak and location of peak of PSF
+      casa::IPosition itsPeakPSFPos;
+      T itsPeakPSFVal;
+
+      // Mask weighted by weight image
       Array<T> itsWeightedMask;
     };
 

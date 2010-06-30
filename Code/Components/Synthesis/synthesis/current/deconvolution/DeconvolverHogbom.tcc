@@ -56,7 +56,8 @@ namespace askap {
 
     template<class T, class FT>
     DeconvolverHogbom<T,FT>::DeconvolverHogbom(Array<T>& dirty, Array<T>& psf)
-      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsPeakPSFPos(IPosition(0)),
+        itsPeakPSFVal(T(0.0))
     {
       this->model() = this->dirty().copy();
       this->model().set(T(0.0));
@@ -67,12 +68,23 @@ namespace askap {
     {
       DeconvolverBase<T, FT>::initialise();
 
+      // First deal with the mask
       ASKAPASSERT(this->mask().shape()==this->weight().shape());
 
       ASKAPLOG_INFO_STR(logger, "Calculating weighted mask");
-      itsWeightedMask=this->mask()/sqrt(this->weight());
+      itsWeightedMask=this->mask()*sqrt(this->weight()/max(this->weight()));
 
       ASKAPASSERT(itsWeightedMask.shape()==this->dirty().shape());
+
+      // Now we need to find the peak and support of the PSF
+      casa::IPosition minPos;
+      casa::IPosition maxPos;
+      T minVal, maxVal;
+      casa::minMax(minVal, maxVal, minPos, maxPos, this->psf());
+      ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << maxVal << " at " << maxPos);
+      ASKAPLOG_INFO_STR(logger, "Minimum of PSF = " << minVal << " at " << minPos);
+      itsPeakPSFVal = maxVal;
+      itsPeakPSFPos = maxPos;
     }
 
     template<class T, class FT>
@@ -81,7 +93,7 @@ namespace askap {
 
       this->initialise();
 
-      ASKAPLOG_INFO_STR(logger, "Performing Hogbom CLEAN for " << this->control()->targetIter() << "iterations");
+      ASKAPLOG_INFO_STR(logger, "Performing Hogbom CLEAN for " << this->control()->targetIter() << " iterations");
       do {
         this->oneIteration();
         this->monitor()->monitor(*(this->state()));
@@ -89,7 +101,7 @@ namespace askap {
       }
       while (!this->control()->terminate(*(this->state())));
 
-      ASKAPLOG_INFO_STR(logger, "Performed Hogbom CLEAN for " << this->state()->currentIter() << "iterations");
+      ASKAPLOG_INFO_STR(logger, "Performed Hogbom CLEAN for " << this->state()->currentIter() << " iterations");
 
       ASKAPLOG_INFO_STR(logger, this->control()->terminationString());
 
@@ -115,6 +127,7 @@ namespace askap {
       else {
         casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty());
       }
+      //
       ASKAPLOG_INFO_STR(logger, "Maximum = " << maxVal << " at location " << maxPos);
       ASKAPLOG_INFO_STR(logger, "Minimum = " << minVal << " at location " << minPos);
       T absPeakVal;
@@ -127,25 +140,60 @@ namespace askap {
         absPeakVal=minVal;
         absPeakPos=minPos;
       }
-      if(isMasked) {
-        absPeakVal=absPeakVal*sqrt(this->weight()(absPeakPos));
-      }
 
       this->state()->setPeakResidual(absPeakVal);
       this->state()->setObjectiveFunction(absPeakVal);
+      this->state()->setTotalFlux(sum(this->model()));
 
       // Has this terminated for any reason?
       if(this->control()->terminate(*(this->state()))) {
         return True;
       }
 
-      // Add to model
-      this->model()(absPeakPos) = this->model()(absPeakPos)
-        + this->control()->gain()*maxVal;
+      casa::IPosition dirtyShape(this->dirty().shape());
+      casa::IPosition psfShape(this->psf().shape());
+      casa::uInt ndim(this->dirty().shape().size());
 
-      // Subtract from dirty image
-      this->dirty()(absPeakPos) = this->dirty()(absPeakPos)
-        - this->control()->gain()*maxVal;
+      casa::IPosition dirtyStart(ndim,0), dirtyEnd(ndim,0), dirtyStride(ndim,1);
+      casa::IPosition psfStart(ndim,0), psfEnd(ndim,0), psfStride(ndim,1);
+
+      for (uInt dim=0;dim<ndim;dim++) {
+
+        // Wrangle the start, end, and shape into consistent form. It took me 
+        // quite a while to figure this out (slow brain day) so it may be
+        // that there is a more straightforward way. It's not clear to me
+        // whether I have implicitly assumed that the dirty and psf
+        // have the same shape.
+        uInt psfWidth=this->psf().shape()(dim);
+        psfWidth=(psfWidth-psfWidth%2)/2;
+        if(absPeakPos(dim)>itsPeakPSFPos(dim)){
+          dirtyStart(dim)=Int(absPeakPos(dim)-psfWidth);
+          dirtyEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(dirtyShape(dim)-1));
+          psfStart(dim)=0;
+          psfEnd(dim)=dirtyEnd(dim)-dirtyStart(dim);
+        }
+        else {
+          dirtyStart(dim)=0;
+          dirtyEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(dirtyShape(dim)-1));
+          psfEnd(dim)=Int(psfShape(dim)-1);
+          psfStart(dim)=Int(psfShape(dim)-1+dirtyStart(dim)-dirtyEnd(dim));
+        }
+      }
+      //      ASKAPLOG_INFO_STR(logger, "Dirty start: " << dirtyStart << " end: " << dirtyEnd);
+      //      ASKAPLOG_INFO_STR(logger, "PSF   start: " << psfStart << " end: " << psfEnd);
+
+      casa::Slicer dirtySlicer(dirtyStart, dirtyEnd, dirtyStride, Slicer::endIsLast);
+      casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
+
+      //      ASKAPLOG_INFO_STR(logger, "Dirty slicer " << dirtySlicer);
+      //      ASKAPLOG_INFO_STR(logger, "PSF slicer " << psfSlicer);
+
+      // Add to model
+      this->model()(absPeakPos) = this->model()(absPeakPos) + this->control()->gain()*absPeakVal;      
+
+      // Subtract entire PSF from dirty image
+      this->dirty()(dirtySlicer) = this->dirty()(dirtySlicer)
+        - this->control()->gain()*absPeakVal*this->psf()(psfSlicer);
 
       return True;
     }

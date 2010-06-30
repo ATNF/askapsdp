@@ -54,7 +54,9 @@ namespace askap {
     template<class T>
     Bool DeconvolverControl<T>::terminate(const DeconvolverState<T>& state) {
       // Check for convergence
-      if(state.objectiveFunction()<itsTargetObjectiveFunction) {
+      if(abs(state.objectiveFunction())<itsTargetObjectiveFunction) {
+        ASKAPLOG_INFO_STR(logger, "Objective function " << state.objectiveFunction()
+                          << " less than target " << itsTargetObjectiveFunction);
         itsTerminationCause = CONVERGED;
         return True;
       }
