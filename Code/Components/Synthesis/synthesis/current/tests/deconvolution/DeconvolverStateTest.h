@@ -55,8 +55,8 @@ public:
        CPPUNIT_ASSERT(itsDS.currentIter()==100);
        itsDS.setPeakResidual(1.4);
        CPPUNIT_ASSERT(itsDS.peakResidual()==Float(1.4));
-       itsDS.setRmsResidual(0.3);
-       CPPUNIT_ASSERT(itsDS.rmsResidual()==Float(0.3));
+       itsDS.setTotalFlux(0.3);
+       CPPUNIT_ASSERT(itsDS.totalFlux()==Float(0.3));
        itsDS.setObjectiveFunction(10.3);
        CPPUNIT_ASSERT(itsDS.objectiveFunction()==Float(10.3));
        itsDS.setCurrentIter(0);
