@@ -49,109 +49,138 @@ import askap.util.ParameterSet;
  * @see HasRegistrableSettings
  * @author David Brodrick
  */
-public class SettingsRegistrar {
-  /** The instance for registering global settings. */
-  private static SettingsRegistrar theirGlobalInstance = new SettingsRegistrar();
+public class SettingsRegistrar
+{
+    /** The instance for registering global settings. */
+    private static SettingsRegistrar theirGlobalInstance;
 
-  /** Return the instance for global settings. */
-  public static SettingsRegistrar getGlobalInstance() {
-    return theirGlobalInstance;
-  }
-
-  /** List of all objects which may have settings registered. */
-  private Vector<HasRegistrableSettings> itsRegistrations = new Vector<HasRegistrableSettings>();
-
-  /**
-   * Register a new object which has settings that may be registered.
-   * 
-   * @param o The object to be registered.
-   */
-  public synchronized void register(HasRegistrableSettings o) {
-    if (!itsRegistrations.contains(o)) {
-      itsRegistrations.add(o);
-    }
-  }
-
-  /**
-   * Remove the object, which no longer needs settings to be registered.
-   * 
-   * @param o The object to be removed.
-   */
-  public synchronized void deregister(HasRegistrableSettings o) {
-    itsRegistrations.remove(o);
-  }
-
-  /**
-   * Check if the specified settings are compatible with all registered objects.
-   * 
-   * @param client The client who is checking the settings.
-   * @param settings The settings to be checked.
-   * @return True if the settings are compatible, False if they are incompatible.
-   */
-  public synchronized boolean checkSettings(Object client, ParameterSet settings) {
-    Iterator<HasRegistrableSettings> i = itsRegistrations.iterator();
-    while (i.hasNext()) {
-      if (!i.next().checkSettings(client, settings)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Register the settings requested by the client with all registered objects. If the
-   * settings cannot be registered globally, then they will be globally deregistered and
-   * an exception will be thrown.
-   * 
-   * @param client The client who wishes to register these settings.
-   * @param settings The settings to be registered.
-   * @return True if the settings were compatible, False if they were incompatible.
-   */
-  public synchronized boolean registerSettings(Object client, ParameterSet settings) {
-    boolean res = true;
-    // Register the new settings globally
-    Iterator<HasRegistrableSettings> i = itsRegistrations.iterator();
-    while (i.hasNext()) {
-      if (!i.next().registerSettings(client, settings)) {
-        // Was unable to register settings with all objects, so globally deregister
-        Iterator<HasRegistrableSettings> j = itsRegistrations.iterator();
-        while (j.hasNext()) {
-          j.next().deregisterSettings(client);
+    /** Return the instance for global settings. */
+    public synchronized static SettingsRegistrar getGlobalInstance()
+    {
+        if (theirGlobalInstance == null) {
+            theirGlobalInstance = new SettingsRegistrar();
         }
-        res = false;
-        break;
-      }
+        return theirGlobalInstance;
     }
-    return res;
-  }
 
-  /**
-   * Provides an atomic way to check that settings are compatible, and register them if
-   * they are.
-   * 
-   * @param client The client who wishes to register these settings.
-   * @param settings The settings to be registered.
-   * @return True if the settings were applied, False if they were incompatible.
-   */
-  public synchronized boolean checkAndRegisterSettings(Object client, ParameterSet settings) {
-    boolean res = false;
-    if (checkSettings(client, settings)) {
-      if (registerSettings(client, settings)) {
-        res = true;
-      }
+    /** Destroy the global instance. */
+    public synchronized static void destroyGlobalInstance()
+    {
+        if (theirGlobalInstance != null) {
+            getGlobalInstance().destroy();
+            theirGlobalInstance = null;
+        }
     }
-    return res;
-  }
 
-  /**
-   * Globally degregister the client and all setting which they had registered.
-   * 
-   * @param client The client to be deregistered.
-   */
-  public synchronized void deregisterSettings(Object client) {
-    Iterator<HasRegistrableSettings> i = itsRegistrations.iterator();
-    while (i.hasNext()) {
-      i.next().deregisterSettings(client);
+    /** List of all objects which may have settings registered. */
+    private Vector<HasRegistrableSettings> itsRegistrations = new Vector<HasRegistrableSettings>();
+
+    /**
+     * Remove all resources and references to registered objects.
+     */
+    public void destroy()
+    {
+        itsRegistrations.clear();
     }
-  }
+
+    /**
+     * Register a new object which has settings that may be registered.
+     * 
+     * @param o The object to be registered.
+     */
+    public synchronized void register(HasRegistrableSettings o)
+    {
+        if (!itsRegistrations.contains(o)) {
+            itsRegistrations.add(o);
+        }
+    }
+
+    /**
+     * Remove the object, which no longer needs settings to be registered.
+     * 
+     * @param o The object to be removed.
+     */
+    public synchronized void deregister(HasRegistrableSettings o)
+    {
+        itsRegistrations.remove(o);
+    }
+
+    /**
+     * Check if the specified settings are compatible with all registered objects.
+     * 
+     * @param client The client who is checking the settings.
+     * @param settings The settings to be checked.
+     * @return True if the settings are compatible, False if they are incompatible.
+     */
+    public synchronized boolean checkSettings(Object client, ParameterSet settings)
+    {
+        Iterator<HasRegistrableSettings> i = itsRegistrations.iterator();
+        while (i.hasNext()) {
+            if (!i.next().checkSettings(client, settings)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Register the settings requested by the client with all registered objects. If the
+     * settings cannot be registered globally, then they will be globally deregistered and
+     * an exception will be thrown.
+     * 
+     * @param client The client who wishes to register these settings.
+     * @param settings The settings to be registered.
+     * @return True if the settings were compatible, False if they were incompatible.
+     */
+    public synchronized boolean registerSettings(Object client, ParameterSet settings)
+    {
+        boolean res = true;
+        // Register the new settings globally
+        Iterator<HasRegistrableSettings> i = itsRegistrations.iterator();
+        while (i.hasNext()) {
+            if (!i.next().registerSettings(client, settings)) {
+                // Was unable to register settings with all objects, so globally
+                // deregister
+                Iterator<HasRegistrableSettings> j = itsRegistrations.iterator();
+                while (j.hasNext()) {
+                    j.next().deregisterSettings(client);
+                }
+                res = false;
+                break;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Provides an atomic way to check that settings are compatible, and register them if
+     * they are.
+     * 
+     * @param client The client who wishes to register these settings.
+     * @param settings The settings to be registered.
+     * @return True if the settings were applied, False if they were incompatible.
+     */
+    public synchronized boolean checkAndRegisterSettings(Object client, ParameterSet settings)
+    {
+        boolean res = false;
+        if (checkSettings(client, settings)) {
+            if (registerSettings(client, settings)) {
+                res = true;
+            }
+        }
+        return res;
+    }
+
+    /**
+     * Globally degregister the client and all setting which they had registered.
+     * 
+     * @param client The client to be deregistered.
+     */
+    public synchronized void deregisterSettings(Object client)
+    {
+        Iterator<HasRegistrableSettings> i = itsRegistrations.iterator();
+        while (i.hasNext()) {
+            i.next().deregisterSettings(client);
+        }
+    }
 }
