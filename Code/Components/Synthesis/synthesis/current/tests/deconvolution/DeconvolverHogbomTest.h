@@ -52,9 +52,10 @@ class DeconvolverHogbomTest : public CppUnit::TestFixture
 public:
    
   void setUp() {
-    Array<Float> dirty(IPosition(2,100,100));
-    Array<Float> psf(IPosition(2,100,100));
-    itsDB = DeconvolverHogbom<Float,Complex>::ShPtr(new DeconvolverHogbom<Float, Complex>(dirty, psf));
+    IPosition dimensions(2,100,100);
+    itsDirty.reset(new Array<Float>(dimensions));
+    itsPsf.reset(new Array<Float>(dimensions));
+    itsDB = DeconvolverHogbom<Float,Complex>::ShPtr(new DeconvolverHogbom<Float, Complex>(*itsDirty, *itsPsf));
     CPPUNIT_ASSERT(itsDB);
     CPPUNIT_ASSERT(itsDB->control());
     CPPUNIT_ASSERT(itsDB->monitor());
@@ -65,12 +66,21 @@ public:
     CPPUNIT_ASSERT(itsDB->setMonitor(DM));
     boost::shared_ptr<DeconvolverState<Float> > DS(new DeconvolverState<Float>::DeconvolverState());
     CPPUNIT_ASSERT(itsDB->setControl(DC));
-    Array<Float> mask(IPosition(2,100,100));
-    mask.set(1.0);
-    Array<Float> weight(IPosition(2,100,100));
-    weight.set(10.0);
-    itsDB->setMask(mask);
-    itsDB->setWeight(weight);
+    itsMask.reset(new Array<Float>(dimensions));
+    itsMask->set(1.0);
+    itsWeight.reset(new Array<Float>(dimensions));
+    itsWeight->set(10.0);
+    itsDB->setMask(*itsMask);
+    itsDB->setWeight(*itsWeight);
+  }
+
+  void tearDown() {
+      // Ensure arrays are destroyed last
+      itsDB.reset();
+      itsWeight.reset();
+      itsMask.reset();
+      itsPsf.reset();
+      itsDirty.reset();
   }
 
   void testCreate() {
@@ -111,6 +121,12 @@ public:
   }
    
 private:
+
+  boost::shared_ptr< Array<Float> > itsDirty;
+  boost::shared_ptr< Array<Float> > itsPsf;
+  boost::shared_ptr< Array<Float> > itsMask;
+  boost::shared_ptr< Array<Float> > itsWeight;
+
    /// @brief DeconvolutionHogbom class
   boost::shared_ptr<DeconvolverHogbom<Float, Complex> > itsDB;
 };
