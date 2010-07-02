@@ -54,7 +54,10 @@ public:
   void setUp() {
     IPosition dimensions(2,100,100);
     itsDirty.reset(new Array<Float>(dimensions));
+    itsDirty->set(0.0);
     itsPsf.reset(new Array<Float>(dimensions));
+    itsPsf->set(0.0);
+    (*itsPsf)(IPosition(2,51,51))=1.0;
     itsDB = DeconvolverHogbom<Float,Complex>::ShPtr(new DeconvolverHogbom<Float, Complex>(*itsDirty, *itsPsf));
     CPPUNIT_ASSERT(itsDB);
     CPPUNIT_ASSERT(itsDB->control());
@@ -112,12 +115,18 @@ public:
   }
   void testDeconvolve() {
     itsDB->state()->setCurrentIter(0);
+    cerr << "    itsDB->state()->setCurrentIter(0);" << "\n";
     itsDB->control()->setTargetIter(10);
+    cerr << "    itsDB->control()->setTargetIter(10); " << "\n";
     itsDB->control()->setGain(1.0);
     itsDB->control()->setTargetObjectiveFunction(0.001); 
+    cerr << "    itsDB->control()->setTargetObjectiveFunction(0.001); " << "\n";
     itsDB->dirty().set(1.0);
+    cerr << "    itsDB->dirty().set(1.0); " << "\n";
     CPPUNIT_ASSERT(itsDB->deconvolve());
+    cerr << "    CPPUNIT_ASSERT(itsDB->deconvolve()); " << "\n";
     CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
+    cerr << "    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS); " << "\n";
   }
    
 private:
