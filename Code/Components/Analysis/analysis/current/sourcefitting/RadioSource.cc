@@ -200,7 +200,7 @@ namespace askap {
                     int *overlap = subimage.overlap();
                     int colnum = workerNum % nsub[0];
                     int rownum = workerNum / nsub[0];
-                    int znum = workerNum % nsub[0] * nsub[1];
+                    int znum = workerNum % (nsub[0] * nsub[1]);
                     xminEdge = (colnum == 0) ? 0 : overlap[0];
                     xmaxEdge = (colnum == nsub[0] - 1) ? cube.getDimX() - 1 : cube.getDimX() - 1 - overlap[0];
                     yminEdge = (rownum == 0) ? 0 : overlap[1];
@@ -284,6 +284,7 @@ namespace askap {
 
                 for (size_t i = 0; i < size; i++) localArray[i] = fabs(localArray[i] - median);
 
+                std::nth_element(localArray, localArray + size / 2, localArray + size);
                 float madfm = localArray[size/2];
 
                 if (size % 2 == 0) {
