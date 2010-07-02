@@ -60,35 +60,46 @@ inline scimath::ComplexDiffMatrix LeakageTerm::get(const IConstDataAccessor &chu
    ASKAPDEBUGASSERT(stokes.nelements() == nPol);
    ASKAPDEBUGASSERT(!scimath::PolConverter::isStokes(stokes));
    
-   /*
+   
    const casa::uInt ant1 = chunk.antenna1()[row];
    const casa::uInt ant2 = chunk.antenna2()[row];
    
    const casa::uInt beam1 = chunk.feed1()[row];
    const casa::uInt beam2 = chunk.feed2()[row];
-   */
-   
+  
    // main diagonal is always 1.
-   scimath::ComplexDiffMatrix calFactor(nPol, nPol, 1.);
+   scimath::ComplexDiffMatrix calFactor(4, 4, 1.);
    
-
-   for (casa::uInt pol=0; pol<nPol; ++pol) {
+   // flag showin that the polarisation products are present
+   // in the canonic form (e.g. XX,XY,YX,YY for linears)
+   bool canonicPolOrder = (nPol == 4);
+   
+   for (casa::uInt pol=0; pol<4; ++pol) {
         
-        const casa::uInt polIndex = scimath::PolConverter::getIndex(stokes[pol]);
-        // polIndex is index in the polarisation frame, i.e.
-        // XX is 0, XY is 1, YX is 2 and YY is 3
-        // we need an index into matrix 
+        if (pol<nPol) {
+            const casa::uInt polIndex = scimath::PolConverter::getIndex(stokes[pol]);
+            ASKAPDEBUGASSERT(polIndex<4);
+            // polIndex is index in the polarisation frame, i.e.
+            // XX is 0, XY is 1, YX is 2 and YY is 3
+            // we need an index into matrix 
+            if (polIndex != pol) {
+                canonicPolOrder = false;
+            }
+        } else {
+              canonicPolOrder = false;
+        }
 
-        /*
-        // gains for antenna 1, polarisation X if XX or XY, or Y if YX or YY
-        const std::string g1name = paramName(ant1, beam1, polIndex / 2);
-            
-        // gains for antenna 2, polarisation X if XX or YX, or Y if XY or YY
-        const std::string g2name = paramName(ant2, beam2, polIndex % 2);
-        */
-                    
-        //calFactor(pol,pol) = getParameter(g1name)*conj(getParameter(g2name));            
+        // cross-diagonal terms                   
+        calFactor(pol, 3 - pol) = (pol % 3 == 0 ? 1. : -1.)*getParameter(paramName(ant1, beam1, pol < 2))*
+                            conj(getParameter(paramName(ant2, beam2, pol % 2 == 0)));
+        if (pol % 3 != 0) {
+            // middle rows and columns of the 4x4 matrix (index is 0-based)
+            // exploit the symmetries
+            calFactor(0, pol) = calFactor(3 - pol, 3);
+            calFactor(pol,0) = calFactor(3, 3 - pol);            
+        }
    }
+   ASKAPCHECK(canonicPolOrder, "Only canonic order of polarisation products (e.g. XX,XY,YX,YY) is currently supported");
    return calFactor;
 }
 
