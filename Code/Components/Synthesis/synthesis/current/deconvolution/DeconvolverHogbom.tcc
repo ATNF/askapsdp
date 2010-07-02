@@ -157,6 +157,13 @@ namespace askap {
       casa::IPosition dirtyStart(ndim,0), dirtyEnd(ndim,0), dirtyStride(ndim,1);
       casa::IPosition psfStart(ndim,0), psfEnd(ndim,0), psfStride(ndim,1);
 
+      Int psfWidth=this->psf().shape()(0);
+      psfWidth=(psfWidth-psfWidth%2)/2;
+
+      // Only use the specified psfWidth if it makes sense
+      if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
+        psfWidth=(this->control()->psfWidth()-this->control()->psfWidth()%2);
+      }
       for (uInt dim=0;dim<ndim;dim++) {
 
         // Wrangle the start, end, and shape into consistent form. It took me 
@@ -164,13 +171,6 @@ namespace askap {
         // that there are some edge cases for which it fails.
         // Note that the psfWidth can be less than the maximum, and that the
         // dirty image and psf can be different sizes
-        uInt psfWidth=this->psf().shape()(dim);
-        if(this->control()->psfWidth()>0) {
-          psfWidth=(this->control()->psfWidth()-this->control()->psfWidth()%2);
-        }
-        else {
-          psfWidth=(psfWidth-psfWidth%2)/2;
-        }
         // Next two lines are ALWAYS correct
         dirtyStart(dim)=max(0, Int(absPeakPos(dim)-psfWidth));
         dirtyEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(dirtyShape(dim)-1));
@@ -183,11 +183,15 @@ namespace askap {
       
       casa::Slicer dirtySlicer(dirtyStart, dirtyEnd, dirtyStride, Slicer::endIsLast);
       casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
-      
-      //      ASKAPLOG_INFO_STR(logger, "Dirty start: " << dirtyStart << " end: " << dirtyEnd);
-      //      ASKAPLOG_INFO_STR(logger, "PSF   start: " << psfStart << " end: " << psfEnd);
-      //      ASKAPLOG_INFO_STR(logger, "Dirty slicer " << dirtySlicer);
-      //      ASKAPLOG_INFO_STR(logger, "PSF slicer " << psfSlicer);
+      if(!(dirtySlicer.length()==psfSlicer.length())||!(dirtySlicer.stride()==psfSlicer.stride())) {
+        cerr << "Dirty " << dirtySlicer << " PSF " << psfSlicer << "\n";
+        throw AskapError("Mismatch in slicers for dirty and psf images");
+      }
+      ASKAPLOG_INFO_STR(logger, "PSF width specified: " << this->control()->psfWidth() << " calculated: " << psfWidth);
+      ASKAPLOG_INFO_STR(logger, "Dirty start: " << dirtyStart << " end: " << dirtyEnd);
+      ASKAPLOG_INFO_STR(logger, "PSF   start: " << psfStart << " end: " << psfEnd);
+      ASKAPLOG_INFO_STR(logger, "Dirty slicer " << dirtySlicer);
+      ASKAPLOG_INFO_STR(logger, "PSF slicer " << psfSlicer);
       
       // Add to model
       this->model()(absPeakPos) = this->model()(absPeakPos) + this->control()->gain()*absPeakVal;      

@@ -114,7 +114,7 @@ public:
     itsDB->state()->setCurrentIter(0);
     itsDB->control()->setTargetIter(10);
     itsDB->control()->setGain(1.0);
-    itsDB->control()->setTargetObjectiveFunction(0.001);
+    itsDB->control()->setTargetObjectiveFunction(0.001); 
     itsDB->dirty().set(1.0);
     CPPUNIT_ASSERT(itsDB->deconvolve());
     CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
