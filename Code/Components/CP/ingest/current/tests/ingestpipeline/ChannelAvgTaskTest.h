@@ -89,12 +89,7 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture
     void testInvalid()
     {
         // This is an invalid configuraion, so should throw an exception
-        try {
-            averageTest(4, 3);
-            CPPUNIT_FAIL("Expected exception not thrown");
-        } catch (askap::AskapError&) {
-            // This is good
-        }
+        CPPUNIT_ASSERT_THROW(averageTest(4, 3), askap::AskapError);
     }
 
     void averageTest(const unsigned int nChan, const unsigned int channelAveraging)

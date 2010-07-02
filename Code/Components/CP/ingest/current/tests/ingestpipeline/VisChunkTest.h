@@ -84,24 +84,17 @@ class VisChunkTest : public CppUnit::TestFixture {
 
         void testResizeRows()
         {
-            try {
-                resizeDriver(nRows, nChans, nPols,
-                        nRows+1, nChans, nPols);
-                CPPUNIT_FAIL("Expected exception not thrown");
-            } catch (askap::AskapError&) {
-                // This is good
-            }
+            CPPUNIT_ASSERT_THROW(
+                    resizeDriver(nRows, nChans, nPols, nRows+1, nChans, nPols),
+                    askap::AskapError);
         }
 
         void testResizePols()
         {
-            try {
-                resizeDriver(nRows, nChans, nPols,
-                        nRows, nChans, nPols+1);
-                CPPUNIT_FAIL("Expected exception not thrown");
-            } catch (askap::AskapError&) {
-                // This is good
-            }
+            CPPUNIT_ASSERT_THROW(
+                    resizeDriver(nRows, nChans, nPols, nRows, nChans, nPols+1),
+                    askap::AskapError);
+
         }
 
 

@@ -94,23 +94,17 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
         }
 
         void testInvalidAntenna() {
-            try {
-                //       ant1, ant2, beam,    u,   v,   w
-                testDriver(7,    0,    0,    0.0, 0.0, 0.0);
-                CPPUNIT_FAIL("Expected exception not thrown");
-            } catch (askap::AskapError&) {
-                // This is good
-            }
+            CPPUNIT_ASSERT_THROW(
+                    //       ant1, ant2, beam,    u,   v,   w
+                    testDriver(7,    0,    0,    0.0, 0.0, 0.0),
+                    askap::AskapError);
         }
 
         void testInvalidBeam() {
-            try {
-                //      ant1, ant2, beam,    u,   v,   w
-                testDriver(0,    0,    4,    0.0, 0.0, 0.0);
-                CPPUNIT_FAIL("Expected exception not thrown");
-            } catch (askap::AskapError&) {
-                // This is good
-            }
+            CPPUNIT_ASSERT_THROW(
+                    //      ant1, ant2, beam,    u,   v,   w
+                    testDriver(0,    0,    4,    0.0, 0.0, 0.0),
+                    askap::AskapError);
         }
 
         void testDriver(const unsigned int antenna1,

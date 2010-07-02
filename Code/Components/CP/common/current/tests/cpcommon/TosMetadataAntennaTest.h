@@ -121,27 +121,22 @@ class TosMetadataAntennaTest : public CppUnit::TestFixture {
 
                     // Check
                     CPPUNIT_ASSERT(directionsEqual(testDir,
-                                                   instance->phaseTrackingCentre(beam, chan)));
+                                instance->phaseTrackingCentre(beam, chan)));
                 }
             }
 
             // Request an invalid beam (index out of bounds)
-            try {
-                // Ask for beam 36 where range is 0..35
-                instance->phaseTrackingCentre(instance->nBeams() + 1, 0);
-                CPPUNIT_FAIL("Expected exception to be thrown");
-            } catch (AskapError&) {
-                // This is good
-            }
+            // Ask for beam 36 where range is 0..35
+            CPPUNIT_ASSERT_THROW(
+                    instance->phaseTrackingCentre(instance->nBeams() + 1, 0),
+                    askap::AskapError);
+
 
             // Request an invalid coarse channel (index out of bounds)
-            try {
-                // Ask for beam 304 where range is 0..303
-                instance->phaseTrackingCentre(0, instance->nCoarseChannels() + 1);
-                CPPUNIT_FAIL("Expected exception to be thrown");
-            } catch (AskapError&) {
-                // This is good
-            }
+            // Ask for beam 304 where range is 0..303
+            CPPUNIT_ASSERT_THROW(
+                    instance->phaseTrackingCentre(0, instance->nCoarseChannels() + 1),
+                    askap::AskapError);
         };
 
         void testParallacticAngle() {

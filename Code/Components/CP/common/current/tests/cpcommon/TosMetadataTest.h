@@ -107,12 +107,7 @@ class TosMetadataTest : public CppUnit::TestFixture {
 
         void testAntennaInvalid() {
             // Request an invalid antenna id (index out of bounds).
-            try {
-                instance->antenna(0);
-                CPPUNIT_FAIL("Expected exception to be thrown");
-            } catch (AskapError&) {
-                // This is good
-            }
+            CPPUNIT_ASSERT_THROW(instance->antenna(0), askap::AskapError);
         }
 
     private:
