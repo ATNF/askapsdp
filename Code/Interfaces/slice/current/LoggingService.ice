@@ -96,11 +96,11 @@ module logging
 	// SQL like match
         string origin;
 
-        // The minimum UTC date for the query in ISO 8601.
-        string datemin;
+        // The minimum date/time  as POSIX time double
+        double datemin;
 
-        // The maximum UTC date for the query in ISO 8601.
-        string datemax;
+        // The minimum date/time  as POSIX time double
+        double datemax;
 
         // The log levels to query on
         LogLevelSeq levels;
@@ -116,8 +116,8 @@ module logging
         // The maximum number of ILogEvents (rows) to return
         int limit;
 
-	// The row number to start at
-	//int start;
+	// The row number offset at
+	int offset;
     };
 
     /**
