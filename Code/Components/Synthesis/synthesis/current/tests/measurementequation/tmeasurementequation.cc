@@ -34,6 +34,7 @@
 #include <SynthesisParamsHelperTest.h>
 #include <ImageParamsHelperTest.h>
 #include <GaussianNoiseMETest.h>
+#include <PolLeakageTest.h>
 
 int main( int argc, char **argv)
 {
@@ -48,6 +49,7 @@ int main( int argc, char **argv)
     runner.addTest(askap::synthesis::SynthesisParamsHelperTest::suite());
     runner.addTest(askap::synthesis::ImageParamsHelperTest::suite());
     runner.addTest(askap::synthesis::GaussianNoiseMETest::suite());
+    runner.addTest(askap::synthesis::PolLeakageTest::suite());
 
     const bool wasSucessful = runner.run();
 
