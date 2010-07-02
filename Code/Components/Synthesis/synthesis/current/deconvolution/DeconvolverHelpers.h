@@ -40,6 +40,8 @@ namespace askap
   namespace synthesis
   {
     /// @brief Helpers class for deconvolvers
+    /// @detail This is a collection of static functions that are of use for
+    /// cdeconvolver.
     /// @ingroup deconvolution
     class DeconvolverHelpers
     {

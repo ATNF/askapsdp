@@ -87,6 +87,7 @@ namespace askap {
 
       // Mask weighted by weight image
       Array<T> itsWeightedMask;
+
     };
 
   } // namespace synthesis

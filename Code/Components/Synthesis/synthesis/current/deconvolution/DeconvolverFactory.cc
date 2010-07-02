@@ -68,6 +68,7 @@ namespace askap {
         deconvolver->control()->setTolerance(parset.getFloat("solver.Clean.tolerance", 1e-3));
         deconvolver->control()->setTargetIter(parset.getInt32("solver.Clean.niter", 100));
         deconvolver->control()->setTargetObjectiveFunction(parset.getFloat("solver.Clean.threshold", 0.1));
+        deconvolver->control()->setPSFWidth(parset.getInt("solver.Clean.psfwidth", 0));
       }
       ASKAPASSERT(deconvolver);
       return deconvolver;

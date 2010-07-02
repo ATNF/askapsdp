@@ -161,40 +161,41 @@ namespace askap {
 
         // Wrangle the start, end, and shape into consistent form. It took me 
         // quite a while to figure this out (slow brain day) so it may be
-        // that there is a more straightforward way. It's not clear to me
-        // whether I have implicitly assumed that the dirty and psf
-        // have the same shape.
+        // that there are some edge cases for which it fails.
+        // Note that the psfWidth can be less than the maximum, and that the
+        // dirty image and psf can be different sizes
         uInt psfWidth=this->psf().shape()(dim);
-        psfWidth=(psfWidth-psfWidth%2)/2;
-        if(absPeakPos(dim)>itsPeakPSFPos(dim)){
-          dirtyStart(dim)=Int(absPeakPos(dim)-psfWidth);
-          dirtyEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(dirtyShape(dim)-1));
-          psfStart(dim)=0;
-          psfEnd(dim)=dirtyEnd(dim)-dirtyStart(dim);
+        if(this->control()->psfWidth()>0) {
+          psfWidth=(this->control()->psfWidth()-this->control()->psfWidth()%2);
         }
         else {
-          dirtyStart(dim)=0;
-          dirtyEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(dirtyShape(dim)-1));
-          psfEnd(dim)=Int(psfShape(dim)-1);
-          psfStart(dim)=Int(psfShape(dim)-1+dirtyStart(dim)-dirtyEnd(dim));
+          psfWidth=(psfWidth-psfWidth%2)/2;
         }
+        // Next two lines are ALWAYS correct
+        dirtyStart(dim)=max(0, Int(absPeakPos(dim)-psfWidth));
+        dirtyEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(dirtyShape(dim)-1));
+        // Now we have to deal with the PSF. Here we want to use enough of the
+        // PSF to clean the dirty dirty image.
+        psfStart(dim)=max(0, Int(itsPeakPSFPos(dim)-(absPeakPos(dim)-dirtyStart(dim))));
+        psfEnd(dim)=min(Int(itsPeakPSFPos(dim)-(absPeakPos(dim)-dirtyEnd(dim))),
+                        Int(psfShape(dim)-1));
       }
-      //      ASKAPLOG_INFO_STR(logger, "Dirty start: " << dirtyStart << " end: " << dirtyEnd);
-      //      ASKAPLOG_INFO_STR(logger, "PSF   start: " << psfStart << " end: " << psfEnd);
-
+      
       casa::Slicer dirtySlicer(dirtyStart, dirtyEnd, dirtyStride, Slicer::endIsLast);
       casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
-
+      
+      //      ASKAPLOG_INFO_STR(logger, "Dirty start: " << dirtyStart << " end: " << dirtyEnd);
+      //      ASKAPLOG_INFO_STR(logger, "PSF   start: " << psfStart << " end: " << psfEnd);
       //      ASKAPLOG_INFO_STR(logger, "Dirty slicer " << dirtySlicer);
       //      ASKAPLOG_INFO_STR(logger, "PSF slicer " << psfSlicer);
-
+      
       // Add to model
       this->model()(absPeakPos) = this->model()(absPeakPos) + this->control()->gain()*absPeakVal;      
-
+      
       // Subtract entire PSF from dirty image
       this->dirty()(dirtySlicer) = this->dirty()(dirtySlicer)
         - this->control()->gain()*absPeakVal*this->psf()(psfSlicer);
-
+      
       return True;
     }
 

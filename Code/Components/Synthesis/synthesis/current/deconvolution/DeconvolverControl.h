@@ -123,12 +123,19 @@ namespace askap {
     	return itsTargetObjectiveFunction;
       }
 
+      /// @brief Set the desired PSF width in pixels
+      void setPSFWidth(const Int psfWidth) {itsPSFWidth=psfWidth;}
+
+      /// @brief Get the desired PSF width in pixels
+      Int psfWidth() const {return itsPSFWidth;};
+
     private:
       TerminationCause itsTerminationCause;
       Int itsTargetIter;
       T itsTargetObjectiveFunction;
       Float itsGain;
       Float itsTolerance;
+      Int itsPSFWidth;
     };
     
   } // namespace synthesis

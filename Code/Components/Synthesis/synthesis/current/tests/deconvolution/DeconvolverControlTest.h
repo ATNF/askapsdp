@@ -38,51 +38,58 @@
 using namespace casa;
 
 namespace askap {
-
-namespace synthesis {
-
-class DeconvolverControlTest : public CppUnit::TestFixture
-{
-   CPPUNIT_TEST_SUITE(DeconvolverControlTest);
-   CPPUNIT_TEST(testSetGet);
-   CPPUNIT_TEST(testTermination);
-   CPPUNIT_TEST_SUITE_END();
-public:
-   
-   void testSetGet() {
-     {
-       itsDC.setGain(0.7);
-       CPPUNIT_ASSERT(abs(itsDC.gain()-0.7)<1e-6);
-       itsDC.setTolerance(0.001);
-       CPPUNIT_ASSERT(abs(itsDC.tolerance()-0.001)<1e-9);
-     }
-   }
-   void testTermination() {
-     {
-       DeconvolverState<Float> ds;
-       itsDC.setTargetIter(100);
-       CPPUNIT_ASSERT(!itsDC.terminate(ds));
-       itsDC.setTargetIter(100);
-       CPPUNIT_ASSERT(!itsDC.terminate(ds));
-       itsDC.setTargetIter(200);
-       CPPUNIT_ASSERT(!itsDC.terminate(ds));
-       ds.setCurrentIter(199);
-       CPPUNIT_ASSERT(!itsDC.terminate(ds));
-       ds.setCurrentIter(200);
-       CPPUNIT_ASSERT(itsDC.terminate(ds));
-       ds.setCurrentIter(300);
-       CPPUNIT_ASSERT(itsDC.terminate(ds));
-       CPPUNIT_ASSERT(itsDC.terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
-     }
-   }
-   
-   
-private:
-   /// @brief DeconvolutionControl class
-   DeconvolverControl<Float> itsDC;
-};
+  
+  namespace synthesis {
     
-} // namespace synthesis
-
+    class DeconvolverControlTest : public CppUnit::TestFixture
+    {
+      CPPUNIT_TEST_SUITE(DeconvolverControlTest);
+      CPPUNIT_TEST(testSetGet);
+      CPPUNIT_TEST(testTermination);
+      CPPUNIT_TEST_SUITE_END();
+    public:
+      
+      void setUp() {
+        itsDC=boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>::DeconvolverControl());
+      }
+      void testSetGet() {
+        {
+          itsDC->setGain(0.7);
+          CPPUNIT_ASSERT(abs(itsDC->gain()-0.7)<1e-6);
+          itsDC->setTolerance(0.001);
+          CPPUNIT_ASSERT(abs(itsDC->tolerance()-0.001)<1e-9);
+          itsDC->setPSFWidth(51);
+          CPPUNIT_ASSERT(itsDC->psfWidth()==51);
+        }
+      }
+      void testTermination() {
+        {
+          DeconvolverState<Float> ds;
+          itsDC->setTargetIter(100);
+          CPPUNIT_ASSERT(!itsDC->terminate(ds));
+          itsDC->setTargetIter(100);
+          CPPUNIT_ASSERT(!itsDC->terminate(ds));
+          itsDC->setTargetIter(200);
+          CPPUNIT_ASSERT(!itsDC->terminate(ds));
+          ds.setCurrentIter(199);
+          CPPUNIT_ASSERT(!itsDC->terminate(ds));
+          ds.setCurrentIter(200);
+          CPPUNIT_ASSERT(itsDC->terminate(ds));
+          ds.setCurrentIter(300);
+          CPPUNIT_ASSERT(itsDC->terminate(ds));
+          CPPUNIT_ASSERT(itsDC->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
+        }
+      }
+      void tearDown() {
+        itsDC.reset();
+      }
+      
+    private:
+      /// @brief DeconvolutionControl class
+      boost::shared_ptr<DeconvolverControl<Float> > itsDC;
+    };
+    
+  } // namespace synthesis
+  
 } // namespace askap
 

@@ -52,6 +52,9 @@ namespace askap {
     /// image from a dirty image, psf optionally using a mask and a weights image.
     /// The template argument T is the type, and FT is the transform
     /// e.g. Deconvolver<Double, DComplex>
+    /// The interface is by Array<T>'s holding the various arrays
+    /// Usually the arrays are 2-D. However, in the case of e.g. MSMFS the
+    /// third axis will be the taylor terms.
     /// @ingroup Deconvolver
     template<class T, class FT> class DeconvolverBase {
 

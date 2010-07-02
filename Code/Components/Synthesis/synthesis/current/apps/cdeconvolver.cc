@@ -112,6 +112,9 @@ int main(int argc, const char** argv)
             boost::shared_ptr<DeconvolverBase<Float, Complex> > deconvolver(DeconvolverFactory::make(subset));
             deconvolver->deconvolve();
 
+            // Now write the model and residual to disk using the names specified in the 
+            // parset. We simply copy the dirty image and then write the array into 
+            // the resulting image. 
             DeconvolverHelpers::putArrayToImage(deconvolver->model(), "model", "dirty", subset);
             DeconvolverHelpers::putArrayToImage(deconvolver->dirty(), "residual", "dirty", subset);
 

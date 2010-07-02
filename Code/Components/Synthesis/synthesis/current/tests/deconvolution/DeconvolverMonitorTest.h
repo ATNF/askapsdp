@@ -47,20 +47,26 @@ class DeconvolverMonitorTest : public CppUnit::TestFixture
    CPPUNIT_TEST_SUITE_END();
 public:
    
+  void setUp() {
+    itsDM=boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>::DeconvolverMonitor());
+  }
    void testMonitor() {
      {
        DeconvolverState<Float> ds;
        for (int iter=0;iter<10;iter++) {
          ds.setCurrentIter(iter);
          ds.setObjectiveFunction(1.0/Float(iter+1));
-         itsDM.monitor(ds);
+         itsDM->monitor(ds);
        }
      }
    }
+  void tearDown() {
+    itsDM.reset();
+  }
    
 private:
    /// @brief DeconvolutionMonitor class
-   DeconvolverMonitor<Float> itsDM;
+  boost::shared_ptr<DeconvolverMonitor<Float> > itsDM;
 };
     
 } // namespace synthesis

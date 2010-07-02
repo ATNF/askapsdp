@@ -49,34 +49,40 @@ class DeconvolverStateTest : public CppUnit::TestFixture
    CPPUNIT_TEST_SUITE_END();
 public:
    
+  void setUp() {
+    itsDS=boost::shared_ptr<DeconvolverState<Float> >(new DeconvolverState<Float>::DeconvolverState());
+  }
    void testSetGet() {
      {
-       itsDS.setCurrentIter(100);
-       CPPUNIT_ASSERT(itsDS.currentIter()==100);
-       itsDS.setPeakResidual(1.4);
-       CPPUNIT_ASSERT(itsDS.peakResidual()==Float(1.4));
-       itsDS.setTotalFlux(0.3);
-       CPPUNIT_ASSERT(itsDS.totalFlux()==Float(0.3));
-       itsDS.setObjectiveFunction(10.3);
-       CPPUNIT_ASSERT(itsDS.objectiveFunction()==Float(10.3));
-       itsDS.setCurrentIter(0);
-       CPPUNIT_ASSERT(itsDS.currentIter()==0);
-       itsDS.incIter();
-       CPPUNIT_ASSERT(itsDS.currentIter()==1);
+       itsDS->setCurrentIter(100);
+       CPPUNIT_ASSERT(itsDS->currentIter()==100);
+       itsDS->setPeakResidual(1.4);
+       CPPUNIT_ASSERT(itsDS->peakResidual()==Float(1.4));
+       itsDS->setTotalFlux(0.3);
+       CPPUNIT_ASSERT(itsDS->totalFlux()==Float(0.3));
+       itsDS->setObjectiveFunction(10.3);
+       CPPUNIT_ASSERT(itsDS->objectiveFunction()==Float(10.3));
+       itsDS->setCurrentIter(0);
+       CPPUNIT_ASSERT(itsDS->currentIter()==0);
+       itsDS->incIter();
+       CPPUNIT_ASSERT(itsDS->currentIter()==1);
      }
    }
    void testReset() {
      {
-       itsDS.setCurrentIter(100);
-       CPPUNIT_ASSERT(itsDS.currentIter()==100);
-       itsDS.reset();
-       CPPUNIT_ASSERT(itsDS.currentIter()==0);
+       itsDS->setCurrentIter(100);
+       CPPUNIT_ASSERT(itsDS->currentIter()==100);
+       itsDS->reset();
+       CPPUNIT_ASSERT(itsDS->currentIter()==0);
      }
    }
+  void tearDown() {
+    itsDS->reset();
+  }
    
 private:
    /// @brief DeconvolutionState class
-   DeconvolverState<Float> itsDS;
+  boost::shared_ptr<DeconvolverState<Float> > itsDS;
 };
     
 } // namespace synthesis
