@@ -74,11 +74,11 @@ namespace askap {
                     /// @brief Read in the lists of source and reference objects.
                     void readLists();
 
-		    /// @brief Manually set the list of source points
-		    void setSrcList(std::vector<Point> srclist){itsSrcPixList = srclist;};
+                    /// @brief Manually set the list of source points
+                    void setSrcList(std::vector<Point> srclist) {itsSrcPixList = srclist;};
 
-		    /// @brief Manually set the list of reference points
-		    void setRefList(std::vector<Point> reflist){itsRefPixList = reflist;};
+                    /// @brief Manually set the list of reference points
+                    void setRefList(std::vector<Point> reflist) {itsRefPixList = reflist;};
 
                     /// @brief Fix the sizes of reference objects to reflect the beam size used.
                     void fixRefList(std::vector<float> beam);

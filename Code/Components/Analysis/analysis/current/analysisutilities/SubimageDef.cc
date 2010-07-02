@@ -211,8 +211,7 @@ namespace askap {
             /// @details Return the subsection object for the given worker
             /// number. (These start at 0). The subimages are tiled across
             /// the cube with the x-direction varying quickest, then y, then
-            /// z. The dimensions of the array are obtained with the
-            /// getFITSdimensions(std::string) function.
+            /// z.
             /// @return A duchamp::Section object containing all information
             /// on the subsection.
 

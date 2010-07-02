@@ -264,7 +264,7 @@ namespace askap {
                 }
 
                 if (result == duchamp::FAILURE) {
-		  ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsCube.pars().getImageFile() << ".");
+                    ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsCube.pars().getImageFile() << ".");
                     ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsCube.pars().getImageFile())
                 } else {
                     ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read metadata from image " << this->itsCube.pars().getImageFile());
@@ -820,7 +820,6 @@ namespace askap {
                                 if (vox == voxSet.begin()) thresholdForFitting = pixvox->getF();
                                 else thresholdForFitting = std::min(thresholdForFitting, pixvox->getF());
 
-                                //
                                 std::vector<PixelInfo::Voxel>::iterator snrvox = this->itsSNRVoxelList.begin();
 
                                 while (snrvox < this->itsSNRVoxelList.end() && !vox->match(*snrvox)) snrvox++;

@@ -145,7 +145,7 @@ namespace askap {
             /// function.
             duchamp::Param par;
 
-	    par.setImageFile( parset.getString("image") );
+            par.setImageFile(parset.getString("image"));
 
             std::string outputfile;
             outputfile = parset.getString("outfile", "");
