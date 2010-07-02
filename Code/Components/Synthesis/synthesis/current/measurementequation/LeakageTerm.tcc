@@ -74,6 +74,12 @@ inline scimath::ComplexDiffMatrix LeakageTerm::get(const IConstDataAccessor &chu
    // in the canonic form (e.g. XX,XY,YX,YY for linears)
    bool canonicPolOrder = (nPol == 4);
    
+   calFactor(3, 1) = -1.*getParameter(paramName(ant1, beam1, false));
+   calFactor(1, 3) = getParameter(paramName(ant1, beam1, true));
+   
+   calFactor(3, 2) = -1.*conj(getParameter(paramName(ant2, beam2, false)));
+   calFactor(2, 3) = -1.*conj(getParameter(paramName(ant2, beam2, true)));
+   
    for (casa::uInt pol=0; pol<4; ++pol) {
         
         if (pol<nPol) {
