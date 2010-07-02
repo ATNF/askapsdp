@@ -85,6 +85,11 @@ namespace askap {
       ASKAPLOG_INFO_STR(logger, "Minimum of PSF = " << minVal << " at " << minPos);
       itsPeakPSFVal = maxVal;
       itsPeakPSFPos = maxPos;
+
+      // Check the peak of the PSF - it should be at nx/2,ny/2
+      if(!(maxPos==this->psf().shape()/2)) {
+	throw(AskapError("Peak of PSF is not at center"));
+      };
     }
 
     template<class T, class FT>
@@ -184,6 +189,14 @@ namespace askap {
       casa::Slicer dirtySlicer(dirtyStart, dirtyEnd, dirtyStride, Slicer::endIsLast);
       casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
       if(!(dirtySlicer.length()==psfSlicer.length())||!(dirtySlicer.stride()==psfSlicer.stride())) {
+	cerr << "Peak of PSF  : " << itsPeakPSFPos << "\n";
+	cerr << "Peak of dirty: " << absPeakPos << "\n";
+	cerr << "PSF width    : " << psfWidth << "\n";
+	cerr << "Dirty start  : " << dirtyStart << " end: " << dirtyEnd << "\n";
+	cerr << "PSF   start  : " << psfStart << " end: " << psfEnd << "\n";
+	cerr << "Dirty slicer : " << dirtySlicer << "\n";
+	cerr << "PSF slicer   : " << psfSlicer << "\n";
+
         throw AskapError("Mismatch in slicers for dirty and psf images");
       }
       //      ASKAPLOG_INFO_STR(logger, "Dirty start: " << dirtyStart << " end: " << dirtyEnd);

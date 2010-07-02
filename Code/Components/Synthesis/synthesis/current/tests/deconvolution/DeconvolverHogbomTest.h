@@ -44,9 +44,12 @@ class DeconvolverHogbomTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(DeconvolverHogbomTest);
   CPPUNIT_TEST(testCreate);
-  //  CPPUNIT_TEST(testOneIteration);
-  //  CPPUNIT_TEST(testDeconvolve);
+  CPPUNIT_TEST(testOneIteration);
+  CPPUNIT_TEST(testDeconvolve);
+  CPPUNIT_TEST(testDeconvolveCenter);
+  CPPUNIT_TEST(testDeconvolveCorner);
   CPPUNIT_TEST(testDeconvolveZero);
+  CPPUNIT_TEST_EXCEPTION(testDeconvolveOffsetPSF, AskapError);
   CPPUNIT_TEST_EXCEPTION(testWrongShape, AskapError);
   CPPUNIT_TEST_SUITE_END();
 public:
@@ -57,7 +60,7 @@ public:
     itsDirty->set(0.0);
     itsPsf.reset(new Array<Float>(dimensions));
     itsPsf->set(0.0);
-    (*itsPsf)(IPosition(2,51,51))=1.0;
+    (*itsPsf)(IPosition(2,50,50))=1.0;
     itsDB = DeconvolverHogbom<Float,Complex>::ShPtr(new DeconvolverHogbom<Float, Complex>(*itsDirty, *itsPsf));
     CPPUNIT_ASSERT(itsDB);
     CPPUNIT_ASSERT(itsDB->control());
@@ -118,9 +121,44 @@ public:
     itsDB->control()->setTargetIter(10);
     itsDB->control()->setGain(1.0);
     itsDB->control()->setTargetObjectiveFunction(0.001); 
-    itsDB->dirty().set(1.0);
+    itsDB->dirty().set(0.0);
+    itsDB->dirty()(IPosition(2,30,20))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
+    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
+  }
+  void testDeconvolveOffsetPSF() {
+    itsDB->state()->setCurrentIter(0);
+    itsDB->control()->setTargetIter(10);
+    itsDB->control()->setGain(1.0);
+    itsDB->control()->setTargetObjectiveFunction(0.001); 
+    itsDB->dirty().set(0.0);
+    itsDB->dirty()(IPosition(2,30,20))=1.0;
+    itsPsf->set(0.0);
+    (*itsPsf)(IPosition(2,70,70))=1.0;
+    CPPUNIT_ASSERT(itsDB->deconvolve());
+    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
+  }
+   
+  void testDeconvolveCenter() {
+    itsDB->state()->setCurrentIter(0);
+    itsDB->control()->setTargetIter(10);
+    itsDB->control()->setGain(1.0);
+    itsDB->control()->setTargetObjectiveFunction(0.001); 
+    itsDB->dirty().set(0.0);
+    itsDB->dirty()(IPosition(2,50,50))=1.0;
+    CPPUNIT_ASSERT(itsDB->deconvolve());
+    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
+  }
+   
+  void testDeconvolveCorner() {
+    itsDB->state()->setCurrentIter(0);
+    itsDB->control()->setTargetIter(10);
+    itsDB->control()->setGain(1.0);
+    itsDB->control()->setTargetObjectiveFunction(0.001); 
+    itsDB->dirty().set(0.0);
+    itsDB->dirty()(IPosition(2,0,0))=1.0;
+    CPPUNIT_ASSERT(itsDB->deconvolve());
+    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
   }
    
 private:
