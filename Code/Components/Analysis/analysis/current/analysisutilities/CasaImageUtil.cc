@@ -776,18 +776,10 @@ namespace askap {
 
         Slicer subsectionToSlicer(duchamp::Section &subsection)
         {
-            std::vector<int> secStarts = subsection.getStartList();
-            std::vector<int> secLengths = subsection.getDimList();
-            int ndim = secStarts.size();
-            IPosition start(ndim), length(ndim);
+            Vector<int> secStarts(subsection.getStartList());
+            Vector<int> secLengths(subsection.getDimList());
 
-            for (int i = 0; i < ndim; i++) {
-                start(i) = secStarts[i];
-                length(i) = secLengths[i];
-            }
-
-            Slicer slicer(start, length);
-            return slicer;
+	    return Slicer(IPosition(secStarts), IPosition(secLengths));
         }
 
         //**************************************************************//
