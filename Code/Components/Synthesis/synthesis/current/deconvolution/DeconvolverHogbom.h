@@ -61,22 +61,22 @@ namespace askap {
       virtual ~DeconvolverHogbom();
   
       /// @brief Construct from dirty image and psf
-      /// @detailed Construct a deconvolver from a dirty image and
+      /// @detail Construct a deconvolver from a dirty image and
       /// the corresponding PSF
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
       DeconvolverHogbom(Array<T>& dirty, Array<T>& psf);
 
       /// @brief Perform the deconvolution
-      /// @detailed This is the main deconvolution method.
+      /// @detail This is the main deconvolution method.
       virtual bool deconvolve();
 
       /// @brief Perform the deconvolution
-      /// @detailed This is the main deconvolution method.
+      /// @detail This is the main deconvolution method.
       virtual bool oneIteration();
 
       /// @brief Initialize the deconvolution
-      /// @detailed Initialise e.g. set weighted mask
+      /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
 
     private:
@@ -85,6 +85,7 @@ namespace askap {
       casa::IPosition itsPeakPSFPos;
       T itsPeakPSFVal;
 
+      // We need this for the inner loop
       // Mask weighted by weight image
       Array<T> itsWeightedMask;
 

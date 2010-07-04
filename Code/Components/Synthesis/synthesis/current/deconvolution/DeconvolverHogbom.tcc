@@ -189,20 +189,16 @@ namespace askap {
       casa::Slicer dirtySlicer(dirtyStart, dirtyEnd, dirtyStride, Slicer::endIsLast);
       casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
       if(!(dirtySlicer.length()==psfSlicer.length())||!(dirtySlicer.stride()==psfSlicer.stride())) {
-	cerr << "Peak of PSF  : " << itsPeakPSFPos << "\n";
-	cerr << "Peak of dirty: " << absPeakPos << "\n";
-	cerr << "PSF width    : " << psfWidth << "\n";
-	cerr << "Dirty start  : " << dirtyStart << " end: " << dirtyEnd << "\n";
-	cerr << "PSF   start  : " << psfStart << " end: " << psfEnd << "\n";
-	cerr << "Dirty slicer : " << dirtySlicer << "\n";
-	cerr << "PSF slicer   : " << psfSlicer << "\n";
+	ASKAPLOG_INFO_STR(logger, "Peak of PSF  : " << itsPeakPSFPos );
+	ASKAPLOG_INFO_STR(logger, "Peak of dirty: " << absPeakPos );
+	ASKAPLOG_INFO_STR(logger, "PSF width    : " << psfWidth );
+	ASKAPLOG_INFO_STR(logger, "Dirty start  : " << dirtyStart << " end: " << dirtyEnd );
+	ASKAPLOG_INFO_STR(logger, "PSF   start  : " << psfStart << " end: " << psfEnd );
+	ASKAPLOG_INFO_STR(logger, "Dirty slicer : " << dirtySlicer );
+	ASKAPLOG_INFO_STR(logger, "PSF slicer   : " << psfSlicer );
 
         throw AskapError("Mismatch in slicers for dirty and psf images");
       }
-      //      ASKAPLOG_INFO_STR(logger, "Dirty start: " << dirtyStart << " end: " << dirtyEnd);
-      //      ASKAPLOG_INFO_STR(logger, "PSF   start: " << psfStart << " end: " << psfEnd);
-      //      ASKAPLOG_INFO_STR(logger, "Dirty slicer " << dirtySlicer);
-      //      ASKAPLOG_INFO_STR(logger, "PSF slicer " << psfSlicer);
       
       // Add to model
       this->model()(absPeakPos) = this->model()(absPeakPos) + this->control()->gain()*absPeakVal;      

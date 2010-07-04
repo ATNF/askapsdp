@@ -1,3 +1,9 @@
+/// @file
+/// @brief Basis Function for a point source
+/// @details Holds basis function for a point source
+/// @ingroup Deconvolver
+///  
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,34 +26,30 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Tim Cornwell <tim.cornwell@csiro.au>
+///
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 
-ASKAP_LOGGER(logger, ".deconvolution");
+#include <casa/aips.h>
+#include <deconvolution/PointBasisFunction.h>
 
-// Test includes
-#include <DeconvolverBaseTest.h>
-#include <DeconvolverHogbomTest.h>
-#include <DeconvolverControlTest.h>
-#include <DeconvolverMonitorTest.h>
-#include <DeconvolverStateTest.h>
-#include <BasisFunctionTest.h>
+using namespace casa;
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-
-    runner.addTest( askap::synthesis::DeconvolverBaseTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverHogbomTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverStateTest::suite());
-    runner.addTest( askap::synthesis::BasisFunctionTest::suite());
-
-    bool wasSucessful = runner.run();
-
-    return wasSucessful ? 0 : 1;
-}
+namespace askap {
+  
+  namespace synthesis {
+    
+    template<class T>
+    PointBasisFunction<T>::PointBasisFunction(const IPosition shape) :
+      BasisFunction<T>::BasisFunction(shape)
+     {
+       BasisFunction<T>::itsOrthogonal=True;
+       IPosition centre(3, shape[0]/2, shape[1]/2, 0);
+       BasisFunction<T>::itsBasisFunction(centre)=T(1.0);
+    };
+    
+  } // namespace synthesis
+  
+} // namespace askap

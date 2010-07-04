@@ -64,45 +64,46 @@ namespace askap {
       virtual ~DeconvolverBase();
   
       /// @brief Construct from dirty image and psf
-      /// @detailed Construct a deconvolver from a dirty image and
-      /// the corresponding PSF
+      /// @detail Construct a deconvolver from a dirty image and
+      /// the corresponding PSF. Note that both dirty image
+      /// and psf can have more than 2 dimensions
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
       DeconvolverBase(Array<T> dirty, Array<T> psf);
 
       /// @brief Set the initial model
-      /// @detailed Set the model from which iteration will start
+      /// @detail Set the model from which iteration will start
       /// @param[out] model Model image (array)
       void setModel(const Array<T> model);
 
       /// @brief Get the current model
-      /// @detailed Get the current model
+      /// @detail Get the current model
       /// @param[out] model Model image (array)
       Array<T>& model() { return itsModel;};
 
       /// @brief Get the current dirty
-      /// @detailed Get the current dirty
+      /// @detail Get the current dirty
       /// @param[out] dirty Dirty image (array)
       Array<T>& dirty() { return itsDirty;};
 
       /// @brief Get the current PSF
-      /// @detailed Get the current PSF
+      /// @detail Get the current PSF
       /// @param[out] PSF image (array)
       Array<T>& psf() { return itsPSF;};
 
       /// @brief Update only the dirty image
-      /// @detailed Update an existing deconvolver for a changed dirty image
+      /// @detail Update an existing deconvolver for a changed dirty image
       /// @param[in] dirty Dirty image (array)
       void updateDirty(Array<T> dirty);
 
       /// @brief Set the mask image otherwise there is no mask
-      /// @detailed The mask image is used to limit where flux is allowed in
+      /// @detail The mask image is used to limit where flux is allowed in
       /// the image
       /// @param[in] mask Mask (array)
       void setMask(Array<T> mask);
 
       /// @brief Set the weight image
-      /// @detailed The weights image (actually the sqrt) is used to 
+      /// @detail The weights image (actually the sqrt) is used to 
       /// aid the deconvolution. The weights image is proportional
       /// to 1/sigma**2
       /// @param[in] weights Weights (array)
@@ -125,23 +126,24 @@ namespace askap {
       bool setState(boost::shared_ptr<DeconvolverState<T> > state);
 
       // @brief Perform the deconvolution
-      // @detailed This is the main deconvolution method.
+      // @detail This is the main deconvolution method.
       virtual bool deconvolve();
 
       // @brief Perform the deconvolution
-      // @detailed This is the main deconvolution method.
+      // @detail This is the main deconvolution method.
       virtual bool oneIteration();
 
       /// @brief Initialize the deconvolution
-      /// @detailed Initialise e.g. set weighted mask
+      /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
 
       /// @brief Finalise the deconvolution
-      /// @detailed Finalise any calculations needed at the end
+      /// @detail Finalise any calculations needed at the end
       /// of iteration
       virtual void finalise();
 
     protected:
+      // Validate the various shapes to ensure consistency
       void validateShapes();
 
     private:

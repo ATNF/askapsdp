@@ -44,15 +44,7 @@ namespace askap {
   
   namespace synthesis {
     
-    /// @brief Base class for a deconvolver
-    /// @details This base class defines a deconvolver used to estimate an
-    /// image from a dirty image, psf optionally using a mask and a weights image.
-    /// The template argument T is the type, and FT is the transform
-    /// e.g. Deconvolver<Double, DComplex>
-    /// @ingroup Deconvolver
-    
     template<class T, class FT>
-    
     DeconvolverBase<T,FT>::~DeconvolverBase() {
     };
     
@@ -163,20 +155,27 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::validateShapes()
     {
-      ASKAPASSERT(this->model().shape()==this->dirty().shape());
+      // The mask and the weight images should be the same 
+      // shape as the dirty image
       ASKAPASSERT(this->mask().shape()==this->dirty().shape());
       ASKAPASSERT(this->weight().shape()==this->dirty().shape());
+      // The model and dirty image shapes only need to agree on the
+      // first two axes
+      ASKAPASSERT(this->model().shape()[0]==this->dirty().shape()[0]);
+      ASKAPASSERT(this->model().shape()[1]==this->dirty().shape()[1]);
     }
     
     template<class T, class FT>
     void DeconvolverBase<T,FT>::initialise()
     {
+      // Always check shapes on initialise
       this->validateShapes();
     }
 
     template<class T, class FT>
     void DeconvolverBase<T,FT>::finalise()
     {
+      // Nothing to do in base class
     }
 
   } // namespace synthesis

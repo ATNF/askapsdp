@@ -1,3 +1,9 @@
+/// @file
+/// @brief Basis Function for a  source
+/// @details Holds basis function for a  source
+/// @ingroup Deconvolver
+///  
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,34 +26,38 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Tim Cornwell <tim.cornwell@csiro.au>
+///
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 
-ASKAP_LOGGER(logger, ".deconvolution");
+#include <casa/aips.h>
+#include <deconvolution/BasisFunction.h>
 
-// Test includes
-#include <DeconvolverBaseTest.h>
-#include <DeconvolverHogbomTest.h>
-#include <DeconvolverControlTest.h>
-#include <DeconvolverMonitorTest.h>
-#include <DeconvolverStateTest.h>
-#include <BasisFunctionTest.h>
+using namespace casa;
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-
-    runner.addTest( askap::synthesis::DeconvolverBaseTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverHogbomTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverStateTest::suite());
-    runner.addTest( askap::synthesis::BasisFunctionTest::suite());
-
-    bool wasSucessful = runner.run();
-
-    return wasSucessful ? 0 : 1;
-}
+namespace askap {
+  
+  namespace synthesis {
+    
+    template<class T>
+    BasisFunction<T>::BasisFunction(const IPosition shape) :
+      itsShape(shape), itsOrthogonal(False)
+    {
+      uInt ndim=itsShape.nelements();
+      ASKAPASSERT(ndim==3);
+      itsBasisFunction.resize(itsShape);
+      itsBasisFunction.set(T(0.0));
+      itsCrossTermsShape=IPosition(ndim+1, 0);
+      itsCrossTermsShape(0)=itsShape(0);
+      itsCrossTermsShape(1)=itsShape(1);
+      itsCrossTermsShape(2)=itsShape(2);
+      itsCrossTermsShape(3)=itsShape(2);
+      itsCrossTerms.resize(itsCrossTermsShape);
+      itsCrossTerms.set(T(0.0));
+    };
+    
+  } // namespace synthesis
+  
+} // namespace askap
