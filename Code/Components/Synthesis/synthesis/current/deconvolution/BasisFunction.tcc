@@ -33,6 +33,9 @@
 #include <askap/AskapLogging.h>
 
 #include <casa/aips.h>
+
+#include <casa/Arrays/Cube.h>
+
 #include <deconvolution/BasisFunction.h>
 
 using namespace casa;
@@ -58,6 +61,32 @@ namespace askap {
       itsCrossTerms.set(T(0.0));
     };
     
+    // Orthogonalise using the Gram-Schmidt process. This is not optimum
+    // in floating point precision and so we might want to use a better
+    // algorithm one day
+    template<class T>
+    void BasisFunction<T>::orthogonalise()
+    {
+      casa::Cube<T> v(itsBasisFunction);
+
+      uInt k=v.shape()(2);
+
+      // Loop over all basis function
+      for (uInt j=0;j<k;j++) {
+        // Make this basis function orthogonal to all the previous
+        // functions
+        for (uInt i=0;i<j;i++) {
+          T projection;
+          projection=(sum(v.xyPlane(j)*v.xyPlane(i)))/(sum(v.xyPlane(j)*v.xyPlane(j)));
+          v.xyPlane(j)=v.xyPlane(j)-projection*v.xyPlane(i);
+        }
+      }
+      // Now orthogonalise
+      for (uInt j=0;j<k;j++) {
+        v.xyPlane(j)=v.xyPlane(j)/sum(v.xyPlane(j)*v.xyPlane(j));
+      }
+      itsOrthogonal=True;
+    }
   } // namespace synthesis
   
 } // namespace askap

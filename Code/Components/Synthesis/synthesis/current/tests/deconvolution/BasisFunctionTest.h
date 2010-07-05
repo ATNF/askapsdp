@@ -48,6 +48,7 @@ namespace askap {
       CPPUNIT_TEST(testSetup);
       CPPUNIT_TEST(testPoint);
       CPPUNIT_TEST(testMultiScale);
+      CPPUNIT_TEST(testMultiScaleOrthogonalise);
       CPPUNIT_TEST_SUITE_END();
     public:
       
@@ -103,6 +104,19 @@ namespace askap {
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-0.192449)<1e-05);
           centre(2)=2;
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-0.0173241)<1e-5);
+        }
+      }
+      void testMultiScaleOrthogonalise() {
+        {
+          itsBasisFunction.reset();
+          Vector<Float> scales(3);
+          scales[0]=0.0;
+          scales[1]=3.0;
+          scales[2]=6.0;
+          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(3,20,20,3), scales));
+          CPPUNIT_ASSERT(itsBasisFunction->isOrthogonal()==False);
+          itsBasisFunction->orthogonalise();
+          CPPUNIT_ASSERT(itsBasisFunction->isOrthogonal()==True);
         }
       }
       void tearDown() {

@@ -78,6 +78,13 @@ namespace askap {
       /// in an array of shape (nx, ny, nterms, nterms)
       const virtual Array<T>& crossTerms() const {return itsCrossTerms;};
 
+      /// @brief Orthogonalise the basis functions using GramSchmidt.
+      /// @details The basis functions are orthogonalised using the
+      /// Gram-Schmidt algorithm.
+      void orthogonalise();
+
+    protected:
+
       IPosition itsShape;
       IPosition itsCrossTermsShape;
       Bool itsOrthogonal;
