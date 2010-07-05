@@ -93,8 +93,15 @@ void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*pool*/)
         iceevent.level = levelMap[event->getLevel()];
         iceevent.message = event->getMessage();
         iceevent.hostname = itsLogHost;
+
         // Send
-        itsLogService->send(iceevent);
+        try {
+            itsLogService->send(iceevent);
+        } catch (Ice::Exception &e) {
+            std::cerr << "Ice Error. Logging to IceStorm suspended: " << e << std::endl;
+            itsIceComm->shutdown();
+            itsIceComm = 0;
+        }
     }
 }
 
