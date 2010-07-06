@@ -301,6 +301,38 @@ namespace askap {
 
             //**************************************************************//
 
+	  void RadioSource::setDetectionThreshold(duchamp::Cube &cube, bool flagMedianSearch)
+	  {
+	    
+
+	    if (flagMedianSearch) {
+	      std::vector<PixelInfo::Voxel> voxSet = this->getPixelSet();
+	      std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
+	      this->peakSNR = cube.getReconValue(vox->getX(), vox->getY(), vox->getZ());
+	      this->itsDetectionThreshold = cube.getPixValue(vox->getX(), vox->getY(), vox->getZ());
+	      
+	      for (; vox < voxSet.end(); vox++) {
+		this->peakSNR = std::max(this->peakSNR, cube.getReconValue(vox->getX(), vox->getY(), vox->getZ()));
+		this->itsDetectionThreshold = std::min(this->itsDetectionThreshold, cube.getPixValue(vox->getX(), vox->getY(), vox->getZ()));
+	      }
+	      
+	    } else {
+
+	      this->itsDetectionThreshold = cube.stats().getThreshold();
+	      
+	      if (cube.pars().getFlagGrowth()) {
+		if (cube.pars().getFlagUserGrowthThreshold())
+		  this->itsDetectionThreshold = std::min(this->itsDetectionThreshold, cube.pars().getGrowthThreshold());
+		else
+		  this->itsDetectionThreshold = std::min(this->itsDetectionThreshold, cube.stats().snrToValue(cube.pars().getGrowthCut()));
+	      }
+	    }
+
+	  }
+
+
+            //**************************************************************//
+
             void RadioSource::getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min)
             {
                 /// @details This returns an estimate of an object's shape,

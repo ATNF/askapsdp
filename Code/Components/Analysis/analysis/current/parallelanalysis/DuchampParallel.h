@@ -109,6 +109,8 @@ namespace askap {
 
                 /// @brief Fit the detected sources (on the workers)
                 void fitSources();
+		/// @brief Fit a single source
+		void fitSource(sourcefitting::RadioSource &src);
 
                 /// @brief Find the sources on each worker
                 void findSources();
@@ -121,6 +123,7 @@ namespace askap {
 
                 /// @brief Fit the sources on the boundaries between workers' subimages (on the master)
                 void cleanup();
+		void fitRemaining();
 
                 /// @brief Calculate the object parameters on the master.
                 void calcObjectParams();

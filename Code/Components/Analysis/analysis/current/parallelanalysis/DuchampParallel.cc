@@ -521,68 +521,102 @@ namespace askap {
                 if (this->itsFlagDoFit)
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source profiles.");
 
-                duchamp::FitsHeader head = this->itsCube.getHead();
-                float threshold = this->itsCube.stats().getThreshold();
+                // duchamp::FitsHeader head = this->itsCube.getHead();
+                // float threshold = this->itsCube.stats().getThreshold();
 
-                if (this->itsCube.pars().getFlagGrowth()) {
-                    if (this->itsCube.pars().getFlagUserGrowthThreshold())
-                        threshold = std::min(threshold, this->itsCube.pars().getGrowthThreshold());
-                    else
-                        threshold = std::min(threshold, this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut()));
-                }
+                // if (this->itsCube.pars().getFlagGrowth()) {
+                //     if (this->itsCube.pars().getFlagUserGrowthThreshold())
+                //         threshold = std::min(threshold, this->itsCube.pars().getGrowthThreshold());
+                //     else
+                //         threshold = std::min(threshold, this->itsCube.stats().snrToValue(this->itsCube.pars().getGrowthCut()));
+                // }
 
-                long numObj = this->itsCube.getNumObj();
-
-                for (int i = 0; i < numObj; i++) {
+                for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                     if (this->itsFlagDoFit)
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << numObj << ".");
+                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << this->itsCube.getNumObj() << ".");
 
                     sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
-                    // Fix S/Nmax for the case where we've used the medianSearch algorithm and define the effective detection threshold
-                    float thresholdForFitting;
+		    this->fitSource(src);
 
-                    if (this->itsFlagDoMedianSearch) {
-                        std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
-                        std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
-                        float maxSNR = this->itsCube.getReconValue(vox->getX(), vox->getY(), vox->getZ());
-                        thresholdForFitting = this->itsCube.getPixValue(vox->getX(), vox->getY(), vox->getZ());
+                    // // Fix S/Nmax for the case where we've used the medianSearch algorithm and define the effective detection threshold
+                    // float thresholdForFitting;
 
-                        for (; vox < voxSet.end(); vox++) {
-                            maxSNR = std::max(maxSNR, this->itsCube.getReconValue(vox->getX(), vox->getY(), vox->getZ()));
-                            thresholdForFitting = std::min(thresholdForFitting, this->itsCube.getPixValue(vox->getX(), vox->getY(), vox->getZ()));
-                        }
+                    // if (this->itsFlagDoMedianSearch) {
+                    //     std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
+                    //     std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
+                    //     float maxSNR = this->itsCube.getReconValue(vox->getX(), vox->getY(), vox->getZ());
+                    //     thresholdForFitting = this->itsCube.getPixValue(vox->getX(), vox->getY(), vox->getZ());
 
-                        src.setPeakSNR(maxSNR);
-                    } else thresholdForFitting = threshold;
+                    //     for (; vox < voxSet.end(); vox++) {
+                    //         maxSNR = std::max(maxSNR, this->itsCube.getReconValue(vox->getX(), vox->getY(), vox->getZ()));
+                    //         thresholdForFitting = std::min(thresholdForFitting, this->itsCube.getPixValue(vox->getX(), vox->getY(), vox->getZ()));
+                    //     }
 
-                    // Set up parameters for fitting.
-                    src.setNoiseLevel(this->itsCube, this->itsFitter);
-                    src.setDetectionThreshold(thresholdForFitting);
-                    src.setHeader(head);
-                    src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
-                    // Only do fit if object is not next to boundary
-                    src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
+                    //     src.setPeakSNR(maxSNR);
+                    // } else thresholdForFitting = threshold;
 
-                    if (this->itsNNode == 1) src.setAtEdge(false);
+                    // // Set up parameters for fitting.
+                    // src.setNoiseLevel(this->itsCube, this->itsFitter);
+                    // src.setDetectionThreshold(thresholdForFitting);
+                    // src.setHeader(head);
+                    // src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+                    // // Only do fit if object is not next to boundary
+                    // src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
 
-                    if (!src.isAtEdge() && this->itsFlagDoFit) {
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
+                    // if (this->itsNNode == 1) src.setAtEdge(false);
 
-                        if (this->itsFlagFitJustDetection) {
-                            std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
-                            src.fitGaussNew(&voxlist, this->itsFitter);
-                        } else
-                            src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
+                    // if (!src.isAtEdge() && this->itsFlagDoFit) {
+                    //     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << " / " << numObj << ".");
 
-                        src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
-                        src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
-                    }
+                    //     if (this->itsFlagFitJustDetection) {
+                    //         std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
+                    //         src.fitGaussNew(&voxlist, this->itsFitter);
+                    //     } else
+                    //         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
+
+                    //     src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
+                    //     src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
+                    // }
 
                     this->itsSourceList.push_back(src);
                 }
             }
         }
+
+        //**************************************************************//
+
+      void DuchampParallel::fitSource(sourcefitting::RadioSource &src)
+      {
+
+	// Set up parameters for fitting.
+	src.setNoiseLevel(this->itsCube, this->itsFitter);
+	// src.setDetectionThreshold(thresholdForFitting);
+	src.setDetectionThreshold(this->itsCube, this->itsFlagDoMedianSearch);
+	src.setHeader(this->itsCube.getHead());
+	src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+	// Only do fit if object is not next to boundary
+	src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
+
+	if (this->itsNNode == 1) src.setAtEdge(false);
+
+	if (!src.isAtEdge() && this->itsFlagDoFit) {
+
+	  if (this->itsFlagFitJustDetection) {
+	    std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
+	    src.fitGaussNew(&voxlist, this->itsFitter);
+	  } else {
+	    src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
+	  }
+
+	  src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
+	  src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
+
+	}
+	
+
+      }
+
 
         //**************************************************************//
 
@@ -965,6 +999,61 @@ namespace askap {
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
             }
         }
+
+        //**************************************************************//
+
+      void DuchampParallel::fitRemaining()
+      {
+      	if(this->isMaster()) {
+      	  int16 rank;
+      	  LOFAR::BlobString bs;
+      	  for(size_t i=0;i<this->itsSourceList.size();i++){
+	    rank = i % (this->itsNNode - 1);
+      	    bs.resize(0);
+	    LOFAR::BlobOBufString bob(bs);
+      	    LOFAR::BlobOStream out(bob);
+      	    out.putStart("fitsrc", 1);
+      	    out << true << this->itsSourceList[i];
+      	    out.putEnd();
+      	    this->itsConnectionSet->write(rank, bs);
+      	  }
+      	  // now notify all workers that we're finished.
+      	  bs.resize(0);
+	  LOFAR::BlobOBufString bob(bs);
+      	  LOFAR::BlobOStream out(bob);
+      	  out.putStart("fitsrc", 1);
+	  sourcefitting::RadioSource nullsrc;
+      	  out << false << nullsrc;
+      	  out.putEnd();
+      	  this->itsConnectionSet->writeAll(bs);
+
+	  
+
+      	}
+      	else if(this->isWorker()){
+      	  LOFAR::BlobString bs;
+      	  bool isOK=true;
+	  sourcefitting::RadioSource src;
+	  this->itsSourceList.clear();
+      	  while(isOK) {	    
+      	    this->itsConnectionSet->read(0, bs);
+	    LOFAR::BlobIBufString bib(bs);
+      	    LOFAR::BlobIStream in(bib);
+      	    int version = in.getStart("fitsrc");
+      	    ASKAPASSERT(version == 1);
+      	    in >> isOK >> src;
+      	    in.getEnd();
+	    if(isOK){
+	      this->fitSource(src);
+	      this->itsSourceList.push_back(src);
+	    }
+	  }
+	  
+
+      	}
+
+
+      }
 
         //**************************************************************//
 

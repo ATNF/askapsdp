@@ -134,7 +134,9 @@ namespace askap {
                     void setNoiseLevel(float noise) {itsNoiseLevel = noise;};
                     /// @}
 
-                    /// @brief Set the detection threshold
+		    /// @brief Set the detection threshold for a particular Cube
+		    void setDetectionThreshold(duchamp::Cube &cube, bool flagMedianSearch);
+                    /// @brief Set the detection threshold directly
                     void setDetectionThreshold(float threshold) {itsDetectionThreshold = threshold;};
                     /// @brief Return the detection threshold
                     float detectionThreshold() {return itsDetectionThreshold;};
