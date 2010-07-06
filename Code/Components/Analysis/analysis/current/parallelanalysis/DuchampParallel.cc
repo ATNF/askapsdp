@@ -1090,7 +1090,7 @@ namespace askap {
 	      }
 	      in.getEnd();
 	      if(isOK){
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix << "About to fit src at ra="<<src.ra()<<", dec="<<src.dec());
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix << "About to fit src at ra="<<src.getRA()<<", dec="<<src.getDec());
 		this->fitSource(src,false);
 		this->itsSourceList.push_back(src);
 	      }
