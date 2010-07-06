@@ -1045,7 +1045,7 @@ namespace askap {
 	    for(size_t i=0;i<this->itsSourceList.size();i++){
 	      this->prepareSourceForFit(this->itsSourceList[i],false);
 	      rank = i % (this->itsNNode - 1);
-	      ASKAPLOG_DEBUG_STR(logger, "Sending source #"<<i+1<<" to worker "<<rank+1);
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" to worker "<<rank+1);
 	      bs.resize(0);
 	      LOFAR::BlobOBufString bob(bs);
 	      LOFAR::BlobOStream out(bob);
@@ -1081,7 +1081,7 @@ namespace askap {
 	      int version = in.getStart("fitsrc");
 	      ASKAPASSERT(version == 1);
 	      in >> isOK >> src >> size;
-	      ASKAPLOG_DEBUG_STR(logger, "Received source from master with OK flag="<<isOK << " and size " << size);
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Received source from master with OK flag="<<isOK << " and size " << size);
 	      int32 x,y,z;
 	      float f;
 	      for(int p=0;p<size;p++){
@@ -1090,7 +1090,7 @@ namespace askap {
 	      }
 	      in.getEnd();
 	      if(isOK){
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix << "About to fit src at ra="<<src.getRA()<<", dec="<<src.getDec());
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "About to fit src at ra="<<src.getRAs()<<", dec="<<src.getDecs());
 		this->fitSource(src,false);
 		this->itsSourceList.push_back(src);
 	      }
