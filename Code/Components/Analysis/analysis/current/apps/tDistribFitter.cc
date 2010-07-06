@@ -68,8 +68,6 @@ using namespace LOFAR::TYPES;
 
 #include <wcslib/wcs.h>
 
-#include <mpi.h>
-
 using namespace casa;
 using namespace askap;
 using namespace askap::mwbase;
