@@ -330,7 +330,41 @@ namespace askap {
 
 	  }
 
+            //**************************************************************//
 
+	  void RadioSource::setDetectionThreshold(std::vector<PixelInfo::Voxel> &inVoxlist,std::vector<PixelInfo::Voxel> &inSNRvoxlist,  bool flagMedianSearch)
+	  {
+
+	    if (flagMedianSearch) {
+	      std::vector<PixelInfo::Voxel> voxSet = this->getPixelSet();
+	      std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
+	      this->peakSNR = 0.;
+	      
+	      for (; vox < voxSet.end(); vox++) {
+		std::vector<PixelInfo::Voxel>::iterator pixvox = inVoxlist.begin();
+		
+		while (pixvox < inVoxlist.end() && !vox->match(*pixvox)) pixvox++;
+		
+		if (pixvox == inVoxlist.end())
+		  ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the pixel list comparison: (" << vox->getX() << "," << vox->getY() << ")");
+		
+		if (vox == voxSet.begin()) this->itsDetectionThreshold = pixvox->getF();
+		else this->itsDetectionThreshold = std::min(this->itsDetectionThreshold, pixvox->getF());
+		
+		std::vector<PixelInfo::Voxel>::iterator snrvox = inSNRvoxlist.begin();
+		
+		while (snrvox < inSNRvoxlist.end() && !vox->match(*snrvox)) snrvox++;
+		
+		if (snrvox == inSNRvoxlist.end())
+		  ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the SNR list comparison: (" << vox->getX() << "," << vox->getY() << ")");
+		
+		if (vox == voxSet.begin()) this->peakSNR = snrvox->getF();
+		else this->peakSNR = std::max(this->peakSNR, snrvox->getF());
+	      }
+	      
+	    }
+
+	  }
             //**************************************************************//
 
             void RadioSource::getFWHMestimate(float *fluxarray, double &angle, double &maj, double &min)

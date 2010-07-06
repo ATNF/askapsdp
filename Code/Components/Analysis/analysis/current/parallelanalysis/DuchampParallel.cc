@@ -537,7 +537,14 @@ namespace askap {
 
                     sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
-		    this->fitSource(src);
+		    this->prepareSourceForFit(src,true);
+		    // Only do fit if object is not next to boundary
+		    src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
+		    
+		    if (this->itsNNode == 1) src.setAtEdge(false);
+
+		    if (!src.isAtEdge() && this->itsFlagDoFit) 
+		      this->fitSource(src, true);
 
                     // // Fix S/Nmax for the case where we've used the medianSearch algorithm and define the effective detection threshold
                     // float thresholdForFitting;
@@ -586,34 +593,57 @@ namespace askap {
 
         //**************************************************************//
 
-      void DuchampParallel::fitSource(sourcefitting::RadioSource &src)
+      void DuchampParallel::prepareSourceForFit(sourcefitting::RadioSource &src, bool useArray)
       {
 
 	// Set up parameters for fitting.
-	src.setNoiseLevel(this->itsCube, this->itsFitter);
-	// src.setDetectionThreshold(thresholdForFitting);
-	src.setDetectionThreshold(this->itsCube, this->itsFlagDoMedianSearch);
+	if(useArray) src.setNoiseLevel(this->itsCube, this->itsFitter);
+	else {
+	  // if need to use the surrounding noise, we have to go extract it from the image
+	  if (this->itsFitter.useNoise() && !this->itsCube.pars().getFlagUserThreshold()) {
+	    float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
+	    src.setNoiseLevel(noise);
+	  } else src.setNoiseLevel(1);
+	}
+
+	if(useArray || !this->itsFlagDoMedianSearch) src.setDetectionThreshold(this->itsCube, this->itsFlagDoMedianSearch);
+	else src.setDetectionThreshold(this->itsVoxelList, this->itsSNRVoxelList, this->itsFlagDoMedianSearch);
+
 	src.setHeader(this->itsCube.getHead());
 	src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
-	// Only do fit if object is not next to boundary
-	src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
 
-	if (this->itsNNode == 1) src.setAtEdge(false);
+      }
 
-	if (!src.isAtEdge() && this->itsFlagDoFit) {
+       //**************************************************************//
 
-	  if (this->itsFlagFitJustDetection) {
-	    std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
-	    src.fitGaussNew(&voxlist, this->itsFitter);
-	  } else {
-	    src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
+      void DuchampParallel::fitSource(sourcefitting::RadioSource &src, bool useArray)
+      {
+
+	if (this->itsFlagFitJustDetection) {
+	  std::vector<PixelInfo::Voxel> voxlist;
+	  if(useArray) voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
+	  else {
+	    voxlist = src.getPixelSet();
+	    std::vector<PixelInfo::Voxel>::iterator vox,voxcomp;
+	    for ( vox=voxlist.begin(); vox < voxlist.end(); vox++) {
+	      voxcomp = this->itsVoxelList.begin();
+		
+	      while (voxcomp < this->itsVoxelList.end() && !vox->match(*voxcomp))
+		voxcomp++;
+		
+	      if (voxcomp == this->itsVoxelList.end())
+		ASKAPLOG_ERROR_STR(logger, "Voxel lists mismatch: source pixel " << *vox << " does not have a match");
+	      else vox->setF(voxcomp->getF());
+	    }
 	  }
-
-	  src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
-	  src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
-
+	  src.fitGaussNew(&voxlist, this->itsFitter);
+	} else {
+	  if(useArray) src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
+	  else src.fitGauss(&this->itsVoxelList, this->itsFitter);
 	}
-	
+
+	src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
+	src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
 
       }
 
@@ -752,6 +782,7 @@ namespace askap {
                                 for (int p = 0; p < numVox; p++) {
                                     int32 x, y, z;
                                     float flux, snr;
+				    /// @todo Remove inObj as not used.
                                     bool inObj;
                                     in >> inObj >> x >> y >> z >> flux;
 
@@ -1008,12 +1039,16 @@ namespace askap {
       	  int16 rank;
       	  LOFAR::BlobString bs;
       	  for(size_t i=0;i<this->itsSourceList.size();i++){
+	    this->prepareSourceForFit(this->itsSourceList[i],false);
 	    rank = i % (this->itsNNode - 1);
       	    bs.resize(0);
 	    LOFAR::BlobOBufString bob(bs);
       	    LOFAR::BlobOStream out(bob);
       	    out.putStart("fitsrc", 1);
-      	    out << true << this->itsSourceList[i];
+	    
+      	    out << true << this->itsSourceList[i] << int(this->itsVoxelList.size());
+	    for(size_t p=0;p<this->itsVoxelList.size();p++) 
+	      out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
       	    out.putEnd();
       	    this->itsConnectionSet->write(rank, bs);
       	  }
@@ -1034,17 +1069,25 @@ namespace askap {
       	  LOFAR::BlobString bs;
       	  bool isOK=true;
 	  sourcefitting::RadioSource src;
+	  int size;
 	  this->itsSourceList.clear();
+	  this->itsVoxelList.clear();
       	  while(isOK) {	    
       	    this->itsConnectionSet->read(0, bs);
 	    LOFAR::BlobIBufString bib(bs);
       	    LOFAR::BlobIStream in(bib);
       	    int version = in.getStart("fitsrc");
       	    ASKAPASSERT(version == 1);
-      	    in >> isOK >> src;
+      	    in >> isOK >> src >> size;
+	    int32 x,y,z;
+	    float f;
+	    for(int p=0;p<size;p++){
+	      in >> x >> y >> z >> f;
+	      this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
+	    }
       	    in.getEnd();
 	    if(isOK){
-	      this->fitSource(src);
+	      this->fitSource(src,false);
 	      this->itsSourceList.push_back(src);
 	    }
 	  }

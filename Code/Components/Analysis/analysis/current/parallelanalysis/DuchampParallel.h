@@ -110,7 +110,8 @@ namespace askap {
                 /// @brief Fit the detected sources (on the workers)
                 void fitSources();
 		/// @brief Fit a single source
-		void fitSource(sourcefitting::RadioSource &src);
+		void prepareSourceForFit(sourcefitting::RadioSource &src, bool useArray);
+		void fitSource(sourcefitting::RadioSource &src, bool useArray);
 
                 /// @brief Find the sources on each worker
                 void findSources();

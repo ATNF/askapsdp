@@ -138,6 +138,7 @@ namespace askap {
 		    void setDetectionThreshold(duchamp::Cube &cube, bool flagMedianSearch);
                     /// @brief Set the detection threshold directly
                     void setDetectionThreshold(float threshold) {itsDetectionThreshold = threshold;};
+		    void setDetectionThreshold(std::vector<PixelInfo::Voxel> &inVoxlist,std::vector<PixelInfo::Voxel> &inSNRvoxlist,  bool flagMedianSearch);
                     /// @brief Return the detection threshold
                     float detectionThreshold() {return itsDetectionThreshold;};
 
