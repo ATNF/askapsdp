@@ -88,7 +88,7 @@ namespace askap {
           Vector<Float> scales(3);
           scales[0]=0.0;
           scales[1]=3.0;
-          scales[2]=10.0;
+          scales[2]=6.0;
           itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(3,50,50,3), scales));
           CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,50,50,3));
           CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==3);
@@ -103,7 +103,7 @@ namespace askap {
           centre(2)=1;
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-0.192449)<1e-05);
           centre(2)=2;
-          CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-0.0173241)<1e-5);
+          CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-0.048122)<1e-5);
         }
       }
       void testMultiScaleOrthogonalise() {
@@ -111,12 +111,19 @@ namespace askap {
           itsBasisFunction.reset();
           Vector<Float> scales(3);
           scales[0]=0.0;
-          scales[1]=3.0;
-          scales[2]=6.0;
+          scales[1]=2.0;
+          scales[2]=4.0;
           itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(3,20,20,3), scales));
           CPPUNIT_ASSERT(itsBasisFunction->isOrthogonal()==False);
           itsBasisFunction->orthogonalise();
           CPPUNIT_ASSERT(itsBasisFunction->isOrthogonal()==True);
+          IPosition centre(3,10,10,0);
+          centre(2)=0;
+          CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-1.0)<1e-5);
+          centre(2)=1;
+          CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre))<1e-05);
+          centre(2)=2;
+          CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre))<1e-5);
         }
       }
       void tearDown() {

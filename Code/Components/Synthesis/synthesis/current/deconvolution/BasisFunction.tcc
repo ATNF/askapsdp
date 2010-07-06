@@ -64,26 +64,32 @@ namespace askap {
     // Orthogonalise using the Gram-Schmidt process. This is not optimum
     // in floating point precision and so we might want to use a better
     // algorithm one day
+    // See e.g. http://planetmath.org/?op=getobj&from=objects&name=GramSchmidtOrthogonalization
     template<class T>
     void BasisFunction<T>::orthogonalise()
     {
       casa::Cube<T> v(itsBasisFunction);
+      casa::Cube<T> u(itsBasisFunction.copy());
+      casa::Array<T> w(u.xyPlane(0).copy());
 
       uInt k=v.shape()(2);
 
+      u.xyPlane(0)=v.xyPlane(0);
       // Loop over all basis function
-      for (uInt j=0;j<k;j++) {
+      for (uInt i=1;i<k;i++) {
         // Make this basis function orthogonal to all the previous
         // functions
-        for (uInt i=0;i<j;i++) {
+        w.set(T(0.0));
+        for (uInt j=0;j<i;j++) {
           T projection;
-          projection=(sum(v.xyPlane(j)*v.xyPlane(i)))/(sum(v.xyPlane(j)*v.xyPlane(j)));
-          v.xyPlane(j)=v.xyPlane(j)-projection*v.xyPlane(i);
+          projection=(sum(u.xyPlane(j)*v.xyPlane(i)))/(sum(u.xyPlane(j)*u.xyPlane(j)));
+          w=w+projection*u.xyPlane(j);
         }
+        u.xyPlane(i)=v.xyPlane(i)-w;
       }
-      // Now orthogonalise
+      // Now Normalise
       for (uInt j=0;j<k;j++) {
-        v.xyPlane(j)=v.xyPlane(j)/sum(v.xyPlane(j)*v.xyPlane(j));
+        v.xyPlane(j)=u.xyPlane(j)/sqrt(sum(u.xyPlane(j)*u.xyPlane(j)));
       }
       itsOrthogonal=True;
     }
