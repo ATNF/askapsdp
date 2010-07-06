@@ -155,7 +155,7 @@ int main(int argc, const char *argv[])
 	  in.getEnd();
 	}
  	std::stringstream ss;
-	for(int i=0;i<newlist.size();i++) ss<<newlist[i]<<" ";
+	for(size_t i=0;i<newlist.size();i++) ss<<newlist[i]<<" ";
 	ASKAPLOG_INFO_STR(logger, "Master has : " << ss.str());
 
      }
@@ -192,16 +192,16 @@ int main(int argc, const char *argv[])
 	}
 	
 	std::stringstream ss;
-	for(int i=0;i<numbers.size();i++) ss<<numbers[i]<<" ";
+	for(size_t i=0;i<numbers.size();i++) ss<<numbers[i]<<" ";
 	ASKAPLOG_INFO_STR(logger, "Worker #"<<parl.rank()<<" has : " << ss.str());
-	for(int i=0;i<numbers.size();i++) numbers[i]+=100;
+	for(size_t i=0;i<numbers.size();i++) numbers[i]+=100;
 	// send numbers back to master
 	bs.resize(0);
 	LOFAR::BlobOBufString bob(bs);
 	LOFAR::BlobOStream out(bob);
 	out.putStart("final", 1);
 	out << int(numbers.size());
-	for(int i=0;i<numbers.size();i++) out << numbers[i];
+	for(size_t i=0;i<numbers.size();i++) out << numbers[i];
 	out.putEnd();
 	parl.connectionSet()->write(0,bs);
 	
