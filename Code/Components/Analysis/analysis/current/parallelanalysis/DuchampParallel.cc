@@ -865,79 +865,81 @@ namespace askap {
 
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
-                        // Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
-                        // Also find the effective detection threshold
-                        float thresholdForFitting = 0.;
+                        // // Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
+                        // // Also find the effective detection threshold
+                        // float thresholdForFitting = 0.;
 
-                        if (this->itsFlagDoMedianSearch) {
-                            std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
-                            std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
-                            float maxSNR = 0.;
+                        // if (this->itsFlagDoMedianSearch) {
+                        //     std::vector<PixelInfo::Voxel> voxSet = src.getPixelSet();
+                        //     std::vector<PixelInfo::Voxel>::iterator vox = voxSet.begin();
+                        //     float maxSNR = 0.;
 
-                            for (; vox < voxSet.end(); vox++) {
-                                std::vector<PixelInfo::Voxel>::iterator pixvox = this->itsVoxelList.begin();
+                        //     for (; vox < voxSet.end(); vox++) {
+                        //         std::vector<PixelInfo::Voxel>::iterator pixvox = this->itsVoxelList.begin();
 
-                                while (pixvox < this->itsVoxelList.end() && !vox->match(*pixvox)) pixvox++;
+                        //         while (pixvox < this->itsVoxelList.end() && !vox->match(*pixvox)) pixvox++;
 
-                                if (pixvox == this->itsVoxelList.end())
-                                    ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the pixel list comparison: (" << vox->getX() << "," << vox->getY() << ")");
+                        //         if (pixvox == this->itsVoxelList.end())
+                        //             ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the pixel list comparison: (" << vox->getX() << "," << vox->getY() << ")");
 
-                                if (vox == voxSet.begin()) thresholdForFitting = pixvox->getF();
-                                else thresholdForFitting = std::min(thresholdForFitting, pixvox->getF());
+                        //         if (vox == voxSet.begin()) thresholdForFitting = pixvox->getF();
+                        //         else thresholdForFitting = std::min(thresholdForFitting, pixvox->getF());
 
-                                std::vector<PixelInfo::Voxel>::iterator snrvox = this->itsSNRVoxelList.begin();
+                        //         std::vector<PixelInfo::Voxel>::iterator snrvox = this->itsSNRVoxelList.begin();
 
-                                while (snrvox < this->itsSNRVoxelList.end() && !vox->match(*snrvox)) snrvox++;
+                        //         while (snrvox < this->itsSNRVoxelList.end() && !vox->match(*snrvox)) snrvox++;
 
-                                if (snrvox == this->itsSNRVoxelList.end())
-                                    ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the SNR list comparison: (" << vox->getX() << "," << vox->getY() << ")");
+                        //         if (snrvox == this->itsSNRVoxelList.end())
+                        //             ASKAPLOG_ERROR_STR(logger, "Missing a voxel in the SNR list comparison: (" << vox->getX() << "," << vox->getY() << ")");
 
-                                if (vox == voxSet.begin()) maxSNR = snrvox->getF();
-                                else maxSNR = std::max(maxSNR, snrvox->getF());
-                            }
+                        //         if (vox == voxSet.begin()) maxSNR = snrvox->getF();
+                        //         else maxSNR = std::max(maxSNR, snrvox->getF());
+                        //     }
 
-                            src.setPeakSNR(maxSNR);
-                        } else thresholdForFitting = threshold;
+                        //     src.setPeakSNR(maxSNR);
+                        // } else thresholdForFitting = threshold;
 
-                        if (this->itsFitter.useNoise() && !this->itsCube.pars().getFlagUserThreshold()) {
-                            float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
-                            src.setNoiseLevel(noise);
-                        } else src.setNoiseLevel(1);
+                        // if (this->itsFitter.useNoise() && !this->itsCube.pars().getFlagUserThreshold()) {
+                        //     float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
+                        //     src.setNoiseLevel(noise);
+                        // } else src.setNoiseLevel(1);
 
-                        src.setDetectionThreshold(thresholdForFitting);
-                        src.setHeader(head);
-                        src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+                        // src.setDetectionThreshold(thresholdForFitting);
+                        // src.setHeader(head);
+                        // src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
 
-                        if (this->itsFlagDoFit) {
+                        // if (this->itsFlagDoFit) {
 
-                            if (this->itsFlagFitJustDetection) {
-                                // get a list of just the detected voxels, with correct fluxes
-                                std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet();
-                                std::vector<PixelInfo::Voxel>::iterator vox = voxlist.begin();
+                        //     if (this->itsFlagFitJustDetection) {
+                        //         // get a list of just the detected voxels, with correct fluxes
+                        //         std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet();
+                        //         std::vector<PixelInfo::Voxel>::iterator vox = voxlist.begin();
 
-                                for (; vox < voxlist.end(); vox++) {
-                                    std::vector<PixelInfo::Voxel>::iterator voxcomp = this->itsVoxelList.begin();
+                        //         for (; vox < voxlist.end(); vox++) {
+                        //             std::vector<PixelInfo::Voxel>::iterator voxcomp = this->itsVoxelList.begin();
 
-                                    while (voxcomp < this->itsVoxelList.end() && !vox->match(*voxcomp))
-                                        voxcomp++;
+                        //             while (voxcomp < this->itsVoxelList.end() && !vox->match(*voxcomp))
+                        //                 voxcomp++;
 
-                                    if (voxcomp == this->itsVoxelList.end())
-                                        ASKAPLOG_ERROR_STR(logger, "Voxel lists mismatch: source pixel " << *vox << " does not have a match");
-                                    else vox->setF(voxcomp->getF());
-                                }
+                        //             if (voxcomp == this->itsVoxelList.end())
+                        //                 ASKAPLOG_ERROR_STR(logger, "Voxel lists mismatch: source pixel " << *vox << " does not have a match");
+                        //             else vox->setF(voxcomp->getF());
+                        //         }
 
-                                src.fitGaussNew(&voxlist, this->itsFitter);
-                            } else {
-                                src.fitGauss(&this->itsVoxelList, this->itsFitter);
-                            }
+                        //         src.fitGaussNew(&voxlist, this->itsFitter);
+                        //     } else {
+                        //         src.fitGauss(&this->itsVoxelList, this->itsFitter);
+                        //     }
 
-                            src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
-                            src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
-                        }
+                        //     src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
+                        //     src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
+                        // }
 
                         this->itsSourceList.push_back(src);
                     }
                 }
+
+		this->fitRemaining();
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up edge sources");
 
@@ -984,6 +986,7 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished adding sources to cube. Now have " << this->itsCube.getNumObj() << " objects.");
 
             }
+	    else if(this->isWorker()) this->fitRemaining();
         }
 
         //**************************************************************//
@@ -1035,66 +1038,62 @@ namespace askap {
 
       void DuchampParallel::fitRemaining()
       {
-      	if(this->isMaster()) {
-      	  int16 rank;
-      	  LOFAR::BlobString bs;
-      	  for(size_t i=0;i<this->itsSourceList.size();i++){
-	    this->prepareSourceForFit(this->itsSourceList[i],false);
-	    rank = i % (this->itsNNode - 1);
-      	    bs.resize(0);
-	    LOFAR::BlobOBufString bob(bs);
-      	    LOFAR::BlobOStream out(bob);
-      	    out.putStart("fitsrc", 1);
+	if(this->isParallel()){
+	  if(this->isMaster()) {
+	    int16 rank;
+	    LOFAR::BlobString bs;
+	    for(size_t i=0;i<this->itsSourceList.size();i++){
+	      this->prepareSourceForFit(this->itsSourceList[i],false);
+	      rank = i % (this->itsNNode - 1);
+	      bs.resize(0);
+	      LOFAR::BlobOBufString bob(bs);
+	      LOFAR::BlobOStream out(bob);
+	      out.putStart("fitsrc", 1);
 	    
-      	    out << true << this->itsSourceList[i] << int(this->itsVoxelList.size());
-	    for(size_t p=0;p<this->itsVoxelList.size();p++) 
-	      out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
-      	    out.putEnd();
-      	    this->itsConnectionSet->write(rank, bs);
-      	  }
-      	  // now notify all workers that we're finished.
-      	  bs.resize(0);
-	  LOFAR::BlobOBufString bob(bs);
-      	  LOFAR::BlobOStream out(bob);
-      	  out.putStart("fitsrc", 1);
-	  sourcefitting::RadioSource nullsrc;
-      	  out << false << nullsrc;
-      	  out.putEnd();
-      	  this->itsConnectionSet->writeAll(bs);
-
-	  
-
-      	}
-      	else if(this->isWorker()){
-      	  LOFAR::BlobString bs;
-      	  bool isOK=true;
-	  sourcefitting::RadioSource src;
-	  int size;
-	  this->itsSourceList.clear();
-	  this->itsVoxelList.clear();
-      	  while(isOK) {	    
-      	    this->itsConnectionSet->read(0, bs);
-	    LOFAR::BlobIBufString bib(bs);
-      	    LOFAR::BlobIStream in(bib);
-      	    int version = in.getStart("fitsrc");
-      	    ASKAPASSERT(version == 1);
-      	    in >> isOK >> src >> size;
-	    int32 x,y,z;
-	    float f;
-	    for(int p=0;p<size;p++){
-	      in >> x >> y >> z >> f;
-	      this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
+	      out << true << this->itsSourceList[i] << int(this->itsVoxelList.size());
+	      for(size_t p=0;p<this->itsVoxelList.size();p++) 
+		out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
+	      out.putEnd();
+	      this->itsConnectionSet->write(rank, bs);
 	    }
-      	    in.getEnd();
-	    if(isOK){
-	      this->fitSource(src,false);
-	      this->itsSourceList.push_back(src);
+	    // now notify all workers that we're finished.
+	    bs.resize(0);
+	    LOFAR::BlobOBufString bob(bs);
+	    LOFAR::BlobOStream out(bob);
+	    out.putStart("fitsrc", 1);
+	    sourcefitting::RadioSource nullsrc;
+	    out << false << nullsrc;
+	    out.putEnd();
+	    this->itsConnectionSet->writeAll(bs);
+	  }
+	  else if(this->isWorker()){
+	    LOFAR::BlobString bs;
+	    bool isOK=true;
+	    sourcefitting::RadioSource src;
+	    int size;
+	    this->itsSourceList.clear();
+	    this->itsVoxelList.clear();
+	    while(isOK) {	    
+	      this->itsConnectionSet->read(0, bs);
+	      LOFAR::BlobIBufString bib(bs);
+	      LOFAR::BlobIStream in(bib);
+	      int version = in.getStart("fitsrc");
+	      ASKAPASSERT(version == 1);
+	      in >> isOK >> src >> size;
+	      int32 x,y,z;
+	      float f;
+	      for(int p=0;p<size;p++){
+		in >> x >> y >> z >> f;
+		this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
+	      }
+	      in.getEnd();
+	      if(isOK){
+		this->fitSource(src,false);
+		this->itsSourceList.push_back(src);
+	      }
 	    }
 	  }
-	  
-
-      	}
-
+	}
 
       }
 
