@@ -401,6 +401,7 @@ namespace askap {
 
             for (size_t i = 0; i < arrsize; i++) array[i] = fabs(array[i] - median);
 
+            std::nth_element(array.begin(), array.begin() + arrsize / 2, array.end());
             float madfm = array[arrsize/2];
 
             if (arrsize % 2 == 0) {
