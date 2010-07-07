@@ -57,6 +57,8 @@ using namespace LOFAR::TYPES;
 
 #include <scimath/Functionals/Gaussian2D.h>
 #include <casa/namespace.h>
+#include <casa/Arrays/IPosition.h>
+#include <casa/Arrays/Slicer.h>
 
 ///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".parallelanalysis");
@@ -165,6 +167,7 @@ namespace askap {
                 blob << result.itsRMS;
                 blob << result.itsNumDegOfFreedom;
                 blob << result.itsNumFreeParam;
+                blob << result.itsNumPix;
                 blob << result.itsNumGauss;
                 uint32 i = result.itsGaussFitSet.size(); blob << i;
                 std::vector<casa::Gaussian2D<Double> >::iterator fit = result.itsGaussFitSet.begin();
@@ -193,6 +196,7 @@ namespace askap {
                 blob >> result.itsRMS;
                 blob >> result.itsNumDegOfFreedom;
                 blob >> result.itsNumFreeParam;
+                blob >> result.itsNumPix;
                 blob >> result.itsNumGauss;
                 uint32 i, size;
                 blob >> size;
@@ -324,6 +328,15 @@ namespace askap {
                     for (int i = 0; i < size; i++) blob << val->second[i];
                 }
 
+		i = src.box().start()[0]; blob << i;
+		i = src.box().start()[1]; blob << i;
+		i = src.box().start()[2]; blob << i;
+		i = src.box().end()[0]; blob << i;
+		i = src.box().end()[1]; blob << i;
+		i = src.box().end()[2]; blob << i;
+
+		ASKAPLOG_DEBUG_STR(logger, "Sending box: start="<<src.box().start()<<", end="<<src.box().end());
+
                 return blob;
             }
 
@@ -436,6 +449,16 @@ namespace askap {
 
                     src.itsBetaMap[s] = vec;
                 }
+
+		int x1,y1,z1,x2,y2,z2;
+		blob >> x1 >> y1 >> z1 >> x2 >> y2 >> z2;
+		casa::IPosition start(3),end(3),stride(3,1);
+		start(0)=x1; start(1)=y1; start(2)=z1;
+		end(0)=x2; end(1)=y2; end(2)=z2;
+		Slicer box(start, end, stride, Slicer::endIsLast);;
+		src.setBox(box);
+		
+		ASKAPLOG_DEBUG_STR(logger, "Received box: start="<<start<<", end="<<end);
 
                 return blob;
             }

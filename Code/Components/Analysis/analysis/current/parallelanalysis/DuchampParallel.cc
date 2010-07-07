@@ -601,7 +601,8 @@ namespace askap {
 	if(useArray) src.setNoiseLevel(this->itsCube, this->itsFitter);
 	else {
 	  // if need to use the surrounding noise, we have to go extract it from the image
-	  if (this->itsFitter.useNoise() && !this->itsCube.pars().getFlagUserThreshold()) {
+	  if (this->itsFitter.useNoise() // && !this->itsCube.pars().getFlagUserThreshold()
+	      ) {
 	    float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
 	    src.setNoiseLevel(noise);
 	  } else src.setNoiseLevel(1);
@@ -621,6 +622,7 @@ namespace askap {
       {
 
 	if (this->itsFlagFitJustDetection) {
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Fitting to detected pixels");
 	  std::vector<PixelInfo::Voxel> voxlist;
 	  if(useArray) voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
 	  else {
@@ -637,8 +639,10 @@ namespace askap {
 	      else vox->setF(voxcomp->getF());
 	    }
 	  }
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calling fit funtion with voxel list of size " << voxlist.size() << " cf source size of " << src.getSize());
 	  src.fitGaussNew(&voxlist, this->itsFitter);
 	} else {
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Fitting to set of surrounding pixels");
 	  if(useArray) src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
 	  else src.fitGauss(&this->itsVoxelList, this->itsFitter);
 	}
@@ -857,8 +861,8 @@ namespace askap {
                     this->itsCube.ObjectMerger();
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());
                     this->itsCube.pars().setFlagGrowth(growthflag);
-                    this->calcObjectParams();
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after merging = " << this->itsCube.getNumObj());
+		    this->calcObjectParams();
+                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after param calcs = " << this->itsCube.getNumObj());
 
                     for (long i = 0; i < this->itsCube.getNumObj(); i++) {
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
@@ -901,7 +905,8 @@ namespace askap {
                             src.setPeakSNR(maxSNR);
 			  } else thresholdForFitting = threshold;
 
-			  if (this->itsFitter.useNoise() && !this->itsCube.pars().getFlagUserThreshold()) {
+			  if (this->itsFitter.useNoise() // && !this->itsCube.pars().getFlagUserThreshold()
+			      ) {
                             float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
                             src.setNoiseLevel(noise);
 			  } else src.setNoiseLevel(1);
@@ -1047,13 +1052,14 @@ namespace askap {
 	    for(size_t i=0;i<this->itsSourceList.size();i++){
 	      this->prepareSourceForFit(this->itsSourceList[i],false);
 	      rank = i % (this->itsNNode - 1);
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" to worker "<<rank+1);
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << this->itsSourceList[i].getSize() << " to worker "<<rank+1);
 	      bs.resize(0);
 	      LOFAR::BlobOBufString bob(bs);
 	      LOFAR::BlobOStream out(bob);
 	      out.putStart("fitsrc", 1);
 	    
-	      out << true << this->itsSourceList[i] << int(this->itsVoxelList.size());
+	      out << true;
+	      out << this->itsSourceList[i] << int(this->itsVoxelList.size());
 	      for(size_t p=0;p<this->itsVoxelList.size();p++) 
 		out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
 	      out.putEnd();
@@ -1063,40 +1069,75 @@ namespace askap {
 	    bs.resize(0);
 	    LOFAR::BlobOBufString bob(bs);
 	    LOFAR::BlobOStream out(bob);
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcasting 'finished' signal to all workers");
 	    out.putStart("fitsrc", 1);
 	    sourcefitting::RadioSource nullsrc;
-	    out << false << nullsrc << 0;
+	    out << false;
 	    out.putEnd();
 	    this->itsConnectionSet->writeAll(bs);
+
+	    // now read back the sources from the workers
+	    this->itsSourceList.clear();
+	    for (int n=0;n<this->itsNNode-1;n++){
+	      int numSrc;
+	      ASKAPLOG_INFO_STR(logger, "Master about to read from worker #"<< n+1);
+	      this->itsConnectionSet->read(n, bs);
+	      LOFAR::BlobIBufString bib(bs);
+	      LOFAR::BlobIStream in(bib);
+	      int version = in.getStart("final");
+	      ASKAPASSERT(version == 1);
+	      in >> numSrc;
+	      for(int i=0;i<numSrc;i++){
+		sourcefitting::RadioSource src;
+		in >> src;
+		src.setHeader(this->itsCube.getHead());  // make sure we have the right WCS etc information
+		this->itsSourceList.push_back(src);
+	      }
+	      in.getEnd();
+	    }
 	  }
 	  else if(this->isWorker()){
+	    this->itsCube.pars().setSubsection("");
+	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
 	    LOFAR::BlobString bs;
 	    bool isOK=true;
-	    sourcefitting::RadioSource src;
 	    int size;
 	    this->itsSourceList.clear();
 	    while(isOK) {	    
 	      this->itsVoxelList.clear();
+	      sourcefitting::RadioSource src;
 	      this->itsConnectionSet->read(0, bs);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
 	      int version = in.getStart("fitsrc");
 	      ASKAPASSERT(version == 1);
-	      in >> isOK >> src >> size;
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Received source from master with OK flag="<<isOK << " and size " << size);
-	      int32 x,y,z;
-	      float f;
-	      for(int p=0;p<size;p++){
-		in >> x >> y >> z >> f;
-		this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
-	      }
-	      in.getEnd();
+	      in >> isOK;
 	      if(isOK){
+		in >> src >> size;
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Received source of size " << src.getSize() << " from master with OK flag="<<isOK << " and size " << size);
+		int32 x,y,z;
+		float f;
+		for(int p=0;p<size;p++){
+		  in >> x >> y >> z >> f;
+		  this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
+		}
 		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "About to fit src at ra="<<src.getRAs()<<", dec="<<src.getDecs());
+		src.setHeader(this->itsCube.getHead());  // this doesn't get copied over the blob, so make sure the beam is correct - that's all we need it for.
 		this->fitSource(src,false);
 		this->itsSourceList.push_back(src);
 	      }
+	      in.getEnd();
 	    }
+	    // send sources back to master
+	    bs.resize(0);
+	    LOFAR::BlobOBufString bob(bs);
+	    LOFAR::BlobOStream out(bob);
+	    out.putStart("final", 1);
+	    out << int(this->itsSourceList.size());
+	    for(size_t i=0;i<this->itsSourceList.size();i++) out << this->itsSourceList[i];
+	    out.putEnd();
+	    this->itsConnectionSet->write(0,bs);
+
 	  }
 	}
 
