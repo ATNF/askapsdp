@@ -88,6 +88,8 @@ namespace askap {
                     int   ndof() {return itsNumDegOfFreedom;};
                     /// @brief The number of free parameters for the fit
                     int   numFreeParam() {return itsNumFreeParam;};
+		    /// @brief The number of pixels used in the fit
+		    int   numPix() {return itsNumPix;};
                     /// @brief The number of Gaussian components used in the fit
                     int   numGauss() {return itsNumGauss;};
                     /// @brief Return the set of Gaussian fits
@@ -130,6 +132,8 @@ namespace askap {
                     int   itsNumDegOfFreedom;
                     /// @brief The number of free parameters in the fit
                     int   itsNumFreeParam;
+		    /// @brief The number of pixels included in the fit
+		    int   itsNumPix;
                     /// @brief the number of Gaussians used in the fit
                     int   itsNumGauss;
                     /// @brief A two-dimensional Gaussian fit to the object.

@@ -429,7 +429,7 @@ namespace askap {
                     if (spatMap.isInObject(x, y)) {
                         int loc = (x - this->boxXmin()) + this->boxXsize() * (y - this->boxYmin());
                         fluxarray[loc] = f(i);
-                        ASKAPLOG_DEBUG_STR(logger, "Adding flux " << f(i) << " to position (" << x << "," << y << ") which is box pixel " << loc);
+			//                        ASKAPLOG_DEBUG_STR(logger, "Adding flux " << f(i) << " to position (" << x << "," << y << ") which is box pixel " << loc);
                     }
                 }
 
@@ -1331,7 +1331,7 @@ namespace askap {
                         rmsFit.printEntry(stream, results.RMS());
                         nfree.printEntry(stream, results.numFreeParam());
                         ndofFit.printEntry(stream, results.ndof());
-                        npixFit.printEntry(stream, this->boxSize());
+                        npixFit.printEntry(stream, results.numPix());
                         npixObj.printEntry(stream, this->getSize());
                         stream << "\n";
                     }
