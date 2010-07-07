@@ -988,7 +988,7 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished adding sources to cube. Now have " << this->itsCube.getNumObj() << " objects.");
 
             }
-	    else if(this->isWorker()) this->fitRemaining();
+	    else if(this->isWorker() && this->itsFlagDistribFit) this->fitRemaining();
         }
 
         //**************************************************************//
@@ -1065,7 +1065,7 @@ namespace askap {
 	    LOFAR::BlobOStream out(bob);
 	    out.putStart("fitsrc", 1);
 	    sourcefitting::RadioSource nullsrc;
-	    out << false << nullsrc;
+	    out << false << nullsrc << 0;
 	    out.putEnd();
 	    this->itsConnectionSet->writeAll(bs);
 	  }
