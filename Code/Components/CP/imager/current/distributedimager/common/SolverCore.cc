@@ -66,8 +66,6 @@ SolverCore::SolverCore(LOFAR::ParameterSet& parset,
         askap::scimath::Params::ShPtr model_p)
 : itsParset(parset), itsComms(comms), itsModel(model_p)
 {
-    setupRestoreBeam();
-
     const std::string solver_par = itsParset.getString("solver");
     const std::string algorithm_par = itsParset.getString("solver.Clean.algorithm", "MultiScale");
     const std::string distributed_par = itsParset.getString("solver.Clean.distributed", "False");
@@ -209,6 +207,7 @@ void SolverCore::writeModel(const std::string &postfix)
     bool restore = itsParset.getBool("restore", false);
     if (restore && postfix == "") {
         ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
+        setupRestoreBeam();
         ASKAPDEBUGASSERT(itsQbeam.size() == 3);
         ImageRestoreSolver ir(itsQbeam);
         ir.setThreshold(itsSolver->threshold());
