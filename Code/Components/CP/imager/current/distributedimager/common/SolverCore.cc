@@ -171,10 +171,19 @@ void SolverCore::setupRestoreBeam(void)
     if (restore) {
         itsQbeam.resize(3);
         std::vector<std::string> beam = itsParset.getStringVector("restore.beam");
-        ASKAPCHECK(beam.size() == 3, "Need three elements for beam");
-        for (int i = 0; i < 3; ++i) {
+	if (beam.size() == 1) {
+	  ASKAPCHECK(beam[0] == "fit", 
+		     "beam parameter should be either equal to 'fit' or contain 3 elements defining the beam size. You have "<<beam[0]);
+	  // we use the feature here that the restoring solver is created when the imaging is completed, so
+	  // there is a PSF image in the parameters. Fitting of the beam has to be moved to restore solver to
+	  // be more flexible
+	  itsQbeam = SynthesisParamsHelper::fitBeam(*itsModel);           
+	} else {
+	  ASKAPCHECK(beam.size() == 3, "Need three elements for beam");
+	  for (int i = 0; i < 3; ++i) {
             casa::Quantity::read(itsQbeam(i), beam[i]);
-        }
+	  }
+	}
     }
 }
 
