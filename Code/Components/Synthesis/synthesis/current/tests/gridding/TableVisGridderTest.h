@@ -28,6 +28,7 @@
 #include <gridding/WStackVisGridder.h>
 #include <gridding/AWProjectVisGridder.h>
 #include <gridding/WProjectVisGridder.h>
+#include <gridding/ATCAIllumination.h>
 #include <gridding/DiskIllumination.h>
 #include <fitting/Params.h>
 #include <measurementequation/ComponentEquation.h>
@@ -73,6 +74,8 @@ namespace askap
       CPPUNIT_TEST(testReverseAWProject);
       CPPUNIT_TEST(testForwardAProjectWStack);
       CPPUNIT_TEST(testReverseAProjectWStack);
+      CPPUNIT_TEST(testForwardATCAIllumination);
+      CPPUNIT_TEST(testReverseATCAIllumination);
       CPPUNIT_TEST_SUITE_END();
 
   private:
@@ -241,6 +244,27 @@ namespace askap
       }
       void testForwardAProjectWStack()
       {
+        itsAProjectWStack->initialiseDegrid(*itsAxes, *itsModel);
+        itsAProjectWStack->degrid(*idi);
+      }
+      void testReverseATCAIllumination()
+      {
+        boost::shared_ptr<ATCAIllumination> illum(new ATCAIllumination(120.0, 10.0));
+        illum->simulateTapering(1.0);
+        itsAProjectWStack.reset(new AProjectWStackVisGridder(illum, 10000.0, 9, 0., 1, 128, 1));
+        itsAProjectWStack->initialiseGrid(*itsAxes, itsModel->shape(), false);
+        itsAProjectWStack->grid(*idi);
+        itsAProjectWStack->finaliseGrid(*itsModel);
+        itsAProjectWStack->finaliseWeights(*itsModelWeights);
+        itsAProjectWStack->initialiseGrid(*itsAxes, itsModel->shape(), true);
+        itsAProjectWStack->grid(*idi);
+        itsAProjectWStack->finaliseGrid(*itsModelPSF);
+      }
+      void testForwardATCAIllumination()
+      {
+        boost::shared_ptr<ATCAIllumination> illum(new ATCAIllumination(12.0, 2.0));
+        illum->simulateTapering(1.0);
+        itsAProjectWStack.reset(new AProjectWStackVisGridder(illum, 10000.0, 9, 0., 1, 128, 1));
         itsAProjectWStack->initialiseDegrid(*itsAxes, *itsModel);
         itsAProjectWStack->degrid(*idi);
       }
