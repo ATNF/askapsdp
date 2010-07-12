@@ -33,6 +33,8 @@
 // casa includes
 #include <casa/Logging/LogIO.h>
 #include <casa/OS/Timer.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayMath.h>
 
 
 // own includes
@@ -42,6 +44,10 @@
 #include <Common/ParameterSet.h>
 #include <askap/Log4cxxLogSink.h>
 #include <gridding/UVPattern.h>
+#include <gridding/AProjectGridderBase.h>
+#include <measurementequation/SynthesisParamsHelper.h>
+// just for logging
+#include <askapparallel/AskapParallel.h>
 
 // command line parser
 #include <CommandLineParser.h>
@@ -56,6 +62,10 @@ using namespace askap::synthesis;
 
 // Main function
 int main(int argc, const char** argv) { 
+
+  // This class must have scope outside the main try/catch block
+  // we need it to initialise the logging properly
+  mwbase::AskapParallel comms(argc, argv);
   try {
      casa::Timer timer;
      timer.mark();
@@ -76,7 +86,33 @@ int main(int argc, const char** argv) {
         const std::string parsetFile = inputsPar;
 
         LOFAR::ParameterSet parset(parsetFile);
-        LOFAR::ParameterSet subset(parset.makeSubset("Cimager."));
+        if (parset.isDefined("Cimager.gridder")) {
+            const std::string gridder = parset.getString("Cimager.gridder");
+            ASKAPLOG_INFO_STR(logger,  "Using subset of the input parset file "<<parsetFile<<
+                         " sliced at Cimager.gridder."<<gridder<<" to define illumination");
+            SynthesisParamsHelper::setUpImageHandler(parset.makeSubset("Cimager."));             
+            parset = parset.makeSubset("Cimager.gridder."+gridder+".");
+        } else if (parset.isDefined("Csimulator.gridder")) {
+            const std::string gridder = parset.getString("Csimulator.gridder");
+            ASKAPLOG_INFO_STR(logger,  "Using subset of the input parset file "<<parsetFile<<
+                         " sliced at Csimulator.gridder."<<gridder<<" to define illumination");
+            SynthesisParamsHelper::setUpImageHandler(parset.makeSubset("Csimulator."));             
+            parset = parset.makeSubset("Csimulator.gridder."+gridder+".");
+        } else {
+            SynthesisParamsHelper::setUpImageHandler(parset);
+        }
+            
+        boost::shared_ptr<IBasicIllumination> illum = AProjectGridderBase::makeIllumination(parset);
+        
+        // hardcoded parameters at the moment
+        UVPattern pattern(1024,1024, 10, 10, 4);
+        
+        ASKAPCHECK(illum, "No illumination pattern seems to be defined");
+        illum->getPattern(1.4e9, pattern);
+        
+        casa::Array<casa::Float> buffer(pattern.pattern().shape());
+        buffer = casa::amplitude(pattern.pattern());
+        SynthesisParamsHelper::saveAsCasaImage("illum.img",buffer);
       }  
       ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user()
                << " system: " << timer.system() << " real:   " << timer.real());
