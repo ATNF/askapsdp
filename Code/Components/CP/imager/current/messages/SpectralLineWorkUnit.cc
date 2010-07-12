@@ -63,11 +63,6 @@ void SpectralLineWorkUnit::set_dataset(std::string dataset)
         itsDataset = dataset;
 }
 
-void SpectralLineWorkUnit::set_imagename(std::string imagename)
-{
-    itsImageName = imagename;
-}
-
 void SpectralLineWorkUnit::set_channelOffset(int offset)
 {
     itsChannelOffset = offset;
@@ -86,11 +81,6 @@ std::string SpectralLineWorkUnit::get_dataset(void) const
         return itsDataset;
 }
 
-std::string SpectralLineWorkUnit::get_imagename(void) const
-{
-    return itsImageName;
-}
-
 int SpectralLineWorkUnit::get_channelOffset(void) const
 {
     return itsChannelOffset;
@@ -103,7 +93,6 @@ void SpectralLineWorkUnit::writeToBlob(LOFAR::BlobOStream& os) const
 {
     os << static_cast<int>(itsPayloadType);
     os << itsDataset;
-    os << itsImageName;
     os << itsChannelOffset;
 }
 
@@ -113,7 +102,6 @@ void SpectralLineWorkUnit::readFromBlob(LOFAR::BlobIStream& is)
 
     is >> payloadType;
     is >> itsDataset;
-    is >> itsImageName;
     is >> itsChannelOffset;
 
     itsPayloadType = static_cast<PayloadType>(payloadType);

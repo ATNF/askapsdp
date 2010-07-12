@@ -120,7 +120,13 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
     IDataSharedIter it = ds.createIterator(sel, conv);
 
     const int nChannels = it->nChannel();
+    if (!itsParset.isDefined("Images.name")) {
+        ASKAPTHROW(std::runtime_error, "Image name is not defined in parameter set");
+    }
     const std::string imagename = itsParset.getString("Images.name");
+    if (imagename.at(0) == '[') {
+        ASKAPTHROW(std::runtime_error, "Image name specified as a vector.");
+    }
 
     for (int i = 0; i < nChannels; ++i) {
         processChannel(ds, imagename, i, wu.get_channelOffset());

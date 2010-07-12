@@ -64,13 +64,11 @@ namespace askap {
                 // Setters
                 void set_payloadType(PayloadType type);
                 void set_dataset(std::string dataset);
-                void set_imagename(std::string imagename);
                 void set_channelOffset(int offset);
 
                 // Getters
                 PayloadType get_payloadType(void) const;
                 std::string get_dataset(void) const;
-                std::string get_imagename(void) const;
                 int get_channelOffset(void) const;
 
                 // Serializer functions
@@ -87,7 +85,6 @@ namespace askap {
                 PayloadType itsPayloadType;
 
                 std::string itsDataset;
-                std::string itsImageName;
                 int itsChannelOffset;
         };
 

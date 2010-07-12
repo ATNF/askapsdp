@@ -72,12 +72,6 @@ void SpectralLineMaster::run(void)
         ASKAPTHROW (std::runtime_error, "No datasets specified in the parameter set file");
     }
 
-    // Get the base image name
-    if (!itsParset.isDefined("Images.name")) {
-        ASKAPTHROW(std::runtime_error, "Image name is not defined in parameter set");
-    }
-    const std::string imageName = itsParset.getString("Images.name");
-
     // Send work orders to the worker processes, handling out
     // more work to the workers as needed.
     int channelOffset = 0;
@@ -97,7 +91,6 @@ void SpectralLineMaster::run(void)
         SpectralLineWorkUnit wu;
         wu.set_payloadType(SpectralLineWorkUnit::WORK);
         wu.set_dataset(ms[n]);
-        wu.set_imagename(imageName);
         wu.set_channelOffset(channelOffset);
         itsComms.sendMessage(wu, id);
 
