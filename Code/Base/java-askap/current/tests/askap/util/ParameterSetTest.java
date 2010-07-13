@@ -209,7 +209,31 @@ public class ParameterSetTest
     	assertEquals("array[0]", "(1", strArray[0]);
     	assertEquals("array[1]", "2", strArray[1]);
     	assertEquals("array[2]", "3)", strArray[2]);
-	
+    	
+    	
+    	// [ab013..010] ==> [ab013,ab012,ab011,ab010]
+    	strArray = theirTestSet.getVector("[ab013..010]", "java.lang.String");
+    	assertEquals("incorrect array count", 4, strArray.length);
+    	assertEquals("array[0]", "ab013", strArray[0]);
+    	assertEquals("array[1]", "ab012", strArray[1]);
+    	assertEquals("array[2]", "ab011", strArray[2]);
+    	assertEquals("array[3]", "ab010", strArray[3]);
+    	
+    	
+    	
+    	// [/aa000..2] ==> [/aa000,/aa001,/aa002]
+    	strArray = theirTestSet.getVector("[/aa000..2]", "java.lang.String");
+    	assertEquals("incorrect array count", 3, strArray.length);
+    	assertEquals("array[0]", "/aa000", strArray[0]);
+    	assertEquals("array[1]", "/aa001", strArray[1]);
+    	assertEquals("array[2]", "/aa002", strArray[2]);
+
+    	// [/aa000../aa2] ==> [/aa000,/aa001,/aa002]
+    	strArray = theirTestSet.getVector("[/aa000../aa2]", "java.lang.String");
+    	assertEquals("incorrect array count", 3, strArray.length);
+    	assertEquals("array[0]", "/aa000", strArray[0]);
+    	assertEquals("array[1]", "/aa001", strArray[1]);
+    	assertEquals("array[2]", "/aa002", strArray[2]);
     }
     
 
