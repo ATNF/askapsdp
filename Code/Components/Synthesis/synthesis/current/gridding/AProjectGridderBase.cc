@@ -204,7 +204,7 @@ void AProjectGridderBase::validateCFCache(const IConstDataAccessor &acc, bool sy
       const casa::Vector<casa::Float> &feed1PAs = acc.feed1PA();
       ASKAPDEBUGASSERT(feed1PAs.nelements() == casa::uInt(nSamples));
       for (int row = 0; row<nSamples; ++row) {
-           if (fabs(feed1PAs[row] - itsCFParallacticAngle)<itsParallacticAngleTolerance) {
+           if (fabs(feed1PAs[row] - itsCFParallacticAngle) > itsParallacticAngleTolerance) {
                itsCFInvalidDueToPA = true;
                itsCFParallacticAngle = feed1PAs[row];
                itsDone.set(false);
