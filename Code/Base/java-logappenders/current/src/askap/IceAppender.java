@@ -26,15 +26,11 @@
 package askap;
 
 // Log4J imports
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.spi.LoggingEvent;
-import org.apache.log4j.spi.ErrorCode;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Level;
-import org.apache.log4j.helpers.LogLog;
-
-// Standard Java imports
 import java.util.HashMap;
+
+import org.apache.log4j.AppenderSkeleton;
+import org.apache.log4j.Level;
+import org.apache.log4j.spi.LoggingEvent;
 
 public class IceAppender extends AppenderSkeleton
 {
@@ -43,6 +39,8 @@ public class IceAppender extends AppenderSkeleton
     private String itsLocatorPort;
     private String itsLocatorHost;
     private String itsTopic;
+    
+	private String itsTag;
 
     // ICE communicator
     private Ice.Communicator itsIceComm = null;
@@ -54,6 +52,18 @@ public class IceAppender extends AppenderSkeleton
     // turned into an ASKAP LogEvent
     private HashMap<org.apache.log4j.Level,askap.interfaces.logging.LogLevel> itsLevelMap =
         new HashMap<org.apache.log4j.Level,askap.interfaces.logging.LogLevel>();
+
+    /**
+     * Called automatically by Log4j to set the "Tag"
+     * option.
+     */
+	public String getTag() {
+		return itsTag;
+	}
+
+	public void setTag(String itsTag) {
+		this.itsTag = itsTag;
+	}
 
     /**
      * Called automatically by Log4j to set the "locator_port"
@@ -198,8 +208,13 @@ public class IceAppender extends AppenderSkeleton
 
         // Get a handle to the logger proxy for this topic, this handle is then
         // used to publish log events
+        try {	
         Ice.ObjectPrx pub = topic.getPublisher().ice_oneway();
         itsLogService = askap.interfaces.logging.ILoggerPrxHelper.uncheckedCast(pub);
+        } catch (Throwable e) {
+        	System.err.println("Xinyu ERROR");
+        	e.printStackTrace();
+        }
     }
 
     /**
@@ -226,6 +241,8 @@ public class IceAppender extends AppenderSkeleton
             iceevent.created = event.getTimeStamp() / 1000.0;
             iceevent.level = itsLevelMap.get(event.getLevel());
             iceevent.message = event.getRenderedMessage();
+            
+            iceevent.tag = this.itsTag;
 
             // Send
             itsLogService.send(iceevent);
