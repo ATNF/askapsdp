@@ -4,7 +4,6 @@ import os
 import subprocess
 import time
 from nose.tools import assert_equals
-import initenv
 import IceStorm
 import askap
 from askap.iceutils.icegrid import IceGridSession

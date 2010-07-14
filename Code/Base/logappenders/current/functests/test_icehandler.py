@@ -6,7 +6,6 @@ import time
 import socket
 from nose.tools import assert_equals
 
-import initenv
 
 import IceStorm
 

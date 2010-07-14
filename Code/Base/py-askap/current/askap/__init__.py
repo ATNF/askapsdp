@@ -28,7 +28,6 @@ Module :mod:`askap` -- ASKAP global uitilities
 This module contains ASKAP wide basic utilities.
 
 """
-import initenv
 
 __all__ = ['get_config']
 

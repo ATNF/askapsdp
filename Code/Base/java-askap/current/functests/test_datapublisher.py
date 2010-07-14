@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import subprocess
 import time
-import initenv
 import IceStorm
 import askap
 from askap.iceutils.icegrid import IceGridSession

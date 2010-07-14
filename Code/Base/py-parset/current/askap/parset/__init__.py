@@ -50,11 +50,6 @@ This module provides logging through :attr:`askap.parset.logger`.
 """
 # if used outside askapsoft
 try:
-    import initenv
-except ImportError:
-    pass
-# if used outside askapsoft
-try:
     from askap import logging
 except ImportError:
     import logging
