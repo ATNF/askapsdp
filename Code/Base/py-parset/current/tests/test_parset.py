@@ -33,7 +33,8 @@ def test_stringconstructor():
     pset = """a.b.c = 1
 a.b.d = x"""
     p = ParameterSet(pset)
-
+    assert_equals(p.a.b.c, 1)
+    
 # from file
 def test_fileconstructor():
     testfile = os.path.join(os.path.split(__file__)[0], 'example.parset')
