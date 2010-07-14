@@ -182,6 +182,9 @@ void SolverCore::setupRestoreBeam(void)
             casa::Quantity::read(itsQbeam(i), beam[i]);
 	  }
 	}
+       ASKAPDEBUGASSERT(itsQbeam.size() == 3);
+       ASKAPLOG_INFO_STR(logger, "Restore solver will convolve with the 2D gaussian: "<<itsQbeam[0].getValue("arcsec")<<
+                 " x "<<itsQbeam[1].getValue("arcsec")<<" arcsec at position angle "<<itsQbeam[2].getValue("deg")<<" deg");
     }
 }
 
