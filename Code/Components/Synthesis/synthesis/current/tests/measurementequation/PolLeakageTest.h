@@ -59,7 +59,7 @@ namespace askap
       CPPUNIT_TEST_SUITE_END();
      
      public:
-      void setup() {
+      void setUp() {
           itsIter = boost::shared_ptr<DataIteratorStub>(new DataIteratorStub(1));
           DataAccessorStub &da = dynamic_cast<DataAccessorStub&>(*itsIter);
           ASKAPASSERT(da.itsStokes.nelements() == 1);
@@ -77,6 +77,10 @@ namespace askap
           da.itsNoise.set(1.);
           da.itsFlag.resize(da.nRow(),da.nChannel(),da.nPol());
           da.itsFlag.set(casa::False);
+          da.itsFrequency.resize(da.nChannel());
+          for (casa::uInt ch = 0; ch < da.nChannel(); ++ch) {
+               da.itsFrequency[ch] = 1.4e9 + 20e6*double(ch);
+          }
                     
           const casa::uInt nAnt = 30;
           
@@ -102,9 +106,9 @@ namespace askap
           itsParams1->add("shape.bmin.cena", 2.0e-3*casa::C::arcsec);
           itsParams1->add("shape.bpa.cena", -55*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
-               itsParams1->add("gain.g12."+toString(ant)+".0",
+               itsParams1->add("leakage.d12."+toString(ant)+".0",
                             casa::Complex(realD[ant],imagD[ant]));
-               itsParams1->add("gain.g21."+toString(ant)+".0",
+               itsParams1->add("leakage.d21."+toString(ant)+".0",
                             casa::Complex(realD[ant],imagD[ant]));
           }
           //
@@ -121,15 +125,27 @@ namespace askap
           itsParams2->add("shape.bmin.cena", 2.0e-3*casa::C::arcsec);
           itsParams2->add("shape.bpa.cena", -55*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
-               itsParams2->add("gain.g12."+toString(ant)+".0",0.);
-               itsParams2->add("gain.g21."+toString(ant)+".0",0.);
+               itsParams2->add("leakage.d12."+toString(ant)+".0",0.);
+               itsParams2->add("leakage.d21."+toString(ant)+".0",0.);
           }
        
           itsCE2.reset(new ComponentEquation(*itsParams2, itsIter));
       
       }
      
-      void testSolve() {} 
+      void testSolve() {
+          // Predict with the "perfect" parameters"
+          CPPUNIT_ASSERT(itsEq1);
+          itsEq1->predict();
+          std::vector<std::string> freeNames = itsParams2->freeNames();
+          for (std::vector<std::string>::const_iterator it = freeNames.begin();
+               it!=freeNames.end();++it) {
+               if (it->find("gain") != 0) {
+                   itsParams2->fix(*it);
+               }
+          }
+         
+      } 
       
      private:
       typedef CalibrationME<LeakageTerm> METype;

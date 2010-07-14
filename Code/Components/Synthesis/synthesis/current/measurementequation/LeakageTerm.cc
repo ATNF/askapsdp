@@ -47,9 +47,9 @@ namespace synthesis {
 /// @return name of the parameter
 std::string LeakageTerm::paramName(casa::uInt ant, casa::uInt beam, bool pol12)
 {
-  std::string term = "d21.";
+  std::string term = "leakage.d21.";
   if (pol12) {
-      term = "d12.";
+      term = "leakage.d12.";
   }
   return term+utility::toString<casa::uInt>(ant)+"."+utility::toString<casa::uInt>(beam);
 }
