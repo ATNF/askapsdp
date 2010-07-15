@@ -152,18 +152,13 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
     conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
     IDataSharedIter it = ds.createIterator(sel, conv);
 
-    // Setup normal equations
-    askap::scimath::INormalEquations::ShPtr ne_p
-        = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
-
-    // Setup measurement equations
-    askap::scimath::Equation::ShPtr equation_p
-        = askap::scimath::Equation::ShPtr(new ImageFFTEquation(*model_p, it, itsGridder_p));
-
     ASKAPLOG_DEBUG_STR(logger, "Calculating normal equations for channel " << (channel + channelOffset + 1));
     ASKAPCHECK(model_p, "model_p is not correctly initialized");
-    ASKAPCHECK(ne_p, "ne_p is not correctly initialized");
-    ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
+    askap::scimath::INormalEquations::ShPtr ne_p;
+    askap::scimath::Equation::ShPtr equation_p;
+
+    // Setup measurement equations
+    equation_p = askap::scimath::Equation::ShPtr(new ImageFFTEquation(*model_p, it, itsGridder_p));
 
     const double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
             itsParset.getString("threshold.majorcycle","-1Jy"),"Jy");
@@ -172,6 +167,12 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
     if (nCycles == 0) {
         // Calc NE
         timer.mark();
+
+        // Setup normal equations
+         ne_p = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
+        ASKAPCHECK(ne_p, "ne_p is not correctly initialized");
+
+        ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
         equation_p->calcEquations(*ne_p);
 
         ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for channel "
@@ -186,6 +187,17 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
 
             // Calc NE
             timer.mark();
+
+            if (cycle > 0) {
+                equation_p->setParameters(*model_p);
+            }
+
+            // Setup normal equations
+            ne_p = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
+            ASKAPCHECK(ne_p, "ne_p is not correctly initialized");
+
+
+            ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
             equation_p->calcEquations(*ne_p);
 
             ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for channel "
@@ -220,8 +232,8 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
     // Write image
     solverCore.writeModel("");
 
-    equation_p.reset();
-    ne_p.reset();
+    //equation_p.reset();
+    //ne_p.reset();
     model_p.reset();
 }
 

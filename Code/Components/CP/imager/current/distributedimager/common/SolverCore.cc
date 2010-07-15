@@ -210,16 +210,21 @@ void SolverCore::writeModel(const std::string &postfix)
     bool restore = itsParset.getBool("restore", false);
     if (restore && postfix == "") {
         ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
-        setupRestoreBeam();
-        ASKAPDEBUGASSERT(itsQbeam.size() == 3);
-        ImageRestoreSolver ir(itsQbeam);
-        ir.setThreshold(itsSolver->threshold());
-        ir.setVerbose(itsSolver->verbose());
-        boost::shared_ptr<ImageSolver> solverPtr(&ir,utility::NullDeleter());
-        ImageSolverFactory::configurePreconditioners(itsParset,solverPtr);
-        ir.copyNormalEquations(*itsSolver);
+
+        ASKAPDEBUGASSERT(itsModel);
+        boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(itsParset.makeSubset("restore."),
+                *itsModel);
+        ASKAPDEBUGASSERT(ir);
+        ASKAPDEBUGASSERT(itsSolver);
+        // configure restore solver the same way as normal imaging solver
+        boost::shared_ptr<ImageSolver> template_solver = boost::dynamic_pointer_cast<ImageSolver>(itsSolver);
+        ASKAPDEBUGASSERT(template_solver);
+        ImageSolverFactory::configurePreconditioners(itsParset,ir);
+        ir->configureSolver(*template_solver);
+        ir->copyNormalEquations(*template_solver);
+
         Quality q;
-        ir.solveNormalEquations(*itsModel, q);
+        ir->solveNormalEquations(*itsModel, q);
         ASKAPDEBUGASSERT(itsModel);
         // merged image should be a fixed parameter without facet suffixes
         resultimages=itsModel->fixedNames();
