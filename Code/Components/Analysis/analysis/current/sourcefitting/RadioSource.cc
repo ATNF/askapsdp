@@ -852,7 +852,9 @@ namespace askap {
                 this->itsFitParams.setPeakFlux(this->peakFlux);
                 this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
 
-                ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS);
+                ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS 
+				  << ", or global position (x,y)=("<<this->getXcentre()+this->getXOffset()
+				  << "," << this->getYcentre()+this->getYOffset() << ")");
                 ASKAPLOG_DEBUG_STR(logger, "detect thresh = " << this->itsDetectionThreshold
                                        << "  peak = " << this->peakFlux
                                        << "  noise level = " << this->itsNoiseLevel);

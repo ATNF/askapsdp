@@ -81,6 +81,7 @@ namespace askap {
                 blob << par.itsNoiseBoxSize;
                 blob << par.itsMinFitSize;
                 blob << par.itsBoxFlux;
+		blob << par.itsUseBoxFlux;
                 blob << par.itsSrcPeak;
                 blob << par.itsDetectThresh;
                 blob << par.itsNumSubThresholds;
@@ -121,6 +122,7 @@ namespace askap {
                 blob >> par.itsNoiseBoxSize;
                 blob >> par.itsMinFitSize;
                 blob >> par.itsBoxFlux;
+		blob >> par.itsUseBoxFlux;
                 blob >> par.itsSrcPeak;
                 blob >> par.itsDetectThresh;
                 blob >> par.itsNumSubThresholds;
