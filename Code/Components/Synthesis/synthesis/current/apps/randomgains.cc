@@ -135,7 +135,7 @@ std::string gainParameterName(casa::uInt ant, casa::uInt pol,
       res+="g22.";
   } else {
      ASKAPTHROW(askap::AskapError, 
-                 "Only parallel hand polarisations are currently supported");
+                 "Only parallel hand polarisations are allowed here");
   }
   res+=askap::utility::toString<casa::uInt>(ant);
   if (feed>=0) {
@@ -144,6 +144,30 @@ std::string gainParameterName(casa::uInt ant, casa::uInt pol,
   return res;
 }
 
+/// @brief get the name of the parameter 
+/// @details This method forms the name of the leakage parameter corresponding
+/// to the given beam and antenna
+/// @param[in] ant antenna number
+/// @param[in] pol polarisation (0 or 1 - translated to d12 and d21)
+/// @param[in] beam beam number (-1 for beam-independent case)
+std::string leakageParameterName(casa::uInt ant, casa::uInt pol,
+                              casa::Int beam = -1)
+{
+  std::string res("leakage.");
+  if (!pol) {
+      res+="d12.";
+  } else if (pol == 1) {
+      res+="d21.";
+  } else {
+     ASKAPTHROW(askap::AskapError, 
+                 "Only d12 or d21 are allowed here");
+  }
+  res+=askap::utility::toString<casa::uInt>(ant);
+  if (beam >= 0) {
+      res+="."+askap::utility::toString<casa::uInt>(casa::uInt(beam));
+  }
+  return res;
+}
 
 int main(int argc, char **argv)
 {
@@ -175,6 +199,10 @@ int main(int argc, char **argv)
       const int nFeed = nFeedPar;
       ASKAPCHECK(minPar<maxPar,"Minimum amplitude should be less than maximum amplitude");
       ComplexRandomGainGenerator gen(minPar,maxPar);
+      
+      // for leakages simulate the same interval of amplitudes but around 0.
+      ComplexRandomGainGenerator leakageGen((minPar-maxPar)/2,(maxPar-minPar)/2);
+      
       std::ofstream os(outputName.getValue().c_str());
       os<<std::endl;
       os<<"# This is an automatically generated file with random complex gains"<<std::endl;
@@ -183,13 +211,21 @@ int main(int argc, char **argv)
           os<<"# "<<nFeed<<" feeds will be simulated"<<std::endl;
       }
       os<<std::endl;
+      ASKAPCHECK((nPol != 3) && (nPol <= 4), "Only 1, 2 and 4 polarisations are allowed, you have nPol="<<nPol);
+      
    
       for (size_t ant = 0; ant<nAnt; ++ant) {
            for (size_t pol = 0; pol<nPol; ++pol) {
                 for (int feed = 0; feed<(nFeed<0 ? 1 : nFeed); ++feed) { 
-                     casa::Complex gain = gen();
-                     os<<gainParameterName(ant,pol, nFeed<0 ? nFeed : feed)<<" = ["
-                       <<real(gain)<<","<<imag(gain)<<"]"<<std::endl;
+                     if (pol < 2) {
+                         casa::Complex value = gen();
+                         const std::string parName = gainParameterName(ant,pol, nFeed<0 ? nFeed : feed);
+                         os<<parName<<" = ["<<real(value)<<","<<imag(value)<<"]"<<std::endl;
+                     } else {
+                         casa::Complex value = leakageGen();
+                         const std::string parName = leakageParameterName(ant, pol - 2, nFeed<0 ? nFeed : feed);
+                         os<<parName<<" = ["<<real(value)<<","<<imag(value)<<"]"<<std::endl;
+                     }
                 }
            }
       }
