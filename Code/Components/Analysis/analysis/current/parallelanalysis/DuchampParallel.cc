@@ -535,7 +535,9 @@ namespace askap {
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                     if (this->itsFlagDoFit)
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << this->itsCube.getNumObj() << ".");
+                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << this->itsCube.getNumObj() 
+					  << ", peaking at (x,y)=("<<this->itsCube.getObject(i).getXPeak()+this->itsCube.getObject(i).getXOffset()
+					  << "," << this->itsCube.getObject(i).getYPeak()+this->itsCube.getObject(i).getYOffset() << ")");
 
                     sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
