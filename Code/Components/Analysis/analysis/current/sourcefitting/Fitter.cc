@@ -201,10 +201,8 @@ namespace askap {
             void Fitter::fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
                              casa::Vector<casa::Double> sigma)
             {
-                this->itsParams.itsBoxFlux = 0.;
 
-                for (uint i = 0; i < f.size(); i++) this->itsParams.itsBoxFlux += f(i);
-
+	        this->itsParams.setBoxFlux(f);
                 this->itsSolution.resize();
                 bool thisFitGood = true;
                 int numLoops = 3;
@@ -379,7 +377,9 @@ namespace askap {
                     intFlux += component.flux();
                 }
 
-                return (intFlux < 2.*this->itsParams.itsBoxFlux);
+		// If useBoxFlux=false, return true (ie. we don't care about the integrated flux
+		// If it is true, only return true if the integrated flux is less than 2x the box flux
+                return (!this->itsParams.useBoxFlux() || (intFlux < 2.*this->itsParams.itsBoxFlux));
             }
 
             //**************************************************************//

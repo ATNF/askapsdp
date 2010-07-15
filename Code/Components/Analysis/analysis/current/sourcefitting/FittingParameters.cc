@@ -69,6 +69,7 @@ namespace askap {
                 if (type == "psf")  return true;
 
                 if (type == "shape")  return true;
+                if (type == "height")  return true;
 
                 return false;
             }
@@ -88,6 +89,7 @@ namespace askap {
                 this->itsMaxIter = parset.getUint32("maxIter", 1024);
                 this->itsUseNoise = parset.getBool("useNoise", true);
                 this->itsFlagFitThisParam = std::vector<bool>(6, true);
+		this->itsUseBoxFlux = true;
 
                 if (parset.isDefined("flagFitParam"))
                     ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. Please use fitTypes to specify a list of types of fits.");
@@ -131,6 +133,7 @@ namespace askap {
                 this->itsNoiseBoxSize = f.itsNoiseBoxSize;
                 this->itsMinFitSize = f.itsMinFitSize;
                 this->itsBoxFlux = f.itsBoxFlux;
+		this->itsUseBoxFlux = f.itsUseBoxFlux;
                 this->itsXmin = f.itsXmin;
                 this->itsYmin = f.itsYmin;
                 this->itsXmax = f.itsXmax;
@@ -147,6 +150,17 @@ namespace askap {
                 this->itsFitTypes = f.itsFitTypes;
                 return *this;
             }
+
+            //**************************************************************//
+
+	    void FittingParameters::setBoxFlux(casa::Vector<casa::Double> f)
+	    {
+	      
+	      this->itsBoxFlux = 0.;
+	      for (uint i = 0; i < f.size(); i++) 
+		this->itsBoxFlux += f(i);
+
+	    } 
 
             //**************************************************************//
 
@@ -250,6 +264,7 @@ namespace askap {
             }
 
 
+	  
         }
 
     }

@@ -150,6 +150,9 @@ namespace askap {
                     void setMaxRMS(Double d) {itsMaxRMS = d;};
                     void setChisqConfidence(float f) {itsChisqConfidence = f;};
                     void setMaxReducedChisq(float f) {itsMaxReducedChisq = f;};
+		    void setBoxFlux(float f) {itsBoxFlux = f;};
+		    void setBoxFlux(casa::Vector<casa::Double> f);
+		    void useBoxFlux(bool b) {itsUseBoxFlux = b;};
                     void setPeakFlux(float f) {itsSrcPeak = f;};
                     void setDetectThresh(float f) {itsDetectThresh = f;};
                     void setNumSubThresholds(int i) {itsNumSubThresholds = i;};
@@ -169,6 +172,9 @@ namespace askap {
                     Double maxRMS() {return itsMaxRMS;};
                     float  chisqConfidence() {return itsChisqConfidence;};
                     float  maxReducedChisq() {return itsMaxReducedChisq;};
+		    float  boxFlux(){ return itsBoxFlux;};
+		    bool   useBoxFlux() {return itsUseBoxFlux;};
+		    float  peakFlux(){return itsSrcPeak;};
                     unsigned int   minFitSize() {return itsMinFitSize;};
                     int    numSubThresholds() {return itsNumSubThresholds;};
                     float  beamSize() {return itsBeamSize;};
@@ -227,6 +233,9 @@ namespace askap {
 
                     /// @brief The flux within the box used for fitting.
                     float itsBoxFlux;
+
+		    /// @brief Whether to use the box flux 
+		    bool  itsUseBoxFlux;
 
                     /// @brief The peak flux of the object being fit.
                     float itsSrcPeak;
