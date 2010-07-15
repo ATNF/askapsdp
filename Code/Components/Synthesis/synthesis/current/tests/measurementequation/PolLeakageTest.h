@@ -159,6 +159,15 @@ namespace askap
                solver1.solveNormalEquations(*itsParams2,q);  
                //std::cout<<q<<std::endl;               
           }
+          
+          freeNames = itsParams2->freeNames();
+          for (std::vector<std::string>::const_iterator it = freeNames.begin();
+               it!=freeNames.end();++it) {
+               CPPUNIT_ASSERT(itsParams2->has(*it));
+               CPPUNIT_ASSERT(itsParams1->has(*it));               
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(casa::abs(itsParams2->complexValue(*it) -
+                                            itsParams1->complexValue(*it)), 0., 1e-6);
+          }
       } 
       
      private:
