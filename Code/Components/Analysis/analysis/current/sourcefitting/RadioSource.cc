@@ -845,16 +845,18 @@ namespace askap {
                 /// @return The return value is the value of hasFit,
                 /// which indicates whether a valid fit was made.
 
-                if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
-
+	      ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS 
+				<< ", or global position (x,y)=("<<this->getXcentre()+this->getXOffset()
+				<< "," << this->getYcentre()+this->getYOffset() << ")");
+	      if (this->getSpatialSize() < baseFitter.minFitSize()){
+		ASKAPLOG_INFO_STR(logger, "Not fitting- source is too small - spatial size = " << this->getSpatialSize() << " cf. minFitSize = " << baseFitter.minFitSize());
+		return false;
+	      }
                 this->itsFitParams = baseFitter;
                 this->itsFitParams.saveBox(this->itsBox);
                 this->itsFitParams.setPeakFlux(this->peakFlux);
                 this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
 
-                ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS 
-				  << ", or global position (x,y)=("<<this->getXcentre()+this->getXOffset()
-				  << "," << this->getYcentre()+this->getYOffset() << ")");
                 ASKAPLOG_DEBUG_STR(logger, "detect thresh = " << this->itsDetectionThreshold
                                        << "  peak = " << this->peakFlux
                                        << "  noise level = " << this->itsNoiseLevel);
