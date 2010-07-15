@@ -125,8 +125,8 @@ namespace askap
           itsParams2->add("shape.bmin.cena", 2.0e-3*casa::C::arcsec);
           itsParams2->add("shape.bpa.cena", -55*casa::C::degree);
           for (casa::uInt ant=0; ant<nAnt; ++ant) {
-               itsParams2->add("leakage.d12."+toString(ant)+".0",0.);
-               itsParams2->add("leakage.d21."+toString(ant)+".0",0.);
+               itsParams2->add("leakage.d12."+toString(ant)+".0",casa::Complex(0.));
+               itsParams2->add("leakage.d21."+toString(ant)+".0",casa::Complex(0.));
           }
        
           itsCE2.reset(new ComponentEquation(*itsParams2, itsIter));
@@ -140,11 +140,25 @@ namespace askap
           std::vector<std::string> freeNames = itsParams2->freeNames();
           for (std::vector<std::string>::const_iterator it = freeNames.begin();
                it!=freeNames.end();++it) {
-               if (it->find("gain") != 0) {
+               if (it->find("leakage") == std::string::npos) {
                    itsParams2->fix(*it);
                }
           }
-         
+          
+          for (size_t iter=0; iter<5; ++iter) {
+               // Calculate gradients using "imperfect" parameters"
+               GenericNormalEquations ne; //(*params2);
+            
+               itsEq2.reset(new METype(*itsParams2,itsIter,itsCE2));
+            
+               itsEq2->calcEquations(ne);
+               Quality q;
+               LinearSolver solver1;
+               solver1.addNormalEquations(ne);
+               solver1.setAlgorithm("SVD");
+               solver1.solveNormalEquations(*itsParams2,q);  
+               //std::cout<<q<<std::endl;               
+          }
       } 
       
      private:
