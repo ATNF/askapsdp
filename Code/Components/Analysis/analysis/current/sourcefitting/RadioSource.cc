@@ -683,7 +683,7 @@ namespace askap {
                 /// fitGauss(casa::Matrix<casa::Double> pos,
                 /// casa::Vector<casa::Double> f,
                 /// casa::Vector<casa::Double> sigma).
-                if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
+	      //                if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
                 int size = this->getSize();
                 casa::Matrix<casa::Double> pos;
@@ -728,7 +728,7 @@ namespace askap {
                 /// fitGauss(casa::Matrix<casa::Double> pos,
                 /// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
                 /// sigma).
-                if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
+                // if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
                 casa::Matrix<casa::Double> pos;
                 casa::Vector<casa::Double> f;
@@ -789,7 +789,7 @@ namespace askap {
                 /// fitGauss(casa::Matrix<casa::Double> pos,
                 /// casa::Vector<casa::Double> f, casa::Vector<casa::Double>
                 /// sigma).
-                if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
+                // if (this->getSpatialSize() < baseFitter.minFitSize()) return false;
 
                 if (this->getZcentre() != this->getZmin() || this->getZcentre() != this->getZmax()) {
                     ASKAPLOG_ERROR(logger, "Can only do fitting for two-dimensional objects!");
