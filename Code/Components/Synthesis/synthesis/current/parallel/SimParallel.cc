@@ -53,6 +53,8 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/CalibrationME.h>
 #include <measurementequation/NoXPolGain.h>
+#include <measurementequation/Product.h>
+#include <measurementequation/LeakageTerm.h>
 #include <measurementequation/ImagingEquationAdapter.h>
 #include <measurementequation/SumOfTwoMEs.h>
 #include <measurementequation/GaussianNoiseME.h>
@@ -593,8 +595,15 @@ void SimParallel::corruptEquation(boost::shared_ptr<scimath::Equation> &equation
     ASKAPLOG_INFO_STR(logger, "Loading gains from file '" << gainsfile << "'");
     gainModel << ParameterSet(gainsfile);
     ASKAPDEBUGASSERT(accessorBasedEquation);
-
-    equation.reset(new CalibrationME<NoXPolGain>(gainModel, it, accessorBasedEquation));
+    
+    const bool polLeakage = itsParset.getBool("corrupt.leakage",false);
+    if (polLeakage) {
+        ASKAPLOG_INFO_STR(logger, "Polarisation leakage will be simulated");
+       equation.reset(new CalibrationME<Product<NoXPolGain, LeakageTerm> >(gainModel, it, accessorBasedEquation));
+    } else {
+        ASKAPLOG_INFO_STR(logger, "Only parallel-hand gains will be simulated. Polarisation leakage will not be simulated.");
+       equation.reset(new CalibrationME<NoXPolGain>(gainModel, it, accessorBasedEquation));
+    }
 }
 
 /// @brief a helper method to add up an equation
