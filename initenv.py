@@ -98,7 +98,7 @@ setenv MANPATH `echo $MANPATH | sed "s#$ASKAP_ROOT/man:##"`
 setenv MANPATH "${ASKAP_ROOT}/man:${MANPATH}"
 
 setenv ARTISTIC_STYLE_OPTIONS "${ASKAP_ROOT}/astylerc"
-setenv PYLINTRC "${ASKAP_ROOT}/Tools/Dev/rbuild/pylintrc"
+setenv PYLINTRC "${ASKAP_ROOT}/pylintrc"
 setenv ANT_HOME "${ASKAP_ROOT}/share/ant"
 
 """  % os.getcwd()
