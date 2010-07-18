@@ -13,12 +13,10 @@ from distutils.sysconfig import get_python_inc
 from optparse import OptionParser
 
 parser = OptionParser()
-parser.add_option("-s", "--shell",
-                  dest="shell",
-                  action="store", 
-                  type="choice",
-                  choices=["bash", "sh", "tcsh", "csh"],
-                  default="bash",
+parser.add_option("-q", "--quiet", dest="quiet", action="store_true",
+                  default="false", help="quiet output")
+parser.add_option("-s", "--shell", dest="shell", action="store", type="choice",
+                  choices=["bash", "sh", "tcsh", "csh"], default="bash",
                   help="specify the type of shell to generate the script for")
 
 (opts, args) = parser.parse_args()
@@ -129,4 +127,5 @@ if not os.path.exists("include"):
 if not os.path.exists("include/%s" % pyvers):
     os.symlink(get_python_inc(), "include/%s" % pyvers)
 
-print "Created initaskap.%s, please run '%s initaskap.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
+if not opts.quiet:
+    print "info: Created initaskap.%s, please run '%s initaskap.%s' to initalise the environment" % ( shell["suffix"], shell["init"], shell["suffix"] )
