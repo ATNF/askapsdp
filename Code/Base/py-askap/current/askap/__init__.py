@@ -20,10 +20,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
 #
+# See http://peak.telecommunity.com/DevCenter/setuptools#namespace-packages
+try:
+    __import__('pkg_resources').declare_namespace(__name__)
+except ImportError:
+    from pkgutil import extend_path
+    __path__ = extend_path(__path__, __name__)
 """
-==============================================
-Module :mod:`askap` -- ASKAP global uitilities
-==============================================
+=============================================
+Module :mod:`askap` -- ASKAP global utilities
+=============================================
 
 This module contains ASKAP wide basic utilities.
 
