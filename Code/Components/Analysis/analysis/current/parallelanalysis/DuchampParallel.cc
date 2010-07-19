@@ -536,6 +536,7 @@ namespace askap {
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                     if (this->itsFlagDoFit)
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << this->itsCube.getNumObj() 
+					  << ", size " << this->itsCube.getObject(i).getSize() 
 					  << ", peaking at (x,y)=("<<this->itsCube.getObject(i).getXPeak()+this->itsCube.getObject(i).getXOffset()
 					  << "," << this->itsCube.getObject(i).getYPeak()+this->itsCube.getObject(i).getYOffset() << ")");
 
@@ -1012,10 +1013,18 @@ namespace askap {
             int numVox = this->itsVoxelList.size();
             int numObj = this->itsCube.getNumObj();
 
+	    ASKAPLOG_DEBUG_STR(logger, "About to calculate parameters for all " << numObj << " objects");
             if (numObj > 0) {
                 std::vector<PixelInfo::Voxel> templist[numObj];
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
+
+		  ASKAPLOG_DEBUG_STR(logger, "Setting voxel list for param calc for object at (ra,dec)=("
+				     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
+				     << ") or (x,y)=(" 
+				     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
+				     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
+				     <<") and size " << this->itsCube.getObject(i).getSize());
 
                     // for each object, make a vector list of voxels that appear in it.
                     std::vector<PixelInfo::Voxel>
@@ -1041,6 +1050,17 @@ namespace askap {
 
                 std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
+
+                for (int i = 0; i < this->itsCube.getNumObj(); i++) {
+
+		  ASKAPLOG_DEBUG_STR(logger, "Finished setting voxel list for param calc for object at (ra,dec)=("
+				     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
+				     << ") or (x,y)=(" 
+				     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
+				     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
+				     <<") and size " << this->itsCube.getObject(i).getSize());
+		}
+
             }
         }
 
