@@ -133,6 +133,7 @@ namespace askap {
                 this->itsBox = src.itsBox;
                 this->itsFitParams = src.itsFitParams;
                 this->itsBestFitMap = src.itsBestFitMap;
+                this->itsBestFitType = src.itsBestFitType;
                 this->itsAlphaMap = src.itsAlphaMap;
                 this->itsBetaMap = src.itsBetaMap;
                 return *this;
