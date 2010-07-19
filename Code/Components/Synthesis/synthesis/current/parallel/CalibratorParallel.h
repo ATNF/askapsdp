@@ -39,6 +39,7 @@
 #include <Common/ParameterSet.h>
 #include <gridding/IVisGridder.h>
 #include <measurementequation/IMeasurementEquation.h>
+#include <dataaccess/SharedIter.h>
 
 // std includes
 #include <string>
@@ -107,6 +108,17 @@ namespace askap
       
 
   protected:      
+  
+      /// @brief create measurement equation
+      /// @details This method initialises itsEquation with shared pointer to a proper type.
+      /// It uses internal flags to create a correct type (i.e. polarisation calibration or
+      /// just antenna-based gains). Parameters are passed directly to the constructor of 
+      /// CalibrationME template.
+      /// @param[in] dsi data shared iterator 
+      /// @param[in] perfectME uncorrupted measurement equation
+      void createCalibrationME(const IDataSharedIter &dsi, 
+                const boost::shared_ptr<IMeasurementEquation const> &perfectME);
+  
       /// @brief helper method to rotate all phases
       /// @details This method rotates the phases of all gains in itsModel
       /// to have the phase of itsRefGain exactly 0. This operation does

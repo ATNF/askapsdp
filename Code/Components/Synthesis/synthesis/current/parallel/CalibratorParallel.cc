@@ -212,14 +212,14 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
          // have to create an image-specific equation        
          boost::shared_ptr<ImagingEquationAdapter> ieAdapter(new ImagingEquationAdapter);
          ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, itsGridder);
-         itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,it,ieAdapter));
+         createCalibrationME(it,ieAdapter);
       } else {
          // model is a number of components, don't need an adapter here
          
          // it doesn't matter which iterator is passed below. It is not used
          boost::shared_ptr<ComponentEquation> 
                   compEq(new ComponentEquation(*itsPerfectModel,it));
-         itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,it,compEq));         
+         createCalibrationME(it,compEq);         
       }
   } else {
       ASKAPLOG_INFO_STR(logger, "Reusing measurement equation" );
@@ -229,6 +229,20 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
   itsEquation->calcEquations(*itsNe);
   ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "<< timer.real()
                      << " seconds ");
+}
+
+/// @brief create measurement equation
+/// @details This method initialises itsEquation with shared pointer to a proper type.
+/// It uses internal flags to create a correct type (i.e. polarisation calibration or
+/// just antenna-based gains). Parameters are passed directly to the constructor of 
+/// CalibrationME template.
+/// @param[in] dsi data shared iterator 
+/// @param[in] perfectME uncorrupted measurement equation
+void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi, 
+                const boost::shared_ptr<IMeasurementEquation const> &perfectME)
+{
+   ASKAPDEBUGASSERT(itsModel);
+   itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,dsi,perfectME));           
 }
 
 /// Calculate the normal equations for a given measurement set
