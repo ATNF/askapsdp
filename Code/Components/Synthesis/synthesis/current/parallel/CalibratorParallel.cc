@@ -71,6 +71,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/LeakageTerm.h>
+#include <measurementequation/Product.h>
 #include <measurementequation/ImagingEquationAdapter.h>
 #include <gridding/VisGridderFactory.h>
 #include <askapparallel/AskapParallel.h>
@@ -96,10 +97,23 @@ using namespace askap::mwbase;
 CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
       MEParallel(comms), itsParset(parset), 
-      itsPerfectModel(new scimath::Params())
+      itsPerfectModel(new scimath::Params()), itsSolveGains(true), itsSolveLeakage(false)
 {
   // set up image handler, needed for both master and worker
   SynthesisParamsHelper::setUpImageHandler(itsParset);
+  
+  const std::string what2solve = itsParset.getString("solve","gains");
+  if (what2solve.find("gains") != std::string::npos) {
+      ASKAPLOG_INFO_STR(logger, "Gains will be solved for (solve='"<<what2solve<<"')");
+      itsSolveGains = true;
+  }
+  if (what2solve.find("leakages") != std::string::npos) {
+      ASKAPLOG_INFO_STR(logger, "Leakages will be solved for (solve='"<<what2solve<<"')");
+      itsSolveLeakage = true;
+  }
+  ASKAPCHECK(itsSolveGains || itsSolveLeakage, 
+      "Nothing to solve! Either gains or leakages (or both) have to be solved for, you specified solve='"<<
+      what2solve<<"'");
   
   if (itsComms.isMaster()) {
       
@@ -111,13 +125,24 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       // initial assumption of the parameters
       const casa::uInt nAnt = itsParset.getInt32("nAnt",36); // 28  
       const casa::uInt nBeam = itsParset.getInt32("nBeam",1); 
-      ASKAPLOG_INFO_STR(logger, "Initialise gains (unknowns) for "<<nAnt<<" antennas and "<<nBeam<<" beam(s).");
-      for (casa::uInt ant = 0; ant<nAnt; ++ant) {
-           for (casa::uInt beam = 0; beam<nBeam; ++beam) {
-                itsModel->add("gain.g11."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(1.,0.));
-                itsModel->add("gain.g22."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(1.,0.));
-                //itsModel->fix("gain.g11."+utility::toString(ant));
-           }
+      if (itsSolveGains) {
+          ASKAPLOG_INFO_STR(logger, "Initialise gains (unknowns) for "<<nAnt<<" antennas and "<<nBeam<<" beam(s).");
+          for (casa::uInt ant = 0; ant<nAnt; ++ant) {
+               for (casa::uInt beam = 0; beam<nBeam; ++beam) {
+                    itsModel->add("gain.g11."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(1.,0.));
+                    itsModel->add("gain.g22."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(1.,0.));
+                    //itsModel->fix("gain.g11."+utility::toString(ant));
+               }
+          }
+      }
+      if (itsSolveLeakage) {
+          ASKAPLOG_INFO_STR(logger, "Initialise leakages (unknowns) for "<<nAnt<<" antennas and "<<nBeam<<" beam(s).");
+          for (casa::uInt ant = 0; ant<nAnt; ++ant) {
+               for (casa::uInt beam = 0; beam<nBeam; ++beam) {
+                    itsModel->add("leakage.d12."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(0.,0.));
+                    itsModel->add("leakage.d21."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(0.,0.));
+               }
+          }
       }
       
       
@@ -242,7 +267,15 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
                 const boost::shared_ptr<IMeasurementEquation const> &perfectME)
 {
    ASKAPDEBUGASSERT(itsModel);
-   itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,dsi,perfectME));           
+   if (itsSolveGains && !itsSolveLeakage) {
+       itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,dsi,perfectME));           
+   } else if (itsSolveLeakage && !itsSolveGains) {
+       itsEquation.reset(new CalibrationME<LeakageTerm>(*itsModel,dsi,perfectME));           
+   } else if (itsSolveLeakage && itsSolveGains) {
+       itsEquation.reset(new CalibrationME<Product<NoXPolGain,LeakageTerm> >(*itsModel,dsi,perfectME));           
+   } else {
+       ASKAPTHROW(AskapError, "Unsupported combination of itsSolveGains and itsSolveLeakage. This shouldn't happen. Verify solve parameter");       
+   }
 }
 
 /// Calculate the normal equations for a given measurement set

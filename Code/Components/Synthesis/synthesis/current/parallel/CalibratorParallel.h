@@ -158,6 +158,12 @@ namespace askap
       /// @brief name of the parameter taken as a reference
       /// @details empty string means no referencing is required
       std::string itsRefGain;
+      
+      /// @brief flag switching the gain calibration on
+      bool itsSolveGains;
+      
+      /// @brief flag swtiching the leakage calibration on
+      bool itsSolveLeakage;
     };
 
   }
