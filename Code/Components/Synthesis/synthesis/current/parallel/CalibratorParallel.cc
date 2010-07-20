@@ -97,7 +97,7 @@ using namespace askap::mwbase;
 CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
       MEParallel(comms), itsParset(parset), 
-      itsPerfectModel(new scimath::Params()), itsSolveGains(true), itsSolveLeakage(false)
+      itsPerfectModel(new scimath::Params()), itsSolveGains(false), itsSolveLeakage(false)
 {
   // set up image handler, needed for both master and worker
   SynthesisParamsHelper::setUpImageHandler(itsParset);
