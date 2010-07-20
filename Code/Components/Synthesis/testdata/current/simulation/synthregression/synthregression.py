@@ -8,3 +8,5 @@ print "facetingtest: test of faceted imaging with spherical function gridder"
 import facetingtest
 print "calibratortest: test of ccalibrator"
 import calibratortest
+print "leakagecalibtest: test of polarisation leakage calibration"
+import leakagecalibtest
