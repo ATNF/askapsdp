@@ -115,7 +115,7 @@ class ParameterSet(object):
                                                                        args[0],
                                                                        ex.message))
                     i += 1
-                logger.info("Read ParameterSet file %s" % args[0])
+#                logger.info("Read ParameterSet file %s" % args[0])
             elif isinstance(args[0], dict):
                 for k,v in args[0].iteritems():
                     self.set_value(k, v)
