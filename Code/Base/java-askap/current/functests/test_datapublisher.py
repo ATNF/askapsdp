@@ -4,7 +4,7 @@ import time
 import IceStorm
 import askap
 from askap.iceutils.icegrid import IceGridSession
-from askap.slice import TypedValues_ice
+from askap.slice import TypedValues
 from askap.interfaces.datapublisher import ITypedValueMapPublisher
 
 # Record of the last metadata update received

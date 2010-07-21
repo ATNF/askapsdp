@@ -9,7 +9,7 @@ import askap
 from askap.iceutils.icegrid import IceGridSession
 
 # pylint: disable-msg=W0611
-from askap.slice import LoggingService_ice
+from askap.slice import LoggingService
 # ice doesn't agree with pylint
 # pylint: disable-msg=E0611
 from askap.interfaces.logging import ILogger

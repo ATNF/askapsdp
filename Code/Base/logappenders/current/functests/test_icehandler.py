@@ -12,7 +12,7 @@ import IceStorm
 from askap.iceutils.icegrid import IceGridSession
 
 # pylint: disable-msg=W0611
-from askap.slice import LoggingService_ice
+from askap.slice import LoggingService
 # ice doesn't agree with pylint
 # pylint: disable-msg=E0611
 from askap.interfaces.logging import ILogger
@@ -48,8 +48,8 @@ class LogSubscriber(object):
         self.adapter = \
             self.ice.createObjectAdapter("TestLogArchiverAdapter")
 
-        subscriber = self.adapter.addWithUUID(LoggerImpl()).ice_oneway()
-        qos = {}
+        subscriber = self.adapter.addWithUUID(LoggerImpl()).ice_twoway()
+        qos = {'reliability': 'ordered'}
         try:
             self.topic.subscribeAndGetPublisher(qos, subscriber)
         except IceStorm.AlreadySubscribed:
