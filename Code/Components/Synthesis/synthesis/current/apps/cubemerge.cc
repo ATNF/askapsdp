@@ -60,6 +60,8 @@ int main(int argc, const char** argv) {
      ia.create(outfile.getValue(), newShape, csys);
      for (size_t i=0; i<inputFiles.size(); ++i) {
           casa::Array<float> buf = ia.read(inputFiles[i]);
+          ASKAPCHECK(buf.shape().nonDegenerate() == shape.nonDegenerate(), "Image "<<inputFiles[i]<<
+                     " has "<<buf.shape()<<" shape which is different from the shape of the first image "<<shape);
           where[shape.nelements()] = int(i);
           ia.write(outfile.getValue(),buf,where);
      }         
