@@ -62,6 +62,13 @@ int main(int argc, const char** argv) {
           casa::Array<float> buf = ia.read(inputFiles[i]);
           ASKAPCHECK(buf.shape().nonDegenerate() == shape.nonDegenerate(), "Image "<<inputFiles[i]<<
                      " has "<<buf.shape()<<" shape which is different from the shape of the first image "<<shape);
+          const float peak = casa::abs(casa::max(buf));
+          const float sum = casa::abs(casa::sum(buf));
+          if (sum > 0.) {
+              std::cout<<"Image "<<inputFiles[i]<<" has a peak of "<<peak<<", sum of "<<sum<<" normalising sum to 1."<<std::endl;
+              //buf /= peak;
+              buf /= sum;
+          }
           where[shape.nelements()] = int(i);
           ia.write(outfile.getValue(),buf,where);
      }         

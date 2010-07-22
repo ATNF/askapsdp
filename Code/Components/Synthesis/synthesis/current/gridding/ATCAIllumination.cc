@@ -273,7 +273,7 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	
 	
 	// add up the norm contribution and assign the final value
-	sum += casa::real(value);
+	sum += casa::abs(value);
 	// Now apply the phase slope related to pointing offset
 	const double phase = lScaled*offsetU + mScaled*offsetV;
 	pattern(iU, iV) = value*casa::Complex(cos(phase), -sin(phase));
