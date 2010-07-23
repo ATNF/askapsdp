@@ -111,7 +111,18 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
     const std::string colName = itsParset.getString("datacolumn", "DATA");
     const std::string ms = wu.get_dataset();
 
+    const int uvwMachineCacheSize = itsParset.getInt32("nUVWMachines",1);
+    ASKAPCHECK(uvwMachineCacheSize > 0 , "Cache size is supposed to be a positive number, you have " << uvwMachineCacheSize);
+
+    const double uvwMachineCacheTolerance = SynthesisParamsHelper::convertQuantity(
+            itsParset.getString("uvwMachineDirTolerance", "1e-6rad"), "rad");
+
+    ASKAPLOG_INFO_STR(logger, "UVWMachine cache will store " << uvwMachineCacheSize << " machines");
+    ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "
+            << uvwMachineCacheTolerance/casa::C::pi *180. * 3600. << " arcsec");
+
     TableDataSource ds(ms, TableDataSource::DEFAULT, colName);
+    ds.configureUVWMachineCache(uvwMachineCacheSize, uvwMachineCacheTolerance);
     IDataSelectorPtr sel = ds.createSelector();
     IDataConverterPtr conv = ds.createConverter();
 

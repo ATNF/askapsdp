@@ -162,32 +162,6 @@ double SolverCore::getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_p)
     return peak;
 }
 
-void SolverCore::setupRestoreBeam(void)
-{
-    bool restore = itsParset.getBool("restore", false);
-
-    if (restore) {
-        itsQbeam.resize(3);
-        std::vector<std::string> beam = itsParset.getStringVector("restore.beam");
-	if (beam.size() == 1) {
-	  ASKAPCHECK(beam[0] == "fit", 
-		     "beam parameter should be either equal to 'fit' or contain 3 elements defining the beam size. You have "<<beam[0]);
-	  // we use the feature here that the restoring solver is created when the imaging is completed, so
-	  // there is a PSF image in the parameters. Fitting of the beam has to be moved to restore solver to
-	  // be more flexible
-	  itsQbeam = SynthesisParamsHelper::fitBeam(*itsModel);           
-	} else {
-	  ASKAPCHECK(beam.size() == 3, "Need three elements for beam");
-	  for (int i = 0; i < 3; ++i) {
-            casa::Quantity::read(itsQbeam(i), beam[i]);
-	  }
-	}
-       ASKAPDEBUGASSERT(itsQbeam.size() == 3);
-       ASKAPLOG_INFO_STR(logger, "Restore solver will convolve with the 2D gaussian: "<<itsQbeam[0].getValue("arcsec")<<
-                 " x "<<itsQbeam[1].getValue("arcsec")<<" arcsec at position angle "<<itsQbeam[2].getValue("deg")<<" deg");
-    }
-}
-
 void SolverCore::writeModel(const std::string &postfix)
 {
     ASKAPCHECK(itsModel, "itsModel is not correctly initialized");

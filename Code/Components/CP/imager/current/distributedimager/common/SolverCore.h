@@ -64,9 +64,6 @@ namespace askap {
                 // A helper method to extract peak residual
                 double getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_p);
 
-                // Setup the restoring beam parameters (itsQbeam)
-                void setupRestoreBeam(void);
-
                 // Solver
                 askap::scimath::Solver::ShPtr itsSolver;
 
@@ -78,9 +75,6 @@ namespace askap {
 
                 // Model
                 askap::scimath::Params::ShPtr itsModel;
-
-                // Restoring beam parameters
-                casa::Vector<casa::Quantum<double> > itsQbeam;
 
                 // No support for assignment
                 SolverCore& operator=(const SolverCore& rhs);
