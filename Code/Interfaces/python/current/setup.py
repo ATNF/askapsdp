@@ -6,12 +6,9 @@ import glob
 from icebuild import build_ice, clean_ice
 
 class build_py2(build_py):
- 
     def run(self):
         for cmd_name in self.get_sub_commands():
-            print "DEBUG...."
             self.run_command(cmd_name)
- 
         build_py.run(self)
      
 build_py2.sub_commands.append(('build_ice', None))
