@@ -173,6 +173,7 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
 
     const double targetPeakResidual = SynthesisParamsHelper::convertQuantity(
             itsParset.getString("threshold.majorcycle","-1Jy"),"Jy");
+    const bool writeAtMajorCycle = itsParset.getBool("Images.writeAtMajorCycle", false);
     const int nCycles = itsParset.getInt32("ncycles", 0);
     SolverCore solverCore(itsParset, itsComms, model_p);
     if (nCycles == 0) {
@@ -235,9 +236,17 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
             if (cycle + 1 >= nCycles) {
                 ASKAPLOG_INFO_STR(logger, "Reached "<<nCycles<<" cycle(s), the maximum number of major cycles. Stopping.");
             }
+
+            if (writeAtMajorCycle) {
+                solverCore.writeModel(std::string(".majorcycle.")+utility::toString(cycle+1));
+            }
+
         }
         ASKAPLOG_INFO_STR(logger, "*** Finished major cycles ***" );
+        ne_p = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
+        equation_p->setParameters(*model_p);
         equation_p->calcEquations(*ne_p);
+        solverCore.addNE(ne_p);
     } // end cycling block
 
     // Write image

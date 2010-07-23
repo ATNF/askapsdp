@@ -57,6 +57,8 @@ namespace askap {
                 /// @brief Solve the normal equations (runs in the solver)
                 virtual void solveNE(askap::scimath::INormalEquations::ShPtr);
 
+                virtual void addNE(askap::scimath::INormalEquations::ShPtr);
+
                 /// @brief Write the results
                 virtual void writeModel(const std::string& postfix);
 

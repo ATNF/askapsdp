@@ -84,6 +84,12 @@ SolverCore::~SolverCore()
 {
 }
 
+void SolverCore::addNE(askap::scimath::INormalEquations::ShPtr ne_p)
+{
+    itsSolver->init();
+    itsSolver->addNormalEquations(*ne_p);
+}
+
 void SolverCore::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
 {
     casa::Timer timer;
