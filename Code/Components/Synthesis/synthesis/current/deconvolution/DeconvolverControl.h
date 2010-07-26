@@ -115,6 +115,16 @@ namespace askap {
         return itsTargetIter;
       }
 
+      void setLambda(T lambda)
+      {
+        itsLambda = lambda;
+      }
+
+      T lambda() const
+      {
+        return itsLambda;
+      }
+
       void setTargetObjectiveFunction(T objectiveFunction) {
     	itsTargetObjectiveFunction = objectiveFunction;
       }
@@ -136,6 +146,7 @@ namespace askap {
       Float itsGain;
       Float itsTolerance;
       Int itsPSFWidth;
+      T itsLambda;
     };
     
   } // namespace synthesis

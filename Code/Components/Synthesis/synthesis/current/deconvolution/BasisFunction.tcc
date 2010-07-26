@@ -45,8 +45,7 @@ namespace askap {
   namespace synthesis {
     
     template<class T>
-    BasisFunction<T>::BasisFunction(const IPosition shape) :
-      itsShape(shape), itsOrthogonal(False)
+    BasisFunction<T>::BasisFunction(const IPosition shape) : itsShape(shape), itsOrthogonal(False)
     {
       uInt ndim=itsShape.nelements();
       ASKAPASSERT(ndim==3);

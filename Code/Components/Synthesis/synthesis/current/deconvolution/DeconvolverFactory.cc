@@ -30,6 +30,7 @@ ASKAP_LOGGER(logger, ".deconvolver");
 #include <deconvolution/DeconvolverHelpers.h>
 #include <deconvolution/DeconvolverFactory.h>
 #include <deconvolution/DeconvolverBase.h>
+#include <deconvolution/DeconvolverFista.h>
 #include <deconvolution/DeconvolverHogbom.h>
 #include <deconvolution/DeconvolverControl.h>
 #include <deconvolution/DeconvolverMonitor.h>
@@ -49,16 +50,34 @@ namespace askap {
 
       DeconvolverBase<Float, Complex>::ShPtr deconvolver;
       
-      if(parset.getString("solver", "Clean")=="Clean") {
-        Array<Float> dirty(DeconvolverHelpers::getArrayFromImage("dirty", parset));
-        Array<Float> psf(DeconvolverHelpers::getArrayFromImage("psf", parset));
+      Array<Float> dirty(DeconvolverHelpers::getArrayFromImage("dirty", parset));
+      Array<Float> psf(DeconvolverHelpers::getArrayFromImage("psf", parset));
+
+      if(parset.getString("solver", "Fista")=="Fista") {        
+        ASKAPLOG_INFO_STR(logger, "Constructing Fista deconvolver");
+        deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverFista<Float, Complex>(dirty, psf));
+        ASKAPASSERT(deconvolver);
+
+        // Get the mask and weights images
+        deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("mask", parset));
+        deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
         
+        // Now get the control parameters
+        deconvolver->control()->setGain(parset.getFloat("solver.Fista.gain", 0.1));
+        deconvolver->control()->setLambda(parset.getFloat("solver.Fista.lambda", 100.0));
+        deconvolver->control()->setTolerance(parset.getFloat("solver.Fista.tolerance", 1e-3));
+        deconvolver->control()->setTargetIter(parset.getInt32("solver.Fista.niter", 100));
+        deconvolver->control()->setTargetObjectiveFunction(parset.getFloat("solver.Fista.threshold", 0.0));
+        deconvolver->control()->setPSFWidth(parset.getInt("solver.Fista.psfwidth", 0));
+      }
+      else if(parset.getString("solver", "Clean")=="Clean") {
         string algorithm=parset.getString("solver.Clean.algorithm","Hogbom");
         
         if (algorithm=="Hogbom"){
           ASKAPLOG_INFO_STR(logger, "Constructing Hogbom Clean deconvolver");
           deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverHogbom<Float, Complex>(dirty, psf));
         }
+        ASKAPASSERT(deconvolver);
         // Get the mask and weights images
         deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("mask", parset));
         deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));

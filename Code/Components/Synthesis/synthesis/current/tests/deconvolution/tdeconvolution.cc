@@ -29,23 +29,28 @@
 ASKAP_LOGGER(logger, ".deconvolution");
 
 // Test includes
+#include <BasisFunctionTest.h>
 #include <DeconvolverBaseTest.h>
+#include <DeconvolverFistaTest.h>
 #include <DeconvolverHogbomTest.h>
+#include <DeconvolverBasisFunctionTest.h>
 #include <DeconvolverControlTest.h>
 #include <DeconvolverMonitorTest.h>
 #include <DeconvolverStateTest.h>
-#include <BasisFunctionTest.h>
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
 
+    runner.addTest( askap::synthesis::BasisFunctionTest::suite());
     runner.addTest( askap::synthesis::DeconvolverBaseTest::suite());
+    runner.addTest( askap::synthesis::DeconvolverFistaTest::suite());
     runner.addTest( askap::synthesis::DeconvolverHogbomTest::suite());
+    // Not yet working....
+    //    runner.addTest( askap::synthesis::DeconvolverBasisFunctionTest::suite());
     runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
     runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
     runner.addTest( askap::synthesis::DeconvolverStateTest::suite());
-    runner.addTest( askap::synthesis::BasisFunctionTest::suite());
 
     bool wasSucessful = runner.run();
 

@@ -48,7 +48,7 @@ namespace askap {
     DeconvolverControl<T>::DeconvolverControl() :
       itsTerminationCause(NOTTERMINATED), itsTargetIter(0),
       itsTargetObjectiveFunction(T(0)), itsGain(1.0), itsTolerance(1e-4),
-      itsPSFWidth(0)
+      itsPSFWidth(0), itsLambda(T(100.0))
     {};
     
     /// Control the current state

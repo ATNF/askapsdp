@@ -67,7 +67,7 @@ namespace askap {
       /// @details The basis function is returned as an array
       /// of shape (nx, ny, nterms) where nx, ny are the
       /// lengths of the first two axes.
-      const virtual Array<T>& basisFunction() const {return itsBasisFunction;};
+      virtual Array<T>& basisFunction() {return itsBasisFunction;};
 
       /// @brief Is the basis function orthogonal?
       virtual Bool isOrthogonal() const {return itsOrthogonal;};
@@ -76,7 +76,7 @@ namespace askap {
       /// @details If the basis functions are not orthogonal then we
       /// may need to track the cross terms. These are returned
       /// in an array of shape (nx, ny, nterms, nterms)
-      const virtual Array<T>& crossTerms() const {return itsCrossTerms;};
+      virtual Array<T>& crossTerms() {return itsCrossTerms;};
 
       /// @brief Orthogonalise the basis functions using GramSchmidt.
       /// @details The basis functions are orthogonalised using the
