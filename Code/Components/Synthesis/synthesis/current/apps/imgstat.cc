@@ -29,6 +29,7 @@
 
 #include <casa/Arrays/IPosition.h>
 #include <images/Images/PagedImage.h>
+#include <images/Images/SubImage.h>
 #include <images/Images/ImageStatistics.h>
 #include <CommandLineParser.h>
 #include <askap/AskapError.h>
@@ -60,8 +61,10 @@ void printDirection(ostream &os,const casa::MDirection &dir)  {
 int main(int argc, const char** argv) { 
   try {
      cmdlineparser::Parser parser; // a command line parser
-	 // command line parameter
+	 // command line parameters
+	 cmdlineparser::FlagParameter doWtStats("-w");      
 	 cmdlineparser::GenericParameter<std::string> imgfile;
+	 parser.add(doWtStats,cmdlineparser::Parser::return_default);
 	 parser.add(imgfile);
 
 	 // I hope const_cast is temporary here
@@ -100,12 +103,37 @@ int main(int argc, const char** argv) {
          casa::Vector<float> statVec(statBuf.reform(casa::IPosition(1,statBuf.nelements())));
          ASKAPCHECK(statVec.nelements() == 1, "Expect exactly one element in the array returned by getConvertedStatistics; you have: "<<statVec);         
          std::cout<<statVec[0]<<" # RMS MEDIAN"<<std::endl;
+     }
+     if (doWtStats.defined()) {
+         // making a slice to get inner quarter
+         const casa::IPosition shape = img.shape();
+         ASKAPCHECK(shape.nelements() >= 2, "Need 2D images for the '-w' option");
+         casa::IPosition blc(shape.nelements(),0);
+         casa::IPosition trc(shape);
+         for (size_t dim = 0; dim<trc.nelements(); ++dim) {
+              --trc[dim];
+              if (dim>=2) {
+                  trc[dim] = 0;
+              } 
+         }
+         blc[0] = shape[0]/4;
+         blc[1] = shape[1]/4;
+         trc[0] = 3*blc[0];
+         trc[1] = 3*blc[1];
+         ASKAPCHECK(blc[0]>=0 && blc[1]>=0, "BLC is negative: "<<blc<<", shape="<<shape);
+         ASKAPCHECK(trc[1]<shape[1] && trc[0]<shape[0], "TRC extends beyond the edge: "<<trc<<", shape="<<shape<<" blc="<<blc);
+         casa::Slicer slc(blc,trc,casa::IPosition(shape.nelements(),1),casa::Slicer::endIsLast);
+         casa::SubImage<casa::Float> si(img,slc,casa::AxesSpecifier(casa::True));
+         casa::ImageStatistics<casa::Float> imStatWt(si, casa::False);
+         imStatWt.getFullMinMax(tmin,tmax);
+         std::cout<<tmax<<" "<<tmin<<" # MAX MIN in the inner quarter"<<std::endl; 
      }     
   }
   ///==============================================================================
   catch (const cmdlineparser::XParser &ex) {
-	 std::cerr << "Usage: " << argv[0] << " imagefile"
-			<< std::endl;
+	 std::cerr << "Usage: " << argv[0] << " [-w] imagefile"
+			<< std::endl<<
+			"  -w print min/max of the inner quarter (useful for weights analysis)"<<std::endl;
   }
 
   catch (const askap::AskapError& x) {
