@@ -273,7 +273,8 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	
 	
 	// add up the norm contribution and assign the final value
-	sum += casa::abs(value);
+	//sum += casa::abs(value);
+	sum += std::real(std::conj(value)*value);
 	// Now apply the phase slope related to pointing offset
 	const double phase = lScaled*offsetU + mScaled*offsetV;
 	pattern(iU, iV) = value*casa::Complex(cos(phase), -sin(phase));
@@ -282,7 +283,8 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
   }
   
   // We need to divide by the sum squared so that the convolution is normalized to unity
-  ASKAPCHECK(sum > 0., "Integral of the disk should be non-zero");
+  ASKAPCHECK(sum > 0., "Integral of the pattern should be non-zero");
+  sum = sqrt(sum);
   pattern.pattern() *= casa::Complex(float(nU)*float(nV)/float(sum),0.);
 }
 
