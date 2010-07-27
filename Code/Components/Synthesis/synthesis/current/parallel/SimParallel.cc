@@ -96,10 +96,9 @@ void SimParallel::init()
         int bucketSize  = itsParset.getInt32("stman.bucketsize", 32768);
         int tileNcorr = itsParset.getInt32("stman.tilencorr", 4);
         int tileNchan = itsParset.getInt32("stman.tilenchan", 32);
-        itsSim = boost::shared_ptr<Simulator> (new Simulator(msname, bucketSize,
-                                               tileNcorr, tileNchan));
+        itsSim.reset(new Simulator(msname, bucketSize, tileNcorr, tileNchan));
 
-        itsMs = boost::shared_ptr<casa::MeasurementSet> (new casa::MeasurementSet(msname, casa::Table::Update));
+        itsMs.reset(new casa::MeasurementSet(msname, casa::Table::Update));
 
         // The antenna info is kept in a separate parset file
         readAntennas();
@@ -126,7 +125,7 @@ void SimParallel::init()
 
 SimParallel::~SimParallel()
 {
-    if (itsComms.isWorker()) {
+    if (itsComms.isWorker() && itsMs) {
         itsMs->flush();
     }
 }
@@ -403,6 +402,7 @@ void SimParallel::simulate()
         }
 
         ASKAPLOG_INFO_STR(logger, "Successfully simulated " << nScans << " scans");
+        ASKAPDEBUGASSERT(itsMs);
         itsMs->flush();
 
         predict(itsMs->tableName());
