@@ -145,7 +145,7 @@ class MqVisChunkTest : public CppUnit::TestFixture {
 
             // Encode
             std::vector<int8_t> buf;
-            LOFAR::BlobOBufVector<int8_t> obv(buf);
+            LOFAR::BlobOBufVector<int8_t> obv(buf, expandSize);
             LOFAR::BlobOStream out(obv);
             out.putStart("VisChunk", 1);
             out << source;
@@ -183,14 +183,17 @@ class MqVisChunkTest : public CppUnit::TestFixture {
 
         // This is the size of a BETA VisChunk, 21 baselines (including
         // auto correlations) * 36 beams (maximum number of beams)
-        //static const unsigned int nRows = 21 * 36;
-        static const unsigned int nRows = 1 * 36;
+        static const unsigned int nRows = 21 * 36;
 
         // 304 coarse channels with 54 fine channels per coarse
-        static const unsigned int nChans =19 * 304;
+        static const unsigned int nChans = 54 * 304;
 
         // Polarisations
         static const unsigned int nPols = 4;
+
+        // Expand size. Size of increment for Blob BufVector storage.
+        // Too small and there is lots of overhead in expanding the vector.
+        static const unsigned int expandSize = 4 * 1024 * 1024;
 };
 
 const unsigned int MqVisChunkTest::nRows;
