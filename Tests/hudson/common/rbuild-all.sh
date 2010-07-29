@@ -14,7 +14,7 @@ function HelpMessage
     printf "\n${PNAME} [-hnq] [<targets>]\n"
     printf "\t-h\thelp\n"
     printf "\t-n\tno execute (debugging)\n"
-    printf "\t-v\tbuild Code verbosely\n"
+    printf "\t-q\tbuild Code quietly\n"
     printf "\t<targets> whitespace separated list of ASKAPsoft Code targets\n"
     printf "\t\te.g. doc, test, functest\n"
     printf "\n"
@@ -38,7 +38,7 @@ function build
     args=$2
     target=$3
     ${ECHO} cd ${ASKAP_ROOT}/${directory}
-    ${ECHO} rbuild -N ${args} -t ${target}
+    ${ECHO} rbuild -a ${args} -t ${target}
     if [ $? -ne 0 ]; then
         exit 1
     fi
@@ -50,7 +50,7 @@ function build
 #
 
 
-while getopts hnv OPT
+while getopts hnq OPT
 do
     case $OPT in
         h)  HelpMessage
@@ -59,7 +59,7 @@ do
             WORKSPACE="WORKSPACE"
             ASKAP_ROOT="ASKAP_ROOT"
             ;;
-        v)  ARGS+=" -v"
+        q)  ARGS+=" -q"
             ;;
         ?)  HelpMessage
             exit 1
@@ -79,7 +79,7 @@ printf "==> Running ${PNAME}\n"
 printf "==> Starting standard build at ${SDATE}\n\n"
 bootstrap
 ${ECHO} source initaskap.sh # Setup ASKAP environment.
-build "3rdParty" "" "install"  # Always be quiet and fail immediately.
+build "3rdParty" "-q" "install"  # Always be quiet and fail immediately.
 build "Code" "${ARGS}" "install"
 DATE=`date`
 printf "\n==> Finished standard build at ${DATE}\n"
