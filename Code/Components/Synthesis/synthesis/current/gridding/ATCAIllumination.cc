@@ -285,7 +285,7 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
   // We need to divide by the sum squared so that the convolution is normalized to unity
   ASKAPCHECK(sum > 0., "Integral of the pattern should be non-zero");
   sum = sqrt(sum);
-  pattern.pattern() *= casa::Complex(float(nU)*float(nV)/float(sum),0.);
+  pattern.pattern() *= casa::Complex(float(nU)*float(nV)/* /float(sum) */,0.);
 }
 
 /// @brief check whether the pattern is symmetric

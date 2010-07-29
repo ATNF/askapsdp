@@ -279,7 +279,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
                     }
                 }
                 if(peak>0.0) {
-                    pattern.pattern()*=casa::Complex(1.0/peak);
+                    //pattern.pattern()*=casa::Complex(1.0/peak);
                 }
                 // The maximum will be 1.0
                 //	    ASKAPLOG_INFO_STR(logger, "Max of FT of convolution function = " << casa::max(pattern.pattern()));
