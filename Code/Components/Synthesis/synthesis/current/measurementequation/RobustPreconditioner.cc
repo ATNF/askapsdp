@@ -71,50 +71,28 @@ namespace askap
     {
       ASKAPLOG_INFO_STR(logger, "Applying Robust filter with robustness parameter " << itsRobust);
       
-      float maxPSFBefore=casa::max(psf);
+      const float maxPSFBefore=casa::max(psf);
       ASKAPLOG_INFO_STR(logger, "Peak of PSF before Robust filtering = " << maxPSFBefore);
       casa::ArrayLattice<float> lpsf(psf);
       casa::ArrayLattice<float> ldirty(dirty);
       
       // we need to pad to twice the size in the image plane in order to avoid wraparound
-      IPosition paddedShape = lpsf.shape();
-      paddedShape(0)*=2;
-      paddedShape(1)*=2;       
-      casa::IPosition corner(paddedShape.nelements(),0);
-      corner(0) = paddedShape(0)/4;
-      corner(1) = paddedShape(1)/4;
-      // set up slicer to work with inner quarter of a padded lattice
-      casa::Slicer slicer(corner, lpsf.shape());
-      casa::ArrayLattice<casa::Complex> scratch(paddedShape);
-      scratch.set(0.);
-      casa::SubLattice<casa::Complex> innerScratch(scratch, slicer, True);       
-      //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
-      scimath::PaddingUtils::inject(scratch, lpsf);
+      casa::IPosition shape = lpsf.shape();
+      casa::ArrayLattice<casa::Complex> scratch(shape);
+      scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
       
-      LatticeFFT::cfft2d(innerScratch, True);
+      LatticeFFT::cfft2d(scratch, True);
 
       // Construct a Robust filter
       
-      casa::ArrayLattice<casa::Complex> robustfilter(paddedShape);
-      robustfilter.set(0.);
+      casa::ArrayLattice<casa::Complex> robustfilter(shape);
       // Normalize relative to the average weight
       const double noisepower(pow(10.0, 2*itsRobust));
       const double rnp(1.0/(noisepower*maxPSFBefore));
-      casa::SubLattice<casa::Complex> innerWF(robustfilter, slicer, True);       
-      casa::LatticeExpr<casa::Complex> wf(1.0/(sqrt(real(innerScratch*conj(innerScratch)))*rnp+1.0));
-      innerWF.copyData(wf);
-      // two FTs to do padding in the image plane
-      LatticeFFT::cfft2d(innerWF, False);
-      LatticeFFT::cfft2d(robustfilter, True);                
-      
+      robustfilter.copyData(casa::LatticeExpr<casa::Complex>(1.0/(sqrt(real(scratch*conj(scratch)))*rnp+1.0)));
+            
       // Apply the filter to the lpsf
       // (reuse the ft(lpsf) currently held in 'scratch')
-      
-      // need to rebuild ft(lpsf) with padding, otherwise there is a scaling error
-      scratch.set(0.);
-      scimath::PaddingUtils::inject(scratch, lpsf);
-      LatticeFFT::cfft2d(scratch, True);      
-      //
       scratch.copyData(casa::LatticeExpr<casa::Complex> (robustfilter * scratch));
       
       /*
@@ -124,25 +102,23 @@ namespace askap
       */
       
       LatticeFFT::cfft2d(scratch, False);       
-      scimath::PaddingUtils::extract(lpsf, scratch);
-      float maxPSFAfter=casa::max(psf);
+      lpsf.copyData(casa::LatticeExpr<float>(real(scratch)));
+      const float maxPSFAfter = casa::max(psf);
       ASKAPLOG_INFO_STR(logger, "Peak of PSF after Robust filtering  = " << maxPSFAfter);
-      psf*=maxPSFBefore/maxPSFAfter;
+      psf *= maxPSFBefore/maxPSFAfter;
  
       ASKAPLOG_INFO_STR(logger, "Normalized to unit peak");
      
       // Apply the filter to the dirty image
-      scratch.set(0.);
-      scimath::PaddingUtils::inject(scratch, ldirty);
-      //innerScratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
+      scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
       
       LatticeFFT::cfft2d(scratch, True);
       
       scratch.copyData(casa::LatticeExpr<casa::Complex> (robustfilter * scratch));
       LatticeFFT::cfft2d(scratch, False);
-      scimath::PaddingUtils::extract(ldirty, scratch);
-      //maxPSFBefore*=4.0;
-      dirty*=maxPSFBefore/maxPSFAfter;
+
+      ldirty.copyData(casa::LatticeExpr<float>(real(scratch)));      
+      dirty *= maxPSFBefore/maxPSFAfter;
       
       return true;
     }
