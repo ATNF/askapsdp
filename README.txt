@@ -1,11 +1,11 @@
-Building ASKAPsoft                                           17 June 2009
+Building ASKAPsoft                                           29 July 2010
 ==================
 
 These notes provide just a brief outline.
-More detailed information can be found on the ASKAPsoft Trac site
+More detailed information can be found on the ASKAP project management site:
 https://pm.atnf.csiro.au/askap/wiki/cmpt
-and in particular
-https://pm.atnf.csiro.au/askap/wiki/cmpt/AS05_BuildInfraStructureAskapSoftwareDevelopmentEnvironment
+and in particular:
+https://pm.atnf.csiro.au/askap/wiki/cmpt/IS_Software_Build_System
 
 Introduction
 ============
@@ -52,72 +52,65 @@ To get help for 'rbuild' simply type
 
 ------------------------------------------------------------------------------
 %% rbuild -h
-Usage: rbuild [options] <package_path>
+Usage: rbuild [options] [<package_path>]
 
-The ASKAP build command for users/developers. It handles dependencies and
-performs updates from subversion. Note - the subversion update only applies to
-the following TARGETs [doc, extract, install, release].
+This is the main ASKAPsoft build command for developers. It can handle
+dependencies, subversion updates and changes to the build system. There are
+two types of build targets: recursive [install, stage, release, signature] and
+non-recursive [clean, doc, format, pylint, functest, test]. The non-recursive
+targets only apply to the current package, while recursive targets are applies
+to all dependencies of the current package.  The recursive behaviour may be
+overidden with appropriate flag. The default <package_path> is the current
+directory.
 
 Options:
   -h, --help            show this help message and exit
-  -n, --no-update       do not perform subversion update
-  -q, --quiet           do not show all builder output [default=True]
+  -a, --autobuild       autobuild mode where dependencies/packages are
+                        computed once.
+  -d, --debug           do not run the actual package building command.
+  -f, --force           force building of packages ignoring NO_BUILD files
+  -q, --quiet           do not show all builder output. [default=True]
   -v, --verbose         show all builder output
+  -n, --no-update       no svn updates, rebuild of myself or Tools rebuild.
+                        Equivalent to "-S -M -T"
+  -N, --no-recursive-update
+                        no svn updates, rebuild of myself, Tools rebuild or
+                        recursion. Equivalent to "-S -M -T -R -v" or
+                        "python build.py TARGET"
   -p EXTRAOPTS, --pass-options=EXTRAOPTS
-                        pass on package specific build options, e.g. 'mpi=1'
+                        pass on package specific build options, e.g. "mpi=1"
+                        or specific functional tests e.g "-t functest -p
+                        functests/mytest.py"
   -t TARGET, --target=TARGET
-                        select TARGET from: clean, format, functest, pylint,
-                        test, doc, extract, install, release [default=install]
+                        select TARGET from: install, stage, release,
+                        signature, clean, doc, format, pylint, functest, test
+                        [default=install]
+  --release-name=RELEASE_NAME
+                        The name of the staging directory and the release
+                        tarball
 
-  Internal Options:
-    Caution: The following options are for scripts internal use only.  Use
-    these options at your own risk.
+  Advanced Options:
+    Caution: Use these options at your own risk.
 
-    --update-myself     [default=True]
+    -M, --no-build-myself
+                        do not rebuild myself (rbuild)
+    -P, --no-parallel   do not do parallel builds of packages
+    -R, --no-recursion  do not apply target recursively
+    -S, --no-svn-update
+                        do not perform subversion update
+    -T, --no-tools      do not rebuild Tools
+    -V, --no-virtualenv
+                        do not include virtualenv in a release
 
 ------------------------------------------------------------------------------
 
 rbuild system
 =============
 The rbuild system is the infrastructure underlying the rbuild command.
-At the package level it can be run via the command 
+At the package level it can be run via the rbuild script or calling the
+build.py files directly. In this case there is no recursive building.
 
-rbuild -h
-Usage: rbuild [options] <package_path>
-
-The ASKAP build command for users/developers. It handles dependencies and
-performs updates from subversion. Note - the subversion update only applies to
-the following TARGETs [doc, extract, install, stage, release, signature,
-symlink].
-
-Options:
-  -h, --help            show this help message and exit
-  -n, --no-update       do not perform subversion update
-  -q, --quiet           do not show all builder output [default=True]
-  -v, --verbose         show all builder output
-  -N, --no-virtualenv   do not include virtualenv in a release
-  --no-parallel         Disable parallel build of packages for build tools
-                        which allow this (e.g. -jN in make/scons). The default
-                        is to use N+1 processes where N is the number of CPUs.
-  -p EXTRAOPTS, --pass-options=EXTRAOPTS
-                        pass on package specific build options, e.g. 'mpi=1'
-  --release-name=RELEASE_NAME
-                        The name of the staging directory and the release
-                        tarball.
-  -t TARGET, --target=TARGET
-                        select TARGET from: clean, format, functest, pylint,
-                        test, doc, extract, install, stage, release,
-                        signature, symlink [default=install]
-
-  Internal Options:
-    Caution: The following options are for scripts internal use only.  Use
-    these options at your own risk.
-
-    --update-myself     [default=True]
-
-
-Alternatively can use:
-
+e.g.
 python build.py [-q|-x] <target>
 
 It provides the following command-line options
