@@ -9,6 +9,8 @@ from askapenv import env
 pkg = env.AskapPackage("mq")
 
 pkg.AddSubPackage("broker")
+pkg.AddSubPackage("blobutils")
+pkg.AddSubPackage("dataaccess")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
