@@ -45,19 +45,12 @@ namespace askap {
   namespace synthesis {
     
     template<class T>
-    BasisFunction<T>::BasisFunction(const IPosition shape) : itsShape(shape), itsOrthogonal(False)
+    BasisFunction<T>::BasisFunction(const IPosition shape, const Bool orthogonal) : itsShape(shape), itsOrthogonal(orthogonal)
     {
       uInt ndim=itsShape.nelements();
       ASKAPASSERT(ndim==3);
       itsBasisFunction.resize(itsShape);
       itsBasisFunction.set(T(0.0));
-      itsCrossTermsShape=IPosition(ndim+1, 0);
-      itsCrossTermsShape(0)=itsShape(0);
-      itsCrossTermsShape(1)=itsShape(1);
-      itsCrossTermsShape(2)=itsShape(2);
-      itsCrossTermsShape(3)=itsShape(2);
-      itsCrossTerms.resize(itsCrossTermsShape);
-      itsCrossTerms.set(T(0.0));
     };
     
     // Orthogonalise using the Gram-Schmidt process. This is not optimum
@@ -86,9 +79,10 @@ namespace askap {
         }
         u.xyPlane(i)=v.xyPlane(i)-w;
       }
-      // Now Normalise
+      // Now Normalise to unit integral
+      // Otherwise the normalisation should be v.xyPlane(j)=u.xyPlane(j)/sqrt(sum(u.xyPlane(j)*u.xyPlane(j)));
       for (uInt j=0;j<k;j++) {
-        v.xyPlane(j)=u.xyPlane(j)/sqrt(sum(u.xyPlane(j)*u.xyPlane(j)));
+        v.xyPlane(j)=u.xyPlane(j)/sum(u.xyPlane(j));
       }
       itsOrthogonal=True;
     }

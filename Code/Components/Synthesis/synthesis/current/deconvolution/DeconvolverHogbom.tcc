@@ -56,10 +56,9 @@ namespace askap {
 
     template<class T, class FT>
     DeconvolverHogbom<T,FT>::DeconvolverHogbom(Array<T>& dirty, Array<T>& psf)
-      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsPeakPSFPos(IPosition(0)),
-        itsPeakPSFVal(T(0.0))
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
     {
-      this->model() = this->dirty().copy();
+      this->model().resize(this->dirty().shape());
       this->model().set(T(0.0));
     };
 
@@ -67,29 +66,6 @@ namespace askap {
     void DeconvolverHogbom<T,FT>::initialise()
     {
       DeconvolverBase<T, FT>::initialise();
-
-      // First deal with the mask
-      ASKAPASSERT(this->mask().shape()==this->weight().shape());
-
-      ASKAPLOG_INFO_STR(logger, "Calculating weighted mask");
-      itsWeightedMask=this->mask()*sqrt(this->weight()/max(this->weight()));
-
-      ASKAPASSERT(itsWeightedMask.shape()==this->dirty().shape());
-
-      // Now we need to find the peak and support of the PSF
-      casa::IPosition minPos;
-      casa::IPosition maxPos;
-      T minVal, maxVal;
-      casa::minMax(minVal, maxVal, minPos, maxPos, this->psf());
-      ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << maxVal << " at " << maxPos);
-      ASKAPLOG_INFO_STR(logger, "Minimum of PSF = " << minVal << " at " << minPos);
-      itsPeakPSFVal = maxVal;
-      itsPeakPSFPos = maxPos;
-
-      // Check the peak of the PSF - it should be at nx/2,ny/2
-      if(!(maxPos==this->psf().shape()/2)) {
-	throw(AskapError("Peak of PSF is not at center"));
-      };
     }
 
     template<class T, class FT>
@@ -119,18 +95,18 @@ namespace askap {
     template<class T, class FT>
     bool DeconvolverHogbom<T,FT>::oneIteration()
     {
-      bool isMasked(itsWeightedMask.shape()==this->dirty().shape());
+      bool isMasked(this->itsWeightedMask.shape().conform(this->residual().shape()));
 
-      // Find peak in dirty image
+      // Find peak in residual image
       casa::IPosition minPos;
       casa::IPosition maxPos;
       T minVal, maxVal;
       if (isMasked) {
-        casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->dirty(),
-                           itsWeightedMask);
+        casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->residual(),
+                           this->itsWeightedMask);
       }
       else {
-        casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty());
+        casa::minMax(minVal, maxVal, minPos, maxPos, this->residual());
       }
       //
       ASKAPLOG_INFO_STR(logger, "Maximum = " << maxVal << " at location " << maxPos);
@@ -155,11 +131,11 @@ namespace askap {
         return True;
       }
 
-      casa::IPosition dirtyShape(this->dirty().shape());
+      casa::IPosition residualShape(this->residual().shape());
       casa::IPosition psfShape(this->psf().shape());
-      casa::uInt ndim(this->dirty().shape().size());
+      casa::uInt ndim(this->residual().shape().size());
 
-      casa::IPosition dirtyStart(ndim,0), dirtyEnd(ndim,0), dirtyStride(ndim,1);
+      casa::IPosition residualStart(ndim,0), residualEnd(ndim,0), residualStride(ndim,1);
       casa::IPosition psfStart(ndim,0), psfEnd(ndim,0), psfStride(ndim,1);
 
       Int psfWidth=this->psf().shape()(0);
@@ -175,36 +151,36 @@ namespace askap {
         // quite a while to figure this out (slow brain day) so it may be
         // that there are some edge cases for which it fails.
         // Note that the psfWidth can be less than the maximum, and that the
-        // dirty image and psf can be different sizes
+        // residual image and psf can be different sizes
         // Next two lines are ALWAYS correct
-        dirtyStart(dim)=max(0, Int(absPeakPos(dim)-psfWidth));
-        dirtyEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(dirtyShape(dim)-1));
+        residualStart(dim)=max(0, Int(absPeakPos(dim)-psfWidth));
+        residualEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(residualShape(dim)-1));
         // Now we have to deal with the PSF. Here we want to use enough of the
-        // PSF to clean the dirty image.
-        psfStart(dim)=max(0, Int(itsPeakPSFPos(dim)-(absPeakPos(dim)-dirtyStart(dim))));
-        psfEnd(dim)=min(Int(itsPeakPSFPos(dim)-(absPeakPos(dim)-dirtyEnd(dim))),
+        // PSF to clean the residual image.
+        psfStart(dim)=max(0, Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualStart(dim))));
+        psfEnd(dim)=min(Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualEnd(dim))),
                         Int(psfShape(dim)-1));
       }
       
-      casa::Slicer dirtySlicer(dirtyStart, dirtyEnd, dirtyStride, Slicer::endIsLast);
+      casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
       casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
-      if(!(dirtySlicer.length()==psfSlicer.length())||!(dirtySlicer.stride()==psfSlicer.stride())) {
-	ASKAPLOG_INFO_STR(logger, "Peak of PSF  : " << itsPeakPSFPos );
-	ASKAPLOG_INFO_STR(logger, "Peak of dirty: " << absPeakPos );
+      if(!(residualSlicer.length()==psfSlicer.length())||!(residualSlicer.stride()==psfSlicer.stride())) {
+	ASKAPLOG_INFO_STR(logger, "Peak of PSF  : " << this->itsPeakPSFPos );
+	ASKAPLOG_INFO_STR(logger, "Peak of residual: " << absPeakPos );
 	ASKAPLOG_INFO_STR(logger, "PSF width    : " << psfWidth );
-	ASKAPLOG_INFO_STR(logger, "Dirty start  : " << dirtyStart << " end: " << dirtyEnd );
+	ASKAPLOG_INFO_STR(logger, "Residual start  : " << residualStart << " end: " << residualEnd );
 	ASKAPLOG_INFO_STR(logger, "PSF   start  : " << psfStart << " end: " << psfEnd );
-	ASKAPLOG_INFO_STR(logger, "Dirty slicer : " << dirtySlicer );
+	ASKAPLOG_INFO_STR(logger, "Residual slicer : " << residualSlicer );
 	ASKAPLOG_INFO_STR(logger, "PSF slicer   : " << psfSlicer );
 
-        throw AskapError("Mismatch in slicers for dirty and psf images");
+        throw AskapError("Mismatch in slicers for residual and psf images");
       }
       
       // Add to model
       this->model()(absPeakPos) = this->model()(absPeakPos) + this->control()->gain()*absPeakVal;      
       
-      // Subtract entire PSF from dirty image
-      this->dirty()(dirtySlicer) = this->dirty()(dirtySlicer)
+      // Subtract entire PSF from residual image
+      this->residual()(residualSlicer) = this->residual()(residualSlicer)
         - this->control()->gain()*absPeakVal*this->psf()(psfSlicer);
       
       return True;

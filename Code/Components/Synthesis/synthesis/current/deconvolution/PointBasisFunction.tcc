@@ -43,7 +43,7 @@ namespace askap {
     
     template<class T>
     PointBasisFunction<T>::PointBasisFunction(const IPosition shape) :
-      BasisFunction<T>::BasisFunction(shape)
+      BasisFunction<T>::BasisFunction(shape, true)
      {
        BasisFunction<T>::itsOrthogonal=True;
        IPosition centre(3, shape[0]/2, shape[1]/2, 0);

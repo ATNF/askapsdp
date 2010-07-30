@@ -46,8 +46,7 @@ int main(int argc, char *argv[])
     runner.addTest( askap::synthesis::DeconvolverBaseTest::suite());
     runner.addTest( askap::synthesis::DeconvolverFistaTest::suite());
     runner.addTest( askap::synthesis::DeconvolverHogbomTest::suite());
-    // Not yet working....
-    //    runner.addTest( askap::synthesis::DeconvolverBasisFunctionTest::suite());
+    runner.addTest( askap::synthesis::DeconvolverBasisFunctionTest::suite());
     runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
     runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
     runner.addTest( askap::synthesis::DeconvolverStateTest::suite());

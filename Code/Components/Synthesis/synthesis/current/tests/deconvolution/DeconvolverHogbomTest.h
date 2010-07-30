@@ -44,7 +44,6 @@ class DeconvolverHogbomTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(DeconvolverHogbomTest);
   CPPUNIT_TEST(testCreate);
-  CPPUNIT_TEST(testOneIteration);
   CPPUNIT_TEST(testDeconvolve);
   CPPUNIT_TEST(testDeconvolveCenter);
   CPPUNIT_TEST(testDeconvolveCorner);
@@ -96,16 +95,6 @@ public:
   void testWrongShape() {
     Array<Float> newDirty(IPosition(2,200,200));
     itsDB->updateDirty(newDirty);
-  }
-  void testOneIteration() {
-    itsDB->state()->setCurrentIter(0);
-    itsDB->control()->setTargetIter(10);
-    itsDB->control()->setGain(1.0);
-    itsDB->control()->setTargetObjectiveFunction(0.001);
-    itsDB->dirty().set(1.0);
-    itsDB->initialise();
-    CPPUNIT_ASSERT(itsDB->oneIteration());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::NOTTERMINATED);
   }
   void testDeconvolveZero() {
     itsDB->state()->setCurrentIter(0);

@@ -59,7 +59,7 @@ namespace askap {
       /// @brief Construct from a specified shape
       /// @details The scale parameter holds the set of scale sizes to be
       /// used in the basis function
-      MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales);
+      MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales, const Bool orthogonal);
       
     private:
       Vector<Float> itsScales;

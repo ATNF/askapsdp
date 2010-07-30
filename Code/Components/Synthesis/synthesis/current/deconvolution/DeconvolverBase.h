@@ -91,6 +91,16 @@ namespace askap {
       /// @param[out] PSF image (array)
       Array<T>& psf() { return itsPSF;};
 
+      /// @brief Get the current XFR
+      /// @detail Get the current XFR
+      /// @param[out] XFR image (array)
+      Array<FT>& xfr() { return itsXFR;};
+
+      /// @brief Get the current residual
+      /// @detail Get the current residual
+      /// @param[out] residual image (array)
+      Array<T>& residual() { return itsResidual;};
+
       /// @brief Update only the dirty image
       /// @detail Update an existing deconvolver for a changed dirty image
       /// @param[in] dirty Dirty image (array)
@@ -129,10 +139,6 @@ namespace askap {
       // @detail This is the main deconvolution method.
       virtual bool deconvolve();
 
-      // @brief Perform the deconvolution
-      // @detail This is the main deconvolution method.
-      virtual bool oneIteration();
-
       /// @brief Initialize the deconvolution
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
@@ -142,13 +148,14 @@ namespace askap {
       /// of iteration
       virtual void finalise();
 
-    protected:
+      protected:
+
       // Validate the various shapes to ensure consistency
       void validateShapes();
 
-    private:
-
       Array<T> itsDirty;
+
+      Array<T> itsResidual;
 
       Array<T> itsPSF;
 
@@ -168,6 +175,14 @@ namespace askap {
 
       /// The monitor used for the deconvolver
       boost::shared_ptr<DeconvolverMonitor<T> > itsDM;
+
+      // Peak and location of peak of PSF
+      casa::IPosition itsPeakPSFPos;
+      T itsPeakPSFVal;
+
+      // We need this for the inner loop
+      // Mask weighted by weight image
+      Array<T> itsWeightedMask;
 
     };
 

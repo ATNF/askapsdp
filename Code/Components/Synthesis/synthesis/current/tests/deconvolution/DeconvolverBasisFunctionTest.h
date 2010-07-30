@@ -46,9 +46,6 @@ class DeconvolverBasisFunctionTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE(DeconvolverBasisFunctionTest);
   CPPUNIT_TEST(testCreate);
   CPPUNIT_TEST(testDeconvolveCenter);
-  CPPUNIT_TEST(testDeconvolveCorner);
-  CPPUNIT_TEST(testDeconvolveOrthogonal);
-  CPPUNIT_TEST_EXCEPTION(testDeconvolveNonOrthogonal, AskapError);
   CPPUNIT_TEST_EXCEPTION(testWrongShape, AskapError);
   CPPUNIT_TEST_EXCEPTION(testDeconvolveOffsetPSF, AskapError);
   CPPUNIT_TEST_SUITE_END();
@@ -61,12 +58,13 @@ public:
     itsPsf.reset(new Array<Float>(dimensions));
     itsPsf->set(0.0);
     (*itsPsf)(IPosition(2,50,50))=1.0;
-    itsDB = DeconvolverBasisFunction<Float,Complex>::ShPtr(new DeconvolverBasisFunction<Float, Complex>(*itsDirty, *itsPsf));
+    itsDB = DeconvolverBasisFunction<Float,Complex>::ShPtr(new DeconvolverBasisFunction<Float, Complex>(*itsDirty, *itsPsf,
+                                                                                                        true));
     Vector<Float> scales(3);
     scales[0]=0.0;
     scales[1]=3.0;
     scales[2]=6.0;
-    itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(3,100,100,3), scales));
+    itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(3,100,100,3), scales, true));
     itsDB->setBasisFunction(itsBasisFunction);
     CPPUNIT_ASSERT(itsDB);
     CPPUNIT_ASSERT(itsDB->control());
@@ -105,28 +103,6 @@ public:
     Array<Float> newDirty(IPosition(2,200,200));
     itsDB->updateDirty(newDirty);
   }
-  void testDeconvolveOrthogonal() {
-    itsDB->state()->setCurrentIter(0);
-    itsDB->control()->setTargetIter(10);
-    itsDB->control()->setGain(1.0);
-    itsDB->control()->setTargetObjectiveFunction(0.001); 
-    itsDB->dirty().set(0.0);
-    itsDB->dirty()(IPosition(2,30,20))=1.0;
-    itsDB->basisFunction()->orthogonalise();
-    CPPUNIT_ASSERT(itsDB->deconvolve());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
-  }
-  void testDeconvolveNonOrthogonal() {
-    itsDB->state()->setCurrentIter(0);
-    itsDB->control()->setTargetIter(10);
-    itsDB->control()->setGain(1.0);
-    itsDB->control()->setTargetObjectiveFunction(0.001); 
-    itsDB->dirty().set(0.0);
-    itsDB->dirty()(IPosition(2,30,20))=1.0;
-    itsDB->basisFunction()->orthogonalise();
-    CPPUNIT_ASSERT(itsDB->deconvolve());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
-  }
   void testDeconvolveOffsetPSF() {
     itsDB->state()->setCurrentIter(0);
     itsDB->control()->setTargetIter(10);
@@ -147,19 +123,6 @@ public:
     itsDB->control()->setTargetObjectiveFunction(0.001); 
     itsDB->dirty().set(0.0);
     itsDB->dirty()(IPosition(2,50,50))=1.0;
-    itsDB->basisFunction()->orthogonalise();
-    CPPUNIT_ASSERT(itsDB->deconvolve());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
-  }
-   
-  void testDeconvolveCorner() {
-    itsDB->state()->setCurrentIter(0);
-    itsDB->control()->setTargetIter(10);
-    itsDB->control()->setGain(1.0);
-    itsDB->control()->setTargetObjectiveFunction(0.001); 
-    itsDB->dirty().set(0.0);
-    itsDB->dirty()(IPosition(2,0,0))=1.0;
-    itsDB->basisFunction()->orthogonalise();
     CPPUNIT_ASSERT(itsDB->deconvolve());
     CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
   }

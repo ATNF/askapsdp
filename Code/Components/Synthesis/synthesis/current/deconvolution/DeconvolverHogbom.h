@@ -71,23 +71,15 @@ namespace askap {
       /// @detail This is the main deconvolution method.
       virtual bool deconvolve();
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
-      virtual bool oneIteration();
-
       /// @brief Initialize the deconvolution
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
 
     private:
 
-      // Peak and location of peak of PSF
-      casa::IPosition itsPeakPSFPos;
-      T itsPeakPSFVal;
-
-      // We need this for the inner loop
-      // Mask weighted by weight image
-      Array<T> itsWeightedMask;
+      /// @brief Perform the deconvolution
+      /// @detail This is the main deconvolution method.
+      bool oneIteration();
 
     };
 

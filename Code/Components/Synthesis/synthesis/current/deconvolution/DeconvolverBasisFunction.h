@@ -67,7 +67,7 @@ namespace askap {
       /// the corresponding PSF
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
-      DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf);
+      DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf, Bool useCrossTerms=false);
 
       /// @brief Set the basis function to be used
       /// @details The algorithm can work with different basis functions
@@ -86,39 +86,32 @@ namespace askap {
       /// @detail This is the main deconvolution method.
       virtual bool deconvolve();
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
-      virtual bool oneIteration();
-
       /// @brief Initialize the deconvolution
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
 
+      /// @brief Initialize the deconvolution
+      /// @detail Initialise e.g. set weighted mask
+      virtual void finalise();
+
     private:
 
-      /// Dirty images convolved with basis functions
-      Array<T> itsDirtyBasisFunction;
+      /// @brief Perform the deconvolution
+      /// @detail This is the main deconvolution method.
+      bool oneIteration();
+
+      /// Residual images convolved with basis functions
+      Array<T> itsResidualBasisFunction;
 
       /// Point spread functions convolved with basis functions
       Array<T> itsPSFBasisFunction;
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method for orthogonal basis 
-      /// functions
-      bool oneIterationOrthogonal();
+      Bool itsUseCrossTerms;
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method for non-orthogonal basis 
-      /// functions
-      bool oneIterationNonOrthogonal();
+      Matrix<T> itsCouplingMatrix;
 
-      // Peak and location of peak of PSF
-      casa::IPosition itsPeakPSFPos;
-      T itsPeakPSFVal;
-
-      // We need this for the inner loop
-      // Mask weighted by weight image
-      Array<T> itsWeightedMask;
+      /// Point spread functions convolved with cross terms of basis functions
+      Array<T> itsPSFCrossTerms;
 
       boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
     };

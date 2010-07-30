@@ -33,10 +33,12 @@
 #include <askap/AskapLogging.h>
 
 #include <casa/aips.h>
+#include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Cube.h>
-
+#include <casa/Arrays/ArrayMath.h>
 
 #include <deconvolution/MultiScaleBasisFunction.h>
+#include <fft/FFTWrapper.h>
 
 using namespace casa;
 
@@ -45,13 +47,13 @@ namespace askap {
   namespace synthesis {
     
     template<class T>
-    MultiScaleBasisFunction<T>::MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales) :
-      BasisFunction<T>::BasisFunction(shape)
+    MultiScaleBasisFunction<T>::MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales,
+                                                        const Bool orthogonal) :
+      BasisFunction<T>::BasisFunction(shape, orthogonal)
     {
-       BasisFunction<T>::itsOrthogonal=False;
-
+      ASKAPLOG_INFO_STR(logger, "Calculating multiscale basis functions");
        // Make a cube and use referencing in Array
-       casa::Cube<T> scaleCube(BasisFunction<T>::itsBasisFunction);
+       casa::Cube<T> scaleCube(this->itsBasisFunction);
 
        for (uInt scale=0;scale<scales.nelements();scale++) {
          Float scaleSize=scales(scale);
@@ -92,6 +94,13 @@ namespace askap {
            }
            scaleCube.xyPlane(scale)=scaleCube.xyPlane(scale)/volume;
          }
+       }
+       if(this->itsOrthogonal) {
+         this->orthogonalise();
+         ASKAPLOG_INFO_STR(logger, "Basis functions have been orthogonalised");
+       }
+       else {
+         ASKAPLOG_INFO_STR(logger, "Basis functions are nonorthogonal");
        }
     }
   

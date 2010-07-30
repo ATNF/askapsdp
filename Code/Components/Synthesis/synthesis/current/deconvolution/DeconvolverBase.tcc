@@ -34,6 +34,8 @@
 #include <boost/shared_ptr.hpp>
 
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayMath.h>
+#include <fft/FFTWrapper.h>
 
 #include <string>
 
@@ -58,6 +60,12 @@ namespace askap {
       ASKAPASSERT(itsDC);
       itsDM = boost::shared_ptr<DeconvolverMonitor<T> >(new DeconvolverMonitor<T>());
       ASKAPASSERT(itsDM);
+
+      itsXFR.resize(this->psf().shape());
+      itsXFR.set(FT(0.0));
+      casa::setReal(itsXFR, this->psf());
+      scimath::fft2d(itsXFR, true);
+
     };
     
     template<class T, class FT>
@@ -77,12 +85,6 @@ namespace askap {
     bool DeconvolverBase<T,FT>::deconvolve()
     {
       throw(AskapError("Called base class deconvolver"));
-    }
-    
-    template<class T, class FT>
-    bool DeconvolverBase<T,FT>::oneIteration()
-    {
-      throw(AskapError("Called base class single iteration"));
     }
     
     template<class T, class FT>
@@ -170,12 +172,48 @@ namespace askap {
     {
       // Always check shapes on initialise
       this->validateShapes();
+
+      // Initialise the residual image
+      this->residual().resize(this->dirty().shape());
+      this->residual()=this->dirty().copy();
+
+      // First deal with the mask
+      ASKAPASSERT(this->mask().shape()==this->weight().shape());
+
+      ASKAPLOG_INFO_STR(logger, "Calculating weighted mask");
+      itsWeightedMask=this->mask()*sqrt(this->weight()/max(this->weight()));
+
+      ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
+
+      // Now we need to find the peak and support of the PSF
+      casa::IPosition minPos;
+      casa::IPosition maxPos;
+      T minVal, maxVal;
+      casa::minMax(minVal, maxVal, minPos, maxPos, this->psf());
+      ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << maxVal << " at " << maxPos);
+      ASKAPLOG_INFO_STR(logger, "Minimum of PSF = " << minVal << " at " << minPos);
+      itsPeakPSFVal = maxVal;
+      itsPeakPSFPos = maxPos;
+
+      // Check the peak of the PSF - it should be at nx/2,ny/2
+      if(!(maxPos==this->psf().shape()/2)) {
+	throw(AskapError("Peak of PSF is not at center"));
+      };
+
     }
 
     template<class T, class FT>
     void DeconvolverBase<T,FT>::finalise()
     {
-      // Nothing to do in base class
+      Array<FT> work;
+      // Find residuals for current model model
+      work.resize(this->model().shape());
+      work.set(FT(0.0));
+      casa::setReal(work, this->model());
+      scimath::fft2d(work, true);
+      work=this->xfr()*work;
+      scimath::fft2d(work, false);
+      this->residual()=this->dirty()-real(work);
     }
 
   } // namespace synthesis

@@ -55,22 +55,26 @@ namespace askap {
       String imageFile=parset.getString(name, name);
       {
         ASKAPLOG_INFO_STR(logger, "Writing array " << name << " into image " << imageFile);
-        ASKAPLOG_INFO_STR(logger, "Maximum " << max(imageArray));
-        ASKAPLOG_INFO_STR(logger, "Minimum " << min(imageArray));
-        ASKAPLOG_INFO_STR(logger, "Sum     " << sum(imageArray));
-
+        casa::IPosition minPos;
+        casa::IPosition maxPos;
+        Float minVal, maxVal;
+        casa::minMax(minVal, maxVal, minPos, maxPos, imageArray);
+        ASKAPLOG_INFO_STR(logger, "Maximum =  " << maxVal << " at location " << maxPos);
+        ASKAPLOG_INFO_STR(logger, "Minimum = " << minVal << " at location " << minPos);
+        ASKAPLOG_INFO_STR(logger, "Sum     = " << sum(imageArray));
+      }
+      //
+      {
         {
-          {
-            casa::Directory tFile(templateFile);
-            tFile.copy(imageFile);
-          }
-          casa::PagedImage<Float> im(imageFile);
-          ASKAPLOG_INFO_STR(logger, "Array shape " << imageArray.shape());
-          ASKAPLOG_INFO_STR(logger, "Image shape " << im.shape());
-
-          im.put(imageArray);
-          im.flush();
+          casa::Directory tFile(templateFile);
+          tFile.copy(imageFile);
         }
+        casa::PagedImage<Float> im(imageFile);
+        ASKAPLOG_INFO_STR(logger, "Array shape " << imageArray.shape());
+        ASKAPLOG_INFO_STR(logger, "Image shape " << im.shape());
+        
+        im.put(imageArray);
+        im.flush();
       }
     }
   }

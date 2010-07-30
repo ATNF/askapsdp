@@ -56,7 +56,7 @@ namespace askap {
       
       /// @brief Construct from a specified shape
       /// param[in] shape Shape of desired basis function
-      BasisFunction(const IPosition shape);
+      BasisFunction(const IPosition shape, const Bool orthogonal);
       
       virtual ~BasisFunction() {};
 
@@ -72,24 +72,16 @@ namespace askap {
       /// @brief Is the basis function orthogonal?
       virtual Bool isOrthogonal() const {return itsOrthogonal;};
 
-      /// @brief Return the cross terms in the basis function
-      /// @details If the basis functions are not orthogonal then we
-      /// may need to track the cross terms. These are returned
-      /// in an array of shape (nx, ny, nterms, nterms)
-      virtual Array<T>& crossTerms() {return itsCrossTerms;};
+    protected:
 
       /// @brief Orthogonalise the basis functions using GramSchmidt.
       /// @details The basis functions are orthogonalised using the
       /// Gram-Schmidt algorithm.
       void orthogonalise();
 
-    protected:
-
       IPosition itsShape;
-      IPosition itsCrossTermsShape;
       Bool itsOrthogonal;
       Array<T> itsBasisFunction;
-      Array<T> itsCrossTerms;
     };
     
   } // namespace synthesis

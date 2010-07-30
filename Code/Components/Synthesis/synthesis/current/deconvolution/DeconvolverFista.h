@@ -131,10 +131,6 @@ namespace askap {
       /// @detail This is the main deconvolution method.
       virtual bool deconvolve();
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
-      virtual bool oneIteration();
-
       /// @brief Initialize the deconvolution
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
