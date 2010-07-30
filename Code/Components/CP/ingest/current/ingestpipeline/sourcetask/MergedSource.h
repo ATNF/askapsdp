@@ -52,7 +52,8 @@ class MergedSource {
     private:
 
         VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
-        void addVis(VisChunk::ShPtr chunk, const VisDatagram& vis);
+        void addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
+                const casa::uInt nAntenna, const casa::uInt nBeams);
         void doFlagging(VisChunk::ShPtr chunk, const TosMetadata& metadata);
         void doFlaggingSample(VisChunk::ShPtr chunk,
                               const TosMetadata& metadata,

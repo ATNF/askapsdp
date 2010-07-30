@@ -110,7 +110,7 @@ VisChunk::ShPtr MergedSource::next(void)
         }
 
         datagramCount++;
-        addVis(chunk, *itsVis);
+        addVis(chunk, *itsVis, nAntenna, nBeams);
         itsVis = itsVisSrc->next(timeout);
         if (datagramCount == datagramsExpected) {
             // This integration is finished
@@ -194,26 +194,38 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     return chunk;
 }
 
-void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis)
+void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
+        const casa::uInt nAntenna, const casa::uInt nBeams)
 {
-    // 1) Find the row for the given beam and baseline
+    // 1) Check the indexes in the VisDatagram are valid
+    ASKAPCHECK(vis.antenna1 < nAntenna, "Antenna 1 index is invalid");
+    ASKAPCHECK(vis.antenna2 < nAntenna, "Antenna 2 index is invalid");
+    ASKAPCHECK(vis.beam1 < nBeams, "Beam 1 index is invalid");
+    ASKAPCHECK(vis.beam2 < nBeams, "Beam 2 index is invalid");
+
+    // 2) Find the row for the given beam and baseline
     // TODO: This is slow, need to develop an indexing method
     casa::uInt row = 0;
-    while (row < chunk->nRow()) {
-        ASKAPCHECK(vis.antenna1 < 36, "Antenna 1 index is invalid");
-        ASKAPCHECK(vis.antenna2 < 36, "Antenna 2 index is invalid");
-        ASKAPCHECK(vis.beam1 < 36, "Beam 1 index is invalid");
-        ASKAPCHECK(vis.beam2 < 36, "Beam 2 index is invalid");
-        if ((chunk->antenna1()(row) == vis.antenna1) &&
-            (chunk->antenna2()(row) == vis.antenna2) &&
-            (chunk->beam1()(row) == vis.beam1) &&
-            (chunk->beam2()(row) == vis.beam2)) {
-                break;
+    casa::uInt idx = 0;
+    for (casa::uInt beam = 0; beam < nBeams; ++beam) {
+        for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
+            for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
+                if (ant1 == vis.antenna1 &&
+                        ant2 == vis.antenna2 &&
+                        beam == vis.beam1) {
+                    row = idx;
+                }
+                idx++;
             }
-        ++row;
+        }
     }
- 
-    // 2) Determine the channel offset and add the visibilities
+    const std::string errorMsg = "Indexing failed to find row";
+    ASKAPCHECK(chunk->antenna1()(row) == vis.antenna1, errorMsg);
+    ASKAPCHECK(chunk->antenna2()(row) == vis.antenna2, errorMsg);
+    ASKAPCHECK(chunk->beam1()(row) == vis.beam1, errorMsg);
+    ASKAPCHECK(chunk->beam2()(row) == vis.beam2, errorMsg);
+
+    // 3) Determine the channel offset and add the visibilities
     ASKAPCHECK(vis.coarseChannel < 304, "Coarse channel index is invalid");
     const casa::uInt chanOffset = (vis.coarseChannel) * N_FINE_PER_COARSE;
     for (casa::uInt chan = 0; chan < N_FINE_PER_COARSE; ++chan) {
