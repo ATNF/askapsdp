@@ -11,4 +11,9 @@
 
     <!-- import common ASKAP definitions -->
     <import file="${env.ASKAP_ROOT}/share/ant_tools/askapbuild.xml"/>
+
+    <target name="doc">
+        <echo message="warn: No docs to build."/>
+    </target>
+
 </project>
