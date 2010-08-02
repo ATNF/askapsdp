@@ -275,17 +275,20 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
                 for (casa::uInt ix=0; ix<nx; ++ix) {
                     for (casa::uInt iy=0; iy<ny; ++iy) {
                         pattern(ix, iy)=pattern(ix,iy)*conj(pattern(ix,iy));
-                        if(casa::abs(pattern(ix,iy))>peak) peak=casa::abs(pattern(ix,iy));
+                        if (casa::abs(pattern(ix,iy))>peak) {
+                            peak=casa::abs(pattern(ix,iy));
+                        }
                     }
                 }
                 if(peak>0.0) {
                     pattern.pattern()*=casa::Complex(1.0/peak);
                 }
                 // The maximum will be 1.0
-                //	    ASKAPLOG_INFO_STR(logger, "Max of FT of convolution function = " << casa::max(pattern.pattern()));
+                ASKAPLOG_DEBUG_STR(logger, "Max of FT of convolution function = " << casa::max(pattern.pattern()));
                 scimath::fft2d(pattern.pattern(), true);	
                 // Now correct for normalization of FFT
                 pattern.pattern()*=casa::Complex(1.0/(double(nx)*double(ny)));
+                ASKAPLOG_DEBUG_STR(logger, "Sum of convolution function before support extraction and decimation = " << casa::sum(pattern.pattern()));
 
                 if (itsSupport==0) {
                     // we probably need a proper support search here
@@ -337,8 +340,8 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
                             } // for ix
                         } // for iy
                         //
-                        //ASKAPLOG_INFO_STR(logger, "convolution function for channel "<<chan<<
-                        //   " plane="<<plane<<" has an integral of "<<sum(itsConvFunc[plane]));						
+                        ASKAPLOG_INFO_STR(logger, "convolution function for channel "<<chan<<
+                           " plane="<<plane<<" has an integral of "<<sum(itsConvFunc[plane]));						
                         //
                     } // for fracv
                 } // for fracu								
@@ -422,12 +425,11 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
             //	  	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
             scimath::fft2d(thisPlane, false);
             thisPlane*=casa::Complex(nx*ny);
-            float peak=real(casa::max(casa::abs(thisPlane)));
-            //	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
-            //			    << "] peak = "<< peak);
+            const float peak=real(casa::max(casa::abs(thisPlane)));
+            ASKAPLOG_DEBUG_STR(logger, "Transform of convolution function["<< iz << "] peak = "<< peak);
 
             if(peak>0.0) {
-                thisPlane*=casa::Complex(1.0/peak);
+                //thisPlane*=casa::Complex(1.0/peak);
             }
 
             // Now we need to cut out only the part inside the field of view

@@ -108,6 +108,8 @@ namespace askap
         uint nPol(1);
         itsVisibility.resize(nRows, nChan, nPol);
         itsVisibility.set(casa::Complex(0.0, 0.0));
+        itsNoise.resize(nRows, nChan, nPol);
+        itsNoise.set(casa::Complex(1.0, 0.0));
         itsFlag.resize(nRows, nChan, nPol);
         itsFlag.set(casa::False);
         itsTime=0;
