@@ -59,6 +59,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/ImageParamsHelper.h>
 #include <fitting/Params.h>
+#include <utils/MultiDimArrayPlaneIter.h>
 
 #include <measurementequation/ImageSolverFactory.h>
 #include <gridding/VisGridderFactory.h>
@@ -86,7 +87,8 @@ namespace askap
     ImagerParallel::ImagerParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
       MEParallel(comms), itsParset(parset),
-      itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6)
+      itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6), 
+      itsExportSensitivityImage(false), itsExpSensitivityCutoff(0.)
     {
       if (itsComms.isMaster())
       {
@@ -99,6 +101,15 @@ namespace askap
         
         itsUseMemoryBuffers = itsParset.getBool("memorybuffers", false);
         
+        itsExportSensitivityImage = itsParset.getBool("sensitivityimage", true);
+        
+        itsExpSensitivityCutoff = itsParset.getDouble("sensitivityimage.cutoff", 0.01);
+        
+        if (itsExportSensitivityImage) {
+            ASKAPLOG_INFO_STR(logger, 
+               "Theoretical sensitivity images will be generated in addition to weights images, cutoff="<<
+                itsExpSensitivityCutoff);
+        }
         
         ASKAPCHECK(itsModel, "itsModel is supposed to be initialized at this stage");
         
@@ -373,6 +384,46 @@ namespace askap
       }
       return peak;
     }
+    
+    /// @brief make sensitivity image
+    /// @details This is a helper method intended to be called from writeModel. It
+    /// converts the given weights image into a sensitivity image and exports it.
+    /// This method is intended to be called if itsExportSensitivityImage is true.
+    /// @param[in] wtImage weight image parameter name
+    void ImagerParallel::makeSensitivityImage(const std::string &wtImage) const
+    {
+      ASKAPLOG_INFO_STR(logger, "Making sensitivity image from weights image "<<wtImage);
+      scimath::Params tempPar;
+      ASKAPDEBUGASSERT(itsModel);
+      ASKAPDEBUGASSERT(itsModel->has(wtImage));
+      ASKAPASSERT(wtImage.find("weights") == 0);
+      ASKAPCHECK(wtImage.size()>7, "Weights image parameter name should be longer, you have "<<wtImage);
+      const std::string outParName = "sensitivity" + wtImage.substr(7);
+      scimath::Axes axes = itsModel->axes(wtImage);      
+      //
+      casa::Array<double> wtArr = itsModel->value(wtImage);
+      const double cutoff = casa::max(wtArr) * itsExpSensitivityCutoff;
+      casa::Array<double> sensitivityArr(wtArr.shape());
+      
+      for (scimath::MultiDimArrayPlaneIter iter(wtArr.shape()); iter.hasMore(); iter.next()) {
+           const casa::Vector<double> wtPlane = iter.getPlaneVector(wtArr);
+           casa::Vector<double> sensitivityPlane = iter.getPlaneVector(sensitivityArr);
+           for (casa::uInt elem = 0; elem < wtPlane.nelements(); ++elem) {
+                const double wt = wtPlane[elem];
+                if (wt > cutoff) {
+                    // at this stage - just reciprocal. Still need to work on the normalisation
+                    sensitivityPlane[elem] = 1./wt;
+                } else {
+                    sensitivityPlane[elem] = 0.;
+                }
+           }
+      }
+      
+      tempPar.add(outParName,sensitivityArr,axes);
+      ASKAPLOG_INFO_STR(logger, "Saving " << outParName);
+      SynthesisParamsHelper::saveImageParameter(tempPar, outParName, outParName);      
+    }
+    
 
     /// Write the results out
     /// @param[in] postfix this string is added to the end of each name
@@ -390,6 +441,9 @@ namespace askap
                 (it->find("residual")==0)) {
                 ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
                 SynthesisParamsHelper::saveImageParameter(*itsModel, *it, *it+postfix);
+                if (itsExportSensitivityImage && (it->find("weights") == 0) && (postfix == "")) {
+                    makeSensitivityImage(*it); 
+                }
             }
         }
 

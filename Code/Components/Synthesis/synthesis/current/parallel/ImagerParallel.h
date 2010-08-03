@@ -124,6 +124,13 @@ namespace askap
       /// (used to separate images at different iterations)
       virtual void writeModel(const std::string &postfix = std::string());
 
+      /// @brief make sensitivity image
+      /// @details This is a helper method intended to be called from writeModel. It
+      /// converts the given weights image into a sensitivity image and exports it.
+      /// This method is intended to be called if itsExportSensitivityImage is true.
+      /// @param[in] wtImage weight image parameter name
+      void makeSensitivityImage(const std::string &wtImage) const;
+
       /// @brief Helper method to zero all model images
       /// @details We need this for dirty solver only, as otherwise restored image 
       /// (which is crucial for faceting) will be wrong.
@@ -185,6 +192,16 @@ namespace askap
       /// required. We could have created a brand new object each time.
       boost::shared_ptr<IMeasurementEquation> itsVoidME;
       
+      /// @brief export sensitivity image?
+      /// @details If true, the weight image is converted to sensitivity image and 
+      /// exported in addition to the original weight image.
+      bool itsExportSensitivityImage;
+      
+      /// @brief fraction of peak sensitivity to crop on
+      /// @details We normally don't want to divide by small numbers when calculating
+      /// sensitivity images. This field gives the fraction of the maximum weight
+      /// below which the sensitivity image will be set to 0.
+      double itsExpSensitivityCutoff;
     };
 
   }
