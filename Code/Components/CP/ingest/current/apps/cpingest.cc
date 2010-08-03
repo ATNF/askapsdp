@@ -45,6 +45,7 @@
 
 // Local package includes
 #include "ingestpipeline/IngestPipeline.h"
+#include "ingestcontroller/IngestController.h"
 
 // Using
 using namespace askap;
@@ -68,6 +69,15 @@ static std::string getNodeName(void)
     return nodename;
 }
 
+void usage(const std::string argv0)
+{
+        std::cerr << "Usage: " << argv0 << " [options]" << std::endl;
+        std::cerr << "Options:" << std::endl;
+        std::cerr << "    -inputs <parset file> \t File containing configuration parameters (Standalone mode)" << std::endl;
+        std::cerr << "    -brokerURI <brokerURI> \t The URI of the message queue broker (MQ controlled mode)" << std::endl;
+        std::cerr << "    -topicURI <topicname>  \t The topic/queue name this program will listen on for commands (MQ controlled mode)" << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     try {
@@ -87,9 +97,6 @@ int main(int argc, char *argv[])
         ASKAPLOG_REMOVECONTEXT("hostname");
         ASKAPLOG_PUTCONTEXT("hostname", hostname.c_str());
 
-        ASKAPLOG_INFO_STR(logger, "ASKAP Central Processor Ingest Pipeline - "
-                << ASKAP_PACKAGE_VERSION);
-
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
         casa::LogSink::globalSink(globalSink);
@@ -98,26 +105,45 @@ int main(int argc, char *argv[])
         cmdlineparser::Parser parser;
 
         // Command line parameter
-        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "cpingest.in");
+        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "");
+        cmdlineparser::FlaggedParameter<std::string> brokerPar("-brokerURI", "");
+        cmdlineparser::FlaggedParameter<std::string> topicPar("-topicURI", "");
 
         // Throw an exception if the parameter is not present
-        parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
+        parser.add(inputsPar, cmdlineparser::Parser::return_default);
+        parser.add(brokerPar, cmdlineparser::Parser::return_default);
+        parser.add(topicPar, cmdlineparser::Parser::return_default);
 
         parser.process(argc, const_cast<char**> (argv));
 
         const std::string parsetFile = inputsPar;
-
-        // Create a subset
-        LOFAR::ParameterSet parset(parsetFile);
-        const LOFAR::ParameterSet subset = parset.makeSubset("cp.ingest.");
+        const std::string brokerURI = brokerPar;
+        const std::string topicURI = topicPar;
 
         // Run the pipeline
-        IngestPipeline pipeline(subset);
-        pipeline.start();
+        ASKAPLOG_INFO_STR(logger, "ASKAP Central Processor Ingest Pipeline - "
+                << ASKAP_PACKAGE_VERSION);
+
+        if (brokerURI == "" && topicURI == "" && parsetFile != "") {
+            // Run in standalone mode
+
+            // Create a subset
+            LOFAR::ParameterSet parset(parsetFile);
+            const LOFAR::ParameterSet subset = parset.makeSubset("cp.ingest.");
+
+            IngestPipeline pipeline(subset);
+            pipeline.start();
+        } else if (brokerURI != "" && topicURI != "" && parsetFile == ""){
+            // Run in MQ controlled mode
+            IngestController controller(brokerURI, topicURI);
+            controller.run();
+        } else {
+            usage(argv[0]);
+            return 1;
+        }
 
     } catch (const cmdlineparser::XParser& e) {
-        ASKAPLOG_ERROR_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
-        std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;
+        usage(argv[0]);
         return 1;
     } catch (const askap::AskapError& e) {
         ASKAPLOG_ERROR_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
