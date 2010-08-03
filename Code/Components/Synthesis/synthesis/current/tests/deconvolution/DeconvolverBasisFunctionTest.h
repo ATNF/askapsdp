@@ -58,8 +58,7 @@ public:
     itsPsf.reset(new Array<Float>(dimensions));
     itsPsf->set(0.0);
     (*itsPsf)(IPosition(2,50,50))=1.0;
-    itsDB = DeconvolverBasisFunction<Float,Complex>::ShPtr(new DeconvolverBasisFunction<Float, Complex>(*itsDirty, *itsPsf,
-                                                                                                        true));
+    itsDB = DeconvolverBasisFunction<Float,Complex>::ShPtr(new DeconvolverBasisFunction<Float, Complex>(*itsDirty, *itsPsf));
     Vector<Float> scales(3);
     scales[0]=0.0;
     scales[1]=3.0;
@@ -124,7 +123,7 @@ public:
     itsDB->dirty().set(0.0);
     itsDB->dirty()(IPosition(2,50,50))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
+    CPPUNIT_ASSERT(itsDB->control()->terminationCause()!=DeconvolverControl<Float>::CONVERGED);
   }
    
 private:
