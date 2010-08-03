@@ -67,7 +67,7 @@ namespace askap {
       /// the corresponding PSF
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
-      DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf, Bool useCrossTerms=false);
+      DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf);
 
       /// @brief Set the basis function to be used
       /// @details The algorithm can work with different basis functions
@@ -94,6 +94,11 @@ namespace askap {
       /// @detail Initialise e.g. set weighted mask
       virtual void finalise();
 
+      /// @brief configure basic parameters of the solver
+      /// @details This method encapsulates extraction of basic solver parameters from the parset.
+      /// @param[in] parset parset
+      virtual void configure(const LOFAR::ParameterSet &parset); 
+      
     private:
 
       /// @brief Perform the deconvolution

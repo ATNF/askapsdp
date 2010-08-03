@@ -54,6 +54,9 @@ namespace askap {
     DeconvolverBase<T,FT>::DeconvolverBase(Array<T> dirty, Array<T> psf)
       : itsDirty(dirty), itsPSF(psf)
     {
+      ASKAPASSERT(itsDirty.shape().size());
+      ASKAPASSERT(itsPSF.shape().size());
+      ASKAPASSERT(itsPSF.shape().conform(itsDirty.shape()));
       itsDS = boost::shared_ptr<DeconvolverState<T> >(new DeconvolverState<T>());
       ASKAPASSERT(itsDS);
       itsDC = boost::shared_ptr<DeconvolverControl<T> >(new DeconvolverControl<T>());
@@ -69,8 +72,18 @@ namespace askap {
     };
     
     template<class T, class FT>
+    void DeconvolverBase<T,FT>::configure(const LOFAR::ParameterSet& parset)
+    {        
+    }
+
+    template<class T, class FT>
     void DeconvolverBase<T,FT>::setModel(const Array<T> model) {
       itsModel = model.copy();
+    }
+    
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::setBackground(const Array<T> background) {
+      itsBackground = background;
     }
     
     template<class T, class FT>
@@ -157,10 +170,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::validateShapes()
     {
-      // The mask and the weight images should be the same 
-      // shape as the dirty image
-      ASKAPASSERT(this->mask().shape()==this->dirty().shape());
-      ASKAPASSERT(this->weight().shape()==this->dirty().shape());
+      ASKAPASSERT(this->model().shape().size());
       // The model and dirty image shapes only need to agree on the
       // first two axes
       ASKAPASSERT(this->model().shape()[0]==this->dirty().shape()[0]);
@@ -178,17 +188,34 @@ namespace askap {
       this->residual()=this->dirty().copy();
 
       // First deal with the mask
-      ASKAPASSERT(this->mask().shape()==this->weight().shape());
-
-      ASKAPLOG_INFO_STR(logger, "Calculating weighted mask");
-      itsWeightedMask=this->mask()*sqrt(this->weight()/max(this->weight()));
-
-      ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
+      if(this->mask().shape().conform(this->dirty().shape())) { // mask exists
+	if(this->weight().shape().conform(this->dirty().shape())) {
+	  ASKAPLOG_INFO_STR(logger, "Calculating weighted mask image");
+	  itsWeightedMask=this->mask()*sqrt(this->weight()/max(this->weight()));
+	  ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
+	}
+	else { // only mask exists
+	  ASKAPLOG_INFO_STR(logger, "Setting mask"); 
+	  itsWeightedMask=this->mask();
+	  ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
+	}
+      } 
+      else { // no mask
+	if(this->weight().shape().conform(this->dirty().shape())) { // weights only
+	  ASKAPLOG_INFO_STR(logger, "Calculating normalised weights image");
+	  itsWeightedMask=sqrt(this->weight()/max(this->weight()));
+	  ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
+	}
+	else { // we got nuthin'
+	  ASKAPLOG_INFO_STR(logger, "No weights or mask image");
+	}
+      }
 
       // Now we need to find the peak and support of the PSF
       casa::IPosition minPos;
       casa::IPosition maxPos;
       T minVal, maxVal;
+      ASKAPLOG_INFO_STR(logger, "Validating PSF");
       casa::minMax(minVal, maxVal, minPos, maxPos, this->psf());
       ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << maxVal << " at " << maxPos);
       ASKAPLOG_INFO_STR(logger, "Minimum of PSF = " << minVal << " at " << minPos);

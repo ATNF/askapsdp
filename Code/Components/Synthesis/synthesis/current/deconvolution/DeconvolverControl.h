@@ -41,6 +41,8 @@
 
 #include <deconvolution/DeconvolverState.h>
 
+#include <Common/ParameterSet.h>
+
 using namespace casa;
 
 namespace askap {
@@ -69,6 +71,12 @@ namespace askap {
       
       virtual ~DeconvolverControl() {};
       
+      /// @brief configure basic parameters of the solver
+      /// @details This method encapsulates extraction of basic solver parameters
+      /// from the parset.
+      /// @param[in] parset parset
+      virtual void configure(const LOFAR::ParameterSet &parset); 
+
       /// Terminate?
       Bool terminate(const DeconvolverState<T>& ds);
       
@@ -133,6 +141,14 @@ namespace askap {
     	return itsTargetObjectiveFunction;
       }
 
+      void setFractionalThreshold(T fractionalThreshold) {
+    	itsFractionalThreshold=fractionalThreshold;
+      }
+      
+      T fractionalThreshold() {
+    	return itsFractionalThreshold;
+      }
+
       /// @brief Set the desired PSF width in pixels
       void setPSFWidth(const Int psfWidth) {itsPSFWidth=psfWidth;}
 
@@ -143,6 +159,7 @@ namespace askap {
       TerminationCause itsTerminationCause;
       Int itsTargetIter;
       T itsTargetObjectiveFunction;
+      T itsFractionalThreshold;
       Float itsGain;
       Float itsTolerance;
       Int itsPSFWidth;

@@ -66,49 +66,47 @@ namespace askap {
         deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
         
         // Now get the control parameters
-        deconvolver->control()->setGain(parset.getFloat("solver.Fista.gain", 0.1));
-        deconvolver->control()->setLambda(parset.getFloat("solver.Fista.lambda", 100.0));
-        deconvolver->control()->setTolerance(parset.getFloat("solver.Fista.tolerance", 1e-3));
-        deconvolver->control()->setTargetIter(parset.getInt32("solver.Fista.niter", 100));
-        deconvolver->control()->setTargetObjectiveFunction(parset.getFloat("solver.Fista.threshold", 0.0));
-        deconvolver->control()->setPSFWidth(parset.getInt("solver.Fista.psfwidth", 0));
+	LOFAR::ParameterSet subset(parset.makeSubset("solver.Fista"));
+        deconvolver->configure(parset);
+
+	// Now set up controller
+	boost::shared_ptr<DeconvolverControl<Float> > controller(new DeconvolverControl<Float>());
+        ASKAPASSERT(controller);
+	controller->configure(parset);
+	deconvolver->setControl(controller);
+
+	// Now set up monitor
+	boost::shared_ptr<DeconvolverMonitor<Float> > monitor(new DeconvolverMonitor<Float>());
+        ASKAPASSERT(monitor);
+	monitor->configure(parset);
+	deconvolver->setMonitor(monitor);
+
       }
       else if(parset.getString("solver", "Basisfunction")=="Basisfunction") {        
         ASKAPLOG_INFO_STR(logger, "Constructing Basis Function deconvolver");
         deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverBasisFunction<Float, Complex>(dirty, psf));
         ASKAPASSERT(deconvolver);
 
-        std::vector<float> defaultScales(3);
-        defaultScales[0]=0.0;
-        defaultScales[1]=10.0;
-        defaultScales[2]=30.0;
-        std::vector<float> scales=parset.getFloatVector("solver.Basisfunction.scales", defaultScales);
-
-        // Make the basis function
-        Bool orthogonal(parset.getBool("solver.Basisfunction.orthogonal", true));
-        IPosition bfShape(3, dirty.shape()(0), dirty.shape()(1), scales.size()); 
-        BasisFunction<Float>::ShPtr bf(new MultiScaleBasisFunction<Float>(bfShape, scales, orthogonal));
-
-        Bool useCrossTerms(parset.getBool("solver.Basisfunction.usecrossterms", true));
-        deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverBasisFunction<Float, Complex>(dirty, psf, useCrossTerms));
-        // Now set the basis function by a downcast. We only do this nasty stuff in
-        // the factories.
-        boost::shared_ptr<DeconvolverBasisFunction<Float, Complex> > ibf
-          = boost::dynamic_pointer_cast<DeconvolverBasisFunction<Float, Complex> >(deconvolver);
-        if(ibf) {
-          ibf->setBasisFunction(bf);
-        }
-
-        // Get the mask and weights images
-        deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("mask", parset));
-        deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
+	// Get the mask and weights images
+	deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("solver.Basisfunction.mask", parset));
+	deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("solver.Basisfunction.weight", parset));
         
-        // Now get the control parameters
-        deconvolver->control()->setGain(parset.getFloat("solver.Basisfunction.gain", 0.1));
-        deconvolver->control()->setTolerance(parset.getFloat("solver.Basisfunction.tolerance", 1e-3));
-        deconvolver->control()->setTargetIter(parset.getInt32("solver.Basisfunction.niter", 100));
-        deconvolver->control()->setTargetObjectiveFunction(parset.getFloat("solver.Basisfunction.threshold", 0.0));
-        deconvolver->control()->setPSFWidth(parset.getInt("solver.Basisfunction.psfwidth", 0));
+        // Now configure the deconvolver
+	LOFAR::ParameterSet subset(parset.makeSubset("solver.Basisfunction"));
+	deconvolver->configure(parset);
+
+	// Now set up controller
+	boost::shared_ptr<DeconvolverControl<Float> > controller(new DeconvolverControl<Float>());
+        ASKAPASSERT(controller);
+	controller->configure(parset);
+	deconvolver->setControl(controller);
+
+	// Now set up monitor
+	boost::shared_ptr<DeconvolverMonitor<Float> > monitor(new DeconvolverMonitor<Float>());
+        ASKAPASSERT(monitor);
+	monitor->configure(parset);
+	deconvolver->setMonitor(monitor);
+
       }
       else if(parset.getString("solver", "Clean")=="Clean") {
         ASKAPLOG_INFO_STR(logger, "Constructing Clean deconvolver");
@@ -123,12 +121,22 @@ namespace askap {
         deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("mask", parset));
         deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
         
-        // Now get the control parameters
-        deconvolver->control()->setGain(parset.getFloat("solver.Clean.gain", 0.1));
-        deconvolver->control()->setTolerance(parset.getFloat("solver.Clean.tolerance", 1e-3));
-        deconvolver->control()->setTargetIter(parset.getInt32("solver.Clean.niter", 100));
-        deconvolver->control()->setTargetObjectiveFunction(parset.getFloat("solver.Clean.threshold", 0.1));
-        deconvolver->control()->setPSFWidth(parset.getInt("solver.Clean.psfwidth", 0));
+        // Now configure the deconvolver
+	LOFAR::ParameterSet subset(parset.makeSubset("solver.Clean"));
+	deconvolver->configure(parset);
+
+	// Now set up controller
+	boost::shared_ptr<DeconvolverControl<Float> > controller(new DeconvolverControl<Float>());
+        ASKAPASSERT(controller);
+	controller->configure(parset);
+	deconvolver->setControl(controller);
+
+	// Now set up monitor
+	boost::shared_ptr<DeconvolverMonitor<Float> > monitor(new DeconvolverMonitor<Float>());
+        ASKAPASSERT(monitor);
+	monitor->configure(parset);
+	deconvolver->setMonitor(monitor);
+
       }
       ASKAPASSERT(deconvolver);
       return deconvolver;

@@ -91,6 +91,14 @@ namespace askap {
       return True;
     }
     
+    template<class T, class FT>
+    void DeconvolverHogbom<T,FT>::configure(const LOFAR::ParameterSet& parset)
+    {        
+      DeconvolverBase<T,FT>::configure(parset);
+      this->control()->setGain(parset.getFloat("gain", 0.1));
+      this->control()->setPSFWidth(parset.getInt("psfwidth", 0));
+    }
+
     // This contains the heart of the Hogbom Clean algorithm
     template<class T, class FT>
     bool DeconvolverHogbom<T,FT>::oneIteration()

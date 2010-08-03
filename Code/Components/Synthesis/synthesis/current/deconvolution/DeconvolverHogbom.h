@@ -75,6 +75,11 @@ namespace askap {
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
 
+      /// @brief configure basic parameters of the solver
+      /// @details This method encapsulates extraction of basic solver parameters from the parset.
+      /// @param[in] parset parset
+      virtual void configure(const LOFAR::ParameterSet &parset); 
+
     private:
 
       /// @brief Perform the deconvolution

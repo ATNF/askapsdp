@@ -47,7 +47,8 @@ namespace askap {
     template<class T>
     DeconvolverControl<T>::DeconvolverControl() :
       itsTerminationCause(NOTTERMINATED), itsTargetIter(0),
-      itsTargetObjectiveFunction(T(0)), itsGain(1.0), itsTolerance(1e-4),
+      itsTargetObjectiveFunction(T(0)), 
+      itsGain(1.0), itsTolerance(1e-4),
       itsPSFWidth(0), itsLambda(T(100.0))
     {};
     
@@ -58,6 +59,13 @@ namespace askap {
       if(abs(state.objectiveFunction())<itsTargetObjectiveFunction) {
         ASKAPLOG_INFO_STR(logger, "Objective function " << state.objectiveFunction()
                           << " less than target " << itsTargetObjectiveFunction);
+        itsTerminationCause = CONVERGED;
+        return True;
+      }
+      //
+      if(abs(state.objectiveFunction())<itsFractionalThreshold*state.initialObjectiveFunction()) {
+        ASKAPLOG_INFO_STR(logger, "Objective function " << state.objectiveFunction()
+                          << " less than fractional threshold ");
         itsTerminationCause = CONVERGED;
         return True;
       }
@@ -92,6 +100,17 @@ namespace askap {
       }
     }
     
+    template<class T>
+    void DeconvolverControl<T>::configure(const LOFAR::ParameterSet& parset)
+    {        
+      this->setGain(parset.getFloat("gain", 0.1));
+      this->setTolerance(parset.getFloat("tolerance", 1e-3));
+      this->setTargetIter(parset.getInt32("niter", 100));
+      this->setTargetObjectiveFunction(parset.getFloat("threshold", 0.0));
+      this->setFractionalThreshold(parset.getFloat("fractionalthreshold", 0.0));
+      this->setLambda(parset.getFloat("lambda", 0.0001));
+    }
+
   } // namespace synthesis
   
 } // namespace askap

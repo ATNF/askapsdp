@@ -87,10 +87,25 @@ public:
 
     void setObjectiveFunction(T objectiveFunction) {
     	itsObjectiveFunction = objectiveFunction;
+	if(itsInitialObjectiveFunction<=T(0.0)) {
+	  itsInitialObjectiveFunction = objectiveFunction;
+	}
     }
 
     T objectiveFunction() const {
     	return itsObjectiveFunction;
+    }
+
+  void setInitialObjectiveFunction(T objectiveFunction) {
+    	itsInitialObjectiveFunction = objectiveFunction;
+    }
+
+  void resetInitialObjectiveFunction() {
+    itsInitialObjectiveFunction = T(0.0);
+  }
+
+    T initialObjectiveFunction() const {
+    	return itsInitialObjectiveFunction;
     }
 
     void setCurrentIter(Int currentIter)
@@ -124,7 +139,7 @@ private:
     T itsPeakResidual;
     T itsTotalFlux;
     T itsObjectiveFunction;
-
+    T itsInitialObjectiveFunction;
 };
 
 } // namespace synthesis

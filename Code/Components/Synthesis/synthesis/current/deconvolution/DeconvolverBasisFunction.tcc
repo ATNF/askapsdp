@@ -40,6 +40,8 @@
 
 #include <deconvolution/DeconvolverBasisFunction.h>
 
+#include <deconvolution/MultiScaleBasisFunction.h>
+
 namespace askap {
 
   namespace synthesis {
@@ -52,9 +54,8 @@ namespace askap {
     /// @ingroup Deconvolver
 
     template<class T, class FT>
-    DeconvolverBasisFunction<T,FT>::DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf,
-                                                             Bool useCrossTerms)
-      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(useCrossTerms)
+    DeconvolverBasisFunction<T,FT>::DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf)
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(false)
     {
       this->model().resize(this->dirty().shape());
       this->model().set(T(0.0));
@@ -73,6 +74,31 @@ namespace askap {
     boost::shared_ptr<BasisFunction<T> > DeconvolverBasisFunction<T,FT>::basisFunction() {
       return itsBasisFunction;
     };
+
+    template<class T, class FT>
+    void DeconvolverBasisFunction<T,FT>::configure(const LOFAR::ParameterSet& parset)
+    {        
+      this->control()->setGain(parset.getFloat("solver.Basisfunction.gain", 0.1));
+      this->control()->setTolerance(parset.getFloat("solver.Basisfunction.tolerance", 1e-3));
+      this->control()->setTargetIter(parset.getInt32("solver.Basisfunction.niter", 100));
+      this->control()->setTargetObjectiveFunction(parset.getFloat("solver.Basisfunction.threshold", 0.0));
+      this->control()->setPSFWidth(parset.getInt("solver.Basisfunction.psfwidth", 0));
+
+      // Make the basis function
+      {
+	std::vector<float> defaultScales(3);
+	defaultScales[0]=0.0;
+	defaultScales[1]=10.0;
+	defaultScales[2]=30.0;
+	std::vector<float> scales=parset.getFloatVector("solver.Basisfunction.scales", defaultScales);
+      
+	Bool orthogonal(parset.getBool("solver.Basisfunction.orthogonal", true));
+	IPosition bfShape(3, this->itsDirty.shape()(0), this->itsDirty.shape()(1), scales.size()); 
+	BasisFunction<Float>::ShPtr bf(new MultiScaleBasisFunction<Float>(bfShape, scales, orthogonal));
+      }
+      
+      itsUseCrossTerms=parset.getBool("solver.Basisfunction.usecrossterms", true);
+    }
 
     template<class T, class FT>
     void DeconvolverBasisFunction<T,FT>::finalise()

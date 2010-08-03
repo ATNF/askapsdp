@@ -99,6 +99,8 @@
 
 #include <string>
 
+#include <deconvolution/DeconvolverBase.h>
+
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
 #include <deconvolution/DeconvolverMonitor.h>
@@ -134,6 +136,11 @@ namespace askap {
       /// @brief Initialize the deconvolution
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
+
+      /// @brief configure basic parameters of the solver
+      /// @details This method encapsulates extraction of basic solver parameters from the parset.
+      /// @param[in] parset parset
+      virtual void configure(const LOFAR::ParameterSet &parset); 
 
     private:
 

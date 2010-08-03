@@ -41,6 +41,8 @@
 
 #include <deconvolution/DeconvolverState.h>
 
+#include <Common/ParameterSet.h>
+
 namespace askap {
 
 namespace synthesis {
@@ -55,13 +57,21 @@ template<class T> class DeconvolverMonitor {
 public:
   typedef boost::shared_ptr<DeconvolverMonitor<T> > ShPtr;
   
+  DeconvolverMonitor();
+  
   virtual ~DeconvolverMonitor() {};
   
   /// Monitor the current state
   virtual void monitor(const DeconvolverState<T>& ds);
 
+  /// @brief configure basic parameters
+  /// @details This method encapsulates extraction of basic parameters from the parset.
+  /// @param[in] parset parset
+  virtual void configure(const LOFAR::ParameterSet &parset); 
+
 private:
 
+  Bool itsVerbose;
 };
 
 } // namespace synthesis

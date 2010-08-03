@@ -46,7 +46,10 @@ namespace synthesis {
     /// The current state
     template<class T>
     DeconvolverState<T>::DeconvolverState() : itsCurrentIter(0), itsStartIter(0),
-      itsEndIter(0), itsPeakResidual(T(0)), itsTotalFlux(T(0)), itsObjectiveFunction(T(0)) {};
+					      itsEndIter(0), itsPeakResidual(T(0)),
+					      itsTotalFlux(T(0)), itsObjectiveFunction(T(0)),
+					      itsInitialObjectiveFunction(T(0))
+    {};
 
     template<class T>
     void DeconvolverState<T>::reset() {
@@ -56,6 +59,7 @@ namespace synthesis {
       itsPeakResidual = T(0);
       itsTotalFlux = T(0);
       itsObjectiveFunction = T(0);
+      itsInitialObjectiveFunction = T(0);
     }
   
 } // namespace synthesis

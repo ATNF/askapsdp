@@ -43,6 +43,10 @@
 #include <deconvolution/DeconvolverControl.h>
 #include <deconvolution/DeconvolverMonitor.h>
 
+#include <Common/ParameterSet.h>
+
+#include <Common/ParameterSet.h>
+
 namespace askap {
 
   namespace synthesis {
@@ -80,6 +84,16 @@ namespace askap {
       /// @detail Get the current model
       /// @param[out] model Model image (array)
       Array<T>& model() { return itsModel;};
+
+      /// @brief Set the initial background
+      /// @detail Set the background from which iteration will start
+      /// @param[out] background Background image (array)
+      void setBackground(const Array<T> background);
+
+      /// @brief Get the current background
+      /// @detail Get the current background
+      /// @param[out] background Background image (array)
+      Array<T>& background() { return itsBackground;};
 
       /// @brief Get the current dirty
       /// @detail Get the current dirty
@@ -148,6 +162,11 @@ namespace askap {
       /// of iteration
       virtual void finalise();
 
+      /// @brief configure basic parameters of the solver
+      /// @details This method encapsulates extraction of basic solver parameters from the parset.
+      /// @param[in] parset parset
+      virtual void configure(const LOFAR::ParameterSet &parset); 
+      
       protected:
 
       // Validate the various shapes to ensure consistency
@@ -160,6 +179,8 @@ namespace askap {
       Array<T> itsPSF;
 
       Array<T> itsModel;
+
+      Array<T> itsBackground;
 
       Array<FT> itsXFR;
 

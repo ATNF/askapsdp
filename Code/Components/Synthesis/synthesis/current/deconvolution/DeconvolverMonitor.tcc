@@ -40,12 +40,22 @@ namespace askap {
 
 namespace synthesis {
 
+    template<class T>
+    DeconvolverMonitor<T>::DeconvolverMonitor() : itsVerbose(false)
+    {
+    }
     /// Monitor the current state
     template<class T>
     void DeconvolverMonitor<T>::monitor(const DeconvolverState<T>& ds) {
       ASKAPLOG_INFO_STR(logger, "Iteration " << ds.currentIter()
                         << ", Objective function " << ds.objectiveFunction()
                         << ", Total flux " << ds.totalFlux());
+    }
+
+    template<class T>
+    void DeconvolverMonitor<T>::configure(const LOFAR::ParameterSet& parset)
+    {        
+      itsVerbose=parset.getBool("verbose", false);
     }
 
 } // namespace synthesis
