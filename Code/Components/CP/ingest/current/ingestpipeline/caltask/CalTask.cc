@@ -132,7 +132,6 @@ void CalTask::process(VisChunk::ShPtr chunk)
 /// @param[in] pol Either 0 for XX or 1 for YY
 casa::Complex CalTask::getGain(casa::uInt ant, casa::uInt beam, casa::uInt pol) const
 {
-  ASKAPCHECK(beam == 0, "Only single beam case is supported at the moment. Beam="<<beam<<" has been encountered for Ant="<<ant);
   std::string name("gain.");
   if (pol == 0) {
       name += "g11.";
@@ -141,7 +140,7 @@ casa::Complex CalTask::getGain(casa::uInt ant, casa::uInt beam, casa::uInt pol) 
   } else {
      ASKAPTHROW(AskapError, "Polarisation index is supposed to be either 0 or 1, you have pol="<<pol);
   }
-  name += askap::utility::toString<casa::uInt>(ant);
+  name += askap::utility::toString<casa::uInt>(ant) + "." + askap::utility::toString<casa::uInt>(beam);
   return readComplex(name);
 }
 

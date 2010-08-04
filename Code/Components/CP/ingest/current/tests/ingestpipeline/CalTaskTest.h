@@ -53,10 +53,10 @@ class CalTaskTest : public CppUnit::TestFixture
     public:
     void setUp()
     {
-	itsParset.add("gain.g11.0", "[1.0]");
-	itsParset.add("gain.g11.1", "[0.9,0.1]");
-	itsParset.add("gain.g22.0", "[0.0,-0.5]");
-	itsParset.add("gain.g22.1", "[0.9,0.1]");
+	itsParset.add("gain.g11.0.0", "[1.0]");
+	itsParset.add("gain.g11.1.0", "[0.9,0.1]");
+	itsParset.add("gain.g22.0.0", "[0.0,-0.5]");
+	itsParset.add("gain.g22.1.0", "[0.9,0.1]");
     };
 
     void tearDown()
