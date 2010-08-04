@@ -49,7 +49,7 @@ ChannelAvgTask::ChannelAvgTask(const LOFAR::ParameterSet& parset) :
     itsParset(parset)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
-    itsAveraging = parset.getUint32("chanavg.averaging");
+    itsAveraging = parset.getUint32("averaging");
 }
 
 ChannelAvgTask::~ChannelAvgTask()

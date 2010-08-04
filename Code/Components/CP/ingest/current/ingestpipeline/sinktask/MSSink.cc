@@ -66,7 +66,7 @@ using namespace casa;
 //////////////////////////////////
 
 MSSink::MSSink(const LOFAR::ParameterSet& parset) :
-    itsParset(parset.makeSubset("ms_sink."))
+    itsParset(parset)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
 

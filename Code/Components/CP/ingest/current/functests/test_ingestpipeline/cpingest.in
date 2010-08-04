@@ -2,11 +2,23 @@
 # Central Processor Ingest Pipeline Configuration
 #
 
+# Top level config
 cp.ingest.integrations_expected                    = 12
 
 #
+# This defines a list of tasks to create. They will be added to the pipeline
+# in the same order as defined below. So the far left task is the first called
+# after the data is sources into the pipeline.
+#
+cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, MSSink]
+
+# CalTask is omitted for the moment since it does not handle multiple
+# beams yet.
+#cp.ingest.tasklist = [CalcUVWTask, CalTask, ChannelAvgTask, MSSink]
+
+#
 # Metdata Source
-# #
+# 
 cp.ingest.metadata_source.ice.locator_host          = localhost
 cp.ingest.metadata_source.ice.locator_port          = 4061
 cp.ingest.metadata_source.icestorm.topicmanager     = IceStorm/TopicManager
@@ -23,143 +35,147 @@ cp.ingest.vis_source.buffer_size                   = 1838592
 #
 # Calc UVW Task
 #
-cp.ingest.uvw.antennas.location     =   [+117.471deg, -25.692deg, 192m, WGS84]
-cp.ingest.uvw.antennas.names        =   [A0, A1, A2, A3, A4, A5]
-cp.ingest.uvw.antennas.diameter     =   12m
-cp.ingest.uvw.antennas.scale        =   1.0
-cp.ingest.uvw.antennas.mount        =   equatorial
-cp.ingest.uvw.antennas.A0           =  [-175.233429,  -1673.460938,  0.0000]
-cp.ingest.uvw.antennas.A1           =  [261.119019,   -796.922119,   0.0000]
-cp.ingest.uvw.antennas.A2           =  [-29.200520,   -744.432068,   0.0000]
-cp.ingest.uvw.antennas.A3           =  [-289.355286,  -586.936035,   0.0000]
-cp.ingest.uvw.antennas.A4           =  [-157.031570,  -815.570068,   0.0000]
-cp.ingest.uvw.antennas.A5           =  [-521.311646,  -754.674927,   0.0000]
-cp.ingest.uvw.feeds.names              = [feed0, feed1, feed2, feed3, feed4, feed5, feed6,
+cp.ingest.task.CalcUVWTask.type                         = CalcUVWTask
+cp.ingest.task.CalcUVWTask.params.antennas.location     =   [+117.471deg, -25.692deg, 192m, WGS84]
+cp.ingest.task.CalcUVWTask.params.antennas.names        =  [A0, A1, A2, A3, A4, A5]
+cp.ingest.task.CalcUVWTask.params.antennas.diameter     =  12m
+cp.ingest.task.CalcUVWTask.params.antennas.scale        =  1.0
+cp.ingest.task.CalcUVWTask.params.antennas.mount        =  equatorial
+cp.ingest.task.CalcUVWTask.params.antennas.A0           =  [-175.233429,  -1673.460938,  0.0000]
+cp.ingest.task.CalcUVWTask.params.antennas.A1           =  [261.119019,   -796.922119,   0.0000]
+cp.ingest.task.CalcUVWTask.params.antennas.A2           =  [-29.200520,   -744.432068,   0.0000]
+cp.ingest.task.CalcUVWTask.params.antennas.A3           =  [-289.355286,  -586.936035,   0.0000]
+cp.ingest.task.CalcUVWTask.params.antennas.A4           =  [-157.031570,  -815.570068,   0.0000]
+cp.ingest.task.CalcUVWTask.params.antennas.A5           =  [-521.311646,  -754.674927,   0.0000]
+cp.ingest.task.CalcUVWTask.params.feeds.names           = [feed0, feed1, feed2, feed3, feed4, feed5, feed6,
 feed7, feed8, feed9, feed10, feed11, feed12, feed13, feed14, feed15, feed16, feed17, feed18, feed19,
 feed20, feed21, feed22, feed23, feed24, feed25, feed26, feed27, feed28, feed29, feed30, feed31]
 
-cp.ingest.uvw.feeds.spacing            = 1deg
+cp.ingest.task.CalcUVWTask.params.feeds.spacing            = 1deg
 
-cp.ingest.uvw.feeds.feed0              = [-2.5, -1.5]
-cp.ingest.uvw.feeds.feed1              = [-2.5, -0.5]
-cp.ingest.uvw.feeds.feed2              = [-2.5,  0.5]
-cp.ingest.uvw.feeds.feed3              = [-2.5,  1.5]
-cp.ingest.uvw.feeds.feed4              = [-1.5, -2.5]
-cp.ingest.uvw.feeds.feed5              = [-1.5, -1.5]
-cp.ingest.uvw.feeds.feed6              = [-1.5, -0.5]
-cp.ingest.uvw.feeds.feed7              = [-1.5,  0.5]
-cp.ingest.uvw.feeds.feed8              = [-1.5,  1.5]
-cp.ingest.uvw.feeds.feed9              = [-1.5,  2.5]
-cp.ingest.uvw.feeds.feed10             = [-0.5, -2.5]
-cp.ingest.uvw.feeds.feed11             = [-0.5, -1.5]
-cp.ingest.uvw.feeds.feed12             = [-0.5, -0.5]
-cp.ingest.uvw.feeds.feed13             = [-0.5,  0.5]
-cp.ingest.uvw.feeds.feed14             = [-0.5,  1.5]
-cp.ingest.uvw.feeds.feed15             = [-0.5,  2.5]
-cp.ingest.uvw.feeds.feed16             = [0.5, -2.5]
-cp.ingest.uvw.feeds.feed17             = [0.5, -1.5]
-cp.ingest.uvw.feeds.feed18             = [0.5, -0.5]
-cp.ingest.uvw.feeds.feed19             = [0.5,  0.5]
-cp.ingest.uvw.feeds.feed20             = [0.5,  1.5]
-cp.ingest.uvw.feeds.feed21             = [0.5,  2.5]
-cp.ingest.uvw.feeds.feed22             = [1.5, -2.5]
-cp.ingest.uvw.feeds.feed23             = [1.5, -1.5]
-cp.ingest.uvw.feeds.feed24             = [1.5, -0.5]
-cp.ingest.uvw.feeds.feed25             = [1.5,  0.5]
-cp.ingest.uvw.feeds.feed26             = [1.5,  1.5]
-cp.ingest.uvw.feeds.feed27             = [1.5,  2.5]
-cp.ingest.uvw.feeds.feed28             = [2.5, -1.5]
-cp.ingest.uvw.feeds.feed29             = [2.5, -0.5]
-cp.ingest.uvw.feeds.feed30             = [2.5,  0.5]
-cp.ingest.uvw.feeds.feed31             = [2.5,  1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed0              = [-2.5, -1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed1              = [-2.5, -0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed2              = [-2.5,  0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed3              = [-2.5,  1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed4              = [-1.5, -2.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed5              = [-1.5, -1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed6              = [-1.5, -0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed7              = [-1.5,  0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed8              = [-1.5,  1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed9              = [-1.5,  2.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed10             = [-0.5, -2.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed11             = [-0.5, -1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed12             = [-0.5, -0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed13             = [-0.5,  0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed14             = [-0.5,  1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed15             = [-0.5,  2.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed16             = [0.5, -2.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed17             = [0.5, -1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed18             = [0.5, -0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed19             = [0.5,  0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed20             = [0.5,  1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed21             = [0.5,  2.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed22             = [1.5, -2.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed23             = [1.5, -1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed24             = [1.5, -0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed25             = [1.5,  0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed26             = [1.5,  1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed27             = [1.5,  2.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed28             = [2.5, -1.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed29             = [2.5, -0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed30             = [2.5,  0.5]
+cp.ingest.task.CalcUVWTask.params.feeds.feed31             = [2.5,  1.5]
+
+#
+# Cal task
+#
+cp.ingest.task.CalTask.type    = CalTask
+cp.ingest.task.CalTask.params.gain.g11.0 = [1.0]
+cp.ingest.task.CalTask.params.gain.g11.1 = [1.0]
+cp.ingest.task.CalTask.params.gain.g11.2 = [1.0]
+cp.ingest.task.CalTask.params.gain.g11.3 = [1.0]
+cp.ingest.task.CalTask.params.gain.g11.4 = [1.0]
+cp.ingest.task.CalTask.params.gain.g11.5 = [1.0]
+cp.ingest.task.CalTask.params.gain.g22.0 = [1.0]
+cp.ingest.task.CalTask.params.gain.g22.1 = [1.0]
+cp.ingest.task.CalTask.params.gain.g22.2 = [1.0]
+cp.ingest.task.CalTask.params.gain.g22.3 = [1.0]
+cp.ingest.task.CalTask.params.gain.g22.4 = [1.0]
+cp.ingest.task.CalTask.params.gain.g22.5 = [1.0]
 
 #
 # Channel Averaging Task
 #
-cp.ingest.chanavg.averaging         = 54
+cp.ingest.task.ChannelAvgTask.type                          = ChannelAvgTask
+cp.ingest.task.ChannelAvgTask.params.averaging              = 54
             
-#
-# Cal task
-#
-cp.ingest.gain.g11.0 = [1.0]
-cp.ingest.gain.g11.1 = [1.0]
-cp.ingest.gain.g11.2 = [1.0]
-cp.ingest.gain.g11.3 = [1.0]
-cp.ingest.gain.g11.4 = [1.0]
-cp.ingest.gain.g11.5 = [1.0]
-cp.ingest.gain.g22.0 = [1.0]
-cp.ingest.gain.g22.1 = [1.0]
-cp.ingest.gain.g22.2 = [1.0]
-cp.ingest.gain.g22.3 = [1.0]
-cp.ingest.gain.g22.4 = [1.0]
-cp.ingest.gain.g22.5 = [1.0]
-
 #
 # Measurement Set Sink
 #
-cp.ingest.ms_sink.filename                 = ingest_test.ms
-cp.ingest.ms_sink.stman.bucketsize         = 104448
-cp.ingest.ms_sink.stman.tilencorr          = 4
-cp.ingest.ms_sink.stman.tilenchan          = 1
+cp.ingest.task.MSSink.type                            = MSSink
+cp.ingest.task.MSSink.params.filename                 = ingest_test.ms
+cp.ingest.task.MSSink.params.stman.bucketsize         = 104448
+cp.ingest.task.MSSink.params.stman.tilencorr          = 4
+cp.ingest.task.MSSink.params.stman.tilenchan          = 1
 
-cp.ingest.ms_sink.antennas.station         = ASKAP-BETA
-cp.ingest.ms_sink.antennas.location        = [+117.471deg, -25.692deg, 192m, WGS84]
-cp.ingest.ms_sink.antennas.names           = [A0, A1, A2, A3, A4, A5]
-cp.ingest.ms_sink.antennas.diameter        = 12m
-cp.ingest.ms_sink.antennas.scale           = 1.0
-cp.ingest.ms_sink.antennas.mount           = equatorial
-cp.ingest.ms_sink.antennas.A0              = [-175.233429,  -1673.460938,  0.0000]
-cp.ingest.ms_sink.antennas.A1              = [261.119019,   -796.922119,   0.0000]
-cp.ingest.ms_sink.antennas.A2              = [-29.200520,   -744.432068,   0.0000]
-cp.ingest.ms_sink.antennas.A3              = [-289.355286,  -586.936035,   0.0000]
-cp.ingest.ms_sink.antennas.A4              = [-157.031570,  -815.570068,   0.0000]
-cp.ingest.ms_sink.antennas.A5              = [-521.311646,  -754.674927,   0.0000]
+cp.ingest.task.MSSink.params.antennas.station         = ASKAP-BETA
+cp.ingest.task.MSSink.params.antennas.location        = [+117.471deg, -25.692deg, 192m, WGS84]
+cp.ingest.task.MSSink.params.antennas.names           = [A0, A1, A2, A3, A4, A5]
+cp.ingest.task.MSSink.params.antennas.diameter        = 12m
+cp.ingest.task.MSSink.params.antennas.scale           = 1.0
+cp.ingest.task.MSSink.params.antennas.mount           = equatorial
+cp.ingest.task.MSSink.params.antennas.A0              = [-175.233429,  -1673.460938,  0.0000]
+cp.ingest.task.MSSink.params.antennas.A1              = [261.119019,   -796.922119,   0.0000]
+cp.ingest.task.MSSink.params.antennas.A2              = [-29.200520,   -744.432068,   0.0000]
+cp.ingest.task.MSSink.params.antennas.A3              = [-289.355286,  -586.936035,   0.0000]
+cp.ingest.task.MSSink.params.antennas.A4              = [-157.031570,  -815.570068,   0.0000]
+cp.ingest.task.MSSink.params.antennas.A5              = [-521.311646,  -754.674927,   0.0000]
 
-cp.ingest.ms_sink.feeds.names              = [feed0, feed1, feed2, feed3, feed4, feed5, feed6,
+cp.ingest.task.MSSink.params.feeds.names              = [feed0, feed1, feed2, feed3, feed4, feed5, feed6,
 feed7, feed8, feed9, feed10, feed11, feed12, feed13, feed14, feed15, feed16, feed17, feed18, feed19,
 feed20, feed21, feed22, feed23, feed24, feed25, feed26, feed27, feed28, feed29, feed30, feed31]
 
-cp.ingest.ms_sink.feeds.spacing            = 1deg
+cp.ingest.task.MSSink.params.feeds.spacing            = 1deg
 
-cp.ingest.ms_sink.feeds.feed0              = [-2.5, -1.5]
-cp.ingest.ms_sink.feeds.feed1              = [-2.5, -0.5]
-cp.ingest.ms_sink.feeds.feed2              = [-2.5,  0.5]
-cp.ingest.ms_sink.feeds.feed3              = [-2.5,  1.5]
-cp.ingest.ms_sink.feeds.feed4              = [-1.5, -2.5]
-cp.ingest.ms_sink.feeds.feed5              = [-1.5, -1.5]
-cp.ingest.ms_sink.feeds.feed6              = [-1.5, -0.5]
-cp.ingest.ms_sink.feeds.feed7              = [-1.5,  0.5]
-cp.ingest.ms_sink.feeds.feed8              = [-1.5,  1.5]
-cp.ingest.ms_sink.feeds.feed9              = [-1.5,  2.5]
-cp.ingest.ms_sink.feeds.feed10             = [-0.5, -2.5]
-cp.ingest.ms_sink.feeds.feed11             = [-0.5, -1.5]
-cp.ingest.ms_sink.feeds.feed12             = [-0.5, -0.5]
-cp.ingest.ms_sink.feeds.feed13             = [-0.5,  0.5]
-cp.ingest.ms_sink.feeds.feed14             = [-0.5,  1.5]
-cp.ingest.ms_sink.feeds.feed15             = [-0.5,  2.5]
-cp.ingest.ms_sink.feeds.feed16             = [0.5, -2.5]
-cp.ingest.ms_sink.feeds.feed17             = [0.5, -1.5]
-cp.ingest.ms_sink.feeds.feed18             = [0.5, -0.5]
-cp.ingest.ms_sink.feeds.feed19             = [0.5,  0.5]
-cp.ingest.ms_sink.feeds.feed20             = [0.5,  1.5]
-cp.ingest.ms_sink.feeds.feed21             = [0.5,  2.5]
-cp.ingest.ms_sink.feeds.feed22             = [1.5, -2.5]
-cp.ingest.ms_sink.feeds.feed23             = [1.5, -1.5]
-cp.ingest.ms_sink.feeds.feed24             = [1.5, -0.5]
-cp.ingest.ms_sink.feeds.feed25             = [1.5,  0.5]
-cp.ingest.ms_sink.feeds.feed26             = [1.5,  1.5]
-cp.ingest.ms_sink.feeds.feed27             = [1.5,  2.5]
-cp.ingest.ms_sink.feeds.feed28             = [2.5, -1.5]
-cp.ingest.ms_sink.feeds.feed29             = [2.5, -0.5]
-cp.ingest.ms_sink.feeds.feed30             = [2.5,  0.5]
-cp.ingest.ms_sink.feeds.feed31             = [2.5,  1.5]
+cp.ingest.task.MSSink.params.feeds.feed0              = [-2.5, -1.5]
+cp.ingest.task.MSSink.params.feeds.feed1              = [-2.5, -0.5]
+cp.ingest.task.MSSink.params.feeds.feed2              = [-2.5,  0.5]
+cp.ingest.task.MSSink.params.feeds.feed3              = [-2.5,  1.5]
+cp.ingest.task.MSSink.params.feeds.feed4              = [-1.5, -2.5]
+cp.ingest.task.MSSink.params.feeds.feed5              = [-1.5, -1.5]
+cp.ingest.task.MSSink.params.feeds.feed6              = [-1.5, -0.5]
+cp.ingest.task.MSSink.params.feeds.feed7              = [-1.5,  0.5]
+cp.ingest.task.MSSink.params.feeds.feed8              = [-1.5,  1.5]
+cp.ingest.task.MSSink.params.feeds.feed9              = [-1.5,  2.5]
+cp.ingest.task.MSSink.params.feeds.feed10             = [-0.5, -2.5]
+cp.ingest.task.MSSink.params.feeds.feed11             = [-0.5, -1.5]
+cp.ingest.task.MSSink.params.feeds.feed12             = [-0.5, -0.5]
+cp.ingest.task.MSSink.params.feeds.feed13             = [-0.5,  0.5]
+cp.ingest.task.MSSink.params.feeds.feed14             = [-0.5,  1.5]
+cp.ingest.task.MSSink.params.feeds.feed15             = [-0.5,  2.5]
+cp.ingest.task.MSSink.params.feeds.feed16             = [0.5, -2.5]
+cp.ingest.task.MSSink.params.feeds.feed17             = [0.5, -1.5]
+cp.ingest.task.MSSink.params.feeds.feed18             = [0.5, -0.5]
+cp.ingest.task.MSSink.params.feeds.feed19             = [0.5,  0.5]
+cp.ingest.task.MSSink.params.feeds.feed20             = [0.5,  1.5]
+cp.ingest.task.MSSink.params.feeds.feed21             = [0.5,  2.5]
+cp.ingest.task.MSSink.params.feeds.feed22             = [1.5, -2.5]
+cp.ingest.task.MSSink.params.feeds.feed23             = [1.5, -1.5]
+cp.ingest.task.MSSink.params.feeds.feed24             = [1.5, -0.5]
+cp.ingest.task.MSSink.params.feeds.feed25             = [1.5,  0.5]
+cp.ingest.task.MSSink.params.feeds.feed26             = [1.5,  1.5]
+cp.ingest.task.MSSink.params.feeds.feed27             = [1.5,  2.5]
+cp.ingest.task.MSSink.params.feeds.feed28             = [2.5, -1.5]
+cp.ingest.task.MSSink.params.feeds.feed29             = [2.5, -0.5]
+cp.ingest.task.MSSink.params.feeds.feed30             = [2.5,  0.5]
+cp.ingest.task.MSSink.params.feeds.feed31             = [2.5,  1.5]
 
-cp.ingest.ms_sink.spw.name                 = ASKAPCorrelator
-cp.ingest.ms_sink.spw.nchan                = 304
-cp.ingest.ms_sink.spw.start_freq           = 1.420GHz
-cp.ingest.ms_sink.spw.freq_inc             = 1MHz
-cp.ingest.ms_sink.spw.stokes               = "XX XY YX YY"
+cp.ingest.task.MSSink.params.spw.name                 = ASKAPCorrelator
+cp.ingest.task.MSSink.params.spw.nchan                = 304
+cp.ingest.task.MSSink.params.spw.start_freq           = 1.420GHz
+cp.ingest.task.MSSink.params.spw.freq_inc             = 1MHz
+cp.ingest.task.MSSink.params.spw.stokes               = "XX XY YX YY"
 
-cp.ingest.ms_sink.field.name               = test-field
-cp.ingest.ms_sink.field.direction          = [12h30m00.000, -45.00.00.000, J2000]
+cp.ingest.task.MSSink.params.field.name               = test-field
+cp.ingest.task.MSSink.params.field.direction          = [12h30m00.000, -45.00.00.000, J2000]
 

@@ -30,6 +30,11 @@
 // Include package level header file
 #include <askap_cpingest.h>
 
+// System includes
+#include <string>
+#include <vector>
+#include <sstream>
+
 // Boost includes
 #include <boost/scoped_ptr.hpp>
 
@@ -40,14 +45,11 @@
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
+#include "ingestpipeline/TaskFactory.h"
 #include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 #include "ingestpipeline/sourcetask/VisSource.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
-#include "ingestpipeline/calcuvwtask/CalcUVWTask.h"
-#include "ingestpipeline/caltask/CalTask.h"
-#include "ingestpipeline/chanavgtask/ChannelAvgTask.h"
-#include "ingestpipeline/sinktask/MSSink.h"
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
 
@@ -78,14 +80,24 @@ void IngestPipeline::abort(void)
 
 void IngestPipeline::ingest(void)
 {
-    // 1) Setup tasks
+    // 1) Setup source
     createSource();
-    createTask<CalcUVWTask>(itsParset);
-    createTask<CalTask>(itsParset);
-    createTask<ChannelAvgTask>(itsParset);
-    createTask<MSSink>(itsParset);
 
-    // 2) Process correlator integrations, one at a time
+    // 2) Setup tasks
+    TaskFactory factory;
+    const std::vector<std::string> tasklist = itsParset.getStringVector("tasklist");
+    ASKAPLOG_DEBUG_STR(logger, "Setting up these tasks: " << tasklist);
+    std::vector<std::string>::const_iterator it = tasklist.begin();
+    while (it != tasklist.end()) {
+        std::stringstream key;
+        key << "task." << *it << ".";
+        const LOFAR::ParameterSet& taskParset = itsParset.makeSubset(key.str());
+        ITask::ShPtr task = factory.createTask(taskParset);
+        itsTasks.push_back(task);
+        ++it;
+    }
+
+    // 3) Process correlator integrations, one at a time
     while (itsRunning && (itsIntegrationsCount < itsIntegrationsExpected))  {
         bool endOfStream = ingestOne();
         itsIntegrationsCount++;
@@ -94,7 +106,7 @@ void IngestPipeline::ingest(void)
         }
     }
 
-    // 3) Clean up tasks
+    // 4) Clean up tasks
     itsSource.reset();
 }
 
@@ -135,11 +147,4 @@ void IngestPipeline::createSource(void)
 
     // 3) Create and configure the merged source
     itsSource.reset(new MergedSource(metadataSrc, visSrc));
-}
-
-template <class T>
-void IngestPipeline::createTask(const LOFAR::ParameterSet& parset)
-{
-    ITask::ShPtr task(new T(parset));
-    itsTasks.push_back(task);
 }

@@ -69,9 +69,6 @@ class IngestPipeline {
 
         void createSource(void);
 
-        template <class T>
-        void createTask(const LOFAR::ParameterSet& parset);
-
         const LOFAR::ParameterSet itsParset;
 
         bool itsRunning;

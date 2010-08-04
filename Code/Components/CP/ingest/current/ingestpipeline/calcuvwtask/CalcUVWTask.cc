@@ -58,7 +58,7 @@ using namespace askap;
 using namespace askap::cp;
 
 CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset) :
-    itsParset(parset.makeSubset("uvw."))
+    itsParset(parset)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
     const LOFAR::ParameterSet antSubset(itsParset.makeSubset("antennas."));
