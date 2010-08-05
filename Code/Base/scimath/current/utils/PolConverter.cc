@@ -113,6 +113,41 @@ casa::Vector<casa::Complex> PolConverter::operator()(casa::Vector<casa::Complex>
   return res;
 }
 
+/// @brief propagate noise through conversion
+/// @details Convert the visibility noise visibility vector between two 
+/// polarisation frames supplied in the constructor.
+/// @param[in] visNoise visibility noise vector
+/// @return converted noise vector 
+/// @note visNoise should have the same size (<=4) as both polFrames passed in the constructor, 
+/// the output vector will have the same size. Real and imaginary parts of the output vectors are the noise
+/// levels of real and imaginary parts of the visibility.
+casa::Vector<casa::Complex> PolConverter::noise(casa::Vector<casa::Complex> visNoise) const
+{
+  if (itsVoid) {
+      return visNoise;
+  }
+  ASKAPDEBUGASSERT(visNoise.nelements() == itsTransform.ncolumn());
+  casa::Vector<casa::Complex> res(itsTransform.nrow(),0.);
+  
+  for (casa::uInt row = 0; row<res.nelements(); ++row) {
+       float reNoise = 0.;
+       float imNoise = 0.;
+       for (casa::uInt col = 0; col<visNoise.nelements(); ++col) {
+            const casa::Complex coeff = itsTransform(row,col);
+            const casa::Complex val = visNoise[col];
+            reNoise += casa::square(casa::real(coeff)*casa::real(val)) +
+                       casa::square(casa::imag(coeff)*casa::imag(val));
+            imNoise += casa::square(casa::imag(coeff)*casa::real(val)) +
+                       casa::square(casa::real(coeff)*casa::imag(val));
+       }
+       ASKAPDEBUGASSERT(reNoise >= 0.);
+       ASKAPDEBUGASSERT(imNoise >= 0.);
+       res[row] = casa::Complex(sqrt(reNoise),sqrt(imNoise));
+  }
+  
+  return res;
+}
+
 /// @brief build transformation matrix
 /// @details This is the core of the algorithm, this method builds the transformation matrix
 /// given the two frames .

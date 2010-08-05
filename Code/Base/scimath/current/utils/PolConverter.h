@@ -79,6 +79,16 @@ struct PolConverter {
   /// the output vector will have the same size.
   casa::Vector<casa::Complex> operator()(casa::Vector<casa::Complex> vis) const;
 
+  /// @brief propagate noise through conversion
+  /// @details Convert the visibility noise visibility vector between two 
+  /// polarisation frames supplied in the constructor.
+  /// @param[in] visNoise visibility noise vector
+  /// @return converted noise vector 
+  /// @note visNoise should have the same size (<=4) as both polFrames passed in the constructor, 
+  /// the output vector will have the same size. Real and imaginary parts of the output vectors are the noise
+  /// levels of real and imaginary parts of the visibility.
+  casa::Vector<casa::Complex> noise(casa::Vector<casa::Complex> visNoise) const;
+
   /// @brief check whether this conversion is void
   /// @return true if conversion is void, false otherwise
   inline bool isVoid() const throw() {return itsVoid;}

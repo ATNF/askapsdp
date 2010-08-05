@@ -67,6 +67,12 @@ public:
      CPPUNIT_ASSERT(outVec.nelements() == out.nelements());
      CPPUNIT_ASSERT(abs(outVec[0]-casa::Complex(0.,-2.))<1e-5);
      CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(0.,0.))<1e-5);
+     // check noise
+     casa::Vector<casa::Complex> noise = pc.noise(casa::Vector<casa::Complex>(in.nelements(), casa::Complex(1.,1.)));
+     CPPUNIT_ASSERT(noise.nelements() == out.nelements());
+     CPPUNIT_ASSERT(abs(noise[0]-casa::Complex(sqrt(2.),sqrt(2.)))<1e-5);
+     CPPUNIT_ASSERT(abs(noise[1]-casa::Complex(sqrt(2.),sqrt(2.)))<1e-5);
+     
      
      // ignore missing polarisations in pc2
      PolConverter pc2(out,in,false);
@@ -79,6 +85,13 @@ public:
      CPPUNIT_ASSERT(abs(outVec2[1]-casa::Complex(0.,0.))<1e-5);
      CPPUNIT_ASSERT(abs(outVec2[2]-casa::Complex(0.,0.))<1e-5);
      CPPUNIT_ASSERT(abs(outVec2[3]-casa::Complex(0.,0.))<1e-5);     
+     // check noise
+     noise.assign(pc2.noise(casa::Vector<casa::Complex>(out.nelements(), casa::Complex(1.,1.))));
+     CPPUNIT_ASSERT(noise.nelements() == in.nelements());
+     CPPUNIT_ASSERT(abs(noise[0]-casa::Complex(1./sqrt(2.),1./sqrt(2.)))<1e-5);
+     CPPUNIT_ASSERT(abs(noise[1]-casa::Complex(0.,0.))<1e-5);
+     CPPUNIT_ASSERT(abs(noise[2]-casa::Complex(0.,0.))<1e-5);
+     CPPUNIT_ASSERT(abs(noise[3]-casa::Complex(1./sqrt(2.),1./sqrt(2.)))<1e-5);
   }
   
   void dimensionExceptionTest() {
@@ -116,6 +129,11 @@ public:
      casa::Vector<casa::Complex> outVec = pc(inVec);  
      CPPUNIT_ASSERT(abs(outVec[0]-casa::Complex(0,-0.5))<1e-5);
      CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(0,-0.5))<1e-5);          
+     // check noise
+     casa::Vector<casa::Complex> noise = pc.noise(casa::Vector<casa::Complex>(in.nelements(), casa::Complex(1.,1.)));
+     CPPUNIT_ASSERT(noise.nelements() == out.nelements());
+     CPPUNIT_ASSERT(abs(noise[0]-casa::Complex(0.5,0.5))<1e-5);
+     CPPUNIT_ASSERT(abs(noise[1]-casa::Complex(0.5,0.5))<1e-5);
      
      PolConverter pc2(out,in);
      CPPUNIT_ASSERT(pc2.nInputDim() == 2);
@@ -125,6 +143,10 @@ public:
      outVec.resize(1);
      outVec = pc2(inVec);
      CPPUNIT_ASSERT(abs(outVec[0]-casa::Complex(2.,0.))<1e-5);          
+     // check noise
+     noise.assign(pc2.noise(casa::Vector<casa::Complex>(out.nelements(), casa::Complex(1.,1.))));
+     CPPUNIT_ASSERT(noise.nelements() == in.nelements());
+     CPPUNIT_ASSERT(abs(noise[0]-casa::Complex(sqrt(2.),sqrt(2.)))<1e-5);
   }
   
   void linear2stokesTest() {
@@ -153,6 +175,26 @@ public:
      CPPUNIT_ASSERT(abs(outVec[1]-casa::Complex(-0.6,-0.6))<1e-5);
      CPPUNIT_ASSERT(abs(outVec[2]-casa::Complex(0.8,1.0))<1e-5);
      CPPUNIT_ASSERT(abs(outVec[3]-casa::Complex(-0.2,0.2))<1e-5);
+     // check noise
+     casa::Vector<casa::Complex> noise = pc.noise(casa::Vector<casa::Complex>(in.nelements(),casa::Complex(1.,1.)));
+     CPPUNIT_ASSERT(noise.nelements() == out.nelements());
+     for (casa::uInt dim = 0; dim<noise.nelements(); ++dim) {
+          CPPUNIT_ASSERT(abs(noise[dim]-casa::Complex(sqrt(2.),sqrt(2.)))<1e-5);
+     }
+     // more realistic case of (slightly) different noise in orthogonal polarisation products
+     casa::Vector<casa::Complex> inNoise(in.nelements());
+     inNoise[0] = casa::Complex(0.009,0.009);
+     inNoise[3] = casa::Complex(0.011,0.011);
+     const float crossPolNoise = sqrt(casa::real(inNoise[0])*casa::real(inNoise[3]));
+     inNoise[1] = inNoise[2] = casa::Complex(crossPolNoise, crossPolNoise);
+     noise.assign(pc.noise(inNoise));
+     CPPUNIT_ASSERT(noise.nelements() == out.nelements());
+     for (casa::uInt dim = 0; dim<noise.nelements(); ++dim) {
+          CPPUNIT_ASSERT(abs(casa::real(noise[dim])-casa::imag(noise[dim]))<1e-5);
+          // 202 == 9*9+11*11, 198 = 2*9*11
+          const float targetVal = 0.001*(dim<2 ? sqrt(202.) : sqrt(198.));
+          CPPUNIT_ASSERT(abs(noise[dim]-casa::Complex(targetVal,targetVal))<1e-5);
+     }
      
      PolConverter pcReverse(out,in);
      CPPUNIT_ASSERT(pcReverse.nInputDim() == 4);
@@ -161,6 +203,17 @@ public:
      CPPUNIT_ASSERT(newInVec.nelements() == inVec.nelements());
      for (size_t pol = 0; pol<inVec.nelements(); ++pol) {
           CPPUNIT_ASSERT(abs(inVec[pol] - newInVec[pol])<1e-5);
+     }     
+     // verify noise
+     casa::Vector<casa::Complex> outNoise = pcReverse.noise(noise);
+     CPPUNIT_ASSERT(outNoise.nelements() == in.nelements());
+     CPPUNIT_ASSERT(outNoise.nelements() == inNoise.nelements());
+     
+     for (casa::uInt dim=0; dim<outNoise.nelements(); ++dim) {
+          const float targetVal = (dim % 3 == 0) ? 
+                      sqrt(casa::square(casa::real(noise[0])) + casa::square(casa::real(noise[1]))) / 2. :
+                      sqrt(casa::square(casa::real(noise[2])) + casa::square(casa::real(noise[3]))) / 2.;
+          CPPUNIT_ASSERT(abs(outNoise[dim] - casa::Complex(targetVal,targetVal))<1e-5);
      }     
   }
 
