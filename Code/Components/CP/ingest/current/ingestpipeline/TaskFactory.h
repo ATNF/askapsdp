@@ -39,6 +39,8 @@ namespace cp {
 class TaskFactory {
     public:
 
+        TaskFactory(const LOFAR::ParameterSet& configParset);
+
         /// @brief Creates an instance of a task given the parameters specified
         /// in the parameter set.
         ///
@@ -59,6 +61,8 @@ class TaskFactory {
         /// @throw AskapError   if the task type is unknown.
         ITask::ShPtr createTask(const LOFAR::ParameterSet& parset);
 
+    private:
+        const LOFAR::ParameterSet itsConfigParset;
 };
 
 };

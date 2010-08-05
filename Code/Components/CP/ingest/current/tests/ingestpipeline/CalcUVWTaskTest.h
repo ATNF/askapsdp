@@ -56,22 +56,22 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
     public:
         void setUp() {
             // Setup a parameter set
-            itsParset.add("uvw.antennas.location", "[+117.471deg, -25.692deg, 192m, WGS84]");
-            itsParset.add("uvw.antennas.names", "[A0, A1, A2, A3, A4, A5]");
-            itsParset.add("uvw.antenna.scale", "1.0");
-            itsParset.add("uvw.antennas.A0", "[-175.233429,  -1673.460938,  0.0000]");
-            itsParset.add("uvw.antennas.A1", "[261.119019,   -796.922119,   0.0000]");
-            itsParset.add("uvw.antennas.A2", "[-29.200520,   -744.432068,   0.0000]");
-            itsParset.add("uvw.antennas.A3", "[-289.355286,  -586.936035,   0.0000]");
-            itsParset.add("uvw.antennas.A4", "[-157.031570,  -815.570068,   0.0000]");
-            itsParset.add("uvw.antennas.A5", "[-521.311646,  -754.674927,   0.0000]");
+            itsParset.add("config.antennas.location", "[+117.471deg, -25.692deg, 192m, WGS84]");
+            itsParset.add("config.antennas.names", "[A0, A1, A2, A3, A4, A5]");
+            itsParset.add("config.antenna.scale", "1.0");
+            itsParset.add("config.antennas.A0", "[-175.233429,  -1673.460938,  0.0000]");
+            itsParset.add("config.antennas.A1", "[261.119019,   -796.922119,   0.0000]");
+            itsParset.add("config.antennas.A2", "[-29.200520,   -744.432068,   0.0000]");
+            itsParset.add("config.antennas.A3", "[-289.355286,  -586.936035,   0.0000]");
+            itsParset.add("config.antennas.A4", "[-157.031570,  -815.570068,   0.0000]");
+            itsParset.add("config.antennas.A5", "[-521.311646,  -754.674927,   0.0000]");
 
-            itsParset.add("uvw.feeds.names", "[feed0, feed1, feed2, feed3]");
-            itsParset.add("uvw.feeds.spacing", "1deg");
-            itsParset.add("uvw.feeds.feed0", "[-2.5, -1.5]");
-            itsParset.add("uvw.feeds.feed1", "[-2.5, -0.5]");
-            itsParset.add("uvw.feeds.feed2", "[-2.5,  0.5]");
-            itsParset.add("uvw.feeds.feed3", "[-2.5,  1.5]");
+            itsParset.add("config.feeds.names", "[feed0, feed1, feed2, feed3]");
+            itsParset.add("config.feeds.spacing", "1deg");
+            itsParset.add("config.feeds.feed0", "[-2.5, -1.5]");
+            itsParset.add("config.feeds.feed1", "[-2.5, -0.5]");
+            itsParset.add("config.feeds.feed2", "[-2.5,  0.5]");
+            itsParset.add("config.feeds.feed3", "[-2.5,  1.5]");
 
         };
 

@@ -83,21 +83,24 @@ void IngestPipeline::ingest(void)
     // 1) Setup source
     createSource();
 
-    // 2) Setup tasks
-    TaskFactory factory;
+    // 2) Create a Task Factory
+    const LOFAR::ParameterSet configParset = itsParset.makeSubset("config.");
+    TaskFactory factory(configParset);
+
+    // 3) Setup tasks
     const std::vector<std::string> tasklist = itsParset.getStringVector("tasklist");
     ASKAPLOG_DEBUG_STR(logger, "Setting up these tasks: " << tasklist);
     std::vector<std::string>::const_iterator it = tasklist.begin();
     while (it != tasklist.end()) {
         std::stringstream key;
         key << "task." << *it << ".";
-        const LOFAR::ParameterSet& taskParset = itsParset.makeSubset(key.str());
+        LOFAR::ParameterSet taskParset = itsParset.makeSubset(key.str());
         ITask::ShPtr task = factory.createTask(taskParset);
         itsTasks.push_back(task);
         ++it;
     }
 
-    // 3) Process correlator integrations, one at a time
+    // 4) Process correlator integrations, one at a time
     while (itsRunning && (itsIntegrationsCount < itsIntegrationsExpected))  {
         bool endOfStream = ingestOne();
         itsIntegrationsCount++;
@@ -106,7 +109,7 @@ void IngestPipeline::ingest(void)
         }
     }
 
-    // 4) Clean up tasks
+    // 5) Clean up tasks
     itsSource.reset();
 }
 

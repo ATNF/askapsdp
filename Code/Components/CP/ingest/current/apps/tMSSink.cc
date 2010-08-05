@@ -31,7 +31,7 @@
 // ASKAPsoft includes
 
 // Local package includes
-#include "ingestpipeline/sinktask/MSSink.h"
+#include "ingestpipeline/mssink/MSSink.h"
 #include "ingestpipeline/datadef/VisChunk.h"
 
 // Using

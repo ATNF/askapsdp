@@ -97,7 +97,7 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture
         // Setup the parset for the channel averaging task
         std::ostringstream ss;
         ss << channelAveraging;
-        itsParset.add("chanavg.averaging", ss.str());
+        itsParset.add("averaging", ss.str());
 
         const unsigned int row = 0;
         const double startFreq = 1.4 * 1000 * 1000;

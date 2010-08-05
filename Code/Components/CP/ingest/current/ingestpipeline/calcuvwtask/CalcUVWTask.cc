@@ -37,6 +37,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "Common/ParameterSet.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/MatrixMath.h"
 #include "measures/Measures.h"
@@ -57,13 +58,16 @@ using namespace casa;
 using namespace askap;
 using namespace askap::cp;
 
-CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset) :
-    itsParset(parset)
+CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
-    const LOFAR::ParameterSet antSubset(itsParset.makeSubset("antennas."));
+
+    // Extract the config part of the parset
+    const LOFAR::ParameterSet configSubset = parset.makeSubset("config.");
+
+    const LOFAR::ParameterSet antSubset(configSubset.makeSubset("antennas."));
     itsAntennaPositions.reset(new AntennaPositions(antSubset));
-    itsConfig.reset(new ParsetConfiguration(itsParset));
+    itsConfig.reset(new ParsetConfiguration(configSubset));
 
     setupAntennaPositions();
     setupBeamOffsets();

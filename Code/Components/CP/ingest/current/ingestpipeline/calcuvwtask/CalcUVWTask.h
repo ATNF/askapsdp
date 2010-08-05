@@ -99,9 +99,6 @@ class CalcUVWTask : public askap::cp::ITask {
         // Populates the itsBeamOffset vector
         void setupBeamOffsets(void);
 
-        // Parameter set
-        const LOFAR::ParameterSet itsParset;
-
         // Antenna positions
         boost::scoped_ptr<AntennaPositions> itsAntennaPositions;
         

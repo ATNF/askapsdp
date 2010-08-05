@@ -43,18 +43,26 @@
 #include "ingestpipeline/calcuvwtask/CalcUVWTask.h"
 #include "ingestpipeline/caltask/CalTask.h"
 #include "ingestpipeline/chanavgtask/ChannelAvgTask.h"
-#include "ingestpipeline/sinktask/MSSink.h"
+#include "ingestpipeline/mssink/MSSink.h"
 
 ASKAP_LOGGER(logger, ".TaskFactory");
 
 using namespace askap;
 using namespace askap::cp;
 
+TaskFactory::TaskFactory(const LOFAR::ParameterSet& configParset)
+    : itsConfigParset(configParset)
+{
+}
+
 ITask::ShPtr TaskFactory::createTask(const LOFAR::ParameterSet& parset)
 {
     // Extract task type & parameters
     const std::string type = parset.getString("type");
-    const LOFAR::ParameterSet& params = parset.makeSubset("params.");
+    LOFAR::ParameterSet params = parset.makeSubset("params.");
+
+    // Merge the system configuration parset into the params
+    params.adoptCollection(itsConfigParset, "config.");
 
     // Create the task
     ITask::ShPtr task;

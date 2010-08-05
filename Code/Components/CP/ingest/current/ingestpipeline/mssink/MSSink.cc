@@ -69,8 +69,8 @@ MSSink::MSSink(const LOFAR::ParameterSet& parset) :
     itsParset(parset)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
-
-    itsConfig.reset(new ParsetConfiguration(itsParset));
+    const LOFAR::ParameterSet configSubset = parset.makeSubset("config.");
+    itsConfig.reset(new ParsetConfiguration(configSubset));
     create();
     initAntennas();
     initFeeds();
