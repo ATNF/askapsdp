@@ -21,8 +21,6 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
-#include <measurementequation/ImageMultiScaleSolver.h>
-
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 #include <boost/shared_ptr.hpp>
@@ -43,7 +41,11 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <casa/Arrays/MatrixMath.h>
 #include <casa/Arrays/Vector.h>
 
-#include <lattices/Lattices/LatticeCleaner.h>
+#include <casa/BasicSL/Complex.h>
+
+#include <askap_synthesis.h>
+#include <measurementequation/ImageBasisFunctionSolver.h>
+#include <deconvolution/DeconvolverBasisFunction.h>
 #include <lattices/Lattices/ArrayLattice.h>
 
 using namespace casa;
@@ -67,46 +69,49 @@ namespace askap
 {
   namespace synthesis
   {
-    // note, constructor parameter for itsCleaners hard codes the cache size.
-    // ideally it should be the number of spectral channels times number of facets
-    // processed by every thread.
-    
-    ImageMultiScaleSolver::ImageMultiScaleSolver() : 
-      itsCleaners(8), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
+    ImageBasisFunctionSolver::ImageBasisFunctionSolver()
     {
-      itsScales.resize(3);
-      itsScales(0)=0;
-      itsScales(1)=10;
-      itsScales(2)=30;
+      // Now set up controller
+      itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
+      // Now set up monitor
+      itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
     }
     
-    ImageMultiScaleSolver::ImageMultiScaleSolver(const casa::Vector<float>& scales) : 
-      itsCleaners(8), itsDoSpeedUp(false), itsSpeedUpFactor(1.)
-    {
-      itsScales.resize(scales.size());
-      itsScales=scales;
+    void ImageBasisFunctionSolver::setBasisFunction(BasisFunction<Float>::ShPtr bf) {
+      itsBasisFunction=bf;
+    }
+
+    BasisFunction<Float>::ShPtr ImageBasisFunctionSolver::basisFunction() {
+      return itsBasisFunction;
+    }
+
+    void ImageBasisFunctionSolver::configure(const LOFAR::ParameterSet &parset) {
+      ASKAPASSERT(this->itsMonitor);
+      this->itsMonitor->configure(parset);
+      ASKAPASSERT(this->itsControl);
+      this->itsControl->configure(parset);
+      // Make the basis function
+
+      std::vector<float> defaultScales(3);
+      defaultScales[0]=0.0;
+      defaultScales[1]=10.0;
+      defaultScales[2]=30.0;
+      std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
+      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
+      itsUseCrossTerms=parset.getBool("usecrossterms", true);
     }
     
-    void ImageMultiScaleSolver::init()
+    void ImageBasisFunctionSolver::init()
     {
       resetNormalEquations();
     }
-    
-    /// @brief switch the speed up on
-    /// @param[in] factor speed up factor
-    void ImageMultiScaleSolver::setSpeedUp(float factor)
-    {
-      itsDoSpeedUp = true;
-      itsSpeedUpFactor = factor;
-    }
-    
     
     /// @brief Solve for parameters, updating the values kept internally
     /// The solution is constructed from the normal equations. The parameters named 
     /// image* are interpreted as images and solved for.
     /// @param[in] ip current model (to be updated)
     /// @param[in] quality Solution quality information
-    bool ImageMultiScaleSolver::solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality)
+    bool ImageBasisFunctionSolver::solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality)
     {
       
       // Solving A^T Q^-1 V = (A^T Q^-1 A) P
@@ -124,7 +129,7 @@ namespace askap
 	    nParameters+=ip.value(name).nelements();
 	  }
 	}
-      ASKAPCHECK(nParameters>0, "No free parameters in ImageMultiScaleSolver");
+      ASKAPCHECK(nParameters>0, "No free parameters in ImageBasisFunctionSolver");
       
       for (map<string, uint>::const_iterator indit=indices.begin();indit!=indices.end();++indit)
 	{
@@ -151,7 +156,7 @@ namespace askap
 	    
 	    casa::Array<float> dirtyArray = padImage(planeIter.getPlane(dv));
 	    casa::Array<float> psfArray = padImage(planeIter.getPlane(slice));
-	    casa::Array<float> cleanArray = padImage(planeIter.getPlane(ip.value(indit->first)));
+	    casa::Array<float> basisFunctionArray = padImage(planeIter.getPlane(ip.value(indit->first)));
 	    casa::Array<float> maskArray(dirtyArray.shape());
 	    ASKAPLOG_INFO_STR(logger, "Plane shape "<<planeIter.planeShape()<<" becomes "<<
 			      dirtyArray.shape()<<" after padding");
@@ -172,76 +177,66 @@ namespace askap
 	    clipImage(psfArray);
 	    ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) after clipping "<<max(dirtyArray));
 	    
-	    // We need lattice equivalents. We can use ArrayLattice which involves
-	    // no copying
-	    casa::ArrayLattice<float> dirty(dirtyArray);
-	    casa::ArrayLattice<float> psf(psfArray);
-	    casa::ArrayLattice<float> clean(cleanArray);
-	    casa::ArrayLattice<float> mask(maskArray);
-	    
-	    // uncomment the code below to save the residual image
 	    // This takes up some memory and we have to ship the residual image out inside
 	    // the parameter class. Therefore, we may not need this functionality in the 
 	    // production version (or may need to implement it in a different way).
-	    saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "residual", unpadImage(dirtyArray),
-				   planeIter.position());
+	    saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "residual",
+				   unpadImage(dirtyArray), planeIter.position());
 	    
 	    // uncomment the code below to save the mask
 	    saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "mask", unpadImage(maskArray),
 				   planeIter.position());
 	    
 	    
-	    // Create a lattice cleaner to do the dirty work :)
-	    /// @todo More checks on reuse of LatticeCleaner
-	    // every plane should have its own LatticeCleaner, therefore we should ammend the 
-	    // key somehow to make it individual for each plane. Adding tag seems to be a good idea
-	    const std::string cleanerKey = indit->first + planeIter.tag();
 	    
-	    itsCleaners.find(cleanerKey);                     
-	    boost::shared_ptr<casa::LatticeCleaner<float> > lc = itsCleaners.cachedItem();
-	    if(!itsCleaners.notFound()) {
-	      ASKAPDEBUGASSERT(lc);
-	      lc->update(dirty);
-	    } else {
-	      itsCleaners.cachedItem().reset(new casa::LatticeCleaner<float>(psf, dirty));
-	      lc = itsCleaners.cachedItem();
-	      ASKAPDEBUGASSERT(lc);     
-	      if (itsDoSpeedUp) {
-		lc->speedup(itsSpeedUpFactor);
-	      }          
-	      lc->setMask(mask,maskingThreshold());	  
-	      
-	      if(algorithm()=="Hogbom") {
-		casa::Vector<float> scales(1);
-		scales(0)=0.0;
-		lc->setscales(scales);
-		lc->setcontrol(casa::CleanEnums::HOGBOM, niter(), gain(), threshold(),
-			       fractionalThreshold(), false);
-	      } else {
-		lc->setscales(itsScales);
-		lc->setcontrol(casa::CleanEnums::MULTISCALE, niter(), gain(), threshold(), 
-			       fractionalThreshold(),false);
-	      } // if algorithm == Hogbom, else case (other algorithm)
-	      lc->ignoreCenterBox(true);
-	    } // if cleaner found in the cache, else case - new cleaner needed
-	    lc->clean(clean);
-	    ASKAPLOG_INFO_STR(logger, "Peak flux of the clean image "<<max(cleanArray));
+	    // Startup costs so little it's better to create a new
+	    // deconvolver each time we need it	    
+	    boost::shared_ptr<DeconvolverBasisFunction<float, casa::Complex> >
+	      basisFunctionDec(new DeconvolverBasisFunction<float,
+		    casa::Complex>(dirtyArray, psfArray));
+	    ASKAPASSERT(basisFunctionDec);     
+	    basisFunctionDec->setMonitor(itsMonitor);
+	    basisFunctionDec->setControl(itsControl);
+	    basisFunctionDec->setMask(maskArray);
+
+	    itsBasisFunction->initialise(dirtyArray.shape());
+	    basisFunctionDec->setBasisFunction(itsBasisFunction);
+
+	    // We have to reset the initial objective function
+	    // so that the fractional threshold mechanism will work.
+	    basisFunctionDec->state()->resetInitialObjectiveFunction();
+	    // By convention, iterations are counted from scratch each
+	    // major cycle
+	    basisFunctionDec->state()->setCurrentIter(0);
 	    
-	    const std::string peakResParam = std::string("peak_residual.") + cleanerKey;
+	    ASKAPLOG_INFO_STR(logger, "Starting basis function deconvolution");
+	    // BASISFUNCTION is not incremental so we need to set the
+	    // background image which remains fixed during one 
+	    // deconvolve step
+	    basisFunctionDec->setBackground(basisFunctionArray);
+	    basisFunctionDec->deconvolve();
+	    ASKAPLOG_INFO_STR(logger, "Peak flux of the Basis function image "
+			      << max(basisFunctionDec->model()));
+	    ASKAPLOG_INFO_STR(logger, "Peak residual of Basis function image "
+			      << max(abs(basisFunctionDec->residual())));
+	    
+	    const std::string deconvolverKey = indit->first + planeIter.tag();
+	    const std::string peakResParam = std::string("peak_residual.") + deconvolverKey;
 	    if (ip.has(peakResParam)) {
-	      ip.update(peakResParam, lc->strengthOptimum());
+	      ip.update(peakResParam, basisFunctionDec->state()->peakResidual());
 	    } else {
-	      ip.add(peakResParam, lc->strengthOptimum());
+	      ip.add(peakResParam, basisFunctionDec->state()->peakResidual());
 	    }
-	    ip.fix(peakResParam);	    
-	    planeIter.getPlane(ip.value(indit->first)) = unpadImage(cleanArray);
+	    //	    ip.fix(peakResParam);	    
+	    planeIter.getPlane(ip.value(indit->first)) =
+	      unpadImage(basisFunctionDec->model()+basisFunctionDec->background());
 	  } // loop over all planes of the image cube
 	} // loop over map of indices
       
       quality.setDOF(nParameters);
       quality.setRank(0);
       quality.setCond(0.0);
-      quality.setInfo("Multiscale Clean");
+      quality.setInfo("BasisFunction deconvolver");
       
       /// Save the PSF and Weight
       saveWeights(ip);      
@@ -250,12 +245,10 @@ namespace askap
       return true;
     };
     
-    Solver::ShPtr ImageMultiScaleSolver::clone() const
+    Solver::ShPtr ImageBasisFunctionSolver::clone() const
     {
-      return Solver::ShPtr(new ImageMultiScaleSolver(*this));
+      return Solver::ShPtr(new ImageBasisFunctionSolver(*this));
     }
     
   }
 }
-
-

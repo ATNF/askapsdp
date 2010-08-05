@@ -71,10 +71,10 @@ namespace askap
   {
     ImageFistaSolver::ImageFistaSolver()
     {
-	// Now set up controller
-	itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
-	// Now set up monitor
-	itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
+      // Now set up controller
+      itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
+      // Now set up monitor
+      itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
     }
     
     void ImageFistaSolver::configure(const LOFAR::ParameterSet &parset) {
@@ -160,39 +160,44 @@ namespace askap
 	    clipImage(psfArray);
 	    ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) after clipping "<<max(dirtyArray));
 	    
-	    
 	    // This takes up some memory and we have to ship the residual image out inside
 	    // the parameter class. Therefore, we may not need this functionality in the 
 	    // production version (or may need to implement it in a different way).
-	    saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "residual", unpadImage(dirtyArray),
-				   planeIter.position());
+	    saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "residual",
+				   unpadImage(dirtyArray), planeIter.position());
 	    
 	    // uncomment the code below to save the mask
 	    saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "mask", unpadImage(maskArray),
 				   planeIter.position());
 	    
-
+	    
+	    
 	    // Startup costs so little it's better to create a new
 	    // deconvolver each time we need it	    
-	    boost::shared_ptr<DeconvolverFista<float, casa::Complex> > fistaDec(new DeconvolverFista<float, casa::Complex>(dirtyArray, psfArray));
+	    boost::shared_ptr<DeconvolverFista<float, casa::Complex> >
+	      fistaDec(new DeconvolverFista<float, casa::Complex>(dirtyArray, psfArray));
 	    ASKAPDEBUGASSERT(fistaDec);     
 	    fistaDec->setMonitor(itsMonitor);
 	    fistaDec->setControl(itsControl);
 	    fistaDec->setMask(maskArray);
-
+	    
 	    // We have to reset the initial objective function
 	    // so that the fractional threshold mechanism will work.
 	    fistaDec->state()->resetInitialObjectiveFunction();
 	    // By convention, iterations are counted from scratch each
 	    // major cycle
 	    fistaDec->state()->setCurrentIter(0);
+	    
 	    ASKAPLOG_INFO_STR(logger, "Starting FISTA deconvolution");
-	    // FISTA is not entirely incremental so we need to set the
-	    // background image
+	    // FISTA is not incremental so we need to set the
+	    // background image which remains fixed during one 
+	    // deconvolve step
 	    fistaDec->setBackground(fistaArray);
 	    fistaDec->deconvolve();
-	    fistaArray+=fistaDec->model();
-	    ASKAPLOG_INFO_STR(logger, "Peak flux of the FISTA image "<<max(fistaArray));
+	    ASKAPLOG_INFO_STR(logger, "Peak flux of the FISTA image "
+			      << max(fistaDec->model()));
+	    ASKAPLOG_INFO_STR(logger, "Peak residual of FISTA image "
+			      << max(abs(fistaDec->residual())));
 	    
 	    const std::string deconvolverKey = indit->first + planeIter.tag();
 	    const std::string peakResParam = std::string("peak_residual.") + deconvolverKey;
@@ -201,8 +206,9 @@ namespace askap
 	    } else {
 	      ip.add(peakResParam, fistaDec->state()->peakResidual());
 	    }
-	    ip.fix(peakResParam);	    
-	    planeIter.getPlane(ip.value(indit->first)) = unpadImage(fistaArray);
+	    //	    ip.fix(peakResParam);	    
+	    planeIter.getPlane(ip.value(indit->first)) =
+	      unpadImage(fistaDec->model()+fistaDec->background());
 	  } // loop over all planes of the image cube
 	} // loop over map of indices
       

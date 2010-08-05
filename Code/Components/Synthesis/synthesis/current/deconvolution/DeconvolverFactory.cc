@@ -23,7 +23,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".deconvolver");
+ASKAP_LOGGER(logger, ".deconvolver.factory");
 
 #include <images/Images/PagedImage.h>
 

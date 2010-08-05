@@ -48,8 +48,8 @@ class DeconvolverHogbomTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testDeconvolveCenter);
   CPPUNIT_TEST(testDeconvolveCorner);
   CPPUNIT_TEST(testDeconvolveZero);
+  CPPUNIT_TEST_EXCEPTION(testWrongShape, casa::ArrayShapeError);
   CPPUNIT_TEST_EXCEPTION(testDeconvolveOffsetPSF, AskapError);
-  CPPUNIT_TEST_EXCEPTION(testWrongShape, AskapError);
   CPPUNIT_TEST_SUITE_END();
 public:
    

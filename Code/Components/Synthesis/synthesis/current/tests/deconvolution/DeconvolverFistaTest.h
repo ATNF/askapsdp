@@ -50,12 +50,12 @@ class DeconvolverFistaTest : public CppUnit::TestFixture
 public:
    
   void setUp() {
-    IPosition dimensions(2,100,100);
-    itsDirty.reset(new Array<Float>(dimensions));
+    itsDimensions=IPosition(4,100,100,1,1);
+    itsDirty.reset(new Array<Float>(itsDimensions));
     itsDirty->set(0.0);
-    itsPsf.reset(new Array<Float>(dimensions));
+    itsPsf.reset(new Array<Float>(itsDimensions));
     itsPsf->set(0.0);
-    (*itsPsf)(IPosition(2,50,50))=1.0;
+    (*itsPsf)(IPosition(4,50,50,0,0))=1.0;
     itsDB = DeconvolverFista<Float,Complex>::ShPtr(new DeconvolverFista<Float, Complex>(*itsDirty, *itsPsf));
     CPPUNIT_ASSERT(itsDB);
     CPPUNIT_ASSERT(itsDB->control());
@@ -67,9 +67,9 @@ public:
     CPPUNIT_ASSERT(itsDB->setMonitor(DM));
     boost::shared_ptr<DeconvolverState<Float> > DS(new DeconvolverState<Float>::DeconvolverState());
     CPPUNIT_ASSERT(itsDB->setControl(DC));
-    itsMask.reset(new Array<Float>(dimensions));
+    itsMask.reset(new Array<Float>(itsDimensions));
     itsMask->set(1.0);
-    itsWeight.reset(new Array<Float>(dimensions));
+    itsWeight.reset(new Array<Float>(itsDimensions));
     itsWeight->set(10.0);
     itsDB->setMask(*itsMask);
     itsDB->setWeight(*itsWeight);
@@ -85,7 +85,7 @@ public:
   }
 
   void testCreate() {
-    Array<Float> newDirty(IPosition(2,100,100));
+    Array<Float> newDirty(itsDimensions);
     itsDB->updateDirty(newDirty);
   }
   void testWrongShape() {
@@ -97,13 +97,15 @@ public:
     itsDB->control()->setTargetIter(10);
     itsDB->control()->setGain(1.0);
     itsDB->control()->setTargetObjectiveFunction(0.000); 
-    itsDB->control()->setLambda(100.0);
+    itsDB->control()->setLambda(0.00001);
     itsDB->dirty().set(0.0);
-    itsDB->dirty()(IPosition(2,30,20))=1.0;
+    itsDB->dirty()(IPosition(4,30,20,0,0))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
   }
 
 private:
+
+  IPosition itsDimensions;
 
   boost::shared_ptr< Array<Float> > itsDirty;
   boost::shared_ptr< Array<Float> > itsPsf;

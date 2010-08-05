@@ -30,6 +30,9 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(decbaselogger, ".deconvolution.base");
+
 #include <casa/aips.h>
 #include <boost/shared_ptr.hpp>
 
@@ -64,6 +67,13 @@ namespace askap {
       itsDM = boost::shared_ptr<DeconvolverMonitor<T> >(new DeconvolverMonitor<T>());
       ASKAPASSERT(itsDM);
 
+      this->model().resize(this->dirty().shape());
+      this->model().set(T(0.0));
+      this->background().resize(this->dirty().shape());
+      this->background().set(T(0.0));
+      this->residual().resize(this->dirty().shape());
+      this->residual().set(T(0.0));
+
       itsXFR.resize(this->psf().shape());
       itsXFR.set(FT(0.0));
       casa::setReal(itsXFR, this->psf());
@@ -83,12 +93,12 @@ namespace askap {
     
     template<class T, class FT>
     void DeconvolverBase<T,FT>::setBackground(const Array<T> background) {
-      itsBackground = background;
+      itsBackground = background.copy();
     }
     
     template<class T, class FT>
     void DeconvolverBase<T,FT>::updateDirty(Array<T> dirty) {
-      if (dirty.shape()!=itsDirty.shape()) {
+      if (!dirty.shape().conform(itsDirty.shape())) {
         throw(AskapError("Updated dirty image has different shape"));
       }
       itsDirty = dirty;
@@ -230,13 +240,18 @@ namespace askap {
     }
 
     template<class T, class FT>
-    void DeconvolverBase<T,FT>::finalise()
+    void DeconvolverBase<T,FT>::finalise() {
+      updateResiduals(this->model());
+    }
+
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::updateResiduals(Array<T>& model)
     {
       Array<FT> work;
       // Find residuals for current model model
-      work.resize(this->model().shape());
+      work.resize(model.shape());
       work.set(FT(0.0));
-      casa::setReal(work, this->model());
+      casa::setReal(work, model);
       scimath::fft2d(work, true);
       work=this->xfr()*work;
       scimath::fft2d(work, false);

@@ -32,6 +32,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
+ASKAP_LOGGER(decctllogger, ".deconvolution.control");
 
 #include <casa/aips.h>
 #include <deconvolution/DeconvolverState.h>
@@ -57,14 +58,14 @@ namespace askap {
     Bool DeconvolverControl<T>::terminate(const DeconvolverState<T>& state) {
       // Check for convergence
       if(abs(state.objectiveFunction())<itsTargetObjectiveFunction) {
-        ASKAPLOG_INFO_STR(logger, "Objective function " << state.objectiveFunction()
+        ASKAPLOG_INFO_STR(decctllogger, "Objective function " << state.objectiveFunction()
                           << " less than target " << itsTargetObjectiveFunction);
         itsTerminationCause = CONVERGED;
         return True;
       }
       //
       if(abs(state.objectiveFunction())<itsFractionalThreshold*state.initialObjectiveFunction()) {
-        ASKAPLOG_INFO_STR(logger, "Objective function " << state.objectiveFunction()
+        ASKAPLOG_INFO_STR(decctllogger, "Objective function " << state.objectiveFunction()
                           << " less than fractional threshold ");
         itsTerminationCause = CONVERGED;
         return True;

@@ -45,7 +45,7 @@ class DeconvolverBaseTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE(DeconvolverBaseTest);
   CPPUNIT_TEST(testCreate);
   CPPUNIT_TEST(testCreatePlugins);
-  CPPUNIT_TEST_EXCEPTION(testWrongShape, AskapError);
+  CPPUNIT_TEST_EXCEPTION(testWrongShape, casa::ArrayShapeError);
   CPPUNIT_TEST_SUITE_END();
 public:
    

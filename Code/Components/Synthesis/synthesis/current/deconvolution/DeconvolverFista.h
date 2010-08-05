@@ -148,12 +148,6 @@ namespace askap {
       // Mask weighted by weight image
       Array<T> itsWeightedMask;
 
-      // Transfer function
-      Array<FT> itsXFR;
-
-      // Transform of dirty image
-      Array<FT> itsVis;
-
       // Needed for scaling
       T itsLipschitz;
 

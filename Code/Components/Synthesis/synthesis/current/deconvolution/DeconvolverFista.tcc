@@ -30,6 +30,9 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(decfistalogger, ".deconvolution.fista");
+
 #include <casa/aips.h>
 #include <boost/shared_ptr.hpp>
 
@@ -60,10 +63,6 @@ namespace askap {
     DeconvolverFista<T,FT>::DeconvolverFista(Array<T>& dirty, Array<T>& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
     {
-      this->model() = this->dirty().copy();
-      this->model().set(T(0.0));
-      this->background() = this->dirty().copy();
-      this->background().set(T(0.0));
     };
 
     template<class T, class FT>
@@ -77,25 +76,16 @@ namespace askap {
     {
       DeconvolverBase<T, FT>::initialise();
 
-      // Needed for FISTA
+      itsLipschitz=casa::max(casa::real(casa::abs(this->itsXFR)));
 
-      itsXFR.resize(this->psf().shape());
-      itsXFR.set(FT(0.0));
-      casa::setReal(itsXFR, this->psf());
-      scimath::fft2d(itsXFR, true);
+      ASKAPLOG_INFO_STR(decfistalogger, "Lipschitz number = " << itsLipschitz);
 
-      itsVis.resize(this->dirty().shape());
-      itsVis.set(FT(0.0));
-      casa::setReal(itsVis, this->dirty());
-      scimath::fft2d(itsVis, true);
-
-    // L=2*max(max(abs(UV).^2));
-      //      itsLipschitz=casa::max(casa::real(itsXFR*conj(itsXFR)));
-      itsLipschitz=casa::max(casa::real(casa::abs(itsXFR)));
-
-      ASKAPLOG_INFO_STR(logger, "Lipschitz number = " << itsLipschitz);
-
-    }
+      // Initialise the residual image
+      this->residual().resize(this->dirty().shape());
+      this->residual()=this->dirty().copy();
+ 
+      ASKAPLOG_INFO_STR(decfistalogger, "Initialised FISTA solver");
+   }
 
     // This contains the heart of the Fista algorithm
     // function [Model]=ASKAPdeconv_L1norm(Dirtymap,PSF,center,lambda,niter)
@@ -160,42 +150,61 @@ namespace askap {
 
       this->initialise();
 
-      bool isMasked(itsWeightedMask.shape().conform(this->dirty().shape()));
+      bool isMasked(this->itsWeightedMask.shape().conform(this->dirty().shape()));
 
       Array<T> modelImage, modelImageold, modelImageTemp;
-      Array<FT> modelImagefft, modelImageResidual;
+      Array<FT> modelImagefft;
       Array<FT> VResidual;
       Array<T> Dfft;
 
-      modelImage.resize(this->model().shape());
-      modelImage.set(T(0.0));
       modelImageTemp.resize(this->model().shape());
       modelImageTemp.set(T(0.0));
-      T tnew, told;
 
+      modelImage.resize(this->model().shape());
+      modelImage.set(T(0.0));
+
+      T tnew, told;
       tnew=T(1.0);
 
       T absPeakVal;
       casa::IPosition absPeakPos;
 
-      ASKAPLOG_INFO_STR(logger, "Performing Fista for " << this->control()->targetIter() << " iterations");
+      // Find peak in residual image
+      {
+	casa::IPosition minPos;
+	casa::IPosition maxPos;
+	T minVal(0.0), maxVal(0.0);
+	if (isMasked) {
+	  casa::minMaxMasked(minVal, maxVal, minPos, maxPos,
+			     this->dirty(),
+			     itsWeightedMask);
+	}
+	else {
+	  casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty());
+	}
+	//
+	ASKAPLOG_INFO_STR(decfistalogger, "Current residual image");
+	ASKAPLOG_INFO_STR(decfistalogger, "   Maximum = " << maxVal << " at location " << maxPos);
+	ASKAPLOG_INFO_STR(decfistalogger, "   Minimum = " << minVal << " at location " << minPos);
+	if(abs(minVal)<abs(maxVal)) {
+	  absPeakVal=abs(maxVal);
+	  absPeakPos=maxPos;
+	}
+	else {
+	  absPeakVal=abs(minVal);
+	  absPeakPos=minPos;
+	}
+      }
+      this->state()->setPeakResidual(absPeakVal);
+      this->state()->setObjectiveFunction(absPeakVal);
+
+
+      ASKAPLOG_INFO_STR(decfistalogger, "Performing Fista for " << this->control()->targetIter() << " iterations");
       do {
         modelImageold=modelImageTemp.copy();
         told=tnew;
 
-        // Find residuals for current model modelImage
-	// using FFT-based convolution
-        modelImagefft.resize(modelImage.shape());
-        modelImagefft.set(FT(0.0));
-        casa::setReal(modelImagefft, modelImage);
-        scimath::fft2d(modelImagefft, true);
-	VResidual=itsXFR*modelImagefft-itsVis;
-	VResidual=itsVis-itsXFR*modelImagefft;
-        modelImageResidual.resize(modelImage.shape());
-	// We need this form for uv data. For images it would be
-	//        modelImageResidual=(conj(itsXFR)*VResidual);
-        modelImageResidual=VResidual;
-        scimath::fft2d(modelImageResidual, false);
+	updateResiduals(modelImage);
 
         // Find peak in residual image
         {
@@ -204,15 +213,15 @@ namespace askap {
           T minVal(0.0), maxVal(0.0);
           if (isMasked) {
             casa::minMaxMasked(minVal, maxVal, minPos, maxPos,
-			       casa::real(modelImageResidual),
+			       this->residual(),
                                itsWeightedMask);
           }
           else {
-            casa::minMax(minVal, maxVal, minPos, maxPos, casa::real(modelImageResidual));
+            casa::minMax(minVal, maxVal, minPos, maxPos, this->residual());
           }
           //
-          ASKAPLOG_INFO_STR(logger, "Maximum = " << maxVal << " at location " << maxPos);
-          ASKAPLOG_INFO_STR(logger, "Minimum = " << minVal << " at location " << minPos);
+          ASKAPLOG_INFO_STR(decfistalogger, "   Maximum = " << maxVal << " at location " << maxPos);
+          ASKAPLOG_INFO_STR(decfistalogger, "   Minimum = " << minVal << " at location " << minPos);
           if(abs(minVal)<abs(maxVal)) {
             absPeakVal=abs(maxVal);
             absPeakPos=maxPos;
@@ -226,11 +235,14 @@ namespace askap {
         this->state()->setObjectiveFunction(absPeakVal);
 
         // Now update the current model: this is the Fista update algorithm
-        modelImage=modelImage+T(2.0/itsLipschitz)*real(modelImageResidual);
-	//        Dfft=abs(modelImage)-this->control()->lambda()/itsLipschitz;
-        Dfft=abs(modelImage)-this->control()->lambda();
+	// We've modified it to allow a background image that is not
+	// represented in the residuals. This change allows incremental
+	// changes as needed for major/minor cycle algorithms
+        modelImage=modelImage+T(1.0/itsLipschitz)*this->residual();
+	Dfft=abs(modelImage+this->itsBackground)-this->control()->lambda()/itsLipschitz;
         modelImageTemp=(Dfft(Dfft>T(0)));
-        modelImageTemp*=casa::sign(modelImage);
+        modelImageTemp*=casa::sign(modelImage+this->itsBackground);
+	modelImageTemp-=this->itsBackground;
         tnew=(1.0+sqrt(1.0+4.0*pow(told, 2)))/2.0;
         modelImage=modelImageTemp+T((told-1.0)/tnew)*(modelImageTemp-modelImageold);
         
@@ -242,12 +254,17 @@ namespace askap {
       while (!this->control()->terminate(*(this->state())));
       this->model()=modelImageTemp.copy();
       
-      ASKAPLOG_INFO_STR(logger, "Performed Fista for " << this->state()->currentIter() << " iterations");
+      ASKAPLOG_INFO_STR(decfistalogger, "Performed Fista for " << this->state()->currentIter() << " iterations");
       
-      ASKAPLOG_INFO_STR(logger, this->control()->terminationString());
+      ASKAPLOG_INFO_STR(decfistalogger, this->control()->terminationString());
       
       this->finalise();
-      
+
+      absPeakVal=casa::max(casa::abs(this->residual()));
+
+      this->state()->setPeakResidual(absPeakVal);
+      this->state()->setObjectiveFunction(absPeakVal);
+
       return True;
     }
     

@@ -1,6 +1,6 @@
 /// @file
-/// @brief Basis Function for a point source
-/// @details Holds basis function for a point source
+/// @brief Basis Function for a  source
+/// @details Holds basis function for a  source
 /// @ingroup Deconvolver
 ///  
 ///
@@ -31,10 +31,10 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(decpointbaselogger, ".deconvolution.pointbasis");
 
 #include <casa/aips.h>
-#include <deconvolution/PointBasisFunction.h>
+
+#include <casa/Arrays/Cube.h>
 
 using namespace casa;
 
@@ -43,24 +43,23 @@ namespace askap {
   namespace synthesis {
     
     template<class T>
-    PointBasisFunction<T>::PointBasisFunction() :
-      BasisFunction<T>::BasisFunction()
+    BasisFunction<T>::BasisFunction() : itsNumberTerms(1)
     {
     };
     
     template<class T>
-    PointBasisFunction<T>::PointBasisFunction(const IPosition shape) :
-      BasisFunction<T>::BasisFunction()
+    BasisFunction<T>::BasisFunction(const IPosition shape) : itsNumberTerms(1)
     {
       initialise(shape);
     };
     
     template<class T>
-    void PointBasisFunction<T>::initialise(const IPosition shape)
+    void BasisFunction<T>::initialise(const IPosition shape)
     {
-      IPosition centre(3, shape[0]/2, shape[1]/2, 0);
-      BasisFunction<T>::itsBasisFunction.resize(IPosition(3, shape[0], shape[1], 1));
-      BasisFunction<T>::itsBasisFunction(centre)=T(1.0);
+      ASKAPASSERT(itsNumberTerms);
+      IPosition bfShape(3, shape(0), shape(1), itsNumberTerms);
+      itsBasisFunction.resize(bfShape);
+      itsBasisFunction.set(T(0.0));
     };
     
   } // namespace synthesis

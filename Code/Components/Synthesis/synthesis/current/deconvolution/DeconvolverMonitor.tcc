@@ -32,7 +32,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-
+ASKAP_LOGGER(decmonlogger, ".deconvolution.monitor");
 #include <casa/aips.h>
 #include <deconvolution/DeconvolverMonitor.h>
 
@@ -41,20 +41,33 @@ namespace askap {
 namespace synthesis {
 
     template<class T>
-    DeconvolverMonitor<T>::DeconvolverMonitor() : itsVerbose(false)
+    DeconvolverMonitor<T>::DeconvolverMonitor() : itsVerbose(false),
+						  itsLogEvery(1)
     {
     }
     /// Monitor the current state
     template<class T>
     void DeconvolverMonitor<T>::monitor(const DeconvolverState<T>& ds) {
-      ASKAPLOG_INFO_STR(logger, "Iteration " << ds.currentIter()
-                        << ", Objective function " << ds.objectiveFunction()
-                        << ", Total flux " << ds.totalFlux());
+      if(itsVerbose) {
+	ASKAPLOG_INFO_STR(decmonlogger, "Iteration " << ds.currentIter()
+			  << ", Peak residual " << ds.peakResidual()
+			  << ", Objective function " << ds.objectiveFunction()
+			  << ", Total flux " << ds.totalFlux());
+      }
+      else {
+	if ((ds.currentIter()%itsLogEvery)==0) {
+	  ASKAPLOG_INFO_STR(decmonlogger, "Iteration " << ds.currentIter()
+			    << ", Peak residual " << ds.peakResidual()
+			    << ", Objective function " << ds.objectiveFunction()
+			    << ", Total flux " << ds.totalFlux());
+	}
+      }
     }
 
     template<class T>
     void DeconvolverMonitor<T>::configure(const LOFAR::ParameterSet& parset)
     {        
+      itsLogEvery=parset.getInt("logevery", 1);
       itsVerbose=parset.getBool("verbose", false);
     }
 

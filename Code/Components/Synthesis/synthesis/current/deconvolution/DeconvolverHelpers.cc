@@ -23,7 +23,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".deconvolver");
+ASKAP_LOGGER(logger, ".deconvolver.helpers");
 
 #include <casa/OS/Directory.h>
 #include <images/Images/PagedImage.h>
@@ -39,13 +39,16 @@ namespace askap {
   namespace synthesis {
     
     Array<Float> DeconvolverHelpers::getArrayFromImage(const String name, const LOFAR::ParameterSet &parset) {
-      String imageName=parset.getString(name, name);
+      String imageName=parset.getString(name, "");
       casa::Array<Float> imageArray;
-      {
+      if (imageName!="") {
         casa::PagedImage<float> im(imageName);
         im.get(imageArray, True);
+	ASKAPLOG_INFO_STR(logger, "Read image " << imageName << " into array " << name);
       }
-      ASKAPLOG_INFO_STR(logger, "Read image " << imageName << " into array " << name);
+      else {
+	ASKAPLOG_INFO_STR(logger, "Image " << name << " not specified in parset");
+      }
       return imageArray;
     }
     

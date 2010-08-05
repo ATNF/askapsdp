@@ -36,49 +36,49 @@
 #include <deconvolution/DeconvolverFista.h>
 
 namespace askap {
-    namespace synthesis {
-        /// @brief Fista solver for images.
-        ///
-        /// @ingroup measurementequation
-        class ImageFistaSolver : public ImageCleaningSolver {
-            public:
-
-                /// @brief default constructor
-                ImageFistaSolver();
-
-                /// @brief Initialize this solver
-                virtual void init();
- 
-                /// @brief Solve for parameters, updating the values kept internally
-                /// The solution is constructed from the normal equations. The parameters named 
-                /// image* are interpreted as images and solved for.
-                /// @param[in] ip current model (to be updated)
-                /// @param[in] quality Solution quality information
-                virtual bool solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality);
-
-                /// @brief Clone this object
-                /// @return a shared pointer to the clone
-                virtual askap::scimath::Solver::ShPtr clone() const;
-
-	  /// @brief configure basic parameters of the solver
-	  /// @details This method encapsulates extraction of basic solver parameters from the parset.
-	  /// @param[in] parset parset's subset (should have solver.Clean or solver.Dirty removed)
-	  virtual void configure(const LOFAR::ParameterSet &parset); 
-
-            protected:
-                /// @brief Precondition the PSF and the dirty image
-                /// @param[in] psf point spread function to precondition (in/out)
-                /// @param[in] dirty dirty image to precondition (in/out)
-                void preconditionNE(casa::ArrayLattice<float>& psf, casa::ArrayLattice<float>& dirty);
-
-	  boost::shared_ptr<DeconvolverControl<Float> > itsControl;
+  namespace synthesis {
+    /// @brief Fista solver for images.
+    ///
+    /// @ingroup measurementequation
+    class ImageFistaSolver : public ImageCleaningSolver {
+    public:
       
-	  boost::shared_ptr<DeconvolverMonitor<Float> > itsMonitor;
-
-            private:
-
-        };
-
-    }
+      /// @brief default constructor
+      ImageFistaSolver();
+      
+      /// @brief Initialize this solver
+      virtual void init();
+      
+      /// @brief Solve for parameters, updating the values kept internally
+      /// The solution is constructed from the normal equations. The parameters named 
+      /// image* are interpreted as images and solved for.
+      /// @param[in] ip current model (to be updated)
+      /// @param[in] quality Solution quality information
+      virtual bool solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality);
+      
+      /// @brief Clone this object
+      /// @return a shared pointer to the clone
+      virtual askap::scimath::Solver::ShPtr clone() const;
+      
+      /// @brief configure basic parameters of the solver
+      /// @details This method encapsulates extraction of basic solver parameters from the parset.
+      /// @param[in] parset parset's subset (should have solver.Clean or solver.Dirty removed)
+      virtual void configure(const LOFAR::ParameterSet &parset); 
+      
+    protected:
+      /// @brief Precondition the PSF and the dirty image
+      /// @param[in] psf point spread function to precondition (in/out)
+      /// @param[in] dirty dirty image to precondition (in/out)
+      void preconditionNE(casa::ArrayLattice<float>& psf, casa::ArrayLattice<float>& dirty);
+      
+      boost::shared_ptr<DeconvolverControl<Float> > itsControl;
+      
+      boost::shared_ptr<DeconvolverMonitor<Float> > itsMonitor;
+      
+    private:
+      
+    };
+    
+  }
 }
 #endif

@@ -31,7 +31,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 
 #include <measurementequation/ImageSolver.h>
 #include <measurementequation/ImageMultiScaleSolver.h>
-//#include <measurementequation/ImageBasisfunctionSolver.h>
+#include <measurementequation/ImageBasisFunctionSolver.h>
 #include <measurementequation/ImageFistaSolver.h>
 #include <measurementequation/ImageMSMFSolver.h>
 #include <measurementequation/IImagePreconditioner.h>
@@ -252,10 +252,6 @@ namespace askap
 	    mfmss->setSpeedUp(factor);
 	  }
 	}
-	//      } else if(parset.getString("solver")=="Basisfunction") {
-	//	ASKAPLOG_INFO_STR(logger, "Constructing basis function solver" );
-	//	solver = ImageSolver::ShPtr(new ImageBasisFunctionSolver());
-	//	solver->configure(parset.makeSubset("solver.Basisfunction."));
       } else if(parset.getString("solver")=="Fista") {
 	ASKAPLOG_INFO_STR(logger, "Constructing FISTA solver" );
 	solver = ImageSolver::ShPtr(new ImageFistaSolver());
@@ -264,6 +260,17 @@ namespace askap
 	// We cast back to get the correct configure
 	boost::shared_ptr<ImageFistaSolver> ifs = 
 	  boost::dynamic_pointer_cast<ImageFistaSolver>(solver);
+	if (ifs) {
+	  solver->configure(subset);
+	}
+      } else if(parset.getString("solver")=="Basisfunction") {
+	ASKAPLOG_INFO_STR(logger, "Constructing Basisfunction solver" );
+	solver = ImageSolver::ShPtr(new ImageBasisFunctionSolver());
+	LOFAR::ParameterSet subset(parset.makeSubset("solver.Basisfunction."));
+	
+	// We cast back to get the correct configure
+	boost::shared_ptr<ImageBasisFunctionSolver> ifs = 
+	  boost::dynamic_pointer_cast<ImageBasisFunctionSolver>(solver);
 	if (ifs) {
 	  solver->configure(subset);
 	}

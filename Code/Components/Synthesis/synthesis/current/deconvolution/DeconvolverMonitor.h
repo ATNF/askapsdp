@@ -72,6 +72,7 @@ public:
 private:
 
   Bool itsVerbose;
+  uInt itsLogEvery;
 };
 
 } // namespace synthesis

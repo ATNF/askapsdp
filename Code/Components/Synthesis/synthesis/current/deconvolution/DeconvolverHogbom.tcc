@@ -30,6 +30,9 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(dechogbomlogger, ".deconvolution.hogbom");
+
 #include <casa/aips.h>
 #include <boost/shared_ptr.hpp>
 
@@ -74,7 +77,7 @@ namespace askap {
 
       this->initialise();
 
-      ASKAPLOG_INFO_STR(logger, "Performing Hogbom CLEAN for " << this->control()->targetIter() << " iterations");
+      ASKAPLOG_INFO_STR(dechogbomlogger, "Performing Hogbom CLEAN for " << this->control()->targetIter() << " iterations");
       do {
         this->oneIteration();
         this->monitor()->monitor(*(this->state()));
@@ -82,9 +85,9 @@ namespace askap {
       }
       while (!this->control()->terminate(*(this->state())));
 
-      ASKAPLOG_INFO_STR(logger, "Performed Hogbom CLEAN for " << this->state()->currentIter() << " iterations");
+      ASKAPLOG_INFO_STR(dechogbomlogger, "Performed Hogbom CLEAN for " << this->state()->currentIter() << " iterations");
 
-      ASKAPLOG_INFO_STR(logger, this->control()->terminationString());
+      ASKAPLOG_INFO_STR(dechogbomlogger, this->control()->terminationString());
 
       this->finalise();
 
@@ -117,8 +120,8 @@ namespace askap {
         casa::minMax(minVal, maxVal, minPos, maxPos, this->residual());
       }
       //
-      ASKAPLOG_INFO_STR(logger, "Maximum = " << maxVal << " at location " << maxPos);
-      ASKAPLOG_INFO_STR(logger, "Minimum = " << minVal << " at location " << minPos);
+      ASKAPLOG_INFO_STR(dechogbomlogger, "Maximum = " << maxVal << " at location " << maxPos);
+      ASKAPLOG_INFO_STR(dechogbomlogger, "Minimum = " << minVal << " at location " << minPos);
       T absPeakVal;
       casa::IPosition absPeakPos;
       if(abs(minVal)<abs(maxVal)) {
@@ -173,13 +176,13 @@ namespace askap {
       casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
       casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
       if(!(residualSlicer.length()==psfSlicer.length())||!(residualSlicer.stride()==psfSlicer.stride())) {
-	ASKAPLOG_INFO_STR(logger, "Peak of PSF  : " << this->itsPeakPSFPos );
-	ASKAPLOG_INFO_STR(logger, "Peak of residual: " << absPeakPos );
-	ASKAPLOG_INFO_STR(logger, "PSF width    : " << psfWidth );
-	ASKAPLOG_INFO_STR(logger, "Residual start  : " << residualStart << " end: " << residualEnd );
-	ASKAPLOG_INFO_STR(logger, "PSF   start  : " << psfStart << " end: " << psfEnd );
-	ASKAPLOG_INFO_STR(logger, "Residual slicer : " << residualSlicer );
-	ASKAPLOG_INFO_STR(logger, "PSF slicer   : " << psfSlicer );
+	ASKAPLOG_INFO_STR(dechogbomlogger, "Peak of PSF  : " << this->itsPeakPSFPos );
+	ASKAPLOG_INFO_STR(dechogbomlogger, "Peak of residual: " << absPeakPos );
+	ASKAPLOG_INFO_STR(dechogbomlogger, "PSF width    : " << psfWidth );
+	ASKAPLOG_INFO_STR(dechogbomlogger, "Residual start  : " << residualStart << " end: " << residualEnd );
+	ASKAPLOG_INFO_STR(dechogbomlogger, "PSF   start  : " << psfStart << " end: " << psfEnd );
+	ASKAPLOG_INFO_STR(dechogbomlogger, "Residual slicer : " << residualSlicer );
+	ASKAPLOG_INFO_STR(dechogbomlogger, "PSF slicer   : " << psfSlicer );
 
         throw AskapError("Mismatch in slicers for residual and psf images");
       }

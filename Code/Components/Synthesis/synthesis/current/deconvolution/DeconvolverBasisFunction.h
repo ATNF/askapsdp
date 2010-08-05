@@ -39,6 +39,8 @@
 
 #include <string>
 
+#include <deconvolution/DeconvolverBase.h>
+
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
 #include <deconvolution/DeconvolverMonitor.h>
@@ -71,15 +73,13 @@ namespace askap {
 
       /// @brief Set the basis function to be used
       /// @details The algorithm can work with different basis functions
-      /// PointBasisFunction, MultiScaleBasisFunction (without and with
-      /// orthogonalisation.
+      /// PointBasisFunction, MultiScaleBasisFunction
       
       void setBasisFunction(boost::shared_ptr<BasisFunction<T> > bf);
 
       /// @brief Return the basis function to be used
       /// @details The algorithm can work with different basis functions
-      /// PointBasisFunction, MultiScaleBasisFunction (without and with
-      /// orthogonalisation.
+      /// PointBasisFunction, MultiScaleBasisFunction 
       boost::shared_ptr<BasisFunction<T> > basisFunction();
 
       /// @brief Perform the deconvolution

@@ -30,6 +30,9 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(decbflogger, ".deconvolution.basisfunction");
+
 #include <casa/aips.h>
 #include <boost/shared_ptr.hpp>
 
@@ -55,10 +58,8 @@ namespace askap {
 
     template<class T, class FT>
     DeconvolverBasisFunction<T,FT>::DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf)
-      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(false)
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(true)
     {
-      this->model().resize(this->dirty().shape());
-      this->model().set(T(0.0));
     };
 
     template<class T, class FT>
@@ -92,26 +93,17 @@ namespace askap {
 	defaultScales[2]=30.0;
 	std::vector<float> scales=parset.getFloatVector("solver.Basisfunction.scales", defaultScales);
       
-	Bool orthogonal(parset.getBool("solver.Basisfunction.orthogonal", true));
-	IPosition bfShape(3, this->itsDirty.shape()(0), this->itsDirty.shape()(1), scales.size()); 
-	BasisFunction<Float>::ShPtr bf(new MultiScaleBasisFunction<Float>(bfShape, scales, orthogonal));
+	ASKAPLOG_INFO_STR(decbflogger, "Constructing Multiscale basis function with scales " << scales);
+	BasisFunction<Float>::ShPtr bf(new MultiScaleBasisFunction<Float>(scales));
       }
-      
       itsUseCrossTerms=parset.getBool("solver.Basisfunction.usecrossterms", true);
+      
     }
 
     template<class T, class FT>
     void DeconvolverBasisFunction<T,FT>::finalise()
     {
-      Array<FT> work;
-      // Find residuals for current model model
-      work.resize(this->model().shape());
-      work.set(FT(0.0));
-      casa::setReal(work, this->model());
-      scimath::fft2d(work, true);
-      work=this->xfr()*work;
-      scimath::fft2d(work, false);
-      this->residual()=this->dirty()-real(work);
+      DeconvolverBase<T, FT>::updateResiduals(this->model());
     }
       
     template<class T, class FT>
@@ -119,54 +111,59 @@ namespace askap {
     {
       DeconvolverBase<T, FT>::initialise();
 
+      ASKAPLOG_INFO_STR(decbflogger, "Calculating cache of images");
+
       // Now calculate the convolutions of the residual images and PSFs 
       // with the basis functions
-      IPosition stackShape(3, this->psf().shape()[0], this->psf().shape()[1],
-                           this->itsBasisFunction->numberTerms());
+      ASKAPLOG_INFO_STR(decbflogger, "Shape of basis functions "
+			<< this->itsBasisFunction->basisFunction().shape());
 
-      Array<FT> residualFT(this->residual().shape());
-      residualFT.set(FT(0.0));
-      casa::setReal(residualFT, this->residual());
-      scimath::fft2d(residualFT, false);
+      IPosition stackShape(this->itsBasisFunction->basisFunction().shape());
 
       itsResidualBasisFunction.resize(stackShape);
       itsPSFBasisFunction.resize(stackShape);
 
       Array<FT> bfPlane(this->model().shape());
 
-      Cube<FT> basisFunctionFFT(stackShape);
+      Cube<FT> basisFunctionFFT(this->itsBasisFunction->basisFunction().shape());
       casa::setReal(basisFunctionFFT, this->itsBasisFunction->basisFunction());
       scimath::fft2d(basisFunctionFFT, true);
 
-      Array<FT> residualFFT(this->itsResidual.shape());
-      casa::setReal(residualFFT, this->itsResidual);
+      Array<FT> residualFFT(this->itsResidual.shape().nonDegenerate());
+      residualFFT.set(FT(0.0));
+      casa::setReal(residualFFT, this->itsResidual.nonDegenerate());
       scimath::fft2d(residualFFT, true);
 
-      Array<FT> work(this->model().shape());
-      ASKAPLOG_INFO_STR(logger, "Calculating convolutions of residual image with basis functions");
+      Array<FT> work(this->model().nonDegenerate().shape());
+      ASKAPLOG_INFO_STR(decbflogger,
+			"Calculating convolutions of residual image with basis functions");
 
       for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
 
-        work=conj(basisFunctionFFT.xyPlane(term).nonDegenerate())*residualFFT;
+	ASKAPASSERT(basisFunctionFFT.xyPlane(term).nonDegenerate().shape().conform(residualFFT.nonDegenerate().shape()));
+        work=conj(basisFunctionFFT.xyPlane(term).nonDegenerate())*residualFFT.nonDegenerate();
         scimath::fft2d(work, false);
 
         // basis function * residual
-        ASKAPLOG_INFO_STR(logger, "Basis function(" << term << ") * Residual: max = " << max(real(work)) << " min = " << min(real(work)));
+        ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term
+			  << ") * Residual: max = " << max(real(work))
+			  << " min = " << min(real(work)));
 
         Cube<T>(itsResidualBasisFunction).xyPlane(term)=real(work);
       }
-      ASKAPLOG_INFO_STR(logger, "Calculating convolutions of PSFs with basis functions");
+      ASKAPLOG_INFO_STR(decbflogger, "Calculating convolutions of PSFs with basis functions");
       for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
           // basis function * psf
-          work=conj(basisFunctionFFT.xyPlane(term).nonDegenerate())*this->xfr();
-          scimath::fft2d(work, false);
-          Cube<T>(itsPSFBasisFunction).xyPlane(term)=real(work);
-          
-          ASKAPLOG_INFO_STR(logger, "Basis function(" << term << ") * PSF: max = " << max(real(work)) << " min = " << min(real(work)));
+	ASKAPASSERT(basisFunctionFFT.xyPlane(term).nonDegenerate().shape().conform(this->xfr().nonDegenerate().shape()));
+	work=conj(basisFunctionFFT.xyPlane(term).nonDegenerate())*this->xfr().nonDegenerate();
+	scimath::fft2d(work, false);
+	Cube<T>(itsPSFBasisFunction).xyPlane(term)=real(work);
+        
+	ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * PSF: max = " << max(real(work)) << " min = " << min(real(work)));
       }
-
+      
       if(this->itsUseCrossTerms) {
-        ASKAPLOG_INFO_STR(logger, "Calculating double convolutions of PSF with basis functions");
+        ASKAPLOG_INFO_STR(decbflogger, "Calculating double convolutions of PSF with basis functions");
         // Find peak in residual image cube
         casa::IPosition minPos;
         casa::IPosition maxPos;
@@ -175,6 +172,7 @@ namespace askap {
         IPosition crossTermsShape(4, this->psf().shape()[0], this->psf().shape()[1],
                                   this->itsBasisFunction->numberTerms(),
                                   this->itsBasisFunction->numberTerms());
+	ASKAPLOG_INFO_STR(decbflogger, "Shape of cross terms " << crossTermsShape);
         itsPSFCrossTerms.resize(crossTermsShape);
         IPosition crossTermsStart(4,0);
         IPosition crossTermsEnd(crossTermsShape-1);
@@ -191,7 +189,7 @@ namespace askap {
             crossTermsEnd(3)=term1;
             casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
             crossTermsPSFFFT(crossTermsSlicer).nonDegenerate()=
-              conj(basisFunctionFFT.xyPlane(term1)).nonDegenerate()*basisFunctionFFT.xyPlane(term).nonDegenerate()*this->xfr();
+              conj(basisFunctionFFT.xyPlane(term1)).nonDegenerate()*basisFunctionFFT.xyPlane(term).nonDegenerate()*this->xfr().nonDegenerate();
           }
 
         }
@@ -206,12 +204,12 @@ namespace askap {
             crossTermsEnd(3)=term1;
             casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
             casa::minMax(minVal, maxVal, minPos, maxPos, this->itsPSFCrossTerms(crossTermsSlicer));
-            ASKAPLOG_INFO_STR(logger, "Basis function(" << term << ") * Basis function(" << term1
+            ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * Basis function(" << term1
                               << ") * PSF: max = " << maxVal << " min = " << minVal);
             this->itsCouplingMatrix(term, term1) = maxVal;
           }
         }
-        ASKAPLOG_INFO_STR(logger, "Coupling matrix " << this->itsCouplingMatrix);
+        ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix " << this->itsCouplingMatrix);
       }
     }
 
@@ -221,7 +219,7 @@ namespace askap {
 
       this->initialise();
 
-      ASKAPLOG_INFO_STR(logger, "Performing BasisFunction CLEAN for "
+      ASKAPLOG_INFO_STR(decbflogger, "Performing BasisFunction CLEAN for "
                         << this->control()->targetIter() << " iterations");
       do {
         this->oneIteration();
@@ -230,10 +228,10 @@ namespace askap {
       }
       while (!this->control()->terminate(*(this->state())));
 
-      ASKAPLOG_INFO_STR(logger, "Performed BasisFunction CLEAN for "
+      ASKAPLOG_INFO_STR(decbflogger, "Performed BasisFunction CLEAN for "
                         << this->state()->currentIter() << " iterations");
 
-      ASKAPLOG_INFO_STR(logger, this->control()->terminationString());
+      ASKAPLOG_INFO_STR(decbflogger, this->control()->terminationString());
 
       this->finalise();
 
@@ -259,8 +257,8 @@ namespace askap {
         casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction);
       }
       //
-      ASKAPLOG_INFO_STR(logger, "Maximum =  " << maxVal << " at location " << maxPos);
-      ASKAPLOG_INFO_STR(logger, "Minimum = " << minVal << " at location " << minPos);
+      //      ASKAPLOG_INFO_STR(decbflogger, "Maximum =  " << maxVal << " at location " << maxPos);
+      //      ASKAPLOG_INFO_STR(decbflogger, "Minimum = " << minVal << " at location " << minPos);
       T absPeakVal;
       casa::IPosition absPeakPos;
       if(abs(minVal)<abs(maxVal)) {
@@ -274,7 +272,7 @@ namespace askap {
 
       this->state()->setPeakResidual(absPeakVal);
       this->state()->setObjectiveFunction(absPeakVal);
-      this->state()->setTotalFlux(sum(this->model()));
+      this->state()->setTotalFlux(sum(this->itsBackground)+sum(this->model()));
 
       // Has this terminated for any reason?
       if(this->control()->terminate(*(this->state()))) {
@@ -287,8 +285,11 @@ namespace askap {
 
       casa::IPosition residualStart(ndim,0), residualEnd(ndim,0), residualStride(ndim,1);
       casa::IPosition psfStart(ndim,0), psfEnd(ndim,0), psfStride(ndim,1);
-      casa::IPosition modelStart(ndim-1,0), modelEnd(ndim-1,0), modelStride(ndim-1,1);
-      casa::IPosition psfCrossTermsStart(ndim+1,0), psfCrossTermsEnd(ndim+1,0), psfCrossTermsStride(ndim+1,1);
+      casa::uInt modelNdim(this->model().shape().size());
+      casa::IPosition modelStart(modelNdim,0), modelEnd(modelNdim,0),
+	modelStride(modelNdim,1);
+      casa::IPosition psfCrossTermsStart(ndim+1,0), psfCrossTermsEnd(ndim+1,0),
+	psfCrossTermsStride(ndim+1,1);
 
       Int psfWidth=this->itsPSFBasisFunction.shape()(0);
       psfWidth=(psfWidth-psfWidth%2)/2;
@@ -322,32 +323,22 @@ namespace askap {
       psfStart(2)=psfEnd(2)=optimumPlane;
       residualStart(2)=residualEnd(2)=optimumPlane;
       casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
-
-      //      if(!(residualSlicer.length()==psfSlicer.length())||!(residualSlicer.stride()==psfSlicer.stride())) {
-      //        ASKAPLOG_INFO_STR(logger, "Peak of PSF  : " << this->itsPeakPSFPos );
-      //        ASKAPLOG_INFO_STR(logger, "Peak of residual: " << absPeakPos );
-      //        ASKAPLOG_INFO_STR(logger, "PSF width    : " << psfWidth );
-      //        ASKAPLOG_INFO_STR(logger, "Residual start  : " << residualStart << " end: " << residualEnd );
-      //        ASKAPLOG_INFO_STR(logger, "PSF   start  : " << psfStart << " end: " << psfEnd );
-      //        ASKAPLOG_INFO_STR(logger, "Model shape  : " << this->model().shape());
-      //        ASKAPLOG_INFO_STR(logger, "Basis fn     : " << this->itsBasisFunction->basisFunction().shape());
-      //        throw AskapError("Mismatch in slicers for residual and psf images");
-      //      }
-
       // Add to model
       // Note that the model is only two dimensional. If desired, we could make it three dimensional
       // and keep the model layers separate
       {
         casa::Slicer modelSlicer(modelStart, modelEnd, modelStride, Slicer::endIsLast);
-        this->model()(modelSlicer) = this->model()(modelSlicer)
-          + this->control()->gain()*absPeakVal*this->itsBasisFunction->basisFunction()(psfSlicer).nonDegenerate();
+        this->model()(modelSlicer).nonDegenerate() = this->model()(modelSlicer).nonDegenerate()
+          + this->control()->gain()*absPeakVal*
+	  this->itsBasisFunction->basisFunction()(psfSlicer).nonDegenerate();
       }
       
       // Subtract PSF for this plane from residual image for the same plane
       {
         casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
-        this->itsResidualBasisFunction(residualSlicer) = this->itsResidualBasisFunction(residualSlicer)
-          - this->control()->gain()*absPeakVal*this->itsPSFBasisFunction(psfSlicer);
+        this->itsResidualBasisFunction(residualSlicer).nonDegenerate() =
+	  this->itsResidualBasisFunction(residualSlicer).nonDegenerate()
+          - this->control()->gain()*absPeakVal*this->itsPSFBasisFunction(psfSlicer).nonDegenerate();
       }
       if(itsUseCrossTerms) {
         casa::uInt nterms(this->itsResidualBasisFunction.shape()(2));

@@ -48,28 +48,32 @@ namespace askap {
       CPPUNIT_TEST(testSetup);
       CPPUNIT_TEST(testPoint);
       CPPUNIT_TEST(testMultiScale);
-      CPPUNIT_TEST(testMultiScaleOrthogonalise);
+      CPPUNIT_TEST(testMultiScaleSetShape);
       CPPUNIT_TEST_SUITE_END();
     public:
       
       void setUp() {
         itsBasisFunctionShape=IPosition(3,50,50,1);
-        itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new BasisFunction<Float>::BasisFunction(itsBasisFunctionShape, true));
+	Vector<Float> scales(3);
+	scales[0]=0.0;
+	scales[1]=3.0;
+	scales[2]=6.0;
+	itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(scales));
+	itsBasisFunction->initialise(itsBasisFunctionShape);
       }
       void testSetup() {
         {
-          CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==itsBasisFunctionShape);
-          CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==1);
-          CPPUNIT_ASSERT(itsBasisFunction->isOrthogonal()==True);
+          CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,50,50,3));
+          CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==3);
         }
       }
       void testPoint() {
         {
           itsBasisFunction.reset();
-          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new PointBasisFunction<Float>::PointBasisFunction(itsBasisFunctionShape));
-          CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==itsBasisFunctionShape);
+          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new PointBasisFunction<Float>::PointBasisFunction());
+	  itsBasisFunction->initialise(itsBasisFunctionShape);
+          CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,50,50,1));
           CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==1);
-          CPPUNIT_ASSERT(itsBasisFunction->isOrthogonal()==True);
           IPosition centre(3,25,25,0);
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-1.0)<1e-6);
         }
@@ -81,11 +85,11 @@ namespace askap {
           scales[0]=0.0;
           scales[1]=3.0;
           scales[2]=6.0;
-          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(3,20,20,3), scales, false));
-          CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,20,20,3));
+          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(scales));
+	  itsBasisFunction->initialise(itsBasisFunctionShape);
+          CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,50,50,3));
           CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==3);
-          CPPUNIT_ASSERT(itsBasisFunction->isOrthogonal()==False);
-          IPosition centre(3,10,10,0);
+          IPosition centre(3,25,25,0);
           centre(2)=0;
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-1.0)<1e-5);
           centre(2)=1;
@@ -94,22 +98,24 @@ namespace askap {
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-0.048122)<1e-5);
         }
       }
-      void testMultiScaleOrthogonalise() {
+      void testMultiScaleSetShape() {
         {
           itsBasisFunction.reset();
           Vector<Float> scales(3);
           scales[0]=0.0;
           scales[1]=3.0;
           scales[2]=6.0;
-          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(3,20,20,3), scales, true));
-          CPPUNIT_ASSERT(itsBasisFunction->isOrthogonal()==True);
+          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(scales));
+	  itsBasisFunction->initialise(IPosition(2,20,20));
+          CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,20,20,3));
+          CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==3);
           IPosition centre(3,10,10,0);
           centre(2)=0;
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-1.0)<1e-5);
           centre(2)=1;
-          CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre))<1e-05);
+          CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-0.192449)<1e-05);
           centre(2)=2;
-          CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre))<1e-5);
+          CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-0.048122)<1e-5);
         }
       }
       void tearDown() {

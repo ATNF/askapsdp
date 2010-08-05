@@ -153,6 +153,10 @@ namespace askap {
       // @detail This is the main deconvolution method.
       virtual bool deconvolve();
 
+      /// @brief Update the residuals
+      /// @detail Update the residuals for this model
+      virtual void updateResiduals(Array<T>& model);
+
       /// @brief Initialize the deconvolution
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();

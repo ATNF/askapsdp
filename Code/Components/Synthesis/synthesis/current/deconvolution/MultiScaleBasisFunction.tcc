@@ -31,6 +31,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
+ASKAP_LOGGER(decmsbaselogger, ".deconvolution.multiscalebasis");
 
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
@@ -47,16 +48,34 @@ namespace askap {
   namespace synthesis {
     
     template<class T>
-    MultiScaleBasisFunction<T>::MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales,
-                                                        const Bool orthogonal) :
-      BasisFunction<T>::BasisFunction(shape, orthogonal)
+    MultiScaleBasisFunction<T>::MultiScaleBasisFunction(const Vector<Float>& scales) :
+      BasisFunction<T>::BasisFunction(), itsScales(scales) 
     {
-      ASKAPLOG_INFO_STR(logger, "Calculating multiscale basis functions");
+      this->itsNumberTerms=scales.nelements();
+      ASKAPLOG_INFO_STR(decmsbaselogger, "Initialising multiscale basis function with "
+			<< this->itsNumberTerms << " scales: " << scales);
+    }
+
+    template<class T>
+    MultiScaleBasisFunction<T>::MultiScaleBasisFunction(const IPosition shape,
+							const Vector<Float>& scales) :
+      BasisFunction<T>::BasisFunction(), itsScales(scales) 
+    {
+      this->itsNumberTerms=scales.nelements();
+      initialise(shape);
+    }
+
+    template<class T>
+    void MultiScaleBasisFunction<T>::initialise(const IPosition shape) {
+
+      BasisFunction<T>::initialise(shape);
+
+      ASKAPLOG_INFO_STR(decmsbaselogger, "Calculating multiscale basis functions");
        // Make a cube and use referencing in Array
        casa::Cube<T> scaleCube(this->itsBasisFunction);
 
-       for (uInt scale=0;scale<scales.nelements();scale++) {
-         Float scaleSize=scales(scale);
+       for (uInt scale=0;scale<itsScales.nelements();scale++) {
+         Float scaleSize=itsScales(scale);
          ASKAPCHECK(scaleSize>=0.0, "Scale size " << scale << " is not positive " << scaleSize);
 
          if(scaleSize<1e-6) {
@@ -94,13 +113,6 @@ namespace askap {
            }
            scaleCube.xyPlane(scale)=scaleCube.xyPlane(scale)/volume;
          }
-       }
-       if(this->itsOrthogonal) {
-         this->orthogonalise();
-         ASKAPLOG_INFO_STR(logger, "Basis functions have been orthogonalised");
-       }
-       else {
-         ASKAPLOG_INFO_STR(logger, "Basis functions are nonorthogonal");
        }
     }
   

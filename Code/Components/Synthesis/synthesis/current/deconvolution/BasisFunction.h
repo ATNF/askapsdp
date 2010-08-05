@@ -54,14 +54,21 @@ namespace askap {
     public:
       typedef boost::shared_ptr<BasisFunction<T> > ShPtr;
       
+      /// @brief Construct empty basis function
+      BasisFunction();
+      
       /// @brief Construct from a specified shape
       /// param[in] shape Shape of desired basis function
-      BasisFunction(const IPosition shape, const Bool orthogonal);
+      BasisFunction(const IPosition shape);
+
+      /// @brief Initialise from a specified shape (actually only first two axes)
+      /// param[in] shape Shape of desired basis function.
+      virtual void initialise(const IPosition shape);
       
       virtual ~BasisFunction() {};
 
       /// @brief Return the number of terms in the basis function
-      uInt numberTerms() const {return itsShape[2];};
+      uInt numberTerms() const {return itsNumberTerms;};
       
       /// @brief Return the basis function as an array
       /// @details The basis function is returned as an array
@@ -69,19 +76,10 @@ namespace askap {
       /// lengths of the first two axes.
       virtual Array<T>& basisFunction() {return itsBasisFunction;};
 
-      /// @brief Is the basis function orthogonal?
-      virtual Bool isOrthogonal() const {return itsOrthogonal;};
-
     protected:
-
-      /// @brief Orthogonalise the basis functions using GramSchmidt.
-      /// @details The basis functions are orthogonalised using the
-      /// Gram-Schmidt algorithm.
-      void orthogonalise();
-
       IPosition itsShape;
-      Bool itsOrthogonal;
       Array<T> itsBasisFunction;
+      uInt itsNumberTerms;
     };
     
   } // namespace synthesis

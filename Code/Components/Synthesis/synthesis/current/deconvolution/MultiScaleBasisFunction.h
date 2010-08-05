@@ -56,10 +56,18 @@ namespace askap {
     public:
       typedef boost::shared_ptr<MultiScaleBasisFunction<T> > ShPtr;
       
+      /// @brief Construct
+      /// @details Set up internals - shape not set yet
+      MultiScaleBasisFunction(const Vector<Float>& scales);
+      
+      /// @brief Construct with specified shape
+      /// @details Set up internals for specified shape
+      MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales);
+      
       /// @brief Construct from a specified shape
       /// @details The scale parameter holds the set of scale sizes to be
       /// used in the basis function
-      MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales, const Bool orthogonal);
+      virtual void initialise(const IPosition shape);
       
     private:
       Vector<Float> itsScales;

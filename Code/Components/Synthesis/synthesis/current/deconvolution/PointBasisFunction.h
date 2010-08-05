@@ -56,10 +56,20 @@ namespace askap {
     public:
       typedef boost::shared_ptr<PointBasisFunction<T> > ShPtr;
       
+      /// @brief Construct empty
+      /// @details Construct a point source basis function. This has only 
+      /// one plane.
+      PointBasisFunction();
+      
       /// @brief Construct from a specified shape
       /// @details Construct a point source basis function. This has only 
       /// one plane.
       PointBasisFunction(const IPosition shape);
+      
+      /// @brief Construct from a specified shape
+      /// @details Construct a point source basis function. This has only 
+      /// one plane.
+      void initialise(const IPosition shape);
       
     private:
     };
