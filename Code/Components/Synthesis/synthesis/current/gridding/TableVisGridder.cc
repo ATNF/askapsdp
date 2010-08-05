@@ -537,7 +537,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			 if (!isPSFGridder()) {
 			     // both forward and reverse are covered, isPSFGridder returns false for the forward gridder
 			     imagePolFrameVis = gridPolConv(acc.visibility().yzPlane(i).row(chan));			     
-			     imagePolFrameNoise = gridPolConv(acc.noise().yzPlane(i).row(chan));			     
+			     imagePolFrameNoise = gridPolConv.noise(acc.noise().yzPlane(i).row(chan));			     
 			 }			 
 		     
 		     // Now loop over all image polarizations
