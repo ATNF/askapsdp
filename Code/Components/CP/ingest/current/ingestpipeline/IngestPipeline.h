@@ -32,10 +32,9 @@
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
-#include "boost/scoped_ptr.hpp"
+#include "boost/shared_ptr.hpp"
 
 // Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
 #include "ingestpipeline/ITask.h"
 
@@ -67,13 +66,11 @@ class IngestPipeline {
 
         bool ingestOne(void);
 
-        void createSource(void);
-
         const LOFAR::ParameterSet itsParset;
 
         bool itsRunning;
 
-        boost::scoped_ptr< MergedSource > itsSource;
+        boost::shared_ptr< MergedSource > itsSource;
 
         std::vector<ITask::ShPtr> itsTasks;
 
@@ -85,6 +82,12 @@ class IngestPipeline {
         // equals this number the pipeline will be stopped and start will
         // return.
         unsigned long itsIntegrationsExpected;
+
+        // No support for assignment
+        IngestPipeline& operator=(const IngestPipeline& rhs);
+
+        // No support for copy constructor
+        IngestPipeline(const IngestPipeline& src);
 };
 
 };

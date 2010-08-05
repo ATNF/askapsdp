@@ -28,7 +28,6 @@
 #define ASKAP_CP_CALTASK_H
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
 #include "Common/ParameterSet.h"
 
 // CASA includes

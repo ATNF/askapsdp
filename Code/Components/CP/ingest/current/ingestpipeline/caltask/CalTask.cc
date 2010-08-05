@@ -40,9 +40,6 @@
 #include "askap/AskapUtil.h"
 #include "utils/PolConverter.h"
 
-// boost includes
-//#include "boost/scoped_ptr.hpp"
-
 // Local package includes
 #include "ingestpipeline/datadef/VisChunk.h"
 

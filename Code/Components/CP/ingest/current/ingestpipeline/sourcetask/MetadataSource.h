@@ -82,6 +82,13 @@ class MetadataSource :
     private:
         // Circular buffer of metadata objects
         askap::cp::CircularBuffer< askap::cp::TosMetadata > itsBuffer;
+
+        // No support for assignment
+        MetadataSource& operator=(const MetadataSource& rhs);
+
+        // No support for copy constructor
+        MetadataSource(const MetadataSource& src);
+
 };
 
 };

@@ -47,8 +47,6 @@
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/TaskFactory.h"
 #include "ingestpipeline/datadef/VisChunk.h"
-#include "ingestpipeline/sourcetask/MetadataSource.h"
-#include "ingestpipeline/sourcetask/VisSource.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
@@ -80,12 +78,12 @@ void IngestPipeline::abort(void)
 
 void IngestPipeline::ingest(void)
 {
-    // 1) Setup source
-    createSource();
-
-    // 2) Create a Task Factory
+    // 1) Create a Task Factory
     const LOFAR::ParameterSet configParset = itsParset.makeSubset("config.");
     TaskFactory factory(configParset);
+
+    // 2) Setup source
+    itsSource = factory.createSource(itsParset);
 
     // 3) Setup tasks
     const std::vector<std::string> tasklist = itsParset.getStringVector("tasklist");
@@ -126,28 +124,4 @@ bool IngestPipeline::ingestOne(void)
     }
 
     return false; // Not finished
-}
-
-void IngestPipeline::createSource(void)
-{
-    // 1) Configure and create the metadata source
-    const LOFAR::ParameterSet mdSubset = itsParset.makeSubset("metadata_source.");
-    const std::string mdLocatorHost = mdSubset.getString("ice.locator_host");
-    const std::string mdLocatorPort = mdSubset.getString("ice.locator_port");
-    const std::string mdTopicManager = mdSubset.getString("icestorm.topicmanager");
-    const std::string mdTopic = mdSubset.getString("icestorm.topic");
-    const unsigned int mdBufSz = mdSubset.getUint32("buffer_size", 12);
-    const std::string mdAdapterName = "IngestPipeline";
-    IMetadataSource::ShPtr metadataSrc(new MetadataSource(mdLocatorHost,
-                mdLocatorPort, mdTopicManager, mdTopic, mdAdapterName, mdBufSz));
-
-    // 2) Configure and create the visibility source
-    const LOFAR::ParameterSet visSubset = itsParset.makeSubset("vis_source.");
-    const unsigned int visPort = visSubset.getUint32("port");
-    const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
-    const unsigned int visBufSz= visSubset.getUint32("buffer_size", defaultBufSz);
-    VisSource::ShPtr visSrc(new VisSource(visPort, visBufSz));
-
-    // 3) Create and configure the merged source
-    itsSource.reset(new MergedSource(metadataSrc, visSrc));
 }

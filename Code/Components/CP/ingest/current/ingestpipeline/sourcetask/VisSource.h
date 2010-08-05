@@ -74,6 +74,13 @@ class VisSource : public IVisSource {
         boost::asio::ip::udp::endpoint itsRemoteEndpoint;
 
         boost::shared_ptr<VisDatagram> itsRecvBuffer;
+
+        // No support for assignment
+        VisSource& operator=(const VisSource& rhs);
+
+        // No support for copy constructor
+        VisSource(const VisSource& src);
+
 };
 
 };

@@ -33,7 +33,6 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "boost/scoped_ptr.hpp"
 
 // Casecore includes
 #include "casa/aips.h"

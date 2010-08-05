@@ -28,7 +28,6 @@
 #define ASKAP_CP_MSSINK_H
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
 #include "boost/scoped_ptr.hpp"
 #include "Common/ParameterSet.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
@@ -88,6 +87,13 @@ class MSSink : public askap::cp::ITask {
 
         // Measurement set
         boost::scoped_ptr<casa::MeasurementSet> itsMs;
+
+        // No support for assignment
+        MSSink& operator=(const MSSink& rhs);
+
+        // No support for copy constructor
+        MSSink(const MSSink& src);
+
 };
 
 }

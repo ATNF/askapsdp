@@ -32,6 +32,7 @@
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
+#include "ingestpipeline/sourcetask/MergedSource.h"
 
 namespace askap {
 namespace cp {
@@ -60,6 +61,16 @@ class TaskFactory {
         /// @return a shared pointer to a task.
         /// @throw AskapError   if the task type is unknown.
         ITask::ShPtr createTask(const LOFAR::ParameterSet& parset);
+
+        /// @brief Create a source (MergedSource) given the parameters specified
+        /// in the parameter set.
+        ///
+        /// TODO: It would be good to just treat a souce as a normal task.
+        ///
+        /// @param[in] parset   the parameter set which defines the task to be
+        ///                     created.
+        /// @return a shared pointer to the source task.
+        boost::shared_ptr< MergedSource > createSource(const LOFAR::ParameterSet& parset);
 
     private:
         const LOFAR::ParameterSet itsConfigParset;

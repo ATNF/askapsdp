@@ -70,6 +70,12 @@ class MergedSource {
         boost::shared_ptr<TosMetadata> itsMetadata;
         boost::shared_ptr<VisDatagram> itsVis;
 
+        // No support for assignment
+        MergedSource& operator=(const MergedSource& rhs);
+
+        // No support for copy constructor
+        MergedSource(const MergedSource& src);
+
 };
 
 }
