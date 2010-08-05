@@ -36,6 +36,7 @@
 #include <iomanip>
 #include <vector>
 #include <cmath>
+#include <unistd.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -149,6 +150,7 @@ bool CorrelatorSimulator::sendNext(void)
             // Finished populating, send this payload but then reuse it in the
             // next iteration of the loop for the next coarse channel
             itsPort->send(payload);
+            usleep(10);
         }
 
         itsCurrentRow++;
