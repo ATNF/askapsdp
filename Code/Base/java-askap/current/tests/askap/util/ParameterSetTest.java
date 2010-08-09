@@ -92,9 +92,9 @@ public class ParameterSetTest
     	// [3*'2*3'] ==> ['2*3','2*3','2*3']
     	Object strArray[] = theirTestSet.getVector("[3*'2*3']", "java.lang.String");
     	assertEquals("incorrect array count", 3, strArray.length);
-    	assertEquals("array[0]", "'2*3'", strArray[0]);
-    	assertEquals("array[1]", "'2*3'", strArray[1]);
-    	assertEquals("array[2]", "'2*3'", strArray[2]);
+    	assertEquals("array[0]", "2*3", strArray[0]);
+    	assertEquals("array[1]", "2*3", strArray[1]);
+    	assertEquals("array[2]", "2*3", strArray[2]);
    	
     	// [3*ab] ==> [ab,ab,ab]
     	strArray = theirTestSet.getVector("[3*ab]", "java.lang.String");
@@ -166,9 +166,9 @@ public class ParameterSetTest
     	// [3*'10.5*ab'] ==> ['10.5*ab','10.5*ab','10.5*ab']
     	strArray = theirTestSet.getVector("[3*'10.5*ab']", "java.lang.String");
     	assertEquals("incorrect array count", 3, strArray.length);
-    	assertEquals("array[0]", "'10.5*ab'", strArray[0]);
-    	assertEquals("array[1]", "'10.5*ab'", strArray[1]);
-    	assertEquals("array[2]", "'10.5*ab'", strArray[2]);
+    	assertEquals("array[0]", "10.5*ab", strArray[0]);
+    	assertEquals("array[1]", "10.5*ab", strArray[1]);
+    	assertEquals("array[2]", "10.5*ab", strArray[2]);
 
     	// [10.5*'ab'] ==> [10.5*'ab']
     	strArray = theirTestSet.getVector("[10.5*'ab']", "java.lang.String");

@@ -383,7 +383,21 @@ public class ParameterSet extends Properties {
 	 * @return The value of the parameter.
 	 */
 	public String getString(String key) {
-		return getProperty(key);
+		return stripQuotes(getProperty(key));
+		
+	}
+
+	private static String stripQuotes(String str) {
+		String val = str;
+		
+		if (val!=null && val.length()>0) {
+			if (val.startsWith("\"") && val.endsWith("\""))
+				val = val.substring(1, val.length()-1);
+			else if (val.startsWith("'") && val.endsWith("'"))
+				val = val.substring(1, val.length()-1);
+		}
+		return val;
+
 	}
 
 	/**
@@ -397,14 +411,7 @@ public class ParameterSet extends Properties {
 	 * @return The value of the parameter.
 	 */
 	public String getString(String key, String defaultValue) {
-		// The property value.
-		String value = getProperty(key);
-
-		if (value == null) {
-			value = defaultValue;
-		}
-
-		return value;
+		return stripQuotes(getProperty(key, defaultValue));
 	}
 
 	/**
@@ -433,6 +440,10 @@ public class ParameterSet extends Properties {
 	}
 	
 
+	public String remove(String key) {
+		String val = (String) super.remove(key);
+		return stripQuotes(val);
+	}
 	/**
 	 * Given a key and type, convert the value for the key typed object
 	 * 
@@ -521,9 +532,11 @@ public class ParameterSet extends Properties {
 		return objValues;
 	}
 
-	private static Object getSimpleObject(String value, String type)
+	private static Object getSimpleObject(String val, String type)
 			throws NumberFormatException {
 		Object o = null;
+		String value = stripQuotes(val);
+		
 		if (type == null || type.length() == 0)
 			return value;
 
