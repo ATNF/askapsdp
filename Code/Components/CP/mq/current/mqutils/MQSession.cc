@@ -1,4 +1,4 @@
-/// @file MQSessionSingleton.cc
+/// @file MQSession.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "MQSessionSingleton.h"
+#include "MQSession.h"
 
 // Include package level header file
 #include <askap_mq.h>
@@ -36,7 +36,7 @@
 #include "activemq/core/ActiveMQConnectionFactory.h"
 #include "activemq/library/ActiveMQCPP.h"
 
-ASKAP_LOGGER(logger, ".MQSessionSingleton");
+ASKAP_LOGGER(logger, ".MQSession");
 
 using namespace askap;
 using namespace askap::cp;
@@ -44,12 +44,8 @@ using namespace activemq;
 using namespace activemq::core;
 using namespace cms;
 
-MQSessionSingleton* MQSessionSingleton::instance = 0;
-
-MQSessionSingleton::MQSessionSingleton(const std::string& brokerURI)
+MQSession::MQSession(const std::string& brokerURI)
 {
-    activemq::library::ActiveMQCPP::initializeLibrary();
-
     // Create a ConnectionFactory
     boost::scoped_ptr<ActiveMQConnectionFactory> connectionFactory(
             new ActiveMQConnectionFactory( brokerURI ) );
@@ -62,44 +58,22 @@ MQSessionSingleton::MQSessionSingleton(const std::string& brokerURI)
     itsSession.reset(itsConnection->createSession(cms::Session::AUTO_ACKNOWLEDGE));
 }
 
-MQSessionSingleton::~MQSessionSingleton()
+MQSession::~MQSession()
 {
-    // Cleanup session
-    itsSession->close();
-    itsSession.reset();
+    //try {
+        // Cleanup session
+        itsSession->close();
+        itsSession.reset();
 
-    // Clean up connection
-    itsConnection->close();
-    itsConnection->stop();
-    itsConnection.reset();
-
-    // Shutdown the library
-    activemq::library::ActiveMQCPP::shutdownLibrary();
+        // Clean up connection
+        itsConnection->close();
+        itsConnection.reset();
+    //} catch (const std::exception& e) {
+        // No exception should escape from destructor
+    //}
 }
 
-void MQSessionSingleton::initialize(const std::string& brokerURI)
+cms::Session& MQSession::get(void)
 {
-    if (instance == 0) {
-        instance = new MQSessionSingleton(brokerURI);
-    } else {
-        ASKAPTHROW(AskapError, "MQSessionSingleton is already initialized");
-    }
-}
-
-void MQSessionSingleton::shutdown(void)
-{
-    if (instance) {
-        delete instance;
-    } else {
-        ASKAPTHROW(AskapError, "MQSessionSingleton is not initialized");
-    }
-}
-
-MQSessionSingleton& MQSessionSingleton::getInstance(void)
-{
-    if (instance) {
-        return *instance;
-    } else {
-        ASKAPTHROW(AskapError, "MQSessionSingleton is not initialized");
-    }
+    return *itsSession;
 }

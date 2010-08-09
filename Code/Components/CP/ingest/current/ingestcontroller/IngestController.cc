@@ -87,7 +87,6 @@ IngestController::~IngestController()
 
     // Clean up connection
     itsConnection->close();
-    itsConnection->stop();
     itsConnection.reset();
 
     // Shutdown the library
@@ -155,9 +154,9 @@ void IngestController::startCmd(const cms::Message* request)
     sendResponse(request, responseMsgType, "Start acknowledged");
 }
 
-void IngestController::stopCmd(const cms::Message* request)
+void IngestController::abortCmd(const cms::Message* request)
 {
-    const std::string responseMsgType = "ingest_stop_response";
+    const std::string responseMsgType = "ingest_abort_response";
 
     // If already idle
     if (itsState == IDLE) {
@@ -197,15 +196,15 @@ void IngestController::statusCmd(const cms::Message* request)
 void IngestController::onMessage(const cms::Message* message)
 {
     const std::string startMsgType = "ingest_start_request";
-    const std::string stopMsgType = "ingest_stop_request";
+    const std::string abortMsgType = "ingest_abort_request";
     const std::string statusMsgType = "ingest_status_request";
 
     const std::string msgType = message->getCMSType();
 
     if (msgType == startMsgType) {
         startCmd(message);
-    } else  if (msgType == stopMsgType) {
-        stopCmd(message);
+    } else  if (msgType == abortMsgType) {
+        abortCmd(message);
     } else if (msgType == statusMsgType) {
         statusCmd(message);
     } else {

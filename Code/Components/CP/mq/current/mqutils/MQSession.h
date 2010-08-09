@@ -1,4 +1,4 @@
-/// @file tMQSessionSingleton.cc
+/// @file MQSession.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,25 +24,44 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_MQBROKER_H
+#define ASKAP_CP_MQBROKER_H
+
 // System includes
-#include <iostream>
 #include <string>
 
 // ASKAPsoft includes
-#include "askap/AskapError.h"
-#include "CommandLineParser.h"
+#include "boost/scoped_ptr.hpp"
+#include "cms/Connection.h"
+#include "cms/Session.h"
 
-// Local package includes
-#include "broker/MQSessionSingleton.h"
+namespace askap {
+namespace cp {
 
-// Using
-using namespace askap::cp;
+class MQSession {
+    public:
+        MQSession(const std::string& brokerURI);
 
-int main(int argc, char *argv[])
-{
-    //MQSessionSingleton::initialize("failover:(tcp://localhost:61616)");
-    //MQSessionSingleton& mq = MQSessionSingleton::getInstance();
-    //MQSessionSingleton::shutdown();
+        ~MQSession();
 
-    return 0;
-}
+        cms::Session& get(void);
+
+    private:
+
+        // No support for assignment
+        MQSession& operator=(const MQSession& rhs);
+
+        // No support for copy constructor
+        MQSession(const MQSession& src);
+
+        // ActiveMQ Connection
+        boost::scoped_ptr<cms::Connection> itsConnection;
+
+        // ActiveMQ Session
+        boost::scoped_ptr<cms::Session> itsSession;
+};
+
+};
+};
+
+#endif

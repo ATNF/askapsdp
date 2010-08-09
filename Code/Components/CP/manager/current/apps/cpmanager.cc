@@ -35,6 +35,7 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/Log4cxxLogSink.h"
+#include "activemq/library/ActiveMQCPP.h"
 
 // Local package includes
 #include "manager/AdminInterface.h"
@@ -82,6 +83,9 @@ int main(int argc, char *argv[])
 
     ASKAPLOG_INFO_STR(logger, "ASKAP Central Processor Manager - " << ASKAP_PACKAGE_VERSION);
 
+    // Init the ActiveMQ library
+    activemq::library::ActiveMQCPP::initializeLibrary();
+
     try {
         Ice::CommunicatorPtr ic = Ice::initialize(argc, argv);
         askap::cp::AdminInterface manager(ic);
@@ -103,6 +107,9 @@ int main(int argc, char *argv[])
         std::cerr << "Error: " << msg << std::endl;
         return 1;
     }
+
+    // Shutdown the ActiveMQ library
+    activemq::library::ActiveMQCPP::shutdownLibrary();
 
     return 0;
 }

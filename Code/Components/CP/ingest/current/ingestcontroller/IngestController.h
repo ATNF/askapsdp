@@ -64,8 +64,8 @@ class IngestController : public cms::MessageListener,
         // Handle the start command
         void startCmd(const cms::Message* message);
 
-        // Handle the stop command
-        void stopCmd(const cms::Message* message);
+        // Handle the abort command
+        void abortCmd(const cms::Message* message);
         
         // Handle the status request command
         void statusCmd(const cms::Message* message);

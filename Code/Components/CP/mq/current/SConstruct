@@ -8,9 +8,10 @@ from askapenv import env
 # create build object with library name
 pkg = env.AskapPackage("mq")
 
-pkg.AddSubPackage("broker")
+pkg.AddSubPackage("mqutils")
 pkg.AddSubPackage("blobutils")
 pkg.AddSubPackage("dataaccess")
+pkg.AddSubPackage("ingestctl")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
