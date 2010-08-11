@@ -340,8 +340,8 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
                             } // for ix
                         } // for iy
                         //
-                        ASKAPLOG_INFO_STR(logger, "convolution function for channel "<<chan<<
-                           " plane="<<plane<<" has an integral of "<<sum(itsConvFunc[plane]));						
+                        //ASKAPLOG_DEBUG_STR(logger, "convolution function for channel "<<chan<<
+                        //   " plane="<<plane<<" has an integral of "<<sum(itsConvFunc[plane]));						
                         //
                     } // for fracv
                 } // for fracu								
@@ -422,7 +422,7 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
                 }
             }
 
-            //	  	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
+            //	  	  ASKAPLOG_DEBUG_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
             scimath::fft2d(thisPlane, false);
             thisPlane*=casa::Complex(nx*ny);
             const float peak=real(casa::max(casa::abs(thisPlane)));
