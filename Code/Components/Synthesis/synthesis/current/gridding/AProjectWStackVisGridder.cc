@@ -426,7 +426,7 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
             scimath::fft2d(thisPlane, false);
             thisPlane*=casa::Complex(nx*ny);
             const float peak=real(casa::max(casa::abs(thisPlane)));
-            ASKAPLOG_DEBUG_STR(logger, "Transform of convolution function["<< iz << "] peak = "<< peak);
+            // ASKAPLOG_DEBUG_STR(logger, "Transform of convolution function["<< iz << "] peak = "<< peak);
 
             if(peak>0.0) {
                 //thisPlane*=casa::Complex(1.0/peak);

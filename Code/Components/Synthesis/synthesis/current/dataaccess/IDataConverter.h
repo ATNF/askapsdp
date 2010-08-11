@@ -58,7 +58,7 @@ namespace synthesis {
 /// @details IDataConverter is an interface to describe on-the-fly
 /// conversions requested
 /// from the data source object. The polymorphism will allow a high performance
-/// implementation in the future, i.e. bypassing conversionsi, if the data
+/// implementation in the future, i.e. bypassing conversions, if the data
 /// appear in the requested frame/units up front. However, implementation of
 /// this optimization will be deferred until the very latest stages. A
 /// single converter class is expected to work for most of the cases.
