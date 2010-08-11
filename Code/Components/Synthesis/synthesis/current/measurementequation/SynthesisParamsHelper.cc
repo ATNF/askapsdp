@@ -1069,9 +1069,12 @@ namespace askap
     /// multi-dimensional, only first plane is used. A warning is given in the case of
     /// a potential ambiguity.  
     /// @param[in] ip parameters
+    /// @param[in] cutoff cutoff defining the support size where the fitting is done (default 
+    ///            is 0.05, i.e. fitting is done to pixels enclosed in a rectangular support 
+    ///            defined by 5% cutoff from the peak)    
     /// @param[in] name full name of the parameter representing the PSF (default is to figure this out)        
     casa::Vector<casa::Quantum<double> > SynthesisParamsHelper::fitBeam(const askap::scimath::Params &ip, 
-                                     const std::string &name)
+                                     const double cutoff, const std::string &name)
     {
        std::string psfName = name;
        if (name == "") {
@@ -1110,7 +1113,6 @@ namespace askap
        casa::Matrix<double> psfSliceMatrix = psfSlice;
        
        // search for support to speed up beam fitting
-       const double cutoff = 5e-2;
        ASKAPLOG_INFO_STR(logger, "Searching for support with the relative cutoff of "<<cutoff<<" to speed fitting up");
        SupportSearcher ss(cutoff);
        ss.search(psfSliceMatrix);

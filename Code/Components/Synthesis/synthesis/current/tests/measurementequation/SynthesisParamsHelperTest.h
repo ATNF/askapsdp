@@ -143,7 +143,7 @@ namespace askap
            params.update("psf.testsrc",temp);
            //
 
-           casa::Vector<casa::Quantum<double> > fit = SynthesisParamsHelper::fitBeam(params,"psf.testsrc");
+           casa::Vector<casa::Quantum<double> > fit = SynthesisParamsHelper::fitBeam(params,0.05,"psf.testsrc");
            CPPUNIT_ASSERT(fit.nelements() == 3);
            // the cell size is 8 arcsec, so the tolerance of 0.5 arcsec seems good enough
            CPPUNIT_ASSERT(fabs(fit[0].getValue("arcsec")-20.)<0.5);

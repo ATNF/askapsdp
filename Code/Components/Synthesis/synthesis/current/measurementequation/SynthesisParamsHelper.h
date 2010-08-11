@@ -220,8 +220,12 @@ namespace askap
         /// multi-dimensional, only first plane is used. A warning is given in the case of
         /// a potential ambiguity.  
         /// @param[in] ip parameters
+        /// @param[in] cutoff cutoff defining the support size where the fitting is done (default 
+        ///            is 0.05, i.e. fitting is done to pixels enclosed in a rectangular support
+        ///            defined by 5% cutoff from the peak)
         /// @param[in] name full name of the parameter representing the PSF (default is to figure this out)        
-        static casa::Vector<casa::Quantum<double> > fitBeam(const askap::scimath::Params &ip, const std::string &name = "");
+        static casa::Vector<casa::Quantum<double> > fitBeam(const askap::scimath::Params &ip, const double cutoff = 0.05,
+                                                            const std::string &name = "");
               
         /// @brief obtain an array corresponding to a single facet of a merged faceted image
         /// @details Each facet is represented by a number of independent parameters with

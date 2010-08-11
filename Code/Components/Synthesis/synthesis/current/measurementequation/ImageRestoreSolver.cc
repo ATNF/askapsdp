@@ -340,7 +340,8 @@ namespace askap
            // we use the feature here that the restoring solver is created when the imaging is completed, so
            // there is a PSF image in the parameters. Fitting of the beam has to be moved to restore solver to
            // be more flexible
-           qBeam = SynthesisParamsHelper::fitBeam(ip);           
+           const double cutoff = parset.getDouble("beam.cutoff",0.05);
+           qBeam = SynthesisParamsHelper::fitBeam(ip,cutoff);           
        } else {
           ASKAPCHECK(beam.size() == 3, "Need three elements for beam or a single word 'fit'. You have "<<beam);
           for (int i=0; i<3; ++i) {
