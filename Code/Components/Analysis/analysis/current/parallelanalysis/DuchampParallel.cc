@@ -643,10 +643,10 @@ namespace askap {
 	      else vox->setF(voxcomp->getF());
 	    }
 	  }
-	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calling fit funtion with voxel list of size " << voxlist.size() << " cf source size of " << src.getSize());
+	  //	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calling fit funtion with voxel list of size " << voxlist.size() << " cf source size of " << src.getSize());
 	  src.fitGaussNew(&voxlist, this->itsFitter);
 	} else {
-	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Fitting to set of surrounding pixels");
+	  //	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Fitting to set of surrounding pixels");
 	  if(useArray) src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
 	  else src.fitGauss(&this->itsVoxelList, this->itsFitter);
 	}
@@ -965,7 +965,7 @@ namespace askap {
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have a total of " << this->itsSourceList.size() << " sources.");
 
-                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Starting sort of source list");
+		//                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Starting sort of source list");
                 std::map<float, int> detlist;
 
                 for (size_t i = 0; i < this->itsSourceList.size(); i++) {
@@ -1019,16 +1019,15 @@ namespace askap {
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
 
-		  ASKAPLOG_DEBUG_STR(logger, "Setting voxel list for param calc for object at (ra,dec)=("
-				     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
-				     << ") or (x,y)=(" 
-				     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
-				     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
-				     <<") and size " << this->itsCube.getObject(i).getSize());
+		  // ASKAPLOG_DEBUG_STR(logger, "Setting voxel list for param calc for object at (ra,dec)=("
+		  // 		     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
+		  // 		     << ") or (x,y)=(" 
+		  // 		     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
+		  // 		     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
+		  // 		     <<") and size " << this->itsCube.getObject(i).getSize());
 
                     // for each object, make a vector list of voxels that appear in it.
-                    std::vector<PixelInfo::Voxel>
-                    objVoxList = this->itsCube.getObject(i).getPixelSet();
+		  std::vector<PixelInfo::Voxel> objVoxList = this->itsCube.getObject(i).getPixelSet();
                     std::vector<PixelInfo::Voxel>::iterator vox;
 
                     // get the fluxes of each voxel
@@ -1053,12 +1052,12 @@ namespace askap {
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
 
-		  ASKAPLOG_DEBUG_STR(logger, "Finished setting voxel list for param calc for object at (ra,dec)=("
-				     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
-				     << ") or (x,y)=(" 
-				     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
-				     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
-				     <<") and size " << this->itsCube.getObject(i).getSize());
+		  // ASKAPLOG_DEBUG_STR(logger, "Finished setting voxel list for param calc for object at (ra,dec)=("
+		  // 		     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
+		  // 		     << ") or (x,y)=(" 
+		  // 		     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
+		  // 		     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
+		  // 		     <<") and size " << this->itsCube.getObject(i).getSize());
 		}
 
             }

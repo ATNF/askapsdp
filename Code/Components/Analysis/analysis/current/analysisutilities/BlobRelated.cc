@@ -337,7 +337,7 @@ namespace askap {
 		i = src.box().end()[1]; blob << i;
 		i = src.box().end()[2]; blob << i;
 
-		ASKAPLOG_DEBUG_STR(logger, "Sending box: start="<<src.box().start()<<", end="<<src.box().end());
+		//		ASKAPLOG_DEBUG_STR(logger, "Sending box: start="<<src.box().start()<<", end="<<src.box().end());
 
                 return blob;
             }
@@ -460,7 +460,7 @@ namespace askap {
 		Slicer box(start, end, stride, Slicer::endIsLast);;
 		src.setBox(box);
 		
-		ASKAPLOG_DEBUG_STR(logger, "Received box: start="<<start<<", end="<<end);
+		//		ASKAPLOG_DEBUG_STR(logger, "Received box: start="<<start<<", end="<<end);
 
                 return blob;
             }
