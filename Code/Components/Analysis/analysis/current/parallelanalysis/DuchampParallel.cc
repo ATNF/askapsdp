@@ -1072,6 +1072,7 @@ namespace askap {
 	    int16 rank;
 	    LOFAR::BlobString bs;
 	    for(size_t i=0;i<this->itsSourceList.size();i++){
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Preparing source #"<<i+1);
 	      this->prepareSourceForFit(this->itsSourceList[i],false);
 	      rank = i % (this->itsNNode - 1);
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << this->itsSourceList[i].getSize() << " to worker "<<rank+1);
