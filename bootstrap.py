@@ -133,9 +133,9 @@ else:
 
 if not opts.preserve:
     print ">>> Attempting to clean all the Tools."
-    os.system(". ./initaskap.sh && cd Tools && python autobuild.py -q clean")
+    os.system(". ./initaskap.sh && rbuild -a -t clean Tools")
 print ">>> Attempting to build all the Tools."
-os.system(". ./initaskap.sh && cd Tools && python autobuild.py -q install")
+os.system(". ./initaskap.sh && rbuild -a Tools")
 
 # Needs scons built in Tools.
 if os.path.exists(testutils_path):
