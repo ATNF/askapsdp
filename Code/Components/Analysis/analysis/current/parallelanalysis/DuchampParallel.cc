@@ -1079,7 +1079,6 @@ namespace askap {
 	    LOFAR::BlobOStream out(bob);
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcasting 'finished' signal to all workers");
 	    out.putStart("voxels", 1);
-	    sourcefitting::RadioSource nullsrc;
 	    out << int(this->itsVoxelList.size());
 	    for(size_t p=0;p<this->itsVoxelList.size();p++) 
 	      out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
@@ -1103,11 +1102,10 @@ namespace askap {
 
 	    // now notify all workers that we're finished.
 	    bs.resize(0);
-	    LOFAR::BlobOBufString bob(bs);
-	    LOFAR::BlobOStream out(bob);
+	    bob = LOFAR::BlobOBufString(bs);
+	    out = LOFAR::BlobOStream(bob);
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcasting 'finished' signal to all workers");
 	    out.putStart("fitsrc", 1);
-	    sourcefitting::RadioSource nullsrc;
 	    out << false;
 	    out.putEnd();
 	    this->itsConnectionSet->writeAll(bs);
@@ -1144,6 +1142,7 @@ namespace askap {
 	    LOFAR::BlobIStream in(bib);
 	    int version = in.getStart("voxels");
 	    ASKAPASSERT(version == 1);
+	    int size;
 	    in >> size;
 	    int32 x,y,z;
 	    float f;
@@ -1155,7 +1154,6 @@ namespace askap {
 
 	    // now read individual sources
 	    bool isOK=true;
-	    int size;
 	    this->itsSourceList.clear();
 	    while(isOK) {	    
 	      sourcefitting::RadioSource src;
