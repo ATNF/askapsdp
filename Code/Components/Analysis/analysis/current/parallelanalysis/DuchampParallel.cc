@@ -1071,6 +1071,22 @@ namespace askap {
 	  if(this->isMaster()) {
 	    int16 rank;
 	    LOFAR::BlobString bs;
+
+	    // first send the voxel list to all workers
+	    /// @todo This could be made more efficient, so that we don't send unnecessary voxels to some workers.
+	    bs.resize(0);
+	    LOFAR::BlobOBufString bob(bs);
+	    LOFAR::BlobOStream out(bob);
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcasting 'finished' signal to all workers");
+	    out.putStart("voxels", 1);
+	    sourcefitting::RadioSource nullsrc;
+	    out << int(this->itsVoxelList.size());
+	    for(size_t p=0;p<this->itsVoxelList.size();p++) 
+	      out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
+	    out.putEnd();
+	    this->itsConnectionSet->writeAll(bs);
+	    
+	    // now send the individual sources to each worker in turn
 	    for(size_t i=0;i<this->itsSourceList.size();i++){
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Preparing source #"<<i+1);
 	      this->prepareSourceForFit(this->itsSourceList[i],false);
@@ -1080,14 +1096,11 @@ namespace askap {
 	      LOFAR::BlobOBufString bob(bs);
 	      LOFAR::BlobOStream out(bob);
 	      out.putStart("fitsrc", 1);
-	    
-	      out << true;
-	      out << this->itsSourceList[i] << int(this->itsVoxelList.size());
-	      for(size_t p=0;p<this->itsVoxelList.size();p++) 
-		out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
+	      out << true << this->itsSourceList[i];
 	      out.putEnd();
 	      this->itsConnectionSet->write(rank, bs);
 	    }
+
 	    // now notify all workers that we're finished.
 	    bs.resize(0);
 	    LOFAR::BlobOBufString bob(bs);
@@ -1123,11 +1136,28 @@ namespace askap {
 	    this->itsCube.pars().setSubsection("");
 	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
 	    LOFAR::BlobString bs;
+
+	    // first read the voxel list
+	    this->itsVoxelList.clear();
+	    this->itsConnectionSet->read(0, bs);
+	    LOFAR::BlobIBufString bib(bs);
+	    LOFAR::BlobIStream in(bib);
+	    int version = in.getStart("voxels");
+	    ASKAPASSERT(version == 1);
+	    in >> size;
+	    int32 x,y,z;
+	    float f;
+	    for(int p=0;p<size;p++){
+	      in >> x >> y >> z >> f;
+	      this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
+	    }
+	    in.getEnd();
+
+	    // now read individual sources
 	    bool isOK=true;
 	    int size;
 	    this->itsSourceList.clear();
 	    while(isOK) {	    
-	      this->itsVoxelList.clear();
 	      sourcefitting::RadioSource src;
 	      this->itsConnectionSet->read(0, bs);
 	      LOFAR::BlobIBufString bib(bs);
@@ -1136,14 +1166,7 @@ namespace askap {
 	      ASKAPASSERT(version == 1);
 	      in >> isOK;
 	      if(isOK){
-		in >> src >> size;
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Received source of size " << src.getSize() << " from master with OK flag="<<isOK << " and size " << size);
-		int32 x,y,z;
-		float f;
-		for(int p=0;p<size;p++){
-		  in >> x >> y >> z >> f;
-		  this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
-		}
+		in >> src;
 		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "About to fit src at ra="<<src.getRAs()<<", dec="<<src.getDecs());
 		src.setHeader(this->itsCube.getHead());  // this doesn't get copied over the blob, so make sure the beam is correct - that's all we need it for.
 		this->fitSource(src,false);
