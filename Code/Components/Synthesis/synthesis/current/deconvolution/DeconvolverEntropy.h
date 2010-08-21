@@ -1,5 +1,5 @@
 /// @file
-/// @brief Class for a BasisFunction-Clean-based deconvolver
+/// @brief Class for a Entropy-based deconvolver using the Cornwell-Evans algorithm
 /// @details This interface class defines a deconvolver used to estimate an
 /// image from a dirty image, psf optionally using a mask and a weights image.
 /// @ingroup Deconvolver
@@ -30,9 +30,10 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_DECONVOLVERBASISFUNCTION_H
-#define I_DECONVOLVERBASISFUNCTION_H
+#ifndef I_DECONVOLVERENTROPY_H
+#define I_DECONVOLVERENTROPY_H
 #include <casa/aips.h>
+
 #include <boost/shared_ptr.hpp>
 
 #include <casa/Arrays/Array.h>
@@ -44,43 +45,36 @@
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
 #include <deconvolution/DeconvolverMonitor.h>
-#include <deconvolution/BasisFunction.h>
+
+#include <deconvolution/EntropyBase.h>
 
 namespace askap {
 
   namespace synthesis {
 
-    /// @brief Class for a deconvolver using the BasisFunction Clean algorithm
+    /// @brief Class for a deconvolver using the Entropy Clean algorithm
     /// @details This base class defines a deconvolver used to estimate an
     /// image from a dirty image, psf optionally using a mask and a weights image.
     /// The template argument T is the type, and FT is the transform
-    /// e.g. DeconvolverBasisFunction<Double, DComplex>
+    /// e.g. DeconvolverEntropy<Double, DComplex>
     /// @ingroup Deconvolver
     template<class T, class FT>
-    class DeconvolverBasisFunction : public DeconvolverBase<T, FT> {
+    class DeconvolverEntropy : public DeconvolverBase<T, FT> {
 
     public:
-      typedef boost::shared_ptr<DeconvolverBasisFunction<T, FT> > ShPtr;
+
+      typedef boost::shared_ptr<DeconvolverEntropy<T, FT> > ShPtr;
   
-      virtual ~DeconvolverBasisFunction();
+      enum GRADTYPE {H=0, C, F, J };
+
+      virtual ~DeconvolverEntropy();
   
       /// @brief Construct from dirty image and psf
       /// @detail Construct a deconvolver from a dirty image and
       /// the corresponding PSF
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
-      DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf);
-
-      /// @brief Set the basis function to be used
-      /// @details The algorithm can work with different basis functions
-      /// PointBasisFunction, MultiScaleBasisFunction
-      
-      void setBasisFunction(boost::shared_ptr<BasisFunction<T> > bf);
-
-      /// @brief Return the basis function to be used
-      /// @details The algorithm can work with different basis functions
-      /// PointBasisFunction, MultiScaleBasisFunction 
-      boost::shared_ptr<BasisFunction<T> > basisFunction();
+      DeconvolverEntropy(Array<T>& dirty, Array<T>& psf);
 
       /// @brief Perform the deconvolution
       /// @detail This is the main deconvolution method.
@@ -101,34 +95,15 @@ namespace askap {
       
     private:
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
-      bool oneIteration();
-
-      /// Residual images convolved with basis functions
-      Array<T> itsResidualBasisFunction;
-
-      /// Point spread functions convolved with basis functions
-      Array<T> itsPSFBasisFunction;
-
-      Bool itsUseCrossTerms;
-
-      Matrix<T> itsCouplingMatrix;
-
-      /// Point spread functions convolved with cross terms of basis functions
-      Array<T> itsPSFCrossTerms;
-
-      boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
-
-      Array<T> itsL1image;
+      boost::shared_ptr<EntropyBase<T> > itsEntropy;
     };
 
   } // namespace synthesis
 
 } // namespace askap
 
-#include <deconvolution/DeconvolverBasisFunction.tcc>
+#include <deconvolution/DeconvolverEntropy.tcc>
 
-#endif  // #ifndef I_DECONVOLVERBASISFUNCTION_H
+#endif
 
 

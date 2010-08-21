@@ -31,6 +31,7 @@ ASKAP_LOGGER(logger, ".deconvolver.factory");
 #include <deconvolution/DeconvolverFactory.h>
 #include <deconvolution/DeconvolverBase.h>
 #include <deconvolution/DeconvolverBasisFunction.h>
+#include <deconvolution/DeconvolverEntropy.h>
 #include <deconvolution/DeconvolverFista.h>
 #include <deconvolution/DeconvolverHogbom.h>
 #include <deconvolution/DeconvolverControl.h>
@@ -66,20 +67,8 @@ namespace askap {
         deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
         
         // Now get the control parameters
-	LOFAR::ParameterSet subset(parset.makeSubset("solver.Fista"));
-        deconvolver->configure(parset);
-
-	// Now set up controller
-	boost::shared_ptr<DeconvolverControl<Float> > controller(new DeconvolverControl<Float>());
-        ASKAPASSERT(controller);
-	controller->configure(parset);
-	deconvolver->setControl(controller);
-
-	// Now set up monitor
-	boost::shared_ptr<DeconvolverMonitor<Float> > monitor(new DeconvolverMonitor<Float>());
-        ASKAPASSERT(monitor);
-	monitor->configure(parset);
-	deconvolver->setMonitor(monitor);
+	LOFAR::ParameterSet subset(parset.makeSubset("solver.Fista."));
+        deconvolver->configure(subset);
 
       }
       else if(parset.getString("solver", "Basisfunction")=="Basisfunction") {        
@@ -92,20 +81,21 @@ namespace askap {
 	deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("solver.Basisfunction.weight", parset));
         
         // Now configure the deconvolver
-	LOFAR::ParameterSet subset(parset.makeSubset("solver.Basisfunction"));
-	deconvolver->configure(parset);
+	LOFAR::ParameterSet subset(parset.makeSubset("solver.Basisfunction."));
+	deconvolver->configure(subset);
 
-	// Now set up controller
-	boost::shared_ptr<DeconvolverControl<Float> > controller(new DeconvolverControl<Float>());
-        ASKAPASSERT(controller);
-	controller->configure(parset);
-	deconvolver->setControl(controller);
+      }
+      else if(parset.getString("solver", "Entropy")=="Entropy") {        
+        ASKAPLOG_INFO_STR(logger, "Constructing Entropy deconvolver");
+        deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverEntropy<Float, Complex>(dirty, psf));
+        ASKAPASSERT(deconvolver);
 
-	// Now set up monitor
-	boost::shared_ptr<DeconvolverMonitor<Float> > monitor(new DeconvolverMonitor<Float>());
-        ASKAPASSERT(monitor);
-	monitor->configure(parset);
-	deconvolver->setMonitor(monitor);
+	// Get the mask and weights images
+	deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("solver.Entropy.mask", parset));
+	deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("solver.Entropy.weight", parset));
+        
+	LOFAR::ParameterSet subset(parset.makeSubset("solver.Entropy."));
+	deconvolver->configure(subset);
 
       }
       else if(parset.getString("solver", "Clean")=="Clean") {
@@ -117,25 +107,14 @@ namespace askap {
           deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverHogbom<Float, Complex>(dirty, psf));
         }
         ASKAPASSERT(deconvolver);
+
         // Get the mask and weights images
         deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("mask", parset));
         deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
         
         // Now configure the deconvolver
-	LOFAR::ParameterSet subset(parset.makeSubset("solver.Clean"));
-	deconvolver->configure(parset);
-
-	// Now set up controller
-	boost::shared_ptr<DeconvolverControl<Float> > controller(new DeconvolverControl<Float>());
-        ASKAPASSERT(controller);
-	controller->configure(parset);
-	deconvolver->setControl(controller);
-
-	// Now set up monitor
-	boost::shared_ptr<DeconvolverMonitor<Float> > monitor(new DeconvolverMonitor<Float>());
-        ASKAPASSERT(monitor);
-	monitor->configure(parset);
-	deconvolver->setMonitor(monitor);
+	LOFAR::ParameterSet subset(parset.makeSubset("solver.Clean."));
+	deconvolver->configure(subset);
 
       }
       ASKAPASSERT(deconvolver);

@@ -78,12 +78,15 @@ namespace askap {
       itsXFR.set(FT(0.0));
       casa::setReal(itsXFR, this->psf());
       scimath::fft2d(itsXFR, true);
-
+      itsLipschitz=casa::max(casa::real(casa::abs(this->itsXFR)));
+      ASKAPLOG_INFO_STR(decbaselogger, "Lipschitz number = " << itsLipschitz);
     };
     
     template<class T, class FT>
     void DeconvolverBase<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
+      this->itsDC->configure(parset);
+      this->itsDM->configure(parset);
     }
 
     template<class T, class FT>

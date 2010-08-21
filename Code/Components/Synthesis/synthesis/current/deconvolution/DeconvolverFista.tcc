@@ -76,9 +76,7 @@ namespace askap {
     {
       DeconvolverBase<T, FT>::initialise();
 
-      itsLipschitz=casa::max(casa::real(casa::abs(this->itsXFR)));
-
-      ASKAPLOG_INFO_STR(decfistalogger, "Lipschitz number = " << itsLipschitz);
+      ASKAPLOG_INFO_STR(decfistalogger, "Gain = " << this->control()->gain());
 
       // Initialise the residual image
       this->residual().resize(this->dirty().shape());
@@ -86,63 +84,6 @@ namespace askap {
  
       ASKAPLOG_INFO_STR(decfistalogger, "Initialised FISTA solver");
    }
-
-    // This contains the heart of the Fista algorithm
-    // function [Model]=ASKAPdeconv_L1norm(Dirtymap,PSF,center,lambda,niter)
-    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    // %This function implements FISTA -- a L1 norm based algorithom for solving the deconvolution problem in
-    // %radio astronomy
-    // %
-    // % Details can be found in paper "A Fast Iterative Shrinkage-Thresholding Algorithm for Linear Inverse Problems"
-    // 
-    // % Dirtymap the blurred image
-    // % PSF .... Point Spread Function of the Dirymap,here the psf is surposed to
-    // %           be the same size of Dirtymap
-    // %                            
-    // % center      A vector indicating the peak coordinate of the PSF for
-    // % example [129 129]
-    // %                                         
-    // % lambda  Regularization parameter, the larger the less iterations
-    // % required, however, the smaller the finer the reconstruction. 
-    // % 
-    // % Model the output cleaned image
-    // PSF=PSF/sum(sum(PSF)); % 
-    // wh=size(Dirtymap) == size(PSF);
-    // if wh(1) & wh(2)
-    // else
-    //   error(' The dirtymap and the dirty beam have to be the same size');
-    // end
-    // 
-    // if nargin < 5
-    //     niter=100;
-    // end
-    // 
-    // [m,n]=size(Dirtymap);
-    // % computng the UV mask with the psf         
-    // UV=fft2(circshift(PSF,1-center));
-    // Fdirty=fft2(Dirtymap);
-    // 
-    // %Calculate the Lipschitz constant as introduce in the paper
-    // L=2*max(max(abs(UV).^2));
-    // % initialization
-    // X_temp=Dirtymap;
-    // X=X_temp;
-    // t_new=1;
-    // for i=1:niter
-    //     X_old=X_temp;
-    //     t_old=t_new;
-    //     % Gradient
-    //     D=UV.*fft2(X)-Fdirty;
-    //     X=real(X-2/L*ifft2(conj(UV).*D));
-    //     % Soft thresholding 
-    //     D=abs(X)-lambda/(L);
-    //     X_temp=sign(X).*((D>0).*D);
-    //     %updating t and X
-    //     t_new=(1+sqrt(1+4*t_old^2))/2;
-    //     X=X_temp+(t_old-1)/t_new*(X_temp-X_old);
-    //     
-    // end
-    // Model=X_temp;
 
     template<class T, class FT>
     bool DeconvolverFista<T,FT>::deconvolve()
@@ -152,57 +93,30 @@ namespace askap {
 
       bool isMasked(this->itsWeightedMask.shape().conform(this->dirty().shape()));
 
-      Array<T> modelImage, modelImageold, modelImageTemp;
-      Array<FT> modelImagefft;
-      Array<FT> VResidual;
-      Array<T> Dfft;
+      Array<T> modelImage, deltaImage;
 
-      modelImageTemp.resize(this->model().shape());
-      modelImageTemp.set(T(0.0));
+      deltaImage.resize(this->model().shape());
+      deltaImage.set(T(0.0));
 
       modelImage.resize(this->model().shape());
       modelImage.set(T(0.0));
 
-      T tnew, told;
-      tnew=T(1.0);
-
       T absPeakVal;
       casa::IPosition absPeakPos;
 
-      // Find peak in residual image
-      {
-	casa::IPosition minPos;
-	casa::IPosition maxPos;
-	T minVal(0.0), maxVal(0.0);
-	if (isMasked) {
-	  casa::minMaxMasked(minVal, maxVal, minPos, maxPos,
-			     this->dirty(),
-			     itsWeightedMask);
-	}
-	else {
-	  casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty());
-	}
-	//
-	ASKAPLOG_INFO_STR(decfistalogger, "Current residual image");
-	ASKAPLOG_INFO_STR(decfistalogger, "   Maximum = " << maxVal << " at location " << maxPos);
-	ASKAPLOG_INFO_STR(decfistalogger, "   Minimum = " << minVal << " at location " << minPos);
-	if(abs(minVal)<abs(maxVal)) {
-	  absPeakVal=abs(maxVal);
-	  absPeakPos=maxPos;
-	}
-	else {
-	  absPeakVal=abs(minVal);
-	  absPeakPos=minPos;
-	}
-      }
-      this->state()->setPeakResidual(absPeakVal);
-      this->state()->setObjectiveFunction(absPeakVal);
-
-
       ASKAPLOG_INFO_STR(decfistalogger, "Performing Fista for " << this->control()->targetIter() << " iterations");
+
+      updateResiduals(modelImage);
+
+      absPeakVal=max(abs(this->residual()));
+
       do {
-        modelImageold=modelImageTemp.copy();
-        told=tnew;
+
+        T aFit=T(5.0)*sqrt(square(rms(this->residual()))+square(this->control()->lambda()*absPeakVal));
+        ASKAPLOG_INFO_STR(decfistalogger, "Scaling = " << aFit);
+
+        this->updateAlgorithm(deltaImage, this->model(), this->residual(), aFit);
+        modelImage=modelImage+this->control()->gain()*deltaImage;
 
 	updateResiduals(modelImage);
 
@@ -231,28 +145,17 @@ namespace askap {
             absPeakPos=minPos;
           }
         }
-        this->state()->setPeakResidual(absPeakVal);
-        this->state()->setObjectiveFunction(absPeakVal);
 
-        // Now update the current model: this is the Fista update algorithm
-	// We've modified it to allow a background image that is not
-	// represented in the residuals. This change allows incremental
-	// changes as needed for major/minor cycle algorithms
-        modelImage=modelImage+T(1.0/itsLipschitz)*this->residual();
-	Dfft=abs(modelImage+this->itsBackground)-this->control()->lambda()/itsLipschitz;
-        modelImageTemp=(Dfft(Dfft>T(0)));
-        modelImageTemp*=casa::sign(modelImage+this->itsBackground);
-	modelImageTemp-=this->itsBackground;
-        tnew=(1.0+sqrt(1.0+4.0*pow(told, 2)))/2.0;
-        modelImage=modelImageTemp+T((told-1.0)/tnew)*(modelImageTemp-modelImageold);
-        
+        this->state()->setPeakResidual(absPeakVal);
+        T l1Norm=sum(abs(modelImage));
+        this->state()->setObjectiveFunction(l1Norm);
         this->state()->setTotalFlux(sum(modelImage));
         
         this->monitor()->monitor(*(this->state()));
         this->state()->incIter();
       }
       while (!this->control()->terminate(*(this->state())));
-      this->model()=modelImageTemp.copy();
+      this->model()=modelImage.copy();
       
       ASKAPLOG_INFO_STR(decfistalogger, "Performed Fista for " << this->state()->currentIter() << " iterations");
       
@@ -268,6 +171,14 @@ namespace askap {
       return True;
     }
     
+    template <class T, class FT>
+    void DeconvolverFista<T, FT>::updateAlgorithm(Array<T>& delta, const Array<T>& model,
+                                                  const Array<T>& residual, T aFit) {
+      T scale=T(1.0)/(aFit);
+      delta=(T(1.0)-exp(-pow(scale*residual,8)))*residual/this->itsLipschitz;
+    }
+
+
   } // namespace synthesis
   
 } // namespace askap

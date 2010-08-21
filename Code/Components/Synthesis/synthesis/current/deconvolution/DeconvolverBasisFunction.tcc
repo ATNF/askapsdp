@@ -38,6 +38,7 @@ ASKAP_LOGGER(decbflogger, ".deconvolution.basisfunction");
 
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
+#include <casa/Arrays/MaskArrMath.h>
 
 #include <string>
 
@@ -79,11 +80,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBasisFunction<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
-      this->control()->setGain(parset.getFloat("solver.Basisfunction.gain", 0.1));
-      this->control()->setTolerance(parset.getFloat("solver.Basisfunction.tolerance", 1e-3));
-      this->control()->setTargetIter(parset.getInt32("solver.Basisfunction.niter", 100));
-      this->control()->setTargetObjectiveFunction(parset.getFloat("solver.Basisfunction.threshold", 0.0));
-      this->control()->setPSFWidth(parset.getInt("solver.Basisfunction.psfwidth", 0));
+      this->control()->configure(parset);
 
       // Make the basis function
       {
@@ -91,12 +88,12 @@ namespace askap {
 	defaultScales[0]=0.0;
 	defaultScales[1]=10.0;
 	defaultScales[2]=30.0;
-	std::vector<float> scales=parset.getFloatVector("solver.Basisfunction.scales", defaultScales);
+	std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
       
 	ASKAPLOG_INFO_STR(decbflogger, "Constructing Multiscale basis function with scales " << scales);
-	BasisFunction<Float>::ShPtr bf(new MultiScaleBasisFunction<Float>(scales));
+	itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
       }
-      itsUseCrossTerms=parset.getBool("solver.Basisfunction.usecrossterms", true);
+      itsUseCrossTerms=parset.getBool("usecrossterms", true);
       
     }
 
@@ -111,10 +108,17 @@ namespace askap {
     {
       DeconvolverBase<T, FT>::initialise();
 
+      ASKAPCHECK(this->itsBasisFunction, "Basis function not initialised");
+
+      this->state()->resetInitialObjectiveFunction();
+
+      this->itsBasisFunction->initialise(this->itsModel.shape());
+
       ASKAPLOG_INFO_STR(decbflogger, "Calculating cache of images");
 
       // Now calculate the convolutions of the residual images and PSFs 
       // with the basis functions
+
       ASKAPLOG_INFO_STR(decbflogger, "Shape of basis functions "
 			<< this->itsBasisFunction->basisFunction().shape());
 
@@ -219,6 +223,9 @@ namespace askap {
 
       this->initialise();
 
+      this->itsL1image.resize(this->model().shape());
+      this->itsL1image.set(0.0);
+
       ASKAPLOG_INFO_STR(decbflogger, "Performing BasisFunction CLEAN for "
                         << this->control()->targetIter() << " iterations");
       do {
@@ -230,6 +237,13 @@ namespace askap {
 
       ASKAPLOG_INFO_STR(decbflogger, "Performed BasisFunction CLEAN for "
                         << this->state()->currentIter() << " iterations");
+
+      Array<T> ones(this->itsL1image.shape());
+      ones.set(T(1.0));
+      T l0Norm(sum(ones(abs(this->itsL1image)>T(0.0))));
+      T l1Norm(sum(abs(this->itsL1image)));
+      ASKAPLOG_INFO_STR(decbflogger, "L0 norm = " << l0Norm << ", L1 norm   = " << l1Norm
+                        << ", Flux = " << sum(this->model()));
 
       ASKAPLOG_INFO_STR(decbflogger, this->control()->terminationString());
 
@@ -270,6 +284,9 @@ namespace askap {
         absPeakPos=minPos;
       }
 
+      if(this->state()->initialObjectiveFunction()==0.0) {
+        this->state()->setInitialObjectiveFunction(absPeakVal);
+      }
       this->state()->setPeakResidual(absPeakVal);
       this->state()->setObjectiveFunction(absPeakVal);
       this->state()->setTotalFlux(sum(this->itsBackground)+sum(this->model()));
@@ -298,6 +315,7 @@ namespace askap {
       if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
         psfWidth=(this->control()->psfWidth()-this->control()->psfWidth()%2);
       }
+
       for (uInt dim=0;dim<2;dim++) {
         // Wrangle the start, end, and shape into consistent form. It took me 
         // quite a while to figure this out (slow brain day) so it may be
@@ -331,6 +349,8 @@ namespace askap {
         this->model()(modelSlicer).nonDegenerate() = this->model()(modelSlicer).nonDegenerate()
           + this->control()->gain()*absPeakVal*
 	  this->itsBasisFunction->basisFunction()(psfSlicer).nonDegenerate();
+        this->itsL1image(absPeakPos) = this->itsL1image(absPeakPos)
+          + this->control()->gain()*abs(absPeakVal);
       }
       
       // Subtract PSF for this plane from residual image for the same plane

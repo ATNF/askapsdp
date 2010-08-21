@@ -93,6 +93,14 @@ namespace askap {
     	return itsTerminationCause;
       };
       
+      /// Algorithm name returned as String
+      String algorithm() const {return itsAlgorithm;};
+      
+      /// Set the termination cause
+      void setAlgorithm(const String algorithm) {
+        itsAlgorithm=algorithm;
+      };
+      
       void setGain(Float gain)
       {
         itsGain = gain;
@@ -141,11 +149,19 @@ namespace askap {
     	return itsTargetObjectiveFunction;
       }
 
-      void setFractionalThreshold(T fractionalThreshold) {
+      void setTargetFlux(T targetFlux) {
+    	itsTargetFlux = targetFlux;
+      }
+      
+      T targetFlux() const {
+    	return itsTargetFlux;
+      }
+
+      void setFractionalThreshold(Float fractionalThreshold) {
     	itsFractionalThreshold=fractionalThreshold;
       }
       
-      T fractionalThreshold() {
+      Float fractionalThreshold() {
     	return itsFractionalThreshold;
       }
 
@@ -156,10 +172,12 @@ namespace askap {
       Int psfWidth() const {return itsPSFWidth;};
 
     private:
+      String itsAlgorithm;
       TerminationCause itsTerminationCause;
       Int itsTargetIter;
       T itsTargetObjectiveFunction;
-      T itsFractionalThreshold;
+      T itsTargetFlux;
+      Float itsFractionalThreshold;
       Float itsGain;
       Float itsTolerance;
       Int itsPSFWidth;

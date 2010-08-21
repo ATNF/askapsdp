@@ -144,12 +144,12 @@ namespace askap {
 
     private:
 
+      void updateAlgorithm(Array<T>& delta, const Array<T>& model,
+                           const Array<T>& residual, T aFit);
+
       // We need this for the inner loop
       // Mask weighted by weight image
       Array<T> itsWeightedMask;
-
-      // Needed for scaling
-      T itsLipschitz;
 
     };
 

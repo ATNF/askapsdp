@@ -27,7 +27,9 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 
-#include <deconvolution/Entropy.h>
+#include <deconvolution/EntropyI.h>
+#include <deconvolution/Emptiness.h>
+
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <boost/shared_ptr.hpp>
@@ -69,19 +71,19 @@ namespace askap {
         itsEntropy->setPrior(itsPrior);
         itsEntropy->setMask(itsMask);
         itsModel.set(1.0);
-        CPPUNIT_ASSERT(abs(itsEntropy->formEntropy(itsModel)-3.29584)<1e-4);
+        CPPUNIT_ASSERT(abs(itsEntropy->entropy(itsModel)-2.19722)<1e-4);
         Matrix<Float> GDG=itsEntropy->formGDGStep(itsModel, itsResidual, itsStep);
         CPPUNIT_ASSERT(abs(GDG(1,1)-3600.0)<1);
-        CPPUNIT_ASSERT(abs(itsEntropy->formGDS(itsModel, itsResidual, itsStep)-10.8625)<1e-3);
+        CPPUNIT_ASSERT(abs(itsStep(IPosition(3,1,1,0))-1.09861)<1e-5);
+        CPPUNIT_ASSERT(abs(itsEntropy->formGDS(itsModel, itsResidual, itsStep)+10.8625)<1e-3);
       }
 
       void testEmptiness() {
         itsModel.set(1.0);
-        // Emptiness is inf! Don't know why
-        //        CPPUNIT_ASSERT(abs(itsEntropy->formEntropy(itsModel)-20.784)<1e-3);
-        CPPUNIT_ASSERT(abs(itsEntropy->formGDGStep(itsModel, itsResidual, itsStep)(IPosition(3,1,1,0))-0.9)<1e-5);
-        CPPUNIT_ASSERT(abs(itsStep(IPosition(3,1,1,0))+0.00025)<1e-5);
-        CPPUNIT_ASSERT(abs(itsEntropy->formGDS(itsModel, itsResidual, itsStep)-0.00225)<1e-4);
+        CPPUNIT_ASSERT(abs(itsEntropy->entropy(itsModel)-3.90403)<1e-3);
+        CPPUNIT_ASSERT(abs(itsEntropy->formGDGStep(itsModel, itsResidual, itsStep)(IPosition(3,1,1,0))-8571.95)<1e-1);
+        CPPUNIT_ASSERT(abs(itsStep(IPosition(3,1,1,0))+1.81343)<1e-4);
+        CPPUNIT_ASSERT(abs(itsEntropy->formGDS(itsModel, itsResidual, itsStep)+12.4299<1e-3));
       }
       void tearDown() {
         itsEntropy.reset();
