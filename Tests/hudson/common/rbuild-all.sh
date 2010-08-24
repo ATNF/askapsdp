@@ -4,6 +4,8 @@ PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
 
 ECH0='' # Can be overidden by -n option.
 ARGS=''
+LINUX_PYTHON='/usr/bin/python2.6'
+MACOSX_PYTHON='/opt/local/bin/python2.6'
 
 PNAME=`basename $0`
 SDATE=`date`
@@ -25,7 +27,7 @@ function bootstrap
 {
     ${ECHO} unset ASKAP_ROOT
     ${ECHO} cd $WORKSPACE/trunk
-    ${ECHO} /usr/bin/python2.6 bootstrap.py
+    ${ECHO} ${PYTHON} bootstrap.py
     if [ $? -ne 0 ]; then
         exit 1
     fi
@@ -77,6 +79,13 @@ NENV=$#
 # Basic build
 printf "==> Running ${PNAME}\n"
 printf "==> Starting standard build at ${SDATE}\n\n"
+
+if [ `uname` == "Darwin" ]; then
+    PYTHON=${MACOSX_PYTHON}
+else
+    PYTHON=${LINUX_PYTHON}
+fi
+
 bootstrap
 ${ECHO} source initaskap.sh # Setup ASKAP environment.
 build "3rdParty" "-q" "install"  # Always be quiet and fail immediately.
