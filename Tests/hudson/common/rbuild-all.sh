@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-PATH=/usr/bin:/bin:/usr/sbin:/sbin
+PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
 
 ECH0='' # Can be overidden by -n option.
 ARGS=''
@@ -79,8 +79,7 @@ printf "==> Running ${PNAME}\n"
 printf "==> Starting standard build at ${SDATE}\n\n"
 bootstrap
 ${ECHO} source initaskap.sh # Setup ASKAP environment.
-#build "3rdParty" "-q" "install"  # Always be quiet and fail immediately.
-build "3rdParty" "" "install"  # testign lapack build on zen
+build "3rdParty" "-q" "install"  # Always be quiet and fail immediately.
 build "Code" "${ARGS}" "install"
 DATE=`date`
 printf "\n==> Finished standard build at ${DATE}\n"
