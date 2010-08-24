@@ -1013,22 +1013,22 @@ namespace askap {
             int numVox = this->itsVoxelList.size();
             int numObj = this->itsCube.getNumObj();
 
-	    ASKAPLOG_DEBUG_STR(logger, "About to calculate parameters for all " << numObj << " objects");
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "About to calculate parameters for all " << numObj << " objects");
             if (numObj > 0) {
                 std::vector<PixelInfo::Voxel> templist[numObj];
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
 
-		  // ASKAPLOG_DEBUG_STR(logger, "Setting voxel list for param calc for object at (ra,dec)=("
-		  // 		     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
-		  // 		     << ") or (x,y)=(" 
-		  // 		     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
-		  // 		     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
-		  // 		     <<") and size " << this->itsCube.getObject(i).getSize());
+// ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting voxel list for param calc for object at (ra,dec)=("
+// 		     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
+// 		     << ") or (x,y)=(" 
+// 		     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
+// 		     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
+// 		     <<") and size " << this->itsCube.getObject(i).getSize());
 
                     // for each object, make a vector list of voxels that appear in it.
-		  std::vector<PixelInfo::Voxel> objVoxList = this->itsCube.getObject(i).getPixelSet();
-                    std::vector<PixelInfo::Voxel>::iterator vox;
+		    std::vector<PixelInfo::Voxel> objVoxList = this->itsCube.getObject(i).getPixelSet();
+		    std::vector<PixelInfo::Voxel>::iterator vox;
 
                     // get the fluxes of each voxel
                     for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
@@ -1040,24 +1040,27 @@ namespace askap {
 
                         if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
                             ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("
-                                                   << vox->getX() << "," << vox->getY() << ") in the object lists that doesn't appear in the base list.");
+					       << vox->getX() << "," << vox->getY() 
+					       << ") in the object lists that doesn't appear in the base list.");
                         } else vox->setF(this->itsVoxelList[ct].getF());
                     }
 
                     templist[i] = objVoxList;
                 }
 
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocated fluxes to voxel lists. Now calculating parameters");
+
                 std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
 
                 for (int i = 0; i < this->itsCube.getNumObj(); i++) {
 
-		  // ASKAPLOG_DEBUG_STR(logger, "Finished setting voxel list for param calc for object at (ra,dec)=("
-		  // 		     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
-		  // 		     << ") or (x,y)=(" 
-		  // 		     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
-		  // 		     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
-		  // 		     <<") and size " << this->itsCube.getObject(i).getSize());
+// ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished setting voxel list for param calc for object at (ra,dec)=("
+// 		     << this->itsCube.getObject(i).getRAs()<<","<<this->itsCube.getObject(i).getDecs()
+// 		     << ") or (x,y)=(" 
+// 		     <<this->itsCube.getObject(i).getXcentre()+this->itsCube.getObject(i).getXOffset()
+// 		     <<","<<this->itsCube.getObject(i).getYcentre()+this->itsCube.getObject(i).getYOffset()
+// 		     <<") and size " << this->itsCube.getObject(i).getSize());
 		}
 
             }
