@@ -105,6 +105,17 @@ namespace askap {
       /// @detail This is the main deconvolution method.
       bool oneIteration();
 
+      void minMaxMaskedScales(T& minVal, T& maxVal,
+			IPosition& minPos, IPosition& maxPos,
+			const Array<T>& dataArray, 
+			const Array<T>& maskArray, 
+			const Vector<T>& psfScales);
+
+      void minMaxScales(T& minVal, T& maxVal,
+			IPosition& minPos, IPosition& maxPos,
+			const Array<T>& dataArray, 
+			const Vector<T>& psfScales);
+
       /// Residual images convolved with basis functions
       Array<T> itsResidualBasisFunction;
 
@@ -115,12 +126,21 @@ namespace askap {
 
       Matrix<T> itsCouplingMatrix;
 
+      Matrix<T> itsInverseCouplingMatrix;
+
+      T itsDetCouplingMatrix;
+
       /// Point spread functions convolved with cross terms of basis functions
       Array<T> itsPSFCrossTerms;
 
       boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
 
       Array<T> itsL1image;
+      
+      Vector<T> itsScaleFlux;
+
+      Vector<T> itsPSFScales;
+
     };
 
   } // namespace synthesis

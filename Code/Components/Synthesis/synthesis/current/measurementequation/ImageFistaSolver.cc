@@ -195,7 +195,7 @@ namespace askap
 	    fistaDec->setBackground(fistaArray);
 	    fistaDec->deconvolve();
 	    ASKAPLOG_INFO_STR(logger, "Peak flux of the FISTA image "
-			      << max(fistaDec->model()));
+			      << max(fistaDec->model()+fistaDec->background()));
 	    ASKAPLOG_INFO_STR(logger, "Peak residual of FISTA image "
 			      << max(abs(fistaDec->residual())));
 	    

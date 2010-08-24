@@ -93,10 +93,13 @@ namespace askap {
 
       bool isMasked(this->itsWeightedMask.shape().conform(this->dirty().shape()));
 
-      Array<T> modelImage, deltaImage;
+      Array<T> modelImage, modelImageTemp, modelImageOld;
 
-      deltaImage.resize(this->model().shape());
-      deltaImage.set(T(0.0));
+      modelImageTemp.resize(this->model().shape());
+      modelImageTemp.set(T(0.0));
+
+      modelImageOld.resize(this->model().shape());
+      modelImageOld.set(T(0.0));
 
       modelImage.resize(this->model().shape());
       modelImage.set(T(0.0));
@@ -108,19 +111,34 @@ namespace askap {
 
       updateResiduals(modelImage);
 
+      modelImageTemp=this->residual()/this->itsLipschitz;
+
       absPeakVal=max(abs(this->residual()));
+
+      T t_new=1;
 
       do {
 
-        T aFit=T(5.0)*sqrt(square(rms(this->residual()))+square(this->control()->lambda()*absPeakVal));
+        T aFit=sqrt(square(rms(this->residual()))+square(this->control()->fractionalThreshold()*absPeakVal));
         ASKAPLOG_INFO_STR(decfistalogger, "Scaling = " << aFit);
 
-        this->updateAlgorithm(deltaImage, this->model(), this->residual(), aFit);
-        modelImage=modelImage+this->control()->gain()*deltaImage;
+	modelImageOld=modelImageTemp.copy();
+
+	T t_old=t_new;
 
 	updateResiduals(modelImage);
 
-        // Find peak in residual image
+	modelImage=modelImage+this->residual()/this->itsLipschitz;
+	Array<T> D(this->model().shape());
+
+	D=abs(modelImage+this->itsBackground)-aFit*this->control()->lambda()/this->itsLipschitz;
+	modelImageTemp=D(D>T(0.0));
+	modelImageTemp=sign(modelImage+this->itsBackground)*modelImageTemp;
+	modelImageTemp-=this->itsBackground;
+
+	t_new=(T(1.0)+sqrt(1+4*square(t_old)))/T(2.0);
+	modelImage=modelImageTemp+((t_old-T(1.0))/t_new)*(modelImageTemp-modelImageOld);
+
         {
 	  casa::IPosition minPos;
           casa::IPosition maxPos;
@@ -147,15 +165,15 @@ namespace askap {
         }
 
         this->state()->setPeakResidual(absPeakVal);
-        T l1Norm=sum(abs(modelImage));
-        this->state()->setObjectiveFunction(l1Norm);
-        this->state()->setTotalFlux(sum(modelImage));
+	//        T l1Norm=sum(abs(modelImage+this->itsBackground));
+        this->state()->setObjectiveFunction(absPeakVal);
+        this->state()->setTotalFlux(sum(modelImageTemp)+sum(this->itsBackground));
         
         this->monitor()->monitor(*(this->state()));
         this->state()->incIter();
       }
       while (!this->control()->terminate(*(this->state())));
-      this->model()=modelImage.copy();
+      this->model()=modelImageTemp.copy();
       
       ASKAPLOG_INFO_STR(decfistalogger, "Performed Fista for " << this->state()->currentIter() << " iterations");
       

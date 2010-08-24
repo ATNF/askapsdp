@@ -230,9 +230,8 @@ namespace askap
 	  ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
 	  solver->setAlgorithm(algorithm);
 	} else {
-	  solver = ImageSolver::ShPtr(new ImageMultiScaleSolver(casa::Vector<float>(scales)));
+	  solver.reset(new ImageMultiScaleSolver(casa::Vector<float>(scales)));
 	  ASKAPLOG_INFO_STR(logger, "Constructed image multiscale solver" );
-	  //solver->setAlgorithm(algorithm);
 	  solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));               
 	}
 	solver->configure(parset.makeSubset("solver.Clean."));
@@ -254,27 +253,12 @@ namespace askap
 	}
       } else if(parset.getString("solver")=="Fista") {
 	ASKAPLOG_INFO_STR(logger, "Constructing FISTA solver" );
-	solver = ImageSolver::ShPtr(new ImageFistaSolver());
-	LOFAR::ParameterSet subset(parset.makeSubset("solver.Fista."));
-	
-	// We cast back to get the correct configure
-	boost::shared_ptr<ImageFistaSolver> ifs = 
-	  boost::dynamic_pointer_cast<ImageFistaSolver>(solver);
-	if (ifs) {
-	  solver->configure(subset);
-	}
+	solver.reset(new ImageFistaSolver());
+	solver->configure(parset.makeSubset("solver.Fista."));
       } else if(parset.getString("solver")=="Basisfunction") {
 	ASKAPLOG_INFO_STR(logger, "Constructing Basisfunction solver" );
-	solver = ImageSolver::ShPtr(new ImageBasisFunctionSolver());
-	LOFAR::ParameterSet subset(parset.makeSubset("solver.Basisfunction."));
-	
-	// We cast back to get the correct configure
-	boost::shared_ptr<ImageBasisFunctionSolver> ifs = 
-	  boost::dynamic_pointer_cast<ImageBasisFunctionSolver>(solver);
-	if (ifs) {
-	  solver->configure(subset);
-	}
-	
+	solver.reset(new ImageBasisFunctionSolver());
+	solver->configure(parset.makeSubset("solver.Basisfunction."));
       } else {
 	// temporary
 	ASKAPCHECK(!parset.isDefined("solver.Dirty.threshold"), 

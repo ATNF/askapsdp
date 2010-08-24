@@ -59,7 +59,7 @@ namespace askap {
 
       if(parset.getString("solver", "Fista")=="Fista") {        
         ASKAPLOG_INFO_STR(logger, "Constructing Fista deconvolver");
-        deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverFista<Float, Complex>(dirty, psf));
+        deconvolver.reset(new DeconvolverFista<Float, Complex>(dirty, psf));
         ASKAPASSERT(deconvolver);
 
         // Get the mask and weights images
@@ -73,7 +73,7 @@ namespace askap {
       }
       else if(parset.getString("solver", "Basisfunction")=="Basisfunction") {        
         ASKAPLOG_INFO_STR(logger, "Constructing Basis Function deconvolver");
-        deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverBasisFunction<Float, Complex>(dirty, psf));
+        deconvolver.reset(new DeconvolverBasisFunction<Float, Complex>(dirty, psf));
         ASKAPASSERT(deconvolver);
 
 	// Get the mask and weights images
@@ -87,7 +87,7 @@ namespace askap {
       }
       else if(parset.getString("solver", "Entropy")=="Entropy") {        
         ASKAPLOG_INFO_STR(logger, "Constructing Entropy deconvolver");
-        deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverEntropy<Float, Complex>(dirty, psf));
+        deconvolver.reset(new DeconvolverEntropy<Float, Complex>(dirty, psf));
         ASKAPASSERT(deconvolver);
 
 	// Get the mask and weights images
@@ -104,7 +104,7 @@ namespace askap {
         
         if (algorithm=="Hogbom"){
           ASKAPLOG_INFO_STR(logger, "Constructing Hogbom Clean deconvolver");
-          deconvolver=boost::shared_ptr<DeconvolverBase<Float, Complex> >(new DeconvolverHogbom<Float, Complex>(dirty, psf));
+          deconvolver.reset(new DeconvolverHogbom<Float, Complex>(dirty, psf));
         }
         ASKAPASSERT(deconvolver);
 

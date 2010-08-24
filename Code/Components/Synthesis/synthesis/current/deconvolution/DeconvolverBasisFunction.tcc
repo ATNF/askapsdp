@@ -39,7 +39,8 @@ ASKAP_LOGGER(decbflogger, ".deconvolution.basisfunction");
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
 #include <casa/Arrays/MaskArrMath.h>
-
+#include <casa/Arrays/MatrixMath.h>
+#include <scimath/Mathematics/MatrixMathLA.h>
 #include <string>
 
 #include <deconvolution/DeconvolverBasisFunction.h>
@@ -126,6 +127,8 @@ namespace askap {
 
       itsResidualBasisFunction.resize(stackShape);
       itsPSFBasisFunction.resize(stackShape);
+      itsScaleFlux.resize(stackShape(2));
+      itsScaleFlux.set(T(0));
 
       Array<FT> bfPlane(this->model().shape());
 
@@ -156,6 +159,7 @@ namespace askap {
         Cube<T>(itsResidualBasisFunction).xyPlane(term)=real(work);
       }
       ASKAPLOG_INFO_STR(decbflogger, "Calculating convolutions of PSFs with basis functions");
+      itsPSFScales.resize(this->itsBasisFunction->numberTerms());
       for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
           // basis function * psf
 	ASKAPASSERT(basisFunctionFFT.xyPlane(term).nonDegenerate().shape().conform(this->xfr().nonDegenerate().shape()));
@@ -164,6 +168,8 @@ namespace askap {
 	Cube<T>(itsPSFBasisFunction).xyPlane(term)=real(work);
         
 	ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * PSF: max = " << max(real(work)) << " min = " << min(real(work)));
+
+	itsPSFScales(term)=max(real(work));
       }
       
       if(this->itsUseCrossTerms) {
@@ -214,6 +220,10 @@ namespace askap {
           }
         }
         ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix " << this->itsCouplingMatrix);
+	this->itsInverseCouplingMatrix.resize(this->itsCouplingMatrix.shape());
+	invertSymPosDef(this->itsInverseCouplingMatrix, this->itsDetCouplingMatrix, this->itsCouplingMatrix);
+	ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix determinant " << this->itsDetCouplingMatrix);
+        ASKAPLOG_INFO_STR(decbflogger, "Inverse coupling matrix " << this->itsInverseCouplingMatrix);
       }
     }
 
@@ -223,7 +233,8 @@ namespace askap {
 
       this->initialise();
 
-      this->itsL1image.resize(this->model().shape());
+      IPosition l1Shape(2, this->model().shape()(0), this->model().shape()(1));
+      this->itsL1image.resize(l1Shape);
       this->itsL1image.set(0.0);
 
       ASKAPLOG_INFO_STR(decbflogger, "Performing BasisFunction CLEAN for "
@@ -245,6 +256,10 @@ namespace askap {
       ASKAPLOG_INFO_STR(decbflogger, "L0 norm = " << l0Norm << ", L1 norm   = " << l1Norm
                         << ", Flux = " << sum(this->model()));
 
+      for (uInt scale=0;scale<itsScaleFlux.nelements();scale++) {
+	ASKAPLOG_INFO_STR(decbflogger, "   Scale " << scale << " Flux = " << itsScaleFlux(scale));
+      }
+
       ASKAPLOG_INFO_STR(decbflogger, this->control()->terminationString());
 
       this->finalise();
@@ -263,14 +278,15 @@ namespace askap {
       // Find peak in residual image cube
       casa::IPosition minPos;
       casa::IPosition maxPos;
-      T minVal, maxVal;
+      T minVal(0.0), maxVal(0.0);
       if (isMasked) {
-        casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction, this->itsWeightedMask);
+        minMaxMaskedScales(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction,
+			   this->itsWeightedMask, this->itsPSFScales);
       }
       else {
-        casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction);
+        minMaxScales(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction,
+		     this->itsPSFScales);
       }
-      //
       //      ASKAPLOG_INFO_STR(decbflogger, "Maximum =  " << maxVal << " at location " << maxPos);
       //      ASKAPLOG_INFO_STR(decbflogger, "Minimum = " << minVal << " at location " << minPos);
       T absPeakVal;
@@ -349,9 +365,12 @@ namespace askap {
         this->model()(modelSlicer).nonDegenerate() = this->model()(modelSlicer).nonDegenerate()
           + this->control()->gain()*absPeakVal*
 	  this->itsBasisFunction->basisFunction()(psfSlicer).nonDegenerate();
-        this->itsL1image(absPeakPos) = this->itsL1image(absPeakPos)
-          + this->control()->gain()*abs(absPeakVal);
       }
+      // Keep track of strengths and locations of components
+      IPosition l1PeakPos(2, absPeakPos(0), absPeakPos(1));
+      this->itsL1image(l1PeakPos) = this->itsL1image(l1PeakPos)
+	+ this->control()->gain()*abs(absPeakVal);
+      this->itsScaleFlux(optimumPlane)+=this->control()->gain()*absPeakVal;
       
       // Subtract PSF for this plane from residual image for the same plane
       {
@@ -383,6 +402,73 @@ namespace askap {
       return True;
     }
 
+    template<class T, class FT>
+    void DeconvolverBasisFunction<T, FT>::minMaxMaskedScales(T& minVal, T& maxVal,
+							     IPosition& minPos, IPosition& maxPos,
+							     const Array<T>& dataArray, 
+							     const Array<T>& maskArray, 
+							     const Vector<T>& psfScales) {
+      maxVal=T(-1e20);
+      minVal=T(+1e20);
+
+      const Cube<T> data(dataArray);
+      const Cube<T> mask(maskArray);
+
+      uInt nScales=psfScales.nelements();
+
+      T sMaxVal;
+      T sMinVal;
+      IPosition sMinPos;
+      IPosition sMaxPos;
+      for (uInt scale=0;scale<nScales;scale++) {
+	casa::minMaxMasked(sMinVal, sMaxVal, sMinPos, sMaxPos, data.xyPlane(scale),
+			   mask.xyPlane(scale));
+	sMinVal/=sqrt(psfScales(scale));
+	sMaxVal/=sqrt(psfScales(scale));
+	if(sMinVal<=minVal) {
+	  minVal=sMinVal;
+	  minPos=IPosition(3, sMinPos(0), sMinPos(1), scale);
+	}
+	if(sMaxVal>=maxVal) {
+	  maxVal=sMaxVal;
+	  maxPos=IPosition(3, sMaxPos(0), sMaxPos(1), scale);
+	}
+      }
+      minVal/=sqrt(psfScales(minPos(2)));
+      maxVal/=sqrt(psfScales(minPos(2)));
+    }
+    template<class T, class FT>
+    void DeconvolverBasisFunction<T, FT>::minMaxScales(T& minVal, T& maxVal,
+						       IPosition& minPos, IPosition& maxPos,
+						       const Array<T>& dataArray, 
+						       const Vector<T>& psfScales) {
+      maxVal=T(-1e20);
+      minVal=T(+1e20);
+
+      const Cube<T> data(dataArray);
+
+      uInt nScales=psfScales.nelements();
+
+      T sMaxVal;
+      T sMinVal;
+      IPosition sMinPos;
+      IPosition sMaxPos;
+      for (uInt scale=0;scale<nScales;scale++) {
+	casa::minMax(sMinVal, sMaxVal, sMinPos, sMaxPos, data.xyPlane(scale));
+	sMinVal/=sqrt(psfScales(scale));
+	sMaxVal/=sqrt(psfScales(scale));
+	if(sMinVal<=minVal) {
+	  minVal=sMinVal;
+	  minPos=IPosition(3, sMinPos(0), sMinPos(1), scale);
+	}
+	if(sMaxVal>=maxVal) {
+	  maxVal=sMaxVal;
+	  maxPos=IPosition(3, sMaxPos(0), sMaxPos(1), scale);
+	}
+      }
+      minVal/=sqrt(psfScales(minPos(2)));
+      maxVal/=sqrt(psfScales(minPos(2)));
+    }
   } // namespace synthesis
 
 } // namespace askap

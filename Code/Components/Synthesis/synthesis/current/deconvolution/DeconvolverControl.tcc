@@ -66,7 +66,7 @@ namespace askap {
       //
       if(abs(state.objectiveFunction())<itsFractionalThreshold*state.initialObjectiveFunction()) {
         ASKAPLOG_INFO_STR(decctllogger, "Objective function " << state.objectiveFunction()
-                          << " less than fractional threshold " << itsFractionalThreshold*state.initialObjectiveFunction()
+                          << " less than fractional threshold " << itsFractionalThreshold
                           << " * initialObjectiveFunction : " << state.initialObjectiveFunction());
         itsTerminationCause = CONVERGED;
         return True;
