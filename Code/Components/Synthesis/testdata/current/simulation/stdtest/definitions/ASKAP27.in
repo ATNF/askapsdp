@@ -1,5 +1,5 @@
 antennas.telescope            =       ASKAP27
-antennas.ASKAP27.location       =       [+116.636deg, -26.701deg, 377m, WGS84]
+antennas.ASKAP27.location       =       [+116.6356824deg, -26.7013006deg, 377m, WGS84]
 antennas.ASKAP27.names  = [A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12, A13, A14, A15, A16, A17, A18, A19, A20, A21, A22, A23, A24, A25, A26, A27]
 antennas.ASKAP27.diameter       =       12m
 antennas.ASKAP27.scale          = 1.0
