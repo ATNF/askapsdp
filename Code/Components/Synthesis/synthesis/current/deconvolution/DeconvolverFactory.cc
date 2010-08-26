@@ -34,8 +34,6 @@ ASKAP_LOGGER(logger, ".deconvolver.factory");
 #include <deconvolution/DeconvolverEntropy.h>
 #include <deconvolution/DeconvolverFista.h>
 #include <deconvolution/DeconvolverHogbom.h>
-#include <deconvolution/DeconvolverControl.h>
-#include <deconvolution/DeconvolverMonitor.h>
 
 #include <deconvolution/MultiScaleBasisFunction.h>
 

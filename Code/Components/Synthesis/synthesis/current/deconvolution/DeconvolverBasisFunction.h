@@ -105,6 +105,10 @@ namespace askap {
       /// @detail This is the main deconvolution method.
       bool oneIteration();
 
+      void initialisePSF();
+
+      void initialiseResidual();
+
       void minMaxMaskedScales(T& minVal, T& maxVal,
 			IPosition& minPos, IPosition& maxPos,
 			const Array<T>& dataArray, 
