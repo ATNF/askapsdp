@@ -125,9 +125,11 @@ namespace askap {
                 /// @brief Fit the sources on the boundaries between workers' subimages (on the master)
                 void cleanup();
 		void fitRemaining();
+		void distributeVoxelList();
 
                 /// @brief Calculate the object parameters on the master.
                 void calcObjectParams();
+                void calcObjectParamsOLD();
 
                 /// @brief Write a Karma annotation file showing the fits (on the master).
                 void writeFitAnnotation();

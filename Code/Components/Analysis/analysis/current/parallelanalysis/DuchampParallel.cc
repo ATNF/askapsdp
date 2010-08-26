@@ -819,6 +819,13 @@ namespace askap {
                     }
                 }
             }
+
+	    if(this->isParallel() && this->isMaster()) 
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Distributing full voxel list, of size " << this->itsVoxelList.size() << " to the workers.");
+	    this->distributeVoxelList();
+	    if(this->isParallel() && this->isMaster()) 
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Voxel list distributed");
+
         }
 
         //**************************************************************//
@@ -1002,7 +1009,126 @@ namespace askap {
 
         //**************************************************************//
 
-        void DuchampParallel::calcObjectParams()
+      void DuchampParallel::calcObjectParams()
+      {
+		if(this->isParallel()){
+	  if(this->isMaster()) {
+	    int16 rank;
+	    LOFAR::BlobString bs;
+
+	    // now send the individual sources to each worker in turn
+	    for(int i=0;i<this->itsCube.getNumObj()+1;i++){
+	      rank = i % (this->itsNNode - 1);
+	      if(i<this->itsCube.getNumObj())
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << this->itsCube.getObject(i).getSize() << " to worker "<<rank+1);
+	      bs.resize(0);
+	      LOFAR::BlobOBufString bob(bs);
+	      LOFAR::BlobOStream out(bob);
+	      out.putStart("paramsrc", 1);
+	      out << (i<this->itsCube.getNumObj());
+	      if(i<this->itsCube.getNumObj()) {
+		sourcefitting::RadioSource src = this->itsCube.getObject(i);
+		out << src;
+	      }
+	      out.putEnd();
+	      this->itsConnectionSet->write(rank, bs);
+	    }
+
+	    // now read back the sources from the workers
+	    this->itsSourceList.clear();
+	    for (int n=0;n<this->itsNNode-1;n++){
+	      int numSrc;
+	      ASKAPLOG_INFO_STR(logger, "Master about to read from worker #"<< n+1);
+	      this->itsConnectionSet->read(n, bs);
+	      LOFAR::BlobIBufString bib(bs);
+	      LOFAR::BlobIStream in(bib);
+	      int version = in.getStart("final");
+	      ASKAPASSERT(version == 1);
+	      in >> numSrc;
+	      for(int i=0;i<numSrc;i++){
+		sourcefitting::RadioSource src;
+		in >> src;
+		this->itsCube.addObject(src);
+	      }
+	      in.getEnd();
+	    }
+	  }
+	  else if(this->isWorker()){
+	    this->itsCube.pars().setSubsection("");
+	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
+	    LOFAR::BlobString bs;
+
+	    // now read individual sources
+	    bool isOK=true;
+	    this->itsCube.clearDetectionList();
+	    while(isOK) {	    
+	      sourcefitting::RadioSource src;
+	      this->itsConnectionSet->read(0, bs);
+	      LOFAR::BlobIBufString bib(bs);
+	      LOFAR::BlobIStream in(bib);
+	      int version = in.getStart("fitsrc");
+	      ASKAPASSERT(version == 1);
+	      in >> isOK;
+	      if(isOK){
+		in >> src;
+		this->itsCube.addObject(src);
+	      }
+	      in.getEnd();
+	    }
+
+            int numVox = this->itsVoxelList.size();
+            int numObj = this->itsCube.getNumObj();
+
+	    if (numObj > 0) {
+	      std::vector<PixelInfo::Voxel> templist[numObj];
+                for (int i = 0; i < numObj; i++) {
+
+		  // for each object, make a vector list of voxels that appear in it.
+		  std::vector<PixelInfo::Voxel> objVoxList = this->itsCube.getObject(i).getPixelSet();
+		  std::vector<PixelInfo::Voxel>::iterator vox;
+		  
+		  // get the fluxes of each voxel
+		  for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
+		    int ct = 0;
+		    
+		    while (ct < numVox && !vox->match(this->itsVoxelList[ct])) {
+		      ct++;
+		    }
+		    
+		    if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
+		      ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("<< vox->getX() << "," << vox->getY()<< ") in the object lists that doesn't appear in the base list.");
+		    } else vox->setF(this->itsVoxelList[ct].getF());
+		  }
+
+		  templist[i] = objVoxList;
+                }
+		
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocated fluxes to voxel lists. Now calculating parameters");
+		
+                std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
+                this->itsCube.calcObjectWCSparams(bigVoxSet);
+	   }
+
+	    // send sources back to master
+	    bs.resize(0);
+	    LOFAR::BlobOBufString bob(bs);
+	    LOFAR::BlobOStream out(bob);
+	    out.putStart("final", 1);
+	    out << int(numObj);
+	    for(int i=0;i<numObj;i++){
+	      sourcefitting::RadioSource src=this->itsCube.getObject(i);
+	      out << src;
+	    }
+	    out.putEnd();
+	    this->itsConnectionSet->write(0,bs);
+
+	  }
+	}
+
+      }
+
+
+      void DuchampParallel::calcObjectParamsOLD()
         {
             /// @details A function to calculate object parameters
             /// (including WCS parameters), making use of the this->itsVoxelList
@@ -1068,11 +1194,10 @@ namespace askap {
 
         //**************************************************************//
 
-      void DuchampParallel::fitRemaining()
+      void DuchampParallel::distributeVoxelList()
       {
 	if(this->isParallel()){
 	  if(this->isMaster()) {
-	    int16 rank;
 	    LOFAR::BlobString bs;
 
 	    // first send the voxel list to all workers
@@ -1080,13 +1205,57 @@ namespace askap {
 	    bs.resize(0);
 	    LOFAR::BlobOBufString bob(bs);
 	    LOFAR::BlobOStream out(bob);
-	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcasting 'finished' signal to all workers");
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcasting voxel list to all workers");
 	    out.putStart("voxels", 1);
 	    out << int(this->itsVoxelList.size());
 	    for(size_t p=0;p<this->itsVoxelList.size();p++) 
 	      out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
 	    out.putEnd();
 	    this->itsConnectionSet->writeAll(bs);
+	  }
+	  else if(this->isWorker()){
+	    // first read the voxel list
+	    this->itsVoxelList.clear();
+	    LOFAR::BlobString bs;
+	    this->itsConnectionSet->read(0, bs);
+	    LOFAR::BlobIBufString bib(bs);
+	    LOFAR::BlobIStream in(bib);
+	    int version = in.getStart("voxels");
+	    ASKAPASSERT(version == 1);
+	    int size;
+	    in >> size;
+	    int32 x,y,z;
+	    float f;
+	    for(int p=0;p<size;p++){
+	      in >> x >> y >> z >> f;
+	      this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
+	    }
+	    in.getEnd();
+	  }
+	}
+      }
+
+	//**************************************************************//
+
+      void DuchampParallel::fitRemaining()
+      {
+	if(this->isParallel()){
+	  if(this->isMaster()) {
+	    int16 rank;
+	    LOFAR::BlobString bs;
+
+	    // // first send the voxel list to all workers
+	    // /// @todo This could be made more efficient, so that we don't send unnecessary voxels to some workers.
+	    // bs.resize(0);
+	    // LOFAR::BlobOBufString bob(bs);
+	    // LOFAR::BlobOStream out(bob);
+	    // ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcasting voxel list to all workers");
+	    // out.putStart("voxels", 1);
+	    // out << int(this->itsVoxelList.size());
+	    // for(size_t p=0;p<this->itsVoxelList.size();p++) 
+	    //   out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
+	    // out.putEnd();
+	    // this->itsConnectionSet->writeAll(bs);
 	    
 	    // now send the individual sources to each worker in turn
 	    for(size_t i=0;i<this->itsSourceList.size();i++){
@@ -1104,6 +1273,8 @@ namespace askap {
 	    }
 
 	    // now notify all workers that we're finished.
+	    LOFAR::BlobOBufString bob(bs);
+	    LOFAR::BlobOStream out(bob);
 	    bs.resize(0);
 	    bob = LOFAR::BlobOBufString(bs);
 	    out = LOFAR::BlobOStream(bob);
@@ -1138,22 +1309,22 @@ namespace askap {
 	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
 	    LOFAR::BlobString bs;
 
-	    // first read the voxel list
-	    this->itsVoxelList.clear();
-	    this->itsConnectionSet->read(0, bs);
-	    LOFAR::BlobIBufString bib(bs);
-	    LOFAR::BlobIStream in(bib);
-	    int version = in.getStart("voxels");
-	    ASKAPASSERT(version == 1);
-	    int size;
-	    in >> size;
-	    int32 x,y,z;
-	    float f;
-	    for(int p=0;p<size;p++){
-	      in >> x >> y >> z >> f;
-	      this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
-	    }
-	    in.getEnd();
+	    // // first read the voxel list
+	    // this->itsVoxelList.clear();
+	    // this->itsConnectionSet->read(0, bs);
+	    // LOFAR::BlobIBufString bib(bs);
+	    // LOFAR::BlobIStream in(bib);
+	    // int version = in.getStart("voxels");
+	    // ASKAPASSERT(version == 1);
+	    // int size;
+	    // in >> size;
+	    // int32 x,y,z;
+	    // float f;
+	    // for(int p=0;p<size;p++){
+	    //   in >> x >> y >> z >> f;
+	    //   this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
+	    // }
+	    // in.getEnd();
 
 	    // now read individual sources
 	    bool isOK=true;
