@@ -1066,7 +1066,7 @@ namespace askap {
 	      this->itsConnectionSet->read(0, bs);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
-	      int version = in.getStart("fitsrc");
+	      int version = in.getStart("paramsrc");
 	      ASKAPASSERT(version == 1);
 	      in >> isOK;
 	      if(isOK){
