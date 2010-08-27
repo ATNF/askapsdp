@@ -192,9 +192,10 @@ void SimParallel::readAntennas()
     }
 
     /// Csimulator.ASKAP.location=[+115deg, -26deg, 192km, WGS84]
-    casa::MPosition location =
-        MEParsetInterface::asMPosition(antParset.getStringVector("location"));
-
+    casa::MPosition location;
+    if(coordinates == "local") {
+        location = MEParsetInterface::asMPosition(antParset.getStringVector("location"));
+    }
     itsSim->initAnt(telName, x, y, z, dishDiameter, offset, mounts, name,
                     casa::String(coordinates), location);
     ASKAPLOG_INFO_STR(logger, "Successfully defined " << nAnt
