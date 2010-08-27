@@ -843,9 +843,14 @@ namespace askap {
             /// detection list, along with the non-boundary objects. The
             /// final list of RadioSource objects is then sorted (by the
             /// Name field) and given object IDs.
+	  if(this->isParallel() && this->isWorker()){
+	    // need to call calcObjectParams only, so that the distributed calculation works
+	    this->calcObjectParams();
+	  }
+
+
             if (!this->isParallel() || this->isMaster()) {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Beginning the cleanup");
-                std::vector<sourcefitting::RadioSource> backuplist = this->itsSourceList;
                 std::vector<sourcefitting::RadioSource> edgeSources, goodSources;
                 std::vector<sourcefitting::RadioSource>::iterator src;
 
@@ -1011,7 +1016,7 @@ namespace askap {
 
       void DuchampParallel::calcObjectParams()
       {
-		if(this->isParallel()){
+	if(this->isParallel()){
 	  if(this->isMaster()) {
 	    int16 rank;
 	    LOFAR::BlobString bs;
