@@ -27,6 +27,7 @@ package askap;
 
 // Log4J imports
 import java.util.HashMap;
+import java.net.InetAddress;
 
 import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.Level;
@@ -39,6 +40,7 @@ public class IceAppender extends AppenderSkeleton
     private String itsLocatorPort;
     private String itsLocatorHost;
     private String itsTopic;
+    private String itsHostName;
     
 	private String itsTag;
 
@@ -146,6 +148,12 @@ public class IceAppender extends AppenderSkeleton
         if (!verifyOptions()) {
             return;
         }
+        
+        try {
+          itsHostName = InetAddress.getLocalHost().getHostName();
+        } catch (Exception e) {
+          itsHostName = "unknown";
+        }
 
         // Map all log4j log levels to ASKAP/ICE log levels so a log4j event can be
         // turned into an ASKAP LogEvent
@@ -241,7 +249,7 @@ public class IceAppender extends AppenderSkeleton
             iceevent.created = event.getTimeStamp() / 1000.0;
             iceevent.level = itsLevelMap.get(event.getLevel());
             iceevent.message = event.getRenderedMessage();
-            
+            iceevent.hostname = itsHostName;
             iceevent.tag = this.itsTag;
 
             // Send
