@@ -130,7 +130,7 @@ move to the next step.
 Note - The Tools subdirectory is built during the intial bootstrap
 but can be rebuilt if desired to incorporate latest updates.
 
-cd $ASKAP_ROOT; python autobuild.py -q install
+cd $ASKAP_ROOT; rbuild -a
 
 
 Installing the Sub-hierarchies
@@ -142,17 +142,18 @@ These command should build all packages and versions of the packages.
 Installing Tools
 ================
 cd $ASKAP_ROOT/Tools
-python autobuild.py -q install
+rbuild -a
 
 Installing 3rdParty
 ===================
 cd $ASKAP_ROOT/3rdParty
-python autobuild.py -q install
+rbuild -a
+
 
 Install Code
 ============
 cd $ASKAP_ROOT/Code
-python autobuild.py -q install
+rbuild -a
 
 Troubleshooting
 ===============
