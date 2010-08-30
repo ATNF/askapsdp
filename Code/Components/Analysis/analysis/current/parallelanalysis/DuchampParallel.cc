@@ -730,103 +730,105 @@ namespace askap {
 
         //**************************************************************//
 
-        void DuchampParallel::receiveObjects()
-        {
-            /// @details On the Master node, receive the list of RadioSource
-            /// objects sent by the workers. Also receives the list of
-            /// detected and surrounding voxels - these will be used to
-            /// calculate parameters of any merged boundary sources.
-            /// @todo Voxellist is really only needed for the boundary sources.
-            if (!this->isParallel() || this->isMaster()) {
-                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Retrieving lists from workers");
+      void DuchampParallel::receiveObjects()
+      {
+	/// @details On the Master node, receive the list of RadioSource
+	/// objects sent by the workers. Also receives the list of
+	/// detected and surrounding voxels - these will be used to
+	/// calculate parameters of any merged boundary sources.
+	/// @todo Voxellist is really only needed for the boundary sources.
+	if (!this->isParallel() || this->isMaster()) {
+	  ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Retrieving lists from workers");
 
-                if (this->isParallel()) {
-                    LOFAR::BlobString bs;
-                    int16 rank;
-                    int32 numObj;
+	  if (this->isParallel()) {
+	    LOFAR::BlobString bs;
+	    int16 rank;
+	    int32 numObj;
 
-                    // don't do fit if we have a spectral axis.
-                    bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
-                    this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
+	    // don't do fit if we have a spectral axis.
+	    bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
+	    this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
 
-                    for (int i = 1; i < this->itsNNode; i++) {
-                        this->itsConnectionSet->read(i - 1, bs);
-                        LOFAR::BlobIBufString bib(bs);
-                        LOFAR::BlobIStream in(bib);
-                        int version = in.getStart("detW2M");
-                        ASKAPASSERT(version == 1);
-                        in >> rank >> numObj;
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Starting to read "
-                                              << numObj << " objects from worker #" << rank);
-                        int xstart, ystart, zstart;
-                        in >> xstart >> ystart >> zstart;
+	    for (int i = 1; i < this->itsNNode; i++) {
+	      this->itsConnectionSet->read(i - 1, bs);
+	      LOFAR::BlobIBufString bib(bs);
+	      LOFAR::BlobIStream in(bib);
+	      int version = in.getStart("detW2M");
+	      ASKAPASSERT(version == 1);
+	      in >> rank >> numObj;
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Starting to read "
+				<< numObj << " objects from worker #" << rank);
+	      int xstart, ystart, zstart;
+	      in >> xstart >> ystart >> zstart;
 
-                        for (int obj = 0; obj < numObj; obj++) {
-                            sourcefitting::RadioSource src;
-                            in >> src;
-                            // Correct for any offsets.
-                            // If the full cube is a subsection of a larger one, then we need to correct for what the master offsets are.
-                            src.setXOffset(xstart - this->itsCube.pars().getXOffset());
-                            src.setYOffset(ystart - this->itsCube.pars().getYOffset());
-                            src.setZOffset(zstart - this->itsCube.pars().getZOffset());
-                            src.addOffsets();
-                            src.calcParams();
+	      for (int obj = 0; obj < numObj; obj++) {
+		sourcefitting::RadioSource src;
+		in >> src;
+		// Correct for any offsets.
+		// If the full cube is a subsection of a larger one, then we need to correct for what the master offsets are.
+		src.setXOffset(xstart - this->itsCube.pars().getXOffset());
+		src.setYOffset(ystart - this->itsCube.pars().getYOffset());
+		src.setZOffset(zstart - this->itsCube.pars().getZOffset());
+		src.addOffsets();
+		src.calcParams();
 
-                            for (unsigned int f = 0; f < src.fitset("best").size(); f++) {
-                                src.fitset("best")[f].setXcenter(src.fitset("best")[f].xCenter() + src.getXOffset());
-                                src.fitset("best")[f].setYcenter(src.fitset("best")[f].yCenter() + src.getYOffset());
-                            }
+		for (unsigned int f = 0; f < src.fitset("best").size(); f++) {
+		  src.fitset("best")[f].setXcenter(src.fitset("best")[f].xCenter() + src.getXOffset());
+		  src.fitset("best")[f].setYcenter(src.fitset("best")[f].yCenter() + src.getYOffset());
+		}
 
-                            // And now set offsets to those of the full image as we are in the master cube
-                            src.setOffsets(this->itsCube.pars());
-                            src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
-                            src.fitparams() = this->itsFitter;
-                            this->itsSourceList.push_back(src);
+		// And now set offsets to those of the full image as we are in the master cube
+		src.setOffsets(this->itsCube.pars());
+		src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+		src.fitparams() = this->itsFitter;
+		this->itsSourceList.push_back(src);
 
-                            if (src.isAtEdge()) {
-                                int numVox;
-                                bool haveSNRvalues;
-                                in >> numVox >> haveSNRvalues;
+		if (src.isAtEdge()) {
+		  int numVox;
+		  bool haveSNRvalues;
+		  in >> numVox >> haveSNRvalues;
 
-                                for (int p = 0; p < numVox; p++) {
-                                    int32 x, y, z;
-                                    float flux, snr;
-				    /// @todo Remove inObj as not used.
-                                    bool inObj;
-                                    in >> inObj >> x >> y >> z >> flux;
+		  for (int p = 0; p < numVox; p++) {
+		    int32 x, y, z;
+		    float flux, snr;
+		    /// @todo Remove inObj as not used.
+		    bool inObj;
+		    in >> inObj >> x >> y >> z >> flux;
 
-                                    if (haveSNRvalues) in >> snr;
+		    if (haveSNRvalues) in >> snr;
 
-                                    x += (xstart - this->itsCube.pars().getXOffset());
-                                    y += (ystart - this->itsCube.pars().getYOffset());
-                                    z += (zstart - this->itsCube.pars().getZOffset());
-                                    PixelInfo::Voxel vox(x, y, z, flux);
-                                    this->itsVoxelList.push_back(vox);
+		    x += (xstart - this->itsCube.pars().getXOffset());
+		    y += (ystart - this->itsCube.pars().getYOffset());
+		    z += (zstart - this->itsCube.pars().getZOffset());
+		    PixelInfo::Voxel vox(x, y, z, flux);
+		    this->itsVoxelList.push_back(vox);
 
-                                    if (haveSNRvalues) {
-                                        PixelInfo::Voxel snrvox(x, y, z, snr);
-                                        this->itsSNRVoxelList.push_back(snrvox);
-                                    }
-                                }
-                            }
-                        }
+		    if (haveSNRvalues) {
+		      PixelInfo::Voxel snrvox(x, y, z, snr);
+		      this->itsSNRVoxelList.push_back(snrvox);
+		    }
+		  }
+		}
+	      }
 
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received list of size "
-                                              << numObj << " from worker #" << rank);
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have "
-                                              << this->itsSourceList.size() << " objects");
-                        in.getEnd();
-                    }
-                }
-            }
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received list of size "
+				<< numObj << " from worker #" << rank);
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have "
+				<< this->itsSourceList.size() << " objects");
+	      in.getEnd();
+	    }
+	  }
+	}
 
-	    if(this->isParallel() && this->isMaster()) 
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Distributing full voxel list, of size " << this->itsVoxelList.size() << " to the workers.");
-	    this->distributeVoxelList();
-	    if(this->isParallel() && this->isMaster()) 
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Voxel list distributed");
+	if(this->isParallel() && this->isMaster()) 
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Distributing full voxel list, of size " << this->itsVoxelList.size() << " to the workers.");
+	else if(this->isParallel() && this->isWorker())
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "About to receive the voxel list from the Master");
+	this->distributeVoxelList();
+	if(this->isParallel() && this->isMaster()) 
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Voxel list distributed");
 
-        }
+      }
 
         //**************************************************************//
 
@@ -845,6 +847,7 @@ namespace askap {
             /// Name field) and given object IDs.
 	  if(this->isParallel() && this->isWorker()){
 	    // need to call calcObjectParams only, so that the distributed calculation works
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating the parameters in a distributed manner via calcObjectParams()");
 	    this->calcObjectParams();
 	  }
 
@@ -860,6 +863,7 @@ namespace askap {
                 }
 
                 this->itsSourceList.clear();
+		this->itsCube.clearDetectionList();
                 duchamp::FitsHeader head = this->itsCube.getHead();
 
                 float threshold;
@@ -961,6 +965,7 @@ namespace askap {
                         this->itsSourceList.push_back(src);
                     }
                 }
+		else this->calcObjectParams(); // if no edge sources, call this anyway so the workers know what to do...
 
 		if(this->itsFlagDistribFit) this->fitRemaining();
 
@@ -1032,7 +1037,7 @@ namespace askap {
 	      out.putStart("paramsrc", 1);
 	      out << (i<this->itsCube.getNumObj());
 	      if(i<this->itsCube.getNumObj()) {
-		sourcefitting::RadioSource src = this->itsCube.getObject(i);
+		sourcefitting::RadioSource src(this->itsCube.getObject(i));
 		out << src;
 	      }
 	      out.putEnd();
@@ -1059,6 +1064,7 @@ namespace askap {
 	    }
 	  }
 	  else if(this->isWorker()){
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for object calculation");
 	    this->itsCube.pars().setSubsection("");
 	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
 	    LOFAR::BlobString bs;
@@ -1074,8 +1080,10 @@ namespace askap {
 	      int version = in.getStart("paramsrc");
 	      ASKAPASSERT(version == 1);
 	      in >> isOK;
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Read OK flag=" << isOK << " from Master");
 	      if(isOK){
 		in >> src;
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Read object of size " << src.getSize() << " from Master");
 		this->itsCube.addObject(src);
 	      }
 	      in.getEnd();
@@ -1231,6 +1239,7 @@ namespace askap {
 	    in >> size;
 	    int32 x,y,z;
 	    float f;
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "About to read a list of " << size << " voxels from the master");
 	    for(int p=0;p<size;p++){
 	      in >> x >> y >> z >> f;
 	      this->itsVoxelList.push_back(PixelInfo::Voxel(x,y,z,f));
@@ -1310,6 +1319,7 @@ namespace askap {
 	    }
 	  }
 	  else if(this->isWorker()){
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for source fitting");
 	    this->itsCube.pars().setSubsection("");
 	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
 	    LOFAR::BlobString bs;
