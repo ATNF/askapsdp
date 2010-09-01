@@ -45,8 +45,6 @@
 
 #include <Common/ParameterSet.h>
 
-#include <Common/ParameterSet.h>
-
 namespace askap {
 
   namespace synthesis {
@@ -86,7 +84,9 @@ namespace askap {
       Array<T>& model() { return itsModel;};
 
       /// @brief Set the initial background
-      /// @detail Set the background from which iteration will start
+      /// @detail Set the background image. The
+      /// background image is used in those cases where the absolute
+      /// value of the brightness must be known.
       /// @param[out] background Background image (array)
       void setBackground(const Array<T> background);
 
@@ -95,8 +95,8 @@ namespace askap {
       /// @param[out] background Background image (array)
       Array<T>& background() { return itsBackground;};
 
-      /// @brief Get the current dirty
-      /// @detail Get the current dirty
+      /// @brief Get the current dirty image 
+      /// @detail Get the current dirty (an array)
       /// @param[out] dirty Dirty image (array)
       Array<T>& dirty() { return itsDirty;};
 
@@ -106,12 +106,13 @@ namespace askap {
       Array<T>& psf() { return itsPSF;};
 
       /// @brief Get the current XFR
-      /// @detail Get the current XFR
+      /// @detail Get the current XFR - the transform of the specified
+      /// point spread function.
       /// @param[out] XFR image (array)
       Array<FT>& xfr() { return itsXFR;};
 
       /// @brief Get the current residual
-      /// @detail Get the current residual
+      /// @detail Get the current residual, defined as dirty - predicted dirty.
       /// @param[out] residual image (array)
       Array<T>& residual() { return itsResidual;};
 
@@ -126,6 +127,11 @@ namespace askap {
       /// @param[in] mask Mask (array)
       void setMask(Array<T> mask);
 
+      /// @brief Get the mask
+      /// @detail Get the mask
+      /// @param[out] mask (array)
+      Array<T> & mask();
+
       /// @brief Set the weight image
       /// @detail The weights image (actually the sqrt) is used to 
       /// aid the deconvolution. The weights image is proportional
@@ -133,28 +139,42 @@ namespace askap {
       /// @param[in] weights Weights (array)
       void setWeight(Array<T> weight);
 
-      Array<T> & mask();
-
+      /// @brief Get the weight image
+      /// @detail Get the weight
+      /// @param[out] weight (array)
       Array<T> & weight();
 
+      /// @brief Set the control
+      /// @detail The control is used to hold all the information
+      /// required to control the algorithm. All decisions
+      /// regarding e.g. stopping are delegated to this class.
+      /// @param[in] state Shared pointer to the control
+      bool setControl(boost::shared_ptr<DeconvolverControl<T> > control);
       boost::shared_ptr<DeconvolverControl<T> > control() const;
 
-      bool setControl(boost::shared_ptr<DeconvolverControl<T> > control);
-
+      /// @brief Set the monitor
+      /// @detail The monitor is used to monitor the algorithm. 
+      /// All standard monitoring is performed by this class.
+      /// @param[in] state Shared pointer to the monitor
+      bool setMonitor(boost::shared_ptr<DeconvolverMonitor<T> > monitor);
       boost::shared_ptr<DeconvolverMonitor<T> > monitor() const;
 
-      bool setMonitor(boost::shared_ptr<DeconvolverMonitor<T> > monitor);
 
-      boost::shared_ptr<DeconvolverState<T> > state() const;
-
+      /// @brief Set the state
+      /// @detail The state class is used to communicate to the
+      /// monitor class or to other classes.
+      /// @param[in] state Shared pointer to the state
       bool setState(boost::shared_ptr<DeconvolverState<T> > state);
+      boost::shared_ptr<DeconvolverState<T> > state() const;
 
       // @brief Perform the deconvolution
       // @detail This is the main deconvolution method.
       virtual bool deconvolve();
 
       /// @brief Update the residuals
-      /// @detail Update the residuals for this model
+      /// @detail Update the residuals for this model.
+      /// This usually requires convolution of the model with
+      /// the specified PSF and subtraction from the dirty image.
       virtual void updateResiduals(Array<T>& model);
 
       /// @brief Initialize the deconvolution

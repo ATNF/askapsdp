@@ -203,20 +203,20 @@ namespace askap {
       // First deal with the mask
       if(this->mask().shape().conform(this->dirty().shape())) { // mask exists
 	if(this->weight().shape().conform(this->dirty().shape())) {
-	  ASKAPLOG_INFO_STR(logger, "Calculating weighted mask image");
-	  itsWeightedMask=this->mask()*sqrt(this->weight()/max(this->weight()));
+	  ASKAPLOG_INFO_STR(logger, "Setting weighted mask image");
+	  itsWeightedMask=this->mask()*this->weight();
 	  ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
 	}
 	else { // only mask exists
-	  ASKAPLOG_INFO_STR(logger, "Setting mask"); 
+	  ASKAPLOG_INFO_STR(logger, "Setting mask image"); 
 	  itsWeightedMask=this->mask();
 	  ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
 	}
       } 
       else { // no mask
 	if(this->weight().shape().conform(this->dirty().shape())) { // weights only
-	  ASKAPLOG_INFO_STR(logger, "Calculating normalised weights image");
-	  itsWeightedMask=sqrt(this->weight()/max(this->weight()));
+	  ASKAPLOG_INFO_STR(logger, "Setting weights image");
+	  itsWeightedMask=this->weight();
 	  ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
 	}
 	else { // we got nuthin'

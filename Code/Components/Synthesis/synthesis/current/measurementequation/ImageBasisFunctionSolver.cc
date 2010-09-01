@@ -86,12 +86,15 @@ namespace askap
     }
 
     void ImageBasisFunctionSolver::configure(const LOFAR::ParameterSet &parset) {
+
+      ImageSolver::configure(parset);
+
       ASKAPASSERT(this->itsMonitor);
       this->itsMonitor->configure(parset);
       ASKAPASSERT(this->itsControl);
       this->itsControl->configure(parset);
-      // Make the basis function
 
+      // Make the basis function
       std::vector<float> defaultScales(3);
       defaultScales[0]=0.0;
       defaultScales[1]=10.0;

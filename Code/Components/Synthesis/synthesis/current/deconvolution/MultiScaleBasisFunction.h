@@ -47,7 +47,11 @@ namespace askap {
     
     /// @brief Holder for multiscale basis functions used in MSClean
     /// @details The basis functions used here are those used in 
-    /// MSClean.
+    /// MSClean - invert parabolas in radius with a prolate
+    /// spheroidal wave function multipled in. This looks
+    /// Gaussian-ish but has the virtue of limited support.
+    /// If you want to change the shape of the blobs, make
+    /// another class to hold it.
     /// @ingroup Deconvolver
     
     template<typename T>
@@ -62,15 +66,21 @@ namespace askap {
       
       /// @brief Construct with specified shape
       /// @details Set up internals for specified shape
+      /// @param[in] shape Shape of first two axes
+      /// @param[in] scales Scale (in pixels) of each blob
       MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales);
       
-      /// @brief Construct from a specified shape
-      /// @details The scale parameter holds the set of scale sizes to be
-      /// used in the basis function
+      /// @brief Specify shape and fill in array
+      /// @details The first two axes are set from shape, and the
+      /// array is then filled in with the calculated values.
+      /// @param[in] shape Shape of first two axes
       virtual void initialise(const IPosition shape);
       
     private:
+      /// Vector of scales (in pixels)
       Vector<Float> itsScales;
+
+      /// Ancient routine (originally from F. Schwab) to calculate the PSWF.
       T spheroidal(T nu);
     };
     

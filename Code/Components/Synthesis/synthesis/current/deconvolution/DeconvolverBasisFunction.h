@@ -53,6 +53,9 @@ namespace askap {
     /// @brief Class for a deconvolver using the BasisFunction Clean algorithm
     /// @details This base class defines a deconvolver used to estimate an
     /// image from a dirty image, psf optionally using a mask and a weights image.
+    /// This algorithm is similar to the MultiScale Clean (Cornwell 2009) with changes
+    /// to improve performance and flexibility.
+    ///
     /// The template argument T is the type, and FT is the transform
     /// e.g. DeconvolverBasisFunction<Double, DComplex>
     /// @ingroup Deconvolver
@@ -73,8 +76,8 @@ namespace askap {
 
       /// @brief Set the basis function to be used
       /// @details The algorithm can work with different basis functions
-      /// PointBasisFunction, MultiScaleBasisFunction
-      
+      /// PointBasisFunction, MultiScaleBasisFunction. 
+      /// @param[in] bf Shared pointer to basisfunction instance
       void setBasisFunction(boost::shared_ptr<BasisFunction<T> > bf);
 
       /// @brief Return the basis function to be used
@@ -90,8 +93,8 @@ namespace askap {
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
 
-      /// @brief Initialize the deconvolution
-      /// @detail Initialise e.g. set weighted mask
+      /// @brief Finalise the deconvolution
+      /// @detail Finalise the deconvolution
       virtual void finalise();
 
       /// @brief configure basic parameters of the solver
@@ -110,15 +113,10 @@ namespace askap {
       void initialiseResidual();
 
       void minMaxMaskedScales(T& minVal, T& maxVal,
-			IPosition& minPos, IPosition& maxPos,
-			const Array<T>& dataArray, 
-			const Array<T>& maskArray, 
-			const Vector<T>& psfScales);
-
-      void minMaxScales(T& minVal, T& maxVal,
-			IPosition& minPos, IPosition& maxPos,
-			const Array<T>& dataArray, 
-			const Vector<T>& psfScales);
+			      IPosition& minPos, IPosition& maxPos,
+			      const Array<T>& dataArray, 
+			      const Array<T>& maskArray,
+			      const Vector<T>& psfScale);
 
       /// Residual images convolved with basis functions
       Array<T> itsResidualBasisFunction;
@@ -126,23 +124,34 @@ namespace askap {
       /// Point spread functions convolved with basis functions
       Array<T> itsPSFBasisFunction;
 
+      /// Use cross terms in the source removal step?
       Bool itsUseCrossTerms;
 
+      /// The coupling between different scales.
       Matrix<T> itsCouplingMatrix;
 
+      /// Inverse of the coupling matrix
       Matrix<T> itsInverseCouplingMatrix;
 
+      /// Determinant of the coupling Matrix
       T itsDetCouplingMatrix;
 
       /// Point spread functions convolved with cross terms of basis functions
       Array<T> itsPSFCrossTerms;
 
+      /// Basis function used in the deconvolution
       boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
 
+      /// We keep track of the strength and location of each component
+      /// identified. This allows calculation of the L1 norm of the 
+      /// model. We use clean to minimise the L1 so this is a good
+      /// check to make. Ideally for stokes I, this should be equal to the flux.
       Array<T> itsL1image;
       
+      /// The flux subtracted on each scale
       Vector<T> itsScaleFlux;
 
+      /// The peak of the convolved PSF as a function of scale
       Vector<T> itsPSFScales;
 
     };

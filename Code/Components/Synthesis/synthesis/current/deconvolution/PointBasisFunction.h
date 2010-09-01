@@ -47,7 +47,8 @@ namespace askap {
     
     /// @brief Point source basis function
     /// @details This is the simplest Basis Function, holding a 
-    /// single point at the centre of the image
+    /// single point at the centre of the image. We don't use this for
+    /// anything other than testing since the overhead is too large.
     /// @ingroup Deconvolver
     
     template<typename T>
@@ -64,11 +65,13 @@ namespace askap {
       /// @brief Construct from a specified shape
       /// @details Construct a point source basis function. This has only 
       /// one plane.
+      /// param[in] shape Shape of desired basis function on the first two axes.
       PointBasisFunction(const IPosition shape);
       
       /// @brief Construct from a specified shape
       /// @details Construct a point source basis function. This has only 
       /// one plane.
+      /// param[in] shape Shape of desired basis function on the first two axes.
       void initialise(const IPosition shape);
       
     private:

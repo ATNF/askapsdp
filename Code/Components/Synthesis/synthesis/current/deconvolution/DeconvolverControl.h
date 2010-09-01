@@ -1,6 +1,7 @@
 /// @file
 /// @brief Base class for Control of Deconvolver
-/// @details All the Controling is delegated to this class so that
+/// @details All the Controlling is delegated to this class. This encourages
+/// a standard approach to convergence testing.
 /// more control is possible.
 /// @ingroup Deconvolver
 ///  
@@ -51,7 +52,7 @@ namespace askap {
     
     /// @brief Base class for Control of Deconvolver
     /// @details All the controlling is delegated to this class so that
-    /// more control is possible.
+    /// standard parameters and stopping criteria are allowed.
     /// @ingroup Deconvolver
     
     template<typename T> class DeconvolverControl {
@@ -59,6 +60,7 @@ namespace askap {
     public:
       typedef boost::shared_ptr<DeconvolverControl<T> > ShPtr;
       
+      /// @brief Enumerate the possible termination causes
       enum TerminationCause {
     	CONVERGED,
         DIVERGED,
@@ -77,30 +79,40 @@ namespace askap {
       /// @param[in] parset parset
       virtual void configure(const LOFAR::ParameterSet &parset); 
 
-      /// Terminate?
+      /// @brief Terminate now?
+      /// @detail The state of the deconvolver is passed via the
+      /// DeconvolverState instance. Information in that is
+      /// used to evaluate termination.
       Bool terminate(const DeconvolverState<T>& ds);
       
-      /// Termination cause returned as String
+      /// @brief Return the termination as a string
+      /// @param[out] Termination cause returned as a string
       String terminationString() const;
       
-      /// Set the termination cause
+      /// @brief Set the termination cause as an enumeration
+      /// @param[in] Termination cause enumeration
       void setTerminationCause(const TerminationCause cause) {
         itsTerminationCause=cause;
       };
       
-      /// Termination cause returned as an enum
+      /// @brief Return the termination as an enumeration
+      /// @param[out] Termination cause returned as an enumeration
       TerminationCause terminationCause() const {
     	return itsTerminationCause;
       };
       
-      /// Algorithm name returned as String
+      /// @brief Return the desired algorithm name as a string
+      /// @param[out] Name of desired algorithm e.g. MultiScale
       String algorithm() const {return itsAlgorithm;};
       
-      /// Set the termination cause
+      /// @brief Set the desired algorithm name as a string
+      /// @param[in] algorithm Name of desired algorithm e.g. MultiScale
       void setAlgorithm(const String algorithm) {
         itsAlgorithm=algorithm;
       };
       
+      /// @brief Set the desired gain
+      /// @param[in] gain Desired gain
       void setGain(Float gain)
       {
         itsGain = gain;
@@ -111,6 +123,8 @@ namespace askap {
         return itsGain;
       }
 
+      /// @brief Set the desired tolerance
+      /// @param[in] tolerance Desired tolerance
       void setTolerance(Float tolerance)
       {
         itsTolerance = tolerance;
@@ -121,9 +135,11 @@ namespace askap {
         return itsTolerance;
       }
 
-      void setTargetIter(Int targetIter)
+      /// @brief Set the desired target number of iterations
+      /// @param[in] targetiter Desired number of iterations
+      void setTargetIter(Int targetiter)
       {
-        itsTargetIter = targetIter;
+        itsTargetIter = targetiter;
       }
 
       Int targetIter() const
@@ -131,6 +147,10 @@ namespace askap {
         return itsTargetIter;
       }
 
+      /// @brief Set the desired Lagrange multiplier
+      /// @detail This is a niche parameter! Currently it
+      /// is used only in the FISTA deconvolver.
+      /// @param[in] lambda The desired Lagrange multiplier
       void setLambda(T lambda)
       {
         itsLambda = lambda;
@@ -141,6 +161,13 @@ namespace askap {
         return itsLambda;
       }
 
+      /// @brief Set the desired target objective function
+      /// @detail Algorithms can be monitored for an objective
+      /// function that decreases e.g. maximum absolute residual
+      /// or L1 norm. If the target objective function is set then
+      /// control will stop the algorithm when the actual objective
+      /// function is below the target.
+      /// @param[in] objectivefunction Desired value of objective function
       void setTargetObjectiveFunction(T objectiveFunction) {
     	itsTargetObjectiveFunction = objectiveFunction;
       }
@@ -149,6 +176,12 @@ namespace askap {
     	return itsTargetObjectiveFunction;
       }
 
+      /// @brief Set the desired target flux
+      /// @detail Some algorithms can work with a target flux (increasing
+      /// with iteration). If the target flux is set then
+      /// control will stop the algorithm when the actual flux is above the target
+      /// flux (and the other criteria have been met.
+      /// @param[in] targetFlux Desired value of flux
       void setTargetFlux(T targetFlux) {
     	itsTargetFlux = targetFlux;
       }
@@ -157,6 +190,12 @@ namespace askap {
     	return itsTargetFlux;
       }
 
+      /// @brief Set the desired fractional threshold
+      /// @detail If the fractional threshold is set then
+      /// the algorithm will stop when the maximum absolute residual
+      /// is less than this number times the original maximum absolute
+      /// residual.
+      /// @param[in] fractionalThreshold Fractional threshold (0.1 is 10%).
       void setFractionalThreshold(Float fractionalThreshold) {
     	itsFractionalThreshold=fractionalThreshold;
       }
@@ -166,6 +205,11 @@ namespace askap {
       }
 
       /// @brief Set the desired PSF width in pixels
+      /// @detail Some algorithms can work with a fractional of the
+      /// full PSF. This allows specification of the support. Note that
+      /// this is the full width. The peak of the PSF will be located
+      /// at psfWidth/2, psfWidth/2.
+      /// @param[in] Width of the PSF in pixels (e.g. 1024).
       void setPSFWidth(const Int psfWidth) {itsPSFWidth=psfWidth;}
 
       /// @brief Get the desired PSF width in pixels

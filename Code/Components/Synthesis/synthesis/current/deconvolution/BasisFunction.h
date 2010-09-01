@@ -44,9 +44,10 @@ namespace askap {
   
   namespace synthesis {
     
-    /// @brief Base class for basis functions used in deconvolutio
-    /// @details All the controlling is delegated to this class so that
-    /// more control is possible.
+    /// @brief Base class for basis functions used in deconvolution
+    /// @details Basis functions can be used during deconvolution
+    /// to represent the emission. Typical examples are Points (for Hogbom)
+    /// and MultiScale (for BasisFunctionClean).
     /// @ingroup Deconvolver
     
     template<typename T> class BasisFunction {
@@ -54,6 +55,8 @@ namespace askap {
     public:
       typedef boost::shared_ptr<BasisFunction<T> > ShPtr;
       
+      virtual ~BasisFunction() {};
+
       /// @brief Construct empty basis function
       BasisFunction();
       
@@ -62,11 +65,11 @@ namespace askap {
       BasisFunction(const IPosition shape);
 
       /// @brief Initialise from a specified shape (actually only first two axes)
-      /// param[in] shape Shape of desired basis function.
+      /// @detail Set the shape of the basis function and fill in the actual
+      /// function.
+      /// param[in] shape Shape of desired basis function on the first two axes.
       virtual void initialise(const IPosition shape);
       
-      virtual ~BasisFunction() {};
-
       /// @brief Return the number of terms in the basis function
       uInt numberTerms() const {return itsNumberTerms;};
       
