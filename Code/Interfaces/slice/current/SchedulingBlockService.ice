@@ -99,8 +99,7 @@ module schedblock
          *
          **/
         long create(long programid, long sbtid)
-             throws NoSuchSBTemplateException,
-                    ParameterException;
+             throws NoSuchSBTemplateException;
 
         /**
          * Remove and existing Scheduling Block. This will only work with
@@ -113,7 +112,7 @@ module schedblock
         /**
          * Get the POSIX time the given Scheduling Block
          * has been scheduled for. If the Scheduling Block isn't in SCHEDULED
-         * state return a value less than 0. 
+         * state return a value less than 0.
          *
          * @param sbid The id of the Scheduling Block
          * @return an POSIX time double
@@ -155,6 +154,7 @@ module schedblock
         void setObsUserParameters(long sbid,
                                   askap::interfaces::ParameterMap userparams)
                 throws ParameterException,
+                       TransitionException,
                        NoSuchSchedulingBlockException;
 
 
@@ -169,7 +169,7 @@ module schedblock
          *
          **/
         idempotent askap::interfaces::ParameterMap getObsVariables(long sbid,
-                                                                    string key)
+                                                                   string key)
                 throws NoSuchSchedulingBlockException,
                        ParameterException;
 
