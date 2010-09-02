@@ -415,12 +415,6 @@ namespace askap {
                 float *fluxarray = new float[this->boxSize()];
                 PixelInfo::Object2D spatMap = this->getSpatialMap();
 
-//                 for (int i = 0; i < this->boxSize(); i++) {
-//                     if (spatMap.isInObject(i % this->boxXsize() + this->boxXmin(), i / this->boxXsize() + this->boxYmin()))
-//                         fluxarray[i] = f(i);
-//                     else fluxarray[i] = 0.;
-//                 }
-
                 for (int i = 0; i < this->boxSize(); i++) fluxarray[i] = 0.;
 
                 for (size_t i = 0; i < f.size(); i++) {
@@ -430,35 +424,30 @@ namespace askap {
                     if (spatMap.isInObject(x, y)) {
                         int loc = (x - this->boxXmin()) + this->boxXsize() * (y - this->boxYmin());
                         fluxarray[loc] = f(i);
-			//                        ASKAPLOG_DEBUG_STR(logger, "Adding flux " << f(i) << " to position (" << x << "," << y << ") which is box pixel " << loc);
                     }
                 }
 
                 ASKAPLOG_DEBUG_STR(logger, "Defined flux array in getSubComponentList");
 
                 std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
-                float dx = this->getXaverage() - this->getXPeak();
+ 
+		// get distance between average centre and peak location
+		float dx = this->getXaverage() - this->getXPeak();
                 float dy = this->getYaverage() - this->getYPeak();
 
                 if (hypot(dx, dy) > 2.) {
+		  // if this distance is suitably small, add two more
+		  // subcomponents: the "antipus", being the
+		  // rotational reflection of the peak about the
+		  // average centre; and the peak itself.
                     SubComponent antipus;
-                    //    if(this->itsHeader.getBmajKeyword()>0){
-                    //      antipus.setPA(this->itsHeader.getBpaKeyword() * M_PI / 180.);
-                    //      antipus.setMajor(this->itsHeader.getBmajKeyword()/this->itsHeader.getAvPixScale());
-                    //      antipus.setMinor(this->itsHeader.getBminKeyword()/this->itsHeader.getAvPixScale());
-                    //    }
-                    //    else{
-                    //      antipus.setPA(cmpntlist[0].pa());
-                    //      antipus.setMajor(cmpntlist[0].maj());
-                    //      antipus.setMinor(cmpntlist[0].min());
-                    //    }
                     antipus.setPA(cmpntlist[0].pa());
                     antipus.setMajor(cmpntlist[0].maj());
                     antipus.setMinor(cmpntlist[0].min());
                     antipus.setX(this->getXPeak() + dx);
                     antipus.setY(this->getYPeak() + dy);
-                    int pos = int(antipus.x() - this->boxXmin()) + this->boxXsize() * int(antipus.y() - this->boxYmin());
-                    antipus.setPeak(f(pos));
+                    int cpos = int(antipus.x() - this->boxXmin()) + this->boxXsize() * int(antipus.y() - this->boxYmin());
+                    antipus.setPeak(f(cpos));
                     cmpntlist.push_back(antipus);
                     SubComponent centre;
                     centre.setPA(antipus.pa());
@@ -466,8 +455,8 @@ namespace askap {
                     centre.setMinor(antipus.min());
                     centre.setX(this->getXPeak());
                     centre.setY(this->getYPeak());
-                    pos = int(centre.x() - this->boxXmin()) + this->boxXsize() * int(centre.y() - this->boxYmin());
-                    centre.setPeak(f(pos));
+                    cpos = int(centre.x() - this->boxXmin()) + this->boxXsize() * int(centre.y() - this->boxYmin());
+                    centre.setPeak(f(cpos));
                     cmpntlist.push_back(centre);
                 }
 
