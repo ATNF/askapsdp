@@ -95,19 +95,32 @@ module schedblock
          *
          * @param programid The id of the Owner Observation Program.
          * @param sbtid The id of the Scheduling BlockTemplate to use
+         * @param alias a string alias (does not have to be unique)
          * @return The id of the newly created Scheduling Block
          *
          **/
-        long create(long programid, long sbtid)
+        long create(long programid, long sbtid, string alias)
              throws NoSuchSBTemplateException;
 
         /**
          * Remove and existing Scheduling Block. This will only work with
          * Scheduling Blocks in DRAFT state otherwise an exception is thrown.
+         *
          * @param sbid The id of the Scheduling Block
+         *
          **/
         void remove(long sbid) throws TransitionException,
                                       NoSuchSchedulingBlockException;
+
+        /**
+         * Get the alias for the given Scheduling Block
+         *
+         *  @param sbid The id of the Scheduling Block
+         *  @return the string alias
+         *
+         **/
+        long getAlias(long sbid)
+               throws NoSuchSchedulingBlockException;
 
         /**
          * Get the POSIX time the given Scheduling Block
@@ -131,9 +144,9 @@ module schedblock
         idempotent askap::interfaces::ParameterMap getObsParameters(long sbid)
                 throws NoSuchSchedulingBlockException;
 
-
         /**
-         * Get the Observation Procedure i.e. the python script
+         * Get the Observation Procedure i.e. the python script. This is just
+         * forwarded from the SB Template which stores it.
          *
          * @param sbid The id of the Scheduling Block
          * @return a string
@@ -144,7 +157,7 @@ module schedblock
 
         /**
          * Set the UserParameters to the given values. This replaces the
-         * UserParameters and any keys which exist in the Scheduling Block but
+         * UserParameters. Any keys which exist in the Scheduling Block but
          * not in the given userparams will be deleted.
          *
          * @param sbid The id of the Scheduling Block
