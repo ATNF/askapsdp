@@ -151,12 +151,14 @@ module schedblock
         idempotent askap::interfaces::StringSeq getByStatus(SBTemplateStatus status);
 
         /**
-         * Get the SBTemplate id for a named SBTemplate at the latest version.
+         * Get the SBTemplate ids for a named SBTemplate in descending order of
+         * version numbers, latest first.
          *
          * @param name the name of the template
          *
          **/
-        idempotent long getByName(string name) throws NoSuchSBTemplateException;
+        idempotent askap::interfaces::LongSeq getByName(string name)
+            throws NoSuchSBTemplateException;
 
         /**
          * Get the SBTemplate id for a named SBTemplate the specified version.
