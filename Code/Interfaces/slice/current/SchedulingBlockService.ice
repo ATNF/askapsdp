@@ -156,6 +156,17 @@ module schedblock
             throws NoSuchSchedulingBlockException;
 
         /**
+         * Return the Observation User Parameters which have been defined for
+         * this Scheduling Block.
+         *
+         * @param sbid The id of the Scheduling Block
+         * @return a ParameterMap
+         *
+         **/
+        idempotent askap::interfaces::ParameterMap getObsUserParameters(long sbid)
+                throws NoSuchSchedulingBlockException;
+
+        /**
          * Set the UserParameters to the given values. This replaces the
          * UserParameters. Any keys which exist in the Scheduling Block but
          * not in the given userparams will be deleted.
