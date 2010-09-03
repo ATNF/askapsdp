@@ -226,6 +226,16 @@ module schedblock
                        NoSuchSchedulingBlockException;
 
         /**
+         * Get the SBTemplate linked to the SchedulingBlock.
+         *
+         * @param sbid The id of the Scheduling Block
+         * @returns a an SBTemplate id
+         *
+         **/
+        idempotent long getSBTemplate(long sbid)
+                throws NoSuchSchedulingBlockException;
+
+        /**
          * Set the Template id.
          * This would typically only be used to bump the version of the
          * Template.
