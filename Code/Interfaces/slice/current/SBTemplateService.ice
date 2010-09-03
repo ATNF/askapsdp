@@ -123,15 +123,17 @@ module schedblock
 
         /**
          * Update the SBTemplate's template and procedure. It is required to
-         * specify what version should be incremented.
+         * specify what version (MAJOR ot MINOR) should be incremented.
+         * This returns a NEW template id!
          *
-         * @param sbtid the id of the template to access
+         * @param name the name of the template to access
          * @param vtype The VersionType to bump
          * @param template The ObsParameterTemplate describing the SBTemplate
          * @param obsproc The ObsProcedure script
+         * @returns a new template id
          *
          **/
-        void updateTemplate(long sbtid, VersionType vtype,
+        long updateTemplate(string name, VersionType vtype,
                             askap::interfaces::ParameterMap template,
                             string obsproc)
             throws NoSuchSBTemplateException,
