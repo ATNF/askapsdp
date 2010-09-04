@@ -278,8 +278,8 @@ namespace askap {
 	    crossTermsEnd(3)=term1;
 	    casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
 	    casa::minMax(minVal, maxVal, minPos, maxPos, this->itsPSFCrossTerms(crossTermsSlicer));
-	    ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * Basis function(" << term1
-			      << ") * PSF: max = " << maxVal << " min = " << minVal);
+	    //	    ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * Basis function(" << term1
+	    //			      << ") * PSF: max = " << maxVal << " min = " << minVal);
 	    this->itsCouplingMatrix(term, term1) = maxVal;
 	  }
 	}
@@ -347,8 +347,8 @@ namespace askap {
       minMaxMaskedScales(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction,
 			 this->itsWeightedMask, this->itsPSFScales);
       // Look up the values to avoid the effect of the weights
-      maxVal=this->itsResidualBasisFunction(maxPos);
-      minVal=this->itsResidualBasisFunction(minPos);
+      maxVal=this->itsResidualBasisFunction(maxPos)/this->itsPSFScales(maxPos(2));
+      minVal=this->itsResidualBasisFunction(minPos)/this->itsPSFScales(maxPos(2));
       //      ASKAPLOG_INFO_STR(decbflogger, "Maximum =  " << maxVal << " at location " << maxPos);
       //      ASKAPLOG_INFO_STR(decbflogger, "Minimum = " << minVal << " at location " << minPos);
       T absPeakVal;
@@ -365,13 +365,10 @@ namespace askap {
       uInt optimumPlane(absPeakPos(2));
       
       if(this->state()->initialObjectiveFunction()==0.0) {
-	this->state()->setInitialObjectiveFunction(abs(absPeakVal)/sqrt(itsPSFScales(optimumPlane)));
+	this->state()->setInitialObjectiveFunction(abs(absPeakVal));
       }
       this->state()->setPeakResidual(abs(absPeakVal));
-      // For the objective function, we normalised out the psf scale. This means
-      // that the residual will jump around but the objective function
-      // should decrease close to monotonically.
-      this->state()->setObjectiveFunction(abs(absPeakVal)/sqrt(itsPSFScales(optimumPlane)));
+      this->state()->setObjectiveFunction(abs(absPeakVal));
       this->state()->setTotalFlux(sum(this->itsBackground)+sum(this->model()));
       
       // Has this terminated for any reason?
@@ -495,8 +492,8 @@ namespace askap {
       minPos=IPosition(3, sMinPos(0)(0), sMinPos(0)(1), 0);
       maxPos=IPosition(3, sMaxPos(0)(0), sMaxPos(0)(1), 0);
       for (uInt scale=1;scale<nScales;scale++) {
-	sMaxVal(scale)/=psfScale(scale); 
-	sMinVal(scale)/=psfScale(scale); 
+	sMaxVal(scale)/=sqrt(psfScale(scale)); 
+	sMinVal(scale)/=sqrt(psfScale(scale)); 
 	if(sMinVal(scale)<=minVal) {
 	  minVal=sMinVal(scale);
 	  minPos=IPosition(3, sMinPos(scale)(0), sMinPos(scale)(1), scale);
