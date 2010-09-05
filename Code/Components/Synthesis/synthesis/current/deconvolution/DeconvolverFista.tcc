@@ -76,8 +76,6 @@ namespace askap {
     {
       DeconvolverBase<T, FT>::initialise();
 
-      ASKAPLOG_INFO_STR(decfistalogger, "Gain = " << this->control()->gain());
-
       // Initialise the residual image
       this->residual().resize(this->dirty().shape());
       this->residual()=this->dirty().copy();
@@ -93,25 +91,27 @@ namespace askap {
 
       bool isMasked(this->itsWeightedMask.shape().conform(this->dirty().shape()));
 
-      Array<T> modelImage, modelImageTemp, modelImageOld;
+      Array<T> X, X_old, X_temp;
 
-      modelImageTemp.resize(this->model().shape());
-      modelImageTemp.set(T(0.0));
+      X_temp.resize(this->model().shape());
+      X_temp.set(T(0.0));
 
-      modelImageOld.resize(this->model().shape());
-      modelImageOld.set(T(0.0));
+      X_old.resize(this->model().shape());
+      X_old.set(T(0.0));
 
-      modelImage.resize(this->model().shape());
-      modelImage.set(T(0.0));
+      X.resize(this->model().shape());
+      X=this->itsBackground.copy();
 
       T absPeakVal;
       casa::IPosition absPeakPos;
 
       ASKAPLOG_INFO_STR(decfistalogger, "Performing Fista for " << this->control()->targetIter() << " iterations");
 
-      updateResiduals(modelImage);
+      //      updateResidualsDouble(X);
 
-      modelImageTemp=this->residual()/this->itsLipschitz;
+      updateResiduals(X);
+
+      X_temp=X.copy();
 
       absPeakVal=max(abs(this->residual()));
 
@@ -119,25 +119,33 @@ namespace askap {
 
       do {
 
-        T aFit=sqrt(square(rms(this->residual()))+square(this->control()->fractionalThreshold()*absPeakVal));
-        ASKAPLOG_INFO_STR(decfistalogger, "Scaling = " << aFit);
-
-	modelImageOld=modelImageTemp.copy();
+	X_old=X_temp.copy();
 
 	T t_old=t_new;
 
-	updateResiduals(modelImage);
+	updateResiduals(X);
 
-	modelImage=modelImage+this->residual()/this->itsLipschitz;
-	Array<T> D(this->model().shape());
+	//	X=X+T(2.0)*this->residual()/this->itsLipschitz;
+	X=X+this->residual()/this->itsLipschitz;
 
-	D=abs(modelImage+this->itsBackground)-aFit*this->control()->lambda()/this->itsLipschitz;
-	modelImageTemp=D(D>T(0.0));
-	modelImageTemp=sign(modelImage+this->itsBackground)*modelImageTemp;
-	modelImageTemp-=this->itsBackground;
+	// Transform to other (e.g. wavelet) space
+	Array<T> WX(X);
 
-	t_new=(T(1.0)+sqrt(1+4*square(t_old)))/T(2.0);
-	modelImage=modelImageTemp+((t_old-T(1.0))/t_new)*(modelImageTemp-modelImageOld);
+	// Now shrink the coefficients towards zero and clip those below
+	// lambda/lipschitz.
+	Array<T> shrink(this->dirty().shape());
+	{
+	  Array<T> truncated(abs(WX)-this->control()->lambda()/this->itsLipschitz);
+	  shrink=truncated(truncated>T(0.0));
+	  shrink=sign(WX)*shrink;
+	}
+
+	// Transform back from other (e.g. wavelet) space here
+	X_temp=shrink.copy();
+
+	t_new=(T(1.0)+sqrt(T(1.0)+T(4.0)*square(t_old)))/T(2.0);
+
+	X=X_temp+((t_old-T(1.0))/t_new)*(X_temp-X_old);
 
         {
 	  casa::IPosition minPos;
@@ -164,16 +172,18 @@ namespace askap {
           }
         }
 
+	T l1Norm=sum(abs(X_temp));
+	T fit=casa::sum(this->residual()*this->residual());
+	T objectiveFunction(fit+this->control()->lambda()*l1Norm);
         this->state()->setPeakResidual(absPeakVal);
-	//        T l1Norm=sum(abs(modelImage+this->itsBackground));
-        this->state()->setObjectiveFunction(absPeakVal);
-        this->state()->setTotalFlux(sum(modelImageTemp)+sum(this->itsBackground));
+        this->state()->setObjectiveFunction(objectiveFunction);
+        this->state()->setTotalFlux(sum(X_temp));
         
         this->monitor()->monitor(*(this->state()));
         this->state()->incIter();
       }
       while (!this->control()->terminate(*(this->state())));
-      this->model()=modelImageTemp.copy();
+      this->model()=X_temp.copy();
       
       ASKAPLOG_INFO_STR(decfistalogger, "Performed Fista for " << this->state()->currentIter() << " iterations");
       

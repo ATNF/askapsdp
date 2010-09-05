@@ -177,6 +177,13 @@ namespace askap {
       /// the specified PSF and subtraction from the dirty image.
       virtual void updateResiduals(Array<T>& model);
 
+      /// @brief Update the residuals (doubly convolved)
+      /// @detail Update the residuals for this model.
+      /// This usually requires convolution of the model with
+      /// the specified PSF and subtraction from the dirty image,
+      /// then convolution by the PSF again.
+      virtual void updateResidualsDouble(Array<T>& model);
+
       /// @brief Initialize the deconvolution
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
@@ -198,6 +205,8 @@ namespace askap {
 
       Array<T> itsDirty;
 
+      Array<T> itsDirtyDouble;
+
       Array<T> itsResidual;
 
       Array<T> itsPSF;
@@ -213,6 +222,8 @@ namespace askap {
       Array<T> itsWeight;
 
       T itsLipschitz;
+
+      T itsLipschitzDouble;
 
       /// The state of the deconvolver
       boost::shared_ptr<DeconvolverState<T> > itsDS;

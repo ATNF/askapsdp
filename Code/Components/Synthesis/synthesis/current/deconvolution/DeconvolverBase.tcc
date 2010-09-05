@@ -79,7 +79,19 @@ namespace askap {
       casa::setReal(itsXFR, this->psf());
       scimath::fft2d(itsXFR, true);
       itsLipschitz=casa::max(casa::real(casa::abs(this->itsXFR)));
+      itsLipschitzDouble=casa::max(casa::real(this->itsXFR*conj(this->itsXFR)));
       ASKAPLOG_INFO_STR(decbaselogger, "Lipschitz number = " << itsLipschitz);
+      ASKAPLOG_INFO_STR(decbaselogger, "Lipschitz number (double convolution) = "
+			<< itsLipschitzDouble);
+
+      // We also need the dirty image convolved with the PSF
+      Array<FT> work(this->dirty().shape());
+      work.set(FT(0.0));
+      casa::setReal(work, this->dirty());
+      scimath::fft2d(work, true);
+      work=this->xfr()*work;
+      scimath::fft2d(work, false);
+      this->itsDirtyDouble=real(work);
     };
     
     template<class T, class FT>
@@ -254,11 +266,26 @@ namespace askap {
       // Find residuals for current model model
       work.resize(model.shape());
       work.set(FT(0.0));
-      casa::setReal(work, model);
+      casa::setReal(work, model-this->itsBackground);
       scimath::fft2d(work, true);
       work=this->xfr()*work;
       scimath::fft2d(work, false);
       this->residual()=this->dirty()-real(work);
+    }
+
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::updateResidualsDouble(Array<T>& model)
+    {
+      Array<FT> work;
+      // Find residuals for current model model
+      work.resize(model.shape());
+      work.set(FT(0.0));
+      casa::setReal(work, model-this->itsBackground);
+      scimath::fft2d(work, true);
+      work=this->xfr()*work;
+      scimath::fft2d(work, false);
+      this->residual()=this->itsDirtyDouble-real(work);
+
     }
 
   } // namespace synthesis

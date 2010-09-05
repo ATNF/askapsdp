@@ -297,7 +297,9 @@ namespace askap {
       
       this->initialise();
       
-      IPosition l1Shape(2, this->model().shape()(0), this->model().shape()(1));
+      uInt nScales(this->itsBasisFunction->numberTerms());
+
+      IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
       this->itsL1image.resize(l1Shape);
       this->itsL1image.set(0.0);
       
@@ -349,8 +351,8 @@ namespace askap {
       // Look up the values to avoid the effect of the weights
       maxVal=this->itsResidualBasisFunction(maxPos)/this->itsPSFScales(maxPos(2));
       minVal=this->itsResidualBasisFunction(minPos)/this->itsPSFScales(maxPos(2));
-      //      ASKAPLOG_INFO_STR(decbflogger, "Maximum =  " << maxVal << " at location " << maxPos);
-      //      ASKAPLOG_INFO_STR(decbflogger, "Minimum = " << minVal << " at location " << minPos);
+      ASKAPLOG_INFO_STR(decbflogger, "Maximum =  " << maxVal << " at location " << maxPos);
+      ASKAPLOG_INFO_STR(decbflogger, "Minimum = " << minVal << " at location " << minPos);
       T absPeakVal;
       casa::IPosition absPeakPos;
       if(abs(minVal)<abs(maxVal)) {
@@ -369,7 +371,7 @@ namespace askap {
       }
       this->state()->setPeakResidual(abs(absPeakVal));
       this->state()->setObjectiveFunction(abs(absPeakVal));
-      this->state()->setTotalFlux(sum(this->itsBackground)+sum(this->model()));
+      this->state()->setTotalFlux(sum(this->model()));
       
       // Has this terminated for any reason?
       if(this->control()->terminate(*(this->state()))) {
@@ -422,7 +424,7 @@ namespace askap {
 	  this->itsBasisFunction->basisFunction()(psfSlicer).nonDegenerate();
       }
       // Keep track of strengths and locations of components
-      IPosition l1PeakPos(2, absPeakPos(0), absPeakPos(1));
+      IPosition l1PeakPos(3, absPeakPos(0), absPeakPos(1), optimumPlane);
       this->itsL1image(l1PeakPos) = this->itsL1image(l1PeakPos)
 	+ this->control()->gain()*abs(absPeakVal);
       this->itsScaleFlux(optimumPlane)+=this->control()->gain()*absPeakVal;
@@ -465,7 +467,7 @@ namespace askap {
 							     const Vector<T>& psfScale) {
       
       const Cube<T> data(dataArray);
-      bool isMasked(maskArray.nonDegenerate().shape().conform(data.xyPlane(0).shape()));
+      bool isMasked(maskArray.shape().nonDegenerate().conform(data.xyPlane(0).shape()));
 
       uInt nScales=data.shape()(2);
       
@@ -492,6 +494,8 @@ namespace askap {
       minPos=IPosition(3, sMinPos(0)(0), sMinPos(0)(1), 0);
       maxPos=IPosition(3, sMaxPos(0)(0), sMaxPos(0)(1), 0);
       for (uInt scale=1;scale<nScales;scale++) {
+	// The scaling here is composed of two parts. 1/psfScale to normalise out the
+	// PSF peak and sqrt(psfScale) to deal with the SNR degradation.
 	sMaxVal(scale)/=sqrt(psfScale(scale)); 
 	sMinVal(scale)/=sqrt(psfScale(scale)); 
 	if(sMinVal(scale)<=minVal) {
