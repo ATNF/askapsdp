@@ -37,6 +37,7 @@
 // System includes
 #include <stdexcept>
 #include <iostream>
+#include <csignal>
 
 // ASKAPsoft includes
 #include <askap_synthesis.h>
@@ -56,6 +57,16 @@ ASKAP_LOGGER(logger, ".cimager");
 using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::scimath;
+
+// Controls termination of the major cycle loop
+static bool g_done = false;
+
+// SIGUSR1 handler
+static void sigusr1_handler(int signum)
+{
+    g_done = true;
+    ASKAPLOG_INFO_STR(logger, "Received SIGUSR1 - will stop at the end of this major cycle");
+}
 
 // Main function
 int main(int argc, const char** argv)
@@ -114,6 +125,15 @@ int main(int argc, const char** argv)
                 //imager.receiveNE();
                 imager.zeroAllModelImages();
             } else {
+                // Set up a new signal handler for SIGUSR1.
+                // This allows graceful exit from the major cycle loop
+                // upon receipt of a SIGUSR1.
+                struct sigaction new_action;
+                new_action.sa_handler = sigusr1_handler;
+                sigemptyset (&new_action.sa_mask);
+                new_action.sa_flags = SA_RESTART;
+                sigaction(SIGUSR1, &new_action, NULL);
+
                 /// Perform multiple major cycles
                 for (int cycle = 0; cycle < nCycles; ++cycle) {
                     imager.broadcastModel();
@@ -126,6 +146,11 @@ int main(int argc, const char** argv)
                                           << " real:   " << timer.real());
 
                     if (comms.isMaster()) {
+                        if (g_done) {
+                            ASKAPLOG_INFO_STR(logger, "Signal SIGUSR1 receieved. Stopping.");
+                            break;
+                        }
+
                         if (imager.params()->has("peak_residual")) {
                             const double peak_residual = imager.params()->scalarValue("peak_residual");
                             ASKAPLOG_INFO_STR(logger, "Reached peak residual of " << peak_residual);
