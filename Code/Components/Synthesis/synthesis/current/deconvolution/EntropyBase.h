@@ -97,6 +97,10 @@ namespace askap {
 
       void setBeta(const T beta) {itsBeta=beta;};
 
+      T alpha() {return itsAlpha;};
+
+      T beta() {return itsBeta;};
+
       void setQ(const T Q) {itsQ=Q;};
 
       void setTolerance(const T tolerance) {itsTolerance=tolerance;};

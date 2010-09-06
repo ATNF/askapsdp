@@ -82,6 +82,13 @@ namespace askap {
     void DeconvolverEntropy<T,FT>::initialise()
     {
       DeconvolverBase<T, FT>::initialise();
+
+      // Set the initial value of Q
+      T Q;
+      Q=sum(this->itsPSF(this->itsPSF>T(0.1)));
+      ASKAPLOG_INFO_STR(decentropylogger, "Initial value of Q = " << Q << " pixels");
+
+      this->itsEntropy->setQ(Q);
     }
     
     // This is basically the algorithm described in the Cornwell-Evans paper of 1985, with
@@ -95,30 +102,38 @@ namespace askap {
       ASKAPLOG_INFO_STR(decentropylogger, "Performing Entropy deconvolution for "
                         << this->control()->targetIter() << " iterations");
 
-      ASKAPLOG_INFO_STR(decentropylogger, "Target rms fit = " << this->control()->targetObjectiveFunction());
+      ASKAPLOG_INFO_STR(decentropylogger, "Target rms fit = "
+			<< this->control()->targetObjectiveFunction() << " Jy/beam");
 
       uInt numberPixels = this->itsModel.shape().product();
       T targetChisq = square(this->control()->targetObjectiveFunction()) * numberPixels;
       T chisq;
       T fit;
 
-      // Assume that the dirty image can be scaled and used as an initial model
       Array<T> trialModel(this->model().shape());
-      this->itsModel=this->dirty()/this->itsLipschitz;
+      trialModel.set(T(0.0));
+
       this->updateResiduals(this->itsModel);
-        
+
+      this->model()=this->residual().copy()/this->itsLipschitz;
+
       Array<T> step(this->model().shape());
       step.set(T(0.0));
         
+      T absPeakVal(max(abs(this->itsResidual)));
+      T peakSidelobe(0.1);
+      T aFit = max(peakSidelobe*absPeakVal, rms(this->residual()))/this->itsLipschitz;
+      ASKAPLOG_INFO_STR(decentropylogger, "Scaling = " << aFit << " Jy/pixel");
+      this->itsEntropy->setScale(aFit);
+
+      this->itsModel.set(aFit);
+
+      this->updateResiduals(this->itsModel);
 
       do {
         // Find the current fit
         chisq = sum(square(this->residual()));  
         fit = sqrt(chisq/targetChisq);
-
-        T aFit = max(abs(this->residual()))/this->itsLipschitz;
-        //        ASKAPLOG_INFO_STR(decentropylogger, "Scaling = " << aFit << " Jy/pixel");
-        this->itsEntropy->setScale(aFit);
 
         Matrix<T> GDG(this->itsEntropy->formGDGStep(this->itsModel, this->itsResidual, step));
 
@@ -127,8 +142,7 @@ namespace askap {
         if(this->itsEntropy->initialiseAlphaBeta(GDG)) {
           GDG = this->itsEntropy->formGDGStep(this->itsModel, this->itsResidual, step);
         }
-
-        
+ 
         T flux=sum(this->itsModel);
         this->itsEntropy->changeAlphaBeta(GDG, targetChisq, chisq, this->control()->targetFlux(), flux);
         
@@ -156,7 +170,7 @@ namespace askap {
       
         // Calculate residual for this new trial image
         this->updateResiduals(trialModel);
-        chisq = rms(this->residual());  
+        chisq = sum(square(this->residual()));  
         
         // Form the scalar Gradient . Step at this new location. Ideally this should be
         // zero. Once we know the value of the gradient initially and for the trial image, we
@@ -179,7 +193,8 @@ namespace askap {
 
           // Recalculate residual for the new image
         updateResiduals(this->itsModel);
-        chisq = rms(this->itsResidual);
+
+        chisq = sum(square(this->residual()));  
       
       // readjust beam volume
       //      itsQ = itsQ*(T(1.0)/max(T(0.5), min(T(2.0),eps))+T(1.0))/T(2.0);
@@ -187,7 +202,11 @@ namespace askap {
         flux=sum(this->model());
         this->itsEntropy->changeAlphaBeta(GDG, targetChisq, chisq, this->control()->targetFlux(), flux);
         
-        T absPeakVal(max(abs(this->itsResidual)));
+        absPeakVal=max(abs(this->itsResidual));
+
+	aFit = max(peakSidelobe*absPeakVal, rms(this->residual()))/this->itsLipschitz;
+	ASKAPLOG_INFO_STR(decentropylogger, "Scaling = " << aFit << " Jy/pixel");
+	this->itsEntropy->setScale(aFit);
 
         this->state()->setPeakResidual(absPeakVal);
         this->state()->setObjectiveFunction(sqrt(chisq/numberPixels));
@@ -211,6 +230,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverEntropy<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
+      DeconvolverBase<T,FT>::configure(parset);
 
       String algorithm(parset.getString("algorithm", "Emptiness"));
       this->control()->setAlgorithm(algorithm);

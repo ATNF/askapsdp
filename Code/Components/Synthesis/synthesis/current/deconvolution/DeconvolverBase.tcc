@@ -51,11 +51,12 @@ namespace askap {
     
     template<class T, class FT>
     DeconvolverBase<T,FT>::~DeconvolverBase() {
+      ASKAPLOG_INFO_STR(decbaselogger, "Number of residual calculations = " << itsNumberResidualCalc);
     };
     
     template<class T, class FT>
     DeconvolverBase<T,FT>::DeconvolverBase(Array<T> dirty, Array<T> psf)
-      : itsDirty(dirty), itsPSF(psf)
+      : itsDirty(dirty), itsPSF(psf), itsNumberResidualCalc(0)
     {
       ASKAPASSERT(itsDirty.shape().size());
       ASKAPASSERT(itsPSF.shape().size());
@@ -213,23 +214,23 @@ namespace askap {
       this->residual()=this->dirty().copy();
 
       // First deal with the mask
-      if(this->mask().shape().conform(this->dirty().shape())) { // mask exists
-	if(this->weight().shape().conform(this->dirty().shape())) {
+      if(this->mask().shape().nonDegenerate().conform(this->dirty().nonDegenerate().shape())) { // mask exists
+	if(this->weight().shape().nonDegenerate().conform(this->dirty().nonDegenerate().shape())) {
 	  ASKAPLOG_INFO_STR(logger, "Setting weighted mask image");
 	  itsWeightedMask=this->mask()*this->weight();
-	  ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
+	  ASKAPASSERT(itsWeightedMask.shape().nonDegenerate().conform(this->dirty().shape().nonDegenerate()));
 	}
 	else { // only mask exists
 	  ASKAPLOG_INFO_STR(logger, "Setting mask image"); 
 	  itsWeightedMask=this->mask();
-	  ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
+	  ASKAPASSERT(itsWeightedMask.shape().nonDegenerate().conform(this->dirty().shape().nonDegenerate()));
 	}
       } 
       else { // no mask
-	if(this->weight().shape().conform(this->dirty().shape())) { // weights only
+	if(this->weight().shape().nonDegenerate().conform(this->dirty().nonDegenerate().shape())) {
 	  ASKAPLOG_INFO_STR(logger, "Setting weights image");
 	  itsWeightedMask=this->weight();
-	  ASKAPASSERT(itsWeightedMask.shape().conform(this->dirty().shape()));
+	  ASKAPASSERT(itsWeightedMask.shape().nonDegenerate().conform(this->dirty().shape().nonDegenerate()));
 	}
 	else { // we got nuthin'
 	  ASKAPLOG_INFO_STR(logger, "No weights or mask image");
@@ -271,6 +272,8 @@ namespace askap {
       work=this->xfr()*work;
       scimath::fft2d(work, false);
       this->residual()=this->dirty()-real(work);
+      
+      itsNumberResidualCalc+=1;
     }
 
     template<class T, class FT>

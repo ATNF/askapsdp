@@ -242,6 +242,7 @@ namespace askap {
       // Mask weighted by weight image
       Array<T> itsWeightedMask;
 
+      uInt itsNumberResidualCalc;
     };
 
   } // namespace synthesis

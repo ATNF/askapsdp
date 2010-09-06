@@ -127,10 +127,8 @@ namespace askap {
 
 	//	X=X+T(2.0)*this->residual()/this->itsLipschitz;
 	X=X+this->residual()/this->itsLipschitz;
-
 	// Transform to other (e.g. wavelet) space
 	Array<T> WX(X);
-
 	// Now shrink the coefficients towards zero and clip those below
 	// lambda/lipschitz.
 	Array<T> shrink(this->dirty().shape());
@@ -139,14 +137,11 @@ namespace askap {
 	  shrink=truncated(truncated>T(0.0));
 	  shrink=sign(WX)*shrink;
 	}
-
 	// Transform back from other (e.g. wavelet) space here
 	X_temp=shrink.copy();
-
+	// Initially take a small step towards the updated model
 	t_new=(T(1.0)+sqrt(T(1.0)+T(4.0)*square(t_old)))/T(2.0);
-
 	X=X_temp+((t_old-T(1.0))/t_new)*(X_temp-X_old);
-
         {
 	  casa::IPosition minPos;
           casa::IPosition maxPos;
