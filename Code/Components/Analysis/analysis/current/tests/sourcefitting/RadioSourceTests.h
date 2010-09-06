@@ -34,11 +34,16 @@
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Component.h>
 #include <sourcefitting/FittingParameters.h>
+
 #include <cppunit/extensions/HelperMacros.h>
+
 #include <duchamp/duchamp.hh>
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/Cubes/cubes.hh>
+#include <duchamp/fitsHeader.hh>
+
 #include <casa/Arrays/Array.h>
+#include <Common/ParameterSet.h>
 
 #include <string>
 #include <vector>
@@ -55,7 +60,7 @@ namespace askap {
       class RadioSourceTest : public CppUnit::TestFixture {
 	CPPUNIT_TEST_SUITE(RadioSourceTest);
 	CPPUNIT_TEST(findSource);
-	/* CPPUNIT_TEST(subthreshold); */
+	 CPPUNIT_TEST(subthreshold); 
 	CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -75,17 +80,15 @@ namespace askap {
 
 	void setUp() {
 
-	  ASKAPLOG_DEBUG_STR(logger,"Starting the setup");
 	  const float src[64]={1.,1.,1.,1.,1.,1.,1.,1.,
-			       1.,1.,1.,9.,10.,1.,1.,1.,
-			       1.,1.,1.,11.,10.,1.,1.,1.,
+			       1.,1.,1.,9.,11.,1.,1.,1.,
+			       1.,1.,1.,10.,10.,1.,1.,1.,
 			       1.,40.,39.,51.,50.,20.,19.,1.,
-			       1.,41.,40.,50.,49.,20.,21.,1.,
-			       1.,1.,1.,31.,30.,1.,1.,1.,
-			       1.,1.,1.,28.,27.,1.,1.,1.,
+			       1.,41.,40.,50.,49.,20.,22.,1.,
+			       1.,1.,1.,28.,30.,1.,1.,1.,
+			       1.,1.,1.,31.,27.,1.,1.,1.,
 			       1.,1.,1.,1.,1.,1.,1.,1.};
 
-	  ASKAPLOG_DEBUG_STR(logger,"Defining the arrays");
 	  array = new float[100];
 	  itsPos.resize(100, 2);
 	  itsF.resize(100);
@@ -106,7 +109,6 @@ namespace askap {
 	    }
 	  }
 							
-	  ASKAPLOG_DEBUG_STR(logger,"Defining the image");
 	  dim = new long;
 	  dim[0] = dim[1] = 10;
 	  image = new duchamp::Image(dim);
@@ -114,11 +116,10 @@ namespace askap {
 	  image->pars().setThreshold(5);
 	  image->pars().setMinPix(1);
 
-	  ASKAPLOG_DEBUG_STR(logger,"Finding the sources");
 	  objlist = image->findSources2D();
 
-	  fitparams = FittingParameters();
-	  fitparams.setNumSubThresholds(5);
+	  fitparams = FittingParameters(LOFAR::ParameterSet());
+//	  fitparams.setNumSubThresholds(10);
 
 	}
 
@@ -132,22 +133,35 @@ namespace askap {
 	  CPPUNIT_ASSERT(objlist.size()==1);
 	}
 
-	/* void subthreshold() { */
-	/*   ASKAPLOG_DEBUG_STR(logger,"Defining detection"); */
-	/*   duchamp::Detection det; */
-	/*   ASKAPLOG_DEBUG_STR(logger, objlist.size()); */
-	/*   det.addChannel(0,objlist[0]); */
-	/*   ASKAPLOG_DEBUG_STR(logger,"Defining radiosource"); */
-	/*   itsSource = RadioSource(det); */
-	/*   std::string secstring=duchamp::nullSection(2); */
-	/*   duchamp::Section sec(secstring); */
-	/*   itsSource.defineBox(sec,fitparams,2); */
-					
-	/*   ASKAPLOG_DEBUG_STR(logger,"Finding subcomponents"); */
-	/*   sublist=itsSource.getSubComponentList(itsPos,itsF);					 */
-					
-	/*   CPPUNIT_ASSERT(sublist.size()==5); */
-	/* } */
+	 void subthreshold() { 
+	   ASKAPLOG_DEBUG_STR(logger,"Defining detection"); 
+	   duchamp::Detection det; 
+	   ASKAPLOG_DEBUG_STR(logger, objlist.size()); 
+	   det.addChannel(0,objlist[0]); 
+		 det.calcFluxes(array,dim);
+		 ASKAPLOG_DEBUG_STR(logger,"Defining radiosource"); 
+	   itsSource = RadioSource(det); 
+	   std::string secstring=duchamp::nullSection(2); 
+	   duchamp::Section sec(secstring); 
+		 sec.parse(dim,2);
+	   ASKAPLOG_DEBUG_STR(logger,"Defining box"); 
+		 itsSource.defineBox(sec,fitparams,2); 
+	   ASKAPLOG_DEBUG_STR(logger,"Done - size is " << itsSource.boxSize()); 
+		 itsSource.setDetectionThreshold(5);
+		 itsSource.setNoiseLevel(1.);
+		 itsSource.setHeader(duchamp::FitsHeader());
+		 itsSource.setFitParams(fitparams);
+		 
+	   ASKAPLOG_DEBUG_STR(logger,"Finding subcomponents"); 
+		 sublist=itsSource.getSubComponentList(itsPos,itsF);	
+		 
+		 ASKAPLOG_DEBUG_STR(logger, "Number of subcomponents = " << sublist.size());
+		 for(size_t i=0;i<sublist.size();i++)
+					//ASKAPLOG_DEBUG_STR(logger, "Component " << i << ": " << sublist[i]);
+			 std::cerr <<  "Component " << i << ": " << sublist[i] << "\n";
+		 
+	   CPPUNIT_ASSERT(sublist.size()==5); 
+	 } 
 
       };
 
