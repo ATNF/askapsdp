@@ -232,7 +232,8 @@ namespace askap
 	    }
 	    //	    ip.fix(peakResParam);	    
 	    planeIter.getPlane(ip.value(indit->first)) =
-	      unpadImage(basisFunctionDec->model()+basisFunctionDec->background());
+	      unpadImage(basisFunctionDec->model());
+	      //	      unpadImage(basisFunctionDec->model()+basisFunctionDec->background());
 	  } // loop over all planes of the image cube
 	} // loop over map of indices
       

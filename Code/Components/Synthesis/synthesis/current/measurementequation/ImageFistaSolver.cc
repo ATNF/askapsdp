@@ -195,7 +195,7 @@ namespace askap
 	    fistaDec->setBackground(fistaArray);
 	    fistaDec->deconvolve();
 	    ASKAPLOG_INFO_STR(logger, "Peak flux of the FISTA image "
-			      << max(fistaDec->model()+fistaDec->background()));
+			      << max(fistaDec->model()));
 	    ASKAPLOG_INFO_STR(logger, "Peak residual of FISTA image "
 			      << max(abs(fistaDec->residual())));
 	    
@@ -208,7 +208,8 @@ namespace askap
 	    }
 	    //	    ip.fix(peakResParam);	    
 	    planeIter.getPlane(ip.value(indit->first)) =
-	      unpadImage(fistaDec->model()+fistaDec->background());
+	      unpadImage(fistaDec->model());
+	    //	      unpadImage(fistaDec->model()+fistaDec->background());
 	  } // loop over all planes of the image cube
 	} // loop over map of indices
       
