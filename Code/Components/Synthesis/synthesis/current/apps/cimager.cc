@@ -51,22 +51,14 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <fitting/Params.h>
 #include <casa/OS/Timer.h>
+#include "askap/SignalManagerSingleton.h"
+#include "askap/SignalCounter.h"
 
 ASKAP_LOGGER(logger, ".cimager");
 
 using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::scimath;
-
-// Controls termination of the major cycle loop
-static bool g_done = false;
-
-// SIGUSR1 handler
-static void sigusr1_handler(int signum)
-{
-    g_done = true;
-    ASKAPLOG_INFO_STR(logger, "Received SIGUSR1 - will stop at the end of this major cycle");
-}
 
 // Main function
 int main(int argc, const char** argv)
@@ -128,11 +120,8 @@ int main(int argc, const char** argv)
                 // Set up a new signal handler for SIGUSR1.
                 // This allows graceful exit from the major cycle loop
                 // upon receipt of a SIGUSR1.
-                struct sigaction new_action;
-                new_action.sa_handler = sigusr1_handler;
-                sigemptyset (&new_action.sa_mask);
-                new_action.sa_flags = SA_RESTART;
-                sigaction(SIGUSR1, &new_action, NULL);
+                SignalCounter sigcount;
+                SignalManagerSingleton::instance()->registerHandler(SIGUSR1, &sigcount);
 
                 /// Perform multiple major cycles
                 for (int cycle = 0; cycle < nCycles; ++cycle) {
@@ -146,7 +135,7 @@ int main(int argc, const char** argv)
                                           << " real:   " << timer.real());
 
                     if (comms.isMaster()) {
-                        if (g_done) {
+                        if (sigcount.getCount() > 0) {
                             ASKAPLOG_INFO_STR(logger, "Signal SIGUSR1 receieved. Stopping.");
                             break;
                         }
@@ -185,6 +174,7 @@ int main(int argc, const char** argv)
                 imager.calcNE();
                 imager.receiveNE();
             }
+            SignalManagerSingleton::instance()->removeHandler(SIGUSR1);
 
             /// This is the final step - restore the image and write it out
             imager.writeModel();

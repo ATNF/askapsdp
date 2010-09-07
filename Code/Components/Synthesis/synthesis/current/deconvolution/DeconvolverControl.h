@@ -33,16 +33,16 @@
 
 #ifndef I_DECONVOLVERCONTROL_H
 #define I_DECONVOLVERCONTROL_H
+#include <string>
 #include <casa/aips.h>
+#include <casa/Arrays/Array.h>
 #include <boost/shared_ptr.hpp>
 
-#include <casa/Arrays/Array.h>
-
-#include <string>
+#include <Common/ParameterSet.h>
+#include <askap/ISignalHandler.h>
+#include <askap/SignalCounter.h>
 
 #include <deconvolution/DeconvolverState.h>
-
-#include <Common/ParameterSet.h>
 
 using namespace casa;
 
@@ -65,13 +65,14 @@ namespace askap {
     	CONVERGED,
         DIVERGED,
         EXCEEDEDITERATIONS,
+        SIGNALED,
         NOTTERMINATED,
         UNKNOWN
       };
       
       DeconvolverControl();
       
-      virtual ~DeconvolverControl() {};
+      virtual ~DeconvolverControl();
       
       /// @brief configure basic parameters of the solver
       /// @details This method encapsulates extraction of basic solver parameters
@@ -226,6 +227,8 @@ namespace askap {
       Float itsTolerance;
       Int itsPSFWidth;
       T itsLambda;
+      askap::SignalCounter itsSignalCounter;
+      askap::ISignalHandler* itsOldHandler;
     };
     
   } // namespace synthesis

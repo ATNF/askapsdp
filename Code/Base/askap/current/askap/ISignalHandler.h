@@ -1,4 +1,7 @@
-/// @copyright (c) 2007 CSIRO
+/// @file ISignalHandler.h
+/// @brief
+///
+/// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -20,31 +23,29 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Ben Humphreys <ben.humphreys@csiro.au>
+///
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+#ifndef ASKAP_SIGNALHANDLER_H
+#define ASKAP_SIGNALHANDLER_H
 
-// Test includes
-#include <askap_askap.h>
-#include <IndexedCompareTest.h>
-#include <AskapErrorTest.h>
-#include <MapKeyIteratorTest.h>
-#include <AskapUtilTest.h>
-#include <SignalManagerTest.h>
-#include <SignalCounterTest.h>
+// System includes
+#include <csignal>
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
+namespace askap {
 
-    runner.addTest(askap::utility::IndexedLessTest::suite());
-    runner.addTest(askap::AskapErrorTest::suite());
-    runner.addTest(askap::utility::MapKeyIteratorTest::suite());
-    runner.addTest(askap::AskapUtilTest::suite());
-    runner.addTest(askap::SignalManagerTest::suite());
-    runner.addTest(askap::SignalCounterTest::suite());
+    class ISignalHandler {
+        public:
 
-    bool wasSucessful = runner.run();
+            /// @brief Destructor.
+            ~ISignalHandler();
 
-    return wasSucessful ? 0 : 1;
-}
+            /// @brief Callback function, called upon receipt of a signal.
+            /// @param[in] signum   the signal number of the signal which
+            ///                     was received.
+            virtual void handleSignal(int signum) = 0;
+    };
+
+} // end namespace askap
+
+#endif

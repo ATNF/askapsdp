@@ -1,4 +1,6 @@
-/// @copyright (c) 2007 CSIRO
+/// @file SignalCounter.cc
+///
+/// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -20,31 +22,29 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+// Include own header file first
+#include "askap/SignalCounter.h"
 
-// Test includes
-#include <askap_askap.h>
-#include <IndexedCompareTest.h>
-#include <AskapErrorTest.h>
-#include <MapKeyIteratorTest.h>
-#include <AskapUtilTest.h>
-#include <SignalManagerTest.h>
-#include <SignalCounterTest.h>
+using namespace askap;
 
-int main(int argc, char *argv[])
+SignalCounter::SignalCounter()
 {
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
+    resetCount();
+}
 
-    runner.addTest(askap::utility::IndexedLessTest::suite());
-    runner.addTest(askap::AskapErrorTest::suite());
-    runner.addTest(askap::utility::MapKeyIteratorTest::suite());
-    runner.addTest(askap::AskapUtilTest::suite());
-    runner.addTest(askap::SignalManagerTest::suite());
-    runner.addTest(askap::SignalCounterTest::suite());
+void SignalCounter::handleSignal(int signum)
+{
+    itsCount++;
+}
 
-    bool wasSucessful = runner.run();
+unsigned long SignalCounter::getCount(void)
+{
+    return itsCount;
+}
 
-    return wasSucessful ? 0 : 1;
+void SignalCounter::resetCount(void)
+{
+    itsCount = 0;
 }

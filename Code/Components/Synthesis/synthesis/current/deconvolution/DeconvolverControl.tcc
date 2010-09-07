@@ -35,6 +35,7 @@
 ASKAP_LOGGER(decctllogger, ".deconvolution.control");
 
 #include <casa/aips.h>
+#include <askap/SignalManagerSingleton.h>
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
 
@@ -51,8 +52,18 @@ namespace askap {
       itsTargetObjectiveFunction(T(0)), itsTargetFlux(T(0.0)),
       itsGain(1.0), itsTolerance(1e-4),
       itsPSFWidth(0), itsLambda(T(100.0))
-    {};
+    {
+        // Install a signal handler to count signals so receipt of a signal
+        // can be used to terminate the minor-cycle loop
+        itsOldHandler = SignalManagerSingleton::instance()->registerHandler(SIGUSR2, &itsSignalCounter);
+    };
     
+    template<class T>
+    DeconvolverControl<T>::~DeconvolverControl()
+    {
+        itsOldHandler = SignalManagerSingleton::instance()->registerHandler(SIGUSR2, itsOldHandler);
+    }
+
     /// Control the current state
     template<class T>
     Bool DeconvolverControl<T>::terminate(const DeconvolverState<T>& state) {
@@ -76,8 +87,15 @@ namespace askap {
         itsTerminationCause = EXCEEDEDITERATIONS;
         return True;
       }
+      // Check for external signal
+      if (itsSignalCounter.getCount() > 0) {
+          itsTerminationCause = SIGNALED;
+          itsSignalCounter.resetCount(); // This signal has been actioned, so reset
+          return True;
+      }
       return False;
     }
+
     template<class T>
     String DeconvolverControl<T>::terminationString() const {
       switch (itsTerminationCause) {
@@ -89,6 +107,9 @@ namespace askap {
         break;
       case EXCEEDEDITERATIONS:
         return String("Exceeded maximum number of iterations");
+        break;
+      case SIGNALED:
+        return String("Signaled to terminate");
         break;
       case NOTTERMINATED:
         return String("Not yet terminated");
