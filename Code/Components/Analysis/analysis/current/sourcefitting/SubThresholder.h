@@ -44,12 +44,12 @@ namespace askap {
 		
 			class SubThresholder {
 			public:
-				SubThresholder(){};
+				SubThresholder(){itsFluxArray=0; itsDim=0;};
 				virtual ~SubThresholder(){};
 				SubThresholder(const SubThresholder &s);
 				SubThresholder& operator=(const SubThresholder &s);
 				
-				void define(RadioSource &r, float *array=0);
+				void define(RadioSource *r, float *array=0);
 				std::vector<SubComponent> find();
 				
 				void saveArray(float *array, long *dim);
@@ -58,7 +58,7 @@ namespace askap {
 			protected:
 				SubComponent itsFirstGuess;
 				float *itsFluxArray;
-				duchamp::Image *itsImage;
+				duchamp::Image itsImage;
 				long *itsDim;
 				casa::Slicer itsSourceBox;
 				int itsNumThresholds;

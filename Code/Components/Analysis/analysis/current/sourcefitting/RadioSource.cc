@@ -35,6 +35,7 @@
 #include <sourcefitting/FittingParameters.h>
 #include <sourcefitting/FitResults.h>
 #include <sourcefitting/Component.h>
+#include <sourcefitting/SubThresholder.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <analysisutilities/SubimageDef.h>
 #include <analysisutilities/CasaImageUtil.h>
@@ -381,7 +382,9 @@ namespace askap {
                 /// object. In this case, we only look at the one with the
                 /// same peak location as the base object.
 
+				ASKAPLOG_DEBUG_STR(logger, "Estimating FWHM");
                 long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
+				ASKAPLOG_DEBUG_STR(logger, "Image dimensions are " << dim[0] << "x" << dim[1]);
                 duchamp::Image *smlIm = new duchamp::Image(dim);
                 smlIm->saveArray(fluxarray, this->boxSize());
                 smlIm->setMinSize(1);
@@ -429,7 +432,10 @@ namespace askap {
 
                 ASKAPLOG_DEBUG_STR(logger, "Defined flux array in getSubComponentList");
 
-                std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
+//                std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
+				SubThresholder subThresh;
+				subThresh.define(this,fluxarray);
+				std::vector<SubComponent> cmpntlist = subThresh.find();
  
 		// get distance between average centre and peak location
 		float dx = this->getXaverage() - this->getXPeak();

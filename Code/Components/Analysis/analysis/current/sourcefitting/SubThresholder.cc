@@ -27,15 +27,21 @@
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
 
-#include <sourcefitting/SubThresholder.h>
-
 #include <askap_analysis.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
+#include <sourcefitting/SubThresholder.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Component.h>
 
 #include <duchamp/Cubes/cubes.hh>
 
 #include <math.h>
+
+///@brief Where the log messages go.
+ASKAP_LOGGER(logger, ".subthresholder");
 
 namespace askap {
 
@@ -70,7 +76,9 @@ namespace askap {
     }
 	  
 	void SubThresholder::saveArray(float *array, long *dim) {
-  
+
+		ASKAPLOG_DEBUG_STR(logger, "Setting the SubThresholder's array");
+		
 		if(this->itsFluxArray != 0)
 			delete [] this->itsFluxArray;
 
@@ -78,44 +86,54 @@ namespace askap {
 		this->itsFluxArray = new float[size];
 		for(size_t i=0;i<size;i++)
 			this->itsFluxArray[i] = array[i];
+		
+		ASKAPLOG_DEBUG_STR(logger, "SubThresholder's array set successfully");
+		
 
 	}
 	
-    void SubThresholder::define(RadioSource &src, float *array) {
+    void SubThresholder::define(RadioSource *src, float *array) {
+
+		ASKAPLOG_DEBUG_STR(logger, "Defining a SubThresholder");
+		this->itsPeakFlux = src->getPeakFlux();
+		this->itsSourceSize = src->getSize();
 		
-		this->itsPeakFlux = src.getPeakFlux();
-		this->itsSourceSize = src.getSize();
-		
-		this->itsSourceBox = src.box();
+		this->itsSourceBox = src->box();
 		this->itsDim = new long[2];
-		this->itsDim[0] = src.boxXsize(); 
-		this->itsDim[1] = src.boxYsize();
+		this->itsDim[0] = src->boxXsize(); 
+		this->itsDim[1] = src->boxYsize();
 		
 		this->saveArray(array,this->itsDim);		
 		
-		this->itsImage = new duchamp::Image(this->itsDim);
+		ASKAPLOG_DEBUG_STR(logger, "Defining duchamp Image");
+		this->itsImage = duchamp::Image(this->itsDim);
+		ASKAPLOG_DEBUG_STR(logger, "Setting Image's array");
 		if(array!=0)
-			this->itsImage->saveArray(array, src.boxSize());
-		this->itsImage->setMinSize(1);
-		
+			this->itsImage.saveArray(array, src->boxSize());
+		this->itsImage.setMinSize(1);
+		ASKAPLOG_DEBUG_STR(logger, "Image defined");
+		ASKAPLOG_DEBUG_STR(logger, "About to set initial guess for subcomponent parameters");
 		this->itsFirstGuess.setPeak(this->itsPeakFlux);
-		this->itsFirstGuess.setX(src.getXPeak());
-		this->itsFirstGuess.setY(src.getYPeak());
+		this->itsFirstGuess.setX(src->getXPeak());
+		this->itsFirstGuess.setY(src->getYPeak());
 		double a, b, c;
 		
 		if (this->itsSourceSize < 3) {
 			this->itsFirstGuess.setPA(0);
 			this->itsFirstGuess.setMajor(1.);
-			this->itsFirstGuess.setMinor(1.);\
+			this->itsFirstGuess.setMinor(1.);
+		}
+		else {
+			src->getFWHMestimate(array, a, b, c);
+			this->itsFirstGuess.setPA(a);
+			this->itsFirstGuess.setMajor(b);
+			this->itsFirstGuess.setMinor(c);
 		}
 		
-		src.getFWHMestimate(array, a, b, c);
-		this->itsFirstGuess.setPA(a);
-		this->itsFirstGuess.setMajor(b);
-		this->itsFirstGuess.setMinor(c);
+		ASKAPLOG_DEBUG_STR(logger, "Have defined initial guess for subcomponent parameters " << this->itsFirstGuess);
 		
-		this->itsNumThresholds = src.fitparams().numSubThresholds();
-		this->itsBaseThreshold = src.detectionThreshold() > 0 ? log10(src.detectionThreshold()) : -6.;
+		this->itsNumThresholds = src->fitparams().numSubThresholds();
+		this->itsBaseThreshold = src->detectionThreshold() > 0 ? log10(src->detectionThreshold()) : -6.;
 		this->itsThreshIncrement = (log10(this->itsPeakFlux) - this->itsBaseThreshold) / float(this->itsNumThresholds + 1);
 		
 		
@@ -124,6 +142,8 @@ namespace askap {
 
     std::vector<SubComponent> SubThresholder::find() {
 
+		ASKAPLOG_DEBUG_STR(logger, "Commencing a search for subcomponents.");
+		
 		std::vector<SubComponent> fullList;
 
 		if (this->itsSourceSize < 3) {
@@ -139,8 +159,8 @@ namespace askap {
       do {
 		  threshCtr++;
 		  float thresh = pow(10., this->itsBaseThreshold + threshCtr * this->itsThreshIncrement);
-		  this->itsImage->stats().setThreshold(thresh);
-		  objlist = this->itsImage->findSources2D();
+		  this->itsImage.stats().setThreshold(thresh);
+		  objlist = this->itsImage.findSources2D();
 		  keepGoing = (objlist.size() == 1);
       } while (keepGoing && (threshCtr < this->itsNumThresholds));
 
