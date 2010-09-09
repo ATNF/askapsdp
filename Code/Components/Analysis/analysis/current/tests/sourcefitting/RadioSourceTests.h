@@ -60,18 +60,20 @@ namespace askap {
 
     namespace sourcefitting {
 	
-      const int srcDim=8;
+      const int srcDim=10;
       const int srcSize=srcDim*srcDim;
       const int arrayDim=10;
       const int arraySize=arrayDim*arrayDim;
-      const float src[srcSize]={1.,1.,1.,1.,1.,1.,1.,1.,
-				1.,1.,1.,9.,11.,1.,1.,1.,
-				1.,1.,1.,10.,10.,1.,1.,1.,
-				1.,40.,39.,51.,50.,20.,19.,1.,
-				1.,41.,40.,50.,49.,20.,22.,1.,
-				1.,1.,1.,28.,30.,1.,1.,1.,
-				1.,1.,1.,31.,27.,1.,1.,1.,
-				1.,1.,1.,1.,1.,1.,1.,1.};
+ //      const float src[srcSize]={1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,
+// 				1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
+// 				1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
+// 				1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
+// 				1.,1.,1.,1.,1.,10.,10.,1.,1.,1.,
+// 				1.,1.,1.,40.,39.,51.,50.,20.,19.,1.,
+// 				1.,1.,1.,41.,40.,50.,49.,20.,22.,1.,
+// 				1.,1.,1.,1.,1.,28.,30.,1.,1.,1.,
+// 				1.,1.,1.,1.,1.,31.,27.,1.,1.,1.,
+// 				1.,1.,1.,1.,1.,1.,1.,1.,1.,1.};
       
 
       class RadioSourceTest : public CppUnit::TestFixture {
@@ -94,31 +96,37 @@ namespace askap {
 	void setUp() {
 	  
 	  ASKAPLOG_DEBUG_STR(logger, "****setUp****");
-	  
+	  const int arrayDim=10;
+	  const int arraySize=arrayDim*arrayDim;
+	  const float src[arraySize]={1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,
+				      1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
+				      1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
+				      1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
+				      1.,1.,1.,1.,1.,10.,10.,1.,1.,1.,
+				      1.,1.,1.,40.,39.,51.,50.,20.,19.,1.,
+				      1.,1.,1.,41.,40.,50.,49.,20.,22.,1.,
+				      1.,1.,1.,1.,1.,28.,30.,1.,1.,1.,
+				      1.,1.,1.,1.,1.,31.,27.,1.,1.,1.,
+				      1.,1.,1.,1.,1.,1.,1.,1.,1.,1.};
+ 	  
 	  itsArray = new float[arraySize];
-	  for(int i=0;i<arraySize;i++) itsArray[i] = 0.;
-	  
+	  for(int i=0;i<arraySize;i++) itsArray[i] = src[i];
 
-	  for(int x=0;x<srcDim;x++) {
-	    for(int y=0;y<srcDim;y++){ 
-	      itsArray[(x+1)+(y+1)*arrayDim]=src[x+y*srcDim];
-	    }
-	  }	      
-
-	  std::cerr << itsArray[45] << "\n";
+	  std::cerr << itsArray[55] << "\n";
 							
 	  itsDim = new long[2];
 	  itsDim[0] = itsDim[1] = arrayDim;
 
 	  duchamp::Image *itsImage = new duchamp::Image(itsDim);
 	  itsImage->saveArray(itsArray,arraySize);
-	  std::cerr << itsImage->getSize() << " " << itsImage->getArray()[45] << "\n";
+	  std::cerr << itsImage->getSize() << " " << itsImage->getArray()[55] << "\n";
 	  itsImage->pars().setThreshold(5);
 	  itsImage->pars().setFlagUserThreshold(true);
 	  itsImage->stats().setThreshold(5);
 	  itsImage->pars().setMinPix(1);
 
 // 	  itsObjlist = itsImage->findSources2D();
+	  std::cerr << itsObjlist.size() << itsImage->isDetection(4,5) << "\n";
 	  std::vector<PixelInfo::Object2D> newlist = itsImage->findSources2D();
 	  itsObjlist = newlist;
 	  std::cerr << newlist.size() << itsObjlist.size() << itsImage->isDetection(4,5) << "\n";

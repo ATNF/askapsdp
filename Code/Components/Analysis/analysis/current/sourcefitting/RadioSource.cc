@@ -432,10 +432,10 @@ namespace askap {
 
                 ASKAPLOG_DEBUG_STR(logger, "Defined flux array in getSubComponentList");
 
-//                std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
-				SubThresholder subThresh;
-				subThresh.define(this,fluxarray);
-				std::vector<SubComponent> cmpntlist = subThresh.find();
+		std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
+// 				SubThresholder subThresh;
+// 				subThresh.define(this,fluxarray);
+// 				std::vector<SubComponent> cmpntlist = subThresh.find();
  
 		// get distance between average centre and peak location
 		float dx = this->getXaverage() - this->getXPeak();
