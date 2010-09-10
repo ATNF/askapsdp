@@ -36,6 +36,7 @@ namespace askap {
     class SignalCounter : public ISignalHandler {
         public:
             SignalCounter();
+            virtual ~SignalCounter();
 
             virtual void handleSignal(int signum);
 

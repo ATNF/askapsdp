@@ -34,6 +34,10 @@ SignalCounter::SignalCounter()
     resetCount();
 }
 
+SignalCounter::~SignalCounter()
+{
+}
+
 void SignalCounter::handleSignal(int signum)
 {
     itsCount++;

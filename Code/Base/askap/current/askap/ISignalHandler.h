@@ -38,7 +38,7 @@ namespace askap {
         public:
 
             /// @brief Destructor.
-            ~ISignalHandler();
+            virtual ~ISignalHandler();
 
             /// @brief Callback function, called upon receipt of a signal.
             /// @param[in] signum   the signal number of the signal which
