@@ -164,9 +164,9 @@ void MetadataConverter::convertAntenna(unsigned int antId,
     const casa::uInt nBeam = source.nBeams();
     const casa::uInt nPol = source.nPol();
 
-    // <antenna name>.dish_pointing
-    destMapper.setDirection(makeMapKey(antennaName, "dish_pointing"),
-            antenna.dishPointing());
+    // <antenna name>.target_radec
+    destMapper.setDirection(makeMapKey(antennaName, "target_radec"),
+            antenna.targetRaDec());
 
     // <antenna name>.frequency
     destMapper.setDouble(makeMapKey(antennaName, "frequency"),
@@ -180,9 +180,9 @@ void MetadataConverter::convertAntenna(unsigned int antId,
     destMapper.setString(makeMapKey(antennaName, "scan_id"),
             antenna.scanId());
 
-    // <antenna name>.parallactic_angle
-    destMapper.setDouble(makeMapKey(antennaName, "parallactic_angle"),
-            antenna.parallacticAngle());
+    // <antenna name>.polarisation_offset
+    destMapper.setDouble(makeMapKey(antennaName, "polarisation_offset"),
+            antenna.polarisationOffset());
 
     // <antenna name>.flag.on_source
     destMapper.setBool(makeMapKey(antennaName, "flag.on_source"),
@@ -243,9 +243,9 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
     const unsigned int id = dest.addAntenna(antennaName);
     TosMetadataAntenna& ant = dest.antenna(id);
 
-    // dish_pointing
-    ant.dishPointing(srcMapper.getDirection(makeMapKey(antennaName,
-                    "dish_pointing")));
+    // target_radec
+    ant.targetRaDec(srcMapper.getDirection(makeMapKey(antennaName,
+                    "target_radec")));
     // frequency
     ant.frequency(srcMapper.getDouble(makeMapKey(antennaName,
                     "frequency")));
@@ -255,9 +255,9 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
     // scan_id
     ant.scanId(srcMapper.getString(makeMapKey(antennaName,
                     "scan_id")));
-    // parallactic_angle
-    ant.parallacticAngle(srcMapper.getDouble(makeMapKey(antennaName,
-                    "parallactic_angle")));
+    // polarisation_offset
+    ant.polarisationOffset(srcMapper.getDouble(makeMapKey(antennaName,
+                    "polarisation_offset")));
     // flag.on_source
     ant.onSource(srcMapper.getBool(makeMapKey(antennaName,
                     "flag.on_source")));

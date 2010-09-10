@@ -77,7 +77,7 @@ namespace askap {
                         MDirection::Ref(MDirection::J2000));
                 const std::string clientId = "testClient";
                 const std::string scanId = "testScan";
-                const casa::Double parallacticAngle = 1.234567;
+                const casa::Double polarisationOffset = 1.234567;
                 const casa::Bool flag = false;
                 const casa::Bool onSource = true;
                 const casa::Bool hwError = false;
@@ -103,11 +103,11 @@ namespace askap {
                     antennaNames.push_back(ss.str());
                     TosMetadataAntenna& ant = itsSource->antenna(id);
 
-                    ant.dishPointing(testDir);
+                    ant.targetRaDec(testDir);
                     ant.frequency(frequency);
                     ant.clientId(clientId);
                     ant.scanId(scanId);
-                    ant.parallacticAngle(parallacticAngle);
+                    ant.polarisationOffset(polarisationOffset);
                     ant.onSource(onSource);
                     ant.hwError(hwError);
 
@@ -194,12 +194,12 @@ namespace askap {
                 CPPUNIT_ASSERT_EQUAL(srcAnt.nBeams(), resultAnt.nBeams());
                 CPPUNIT_ASSERT_EQUAL(srcAnt.nPol(), resultAnt.nPol());
 
-                verifyDir(srcAnt.dishPointing(), resultAnt.dishPointing());
+                verifyDir(srcAnt.targetRaDec(), resultAnt.targetRaDec());
                 CPPUNIT_ASSERT_EQUAL(srcAnt.frequency(), resultAnt.frequency());
                 CPPUNIT_ASSERT_EQUAL(srcAnt.clientId(), resultAnt.clientId());
                 CPPUNIT_ASSERT_EQUAL(srcAnt.scanId(), resultAnt.scanId());
-                CPPUNIT_ASSERT_EQUAL(srcAnt.parallacticAngle(),
-                        resultAnt.parallacticAngle());
+                CPPUNIT_ASSERT_EQUAL(srcAnt.polarisationOffset(),
+                        resultAnt.polarisationOffset());
                 CPPUNIT_ASSERT_EQUAL(srcAnt.onSource(), resultAnt.onSource());
                 CPPUNIT_ASSERT_EQUAL(srcAnt.hwError(), resultAnt.hwError());
 

@@ -76,13 +76,13 @@ class TosMetadataAntenna {
         /// @return the number of polarisations.
         casa::uInt nPol(void) const;
 
-        /// @brief Get the physical dish pointing.
-        /// @return the pyhsical dish pointing.
-        casa::MDirection dishPointing(void) const;
+        /// @brief Get the target coordinates for the dish pointing
+        /// @return the target coordinates for the dish pointing
+        casa::MDirection targetRaDec(void) const;
 
-        /// @brief Set the physical dish pointing.
-        /// @param[in] val the physical dish pointing.
-        void dishPointing(const casa::MDirection& val);
+        /// @brief Set the target coordinates for the dish pointing
+        /// @param[in] val the target coordinates for the dish pointing
+        void targetRaDec(const casa::MDirection& val);
 
         /// @brief Get the centre frequency for this antenna.
         /// @return the centre frequency for this antenna.
@@ -153,13 +153,13 @@ class TosMetadataAntenna {
                                  const casa::uInt& beam,
                                  const casa::uInt& coarseChannel);
 
-        /// @brief Get the parallactic angle.
-        /// @return the parallactic angle (in radians).
-        casa::Double parallacticAngle(void) const;
+        /// @brief Get the polarisation offset.
+        /// @return the polarisation offset (in radians).
+        casa::Double polarisationOffset(void) const;
 
-        /// @brief Set the parallactic angle.
-        /// @param[in] val the parallactic angle (in radians).
-        void parallacticAngle(const casa::Double& val);
+        /// @brief Set the polarisation offset
+        /// @param[in] val the polarisation offset (in radians).
+        void polarisationOffset(const casa::Double& val);
 
         /// @brief Get the value of the onSource flag.
         ///
@@ -310,8 +310,8 @@ class TosMetadataAntenna {
         /// The number of polarisations.
         casa::uInt itsNumPol;
 
-        /// The physical dish pointing
-        casa::MDirection itsDishPointing;
+        /// The target coordinates
+        casa::MDirection itsTargetRaDec;
 
         /// The centre frequency (in Hz)
         casa::Double itsFrequency;
@@ -326,8 +326,8 @@ class TosMetadataAntenna {
         /// The phase tracking centre, per beam and per coarse channel.
         casa::Matrix<casa::MDirection> itsPhaseTrackingCentre;
 
-        /// The parallactic angle (in Radians).
-        casa::Double itsParallacticAngle;
+        /// The polarisation offset (in Radians).
+        casa::Double itsPolarisationOffset;
 
         /// True if antenna was within tolerance thresholds of the target
         /// trajectory throughout the entire integration cycle. If this is

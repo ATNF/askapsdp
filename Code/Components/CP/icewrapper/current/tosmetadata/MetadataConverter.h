@@ -72,8 +72,8 @@ class MetadataConverter {
         /// @brief Makes a map key given a profix (typically an antenna name),
         /// and a suffix.
         ///
-        /// If for example the prefix is "askap01" and the suffix is
-        /// "dish_pointing" then the return will be "askap01.dish_pointing"
+        /// If for example the prefix is "askap01" and the suffix is "phase_tracking_centre"
+        /// then the return will be "askap01.phase_tracking_centre"
         std::string makeMapKey(const std::string& prefix,
                 const std::string& suffix);
 };

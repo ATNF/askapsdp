@@ -177,12 +177,12 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
                 chunk->antenna2()(row) = ant2;
                 chunk->beam1()(row) = beam;
                 chunk->beam2()(row) = beam;
-                chunk->beam1PA()(row) = mdAnt1.parallacticAngle();
-                chunk->beam2PA()(row) = mdAnt2.parallacticAngle();
+                chunk->beam1PA()(row) = mdAnt1.polarisationOffset();
+                chunk->beam2PA()(row) = mdAnt2.polarisationOffset();
                 chunk->pointingDir1()(row) = mdAnt1.phaseTrackingCentre(beam, 0);
                 chunk->pointingDir2()(row) = mdAnt2.phaseTrackingCentre(beam, 0);
-                chunk->dishPointing1()(row) = mdAnt1.dishPointing();
-                chunk->dishPointing2()(row) = mdAnt2.dishPointing();
+                chunk->dishPointing1()(row) = mdAnt1.targetRaDec();
+                chunk->dishPointing2()(row) = mdAnt2.targetRaDec();
                 chunk->frequency()(row) = 0.0;
                 chunk->uvw()(row) = 0.0;
 

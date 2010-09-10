@@ -45,7 +45,7 @@ TosMetadataAntenna::TosMetadataAntenna(const casa::String& name,
         itsName(name), itsNumCoarseChannels(nCoarseChannels),
         itsNumBeams(nBeams), itsNumPol(nPol), itsFrequency(0.0),
         itsPhaseTrackingCentre(nBeams, nCoarseChannels),
-        itsParallacticAngle(0.0), itsOnSource(false),
+        itsPolarisationOffset(0.0), itsOnSource(false),
         itsHwError(true),
         itsFlagDetailed(nBeams, nCoarseChannels, nPol, false),
         itsSystemTemp(nBeams, nCoarseChannels, nPol, -1.0)
@@ -72,14 +72,14 @@ casa::uInt TosMetadataAntenna::nPol(void) const
     return itsNumPol;
 }
 
-casa::MDirection TosMetadataAntenna::dishPointing(void) const
+casa::MDirection TosMetadataAntenna::targetRaDec(void) const
 {
-    return itsDishPointing;
+    return itsTargetRaDec;
 }
 
-void TosMetadataAntenna::dishPointing(const casa::MDirection& val)
+void TosMetadataAntenna::targetRaDec(const casa::MDirection& val)
 {
-    itsDishPointing = val;
+    itsTargetRaDec = val;
 }
 
 casa::Double TosMetadataAntenna::frequency(void) const
@@ -129,14 +129,14 @@ void TosMetadataAntenna::phaseTrackingCentre(const casa::MDirection& val,
     itsPhaseTrackingCentre(beam, coarseChannel) = val;
 }
 
-casa::Double TosMetadataAntenna::parallacticAngle(void) const
+casa::Double TosMetadataAntenna::polarisationOffset(void) const
 {
-    return itsParallacticAngle;
+    return itsPolarisationOffset;
 }
 
-void TosMetadataAntenna::parallacticAngle(const casa::Double& val)
+void TosMetadataAntenna::polarisationOffset(const casa::Double& val)
 {
-    itsParallacticAngle = val;
+    itsPolarisationOffset = val;
 }
 
 casa::Bool TosMetadataAntenna::onSource(void) const

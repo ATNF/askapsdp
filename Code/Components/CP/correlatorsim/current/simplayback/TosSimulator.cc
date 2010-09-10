@@ -142,8 +142,8 @@ bool TosSimulator::sendNext(void)
         const casa::Vector<casa::MDirection> dirVec = fieldc.phaseDirMeasCol()(fieldId);
         const casa::MDirection direction = dirVec(0);
 
-        // <antenna name>.dish_pointing
-        antMetadata.dishPointing(direction);
+        // <antenna name>.target_radec
+        antMetadata.targetRaDec(direction);
 
         // <antenna name>.frequency
         // TODO: This is actually just the start frequency, not the centre
@@ -167,10 +167,10 @@ bool TosSimulator::sendNext(void)
             }
         }
 
-        // <antenna name>.parallactic_angle
+        // <antenna name>.polarisation_offset 
         // TODO: Zero is ok for data coming from the csimulator when an
         // equatorial mount is simulated.
-        antMetadata.parallacticAngle(0.0);
+        antMetadata.polarisationOffset(0.0);
 
         // <antenna name>.flag.on_source
         // TODO: Current no flagging, but it would be good to read this from the

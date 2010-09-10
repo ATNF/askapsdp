@@ -45,12 +45,12 @@ namespace cp {
 class TosMetadataAntennaTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(TosMetadataAntennaTest);
         CPPUNIT_TEST(testConstructor);
-        CPPUNIT_TEST(testDishPointing);
+        CPPUNIT_TEST(testTargetRaDec);
         CPPUNIT_TEST(testFrequency);
         CPPUNIT_TEST(testClientId);
         CPPUNIT_TEST(testScanId);
         CPPUNIT_TEST(testPhaseTrackingCentre);
-        CPPUNIT_TEST(testParallacticAngle);
+        CPPUNIT_TEST(testPolarisationOffset);
         CPPUNIT_TEST(testOnSource);
         CPPUNIT_TEST(testHwError);
         CPPUNIT_TEST(testFlagDetailed);
@@ -82,14 +82,14 @@ class TosMetadataAntennaTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(nPol, instance->nPol());
         };
 
-        void testDishPointing() {
+        void testTargetRaDec() {
             MDirection testDir(Quantity(20, "deg"),
                                Quantity(-10, "deg"),
                                MDirection::Ref(MDirection::J2000));
 
-            instance->dishPointing(testDir); // Set
+            instance->targetRaDec(testDir); // Set
             CPPUNIT_ASSERT(directionsEqual(testDir,
-                                           instance->dishPointing()));
+                                           instance->targetRaDec()));
         }
 
         void testFrequency() {
@@ -139,10 +139,10 @@ class TosMetadataAntennaTest : public CppUnit::TestFixture {
                     askap::AskapError);
         };
 
-        void testParallacticAngle() {
+        void testPolarisationOffset() {
             const Double testVal = 1.123456;
-            instance->parallacticAngle(testVal);
-            CPPUNIT_ASSERT(testVal == instance->parallacticAngle());
+            instance->polarisationOffset(testVal);
+            CPPUNIT_ASSERT(testVal == instance->polarisationOffset());
         }
 
         void testOnSource() {
