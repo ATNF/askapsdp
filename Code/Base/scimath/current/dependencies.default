@@ -1,5 +1,5 @@
 gsl=3rdParty/gsl/gsl-1.10
 askap=Code/Base/askap/current
 blob=3rdParty/LOFAR/Blob/Blob-1.2;blob
-casacore=3rdParty/casacore/casacore-1.0.0; casa_coordinates casa_fits casa_lattices casa_measures casa_scimath casa_scimath_f casa_tables casa_casa
+casacore=3rdParty/casacore/casacore-1.2.0; casa_coordinates casa_fits casa_lattices casa_measures casa_scimath casa_scimath_f casa_tables casa_casa
 fftw=3rdParty/fftw/fftw-3.2.2
