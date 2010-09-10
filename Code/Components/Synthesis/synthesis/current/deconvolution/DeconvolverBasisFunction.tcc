@@ -102,6 +102,21 @@ namespace askap {
     void DeconvolverBasisFunction<T,FT>::finalise()
     {
       DeconvolverBase<T, FT>::updateResiduals(this->model());
+
+      uInt nScales(this->itsBasisFunction->numberTerms());
+      IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
+      
+      Array<T> ones(this->itsL1image.shape());
+      ones.set(T(1.0));
+      T l0Norm(sum(ones(abs(this->itsL1image)>T(0.0))));
+      T l1Norm(sum(abs(this->itsL1image)));
+      ASKAPLOG_INFO_STR(decbflogger, "L0 norm = " << l0Norm << ", L1 norm   = " << l1Norm
+			<< ", Flux = " << sum(this->model()));
+      
+      for (uInt scale=0;scale<itsScaleFlux.nelements();scale++) {
+	ASKAPLOG_INFO_STR(decbflogger, "   Scale " << scale << " Flux = " << itsScaleFlux(scale));
+      }
+      
     }
     
     template<class T, class FT>
@@ -110,6 +125,15 @@ namespace askap {
       DeconvolverBase<T, FT>::initialise();
       initialiseResidual();
       initialisePSF();
+
+      uInt nScales(this->itsBasisFunction->numberTerms());
+
+      IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
+      this->itsL1image.resize(l1Shape);
+      this->itsL1image.set(0.0);
+
+      this->itsModel=this->itsBackground.copy();
+
     }
     
     template<class T, class FT>
@@ -297,12 +321,6 @@ namespace askap {
       
       this->initialise();
       
-      uInt nScales(this->itsBasisFunction->numberTerms());
-
-      IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
-      this->itsL1image.resize(l1Shape);
-      this->itsL1image.set(0.0);
-      
       ASKAPLOG_INFO_STR(decbflogger, "Performing BasisFunction CLEAN for "
 			<< this->control()->targetIter() << " iterations");
       do {
@@ -314,17 +332,6 @@ namespace askap {
       
       ASKAPLOG_INFO_STR(decbflogger, "Performed BasisFunction CLEAN for "
 			<< this->state()->currentIter() << " iterations");
-      
-      Array<T> ones(this->itsL1image.shape());
-      ones.set(T(1.0));
-      T l0Norm(sum(ones(abs(this->itsL1image)>T(0.0))));
-      T l1Norm(sum(abs(this->itsL1image)));
-      ASKAPLOG_INFO_STR(decbflogger, "L0 norm = " << l0Norm << ", L1 norm   = " << l1Norm
-			<< ", Flux = " << sum(this->model()));
-      
-      for (uInt scale=0;scale<itsScaleFlux.nelements();scale++) {
-	ASKAPLOG_INFO_STR(decbflogger, "   Scale " << scale << " Flux = " << itsScaleFlux(scale));
-      }
       
       ASKAPLOG_INFO_STR(decbflogger, this->control()->terminationString());
       
@@ -348,9 +355,6 @@ namespace askap {
       // of the maximum i.e. it finds the max in mask * residual
       minMaxMaskedScales(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction,
 			 this->itsWeightedMask, this->itsPSFScales);
-      // Look up the values to avoid the effect of the weights
-      maxVal=this->itsResidualBasisFunction(maxPos)/this->itsPSFScales(maxPos(2));
-      minVal=this->itsResidualBasisFunction(minPos)/this->itsPSFScales(maxPos(2));
       ASKAPLOG_INFO_STR(decbflogger, "Maximum =  " << maxVal << " at location " << maxPos);
       ASKAPLOG_INFO_STR(decbflogger, "Minimum = " << minVal << " at location " << minPos);
       T absPeakVal;
@@ -480,24 +484,28 @@ namespace askap {
 	  for (uInt scale=0;scale<nScales;scale++) {
 	    casa::minMaxMasked(sMinVal(scale), sMaxVal(scale), sMinPos(scale), sMaxPos(scale),
 			       data.xyPlane(scale), maskArray.nonDegenerate());
+	    // Need to scale by (a) the inverse of the psfScale to deal with the
+	    // loss of gain for the tapering and (b) by sqrt(psfScale) to deal 
+	    // with the SNR degradation. The latter is similar to the use of 
+	    // the small scale bias in the MSClean paper.
+	    sMaxVal(scale)/=sqrt(this->itsPSFScales(scale));
+	    sMinVal(scale)/=sqrt(this->itsPSFScales(scale));
 	  }
 	}
 	else {
 	  for (uInt scale=0;scale<nScales;scale++) {
 	    casa::minMax(sMinVal(scale), sMaxVal(scale), sMinPos(scale), sMaxPos(scale),
 			 data.xyPlane(scale));
+	    sMaxVal(scale)/=this->itsPSFScales(scale);
+	    sMinVal(scale)/=this->itsPSFScales(scale);
 	  }
 	}
       }
-      maxVal=sMaxVal(0)/psfScale(0);
-      minVal=sMinVal(0)/psfScale(0);
+      maxVal=sMaxVal(0);
+      minVal=sMinVal(0);
       minPos=IPosition(3, sMinPos(0)(0), sMinPos(0)(1), 0);
       maxPos=IPosition(3, sMaxPos(0)(0), sMaxPos(0)(1), 0);
       for (uInt scale=1;scale<nScales;scale++) {
-	// The scaling here is composed of two parts. 1/psfScale to normalise out the
-	// PSF peak and sqrt(psfScale) to deal with the SNR degradation.
-	sMaxVal(scale)/=sqrt(psfScale(scale)); 
-	sMinVal(scale)/=sqrt(psfScale(scale)); 
 	if(sMinVal(scale)<=minVal) {
 	  minVal=sMinVal(scale);
 	  minPos=IPosition(3, sMinPos(scale)(0), sMinPos(scale)(1), scale);
@@ -507,6 +515,12 @@ namespace askap {
 	  maxPos=IPosition(3, sMaxPos(scale)(0), sMaxPos(scale)(1), scale);
 	}
       }
+      // If masking (presumably with weights) was done we need to 
+      // look up the original values (without the weights). Since this
+      // does no harm for the unmasked case, we do the same for 
+      // convenience.
+      minVal=data.xyPlane(minPos(2))(minPos);
+      maxVal=data.xyPlane(maxPos(2))(maxPos);
     }
   } // namespace synthesis 
 } // namespace askap
