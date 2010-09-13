@@ -44,6 +44,7 @@
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Object2D.hh>
 #include <duchamp/Utils/Statistics.hh>
+#include <duchamp/Detection/finders.hh>
 
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
@@ -105,18 +106,12 @@ namespace askap {
 
 	  duchamp::Image *itsImage = new duchamp::Image(itsDim.data());
 	  itsImage->saveArray(itsArray.data(),arraySize);
-	  itsImage->pars().setThreshold(5);
-	  itsImage->pars().setFlagUserThreshold(true);
 	  itsImage->stats().setThreshold(5);
-	  itsImage->pars().setMinPix(1);
+	  itsImage->setMinSize(1);
+	  itsImage->pars().setFlagBlankPix(false);
 
-// 	  itsObjlist = itsImage->findSources2D();
-	  std::cerr << itsObjlist.size() << itsImage->isDetection(4,5) << "\n";
-	  std::vector<PixelInfo::Object2D> newlist = itsImage->findSources2D();
-	  itsObjlist = newlist;
-	  std::cerr << newlist.size() << itsObjlist.size() << itsImage->isDetection(4,5) << "\n";
-// 	  std::cerr << itsImage->pars() << "\n";
-	  ASKAPLOG_DEBUG_STR(logger, "Num objects = " << itsObjlist.size()); 
+	  itsObjlist = itsImage->findSources2D();
+
 	  delete itsImage;
 
 	  itsFitparams = FittingParameters(LOFAR::ParameterSet());
@@ -132,14 +127,10 @@ namespace askap {
 	}
 
 	void findSource() {
-	  ASKAPLOG_DEBUG_STR(logger,"FindSource test"); 
-	  ASKAPLOG_DEBUG_STR(logger, "Num objects = " << itsObjlist.size());
 	  CPPUNIT_ASSERT(itsObjlist.size()==1);
 	}
 
 	void subthreshold() { 
-	  ASKAPLOG_DEBUG_STR(logger,"SubThreshold test"); 
-	  ASKAPLOG_DEBUG_STR(logger, "Num objects = " << itsObjlist.size()); 
 	  CPPUNIT_ASSERT(itsObjlist.size()==1);
 	  duchamp::Detection det; 
 	  det.addChannel(0,itsObjlist[0]); 
