@@ -37,6 +37,7 @@
 #include <sourcefitting/Component.h>
 
 #include <duchamp/Cubes/cubes.hh>
+#include <casa/Arrays/Slicer.h>
 
 #include <math.h>
 
@@ -52,66 +53,107 @@ namespace askap {
     SubThresholder::SubThresholder(const SubThresholder &s) {
       operator=(s);
     }
+		  
+		  SubThresholder::~SubThresholder(){
+//			  if(itsDim!=0) delete [] this->itsDim;
+//			  if(itsFluxArray!=0) delete [] this->itsFluxArray;
+		  }
 	
     SubThresholder& SubThresholder::operator=(const SubThresholder &s) {
-		if(this == &s) return *this;
+//		if(this == &s) return *this;
 		this->itsFirstGuess = s.itsFirstGuess;
-		this->itsImage = s.itsImage;
 		this->itsSourceBox = s.itsSourceBox;
 		this->itsNumThresholds = s.itsNumThresholds;
 		this->itsBaseThreshold = s.itsBaseThreshold;
 		this->itsThreshIncrement = s.itsThreshIncrement;
 		this->itsPeakFlux = s.itsPeakFlux;
 		this->itsSourceSize = s.itsSourceSize;
-		if(itsDim != 0) delete [] this->itsDim;
-		this->itsDim = new long[2];
-		this->itsDim[0] = s.itsDim[0];
-		this->itsDim[1] = s.itsDim[1];
-		if(this->itsFluxArray != 0) delete [] this->itsFluxArray;
-		this->itsFluxArray = new float[this->itsDim[0]*this->itsDim[1]];
-		for(int i=0;i<this->itsDim[0]*this->itsDim[1];i++)
-			this->itsFluxArray[i] = s.itsFluxArray[i];
+//		if(itsDim != 0) delete [] this->itsDim;
+//		this->itsDim = new long[2];
+//		this->itsDim[0] = s.itsDim[0];
+//		this->itsDim[1] = s.itsDim[1];
+//		if(this->itsFluxArray != 0) delete [] this->itsFluxArray;
+//		this->itsFluxArray = new float[this->itsDim[0]*this->itsDim[1]];
+//		for(int i=0;i<this->itsDim[0]*this->itsDim[1];i++)
+//			this->itsFluxArray[i] = s.itsFluxArray[i];
+		this->itsDim = s.itsDim;
+		this->itsFluxArray = s.itsFluxArray;
 		return *this;
 		
     }
 	  
-	void SubThresholder::saveArray(float *array, long *dim) {
-
-		ASKAPLOG_DEBUG_STR(logger, "Setting the SubThresholder's array");
-		
-		if(this->itsFluxArray != 0)
-			delete [] this->itsFluxArray;
-
-		size_t size = dim[0]*dim[1];
-		this->itsFluxArray = new float[size];
-		for(size_t i=0;i<size;i++)
-			this->itsFluxArray[i] = array[i];
-		
-		ASKAPLOG_DEBUG_STR(logger, "SubThresholder's array set successfully");
-		
-
-	}
 	
-    void SubThresholder::define(RadioSource *src, float *array) {
 
+		  void SubThresholder::saveArray(casa::Vector<casa::Double> &f) {
+			  //	void SubThresholder::saveArray(float *array, long *dim) {
+			  
+			  ASKAPLOG_DEBUG_STR(logger, "Setting the SubThresholder's array");
+			  
+			  //		if(this->itsFluxArray != 0)
+			  //			delete [] this->itsFluxArray;
+			  //
+			  //		size_t size = dim[0]*dim[1];
+			  //		this->itsFluxArray = new float[size];
+			  //		for(size_t i=0;i<size;i++)
+			  //			this->itsFluxArray[i] = array[i];
+			  //		
+			  
+			  //		this->itsFluxArray = std::vector<float>(array,array+sizeof(array)/sizeof(float));
+			  this->itsFluxArray = casa::Vector<float>(f.size());
+			  for(size_t i=0;i<f.size();i++) this->itsFluxArray[i] = float(f[i]);
+			  
+			  ASKAPLOG_DEBUG_STR(logger, "SubThresholder's array set successfully");
+			  
+			  
+		  }
+		  
+		  void SubThresholder::saveArray(casa::Vector<float> &f) {
+			  //	void SubThresholder::saveArray(float *array, long *dim) {
+			  
+			  ASKAPLOG_DEBUG_STR(logger, "Setting the SubThresholder's array 2");
+			  
+			  //		if(this->itsFluxArray != 0)
+			  //			delete [] this->itsFluxArray;
+			  //
+			  //		size_t size = dim[0]*dim[1];
+			  //		this->itsFluxArray = new float[size];
+			  //		for(size_t i=0;i<size;i++)
+			  //			this->itsFluxArray[i] = array[i];
+			  //		
+			  
+			  //		this->itsFluxArray = std::vector<float>(array,array+sizeof(array)/sizeof(float));
+			  this->itsFluxArray = f;
+			  
+			  ASKAPLOG_DEBUG_STR(logger, "SubThresholder's array set successfully 2");
+			  
+			  
+		  }
+		  
+//    void SubThresholder::define(RadioSource *src, float *array) {
+		  void SubThresholder::define(RadioSource *src, casa::Vector<casa::Double> &array){
+			  this->saveArray(array);		
+			  this->define(src);			  
+		  }
+		  void SubThresholder::define(RadioSource *src, casa::Vector<float> &array){
+			  this->saveArray(array);		
+			  this->define(src);			  
+		  }
+		  
+		  void SubThresholder::define(RadioSource *src){
+			  
 		ASKAPLOG_DEBUG_STR(logger, "Defining a SubThresholder");
 		this->itsPeakFlux = src->getPeakFlux();
 		this->itsSourceSize = src->getSize();
-		
-		this->itsSourceBox = src->box();
-		this->itsDim = new long[2];
+				
+		ASKAPLOG_DEBUG_STR(logger, "Defining dim");
+//		this->itsDim = new long[2];		
+		this->itsDim = casa::Vector<long>(2);
 		this->itsDim[0] = src->boxXsize(); 
 		this->itsDim[1] = src->boxYsize();
+		ASKAPLOG_DEBUG_STR(logger, "Defined dim");
 		
-		this->saveArray(array,this->itsDim);		
 		
 		ASKAPLOG_DEBUG_STR(logger, "Defining duchamp Image");
-		this->itsImage = duchamp::Image(this->itsDim);
-		ASKAPLOG_DEBUG_STR(logger, "Setting Image's array");
-		if(array!=0)
-			this->itsImage.saveArray(array, src->boxSize());
-		this->itsImage.setMinSize(1);
-		ASKAPLOG_DEBUG_STR(logger, "Image defined");
 		ASKAPLOG_DEBUG_STR(logger, "About to set initial guess for subcomponent parameters");
 		this->itsFirstGuess.setPeak(this->itsPeakFlux);
 		this->itsFirstGuess.setX(src->getXPeak());
@@ -124,7 +166,7 @@ namespace askap {
 			this->itsFirstGuess.setMinor(1.);
 		}
 		else {
-			src->getFWHMestimate(array, a, b, c);
+			src->getFWHMestimate(this->itsFluxArray.data(), a, b, c);
 			this->itsFirstGuess.setPA(a);
 			this->itsFirstGuess.setMajor(b);
 			this->itsFirstGuess.setMinor(c);
@@ -136,9 +178,23 @@ namespace askap {
 		this->itsBaseThreshold = src->detectionThreshold() > 0 ? log10(src->detectionThreshold()) : -6.;
 		this->itsThreshIncrement = (log10(this->itsPeakFlux) - this->itsBaseThreshold) / float(this->itsNumThresholds + 1);
 		
-		
+		ASKAPLOG_DEBUG_STR(logger, "Defining box");
+		this->itsSourceBox = src->box();
+
 		
     }
+		  
+		  void SubThresholder::keepObject(PixelInfo::Object2D &obj){
+			  
+			  for (int i = 0; i < this->itsDim[0]*this->itsDim[1]; i++) {
+				  int xbox = i % this->itsDim[0];
+				  int ybox = i / this->itsDim[1];
+				  
+				  if (!obj.isInObject(xbox + this->itsSourceBox.start()[0], ybox + this->itsSourceBox.start()[1])) 
+					  this->itsFluxArray[i] = 0.;
+			  }
+			  
+		  }
 
     std::vector<SubComponent> SubThresholder::find() {
 
@@ -156,36 +212,65 @@ namespace askap {
       std::vector<PixelInfo::Object2D>::iterator obj;
       bool keepGoing;
 
-      do {
-		  threshCtr++;
-		  float thresh = pow(10., this->itsBaseThreshold + threshCtr * this->itsThreshIncrement);
-		  this->itsImage.stats().setThreshold(thresh);
-		  objlist = this->itsImage.findSources2D();
-		  keepGoing = (objlist.size() == 1);
-      } while (keepGoing && (threshCtr < this->itsNumThresholds));
+		duchamp::Image *theImage = new duchamp::Image(this->itsDim.data());
+		ASKAPLOG_DEBUG_STR(logger, "Setting Image's array");
+//		if(this->itsFluxArray!=0)
+//			theImage->saveArray(this->itsFluxArray, this->itsDim[0]*this->itsDim[1]);
+		if(this->itsFluxArray.size()>0)
+			theImage->saveArray(this->itsFluxArray.data(), this->itsFluxArray.size());	
+		theImage->setMinSize(1);
+		ASKAPLOG_DEBUG_STR(logger, "Image defined");
+		
+		float thresh;
+		do {
+			threshCtr++;
+			thresh = pow(10., this->itsBaseThreshold + threshCtr * this->itsThreshIncrement);
+			theImage->stats().setThreshold(thresh);
+			objlist = theImage->findSources2D();
+			keepGoing = (objlist.size() == 1);
+		} while (keepGoing && (threshCtr < this->itsNumThresholds));
 
-      if (!keepGoing) {
+		delete theImage;
+		
+		if (!keepGoing) {
 		  
+			FittingParameters baseParams;
+			baseParams.setNumSubThresholds(this->itsNumThresholds);
+			
 		  for (obj = objlist.begin(); obj < objlist.end(); obj++) {
-			  // now change the flux array so that we only see the current object
-			  float *newfluxarray = new float[this->itsDim[0]*this->itsDim[1]];
-
-			  for (int i = 0; i < this->itsDim[0]*this->itsDim[1]; i++) {
-				  int xbox = i % this->itsDim[0];
-				  int ybox = i / this->itsDim[1];
-
-				  if (obj->isInObject(xbox + this->itsSourceBox.start()[0], ybox + this->itsSourceBox.start()[1])) 
-					  newfluxarray[i] = this->itsFluxArray[i];
-				  else newfluxarray[i] = 0.;
-			  }
-
+//			  // now change the flux array so that we only see the current object
+//			  float *newfluxarray = new float[this->itsDim[0]*this->itsDim[1]];
+//
+//			  for (int i = 0; i < this->itsDim[0]*this->itsDim[1]; i++) {
+//				  int xbox = i % this->itsDim[0];
+//				  int ybox = i / this->itsDim[1];
+//
+//				  if (obj->isInObject(xbox + this->itsSourceBox.start()[0], ybox + this->itsSourceBox.start()[1])) 
+//					  newfluxarray[i] = this->itsFluxArray[i];
+//				  else newfluxarray[i] = 0.;
+//			  }
+//
 			  
 			  // Now clone the current SubThresholder, change the flux array, then call find() on it
-			  SubThresholder newthresher = *this;
-			  newthresher.saveArray(newfluxarray, this->itsDim);
-			  std::vector<SubComponent> newlist = newthresher.find();
+//			  SubThresholder *newthresher = new SubThresholder(*this);
+			  RadioSource *src = new RadioSource;
+			  src->addChannel(0, *obj);
+			  src->setFitParams(baseParams);
+			  src->setDetectionThreshold(thresh);
+			  src->setBox(this->itsSourceBox);
+			  src->calcFluxes(this->itsFluxArray.data(),this->itsDim.data());
+			  src->addOffsets(this->itsSourceBox.start()[0], this->itsSourceBox.start()[1], 0);
+//			  src->setXPeak(src->getXPeak() + this->itsSourceBox.start()[0]);
+//			  src->setYPeak(src->getYPeak() + this->itsSourceBox.start()[1]);
+			  SubThresholder *newthresher = new SubThresholder();
+			  newthresher->define(src,this->itsFluxArray);
+			  newthresher->keepObject(*obj);
+//			  newthresher->saveArray(newfluxarray, this->itsDim);
+			  std::vector<SubComponent> newlist = newthresher->find();
+			  delete newthresher;
+			  delete src;
 			  
-			  delete [] newfluxarray;
+//			  delete [] newfluxarray;
 
 			  for (uInt i = 0; i < newlist.size(); i++) fullList.push_back(newlist[i]);
 		  }
