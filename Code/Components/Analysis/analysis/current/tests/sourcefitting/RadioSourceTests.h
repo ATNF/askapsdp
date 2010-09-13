@@ -46,6 +46,7 @@
 #include <duchamp/Utils/Statistics.hh>
 
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/Vector.h>
 #include <Common/ParameterSet.h>
 
 #include <string>
@@ -64,17 +65,6 @@ namespace askap {
       const int srcSize=srcDim*srcDim;
       const int arrayDim=10;
       const int arraySize=arrayDim*arrayDim;
- //      const float src[srcSize]={1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,
-// 				1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
-// 				1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
-// 				1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
-// 				1.,1.,1.,1.,1.,10.,10.,1.,1.,1.,
-// 				1.,1.,1.,40.,39.,51.,50.,20.,19.,1.,
-// 				1.,1.,1.,41.,40.,50.,49.,20.,22.,1.,
-// 				1.,1.,1.,1.,1.,28.,30.,1.,1.,1.,
-// 				1.,1.,1.,1.,1.,31.,27.,1.,1.,1.,
-// 				1.,1.,1.,1.,1.,1.,1.,1.,1.,1.};
-      
 
       class RadioSourceTest : public CppUnit::TestFixture {
 	CPPUNIT_TEST_SUITE(RadioSourceTest);
@@ -84,23 +74,22 @@ namespace askap {
 
       private:
 
-	float                      *itsArray;
-	long                       *itsDim;
-	std::vector<PixelInfo::Object2D>      itsObjlist;
-	std::vector<SubComponent>  itsSublist;
-	RadioSource                itsSource;
-	FittingParameters          itsFitparams;
+	casa::Vector<float>              itsArray;
+	casa::Vector<long>               itsDim;
+	std::vector<PixelInfo::Object2D> itsObjlist;
+	std::vector<SubComponent>        itsSublist;
+	RadioSource                      itsSource;
+	FittingParameters                itsFitparams;
 
       public:
 
 	void setUp() {
 	  
-	  ASKAPLOG_DEBUG_STR(logger, "****setUp****");
 	  const int arrayDim=10;
 	  const int arraySize=arrayDim*arrayDim;
 	  const float src[arraySize]={1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,
-				      1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
-				      1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
+				      1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,
+				      1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,
 				      1.,1.,1.,1.,1.,9.,11.,1.,1.,1.,
 				      1.,1.,1.,1.,1.,10.,10.,1.,1.,1.,
 				      1.,1.,1.,40.,39.,51.,50.,20.,19.,1.,
@@ -109,17 +98,13 @@ namespace askap {
 				      1.,1.,1.,1.,1.,31.,27.,1.,1.,1.,
 				      1.,1.,1.,1.,1.,1.,1.,1.,1.,1.};
  	  
-	  itsArray = new float[arraySize];
-	  for(int i=0;i<arraySize;i++) itsArray[i] = src[i];
+	  itsArray = casa::Vector<float>(casa::IPosition(1,arraySize),src);
 
-	  std::cerr << itsArray[55] << "\n";
-							
-	  itsDim = new long[2];
+	  itsDim = casa::Vector<long>(2);
 	  itsDim[0] = itsDim[1] = arrayDim;
 
-	  duchamp::Image *itsImage = new duchamp::Image(itsDim);
-	  itsImage->saveArray(itsArray,arraySize);
-	  std::cerr << itsImage->getSize() << " " << itsImage->getArray()[55] << "\n";
+	  duchamp::Image *itsImage = new duchamp::Image(itsDim.data());
+	  itsImage->saveArray(itsArray.data(),arraySize);
 	  itsImage->pars().setThreshold(5);
 	  itsImage->pars().setFlagUserThreshold(true);
 	  itsImage->stats().setThreshold(5);
@@ -140,40 +125,35 @@ namespace askap {
 	}
 
 	void tearDown() {
-	  ASKAPLOG_DEBUG_STR(logger, "****tearDown****");
 	  /* 	  delete itsImage; */
-	  delete [] itsArray;
-	  delete [] itsDim;
+	  /* delete [] itsArray; */
+	  /* delete [] itsDim; */
 	  itsObjlist.clear();
 	}
 
 	void findSource() {
+	  ASKAPLOG_DEBUG_STR(logger,"FindSource test"); 
 	  ASKAPLOG_DEBUG_STR(logger, "Num objects = " << itsObjlist.size());
 	  CPPUNIT_ASSERT(itsObjlist.size()==1);
 	}
 
 	void subthreshold() { 
-	  ASKAPLOG_DEBUG_STR(logger,"Defining detection"); 
-	  /* 	   for(size_t i=0;i<100;i++) std::cerr << itsArray[i] << "\n"; */
+	  ASKAPLOG_DEBUG_STR(logger,"SubThreshold test"); 
 	  ASKAPLOG_DEBUG_STR(logger, "Num objects = " << itsObjlist.size()); 
 	  CPPUNIT_ASSERT(itsObjlist.size()==1);
 	  duchamp::Detection det; 
 	  det.addChannel(0,itsObjlist[0]); 
-	  det.calcFluxes(itsArray,itsDim);
-	  ASKAPLOG_DEBUG_STR(logger,"Defining radiosource"); 
+	  det.calcFluxes(itsArray.data(),itsDim.data());
 	  itsSource = RadioSource(det); 
 	  std::string secstring=duchamp::nullSection(2); 
 	  duchamp::Section sec(secstring); 
-	  sec.parse(itsDim,2);
-	  ASKAPLOG_DEBUG_STR(logger,"Defining box"); 
+	  sec.parse(itsDim.data(),2);
 	  itsSource.defineBox(sec,itsFitparams,2); 
-	  ASKAPLOG_DEBUG_STR(logger,"Done - size is " << itsSource.boxSize()); 
 	  itsSource.setDetectionThreshold(5);
 	  itsSource.setNoiseLevel(1.);
 	  itsSource.setHeader(duchamp::FitsHeader());
 	  itsSource.setFitParams(itsFitparams);
 	   
-	  ASKAPLOG_DEBUG_STR(logger,"Finding subcomponents"); 
 	  casa::Matrix<casa::Double> itsPos;
 	  casa::Vector<casa::Double> itsF;
 	  itsPos.resize(arraySize, 2);
@@ -192,8 +172,7 @@ namespace askap {
 	   
 	  ASKAPLOG_DEBUG_STR(logger, "Number of subcomponents = " << itsSublist.size());
 	  for(size_t i=0;i<itsSublist.size();i++){
-	    //ASKAPLOG_DEBUG_STR(logger, "Component " << i << ": " << itsSublist[i]);
-	    std::cerr <<  "Component " << i << ": " << itsSublist[i] << "\n";
+	    ASKAPLOG_DEBUG_STR(logger, "Component " << i << ": " << itsSublist[i]);
 	  }
    
 	  CPPUNIT_ASSERT(itsSublist.size()==5); 
