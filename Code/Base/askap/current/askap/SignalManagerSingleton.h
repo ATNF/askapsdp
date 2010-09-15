@@ -69,6 +69,12 @@ namespace askap {
             // Dispatches to the handler object
             static void dispatcher(int signum);
 
+            // No support for assignment
+            SignalManagerSingleton& operator=(const SignalManagerSingleton& rhs);
+
+            // No support for copy constructor
+            SignalManagerSingleton(const SignalManagerSingleton& src);
+
             // Singleton instance of this class
             static SignalManagerSingleton *itsInstance;
 
