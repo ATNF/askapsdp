@@ -111,9 +111,10 @@ namespace askap {
                 // should write an outputlist. This is done here because
                 // FITSfile has no knowledge of its place in the distributed
                 // program
-                if (itsComms.isParallel() && (itsComms.rank() != 1)) {
-                    newparset.replace("outputList", "false");
-                }
+//  This isn't actually true! It knows its subsection, so we can write different files for each subsection.
+//                 if (itsComms.isParallel() && (itsComms.rank() != 1)) {
+//                     newparset.replace("outputList", "false");
+//                 }
 
                 ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
 		bool doAllocation = (parset.getBool("fitsOutput",true)||parset.getBool("casaOutput",false)) && 

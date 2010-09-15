@@ -529,7 +529,9 @@ namespace askap {
 		    double minFreq = this->minFreq();
 		    ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << maxFreq << " and " << minFreq);
 
-                    if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str());
+		    std::string outname = this->itsOutputSourceList + "_" + this->itsSourceSection.getSection();
+//                    if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str(),std::ios::app);
+                    if (this->itsFlagOutputList) outfile.open(outname.c_str(),std::ios::app);
 
                     while (getline(srclist, line),
                             !srclist.eof()) {
