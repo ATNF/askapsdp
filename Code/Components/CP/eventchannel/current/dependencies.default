@@ -1,3 +1,4 @@
+boost=3rdParty/boost/boost-1.41.0
 askap=Code/Base/askap/current
 activemq=3rdParty/apache-activemq/apache-activemq-5.4.0
 activemq-cpp=3rdParty/activemq-cpp-library/activemq-cpp-library-3.1.3

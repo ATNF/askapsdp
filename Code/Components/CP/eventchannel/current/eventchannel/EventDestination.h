@@ -1,4 +1,4 @@
-/// @file EventConsumer.h
+/// @file EventDestination.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_EVENTCHANNEL_EVENTCONSUMER_H
-#define ASKAP_CP_EVENTCHANNEL_EVENTCONSUMER_H
+#ifndef ASKAP_CP_EVENTCHANNEL_EVENTDESTINATION_H
+#define ASKAP_CP_EVENTCHANNEL_EVENTDESTINATION_H
 
 // System includes
 #include <string>
@@ -33,72 +33,49 @@
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "boost/scoped_ptr.hpp"
-#include "boost/thread/mutex.hpp"
-#include "boost/thread/condition.hpp"
-#include "cms/Session.h"
-#include "cms/MapMessage.h"
-#include "cms/MessageConsumer.h"
-#include "cms/MessageListener.h"
-
-// Local package includes
-#include "eventchannel/IEventMessage.h"
+#include "cms/Destination.h"
 
 namespace askap {
 namespace cp {
 namespace eventchannel {
 
-class EventConsumer : protected cms::MessageListener {
+class EventDestination {
     public:
-
+        enum DestinationType {
+            TOPIC,
+            QUEUE
+        };
+        
         /// @brief Destructor
-        ~EventConsumer();
+        ~EventDestination();
 
-        IEventMessageSharedPtr receive(void);
-
-        /// Timeout of zero does a  non-blocking receive, while
-        /// a negative value will block indefinetly
-        IEventMessageSharedPtr receive(const int timeout);
-
-    protected:
-
-        virtual void onMessage(const cms::Message *message);
+        DestinationType getType(void);
 
     private:
 
         /// @brief Constructor
         /// @note EventChannelConnection accesses this constructor as a friend
-        EventConsumer(cms::Session& session, cms::MessageConsumer* consumer);
+        EventDestination(cms::Destination* dest);
+
+        /// @note EventChannelConnection accesses this method as a friend
+        cms::Destination* getCmsDestination(void);
 
         // No support for assignment
-        EventConsumer& operator=(const EventConsumer& rhs);
+        EventDestination& operator=(const EventDestination& rhs);
 
         // No support for copy constructor
-        EventConsumer(const EventConsumer& src);
+        EventDestination(const EventDestination& src);
 
-        // ActiveMQ CMS session reference (managed by the EventChannelConnection)
-        cms::Session& itsSession;
-
-        // ActiveMQ CMS message consumer
-        boost::scoped_ptr<cms::MessageConsumer> itsMessageConsumer;
-
-        // Mutex used to synchronize access to itsMailbox
-        boost::mutex itsMutex;
-
-        // Condition variable user for synchronisation between threads calling
-        // receive and thread(s) in onMessage()
-        boost::condition itsCondVar;
-
-        // Mailbox to pass a message between the thread calling onMessage() and
-        // the thread calling receive()
-        cms::MapMessage* itsMailbox;
+        // ActiveMQ CMS destination
+        boost::scoped_ptr<cms::Destination> itsDestination;
 
         // Some private functions should have "package" level access. Since
         // C++ does not provide this, use friend to achieve it.
         friend class EventChannelConnection;
 };
 
-/// Short cut for shared pointer to an EventConsumer
-typedef boost::shared_ptr<EventConsumer> EventConsumerSharedPtr;
+/// Short cut for shared pointer to an EventDestination
+typedef boost::shared_ptr<EventDestination> EventDestinationSharedPtr;
 
 };
 };

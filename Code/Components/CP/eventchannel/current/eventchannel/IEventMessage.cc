@@ -1,4 +1,4 @@
-/// @file EventPublisher.h
+/// @file IEventMessage.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,37 +24,12 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_EVENTCHANNEL_EVENTPUBLISHER_H
-#define ASKAP_CP_EVENTCHANNEL_EVENTPUBLISHER_H
+// Include own header file first
+#include "IEventMessage.h"
 
-// System includes
-#include <string>
+// Include package level header file
+#include <askap_eventchannel.h>
 
-// ASKAPsoft includes
-
-namespace askap {
-namespace cp {
-namespace eventchannel {
-
-class EventPublisher {
-    public:
-        /// @brief Constructor
-        EventPublisher();
-
-        /// @brief Destructor
-        ~EventPublisher();
-
-    private:
-
-        // No support for assignment
-        EventPublisher& operator=(const EventPublisher& rhs);
-
-        // No support for copy constructor
-        EventPublisher(const EventPublisher& src);
-};
-
-};
-};
-};
-
-#endif
+askap::cp::eventchannel::IEventMessage::~IEventMessage()
+{
+}

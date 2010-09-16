@@ -31,17 +31,41 @@
 #include <string>
 
 // ASKAPsoft includes
+#include "boost/scoped_ptr.hpp"
+#include "cms/Connection.h"
+#include "cms/Session.h"
+#include "cms/ExceptionListener.h"
+
+// Local package includes
+#include "EventProducer.h"
+#include "EventConsumer.h"
+#include "EventDestination.h"
+#include "EventMessage.h"
 
 namespace askap {
 namespace cp {
 namespace eventchannel {
 
-class EventChannelConnection {
+class EventChannelConnection : protected cms::ExceptionListener {
     public:
-        EventChannelConnection& getSingletonInstance(void);
-        EventChannelConnection& createSingletonInstance(const std::string& brokerURI);
+        static EventChannelConnection& getSingletonInstance(void);
+
+        static EventChannelConnection& createSingletonInstance(const std::string& brokerURI);
 
         ~EventChannelConnection();
+
+        EventProducerSharedPtr createEventChannelProducer(EventDestination& dest);
+
+        EventConsumerSharedPtr createEventChannelConsumer(EventDestination& dest);
+
+        EventDestinationSharedPtr createEventDestination(const std::string& name,
+                EventDestination::DestinationType type);
+
+        EventMessageSharedPtr createEventMessage(void);
+
+    protected:
+
+        virtual void onException(const cms::CMSException &ex);
 
     private:
 
@@ -52,6 +76,16 @@ class EventChannelConnection {
 
         // No support for copy constructor
         EventChannelConnection(const EventChannelConnection& src);
+
+        // Singleton instance of this class
+        static EventChannelConnection *itsInstance;
+
+        // ActiveMQ Connection
+        boost::scoped_ptr<cms::Connection> itsConnection;
+
+        // ActiveMQ Session
+        boost::scoped_ptr<cms::Session> itsSession;
+
 };
 
 };
