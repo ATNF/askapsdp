@@ -38,6 +38,8 @@
 #include <casa/Arrays/Slicer.h>
 #include <casa/Arrays/Vector.h>
 
+#include <vector>
+
 namespace askap {
 	
 	namespace analysis {
@@ -46,29 +48,24 @@ namespace askap {
 		
 			class SubThresholder {
 			public:
-//				SubThresholder(){itsFluxArray=0; itsDim=0;};
 				SubThresholder(){};
 				virtual ~SubThresholder();
 				SubThresholder(const SubThresholder &s);
 				SubThresholder& operator=(const SubThresholder &s);
 				
-//				void define(RadioSource *r, float *array=0);
-				void define(RadioSource *r, casa::Vector<casa::Double> &array);
+				void define(RadioSource *r, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &array);
 				void define(RadioSource *r, casa::Vector<float> &array);
 				void define(RadioSource *r);
 				std::vector<SubComponent> find();
 				
-//				void saveArray(float *array, std::vector<long> &dim);
-				void saveArray(casa::Vector<casa::Double> &array);
+				void saveArray(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
+				  //				  void saveArray(casa::Vector<casa::Double> &array);
 				void saveArray(casa::Vector<float> &array);
-				//								void saveArray(float *array, long *dim);
 				void keepObject(PixelInfo::Object2D &obj);
 
 				
 			protected:
 				SubComponent itsFirstGuess;
-//				float *itsFluxArray;
-//				long *itsDim;
 				casa::Vector<float> itsFluxArray;
 				casa::Vector<long> itsDim;
 				casa::Slicer itsSourceBox;

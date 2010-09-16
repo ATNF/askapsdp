@@ -38,8 +38,11 @@
 
 #include <duchamp/Cubes/cubes.hh>
 #include <casa/Arrays/Slicer.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
 
 #include <math.h>
+#include <vector>
 
 ///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".subthresholder");
@@ -74,19 +77,37 @@ namespace askap {
 	  
 	
 
-      void SubThresholder::saveArray(casa::Vector<casa::Double> &f) {
-			  
-	this->itsFluxArray = casa::Vector<float>(f.size());
-	for(size_t i=0;i<f.size();i++) this->itsFluxArray[i] = float(f[i]);
+      void SubThresholder::saveArray(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f) {
+	int xmin = src->boxXmin();
+	int ymin = src->boxYmin();
+	int xsize= src->boxXsize();
+	int ysize= src->boxYsize();
+	int size=xsize*ysize;
+	ASKAPLOG_DEBUG_STR(logger, "Primary array saving, with size = " << xsize*ysize); 
+	this->itsFluxArray = casa::Vector<float>(size);
+	PixelInfo::Object2D spatMap = src->getSpatialMap();
+	
+	for (int i = 0; i < size; i++) this->itsFluxArray[i] = 0.;
+		
+	for (size_t i = 0; i < f.size(); i++) {
+	  int x = int(pos(i, 0));
+	  int y = int(pos(i, 1));
+	  
+	  if (spatMap.isInObject(x, y)) {
+	    int loc = (x - xmin) + xsize * (y - ymin);
+	    this->itsFluxArray[loc] = float(f(i));
+	  }
+	}
 
       }
 		  
       void SubThresholder::saveArray(casa::Vector<float> &f) {
+	ASKAPLOG_DEBUG_STR(logger, "Secondary array saving, with size = " << f.size());
 	this->itsFluxArray = f;
       }
 		  
-      void SubThresholder::define(RadioSource *src, casa::Vector<casa::Double> &array){
-	this->saveArray(array);		
+      void SubThresholder::define(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &array){
+	this->saveArray(src,pos,array);		
 	this->define(src);			  
       }
 
@@ -157,8 +178,10 @@ namespace askap {
 
 	duchamp::Image *theImage = new duchamp::Image(this->itsDim.data());
 
-	if(this->itsFluxArray.size()>0)
+	if(this->itsFluxArray.size()>0){
+	  ASKAPCHECK(this->itsFluxArray.size() == (this->itsDim[0]*this->itsDim[1]), "Size of flux array ("<<this->itsFluxArray.size()<<") doesn't match dimensions ("<<this->itsDim[0]<<"x"<<this->itsDim[1]<<"="<<this->itsDim[0]*this->itsDim[1]<<")!");
 	  theImage->saveArray(this->itsFluxArray.data(), this->itsFluxArray.size());	
+	}
 	theImage->setMinSize(1);
 		
 	float thresh;

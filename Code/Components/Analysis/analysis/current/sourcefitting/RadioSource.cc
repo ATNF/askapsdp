@@ -403,6 +403,12 @@ namespace askap {
                         maj = std::max(axes.first, axes.second);
                         min = std::min(axes.first, axes.second);
                     }
+		    else{
+		      ASKAPLOG_WARN_STR(logger,"Peak location doesn't match in FWHMestimate");
+		      angle=0.;
+		      maj=1.;
+		      min=1.;
+		    }
                 }
 
                 delete smlIm;
@@ -431,7 +437,7 @@ namespace askap {
 
 //		std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
 		SubThresholder subThresh;
-		subThresh.define(this, f);
+		subThresh.define(this, pos,f);
 		std::vector<SubComponent> cmpntlist = subThresh.find();
  
 		// get distance between average centre and peak location
