@@ -41,7 +41,7 @@ using namespace askap::cp;
 using namespace askap::cp::eventchannel;
 
 EventDestination::EventDestination(cms::Destination* dest)
-    : itsDestination(dest)
+        : itsDestination(dest)
 {
 }
 
@@ -54,6 +54,7 @@ EventDestination::~EventDestination()
 EventDestination::DestinationType EventDestination::getType(void)
 {
     cms::Destination::DestinationType type = itsDestination->getDestinationType();
+
     switch (type) {
         case cms::Destination::TOPIC :
             return EventDestination::TOPIC;

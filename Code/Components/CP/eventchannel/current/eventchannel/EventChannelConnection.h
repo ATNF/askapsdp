@@ -46,47 +46,75 @@ namespace askap {
 namespace cp {
 namespace eventchannel {
 
-class EventChannelConnection : protected cms::ExceptionListener {
-    public:
-        static EventChannelConnection& getSingletonInstance(void);
+    /// @brief The EventChannelConnection class is a singleton object which is
+    /// responsible for managing the connection/session to the broker.
+    ///
+    /// This class implements the event channel using the ActiveMQ CMS
+    /// interface. The singleton instance must be first instantiated by calling
+    /// the createSingletonInstance() method.
+    class EventChannelConnection : protected cms::ExceptionListener {
 
-        static EventChannelConnection& createSingletonInstance(const std::string& brokerURI);
+        public:
+            /// @brief Get a reference to the singleton instance of the
+            /// EventChannelConnection.
+            /// @returns a reference to the singleton instance of the
+            /// EventChannelConnection.
+            static EventChannelConnection& getSingletonInstance(void);
 
-        ~EventChannelConnection();
+            /// @brief Create and return the singleton instance of the
+            /// EventChannelConnection.
+            ///
+            /// @param[in] brokerURI    the URI used to identify and connect to
+            /// the broker.
+            ///
+            /// @returns a reference to the newely created singleton instance
+            /// of the EventChannelConnection.
+            static EventChannelConnection& createSingletonInstance(const std::string& brokerURI);
 
-        EventProducerSharedPtr createEventChannelProducer(EventDestination& dest);
+            /// @brief Destructor.
+            ~EventChannelConnection();
 
-        EventConsumerSharedPtr createEventChannelConsumer(EventDestination& dest);
+            /// @brief Create an event channel producer object.
+            EventProducerSharedPtr createEventChannelProducer(EventDestination& dest);
 
-        EventDestinationSharedPtr createEventDestination(const std::string& name,
-                EventDestination::DestinationType type);
+            /// @brief Create an event channel consumer object.
+            EventConsumerSharedPtr createEventChannelConsumer(EventDestination& dest);
 
-        EventMessageSharedPtr createEventMessage(void);
+            /// @brief Create an event channel destination.
+            EventDestinationSharedPtr createEventDestination(const std::string& name,
+                    EventDestination::DestinationType type);
 
-    protected:
+            /// @brief Create an event channel event
+            EventMessageSharedPtr createEventMessage(void);
 
-        virtual void onException(const cms::CMSException &ex);
+        protected:
 
-    private:
+            /// @brief This is an implementation concept. It is the method
+            /// via which the client (i.e. this class) is notified of an
+            /// exception condition with the CMS provider.
+            virtual void onException(const cms::CMSException &ex);
 
-        EventChannelConnection(const std::string& brokerURI);
+        private:
 
-        // No support for assignment
-        EventChannelConnection& operator=(const EventChannelConnection& rhs);
+            // Private so only createSingletonInstance can instantiate
+            EventChannelConnection(const std::string& brokerURI);
 
-        // No support for copy constructor
-        EventChannelConnection(const EventChannelConnection& src);
+            // No support for assignment
+            EventChannelConnection& operator=(const EventChannelConnection& rhs);
 
-        // Singleton instance of this class
-        static EventChannelConnection *itsInstance;
+            // No support for copy constructor
+            EventChannelConnection(const EventChannelConnection& src);
 
-        // ActiveMQ Connection
-        boost::scoped_ptr<cms::Connection> itsConnection;
+            // Singleton instance of this class
+            static EventChannelConnection *itsInstance;
 
-        // ActiveMQ Session
-        boost::scoped_ptr<cms::Session> itsSession;
+            // ActiveMQ Connection
+            boost::scoped_ptr<cms::Connection> itsConnection;
 
-};
+            // ActiveMQ Session
+            boost::scoped_ptr<cms::Session> itsSession;
+
+    };
 
 };
 };

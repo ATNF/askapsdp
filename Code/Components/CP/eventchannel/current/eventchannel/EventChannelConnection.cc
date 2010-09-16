@@ -76,7 +76,7 @@ EventChannelConnection::EventChannelConnection(const std::string& brokerURI)
 
     // Create a ConnectionFactory
     boost::scoped_ptr<ActiveMQConnectionFactory> connectionFactory(
-            new ActiveMQConnectionFactory( brokerURI ) );
+        new ActiveMQConnectionFactory(brokerURI));
 
     try {
         // Create a Connection

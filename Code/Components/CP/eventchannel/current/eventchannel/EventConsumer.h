@@ -41,26 +41,46 @@
 #include "cms/MessageListener.h"
 
 // Local package includes
-#include "eventchannel/IEventMessage.h"
+#include "eventchannel/EventMessage.h"
 
 namespace askap {
 namespace cp {
 namespace eventchannel {
 
+/// @brief The EventConsumer allows event messages to be received from a
+/// given detination.
 class EventConsumer : protected cms::MessageListener {
     public:
 
         /// @brief Destructor
         ~EventConsumer();
 
-        IEventMessageSharedPtr receive(void);
+        /// @brief Receive one message.
+        /// This method will block until a message is received.
+        /// @return a shared pointer to an EventMessage.
+        EventMessageSharedPtr receive(void);
 
         /// Timeout of zero does a  non-blocking receive, while
-        /// a negative value will block indefinetly
-        IEventMessageSharedPtr receive(const int timeout);
+        /// a negative value will block indefinetla
+
+        /// @brief Receive one message.
+        /// This method provides a timeout value, with the unit being milliseconds.
+        /// If the timeout value is zero the call will be non-blocking. If
+        /// the timeout value is greater then zero the call will block for
+        /// that long or until a message arrives. If the timeout value is less
+        /// then zero (e.g. -1) then the call will have the same behaviour as
+        /// receive(void); that is will block until a message arrives.
+        ///
+        /// @param[in] timeout timeout in milliseconds. See above for detail.
+        ///
+        /// @return a shared pointer to an EventMessage.
+        EventMessageSharedPtr receive(const int timeout);
 
     protected:
 
+        /// @brief This is an implementation concept. It is the method
+        /// via which the client (i.e. this class) is delivered new messages
+        /// from the event channel.
         virtual void onMessage(const cms::Message *message);
 
     private:

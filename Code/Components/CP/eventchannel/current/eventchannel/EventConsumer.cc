@@ -42,7 +42,6 @@
 #include "cms/MessageConsumer.h"
 
 // Local package includes
-#include "eventchannel/IEventMessage.h"
 #include "eventchannel/EventMessage.h"
 
 ASKAP_LOGGER(logger, ".EventConsumer");
@@ -52,29 +51,29 @@ using namespace askap::cp;
 using namespace askap::cp::eventchannel;
 
 EventConsumer::EventConsumer(cms::Session& session, cms::MessageConsumer* consumer)
-    : itsSession(session), itsMessageConsumer(consumer), itsMailbox(0)
+        : itsSession(session), itsMessageConsumer(consumer), itsMailbox(0)
 {
     consumer->setMessageListener(this);
 }
 
 EventConsumer::~EventConsumer()
 {
-    delete itsMailbox;
     itsMessageConsumer->close();
     itsMessageConsumer.reset();
+    delete itsMailbox;
 }
 
-IEventMessageSharedPtr EventConsumer::receive(void)
+EventMessageSharedPtr EventConsumer::receive(void)
 {
     // -1 implies wait as long as necessary
     return receive(-1);
 }
 
-IEventMessageSharedPtr EventConsumer::receive(const int timeout)
+EventMessageSharedPtr EventConsumer::receive(const int timeout)
 {
     /// TODO: The non-blocking case is really blocking, it still
     /// needs to aquire the mutex. Use a try_lock to ensure non-blocking
-    /// functionality. 
+    /// functionality.
 
     // Determine when to sleep to if timeout is set
     boost::xtime xt;
@@ -90,18 +89,20 @@ IEventMessageSharedPtr EventConsumer::receive(const int timeout)
             const long sec = timeout_usec / MICROSECONDS_PER_SECOND;
             xt.sec += sec;
         }
+
         xt.nsec += (timeout_usec % MICROSECONDS_PER_SECOND) * NANOSECONDS_PER_MICROSECOND;
     }
 
     boost::mutex::scoped_lock lock(itsMutex);
+
     while (!itsMailbox) {
         if (timeout == 0) { // Non blocking case
-            return IEventMessageSharedPtr();
+            return EventMessageSharedPtr();
         } else if (timeout > 0) { // Timeout case
             const bool timeoutReached = !(itsCondVar.timed_wait(lock, xt));
 
             if (timeoutReached) {
-                return IEventMessageSharedPtr();
+                return EventMessageSharedPtr();
             }
         } else { // Wait as long as necessary case
             itsCondVar.wait(lock);
@@ -110,7 +111,7 @@ IEventMessageSharedPtr EventConsumer::receive(const int timeout)
 
     // If we get here, mailbox is populated and lock is held
     ASKAPDEBUGASSERT(itsMailbox);
-    IEventMessageSharedPtr message(new EventMessage(itsMailbox));
+    EventMessageSharedPtr message(new EventMessage(itsMailbox));
     itsMailbox = 0;
     return message;
 }
@@ -118,7 +119,8 @@ IEventMessageSharedPtr EventConsumer::receive(const int timeout)
 void EventConsumer::onMessage(const cms::Message *message)
 {
     const cms::MapMessage* mapMessage =
-                    dynamic_cast<const cms::MapMessage*>(message);
+        dynamic_cast<const cms::MapMessage*>(message);
+
     if (!mapMessage) {
         ASKAPLOG_WARN_STR(logger, "Message of non map type received on event channel");
         return;
@@ -131,6 +133,7 @@ void EventConsumer::onMessage(const cms::Message *message)
 
     // Sleep while the mailbox is full
     boost::mutex::scoped_lock lock(itsMutex);
+
     while (itsMailbox) {
         itsCondVar.wait(lock);
     }

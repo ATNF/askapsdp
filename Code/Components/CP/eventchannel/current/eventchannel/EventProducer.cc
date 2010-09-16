@@ -37,7 +37,7 @@
 #include "cms/MessageProducer.h"
 
 // Local package includes
-#include "eventchannel/IEventMessage.h"
+#include "eventchannel/EventMessage.h"
 
 ASKAP_LOGGER(logger, ".EventProducer");
 
@@ -46,7 +46,7 @@ using namespace askap::cp;
 using namespace askap::cp::eventchannel;
 
 EventProducer::EventProducer(cms::Session& session, cms::MessageProducer* producer)
-    : itsSession(session), itsMessageProducer(producer)
+        : itsSession(session), itsMessageProducer(producer)
 {
 }
 
@@ -56,7 +56,7 @@ EventProducer::~EventProducer()
     itsMessageProducer.reset();
 }
 
-void EventProducer::send(IEventMessage& message)
+void EventProducer::send(EventMessage& message)
 {
     itsMessageProducer->send(message.getCmsMessage());
 }

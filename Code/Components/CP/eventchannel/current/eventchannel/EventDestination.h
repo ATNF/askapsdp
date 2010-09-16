@@ -41,6 +41,7 @@ namespace eventchannel {
 
 class EventDestination {
     public:
+
         enum DestinationType {
             TOPIC,
             QUEUE

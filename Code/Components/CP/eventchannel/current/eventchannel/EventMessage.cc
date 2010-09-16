@@ -30,13 +30,14 @@
 // Include package level header file
 #include "askap_eventchannel.h"
 
+// System includes
+#include <string>
+#include <vector>
+
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "cms/MapMessage.h"
-
-// Local package includes
-#include "eventchannel/IEventMessage.h"
 
 ASKAP_LOGGER(logger, ".EventMessage");
 
@@ -45,7 +46,7 @@ using namespace askap::cp;
 using namespace askap::cp::eventchannel;
 
 EventMessage::EventMessage(cms::MapMessage* message)
-    : itsMapMessage(message)
+        : itsMapMessage(message)
 {
     // TODO: Investigate why when trying to set properties a
     // MessageNotWriteableException is thrown. This message should
@@ -61,6 +62,16 @@ EventMessage::~EventMessage()
 cms::Message* EventMessage::getCmsMessage(void)
 {
     return itsMapMessage.get();
+}
+
+std::vector<std::string> EventMessage::getMapNames(void)
+{
+    return itsMapMessage->getMapNames();
+}
+
+bool EventMessage::itemExists(const std::string& key)
+{
+    return itsMapMessage->itemExists(key);
 }
 
 //

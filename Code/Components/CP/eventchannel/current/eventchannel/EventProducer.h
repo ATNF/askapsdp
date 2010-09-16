@@ -37,19 +37,26 @@
 #include "cms/MessageProducer.h"
 
 // Local package includes
-#include "eventchannel/IEventMessage.h"
+#include "eventchannel/EventMessage.h"
 
 namespace askap {
 namespace cp {
 namespace eventchannel {
 
+/// @brief The EventProducer allows event messages to be sent via the event
+/// channel.
 class EventProducer {
     public:
 
         /// @brief Destructor
         ~EventProducer();
 
-        void send(IEventMessage& message);
+        /// @brief Send an event message via the event channel, to the
+        /// destination topic or queue which the EventProducer is registered
+        /// to.
+        ///
+        /// @param[in] message  a reference to the message to send.
+        void send(EventMessage& message);
 
     private:
 
