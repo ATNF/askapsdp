@@ -29,7 +29,7 @@ OBJS = tConvolveMPI.o Stopwatch.o Benchmark.o
 
 all:		$(EXENAME)
 
-%.o:		%.cc %.h
+%.o:		%.cc %.h Benchmark.h
 		$(CXX) $(CFLAGS) -c $<
 
 $(EXENAME):	$(OBJS)
