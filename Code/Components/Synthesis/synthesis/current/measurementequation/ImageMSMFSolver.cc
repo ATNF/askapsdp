@@ -266,17 +266,7 @@ namespace askap
                         casa::Array<float> cleanArray(planeIter.planeShape());
                         casa::convertArray<float, double>(cleanArray, 
                                            planeIter.getPlane(ip.value(thisOrderParam)));
-                        if (order == 0) {
-                            zeroPSFPeak = doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfArray,dirtyArray);
-                        } else {
-                            ASKAPDEBUGASSERT(zeroPSFPeak > 0.);
-                            doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfArray,zeroPSFPeak,dirtyArray);
-                        }
 	   	   	   	                
-                        ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for plane=" << plane<<
-                                          " ("<<tagLogString<< ") and order=" << order <<
-                                          " parameter name "<<thisOrderParam);
-
                         if (order == 0) {
                             psfZeroArray = psfArray.copy();
                         }
@@ -297,6 +287,17 @@ namespace askap
                            ip.update(psfName, APSF, planeIter.position());                           
 	                    }
 	   
+                        ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for plane=" << plane<<
+                                          " ("<<tagLogString<< ") and order=" << order <<
+                                          " parameter name "<<thisOrderParam);
+
+                        if (order == 0) {
+                            zeroPSFPeak = doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfArray,dirtyArray);
+                        } else {
+                            ASKAPDEBUGASSERT(zeroPSFPeak > 0.);
+                            doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfArray,zeroPSFPeak,dirtyArray);
+                        }
+
                         casa::ArrayLattice<float> psf(psfArray);
                         itsCleaners[imageTag]->setpsf(order,psf);
 	   

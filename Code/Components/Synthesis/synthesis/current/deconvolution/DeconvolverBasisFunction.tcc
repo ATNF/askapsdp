@@ -355,8 +355,8 @@ namespace askap {
       // of the maximum i.e. it finds the max in mask * residual
       minMaxMaskedScales(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction,
 			 this->itsWeightedMask, this->itsPSFScales);
-      ASKAPLOG_INFO_STR(decbflogger, "Maximum =  " << maxVal << " at location " << maxPos);
-      ASKAPLOG_INFO_STR(decbflogger, "Minimum = " << minVal << " at location " << minPos);
+      //      ASKAPLOG_INFO_STR(decbflogger, "Maximum =  " << maxVal << " at location " << maxPos);
+      //      ASKAPLOG_INFO_STR(decbflogger, "Minimum = " << minVal << " at location " << minPos);
       T absPeakVal;
       casa::IPosition absPeakPos;
       if(abs(minVal)<abs(maxVal)) {
@@ -484,28 +484,26 @@ namespace askap {
 	  for (uInt scale=0;scale<nScales;scale++) {
 	    casa::minMaxMasked(sMinVal(scale), sMaxVal(scale), sMinPos(scale), sMaxPos(scale),
 			       data.xyPlane(scale), maskArray.nonDegenerate());
-	    // Need to scale by (a) the inverse of the psfScale to deal with the
-	    // loss of gain for the tapering and (b) by sqrt(psfScale) to deal 
-	    // with the SNR degradation. The latter is similar to the use of 
-	    // the small scale bias in the MSClean paper.
-	    sMaxVal(scale)/=sqrt(this->itsPSFScales(scale));
-	    sMinVal(scale)/=sqrt(this->itsPSFScales(scale));
 	  }
 	}
 	else {
 	  for (uInt scale=0;scale<nScales;scale++) {
 	    casa::minMax(sMinVal(scale), sMaxVal(scale), sMinPos(scale), sMaxPos(scale),
 			 data.xyPlane(scale));
-	    sMaxVal(scale)/=this->itsPSFScales(scale);
-	    sMinVal(scale)/=this->itsPSFScales(scale);
 	  }
 	}
       }
-      maxVal=sMaxVal(0);
-      minVal=sMinVal(0);
+      maxVal=sMaxVal(0)/=sqrt(this->itsPSFScales(0));
+      minVal=sMinVal(0)/=sqrt(this->itsPSFScales(0));
       minPos=IPosition(3, sMinPos(0)(0), sMinPos(0)(1), 0);
       maxPos=IPosition(3, sMaxPos(0)(0), sMaxPos(0)(1), 0);
       for (uInt scale=1;scale<nScales;scale++) {
+	// Need to scale by (a) the inverse of the psfScale to deal with the
+	// loss of gain for the tapering and (b) by sqrt(psfScale) to deal 
+	// with the SNR degradation. The latter is similar to the use of 
+	// the small scale bias in the MSClean paper.
+	sMaxVal(scale)/=sqrt(this->itsPSFScales(scale));
+	sMinVal(scale)/=sqrt(this->itsPSFScales(scale));
 	if(sMinVal(scale)<=minVal) {
 	  minVal=sMinVal(scale);
 	  minPos=IPosition(3, sMinPos(scale)(0), sMinPos(scale)(1), scale);

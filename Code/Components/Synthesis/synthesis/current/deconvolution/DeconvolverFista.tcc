@@ -136,12 +136,15 @@ namespace askap {
 	  Array<T> truncated(abs(WX)-this->control()->lambda()/this->itsLipschitz);
 	  shrink=truncated(truncated>T(0.0));
 	  shrink=sign(WX)*shrink;
+	  shrink(truncated<T(0.0))=T(0.0);
 	}
 	// Transform back from other (e.g. wavelet) space here
 	X_temp=shrink.copy();
 	// Initially take a small step towards the updated model
 	t_new=(T(1.0)+sqrt(T(1.0)+T(4.0)*square(t_old)))/T(2.0);
 	X=X_temp+((t_old-T(1.0))/t_new)*(X_temp-X_old);
+	X(X<T(0.0))=T(0.0);
+	X_temp(X_temp<T(0.0))=T(0.0);
         {
 	  casa::IPosition minPos;
           casa::IPosition maxPos;
