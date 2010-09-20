@@ -68,7 +68,8 @@ void usage() {
 	    << "     -b: Spectral binning (number of channels to combine per entry) [default=1]\n"
 	    << "     -p: Polarisation info: either number of polarisations or specific polarisation string\n"
 	    << "         [default is 2 pol, \"XX YY\"]"
-	    << "     -u: Spectral units [default=MHz]";
+	    << "     -u: Spectral units [default=MHz]\n"
+	    << "     -P: Precision for frequency & increment values [default=3]\n";
 }
 
 std::string baseify(std::string name)
@@ -84,8 +85,8 @@ int main(int argc, char *argv[])
 
     std::string image="",basename="",pol="XX YY";
     casa::Unit units="MHz";
-    int binning = 1,ch;
-    while ((ch = getopt(argc, argv, "i:n:b:p:u:h")) != -1) {
+    int binning = 1,ch,prec=3;
+    while ((ch = getopt(argc, argv, "i:n:b:p:u:P:h")) != -1) {
       switch (ch) {
       case 'i':
 	image = std::string(optarg);
@@ -101,6 +102,9 @@ int main(int argc, char *argv[])
 	break;
       case 'u':
 	units = casa::String(optarg);
+	break;
+      case 'P':
+	prec = atoi(optarg);
 	break;
       case 'h':
       default:
@@ -137,8 +141,8 @@ int main(int argc, char *argv[])
 	std::cout.setf(std::ios::fixed);
 	std::cout << "spws."<<basename<<z <<"   = ["
 		  << binning << ", "
-		  << std::setprecision(3) << freq.get(units) <<", "
-		  << std::setprecision(3) << increment.get(units)<< ", "
+		  << std::setprecision(prec) << freq.get(units) <<", "
+		  << std::setprecision(prec) << increment.get(units)<< ", "
 		  << "\""<<pol << "\"]\n";
       }
     }
