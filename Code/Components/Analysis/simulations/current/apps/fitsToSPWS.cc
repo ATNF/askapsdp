@@ -121,7 +121,6 @@ int main(int argc, char *argv[])
     IPosition shape = imagePtr->shape().nonDegenerate();
 
     casa::Vector<casa::Double> inc = specCoo.increment();
-    std::cout << inc.size() << " " << inc[0] << "\n";
     MFrequency increment(Quantity(inc[0],specCoo.worldAxisUnits()[0]));
 
     std::cout << "spws.names = [";
