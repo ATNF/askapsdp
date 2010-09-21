@@ -27,6 +27,7 @@
 
 #include <CommonTypes.ice>
 #include <DataServiceExceptions.ice>
+#include <SBTemplateService.ice>
 
 module askap
 {
@@ -65,6 +66,14 @@ module schedblock
      * The SchedulingBlockService provides and interface to the main ASKAP
      * obseravtion entity - the Scheduling Block. The Scheduling Block describes
      * and observation and its execution which is done througth the Executive.
+     * A Scheduling Block is associate with a SchedulingBlock Template.
+     * This template is versioned. The Scheduling Block always operates on the
+     * latest minor version of the template and is not compatible with major
+     * version changes unless it is explicitly changed.
+     *
+     * The Executive has to ensure that it writes into the ObsVariables the
+     * actual version it was using to ensures tracability. This is done
+     * via the key 'executive.sbtemplate.version'.
      **/
     interface ISchedulingBlockService
     {
@@ -75,8 +84,7 @@ module schedblock
          * @param newstate The state to transition to.
          *
          **/
-        void transition(long sbid,
-                        ObsState newstate) throws
+        void transition(long sbid, ObsState newstate) throws
 		TransitionException,
 		NoSuchSchedulingBlockException;
 
@@ -89,17 +97,29 @@ module schedblock
         idempotent askap::interfaces::LongSeq getByState(ObsState state);
 
         /**
+         * Get all Scheduling Blocks for a given SBTemplate (name) given
+         * a version. A version of major.minor 0.0 returns all versions.
+         *
+         * @param name the name of the SBTemplate id
+         * @param vers the SBTemplate version
+         * @return a sequence of Scheduling Block ids
+         *
+         **/
+        idempotent askap::interfaces::LongSeq getByTemplate(string name,
+                                                            Version vers);
+
+        /**
          * Create a new Scheduling Block with the given initial configuration.
-         * This will have and empty set of ObsVariables and ill be in DRAFT
+         * This will have and empty set of ObsVariables and will be in DRAFT
          * state.
          *
          * @param programid The id of the Owner Observation Program.
-         * @param sbtid The id of the Scheduling BlockTemplate to use
+         * @param templname The name of the Scheduling Block Template to use
          * @param alias a string alias (does not have to be unique)
-         * @return The id of the newly created Scheduling Block
+         * @returns The id of the newly created Scheduling Block
          *
          **/
-        long create(long programid, long sbtid, string alias)
+        long create(long programid, string templname, string alias)
              throws NoSuchSBTemplateException;
 
         /**
@@ -201,8 +221,6 @@ module schedblock
          * Set the Observation Variables to the given values.
          * This overwrites existing and creates newly specified ObsVariables.
          * Omitted variables remain unmodified.
-         * in the Scheduling Block but are not in the given in obsvars will
-         * be deleted
          *
          * @param sbid The id of the Scheduling Block
          * @param obsvars the new Obs Variables
@@ -229,20 +247,23 @@ module schedblock
          * Get the SBTemplate linked to the SchedulingBlock.
          *
          * @param sbid The id of the Scheduling Block
-         * @returns a an SBTemplate id
+         * @returns a an SBTemplate name
          *
          **/
-        idempotent long getSBTemplate(long sbid)
+        idempotent string getSBTemplate(long sbid)
                 throws NoSuchSchedulingBlockException;
 
         /**
-         * Set the Template id.
+         * Set the Template name
          * This would typically only be used to bump the version of the
          * Template.
          *
          * @param sbid The id of the Scheduling Block
+         * @param tmplname The name of the SB Template
+         * @param vers the new version of the template to use
+         *
          **/
-        void setSBTemplate(long sbid, long sbtid)
+        void updateTemplateVersion(long sbid, Version vers)
                 throws NoSuchSchedulingBlockException,
                        NoSuchSBTemplateException;
 

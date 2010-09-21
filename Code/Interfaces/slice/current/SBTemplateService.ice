@@ -49,7 +49,7 @@ module schedblock
 
     /**
      * This enum described the possible version number fields. These will be
-     * used when specifing which veriosn to increment.
+     * used when specifing which version to increment.
      **/
     enum VersionType
     {
@@ -60,6 +60,7 @@ module schedblock
 
     /**
      * The Version to associate with an instance of the SBTemplate.
+     * Use Version.major = 0, Version.minor = 0 for an unversioned request
      **/
     struct Version
     {
@@ -112,13 +113,23 @@ module schedblock
             throws VersionException;
 
         /**
+         * Return the id for the given SBTemplate name at the given version
+         **/
+        idempotent long getId(string name, Version vers);
+
+        /**
+         * get the SBTemplate id for the latest version of the named template
+         **/
+        idempotent long getLatestVersionId(string name);
+
+        /**
          * Modify the Status of the specified SBTemplate.
          *
-         * @param sbtid the id of the template to access
+         * @param name the name of the template to access
          * @param status the new SBTemplateStatus
          *
          **/
-        void setStatus(long sbtid, SBTemplateStatus status)
+        void setStatus(string name, SBTemplateStatus status)
             throws NoSuchSBTemplateException;
 
         /**
@@ -142,7 +153,7 @@ module schedblock
         /**
          * Get a sequence of all available SBTemplate names.
          **/
-        idempotent askap::interfaces::StringSeq getNames();
+        idempotent askap::interfaces::StringSeq getAll();
 
         /**
          * Get the SBTemplate names filtering by SBTemplateStatus.
@@ -163,10 +174,10 @@ module schedblock
             throws NoSuchSBTemplateException;
 
         /**
-         * Get the SBTemplate id for a named SBTemplate the specified version.
-
+         * Return the SBTemplate id for a named template at the given version.
+         *
          * @param name the name of the template
-         * @param vers The version number to retrieve
+         * @param vers The version of the template instance
          *
          **/
         idempotent long getByVersion(string name, Version vers)
@@ -182,16 +193,17 @@ module schedblock
         /**
          * Get the script associated with this template.
          *
-         * @param sbtid The id of the template to access
+         * @param name
+         * @param version
          *
          **/
         idempotent string getObsProcedure(long sbtid)
             throws NoSuchSBTemplateException;
 
         /**
-         * Get the name of the specified SBTemplate.
+         * Get the SBTemplate name for specified SBTemplate instance
          *
-         * @param sbtid the id of the template to access
+         * @param name the name of the template to access
          *
          **/
         idempotent string getName(long sbtid) throws NoSuchSBTemplateException;
