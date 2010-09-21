@@ -157,19 +157,14 @@ namespace askap
 			      dirtyArray.shape()<<" after padding");
 
 	    // Precondition the PSF and DIRTY images before solving.
-	    if(doPreconditioning(psfArray,dirtyArray)) {
-	      // Normalize	         
-	      doNormalization(padDiagonal(planeIter.getPlane(diag)),tol(),psfArray,dirtyArray, 
-			      boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+	    const bool wasPreconditioning = doPreconditioning(psfArray,dirtyArray);
+        doNormalization(padDiagonal(planeIter.getPlane(diag)),tol(),psfArray,dirtyArray, 
+                        boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+	    if (wasPreconditioning) {
 	      // Store the new PSF in parameter class to be saved to disk later
 	      saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "psf.image", unpadImage(psfArray),
 				     planeIter.position());
 	    } // if there was preconditioning
-	    else {
-	      // Normalize	         
-	      doNormalization(padDiagonal(planeIter.getPlane(diag)),tol(),psfArray,dirtyArray, 
-			      boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-	    }
 	    
 	    // optionally clip the image and psf if there was padding
 	    ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) before clipping "<<max(dirtyArray));

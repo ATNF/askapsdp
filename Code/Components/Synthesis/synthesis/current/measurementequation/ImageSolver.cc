@@ -255,26 +255,16 @@ namespace askap
              casa::convertArray<float, double>(psfArray, planeIter.getPlane(slice));
 	
              // Do the preconditioning
-             if (doPreconditioning(psfArray,dirtyArray)) {	
-
-	       // Normalize by the diagonal
-	       doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray);
-
-                 // Save the new PSFs to disk
-                 Axes axes(ip.axes(indit->first));
-                 const string psfName="psf."+(indit->first);
-                 casa::Array<double> anothertemp(planeIter.planeShape());
-                 casa::convertArray<double,float>(anothertemp,psfArray);
-                 const casa::Array<double> & APSF(anothertemp);
-                 if (!ip.has(psfName)) {
-                     ip.add(psfName, planeIter.shape(), axes);
-                 } 
-                 ip.update(psfName, APSF, planeIter.position());                 
-             } // if - doPreconditioning
-	     else {
-	       // Normalize by the diagonal
-	       doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray);
-	     }
+             const bool wasPreconditioning = doPreconditioning(psfArray,dirtyArray);
+             
+             // Normalize by the diagonal
+             doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray);
+             
+             if (wasPreconditioning) {	
+                 // Save the new PSF in parameter class to be saved to disk later
+                 saveArrayIntoParameter(ip,indit->first,planeIter.shape(),"psf.image",
+                                        psfArray,planeIter.position());
+             } // if - wasPreconditioning
 
              ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
 
@@ -284,19 +274,8 @@ namespace askap
              // production version (or may need to implement it in a different way).
 
              {
-                Axes axes(ip.axes(indit->first));
-                ASKAPDEBUGASSERT(indit->first.find("image")==0);
-                ASKAPCHECK(indit->first.size()>5, 
-                        "Image parameter name should have something appended to word image")           
-                    const string residName="residual"+indit->first.substr(5);
-                    casa::Array<double> anothertemp(planeIter.planeShape());
-                    casa::convertArray<double,float>(anothertemp,dirtyArray);
-                    const casa::Array<double> & AResidual(anothertemp);
-                    if (!ip.has(residName)) {
-                        // create an empty parameter with the full shape
-                        ip.add(residName, planeIter.shape(), axes);
-                    }
-                    ip.update(residName, AResidual, planeIter.position());                     
+                saveArrayIntoParameter(ip,indit->first,planeIter.shape(),"residual",
+                                       dirtyArray,planeIter.position());
              }
              // end of the code storing residual image
 
@@ -376,6 +355,25 @@ namespace askap
 	      ip.add(parName, shape, axes);
 	  }
       ip.update(parName, arr, pos);      
+    }
+    
+    /// @brief helper method to save a given array
+    /// @details This variant of the method intended for single precision arrays which are expanded to
+    /// double precision inside this method and the double precision version of the method is called to
+    /// do the work
+    /// @param[in] ip model (to be updated with the appropriate parameter) 
+    /// @param[in] imgName image parameter name (to take axes from and to for the output name)
+    /// @param[in] shape full shape of the output parameter (arr may be a part of the full parameter)
+    /// @param[in] prefix name prefix for stored parameter ("image" in imgName will be replaced by prefix)
+    /// @param[in] arr array to save
+    /// @param[in] pos position to save (arr is a part of the parameter)
+    void ImageSolver::saveArrayIntoParameter(askap::scimath::Params& ip, const std::string &imgName, 
+              const casa::IPosition &shape, const std::string &prefix, const casa::Array<float> &arr, 
+              const casa::IPosition &pos)
+    {
+      casa::Array<double> tmpArr(arr.shape());
+      casa::convertArray<double,float>(tmpArr,arr);
+      saveArrayIntoParameter(ip, imgName, shape, prefix, tmpArr, pos);
     }
 
     /// @note itsPreconditioner is not cloned, only the ShPtr is.

@@ -227,6 +227,20 @@ namespace askap
               const casa::IPosition &shape, const std::string &prefix, const casa::Array<double> &arr, 
               const casa::IPosition &pos);
     
+    /// @brief helper method to save a given array
+    /// @details This variant of the method intended for single precision arrays which are expanded to
+    /// double precision inside this method and the double precision version of the method is called to
+    /// do the work
+    /// @param[in] ip model (to be updated with the appropriate parameter) 
+    /// @param[in] imgName image parameter name (to take axes from and to for the output name)
+    /// @param[in] shape full shape of the output parameter (arr may be a part of the full parameter)
+    /// @param[in] prefix name prefix for stored parameter ("image" in imgName will be replaced by prefix)
+    /// @param[in] arr array to save
+    /// @param[in] pos position to save (arr is a part of the parameter)
+    static void saveArrayIntoParameter(askap::scimath::Params& ip, const std::string &imgName, 
+              const casa::IPosition &shape, const std::string &prefix, const casa::Array<float> &arr, 
+              const casa::IPosition &pos);
+    
                  
 private:
 	/// Instance of a preconditioner
