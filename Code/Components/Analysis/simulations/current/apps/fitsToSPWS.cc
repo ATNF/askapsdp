@@ -120,21 +120,28 @@ int main(int argc, char *argv[])
     if (lattPtr == 0)
       ASKAPTHROW(AskapError, "Requested image \"" << image << "\" does not exist or could not be opened.");
     const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-    Int spec = imagePtr->coordinates().findCoordinate(casa::Coordinate::SPECTRAL);
-    SpectralCoordinate specCoo = imagePtr->coordinates().spectralCoordinate(spec);
+    Int index=imagePtr->coordinates().findCoordinate(casa::Coordinate::SPECTRAL);
+    Int axis=imagePtr->coordinates().worldAxes(index)[0];
+    
     IPosition shape = imagePtr->shape().nonDegenerate();
+//     std::cout << "Image has shape " << imagePtr->shape() << " or " << shape << " as non-degenerate.\n";
+//     std::cout << "Coordinate system has " << imagePtr->coordinates().nCoordinates()  << " coordinates\n";
+//     for(int i=0;i<imagePtr->coordinates().nCoordinates();i++)
+//       std::cout << imagePtr->coordinates().worldAxes(i) << " " << imagePtr->coordinates().showType(i) << "\n";
+//     std::cout << "Spectral axis is determined to be number " << axis << " with length " << shape(axis) <<"\n\n";
+    SpectralCoordinate specCoo = imagePtr->coordinates().spectralCoordinate(index);
 
     casa::Vector<casa::Double> inc = specCoo.increment();
     MFrequency increment(Quantity(inc[0],specCoo.worldAxisUnits()[0]));
 
     std::cout << "spws.names = [";
-    for (int z=0;z < shape(spec); z++) {
+    for (int z=0;z < shape(axis); z++) {
       std::cout << basename << z;
-      if(z<shape(spec)-1) std::cout <<", ";
+      if(z<shape(axis)-1) std::cout <<", ";
     }
     std::cout << "]\n\n";
 
-    for (int z=0;z < shape(spec); z++) {
+    for (int z=0;z < shape(axis); z++) {
       if(z%binning==0){
 	MFrequency freq;
 	specCoo.toWorld(freq,double(z));
