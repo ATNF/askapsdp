@@ -82,13 +82,17 @@ def BuildTree(path, partial_paths, old_indent):
     for comp in path_components[0:-1]:
         p += comp + '/'
         if not p in partial_paths:
-            partial_paths.add(p)
+            partial_paths.append(p)
             indent = len(p.split('/'))
             if indent < old_indent:
-                for i in reversed(range(indent+1, old_indent+1)):
-                    index += TAB*i + "</ul>\n"
+                for i in reversed(range(indent, old_indent)):
+                    index += TAB*(i+1) + "</ul>\n"
             index += TAB*indent + "<li> %s </li>\n" % comp
             index += TAB*(indent+1) + "<ul>\n"
+    # Handle when a component has subcomponents and coming back to
+    # component level.
+    if len(partial_paths) > 1 and p == partial_paths[-2]:
+        index += TAB*old_indent + "</ul\n>"
     return index
 
 
@@ -116,7 +120,7 @@ def CopyDocs(doc_type, doc_loc, find_term):
     '''
 
     indent = 0
-    partial_paths = set()
+    partial_paths = []
     index = INDEX_HEAD % (doc_type.capitalize(), doc_type)
     index += TAB*2 + "<ul>\n" # Start indented under '<h3> Packages </h3>'
 
