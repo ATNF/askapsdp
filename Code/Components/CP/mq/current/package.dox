@@ -1,0 +1,10 @@
+/// @mainpage ASKAP Central Processor Message Queue Interface Package
+///
+/// @section cpmq_intro Introduction
+/// This package contains classes relating to usage of ActiveMQ within the
+/// Central Processor.
+///
+/// @note This package is deprecated and anticipated the Event Channel
+/// package will provide the required functionality.
+///
+/// @copyright 2010 ASKAP, All Rights Reserved.

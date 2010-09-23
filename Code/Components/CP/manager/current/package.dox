@@ -3,3 +3,8 @@
 /// @section cpmanager_intro Introduction
 /// The manager (Central Processor Manager) package contains the "manager"
 /// sub-component of the central processor.
+///
+/// @note This package does not provide an externally consumable library & API.
+/// This package provides a set of programs.
+///
+/// @copyright 2010 ASKAP, All Rights Reserved.

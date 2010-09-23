@@ -6,3 +6,5 @@
 /// The purpose of this software is to perform imaging in a
 /// parallel/distributed environment. The software leverages MPI,
 /// however can be run on a simple laptop or a large supercomputer.
+///
+/// @copyright 2010 ASKAP, All Rights Reserved.

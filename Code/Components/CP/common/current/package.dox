@@ -1,5 +1,7 @@
-/// @mainpage ASKAP Central Processor Common
+/// @mainpage ASKAP Central Processor Common Package
 ///
 /// @section cpcommon_intro Introduction
 /// The common (Central Processor Common) package contains classes and data
 /// structures which are needed by multiple central processor packages.
+///
+/// @copyright 2010 ASKAP, All Rights Reserved.
