@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import askap.analysis.data
+
 import numpy as np
 from numpy import *
 import scipy.stats
@@ -54,37 +55,40 @@ if __name__ == '__main__':
     r_e = 2.82e-15
     k = 2.*pi/lam
 
-    n_samp = 1000001
-    step = 2000
-    n_step = n_samp / step
+##    n_samp = 12000001
+#    n_samp = 1200001
+    step = 60  # increment in tau array (in seconds)
+    xmax = 50  # maximum of x for calculating autocovariance L_7/6(x)
+#    n_step = n_samp / step
 
     # Log of the source fluxes to be tested, in Jy
-    fluxes = range(0,-8,-2)
-    plotf = -2
+    fluxes = range(0,-6,-1)
+#    fluxes = [-2]
 
     for f in fluxes:
 
         theta0 = flux2size(pow(10,f))
-        print f,theta0 * (180/pi) *3600.*1000, 1000./(k*s0)
-
-        tau = double(array(range(-n_samp,n_samp,step)))
 
         if(theta0>1./(k*s0)):
             scale = 2.*pi**2 * r_e**2 * lam**2 * sm * scipy.special.gamma(7./6.) * z**2 / (2 * pi / lam)**2 / (z**2 * theta0**2)**(7./6.)
-            x = viss * tau / (2. * z * theta0)
+            xfactor = viss / (2. * z * theta0)
             print "Case 1"
         else:
             scale = 2.**(10./3.)*pi**2 * r_e**2 * lam**2 * sm * scipy.special.gamma(7./6.) *s0**2 * (k**2*s0**2/z**2)**(1./6.)
-            x = k*s0*viss * tau / z 
+            xfactor = k*s0*viss / z 
             print "Case 2"
                      
+        n_step = int(xmax/xfactor/step + 1)
+        n_samp = n_step*step + 1
+        print "logF = %3.1f, theta0 = %6.4e mas, with %d samples"%(f,theta0 * (180/pi) *3600.*1000,n_step)
+
+        tau = double(array(range(-n_samp,n_samp,step)))
+        x = xfactor * tau
         y = scale*lag_7on6_many(x**2)
 
         plt.subplot(221)
-        plt.plot(y)
-            
-#        plt.subplot(222)
-#        plt.plot(tau,y)
+        plt.plot(x,y)
+        plt.title("Scaled Laguerre function L7/6(x**2)")
 
         # make a set of random phases
         np.random.seed()
@@ -100,9 +104,6 @@ if __name__ == '__main__':
         newy[0:n_step+1] = abs_fy[0:n_step+1] * cphases
         newy[n_step+1:] = abs_fy[n_step+1:]*cphases.conjugate()[:0:-1]
 
-        plt.subplot(222)
-        plt.plot(newy)
-            
         # inverse-FT back and scale to get the time-series
         delta = scipy.fftpack.ifft(newy*float(y.size)).real
         newflux = pow(10,f)*(1 + delta)
@@ -115,18 +116,20 @@ if __name__ == '__main__':
             LCfile.write("%g %g %g %g\n"%(tau[i],y[i],delta[i],newflux[i]))
         LCfile.close()
         
-        tautau =  double(range(tau.size))/(tau.size)*((tau[1]-tau[0])*tau.size)
+        elapsedTime =  double(range(tau.size))/(tau.size)*((tau[1]-tau[0])*tau.size)
+        plt.subplot(222)
+        plt.plot(elapsedTime,log10(newflux))
+        plt.title("Log(delta(t))")
+
         plt.subplot(223)
-        plt.plot(tautau,newflux/pow(10,f))
-        #plt.plot(tautau,newflux)
-        #plt.plot(tautau,(newflux-mean(newflux))/sqrt(var(newflux)))
-            #        plt.plot(tau,(newflux-mean(newflux))/sqrt(var(newflux)))
-            #        plt.plot((newflux-mean(newflux))/sqrt(var(newflux)))
-            #        plt.plot(t-mean(t))
+        plt.plot(elapsedTime,newflux/pow(10,f))
+        plt.title("delta(t)/F0")
 
         plt.subplot(224)
-        #plt.plot(tautau[tautau<30000],newflux[tautau<30000])
-        plt.plot(tautau[tautau<30000],newflux[tautau<30000]/pow(10,f))
+        plt.plot(elapsedTime[elapsedTime<30000]/3600.,newflux[elapsedTime<30000]/pow(10,f))
+        plt.title("delta(t)/F0 vs hours")
+
+#        print elapsedTime[elapsedTime<30000]
         
     plt.savefig('lightcurves.png')
     plt.close()
