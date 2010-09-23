@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IMETADATASOURCE_H
-#define ASKAP_CP_IMETADATASOURCE_H
+#ifndef ASKAP_CP_INGEST_IMETADATASOURCE_H
+#define ASKAP_CP_INGEST_IMETADATASOURCE_H
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
@@ -33,6 +33,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 /// @brief An interface for a class that can be used as a source of TosMetadata
 /// objects.
@@ -51,7 +52,8 @@ class IMetadataSource {
         typedef boost::shared_ptr<IMetadataSource> ShPtr;
 };
 
-};
-};
+}
+}
+}
 
 #endif

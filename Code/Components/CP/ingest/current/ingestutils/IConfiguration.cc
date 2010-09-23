@@ -27,6 +27,6 @@
 // Include own header file first
 #include "ingestutils/IConfiguration.h"
 
-askap::cp::IConfiguration::~IConfiguration()
+askap::cp::ingest::IConfiguration::~IConfiguration()
 {
 }

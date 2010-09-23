@@ -39,13 +39,13 @@
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::CircularBufferTest::suite());
-    runner.addTest(askap::cp::VisChunkTest::suite());
-    runner.addTest(askap::cp::MergedSourceTest::suite());
-    runner.addTest(askap::cp::AntennaPositionsTest::suite());
-    runner.addTest(askap::cp::CalcUVWTaskTest::suite());
-    runner.addTest(askap::cp::ChannelAvgTaskTest::suite());
-    runner.addTest(askap::cp::CalTaskTest::suite());
+    runner.addTest(askap::cp::ingest::CircularBufferTest::suite());
+    runner.addTest(askap::cp::ingest::VisChunkTest::suite());
+    runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
+    runner.addTest(askap::cp::ingest::AntennaPositionsTest::suite());
+    runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
+    runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());
+    runner.addTest(askap::cp::ingest::CalTaskTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

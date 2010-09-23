@@ -33,67 +33,63 @@
 // Classes to test
 #include "ingestutils/AntennaPositions.h"
 
-namespace askap
-{
-    namespace cp
-    {
-        class AntennaPositionsTest : public CppUnit::TestFixture
-        {
-            CPPUNIT_TEST_SUITE(AntennaPositionsTest);
-            CPPUNIT_TEST(testSimple);
-            CPPUNIT_TEST_SUITE_END();
+namespace askap {
+namespace cp {
+namespace ingest {
 
-            public:
-            void setUp()
-            {
-                // Setup a parameter set
-                itsParset.add("location", "[+117.471deg, -25.692deg, 192m, WGS84]");
-                itsParset.add("names", "[A0, A1, A2, A3, A4, A5]");
-                itsParset.add("scale", "1.0");
-                itsParset.add("A0", "[-175.233429,  -1673.460938,  0.0000]");
-                itsParset.add("A1", "[261.119019,   -796.922119,   0.0000]");
-                itsParset.add("A2", "[-29.200520,   -744.432068,   0.0000]");
-                itsParset.add("A3", "[-289.355286,  -586.936035,   0.0000]");
-                itsParset.add("A4", "[-157.031570,  -815.570068,   0.0000]");
-                itsParset.add("A5", "[-521.311646,  -754.674927,   0.0000]");
-            };
+class AntennaPositionsTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(AntennaPositionsTest);
+        CPPUNIT_TEST(testSimple);
+        CPPUNIT_TEST_SUITE_END();
 
-            void tearDown()
-            {
-                itsParset.clear();
-            }
-
-            void testSimple()
-            {
-                // Tolerance for double equality
-                const double tol = 1.0E-8;
-
-                // Indexing
-                const int X = 0;
-                const int Y = 1;
-                const int Z = 2;
-
-                AntennaPositions antPos(itsParset);
-                casa::Matrix<double> antXYZ = antPos.getPositionMatrix();
-                CPPUNIT_ASSERT_EQUAL(3U, antXYZ.nrow());
-                CPPUNIT_ASSERT_EQUAL(6U, antXYZ.ncolumn());
-
-                // Antenna A0
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(-2652616.85460246, antXYZ(X, 0), tol);
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(5102312.63799787, antXYZ(Y, 0), tol);
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(-2749946.41159169, antXYZ(Z, 0), tol);
-
-                // Antenna A5
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(-2652492.54473864, antXYZ(X, 5), tol);
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(5102823.76998959, antXYZ(Y, 5), tol);
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(-2749117.41882315, antXYZ(Z, 5), tol);
-            };
-
-            private:
-            LOFAR::ParameterSet itsParset;
-
+    public:
+        void setUp() {
+            // Setup a parameter set
+            itsParset.add("location", "[+117.471deg, -25.692deg, 192m, WGS84]");
+            itsParset.add("names", "[A0, A1, A2, A3, A4, A5]");
+            itsParset.add("scale", "1.0");
+            itsParset.add("A0", "[-175.233429,  -1673.460938,  0.0000]");
+            itsParset.add("A1", "[261.119019,   -796.922119,   0.0000]");
+            itsParset.add("A2", "[-29.200520,   -744.432068,   0.0000]");
+            itsParset.add("A3", "[-289.355286,  -586.936035,   0.0000]");
+            itsParset.add("A4", "[-157.031570,  -815.570068,   0.0000]");
+            itsParset.add("A5", "[-521.311646,  -754.674927,   0.0000]");
         };
 
-    }   // End namespace cp
+        void tearDown() {
+            itsParset.clear();
+        }
 
+        void testSimple() {
+            // Tolerance for double equality
+            const double tol = 1.0E-8;
+
+            // Indexing
+            const int X = 0;
+            const int Y = 1;
+            const int Z = 2;
+
+            AntennaPositions antPos(itsParset);
+            casa::Matrix<double> antXYZ = antPos.getPositionMatrix();
+            CPPUNIT_ASSERT_EQUAL(3U, antXYZ.nrow());
+            CPPUNIT_ASSERT_EQUAL(6U, antXYZ.ncolumn());
+
+            // Antenna A0
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-2652616.85460246, antXYZ(X, 0), tol);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(5102312.63799787, antXYZ(Y, 0), tol);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-2749946.41159169, antXYZ(Z, 0), tol);
+
+            // Antenna A5
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-2652492.54473864, antXYZ(X, 5), tol);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(5102823.76998959, antXYZ(Y, 5), tol);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-2749117.41882315, antXYZ(Z, 5), tol);
+        };
+
+    private:
+        LOFAR::ParameterSet itsParset;
+
+};
+
+}   // End namespace ingest
+}   // End namespace cp
 }   // End namespace askap

@@ -57,7 +57,7 @@
 ASKAP_LOGGER(logger, ".IngestController");
 
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::ingest;
 using namespace activemq;
 using namespace activemq::core;
 using namespace cms;

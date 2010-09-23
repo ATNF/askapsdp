@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CALTASK_H
-#define ASKAP_CP_CALTASK_H
+#ifndef ASKAP_CP_INGEST_CALTASK_H
+#define ASKAP_CP_INGEST_CALTASK_H
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
@@ -40,8 +40,9 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
-class CalTask : public askap::cp::ITask {
+class CalTask : public askap::cp::ingest::ITask {
     public:
 	/// @brief constructor
 	/// @details Initialise calibration task by passing parameters
@@ -100,6 +101,7 @@ class CalTask : public askap::cp::ITask {
 	LOFAR::ParameterSet itsGainsParset;
 };
 
+}
 }
 }
 

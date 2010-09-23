@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_VISSOURCE_H
-#define ASKAP_CP_VISSOURCE_H
+#ifndef ASKAP_CP_INGEST_VISSOURCE_H
+#define ASKAP_CP_INGEST_VISSOURCE_H
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
@@ -39,6 +39,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class VisSource : public IVisSource {
     public:
@@ -51,7 +52,7 @@ class VisSource : public IVisSource {
         void run(void);
 
         // Circular buffer of VisDatagram objects
-        askap::cp::CircularBuffer< VisDatagram > itsBuffer;
+        askap::cp::ingest::CircularBuffer< askap::cp::VisDatagram > itsBuffer;
 
         // Service thread
         boost::shared_ptr<boost::thread> itsThread;
@@ -66,7 +67,8 @@ class VisSource : public IVisSource {
         boost::shared_ptr<VisDatagram> itsRecvBuffer;
 };
 
-};
-};
+}
+}
+}
 
 #endif

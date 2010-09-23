@@ -45,154 +45,147 @@ using namespace casa;
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
-class ChannelAvgTaskTest : public CppUnit::TestFixture
-{
-    CPPUNIT_TEST_SUITE(ChannelAvgTaskTest);
-    CPPUNIT_TEST(testFourToOne);
-    CPPUNIT_TEST(testFiftyFourToOne);
-    CPPUNIT_TEST(testEightToTwo);
-    CPPUNIT_TEST(testFullFineToCoarse);
-    CPPUNIT_TEST(testInvalid);
-    CPPUNIT_TEST_SUITE_END();
+class ChannelAvgTaskTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(ChannelAvgTaskTest);
+        CPPUNIT_TEST(testFourToOne);
+        CPPUNIT_TEST(testFiftyFourToOne);
+        CPPUNIT_TEST(testEightToTwo);
+        CPPUNIT_TEST(testFullFineToCoarse);
+        CPPUNIT_TEST(testInvalid);
+        CPPUNIT_TEST_SUITE_END();
 
     public:
-    void setUp()
-    {
-    };
+        void setUp() {
+        };
 
-    void tearDown()
-    {
-        itsParset.clear();
-    }
-
-    void testFourToOne()
-    {
-        averageTest(4, 4);
-    }
-
-    void testFiftyFourToOne()
-    {
-        averageTest(54, 54);
-    }
-
-    void testEightToTwo()
-    {
-        averageTest(8, 4);
-    }
-
-    void testFullFineToCoarse()
-    {
-        averageTest(304 * 54, 304);
-    }
-
-    void testInvalid()
-    {
-        // This is an invalid configuraion, so should throw an exception
-        CPPUNIT_ASSERT_THROW(averageTest(4, 3), askap::AskapError);
-    }
-
-    void averageTest(const unsigned int nChan, const unsigned int channelAveraging)
-    {
-        // Setup the parset for the channel averaging task
-        std::ostringstream ss;
-        ss << channelAveraging;
-        itsParset.add("averaging", ss.str());
-
-        const unsigned int row = 0;
-        const double startFreq = 1.4 * 1000 * 1000;
-        const double freqInc = 18.5 * 1000;
-        MEpoch starttime(MVEpoch(Quantity(50237.29, "d")),
-                MEpoch::Ref(MEpoch::UTC));
-        MDirection fieldCenter(Quantity( 20, "deg"),
-                               Quantity(-10, "deg"),
-                               MDirection::Ref(MDirection::J2000));
-
-        // Create a simple chunk with 1 row,  nChan channels and 1 pol
-        VisChunk::ShPtr chunk(new VisChunk(1, nChan, 1));
-        chunk->time() = starttime.getValue();
-        chunk->antenna1()(row) = 0;
-        chunk->antenna2()(row) = 1;
-        chunk->beam1()(row) = 0;
-        chunk->beam2()(row) = 0;
-        chunk->beam1PA()(row) = 0.0;
-        chunk->beam2PA()(row) = 0.0;
-        chunk->pointingDir1()(row) = fieldCenter;
-        chunk->pointingDir2()(row) = fieldCenter;
-        chunk->dishPointing1()(row) = fieldCenter;
-        chunk->dishPointing2()(row) = fieldCenter;
-
-        // Determine how many channels will exist after averaging
-        casa::uInt nChanNew = nChan / channelAveraging;
-
-        // To support the "invalid configuration test"
-        if (nChan % channelAveraging != 0) {
-            nChanNew += channelAveraging;
+        void tearDown() {
+            itsParset.clear();
         }
-        
-        // Add the VisChunk is built (below) keep track of the sums
-        // in these vectors so they can later be used to determine
-        // the averages.
-        casa::Vector<casa::Complex> visSum(nChanNew, 0.0);
-        casa::Vector<double> freqSum(nChanNew, 0.0);
 
-        // Add visibilities and unset flag
-        // also keep track of the sums of visibilities and frequencies
-        // for each of the new channels
-        const unsigned int pol = 0;
-        unsigned int newIdx = 0;
-        for (unsigned int chan = 0; chan < nChan; ++chan) {
-            if ((chan != 0) && (chan % channelAveraging == 0)) {
-                newIdx++;
+        void testFourToOne() {
+            averageTest(4, 4);
+        }
+
+        void testFiftyFourToOne() {
+            averageTest(54, 54);
+        }
+
+        void testEightToTwo() {
+            averageTest(8, 4);
+        }
+
+        void testFullFineToCoarse() {
+            averageTest(304 * 54, 304);
+        }
+
+        void testInvalid() {
+            // This is an invalid configuraion, so should throw an exception
+            CPPUNIT_ASSERT_THROW(averageTest(4, 3), askap::AskapError);
+        }
+
+        void averageTest(const unsigned int nChan, const unsigned int channelAveraging) {
+            // Setup the parset for the channel averaging task
+            std::ostringstream ss;
+            ss << channelAveraging;
+            itsParset.add("averaging", ss.str());
+
+            const unsigned int row = 0;
+            const double startFreq = 1.4 * 1000 * 1000;
+            const double freqInc = 18.5 * 1000;
+            MEpoch starttime(MVEpoch(Quantity(50237.29, "d")),
+                             MEpoch::Ref(MEpoch::UTC));
+            MDirection fieldCenter(Quantity(20, "deg"),
+                                   Quantity(-10, "deg"),
+                                   MDirection::Ref(MDirection::J2000));
+
+            // Create a simple chunk with 1 row,  nChan channels and 1 pol
+            VisChunk::ShPtr chunk(new VisChunk(1, nChan, 1));
+            chunk->time() = starttime.getValue();
+            chunk->antenna1()(row) = 0;
+            chunk->antenna2()(row) = 1;
+            chunk->beam1()(row) = 0;
+            chunk->beam2()(row) = 0;
+            chunk->beam1PA()(row) = 0.0;
+            chunk->beam2PA()(row) = 0.0;
+            chunk->pointingDir1()(row) = fieldCenter;
+            chunk->pointingDir2()(row) = fieldCenter;
+            chunk->dishPointing1()(row) = fieldCenter;
+            chunk->dishPointing2()(row) = fieldCenter;
+
+            // Determine how many channels will exist after averaging
+            casa::uInt nChanNew = nChan / channelAveraging;
+
+            // To support the "invalid configuration test"
+            if (nChan % channelAveraging != 0) {
+                nChanNew += channelAveraging;
             }
 
-            casa::Complex val(static_cast<float>(chan + 1),
-                    static_cast<float>(chan + 2));
-            chunk->visibility()(row, chan, pol) = val;
-            visSum(newIdx) += val;
-            chunk->flag()(row, chan, pol) = false;
+            // Add the VisChunk is built (below) keep track of the sums
+            // in these vectors so they can later be used to determine
+            // the averages.
+            casa::Vector<casa::Complex> visSum(nChanNew, 0.0);
+            casa::Vector<double> freqSum(nChanNew, 0.0);
 
-            // Also set frequency information
-            chunk->frequency()(chan) = startFreq + (chan * freqInc);
-            freqSum(newIdx) += chunk->frequency()(chan);
-        }
+            // Add visibilities and unset flag
+            // also keep track of the sums of visibilities and frequencies
+            // for each of the new channels
+            const unsigned int pol = 0;
+            unsigned int newIdx = 0;
 
-        // Check pre-conditions
-        CPPUNIT_ASSERT_EQUAL(nChan, chunk->nChannel());
+            for (unsigned int chan = 0; chan < nChan; ++chan) {
+                if ((chan != 0) && (chan % channelAveraging == 0)) {
+                    newIdx++;
+                }
 
-        // Instantiate the class under test and call process() to
-        // average channels in the VisChunk
-        ChannelAvgTask task(itsParset);
-        task.process(chunk);
+                casa::Complex val(static_cast<float>(chan + 1),
+                                  static_cast<float>(chan + 2));
+                chunk->visibility()(row, chan, pol) = val;
+                visSum(newIdx) += val;
+                chunk->flag()(row, chan, pol) = false;
 
-        // Tolerance for double equality
-        const double tol = 1.0E-10;
+                // Also set frequency information
+                chunk->frequency()(chan) = startFreq + (chan * freqInc);
+                freqSum(newIdx) += chunk->frequency()(chan);
+            }
 
-        // Iterate over each of the new channels
-        for (unsigned int i = 0; i < nChanNew; ++i) {
-            // Determine the values for post-conditions
-            const float realAvg = visSum(i).real() / channelAveraging;
-            const float imagAvg = visSum(i).imag() / channelAveraging;
-            const double freqAvg = freqSum(i) / channelAveraging;
+            // Check pre-conditions
+            CPPUNIT_ASSERT_EQUAL(nChan, chunk->nChannel());
 
-            // Check post-conditions
-            CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
-            CPPUNIT_ASSERT_EQUAL(nChanNew, chunk->nChannel());
-            CPPUNIT_ASSERT_EQUAL(nChanNew,
-                    static_cast<unsigned int>(chunk->frequency().size()));
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(freqAvg, chunk->frequency()(i), tol);
+            // Instantiate the class under test and call process() to
+            // average channels in the VisChunk
+            ChannelAvgTask task(itsParset);
+            task.process(chunk);
 
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(realAvg, chunk->visibility()(row, i, pol).real(), tol);
-            CPPUNIT_ASSERT_DOUBLES_EQUAL(imagAvg, chunk->visibility()(row, i, pol).imag(), tol);
-        }
-    };
+            // Tolerance for double equality
+            const double tol = 1.0E-10;
+
+            // Iterate over each of the new channels
+            for (unsigned int i = 0; i < nChanNew; ++i) {
+                // Determine the values for post-conditions
+                const float realAvg = visSum(i).real() / channelAveraging;
+                const float imagAvg = visSum(i).imag() / channelAveraging;
+                const double freqAvg = freqSum(i) / channelAveraging;
+
+                // Check post-conditions
+                CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
+                CPPUNIT_ASSERT_EQUAL(nChanNew, chunk->nChannel());
+                CPPUNIT_ASSERT_EQUAL(nChanNew,
+                                     static_cast<unsigned int>(chunk->frequency().size()));
+                CPPUNIT_ASSERT_DOUBLES_EQUAL(freqAvg, chunk->frequency()(i), tol);
+
+                CPPUNIT_ASSERT_DOUBLES_EQUAL(realAvg, chunk->visibility()(row, i, pol).real(), tol);
+                CPPUNIT_ASSERT_DOUBLES_EQUAL(imagAvg, chunk->visibility()(row, i, pol).imag(), tol);
+            }
+        };
 
     private:
 
-    LOFAR::ParameterSet itsParset;
+        LOFAR::ParameterSet itsParset;
 
 };
 
+}   // End namespace ingest
 }   // End namespace cp
-
 }   // End namespace askap

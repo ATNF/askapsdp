@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MOCKMETADATASOURCE_H
-#define ASKAP_CP_MOCKMETADATASOURCE_H
+#ifndef ASKAP_CP_INGEST_MOCKMETADATASOURCE_H
+#define ASKAP_CP_INGEST_MOCKMETADATASOURCE_H
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
@@ -36,26 +36,27 @@
 #include "ingestpipeline/sourcetask/test/DequeWrapper.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
+namespace ingest {
 
-        class MockMetadataSource : public askap::cp::IMetadataSource
-        {
-            public:
-                MockMetadataSource();
-                virtual ~MockMetadataSource();
+class MockMetadataSource : public askap::cp::ingest::IMetadataSource {
+    public:
+        MockMetadataSource();
+        virtual ~MockMetadataSource();
 
-                void add(boost::shared_ptr<askap::cp::TosMetadata> obj);
+        void add(boost::shared_ptr<askap::cp::TosMetadata> obj);
 
-                boost::shared_ptr<askap::cp::TosMetadata> next(void);
+        boost::shared_ptr<askap::cp::TosMetadata> next(void);
 
-                // Shared pointer definition
-                typedef boost::shared_ptr<MockMetadataSource> ShPtr;
+        // Shared pointer definition
+        typedef boost::shared_ptr<MockMetadataSource> ShPtr;
 
-            private:
-                DequeWrapper< askap::cp::TosMetadata > itsBuffer;
-        };
-
-    };
+    private:
+        DequeWrapper< askap::cp::TosMetadata > itsBuffer;
 };
+
+}
+}
+}
 
 #endif

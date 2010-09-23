@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_METADATASOURCE_H
-#define ASKAP_CP_METADATASOURCE_H
+#ifndef ASKAP_CP_INGEST_METADATASOURCE_H
+#define ASKAP_CP_INGEST_METADATASOURCE_H
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
@@ -38,10 +38,11 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class MetadataSource :
         virtual public askap::cp::icewrapper::MetadataReceiver,
-            public askap::cp::IMetadataSource {
+            public askap::cp::ingest::IMetadataSource {
     public:
         /// @brief Constructor.
         ///
@@ -82,7 +83,7 @@ class MetadataSource :
 
     private:
         // Circular buffer of metadata objects
-        askap::cp::CircularBuffer< askap::cp::TosMetadata > itsBuffer;
+        askap::cp::ingest::CircularBuffer< askap::cp::TosMetadata > itsBuffer;
 
         // No support for assignment
         MetadataSource& operator=(const MetadataSource& rhs);
@@ -92,7 +93,8 @@ class MetadataSource :
 
 };
 
-};
-};
+}
+}
+}
 
 #endif

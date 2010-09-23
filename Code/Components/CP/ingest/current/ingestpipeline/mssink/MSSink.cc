@@ -57,7 +57,7 @@
 ASKAP_LOGGER(logger, ".MSSink");
 
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::ingest;
 using namespace casa;
 
 //////////////////////////////////

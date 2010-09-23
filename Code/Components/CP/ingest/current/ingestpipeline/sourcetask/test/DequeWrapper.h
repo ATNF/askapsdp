@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_DEQUEWRAPPER_H
-#define ASKAP_CP_DEQUEWRAPPER_H
+#ifndef ASKAP_CP_INGEST_DEQUEWRAPPER_H
+#define ASKAP_CP_INGEST_DEQUEWRAPPER_H
 
 // System includes
 #include <deque>
@@ -36,48 +36,48 @@
 #include "boost/thread/condition.hpp"
 
 namespace askap {
-    namespace cp {
+namespace cp {
+namespace ingest {
 
-        template<class T>
-        class DequeWrapper
-        {
-            public:
-                void add(boost::shared_ptr<T> obj)
-                {
-                    // Add a pointer to the message to the back of the circular burrer
-                    boost::mutex::scoped_lock lock(itsMutex);
-                    itsBuffer.push_back(obj);
+template<class T>
+class DequeWrapper {
+    public:
+        void add(boost::shared_ptr<T> obj) {
+            // Add a pointer to the message to the back of the circular burrer
+            boost::mutex::scoped_lock lock(itsMutex);
+            itsBuffer.push_back(obj);
 
-                    // Notify any waiters
-                    lock.unlock();
-                    itsCondVar.notify_all();
-                };
-
-                boost::shared_ptr<T> next(void)
-                {
-                    boost::mutex::scoped_lock lock(itsMutex);
-                    while (itsBuffer.empty()) {
-                        // While this call sleeps/blocks the mutex is released
-                        itsCondVar.wait(lock);
-                    }
-
-                    // Get the pointer on the front of the circular buffer
-                    boost::shared_ptr<T> obj(itsBuffer.front());
-                    itsBuffer.pop_front();
-
-                    // No need to notify producer. The producer doesn't block because the
-                    // buffer is not bounded
-
-                    return obj;
-                };
-
-            private:
-                std::deque< boost::shared_ptr< T > > itsBuffer;
-                boost::mutex itsMutex;
-                boost::condition itsCondVar;
+            // Notify any waiters
+            lock.unlock();
+            itsCondVar.notify_all();
         };
 
-    };
+        boost::shared_ptr<T> next(void) {
+            boost::mutex::scoped_lock lock(itsMutex);
+
+            while (itsBuffer.empty()) {
+                // While this call sleeps/blocks the mutex is released
+                itsCondVar.wait(lock);
+            }
+
+            // Get the pointer on the front of the circular buffer
+            boost::shared_ptr<T> obj(itsBuffer.front());
+            itsBuffer.pop_front();
+
+            // No need to notify producer. The producer doesn't block because the
+            // buffer is not bounded
+
+            return obj;
+        };
+
+    private:
+        std::deque< boost::shared_ptr< T > > itsBuffer;
+        boost::mutex itsMutex;
+        boost::condition itsCondVar;
 };
+
+}
+}
+}
 
 #endif

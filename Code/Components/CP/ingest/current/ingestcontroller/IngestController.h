@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGESTCONTROLLER_H
-#define ASKAP_CP_INGESTCONTROLLER_H
+#ifndef ASKAP_CP_INGEST_INGESTCONTROLLER_H
+#define ASKAP_CP_INGEST_INGESTCONTROLLER_H
 
 // System includes
 #include <string>
@@ -44,6 +44,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class IngestController : public cms::MessageListener,
     public cms::ExceptionListener {
@@ -120,7 +121,8 @@ class IngestController : public cms::MessageListener,
 
 };
 
-};
-};
+}
+}
+}
 
 #endif

@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CIRCULARBUFFER_H
-#define ASKAP_CP_CIRCULARBUFFER_H
+#ifndef ASKAP_CP_INGEST_CIRCULARBUFFER_H
+#define ASKAP_CP_INGEST_CIRCULARBUFFER_H
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
@@ -36,6 +36,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 /// @brief A simple thread safe circular buffer.
 template<class T>
@@ -132,7 +133,8 @@ class CircularBuffer {
         boost::condition itsCondVar;
 };
 
-};
-};
+}
+}
+}
 
 #endif

@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CHANNELAVGTASK_H
-#define ASKAP_CP_CHANNELAVGTASK_H
+#ifndef ASKAP_CP_INGEST_CHANNELAVGTASK_H
+#define ASKAP_CP_INGEST_CHANNELAVGTASK_H
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
@@ -37,6 +37,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 /// @brief Channel averaging task for the central processor ingest pipeline.
 ///
@@ -48,7 +49,7 @@ namespace cp {
 /// @endverbatim
 /// The above results in 54 channels being averaged to one. Note the number of
 /// channels in the VisChunk must be a multple of this number.
-class ChannelAvgTask : public askap::cp::ITask {
+class ChannelAvgTask : public askap::cp::ingest::ITask {
     public:
         /// @brief Constructor.
         /// @param[in] parset   the parameter set used to configure this task.
@@ -74,6 +75,7 @@ class ChannelAvgTask : public askap::cp::ITask {
         casa::uInt itsAveraging;
 };
 
+}
 }
 }
 

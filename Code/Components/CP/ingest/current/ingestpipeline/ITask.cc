@@ -27,6 +27,6 @@
 // Include own header file first
 #include "ingestpipeline/ITask.h"
 
-askap::cp::ITask::~ITask()
+askap::cp::ingest::ITask::~ITask()
 {
 }

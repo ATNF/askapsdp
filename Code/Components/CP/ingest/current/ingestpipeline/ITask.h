@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ITASK_H
-#define ASKAP_CP_ITASK_H
+#ifndef ASKAP_CP_INGEST_ITASK_H
+#define ASKAP_CP_INGEST_ITASK_H
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
@@ -35,6 +35,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class ITask {
     public:
@@ -59,6 +60,7 @@ class ITask {
 
 };
 
+}
 }
 }
 

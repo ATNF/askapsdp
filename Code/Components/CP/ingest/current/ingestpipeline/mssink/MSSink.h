@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MSSINK_H
-#define ASKAP_CP_MSSINK_H
+#ifndef ASKAP_CP_INGEST_MSSINK_H
+#define ASKAP_CP_INGEST_MSSINK_H
 
 // ASKAPsoft includes
 #include "boost/scoped_ptr.hpp"
@@ -40,10 +40,11 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 /// @brief A sink task for the central processor ingest pipeline which writes
 /// the data out to a measurement set.
-class MSSink : public askap::cp::ITask {
+class MSSink : public askap::cp::ingest::ITask {
     public:
         /// @brief Constructor.
         /// @param[in] parset   the parameter set used to configure this task.
@@ -96,6 +97,7 @@ class MSSink : public askap::cp::ITask {
 
 };
 
+}
 }
 }
 

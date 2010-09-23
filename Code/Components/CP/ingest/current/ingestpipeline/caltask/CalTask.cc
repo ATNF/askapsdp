@@ -46,7 +46,7 @@
 ASKAP_LOGGER(logger, ".CalTask");
 
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 /// @brief constructor
 /// @details Initialise calibration task by passing parameters

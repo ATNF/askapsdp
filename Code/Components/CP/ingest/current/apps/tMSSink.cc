@@ -35,7 +35,7 @@
 #include "ingestpipeline/datadef/VisChunk.h"
 
 // Using
-using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 int main(int argc, char *argv[])
 {

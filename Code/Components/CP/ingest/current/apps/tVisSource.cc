@@ -41,6 +41,7 @@
 
 // Using
 using namespace askap::cp;
+using namespace askap::cp::ingest;
 using boost::asio::ip::udp;
 
 ASKAP_LOGGER(logger, ".tVisSource");

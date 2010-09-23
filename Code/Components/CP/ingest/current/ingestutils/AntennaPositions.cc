@@ -50,7 +50,7 @@ ASKAP_LOGGER(logger, ".AntennaPositions");
 
 using namespace casa;
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 //////////////////////////////////////////
 // Public Methods

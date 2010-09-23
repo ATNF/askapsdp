@@ -39,6 +39,7 @@ using namespace casa;
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class VisChunkTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(VisChunkTest);
@@ -73,39 +74,35 @@ class VisChunkTest : public CppUnit::TestFixture {
 
             // Verify frequency vector
             CPPUNIT_ASSERT_EQUAL(nChans,
-                    static_cast<unsigned int>(chunk->frequency().size()));
+                                 static_cast<unsigned int>(chunk->frequency().size()));
         }
 
-        void testResizeChans()
-        {
+        void testResizeChans() {
             resizeDriver(nRows, nChans, nPols,
-                    nRows, 304, nPols);
+                         nRows, 304, nPols);
         }
 
-        void testResizeRows()
-        {
+        void testResizeRows() {
             CPPUNIT_ASSERT_THROW(
-                    resizeDriver(nRows, nChans, nPols, nRows+1, nChans, nPols),
-                    askap::AskapError);
+                resizeDriver(nRows, nChans, nPols, nRows + 1, nChans, nPols),
+                askap::AskapError);
         }
 
-        void testResizePols()
-        {
+        void testResizePols() {
             CPPUNIT_ASSERT_THROW(
-                    resizeDriver(nRows, nChans, nPols, nRows, nChans, nPols+1),
-                    askap::AskapError);
+                resizeDriver(nRows, nChans, nPols, nRows, nChans, nPols + 1),
+                askap::AskapError);
 
         }
 
 
     private:
         void resizeDriver(const unsigned int initialRows,
-                const unsigned int initialChans,
-                const unsigned int initialPols,
-                const unsigned int newRows,
-                const unsigned int newChans,
-                const unsigned int newPols)
-        {
+                          const unsigned int initialChans,
+                          const unsigned int initialPols,
+                          const unsigned int newRows,
+                          const unsigned int newChans,
+                          const unsigned int newPols) {
             VisChunk::ShPtr chunk(new VisChunk(initialRows, initialChans, initialPols));
 
             // Create and assign the containers
@@ -131,7 +128,7 @@ class VisChunkTest : public CppUnit::TestFixture {
 
             // Verify frequency vector
             CPPUNIT_ASSERT_EQUAL(newChans,
-                    static_cast<unsigned int>(chunk->frequency().size()));
+                                 static_cast<unsigned int>(chunk->frequency().size()));
         }
 
         //
@@ -153,6 +150,6 @@ const unsigned int VisChunkTest::nRows;
 const unsigned int VisChunkTest::nChans;
 const unsigned int VisChunkTest::nPols;
 
+}   // End namespace ingest
 }   // End namespace cp
-
 }   // End namespace askap

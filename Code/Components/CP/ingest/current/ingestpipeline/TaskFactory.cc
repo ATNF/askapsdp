@@ -51,7 +51,7 @@
 ASKAP_LOGGER(logger, ".TaskFactory");
 
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 TaskFactory::TaskFactory(const LOFAR::ParameterSet& configParset)
     : itsConfigParset(configParset)

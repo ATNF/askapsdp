@@ -39,6 +39,7 @@
 
 using namespace askap;
 using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 MockVisSource::MockVisSource()
 {

@@ -56,7 +56,7 @@ ASKAP_LOGGER(logger, ".CalcUVWTask");
 
 using namespace casa;
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset)
 {

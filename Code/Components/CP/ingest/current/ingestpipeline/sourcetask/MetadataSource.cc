@@ -40,6 +40,7 @@ ASKAP_LOGGER(logger, ".MetadataSource");
 
 using namespace askap;
 using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 MetadataSource::MetadataSource(const std::string& locatorHost,
         const std::string& locatorPort,

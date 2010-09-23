@@ -1,3 +1,6 @@
+/// The central processor ingest package namespace.
+namespace askap::cp::ingest {};
+
 /// @mainpage ASKAP Central Processor Ingest Pipeline
 ///
 /// @section cpingest_intro Introduction

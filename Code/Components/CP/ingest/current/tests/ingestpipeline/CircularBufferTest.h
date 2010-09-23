@@ -33,76 +33,73 @@
 // Classes to test
 #include "ingestpipeline/sourcetask/CircularBuffer.h"
 
-namespace askap
-{
-    namespace cp
-    {
-        class CircularBufferTest : public CppUnit::TestFixture
-        {
-            CPPUNIT_TEST_SUITE(CircularBufferTest);
-            CPPUNIT_TEST(testSingle);
-            CPPUNIT_TEST(testMultiple);
-            CPPUNIT_TEST(testOverflow);
-            CPPUNIT_TEST(testTimeout);
-            CPPUNIT_TEST_SUITE_END();
+namespace askap {
+namespace cp {
+namespace ingest {
 
-            public:
-            // Test the addition and retrieval of a single pointer
-            void testSingle()
-            {
-                CircularBuffer<int> instance(2);
-                boost::shared_ptr<int> inPtr(new int);
-                *inPtr = 1;
-                instance.add(inPtr);
+class CircularBufferTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(CircularBufferTest);
+        CPPUNIT_TEST(testSingle);
+        CPPUNIT_TEST(testMultiple);
+        CPPUNIT_TEST(testOverflow);
+        CPPUNIT_TEST(testTimeout);
+        CPPUNIT_TEST_SUITE_END();
 
-                boost::shared_ptr<int> outPtr(instance.next());
-                CPPUNIT_ASSERT_EQUAL(*inPtr, *outPtr);
-            };
+    public:
+        // Test the addition and retrieval of a single pointer
+        void testSingle() {
+            CircularBuffer<int> instance(2);
+            boost::shared_ptr<int> inPtr(new int);
+            *inPtr = 1;
+            instance.add(inPtr);
 
-            // Test the addition and retrieval of a large number of pointers
-            void testMultiple()
-            {
-                const int count = 1024 * 1024;
-                CircularBuffer<int> instance(count);
-                for (int i = 0; i < count; ++i) {
-                    boost::shared_ptr<int> inPtr(new int);
-                    *inPtr = count;
-                    instance.add(inPtr);
-                }
-
-                for (int i = 0; i < count; ++i) {
-                    boost::shared_ptr<int> outPtr(instance.next());
-                    CPPUNIT_ASSERT_EQUAL(count, *outPtr);
-                }
-            };
-
-            // Test the addition of more pointers than the buffer has capacity
-            // to handle
-            void testOverflow()
-            {
-                const int count = 1024;
-                CircularBuffer<int> instance(10);
-                for (int i = 0; i < count; ++i) {
-                    boost::shared_ptr<int> inPtr(new int);
-                    *inPtr = count;
-                    instance.add(inPtr);
-                }
-            };
-
-            // Test the timeout parameter. Just make sure this does not block
-            // forever.
-            void testTimeout()
-            {
-                const long timeout = 10; // milliseconds
-                CircularBuffer<int> instance(2);
-
-                boost::shared_ptr<int> outPtr(instance.next(timeout));
-                CPPUNIT_ASSERT(outPtr.get() == 0);
-            };
-
-
+            boost::shared_ptr<int> outPtr(instance.next());
+            CPPUNIT_ASSERT_EQUAL(*inPtr, *outPtr);
         };
 
-    }   // End namespace cp
+        // Test the addition and retrieval of a large number of pointers
+        void testMultiple() {
+            const int count = 1024 * 1024;
+            CircularBuffer<int> instance(count);
 
+            for (int i = 0; i < count; ++i) {
+                boost::shared_ptr<int> inPtr(new int);
+                *inPtr = count;
+                instance.add(inPtr);
+            }
+
+            for (int i = 0; i < count; ++i) {
+                boost::shared_ptr<int> outPtr(instance.next());
+                CPPUNIT_ASSERT_EQUAL(count, *outPtr);
+            }
+        };
+
+        // Test the addition of more pointers than the buffer has capacity
+        // to handle
+        void testOverflow() {
+            const int count = 1024;
+            CircularBuffer<int> instance(10);
+
+            for (int i = 0; i < count; ++i) {
+                boost::shared_ptr<int> inPtr(new int);
+                *inPtr = count;
+                instance.add(inPtr);
+            }
+        };
+
+        // Test the timeout parameter. Just make sure this does not block
+        // forever.
+        void testTimeout() {
+            const long timeout = 10; // milliseconds
+            CircularBuffer<int> instance(2);
+
+            boost::shared_ptr<int> outPtr(instance.next(timeout));
+            CPPUNIT_ASSERT(outPtr.get() == 0);
+        };
+
+
+};
+
+}   // End namespace ingest
+}   // End namespace cp
 }   // End namespace askap

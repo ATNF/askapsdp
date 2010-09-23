@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ICONFIGURATION_H
-#define ASKAP_CP_ICONFIGURATION_H
+#ifndef ASKAP_CP_INGEST_ICONFIGURATION_H
+#define ASKAP_CP_INGEST_ICONFIGURATION_H
 
 // System includes
 #include <string>
@@ -42,6 +42,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
     class IConfiguration
     {
@@ -71,7 +72,8 @@ namespace cp {
 
     };
 
-};
-};
+}
+}
+}
 
 #endif

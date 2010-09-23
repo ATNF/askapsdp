@@ -46,7 +46,7 @@
 ASKAP_LOGGER(logger, ".MergedSource");
 
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 MergedSource::MergedSource(IMetadataSource::ShPtr metadataSrc, IVisSource::ShPtr visSrc) :
     itsMetadataSrc(metadataSrc), itsVisSrc(visSrc)

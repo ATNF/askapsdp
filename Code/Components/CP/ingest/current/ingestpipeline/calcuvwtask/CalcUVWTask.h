@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CALCUVWTASK_H
-#define ASKAP_CP_CALCUVWTASK_H
+#ifndef ASKAP_CP_INGEST_CALCUVWTASK_H
+#define ASKAP_CP_INGEST_CALCUVWTASK_H
 
 // ASKAPsoft includes
 #include "boost/scoped_ptr.hpp"
@@ -41,6 +41,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 /// @brief UVW coordinate calculator task for the central processor ingest
 /// pipeline.
@@ -72,7 +73,7 @@ namespace cp {
 /// Once data is sourced into the pipeline, the process() method is called
 /// for each task (in a specific sequence), the VisChunk is read and/or modified
 /// by each task.
-class CalcUVWTask : public askap::cp::ITask {
+class CalcUVWTask : public askap::cp::ingest::ITask {
     public:
 
         /// @breif Constructor.
@@ -118,6 +119,7 @@ class CalcUVWTask : public askap::cp::ITask {
         casa::Vector< casa::RigidVector<double, 2> > itsBeamOffset;
 };
 
+}
 }
 }
 

@@ -28,7 +28,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 // Support classes
- #include "askap/AskapError.h"
+#include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
 #include "ingestpipeline/datadef/VisChunk.h"
 #include "measures/Measures.h"
@@ -44,6 +44,7 @@ using namespace casa;
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class CalcUVWTaskTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(CalcUVWTaskTest);
@@ -95,16 +96,16 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
 
         void testInvalidAntenna() {
             CPPUNIT_ASSERT_THROW(
-                    //       ant1, ant2, beam,    u,   v,   w
-                    testDriver(7,    0,    0,    0.0, 0.0, 0.0),
-                    askap::AskapError);
+                //       ant1, ant2, beam,    u,   v,   w
+                testDriver(7,    0,    0,    0.0, 0.0, 0.0),
+                askap::AskapError);
         }
 
         void testInvalidBeam() {
             CPPUNIT_ASSERT_THROW(
-                    //      ant1, ant2, beam,    u,   v,   w
-                    testDriver(0,    0,    4,    0.0, 0.0, 0.0),
-                    askap::AskapError);
+                //      ant1, ant2, beam,    u,   v,   w
+                testDriver(0,    0,    4,    0.0, 0.0, 0.0),
+                askap::AskapError);
         }
 
         void testDriver(const unsigned int antenna1,
@@ -157,6 +158,6 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
 
 };
 
+}   // End namespace ingest
 }   // End namespace cp
-
 }   // End namespace askap

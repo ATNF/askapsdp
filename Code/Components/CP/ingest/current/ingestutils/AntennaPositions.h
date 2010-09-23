@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ANTENNAPOSITIONS_H
-#define ASKAP_CP_ANTENNAPOSITIONS_H
+#ifndef ASKAP_CP_INGEST_ANTENNAPOSITIONS_H
+#define ASKAP_CP_INGEST_ANTENNAPOSITIONS_H
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
@@ -35,6 +35,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 /// @brief A utility class to help convert antenna positions as described by
 /// a parameter set to a casa::Matrix.
@@ -96,6 +97,7 @@ class AntennaPositions {
         casa::Matrix<double> itsAntXYZ;
 };
 
+}
 }
 }
 

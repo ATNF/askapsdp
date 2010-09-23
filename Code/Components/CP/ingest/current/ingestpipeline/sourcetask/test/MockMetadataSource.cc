@@ -31,8 +31,8 @@
 #include "boost/shared_ptr.hpp"
 #include "cpcommon/TosMetadata.h"
 
-
 using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 MockMetadataSource::MockMetadataSource()
 {

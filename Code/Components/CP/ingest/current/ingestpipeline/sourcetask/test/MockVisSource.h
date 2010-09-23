@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MOCKVISSOURCE_H
-#define ASKAP_CP_MOCKVISSOURCE_H
+#ifndef ASKAP_CP_INGEST_MOCKVISSOURCE_H
+#define ASKAP_CP_INGEST_MOCKVISSOURCE_H
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
@@ -36,26 +36,27 @@
 #include "ingestpipeline/sourcetask/test/DequeWrapper.h"
 
 namespace askap {
-    namespace cp {
+namespace cp {
+namespace ingest {
 
-        class MockVisSource : public askap::cp::IVisSource
-        {
-            public:
-                MockVisSource();
-                virtual ~MockVisSource();
+class MockVisSource : public askap::cp::ingest::IVisSource {
+    public:
+        MockVisSource();
+        virtual ~MockVisSource();
 
-                void add(boost::shared_ptr< VisDatagram > obj);
+        void add(boost::shared_ptr< askap::cp::VisDatagram > obj);
 
-                boost::shared_ptr< VisDatagram > next(const long timeout = -1);
+        boost::shared_ptr< VisDatagram > next(const long timeout = -1);
 
-                // Shared pointer definition
-                typedef boost::shared_ptr<MockVisSource> ShPtr;
+        // Shared pointer definition
+        typedef boost::shared_ptr<MockVisSource> ShPtr;
 
-            private:
-                DequeWrapper< VisDatagram > itsBuffer;
-        };
-
-    };
+    private:
+        DequeWrapper< askap::cp::VisDatagram > itsBuffer;
 };
+
+}
+}
+}
 
 #endif

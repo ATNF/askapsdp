@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_TASKFACTORY_H
-#define ASKAP_CP_TASKFACTORY_H
+#ifndef ASKAP_CP_INGEST_TASKFACTORY_H
+#define ASKAP_CP_INGEST_TASKFACTORY_H
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
@@ -36,6 +36,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class TaskFactory {
     public:
@@ -76,7 +77,8 @@ class TaskFactory {
         const LOFAR::ParameterSet itsConfigParset;
 };
 
-};
-};
+}
+}
+}
 
 #endif

@@ -43,7 +43,7 @@
 ASKAP_LOGGER(logger, ".ChannelAvgTask");
 
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::ingest;
 
 ChannelAvgTask::ChannelAvgTask(const LOFAR::ParameterSet& parset) :
     itsParset(parset)

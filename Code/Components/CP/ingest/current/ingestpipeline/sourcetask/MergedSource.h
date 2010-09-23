@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MERGEDSOURCE_H
-#define ASKAP_CP_MERGEDSOURCE_H
+#ifndef ASKAP_CP_INGEST_MERGEDSOURCE_H
+#define ASKAP_CP_INGEST_MERGEDSOURCE_H
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
@@ -39,6 +39,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class MergedSource {
     public:
@@ -78,6 +79,7 @@ class MergedSource {
 
 };
 
+}
 }
 }
 

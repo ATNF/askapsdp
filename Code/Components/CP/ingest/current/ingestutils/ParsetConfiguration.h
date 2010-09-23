@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PARSETCONFIGURATION_H
-#define ASKAP_CP_PARSETCONFIGURATION_H
+#ifndef ASKAP_CP_INGEST_PARSETCONFIGURATION_H
+#define ASKAP_CP_INGEST_PARSETCONFIGURATION_H
 
 // System includes
 #include <string>
@@ -43,6 +43,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class ParsetConfiguration : public IConfiguration {
     public:
@@ -77,6 +78,7 @@ class ParsetConfiguration : public IConfiguration {
         const LOFAR::ParameterSet itsParset;
 };
 
+}
 }
 }
 

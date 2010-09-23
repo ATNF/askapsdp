@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGESTPIPELINE_H
-#define ASKAP_CP_INGESTPIPELINE_H
+#ifndef ASKAP_CP_INGEST_INGESTPIPELINE_H
+#define ASKAP_CP_INGEST_INGESTPIPELINE_H
 
 // System includes
 #include <vector>
@@ -40,6 +40,7 @@
 
 namespace askap {
 namespace cp {
+namespace ingest {
 
 class IngestPipeline {
     public:
@@ -90,7 +91,8 @@ class IngestPipeline {
         IngestPipeline(const IngestPipeline& src);
 };
 
-};
-};
+}
+}
+}
 
 #endif
