@@ -57,7 +57,8 @@ namespace eventchannel {
         public:
             /// @brief Get a reference to the singleton instance of the
             /// EventChannelConnection.
-            /// @returns a reference to the singleton instance of the
+            ///
+            /// @return a reference to the singleton instance of the
             /// EventChannelConnection.
             static EventChannelConnection& getSingletonInstance(void);
 
@@ -66,8 +67,7 @@ namespace eventchannel {
             ///
             /// @param[in] brokerURI    the URI used to identify and connect to
             /// the broker.
-            ///
-            /// @returns a reference to the newely created singleton instance
+            /// @return a reference to the newely created singleton instance
             /// of the EventChannelConnection.
             static EventChannelConnection& createSingletonInstance(const std::string& brokerURI);
 
@@ -75,16 +75,27 @@ namespace eventchannel {
             ~EventChannelConnection();
 
             /// @brief Create an event channel producer object.
+            /// @param[in] dest the destination to which the EventProducer is
+            ///                 attached.
+            /// @return a shared pointer to the EventProducer object.
             EventProducerSharedPtr createEventChannelProducer(EventDestination& dest);
 
             /// @brief Create an event channel consumer object.
+            /// @param[in] dest the destination to which the EventConsumer is
+            ///                 attached.
+            /// @return a shared pointer to the EventConsumer object.
             EventConsumerSharedPtr createEventChannelConsumer(EventDestination& dest);
 
             /// @brief Create an event channel destination.
+            ///
+            /// @param[in] name the name of the topic or queue (i.e. its identifier).
+            /// @param[in] type the type of the destination (either topic or queue).
+            /// @return a shared pointer to the destination object.
             EventDestinationSharedPtr createEventDestination(const std::string& name,
                     EventDestination::DestinationType type);
 
             /// @brief Create an event channel event
+            /// @return a shared pointer to the EventMessage object.
             EventMessageSharedPtr createEventMessage(void);
 
         protected:
@@ -92,6 +103,7 @@ namespace eventchannel {
             /// @brief This is an implementation concept. It is the method
             /// via which the client (i.e. this class) is notified of an
             /// exception condition with the CMS provider.
+            /// @internal
             virtual void onException(const cms::CMSException &ex);
 
         private:

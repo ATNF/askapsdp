@@ -81,6 +81,7 @@ class EventConsumer : protected cms::MessageListener {
         /// @brief This is an implementation concept. It is the method
         /// via which the client (i.e. this class) is delivered new messages
         /// from the event channel.
+        /// @internal
         virtual void onMessage(const cms::Message *message);
 
     private:

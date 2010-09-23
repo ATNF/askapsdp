@@ -1,0 +1,50 @@
+/// The event channel package namespace.
+namespace askap::cp::eventchannel {};
+
+/// @mainpage ASKAP Central Processor Event Channel Package
+///
+/// @section eventchannel_intro Introduction
+/// The event channel package provides channels of communication within the 
+/// central processor. The central processor is a distributed system consisting
+/// of many components. The event channel framework provides publish/subscribe
+/// style communications channels for events to be propagated between these
+/// components.
+///
+/// More specifically, it was designed for inter-pipeline messaging. Examples of
+/// such messages are:
+/// @li Calibration pipeline advising a new calibration solution is available
+/// @li Ingest pipeline advising new measurement sets have been created
+/// @li Transient Detector Pipeline advising of a transient detection
+///
+/// Example usage of this framework:
+///
+/// For either a producer or consumer of events, an event channel connection
+/// needs to be obtained and a destination object created.
+/// @code
+/// EventChannelConnection& conn = EventChannelConnection::createSingletonInstance("tcp://127.0.0.1:61616");
+/// EventDestinationSharedPtr dest = conn.createEventDestination("tEventChannel_topic", EventDestination::TOPIC);
+/// @endcode
+///
+/// The second argument to the createEventDestination() call is an important
+/// consideration and the EventDestination documentation should be read
+/// to understand the implications of selecting either destination type.
+///
+/// To produce events an EventProducer object must be created and is bound to
+/// a given destination. Then an event can be created and sent:
+/// @code
+/// EventProducerSharedPtr producer = conn.createEventChannelProducer(*dest);
+/// EventMessageSharedPtr event = conn.createEventMessage();
+/// producer->send(*event);
+/// @endcode
+///
+/// To consume (receive) events an EventConsumer object must be created, from
+/// which EventMessages can be received:
+/// @code
+/// EventConsumerSharedPtr consumer = conn.createEventChannelConsumer(*dest);
+/// EventMessageSharedPtr incoming = consumer->receive();
+/// @endcode
+///
+/// The EventConsumer class provides support for both blocking and non-blocking
+/// receives.
+///
+/// @copyright 2010 ASKAP, All Rights Reserved.

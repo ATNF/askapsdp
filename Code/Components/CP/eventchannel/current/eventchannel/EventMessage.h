@@ -36,11 +36,11 @@
 #include "boost/scoped_ptr.hpp"
 #include "cms/MapMessage.h"
 
-
 namespace askap {
 namespace cp {
 namespace eventchannel {
 
+/// @brief Encapsulates a message to be sent or received via the event channel.
 class EventMessage {
     public:
 

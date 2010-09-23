@@ -1,8 +1,8 @@
 /// @file tEventChannel.cc
 ///
 /// @description
-/// This program snoops the metadata stream being published by the telescope
-/// operating system (TOS), decodes the output and writes it to stdout.
+/// This program executed a very simple testcase for the central processor
+/// event channel.
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)

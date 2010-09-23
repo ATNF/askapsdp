@@ -39,9 +39,21 @@ namespace askap {
 namespace cp {
 namespace eventchannel {
 
+/// @brief A Destination object encapsulates an abstraction (either topic or
+/// queue) to which events may be sent of received from.
+///
+/// A destination may be either a topic or a queue:
+/// @li Topics implement publish and subscribe semantics. When you publish a
+/// message it goes to all the subscribers.
+///
+/// @li Queues implement load balancer semantics. A single message will be received
+/// by exactly one consumer. If there are no consumers available at the time the
+/// message is sent it will be kept until a consumer is available that can
+/// process the message. 
 class EventDestination {
     public:
 
+        /// @brief Destination enumeration.
         enum DestinationType {
             TOPIC,
             QUEUE
@@ -50,6 +62,8 @@ class EventDestination {
         /// @brief Destructor
         ~EventDestination();
 
+        /// @brief returns the type of the destination.
+        /// @return the type of the destination.
         DestinationType getType(void);
 
     private:
