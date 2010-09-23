@@ -60,4 +60,4 @@ namespace askap {};
 /// @todo Needs to be implemented on top of std::cout for platforms where log4cxx
 /// doesn't build 
 ///
-/// @copyright 2007 ASKAP, All Rights Reserved.
+/// @copyright 2007 CSIRO, All Rights Reserved.

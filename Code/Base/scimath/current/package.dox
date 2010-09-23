@@ -16,5 +16,4 @@ namespace askap::scimath {};
 /// @li @ref fitting
 /// @li @ref utils
 ///
-/// @copyright 2007 ASKAP, All Rights Reserved.
-
+/// @copyright 2007 CSIRO, All Rights Reserved.

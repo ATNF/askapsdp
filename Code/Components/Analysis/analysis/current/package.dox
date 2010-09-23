@@ -51,4 +51,4 @@ namespace askap::analysis::sourcefitting {};
 /// @li @ref sourcefitting
 /// @li @ref patternmatching
 ///
-/// @copyright 2007 ASKAP, All Rights Reserved.
+/// @copyright 2007 CSIRO, All Rights Reserved.

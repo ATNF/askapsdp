@@ -47,4 +47,4 @@ namespace askap::cp::eventchannel {};
 /// The EventConsumer class provides support for both blocking and non-blocking
 /// receives.
 ///
-/// @copyright 2010 ASKAP, All Rights Reserved.
+/// @copyright 2010 CSIRO, All Rights Reserved.
