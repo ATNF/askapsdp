@@ -85,7 +85,8 @@ def BuildTree(path, partial_paths, old_indent):
             partial_paths.add(p)
             indent = len(p.split('/'))
             if indent < old_indent:
-                index += TAB*old_indent + "</ul>\n"
+                for i in reversed(range(indent+1, old_indent+1)):
+                    index += TAB*i + "</ul>\n"
             index += TAB*indent + "<li> %s </li>\n" % comp
             index += TAB*(indent+1) + "<ul>\n"
     return index
@@ -119,16 +120,18 @@ def CopyDocs(doc_type, doc_loc, find_term):
     index = INDEX_HEAD % (doc_type.capitalize(), doc_type)
     index += TAB*2 + "<ul>\n" # Start indented under '<h3> Packages </h3>'
 
-    # PKGS is a file like object which contains a list of paths to the
+    # os.popen() is a file like object which contains a list of paths to the
     # package level which should contain documentation of specified type. e.g.
     # /tmp/ASKAPsoft/Code/Base/py-loghandlers
     # /tmp/ASKAPsoft/Code/Base/py-parset
 
+    PKGS = []
     sed_term = "/%s/%s" % (doc_loc, find_term)
-    cmd = 'find %s -name %s | sed "s#%s##"' % (CODE, find_term, sed_term)
-    if DEBUG:
-        print '     ', cmd
-    PKGS = os.popen(cmd)
+    for subdir in ['Base', 'Interfaces', 'Components', 'Systems']:
+        cmd = 'find %s/%s -name %s | sed "s#%s##"' % (CODE, subdir, find_term, sed_term)
+        if DEBUG:
+            print '     ', cmd
+        PKGS += os.popen(cmd).readlines()
 
     for pkgpath in PKGS:
         pkgpath = pkgpath.strip() # Needed for next line to work correctly.
@@ -142,8 +145,6 @@ def CopyDocs(doc_type, doc_loc, find_term):
             old_indent = indent
             index += BuildTree(subtree, partial_paths, old_indent)
             indent = len(subtree.split('/')) + 1
-            if old_indent > indent: # have moved back up one or more levels.
-                index += TAB*old_indent + "</ul>\n"
             index += TAB*indent + \
                     '<li><a href="%s"> %s </a></li>\n' % (subtree, pkg)
             if DEBUG:
@@ -164,12 +165,12 @@ def CopyDocs(doc_type, doc_loc, find_term):
     # Add the tail to the index file and write out so that it can
     # be scp to remote destination.
     index += INDEX_TAIL % (today.strftime("%d %b %Y"), today.year)
-    f = open('/tmp/index.html', 'w')
-    f.write(index)
-    f.close()
     if DEBUG:
         print '\n\n', index
     else:
+        f = open('/tmp/index.html', 'w')
+        f.write(index)
+        f.close()
         os.system("%s && scp /tmp/index.html %s:%s/%s; %s" %
                   (PRE_SSH, RHOST, TARGET, doc_type, POST_SSH))
 
