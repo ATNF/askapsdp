@@ -36,7 +36,7 @@
 
 // Using
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::manager;
 using namespace askap::interfaces::cp;
 
 ASKAP_LOGGER(logger, ".ObsService");

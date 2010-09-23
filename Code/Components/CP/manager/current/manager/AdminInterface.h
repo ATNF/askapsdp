@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ADMININTERFACE_H
-#define ASKAP_CP_ADMININTERFACE_H
+#ifndef ASKAP_CP_MANAGER_ADMININTERFACE_H
+#define ASKAP_CP_MANAGER_ADMININTERFACE_H
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"
@@ -38,6 +38,7 @@
 
 namespace askap {
 namespace cp {
+namespace manager {
 
 /// @brief This class implements the Central Processing component
 /// administration interface.
@@ -81,6 +82,7 @@ class AdminInterface : public askap::interfaces::component::IComponent {
         AdminInterface(const AdminInterface& src);
 };
 
+}
 }
 }
 

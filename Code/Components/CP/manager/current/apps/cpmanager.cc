@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
     try {
         Ice::CommunicatorPtr ic = Ice::initialize(argc, argv);
-        askap::cp::AdminInterface manager(ic);
+        askap::cp::manager::AdminInterface manager(ic);
         manager.run();
     } catch (const askap::AskapError& e) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
