@@ -1,3 +1,6 @@
+/// The Central processor manager package namespace.
+namespace askap::cp::manager {};
+
 /// @mainpage ASKAP Central Processor Manager
 ///
 /// @section cpmanager_intro Introduction
