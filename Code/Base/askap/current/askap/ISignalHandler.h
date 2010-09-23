@@ -26,14 +26,16 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 ///
 
-#ifndef ASKAP_SIGNALHANDLER_H
-#define ASKAP_SIGNALHANDLER_H
+#ifndef ASKAP_ISIGNALHANDLER_H
+#define ASKAP_ISIGNALHANDLER_H
 
 // System includes
 #include <csignal>
 
 namespace askap {
 
+    /// @brief An interface which must be implemented by all signal handlers
+    /// which register with the SignalManagerSingleton.
     class ISignalHandler {
         public:
 

@@ -38,8 +38,8 @@
 
 namespace askap {
 
-    /// A simple object-oriented wrapper around the standard ANSI C signal
-    /// mechanism.
+    /// @brief A simple object-oriented wrapper around the standard ANSI C
+    /// signal mechanism.
     class SignalManagerSingleton {
         public:
             /// @brief Obtain the singleton instance of the signal manager.

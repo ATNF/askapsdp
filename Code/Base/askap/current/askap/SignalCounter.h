@@ -1,5 +1,5 @@
 /// @file SignalCounter.h
-/// @brief
+/// @brief A simple signal handler which counts signals recieved.
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -33,17 +33,34 @@
 
 namespace askap {
 
+    /// @brief A simple signal handler which counts signals recieved.
     class SignalCounter : public ISignalHandler {
         public:
+            /// Constructor
             SignalCounter();
+
+            /// Destructor
             virtual ~SignalCounter();
 
+            /// @brief Callback function which is called upon receipt of
+            /// a signal.
+            /// @param[in] signum   the signal number of the signal which resulted
+            ///                     in this callback being called. See manpage
+            ///                     signal(3) for a list of signal numbers and
+            ///                     their meaning.
             virtual void handleSignal(int signum);
 
+            /// @brief Get the number of times the signal has been received.
+            /// @return the number of times the signal was received since this
+            /// object was registered with the signal handler, or since the
+            /// last call to resetCount().
             unsigned long getCount(void);
+
+            /// @brief Reset the counter. (i.e. set to zero).
             void resetCount(void);
 
         private:
+            // Count for number of signals received
             unsigned long itsCount;
     };
 
