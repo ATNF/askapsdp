@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_IPORT_H
-#define ASKAP_CP_IPORT_H
+#ifndef ASKAP_CP_ICEWRAPPER_IPORT_H
+#define ASKAP_CP_ICEWRAPPER_IPORT_H
 
 // System includes
 #include <string>
@@ -35,6 +35,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief An interface for the InputPort and Outport classes.
 ///
@@ -79,6 +80,7 @@ class IPort {
         typedef boost::shared_ptr<IPort> ShPtr;
 };
 
+}
 }
 }
 

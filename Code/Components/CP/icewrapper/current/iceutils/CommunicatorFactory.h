@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_COMMUNICATORFACTORY_H
-#define ASKAP_CP_COMMUNICATORFACTORY_H
+#ifndef ASKAP_CP_ICEWRAPPER_COMMUNICATORFACTORY_H
+#define ASKAP_CP_ICEWRAPPER_COMMUNICATORFACTORY_H
 
 // System includes
 #include <string>
@@ -39,6 +39,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief Creates instances of Ice::Communicator given a configuration
 /// object.
@@ -58,6 +59,7 @@ class CommunicatorFactory {
             const CommunicatorConfig& config);
 };
 
+}
 }
 }
 

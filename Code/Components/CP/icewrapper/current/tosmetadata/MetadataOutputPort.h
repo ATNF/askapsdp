@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_METADATAOUTPUTPORT_H
-#define ASKAP_CP_METADATAOUTPUTPORT_H
+#ifndef ASKAP_CP_ICEWRAPPER_METADATAOUTPUTPORT_H
+#define ASKAP_CP_ICEWRAPPER_METADATAOUTPUTPORT_H
 
 // System includes
 #include <string>
@@ -42,6 +42,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief A class which can be used to send instance of TosMetadata to
 /// an IceStorm topic.
@@ -85,6 +86,7 @@ class MetadataOutputPort {
         askap::interfaces::datapublisher::ITimeTaggedTypedValueMapPublisherPrx itsProxy;
 };
 
+}
 }
 }
 

@@ -35,7 +35,7 @@
 #include "Ice/Ice.h"
 
 // Using
-using namespace askap::cp;
+using namespace askap::cp::icewrapper;
 
 CommunicatorConfig::CommunicatorConfig(const std::string& locatorHost,
         const std::string& locatorPort)

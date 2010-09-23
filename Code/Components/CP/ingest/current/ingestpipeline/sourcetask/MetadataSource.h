@@ -40,7 +40,8 @@ namespace askap {
 namespace cp {
 
 class MetadataSource :
-            virtual public askap::cp::MetadataReceiver, public askap::cp::IMetadataSource {
+        virtual public askap::cp::icewrapper::MetadataReceiver,
+            public askap::cp::IMetadataSource {
     public:
         /// @brief Constructor.
         ///

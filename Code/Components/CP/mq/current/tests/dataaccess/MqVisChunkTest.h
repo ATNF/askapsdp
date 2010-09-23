@@ -43,6 +43,7 @@ using namespace casa;
 
 namespace askap {
 namespace cp {
+namespace mq {
 
 class MqVisChunkTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(MqVisChunkTest);
@@ -199,6 +200,8 @@ class MqVisChunkTest : public CppUnit::TestFixture {
 const unsigned int MqVisChunkTest::nRows;
 const unsigned int MqVisChunkTest::nChans;
 const unsigned int MqVisChunkTest::nPols;
+
+}   // End namespace mq
 
 }   // End namespace cp
 

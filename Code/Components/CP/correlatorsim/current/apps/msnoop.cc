@@ -48,7 +48,7 @@
 #include "CommonTypes.h"
 #include "TypedValues.h"
 
-using namespace askap::cp;
+using namespace askap::cp::icewrapper;
 using namespace askap::interfaces;
 using namespace askap::interfaces::datapublisher;
 

@@ -43,7 +43,7 @@
 
 // Using
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::mq;
 
 /// Print the usage message
 /// @param[in] argv0    the program name, typically from argv[0]

@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_RAWMETADATARECEIVER_H
-#define ASKAP_CP_RAWMETADATARECEIVER_H
+#ifndef ASKAP_CP_ICEWRAPPER_RAWMETADATARECEIVER_H
+#define ASKAP_CP_ICEWRAPPER_RAWMETADATARECEIVER_H
 
 // System includes
 #include <string>
@@ -39,6 +39,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief A class used to receive a raw TimeTaggedTypedValueMap (via a
 /// callback) from an IceStorm topic.
@@ -94,6 +95,7 @@ class RawMetadataReceiver :
 
 };
 
+}
 }
 }
 

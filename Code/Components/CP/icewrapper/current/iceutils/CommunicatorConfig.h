@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_COMMUNICATORCONFIG_H
-#define ASKAP_CP_COMMUNICATORCONFIG_H
+#ifndef ASKAP_CP_ICEWRAPPER_COMMUNICATORCONFIG_H
+#define ASKAP_CP_ICEWRAPPER_COMMUNICATORCONFIG_H
 
 // System includes
 #include <string>
@@ -36,6 +36,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief The class encapsulates a set of configuration options
 /// for configuring the Ice communicator.
@@ -88,6 +89,7 @@ class CommunicatorConfig {
         std::map<std::string, std::string> itsProperties;
 };
 
+}
 }
 }
 

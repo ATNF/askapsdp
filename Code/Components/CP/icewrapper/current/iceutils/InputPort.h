@@ -44,6 +44,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief A templated input port for an IceStorm subscription.
 ///
@@ -199,7 +200,8 @@ class InputPort : public IPort, public S {
         boost::condition itsCondVar;
 };
 
-};
-};
+}
+}
+}
 
 #endif

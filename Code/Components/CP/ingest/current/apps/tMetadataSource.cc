@@ -42,6 +42,7 @@
 
 // Using
 using namespace askap::cp;
+using namespace askap::cp::icewrapper;
 
 ASKAP_LOGGER(logger, ".tMetadataSource");
 

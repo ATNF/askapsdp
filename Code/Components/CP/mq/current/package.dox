@@ -1,3 +1,6 @@
+/// The mq package namespace.
+namespace askap::cp::mq {};
+
 /// @mainpage ASKAP Central Processor Message Queue Interface Package
 ///
 /// @section cpmq_intro Introduction

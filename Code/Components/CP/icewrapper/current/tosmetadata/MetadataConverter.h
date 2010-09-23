@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_METADATACONVERTER_H
-#define ASKAP_CP_METADATACONVERTER_H
+#ifndef ASKAP_CP_ICEWRAPPER_METADATACONVERTER_H
+#define ASKAP_CP_ICEWRAPPER_METADATACONVERTER_H
 
 // System includes
 #include <string>
@@ -38,6 +38,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief Utility class to convert between native Ice implementation of
 /// the Telescope Operating System metadata and a simple OO representation.
@@ -78,6 +79,7 @@ class MetadataConverter {
                 const std::string& suffix);
 };
 
+}
 }
 }
 

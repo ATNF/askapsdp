@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_TYPEDVALUEMAPCONSTMAPPER_H
-#define ASKAP_CP_TYPEDVALUEMAPCONSTMAPPER_H
+#ifndef ASKAP_CP_ICEWRAPPER_TYPEDVALUEMAPCONSTMAPPER_H
+#define ASKAP_CP_ICEWRAPPER_TYPEDVALUEMAPCONSTMAPPER_H
 
 // System includes
 #include <string>
@@ -40,6 +40,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief Used to map between an askap::interfaces::TypedValueMap instance
 /// and native Casa types.
@@ -98,6 +99,7 @@ class TypedValueMapConstMapper {
         const askap::interfaces::TypedValueMap itsConstMap;
 };
 
+}
 }
 }
 

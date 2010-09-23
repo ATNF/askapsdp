@@ -88,7 +88,7 @@ class TosSimulator : public ISimulator {
         boost::scoped_ptr<casa::MeasurementSet> itsMS;
 
         // Port for output of metadata
-        boost::scoped_ptr<askap::cp::MetadataOutputPort> itsPort;
+        boost::scoped_ptr<askap::cp::icewrapper::MetadataOutputPort> itsPort;
 };
 };
 

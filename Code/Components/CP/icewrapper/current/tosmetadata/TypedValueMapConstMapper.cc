@@ -38,7 +38,7 @@
 
 // Using
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::icewrapper;
 using namespace askap::interfaces;
 
 TypedValueMapConstMapper::TypedValueMapConstMapper(const TypedValueMap& map) :

@@ -67,7 +67,7 @@ TosSimulator::TosSimulator(const std::string& dataset,
 : itsCurrentRow(0)
 {
     itsMS.reset(new casa::MeasurementSet(dataset, casa::Table::Old));
-    itsPort.reset(new askap::cp::MetadataOutputPort(locatorHost, locatorPort,
+    itsPort.reset(new askap::cp::icewrapper::MetadataOutputPort(locatorHost, locatorPort,
                   topicManager, topic));
 }
 

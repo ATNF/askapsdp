@@ -41,7 +41,7 @@
 #include "TypedValueMapConstMapper.h"
 
 // Using
-using namespace askap::cp;
+using namespace askap::cp::icewrapper;
 using namespace askap::interfaces;
 using namespace casa;
 

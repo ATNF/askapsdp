@@ -54,7 +54,7 @@
 ASKAP_LOGGER(logger, ".IngestControlFascade");
 
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::mq;
 using namespace activemq;
 using namespace activemq::core;
 using namespace cms;

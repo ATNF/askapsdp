@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGESTCONTROLFASCADE_H
-#define ASKAP_CP_INGESTCONTROLFASCADE_H
+#ifndef ASKAP_CP_MQ_INGESTCONTROLFASCADE_H
+#define ASKAP_CP_MQ_INGESTCONTROLFASCADE_H
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"    // LOFAR
@@ -38,6 +38,7 @@
 
 namespace askap {
 namespace cp {
+namespace mq {
 
 class IngestControlFascade {
     public:
@@ -94,6 +95,7 @@ class IngestControlFascade {
         boost::scoped_ptr<cms::MessageProducer> itsProducer;
 };
 
+};
 };
 };
 

@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_OUTPUTPORT_H
-#define ASKAP_CP_OUTPUTPORT_H
+#ifndef ASKAP_CP_ICEWRAPPER_OUTPUTPORT_H
+#define ASKAP_CP_ICEWRAPPER_OUTPUTPORT_H
 
 // System includes
 #include <string>
@@ -41,6 +41,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief A publish port via which pub/sub messages can be sent via IceStorm.
 ///
@@ -66,7 +67,7 @@ class OutputPort : public IPort {
         /// or output.
         ///
         /// @return Direction:IN or Direction:OUT.
-        virtual askap::cp::IPort::Direction getDirection(void) const {
+        virtual IPort::Direction getDirection(void) const {
             return IPort::OUT;
         };
 
@@ -130,6 +131,7 @@ class OutputPort : public IPort {
         IceStorm::TopicPrx itsTopicPrx;
 };
 
+}
 }
 }
 

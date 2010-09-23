@@ -33,7 +33,7 @@
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::MetadataConverterTest::suite());
+    runner.addTest(askap::cp::icewrapper::MetadataConverterTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

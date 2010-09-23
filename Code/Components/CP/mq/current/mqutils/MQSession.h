@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MQBROKER_H
-#define ASKAP_CP_MQBROKER_H
+#ifndef ASKAP_CP_MQ_MQSESSION_H
+#define ASKAP_CP_MQ_MQSESSION_H
 
 // System includes
 #include <string>
@@ -37,6 +37,7 @@
 
 namespace askap {
 namespace cp {
+namespace mq {
 
 class MQSession {
     public:
@@ -61,6 +62,7 @@ class MQSession {
         boost::scoped_ptr<cms::Session> itsSession;
 };
 
+};
 };
 };
 

@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_METADATARECEIVER_H
-#define ASKAP_CP_METADATARECEIVER_H
+#ifndef ASKAP_CP_ICEWRAPPER_METADATARECEIVER_H
+#define ASKAP_CP_ICEWRAPPER_METADATARECEIVER_H
 
 // System includes
 #include <string>
@@ -40,6 +40,7 @@
 
 namespace askap {
 namespace cp {
+namespace icewrapper {
 
 /// @brief A class used to receive TosMetadata (via a callback) from an IceStorm
 /// topic.
@@ -89,6 +90,7 @@ class MetadataReceiver :
 
 };
 
+};
 };
 };
 

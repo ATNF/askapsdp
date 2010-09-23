@@ -47,7 +47,7 @@
 #include "Blob/BlobArray.h"
 
 // Using
-using namespace askap::cp;
+using namespace askap::cp::mq;
 
 VisChunk::VisChunk(const casa::uInt nRow,
                    const casa::uInt nChannel,

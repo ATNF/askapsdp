@@ -42,7 +42,7 @@
 
 // Using
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::icewrapper;
 using namespace askap::interfaces;
 
 TypedValueMapMapper::TypedValueMapMapper(TypedValueMap& map) :

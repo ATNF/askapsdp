@@ -39,7 +39,7 @@
 ASKAP_LOGGER(logger, ".MQSession");
 
 using namespace askap;
-using namespace askap::cp;
+using namespace askap::cp::mq;
 using namespace activemq;
 using namespace activemq::core;
 using namespace cms;
