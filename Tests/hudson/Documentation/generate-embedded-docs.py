@@ -68,33 +68,23 @@ INDEX_TAIL='''
 '''
 
 
-def BuildTree(path, partial_paths, old_indent):
+def BuildTree(path, partial_paths):
     '''
-    Given a package directory path, return indented HTML list items of
-    the path.
+    Given a package directory path, return list of tuples containing indent
+    level and directory name of partial paths.
     Need to keep track of partial paths already seen.
     '''
 
     path_components = path.split('/')
     p = ''
-    index = ''
+    items = []
 
     for comp in path_components[0:-1]:
         p += comp + '/'
         if not p in partial_paths:
             partial_paths.append(p)
-            indent = len(p.split('/'))
-            if indent < old_indent:
-                for i in reversed(range(indent, old_indent)):
-                    index += TAB*(i+1) + "</ul>\n"
-            index += TAB*indent + "<li> %s </li>\n" % comp
-            index += TAB*(indent+1) + "<ul>\n"
-    # Handle when a component has subcomponents and coming back to
-    # component level.
-    if len(partial_paths) > 1 and p == partial_paths[-2]:
-        index += TAB*old_indent + "</ul\n>"
-    return index
-
+            items.append((len(p.split('/')), "<li> %s </li>" % comp))
+    return items
 
 def CopyDocs(doc_type, doc_loc, find_term):
     '''
@@ -119,10 +109,12 @@ def CopyDocs(doc_type, doc_loc, find_term):
        from the end of the path.
     '''
 
-    indent = 0
+    orig_indent = 2
+    old_indent = orig_indent
     partial_paths = []
+    items = []
     index = INDEX_HEAD % (doc_type.capitalize(), doc_type)
-    index += TAB*2 + "<ul>\n" # Start indented under '<h3> Packages </h3>'
+    index += TAB*orig_indent + "<ul>\n" # Start indented under '<h3> Packages </h3>'
 
     # os.popen() is a file like object which contains a list of paths to the
     # package level which should contain documentation of specified type. e.g.
@@ -146,11 +138,9 @@ def CopyDocs(doc_type, doc_loc, find_term):
         print "info: %s" % pkg
 
         if os.path.isdir(source): # It should be a directory.
-            old_indent = indent
-            index += BuildTree(subtree, partial_paths, old_indent)
+            items += BuildTree(subtree, partial_paths)
             indent = len(subtree.split('/')) + 1
-            index += TAB*indent + \
-                    '<li><a href="%s"> %s </a></li>\n' % (subtree, pkg)
+            items += [(indent, '<li><a href="%s">%s</a></li>' % (subtree, pkg))]
             if DEBUG:
                 print "      src = %s" % source
                 print "      dst = %s" % target
@@ -160,10 +150,24 @@ def CopyDocs(doc_type, doc_loc, find_term):
                 os.system("%s && rsync -av --delete %s %s:%s; %s" %
                           (PRE_SSH, source, RHOST, target, POST_SSH))
 
+    # Take the list of item tuples and convert it to string while adding the
+    # necessary HTML unordered list markup codes.
+    for item in items:
+        if item: # ignore any 'None' items.
+            indent, text = item
+            if indent < old_indent:
+                for i in reversed(range(indent, old_indent)):
+                    index += TAB*(i+1) + "</ul>\n"
+            elif indent > old_indent:
+                index += TAB*indent + "<ul>\n"
+            index += TAB*indent + text + "\n"
+
+            old_indent = indent
+
     # Finish off all outstanding unordered lists <ul>.
     # The number outstanding can be determined from the current indent level
-    # remember the default indent level for the list is 2.
-    for i in reversed(range(2, indent+1)):
+    # remember the default indent level for the list is orig_indent.
+    for i in reversed(range(orig_indent, indent+1)):
         index += TAB*i + "</ul>\n"
 
     # Add the tail to the index file and write out so that it can
