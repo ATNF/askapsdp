@@ -122,8 +122,12 @@ if __name__ == '__main__':
             delta = scipy.fftpack.ifft(newy*float(ysize)).real
             newflux = pow(10,f)*(1 + delta)
 
-            elapsedTime =  double(range(tau.size))*step
-            
+            elapsedTime=array()
+            if(theta0<1./(k*s0) ):
+                elapsedTime =  double(range(tauSmall.size))*step
+            else:
+                elapsedTime =  double(range(tau.size))*step
+                
             outfile.write(component+"  ")
             for f in newflux[elapsedTime<options.tmax]:
                 outfile.write("%12.8f "%f)
