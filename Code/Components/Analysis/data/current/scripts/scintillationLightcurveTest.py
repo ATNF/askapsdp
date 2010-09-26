@@ -58,7 +58,7 @@ if __name__ == '__main__':
 ##    n_samp = 12000001
 #    n_samp = 1200001
     step = 60  # increment in tau array (in seconds)
-    xmax = 50  # maximum of x for calculating autocovariance L_7/6(x)
+    xmax = 75  # maximum of x for calculating autocovariance L_7/6(x)
 #    n_step = n_samp / step
 
     # Log of the source fluxes to be tested, in Jy
@@ -118,15 +118,15 @@ if __name__ == '__main__':
         
         elapsedTime =  double(range(tau.size))/(tau.size)*((tau[1]-tau[0])*tau.size)
         plt.subplot(222)
-        plt.plot(elapsedTime,log10(newflux))
+        plt.plot(elapsedTime[elapsedTime<30000]/3600.,log10(newflux[elapsedTime<30000]))
         plt.title("Log(delta(t))")
 
         plt.subplot(223)
-        plt.plot(elapsedTime,newflux/pow(10,f))
+        plt.plot(elapsedTime[elapsedTime<30000]/3600.,newflux[elapsedTime<30000]/pow(10,f))
         plt.title("delta(t)/F0")
 
         plt.subplot(224)
-        plt.plot(elapsedTime[elapsedTime<30000]/3600.,newflux[elapsedTime<30000]/pow(10,f))
+        plt.plot(elapsedTime,newflux/pow(10,f))
         plt.title("delta(t)/F0 vs hours")
 
 #        print elapsedTime[elapsedTime<30000]
