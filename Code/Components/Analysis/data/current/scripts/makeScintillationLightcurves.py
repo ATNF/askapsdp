@@ -53,7 +53,8 @@ if __name__ == '__main__':
     parser.add_option("-x","--xmax", type="int", dest="xmax", default=75, help="Maximum lag for autocovariance (dimensionless units) [default: %default]")
     parser.add_option("-c","--compCol", type="int", dest="componentLoc", default=0, help="Column in input file with component ID number [default: %default]")
     parser.add_option("-f","--fluxCol", type="int", dest="fluxLoc", default=11, help="Column in input file with flux [default: %default]")
-
+    parset.add_option("-t","--tmax", type="int", dest="tmax", default=300000, help="Maximum time interval [s] [default: %default]")
+    
     (options, args) = parser.parse_args()
 
     if(options.inputfile==''):
@@ -121,7 +122,9 @@ if __name__ == '__main__':
             delta = scipy.fftpack.ifft(newy*float(ysize)).real
             newflux = pow(10,f)*(1 + delta)
 
+            elapsedTime =  double(range(tau.size))*step
+            
             outfile.write(component+"  ")
-            for f in newflux:
+            for f in newflux[elapsedTime<options.tmax]:
                 outfile.write("%12.8f "%f)
             outfile.write("\n")
