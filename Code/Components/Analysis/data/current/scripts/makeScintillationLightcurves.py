@@ -9,6 +9,7 @@ import scipy.stats
 import scipy.fftpack
 import matplotlib.pyplot as plt
 from optparse import OptionParser
+import os
 
 # One term of the series expansion in calculating L_-7/6
 def lagterm(x,m):
@@ -53,7 +54,7 @@ if __name__ == '__main__':
     parser.add_option("-x","--xmax", type="int", dest="xmax", default=75, help="Maximum lag for autocovariance (dimensionless units) [default: %default]")
     parser.add_option("-c","--compCol", type="int", dest="componentLoc", default=0, help="Column in input file with component ID number [default: %default]")
     parser.add_option("-f","--fluxCol", type="int", dest="fluxLoc", default=11, help="Column in input file with flux [default: %default]")
-    parset.add_option("-t","--tmax", type="int", dest="tmax", default=300000, help="Maximum time interval [s] [default: %default]")
+    parser.add_option("-t","--tmax", type="int", dest="tmax", default=30000, help="Maximum time interval [s] [default: %default]")
     
     (options, args) = parser.parse_args()
 
@@ -79,25 +80,25 @@ if __name__ == '__main__':
     nstepSmall = int(options.xmax/xfactorSmall/options.step + 1)
     nsampSmall = nstepSmall*options.step + 1
     tauSmall = double(array(range(-nsampSmall,nsampSmall,options.step)))
-    x = xfactorSmall * tau
+    x = xfactorSmall * tauSmall
     ySmall = scaleSmall*lag_7on6_many(x**2)
     absFySmall = sqrt(abs(scipy.fftpack.fft(ySmall/float(ySmall.size))))
 
     infile=open(options.inputfile,'r')
-    outfile=open(outputfile,'w')
+    outfile=open(options.outputfile,'w')
     
     for s in infile:
         line = s.split()
         if(s[0]!='#'):
 
             component = line[options.componentLoc]
-            logflux = line[options.fluxLoc]
+            logflux = float(line[options.fluxLoc])
 
             theta0 = flux2size(10**logflux)
 
-            fy=array()
+            fy=array([])
             if(theta0<1./(k*s0) ):
-                fysize=nstepSmall
+                size=nstepSmall
                 ysize=ySmall.size
                 fy=absFySmall.copy()
             else:
@@ -117,18 +118,18 @@ if __name__ == '__main__':
             cphases=cos(phases) + sin(phases)*1j
 
             newy = array(range(2*size+1),dtype=complex)
-            newy[0:size+1] = abs_fy[0:size+1] * cphases
-            newy[size+1:] = abs_fy[size+1:]*cphases.conjugate()[:0:-1]
+            newy[0:size+1] = fy[0:size+1] * cphases
+            newy[size+1:] = fy[size+1:]*cphases.conjugate()[:0:-1]
             delta = scipy.fftpack.ifft(newy*float(ysize)).real
-            newflux = pow(10,f)*(1 + delta)
+            newflux = pow(10,logflux)*(1 + delta)
 
-            elapsedTime=array()
+            elapsedTime=array([])
             if(theta0<1./(k*s0) ):
-                elapsedTime =  double(range(tauSmall.size))*step
+                elapsedTime =  double(range(tauSmall.size))*options.step
             else:
-                elapsedTime =  double(range(tau.size))*step
+                elapsedTime =  double(range(tau.size))*options.step
                 
-            outfile.write(component+"  ")
+            outfile.write("%s %7.4f "%(component,logflux))
             for f in newflux[elapsedTime<options.tmax]:
-                outfile.write("%12.8f "%f)
+                outfile.write("%12.8e "%max(f,0.))
             outfile.write("\n")
