@@ -62,6 +62,65 @@ namespace askap {
       itsBasisFunction.set(T(0.0));
     };
     
+    template<class T>
+    void BasisFunction<T>::multiplyArray(const Matrix<Double>& A)
+    {
+      Array<T> mDataArray(this->itsBasisFunction.shape());
+      mDataArray.set(T(0.0));
+
+      uInt nRows(A.nrow());
+      uInt nCols(A.ncolumn());
+      uInt nx=this->itsBasisFunction.shape()(0);
+      uInt ny=this->itsBasisFunction.shape()(1);
+
+      for (uInt j=0;j<ny;j++) {
+	for (uInt i=0;i<nx;i++) {
+
+	  IPosition currentPosCol(3,i,j,0);
+	  IPosition currentPosRow(3,i,j,0);
+
+	  for (uInt row=0;row<nRows;row++) {
+	    currentPosRow(2)=row;
+	    for (uInt col=0;col<nCols;col++) {
+	      currentPosCol(2)=col;
+	      mDataArray(currentPosRow)+=T(A(row,col))*this->itsBasisFunction(currentPosCol);
+	    }
+	  }
+	}
+      }
+      this->itsBasisFunction=mDataArray.copy();
+      Cube<T> BF(this->itsBasisFunction);
+      for (uInt i=0;i<this->itsNumberTerms;i++) {
+	T sumBF(sum(BF.xyPlane(i)));
+	if(abs(sumBF)>0.0) {
+	  BF.xyPlane(i)=BF.xyPlane(i)/sumBF;
+	}
+      }
+    }
+    template<class T>
+    void BasisFunction<T>::gramSchmidt(Array<T>& bf) {
+      
+      // Use reference semantics of Casa Arrays.
+      Cube<T> v(bf.nonDegenerate());
+      
+      uInt nScales=bf.shape()(2);
+      
+      for (uInt j=0;j<nScales;j++) {
+	for (uInt i=0;i<j;i++) {
+	  // remove component in direction vi
+	  T proj(sum(v.xyPlane(j)*v.xyPlane(i))/sum(v.xyPlane(i)*v.xyPlane(i)));
+	  v.xyPlane(j)=v.xyPlane(j)-proj*v.xyPlane(i);
+	}
+	// Normalise to rms==1.0
+	v.xyPlane(j)=v.xyPlane(j)/sum(v.xyPlane(j)*v.xyPlane(j));
+      }
+      // Now normalise each plane to unit sum. The basis functions will remain
+      // orthogonal but not orthonormal
+      for (uInt j=0;j<nScales;j++) {
+	T rNorm(T(1.0)/sum(v.xyPlane(j)));
+	v.xyPlane(j)=v.xyPlane(j)*rNorm;
+      }
+    }
   } // namespace synthesis
   
 } // namespace askap

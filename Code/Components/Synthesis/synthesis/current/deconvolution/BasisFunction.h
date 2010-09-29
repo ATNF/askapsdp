@@ -79,6 +79,12 @@ namespace askap {
       /// lengths of the first two axes.
       virtual Array<T>& basisFunction() {return itsBasisFunction;};
 
+      /// @brief Multiply by a matrix on the third dimension
+      virtual void multiplyArray(const Matrix<Double>& arr);
+
+      /// @brief Orthogonalise using Gram Schmidt algorithm
+      void gramSchmidt(Array<T>& bf);
+      
     protected:
       IPosition itsShape;
       Array<T> itsBasisFunction;

@@ -47,6 +47,8 @@ ASKAP_LOGGER(decbflogger, ".deconvolution.basisfunction");
 
 #include <deconvolution/MultiScaleBasisFunction.h>
 
+#include <measurementequation/SynthesisParamsHelper.h>
+
 namespace askap {
   
   namespace synthesis {
@@ -60,7 +62,8 @@ namespace askap {
     
     template<class T, class FT>
     DeconvolverBasisFunction<T,FT>::DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf)
-      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(true)
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(true), itsDecouple(true),
+	itsDecouplingAlgorithm("sqrtdiagonal")
     {
     };
     
@@ -95,15 +98,19 @@ namespace askap {
 	itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
       }
       itsUseCrossTerms=parset.getBool("usecrossterms", true);
-      
+      if(itsUseCrossTerms) {
+	ASKAPLOG_INFO_STR(decbflogger, "Will use crossterms in subtraction");
+      }
+      itsDecouplingAlgorithm=parset.getString("decouplingalgorithm", "sqrtdiagonal");
     }
     
     template<class T, class FT>
     void DeconvolverBasisFunction<T,FT>::finalise()
     {
       DeconvolverBase<T, FT>::updateResiduals(this->model());
-
+      
       uInt nScales(this->itsBasisFunction->numberTerms());
+
       IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
       
       Array<T> ones(this->itsL1image.shape());
@@ -123,15 +130,97 @@ namespace askap {
     void DeconvolverBasisFunction<T,FT>::initialise()
     {
       DeconvolverBase<T, FT>::initialise();
-      initialiseResidual();
+
+      Int psfWidth=this->itsModel.shape()(0);
+      
+      // Only use the specified psfWidth if it makes sense
+      if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
+	psfWidth=this->control()->psfWidth();
+	ASKAPLOG_INFO_STR(decbflogger, "Using subregion of PSF : size " << psfWidth
+			  << " pixels");
+      }
+      IPosition subPsfShape(2, psfWidth, psfWidth);
+      
+      this->itsBasisFunction->initialise(this->itsModel.shape());
+      if(this->itsDecouplingAlgorithm=="gramschmidt") {
+	ASKAPLOG_INFO_STR(decbflogger,
+			  "Decoupling using Gram-Schmidt to generate orthogonal basis functions");
+	this->itsBasisFunction->initialise(subPsfShape);
+	this->itsBasisFunction->gramSchmidt(itsBasisFunction->basisFunction());
+	initialisePSF();
+	this->itsBasisFunction->initialise(this->itsModel.shape());
+	this->itsBasisFunction->gramSchmidt(itsBasisFunction->basisFunction());
+	initialiseResidual();
+	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterGramSchmidtDecoupling.tab",
+					       this->itsBasisFunction->basisFunction());
+	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterGramSchmidt.tab",
+					       this->itsResidualBasisFunction);
+      }
+      else{
+	initialiseResidual();
+      }
+
+      this->itsBasisFunction->initialise(subPsfShape);
+      
+      // Initialising the PSF gives the coupling matrix. We will use
+      // that to decouple the scales. Keep a copy of the coupling
+      // matrix so we can apply that version.
       initialisePSF();
+      SynthesisParamsHelper::saveAsCasaImage("BasisFunctionBeforeDecoupling.tab", this->itsBasisFunction->basisFunction());
+      SynthesisParamsHelper::saveAsCasaImage("ResidualsBeforeDecoupling.tab", this->itsResidualBasisFunction);
 
+      if(this->itsDecouplingAlgorithm=="basis") {
+	// Decoupling using inverse coupling matrix generate orthogonal basis functions
+	ASKAPLOG_INFO_STR(decbflogger, "Decoupling using inverse coupling matrix generate orthogonal basis functions");
+	Matrix<Double> inverseCouplingMatrix(this->itsInverseCouplingMatrix.copy());
+	this->itsBasisFunction->initialise(this->itsModel.shape());
+	itsBasisFunction->multiplyArray(inverseCouplingMatrix);
+	initialiseResidual();
+	this->itsBasisFunction->initialise(subPsfShape);
+	itsBasisFunction->multiplyArray(inverseCouplingMatrix);
+	this->itsBasisFunction->multiplyArray(inverseCouplingMatrix);
+	initialisePSF();
+	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterInverseDecoupling.tab",
+					       this->itsBasisFunction->basisFunction());
+	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterInverseDecoupling.tab",
+					       this->itsResidualBasisFunction);
+      } else if(this->itsDecouplingAlgorithm=="residuals") {
+	// Decoupling using inverse coupling matrix applied to basis and residuals
+	ASKAPLOG_INFO_STR(decbflogger, "Decoupling using inverse coupling matrix applied to basis and residuals");
+	Array<T> invBF(applyInverse(this->itsInverseCouplingMatrix, this->itsBasisFunction->basisFunction()));
+	this->itsBasisFunction->basisFunction()=invBF.copy();
+
+	Array<T> invRes(applyInverse(this->itsInverseCouplingMatrix, this->itsResidualBasisFunction));
+	this->itsResidualBasisFunction=invRes.copy();
+
+	if(itsUseCrossTerms) {
+	  ASKAPLOG_INFO_STR(decbflogger, "Overriding usecrossterms since it makes no sense in this case");
+	  this->itsUseCrossTerms=false;
+	}
+	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterResidualsDecoupling.tab",
+					       this->itsBasisFunction->basisFunction());
+	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterResidualsDecoupling.tab",
+					       this->itsResidualBasisFunction);
+      }
+      else if(this->itsDecouplingAlgorithm=="inverse") {
+	// Correcting coupling at subtraction phase with inverse coupling matrix
+	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse coupling matrix");
+      }
+      else if(this->itsDecouplingAlgorithm=="diagonal") {
+	// Correcting coupling at subtraction phase with inverse diag(coupling matrix)
+	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse diag(coupling matrix)");
+      }
+      else {
+	// Correcting coupling at subtraction phase with inverse diag(coupling matrix)
+	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse diag(coupling matrix)");
+      }
+      
       uInt nScales(this->itsBasisFunction->numberTerms());
-
+      
       IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
       this->itsL1image.resize(l1Shape);
       this->itsL1image.set(0.0);
-
+      
       this->itsModel=this->itsBackground.copy();
 
     }
@@ -145,11 +234,6 @@ namespace askap {
       this->state()->resetInitialObjectiveFunction();
       
       ASKAPLOG_INFO_STR(decbflogger, "Calculating cache of images");
-      
-      // Now calculate the convolutions of the residual images and PSFs 
-      // with the basis functions
-      
-      this->itsBasisFunction->initialise(this->itsModel.shape());
       
       ASKAPLOG_INFO_STR(decbflogger, "Shape of basis functions "
 			<< this->itsBasisFunction->basisFunction().shape());
@@ -185,6 +269,7 @@ namespace askap {
 			  << " min = " << min(real(work)));
 	
         Cube<T>(itsResidualBasisFunction).xyPlane(term)=real(work);
+
       }
     }
     
@@ -203,7 +288,6 @@ namespace askap {
       }
       
       IPosition subPsfShape(2, psfWidth, psfWidth);
-      this->itsBasisFunction->initialise(subPsfShape);
       
       Array<FT> work(subPsfShape);
       
@@ -263,58 +347,78 @@ namespace askap {
 	
 	itsPSFScales(term)=max(real(work));
       }
+
+      ASKAPLOG_INFO_STR(decbflogger, "Calculating double convolutions of PSF with basis functions");
+      IPosition crossTermsShape(4, psfWidth, psfWidth,
+				this->itsBasisFunction->numberTerms(),
+				this->itsBasisFunction->numberTerms());
+      ASKAPLOG_INFO_STR(decbflogger, "Shape of cross terms " << crossTermsShape);
+      itsPSFCrossTerms.resize(crossTermsShape);
+      IPosition crossTermsStart(4,0);
+      IPosition crossTermsEnd(crossTermsShape-1);
+      IPosition crossTermsStride(4,1);
       
-      if(this->itsUseCrossTerms) {
-	ASKAPLOG_INFO_STR(decbflogger, "Calculating double convolutions of PSF with basis functions");
-	IPosition crossTermsShape(4, psfWidth, psfWidth,
-				  this->itsBasisFunction->numberTerms(),
-				  this->itsBasisFunction->numberTerms());
-	ASKAPLOG_INFO_STR(decbflogger, "Shape of cross terms " << crossTermsShape);
-	itsPSFCrossTerms.resize(crossTermsShape);
-	IPosition crossTermsStart(4,0);
-	IPosition crossTermsEnd(crossTermsShape-1);
-	IPosition crossTermsStride(4,1);
-	
-	Array<FT> crossTermsPSFFFT(crossTermsShape);
-	crossTermsPSFFFT.set(T(0));
-	
-	for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
-	  crossTermsStart(2)=term;
-	  crossTermsEnd(2)=term;
-	  for (uInt term1=0;term1<this->itsBasisFunction->numberTerms();term1++) {
-	    crossTermsStart(3)=term1;
-	    crossTermsEnd(3)=term1;
-	    casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
-	    crossTermsPSFFFT(crossTermsSlicer).nonDegenerate()=
-	      basisFunctionFFT.xyPlane(term).nonDegenerate()*
-	      conj(basisFunctionFFT.xyPlane(term1)).nonDegenerate()*subXFR;
-	  }
-	  
+      Array<FT> crossTermsPSFFFT(crossTermsShape);
+      crossTermsPSFFFT.set(T(0));
+      
+      for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
+	crossTermsStart(2)=term;
+	crossTermsEnd(2)=term;
+	for (uInt term1=0;term1<this->itsBasisFunction->numberTerms();term1++) {
+	  crossTermsStart(3)=term1;
+	  crossTermsEnd(3)=term1;
+	  casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
+	  crossTermsPSFFFT(crossTermsSlicer).nonDegenerate()=
+	    basisFunctionFFT.xyPlane(term).nonDegenerate()*
+	    conj(basisFunctionFFT.xyPlane(term1)).nonDegenerate()*subXFR;
 	}
-	this->itsCouplingMatrix.resize(itsBasisFunction->numberTerms(), itsBasisFunction->numberTerms());
-	scimath::fft2d(crossTermsPSFFFT, true);
-	this->itsPSFCrossTerms=real(crossTermsPSFFFT)/T(crossTermsShape(0)*crossTermsShape(1));
-	for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
-	  crossTermsStart(2)=term;
-	  crossTermsEnd(2)=term;
-	  for (uInt term1=0;term1<this->itsBasisFunction->numberTerms();term1++) {
-	    crossTermsStart(3)=term1;
-	    crossTermsEnd(3)=term1;
-	    casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
-	    casa::minMax(minVal, maxVal, minPos, maxPos, this->itsPSFCrossTerms(crossTermsSlicer));
-	    //	    ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * Basis function(" << term1
-	    //			      << ") * PSF: max = " << maxVal << " min = " << minVal);
-	    this->itsCouplingMatrix(term, term1) = maxVal;
-	  }
+	
+      }
+      this->itsCouplingMatrix.resize(itsBasisFunction->numberTerms(), itsBasisFunction->numberTerms());
+      scimath::fft2d(crossTermsPSFFFT, true);
+      this->itsPSFCrossTerms=real(crossTermsPSFFFT)/T(crossTermsShape(0)*crossTermsShape(1));
+      for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
+	crossTermsStart(2)=term;
+	crossTermsEnd(2)=term;
+	for (uInt term1=0;term1<this->itsBasisFunction->numberTerms();term1++) {
+	  crossTermsStart(3)=term1;
+	  crossTermsEnd(3)=term1;
+	  casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
+	  casa::minMax(minVal, maxVal, minPos, maxPos, this->itsPSFCrossTerms(crossTermsSlicer));
+	  //	    ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * Basis function(" << term1
+	  //			      << ") * PSF: max = " << maxVal << " min = " << minVal);
+	  this->itsCouplingMatrix(term, term1) = Double(maxVal);
 	}
-	ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix " << this->itsCouplingMatrix);
-	this->itsInverseCouplingMatrix.resize(this->itsCouplingMatrix.shape());
-	invertSymPosDef(this->itsInverseCouplingMatrix, this->itsDetCouplingMatrix, this->itsCouplingMatrix);
-	ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix determinant " << this->itsDetCouplingMatrix);
-	ASKAPLOG_INFO_STR(decbflogger, "Inverse coupling matrix " << this->itsInverseCouplingMatrix);
+	this->itsCouplingMatrix(term, term) += Double(this->control()->lambda());
+      }
+      ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix " << this->itsCouplingMatrix);
+      this->itsInverseCouplingMatrix.resize(this->itsCouplingMatrix.shape());
+      invertSymPosDef(this->itsInverseCouplingMatrix, this->itsDetCouplingMatrix, this->itsCouplingMatrix);
+      ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix determinant " << this->itsDetCouplingMatrix);
+      ASKAPLOG_INFO_STR(decbflogger, "Inverse coupling matrix " << this->itsInverseCouplingMatrix);
+      // Checked that the inverse really is an inverse.
+      Matrix<T> identity(this->itsCouplingMatrix.shape());
+      identity.set(T(0.0));
+      uInt nRows(this->itsCouplingMatrix.nrow());
+      uInt nCols(this->itsCouplingMatrix.ncolumn());
+      for (uInt row=0;row<nRows;row++) {
+	for (uInt col=0;col<nCols;col++) {
+	  identity(row,col)=sum(this->itsCouplingMatrix.row(row)*this->itsInverseCouplingMatrix.column(col));
+	}
+      }
+      ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix * inverse " << identity);
+      
+      
+      // Now look at coupling between adjacent scales: this works well if the
+      // scales are ordered.
+      for (uInt term=0;term<this->itsBasisFunction->numberTerms()-1;term++) {
+	double det=this->itsCouplingMatrix(term,term)*this->itsCouplingMatrix(term+1,term+1)-
+	  this->itsCouplingMatrix(term,term+1)*this->itsCouplingMatrix(term+1,term);
+	ASKAPLOG_INFO_STR(decbflogger, "Independence between scales " << term << " and "
+			  << term+1 << " = " << det);
       }
     }
-    
+
     template<class T, class FT>
     bool DeconvolverBasisFunction<T,FT>::deconvolve()
     {
@@ -354,33 +458,92 @@ namespace askap {
       // Here the weighted mask is used as a weight in the determination
       // of the maximum i.e. it finds the max in mask * residual
       minMaxMaskedScales(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction,
-			 this->itsWeightedMask, this->itsPSFScales);
-      //      ASKAPLOG_INFO_STR(decbflogger, "Maximum =  " << maxVal << " at location " << maxPos);
-      //      ASKAPLOG_INFO_STR(decbflogger, "Minimum = " << minVal << " at location " << minPos);
-      T absPeakVal;
+			   this->itsWeightedMask);
       casa::IPosition absPeakPos;
       if(abs(minVal)<abs(maxVal)) {
-	absPeakVal=maxVal;
 	absPeakPos=maxPos;
       }
       else {
-	absPeakVal=minVal;
 	absPeakPos=minPos;
       }
       
-      uInt optimumPlane(absPeakPos(2));
-      
+      // Find the peak values for each scale. Set the stopping criterion
+      // to be the maximum of the maxima
+      uInt nScales(this->itsBasisFunction->numberTerms());
+      Vector<T> peakValues(nScales);
+      IPosition peakPos(absPeakPos);
+      T absPeakVal(0.0);
+      // If we are using residual decoupling, we need to
+      // couple the peakvalues
+
+      if(itsDecouplingAlgorithm=="residuals") {
+	// The residuals are decoupled, so we need to convert the update
+	// back to coupled form
+	Vector<T> decoupledPeakValues(nScales);
+	for (uInt scale=0;scale<nScales;scale++) {
+	  peakPos(2)=scale;
+	  decoupledPeakValues(scale)=this->itsResidualBasisFunction(peakPos);
+	}
+	peakValues=apply(this->itsCouplingMatrix, decoupledPeakValues);
+	for (uInt scale=0;scale<nScales;scale++) {
+	  if(scale!=absPeakPos(2)) {
+	    peakValues(scale)=T(0.0);
+	  }
+	}
+      }
+      else if(itsDecouplingAlgorithm=="inverse") {
+	// Apply the inverse to get the peak valies
+	Vector<T> coupledPeakValues(nScales);
+	for (uInt scale=0;scale<nScales;scale++) {
+	  peakPos(2)=scale;
+	  coupledPeakValues(scale)=this->itsResidualBasisFunction(peakPos);
+	}
+	peakValues=apply(this->itsInverseCouplingMatrix, coupledPeakValues);
+	for (uInt scale=0;scale<nScales;scale++) {
+	  if(scale!=absPeakPos(2)) {
+	    peakValues(scale)=T(0.0);
+	  }
+	}
+      }
+      else if(itsDecouplingAlgorithm=="sqrtdiagonal") {
+	// Apply the inverse of the sqrt(diagonal values) to get the peak values
+	for (uInt scale=0;scale<nScales;scale++) {
+	  peakPos(2)=scale;
+	  peakValues(scale)=this->itsResidualBasisFunction(peakPos)/sqrt(this->itsCouplingMatrix(scale,scale));
+	}
+	for (uInt scale=0;scale<nScales;scale++) {
+	  if(scale!=absPeakPos(2)) {
+	    peakValues(scale)=T(0.0);
+	  }
+	}
+      }
+      else {
+	// Apply the inverse of the diagonal values to get the peak values
+	for (uInt scale=0;scale<nScales;scale++) {
+	  peakPos(2)=scale;
+	  peakValues(scale)=this->itsResidualBasisFunction(peakPos)/this->itsCouplingMatrix(scale,scale);
+	}
+	for (uInt scale=0;scale<nScales;scale++) {
+	  if(scale!=absPeakPos(2)) {
+	    peakValues(scale)=T(0.0);
+	  }
+	}
+      }
+
+      uInt optimumScale(0);
+      for (uInt scale=0;scale<nScales;scale++) {
+	if(abs(peakValues(scale))>abs(absPeakVal)) {
+	  absPeakVal=peakValues(scale);
+	  optimumScale=scale;
+	}
+      }
+
       if(this->state()->initialObjectiveFunction()==0.0) {
 	this->state()->setInitialObjectiveFunction(abs(absPeakVal));
       }
       this->state()->setPeakResidual(abs(absPeakVal));
       this->state()->setObjectiveFunction(abs(absPeakVal));
       this->state()->setTotalFlux(sum(this->model()));
-      
-      // Has this terminated for any reason?
-      if(this->control()->terminate(*(this->state()))) {
-	return True;
-      }
       
       const casa::IPosition residualShape(this->itsResidualBasisFunction.shape());
       const casa::IPosition psfShape(this->itsPSFBasisFunction.shape());
@@ -390,13 +553,14 @@ namespace askap {
       casa::IPosition psfStart(ndim,0), psfEnd(ndim,0), psfStride(ndim,1);
       casa::IPosition psfCrossTermsStart(ndim+1,0), psfCrossTermsEnd(ndim+1,0), psfCrossTermsStride(ndim+1,1);
       
+      const casa::IPosition modelShape(this->model().shape());
       const casa::uInt modelNdim(this->model().shape().size());
       casa::IPosition modelStart(modelNdim,0), modelEnd(modelNdim,0), modelStride(modelNdim,1);
       
+      // Wrangle the start, end, and shape into consistent form. It took me 
+      // quite a while to figure this out (slow brain day) so it may be
+      // that there are some edge cases for which it fails.
       for (uInt dim=0;dim<2;dim++) {
-	// Wrangle the start, end, and shape into consistent form. It took me 
-	// quite a while to figure this out (slow brain day) so it may be
-	// that there are some edge cases for which it fails.
 	residualStart(dim)=max(0, Int(absPeakPos(dim)-psfShape(dim)/2));
 	residualEnd(dim)=min(Int(absPeakPos(dim)+psfShape(dim)/2-1), Int(residualShape(dim)-1));
 	// Now we have to deal with the PSF. Here we want to use enough of the
@@ -411,51 +575,71 @@ namespace askap {
 	modelStart(dim)=residualStart(dim);
 	modelEnd(dim)=residualEnd(dim);
       }
-      
-      // For the model, we just have to update using the optimum plane
-      psfStart(2)=psfEnd(2)=optimumPlane;
-      residualStart(2)=residualEnd(2)=optimumPlane;
-      casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
-      
+
+      // If we decoupled by residuals we need to recouple before
+      // subtracting from the residuals
+      if(this->itsDecouplingAlgorithm=="residuals") {
+      }
       // Add to model
       // Note that the model is only two dimensional. We could make it three dimensional
       // and keep the model layers separate
-      {
-	casa::Slicer modelSlicer(modelStart, modelEnd, modelStride, Slicer::endIsLast);
-	
-	this->model()(modelSlicer).nonDegenerate() = this->model()(modelSlicer).nonDegenerate()
-	  + this->control()->gain()*absPeakVal*
-	  this->itsBasisFunction->basisFunction()(psfSlicer).nonDegenerate();
-      }
+      // We loop over all terms and ignore those with no flux
+      casa::uInt nterms(this->itsResidualBasisFunction.shape()(2));
+      for (uInt term=0;term<nterms;term++) {
+	if(abs(peakValues(term))>0.0) {
+	  modelStart(2)=modelEnd(2)=0;
+	  casa::Slicer modelSlicer(modelStart, modelEnd, modelStride, Slicer::endIsLast);
+	  psfStart(2)=psfEnd(2)=term;
+	  casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
+	  this->model()(modelSlicer).nonDegenerate() = this->model()(modelSlicer).nonDegenerate()
+	    + this->control()->gain()*peakValues(term)*
+	    this->itsBasisFunction->basisFunction()(psfSlicer).nonDegenerate();
+	}
+      }	
       // Keep track of strengths and locations of components
-      IPosition l1PeakPos(3, absPeakPos(0), absPeakPos(1), optimumPlane);
-      this->itsL1image(l1PeakPos) = this->itsL1image(l1PeakPos)
-	+ this->control()->gain()*abs(absPeakVal);
-      this->itsScaleFlux(optimumPlane)+=this->control()->gain()*absPeakVal;
-      
-      // Subtract PSF for this plane from residual image for the same plane
-      {
-	casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
-	this->itsResidualBasisFunction(residualSlicer).nonDegenerate() =
-	  this->itsResidualBasisFunction(residualSlicer).nonDegenerate()
-	  - this->control()->gain()*absPeakVal*this->itsPSFBasisFunction(psfSlicer).nonDegenerate();
+      for (uInt term=0;term<nterms;term++) {
+	if(abs(peakValues(term))>0.0) {
+	  IPosition l1PeakPos(3, absPeakPos(0), absPeakPos(1), term);
+	  casa::Slicer modelSlicer(modelStart, modelEnd, modelStride, Slicer::endIsLast);
+	  this->itsL1image(l1PeakPos) = this->itsL1image(l1PeakPos)
+	    + this->control()->gain()*abs(peakValues(term));
+	  this->itsScaleFlux(term)+=this->control()->gain()*peakValues(term);
+	}
       }
+      
+      // Subtract PSFs
+      for (uInt term=0;term<nterms;term++) {
+	if(abs(peakValues(term))>0.0) {
+	  psfStart(2)=psfEnd(2)=term;
+	  casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
+	  residualStart(2)=residualEnd(2)=term;
+	  casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
+	  this->itsResidualBasisFunction(residualSlicer).nonDegenerate() =
+	    this->itsResidualBasisFunction(residualSlicer).nonDegenerate()
+	    - this->control()->gain()*peakValues(term)*this->itsPSFBasisFunction(psfSlicer).nonDegenerate();
+	}
+      }
+
       if(itsUseCrossTerms) {
-	casa::uInt nterms(this->itsResidualBasisFunction.shape()(2));
-	for (uInt term=0;term<nterms;term++) {
-	  if(term!=optimumPlane) {
-	    residualStart(2)=term;
-	    residualEnd(2)=term;
-	    casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
-	    
-	    psfCrossTermsStart(2)=optimumPlane;
-	    psfCrossTermsEnd(2)=optimumPlane;
-	    psfCrossTermsStart(3)=term;
-	    psfCrossTermsEnd(3)=term;
-	    casa::Slicer psfCrossTermsSlicer(psfCrossTermsStart, psfCrossTermsEnd, psfCrossTermsStride, Slicer::endIsLast);
-	    this->itsResidualBasisFunction(residualSlicer).nonDegenerate() =
-	      this->itsResidualBasisFunction(residualSlicer).nonDegenerate()
-	      - this->control()->gain()*absPeakVal*this->itsPSFCrossTerms(psfCrossTermsSlicer).nonDegenerate();
+	for (uInt term1=0;term1<nterms;term1++) {
+	  if(abs(peakValues(term1))>0.0) {
+	    for (uInt term=0;term<nterms;term++) {
+	      if(term!=term1) {
+		residualStart(2)=term;
+		residualEnd(2)=term;
+		casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
+		
+		psfCrossTermsStart(2)=term1;
+		psfCrossTermsEnd(2)=term1;
+		psfCrossTermsStart(3)=term;
+		psfCrossTermsEnd(3)=term;
+		casa::Slicer psfCrossTermsSlicer(psfCrossTermsStart, psfCrossTermsEnd, psfCrossTermsStride, Slicer::endIsLast);
+		this->itsResidualBasisFunction(residualSlicer).nonDegenerate() =
+		  this->itsResidualBasisFunction(residualSlicer).nonDegenerate()
+		  - this->control()->gain()*peakValues(term1) *
+		  this->itsPSFCrossTerms(psfCrossTermsSlicer).nonDegenerate();
+	      }
+	    }
 	  }
 	}
       }
@@ -467,12 +651,11 @@ namespace askap {
     void DeconvolverBasisFunction<T, FT>::minMaxMaskedScales(T& minVal, T& maxVal,
 							     IPosition& minPos, IPosition& maxPos,
 							     const Array<T>& dataArray, 
-							     const Array<T>& maskArray,
-							     const Vector<T>& psfScale) {
+							     const Array<T>& maskArray) {
       
       const Cube<T> data(dataArray);
       bool isMasked(maskArray.shape().nonDegenerate().conform(data.xyPlane(0).shape()));
-
+      
       uInt nScales=data.shape()(2);
       
       Vector<T> sMaxVal(nScales);
@@ -483,27 +666,19 @@ namespace askap {
 	if(isMasked) {
 	  for (uInt scale=0;scale<nScales;scale++) {
 	    casa::minMaxMasked(sMinVal(scale), sMaxVal(scale), sMinPos(scale), sMaxPos(scale),
-			       data.xyPlane(scale), maskArray.nonDegenerate());
+			       Cube<T>(dataArray).xyPlane(scale), maskArray.nonDegenerate());
 	  }
 	}
 	else {
 	  for (uInt scale=0;scale<nScales;scale++) {
 	    casa::minMax(sMinVal(scale), sMaxVal(scale), sMinPos(scale), sMaxPos(scale),
-			 data.xyPlane(scale));
+			 Cube<T>(dataArray).xyPlane(scale));
 	  }
 	}
       }
-      maxVal=sMaxVal(0)/=sqrt(this->itsPSFScales(0));
-      minVal=sMinVal(0)/=sqrt(this->itsPSFScales(0));
       minPos=IPosition(3, sMinPos(0)(0), sMinPos(0)(1), 0);
       maxPos=IPosition(3, sMaxPos(0)(0), sMaxPos(0)(1), 0);
       for (uInt scale=1;scale<nScales;scale++) {
-	// Need to scale by (a) the inverse of the psfScale to deal with the
-	// loss of gain for the tapering and (b) by sqrt(psfScale) to deal 
-	// with the SNR degradation. The latter is similar to the use of 
-	// the small scale bias in the MSClean paper.
-	sMaxVal(scale)/=sqrt(this->itsPSFScales(scale));
-	sMinVal(scale)/=sqrt(this->itsPSFScales(scale));
 	if(sMinVal(scale)<=minVal) {
 	  minVal=sMinVal(scale);
 	  minPos=IPosition(3, sMinPos(scale)(0), sMinPos(scale)(1), scale);
@@ -514,14 +689,79 @@ namespace askap {
 	}
       }
       // If masking (presumably with weights) was done we need to 
-      // look up the original values (without the weights). Since this
-      // does no harm for the unmasked case, we do the same for 
-      // convenience.
+      // look up the original values (without the weights). 
       minVal=data.xyPlane(minPos(2))(minPos);
       maxVal=data.xyPlane(maxPos(2))(maxPos);
     }
-  } // namespace synthesis 
-} // namespace askap
-  
-  
-  
+    template<class T, class FT>
+    Vector<T> DeconvolverBasisFunction<T, FT>::findCoefficients(const Matrix<Double>& invCoupling,
+								const Vector<T>& peakValues)
+    {
+      uInt nRows(invCoupling.nrow());
+      uInt nCols(invCoupling.ncolumn());
+      Vector<T> coefficients(nRows);
+      for (uInt row=0;row<nRows;row++) {
+	coefficients(row)=T(0.0);
+	for (uInt col=0;col<nCols;col++) {
+	  coefficients(row)+=T(invCoupling(row,col))*peakValues(col);
+	}
+      }
+      return coefficients;
+    }
+
+    template<class T, class FT>
+    Array<T> DeconvolverBasisFunction<T, FT>::applyInverse(const Matrix<Double>& invCoupling,
+							   const Array<T> dataArray)
+    {
+      Array<T> invDataArray(dataArray.shape());
+      invDataArray.set(T(0.0));
+
+      uInt nRows(invCoupling.nrow());
+      uInt nCols(invCoupling.ncolumn());
+      uInt nx=dataArray.shape()(0);
+      uInt ny=dataArray.shape()(1);
+
+      for (uInt j=0;j<ny;j++) {
+	for (uInt i=0;i<nx;i++) {
+
+	  IPosition currentPosCol(3,i,j,0);
+	  IPosition currentPosRow(3,i,j,0);
+
+	  for (uInt row=0;row<nRows;row++) {
+	    currentPosRow(2)=row;
+	    for (uInt col=0;col<nCols;col++) {
+	      currentPosCol(2)=col;
+	      invDataArray(currentPosRow)+=T(invCoupling(row,col))*dataArray(currentPosCol);
+	    }
+	  }
+
+	}
+      }
+      return invDataArray;
+    }
+
+    template<class T, class FT>
+    Array<T> DeconvolverBasisFunction<T, FT>::apply(const Matrix<Double>& coupling,
+						    const Vector<T> dataVector)
+    {
+      Vector<T> vecDataVector(dataVector.shape());
+      vecDataVector.set(T(0.0));
+
+      uInt nRows(coupling.nrow());
+      uInt nCols(coupling.ncolumn());
+      uInt nx=dataVector.nelements();
+
+      for (uInt i=0;i<nx;i++) {
+	for (uInt row=0;row<nRows;row++) {
+	  for (uInt col=0;col<nCols;col++) {
+	    vecDataVector(row)+=T(coupling(row,col))*dataVector(col);
+	  }
+	}
+      }
+      return vecDataVector;
+    }
+
+  }
+}
+// namespace synthesis 
+// namespace askap

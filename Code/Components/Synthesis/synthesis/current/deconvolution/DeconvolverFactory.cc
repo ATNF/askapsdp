@@ -55,6 +55,9 @@ namespace askap {
       Array<Float> dirty(DeconvolverHelpers::getArrayFromImage("dirty", parset));
       Array<Float> psf(DeconvolverHelpers::getArrayFromImage("psf", parset));
 
+      ASKAPLOG_INFO_STR(logger, "Shape of dirty image           " << dirty.shape());
+      ASKAPLOG_INFO_STR(logger, "Shape of point spread function " << psf.shape());
+
       if(parset.getString("solver", "Fista")=="Fista") {        
         ASKAPLOG_INFO_STR(logger, "Constructing Fista deconvolver");
         deconvolver.reset(new DeconvolverFista<Float, Complex>(dirty, psf));

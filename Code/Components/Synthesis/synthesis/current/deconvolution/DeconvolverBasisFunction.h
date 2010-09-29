@@ -115,9 +115,19 @@ namespace askap {
       void minMaxMaskedScales(T& minVal, T& maxVal,
 			      IPosition& minPos, IPosition& maxPos,
 			      const Array<T>& dataArray, 
-			      const Array<T>& maskArray,
-			      const Vector<T>& psfScale);
+			      const Array<T>& maskArray);
 
+      // Find the coefficients for each scale by applying the
+      // inverse of the coupling matrix
+      Vector<T> findCoefficients(const Matrix<Double>& invCoupling,
+				 const Vector<T>& peakValues);
+
+      Array<T> applyInverse(const Matrix<Double>& invCoupling, const Array<T> dataArray);
+
+      Array<T> apply(const Matrix<Double>& invCoupling, const Vector<T> dataVector);
+
+      void gramSchmidt(Array<T>& bf);
+      
       /// Residual images convolved with basis functions
       Array<T> itsResidualBasisFunction;
 
@@ -128,16 +138,20 @@ namespace askap {
       Bool itsUseCrossTerms;
 
       /// The coupling between different scales.
-      Matrix<T> itsCouplingMatrix;
+      Matrix<Double> itsCouplingMatrix;
 
       /// Inverse of the coupling matrix
-      Matrix<T> itsInverseCouplingMatrix;
+      Matrix<Double> itsInverseCouplingMatrix;
 
       /// Determinant of the coupling Matrix
-      T itsDetCouplingMatrix;
+      Double itsDetCouplingMatrix;
 
       /// Point spread functions convolved with cross terms of basis functions
       Array<T> itsPSFCrossTerms;
+
+      Bool itsDecouple;
+
+      String itsDecouplingAlgorithm;
 
       /// Basis function used in the deconvolution
       boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
