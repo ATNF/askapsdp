@@ -274,7 +274,7 @@ module schedblock
          * @returns a ObsState enum value
          *
          **/
-        idempotent long getOwner(long sbid);
+        idempotent long getState(long sbid);
 
         /**
          * Get the ObsProgram which owns the given Scheduling Block.
