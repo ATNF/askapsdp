@@ -139,7 +139,7 @@ module schedblock
          *  @return the string alias
          *
          **/
-        long getAlias(long sbid)
+        string getAlias(long sbid)
                throws NoSuchSchedulingBlockException;
 
         /**
