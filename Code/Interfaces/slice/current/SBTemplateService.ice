@@ -113,11 +113,6 @@ module schedblock
             throws VersionException;
 
         /**
-         * Return the id for the given SBTemplate name at the given version
-         **/
-        idempotent long getId(string name, Version vers);
-
-        /**
          * get the SBTemplate id for the latest version of the named template
          **/
         idempotent long getLatestVersionId(string name);
@@ -130,6 +125,16 @@ module schedblock
          *
          **/
         void setStatus(string name, SBTemplateStatus status)
+            throws NoSuchSBTemplateException;
+
+        /**
+         * Get the Status of the specified SBTemplate.
+         *
+         * @param name the name of the template to access
+         * @return status the new SBTemplateStatus
+         *
+         **/
+        void getStatus(string name)
             throws NoSuchSBTemplateException;
 
         /**

@@ -268,6 +268,15 @@ module schedblock
                        NoSuchSBTemplateException;
 
         /**
+         * Get the State of the given Scheduling Block.
+         *
+         * @param sbid The id of the Scheduling Block
+         * @returns a ObsState enum value
+         *
+         **/
+        idempotent long getOwner(long sbid);
+
+        /**
          * Get the ObsProgram which owns the given Scheduling Block.
          *
          * @param sbid The id of the Scheduling Block
