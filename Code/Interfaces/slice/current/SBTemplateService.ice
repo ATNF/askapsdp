@@ -134,7 +134,7 @@ module schedblock
          * @return status the new SBTemplateStatus
          *
          **/
-        void getStatus(string name)
+        SBTemplateStatus getStatus(string name)
             throws NoSuchSBTemplateException;
 
         /**
