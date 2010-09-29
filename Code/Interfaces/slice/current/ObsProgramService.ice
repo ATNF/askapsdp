@@ -35,11 +35,15 @@ module interfaces
 
 module schedblock
 {
-    interface ObsProgramService
+    interface IObsProgramService
     {
         long create(string name, string investigator,
                     string opalid);
 
+        long getId(string name);
+
+        StringSeq getAll();
+        
     };
 };
 };
