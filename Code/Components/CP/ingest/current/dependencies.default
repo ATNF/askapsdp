@@ -7,6 +7,6 @@ casacore=3rdParty/casacore/casacore-1.2.0;casa_ms casa_images casa_components ca
 cpcommon=Code/Components/CP/common/current
 icewrapper=Code/Components/CP/icewrapper/current
 cppiceinterfaces=Code/Interfaces/cpp/current
-activemq=3rdParty/apache-activemq/apache-activemq-5.4.0
+activemq=3rdParty/apache-activemq/apache-activemq-5.4.1
 activemq-cpp=3rdParty/activemq-cpp-library/activemq-cpp-library-3.1.3
 mq=Code/Components/CP/mq/current
