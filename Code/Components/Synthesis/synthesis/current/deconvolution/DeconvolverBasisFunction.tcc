@@ -63,7 +63,7 @@ namespace askap {
     template<class T, class FT>
     DeconvolverBasisFunction<T,FT>::DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(true), itsDecouple(true),
-	itsDecouplingAlgorithm("sqrtdiagonal")
+	itsDecouplingAlgorithm("diagonal")
     {
     };
     
@@ -151,10 +151,10 @@ namespace askap {
 	this->itsBasisFunction->initialise(this->itsModel.shape());
 	this->itsBasisFunction->gramSchmidt(itsBasisFunction->basisFunction());
 	initialiseResidual();
-	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterGramSchmidtDecoupling.tab",
-					       this->itsBasisFunction->basisFunction());
-	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterGramSchmidt.tab",
-					       this->itsResidualBasisFunction);
+	//	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterGramSchmidtDecoupling.tab",
+	//					       this->itsBasisFunction->basisFunction());
+	//	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterGramSchmidt.tab",
+	//					       this->itsResidualBasisFunction);
       }
       else{
 	initialiseResidual();
@@ -166,8 +166,8 @@ namespace askap {
       // that to decouple the scales. Keep a copy of the coupling
       // matrix so we can apply that version.
       initialisePSF();
-      SynthesisParamsHelper::saveAsCasaImage("BasisFunctionBeforeDecoupling.tab", this->itsBasisFunction->basisFunction());
-      SynthesisParamsHelper::saveAsCasaImage("ResidualsBeforeDecoupling.tab", this->itsResidualBasisFunction);
+    //      SynthesisParamsHelper::saveAsCasaImage("BasisFunctionBeforeDecoupling.tab", this->itsBasisFunction->basisFunction());
+    //      SynthesisParamsHelper::saveAsCasaImage("ResidualsBeforeDecoupling.tab", this->itsResidualBasisFunction);
 
       if(this->itsDecouplingAlgorithm=="basis") {
 	// Decoupling using inverse coupling matrix generate orthogonal basis functions
@@ -180,10 +180,10 @@ namespace askap {
 	itsBasisFunction->multiplyArray(inverseCouplingMatrix);
 	this->itsBasisFunction->multiplyArray(inverseCouplingMatrix);
 	initialisePSF();
-	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterInverseDecoupling.tab",
-					       this->itsBasisFunction->basisFunction());
-	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterInverseDecoupling.tab",
-					       this->itsResidualBasisFunction);
+	//	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterInverseDecoupling.tab",
+	//					       this->itsBasisFunction->basisFunction());
+	//	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterInverseDecoupling.tab",
+	//					       this->itsResidualBasisFunction);
       } else if(this->itsDecouplingAlgorithm=="residuals") {
 	// Decoupling using inverse coupling matrix applied to basis and residuals
 	ASKAPLOG_INFO_STR(decbflogger, "Decoupling using inverse coupling matrix applied to basis and residuals");
@@ -197,10 +197,10 @@ namespace askap {
 	  ASKAPLOG_INFO_STR(decbflogger, "Overriding usecrossterms since it makes no sense in this case");
 	  this->itsUseCrossTerms=false;
 	}
-	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterResidualsDecoupling.tab",
-					       this->itsBasisFunction->basisFunction());
-	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterResidualsDecoupling.tab",
-					       this->itsResidualBasisFunction);
+	//	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterResidualsDecoupling.tab",
+	//					       this->itsBasisFunction->basisFunction());
+	//	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterResidualsDecoupling.tab",
+	//					       this->itsResidualBasisFunction);
       }
       else if(this->itsDecouplingAlgorithm=="inverse") {
 	// Correcting coupling at subtraction phase with inverse coupling matrix
@@ -450,7 +450,6 @@ namespace askap {
     template<class T, class FT>
     bool DeconvolverBasisFunction<T,FT>::oneIteration()
     {
-      
       // Find peak in residual image cube. This cube is full sized.
       casa::IPosition minPos;
       casa::IPosition maxPos;
@@ -509,7 +508,8 @@ namespace askap {
 	// Apply the inverse of the sqrt(diagonal values) to get the peak values
 	for (uInt scale=0;scale<nScales;scale++) {
 	  peakPos(2)=scale;
-	  peakValues(scale)=this->itsResidualBasisFunction(peakPos)/sqrt(this->itsCouplingMatrix(scale,scale));
+	  peakValues(scale)=this->itsResidualBasisFunction(peakPos)
+	    / sqrt(this->itsCouplingMatrix(scale,scale));
 	}
 	for (uInt scale=0;scale<nScales;scale++) {
 	  if(scale!=absPeakPos(2)) {

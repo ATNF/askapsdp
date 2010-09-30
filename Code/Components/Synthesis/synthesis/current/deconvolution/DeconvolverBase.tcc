@@ -82,8 +82,6 @@ namespace askap {
       itsLipschitz=casa::max(casa::real(casa::abs(this->itsXFR)));
       itsLipschitzDouble=casa::max(casa::real(this->itsXFR*conj(this->itsXFR)));
       ASKAPLOG_INFO_STR(decbaselogger, "Lipschitz number = " << itsLipschitz);
-      ASKAPLOG_INFO_STR(decbaselogger, "Lipschitz number (double convolution) = "
-			<< itsLipschitzDouble);
 
       // We also need the dirty image convolved with the PSF
       Array<FT> work(this->dirty().shape());
@@ -206,6 +204,8 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::initialise()
     {
+      ASKAPLOG_INFO_STR(logger, "Initialising mask and weight images"); 
+
       // Always check shapes on initialise
       this->validateShapes();
 

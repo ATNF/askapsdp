@@ -99,11 +99,14 @@ namespace askap
           ASKAPLOG_INFO_STR(logger, "Applying Wiener filter with noise power=" << itsParameter);
       }
 
-      const float maxPSFBefore = casa::max(psf);
+      float maxPSFBefore = casa::max(psf);
       ASKAPLOG_INFO_STR(logger, "Peak of PSF before Wiener filtering = " << maxPSFBefore);
 
       if (itsDoNormalise) {
           ASKAPLOG_INFO_STR(logger, "The PSF will be normalised to 1 before filter construction");
+	  psf=psf/maxPSFBefore;
+	  //	  dirty=dirty/maxPSFBefore;
+	  maxPSFBefore=1.0;
       }
                   
       casa::ArrayLattice<float> lpsf(psf);      
