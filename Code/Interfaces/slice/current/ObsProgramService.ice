@@ -26,6 +26,7 @@
 #define ASKAP_OBSPROGRAMSERVICE_ICE
 
 #include <CommonTypes.ice>
+#include <DataServiceExceptions.ice>
 
 module askap
 {
@@ -37,13 +38,13 @@ module schedblock
 {
     interface IObsProgramService
     {
-        long create(string name, string investigator,
-                    string opalid);
+        long create(string name, string investigator, string opalid)
+            throws VersionException;
 
-        long getId(string name);
+        long getId(string name) throws NoSuchObsProgramException;
 
         StringSeq getAll();
-        
+
     };
 };
 };

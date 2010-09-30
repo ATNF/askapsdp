@@ -55,16 +55,25 @@ module schedblock
     /** This exceptions is thrown when the given Observation Program id doesn't
      * exists.
      **/
-    exception NoSuchProgramException
+    exception NoSuchObsProgramException
         extends askap::interfaces::AskapIceException
     {
     };
 
-    /** This exceptions is thrown when the given Sscheduling Block Template id 
+    /** This exceptions is thrown when the given Sscheduling Block Template id
      * doesn't exists.
      **/
     exception NoSuchSBTemplateException
         extends askap::interfaces::AskapIceException
+    {
+    };
+
+    /**
+     * This exception is thrown when a version incompatability has been
+     * encountered or it aleardy exists. The base class includes a "reason"
+     *  data member (of type string).
+     **/
+    exception VersionException extends askap::interfaces::AskapIceException
     {
     };
 

@@ -120,7 +120,8 @@ module schedblock
          *
          **/
         long create(long programid, string templname, string alias)
-             throws NoSuchSBTemplateException;
+             throws NoSuchSBTemplateException,
+	            NoSuchObsProgramException;
 
         /**
          * Remove and existing Scheduling Block. This will only work with

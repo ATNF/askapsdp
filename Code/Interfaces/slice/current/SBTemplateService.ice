@@ -37,15 +37,6 @@ module interfaces
 module schedblock
 {
 
-    /**
-     * This exception is thrown when a version incompatability has been
-     * encountered. The base class includes a "reason" data member (of type
-     * string) which shall be used to indicate why the state transition failed.
-     **/
-    exception VersionException extends askap::interfaces::AskapIceException
-    {
-    };
-
 
     /**
      * This enum described the possible version number fields. These will be
