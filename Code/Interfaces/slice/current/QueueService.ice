@@ -42,7 +42,8 @@ module schedblock
     {
         /**
          * Return the id of the first Scheduling Block in the queue. The item
-         * has to be in SCHEDULED state.
+         * has to be in SCHEDULED state. If there aren't any Scheduling Blocks
+         * in this state it will return -1
          * A typical use would be to call peek periodically.
          **/
         idempotent long peek();
