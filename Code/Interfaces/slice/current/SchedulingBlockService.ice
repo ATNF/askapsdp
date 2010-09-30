@@ -98,15 +98,15 @@ module schedblock
 
         /**
          * Get all Scheduling Blocks for a given SBTemplate (name) given
-         * a version. A version of major.minor 0.0 returns all versions.
+         * a version. A value < 0 for majorversion returns all versions.
          *
          * @param name the name of the SBTemplate id
-         * @param vers the SBTemplate version
+         * @param majorversion the SBTemplate compatible version
          * @return a sequence of Scheduling Block ids
          *
          **/
         idempotent askap::interfaces::LongSeq getByTemplate(string name,
-                                                            Version vers);
+                                                            int majorversion);
 
         /**
          * Create a new Scheduling Block with the given initial configuration.
@@ -140,6 +140,17 @@ module schedblock
          *
          **/
         string getAlias(long sbid)
+               throws NoSuchSchedulingBlockException;
+
+        /**
+         * Get the SBTemplate major version (compatible version)
+         *  used for the given Scheduling Block.
+         *
+         *  @param sbid The id of the Scheduling Block
+         *  @return the major version number
+         *
+         **/
+        int getVersion(long sbid)
                throws NoSuchSchedulingBlockException;
 
         /**
@@ -255,15 +266,18 @@ module schedblock
 
         /**
          * Set the Template name
-         * This would typically only be used to bump the version of the
-         * Template.
+         * This would typically only be used to upgrade to a new major version
+         *  of the SB Template.
          *
          * @param sbid The id of the Scheduling Block
          * @param tmplname The name of the SB Template
-         * @param vers the new version of the template to use
+         * @param majorversion the new major version of the template to use
+         * @param userparams the new user parameters corresponding to this
+         *                   version
          *
          **/
-        void updateTemplateVersion(long sbid, Version vers)
+        void updateTemplateVersion(long sbid, int majorversion,
+				   askap::interfaces::ParameterMap userparams)
                 throws NoSuchSchedulingBlockException,
                        NoSuchSBTemplateException;
 
@@ -274,7 +288,7 @@ module schedblock
          * @returns a ObsState enum value
          *
          **/
-        idempotent long getState(long sbid);
+        idempotent ObsState getState(long sbid);
 
         /**
          * Get the ObsProgram which owns the given Scheduling Block.
@@ -293,7 +307,7 @@ module schedblock
          * @returns a list of ObsProgram ids
          *
          **/
-        idempotent askap::interfaces::LongSeq getObsPrograms();
+        idempotent askap::interfaces::LongSeq getObsPrograms(long sbid);
 
         /**
          * Associate the given ObsProgram with the given Scheduling Block.
