@@ -81,7 +81,7 @@ if __name__ == '__main__':
     nsampSmall = nstepSmall*options.step + 1
     tauSmall = double(array(range(-nsampSmall,nsampSmall,options.step)))
     x = xfactorSmall * tauSmall
-    ySmall = scaleSmall*lag_7on6_many(x**2)
+    ySmall = lag_7on6_many(x**2)
     absFySmall = sqrt(abs(scipy.fftpack.fft(ySmall/float(ySmall.size))))
 
     infile=open(options.inputfile,'r')
@@ -101,6 +101,7 @@ if __name__ == '__main__':
                 size=nstepSmall
                 ysize=ySmall.size
                 fy=absFySmall.copy()
+                scale=scaleSmall
             else:
                 scale = 2.*pi**2 * r_e**2 * lam**2 * sm * scipy.special.gamma(7./6.) * z**2 / (2 * pi / lam)**2 / (z**2 * theta0**2)**(7./6.)
                 xfactor = viss / (2. * z * theta0)
@@ -108,7 +109,7 @@ if __name__ == '__main__':
                 n_samp = n_step*options.step + 1
                 tau = double(array(range(-n_samp,n_samp,options.step)))
                 x = xfactor * tau
-                y = scale*lag_7on6_many(x**2)
+                y = lag_7on6_many(x**2)
                 fy=sqrt(abs(scipy.fftpack.fft(y/float(y.size))))
                 ysize=y.size
                 size=n_step
@@ -121,7 +122,7 @@ if __name__ == '__main__':
             newy[0:size+1] = fy[0:size+1] * cphases
             newy[size+1:] = fy[size+1:]*cphases.conjugate()[:0:-1]
             delta = scipy.fftpack.ifft(newy*float(ysize)).real
-            newflux = pow(10,logflux)*(1 + delta)
+            newflux = pow(10,logflux)*(1 + scale*delta)
 
             elapsedTime=array([])
             if(theta0<1./(k*s0) ):
