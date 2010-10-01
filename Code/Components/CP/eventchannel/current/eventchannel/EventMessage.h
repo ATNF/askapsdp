@@ -47,6 +47,20 @@ class EventMessage {
         /// @brief Destructor
         virtual ~EventMessage();
 
+        /// @brief Sets the message type.
+        /// The message type is used to indicate what type of event this message
+        /// relates to.
+        ///
+        /// @param[in] type the message type.
+        virtual void setMessageType(const std::string& type);
+
+        /// @brief Gets the message type.
+        /// The message type is used to indicate what type of event this message
+        /// relates to.
+        ///
+        /// @return the message type.
+        virtual std::string getMessageType(void);
+
         /// @brief Returns a vector of all the names in the event message map.
         virtual std::vector<std::string> getMapNames(void);
 

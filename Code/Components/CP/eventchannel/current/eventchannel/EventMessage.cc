@@ -64,6 +64,23 @@ cms::Message* EventMessage::getCmsMessage(void)
     return itsMapMessage.get();
 }
 
+//
+// Message type
+//
+void EventMessage::setMessageType(const std::string& type)
+{
+    itsMapMessage->setCMSType(type);
+}
+
+std::string EventMessage::getMessageType(void)
+{
+    return itsMapMessage->getCMSType();
+}
+
+
+//
+// Map methods
+//
 std::vector<std::string> EventMessage::getMapNames(void)
 {
     return itsMapMessage->getMapNames();
@@ -73,6 +90,7 @@ bool EventMessage::itemExists(const std::string& key)
 {
     return itsMapMessage->itemExists(key);
 }
+
 
 //
 // Setters

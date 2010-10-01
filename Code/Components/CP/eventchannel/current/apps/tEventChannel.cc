@@ -1,7 +1,7 @@
 /// @file tEventChannel.cc
 ///
 /// @description
-/// This program executed a very simple testcase for the central processor
+/// This program executes a very simple testcase for the central processor
 /// event channel.
 ///
 /// @copyright (c) 2010 CSIRO
@@ -30,8 +30,7 @@
 
 // System includes
 #include <iostream>
-
-// ASKAPsoft includes
+#include <string>
 
 // Local package includes
 #include "eventchannel/EventChannelConnection.h"
@@ -45,11 +44,15 @@ using namespace askap::cp::eventchannel;
 // main()
 int main(int argc, char *argv[])
 {
+    const std::string brokerURI = "tcp://127.0.0.1:61616";
+    const std::string msgType = "TestMessage";
+    const std::string destName = "tEventChannel_topic";
+
     // Setup the channel
-    EventChannelConnection& conn = EventChannelConnection::createSingletonInstance("tcp://127.0.0.1:61616");
+    EventChannelConnection& conn = EventChannelConnection::createSingletonInstance(brokerURI);
 
     // Create a destination
-    EventDestinationSharedPtr dest = conn.createEventDestination("tEventChannel_topic", EventDestination::TOPIC);
+    EventDestinationSharedPtr dest = conn.createEventDestination(destName, EventDestination::TOPIC);
 
     // Create a producer and consumer
     EventProducerSharedPtr producer = conn.createEventChannelProducer(*dest);
@@ -58,6 +61,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < 10; ++i) {
         // Send a message
         EventMessageSharedPtr outgoing = conn.createEventMessage();
+        outgoing->setMessageType(msgType);
         const std::string testkey = "test_key";
         const int testval = 123;
         outgoing->setInt(testkey, testval);
@@ -67,6 +71,11 @@ int main(int argc, char *argv[])
         EventMessageSharedPtr incoming = consumer->receive(2000);
         if (!incoming) {
             std::cout << "Message NOT received" << std::endl;
+            return 1;
+        }
+
+        if (incoming->getMessageType() != msgType) {
+            std::cout << "Message type is incorrect" << std::endl;
             return 1;
         }
 
