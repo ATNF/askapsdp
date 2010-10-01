@@ -133,7 +133,7 @@ namespace askap {
       this->setTargetObjectiveFunction(parset.getFloat("targetobjective", 0.0));
       this->setFractionalThreshold(parset.getFloat("fractionalthreshold", 0.0));
       this->setLambda(parset.getFloat("lambda", 0.0001));
-      this->setPSFWidth(parset.getFloat("psfwidth", 0));
+      this->setPSFWidth(parset.getInt32("psfwidth", 0));
     }
 
   } // namespace synthesis

@@ -101,7 +101,7 @@ namespace askap {
       if(itsUseCrossTerms) {
 	ASKAPLOG_INFO_STR(decbflogger, "Will use crossterms in subtraction");
       }
-      itsDecouplingAlgorithm=parset.getString("decouplingalgorithm", "sqrtdiagonal");
+      itsDecouplingAlgorithm=parset.getString("decouplingalgorithm", "diagonal");
     }
     
     template<class T, class FT>
@@ -206,6 +206,10 @@ namespace askap {
 	// Correcting coupling at subtraction phase with inverse coupling matrix
 	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse coupling matrix");
       }
+      else if(this->itsDecouplingAlgorithm=="sqrtdiagonal") {
+	// Correcting coupling at subtraction phase with inverse diag(coupling matrix)
+	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse sqrt(diag(coupling matrix))");
+      }
       else if(this->itsDecouplingAlgorithm=="diagonal") {
 	// Correcting coupling at subtraction phase with inverse diag(coupling matrix)
 	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse diag(coupling matrix)");
@@ -221,7 +225,7 @@ namespace askap {
       this->itsL1image.resize(l1Shape);
       this->itsL1image.set(0.0);
       
-      this->itsModel=this->itsBackground.copy();
+      this->itsModel.set(T(0.0));
 
     }
     
@@ -455,7 +459,8 @@ namespace askap {
       casa::IPosition maxPos;
       T minVal(0.0), maxVal(0.0);
       // Here the weighted mask is used as a weight in the determination
-      // of the maximum i.e. it finds the max in mask * residual
+      // of the maximum i.e. it finds the max in mask . residual. The values
+      // returned are without the mask
       minMaxMaskedScales(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction,
 			   this->itsWeightedMask);
       casa::IPosition absPeakPos;
@@ -467,14 +472,14 @@ namespace askap {
       }
       
       // Find the peak values for each scale. Set the stopping criterion
-      // to be the maximum of the maxima
+      // to be the maximum of the maxima. Here we use the weighted
+      // value since that's what we are interested in.
       uInt nScales(this->itsBasisFunction->numberTerms());
       Vector<T> peakValues(nScales);
       IPosition peakPos(absPeakPos);
       T absPeakVal(0.0);
       // If we are using residual decoupling, we need to
       // couple the peakvalues
-
       if(itsDecouplingAlgorithm=="residuals") {
 	// The residuals are decoupled, so we need to convert the update
 	// back to coupled form
@@ -537,6 +542,9 @@ namespace askap {
 	  optimumScale=scale;
 	}
       }
+
+      //      IPosition maskPos(2, absPeakPos(0), absPeakPos(1));
+      //      ASKAPLOG_INFO_STR(decbflogger, "Peak = " << absPeakVal << " weight " << this->itsWeightedMask.nonDegenerate()(maskPos));
 
       if(this->state()->initialObjectiveFunction()==0.0) {
 	this->state()->setInitialObjectiveFunction(abs(absPeakVal));

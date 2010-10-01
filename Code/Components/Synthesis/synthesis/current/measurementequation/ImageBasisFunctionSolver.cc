@@ -217,9 +217,9 @@ namespace askap
 	    basisFunctionDec->state()->setCurrentIter(0);
 	    
 	    ASKAPLOG_INFO_STR(logger, "Starting basis function deconvolution");
-	    // BASISFUNCTION is not incremental so we need to set the
-	    // background image which remains fixed during one 
-	    // deconvolve step
+	    // Some algorithms need a fixed background (i.e. previous) image so
+            // we always use it. The background is taken as fixed.
+
 	    basisFunctionDec->setBackground(basisFunctionArray);
 	    basisFunctionDec->deconvolve();
 	    ASKAPLOG_INFO_STR(logger, "Peak flux of the Basis function image "
@@ -234,10 +234,9 @@ namespace askap
 	    } else {
 	      ip.add(peakResParam, basisFunctionDec->state()->peakResidual());
 	    }
-	    //	    ip.fix(peakResParam);	    
+	    ip.fix(peakResParam);	    
 	    planeIter.getPlane(ip.value(indit->first)) =
-	      unpadImage(basisFunctionDec->model());
-	      //	      unpadImage(basisFunctionDec->model()+basisFunctionDec->background());
+	      unpadImage(basisFunctionDec->model()+basisFunctionDec->background());
 	  } // loop over all planes of the image cube
 	} // loop over map of indices
       
