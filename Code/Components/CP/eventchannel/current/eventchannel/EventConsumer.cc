@@ -116,6 +116,16 @@ EventMessageSharedPtr EventConsumer::receive(const int timeout)
     return message;
 }
 
+void EventConsumer::setEventListener(IEventListener* listener)
+{
+    itsEventListener = listener;
+}
+
+IEventListener* EventConsumer::getEventListener(void)
+{
+    return itsEventListener;
+}
+
 void EventConsumer::onMessage(const cms::Message *message)
 {
     const cms::MapMessage* mapMessage =
@@ -130,6 +140,15 @@ void EventConsumer::onMessage(const cms::Message *message)
     // object created and evenatually returned
     cms::MapMessage* clone = dynamic_cast<cms::MapMessage*>(mapMessage->clone());
     ASKAPDEBUGASSERT(clone);
+
+    // If there is an event listener set deliver via that mechanism, otherwise
+    // deliver to via the mailbox so receive can be called.
+    if (itsEventListener) {
+        // Note: The EventMessage takes ownership of the clone
+        EventMessageSharedPtr message(new EventMessage(clone));
+        itsEventListener->onMessage(message);
+        return;
+    }
 
     // Sleep while the mailbox is full
     boost::mutex::scoped_lock lock(itsMutex);

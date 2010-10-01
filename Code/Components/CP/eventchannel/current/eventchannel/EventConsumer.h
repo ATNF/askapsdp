@@ -42,6 +42,7 @@
 
 // Local package includes
 #include "eventchannel/EventMessage.h"
+#include "eventchannel/IEventListener.h"
 
 namespace askap {
 namespace cp {
@@ -75,6 +76,22 @@ class EventConsumer : protected cms::MessageListener {
         ///
         /// @return a shared pointer to an EventMessage.
         EventMessageSharedPtr receive(const int timeout);
+
+        /// @brief Sets the EventListener that this class will send events to.
+        /// In order to unset the listener, call this method and pass a null
+        /// pointer.
+        ///
+        /// @note This class does not take ownership (in terms of object lifecycle)
+        /// of the event listener.
+        ///
+        /// @param[in] listener pointer to the MessageListener that this class
+        /// will send notifications to.
+        void setEventListener(IEventListener* listener);
+
+        /// @brief Gets the EventListener that this class will send event to.
+        /// @return pointer to the MessageListener that this class will send
+        /// events to.
+        IEventListener* getEventListener(void);
 
     protected:
 
@@ -112,6 +129,8 @@ class EventConsumer : protected cms::MessageListener {
         // Mailbox to pass a message between the thread calling onMessage() and
         // the thread calling receive()
         cms::MapMessage* itsMailbox;
+
+        IEventListener* itsEventListener;
 
         // Some private functions should have "package" level access. Since
         // C++ does not provide this, use friend to achieve it.

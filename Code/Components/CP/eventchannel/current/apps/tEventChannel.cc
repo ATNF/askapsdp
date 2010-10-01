@@ -31,6 +31,7 @@
 // System includes
 #include <iostream>
 #include <string>
+#include <unistd.h>
 
 // Local package includes
 #include "eventchannel/EventChannelConnection.h"
@@ -38,8 +39,27 @@
 #include "eventchannel/EventProducer.h"
 #include "eventchannel/EventConsumer.h"
 #include "eventchannel/EventMessage.h"
+#include "eventchannel/IEventListener.h"
 
 using namespace askap::cp::eventchannel;
+
+class EventListener : public IEventListener {
+    public:
+        EventListener() : itsCount(0) { };
+
+        virtual void onMessage(const EventMessageSharedPtr message)
+        {
+            itsCount++;
+        };
+
+        unsigned int getCount(void)
+        {
+            return itsCount;
+        };
+
+    private:
+        unsigned int itsCount;
+};
 
 // main()
 int main(int argc, char *argv[])
@@ -47,6 +67,8 @@ int main(int argc, char *argv[])
     const std::string brokerURI = "tcp://127.0.0.1:61616";
     const std::string msgType = "TestMessage";
     const std::string destName = "tEventChannel_topic";
+    const std::string testKey = "test_key";
+    const unsigned int nMessages = 10;
 
     // Setup the channel
     EventChannelConnection& conn = EventChannelConnection::createSingletonInstance(brokerURI);
@@ -58,13 +80,12 @@ int main(int argc, char *argv[])
     EventProducerSharedPtr producer = conn.createEventChannelProducer(*dest);
     EventConsumerSharedPtr consumer = conn.createEventChannelConsumer(*dest);
 
-    for (int i = 0; i < 10; ++i) {
+    for (unsigned int i = 0; i < nMessages; ++i) {
         // Send a message
         EventMessageSharedPtr outgoing = conn.createEventMessage();
         outgoing->setMessageType(msgType);
-        const std::string testkey = "test_key";
-        const int testval = 123;
-        outgoing->setInt(testkey, testval);
+        const int testval = i;
+        outgoing->setInt(testKey, testval);
         producer->send(*outgoing);
 
         // Receive the message (waiting for up to 2 seconds)
@@ -79,12 +100,12 @@ int main(int argc, char *argv[])
             return 1;
         }
 
-        if (!incoming->itemExists(testkey)) {
+        if (!incoming->itemExists(testKey)) {
             std::cout << "Item not in map" << std::endl;
             return 1;
         }
 
-        if (incoming->getInt(testkey) != testval) {
+        if (incoming->getInt(testKey) != testval) {
             std::cout << "Map value incorrect" << std::endl;
             return 1;
         }
@@ -96,6 +117,33 @@ int main(int argc, char *argv[])
     EventMessageSharedPtr incoming = consumer->receive(1);
     if (incoming) {
         std::cout << "Received an unexpected message" << std::endl;
+    }
+
+    //
+    // Now test async message receipt via the EventListener
+    //
+    EventListener listener;
+    consumer->setEventListener(&listener);
+
+    // Send a message
+    for (unsigned int i = 0; i < nMessages; ++i) {
+        EventMessageSharedPtr outgoing = conn.createEventMessage();
+        outgoing->setMessageType(msgType);
+        const int testval = i + 10;
+        outgoing->setInt(testKey, testval);
+        producer->send(*outgoing);
+    }
+
+    unsigned int retryCount = 0;
+    unsigned int msgCount = 0;
+    while (msgCount != nMessages && retryCount < 10) {
+        msgCount = listener.getCount();
+        sleep(1);
+    }
+
+    if (msgCount != nMessages) {
+        std::cout << "Listener expected " << nMessages << " messages. Got " << msgCount << std::endl;
+        return 1;
     }
 
     return 0;

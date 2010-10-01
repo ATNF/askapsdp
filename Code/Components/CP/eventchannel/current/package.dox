@@ -47,4 +47,23 @@ namespace askap::cp::eventchannel {};
 /// The EventConsumer class provides support for both blocking and non-blocking
 /// receives.
 ///
+/// Alternately, messages can be delivered asynchronously. Event messages
+/// will be delivered to a class implementing the IEventListener interface
+/// such as in the following example:
+/// @code
+/// class EventListener : public IEventListener {
+///    public:
+///        virtual void onMessage(const EventMessageSharedPtr message)
+///        {
+///            // Use the message
+///        };
+/// };
+/// @endcode
+///
+/// The EventListener is then instantiated and registered with the EventConsumer:
+/// @code
+///    EventListener listener;
+///    consumer->setEventListener(&listener);
+/// @endcode
+///
 /// @copyright 2010 CSIRO, All Rights Reserved.
