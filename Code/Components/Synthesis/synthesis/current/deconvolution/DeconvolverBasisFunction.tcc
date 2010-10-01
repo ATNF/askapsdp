@@ -477,7 +477,6 @@ namespace askap {
       uInt nScales(this->itsBasisFunction->numberTerms());
       Vector<T> peakValues(nScales);
       IPosition peakPos(absPeakPos);
-      T absPeakVal(0.0);
       // If we are using residual decoupling, we need to
       // couple the peakvalues
       if(itsDecouplingAlgorithm=="residuals") {
@@ -536,15 +535,13 @@ namespace askap {
       }
 
       uInt optimumScale(0);
+      T absPeakVal(0.0);
       for (uInt scale=0;scale<nScales;scale++) {
 	if(abs(peakValues(scale))>abs(absPeakVal)) {
 	  absPeakVal=peakValues(scale);
 	  optimumScale=scale;
 	}
       }
-
-      //      IPosition maskPos(2, absPeakPos(0), absPeakPos(1));
-      //      ASKAPLOG_INFO_STR(decbflogger, "Peak = " << absPeakVal << " weight " << this->itsWeightedMask.nonDegenerate()(maskPos));
 
       if(this->state()->initialObjectiveFunction()==0.0) {
 	this->state()->setInitialObjectiveFunction(abs(absPeakVal));
@@ -686,6 +683,9 @@ namespace askap {
       }
       minPos=IPosition(3, sMinPos(0)(0), sMinPos(0)(1), 0);
       maxPos=IPosition(3, sMaxPos(0)(0), sMaxPos(0)(1), 0);
+      minVal=sMinVal(0);
+      maxVal=sMaxVal(0);
+
       for (uInt scale=1;scale<nScales;scale++) {
 	if(sMinVal(scale)<=minVal) {
 	  minVal=sMinVal(scale);
