@@ -89,6 +89,7 @@ namespace askap {
       IPosition itsShape;
       Array<T> itsBasisFunction;
       uInt itsNumberTerms;
+      Bool itsOrthogonal;
     };
     
   } // namespace synthesis

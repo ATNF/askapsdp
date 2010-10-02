@@ -62,13 +62,17 @@ namespace askap {
       
       /// @brief Construct
       /// @details Set up internals - shape not set yet
-      MultiScaleBasisFunction(const Vector<Float>& scales);
+      /// @param[in] scales Scale (in pixels) of each blob
+      /// @param[in] orthogonal Orthogonalise using Gram-Schmidt
+      MultiScaleBasisFunction(const Vector<Float>& scales, const Bool orthogonal=false);
       
       /// @brief Construct with specified shape
       /// @details Set up internals for specified shape
       /// @param[in] shape Shape of first two axes
       /// @param[in] scales Scale (in pixels) of each blob
-      MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales);
+      /// @param[in] orthogonal Orthogonalise using Gram-Schmidt
+      MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales,
+                              const Bool orthogonal=false);
       
       /// @brief Specify shape and fill in array
       /// @details The first two axes are set from shape, and the

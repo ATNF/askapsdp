@@ -95,7 +95,10 @@ namespace askap {
 	std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
 	
 	ASKAPLOG_INFO_STR(decbflogger, "Constructing Multiscale basis function with scales " << scales);
-	itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
+        Bool orthogonal=parset.getBool("orthogonal", "true");
+
+	itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales,
+                                                                                          orthogonal));
       }
       itsUseCrossTerms=parset.getBool("usecrossterms", true);
       if(itsUseCrossTerms) {
@@ -142,32 +145,9 @@ namespace askap {
       IPosition subPsfShape(2, psfWidth, psfWidth);
       
       this->itsBasisFunction->initialise(this->itsModel.shape());
-      if(this->itsDecouplingAlgorithm=="gramschmidt") {
-	ASKAPLOG_INFO_STR(decbflogger,
-			  "Decoupling using Gram-Schmidt to generate orthogonal basis functions");
-	this->itsBasisFunction->initialise(subPsfShape);
-	this->itsBasisFunction->gramSchmidt(itsBasisFunction->basisFunction());
-	initialisePSF();
-	this->itsBasisFunction->initialise(this->itsModel.shape());
-	this->itsBasisFunction->gramSchmidt(itsBasisFunction->basisFunction());
-	initialiseResidual();
-	//	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterGramSchmidtDecoupling.tab",
-	//					       this->itsBasisFunction->basisFunction());
-	//	SynthesisParamsHelper::saveAsCasaImage("ResidualsAfterGramSchmidt.tab",
-	//					       this->itsResidualBasisFunction);
-      }
-      else{
-	initialiseResidual();
-      }
-
+      initialiseResidual();
       this->itsBasisFunction->initialise(subPsfShape);
-      
-      // Initialising the PSF gives the coupling matrix. We will use
-      // that to decouple the scales. Keep a copy of the coupling
-      // matrix so we can apply that version.
       initialisePSF();
-    //      SynthesisParamsHelper::saveAsCasaImage("BasisFunctionBeforeDecoupling.tab", this->itsBasisFunction->basisFunction());
-    //      SynthesisParamsHelper::saveAsCasaImage("ResidualsBeforeDecoupling.tab", this->itsResidualBasisFunction);
 
       if(this->itsDecouplingAlgorithm=="basis") {
 	// Decoupling using inverse coupling matrix generate orthogonal basis functions
@@ -213,6 +193,14 @@ namespace askap {
       else if(this->itsDecouplingAlgorithm=="diagonal") {
 	// Correcting coupling at subtraction phase with inverse diag(coupling matrix)
 	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse diag(coupling matrix)");
+      }
+      else if(this->itsDecouplingAlgorithm=="psfscales") {
+	// Correcting coupling at subtraction phase with inverse psfscales
+	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse psfscales");
+      }
+      else if(this->itsDecouplingAlgorithm=="sqrtpsfscales") {
+	// Correcting coupling at subtraction phase with inverse psfscales
+	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse sqrt(psfscales)");
       }
       else {
 	// Correcting coupling at subtraction phase with inverse diag(coupling matrix)
@@ -479,59 +467,50 @@ namespace askap {
       IPosition peakPos(absPeakPos);
       // If we are using residual decoupling, we need to
       // couple the peakvalues
+      // Apply the inverse of the sqrt(diagonal values) to get the peak values
+      Vector<T> coupledPeakValues(nScales);
+      for (uInt scale=0;scale<nScales;scale++) {
+        peakPos(2)=scale;
+        coupledPeakValues(scale)=this->itsResidualBasisFunction(peakPos);
+      }
+
       if(itsDecouplingAlgorithm=="residuals") {
-	// The residuals are decoupled, so we need to convert the update
-	// back to coupled form
-	Vector<T> decoupledPeakValues(nScales);
-	for (uInt scale=0;scale<nScales;scale++) {
-	  peakPos(2)=scale;
-	  decoupledPeakValues(scale)=this->itsResidualBasisFunction(peakPos);
-	}
-	peakValues=apply(this->itsCouplingMatrix, decoupledPeakValues);
-	for (uInt scale=0;scale<nScales;scale++) {
-	  if(scale!=absPeakPos(2)) {
-	    peakValues(scale)=T(0.0);
-	  }
-	}
+        // This is a special case - the residuals are already decoupled.
+	peakValues=coupledPeakValues.copy();
       }
       else if(itsDecouplingAlgorithm=="inverse") {
-	// Apply the inverse to get the peak valies
-	Vector<T> coupledPeakValues(nScales);
+	peakValues=apply(this->itsInverseCouplingMatrix, coupledPeakValues);
+      }
+      else if(itsDecouplingAlgorithm=="diagonal") {
 	for (uInt scale=0;scale<nScales;scale++) {
 	  peakPos(2)=scale;
-	  coupledPeakValues(scale)=this->itsResidualBasisFunction(peakPos);
-	}
-	peakValues=apply(this->itsInverseCouplingMatrix, coupledPeakValues);
-	for (uInt scale=0;scale<nScales;scale++) {
-	  if(scale!=absPeakPos(2)) {
-	    peakValues(scale)=T(0.0);
-	  }
+	  peakValues(scale)=coupledPeakValues(scale)
+	    / this->itsCouplingMatrix(scale,scale);
 	}
       }
       else if(itsDecouplingAlgorithm=="sqrtdiagonal") {
-	// Apply the inverse of the sqrt(diagonal values) to get the peak values
 	for (uInt scale=0;scale<nScales;scale++) {
 	  peakPos(2)=scale;
-	  peakValues(scale)=this->itsResidualBasisFunction(peakPos)
+	  peakValues(scale)=coupledPeakValues(scale)
 	    / sqrt(this->itsCouplingMatrix(scale,scale));
 	}
+      }
+      else if(itsDecouplingAlgorithm=="sqrtpsfscales") {
 	for (uInt scale=0;scale<nScales;scale++) {
-	  if(scale!=absPeakPos(2)) {
-	    peakValues(scale)=T(0.0);
-	  }
+	  peakPos(2)=scale;
+	  peakValues(scale)=coupledPeakValues(scale)
+	    / sqrt(this->itsPSFScales(scale));
+	}
+      }
+      else if(itsDecouplingAlgorithm=="sqrtpsfscales") {
+	for (uInt scale=0;scale<nScales;scale++) {
+	  peakPos(2)=scale;
+	  peakValues(scale)=coupledPeakValues(scale)
+	    / sqrt(this->itsPSFScales(scale));
 	}
       }
       else {
-	// Apply the inverse of the diagonal values to get the peak values
-	for (uInt scale=0;scale<nScales;scale++) {
-	  peakPos(2)=scale;
-	  peakValues(scale)=this->itsResidualBasisFunction(peakPos)/this->itsCouplingMatrix(scale,scale);
-	}
-	for (uInt scale=0;scale<nScales;scale++) {
-	  if(scale!=absPeakPos(2)) {
-	    peakValues(scale)=T(0.0);
-	  }
-	}
+        ASKAPTHROW(AskapError, "Unknown decoupling algorithm " << itsDecouplingAlgorithm);
       }
 
       uInt optimumScale(0);
@@ -542,6 +521,20 @@ namespace askap {
 	  optimumScale=scale;
 	}
       }
+      // If we decoupled by residuals we need to recouple before
+      // subtracting from the residuals
+      if(this->itsDecouplingAlgorithm=="residuals") {
+	peakValues=apply(this->itsCouplingMatrix, peakValues);
+      }
+      else {
+        // Only the peak is useful
+        for (uInt scale=0;scale<nScales;scale++) {
+          if(scale!=optimumScale) {
+            peakValues(scale)=T(0.0);
+          }
+        }
+      }
+
 
       if(this->state()->initialObjectiveFunction()==0.0) {
 	this->state()->setInitialObjectiveFunction(abs(absPeakVal));
@@ -581,10 +574,6 @@ namespace askap {
 	modelEnd(dim)=residualEnd(dim);
       }
 
-      // If we decoupled by residuals we need to recouple before
-      // subtracting from the residuals
-      if(this->itsDecouplingAlgorithm=="residuals") {
-      }
       // Add to model
       // Note that the model is only two dimensional. We could make it three dimensional
       // and keep the model layers separate

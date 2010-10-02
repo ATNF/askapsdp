@@ -48,9 +48,11 @@ namespace askap {
   namespace synthesis {
     
     template<class T>
-    MultiScaleBasisFunction<T>::MultiScaleBasisFunction(const Vector<Float>& scales) :
-      BasisFunction<T>::BasisFunction(), itsScales(scales) 
+    MultiScaleBasisFunction<T>::MultiScaleBasisFunction(const Vector<Float>& scales,
+                                                        const Bool orthogonal) :
+      BasisFunction<T>::BasisFunction(), itsScales(scales)
     {
+      this->itsOrthogonal=orthogonal;
       this->itsNumberTerms=scales.nelements();
       ASKAPLOG_INFO_STR(decmsbaselogger, "Initialising multiscale basis function with "
 			<< this->itsNumberTerms << " scales: " << scales);
@@ -58,9 +60,11 @@ namespace askap {
 
     template<class T>
     MultiScaleBasisFunction<T>::MultiScaleBasisFunction(const IPosition shape,
-							const Vector<Float>& scales) :
-      BasisFunction<T>::BasisFunction(), itsScales(scales) 
+							const Vector<Float>& scales,
+                                                        const Bool orthogonal) :
+      BasisFunction<T>::BasisFunction(), itsScales(scales)
     {
+      this->itsOrthogonal=orthogonal;
       this->itsNumberTerms=scales.nelements();
       initialise(shape);
     }
@@ -113,6 +117,10 @@ namespace askap {
            }
            scaleCube.xyPlane(scale)=scaleCube.xyPlane(scale)/volume;
          }
+       }
+       if(this->itsOrthogonal) {
+         ASKAPLOG_INFO_STR(decmsbaselogger, "Orthogonalising multi-scale basis function using Gram-Schmidt algorithm");
+         this->gramSchmidt(this->itsBasisFunction);
        }
     }
   

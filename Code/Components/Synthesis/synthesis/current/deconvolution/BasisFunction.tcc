@@ -48,7 +48,7 @@ namespace askap {
     };
     
     template<class T>
-    BasisFunction<T>::BasisFunction(const IPosition shape) : itsNumberTerms(1)
+    BasisFunction<T>::BasisFunction(const IPosition shape) : itsNumberTerms(1), itsOrthogonal(false)
     {
       initialise(shape);
     };
