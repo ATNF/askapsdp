@@ -95,7 +95,7 @@ namespace askap {
 	std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
 	
 	ASKAPLOG_INFO_STR(decbflogger, "Constructing Multiscale basis function with scales " << scales);
-        Bool orthogonal=parset.getBool("orthogonal", "true");
+        Bool orthogonal=parset.getBool("orthogonal", "false");
 
 	itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales,
                                                                                           orthogonal));
@@ -377,8 +377,6 @@ namespace askap {
 	  crossTermsEnd(3)=term1;
 	  casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
 	  casa::minMax(minVal, maxVal, minPos, maxPos, this->itsPSFCrossTerms(crossTermsSlicer));
-	  //	    ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * Basis function(" << term1
-	  //			      << ") * PSF: max = " << maxVal << " min = " << minVal);
 	  this->itsCouplingMatrix(term, term1) = Double(maxVal);
 	}
 	this->itsCouplingMatrix(term, term) += Double(this->control()->lambda());
@@ -485,7 +483,7 @@ namespace askap {
 	for (uInt scale=0;scale<nScales;scale++) {
 	  peakPos(2)=scale;
 	  peakValues(scale)=coupledPeakValues(scale)
-	    / this->itsCouplingMatrix(scale,scale);
+	    / (this->itsCouplingMatrix(scale,scale));
 	}
       }
       else if(itsDecouplingAlgorithm=="sqrtdiagonal") {
@@ -495,11 +493,11 @@ namespace askap {
 	    / sqrt(this->itsCouplingMatrix(scale,scale));
 	}
       }
-      else if(itsDecouplingAlgorithm=="sqrtpsfscales") {
+      else if(itsDecouplingAlgorithm=="psfscales") {
 	for (uInt scale=0;scale<nScales;scale++) {
 	  peakPos(2)=scale;
 	  peakValues(scale)=coupledPeakValues(scale)
-	    / sqrt(this->itsPSFScales(scale));
+	    / this->itsPSFScales(scale);
 	}
       }
       else if(itsDecouplingAlgorithm=="sqrtpsfscales") {
