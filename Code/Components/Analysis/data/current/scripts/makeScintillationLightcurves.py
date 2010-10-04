@@ -53,7 +53,7 @@ if __name__ == '__main__':
     parser.add_option("-s","--sample", type="int", dest="step", default=60, help="Sampling interval [s] [default: %default]")
     parser.add_option("-x","--xmax", type="int", dest="xmax", default=75, help="Maximum lag for autocovariance (dimensionless units) [default: %default]")
     parser.add_option("-c","--compCol", type="int", dest="componentLoc", default=0, help="Column in input file with component ID number [default: %default]")
-    parser.add_option("-f","--fluxCol", type="int", dest="fluxLoc", default=11, help="Column in input file with flux [default: %default]")
+    parser.add_option("-f","--fluxCol", type="int", dest="fluxLoc", default=10, help="Column in input file with flux [default: %default]")
     parser.add_option("-t","--tmax", type="int", dest="tmax", default=30000, help="Maximum time interval [s] [default: %default]")
     
     (options, args) = parser.parse_args()
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     viss = 1.e5
     sm=9.8e15
     z=1.2e19
-    s0=6.4e7
+    s0=3.164e7
     lam=300./1400.
     r_e = 2.82e-15
     k = 2.*pi/lam
