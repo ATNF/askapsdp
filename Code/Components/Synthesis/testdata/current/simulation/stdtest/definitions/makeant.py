@@ -240,7 +240,9 @@ def ITRFToWGS84 (x, y, z):
 	return lat, lon, h
 	
 class Antenna:
-	def __init__(self, easting, northing, elevation, zone, hemisphere):
+	def __init__(self, pad, name, easting, northing, elevation, zone, hemisphere):
+		self.pad = pad
+		self.name = name
 		self.easting = easting
 		self.northing = northing
 		self.elevation = elevation
@@ -259,11 +261,14 @@ class Antenna:
 		if self.elevation < -0.99e9:
 			return False
 		return True
+	
+	def padName(self):
+		return "Pad%02d" %(self.pad)
 
 class AntennaList:
 	def __init__(self, config, configType, fName, zone, hemisphere):
 		self.config = config
-		self.antennas = []
+		self.antennas = {}
 		nhead = 2
 		csvreader = csv.reader(open(fName, "rU"), dialect="excel")
 		for row in csvreader:
@@ -272,24 +277,26 @@ class AntennaList:
 				continue
 			if len(row) < 19 or len(row[0]) == 0:
 				continue
+			pad = int(row[0])
+			name = row[1]
 			if configType == "nominal":
-				self.antennas.append(Antenna(float(row[3]), float(row[4]), -1.0e9, zone, hemisphere))
+				self.antennas[pad] = Antenna(pad, name, float(row[3]), float(row[4]), -1.0e9, zone, hemisphere)
 			elif configType == "proposed":
-				self.antennas.append(Antenna(float(row[9]), float(row[10]), -1.0e9, zone, hemisphere))
+				self.antennas[pad] = Antenna(pad, name, float(row[9]), float(row[10]), -1.0e9, zone, hemisphere)
 			else:
 				if len(row[16]) > 0:
-					self.antennas.append(Antenna(float(row[16]), float(row[17]), float(row[18]), zone, hemisphere))
+					self.antennas[pad] = Antenna(pad, name, float(row[16]), float(row[17]), float(row[18]), zone, hemisphere)
 				else:
-					self.antennas.append(Antenna(float(row[9]), float(row[10]), -1.0e9, zone, hemisphere))
+					self.antennas[pad] = Antenna(pad, name, float(row[9]), float(row[10]), -1.0e9, zone, hemisphere)
 
-		for ant in self.antennas:
+		for ant in self.antennas.values():
 			if ant.hasEl() == False:
 				ant.elevation = 377.0
 
 	def names(self):
 		n = []
-		for i in range(len(self.config.antennas)):
-			n.append("A%d" %(i))
+		for ant in self.config.antennas:
+			n.append(self.antennas[ant].padName())
 		return n
 
 	def dump(self):
@@ -299,13 +306,12 @@ class AntennaList:
 		print "antennas.%s.diameter = 12m" %(self.config.name)
 		print "antennas.%s.scale = 1.0" %(self.config.name)
 		print "antennas.%s.mount = equatorial" %(self.config.name)
-		for i in range(len(self.config.antennas)):
-			antnum = self.config.antennas[i]
+		for antnum in self.config.antennas:
 			print "# easting: %f; northing: %f; el: %f; Zone: %d %s" %(self.antennas[antnum].easting, self.antennas[antnum].northing, self.antennas[antnum].elevation, self.antennas[antnum].zone, self.antennas[antnum].hemisphere)
 			lat, lon, el = self.antennas[antnum].toWGS84()
 			print "# lat: %16.12f; long: %16.12f; el: %f" %(lat * Rad2Deg, lon * Rad2Deg, el)
 			x, y, z = self.antennas[antnum].toITRF()
-			print "antennas.%s.A%d = [%f, %f, %f]" %(self.config.name, i, x, y, z)
+			print "antennas.%s.%s = [%f, %f, %f]" %(self.config.name, self.antennas[antnum].padName(), x, y, z)
 
 class AntennaConfig:
 	def __init__(self, name, antennas):
@@ -313,9 +319,9 @@ class AntennaConfig:
 		self.antennas = antennas
 
 config = {}
-config["A27CR3P6B"] = AntennaConfig("A27CR3P6B", range(36))
-config["A27CR3"] = AntennaConfig("A27CR3", range(30))
-config["BETA"] = AntennaConfig("BETA", (0, 2, 5, 7, 8, 28))
+config["A27CR3P6B"] = AntennaConfig("A27CR3P6B", range(1, 37))
+config["A27CR3"] = AntennaConfig("A27CR3", range(1, 31))
+config["BETA"] = AntennaConfig("BETA", (1, 3, 6, 8, 9, 29))
 
 configType = ("nominal", "proposed", "installed")
 if len(sys.argv) != 3 or not string.upper(sys.argv[1]) in config or not string.lower(sys.argv[2]) in configType:
