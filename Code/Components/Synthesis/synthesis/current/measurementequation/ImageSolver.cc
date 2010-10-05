@@ -469,7 +469,10 @@ namespace askap
             for (int ny = 0; ny<paddedShape(1); ++ny) {
                  cursor(1)=ny;
                  const double wtOld = casa::abs(uvOld(cursor));
+                 ASKAPCHECK(!std::isnan(wtOld), "abs(uvOld) is NaN, uvOld(cursor)="<<uvOld(cursor));	    
+                                  
                  const double wtNew = casa::abs(uvNew(cursor));
+                 ASKAPCHECK(!std::isnan(wtNew), "abs(uvNew) is NaN, uvOld(cursor)="<<uvNew(cursor));	    
                  sumwtOld += wtOld;
                  sumwtNew += wtNew;
                  sumwt2Old += casa::square(wtOld);
