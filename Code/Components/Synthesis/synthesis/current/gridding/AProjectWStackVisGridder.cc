@@ -393,6 +393,8 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
         for (int chan=0; chan<nChan; ++chan) {
             for (int pol=0; pol<nPol; ++pol) {
                 const double wt = itsSumWeights(iz, pol, chan);
+                ASKAPCHECK(!std::isnan(wt), "itsSumWeights contains NaN for convolution function "<<iz<<
+                           " pol="<<pol<<" chan="<<chan);
                 if (wt > 0.0) {
                     hasData=true;
                     totSumWt += wt;
@@ -437,6 +439,8 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
                 for (int pol=0; pol<nPol; ++pol) {
                     casa::IPosition ip(4, 0, 0, pol, chan);
                     const double wt=itsSumWeights(iz, pol, chan);
+                    ASKAPCHECK(!std::isnan(wt), "itsSumWeights contains NaN for convolution function "<<iz<<
+                               " pol="<<pol<<" chan="<<chan);
                     for (int ix=0; ix<cnx; ++ix) {
                         ip(0)=ix;
                         for (int iy=0; iy<cny; ++iy) {
