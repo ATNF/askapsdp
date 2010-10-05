@@ -104,6 +104,7 @@
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
 #include <deconvolution/DeconvolverMonitor.h>
+#include <deconvolution/BasisFunction.h>
 
 namespace askap {
 
@@ -129,6 +130,17 @@ namespace askap {
       /// @param[in] psf Point Spread Function (array)
       DeconvolverFista(Array<T>& dirty, Array<T>& psf);
 
+      /// @brief Set the basis function to be used
+      /// @details The algorithm can work with different basis functions
+      /// PointBasisFunction, MultiScaleBasisFunction. 
+      /// @param[in] bf Shared pointer to basisfunction instance
+      void setBasisFunction(boost::shared_ptr<BasisFunction<T> > bf);
+
+      /// @brief Return the basis function to be used
+      /// @details The algorithm can work with different basis functions
+      /// PointBasisFunction, MultiScaleBasisFunction 
+      boost::shared_ptr<BasisFunction<T> > basisFunction();
+
       /// @brief Perform the deconvolution
       /// @detail This is the main deconvolution method.
       virtual bool deconvolve();
@@ -147,9 +159,17 @@ namespace askap {
       void updateAlgorithm(Array<T>& delta, const Array<T>& model,
                            const Array<T>& residual, T aFit);
 
+      void W(Array<T>& out, const Array<T>& in);
+      void WT(Array<T>& out, const Array<T>& in);
+
+      Array<FT> itsBasisFunctionTransform;
+
       // We need this for the inner loop
       // Mask weighted by weight image
       Array<T> itsWeightedMask;
+
+      /// Basis function used in the deconvolution
+      boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
 
     };
 

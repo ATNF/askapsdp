@@ -82,6 +82,23 @@ namespace askap
       this->itsMonitor->configure(parset);
       ASKAPASSERT(this->itsControl);
       this->itsControl->configure(parset);
+
+      if(parset.isDefined("scales")) {
+	std::vector<float> defaultScales(6);
+	defaultScales[0]=0.0;
+	defaultScales[1]=2.0;
+	defaultScales[2]=4.0;
+	defaultScales[2]=8.0;
+	defaultScales[2]=16.0;
+	defaultScales[2]=32.0;
+	std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
+	
+	ASKAPLOG_INFO_STR(decfistalogger, "Constructing Multiscale basis function with scales " << scales);
+        Bool orthogonal=parset.getBool("orthogonal", "false");
+
+	itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales,
+                                                                                          orthogonal));
+      }
     }
     
     void ImageFistaSolver::init()
@@ -89,6 +106,14 @@ namespace askap
       resetNormalEquations();
     }
     
+    void ImageFistaSolver::setBasisFunction(BasisFunction<Float>::ShPtr bf) {
+      itsBasisFunction=bf;
+    }
+
+    BasisFunction<Float>::ShPtr ImageFistaSolver::basisFunction() {
+      return itsBasisFunction;
+    }
+
     /// @brief Solve for parameters, updating the values kept internally
     /// The solution is constructed from the normal equations. The parameters named 
     /// image* are interpreted as images and solved for.
@@ -185,6 +210,11 @@ namespace askap
 	    fistaDec->setControl(itsControl);
 	    fistaDec->setMask(maskArray);
 	    
+	    if(itsBasisFunction) {
+	      itsBasisFunction->initialise(dirtyArray.shape());
+	      fistaDec->setBasisFunction(itsBasisFunction);
+	    }
+
 	    // We have to reset the initial objective function
 	    // so that the fractional threshold mechanism will work.
 	    fistaDec->state()->resetInitialObjectiveFunction();

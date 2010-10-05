@@ -65,6 +65,10 @@ namespace askap {
       /// @param[in] parset parset's subset (should have solver.Clean or solver.Dirty removed)
       virtual void configure(const LOFAR::ParameterSet &parset); 
       
+      virtual void setBasisFunction(BasisFunction<Float>::ShPtr bf);
+      
+      BasisFunction<Float>::ShPtr basisFunction();
+
     protected:
       /// @brief Precondition the PSF and the dirty image
       /// @param[in] psf point spread function to precondition (in/out)
@@ -75,6 +79,8 @@ namespace askap {
       
       boost::shared_ptr<DeconvolverMonitor<Float> > itsMonitor;
       
+      BasisFunction<Float>::ShPtr itsBasisFunction;
+
     private:
       
     };

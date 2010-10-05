@@ -44,6 +44,10 @@ ASKAP_LOGGER(decfistalogger, ".deconvolution.fista");
 
 #include <deconvolution/DeconvolverFista.h>
 
+#include <deconvolution/MultiScaleBasisFunction.h>
+
+#include <measurementequation/SynthesisParamsHelper.h>
+
 namespace askap {
 
   namespace synthesis {
@@ -69,6 +73,7 @@ namespace askap {
     void DeconvolverFista<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
       DeconvolverBase<T,FT>::configure(parset);
+      
     }
 
     template<class T, class FT>
@@ -80,6 +85,13 @@ namespace askap {
       this->residual().resize(this->dirty().shape());
       this->residual()=this->dirty().copy();
  
+      if(itsBasisFunction) {
+	this->itsBasisFunction->initialise(this->itsModel.shape());
+	itsBasisFunctionTransform.resize(itsBasisFunction->basisFunction().shape());
+	casa::setReal(itsBasisFunctionTransform, itsBasisFunction->basisFunction().nonDegenerate());
+	scimath::fft2d(itsBasisFunctionTransform, true);
+      }
+
       ASKAPLOG_INFO_STR(decfistalogger, "Initialised FISTA solver");
    }
 
@@ -128,10 +140,13 @@ namespace askap {
 	//	X=X+T(2.0)*this->residual()/this->itsLipschitz;
 	X=X+this->residual()/this->itsLipschitz;
 	// Transform to other (e.g. wavelet) space
-	Array<T> WX(X);
+	Array<T> WX;
+	this->W(WX,X);
+	SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
+
 	// Now shrink the coefficients towards zero and clip those below
 	// lambda/lipschitz.
-	Array<T> shrink(this->dirty().shape());
+	Array<T> shrink(WX.shape());
 	{
 	  Array<T> truncated(abs(WX)-this->control()->lambda()/this->itsLipschitz);
 	  shrink=truncated(truncated>T(0.0));
@@ -139,7 +154,9 @@ namespace askap {
 	  shrink(truncated<T(0.0))=T(0.0);
 	}
 	// Transform back from other (e.g. wavelet) space here
-	X_temp=shrink.copy();
+	this->WT(X_temp,shrink);
+	SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
+
 	// Initially take a small step towards the updated model
 	t_new=(T(1.0)+sqrt(T(1.0)+T(4.0)*square(t_old)))/T(2.0);
 	X=X_temp+((t_old-T(1.0))/t_new)*(X_temp-X_old);
@@ -197,13 +214,75 @@ namespace askap {
       return True;
     }
     
+    template<class T, class FT>
+    void DeconvolverFista<T,FT>::setBasisFunction(boost::shared_ptr<BasisFunction<T> > bf) {
+      itsBasisFunction=bf;
+    };
+    
+    template<class T, class FT>
+    boost::shared_ptr<BasisFunction<T> > DeconvolverFista<T,FT>::basisFunction() {
+      return itsBasisFunction;
+    };
+    
     template <class T, class FT>
     void DeconvolverFista<T, FT>::updateAlgorithm(Array<T>& delta, const Array<T>& model,
                                                   const Array<T>& residual, T aFit) {
-      T scale=T(1.0)/(aFit);
-      delta=(T(1.0)-exp(-pow(scale*residual,8)))*residual/this->itsLipschitz;
     }
 
+    // Apply the convolve operation - this is undecimated and redundant. The 2D image
+    // will be expanded along the third axis
+    template <class T, class FT>
+    void DeconvolverFista<T, FT>::W(Array<T>& out, const Array<T>& in) {
+      if(itsBasisFunction) {
+	casa::Array<FT> inTransform(in.nonDegenerate().shape());
+	casa::Array<FT> outPlaneTransform(in.nonDegenerate().shape());
+	out.resize(itsBasisFunction->basisFunction().shape());
+	casa::Cube<T> outCube(out);
+	casa::setReal(inTransform, in.nonDegenerate());
+	scimath::fft2d(inTransform, true);
+	const uInt nPlanes(itsBasisFunction->basisFunction().shape()(2));
+	for (uInt plane=0;plane<nPlanes;plane++) {
+	  outPlaneTransform=inTransform.nonDegenerate()*Cube<FT>(itsBasisFunctionTransform).xyPlane(plane);
+	  scimath::fft2d(outPlaneTransform, false);
+	  outCube.xyPlane(plane)=real(outPlaneTransform);
+	}
+      }
+      else {
+	out=in.copy();
+      }
+    }
+
+    // Apply the transpose of the W operation - this is undecimated and redundant so we need
+    // to sum over the planes
+    template <class T, class FT>
+    void DeconvolverFista<T, FT>::WT(Array<T>& out, const Array<T>& in) {
+      if(itsBasisFunction) {
+	const Cube<T> inCube(in);
+	casa::Array<FT> inPlaneTransform(out.nonDegenerate().shape());
+	casa::Array<FT> outTransform(out.nonDegenerate().shape());
+	outTransform.set(FT(0.0));
+
+	// To reconstruct, we filter out each basis from the cumulative sum
+	// and then add the corresponding term from the in array.
+	const uInt nPlanes(itsBasisFunction->basisFunction().shape()(2));
+
+	casa::setReal(inPlaneTransform, inCube.xyPlane(nPlanes-1));
+	scimath::fft2d(inPlaneTransform, true);
+	outTransform=Cube<FT>(itsBasisFunctionTransform).xyPlane(nPlanes-1)*(inPlaneTransform);
+
+	for (uInt plane=1;plane<nPlanes;plane++) {
+	  casa::setReal(inPlaneTransform, inCube.xyPlane(nPlanes-1-plane));
+	  scimath::fft2d(inPlaneTransform, true);
+	  outTransform=
+	    outTransform+Cube<FT>(itsBasisFunctionTransform).xyPlane(nPlanes-1-plane)*(inPlaneTransform-outTransform);
+	}
+	scimath::fft2d(outTransform, false);
+	out.nonDegenerate()=real(outTransform);
+      }
+      else {
+	out=in.copy();
+      }
+    }
 
   } // namespace synthesis
   
