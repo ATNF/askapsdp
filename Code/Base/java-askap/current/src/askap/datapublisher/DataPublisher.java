@@ -133,6 +133,7 @@ public class DataPublisher extends DataPublisherBase
             Ice.ObjectPrx pub = itsTopic.getPublisher().ice_twoway();
             itsPublisher = ITypedValueMapPublisherPrxHelper.uncheckedCast(pub);
         } catch (Exception e) {
+            itsLogger.error("(" + itsTopicName + "): While connecting: " + e);
             disconnect();
             throw e;
         }
@@ -164,6 +165,7 @@ public class DataPublisher extends DataPublisherBase
                 throw new NotConnectedException();
             }
         } catch (Exception e) {
+            itsLogger.error("(" + itsTopicName + "): While publishing: " + e);
             throw new NotConnectedException(e);
         }
     }

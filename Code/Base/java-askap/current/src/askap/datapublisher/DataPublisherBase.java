@@ -23,6 +23,8 @@ package askap.datapublisher;
 import IceStorm.*;
 import Ice.Communicator;
 
+import org.apache.log4j.Logger;
+
 /**
  * Abstract base class for DataPublishers.
  * 
@@ -50,6 +52,9 @@ public abstract class DataPublisherBase {
 
   /** The IceStorm topic to publish metadata to. */
   protected TopicPrx itsTopic = null;
+  
+  /** Logger. */
+  protected Logger itsLogger = Logger.getLogger(getClass().getName());
 
   /**
    * Specify the Ice Communicator to be used.

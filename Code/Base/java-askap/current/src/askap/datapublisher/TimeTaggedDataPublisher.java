@@ -133,6 +133,7 @@ public class TimeTaggedDataPublisher extends DataPublisherBase
             Ice.ObjectPrx pub = itsTopic.getPublisher().ice_twoway();
             itsPublisher = ITimeTaggedTypedValueMapPublisherPrxHelper.uncheckedCast(pub);
         } catch (Exception e) {
+            itsLogger.error("(" + itsTopicName + "): While connecting: " + e);
             disconnect();
             throw e;
         }
@@ -168,6 +169,7 @@ public class TimeTaggedDataPublisher extends DataPublisherBase
                 throw new NotConnectedException();
             }
         } catch (Exception e) {
+            itsLogger.error("(" + itsTopicName + "): While publishing: " + e);
             throw new NotConnectedException(e);
         }
     }
