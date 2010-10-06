@@ -56,6 +56,7 @@ namespace askap {
 				void define(RadioSource *r, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &array);
 				void define(RadioSource *r, casa::Vector<float> &array);
 				void define(RadioSource *r);
+				void setFirstGuess(RadioSource *src);
 				std::vector<SubComponent> find();
 				
 				void saveArray(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
@@ -73,6 +74,7 @@ namespace askap {
 				float itsBaseThreshold;
 				float itsThreshIncrement;
 				float itsPeakFlux;
+				float itsCurrentThreshold;
 				int itsSourceSize;
 				
 				};

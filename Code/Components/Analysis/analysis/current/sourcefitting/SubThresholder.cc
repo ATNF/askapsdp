@@ -71,6 +71,7 @@ namespace askap {
 	this->itsSourceSize = s.itsSourceSize;
 	this->itsDim = s.itsDim;
 	this->itsFluxArray = s.itsFluxArray;
+	this->itsCurrentThreshold = s.itsCurrentThreshold;
 	return *this;
 		
       }
@@ -125,12 +126,25 @@ namespace askap {
 	this->itsDim[0] = src->boxXsize(); 
 	this->itsDim[1] = src->boxYsize();
 
-	this->itsFirstGuess.setPeak(this->itsPeakFlux);
+	this->setFirstGuess(src);
+		
+	this->itsNumThresholds = src->fitparams().numSubThresholds();
+	this->itsBaseThreshold = src->detectionThreshold() > 0 ? log10(src->detectionThreshold()) : -6.;
+	this->itsThreshIncrement = (log10(this->itsPeakFlux) - this->itsBaseThreshold) / float(this->itsNumThresholds + 1);
+	this->itsCurrentThreshold = pow(10.,this->itsBaseThreshold + this->itsThreshIncrement);
+		
+	this->itsSourceBox = src->box();
+		
+      }
+		  
+      void SubThresholder::setFirstGuess(RadioSource *src) {
+
+	this->itsFirstGuess.setPeak(src->getPeakFlux());
 	this->itsFirstGuess.setX(src->getXPeak());
 	this->itsFirstGuess.setY(src->getYPeak());
 	double a, b, c;
 		
-	if (this->itsSourceSize < 3) {
+	if (src->getSize() < 3) {
 	  this->itsFirstGuess.setPA(0);
 	  this->itsFirstGuess.setMajor(1.);
 	  this->itsFirstGuess.setMinor(1.);
@@ -141,15 +155,11 @@ namespace askap {
 	  this->itsFirstGuess.setMajor(b);
 	  this->itsFirstGuess.setMinor(c);
 	}
-		
-	this->itsNumThresholds = src->fitparams().numSubThresholds();
-	this->itsBaseThreshold = src->detectionThreshold() > 0 ? log10(src->detectionThreshold()) : -6.;
-	this->itsThreshIncrement = (log10(this->itsPeakFlux) - this->itsBaseThreshold) / float(this->itsNumThresholds + 1);
-		
-	this->itsSourceBox = src->box();
-		
+
+
       }
-		  
+
+
       void SubThresholder::keepObject(PixelInfo::Object2D &obj){
 			  
 	for (int i = 0; i < this->itsDim[0]*this->itsDim[1]; i++) {
@@ -167,14 +177,14 @@ namespace askap {
 	std::vector<SubComponent> fullList;
 
 	if (this->itsSourceSize < 3) {
-	  fullList.push_back(itsFirstGuess);
+	  fullList.push_back(this->itsFirstGuess);
 	  return fullList;
 	}
 
 	int threshCtr = 0;
 	std::vector<PixelInfo::Object2D> objlist;
 	std::vector<PixelInfo::Object2D>::iterator obj;
-	bool keepGoing;
+	bool keepGoing = true;
 
 	duchamp::Image *theImage = new duchamp::Image(this->itsDim.data());
 
@@ -184,42 +194,46 @@ namespace askap {
 	}
 	theImage->setMinSize(1);
 		
-	float thresh;
-	do {
-	  threshCtr++;
-	  thresh = pow(10., this->itsBaseThreshold + threshCtr * this->itsThreshIncrement);
-	  theImage->stats().setThreshold(thresh);
+	while(this->itsCurrentThreshold <= this->itsPeakFlux && keepGoing) {
+	  theImage->stats().setThreshold(this->itsCurrentThreshold);
 	  objlist = theImage->findSources2D();
+	  //	  ASKAPLOG_DEBUG_STR(logger, threshCtr++ << " " << this->itsCurrentThreshold << " " << this->itsBaseThreshold << " " << this->itsThreshIncrement<< " " << objlist.size() << " " << this->itsPeakFlux );
 	  keepGoing = (objlist.size() == 1);
-	} while (keepGoing && (threshCtr < this->itsNumThresholds));
+	  this->itsCurrentThreshold *= pow(10.,this->itsThreshIncrement);
+	}
 
 	delete theImage;
 		
 	if (!keepGoing) {
-		  
-	  FittingParameters baseParams;
-	  baseParams.setNumSubThresholds(this->itsNumThresholds);
-			
-	  for (obj = objlist.begin(); obj < objlist.end(); obj++) {
-
-	    RadioSource *src = new RadioSource;
-	    src->addChannel(0, *obj);
-	    src->setFitParams(baseParams);
-	    src->setDetectionThreshold(thresh);
-	    src->setBox(this->itsSourceBox);
-	    src->calcFluxes(this->itsFluxArray.data(),this->itsDim.data());
-	    duchamp::Param par;
-	    par.setXOffset(this->itsSourceBox.start()[0]);
-	    par.setYOffset(this->itsSourceBox.start()[1]);
-	    src->setOffsets(par);
-	    src->addOffsets();
-	    SubThresholder *newthresher = new SubThresholder();
-	    newthresher->define(src,this->itsFluxArray);
-	    newthresher->keepObject(*obj);
-	    std::vector<SubComponent> newlist = newthresher->find();
-	    delete newthresher;
-	    delete src;
-	    for (uInt i = 0; i < newlist.size(); i++) fullList.push_back(newlist[i]);
+		
+	  if(objlist.size()==0) {
+	    fullList.push_back(this->itsFirstGuess);
+	  }
+	  else {
+	    FittingParameters baseParams;
+	    baseParams.setNumSubThresholds(this->itsNumThresholds);
+	    
+	    for (obj = objlist.begin(); obj < objlist.end(); obj++) {
+	      
+	      RadioSource *src = new RadioSource;
+	      src->addChannel(0, *obj);
+	      src->setFitParams(baseParams);
+	      src->setDetectionThreshold(this->itsCurrentThreshold);
+	      src->setBox(this->itsSourceBox);
+	      src->calcFluxes(this->itsFluxArray.data(),this->itsDim.data());
+	      duchamp::Param par;
+	      par.setXOffset(this->itsSourceBox.start()[0]);
+	      par.setYOffset(this->itsSourceBox.start()[1]);
+	      src->setOffsets(par);
+	      src->addOffsets();
+	      SubThresholder *newthresher = new SubThresholder(*this);
+	      newthresher->setFirstGuess(src);
+	      newthresher->keepObject(*obj);
+	      std::vector<SubComponent> newlist = newthresher->find();
+	      delete newthresher;
+	      delete src;
+	      for (uInt i = 0; i < newlist.size(); i++) fullList.push_back(newlist[i]);
+	    }
 	  }
 	} 
 	else {

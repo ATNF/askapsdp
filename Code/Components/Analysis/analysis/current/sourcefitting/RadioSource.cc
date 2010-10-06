@@ -398,17 +398,13 @@ namespace askap {
 
                     if ((tempobj.getXPeak() + this->boxXmin()) == this->getXPeak()  &&
                             (tempobj.getYPeak() + this->boxYmin()) == this->getYPeak()) {
+		      // measure parameters only for source at peak
                         angle = o->getPositionAngle();
                         std::pair<double, double> axes = o->getPrincipleAxes();
                         maj = std::max(axes.first, axes.second);
                         min = std::min(axes.first, axes.second);
                     }
-		    else{
-		      ASKAPLOG_WARN_STR(logger,"Peak location doesn't match in FWHMestimate");
-		      angle=0.;
-		      maj=1.;
-		      min=1.;
-		    }
+
                 }
 
                 delete smlIm;
@@ -445,6 +441,8 @@ namespace askap {
                 float dy = this->getYaverage() - this->getYPeak();
 
                 if (hypot(dx, dy) > 2.) {
+		  ASKAPLOG_DEBUG_STR(logger, "Using antipus with " << cmpntlist.size() << " subcomponents");
+		  ASKAPLOG_DEBUG_STR(logger, "Component 0 = " << cmpntlist[0]);
 		  // if this distance is suitably small, add two more
 		  // subcomponents: the "antipus", being the
 		  // rotational reflection of the peak about the
