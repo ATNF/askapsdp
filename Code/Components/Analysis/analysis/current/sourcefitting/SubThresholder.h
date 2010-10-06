@@ -54,14 +54,11 @@ namespace askap {
 				SubThresholder& operator=(const SubThresholder &s);
 				
 				void define(RadioSource *r, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &array);
-				void define(RadioSource *r, casa::Vector<float> &array);
 				void define(RadioSource *r);
 				void setFirstGuess(RadioSource *src);
 				std::vector<SubComponent> find();
 				
 				void saveArray(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
-				  //				  void saveArray(casa::Vector<casa::Double> &array);
-				void saveArray(casa::Vector<float> &array);
 				void keepObject(PixelInfo::Object2D &obj);
 
 				

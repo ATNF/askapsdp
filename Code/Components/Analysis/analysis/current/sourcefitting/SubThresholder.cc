@@ -77,6 +77,11 @@ namespace askap {
       }
 	  
 	
+      void SubThresholder::define(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &array){
+	this->saveArray(src,pos,array);		
+	this->define(src);			  
+      }
+
 
       void SubThresholder::saveArray(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f) {
 	int xmin = src->boxXmin();
@@ -102,20 +107,6 @@ namespace askap {
 
       }
 		  
-      void SubThresholder::saveArray(casa::Vector<float> &f) {
-	ASKAPLOG_DEBUG_STR(logger, "Secondary array saving, with size = " << f.size());
-	this->itsFluxArray = f;
-      }
-		  
-      void SubThresholder::define(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &array){
-	this->saveArray(src,pos,array);		
-	this->define(src);			  
-      }
-
-      void SubThresholder::define(RadioSource *src, casa::Vector<float> &array){
-	this->saveArray(array);		
-	this->define(src);			  
-      }
 		  
       void SubThresholder::define(RadioSource *src){
 			  
