@@ -23,7 +23,7 @@ if [ $COUNT -eq 10 ]; then
 fi
 
 # Sleep a little more
-sleep 2
+sleep 5
 
 # Run the ingest pipeline
 echo "Running the testcase..."
