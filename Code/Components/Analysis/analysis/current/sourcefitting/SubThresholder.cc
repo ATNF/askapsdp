@@ -172,7 +172,7 @@ namespace askap {
 	  return fullList;
 	}
 
-	int threshCtr = 0;
+	//	int threshCtr = 0;
 	std::vector<PixelInfo::Object2D> objlist;
 	std::vector<PixelInfo::Object2D>::iterator obj;
 	bool keepGoing = true;
@@ -180,7 +180,7 @@ namespace askap {
 	duchamp::Image *theImage = new duchamp::Image(this->itsDim.data());
 
 	if(this->itsFluxArray.size()>0){
-	  ASKAPCHECK(this->itsFluxArray.size() == (this->itsDim[0]*this->itsDim[1]), "Size of flux array ("<<this->itsFluxArray.size()<<") doesn't match dimensions ("<<this->itsDim[0]<<"x"<<this->itsDim[1]<<"="<<this->itsDim[0]*this->itsDim[1]<<")!");
+	  ASKAPCHECK(int(this->itsFluxArray.size()) == (this->itsDim[0]*this->itsDim[1]), "Size of flux array ("<<this->itsFluxArray.size()<<") doesn't match dimensions ("<<this->itsDim[0]<<"x"<<this->itsDim[1]<<"="<<this->itsDim[0]*this->itsDim[1]<<")!");
 	  theImage->saveArray(this->itsFluxArray.data(), this->itsFluxArray.size());	
 	}
 	theImage->setMinSize(1);
