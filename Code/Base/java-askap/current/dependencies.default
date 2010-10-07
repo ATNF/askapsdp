@@ -3,6 +3,6 @@ log4j=3rdParty/apache-log4j/apache-log4j-1.2.15
 ice=3rdParty/Ice/Ice-3.4.1
 javaiceinterfaces=Code/Interfaces/java/current
 iceutils=Code/Base/py-iceutils/current
-atoms-time=3rdParty/atoms-time/atoms-time-r284
+atoms-java=3rdParty/atoms-java/atoms-java-r2235
 # for functest
 pyiceinterfaces=Code/Interfaces/python/current

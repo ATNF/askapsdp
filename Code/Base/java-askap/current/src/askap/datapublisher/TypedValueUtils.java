@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Iterator;
 import askap.interfaces.*;
 import askap.util.Complex;
+import atnf.atoms.coord.Direction;
 
 /**
  * Some utility methods for converting between Ice TypedValue types and native Java types.
@@ -53,7 +54,19 @@ public class TypedValueUtils {
     } else if (tv.type == TypedValueType.TypeString) {
       return new String(((TypedValueString) tv).value);
     } else if (tv.type == TypedValueType.TypeBool) {
-      return new Boolean(((TypedValueBool) tv).value);
+        return new Boolean(((TypedValueBool) tv).value);
+    } else if (tv.type == TypedValueType.TypeDirection) {
+        askap.interfaces.Direction d = ((TypedValueDirection) tv).value;
+        String temp;
+        if (d.sys==askap.interfaces.CoordSys.AZEL) {
+            temp = "AzElApp:";
+        } else if (d.sys==askap.interfaces.CoordSys.J2000) {
+            temp = "J2000Mean:";
+        } else {
+            throw new IllegalArgumentException("TypedValueUtils.typedValue2Object: Unsupported coordinate system: " + d.sys); 
+        }
+        temp=temp+"(" + d.coord1 + ", " + d.coord2 + ")";
+        return Direction.factory(temp);
     } else if (tv.type == TypedValueType.TypeDoubleComplex) {
       TypedValueDoubleComplex c = (TypedValueDoubleComplex)tv;
       return Complex.factory(c.value.real, c.value.imag);      
@@ -92,6 +105,19 @@ public class TypedValueUtils {
         val.real = ((Complex) o).getReal();
         val.imag = ((Complex) o).getImag();
       return new TypedValueDoubleComplex(TypedValueType.TypeDoubleComplex, val);
+    } else if (o instanceof Direction) {
+        askap.interfaces.Direction d = new askap.interfaces.Direction();
+        d.coord1 = ((Direction)o).getLongitude();
+        d.coord2 = ((Direction)o).getLatitude();
+        if (o instanceof atnf.atoms.coord.lib.AzElApp) {
+            d.sys = askap.interfaces.CoordSys.AZEL;
+            d.coord1 = -d.coord1; //Make right handed?
+        } else if (o instanceof atnf.atoms.coord.lib.J2000Mean) {
+            d.sys = askap.interfaces.CoordSys.J2000;
+        } else {
+            throw new IllegalArgumentException("TypedValueUtils.object2TypedValue: Unsupported Direction class: " + o.getClass().getName());
+        }        
+        return new TypedValueDirection(TypedValueType.TypeDirection, d);
     } else {
       throw new IllegalArgumentException("TypedValueUtils.object2TypedValue: Unhandled data type " + o.getClass());
     }

@@ -25,6 +25,7 @@ import static org.junit.Assert.*;
 import askap.datapublisher.TypedValueUtils;
 import askap.interfaces.*;
 import askap.util.Complex;
+import atnf.atoms.coord.lib.*;
 
 /**
  * Test class for TypedValueUtils.
@@ -118,5 +119,35 @@ public class TypedValueUtilsTest {
     assertTrue(o instanceof Complex);
     assertTrue(((Complex) o).getReal() == real);
     assertTrue(((Complex) o).getImag() == imag);
-  }  
+  }   
+  
+  @Test
+  public void test_azel_direction() {
+      double c1 = 3.141d;
+      double c2 = 2.718d;
+      AzElApp d = new AzElApp(c1, c2);
+      TypedValue tv = TypedValueUtils.object2TypedValue(d);
+      assertTrue(((TypedValueDirection)tv).value.sys==CoordSys.AZEL);
+      assertTrue(((TypedValueDirection)tv).value.coord1==c1);
+      assertTrue(((TypedValueDirection)tv).value.coord2==c2);
+      Object o = TypedValueUtils.typedValue2Object(tv);
+      assertTrue(o instanceof AzElApp);
+      assertTrue(((AzElApp)o).getAz()==c1);
+      assertTrue(((AzElApp)o).getEl()==c2);
+  }
+
+  @Test
+  public void test_j2000_direction() {
+      double c1 = 3.141d;
+      double c2 = 2.718d;
+      J2000Mean d = new J2000Mean(c1, c2);
+      TypedValue tv = TypedValueUtils.object2TypedValue(d);
+      assertTrue(((TypedValueDirection)tv).value.sys==CoordSys.J2000);
+      assertTrue(((TypedValueDirection)tv).value.coord1==c1);
+      assertTrue(((TypedValueDirection)tv).value.coord2==c2);
+      Object o = TypedValueUtils.typedValue2Object(tv);
+      assertTrue(o instanceof J2000Mean);
+      assertTrue(((J2000Mean)o).getRA()==c1);
+      assertTrue(((J2000Mean)o).getDec()==c2);
+  }
 }

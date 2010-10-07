@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <project name="java-askap" basedir="." default="install">
+    <!-- Turn on the debug flag for the compiler -->
+    <property name="debug" value="true"/>
+
     <!-- Read in the environment so $ASKAP_ROOT can be used -->
     <property environment="env"/>
 
