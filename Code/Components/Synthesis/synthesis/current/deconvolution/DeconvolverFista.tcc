@@ -115,7 +115,6 @@ namespace askap {
       X=this->itsBackground.copy();
 
       T absPeakVal;
-      casa::IPosition absPeakPos;
 
       ASKAPLOG_INFO_STR(decfistalogger, "Performing Fista for " << this->control()->targetIter() << " iterations");
 
@@ -130,38 +129,37 @@ namespace askap {
       T t_new=1;
 
       do {
-
 	X_old=X_temp.copy();
-
 	T t_old=t_new;
 
 	updateResiduals(X);
+	//	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->residual());
 
-	//	X=X+T(2.0)*this->residual()/this->itsLipschitz;
 	X=X+this->residual()/this->itsLipschitz;
-	// Transform to other (e.g. wavelet) space
+
+	// Transform to other (e.g. multiscale) space
 	Array<T> WX;
+	//	SynthesisParamsHelper::saveAsCasaImage("X.tab", X);
 	this->W(WX,X);
-	SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
+	//	SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
 
 	// Now shrink the coefficients towards zero and clip those below
 	// lambda/lipschitz.
 	Array<T> shrink(WX.shape());
-	{
-	  Array<T> truncated(abs(WX)-this->control()->lambda()/this->itsLipschitz);
-	  shrink=truncated(truncated>T(0.0));
-	  shrink=sign(WX)*shrink;
-	  shrink(truncated<T(0.0))=T(0.0);
-	}
-	// Transform back from other (e.g. wavelet) space here
-	this->WT(X_temp,shrink);
-	SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
 
-	// Initially take a small step towards the updated model
+	Array<T> truncated(abs(WX)-this->control()->lambda()/this->itsLipschitz);
+	shrink=truncated(truncated>T(0.0));
+	shrink=sign(WX)*shrink;
+	shrink(truncated<T(0.0))=T(0.0);
+
+	//	SynthesisParamsHelper::saveAsCasaImage("shrink.tab", WX);
+	// Transform back from other (e.g. wavelet) space here
+	
+	this->WT(X_temp,shrink);
+	//	SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
+
 	t_new=(T(1.0)+sqrt(T(1.0)+T(4.0)*square(t_old)))/T(2.0);
 	X=X_temp+((t_old-T(1.0))/t_new)*(X_temp-X_old);
-	X(X<T(0.0))=T(0.0);
-	X_temp(X_temp<T(0.0))=T(0.0);
         {
 	  casa::IPosition minPos;
           casa::IPosition maxPos;
@@ -179,11 +177,9 @@ namespace askap {
           ASKAPLOG_INFO_STR(decfistalogger, "   Minimum = " << minVal << " at location " << minPos);
           if(abs(minVal)<abs(maxVal)) {
             absPeakVal=abs(maxVal);
-            absPeakPos=maxPos;
           }
           else {
             absPeakVal=abs(minVal);
-            absPeakPos=minPos;
           }
         }
 
@@ -199,6 +195,7 @@ namespace askap {
       }
       while (!this->control()->terminate(*(this->state())));
       this->model()=X_temp.copy();
+      updateResiduals(this->model());
       
       ASKAPLOG_INFO_STR(decfistalogger, "Performed Fista for " << this->state()->currentIter() << " iterations");
       

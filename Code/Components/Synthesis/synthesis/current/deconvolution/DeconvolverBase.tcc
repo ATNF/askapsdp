@@ -80,8 +80,8 @@ namespace askap {
       casa::setReal(itsXFR, this->psf());
       scimath::fft2d(itsXFR, true);
       itsLipschitz=casa::max(casa::real(casa::abs(this->itsXFR)));
-      itsLipschitzDouble=casa::max(casa::real(this->itsXFR*conj(this->itsXFR)));
       ASKAPLOG_INFO_STR(decbaselogger, "Lipschitz number = " << itsLipschitz);
+      itsLipschitzDouble=casa::max(casa::real(this->itsXFR*conj(this->itsXFR)));
 
       // We also need the dirty image convolved with the PSF
       Array<FT> work(this->dirty().shape());
