@@ -101,7 +101,7 @@ module schedblock
         long create(string name,
                     askap::interfaces::ParameterMap template,
                     string obsproc, SBTemplateStatus status)
-            throws VersionException;
+            throws VersionException, ParameterException;
 
         /**
          * get the SBTemplate id for the latest version of the named template
