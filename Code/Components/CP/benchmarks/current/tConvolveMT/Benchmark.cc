@@ -90,19 +90,19 @@ void Benchmark::init()
     }
 
     // Initialize convolution function and offsets
-    initC(freq, cellSize, baseline, wSize, support, overSample, wCellSize, C);
-    initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize, support,
+    initC(freq, cellSize, baseline, wSize, m_support, overSample, wCellSize, C);
+    initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize, m_support,
                 overSample);
 }
 
 void Benchmark::runGrid()
 {
-    gridKernel(support, C, grid, gSize);
+    gridKernel(m_support, C, grid, gSize);
 }
 
 void Benchmark::runDegrid()
 {
-    degridKernel(grid, gSize, support, C, outdata);
+    degridKernel(grid, gSize, m_support, C, outdata);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -323,6 +323,6 @@ void Benchmark::initCOffset(const std::vector<Coord>& u, const std::vector<Coord
 
 int Benchmark::getSupport()
 {
-    return support;
+    return m_support;
 };
 
