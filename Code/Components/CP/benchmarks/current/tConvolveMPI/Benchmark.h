@@ -89,7 +89,7 @@ class Benchmark {
         std::vector<Value> outdata;
 
         std::vector< std::complex<float> > C;
-        int support;
+        int m_support;
         int overSample;
 
         Coord wCellSize;

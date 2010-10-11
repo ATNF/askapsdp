@@ -90,19 +90,19 @@ void Benchmark::init()
     }
 
     // Initialize convolution function and offsets
-    initC(freq, cellSize, wSize, support, overSample, wCellSize, C);
+    initC(freq, cellSize, wSize, m_support, overSample, wCellSize, C);
     initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize,
-                support, overSample);
+                m_support, overSample);
 }
 
 void Benchmark::runGrid()
 {
-    gridKernel(support, C, grid, gSize);
+    gridKernel(m_support, C, grid, gSize);
 }
 
 void Benchmark::runDegrid()
 {
-    degridKernel(grid, gSize, support, C, outdata);
+    degridKernel(grid, gSize, m_support, C, outdata);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -211,6 +211,7 @@ void Benchmark::initC(const std::vector<Coord>& freq,
     std::cout << "Initializing W projection convolution function" << std::endl;
     support = static_cast<int>(1.5 * sqrt(std::abs(baseline) * static_cast<Coord>(cellSize)
                                           * freq[0]) / cellSize);
+
     overSample = 8;
     std::cout << "Support = " << support << " pixels" << std::endl;
     wCellSize = 2 * baseline * freq[0] / wSize;
@@ -324,5 +325,5 @@ void Benchmark::initCOffset(const std::vector<Coord>& u, const std::vector<Coord
 
 int Benchmark::getSupport()
 {
-    return support;
+    return m_support;
 };
