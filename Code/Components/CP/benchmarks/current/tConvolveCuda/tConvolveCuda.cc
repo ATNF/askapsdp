@@ -373,7 +373,7 @@ int main()
 
     if (cpugrid.size() != gpugrid.size()) {
         cout << "Fail (Grid sizes differ)" << std::endl;
-        return 0;
+        return 1;
     }
 
     for (unsigned int i = 0; i < cpugrid.size(); ++i) {
@@ -381,7 +381,7 @@ int main()
             cout << "Fail (Expected " << cpugrid[i].real() << " got "
                      << gpugrid[i].real() << " at index " << i << ")"
                      << std::endl;
-            return 0;
+            return 1;
         }
     }
 
@@ -432,7 +432,7 @@ int main()
 
     if (cpuoutdata.size() != gpuoutdata.size()) {
         cout << "Fail (Data vector sizes differ)" << std::endl;
-        return 0;
+        return 1;
     }
 
     for (unsigned int i = 0; i < cpuoutdata.size(); ++i) {
@@ -440,7 +440,7 @@ int main()
             cout << "Fail (Expected " << cpuoutdata[i].real() << " got "
                      << gpuoutdata[i].real() << " at index " << i << ")"
                      << std::endl;
-            return 0;
+            return 1;
         }
     }
 
