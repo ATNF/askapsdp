@@ -29,6 +29,7 @@
 
 // System includes
 #include <string>
+#include <fstream>
 #include <sstream>
 
 // Boost includes
@@ -65,10 +66,17 @@ int main(int argc, char *argv[])
     timer.mark();
 
     try {
-        // Initialise the logger
-        std::ostringstream ss;
-        ss << argv[0] << ".log_cfg";
-        ASKAPLOG_INIT(ss.str().c_str());
+        // Initialize the logger before we use it. If a log configuraton
+        // exists in the current directory then use it, otherwise try to
+        // use the programs default one.
+        std::ifstream config("askap.log_cfg", std::ifstream::in);
+        if (config) {
+            ASKAPLOG_INIT("askap.log_cfg");
+        } else {
+            std::ostringstream ss;
+            ss << argv[0] << ".log_cfg";
+            ASKAPLOG_INIT(ss.str().c_str());
+        }
 
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
