@@ -45,7 +45,7 @@ using namespace askap::synthesis;
 
 /// construct a read-write data source object
 /// @param[in] fname file name of the measurement set to use
-/// @param[in] opt, options from TableDataSourceOptions, can be or'ed
+/// @param[in] opt options from TableDataSourceOptions, can be or'ed
 /// removed, if it already exists.   
 /// @param[in] dataColumn a name of the data column used by default
 ///                       (default is DATA)

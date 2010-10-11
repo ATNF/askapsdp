@@ -63,7 +63,7 @@ const scimath::Params& ImagingEquationAdapter::parameters() const
    
 /// @brief set parameters
 /// @details This call is translated to itsActualEquation.
-/// @params[in] par new parameters
+/// @param[in] par new parameters
 void ImagingEquationAdapter::setParameters(const scimath::Params &par)
 {
   ASKAPCHECK(itsActualEquation, 
@@ -84,7 +84,7 @@ void ImagingEquationAdapter::predict() const
    
 /// @brief calculate normal equations
 /// @details This call is translated to itsActualEquation.
-/// @params[in] ne normal equations to be updated
+/// @param[in] ne normal equations to be updated
 void ImagingEquationAdapter::calcEquations(scimath::INormalEquations &ne) const
 { 
   ASKAPCHECK(itsActualEquation, 
@@ -128,7 +128,7 @@ scimath::Equation::ShPtr ImagingEquationAdapter::clone() const
 /// @brief accessor-based version of predict
 /// @details This version of predict is implemented via iterator-based
 /// version of itsIterAdapter.
-/// @params[in] chunk a chunk to be filled with predicted data
+/// @param[in] chunk a chunk to be filled with predicted data
 void ImagingEquationAdapter::predict(IDataAccessor &chunk) const
 {     
    boost::shared_ptr<FakeSingleStepIterator> it = 
@@ -145,8 +145,8 @@ void ImagingEquationAdapter::predict(IDataAccessor &chunk) const
 /// @brief accessor-based version of calcEquations
 /// @details This version of calcEquations is implemented via iterator-based
 /// version of itsIterAdapter.
-/// @params[in] chunk a chunk of data to work with
-/// @params[in] ne normal equations to update
+/// @param[in] chunk a chunk of data to work with
+/// @param[in] ne normal equations to update
 void ImagingEquationAdapter::calcEquations(const IConstDataAccessor &chunk,
              scimath::INormalEquations &ne) const
 {

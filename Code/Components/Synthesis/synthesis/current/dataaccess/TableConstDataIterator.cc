@@ -138,8 +138,6 @@ bool WholeRowFlagger<casa::Bool>::copyRequired(casa::uInt row,
 /// @param[in] msManager a manager of the measurement set to use
 /// @param[in] sel shared pointer to selector
 /// @param[in] conv shared pointer to converter
-/// @param[in] dataColumn column name, which contains visibility data 
-///                       default is DATA, but can be, e.g., CORRECTED_DATA
 /// @param[in] cacheSize a number of uvw machines in the cache (default is 1)
 /// @param[in] tolerance pointing direction tolerance in radians, exceeding which leads 
 /// to initialisation of a new UVW Machine
@@ -465,7 +463,7 @@ void TableConstDataIterator::fillCube(casa::Cube<T> &cube,
 
 /// populate the buffer of visibilities with the values of current
 /// iteration
-/// @param[inout] vis a reference to the nRow x nChannel x nPol buffer
+/// @param[out] vis a reference to the nRow x nChannel x nPol buffer
 ///            cube to fill with the complex visibility data
 void TableConstDataIterator::fillVisibility(casa::Cube<casa::Complex> &vis) const
 {

@@ -181,7 +181,7 @@ casa::MEpoch BasicDataConverter::epochMeasure(const casa::MVEpoch &in) const
 
 /// convert directions
 /// @param in input direction given as an MDirection object
-/// @param out output direction as an MVDirection object
+/// @param out direction as an MVDirection object
 void BasicDataConverter::direction(const casa::MDirection &in,
                       casa::MVDirection &out) const
 {
@@ -190,7 +190,7 @@ void BasicDataConverter::direction(const casa::MDirection &in,
 
 /// convert frequencies
 /// @param in input frequency given as an MFrequency object
-/// @param out output frequency as a Double
+/// @return output frequency as a Double
 casa::Double BasicDataConverter::frequency(const casa::MFrequency &in) const
 {
   return (*itsFrequencyConverter)(in);
@@ -198,7 +198,7 @@ casa::Double BasicDataConverter::frequency(const casa::MFrequency &in) const
 
 /// convert velocities
 /// @param in input velocities given as an MRadialVelocity object
-/// @param out output velocity as a Double
+/// @return out output velocity as a Double
 casa::Double BasicDataConverter::velocity(const casa::MRadialVelocity &in)
                                           const
 {
@@ -207,7 +207,7 @@ casa::Double BasicDataConverter::velocity(const casa::MRadialVelocity &in)
 
 /// convert frequencies from velocities
 /// @param in input velocity given as an MRadialVelocity object
-/// @param out output frequency as a Double
+/// @return output frequency as a Double
 ///
 /// Note, an exception will be thrown if the rest frequency is not
 /// defined.
@@ -224,7 +224,7 @@ casa::Double BasicDataConverter::frequency(const casa::MRadialVelocity &in)
 
 /// convert velocities from frequencies
 /// @param in input frequency  given as an MFrequency object
-/// @param out output velocity as a Double
+/// @return output velocity as a Double
 ///
 /// Note, an exception will be thrown if the rest frequency is not
 /// defined.

@@ -64,7 +64,7 @@ void ImageCleaningSolver::setFractionalThreshold(double fThreshold)
   itsFractionalThreshold = fThreshold;
 }
 
-/// @bried access to a masking threshold
+/// @brief access to a masking threshold
 /// @return current masking threshold
 double ImageCleaningSolver::maskingThreshold() const
 {
@@ -95,7 +95,7 @@ void ImageCleaningSolver::setPaddingFactor(float padding)
 /// @brief helper method to pad an image
 /// @details This method encapsulates all padding logic. In addition double to float conversion happens
 /// here. 
-/// @param[in] img input image (to be padded, with double precision at the moment) 
+/// @param[in] image input image (to be padded, with double precision at the moment) 
 /// @return padded image converted to floats
 casa::Array<float> ImageCleaningSolver::padImage(const casa::Array<double> &image) const
 {
@@ -109,7 +109,7 @@ casa::Array<float> ImageCleaningSolver::padImage(const casa::Array<double> &imag
 /// @details This method fills the edges of a padded image with 0 (original subimage is left intact, so
 /// unpadImage would return the same result before and after this method). This operation is required
 /// after non-linear transformation of an image in the other domain (i.e. some types of preconditioning).
-/// @param[in] image input padded image to be clipped
+/// @param[in] img input padded image to be clipped
 void ImageCleaningSolver::clipImage(casa::Array<float> &img) const
 {
   const casa::IPosition origShape = scimath::PaddingUtils::unpadShape(img.shape(),paddingFactor());

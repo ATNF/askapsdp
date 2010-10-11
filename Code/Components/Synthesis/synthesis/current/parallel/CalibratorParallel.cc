@@ -91,8 +91,6 @@ using namespace askap::mwbase;
 /// also support construction from a python dictionary (for example).
 /// The command line inputs are needed solely for MPI - currently no
 /// application specific information is passed on the command line.
-/// @param[in] argc Number of command line inputs
-/// @param[in] argv Command line inputs
 /// @param[in] parset ParameterSet for inputs
 CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :

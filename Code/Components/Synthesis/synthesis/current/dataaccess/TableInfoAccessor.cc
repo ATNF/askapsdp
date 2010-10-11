@@ -58,7 +58,7 @@ TableInfoAccessor::TableInfoAccessor(const
 /// @details This version of the constructor creates a TableManager
 /// object for a given table and stores it as ISubtableInfoHolder 
 /// @param tab a measurement set table to work with
-/// @param useMemBuffers if true, buffers in memory will be created
+/// @param useMemBuffer if true, buffers in memory will be created
 /// instead of the disk-based buffers
 /// @param[in] dataColumn a name of the data column used by default
 ///                       (default is DATA)

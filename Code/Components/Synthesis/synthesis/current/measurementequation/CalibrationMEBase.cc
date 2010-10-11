@@ -107,7 +107,7 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
 }
 
 /// @brief correct model visibilities for one accessor (chunk).
-/// @detals This method corrects the data in the given accessor
+/// @details This method corrects the data in the given accessor
 /// (accessed via rwVisibility) for the calibration errors 
 /// represented by this measurement equation (i.e. an inversion of
 /// the matrix has been performed). 
