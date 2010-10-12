@@ -63,6 +63,13 @@ module schedblock
     };
 
     /**
+     * A sequence of ObsStates.
+     *
+     **/
+
+    sequence<ObsState> ObsStateSeq;
+
+    /**
      * The SchedulingBlockService provides and interface to the main ASKAP
      * obseravtion entity - the Scheduling Block. The Scheduling Block describes
      * and observation and its execution which is done througth the Executive.
@@ -94,7 +101,7 @@ module schedblock
          * @return a sequence of Scheduling Block ids
          *
          **/
-        idempotent askap::interfaces::LongSeq getByState(ObsState state);
+        idempotent askap::interfaces::LongSeq getByState(ObsStateSeq states);
 
         /**
          * Get all Scheduling Blocks for a given SBTemplate (name) given
