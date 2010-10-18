@@ -1026,26 +1026,38 @@ namespace askap {
 	    int16 rank;
 	    LOFAR::BlobString bs;
 
+	    int objsize=0;
+	    duchamp::Section fullSec=this->itsCube.pars().section();
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Using subsection for box calcs: " << fullSec.getSection());
 	    // now send the individual sources to each worker in turn
-	    for(int i=0;i<this->itsCube.getNumObj()+1;i++){
+	    for(int i=0;i<this->itsCube.getNumObj();i++){
 	      rank = i % (this->itsNNode - 1);
-	      if(i<this->itsCube.getNumObj())
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << this->itsCube.getObject(i).getSize() << " to worker "<<rank+1);
+	      objsize = this->itsCube.getObject(i).getSize();
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << objsize << " to worker "<<rank+1);
 	      bs.resize(0);
 	      LOFAR::BlobOBufString bob(bs);
 	      LOFAR::BlobOStream out(bob);
 	      out.putStart("paramsrc", 1);
-	      out << (i<this->itsCube.getNumObj());
-	      if(i<this->itsCube.getNumObj()) {
-		sourcefitting::RadioSource src(this->itsCube.getObject(i));
-		out << src;
-	      }
+	      out << objsize;
+	      sourcefitting::RadioSource src(this->itsCube.getObject(i));
+	      src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+	      out << src;
 	      out.putEnd();
 	      this->itsConnectionSet->write(rank, bs);
 	    }
+	    // now send a zero size to tell everyone the list has finished.
+	    objsize=0;
+	    bs.resize(0);
+	    LOFAR::BlobOBufString bob(bs);
+	    LOFAR::BlobOStream out(bob);
+	    out.putStart("paramsrc", 1);
+	    out << objsize;
+	    out.putEnd();
+	    this->itsConnectionSet->writeAll(bs);
 
 	    // now read back the sources from the workers
 	    this->itsSourceList.clear();
+	    this->itsCube.clearDetectionList();
 	    for (int n=0;n<this->itsNNode-1;n++){
 	      int numSrc;
 	      ASKAPLOG_INFO_STR(logger, "Master about to read from worker #"<< n+1);
@@ -1070,18 +1082,19 @@ namespace askap {
 	    LOFAR::BlobString bs;
 
 	    // now read individual sources
-	    bool isOK=true;
+	    int objsize=1;
 	    this->itsCube.clearDetectionList();
-	    while(isOK) {	    
-	      sourcefitting::RadioSource src;
+	    while(objsize>0) {	    
 	      this->itsConnectionSet->read(0, bs);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
 	      int version = in.getStart("paramsrc");
 	      ASKAPASSERT(version == 1);
-	      in >> isOK;
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Read OK flag=" << isOK << " from Master");
-	      if(isOK){
+	      in >> objsize;
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Reading object size=" << objsize << " from Master");
+	      if(objsize>0){
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Got OK to read object");
+		sourcefitting::RadioSource src;
 		in >> src;
 		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Read object of size " << src.getSize() << " from Master");
 		this->itsCube.addObject(src);
@@ -1091,6 +1104,8 @@ namespace askap {
 
             int numVox = this->itsVoxelList.size();
             int numObj = this->itsCube.getNumObj();
+
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Read all " << numObj << " objects. Now have to get voxels from list of " << numVox);
 
 	    if (numObj > 0) {
 	      std::vector<PixelInfo::Voxel> templist[numObj];
@@ -1122,6 +1137,8 @@ namespace askap {
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
 	   }
 
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Done the WCS parameter calculation. About to send back to master");
+
 	    // send sources back to master
 	    bs.resize(0);
 	    LOFAR::BlobOBufString bob(bs);
@@ -1130,6 +1147,7 @@ namespace askap {
 	    out << int(numObj);
 	    for(int i=0;i<numObj;i++){
 	      sourcefitting::RadioSource src=this->itsCube.getObject(i);
+	      src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
 	      out << src;
 	    }
 	    out.putEnd();
