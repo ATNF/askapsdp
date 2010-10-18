@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # Setup the environment
 source $ASKAP_ROOT/Code/Components/CP/eventchannel/current/init_package_env.sh
 
 # Start ActiveMQ
-activemq start 
+activemq start xbean:activemq-scalability.xml
 
 # Wait until it is responsive
 MQSTATUS=1
@@ -23,13 +23,14 @@ if [ $COUNT -eq 10 ]; then
 fi
 
 # Sleep a little more
-sleep 5
+sleep 10
 
 # Run the ingest pipeline
 echo "Running the testcase..."
 $ASKAP_ROOT/Code/Components/CP/eventchannel/current/apps/tEventChannel.sh
 STATUS=$?
 echo "Testcase finished"
+sleep 1
 
 # Stop ActiveMQ
 activemq stop
