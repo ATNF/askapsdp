@@ -534,11 +534,15 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			 // a buffer for the visibility vector in the polarisation frame used for the grid
 			 casa::Vector<casa::Complex> imagePolFrameVis(nImagePols,casa::Complex(0.,0.));
              casa::Vector<casa::Complex> imagePolFrameNoise(nImagePols);
-			 if (!isPSFGridder()) {
-			     // both forward and reverse are covered, isPSFGridder returns false for the forward gridder
-			     imagePolFrameVis = gridPolConv(acc.visibility().yzPlane(i).row(chan));			     
-			     imagePolFrameNoise = gridPolConv.noise(acc.noise().yzPlane(i).row(chan));			     
-			 }			 
+             if (!isPSFGridder()) {
+                 // both forward and reverse are covered, isPSFGridder returns false for the forward gridder
+                 imagePolFrameVis = gridPolConv(acc.visibility().yzPlane(i).row(chan));			     
+             }
+             if (!forward) {
+                 // we just don't need this quantity for the forward gridder, although there would be no
+                 // harm to always compute it
+                 imagePolFrameNoise = gridPolConv.noise(acc.noise().yzPlane(i).row(chan));			     
+             }		 
 		     
 		     // Now loop over all image polarizations
 		     for (uint pol=0; pol<nImagePols; ++pol) {
@@ -597,13 +601,13 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                           }
                           imagePolFrameVis[pol] += cVis*phasor;
                       } else {
+                          const casa::Complex visComplexNoise = imagePolFrameNoise[pol];
+                          const float visNoiseSq = casa::square(casa::real(visComplexNoise)) +
+                                                       casa::square(casa::imag(visComplexNoise));
+                          const float visNoiseWt = (visNoiseSq > 0.) ? 1./visNoiseSq : 0.;
+                                  
                           if (!isPSFGridder()) {
                               /// Gridding visibility data onto grid
-                              const casa::Complex visComplexNoise = imagePolFrameNoise[pol];
-                              const float visNoiseSq = casa::square(casa::real(visComplexNoise)) +
-                                                       casa::square(casa::imag(visComplexNoise));
-                              const float visNoiseWt = (visNoiseSq > 0.) ? 1./visNoiseSq : 0.;
-                                  
                               casa::Complex rVis = phasor*conj(imagePolFrameVis[pol])*visNoiseWt;
                               if (itsVisWeight) {
                                   rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
@@ -626,6 +630,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                           if (isPSFGridder() && (itsUseAllDataForPSF || ((itsFeedUsedForPSF == acc.feed1()(i)) &&
 				                 (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)))) {
                               casa::Complex uVis(1.,0.);
+                              uVis *= visNoiseWt;
                               if (itsVisWeight) {
                                   uVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
                               }
@@ -639,7 +644,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                               ASKAPDEBUGASSERT(pol < uint(itsSumWeights.shape()(1)));
                               ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
 				
-                              itsSumWeights(cIndex(i,pol,chan), pol, imageChan)+=1.0;
+                              itsSumWeights(cIndex(i,pol,chan), pol, imageChan) += visNoiseWt; //1.0;
                       
                           } // end if psf needs to be done
 			         } // end if forward (else case, reverse operation)
