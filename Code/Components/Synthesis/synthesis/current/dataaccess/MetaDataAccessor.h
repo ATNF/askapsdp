@@ -59,7 +59,7 @@ namespace synthesis {
 /// @details IDataAccessor can represent buffers as well as the original data.
 /// As a result, a number of objects derived from IDataAccessor must be
 /// held by the iterator. This class implements an adapter which calls
-/// methods of IConstDataAccessor associated to metadata access (there will
+/// methods of IConstDataAccessor intended for metadata access (there will
 /// be just one instance of a class derived from IConstDataAccessor, but
 /// many instances of a class derived from this one). Using this adapter allows to avoid
 /// an unnecessary duplication of caches. Static data members are not a
@@ -216,10 +216,10 @@ protected:
   /// @details (for use in derived methods)
   /// @return a refernce to associated const accessor
   const IConstDataAccessor & getROAccessor() const throw();
-  
+      
 private:
   // a reference to the associated read-only accessor
-  const IConstDataAccessor & itsROAccessor;
+  const IConstDataAccessor& itsROAccessor;
 };
 
 

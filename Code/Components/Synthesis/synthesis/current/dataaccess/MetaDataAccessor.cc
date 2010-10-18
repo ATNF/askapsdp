@@ -4,7 +4,7 @@
 /// @details IDataAccessor can represent buffers as well as the original data.
 /// As a result, a number of objects derived from IDataAccessor must be
 /// held by the iterator. This class implements an adapter which calls
-/// methods of IConstDataAccessor associated to metadata access (there will
+/// methods of IConstDataAccessor intended for metadata access (there will
 /// be just one instance of a class derived from IConstDataAccessor, but
 /// many derived from this class. Using this adapter allows to avoid
 /// an unnecessary duplication of caches. Static data members are not a
@@ -266,3 +266,5 @@ const IConstDataAccessor & MetaDataAccessor::getROAccessor() const throw()
 {
   return itsROAccessor;
 }
+
+

@@ -532,8 +532,8 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 			 const casa::uInt nImagePols = (shape().nelements()<=2) ? 1 : shape()[2];
 			 
 			 // a buffer for the visibility vector in the polarisation frame used for the grid
-			 casa::Vector<casa::Complex> imagePolFrameVis(nImagePols);
-                         casa::Vector<casa::Complex> imagePolFrameNoise(nImagePols);
+			 casa::Vector<casa::Complex> imagePolFrameVis(nImagePols,casa::Complex(0.,0.));
+             casa::Vector<casa::Complex> imagePolFrameNoise(nImagePols);
 			 if (!isPSFGridder()) {
 			     // both forward and reverse are covered, isPSFGridder returns false for the forward gridder
 			     imagePolFrameVis = gridPolConv(acc.visibility().yzPlane(i).row(chan));			     
