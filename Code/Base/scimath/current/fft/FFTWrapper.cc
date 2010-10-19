@@ -126,6 +126,9 @@ namespace askap
 
         void fft2d(casa::Array<casa::Complex>& arr, const bool forward)
           {
+#ifndef ASKAP_USE_FFTW
+            casa::FFTServer<float, casa::Complex> ffts;
+#endif
             /// Make an iterator that returns plane by plane
             casa::ArrayIterator<casa::Complex> it(arr, 2);
             while (!it.pastEnd())
@@ -135,19 +138,30 @@ namespace askap
                 for (uint iy=0; iy<uint(arr.shape()(1)); iy++)
                   {
                     casa::Vector<casa::Complex> vec(mat.column(iy));
+#ifdef ASKAP_USE_FFTW
                     fft(vec, forward);
+#else
+                    ffts.fft(vec, forward);
+#endif
                   }
                 ASKAPDEBUGASSERT(arr.shape()(0)>=0);  
                 for (uint ix=0; ix<uint(arr.shape()(0)); ix++)
                   {
                     casa::Vector<casa::Complex> vec(mat.row(ix));
+#ifdef ASKAP_USE_FFTW
                     fft(vec, forward);
+#else
+                    ffts.fft(vec, forward);
+#endif
                   }
                 it.next();
               }
           }
         void fft2d(casa::Array<casa::DComplex>& arr, const bool forward)
           {
+#ifndef ASKAP_USE_FFTW
+            casa::FFTServer<double, casa::DComplex> ffts;
+#endif
             /// Make an iterator that returns plane by plane
             casa::ArrayIterator<casa::DComplex> it(arr, 2);
             while (!it.pastEnd())
@@ -157,13 +171,21 @@ namespace askap
                 for (uint iy=0; iy<uint(arr.shape()(1)); iy++)
                   {
                     casa::Vector<casa::DComplex> vec(mat.column(iy));
+#ifdef ASKAP_USE_FFTW
                     fft(vec, forward);
+#else
+                    ffts.fft(vec, forward);
+#endif
                   }
                 ASKAPDEBUGASSERT(arr.shape()(0));
                 for (uint ix=0; ix<uint(arr.shape()(0)); ix++)
                   {
                     casa::Vector<casa::DComplex> vec(mat.row(ix));
+#ifdef ASKAP_USE_FFTW
                     fft(vec, forward);
+#else
+                    ffts.fft(vec, forward);
+#endif
                   }
                 it.next();
               }
