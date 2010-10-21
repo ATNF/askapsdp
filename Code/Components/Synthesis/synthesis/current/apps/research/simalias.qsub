@@ -12,6 +12,7 @@ export AIPSPATH=$ASKAP_ROOT/Code/Components/Synthesis/testdata/current
 
 simulator=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh
 imager=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh
+imgstat=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/imgstat.sh
 
 npix=2048
 npix2=4096
@@ -44,8 +45,8 @@ configdir=/work0/cor203/Projects/ASKAP/simulations/configs
 csimparset=csimulator.in
 csimlog=csimulator.log
 
-for df in 0.015
-#for df in 1 10 20 30 40 50 60 70 80 90 100
+#for df in 0.015
+for df in 0.006 0.007 0.008 0.009 0.010 0.011 0.012 0.013 0.014 0.015 0.016 0.017 0.018 0.019 0.0020
 do
 
 
@@ -176,11 +177,13 @@ echo END CLEAN IMAGER `date` | tee -a $cimlogC
 echo PREPARING FOR IMAGING TWICE AS LARGER FIELD
 rm -rf ${cleanim}.s
 mv ${cleanim}.restored ${cleanim}.s
-cat ${cimparsetC} | grep -v "Cimager.Images.shape" > ${cimparsetC}.tmp
-mv ${cimparsetC}.tmp $cimparsetC
+
+#cat ${cimparsetC} | grep -v "Cimager.Images.shape" > ${cimparsetC}.tmp
+#mv ${cimparsetC}.tmp $cimparsetC
 
 cat >> $cimparsetC <<EOF
-Cimager.Images.shape                            = [${npix2}, ${npix2}]
+#Cimager.Images.shape                            = [${npix2}, ${npix2}]
+Cimager.gridder.padding                          = 2
 EOF
 
 echo BEGIN CLEAN IMAGER `date` from job $PBS_JOBID  | tee $cimlogC
@@ -190,5 +193,19 @@ echo END CLEAN IMAGER `date` | tee -a $cimlogC
 
 rm -rf ${cleanim}.l
 mv ${cleanim}.restored ${cleanim}.l
+
+echo CALCULATING THE DIFFERENCE AND ANALYSE IT
+
+casascriptC=casa-tmpscript.py
+casalogC=casa-tmpscript.log
+cat > $casascriptC <<EOF
+ia.imagecalc("test.img","'${cleanim}.s'-'${cleanim}.l'",True)
+ia.done()
+EOF
+
+/usr/local/bin/casapy --nologger <${casascriptC} > ${casalogC}
+
+echo ${df} >> stats.log
+$imgstat test.img | grep -v DEC >> stats.log
 
 done
