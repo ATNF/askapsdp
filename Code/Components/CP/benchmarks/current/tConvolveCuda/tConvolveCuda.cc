@@ -72,10 +72,9 @@ void gridKernel(const std::vector<Value>& data, const int support,
     const int sSize = 2 * support + 1;
 
     for (int dind = 0; dind < int(data.size()); ++dind) {
-        // Nearly all the L2 cache misses originate here in the next
-        // two statements
         // The actual grid point
         int gind = iu[dind] + gSize * iv[dind] - support;
+
         // The Convoluton function point from which we offset
         int cind = cOffset[dind];
 
@@ -106,10 +105,9 @@ void degridKernel(const std::vector<Value>& grid, const int gSize, const int sup
 
         data[dind] = 0.0;
 
-        // Nearly all the L2 cache misses originate here in the next
-        // two statements
         // The actual grid point from which we offset
         int gind = iu[dind] + gSize * iv[dind] - support;
+
         // The Convoluton function point from which we offset
         int cind = cOffset[dind];
 
