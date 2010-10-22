@@ -61,14 +61,14 @@ namespace askap
 
     void BoxVisGridder::initConvolutionFunction(const IConstDataAccessor&)
     {
-      itsSupport=0;
+      itsSupport=1;
       itsOverSample=1;
-      const int cSize=2*(itsSupport+1)*itsOverSample+1; // 3
+      const int cSize=2*itsSupport+1; // 3
       const int cCenter=(cSize-1)/2; // 1
       itsConvFunc.resize(1);
-      itsConvFunc[0].resize(cSize, cSize); // 3, 3, 1
+      itsConvFunc[0].resize(cSize, cSize); // 3, 3
       itsConvFunc[0].set(0.0);
-      itsConvFunc[0](cCenter,cCenter)=1.0; // 1,1,0 = 1
+      itsConvFunc[0](cCenter,cCenter)=1.0; // 1,1 = 1
     }
     
 		void BoxVisGridder::correctConvolution(casa::Array<double>& image)

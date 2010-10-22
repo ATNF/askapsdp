@@ -28,7 +28,8 @@ nfeeds=1
 dosim=true
 donoise=true
 freqdep=true
-gridder=SphFunc
+#gridder=SphFunc
+gridder=Box
 illum=ATCA
 
 modelimage=/work0/cor203/Projects/ASKAP/simulations/models/empty_5arcsec
@@ -45,8 +46,8 @@ configdir=/work0/cor203/Projects/ASKAP/simulations/configs
 csimparset=csimulator.in
 csimlog=csimulator.log
 
-#for df in 0.015
-for df in 0.006 0.007 0.008 0.009 0.010 0.011 0.012 0.013 0.014 0.015 0.016 0.017 0.018 0.019 0.0020
+for df in 0.015
+#for df in 0.006 0.007 0.008 0.009 0.010 0.011 0.012 0.013 0.014 0.015 0.016 0.017 0.018 0.019 0.020
 do
 
 
@@ -58,7 +59,7 @@ Csimulator.sources.names                        =       [src]
 Csimulator.sources.src.direction        =       [12h30m00.000, -45.00.00.000, J2000]
 #Csimulator.sources.src.model            =       $modelimage
 Csimulator.sources.src.components             =       [src1]
-Csimulator.sources.src1.flux.i                  = 1.0
+Csimulator.sources.src1.flux.i                  = 0.5
 Csimulator.sources.src1.direction.dec          = $df
 #Csimulator.sources.src1.direction.dec          = 0.0
 Csimulator.sources.src1.direction.ra           = 0.0
@@ -109,6 +110,8 @@ Csimulator.noise.seed1                       = time
 Csimulator.noise.seed2                       = 1
 #
 EOF
+
+rm -rf ${mssub}
 
 if ${dosim}
 then
@@ -161,12 +164,12 @@ Cimager.solver.Clean.verbose                    = True
 Cimager.threshold.minorcycle                    = [10%]
 Cimager.ncycles                                 = 1
 
-Cimager.solver.Clean.weightcutoff               = zero
-Cimager.solver.Clean.weightcutoff.clean         = false
-
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit
 EOF
+
+rm -rf ${cleanim}.restored
+rm -rf ${cleanim}
 
 echo BEGIN CLEAN IMAGER `date` from job $PBS_JOBID  | tee $cimlogC
 echo COMMAND = "mpirun -mca mpi_paffinity_alone 1  $imager -inputs $cimparsetC | tee -a $cimlogC"
@@ -186,6 +189,9 @@ cat >> $cimparsetC <<EOF
 Cimager.gridder.padding                          = 2
 EOF
 
+rm -rf ${cleanim}.restored
+rm -rf ${cleanim}
+
 echo BEGIN CLEAN IMAGER `date` from job $PBS_JOBID  | tee $cimlogC
 echo COMMAND = "mpirun -mca mpi_paffinity_alone 1  $imager -inputs $cimparsetC | tee -a $cimlogC"
 mpirun -mca mpi_paffinity_alone 1  $imager -inputs $cimparsetC | tee -a $cimlogC
@@ -198,14 +204,15 @@ echo CALCULATING THE DIFFERENCE AND ANALYSE IT
 
 casascriptC=casa-tmpscript.py
 casalogC=casa-tmpscript.log
+diffimg=${cleanim}.diff
 cat > $casascriptC <<EOF
-ia.imagecalc("test.img","'${cleanim}.s'-'${cleanim}.l'",True)
+ia.imagecalc("${diffimg}","'${cleanim}.s'-'${cleanim}.l'",True)
 ia.done()
 EOF
 
 /usr/local/bin/casapy --nologger <${casascriptC} > ${casalogC}
 
 echo ${df} >> stats.log
-$imgstat test.img | grep -v DEC >> stats.log
+$imgstat ${diffimg} | grep -v DEC >> stats.log
 
 done

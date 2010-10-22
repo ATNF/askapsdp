@@ -66,8 +66,10 @@ int main(int argc, const char** argv) {
           const float peak = casa::abs(casa::max(buf));
           const float sum = casa::abs(casa::sum(buf));
           if (peak > 0.) {
-              std::cout<<"Image "<<inputFiles[i]<<" has a peak of "<<peak<<", sum of "<<sum<<", normalising peak to 1."<<std::endl;
-              buf /= peak;
+              std::cout<<"Image "<<inputFiles[i]<<" has a peak of "<<peak<<", sum of "<<sum;
+              std::cout<<std::endl;
+              //std::cout<<", normalising peak to 1."<<std::endl;
+              //buf /= peak;
               //buf /= sum;
           }
          
