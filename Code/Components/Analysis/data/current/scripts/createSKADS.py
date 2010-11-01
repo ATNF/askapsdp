@@ -101,7 +101,7 @@ if __name__ == '__main__':
         catfile = file(origCatFile,"w")
         catfile2 = file("outputcatalogue.dat","w")
         if(haveFreqInfo):
-            catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang"))
+            catfile.write("#%9s %10s %20s %20s %10s %10s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Flux0","Alpha","Beta","Maj_axis","Min_axis","Pos_ang"))
         else:
             catfile.write("#%9s %10s %20s %10s %10s %10s\n"%("RA","Dec","Flux_1400","Maj_axis","Min_axis","Pos_ang"))
 
@@ -153,11 +153,13 @@ if __name__ == '__main__':
                         pa = r[5]
                         compNum = r[0]
 
-                        alpha = log10(s1400/s0610)/log10(1400./610.)
+                        alpha = (s1400-s0610)/log10(1400./610.)
                         beta  = 0.  # Only using two fluxes to interpolate, so can't get a curvature term.
 
+			flux0 = s1400 + log10(centralFreq/1.4e9)*alpha
+
                         if(haveFreqInfo):
-                            catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,alpha,beta,maj,min,pa))
+                            catfile.write("%10.6f %10.6f %20.16f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,flux0,alpha,beta,maj,min,pa))
                         else:
                             catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f\n"%(ra,dec,s1400,maj,min,pa))
 
