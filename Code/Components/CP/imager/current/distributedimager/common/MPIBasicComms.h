@@ -32,6 +32,7 @@
 
 // System includes
 #include <string>
+#include <vector>
 #include <mpi.h>
 
 // ASKAPsoft includes
@@ -119,6 +120,9 @@ private:
 
     // Specific MPI Communicator for this class
     MPI_Comm itsCommunicator;
+
+    // MPE event types
+    std::vector<int> itsMpeEvents;
 
     // No support for assignment
     MPIBasicComms& operator=(const MPIBasicComms& rhs);
