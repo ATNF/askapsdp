@@ -50,6 +50,9 @@ namespace askap {
 
     namespace simulations {
 
+        /// @brief Multiply a Gaussian's sigma value by this to get the FWHM
+        const float SIGMAtoFWHM=2. * M_SQRT2 * sqrt(M_LN2);
+
         /// @brief Return a normal random variable
         float normalRandomVariable(float mean, float rms);
 
