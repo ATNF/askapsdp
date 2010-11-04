@@ -28,6 +28,7 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 #include <askap_simulations.h>
 
+#include <simulationutilities/SpectralUtilities.h>
 #include <simulationutilities/HIprofile.h>
 #include <simulationutilities/HIprofileS3SEX.h>
 #include <simulationutilities/HIprofileS3SAX.h>
