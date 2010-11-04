@@ -30,6 +30,7 @@
 
 #include <simulationutilities/HIprofile.h>
 #include <simulationutilities/SimulationUtilities.h>
+#include <simulationutilities/SpectralUtilities.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
@@ -39,107 +40,9 @@
 
 ASKAP_LOGGER(logger, ".hiprofile");
 
-
 namespace askap {
 
     namespace simulations {
-
-        double luminosityDistance(double z, double hubble, double omegaM, double omegaL)
-        {
-            /// @details Given a cosmological specification and a
-            /// redshift, this function returns the luminosity distance to
-            /// that redshift. The calculation is done by integation.
-            /// @param z The redshift
-            /// @param hubble The Hubble constant in km/s/Mpc
-            /// @param omegaM The matter density of the universe
-            /// @param omegaL The dark energy density of the universe
-            /// @return The luminosity distance in Mpc
-
-            const int NUMINT = 10000;
-            double dz = z / double(NUMINT);
-            double rr = 0.;
-
-            for (int i = 0; i < NUMINT; i++) {
-                double zp1 = (i + 0.5) * dz + 1;
-                double temp = omegaL + ((1. - omegaL - omegaM) * (zp1 * zp1)) + (omegaM * (zp1 * zp1 * zp1));
-                double drdz = 1. / sqrt(temp);
-                rr = rr + drdz * dz;
-            }
-
-            double dl = rr * (1. + z) * C_kms / hubble;  // luminosity distance in Mpc
-
-            return dl;
-
-        }
-
-        double redshiftToDist(double z, double hubble, double omegaM, double omegaL)
-        {
-            /// @details Converts redshift to a distance. Currently just a
-            /// front-end to the luminosityDistance() function.
-            /// @param z The redshift
-            /// @param hubble The Hubble constant in km/s/Mpc
-            /// @param omegaM The matter density of the universe
-            /// @param omegaL The dark energy density of the universe
-            /// @return The luminosity distance in Mpc
-
-            return luminosityDistance(z);
-            // return redshiftToVel(z) / hubble;
-        }
-
-        double redshiftToVel(double z)
-        {
-            /// @details Converts a redshift to a recessional velocity,
-            /// using the relativistic equation.
-            /// @param z The redshift
-            /// @return The corresponding velocity in km/s
-
-            double v = ((z + 1.) * (z + 1.) - 1.) / ((z + 1.) * (z + 1.) + 1.);
-            return C_kms * v;
-        }
-
-        double velToRedshift(double vel)
-        {
-            /// @details Converts a recessional velocity to a redshift
-            /// using the relativistic equation.
-            /// @param z The redshift
-            /// @return The corresponding velocity in km/s
-
-	    double v = vel / C_kms;
-	    double z = sqrt( (1.+v)/(1.-v) ) - 1.;
-            return z;
-        }
-
-        double redshiftToHIFreq(double z)
-        {
-            /// @details Converts a redshift to the observed frequency of an HI line.
-            /// @param z The redshift
-            /// @return The corresponding frequency in Hz
-
-            return nu0_HI / (z + 1);
-        }
-
-        double freqToHIVel(double nu)
-        {
-            /// @details Converts a frequency to the velocity of HI.
-            /// @param nu The frequency in Hz
-            /// @return The corresponding velocity in km/s
-
-            double z = nu0_HI / nu - 1.;
-            return redshiftToVel(z);
-        }
-
-        double HIVelToFreq(double vel)
-	{
-            /// @details Converts a velocity of HI to a frequency.
-            /// @param vel The velocity in km/s
-            /// @return The corresponding frequency in Hz
-	  
-	    double z = velToRedshift(vel);
-            return redshiftToHIFreq(z);
-        }
-
-
-        //==================================
 
         HIprofile::HIprofile():
                 Spectrum()

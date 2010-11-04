@@ -28,6 +28,7 @@
 ///
 #include <askap_simulations.h>
 
+#include <simulationutilities/SpectralUtilities.h>
 #include <simulationutilities/HIprofile.h>
 #include <simulationutilities/HIprofileS3SAX.h>
 #include <simulationutilities/HIprofileS3SAX.h>

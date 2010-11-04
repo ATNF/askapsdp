@@ -36,33 +36,6 @@ namespace askap {
 
     namespace simulations {
 
-        /// @brief The rest frequency of the fine-structure HI line in Hz
-        const double nu0_HI = 1420405751.786;
-        /// @brief The speed of light in km/s
-        const double C_kms = 299792.458;
-        /// @brief The hubble constant, in km/s/Mpc, from the WMAP results
-        const double HUBBLE_WMAP = 71.;
-        /// @brief The matter density from the WMAP results
-        const double OMEGAM_WMAP = 0.27;
-        /// @brief The dark energy density from the WMAP results
-        const double OMEGAL_WMAP = 0.73;
-
-        /// @brief Return the luminosity distance to redshift z for a given cosmology
-        double luminosityDistance(double z, double H0 = HUBBLE_WMAP, double omegaM = OMEGAM_WMAP, double omegaL = OMEGAL_WMAP);
-        /// @brief Convert a redshift to a distance for a given cosmology
-        double redshiftToDist(double z, double H0 = HUBBLE_WMAP, double omegaM = OMEGAM_WMAP, double omegaL = OMEGAL_WMAP);
-        /// @brief Convert a redshift to a line-of-sight velocity
-        double redshiftToVel(double z);
-	/// @brief Convert a line-of-sight velocity to a redshift
-        double velToRedshift(double vel);
-        /// @brief Convert a redshift to an observed HI frequency
-        double redshiftToHIFreq(double z);
-        /// @brief Convert an observed HI frequency to a recessional velocity
-        double freqToHIVel(double nu);
-        /// @brief Convert a recessional velocity to an observed HI frequency
-        double HIVelToFreq(double vel);
-
-
         /// @brief A base class for spectral-line profiles
         /// @details This holds information about a spectral-line profile
         /// (usually HI). It stores the redshift and HI mass (a measure of the

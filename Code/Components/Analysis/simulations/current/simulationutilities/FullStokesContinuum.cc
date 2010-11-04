@@ -218,11 +218,9 @@ namespace askap {
 	  flux = stokesIFlux;
 	  break;
 	case 1: // Stokes Q
-// 	  flux =  this->itsStokesQref * cos(2.*angle) - this->itsStokesUref * sin(2.*angle);
 	  flux = polFlux * cos( 2. * (this->itsPolAngleRef + angle) );
 	  break;
 	case 2: // Stokes U
-// 	  flux =  this->itsStokesUref * cos(2.*angle) + this->itsStokesQref * sin(2.*angle);
 	  flux = polFlux * sin( 2. * (this->itsPolAngleRef + angle) );
 	  break;
 	case 3: // Stokes V

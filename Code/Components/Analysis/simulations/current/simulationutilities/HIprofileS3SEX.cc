@@ -30,6 +30,7 @@
 
 #include <simulationutilities/HIprofileS3SEX.h>
 #include <simulationutilities/SimulationUtilities.h>
+#include <simulationutilities/SpectralUtilities.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
