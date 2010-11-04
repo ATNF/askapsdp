@@ -192,7 +192,7 @@ namespace askap {
                 if (z < this->itsNChan - 1) df = fabs(wld[i] - wld[i+3]);
                 else df = fabs(wld[i] - wld[i-3]);
 
-//      ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
+//     ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
                 this->itsFluxValues[istokes][z] += spec.flux(wld[i] - df / 2., wld[i] + df / 2.);
 	      }
 	    }

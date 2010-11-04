@@ -41,6 +41,7 @@
 #include <simulationutilities/HIprofileS3SEX.h>
 #include <simulationutilities/HIprofileS3SAX.h>
 #include <simulationutilities/GaussianProfile.h>
+#include <simulationutilities/FLASHProfile.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <analysisutilities/CasaImageUtil.h>
 
@@ -158,6 +159,7 @@ namespace askap {
 	this->itsDoContinuum = f.itsDoContinuum;
 	this->itsDoHI = f.itsDoHI;
 	this->itsDryRun = f.itsDryRun;
+	this->itsContinuumSubtract = f.itsContinuumSubtract;
 	this->itsEquinox = f.itsEquinox;
 	this->itsBunit = f.itsBunit;
 	this->itsUnitScl = f.itsUnitScl;
@@ -327,10 +329,12 @@ namespace askap {
 	this->itsDoHI = parset.getBool("doHI", false);
 	this->itsDryRun = parset.getBool("dryRun", false);
 	this->itsDatabaseOrigin = parset.getString("database", ""); 
-	if (this->itsDoHI && (this->itsDatabaseOrigin != "S3SAX" && this->itsDatabaseOrigin != "S3SEX" && this->itsDatabaseOrigin != "Gaussian")) {
+	if (this->itsDoHI && (this->itsDatabaseOrigin != "S3SAX" && this->itsDatabaseOrigin != "S3SEX"
+			      && this->itsDatabaseOrigin != "Gaussian" && this->itsDatabaseOrigin != "FLASH")) {
 	  this->itsDatabaseOrigin = "S3SAX";
-	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin needs to be one of 'S3SEX', 'S3SAX' or 'Gaussian' for HI case. Setting to S3SAX.");
+	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin needs to be one of 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH' for HI case. Setting to S3SAX.");
 	}
+	this->itsContinuumSubtract = parset.getBool("continuumSubtract",true);
 
 	if (this->itsDryRun) {
 	  this->itsFITSOutput = false;
@@ -522,6 +526,8 @@ namespace askap {
 	  HIprofileS3SAX profSAX;
 	  HIprofile &prof = profSAX;
 	  GaussianProfile profGauss;
+	  FLASHProfile profFLASH;
+	  profFLASH.setFlagContinuumSubtract(this->itsContinuumSubtract);
 	  Spectrum &src = cont;
 
 	  FluxGenerator fluxGen;
@@ -567,9 +573,12 @@ namespace askap {
 		} else if (this->itsDatabaseOrigin == "Gaussian") {
 		  profGauss.define(line);
 		  src = profGauss;
+		} else if (this->itsDatabaseOrigin == "FLASH") {
+		  profFLASH.define(line);
+		  src = profFLASH;
 		} else
 		  ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
-			     << this->itsDatabaseOrigin << "' - needs to be 'S3SEX' or 'S3SAX'");
+			     << this->itsDatabaseOrigin << "' - needs to be 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
 	      }
 
 	      // convert fluxes to correct units according to the image BUNIT keyword
@@ -663,6 +672,8 @@ namespace askap {
 		    fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
 		  else if (this->itsDatabaseOrigin == "Gaussian")
 		    fluxGen.addSpectrumInt(profGauss, pix[0], pix[1], this->itsWCS);
+		  else if (this->itsDatabaseOrigin == "FLASH")
+		    fluxGen.addSpectrumInt(profFLASH, pix[0], pix[1], this->itsWCS);
 		}
 
 		bool addedSource=false;

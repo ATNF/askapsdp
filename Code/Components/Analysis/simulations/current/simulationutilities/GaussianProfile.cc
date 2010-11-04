@@ -31,6 +31,7 @@
 #include <simulationutilities/GaussianProfile.h>
 #include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/SpectralUtilities.h>
+#include <sourcefitting/Component.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
@@ -157,7 +158,9 @@ namespace askap {
 	    flux = scale * (erf(last) - erf(first));
 	    break;
 	  }
-	  return flux / fabs(nu2-nu1);
+	  flux = flux / fabs(nu2-nu1);
+	  // ASKAPLOG_DEBUG_STR(logger, "Flux between " << nu1 << " and " << nu2 << " is " << flux << " with scale=" << scale << " and basic integral b/w " << first << "and " << last << " = " << erf(last)-erf(first) );
+	  return flux ;
 	}
 
         std::ostream& operator<< (std::ostream& theStream, GaussianProfile &prof)

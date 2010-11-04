@@ -186,6 +186,8 @@ namespace askap {
                     bool itsDoHI;
                     /// @brief Whether to just count the sources that would be added rather than add them
                     bool itsDryRun;
+		    /// @brief Do the continuum subtraction - only applies to FLASH sources
+		    bool itsContinuumSubtract;
 
                     /// @brief The EQUINOX keyword
                     float itsEquinox;

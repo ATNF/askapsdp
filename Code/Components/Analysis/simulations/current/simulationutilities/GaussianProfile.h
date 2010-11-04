@@ -59,7 +59,7 @@ namespace askap {
                 /// @brief Assignment operator
                 GaussianProfile& operator= (const GaussianProfile& h);
 
-		void define(std::string &line);
+		virtual void define(std::string &line);
 
 		void setAxisType(AXISTYPE type){itsAxisType=type;};
 		void setRestFreq(double freq){itsRestFreq=freq;};
