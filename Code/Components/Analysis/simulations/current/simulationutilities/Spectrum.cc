@@ -79,6 +79,20 @@ namespace askap {
             this->itsComponent = s.itsComponent;
         }
 
+        std::ostream& operator<< (std::ostream& theStream, Spectrum &spec)
+        {
+            /// @details Prints a summary of the parameters to the stream
+            /// @param theStream The destination stream
+            /// @param prof The profile object
+            /// @return A reference to the stream
+
+	  theStream << spec.itsRA << " " << spec.itsDec << " " << spec.itsComponent.peak() << " " 
+		    << spec.itsComponent.maj() << " " << spec.itsComponent.min() << " " << spec.itsComponent.pa() << "\n"; 
+            return theStream;
+        }
+
+
+
     }
 
 }

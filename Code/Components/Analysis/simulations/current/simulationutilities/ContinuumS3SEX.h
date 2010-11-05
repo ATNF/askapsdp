@@ -74,15 +74,19 @@ namespace askap {
 		/// @brief Define using a line of input from an ascii file
 		void define(std::string &line);
 
-                /// @brief Set up the profile's parameters
-                void defineSource(float alpha, float beta, float nuZero);
-
+                /// @brief Output the parameters for the source
+                friend std::ostream& operator<< (std::ostream& theStream, ContinuumS3SEX &cont);
 
             protected:
 		long itsComponentNum;
 		long itsGalaxyNum;
 		short itsStructure;
-		
+		double itsI151;
+		double itsI610;
+		double itsI1400;
+		double itsI4860;
+		double itsI18000;
+
 		
         };
 

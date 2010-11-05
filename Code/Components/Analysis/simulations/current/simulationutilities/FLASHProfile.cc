@@ -75,6 +75,11 @@ namespace askap {
             if (this == &h) return *this;
 
 	    ((GaussianProfile &) *this) = h;
+	    this->itsFlagContinuumSubtracted = h.itsFlagContinuumSubtracted;
+	    this->itsContinuumFlux = h.itsContinuumFlux;
+	    this->itsPeakOpticalDepth = h.itsPeakOpticalDepth;
+	    this->itsCentreRedshift = h.itsCentreRedshift;
+	    this->itsVelocityWidth = h.itsVelocityWidth;
             return *this;
         }
 
@@ -93,10 +98,10 @@ namespace askap {
 	  /// and is converted to redshift.
             /// @param line A line from the ascii input file
 
-	    double flux, maj, min, pa, peak, centre, width;
+	    double maj, min, pa;
             std::stringstream ss(line);
-            ss >> this->itsRA >> this->itsDec >> flux >> maj >> min >> pa >> peak >> centre >> width;
-            this->itsComponent.setPeak(flux);
+            ss >> this->itsRA >> this->itsDec >> this->itsContinuumFlux >> maj >> min >> pa >> this->itsPeakOpticalDepth >> this->itsCentreRedshift >> this->itsVelocityWidth;
+            this->itsComponent.setPeak(this->itsContinuumFlux);
 	    if(maj>=min){
 	      this->itsComponent.setMajor(maj);
 	      this->itsComponent.setMinor(min);
@@ -106,19 +111,19 @@ namespace askap {
 	    }
             this->itsComponent.setPA(pa);
 
-	    double depth = (exp(-peak)-1.)*flux;
+	    double depth = (exp(-1.*this->itsPeakOpticalDepth)-1.)*this->itsContinuumFlux;
 	    this->itsGaussian.setHeight(depth);
 
-	    double centreFreq = redshiftToFreq(centre,this->itsRestFreq);
+	    double centreFreq = redshiftToFreq(this->itsCentreRedshift,this->itsRestFreq);
 	    this->itsGaussian.setCenter(centreFreq);
 
-	    double freqmax=velToFreq(width/2.,centreFreq);
-	    double freqmin=velToFreq(-width/2.,centreFreq);
+	    double freqmax=velToFreq(this->itsVelocityWidth/2.,centreFreq);
+	    double freqmin=velToFreq(-this->itsVelocityWidth/2.,centreFreq);
 	    this->itsGaussian.setWidth(fabs(freqmax-freqmin));
 
 	    if(this->itsFlagContinuumSubtracted) this->itsComponent.setPeak(0.);
 
-	    ASKAPLOG_DEBUG_STR(logger, "Defined source with Component: " << itsComponent << " and Gaussian " << itsGaussian);
+	    ASKAPLOG_DEBUG_STR(logger, "Defined source with continuum flux="<<this->itsContinuumFlux<<", Component: " << itsComponent << " and Gaussian " << itsGaussian);
 
         }
 
@@ -129,8 +134,9 @@ namespace askap {
             /// @param prof The profile object
             /// @return A reference to the stream
 
-            theStream << "FLASH profile summary:\n";
-            theStream << prof.itsGaussian << "\n";
+	  theStream << prof.itsRA << " " << prof.itsDec << " " << prof.itsContinuumFlux << " " 
+		    << prof.itsComponent.maj() << " " << prof.itsComponent.min() << " " << prof.itsComponent.pa() << " " 
+		    << prof.itsPeakOpticalDepth << " " << prof.itsCentreRedshift << " " << prof.itsVelocityWidth << "\n";
             return theStream;
         }
 

@@ -65,6 +65,10 @@ namespace askap {
 
             protected:
 		bool itsFlagContinuumSubtracted;
+		double itsContinuumFlux;
+		double itsPeakOpticalDepth;
+		double itsCentreRedshift;
+		double itsVelocityWidth;
 
         };
 

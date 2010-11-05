@@ -87,6 +87,9 @@ namespace askap {
                 /// @brief Return the flux integrated between two frequencies
                 double flux(double freq1, double freq2);
 
+                /// @brief Output the parameters for the source
+                friend std::ostream& operator<< (std::ostream& theStream, Continuum &cont);
+
             protected:
                 /// @brief The spectral index
                 double itsAlpha;

@@ -124,6 +124,12 @@ namespace askap {
             return *this;
         }
 
+        std::ostream& operator<< (std::ostream& theStream, Continuum &cont)
+	{
+	  theStream << cont.itsRA << " " << cont.itsDec << " " << cont.itsComponent.peak() << " " << cont.itsComponent.maj() << " " << cont.itsComponent.min() << " " << cont.itsComponent.pa() << "\n";
+	  return theStream;
+	}
+
         void Continuum::defineSource(float alpha, float beta, float nuZero)
         {
             /// @details Assign the parameters

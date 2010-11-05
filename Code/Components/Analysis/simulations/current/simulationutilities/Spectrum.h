@@ -86,6 +86,8 @@ namespace askap {
                 /// @brief Return the flux integrated between two frequencies - not used for the base class
                 virtual double flux(double freq1, double freq2)  {return -79.;};
 
+                virtual friend std::ostream& operator<< (std::ostream& theStream, Spectrum &spec);
+
             protected:
                 /// @brief The right ascension of the object
                 std::string itsRA;

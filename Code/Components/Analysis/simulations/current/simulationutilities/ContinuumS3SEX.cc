@@ -50,27 +50,27 @@ namespace askap {
 
     namespace simulations {
 
-        Continuum::Continuum():
-                Spectrum()
+        ContinuumS3SEX::Continuum():
+                Continuum()
         {
             this->defineSource(0., 0., 1400.);
         }
 
-        Continuum::Continuum(Spectrum &s):
-                Spectrum(s)
+        ContinuumS3SEX::Continuum(Spectrum &s):
+                Continuum(s)
         {
             this->defineSource(0., 0., 1400.);
         }
 
-        Continuum::Continuum(std::string &line)
+        ContinuumS3SEX::Continuum(std::string &line)
         {
             /// @details Constructs a Continuum object from a line of
-            /// text from an ascii file. Uses the Continuum::define()
+            /// text from an ascii file. Uses the ContinuumS3SEX::define()
             /// function.
 	  this->define(line);
 	}
 
-        void Continuum::define(std::string &line)
+        void ContinuumS3SEX::define(std::string &line)
         {
             /// @details Defines a Continuum object from a line of
             /// text from an ascii file. This line should be formatted in
@@ -83,10 +83,10 @@ namespace askap {
             double flux, maj, min, pa;
             std::stringstream ss(line);
 	    int component,galaxy,structure;
-	    double i_151,i_610,i_1400,i_4860,i_18000;
-	    //            ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa;
-	    ss >> component >> galaxy >> structure >> this->itsRA >> this->itsDec >> pa >> maj >> min >> i_151 >> i_610 >> i_1400 >> i_4860 >> i_18000;
-	    flux = pow(10,i_1400);
+	    ss >> component >> galaxy >> structure 
+	       >> this->itsRA >> this->itsDec >> pa >> maj >> min 
+	       >> this->itsI151 >> this->itsI610 >> this->itsI1400 >> this->itsI4860 >> this->itsI18000;
+	    flux = pow(10,this->itsI1400);
             this->itsComponent.setPeak(flux);
 	    if(maj>=min){
 	      this->itsComponent.setMajor(maj);
@@ -96,48 +96,37 @@ namespace askap {
 	      this->itsComponent.setMinor(maj);
 	    }
             this->itsComponent.setPA(pa);
-	    this->itsAlpha = (i_1400-i_610)/log10(1400./610.);
+	    this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
+	    this->itsBeta = 0.;
         }
 
-        Continuum::Continuum(const Continuum& c):
+        ContinuumS3SEX::Continuum(const Continuum& c):
                 Spectrum(c)
         {
             operator=(c);
         }
 
-        Continuum& Continuum::operator= (const Continuum& c)
+        ContinuumS3SEX& ContinuumS3SEX::operator= (const Continuum& c)
         {
             if (this == &c) return *this;
 
-            ((Spectrum &) *this) = c;
+            ((Continuum &) *this) = c;
             this->itsAlpha      = c.itsAlpha;
             this->itsBeta       = c.itsBeta;
             this->itsNuZero     = c.itsNuZero;
             return *this;
         }
 
-        Continuum& Continuum::operator= (const Spectrum& c)
+        ContinuumS3SEX& ContinuumS3SEX::operator= (const Spectrum& c)
         {
             if (this == &c) return *this;
 
-            ((Spectrum &) *this) = c;
+            ((Continuum &) *this) = c;
             this->defineSource(0., 0., 1400.);
             return *this;
         }
 
-        void Continuum::defineSource(float alpha, float beta, float nuZero)
-        {
-            /// @details Assign the parameters
-            /// @param alpha The spectral index
-            /// @param beta The spectral curvature
-            /// @param nuZero The normalisation frequency
-            this->itsAlpha = alpha;
-            this->itsBeta = beta;
-            this->itsNuZero = nuZero;
-        }
-
-
-        double Continuum::flux(double freq)
+        double ContinuumS3SEX::flux(double freq)
         {
             /// @details Returns the flux at a given frequency.
             /// @param freq The frequency, in Hz
@@ -146,7 +135,7 @@ namespace askap {
             return this->fluxZero() * pow(freq / this->itsNuZero, powerTerm);
         }
 
-      double Continuum::flux(double freq1, double freq2)
+      double ContinuumS3SEX::flux(double freq1, double freq2)
       {
 	
 	if(fabs(this->itsBeta)>0) ASKAPLOG_ERROR_STR(logger,"Cannot yet integrate with non-zero curvature.");
@@ -156,9 +145,21 @@ namespace askap {
 	double flux = this->fluxZero() * (pow(std::max(freq1,freq2),powerTerm+1) - pow(std::min(freq1,freq2),powerTerm+1)) /
 	  ((powerTerm+1) * pow(this->itsNuZero,powerTerm));
 	
-	return flux;
+	return flux/fabs(freq2-freq1);
       }
 
+        std::ostream& operator<< (std::ostream& theStream, ContinuumS3SEX &cont)
+        {
+            /// @details Prints a summary of the parameters to the stream
+            /// @param theStream The destination stream
+            /// @param prof The profile object
+            /// @return A reference to the stream
+
+	  theStream << cont.itsRA << " " << cont.itsDec << " " << cont.itsContinuumFlux << " " 
+		    << cont.itsComponent.pa() << " " << cont.itsComponent.maj() << " " << cont.itsComponent.min() << " " 
+		    << cont.itsPeakOpticalDepth << " " << cont.itsCentreRedshift << " " << cont.itsVelocityWidth << "\n";
+            return theStream;
+        }
     }
 
 
