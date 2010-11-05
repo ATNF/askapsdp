@@ -85,9 +85,15 @@ namespace askap {
                 double flux(double nu1, double nu2);
 
                 /// @brief Output the parameters for the source
+		void diagnostic(std::ostream& theStream);
+		void print(std::ostream& theStream);
                 friend std::ostream& operator<< (std::ostream& theStream, HIprofileS3SEX &prof);
 
             private:
+                /// @brief The spectral index
+                double itsAlpha;
+                /// @brief The spectral curvature
+                double itsBeta;
                 /// @brief The type of source as it appears in the database
                 GALTYPE itsSourceType;
                 /// @brief The central velocity of the source

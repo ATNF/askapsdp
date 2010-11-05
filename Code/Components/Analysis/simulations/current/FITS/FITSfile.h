@@ -104,6 +104,9 @@ namespace askap {
                     /// @brief Return the number of pixels
                     size_t getSize() {return itsNumPix;};
 
+		    /// @brief Check the value of the itsDatabaseOrigin parameter.
+		    bool databaseGood();
+
                     /// @brief Make a flux array with just noise in it.
                     void makeNoiseArray();
 
@@ -180,10 +183,6 @@ namespace askap {
 
                     /// @brief Whether sources should be added
                     bool itsAddSources;
-                    /// @brief Whether to add continuum sources
-                    bool itsDoContinuum;
-                    /// @brief Whether to add spectral-line sources
-                    bool itsDoHI;
                     /// @brief Whether to just count the sources that would be added rather than add them
                     bool itsDryRun;
 		    /// @brief Do the continuum subtraction - only applies to FLASH sources

@@ -82,10 +82,10 @@ namespace askap {
 
             double flux, maj, min, pa;
             std::stringstream ss(line);
-	    int component,galaxy,structure;
-	    double i_151,i_610,i_4860,i_18000;
-	    //            ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa;
-	    ss >> component >> galaxy >> structure >> this->itsRA >> this->itsDec >> pa >> maj >> min >> i_151 >> i_610 >> flux >> i_4860 >> i_18000;
+	    //	    int component,galaxy,structure;
+	    //	    double i_151,i_610,i_4860,i_18000;
+	    ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa;
+	    //	    ss >> component >> galaxy >> structure >> this->itsRA >> this->itsDec >> pa >> maj >> min >> i_151 >> i_610 >> flux >> i_4860 >> i_18000;
 	    flux = pow(10,flux);
             this->itsComponent.setPeak(flux);
 	    if(maj>=min){
@@ -124,9 +124,16 @@ namespace askap {
             return *this;
         }
 
+      void Continuum::print(std::ostream& theStream)
+      {
+	theStream << this->itsRA << "\t" << this->itsDec << "\t" 
+		  << this->itsComponent.peak() << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t" 
+		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() << "\n";
+      }
+
         std::ostream& operator<< (std::ostream& theStream, Continuum &cont)
 	{
-	  theStream << cont.itsRA << " " << cont.itsDec << " " << cont.itsComponent.peak() << " " << cont.itsComponent.maj() << " " << cont.itsComponent.min() << " " << cont.itsComponent.pa() << "\n";
+	  cont.print(theStream);
 	  return theStream;
 	}
 

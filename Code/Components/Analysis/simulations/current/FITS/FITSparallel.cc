@@ -102,19 +102,16 @@ namespace askap {
                     // Update the subsection parameter to the appropriate string for this worker
                     newparset.replace("subsection", this->itsSubsection.getSection());
 
+		    // Replace the output list file with an appropriate filename for the subsection
+		    if(newparset.getBool("outputList",false)){
+		      std::string filename=newparset.getString("outputSourceList");
+		      newparset.replace("outputSourceList",filename+"_"+this->itsSubsection.getSection());
+		    }
+
                 } else {
                     this->itsSubsection.setSection(duchamp::nullSection(dim));
                     this->itsSubsection.parse(axes);
                 }
-
-                // For the parallel version only, one the first worker
-                // should write an outputlist. This is done here because
-                // FITSfile has no knowledge of its place in the distributed
-                // program
-//  This isn't actually true! It knows its subsection, so we can write different files for each subsection.
-//                 if (itsComms.isParallel() && (itsComms.rank() != 1)) {
-//                     newparset.replace("outputList", "false");
-//                 }
 
                 ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
 		bool doAllocation = (parset.getBool("fitsOutput",true)||parset.getBool("casaOutput",false)) && 

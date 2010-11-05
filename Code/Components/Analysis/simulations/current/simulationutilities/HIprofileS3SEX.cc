@@ -67,10 +67,10 @@ namespace askap {
             /// to set up the profile description.
             /// @param line A line from the ascii input file
 
-            double flux, maj, min, pa, alpha, beta;
+	  double flux, maj, min, pa;
             int type;
             std::stringstream ss(line);
-            ss >> this->itsRA >> this->itsDec >> flux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI >> type;
+            ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI >> type;
             this->itsSourceType = GALTYPE(type);
             this->itsComponent.setPeak(flux);
 	    if(maj>=min){
@@ -111,6 +111,33 @@ namespace askap {
             return *this;
         }
 
+      void HIprofileS3SEX::diagnostic(std::ostream& theStream)
+      {
+            theStream << "HI profile summary:\n";
+            theStream << "z=" << this->itsRedshift << "\n";
+            theStream << "M_HI=" << this->itsMHI << "\n";
+            theStream << "V_0=" << this->itsVelZero << "\n";
+            theStream << "Vrot=" << this->itsVRot << "\n";
+            theStream << "Vwidth=" << this->itsDeltaVel << "\n";
+            theStream << "Dip Amplitude=" << this->itsDipAmp << "\n";
+            theStream << "Sigma_edge=" << this->itsSigmaEdge << "\n";
+            theStream << "Sigma_dip=" << this->itsSigmaDip << "\n";
+            theStream << "Peak value=" << this->itsMaxVal << "\n";
+            theStream << "Integrated Flux=" << this->itsIntFlux << "\n";
+            theStream << "Edge int. flux=" << this->itsEdgeFlux << "\n";
+            theStream << "Middle int. flux=" << this->itsMiddleFlux << "\n";
+            theStream << "Profile int. flux=" << this->itsProfileFlux << "\n";
+
+      }
+
+      void HIprofileS3SEX::print(std::ostream& theStream)
+      {
+	theStream << this->itsRA << "\t" << this->itsDec << "\t" 
+		  << this->itsComponent.peak() << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t" 
+		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() << "\t"
+		  << this->itsRedshift << "\t" << this->itsMHI << "\t" << int(this->itsSourceType) << "\n";
+      }
+
         std::ostream& operator<< (std::ostream& theStream, HIprofileS3SEX &prof)
         {
             /// @details Prints a summary of the parameters to the stream
@@ -118,21 +145,8 @@ namespace askap {
             /// @param prof The profile object
             /// @return A reference to the stream
 
-            theStream << "HI profile summary:\n";
-            theStream << "z=" << prof.itsRedshift << "\n";
-            theStream << "M_HI=" << prof.itsMHI << "\n";
-            theStream << "V_0=" << prof.itsVelZero << "\n";
-            theStream << "Vrot=" << prof.itsVRot << "\n";
-            theStream << "Vwidth=" << prof.itsDeltaVel << "\n";
-            theStream << "Dip Amplitude=" << prof.itsDipAmp << "\n";
-            theStream << "Sigma_edge=" << prof.itsSigmaEdge << "\n";
-            theStream << "Sigma_dip=" << prof.itsSigmaDip << "\n";
-            theStream << "Peak value=" << prof.itsMaxVal << "\n";
-            theStream << "Integrated Flux=" << prof.itsIntFlux << "\n";
-            theStream << "Edge int. flux=" << prof.itsEdgeFlux << "\n";
-            theStream << "Middle int. flux=" << prof.itsMiddleFlux << "\n";
-            theStream << "Profile int. flux=" << prof.itsProfileFlux << "\n";
-            return theStream;
+	  prof.print(theStream);
+	  return theStream;
         }
 
         void HIprofileS3SEX::setup(GALTYPE type, double z, double mhi, double maj, double min)

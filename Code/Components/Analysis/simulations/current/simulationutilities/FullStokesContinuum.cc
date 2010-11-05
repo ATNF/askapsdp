@@ -111,23 +111,28 @@ namespace askap {
 	    this->itsAlpha = (log10(i1420)-this->itsI610L)/log10(1420./610.);
         }
 
-      std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes)
+      void FullStokesContinuum::print(std::ostream &theStream)
       {
 	theStream.setf(std::ios::showpoint);
-	theStream << stokes.itsSourceID << std::setw(7)<<stokes.itsClusterID << std::setw(11)<<stokes.itsGalaxyID 
-		  << std::setw(3)<<stokes.itsSFtype << std::setw(3)<<stokes.itsAGNtype << std::setw(3)<<stokes.itsStructure;
-	theStream << std::setw(12)<<stokes.itsRA << std::setw(12)<<stokes.itsDec;
+	theStream << this->itsSourceID << std::setw(7)<<this->itsClusterID << std::setw(11)<<this->itsGalaxyID 
+		  << std::setw(3)<<this->itsSFtype << std::setw(3)<<this->itsAGNtype << std::setw(3)<<this->itsStructure;
+	theStream << std::setw(12)<<this->itsRA << std::setw(12)<<this->itsDec;
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
-	theStream << std::setprecision(3)<<std::setw(11)<<stokes.itsDistance << std::setprecision(6)<<std::setw(11)<<stokes.itsRedshift;
+	theStream << std::setprecision(3)<<std::setw(11)<<this->itsDistance << std::setprecision(6)<<std::setw(11)<<this->itsRedshift;
 	theStream.precision(3);
-	theStream << std::setw(10)<<stokes.itsComponent.pa() << std::setw(10)<<stokes.itsComponent.maj() << std::setw(10)<<stokes.itsComponent.min();
+	theStream << std::setw(10)<<this->itsComponent.pa() << std::setw(10)<<this->itsComponent.maj() << std::setw(10)<<this->itsComponent.min();
 	theStream.precision(4);
-	theStream << std::setw(10)<<stokes.itsI151L << std::setw(10)<<stokes.itsI610L;
+	theStream << std::setw(10)<<this->itsI151L << std::setw(10)<<this->itsI610L;
 	theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed); 
-	theStream << std::setw(12)<<stokes.itsComponent.peak() << std::setw(12)<<stokes.itsStokesQref << std::setw(12)<<stokes.itsStokesUref << std::setw(12)<<stokes.itsPolFluxRef;
+	theStream << std::setw(12)<<this->itsComponent.peak() << std::setw(12)<<this->itsStokesQref << std::setw(12)<<this->itsStokesUref << std::setw(12)<<this->itsPolFluxRef;
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
-	theStream << std::setw(10)<<stokes.itsPolFracRef << std::setw(10)<<stokes.itsI4p8L << std::setw(10)<<stokes.itsI18L << std::setw(10)<<stokes.itsCosVA 
-		  << std::setw(11)<<stokes.itsRM << std::setw(11)<<stokes.itsRMflag;
+	theStream << std::setw(10)<<this->itsPolFracRef << std::setw(10)<<this->itsI4p8L << std::setw(10)<<this->itsI18L << std::setw(10)<<this->itsCosVA 
+		  << std::setw(11)<<this->itsRM << std::setw(11)<<this->itsRMflag;
+      }
+
+      std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes)
+      {
+	stokes.print(theStream);
 	return theStream;
       }
 
@@ -185,20 +190,6 @@ namespace askap {
             this->defineSource(0., 0., 1400.);
             return *this;
         }
-
-      void FullStokesContinuum::setRA(double r, int prec)
-      {
-	std::stringstream ss;
-	ss << std::fixed << std::setprecision(prec) << r;
-	this->itsRA = ss.str();
-      }
-
-      void FullStokesContinuum::setDec(double d, int prec)
-      {
-	std::stringstream ss;
-	ss << std::fixed << std::setprecision(prec) << d;
-	this->itsDec = ss.str();
-      }
 
       double FullStokesContinuum::flux(int istokes, double freq)
       {

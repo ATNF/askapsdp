@@ -88,6 +88,7 @@ namespace askap {
                 double flux(double freq1, double freq2);
 
                 /// @brief Output the parameters for the source
+		void print(std::ostream& theStream);
                 friend std::ostream& operator<< (std::ostream& theStream, Continuum &cont);
 
             protected:

@@ -79,6 +79,48 @@ namespace askap {
             this->itsComponent = s.itsComponent;
         }
 
+      void Spectrum::setRA(double r, int prec)
+      {
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(prec) << r;
+	this->itsRA = ss.str();
+      }
+
+      void Spectrum::setDec(double d, int prec)
+      {
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(prec) << d;
+	this->itsDec = ss.str();
+      }
+
+
+      void Spectrum::print(std::ostream& theStream, std::string ra, std::string dec)
+      {
+	std::string oldRA=this->itsRA;
+	std::string oldDec=this->itsDec;
+	this->itsRA = ra;
+	this->itsDec = dec;
+	this->print(theStream);
+	this->itsRA = oldRA;
+	this->itsDec = oldDec;
+      }
+
+      void Spectrum::print(std::ostream& theStream, double ra, double dec, int prec)
+      {
+	std::string oldRA=this->itsRA;
+	std::string oldDec=this->itsDec;
+	this->setRA(ra);
+	this->setDec(dec);
+	this->print(theStream);
+	this->itsRA = oldRA;
+	this->itsDec = oldDec;
+      }
+      void Spectrum::print(std::ostream& theStream)
+      {
+	theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsComponent.peak() << "\t" 
+		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() << "\n"; 
+      }
+
         std::ostream& operator<< (std::ostream& theStream, Spectrum &spec)
         {
             /// @details Prints a summary of the parameters to the stream
@@ -86,9 +128,8 @@ namespace askap {
             /// @param prof The profile object
             /// @return A reference to the stream
 
-	  theStream << spec.itsRA << " " << spec.itsDec << " " << spec.itsComponent.peak() << " " 
-		    << spec.itsComponent.maj() << " " << spec.itsComponent.min() << " " << spec.itsComponent.pa() << "\n"; 
-            return theStream;
+	  spec.print(theStream);
+	  return theStream;
         }
 
 

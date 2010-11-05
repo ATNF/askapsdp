@@ -53,6 +53,9 @@ namespace askap {
         /// @li \f$ k_3 = f_p \exp( (2k_1 - W_p)^2 / 4k_2 ) \f$
         /// @li \f$ k_4 = \frac{W_p^2 f_p^2}{4(f_p^2 - f_0^2)} \f$
         /// @li \f$ k_5 = f_0 \sqrt{k_4} \f$
+      ///
+      /// @todo Put every single SKADS S3-SAX parameter into this class, rather than just the relevant ones we get from mySQL
+
         class HIprofileS3SAX : public HIprofile {
             public:
                 /// @brief Default constructor
@@ -84,6 +87,8 @@ namespace askap {
 		std::pair<double,double> freqLimits();
 
                 /// @brief Output the parameters for the source
+		void diagnostic(std::ostream& theStream);
+		void print(std::ostream& theStream);
                 friend std::ostream& operator<< (std::ostream& theStream, HIprofileS3SAX &prof);
 
             private:

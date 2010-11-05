@@ -127,6 +127,13 @@ namespace askap {
 
         }
 
+      void FLASHProfile::print(std::ostream& theStream)
+      {
+	theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsContinuumFlux << "\t" 
+		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() << "\t" 
+		  << this->itsPeakOpticalDepth << "\t" << this->itsCentreRedshift << "\t" << this->itsVelocityWidth << "\n";
+      }
+
         std::ostream& operator<< (std::ostream& theStream, FLASHProfile &prof)
         {
             /// @details Prints a summary of the parameters to the stream
@@ -134,10 +141,8 @@ namespace askap {
             /// @param prof The profile object
             /// @return A reference to the stream
 
-	  theStream << prof.itsRA << " " << prof.itsDec << " " << prof.itsContinuumFlux << " " 
-		    << prof.itsComponent.maj() << " " << prof.itsComponent.min() << " " << prof.itsComponent.pa() << " " 
-		    << prof.itsPeakOpticalDepth << " " << prof.itsCentreRedshift << " " << prof.itsVelocityWidth << "\n";
-            return theStream;
+	  prof.print(theStream);
+	  return theStream;
         }
 
     }

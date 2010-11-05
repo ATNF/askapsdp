@@ -76,11 +76,7 @@ namespace askap {
 
       double polAngle(){return itsPolAngleRef;};
 
-      void setRA(double r, int prec=5);
-      void setRA(std::string r){itsRA=r;};
-      void setDec(double d, int prec=5);
-      void setDec(std::string d){itsDec=d;};
-
+      void print(std::ostream& theStream);
       friend std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes);
 
     protected:

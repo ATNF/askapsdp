@@ -70,6 +70,39 @@ namespace askap {
             return *this;
         }
 
+      void HIprofileS3SAX::diagnostic(std::ostream& theStream)
+      {
+	theStream << "HI profile summary:\n";
+	theStream << "z=" << this->itsRedshift << "\n";
+	theStream << "M_HI=" << this->itsMHI << "\n";
+	theStream << "Fpeak=" << this->itsFluxPeak << "\n";
+	theStream << "F0=" << this->itsFlux0 << "\n";
+	theStream << "Wpeak=" << this->itsWidthPeak << "\n";
+	theStream << "W50=" << this->itsWidth50 << "\n";
+	theStream << "W20=" << this->itsWidth20 << "\n";
+	theStream << "IntFlux=" << this->itsIntFlux << "\n";
+	theStream << "Side Flux=" << this->itsSideFlux << "\n";
+	theStream << "Middle Flux=" << this->itsMiddleFlux << "\n";
+	theStream << "K[] = [" << this->itsKpar[0];
+
+	for (int i = 1; i < 5; i++)
+	  theStream << "," << this->itsKpar[i];
+
+	theStream << "]\n";
+	    
+	std::pair<double,double> freqRange = this->freqLimits();
+	theStream << "Freq Range = " << freqRange.first << " - " << freqRange.second << "\n";
+  
+      }
+
+      void HIprofileS3SAX::print(std::ostream& theStream)
+      {
+	theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsIntFlux << "\t" 
+		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() <<"\t"
+		  << this->itsRedshift << "\t" << this->itsMHI << "\t" 
+		  << this->itsFlux0 << "\t" << this->itsFluxPeak << "\t" << this->itsWidthPeak << "\t" << this->itsWidth50 << "\t" << this->itsWidth20 << "\n";
+      }
+
         std::ostream& operator<< (std::ostream& theStream, HIprofileS3SAX &prof)
         {
             /// @details Prints a summary of the parameters to the stream
@@ -77,27 +110,8 @@ namespace askap {
             /// @param prof The profile object
             /// @return A reference to the stream
 
-            theStream << "HI profile summary:\n";
-            theStream << "z=" << prof.itsRedshift << "\n";
-            theStream << "M_HI=" << prof.itsMHI << "\n";
-            theStream << "Fpeak=" << prof.itsFluxPeak << "\n";
-            theStream << "F0=" << prof.itsFlux0 << "\n";
-            theStream << "Wpeak=" << prof.itsWidthPeak << "\n";
-            theStream << "W50=" << prof.itsWidth50 << "\n";
-            theStream << "W20=" << prof.itsWidth20 << "\n";
-            theStream << "IntFlux=" << prof.itsIntFlux << "\n";
-            theStream << "Side Flux=" << prof.itsSideFlux << "\n";
-            theStream << "Middle Flux=" << prof.itsMiddleFlux << "\n";
-            theStream << "K[] = [" << prof.itsKpar[0];
-
-            for (int i = 1; i < 5; i++)
-                theStream << "," << prof.itsKpar[i];
-
-            theStream << "]\n";
-	    
-	    std::pair<double,double> freqRange = prof.freqLimits();
-	    theStream << "Freq Range = " << freqRange.first << " - " << freqRange.second << "\n";
-            return theStream;
+	  prof.print(theStream);
+	  return theStream;
         }
 
         HIprofileS3SAX::HIprofileS3SAX(std::string &line)
@@ -122,10 +136,12 @@ namespace askap {
             /// to set up the profile description.
             /// @param line A line from the ascii input file
 
-            double maj, min, pa, alpha, beta;
+	  double maj, min, pa;
             std::stringstream ss(line);
-            ss >> this->itsRA >> this->itsDec >> this->itsIntFlux >> alpha >> beta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI
-            >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
+            ss >> this->itsRA >> this->itsDec >> this->itsIntFlux 
+	       >> maj >> min >> pa
+	       >> this->itsRedshift >> this->itsMHI 
+	       >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
             this->itsComponent.setPeak(this->itsFluxPeak * this->itsIntFlux);
 	    if(maj>=min){
 	      this->itsComponent.setMajor(maj);

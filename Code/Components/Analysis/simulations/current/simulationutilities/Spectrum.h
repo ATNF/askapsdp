@@ -70,7 +70,9 @@ namespace askap {
                 /// @brief Return the position angle
                 double pa() {return itsComponent.pa();};
 
+		virtual void setRA(double r, int prec=5);
 		virtual void setRA(std::string r){itsRA=r;};
+		virtual void setDec(double d, int prec=5);
 		virtual void setDec(std::string d){itsDec=d;};
                 /// @brief Set the flux normalisation
                 void setFluxZero(float f) {itsComponent.setPeak(f);};
@@ -85,7 +87,10 @@ namespace askap {
                 virtual double flux(double freq)  {return -77.;};
                 /// @brief Return the flux integrated between two frequencies - not used for the base class
                 virtual double flux(double freq1, double freq2)  {return -79.;};
-
+		
+		virtual void print(std::ostream& theStream, double ra, double dec, int prec=5);
+		virtual void print(std::ostream& theStream, std::string ra, std::string dec);
+		virtual void print(std::ostream& theStream);
 		friend std::ostream& operator<< (std::ostream& theStream, Spectrum &spec);
 
             protected:

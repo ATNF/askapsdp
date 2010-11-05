@@ -36,6 +36,7 @@
 #include <simulationutilities/SpectralUtilities.h>
 #include <simulationutilities/FluxGenerator.h>
 #include <simulationutilities/Continuum.h>
+#include <simulationutilities/ContinuumS3SEX.h>
 #include <simulationutilities/FullStokesContinuum.h>
 #include <simulationutilities/HIprofile.h>
 #include <simulationutilities/HIprofileS3SEX.h>
@@ -156,8 +157,6 @@ namespace askap {
 	this->itsBaseFreq = f.itsBaseFreq;
 	this->itsRestFreq = f.itsRestFreq;
 	this->itsAddSources = f.itsAddSources;
-	this->itsDoContinuum = f.itsDoContinuum;
-	this->itsDoHI = f.itsDoHI;
 	this->itsDryRun = f.itsDryRun;
 	this->itsContinuumSubtract = f.itsContinuumSubtract;
 	this->itsEquinox = f.itsEquinox;
@@ -236,7 +235,7 @@ namespace askap {
 
 	if (this->itsSourceListType != "continuum" && this->itsSourceListType != "spectralline") {
 	  this->itsSourceListType = "continuum";
-	  ASKAPLOG_WARN_STR(logger, "Input parameter sourcelisttype needs to be *either* 'continuum' or 'spectralline'. Setting to continuum.");
+	  ASKAPLOG_WARN_STR(logger, "Input parameter sourcelisttype needs to be *either* 'continuum' or 'spectralline'. Setting to 'continuum'.");
 	}
 
 	this->itsPosType = parset.getString("posType", "dms");
@@ -316,8 +315,6 @@ namespace askap {
 	  this->setWCS(false, subset);
 	}
 
-	ASKAPLOG_DEBUG_STR(logger, "wcs->lat=" << this->itsWCS->lat << " wcs->lng=" << this->itsWCS->lng << " wcs->spec=" << this->itsWCS->spec);
-
 	this->itsHaveSpectralInfo = parset.getBool("flagSpectralInfo", false);
 	this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crval[this->itsWCS->spec]);
 	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
@@ -325,14 +322,11 @@ namespace askap {
 	if (!this->itsHaveSpectralInfo) this->itsBaseFreq = this->itsWCS->crval[this->itsWCS->spec];
 
 	this->itsAddSources = parset.getBool("addSources", true);
-	this->itsDoContinuum = parset.getBool("doContinuum", true);
-	this->itsDoHI = parset.getBool("doHI", false);
 	this->itsDryRun = parset.getBool("dryRun", false);
 	this->itsDatabaseOrigin = parset.getString("database", ""); 
-	if (this->itsDoHI && (this->itsDatabaseOrigin != "S3SAX" && this->itsDatabaseOrigin != "S3SEX"
-			      && this->itsDatabaseOrigin != "Gaussian" && this->itsDatabaseOrigin != "FLASH")) {
-	  this->itsDatabaseOrigin = "S3SAX";
-	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin needs to be one of 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH' for HI case. Setting to S3SAX.");
+	if( this->databaseGood() ){
+	  this->itsDatabaseOrigin = "Continuum";
+	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH' for HI case. Setting to Continuum.");
 	}
 	this->itsContinuumSubtract = parset.getBool("continuumSubtract",true);
 
@@ -360,6 +354,19 @@ namespace askap {
 
 	ASKAPLOG_DEBUG_STR(logger, "FITSfile defined.");
       }
+
+      //--------------------------------------------------------
+
+      bool FITSfile::databaseGood()
+      {
+	return (this->itsDatabaseOrigin == "Continuum" ||
+		this->itsDatabaseOrigin == "POSSUM" ||
+		this->itsDatabaseOrigin == "S3SAX" ||
+		this->itsDatabaseOrigin == "S3SEX" ||
+		this->itsDatabaseOrigin == "Gaussian" ||
+		this->itsDatabaseOrigin == "FLASH");
+      }
+
 
       //--------------------------------------------------------
 
@@ -508,11 +515,11 @@ namespace askap {
 	/// the array. If it is a Gaussian source (major_axis>0), then
 	/// the function addGaussian is used. The WCSLIB functions are
 	/// used to convert the ra/dec positions to pixel positions.
+
 	if (this->itsSourceList.size() > 0) { // if the source list is defined.
 	  ASKAPLOG_DEBUG_STR(logger, "Adding sources from file " << this->itsSourceList);
 	  std::ifstream srclist(this->itsSourceList.c_str());
-	  std::string line, ra, dec;
-	  int sourceType = 4;
+	  std::string line;
 	  double *wld = new double[3];
 	  double *pix = new double[3];
 	  double *newwld = new double[3];
@@ -521,14 +528,14 @@ namespace askap {
 	  int countGauss = 0, countPoint = 0, countMiss=0, countDud=0;
 
 	  Continuum cont;
+	  ContinuumS3SEX contS3SEX;
 	  FullStokesContinuum stokes;
 	  HIprofileS3SEX profSEX;
 	  HIprofileS3SAX profSAX;
-	  HIprofile &prof = profSAX;
 	  GaussianProfile profGauss;
 	  FLASHProfile profFLASH;
 	  profFLASH.setFlagContinuumSubtract(this->itsContinuumSubtract);
-	  Spectrum &src = cont;
+	  Spectrum *src = &cont;
 
 	  FluxGenerator fluxGen;
 	  casa::Gaussian2D<casa::Double> gauss;
@@ -536,9 +543,7 @@ namespace askap {
 
 	  ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
 
-	  std::string outname = this->itsOutputSourceList + "_" + this->itsSourceSection.getSection();
-	  //                    if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str(),std::ios::app);
-	  if (this->itsFlagOutputList) outfile.open(outname.c_str(),std::ios::app);
+	  if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str(),std::ios::app);
 
 	  while (getline(srclist, line),
 		 !srclist.eof()) {
@@ -546,51 +551,49 @@ namespace askap {
 
 	    if (line[0] != '#') {  // ignore commented lines
 
-	      if(this->itsDoContinuum){
-			    
-		if(this->itsDatabaseOrigin == "POSSUM"){
-		  stokes.define(line);
-		  stokes.setNuZero(this->itsBaseFreq);
-		  src = stokes;
-		}
-		else {
-		  cont.define(line);
-		  cont.setNuZero(this->itsBaseFreq);
-		  src = cont;
-		}
+	      if(this->itsDatabaseOrigin == "Continuum") {
+		cont.define(line);
+		cont.setNuZero(this->itsBaseFreq);
+		src = &cont;
 	      }
-
-	      if (this->itsSourceListType == "spectralline") {
-		if (this->itsDatabaseOrigin == "S3SEX") {
+	      else if(this->itsDatabaseOrigin == "POSSUM"){
+		stokes.define(line);
+		stokes.setNuZero(this->itsBaseFreq);
+		src = &stokes;
+	      }
+	      else if (this->itsDatabaseOrigin == "S3SEX") {
+		if(this->itsSourceListType == "continuum"){
+		  contS3SEX.define(line);
+		  contS3SEX.setNuZero(this->itsBaseFreq);
+		  src = &contS3SEX;
+		}else if(this->itsSourceListType == "spectralline") {
 		  profSEX.define(line);
-		  sourceType = profSEX.type();
-		  src = profSEX;
-		  prof = profSEX;
-		} else if (this->itsDatabaseOrigin == "S3SAX") {
-		  profSAX.define(line);
-		  src = profSAX;
-		  prof = profSAX;
-		} else if (this->itsDatabaseOrigin == "Gaussian") {
-		  profGauss.define(line);
-		  src = profGauss;
-		} else if (this->itsDatabaseOrigin == "FLASH") {
-		  profFLASH.define(line);
-		  src = profFLASH;
-		} else
-		  ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
-			     << this->itsDatabaseOrigin << "' - needs to be 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
+		  src = &profSEX;
+		}
+	      }else if (this->itsDatabaseOrigin == "S3SAX") {
+		profSAX.define(line);
+		src = &profSAX;
+	      } else if (this->itsDatabaseOrigin == "Gaussian") {
+		profGauss.define(line);
+		src = &profGauss;
+	      } else if (this->itsDatabaseOrigin == "FLASH") {
+		profFLASH.define(line);
+		src = &profFLASH;
+	      } else {
+		ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
+			   << this->itsDatabaseOrigin << "' - needs to be 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
 	      }
 
 	      // convert fluxes to correct units according to the image BUNIT keyword
-	      src.setFluxZero(casa::Quantity(src.fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
+	      src->setFluxZero(casa::Quantity(src->fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
 
 	      // convert sky position to pixels
 	      if (this->itsPosType == "dms") {
-		wld[0] = analysis::dmsToDec(src.ra()) * 15.;
-		wld[1] = analysis::dmsToDec(src.dec());
+		wld[0] = analysis::dmsToDec(src->ra()) * 15.;
+		wld[1] = analysis::dmsToDec(src->dec());
 	      } else if (this->itsPosType == "deg") {
-		wld[0] = atof(src.ra().c_str());
-		wld[1] = atof(src.dec().c_str());
+		wld[0] = atof(src->ra().c_str());
+		wld[1] = atof(src->dec().c_str());
 	      } else ASKAPLOG_ERROR_STR(logger, "Incorrect position type: " << this->itsPosType);
 
 	      wld[2] = this->itsBaseFreq;
@@ -600,44 +603,11 @@ namespace askap {
 
 	      if (this->itsFlagOutputList) {
 		pixToWCSSingle(this->itsWCS, pix, newwld);
-		if(this->itsDatabaseOrigin == "POSSUM"){
-		  if(!this->itsFlagOutputListGoodOnly){
-		    FullStokesContinuum newstokes(stokes);
-		    if (this->itsPosType == "dms") {
-		      newstokes.setRA(analysis::decToDMS(newwld[0],"RA"));
-		      newstokes.setDec(analysis::decToDMS(newwld[1],"DEC"));
-		    }
-		    else{
-		      newstokes.setRA(newwld[0]);
-		      newstokes.setDec(newwld[1]);
-		    }
-		    outfile << newstokes << '\n';
-		  }
-		}
-		else{
-		  outfile.setf(std::ios::fixed);
-		  outfile << std::setw(10) << std::setprecision(6) << newwld[0] << " "
-			  << std::setw(10) << std::setprecision(6) << newwld[1] << " ";
-
-		  if(this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX")
-		    outfile << std::setw(20) << std::setprecision(16) << profSAX.intFlux() << " ";
-		  else
-		    outfile << std::setw(20) << std::setprecision(16) << src.fluxZero() << " ";
-
-		  if (this->itsSourceListType == "spectralline" || this->itsHaveSpectralInfo)
-		    outfile << std::setw(10) << std::setprecision(6) << cont.alpha() << " "
-			    << std::setw(10) << std::setprecision(6) << cont.beta() << " ";
-
-		  outfile << std::setw(10) << std::setprecision(6) << src.maj() << " "
-			  << std::setw(10) << std::setprecision(6) << src.min() << " "
-			  << std::setw(10) << std::setprecision(6) << src.pa() << " ";
-
-		  if (this->itsSourceListType == "spectralline")
-		    outfile << std::setw(10) << std::setprecision(6) << prof.redshift() << " "
-			    << std::setw(10) << std::setprecision(6) << prof.mHI() << " "
-			    << std::setw(5) << sourceType << " ";
-
-		  outfile << "\n";
+		if(!this->itsFlagOutputListGoodOnly){
+		  if (this->itsPosType == "dms") 
+		    src->print(outfile,analysis::decToDMS(newwld[0],"RA"),analysis::decToDMS(newwld[1],"DEC"));
+		  else 
+		    src->print(outfile,newwld[0],newwld[1]);
 		}
 	      }
 
@@ -658,45 +628,43 @@ namespace askap {
 		if (this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
 		else fluxGen.setNumChan(1);
 
-		if (this->itsDoContinuum) {
-		  if (this->itsDatabaseOrigin=="POSSUM")
-		    fluxGen.addSpectrumStokes(stokes, pix[0], pix[1], this->itsWCS);
-		  else
+		if(this->itsDatabaseOrigin == "Continuum") 
+		  fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
+		else if (this->itsDatabaseOrigin=="POSSUM")
+		  fluxGen.addSpectrumStokes(stokes, pix[0], pix[1], this->itsWCS);
+		else if (this->itsDatabaseOrigin == "S3SEX"){
+		  if(this->itsSourceListType == "continuum")
 		    fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
-		}
-
-		if (this->itsDoHI) {
-		  if (this->itsDatabaseOrigin == "S3SEX")
+		  else
 		    fluxGen.addSpectrumInt(profSEX, pix[0], pix[1], this->itsWCS);
-		  else if (this->itsDatabaseOrigin == "S3SAX")
-		    fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
-		  else if (this->itsDatabaseOrigin == "Gaussian")
-		    fluxGen.addSpectrumInt(profGauss, pix[0], pix[1], this->itsWCS);
-		  else if (this->itsDatabaseOrigin == "FLASH")
-		    fluxGen.addSpectrumInt(profFLASH, pix[0], pix[1], this->itsWCS);
 		}
+		else if (this->itsDatabaseOrigin == "S3SAX")
+		  fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
+		else if (this->itsDatabaseOrigin == "Gaussian")
+		  fluxGen.addSpectrumInt(profGauss, pix[0], pix[1], this->itsWCS);
+		else if (this->itsDatabaseOrigin == "FLASH")
+		  fluxGen.addSpectrumInt(profFLASH, pix[0], pix[1], this->itsWCS);
+		
 
 		bool addedSource=false;
-		if (src.maj() > 0) {
+		if (src->maj() > 0) {
 		  // convert widths from arcsec to pixels
-		  src.setMaj(casa::Quantity(src.maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
-		  if (src.maj() > 0 && !(src.min() > this->itsMinMinorAxis)) {
-		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src.min() << " --> " << this->itsMinMinorAxis);
-		    src.setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-		  } else src.setMin(casa::Quantity(src.min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+		  if (src->maj() > 0 && !(src->min() > this->itsMinMinorAxis)) {
+		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
+		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
-		  if (src.fluxZero() == 0.) src.setFluxZero(1.e-3);
+		  if (src->fluxZero() == 0.) src->setFluxZero(1.e-99);
 
-		  //                                     casa::Gaussian2D<casa::Double> gauss(src.fluxZero(), pix[0], pix[1], src.maj(), src.min() / src.maj(),
-		  //                                                                          casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
 		  gauss.setXcenter(pix[0]);
 		  gauss.setYcenter(pix[1]);
-		  gauss.setMinorAxis(std::min(gauss.majorAxis(),src.maj()));  // need this so that we never have the minor axis > major axis
-		  gauss.setMajorAxis(src.maj());
-		  gauss.setMinorAxis(src.min());
-		  gauss.setPA(casa::Quantity(src.pa(), this->itsPAunits).getValue("rad"));
-		  gauss.setFlux(src.fluxZero());
+		  gauss.setMinorAxis(std::min(gauss.majorAxis(),src->maj()));  // need this so that we never have the minor axis > major axis
+		  gauss.setMajorAxis(src->maj());
+		  gauss.setMinorAxis(src->min());
+		  gauss.setPA(casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
+		  gauss.setFlux(src->fluxZero());
 
 		  if (!this->itsDryRun){
 		    addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
@@ -725,27 +693,17 @@ namespace askap {
 		  }
 		}
 		if(addedSource){
-		  if(this->itsDatabaseOrigin == "POSSUM" && this->itsFlagOutputList && this->itsFlagOutputListGoodOnly){
-		    FullStokesContinuum newstokes(stokes);
-		    if (this->itsPosType == "dms") {
-		      newstokes.setRA(analysis::decToDMS(newwld[0],"RA"));
-		      newstokes.setDec(analysis::decToDMS(newwld[1],"DEC"));
-		    }
-		    else{
-		      newstokes.setRA(newwld[0]);
-		      newstokes.setDec(newwld[1]);
-		    }
-		    outfile << newstokes << '\n';
+		  if(this->itsFlagOutputList && this->itsFlagOutputListGoodOnly){
+		    if (this->itsPosType == "dms") 
+		      src->print(outfile,analysis::decToDMS(newwld[0],"RA"),analysis::decToDMS(newwld[1],"DEC"));
+		    else 
+		      src->print(outfile,newwld[0],newwld[1]);
 		  }
 		}
 
 	      }
 	      else{
-		if(this->itsDryRun){
-		  countDud++;
-		  ASKAPLOG_DEBUG_STR(logger, "Dud source: input line = " << line );
-		  //		  std::cerr << profSAX<< "\n";
-		}
+		if(this->itsDryRun) countDud++;
 	      }
 
 	    } else {

@@ -127,6 +127,14 @@ namespace askap {
             return *this;
         }
 
+
+      void ContinuumS3SEX::print(std::ostream& theStream)
+      {
+	theStream << this->itsComponentNum << "\t" << this->itsGalaxyNum << "\t" << this->itsStructure << "\t"
+		  << this->itsRA << "\t" << this->itsDec << "\t"
+		  << this->itsComponent.pa() << "\t" << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" 
+		  << this->itsI151 << "\t" << this->itsI610 << "\t" << this->itsI1400 << "\t" << this->itsI4860 << "\t" << this->itsI18000 << "\n";
+      }
         std::ostream& operator<< (std::ostream& theStream, ContinuumS3SEX &cont)
         {
             /// @details Prints a summary of the parameters to the stream
@@ -134,11 +142,8 @@ namespace askap {
             /// @param prof The profile object
             /// @return A reference to the stream
 
-	  theStream << cont.itsComponentNum << " " << cont.itsGalaxyNum << " " << cont.itsStructure << " "
-		    << cont.itsRA << " " << cont.itsDec << " "
-		    << cont.itsComponent.pa() << " " << cont.itsComponent.maj() << " " << cont.itsComponent.min() << " " 
-		    << cont.itsI151 << " " << cont.itsI610 << " " << cont.itsI1400 << " " << cont.itsI4860 << " " << cont.itsI18000 << "\n";
-            return theStream;
+	  cont.print(theStream);
+	  return theStream;
         }
     }
 
