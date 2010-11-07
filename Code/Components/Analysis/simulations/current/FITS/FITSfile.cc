@@ -324,9 +324,9 @@ namespace askap {
 	this->itsAddSources = parset.getBool("addSources", true);
 	this->itsDryRun = parset.getBool("dryRun", false);
 	this->itsDatabaseOrigin = parset.getString("database", ""); 
-	if( this->databaseGood() ){
+	if( !this->databaseGood() ){
+	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH'. Setting to Continuum.");
 	  this->itsDatabaseOrigin = "Continuum";
-	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH' for HI case. Setting to Continuum.");
 	}
 	this->itsContinuumSubtract = parset.getBool("continuumSubtract",true);
 
@@ -359,12 +359,13 @@ namespace askap {
 
       bool FITSfile::databaseGood()
       {
-	return (this->itsDatabaseOrigin == "Continuum" ||
-		this->itsDatabaseOrigin == "POSSUM" ||
-		this->itsDatabaseOrigin == "S3SAX" ||
-		this->itsDatabaseOrigin == "S3SEX" ||
-		this->itsDatabaseOrigin == "Gaussian" ||
-		this->itsDatabaseOrigin == "FLASH");
+	bool val=(this->itsDatabaseOrigin == "Continuum" ||
+		  this->itsDatabaseOrigin == "POSSUM" ||
+		  this->itsDatabaseOrigin == "S3SAX" ||
+		  this->itsDatabaseOrigin == "S3SEX" ||
+		  this->itsDatabaseOrigin == "Gaussian" ||
+		  this->itsDatabaseOrigin == "FLASH");
+	return val;
       }
 
 

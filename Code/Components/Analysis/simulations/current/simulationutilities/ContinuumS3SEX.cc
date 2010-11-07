@@ -83,8 +83,7 @@ namespace askap {
 
             double flux, maj, min, pa;
             std::stringstream ss(line);
-	    int component,galaxy,structure;
-	    ss >> component >> galaxy >> structure 
+	    ss >> this->itsComponentNum >> this->itsGalaxyNum >> this->itsStructure 
 	       >> this->itsRA >> this->itsDec >> pa >> maj >> min 
 	       >> this->itsI151 >> this->itsI610 >> this->itsI1400 >> this->itsI4860 >> this->itsI18000;
 	    flux = pow(10,this->itsI1400);
