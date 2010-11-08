@@ -129,10 +129,20 @@ namespace askap {
 
       void ContinuumS3SEX::print(std::ostream& theStream)
       {
-	theStream << this->itsComponentNum << "\t" << this->itsGalaxyNum << "\t" << this->itsStructure << "\t"
-		  << this->itsRA << "\t" << this->itsDec << "\t"
-		  << this->itsComponent.pa() << "\t" << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" 
-		  << this->itsI151 << "\t" << this->itsI610 << "\t" << this->itsI1400 << "\t" << this->itsI4860 << "\t" << this->itsI18000 << "\n";
+	theStream.setf(std::ios::showpoint);
+	theStream << std::setw(11) << this->itsComponentNum << " " 
+		  << std::setw(9) << this->itsGalaxyNum << " " 
+		  << std::setw(9)  << this->itsStructure << " "
+		  << std::setw(15) << std::setprecision(5) << this->itsRA << " " 
+		  << std::setw(11) << std::setprecision(5) << this->itsDec << " "
+		  << std::setw(14) << std::setprecision(3) << this->itsComponent.pa() << " " 
+		  << std::setw(10) << std::setprecision(3) << this->itsComponent.maj() << " " 
+		  << std::setw(10) << std::setprecision(3) << this->itsComponent.min() << " " 
+		  << std::setw(7) << std::setprecision(4) << this->itsI151 << " " 
+		  << std::setw(7) << std::setprecision(4) << this->itsI610 << " " 
+		  << std::setw(7) << std::setprecision(4) << this->itsI1400 << " " 
+		  << std::setw(7) << std::setprecision(4) << this->itsI4860 << " " 
+		  << std::setw(7) << std::setprecision(4) << this->itsI18000 << "\n";
       }
         std::ostream& operator<< (std::ostream& theStream, ContinuumS3SEX &cont)
         {
