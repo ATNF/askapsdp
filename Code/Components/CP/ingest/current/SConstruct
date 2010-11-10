@@ -9,7 +9,6 @@ from askapenv import env
 pkg = env.AskapPackage("cpingest")
 
 pkg.AddSubPackage("ingestutils")
-pkg.AddSubPackage("ingestcontroller")
 pkg.AddSubPackage("ingestpipeline")
 
 env.Append(CCFLAGS=['-Wall'])
