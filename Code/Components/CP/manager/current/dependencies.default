@@ -3,5 +3,6 @@ cmdlineparser=3rdParty/cmdlineparser/cmdlineparser-0.1.1
 common=3rdParty/LOFAR/Common/Common-3.3
 boost=3rdParty/boost/boost-1.41.0
 ice=3rdParty/Ice/Ice-3.4.1;IceStorm Ice IceUtil
+torque=3rdParty/torque/torque-2.5.3
 cppiceinterfaces=Code/Interfaces/cpp/current
 logappenders=Code/Base/logappenders/current

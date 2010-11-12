@@ -37,7 +37,7 @@
 #include "askap/Log4cxxLogSink.h"
 
 // Local package includes
-#include "manager/AdminInterface.h"
+#include "rpcinterface/AdminInterface.h"
 
 // Using
 using namespace askap;

@@ -8,7 +8,8 @@ from askapenv import env
 # create build object with library name
 pkg = env.AskapPackage("cpmanager")
 
-pkg.AddSubPackage("manager")
+pkg.AddSubPackage("rpcinterface")
+pkg.AddSubPackage("rman")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])

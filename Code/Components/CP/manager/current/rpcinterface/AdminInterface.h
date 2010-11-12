@@ -34,7 +34,7 @@
 #include "Component.h"
 
 // Local package includes
-#include "manager/ObsService.h"
+#include "rpcinterface/ObsService.h"
 
 namespace askap {
 namespace cp {

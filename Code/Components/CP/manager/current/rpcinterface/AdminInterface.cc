@@ -33,7 +33,7 @@
 #include <Ice/Ice.h>
 
 // Local package includes
-#include <manager/ObsService.h>
+#include <rpcinterface/ObsService.h>
 
 // Using
 using namespace askap;
