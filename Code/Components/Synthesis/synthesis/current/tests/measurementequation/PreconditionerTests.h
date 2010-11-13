@@ -85,7 +85,7 @@ namespace askap
           casa::Vector<casa::Stokes::StokesTypes> stokes(1, casa::Stokes::I);
           
           scimath::Params params;
-          SynthesisParamsHelper::add(params,"psf.test",direction,cellsize,shape,1.4e9,
+          SynthesisParamsHelper::add(params,"psf.test",direction,cellsize,shape,false,1.4e9,
                               1.4e9,1,stokes);
           
           casa::Array<double> temp(taper.shape());

@@ -40,6 +40,8 @@
 #include <Common/ParameterSet.h>
 #include <images/Images/TempImage.h>
 #include <images/Images/ImageInterface.h>
+#include <coordinates/Coordinates/Projection.h>
+
 
 #include <imageaccess/IImageAccess.h>
 #include <boost/shared_ptr.hpp>
@@ -144,6 +146,7 @@ namespace askap
         /// @param[in] direction Strings containing [ra, dec, frame]
         /// @param[in] cellsize Cellsize as a string e.g. [12arcsec, 12arcsec]
         /// @param[in] shape Number of pixels in RA and DEC e.g. [256, 256]
+        /// @param[in] ewprojection If true, SCP or NCP variant of SIN projection will be used
         /// @param[in] freqmin Minimum frequency (Hz)
         /// @param[in] freqmax Maximum frequency (Hz)
         /// @param[in] nchan Number of spectral channels
@@ -152,6 +155,7 @@ namespace askap
           const vector<string>& direction, 
           const vector<string>& cellsize, 
           const vector<int>& shape,
+          const bool ewprojection,
           const double freqmin, const double freqmax, const int nchan, 
           const casa::Vector<casa::Stokes::StokesTypes> &stokes);
 
@@ -161,6 +165,7 @@ namespace askap
         /// @param[in] direction Strings containing [ra, dec, frame] (common tangent point)
         /// @param[in] cellsize Cellsize as a string e.g. [12arcsec, 12arcsec]
         /// @param[in] shape Number of pixels in RA and DEC for each facet e.g. [256, 256]
+        /// @param[in] ewprojection If true, SCP or NCP variant of SIN projection will be used
         /// @param[in] freqmin Minimum frequency (Hz)
         /// @param[in] freqmax Maximum frequency (Hz)
         /// @param[in] nchan Number of spectral channels
@@ -172,6 +177,7 @@ namespace askap
           const vector<string>& direction, 
           const vector<string>& cellsize, 
           const vector<int>& shape,
+          const bool ewprojection,
           const double freqmin, const double freqmax, const int nchan,
           const casa::Vector<casa::Stokes::StokesTypes> &stokes,
           const int nfacets, const int facetstep);
@@ -186,7 +192,7 @@ namespace askap
         /// @param[in] nfacets number of facets defined
         static void add(askap::scimath::Params& ip, const string &name,
               const int nfacets); 
-              
+                            
         /// @brief helper method to clip the outer edges of the image
         /// @details For experiments with faceting we want to be able to clip the outer
         /// edges of each model image (beyond the facet step) to zero. This is one way to
@@ -374,6 +380,16 @@ namespace askap
         ///          existing information.
         static void listTaylor(const std::vector<std::string> &names,
                                std::map<std::string, int> &taylormap);
+
+    protected:
+        /// @brief helper method to get projection
+        /// @details We support both standard SIN projection and SCP/NCP variants (for East-West arrays).
+        /// This method encapsulates the logic and returns a projection class
+        /// @param[in] ewprojection true for SCP/NCP variant, false otherwise
+        /// @param[in] dec declination in radians (unused for standard SIN projection)
+        /// @return casa::Projection class
+        static casa::Projection getProjection(const bool ewprojection, const double dec = 0.);
+        
     private:    
         /// @brief image accessor
         static boost::shared_ptr<IImageAccess> theirImageAccessor;              

@@ -340,10 +340,10 @@ namespace askap
            std::vector<std::string> cellsize(2,"8arcsec");
            casa::Vector<casa::Stokes::StokesTypes> stokes(1, casa::Stokes::I);
            if (nfacets != 1) {
-               SynthesisParamsHelper::add(params,name,direction,cellsize,shape,1.4e9,
+               SynthesisParamsHelper::add(params,name,direction,cellsize,shape,false,1.4e9,
                                       1.4e9,1,stokes, nfacets,facetstep);
            } else {
-               SynthesisParamsHelper::add(params,name,direction,cellsize,shape,1.4e9,
+               SynthesisParamsHelper::add(params,name,direction,cellsize,shape,false,1.4e9,
                                       1.4e9,1,stokes);
            }
         }

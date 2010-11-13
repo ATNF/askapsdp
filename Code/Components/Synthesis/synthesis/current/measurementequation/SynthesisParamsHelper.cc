@@ -51,7 +51,6 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <coordinates/Coordinates/StokesCoordinate.h>
 #include <coordinates/Coordinates/SpectralCoordinate.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
-#include <coordinates/Coordinates/Projection.h>
 
 #include <Common/ParameterSet.h>
 #include <Common/Exceptions.h>
@@ -163,7 +162,13 @@ namespace askap
                    stokesStr += stokesVec[i];
               }
               casa::Vector<casa::Stokes::StokesTypes> stokes = scimath::PolConverter::fromString(stokesStr);
-
+              
+              const bool ewProj = parset.getBool(*it+".ewprojection", false);
+              if (ewProj) {
+                  ASKAPLOG_INFO_STR(logger, "Image parameter "<< *it<<" will have SCP/NCP projection");
+              } else {
+                  ASKAPLOG_INFO_STR(logger, "Image parameter "<< *it<<" will have plain SIN projection");
+              }
  
               const int nTaylorTerms = parset.getInt32(*it+".nterms",1);                           
               ASKAPCHECK(nTaylorTerms>0, "Number of Taylor terms is supposed to be a positive number, you gave "<<
@@ -178,7 +183,7 @@ namespace askap
                    }
                    if (nfacets == 1) {
                        ASKAPLOG_INFO_STR(logger, "Setting up new empty image "<< iph.paramName());        
-		               add(*params, iph.paramName(), direction, cellsize, shape, freq[0], freq[1], nchan,stokes);
+		               add(*params, iph.paramName(), direction, cellsize, shape, ewProj, freq[0], freq[1], nchan,stokes);
 		           } else {
 		               // this is a multi-facet case
 		               ASKAPLOG_INFO_STR(logger, "Setting up "<<nfacets<<" x "<<nfacets<<
@@ -187,7 +192,7 @@ namespace askap
 		               ASKAPCHECK(facetstep>0, "facetstep parameter is supposed to be positive, you have "<<facetstep);
 		               ASKAPLOG_INFO_STR(logger, "Facet centers will be "<<facetstep<<
 		                           " pixels apart, each facet size will be "<<shape[0]<<" x "<<shape[1]); 
-		               add(*params, iph.paramName(), direction, cellsize, shape, freq[0], freq[1], nchan, stokes, nfacets,facetstep);
+		               add(*params, iph.paramName(), direction, cellsize, shape, ewProj, freq[0], freq[1], nchan, stokes, nfacets,facetstep);
 		           }
 		      }
 		      ASKAPLOG_INFO_STR(logger, "Number of channels = "<<nchan);
@@ -247,9 +252,30 @@ namespace askap
 	  }
     }
     
+    /// @brief helper method to get projection
+    /// @details We support both standard SIN projection and SCP/NCP variants (for East-West arrays).
+    /// This method encapsulates the logic and returns a projection class
+    /// @param[in] ewprojection true for SCP/NCP variant, false otherwise
+    /// @param[in] dec declination in radians (unused for standard SIN projection)
+    /// @return casa::Projection class
+    casa::Projection SynthesisParamsHelper::getProjection(const bool ewprojection, const double dec)
+    {
+       if (ewprojection) {
+           const double sdec = sin(dec);
+           ASKAPCHECK(sdec != 0., "Singular SCP/NCP projection dec="<<dec/casa::C::pi*180.<<
+                      " deg, sin(dec)="<<sdec<<". Use plain SIN projection instead!");
+           casa::Vector<casa::Double> projectionParameters(2,0.);
+           projectionParameters(1) = cos(dec) / sdec;
+           return casa::Projection(casa::Projection::SIN, projectionParameters);
+       }
+       return casa::Projection(casa::Projection::SIN);
+    }
+    
+    
     void SynthesisParamsHelper::add(askap::scimath::Params& ip,
 				    const string& name, const vector<string>& direction,
 				    const vector<string>& cellsize, const vector<int>& shape,
+				    const bool ewprojection,				    
 				    const double freqmin, const double freqmax, const int nchan,
 				    const casa::Vector<casa::Stokes::StokesTypes> &stokes)
     {
@@ -275,7 +301,7 @@ namespace askap
       casa::Matrix<double> xform(2,2,0.);
       xform.diagonal() = 1.;
       axes.addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
-                  casa::Projection(casa::Projection::SIN), ra,dec,xcellsize,ycellsize,xform,nx/2,ny/2));
+                  getProjection(ewprojection, dec), ra,dec,xcellsize,ycellsize,xform,nx/2,ny/2));
           
       axes.addStokesAxis(stokes);
       
@@ -291,6 +317,7 @@ namespace askap
     /// @param[in] direction Strings containing [ra, dec, frame] (common tangent point)
     /// @param[in] cellsize Cellsize as a string e.g. [12arcsec, 12arcsec]
     /// @param[in] shape Number of pixels in RA and DEC for each facet e.g. [256, 256]
+    /// @param[in] ewprojection If true, SCP or NCP variant of SIN projection will be used    
     /// @param[in] freqmin Minimum frequency (Hz)
     /// @param[in] freqmax Maximum frequency (Hz)
     /// @param[in] nchan Number of spectral channels
@@ -302,6 +329,7 @@ namespace askap
        const vector<string>& direction, 
        const vector<string>& cellsize, 
        const vector<int>& shape,
+       const bool ewprojection,       
        const double freqmin, const double freqmax, const int nchan,
        const casa::Vector<casa::Stokes::StokesTypes> &stokes,
        const int nfacets, const int facetstep)
@@ -351,7 +379,7 @@ namespace askap
                 /// @todo Do something with the frame info in direction[2]
                 Axes axes;
                 axes.addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
-                  casa::Projection(casa::Projection::SIN), ra,dec,xcellsize,ycellsize,xform,xrefpix,yrefpix));
+                  getProjection(ewprojection, dec), ra,dec,xcellsize,ycellsize,xform,xrefpix,yrefpix));
                 
                 // a fake axis to know which part of the image actually contains useful
                 // information. Otherwise, this parameter is impossible to derive from a
