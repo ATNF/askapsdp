@@ -286,6 +286,13 @@ void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params,
         }
         const casa::Vector<casa::Stokes::StokesTypes> stokes = scimath::PolConverter::fromString(stokesStr);
 
+        const bool ewProj = parset.getBool("ewprojection", false);
+        if (ewProj) {
+            ASKAPLOG_INFO_STR(logger, "Image will have SCP/NCP projection");
+        } else {
+            ASKAPLOG_INFO_STR(logger, "Image will have plain SIN projection");
+        }
+
         ASKAPCHECK(nfacets > 0, "Number of facets is supposed to be a positive number, you gave "<<nfacets);
         ASKAPCHECK(shape.size() >= 2, "Image is supposed to be at least two dimensional. "<<
                 "check shape parameter, you gave " << shape);
@@ -296,7 +303,8 @@ void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params,
 
         if (nfacets == 1) {
             ASKAPLOG_INFO_STR(logger, "Setting up new empty image "<< name.str() );
-            SynthesisParamsHelper::add(*params, name.str(), direction, cellsize, shape, freq[0], freq[1], nchan, stokes);
+            SynthesisParamsHelper::add(*params, name.str(), direction, cellsize, shape, ewProj,
+                                       freq[0], freq[1], nchan, stokes);
         } else {
             // this is a multi-facet case
             ASKAPLOG_INFO_STR(logger, "Setting up "<<nfacets<<" x "<<nfacets<<
@@ -305,7 +313,8 @@ void SpectralLineWorker::setupImage(const askap::scimath::Params::ShPtr& params,
             ASKAPCHECK(facetstep > 0, "facetstep parameter is supposed to be positive, you have "<<facetstep);
             ASKAPLOG_INFO_STR(logger, "Facet centers will be "<< facetstep <<
                     " pixels apart, each facet size will be "<< shape[0] << " x " << shape[1]);
-            SynthesisParamsHelper::add(*params, name.str(), direction, cellsize, shape, freq[0], freq[1], nchan, stokes, nfacets, facetstep);
+            SynthesisParamsHelper::add(*params, name.str(), direction, cellsize, shape, ewProj, 
+                                       freq[0], freq[1], nchan, stokes, nfacets, facetstep);
         }
 
     } catch (const LOFAR::APSException &ex) {
