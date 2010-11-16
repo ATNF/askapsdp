@@ -323,7 +323,7 @@ namespace askap {
 
 	this->itsAddSources = parset.getBool("addSources", true);
 	this->itsDryRun = parset.getBool("dryRun", false);
-	this->itsDatabaseOrigin = parset.getString("database", ""); 
+	this->itsDatabaseOrigin = parset.getString("database", "Continuum"); 
 	if( !this->databaseGood() ){
 	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH'. Setting to Continuum.");
 	  this->itsDatabaseOrigin = "Continuum";
