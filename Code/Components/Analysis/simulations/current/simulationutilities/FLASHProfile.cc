@@ -100,7 +100,7 @@ namespace askap {
 
 	    double maj, min, pa;
             std::stringstream ss(line);
-            ss >> this->itsRA >> this->itsDec >> this->itsContinuumFlux >> maj >> min >> pa >> this->itsPeakOpticalDepth >> this->itsCentreRedshift >> this->itsVelocityWidth;
+            ss >> this->itsComponentNum >> this->itsRA >> this->itsDec >> this->itsContinuumFlux >> maj >> min >> pa >> this->itsPeakOpticalDepth >> this->itsCentreRedshift >> this->itsVelocityWidth;
             this->itsComponent.setPeak(this->itsContinuumFlux);
 	    if(maj>=min){
 	      this->itsComponent.setMajor(maj);
@@ -129,7 +129,7 @@ namespace askap {
 
       void FLASHProfile::print(std::ostream& theStream)
       {
-	theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsContinuumFlux << "\t" 
+	theStream << this->itsComponentNum << "\t" << this->itsRA << "\t" << this->itsDec << "\t" << this->itsContinuumFlux << "\t" 
 		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() << "\t" 
 		  << this->itsPeakOpticalDepth << "\t" << this->itsCentreRedshift << "\t" << this->itsVelocityWidth << "\n";
       }

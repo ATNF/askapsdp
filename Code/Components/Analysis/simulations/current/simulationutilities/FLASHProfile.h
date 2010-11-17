@@ -65,7 +65,8 @@ namespace askap {
                 friend std::ostream& operator<< (std::ostream& theStream, FLASHProfile &prof);
 
             protected:
-		bool itsFlagContinuumSubtracted;
+		bool   itsFlagContinuumSubtracted;
+		long   itsComponentNum;
 		double itsContinuumFlux;
 		double itsPeakOpticalDepth;
 		double itsCentreRedshift;
