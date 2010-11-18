@@ -21,14 +21,93 @@ using namespace askap;
 using namespace askap::synthesis;
 //using namespace askap::scimath;
 
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_linalg.h>
+#include <gsl/gsl_eigen.h>
+
+inline casa::DComplex getComplex(const gsl_complex gc) {
+     return casa::DComplex(GSL_REAL(gc), GSL_IMAG(gc));
+}
+
+
 class testGridder : public SphFuncVisGridder
 {
 public:
       testGridder() {
           std::cout<<"Test gridder, used for debugging"<<std::endl;
-          casa::Matrix<casa::DComplex> B(5,5);
+          casa::Matrix<casa::DComplex> B(10,10);
           fillMatrixB(B,1.5,15);
           std::cout<<B<<std::endl;
+          
+          casa::Vector<casa::DComplex> V(B.nrow());
+          casa::DComplex eVal = optimumEigenVector(B,V);
+          std::cout<<"eigen value "<<eVal<<" vector: "<<V<<std::endl;
+          
+          casa::Vector<casa::DComplex> P(V.nelements(),casa::DComplex(0.,0.));
+          for (size_t i = 0; i<P.nelements(); ++i) {
+               P[i] = -eVal*V[i];
+               for (size_t k = 0; k<V.nelements(); ++k) {
+                    P[i] += B(i,k)*V(k);
+               }
+          }
+          
+          std::cout<<P<<std::endl;
+      }
+            
+      /// @brief do eigen decomposition, get optimum eigen vector/value
+      /// @details Solve for eigenvalues and eigen vectors of the helper matrix,
+      /// Find the largest by absolute value and extract appropriate eigenvector
+      /// @param[in] B matrix to decompose      
+      /// @param[out] V optimum eigenvector (will be resized to B.nrow())
+      /// @return largest eigenvalue (by absolute value)
+      static casa::DComplex optimumEigenVector(casa::Matrix<casa::DComplex> &B, casa::Vector<casa::DComplex> &V)
+      {
+         ASKAPASSERT(B.nrow() == B.ncolumn());
+         ASKAPASSERT(B.nrow() > 1);
+         gsl_matrix *A = gsl_matrix_alloc(B.nrow()*2,B.ncolumn()*2);
+         gsl_vector_complex *eVal = gsl_vector_complex_alloc(B.nrow()*2);
+         gsl_eigen_nonsymmv_workspace *work = gsl_eigen_nonsymmv_alloc(B.nrow()*2);
+         gsl_matrix_complex *eVec = gsl_matrix_complex_alloc(B.nrow()*2,B.ncolumn()*2);
+         
+         for (size_t row=0; row<B.nrow(); ++row) {
+              for (size_t col=0; col<B.ncolumn(); ++col) {
+                   const double reB = casa::real(B(row,col));
+                   const double imB = casa::imag(B(row,col));
+                   gsl_matrix_set(A, row*2, col*2, reB);
+                   gsl_matrix_set(A, row*2+1, col*2+1, reB);
+                   gsl_matrix_set(A, row*2, col*2+1, -imB);
+                   gsl_matrix_set(A, row*2+1, col*2, imB);                   
+              }
+         }
+         const int status = gsl_eigen_nonsymmv(A,eVal,eVec, work);
+         ASKAPASSERT(status == 0);
+         
+         casa::Complex peakVal(0.,0.);
+         if (status == 0) {
+             // eigenproblem solved successfully
+             size_t peakIndex = 0;
+             // search for peak eigenvalue
+             for (size_t el=0; el<B.nrow()*2; ++el) {
+                  casa::DComplex val = getComplex(gsl_vector_complex_get(eVal,el));              
+                  if ((el == 0) || (casa::abs(val) > casa::abs(peakVal))) {
+                      peakIndex = el;
+                      peakVal = val;
+                  }
+             }
+             // extract the appropriate eigenvector
+             V.resize(B.nrow());
+             for (size_t i=0; i<B.nrow(); ++i) {
+                  V[i] = getComplex(gsl_matrix_complex_get(eVec,  2*i,peakIndex))+casa::DComplex(0.,1.)*
+                             getComplex(gsl_matrix_complex_get(eVec, 2*i+1,peakIndex));                             
+             }
+         }
+         gsl_matrix_complex_free(eVec);
+         gsl_eigen_nonsymmv_free(work);
+         gsl_vector_complex_free(eVal);
+         gsl_matrix_free(A);
+         ASKAPCHECK(status == 0, "Eigen problem solution has failed in optimumEigenVector");
+         return peakVal;
       }
       
       /// @brief helper method to evaluate (-1)^l
