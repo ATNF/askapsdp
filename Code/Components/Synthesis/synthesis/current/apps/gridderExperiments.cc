@@ -26,6 +26,9 @@ class testGridder : public SphFuncVisGridder
 public:
       testGridder() {
           std::cout<<"Test gridder, used for debugging"<<std::endl;
+          casa::Matrix<casa::DComplex> B(5,5);
+          fillMatrixB(B,1.5,15);
+          std::cout<<B<<std::endl;
       }
       
       /// @brief helper method to evaluate (-1)^l
@@ -38,7 +41,7 @@ public:
       /// @param[in] B matrix to fill (should already be sized)
       /// @param[in] c bandwidth of the prolate spheroidal function
       /// @param[in] nterms number of terms in the series expansion
-      static void fillMatrixB(casa::Matrix<casa::Complex> &B, const double c, const int nterms = 15) {
+      static void fillMatrixB(casa::Matrix<casa::DComplex> &B, const double c, const int nterms = 15) {
           ASKAPASSERT(B.nrow() == B.ncolumn());
           ASKAPASSERT(B.nrow() > 1);
           ASKAPASSERT(nterms>1);
@@ -55,9 +58,30 @@ public:
                moments(l,1) = sqrt(1.5)*(1. + negateForOdd(l+1))/(l + 2);               
           }
           // now fill other columns, if any
-          for (casa::uInt l=0; l + 1 < moments.nrow(); ++l) {
-               for (casa::uInt k=1; k + 1 < moments.ncolumn(); ++k) {
+          for (casa::uInt k=1; k + 1 < moments.ncolumn(); ++k) {
+               for (casa::uInt l=0; l + 1 < moments.nrow(); ++l) {
+                    moments(l,k+1) = sqrt(double((2*k+1)*(2*k+3))/(k+1)/(k+1)) * moments(l+1,k) -
+                          double(k)/(k+1)*sqrt(double(2*k+3)/(2*int(k)-1)) * moments(l, k-1);
                } 
+          }
+          
+          // now fill the matrix B (approximation of the matrix for the Helmoltz equation operator in the 
+          // Legendre basis)
+          double coeff = 1.; // (c^l / l!)
+          B.set(casa::DComplex(0.,0.));
+          for (int l = 0; l<nterms; ++l) {
+               if (l != 0) {
+                   coeff *= c / l;
+               }
+               // i^l goes in sequence 1,i,-1,-i,1,...
+               const casa::DComplex iPwrl = casa::DComplex((l % 4 > 1) ? -1. : 1.) * 
+                             ((l % 2 == 1) ? casa::DComplex(0.,1.) : casa::DComplex(1.,0.));
+               // fill the actual elements of the matrix              
+               for (casa::uInt row = 0; row<B.nrow(); ++row) {
+                    for (casa::uInt col = 0; col<B.ncolumn(); ++col) {
+                         B(row,col) += iPwrl * coeff * moments(l,row) * moments(l, col); 
+                    }
+               }
           }
       }
 };
