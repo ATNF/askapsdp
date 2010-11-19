@@ -36,8 +36,9 @@ class testGridder : public SphFuncVisGridder
 public:
       testGridder() {
           std::cout<<"Test gridder, used for debugging"<<std::endl;
-          casa::Matrix<casa::DComplex> B(10,10);
-          fillMatrixB(B,1.5,15);
+          casa::Matrix<casa::DComplex> B(5,5);
+          const double c = casa::C::pi*6/2.;
+          fillMatrixB(B,c,15);
           std::cout<<B<<std::endl;
           
           casa::Vector<casa::DComplex> V(B.nrow());
@@ -54,7 +55,17 @@ public:
           
           std::cout<<P<<std::endl;
           
-          std::cout<<derivativeOfLegedrePolynomial(2,2)<<std::endl;
+          casa::Vector<casa::DComplex> vals(6.);
+          calcValsAtRegularGrid(vals, V, eVal, false);
+                    
+          std::cout<<vals<<std::endl;
+          
+          std::ofstream os ("cf.dat");
+          for (size_t i=0; i<vals.nelements(); ++i) {
+               const double x = double(i)*casa::C::pi/c;
+               const double sfval = (abs(x)<1 ? real(vals[i])/sqrt(1.-x*x) : 0.);
+               os<<x<<" "<<sfval<<" "<<grdsf(x)<<std::endl;
+          }
       }
       
       /// @brief lth derivative of kth Legendre polynomial at 1.0
@@ -66,7 +77,7 @@ public:
       /// @param[in] l order of the derivative
       /// @param[in] k order of the polynomial
       /// @return value of the derivative at 1.0
-      static double derivativeOfLegedrePolynomial(casa::uInt l, casa::uInt k) {
+      static double derivativeOfLegendrePolynomial(casa::uInt l, casa::uInt k) {
          if (l > k) {
              return 0.;
          }
@@ -103,22 +114,29 @@ public:
                   p0 *= -double(order+1)/double(order+2);
              }
          }
-         // vector of expansion coefficients. Note, coefficients corresponding to the odd order functions
-         // are pure imaginary, so the numbers stored in this vector have to be multiplied by i.
-         // the elements of the vector correspond to N=1,...size-1.
-         casa::Vector<double> vecIn(vals.nelements()-1,0.);
-         // now filling the values, progressively adding more terms to vecIn 
-         for (size_t k = (isOdd ? 1 : 0); k<eVec.nelements(); k+=2) {
-              for (size_t N=1; N<vals.nelements(); ++N) {
-                   vals[N] += eVec[k] * vecIn[N-1];
-              }
-         }
-         
-         // all function values for N>0 should be divided by the eigenvalue
+         // now filling the values
          for (size_t N=1; N<vals.nelements(); ++N) {
+              for (size_t k = (isOdd ? 1 : 0); k<eVec.nelements(); k+=2) {
+                   // Ink is the coefficient in the eigenvector space
+                   // see formula (49) in Karoui & Moumni
+                   // for the function of an odd order, the value is pure imaginary
+                   // so we store just the imaginary part 
+                   double Ink = 0;
+                   for (size_t l=1; l < k/2; ++l) {
+                        if (isOdd) {
+                            Ink += negateForOdd(l+1)/pow(casa::C::pi*double(N),2*l+1)*
+                                   derivativeOfLegendrePolynomial(2*l,k);
+                        } else {
+                            Ink += negateForOdd(l+1)/pow(casa::C::pi*double(N),2*l)*
+                                   derivativeOfLegendrePolynomial(2*l-1,k);
+                        }
+                   }
+                   Ink *= 2*negateForOdd(N);
+                   vals[N] += eVec[k] * Ink * (isOdd ? casa::DComplex(0.,1.) : casa::DComplex(1.,0.));
+              }
+              // all function values for N>0 should be divided by the eigenvalue
               vals[N] /= eVal;
-         }
-         
+         }             
       }
             
       /// @brief do eigen decomposition, get optimum eigen vector/value
@@ -153,14 +171,23 @@ public:
          if (status == 0) {
              // eigenproblem solved successfully
              size_t peakIndex = 0;
+             
              // search for peak eigenvalue
              for (size_t el=0; el<B.nrow()*2; ++el) {
                   casa::DComplex val = getComplex(gsl_vector_complex_get(eVal,el));              
+                  std::cout<<"el="<<el<<" "<<val<<std::endl;
                   if ((el == 0) || (casa::abs(val) > casa::abs(peakVal))) {
                       peakIndex = el;
                       peakVal = val;
                   }
              }
+             
+             /*
+             peakIndex = 7;
+             peakVal = getComplex(gsl_vector_complex_get(eVal,peakIndex));              
+             */
+             
+             std::cout<<"peak Index="<<peakIndex<<" peakValue="<<peakVal<<std::endl;
              // extract the appropriate eigenvector
              V.resize(B.nrow());
              for (size_t i=0; i<B.nrow(); ++i) {
