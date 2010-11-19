@@ -53,6 +53,72 @@ public:
           }
           
           std::cout<<P<<std::endl;
+          
+          std::cout<<derivativeOfLegedrePolynomial(2,2)<<std::endl;
+      }
+      
+      /// @brief lth derivative of kth Legendre polynomial at 1.0
+      /// @details Calculate the value of the lth derivative of the Legendre
+      /// polynomial at 1.0 using recursive formula. It might be possible to
+      /// join several loops together and speed the algorithm up a bit, but
+      /// we will worry about the optimisation later (if we see that it is 
+      /// useful).
+      /// @param[in] l order of the derivative
+      /// @param[in] k order of the polynomial
+      /// @return value of the derivative at 1.0
+      static double derivativeOfLegedrePolynomial(casa::uInt l, casa::uInt k) {
+         if (l > k) {
+             return 0.;
+         }
+         // initialise with 0-order derivative
+         double res = sqrt(double(2*k+1)/2.);
+         for (size_t order = 0; order < l; ++order) {
+              res *= (double(k*(k+1)) - double(order*(order+1)))/ double(2*(order+1));
+         }
+         return res;
+      }
+      
+      /// @brief calculate values at the regular grid
+      /// @details The spheroidal function is approximated as a series with coefficients
+      /// which are the values at regular grid points pi*N/c. This method fills a vector
+      /// with such values spanning N from 0 to size-1. The formulas are slightly different
+      /// for odd and even order of spherodial functions.
+      /// @param[in] vals values vector to fill, should already be sized to the required size
+      /// @param[in] eVec eigen vector in Legendre space
+      /// @param[in] eVal eigen value corresponding to eVec
+      /// @param[in] isOdd if true, the calculated function is assumed to be of the odd order
+      static void calcValsAtRegularGrid(casa::Vector<casa::DComplex> &vals, 
+             const casa::Vector<casa::DComplex> &eVec, const casa::DComplex &eVal, const bool isOdd) 
+      {
+         ASKAPASSERT(vals.nelements()>1);
+         ASKAPASSERT(eVec.nelements()>1);
+         ASKAPASSERT(casa::abs(eVal) != 0.);
+         // the value at 0 is calculated through direct series expansion
+         vals.set(0.);
+         // all odd Legendre polynomials are anti-symmetric, so will be the spheroidal function
+         if (!isOdd) {
+             double p0 = 1; // The value of Legendre polynomial at x=0
+             for (size_t order=0; 2*order<eVec.nelements(); ++order) {
+                  vals[0] += eVec[order] * p0;
+                  p0 *= -double(order+1)/double(order+2);
+             }
+         }
+         // vector of expansion coefficients. Note, coefficients corresponding to the odd order functions
+         // are pure imaginary, so the numbers stored in this vector have to be multiplied by i.
+         // the elements of the vector correspond to N=1,...size-1.
+         casa::Vector<double> vecIn(vals.nelements()-1,0.);
+         // now filling the values, progressively adding more terms to vecIn 
+         for (size_t k = (isOdd ? 1 : 0); k<eVec.nelements(); k+=2) {
+              for (size_t N=1; N<vals.nelements(); ++N) {
+                   vals[N] += eVec[k] * vecIn[N-1];
+              }
+         }
+         
+         // all function values for N>0 should be divided by the eigenvalue
+         for (size_t N=1; N<vals.nelements(); ++N) {
+              vals[N] /= eVal;
+         }
+         
       }
             
       /// @brief do eigen decomposition, get optimum eigen vector/value
@@ -61,7 +127,7 @@ public:
       /// @param[in] B matrix to decompose      
       /// @param[out] V optimum eigenvector (will be resized to B.nrow())
       /// @return largest eigenvalue (by absolute value)
-      static casa::DComplex optimumEigenVector(casa::Matrix<casa::DComplex> &B, casa::Vector<casa::DComplex> &V)
+      static casa::DComplex optimumEigenVector(const casa::Matrix<casa::DComplex> &B, casa::Vector<casa::DComplex> &V)
       {
          ASKAPASSERT(B.nrow() == B.ncolumn());
          ASKAPASSERT(B.nrow() > 1);
