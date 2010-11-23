@@ -138,6 +138,51 @@ public:
               vals[N] /= eVal;
          }             
       }
+      
+      /// @brief smallest eigenvalue of a symmetric tridiagonal matrix
+      /// @details This helper method finds the smallest eigenvalue of a symmetric tridiagonal
+      /// matrix.
+      /// @param[in] diag main diagonal of the matrix
+      /// @param[in] sdiag2 squares of the subdiagonal of the matrix
+      /// @return smallest eigenvalue
+      static double smallestEigenValue(const casa::Vector<double> &diag, const casa::Vector<double> &sdiag2) 
+      {
+         ASKAPASSERT(diag.nelements() == sdiag2.nelements() + 1);
+         ASKAPASSERT(diag.nelements() > 1);
+         
+         gsl_matrix *A = gsl_matrix_alloc(diag.nelements(),diag.nelements());
+         gsl_matrix_set_zero(A);         
+         gsl_eigen_symm_workspace *work = gsl_eigen_symm_alloc(diag.nelements());
+         gsl_vector *eVal = gsl_vector_alloc(diag.nelements());
+         
+         // fill the matrix (a bit of an overkill, but it is faster to reuse existing code
+         // than to write something for tridiagonal matrix)
+         for (casa::uInt elem = 0; elem<diag.nelements(); ++elem) {
+              gsl_matrix_set(A, elem, elem, diag[elem]);
+              gsl_matrix_set(A, elem, elem, diag[elem]);
+              if (elem + 1 < diag.nelements()) {
+                  gsl_matrix_set(A, elem, elem+1, sqrt(abs(sdiag2[elem])));              
+                  gsl_matrix_set(A, elem+1, elem, sqrt(abs(sdiag2[elem])));              
+              }
+         }
+         const int status = gsl_eigen_symm(A,eVal, work);
+         double result = -1.;
+         if (status == GSL_SUCCESS) {
+             for (casa::uInt elem = 0; elem<diag.nelements(); ++elem) {
+                  const double val = gsl_vector_get(eVal,elem);
+                  if ((elem == 0) || (val<result)) {
+                      result = val;
+                  }
+             }
+         }
+
+         gsl_matrix_free(A);         
+         gsl_eigen_symm_free(work);
+         gsl_vector_free(eVal);
+         
+         ASKAPCHECK(status != GSL_SUCCESS, "Error solving eigenproblem for symmetric tridiagonal matrix");
+         return result;
+      }
             
       /// @brief do eigen decomposition, get optimum eigen vector/value
       /// @details Solve for eigenvalues and eigen vectors of the helper matrix,
@@ -165,7 +210,6 @@ public:
               }
          }
          const int status = gsl_eigen_nonsymmv(A,eVal,eVec, work);
-         ASKAPASSERT(status == 0);
          
          casa::Complex peakVal(0.,0.);
          if (status == 0) {
