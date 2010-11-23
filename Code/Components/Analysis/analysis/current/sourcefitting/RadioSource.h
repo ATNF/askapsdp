@@ -144,6 +144,7 @@ namespace askap {
 
                     /// @brief Return the set of fits
                     std::vector<casa::Gaussian2D<Double> > gaussFitSet(std::string type) {return itsBestFitMap[type].fitSet();};
+                    std::vector<casa::Gaussian2D<Double> > gaussFitSet() {return itsBestFitMap["best"].fitSet();};
 
                     /// @brief Return a reference to the set of Gaussian fits.
                     std::vector<casa::Gaussian2D<Double> >& fitset(std::string type) {return itsBestFitMap[type].fits();};

@@ -165,6 +165,7 @@ namespace askap {
                     void setFlagFitThisParam(int i, bool b) {itsFlagFitThisParam[i] = b;};
                     void setFlagFitThisParam(std::string type);
                     void setNegativeFluxPossible(bool b) {itsNegativeFluxPossible = b;};
+		    void setFitTypes(std::vector<std::string> types){itsFitTypes = types;};
 
                     int    maxNumGauss() {return itsMaxNumGauss;};
                     int    boxPadSize() {return itsBoxPadSize;};
