@@ -55,9 +55,6 @@ namespace askap {
                 /// @brief Assignment operator
                 FLASHProfile& operator= (const FLASHProfile& h);
 
-		void setFlagContinuumSubtract(bool f){itsFlagContinuumSubtracted = f;};
-		bool flagContinuumSubtract(){return itsFlagContinuumSubtracted;};
-
 		void define(std::string &line);
 
 		void print(std::ostream& theStream);

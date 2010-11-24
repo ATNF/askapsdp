@@ -158,7 +158,6 @@ namespace askap {
 	this->itsRestFreq = f.itsRestFreq;
 	this->itsAddSources = f.itsAddSources;
 	this->itsDryRun = f.itsDryRun;
-	this->itsContinuumSubtract = f.itsContinuumSubtract;
 	this->itsEquinox = f.itsEquinox;
 	this->itsBunit = f.itsBunit;
 	this->itsUnitScl = f.itsUnitScl;
@@ -328,7 +327,6 @@ namespace askap {
 	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH'. Setting to Continuum.");
 	  this->itsDatabaseOrigin = "Continuum";
 	}
-	this->itsContinuumSubtract = parset.getBool("continuumSubtract",true);
 
 	if (this->itsDryRun) {
 	  this->itsFITSOutput = false;
@@ -535,7 +533,6 @@ namespace askap {
 	  HIprofileS3SAX profSAX;
 	  GaussianProfile profGauss;
 	  FLASHProfile profFLASH;
-	  profFLASH.setFlagContinuumSubtract(this->itsContinuumSubtract);
 	  Spectrum *src = &cont;
 
 	  FluxGenerator fluxGen;
@@ -599,8 +596,14 @@ namespace askap {
 
 	      wld[2] = this->itsBaseFreq;
 
+// 	      ASKAPLOG_DEBUG_STR(logger, "Source positions (with posType="<<this->itsPosType
+// 				 <<"): RA="<<src->ra()<<"->"<<wld[0]<<", DEC="<<src->dec()<<"->"<<wld[1]
+// 				 <<", and Freq="<<this->itsBaseFreq);
+
 	      if (this->itsFlagPrecess) wcsToPixSingle(this->itsWCSsources, wld, pix);
 	      else                      wcsToPixSingle(this->itsWCS, wld, pix);
+
+// 	      ASKAPLOG_DEBUG_STR(logger, "Pixel positions are (x,y,z)=("<<pix[0]<<','<<pix[1]<<','<<pix[2]<<")");
 
 	      if (this->itsFlagOutputList) {
 		pixToWCSSingle(this->itsWCS, pix, newwld);

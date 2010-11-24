@@ -54,14 +54,12 @@ namespace askap {
                 GaussianProfile()
         {
 	  this->itsAxisType = FREQUENCY;
-	  this->itsFlagContinuumSubtracted = true;
         }
 
         FLASHProfile::FLASHProfile(double &height, double &centre, double &width, AXISTYPE &type):
 	  GaussianProfile(height,centre,width,type)
 	{
 	  this->itsAxisType = FREQUENCY;
-	  this->itsFlagContinuumSubtracted = true;
 	}
 
         FLASHProfile::FLASHProfile(const FLASHProfile& h):
@@ -75,7 +73,6 @@ namespace askap {
             if (this == &h) return *this;
 
 	    ((GaussianProfile &) *this) = h;
-	    this->itsFlagContinuumSubtracted = h.itsFlagContinuumSubtracted;
 	    this->itsContinuumFlux = h.itsContinuumFlux;
 	    this->itsPeakOpticalDepth = h.itsPeakOpticalDepth;
 	    this->itsCentreRedshift = h.itsCentreRedshift;
@@ -121,9 +118,8 @@ namespace askap {
 	    double freqmin=velToFreq(-this->itsVelocityWidth/2.,centreFreq);
 	    this->itsGaussian.setWidth(fabs(freqmax-freqmin));
 
-	    if(this->itsFlagContinuumSubtracted) this->itsComponent.setPeak(0.);
-
-	    ASKAPLOG_DEBUG_STR(logger, "Defined source with continuum flux="<<this->itsContinuumFlux<<", Component: " << itsComponent << " and Gaussian " << itsGaussian);
+// 	    ASKAPLOG_DEBUG_STR(logger, "FLASH input: " << line);
+// 	    ASKAPLOG_DEBUG_STR(logger, "Defined source " << this->itsComponentNum << " with continuum flux="<<this->itsContinuumFlux<<", Component: " << this->itsComponent << " and Gaussian " << this->itsGaussian);
 
         }
 
