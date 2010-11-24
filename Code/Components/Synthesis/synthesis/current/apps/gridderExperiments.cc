@@ -25,6 +25,8 @@ using namespace askap::synthesis;
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_eigen.h>
+#include <gsl/gsl_sf.h>
+
 
 inline casa::DComplex getComplex(const gsl_complex gc) {
      return casa::DComplex(GSL_REAL(gc), GSL_IMAG(gc));
@@ -66,9 +68,8 @@ public:
                const double sfval = (abs(x)<1 ? real(vals[i])/sqrt(1.-x*x) : 0.);
                os<<x<<" "<<sfval<<" "<<grdsf(x)<<std::endl;
           }
-          
-          casa::Vector<double> coeffs(6,0.);
-          calcBesselCoeffs(c,1,coeffs);
+
+          std::cout<<gamma(10.)<<std::endl;          
       }
       
       /// @brief lth derivative of kth Legendre polynomial at 1.0
@@ -142,6 +143,50 @@ public:
          }             
       }
       
+      /// @brief calculate spheroidal function via Bessel decomposition
+      /// @details This algorithm decomposes the spheroidal function into series with Bessel functions
+      /// @param[in] c parameter c of the spheroidal function (bandwidth or a measure of the support size in our case)
+      /// @param[in] alpha parameter alpha of the spheroidal function (weighting exponent in our case)
+      /// @param[in] eta argument of the function
+      /// @param[in] nterms number of terms in the decomposition
+      /// @param[in] mSize optional matrix size for the dependent eigenproblem, 0 means the miminal size 
+      ///                  sufficient to produce nterms in the decomposition
+      static double sphFunc(const double c, const double alpha, const double eta, const casa::uInt nterms, 
+                     const casa::uInt mSize = 0)
+      {
+        casa::Vector<double> coeffs(nterms, 0.);
+        calcBesselCoeffs(c, alpha, coeffs, mSize);
+        ASKAPDEBUGASSERT(coeffs.nelements() == nterms);
+        
+        return 0.;
+      }
+      
+      /// @brief calculate spheroidal function at (0,0)
+      /// @details This helper method calculates the value of spheroidal function for c=0 and eta=0
+      /// @param[in] alpha parameter alpha of the spheroidal function (weighting exponent in our case)
+      /// @param[in] coeffs vector with the coefficients
+      /// @return value of the function
+      static double sphFuncAt0_0(const double alpha, const casa::Vector<double> &coeffs) {
+          double res = 0.;
+          for (casa::uInt i=0; i<coeffs.nelements(); ++i) {
+               res += gamma(0.5+double(i))/gamma(alpha+double(i+1))*coeffs[i];
+          }
+          res *= casa::C::_1_sqrtpi / pow(2.,alpha);
+          return res;
+      }
+      
+      /// @brief gamma function 
+      /// @details this is a helper wrapper over GSL's gamma function implementation
+      /// @param[in] x argument of the gamma function
+      /// @note an exception is thrown if there is an error
+      static double gamma(double x) {
+         gsl_sf_result res;
+         const int status = gsl_sf_gamma_e(x, &res);
+         ASKAPCHECK(status == GSL_SUCCESS, "Error in calculation of gamma function for x="<<x<<", status="<<status);
+         return res.val;
+      }
+      
+      
       /// @brief Bessel series expansion coefficients
       /// @details This is a helper method to compute series coefficients for decomposition
       /// of a given spheroidal functions via Bessel functions
@@ -151,7 +196,7 @@ public:
       ///                   required number of coefficients)
       /// @param[in] mSize optional matrix size for the dependent eigenproblem, 0 means the miminal size sufficient to
       ///            produce coeffs.nelements() coefficient. Positive number should not be below coeffs.nelements().
-      static void calcBesselCoeffs(const double c, const double alpha, const casa::Vector<double> &coeffs,
+      static void calcBesselCoeffs(const double c, const double alpha, casa::Vector<double> &coeffs,
                                    const casa::uInt mSize = 0)
       {
         ASKAPASSERT(coeffs.nelements()>1);
@@ -184,9 +229,24 @@ public:
                  sdiag2[k/2-1] = bufA[k] * bufC[k-2];
              }
         }
-        std::cout<<"diag="<<diag<<std::endl;
-        std::cout<<"sdiag2="<<sdiag2<<std::endl;
-        std::cout<<"ev="<<smallestEigenValue(diag,sdiag2)<<std::endl;
+        const double eVal = smallestEigenValue(diag,sdiag2);
+        coeffs[0] = 1.; // arbitrary scaling factor which will be normalised later when we sum the series
+        // now calculate the ratios of adjacent coefficients
+        for (casa::uInt elem = coeffs.nelements() - 1; elem>0; --elem) {
+             double factor = eVal - bufB[2*elem];
+             if (elem + 1 < coeffs.nelements()) {
+                 factor += bufA[2*elem+2]*coeffs[elem+1];
+             }
+             if (factor != 0) {
+                 coeffs[elem] = -bufC[2*elem-2]/factor;
+             } else {
+                 coeffs[elem] = 0.;
+             }
+        }  
+        // and bootstrap all coefficients using the ratios and the first arbitrary defined element
+        for (casa::uInt elem = 1; elem<coeffs.nelements(); ++elem) {
+             coeffs[elem] *= coeffs[elem-1];
+        }
       }
       
       /// @brief smallest eigenvalue of a symmetric tridiagonal matrix
