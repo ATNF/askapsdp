@@ -126,6 +126,10 @@ namespace askap {
 
       absPeakVal=max(abs(this->residual()));
 
+      T effectiveLambda(absPeakVal*this->control()->fractionalThreshold()+this->control()->lambda());
+      ASKAPLOG_INFO_STR(decfistalogger, "Effective lambda = " << effectiveLambda);
+      cout << "Effective Lambda = " << effectiveLambda << endl;
+      
       T t_new=1;
 
       do {
@@ -133,21 +137,21 @@ namespace askap {
 	T t_old=t_new;
 
 	updateResiduals(X);
-	//	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->residual());
+	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->residual());
 
 	X=X+this->residual()/this->itsLipschitz;
 
 	// Transform to other (e.g. multiscale) space
 	Array<T> WX;
-	//	SynthesisParamsHelper::saveAsCasaImage("X.tab", X);
+	SynthesisParamsHelper::saveAsCasaImage("X.tab", X);
 	this->W(WX,X);
-	//	SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
+	SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
 
 	// Now shrink the coefficients towards zero and clip those below
 	// lambda/lipschitz.
 	Array<T> shrink(WX.shape());
 
-	Array<T> truncated(abs(WX)-this->control()->lambda()/this->itsLipschitz);
+	Array<T> truncated(abs(WX)-effectiveLambda/this->itsLipschitz);
 	shrink=truncated(truncated>T(0.0));
 	shrink=sign(WX)*shrink;
 	shrink(truncated<T(0.0))=T(0.0);
@@ -156,7 +160,7 @@ namespace askap {
 	// Transform back from other (e.g. wavelet) space here
 	
 	this->WT(X_temp,shrink);
-	//	SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
+	SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
 
 	t_new=(T(1.0)+sqrt(T(1.0)+T(4.0)*square(t_old)))/T(2.0);
 	X=X_temp+((t_old-T(1.0))/t_new)*(X_temp-X_old);
@@ -185,7 +189,7 @@ namespace askap {
 
 	T l1Norm=sum(abs(X_temp));
 	T fit=casa::sum(this->residual()*this->residual());
-	T objectiveFunction(fit+this->control()->lambda()*l1Norm);
+	T objectiveFunction(fit+effectiveLambda*l1Norm);
         this->state()->setPeakResidual(absPeakVal);
         this->state()->setObjectiveFunction(objectiveFunction);
         this->state()->setTotalFlux(sum(X_temp));
