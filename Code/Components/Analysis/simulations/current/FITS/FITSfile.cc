@@ -539,13 +539,11 @@ namespace askap {
 	  casa::Gaussian2D<casa::Double> gauss;
 	  const float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
 
-	  ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
-
 	  if (this->itsFlagOutputList) outfile.open(this->itsOutputSourceList.c_str(),std::ios::app);
 
 	  while (getline(srclist, line),
 		 !srclist.eof()) {
-	    // 		      ASKAPLOG_DEBUG_STR(logger, "input = " << line);
+	    //		      ASKAPLOG_DEBUG_STR(logger, "input = " << line);
 
 	    if (line[0] != '#') {  // ignore commented lines
 
@@ -619,6 +617,7 @@ namespace askap {
 
 	      if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
 		// check the frequency limits for this source to see whether we need to look at it.
+		ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
 		std::pair<double,double> freqLims = profSAX.freqLimits();
 		bool isGood = (freqLims.first < this->maxFreq()) && (freqLims.second > this->minFreq());
 		lookAtSource = lookAtSource && isGood;
@@ -638,7 +637,7 @@ namespace askap {
 		  fluxGen.addSpectrumStokes(stokes, pix[0], pix[1], this->itsWCS);
 		else if (this->itsDatabaseOrigin == "S3SEX"){
 		  if(this->itsSourceListType == "continuum")
-		    fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
+		    fluxGen.addSpectrum(contS3SEX, pix[0], pix[1], this->itsWCS);
 		  else
 		    fluxGen.addSpectrumInt(profSEX, pix[0], pix[1], this->itsWCS);
 		}
