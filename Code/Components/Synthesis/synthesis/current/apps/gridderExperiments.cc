@@ -66,6 +66,9 @@ public:
                const double sfval = (abs(x)<1 ? real(vals[i])/sqrt(1.-x*x) : 0.);
                os<<x<<" "<<sfval<<" "<<grdsf(x)<<std::endl;
           }
+          
+          casa::Vector<double> coeffs(6,0.);
+          calcBesselCoeffs(c,1,coeffs);
       }
       
       /// @brief lth derivative of kth Legendre polynomial at 1.0
@@ -139,6 +142,53 @@ public:
          }             
       }
       
+      /// @brief Bessel series expansion coefficients
+      /// @details This is a helper method to compute series coefficients for decomposition
+      /// of a given spheroidal functions via Bessel functions
+      /// @param[in] c parameter c of the spheroidal function (bandwidth or a measure of the support size in our case)
+      /// @param[in] alpha parameter alpha of the spheroidal function (weighting exponent in our case)
+      /// @param[in] coeffs vector to fill with the coefficients (must already be resized to a 
+      ///                   required number of coefficients)
+      /// @param[in] mSize optional matrix size for the dependent eigenproblem, 0 means the miminal size sufficient to
+      ///            produce coeffs.nelements() coefficient. Positive number should not be below coeffs.nelements().
+      static void calcBesselCoeffs(const double c, const double alpha, const casa::Vector<double> &coeffs,
+                                   const casa::uInt mSize = 0)
+      {
+        ASKAPASSERT(coeffs.nelements()>1);
+        const casa::uInt matrSize = (mSize == 0 ? coeffs.nelements() : mSize);
+        ASKAPCHECK(matrSize >= coeffs.nelements(), "Requested matrix size of "<<matrSize<<
+                   " should not be less than the number of requested coefficients ("<<coeffs.nelements()<<")");
+        ASKAPCHECK(2*alpha != -3.,"Implemented formulas don't work for alpha = -1.5");
+        const double cSquared = c*c;
+        // buffers
+        casa::Vector<double> bufA(2*matrSize+1,0.);                   
+        casa::Vector<double> bufB(2*matrSize+1,0.);
+        casa::Vector<double> bufC(2*matrSize+1,0.);
+        casa::Vector<double> diag(matrSize,0.);
+        casa::Vector<double> sdiag2(matrSize-1,0.);
+        
+        // fill the buffers
+        bufB[0] = cSquared / (2*alpha+3);
+        bufC[0] = cSquared * (2*alpha+2) / (2*alpha+3);
+        for (casa::uInt k = 2; k <= 2*matrSize; k+=2) {
+             // k is a 1-based index into buffers
+             bufA[k] = cSquared * double(k*(k-1))/(2*alpha+2*k-1)/(2*alpha+2*k+1);
+             bufB[k] = cSquared * (double(k)*(2*alpha+k+1)+(2*alpha-1+2*k*k+2*k*(2*alpha+1)))/
+                                  (2*alpha+2*k-1) / (2*alpha+2*k+3);
+             bufC[k] = cSquared * (2*alpha+k+1) * (2*alpha+k+2) / (2*alpha+2*k+1) / (2*alpha+2*k+3);
+             // recursion relation for matrix coefficients
+             ASKAPDEBUGASSERT(k>=2);
+             diag[k/2-1] = bufB[k-2];
+             // sub-diagonal has one less element, exclude the last one
+             if (k<2*matrSize) {
+                 sdiag2[k/2-1] = bufA[k] * bufC[k-2];
+             }
+        }
+        std::cout<<"diag="<<diag<<std::endl;
+        std::cout<<"sdiag2="<<sdiag2<<std::endl;
+        std::cout<<"ev="<<smallestEigenValue(diag,sdiag2)<<std::endl;
+      }
+      
       /// @brief smallest eigenvalue of a symmetric tridiagonal matrix
       /// @details This helper method finds the smallest eigenvalue of a symmetric tridiagonal
       /// matrix.
@@ -161,6 +211,7 @@ public:
               gsl_matrix_set(A, elem, elem, diag[elem]);
               gsl_matrix_set(A, elem, elem, diag[elem]);
               if (elem + 1 < diag.nelements()) {
+                  ASKAPASSERT(sdiag2[elem]>=0.);
                   gsl_matrix_set(A, elem, elem+1, sqrt(abs(sdiag2[elem])));              
                   gsl_matrix_set(A, elem+1, elem, sqrt(abs(sdiag2[elem])));              
               }
@@ -180,7 +231,7 @@ public:
          gsl_eigen_symm_free(work);
          gsl_vector_free(eVal);
          
-         ASKAPCHECK(status != GSL_SUCCESS, "Error solving eigenproblem for symmetric tridiagonal matrix");
+         ASKAPCHECK(status == GSL_SUCCESS, "Error solving eigenproblem for symmetric tridiagonal matrix, status="<<status);
          return result;
       }
             
