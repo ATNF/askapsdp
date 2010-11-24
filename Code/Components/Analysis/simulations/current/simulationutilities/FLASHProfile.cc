@@ -114,12 +114,12 @@ namespace askap {
 	    double centreFreq = redshiftToFreq(this->itsCentreRedshift,this->itsRestFreq);
 	    this->itsGaussian.setCenter(centreFreq);
 
-	    double freqmax=velToFreq(this->itsVelocityWidth/2.,centreFreq);
-	    double freqmin=velToFreq(-this->itsVelocityWidth/2.,centreFreq);
+	    double freqmax=velToFreq(redshiftToVel(this->itsCentreRedshift)-this->itsVelocityWidth/2.,this->itsRestFreq);
+	    double freqmin=velToFreq(redshiftToVel(this->itsCentreRedshift)+this->itsVelocityWidth/2.,this->itsRestFreq);
 	    this->itsGaussian.setWidth(fabs(freqmax-freqmin));
 
-// 	    ASKAPLOG_DEBUG_STR(logger, "FLASH input: " << line);
-// 	    ASKAPLOG_DEBUG_STR(logger, "Defined source " << this->itsComponentNum << " with continuum flux="<<this->itsContinuumFlux<<", Component: " << this->itsComponent << " and Gaussian " << this->itsGaussian);
+	    // ASKAPLOG_DEBUG_STR(logger, "FLASH input: " << line);
+	    // ASKAPLOG_DEBUG_STR(logger, "Defined source " << this->itsComponentNum << " with continuum flux="<<this->itsContinuumFlux<<", Component: " << this->itsComponent << " and Gaussian " << this->itsGaussian);
 
         }
 
