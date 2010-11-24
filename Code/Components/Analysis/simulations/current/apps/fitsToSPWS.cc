@@ -69,7 +69,8 @@ void usage() {
 	    << "     -p: Polarisation info: either number of polarisations or specific polarisation string\n"
 	    << "         [default is 2 pol, \"XX YY\"]"
 	    << "     -u: Spectral units [default=MHz]\n"
-	    << "     -P: Precision for frequency & increment values [default=3]\n";
+	    << "     -P: Precision for frequency & increment values [default=3]\n"
+	    << "     -g: Group size [default=0=no groups]\n";
 }
 
 std::string baseify(std::string name)
@@ -85,8 +86,8 @@ int main(int argc, char *argv[])
 
     std::string image="",basename="",pol="XX YY";
     casa::Unit units="MHz";
-    int binning = 1,ch,prec=3;
-    while ((ch = getopt(argc, argv, "i:n:b:p:u:P:h")) != -1) {
+    int binning = 1,ch,prec=3,group=0;
+    while ((ch = getopt(argc, argv, "i:n:b:p:u:P:g:h")) != -1) {
       switch (ch) {
       case 'i':
 	image = std::string(optarg);
@@ -105,6 +106,9 @@ int main(int argc, char *argv[])
 	break;
       case 'P':
 	prec = atoi(optarg);
+	break;
+      case 'g':
+	group = atoi(optarg);
 	break;
       case 'h':
       default:
@@ -136,7 +140,10 @@ int main(int argc, char *argv[])
 
     std::cout << "spws.names = [";
     for (int z=0;z < shape(axis); z++) {
-      std::cout << basename << z;
+      std::stringstream groupname;
+      if(group>1) groupname << z/group << "_" << z%group;
+      else groupname << z;
+      std::cout << basename << groupname.str();
       if(z<shape(axis)-1) std::cout <<", ";
     }
     std::cout << "]\n\n";
@@ -145,8 +152,12 @@ int main(int argc, char *argv[])
       if(z%binning==0){
 	MFrequency freq;
 	specCoo.toWorld(freq,double(z));
+	std::stringstream groupname;
+	if(group>1) groupname << z/group << "_" << z%group;
+	else groupname << z;
 	std::cout.setf(std::ios::fixed);
-	std::cout << "spws."<<basename<<z <<"   = ["
+	//	std::cout << "spws."<<basename<<z <<"   = ["
+	std::cout << "spws."<<basename<<groupname.str() <<"   = ["
 		  << binning << ", "
 		  << std::setprecision(prec) << freq.get(units) <<", "
 		  << std::setprecision(prec) << increment.get(units)<< ", "
