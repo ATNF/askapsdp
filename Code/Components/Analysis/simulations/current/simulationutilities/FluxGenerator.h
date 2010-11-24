@@ -68,6 +68,8 @@ namespace askap {
                 int  nChan() {return itsNChan;};
                 /// @brief Return the number of Stokes parameters
                 int  nStokes() {return itsNStokes;};
+		/// @brief Set the flux values to zero
+		void zero();
 
                 /// @brief Add a spectral profile to the flux values, using single flux points
                 void addSpectrum(Spectrum &spec, double &x, double &y, wcsprm *wcs);

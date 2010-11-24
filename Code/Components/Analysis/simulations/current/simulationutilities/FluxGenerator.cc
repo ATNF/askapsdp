@@ -93,6 +93,13 @@ namespace askap {
 	    }
 	}
 
+        void FluxGenerator::zero()
+	{
+	  for(int s=0;s<this->itsNStokes;s++) 
+	    for(int c=0;c<this->itsNChan;c++)
+	      this->itsFluxValues[s][c]=0.;
+	}
+
         void FluxGenerator::addSpectrum(Spectrum &spec, double &x, double &y, struct wcsprm *wcs)
         {
             /// @details This version of the add spectrum function simply
