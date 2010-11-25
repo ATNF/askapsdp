@@ -40,6 +40,7 @@ public:
           std::cout<<"Test gridder, used for debugging"<<std::endl;
           casa::Matrix<casa::DComplex> B(5,5);
           const double c = casa::C::pi*6/2.;
+          /*
           fillMatrixB(B,c,15);
           std::cout<<B<<std::endl;
           
@@ -57,19 +58,22 @@ public:
           
           std::cout<<P<<std::endl;
           
+          
           casa::Vector<casa::DComplex> vals(6.);
           calcValsAtRegularGrid(vals, V, eVal, false);
                     
           std::cout<<vals<<std::endl;
+          */
           
           std::ofstream os ("cf.dat");
-          for (size_t i=0; i<vals.nelements(); ++i) {
-               const double x = double(i)*casa::C::pi/c;
-               const double sfval = (abs(x)<1 ? real(vals[i])/sqrt(1.-x*x) : 0.);
+          const size_t nPoints = 100;
+          for (size_t i=0; i<nPoints; ++i) {
+               const double x = 2./double(nPoints)*double(i);
+               const double sfval = sphFunc(c,1.,x,16);
+               //const double sfval = (abs(x)<1 ? real(vals[i])/sqrt(1.-x*x) : 0.);
                os<<x<<" "<<sfval<<" "<<grdsf(x)<<std::endl;
           }
 
-          std::cout<<gamma(10.)<<std::endl;          
       }
       
       /// @brief lth derivative of kth Legendre polynomial at 1.0
@@ -77,7 +81,7 @@ public:
       /// polynomial at 1.0 using recursive formula. It might be possible to
       /// join several loops together and speed the algorithm up a bit, but
       /// we will worry about the optimisation later (if we see that it is 
-      /// useful).
+      /// useful). 
       /// @param[in] l order of the derivative
       /// @param[in] k order of the polynomial
       /// @return value of the derivative at 1.0
@@ -154,11 +158,38 @@ public:
       static double sphFunc(const double c, const double alpha, const double eta, const casa::uInt nterms, 
                      const casa::uInt mSize = 0)
       {
+        ASKAPCHECK(alpha>-0.5, "The case of alpha<=-0.5 has not been tested (although might work), you have alpha="<<alpha);
+        ASKAPASSERT(nterms>1);
+        if (eta == 0.) {
+            return 1.;
+        }
         casa::Vector<double> coeffs(nterms, 0.);
         calcBesselCoeffs(c, alpha, coeffs, mSize);
         ASKAPDEBUGASSERT(coeffs.nelements() == nterms);
         
-        return 0.;
+        // value at (0,0) used for normalisation    
+        //const double sfAt0_0 = sphFuncAt0_0(alpha,coeffs);
+        
+        // first order of Bessel function in the series
+        const double startOrder = alpha > -0.5 ? alpha + 0.5 - int(alpha+0.5) : alpha + 0.5;
+        const int nBesselVals = alpha > -0.5 ? int(alpha+1.5+2*nterms) : 2*int(nterms);
+        ASKAPASSERT(nBesselVals > 0);
+        ASKAPASSERT(int(nBesselVals) >= 2*int(nterms)+int(alpha+0.5));
+
+        casa::Vector<double> besselVals(nBesselVals,0.);
+        // calculate series of Bessel function values, orders go from startOrder to startOrder+nBesselVals-1
+        bessel(startOrder,c*std::abs(eta),besselVals);
+        
+        double sum = 0.;
+        for (casa::uInt i = 0; i<nterms; ++i) {
+             const int index = 2*int(i) + int(alpha+0.5);
+             ASKAPCHECK((index>=0) && (index<nBesselVals), "Invalid index = "<<index<<", alpha="<<alpha<<" term="<<i);
+             sum += coeffs[i] * besselVals[index];
+        }
+        ASKAPASSERT(coeffs[0]!=0.);
+        sum *= pow(2./(c*std::abs(eta)),alpha+0.5)*gamma(alpha+1.5)/coeffs[0];
+        
+        return sum;
       }
       
       /// @brief calculate spheroidal function at (0,0)
@@ -178,6 +209,7 @@ public:
       /// @brief gamma function 
       /// @details this is a helper wrapper over GSL's gamma function implementation
       /// @param[in] x argument of the gamma function
+      /// @return value of the gamma function
       /// @note an exception is thrown if there is an error
       static double gamma(double x) {
          gsl_sf_result res;
@@ -186,6 +218,38 @@ public:
          return res.val;
       }
       
+      /// @brief regular cylindrical Bessel function
+      /// @details This is a wrapper on top of the GSL routine to calculate Bessel function. Ideally we
+      /// want to be able to generate a sequence of functions of different orders, but at the same 
+      /// argument (series expansion). Libraries seem to provide calculation of a sequence at different 
+      /// arguments, but for the same order. So this code may be sub-optimal. But it is fine for now.
+      /// Another optimisation which might be possible is to take into account that the only order of 
+      /// Bessel function we use is half plus integer.
+      /// @param[in] nu order of the Bessel function (can be fractional)
+      /// @param[in] x argument
+      /// @return value of the Bessel function
+      /// @note an exception is thrown if there is an error
+      static double bessel(const double nu, const double x) {
+         gsl_sf_result res;
+         const int status = gsl_sf_bessel_Jnu_e(nu,x, &res);
+         ASKAPCHECK(status == GSL_SUCCESS, "Error in calculation of Bessel function for nu="<<nu<<" x="<<x<<", status="<<status);
+         return res.val;       
+      }
+      
+      /// @brief set of values for Bessel function
+      /// @details This version calculates a set of values for the regular cylindrical Bessel function
+      /// for a sequence of orders.
+      /// @param[in] nu starting order
+      /// @param[in] x argument
+      /// @param[in] vals vector to be filled with values corresponding to orders nu,nu+1,...nu+vals.nelements()-1
+      /// @note an exception is thrown if there is an error. Vector vals must have non-zero size to indicate the number
+      /// of orders required
+      static void bessel(const double nu, const double x, casa::Vector<double> &vals) {
+         ASKAPASSERT(vals.nelements()>=1);
+         for (casa::uInt k = 0; k<vals.nelements(); ++k) {
+              vals[k] = bessel(nu+double(k),x);
+         } 
+      }
       
       /// @brief Bessel series expansion coefficients
       /// @details This is a helper method to compute series coefficients for decomposition
