@@ -22,6 +22,7 @@
 #
 import os
 import re
+import warnings
 
 from askap.parset import logger
 
@@ -105,8 +106,16 @@ class ParameterSet(object):
                 else:
                     raise OSError("Given (single) argument is not filename.")
                 i = 1
+                pairs = []
                 for line in pfile:
                     pair = extract(line)
+
+                    if pair and pair in pairs:
+                        lineno = pairs.index(pair)+1
+                        msg = "Overwriting value for key '%s' first "\
+                              "defined in line %d" % (pair[0], lineno)
+                        warnings.warn(msg)
+                    pairs.append(pair)
                     if pair:
                         try:
                             self.set_value(*pair)
