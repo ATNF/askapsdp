@@ -39,7 +39,7 @@ public:
       testGridder() {
           std::cout<<"Test gridder, used for debugging"<<std::endl;
           casa::Matrix<casa::DComplex> B(5,5);
-          const double c = casa::C::pi*6/2.;
+          const double c = casa::C::pi*6./2.;
           /*
           fillMatrixB(B,c,15);
           std::cout<<B<<std::endl;
@@ -64,6 +64,7 @@ public:
                     
           std::cout<<vals<<std::endl;
           */
+          //sphFunc(c,1.,0.0001,16); return;
           
           std::ofstream os ("cf.dat");
           const size_t nPoints = 100;
@@ -73,7 +74,7 @@ public:
                //const double sfval = (abs(x)<1 ? real(vals[i])/sqrt(1.-x*x) : 0.);
                os<<x<<" "<<sfval<<" "<<grdsf(x)<<std::endl;
           }
-
+                
       }
       
       /// @brief lth derivative of kth Legendre polynomial at 1.0
@@ -147,6 +148,56 @@ public:
          }             
       }
       
+      /// @brief sum of the Legendre series
+      /// @details This helper method sums Legendre series for the given coefficients and the origin
+      /// @param[in] coeffs vector with coefficients (element index r is incremented by two)
+      /// @param[in] x abcissa 
+      /// @param[in] m parameter m of the Legendre function (corresponding to resulting Smn(c,eta))
+      /// @param[in] rEven true, if series starts from r=0, false if from r=1 (n-m of Smn is even or odd)
+      static double sumLegendreSeries(const casa::Vector<double> &coeffs, double x, int m, bool rEven) {
+           ASKAPASSERT(m>=0);
+           const int nOrders = int(coeffs.nelements())*2 + (rEven ? 0 : 1);
+           double *vals = new double[nOrders+1];
+           
+           int status = gsl_sf_legendre_sphPlm_array(nOrders + m, m, x, vals);
+           double result = 0.;
+           for (casa::uInt elem = 0; elem<coeffs.nelements(); ++elem) {
+                const int r = 2*elem + (rEven ? 0 : 1);
+                //const int l = r + m;
+                ASKAPASSERT(r < nOrders + 1);
+                result += coeffs[elem]*vals[r];
+           }
+           
+           delete[](vals);
+           ASKAPCHECK(status == GSL_SUCCESS, "Error calculating associated Legendre functions, status="<<status);           
+           return -result;
+      }
+      
+      /// @brief calculate spheroidal function via Legendre decomposition
+      /// @details This algorithm decomposes the spheroidal function into series with associated Legendre functions
+      /// with some special normalisation
+      /// @param[in] c parameter c of the spheroidal function (bandwidth or a measure of the support size in our case)
+      /// @param[in] alpha parameter alpha of the spheroidal function (weighting exponent in our case)
+      /// @param[in] eta argument of the function
+      /// @param[in] nterms number of terms in the decomposition
+      static double sphFunc(const double c, const double alpha, const double eta, const casa::uInt nterms)
+      {
+        if (abs(eta)>=1) {
+            return 0.;
+        }
+        casa::Matrix<double> hlp(nterms,nterms,0.);
+        const bool rEven = true;      
+        fillHelperMatrix(hlp,c,alpha,rEven);
+        
+        casa::Vector<double> coeffs;
+        legendreCoeffs(hlp,coeffs);
+        
+        // force normalisation to 1. at eta=0., functions corresponding to n=0 are even, so such normalisation
+        // should not cause any problems
+        const double res = sumLegendreSeries(coeffs,eta,alpha,rEven) / sumLegendreSeries(coeffs,0.,alpha,rEven);
+        return res * pow(1.-eta*eta, -alpha/2.);
+      }
+      
       /// @brief calculate spheroidal function via Bessel decomposition
       /// @details This algorithm decomposes the spheroidal function into series with Bessel functions
       /// @param[in] c parameter c of the spheroidal function (bandwidth or a measure of the support size in our case)
@@ -155,7 +206,7 @@ public:
       /// @param[in] nterms number of terms in the decomposition
       /// @param[in] mSize optional matrix size for the dependent eigenproblem, 0 means the miminal size 
       ///                  sufficient to produce nterms in the decomposition
-      static double sphFunc(const double c, const double alpha, const double eta, const casa::uInt nterms, 
+      static double sphFunc1(const double c, const double alpha, const double eta, const casa::uInt nterms, 
                      const casa::uInt mSize = 0)
       {
         ASKAPCHECK(alpha>-0.5, "The case of alpha<=-0.5 has not been tested (although might work), you have alpha="<<alpha);
@@ -171,8 +222,8 @@ public:
         //const double sfAt0_0 = sphFuncAt0_0(alpha,coeffs);
         
         // first order of Bessel function in the series
-        const double startOrder = alpha > -0.5 ? alpha + 0.5 - int(alpha+0.5) : alpha + 0.5;
-        const int nBesselVals = alpha > -0.5 ? int(alpha+1.5+2*nterms) : 2*int(nterms);
+        const double startOrder = alpha >= -0.5 ? alpha + 0.5 - int(alpha+0.5) : alpha + 0.5;
+        const int nBesselVals = alpha >= -0.5 ? int(alpha+1.5+2*nterms) : 2*int(nterms);
         ASKAPASSERT(nBesselVals > 0);
         ASKAPASSERT(int(nBesselVals) >= 2*int(nterms)+int(alpha+0.5));
 
@@ -290,7 +341,7 @@ public:
              diag[k/2-1] = bufB[k-2];
              // sub-diagonal has one less element, exclude the last one
              if (k<2*matrSize) {
-                 sdiag2[k/2-1] = bufA[k] * bufC[k-2];
+                 sdiag2[k/2] = bufA[k] * bufC[k-2];
              }
         }
         const double eVal = smallestEigenValue(diag,sdiag2);
@@ -307,11 +358,106 @@ public:
                  coeffs[elem] = 0.;
              }
         }  
+        std::cout<<coeffs<<std::endl;
         // and bootstrap all coefficients using the ratios and the first arbitrary defined element
         for (casa::uInt elem = 1; elem<coeffs.nelements(); ++elem) {
              coeffs[elem] *= coeffs[elem-1];
         }
       }
+      
+      /// @brief fill matrix which has the same eigenvalues/vectors as the original problem
+      /// @details See equation (20) in Aquino and Casta\~no (2002)
+      /// @param[in] B matrix to fill (should already be sized to required number of terms)
+      /// @param[in] c bandwidth of the prolate spheroidal function
+      /// @param[in] m parameter m of the prolate spheroidal function Smn(c,eta)
+      /// @param[in] rEven true, if series starts from r=0, false if from r=1 (n-m of Smn is even or odd)
+      static void fillHelperMatrix(casa::Matrix<double> &B, const double c,int m, bool rEven) {
+          ASKAPASSERT(B.nrow() == B.ncolumn());
+          ASKAPASSERT(B.nrow() > 1);
+          const double cSquared = c*c;
+          for (casa::uInt row = 0; row<B.nrow(); ++row) {
+               const int r = int(row)*2 + (rEven ? 0 : 1);
+               const int l = r + m; // order of Legendre function P_l^m
+               B(row,row) = double(l*(l+1)) + cSquared*(double(2*l+3)*(l+m)*(l-m)+double(2*l-1)*(l+m+1)*(l-m+1)) /
+                               (double(2*l+1)*(2*l-1)*(2*l+3));
+               if (row>=1) {
+                   B(row,row-1) = cSquared/double(2*l-1)*sqrt(double(l+m)*(l+m-1)*(l-m)*(l-m-1)/(double(2*l+1)*(2*l-3)));
+               }
+               if (row+1<B.nrow()) {
+                   B(row,row+1) = cSquared/double(2*l+3)*sqrt(double(l+m+1)*(l+m+2)*(l-m+1)*(l-m+2)/
+                                  (double(2*l+1)*(2*l+5)));
+               }
+               
+          }
+      }      
+      
+      /// @brief coefficients in Legendre series
+      /// @details This method solves eigenvalue problem and obtains eigenvector corresponding to
+      /// the smallest eigenvalue (for function Smn(c,eta) this means n=0). Coefficients are in the same order
+      /// as elements of matrix B, i.e. in steps of 2 starting from even or odd depending whether n-m is even or odd
+      /// @param[in] B matrix to solve
+      /// @param[in] coeffs output coefficients for Legendre series (to be resized to match the size of B)
+      /// @return eigenvalue
+      /// @note an exception is thrown if there is an error solving eigensystem
+      static double legendreCoeffs(const casa::Matrix<double> &B, casa::Vector<double> &coeffs) 
+      {
+         ASKAPASSERT(B.nrow() == B.ncolumn());
+         coeffs.resize(B.nrow());
+         
+         gsl_matrix *A = gsl_matrix_alloc(B.nrow(),B.nrow());
+         gsl_matrix *eVec = gsl_matrix_alloc(B.nrow(),B.nrow());
+         //gsl_matrix_set_zero(A);         
+         gsl_eigen_symmv_workspace *work = gsl_eigen_symmv_alloc(B.nrow());
+         gsl_vector *eVal = gsl_vector_alloc(coeffs.nelements());
+
+         // fill the matrix (a bit of an overkill, but it is faster to reuse existing code
+         // than to write something for tridiagonal matrix)
+         for (casa::uInt row = 0; row<B.nrow(); ++row) {
+              for (casa::uInt col = 0; col<B.ncolumn(); ++col) {
+                   gsl_matrix_set(A, row, col, B(row,col));
+              }
+         }
+         
+         const int status = gsl_eigen_symmv(A,eVal,eVec,work);
+         double result = -1.;
+         casa::uInt optIndex = 0;
+         if (status == GSL_SUCCESS) {
+             for (casa::uInt elem = 0; elem<coeffs.nelements(); ++elem) {
+                  const double val = gsl_vector_get(eVal,elem);
+                  if ((elem == 0) || (val<result)) {
+                      result = val;
+                      optIndex = elem;
+                  }
+             }
+         }
+         
+         // extract the appropriate eigenvector
+         for (size_t i=0; i<B.nrow(); ++i) {
+              coeffs[i] = gsl_matrix_get(eVec,i,optIndex);                             
+         }         
+
+         gsl_matrix_free(A);         
+         gsl_matrix_free(eVec);         
+         gsl_eigen_symmv_free(work);
+         gsl_vector_free(eVal);
+         
+         ASKAPCHECK(status == GSL_SUCCESS, "Error solving eigenproblem in legendreCoeffs, status="<<status);
+         
+         /*
+         // consistency check
+         casa::Vector<double> test(coeffs.nelements(),0);
+         for (size_t i=0;i<coeffs.nelements(); ++i) {
+              for (size_t k=0;k<coeffs.nelements(); ++k) {
+                   test[i]+=B(i,k)*coeffs[k];
+              }
+              test[i]-=result*coeffs[i];
+         }
+         std::cout<<test<<std::endl;
+         */
+         
+         return result;         
+      }
+    
       
       /// @brief smallest eigenvalue of a symmetric tridiagonal matrix
       /// @details This helper method finds the smallest eigenvalue of a symmetric tridiagonal
@@ -333,8 +479,7 @@ public:
          // than to write something for tridiagonal matrix)
          for (casa::uInt elem = 0; elem<diag.nelements(); ++elem) {
               gsl_matrix_set(A, elem, elem, diag[elem]);
-              gsl_matrix_set(A, elem, elem, diag[elem]);
-              if (elem + 1 < diag.nelements()) {
+              if (elem + 1 < diag.nelements()!=0) {
                   ASKAPASSERT(sdiag2[elem]>=0.);
                   gsl_matrix_set(A, elem, elem+1, sqrt(abs(sdiag2[elem])));              
                   gsl_matrix_set(A, elem+1, elem, sqrt(abs(sdiag2[elem])));              
