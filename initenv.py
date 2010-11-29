@@ -1,9 +1,8 @@
 ## @file
-# Script which creates a shell script that sets CONRAD specific environment
-# variables. This is similar to AutoBuild bashrc, but intended for 
-# developer use.
+# Script which creates a shell script that sets ASKAPsoft specific environment
+# variables.  It is intended for developer use.
 #
-# copyright (c) 2007 CONRAD. All Rights Reserved.
+# copyright (c) 2007 CSIRO. All Rights Reserved.
 # @author Malte Marquarding <Malte.Marquarding@csiro.au>
 #
 import sys
