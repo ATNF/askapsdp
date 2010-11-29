@@ -5,10 +5,11 @@
 # copyright (c) 2007 CSIRO. All Rights Reserved.
 # @author Malte Marquarding <Malte.Marquarding@csiro.au>
 #
-import sys
 import os
-from distutils.sysconfig import get_python_inc
+import subprocess
+import sys
 
+from distutils.sysconfig import get_python_inc
 from optparse import OptionParser
 
 parser = OptionParser()
@@ -23,6 +24,13 @@ parser.add_option("-s", "--shell", dest="shell", action="store", type="choice",
 invoked_path = sys.argv[0]
 absolute_path = os.path.abspath(invoked_path)
 os.chdir(os.path.dirname(absolute_path))
+
+
+if sys.platform == 'darwin':
+    proc = subprocess.Popen(['/usr/libexec/java_home'], shell=False,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    java_home = proc.communicate()[0]
+
 
 bashinit = """\
 ASKAP_ROOT=%s
@@ -101,6 +109,14 @@ setenv PYLINTRC "${ASKAP_ROOT}/pylintrc"
 setenv ANT_HOME "${ASKAP_ROOT}/share/ant"
 
 """  % os.getcwd()
+
+
+if java_home:
+   tcshinit += 'setenv JAVA_HOME %s\n' % java_home
+   bashinit += '''
+JAVA_HOME=%s
+export JAVA_HOME
+''' % java_home
 
 shmap = {
         "bash" : { "suffix": "sh",  "init" : ".",      "file" : bashinit },
