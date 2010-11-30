@@ -25,7 +25,7 @@ invoked_path = sys.argv[0]
 absolute_path = os.path.abspath(invoked_path)
 os.chdir(os.path.dirname(absolute_path))
 
-
+java_home = ''
 if sys.platform == 'darwin':
     proc = subprocess.Popen(['/usr/libexec/java_home'], shell=False,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
