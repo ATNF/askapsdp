@@ -31,7 +31,6 @@
 #include "askap/AskapError.h"
 #include "casa/aips.h"
 #include "casa/Arrays/Vector.h"
-#include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Cube.h"
 #include "measures/Measures/MDirection.h"
 
@@ -44,7 +43,7 @@ TosMetadataAntenna::TosMetadataAntenna(const casa::String& name,
                                        const casa::uInt& nPol) :
         itsName(name), itsNumCoarseChannels(nCoarseChannels),
         itsNumBeams(nBeams), itsNumPol(nPol), itsFrequency(0.0),
-        itsPhaseTrackingCentre(nBeams, nCoarseChannels),
+        itsPhaseTrackingCentre(nBeams),
         itsPolarisationOffset(0.0), itsOnSource(false),
         itsHwError(true),
         itsFlagDetailed(nBeams, nCoarseChannels, nPol, false),
@@ -112,21 +111,17 @@ void TosMetadataAntenna::scanId(const casa::String& val)
     itsScanId = val;
 }
 
-casa::MDirection TosMetadataAntenna::phaseTrackingCentre(const casa::uInt& beam,
-        const casa::uInt& coarseChannel) const
+casa::MDirection TosMetadataAntenna::phaseTrackingCentre(const casa::uInt& beam) const
 {
     checkBeam(beam);
-    checkCoarseChannel(coarseChannel);
-    return itsPhaseTrackingCentre(beam, coarseChannel);
+    return itsPhaseTrackingCentre(beam);
 }
 
 void TosMetadataAntenna::phaseTrackingCentre(const casa::MDirection& val,
-        const casa::uInt& beam,
-        const casa::uInt& coarseChannel)
+        const casa::uInt& beam)
 {
     checkBeam(beam);
-    checkCoarseChannel(coarseChannel);
-    itsPhaseTrackingCentre(beam, coarseChannel) = val;
+    itsPhaseTrackingCentre(beam) = val;
 }
 
 casa::Double TosMetadataAntenna::polarisationOffset(void) const

@@ -113,9 +113,8 @@ class MetadataConverterTest : public CppUnit::TestFixture {
                 ant.hwError(hwError);
 
                 for (casa::uInt beam = 0; beam < nBeam; ++beam) {
+                    ant.phaseTrackingCentre(testDir, beam);
                     for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-                        ant.phaseTrackingCentre(testDir, beam, coarseChan);
-
                         for (casa::uInt pol = 0; pol < nPol; ++pol) {
                             ant.flagDetailed(flag, beam, coarseChan, pol);
                             ant.systemTemp(systemTemp, beam, coarseChan, pol);
@@ -208,8 +207,8 @@ class MetadataConverterTest : public CppUnit::TestFixture {
                 for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
 
                     // phaseTrackingCentre
-                    verifyDir(srcAnt.phaseTrackingCentre(beam, coarseChan),
-                              resultAnt.phaseTrackingCentre(beam, coarseChan));
+                    verifyDir(srcAnt.phaseTrackingCentre(beam),
+                              resultAnt.phaseTrackingCentre(beam));
 
                     for (casa::uInt pol = 0; pol < nPol; ++pol) {
                         // flagDetailed

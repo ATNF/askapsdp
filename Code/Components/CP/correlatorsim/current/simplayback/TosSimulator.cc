@@ -161,10 +161,8 @@ bool TosSimulator::sendNext(void)
         antMetadata.scanId(ss.str());
 
         // <antenna name>.phase_tracking_centre
-        for (casa::uInt coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-            for (casa::uInt beam = 0; beam < nBeam; ++beam) {
-                antMetadata.phaseTrackingCentre(direction, beam, coarseChan);
-            }
+        for (casa::uInt beam = 0; beam < nBeam; ++beam) {
+            antMetadata.phaseTrackingCentre(direction, beam);
         }
 
         // <antenna name>.polarisation_offset 

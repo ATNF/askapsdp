@@ -55,22 +55,12 @@ askap::cp::TosMetadata MetadataConverter::convert(const askap::interfaces::TimeT
     // polarisations before the askap::cp::TosMetadata object can be
     // instantiated
     const casa::Int nCoarseChan = srcMapper.getInt("n_coarse_chan");
-    const std::vector<casa::Int> nBeam = srcMapper.getIntSeq("n_beams");
+    const casa::Int nBeam = srcMapper.getInt("n_beams");
     const casa::Int nPol = srcMapper.getInt("n_pol");
     const casa::Int nAntenna = srcMapper.getInt("n_antennas");
 
-    // Ensure nBeams is the same for all coarse channels. Currently this code
-    // nor the TosMetadata object support differing beam counts per coarse
-    // channel
-    for (unsigned int i = 0; i < nBeam.size(); ++i) {
-        if (nBeam[i] != nBeam[0]) {
-            ASKAPTHROW(AskapError,
-                    "Error: No support for coarse channels dependent number of beams");
-        }
-    }
-
     // A copy of this object will be returned from this method
-    TosMetadata dest(nCoarseChan, nBeam[0], nPol);
+    TosMetadata dest(nCoarseChan, nBeam, nPol);
 
     // time
     dest.time(srcMapper.getLong("time"));
@@ -123,9 +113,7 @@ askap::interfaces::TimeTaggedTypedValueMap MetadataConverter::convert(const aska
     destMapper.setInt("n_antennas", nAntenna);
 
     // n_beams
-    std::vector<casa::Int> nBeamsVec;
-    nBeamsVec.assign(nCoarseChan, nBeam);
-    destMapper.setIntSeq("n_beams", nBeamsVec);
+    destMapper.setInt("n_beams", nBeam);
 
     // n_pol
     destMapper.setInt("n_pol", nPol);
@@ -196,16 +184,15 @@ void MetadataConverter::convertAntenna(unsigned int antId,
     // appropriate indexing
  
     // <antenna name>.phase_tracking_centre
-    std::vector<casa::MDirection> ptcVector(nBeam * nCoarseChan);
+    std::vector<casa::MDirection> ptcVector(nBeam);
     // <antenna name>.flag.detailed
     std::vector<casa::Bool> flagVector(nBeam * nCoarseChan * nPol);
     // <antenna name>.system_temp
     std::vector<casa::Float> systemTempVec(nBeam * nCoarseChan * nPol);
 
     for (unsigned int beam = 0; beam < nBeam; ++beam) {
+        ptcVector[beam] = antenna.phaseTrackingCentre(beam);
         for (unsigned int coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-            const int idxMatrix = beam + ((nBeam) * coarseChan);
-            ptcVector[idxMatrix] = antenna.phaseTrackingCentre(beam, coarseChan);
             for (unsigned int pol = 0; pol < nPol; ++pol) {
                 const unsigned int idxCube = beam + ((nBeam) * coarseChan) +
                                             ((nBeam * nCoarseChan) * pol);
@@ -236,8 +223,7 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
     // polarisations before the askap::cp::TosMetadata object can be
     // instantiated
     const casa::Int nCoarseChan = srcMapper.getInt("n_coarse_chan");
-    const std::vector<casa::Int> nBeamVec = srcMapper.getIntSeq("n_beams");
-    const casa::Int nBeam = nBeamVec[0];
+    const casa::Int nBeam = srcMapper.getInt("n_beams");
     const casa::Int nPol = srcMapper.getInt("n_pol");
 
     const unsigned int id = dest.addAntenna(antennaName);
@@ -278,12 +264,9 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
         srcMapper.getFloatSeq(makeMapKey(antennaName, "system_temp"));
 
     for (casa::Int beam = 0; beam < nBeam; ++beam) {
+        // phase_tracking_centre
+        ant.phaseTrackingCentre(ptcVector[beam], beam);
         for (casa::Int coarseChan = 0; coarseChan < nCoarseChan; ++coarseChan) {
-
-            // phase_tracking_centre
-            const int idxMatrix = beam + (nBeam * coarseChan);
-            ant.phaseTrackingCentre(ptcVector[idxMatrix], beam, coarseChan);
-
             for (casa::Int pol = 0; pol < nPol; ++pol) {
                 // flag.detailed
                 const unsigned int idxCube = beam + ((nBeam) * coarseChan) +

@@ -117,25 +117,18 @@ class TosMetadataAntennaTest : public CppUnit::TestFixture {
 
             for (uInt beam = 0; beam < instance->nBeams(); ++beam) {
                 for (uInt chan = 0; chan < instance->nCoarseChannels(); ++chan) {
-                    instance->phaseTrackingCentre(testDir, beam, chan); // Set
+                    instance->phaseTrackingCentre(testDir, beam); // Set
 
                     // Check
                     CPPUNIT_ASSERT(directionsEqual(testDir,
-                                instance->phaseTrackingCentre(beam, chan)));
+                                instance->phaseTrackingCentre(beam)));
                 }
             }
 
             // Request an invalid beam (index out of bounds)
             // Ask for beam 36 where range is 0..35
             CPPUNIT_ASSERT_THROW(
-                    instance->phaseTrackingCentre(instance->nBeams() + 1, 0),
-                    askap::AskapError);
-
-
-            // Request an invalid coarse channel (index out of bounds)
-            // Ask for beam 304 where range is 0..303
-            CPPUNIT_ASSERT_THROW(
-                    instance->phaseTrackingCentre(0, instance->nCoarseChannels() + 1),
+                    instance->phaseTrackingCentre(instance->nBeams() + 1),
                     askap::AskapError);
         };
 

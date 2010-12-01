@@ -30,7 +30,6 @@
 // ASKAPsoft includes
 #include "casa/aips.h"
 #include "casa/Arrays/Vector.h"
-#include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Cube.h"
 #include "measures/Measures/MDirection.h"
 
@@ -123,16 +122,13 @@ class TosMetadataAntenna {
         ///
         /// @param[in] beam the beam for which the phase tracking centre is
         ///     desired.
-        /// @param[in] coarseChannel    the coarse channel for which the phase
-        ///     tracking centre is desired.
         ///
         /// @throw AskapError if the value of beam or coarseChannel is invalid
         ///     for this antenna.
         ///
         /// @return the phase tracking centre for the given beam and coarse
         ///     channel.
-        casa::MDirection phaseTrackingCentre(const casa::uInt& beam,
-                                             const casa::uInt& coarseChannel) const;
+        casa::MDirection phaseTrackingCentre(const casa::uInt& beam) const;
 
         /// @brief Set the phase tracking centre for a given beam and
         /// coarse channel.
@@ -143,15 +139,12 @@ class TosMetadataAntenna {
         ///
         /// @param[in] beam the beam for which the phase tracking centre is
         ///     to be set.
-        /// @param[in] coarseChannel    the coarse channel for which the phase
-        ///     tracking centre is to be set.
         /// @param[in] val 
         ///
         /// @throw AskapError if the value of beam or coarseChannel is invalid
         ///     for this antenna.
         void phaseTrackingCentre(const casa::MDirection& val,
-                                 const casa::uInt& beam,
-                                 const casa::uInt& coarseChannel);
+                                 const casa::uInt& beam);
 
         /// @brief Get the polarisation offset.
         /// @return the polarisation offset (in radians).
@@ -323,8 +316,8 @@ class TosMetadataAntenna {
         /// The TOS scan id the antenna is currently performing.
         casa::String itsScanId;
 
-        /// The phase tracking centre, per beam and per coarse channel.
-        casa::Matrix<casa::MDirection> itsPhaseTrackingCentre;
+        /// The phase tracking centre, per beam.
+        casa::Vector<casa::MDirection> itsPhaseTrackingCentre;
 
         /// The polarisation offset (in Radians).
         casa::Double itsPolarisationOffset;
