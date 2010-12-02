@@ -50,7 +50,7 @@ namespace scimath {
 /// iterations over such images (plane by plane). 
 /// @note This class is relatively generic and can be moved to a higher level (i.e. to Base), 
 /// if needed somewhere else.
-/// @ingroup measurementequation
+/// @ingroup utils
 struct MultiDimArrayPlaneIter : protected casa::ArrayPositionIterator {
    
    /// @brief setup the iterator
