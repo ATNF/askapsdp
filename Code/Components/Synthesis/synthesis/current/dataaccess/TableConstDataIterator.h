@@ -67,7 +67,7 @@ namespace synthesis {
 /// This is an implementation in the table-based case.
 /// @ingroup dataaccess_tab
 class TableConstDataIterator : virtual public IConstDataIterator,
-                               virtual protected TableInfoAccessor
+                               virtual public TableInfoAccessor
 {
 public:
   /// @brief constructor of the const iterator
