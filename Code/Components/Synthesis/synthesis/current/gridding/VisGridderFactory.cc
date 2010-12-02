@@ -39,8 +39,7 @@ ASKAP_LOGGER(logger, ".gridding");
 // RVU
 #include <gridding/VisWeightsMultiFrequency.h>
 
-//#include <casa/OS/DynLib.h>        // for dynamic library loading
-#include <gridding/DynLib.h>        // for dynamic library loading
+#include <casa/OS/DynLib.h>        // for dynamic library loading
 #include <casa/BasicSL/String.h>   // for downcase
 
 
@@ -69,16 +68,16 @@ namespace synthesis {
     if (it == theirRegistry.end()) {
       // Unknown gridder. Try to load the data manager from a dynamic library
       // with that lowercase name (without possible template extension).
-      std::string tp(toLower(name));
-      const std::string::size_type pos = tp.find ('<');
+      std::string libname(toLower(name));
+      const std::string::size_type pos = libname.find_first_of (".<");
       if (pos != std::string::npos) {
-        tp = tp.substr (0, pos);      // only take before <
+        libname = libname.substr (0, pos);      // only take before . or <
       }
       // Try to load the dynamic library and execute its register function.
       // Do not dlclose the library.
       ASKAPLOG_INFO_STR(logger, "Gridder "<<name<<
                  " is not in the registry, attempting to load it dynamically");
-      casa::DynLib dl(tp, string("libaskap_"), "register_"+tp, false);
+      casa::DynLib dl(libname, string("libaskap_"), "register_"+libname, false);
       if (dl.getHandle()) {
         // Successfully loaded. Get the creator function.
         ASKAPLOG_INFO_STR(logger, "Dynamically loaded gridder " << name);
