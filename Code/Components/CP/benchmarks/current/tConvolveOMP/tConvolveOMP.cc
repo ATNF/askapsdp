@@ -30,6 +30,7 @@
 #include <complex>
 #include <vector>
 #include <algorithm>
+#include <limits>
 
 // OpenMP includes
 #include <omp.h>
@@ -57,6 +58,7 @@ using std::abs;
 typedef double Coord;
 typedef float Real;
 typedef std::complex<Real> Value;
+
 
 /////////////////////////////////////////////////////////////////////////////////
 // The next two functions are the kernel of the gridding/degridding.
@@ -358,6 +360,16 @@ void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
 
 }
 
+// Return a pseudo-random integer in the range 0..2147483647
+// Based on an algorithm in Kernighan & Ritchie, "The C Programming Language"
+static unsigned long next = 1;
+int randomInt()
+{
+    const unsigned int maxint = std::numeric_limits<int>::max();
+    next = next * 1103515245 + 12345;
+    return ((unsigned int)(next / 65536) % maxint);
+}
+
 // Main testing routine
 int main()
 {
@@ -379,10 +391,12 @@ int main()
     std::vector<Value> cpuoutdata(nSamples*nChan);
     std::vector<Value> ompoutdata(nSamples*nChan);
 
+    const unsigned int maxint = std::numeric_limits<int>::max();
+
     for (int i = 0; i < nSamples; i++) {
-        u[i] = baseline * Coord(rand()) / Coord(RAND_MAX) - baseline / 2;
-        v[i] = baseline * Coord(rand()) / Coord(RAND_MAX) - baseline / 2;
-        w[i] = baseline * Coord(rand()) / Coord(RAND_MAX) - baseline / 2;
+        u[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
+        v[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
+        w[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
 
         for (int chan = 0; chan < nChan; chan++) {
             data[i*nChan+chan] = 1.0;

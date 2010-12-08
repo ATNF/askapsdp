@@ -261,13 +261,13 @@ void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
 }
 
 // Return a pseudo-random integer in the range 0..2147483647
-// This is based on an algorithm in
-// Kernighan, B., Ritchie, D., "The C Programming Language"
+// Based on an algorithm in Kernighan & Ritchie, "The C Programming Language"
 static unsigned long next = 1;
-int localRand()
+int randomInt()
 {
+    const unsigned int maxint = std::numeric_limits<int>::max();
     next = next * 1103515245 + 12345;
-    return((unsigned int)(next / 65536) % 2147483647);
+    return ((unsigned int)(next / 65536) % maxint);
 }
 
 // Main testing routine
@@ -291,10 +291,12 @@ int main()
     std::vector<Value> cpuoutdata(nSamples*nChan);
     std::vector<Value> gpuoutdata(nSamples*nChan);
 
+    const unsigned int maxint = std::numeric_limits<int>::max();
+
     for (int i = 0; i < nSamples; i++) {
-        u[i] = baseline * Coord(localRand()) / Coord(RAND_MAX) - baseline / 2;
-        v[i] = baseline * Coord(localRand()) / Coord(RAND_MAX) - baseline / 2;
-        w[i] = baseline * Coord(localRand()) / Coord(RAND_MAX) - baseline / 2;
+        u[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
+        v[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
+        w[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
 
         for (int chan = 0; chan < nChan; chan++) {
             data[i*nChan+chan] = 1.0;
