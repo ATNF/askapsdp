@@ -25,6 +25,7 @@
 
 // System includes
 #include <stdio.h>
+#include <stdlib.h>
 
 // Local includes
 #include "CudaGridKernel.h"
@@ -86,12 +87,12 @@ __global__ void d_gridKernel(const Complex *data, const int support,
 __host__ __inline__ int gridStep(const int *h_iu, const int *h_iv,
         const int dSize, const int dind, const int sSize)
 {
-    const int maxsamples = 8;  // Maximum number of samples to grid
+    const int maxsamples = 32;  // Maximum number of samples to grid
     for (int step = 1; step <= maxsamples; step++) {
         for (int check = (step - 1); check >= 0; check--) {
             if (!((dind+step) < dSize && (
-                            (h_iu[dind+step] - h_iu[dind+check]) > sSize ||
-                            (h_iv[dind+step] - h_iv[dind+check]) > sSize))) {
+                            abs(h_iu[dind+step] - h_iu[dind+check]) > sSize ||
+                            abs(h_iv[dind+step] - h_iv[dind+check]) > sSize))) {
                 return step;
             }
         }
