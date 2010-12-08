@@ -30,6 +30,7 @@
 #include <complex>
 #include <vector>
 #include <algorithm>
+#include <limits>
 
 // Local includes
 #include "CudaGridder.h"
