@@ -76,7 +76,7 @@ double SpheroidalFunction::operator()(const double nu) const
 /// @param[in] c parameter c of the spheroidal function (bandwidth or a measure of the support size in our case)
 /// @param[in] alpha parameter alpha of the spheroidal function (weighting exponent in our case)
 /// @param[in] nterms number of terms in the decomposition
-SpheroidalFunction::SpheroidalFunction(const double c, const double alpha, const double eta, const casa::uInt nterms) :
+SpheroidalFunction::SpheroidalFunction(const double c, const double alpha, const casa::uInt nterms) :
          itsREven(true), itsAlpha(alpha) 
 {
   ASKAPCHECK(casa::abs(alpha-int(alpha))<1e-6, 
