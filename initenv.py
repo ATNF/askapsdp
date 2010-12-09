@@ -27,9 +27,13 @@ os.chdir(os.path.dirname(absolute_path))
 
 java_home = ''
 if sys.platform == 'darwin':
-    proc = subprocess.Popen(['/usr/libexec/java_home'], shell=False,
+    j_h_exec = '/usr/libexec/java_home'
+    if os.path.exists(j_h_exec):
+        proc = subprocess.Popen([j_h_exec], shell=False,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    java_home = proc.communicate()[0]
+        java_home = proc.communicate()[0]
+    else:
+        java_home = '/Library/Java/Home'
 
 
 bashinit = """\
