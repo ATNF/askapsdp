@@ -1,3 +1,6 @@
+/// @file
+/// $brief Tests of the spheroidal function calculator
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,31 +23,33 @@
 /// along with this program; if not, write to the Free Software
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
+/// 
+#ifndef SPHEROIDAL_FUNCTION_TEST_H
+#define SPHEROIDAL_FUNCTION_TEST_H
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+// cppunit includes
+#include <cppunit/extensions/HelperMacros.h>
+// own includes
+#include <utils/SpheroidalFunction.h>
+#include <askap/AskapError.h>
 
-// Test includes
-#include <MultiDimArrayPlaneIterTest.h>
-#include <FixedSizeCacheTest.h>
-#include <CasaProjectionTest.h>
-#include <ChangeMonitorTest.h>
-#include <PaddingUtilsTest.h>
-#include <PolConverterTest.h>
-#include <SpheroidalFunctionTest.h>
+namespace askap {
 
+namespace scimath {
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::scimath::MultiDimArrayPlaneIterTest::suite());
-    runner.addTest(askap::scimath::FixedSizeCacheTest::suite());
-    runner.addTest(askap::scimath::ChangeMonitorTest::suite());
-    runner.addTest(askap::scimath::PaddingUtilsTest::suite());
-    runner.addTest(askap::scimath::PolConverterTest::suite());
-    runner.addTest(askap::scimath::SpheroidalFunctionTest::suite());
+class SpheroidalFunctionTest : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(SpheroidalFunctionTest);
+  CPPUNIT_TEST(cmpValuesTest);
+  CPPUNIT_TEST_SUITE_END();
+public:
+  void cmpValuesTest() {
+  }
+};
+  
+} // namespace scimath
 
-    bool wasSucessful = runner.run();
+} // namespace askap
 
-    return wasSucessful ? 0 : 1;
-}
+#endif // #ifndef SPHEROIDAL_FUNCTION_TEST_H
+
