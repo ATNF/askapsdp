@@ -96,7 +96,7 @@ protected:
    /// @note coefficients are taken from itsCoeffs, element index r is incremented by two, interpretation
    /// of r depends on itsREven flag, which is true if series starts from r=0, false if from r=1 (n-m of Smn 
    /// is even or odd). Note. that currently this class is only used to generate spheroidal functions
-   /// \psi_{\alpha 0}, i.e. corresponding to a single eigenvector associated with the smallest eigenvalue, so
+   /// psi_{alpha 0}, i.e. corresponding to a single eigenvector associated with the smallest eigenvalue, so
    /// n in Smn is always equal to m and itsREven is always true.
    double sumLegendreSeries(const double x, const int m) const;
    
@@ -105,7 +105,7 @@ protected:
    /// @param[out] B matrix to fill (should already be sized to the required number of terms)
    /// @param[in] c bandwidth of the prolate spheroidal function
    /// @param[in] m parameter m of the prolate spheroidal function Smn(c,eta)
-   /// @note This class is only used to generate spheroidal functions  \psi_{\alpha 0}, i.e. 
+   /// @note This class is only used to generate spheroidal functions  psi_{alpha 0}, i.e. 
    /// those corresponding to a single eigenvector associated with the smallest eigenvalue, so
    /// n in Smn is always equal to m and itsREven is always true. In addition m = alpha. It is
    /// passed as an additional parameter for generality.  
