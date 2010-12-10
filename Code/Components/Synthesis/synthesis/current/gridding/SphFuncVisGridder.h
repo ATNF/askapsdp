@@ -30,6 +30,7 @@
 
 #include <gridding/TableVisGridder.h>
 #include <dataaccess/IConstDataAccessor.h>
+#include <utils/SpheroidalFunction.h>
 
 namespace askap
 {
@@ -53,7 +54,9 @@ namespace askap
 			public:
 
 				/// @brief Standard two dimensional gridding
-				SphFuncVisGridder();
+				/// @param[in] support support size in pixels (spheroidal function with m=2*support will be generated)
+				/// @param[in] oversample number of oversampling planes
+				SphFuncVisGridder(int support = 3, int oversample = 128);
 
 				virtual ~SphFuncVisGridder();
 
@@ -92,8 +95,11 @@ namespace askap
 
 				/// Calculate prolate spheroidal function
 				/// @param nu Argument for spheroidal function
+				//inline double grdsf(double nu) const { return itsSphFunc(nu);}
 				double grdsf(double nu);
-
+				
+				/// @brief calculator of spheroidal function
+				scimath::SpheroidalFunction itsSphFunc;
 		};
 
 	}

@@ -21,16 +21,27 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
+#include <askap/AskapError.h>
+
 #include <gridding/SphFuncVisGridder.h>
 #include <casa/Arrays/ArrayIter.h>
+
 
 namespace askap
 {
   namespace synthesis
   {
-
-    SphFuncVisGridder::SphFuncVisGridder()
+    /// @brief Standard two dimensional gridding
+    /// @param[in] support support size in pixels (spheroidal function with m=2*support will be generated)
+    /// @param[in] oversample number of oversampling planes
+    SphFuncVisGridder::SphFuncVisGridder(int support, int oversample) : itsSphFunc(casa::C::pi*support, 1.)
     {
+       ASKAPASSERT(support>=3);
+       ASKAPASSERT(oversample>=1);       
+       itsOverSample = oversample;
+       itsSupport = support;
     }
 
     SphFuncVisGridder::~SphFuncVisGridder()
@@ -44,9 +55,14 @@ namespace askap
 	/// method receives a subset of parameters where the gridder name is already
 	/// taken out. 
 	/// @return a shared pointer to the gridder instance
-	IVisGridder::ShPtr SphFuncVisGridder::createGridder(const LOFAR::ParameterSet&)
+	IVisGridder::ShPtr SphFuncVisGridder::createGridder(const LOFAR::ParameterSet &parset)
 	{
-	  return IVisGridder::ShPtr(new SphFuncVisGridder());
+	  const int oversample=parset.getInt32("oversample", 128);
+	  const int support=parset.getInt32("support", 3);
+	  ASKAPLOG_INFO_STR(logger, "Setting up spheroidal function gridder with support="<<
+	                    support<<" and oversample="<<oversample);
+	                    
+	  return IVisGridder::ShPtr(new SphFuncVisGridder(support,oversample));
 	}    
 
     /// Clone a copy of this Gridder
@@ -63,16 +79,13 @@ namespace askap
     /// could be optimized by using symmetries.
     void SphFuncVisGridder::initConvolutionFunction(const IConstDataAccessor&)
     {
-      if(itsSupport==3) {
+      if(itsConvFunc.size() != 0) {
          // a rather poor way of checking that convolution function has already been initialised 
          return;
       }
-      itsSupport=3;
-      itsOverSample=128;
       itsConvFunc.resize(itsOverSample*itsOverSample);
 
       const int cSize=2*itsSupport+1; // 7;
-      //const int cCenter=itsSupport; // 3
 
       /// This must be changed for non-MFS
 
@@ -141,7 +154,8 @@ namespace askap
         it.next();
       }
     }
-
+    
+    
     // find spheroidal function with m = 6, alpha = 1 using the rational
                   // approximations discussed by fred schwab in 'indirect imaging'.
                   // this routine was checked against fred's sphfn routine, and agreed
@@ -206,6 +220,6 @@ namespace askap
                     value=0.0;
                     return value;
                   }
-
+                 
                 }
               }
