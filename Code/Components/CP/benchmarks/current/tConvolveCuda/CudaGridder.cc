@@ -57,6 +57,14 @@ void gridKernelCuda(const std::vector< std::complex<float> >& data, const int su
         std::vector< std::complex<float> >& grid, const int gSize,
         double &time)
 {
+    // Report the type of device being used
+    int device;
+    cudaDeviceProp devprop;
+    cudaGetDevice(&device);
+    cudaGetDeviceProperties(&devprop, device);
+    std::cout << "\tUsing CUDA Device " << device << ": "
+        << devprop.name << std::endl;
+
     // Need to convert all std::vectors to C arrays for CUDA, then call
     // the kernel exec function. NOTE: The std::vector is the only STL
     // container which you can treat as an array like we do here.
@@ -129,6 +137,14 @@ void degridKernelCuda(const std::vector< std::complex<float> >& grid,
         std::vector< std::complex<float> >& data,
         double &time)
 {
+    // Report the type of device being used
+    int device;
+    cudaDeviceProp devprop;
+    cudaGetDevice(&device);
+    cudaGetDeviceProperties(&devprop, device);
+    std::cout << "\tUsing CUDA Device " << device << ": "
+        << devprop.name << std::endl;
+
     // Need to convert all std::vectors to C arrays for CUDA, then call
     // the kernel exec function. NOTE: The std::vector is the only STL
     // container which you can treat as an array like we do here.

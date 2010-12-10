@@ -28,11 +28,6 @@
 
 #include <cuComplex.h>
 
-struct MyComplex {
-	float real;
-	float imag;
-};
-
 typedef cuComplex Complex;
 
 __host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int support,

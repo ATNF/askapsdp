@@ -22,10 +22,15 @@
 //
 // @author Ben Humphreys <ben.humphreys@csiro.au>
 // @author Tim Cornwell  <tim.cornwell@csiro.au>
+//
+// Acknowledgement:
+// Mark Harris of NVIDIA contributed the below version of the degridding code.
+// This was a significant speedup from the original version.
 
 // System includes
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 // Local includes
 #include "CudaGridKernel.h"
@@ -119,29 +124,56 @@ __host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int s
     // non-overlapping samples are gridded.
 	//
 	// Gridding multiple points is better because giving the GPU more
-	// work to do allows it to hide memory latency better. The call to
+    // work to do allows it to hide memory latency better. The call to
     // d_gridKernel() is asynchronous so subsequent calls to gridStep()
     // overlap with the actual gridding.
-	for (int dind = 0; dind < dSize; dind += step) {
+    int count = 0;
+    for (int dind = 0; dind < dSize; dind += step) {
         step = gridStep(h_iu, h_iv, dSize, dind, sSize);
-   		dim3 gridDim(sSize, step);
-		d_gridKernel<<< gridDim, sSize >>>(data, support,
-			C, cOffset, iu, iv, grid, gSize, dind);
-           	checkError();
-	}
+        dim3 gridDim(sSize, step);
+        d_gridKernel<<< gridDim, sSize >>>(data, support,
+                C, cOffset, iu, iv, grid, gSize, dind);
+        checkError();
+        count++;
+    }
+    printf("\tUsed %d kernel launches\n", count);
+}
+
+template <int support>
+__device__ Complex sumReduceWarpComplex(Complex val)
+{
+    const int offset = 2*support;
+    volatile __shared__ float vals[offset*2];
+
+    int i = threadIdx.x;
+    int lane = i & 31;
+    vals[i]           = val.x;
+    vals[i+offset] = val.y;
+
+    float v = val.x;
+    if (lane >= 16)
+    {
+        i += offset;
+        v = val.y;
+    }
+
+    vals[i] = v = v + vals[i + 16];
+    vals[i] = v = v + vals[i +  8];
+    vals[i] = v = v + vals[i +  4];
+    vals[i] = v = v + vals[i +  2];
+    vals[i] = v = v + vals[i +  1];
+
+    return make_cuComplex(vals[threadIdx.x], vals[threadIdx.x + offset]);
 }
 
 // Perform De-Gridding (Device Function)
-__global__ void d_degridKernel(const Complex *grid, const int gSize, const int support,
+template <int support>
+//__launch_bounds__(2*support+1, 8)
+__global__ void d_degridKernel(const Complex *grid, const int gSize,
                 const Complex *C, const int *cOffset,
                 const int *iu, const int *iv,
-                Complex  *data, const int dind,
-		int row)
+                Complex  *data, const int dind)
 {
-    // Private data for each thread. Eventually summed by the
-    // master thread (i.e. threadIdx.x == 0).
-    __shared__ Complex s_data[cg_maxSupport];
-    s_data[threadIdx.x] = make_cuFloatComplex(0, 0);
 
     const int l_dind = dind + blockIdx.x;
 
@@ -156,60 +188,90 @@ __global__ void d_degridKernel(const Complex *grid, const int gSize, const int s
     }
     __syncthreads();
 
-    // Make a local copy from shared memory
-    int gind = s_gind;
-    int cind = s_cind;
+    Complex original = data[l_dind];
 
-    // row gives the support location in the v direction
     const int sSize = 2 * support + 1;
-    gind += gSize * row;
-    cind += sSize * row;
 
-    // threadIdx.x gives the support location in the u dirction
-    s_data[threadIdx.x] = cuCmulf(grid[gind+threadIdx.x], C[cind+threadIdx.x]);
+    #pragma unroll 8
+    // row gives the support location in the v direction
+    for (int row = 0; row < sSize; ++row)
+    {
+        // Make a local copy from shared memory
+        int gind = s_gind + gSize * row;
+        int cind = s_cind + sSize * row;
 
-    // Sum all the private data elements and accumulate to the
-    // device memory
-    __syncthreads();
-    if (threadIdx.x == 0) {
-        Complex sum = make_cuFloatComplex(0, 0);
-        Complex original;
-        original = data[l_dind];
-        #pragma unroll 129
-        for (int i = 0; i < sSize; ++i) {
-            sum = cuCaddf(sum, s_data[i]);
+        Complex sum = cuCmulf(grid[gind+threadIdx.x], C[cind+threadIdx.x]);
+
+        // compute warp sums
+        int i = threadIdx.x;
+        if (i < sSize - 1)
+            sum = sumReduceWarpComplex<support>(sum);
+
+        const int numWarps = (2 * support) / 32;
+        __shared__ Complex s_data[numWarps + 1];
+
+        int warp = i / 32;
+        int lane = threadIdx.x & 31;
+
+        if (lane == 0)
+            s_data[warp] = sum;
+
+        __syncthreads();
+
+        // combine warp sums 
+        if (i == 0)
+        {
+#pragma unroll
+            for (int w = 1; w < numWarps+1; w++)
+                sum = cuCaddf(sum, s_data[w]);
+
+            original = cuCaddf(original, sum);
         }
-        original = cuCaddf(original, sum);
-        data[l_dind] = original;
     }
+
+    if (threadIdx.x == 0)
+        data[l_dind] = original;
 }
 
 // Perform De-Gridding (Host Function)
 __host__ void cuda_degridKernel(const Complex *grid, const int gSize, const int support,
-                const Complex *C, const int *cOffset,
-                const int *iu, const int *iv,
-                Complex  *data, const int dSize)
+        const Complex *C, const int *cOffset,
+        const int *iu, const int *iv,
+        Complex  *data, const int dSize)
 {
-    cudaFuncSetCacheConfig(d_degridKernel, cudaFuncCachePreferL1);
-
     const int sSize = 2 * support + 1;
-	if (sSize > cg_maxSupport) {
-		printf("Support size of %d exceeds max support size of %d\n",
-			sSize, cg_maxSupport);
-	}
+    if (sSize > cg_maxSupport) {
+        printf("Support size of %d exceeds max support size of %d\n",
+                sSize, cg_maxSupport);
+    }
 
-	int dimGrid = 16384;	// is starting size, will be reduced as required
-	for (int dind = 0; dind < dSize; dind += dimGrid) {
-		if ((dSize - dind) < dimGrid) {
+    // Compute grid dimensions based on number of multiprocessors to ensure 
+    // as much balance as possible
+    int device;
+    cudaGetDevice(&device);
+    cudaDeviceProp devprop;
+    cudaGetDeviceProperties(&devprop, device);
+
+    int count = 0;
+    int dimGrid = 1024 * devprop.multiProcessorCount; // is starting size, will be reduced as required
+    for (int dind = 0; dind < dSize; dind += dimGrid) {
+        if ((dSize - dind) < dimGrid) {
             // If there are less than dimGrid elements left,
             // just do the remaining
             dimGrid = dSize - dind;
         }
 
-        for (int row = 0; row < sSize; ++row) {
-            d_degridKernel<<< dimGrid, sSize >>>(grid, gSize, support,
-                    C, cOffset, iu, iv, data, dind, row);
-            checkError();
+        count++;
+        switch (support)
+        {
+            case 64:
+                d_degridKernel<64><<< dimGrid, sSize >>>(grid, gSize,
+                        C, cOffset, iu, iv, data, dind);
+                break;
+            default:
+                assert(0);
         }
+        checkError();
     }
+    printf("\tUsed %d kernel launches\n", count);
 }
