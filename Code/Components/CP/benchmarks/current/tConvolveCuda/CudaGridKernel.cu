@@ -35,9 +35,6 @@
 // Local includes
 #include "CudaGridKernel.h"
 
-// Constants
-static const int cg_maxSupport = 256;
-
 // Check and report last error
 __host__ __inline__ void checkError(void)
 {
@@ -136,7 +133,7 @@ __host__ void cuda_gridKernel(const Complex  *data, const int dSize, const int s
         checkError();
         count++;
     }
-    printf("\tUsed %d kernel launches\n", count);
+    printf("    Used %d kernel launches\n", count);
 }
 
 template <int support>
@@ -174,7 +171,6 @@ __global__ void d_degridKernel(const Complex *grid, const int gSize,
                 const int *iu, const int *iv,
                 Complex  *data, const int dind)
 {
-
     const int l_dind = dind + blockIdx.x;
 
     // The actual starting grid point
@@ -240,10 +236,6 @@ __host__ void cuda_degridKernel(const Complex *grid, const int gSize, const int 
         Complex  *data, const int dSize)
 {
     const int sSize = 2 * support + 1;
-    if (sSize > cg_maxSupport) {
-        printf("Support size of %d exceeds max support size of %d\n",
-                sSize, cg_maxSupport);
-    }
 
     // Compute grid dimensions based on number of multiprocessors to ensure 
     // as much balance as possible
@@ -273,5 +265,5 @@ __host__ void cuda_degridKernel(const Complex *grid, const int gSize, const int 
         }
         checkError();
     }
-    printf("\tUsed %d kernel launches\n", count);
+    printf("    Used %d kernel launches\n", count);
 }

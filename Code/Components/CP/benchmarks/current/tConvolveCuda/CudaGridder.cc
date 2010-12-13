@@ -62,7 +62,7 @@ void gridKernelCuda(const std::vector< std::complex<float> >& data, const int su
     cudaDeviceProp devprop;
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&devprop, device);
-    std::cout << "\tUsing CUDA Device " << device << ": "
+    std::cout << "    Using CUDA Device " << device << ": "
         << devprop.name << std::endl;
 
     // Need to convert all std::vectors to C arrays for CUDA, then call
@@ -142,7 +142,7 @@ void degridKernelCuda(const std::vector< std::complex<float> >& grid,
     cudaDeviceProp devprop;
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&devprop, device);
-    std::cout << "\tUsing CUDA Device " << device << ": "
+    std::cout << "    Using CUDA Device " << device << ": "
         << devprop.name << std::endl;
 
     // Need to convert all std::vectors to C arrays for CUDA, then call
