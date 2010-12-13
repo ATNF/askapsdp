@@ -261,7 +261,7 @@ class Antenna:
 		if self.elevation < -0.99e9:
 			return False
 		return True
-	
+
 	def padName(self):
 		return "Pad%02d" %(self.pad)
 
@@ -278,16 +278,16 @@ class AntennaList:
 			if len(row) < 19 or len(row[0]) == 0:
 				continue
 			pad = int(row[0])
-			name = row[1]
+			name = row[2]
 			if configType == "nominal":
-				self.antennas[pad] = Antenna(pad, name, float(row[3]), float(row[4]), -1.0e9, zone, hemisphere)
+				self.antennas[pad] = Antenna(pad, name, float(row[4]), float(row[5]), -1.0e9, zone, hemisphere)
 			elif configType == "proposed":
-				self.antennas[pad] = Antenna(pad, name, float(row[9]), float(row[10]), -1.0e9, zone, hemisphere)
+				self.antennas[pad] = Antenna(pad, name, float(row[10]), float(row[11]), -1.0e9, zone, hemisphere)
 			else:
-				if len(row[16]) > 0:
-					self.antennas[pad] = Antenna(pad, name, float(row[16]), float(row[17]), float(row[18]), zone, hemisphere)
+				if len(row[17]) > 0:
+					self.antennas[pad] = Antenna(pad, name, float(row[17]), float(row[18]), float(row[19]), zone, hemisphere)
 				else:
-					self.antennas[pad] = Antenna(pad, name, float(row[9]), float(row[10]), -1.0e9, zone, hemisphere)
+					self.antennas[pad] = Antenna(pad, name, float(row[10]), float(row[11]), -1.0e9, zone, hemisphere)
 
 		for ant in self.antennas.values():
 			if ant.hasEl() == False:
@@ -313,6 +313,13 @@ class AntennaList:
 			x, y, z = self.antennas[antnum].toITRF()
 			print "antennas.%s.%s = [%f, %f, %f]" %(self.config.name, self.antennas[antnum].padName(), x, y, z)
 
+	def dumplatlong(self):
+		print "Pad,easting,northing,long,lat"
+		for antnum in self.config.antennas:
+			antnum = self.config.antennas[i]
+			lat, lon, el = self.antennas[antnum].toWGS84()
+			print "%d,%f,%f,%16.12f,%16.12f" %(antnum + 1, self.antennas[antnum].easting, self.antennas[antnum].northing, lon * Rad2Deg, lat * Rad2Deg)
+
 class AntennaConfig:
 	def __init__(self, name, antennas):
 		self.name = name
@@ -328,6 +335,7 @@ if len(sys.argv) != 3 or not string.upper(sys.argv[1]) in config or not string.l
 	print "Usage:\n%s [A27CR3P6B | A27CR3 | BETA] [nominal | proposed | installed]" %(sys.argv[0])
 	sys.exit(1)
 
-antennas = AntennaList(config[string.upper(sys.argv[1])], string.lower(sys.argv[2]), "ASKAP_config_A27CR3P6B.csv", 50, "south")
+antennas = AntennaList(config[string.upper(sys.argv[1])], string.lower(sys.argv[2]), "ASKAP Antenna Locations Master File.csv", 50, "south")
 
 antennas.dump()
+#antennas.dumplatlong()
