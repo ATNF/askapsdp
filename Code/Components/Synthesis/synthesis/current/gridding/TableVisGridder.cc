@@ -317,7 +317,7 @@ void TableVisGridder::save(const std::string& name) {
 	                      if ( (x - xOff < 0) || (y - yOff < 0) ) {
 	                           continue;
 	                      }
-	                      imgBuffer(x,y,plane) = casa::real(thisCF(x - xOff,y - yOff));
+	                      imgBuffer(x,y,plane) = casa::abs(thisCF(x - xOff,y - yOff));
 	                      if (peakVal < imgBuffer(x,y,plane)) {
 	                           peakX = x;
 	                           peakY = y;
