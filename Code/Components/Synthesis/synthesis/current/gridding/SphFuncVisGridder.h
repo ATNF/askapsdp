@@ -56,7 +56,7 @@ namespace askap
 				/// @brief Standard two dimensional gridding
 				/// @param[in] support support size in pixels (spheroidal function with m=2*support will be generated)
 				/// @param[in] oversample number of oversampling planes
-				SphFuncVisGridder(int support = 3, int oversample = 128);
+				explicit SphFuncVisGridder(int support = 3, int oversample = 128);
 
 				virtual ~SphFuncVisGridder();
 
@@ -95,8 +95,9 @@ namespace askap
 
 				/// Calculate prolate spheroidal function
 				/// @param nu Argument for spheroidal function
-				//inline double grdsf(double nu) const { return itsSphFunc(nu);}
-				double grdsf(double nu);
+				inline double grdsf(double nu) const { return itsSphFunc(nu); }
+				    
+				//double grdsf1(double nu) const;
 				
 				/// @brief calculator of spheroidal function
 				scimath::SpheroidalFunction itsSphFunc;

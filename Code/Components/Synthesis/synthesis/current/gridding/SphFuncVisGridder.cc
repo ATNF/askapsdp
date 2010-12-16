@@ -127,12 +127,19 @@ namespace askap
       const casa::Int yHalfSize = itsShape(1)/2;
       casa::Vector<double> ccfx(itsShape(0));
       casa::Vector<double> ccfy(itsShape(1));
-      for (int ix=0; ix<itsShape(0); ++ix)
+      ASKAPDEBUGASSERT(itsShape(0)>1);
+      ASKAPDEBUGASSERT(itsShape(1)>1);
+      
+      // deal with this separately because grdsf(-1)=0. using some approximations
+      ccfx(0)=0.;
+      ccfy(0)=0.;
+
+      for (int ix=1; ix<itsShape(0); ++ix)
       {
         const double nux=std::abs(double(ix-xHalfSize))/double(xHalfSize);
         ccfx(ix)=1.0/grdsf(nux);
       }
-      for (int iy=0; iy<itsShape(1); ++iy)
+      for (int iy=1; iy<itsShape(1); ++iy)
       {
         const double nuy=std::abs(double(iy-yHalfSize))/double(yHalfSize);
         ccfy(iy)=1.0/grdsf(nuy);
@@ -155,7 +162,7 @@ namespace askap
       }
     }
     
-    
+    /*
     // find spheroidal function with m = 6, alpha = 1 using the rational
                   // approximations discussed by fred schwab in 'indirect imaging'.
                   // this routine was checked against fred's sphfn routine, and agreed
@@ -163,7 +170,7 @@ namespace askap
                   // the gridding function is (1-nu**2)*grdsf(nu) where nu is the distance
                   // to the edge. the grid correction function is just 1/grdsf(nu) where nu
                   // is now the distance to the edge of the image.
-                  double SphFuncVisGridder::grdsf(double nu)
+                  double SphFuncVisGridder::grdsf1(double nu) const
                   {
 
                     double top, bot, delnusq, nuend;
@@ -220,6 +227,6 @@ namespace askap
                     value=0.0;
                     return value;
                   }
-                 
+                 */
                 }
               }

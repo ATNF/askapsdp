@@ -44,6 +44,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 //#include <measurementequation/SynthesisParamsHelper.h>
+//#include <casa/Arrays/ArrayMath.h>
 
 #include <stdexcept>
 
@@ -191,11 +192,16 @@ namespace askap
              solver1.solveNormalEquations(*params2,q);
              improved = params2->value("image.i.cena");
         }
+        /*
+        casa::Array<float> dbg(improved.shape());
+        casa::convertArray<float,double>(dbg,improved);
+        SynthesisParamsHelper::saveAsCasaImage("dbg.img",dbg);
+        */
         // This only works for the pixels with emission but it's a good test nevertheless
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, npix/2, npix/2, 0, 0))
             -1.0)<0.003);
         CPPUNIT_ASSERT(abs(improved(casa::IPosition(4, 3*npix/8, 7*npix/16, 0,
-            0))-0.700)<0.003);
+            0))-0.700)<0.003);            
       }
 
       void testSolveAntIllum()
