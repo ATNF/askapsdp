@@ -47,6 +47,7 @@ public:
   void cmpValuesTest() {
       // c=pi*m/2, alpha = 1
       SpheroidalFunction sph(casa::C::pi*3, 1);
+      SpheroidalFunction sph2(sph); // test copy contstructor as well
       const size_t nPt = 100;
       //std::ofstream os("dbg.dat");
       // deliberately avoid nu = +/- 1 points
@@ -55,6 +56,7 @@ public:
            // experiments show that the rational approximation is good down to
            // 1e-6, the following condition fails, if threshold is 1e-7 or lower
            CPPUNIT_ASSERT(fabs(grdsf(fabs(nu))-sph(nu))<1e-6);
+           CPPUNIT_ASSERT(fabs(sph2(nu)-sph(nu))<1e-10);
       }
   }
 protected:
