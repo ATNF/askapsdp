@@ -479,7 +479,7 @@ public:
          // than to write something for tridiagonal matrix)
          for (casa::uInt elem = 0; elem<diag.nelements(); ++elem) {
               gsl_matrix_set(A, elem, elem, diag[elem]);
-              if (elem + 1 < diag.nelements()!=0) {
+              if ((elem + 1 < diag.nelements()) != 0) {
                   ASKAPASSERT(sdiag2[elem]>=0.);
                   gsl_matrix_set(A, elem, elem+1, sqrt(abs(sdiag2[elem])));              
                   gsl_matrix_set(A, elem+1, elem, sqrt(abs(sdiag2[elem])));              

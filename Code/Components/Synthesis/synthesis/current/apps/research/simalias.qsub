@@ -15,7 +15,6 @@ imager=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/cimag
 imgstat=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/imgstat.sh
 
 npix=2048
-npix2=4096
 maxsupport=4096
 cell=2arcsec
 os=4
@@ -28,8 +27,8 @@ nfeeds=1
 dosim=true
 donoise=true
 freqdep=true
-#gridder=SphFunc
-gridder=Box
+gridder=SphFunc
+#gridder=Box
 illum=ATCA
 
 modelimage=/work0/cor203/Projects/ASKAP/simulations/models/empty_5arcsec
@@ -46,8 +45,10 @@ configdir=/work0/cor203/Projects/ASKAP/simulations/configs
 csimparset=csimulator.in
 csimlog=csimulator.log
 
-for df in 0.015
-#for df in 0.006 0.007 0.008 0.009 0.010 0.011 0.012 0.013 0.014 0.015 0.016 0.017 0.018 0.019 0.020
+rm -f stats.log
+
+#for df in 0.015
+for df in 0.006 0.007 0.008 0.00900 0.00925 0.00950 0.00975 0.01000 0.01025 0.01050 0.01075 0.011 0.012 0.013 0.014 0.015 0.016 0.017 0.018 0.019 0.020
 do
 
 
@@ -82,7 +83,7 @@ Csimulator.simulation.integrationtime           =       200s
 #
 # Observe source SKADS_S3SEX for 8 hrs with a single channel spectral window, rotating between fields
 Csimulator.observe.number                       =       1
-Csimulator.observe.scan0                        =       [src, Spectral0, -4h, +4h]
+Csimulator.observe.scan0                        =       [src, Spectral0, -5h, +5h]
 #
 # Use a gridder to apply primary beam during the W projection step.
 Csimulator.gridder                                      = ${gridder}
@@ -185,7 +186,6 @@ mv ${cleanim}.restored ${cleanim}.s
 #mv ${cimparsetC}.tmp $cimparsetC
 
 cat >> $cimparsetC <<EOF
-#Cimager.Images.shape                            = [${npix2}, ${npix2}]
 Cimager.gridder.padding                          = 2
 EOF
 
