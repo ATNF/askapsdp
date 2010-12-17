@@ -136,13 +136,13 @@ namespace askap
       {
         const double nux=std::abs(double(ix-xHalfSize))/double(xHalfSize);
         const double val = grdsf(nux);
-        ccfx(ix) = casa::abs(val) > 1e-13 ? 1.0/val : 0.;             
+        ccfx(ix) = casa::abs(val) > 1e-10 ? 1.0/val : 0.;             
       }
       for (int iy=0; iy<itsShape(1); ++iy)
       {
         const double nuy=std::abs(double(iy-yHalfSize))/double(yHalfSize);
         const double val = grdsf(nuy);
-        ccfy(iy) = casa::abs(val) > 1e-13 ? 1.0/val : 0.;                     
+        ccfy(iy) = casa::abs(val) > 1e-10 ? 1.0/val : 0.;                     
       }
 
       casa::ArrayIterator<double> it(grid, 2);
