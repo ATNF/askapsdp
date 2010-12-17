@@ -130,19 +130,19 @@ namespace askap
       ASKAPDEBUGASSERT(itsShape(0)>1);
       ASKAPDEBUGASSERT(itsShape(1)>1);
       
-      // deal with this separately because grdsf(-1)=0. using some approximations
-      ccfx(0)=0.;
-      ccfy(0)=0.;
-
-      for (int ix=1; ix<itsShape(0); ++ix)
+      
+      // note grdsf(-1)=0.
+      for (int ix=0; ix<itsShape(0); ++ix)
       {
         const double nux=std::abs(double(ix-xHalfSize))/double(xHalfSize);
-        ccfx(ix)=1.0/grdsf(nux);
+        const double val = grdsf(nux);
+        ccfx(ix) = casa::abs(val) > 1e-13 ? 1.0/val : 0.;             
       }
-      for (int iy=1; iy<itsShape(1); ++iy)
+      for (int iy=0; iy<itsShape(1); ++iy)
       {
         const double nuy=std::abs(double(iy-yHalfSize))/double(yHalfSize);
-        ccfy(iy)=1.0/grdsf(nuy);
+        const double val = grdsf(nuy);
+        ccfy(iy) = casa::abs(val) > 1e-13 ? 1.0/val : 0.;                     
       }
 
       casa::ArrayIterator<double> it(grid, 2);
