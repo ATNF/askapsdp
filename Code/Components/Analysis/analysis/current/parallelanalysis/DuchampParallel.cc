@@ -344,6 +344,11 @@ namespace askap {
 
                 }
 
+		if(this->itsCube.pars().getFlagNegative()){
+		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Inverting cube");
+		  this->itsCube.invert();
+		}
+
                 if (this->itsCube.pars().getFlagATrous()) {
                     ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing");
                     this->itsCube.ReconCube();
@@ -1402,7 +1407,25 @@ namespace askap {
             /// the terminal and to the results file in the standard Duchamp
             /// manner.
             if (this->isMaster()) {
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
+
+                std::vector<std::string> outtypes = this->itsFitter.fitTypes();
+                outtypes.push_back("best");
+	      
+		if(this->itsCube.pars().getFlagNegative()){
+		  this->itsCube.reInvert();
+
+		  std::vector<sourcefitting::RadioSource>::iterator src;
+		  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
+		    for (size_t t = 0; t < outtypes.size(); t++) {
+		      for(int i=0;i<src->numFits(outtypes[t]);i++){
+			Double f = src->fitset(outtypes[t])[i].flux();
+			src->fitset(outtypes[t])[i].setFlux(f * -1);
+		      }
+		    }
+		  }
+
+		}
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
 
                 this->itsCube.prepareOutputFile();
                 this->itsCube.outputDetectionList();
@@ -1420,11 +1443,9 @@ namespace askap {
                     karmafile.close();
                 }
 
-                std::vector<std::string> outtypes = sourcefitting::availableFitTypes;
-                outtypes.push_back("best");
                 std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
 
-                for (unsigned int t = 0; t < outtypes.size(); t++) {
+                for (size_t t = 0; t < outtypes.size(); t++) {
                     std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsSummaryFile.c_str(), outtypes[t]).c_str());
                     std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
 

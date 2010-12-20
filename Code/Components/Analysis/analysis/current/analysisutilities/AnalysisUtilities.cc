@@ -164,6 +164,8 @@ namespace askap {
             par.setVerbosity(parset.getBool("verbose", false));
             par.setFlagLog(true);
 
+	    par.setFlagNegative(parset.getBool("flagNegative",false));
+
             if (parset.isDefined("beamSize")) {
                 par.setBeamSize(parset.getFloat("beamSize"));
                 ASKAPLOG_WARN_STR(logger, "Parset has beamSize parameter. This is deprecated from Duchamp 1.1.9 onwards - use beamArea instead. Setting beamArea=" << par.getBeamSize());
