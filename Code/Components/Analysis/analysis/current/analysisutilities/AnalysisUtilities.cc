@@ -208,7 +208,7 @@ namespace askap {
 
             par.setFlagStatSec(parset.getBool("flagStatSec", par.getFlagStatSec));
             par.setStatSec(parset.getString("statsec", par.getStatSec()));
-            par.setFlagRobustStats(parset.getBool("flagRobust", par.getFlagRobust()));
+            par.setFlagRobustStats(parset.getBool("flagRobust", par.getFlagRobustStats()));
 	    par.setFlagNegative(parset.getBool("flagNegative",par.getFlagNegative()));
             par.setCut(parset.getFloat("snrCut", par.getCut()));
             if (parset.isDefined("threshold")) {
