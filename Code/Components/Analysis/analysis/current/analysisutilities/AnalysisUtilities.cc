@@ -145,59 +145,95 @@ namespace askap {
             /// function.
             duchamp::Param par;
 
-            par.setImageFile(parset.getString("image"));
-
-            std::string outputfile;
-            outputfile = parset.getString("outfile", "");
-
-            if (outputfile == "") outputfile =  parset.getString("resultsFile", "");
-
-            if (outputfile != "") par.setOutFile(outputfile);
-
+	    if(parset.isDefined("image"))
+	      par.setImageFile(parset.getString("image"));
+	    else if(parset.isDefined("imageFile"))
+	      par.setImageFile(parset.getString("imageFile"));
+	    else
+	      ASKAPLOG_ERROR_STR(logger, "No image defined - use either 'imageFile' or 'image' parameters (the former is for consistency with Duchamp parameters)");
             par.setFlagSubsection(parset.getBool("flagSubsection", false));
-
             if (par.getFlagSubsection())
                 par.setSubsection(parset.getString("subsection", ""));
+	    // flagReconExists
+	    // reconFile
+	    // flagSmoothExists
+	    // smoothFile
+	    // usePrevious
+	    // objectList
 
-            par.setFlagStatSec(parset.getBool("flagStatSec", false));
+            par.setFlagLog(parset.getBool("flagLog",true)); // different from Duchamp default
+	    // logfile
+            std::string outputfile;
+            outputfile = parset.getString("outfile", "");
+            if (outputfile == "") outputfile =  parset.getString("resultsFile", "");
+            if (outputfile != "") par.setOutFile(outputfile);
+	    // flagSeparateHeader
+	    // headerFile
+	    // spectraFile
+	    // flagTextSpectra
+	    // spectraTextFile --> can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
+	    // flagOutputMomentMap
+	    // fileOutputMomentMap
+	    // flagOutputMask
+	    // fileOutputMask
+	    // flagMaskWithObjectNum
+	    // flagOutputSmooth
+	    // fileOutputSmooth
+	    // flagOutputRecon
+	    // fileOutputRecon
+	    // flagOutputResid
+	    // fileOutputResid
+	    // flagVOT
+	    // votfile
+            par.setFlagKarma(parset.getBool("flagKarma", true)); // different from Duchamp default
+	    par.setKarmaFile(parset.getString("karmaFile",par.getKarmaFile()));
+	    par.setFlagMaps(false); // flagMaps
+	    // detectMap
+	    // momentMap
+	    // flagXOutput - not using X
+	    // newFluxUnits - not using - caused confusion...
+	    // precFlux
+	    // precVel
+	    // precSNR
+
+	    //
+
+	    // flagTrim
+	    // flagMW
+	    // minMW
+	    // maxMW
+	    // flagBaseline
+
+	    //
+
+            par.setFlagStatSec(parset.getBool("flagStatSec", par.getFlagStatSec));
             par.setStatSec(parset.getString("statsec", par.getStatSec()));
-            par.setVerbosity(parset.getBool("verbose", false));
-            par.setFlagLog(true);
-
-	    par.setFlagNegative(parset.getBool("flagNegative",false));
-
-            if (parset.isDefined("beamSize")) {
-                par.setBeamSize(parset.getFloat("beamSize"));
-                ASKAPLOG_WARN_STR(logger, "Parset has beamSize parameter. This is deprecated from Duchamp 1.1.9 onwards - use beamArea instead. Setting beamArea=" << par.getBeamSize());
-            }
-
-            par.setBeamSize(parset.getFloat("beamArea", 4.));
-            par.setBeamFWHM(parset.getFloat("beamFWHM", 4.));
-            par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
-            par.setCut(parset.getFloat("snrCut", 4.));
-
+            par.setFlagRobustStats(parset.getBool("flagRobust", par.getFlagRobust()));
+	    par.setFlagNegative(parset.getBool("flagNegative",par.getFlagNegative()));
+            par.setCut(parset.getFloat("snrCut", par.getCut()));
             if (parset.isDefined("threshold")) {
                 par.setFlagUserThreshold(true);
-                par.setThreshold(parset.getFloat("threshold"));
+                par.setThreshold(parset.getFloat("threshold",par.getThreshold()));
             } else {
                 par.setFlagUserThreshold(false);
             }
-
-            par.setFlagAdjacent(parset.getBool("flagAdjacent", par.getFlagAdjacent()));
-            par.setThreshS(parset.getFloat("threshSpatial", par.getThreshS()));
-            par.setThreshV(parset.getFloat("threshVelocity", par.getThreshV()));
-            par.setMinPix(parset.getInt16("minPix", par.getMinPix()));
-            par.setMinChannels(parset.getInt16("minChannels", par.getMinChannels()));
-            par.setFlagKarma(parset.getBool("flagKarma", true));
-            par.setFlagGrowth(parset.getBool("flagGrowth", false));
+            par.setFlagGrowth(parset.getBool("flagGrowth", par.getFlagGrowth()));
             par.setGrowthCut(parset.getFloat("growthCut", par.getGrowthCut()));
-
             if (parset.isDefined("growthThreshold")) {
-                par.setGrowthThreshold(parset.getFloat("growthThreshold"));
-                par.setFlagUserGrowthThreshold(true);
+	      par.setGrowthThreshold(parset.getFloat("growthThreshold",par.getGrowthThreshold()));
+	      par.setFlagUserGrowthThreshold(true);
             }
+            if (parset.isDefined("beamSize")) {
+	      par.setBeamSize(parset.getFloat("beamSize"));
+	      ASKAPLOG_WARN_STR(logger, "Parset has beamSize parameter. This is deprecated from Duchamp 1.1.9 onwards - use beamArea instead. Setting beamArea=" << par.getBeamSize());
+            }
+            par.setBeamSize(parset.getFloat("beamArea", par.getBeamSize()));
+            par.setBeamFWHM(parset.getFloat("beamFWHM", par.getBeamFWHM()));
+	    par.setSearchType(parset.getString("searchType", par.getSearchType()));
 
-            par.setFlagATrous(parset.getBool("flagATrous", false));
+	    //
+
+            par.setFlagATrous(parset.getBool("flagATrous", par.getFlagATrous()));
             par.setReconDim(parset.getInt16("reconDim", par.getReconDim()));
             par.setMinScale(parset.getInt16("scaleMin", par.getMinScale()));
             par.setMaxScale(parset.getInt16("scaleMax", par.getMaxScale()));
@@ -205,14 +241,40 @@ namespace askap {
             par.setFilterCode(parset.getInt16("filterCode", par.getFilterCode()));
             par.filter().define(par.getFilterCode());
 
+	    //
+
             if (par.getFlagATrous()) par.setFlagSmooth(false);
             else par.setFlagSmooth(parset.getBool("flagSmooth", false));
-
             par.setSmoothType(parset.getString("smoothType", par.getSmoothType()));
             par.setHanningWidth(parset.getInt16("hanningWidth", par.getHanningWidth()));
             par.setKernMaj(parset.getFloat("kernMaj", par.getKernMaj()));
             par.setKernMin(parset.getFloat("kernMin", par.getKernMin()));
             par.setKernPA(parset.getFloat("kernPA", par.getKernPA()));
+
+	    // flagFDR? How to deal with distributed case?
+	    // alphaFDR ?
+	    // FDRnumCorChan ?
+
+            par.setFlagAdjacent(parset.getBool("flagAdjacent", par.getFlagAdjacent()));
+            par.setThreshS(parset.getFloat("threshSpatial", par.getThreshS()));
+            par.setThreshV(parset.getFloat("threshVelocity", par.getThreshV()));
+            par.setMinPix(parset.getInt16("minPix", par.getMinPix()));
+            par.setMinChannels(parset.getInt16("minChannels", par.getMinChannels()));
+	    par.setMinVoxels(parset.getInt16("minVoxels", par.getMinVoxels()));
+	    par.setFlagRejectBeforeMerge(parset.getBool("flagRejectBeforeMerge",par.getFlagRejectBeforeMerge()));
+	    par.setFlagTwoStageMerging(parset.getBool("flagTwoStageMerging",par.getFlagTwoStageMerging()));
+
+	    //
+
+            par.setVerbosity(parset.getBool("verbose", false));
+	    // No drawBorders
+	    // No drawBlankEdges
+            par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
+	    par.setSpectralMethod(parset.getString("spectralMethod",par.getSpectralMethod()));
+	    par.setSpectralUnits(parset.getString("spectralUnits",par.getSpectralUnits()));
+	    par.setSortingParam(parset.getString("sortingParam",par.getSortingParam()));
+
+
             par.checkPars();
             return par;
         }

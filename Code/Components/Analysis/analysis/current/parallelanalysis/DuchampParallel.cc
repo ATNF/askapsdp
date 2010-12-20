@@ -171,8 +171,6 @@ namespace askap {
             if (this->itsFitter.numFitTypes() == 0 && this->itsFlagDoFit)
                 ASKAPLOG_WARN_STR(logger, "No valid fit types given, so setting doFit flag to false.");
 
-            this->itsCube.pars().setFlagRobustStats(parset.getBool("flagRobust", true));
-
             if (this->isParallel()) {
                 if (this->isMaster()) {
                     this->itsCube.pars().setLogFile(substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")));
