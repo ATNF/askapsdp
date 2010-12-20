@@ -162,13 +162,13 @@ namespace askap {
 	    // objectList
 
             par.setFlagLog(parset.getBool("flagLog",true)); // different from Duchamp default
-	    // logfile
+	    // logfile - this is defined in DuchampParallel, as it depends on the worker/master number.
             std::string outputfile;
             outputfile = parset.getString("outfile", "");
             if (outputfile == "") outputfile =  parset.getString("resultsFile", "");
             if (outputfile != "") par.setOutFile(outputfile);
-	    // flagSeparateHeader
-	    // headerFile
+	    par.setFlagSeparateHeader(parset.getBool("flagSeparateHeader",par.getFlagSeparateHeader()));
+	    par.setHeaderFile(parset.getString("headerFile",par.getHeaderFile()));
 	    // spectraFile
 	    // flagTextSpectra
 	    // spectraTextFile --> can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
@@ -192,16 +192,16 @@ namespace askap {
 	    // momentMap
 	    // flagXOutput - not using X
 	    // newFluxUnits - not using - caused confusion...
-	    // precFlux
-	    // precVel
-	    // precSNR
+	    par.setPrecFlux(parset.getInt16("precFlux",par.getPrecFlux()));
+	    par.setPrecVel(parset.getInt16("precVel",par.getPrecVel()));
+	    par.setPrecSNR(parset.getInt16("precSNR",par.getPrecSNR()));
 
 	    //
 
 	    // flagTrim
-	    // flagMW
-	    // minMW
-	    // maxMW
+	    par.setFlagMW(parset.getBool("flagMW",par.getFlagMW()));
+	    par.setMinMW(parset.getInt16("minMW",par.getMinMW()));
+	    par.setMaxMW(parset.getInt16("maxMW",par.getMaxMW()));
 	    // flagBaseline
 
 	    //
