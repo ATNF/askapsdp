@@ -241,7 +241,7 @@ void initC(const std::vector<Coord>& freq, const Coord cellSize,
            Coord& wCellSize, std::vector<Value>& C)
 {
     cout << "Initializing W projection convolution function" << endl;
-    support = static_cast<int>(1.5 * sqrt(abs(baseline) * static_cast<Coord>(cellSize)
+    support = static_cast<int>(1.5 * sqrt(std::abs(baseline) * static_cast<Coord>(cellSize)
                                           * freq[0]) / cellSize);
     overSample = 8;
     cout << "Support = " << support << " pixels" << endl;
@@ -380,7 +380,7 @@ int main()
 
     // Don't change any of these numbers unless you know what you are doing!
     const int gSize = 4096; // Size of output grid in pixels
-    const Coord cellSize = 6.0; // Cellsize of output grid in wavelengths
+    const Coord cellSize = 5.0; // Cellsize of output grid in wavelengths
     const int baseline = 2000; // Maximum baseline in meters
 
     // Initialize the data to be gridded
