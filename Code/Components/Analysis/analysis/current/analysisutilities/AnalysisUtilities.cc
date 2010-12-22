@@ -130,6 +130,15 @@ namespace askap {
             return gsl_sf_gamma_inc(ndof / 2., chisq / 2.) / gsl_sf_gamma(ndof / 2.);
         }
 
+      void checkUnusedParameter(const LOFAR::ParameterSet& parset, const std::string &paramName)
+      {
+
+	if(parset.isDefined(paramName)){
+	    ASKAPLOG_WARN_STR(logger, "Parameter '"<<paramName << "' is not used by the ASKAP duchamp implementation");
+	  }
+
+      }
+
         duchamp::Param parseParset(const LOFAR::ParameterSet& parset)
         {
             /// @details
@@ -154,12 +163,12 @@ namespace askap {
             par.setFlagSubsection(parset.getBool("flagSubsection", false));
             if (par.getFlagSubsection())
                 par.setSubsection(parset.getString("subsection", ""));
-	    // flagReconExists
-	    // reconFile
-	    // flagSmoothExists
-	    // smoothFile
-	    // usePrevious
-	    // objectList
+	    checkUnusedParameter(parset,"flagReconExists");	    // 
+	    checkUnusedParameter(parset,"reconFile");// 
+	    checkUnusedParameter(parset,"flagSmoothExists");// 
+	    checkUnusedParameter(parset,"smoothFile");// 
+	    checkUnusedParameter(parset,"usePrevious");// 
+	    checkUnusedParameter(parset,"objectList");// 
 
             par.setFlagLog(parset.getBool("flagLog",true)); // different from Duchamp default
 	    // logfile - this is defined in DuchampParallel, as it depends on the worker/master number.
@@ -169,40 +178,40 @@ namespace askap {
             if (outputfile != "") par.setOutFile(outputfile);
 	    par.setFlagSeparateHeader(parset.getBool("flagSeparateHeader",par.getFlagSeparateHeader()));
 	    par.setHeaderFile(parset.getString("headerFile",par.getHeaderFile()));
-	    // spectraFile
-	    // flagTextSpectra
-	    // spectraTextFile --> can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
-	    // flagOutputMomentMap
-	    // fileOutputMomentMap
-	    // flagOutputMask
-	    // fileOutputMask
-	    // flagMaskWithObjectNum
-	    // flagOutputSmooth
-	    // fileOutputSmooth
-	    // flagOutputRecon
-	    // fileOutputRecon
-	    // flagOutputResid
-	    // fileOutputResid
-	    // flagVOT
-	    // votfile
+	    checkUnusedParameter(parset,"spectraFile");// no graphics
+	    checkUnusedParameter(parset,"flagTextSpectra");// can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
+	    checkUnusedParameter(parset,"spectraTextFile");// can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
+	    checkUnusedParameter(parset,"flagOutputMomentMap");// 
+	    checkUnusedParameter(parset,"fileOutputMomentMap");// 
+	    checkUnusedParameter(parset,"flagOutputMask");// 
+	    checkUnusedParameter(parset,"fileOutputMask");// 
+	    checkUnusedParameter(parset,"flagMaskWithObjectNum");// 
+	    checkUnusedParameter(parset,"flagOutputSmooth");// 
+	    checkUnusedParameter(parset,"fileOutputSmooth");// 
+	    checkUnusedParameter(parset,"flagOutputRecon");// 
+	    checkUnusedParameter(parset,"fileOutputRecon");// 
+	    checkUnusedParameter(parset,"flagOutputResid");// 
+	    checkUnusedParameter(parset,"fileOutputResid");// 
+	    checkUnusedParameter(parset,"");// flagVOT
+	    checkUnusedParameter(parset,"");// votfile
             par.setFlagKarma(parset.getBool("flagKarma", true)); // different from Duchamp default
 	    par.setKarmaFile(parset.getString("karmaFile",par.getKarmaFile()));
 	    par.setFlagMaps(false); // flagMaps
-	    // detectMap
-	    // momentMap
-	    // flagXOutput - not using X
-	    // newFluxUnits - not using - caused confusion...
+	    checkUnusedParameter(parset,"detectMap");//  - not using X
+	    checkUnusedParameter(parset,"momentMap");//  - not using X
+	    checkUnusedParameter(parset,"flagXOutput");//  - not using X
+	    checkUnusedParameter(parset,"newFluxUnits");//  - not using - caused confusion...
 	    par.setPrecFlux(parset.getInt16("precFlux",par.getPrecFlux()));
 	    par.setPrecVel(parset.getInt16("precVel",par.getPrecVel()));
 	    par.setPrecSNR(parset.getInt16("precSNR",par.getPrecSNR()));
 
 	    //
 
-	    // flagTrim
+	    checkUnusedParameter(parset,"flagTrim");// Not clear if this is necessary for our case.
 	    par.setFlagMW(parset.getBool("flagMW",par.getFlagMW()));
 	    par.setMinMW(parset.getInt16("minMW",par.getMinMW()));
 	    par.setMaxMW(parset.getInt16("maxMW",par.getMaxMW()));
-	    // flagBaseline
+	    checkUnusedParameter(parset,"flagBaseline");// Need additional infrastructure to pass baseline values to Master.
 
 	    //
 
@@ -251,9 +260,9 @@ namespace askap {
             par.setKernMin(parset.getFloat("kernMin", par.getKernMin()));
             par.setKernPA(parset.getFloat("kernPA", par.getKernPA()));
 
-	    // flagFDR? How to deal with distributed case?
-	    // alphaFDR ?
-	    // FDRnumCorChan ?
+	    checkUnusedParameter(parset,"flagFDR");// ? How to deal with distributed case?
+	    checkUnusedParameter(parset,"alphaFDR");//  ?
+	    checkUnusedParameter(parset,"FDRnumCorChan");//  ?
 
             par.setFlagAdjacent(parset.getBool("flagAdjacent", par.getFlagAdjacent()));
             par.setThreshS(parset.getFloat("threshSpatial", par.getThreshS()));
@@ -267,8 +276,8 @@ namespace askap {
 	    //
 
             par.setVerbosity(parset.getBool("verbose", false));
-	    // No drawBorders
-	    // No drawBlankEdges
+	    checkUnusedParameter(parset,"drawBorders");// No graphics
+	    checkUnusedParameter(parset,"drawBlankEdges");// No graphics
             par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
 	    par.setSpectralMethod(parset.getString("spectralMethod",par.getSpectralMethod()));
 	    par.setSpectralUnits(parset.getString("spectralUnits",par.getSpectralUnits()));

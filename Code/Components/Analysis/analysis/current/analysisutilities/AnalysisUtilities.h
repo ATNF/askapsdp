@@ -51,6 +51,10 @@ namespace askap {
         /// @ingroup analysisutilities
         float chisqProb(float ndof, float chisq);
 
+        /// @brief Check for the use of a particular parameter in a ParameterSet and warn the user it is not used.
+        /// @ingroup analysisutilities
+	void checkUnusedParameter(const LOFAR::ParameterSet& parset, std::string &paramName);
+
         /// @brief Parse a ParameterSet and define duchamp::param parameters.
         /// @ingroup analysisutilities
         duchamp::Param parseParset(const LOFAR::ParameterSet& parset);

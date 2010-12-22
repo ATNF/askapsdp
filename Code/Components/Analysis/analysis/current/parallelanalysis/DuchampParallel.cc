@@ -1441,6 +1441,13 @@ namespace askap {
                     karmafile.close();
                 }
 
+		if(this->itsCube.pars().getFlagVOT()){
+		  std::ofstream votfile(this->itsCube.pars().getVOTFile().c_str());
+		  this->itsCube.outputDetectionsVOTable(votfile);
+		  votfile.close();
+		}
+
+
                 std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
 
                 for (size_t t = 0; t < outtypes.size(); t++) {
