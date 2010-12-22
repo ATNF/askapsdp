@@ -232,7 +232,7 @@ namespace askap {
 //                         ASKAPLOG_INFO_STR(logger,  "Int. Solution #" << fitloop + 1
 //                                               << ": chisq=" << this->itsFitter.chisquared()
 //                                               << ": Parameters are:");
-                        logparameters(this->itsSolution);
+//                         logparameters(this->itsSolution);
 
                         if (!this->itsFitter.converged()) fitloop = 9999;
                         else {
