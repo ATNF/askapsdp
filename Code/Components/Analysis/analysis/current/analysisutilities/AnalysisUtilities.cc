@@ -193,7 +193,7 @@ namespace askap {
 	    checkUnusedParameter(parset,"flagOutputResid");// 
 	    checkUnusedParameter(parset,"fileOutputResid");// 
 	    par.setFlagVOT(parset.getBool("flagVOT",par.getFlagVOT()));
-	    par.setVOTfile(parset.getString("votFile",par.getVOTfile()));
+	    par.setVOTFile(parset.getString("votFile",par.getVOTFile()));
             par.setFlagKarma(parset.getBool("flagKarma", true)); // different from Duchamp default
 	    par.setKarmaFile(parset.getString("karmaFile",par.getKarmaFile()));
 	    par.setFlagMaps(false); // flagMaps
