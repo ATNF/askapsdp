@@ -88,7 +88,7 @@ class Benchmark {
         std::vector<Sample> samples;
         std::vector<Value> outdata;
 
-        std::vector< std::complex<float> > C;
+        std::vector< Value > C;
         int m_support;
         int overSample;
 

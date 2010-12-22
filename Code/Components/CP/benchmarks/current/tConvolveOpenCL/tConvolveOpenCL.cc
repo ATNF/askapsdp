@@ -186,7 +186,7 @@ void initC(const int nSamples, const std::vector<Coord>& w,
 
 	C.resize(sSize*sSize*overSample*overSample*wSize);
 	cout << "Size of convolution function = " << sSize*sSize*overSample
-		*overSample*wSize*8/(1024*1024) << " MB" << std::endl;
+		*overSample*wSize*sizeof(Value) / (1024*1024) << " MB" << std::endl;
 	cout << "Shape of convolution function = [" << sSize << ", " << sSize << ", "
 		<< overSample << ", " << overSample << ", " << wSize << "]" << std::endl;
 
@@ -351,7 +351,7 @@ int main()
 	}
 
 	// Initialize convolution function and offsets
-	std::vector<std::complex<float> > C;
+	std::vector<Value> C;
 	int support, overSample;
 	std::vector<int> cOffset;
 	// Vectors of grid centers

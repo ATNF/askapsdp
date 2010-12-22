@@ -229,7 +229,7 @@ void Benchmark::initC(const std::vector<Coord>& freq,
 
     C.resize(sSize*sSize*overSample*overSample*wSize);
     std::cout << "Size of convolution function = " << sSize*sSize*overSample
-              *overSample*wSize*8 / (1024*1024) << " MB" << std::endl;
+              *overSample*wSize*sizeof(Value) / (1024*1024) << " MB" << std::endl;
     std::cout << "Shape of convolution function = [" << sSize << ", " << sSize << ", "
                   << overSample << ", " << overSample << ", " << wSize << "]" << std::endl;
 
