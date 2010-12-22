@@ -441,8 +441,8 @@ namespace askap {
                 float dy = this->getYaverage() - this->getYPeak();
 
                 if (hypot(dx, dy) > 2.) {
-		  ASKAPLOG_DEBUG_STR(logger, "Using antipus with " << cmpntlist.size() << " subcomponents");
-		  ASKAPLOG_DEBUG_STR(logger, "Component 0 = " << cmpntlist[0]);
+// 		  ASKAPLOG_DEBUG_STR(logger, "Using antipus with " << cmpntlist.size() << " subcomponents");
+// 		  ASKAPLOG_DEBUG_STR(logger, "Component 0 = " << cmpntlist[0]);
 		  // if this distance is suitably small, add two more
 		  // subcomponents: the "antipus", being the
 		  // rotational reflection of the peak about the
@@ -756,7 +756,7 @@ namespace askap {
                         if (vox == voxelList->end()) failed = true;
                         else f(i) = vox->getF();
 
-                        if (failed) ASKAPLOG_ERROR_STR(logger, "Failed on voxel (" << x << "," << y << "," << z << ")");
+                        if (failed) ASKAPLOG_ERROR_STR(logger, "RadioSource flux allocation failed on voxel (" << x << "," << y << "," << z << ")");
 
                         sigma(i) = this->itsNoiseLevel;
                         curpos(0) = x;
@@ -892,6 +892,8 @@ namespace askap {
                         int maxGauss = std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
 
                         for (int g = 1; g <= maxGauss; g++) {
+			    ASKAPLOG_INFO_STR(logger, "Number of Gaussian components = " << g);
+
                             fit[ctr].setParams(this->itsFitParams);
                             fit[ctr].setNumGauss(g);
                             fit[ctr].setEstimates(cmpntList, this->itsHeader);

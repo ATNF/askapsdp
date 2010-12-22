@@ -220,13 +220,13 @@ namespace askap {
             }
 
             if (workerNum < 0) {
-                ASKAPLOG_INFO_STR(logger, "Master node, so returning input subsection");
+//                 ASKAPLOG_INFO_STR(logger, "Master node, so returning input subsection");
                 return inputSubsection;
             } else {
-                ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << inputSubsection);
+//                 ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << inputSubsection);
                 duchamp::Section inputSec(inputSubsection);
                 inputSec.parse(this->itsFullImageDim);
-                ASKAPLOG_INFO_STR(logger, "Input subsection is OK");
+//                 ASKAPLOG_INFO_STR(logger, "Input subsection is OK");
                 long *sub = new long[this->itsNAxis];
 
                 for (int i = 0; i < this->itsNAxis; i++) sub[i] = 0;
@@ -250,7 +250,7 @@ namespace askap {
                 }
 
                 std::string secstring = "[" + section.str() + "]";
-                ASKAPLOG_INFO_STR(logger, "New subsection to be used is " << secstring);
+//                 ASKAPLOG_INFO_STR(logger, "New subsection to be used is " << secstring);
                 duchamp::Section sec(secstring);
                 sec.parse(this->itsFullImageDim);
                 return sec;

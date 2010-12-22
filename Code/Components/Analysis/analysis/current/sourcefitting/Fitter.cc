@@ -85,7 +85,7 @@ namespace askap {
 
             void Fitter::setEstimates(std::vector<SubComponent> cmpntList, duchamp::FitsHeader &head)
             {
-                ASKAPLOG_DEBUG_STR(logger, "About to set the initial estimates");
+//                 ASKAPLOG_DEBUG_STR(logger, "About to set the initial estimates");
 
                 this->itsFitter.setDimensions(2);
                 this->itsFitter.setNumGaussians(this->itsNumGauss);
@@ -97,7 +97,7 @@ namespace askap {
 
                 for (uInt g = 0; g < this->itsNumGauss; g++) {
                     uInt cmpnt = g % nCmpnt;
-                    ASKAPLOG_DEBUG_STR(logger, "Setting estimate for #" << g << " with " << cmpntList[cmpnt]);
+//                     ASKAPLOG_DEBUG_STR(logger, "Setting estimate for #" << g << " with " << cmpntList[cmpnt]);
                     estimate(g, 0) = cmpntList[cmpnt].peak();
                     estimate(g, 1) = cmpntList[cmpnt].x();
                     estimate(g, 2) = cmpntList[cmpnt].y();
@@ -135,7 +135,7 @@ namespace askap {
                     gauss(estimate(0, 0),
                           estimate(0, 1), estimate(0, 2),
                           estimate(0, 3), estimate(0, 4), estimate(0, 5));
-                    ASKAPLOG_INFO_STR(logger, "Flux of single component estimate = " << gauss.flux() / head.getBeamSize(););
+//                     ASKAPLOG_INFO_STR(logger, "Flux of single component estimate = " << gauss.flux() / head.getBeamSize(););
                 }
             }
 
@@ -229,9 +229,9 @@ namespace askap {
                             this->itsSolution(i, 5) = remainder(this->itsSolution(i, 5), 2.*M_PI);
                         }
 
-                        ASKAPLOG_INFO_STR(logger,  "Int. Solution #" << fitloop + 1
-                                              << ": chisq=" << this->itsFitter.chisquared()
-                                              << ": Parameters are:");
+//                         ASKAPLOG_INFO_STR(logger,  "Int. Solution #" << fitloop + 1
+//                                               << ": chisq=" << this->itsFitter.chisquared()
+//                                               << ": Parameters are:");
                         logparameters(this->itsSolution);
 
                         if (!this->itsFitter.converged()) fitloop = 9999;
@@ -241,7 +241,7 @@ namespace askap {
                                 for (uint i = 0; i < this->itsNumGauss; i++) {
                                     if (this->itsSolution(i, 0) < 0) {
                                         this->itsSolution(i, 0) = 0.;
-                                        ASKAPLOG_INFO_STR(logger, "Setting negative component #" << i + 1 << " to zero flux.");
+//                                         ASKAPLOG_INFO_STR(logger, "Setting negative component #" << i + 1 << " to zero flux.");
                                     }
                                 }
                             }
