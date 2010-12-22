@@ -89,7 +89,7 @@ namespace askap {
 	int xsize= src->boxXsize();
 	int ysize= src->boxYsize();
 	int size=xsize*ysize;
-	ASKAPLOG_DEBUG_STR(logger, "Primary array saving, with size = " << xsize*ysize); 
+	// ASKAPLOG_DEBUG_STR(logger, "Primary array saving, with size = " << xsize*ysize); 
 	this->itsFluxArray = casa::Vector<float>(size);
 	PixelInfo::Object2D spatMap = src->getSpatialMap();
 	
