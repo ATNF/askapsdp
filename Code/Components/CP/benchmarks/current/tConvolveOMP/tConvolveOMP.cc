@@ -31,6 +31,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
+#include <cassert>
 
 // OpenMP includes
 #include <omp.h>
@@ -110,40 +111,56 @@ void gridKernel(const std::vector<Value>& data, const int support,
 }
 
 int gridKernelOMP(const std::vector<Value>& data, const int support,
-                  const std::vector<Value>& C, const std::vector<int>& cOffset,
-                  const std::vector<int>& iu, const std::vector<int>& iv,
-                  std::vector<Value>& grid, const int gSize)
+        const std::vector<Value>& C, const std::vector<int>& cOffset,
+        const std::vector<int>& iu, const std::vector<int>& iv,
+        std::vector<Value>& grid, const int gSize)
 {
     const int sSize = 2 * support + 1;
+    #pragma omp parallel default(shared)
+    {
+        const int tid = omp_get_thread_num();
+        const int nthreads = omp_get_num_threads();
+        assert(gSize % nthreads == 0);
 
-    for (int dind = 0; dind < int(data.size()); ++dind) {
-        // The actual grid point
-        const int gind = iu[dind] + gSize * iv[dind] - support;
-        // The Convoluton function point from which we offset
-        const int cind = cOffset[dind];
+        // Each thread handles one or more rows of the grid. For example,
+        // for 4 threads and a 4096x4096 grid, each thread would handle a
+        // 4096x1024 section, i.e 1024 rows, and all 4096 columns.
+        const int nRowsEach = gSize / nthreads;
+        const int firstRow = tid * nRowsEach;
+        const int lastRow = firstRow + nRowsEach - 1;
 
-        #pragma omp parallel for num_threads(2) \
-            default(shared) \
-            schedule(static, 8)
-        for (int suppv = 0; suppv < sSize; suppv++) {
-            const int l_gind = (suppv * gSize) + gind;
-            const int l_cind = (suppv * sSize) + cind;
+        for (int dind = 0; dind < int(data.size()); ++dind) {
+            // The actual grid point
+            int gind = iu[dind] + gSize * iv[dind] - support;
+            // The Convoluton function point from which we offset
+            int cind = cOffset[dind];
+            int row = iv[dind];
+            for (int suppv = 0; suppv < sSize; suppv++) {
+                if (row < firstRow || row > lastRow) {
+                    row++;
+                    gind += gSize;
+                    cind += sSize;
+                    continue;
+                }
 #ifdef USEBLAS
-            CAXPY(sSize, &data[dind], &C[l_cind], 1, &grid[l_gind], 1);
+                CAXPY(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
 #else
-            Value* gptr = &grid[l_gind];
-            const Value* cptr = &C[l_cind];
-            const Value d = data[dind];
+                Value* gptr = &grid[gind];
+                const Value* cptr = &C[cind];
+                const Value d = data[dind];
 
-            for (int suppu = 0; suppu < sSize; suppu++) {
-                *(gptr++) += d * (*(cptr++));
-            }
-
+                for (int suppu = 0; suppu < sSize; suppu++) {
+                    *(gptr++) += d * (*(cptr++));
+                }
 #endif
+                gind += gSize;
+                cind += sSize;
+                row++;
+            }
         }
-    }
+    } // End omp parallel
 
-    return 2; // Relates to num_threads above
+    return omp_get_max_threads();
 }
 
 // Perform degridding
@@ -254,9 +271,9 @@ void initC(const std::vector<Coord>& freq, const Coord cellSize,
     // suppress aliasing. In practice, we calculate entire function
     // by Fourier transformation. Here we take an approximation that
     // is good enough.
-    int sSize = 2 * support + 1;
+    const int sSize = 2 * support + 1;
 
-    int cCenter = (sSize - 1) / 2;
+    const int cCenter = (sSize - 1) / 2;
 
     C.resize(sSize*sSize*overSample*overSample*wSize);
     cout << "Size of convolution function = " << sSize*sSize*overSample
