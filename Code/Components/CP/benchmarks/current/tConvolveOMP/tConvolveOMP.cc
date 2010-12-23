@@ -120,14 +120,19 @@ int gridKernelOMP(const std::vector<Value>& data, const int support,
     {
         const int tid = omp_get_thread_num();
         const int nthreads = omp_get_num_threads();
-        assert(gSize % nthreads == 0);
 
         // Each thread handles one or more rows of the grid. For example,
         // for 4 threads and a 4096x4096 grid, each thread would handle a
         // 4096x1024 section, i.e 1024 rows, and all 4096 columns.
         const int nRowsEach = gSize / nthreads;
         const int firstRow = tid * nRowsEach;
-        const int lastRow = firstRow + nRowsEach - 1;
+        int lastRow = firstRow + nRowsEach - 1;
+
+        // If there was a remainder, the last thread takes care of it
+        const int remainder = gSize % nthreads;
+        if ((remainder != 0) && (tid == nthreads - 1)) {
+            lastRow += remainder;
+        }
 
         for (int dind = 0; dind < int(data.size()); ++dind) {
             // The actual grid point
@@ -288,11 +293,11 @@ void initC(const std::vector<Coord>& freq, const Coord cellSize,
         for (int osj = 0; osj < overSample; osj++) {
             for (int osi = 0; osi < overSample; osi++) {
                 for (int j = 0; j < sSize; j++) {
-                    double j2 = std::pow((double(j - cCenter) + double(osj) / double(overSample)), 2);
+                    const double j2 = std::pow((double(j - cCenter) + double(osj) / double(overSample)), 2);
 
                     for (int i = 0; i < sSize; i++) {
-                        double r2 = j2 + std::pow((double(i - cCenter) + double(osi) / double(overSample)), 2);
-                        long int cind = i + sSize * (j + sSize * (osi + overSample * (osj + overSample * k)));
+                        const double r2 = j2 + std::pow((double(i - cCenter) + double(osi) / double(overSample)), 2);
+                        const int cind = i + sSize * (j + sSize * (osi + overSample * (osj + overSample * k)));
 
                         if (w != 0.0) {
                             C[cind] = static_cast<Value>(std::cos(r2 / (w * fScale)));
@@ -346,26 +351,26 @@ void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
     for (int i = 0; i < nSamples; i++) {
         for (int chan = 0; chan < nChan; chan++) {
 
-            int dind = i * nChan + chan;
+            const int dind = i * nChan + chan;
 
-            Coord uScaled = freq[chan] * u[i] / cellSize;
+            const Coord uScaled = freq[chan] * u[i] / cellSize;
             iu[dind] = int(uScaled);
 
             if (uScaled < Coord(iu[dind])) {
                 iu[dind] -= 1;
             }
 
-            int fracu = int(overSample * (uScaled - Coord(iu[dind])));
+            const int fracu = int(overSample * (uScaled - Coord(iu[dind])));
             iu[dind] += gSize / 2;
 
-            Coord vScaled = freq[chan] * v[i] / cellSize;
+            const Coord vScaled = freq[chan] * v[i] / cellSize;
             iv[dind] = int(vScaled);
 
             if (vScaled < Coord(iv[dind])) {
                 iv[dind] -= 1;
             }
 
-            int fracv = int(overSample * (vScaled - Coord(iv[dind])));
+            const int fracv = int(overSample * (vScaled - Coord(iv[dind])));
             iv[dind] += gSize / 2;
 
             // The beginning of the convolution function for this point
