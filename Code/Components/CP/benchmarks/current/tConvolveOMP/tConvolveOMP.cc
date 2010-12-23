@@ -121,19 +121,6 @@ int gridKernelOMP(const std::vector<Value>& data, const int support,
         const int tid = omp_get_thread_num();
         const int nthreads = omp_get_num_threads();
 
-        // Each thread handles one or more rows of the grid. For example,
-        // for 4 threads and a 4096x4096 grid, each thread would handle a
-        // 4096x1024 section, i.e 1024 rows, and all 4096 columns.
-        const int nRowsEach = gSize / nthreads;
-        const int firstRow = tid * nRowsEach;
-        int lastRow = firstRow + nRowsEach - 1;
-
-        // If there was a remainder, the last thread takes care of it
-        const int remainder = gSize % nthreads;
-        if ((remainder != 0) && (tid == nthreads - 1)) {
-            lastRow += remainder;
-        }
-
         for (int dind = 0; dind < int(data.size()); ++dind) {
             // The actual grid point
             int gind = iu[dind] + gSize * iv[dind] - support;
@@ -141,23 +128,19 @@ int gridKernelOMP(const std::vector<Value>& data, const int support,
             int cind = cOffset[dind];
             int row = iv[dind];
             for (int suppv = 0; suppv < sSize; suppv++) {
-                if (row < firstRow || row > lastRow) {
-                    row++;
-                    gind += gSize;
-                    cind += sSize;
-                    continue;
-                }
+                if (row % nthreads == tid) {
 #ifdef USEBLAS
-                CAXPY(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
+                    CAXPY(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
 #else
-                Value* gptr = &grid[gind];
-                const Value* cptr = &C[cind];
-                const Value d = data[dind];
+                    Value* gptr = &grid[gind];
+                    const Value* cptr = &C[cind];
+                    const Value d = data[dind];
 
-                for (int suppu = 0; suppu < sSize; suppu++) {
-                    *(gptr++) += d * (*(cptr++));
-                }
+                    for (int suppu = 0; suppu < sSize; suppu++) {
+                        *(gptr++) += d * (*(cptr++));
+                    }
 #endif
+                }
                 gind += gSize;
                 cind += sSize;
                 row++;
