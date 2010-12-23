@@ -23,9 +23,9 @@
 # Need the run the following to setup the environment on xe or vu:
 # module load intel-mkl
 # module load intel-cc
-CXX=/apps/intel-cc/11.1.046/bin/intel64/icpc
-CFLAGS=-O3 -DUSEMKLLIB -DUSEBLAS -openmp
-LIBS=-lmkl -liomp5 -lpthread
+CXX=icpc
+CFLAGS=-O3 -O3 -xS -ip -ipo -openmp -DUSEMKLLIB -DUSEBLAS
+LIBS=-lmkl_rt -liomp5 -L/apps/intel-mkl/10.3.0/lib/em64t
 
 all:		tConvolveOMP
 
