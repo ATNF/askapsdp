@@ -40,18 +40,17 @@
 #include <mpi.h>
 
 // ASKAPsoft includes
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
-#include <casa/OS/Timer.h>
-#include <Blob/BlobIStream.h>
-#include <Blob/BlobIBufVector.h>
-#include <Blob/BlobOStream.h>
-#include <Blob/BlobOBufVector.h>
-#include <mpe.h>
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "casa/OS/Timer.h"
+#include "Blob/BlobIStream.h"
+#include "Blob/BlobIBufVector.h"
+#include "Blob/BlobOStream.h"
+#include "Blob/BlobOBufVector.h"
 
 // Local package includes
-#include <messages/IMessage.h>
-
+#include "messages/IMessage.h"
+#include "distributedimager/common/Tracing.h"
 
 using namespace askap::cp;
 
@@ -93,23 +92,12 @@ MPIBasicComms::MPIBasicComms(int argc, char *argv[])
     ASKAPLOG_PUTCONTEXT("hostname", pname.c_str());
 
     // Init MPE
-    const int nEvents = 6;
-    MPE_Init_log();
-    itsMpeEvents.resize(nEvents);
-    for (int i = 0; i < nEvents; ++i) {
-        itsMpeEvents[i] = MPE_Log_get_event_number();
-    }
-   
-   if (rank == 0) {
-       MPE_Describe_state(itsMpeEvents[0], itsMpeEvents[1], "Send", "red");
-       MPE_Describe_state(itsMpeEvents[2], itsMpeEvents[3], "Receive", "blue");
-       MPE_Describe_state(itsMpeEvents[4], itsMpeEvents[5], "Broadcast", "green");
-   } 
+    Tracing::init();
 }
 
 MPIBasicComms::~MPIBasicComms()
 {
-    MPE_Finish_log("mpe.log");
+    Tracing::finish("mpe.log");
     MPI_Comm_free(&itsCommunicator);
     MPI_Finalize();
 }
@@ -144,9 +132,9 @@ void MPIBasicComms::send(const void* buf, size_t size, int dest, int tag)
 
     // First send the size of the buffer.
     unsigned long lsize = size;  // Promote for simplicity
-    MPE_Log_bare_event(itsMpeEvents[0]);
+    Tracing::entry(Tracing::Send);
     int result = MPI_Send(&lsize, 1, MPI_UNSIGNED_LONG, dest, tag, itsCommunicator);
-    MPE_Log_bare_event(itsMpeEvents[1]);
+    Tracing::exit(Tracing::Send);
     checkError(result, "MPI_Send");
 
     // Send in chunks of size MAXINT until complete
@@ -156,16 +144,16 @@ void MPIBasicComms::send(const void* buf, size_t size, int dest, int tag)
 
         void* addr = addOffset(buf, offset);
         if (remaining >= c_maxint) {
-            MPE_Log_bare_event(itsMpeEvents[0]);
+            Tracing::entry(Tracing::Send);
             result = MPI_Send(addr, c_maxint, MPI_BYTE,
                     dest, tag, itsCommunicator);
-            MPE_Log_bare_event(itsMpeEvents[1]);
+            Tracing::exit(Tracing::Send);
             remaining -= c_maxint;
         } else {
-            MPE_Log_bare_event(itsMpeEvents[0]);
+            Tracing::entry(Tracing::Send);
             result = MPI_Send(addr, remaining, MPI_BYTE,
                     dest, tag, itsCommunicator);
-            MPE_Log_bare_event(itsMpeEvents[1]);
+            Tracing::exit(Tracing::Send);
             remaining = 0;
         }
         checkError(result, "MPI_Send");
@@ -183,10 +171,10 @@ void MPIBasicComms::receive(void* buf, size_t size, int source, int tag, MPI_Sta
     // just the maximum size of the buffer, and hence the maximum
     // number of bytes that can be received.
     unsigned long payloadSize;
-    MPE_Log_bare_event(itsMpeEvents[2]);
+    Tracing::entry(Tracing::Receive);
     int result = MPI_Recv(&payloadSize, 1, MPI_UNSIGNED_LONG,
             source, tag, itsCommunicator, &status);
-    MPE_Log_bare_event(itsMpeEvents[3]);
+    Tracing::exit(Tracing::Receive);
     checkError(result, "MPI_Recv");
 
     // The source parameter may be MPI_ANY_SOURCE, so the actual
@@ -200,16 +188,16 @@ void MPIBasicComms::receive(void* buf, size_t size, int source, int tag, MPI_Sta
         size_t offset = size - remaining;
         void* addr = addOffset(buf, offset);
         if (remaining >= c_maxint) {
-            MPE_Log_bare_event(itsMpeEvents[2]);
+            Tracing::entry(Tracing::Receive);
             result = MPI_Recv(addr, c_maxint, MPI_BYTE,
                     actualSource, tag, itsCommunicator, &status);
-            MPE_Log_bare_event(itsMpeEvents[3]);
+            Tracing::exit(Tracing::Receive);
             remaining -= c_maxint;
         } else {
-            MPE_Log_bare_event(itsMpeEvents[2]);
+            Tracing::entry(Tracing::Receive);
             result = MPI_Recv(addr, remaining, MPI_BYTE,
                     actualSource, tag, itsCommunicator, &status);
-            MPE_Log_bare_event(itsMpeEvents[3]);
+            Tracing::exit(Tracing::Receive);
             remaining = 0;
         }
         checkError(result, "MPI_Recv");
@@ -230,14 +218,14 @@ void MPIBasicComms::broadcast(void* buf, size_t size, int root)
 
         void* addr = addOffset(buf, offset);
         if (remaining >= c_maxint) {
-            MPE_Log_bare_event(itsMpeEvents[4]);
+            Tracing::entry(Tracing::Broadcast);
             result = MPI_Bcast(addr, c_maxint, MPI_BYTE, root, itsCommunicator);
-            MPE_Log_bare_event(itsMpeEvents[5]);
+            Tracing::exit(Tracing::Broadcast);
             remaining -= c_maxint;
         } else {
-            MPE_Log_bare_event(itsMpeEvents[4]);
+            Tracing::entry(Tracing::Broadcast);
             result = MPI_Bcast(addr, remaining, MPI_BYTE, root, itsCommunicator);
-            MPE_Log_bare_event(itsMpeEvents[5]);
+            Tracing::exit(Tracing::Broadcast);
             remaining = 0;
         }
         checkError(result, "MPI_Bcast");

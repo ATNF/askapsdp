@@ -52,6 +52,7 @@
 // Local includes
 #include "distributedimager/common/IBasicComms.h"
 #include "distributedimager/common/DistributedImageSolverFactory.h"
+#include "distributedimager/common/Tracing.h"
 
 // Using
 using namespace askap;
@@ -92,6 +93,8 @@ void SolverCore::addNE(askap::scimath::INormalEquations::ShPtr ne_p)
 
 void SolverCore::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
 {
+    Tracing::entry(Tracing::SolveNE);
+
     casa::Timer timer;
     timer.mark();
 
@@ -124,6 +127,8 @@ void SolverCore::solveNE(askap::scimath::INormalEquations::ShPtr ne_p)
         itsModel->add("peak_residual",peak);
     }
     itsModel->fix("peak_residual");
+
+    Tracing::exit(Tracing::SolveNE);
 }
 
 double SolverCore::getPeakResidual(askap::scimath::INormalEquations::ShPtr ne_p)
@@ -173,6 +178,8 @@ void SolverCore::writeModel(const std::string &postfix)
     ASKAPCHECK(itsModel, "itsModel is not correctly initialized");
     ASKAPCHECK(itsSolver, "itsSolver is not correctly initialized");
 
+    Tracing::entry(Tracing::WriteModel);
+
     SynthesisParamsHelper::setUpImageHandler(itsParset);
 
     ASKAPLOG_INFO_STR(logger, "Writing out results as images");
@@ -217,5 +224,7 @@ void SolverCore::writeModel(const std::string &postfix)
             }
         }
     }
+
+    Tracing::exit(Tracing::WriteModel);
 }
 

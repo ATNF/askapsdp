@@ -57,6 +57,7 @@
 #include "messages/UpdateModel.h"
 #include "messages/PreDifferResponse.h"
 #include "messages/PreDifferRequest.h"
+#include "distributedimager/common/Tracing.h"
 
 using namespace askap::cp;
 using namespace askap::scimath;
@@ -85,7 +86,6 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
     UpdateModel updatemsg;
     itsComms.receiveMessageBroadcast(updatemsg, itsMaster);
     askap::scimath::Params::ShPtr model_p = updatemsg.get_model();
-
 
     // Pointer to measurement equation
     askap::scimath::Equation::ShPtr equation_p;
@@ -144,7 +144,9 @@ askap::scimath::INormalEquations::ShPtr PreDifferWorker::calcNE(askap::scimath::
 
         equation_p = askap::scimath::Equation::ShPtr(new ImageFFTEquation(*model_p, it, itsGridder_p));
         ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
+        Tracing::entry(Tracing::CalcNE);
         equation_p->calcEquations(*itsNormalEquation_p);
+        Tracing::exit(Tracing::CalcNE);
 
         ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for "<< ms << " in "
                 << timer.real() << " seconds ");
