@@ -1,8 +1,8 @@
-Csimulator.dataset                              =       beta.ms
+Csimulator.dataset                              =       beta1.ms
 #
 # Storage manager configuration
 #
-Csimulator.stman.bucketsize                     =       2097152
+Csimulator.stman.bucketsize                     =       1048576
 Csimulator.stman.tilenchan                      =       19
 #
 # The name of the model source is 10uJy. Specify direction and model file
@@ -32,7 +32,7 @@ Csimulator.simulation.integrationtime           =       5s
 # Observe source 10uJy for 12 hours with a single channel spectral window
 #
 Csimulator.observe.number                       =       1
-Csimulator.observe.scan0                        =       [10uJy, Coarse, 0h, 0h01m]
+Csimulator.observe.scan0                        =       [10uJy, Coarse2_0, 0h, 0h01m]
 #
 # Use a gridder to apply primary beam during the W projection step.
 #
@@ -45,4 +45,3 @@ Csimulator.gridder.AWProject.blockage           = 2m
 Csimulator.gridder.AWProject.maxfeeds           = 32
 Csimulator.gridder.AWProject.maxsupport         = 256
 Csimulator.gridder.AWProject.frequencydependent = false
-
