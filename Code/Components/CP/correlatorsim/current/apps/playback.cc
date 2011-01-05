@@ -52,7 +52,6 @@ ASKAP_LOGGER(logger, ".main");
 
 static std::string getNodeName(void)
 {
-    // Also set the nodename
     char name[MPI_MAX_PROCESSOR_NAME];
     int resultlen;
     MPI_Get_processor_name(name, &resultlen);
@@ -80,10 +79,17 @@ int main(int argc, char* argv[])
 
     int error = 0;
     try {
-        // Initialise the logger
-        std::ostringstream ss;
-        ss << argv[0] << ".log_cfg";
-        ASKAPLOG_INIT(ss.str().c_str());
+        // Now we have to initialize the logger before we use it
+        // If a log configuration exists in the current directory then
+        // use it, otherwise try to use the programs default one
+        std::ifstream config("askap.log_cfg", std::ifstream::in);
+        if (config) {
+            ASKAPLOG_INIT("askap.log_cfg");
+        } else {
+            std::ostringstream ss;
+            ss << argv[0] << ".log_cfg";
+            ASKAPLOG_INIT(ss.str().c_str());
+        }
 
         // To aid in debugging, the logger needs to know the
         // MPI rank and nodename
