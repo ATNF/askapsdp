@@ -10,7 +10,7 @@ sleep 2
 
 # Run the ingest pipeline
 echo "Running the testcase..."
-$ASKAP_ROOT/Code/Components/CP/ingest/current/apps/cpingest.sh -inputs cpingest.in
+mpirun -np 2 $ASKAP_ROOT/Code/Components/CP/ingest/current/apps/cpingest.sh -inputs cpingest.in
 STATUS=$?
 echo "Testcase finished"
 

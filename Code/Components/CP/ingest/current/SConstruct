@@ -11,10 +11,15 @@ pkg = env.AskapPackage("cpingest")
 pkg.AddSubPackage("ingestutils")
 pkg.AddSubPackage("ingestpipeline")
 
-env.Append(CCFLAGS=['-Wall'])
-env.Append(CCFLAGS=['-g'])
-env.Append(CCFLAGS=['-O2'])
-env.Append(CCFLAGS=['-DASKAP_DEBUG'])
+env["CC"] = "mpicc"
+env["CXX"] = "mpicxx"
+env["LINK"] = "mpicxx"
+env["SHLINK"] = "mpicxx"
+
+env.AppendUnique(CCFLAGS=['-Wall'])
+env.AppendUnique(CCFLAGS=['-g'])
+env.AppendUnique(CCFLAGS=['-O2'])
+env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
 
 # run the build process
 pkg()

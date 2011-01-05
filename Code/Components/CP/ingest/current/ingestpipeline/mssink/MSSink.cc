@@ -30,6 +30,11 @@
 // Include package level header file
 #include "askap_cpingest.h"
 
+// System includes
+#include <string>
+#include <sstream>
+#include <mpi.h>
+
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
@@ -160,7 +165,13 @@ void MSSink::create(void)
     casa::uInt bucketSize = itsParset.getUint32("stman.bucketsize", 1024 * 1024);
     casa::uInt tileNcorr = itsParset.getUint32("stman.tilencorr", 4);
     casa::uInt tileNchan = itsParset.getUint32("stman.tilenchan", 1);
-    const std::string filename = itsParset.getString("filename");
+    const std::string filenamebase = itsParset.getString("filenamebase");
+
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
+    std::ostringstream ss;
+    ss << filenamebase << rank << ".ms";
+    const std::string filename = ss.str();
 
     if (bucketSize < 8192) {
         bucketSize = 8192;

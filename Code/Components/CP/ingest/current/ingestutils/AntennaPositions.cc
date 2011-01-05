@@ -175,7 +175,7 @@ void AntennaPositions::longlat2global(casa::Vector<double>& xReturned,
         const casa::Vector<double>& yIn,
         const casa::Vector<double>& zIn)
 {
-    ASKAPLOG_INFO_STR(logger, "AntennaPositions::longlat2global not yet implemented");
+    ASKAPLOG_ERROR_STR(logger, "AntennaPositions::longlat2global not yet implemented");
 }
 
 casa::MPosition AntennaPositions::asMPosition(const std::vector<std::string>& position)

@@ -33,15 +33,16 @@
 #include <stdexcept>
 #include <fstream>
 #include <unistd.h>
+#include <mpi.h>
 
 // ASKAPsoft includes
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
-#include <askap/Log4cxxLogSink.h>
-#include <Common/ParameterSet.h>
-#include <CommandLineParser.h>
-#include <casa/Logging/LogIO.h>
-#include <casa/Logging/LogSinkInterface.h>
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "askap/Log4cxxLogSink.h"
+#include "Common/ParameterSet.h"
+#include "CommandLineParser.h"
+#include "casa/Logging/LogIO.h"
+#include "casa/Logging/LogSinkInterface.h"
 
 // Local package includes
 #include "ingestpipeline/IngestPipeline.h"
@@ -54,22 +55,32 @@ ASKAP_LOGGER(logger, ".main");
 
 static std::string getNodeName(void)
 {
-    const int HOST_NAME_MAXLEN = 256;
-    char name[HOST_NAME_MAXLEN];
-    gethostname(name, HOST_NAME_MAXLEN);
+    char name[MPI_MAX_PROCESSOR_NAME];
+    int resultlen;
+    MPI_Get_processor_name(name, &resultlen);
     std::string nodename(name);
-
     std::string::size_type idx = nodename.find_first_of('.');
     if (idx != std::string::npos) {
         // Extract just the hostname part
         nodename = nodename.substr(0, idx);
     }
-
     return nodename;
+}
+
+static std::string getRank(void)
+{
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    std::ostringstream ss;
+    ss << rank;
+    return ss.str();
 }
 
 int main(int argc, char *argv[])
 {
+    MPI_Init(&argc, &argv);
+
+    int error = 0;
     try {
         // Now we have to initialize the logger before we use it
         // If a log configuration exists in the current directory then
@@ -83,9 +94,12 @@ int main(int argc, char *argv[])
             ASKAPLOG_INIT(ss.str().c_str());
         }
 
-        std::string hostname = getNodeName();
+        // To aid in debugging, the logger needs to know the
+        // MPI rank and nodename
+        ASKAPLOG_REMOVECONTEXT("mpirank");
+        ASKAPLOG_PUTCONTEXT("mpirank", getRank().c_str());
         ASKAPLOG_REMOVECONTEXT("hostname");
-        ASKAPLOG_PUTCONTEXT("hostname", hostname.c_str());
+        ASKAPLOG_PUTCONTEXT("hostname", getNodeName().c_str());
 
         ASKAPLOG_INFO_STR(logger, "ASKAP Central Processor Ingest Pipeline - "
                 << ASKAP_PACKAGE_VERSION);
@@ -118,17 +132,23 @@ int main(int argc, char *argv[])
     } catch (const cmdlineparser::XParser& e) {
         ASKAPLOG_ERROR_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;
-        return 1;
+        error = 1;
     } catch (const askap::AskapError& e) {
         ASKAPLOG_ERROR_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
         std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;
-        return 1;
+        error = 1;
     } catch (const std::exception& e) {
         ASKAPLOG_ERROR_STR(logger, "Unexpected exception in " << argv[0] << ": " << e.what());
         std::cerr << "Unexpected exception in " << argv[0] << ": " << e.what()
             << std::endl;
-        return 1;
+        error = 1;
     }
 
-    return 0;
+    if (error) {
+        MPI_Abort(MPI_COMM_WORLD, error);
+    } else {
+        MPI_Finalize();
+    }
+
+    return error;
 }

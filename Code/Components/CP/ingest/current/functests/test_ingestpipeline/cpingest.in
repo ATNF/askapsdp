@@ -476,8 +476,8 @@ cp.ingest.task.CalTask.params.gain.g22.5.35 = [1.0]
 # Measurement Set Sink
 #
 cp.ingest.task.MSSink.type                            = MSSink
-cp.ingest.task.MSSink.params.filename                 = ingest_test.ms
-cp.ingest.task.MSSink.params.stman.bucketsize         = 104448
+cp.ingest.task.MSSink.params.filenamebase             = ingest_test
+cp.ingest.task.MSSink.params.stman.bucketsize         = 1048576
 cp.ingest.task.MSSink.params.stman.tilencorr          = 4
 cp.ingest.task.MSSink.params.stman.tilenchan          = 1
 

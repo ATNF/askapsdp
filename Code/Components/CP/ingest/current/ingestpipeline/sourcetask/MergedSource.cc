@@ -30,6 +30,10 @@
 // Include package level header file
 #include "askap_cpingest.h"
 
+// System includes
+#include <string>
+#include <mpi.h>
+
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
@@ -93,7 +97,9 @@ VisChunk::ShPtr MergedSource::next(void)
     const casa::uInt nCoarseChannels = itsMetadata->nCoarseChannels();
     const casa::uInt nBeams = itsMetadata->nBeams();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
-    const casa::uInt datagramsExpected = nBaselines * nCoarseChannels * nBeams;
+    int numTasks;
+    MPI_Comm_size(MPI_COMM_WORLD, &numTasks);
+    const casa::uInt datagramsExpected = nBaselines * nCoarseChannels * nBeams / numTasks;
     const casa::uInt timeout = itsMetadata->period() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()

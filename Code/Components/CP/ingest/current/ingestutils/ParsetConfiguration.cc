@@ -124,7 +124,7 @@ void ParsetConfiguration::getFeeds(casa::String& mode,
     if (itsParset.isDefined("feeds.spacing")) {
         const casa::Quantity qspacing = asQuantity(itsParset.getString("feeds.spacing"));
         const double spacing = qspacing.getValue("rad");
-        ASKAPLOG_INFO_STR(logger, "Scaling feed specifications by " << qspacing);
+        ASKAPLOG_DEBUG_STR(logger, "Scaling feed specifications by " << qspacing);
         x *= spacing;
         y *= spacing;
     }
