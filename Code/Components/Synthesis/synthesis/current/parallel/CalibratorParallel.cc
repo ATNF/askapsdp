@@ -96,10 +96,7 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
       MEParallelApp(comms,parset), 
       itsPerfectModel(new scimath::Params()), itsSolveGains(false), itsSolveLeakage(false)
-{
-  // set up image handler, needed for both master and worker
-  SynthesisParamsHelper::setUpImageHandler(parset);
-  
+{  
   const std::string what2solve = parset.getString("solve","gains");
   if (what2solve.find("gains") != std::string::npos) {
       ASKAPLOG_INFO_STR(logger, "Gains will be solved for (solve='"<<what2solve<<"')");

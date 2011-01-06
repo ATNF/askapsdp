@@ -54,6 +54,9 @@ MEParallelApp::MEParallelApp(askap::mwbase::AskapParallel& comms, const LOFAR::P
    MEParallel(comms), itsParset(parset),   
    itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6)   
 {
+   // set up image handler, needed for both master and worker
+   SynthesisParamsHelper::setUpImageHandler(parset);
+
    if (itsComms.isWorker()) {
        /// Get the list of measurement sets and the column to use.
        itsDataColName = itsParset.getString("datacolumn", "DATA");

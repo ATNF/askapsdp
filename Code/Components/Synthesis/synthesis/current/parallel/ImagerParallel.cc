@@ -88,10 +88,7 @@ namespace askap
       itsExportSensitivityImage(false), itsExpSensitivityCutoff(0.)
     {
       if (itsComms.isMaster())
-      {
-        // set up image handler
-        SynthesisParamsHelper::setUpImageHandler(parset);
-      
+      {      
         itsRestore=parset.getBool("restore", false);
         
         bool reuseModel = parset.getBool("Images.reuse", false);
