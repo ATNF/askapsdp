@@ -36,7 +36,6 @@
 #include <parallel/ImagerParallel.h>
 
 #include <askap_synthesis.h>
-#include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".measurementequation");
 
@@ -62,7 +61,6 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <utils/MultiDimArrayPlaneIter.h>
 
 #include <measurementequation/ImageSolverFactory.h>
-#include <gridding/VisGridderFactory.h>
 
 #include <casa/aips.h>
 #include <casa/OS/Timer.h>
@@ -87,7 +85,6 @@ namespace askap
     ImagerParallel::ImagerParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
       MEParallelApp(comms,parset),
-      itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6), 
       itsExportSensitivityImage(false), itsExpSensitivityCutoff(0.)
     {
       if (itsComms.isMaster())
@@ -134,20 +131,6 @@ namespace askap
       if (itsComms.isWorker())
       {
         itsGainsFile = parset.getString("gainsfile","");
-        const int cacheSize = parset.getInt32("nUVWMachines",1);
-        ASKAPCHECK(cacheSize > 0 ,"Cache size is supposed to be a positive number, you have "<<cacheSize);
-        itsUVWMachineCacheSize = size_t(cacheSize);
-        itsUVWMachineCacheTolerance = 
-            SynthesisParamsHelper::convertQuantity(parset.getString("uvwMachineDirTolerance", 
-                                                   "1e-6rad"),"rad");
-         
-        ASKAPLOG_INFO_STR(logger, "UVWMachine cache will store "<<itsUVWMachineCacheSize<<" machines");
-        ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "<<itsUVWMachineCacheTolerance/casa::C::pi*180.*3600.<<" arcsec");
-        
-        /// Create the gridder using a factory acting on a
-        /// parameterset
-        itsGridder=VisGridderFactory::make(parset);
-        ASKAPCHECK(itsGridder, "Gridder not defined correctly");
       }
     }
 
@@ -170,7 +153,7 @@ namespace askap
         
         TableDataSource ds(ms, (itsUseMemoryBuffers ? TableDataSource::MEMORY_BUFFERS : TableDataSource::DEFAULT), 
                            dataColumn());
-        ds.configureUVWMachineCache(itsUVWMachineCacheSize,itsUVWMachineCacheTolerance);                   
+        ds.configureUVWMachineCache(uvwMachineCacheSize(),uvwMachineCacheTolerance());                   
         IDataSelectorPtr sel=ds.createSelector();
         sel << parset();
         IDataConverterPtr conv=ds.createConverter();
@@ -179,10 +162,10 @@ namespace askap
         conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
         IDataSharedIter it=ds.createIterator(sel, conv);
         ASKAPCHECK(itsModel, "Model not defined");
-        ASKAPCHECK(itsGridder, "Gridder not defined");
+        ASKAPCHECK(gridder(), "Gridder not defined");
         if (!itsGainsFile.size()) {
             ASKAPLOG_INFO_STR(logger, "No calibration is applied" );
-            itsEquation = askap::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, itsGridder));
+            itsEquation = askap::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, gridder()));
         } else {
             ASKAPLOG_INFO_STR(logger, "Calibration will be performed using gains from '"<<itsGainsFile<<"'");
             
@@ -215,7 +198,7 @@ namespace askap
             
             IDataSharedIter calIter(new CalibrationIterator(it,calME));
             itsEquation = askap::scimath::Equation::ShPtr(
-                          new ImageFFTEquation (*itsModel, calIter, itsGridder));
+                          new ImageFFTEquation (*itsModel, calIter, gridder()));
         }
       }
       else {
@@ -237,7 +220,7 @@ namespace askap
 
       if (itsComms.isWorker())
       {
-        ASKAPCHECK(itsGridder, "Gridder not defined");
+        ASKAPCHECK(gridder(), "Gridder not defined");
         ASKAPCHECK(itsModel, "Model not defined");
         //				ASKAPCHECK(measurementSets().size()>0, "Data sets not defined");
 

@@ -32,7 +32,6 @@
 
 // ASKAPsoft includes
 #include <askapparallel/AskapParallel.h>
-#include <gridding/IVisGridder.h>
 #include <fitting/Solver.h>
 #include <Common/ParameterSet.h>
 
@@ -163,15 +162,6 @@ namespace askap
       /// @details Turining this flag to true allows to work with a read-only dataset
       bool itsUseMemoryBuffers;
       
-      /// @brief uvw machine cache size
-      size_t itsUVWMachineCacheSize;
-      
-      /// @brief direction tolerance (in radians) for uvw machine cache
-      double itsUVWMachineCacheTolerance;
-
-      /// Gridder to be used
-      IVisGridder::ShPtr itsGridder;
-
       /// @brief name of external file with gains to be used
       /// @details An empty string means no calibration
       std::string itsGainsFile;

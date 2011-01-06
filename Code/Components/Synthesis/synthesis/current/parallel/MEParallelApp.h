@@ -37,6 +37,8 @@
 #include <askapparallel/AskapParallel.h>
 #include <Common/ParameterSet.h>
 #include <parallel/MEParallel.h>
+#include <gridding/IVisGridder.h>
+
 
 // std includes
 #include <string>
@@ -77,6 +79,21 @@ protected:
    /// @return reference to the vector of strings with the file names
    inline const std::vector<std::string>& measurementSets() const { return itsMs;}
 
+   /// @brief obtain uvw-machine cache size
+   /// @details to be used in derived classes
+   /// @return number of uvw-machines in the cache
+   inline size_t uvwMachineCacheSize() const { return itsUVWMachineCacheSize; }
+   
+   /// @brief obtain direction tolerance for uvw-machine cache
+   /// @details to be used in derived classes
+   /// @return direction tolerance (in radians) for uvw machine cache
+   inline double uvwMachineCacheTolerance() const { return itsUVWMachineCacheTolerance; }
+   
+   /// @brief obtain gridder
+   /// @details to be used in derived classes
+   /// @return shared pointer to the gridder template
+   inline IVisGridder::ShPtr gridder() const { return itsGridder; }
+   
 private:   
    /// @brief parameter set to get the parameters from
    LOFAR::ParameterSet itsParset;
@@ -85,8 +102,16 @@ private:
    std::string itsDataColName;
 
    /// Names of measurement sets, one per prediffer
-   std::vector<std::string> itsMs;			    			  	
+   std::vector<std::string> itsMs;	
+   
+   /// @brief uvw machine cache size
+   size_t itsUVWMachineCacheSize;
+      
+   /// @brief direction tolerance (in radians) for uvw machine cache
+   double itsUVWMachineCacheTolerance;
 
+   /// @brief gridder to be used
+   IVisGridder::ShPtr itsGridder;		    			  	
 }; 
 
 } // namespace synthesis

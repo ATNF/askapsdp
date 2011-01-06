@@ -152,11 +152,6 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
   if (itsComms.isWorker()) {
       // load sky model, populate itsPerfectModel
       readModels();
- 
-      /// Create the gridder using a factory acting on a
-      /// parameterset
-      itsGridder=VisGridderFactory::make(parset);
-      ASKAPCHECK(itsGridder, "Gridder not defined correctly");
   }
 }
 
@@ -197,6 +192,7 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
   if ((!itsEquation) || discard) {
       ASKAPLOG_INFO_STR(logger, "Creating measurement equation" );
       TableDataSource ds(ms, TableDataSource::DEFAULT, dataColumn());
+      ds.configureUVWMachineCache(uvwMachineCacheSize(),uvwMachineCacheTolerance());      
       IDataSelectorPtr sel=ds.createSelector();
       sel << parset();
       IDataConverterPtr conv=ds.createConverter();
@@ -206,13 +202,13 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
       IDataSharedIter it=ds.createIterator(sel, conv);
       ASKAPCHECK(itsPerfectModel, "Uncorrupted model not defined");
       ASKAPCHECK(itsModel, "Initial assumption of parameters is not defined");
-      ASKAPCHECK(itsGridder, "Gridder not defined");
+      ASKAPCHECK(gridder(), "Gridder not defined");
       if (SynthesisParamsHelper::hasImage(itsPerfectModel)) {
          ASKAPCHECK(!SynthesisParamsHelper::hasComponent(itsPerfectModel),
                  "Image + component case has not yet been implemented");
          // have to create an image-specific equation        
          boost::shared_ptr<ImagingEquationAdapter> ieAdapter(new ImagingEquationAdapter);
-         ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, itsGridder);
+         ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, gridder());
          createCalibrationME(it,ieAdapter);
       } else {
          // model is a number of components, don't need an adapter here

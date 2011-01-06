@@ -39,6 +39,9 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 #include <parallel/MEParallelApp.h>
+#include <measurementequation/SynthesisParamsHelper.h>
+#include <gridding/VisGridderFactory.h>
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -48,7 +51,8 @@ using namespace askap::synthesis;
 /// @param[in] comms communication object
 /// @param[in] parset parameter set
 MEParallelApp::MEParallelApp(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
-   MEParallel(comms), itsParset(parset)
+   MEParallel(comms), itsParset(parset),   
+   itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6)   
 {
    if (itsComms.isWorker()) {
        /// Get the list of measurement sets and the column to use.
@@ -75,7 +79,22 @@ MEParallelApp::MEParallelApp(askap::mwbase::AskapParallel& comms, const LOFAR::P
        if (nNodes>1) {
            ASKAPCHECK(int(itsMs.size()) == (nNodes-1),
               "When running in parallel, need one data set per node");
-       }        
+       } 
+       
+       // configure uvw-machine cache parameters (to be set up via Data Source)
+       const int cacheSize = parset.getInt32("nUVWMachines",1);
+       ASKAPCHECK(cacheSize > 0 ,"Cache size is supposed to be a positive number, you have "<<cacheSize);
+       itsUVWMachineCacheSize = size_t(cacheSize);
+       itsUVWMachineCacheTolerance = 
+           SynthesisParamsHelper::convertQuantity(parset.getString("uvwMachineDirTolerance", 
+                                                   "1e-6rad"),"rad");
+         
+       ASKAPLOG_INFO_STR(logger, "UVWMachine cache will store "<<itsUVWMachineCacheSize<<" machines");
+       ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "<<itsUVWMachineCacheTolerance/casa::C::pi*180.*3600.<<" arcsec");
+        
+       // Create the gridder using a factory acting on a parameterset
+       itsGridder=VisGridderFactory::make(parset);
+       ASKAPCHECK(itsGridder, "Gridder is not defined correctly");              
    }
 }
 

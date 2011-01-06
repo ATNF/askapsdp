@@ -139,9 +139,6 @@ namespace askap
       /// @param[in] ms Name of data set
       /// @param[in] discard Discard old equation?
       void calcOne(const std::string& dataset, bool discard=true);
-
-      /// Gridder to be used
-      IVisGridder::ShPtr itsGridder;
       
       /// uncorrupted model
       askap::scimath::Params::ShPtr itsPerfectModel;
