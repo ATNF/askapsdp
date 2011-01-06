@@ -25,101 +25,253 @@
 
 package askap;
 
-// Log4J imports
-import java.util.HashMap;
+import java.util.*;
 import java.net.InetAddress;
-
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.Level;
+import org.apache.log4j.*;
 import org.apache.log4j.spi.LoggingEvent;
+import IceStorm.*;
+import askap.interfaces.logging.*;
 
-public class IceAppender extends AppenderSkeleton
-{
+/**
+ * log4j wrapper for the Ice logging system. 
+ */
+public class IceAppender extends AppenderSkeleton {
+    /**
+     * The thread which manages the connection and sends messages to the IceStorm topic.
+     */
+    protected static class IceLoggerThread extends Thread {
+        /** The trigger to keep running or shut the thread down. */
+        private boolean itsKeepRunning = true;
+
+        /** Port for the locator service. */
+        private String itsLocatorPort;
+
+        /** Hostname for the locator service. */
+        private String itsLocatorHost;
+
+        /** Name of the IceStorm topic. */
+        private String itsTopicName;
+
+        /** The Ice Communicator. */
+        protected Ice.Communicator itsCommunicator;
+
+        /** The Ice object for sending log messages. */
+        protected ILoggerPrx itsLoggingService;
+
+        /** The maximum number of messages to enqueue if the connection is down. */
+        protected int itsMaxBuffer = 500;
+
+        /** The queue of unsent messages. */
+        protected static Vector<ILogEvent> itsBuffer = new Vector<ILogEvent>();
+
+        public IceLoggerThread(String host, String port, String topic) {
+            itsLocatorHost = host;
+            itsLocatorPort = port;
+            itsTopicName = topic;
+        }
+
+        /** Make the main thread exit. */
+        public void shutdown() {
+            itsKeepRunning = false;
+            synchronized (itsBuffer) {
+                itsBuffer.notify();
+            }
+        }
+
+        /** Main loop of checking the connection and sending messages. */
+        public void run() {
+            while (itsKeepRunning) {
+                try {
+                    synchronized (itsBuffer) {
+                        if (itsBuffer.isEmpty()) {
+                            // Wait for a new log message
+                            itsBuffer.wait();
+                        } else {
+                            // Wait for a bit before attempting reconnection
+                            itsBuffer.wait(1000);
+                        }
+                    }
+                } catch (InterruptedException e) {
+                }
+
+                // Check if connection is up
+                if (!isConnected()) {
+                    // Try to connect
+                    if (!connect()) {
+                        continue;
+                    }
+                }
+
+                // Send all messages in the buffer
+                try {
+                    while (!itsBuffer.isEmpty()) {
+                        // Try to send the next message
+                        ILogEvent event = itsBuffer.get(0);
+                        itsLoggingService.send(event);
+                        itsBuffer.remove(0);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    // An unexpected error, assume communications links is down
+                    try {
+                        itsCommunicator.shutdown();
+                    } catch (Exception f) {
+                    }
+                    itsCommunicator = null;
+                    itsLoggingService = null;
+                }
+            }
+
+            // Final cleanup
+            if (isConnected()) {
+                itsCommunicator.shutdown();
+                itsCommunicator.waitForShutdown();
+            }
+        }
+
+        /** Submit a new message to be logged. */
+        protected void submitLog(ILogEvent event) {
+            synchronized (itsBuffer) {
+                if (itsBuffer.size() < itsMaxBuffer) {
+                    itsBuffer.add(event);
+                    itsBuffer.notify();
+                }
+            }
+        }
+
+        /**
+         * Check if the connection to the service appears valid.
+         * 
+         * @return True if connection is good, False if connection is down.
+         */
+        protected boolean isConnected() {
+            if (itsCommunicator == null || itsCommunicator.isShutdown() || itsLoggingService == null) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        /**
+         * Try to connect to the logging service.
+         * 
+         * @return True if connection made, False if connection failed.
+         */
+        protected boolean connect() {
+            boolean res = false;
+            try {
+                Ice.Properties props = Ice.Util.createProperties();
+                props.setProperty("Ice.Default.Locator", "IceGrid/Locator:tcp -h " + itsLocatorHost + " -p " + itsLocatorPort);
+
+                // Initialize a communicator with these properties.
+                Ice.InitializationData id = new Ice.InitializationData();
+                id.properties = props;
+                itsCommunicator = Ice.Util.initialize(id);
+
+                // Obtain the topic or create
+                TopicManagerPrx topicManager;
+                Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+                topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
+                TopicPrx topic;
+
+                try {
+                    topic = topicManager.retrieve(itsTopicName);
+                } catch (NoSuchTopic e) {
+                    try {
+                        topic = topicManager.create(itsTopicName);
+                    } catch (TopicExists e1) {
+                        topic = topicManager.retrieve(itsTopicName);
+                    }
+                }
+
+                Ice.ObjectPrx pub = topic.getPublisher().ice_twoway();
+                itsLoggingService = ILoggerPrxHelper.uncheckedCast(pub);
+
+                if (itsLoggingService == null) {
+                    itsCommunicator.shutdown();
+                    itsCommunicator = null;
+                } else {
+                    res = true;
+                }
+            } catch (Exception e) {
+                itsCommunicator = null;
+                itsLoggingService = null;
+                res = false;
+            }
+            return res;
+        }
+    }
+
     // Configuration options which should be set automatically by log4j
     // based on the contents of the log config file
     private String itsLocatorPort;
     private String itsLocatorHost;
     private String itsTopic;
     private String itsHostName;
-    
-	private String itsTag;
-
-    // ICE communicator
-    private Ice.Communicator itsIceComm = null;
-
-    // Proxy to the logger
-    private askap.interfaces.logging.ILoggerPrx itsLogService = null;
-
-    // Map all log4j log levels to ASKAP/ICE log levels so a log4j event can be
-    // turned into an ASKAP LogEvent
-    private HashMap<org.apache.log4j.Level,askap.interfaces.logging.LogLevel> itsLevelMap =
-        new HashMap<org.apache.log4j.Level,askap.interfaces.logging.LogLevel>();
+    private String itsTag;
 
     /**
-     * Called automatically by Log4j to set the "Tag"
-     * option.
+     * Map all log4j log levels to ASKAP/ICE log levels so a log4j event can be
+     * turned into an ASKAP LogEvent.
      */
-	public String getTag() {
-		return itsTag;
-	}
+    private HashMap<Level, LogLevel> itsLevelMap = new HashMap<Level, LogLevel>();
 
-	public void setTag(String itsTag) {
-		this.itsTag = itsTag;
-	}
+    /** The thread that does the backend sending over Ice. */
+    private IceLoggerThread itsIceLoggerThread;
 
     /**
-     * Called automatically by Log4j to set the "locator_port"
-     * option.
+     * Called automatically by Log4j to set the "Tag" option.
      */
-    public void setlocator_port(String port)
-    {
-        this.itsLocatorPort = port;
+    public String getTag() {
+        return itsTag;
     }
 
-    public String getlocator_port()
-    {
-        return this.itsLocatorPort;
+    public void setTag(String tag) {
+        itsTag = tag;
     }
 
     /**
-     * Called automatically by Log4j to set the "locator_host"
-     * option.
+     * Called automatically by Log4j to set the "locator_port" option.
      */
-    public void setlocator_host(String host)
-    {
-        this.itsLocatorHost = host;
+    public void setlocator_port(String port) {
+        itsLocatorPort = port;
     }
 
-    public String getlocator_host()
-    {
-        return this.itsLocatorHost;
+    public String getlocator_port() {
+        return itsLocatorPort;
     }
 
     /**
-     * Called automatically by Log4j to set the "topic"
-     * option.
+     * Called automatically by Log4j to set the "locator_host" option.
      */
-    public void settopic(String topic)
-    {
-        this.itsTopic = topic;
+    public void setlocator_host(String host) {
+        itsLocatorHost = host;
     }
 
-    public String gettopic()
-    {
-        return this.itsTopic;
+    public String getlocator_host() {
+        return itsLocatorHost;
     }
 
-    public boolean requiresLayout()
-    {
+    /**
+     * Called automatically by Log4j to set the "topic" option.
+     */
+    public void settopic(String topic) {
+        itsTopic = topic;
+    }
+
+    public String gettopic() {
+        return itsTopic;
+    }
+
+    public boolean requiresLayout() {
         return false;
     }
 
     /**
-     * Simple utility function to ensure the appropriate options
-     * have been set in the configuration file.
+     * Simple utility function to ensure the appropriate options have been set
+     * in the configuration file.
      */
-    private boolean verifyOptions()
-    {
+    private boolean verifyOptions() {
         final String error = "IceAppender: Cannot initialise - ";
 
         if (itsLocatorHost == "") {
@@ -137,25 +289,25 @@ public class IceAppender extends AppenderSkeleton
     }
 
     /**
-     * Called once all the options have been set.
-     * This is where ICE can be initialized and the topic created, since
-     * the configuration options have now been set hence we know the 
-     * locator host, locator port and logger topic name.
+     * Called once all the options have been set. This is where ICE can be
+     * initialized and the topic created, since the configuration options have
+     * now been set hence we know the locator host, locator port and logger
+     * topic name.
      */
-    public void activateOptions()
-    {
+    public void activateOptions() {
         // First ensure host, port and topic are set
         if (!verifyOptions()) {
             return;
         }
-        
+
         try {
-          itsHostName = InetAddress.getLocalHost().getHostName();
+            itsHostName = InetAddress.getLocalHost().getHostName();
         } catch (Exception e) {
-          itsHostName = "unknown";
+            itsHostName = "unknown";
         }
 
-        // Map all log4j log levels to ASKAP/ICE log levels so a log4j event can be
+        // Map all log4j log levels to ASKAP/ICE log levels so a log4j event can
+        // be
         // turned into an ASKAP LogEvent
         if (itsLevelMap.size() == 0) {
             itsLevelMap.put(Level.TRACE, askap.interfaces.logging.LogLevel.TRACE);
@@ -166,79 +318,15 @@ public class IceAppender extends AppenderSkeleton
             itsLevelMap.put(Level.FATAL, askap.interfaces.logging.LogLevel.FATAL);
         }
 
-        // Initialize Ice
-        Ice.Properties props = Ice.Util.createProperties();
-
-        // Syntax example for the Ice.Default.Locator property:
-        // "IceGrid/Locator:tcp -h localhost -p 4061"
-        String locator =  "IceGrid/Locator:tcp -h " + itsLocatorHost + " -p " + itsLocatorPort;
-        props.setProperty("Ice.Default.Locator", locator);
-
-        // Initialize a communicator with these properties.
-        Ice.InitializationData id = new Ice.InitializationData();
-        id.properties = props;
-        Ice.Communicator itsIceComm = Ice.Util.initialize(id);
-
-        if (itsIceComm == null) {
-            throw new RuntimeException("Ice.Communicatornot initialised. Terminating.");
-        }
-
-        // Obtain the topic or create
-        IceStorm.TopicManagerPrx topicManager;
-
-        try {
-            Ice.ObjectPrx obj = itsIceComm.stringToProxy("IceStorm/TopicManager");
-            topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
-        } catch (Ice.LocalException e) {
-            System.err.println("Ice connection refused, messages will not be sent to the log server");
-
-            // Just return, treat this as non-fatal for the app, even though it
-            // is fatal for logging via Ice.
-            itsIceComm.destroy();
-            itsIceComm = null;
-            return;
-        }
-
-        IceStorm.TopicPrx topic = null;
-        try {
-            topic = topicManager.retrieve(itsTopic);
-        } catch (IceStorm.NoSuchTopic e) {
-            try {
-                topic = topicManager.create(itsTopic);
-            } catch (IceStorm.TopicExists e1) {
-		try {
-		    topic = topicManager.retrieve(itsTopic);
-		}  catch (IceStorm.NoSuchTopic e2) {
-		    // Do nothing
-		}
-            }
-        }
-
-        // Get a handle to the logger proxy for this topic, this handle is then
-        // used to publish log events
-        try {	
-        Ice.ObjectPrx pub = topic.getPublisher().ice_oneway();
-        itsLogService = askap.interfaces.logging.ILoggerPrxHelper.uncheckedCast(pub);
-        } catch (Throwable e) {
-        	System.err.println("Xinyu ERROR");
-        	e.printStackTrace();
-        }
+        itsIceLoggerThread = new IceLoggerThread(itsLocatorHost, itsLocatorPort, itsTopic);
+        itsIceLoggerThread.start();
     }
 
     /**
-     * Actually do the logging. The AppenderSkeleton's 
-     *  doAppend() method calls append() to do the
-     *  actual logging after it takes care of required
-     *  housekeeping operations.
+     * Submit the log message to be sent to the IceStorm topic.
      */
-    public synchronized void append(LoggingEvent event)
-    {
-        if (itsIceComm != null && itsIceComm.isShutdown()) {
-            System.err.println("Ice is shutdown, cannot send log message");
-            return;
-        }
-
-        if (itsLogService != null) {
+    public synchronized void append(LoggingEvent event) {
+        if (itsIceLoggerThread != null) {
             // Create the payload
             askap.interfaces.logging.ILogEvent iceevent = new askap.interfaces.logging.ILogEvent();
             iceevent.origin = event.getLoggerName();
@@ -252,16 +340,14 @@ public class IceAppender extends AppenderSkeleton
             iceevent.hostname = itsHostName;
             iceevent.tag = this.itsTag;
 
-            // Send
-            itsLogService.send(iceevent);
+            // Submit for logging
+            itsIceLoggerThread.submitLog(iceevent);
         }
     }
 
-    public synchronized void close()
-    {
-            if (itsIceComm != null) {
-                itsIceComm.shutdown();
-                itsIceComm.waitForShutdown();
-            }
+    public synchronized void close() {
+        if (itsIceLoggerThread != null) {
+            itsIceLoggerThread.shutdown();
+        }
     }
 }
