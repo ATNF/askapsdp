@@ -37,7 +37,7 @@
 #include <Common/ParameterSet.h>
 
 // Local package includes
-#include <parallel/MEParallel.h>
+#include <parallel/MEParallelApp.h>
 #include <measurementequation/IMeasurementEquation.h>
 
 namespace askap
@@ -92,7 +92,7 @@ namespace askap
     ///  	Cimager.restore.beam                            = [30arcsec, 30arcsec, 0deg]
     /// @endcode
     /// @ingroup parallel
-    class ImagerParallel : public MEParallel
+    class ImagerParallel : public MEParallelApp
     {
   public:
 
@@ -156,27 +156,18 @@ namespace askap
     /// @param discard Discard old equation?
       void calcOne(const string& dataset, bool discard=false);
 
-      /// ParameterSet
-      LOFAR::ParameterSet itsParset;
-
       /// Do we want a restored image?
       bool itsRestore;
       
       /// @brief Do we want to keep scratch buffers in memory instead of writing them in a subtable?
       /// @details Turining this flag to true allows to work with a read-only dataset
       bool itsUseMemoryBuffers;
-
-      /// Name of data column to use.
-      string itsColName;
       
       /// @brief uvw machine cache size
       size_t itsUVWMachineCacheSize;
       
       /// @brief direction tolerance (in radians) for uvw machine cache
       double itsUVWMachineCacheTolerance;
-
-      /// Names of measurement sets, one per prediffer
-      vector<string> itsMs;
 
       /// Gridder to be used
       IVisGridder::ShPtr itsGridder;

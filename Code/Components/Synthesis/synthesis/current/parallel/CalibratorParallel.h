@@ -35,7 +35,7 @@
 
 // own includes
 #include <askapparallel/AskapParallel.h>
-#include <parallel/MEParallel.h>
+#include <parallel/MEParallelApp.h>
 #include <Common/ParameterSet.h>
 #include <gridding/IVisGridder.h>
 #include <measurementequation/IMeasurementEquation.h>
@@ -75,7 +75,7 @@ namespace askap
     ///
     /// @endcode
     /// @ingroup parallel
-    class CalibratorParallel : public MEParallel
+    class CalibratorParallel : public MEParallelApp
     {
   public:
 
@@ -139,15 +139,6 @@ namespace askap
       /// @param[in] ms Name of data set
       /// @param[in] discard Discard old equation?
       void calcOne(const std::string& dataset, bool discard=true);
-
-      /// ParameterSet
-      LOFAR::ParameterSet itsParset;
-
-      /// Name of data column to use.
-      std::string itsColName;
-
-      /// Names of measurement sets, one per prediffer
-      std::vector<std::string> itsMs;
 
       /// Gridder to be used
       IVisGridder::ShPtr itsGridder;

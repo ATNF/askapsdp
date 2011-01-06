@@ -94,13 +94,13 @@ using namespace askap::mwbase;
 /// @param[in] parset ParameterSet for inputs
 CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
-      MEParallel(comms), itsParset(parset), 
+      MEParallelApp(comms,parset), 
       itsPerfectModel(new scimath::Params()), itsSolveGains(false), itsSolveLeakage(false)
 {
   // set up image handler, needed for both master and worker
-  SynthesisParamsHelper::setUpImageHandler(itsParset);
+  SynthesisParamsHelper::setUpImageHandler(parset);
   
-  const std::string what2solve = itsParset.getString("solve","gains");
+  const std::string what2solve = parset.getString("solve","gains");
   if (what2solve.find("gains") != std::string::npos) {
       ASKAPLOG_INFO_STR(logger, "Gains will be solved for (solve='"<<what2solve<<"')");
       itsSolveGains = true;
@@ -121,8 +121,8 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       
       
       // initial assumption of the parameters
-      const casa::uInt nAnt = itsParset.getInt32("nAnt",36); // 28  
-      const casa::uInt nBeam = itsParset.getInt32("nBeam",1); 
+      const casa::uInt nAnt = parset.getInt32("nAnt",36); // 28  
+      const casa::uInt nBeam = parset.getInt32("nBeam",1); 
       if (itsSolveGains) {
           ASKAPLOG_INFO_STR(logger, "Initialise gains (unknowns) for "<<nAnt<<" antennas and "<<nBeam<<" beam(s).");
           for (casa::uInt ant = 0; ant<nAnt; ++ant) {
@@ -147,39 +147,15 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
       /// Create the solver  
       itsSolver.reset(new LinearSolver);
       ASKAPCHECK(itsSolver, "Solver not defined correctly");
-      itsRefGain = itsParset.getString("refgain","");
+      itsRefGain = parset.getString("refgain","");
   }
   if (itsComms.isWorker()) {
       // load sky model, populate itsPerfectModel
       readModels();
  
-      /// Get the list of measurement sets and the column to use.
-      itsColName=itsParset.getString("datacolumn", "DATA");
-      itsMs=itsParset.getStringVector("dataset");
-      ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
-      const int nNodes = itsComms.nNodes();
-      if (itsMs.size()==1) {
-          string tmpl=itsMs[0];
-          if (nNodes>2) {
-            itsMs.resize(nNodes-1);
-          }
-          for (int i=0; i<nNodes-1; i++) {
-            itsMs[i]=substitute(tmpl);
-            if ((itsComms.rank() - 1) == i) {
-                ASKAPLOG_INFO_STR(logger, "Measurement set "<<tmpl<<" for rank "<<i+1<<" is substituted by "<<itsMs[i]);
-            }
-          }
-      } else {
-          ASKAPLOG_INFO_STR(logger, "Skip measurment set substitution, names are given explicitly: "<<itsMs);
-      }
-      if (nNodes>1) {
-          ASKAPCHECK(int(itsMs.size()) == (nNodes-1),
-              "When running in parallel, need one data set per node");
-      }
-
       /// Create the gridder using a factory acting on a
       /// parameterset
-      itsGridder=VisGridderFactory::make(itsParset);
+      itsGridder=VisGridderFactory::make(parset);
       ASKAPCHECK(itsGridder, "Gridder not defined correctly");
   }
 }
@@ -189,9 +165,9 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
 /// should be pushed up in the class hierarchy
 void CalibratorParallel::readModels()
 {
-  LOFAR::ParameterSet parset(itsParset);
-  if(itsParset.isDefined("sources.definition")) {
-    parset=LOFAR::ParameterSet(substitute(itsParset.getString("sources.definition")));
+  LOFAR::ParameterSet parset(MEParallelApp::parset());
+  if (MEParallelApp::parset().isDefined("sources.definition")) {
+    parset = LOFAR::ParameterSet(substitute(MEParallelApp::parset().getString("sources.definition")));
   }
       
   const std::vector<std::string> sources = parset.getStringVector("sources.names");
@@ -220,9 +196,9 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
   // First time around we need to generate the equation 
   if ((!itsEquation) || discard) {
       ASKAPLOG_INFO_STR(logger, "Creating measurement equation" );
-      TableDataSource ds(ms, TableDataSource::DEFAULT, itsColName);
+      TableDataSource ds(ms, TableDataSource::DEFAULT, dataColumn());
       IDataSelectorPtr sel=ds.createSelector();
-      sel << itsParset;
+      sel << parset();
       IDataConverterPtr conv=ds.createConverter();
       conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
           "Hz");
@@ -289,13 +265,13 @@ void CalibratorParallel::calcNE()
       ASKAPDEBUGASSERT(itsNe);
 
       if (itsComms.isParallel()) {
-          calcOne(itsMs[itsComms.rank()-1]);
+          calcOne(measurementSets()[itsComms.rank()-1]);
           sendNE();
       } else {
           ASKAPCHECK(itsSolver, "Solver not defined correctly");
           itsSolver->init();
-          for (size_t iMs=0; iMs<itsMs.size(); ++iMs) {
-            calcOne(itsMs[iMs]);
+          for (size_t iMs=0; iMs<measurementSets().size(); ++iMs) {
+            calcOne(measurementSets()[iMs]);
             itsSolver->addNormalEquations(*itsNe);
           }
       }

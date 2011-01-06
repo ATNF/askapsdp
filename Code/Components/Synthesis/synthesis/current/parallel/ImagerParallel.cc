@@ -86,24 +86,24 @@ namespace askap
 
     ImagerParallel::ImagerParallel(askap::mwbase::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
-      MEParallel(comms), itsParset(parset),
+      MEParallelApp(comms,parset),
       itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6), 
       itsExportSensitivityImage(false), itsExpSensitivityCutoff(0.)
     {
       if (itsComms.isMaster())
       {
         // set up image handler
-        SynthesisParamsHelper::setUpImageHandler(itsParset);
+        SynthesisParamsHelper::setUpImageHandler(parset);
       
-        itsRestore=itsParset.getBool("restore", false);
+        itsRestore=parset.getBool("restore", false);
         
-        bool reuseModel = itsParset.getBool("Images.reuse", false);
+        bool reuseModel = parset.getBool("Images.reuse", false);
         
-        itsUseMemoryBuffers = itsParset.getBool("memorybuffers", false);
+        itsUseMemoryBuffers = parset.getBool("memorybuffers", false);
         
-        itsExportSensitivityImage = itsParset.getBool("sensitivityimage", true);
+        itsExportSensitivityImage = parset.getBool("sensitivityimage", true);
         
-        itsExpSensitivityCutoff = itsParset.getDouble("sensitivityimage.cutoff", 0.01);
+        itsExpSensitivityCutoff = parset.getDouble("sensitivityimage.cutoff", 0.01);
         
         if (itsExportSensitivityImage) {
             ASKAPLOG_INFO_STR(logger, 
@@ -115,7 +115,7 @@ namespace askap
         
         if (reuseModel) {
             ASKAPLOG_INFO_STR(logger, "Reusing model images stored on disk");
-            SynthesisParamsHelper::loadImages(itsModel,itsParset.makeSubset("Images."));
+            SynthesisParamsHelper::loadImages(itsModel,parset.makeSubset("Images."));
         } else {
             ASKAPLOG_INFO_STR(logger, "Initializing the model images");
       
@@ -123,53 +123,30 @@ namespace askap
             /// parameter set. We can solve for any number of images
             /// at once (but you may/will run out of memory!)
             SynthesisParamsHelper::setUpImages(itsModel, 
-                                      itsParset.makeSubset("Images."));
+                                      parset.makeSubset("Images."));
         }
 
         /// Create the solver from the parameterset definition and the existing
         /// definition of the parameters. 
-        itsSolver=ImageSolverFactory::make(*itsModel, itsParset);
+        itsSolver=ImageSolverFactory::make(*itsModel, parset);
         ASKAPCHECK(itsSolver, "Solver not defined correctly");
       }
       if (itsComms.isWorker())
       {
-        /// Get the list of measurement sets and the column to use.
-        itsColName=itsParset.getString("datacolumn", "DATA");
-        itsMs=itsParset.getStringVector("dataset");
-        itsGainsFile = itsParset.getString("gainsfile","");
-        const int cacheSize = itsParset.getInt32("nUVWMachines",1);
+        itsGainsFile = parset.getString("gainsfile","");
+        const int cacheSize = parset.getInt32("nUVWMachines",1);
         ASKAPCHECK(cacheSize > 0 ,"Cache size is supposed to be a positive number, you have "<<cacheSize);
         itsUVWMachineCacheSize = size_t(cacheSize);
         itsUVWMachineCacheTolerance = 
-            SynthesisParamsHelper::convertQuantity(itsParset.getString("uvwMachineDirTolerance", 
+            SynthesisParamsHelper::convertQuantity(parset.getString("uvwMachineDirTolerance", 
                                                    "1e-6rad"),"rad");
          
         ASKAPLOG_INFO_STR(logger, "UVWMachine cache will store "<<itsUVWMachineCacheSize<<" machines");
         ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "<<itsUVWMachineCacheTolerance/casa::C::pi*180.*3600.<<" arcsec");
         
-        ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
-        const int nNodes = itsComms.nNodes();
-        if (itsMs.size()==1)
-        {
-          string tmpl=itsMs[0];
-          if (nNodes>2)
-          {
-            itsMs.resize(nNodes-1);
-          }
-          for (int i=0; i<nNodes-1; i++)
-          {
-            itsMs[i]=substitute(tmpl);
-          }
-        }
-        if (nNodes>1)
-        {
-          ASKAPCHECK(int(itsMs.size()) == (nNodes-1),
-              "When running in parallel, need one data set per node");
-        }
-
         /// Create the gridder using a factory acting on a
         /// parameterset
-        itsGridder=VisGridderFactory::make(itsParset);
+        itsGridder=VisGridderFactory::make(parset);
         ASKAPCHECK(itsGridder, "Gridder not defined correctly");
       }
     }
@@ -192,10 +169,10 @@ namespace askap
         }
         
         TableDataSource ds(ms, (itsUseMemoryBuffers ? TableDataSource::MEMORY_BUFFERS : TableDataSource::DEFAULT), 
-                           itsColName);
+                           dataColumn());
         ds.configureUVWMachineCache(itsUVWMachineCacheSize,itsUVWMachineCacheTolerance);                   
         IDataSelectorPtr sel=ds.createSelector();
-        sel << itsParset;
+        sel << parset();
         IDataConverterPtr conv=ds.createConverter();
         conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
             "Hz");
@@ -262,22 +239,22 @@ namespace askap
       {
         ASKAPCHECK(itsGridder, "Gridder not defined");
         ASKAPCHECK(itsModel, "Model not defined");
-        //				ASKAPCHECK(itsMs.size()>0, "Data sets not defined");
+        //				ASKAPCHECK(measurementSets().size()>0, "Data sets not defined");
 
         ASKAPCHECK(itsNe, "NormalEquations not defined");
 
         if (itsComms.isParallel())
         {
-          calcOne(itsMs[itsComms.rank()-1]);
+          calcOne(measurementSets()[itsComms.rank()-1]);
           sendNE();
         }
         else
         {
           ASKAPCHECK(itsSolver, "Solver not defined correctly");
           itsSolver->init();
-          for (size_t iMs=0; iMs<itsMs.size(); iMs++)
+          for (size_t iMs=0; iMs<measurementSets().size(); ++iMs)
           {
-            calcOne(itsMs[iMs]);
+            calcOne(measurementSets()[iMs]);
             itsSolver->addNormalEquations(*itsNe);
           }
         }
@@ -451,14 +428,14 @@ namespace askap
         {
           ASKAPLOG_INFO_STR(logger, "Restore images and writing them to disk");
           ASKAPDEBUGASSERT(itsModel);
-          boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(itsParset.makeSubset("restore."), 
+          boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(parset().makeSubset("restore."), 
                                                                 *itsModel);
           ASKAPDEBUGASSERT(ir);
           ASKAPDEBUGASSERT(itsSolver);
           // configure restore solver the same way as normal imaging solver
           boost::shared_ptr<ImageSolver> template_solver = boost::dynamic_pointer_cast<ImageSolver>(itsSolver);
           ASKAPDEBUGASSERT(template_solver);
-          ImageSolverFactory::configurePreconditioners(itsParset,ir);
+          ImageSolverFactory::configurePreconditioners(parset(),ir);
           ir->configureSolver(*template_solver);
           ir->copyNormalEquations(*template_solver);
           Quality q;

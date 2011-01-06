@@ -1,0 +1,81 @@
+/// @file
+///
+/// MEParallelApp: Support for parallel applications using the measurement 
+/// equation classes. This code implements common behavior for imaging, calibration and
+/// continuum subtraction. Unlike MEParallel it has some application-specific code in
+/// addition to parallelism.
+///
+/// @copyright (c) 2007 CSIRO
+/// Australia Telescope National Facility (ATNF)
+/// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+/// PO Box 76, Epping NSW 1710, Australia
+/// atnf-enquiries@csiro.au
+///
+/// This file is part of the ASKAP software distribution.
+///
+/// The ASKAP software distribution is free software: you can redistribute it
+/// and/or modify it under the terms of the GNU General Public License as
+/// published by the Free Software Foundation; either version 2 of the License,
+/// or (at your option) any later version.
+///
+/// This program is distributed in the hope that it will be useful,
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/// GNU General Public License for more details.
+///
+/// You should have received a copy of the GNU General Public License
+/// along with this program; if not, write to the Free Software
+/// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+///
+/// @author Max Voronkov <maxim.voronkov@csiro.au>
+///
+
+// logging stuff
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".parallel");
+
+// own includes
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
+#include <parallel/MEParallelApp.h>
+
+using namespace askap;
+using namespace askap::synthesis;
+
+/// @brief constructor 
+/// @details sets communication object and parameter set
+/// @param[in] comms communication object
+/// @param[in] parset parameter set
+MEParallelApp::MEParallelApp(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
+   MEParallel(comms), itsParset(parset)
+{
+   if (itsComms.isWorker()) {
+       /// Get the list of measurement sets and the column to use.
+       itsDataColName = itsParset.getString("datacolumn", "DATA");
+       itsMs = itsParset.getStringVector("dataset");
+        
+       ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
+       const int nNodes = itsComms.nNodes();
+       
+       if (itsMs.size() == 1) {
+           const string tmpl=itsMs[0];
+           if (nNodes>2) {
+               itsMs.resize(nNodes-1);
+           }
+           for (int i=0; i<nNodes-1; ++i) {
+                itsMs[i] = substitute(tmpl);
+                if ((itsComms.rank() - 1) == i) {
+                    ASKAPLOG_INFO_STR(logger, "Measurement set "<<tmpl<<" for rank "<<i+1<<" is substituted by "<<itsMs[i]);
+                }
+           }
+       } else {
+          ASKAPLOG_INFO_STR(logger, "Skip measurment set substitution, names are given explicitly: "<<itsMs);
+       }
+       if (nNodes>1) {
+           ASKAPCHECK(int(itsMs.size()) == (nNodes-1),
+              "When running in parallel, need one data set per node");
+       }        
+   }
+}
+
