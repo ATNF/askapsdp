@@ -19,10 +19,10 @@ cp.ingest.MergedSource.metadata_source.ice.locator_host          = localhost
 cp.ingest.MergedSource.metadata_source.ice.locator_port          = 4061
 cp.ingest.MergedSource.metadata_source.icestorm.topicmanager     = IceStorm/TopicManager
 cp.ingest.MergedSource.metadata_source.icestorm.topic            = tosmetadata
-cp.ingest.MergedSource.metadata_source.buffer_size               = 48
+cp.ingest.MergedSource.metadata_source.buffer_size               = 12
 cp.ingest.MergedSource.vis_source.port                           = 3000
-cp.ingest.MergedSource.vis_source.buffer_size                   = 1838592
-# The above is 21 (baselines) * 36 (beams) * 304 (coarse channels) * 8 cycles
+cp.ingest.MergedSource.vis_source.buffer_size                    = 459648
+# The above is 21 (baselines) * 36 (beams) * 304 (coarse channels) * 4 cycles
 
 #
 # Calc UVW Task
