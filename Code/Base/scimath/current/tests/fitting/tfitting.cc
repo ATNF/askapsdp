@@ -29,6 +29,7 @@
 #include <DesignMatrixTest.h>
 #include <ImagingNormalEquationsTest.h>
 #include <GenericNormalEquationsTest.h>
+#include <NormalEquationsStubTest.h>
 #include <PolynomialEquationTest.h>
 #include <GeneralFittingTest.h>
 #include <ComplexDiffTest.h>
@@ -45,6 +46,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::scimath::DesignMatrixTest::suite());
     runner.addTest(askap::scimath::GenericNormalEquationsTest::suite());
     runner.addTest(askap::scimath::ImagingNormalEquationsTest::suite());
+    runner.addTest(askap::scimath::NormalEquationsStubTest::suite());
     runner.addTest(askap::scimath::PolynomialEquationTest::suite());
     runner.addTest(askap::scimath::GeneralFittingTest::suite());
     runner.addTest(askap::scimath::ComplexDiffTest::suite());
