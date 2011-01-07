@@ -57,7 +57,7 @@ class MergedSourceTest : public CppUnit::TestFixture {
         void setUp() {
             itsMetadataSrc.reset(new MockMetadataSource);
             itsVisSrc.reset(new MockVisSource);
-            itsInstance.reset(new MergedSource(itsMetadataSrc, itsVisSrc));
+            itsInstance.reset(new MergedSource(itsMetadataSrc, itsVisSrc, 1));
         }
 
         void tearDown() {

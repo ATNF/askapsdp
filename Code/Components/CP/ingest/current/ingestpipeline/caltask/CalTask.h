@@ -42,6 +42,7 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
+/// @brief Task to apply calibration.
 class CalTask : public askap::cp::ingest::ITask {
     public:
 	/// @brief constructor

@@ -37,6 +37,7 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
+/// @brief Interface to which all pipeline tasks must conform to.
 class ITask {
     public:
         /// Destructor.

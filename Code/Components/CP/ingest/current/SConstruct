@@ -20,6 +20,7 @@ env.AppendUnique(CCFLAGS=['-Wall'])
 env.AppendUnique(CCFLAGS=['-g'])
 env.AppendUnique(CCFLAGS=['-O2'])
 env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
+env.AppendUnique(CCFLAGS=['-fopenmp'])
 
 # run the build process
 pkg()

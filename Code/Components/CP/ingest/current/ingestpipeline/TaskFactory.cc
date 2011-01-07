@@ -102,11 +102,12 @@ boost::shared_ptr< MergedSource > TaskFactory::createSource(const LOFAR::Paramet
     const unsigned int visPort = visSubset.getUint32("port");
     const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
     const unsigned int visBufSz = visSubset.getUint32("buffer_size", defaultBufSz);
-    int rank;
+    int rank, numTasks;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &numTasks);
     VisSource::ShPtr visSrc(new VisSource(visPort + rank, visBufSz));
 
     // 3) Create and configure the merged source
-    boost::shared_ptr< MergedSource > source(new MergedSource(metadataSrc, visSrc));
+    boost::shared_ptr< MergedSource > source(new MergedSource(metadataSrc, visSrc, numTasks));
     return source;
 }

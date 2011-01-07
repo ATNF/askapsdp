@@ -32,7 +32,6 @@
 
 // System includes
 #include <string>
-#include <mpi.h>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -52,8 +51,9 @@ ASKAP_LOGGER(logger, ".MergedSource");
 using namespace askap;
 using namespace askap::cp::ingest;
 
-MergedSource::MergedSource(IMetadataSource::ShPtr metadataSrc, IVisSource::ShPtr visSrc) :
-    itsMetadataSrc(metadataSrc), itsVisSrc(visSrc)
+MergedSource::MergedSource(IMetadataSource::ShPtr metadataSrc,
+        IVisSource::ShPtr visSrc, int numTasks) :
+    itsMetadataSrc(metadataSrc), itsVisSrc(visSrc), itsNumTasks(numTasks)
 {
 }
 
@@ -97,11 +97,9 @@ VisChunk::ShPtr MergedSource::next(void)
     const casa::uInt nCoarseChannels = itsMetadata->nCoarseChannels();
     const casa::uInt nBeams = itsMetadata->nBeams();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
-    int numTasks;
-    MPI_Comm_size(MPI_COMM_WORLD, &numTasks);
-    ASKAPCHECK(numTasks % (nBaselines * nCoarseChannels * nBeams) == 0,
+    ASKAPCHECK((nBaselines * nCoarseChannels * nBeams) % itsNumTasks == 0,
             "Num ingest nodes must equally divide the number of expected datagrams");
-    const casa::uInt datagramsExpected = nBaselines * nCoarseChannels * nBeams / numTasks;
+    const casa::uInt datagramsExpected = nBaselines * nCoarseChannels * nBeams / itsNumTasks;
     const casa::uInt timeout = itsMetadata->period() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
@@ -306,6 +304,7 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
 
 }
 
+inline
 unsigned int MergedSource::fineToCoarseChannel(const unsigned int& fineChannel)
 {
         return ((fineChannel - (fineChannel % N_FINE_PER_COARSE)) / 304);

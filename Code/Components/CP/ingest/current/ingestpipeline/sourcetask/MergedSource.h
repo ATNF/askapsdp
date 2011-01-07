@@ -41,21 +41,39 @@ namespace askap {
 namespace cp {
 namespace ingest {
 
+/// @brief Ingest pipeline source tasks. The MergedSource task merges the TOS
+/// metadata stream and the visibility stream creating a VISChunk object for
+/// each correlator integration.
 class MergedSource {
     public:
+        /// @brief Constructor.
+        ///
+        /// @param[in] metadataSource   Instance of a IMetadataSource from which the TOS
+        ///                             TOS metadata will be sourced.
+        /// @param[in] visSource    Instance of a IVisSource from which the visibilities
+        ///                         will be sourced.
+        /// @param[in] numTasks     Total number of ingest pipeline tasks. This enables
+        ///                         the merged source to determine how many visibilities
+        ///                         it is responsible for receiving.
         MergedSource(IMetadataSource::ShPtr metadataSource,
-                     IVisSource::ShPtr visSource);
+                     IVisSource::ShPtr visSource, int numTasks);
+
+        /// @brief Destructor.
         ~MergedSource();
 
-        // Blocking
+        /// @brief Called to obtain the next VisChunk from the merged stream.
+        /// @return a shared pointer to a VisChunk.
         VisChunk::ShPtr next(void);
 
     private:
 
         VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
+
         void addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
                 const casa::uInt nAntenna, const casa::uInt nBeams);
+
         void doFlagging(VisChunk::ShPtr chunk, const TosMetadata& metadata);
+
         void doFlaggingSample(VisChunk::ShPtr chunk,
                               const TosMetadata& metadata,
                               const unsigned int row,
@@ -64,8 +82,14 @@ class MergedSource {
 
         unsigned int fineToCoarseChannel(const unsigned int& fineChannel);
 
+        // The two sources which will be merged. These two objects provide
+        // the input stream.
         IMetadataSource::ShPtr itsMetadataSrc;
         IVisSource::ShPtr itsVisSrc;
+
+        // The total number of ingest pipeline tasks. Used to determine how many
+        // visibilities this instance is responsible for recieving.
+        int itsNumTasks;
 
         // Pointers to the two constituent datatypes
         boost::shared_ptr<TosMetadata> itsMetadata;
@@ -76,7 +100,6 @@ class MergedSource {
 
         // No support for copy constructor
         MergedSource(const MergedSource& src);
-
 };
 
 }
