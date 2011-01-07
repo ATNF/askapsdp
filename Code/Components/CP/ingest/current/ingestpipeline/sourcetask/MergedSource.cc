@@ -99,6 +99,8 @@ VisChunk::ShPtr MergedSource::next(void)
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
     int numTasks;
     MPI_Comm_size(MPI_COMM_WORLD, &numTasks);
+    ASKAPCHECK(numTasks % (nBaselines * nCoarseChannels * nBeams) == 0,
+            "Num ingest nodes must equally divide the number of expected datagrams");
     const casa::uInt datagramsExpected = nBaselines * nCoarseChannels * nBeams / numTasks;
     const casa::uInt timeout = itsMetadata->period() * 2;
 
