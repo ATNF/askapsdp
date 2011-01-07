@@ -56,8 +56,11 @@ namespace askap
  
       CPPUNIT_TEST_SUITE(NormalEquationsStubTest);
       CPPUNIT_TEST(testMerge);
+      CPPUNIT_TEST(testGeneralChecks);
       CPPUNIT_TEST_EXCEPTION(testMergeError, askap::AskapError);
-      //CPPUNIT_TEST(testBlobStream);
+      CPPUNIT_TEST_EXCEPTION(testDataVectorError, askap::AskapError);
+      CPPUNIT_TEST_EXCEPTION(testNormalMatrixError, askap::AskapError);
+      CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -68,27 +71,23 @@ namespace askap
         { 
           itsNE.reset(new NormalEquationsStub);
         }
-                        
-        static casa::Matrix<double> populateMatrix(casa::uInt nrow, casa::uInt ncol,
-                                            const double *buf)
-        {
-          casa::Matrix<double> result(nrow,ncol,0.);
-          for (casa::uInt row = 0; row<nrow; ++row) {
-               for (casa::uInt col = 0; col<ncol; ++col,++buf) {
-                    result(row,col) = *buf;
-               }
-          }
-          return result;
-        }
         
-        static casa::Vector<double> populateVector(casa::uInt size, 
-                                                   const double *buf)
+        void testGeneralChecks()
         {
-          casa::Vector<double> result(size,0.);
-          std::copy(buf,buf+size,result.cbegin());
-          return result;
+          CPPUNIT_ASSERT(itsNE);
+          boost::shared_ptr<NormalEquationsStub> bufNE = boost::dynamic_pointer_cast<NormalEquationsStub>(itsNE->clone());
+          CPPUNIT_ASSERT(bufNE);
+          bufNE->reset();
+          const std::vector<std::string> names = itsNE->unknowns();
+          CPPUNIT_ASSERT(names.size() == 0);
+          // checking that the stub can't be converted to either generic or imaging-specific normal equations
+          // by mistake
+          boost::shared_ptr<GenericNormalEquations> gne = boost::dynamic_pointer_cast<GenericNormalEquations>(itsNE);
+          CPPUNIT_ASSERT(!gne);
+          boost::shared_ptr<ImagingNormalEquations> ine = boost::dynamic_pointer_cast<ImagingNormalEquations>(itsNE);
+          CPPUNIT_ASSERT(!ine);
         }
-                
+                                        
         void testMerge() 
         {
           boost::shared_ptr<NormalEquationsStub> bufNE(new NormalEquationsStub);
@@ -110,6 +109,19 @@ namespace askap
           itsNE->merge(*bufNE);
         }
         
+        void testDataVectorError()
+        {
+          CPPUNIT_ASSERT(itsNE);
+          const casa::Vector<double>& vec = itsNE->dataVector("Value0"); 
+          CPPUNIT_ASSERT(vec.size() == 0);
+        }
+
+        void testNormalMatrixError()
+        {
+          CPPUNIT_ASSERT(itsNE);
+          const casa::Matrix<double>& nm = itsNE->normalMatrix("Value0","Value1"); 
+          CPPUNIT_ASSERT(nm.nelements() == 0);
+        }
         
         void testBlobStream()
         {
