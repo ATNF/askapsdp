@@ -323,6 +323,7 @@ void TableVisGridder::save(const std::string& name) {
 	                           peakY = y;
 	                           peakVal = imgBuffer(x,y,plane);
 	                      }
+	                      imgBuffer(x,y,plane) = casa::real(thisCF(x - xOff,y - yOff));
 	                 }
 	            }
 	            //ASKAPLOG_INFO_STR(logger, "CF plane "<<plane<<" peak of "<<peakVal<<" at "<<peakX<<" , "<<peakY);
