@@ -53,7 +53,29 @@ public:
    /// @param comms communication object 
    /// @param parset ParameterSet for inputs
    ContSubtractParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
+ 
+   /// @brief Initialise continuum subtractor
+   /// @details The parameters are taken from the parset file supplied in the constructor.
+   /// This method does initialisation which may involve communications in the parallel case
+   /// (i.e. distribution of the models between workers). Technically, we could've done this in 
+   /// the constructor.
+   void init();
+ 
+ protected:
+   /// @brief read the models from the parset file
+   inline void readModels() const { SynParallel::readModels(itsModel); }
    
+   /// @brief initialise measurement equation
+   /// @details This method initialises measurement equation for the given measurement set
+   /// @param[in] ms measurement set name
+   void initMeasurementEquation(const std::string &ms);
+   
+ private:
+   /// @brief model is read by the master and distributed?
+   /// @details Depending on the model file name (containing %w or not), the model
+   /// can either be read in the master and distributed across the workers or read
+   /// by workers directly. This data member is true, if the model is read by the master
+   bool itsModelReadByMaster;    
 };
 
 } // namespace synthesis

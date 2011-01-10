@@ -135,18 +135,6 @@ namespace askap
                 /// At the end, the measurement set is written to disk.
                 void simulate();
 
-            protected:
-                /// @brief helper method to obtain the noise per visibility
-                /// @details Depending on the parameters, the noise is either read
-                /// directly from the parset (parameters should not have any prefix, e.g.
-                /// just variance, rms, etc) or calculated using the simulator settings
-                /// and specified parameters such as Tsys and efficiency (should also be
-                /// defined without any prefix).
-                /// @param[in] parset ParameterSet for inputs
-                /// @return noise variance per visibility in Jy
-                double getNoise(const LOFAR::ParameterSet& parset) const;
-                
-            
                 /// @brief a helper method to add up an equation
                 /// @details Some times it is necessary to replace a measurement equation
                 /// with a sum of two equations. Typical use cases are adding noise to
@@ -168,6 +156,18 @@ namespace askap
                         const boost::shared_ptr<IMeasurementEquation const> &other, 
                         const IDataSharedIter &it);
 
+            protected:
+                /// @brief helper method to obtain the noise per visibility
+                /// @details Depending on the parameters, the noise is either read
+                /// directly from the parset (parameters should not have any prefix, e.g.
+                /// just variance, rms, etc) or calculated using the simulator settings
+                /// and specified parameters such as Tsys and efficiency (should also be
+                /// defined without any prefix).
+                /// @param[in] parset ParameterSet for inputs
+                /// @return noise variance per visibility in Jy
+                double getNoise(const LOFAR::ParameterSet& parset) const;
+                
+            
                 /// @brief a helper method to corrupt the data (opposite to calibration)
                 /// @details Applying gains require different operations depending on
                 /// the type of the measurement equation (accessor-based or iterator-based).
@@ -208,7 +208,7 @@ namespace askap
                 /// Read the sources from the parset file (Worker only)
                 void readSources();
 
-                /// Read the models from the parset file (Master only)
+                /// Read the models from the parset file
                 inline void readModels() const { SynParallel::readModels(itsModel); }
 
                 /// Read the spectral window definitions

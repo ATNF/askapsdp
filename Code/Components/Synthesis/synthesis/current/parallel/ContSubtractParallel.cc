@@ -28,7 +28,21 @@
 ///
 
 #include <parallel/ContSubtractParallel.h>
+#include <parallel/SimParallel.h>
 #include <fitting/NormalEquationsStub.h>
+#include <dataaccess/TableDataSource.h>
+#include <dataaccess/ParsetInterface.h>
+#include <measurementequation/ImageFFTEquation.h>
+#include <fitting/Equation.h>
+#include <measurementequation/ComponentEquation.h>
+#include <askap/AskapError.h>
+#include <measurementequation/SynthesisParamsHelper.h>
+
+// logging stuff
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".parallel");
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -47,7 +61,82 @@ ContSubtractParallel::ContSubtractParallel(askap::mwbase::AskapParallel& comms,
   // for the normal equations here
   itsNe.reset(new scimath::NormalEquationsStub);
   
-  
+  itsModelReadByMaster = parset.getBool("modelReadByMaster", true);  
+}
+
+/// @brief Initialise continuum subtractor
+/// @details The parameters are taken from the parset file supplied in the constructor.
+/// This method does initialisation which may involve communications in the parallel case
+/// (i.e. distribution of the models between workers). Technically, we could've done this in 
+/// the constructor.
+void ContSubtractParallel::init()
+{
+  if (itsComms.isMaster()) {
+      if (itsModelReadByMaster) {
+          readModels();
+          broadcastModel();
+      }
+  }
+  if (itsComms.isWorker()) {
+      if (itsModelReadByMaster) {
+          receiveModel();
+      } else {
+          readModels();
+      }
+  }
+}
+
+/// @brief initialise measurement equation
+/// @details This method initialises measurement equation for the given measurement set
+/// @param[in] ms measurement set name
+void ContSubtractParallel::initMeasurementEquation(const std::string &ms)
+{
+   ASKAPLOG_INFO_STR(logger, "Creating measurement equation" );
+   TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED, dataColumn());
+   ds.configureUVWMachineCache(uvwMachineCacheSize(),uvwMachineCacheTolerance());      
+   IDataSelectorPtr sel=ds.createSelector();
+   sel << parset();
+   IDataConverterPtr conv=ds.createConverter();
+   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
+       "Hz");
+   conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+   IDataSharedIter it=ds.createIterator(sel, conv);
+   ASKAPCHECK(itsModel, "Model is not defined");
+   ASKAPCHECK(gridder(), "Gridder is not defined");
+   
+   // a part of the equation defined via image
+   askap::scimath::Equation::ShPtr imgEquation;
+   
+   if (SynthesisParamsHelper::hasImage(itsModel)) {
+       ASKAPLOG_INFO_STR(logger, "Sky model contains at least one image, building an image-specific equation");
+       // it should ignore parameters which are not applicable (e.g. components)
+       imgEquation.reset(new ImageFFTEquation(*itsModel, it, gridder()));
+   }
+
+   // a part of the equation defined via components
+   boost::shared_ptr<ComponentEquation> compEquation;
+
+   if (SynthesisParamsHelper::hasComponent(itsModel)) {
+       // model is a number of components
+       ASKAPLOG_INFO_STR(logger, "Sky model contains at least one component, building a component-specific equation");
+       // it doesn't matter which iterator is passed below. It is not used
+       // it should ignore parameters which are not applicable (e.g. images)
+       compEquation.reset(new ComponentEquation(*itsModel, it));
+   }
+
+   if (imgEquation && !compEquation) {
+       ASKAPLOG_INFO_STR(logger, "Pure image-based model (no components defined)");
+       itsEquation = imgEquation;
+   } else if (compEquation && !imgEquation) {
+       ASKAPLOG_INFO_STR(logger, "Pure component-based model (no images defined)");
+       itsEquation = compEquation;
+   } else if (imgEquation && compEquation) {
+       ASKAPLOG_INFO_STR(logger, "Making a sum of image-based and component-based equations");
+       itsEquation = imgEquation;
+       SimParallel::addEquation(itsEquation, compEquation, it);
+   } else {
+       ASKAPTHROW(AskapError, "No sky models are defined");
+   }
 }
 
 
