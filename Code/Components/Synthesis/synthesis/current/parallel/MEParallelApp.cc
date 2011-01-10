@@ -51,7 +51,7 @@ using namespace askap::synthesis;
 /// @param[in] comms communication object
 /// @param[in] parset parameter set
 MEParallelApp::MEParallelApp(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
-   MEParallel(comms), itsParset(parset),   
+   MEParallel(comms,parset),   
    itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6)   
 {
    // set up image handler, needed for both master and worker
@@ -59,8 +59,8 @@ MEParallelApp::MEParallelApp(askap::mwbase::AskapParallel& comms, const LOFAR::P
 
    if (itsComms.isWorker()) {
        /// Get the list of measurement sets and the column to use.
-       itsDataColName = itsParset.getString("datacolumn", "DATA");
-       itsMs = itsParset.getStringVector("dataset");
+       itsDataColName = parset.getString("datacolumn", "DATA");
+       itsMs = parset.getStringVector("dataset");
         
        ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
        const int nNodes = itsComms.nNodes();

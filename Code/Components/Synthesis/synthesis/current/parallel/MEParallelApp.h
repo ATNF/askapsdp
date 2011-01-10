@@ -63,11 +63,6 @@ public:
    MEParallelApp(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
 protected:
-
-   /// @brief obtain parameter set
-   /// @details to be used in derived classes
-   /// @return reference to the parameter set object
-   inline const LOFAR::ParameterSet& parset() const { return itsParset;}
    
    /// @brief obtain data column name
    /// @details to be used in derived classes
@@ -95,8 +90,6 @@ protected:
    inline IVisGridder::ShPtr gridder() const { return itsGridder; }
    
 private:   
-   /// @brief parameter set to get the parameters from
-   LOFAR::ParameterSet itsParset;
 
    /// @brief name of the data column to use.
    std::string itsDataColName;

@@ -68,9 +68,10 @@ namespace askap
   namespace synthesis
   {
 
-    SynParallel::SynParallel(askap::mwbase::AskapParallel& comms) : itsComms(comms)
+    SynParallel::SynParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
+                         itsComms(comms), itsParset(parset)
     {
-      itsModel = Params::ShPtr(new Params());
+      itsModel.reset(new Params());
       ASKAPCHECK(itsModel, "Model not defined correctly");
     }
 

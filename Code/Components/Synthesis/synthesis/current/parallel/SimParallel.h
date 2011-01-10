@@ -117,8 +117,7 @@ namespace askap
             public:
 
                 /// @brief Constructor from ParameterSet
-                /// The command line inputs are needed solely for MPI - currently no
-                /// application specific information is passed on the command line.
+                /// @details 
                 /// @param comms communication object
                 /// @param parset ParameterSet for inputs
                 SimParallel(askap::mwbase::AskapParallel& comms,
@@ -196,9 +195,6 @@ namespace askap
 
                 /// MeasurementSet pointer - we need this to flush the MS to disk
                 boost::shared_ptr<casa::MeasurementSet> itsMs;
-
-                /// ParameterSet
-                LOFAR::ParameterSet itsParset;
                 
                 /// @brief model is read by the master and distributed?
                 /// @details Depending on the model file name (containing %w or not), the model

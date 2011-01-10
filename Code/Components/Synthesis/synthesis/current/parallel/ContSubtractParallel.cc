@@ -28,6 +28,7 @@
 ///
 
 #include <parallel/ContSubtractParallel.h>
+#include <fitting/NormalEquationsStub.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -42,5 +43,12 @@ using namespace askap::synthesis;
 ContSubtractParallel::ContSubtractParallel(askap::mwbase::AskapParallel& comms,
       const LOFAR::ParameterSet& parset) : MEParallelApp(comms,parset)
 {
+  // the stub allows to reuse MEParallelApp code although we're not solving
+  // for the normal equations here
+  itsNe.reset(new scimath::NormalEquationsStub);
+  
+  
 }
+
+
 

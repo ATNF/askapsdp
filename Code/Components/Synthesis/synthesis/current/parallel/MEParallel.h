@@ -78,10 +78,11 @@ namespace askap
 			public:
 
 				/// @brief Constructor 
-				/// @details The command line inputs are needed solely for MPI - currently no
-				/// application specific information is passed on the command line.
+				/// @details The first parameter is needed solely for MPI, the second
+                /// is the parset to be used in derived classes
 				/// @param[in] comms communication object
-				MEParallel(askap::mwbase::AskapParallel& comms);
+				/// @param[in] parset parameter set      				
+				MEParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
 				virtual ~MEParallel();
 

@@ -60,8 +60,8 @@ namespace askap
   namespace synthesis
   {
 
-    MEParallel::MEParallel(askap::mwbase::AskapParallel& comms) :
-      SynParallel(comms)
+    MEParallel::MEParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset) :
+      SynParallel(comms,parset)
     {
       itsSolver = Solver::ShPtr(new Solver);
       itsNe = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*itsModel));

@@ -74,15 +74,15 @@ namespace synthesis
 
 SimParallel::SimParallel(askap::mwbase::AskapParallel& comms,
                          const LOFAR::ParameterSet& parset) :
-        SynParallel(comms), itsParset(parset), itsModelReadByMaster(true)
+        SynParallel(comms,parset), itsModelReadByMaster(true)
 {
-  itsModelReadByMaster = itsParset.getBool("modelReadByMaster", true);
+  itsModelReadByMaster = parset.getBool("modelReadByMaster", true);
 }
 
 void SimParallel::init()
 {
     // set up image handler
-    SynthesisParamsHelper::setUpImageHandler(itsParset);
+    SynthesisParamsHelper::setUpImageHandler(parset());
     if (itsComms.isMaster()) {
         if (itsModelReadByMaster) {
             readModels();
@@ -91,11 +91,11 @@ void SimParallel::init()
     }
 
     if (itsComms.isWorker()) {
-        string msname(substitute(itsParset.getString("dataset",
+        string msname(substitute(parset().getString("dataset",
                                  "test%w.ms")));
-        int bucketSize  = itsParset.getInt32("stman.bucketsize", 32768);
-        int tileNcorr = itsParset.getInt32("stman.tilencorr", 4);
-        int tileNchan = itsParset.getInt32("stman.tilenchan", 32);
+        int bucketSize  = parset().getInt32("stman.bucketsize", 32768);
+        int tileNcorr = parset().getInt32("stman.tilencorr", 4);
+        int tileNchan = parset().getInt32("stman.tilenchan", 32);
         itsSim.reset(new Simulator(msname, bucketSize, tileNcorr, tileNchan));
 
         itsMs.reset(new casa::MeasurementSet(msname, casa::Table::Update));
@@ -132,10 +132,10 @@ SimParallel::~SimParallel()
 
 void SimParallel::readAntennas()
 {
-    ParameterSet parset(itsParset);
+    ParameterSet parset(SynParallel::parset());
 
-    if (itsParset.isDefined("antennas.definition")) {
-        parset = ParameterSet(substitute(itsParset.getString("antennas.definition")));
+    if (SynParallel::parset().isDefined("antennas.definition")) {
+        parset = ParameterSet(substitute(SynParallel::parset().getString("antennas.definition")));
     }
 
     /// Csimulator.name = ASKAP
@@ -204,10 +204,10 @@ void SimParallel::readAntennas()
 
 void SimParallel::readFeeds()
 {
-    ParameterSet parset(itsParset);
+    ParameterSet parset(SynParallel::parset());
 
-    if (itsParset.isDefined("feeds.definition")) {
-        parset = ParameterSet(substitute(itsParset.getString("feeds.definition")));
+    if (SynParallel::parset().isDefined("feeds.definition")) {
+        parset = ParameterSet(substitute(SynParallel::parset().getString("feeds.definition")));
     }
 
     vector<string> feedNames(parset.getStringVector("feeds.names"));
@@ -247,10 +247,10 @@ void SimParallel::readFeeds()
 /// Csimulator.sources.1934-638.direction =
 void SimParallel::readSources()
 {
-    ParameterSet parset(itsParset);
+    ParameterSet parset(SynParallel::parset());
 
-    if (itsParset.isDefined("sources.definition")) {
-        parset = ParameterSet(substitute(itsParset.getString("sources.definition")));
+    if (SynParallel::parset().isDefined("sources.definition")) {
+        parset = ParameterSet(substitute(SynParallel::parset().getString("sources.definition")));
     }
 
     const vector<string> sources = parset.getStringVector("sources.names");
@@ -271,10 +271,10 @@ void SimParallel::readSources()
 void SimParallel::readModels()
 {
     try {
-        ParameterSet parset(itsParset);
+        ParameterSet parset(SynParallel::parset());
 
-        if (itsParset.isDefined("sources.definition")) {
-            parset = ParameterSet(substitute(itsParset.getString("sources.definition")));
+        if (SynParallel::parset().isDefined("sources.definition")) {
+            parset = ParameterSet(substitute(SynParallel::parset().getString("sources.definition")));
         }
 
         const vector<string> sources = parset.getStringVector("sources.names");
@@ -311,10 +311,10 @@ void SimParallel::readModels()
 
 void SimParallel::readSpws()
 {
-    ParameterSet parset(itsParset);
+    ParameterSet parset(SynParallel::parset());
 
-    if (itsParset.isDefined("spws.definition")) {
-        parset = ParameterSet(substitute(itsParset.getString("spws.definition")));
+    if (SynParallel::parset().isDefined("spws.definition")) {
+        parset = ParameterSet(substitute(SynParallel::parset().getString("spws.definition")));
     }
 
     vector<string> names(parset.getStringVector("spws.names"));
@@ -341,10 +341,10 @@ void SimParallel::readSpws()
 
 void SimParallel::readSimulation()
 {
-    ParameterSet parset(itsParset);
+    ParameterSet parset(SynParallel::parset());
 
-    if (itsParset.isDefined("simulation.definition")) {
-        parset = ParameterSet(substitute(itsParset.getString("simulation.definition")));
+    if (SynParallel::parset().isDefined("simulation.definition")) {
+        parset = ParameterSet(substitute(SynParallel::parset().getString("simulation.definition")));
     }
 
     /// Csimulator.simulate.blockage=0.1
@@ -377,10 +377,10 @@ void SimParallel::simulate()
 
     if (itsComms.isWorker()) {
         /// Now that the simulator is defined, we can observe each scan
-        ParameterSet parset(itsParset);
+        ParameterSet parset(SynParallel::parset());
 
-        if (itsParset.isDefined("observe.definition")) {
-            parset = ParameterSet(substitute(itsParset.getString("observe.definition")));
+        if (SynParallel::parset().isDefined("observe.definition")) {
+            parset = ParameterSet(substitute(SynParallel::parset().getString("observe.definition")));
         }
 
         int nScans = parset.getInt32("observe.number", 0);
@@ -421,14 +421,14 @@ void SimParallel::predict(const string& ms)
         ASKAPLOG_INFO_STR(logger, "Model is " << *itsModel);
         TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED);
         IDataSelectorPtr sel = ds.createSelector();
-        sel << itsParset;
+        sel << parset();
         IDataConverterPtr conv = ds.createConverter();
         conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
         conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
         IDataSharedIter it = ds.createIterator(sel, conv);
         /// Create the gridder using a factory acting on a
         /// parameterset
-        IVisGridder::ShPtr gridder = VisGridderFactory::make(itsParset);
+        IVisGridder::ShPtr gridder = VisGridderFactory::make(parset());
         ASKAPCHECK(gridder, "Gridder not defined correctly");
 
         // a part of the equation defined via image
@@ -470,7 +470,7 @@ void SimParallel::predict(const string& ms)
             ASKAPTHROW(AskapError, "No sky models are defined");
         }
 
-        if (itsParset.getBool("corrupt", false)) {
+        if (parset().getBool("corrupt", false)) {
             corruptEquation(equation, it);
         } else {
             ASKAPLOG_INFO_STR(logger, "Calibration effects are not simulated");
@@ -478,8 +478,8 @@ void SimParallel::predict(const string& ms)
 
         ASKAPCHECK(equation, "Equation is not defined correctly");
 
-        if (itsParset.getBool("noise", false)) {
-            const double variance = getNoise(itsParset.makeSubset("noise."));
+        if (parset().getBool("noise", false)) {
+            const double variance = getNoise(parset().makeSubset("noise."));
             ASKAPLOG_INFO_STR(logger, "Gaussian noise (variance=" << variance <<
                               " Jy^2 or sigma="<<sqrt(variance)<<" Jy) will be added to visibilities");
 
@@ -552,7 +552,7 @@ double SimParallel::getNoise(const LOFAR::ParameterSet& parset) const
 /// @return seed
 casa::Int SimParallel::getSeed(const std::string &parname,const std::string &defval) const
 {
-   const std::string seedStr(itsParset.getString(parname,defval));
+   const std::string seedStr(parset().getString(parname,defval));
    if (seedStr == "time") {
        return casa::Int(time(0));
    }    
@@ -591,13 +591,13 @@ void SimParallel::corruptEquation(boost::shared_ptr<scimath::Equation> &equation
     }
 
     scimath::Params gainModel;
-    ASKAPCHECK(itsParset.isDefined("corrupt.gainsfile"), "corrupt.gainsfile is missing in the input parset. It should point to the parset file with gains");
-    const std::string gainsfile = itsParset.getString("corrupt.gainsfile");
+    ASKAPCHECK(parset().isDefined("corrupt.gainsfile"), "corrupt.gainsfile is missing in the input parset. It should point to the parset file with gains");
+    const std::string gainsfile = parset().getString("corrupt.gainsfile");
     ASKAPLOG_INFO_STR(logger, "Loading gains from file '" << gainsfile << "'");
     gainModel << ParameterSet(gainsfile);
     ASKAPDEBUGASSERT(accessorBasedEquation);
     
-    const bool polLeakage = itsParset.getBool("corrupt.leakage",false);
+    const bool polLeakage = parset().getBool("corrupt.leakage",false);
     if (polLeakage) {
         ASKAPLOG_INFO_STR(logger, "Polarisation leakage will be simulated");
        equation.reset(new CalibrationME<Product<NoXPolGain, LeakageTerm> >(gainModel, it, accessorBasedEquation));

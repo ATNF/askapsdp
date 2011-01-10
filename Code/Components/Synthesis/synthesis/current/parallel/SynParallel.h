@@ -33,6 +33,8 @@
 #include <fitting/Solver.h>
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
+#include <Common/ParameterSet.h>
+
 
 #include <askapparallel/AskapParallel.h>
 
@@ -57,10 +59,11 @@ namespace askap
   public:
 
       /// @brief Constructor 
-      /// @details The command line inputs are needed solely for MPI - currently no
-      /// application specific information is passed on the command line.
-      /// @param comms communications object
-      SynParallel(askap::mwbase::AskapParallel& comms);
+      /// @details The first parameter is needed solely for MPI, the second
+      /// is the parset to be used in derived classes
+      /// @param[in] comms communications object
+      /// @param[in] parset parameter set      
+      SynParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
       ~SynParallel();
 
@@ -79,12 +82,20 @@ namespace askap
       std::string substitute(const std::string& s) const;
 
   protected:
+      /// @brief obtain parameter set
+      /// @details to be used in derived classes
+      /// @return reference to the parameter set object
+      inline const LOFAR::ParameterSet& parset() const { return itsParset;}
 
       /// The model
       askap::scimath::Params::ShPtr itsModel;
 
       /// Class for communications
       askap::mwbase::AskapParallel& itsComms;
+  private:
+      /// @brief parameter set to get the parameters from
+      LOFAR::ParameterSet itsParset;
+          
     };
 
   }
