@@ -225,11 +225,6 @@ namespace askap {
       return itsBasisFunction;
     };
     
-    template <class T, class FT>
-    void DeconvolverFista<T, FT>::updateAlgorithm(Array<T>& delta, const Array<T>& model,
-                                                  const Array<T>& residual, T aFit) {
-    }
-
     // Apply the convolve operation - this is undecimated and redundant. The 2D image
     // will be expanded along the third axis
     template <class T, class FT>
