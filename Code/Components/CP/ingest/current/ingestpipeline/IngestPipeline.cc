@@ -42,11 +42,11 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
+#include "cpcommon/VisChunk.h"
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/TaskFactory.h"
-#include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
 
 ASKAP_LOGGER(logger, ".IngestPipeline");

@@ -29,6 +29,7 @@
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
+#include "cpcommon/VisChunk.h"
 
 // CASA includes
 #include <casa/complex.h>
@@ -36,7 +37,6 @@
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
-#include "ingestpipeline/datadef/VisChunk.h"
 
 namespace askap {
 namespace cp {

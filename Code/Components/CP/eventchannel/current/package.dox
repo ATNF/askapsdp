@@ -3,7 +3,7 @@ namespace askap::cp::eventchannel {};
 
 /// @mainpage ASKAP Central Processor Event Channel Package
 ///
-/// @section eventchannel_intro Introduction
+/// @section eventchannel_intro Event Channel Introduction
 /// The event channel package provides channels of communication within the 
 /// central processor. The central processor is a distributed system consisting
 /// of many components. The event channel framework provides publish/subscribe
@@ -65,5 +65,10 @@ namespace askap::cp::eventchannel {};
 ///    EventListener listener;
 ///    consumer->setEventListener(&listener);
 /// @endcode
+///
+///
+///
+/// @section uvchannel_intro UV-Channel Introduction
+/// The uv-channel package provides......
 ///
 /// @copyright 2010 CSIRO, All Rights Reserved.

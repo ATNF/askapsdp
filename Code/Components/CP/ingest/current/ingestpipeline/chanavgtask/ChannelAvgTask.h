@@ -30,10 +30,10 @@
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
 #include "casa/aips.h"
+#include "cpcommon/VisChunk.h"
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
-#include "ingestpipeline/datadef/VisChunk.h"
 
 namespace askap {
 namespace cp {

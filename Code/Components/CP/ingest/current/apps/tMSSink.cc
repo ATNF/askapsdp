@@ -29,10 +29,10 @@
 #include <string>
 
 // ASKAPsoft includes
+#include "cpcommon/VisChunk.h"
 
 // Local package includes
 #include "ingestpipeline/mssink/MSSink.h"
-#include "ingestpipeline/datadef/VisChunk.h"
 
 // Using
 using namespace askap::cp::ingest;

@@ -8,7 +8,9 @@ from askapenv import env
 # create build object with library name
 pkg = env.AskapPackage("eventchannel")
 
+pkg.AddSubPackage("mq")
 pkg.AddSubPackage("eventchannel")
+pkg.AddSubPackage("uvchannel")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])

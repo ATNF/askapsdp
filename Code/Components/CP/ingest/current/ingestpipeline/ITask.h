@@ -29,9 +29,7 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
-
-// Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
+#include "cpcommon/VisChunk.h"
 
 namespace askap {
 namespace cp {

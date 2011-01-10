@@ -32,10 +32,10 @@
 #include "Common/ParameterSet.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "casa/Quanta.h"
+#include "cpcommon/VisChunk.h"
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
-#include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestutils/IConfiguration.h"
 
 namespace askap {

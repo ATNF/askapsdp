@@ -31,11 +31,11 @@
 #include "boost/shared_ptr.hpp"
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/VisDatagram.h"
+#include "cpcommon/VisChunk.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
-#include "ingestpipeline/datadef/VisChunk.h"
 
 namespace askap {
 namespace cp {

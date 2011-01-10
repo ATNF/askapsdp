@@ -43,9 +43,6 @@
 #include "measures/Measures/MeasConvert.h"
 #include "casa/Quanta/MVAngle.h"
 
-// Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
-
 ASKAP_LOGGER(logger, ".AntennaPositions");
 
 using namespace casa;

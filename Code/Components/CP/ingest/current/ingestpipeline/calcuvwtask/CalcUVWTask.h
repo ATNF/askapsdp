@@ -32,10 +32,10 @@
 #include "Common/ParameterSet.h"
 #include "scimath/Mathematics/RigidVector.h"
 #include "casa/Arrays/Vector.h"
+#include "cpcommon/VisChunk.h"
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
-#include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestutils/AntennaPositions.h"
 #include "ingestutils/IConfiguration.h"
 

@@ -37,6 +37,7 @@
 #include "cms/ExceptionListener.h"
 
 // Local package includes
+#include "mq/LibraryWrapper.h"
 #include "EventProducer.h"
 #include "EventConsumer.h"
 #include "EventDestination.h"
@@ -119,6 +120,9 @@ namespace eventchannel {
 
             // Singleton instance of this class
             static EventChannelConnection *itsInstance;
+
+            // ActiveMQ library wrapper (manages the init/shutdown)
+            LibraryWrapper mqlib;
 
             // ActiveMQ Connection
             boost::scoped_ptr<cms::Connection> itsConnection;

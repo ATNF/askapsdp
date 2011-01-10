@@ -53,9 +53,9 @@
 #include "tables/Tables/TiledShapeStMan.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
+#include "cpcommon/VisChunk.h"
 
 // Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestutils/ParsetConfiguration.h"
 #include "ingestutils/AntennaPositions.h"
 

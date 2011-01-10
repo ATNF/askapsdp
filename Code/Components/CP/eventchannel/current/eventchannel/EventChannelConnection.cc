@@ -38,7 +38,6 @@
 #include "askap/AskapLogging.h"
 #include "boost/scoped_ptr.hpp"
 #include "activemq/core/ActiveMQConnectionFactory.h"
-#include "activemq/library/ActiveMQCPP.h"
 #include "cms/Connection.h"
 #include "cms/Session.h"
 #include "cms/ExceptionListener.h"
@@ -68,12 +67,6 @@ EventChannelConnection* EventChannelConnection::itsInstance = 0;
 
 EventChannelConnection::EventChannelConnection(const std::string& brokerURI)
 {
-    // This basically assumes only a single ActiveMQ-CPP library user exists
-    // (i.e. the event channel package. If other libraries use ActiveMQ then
-    // we need to look at a singleton object to encapsulate library
-    // initialization and perhaps shutdown.
-    activemq::library::ActiveMQCPP::initializeLibrary();
-
     // Create a ConnectionFactory
     boost::scoped_ptr<ActiveMQConnectionFactory> connectionFactory(
         new ActiveMQConnectionFactory(brokerURI));
@@ -86,6 +79,7 @@ EventChannelConnection::EventChannelConnection(const std::string& brokerURI)
         // Create a Session
         itsSession.reset(itsConnection->createSession(cms::Session::AUTO_ACKNOWLEDGE));
     } catch (const cms::CMSException& e) {
+        ASKAPLOG_WARN_STR(logger, "Exception connecting to event channel: " << e.getMessage());
         ASKAPTHROW(AskapError, e.getMessage());
     }
 }
@@ -102,9 +96,6 @@ EventChannelConnection::~EventChannelConnection()
         // Clean up connection
         itsConnection->close();
         itsConnection.reset();
-
-        // Shutdown the ActiveMQ-CPP library
-        activemq::library::ActiveMQCPP::shutdownLibrary();
     } catch (...) {
         // No exception should escape from destructor
     }

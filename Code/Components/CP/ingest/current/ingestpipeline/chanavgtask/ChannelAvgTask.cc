@@ -36,9 +36,7 @@
 #include "casa/aips.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Cube.h"
-
-// Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
+#include "cpcommon/VisChunk.h"
 
 ASKAP_LOGGER(logger, ".ChannelAvgTask");
 

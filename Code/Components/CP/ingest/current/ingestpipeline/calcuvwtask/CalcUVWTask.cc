@@ -47,9 +47,9 @@
 #include "measures/Measures/MEpoch.h"
 #include "casa/Quanta/MVAngle.h"
 #include "scimath/Mathematics/RigidVector.h"
+#include "cpcommon/VisChunk.h"
 
 // Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
 #include "ingestutils/ParsetConfiguration.h"
 
 ASKAP_LOGGER(logger, ".CalcUVWTask");

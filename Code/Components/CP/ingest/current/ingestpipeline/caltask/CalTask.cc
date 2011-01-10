@@ -39,9 +39,7 @@
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
 #include "utils/PolConverter.h"
-
-// Local package includes
-#include "ingestpipeline/datadef/VisChunk.h"
+#include "cpcommon/VisChunk.h"
 
 ASKAP_LOGGER(logger, ".CalTask");
 
