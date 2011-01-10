@@ -148,6 +148,8 @@ namespace askap {
             this->itsCube.pars() = parseParset(parset);
             ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsCube.pars().getImageFile());
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
+	    bool useCasa = parset.getBool("useCASAforFITS",true);
+	    this->itsIsFITSFile = this->itsIsFITSFile && !useCasa;
             this->itsWeightImage = parset.getString("weightimage", "");
 
             if (this->itsWeightImage != "")
