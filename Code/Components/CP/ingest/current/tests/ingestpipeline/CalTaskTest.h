@@ -28,7 +28,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 // Support classes
-#include "ingestpipeline/datadef/VisChunk.h"
+#include "cpcommon/VisChunk.h"
 #include "Common/ParameterSet.h"
 #include "measures/Measures.h"
 #include "casa/Quanta/MVEpoch.h"

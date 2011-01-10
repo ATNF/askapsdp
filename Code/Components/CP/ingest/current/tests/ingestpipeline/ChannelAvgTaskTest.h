@@ -31,7 +31,7 @@
 #include <sstream>
 #include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
-#include "ingestpipeline/datadef/VisChunk.h"
+#include "cpcommon/VisChunk.h"
 #include "measures/Measures.h"
 #include "measures/Measures/MEpoch.h"
 #include "measures/Measures/MDirection.h"

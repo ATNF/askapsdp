@@ -33,7 +33,7 @@
 #include "casa/Arrays/Cube.h"
 
 // Classes to test
-#include "ingestpipeline/datadef/VisChunk.h"
+#include "cpcommon/VisChunk.h"
 
 using namespace casa;
 

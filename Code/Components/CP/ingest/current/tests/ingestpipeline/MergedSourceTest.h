@@ -35,7 +35,7 @@
 #include "cpcommon/VisDatagram.h"
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/TosMetadataAntenna.h"
-#include "ingestpipeline/datadef/VisChunk.h"
+#include "cpcommon/VisChunk.h"
 #include "measures/Measures.h"
 
 // Classes to test
