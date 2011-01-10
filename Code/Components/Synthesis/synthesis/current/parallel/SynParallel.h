@@ -87,6 +87,15 @@ namespace askap
       /// @return reference to the parameter set object
       inline const LOFAR::ParameterSet& parset() const { return itsParset;}
 
+      /// @brief read the models from parset file to the given params object
+      /// @details The model can be composed from both images and components. This
+      /// method populates Params object by adding model data read from the parset file.
+      /// The model is given by shared pointer because the same method can be used for both
+      /// simulations and calibration (the former populates itsModel, the latter populates
+      /// itsPerfectModel) 
+      /// @param[in] pModel shared pointer to the params object (must exist)
+      void readModels(const scimath::Params::ShPtr &pModel) const;
+
       /// The model
       askap::scimath::Params::ShPtr itsModel;
 

@@ -33,6 +33,8 @@
 
 // Include own header file first
 #include <parallel/SynParallel.h>
+#include <measurementequation/SynthesisParamsHelper.h>
+
 
 #include <sstream>
 
@@ -132,6 +134,50 @@ namespace askap
     std::string SynParallel::substitute(const std::string& s) const
     {
        return itsComms.substitute(s);
+    }
+    
+    /// @brief read the models from parset file to the given params object
+    /// @details The model can be composed from both images and components. This
+    /// method populates Params object by adding model data read from the parset file.
+    /// The model is given by shared pointer because the same method can be used for both
+    /// simulations and calibration (the former populates itsModel, the latter populates
+    /// itsPerfectModel) 
+    /// @param[in] pModel shared pointer to the params object (must exist)
+    void SynParallel::readModels(const scimath::Params::ShPtr &pModel) const
+    {
+      ASKAPCHECK(pModel, "model is not initialised prior to call to SynParallel::readModels");
+      
+      LOFAR::ParameterSet parset(itsParset);
+  
+      if (itsParset.isDefined("sources.definition")) {
+          parset = LOFAR::ParameterSet(substitute(itsParset.getString("sources.definition")));
+      }
+      
+      const std::vector<std::string> sources = parset.getStringVector("sources.names");
+      for (size_t i=0; i<sources.size(); ++i) {
+	       const std::string modelPar = std::string("sources.")+sources[i]+".model";
+	       const std::string compPar = std::string("sources.")+sources[i]+".components";
+	       // check that only one is defined
+	       ASKAPCHECK(parset.isDefined(compPar) != parset.isDefined(modelPar),
+	            "The model should be defined with either image (via "<<modelPar<<") or components (via "<<
+	             compPar<<"), not both");
+	       // 
+           if (parset.isDefined(modelPar)) {
+               const std::string model=substitute(parset.getString(modelPar));
+               ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
+               const std::string paramName = "image.i."+sources[i];
+               SynthesisParamsHelper::loadImageParameter(*pModel, paramName, model);
+           } else {
+               // loop through components
+               ASKAPLOG_INFO_STR(logger, "Adding components as model for "<< sources[i] );
+               const vector<string> compList = parset.getStringVector(compPar);
+               for (vector<string>::const_iterator cmp = compList.begin(); cmp != compList.end(); ++cmp) {
+                    ASKAPLOG_INFO_STR(logger, "Loading component " << *cmp << " as part of the model for " << sources[i]);
+                    SynthesisParamsHelper::copyComponent(pModel, parset,*cmp,"sources.");
+                }
+           }
+      }
+      ASKAPLOG_INFO_STR(logger, "Successfully read models");      
     }
   }
 }

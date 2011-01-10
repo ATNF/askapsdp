@@ -152,34 +152,6 @@ CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
   }
 }
 
-/// @brief read the model from parset file and populate itsPerfectModel
-/// @details This method is common between several classes and probably
-/// should be pushed up in the class hierarchy
-void CalibratorParallel::readModels()
-{
-  LOFAR::ParameterSet parset(MEParallelApp::parset());
-  if (MEParallelApp::parset().isDefined("sources.definition")) {
-    parset = LOFAR::ParameterSet(substitute(MEParallelApp::parset().getString("sources.definition")));
-  }
-      
-  const std::vector<std::string> sources = parset.getStringVector("sources.names");
-  for (size_t i=0; i<sources.size(); ++i) {
-	   const std::string modelPar = std::string("sources.")+sources[i]+".model";
-	   
-	   if (parset.isDefined(modelPar)) {
-           const std::string model=parset.getString(modelPar);
-           ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
-           const std::string paramName = "image.i."+sources[i];
-           SynthesisParamsHelper::loadImageParameter(*itsPerfectModel, paramName, model);
-       } else {
-          // this is an individual component, rather then a model defined by image
-          ASKAPLOG_INFO_STR(logger, "Adding component description as model for "<< sources[i] );
-          SynthesisParamsHelper::copyComponent(itsPerfectModel, parset,sources[i],"sources.");
-       }
-  }
-  ASKAPLOG_INFO_STR(logger, "Successfully read models");
-}
-
 void CalibratorParallel::calcOne(const std::string& ms, bool discard)
 {
   casa::Timer timer;

@@ -133,7 +133,7 @@ namespace askap
       /// @brief read the model from parset file and populate itsPerfectModel
       /// @details This method is common between several classes and probably
       /// should be pushed up in the class hierarchy
-      void readModels();
+      inline void readModels() const { SynParallel::readModels(itsPerfectModel); }
  
       /// Calculate normal equations for one data set
       /// @param[in] ms Name of data set

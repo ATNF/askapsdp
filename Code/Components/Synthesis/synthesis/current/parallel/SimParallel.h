@@ -209,7 +209,7 @@ namespace askap
                 void readSources();
 
                 /// Read the models from the parset file (Master only)
-                void readModels();
+                inline void readModels() const { SynParallel::readModels(itsModel); }
 
                 /// Read the spectral window definitions
                 void readSpws();
