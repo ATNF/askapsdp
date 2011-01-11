@@ -83,6 +83,16 @@ public:
    /// @param[in] ms measurement set name
    void calcOne(const std::string &ms);
       
+   // stubs for pure virtual methods which we don't use
+   /// @brief calculate normal equations
+   inline void calcNE() {}
+   
+   /// @brief solve normal equations
+   inline void solveNE() {}
+   
+   /// @brief write results
+   inline void writeModel(const std::string&) {}
+      
  private:
    /// @brief model is read by the master and distributed?
    /// @details Depending on the model file name (containing %w or not), the model
