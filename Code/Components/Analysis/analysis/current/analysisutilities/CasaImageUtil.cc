@@ -90,7 +90,8 @@ namespace askap {
                 std::string shortType = specType.substr(0, 4);
 
                 if (shortType == "VELO" || shortType == "VOPT" || shortType == "ZOPT"
-                        || shortType == "VRAD" || shortType == "BETA") {
+		    || shortType == "VRAD" || shortType == "BETA" ||
+		    (shortType=="FREQ" && wcs->restfrq!=0)) {
                     if (wcs->restfrq != 0) {
                         // Set the spectral axis to a standard specification: VELO-F2V
                         desiredType = duchampVelocityType;
