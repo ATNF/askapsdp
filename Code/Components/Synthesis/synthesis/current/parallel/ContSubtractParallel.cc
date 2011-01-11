@@ -32,16 +32,23 @@
 #include <fitting/NormalEquationsStub.h>
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/ParsetInterface.h>
+#include <dataaccess/MemBufferDataAccessor.h>
+#include <dataaccess/DataIteratorStub.h>
 #include <measurementequation/ImageFFTEquation.h>
 #include <fitting/Equation.h>
 #include <measurementequation/ComponentEquation.h>
+#include <measurementequation/IMeasurementEquation.h>
+#include <measurementequation/ImagingEquationAdapter.h>
 #include <askap/AskapError.h>
 #include <measurementequation/SynthesisParamsHelper.h>
+
 
 // logging stuff
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".parallel");
+
+#include <casa/OS/Timer.h>
 
 
 using namespace askap;
@@ -87,20 +94,15 @@ void ContSubtractParallel::init()
 }
 
 /// @brief initialise measurement equation
-/// @details This method initialises measurement equation for the given measurement set
-/// @param[in] ms measurement set name
-void ContSubtractParallel::initMeasurementEquation(const std::string &ms)
+/// @details This method initialises measurement equation
+void ContSubtractParallel::initMeasurementEquation()
 {
    ASKAPLOG_INFO_STR(logger, "Creating measurement equation" );
-   TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED, dataColumn());
-   ds.configureUVWMachineCache(uvwMachineCacheSize(),uvwMachineCacheTolerance());      
-   IDataSelectorPtr sel=ds.createSelector();
-   sel << parset();
-   IDataConverterPtr conv=ds.createConverter();
-   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
-       "Hz");
-   conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
-   IDataSharedIter it=ds.createIterator(sel, conv);
+   
+   // it doesn't matter which iterator to pass to the measurement equations
+   // as we're only using accessor-based interface
+   IDataSharedIter stubIter(new DataIteratorStub(1));
+   
    ASKAPCHECK(itsModel, "Model is not defined");
    ASKAPCHECK(gridder(), "Gridder is not defined");
    
@@ -110,7 +112,7 @@ void ContSubtractParallel::initMeasurementEquation(const std::string &ms)
    if (SynthesisParamsHelper::hasImage(itsModel)) {
        ASKAPLOG_INFO_STR(logger, "Sky model contains at least one image, building an image-specific equation");
        // it should ignore parameters which are not applicable (e.g. components)
-       imgEquation.reset(new ImageFFTEquation(*itsModel, it, gridder()));
+       imgEquation.reset(new ImageFFTEquation(*itsModel, stubIter, gridder()));
    }
 
    // a part of the equation defined via components
@@ -121,7 +123,7 @@ void ContSubtractParallel::initMeasurementEquation(const std::string &ms)
        ASKAPLOG_INFO_STR(logger, "Sky model contains at least one component, building a component-specific equation");
        // it doesn't matter which iterator is passed below. It is not used
        // it should ignore parameters which are not applicable (e.g. images)
-       compEquation.reset(new ComponentEquation(*itsModel, it));
+       compEquation.reset(new ComponentEquation(*itsModel, stubIter));
    }
 
    if (imgEquation && !compEquation) {
@@ -133,11 +135,95 @@ void ContSubtractParallel::initMeasurementEquation(const std::string &ms)
    } else if (imgEquation && compEquation) {
        ASKAPLOG_INFO_STR(logger, "Making a sum of image-based and component-based equations");
        itsEquation = imgEquation;
-       SimParallel::addEquation(itsEquation, compEquation, it);
+       SimParallel::addEquation(itsEquation, compEquation, stubIter);
    } else {
        ASKAPTHROW(AskapError, "No sky models are defined");
    }
+   
+   // we need accessor-based equation for the actual iteration. Make it now, if necessary.
+   // Note, that component-based and composite equations are already accessor-based, so no
+   // additional fiddling  is needed
+   
+   boost::shared_ptr<IMeasurementEquation> accessorBasedEquation =
+        boost::dynamic_pointer_cast<IMeasurementEquation>(itsEquation);
+   
+   if (!accessorBasedEquation) {
+        // form a replacement equation first
+        const boost::shared_ptr<ImagingEquationAdapter> new_equation(new ImagingEquationAdapter);
+        // the actual equation (from itsEquation) will be locked inside ImagingEquationAdapter
+        // in a shared pointer. We can change itsEquation after the following line
+        new_equation->assign(itsEquation);
+        // replacing the original equation with an accessor-based adapter
+        itsEquation = new_equation;
+   }
+   
 }
 
+/// @brief perform the subtraction for the given dataset
+/// @details This method iterates over the given dataset, predicts visibilities according to the
+/// model and subtracts these model visibilities from the original visibilities in the dataset.
+/// This is the core operation of the doSubtraction method, which manages the parallel aspect of it.
+/// All actual calculations are done inside this helper method.
+/// @param[in] ms measurement set name
+void ContSubtractParallel::calcOne(const std::string &ms)
+{
+   casa::Timer timer;
+   timer.mark();
+   ASKAPLOG_INFO_STR(logger, "Performing continuum model subtraction for " << ms );
+
+   if (!itsEquation) {
+       initMeasurementEquation();
+   } else {
+      ASKAPLOG_INFO_STR(logger, "Reusing measurement equation" );
+   }
+  
+
+   boost::shared_ptr<IMeasurementEquation> accessorBasedEquation =
+        boost::dynamic_pointer_cast<IMeasurementEquation>(itsEquation);
+   ASKAPDEBUGASSERT(accessorBasedEquation);
+ 
+   TableDataSource ds(ms, TableDataSource::WRITE_PERMITTED, dataColumn());
+   ds.configureUVWMachineCache(uvwMachineCacheSize(),uvwMachineCacheTolerance());      
+   IDataSelectorPtr sel=ds.createSelector();
+   sel << parset();
+   IDataConverterPtr conv=ds.createConverter();
+   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
+       "Hz");
+   conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+   IDataSharedIter it=ds.createIterator(sel, conv);
+   for (; it.hasMore(); it.next()) {
+        // iteration over the dataset
+        MemBufferDataAccessor acc(*it);
+        acc.rwVisibility().set(0.);
+        accessorBasedEquation->predict(acc);
+        const casa::Cube<casa::Complex>& model = acc.visibility();
+        casa::Cube<casa::Complex>& vis = it->rwVisibility();
+        ASKAPDEBUGASSERT(model.nrow() == vis.nrow());
+        ASKAPDEBUGASSERT(model.ncolumn() == vis.ncolumn());
+        ASKAPDEBUGASSERT(model.nplane() == vis.nplane());
+        vis -= model;
+   }
+   
+   ASKAPLOG_INFO_STR(logger, "Finished continuum subtraction for "<< ms << " in "<< timer.real()
+                   << " seconds "); 
+}
+
+
+/// @brief perform the subtraction
+/// @details This method iterates over one or more datasets, predicts visibilities according to 
+/// the model and subtracts these model visibilities from the original visibilities in the
+/// dataset. The intention is to call this method in a worker.
+void ContSubtractParallel::doSubtraction()
+{
+  if (itsComms.isWorker()) {        
+      if (itsComms.isParallel()) {
+          calcOne(measurementSets()[itsComms.rank()-1]);
+      } else {
+          for (size_t iMs=0; iMs<measurementSets().size(); ++iMs) {
+               calcOne(measurementSets()[iMs]);
+          }
+      }
+  }
+}
 
 

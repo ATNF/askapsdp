@@ -60,16 +60,29 @@ public:
    /// (i.e. distribution of the models between workers). Technically, we could've done this in 
    /// the constructor.
    void init();
+   
+   /// @brief perform the subtraction
+   /// @details This method iterates over one or more datasets, predicts visibilities according to 
+   /// the model and subtracts these model visibilities from the original visibilities in the
+   /// dataset. The intention is to call this method in a worker.
+   void doSubtraction();
  
  protected:
    /// @brief read the models from the parset file
    inline void readModels() const { SynParallel::readModels(itsModel); }
    
    /// @brief initialise measurement equation
-   /// @details This method initialises measurement equation for the given measurement set
-   /// @param[in] ms measurement set name
-   void initMeasurementEquation(const std::string &ms);
+   /// @details This method initialises measurement equation
+   void initMeasurementEquation();
    
+   /// @brief perform the subtraction for the given dataset
+   /// @details This method iterates over the given dataset, predicts visibilities according to the
+   /// model and subtracts these model visibilities from the original visibilities in the dataset.
+   /// This is the core operation of the doSubtraction method, which manages the parallel aspect of it.
+   /// All actual calculations are done inside this helper method.
+   /// @param[in] ms measurement set name
+   void calcOne(const std::string &ms);
+      
  private:
    /// @brief model is read by the master and distributed?
    /// @details Depending on the model file name (containing %w or not), the model
