@@ -477,7 +477,7 @@ namespace askap {
 		  if(madfmData[i]>0) snrAll[i+z*spatSize] = snrData[i]/madfmData[i];
 		  else snrAll[i+z*spatSize] = 0.;
 		}
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "SNR map @ z="<<z<<" has max of " << *std::max_element(snr.data(),snr.data()+spatSize) << " and min of " << *std::min_element(snr.data(),snr.data()+spatSize));
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "SNR map @ z="<<z<<" has max of " << *std::max_element(snrAll+z*spatSize,snrAll+(z+1)*spatSize) << " and min of " << *std::min_element(snrAll+z*spatSize,snrAll+(z+1)*spatSize));
 
 
 		// casa::Array<Float>::iterator snrI=snr.begin(),madfmI=madfm.begin();
