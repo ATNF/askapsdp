@@ -30,12 +30,20 @@
 // Test includes
 #include "TosMetadataTest.h"
 #include "TosMetadataAntennaTest.h"
+//#include "CasaBlobUtilsTest.h"
+#include "VisChunkSerializeTest.h"
+
+// @todo: Fix problem encountered when exectuing both the CasaBlobUtilsTest
+// and VisChunkSerializeTest. When both are enabled "multiple definition of..."
+// errors occur at compile time.
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
     runner.addTest(askap::cp::TosMetadataTest::suite());
     runner.addTest(askap::cp::TosMetadataAntennaTest::suite());
+    //runner.addTest(askap::cp::CasaBlobUtilsTest::suite());
+    runner.addTest(askap::cp::VisChunkSerializeTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

@@ -37,12 +37,15 @@
 #include "scimath/Mathematics/RigidVector.h"
 #include "measures/Measures/Stokes.h"
 #include "boost/shared_ptr.hpp"
+#include "Blob/BlobOStream.h"
+#include "Blob/BlobIStream.h"
+#include "fitting/ISerializable.h"
 
 namespace askap {
 namespace cp {
 namespace common {
 
-class VisChunk {
+class VisChunk : public ISerializable {
     public:
         /// @brief Constructor.
         /// Construct a VisChunk where its containers are created with
@@ -251,6 +254,16 @@ class VisChunk {
         void resize(const casa::Cube<casa::Complex>& visibility,
                     const casa::Cube<casa::Bool>& flag,
                     const casa::Vector<casa::Double>& frequency);
+
+        // Serializer functions
+
+        /// @brief write the object to a blob stream
+        /// @param[in] os the output stream
+        virtual void writeToBlob(LOFAR::BlobOStream& os) const;
+
+        /// @brief read the object from a blob stream
+        /// @param[in] is the input stream
+        virtual void readFromBlob(LOFAR::BlobIStream& is);
 
         /// @brief Shared pointer typedef
         typedef boost::shared_ptr<VisChunk> ShPtr;

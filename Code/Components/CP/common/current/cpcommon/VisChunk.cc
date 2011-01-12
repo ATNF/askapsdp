@@ -32,12 +32,20 @@
 #include "askap/AskapError.h"
 #include "casa/aips.h"
 #include "casa/Quanta/MVEpoch.h"
+#include "casa/Arrays/Array.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Cube.h"
 #include "measures/Measures/MDirection.h"
 #include "scimath/Mathematics/RigidVector.h"
 #include "measures/Measures/Stokes.h"
+#include "Blob/BlobOStream.h"
+#include "Blob/BlobIStream.h"
+#include "Blob/BlobArray.h"
+#include "Blob/BlobSTL.h"
+
+// Local includes
+#include "CasaBlobUtils.h"
 
 // Using
 using namespace askap::cp::common;
@@ -280,4 +288,55 @@ void VisChunk::resize(const casa::Cube<casa::Complex>& visibility,
     itsFrequency.assign(frequency);
 
     itsNumberOfChannels = newNChan;
+}
+
+/////////////////////////////////////////////////////////////////////
+// Serializers
+/////////////////////////////////////////////////////////////////////
+void VisChunk::writeToBlob(LOFAR::BlobOStream& os) const
+{
+    os << itsNumberOfRows;
+    os << itsNumberOfChannels;
+    os << itsNumberOfPolarisations;
+    os << itsTime;
+    os << itsInterval;
+    os << itsAntenna1;
+    os << itsAntenna2;
+    os << itsBeam1;
+    os << itsBeam2;
+    os << itsBeam1PA;
+    os << itsBeam2PA;
+    os << itsPointingDir1;
+    os << itsPointingDir2;
+    os << itsDishPointing1;
+    os << itsDishPointing2;
+    os << itsVisibility;
+    os << itsFlag;
+    os << itsUVW;
+    os << itsFrequency;
+    os << itsStokes;
+}
+
+void VisChunk::readFromBlob(LOFAR::BlobIStream& is)
+{
+    is >> itsNumberOfRows;
+    is >> itsNumberOfChannels;
+    is >> itsNumberOfPolarisations;
+    is >> itsTime;
+    is >> itsInterval;
+    is >> itsAntenna1;
+    is >> itsAntenna2;
+    is >> itsBeam1;
+    is >> itsBeam2;
+    is >> itsBeam1PA;
+    is >> itsBeam2PA;
+    is >> itsPointingDir1;
+    is >> itsPointingDir2;
+    is >> itsDishPointing1;
+    is >> itsDishPointing2;
+    is >> itsVisibility;
+    is >> itsFlag;
+    is >> itsUVW;
+    is >> itsFrequency;
+    is >> itsStokes;
 }
