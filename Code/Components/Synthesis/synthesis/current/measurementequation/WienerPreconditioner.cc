@@ -116,6 +116,13 @@ namespace askap
       casa::ArrayLattice<casa::Complex> scratch(shape);
       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
        
+      if (itsTaperCache) {
+          ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper to the Wiener filter in the image domain");
+          casa::Array<casa::Complex> taperArray(itsTaperCache->taper(shape));
+          casa::ArrayLattice<casa::Complex> taperLattice(taperArray);
+          scratch.copyData(casa::LatticeExpr<casa::Complex>(scratch * taperLattice));
+      }
+
       LatticeFFT::cfft2d(scratch, True);
        
       // Construct a Wiener filter
@@ -127,19 +134,6 @@ namespace askap
       ASKAPLOG_INFO_STR(logger, "Effective noise power of the Wiener filter = " << noisePower);     
       wienerfilter.copyData(casa::LatticeExpr<casa::Complex>(normFactor*conj(scratch)/(real(scratch*conj(scratch)) + noisePower)));
       
-      if (itsTaperCache) {
-          ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper to the Wiener filter in the image domain");
-          // back to image domain
-          LatticeFFT::cfft2d(wienerfilter, False);       
-          // apply taper
-          casa::Array<casa::Complex> taperArray(itsTaperCache->taper(shape));
-          casa::ArrayLattice<casa::Complex> taperLattice(taperArray);
-          
-          wienerfilter.copyData(casa::LatticeExpr<casa::Complex>(wienerfilter * taperLattice));
-          // transform back
-          LatticeFFT::cfft2d(wienerfilter, True);
-      }
-
       /*
       // for debugging - to export Wiener filter
       LatticeFFT::cfft2d(wienerfilter, False);       
