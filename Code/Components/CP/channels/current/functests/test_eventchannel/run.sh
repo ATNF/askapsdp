@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/eventchannel/current/init_package_env.sh
+source $ASKAP_ROOT/Code/Components/CP/channels/current/init_package_env.sh
 
 # Remove ActiveMQ data files
 rm -rf $ASKAP_ROOT/3rdParty/apache-activemq/apache-activemq-5.4.1/install/data
@@ -28,9 +28,9 @@ fi
 # Sleep a little more
 sleep 10
 
-# Run the ingest pipeline
+# Run the event channel test
 echo "Running the testcase..."
-$ASKAP_ROOT/Code/Components/CP/eventchannel/current/apps/tEventChannel.sh
+$ASKAP_ROOT/Code/Components/CP/channels/current/apps/tEventChannel.sh
 STATUS=$?
 echo "Testcase finished"
 sleep 5

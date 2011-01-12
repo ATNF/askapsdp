@@ -33,6 +33,8 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "Blob/BlobOStream.h"
+#include "Blob/BlobOBufVector.h"
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
@@ -46,6 +48,7 @@ using namespace askap::cp::channels;
 
 UVChannelPublisher::UVChannelPublisher(const std::string& brokerURI,
                                         const std::string& topicPrefix)
+    : itsConn(brokerURI), itsTopicPrefix(topicPrefix)
 {
 }
 
@@ -56,5 +59,21 @@ UVChannelPublisher::~UVChannelPublisher()
 void UVChannelPublisher::publish(const askap::cp::common::VisChunk& data,
         const int channel)
 {
+    std::stringstream ss;
+    ss << itsTopicPrefix << channel;
+
+    // Expand size. Size of increment for Blob BufVector storage.
+    // Too small and there is lots of overhead in expanding the vector.
+    const unsigned int expandSize = 1024 * 1024;
+
+    // Serialize
+    LOFAR::BlobOBufVector<unsigned char> obv(itsBuffer, expandSize);
+    LOFAR::BlobOStream out(obv);
+    out.putStart("VisChunk", 1);
+    out << data;
+    out.putEnd();
+
+    // Send
+    itsConn.sendByteMessage(&itsBuffer[0], itsBuffer.size() * sizeof(unsigned char), ss.str());
 }
 

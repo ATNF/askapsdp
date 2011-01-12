@@ -34,13 +34,14 @@
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "boost/scoped_ptr.hpp"
+#include "activemq/core/ActiveMQConnection.h"
 #include "activemq/core/ActiveMQConnectionFactory.h"
 #include "cms/Connection.h"
 #include "cms/Session.h"
 #include "cms/ExceptionListener.h"
 #include "cms/Destination.h"
 #include "cms/MessageProducer.h"
-#include "cms/MessageConsumer.h"
+#include "cms/BytesMessage.h"
 
 ASKAP_LOGGER(logger, ".UVChannelConnection");
 
@@ -61,12 +62,20 @@ UVChannelConnection::UVChannelConnection(const std::string& brokerURI)
     try {
         // Create a Connection
         itsConnection.reset(connectionFactory->createConnection());
+        ((activemq::core::ActiveMQConnection*)itsConnection.get())->setUseAsyncSend(true);
         itsConnection->start();
 
         // Create a Session
         itsSession.reset(itsConnection->createSession(cms::Session::AUTO_ACKNOWLEDGE));
+
+        // Create a MessageProducer
+        itsProducer.reset(itsSession->createProducer(0));
+        itsProducer->setDeliveryMode(DeliveryMode::NON_PERSISTENT);
+
+        // Create a BytesMessage
+        itsMessage.reset(itsSession->createBytesMessage());
     } catch (const cms::CMSException& e) {
-        ASKAPLOG_WARN_STR(logger, "Exception connecting to event channel: " << e.getMessage());
+        ASKAPLOG_WARN_STR(logger, "Exception connecting to uv-channel: " << e.getMessage());
         ASKAPTHROW(AskapError, e.getMessage());
     }
 }
@@ -76,6 +85,13 @@ UVChannelConnection::~UVChannelConnection()
     try {
         itsConnection->stop();
 
+        // Cleanup message
+        itsMessage.reset();
+
+        // Cleanup producer
+        itsProducer->close();
+        itsProducer.reset();
+
         // Cleanup session
         itsSession->close();
         itsSession.reset();
@@ -83,8 +99,35 @@ UVChannelConnection::~UVChannelConnection()
         // Clean up connection
         itsConnection->close();
         itsConnection.reset();
+    } catch (const cms::CMSException& e) {
+        ASKAPLOG_WARN_STR(logger, "Exception caught in ~UVChannelConnection: "
+                << e.getMessage());
     } catch (...) {
         // No exception should escape from destructor
+        ASKAPLOG_WARN_STR(logger, "Exception caught in ~UVChannelConnection");
     }
+}
 
+void UVChannelConnection::sendByteMessage(const unsigned char* buffer,
+        const std::size_t length,
+        const std::string& topic)
+{
+    boost::shared_ptr<cms::Destination> dest = getTopic(topic);
+    itsMessage->setBodyBytes(buffer, length);
+    itsProducer->send(dest.get(), itsMessage.get());
+}
+
+void UVChannelConnection::onException(const cms::CMSException& e)
+{
+    ASKAPLOG_WARN_STR(logger, "Exception on UVChannel: " << e.getMessage());
+}
+
+boost::shared_ptr<cms::Destination> UVChannelConnection::getTopic(const std::string& topic)
+{
+    boost::shared_ptr<cms::Destination> dest = itsTopicMap[topic];
+    if (dest.get() == 0) {
+        ASKAPLOG_DEBUG_STR(logger, "Creating destination for topic:" << topic);
+        dest.reset(itsSession->createTopic(topic));
+    }
+    return dest;
 }

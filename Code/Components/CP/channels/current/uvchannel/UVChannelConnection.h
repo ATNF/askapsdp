@@ -29,12 +29,16 @@
 
 // System includes
 #include <string>
+#include <map>
 
 // ASKAPsoft includes
 #include "boost/scoped_ptr.hpp"
+#include "boost/shared_ptr.hpp"
 #include "cms/Connection.h"
 #include "cms/Session.h"
 #include "cms/ExceptionListener.h"
+#include "cms/MessageProducer.h"
+#include "cms/BytesMessage.h"
 
 // Local package includes
 #include "mq/LibraryWrapper.h"
@@ -53,9 +57,12 @@ namespace channels {
             /// @brief Destructor.
             ~UVChannelConnection();
 
-            //void sendByteMessage(unsigned char *&buffer,
-            //        std::size_t length,
-            //        const std::string& topic);
+            void sendByteMessage(const unsigned char* buffer,
+                    const std::size_t length,
+                    const std::string& topic);
+
+            boost::shared_ptr<cms::Destination> getTopic(const std::string& topic);
+
         protected:
 
             /// @brief This is an implementation concept. It is the method
@@ -65,6 +72,7 @@ namespace channels {
             virtual void onException(const cms::CMSException &ex);
 
         private:
+
 
             // No support for assignment
             UVChannelConnection& operator=(const UVChannelConnection& rhs);
@@ -81,6 +89,14 @@ namespace channels {
             // ActiveMQ Session
             boost::scoped_ptr<cms::Session> itsSession;
 
+            // ActiveMQ MessageProducer
+            boost::scoped_ptr<cms::MessageProducer> itsProducer;
+
+            // ActiveMQ BytesMessage
+            boost::scoped_ptr<cms::BytesMessage> itsMessage;
+
+            // Topic map
+            std::map<std::string, boost::shared_ptr<cms::Destination> > itsTopicMap;
     };
 
 };

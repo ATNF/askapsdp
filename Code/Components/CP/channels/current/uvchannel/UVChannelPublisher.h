@@ -29,11 +29,13 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
+#include "uvchannel/UVChannelConnection.h"
 
 namespace askap {
 namespace cp {
@@ -50,6 +52,15 @@ namespace channels {
             void publish(const askap::cp::common::VisChunk& data, const int channel);
 
         private:
+            // Connection to the channel
+            UVChannelConnection itsConn;
+
+            // Prefix for topics
+            const std::string itsTopicPrefix;
+
+            // Buffer for serialising messages
+            std::vector<unsigned char> itsBuffer;
+
             // No support for assignment
             UVChannelPublisher& operator=(const UVChannelPublisher& rhs);
 
