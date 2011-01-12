@@ -1,5 +1,5 @@
-/// The event channel package namespace.
-namespace askap::cp::eventchannel {};
+/// The channels package namespace.
+namespace askap::cp::channels {};
 
 /// @mainpage ASKAP Central Processor Event Channel Package
 ///
