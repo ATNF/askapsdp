@@ -7,7 +7,8 @@ source $ASKAP_ROOT/Code/Components/CP/channels/current/init_package_env.sh
 rm -rf $ASKAP_ROOT/3rdParty/apache-activemq/apache-activemq-5.4.1/install/data
 
 # Start ActiveMQ
-activemq start xbean:activemq-scalability.xml
+export ACTIVEMQ_OPTS="-Xmx1024M -Dorg.apache.activemq.UseDedicatedTaskRunner=false"
+activemq start
 
 # Wait until it is responsive
 MQSTATUS=1

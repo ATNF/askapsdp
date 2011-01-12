@@ -54,14 +54,11 @@
             </policyMap>
         </destinationPolicy>
 
-        <!-- 
-            Use KahaDB for persistence
-            For more information, see:
-            http://activemq.apache.org/kahadb.html
-        -->
-        <persistenceAdapter>
-            <kahaDB directory="${activemq.base}/data/kahadb" enableIndexWriteAsync="true"/>
-        </persistenceAdapter>
+        <!--
+            Disable persistence
+         -->
+         <broker persistent="false">
+         </broker>
 
         <!-- 
             Use NIO transport 
