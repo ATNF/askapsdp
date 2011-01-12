@@ -30,10 +30,10 @@
 // ASKAPsoft includes
 #include "casa/aips.h"
 #include "casa/Quanta/MVEpoch.h"
+#include "casa/Quanta/MVDirection.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Cube.h"
-#include "measures/Measures/MDirection.h"
 #include "scimath/Mathematics/RigidVector.h"
 #include "measures/Measures/Stokes.h"
 #include "boost/shared_ptr.hpp"
@@ -156,37 +156,37 @@ class VisChunk : public ISerializable {
         /// @return a vector with direction measures (coordinate system
         /// is set via IDataConverter), one direction for each
         /// visibility/row
-        casa::Vector<casa::MDirection>& pointingDir1();
+        casa::Vector<casa::MVDirection>& pointingDir1();
 
         /// @copydoc VisChunk::pointingDir1()
-        const casa::Vector<casa::MDirection>& pointingDir1() const;
+        const casa::Vector<casa::MVDirection>& pointingDir1() const;
 
         /// Pointing centre directions of the second antenna/beam
         /// @return a vector with direction measures
         ///  one direction for each visibility/row
-        casa::Vector<casa::MDirection>& pointingDir2();
+        casa::Vector<casa::MVDirection>& pointingDir2();
 
         /// @copydoc VisChunk::pointingDir2()
-        const casa::Vector<casa::MDirection>& pointingDir2() const;
+        const casa::Vector<casa::MVDirection>& pointingDir2() const;
 
         /// pointing direction for the centre of the first antenna
         /// @details The same as pointingDir1, if the beam offsets are zero
         /// @return a vector with direction measures,
         /// one direction for each visibility/row
-        casa::Vector<casa::MDirection>& dishPointing1();
+        casa::Vector<casa::MVDirection>& dishPointing1();
 
         /// @copydoc VisChunk::dishPointing1
-        const casa::Vector<casa::MDirection>& dishPointing1() const;
+        const casa::Vector<casa::MVDirection>& dishPointing1() const;
 
         /// pointing direction for the centre of the first antenna
         /// @details The same as pointingDir2, if the beam offsets are zero
         /// @return a vector with direction measures (coordinate system
         /// is is set via IDataConverter), one direction for each
         /// visibility/row
-        casa::Vector<casa::MDirection>& dishPointing2();
+        casa::Vector<casa::MVDirection>& dishPointing2();
 
         /// @copydoc VisChunk::dishPointing2()
-        const casa::Vector<casa::MDirection>& dishPointing2() const;
+        const casa::Vector<casa::MVDirection>& dishPointing2() const;
 
         /// VisChunk (a cube is nRow x nChannel x nPol; each element is
         /// a complex visibility)
@@ -304,16 +304,16 @@ class VisChunk : public ISerializable {
         casa::Vector<casa::Float> itsBeam2PA;
 
         /// Pointing direction of the first antenna/beam
-        casa::Vector<casa::MDirection> itsPointingDir1;
+        casa::Vector<casa::MVDirection> itsPointingDir1;
 
         /// Pointing direction of the second antenna/beam
-        casa::Vector<casa::MDirection> itsPointingDir2;
+        casa::Vector<casa::MVDirection> itsPointingDir2;
 
         /// Pointing direction of the centre of the first antenna
-        casa::Vector<casa::MDirection> itsDishPointing1;
+        casa::Vector<casa::MVDirection> itsDishPointing1;
 
         /// Pointing direction of the centre of the second antenna
-        casa::Vector<casa::MDirection> itsDishPointing2;
+        casa::Vector<casa::MVDirection> itsDishPointing2;
 
         /// Visibility
         casa::Cube<casa::Complex> itsVisibility;

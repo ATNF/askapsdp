@@ -131,10 +131,10 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
             chunk->beam2()(row) = beam;
             chunk->beam1PA()(row) = 0.0;
             chunk->beam2PA()(row) = 0.0;
-            chunk->pointingDir1()(row) = fieldCenter;
-            chunk->pointingDir2()(row) = fieldCenter;
-            chunk->dishPointing1()(row) = fieldCenter;
-            chunk->dishPointing2()(row) = fieldCenter;
+            chunk->pointingDir1()(row) = fieldCenter.getAngle();
+            chunk->pointingDir2()(row) = fieldCenter.getAngle();
+            chunk->dishPointing1()(row) = fieldCenter.getAngle();
+            chunk->dishPointing2()(row) = fieldCenter.getAngle();
             chunk->frequency()(0) = 1400000;
 
             // Instantiate the class under test and call process() to

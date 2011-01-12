@@ -32,6 +32,7 @@
 // ASKAPsoft includes
 #include "casa/aips.h"
 #include "casa/Quanta/MVEpoch.h"
+#include "casa/Quanta/MVDirection.h"
 #include "measures/Measures/MDirection.h"
 #include "measures/Measures/Stokes.h"
 #include "scimath/Mathematics/RigidVector.h"
@@ -77,6 +78,21 @@ namespace LOFAR {
                                  casa::Quantity(coord2, unit));
             dir.setRefString(ref);
             obj = dir;
+            return is;
+        }
+
+        LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const casa::MVDirection& obj)
+        {
+            os << obj.get();
+            return os;
+        }
+
+        LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, casa::MVDirection& obj)
+        {
+            casa::Vector<casa::Double> vec;
+            is >> vec;
+            casa::MVDirection md(vec);
+            obj = md;
             return is;
         }
 

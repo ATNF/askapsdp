@@ -110,10 +110,10 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
             chunk->beam2()(row) = 0;
             chunk->beam1PA()(row) = 0.0;
             chunk->beam2PA()(row) = 0.0;
-            chunk->pointingDir1()(row) = fieldCenter;
-            chunk->pointingDir2()(row) = fieldCenter;
-            chunk->dishPointing1()(row) = fieldCenter;
-            chunk->dishPointing2()(row) = fieldCenter;
+            chunk->pointingDir1()(row) = fieldCenter.getAngle();
+            chunk->pointingDir2()(row) = fieldCenter.getAngle();
+            chunk->dishPointing1()(row) = fieldCenter.getAngle();
+            chunk->dishPointing2()(row) = fieldCenter.getAngle();
 
             // Determine how many channels will exist after averaging
             casa::uInt nChanNew = nChan / channelAveraging;

@@ -32,11 +32,11 @@
 #include "askap/AskapError.h"
 #include "casa/aips.h"
 #include "casa/Quanta/MVEpoch.h"
+#include "casa/Quanta/MVDirection.h"
 #include "casa/Arrays/Array.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
 #include "casa/Arrays/Cube.h"
-#include "measures/Measures/MDirection.h"
 #include "scimath/Mathematics/RigidVector.h"
 #include "measures/Measures/Stokes.h"
 #include "Blob/BlobOStream.h"
@@ -154,42 +154,42 @@ const casa::Vector<casa::Float>& VisChunk::beam2PA() const
     return itsBeam2PA;
 }
 
-casa::Vector<casa::MDirection>& VisChunk::pointingDir1()
+casa::Vector<casa::MVDirection>& VisChunk::pointingDir1()
 {
     return itsPointingDir1;
 }
 
-const casa::Vector<casa::MDirection>& VisChunk::pointingDir1() const
+const casa::Vector<casa::MVDirection>& VisChunk::pointingDir1() const
 {
     return itsPointingDir1;
 }
 
-casa::Vector<casa::MDirection>& VisChunk::pointingDir2()
+casa::Vector<casa::MVDirection>& VisChunk::pointingDir2()
 {
     return itsPointingDir2;
 }
 
-const casa::Vector<casa::MDirection>& VisChunk::pointingDir2() const
+const casa::Vector<casa::MVDirection>& VisChunk::pointingDir2() const
 {
     return itsPointingDir2;
 }
 
-casa::Vector<casa::MDirection>& VisChunk::dishPointing1()
+casa::Vector<casa::MVDirection>& VisChunk::dishPointing1()
 {
     return itsDishPointing1;
 }
 
-const casa::Vector<casa::MDirection>& VisChunk::dishPointing1() const
+const casa::Vector<casa::MVDirection>& VisChunk::dishPointing1() const
 {
     return itsDishPointing1;
 }
 
-casa::Vector<casa::MDirection>& VisChunk::dishPointing2()
+casa::Vector<casa::MVDirection>& VisChunk::dishPointing2()
 {
     return itsDishPointing2;
 }
 
-const casa::Vector<casa::MDirection>& VisChunk::dishPointing2() const
+const casa::Vector<casa::MVDirection>& VisChunk::dishPointing2() const
 {
     return itsDishPointing2;
 }
