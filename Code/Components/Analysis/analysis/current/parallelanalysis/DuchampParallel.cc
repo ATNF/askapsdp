@@ -410,7 +410,8 @@ namespace askap {
                 if (this->itsCube.getSize() > 0) {
                     if (this->itsFlagDoMedianSearch) {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after median filtering");
-                        this->medianSearch2D();
+                        // this->medianSearch2D();
+                        this->medianSearch();
                     } else if (this->itsCube.pars().getFlagATrous()) {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Searching with reconstruction first");
                         this->itsCube.ReconSearch();
@@ -445,6 +446,82 @@ namespace askap {
         }
 
         //**************************************************************//
+      
+      void findSNR(float *input, float *output, casa::IPosition shape, casa::IPosition box, int loc, bool isSpatial, int spatSize, int specSize)
+      {
+	casa::Array<Float> base(shape, input);
+	// ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth << " for z = " << z);
+	casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
+	// ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth << " for z = " << z);
+	casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
+	// ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Constructing SNR map");
+	casa::Array<Float> snr = (base - median);
+	
+	// Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
+	Float* madfmData=madfm.data();
+	Float *snrData=snr.data();
+	int imax = isSpatial ? spatSize : specSize;
+	for(int i=0;i<imax;i++){
+	  int pos;
+	  if(isSpatial) pos = i+loc*spatSize;
+	  else pos = loc+i*spatSize;
+	  if(madfmData[i]>0) output[pos] = snrData[i]/madfmData[i];
+	  else output[pos] = 0.;
+	}
+	
+      }
+
+
+      void DuchampParallel::medianSearch()
+      {
+	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "About to find median & MADFM arrays, and use these to search");
+	int spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
+	int specSize = this->itsCube.getDimZ();
+	float *snrAll = new float[this->itsCube.getSize()];
+	long *imdim = new long[2];
+	
+	if(this->itsCube.pars().getSearchType()=="spatial"){
+	  casa::IPosition box(2, this->itsMedianBoxWidth, this->itsMedianBoxWidth);
+	  casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
+	  imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
+	  duchamp::Image *chanIm = new duchamp::Image(imdim);
+	  for (int z = 0; z < specSize; z++) {
+	    chanIm->extractImage(this->itsCube, z);
+	    findSNR(chanIm->getArray(),snrAll,shape,box,z,true,spatSize,specSize);
+	  }
+	}
+	else if(this->itsCube.pars().getSearchType()=="spectral"){
+	  casa::IPosition box(1, this->itsMedianBoxWidth);
+	  casa::IPosition shape(1, this->itsCube.getDimZ());
+	  imdim[0] = this->itsCube.getDimZ(); imdim[1] = 1;
+	  duchamp::Image *chanIm = new duchamp::Image(imdim);
+	  for (int i = 0; i < spatSize; i++) {
+	    chanIm->extractSpectrum(this->itsCube, i);
+	    findSNR(chanIm->getArray(),snrAll,shape,box,i,false,spatSize,specSize);
+	  }
+	}
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
+	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
+	this->itsCube.setReconFlag(true);
+	
+	if (!this->itsCube.pars().getFlagUserThreshold()) {
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
+	  this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
+	  this->itsCube.pars().setFlagUserThreshold(true);
+	}
+	
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map");
+	this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
+	this->itsCube.updateDetectMap();
+	if(this->itsCube.pars().getFlagLog())
+	  this->itsCube.logDetectionList();
+	
+	delete [] snrAll;
+	delete [] imdim;
+      }
+
+      
+
 
         void DuchampParallel::medianSearch2D()
         {
@@ -463,9 +540,9 @@ namespace askap {
 
                 chanIm->extractImage(this->itsCube, z);
                 casa::Array<Float> base(shape, chanIm->getArray());
-                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth);
+                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding median with box halfwidth = " << this->itsMedianBoxWidth << " for z = " << z);
                 casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
-                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth);
+                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Getting sliding MADFM with box halfwidth = " << this->itsMedianBoxWidth << " for z = " << z);
                 casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Constructing SNR map");
                 casa::Array<Float> snr = (base - median);
@@ -522,6 +599,10 @@ namespace askap {
 	    this->itsCube.updateDetectMap();
 	    if(this->itsCube.pars().getFlagLog())
 	      this->itsCube.logDetectionList();
+
+
+	    delete [] snrAll;
+	    delete [] imdim;
         }
 
         //**************************************************************//
@@ -1550,10 +1631,14 @@ namespace askap {
                 findRMSs();
                 combineRMSs();
             } else {
-                if (this->itsFlagDoMedianSearch) this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
-                else this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
-            }
-        }
+	      if (this->itsFlagDoMedianSearch){
+		if(this->itsCube.pars().getFlagUserThreshold())
+		  ASKAPLOG_WARN_STR(logger, "Since median searching has been requested, the threshold given ("<<this->itsCube.stats().getThreshold()<<") is changed to a S/N-based one of "<<this->itsCube.pars().getCut()<<" sigma");
+		this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
+	      }
+	      else this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
+	    }
+	}
 
 
         //**************************************************************//

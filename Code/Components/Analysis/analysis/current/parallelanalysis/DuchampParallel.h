@@ -85,6 +85,7 @@ namespace askap {
 
                 /// @brief Perform a search based on a median box sliding function
                 void medianSearch2D();
+                void medianSearch();
 
                 /// @brief Read the metadata only from the image file.
                 int getMetadata();
