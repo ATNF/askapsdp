@@ -519,6 +519,9 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map");
             // this->itsCube.ReconSearch();
 	    this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
+	    this->itsCube.updateDetectMap();
+	    if(this->itsCube.pars().getFlagLog())
+	      this->itsCube.logDetectionList();
         }
 
         //**************************************************************//
