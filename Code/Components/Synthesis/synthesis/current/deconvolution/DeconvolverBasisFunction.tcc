@@ -61,6 +61,13 @@ namespace askap {
     /// @ingroup Deconvolver
     
     template<class T, class FT>
+    DeconvolverBasisFunction<T,FT>::DeconvolverBasisFunction(Vector<Array<T> >& dirty, Vector<Array<T> >& psf)
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(true), itsDecouple(true),
+	itsDecouplingAlgorithm("diagonal")
+    {
+    };
+    
+    template<class T, class FT>
     DeconvolverBasisFunction<T,FT>::DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(true), itsDecouple(true),
 	itsDecouplingAlgorithm("diagonal")
@@ -110,16 +117,16 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBasisFunction<T,FT>::finalise()
     {
-      DeconvolverBase<T, FT>::updateResiduals(this->model());
+      this->updateResiduals(this->itsModel);
       
       uInt nScales(this->itsBasisFunction->numberTerms());
 
       IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
       
-      Array<T> ones(this->itsL1image.shape());
+      Array<T> ones(this->itsL1image(0).shape());
       ones.set(T(1.0));
-      T l0Norm(sum(ones(abs(this->itsL1image)>T(0.0))));
-      T l1Norm(sum(abs(this->itsL1image)));
+      T l0Norm(sum(ones(abs(this->itsL1image(0))>T(0.0))));
+      T l1Norm(sum(abs(this->itsL1image(0))));
       ASKAPLOG_INFO_STR(decbflogger, "L0 norm = " << l0Norm << ", L1 norm   = " << l1Norm
 			<< ", Flux = " << sum(this->model()));
       
@@ -134,17 +141,19 @@ namespace askap {
     {
       DeconvolverBase<T, FT>::initialise();
 
-      Int psfWidth=this->itsModel.shape()(0);
+      ASKAPLOG_INFO_STR(decbflogger, "Initialising Basis Function deconvolver");
+
+      Int psfWidth=this->model().shape()(0);
       
       // Only use the specified psfWidth if it makes sense
       if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
 	psfWidth=this->control()->psfWidth();
-	ASKAPLOG_INFO_STR(decbflogger, "Using subregion of PSF : size " << psfWidth
+	ASKAPLOG_INFO_STR(decbflogger, "Using subregion of Psf : size " << psfWidth
 			  << " pixels");
       }
       IPosition subPsfShape(2, psfWidth, psfWidth);
       
-      this->itsBasisFunction->initialise(this->itsModel.shape());
+      this->itsBasisFunction->initialise(this->model().shape());
       initialiseResidual();
       this->itsBasisFunction->initialise(subPsfShape);
       initialisePSF();
@@ -153,7 +162,7 @@ namespace askap {
 	// Decoupling using inverse coupling matrix generate orthogonal basis functions
 	ASKAPLOG_INFO_STR(decbflogger, "Decoupling using inverse coupling matrix generate orthogonal basis functions");
 	Matrix<Double> inverseCouplingMatrix(this->itsInverseCouplingMatrix.copy());
-	this->itsBasisFunction->initialise(this->itsModel.shape());
+	this->itsBasisFunction->initialise(this->model().shape());
 	itsBasisFunction->multiplyArray(inverseCouplingMatrix);
 	initialiseResidual();
 	this->itsBasisFunction->initialise(subPsfShape);
@@ -210,10 +219,11 @@ namespace askap {
       uInt nScales(this->itsBasisFunction->numberTerms());
       
       IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
-      this->itsL1image.resize(l1Shape);
-      this->itsL1image.set(0.0);
+      this->itsL1image.resize(this->itsNumberTerms);
+      this->itsL1image(0).resize(l1Shape);
+      this->itsL1image(0).set(0.0);
       
-      this->itsModel.set(T(0.0));
+      this->model().set(T(0.0));
 
     }
     
@@ -240,9 +250,9 @@ namespace askap {
       casa::setReal(basisFunctionFFT, this->itsBasisFunction->basisFunction());
       scimath::fft2d(basisFunctionFFT, true);
       
-      Array<FT> residualFFT(this->itsResidual.shape().nonDegenerate());
+      Array<FT> residualFFT(this->residual().shape().nonDegenerate());
       residualFFT.set(FT(0.0));
-      casa::setReal(residualFFT, this->itsResidual.nonDegenerate());
+      casa::setReal(residualFFT, this->residual().nonDegenerate());
       scimath::fft2d(residualFFT, true);
       
       Array<FT> work(this->model().nonDegenerate().shape());
@@ -270,12 +280,12 @@ namespace askap {
     {
       // For the psf convolutions, we only need a small part of the
       // basis functions so we recalculate for that size
-      Int psfWidth=this->itsModel.shape()(0);
+      Int psfWidth=this->model(0).shape()(0);
       
       // Only use the specified psfWidth if it makes sense
       if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
 	psfWidth=this->control()->psfWidth();
-	ASKAPLOG_INFO_STR(decbflogger, "Using subregion of PSF : size " << psfWidth
+	ASKAPLOG_INFO_STR(decbflogger, "Using subregion of Psf : size " << psfWidth
 			  << " pixels");
       }
       
@@ -301,8 +311,8 @@ namespace askap {
       // Calculate XFR for the subsection only
       Array<FT> subXFR(subPsfShape);
       
-      uInt nx(this->itsPSF.shape()(0));
-      uInt ny(this->itsPSF.shape()(1));
+      uInt nx(this->psf().shape()(0));
+      uInt ny(this->psf().shape()(1));
       
       IPosition subPsfStart(2,nx/2-psfWidth/2,ny/2-psfWidth/2);
       IPosition subPsfEnd(2,nx/2+psfWidth/2-1,ny/2+psfWidth/2-1);
@@ -314,19 +324,19 @@ namespace askap {
       casa::IPosition maxPos;
       T minVal, maxVal;
       ASKAPLOG_INFO_STR(logger, "Validating subsection of PSF");
-      casa::minMax(minVal, maxVal, minPos, maxPos, this->itsPSF.nonDegenerate()(subPsfSlicer));
-      ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << maxVal << " at " << maxPos);
-      ASKAPLOG_INFO_STR(logger, "Minimum of PSF = " << minVal << " at " << minPos);
-      this->itsPeakPSFVal = maxVal;
-      this->itsPeakPSFPos(0)=maxPos(0);
-      this->itsPeakPSFPos(1)=maxPos(1);
+      casa::minMax(minVal, maxVal, minPos, maxPos, this->psf().nonDegenerate()(subPsfSlicer));
+      ASKAPLOG_INFO_STR(logger, "Maximum of Psf = " << maxVal << " at " << maxPos);
+      ASKAPLOG_INFO_STR(logger, "Minimum of Psf = " << minVal << " at " << minPos);
+      this->itsPeakPSFVal(0) = maxVal;
+      this->itsPeakPSFPos(0)(0)=maxPos(0);
+      this->itsPeakPSFPos(0)(1)=maxPos(1);
       
-      casa::setReal(subXFR, this->itsPSF.nonDegenerate()(subPsfSlicer));
+      casa::setReal(subXFR, this->psf().nonDegenerate()(subPsfSlicer));
       scimath::fft2d(subXFR, true);
       
       // Now we have all the ingredients to calculate the convolutions
       // of basis function with psf's, etc.
-      ASKAPLOG_INFO_STR(decbflogger, "Calculating convolutions of PSFs with basis functions");
+      ASKAPLOG_INFO_STR(decbflogger, "Calculating convolutions of Psfs with basis functions");
       itsPSFScales.resize(this->itsBasisFunction->numberTerms());
       for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
 	// basis function * psf
@@ -448,7 +458,7 @@ namespace askap {
       // of the maximum i.e. it finds the max in mask . residual. The values
       // returned are without the mask
       minMaxMaskedScales(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction,
-			   this->itsWeightedMask);
+			 this->itsWeightedMask(0));
       casa::IPosition absPeakPos;
       if(abs(minVal)<abs(maxVal)) {
 	absPeakPos=maxPos;
@@ -561,8 +571,8 @@ namespace askap {
 	residualEnd(dim)=min(Int(absPeakPos(dim)+psfShape(dim)/2-1), Int(residualShape(dim)-1));
 	// Now we have to deal with the PSF. Here we want to use enough of the
 	// PSF to clean the residual image.
-	psfStart(dim)=max(0, Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualStart(dim))));
-	psfEnd(dim)=min(Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualEnd(dim))),
+	psfStart(dim)=max(0, Int(this->itsPeakPSFPos(0)(dim)-(absPeakPos(dim)-residualStart(dim))));
+	psfEnd(dim)=min(Int(this->itsPeakPSFPos(0)(dim)-(absPeakPos(dim)-residualEnd(dim))),
 			Int(psfShape(dim)-1));
 	
 	psfCrossTermsStart(dim)=psfStart(dim);
@@ -593,7 +603,7 @@ namespace askap {
 	if(abs(peakValues(term))>0.0) {
 	  IPosition l1PeakPos(3, absPeakPos(0), absPeakPos(1), term);
 	  casa::Slicer modelSlicer(modelStart, modelEnd, modelStride, Slicer::endIsLast);
-	  this->itsL1image(l1PeakPos) = this->itsL1image(l1PeakPos)
+	  this->itsL1image(0)(l1PeakPos) = this->itsL1image(0)(l1PeakPos)
 	    + this->control()->gain()*abs(peakValues(term));
 	  this->itsScaleFlux(term)+=this->control()->gain()*peakValues(term);
 	}

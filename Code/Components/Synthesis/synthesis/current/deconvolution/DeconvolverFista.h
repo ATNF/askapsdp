@@ -67,7 +67,19 @@ namespace askap {
   
       /// @brief Construct from dirty image and psf
       /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF
+      /// the corresponding PSF. Note that both dirty image
+      /// and psf can have more than 2 dimensions. We use a vector
+      /// here to allow multiple dirty images and PSFs for the
+      /// same model (e.g. as in MFS)
+      /// @param[in] dirty Dirty image (array)
+      /// @param[in] psf Point Spread Function (array)
+      DeconvolverFista(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+
+      /// @brief Construct from dirty image and psf
+      /// @detail Construct a deconvolver from a dirty image and
+      /// the corresponding PSF. Note that both dirty image
+      /// and psf can have more than 2 dimensions. We keep this
+      /// version for compatibility
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
       DeconvolverFista(Array<T>& dirty, Array<T>& psf);
@@ -102,10 +114,6 @@ namespace askap {
       void WT(Array<T>& out, const Array<T>& in);
 
       Array<FT> itsBasisFunctionTransform;
-
-      // We need this for the inner loop
-      // Mask weighted by weight image
-      Array<T> itsWeightedMask;
 
       /// Basis function used in the deconvolution
       boost::shared_ptr<BasisFunction<T> > itsBasisFunction;

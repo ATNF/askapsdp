@@ -194,9 +194,7 @@ namespace askap
 	    saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "mask", unpadImage(maskArray),
 				   planeIter.position());
 	    
-	    
-	    
-	    // Startup costs so little it's better to create a new
+	    // Startup now costs so little it's better to create a new
 	    // deconvolver each time we need it	    
 	    boost::shared_ptr<DeconvolverBasisFunction<float, casa::Complex> >
 	      basisFunctionDec(new DeconvolverBasisFunction<float,

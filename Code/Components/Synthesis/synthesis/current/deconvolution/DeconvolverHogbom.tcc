@@ -58,13 +58,16 @@ namespace askap {
     };
 
     template<class T, class FT>
+    DeconvolverHogbom<T,FT>::DeconvolverHogbom(Vector<Array<T> >& dirty, Vector<Array<T> >& psf)
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
+    {
+    };
+    
+    template<class T, class FT>
     DeconvolverHogbom<T,FT>::DeconvolverHogbom(Array<T>& dirty, Array<T>& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
     {
-      this->model().resize(this->dirty().shape());
-      this->model().set(T(0.0));
     };
-
     template<class T, class FT>
     void DeconvolverHogbom<T,FT>::initialise()
     {
@@ -106,18 +109,18 @@ namespace askap {
     template<class T, class FT>
     bool DeconvolverHogbom<T,FT>::oneIteration()
     {
-      bool isMasked(this->itsWeightedMask.shape().conform(this->residual().shape()));
+      bool isMasked(this->itsWeightedMask(0).shape().conform(this->residual(0).shape()));
 
       // Find peak in residual image
       casa::IPosition minPos;
       casa::IPosition maxPos;
       T minVal, maxVal;
       if (isMasked) {
-        casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->residual(),
-                           this->itsWeightedMask);
+        casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->residual(0),
+                           this->itsWeightedMask(0));
       }
       else {
-        casa::minMax(minVal, maxVal, minPos, maxPos, this->residual());
+        casa::minMax(minVal, maxVal, minPos, maxPos, this->residual(0));
       }
       //
       ASKAPLOG_INFO_STR(dechogbomlogger, "Maximum = " << maxVal << " at location " << maxPos);
@@ -168,15 +171,15 @@ namespace askap {
         residualEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(residualShape(dim)-1));
         // Now we have to deal with the PSF. Here we want to use enough of the
         // PSF to clean the residual image.
-        psfStart(dim)=max(0, Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualStart(dim))));
-        psfEnd(dim)=min(Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualEnd(dim))),
+        psfStart(dim)=max(0, Int(this->itsPeakPSFPos(0)(dim)-(absPeakPos(dim)-residualStart(dim))));
+        psfEnd(dim)=min(Int(this->itsPeakPSFPos(0)(dim)-(absPeakPos(dim)-residualEnd(dim))),
                         Int(psfShape(dim)-1));
       }
       
       casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
       casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
       if(!(residualSlicer.length()==psfSlicer.length())||!(residualSlicer.stride()==psfSlicer.stride())) {
-	ASKAPLOG_INFO_STR(dechogbomlogger, "Peak of PSF  : " << this->itsPeakPSFPos );
+	ASKAPLOG_INFO_STR(dechogbomlogger, "Peak of PSF  : " << this->itsPeakPSFPos(0) );
 	ASKAPLOG_INFO_STR(dechogbomlogger, "Peak of residual: " << absPeakPos );
 	ASKAPLOG_INFO_STR(dechogbomlogger, "PSF width    : " << psfWidth );
 	ASKAPLOG_INFO_STR(dechogbomlogger, "Residual start  : " << residualStart << " end: " << residualEnd );

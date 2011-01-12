@@ -64,11 +64,17 @@ namespace askap {
     };
 
     template<class T, class FT>
+    DeconvolverFista<T,FT>::DeconvolverFista(Vector<Array<T> >& dirty, Vector<Array<T> >& psf)
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
+    {
+    };
+    
+    template<class T, class FT>
     DeconvolverFista<T,FT>::DeconvolverFista(Array<T>& dirty, Array<T>& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
     {
     };
-
+    
     template<class T, class FT>
     void DeconvolverFista<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
@@ -86,7 +92,7 @@ namespace askap {
       this->residual()=this->dirty().copy();
  
       if(itsBasisFunction) {
-	this->itsBasisFunction->initialise(this->itsModel.shape());
+	this->itsBasisFunction->initialise(this->model().shape());
 	itsBasisFunctionTransform.resize(itsBasisFunction->basisFunction().shape());
 	casa::setReal(itsBasisFunctionTransform, itsBasisFunction->basisFunction().nonDegenerate());
 	scimath::fft2d(itsBasisFunctionTransform, true);
@@ -101,7 +107,7 @@ namespace askap {
 
       this->initialise();
 
-      bool isMasked(this->itsWeightedMask.shape().conform(this->dirty().shape()));
+      bool isMasked(this->itsWeightedMask(0).shape().conform(this->dirty().shape()));
 
       Array<T> X, X_old, X_temp;
 
@@ -112,13 +118,11 @@ namespace askap {
       X_old.set(T(0.0));
 
       X.resize(this->model().shape());
-      X=this->itsBackground.copy();
+      X=this->background().copy();
 
       T absPeakVal;
 
       ASKAPLOG_INFO_STR(decfistalogger, "Performing Fista for " << this->control()->targetIter() << " iterations");
-
-      //      updateResidualsDouble(X);
 
       updateResiduals(X);
 
@@ -139,7 +143,7 @@ namespace askap {
 	updateResiduals(X);
 	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->residual());
 
-	X=X+this->residual()/this->itsLipschitz;
+	X=X+this->residual()/this->itsLipschitz(0);
 
 	// Transform to other (e.g. multiscale) space
 	Array<T> WX;
@@ -151,7 +155,7 @@ namespace askap {
 	// lambda/lipschitz.
 	Array<T> shrink(WX.shape());
 
-	Array<T> truncated(abs(WX)-effectiveLambda/this->itsLipschitz);
+	Array<T> truncated(abs(WX)-effectiveLambda/this->itsLipschitz(0));
 	shrink=truncated(truncated>T(0.0));
 	shrink=sign(WX)*shrink;
 	shrink(truncated<T(0.0))=T(0.0);
@@ -171,7 +175,7 @@ namespace askap {
           if (isMasked) {
             casa::minMaxMasked(minVal, maxVal, minPos, maxPos,
 			       this->residual(),
-                               itsWeightedMask);
+                               this->itsWeightedMask(0));
           }
           else {
             casa::minMax(minVal, maxVal, minPos, maxPos, this->residual());

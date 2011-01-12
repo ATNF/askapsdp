@@ -65,15 +65,28 @@ namespace askap {
     public:
       typedef boost::shared_ptr<DeconvolverBasisFunction<T, FT> > ShPtr;
   
-      virtual ~DeconvolverBasisFunction();
   
       /// @brief Construct from dirty image and psf
       /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF
+      /// the corresponding PSF. Note that both dirty image
+      /// and psf can have more than 2 dimensions. We use a vector
+      /// here to allow multiple dirty images and PSFs for the
+      /// same model (e.g. as in MFS)
+      /// @param[in] dirty Dirty image (array)
+      /// @param[in] psf Point Spread Function (array)
+      DeconvolverBasisFunction(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+
+      /// @brief Construct from dirty image and psf
+      /// @detail Construct a deconvolver from a dirty image and
+      /// the corresponding PSF. Note that both dirty image
+      /// and psf can have more than 2 dimensions. We keep this
+      /// version for compatibility
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
       DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf);
 
+      virtual ~DeconvolverBasisFunction();
+  
       /// @brief Set the basis function to be used
       /// @details The algorithm can work with different basis functions
       /// PointBasisFunction, MultiScaleBasisFunction. 
@@ -160,7 +173,7 @@ namespace askap {
       /// identified. This allows calculation of the L1 norm of the 
       /// model. We use clean to minimise the L1 so this is a good
       /// check to make. Ideally for stokes I, this should be equal to the flux.
-      Array<T> itsL1image;
+      Vector<Array<T> > itsL1image;
       
       /// The flux subtracted on each scale
       Vector<T> itsScaleFlux;

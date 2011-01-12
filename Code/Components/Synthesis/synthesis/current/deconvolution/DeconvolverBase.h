@@ -68,81 +68,101 @@ namespace askap {
       /// @brief Construct from dirty image and psf
       /// @detail Construct a deconvolver from a dirty image and
       /// the corresponding PSF. Note that both dirty image
-      /// and psf can have more than 2 dimensions
+      /// and psf can have more than 2 dimensions. We use a vector
+      /// here to allow multiple dirty images and PSFs for the
+      /// same model (e.g. as in MFS)
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
-      DeconvolverBase(Array<T> dirty, Array<T> psf);
+      DeconvolverBase(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+
+      /// @brief Construct from dirty image and psf
+      /// @detail Construct a deconvolver from a dirty image and
+      /// the corresponding PSF. Note that both dirty image
+      /// and psf can have more than 2 dimensions. We keep this
+      /// version for compatibility
+      /// @param[in] dirty Dirty image (array)
+      /// @param[in] psf Point Spread Function (array)
+      DeconvolverBase(Array<T>& dirty, Array<T>& psf);
+
+      /// @brief Set the initial dirty image for specified term
+      /// @detail Set the dirty image from which iteration will start
+      void setDirty(const Array<T> dirty, const uInt term=0);
+
+      /// @brief Get the current dirty image
+      /// @detail Get the current dirty image
+      Array<T>& dirty(const uInt term=0);
+
+      /// @brief Set the initial PSF for specified term
+      /// @detail Set the point spread function
+      void setPsf(const Array<T> psf, const uInt term=0);
+
+      /// @brief Get the current PSF
+      /// @detail Get the current PSF
+      Array<T>& psf(const uInt term=0);
 
       /// @brief Set the initial model
       /// @detail Set the model from which iteration will start
-      /// @param[out] model Model image (array)
-      void setModel(const Array<T> model);
+      void setModel(const Array<T> model, const uInt term=0);
 
       /// @brief Get the current model
       /// @detail Get the current model
       /// @param[out] model Model image (array)
-      Array<T>& model() { return itsModel;};
+      Array<T>& model(const uInt term=0);
+
+      /// @brief Set the initial residual
+      /// @detail Set the residual from which iteration will start
+      void setResidual(const Array<T> residual, const uInt term=0);
+
+      /// @brief Get the current residual
+      /// @detail Get the current residual
+      /// @param[out] residual Residual image (array)
+      Array<T>& residual(const uInt term=0);
 
       /// @brief Set the initial background
       /// @detail Set the background image. The
       /// background image is used in those cases where the absolute
       /// value of the brightness must be known.
       /// @param[out] background Background image (array)
-      void setBackground(const Array<T> background);
+      void setBackground(const Array<T> background, const uInt term=0);
 
       /// @brief Get the current background
       /// @detail Get the current background
       /// @param[out] background Background image (array)
-      Array<T>& background() { return itsBackground;};
-
-      /// @brief Get the current dirty image 
-      /// @detail Get the current dirty (an array)
-      /// @param[out] dirty Dirty image (array)
-      Array<T>& dirty() { return itsDirty;};
-
-      /// @brief Get the current PSF
-      /// @detail Get the current PSF
-      /// @param[out] PSF image (array)
-      Array<T>& psf() { return itsPSF;};
+      Array<T>& background(const uInt term=0);
 
       /// @brief Get the current XFR
       /// @detail Get the current XFR - the transform of the specified
       /// point spread function.
       /// @param[out] XFR image (array)
-      Array<FT>& xfr() { return itsXFR;};
-
-      /// @brief Get the current residual
-      /// @detail Get the current residual, defined as dirty - predicted dirty.
-      /// @param[out] residual image (array)
-      Array<T>& residual() { return itsResidual;};
+      Array<FT>& XFR(const uInt term=0);
 
       /// @brief Update only the dirty image
       /// @detail Update an existing deconvolver for a changed dirty image
       /// @param[in] dirty Dirty image (array)
-      void updateDirty(Array<T> dirty);
+      void updateDirty(Array<T> dirty, const uInt term=0);
 
       /// @brief Set the mask image otherwise there is no mask
       /// @detail The mask image is used to limit where flux is allowed in
       /// the image
       /// @param[in] mask Mask (array)
-      void setMask(Array<T> mask);
+      void setMask(Array<T> mask, const uInt term=0);
 
       /// @brief Get the mask
       /// @detail Get the mask
       /// @param[out] mask (array)
-      Array<T> & mask();
+      Array<T> & mask(const uInt term=0);
 
       /// @brief Set the weight image
       /// @detail The weights image (actually the sqrt) is used to 
       /// aid the deconvolution. The weights image is proportional
       /// to 1/sigma**2
       /// @param[in] weights Weights (array)
-      void setWeight(Array<T> weight);
+      void setWeight(Array<T> weight, const uInt term=0);
 
       /// @brief Get the weight image
       /// @detail Get the weight
       /// @param[out] weight (array)
-      Array<T> & weight();
+      Array<T> & weight(const uInt term=0);
 
       /// @brief Set the control
       /// @detail The control is used to hold all the information
@@ -175,14 +195,13 @@ namespace askap {
       /// @detail Update the residuals for this model.
       /// This usually requires convolution of the model with
       /// the specified PSF and subtraction from the dirty image.
-      virtual void updateResiduals(Array<T>& model);
+      virtual void updateResiduals(Vector<Array<T> >& model);
 
-      /// @brief Update the residuals (doubly convolved)
+      /// @brief Update the residuals: keep for compatibility
       /// @detail Update the residuals for this model.
       /// This usually requires convolution of the model with
-      /// the specified PSF and subtraction from the dirty image,
-      /// then convolution by the PSF again.
-      virtual void updateResidualsDouble(Array<T>& model);
+      /// the specified PSF and subtraction from the dirty image.
+      virtual void updateResiduals(Array<T>& model);
 
       /// @brief Initialize the deconvolution
       /// @detail Initialise e.g. set weighted mask
@@ -200,30 +219,32 @@ namespace askap {
       
       protected:
 
+      // Number of terms in the expansion > 0
+      uInt itsNumberTerms;
+
+      // Initialise for both constructors
+      void init(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+
       // Validate the various shapes to ensure consistency
       void validateShapes();
 
-      Array<T> itsDirty;
+      Vector<Array<T> > itsDirty;
 
-      Array<T> itsDirtyDouble;
+      Vector<Array<T> > itsResidual;
 
-      Array<T> itsResidual;
+      Vector<Array<T> > itsPsf;
 
-      Array<T> itsPSF;
+      Vector<Array<T> > itsModel;
 
-      Array<T> itsModel;
+      Vector<Array<T> > itsBackground;
 
-      Array<T> itsBackground;
+      Vector<Array<FT> >itsXFR;
 
-      Array<FT> itsXFR;
+      Vector<Array<T> > itsMask;
 
-      Array<T> itsMask;
+      Vector<Array<T> > itsWeight;
 
-      Array<T> itsWeight;
-
-      T itsLipschitz;
-
-      T itsLipschitzDouble;
+      Vector<T> itsLipschitz;
 
       /// The state of the deconvolver
       boost::shared_ptr<DeconvolverState<T> > itsDS;
@@ -235,12 +256,12 @@ namespace askap {
       boost::shared_ptr<DeconvolverMonitor<T> > itsDM;
 
       // Peak and location of peak of PSF
-      casa::IPosition itsPeakPSFPos;
-      T itsPeakPSFVal;
+      Vector<casa::IPosition> itsPeakPSFPos;
+      Vector<T> itsPeakPSFVal;
 
       // We need this for the inner loop
       // Mask weighted by weight image
-      Array<T> itsWeightedMask;
+      Vector<Array<T> > itsWeightedMask;
 
       uInt itsNumberResidualCalc;
     };

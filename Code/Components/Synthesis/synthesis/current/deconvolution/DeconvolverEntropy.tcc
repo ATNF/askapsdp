@@ -60,17 +60,20 @@ namespace askap {
     /// @ingroup Deconvolver
     
     template<class T, class FT>
-    DeconvolverEntropy<T,FT>::DeconvolverEntropy(Array<T>& dirty, Array<T>& psf)
-      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
-    {
-      this->model().resize(this->dirty().shape());
-      this->model().set(T(0.0));
-    };
-    
-    template<class T, class FT>
     DeconvolverEntropy<T,FT>::~DeconvolverEntropy() {
     };
     
+    template<class T, class FT>
+    DeconvolverEntropy<T,FT>::DeconvolverEntropy(Vector<Array<T> >& dirty, Vector<Array<T> >& psf)
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
+    {
+    };
+    
+    template<class T, class FT>
+    DeconvolverEntropy<T,FT>::DeconvolverEntropy(Array<T>& dirty, Array<T>& psf)
+      : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
+    {
+    };
     template<class T, class FT>
     void DeconvolverEntropy<T,FT>::finalise()
     {
@@ -85,7 +88,7 @@ namespace askap {
 
       // Set the initial value of Q
       T Q;
-      Q=sum(this->itsPSF(this->itsPSF>T(0.1)));
+      Q=sum(this->psf()(this->psf()>T(0.1)));
       ASKAPLOG_INFO_STR(decentropylogger, "Initial value of Q = " << Q << " pixels");
 
       this->itsEntropy->setQ(Q);
@@ -113,37 +116,37 @@ namespace askap {
       Array<T> trialModel(this->model().shape());
       trialModel.set(T(0.0));
 
-      this->updateResiduals(this->itsModel);
+      this->updateResiduals(this->model());
 
       this->model()=this->residual().copy()/this->itsLipschitz;
 
       Array<T> step(this->model().shape());
       step.set(T(0.0));
         
-      T absPeakVal(max(abs(this->itsResidual)));
+      T absPeakVal(max(abs(this->residual())));
       T peakSidelobe(0.1);
-      T aFit = max(peakSidelobe*absPeakVal, rms(this->residual()))/this->itsLipschitz;
+      T aFit = max(peakSidelobe*absPeakVal, rms(this->residual()))/this->itsLipschitz(0);
       ASKAPLOG_INFO_STR(decentropylogger, "Scaling = " << aFit << " Jy/pixel");
       this->itsEntropy->setScale(aFit);
 
-      this->itsModel.set(aFit);
+      this->model().set(aFit);
 
-      this->updateResiduals(this->itsModel);
+      this->updateResiduals(this->model());
 
       do {
         // Find the current fit
         chisq = sum(square(this->residual()));  
         fit = sqrt(chisq/targetChisq);
 
-        Matrix<T> GDG(this->itsEntropy->formGDGStep(this->itsModel, this->itsResidual, step));
+        Matrix<T> GDG(this->itsEntropy->formGDGStep(this->model(), this->residual(), step));
 
         // Check to see if Alpha and Beta need to be initialised. If so then we need to
         // do so and recalculate the gradients and step
         if(this->itsEntropy->initialiseAlphaBeta(GDG)) {
-          GDG = this->itsEntropy->formGDGStep(this->itsModel, this->itsResidual, step);
+          GDG = this->itsEntropy->formGDGStep(this->model(), this->residual(), step);
         }
  
-        T flux=sum(this->itsModel);
+        T flux=sum(this->model());
         this->itsEntropy->changeAlphaBeta(GDG, targetChisq, chisq, this->control()->targetFlux(), flux);
         
         // Now find the normalised gradient - we will use this to limit the step taken
@@ -166,7 +169,7 @@ namespace askap {
         
         // OK - now we take the proposed step and evaluate the
         // gradient there.
-        trialModel=this->itsModel + scale * step;
+        trialModel=this->model() + scale * step;
       
         // Calculate residual for this new trial image
         this->updateResiduals(trialModel);
@@ -178,7 +181,7 @@ namespace askap {
         // step should be O(1) times the original step
         T eps = 1.0;
         T gradDotStep0 = GDG(J,J);
-        T gradDotStep1(this->itsEntropy->formGDS(this->itsModel, this->itsResidual, step));
+        T gradDotStep1(this->itsEntropy->formGDS(this->model(), this->residual(), step));
 
         if (gradDotStep0 != gradDotStep1) {
           eps = gradDotStep0/(gradDotStep0-gradDotStep1);
@@ -189,10 +192,10 @@ namespace askap {
         }
 
         // Step to optimum point
-        this->itsModel=this->itsModel + scale * eps * step;
+        this->model()=this->model() + scale * eps * step;
 
           // Recalculate residual for the new image
-        updateResiduals(this->itsModel);
+        updateResiduals(this->model());
 
         chisq = sum(square(this->residual()));  
       
@@ -202,9 +205,9 @@ namespace askap {
         flux=sum(this->model());
         this->itsEntropy->changeAlphaBeta(GDG, targetChisq, chisq, this->control()->targetFlux(), flux);
         
-        absPeakVal=max(abs(this->itsResidual));
+        absPeakVal=max(abs(this->residual()));
 
-	aFit = max(peakSidelobe*absPeakVal, rms(this->residual()))/this->itsLipschitz;
+	aFit = max(peakSidelobe*absPeakVal, rms(this->residual()))/this->itsLipschitz(0);
 	ASKAPLOG_INFO_STR(decentropylogger, "Scaling = " << aFit << " Jy/pixel");
 	this->itsEntropy->setScale(aFit);
 
