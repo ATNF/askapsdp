@@ -41,6 +41,8 @@
 // Classes to test
 #include "ingestpipeline/sourcetask/MergedSource.h"
 
+using askap::cp::common::VisChunk;
+
 namespace askap {
 namespace cp {
 namespace ingest {

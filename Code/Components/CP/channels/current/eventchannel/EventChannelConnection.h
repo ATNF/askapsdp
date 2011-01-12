@@ -45,7 +45,7 @@
 
 namespace askap {
 namespace cp {
-namespace eventchannel {
+namespace channels {
 
     /// @brief The EventChannelConnection class is a singleton object which is
     /// responsible for managing the connection/session to the broker.

@@ -38,7 +38,7 @@
 
 namespace askap {
 namespace cp {
-namespace eventchannel {
+namespace channels {
 
 /// @brief Encapsulates a message to be sent or received via the event channel.
 class EventMessage {

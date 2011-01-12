@@ -1,6 +1,6 @@
-/// @file EventProducer.cc
+/// @file UVChannelPublisher.h
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,39 +24,41 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "EventProducer.h"
+#ifndef ASKAP_CP_CHANNELS_UVCHANNELPUBLISHER_H
+#define ASKAP_CP_CHANNELS_UVCHANNELPUBLISHER_H
 
-// Include package level header file
-#include "askap_eventchannel.h"
+// System includes
+#include <string>
 
 // ASKAPsoft includes
-#include "askap/AskapError.h"
-#include "askap/AskapLogging.h"
-#include "cms/Session.h"
-#include "cms/MessageProducer.h"
+#include "cpcommon/VisChunk.h"
 
 // Local package includes
-#include "eventchannel/EventMessage.h"
 
-ASKAP_LOGGER(logger, ".EventProducer");
+namespace askap {
+namespace cp {
+namespace channels {
 
-using namespace askap;
-using namespace askap::cp;
-using namespace askap::cp::eventchannel;
+    class UVChannelPublisher {
 
-EventProducer::EventProducer(cms::Session& session, cms::MessageProducer* producer)
-        : itsSession(session), itsMessageProducer(producer)
-{
-}
+        public:
+            UVChannelPublisher(const std::string& brokerURI,
+                    const std::string& topicPrefix);
 
-EventProducer::~EventProducer()
-{
-    itsMessageProducer->close();
-    itsMessageProducer.reset();
-}
+            ~UVChannelPublisher();
 
-void EventProducer::send(EventMessage& message)
-{
-    itsMessageProducer->send(message.getCmsMessage());
-}
+            void publish(const askap::cp::common::VisChunk& data, const int channel);
+
+        private:
+            // No support for assignment
+            UVChannelPublisher& operator=(const UVChannelPublisher& rhs);
+
+            // No support for copy constructor
+            UVChannelPublisher(const UVChannelPublisher& src);
+    };
+
+};
+};
+};
+
+#endif

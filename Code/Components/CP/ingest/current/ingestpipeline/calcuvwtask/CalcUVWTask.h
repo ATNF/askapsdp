@@ -88,11 +88,11 @@ class CalcUVWTask : public askap::cp::ingest::ITask {
         ///
         /// @param[in,out] chunk  the instance of VisChunk for which UVW
         ///                       coordinates are to be calculated.
-        virtual void process(VisChunk::ShPtr chunk);
+        virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
 
     private:
         // Calculates UVW coordinates for the specified "row" in the "chunk"
-        void calcForRow(VisChunk::ShPtr chunk, const casa::uInt row);
+        void calcForRow(askap::cp::common::VisChunk::ShPtr chunk, const casa::uInt row);
 
         // Populates the antenna Position Matrix
         void setupAntennaPositions(void);

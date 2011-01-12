@@ -1,6 +1,6 @@
-/// @file LibraryWrapper.cc
+/// @file IEventListener.cc
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -25,28 +25,8 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "LibraryWrapper.h"
+#include "eventchannel/IEventListener.h"
 
-// ASKAPsoft includes
-#include "activemq/library/ActiveMQCPP.h"
-
-// Using
-using namespace askap::cp::eventchannel;
-
-bool LibraryWrapper::theirInitialized = false;
-
-LibraryWrapper::LibraryWrapper() : itsResponsible(false)
+askap::cp::channels::IEventListener::~IEventListener()
 {
-    if (!theirInitialized) {
-        theirInitialized = true;
-        itsResponsible = true;
-        activemq::library::ActiveMQCPP::initializeLibrary();
-    }
-}
-
-LibraryWrapper::~LibraryWrapper()
-{
-    if (theirInitialized && itsResponsible) {
-        activemq::library::ActiveMQCPP::shutdownLibrary();
-    }
 }

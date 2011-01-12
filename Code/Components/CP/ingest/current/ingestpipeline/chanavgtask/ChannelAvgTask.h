@@ -64,7 +64,7 @@ class ChannelAvgTask : public askap::cp::ingest::ITask {
         ///             be averaged. This method manipulates the VisChunk
         ///             instance which is passed in, hence the value of the
         ///             pointer will be unchanged.
-        virtual void process(VisChunk::ShPtr chunk);
+        virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
 
     private:
 

@@ -27,10 +27,9 @@
 #ifndef ASKAP_CP_EVENTCHANNEL_LIBRARY_WRAPPER_H
 #define ASKAP_CP_EVENTCHANNEL_LIBRARY_WRAPPER_H
 
-
 namespace askap {
 namespace cp {
-namespace eventchannel {
+namespace channels {
 
         class LibraryWrapper {
             public:

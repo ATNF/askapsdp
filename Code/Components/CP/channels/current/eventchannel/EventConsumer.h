@@ -46,7 +46,7 @@
 
 namespace askap {
 namespace cp {
-namespace eventchannel {
+namespace channels {
 
 /// @brief The EventConsumer allows event messages to be received from a
 /// given detination.

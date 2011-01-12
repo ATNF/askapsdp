@@ -63,18 +63,18 @@ class MergedSource {
 
         /// @brief Called to obtain the next VisChunk from the merged stream.
         /// @return a shared pointer to a VisChunk.
-        VisChunk::ShPtr next(void);
+        askap::cp::common::VisChunk::ShPtr next(void);
 
     private:
 
-        VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
+        askap::cp::common::VisChunk::ShPtr createVisChunk(const TosMetadata& metadata);
 
-        void addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
+        void addVis(askap::cp::common::VisChunk::ShPtr chunk, const VisDatagram& vis,
                 const casa::uInt nAntenna, const casa::uInt nBeams);
 
-        void doFlagging(VisChunk::ShPtr chunk, const TosMetadata& metadata);
+        void doFlagging(askap::cp::common::VisChunk::ShPtr chunk, const TosMetadata& metadata);
 
-        void doFlaggingSample(VisChunk::ShPtr chunk,
+        void doFlaggingSample(askap::cp::common::VisChunk::ShPtr chunk,
                               const TosMetadata& metadata,
                               const unsigned int row,
                               const unsigned int chan,

@@ -41,7 +41,7 @@
 #include "eventchannel/EventMessage.h"
 #include "eventchannel/IEventListener.h"
 
-using namespace askap::cp::eventchannel;
+using namespace askap::cp::channels;
 
 class EventListener : public IEventListener {
     public:

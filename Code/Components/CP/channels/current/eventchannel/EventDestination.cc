@@ -28,7 +28,7 @@
 #include "EventDestination.h"
 
 // Include package level header file
-#include <askap_eventchannel.h>
+#include "askap_channels.h"
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -38,7 +38,7 @@ ASKAP_LOGGER(logger, ".EventDestination");
 
 using namespace askap;
 using namespace askap::cp;
-using namespace askap::cp::eventchannel;
+using namespace askap::cp::channels;
 
 EventDestination::EventDestination(cms::Destination* dest)
         : itsDestination(dest)

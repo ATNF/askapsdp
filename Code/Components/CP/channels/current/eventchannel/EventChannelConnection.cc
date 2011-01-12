@@ -28,7 +28,7 @@
 #include "EventChannelConnection.h"
 
 // Include package level header file
-#include <askap_eventchannel.h>
+#include "askap_channels.h"
 
 // System includes
 #include <string>
@@ -56,7 +56,7 @@ ASKAP_LOGGER(logger, ".EventChannelConnection");
 // Using
 using namespace askap;
 using namespace askap::cp;
-using namespace askap::cp::eventchannel;
+using namespace askap::cp::channels;
 using namespace activemq;
 using namespace activemq::core;
 using namespace cms;

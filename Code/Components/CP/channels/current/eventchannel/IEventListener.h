@@ -1,4 +1,4 @@
-/// @file IEventListener.cc
+/// @file IEventListener.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,9 +24,36 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "eventchannel/IEventListener.h"
+#ifndef ASKAP_CP_EVENTCHANNEL_IEVENTLISTENER_H
+#define ASKAP_CP_EVENTCHANNEL_IEVENTLISTENER_H
 
-askap::cp::eventchannel::IEventListener::~IEventListener()
-{
-}
+// System includes
+#include <string>
+
+// Local package includes
+#include "eventchannel/EventMessage.h"
+
+namespace askap {
+namespace cp {
+namespace channels {
+
+/// @brief The IEventListener allows event messages to be asynchronously
+/// received.
+class IEventListener {
+    public:
+
+        /// @brief Destructor
+        virtual ~IEventListener();
+
+        /// @brief Called asynchronously when a new event message is received.
+        ///
+        /// @param[in] message a shared pointer to the message. The recipient
+        /// now has ownership of this message via the shared pointer.
+        virtual void onMessage(const EventMessageSharedPtr message) = 0;
+};
+
+};
+};
+};
+
+#endif

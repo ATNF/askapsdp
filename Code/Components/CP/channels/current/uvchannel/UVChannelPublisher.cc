@@ -1,6 +1,6 @@
-/// @file tMSWriter.cc
+/// @file UVChannelPublisher.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,31 +24,37 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+// Include own header file first
+#include "UVChannelPublisher.h"
+
 // System includes
-#include <iostream>
 #include <string>
 
 // ASKAPsoft includes
+#include "askap/AskapError.h"
+#include "askap/AskapLogging.h"
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
-#include "ingestpipeline/mssink/MSSink.h"
+
+ASKAP_LOGGER(logger, ".UVChannelPublisher");
 
 // Using
-using namespace askap::cp::ingest;
-using namespace askap::cp::common;
+using namespace askap;
+using namespace askap::cp;
+using namespace askap::cp::channels;
 
-int main(int argc, char *argv[])
+UVChannelPublisher::UVChannelPublisher(const std::string& brokerURI,
+                                        const std::string& topicPrefix)
 {
-    LOFAR::ParameterSet parset("tMSSink.in");
-    const LOFAR::ParameterSet subset = parset.makeSubset("cp.ingest.");
-
-    MSSink sink(subset);
-
-    VisChunk::ShPtr chunk(new VisChunk(21, 8, 4));
-
-    sink.process(chunk);
-
-
-    return 0;
 }
+
+UVChannelPublisher::~UVChannelPublisher()
+{
+}
+
+void UVChannelPublisher::publish(const askap::cp::common::VisChunk& data,
+        const int channel)
+{
+}
+

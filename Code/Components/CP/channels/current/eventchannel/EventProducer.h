@@ -41,7 +41,7 @@
 
 namespace askap {
 namespace cp {
-namespace eventchannel {
+namespace channels {
 
 /// @brief The EventProducer allows event messages to be sent via the event
 /// channel.

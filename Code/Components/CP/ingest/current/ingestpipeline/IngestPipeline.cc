@@ -52,6 +52,7 @@
 ASKAP_LOGGER(logger, ".IngestPipeline");
 
 using namespace askap;
+using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
 IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset)

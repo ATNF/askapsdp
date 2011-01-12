@@ -6,7 +6,7 @@
 from askapenv import env
 
 # create build object with library name
-pkg = env.AskapPackage("eventchannel")
+pkg = env.AskapPackage("channels")
 
 pkg.AddSubPackage("mq")
 pkg.AddSubPackage("eventchannel")

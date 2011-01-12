@@ -1,6 +1,6 @@
-/// @file tMSWriter.cc
+/// @file LibraryWrapper.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,31 +24,29 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// System includes
-#include <iostream>
-#include <string>
+// Include own header file first
+#include "LibraryWrapper.h"
 
 // ASKAPsoft includes
-#include "cpcommon/VisChunk.h"
-
-// Local package includes
-#include "ingestpipeline/mssink/MSSink.h"
+#include "activemq/library/ActiveMQCPP.h"
 
 // Using
-using namespace askap::cp::ingest;
-using namespace askap::cp::common;
+using namespace askap::cp::channels;
 
-int main(int argc, char *argv[])
+bool LibraryWrapper::theirInitialized = false;
+
+LibraryWrapper::LibraryWrapper() : itsResponsible(false)
 {
-    LOFAR::ParameterSet parset("tMSSink.in");
-    const LOFAR::ParameterSet subset = parset.makeSubset("cp.ingest.");
+    if (!theirInitialized) {
+        theirInitialized = true;
+        itsResponsible = true;
+        activemq::library::ActiveMQCPP::initializeLibrary();
+    }
+}
 
-    MSSink sink(subset);
-
-    VisChunk::ShPtr chunk(new VisChunk(21, 8, 4));
-
-    sink.process(chunk);
-
-
-    return 0;
+LibraryWrapper::~LibraryWrapper()
+{
+    if (theirInitialized && itsResponsible) {
+        activemq::library::ActiveMQCPP::shutdownLibrary();
+    }
 }

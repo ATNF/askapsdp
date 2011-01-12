@@ -44,6 +44,7 @@
 ASKAP_LOGGER(logger, ".CalTask");
 
 using namespace askap;
+using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
 /// @brief constructor

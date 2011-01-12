@@ -37,7 +37,7 @@
 
 namespace askap {
 namespace cp {
-namespace eventchannel {
+namespace channels {
 
 /// @brief A Destination object encapsulates an abstraction (either topic or
 /// queue) to which events may be sent of received from.

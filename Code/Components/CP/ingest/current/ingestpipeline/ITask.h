@@ -52,7 +52,7 @@ class ITask {
         ///             transformations on it and return it is output. This
         ///             parameter is a pointer, so the method is free to change
         ///             the pointer to point to a new object.
-        virtual void process(VisChunk::ShPtr chunk) = 0;
+        virtual void process(askap::cp::common::VisChunk::ShPtr chunk) = 0;
 
         /// Shared pointer definition
         typedef boost::shared_ptr<ITask> ShPtr;

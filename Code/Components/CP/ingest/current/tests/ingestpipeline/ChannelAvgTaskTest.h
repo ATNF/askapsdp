@@ -42,6 +42,7 @@
 #include "ingestpipeline/chanavgtask/ChannelAvgTask.h"
 
 using namespace casa;
+using askap::cp::common::VisChunk;
 
 namespace askap {
 namespace cp {

@@ -39,9 +39,8 @@
 #include "boost/shared_ptr.hpp"
 
 namespace askap {
-
 namespace cp {
-namespace ingest {
+namespace common {
 
 class VisChunk {
     public:
@@ -319,10 +318,8 @@ class VisChunk {
         casa::Vector<casa::Stokes::StokesTypes> itsStokes;
 };
 
-} // end of namespace ingest
-
+} // end of namespace common
 } // end of namespace cp
-
 } // end of namespace askap
 
 #endif

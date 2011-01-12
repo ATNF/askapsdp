@@ -40,7 +40,7 @@
 #include "measures/Measures/Stokes.h"
 
 // Using
-using namespace askap::cp::ingest;
+using namespace askap::cp::common;
 
 VisChunk::VisChunk(const casa::uInt nRow,
                    const casa::uInt nChannel,

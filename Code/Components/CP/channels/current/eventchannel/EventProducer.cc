@@ -1,4 +1,4 @@
-/// @file IEventListener.h
+/// @file EventProducer.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,36 +24,39 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_EVENTCHANNEL_IEVENTLISTENER_H
-#define ASKAP_CP_EVENTCHANNEL_IEVENTLISTENER_H
+// Include own header file first
+#include "EventProducer.h"
 
-// System includes
-#include <string>
+// Include package level header file
+#include "askap_channels.h"
+
+// ASKAPsoft includes
+#include "askap/AskapError.h"
+#include "askap/AskapLogging.h"
+#include "cms/Session.h"
+#include "cms/MessageProducer.h"
 
 // Local package includes
 #include "eventchannel/EventMessage.h"
 
-namespace askap {
-namespace cp {
-namespace eventchannel {
+ASKAP_LOGGER(logger, ".EventProducer");
 
-/// @brief The IEventListener allows event messages to be asynchronously
-/// received.
-class IEventListener {
-    public:
+using namespace askap;
+using namespace askap::cp;
+using namespace askap::cp::channels;
 
-        /// @brief Destructor
-        virtual ~IEventListener();
+EventProducer::EventProducer(cms::Session& session, cms::MessageProducer* producer)
+        : itsSession(session), itsMessageProducer(producer)
+{
+}
 
-        /// @brief Called asynchronously when a new event message is received.
-        ///
-        /// @param[in] message a shared pointer to the message. The recipient
-        /// now has ownership of this message via the shared pointer.
-        virtual void onMessage(const EventMessageSharedPtr message) = 0;
-};
+EventProducer::~EventProducer()
+{
+    itsMessageProducer->close();
+    itsMessageProducer.reset();
+}
 
-};
-};
-};
-
-#endif
+void EventProducer::send(EventMessage& message)
+{
+    itsMessageProducer->send(message.getCmsMessage());
+}

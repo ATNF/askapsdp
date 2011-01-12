@@ -28,7 +28,7 @@
 #include "EventConsumer.h"
 
 // Include package level header file
-#include "askap_eventchannel.h"
+#include "askap_channels.h"
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -48,7 +48,7 @@ ASKAP_LOGGER(logger, ".EventConsumer");
 
 using namespace askap;
 using namespace askap::cp;
-using namespace askap::cp::eventchannel;
+using namespace askap::cp::channels;
 
 EventConsumer::EventConsumer(cms::Session& session, cms::MessageConsumer* consumer)
         : itsSession(session), itsMessageConsumer(consumer), itsMailbox(0)

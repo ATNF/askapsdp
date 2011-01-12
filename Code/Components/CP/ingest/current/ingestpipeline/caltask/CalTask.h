@@ -58,7 +58,7 @@ class CalTask : public askap::cp::ingest::ITask {
 	/// @details It modifies the visibility chunk in situ by applying
 	/// current calibration
 	/// @param[in] chunk shared pointer to visibility chunk
-        virtual void process(VisChunk::ShPtr chunk);
+        virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
 
     protected:
         /// @brief obtain gain for a given antenna/beam/pol
