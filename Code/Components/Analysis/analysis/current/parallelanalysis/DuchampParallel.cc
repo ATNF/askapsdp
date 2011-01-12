@@ -471,25 +471,39 @@ namespace askap {
                 casa::Array<Float> snr = (base - median);
 
                 // Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
-                uInt ntotal = snr.nelements();
-                Bool snrDelete, madfmDelete;
-                Float *snrStorage = snr.getStorage(snrDelete);
-                Float *ss = snrStorage;
-                const Float *madfmStorage = madfm.getStorage(madfmDelete);
-                const Float *ms = madfmStorage;
+		Float* madfmData=madfm.data();
+		Float *snrData=snr.data();
+		for(int i=0;i<spatSize;i++){
+		  if(madfmData[i]>0) snrAll[i+z*spatSize] = snrData[i]/madfmData[i];
+		  else snrAll[i+z*spatSize] = 0.;
+		}
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "SNR map @ z="<<z<<" has max of " << *std::max_element(snr.data(),snr.data()+spatSize) << " and min of " << *std::min_element(snr.data(),snr.data()+spatSize));
 
-                while (ntotal--) {
-                    if (*ms > 0) *ss++ /= *ms++;
-                    else {
-                        *ss++ = 0.;
-                        ms++;
-                    }
-                }
 
-                snr.putStorage(snrStorage, snrDelete);
-                madfm.freeStorage(madfmStorage, madfmDelete);
+		// casa::Array<Float>::iterator snrI=snr.begin(),madfmI=madfm.begin();
+		// while(;snrI<snr.end();snrI++,madfmI++){
+		//   if(*madfmI > 0) *snrI /= *madfmI;
+		//   else *snrI = 0.;
+		// }
+                // // uInt ntotal = snr.nelements();
+                // // Bool snrDelete, madfmDelete;
+                // // Float *snrStorage = snr.getStorage(snrDelete);
+                // // Float *ss = snrStorage;
+                // // const Float *madfmStorage = madfm.getStorage(madfmDelete);
+                // // const Float *ms = madfmStorage;
 
-                for (int i = 0; i < spatSize; i++) snrAll[i+z*spatSize] = snr.data()[i];
+                // // while (ntotal--) {
+                // //     if (*ms > 0) *ss++ /= *ms++;
+                // //     else {
+                // //         *ss++ = 0.;
+                // //         ms++;
+                // //     }
+                // // }
+
+                // // snr.putStorage(snrStorage, snrDelete);
+                // // madfm.freeStorage(madfmStorage, madfmDelete);
+
+                // for (int i = 0; i < spatSize; i++) snrAll[i+z*spatSize] = snr.data()[i];
             }
 
             ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
@@ -503,7 +517,8 @@ namespace askap {
             }
 
             ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map");
-            this->itsCube.ReconSearch();
+            // this->itsCube.ReconSearch();
+	    this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
         }
 
         //**************************************************************//
