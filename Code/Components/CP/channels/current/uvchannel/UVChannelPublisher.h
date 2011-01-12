@@ -33,6 +33,8 @@
 
 // ASKAPsoft includes
 #include "cpcommon/VisChunk.h"
+#include "Blob/BlobOBufVector.h"
+#include "Blob/BlobOStream.h"
 
 // Local package includes
 #include "uvchannel/UVChannelConnection.h"
@@ -60,6 +62,12 @@ namespace channels {
 
             // Buffer for serialising messages
             std::vector<unsigned char> itsBuffer;
+
+            // Output buffer vector
+            LOFAR::BlobOBufVector<unsigned char> itsObv;
+
+            // Blob output stream
+            LOFAR::BlobOStream itsOut;
 
             // No support for assignment
             UVChannelPublisher& operator=(const UVChannelPublisher& rhs);

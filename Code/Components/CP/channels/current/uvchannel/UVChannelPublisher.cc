@@ -48,7 +48,7 @@ using namespace askap::cp::channels;
 
 UVChannelPublisher::UVChannelPublisher(const std::string& brokerURI,
                                         const std::string& topicPrefix)
-    : itsConn(brokerURI), itsTopicPrefix(topicPrefix)
+    : itsConn(brokerURI), itsTopicPrefix(topicPrefix), itsObv(itsBuffer), itsOut(itsObv)
 {
 }
 
@@ -62,18 +62,15 @@ void UVChannelPublisher::publish(const askap::cp::common::VisChunk& data,
     std::stringstream ss;
     ss << itsTopicPrefix << channel;
 
-    // Expand size. Size of increment for Blob BufVector storage.
-    // Too small and there is lots of overhead in expanding the vector.
-    const unsigned int expandSize = 1024 * 1024;
+    // Reset the blob objects (need to reuse them for performance reasons)
+    itsObv.clear();
+    itsOut.clear();
 
     // Serialize
-    LOFAR::BlobOBufVector<unsigned char> obv(itsBuffer, expandSize);
-    LOFAR::BlobOStream out(obv);
-    out.putStart("VisChunk", 1);
-    out << data;
-    out.putEnd();
+    itsOut.putStart("VisChunk", 1);
+    itsOut << data;
+    itsOut.putEnd();
 
     // Send
-    itsConn.sendByteMessage(&itsBuffer[0], itsBuffer.size() * sizeof(unsigned char), ss.str());
+    itsConn.sendByteMessage(itsObv.getBuffer(), itsObv.size(), ss.str());
 }
-
