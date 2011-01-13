@@ -132,7 +132,6 @@ namespace askap {
 
       T effectiveLambda(absPeakVal*this->control()->fractionalThreshold()+this->control()->lambda());
       ASKAPLOG_INFO_STR(decfistalogger, "Effective lambda = " << effectiveLambda);
-      cout << "Effective Lambda = " << effectiveLambda << endl;
       
       T t_new=1;
 

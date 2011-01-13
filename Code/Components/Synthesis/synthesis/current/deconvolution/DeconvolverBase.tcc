@@ -196,25 +196,11 @@ namespace askap {
     }
     
     template<class T, class FT>
-    void DeconvolverBase<T,FT>::setDirty(Array<T> Dirty, const uInt term) {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsDirty(term)=Dirty;
-    }
-    
-    template<class T, class FT>
     Array<T> & DeconvolverBase<T,FT>::dirty(const uInt term)
     {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       return itsDirty(term);
-    }
-    
-    template<class T, class FT>
-    void DeconvolverBase<T,FT>::setPsf(Array<T> Psf, const uInt term) {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsPsf(term)=Psf;
     }
     
     template<class T, class FT>
@@ -369,6 +355,7 @@ namespace askap {
 	ASKAPLOG_INFO_STR(logger, "Minimum of PSF = " << minVal << " at " << minPos);
 	itsPeakPSFVal(term) = maxVal;
 	itsPeakPSFPos(term) = maxPos;
+
 	if (term==0) {
 	  // Check the peak of the PSF - it should be at nx/2,ny/2
 	  if(!(maxPos==this->psf(term).shape()/2)) {

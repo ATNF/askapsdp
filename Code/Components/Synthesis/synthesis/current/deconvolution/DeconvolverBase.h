@@ -84,17 +84,9 @@ namespace askap {
       /// @param[in] psf Point Spread Function (array)
       DeconvolverBase(Array<T>& dirty, Array<T>& psf);
 
-      /// @brief Set the initial dirty image for specified term
-      /// @detail Set the dirty image from which iteration will start
-      void setDirty(const Array<T> dirty, const uInt term=0);
-
       /// @brief Get the current dirty image
       /// @detail Get the current dirty image
       Array<T>& dirty(const uInt term=0);
-
-      /// @brief Set the initial PSF for specified term
-      /// @detail Set the point spread function
-      void setPsf(const Array<T> psf, const uInt term=0);
 
       /// @brief Get the current PSF
       /// @detail Get the current PSF

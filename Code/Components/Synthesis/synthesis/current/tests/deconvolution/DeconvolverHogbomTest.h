@@ -116,14 +116,30 @@ public:
     //    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
   }
   void testDeconvolveOffsetPSF() {
-    itsDB->state()->setCurrentIter(0);
-    itsDB->control()->setTargetIter(10);
-    itsDB->control()->setGain(1.0);
-    itsDB->control()->setTargetObjectiveFunction(0.001); 
-    itsDB->dirty().set(0.0);
+    IPosition dimensions(2,100,100);
+    itsDirty.reset(new Array<Float>(dimensions));
+    itsDirty->set(0.0);
     itsDB->dirty()(IPosition(2,30,20))=1.0;
+    itsPsf.reset(new Array<Float>(dimensions));
     itsPsf->set(0.0);
     (*itsPsf)(IPosition(2,70,70))=1.0;
+    itsDB = DeconvolverHogbom<Float,Complex>::ShPtr(new DeconvolverHogbom<Float, Complex>(*itsDirty, *itsPsf));
+    CPPUNIT_ASSERT(itsDB);
+    CPPUNIT_ASSERT(itsDB->control());
+    CPPUNIT_ASSERT(itsDB->monitor());
+    CPPUNIT_ASSERT(itsDB->state());
+    boost::shared_ptr<DeconvolverControl<Float> > DC(new DeconvolverControl<Float>::DeconvolverControl());
+    CPPUNIT_ASSERT(itsDB->setControl(DC));
+    boost::shared_ptr<DeconvolverMonitor<Float> > DM(new DeconvolverMonitor<Float>::DeconvolverMonitor());
+    CPPUNIT_ASSERT(itsDB->setMonitor(DM));
+    boost::shared_ptr<DeconvolverState<Float> > DS(new DeconvolverState<Float>::DeconvolverState());
+    CPPUNIT_ASSERT(itsDB->setControl(DC));
+    itsMask.reset(new Array<Float>(dimensions));
+    itsMask->set(1.0);
+    itsWeight.reset(new Array<Float>(dimensions));
+    itsWeight->set(10.0);
+    itsDB->setMask(*itsMask);
+    itsDB->setWeight(*itsWeight);
     CPPUNIT_ASSERT(itsDB->deconvolve());
     CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
   }
