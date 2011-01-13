@@ -180,6 +180,20 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
                         ") should not exceed nRow (" << nRow <<")");
                 const TosMetadataAntenna& mdAnt2 = metadata.antenna(ant2);
 
+                // Set thedirection reference if it is not already set, otherwise
+                // check to ensure all MDirection instances have the same reference
+                // frame.
+                if (chunk->directionFrame().getType() == casa::MDirection::DEFAULT) {
+                    chunk->directionFrame() = mdAnt1.phaseTrackingCentre(beam).getRef();
+                } else {
+                    const casa::uInt type = chunk->directionFrame().getType();
+                    const std::string errMsg = "Direction reference inconsistant";
+                    ASKAPCHECK(type == mdAnt1.phaseTrackingCentre(beam).getRef().getType(), errMsg);
+                    ASKAPCHECK(type == mdAnt2.phaseTrackingCentre(beam).getRef().getType(), errMsg);
+                    ASKAPCHECK(type == mdAnt1.targetRaDec().getRef().getType(), errMsg);
+                    ASKAPCHECK(type == mdAnt2.targetRaDec().getRef().getType(), errMsg);
+                }
+                
                 chunk->antenna1()(row) = ant1;
                 chunk->antenna2()(row) = ant2;
                 chunk->beam1()(row) = beam;

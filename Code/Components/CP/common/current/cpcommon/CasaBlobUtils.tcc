@@ -129,5 +129,19 @@ namespace LOFAR {
             return is;
         }
 
+        LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const casa::MDirection::Ref& obj)
+        {
+            os << obj.getType();
+            return os;
+        }
+
+        LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, casa::MDirection::Ref& obj)
+        {
+            casa::uInt type;
+            is >> type;
+            casa::MDirection::Ref ref(type);
+            obj = ref;
+            return is;
+        }
 
 } // End namespace LOFAR

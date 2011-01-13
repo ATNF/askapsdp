@@ -39,6 +39,7 @@
 #include "casa/Arrays/Cube.h"
 #include "scimath/Mathematics/RigidVector.h"
 #include "measures/Measures/Stokes.h"
+#include "measures/Measures/MDirection.h"
 #include "Blob/BlobOStream.h"
 #include "Blob/BlobIStream.h"
 #include "Blob/BlobArray.h"
@@ -71,7 +72,8 @@ VisChunk::VisChunk(const casa::uInt nRow,
         itsFlag(nRow, nChannel, nPol),
         itsUVW(nRow),
         itsFrequency(nChannel),
-        itsStokes(nPol)
+        itsStokes(nPol),
+        itsDirectionFrame(casa::MDirection::DEFAULT)
 {
 }
 
@@ -264,6 +266,16 @@ const casa::Vector<casa::Stokes::StokesTypes>& VisChunk::stokes() const
     return itsStokes;
 }
 
+casa::MDirection::Ref& VisChunk::directionFrame()
+{
+    return itsDirectionFrame;
+}
+
+const casa::MDirection::Ref& VisChunk::directionFrame() const
+{
+    return itsDirectionFrame;
+}
+
 void VisChunk::resize(const casa::Cube<casa::Complex>& visibility,
         const casa::Cube<casa::Bool>& flag,
         const casa::Vector<casa::Double>& frequency)
@@ -315,6 +327,7 @@ void VisChunk::writeToBlob(LOFAR::BlobOStream& os) const
     os << itsUVW;
     os << itsFrequency;
     os << itsStokes;
+    os << itsDirectionFrame;
 }
 
 void VisChunk::readFromBlob(LOFAR::BlobIStream& is)
@@ -339,4 +352,5 @@ void VisChunk::readFromBlob(LOFAR::BlobIStream& is)
     is >> itsUVW;
     is >> itsFrequency;
     is >> itsStokes;
+    is >> itsDirectionFrame;
 }

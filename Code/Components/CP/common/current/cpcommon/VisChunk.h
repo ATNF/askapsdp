@@ -36,6 +36,7 @@
 #include "casa/Arrays/Cube.h"
 #include "scimath/Mathematics/RigidVector.h"
 #include "measures/Measures/Stokes.h"
+#include "measures/Measures/MDirection.h"
 #include "boost/shared_ptr.hpp"
 #include "Blob/BlobOStream.h"
 #include "Blob/BlobIStream.h"
@@ -231,6 +232,14 @@ class VisChunk : public ISerializable {
         /// @copydoc VisChunk::stokes()
         const casa::Vector<casa::Stokes::StokesTypes>& stokes() const;
 
+        /// @brief direction reference frame for all MVDirection instances
+        /// in this class.
+        /// @return a reference to the MDirection:Ref.
+        casa::MDirection::Ref& directionFrame();
+
+        /// @copydoc VisChunk::directionFrame()
+        const casa::MDirection::Ref& directionFrame() const;
+
         /// Allows the VisChunk's nChannel dimension to be resized.
         /// This allows resizing in the nChannel dimension only, and by
         /// allowing new visibility, flag and frequency containers to
@@ -329,6 +338,9 @@ class VisChunk : public ISerializable {
 
         /// Stokes
         casa::Vector<casa::Stokes::StokesTypes> itsStokes;
+
+        /// Direction frame
+        casa::MDirection::Ref itsDirectionFrame;
 };
 
 } // end of namespace common

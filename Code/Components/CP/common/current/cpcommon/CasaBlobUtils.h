@@ -61,6 +61,10 @@ namespace LOFAR {
         template<class T, int n>
         LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, casa::RigidVector<T, n>& obj);
 
+        // casa::MDirection::Ref
+        LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const casa::MDirection::Ref& obj);
+        LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, casa::MDirection::Ref& obj);
+
 } // end of namespace LOFAR
 
 #include "CasaBlobUtils.tcc"
