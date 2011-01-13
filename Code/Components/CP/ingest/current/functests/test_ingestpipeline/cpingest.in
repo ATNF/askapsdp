@@ -2,9 +2,6 @@
 # Central Processor Ingest Pipeline Configuration
 #
 
-# Top level config
-cp.ingest.integrations_expected                    = 12
-
 #
 # This defines a list of tasks to create. They will be added to the pipeline
 # in the same order as defined below. So the far left task is the first called

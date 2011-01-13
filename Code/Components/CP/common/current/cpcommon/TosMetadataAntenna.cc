@@ -101,6 +101,16 @@ void TosMetadataAntenna::clientId(const casa::String& val)
     itsClientId = val;
 }
 
+casa::Bool TosMetadataAntenna::scanActive(void) const
+{
+    return itsScanActive;
+}
+
+void TosMetadataAntenna::scanActive(const casa::Bool& val)
+{
+    itsScanActive = val;
+}
+
 casa::String TosMetadataAntenna::scanId(void) const
 {
     return itsScanId;

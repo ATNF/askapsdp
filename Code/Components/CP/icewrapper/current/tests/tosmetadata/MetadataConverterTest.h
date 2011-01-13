@@ -107,6 +107,7 @@ class MetadataConverterTest : public CppUnit::TestFixture {
                 ant.targetRaDec(testDir);
                 ant.frequency(frequency);
                 ant.clientId(clientId);
+                ant.scanActive(true);
                 ant.scanId(scanId);
                 ant.polarisationOffset(polarisationOffset);
                 ant.onSource(onSource);
@@ -195,6 +196,7 @@ class MetadataConverterTest : public CppUnit::TestFixture {
             verifyDir(srcAnt.targetRaDec(), resultAnt.targetRaDec());
             CPPUNIT_ASSERT_EQUAL(srcAnt.frequency(), resultAnt.frequency());
             CPPUNIT_ASSERT_EQUAL(srcAnt.clientId(), resultAnt.clientId());
+            CPPUNIT_ASSERT_EQUAL(srcAnt.scanActive(), resultAnt.scanActive());
             CPPUNIT_ASSERT_EQUAL(srcAnt.scanId(), resultAnt.scanId());
             CPPUNIT_ASSERT_EQUAL(srcAnt.polarisationOffset(),
                                  resultAnt.polarisationOffset());

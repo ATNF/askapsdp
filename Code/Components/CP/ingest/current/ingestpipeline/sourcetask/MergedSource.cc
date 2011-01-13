@@ -67,6 +67,12 @@ VisChunk::ShPtr MergedSource::next(void)
     // Get the next TosMetadata
     itsMetadata = itsMetadataSrc->next();
 
+    // Check if the TOS/TOM has indicated the observation is complete
+    if (!itsMetadata->antenna(0).scanActive()) {
+        ASKAPLOG_DEBUG_STR(logger, "Received metadata indiating scan_active is false");
+        return VisChunk::ShPtr();
+    }
+
     // Get the next VisDatagram if there isn't already one in the buffer
     if (!itsVis) {
         itsVis = itsVisSrc->next();

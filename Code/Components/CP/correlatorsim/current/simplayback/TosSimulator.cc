@@ -155,6 +155,9 @@ bool TosSimulator::sendNext(void)
         // <antenna name>.client_id
         antMetadata.clientId("N/A");
 
+        // <antenna name.scan_active
+        antMetadata.scanActive(true);
+
         // <antenna name>.scan_id
         std::ostringstream ss;
         ss << msc.scanNumber()(itsCurrentRow);
@@ -214,6 +217,22 @@ bool TosSimulator::sendNext(void)
     itsPort->send(metadata);
 
     if (itsCurrentRow == nRow) {
+        // The TOM has no way of indicating end of scan, but it does set the
+        // scan_active field to false when the observation is complete and
+        // guarantees at least one metadata payload will be sent with 
+        // scan_active == false. So here an additional metadata message is sent
+        // indicating this idle state.
+        for (casa::uInt i = 0; i < nAntenna; ++i) {
+            TosMetadataAntenna& antMetadata = metadata.antenna(i);
+            metadata.time(metadata.time() + metadata.period());
+            antMetadata.scanActive(false);
+            antMetadata.scanId("");
+            antMetadata.clientId("");
+        }
+        ASKAPLOG_INFO_STR(logger,
+                "Sending additional metadata message indicating end-of-observation");
+        itsPort->send(metadata);
+
         return false; // Indicate there is no more data after this payload
     } else {
         return true;

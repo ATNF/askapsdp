@@ -164,6 +164,10 @@ void MetadataConverter::convertAntenna(unsigned int antId,
     destMapper.setString(makeMapKey(antennaName, "client_id"),
             antenna.clientId());
 
+    // <antenna name>.scan_active
+    destMapper.setBool(makeMapKey(antennaName, "scan_active"),
+            antenna.scanActive());
+
     // <antenna name>.scan_id
     destMapper.setString(makeMapKey(antennaName, "scan_id"),
             antenna.scanId());
@@ -238,6 +242,9 @@ void MetadataConverter::convertAntenna(const std::string& antennaName,
     // client_id
     ant.clientId(srcMapper.getString(makeMapKey(antennaName,
                     "client_id")));
+    // scan_active
+    ant.scanActive(srcMapper.getBool(makeMapKey(antennaName,
+                    "scan_active")));
     // scan_id
     ant.scanId(srcMapper.getString(makeMapKey(antennaName,
                     "scan_id")));

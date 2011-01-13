@@ -75,15 +75,6 @@ class IngestPipeline {
 
         std::vector<ITask::ShPtr> itsTasks;
 
-        // A count of how many correlator integrations have been
-        // processed.
-        unsigned long itsIntegrationsCount;
-
-        // Number of correlator integrations expected. When itsIntegrationsCount
-        // equals this number the pipeline will be stopped and start will
-        // return.
-        unsigned long itsIntegrationsExpected;
-
         // No support for assignment
         IngestPipeline& operator=(const IngestPipeline& rhs);
 

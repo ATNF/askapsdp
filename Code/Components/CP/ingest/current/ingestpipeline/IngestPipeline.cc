@@ -56,10 +56,8 @@ using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
 IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset)
-    : itsParset(parset), itsRunning(false),
-    itsIntegrationsCount(0)
+    : itsParset(parset), itsRunning(false)
 {
-    itsIntegrationsExpected = itsParset.getUint32("integrations_expected");
 }
 
 IngestPipeline::~IngestPipeline()
@@ -100,9 +98,8 @@ void IngestPipeline::ingest(void)
     }
 
     // 4) Process correlator integrations, one at a time
-    while (itsRunning && (itsIntegrationsCount < itsIntegrationsExpected))  {
+    while (itsRunning)  {
         bool endOfStream = ingestOne();
-        itsIntegrationsCount++;
         if (endOfStream) {
             itsRunning = false;
         }
@@ -116,6 +113,10 @@ bool IngestPipeline::ingestOne(void)
 {
     ASKAPLOG_DEBUG_STR(logger, "Waiting for data");
     VisChunk::ShPtr chunk(itsSource->next());
+    if (chunk.get() == 0) {
+        return true;
+    }
+
     ASKAPLOG_DEBUG_STR(logger, "Received one VisChunk. Timestamp: "
             << chunk->time());
 

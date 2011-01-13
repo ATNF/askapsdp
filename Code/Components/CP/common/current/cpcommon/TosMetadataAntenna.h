@@ -103,6 +103,16 @@ class TosMetadataAntenna {
         /// @param[in] val the client id.
         void clientId(const casa::String& val);
 
+        /// @brief Get the scan active field
+        /// @return true if the antenna is carrying out a scan, otherwise
+        /// false;
+        casa::Bool scanActive(void) const;
+
+        /// @brief Set the scan active field
+        /// Set this to true if the antenna is carrying out a scan,
+        /// otherwise false;
+        void scanActive(const casa::Bool& val);
+
         /// @brief Get the scan id.
         /// The scan id is the TOS scan id the antenna is currently performing.
         /// @return the scan id.
@@ -312,6 +322,10 @@ class TosMetadataAntenna {
         /// The The client id (ie. normally scheduling block id) that
         /// the antenna is allocated to.
         casa::String itsClientId;
+
+        /// True if a scan is being executed, otherwise false indicating
+        /// the antenna is idle
+        casa::Bool itsScanActive;
 
         /// The TOS scan id the antenna is currently performing.
         casa::String itsScanId;
