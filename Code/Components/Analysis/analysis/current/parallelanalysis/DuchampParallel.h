@@ -192,7 +192,7 @@ namespace askap {
                 std::vector<PixelInfo::Voxel> itsSNRVoxelList;
 
                 /// The Gaussian Fitting parameter class
-                sourcefitting::FittingParameters itsFitter;
+                sourcefitting::FittingParameters itsFitParams;
 
                 /// Shall we fit to the sources?
                 bool itsFlagDoFit;

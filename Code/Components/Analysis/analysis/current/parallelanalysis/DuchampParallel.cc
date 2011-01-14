@@ -131,7 +131,7 @@ namespace askap {
         DuchampParallel::DuchampParallel(int argc, const char** argv)
                 : AskapParallel(argc, argv)
         {
-            this->itsFitter = sourcefitting::FittingParameters(LOFAR::ParameterSet());
+            this->itsFitParams = sourcefitting::FittingParameters(LOFAR::ParameterSet());
         }
         //**************************************************************//
 
@@ -167,10 +167,10 @@ namespace askap {
             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
             this->itsFitBoxAnnotationFile = parset.getString("fitBoxAnnotationFile", this->itsFitAnnotationFile);
             LOFAR::ParameterSet fitParset = parset.makeSubset("Fitter.");
-            this->itsFitter = sourcefitting::FittingParameters(fitParset);
-	    this->itsFitter.useBoxFlux(!this->itsFlagFitJustDetection);
+            this->itsFitParams = sourcefitting::FittingParameters(fitParset);
+	    this->itsFitParams.useBoxFlux(!this->itsFlagFitJustDetection);
 
-            if (this->itsFitter.numFitTypes() == 0 && this->itsFlagDoFit)
+            if (this->itsFitParams.numFitTypes() == 0 && this->itsFlagDoFit)
                 ASKAPLOG_WARN_STR(logger, "No valid fit types given, so setting doFit flag to false.");
 
             if (this->isParallel()) {
@@ -673,10 +673,10 @@ namespace askap {
                     // } else thresholdForFitting = threshold;
 
                     // // Set up parameters for fitting.
-                    // src.setNoiseLevel(this->itsCube, this->itsFitter);
+                    // src.setNoiseLevel(this->itsCube, this->itsFitParams);
                     // src.setDetectionThreshold(thresholdForFitting);
                     // src.setHeader(head);
-                    // src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+                    // src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
                     // // Only do fit if object is not next to boundary
                     // src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
 
@@ -687,9 +687,9 @@ namespace askap {
 
                     //     if (this->itsFlagFitJustDetection) {
                     //         std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
-                    //         src.fitGaussNew(&voxlist, this->itsFitter);
+                    //         src.fitGaussNew(&voxlist, this->itsFitParams);
                     //     } else
-                    //         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
+                    //         src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitParams);
 
                     //     src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
                     //     src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
@@ -706,12 +706,12 @@ namespace askap {
       {
 
 	// Set up parameters for fitting.
-	if(useArray) src.setNoiseLevel(this->itsCube, this->itsFitter);
+	if(useArray) src.setNoiseLevel(this->itsCube, this->itsFitParams);
 	else {
 	  // if need to use the surrounding noise, we have to go extract it from the image
-	  if (this->itsFitter.useNoise() // && !this->itsCube.pars().getFlagUserThreshold()
+	  if (this->itsFitParams.useNoise() // && !this->itsCube.pars().getFlagUserThreshold()
 	      ) {
-	    float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
+	    float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitParams.noiseBoxSize());
 	    src.setNoiseLevel(noise);
 	  } else src.setNoiseLevel(1);
 	}
@@ -720,7 +720,7 @@ namespace askap {
 	else src.setDetectionThreshold(this->itsVoxelList, this->itsSNRVoxelList, this->itsFlagDoMedianSearch);
 
 	src.setHeader(this->itsCube.getHead());
-	src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+	src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 
       }
 
@@ -748,11 +748,11 @@ namespace askap {
 	    }
 	  }
 	  //	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calling fit funtion with voxel list of size " << voxlist.size() << " cf source size of " << src.getSize());
-	  src.fitGaussNew(&voxlist, this->itsFitter);
+	  src.fitGaussNew(&voxlist, this->itsFitParams);
 	} else {
 	  //	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Fitting to set of surrounding pixels");
-	  if(useArray) src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitter);
-	  else src.fitGauss(&this->itsVoxelList, this->itsFitter);
+	  if(useArray) src.fitGauss(this->itsCube.getArray(), this->itsCube.getDimArray(), this->itsFitParams);
+	  else src.fitGauss(&this->itsVoxelList, this->itsFitParams);
 	}
 
 	src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
@@ -883,8 +883,8 @@ namespace askap {
 
 		// And now set offsets to those of the full image as we are in the master cube
 		src.setOffsets(this->itsCube.pars());
-		src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
-		src.fitparams() = this->itsFitter;
+		src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
+		src.fitparams() = this->itsFitParams;
 		this->itsSourceList.push_back(src);
 
 		if (src.isAtEdge()) {
@@ -1029,15 +1029,15 @@ namespace askap {
                             src.setPeakSNR(maxSNR);
 			  } else thresholdForFitting = threshold;
 
-			  if (this->itsFitter.useNoise() // && !this->itsCube.pars().getFlagUserThreshold()
+			  if (this->itsFitParams.useNoise() // && !this->itsCube.pars().getFlagUserThreshold()
 			      ) {
-                            float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitter.noiseBoxSize());
+                            float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitParams.noiseBoxSize());
                             src.setNoiseLevel(noise);
 			  } else src.setNoiseLevel(1);
 
 			  src.setDetectionThreshold(thresholdForFitting);
 			  src.setHeader(head);
-			  src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+			  src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 
 			  if (this->itsFlagDoFit) {
 
@@ -1057,9 +1057,9 @@ namespace askap {
 				else vox->setF(voxcomp->getF());
 			      }
 
-			      src.fitGaussNew(&voxlist, this->itsFitter);
+			      src.fitGaussNew(&voxlist, this->itsFitParams);
                             } else {
-			      src.fitGauss(&this->itsVoxelList, this->itsFitter);
+			      src.fitGauss(&this->itsVoxelList, this->itsFitParams);
                             }
 
                             src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
@@ -1144,7 +1144,7 @@ namespace askap {
 	      out.putStart("paramsrc", 1);
 	      out << objsize;
 	      sourcefitting::RadioSource src(this->itsCube.getObject(i));
-	      src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+	      src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 	      out << src;
 	      out.putEnd();
 	      this->itsConnectionSet->write(rank, bs);
@@ -1251,7 +1251,7 @@ namespace askap {
 	    out << int(numObj);
 	    for(int i=0;i<numObj;i++){
 	      sourcefitting::RadioSource src=this->itsCube.getObject(i);
-	      src.defineBox(this->itsCube.pars().section(), this->itsFitter, this->itsCube.header().getWCS()->spec);
+	      src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 	      out << src;
 	    }
 	    out.putEnd();
@@ -1507,7 +1507,7 @@ namespace askap {
             /// manner.
             if (this->isMaster()) {
 
-                std::vector<std::string> outtypes = this->itsFitter.fitTypes();
+                std::vector<std::string> outtypes = this->itsFitParams.fitTypes();
                 outtypes.push_back("best");
 	      
 		if(this->itsCube.pars().getFlagNegative()){
