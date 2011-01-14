@@ -37,7 +37,8 @@
 // Using
 using namespace askap::cp;
 
-SpectralLineWorkUnit::SpectralLineWorkUnit() : itsChannelOffset(-1)
+SpectralLineWorkUnit::SpectralLineWorkUnit()
+    : itsGlobalChannel(-1), itsLocalChannel(-1)
 {
 }
 
@@ -63,9 +64,14 @@ void SpectralLineWorkUnit::set_dataset(std::string dataset)
         itsDataset = dataset;
 }
 
-void SpectralLineWorkUnit::set_channelOffset(int offset)
+void SpectralLineWorkUnit::set_globalChannel(unsigned int chan)
 {
-    itsChannelOffset = offset;
+    itsGlobalChannel = chan;
+}
+
+void SpectralLineWorkUnit::set_localChannel(unsigned int chan)
+{
+    itsLocalChannel = chan;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -81,9 +87,14 @@ std::string SpectralLineWorkUnit::get_dataset(void) const
         return itsDataset;
 }
 
-int SpectralLineWorkUnit::get_channelOffset(void) const
+unsigned int SpectralLineWorkUnit::get_globalChannel(void) const
 {
-    return itsChannelOffset;
+    return itsGlobalChannel;
+}
+
+unsigned int SpectralLineWorkUnit::get_localChannel(void) const
+{
+    return itsLocalChannel;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -93,7 +104,8 @@ void SpectralLineWorkUnit::writeToBlob(LOFAR::BlobOStream& os) const
 {
     os << static_cast<int>(itsPayloadType);
     os << itsDataset;
-    os << itsChannelOffset;
+    os << itsGlobalChannel;
+    os << itsLocalChannel;
 }
 
 void SpectralLineWorkUnit::readFromBlob(LOFAR::BlobIStream& is)
@@ -102,7 +114,8 @@ void SpectralLineWorkUnit::readFromBlob(LOFAR::BlobIStream& is)
 
     is >> payloadType;
     is >> itsDataset;
-    is >> itsChannelOffset;
+    is >> itsGlobalChannel;
+    is >> itsLocalChannel;
 
     itsPayloadType = static_cast<PayloadType>(payloadType);
 }

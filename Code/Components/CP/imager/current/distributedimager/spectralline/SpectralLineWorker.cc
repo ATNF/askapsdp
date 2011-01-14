@@ -100,10 +100,11 @@ void SpectralLineWorker::run(void)
         }
 
         const std::string ms = wu.get_dataset();
-        ASKAPLOG_DEBUG_STR(logger, "Received Work Unit for dataset " << ms );
+        ASKAPLOG_DEBUG_STR(logger, "Received Work Unit for dataset " << ms 
+                << ", local channel " << wu.get_localChannel()
+                << ", global channel " << wu.get_globalChannel());
         processWorkUnit(wu);
     }
-
 }
 
 void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
@@ -130,7 +131,6 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
     conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
     IDataSharedIter it = ds.createIterator(sel, conv);
 
-    const int nChannels = it->nChannel();
     if (!itsParset.isDefined("Images.name")) {
         ASKAPTHROW(std::runtime_error, "Image name is not defined in parameter set");
     }
@@ -139,31 +139,30 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
         ASKAPTHROW(std::runtime_error, "Image name specified as a vector.");
     }
 
-    for (int i = 0; i < nChannels; ++i) {
-        processChannel(ds, imagename, i, wu.get_channelOffset());
-    }
-
+    const unsigned int localChannel = wu.get_localChannel();
+    const unsigned int globalChannel = wu.get_globalChannel();
+    ASKAPCHECK(localChannel < it->nChannel(), "Invalid local channel number");
+    ASKAPCHECK(localChannel <= globalChannel, "Local channel > global channel");
+    processChannel(ds, imagename, localChannel, globalChannel);
 }
 
 void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
-        const std::string& imagename, int channel, int channelOffset)
+        const std::string& imagename, unsigned int localChannel, unsigned int globalChannel)
 {
-    ASKAPLOG_DEBUG_STR(logger, "Processing channel " << (channel + channelOffset + 1));
-
     askap::scimath::Params::ShPtr model_p(new Params());
-    setupImage(model_p, (channelOffset + channel + 1));
+    setupImage(model_p, globalChannel);
 
     casa::Timer timer;
 
     // Setup data iterator
     IDataSelectorPtr sel = ds.createSelector();
-    sel->chooseChannels(1, channel);
+    sel->chooseChannels(1, localChannel);
     IDataConverterPtr conv = ds.createConverter();
     conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
     conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
     IDataSharedIter it = ds.createIterator(sel, conv);
 
-    ASKAPLOG_DEBUG_STR(logger, "Calculating normal equations for channel " << (channel + channelOffset + 1));
+    ASKAPLOG_DEBUG_STR(logger, "Calculating normal equations for channel " << globalChannel);
     ASKAPCHECK(model_p, "model_p is not correctly initialized");
     askap::scimath::INormalEquations::ShPtr ne_p;
     askap::scimath::Equation::ShPtr equation_p;
@@ -188,7 +187,7 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
         equation_p->calcEquations(*ne_p);
 
         ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for channel "
-                << (channel + channelOffset + 1) << " in "
+                << globalChannel << " in "
                 << timer.real() << " seconds ");
 
         // Solve NE
@@ -213,7 +212,7 @@ void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
             equation_p->calcEquations(*ne_p);
 
             ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for channel "
-                    << (channel + channelOffset + 1) << " in "
+                    << globalChannel << " in "
                     << timer.real() << " seconds ");
 
             // Solve NE

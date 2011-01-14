@@ -30,7 +30,7 @@ tar zxf ../10uJy_stdtest.ms.tgz
 mv 10uJy_stdtest.ms 10uJy_stdtest_1.ms
 echo Done
 
-mpirun -np 2 ${ASKAP_ROOT}/Code/Components/CP/imager/current/apps/imager.sh -inputs imager.in | tee $OUTPUT
+mpirun -np 3 ${ASKAP_ROOT}/Code/Components/CP/imager/current/apps/imager.sh -inputs imager.in | tee $OUTPUT
 if [ $? -ne 0 ]; then
     echo Error: mpirun returned an error
     exit 1

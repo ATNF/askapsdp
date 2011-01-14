@@ -74,27 +74,36 @@ void SpectralLineMaster::run(void)
 
     // Send work orders to the worker processes, handling out
     // more work to the workers as needed.
-    int channelOffset = 0;
+
+    // Iterate over all measurement sets
+    unsigned int globalChannel = 1;
     for (unsigned int n = 0; n < ms.size(); ++n) {
-        int id; // Id of the process the WorkRequest message is received from
+        const unsigned int msChannels = getNumChannels(ms[n]);
+        ASKAPLOG_DEBUG_STR(logger, "Creating work orders for measurement set "
+                << ms[n] << " with " << msChannels << " channels");
 
-        // Wait for a worker to request some work
-        SpectralLineWorkRequest wrequest;
-        itsComms.receiveMessageAnySrc(wrequest, id);
+        // Iterate over all channels in the measurement set
+        for (unsigned int localChan = 0; localChan < msChannels; ++localChan) {
 
-        const int msChannels = getNumChannels(ms[n]);
+            int id; // Id of the process the WorkRequest message is received from
 
-        // Send the workunit to the worker
-        ASKAPLOG_DEBUG_STR(logger, "Master is allocating workunit " << ms[n]
-                << ", containing channels " << (channelOffset + 1) << "-"
-                << (channelOffset + msChannels) << " to worker " << id);
-        SpectralLineWorkUnit wu;
-        wu.set_payloadType(SpectralLineWorkUnit::WORK);
-        wu.set_dataset(ms[n]);
-        wu.set_channelOffset(channelOffset);
-        itsComms.sendMessage(wu, id);
+            // Wait for a worker to request some work
+            SpectralLineWorkRequest wrequest;
+            itsComms.receiveMessageAnySrc(wrequest, id);
 
-        channelOffset += msChannels;
+            // Send the workunit to the worker
+            ASKAPLOG_DEBUG_STR(logger, "Master is allocating workunit " << ms[n]
+                    << ", local channel " <<  localChan << ", global channel "
+                    << globalChannel << " to worker " << id);
+            SpectralLineWorkUnit wu;
+            wu.set_payloadType(SpectralLineWorkUnit::WORK);
+            wu.set_dataset(ms[n]);
+            wu.set_globalChannel(globalChannel);
+            wu.set_localChannel(localChan);
+            itsComms.sendMessage(wu, id);
+
+            globalChannel++;
+        }
     }
 
     // Send each worker a response to indicate there are

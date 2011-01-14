@@ -59,7 +59,8 @@ namespace askap {
 
                 // For a given workunit, just process a single channel
                 void processChannel(askap::synthesis::TableDataSource& ds,
-                        const std::string& imagename, int channel, int channelOffset);
+                        const std::string& imagename, unsigned int localChannel,
+                        unsigned int globalChannel);
 
                 // Setup the image specified in itsParset and add it to the Params instance.
                 void setupImage(const askap::scimath::Params::ShPtr& params, int actualChannel);
