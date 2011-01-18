@@ -279,7 +279,7 @@ namespace askap {
 	    checkUnusedParameter(parset,"drawBorders");// No graphics
 	    checkUnusedParameter(parset,"drawBlankEdges");// No graphics
             par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
-	    par.setSpectralMethod(parset.getString("spectralMethod",par.getSpectralMethod()));
+	    checkUnusedParameter(parset,"spectralMethod"); // only used for graphical output.
 	    par.setSpectralUnits(parset.getString("spectralUnits",par.getSpectralUnits()));
 	    par.setSortingParam(parset.getString("sortingParam",par.getSortingParam()));
 
