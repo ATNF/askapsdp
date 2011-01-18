@@ -32,6 +32,7 @@
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Fitter.h>
 #include <analysisutilities/SubimageDef.h>
+#include <parallelanalysis/Weighter.h>
 
 #include <askapparallel/AskapParallel.h>
 
@@ -86,6 +87,8 @@ namespace askap {
                 /// @brief Perform a search based on a median box sliding function
                 void medianSearch2D();
                 void medianSearch();
+
+		void weightSearch();
 
                 /// @brief Read the metadata only from the image file.
                 int getMetadata();
@@ -170,8 +173,14 @@ namespace askap {
                 /// Is the image a FITS file or not (if not, probably a casa image...)
                 bool itsIsFITSFile;
 
+		/// The base subsection of the image;
+		std::string itsBaseSubsection;
+
                 /// An image showing relative weights of pixels
                 std::string itsWeightImage;
+
+		/// The weighting of each pixel
+		Weighter *itsWeighter;
 
                 /// The weights values
                 casa::Vector<casa::Double> itsWeights;

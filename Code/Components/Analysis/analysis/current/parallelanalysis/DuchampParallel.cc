@@ -132,6 +132,7 @@ namespace askap {
                 : AskapParallel(argc, argv)
         {
             this->itsFitParams = sourcefitting::FittingParameters(LOFAR::ParameterSet());
+	    this->itsWeighter = new Weighter(*this);
         }
         //**************************************************************//
 
@@ -150,16 +151,19 @@ namespace askap {
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
 	    bool useCasa = parset.getBool("useCASAforFITS",true);
 	    this->itsIsFITSFile = this->itsIsFITSFile && !useCasa;
+	    this->itsBaseSubsection = parset.getString("subsection","");
             this->itsWeightImage = parset.getString("weightimage", "");
 
-            if (this->itsWeightImage != "")
+            if (this->itsWeightImage != ""){
                 ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
+		this->itsWeighter = new Weighter(*this);
+	    }
 
             this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch", false);
             this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
-	    this->itsFlagDistribFit = parset.getBool("distribFit",false);
+	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
             this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", false);
             this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
             this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
@@ -323,26 +327,26 @@ namespace askap {
                     if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
                 }
 
-                if (this->itsWeightImage != "") {
-                    ASKAPLOG_INFO_STR(logger, "Applying weights");
-                    // use the same spatial section, but only the first plane
-                    duchamp::Section wsec = this->itsCube.pars().section();
+                // if (this->itsWeightImage != "") {
+                //     ASKAPLOG_INFO_STR(logger, "Applying weights");
+                //     // use the same spatial section, but only the first plane
+                //     duchamp::Section wsec = this->itsCube.pars().section();
 
-                    for (int i = 2; i <= 3; i++) {
-                        wsec.setStart(i, 0);
-                        wsec.setEnd(i, 0);
-                    }
+                //     for (int i = 2; i <= 3; i++) {
+                //         wsec.setStart(i, 0);
+                //         wsec.setEnd(i, 0);
+                //     }
 
-                    this->itsWeights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
-                    casa::Double maxweight = *std::max_element(this->itsWeights.begin(), this->itsWeights.end());
+                //     this->itsWeights = getPixelsInBox(this->itsWeightImage, subsectionToSlicer(wsec));
+                //     casa::Double maxweight = *std::max_element(this->itsWeights.begin(), this->itsWeights.end());
 
-                    for (size_t i = 0; i < this->itsWeights.size(); i++) this->itsWeights[i] /= maxweight;
+                //     for (size_t i = 0; i < this->itsWeights.size(); i++) this->itsWeights[i] /= maxweight;
 
-                    for (int z = 0; z < this->itsCube.getDimZ(); z++)
-                        for (int i = 0; i < this->itsCube.getDimX()*this->itsCube.getDimY(); i++)
-                            this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= this->itsWeights[i];
+                //     for (int z = 0; z < this->itsCube.getDimZ(); z++)
+                //         for (int i = 0; i < this->itsCube.getDimX()*this->itsCube.getDimY(); i++)
+                //             this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] *= this->itsWeights[i];
 
-                }
+                // }
 
 		if(this->itsCube.pars().getFlagNegative()){
 		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Inverting cube");
@@ -412,6 +416,10 @@ namespace askap {
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after median filtering");
                         // this->medianSearch2D();
                         this->medianSearch();
+		    } else if (this->itsWeightImage != "" ){
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Searching after weighting");
+		      this->itsWeighter->initialise(this->itsWeightImage, this->itsCube.pars().section());
+		      this->weightSearch();
                     } else if (this->itsCube.pars().getFlagATrous()) {
                         ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Searching with reconstruction first");
                         this->itsCube.ReconSearch();
@@ -424,13 +432,13 @@ namespace askap {
                     }
                 }
 
-                if (this->itsWeightImage != "") {
-                    ASKAPLOG_INFO_STR(logger, "Removing weights");
+                // if (this->itsWeightImage != "") {
+                //     ASKAPLOG_INFO_STR(logger, "Removing weights");
 
-                    for (int z = 0; z < this->itsCube.getDimZ(); z++)
-                        for (int i = 0; i < this->itsCube.getDimX()*this->itsCube.getDimY(); i++)
-                            this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= this->itsWeights[i];
-                }
+                //     for (int z = 0; z < this->itsCube.getDimZ(); z++)
+                //         for (int i = 0; i < this->itsCube.getDimX()*this->itsCube.getDimY(); i++)
+                //             this->itsCube.getArray()[i+z*this->itsCube.getDimX()*this->itsCube.getDimY()] /= this->itsWeights[i];
+                // }
 
 
                 // merge the objects, and grow them if necessary.
@@ -443,9 +451,34 @@ namespace askap {
                     this->itsCube.pars().setMinChannels(minchan);
                 }
             }
-        }
+	}
 
         //**************************************************************//
+       void DuchampParallel::weightSearch()
+      {
+	float *snrAll = new float[this->itsCube.getSize()];
+	for(int i=0; i<this->itsCube.getSize();i++){
+	  snrAll[i] = this->itsCube.getPixValue(i)/this->itsWeighter->weight(i);
+	}
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
+	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
+	this->itsCube.setReconFlag(true);
+	
+	if (!this->itsCube.pars().getFlagUserThreshold()) {
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
+	  this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
+	  this->itsCube.pars().setFlagUserThreshold(true);
+	}
+	
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map");
+	this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
+	this->itsCube.updateDetectMap();
+	if(this->itsCube.pars().getFlagLog())
+	  this->itsCube.logDetectionList();
+	
+	delete [] snrAll;
+      }
+
       
       void findSNR(float *input, float *output, casa::IPosition shape, casa::IPosition box, int loc, bool isSpatial, int spatSize, int specSize)
       {
@@ -1087,7 +1120,7 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have a total of " << this->itsSourceList.size() << " sources.");
 
 		//                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Starting sort of source list");
-                std::map<float, int> detlist;
+                std::multimap<float, int> detlist;
 
                 for (size_t i = 0; i < this->itsSourceList.size(); i++) {
                     float val = this->is2D() ? this->itsSourceList[i].getXcentre() : this->itsSourceList[i].getVel();
@@ -1181,7 +1214,7 @@ namespace askap {
 	  }
 	  else if(this->isWorker()){
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for object calculation");
-	    this->itsCube.pars().setSubsection("");
+	    this->itsCube.pars().setSubsection(this->itsBaseSubsection); // take care of any global offsets due to subsectioning
 	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
 	    LOFAR::BlobString bs;
 
