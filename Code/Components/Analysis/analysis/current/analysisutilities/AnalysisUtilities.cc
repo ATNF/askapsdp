@@ -276,7 +276,7 @@ namespace askap {
 	    //
 
             par.setVerbosity(parset.getBool("verbose", false));
-	    par.setDrawBorders(parset.getBool("drawBorders", par.drawBorders());
+	    par.setDrawBorders(parset.getBool("drawBorders", par.drawBorders()));
 	    checkUnusedParameter(parset,"drawBlankEdges");// No graphics
             par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
 	    checkUnusedParameter(parset,"spectralMethod"); // only used for graphical output.
