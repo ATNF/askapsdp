@@ -442,13 +442,7 @@ namespace askap {
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
 	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
 	this->itsCube.setReconFlag(true);
-	
-	if (!this->itsCube.pars().getFlagUserThreshold()) {
-	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
-	  this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
-	  this->itsCube.pars().setFlagUserThreshold(true);
-	}
-	
+		
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map");
 	this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
 	this->itsCube.updateDetectMap();
