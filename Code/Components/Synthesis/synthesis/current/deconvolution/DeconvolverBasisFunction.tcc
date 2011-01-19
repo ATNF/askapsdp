@@ -119,7 +119,7 @@ namespace askap {
     {
       this->updateResiduals(this->itsModel);
       
-      uInt nScales(this->itsBasisFunction->numberTerms());
+      uInt nScales(this->itsBasisFunction->numberBases());
 
       IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
       
@@ -216,7 +216,7 @@ namespace askap {
 	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse diag(coupling matrix)");
       }
       
-      uInt nScales(this->itsBasisFunction->numberTerms());
+      uInt nScales(this->itsBasisFunction->numberBases());
       
       IPosition l1Shape(3, this->model().shape()(0), this->model().shape()(1), nScales);
       this->itsL1image.resize(this->itsNumberTerms);
@@ -259,7 +259,7 @@ namespace askap {
       ASKAPLOG_INFO_STR(decbflogger,
 			"Calculating convolutions of residual image with basis functions");
       
-      for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
+      for (uInt term=0;term<this->itsBasisFunction->numberBases();term++) {
 	
 	ASKAPASSERT(basisFunctionFFT.xyPlane(term).nonDegenerate().shape().conform(residualFFT.nonDegenerate().shape()));
         work=conj(basisFunctionFFT.xyPlane(term).nonDegenerate())*residualFFT.nonDegenerate();
@@ -337,8 +337,8 @@ namespace askap {
       // Now we have all the ingredients to calculate the convolutions
       // of basis function with psf's, etc.
       ASKAPLOG_INFO_STR(decbflogger, "Calculating convolutions of Psfs with basis functions");
-      itsPSFScales.resize(this->itsBasisFunction->numberTerms());
-      for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
+      itsPSFScales.resize(this->itsBasisFunction->numberBases());
+      for (uInt term=0;term<this->itsBasisFunction->numberBases();term++) {
 	// basis function * psf
 	ASKAPASSERT(basisFunctionFFT.xyPlane(term).nonDegenerate().shape().conform(subXFR.shape()));
 	work=conj(basisFunctionFFT.xyPlane(term).nonDegenerate())*subXFR;
@@ -352,8 +352,8 @@ namespace askap {
 
       ASKAPLOG_INFO_STR(decbflogger, "Calculating double convolutions of PSF with basis functions");
       IPosition crossTermsShape(4, psfWidth, psfWidth,
-				this->itsBasisFunction->numberTerms(),
-				this->itsBasisFunction->numberTerms());
+				this->itsBasisFunction->numberBases(),
+				this->itsBasisFunction->numberBases());
       ASKAPLOG_INFO_STR(decbflogger, "Shape of cross terms " << crossTermsShape);
       itsPSFCrossTerms.resize(crossTermsShape);
       IPosition crossTermsStart(4,0);
@@ -363,10 +363,10 @@ namespace askap {
       Array<FT> crossTermsPSFFFT(crossTermsShape);
       crossTermsPSFFFT.set(T(0));
       
-      for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
+      for (uInt term=0;term<this->itsBasisFunction->numberBases();term++) {
 	crossTermsStart(2)=term;
 	crossTermsEnd(2)=term;
-	for (uInt term1=0;term1<this->itsBasisFunction->numberTerms();term1++) {
+	for (uInt term1=0;term1<this->itsBasisFunction->numberBases();term1++) {
 	  crossTermsStart(3)=term1;
 	  crossTermsEnd(3)=term1;
 	  casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
@@ -376,13 +376,13 @@ namespace askap {
 	}
 	
       }
-      this->itsCouplingMatrix.resize(itsBasisFunction->numberTerms(), itsBasisFunction->numberTerms());
+      this->itsCouplingMatrix.resize(itsBasisFunction->numberBases(), itsBasisFunction->numberBases());
       scimath::fft2d(crossTermsPSFFFT, true);
       this->itsPSFCrossTerms=real(crossTermsPSFFFT)/T(crossTermsShape(0)*crossTermsShape(1));
-      for (uInt term=0;term<this->itsBasisFunction->numberTerms();term++) {
+      for (uInt term=0;term<this->itsBasisFunction->numberBases();term++) {
 	crossTermsStart(2)=term;
 	crossTermsEnd(2)=term;
-	for (uInt term1=0;term1<this->itsBasisFunction->numberTerms();term1++) {
+	for (uInt term1=0;term1<this->itsBasisFunction->numberBases();term1++) {
 	  crossTermsStart(3)=term1;
 	  crossTermsEnd(3)=term1;
 	  casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
@@ -411,7 +411,7 @@ namespace askap {
       
       // Now look at coupling between adjacent scales: this works well if the
       // scales are ordered.
-      for (uInt term=0;term<this->itsBasisFunction->numberTerms()-1;term++) {
+      for (uInt term=0;term<this->itsBasisFunction->numberBases()-1;term++) {
 	double det=this->itsCouplingMatrix(term,term)*this->itsCouplingMatrix(term+1,term+1)-
 	  this->itsCouplingMatrix(term,term+1)*this->itsCouplingMatrix(term+1,term);
 	ASKAPLOG_INFO_STR(decbflogger, "Independence between scales " << term << " and "
@@ -470,7 +470,7 @@ namespace askap {
       // Find the peak values for each scale. Set the stopping criterion
       // to be the maximum of the maxima. Here we use the weighted
       // value since that's what we are interested in.
-      uInt nScales(this->itsBasisFunction->numberTerms());
+      uInt nScales(this->itsBasisFunction->numberBases());
       Vector<T> peakValues(nScales);
       IPosition peakPos(absPeakPos);
       // If we are using residual decoupling, we need to

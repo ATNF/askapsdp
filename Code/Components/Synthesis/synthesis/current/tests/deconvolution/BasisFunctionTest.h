@@ -64,7 +64,7 @@ namespace askap {
       void testSetup() {
         {
           CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,50,50,3));
-          CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==3);
+          CPPUNIT_ASSERT(itsBasisFunction->numberBases()==3);
         }
       }
       void testPoint() {
@@ -73,7 +73,7 @@ namespace askap {
           itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new PointBasisFunction<Float>::PointBasisFunction());
 	  itsBasisFunction->initialise(itsBasisFunctionShape);
           CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,50,50,1));
-          CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==1);
+          CPPUNIT_ASSERT(itsBasisFunction->numberBases()==1);
           IPosition centre(3,25,25,0);
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-1.0)<1e-6);
         }
@@ -88,7 +88,7 @@ namespace askap {
           itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(scales));
 	  itsBasisFunction->initialise(itsBasisFunctionShape);
           CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,50,50,3));
-          CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==3);
+          CPPUNIT_ASSERT(itsBasisFunction->numberBases()==3);
           IPosition centre(3,25,25,0);
           centre(2)=0;
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-1.0)<1e-5);
@@ -108,7 +108,7 @@ namespace askap {
           itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(scales));
 	  itsBasisFunction->initialise(IPosition(2,20,20));
           CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,20,20,3));
-          CPPUNIT_ASSERT(itsBasisFunction->numberTerms()==3);
+          CPPUNIT_ASSERT(itsBasisFunction->numberBases()==3);
           IPosition centre(3,10,10,0);
           centre(2)=0;
           CPPUNIT_ASSERT(abs(itsBasisFunction->basisFunction()(centre)-1.0)<1e-5);

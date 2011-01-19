@@ -70,12 +70,12 @@ namespace askap {
       /// param[in] shape Shape of desired basis function on the first two axes.
       virtual void initialise(const IPosition shape);
       
-      /// @brief Return the number of terms in the basis function
-      uInt numberTerms() const {return itsNumberTerms;};
+      /// @brief Return the number of bases in the basis function
+      uInt numberBases() const {return itsNumberBases;};
       
       /// @brief Return the basis function as an array
       /// @details The basis function is returned as an array
-      /// of shape (nx, ny, nterms) where nx, ny are the
+      /// of shape (nx, ny, nbases) where nx, ny are the
       /// lengths of the first two axes.
       virtual Array<T>& basisFunction() {return itsBasisFunction;};
 
@@ -88,7 +88,7 @@ namespace askap {
     protected:
       IPosition itsShape;
       Array<T> itsBasisFunction;
-      uInt itsNumberTerms;
+      uInt itsNumberBases;
       Bool itsOrthogonal;
     };
     

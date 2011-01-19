@@ -53,9 +53,9 @@ namespace askap {
       BasisFunction<T>::BasisFunction(), itsScales(scales)
     {
       this->itsOrthogonal=orthogonal;
-      this->itsNumberTerms=scales.nelements();
+      this->itsNumberBases=scales.nelements();
       ASKAPLOG_INFO_STR(decmsbaselogger, "Initialising multiscale basis function with "
-			<< this->itsNumberTerms << " scales: " << scales);
+			<< this->itsNumberBases << " scales: " << scales);
     }
 
     template<class T>
@@ -65,7 +65,7 @@ namespace askap {
       BasisFunction<T>::BasisFunction(), itsScales(scales)
     {
       this->itsOrthogonal=orthogonal;
-      this->itsNumberTerms=scales.nelements();
+      this->itsNumberBases=scales.nelements();
       initialise(shape);
     }
 

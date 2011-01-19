@@ -61,6 +61,9 @@ namespace askap {
     DeconvolverHogbom<T,FT>::DeconvolverHogbom(Vector<Array<T> >& dirty, Vector<Array<T> >& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
     {
+      if(this->itsNumberDirtyTerms>1) {
+	throw(AskapError("Hogbom CLEAN cannot perform multi-term deconvolutions"));
+      }
     };
     
     template<class T, class FT>

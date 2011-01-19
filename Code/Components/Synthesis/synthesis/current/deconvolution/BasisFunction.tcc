@@ -43,12 +43,12 @@ namespace askap {
   namespace synthesis {
     
     template<class T>
-    BasisFunction<T>::BasisFunction() : itsNumberTerms(1)
+    BasisFunction<T>::BasisFunction() : itsNumberBases(1)
     {
     };
     
     template<class T>
-    BasisFunction<T>::BasisFunction(const IPosition shape) : itsNumberTerms(1), itsOrthogonal(false)
+    BasisFunction<T>::BasisFunction(const IPosition shape) : itsNumberBases(1), itsOrthogonal(false)
     {
       initialise(shape);
     };
@@ -56,8 +56,8 @@ namespace askap {
     template<class T>
     void BasisFunction<T>::initialise(const IPosition shape)
     {
-      ASKAPASSERT(itsNumberTerms);
-      IPosition bfShape(3, shape(0), shape(1), itsNumberTerms);
+      ASKAPASSERT(itsNumberBases);
+      IPosition bfShape(3, shape(0), shape(1), itsNumberBases);
       itsBasisFunction.resize(bfShape);
       itsBasisFunction.set(T(0.0));
     };
@@ -90,7 +90,7 @@ namespace askap {
       }
       this->itsBasisFunction=mDataArray.copy();
       Cube<T> BF(this->itsBasisFunction);
-      for (uInt i=0;i<this->itsNumberTerms;i++) {
+      for (uInt i=0;i<this->itsNumberBases;i++) {
 	T sumBF(sum(BF.xyPlane(i)));
 	if(abs(sumBF)>0.0) {
 	  BF.xyPlane(i)=BF.xyPlane(i)/sumBF;

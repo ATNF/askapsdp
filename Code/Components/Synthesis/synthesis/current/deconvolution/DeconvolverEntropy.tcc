@@ -67,6 +67,9 @@ namespace askap {
     DeconvolverEntropy<T,FT>::DeconvolverEntropy(Vector<Array<T> >& dirty, Vector<Array<T> >& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
     {
+      if(this->itsNumberDirtyTerms>1) {
+	throw(AskapError("Entropy deconvolver cannot perform multi-term deconvolutions"));
+      }
     };
     
     template<class T, class FT>

@@ -66,6 +66,8 @@ namespace askap {
       : itsNumberResidualCalc(0)
     {
       itsNumberTerms=1;
+      itsNumberTerms=1;
+
       Vector<Array<T> > dirtyVec(1);
       dirtyVec(0)=dirty;
       Vector<Array<T> > psfVec(1);
@@ -76,7 +78,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::init(Vector<Array<T> >& dirtyVec, Vector<Array<T> >& psfVec) {
 
-      ASKAPCHECK(dirtyVec.shape().nelements()==psfVec.shape().nelements(), "Dirty images and PSF's not the same length");
+      ASKAPCHECK(psfVec.shape().nelements()==dirtyVec.shape().nelements(), "Vectors of dirty images and PSF's not same length");
 
       itsNumberTerms=dirtyVec.shape().nelements();
 

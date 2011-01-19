@@ -34,6 +34,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/ImageBasisFunctionSolver.h>
 #include <measurementequation/ImageFistaSolver.h>
 #include <measurementequation/ImageMSMFSolver.h>
+#include <measurementequation/ImageAMSMFSolver.h>
 #include <measurementequation/IImagePreconditioner.h>
 #include <measurementequation/WienerPreconditioner.h>
 #include <measurementequation/NormWienerPreconditioner.h>
@@ -223,11 +224,18 @@ namespace askap
 	string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
 	std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 	
-	if (algorithm=="MSMFS"){
+	if ((algorithm=="MSMFS")||(algorithm=="CMSMFS")) {
 	  ASKAPCHECK(!parset.isDefined("solver.nterms"), "Specify nterms for each image instead of using solver.nterms");
 	  ASKAPCHECK(!parset.isDefined("solver.Clean.nterms"), "Specify nterms for each image instead of using solver.Clean.nterms");
 	  solver.reset(new ImageMSMFSolver(casa::Vector<float>(scales)));
-	  ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver" );
+	  ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver (CASA version)" );
+	  solver->setAlgorithm(algorithm);
+	}
+	else if (algorithm=="AMSMFS"){
+	  ASKAPCHECK(!parset.isDefined("solver.nterms"), "Specify nterms for each image instead of using solver.nterms");
+	  ASKAPCHECK(!parset.isDefined("solver.Clean.nterms"), "Specify nterms for each image instead of using solver.Clean.nterms");
+	  solver.reset(new ImageAMSMFSolver(casa::Vector<float>(scales)));
+	  ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver (ASKAP version)" );
 	  solver->setAlgorithm(algorithm);
 	} else {
 	  solver.reset(new ImageMultiScaleSolver(casa::Vector<float>(scales)));
