@@ -151,7 +151,9 @@ namespace askap {
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
 	    bool useCasa = parset.getBool("useCASAforFITS",true);
 	    this->itsIsFITSFile = this->itsIsFITSFile && !useCasa;
+	    bool flagSubsection = parset.getBool("flagSubsection",false);
 	    this->itsBaseSubsection = parset.getString("subsection","");
+	    if(!flagSubsection) this->itsBaseSubsection = "";
             this->itsWeightImage = parset.getString("weightimage", "");
 
             if (this->itsWeightImage != ""){
@@ -399,7 +401,14 @@ namespace askap {
             /// parameters. Merging of neighbouring objects is then done,
             /// and all WCS parameters are calculated.
             ///
-            /// This is only done on the workers.
+            /// This is only done on the workers, although if we use
+            /// the weight search the master needs to do the
+            /// initialisation of itsWeighter.
+	  if(this->isMaster()){
+	    if(!this->itsFlagDoMedianSearch && this->itsWeightImage != ""){
+		      this->itsWeighter->initialise(this->itsWeightImage, this->itsCube.pars().section());
+	    }
+	  }	      
             if (this->isWorker()) {
                 // remove mininum size criteria, so we don't miss anything on the borders.
                 int minpix = this->itsCube.pars().getMinPix();
@@ -458,7 +467,7 @@ namespace askap {
       {
 	float *snrAll = new float[this->itsCube.getSize()];
 	for(int i=0; i<this->itsCube.getSize();i++){
-	  snrAll[i] = this->itsCube.getPixValue(i)/this->itsWeighter->weight(i);
+	  snrAll[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
 	}
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
 	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
@@ -477,6 +486,7 @@ namespace askap {
 	  this->itsCube.logDetectionList();
 	
 	delete [] snrAll;
+	delete this->itsWeighter; // don't need it anymore.
       }
 
       

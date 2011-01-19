@@ -53,7 +53,7 @@ namespace askap {
 	void initialise(std::string &weightsImage, duchamp::Section &section);
 	void findNorm();
 	void readWeights();
-	float weight(int i){return itsWeights(i)/itsNorm;};
+	float weight(int i){return sqrt(itsWeights(i)/itsNorm);};
 
       protected:
 	askap::mwbase::AskapParallel& itsComms;
