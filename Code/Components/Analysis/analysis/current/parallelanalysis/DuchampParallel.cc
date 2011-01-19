@@ -443,7 +443,7 @@ namespace askap {
 	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
 	this->itsCube.setReconFlag(true);
 		
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map");
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map to threshold " << this->itsCube.stats().getThreshold());
 	this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
 	this->itsCube.updateDetectMap();
 	if(this->itsCube.pars().getFlagLog())
@@ -1836,7 +1836,12 @@ namespace askap {
                     if (!this->itsCube.pars().getFlagUserThreshold() && !this->itsFlagDoMedianSearch)
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting mean to be " << mean << " and rms " << rms);
 
-                    this->itsCube.pars().setFlagUserThreshold(true);
+		    if (!this->itsCube.pars().getFlagUserThreshold()) {
+		      this->itsCube.stats().setThresholdSNR(this->itsCube.pars().getCut());
+		      this->itsCube.pars().setFlagUserThreshold(true);
+		      this->itsCube.pars().setThreshold(this->itsCube.stats().getThreshold());
+		    }
+		    //                    this->itsCube.pars().setFlagUserThreshold(true);
                 } else {
                     if (this->itsCube.pars().getFlagUserThreshold())
                         threshold = this->itsCube.pars().getThreshold();
