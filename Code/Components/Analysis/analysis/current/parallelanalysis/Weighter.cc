@@ -102,7 +102,7 @@ namespace askap {
 	    itsNorm = (n==0) ? localmax : std::max(localmax,itsNorm);
 	    in.getEnd();
 	  }
-	  // send the voxel list to all workers
+	  // send the actual maximum to all workers
 	  bs.resize(0);
 	  LOFAR::BlobOBufString bob(bs);
 	  LOFAR::BlobOStream out(bob);
@@ -112,9 +112,21 @@ namespace askap {
 	  itsComms.connectionSet()->writeAll(bs);
 	  }
       }
+      else { 
+	// serial mode - read entire weights image, so can just measure maximum directly
+	this->itsNorm = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
+      }
+
+      ASKAPLOG_INFO_STR(logger, "Normalising weights image to maximum " << this->itsNorm);
       
 
     }
+
+    float Weighter::weight(int i)
+    {
+      return sqrt(itsWeights(i)/itsNorm);
+    }
+
 
   }
 
