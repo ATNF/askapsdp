@@ -122,21 +122,35 @@ namespace askap {
       /// @param[in] parset parset
       virtual void configure(const LOFAR::ParameterSet &parset); 
       
+      /// @brief Update only the dirty image
+      /// @detail Update an existing deconvolver for a changed dirty image
+      /// @param[in] dirty Dirty image (array)
+      virtual void updateDirty(Array<T>& dirty);
+
+      /// @brief Update only the dirty images
+      /// @detail Update an existing deconvolver for a changed dirty images.
+      /// @param[in] dirty Dirty image (vector of arrays)
+      virtual void updateDirty(Vector<Array<T> >& dirty);
+
     private:
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
+      // Perform one iteration
       bool oneIteration();
 
+      // Initialise the PSFs - only need to do this once per change in basis functions
       void initialisePSF();
 
       void initialiseResidual();
+
+      // Initialise the PSFs - only need to do this once per change in basis functions
+      virtual void initialiseForBasisFunction();
 
       /// @brief Initialize the term-term coupling matrix
       /// @detail Initialise the term-term coupling matrix
       /// using the 2*N-1 PSFs. We need 2*N-1 so that we 
       /// can use the prescription from Urvashi:
       /// B(i)*B(j)=B(0)*B(i+j).
+      // Only need to do this once per change in basis functions
       void calculateTermCoupling();
 
       // Find the coefficients for each term by applying the

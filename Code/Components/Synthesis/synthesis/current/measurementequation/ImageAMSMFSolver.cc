@@ -334,21 +334,22 @@ namespace askap
 		
 		itsBasisFunction->initialise(dirtyVec(0).shape());
 		itsCleaners[imageTag]->setBasisFunction(itsBasisFunction);
-		
-		// We have to reset the initial objective function
-		// so that the fractional threshold mechanism will work.
-		itsCleaners[imageTag]->state()->resetInitialObjectiveFunction();
-		// By convention, iterations are counted from scratch each
-		// major cycle
-		itsCleaners[imageTag]->state()->setCurrentIter(0);
 	      }
 	      else {
 		// Update the dirty images
 		ASKAPLOG_INFO_STR(logger, "Multi-Term Basis Function deconvolver already exists - update dirty images");
-		itsCleaners[imageTag]->updateDirty(dirtyVec(order), order);
+		itsCleaners[imageTag]->updateDirty(dirtyVec);
 	      }
 	      // Initialise the model
 	      itsCleaners[imageTag]->setModel(cleanVec(order),order);
+		
+	      // We have to reset the initial objective function
+	      // so that the fractional threshold mechanism will work.
+	      itsCleaners[imageTag]->state()->resetInitialObjectiveFunction();
+	      // By convention, iterations are counted from scratch each
+	      // major cycle
+	      itsCleaners[imageTag]->state()->setCurrentIter(0);
+	      
 	    } // end of 'order' loop
 	    
 	    ASKAPLOG_INFO_STR(logger, "Starting Minor Cycles" );
@@ -360,11 +361,10 @@ namespace askap
 	      // make the helper to correspond to the given order
 	      iph.makeTaylorTerm(order);
 	      const std::string thisOrderParam = iph.paramName();
-	      casa::Array<float> cleanArray(planeIter.planeShape());
 	      ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<plane<<" Taylor order="<<order<<
 				" for image "<<tmIt->first);
 	      casa::Array<double> slice = planeIter.getPlane(ip.value(thisOrderParam));
-	      casa::convertArray<double, float>(slice, cleanArray);
+	      casa::convertArray<double, float>(slice, itsCleaners[imageTag]->model(order));
 	    }
 	    // add extra parameters (cross-terms) to the to-be-fixed list
 	    for (uInt order = itsNumberTaylor; order<uInt(tmIt->second); ++order) {

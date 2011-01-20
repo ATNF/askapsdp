@@ -185,13 +185,20 @@ namespace askap {
     }
     
     template<class T, class FT>
-    void DeconvolverBase<T,FT>::updateDirty(Array<T> dirty, const uInt term) {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      if (!dirty.shape().conform(this->dirty(term).shape())) {
+    void DeconvolverBase<T,FT>::updateDirty(Array<T>& dirty) {
+      if (!dirty.shape().conform(this->dirty(0).shape())) {
         throw(AskapError("Updated dirty image has different shape"));
       }
-      this->itsDirty(term)=dirty;
+      this->itsDirty.resize(1);
+      this->itsDirty(0)=dirty;
+    }
+    
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::updateDirty(Vector<Array<T> >& dirtyVec) {
+      if (dirtyVec.nelements()!=this->itsDirty.nelements()) {
+        throw(AskapError("Updated dirty image has different shape"));
+      }
+      this->itsDirty=dirtyVec;
     }
     
     template<class T, class FT>

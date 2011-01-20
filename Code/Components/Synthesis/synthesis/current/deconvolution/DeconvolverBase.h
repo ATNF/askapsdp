@@ -131,7 +131,12 @@ namespace askap {
       /// @brief Update only the dirty image
       /// @detail Update an existing deconvolver for a changed dirty image
       /// @param[in] dirty Dirty image (array)
-      void updateDirty(Array<T> dirty, const uInt term=0);
+      virtual void updateDirty(Array<T>& dirty);
+
+      /// @brief Update only the dirty images
+      /// @detail Update an existing deconvolver for a changed dirty images.
+      /// @param[in] dirty Dirty image (vector of arrays)
+      virtual void updateDirty(Vector<Array<T> >& dirty);
 
       /// @brief Set the mask image otherwise there is no mask
       /// @detail The mask image is used to limit where flux is allowed in
