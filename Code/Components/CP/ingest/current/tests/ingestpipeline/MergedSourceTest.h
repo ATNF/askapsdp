@@ -108,6 +108,8 @@ class MergedSourceTest : public CppUnit::TestFixture {
                 TosMetadataAntenna& ant = metadata.antenna(id);
                 ant.onSource(true);
                 ant.hwError(false);
+                ant.scanActive(true);
+                ant.scanId("test scan");
             }
 
             // Make a copy of the metadata and add it to the mock

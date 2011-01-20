@@ -43,7 +43,8 @@ using namespace askap::cp::channels;
 // main()
 int main(int argc, char *argv[])
 {
-    const std::string brokerURI = "tcp://127.0.0.1:61616"
+    //const std::string brokerURI = "tcp://127.0.0.1:61616"
+    const std::string brokerURI = "tcp://gijane:61616"
         "&conection.useAsyncSend=true"
         "&turboBoost=true"
         "&socketBufferSize=16384"

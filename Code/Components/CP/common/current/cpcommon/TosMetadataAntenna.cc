@@ -43,6 +43,7 @@ TosMetadataAntenna::TosMetadataAntenna(const casa::String& name,
                                        const casa::uInt& nPol) :
         itsName(name), itsNumCoarseChannels(nCoarseChannels),
         itsNumBeams(nBeams), itsNumPol(nPol), itsFrequency(0.0),
+        itsScanActive(false),
         itsPhaseTrackingCentre(nBeams),
         itsPolarisationOffset(0.0), itsOnSource(false),
         itsHwError(true),
