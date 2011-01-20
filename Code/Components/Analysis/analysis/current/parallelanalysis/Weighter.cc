@@ -30,6 +30,8 @@
 #include <analysisutilities/CasaImageUtil.h>
 
 #include <askapparallel/AskapParallel.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
 
 #include <casa/aipstype.h>
 #include <casa/Arrays/Vector.h>
@@ -42,6 +44,9 @@
 
 #include <vector>
 #include <string>
+
+///@brief Where the log messages go.
+ASKAP_LOGGER(logger, ".weighter");
 
 namespace askap {
 
