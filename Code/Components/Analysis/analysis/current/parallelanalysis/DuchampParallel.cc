@@ -154,7 +154,7 @@ namespace askap {
 	    bool flagSubsection = parset.getBool("flagSubsection",false);
 	    this->itsBaseSubsection = parset.getString("subsection","");
 	    if(!flagSubsection) this->itsBaseSubsection = "";
-            this->itsWeightImage = parset.getString("weightimage", "");
+            this->itsWeightImage = parset.getString("weightsimage", "");
 
             if (this->itsWeightImage != ""){
                 ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
