@@ -66,7 +66,6 @@ namespace askap {
       : itsNumberResidualCalc(0)
     {
       itsNumberTerms=1;
-      itsNumberTerms=1;
 
       Vector<Array<T> > dirtyVec(1);
       dirtyVec(0)=dirty;
@@ -78,9 +77,10 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::init(Vector<Array<T> >& dirtyVec, Vector<Array<T> >& psfVec) {
 
-      ASKAPCHECK(psfVec.shape().nelements()==dirtyVec.shape().nelements(), "Vectors of dirty images and PSF's not same length");
+      ASKAPCHECK(psfVec.nelements()==dirtyVec.nelements(),
+		 "Vectors of dirty images and PSF's not same length");
 
-      itsNumberTerms=dirtyVec.shape().nelements();
+      itsNumberTerms=dirtyVec.nelements();
 
       itsDirty.resize(itsNumberTerms);
       itsPsf.resize(itsNumberTerms);
@@ -93,6 +93,8 @@ namespace askap {
       itsWeightedMask.resize(itsNumberTerms);
       itsLipschitz.resize(itsNumberTerms);
 
+      ASKAPLOG_INFO_STR(decbaselogger, "There are " << itsNumberTerms << " dirty images");
+
       for (uInt term=0;term<itsNumberTerms;term++) {
 	
 	ASKAPASSERT(dirtyVec(term).shape().nelements());
@@ -102,7 +104,8 @@ namespace askap {
 	this->itsDirty(term)=dirtyVec(term);
 	this->itsPsf(term)=psfVec(term);
 
-	ASKAPLOG_INFO_STR(decbaselogger, "Dirty image[" << term << "] has shape: " << this->dirty(term).shape());
+	ASKAPLOG_INFO_STR(decbaselogger, "Dirty image(" << term << ") has shape: "
+			  << this->dirty(term).shape());
 
 	this->model(term).resize(this->dirty(term).shape());
 	this->model(term).set(T(0.0));

@@ -79,7 +79,9 @@ namespace askap {
       /// same model (e.g. as in MFS)
       /// @param[in] dirty Dirty image (array)
       /// @param[in] psf Point Spread Function (array)
-      DeconvolverMultiTermBasisFunction(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+      /// @param[in] psf Point Spread Function containing 2*nTaylor-1 terms (array)
+      DeconvolverMultiTermBasisFunction(Vector<Array<T> >& dirty, Vector<Array<T> >& psf,
+					Vector<Array<T> >& psfLong);
 
       /// @brief Construct from dirty image and psf
       /// @detail Construct a deconvolver from a dirty image and
@@ -111,15 +113,6 @@ namespace askap {
       /// @detail Initialise e.g. set weighted mask
       virtual void initialise();
 
-      /// @brief Initialize the term-term coupling matrix
-      /// @detail Initialise the term-term coupling matrix
-      /// using the 2*N-1 PSFs. We need 2*N-1 so that we 
-      /// can use the prescription from Urvashi:
-      /// B(i)*B(j)=B(0)*B(i+j).
-      /// This function must be called before deconvolving
-      /// @param[in] psfVec Vector of PSFs length 2*nTerms-1
-      void calculateTermCoupling(Vector<Array<T> >& psfVec);
-
       /// @brief Finalise the deconvolution
       /// @detail Finalise the deconvolution
       virtual void finalise();
@@ -139,13 +132,23 @@ namespace askap {
 
       void initialiseResidual();
 
+      /// @brief Initialize the term-term coupling matrix
+      /// @detail Initialise the term-term coupling matrix
+      /// using the 2*N-1 PSFs. We need 2*N-1 so that we 
+      /// can use the prescription from Urvashi:
+      /// B(i)*B(j)=B(0)*B(i+j).
+      void calculateTermCoupling();
+
       // Find the coefficients for each term by applying the
       // inverse of the coupling matrix in terms
       Vector<T> findCoefficients(const Matrix<Double>& invCoupling,
 				 const Vector<T>& peakValues);
 
+      // Long vector of PSFs
+      Vector<Array<T> > itsPsfLongVec;
+
       /// Residual images convolved with basis functions, [nx,ny][nterms][nbases]
-      Vector<Vector<Array<T> > > itsResidualBasisFunction;
+      Vector<Vector<Array<T> > > itsResidualBasis;
 
       /// Point spread functions convolved with basis functions [nx,ny][nterms][nbases]
       Vector<Vector<Array<T> > > itsPSFBasis;
