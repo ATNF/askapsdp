@@ -103,18 +103,17 @@ namespace askap
       /// Create an image parameter string, from stokes and order parameters
       inline std::string makeImageString(const std::string& samplestring, const std::string& stokes, const int& order){std::string newstring(samplestring);newstring.replace(6,1,stokes);newstring.replace(8,1,(utility::toString<int>(order)).data());return newstring;};
       
-      
       /// Scales in pixels
       casa::Vector<float> itsScales;
       
+      uInt itsNumberTaylor;
+
       /// Map of Cleaners - one for each polarisation index
       std::map<std::string, boost::shared_ptr<DeconvolverMultiTermBasisFunction<Float, Complex> > > itsCleaners;
       
       boost::shared_ptr<DeconvolverControl<Float> > itsControl;
       
       boost::shared_ptr<DeconvolverMonitor<Float> > itsMonitor;
-      
-      Bool itsUseCrossTerms;
       
       BasisFunction<Float>::ShPtr itsBasisFunction;
       

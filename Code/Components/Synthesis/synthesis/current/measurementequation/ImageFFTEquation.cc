@@ -23,7 +23,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".measurementequation");
+ASKAP_LOGGER(logger, ".measurementequation.imagefftequation");
 
 #include <askap/AskapError.h>
 //#include <fft/FFTWrapper.h>

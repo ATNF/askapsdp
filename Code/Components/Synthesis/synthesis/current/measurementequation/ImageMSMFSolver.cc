@@ -239,7 +239,7 @@ namespace askap
                        itsCleaners[imageTag]->setscales(itsScales);
                        itsCleaners[imageTag]->setntaylorterms(nTaylor);
                        itsCleaners[imageTag]->initialise(planeIter.planeShape()[0],planeIter.planeShape()[1]); // allocates memory once....
-	                }
+		    }
           
                     // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time.
                     casa::Array<float> psfZeroArray(planeIter.planeShape());
