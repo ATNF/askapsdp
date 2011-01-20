@@ -22,7 +22,7 @@
 ///
 
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".gridding");
+ASKAP_LOGGER(logger, ".gridding.sphfuncvisgridder");
 #include <askap/AskapError.h>
 
 #include <gridding/SphFuncVisGridder.h>

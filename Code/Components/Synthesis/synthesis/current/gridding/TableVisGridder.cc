@@ -27,7 +27,7 @@
 #include <dataaccess/IDataAccessor.h>
 #include <dataaccess/OnDemandBufferDataAccessor.h>
 #include <utils/PolConverter.h>
-ASKAP_LOGGER(logger, ".gridding");
+ASKAP_LOGGER(logger, ".gridding.tablevisgridder");
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
