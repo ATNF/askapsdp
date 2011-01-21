@@ -28,6 +28,7 @@
 ///
 #include <parallelanalysis/Weighter.h>
 #include <analysisutilities/CasaImageUtil.h>
+#include <askap_analysis.h>
 
 #include <askapparallel/AskapParallel.h>
 #include <askap/AskapLogging.h>
