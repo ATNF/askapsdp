@@ -82,7 +82,7 @@ int main(int argc, const char** argv)
         casa::Timer timer;
         timer.mark();
         std::string parsetFile(getInputs("-inputs", "cduchamp.in", argc, argv));
-        LOFAR::ParameterSet parset(parsetFile);
+        LOFAR::ParameterSet parset(parsetFile,LOFAR::StringUtil::Compare::NOCASE);
         LOFAR::ParameterSet subset(parset.makeSubset("Cduchamp."));
         DuchampParallel duchamp(argc, argv, subset);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
