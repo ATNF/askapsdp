@@ -42,17 +42,14 @@ public class ObsService extends _ICPObsServiceDisp {
 		logger.info("Creating ObsService");
 	}
 	
-	@Override
 	public void finalize() {
 		logger.info("Destroying ObsService");
 	}
 	
-	@Override
 	public void abortObs(Current curr) {
 		// TODO Auto-generated method stub
 	}
 
-	@Override
 	public void startObs(long sbid, Current curr) {
 		// TODO Auto-generated method stub
 	}
