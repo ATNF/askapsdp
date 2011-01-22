@@ -68,6 +68,9 @@ namespace askap {
     class DeconvolverMultiTermBasisFunction : public DeconvolverBase<T, FT> {
 
     public:
+
+      enum SOLUTION {R5=0, MAXTERM0=1, MAXBASE=2};
+
       typedef boost::shared_ptr<DeconvolverMultiTermBasisFunction<T, FT> > ShPtr;
   
   
@@ -104,6 +107,12 @@ namespace askap {
       /// @details The algorithm can work with different basis functions
       /// PointBasisFunction, MultiScaleBasisFunction 
       boost::shared_ptr<BasisFunction<T> > basisFunction();
+
+      /// @brief Set the type of solution used in finding the optimum component
+      void setSolutionType(SOLUTION sol);
+
+      /// @brief Get the type of solution used in finding the optimum component
+      const uInt solutionType();
 
       /// @brief Perform the deconvolution
       /// @detail This is the main deconvolution method.
@@ -158,6 +167,8 @@ namespace askap {
       Vector<T> findCoefficients(const Matrix<Double>& invCoupling,
 				 const Vector<T>& peakValues);
 
+      void chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos);
+
       // Long vector of PSFs
       Vector<Array<T> > itsPsfLongVec;
 
@@ -185,6 +196,13 @@ namespace askap {
 
       /// The flux subtracted on each term and scale [nterms][nbases]
       Vector< Vector<T> > itsTermBaseFlux;
+
+      Bool itsDirtyChanged;
+
+      Bool itsBasisFunctionChanged;
+
+      SOLUTION itsSolutionType;
+
     };
 
   } // namespace synthesis
