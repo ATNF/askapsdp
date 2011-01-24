@@ -341,7 +341,9 @@ namespace askap
 		itsCleaners[imageTag]->updateDirty(dirtyVec);
 	      }
 	      // Initialise the model
-	      itsCleaners[imageTag]->setModel(cleanVec(order),order);
+	      Array<float> initialModel(cleanVec(order).shape());
+	      initialModel.set(0.0);
+	      itsCleaners[imageTag]->setModel(initialModel, order);
 		
 	      // We have to reset the initial objective function
 	      // so that the fractional threshold mechanism will work.
@@ -364,7 +366,7 @@ namespace askap
 	      ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<plane<<" Taylor order="<<order<<
 				" for image "<<tmIt->first);
 	      casa::Array<double> slice = planeIter.getPlane(ip.value(thisOrderParam));
-	      casa::convertArray<double, float>(slice, itsCleaners[imageTag]->model(order));
+	      casa::convertArray<double, float>(slice, itsCleaners[imageTag]->model(order)+cleanVec(order));
 	    }
 	    // add extra parameters (cross-terms) to the to-be-fixed list
 	    for (uInt order = itsNumberTaylor; order<uInt(tmIt->second); ++order) {
