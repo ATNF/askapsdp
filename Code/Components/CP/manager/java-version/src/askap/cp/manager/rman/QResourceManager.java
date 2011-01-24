@@ -35,13 +35,15 @@ import org.apache.log4j.Logger;
 import askap.cp.manager.rman.JobTemplate.DependType;
 
 /**
+ * An implementation of IResourceManager which uses the qsub/qstat command
+ * line interface.
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public class QResourceManager implements IResourceManager {
 
 	/** Logger. */
-	private static Logger logger = Logger.getLogger(QResourceManager.class
-			.getName());
+	private static Logger logger = Logger.getLogger(
+			QResourceManager.class.getName());
 
 	/**
 	 * @see askap.cp.manager.rman.IResourceManager#getStatus()
@@ -99,6 +101,12 @@ public class QResourceManager implements IResourceManager {
 		}
 	}
 
+	/**
+	 * Builds the dependency argument (to qsub) based on the dependencies
+	 * listed in the job template.
+	 * @param template	the job template which contains the dependencies.
+	 * @return the dependency argument to be passed to qsub
+	 */
 	String buildDependencyArg(JobTemplate template) {
 		Map<IJob, DependType> dependencies = template.getDependencies();
 		if (dependencies.size() == 0) {

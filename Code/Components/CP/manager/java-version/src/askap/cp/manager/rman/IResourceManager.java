@@ -24,13 +24,26 @@
 package askap.cp.manager.rman;
 
 /**
+ * Interface to the resource manager.
+ * 
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public interface IResourceManager {
+	/**
+	 * The state of the batch queue server
+	 */
 	public enum ServerStatus {AVAILABLE, UNCONTACTABLE}
 
+	/**
+	 * @return an enum containing the state of the server.
+	 */
 	public ServerStatus getStatus();
 	
-    // Submit a new job for execution
+    /**
+     * Submit a new job for execution
+     * @param jobTemplate	template for the job to submit.
+     * @param queue		name of the queue to submit the job to.
+     * @return			a object which references the submitted job.
+     */
     public IJob submitJob(JobTemplate jobTemplate, final String queue);
 }

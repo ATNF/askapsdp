@@ -25,10 +25,14 @@
 package askap.cp.manager.rman;
 
 /**
+ * Interface to a class which encapsulates a batch job.
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public interface IJob {
 	
+	/**
+	 * Identifies the state the job is in.
+	 */
     public enum JobStatus {
         QUEUED,
         RUNNING,
@@ -37,9 +41,15 @@ public interface IJob {
         UNKNOWN
     }
     
-    JobStatus status();
+    /**
+     * Returns the job state.
+     * @return the job state.
+     */
+    public JobStatus status();
     
-    /// If the job is queued or held the job is simply deleted from the
-    /// queue. If the job is executing it is terminated.
-    void abort();
+    /**
+     * Abort the job. If the job is queued or held the job is simply 
+     * deleted from the queue. If the job is executing it is terminated.
+     */
+    public void abort();
 }

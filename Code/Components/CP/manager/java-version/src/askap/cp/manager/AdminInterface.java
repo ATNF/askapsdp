@@ -32,25 +32,53 @@ import org.apache.log4j.Logger;
 import askap.interfaces.component.*;
 
 /**
+ * This class implements the askap.interfaces.component.IComponent
+ * interface, allowing the central processor manager to be administered
+ * (i.e. started, shutdown) programmatically.
+ * 
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 
+	/**
+	 * Id for ISeralizable
+	 */
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Ice Communicator
+	 */
 	private Ice.Communicator itsComm;
 
+	/**
+	 * Ice Adapter
+	 */
 	private Ice.ObjectAdapter itsAdapter;
 
+	/**
+	 * Component state
+	 */
 	private ComponentState itsState;
 
+	/**
+	 * Reference to the Obs Service object, which provides
+	 * the Central Processor observation service.
+	 */
 	private ObsService itsObsService;
 	
+	/**
+	 * Ice identity of the observation service.
+	 */
 	private String itsObsServiceName = "CentralProcessorService";
 
 	/** Logger. */
 	private static Logger logger = Logger.getLogger(AdminInterface.class.getName());
 
+	/**
+	 * Constructor
+	 * @param ic	An already initialised Ice communicator for the object
+	 * 				to use.
+	 */
 	public AdminInterface(Ice.Communicator ic) {
 		super();
 		itsComm = ic;
@@ -59,6 +87,9 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		itsState = ComponentState.LOADED;
 	}
 
+	/**
+	 * 
+	 */
 	public void activate(Current curr) throws TransitionException {
 		if (itsState != ComponentState.STANDBY) {
 			throw new TransitionException("Not in STANDBY state");
@@ -81,6 +112,9 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		itsState = ComponentState.ONLINE;
 	}
 
+	/**
+	 * 
+	 */
 	public void deactivate(Current curr) throws TransitionException {
 		if (itsState != ComponentState.ONLINE) {
 			throw new TransitionException("Not in ONLINE state");
@@ -102,11 +136,17 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
         }
 	}
 
+	/**
+	 * 
+	 */
 	public ComponentState getState(Current curr) {
 		// TODO Auto-generated method stub
 		return itsState;
 	}
 
+	/**
+	 * 
+	 */
 	public void run() {
 		logger.debug("Running AdminInterface");
 		if (itsComm == null) {
@@ -128,6 +168,9 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		logger.info("Shutting AdminInterface");
 	}
 
+	/**
+	 * 
+	 */
 	public ComponentTestResult[] selfTest(Current curr)
 			throws CannotTestException {
 		if (itsState != ComponentState.STANDBY) {
@@ -137,6 +180,9 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		return new ComponentTestResult[0];
 	}
 
+	/**
+	 * 
+	 */
 	public void shutdown(Current curr) throws TransitionException {
 		if (itsState != ComponentState.STANDBY) {
 			throw new TransitionException("Not in STANDBY state");
@@ -148,6 +194,9 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		itsObsService = null;
 	}
 
+	/**
+	 * 
+	 */
 	public void startup(Map<String, String> config, Current curr)
 			throws TransitionException {
 		if (itsState != ComponentState.LOADED) {

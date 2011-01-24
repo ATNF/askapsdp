@@ -30,94 +30,124 @@ import java.util.Hashtable;
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public class JobTemplate {
-    // The name of the job this template will create
+	
+    /**
+     * The name of the job this template will create.
+     */
     private String itsName;
 
-    // The script (including full path) which will be executed
-    // when the job is executed
+    /**
+     * The script (including full path) which will be executed
+     * when the job is executed
+     */
     private String itsPathToScript;
 
-    // List of jobs that any job created with this template
-    // will depend on
+    /**
+     * List of jobs that any job created with this template
+     * will depend on
+     */
     private Map<IJob, DependType> itsDependencies;
 
-    /// @brief Dependency type.
+    /**
+     * Dependency type.
+     */
     enum DependType {
-        /// Start after dependent job starts
+        /** Start after dependent job starts */
         AFTERSTART,
 
-        // Start after dependent job completes with no-error
+        /** Start after dependent job completes with no-error */
         AFTEROK,
         
-        // Start the job only if the dependent job fails
+        /** Start the job only if the dependent job fails */
         AFTERNOTOK
     }    
     
-    /// @brief Constructor.
-    JobTemplate(String name)
+    /**
+     * Constructor.
+     * @param name the name of the job this template will create.
+     */
+    public JobTemplate(String name)
     {
     	itsName = name;
     	itsDependencies = new Hashtable<IJob, DependType>();
     }
 
-    /// @brief Change the name of the job.
-    /// @param[in] name the new name of the job.
-    void setName(String name)
+    /**
+     * Change the name of the job.
+     * @param name name the new name of the job.
+     */
+    public void setName(String name)
     {
     	itsName = name;
     }
 
-    /// @brief Get the name of the job.
-    /// @return the name of the job.
-    String getName()
+    /**
+     * Get the name of the job.
+     * @return the name of the job this template will create.
+     */
+    public String getName()
     {
     	return itsName;
     }
 
-    /// @brief Set the script or executable to be executed when
-    /// this job runs. This should include the full path to the
-    /// script/executable.
-    ///
-    /// @param[in] script the path and command. (e.g. /tmp/myscript.sh)
-    void setScriptLocation(String script)
+    /**
+     * Set the script or executable to be executed when this job runs. This
+     * should include the full path to the script/executable.
+     * 
+     * @param script the path and command. (e.g. /tmp/myscript.sh)
+     */
+    public void setScriptLocation(String script)
     {
     	itsPathToScript = script;
     }
 
-    /// @brief Get the pathname/commandname of the script to be
-    /// executed when this job runs.
-    String getScriptLocation()
+    /**
+     * Get the pathname/commandname of the script to be executed when this
+     * job runs.
+     * @return  the path and command. (e.g. /tmp/myscript.sh)
+     */
+    public String getScriptLocation()
     {
     	return itsPathToScript;
     }
 
-    /// @brief Adds dependency information to this job template.
-    /// This jobs created with this template will then not start
-    /// until the dependencies are fulfilled.
-    ///
-    /// @param[in] dependency
-    /// @param[in] type
-    void addDependency(IJob dependency, DependType type)
+    /**
+     * Adds dependency information to this job template. This jobs created
+     * with this template will then not start until the dependencies are
+     * fulfilled.
+     * 
+     * @param dependency 	the job for which this one has a dependency.
+     * @param type 			the type of dependency.
+     */
+    public void addDependency(IJob dependency, DependType type)
     {
     	itsDependencies.put(dependency, type);
     }
 
-    /// @brief Remove a dependency from this job template.
-    /// @param[in] dependency
-    void removeDependency(IJob dependency)
+    /**
+     * Remove a dependency from this job template.
+     * @param dependency	the dependency to remove.
+     */
+    public void removeDependency(IJob dependency)
     {
     	itsDependencies.remove(dependency);
     }
-    
-    Map<IJob, DependType> getDependencies()
-    {
-    	return itsDependencies;
-    }
 
-    /// @brief Remove all dependencies from this job template.
-    void removeAllDependencies()
+    /**
+     * Remove all dependencies from this job template.
+     */
+    public void removeAllDependencies()
     {
     	itsDependencies.clear();
     }
 
+    
+    /**
+     * Get a map of all dependencies.
+     * @return a map of all dependencies.
+     */
+    public Map<IJob, DependType> getDependencies()
+    {
+    	return itsDependencies;
+    }
 }
