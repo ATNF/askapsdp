@@ -112,18 +112,18 @@ namespace askap {
     template<class T, class FT>
     bool DeconvolverHogbom<T,FT>::oneIteration()
     {
-      bool isMasked(this->itsWeightedMask(0).shape().conform(this->residual(0).shape()));
+      bool isMasked(this->itsWeightedMask(0).shape().conform(this->dirty(0).shape()));
 
       // Find peak in residual image
       casa::IPosition minPos;
       casa::IPosition maxPos;
       T minVal, maxVal;
       if (isMasked) {
-        casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->residual(0),
+        casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->dirty(0),
                            this->itsWeightedMask(0));
       }
       else {
-        casa::minMax(minVal, maxVal, minPos, maxPos, this->residual(0));
+        casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty(0));
       }
       //
       ASKAPLOG_INFO_STR(dechogbomlogger, "Maximum = " << maxVal << " at location " << maxPos);

@@ -83,11 +83,11 @@ namespace askap {
       itsNumberTerms=dirtyVec.nelements();
 
       itsDirty.resize(itsNumberTerms);
+      itsResidual.resize(itsNumberTerms);
       itsPsf.resize(itsNumberTerms);
       itsXFR.resize(itsNumberTerms);
       itsModel.resize(itsNumberTerms);
       itsBackground.resize(itsNumberTerms);
-      itsResidual.resize(itsNumberTerms);
       itsMask.resize(itsNumberTerms);
       itsWeight.resize(itsNumberTerms);
       itsWeightedMask.resize(itsNumberTerms);
@@ -101,7 +101,7 @@ namespace askap {
 	ASKAPASSERT(psfVec(term).shape().nelements());
 	ASKAPASSERT(psfVec(term).shape().conform(dirtyVec(term).shape()));
 	
-	this->itsDirty(term)=dirtyVec(term);
+	this->itsResidual(term)=dirtyVec(term);
 	this->itsPsf(term)=psfVec(term);
 
 	ASKAPLOG_INFO_STR(decbaselogger, "Dirty image(" << term << ") has shape: "
@@ -111,8 +111,6 @@ namespace askap {
 	this->model(term).set(T(0.0));
 	this->background(term).resize(this->dirty(term).shape());
 	this->background(term).set(T(0.0));
-	this->residual(term).resize(this->dirty(term).shape());
-	this->residual(term).set(T(0.0));
 	
 	this->XFR(term).resize(this->psf(term).shape());
 	this->XFR(term).set(FT(0.0));
@@ -190,7 +188,7 @@ namespace askap {
         throw(AskapError("Updated dirty image has different shape"));
       }
       this->itsDirty.resize(1);
-      this->itsDirty(0)=dirty;
+      this->itsResidual(0)=dirty;
     }
     
     template<class T, class FT>
@@ -212,7 +210,7 @@ namespace askap {
     {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      return itsDirty(term);
+      return itsResidual(term);
     }
     
     template<class T, class FT>
@@ -325,8 +323,6 @@ namespace askap {
       this->validateShapes();
 
       for (uInt term=0;term<itsNumberTerms;term++) {
-	this->residual(term).resize(this->dirty(term).shape());
-	this->residual(term)=this->dirty(term).copy();
 
 	// First deal with the mask
 	if(this->mask().shape().nonDegenerate().conform(this->dirty().nonDegenerate().shape())) { // mask exists
@@ -373,6 +369,10 @@ namespace askap {
 	  if(!(maxPos==this->psf(term).shape()/2)) {
 	    throw(AskapError("Peak of PSF is not at center"));
 	  };
+	}
+	this->itsResidual.resize(this->itsNumberTerms);
+	for(uInt term=0;term<this->itsNumberTerms;term++) {
+	  this->residual(term)=this->dirty(term).copy();
 	}
       }
     }

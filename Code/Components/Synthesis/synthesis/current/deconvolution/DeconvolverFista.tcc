@@ -90,10 +90,6 @@ namespace askap {
     {
       DeconvolverBase<T, FT>::initialise();
 
-      // Initialise the residual image
-      this->residual().resize(this->dirty().shape());
-      this->residual()=this->dirty().copy();
- 
       if(itsBasisFunction) {
 	this->itsBasisFunction->initialise(this->model().shape());
 	itsBasisFunctionTransform.resize(itsBasisFunction->basisFunction().shape());
@@ -110,7 +106,7 @@ namespace askap {
 
       this->initialise();
 
-      bool isMasked(this->itsWeightedMask(0).shape().conform(this->dirty().shape()));
+      bool isMasked(this->itsWeightedMask(0).shape().conform(this->residual().shape()));
 
       Array<T> X, X_old, X_temp;
 

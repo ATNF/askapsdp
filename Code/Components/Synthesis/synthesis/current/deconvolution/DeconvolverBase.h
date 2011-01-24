@@ -96,19 +96,19 @@ namespace askap {
       /// @detail Set the model from which iteration will start
       void setModel(const Array<T> model, const uInt term=0);
 
-      /// @brief Get the current model
-      /// @detail Get the current model
-      /// @param[out] model Model image (array)
-      Array<T>& model(const uInt term=0);
+      /// @brief Get the current residual
+      /// @detail Get the current residual
+      /// @param[out] residual Residual image (array)
+      Array<T>& residual(const uInt term=0);
 
       /// @brief Set the initial residual
       /// @detail Set the residual from which iteration will start
       void setResidual(const Array<T> residual, const uInt term=0);
 
-      /// @brief Get the current residual
-      /// @detail Get the current residual
-      /// @param[out] residual Residual image (array)
-      Array<T>& residual(const uInt term=0);
+      /// @brief Get the current model
+      /// @detail Get the current model
+      /// @param[out] model Model image (array)
+      Array<T>& model(const uInt term=0);
 
       /// @brief Set the initial background
       /// @detail Set the background image. The
