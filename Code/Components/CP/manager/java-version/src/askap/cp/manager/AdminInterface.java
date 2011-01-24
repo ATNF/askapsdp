@@ -1,4 +1,4 @@
-/*
+/**
  *  Copyright (c) 2011 CSIRO - Australia Telescope National Facility (ATNF)
  *  
  *  Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -20,8 +20,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- * 
- * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 package askap.cp.manager;
 
@@ -33,7 +31,13 @@ import Ice.Current;
 import org.apache.log4j.Logger;
 import askap.interfaces.component.*;
 
+/**
+ * @author Ben Humphreys <ben.humphreys@csiro.au>
+ */
 public class AdminInterface extends askap.interfaces.component._IComponentDisp {
+
+	private static final long serialVersionUID = 1L;
+
 	private Ice.Communicator itsComm;
 
 	private Ice.ObjectAdapter itsAdapter;
@@ -45,7 +49,7 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	private String itsObsServiceName = "CentralProcessorService";
 
 	/** Logger. */
-	static Logger logger = Logger.getLogger(AdminInterface.class.getName());
+	private static Logger logger = Logger.getLogger(AdminInterface.class.getName());
 
 	public AdminInterface(Ice.Communicator ic) {
 		super();
@@ -53,51 +57,6 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		itsAdapter = null;
 		itsObsService = null;
 		itsState = ComponentState.LOADED;
-	}
-
-	public void run() {
-		logger.debug("Running AdminInterface");
-		if (itsComm == null) {
-			throw new RuntimeException("ICE Communicator is null");
-		}
-
-		itsAdapter = itsComm.createObjectAdapter("AdminAdapter");
-		if (itsAdapter == null) {
-			throw new RuntimeException("ICE adapter initialisation failed");
-		}
-
-		Ice.Object object = this;
-		itsAdapter.add(object,
-				itsComm.stringToIdentity("CentralProcessorAdmin"));
-		itsAdapter.activate();
-
-		// Block here so main() can block on this
-		itsComm.waitForShutdown();
-		logger.info("Shutting AdminInterface");
-	}
-
-	public void startup(Map<String, String> config, Current curr)
-			throws TransitionException {
-		if (itsState != ComponentState.LOADED) {
-			throw new TransitionException("Not in UNLOADED state");
-		}
-
-		itsObsService = new ObsService(itsComm);
-
-		// Must transition to standby only once all objects are created
-		itsState = ComponentState.STANDBY;
-
-	}
-
-	public void shutdown(Current curr) throws TransitionException {
-		if (itsState != ComponentState.STANDBY) {
-			throw new TransitionException("Not in STANDBY state");
-		}
-
-		// Must transition to LOADED before destroying any objects
-		itsState = ComponentState.LOADED;
-
-		itsObsService = null;
 	}
 
 	public void activate(Current curr) throws TransitionException {
@@ -143,6 +102,32 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
         }
 	}
 
+	public ComponentState getState(Current curr) {
+		// TODO Auto-generated method stub
+		return itsState;
+	}
+
+	public void run() {
+		logger.debug("Running AdminInterface");
+		if (itsComm == null) {
+			throw new RuntimeException("ICE Communicator is null");
+		}
+
+		itsAdapter = itsComm.createObjectAdapter("AdminAdapter");
+		if (itsAdapter == null) {
+			throw new RuntimeException("ICE adapter initialisation failed");
+		}
+
+		Ice.Object object = this;
+		itsAdapter.add(object,
+				itsComm.stringToIdentity("CentralProcessorAdmin"));
+		itsAdapter.activate();
+
+		// Block here so main() can block on this
+		itsComm.waitForShutdown();
+		logger.info("Shutting AdminInterface");
+	}
+
 	public ComponentTestResult[] selfTest(Current curr)
 			throws CannotTestException {
 		if (itsState != ComponentState.STANDBY) {
@@ -152,9 +137,28 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		return new ComponentTestResult[0];
 	}
 
-	public ComponentState getState(Current curr) {
-		// TODO Auto-generated method stub
-		return itsState;
+	public void shutdown(Current curr) throws TransitionException {
+		if (itsState != ComponentState.STANDBY) {
+			throw new TransitionException("Not in STANDBY state");
+		}
+
+		// Must transition to LOADED before destroying any objects
+		itsState = ComponentState.LOADED;
+
+		itsObsService = null;
+	}
+
+	public void startup(Map<String, String> config, Current curr)
+			throws TransitionException {
+		if (itsState != ComponentState.LOADED) {
+			throw new TransitionException("Not in UNLOADED state");
+		}
+
+		itsObsService = new ObsService(itsComm);
+
+		// Must transition to standby only once all objects are created
+		itsState = ComponentState.STANDBY;
+
 	}
 
 }

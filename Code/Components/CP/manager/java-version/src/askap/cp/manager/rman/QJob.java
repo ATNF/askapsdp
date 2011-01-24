@@ -20,40 +20,64 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- * 
+ */
+package askap.cp.manager.rman;
+
+/**
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
-package askap.cp.manager;
+public class QJob implements IJob {
 
-// ASKAPsoft imports
-import org.apache.log4j.Logger;
-import Ice.Current;
-import askap.interfaces.cp._ICPObsServiceDisp;
-
-public class ObsService extends _ICPObsServiceDisp {
+	private String itsId = null;
 	
-	private static final long serialVersionUID = 1L;
-	
-    //private Ice.Communicator itsComm;
-	
-	/** Logger. */
-	private static Logger logger = Logger.getLogger(ObsService.class.getName());
-    
-	public ObsService(Ice.Communicator ic) {
-		//itsComm = ic;
-		logger.info("Creating ObsService");
+	QJob(String id) {
+		itsId = id;
 	}
 	
-	public void finalize() {
-		logger.info("Destroying ObsService");
+	/**
+	 * @see askap.cp.manager.rman.IJob#status()
+	 */
+	public JobStatus status() {
+		return JobStatus.UNKNOWN;
+	}
+
+	/**
+	 * @see askap.cp.manager.rman.IJob#abort()
+	 */
+	public void abort() {
 	}
 	
-	public void abortObs(Current curr) {
-		// TODO Auto-generated method stub
+	public String getId()
+	{
+		return itsId;
+	}
+	
+	/**
+	 * @see java.lang.Object#hashCode()
+	 */
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((itsId == null) ? 0 : itsId.hashCode());
+		return result;
 	}
 
-	public void startObs(long sbid, Current curr) {
-		// TODO Auto-generated method stub
+	/**
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		QJob other = (QJob) obj;
+		if (itsId == null) {
+			if (other.itsId != null)
+				return false;
+		} else if (!itsId.equals(other.itsId))
+			return false;
+		return true;
 	}
-
 }

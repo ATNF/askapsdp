@@ -1,4 +1,4 @@
-/*
+/**
  *  Copyright (c) 2011 CSIRO - Australia Telescope National Facility (ATNF)
  *  
  *  Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -33,7 +33,7 @@ import org.apache.log4j.BasicConfigurator;
 public class CpManager {
 
 	 /** Logger. */
-    static Logger logger = Logger.getLogger(CpManager.class.getName());
+	private static Logger logger = Logger.getLogger(CpManager.class.getName());
     
 	/**
 	 * @param args

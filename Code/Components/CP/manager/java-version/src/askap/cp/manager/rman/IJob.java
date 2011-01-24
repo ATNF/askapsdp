@@ -21,39 +21,25 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  * 
+ */
+package askap.cp.manager.rman;
+
+/**
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
-package askap.cp.manager;
-
-// ASKAPsoft imports
-import org.apache.log4j.Logger;
-import Ice.Current;
-import askap.interfaces.cp._ICPObsServiceDisp;
-
-public class ObsService extends _ICPObsServiceDisp {
+public interface IJob {
 	
-	private static final long serialVersionUID = 1L;
-	
-    //private Ice.Communicator itsComm;
-	
-	/** Logger. */
-	private static Logger logger = Logger.getLogger(ObsService.class.getName());
+    public enum JobStatus {
+        QUEUED,
+        RUNNING,
+        HELD,
+        COMPLETED,
+        UNKNOWN
+    }
     
-	public ObsService(Ice.Communicator ic) {
-		//itsComm = ic;
-		logger.info("Creating ObsService");
-	}
-	
-	public void finalize() {
-		logger.info("Destroying ObsService");
-	}
-	
-	public void abortObs(Current curr) {
-		// TODO Auto-generated method stub
-	}
-
-	public void startObs(long sbid, Current curr) {
-		// TODO Auto-generated method stub
-	}
-
+    JobStatus status();
+    
+    /// If the job is queued or held the job is simply deleted from the
+    /// queue. If the job is executing it is terminated.
+    void abort();
 }
