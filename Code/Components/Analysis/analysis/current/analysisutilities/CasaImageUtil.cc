@@ -215,8 +215,8 @@ namespace askap {
             // set up the various flux units
             if (wcs->spec >= 0) cube.header().fixUnits(cube.pars());
 
-            if (cube.header().is2D()) ASKAPLOG_DEBUG_STR(logger, "Image is two-dimensional: int.flux.units = " << cube.header().getIntFluxUnits());
-            else ASKAPLOG_DEBUG_STR(logger, "Image has more than two dimensions: int.flux.units = " << cube.header().getIntFluxUnits());
+//             if (cube.header().is2D()) ASKAPLOG_DEBUG_STR(logger, "Image is two-dimensional: int.flux.units = " << cube.header().getIntFluxUnits());
+//             else ASKAPLOG_DEBUG_STR(logger, "Image has more than two dimensions: int.flux.units = " << cube.header().getIntFluxUnits());
 
             cube.initialiseCube(dim, false);
             delete [] dim;
@@ -418,7 +418,7 @@ namespace askap {
 
         //**************************************************************//
 
-        casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box)
+        casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box, bool fixSlice)
         {
             /// @details Extract a set of pixel values from a region of
             /// an image. The region is defined by a casa::Slicer
@@ -429,7 +429,7 @@ namespace askap {
             /// @param box The region within in the image
             /// @return A casa::Vector of casa::Double pixel values
 
-            ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName);
+	  ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName << " with slicer " << box);
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
 
@@ -437,18 +437,15 @@ namespace askap {
                 ASKAPTHROW(AskapError, "Requested image \"" << imageName << "\" does not exist or could not be opened.");
 
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	    
+	    casa::Slicer newSlicer=box;
+	    if(fixSlice){
+	      wcsprm *tempwcs = casaImageToWCS(imagePtr);
+	      fixSlicer(newSlicer, tempwcs);
+	    }
 
-            IPosition shape = imagePtr->shape();
-            IPosition start(shape.size(), 0);
-            IPosition end(shape.size(), 0);
-            IPosition stride(shape.size(), 1);
-            start(0) = box.start()[0];
-            start(1) = box.start()[1];
-            end(0) = box.end()[0];
-            end(1) = box.end()[1];
-            casa::Slicer newSlicer(start, end, stride, Slicer::endIsLast);
-
-            casa::Array<Float> array = imagePtr->getSlice(newSlicer);
+	    casa::Array<Float> array;
+	    array = imagePtr->getSlice(newSlicer);
             float *data = array.data();
             casa::Vector<Double> vec(array.size());
 
@@ -502,8 +499,6 @@ namespace askap {
 
             if (cube.pars().section().parse(dim) == duchamp::FAILURE)
                 ASKAPTHROW(AskapError, "Cannot parse the subsection string " << cube.pars().section().getSection());
-
-            ASKAPLOG_DEBUG_STR(logger, "casaImageToMetadata: subsection string is " << cube.pars().getSubsection());
 
             Slicer slice = subsectionToSlicer(cube.pars().section());
             fixSlicer(slice, tempwcs);
@@ -783,6 +778,24 @@ namespace askap {
 
 	    return Slicer(IPosition(secStarts), IPosition(secLengths));
         }
+
+      Slicer subsectionToSlicer(duchamp::Section &subsection, wcsprm *wcs)
+      {
+
+	Vector<int> secStarts(subsection.getStartList());
+	Vector<int> secLengths(subsection.getDimList());
+	
+	if(wcs->spec==3){
+	  std::swap(secStarts(2),secStarts(3));
+	  std::swap(secLengths(2),secLengths(3));
+	}
+	else if(wcs->spec != 2){
+	  ASKAPTHROW(AskapError, "Unexpected value for wcs->spec = " << wcs->spec);
+	}
+
+	return Slicer(IPosition(secStarts), IPosition(secLengths));
+
+      }
 
         //**************************************************************//
 

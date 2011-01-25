@@ -385,7 +385,7 @@ namespace askap {
             /// initialisation of itsWeighter.
 	  if(this->isMaster()){
 	    if(!this->itsFlagDoMedianSearch && this->itsWeightImage != ""){
-		      this->itsWeighter->initialise(this->itsWeightImage, this->itsCube.pars().section());
+		      this->itsWeighter->initialise(this->itsWeightImage, this->itsCube.pars().section(), !(this->isParallel()&&this->isMaster()));
 	    }
 	  }	      
             if (this->isWorker()) {
@@ -435,8 +435,11 @@ namespace askap {
         //**************************************************************//
        void DuchampParallel::weightSearch()
       {
+	
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocating SNR array");
 	float *snrAll = new float[this->itsCube.getSize()];
-	for(int i=0; i<this->itsCube.getSize();i++){
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining SNR array");
+	for(size_t i=0; i<this->itsCube.getSize();i++){
 	  snrAll[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
 	}
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");

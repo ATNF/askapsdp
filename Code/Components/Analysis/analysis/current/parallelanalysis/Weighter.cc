@@ -36,6 +36,7 @@
 
 #include <casa/aipstype.h>
 #include <casa/Arrays/Vector.h>
+#define AIPS_ARRAY_INDEX_CHECK
 
 #include <Blob/BlobString.h>
 #include <Blob/BlobIBufString.h>
@@ -58,17 +59,18 @@ namespace askap {
     {
     }
 
-    void Weighter::initialise(std::string &weightsImage, duchamp::Section &section)
+    void Weighter::initialise(std::string &weightsImage, duchamp::Section &section, bool doAllocation)
     {
       this->itsImage = weightsImage;
       this->itsSection = section;
-      this->readWeights();
+      if(doAllocation) this->readWeights();
       this->findNorm();
     }
 
     void Weighter::readWeights()
     {
-      this->itsWeights = getPixelsInBox(itsImage,subsectionToSlicer(itsSection));
+      ASKAPLOG_INFO_STR(logger, "Reading weights from " << itsImage << ", section " << itsSection.getSection());
+      this->itsWeights = getPixelsInBox(this->itsImage,subsectionToSlicer(this->itsSection),false);
     }
 
     void Weighter::findNorm()
@@ -76,6 +78,8 @@ namespace askap {
       if(itsComms.isParallel()){
 	LOFAR::BlobString bs;
 	if(itsComms.isWorker()){
+	  if(this->itsWeights.size()==0)
+	    ASKAPLOG_ERROR_STR(logger, "Weights array not initialised!");
 	  // find maximum of weights and send to master
 	  float maxW = *std::max_element(this->itsWeights.begin(),this->itsWeights.end());
 	  bs.resize(0);
@@ -105,7 +109,7 @@ namespace askap {
 	    int version = in.getStart("localmax");
 	    ASKAPASSERT(version == 1);
 	    in >> localmax;
-	    itsNorm = (n==0) ? localmax : std::max(localmax,itsNorm);
+	    this->itsNorm = (n==0) ? localmax : std::max(localmax,itsNorm);
 	    in.getEnd();
 	  }
 	  // send the actual maximum to all workers
@@ -128,9 +132,10 @@ namespace askap {
 
     }
 
-    float Weighter::weight(int i)
+    float Weighter::weight(size_t i)
     {
-      return sqrt(itsWeights(i)/itsNorm);
+      ASKAPCHECK(i < this->itsWeights.size(), "Index out of bounds for weights array : index="<<i<<", weights array is size " << this->itsWeights.size());
+      return sqrt(this->itsWeights(i)/this->itsNorm);
     }
 
 

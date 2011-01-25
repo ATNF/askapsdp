@@ -50,10 +50,10 @@ namespace askap {
 	Weighter(askap::mwbase::AskapParallel& comms);
 	virtual ~Weighter(){};
 	
-	void initialise(std::string &weightsImage, duchamp::Section &section);
+	void initialise(std::string &weightsImage, duchamp::Section &section, bool doAllocation=true);
 	void findNorm();
 	void readWeights();
-	float weight(int i);
+	float weight(size_t i);
 
       protected:
 	askap::mwbase::AskapParallel& itsComms;
