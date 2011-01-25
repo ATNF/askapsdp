@@ -439,7 +439,7 @@ namespace askap {
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocating SNR array");
 	float *snrAll = new float[this->itsCube.getSize()];
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining SNR array");
-	for(size_t i=0; i<this->itsCube.getSize();i++){
+	for(size_t i=0; i<size_t(this->itsCube.getSize());i++){
 	  snrAll[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
 	}
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
