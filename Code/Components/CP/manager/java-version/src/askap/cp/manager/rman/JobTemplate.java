@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Hashtable;
 
 /**
- * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public class JobTemplate {
 	

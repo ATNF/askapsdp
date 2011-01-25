@@ -35,8 +35,6 @@ import askap.interfaces.component.*;
  * This class implements the askap.interfaces.component.IComponent
  * interface, allowing the central processor manager to be administered
  * (i.e. started, shutdown) programmatically.
- * 
- * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 

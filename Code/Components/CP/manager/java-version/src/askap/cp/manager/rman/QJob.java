@@ -23,12 +23,19 @@
  */
 package askap.cp.manager.rman;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+import org.apache.log4j.Logger;
+
 /**
  * An implementation of IJob which uses the qsub/qstat command line interface.
- * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public class QJob implements IJob {
 
+	/** Logger. */
+	private static Logger logger = Logger.getLogger(QJob.class.getName());
+	
 	/**
 	 * The unique id of the job. This is just the id that is returned by
 	 * qsub, and is found in qstat.
@@ -48,13 +55,49 @@ public class QJob implements IJob {
 	 * @see askap.cp.manager.rman.IJob#status()
 	 */
 	public JobStatus status() {
-		return JobStatus.UNKNOWN;
+		String cmd = "qstat -f " + itsId + "| grep job_state";
+		StringBuffer stdout = new StringBuffer();
+		int status = executeCommand(cmd, stdout);
+		
+		if (status != 0) {
+			logger.info("Job query failed: " + stdout);
+			return JobStatus.UNKNOWN;
+		} else if (status == 153) {
+			// Indicates the job was not found, so either it
+			// never existed or has completed
+			return JobStatus.COMPLETED;
+		}
+		
+		// Find the character representing the state
+        String stateString = "job_state = ";
+        int idx = stdout.toString().indexOf(stateString);
+        char state = stdout.toString().charAt(idx + stateString.length());
+        switch (state) {
+        case 'R':
+        	return JobStatus.RUNNING;
+        case 'Q':
+        	return JobStatus.QUEUED;
+        case 'H':
+        	return JobStatus.HELD;
+        case 'E':
+        	return JobStatus.COMPLETED;
+        case 'C':
+        	return JobStatus.COMPLETED;
+        default:
+        	return JobStatus.COMPLETED;
+        }
 	}
 
 	/**
 	 * @see askap.cp.manager.rman.IJob#abort()
 	 */
 	public void abort() {
+		String cmd = "qdel " + itsId;
+		StringBuffer stdout = new StringBuffer();
+		int status = executeCommand(cmd, stdout);
+		if (status != 0) {
+			logger.info("Job abort failed: " + stdout);
+		}
 	}
 	
 	/**
@@ -95,4 +138,36 @@ public class QJob implements IJob {
 			return false;
 		return true;
 	}
+	
+	/**
+	 * Wrapper around Runtime's exec() method
+	 * @param cmd	command to execute
+	 * @param stdout	string buffer which will be updated to contain the
+	 * 					stdout from the process.
+	 * @return			return code from the process of -1 if the process
+	 * 					fork/exec/wait failed
+	 */
+	private int executeCommand(String cmd, StringBuffer stdout) {
+        int status = -1;
+        try {
+            Process p = Runtime.getRuntime().exec(cmd);
+            status = p.waitFor();
+
+            if (status == 0) {
+                BufferedReader input = new BufferedReader(
+                        new InputStreamReader(
+                            p.getInputStream()));
+                int c = 0;
+                while ((c = input.read()) != -1) {
+                    stdout.append((char)c);
+                }
+            }
+        } catch (Exception e) {
+        	logger.info("executeCommand failed: " + e.getMessage());
+            e.printStackTrace();
+            return status;
+        }
+        return status;
+	}
+
 }

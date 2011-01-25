@@ -37,7 +37,6 @@ import askap.cp.manager.rman.JobTemplate.DependType;
 /**
  * An implementation of IResourceManager which uses the qsub/qstat command
  * line interface.
- * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public class QResourceManager implements IResourceManager {
 

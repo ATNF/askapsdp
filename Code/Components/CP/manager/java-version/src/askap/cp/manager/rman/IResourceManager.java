@@ -25,8 +25,6 @@ package askap.cp.manager.rman;
 
 /**
  * Interface to the resource manager.
- * 
- * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 public interface IResourceManager {
 	/**
