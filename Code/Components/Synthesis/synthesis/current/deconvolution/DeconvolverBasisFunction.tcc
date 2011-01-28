@@ -303,10 +303,10 @@ namespace askap {
       casa::setReal(basisFunctionFFT, this->itsBasisFunction->basisFunction());
       scimath::fft2d(basisFunctionFFT, true);
       
-      itsPSFBasisFunction.resize(stackShape);
+      this->itsPSFBasisFunction.resize(stackShape);
       
-      itsScaleFlux.resize(stackShape(2));
-      itsScaleFlux.set(T(0));
+      this->itsScaleFlux.resize(stackShape(2));
+      this->itsScaleFlux.set(T(0));
       
       // Calculate XFR for the subsection only
       Array<FT> subXFR(subPsfShape);
@@ -327,9 +327,9 @@ namespace askap {
       casa::minMax(minVal, maxVal, minPos, maxPos, this->psf().nonDegenerate()(subPsfSlicer));
       ASKAPLOG_INFO_STR(logger, "Maximum of Psf = " << maxVal << " at " << maxPos);
       ASKAPLOG_INFO_STR(logger, "Minimum of Psf = " << minVal << " at " << minPos);
-      this->itsPeakPSFVal(0) = maxVal;
-      this->itsPeakPSFPos(0)(0)=maxPos(0);
-      this->itsPeakPSFPos(0)(1)=maxPos(1);
+      this->itsPeakPSFVal = maxVal;
+      this->itsPeakPSFPos(0)=maxPos(0);
+      this->itsPeakPSFPos(1)=maxPos(1);
       
       casa::setReal(subXFR, this->psf().nonDegenerate()(subPsfSlicer));
       scimath::fft2d(subXFR, true);
@@ -343,7 +343,7 @@ namespace askap {
 	ASKAPASSERT(basisFunctionFFT.xyPlane(term).nonDegenerate().shape().conform(subXFR.shape()));
 	work=conj(basisFunctionFFT.xyPlane(term).nonDegenerate())*subXFR;
 	scimath::fft2d(work, false);
-	Cube<T>(itsPSFBasisFunction).xyPlane(term)=real(work);
+	Cube<T>(this->itsPSFBasisFunction).xyPlane(term)=real(work);
 	
 	ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * PSF: max = " << max(real(work)) << " min = " << min(real(work)));
 	
@@ -543,7 +543,6 @@ namespace askap {
         }
       }
 
-
       if(this->state()->initialObjectiveFunction()==0.0) {
 	this->state()->setInitialObjectiveFunction(abs(absPeakVal));
       }
@@ -553,6 +552,7 @@ namespace askap {
       
       const casa::IPosition residualShape(this->itsResidualBasisFunction.shape());
       const casa::IPosition psfShape(this->itsPSFBasisFunction.shape());
+
       const casa::uInt ndim(this->itsResidualBasisFunction.shape().size());
       
       casa::IPosition residualStart(ndim,0), residualEnd(ndim,0), residualStride(ndim,1);
@@ -571,8 +571,8 @@ namespace askap {
 	residualEnd(dim)=min(Int(absPeakPos(dim)+psfShape(dim)/2-1), Int(residualShape(dim)-1));
 	// Now we have to deal with the PSF. Here we want to use enough of the
 	// PSF to clean the residual image.
-	psfStart(dim)=max(0, Int(this->itsPeakPSFPos(0)(dim)-(absPeakPos(dim)-residualStart(dim))));
-	psfEnd(dim)=min(Int(this->itsPeakPSFPos(0)(dim)-(absPeakPos(dim)-residualEnd(dim))),
+	psfStart(dim)=max(0, Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualStart(dim))));
+	psfEnd(dim)=min(Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualEnd(dim))),
 			Int(psfShape(dim)-1));
 	
 	psfCrossTermsStart(dim)=psfStart(dim);

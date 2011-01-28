@@ -69,8 +69,6 @@ namespace askap {
 
     public:
 
-      enum SOLUTION {R5=0, MAXTERM0=1, MAXBASE=2};
-
       typedef boost::shared_ptr<DeconvolverMultiTermBasisFunction<T, FT> > ShPtr;
   
   
@@ -109,10 +107,16 @@ namespace askap {
       boost::shared_ptr<BasisFunction<T> > basisFunction();
 
       /// @brief Set the type of solution used in finding the optimum component
-      void setSolutionType(SOLUTION sol);
+      void setSolutionType(String solutionType);
 
       /// @brief Get the type of solution used in finding the optimum component
-      const uInt solutionType();
+      const String solutionType();
+
+      /// @brief Set whether to use decoupling in the solution for the optimum flux
+      void setDecouple(Bool decouple);
+
+      /// @brief Whether to use decoupling in finding the optimum component
+      const Bool decouple();
 
       /// @brief Perform the deconvolution
       /// @detail This is the main deconvolution method.
@@ -154,14 +158,6 @@ namespace askap {
       // Initialise the PSFs - only need to do this once per change in basis functions
       virtual void initialiseForBasisFunction();
 
-      /// @brief Initialize the term-term coupling matrix
-      /// @detail Initialise the term-term coupling matrix
-      /// using the 2*N-1 PSFs. We need 2*N-1 so that we 
-      /// can use the prescription from Urvashi:
-      /// B(i)*B(j)=B(0)*B(i+j).
-      // Only need to do this once per change in basis functions
-      void calculateTermCoupling();
-
       // Find the coefficients for each term by applying the
       // inverse of the coupling matrix in terms
       Vector<T> findCoefficients(const Matrix<Double>& invCoupling,
@@ -175,12 +171,9 @@ namespace askap {
       /// Residual images convolved with basis functions, [nx,ny][nterms][nbases]
       Vector<Vector<Array<T> > > itsResidualBasis;
 
-      /// Point spread functions convolved with basis functions [nx,ny][nterms][nbases]
-      Vector<Vector<Array<T> > > itsPSFBasis;
-
-      /// Point spread functions convolved with cross terms of basis functions
-      // [nx,ny][nterms][nbases,nbases]
-      Matrix<Vector<Array<T> > > itsPSFBasisBasis;
+      /// Point spread functions convolved with cross terms
+      // [nx,ny][nterms,nterms][nbases,nbases]
+      Matrix<Matrix<Array<T> > > itsPSFCrossTerms;
 
       /// The coupling between different terms for each basis [nterms,nterms][nbases]
       Vector<Matrix<Double> > itsCouplingMatrix;
@@ -201,8 +194,9 @@ namespace askap {
 
       Bool itsBasisFunctionChanged;
 
-      SOLUTION itsSolutionType;
+      String itsSolutionType;
 
+      Bool itsDecoupleTerms;
     };
 
   } // namespace synthesis

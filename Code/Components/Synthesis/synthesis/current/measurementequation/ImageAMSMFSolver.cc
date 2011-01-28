@@ -69,7 +69,8 @@ namespace askap
   {
     
     
-    ImageAMSMFSolver::ImageAMSMFSolver() : itsScales(3,0.), itsNumberTaylor(0)
+    ImageAMSMFSolver::ImageAMSMFSolver() : itsScales(3,0.), itsNumberTaylor(0),
+					   itsSolutionType("R5"), itsDecoupleTerms(false)
     {
       ASKAPDEBUGASSERT(itsScales.size() == 3);
       itsScales(1)=10;
@@ -81,7 +82,8 @@ namespace askap
     }
     
     ImageAMSMFSolver::ImageAMSMFSolver(const casa::Vector<float>& scales) : 
-      itsScales(scales), itsNumberTaylor(0)
+      itsScales(scales), itsNumberTaylor(0), 
+      itsSolutionType("R5"), itsDecoupleTerms(false)
     {
       // Now set up controller
       itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
@@ -334,6 +336,10 @@ namespace askap
 		
 		itsBasisFunction->initialise(dirtyVec(0).shape());
 		itsCleaners[imageTag]->setBasisFunction(itsBasisFunction);
+
+		itsCleaners[imageTag]->setSolutionType(itsSolutionType);
+
+		itsCleaners[imageTag]->setDecouple(itsDecoupleTerms);
 	      }
 	      else {
 		// Update the dirty images
@@ -343,7 +349,7 @@ namespace askap
 	      // Initialise the model
 	      Array<float> initialModel(cleanVec(order).shape());
 	      initialModel.set(0.0);
-	      itsCleaners[imageTag]->setModel(initialModel, order);
+	      itsCleaners[imageTag]->setBackground(initialModel, order);
 		
 	      // We have to reset the initial objective function
 	      // so that the fractional threshold mechanism will work.
@@ -366,7 +372,7 @@ namespace askap
 	      ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<plane<<" Taylor order="<<order<<
 				" for image "<<tmIt->first);
 	      casa::Array<double> slice = planeIter.getPlane(ip.value(thisOrderParam));
-	      casa::convertArray<double, float>(slice, itsCleaners[imageTag]->model(order)+cleanVec(order));
+	      slice=unpadImage(itsCleaners[imageTag]->model(order)+itsCleaners[imageTag]->background(order));
 	    }
 	    // add extra parameters (cross-terms) to the to-be-fixed list
 	    for (uInt order = itsNumberTaylor; order<uInt(tmIt->second); ++order) {
@@ -434,6 +440,22 @@ namespace askap
 	defaultScales[2]=30.0;
 	std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
 	itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
+
+	String solutionType=parset.getString("solutiontype", "MAXBASE");
+	if(solutionType=="R5") {
+	}
+	else if(solutionType=="MAXTERM0") {
+	}
+	else {
+	  solutionType="MAXBASE";
+	}
+	ASKAPLOG_INFO_STR(decmtbflogger, "Solution type = " << solutionType);
+	this->itsSolutionType=solutionType;
+
+        this->itsDecoupleTerms=parset.getBool("decouple", "true");
+	if(itsDecoupleTerms) {
+	  ASKAPLOG_INFO_STR(decmtbflogger, "Decoupling in term using the inverse of the coupling matrix");
+	}
       }
     }
   }

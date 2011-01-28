@@ -252,9 +252,9 @@ namespace askap {
       /// The monitor used for the deconvolver
       boost::shared_ptr<DeconvolverMonitor<T> > itsDM;
 
-      // Peak and location of peak of PSF
-      Vector<casa::IPosition> itsPeakPSFPos;
-      Vector<T> itsPeakPSFVal;
+      // Peak and location of peak of PSF(0)
+      casa::IPosition itsPeakPSFPos;
+      T itsPeakPSFVal;
 
       // We need this for the inner loop
       // Mask weighted by weight image

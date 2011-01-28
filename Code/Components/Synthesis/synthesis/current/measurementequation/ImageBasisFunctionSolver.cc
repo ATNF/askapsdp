@@ -223,7 +223,7 @@ namespace askap
 	    ASKAPLOG_INFO_STR(logger, "Peak flux of the Basis function image "
 			      << max(basisFunctionDec->model()));
 	    ASKAPLOG_INFO_STR(logger, "Peak residual of Basis function image "
-			      << max(abs(basisFunctionDec->residual())));
+			      << max(abs(basisFunctionDec->dirty())));
 	    
 	    const std::string deconvolverKey = indit->first + planeIter.tag();
 	    const std::string peakResParam = std::string("peak_residual.") + deconvolverKey;

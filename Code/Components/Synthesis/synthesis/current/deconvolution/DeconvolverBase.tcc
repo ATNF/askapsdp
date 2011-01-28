@@ -350,26 +350,8 @@ namespace askap {
       }
 
       // Now we need to find the peak and support of the PSF
-      itsPeakPSFVal.resize(itsNumberTerms);
-      itsPeakPSFPos.resize(itsNumberTerms);
 
       for (uInt term=0;term<itsNumberTerms;term++) {
-	casa::IPosition minPos;
-	casa::IPosition maxPos;
-	T minVal, maxVal;
-	ASKAPLOG_INFO_STR(logger, "Validating PSF for term " << term);
-	casa::minMax(minVal, maxVal, minPos, maxPos, this->psf(term));
-	ASKAPLOG_INFO_STR(logger, "Maximum of PSF = " << maxVal << " at " << maxPos);
-	ASKAPLOG_INFO_STR(logger, "Minimum of PSF = " << minVal << " at " << minPos);
-	itsPeakPSFVal(term) = maxVal;
-	itsPeakPSFPos(term) = maxPos;
-
-	if (term==0) {
-	  // Check the peak of the PSF - it should be at nx/2,ny/2
-	  if(!(maxPos==this->psf(term).shape()/2)) {
-	    throw(AskapError("Peak of PSF is not at center"));
-	  };
-	}
 	this->itsResidual.resize(this->itsNumberTerms);
 	for(uInt term=0;term<this->itsNumberTerms;term++) {
 	  this->residual(term)=this->dirty(term).copy();
