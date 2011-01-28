@@ -38,6 +38,17 @@ nbaselines = 630
 noisePerPol = 1e-3/math.sqrt(ncycles*nbaselines)
 print "Noise per polarisation for %i cycles and %i baselines (sigma per vis is 1e-3 Jy) is %f Jy" % (ncycles, nbaselines,noisePerPol)
 
+spr.addToParset("Cimager.Images.image.field1.polarisation = [\"XX\"]")
 spr.runImager()
 analyseResult(spr,noisePerPol)
 
+# test noise figures after polarisation conversion
+spr.initParset()
+spr.addToParset("Cimager.Images.image.field1.polarisation = [\"I\"]")
+spr.runImager()
+analyseResult(spr,noisePerPol*math.sqrt(2.))
+
+spr.initParset()
+spr.addToParset("Cimager.Images.image.field1.polarisation = [\"Q\"]")
+spr.runImager()
+analyseResult(spr,noisePerPol*math.sqrt(2.))
