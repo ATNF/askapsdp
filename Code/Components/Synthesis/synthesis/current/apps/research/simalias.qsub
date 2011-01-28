@@ -2,7 +2,7 @@
 #PBS -l nodes=1:ppn=1
 #PBS -M maxim.voronkov@csiro.au
 #PBS -N simalias
-#PBS -l walltime=48:00:00
+#PBS -l walltime=96:00:00
 #PBS -m bea
 #PBS -j oe
 #PBS -r n
@@ -17,7 +17,8 @@ imgstat=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/imgs
 npix=2048
 maxsupport=4096
 cell=2arcsec
-os=4
+os=128
+support=3
 rob=0.0
 snwplanes=1
 inwplanes=1
@@ -71,7 +72,9 @@ Csimulator.antennas.definition                  =       $configdir/A27CR3.in
 Csimulator.feeds.definition                     =       $configdir/ASKAP${nfeeds}feeds.in
 
 Csimulator.spws.names=[Spectral0]
-Csimulator.spws.Spectral0  =[ 1, 1250.000000MHz, -2.533333MHz, "XX XY YX YY"]
+#Csimulator.spws.Spectral0  =[ 1, 1250.000000MHz, -2.533333MHz, "XX XY YX YY"]
+Csimulator.spws.Spectral0  =[ 32, 1250.000000MHz, -9.375MHz, "XX YY"]
+#Csimulator.spws.Spectral0  =[ 300, 1250.000000MHz, -1MHz, "XX YY"]
 
 # Standard settings for the simulation step
 Csimulator.simulation.blockage                  =       0.01
@@ -79,7 +82,7 @@ Csimulator.simulation.elevationlimit            =       8deg
 Csimulator.simulation.autocorrwt                =       0.0
 Csimulator.simulation.usehourangles             =       True
 Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
-Csimulator.simulation.integrationtime           =       200s
+Csimulator.simulation.integrationtime           =       5s
 #
 # Observe source SKADS_S3SEX for 8 hrs with a single channel spectral window, rotating between fields
 Csimulator.observe.number                       =       1
@@ -144,6 +147,7 @@ Cimager.gridder                              = ${gridder}
 Cimager.gridder.${gridder}.wmax               = 10000
 Cimager.gridder.${gridder}.nwplanes           = $inwplanes
 Cimager.gridder.${gridder}.oversample         = ${os}
+Cimager.gridder.${gridder}.support            = ${support}
 Cimager.gridder.${gridder}.diameter           = 12m
 Cimager.gridder.${gridder}.illumination.tapering.defocusing = 0
 Cimager.gridder.${gridder}.illumination	      = ${illum}

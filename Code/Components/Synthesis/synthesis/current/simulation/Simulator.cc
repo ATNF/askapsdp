@@ -127,11 +127,12 @@ void Simulator::defaults()
     Quantity today;
     MVTime::read(today, "today");
     mRefTime_p = MEpoch(today, MEpoch::UTC);
+    itsNoiseRMS = 1.;
 }
 
 Simulator::Simulator(const casa::String& MSName, int bucketSize,
                      int tileNcorr, int tileNchan) :
-        ms_p(0), itsDishDiamForNoise(-1.), itsChanBandwidthForNoise(-100.)
+        ms_p(0), itsDishDiamForNoise(-1.), itsChanBandwidthForNoise(-100.), itsNoiseRMS(1.)
 {
     try {
         defaults();
@@ -213,7 +214,7 @@ Simulator::Simulator(const casa::String& MSName, int bucketSize,
 }
 
 Simulator::Simulator(casa::MeasurementSet& theMS) :
-        ms_p(0), itsDishDiamForNoise(-1.), itsChanBandwidthForNoise(-100.)
+        ms_p(0), itsDishDiamForNoise(-1.), itsChanBandwidthForNoise(-100.), itsNoiseRMS(1.)
 {
     defaults();
 
@@ -973,7 +974,7 @@ void Simulator::observe(const casa::String& sourceName,
                     }
 
                     // Deal with differing diameter case
-                    Float sigma1 = diamMax2 / (antDiam(ant1) * antDiam(ant2));
+                    const Float sigma1 = diamMax2 / (antDiam(ant1) * antDiam(ant2)) * itsNoiseRMS;
                     Float wt = 1 / square(sigma1);
 
                     if (ant1 == ant2) {

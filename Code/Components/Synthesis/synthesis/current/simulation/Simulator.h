@@ -59,13 +59,13 @@ namespace askap
                 /// @param tileSize  Tile size in bytes
                 /// @param ncorrTile Nr of correlations per tile
                 /// @param nchanTile Nr of channels per tile
-                Simulator(const casa::String& msname,
+                explicit Simulator(const casa::String& msname,
                         int tileSize=32768,
                         int ncorrTile=4, int nchanTile=32);
 
                 /// Constructor from existing MS
                 /// @param ms Existing MeasurementSet object
-                Simulator(casa::MeasurementSet& ms);
+                explicit Simulator(casa::MeasurementSet& ms);
 
                 // Destructor
                 ~Simulator();
@@ -141,6 +141,13 @@ namespace askap
                     autoCorrelationWt_p = autocorrwt;
                 }
 
+                /// @brief set noise rms (used to scale SIGMA column)
+                /// @param[in] rms single visibility rms in Jy
+                void setNoiseRMS(const float rms)
+                {
+                    itsNoiseRMS = rms;
+                }
+
                 /// @brief Set meaning of times for observing
                 /// @param integrationtime Integration time e.g. "10s"
                 /// @param usehourangles Use hour angles for observing times?
@@ -172,15 +179,10 @@ namespace askap
 
             private:
 
-                /// Prevent use of default constructor
-                Simulator()
-                {
-                }
-
                 /// @brief Copy constructor
                 /// @details made private to avoid it being called inadvertently
                 /// @param mss Simulator to be copied
-                Simulator(const Simulator & mss);
+                explicit Simulator(const Simulator & mss);
 
                 /// @brief assignment operator
                 /// @details made private to avoid it being called inadvertently
@@ -277,6 +279,13 @@ namespace askap
                 /// (the value is -1). These are internal flags, which are completely hidden from the user of
                 /// this class.
                 double itsChanBandwidthForNoise;
+
+                /// @brief noise rms to scale SIGMA column
+                /// @details For a proper theoretical noise estimate SIGMA column must be 
+                /// initialised with the data in real units (only relative values, which do not change,
+                /// matter for the final image). This field is 1. by default (to mimic the old behavior),
+                /// but can be set to the proper noise figure via the appropriate setter method.
+                double itsNoiseRMS;
         };
 
     }

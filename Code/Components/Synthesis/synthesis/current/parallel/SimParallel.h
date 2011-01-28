@@ -223,6 +223,11 @@ namespace askap
                 /// Predict data for current model
                 /// @param ds Data set to predict for
                 void predict(const std::string& ds);
+
+                /// @brief noise variance 
+                /// @details If noise is simulated, this field contains the noise variance in Jy^2.
+                /// Otherwise it is negative (i.e. undefined)
+                double itsNoiseVariance;
         };
 
     }

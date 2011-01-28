@@ -74,7 +74,7 @@ namespace synthesis
 
 SimParallel::SimParallel(askap::mwbase::AskapParallel& comms,
                          const LOFAR::ParameterSet& parset) :
-        SynParallel(comms,parset), itsModelReadByMaster(true)
+        SynParallel(comms,parset), itsModelReadByMaster(true), itsNoiseVariance(-1.)
 {
   itsModelReadByMaster = parset.getBool("modelReadByMaster", true);
 }
@@ -97,6 +97,18 @@ void SimParallel::init()
         int tileNcorr = parset().getInt32("stman.tilencorr", 4);
         int tileNchan = parset().getInt32("stman.tilenchan", 32);
         itsSim.reset(new Simulator(msname, bucketSize, tileNcorr, tileNchan));
+
+        // extract noise figure if needed
+        if (parset().getBool("noise", false)) {
+            itsNoiseVariance = getNoise(parset().makeSubset("noise."));
+            ASKAPCHECK(itsNoiseVariance>0., 
+               "Noise variance is supposed to be positive, you have "<<itsNoiseVariance);
+            const double rms = sqrt(itsNoiseVariance);
+            ASKAPLOG_INFO_STR(logger, 
+               "SIGMA column will be scaled to account for simulated Gaussian noise (variance=" << 
+                itsNoiseVariance << " Jy^2 or sigma="<<rms<<" Jy)");
+            itsSim->setNoiseRMS(rms);
+        }
 
         itsMs.reset(new casa::MeasurementSet(msname, casa::Table::Update));
 
@@ -437,10 +449,9 @@ void SimParallel::predict(const string& ms)
 
         ASKAPCHECK(equation, "Equation is not defined correctly");
 
-        if (parset().getBool("noise", false)) {
-            const double variance = getNoise(parset().makeSubset("noise."));
-            ASKAPLOG_INFO_STR(logger, "Gaussian noise (variance=" << variance <<
-                              " Jy^2 or sigma="<<sqrt(variance)<<" Jy) will be added to visibilities");
+        if (itsNoiseVariance > 0.) {
+            ASKAPLOG_INFO_STR(logger, "Gaussian noise (variance=" << itsNoiseVariance <<
+                         " Jy^2 or sigma="<<sqrt(itsNoiseVariance)<<" Jy) will be added to visibilities");
 
             const casa::Int seed1 = getSeed("noise.seed1","time");                  
             const casa::Int seed2 = getSeed("noise.seed2","%w");                  
@@ -449,7 +460,7 @@ void SimParallel::predict(const string& ms)
             ASKAPLOG_INFO_STR(logger, "Set seed2 to " << seed2);
 
             boost::shared_ptr<GaussianNoiseME const> noiseME(new
-                    GaussianNoiseME(variance, seed1, seed2));
+                    GaussianNoiseME(itsNoiseVariance, seed1, seed2));
             addEquation(equation, noiseME, it);
         }
 
