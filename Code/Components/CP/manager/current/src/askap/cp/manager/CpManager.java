@@ -25,52 +25,64 @@
  */
 package askap.cp.manager;
 
+// System imports
+import java.io.File;
+
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.PropertyConfigurator;
 
 
 public class CpManager {
 
-	 /** Logger. */
+	/** Logger. */
 	private static Logger logger = Logger.getLogger(CpManager.class.getName());
-    
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// Set up a simple configuration that logs on the console.
-	     BasicConfigurator.configure();
-	     
-	     logger.info("ASKAP Central Processor Manager");
-	     
-	     int status = 0;
-	     Ice.Communicator ic = null;
-	     try {
-	    	 ic = Ice.Util.initialize(args);
-	            if (ic == null) {
-	                throw new RuntimeException("ICE Communicator initialisation failed");
-	            }
 
-	            AdminInterface admin = new AdminInterface(ic);
-	            admin.run(); // Blocks until shutdown
-	        } catch (Ice.LocalException e) {
-	            e.printStackTrace();
-	            status = 1;
-	        } catch (Exception e) {
-	            System.err.println(e.getMessage());
-	            status = 1;
-	        }
+		// Init logging
+		final String logcfg = "askap.log_cfg";
+		File f = new File(logcfg);
+		if (f.exists()) {
+			PropertyConfigurator.configure(logcfg);
+		} else {
+			BasicConfigurator.configure();
+		}
 
-	        if (ic != null) {
-	            // Cleanup
-	            try {
-	                ic.destroy();
-	            } catch (Exception e) {
-	                System.err.println(e.getMessage());
-	                status = 1;
-	            }
-	        }
-	        System.exit(status);
+		logger.info("ASKAP Central Processor Manager");
+
+		// Init Ice and run the admin interface
+		int status = 0;
+		Ice.Communicator ic = null;
+		try {
+			ic = Ice.Util.initialize(args);
+			if (ic == null) {
+				throw new RuntimeException("ICE Communicator initialisation failed");
+			}
+
+			AdminInterface admin = new AdminInterface(ic);
+			admin.run(); // Blocks until shutdown
+		} catch (Ice.LocalException e) {
+			e.printStackTrace();
+			status = 1;
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			status = 1;
+		}
+
+		if (ic != null) {
+			// Cleanup
+			try {
+				ic.destroy();
+			} catch (Exception e) {
+				System.err.println(e.getMessage());
+				status = 1;
+			}
+		}
+		System.exit(status);
 	}
 }

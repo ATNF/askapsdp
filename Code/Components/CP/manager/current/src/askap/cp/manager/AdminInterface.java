@@ -37,7 +37,7 @@ import askap.interfaces.component.*;
  * (i.e. started, shutdown) programmatically.
  */
 public class AdminInterface extends askap.interfaces.component._IComponentDisp {
-
+	
 	/**
 	 * Id for ISeralizable
 	 */
@@ -171,7 +171,6 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		logger.info("Stopping AdminInterface");
 
         itsAdapter.deactivate();
-        itsAdapter.removeAllFacets(itsComm.stringToIdentity("CentralProcessorAdmin"));
         itsAdapter.destroy();
         logger.info("AdminInterface stopped");
     }
