@@ -22,7 +22,7 @@
 #
 
 CXX = g++
-CFLAGS = -Wall -Wextra -O2 -fstrict-aliasing -fPIC
+CFLAGS = -Wall -Wextra -O2 -fstrict-aliasing -fcx-limited-range -fPIC
 
 EXENAME = tConvolveCuda
 EXEOBJS = $(EXENAME).o
