@@ -2,9 +2,10 @@
     <application name="cpmanager">
         <node name="Node1">
             <server id="CpManager"
-                exe="cpmanager.sh"
+                exe="java"
                 activation="always">
-                <env>PATH=$PATH:$ASKAP_ROOT/Code/Components/CP/manager/current/apps</env>
+                <env>CLASSPATH=$ASKAP_ROOT/Code/Components/CP/current/cpmanager.jar:$CLASSPATH</env>
+                <option>askap/cp/manager/CpManager</option>
                 <adapter name="AdminAdapter"
                     id="CentralProcessorAdminAdapter"
                     endpoints="tcp">
@@ -17,4 +18,3 @@
         </node>
     </application>
 </icegrid>
-

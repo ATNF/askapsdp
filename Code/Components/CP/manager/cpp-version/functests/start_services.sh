@@ -31,7 +31,7 @@ if [ ! -f $1 ]; then
 fi
 
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/manager/java-version/init_package_env.sh
+source $ASKAP_ROOT/Code/Components/CP/manager/cpp-version/init_package_env.sh
 
 # Create directories for IceGrid and IceStorm
 mkdir -p data/registry

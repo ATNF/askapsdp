@@ -79,11 +79,16 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	 */
 	public AdminInterface(Ice.Communicator ic) {
 		super();
+		logger.debug("Creating AdminInterface");
 		itsComm = ic;
 		itsAdapter = null;
 		itsObsService = null;
 		itsState = ComponentState.LOADED;
 	}
+
+    public void finalize() {
+		logger.debug("Destroying AdminInterface");
+    }
 
 	/**
 	 * 
@@ -163,8 +168,13 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 
 		// Block here so main() can block on this
 		itsComm.waitForShutdown();
-		logger.info("Shutting AdminInterface");
-	}
+		logger.info("Stopping AdminInterface");
+
+        itsAdapter.deactivate();
+        itsAdapter.removeAllFacets(itsComm.stringToIdentity("CentralProcessorAdmin"));
+        itsAdapter.destroy();
+        logger.info("AdminInterface stopped");
+    }
 
 	/**
 	 * 
