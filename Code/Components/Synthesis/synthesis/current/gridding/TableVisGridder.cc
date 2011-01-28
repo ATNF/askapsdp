@@ -603,9 +603,11 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                           imagePolFrameVis[pol] += cVis*phasor;
                       } else {
                           const casa::Complex visComplexNoise = imagePolFrameNoise[pol];
-                          const float visNoiseSq = casa::square(casa::real(visComplexNoise)) +
-                                                       casa::square(casa::imag(visComplexNoise));
-                          const float visNoiseWt = (visNoiseSq > 0.) ? 1./visNoiseSq : 0.;
+                          
+                          const float visAvgNoise = casa::square(0.5*(casa::real(visComplexNoise) + 
+                                                    casa::imag(visComplexNoise)));
+                          
+                          const float visNoiseWt = (visAvgNoise > 0.) ? 1./visAvgNoise : 0.;
                                   
                           if (!isPSFGridder()) {
                               /// Gridding visibility data onto grid

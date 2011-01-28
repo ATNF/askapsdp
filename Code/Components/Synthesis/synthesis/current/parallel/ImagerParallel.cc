@@ -369,7 +369,7 @@ namespace askap
                 const double wt = wtPlane[elem];
                 if (wt > cutoff) {
                     // at this stage - just reciprocal. Still need to work on the normalisation
-                    sensitivityPlane[elem] = 1./wt;
+                    sensitivityPlane[elem] = 1./sqrt(wt);
                 } else {
                     sensitivityPlane[elem] = 0.;
                 }
