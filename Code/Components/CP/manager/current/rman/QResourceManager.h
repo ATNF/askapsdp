@@ -1,4 +1,4 @@
-/// @file JobTemplate.cc
+/// @file QResourceManager.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,62 +24,50 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "rman/JobTemplate.h"
+#ifndef ASKAP_CP_MANAGER_QRESOURCEMANAGER_H
+#define ASKAP_CP_MANAGER_QRESOURCEMANAGER_H
 
 // System includes
 #include <string>
-#include <vector>
 
 // Local package includes
+#include "JobTemplate.h"
 #include "IJob.h"
+#include "IResourceManager.h"
 
-using namespace askap::cp::manager;
+namespace askap {
+namespace cp {
+namespace manager {
 
-JobTemplate::JobTemplate(const std::string& name) : itsName(name)
-{
-}
+class QResourceManager : public IResourceManager {
+    public:
 
-JobTemplate::~JobTemplate()
-{
-}
+    /// @brief Constructor.
+    QResourceManager();
 
-void JobTemplate::setName(const std::string& name)
-{
-    itsName = name;
-}
+    /// @brief Destructor.
+    virtual ~QResourceManager();
 
-std::string JobTemplate::getName(void) const
-{
-    return itsName;
-}
+    /**
+     * @return an enum containing the state of the server.
+     */
+    virtual ServerStatus getStatus();
+    
+    /**
+     * Submit a new job for execution
+     * @param jobTemplate   template for the job to submit.
+     * @param queue     name of the queue to submit the job to.
+     * @return          a object which references the submitted job.
+     */
+    virtual IJob::ShPtr submitJob(const JobTemplate& jobTemplate, const std::string& queue);
 
-void JobTemplate::setScriptLocation(const std::string& script)
-{
-    itsPathToScript = script;
-}
+    private:
 
-std::string JobTemplate::getScriptLocation(void) const
-{
-    return itsPathToScript;
-}
+    std::string buildDependencyArg(JobTemplate jobTemplate);
+};
 
-void JobTemplate::addDependency(const IJob& dependency, DependType type)
-{
-    itsDependencies[dependency.getId()] = type;
-}
+};
+};
+};
 
-void JobTemplate::removeDependency(const IJob& dependency)
-{
-    itsDependencies.erase(dependency.getId());
-}
-
-void JobTemplate::removeAllDependencies(void)
-{
-    itsDependencies.clear();
-}
-
-std::map<std::string, JobTemplate::DependType> JobTemplate::getDependencies(void) const
-{
-    return itsDependencies;
-}
+#endif

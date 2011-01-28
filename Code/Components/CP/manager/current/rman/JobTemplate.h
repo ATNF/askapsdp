@@ -32,14 +32,11 @@
 #include <map>
 
 // Local package includes
-#include "IResourceManager.h"
+#include "IJob.h"
 
 namespace askap {
 namespace cp {
 namespace manager {
-
-/// @brief Job identifier
-typedef std::string JobId;
 
 class JobTemplate {
     public:
@@ -56,7 +53,7 @@ class JobTemplate {
 
         /// @brief Get the name of the job.
         /// @return the name of the job.
-        std::string getName(void);
+        std::string getName(void) const;
 
         /// @brief Set the script or executable to be executed when
         /// this job runs. This should include the full path to the
@@ -67,15 +64,18 @@ class JobTemplate {
 
         /// @brief Get the pathname/commandname of the script to be
         /// executed when this job runs.
-        std::string getScriptLocation(void);
+        std::string getScriptLocation(void) const;
 
         /// @brief Dependency type.
         enum DependType {
-            /// Start after dependent job starts
+            // Start after dependent job starts
             AFTERSTART,
 
             // Start after dependent job completes with no-error
-            AFTEROK
+            AFTEROK,
+
+            // Start the job only if the dependent job fails
+            AFTERNOTOK
         };
 
         /// @brief Adds dependency information to this job template.
@@ -84,14 +84,18 @@ class JobTemplate {
         ///
         /// @param[in] dependency
         /// @param[in] type
-        void addDependency(JobId dependency, DependType type);
+        void addDependency(const IJob& dependency, DependType type);
 
         /// @brief Remove a dependency from this job template.
         /// @param[in] dependency
-        void removeDependency(JobId dependency);
+        void removeDependency(const IJob& dependency);
 
         /// @brief Remove all dependencies from this job template.
         void removeAllDependencies(void);
+
+        /// Get a map of all dependencies.
+        /// @return a map of all dependencies.
+        std::map<std::string, DependType> getDependencies(void) const;
 
     private:
         // The name of the job this template will create
@@ -103,7 +107,7 @@ class JobTemplate {
 
         // List of jobs that any job created with this template
         // will depend on
-        std::map<JobId, DependType> itsDependencies;
+        std::map<std::string, DependType> itsDependencies;
 };
 
 };

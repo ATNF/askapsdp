@@ -1,6 +1,6 @@
-/// @file JobTemplate.cc
+/// @file QJob.h
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,62 +24,55 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "rman/JobTemplate.h"
+#ifndef ASKAP_CP_MANAGER_QJOB_H
+#define ASKAP_CP_MANAGER_QJOB_H
 
 // System includes
 #include <string>
-#include <vector>
+
+// ASKAPsoft includes
+#include "boost/shared_ptr.hpp"
 
 // Local package includes
 #include "IJob.h"
 
-using namespace askap::cp::manager;
+namespace askap {
+namespace cp {
+namespace manager {
 
-JobTemplate::JobTemplate(const std::string& name) : itsName(name)
-{
-}
+class QJob : public IJob {
+    public:
 
-JobTemplate::~JobTemplate()
-{
-}
+    /// @brief Constructor.
+    QJob(const std::string& id);
 
-void JobTemplate::setName(const std::string& name)
-{
-    itsName = name;
-}
+    /// @brief Destructor.
+    virtual ~QJob();
 
-std::string JobTemplate::getName(void) const
-{
-    return itsName;
-}
+    std::string getId(void) const;
 
-void JobTemplate::setScriptLocation(const std::string& script)
-{
-    itsPathToScript = script;
-}
+    /**
+     * Returns the job state.
+     * @return the job state.
+     */
+    virtual JobStatus status(void);
+    
+    /**
+     * @brief Abort the job. If the job is queued or held the job is simply 
+     * deleted from the queue. If the job is executing it is terminated.
+     */
+    virtual void abort(void);
 
-std::string JobTemplate::getScriptLocation(void) const
-{
-    return itsPathToScript;
-}
+    // Shared pointer definition
+    typedef boost::shared_ptr<QJob> ShPtr;
 
-void JobTemplate::addDependency(const IJob& dependency, DependType type)
-{
-    itsDependencies[dependency.getId()] = type;
-}
+    private:
 
-void JobTemplate::removeDependency(const IJob& dependency)
-{
-    itsDependencies.erase(dependency.getId());
-}
+    const std::string itsId;
+};
 
-void JobTemplate::removeAllDependencies(void)
-{
-    itsDependencies.clear();
-}
+};
+};
+};
 
-std::map<std::string, JobTemplate::DependType> JobTemplate::getDependencies(void) const
-{
-    return itsDependencies;
-}
+#endif

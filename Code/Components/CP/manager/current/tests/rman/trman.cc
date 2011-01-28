@@ -1,4 +1,4 @@
-/// @file IResourceManager.h
+/// @file trman.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,45 +24,17 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_MANAGER_IRESOURCEMANAGER_H
-#define ASKAP_CP_MANAGER_IRESOURCEMANAGER_H
+// ASKAPsoft includes
+#include <AskapTestRunner.h>
 
-// System includes
-#include <string>
+// Test includes
+#include "JobTemplateTest.h"
 
-// Local package includes
-#include "JobTemplate.h"
-#include "IJob.h"
+int main(int argc, char *argv[])
+{
+    askapdev::testutils::AskapTestRunner runner(argv[0]);
+    runner.addTest(askap::cp::manager::JobTemplateTest::suite());
+    bool wasSucessful = runner.run();
 
-namespace askap {
-namespace cp {
-namespace manager {
-
-class IResourceManager {
-    public:
-
-    /// The state of the batch queue server
-    enum ServerStatus {AVAILABLE, UNCONTACTABLE};
-
-    /// @brief Destructor.
-    virtual ~IResourceManager();
-
-    /**
-     * @return an enum containing the state of the server.
-     */
-    virtual ServerStatus getStatus() = 0;
-    
-    /**
-     * Submit a new job for execution
-     * @param jobTemplate   template for the job to submit.
-     * @param queue     name of the queue to submit the job to.
-     * @return          a object which references the submitted job.
-     */
-    virtual IJob::ShPtr submitJob(const JobTemplate& jobTemplate, const std::string& queue) = 0;
-};
-
-};
-};
-};
-
-#endif
+    return wasSucessful ? 0 : 1;
+}

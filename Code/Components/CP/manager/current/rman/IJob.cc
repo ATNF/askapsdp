@@ -1,6 +1,6 @@
-/// @file JobTemplate.cc
+/// @file IJob.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -25,61 +25,8 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "rman/JobTemplate.h"
-
-// System includes
-#include <string>
-#include <vector>
-
-// Local package includes
 #include "IJob.h"
 
-using namespace askap::cp::manager;
-
-JobTemplate::JobTemplate(const std::string& name) : itsName(name)
+askap::cp::manager::IJob::~IJob()
 {
-}
-
-JobTemplate::~JobTemplate()
-{
-}
-
-void JobTemplate::setName(const std::string& name)
-{
-    itsName = name;
-}
-
-std::string JobTemplate::getName(void) const
-{
-    return itsName;
-}
-
-void JobTemplate::setScriptLocation(const std::string& script)
-{
-    itsPathToScript = script;
-}
-
-std::string JobTemplate::getScriptLocation(void) const
-{
-    return itsPathToScript;
-}
-
-void JobTemplate::addDependency(const IJob& dependency, DependType type)
-{
-    itsDependencies[dependency.getId()] = type;
-}
-
-void JobTemplate::removeDependency(const IJob& dependency)
-{
-    itsDependencies.erase(dependency.getId());
-}
-
-void JobTemplate::removeAllDependencies(void)
-{
-    itsDependencies.clear();
-}
-
-std::map<std::string, JobTemplate::DependType> JobTemplate::getDependencies(void) const
-{
-    return itsDependencies;
 }

@@ -1,6 +1,6 @@
-/// @file JobTemplate.cc
+/// @file QJob.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -25,61 +25,42 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "rman/JobTemplate.h"
+#include "QJob.h"
 
 // System includes
 #include <string>
-#include <vector>
+
+// ASKAPsoft includes
+#include "askap/AskapError.h"
+#include "askap/AskapLogging.h"
 
 // Local package includes
 #include "IJob.h"
 
+// Using
 using namespace askap::cp::manager;
 
-JobTemplate::JobTemplate(const std::string& name) : itsName(name)
+ASKAP_LOGGER(logger, ".QJob");
+
+QJob::QJob(const std::string& id) : itsId(id)
 {
 }
 
-JobTemplate::~JobTemplate()
+QJob::~QJob()
 {
 }
 
-void JobTemplate::setName(const std::string& name)
+std::string QJob::getId(void) const
 {
-    itsName = name;
+    return itsId;
 }
 
-std::string JobTemplate::getName(void) const
+IJob::JobStatus QJob::status(void)
 {
-    return itsName;
+    return UNKNOWN;
 }
 
-void JobTemplate::setScriptLocation(const std::string& script)
+void QJob::abort(void)
 {
-    itsPathToScript = script;
 }
 
-std::string JobTemplate::getScriptLocation(void) const
-{
-    return itsPathToScript;
-}
-
-void JobTemplate::addDependency(const IJob& dependency, DependType type)
-{
-    itsDependencies[dependency.getId()] = type;
-}
-
-void JobTemplate::removeDependency(const IJob& dependency)
-{
-    itsDependencies.erase(dependency.getId());
-}
-
-void JobTemplate::removeAllDependencies(void)
-{
-    itsDependencies.clear();
-}
-
-std::map<std::string, JobTemplate::DependType> JobTemplate::getDependencies(void) const
-{
-    return itsDependencies;
-}
