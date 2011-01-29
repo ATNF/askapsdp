@@ -191,11 +191,11 @@ namespace askap
 	    }
 	    // we could write the result to the file or return it as a parameter (but we need an image name
 	    // here to compose a proper parameter name)
-	    if (status) {
-	        sensitivityLoss(oldPSF, psf);
-	    } else {
-	        ASKAPLOG_INFO_STR(logger, "No preconditioning has been done, hence sensitivity loss factor is 1.");
-	    }
+	    //	    if (status) {
+	    //	        sensitivityLoss(oldPSF, psf);
+	    //	    } else {
+	    //	        ASKAPLOG_INFO_STR(logger, "No preconditioning has been done, hence sensitivity loss factor is 1.");
+	    //	    }
 	    return status;
     }
 

@@ -117,6 +117,10 @@ namespace askap
       
       BasisFunction<Float>::ShPtr itsBasisFunction;
       
+      String itsSolutionType;
+
+      Bool itsDecoupleTerms;
+
     private:
       
     };
