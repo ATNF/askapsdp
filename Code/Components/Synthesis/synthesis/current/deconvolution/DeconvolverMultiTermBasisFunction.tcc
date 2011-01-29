@@ -197,14 +197,9 @@ namespace askap {
       
       ASKAPLOG_INFO_STR(decmtbflogger,
 			"Updating Multi-Term Basis Function deconvolver for change in basis function");
-      Int psfWidth=this->model().shape()(0);
-      // Only use the specified psfWidth if it makes sense
-      if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
-	psfWidth=this->control()->psfWidth();
-	ASKAPLOG_INFO_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth
-			  << " pixels");
-      }
-      IPosition subPsfShape(2, psfWidth, psfWidth);
+
+      IPosition subPsfShape(findSubPsfShape());
+
       // Use a smaller size for the psfs if specified. 
       this->itsBasisFunction->initialise(subPsfShape);
       
@@ -226,7 +221,6 @@ namespace askap {
       initialiseForBasisFunction();
       
       this->state()->resetInitialObjectiveFunction();
-      
     }
     
     template<class T, class FT>
@@ -242,10 +236,10 @@ namespace askap {
       
       ASKAPLOG_INFO_STR(decmtbflogger, "Shape of basis functions "
 			<< this->itsBasisFunction->basisFunction().shape());
-      
+       
       uInt nBases(this->itsBasisFunction->numberBases());
       
-      itsResidualBasis.resize(nBases);
+     itsResidualBasis.resize(nBases);
       for (uInt base=0;base<nBases;base++) {
 	itsResidualBasis(base).resize(this->itsNumberTerms);
       }
@@ -286,6 +280,22 @@ namespace askap {
     }
     
     template<class T, class FT>
+    IPosition DeconvolverMultiTermBasisFunction<T,FT>::findSubPsfShape() {
+      IPosition subPsfShape(2, this->model().shape()(0), this->model().shape()(1));
+      // Only use the specified psfWidth if it makes sense
+      if(this->control()->psfWidth()>0) {
+	uInt psfWidth=this->control()->psfWidth();
+	if((psfWidth<this->model().shape()(0))&&(psfWidth<this->model().shape()(1))) {
+	  ASKAPLOG_INFO_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth
+			    << " pixels");
+	  subPsfShape(0)=psfWidth;
+	  subPsfShape(1)=psfWidth;
+	}
+      }
+      return subPsfShape;
+    }
+
+    template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::initialisePSF()
     {
       
@@ -293,19 +303,10 @@ namespace askap {
       
       ASKAPCHECK(this->itsBasisFunction, "Basis function not initialised");
       
-      // For the psf convolutions, we only need a small part of the
-      // basis functions so we recalculate for that size
-      Int psfWidth=this->model(0).shape()(0);
-      
-      // Only use the specified psfWidth if it makes sense
-      if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
-	psfWidth=this->control()->psfWidth();
-	ASKAPLOG_INFO_STR(decmtbflogger, "Using subregion of PSF : size " << psfWidth
-			  << " pixels");
-      }
-      
-      IPosition subPsfShape(2, psfWidth, psfWidth);
-      
+      ASKAPLOG_INFO_STR(decmtbflogger,
+			"Updating Multi-Term Basis Function deconvolver for change in basis function");
+      IPosition subPsfShape(findSubPsfShape());
+
       Array<FT> work(subPsfShape);
       
       ASKAPLOG_INFO_STR(decmtbflogger, "Shape of basis functions "
@@ -331,8 +332,8 @@ namespace askap {
       uInt nx(this->psf(0).shape()(0));
       uInt ny(this->psf(0).shape()(1));
       
-      IPosition subPsfStart(2,nx/2-psfWidth/2,ny/2-psfWidth/2);
-      IPosition subPsfEnd(2,nx/2+psfWidth/2-1,ny/2+psfWidth/2-1);
+      IPosition subPsfStart(2,nx/2-subPsfShape(0)/2,ny/2-subPsfShape(1)/2);
+      IPosition subPsfEnd(2,nx/2+subPsfShape(0)/2-1,ny/2+subPsfShape(1)/2-1);
       IPosition subPsfStride(2,1,1);
       
       Slicer subPsfSlicer(subPsfStart, subPsfEnd, subPsfStride, Slicer::endIsLast);
@@ -461,7 +462,8 @@ namespace askap {
     
     // This contains the heart of the Multi-Term BasisFunction Clean algorithm
     template<class T, class FT>
-    void DeconvolverMultiTermBasisFunction<T,FT>::chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos)
+    void DeconvolverMultiTermBasisFunction<T,FT>::chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos,
+								  Vector<T>& peakValues)
     {
       Bool verbose(true);
       
@@ -475,31 +477,27 @@ namespace askap {
       // returned are without the mask
       bool isMasked((this->itsMask.nelements()>0)&&(this->itsMask(0).shape().nonDegenerate().conform(this->itsResidualBasis(0)(0).shape())));
       
+      Vector<T> minValues(this->itsNumberTerms);
+      Vector<T> maxValues(this->itsNumberTerms);
+
       for(uInt base=0;base<nBases;base++) {
 	// Find peak in residual image cube
 	casa::IPosition minPos(2,0);
 	casa::IPosition maxPos(2,0);
 	T minVal(0.0), maxVal(0.0);
 	
+	// Decouple all terms using inverse coupling matrix
+	Vector<Array<T> > coefficients(this->itsNumberTerms);
+	for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
+	  coefficients(term1).resize(this->residual(0).shape().nonDegenerate());
+	  coefficients(term1).set(T(0.0));
+	  for(uInt term2=0;term2<this->itsNumberTerms;term2++) {
+	    coefficients(term1)=coefficients(term1)
+	      + T(this->itsInverseCouplingMatrix(base)(term1,term2))*this->itsResidualBasis(base)(term2);
+	  }
+	}
+
 	if(this->itsSolutionType=="R5") {
-	  Vector<Array<T> > coefficients(this->itsNumberTerms);
-	  if (this->itsDecoupleTerms) {
-	    // Decouple all terms using inverse coupling matrix
-	    for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-	      coefficients(term1).resize(this->residual(0).shape().nonDegenerate());
-	      coefficients(term1).set(T(0.0));
-	      for(uInt term2=0;term2<this->itsNumberTerms;term2++) {
-		coefficients(term1)=coefficients(term1)
-		  + T(this->itsInverseCouplingMatrix(base)(term1,term2))*this->itsResidualBasis(base)(term2);
-	      }
-	    }
-	  }
-	  else {
-	    for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-	      coefficients(term1).resize(this->residual(0).shape().nonDegenerate());
-	      coefficients(term1)=this->itsResidualBasis(base)(term1);
-	    }
-	  }
 	  // Now form the criterion image and then search for the peak
 	  Array<T> criterion(this->residual(0).shape().nonDegenerate());
 	  criterion.set(T(0.0));
@@ -515,14 +513,22 @@ namespace askap {
 	  else {
 	    casa::minMax(minVal, maxVal, minPos, maxPos, criterion);
 	  }
+	  for (uInt term=0;term<this->itsNumberTerms;term++) {
+	    minValues(term)=coefficients(term)(minPos);
+	    maxValues(term)=coefficients(term)(maxPos);
+	  }
 	}
 	else if(this->itsSolutionType=="MAXTERM0") {
 	  if(isMasked) {
-	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
+	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, coefficients(0),
 			       this->itsMask(0).nonDegenerate());
 	  }
 	  else {
-	    casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
+	    casa::minMax(minVal, maxVal, minPos, maxPos, coefficients(0));
+	  }
+	  for (uInt term=0;term<this->itsNumberTerms;term++) {
+	    minValues(term)=coefficients(term)(minPos);
+	    maxValues(term)=coefficients(term)(maxPos);
 	  }
 	}
 	else { // MAXBASE
@@ -533,6 +539,10 @@ namespace askap {
 	  else {
 	    casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
 	  }
+	  for (uInt term=0;term<this->itsNumberTerms;term++) {
+	    minValues(term)=this->itsResidualBasis(base)(term)(minPos);
+	    maxValues(term)=this->itsResidualBasis(base)(term)(maxPos);
+	  }
 	  T norm(1/sqrt(this->itsCouplingMatrix(base)(0,0)));
 	  maxVal*=norm;
 	  minVal*=norm;
@@ -542,16 +552,29 @@ namespace askap {
 	  optimumBase=base;
 	  absPeakVal=abs(minVal);
 	  absPeakPos=minPos;
+	  peakValues=minValues;
 	}
 	if(abs(maxVal)>absPeakVal) {
 	  optimumBase=base;
 	  absPeakVal=abs(maxVal);
 	  absPeakPos=maxPos;
+	  peakValues=maxValues;
 	}
 	
-	if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "Base " << base << ": min, max " << minVal << " " << maxVal
-				      << " Peak: max, pos, base " << absPeakVal << " "
-				      << absPeakPos << " " << optimumBase);
+	if(isMasked) {
+	  casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
+			     this->itsMask(0).nonDegenerate());
+	}
+	else {
+	  casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
+	}
+	Vector<T> origRes(this->itsNumberTerms);
+	for (uInt term=0;term<this->itsNumberTerms;term++) {
+	  origRes(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos);
+	}
+	// Res: 298.562 Max: 202951 Gain: 0.5 Pos: [493, 397] Scale: 20 Coeffs: 663.175  -701.157   OrigRes: 122.357 -28.997
+	if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "Res: " << maxVal/2 << " Max: " << absPeakVal/4 << " Pos: "
+				      << absPeakPos << " Coeffs: " << peakValues/2 << " OrigRes: " << origRes/2);
 	
       }
     }
@@ -562,43 +585,16 @@ namespace askap {
       
       // For the psf convolutions, we only need a small part of the
       // basis functions so we recalculate for that size
-      Int psfWidth=this->model(0).shape()(0);
-      
-      // Only use the specified psfWidth if it makes sense
-      if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
-	psfWidth=this->control()->psfWidth();
-	ASKAPLOG_INFO_STR(decmtbflogger, "Using subregion of PSF : size " << psfWidth
-			  << " pixels");
-      }
-      
-      IPosition subPsfShape(2, psfWidth, psfWidth);
-      
+      IPosition subPsfShape(findSubPsfShape());
+
       Bool verbose(true);
       
       uInt nBases(this->itsResidualBasis.nelements());
       
       casa::IPosition absPeakPos(2,0);
       uInt optimumBase(0);
-      chooseComponent(optimumBase, absPeakPos);
-      
-      // Find the vector of values for the optimum base
       Vector<T> peakValues(this->itsNumberTerms);
-      if(itsDecoupleTerms) {
-	Vector<T> coupledPeakValues(this->itsNumberTerms);
-	for (uInt term=0;term<this->itsNumberTerms;term++) {
-	  coupledPeakValues(term)=itsResidualBasis(optimumBase)(term)(absPeakPos);
-	}
-	
-	peakValues=findCoefficients(this->itsInverseCouplingMatrix(optimumBase), coupledPeakValues);
-	
-	if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "Coupled Peak Values = " << coupledPeakValues);
-      }
-      else {
-	for (uInt term=0;term<this->itsNumberTerms;term++) {
-	  peakValues(term)=itsResidualBasis(optimumBase)(term)(absPeakPos);
-	}
-      }
-      if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "Peak Values         = " << peakValues);
+      chooseComponent(optimumBase, absPeakPos, peakValues);
       
       // Report on progress
       // We want the worst case residual
