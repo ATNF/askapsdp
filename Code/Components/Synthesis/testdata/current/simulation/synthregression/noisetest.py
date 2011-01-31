@@ -14,17 +14,24 @@ def analyseResult(spr, expected_rms):
    '''
    stats = spr.imageStats('image.field1.restored')
    print "Statistics for restored image: ",stats
-   if abs(stats['rms']-expected_rms)>0.02:
-      raise RuntimeError, "rms in the image is notably different from %f Jy, rms=%f" % (expected_rms,stats['rms'])
-   if abs(stats['median'])>expected_rms/10.:
-      raise RuntimeError, "median exceeds expected_rms/10: expected_rms=%f Jy, median=%f" % (expected_rms,stats['median'])
+   if abs(stats['rms']-expected_rms) > 0.1*expected_rms:
+      raise RuntimeError, "rms in the image is notably different from %e Jy, rms=%e" % (expected_rms,stats['rms'])
+   if abs(stats['median']) > expected_rms/10.:
+      raise RuntimeError, "median exceeds expected_rms/10: expected_rms=%e Jy, median=%e" % (expected_rms,stats['median'])
 
    stats = spr.imageStats('residual.field1')
    print "Statistics for residual image: ",stats
-   if abs(stats['rms']-expected_rms)>0.02:
-      raise RuntimeError, "rms in the image is notably different from %f Jy, rms=%f" % (expected_rms,stats['rms'])
+   if abs(stats['rms']-expected_rms) > 0.1*expected_rms:
+      raise RuntimeError, "rms in the image is notably different from %e Jy, rms=%e" % (expected_rms,stats['rms'])
    if abs(stats['median'])>expected_rms/10.:
-      raise RuntimeError, "median exceeds expected_rms/10: expected_rms=%f Jy, median=%f" % (expected_rms,stats['median'])
+      raise RuntimeError, "median exceeds expected_rms/10: expected_rms=%e Jy, median=%e" % (expected_rms,stats['median'])
+
+   stats = spr.imageStats("sensitivity.field1")
+   print "Statistics for the sensitivity image: ",stats
+   if abs(stats['peak'] - expected_rms) > 0.1*expected_rms:
+      raise RuntimeError, "peak sensitivity figure %e Jy is notably different from %e Jy" % (stats['peak'],expected_rms)
+   if abs(stats['rms']-stats['peak'])>0.1*stats['peak']:
+      raise RuntimeError, "Peak sensitivity figure %e Jy should be similar to rms of %e Jy in the sensitivity image (for spheroidal function gridder)" % (stats['peak'],stats['rms'])
 
 
 
@@ -36,7 +43,7 @@ spr.runSimulator()
 ncycles = 270
 nbaselines = 630
 noisePerPol = 1e-3/math.sqrt(ncycles*nbaselines)
-print "Noise per polarisation for %i cycles and %i baselines (sigma per vis is 1e-3 Jy) is %f Jy" % (ncycles, nbaselines,noisePerPol)
+print "Image noise per polarisation plane for %i cycles and %i baselines (sigma per vis is 1e-3 Jy) is %e Jy" % (ncycles, nbaselines,noisePerPol)
 
 spr.addToParset("Cimager.Images.image.field1.polarisation = [\"XX\"]")
 spr.runImager()
