@@ -462,6 +462,16 @@ void Simulator::initSpWindows(const casa::String& spWindowName, const int& nChan
     spwc.totalBandwidth().put(baseSpWID, nChan*vFreqInc);
     polc.corrType().put(baseSpWID, stokesTypes);
     polc.corrProduct().put(baseSpWID, corrProduct);
+
+    // store the bandwidth to be able to do noise estimate
+    // we need only to take care of a single (e.g. the first defined)
+    // spectral window. The consistency is checked during observations.
+    // One limitation of this approach is that a particular spectral window
+    // may not be used at all, but it will be checked for conformance
+    if (itsChanBandwidthForNoise < -10) {
+        // negative value less than -10 means that this field is undefined
+        itsChanBandwidthForNoise = fabs(vFreqInc);
+    }
 }
 
 // NOTE:  initAnt and initSpWindows must be called before this one!

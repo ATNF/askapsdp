@@ -98,18 +98,6 @@ void SimParallel::init()
         int tileNchan = parset().getInt32("stman.tilenchan", 32);
         itsSim.reset(new Simulator(msname, bucketSize, tileNcorr, tileNchan));
 
-        // extract noise figure if needed
-        if (parset().getBool("noise", false)) {
-            itsNoiseVariance = getNoise(parset().makeSubset("noise."));
-            ASKAPCHECK(itsNoiseVariance>0., 
-               "Noise variance is supposed to be positive, you have "<<itsNoiseVariance);
-            const double rms = sqrt(itsNoiseVariance);
-            ASKAPLOG_INFO_STR(logger, 
-               "SIGMA column will be scaled to account for simulated Gaussian noise (variance=" << 
-                itsNoiseVariance << " Jy^2 or sigma="<<rms<<" Jy)");
-            itsSim->setNoiseRMS(rms);
-        }
-
         itsMs.reset(new casa::MeasurementSet(msname, casa::Table::Update));
 
         // The antenna info is kept in a separate parset file
@@ -132,6 +120,18 @@ void SimParallel::init()
 
         // Get miscellaneous information about the simulation
         readSimulation();
+
+        // extract noise figure if needed
+        if (parset().getBool("noise", false)) {
+            itsNoiseVariance = getNoise(parset().makeSubset("noise."));
+            ASKAPCHECK(itsNoiseVariance>0., 
+               "Noise variance is supposed to be positive, you have "<<itsNoiseVariance);
+            const double rms = sqrt(itsNoiseVariance);
+            ASKAPLOG_INFO_STR(logger, 
+               "SIGMA column will be scaled to account for simulated Gaussian noise (variance=" << 
+                itsNoiseVariance << " Jy^2 or sigma="<<rms<<" Jy)");
+            itsSim->setNoiseRMS(rms);
+        }
     }
 }
 
