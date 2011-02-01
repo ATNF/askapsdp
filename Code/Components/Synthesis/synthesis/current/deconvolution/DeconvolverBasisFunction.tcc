@@ -320,17 +320,6 @@ namespace askap {
       
       Slicer subPsfSlicer(subPsfStart, subPsfEnd, subPsfStride, Slicer::endIsLast);
       
-      casa::IPosition minPos;
-      casa::IPosition maxPos;
-      T minVal, maxVal;
-      ASKAPLOG_INFO_STR(logger, "Validating subsection of PSF");
-      casa::minMax(minVal, maxVal, minPos, maxPos, this->psf().nonDegenerate()(subPsfSlicer));
-      ASKAPLOG_INFO_STR(logger, "Maximum of Psf = " << maxVal << " at " << maxPos);
-      ASKAPLOG_INFO_STR(logger, "Minimum of Psf = " << minVal << " at " << minPos);
-      this->itsPeakPSFVal = maxVal;
-      this->itsPeakPSFPos(0)=maxPos(0);
-      this->itsPeakPSFPos(1)=maxPos(1);
-      
       casa::setReal(subXFR, this->psf().nonDegenerate()(subPsfSlicer));
       scimath::fft2d(subXFR, true);
       
@@ -386,6 +375,9 @@ namespace askap {
 	  crossTermsStart(3)=term1;
 	  crossTermsEnd(3)=term1;
 	  casa::Slicer crossTermsSlicer(crossTermsStart, crossTermsEnd, crossTermsStride, Slicer::endIsLast);
+	  casa::IPosition minPos;
+	  casa::IPosition maxPos;
+	  T minVal, maxVal;
 	  casa::minMax(minVal, maxVal, minPos, maxPos, this->itsPSFCrossTerms(crossTermsSlicer));
 	  this->itsCouplingMatrix(term, term1) = Double(maxVal);
 	}

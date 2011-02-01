@@ -163,7 +163,7 @@ namespace askap {
       Vector<T> findCoefficients(const Matrix<Double>& invCoupling,
 				 const Vector<T>& peakValues);
 
-      void chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos, Vector<T>& peakValues);
+      void chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos, Vector<T>& peakValues, Vector<T>& originalValues);
 
       // Find shape of cut down PSF
       IPosition findSubPsfShape();

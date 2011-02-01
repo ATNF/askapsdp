@@ -49,10 +49,10 @@ int main(int argc, char *argv[])
     runner.addTest( askap::synthesis::DeconvolverFistaTest::suite());
     runner.addTest( askap::synthesis::DeconvolverHogbomTest::suite());
     runner.addTest( askap::synthesis::DeconvolverBasisFunctionTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
-    runner.addTest( askap::synthesis::DeconvolverStateTest::suite());
-    bool wasSucessful = runner.run();
+    //    runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
+    //    runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
+    //    runner.addTest( askap::synthesis::DeconvolverStateTest::suite());
+    bool wasSuccessful = runner.run();
 
-    return wasSucessful ? 0 : 1;
+    return wasSuccessful ? 0 : 1;
 }

@@ -463,7 +463,7 @@ namespace askap {
     // This contains the heart of the Multi-Term BasisFunction Clean algorithm
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos,
-								  Vector<T>& peakValues)
+								  Vector<T>& peakValues, Vector<T>& originalValues)
     {
       Bool verbose(true);
       
@@ -471,6 +471,9 @@ namespace askap {
       
       T absPeakVal(0.0);
       
+      originalValues.resize(this->itsNumberTerms);
+
+
       // Find the base having the peak value in term=0
       // Here the weighted mask is used as a weight in the determination
       // of the maximum i.e. it finds the max in mask . residual. The values
@@ -568,13 +571,13 @@ namespace askap {
 	else {
 	  casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
 	}
-	Vector<T> origRes(this->itsNumberTerms);
+	originalValues.resize(this->itsNumberTerms);
 	for (uInt term=0;term<this->itsNumberTerms;term++) {
-	  origRes(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos);
+	  originalValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos);
 	}
 	// Res: 298.562 Max: 202951 Gain: 0.5 Pos: [493, 397] Scale: 20 Coeffs: 663.175  -701.157   OrigRes: 122.357 -28.997
-	if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "Res: " << maxVal/2 << " Max: " << absPeakVal/4 << " Pos: "
-				      << absPeakPos << " Coeffs: " << peakValues/2 << " OrigRes: " << origRes/2);
+	if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "Res: " << maxVal << " Max: " << absPeakVal << " Pos: "
+				      << absPeakPos << " Coeffs: " << peakValues << " OrigRes: " << originalValues);
 	
       }
     }
@@ -587,20 +590,21 @@ namespace askap {
       // basis functions so we recalculate for that size
       IPosition subPsfShape(findSubPsfShape());
 
-      Bool verbose(true);
+      Bool verbose(false);
       
       uInt nBases(this->itsResidualBasis.nelements());
       
       casa::IPosition absPeakPos(2,0);
       uInt optimumBase(0);
       Vector<T> peakValues(this->itsNumberTerms);
-      chooseComponent(optimumBase, absPeakPos, peakValues);
+      Vector<T> originalValues(this->itsNumberTerms);
+      chooseComponent(optimumBase, absPeakPos, peakValues, originalValues);
       
       // Report on progress
       // We want the worst case residual
-      T absPeakVal=max(abs(peakValues));
+      T absPeakVal=max(abs(originalValues));
       
-      if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "All terms: abs max = " << absPeakVal << " at " << absPeakPos);
+      if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "All terms: absolute max = " << absPeakVal << " at " << absPeakPos);
       if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "Optimum base = " << optimumBase);
       
       if(this->state()->initialObjectiveFunction()==0.0) {
@@ -643,7 +647,6 @@ namespace askap {
       
       // Add to model
       // We loop over all terms for the optimum base and ignore those terms with no flux
-
       for (uInt term=0;term<this->itsNumberTerms;term++) {
 	if(abs(peakValues(term))>0.0) {
 	  this->model(term).nonDegenerate()(modelSlicer)

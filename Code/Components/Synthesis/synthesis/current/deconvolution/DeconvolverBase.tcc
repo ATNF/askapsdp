@@ -68,9 +68,9 @@ namespace askap {
       itsNumberTerms=1;
 
       Vector<Array<T> > dirtyVec(1);
-      dirtyVec(0)=dirty;
+      dirtyVec(0)=dirty.nonDegenerate();
       Vector<Array<T> > psfVec(1);
-      psfVec(0)=psf;
+      psfVec(0)=psf.nonDegenerate();
       init(dirtyVec, psfVec);
     }
     
@@ -97,12 +97,14 @@ namespace askap {
 
       for (uInt term=0;term<itsNumberTerms;term++) {
 	
-	ASKAPASSERT(dirtyVec(term).shape().nelements());
-	ASKAPASSERT(psfVec(term).shape().nelements());
-	ASKAPASSERT(psfVec(term).shape().conform(dirtyVec(term).shape()));
+	ASKAPASSERT(dirtyVec(term).nonDegenerate().shape().nelements()==2);
+	ASKAPASSERT(psfVec(term).nonDegenerate().shape().nelements()==2);
 	
-	this->itsResidual(term)=dirtyVec(term);
-	this->itsPsf(term)=psfVec(term);
+	this->itsDirty(term)=dirtyVec(term).nonDegenerate();
+	this->itsResidual(term)=dirtyVec(term).nonDegenerate();
+	this->itsPsf(term)=psfVec(term).nonDegenerate();
+
+	ASKAPASSERT(this->itsPsf(term).shape().conform(this->itsDirty(term).shape()));
 
 	ASKAPLOG_INFO_STR(decbaselogger, "Dirty image(" << term << ") has shape: "
 			  << this->dirty(term).shape());
@@ -121,6 +123,23 @@ namespace askap {
 	ASKAPLOG_INFO_STR(decbaselogger, "For term " << term << ", Lipschitz number = " << itsLipschitz(term));
       }
 
+      casa::IPosition minPos;
+      casa::IPosition maxPos;
+      T minVal, maxVal;
+      ASKAPLOG_INFO_STR(logger, "Validating PSF");
+      casa::minMax(minVal, maxVal, minPos, maxPos, this->psf(0));
+      
+      uInt nx(this->psf(0).shape()(0));
+      uInt ny(this->psf(0).shape()(1));
+      
+      ASKAPCHECK((maxPos(0)!=(nx/2-1))||(maxPos(1)!=(ny/2-1)), "Peak of PSF is not at centre pixels");
+      
+      ASKAPLOG_INFO_STR(logger, "Maximum of Psf = " << maxVal << " at " << maxPos);
+      ASKAPLOG_INFO_STR(logger, "Minimum of Psf = " << minVal << " at " << minPos);
+      this->itsPeakPSFVal = maxVal;
+      this->itsPeakPSFPos(0)=maxPos(0);
+      this->itsPeakPSFPos(1)=maxPos(1);
+      
       itsDS = boost::shared_ptr<DeconvolverState<T> >(new DeconvolverState<T>());
       ASKAPASSERT(itsDS);
       itsDC = boost::shared_ptr<DeconvolverControl<T> >(new DeconvolverControl<T>());
@@ -141,7 +160,7 @@ namespace askap {
     void DeconvolverBase<T,FT>::setModel(const Array<T> model, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsModel(term)=model.copy();
+      this->itsModel(term)=model.nonDegenerate().copy();
     }
     
     template<class T, class FT>
@@ -156,7 +175,7 @@ namespace askap {
     void DeconvolverBase<T,FT>::setResidual(const Array<T> residual, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsResidual(term)=residual.copy();
+      this->itsResidual(term)=residual.nonDegenerate().copy();
     }
     
     template<class T, class FT>
@@ -171,7 +190,7 @@ namespace askap {
     void DeconvolverBase<T,FT>::setBackground(const Array<T> background, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsBackground(term)=background.copy();
+      this->itsBackground(term)=background.nonDegenerate().copy();
     }
     
     template<class T, class FT>
@@ -184,11 +203,11 @@ namespace askap {
     
     template<class T, class FT>
     void DeconvolverBase<T,FT>::updateDirty(Array<T>& dirty) {
-      if (!dirty.shape().conform(this->dirty(0).shape())) {
+      if (!dirty.shape().nonDegenerate().conform(this->dirty(0).shape())) {
         throw(AskapError("Updated dirty image has different shape"));
       }
       this->itsDirty.resize(1);
-      this->itsResidual(0)=dirty;
+      this->itsResidual(0)=dirty.nonDegenerate();
     }
     
     template<class T, class FT>
@@ -196,7 +215,10 @@ namespace askap {
       if (dirtyVec.nelements()!=this->itsDirty.nelements()) {
         throw(AskapError("Updated dirty image has different shape"));
       }
-      this->itsDirty=dirtyVec;
+      this->itsDirty.resize(dirtyVec.nelements());
+      for (uInt term=0;term<dirtyVec.nelements();term++) {
+	this->itsDirty(term)=dirtyVec(term).nonDegenerate();
+      }
     }
     
     template<class T, class FT>
@@ -233,7 +255,7 @@ namespace askap {
     void DeconvolverBase<T,FT>::setMask(Array<T> mask, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsMask(term)=mask;
+      this->itsMask(term)=mask.nonDegenerate();
     }
     
     template<class T, class FT>
@@ -248,7 +270,7 @@ namespace askap {
     void DeconvolverBase<T,FT>::setWeight(Array<T> weight, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsMask(term)=weight;
+      this->itsMask(term)=weight.nonDegenerate();
     }
     
     template<class T, class FT>

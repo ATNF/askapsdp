@@ -46,6 +46,7 @@ class DeconvolverBaseTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testCreate);
   CPPUNIT_TEST(testCreatePlugins);
   CPPUNIT_TEST_EXCEPTION(testWrongShape, casa::ArrayShapeError);
+  CPPUNIT_TEST_EXCEPTION(testMoreDim, AskapError);
   CPPUNIT_TEST_SUITE_END();
 public:
    
@@ -71,6 +72,15 @@ public:
   void testWrongShape() {
     Array<Float> dirty(IPosition(2,100,100));
     Array<Float> psf(IPosition(2,100,100));
+    itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
+    CPPUNIT_ASSERT(itsDB);
+    Array<Float> newDirty(IPosition(2,200,200));
+    itsDB->updateDirty(newDirty);
+  }
+   
+  void testMoreDim() {
+    Array<Float> dirty(IPosition(4,100,100,0,0));
+    Array<Float> psf(IPosition(4,100,100,0,0));
     itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
     CPPUNIT_ASSERT(itsDB);
     Array<Float> newDirty(IPosition(2,200,200));

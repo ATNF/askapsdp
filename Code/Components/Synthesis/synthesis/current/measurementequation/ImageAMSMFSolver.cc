@@ -219,9 +219,9 @@ namespace askap
 	    // nOrders is the number of free parameters
 	    const uInt nOrders = tmIt->second;
 
-	    // nOrders is the total number of free parameters. Initially this is
-	    // 2 * nTaylor - 1.
+	    // nOrders is the total number of free parameters. Initially this is 2 * nTaylor - 1.
 	    // This will not work correctly if the number of terms differs between images!
+	    const bool firstcycle = !SynthesisParamsHelper::hasValue(itsCleaners,imageTag);          
 	    if(itsNumberTaylor==0) {
 	      itsNumberTaylor=(nOrders+1)/2;
 	      ASKAPLOG_INFO_STR(logger, "There are " << itsNumberTaylor << " Taylor terms");
@@ -246,70 +246,67 @@ namespace askap
 	    // buffer for the peak of zero-order PSF
 
 	    float zeroPSFPeak = -1;
-	    for( uInt order=0; order < nOrders; ++order) {
+	    uInt limit=this->itsNumberTaylor;
+	    if(firstcycle) limit=2*this->itsNumberTaylor-1;
+	    for( uInt order=0; order < limit; ++order) {
 	      // make helper to represent the given order
 	      iph.makeTaylorTerm(order);
 	      const std::string thisOrderParam = iph.paramName();
 	      ASKAPLOG_INFO_STR(logger, "AMSMFS solver: processing order "
 				<< order << " (" << itsNumberTaylor <<
 				" Taylor terms + " << itsNumberTaylor-1 << " cross-terms), parameter name: " << thisOrderParam);
-	      ASKAPCHECK(normalEquations().normalMatrixSlice().count(thisOrderParam)>0,
-			 "PSF Slice for plane="<<
-			 plane<<" and order="<<order<<" is not present");
-	      casa::Vector<double> slice(normalEquations().normalMatrixSlice().find(thisOrderParam)->second);
-	      ASKAPCHECK(normalEquations().dataVector(thisOrderParam).size()>0,
-			 "Data vector not present for cube plane="<<
-			 plane<<" and order="<<order);
-	      casa::Vector<double> dv = normalEquations().dataVector(thisOrderParam);
-	      
-	      psfLongVec(order).resize(planeIter.planeShape());
-	      casa::convertArray<float, double>(psfLongVec(order), planeIter.getPlane(slice));
-	      dirtyLongVec(order).resize(planeIter.planeShape());
-	      casa::convertArray<float, double>(dirtyLongVec(order), planeIter.getPlane(dv));
 
-	      if(order<cleanVec.nelements()) {
+	      // Always get the PSF for all orders
+	      if ((order<this->itsNumberTaylor)||(firstcycle)) {
+		ASKAPCHECK(normalEquations().normalMatrixSlice().count(thisOrderParam)>0,
+			   "PSF Slice for plane="<<
+			   plane<<" and order="<<order<<" is not present");
+		casa::Vector<double> slice(normalEquations().normalMatrixSlice().find(thisOrderParam)->second);
+		psfLongVec(order).resize(planeIter.planeShape());
+		casa::convertArray<float, double>(psfLongVec(order), planeIter.getPlane(slice));
+	      }
+	      
+	      // For the dirty images, we need only the first nTaylor
+	      if(order<this->itsNumberTaylor) {
+		ASKAPCHECK(normalEquations().dataVector(thisOrderParam).size()>0,
+			   "Data vector not present for cube plane="<<
+			   plane<<" and order="<<order);
+		dirtyLongVec(order).resize(planeIter.planeShape());
+		casa::Vector<double> dv = normalEquations().dataVector(thisOrderParam);
+		casa::convertArray<float, double>(dirtyLongVec(order), planeIter.getPlane(dv));
+	      }
+	      // For the clean images, we need only the first nTaylor
+	      if(order<this->itsNumberTaylor) {
 		cleanVec(order).resize(planeIter.planeShape());
 		casa::convertArray<float, double>(cleanVec(order), 
 						  planeIter.getPlane(ip.value(thisOrderParam)));
 	      }
-
-	      if (order == 0) {
-		psfZeroArray = psfLongVec(order).copy();
-	      }
 	      
-	      if( doPreconditioning(psfZeroArray,psfLongVec(order)) ) {
-		// Write PSFs to disk.
-		ASKAPLOG_INFO_STR(logger, "Exporting preconditioned psfs (to be stored to disk later)");
-		Axes axes(ip.axes(thisOrderParam));
-		const std::string psfName="psf."+thisOrderParam;
-		casa::Array<double> aargh(planeIter.planeShape());
-		casa::convertArray<double,float>(aargh,psfLongVec(order));
-		const casa::Array<double> & APSF(aargh);
-		if (!ip.has(psfName)) {
-		  // create an empty parameter with the full shape
-		  ip.add(psfName, planeIter.shape(), axes);
-		}
-		// insert the slice at the proper place  
-		ip.update(psfName, APSF, planeIter.position());                           
-	      }
-	      
-	      ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for plane=" << plane<<
-				" ("<<tagLogString<< ") and order=" << order <<
-				" parameter name "<<thisOrderParam);
-	      
-	      if (order == 0) {
-		zeroPSFPeak = doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),dirtyLongVec(order));
-	      } else {
-		ASKAPDEBUGASSERT(zeroPSFPeak > 0.);
-		doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order));
-	      }
-
 	    }
-	    for(uInt order=0; order < itsNumberTaylor; ++order) {
-	      // Now precondition the residual images
-	      ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
-				" ("<<tagLogString<< ") and order=" << order);
-	      doPreconditioning(psfZeroArray,dirtyLongVec(order));
+	    // Now precondition the residual images using the zeroth order psf. We need to 
+	    // keep a copy of the zeroth PSF to avoi hacing it overwritten each time.
+	    Array<float> psfWorkArray;
+	    psfZeroArray=psfLongVec(0).copy();
+	    zeroPSFPeak=max(psfZeroArray);
+
+	    for(uInt order=0; order < 2 * itsNumberTaylor - 1; ++order) {
+	      // Now precondition each PSF by the PSF for term 0.
+	      if ((order<this->itsNumberTaylor)||(firstcycle)) {
+		ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for plane=" << plane<< "("<<tagLogString<< ") and order=" << order);
+		// We need to work with the original preconditioning PSF since it gets overridden
+		psfWorkArray = psfZeroArray.copy();
+		doPreconditioning(psfWorkArray,psfLongVec(order));
+	      }
+	      if (order<this->itsNumberTaylor) {
+		// Now we can precondition the dirty (residual) array
+		psfWorkArray = psfZeroArray.copy();
+		if(doPreconditioning(psfWorkArray,dirtyLongVec(order))) {
+		  ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
+				    " ("<<tagLogString<< ") and order=" << order);
+		}
+		// Normalise.
+		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order));
+	      }
 	    }
 
 	    // The deconvolver only needs the first itsNumberTaylor elements so we
@@ -324,7 +321,6 @@ namespace askap
 
 	    // Now that we have all the required images, we can initialise the deconvolver
 	    for(uInt order=0; order < itsNumberTaylor; ++order) {
-	      const bool firstcycle = !SynthesisParamsHelper::hasValue(itsCleaners,imageTag);          
 	      if(firstcycle)  {// Initialize everything only once.
 		ASKAPLOG_INFO_STR(logger, "Initialising the solver for plane " << plane
 				  <<" tag "<<imageTag);
