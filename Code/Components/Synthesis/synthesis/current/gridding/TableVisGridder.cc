@@ -340,6 +340,7 @@ void TableVisGridder::save(const std::string& name) {
 void TableVisGridder::logCFCacheStats() const
 {
    // number of planes before oversampling
+   ASKAPDEBUGASSERT(itsOverSample>0);
    const unsigned long nPlanes = itsConvFunc.size()/itsOverSample/itsOverSample; 
    unsigned long memUsed = 0;
    for (unsigned int plane = 0; plane<nPlanes; ++plane) {
@@ -366,7 +367,14 @@ void TableVisGridder::logCFCacheStats() const
         memUsed += sizeof(casa::Matrix<casa::Complex>)+sizeof(casa::Complex)*shape[0]*shape[1]*itsOverSample*itsOverSample;
    }
    if (nPlanes > 0) {
-       ASKAPLOG_INFO_STR(logger, "Cache of convolution functions take "<<float(memUsed)/1024/1024<<" Mb of memory");
+       float effectiveSize = (float(memUsed)-float(sizeof(casa::Matrix<casa::Complex>)*nPlanes)) / 
+                             (sizeof(casa::Complex)*itsOverSample*itsOverSample*nPlanes);
+       ASKAPLOG_INFO_STR(logger, "Cache of convolution functions take "<<float(memUsed)/1024/1024<<" Mb of memory or "<<std::endl<<
+                                 float(memUsed)/nPlanes/1024/1024<<" Mb of memory per plane (before oversampling)");
+       ASKAPDEBUGASSERT(effectiveSize>=0.);
+       effectiveSize = sqrt(effectiveSize);
+       ASKAPLOG_INFO_STR(logger, "Effective CF size (in terms of memory usage) is "<<long(effectiveSize)<<", effective support="<<
+                                 long((effectiveSize-1)/2));
    }
 }
 
