@@ -52,7 +52,7 @@ Csimulator.corrupt                              = false
 
 # optional noise addition
 Csimulator.noise                                = true
-Csimulator.noise.variance                       = 1e-6
+#Csimulator.noise.variance                       = 1e-6
 
 Cimager.dataset                                 = field1.ms
 Cimager.nUVWMachines                            = 1
