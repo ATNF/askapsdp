@@ -361,7 +361,6 @@ namespace askap
 		
 	      // We have to reset the initial objective function
 	      // so that the fractional threshold mechanism will work.
-	      cerr << "	      itsCleaners[imageTag]->state()->resetInitialObjectiveFunction();" << endl;	      
 	      itsCleaners[imageTag]->state()->resetInitialObjectiveFunction();
 	      // By convention, iterations are counted from scratch each
 	      // major cycle

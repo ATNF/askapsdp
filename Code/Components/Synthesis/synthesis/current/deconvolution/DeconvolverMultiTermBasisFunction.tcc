@@ -186,9 +186,9 @@ namespace askap {
     }
     
     template<class T, class FT>
-    void DeconvolverMultiTermBasisFunction<T,FT>::initialiseForBasisFunction()
+    void DeconvolverMultiTermBasisFunction<T,FT>::initialiseForBasisFunction(bool force)
     {
-      if(!this->itsBasisFunctionChanged) return;
+      if(!force&&!this->itsBasisFunctionChanged) return;
       
       ASKAPLOG_INFO_STR(decmtbflogger,
 			"Updating Multi-Term Basis Function deconvolver for change in basis function");
@@ -212,8 +212,8 @@ namespace askap {
       // Initialise residuals
       initialiseResidual();
       
-      // Initialise for change in basis function
-      initialiseForBasisFunction();
+      // Force change in basis function
+      initialiseForBasisFunction(true);
       
       this->state()->resetInitialObjectiveFunction();
     }

@@ -156,7 +156,7 @@ namespace askap {
       void initialiseResidual();
 
       // Initialise the PSFs - only need to do this once per change in basis functions
-      virtual void initialiseForBasisFunction();
+      virtual void initialiseForBasisFunction(bool force);
 
       // Find the coefficients for each term by applying the
       // inverse of the coupling matrix in terms
