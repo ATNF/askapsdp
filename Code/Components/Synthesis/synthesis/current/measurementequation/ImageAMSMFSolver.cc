@@ -267,24 +267,22 @@ namespace askap
 	      }
 	      
 	      // For the dirty images, we need only the first nTaylor
-	      if(order<this->itsNumberTaylor) {
-		ASKAPCHECK(normalEquations().dataVector(thisOrderParam).size()>0,
-			   "Data vector not present for cube plane="<<
-			   plane<<" and order="<<order);
-		dirtyLongVec(order).resize(planeIter.planeShape());
-		casa::Vector<double> dv = normalEquations().dataVector(thisOrderParam);
-		casa::convertArray<float, double>(dirtyLongVec(order), planeIter.getPlane(dv));
-	      }
+	      ASKAPCHECK(normalEquations().dataVector(thisOrderParam).size()>0,
+			 "Data vector not present for cube plane="<<
+			 plane<<" and order="<<order);
+	      dirtyLongVec(order).resize(planeIter.planeShape());
+	      casa::Vector<double> dv = normalEquations().dataVector(thisOrderParam);
+	      casa::convertArray<float, double>(dirtyLongVec(order), planeIter.getPlane(dv));
+
 	      // For the clean images, we need only the first nTaylor
 	      if(order<this->itsNumberTaylor) {
 		cleanVec(order).resize(planeIter.planeShape());
 		casa::convertArray<float, double>(cleanVec(order), 
 						  planeIter.getPlane(ip.value(thisOrderParam)));
 	      }
-	      
 	    }
 	    // Now precondition the residual images using the zeroth order psf. We need to 
-	    // keep a copy of the zeroth PSF to avoi hacing it overwritten each time.
+	    // keep a copy of the zeroth PSF to avoid having it overwritten each time.
 	    Array<float> psfWorkArray;
 	    psfZeroArray=psfLongVec(0).copy();
 	    zeroPSFPeak=max(psfZeroArray);
@@ -304,9 +302,9 @@ namespace askap
 		  ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
 				    " ("<<tagLogString<< ") and order=" << order);
 		}
-		// Normalise.
-		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order));
 	      }
+	      // Normalise.
+	      doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order));
 	    }
 
 	    // The deconvolver only needs the first itsNumberTaylor elements so we
@@ -367,7 +365,7 @@ namespace askap
 	      const std::string thisOrderParam = iph.paramName();
 	      ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<plane<<" Taylor order="<<order<<
 				" for image "<<tmIt->first);
-	      casa::Array<double> slice = planeIter.getPlane(ip.value(thisOrderParam));
+	      casa::Array<double> slice = planeIter.getPlane(ip.value(thisOrderParam)).nonDegenerate();
 	      slice=unpadImage(itsCleaners[imageTag]->model(order)+itsCleaners[imageTag]->background(order));
 	    }
 	    // add extra parameters (cross-terms) to the to-be-fixed list
@@ -393,7 +391,7 @@ namespace askap
 	  }
 	} // try
 	catch( const AipsError &x ) {
-	  throw AskapError("Failed in the MSMFS Minor Cycle : " + x.getMesg() );
+	  throw AskapError("Failed in the AMSMFS Minor Cycle : " + x.getMesg() );
 	}
       } // loop: tmIt
       
