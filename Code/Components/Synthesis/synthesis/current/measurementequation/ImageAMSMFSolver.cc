@@ -281,30 +281,43 @@ namespace askap
 						  planeIter.getPlane(ip.value(thisOrderParam)));
 	      }
 	    }
+
 	    // Now precondition the residual images using the zeroth order psf. We need to 
 	    // keep a copy of the zeroth PSF to avoid having it overwritten each time.
 	    Array<float> psfWorkArray;
 	    psfZeroArray=psfLongVec(0).copy();
 	    zeroPSFPeak=max(psfZeroArray);
 
-	    for(uInt order=0; order < 2 * itsNumberTaylor - 1; ++order) {
-	      // Now precondition each PSF by the PSF for term 0.
-	      if ((order<this->itsNumberTaylor)||(firstcycle)) {
+	    if(firstcycle) {
+	      // For the first cycle we need to precondition and normalise all PSFs and all dirty images
+	      for(uInt order=0; order < 2 * itsNumberTaylor - 1; ++order) {
+		// Now precondition each PSF by the PSF for term 0.
 		ASKAPLOG_INFO_STR(logger, "Preconditioning PSF for plane=" << plane<< "("<<tagLogString<< ") and order=" << order);
 		// We need to work with the original preconditioning PSF since it gets overridden
 		psfWorkArray = psfZeroArray.copy();
 		doPreconditioning(psfWorkArray,psfLongVec(order));
-	      }
-	      if (order<this->itsNumberTaylor) {
 		// Now we can precondition the dirty (residual) array
 		psfWorkArray = psfZeroArray.copy();
 		if(doPreconditioning(psfWorkArray,dirtyLongVec(order))) {
 		  ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
 				    " ("<<tagLogString<< ") and order=" << order);
 		}
+		// Normalise. We need to normalise the PSF only. The dirty vector is along for the ride.
+		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order));
 	      }
-	      // Normalise.
-	      doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order));
+	    }
+	    else {
+	      // For the subsequent cycles cycle we need to precondition and normalise the updated dirty images
+	      for(uInt order=0; order < itsNumberTaylor; ++order) {
+		// Precondition the dirty (residual) array
+		psfWorkArray = psfZeroArray.copy();
+		if(doPreconditioning(psfWorkArray,dirtyLongVec(order))) {
+		  ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
+				    " ("<<tagLogString<< ") and order=" << order);
+		}
+		// Normalise. We need to normalise the PSF only. The dirty vector is along for the ride.
+		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order));
+	      }
 	    }
 
 	    // The deconvolver only needs the first itsNumberTaylor elements so we
@@ -339,14 +352,16 @@ namespace askap
 		// Update the dirty images
 		ASKAPLOG_INFO_STR(logger, "Multi-Term Basis Function deconvolver already exists - update dirty images");
 		itsCleaners[imageTag]->updateDirty(dirtyVec);
+		ASKAPLOG_INFO_STR(logger, "Successfully updated dirty images");
 	      }
 	      // Initialise the model
-	      Array<float> initialModel(cleanVec(order).shape());
+	      Array<float> initialModel(cleanVec(order).nonDegenerate().shape());
 	      initialModel.set(0.0);
 	      itsCleaners[imageTag]->setBackground(initialModel, order);
 		
 	      // We have to reset the initial objective function
 	      // so that the fractional threshold mechanism will work.
+	      cerr << "	      itsCleaners[imageTag]->state()->resetInitialObjectiveFunction();" << endl;	      
 	      itsCleaners[imageTag]->state()->resetInitialObjectiveFunction();
 	      // By convention, iterations are counted from scratch each
 	      // major cycle

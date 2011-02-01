@@ -207,6 +207,7 @@ namespace askap {
         throw(AskapError("Updated dirty image has different shape"));
       }
       this->itsDirty.resize(1);
+      this->itsDirty(0)=dirty.nonDegenerate();
       this->itsResidual(0)=dirty.nonDegenerate();
     }
     
@@ -216,8 +217,13 @@ namespace askap {
         throw(AskapError("Updated dirty image has different shape"));
       }
       this->itsDirty.resize(dirtyVec.nelements());
+      this->itsResidual.resize(dirtyVec.nelements());
       for (uInt term=0;term<dirtyVec.nelements();term++) {
+	if (!dirtyVec(term).nonDegenerate().shape().conform(this->itsDirty(term).nonDegenerate().shape())) {
+	  throw(AskapError("Updated dirty image has different shape from original"));
+	}
 	this->itsDirty(term)=dirtyVec(term).nonDegenerate();
+	this->itsResidual(term)=dirtyVec(term).nonDegenerate();
       }
     }
     
