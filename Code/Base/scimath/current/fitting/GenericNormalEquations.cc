@@ -79,7 +79,8 @@ GenericNormalEquations::GenericNormalEquations(const DesignMatrix& dm)
 /// @details It is required because this class has non-trivial types (std containers
 /// of casa containers)
 /// @param[in] src other class
-GenericNormalEquations::GenericNormalEquations(const GenericNormalEquations &src)
+GenericNormalEquations::GenericNormalEquations(const GenericNormalEquations &src) :
+        INormalEquations(src)
 {
   deepCopyOfSTDMap(src.itsDataVector, itsDataVector);  
   for (std::map<string, MapOfMatrices>::const_iterator ci = src.itsNormalMatrix.begin();

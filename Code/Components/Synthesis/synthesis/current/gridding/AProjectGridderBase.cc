@@ -72,6 +72,7 @@ AProjectGridderBase::AProjectGridderBase(const int maxFeeds, const int maxFields
 /// clone the object instead of copying the reference as if it would be by default.
 /// @param[in] other input object
 AProjectGridderBase::AProjectGridderBase(const AProjectGridderBase &other) : 
+    IVisGridder(other),
     itsPointingTolerance(other.itsPointingTolerance),
     itsParallacticAngleTolerance(other.itsParallacticAngleTolerance),
     itsLastField(other.itsLastField), itsCurrentField(other.itsCurrentField),

@@ -120,9 +120,8 @@ namespace askap
                                       parset.makeSubset("Images."));
         }
 
-        /// Create the solver from the parameterset definition and the existing
-        /// definition of the parameters. 
-        itsSolver=ImageSolverFactory::make(*itsModel, parset);
+        /// Create the solver from the parameterset definition
+        itsSolver = ImageSolverFactory::make(parset);
         ASKAPCHECK(itsSolver, "Solver not defined correctly");
       }
       if (itsComms.isWorker())

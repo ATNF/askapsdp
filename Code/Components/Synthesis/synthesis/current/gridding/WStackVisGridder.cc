@@ -56,7 +56,7 @@ namespace askap
     /// input object and the copy
     /// @param[in] other input object
     WStackVisGridder::WStackVisGridder(const WStackVisGridder &other) :
-       WDependentGridderBase(other), itsGMap(other.itsGMap.copy()) {}
+       IVisGridder(other), WDependentGridderBase(other), itsGMap(other.itsGMap.copy()) {}
     
     
     /// Clone a copy of this Gridder

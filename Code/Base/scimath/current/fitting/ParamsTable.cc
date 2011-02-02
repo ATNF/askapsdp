@@ -42,19 +42,19 @@ namespace askap
     {
     }
 
-    void ParamsTable::getParameters(Params& ip) const
+    void ParamsTable::getParameters(Params&) const
     {
     };
 
-    void ParamsTable::getParameters(Params& ip, const Domain& domain) const
+    void ParamsTable::getParameters(Params&, const Domain&) const
     {
     };
 
-    void ParamsTable::setParameters(const Params& ip)
+    void ParamsTable::setParameters(const Params&)
     {
     }
 
-    void ParamsTable::setParameters(const Params& ip, const Domain& domain)
+    void ParamsTable::setParameters(const Params&, const Domain&)
     {
     }
 

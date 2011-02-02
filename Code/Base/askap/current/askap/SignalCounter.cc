@@ -38,7 +38,7 @@ SignalCounter::~SignalCounter()
 {
 }
 
-void SignalCounter::handleSignal(int signum)
+void SignalCounter::handleSignal(int /*signum*/)
 {
     itsCount++;
 }

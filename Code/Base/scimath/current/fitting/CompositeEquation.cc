@@ -35,7 +35,8 @@ namespace askap
   namespace scimath
   {
 
-    CompositeEquation::CompositeEquation(const CompositeEquation& other)
+    CompositeEquation::CompositeEquation(const CompositeEquation& other) :
+              Equation(other)
     {
       operator=(other);
     }

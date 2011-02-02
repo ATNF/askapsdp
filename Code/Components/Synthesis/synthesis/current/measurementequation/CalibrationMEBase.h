@@ -115,6 +115,7 @@ public:
     
   using GenericMultiChunkEquation::predict;
   using GenericMultiChunkEquation::calcEquations;
+  using GenericMultiChunkEquation::calcGenericEquations;
        
  
 protected:  

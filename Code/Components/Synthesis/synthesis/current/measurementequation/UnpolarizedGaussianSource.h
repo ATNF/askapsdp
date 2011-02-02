@@ -91,6 +91,8 @@ struct UnpolarizedGaussianSource : public UnpolarizedComponent<6> {
   virtual void calculate(const casa::RigidVector<casa::Double, 3> &uvw,
                     const casa::Vector<casa::Double> &freq,
                     std::vector<casa::AutoDiff<double> > &result) const; 
+
+  using UnpolarizedComponent<6>::calculate;
 private:
   
   /// @brief actual calculations

@@ -94,7 +94,7 @@ namespace askap
     /// therefore, need this copy constructor to achieve proper copying.
     /// @param[in] src input measurement equations to copy from
     ImagingNormalEquations::ImagingNormalEquations(const ImagingNormalEquations &src) :
-         itsShape(src.itsShape), itsReference(src.itsReference)
+         INormalEquations(src),itsShape(src.itsShape), itsReference(src.itsReference)
     {
       deepCopyOfSTDMap(src.itsNormalMatrixSlice, itsNormalMatrixSlice);
       deepCopyOfSTDMap(src.itsNormalMatrixDiagonal, itsNormalMatrixDiagonal);
@@ -236,9 +236,8 @@ const casa::Matrix<double>& ImagingNormalEquations::normalMatrix(const std::stri
                         const std::string &par2) const
 {
    ASKAPTHROW(AskapError, 
-               "ImagingNormalEquations::normalMatrix has not yet been implemented");
-   const casa::Matrix<double> *buf = 0;
-   return *buf; // the code shouldn't get this far.                             
+               "ImagingNormalEquations::normalMatrix has not yet been implemented, attempted access to elements par1="<<
+               par1<<" and par2="<<par2);
 }
 
 /// @brief data vector for a given parameter

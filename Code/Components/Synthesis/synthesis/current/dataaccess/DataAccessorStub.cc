@@ -315,7 +315,7 @@ namespace askap
                 /// @param[in] tangentPoint tangent point to rotate the coordinates to
                 /// @return uvw after rotation to the new coordinate system for each row
                 const casa::Vector<casa::RigidVector<casa::Double, 3> >&
-	            DataAccessorStub::rotatedUVW(const casa::MDirection &tangentPoint) const
+	            DataAccessorStub::rotatedUVW(const casa::MDirection & /*tangentPoint*/) const
 	            {
 	              return itsUVW;
 	            }
@@ -329,7 +329,7 @@ namespace askap
                 /// @param[in] imageCentre image centre (additional translation is done if imageCentre!=tangentPoint)
                 /// @return delays corresponding to the uvw rotation for each row
                 const casa::Vector<casa::Double>& DataAccessorStub::uvwRotationDelay(
-	               const casa::MDirection &tangentPoint, const casa::MDirection &imageCentre) const
+	               const casa::MDirection & /*tangentPoint*/, const casa::MDirection & /*imageCentre*/) const
 	            {
 	              return itsUVWRotationDelay;
 	            }

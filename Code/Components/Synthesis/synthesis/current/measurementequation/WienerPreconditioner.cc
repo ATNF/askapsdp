@@ -75,6 +75,7 @@ namespace askap
     /// @brief copy constructor
     /// @param[in] other an opject to copy from
     WienerPreconditioner::WienerPreconditioner(const WienerPreconditioner &other) :
+          IImagePreconditioner(other),
           itsParameter(other.itsParameter), itsDoNormalise(other.itsDoNormalise), 
           itsUseRobustness(other.itsUseRobustness) 
     {
@@ -205,7 +206,7 @@ namespace askap
     }
 
     /// @brief assignment operator, to ensure it is not called
-    WienerPreconditioner& WienerPreconditioner::operator=(const WienerPreconditioner &other) 
+    WienerPreconditioner& WienerPreconditioner::operator=(const WienerPreconditioner &) 
     {
       ASKAPTHROW(AskapError, "Assignment operator is not supposed to be used");
       return *this;

@@ -1029,12 +1029,12 @@ void TableVisGridder::customiseForContext(casa::String context)
 
 
 /// This is the default implementation
-int TableVisGridder::cIndex(int row, int pol, int chan) {
+int TableVisGridder::cIndex(int /*row*/, int /*pol*/, int /*chan*/) {
 	return 0;
 }
 
 /// This is the default implementation
-int TableVisGridder::gIndex(int row, int pol, int chan) {
+int TableVisGridder::gIndex(int /*row*/, int /*pol*/, int /*chan*/) {
 	return 0;
 }
 

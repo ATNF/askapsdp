@@ -131,7 +131,7 @@ namespace askap
       getParameters(ip, null);
     }
 
-    void ParamsCasaTable::getParameters(Params& ip, const Domain& domain) const
+    void ParamsCasaTable::getParameters(Params& ip, const Domain&) const
     {
       ASKAPCHECK(Table::isReadable(itsTable.tableName()), "Parameters table " << itsTable.tableName() << " is not readable");
 

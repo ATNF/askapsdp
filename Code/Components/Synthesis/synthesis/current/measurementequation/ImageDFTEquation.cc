@@ -70,7 +70,8 @@ namespace askap
     {
     }
     
-    ImageDFTEquation::ImageDFTEquation(const ImageDFTEquation& other)
+    ImageDFTEquation::ImageDFTEquation(const ImageDFTEquation& other) :
+         Equation(other), GenericEquation(other)
     {
       operator=(other);
     }

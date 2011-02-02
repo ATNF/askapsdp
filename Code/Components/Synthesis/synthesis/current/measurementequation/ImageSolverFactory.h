@@ -55,8 +55,7 @@ namespace askap
         /// @param parset ParameterSet containing description of
         /// solver to be constructed
         /// @return shared pointer to the solver
-        static askap::scimath::Solver::ShPtr make(askap::scimath::Params& ip, 
-          const LOFAR::ParameterSet& parset); 
+        static askap::scimath::Solver::ShPtr make(const LOFAR::ParameterSet& parset); 
         
         /// @brief Helper method to configure preconditioners
         /// @details This method parses reconditioner.Names and sets up

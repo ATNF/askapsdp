@@ -74,7 +74,7 @@ namespace askap
     /// object and the copy.
     /// @param[in] other input object
     WProjectVisGridder::WProjectVisGridder(const WProjectVisGridder &other) :
-         WDependentGridderBase(other), 
+         IVisGridder(other),WDependentGridderBase(other), 
          itsCMap(other.itsCMap.copy()), itsMaxSupport(other.itsMaxSupport),
          itsCutoff(other.itsCutoff), itsLimitSupport(other.itsLimitSupport),
          itsPlaneDependentCFSupport(other.itsPlaneDependentCFSupport),

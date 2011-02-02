@@ -92,7 +92,7 @@ namespace askap
     /// parameters are updated
     /// @param[in] params parameters to be updated 
     /// @param[in] q Quality of solution
-    bool Solver::solveNormalEquations(Params &params, Quality& q)
+    bool Solver::solveNormalEquations(Params &, Quality&)
     {
      return false;
     }

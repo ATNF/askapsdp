@@ -86,6 +86,8 @@ struct UnpolarizedPointSource : public UnpolarizedComponent<3> {
   virtual void calculate(const casa::RigidVector<casa::Double, 3> &uvw,
                     const casa::Vector<casa::Double> &freq,
                     std::vector<casa::AutoDiff<double> > &result) const; 
+
+  using UnpolarizedComponent<3>::calculate;
 private:
   /// @brief actual calculations
   /// @details templated method for actual calculations. Made private, because

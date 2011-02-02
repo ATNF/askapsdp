@@ -64,7 +64,7 @@ class MultiChunkEquation : virtual public IMeasurementEquation,
 public:
   /// @brief Standard constructor, which remembers data iterator.
   /// @param idi data iterator
-  MultiChunkEquation(const IDataSharedIter& idi);
+  explicit MultiChunkEquation(const IDataSharedIter& idi);
 
   /// @brief Calculate the normal equations for the iterator
   /// @details This version iterates through all chunks of data and

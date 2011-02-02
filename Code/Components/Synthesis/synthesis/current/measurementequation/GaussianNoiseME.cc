@@ -88,8 +88,8 @@ void GaussianNoiseME::predict(IDataAccessor &chunk) const
 /// level, outside this class). 
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
-void GaussianNoiseME::calcEquations(const IConstDataAccessor &chunk,
-                          askap::scimath::INormalEquations& ne) const
+void GaussianNoiseME::calcEquations(const IConstDataAccessor &,
+                          askap::scimath::INormalEquations&) const
 {
   ASKAPTHROW(AskapError, "GaussianNoiseME::calcEquations can not be called. There is probably a logical error.");
 }

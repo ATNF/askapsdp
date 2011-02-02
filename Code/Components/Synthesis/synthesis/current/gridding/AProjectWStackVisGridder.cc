@@ -87,6 +87,7 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasi
 /// the same model
 
 AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridder &other) :
+    IVisGridder(other),
     AProjectGridderBase(other), WStackVisGridder(other),
     itsReferenceFrequency(other.itsReferenceFrequency),
     itsIllumination(other.itsIllumination), itsMaxFeeds(other.itsMaxFeeds),
@@ -462,7 +463,7 @@ int AProjectWStackVisGridder::cIndex(int row, int pol, int chan) {
     return itsCMap(row, pol, chan);
 }
 
-void AProjectWStackVisGridder::correctConvolution(casa::Array<double>& grid) {
+void AProjectWStackVisGridder::correctConvolution(casa::Array<double>& /*grid*/) {
 }
 
 /// @brief static method to create gridder

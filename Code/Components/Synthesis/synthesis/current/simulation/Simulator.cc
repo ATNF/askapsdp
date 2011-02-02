@@ -238,7 +238,7 @@ Simulator::Simulator(const Simulator & mss)
 
 void Simulator::initAnt(const casa::String& telescope, const casa::Vector<double>& x,
                         const casa::Vector<double>& y, const casa::Vector<double>& z,
-                        const casa::Vector<double>& dishDiameter, const casa::Vector<double>& offset,
+                        const casa::Vector<double>& dishDiameter, const casa::Vector<double>&,
                         const casa::Vector<casa::String>& mount, const casa::Vector<casa::String>& name,
                         const casa::String& coordsystem, const casa::MPosition& mRefLocation)
 {
@@ -354,7 +354,8 @@ void Simulator::longlat2global(casa::Vector<double>& xReturned,
                                const casa::Vector<double>& yIn,
                                const casa::Vector<double>& zIn)
 {
-    ASKAPLOG_INFO_STR(logger, "Simulator::longlat2global not yet implemented");
+    ASKAPLOG_INFO_STR(logger, "Simulator::longlat2global not yet implemented, passed parameters "<<xIn<<" "<<
+                              yIn<<" "<<zIn<<", and will overwrite "<<xReturned<<" "<<yReturned<<" "<<zReturned);
 }
 
 void Simulator::initFields(const casa::String& sourceName,
@@ -386,6 +387,8 @@ void Simulator::initSpWindows(const casa::String& spWindowName, const int& nChan
                               const casa::Quantity& startFreq, const casa::Quantity& freqInc,
                               const casa::Quantity& freqRes, const casa::String& stokesString)
 {
+    ASKAPCHECK(fabs(freqInc.getValue("Hz")-freqRes.getValue("Hz"))<1, "freqInc="<<freqInc<<" and freqRes="<<
+                    freqRes<<" look different");
     Vector<Int> stokesTypes(4);
     stokesTypes = Stokes::Undefined;
     String myStokesString = stokesString;

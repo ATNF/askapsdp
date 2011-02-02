@@ -82,7 +82,7 @@ namespace askap {
     /// @note illumination model is copied as a pointer, so the same model is referenced
     /// @param[in] other input object
     AWProjectVisGridder::AWProjectVisGridder(const AWProjectVisGridder &other) :
-      AProjectGridderBase(other), WProjectVisGridder(other), 
+      IVisGridder(other),AProjectGridderBase(other), WProjectVisGridder(other), 
       itsReferenceFrequency(other.itsReferenceFrequency),
       itsIllumination(other.itsIllumination), itsFreqDep(other.itsFreqDep),
       itsMaxFeeds(other.itsMaxFeeds), itsMaxFields(other.itsMaxFields),
@@ -317,24 +317,23 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                          //std::cout<<"plane "<<iw<<" w="<<w<<std::endl;
 	      
 	      for (int iy=0; iy<int(ny); ++iy) {
-               double y2=(double(iy)-double(ny)/2)*ccelly;
-               y2*=y2;
-               for (int ix=0; ix<int(nx); ++ix) {
-                    double x2=(double(ix)-double(nx)/2)*ccellx;
-                    x2*=x2;
-                    double r2=x2+y2;
-                    if (r2<1.0) {
-                        const double phase=w*(1.0-sqrt(1.0-r2));
-                        const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
+                   const double y2=casa::square((double(iy)-double(ny)/2)*ccelly);
+               
+                   for (int ix=0; ix<int(nx); ++ix) {
+                        const double x2=casa::square((double(ix)-double(nx)/2)*ccellx);
+                        const double r2=x2+y2;
+                        if (r2<1.0) {
+                            const double phase=w*(1.0-sqrt(1.0-r2));
+                            const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
                                        *casa::Complex(ccfx(ix)*ccfy(iy));
-                        if(casa::abs(wt)>peak) {
-                           peak=casa::abs(wt);
+                            if (casa::abs(wt)>peak) {
+                                peak=casa::abs(wt);
+                            }
+                            // this ensures the oversampling is done
+                            thisPlane(ix, iy)=wt*casa::Complex(cos(phase), -sin(phase));
+                            maxCF+=casa::abs(wt);
                         }
-                        // this ensures the oversampling is done
-                        thisPlane(ix, iy)=wt*casa::Complex(cos(phase), -sin(phase));
-                        maxCF+=casa::abs(wt);
-                    }
-		       }
+		   }
 	      }	
 	      
 	      	      
@@ -576,7 +575,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 
 /// Correct for gridding convolution function
 /// @param image image to be corrected
-void AWProjectVisGridder::correctConvolution(casa::Array<double>& image)
+void AWProjectVisGridder::correctConvolution(casa::Array<double>& /*image*/)
 {}
         
     int AWProjectVisGridder::cIndex(int row, int pol, int chan) {

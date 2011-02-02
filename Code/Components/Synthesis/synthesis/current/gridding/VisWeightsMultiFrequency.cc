@@ -47,7 +47,7 @@ namespace askap
     }
     
     VisWeightsMultiFrequency::VisWeightsMultiFrequency(const VisWeightsMultiFrequency &other) :
-	    itsRefFreq(other.itsRefFreq), itsOrder(other.itsOrder)
+	    IVisWeights(other), itsRefFreq(other.itsRefFreq), itsOrder(other.itsOrder)
     {
       ASKAPDEBUGASSERT(itsRefFreq!=0.);
     }
@@ -62,7 +62,7 @@ namespace askap
 	    itsOrder = order;
     }
 
-    float VisWeightsMultiFrequency::getWeight(int i,double freq,int pol)
+    float VisWeightsMultiFrequency::getWeight(int /*i*/,double freq,int /*pol*/)
     {
 	    // expensive..... choose fastest : if/else  or  'pow' operator.
 	    if(itsOrder==0)  {

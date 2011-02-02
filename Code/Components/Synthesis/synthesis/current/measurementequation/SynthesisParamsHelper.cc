@@ -515,9 +515,6 @@ namespace askap
        const casa::IPosition shape = ip.value(iph.paramName()).shape();
        ASKAPDEBUGASSERT(shape.nelements()>=2);
               
-       const double facetFactor = double(-(nfacets-1)/2.);
-       ASKAPDEBUGASSERT(facetFactor!=0.);
-       
        const int facetStep = int(axes.start("FACETSTEP"));
        ASKAPDEBUGASSERT(facetStep>0);
        
@@ -853,7 +850,7 @@ namespace askap
                 // assign facet indices to the helper
                 iph.makeFacet(ix,iy);
                 const std::string paramName = iph.paramName();
-                loadImageParameter(ip,paramName,paramName);                            
+                loadImageParameter(ip,paramName,fileName);                            
            }
       }
     }

@@ -112,6 +112,8 @@ struct GenericMultiChunkEquation : virtual public MultiChunkEquation,
   /// @param[in] ne Normal equations
   virtual void calcEquations(askap::scimath::INormalEquations& ne) const;
   
+  using MultiChunkEquation::predict;
+  using MultiChunkEquation::calcEquations;
 };
 
 

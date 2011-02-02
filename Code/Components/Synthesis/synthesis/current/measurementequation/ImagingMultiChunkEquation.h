@@ -110,7 +110,9 @@ struct ImagingMultiChunkEquation : virtual public MultiChunkEquation,
   /// individual accessor (each iteration of the iterator)
   /// @param[in] ne Normal equations
   virtual void calcEquations(askap::scimath::INormalEquations& ne) const;
-  
+
+  using MultiChunkEquation::predict;
+  using MultiChunkEquation::calcEquations;
 };
 
 

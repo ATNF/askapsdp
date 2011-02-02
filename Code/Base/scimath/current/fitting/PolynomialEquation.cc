@@ -64,7 +64,8 @@ namespace askap
     {
     };
 
-    PolynomialEquation::PolynomialEquation(const PolynomialEquation& other)
+    PolynomialEquation::PolynomialEquation(const PolynomialEquation& other) :
+       Equation(other), GenericEquation(other)
     {
       operator=(other);
     }

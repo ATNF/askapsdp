@@ -91,7 +91,8 @@ void TableDataSelector::chooseTimeRange(casa::Double start,casa::Double stop)
 /// @param[in] stop the number of the last cycle to choose
 void TableDataSelector::chooseCycles(casa::uInt start, casa::uInt stop)
 {
-   throw DataAccessLogicError("not yet implemented");
+   ASKAPTHROW(DataAccessLogicError, "chooseCycles has not yet been implemented, requested start="<<start
+              <<"stop="<<stop);
 }
 
 /// Obtain a table expression node for selection. This method is
@@ -142,7 +143,8 @@ void TableDataSelector::chooseChannels(casa::uInt nChan, casa::uInt start,
 void TableDataSelector::chooseFrequencies(casa::uInt nChan,
          const casa::MVFrequency &start, const casa::MVFrequency &freqInc)
 {
-   throw DataAccessLogicError("not yet implemented");
+   ASKAPTHROW(DataAccessLogicError, "chooseFrequencies has not yet been implemented, requested nChan="<<nChan
+              <<"start="<<start<<" freqInc="<<freqInc);
 }
 
 /// Choose a subset of radial velocities. The reference frame is
@@ -158,7 +160,8 @@ void TableDataSelector::chooseVelocities(casa::uInt nChan,
          const casa::MVRadialVelocity &start,
 	 const casa::MVRadialVelocity &velInc)
 {
-   throw DataAccessLogicError("not yet implemented");
+   ASKAPTHROW(DataAccessLogicError, "chooseVelocities has not yet been implemented, requested nChan="<<nChan
+              <<"start="<<start<<" velInc="<<velInc);
 }
 
 /// Choose polarization. 
@@ -166,7 +169,7 @@ void TableDataSelector::chooseVelocities(casa::uInt nChan,
 /// in the output. Allowed values are: I, "IQUV","XXYY","RRLL"
 void TableDataSelector::choosePolarizations(const casa::String &pols)
 {
-   throw DataAccessLogicError("not yet implemented");
+   ASKAPTHROW(DataAccessLogicError, "choosePolarizations has not yet been implemented, requested pols="<<pols);
 }
 
 /// @brief choose data column

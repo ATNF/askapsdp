@@ -208,7 +208,7 @@ namespace askap
       } // loop over all preconditioners
     }  // method                
     
-    Solver::ShPtr ImageSolverFactory::make(askap::scimath::Params &ip, const LOFAR::ParameterSet &parset) {
+    Solver::ShPtr ImageSolverFactory::make(const LOFAR::ParameterSet &parset) {
       ImageSolver::ShPtr solver;
       if(parset.getString("solver")=="Clean") {
 	std::vector<float> defaultScales(3);

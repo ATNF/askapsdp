@@ -104,7 +104,7 @@ namespace askap
         virtual void calcGenericEquations(const IConstDataAccessor &chunk,
                               askap::scimath::GenericNormalEquations& ne) const;
         
-        using MultiChunkEquation::predict;
+        using GenericMultiChunkEquation::predict;
         using askap::scimath::GenericEquation::calcEquations;
        
         /// Clone this into a shared pointer
