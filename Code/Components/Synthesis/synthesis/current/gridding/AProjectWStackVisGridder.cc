@@ -67,7 +67,7 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasi
     itsReferenceFrequency(0.0),
     itsIllumination(illum),
     itsMaxFeeds(maxFeeds), itsMaxFields(maxFields),
-    itsFreqDep(frequencyDependent), itsSlopes(2, maxFeeds, maxFields,0.)
+    itsFreqDep(frequencyDependent)
 {	
     ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
     ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
@@ -94,7 +94,7 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const AProjectWStackVisGridde
     itsMaxFields(other.itsMaxFields),
     itsFreqDep(other.itsFreqDep), itsMaxSupport(other.itsMaxSupport),
     itsLimitSupport(other.itsLimitSupport),
-    itsCMap(other.itsCMap.copy()), itsSlopes(other.itsSlopes.copy())
+    itsCMap(other.itsCMap.copy())
 {
 }
 
@@ -255,9 +255,9 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
             makeCFValid(feed, currentField());
             nDone++;
             casa::MVDirection offset(acc.pointingDir1()(row).getAngle());
-            itsSlopes(0, feed, currentField()) = isPSFGridder() ? 0. : sin(offset.getLong()
+            rwSlopes()(0, feed, currentField()) = isPSFGridder() ? 0. : sin(offset.getLong()
                     -out.getLong()) *cos(offset.getLat());
-            itsSlopes(1, feed, currentField())= isPSFGridder() ? 0. : sin(offset.getLat())
+            rwSlopes()(1, feed, currentField())= isPSFGridder() ? 0. : sin(offset.getLat())
                 *cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
                 *cos(offset.getLong()-out.getLong());
 
@@ -266,8 +266,8 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
             for (int chan=0; chan<nChan; chan++) {
                 /// Extract illumination pattern for this channel
                 itsIllumination->getPattern(acc.frequency()[chan], pattern,
-                        itsSlopes(0, feed, currentField()),
-                        itsSlopes(1, feed, currentField()), 
+                        rwSlopes()(0, feed, currentField()),
+                        rwSlopes()(1, feed, currentField()), 
                         parallacticAngle);
 
                 /// Now convolve the disk with itself using an FFT

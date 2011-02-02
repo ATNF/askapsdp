@@ -158,6 +158,10 @@ protected:
   /// @return shared pointer to the gridder
   template<typename GridderType>
   static boost::shared_ptr<GridderType> createAProjectGridder(const LOFAR::ParameterSet &parset);
+
+  /// @brief read-write access to the buffer of slopes
+  /// @return non-const reference to the cube of slopes
+  casa::Cube<double>& rwSlopes() { return itsSlopes;}
           
 private:
   /// @brief assignment operator (never to be called)
@@ -239,6 +243,9 @@ private:
   
   /// @brief flag showing that CFs are rebuilt due to frequency axis change
   bool itsCFInvalidDueToFreq; 
+
+  /// @brief cube of slopes
+  casa::Cube<double> itsSlopes;            
   
 };
 

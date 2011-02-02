@@ -60,7 +60,7 @@ AProjectGridderBase::AProjectGridderBase(const int maxFeeds, const int maxFields
           itsNumberOfCFGenerations(0), itsNumberOfIterations(0), 
           itsNumberOfCFGenerationsDueToPA(0), itsCFParallacticAngle(0),
           itsNumberOfCFGenerationsDueToFreq(0), itsFrequencyTolerance(freqTol),
-          itsCFInvalidDueToPA(false), itsCFInvalidDueToFreq(false)
+          itsCFInvalidDueToPA(false), itsCFInvalidDueToFreq(false), itsSlopes(2, maxFeeds, maxFields,0.)
 {
   ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
   ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
@@ -85,7 +85,7 @@ AProjectGridderBase::AProjectGridderBase(const AProjectGridderBase &other) :
     itsFrequencyTolerance(other.itsFrequencyTolerance),
     itsCachedFrequencies(other.itsCachedFrequencies),
     itsCFInvalidDueToPA(other.itsCFInvalidDueToPA),
-    itsCFInvalidDueToFreq(other.itsCFInvalidDueToFreq)
+    itsCFInvalidDueToFreq(other.itsCFInvalidDueToFreq), itsSlopes(other.itsSlopes.copy())
 {
   if (other.itsPattern) {
       itsPattern.reset(new UVPattern(*(other.itsPattern)));

@@ -66,7 +66,7 @@ namespace askap {
       WProjectVisGridder(wmax, nwplanes, cutoff, overSample, maxSupport, limitSupport, name),
       itsReferenceFrequency(0.0), itsIllumination(illum),
       itsFreqDep(frequencyDependent),
-      itsMaxFeeds(maxFeeds), itsMaxFields(maxFields), itsSlopes(2, maxFeeds, maxFields,0.)
+      itsMaxFeeds(maxFeeds), itsMaxFields(maxFields)
     {
       ASKAPDEBUGASSERT(itsIllumination);
       ASKAPCHECK(maxFeeds>0, "Maximum number of feeds must be one or more");
@@ -85,8 +85,7 @@ namespace askap {
       IVisGridder(other),AProjectGridderBase(other), WProjectVisGridder(other), 
       itsReferenceFrequency(other.itsReferenceFrequency),
       itsIllumination(other.itsIllumination), itsFreqDep(other.itsFreqDep),
-      itsMaxFeeds(other.itsMaxFeeds), itsMaxFields(other.itsMaxFields),
-      itsSlopes(other.itsSlopes.copy()) {}
+      itsMaxFeeds(other.itsMaxFeeds), itsMaxFields(other.itsMaxFields) {}
         
     /// Clone a copy of this Gridder
     IVisGridder::ShPtr AWProjectVisGridder::clone() {
@@ -284,9 +283,9 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                makeCFValid(feed, currentField());
                nDone++;
                casa::MVDirection offset(acc.pointingDir1()(row).getAngle());
-               itsSlopes(0, feed, currentField()) = isPSFGridder() ? 0. : sin(offset.getLong()
+               rwSlopes()(0, feed, currentField()) = isPSFGridder() ? 0. : sin(offset.getLong()
 						   -out.getLong()) *cos(offset.getLat());
-               itsSlopes(1, feed, currentField())= isPSFGridder() ? 0. : sin(offset.getLat())
+               rwSlopes()(1, feed, currentField())= isPSFGridder() ? 0. : sin(offset.getLat())
                            *cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
                            *cos(offset.getLong()-out.getLong());
 	  
@@ -296,8 +295,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	    
                     /// Extract illumination pattern for this channel
                     itsIllumination->getPattern(acc.frequency()[chan], pattern,
-                          itsSlopes(0, feed, currentField()),
-                          itsSlopes(1, feed, currentField()), parallacticAngle);
+                          rwSlopes()(0, feed, currentField()),
+                          rwSlopes()(1, feed, currentField()), parallacticAngle);
 	    
                     scimath::fft2d(pattern.pattern(), false);
 	    	    
