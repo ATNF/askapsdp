@@ -75,9 +75,9 @@ SolverCore::SolverCore(LOFAR::ParameterSet& parset,
     // element, so use it if appropriate
     if (solver_par == "Clean" && algorithm_par == "MultiScale" &&
             distributed_par == "True" && mode == "Continuum") {
-        itsSolver = DistributedImageSolverFactory::make(*itsModel, itsParset, itsComms);
+        itsSolver = DistributedImageSolverFactory::make(itsParset, itsComms);
     } else {
-        itsSolver = ImageSolverFactory::make(*itsModel, itsParset);
+        itsSolver = ImageSolverFactory::make(itsParset);
     }
 }
 

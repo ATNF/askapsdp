@@ -109,10 +109,9 @@ const casa::TableExprNode& TableDataSelector::getTableSelector(const
        /// epoch selection has been done, we need to narrow down the
        /// selection by updating the table expression
        itsEpochSelector->setConverter(conv);
-       itsEpochSelector->updateTableExpression(
-                    TableScalarFieldSelector::getTableSelector());
+       itsEpochSelector->updateTableExpression(rwTableSelector());
    }
-   return TableScalarFieldSelector::getTableSelector();
+   return rwTableSelector();
 }
 
 /// Choose a subset of spectral channels

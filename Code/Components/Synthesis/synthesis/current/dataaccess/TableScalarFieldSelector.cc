@@ -178,14 +178,23 @@ void TableScalarFieldSelector::chooseSpectralWindow(casa::uInt spWinID)
    }   
 }
  
-/// Obtain a table expression node for selection. This method is
+/// @brief Obtain a table expression node for selection. 
+/// @details This method is
 /// used in the implementation of the iterator to form a subtable
 /// obeying the selection criteria specified by the user via
 /// IDataSelector interface
-///
-/// @return a reference to the cached table expression node
-///
-casa::TableExprNode& TableScalarFieldSelector::getTableSelector() const
+/// @return a const reference to table expression node object
+const casa::TableExprNode& TableScalarFieldSelector::getTableSelector(const
+            boost::shared_ptr<IDataConverterImpl const> &) const
 { 
   return itsTableSelector;
 }
+
+/// @brief get read-write access to expression node
+/// @return a reference to the cached table expression node
+///
+casa::TableExprNode& TableScalarFieldSelector::rwTableSelector() const
+{ 
+  return itsTableSelector;
+}
+

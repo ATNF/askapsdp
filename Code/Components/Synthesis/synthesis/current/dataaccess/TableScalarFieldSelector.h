@@ -102,16 +102,24 @@ public:
   /// uv-distance than the specified threshold
   /// @param[in] uvDist threshold (in metres)
   virtual void chooseMaxUVDistance(casa::Double uvDist);
-      
-protected:
-  /// Obtain a table expression node for selection. This method is
+
+  /// @brief Obtain a table expression node for selection. 
+  /// @details This method is
   /// used in the implementation of the iterator to form a subtable
   /// obeying the selection criteria specified by the user via
   /// IDataSelector interface
-  /// 
+  ///
+  /// @param conv  a shared pointer to the converter, which is used to sort
+  ///              out epochs and other measures used in the selection
+  /// @return a const reference to table expression node object
+  virtual const casa::TableExprNode& getTableSelector(const
+               boost::shared_ptr<IDataConverterImpl const> &conv) const;
+      
+protected:
+  /// @brief get read-write access to expression node
   /// @return a reference to the cached table expression node
   ///
-  casa::TableExprNode& getTableSelector() const;
+  casa::TableExprNode& rwTableSelector() const;
 
 private:
   /// a current table selection expression (cache)

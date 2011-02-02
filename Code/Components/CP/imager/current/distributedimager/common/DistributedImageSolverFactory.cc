@@ -128,8 +128,7 @@ void DistributedImageSolverFactory::configureThresholds(const LOFAR::ParameterSe
     } // if - parameter defined
 } // method
 
-Solver::ShPtr DistributedImageSolverFactory::make(askap::scimath::Params &ip,
-        const LOFAR::ParameterSet &parset,
+Solver::ShPtr DistributedImageSolverFactory::make(const LOFAR::ParameterSet &parset,
         askap::cp::IBasicComms& comms) {
 
     // Temporary

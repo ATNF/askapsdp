@@ -55,12 +55,10 @@ namespace askap
         ~DistributedImageSolverFactory();
 
         /// @brief Make a shared pointer for an image solver
-        /// @param ip Params for the solver
         /// @param parset ParameterSet containing description of
         /// solver to be constructed
         /// @return shared pointer to the solver
-        static askap::scimath::Solver::ShPtr make(askap::scimath::Params& ip, 
-          const LOFAR::ParameterSet& parset,
+        static askap::scimath::Solver::ShPtr make(const LOFAR::ParameterSet& parset,
           askap::cp::IBasicComms& comms); 
         
       protected:
