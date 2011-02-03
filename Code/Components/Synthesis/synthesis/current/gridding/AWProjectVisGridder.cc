@@ -321,10 +321,10 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                          double w=2.0f*casa::C::pi*getWTerm(iw);
                          //std::cout<<"plane "<<iw<<" w="<<w<<std::endl;
 	      
-	      for (int iy=int(ny)/4; iy<int(ny)*3/4; ++iy) {
+	      for (int iy=0; iy<int(ny); ++iy) {
                    const double y2=casa::square((double(iy)-double(ny)/2)*ccelly);
                
-                   for (int ix=int(nx)/4; ix<int(nx)*3/4; ++ix) {
+                   for (int ix=0; ix<int(nx); ++ix) {
                         const double x2=casa::square((double(ix)-double(nx)/2)*ccellx);
                         const double r2=x2+y2;
                         if (r2<1.0) {
