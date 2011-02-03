@@ -143,7 +143,9 @@ void IlluminationUtils::save(const std::string &name, const std::string &what)
    casa::CoordinateSystem coords;
    coords.addCoordinate(linear);    
    
-   saveComplexImage(name,coords,pattern.pattern(),what);
+   casa::Array<casa::Complex> buf(pattern.pattern().shape());
+   casa::convertArray<casa::Complex, casa::DComplex>(buf,pattern.pattern());
+   saveComplexImage(name,coords,buf,what);
 }
 
 /// @brief save the voltage pattern into an image
@@ -159,7 +161,7 @@ void IlluminationUtils::saveVP(const std::string &name, const std::string &what)
    const double freq=1.4e9;
    UVPattern pattern(itsSize, itsSize, itsCellSize, itsCellSize, itsOverSample);
    itsIllumination->getPattern(freq, pattern);
-   casa::Array<casa::Complex> scratch(pattern.pattern().copy());
+   casa::Array<casa::DComplex> scratch(pattern.pattern().copy());
    scimath::fft2d(scratch,false);
    scratch/=casa::max(casa::abs(scratch));
    
@@ -170,14 +172,16 @@ void IlluminationUtils::saveVP(const std::string &name, const std::string &what)
    blc[0]=blc[1]=itsSize*(itsOverSample-1)/itsOverSample/2;
    casa::IPosition length(scratch.shape());
    length[0]=length[1]=itsSize/itsOverSample;
-   casa::Array<casa::Complex> slice = scratch(casa::Slicer(blc,length));
+   casa::Array<casa::DComplex> slice = scratch(casa::Slicer(blc,length));
    casa::DirectionCoordinate azel(casa::MDirection::AZEL, casa::Projection::SIN, 0.,0.,
                  -angularCellSize, angularCellSize, 
                  xform, length[0]/2, length[1]/2);
       
    casa::CoordinateSystem coords;
    coords.addCoordinate(azel);    
-   saveComplexImage(name,coords,slice,what);
+   casa::Array<casa::Complex> buf(slice.shape());
+   casa::convertArray<casa::Complex, casa::DComplex>(buf,slice);
+   saveComplexImage(name,coords,buf,what);
  }
 
 /// @brief save complex array into an image
