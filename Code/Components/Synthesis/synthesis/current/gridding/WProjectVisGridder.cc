@@ -203,7 +203,7 @@ namespace askap
 
       // We pad here to do sinc interpolation of the convolution
       // function in uv space
-      casa::Matrix<casa::Complex> thisPlane = getCFBuffer();
+      casa::Matrix<casa::DComplex> thisPlane = getCFBuffer();
       ASKAPDEBUGASSERT(thisPlane.nrow() == casa::uInt(nx));
       ASKAPDEBUGASSERT(thisPlane.ncolumn() == casa::uInt(ny));     
 
@@ -230,7 +230,7 @@ namespace askap
                ASKAPDEBUGASSERT(iy-qny/2+ny/2 < ny);
                ASKAPDEBUGASSERT(ix+nx/2 >= qnx/2);
                ASKAPDEBUGASSERT(iy+ny/2 >= qny/2);
-               thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::Complex(wt*cos(phase), -wt*sin(phase));
+               thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::DComplex(wt*cos(phase), -wt*sin(phase));
             }
           }
         }
@@ -240,11 +240,11 @@ namespace askap
 
         // Now we have to calculate the Fourier transform to get the
         // convolution function in uv space
-        casa::Matrix<casa::DComplex> buffer(thisPlane.nrow(),thisPlane.ncolumn());
-        casa::convertArray<casa::DComplex,casa::Complex>(buffer,thisPlane);
-        //scimath::fft2d(thisPlane, true);
-        scimath::fft2d(buffer, true);
-        casa::convertArray<casa::Complex,casa::DComplex>(thisPlane,buffer);
+        //casa::Matrix<casa::DComplex> buffer(thisPlane.nrow(),thisPlane.ncolumn());
+        //casa::convertArray<casa::DComplex,casa::Complex>(buffer,thisPlane);
+        scimath::fft2d(thisPlane, true);
+        //scimath::fft2d(buffer, true);
+        //casa::convertArray<casa::Complex,casa::DComplex>(thisPlane,buffer);
         
 
 	/*
@@ -350,7 +350,7 @@ namespace askap
     /// cutoff parameter and whether or not an offset is allowed.
     /// @param[in] cfPlane const reference to 2D plane with the convolution function
     /// @return an instance of CFSupport with support parameters 
-    WProjectVisGridder::CFSupport WProjectVisGridder::extractSupport(const casa::Matrix<casa::Complex> &cfPlane) const
+    WProjectVisGridder::CFSupport WProjectVisGridder::extractSupport(const casa::Matrix<casa::DComplex> &cfPlane) const
     {
        CFSupport result(-1);
        SupportSearcher ss(itsCutoff);
@@ -439,7 +439,7 @@ namespace askap
 
     /// @brief obtain buffer used to create convolution functions
     /// @return a reference to the buffer held as a shared pointer   
-    casa::Matrix<casa::Complex> WProjectVisGridder::getCFBuffer() const
+    casa::Matrix<casa::DComplex> WProjectVisGridder::getCFBuffer() const
     {
        ASKAPDEBUGASSERT(itsCFBuffer);
        return *itsCFBuffer;

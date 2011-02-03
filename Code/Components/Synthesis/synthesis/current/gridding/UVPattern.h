@@ -92,13 +92,13 @@ struct UVPattern {
    /// @brief read-only access to a pattern
    /// @details This method allows a direct access to the pattern array
    /// @return const reference to the pattern
-   inline const casa::Matrix<casa::Complex>& pattern() const 
+   inline const casa::Matrix<casa::DComplex>& pattern() const 
    { return itsArray; }
 
    /// @brief read-write access to a pattern
    /// @details This method allows a direct access to the pattern array
    /// @return non-const reference to the pattern
-   inline casa::Matrix<casa::Complex>& pattern()
+   inline casa::Matrix<casa::DComplex>& pattern()
    { return itsArray; }
    
    /// @brief read-only access to an individual element
@@ -107,7 +107,7 @@ struct UVPattern {
    /// @param[in] iu index in the u-coordinate
    /// @param[in] iv index in the v-coordinate
    /// @return const reference to the requested element
-   inline const casa::Complex& operator()(casa::uInt iu, casa::uInt iv) const
+   inline const casa::DComplex& operator()(casa::uInt iu, casa::uInt iv) const
    { return itsArray(iu,iv); }
    
    /// @brief read-write access to an individual element
@@ -116,7 +116,7 @@ struct UVPattern {
    /// @param[in] iu index in the u-coordinate
    /// @param[in] iv index in the v-coordinate
    /// @return non-const reference to the requested element
-   inline casa::Complex& operator()(casa::uInt iu, casa::uInt iv)
+   inline casa::DComplex& operator()(casa::uInt iu, casa::uInt iv)
    { return itsArray(iu,iv); }
    
    /// @brief obtain a size of the uv-cell in the u-direction 
@@ -149,7 +149,7 @@ struct UVPattern {
    
 private:
    /// @brief array of values describing the pattern
-   casa::Matrix<casa::Complex> itsArray;
+   casa::Matrix<casa::DComplex> itsArray;
    
    /// @brief a size of the uv-cell in the direction of u-coordinate (in wavelengths)
    double itsUCellSize;

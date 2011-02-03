@@ -99,13 +99,13 @@ namespace askap
   
       /// @brief obtain buffer used to create convolution functions
       /// @return a reference to the buffer held as a shared pointer   
-      casa::Matrix<casa::Complex> getCFBuffer() const; 
+      casa::Matrix<casa::DComplex> getCFBuffer() const; 
       
       /// @brief initialise buffer for full-sized convolution function
       /// @param[in] uSize size in U
       /// @param[in] vSize size in V
       inline void initCFBuffer(casa::uInt uSize, casa::uInt vSize) 
-         { itsCFBuffer.reset(new casa::Matrix<casa::Complex>(uSize,vSize)); } 
+         { itsCFBuffer.reset(new casa::Matrix<casa::DComplex>(uSize,vSize)); } 
   
       /// @brief initialise sum of weights
       /// @details We keep track the number of times each convolution function is used per
@@ -162,7 +162,7 @@ namespace askap
       /// cutoff parameter and whether or not an offset is allowed.
       /// @param[in] cfPlane const reference to 2D plane with the convolution function
       /// @return an instance of CFSupport with support parameters 
-      CFSupport extractSupport(const casa::Matrix<casa::Complex> &cfPlane) const;
+      CFSupport extractSupport(const casa::Matrix<casa::DComplex> &cfPlane) const;
       
       /// @brief support is plane-dependent?
       /// @return true, if support should be searched individually for every CF cache plane 
@@ -208,7 +208,7 @@ namespace askap
       /// of convolution functions. To speed things up, the allocation of the buffer is taken
       /// outside initConvolutionFunction method. A shared pointer to this buffer is held as a 
       /// data member as initialisation and usage happen in different methods of this class.
-      boost::shared_ptr<casa::Matrix<casa::Complex> > itsCFBuffer;            
+      boost::shared_ptr<casa::Matrix<casa::DComplex> > itsCFBuffer;            
     };
   }
 }

@@ -128,14 +128,14 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
 			      // divided the radius (i.e. the illumination pattern is given
 			      // in a relative coordinates in frequency
 				  const double phase = lScaled*offsetU + mScaled*offsetV;
-				  pattern(iU, iV) = casa::Complex(cos(phase), -sin(phase));
+				  pattern(iU, iV) = casa::DComplex(cos(phase), -sin(phase));
 				  sum += 1.;
 			   }
 		 }
 	}
 
     ASKAPCHECK(sum > 0., "Integral of the disk should be non-zero");
-    pattern.pattern() *= casa::Complex(float(nU)*float(nV)/float(sum),0.);
+    pattern.pattern() *= casa::DComplex(float(nU)*float(nV)/float(sum),0.);
 }
 
 /// @brief check whether the pattern is symmetric

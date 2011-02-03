@@ -283,13 +283,13 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
                     }
                 }
                 if(peak>0.0) {
-                    pattern.pattern()*=casa::Complex(1.0/peak);
+                    pattern.pattern()*=casa::DComplex(1.0/peak);
                 }
                 // The maximum will be 1.0
                 ASKAPLOG_DEBUG_STR(logger, "Max of FT of convolution function = " << casa::max(pattern.pattern()));
                 scimath::fft2d(pattern.pattern(), true);	
                 // Now correct for normalization of FFT
-                pattern.pattern()*=casa::Complex(1.0/(double(nx)*double(ny)));
+                pattern.pattern()*=casa::DComplex(1.0/(double(nx)*double(ny)));
                 ASKAPLOG_DEBUG_STR(logger, "Sum of convolution function before support extraction and decimation = " << casa::sum(pattern.pattern()));
 
                 if (itsSupport==0) {
@@ -324,7 +324,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 
                 // Since we are decimating, we need to rescale by the
                 // decimation factor
-                const float rescale=float(itsOverSample*itsOverSample);
+                const double rescale=double(itsOverSample*itsOverSample);
                 const int cSize=2*itsSupport+1;
                 for (int fracu=0; fracu<itsOverSample; fracu++) {
                     for (int fracv=0; fracv<itsOverSample; fracv++) {
@@ -411,7 +411,7 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
             // so the total field of view is itsOverSample times larger than the
             // original field of view.
             /// Work space
-            casa::Matrix<casa::Complex> thisPlane(cnx, cny);
+            casa::Matrix<casa::DComplex> thisPlane(cnx, cny);
             thisPlane.set(0.0);
             const std::pair<int,int> cfOffset = getConvFuncOffset(iz);
             
@@ -428,12 +428,12 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 
             //	  	  ASKAPLOG_DEBUG_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
             scimath::fft2d(thisPlane, false);
-            thisPlane*=casa::Complex(nx*ny);
-            const float peak=real(casa::max(casa::abs(thisPlane)));
+            thisPlane*=casa::DComplex(nx*ny);
+            const double peak=real(casa::max(casa::abs(thisPlane)));
             // ASKAPLOG_DEBUG_STR(logger, "Transform of convolution function["<< iz << "] peak = "<< peak);
 
             if(peak>0.0) {
-                //thisPlane*=casa::Complex(1.0/peak);
+                //thisPlane*=casa::DComplex(1.0/peak);
             }
 
             // Now we need to cut out only the part inside the field of view

@@ -260,19 +260,19 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       double ccellx=1.0/(double(qnx)*itsUVCellSize(0));
       double ccelly=1.0/(double(qny)*itsUVCellSize(1));
 
-      casa::Vector<float> ccfx(nx);
-      casa::Vector<float> ccfy(ny);
+      casa::Vector<double> ccfx(nx);
+      casa::Vector<double> ccfy(ny);
       for (casa::uInt ix=0; ix<nx; ++ix) {
-           const float nux=std::abs(float(ix)-float(nx/2))/float(nx/2);
-           ccfx(ix)=grdsf(nux); // /float(qnx);
+           const double nux=std::abs(double(ix)-double(nx/2))/double(nx/2);
+           ccfx(ix)=grdsf(nux); // /double(qnx);
       }
       for (casa::uInt iy=0; iy<ny; ++iy) {
-           const float nuy=std::abs(float(iy)-float(ny/2))/float(ny/2);
-           ccfy(iy)=grdsf(nuy); // /float(qny);
+           const double nuy=std::abs(double(iy)-double(ny/2))/double(ny/2);
+           ccfy(iy)=grdsf(nuy); // /double(qny);
       }
       
       UVPattern &pattern = uvPattern();
-      casa::Matrix<casa::Complex> thisPlane = getCFBuffer();
+      casa::Matrix<casa::DComplex> thisPlane = getCFBuffer();
       ASKAPDEBUGASSERT(thisPlane.nrow() == nx);
       ASKAPDEBUGASSERT(thisPlane.ncolumn() == ny);
 	    	    
@@ -289,9 +289,11 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                            *cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
                            *cos(offset.getLong()-out.getLong());
 	  
+               /*
                // factor in the w-term for the centre of the current beam
                const double cntWTermFactor = sqrt(1.-casa::square(rwSlopes()(0,feed,currentField())) - 
                                                      casa::square(rwSlopes()(1,feed,currentField()))) - 1.;
+               */
 
                const double parallacticAngle = hasSymmetricIllumination ? 0. : acc.feed1PA()(row);
 	  
@@ -319,21 +321,21 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                          double w=2.0f*casa::C::pi*getWTerm(iw);
                          //std::cout<<"plane "<<iw<<" w="<<w<<std::endl;
 	      
-	      for (int iy=0; iy<int(ny); ++iy) {
+	      for (int iy=int(ny)/4; iy<int(ny)*3/4; ++iy) {
                    const double y2=casa::square((double(iy)-double(ny)/2)*ccelly);
                
-                   for (int ix=0; ix<int(nx); ++ix) {
+                   for (int ix=int(nx)/4; ix<int(nx)*3/4; ++ix) {
                         const double x2=casa::square((double(ix)-double(nx)/2)*ccellx);
                         const double r2=x2+y2;
                         if (r2<1.0) {
                             const double phase=w*(1.0-sqrt(1.0-r2) /*+ cntWTermFactor*/);
-                            const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
-                                       *casa::Complex(ccfx(ix)*ccfy(iy));
+                            const casa::DComplex wt=pattern(ix, iy)*conj(pattern(ix, iy))
+                                       *casa::DComplex(ccfx(ix)*ccfy(iy));
                             if (casa::abs(wt)>peak) {
                                 peak=casa::abs(wt);
                             }
                             // this ensures the oversampling is done
-                            thisPlane(ix, iy)=wt*casa::Complex(cos(phase), -sin(phase));
+                            thisPlane(ix, iy)=wt*casa::DComplex(cos(phase), -sin(phase));
                             maxCF+=casa::abs(wt);
                         }
 		   }
@@ -342,7 +344,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	      	      
 
 	      ASKAPCHECK(maxCF>0.0, "Convolution function is empty");
-	      thisPlane*=casa::Complex(1.0/peak);
+	      thisPlane*=casa::DComplex(1.0/peak);
 	      maxCF/=peak;
 	      
 	      
@@ -355,7 +357,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	      scimath::fft2d(thisPlane, true);
 	      
 	      // Now correct for normalization of FFT
-	      thisPlane*=casa::Complex(1.0/(double(nx)*double(ny)));
+	      thisPlane*=casa::DComplex(1.0/(double(nx)*double(ny)));
 	      maxCF/=double(nx)*double(ny);
 
 	      const int zIndex=iw+nWPlanes()*(chan+nChan*(feed+itsMaxFeeds*currentField()));
@@ -399,7 +401,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	      
 	      // Since we are decimating, we need to rescale by the
 	      // decimation factor
-	      const float rescale=float(itsOverSample*itsOverSample);
+	      const double rescale=double(itsOverSample*itsOverSample);
 		  const int cSize=2*support+1;
 	      for (int fracu=0; fracu<itsOverSample; fracu++) {
 		for (int fracv=0; fracv<itsOverSample; fracv++) {
@@ -513,7 +515,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	  // so the total field of view is itsOverSample times larger than the
 	  // original field of view.
 	  /// Work space
-	  casa::Matrix<casa::Complex> thisPlane(cnx, cny);
+	  casa::Matrix<casa::DComplex> thisPlane(cnx, cny);
 	  thisPlane.set(0.0);
 
 	  // use either support determined for this particular plane or a generic one,
@@ -535,17 +537,17 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	    }
 	  }	  
 	  
-	  float peak=real(casa::max(casa::abs(thisPlane)));
+	  double peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
 	  scimath::fft2d(thisPlane, false);
-	  thisPlane*=casa::Complex(cnx*cny);
+	  thisPlane*=casa::DComplex(cnx*cny);
 	  
 	  peak=real(casa::max(casa::abs(thisPlane)));
 	  //	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
 	  //			    << "] peak = "<< peak);
 	  if(peak>0.0) {
-	    //	    thisPlane*=casa::Complex(float(nx*ny)/peak);
-	    thisPlane*=casa::Complex(1.0/peak);
+	    //	    thisPlane*=casa::DComplex(double(nx*ny)/peak);
+	    thisPlane*=casa::DComplex(1.0/peak);
 	  }
 	  
 	  
@@ -560,7 +562,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		ip(0)=ix;
 		for (int iy=0; iy<cny; iy++) {
 		  ip(1)=iy;
-		  cOut(ip)+=float(wt)*casa::real(thisPlane(ix, iy)
+		  cOut(ip)+=double(wt)*casa::real(thisPlane(ix, iy)
 						 *conj(thisPlane(ix, iy)));
 		}
 	      }

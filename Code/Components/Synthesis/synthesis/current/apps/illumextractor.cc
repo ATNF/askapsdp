@@ -111,7 +111,7 @@ int main(int argc, const char** argv) {
         illum->getPattern(1.4e9, pattern);
         
         casa::Array<casa::Float> buffer(pattern.pattern().shape());
-        buffer = casa::amplitude(pattern.pattern());
+        casa::convertArray<float,double>(buffer,casa::amplitude(pattern.pattern()));
         SynthesisParamsHelper::saveAsCasaImage("illum.img",buffer);
       }  
       ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user()

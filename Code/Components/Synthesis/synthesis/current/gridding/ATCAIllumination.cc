@@ -229,12 +229,12 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	// in a relative coordinates in frequency
 
 	// initial value is just the phase slope related to pointing offset
-	casa::Complex value(1.0);
+	casa::DComplex value(1.0);
 	if (itsDoTapering) {
 	  const double fractionalRadiusSquared = radiusSquared/rMaxSquared;
 	  const double extraPhase = itsMaxDefocusingPhase * fractionalRadiusSquared;
-	  value *= float(jamesian(sqrt(fractionalRadiusSquared))) *
-	    casa::Complex(cos(extraPhase),sin(extraPhase));
+	  value *= double(jamesian(sqrt(fractionalRadiusSquared))) *
+	    casa::DComplex(cos(extraPhase),sin(extraPhase));
 	}
 	if (itsDoFeedLegs) {
 	  // rotated offsets
@@ -245,28 +245,28 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	  // decrease the illumination within the feed leg shadows                  
 	  if ((std::abs(dU) < feedLegsHalfWidthInCells) ||
 	      (std::abs(dV) < feedLegsHalfWidthInCells)) {
-	    value *= float(itsFeedLegsShadowing);
+	    value *= double(itsFeedLegsShadowing);
 	  }
 	  if (itsDoFeedLegWedges) {
 	    const double wedgeAngleTan = tan(itsWedgeOpeningAngle);
 	    if ((dU > wedgeStartingRadiusInCells) && (std::abs(dV) <
 						      wedgeAngleTan*std::abs(dU - wedgeStartingRadiusInCells))) {
-	      value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
+	      value *= double(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
 	    }
 	    
 	    if ((dU < -wedgeStartingRadiusInCells) && (std::abs(dV) <
 						       wedgeAngleTan*std::abs(dU + wedgeStartingRadiusInCells))) {
-	      value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
+	      value *= double(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing1);
 	    }
 	    
 	    if ((dV > wedgeStartingRadiusInCells) && (std::abs(dU) <
 						      wedgeAngleTan*std::abs(dV - wedgeStartingRadiusInCells))) {
-	      value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
+	      value *= double(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
 	    }
 	    
 	    if ((dV < -wedgeStartingRadiusInCells) && (std::abs(dU) <
 						       wedgeAngleTan*std::abs(dV + wedgeStartingRadiusInCells))) {
-	      value *= float(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
+	      value *= double(itsFeedLegsShadowing * itsFeedLegsWedgeShadowing2);
 	    }                                                    
 	  }
 	}
@@ -277,7 +277,7 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
 	sum += std::real(std::conj(value)*value);
 	// Now apply the phase slope related to pointing offset
 	const double phase = lScaled*offsetU + mScaled*offsetV;
-	pattern(iU, iV) = value*casa::Complex(cos(phase), -sin(phase));
+	pattern(iU, iV) = value*casa::DComplex(cos(phase), -sin(phase));
       }
     }
   }
@@ -285,7 +285,7 @@ void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l,
   // We need to divide by the sum squared so that the convolution is normalized to unity
   ASKAPCHECK(sum > 0., "Integral of the pattern should be non-zero");
   sum = sqrt(sum);
-  pattern.pattern() *= casa::Complex(float(nU)*float(nV)/float(sum),0.);
+  pattern.pattern() *= casa::DComplex(double(nU)*double(nV)/double(sum),0.);
 }
 
 /// @brief check whether the pattern is symmetric
