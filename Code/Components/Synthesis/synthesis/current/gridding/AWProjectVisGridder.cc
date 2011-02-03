@@ -289,6 +289,10 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                            *cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
                            *cos(offset.getLong()-out.getLong());
 	  
+               // factor in the w-term for the centre of the current beam
+               const double cntWTermFactor = sqrt(1.-casa::square(rwSlopes()(0,feed,currentField())) - 
+                                                     casa::square(rwSlopes()(1,feed,currentField()))) - 1.;
+
                const double parallacticAngle = hasSymmetricIllumination ? 0. : acc.feed1PA()(row);
 	  
                for (int chan=0; chan<nChan; ++chan) {
@@ -322,7 +326,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                         const double x2=casa::square((double(ix)-double(nx)/2)*ccellx);
                         const double r2=x2+y2;
                         if (r2<1.0) {
-                            const double phase=w*(1.0-sqrt(1.0-r2));
+                            const double phase=w*(1.0-sqrt(1.0-r2) /*+ cntWTermFactor*/);
                             const casa::Complex wt=pattern(ix, iy)*conj(pattern(ix, iy))
                                        *casa::Complex(ccfx(ix)*ccfy(iy));
                             if (casa::abs(wt)>peak) {

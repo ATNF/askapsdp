@@ -553,91 +553,91 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                  imagePolFrameNoise = gridPolConv.noise(acc.noise().yzPlane(i).row(chan));			     
              }		 
 		     
-		     // Now loop over all image polarizations
-		     for (uint pol=0; pol<nImagePols; ++pol) {
-		          // Lookup the portion of grid to be
-			      // used for this row, polarisation and channel
-			      const int gInd=gIndex(i, pol, chan);
-			      ASKAPCHECK(gInd>-1,"Index into image grid is less than zero");
-                  ASKAPCHECK(gInd<int(itsGrid.size()), "Index into image grid exceeds number of planes");
+            // Now loop over all image polarizations
+            for (uint pol=0; pol<nImagePols; ++pol) {
+	         // Lookup the portion of grid to be
+	         // used for this row, polarisation and channel
+                 const int gInd=gIndex(i, pol, chan);
+	         ASKAPCHECK(gInd>-1,"Index into image grid is less than zero");
+                 ASKAPCHECK(gInd<int(itsGrid.size()), "Index into image grid exceeds number of planes");
 			   			   
-                  /// Make a slicer to extract just this plane
-                  const casa::IPosition ipStart(4, 0, 0, pol, imageChan);
-                  const casa::Slicer slicer(ipStart, onePlane4D);
+                 /// Make a slicer to extract just this plane
+                 const casa::IPosition ipStart(4, 0, 0, pol, imageChan);
+                 const casa::Slicer slicer(ipStart, onePlane4D);
 			   
-                  // Lookup the convolution function to be
-                  // used for this row, polarisation and channel
-                  // cIndex gives the index for this row, polarization and channel. On top of
-                  // that, we need to adjust for the oversampling since each oversampled
-                  // plane is kept as a separate matrix.
-                  const int cInd=fracu+itsOverSample*(fracv+itsOverSample*cIndex(i, pol, chan));
-			      ASKAPCHECK(cInd>-1,"Index into convolution functions is less than zero");
-			      ASKAPCHECK(cInd<int(itsConvFunc.size()),
-					   "Index into convolution functions exceeds number of planes");
+                 // Lookup the convolution function to be
+                 // used for this row, polarisation and channel
+                 // cIndex gives the index for this row, polarization and channel. On top of
+                 // that, we need to adjust for the oversampling since each oversampled
+                 // plane is kept as a separate matrix.
+                 const int cInd=fracu+itsOverSample*(fracv+itsOverSample*cIndex(i, pol, chan));
+                 ASKAPCHECK(cInd>-1,"Index into convolution functions is less than zero");
+                 ASKAPCHECK(cInd<int(itsConvFunc.size()),
+                            "Index into convolution functions exceeds number of planes");
 			   
-			      casa::Matrix<casa::Complex> & convFunc(itsConvFunc[cInd]);
-			      			      
-			      // support only square convolution functions at the moment
-			      ASKAPDEBUGASSERT(convFunc.nrow() == convFunc.ncolumn());
-			      ASKAPCHECK(convFunc.nrow() % 2 == 1, 
-			            "Expect convolution function with an odd number of pixels for each axis, CF["<<cInd<<
-			            "] has shape="<<convFunc.shape());
-			      // we now use support size for this given plane in the CF cache; itsSupport is a maximum
-			      // support across all CFs (this allows plane-dependent support size)      
-			      const int support = (int(convFunc.nrow()) - 1) / 2;
-			      ASKAPCHECK(support > 0, "Support must be greater than zero, CF["<<cInd<<"] has shape="<<
-			                 convFunc.shape()<<" giving a support of "<<support);
-			                 
-			      casa::Array<casa::Complex> aGrid(itsGrid[gInd](slicer));
-			      casa::Matrix<casa::Complex> grid(aGrid.nonDegenerate());
+                 casa::Matrix<casa::Complex> & convFunc(itsConvFunc[cInd]);
+ 			      
+                 // support only square convolution functions at the moment
+                 ASKAPDEBUGASSERT(convFunc.nrow() == convFunc.ncolumn());
+                 ASKAPCHECK(convFunc.nrow() % 2 == 1, 
+                            "Expect convolution function with an odd number of pixels for each axis, CF["<<cInd<<
+                            "] has shape="<<convFunc.shape());
+                 // we now use support size for this given plane in the CF cache; itsSupport is a maximum
+                 // support across all CFs (this allows plane-dependent support size)      
+                 const int support = (int(convFunc.nrow()) - 1) / 2;
+                 ASKAPCHECK(support > 0, "Support must be greater than zero, CF["<<cInd<<"] has shape="<<
+                            convFunc.shape()<<" giving a support of "<<support);
+                
+                 casa::Array<casa::Complex> aGrid(itsGrid[gInd](slicer));
+                 casa::Matrix<casa::Complex> grid(aGrid.nonDegenerate());
+  
+                 // the following accounts for a possible offset of the convolution function
+                 const std::pair<int,int> cfOffset = getConvFuncOffset(cIndex(i,pol,chan));
+                 const int iuOffset = iu + cfOffset.first;
+                 const int ivOffset = iv + cfOffset.second;
 			   
-                  // the following accounts for a possible offset of the convolution function
-			      const std::pair<int,int> cfOffset = getConvFuncOffset(cIndex(i,pol,chan));
-			      const int iuOffset = iu + cfOffset.first;
-			      const int ivOffset = iv + cfOffset.second;
-			   
-			      /// Need to check if this point lies on the grid (taking into 
-			      /// account the support)
-			      if (((iuOffset-support)>0)&&((ivOffset-support)>0)&&
-			          ((iuOffset+support) <itsShape(0))&&((ivOffset+support)<itsShape(1))) {
-	                  if (forward) {
-                          casa::Complex cVis(0.,0.);
-                          GridKernel::degrid(cVis, convFunc, grid, iuOffset, ivOffset, support);
-                          itsSamplesDegridded+=1.0;
-                          itsNumberDegridded+=double((2*support+1)*(2*support+1));
-                          if (itsVisWeight) {
-                              cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-                          }
-                          imagePolFrameVis[pol] += cVis*phasor;
-                      } else {
-                          const casa::Complex visComplexNoise = imagePolFrameNoise[pol];
+                 /// Need to check if this point lies on the grid (taking into 
+                 /// account the support)
+	         if (((iuOffset-support)>0)&&((ivOffset-support)>0)&&
+	             ((iuOffset+support) <itsShape(0))&&((ivOffset+support)<itsShape(1))) {
+                     if (forward) {
+                         casa::Complex cVis(0.,0.);
+                         GridKernel::degrid(cVis, convFunc, grid, iuOffset, ivOffset, support);
+                         itsSamplesDegridded+=1.0;
+                         itsNumberDegridded+=double((2*support+1)*(2*support+1));
+                         if (itsVisWeight) {
+                             cVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+                         }
+                         imagePolFrameVis[pol] += cVis*phasor;
+                     } else {
+                         const casa::Complex visComplexNoise = imagePolFrameNoise[pol];
                           
-                          const float visNoise = casa::square(casa::real(visComplexNoise));
-                          const float visNoiseWt = (visNoise > 0.) ? 1./visNoise : 0.;
+                         const float visNoise = casa::square(casa::real(visComplexNoise));
+                         const float visNoiseWt = (visNoise > 0.) ? 1./visNoise : 0.;
                                   
-                          if (!isPSFGridder()) {
-                              /// Gridding visibility data onto grid
-                              casa::Complex rVis = phasor*conj(imagePolFrameVis[pol])*visNoiseWt;
-                              if (itsVisWeight) {
-                                  rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
-                              }
+                         if (!isPSFGridder()) {
+                             /// Gridding visibility data onto grid
+                             casa::Complex rVis = phasor*conj(imagePolFrameVis[pol])*visNoiseWt;
+                             if (itsVisWeight) {
+                                 rVis *= itsVisWeight->getWeight(i,frequencyList[chan],pol);
+                             }
 				   
-                              GridKernel::grid(grid, convFunc, rVis, iuOffset, ivOffset, support);
-			           
-                              itsSamplesGridded+=1.0;
-                              itsNumberGridded+=double((2*support+1)*(2*support+1));
-			       
-                              ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
-                              ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)),
-                                         "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
-                              ASKAPDEBUGASSERT(pol < uint(itsSumWeights.shape()(1)));
-                              ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
-				
-                              itsSumWeights(cIndex(i,pol,chan), pol, imageChan) += visNoiseWt; //1.0;
-                          }
-                          /// Grid PSF?
-                          if (isPSFGridder() && (itsUseAllDataForPSF || ((itsFeedUsedForPSF == acc.feed1()(i)) &&
-				                 (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)))) {
+                             GridKernel::grid(grid, convFunc, rVis, iuOffset, ivOffset, support);
+          
+                             itsSamplesGridded+=1.0;
+                             itsNumberGridded+=double((2*support+1)*(2*support+1));
+      
+                             ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
+                             ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)),
+                                        "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
+                             ASKAPDEBUGASSERT(pol < uint(itsSumWeights.shape()(1)));
+                             ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
+
+                             itsSumWeights(cIndex(i,pol,chan), pol, imageChan) += visNoiseWt; //1.0;
+                         }
+                         /// Grid PSF?
+                         if (isPSFGridder() && (itsUseAllDataForPSF || ((itsFeedUsedForPSF == acc.feed1()(i)) &&
+                             (itsPointingUsedForPSF.separation(acc.dishPointing1()(i))<1e-6)))) {
                               casa::Complex uVis(1.,0.);
                               uVis *= visNoiseWt;
                               if (itsVisWeight) {
@@ -647,33 +647,33 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
                       
                               itsSamplesGridded+=1.0;
                               itsNumberGridded+=double((2*support+1)*(2*support+1));
-			       
+    
                               ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
                               ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
                               ASKAPDEBUGASSERT(pol < uint(itsSumWeights.shape()(1)));
                               ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
-				
+
                               itsSumWeights(cIndex(i,pol,chan), pol, imageChan) += visNoiseWt; //1.0;
-                      
-                          } // end if psf needs to be done
-			         } // end if forward (else case, reverse operation)
-			      } // end of on-grid if statement
-		     }//end of pol loop
-		     // need to write back the result for degridding
-		     if (forward) {
-			     acc.rwVisibility().yzPlane(i).row(chan) = degridPolConv(imagePolFrameVis);
-			 }		     
-		   } else { 
-		       if (!forward) {
-		           itsVectorsFlagged+=1;
-		       } 
-		   } // end of if (allPolGood), else statement
-	   }//end of chan loop
+                   
+                         } // end if psf needs to be done
+		     } // end if forward (else case, reverse operation)
+                 } // end of on-grid if statement
+            }//end of pol loop
+	    // need to write back the result for degridding
+            if (forward) {
+	        acc.rwVisibility().yzPlane(i).row(chan) = degridPolConv(imagePolFrameVis);
+            }		     
+         } else { 
+            if (!forward) {
+                itsVectorsFlagged+=1;
+	    } 
+         } // end of if (allPolGood), else statement
+      }//end of chan loop
    }//end of i loop
    if (forward) {
-	   itsTimeDegridded+=timer.real();
+       itsTimeDegridded+=timer.real();
    } else {
-	   itsTimeGridded+=timer.real();
+       itsTimeGridded+=timer.real();
    }
 }
 
