@@ -57,7 +57,12 @@ module fcm
         idempotent ParameterMap getByDate(string key, double posixtime);
 
 
-        ParameterMap put(ParameterMap parms, string user);
+        /**
+         * Store the given list of configuration parameters. This adds
+         * or overwrites. The user name and a log message are also reuqired.
+         **/
+        ParameterMap put(ParameterMap parms, string user, string log);
+
         /**
          * Remove the given keys from the configuration. 
          **/
