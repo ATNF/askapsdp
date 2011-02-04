@@ -35,6 +35,28 @@ module interfaces
 
 module fcm
 {
+    
+    enum UpdateStatus {
+        ADDED,
+        CHANGED,
+        DELETED
+    }
+    
+    struct UpdatedKeys {
+        string key;
+        UpdateStatus state;
+        long revision;
+    }
+
+    sequence<UpdatedKeys> UpdatedKeysSeq;
+    
+    struct History {
+        long revision;
+        string user;
+        string log;
+    }
+    
+    sequence<History> HistorySeq;
 
     /**
      * 
@@ -42,41 +64,42 @@ module fcm
     interface FCMService
     {
         /**
-         * Retrieve the current (latest) facility configuration parameters.
-         * If key is empty all parameters are returned otherwise all keys
+         * Retrieve the facility configuration parameters at the specified
+         * version. A version less than zero will return the latest revision.
+         * If key is empty all parameters are returned otherwise only those
          * starting with the given key.
          **/
-        idempotent ParameterMap get(string key);
-
-        /**
-         * Retrieve facility configuration parameters for the given time (the
-         * last change before the given time).
-         * If key is empty all parameters are returned otherwise all keys
-         * starting with the given key.
-         **/
-        idempotent ParameterMap getByDate(string key, double posixtime);
-
+        idempotent ParameterMap get(string key, long revision);
 
         /**
          * Store the given list of configuration parameters. This adds
-         * or overwrites. The user name and a log message are also reuqired.
+         * or overwrites. The user name and a log message are also required.
          **/
-        ParameterMap put(ParameterMap parms, string user, string log);
+        long put(ParameterMap parms, string user, string log);
 
         /**
-         * Remove the given keys from the configuration. 
+         * Remove the given keys from the configuration. The user name and a
+         * log message are also required.
          **/
-        void remove(StringSeq keys);
+        long remove(StringSeq keys, string user, string log);
 
         /**
-         * Get the history i.e. a list of timestamps when changes occured.
+         * Get the information about the revision history up to the given
+         * revision.
+         * A revision less than zero indicates the whole history
          **/
-        idempotent DoubleSeq history();
+        idempotent HistorySeq history(long revision);
+
+        /**
+         * Return the differences between revision1 and revision2.
+         **/
+        UpdatedKeysSeq diff(long revision1, long revision2);
+
 
         /**
          * A pub/sub method to notify of any calls to put() calls.
          **/
-        idempotent updated(ParameterMap parms);
+        idempotent updated(UpdatedKeysSeq changes);
         
     };
 };
