@@ -40,13 +40,13 @@ module fcm
         ADDED,
         CHANGED,
         DELETED
-    }
+    };
     
     struct UpdatedKeys {
         string key;
         UpdateStatus state;
         long revision;
-    }
+    };
 
     sequence<UpdatedKeys> UpdatedKeysSeq;
     
@@ -54,7 +54,7 @@ module fcm
         long revision;
         string user;
         string log;
-    }
+    };
     
     sequence<History> HistorySeq;
 
@@ -95,11 +95,16 @@ module fcm
          **/
         UpdatedKeysSeq diff(long revision1, long revision2);
 
-
+    };
+    
+    /**
+     * Publisher FCM chnage events.
+     **/
+    interface FCMMonitor {
         /**
-         * A pub/sub method to notify of any calls to put() calls.
+         * Notify when a configuration has changed
          **/
-        idempotent updated(UpdatedKeysSeq changes);
+        idempotent void updated(UpdatedKeysSeq changes);
         
     };
 };
