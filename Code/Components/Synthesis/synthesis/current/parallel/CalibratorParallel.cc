@@ -165,8 +165,7 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
       IDataSelectorPtr sel=ds.createSelector();
       sel << parset();
       IDataConverterPtr conv=ds.createConverter();
-      conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),
-          "Hz");
+      conv->setFrequencyFrame(getFreqRefFrame(), "Hz");
       conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
       IDataSharedIter it=ds.createIterator(sel, conv);
       ASKAPCHECK(itsPerfectModel, "Uncorrupted model not defined");

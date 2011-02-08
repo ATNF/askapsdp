@@ -77,6 +77,8 @@ SimParallel::SimParallel(askap::mwbase::AskapParallel& comms,
         SynParallel(comms,parset), itsModelReadByMaster(true), itsNoiseVariance(-1.)
 {
   itsModelReadByMaster = parset.getBool("modelReadByMaster", true);
+  ASKAPCHECK(getFreqRefFrame().getType() == casa::MFrequency::Ref(casa::MFrequency::TOPO).getType(), 
+             "Only topocentric reference frame is currently understood by the simulator");
 }
 
 void SimParallel::init()

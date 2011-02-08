@@ -37,6 +37,7 @@
 
 
 #include <askapparallel/AskapParallel.h>
+#include <measures/Measures/MFrequency.h>
 
 namespace askap
 {
@@ -101,10 +102,17 @@ namespace askap
 
       /// Class for communications
       askap::mwbase::AskapParallel& itsComms;
+
+      /// obtain frequency reference frame
+      inline casa::MFrequency::Ref getFreqRefFrame() const { return itsFreqRefFrame;}
   private:
       /// @brief parameter set to get the parameters from
       LOFAR::ParameterSet itsParset;
-          
+ 
+      /// @brief reference frame for frequency
+      /// @details We may want to simulate/image in different reference frames.
+      /// This field contains the reference frame selected in the parset.
+      casa::MFrequency::Ref itsFreqRefFrame;    
     };
 
   }

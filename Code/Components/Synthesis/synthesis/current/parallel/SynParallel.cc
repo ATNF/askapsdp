@@ -75,6 +75,21 @@ namespace askap
     {
       itsModel.reset(new Params());
       ASKAPCHECK(itsModel, "Model not defined correctly");
+
+      // setup frequency frame
+      const std::string freqFrame = parset.getString("freqframe","topo");
+      if (freqFrame == "topo") {
+          ASKAPLOG_INFO_STR(logger, "Parset frequencies will be treated as topocentric");
+          itsFreqRefFrame = casa::MFrequency::Ref(casa::MFrequency::TOPO);
+      } else if (freqFrame == "lsrk") {
+          ASKAPLOG_INFO_STR(logger, "Parset frequencies will be treated as lsrk");
+          itsFreqRefFrame = casa::MFrequency::Ref(casa::MFrequency::LSRK);
+      } else if (freqFrame == "bary") {
+          ASKAPLOG_INFO_STR(logger, "Parset frequencies will be treated as barycentric");
+          itsFreqRefFrame = casa::MFrequency::Ref(casa::MFrequency::BARY);
+      } else {
+          ASKAPTHROW(AskapError, "Unsupported frequency frame "<<freqFrame);
+      }    
     }
 
     SynParallel::~SynParallel()
