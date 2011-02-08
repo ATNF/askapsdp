@@ -34,13 +34,21 @@ module interfaces
 {
 
 module tom
-{  
+{ 
+    /**
+     * Base type for all exceptions thrown from TOM.
+     **/
+    exception TOMException
+      extends askap::interfaces::AskapIceException
+    {
+    };
+    
     /**
      * Exception for when a specified antenna cannot be allocated because it
      * has already been allocated by the TOM.
      **/
     exception AntAlreadyAllocException
-      extends askap::interfaces::AskapIceException
+      extends TOMException
     {
     };
 
@@ -49,7 +57,7 @@ module tom
      * not been allocated to this client for control.
      **/
     exception AntNotAllocException
-      extends askap::interfaces::AskapIceException
+      extends TOMException
     {
     };
 
@@ -60,7 +68,7 @@ module tom
      * tree once (although nodes may exist in multiple trees concurrently).
      **/
     exception IllegalTopologyException
-      extends askap::interfaces::AskapIceException
+      extends TOMException
     {
     };
 
@@ -69,7 +77,7 @@ module tom
      * with an identifier which is unknown to the server.
      **/
     exception NoSuchComponentException
-      extends askap::interfaces::AskapIceException
+      extends TOMException
     {
     };
     
@@ -78,7 +86,7 @@ module tom
      * which cannot be parsed, or conflict with already registered clients.
      **/
     exception BadParamsException
-      extends askap::interfaces::AskapIceException
+      extends TOMException
     {
     };
 
@@ -88,7 +96,7 @@ module tom
      * is not driving or the correlator is not responding to commands.
      **/
     exception SubsystemErrorException
-      extends askap::interfaces::AskapIceException
+      extends TOMException
     {
     };
     
@@ -96,7 +104,7 @@ module tom
      * Exception for when a specified timeout is exceeded.
      **/
     exception TimeoutException
-      extends askap::interfaces::AskapIceException
+      extends TOMException
     {
     };
 
@@ -104,11 +112,19 @@ module tom
      * Exception for if the requested scan does not exist.
      **/
     exception NoSuchScanException
-      extends askap::interfaces::AskapIceException
+      extends TOMException
+    {
+    };
+
+    /**
+     * Exception for if the target position cannot be reached, eg. if it
+     * is below the elevation horizon limit.
+     **/
+    exception UnreachableTargetException
+      extends TOMException
     {
     };
     
-
 
     interface ITOMService
     {        
@@ -181,7 +197,8 @@ module tom
                          int timeoutms)
           throws TimeoutException,
                  NoSuchComponentException,
-                 SubsystemErrorException;
+                 SubsystemErrorException,
+                 UnreachableTargetException;
 
         /**
          * Block until all antennas (below the specified component) are 
@@ -194,7 +211,8 @@ module tom
                                int timeoutms)
           throws TimeoutException,
                  NoSuchComponentException,
-                 SubsystemErrorException;
+                 SubsystemErrorException,
+                 UnreachableTargetException;
 
         /**
          * Stow the specified component. If the antennas are currently scanning
