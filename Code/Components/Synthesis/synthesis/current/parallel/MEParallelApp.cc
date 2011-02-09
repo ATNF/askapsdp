@@ -57,6 +57,9 @@ MEParallelApp::MEParallelApp(askap::mwbase::AskapParallel& comms, const LOFAR::P
    // set up image handler, needed for both master and worker
    SynthesisParamsHelper::setUpImageHandler(parset);
 
+   // set up default reference frame
+   SynthesisParamsHelper::setDefaultFreqFrame(getFreqRefFrame());
+
    if (itsComms.isWorker()) {
        /// Get the list of measurement sets and the column to use.
        itsDataColName = parset.getString("datacolumn", "DATA");

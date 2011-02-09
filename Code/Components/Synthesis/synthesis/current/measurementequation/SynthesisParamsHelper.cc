@@ -73,8 +73,8 @@ namespace askap
     /// @brief image accessor
     boost::shared_ptr<IImageAccess> SynthesisParamsHelper::theirImageAccessor;              
     
-    
-  
+    /// @brief default frequency frame
+    casa::MFrequency::Ref SynthesisParamsHelper::theirFreqFrame(casa::MFrequency::TOPO);  
   
     // use // deliberatly here to avoid doxygen complaining about duplicated documentation 
     // here and in the header file
@@ -735,6 +735,16 @@ namespace askap
       ASKAPCHECK(theirImageAccessor, "setUpImageHandler has to be called before any read/write operation");
       return *theirImageAccessor;
     }
+
+    /// @brief configure default frequency frame
+    /// @details All code workes in a single frequency frame (convertions are done, if
+    /// necessary when the data are read (using conversion mechanism provided by the accessor).
+    /// A call to this method sets up new default.
+    /// @param[in] frame reference frame to use for all created images
+    void SynthesisParamsHelper::setDefaultFreqFrame(const casa::MFrequency::Ref &frame)
+    {
+      theirFreqFrame = frame;
+    }
     
     /// @brief setup image handler
     /// @details This method uses the factory to setup a helper class handling the
@@ -913,7 +923,7 @@ namespace askap
       double crpix = (nchan-1)/2;
       double crval = (axes.start("FREQUENCY")+axes.end("FREQUENCY"))/2.0;
       double cdelt = (axes.end("FREQUENCY")-axes.start("FREQUENCY"))/double(nchan);
-      casa::SpectralCoordinate freq(casa::MFrequency::TOPO, crval, cdelt, crpix, restfreq);
+      casa::SpectralCoordinate freq(casa::MFrequency::castType(theirFreqFrame.getType()), crval, cdelt, crpix, restfreq);
       imageCoords.addCoordinate(freq);
       
       return imageCoords;

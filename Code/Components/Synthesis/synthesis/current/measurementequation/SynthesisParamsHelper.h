@@ -75,7 +75,14 @@ namespace askap
         /// @note The key parameter describing the image handler is "imagetype". By default, the
         /// casa image handler is created (however, a call to this method is still required)
         static void setUpImageHandler(const LOFAR::ParameterSet &parset);
-        
+
+        /// @brief configure default frequency frame
+        /// @details All code workes in a single frequency frame (convertions are done, if
+        /// necessary when the data are read (using conversion mechanism provided by the accessor).
+        /// A call to this method sets up new default.
+        /// @param[in] frame reference frame to use for all created images
+        static void setDefaultFreqFrame(const casa::MFrequency::Ref &frame);
+       
         /// @brief obtain image handler
         /// @details For some operations it may be necessary to access the (global) instance of the
         /// image handler. This method allows that. An exception is thrown if no image handler has
@@ -393,6 +400,9 @@ namespace askap
     private:    
         /// @brief image accessor
         static boost::shared_ptr<IImageAccess> theirImageAccessor;              
+
+        /// @brief default frequency frame
+        static casa::MFrequency::Ref theirFreqFrame;
     };
 
   }
