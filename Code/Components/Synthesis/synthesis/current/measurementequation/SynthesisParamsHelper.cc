@@ -716,7 +716,12 @@ namespace askap
           imageHandler().setBeamInfo(imagename, axes.start("MAJMIN"), axes.end("MAJMIN"),
                                      axes.start("PA"));
       } else {
-          imageHandler().setUnits(imagename, "Jy/pixel");
+          if (imagename.find("sensitivity") != 0) {
+              imageHandler().setUnits(imagename, "Jy/pixel");
+          } else {
+              // sensitivity image is a special case, it has units of Jy/beam, but no beam info
+              imageHandler().setUnits(imagename, "Jy/beam");
+          }
       }
     }
     
