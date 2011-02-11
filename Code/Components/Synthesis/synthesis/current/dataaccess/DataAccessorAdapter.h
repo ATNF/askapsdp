@@ -70,8 +70,20 @@ public:
   explicit DataAccessorAdapter(const boost::shared_ptr<IConstDataAccessor> &acc);
 
   /// @brief construct an object linked with the given non-const accessor
-  /// @param[in] acc shared pointer to a const accessor
+  /// @param[in] acc shared pointer to a non-const accessor
   explicit DataAccessorAdapter(const boost::shared_ptr<IDataAccessor> &acc);
+
+  /// @brief construct an object linked with the given const accessor
+  /// @param[in] acc reference to a const accessor
+  /// @note it is a responsibility of a user of this class to ensure that the
+  /// reference is valid until the adapter is detached from it
+  explicit DataAccessorAdapter(const IConstDataAccessor &acc);
+
+  /// @brief construct an object linked with the given non-const accessor
+  /// @param[in] acc reference to a non-const accessor
+  /// @note it is a responsibility of a user of this class to ensure that the
+  /// reference is valid until the adapter is detached from it
+  explicit DataAccessorAdapter(IDataAccessor &acc);
 
   /// @brief copy constructor 
   /// @details It throws exception and is declared to avoid non-intentional 

@@ -25,25 +25,27 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 /// 
-#ifndef ON_DEMAND_BUFFER_DATA_ACCESSOR_TEST_H
-#define ON_DEMAND_BUFFER_DATA_ACCESSOR_TEST_H
+#ifndef DATA_ACCESSOR_ADAPTER_TEST_H
+#define DATA_ACCESSOR_ADAPTER_TEST_H
 
 // cppunit includes
 #include <cppunit/extensions/HelperMacros.h>
 // own includes
 #include <dataaccess/OnDemandBufferDataAccessor.h>
 #include <dataaccess/DataAccessorStub.h>
+#include <dataaccess/DataAccessorAdapter.h>
 
 namespace askap {
 
 namespace synthesis {
 
-class OnDemandBufferDataAccessorTest : public CppUnit::TestFixture {
-  CPPUNIT_TEST_SUITE(OnDemandBufferDataAccessorTest);
-  CPPUNIT_TEST(adapterTest);
+class DataAccessorAdapterTest : public CppUnit::TestFixture {
+  CPPUNIT_TEST_SUITE(DataAccessorAdapterTest);
+  CPPUNIT_TEST(onDemandBufferDATest);
+  CPPUNIT_TEST(daAdapterTest);
   CPPUNIT_TEST_SUITE_END();
 public:
-  void adapterTest() {
+  void onDemandBufferDATest() {
       DataAccessorStub acc(true);
       checkAllCube(acc.visibility(),0.);
       OnDemandBufferDataAccessor acc2(acc);
@@ -66,6 +68,35 @@ public:
       checkAllCube(acc2.visibility(),-1.);      
   }
   
+  void daAdapterTest() {
+      DataAccessorStub acc(true);
+      checkAllCube(acc.visibility(),0.);      
+      DataAccessorAdapter acc2(acc);
+      checkAllCube(acc2.visibility(),0.);      
+      acc2.rwVisibility().set(1.);
+      // check that two cubes are coupled together
+      checkAllCube(acc2.visibility(),1.);
+      checkAllCube(acc.visibility(),1.);            
+      CPPUNIT_ASSERT(acc2.isAssociated());
+      CPPUNIT_ASSERT(acc2.nRow() == acc.nRow());
+      CPPUNIT_ASSERT(acc2.nChannel() == acc.nChannel());
+      CPPUNIT_ASSERT(acc2.nPol() == acc.nPol());
+            
+      for (casa::uInt row=0;row<acc.nRow(); ++row) {
+           CPPUNIT_ASSERT(acc2.feed1()[row] == acc.feed1()[row]);
+           CPPUNIT_ASSERT(acc2.feed2()[row] == acc.feed2()[row]);           
+           CPPUNIT_ASSERT(acc2.antenna1()[row] == acc.antenna1()[row]);
+           CPPUNIT_ASSERT(acc2.antenna2()[row] == acc.antenna2()[row]);           
+           //CPPUNIT_ASSERT(fabs(acc2.feed1PA()[row] - acc.feed1PA()[row])<1e-6);
+           //CPPUNIT_ASSERT(fabs(acc2.feed2PA()[row] - acc.feed2PA()[row])<1e-6);
+           CPPUNIT_ASSERT(fabs(acc2.uvw()[row](0) - acc.uvw()[row](0))<1e-6);
+          
+      }
+      
+      acc2.detach();
+      CPPUNIT_ASSERT(!acc2.isAssociated());      
+  }
+  
   /// @param[in] cube a cube to test
   /// @param[in] value all cube should have the same value
   static void checkAllCube(const casa::Cube<casa::Complex> &cube, const casa::Complex &value) {
@@ -84,5 +115,5 @@ public:
 
 } // namespace askap
 
-#endif // #ifndef ON_DEMAND_BUFFER_DATA_ACCESSOR_TEST_H
+#endif // #ifndef DATA_ACCESSOR_ADAPTER_TEST_H
 

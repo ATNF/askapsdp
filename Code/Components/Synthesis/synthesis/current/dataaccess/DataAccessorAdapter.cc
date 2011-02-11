@@ -38,6 +38,8 @@
 #include <dataaccess/DataAccessorAdapter.h>
 #include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>
+// we need it just for NullDeleter
+#include <askap/AskapUtil.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -50,12 +52,39 @@ DataAccessorAdapter::DataAccessorAdapter()  {}
 /// @brief construct an object linked with the given const accessor
 /// @param[in] acc shared pointer to a const accessor
 DataAccessorAdapter::DataAccessorAdapter(const boost::shared_ptr<IConstDataAccessor> &acc) :
-         itsAccessor(acc) {}
+         itsAccessor(acc) 
+{ 
+  ASKAPCHECK(acc, "Attempting to initialise DataAccessorAdapter with a void shared pointer");  
+}
 
 /// @brief construct an object linked with the given non-const accessor
-/// @param[in] acc shared pointer to a const accessor
+/// @param[in] acc shared pointer to a non-const accessor
 DataAccessorAdapter::DataAccessorAdapter(const boost::shared_ptr<IDataAccessor> &acc) :
-         itsAccessor(acc) {}
+         itsAccessor(acc) 
+{
+  ASKAPCHECK(acc, "Attempting to initialise DataAccessorAdapter with a void shared pointer");
+}
+
+/// @brief construct an object linked with the given const accessor
+/// @param[in] acc reference to a const accessor
+/// @note it is a responsibility of a user of this class to ensure that the
+/// reference is valid until the adapter is detached from it
+DataAccessorAdapter::DataAccessorAdapter(const IConstDataAccessor &acc)
+{
+  // we don't access non-const methods anywhere, so constness is just conceptual here
+  IConstDataAccessor* ptr = const_cast<IConstDataAccessor*>(&acc);
+  itsAccessor.reset(ptr, utility::NullDeleter());
+}
+
+/// @brief construct an object linked with the given non-const accessor
+/// @param[in] acc reference to a non-const accessor
+/// @note it is a responsibility of a user of this class to ensure that the
+/// reference is valid until the adapter is detached from it
+DataAccessorAdapter::DataAccessorAdapter(IDataAccessor &acc)
+{
+  IConstDataAccessor* ptr = &acc;
+  itsAccessor.reset(ptr, utility::NullDeleter());
+}
 
 /// @brief copy constructor 
 /// @details It throws exception and is declared to avoid non-intentional 
@@ -64,7 +93,7 @@ DataAccessorAdapter::DataAccessorAdapter(const boost::shared_ptr<IDataAccessor> 
 DataAccessorAdapter::DataAccessorAdapter(const DataAccessorAdapter &other) : 
           IDataAccessor(other), itsAccessor(other.itsAccessor) 
 {
-   ASKAPTHROW(DataAccessLogicError, "Copy constructor is not supposed to be called for DataAccessorAdapter");
+  ASKAPTHROW(DataAccessLogicError, "Copy constructor is not supposed to be called for DataAccessorAdapter");
 }
 
 /// The number of rows in this chunk
