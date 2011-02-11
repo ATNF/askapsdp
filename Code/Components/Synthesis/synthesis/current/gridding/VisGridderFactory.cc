@@ -33,6 +33,7 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <gridding/AWProjectVisGridder.h>
 #include <gridding/WStackVisGridder.h>
 #include <gridding/AProjectWStackVisGridder.h>
+#include <gridding/SnapShotImagingGridderAdapter.h>
 
 #include <measurementequation/SynthesisParamsHelper.h>
 
@@ -172,6 +173,14 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 	{
 	  //		gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency()));
 	}
+	
+	if (parset.getBool("gridder.snapshotimaging",false)) {
+	    ASKAPLOG_INFO_STR(logger, "A gridder adapter will be set up to do snap-shot imaging");
+	    boost::shared_ptr<SnapShotImagingGridderAdapter> adapter(new SnapShotImagingGridderAdapter(gridder));
+	    // possible configuration comes here
+	    gridder = adapter;
+	}
+	
 	return gridder;
 }
 
