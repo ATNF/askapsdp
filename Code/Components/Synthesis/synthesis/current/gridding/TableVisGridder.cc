@@ -994,14 +994,14 @@ void TableVisGridder::finaliseDegrid() {
 }
 
 // This ShPtr should get deep-copied during cloning.
-void TableVisGridder::initVisWeights(IVisWeights::ShPtr viswt)
+void TableVisGridder::initVisWeights(const IVisWeights::ShPtr &viswt)
 {
 	itsVisWeight = viswt;
 }
 
 // Customize for the specific type of Visibility weight.
 // Input string is whatever is after "image" => "image.i.0.xxx" gives ".i.0.xxx "
-void TableVisGridder::customiseForContext(casa::String context)
+void TableVisGridder::customiseForContext(const std::string &context)
 {
 
 	// RVU : Set up model dependant gridder behaviour

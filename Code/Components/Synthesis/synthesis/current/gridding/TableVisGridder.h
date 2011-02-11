@@ -133,11 +133,11 @@ namespace askap
 
       /// @brief Make context-dependant changes to the gridder behaviour
       /// @param context context
-      virtual void customiseForContext(casa::String context);
+      virtual void customiseForContext(const std::string &context);
       
       /// @brief assign weights
       /// @param viswt shared pointer to visibility weights
-      virtual void initVisWeights(IVisWeights::ShPtr viswt);
+      virtual void initVisWeights(const IVisWeights::ShPtr &viswt);
       
       /// @brief Degrid the visibility data.
       /// @param[in] acc non-const data accessor to work with  

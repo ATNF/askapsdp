@@ -45,7 +45,7 @@ namespace askap
 	/// taken out. 
 	/// @note This method just throws an exception in this basic interface. It is 
 	/// added to ensure that all derived classes have this method defined. We have 
-	/// to use a static method as opposed to pure virtual function because we want
+	/// to use a static method as opposed to pure virtual function because we plan to use it
 	/// to create a brand new instance of the gridder (and hence no object would
 	/// exist at that stage)			 
 	IVisGridder::ShPtr IVisGridder::createGridder(const LOFAR::ParameterSet&) 
