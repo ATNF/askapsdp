@@ -182,19 +182,19 @@ public:
       /// @param[in] nterms number of terms in the decomposition
       static double sphFunc(const double c, const double alpha, const double eta, const casa::uInt nterms)
       {
-        if (abs(eta)>=1) {
+        if (abs(double(eta))>=1) {
             return 0.;
         }
         casa::Matrix<double> hlp(nterms,nterms,0.);
         const bool rEven = true;      
-        fillHelperMatrix(hlp,c,alpha,rEven);
+        fillHelperMatrix(hlp,c,int(alpha),rEven);
         
         casa::Vector<double> coeffs;
         legendreCoeffs(hlp,coeffs);
         
         // force normalisation to 1. at eta=0., functions corresponding to n=0 are even, so such normalisation
         // should not cause any problems
-        const double res = sumLegendreSeries(coeffs,eta,alpha,rEven) / sumLegendreSeries(coeffs,0.,alpha,rEven);
+        const double res = sumLegendreSeries(coeffs,eta,int(alpha),rEven) / sumLegendreSeries(coeffs,0.,int(alpha),rEven);
         return res * pow(1.-eta*eta, -alpha/2.);
       }
       
@@ -481,8 +481,8 @@ public:
               gsl_matrix_set(A, elem, elem, diag[elem]);
               if ((elem + 1 < diag.nelements()) != 0) {
                   ASKAPASSERT(sdiag2[elem]>=0.);
-                  gsl_matrix_set(A, elem, elem+1, sqrt(abs(sdiag2[elem])));              
-                  gsl_matrix_set(A, elem+1, elem, sqrt(abs(sdiag2[elem])));              
+                  gsl_matrix_set(A, elem, elem+1, sqrt(fabs(double(sdiag2[elem]))));              
+                  gsl_matrix_set(A, elem+1, elem, sqrt(fabs(double(sdiag2[elem]))));              
               }
          }
          const int status = gsl_eigen_symm(A,eVal, work);
