@@ -89,12 +89,13 @@ namespace askap {
 	int xsize= src->boxXsize();
 	int ysize= src->boxYsize();
 	int size=xsize*ysize;
-	// ASKAPLOG_DEBUG_STR(logger, "Primary array saving, with size = " << xsize*ysize); 
+// 	ASKAPLOG_DEBUG_STR(logger, "Primary array saving, with size = " << xsize*ysize); 
 	this->itsFluxArray = casa::Vector<float>(size);
+// 	ASKAPLOG_DEBUG_STR(logger, "Getting spatial map");
 	PixelInfo::Object2D spatMap = src->getSpatialMap();
-	
+// 	ASKAPLOG_DEBUG_STR(logger, "Initialising flux array");
 	for (int i = 0; i < size; i++) this->itsFluxArray[i] = 0.;
-		
+// 	ASKAPLOG_DEBUG_STR(logger, "Defining flux array");
 	for (size_t i = 0; i < f.size(); i++) {
 	  int x = int(pos(i, 0));
 	  int y = int(pos(i, 1));
@@ -104,6 +105,7 @@ namespace askap {
 	    this->itsFluxArray[loc] = float(f(i));
 	  }
 	}
+// 	ASKAPLOG_DEBUG_STR(logger, "Array defined");
 
       }
 		  
@@ -123,6 +125,11 @@ namespace askap {
 	this->itsBaseThreshold = src->detectionThreshold() > 0 ? log10(src->detectionThreshold()) : -6.;
 	this->itsThreshIncrement = (log10(this->itsPeakFlux) - this->itsBaseThreshold) / float(this->itsNumThresholds + 1);
 	this->itsCurrentThreshold = pow(10.,this->itsBaseThreshold + this->itsThreshIncrement);
+
+// 	std::stringstream ss;
+// 	for(int i=0;i<=this->itsNumThresholds;i++)
+// 	  ss << pow(10.,this->itsBaseThreshold+i*this->itsThreshIncrement) << " ";
+// 	ASKAPLOG_DEBUG_STR(logger, "Thresholds: " << ss.str());
 		
 	this->itsSourceBox = src->box();
 		
@@ -188,7 +195,8 @@ namespace askap {
 	while(this->itsCurrentThreshold <= this->itsPeakFlux && keepGoing) {
 	  theImage->stats().setThreshold(this->itsCurrentThreshold);
 	  objlist = theImage->findSources2D();
-	  //	  ASKAPLOG_DEBUG_STR(logger, threshCtr++ << " " << this->itsCurrentThreshold << " " << this->itsBaseThreshold << " " << this->itsThreshIncrement<< " " << objlist.size() << " " << this->itsPeakFlux );
+// 	  ASKAPLOG_DEBUG_STR(logger, this->itsCurrentThreshold << " " << this->itsBaseThreshold << " " 
+// 			     << this->itsThreshIncrement<< " " << objlist.size() << " " << this->itsPeakFlux );
 	  keepGoing = (objlist.size() == 1);
 	  this->itsCurrentThreshold *= pow(10.,this->itsThreshIncrement);
 	}
@@ -235,6 +243,8 @@ namespace askap {
 	  std::sort(fullList.begin(), fullList.end());
 	  std::reverse(fullList.begin(), fullList.end());
 	}
+
+	//	ASKAPLOG_DEBUG_STR(logger, "Subthresholder with threshold " << this->itsCurrentThreshold << " found " << fullList.size() << " subcomponents");
 
 	return fullList;
 

@@ -415,23 +415,6 @@ namespace askap {
             std::vector<SubComponent> RadioSource::getSubComponentList(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f)
             {
 
-                float *fluxarray = new float[this->boxSize()];
-                PixelInfo::Object2D spatMap = this->getSpatialMap();
-
-                for (int i = 0; i < this->boxSize(); i++) fluxarray[i] = 0.;
-
-                for (size_t i = 0; i < f.size(); i++) {
-                    int x = int(pos(i, 0));
-                    int y = int(pos(i, 1));
-
-                    if (spatMap.isInObject(x, y)) {
-                        int loc = (x - this->boxXmin()) + this->boxXsize() * (y - this->boxYmin());
-                        fluxarray[loc] = f(i);
-                    }
-                }
-
-
-//		std::vector<SubComponent> cmpntlist = this->getThresholdedSubComponentList(fluxarray);
 		SubThresholder subThresh;
 		subThresh.define(this, pos,f);
 		std::vector<SubComponent> cmpntlist = subThresh.find();
@@ -453,21 +436,19 @@ namespace askap {
                     antipus.setMinor(cmpntlist[0].min());
                     antipus.setX(this->getXPeak() + dx);
                     antipus.setY(this->getYPeak() + dy);
-                    int cpos = int(antipus.x() - this->boxXmin()) + this->boxXsize() * int(antipus.y() - this->boxYmin());
-                    antipus.setPeak(f(cpos));
-                    cmpntlist.push_back(antipus);
+		    antipus.setPeak(this->getPeakFlux());
+		    cmpntlist.push_back(antipus);
+		    
                     SubComponent centre;
                     centre.setPA(antipus.pa());
                     centre.setMajor(antipus.maj());
                     centre.setMinor(antipus.min());
                     centre.setX(this->getXPeak());
                     centre.setY(this->getYPeak());
-                    cpos = int(centre.x() - this->boxXmin()) + this->boxXsize() * int(centre.y() - this->boxYmin());
-                    centre.setPeak(f(cpos));
-                    cmpntlist.push_back(centre);
-                }
-
-                delete [] fluxarray;
+		    centre.setPeak(this->getPeakFlux());
+		    cmpntlist.push_back(centre);
+		    
+		}
 
                 return cmpntlist;
             }
