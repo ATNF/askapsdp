@@ -61,6 +61,7 @@ namespace askap {
     T EntropyBase<T>::entropy(const Array<T>& model)
     {
       throw(AskapError("Called base class entropy"));
+      ASKAPCHECK(model.shape().nelements(), "Model has no elements");
       return 0.0;
     };
 
@@ -68,18 +69,26 @@ namespace askap {
     T EntropyBase<T>::entropy(const Array<T>& model, const Array<T>& mask)
     {
       throw(AskapError("Called base class entropy"));
+      ASKAPCHECK(model.shape().conform(mask.shape()), "Model and mask images have different shapes");
       return 0.0;
     };
 
     template<class T>
     void EntropyBase<T>::gradEntropy(Array<T>& gradH, Array<T>& rHess, const Array<T>& model) {
       throw(AskapError("Called base class gradEntropy"));
+      // Silence the compiler by doing meaningless comparisons
+      ASKAPCHECK(gradH.shape().conform(rHess.shape()), "Gradient and Hessian images have different shapes");
+      ASKAPCHECK(gradH.shape().conform(model.shape()), "Gradient and model images have different shapes");
     }
 
     template<class T>
     void EntropyBase<T>::gradEntropy(Array<T>& gradH, Array<T>& rHess, const Array<T>& model,
                                      const Array<T>& mask) {
       throw(AskapError("Called base class gradEntropy"));
+      // Silence the compiler by doing meaningless comparisons
+      ASKAPCHECK(gradH.shape().conform(rHess.shape()), "Gradient and Hessian images have different shapes");
+      ASKAPCHECK(gradH.shape().conform(model.shape()), "Gradient and model images have different shapes");
+      ASKAPCHECK(gradH.shape().conform(mask.shape()), "Gradient and mask images have different shapes");
     }
 
     template<class T>

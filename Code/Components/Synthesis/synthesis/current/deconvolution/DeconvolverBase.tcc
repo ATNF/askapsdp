@@ -174,7 +174,6 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::setResidual(const Array<T> residual, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       this->itsResidual(term)=residual.nonDegenerate().copy();
     }
     
@@ -182,14 +181,12 @@ namespace askap {
     Array<T> & DeconvolverBase<T,FT>::residual(const uInt term)
     {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       return itsResidual(term);
     }
     
     template<class T, class FT>
     void DeconvolverBase<T,FT>::setBackground(const Array<T> background, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       this->itsBackground(term)=background.nonDegenerate().copy();
     }
     
@@ -197,7 +194,6 @@ namespace askap {
     Array<T> & DeconvolverBase<T,FT>::background(const uInt term)
     {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       return itsBackground(term);
     }
     
