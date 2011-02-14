@@ -41,7 +41,7 @@
 
 // own includes
 #include <dataaccess/IDataAccessor.h>
-
+#include <utils/ChangeMonitor.h>
 
 namespace askap {
 	
@@ -287,12 +287,28 @@ protected:
   /// is thrown if the associated accessor is of the const type.
   /// @return a refernce to associated non-const accessor
   IDataAccessor & getRWAccessor() const;
+  
+  /// @brief obtain change monitor
+  /// @details It can be used in derived classes to compare whether we still
+  /// deal with the same accessor as the one used for some more evolved calculation.
+  /// This change monitor tracks detach and associate calls and allows to avoid 
+  /// overriding of all these methods (and to avoid making them virtual), if a simple
+  /// caching of derived products is found to be necessary in the derived classes.
+  /// A comparison of two change monitors with a non-equal result means that the
+  /// accessor was updated some time in between these two calls
+  inline scimath::ChangeMonitor changeMonitor() const { return itsAccessorChangeMonitor; }
       
 private:
   /// @brief shared pointer to the associated accessor
   /// @note the accessor is kept as a const accessor and
   /// cast to non-const one if necessary
   boost::shared_ptr<IConstDataAccessor> itsAccessor;
+  
+  /// @brief change monitor for itsAccessor
+  /// @details we may need to know when itsAccessor is
+  /// updated in the derived classes. Change monitor provides
+  /// an efficient way of doing it.
+  scimath::ChangeMonitor itsAccessorChangeMonitor;
 };
 
 

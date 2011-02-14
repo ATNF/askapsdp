@@ -336,6 +336,7 @@ void DataAccessorAdapter::associate(const boost::shared_ptr<IConstDataAccessor> 
 {
   ASKAPDEBUGASSERT(acc);
   itsAccessor = acc;
+  itsAccessorChangeMonitor.notifyOfChanges();
 }
 
 /// @brief associate this adapter
@@ -346,6 +347,7 @@ void DataAccessorAdapter::associate(const IConstDataAccessor &acc)
   // we don't access non-const methods anywhere, so constness is just conceptual here
   IConstDataAccessor* ptr = const_cast<IConstDataAccessor*>(&acc);
   itsAccessor.reset(ptr, utility::NullDeleter());
+  itsAccessorChangeMonitor.notifyOfChanges();
 }
 
 /// @brief associate this adapter
@@ -355,6 +357,7 @@ void DataAccessorAdapter::associate(const boost::shared_ptr<IDataAccessor> &acc)
 {
   ASKAPDEBUGASSERT(acc);
   itsAccessor = acc;
+  itsAccessorChangeMonitor.notifyOfChanges();
 }
 
 /// @brief associate this adapter
@@ -366,6 +369,7 @@ void DataAccessorAdapter::associate(IDataAccessor &acc)
   // on dynamic cast back to the non-const type
   IConstDataAccessor* ptr = &acc;
   itsAccessor.reset(ptr, utility::NullDeleter());
+  itsAccessorChangeMonitor.notifyOfChanges();
 }
 
 /// @brief check whether the adapter is associated with some accessor
@@ -379,6 +383,7 @@ bool DataAccessorAdapter::isAssociated() const
 void DataAccessorAdapter::detach()
 {
   itsAccessor.reset();
+  itsAccessorChangeMonitor.notifyOfChanges();
 }
 
 /// @brief obtain a reference to associated const accessor
