@@ -1466,7 +1466,7 @@ namespace askap {
                     std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
 
                     for (; src < this->itsSourceList.end(); src++)
-                        src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin());
+                        src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin(), this->itsFlagFindSpectralIndex);
 
                     summaryFile.close();
                 }

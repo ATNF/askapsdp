@@ -447,7 +447,6 @@ namespace askap {
                     centre.setY(this->getYPeak());
 		    centre.setPeak(this->getPeakFlux());
 		    cmpntlist.push_back(centre);
-		    
 		}
 
                 return cmpntlist;
@@ -1158,7 +1157,7 @@ namespace askap {
             //**************************************************************//
 
             void RadioSource::printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
-                                           std::string fittype, bool doHeader)
+                                           std::string fittype, bool doHeader, bool doSpectralIndex)
             {
                 /// @details
                 ///
@@ -1192,8 +1191,8 @@ namespace askap {
                 duchamp::Column::Col majFit("Maj(fit)", "", 10, 3);
                 duchamp::Column::Col minFit("Min(fit)", "", 10, 3);
                 duchamp::Column::Col paFit("P.A.(fit)", "", 10, 2);
-                duchamp::Column::Col alpha("Alpha", "", 10, 2);
-                duchamp::Column::Col beta("Beta", "", 10, 2);
+		duchamp::Column::Col alpha("Alpha", "", 10, 2);
+		duchamp::Column::Col beta("Beta", "", 10, 2);
                 duchamp::Column::Col chisqFit("Chisq(fit)", "", 20, 9);
                 duchamp::Column::Col rmsIm("RMS(image)", "", fluxWidth, fluxPrec);
                 duchamp::Column::Col rmsFit("RMS(fit)", "", 11, 6);
@@ -1214,8 +1213,10 @@ namespace askap {
                     majFit.printTitle(stream);
                     minFit.printTitle(stream);
                     paFit.printTitle(stream);
-                    alpha.printTitle(stream);
-                    beta.printTitle(stream);
+		    if(doSpectralIndex){
+		      alpha.printTitle(stream);
+		      beta.printTitle(stream);
+		    }
                     chisqFit.printTitle(stream);
                     rmsIm.printTitle(stream);
                     rmsFit.printTitle(stream);
@@ -1234,8 +1235,6 @@ namespace askap {
                                 majFit.getWidth() +
                                 minFit.getWidth() +
                                 paFit.getWidth() +
-                                alpha.getWidth() +
-                                beta.getWidth() +
                                 chisqFit.getWidth() +
                                 rmsIm.getWidth() +
                                 rmsFit.getWidth() +
@@ -1243,6 +1242,8 @@ namespace askap {
                                 ndofFit.getWidth() +
                                 npixFit.getWidth() +
                                 npixObj.getWidth();
+		    if(doSpectralIndex) width +=  alpha.getWidth() + beta.getWidth();
+
                     stream << "#" << std::setfill('-') << std::setw(width) << '-' << "\n";
                 }
 
@@ -1260,8 +1261,10 @@ namespace askap {
                     majFit.printEntry(stream, zero);
                     minFit.printEntry(stream, zero);
                     paFit.printEntry(stream, zero);
-                    alpha.printEntry(stream, zero);
-                    beta.printEntry(stream, zero);
+		    if(doSpectralIndex){
+		      alpha.printEntry(stream, zero);
+		      beta.printEntry(stream, zero);
+		    }
                     chisqFit.printEntry(stream, zero);
                     rmsIm.printEntry(stream, this->itsNoiseLevel);
                     rmsFit.printEntry(stream, zero);
@@ -1308,8 +1311,10 @@ namespace askap {
                         majFit.printEntry(stream, fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
                         minFit.printEntry(stream, fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
                         paFit.printEntry(stream, fit->PA()*180. / M_PI);
-                        alpha.printEntry(stream, *alphaIter);
-                        beta.printEntry(stream, *betaIter);
+			if(doSpectralIndex){
+			  alpha.printEntry(stream, *alphaIter);
+			  beta.printEntry(stream, *betaIter);
+			}
                         chisqFit.printEntry(stream, results.chisq());
                         rmsIm.printEntry(stream, this->itsNoiseLevel);
                         rmsFit.printEntry(stream, results.RMS());
