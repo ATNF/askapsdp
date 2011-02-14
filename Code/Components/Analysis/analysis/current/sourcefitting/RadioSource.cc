@@ -673,7 +673,7 @@ namespace askap {
                 curpos = 0;
 
                 if (this->getZcentre() != this->getZmin() || this->getZcentre() != this->getZmax()) {
-                    ASKAPLOG_ERROR(logger, "Can only do fitting for two-dimensional objects!");
+                    ASKAPLOG_ERROR_STR(logger, "Can only do fitting for two-dimensional objects!");
                     return false;
                 }
 

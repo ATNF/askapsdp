@@ -177,6 +177,7 @@ namespace askap {
 //             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-fitResults.ann");
 //             this->itsFitBoxAnnotationFile = parset.getString("fitBoxAnnotationFile", this->itsFitAnnotationFile);
 	    if( parset.isDefined("logFile") || 
+		parset.isDefined("subimageAnnotationFile") ||
 		parset.isDefined("summaryFile") || 
 		parset.isDefined("fitResultsFile") || 
 		parset.isDefined("fitAnnotationFile") || 
@@ -195,11 +196,14 @@ namespace askap {
             this->itsFitParams = sourcefitting::FittingParameters(fitParset);
 	    this->itsFitParams.useBoxFlux(!this->itsFlagFitJustDetection);
 
-            if (this->itsFitParams.numFitTypes() == 0 && this->itsFlagDoFit)
+            if (this->itsFitParams.numFitTypes() == 0 && this->itsFlagDoFit){
                 ASKAPLOG_WARN_STR(logger, "No valid fit types given, so setting doFit flag to false.");
+		this->itsFlagDoFit = false;
+	    }
 
 //             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
 	    this->itsSubimageAnnotationFile = "duchamp-SubimageLocations.ann";	       
+	    if(parset.isDefined("subimageAnnotationFile")) ASKAPLOG_WARN_STR(logger, "subimageAnnotationFile = 'duchamp-SubimageLocations.ann'");
 
 
 	    if(parset.isDefined("logFile")){
@@ -1038,7 +1042,7 @@ namespace askap {
                 }
 		else this->calcObjectParams(); // if no edge sources, call this anyway so the workers know what to do...
 
-		if(this->itsFlagDistribFit) this->fitRemaining();
+		if(this->itsFlagDistribFit && this->itsFlagDoFit) this->fitRemaining();
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up edge sources");
 
