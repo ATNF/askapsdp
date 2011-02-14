@@ -1089,7 +1089,7 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished adding sources to cube. Now have " << this->itsCube.getNumObj() << " objects.");
 
             }
-	    else if(this->isWorker() && this->itsFlagDistribFit) this->fitRemaining();
+	    else if(this->isWorker() && this->itsFlagDistribFit && this->itsFlagDoFit) this->fitRemaining();
         }
 
         //**************************************************************//
