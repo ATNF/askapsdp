@@ -168,13 +168,29 @@ namespace askap {
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
             this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", false);
             this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
-	    if(parset.isDefined("summaryFile")){
-	      this->itsFitSummaryFile = parset.getString("summaryFile", "duchamp-fitResults.txt");
-	      ASKAPLOG_WARN_STR(logger, "We've changed the name of the 'summaryFile' parameter to 'fitResultsFile'. Using your parameter " << this->itsFitSummaryFile << " for now, but please change your parset!");
-	    }
-            this->itsFitSummaryFile = parset.getString("fitResultsFile", "duchamp-fitResults.txt");
-            this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-fitResults.ann");
-            this->itsFitBoxAnnotationFile = parset.getString("fitBoxAnnotationFile", this->itsFitAnnotationFile);
+
+// 	    if(parset.isDefined("summaryFile")){
+// 	      this->itsFitSummaryFile = parset.getString("summaryFile", "duchamp-fitResults.txt");
+// 	      ASKAPLOG_WARN_STR(logger, "We've changed the name of the 'summaryFile' parameter to 'fitResultsFile'. Using your parameter " << this->itsFitSummaryFile << " for now, but please change your parset!");
+// 	    }
+//             this->itsFitSummaryFile = parset.getString("fitResultsFile", "duchamp-fitResults.txt");
+//             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-fitResults.ann");
+//             this->itsFitBoxAnnotationFile = parset.getString("fitBoxAnnotationFile", this->itsFitAnnotationFile);
+	    if( parset.isDefined("logFile") || 
+		parset.isDefined("summaryFile") || 
+		parset.isDefined("fitResultsFile") || 
+		parset.isDefined("fitAnnotationFile") || 
+		parset.isDefined("fitBoxAnnotationFile"))  
+	      ASKAPLOG_WARN_STR(logger, "Output filenames have been fixed to certain default values:");
+
+	    this->itsFitSummaryFile = "duchamp-fitResults.txt";
+	    this->itsFitAnnotationFile = "duchamp-fitResults.ann";
+	    this->itsFitBoxAnnotationFile = "duchamp-fitResults.boxes.ann";
+
+	    if(parset.isDefined("summaryFile") || parset.isDefined("fitResultsFile") ) ASKAPLOG_WARN_STR(logger, "fitResultsFile = 'duchamp-fitResults.txt'  (= old parameter summaryFile)");
+	    if(parset.isDefined("fitAnnotationFile")) ASKAPLOG_WARN_STR(logger, "fitAnnotationFile = 'duchamp-fitResults.ann'");
+	    if(parset.isDefined("fitBoxAnnotationFile")) ASKAPLOG_WARN_STR(logger, "fitBoxAnnotationFile = 'duchamp-fitResults.boxes.ann'");
+
             LOFAR::ParameterSet fitParset = parset.makeSubset("Fitter.");
             this->itsFitParams = sourcefitting::FittingParameters(fitParset);
 	    this->itsFitParams.useBoxFlux(!this->itsFlagFitJustDetection);
@@ -182,11 +198,21 @@ namespace askap {
             if (this->itsFitParams.numFitTypes() == 0 && this->itsFlagDoFit)
                 ASKAPLOG_WARN_STR(logger, "No valid fit types given, so setting doFit flag to false.");
 
-            this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
+//             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
+	    this->itsSubimageAnnotationFile = "duchamp-SubimageLocations.ann";	       
+
+
+	    if(parset.isDefined("logFile")){
+	      if(this->isParallel() && this->isMaster())
+		ASKAPLOG_WARN_STR(logger, "logFile = 'duchamp-Logfile-Master.txt'");
+	      if(this->isWorker())
+		ASKAPLOG_WARN_STR(logger, "logFile = '"<<substitute("duchamp-Logfile-%w.txt")<<"'");
+	    }
 
             if (this->isParallel()) {
                 if (this->isMaster()) {
-                    this->itsCube.pars().setLogFile(substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")));
+//                     this->itsCube.pars().setLogFile(substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")));
+                    this->itsCube.pars().setLogFile("duchamp-Logfile-Master.txt");
                     this->itsSubimageDef = SubimageDef(parset);
                 } else if (this->isWorker()) {
                     this->itsSubimageDef = SubimageDef(parset);
@@ -194,7 +220,8 @@ namespace askap {
             }
 
             if (this->isWorker())
-                this->itsCube.pars().setLogFile(substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")));
+                this->itsCube.pars().setLogFile(substitute("duchamp-Logfile-%w.txt"));
+//                 this->itsCube.pars().setLogFile(substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")));
 
         }
 

@@ -172,12 +172,16 @@ namespace askap {
 
             par.setFlagLog(parset.getBool("flagLog",true)); // different from Duchamp default
 	    // logfile - this is defined in DuchampParallel, as it depends on the worker/master number.
-            std::string outputfile;
-            outputfile = parset.getString("outfile", "");
-            if (outputfile == "") outputfile =  parset.getString("resultsFile", "");
-            if (outputfile != "") par.setOutFile(outputfile);
+//             std::string outputfile;
+//             outputfile = parset.getString("outfile", "");
+//             if (outputfile == "") outputfile =  parset.getString("resultsFile", "");
+//             if (outputfile != "") par.setOutFile(outputfile);
+	    if(parset.isDefined("outfile") || parset.isDefined("resultsFile")) 
+	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getOutFile()<<"' for the results file");
 	    par.setFlagSeparateHeader(parset.getBool("flagSeparateHeader",par.getFlagSeparateHeader()));
-	    par.setHeaderFile(parset.getString("headerFile",par.getHeaderFile()));
+// 	    par.setHeaderFile(parset.getString("headerFile",par.getHeaderFile()));
+	    if(par.getFlagSeparateHeader() && parset.isDefined("headerFile")) 
+	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getHeaderFile()<<"' for the results header file");
 	    checkUnusedParameter(parset,"spectraFile");// no graphics
 	    checkUnusedParameter(parset,"flagTextSpectra");// can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
 	    checkUnusedParameter(parset,"spectraTextFile");// can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
@@ -193,9 +197,13 @@ namespace askap {
 	    checkUnusedParameter(parset,"flagOutputResid");// 
 	    checkUnusedParameter(parset,"fileOutputResid");// 
 	    par.setFlagVOT(parset.getBool("flagVOT",par.getFlagVOT()));
-	    par.setVOTFile(parset.getString("votFile",par.getVOTFile()));
+// 	    par.setVOTFile(parset.getString("votFile",par.getVOTFile()));
+	    if(par.getFlagVOT() && parset.isDefined("votFile"))
+	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getVOTFile()<<"' for the VOTable file");
             par.setFlagKarma(parset.getBool("flagKarma", true)); // different from Duchamp default
 	    par.setKarmaFile(parset.getString("karmaFile",par.getKarmaFile()));
+	    if(par.getFlagKarma() && parset.isDefined("karmaFile"))
+	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getKarmaFile()<<"' for the Karma annotation file");
 	    par.setFlagMaps(false); // flagMaps
 	    checkUnusedParameter(parset,"detectMap");//  - not using X
 	    checkUnusedParameter(parset,"momentMap");//  - not using X
