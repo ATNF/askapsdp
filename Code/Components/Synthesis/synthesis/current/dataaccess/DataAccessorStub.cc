@@ -120,6 +120,8 @@ namespace askap
         itsAntenna2.resize(nRows);
         itsFeed1.resize(nRows);
         itsFeed2.resize(nRows);
+        itsFeed1PA.resize(nRows);
+        itsFeed2PA.resize(nRows);
         itsPointingDir1.resize(nRows);
         itsPointingDir2.resize(nRows);
         itsDishPointing1.resize(nRows);
@@ -134,6 +136,8 @@ namespace askap
             itsAntenna2(row)=iant2;
             itsFeed1(row)=0;
             itsFeed2(row)=0;
+            itsFeed1PA(row)=0;
+            itsFeed2PA(row)=0;
             itsPointingDir1(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
             itsPointingDir2(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
             itsDishPointing1(row)=casa::MVDirection(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));

@@ -82,6 +82,8 @@ DataAccessorAdapter::DataAccessorAdapter(const IConstDataAccessor &acc)
 /// reference is valid until the adapter is detached from it
 DataAccessorAdapter::DataAccessorAdapter(IDataAccessor &acc)
 {
+  // just cast to the type stored in the shared pointer, read-write access relies
+  // on dynamic cast back to the non-const type
   IConstDataAccessor* ptr = &acc;
   itsAccessor.reset(ptr, utility::NullDeleter());
 }
@@ -337,12 +339,33 @@ void DataAccessorAdapter::associate(const boost::shared_ptr<IConstDataAccessor> 
 }
 
 /// @brief associate this adapter
+/// @details This method associates the adapter with the given const accessor
+/// @param[in] acc reference to a valid accessor
+void DataAccessorAdapter::associate(const IConstDataAccessor &acc)
+{
+  // we don't access non-const methods anywhere, so constness is just conceptual here
+  IConstDataAccessor* ptr = const_cast<IConstDataAccessor*>(&acc);
+  itsAccessor.reset(ptr, utility::NullDeleter());
+}
+
+/// @brief associate this adapter
 /// @details This method associates the adapter with the given non-const accessor
 /// @param[in] acc shared pointer to a valid accessor
 void DataAccessorAdapter::associate(const boost::shared_ptr<IDataAccessor> &acc)
 {
   ASKAPDEBUGASSERT(acc);
   itsAccessor = acc;
+}
+
+/// @brief associate this adapter
+/// @details This method associates the adapter with the given non-const accessor
+/// @param[in] acc reference to a valid accessor
+void DataAccessorAdapter::associate(IDataAccessor &acc)
+{
+  // just cast to the type stored in the shared pointer, read-write access relies
+  // on dynamic cast back to the non-const type
+  IConstDataAccessor* ptr = &acc;
+  itsAccessor.reset(ptr, utility::NullDeleter());
 }
 
 /// @brief check whether the adapter is associated with some accessor

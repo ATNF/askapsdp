@@ -253,9 +253,19 @@ public:
   void associate(const boost::shared_ptr<IConstDataAccessor> &acc);
 
   /// @brief associate this adapter
+  /// @details This method associates the adapter with the given const accessor
+  /// @param[in] acc reference to a valid accessor
+  void associate(const IConstDataAccessor &acc);
+
+  /// @brief associate this adapter
   /// @details This method associates the adapter with the given non-const accessor
   /// @param[in] acc shared pointer to a valid accessor
   void associate(const boost::shared_ptr<IDataAccessor> &acc);
+
+  /// @brief associate this adapter
+  /// @details This method associates the adapter with the given non-const accessor
+  /// @param[in] acc reference to a valid accessor
+  void associate(IDataAccessor &acc);
   
   /// @brief check whether the adapter is associated with some accessor
   /// @return true if adapter is associated with an accessor, false otherwise
