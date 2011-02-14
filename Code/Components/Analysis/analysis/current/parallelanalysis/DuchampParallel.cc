@@ -1490,19 +1490,23 @@ namespace askap {
 		}
 
 
-                std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
+		if(this->itsFlagDoFit){
 
-                for (size_t t = 0; t < outtypes.size(); t++) {
+		  std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
+		  
+		  for (size_t t = 0; t < outtypes.size(); t++) {
                     std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]).c_str());
                     std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
-
+		    
                     for (; src < this->itsSourceList.end(); src++)
-                        src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin(), this->itsFlagFindSpectralIndex);
-
+		      src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin(), this->itsFlagFindSpectralIndex);
+		    
                     summaryFile.close();
-                }
+		  }
+		  
+		  if (this->itsFlagDoFit) this->writeFitAnnotation();
 
-                if (this->itsFlagDoFit) this->writeFitAnnotation();
+		}
 
             } else {
             }
