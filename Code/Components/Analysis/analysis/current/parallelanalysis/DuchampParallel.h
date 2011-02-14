@@ -215,7 +215,7 @@ namespace askap {
                 bool itsFlagFindSpectralIndex;
 
                 /// Name of the summary file
-                std::string itsSummaryFile;
+                std::string itsFitSummaryFile;
 
                 /// Name of the Karma annotation file showing the subimages used when in parallel
                 std::string itsSubimageAnnotationFile;

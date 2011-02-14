@@ -168,9 +168,12 @@ namespace askap {
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
             this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", false);
             this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
-            this->itsSummaryFile = parset.getString("summaryFile", "duchamp-Summary.txt");
-            this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
-            this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-Results-Fits.ann");
+	    if(parset.isDefined("summaryFile")){
+	      this->itsFitSummaryFile = parset.getString("summaryFile", "duchamp-fitResults.txt");
+	      ASKAPLOG_WARN_STR(logger, "We've changed the name of the 'summaryFile' parameter to 'fitResultsFile'. Using your parameter " << this->itsFitSummaryFile << " for now, but please change your parset!");
+	    }
+            this->itsFitSummaryFile = parset.getString("fitResultsFile", "duchamp-fitResults.txt");
+            this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-fitResults.ann");
             this->itsFitBoxAnnotationFile = parset.getString("fitBoxAnnotationFile", this->itsFitAnnotationFile);
             LOFAR::ParameterSet fitParset = parset.makeSubset("Fitter.");
             this->itsFitParams = sourcefitting::FittingParameters(fitParset);
@@ -178,6 +181,8 @@ namespace askap {
 
             if (this->itsFitParams.numFitTypes() == 0 && this->itsFlagDoFit)
                 ASKAPLOG_WARN_STR(logger, "No valid fit types given, so setting doFit flag to false.");
+
+            this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
 
             if (this->isParallel()) {
                 if (this->isMaster()) {
@@ -1457,7 +1462,7 @@ namespace askap {
                 std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
 
                 for (size_t t = 0; t < outtypes.size(); t++) {
-                    std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsSummaryFile.c_str(), outtypes[t]).c_str());
+                    std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]).c_str());
                     std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
 
                     for (; src < this->itsSourceList.end(); src++)
