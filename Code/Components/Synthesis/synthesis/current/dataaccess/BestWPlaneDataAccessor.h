@@ -69,11 +69,57 @@ public:
    /// in the constructor call itself.
    explicit BestWPlaneDataAccessor(const double tolerance);
    
+   /// @brief uvw after rotation
+   /// @details This method subtracts the best plane out of the w coordinates
+   /// (after uvw-rotation) and return the resulting vectors.
+   /// @param[in] tangentPoint tangent point to rotate the coordinates to
+   /// @return uvw after rotation to the new coordinate system for each row
+   /// @note An exception is thrown if the layout is so non-coplanar that
+   /// the required tolerance on w-term cannot be met.
+   virtual const casa::Vector<casa::RigidVector<casa::Double, 3> >&
+	         rotatedUVW(const casa::MDirection &tangentPoint) const;
+   
+   // fitted plane parameters
+   
+   /// @brief obtain fit coefficient A
+   /// @details We fit w=Au+Bv, this method returns the coefficient A
+   /// @return fit coefficient A
+   inline double coeffA() const { return itsCoeffA; }
+
+   /// @brief obtain fit coefficient B
+   /// @details We fit w=Au+Bv, this method returns the coefficient B
+   /// @return fit coefficient B
+   inline double coeffB() const { return itsCoeffB; }
+   
 private:
    /// @brief w-term tolerance in wavelengths
    /// @details If the deviation from the fitted plane exceeds the tolerance, a new
    /// fit will be performed. If it doesn't help, an exception will be thrown.
    double itsWTolerance;
+   
+   /// @brief fit parameter A
+   /// @details We fit w=Au+Bv, this is the coefficient A
+   double itsCoeffA;
+   
+   /// @brief fit parameter B
+   /// @details We fit w=Au+Bv, this is the coefficient B
+   double itsCoeffB;
+   
+   /// @brief change monitor to manage caching
+   /// @details This change monitor is updated every time
+   /// a new uvw's are calculated (and therefore the quality of
+   /// the fit is checked and a new fit is done if necessary).
+   scimath::ChangeMonitor itsUVWChangeMonitor;
+   
+   /// @brief buffer for rotated UVW vector with corrected w
+   mutable casa::Vector<casa::RigidVector<casa::Double, 3> > itsRotatedUVW;   
+   
+   /// @brief last tangent point
+   /// @details This field is added just to be able to do extra checks
+   /// that tanget point is stays fixed for the same accessor. If it could
+   /// change, we would need a more intelligent caching of itsRotatedUVW
+   /// because uvw-rotation is tangent point-dependent.
+   mutable casa::MDirection itsLastTangentPoint;    
 };
 
 } // namespace synthesis

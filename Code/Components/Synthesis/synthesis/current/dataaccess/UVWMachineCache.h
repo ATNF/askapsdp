@@ -74,11 +74,24 @@ struct UVWMachineCache {
    /// the physical direction may be the same). It is aligned with the typical use case as
    /// the reference frame is usually the same for all tangent points. If the frames are
    /// the same, actual directions are compared. False is returned if the distance between
-   /// them is more than the tolerance
+   /// them is more than the tolerance. This non-static method takes the tolerance set in
+   /// the constructor.
    /// @param[in] dir1 first direction
    /// @param[in] dir2 second direction
    /// @return true, if they are matching
    bool compare(const casa::MDirection &dir1, const casa::MDirection &dir2) const;
+
+   /// @brief a helper method to check whether two directions are matching
+   /// @details It always return false if the reference frames are different (although
+   /// the physical direction may be the same). It is aligned with the typical use case as
+   /// the reference frame is usually the same for all tangent points. If the frames are
+   /// the same, actual directions are compared. False is returned if the distance between
+   /// them is more than the tolerance
+   /// @param[in] dir1 first direction
+   /// @param[in] dir2 second direction
+   /// @param[in] tolerance angle tolerance (in radians)
+   /// @return true, if they are matching
+   static bool compare(const casa::MDirection &dir1, const casa::MDirection &dir2, const double tolerance);
 
 protected:
    /// @brief obtain the index corresponding to a particular tangent point

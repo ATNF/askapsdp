@@ -38,6 +38,8 @@
 
 // own includes
 #include <dataaccess/BestWPlaneDataAccessor.h>
+// we use just a static method to track changes of the tangent point
+#include <dataaccess/UVWMachineCache.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -50,8 +52,43 @@ using namespace askap::synthesis;
 /// @param[in] tolerance w-term tolerance in wavelengths
 /// @note An exception could be thrown during the actual processing, not
 /// in the constructor call itself.
-BestWPlaneDataAccessor::BestWPlaneDataAccessor(const double tolerance) : itsWTolerance(tolerance)
+BestWPlaneDataAccessor::BestWPlaneDataAccessor(const double tolerance) : itsWTolerance(tolerance),
+       itsCoeffA(0.), itsCoeffB(0.), itsUVWChangeMonitor(changeMonitor())
 {
 }
 
+/// @brief uvw after rotation
+/// @details This method subtracts the best plane out of the w coordinates
+/// (after uvw-rotation) and return the resulting vectors.
+/// @param[in] tangentPoint tangent point to rotate the coordinates to
+/// @return uvw after rotation to the new coordinate system for each row
+/// @note An exception is thrown if the layout is so non-coplanar that
+/// the required tolerance on w-term cannot be met.
+const casa::Vector<casa::RigidVector<casa::Double, 3> >&
+	         BestWPlaneDataAccessor::rotatedUVW(const casa::MDirection &tangentPoint) const
+{
+   // original accessor, this would throw an exception if an accessor is not assigned
+   const IConstDataAccessor &acc = getROAccessor();
+   
+   // change monitor should indicate a change for the first ever call to this method
+   // (because an associate method should have been called by now)
+   if (itsUVWChangeMonitor == changeMonitor()) {
+       // just a sanity check to ensure that assumptions hold
+       ASKAPCHECK(UVWMachineCache::compare(tangentPoint,itsLastTangentPoint,1e-6),
+           "Current implementation implies that only one tangent point is used per single BestWPlaneDataAccessor adapter. "
+           "rotatedUVW got tangent point="<<tangentPoint<<", while the last one was "<<itsLastTangentPoint);
+       // no change detected, return the buffer
+       return itsRotatedUVW;
+   }
+   // need to compute uvw's
+   itsLastTangentPoint = tangentPoint;
+   const casa::Vector<casa::RigidVector<casa::Double, 3> >& originalUVW = acc.rotatedUVW(tangentPoint);
+   if (itsRotatedUVW.nelements() != originalUVW.nelements()) {
+       itsRotatedUVW.resize(originalUVW.nelements());
+   }
+   
+   // tbd
+   
+   return itsRotatedUVW;
+}	         
 
