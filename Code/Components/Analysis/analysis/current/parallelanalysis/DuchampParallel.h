@@ -140,14 +140,14 @@ namespace askap {
 
                 /// @brief Find the mean (on the workers)
                 void findMeans();
-                /// @brief Find the RMS (on the workers)
-                void findRMSs();
+                /// @brief Find the STDDEV (on the workers)
+                void findStddevs();
                 /// @brief Combine and print the mean (on the master)
                 void combineMeans();
                 /// @brief Send the overall mean to the workers (on the master)
                 void broadcastMean();
-                /// @brief Combine and print the RMS (on the master)
-                void combineRMSs();
+                /// @brief Combine and print the STDDEV (on the master)
+                void combineStddevs();
                 /// @brief Front end for the statistics functions
                 void gatherStats();
 

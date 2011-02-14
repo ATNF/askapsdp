@@ -1565,7 +1565,7 @@ namespace askap {
         {
             /// @details A front-end function that calls all the statistics
             /// functions. Net effect is to find the mean/median and
-            /// rms/MADFM for the entire dataset and store these values in
+            /// stddev/MADFM for the entire dataset and store these values in
             /// the master's itsCube statsContainer.
             if (!this->itsFlagDoMedianSearch &&
                     (!this->itsCube.pars().getFlagUserThreshold() ||
@@ -1573,8 +1573,8 @@ namespace askap {
                 findMeans();
                 combineMeans();
                 broadcastMean();
-                findRMSs();
-                combineRMSs();
+                findStddevs();
+                combineStddevs();
             } else {
 	      if (this->itsFlagDoMedianSearch){
 		if(this->itsCube.pars().getFlagUserThreshold())
@@ -1600,13 +1600,13 @@ namespace askap {
             /// duchamp::Cube::setCubeStats() function.
             if (this->isWorker()) {
                 if (this->isParallel()) {
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finding mean");
+//                     ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finding mean");
 
                     if (this->itsCube.pars().getFlagATrous()) this->itsCube.ReconCube();
                     else if (this->itsCube.pars().getFlagSmooth()) this->itsCube.SmoothCube();
 
                     int32 size = this->itsCube.getSize();
-                    float mean = 0., rms;
+                    float mean = 0., stddev;
                     float *array;
                     // make a mask in case there are blank pixels.
                     bool *mask = this->itsCube.pars().makeStatMask(this->itsCube.getArray(), this->itsCube.getDimArray());
@@ -1616,13 +1616,13 @@ namespace askap {
                         else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
                         else                                     array = this->itsCube.getArray();
 
-                        // calculate both mean & rms, but ignore rms for the moment.
-                        if (this->itsCube.pars().getFlagRobustStats()) findMedianStats(array, size, mask, mean, rms);
-                        else                                    findNormalStats(array, size, mask, mean, rms);
+                        // calculate both mean & stddev, but ignore stddev for the moment.
+                        if (this->itsCube.pars().getFlagRobustStats()) findMedianStats(array, size, mask, mean, stddev);
+                        else                                    findNormalStats(array, size, mask, mean, stddev);
                     }
 
                     double dmean = mean;
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Mean = " << mean);
+                    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Mean = " << mean);
                     LOFAR::BlobString bs;
                     bs.resize(0);
                     LOFAR::BlobOBufString bob(bs);
@@ -1632,12 +1632,12 @@ namespace askap {
                     out << rank << dmean << size;
                     out.putEnd();
                     this->itsConnectionSet->write(0, bs);
-                    ASKAPLOG_INFO_STR(logger, "Sent mean to the master from worker " << this->itsRank);
+//                     ASKAPLOG_DEBUG_STR(logger, "Sent mean to the master from worker " << this->itsRank);
                 } else {
                     // serial case -- can just calculate all stats at once.
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Calculating stats");
+                    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating stats");
                     this->itsCube.setCubeStats();
-                    ASKAPLOG_INFO_STR(logger, "Stats are as follows:");
+                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Stats are as follows:");
                     std::cout << this->itsCube.stats();
                 }
             } else {
@@ -1646,20 +1646,20 @@ namespace askap {
 
         //**************************************************************//
 
-        void DuchampParallel::findRMSs()
+        void DuchampParallel::findStddevs()
         {
-            /// @details In the parallel case, this finds the rms or the
+            /// @details In the parallel case, this finds the stddev or the
             /// median absolute deviation from the median (MADFM) (dictated
             /// by the flagRobustStats parameter) of the worker's
             /// image/cube, then sends that value to the master via LOFAR
-            /// Blobs. To calculate the rms/MADFM, the mean of the full
+            /// Blobs. To calculate the stddev/MADFM, the mean of the full
             /// dataset must be read from the master (again passed via LOFAR
             /// Blobs). The calculation uses the findSpread() function.
             ///
             /// In the serial case, nothing is done, as we have already
-            /// calculated the rms in the findMeans() function.
+            /// calculated the stddev in the findMeans() function.
             if (this->isWorker() && this->isParallel()) {
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "About to calculate rms");
+//                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "About to calculate stddev");
                 // first read in the overall mean for the cube
                 double mean = 0;
 
@@ -1676,9 +1676,9 @@ namespace askap {
                     mean = this->itsCube.stats().getMiddle();
                 }
 
-                // use it to calculate the rms for this section
+                // use it to calculate the stddev for this section
                 int32 size = this->itsCube.getSize();
-                double rms = 0.;
+                double stddev = 0.;
                 float *array;
 
                 if (size > 0) {
@@ -1690,23 +1690,23 @@ namespace askap {
                     else array = this->itsCube.getArray();
 
                     bool *mask = this->itsCube.pars().makeStatMask(array, this->itsCube.getDimArray());
-                    rms = findSpread(this->itsCube.pars().getFlagRobustStats(), mean, size, array, mask);
+                    stddev = findSpread(this->itsCube.pars().getFlagRobustStats(), mean, size, array, mask);
                 }
 
                 if (size > 0 && this->itsCube.pars().getFlagATrous()) delete [] array;
 
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "rms = " << rms);
+                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "stddev = " << stddev);
                 // return it to the master
                 LOFAR::BlobString bs2;
                 bs2.resize(0);
                 LOFAR::BlobOBufString bob(bs2);
                 LOFAR::BlobOStream out(bob);
-                out.putStart("rmsW2M", 1);
+                out.putStart("stddevW2M", 1);
                 int16 rank = this->itsRank;
-                out << rank << rms << size;
+                out << rank << stddev << size;
                 out.putEnd();
                 this->itsConnectionSet->write(0, bs2);
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Sent local rms to the master");
+//                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sent local stddev to the master");
             } else {
             }
         }
@@ -1725,7 +1725,7 @@ namespace askap {
             /// in the StatsContainer in itsCube.
             if (this->isMaster() && this->isParallel()) {
                 // get the means from the workers
-                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Receiving Means and combining");
+//                 ASKAPLOG_DEBUG_STR(logger,  this->workerPrefix() << "Receiving Means and combining");
                 LOFAR::BlobString bs1;
                 int64 size = 0;
                 double av = 0;
@@ -1741,7 +1741,7 @@ namespace askap {
                     int16 rank;
                     in >> rank >> newav >> newsize;
                     in.getEnd();
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received mean from worker " << rank);
+//                     ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Received mean from worker " << rank);
                     size += newsize;
                     av += newav * newsize;
                 }
@@ -1750,8 +1750,8 @@ namespace askap {
                     av /= double(size);
                 }
 
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "OVERALL SIZE = " << size);
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "OVERALL MEAN = " << av);
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Overall size = " << size);
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Overall mean = " << av);
                 this->itsCube.stats().setMean(av);
             } else {
             }
@@ -1764,7 +1764,7 @@ namespace askap {
             /// @details The mean/median value of the full dataset is sent
             /// via LOFAR Blobs to the workers.
             if (this->isMaster() && this->isParallel()) {
-                // now send the overall mean to the workers so they can calculate the rms
+                // now send the overall mean to the workers so they can calculate the stddev
                 double av = this->itsCube.stats().getMean();
                 LOFAR::BlobString bs2;
                 bs2.resize(0);
@@ -1774,49 +1774,49 @@ namespace askap {
                 out << av;
                 out.putEnd();
                 this->itsConnectionSet->writeAll(bs2);
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Broadcast overal mean from master to workers.");
+//                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcast overall mean from master to workers.");
             } else {
             }
         }
 
         //**************************************************************//
 
-        void DuchampParallel::combineRMSs()
+        void DuchampParallel::combineStddevs()
         {
-            /// @details The master reads the rms/MADFM values from each of
+            /// @details The master reads the stddev/MADFM values from each of
             /// the workers, and combines them to produce an estimate of the
-            /// rms for the full cube. Again, if MADFM values have been
+            /// stddev for the full cube. Again, if MADFM values have been
             /// calculated on the workers, they are treated as estimates of
-            /// the rms and are combined as if they are rms values. The
+            /// the stddev and are combined as if they are stddev values. The
             /// overall value is stored in the StatsContainer in itsCube.
             if (this->isMaster() && this->isParallel()) {
                 // get the means from the workers
-                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Receiving RMS values and combining");
+//                 ASKAPLOG_DEBUG_STR(logger,  this->workerPrefix() << "Receiving STDDEV values and combining");
                 LOFAR::BlobString bs;
                 int64 size = 0;
-                double rms = 0;
+                double stddev = 0;
 
                 for (int i = 1; i < itsNNode; i++) {
                     this->itsConnectionSet->read(i - 1, bs);
                     LOFAR::BlobIBufString bib(bs);
                     LOFAR::BlobIStream in(bib);
-                    int version = in.getStart("rmsW2M");
+                    int version = in.getStart("stddevW2M");
                     ASKAPASSERT(version == 1);
-                    double newrms;
+                    double newstddev;
                     int32 newsize;
                     int16 rank;
-                    in >> rank >> newrms >> newsize;
+                    in >> rank >> newstddev >> newsize;
                     in.getEnd();
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received RMS from worker " << rank);
+//                     ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Received stddev from worker " << rank);
                     size += newsize;
-                    rms += (newrms * newrms * (newsize - 1));
+                    stddev += (newstddev * newstddev * (newsize - 1));
                 }
 
                 if (size > 0) {
-                    rms = sqrt(rms / double(size - 1));
+                    stddev = sqrt(stddev / double(size - 1));
                 }
 
-                this->itsCube.stats().setStddev(rms);
+                this->itsCube.stats().setStddev(stddev);
                 this->itsCube.stats().setRobust(false);
 
                 if (!this->itsCube.pars().getFlagUserThreshold()) {
@@ -1825,7 +1825,7 @@ namespace askap {
                     this->itsCube.pars().setThreshold(this->itsCube.stats().getThreshold());
                 }
 
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "OVERALL RMS = " << rms);
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Overall stddev = " << stddev);
             }
         }
 
@@ -1836,7 +1836,7 @@ namespace askap {
             /// @details The detection threshold value (which has been
             /// already calculated) is sent to the workers via LOFAR Blobs.
             if (this->isMaster() && this->isParallel()) {
-                // now send the overall mean to the workers so they can calculate the rms
+                // now send the overall mean to the workers so they can calculate the stddev
                 LOFAR::BlobString bs;
                 bs.resize(0);
                 LOFAR::BlobOBufString bob(bs);
@@ -1844,12 +1844,12 @@ namespace askap {
                 out.putStart("threshM2W", 1);
                 double threshold = this->itsCube.stats().getThreshold();
                 double mean = this->itsCube.stats().getMiddle();
-                double rms = this->itsCube.stats().getSpread();
-                out << threshold << mean << rms;
+                double stddev = this->itsCube.stats().getSpread();
+                out << threshold << mean << stddev;
                 out.putEnd();
                 this->itsConnectionSet->writeAll(bs);
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Sent threshold ("
-                                      << this->itsCube.stats().getThreshold() << ") from the master");
+//                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sent threshold ("
+//                                       << this->itsCube.stats().getThreshold() << ") from the master");
             } else {
             }
         }
@@ -1861,7 +1861,7 @@ namespace askap {
         {
             /// @details The workers read the detection threshold sent via LOFAR Blobs from the master.
             if (this->isWorker()) {
-                double threshold, mean, rms;
+                double threshold, mean, stddev;
 
                 if (this->isParallel()) {
                     LOFAR::BlobString bs;
@@ -1870,14 +1870,14 @@ namespace askap {
                     LOFAR::BlobIStream in(bib);
                     int version = in.getStart("threshM2W");
                     ASKAPASSERT(version == 1);
-                    in >> threshold >> mean >> rms;
+                    in >> threshold >> mean >> stddev;
                     in.getEnd();
                     this->itsCube.stats().setRobust(false);
                     this->itsCube.stats().setMean(mean);
-                    this->itsCube.stats().setStddev(rms);
+                    this->itsCube.stats().setStddev(stddev);
 
-                    if (!this->itsCube.pars().getFlagUserThreshold() && !this->itsFlagDoMedianSearch)
-                        ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting mean to be " << mean << " and rms " << rms);
+//                     if (!this->itsCube.pars().getFlagUserThreshold() && !this->itsFlagDoMedianSearch)
+//                         ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting mean to be " << mean << " and stddev " << stddev);
 
 		    if (!this->itsCube.pars().getFlagUserThreshold()) {
 		      this->itsCube.stats().setThresholdSNR(this->itsCube.pars().getCut());
