@@ -114,8 +114,15 @@ namespace askap
       casa::ArrayLattice<float> ldirty(dirty);
       const casa::IPosition shape = lpsf.shape();
 
+      // Make the scratch array into which we will calculate the Wiener filter
       casa::ArrayLattice<casa::Complex> scratch(shape);
       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
+      LatticeFFT::cfft2d(scratch, True);
+       
+      // Make the transfer function
+      casa::ArrayLattice<casa::Complex> xfr(shape);
+      xfr.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
+      LatticeFFT::cfft2d(xfr, True);
        
       if (itsTaperCache) {
           ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper to the Wiener filter in the image domain");
@@ -124,14 +131,10 @@ namespace askap
           scratch.copyData(casa::LatticeExpr<casa::Complex>(scratch * taperLattice));
       }
 
-      LatticeFFT::cfft2d(scratch, True);
-       
-      // Construct a Wiener filter
+      // Calculate the Wiener filter
+      casa::ArrayLattice<casa::Complex> wienerfilter(shape);
       const float normFactor = itsDoNormalise ? maxPSFBefore : 1.;
       const float noisePower = (itsUseRobustness ? std::pow(10., 4.*itsParameter) : itsParameter)*normFactor*normFactor;
-       
-      casa::ArrayLattice<casa::Complex> wienerfilter(shape);
-
       ASKAPLOG_INFO_STR(logger, "Effective noise power of the Wiener filter = " << noisePower);     
       wienerfilter.copyData(casa::LatticeExpr<casa::Complex>(normFactor*conj(scratch)/(real(scratch*conj(scratch)) + noisePower)));
       
@@ -143,11 +146,10 @@ namespace askap
       throw 1;
       */
       
-      scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
-       
+      // Apply the Wiener filter to the xfr and transform to the filtered PSF
+      scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * xfr));
       LatticeFFT::cfft2d(scratch, False);       
       lpsf.copyData(casa::LatticeExpr<float>(real(scratch)));
-
       const float maxPSFAfter=casa::max(psf);
       ASKAPLOG_INFO_STR(logger, "Peak of PSF after Wiener filtering  = " << maxPSFAfter); 
       psf *= maxPSFBefore/maxPSFAfter;
@@ -155,9 +157,7 @@ namespace askap
       
       // Apply the filter to the dirty image
       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(ldirty)));       
-       
       LatticeFFT::cfft2d(scratch, True);
- 
       scratch.copyData(casa::LatticeExpr<casa::Complex> (wienerfilter * scratch));
       LatticeFFT::cfft2d(scratch, False);
 
