@@ -35,6 +35,7 @@
 #include <dataaccess/DataAccessorStub.h>
 #include <dataaccess/DataAccessorAdapter.h>
 #include <dataaccess/TableDataSource.h>
+#include <dataaccess/BestWPlaneDataAccessor.h>
 #include "TableTestRunner.h"
 
 namespace askap {
@@ -50,6 +51,7 @@ class DataAccessorAdapterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(daAdapterAssociationTest);
   CPPUNIT_TEST(daAdapterConstTest);
   CPPUNIT_TEST_EXCEPTION(daAdapterNonConstTest, AskapError);
+  CPPUNIT_TEST(bestWPlaneAdapterTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   void onDemandBufferDATest() {
@@ -176,6 +178,49 @@ public:
       acc2.rwVisibility().set(1.);
   }
   
+  void bestWPlaneAdapterTest() {
+      DataAccessorStub acc(true);
+      makeCoplanar(acc, 1.3, -0.4);
+      // we simulate only coplanar arrays in this test, so
+      // tolerance of 1 wavelength should be good enough
+      BestWPlaneDataAccessor acc2(1);
+      scimath::ChangeMonitor cm = acc2.planeChangeMonitor();
+      CPPUNIT_ASSERT(!acc2.isAssociated());
+      acc2.associate(acc);
+      CPPUNIT_ASSERT(acc2.isAssociated());
+      testZeroW(acc2);
+  }
+  
+  /// @brief a helper method to test w == 0
+  /// @details After the fit, w's should be zero.
+  /// @param[in] acc accessor
+  static void testZeroW(const IConstDataAccessor &acc) 
+  {
+      CPPUNIT_ASSERT(acc.nRow() >= 1);
+      const casa::MDirection fakeTangent(acc.dishPointing1()[0], casa::MDirection::J2000);
+      const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw = acc.rotatedUVW(fakeTangent);      
+      for (casa::uInt row=0; row<acc.nRow(); ++row) {
+           CPPUNIT_ASSERT(fabs(uvw[row](2))<1e-7);
+      }
+  }
+  
+  /// @brief helper method to alter uvw field of the given accessor
+  /// @details This method replaces w with Au+Bv making the layout 
+  /// coplanar.
+  /// @param[in] acc accessor 
+  /// @param[in] A coefficient A
+  /// @param[in] B coefficient B
+  static void makeCoplanar(DataAccessorStub &acc, const double A, const double B)
+  {
+     for (casa::uInt row=0; row<acc.nRow(); ++row) {
+          // In the stubbed class, we use itsUVW for both normal and rotated uvw
+          acc.itsUVW[row](2) = A * acc.itsUVW[row](0) + B * acc.itsUVW[row](1); 
+     }
+  }
+  
+  
+  /// @brief helper method to test given accessor
+  /// @param[in] acc accessor  
   static void doConstAccessTest(const IConstDataAccessor &acc) 
   {
       CPPUNIT_ASSERT(acc.visibility().nrow() == acc.antenna1().nelements());
