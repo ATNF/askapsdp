@@ -52,6 +52,7 @@ class DataAccessorAdapterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST(daAdapterConstTest);
   CPPUNIT_TEST_EXCEPTION(daAdapterNonConstTest, AskapError);
   CPPUNIT_TEST(bestWPlaneAdapterTest);
+  CPPUNIT_TEST_EXCEPTION(nonCoplanarTest, AskapError);
   CPPUNIT_TEST_SUITE_END();
 public:
   void onDemandBufferDATest() {
@@ -100,15 +101,16 @@ public:
            CPPUNIT_ASSERT(acc2.feed2()[row] == acc.feed2()[row]);           
            CPPUNIT_ASSERT(acc2.antenna1()[row] == acc.antenna1()[row]);
            CPPUNIT_ASSERT(acc2.antenna2()[row] == acc.antenna2()[row]);           
-           CPPUNIT_ASSERT(fabs(acc2.feed1PA()[row] - acc.feed1PA()[row])<1e-6);
-           CPPUNIT_ASSERT(fabs(acc2.feed2PA()[row] - acc.feed2PA()[row])<1e-6);
-           CPPUNIT_ASSERT(fabs(acc2.uvw()[row](0) - acc.uvw()[row](0))<1e-6);
-           CPPUNIT_ASSERT(fabs(acc2.uvw()[row](1) - acc.uvw()[row](1))<1e-6);
-           CPPUNIT_ASSERT(fabs(acc2.uvw()[row](2) - acc.uvw()[row](2))<1e-6);
-           CPPUNIT_ASSERT(fabs(acc2.rotatedUVW(ptDir)[row](0) - acc.rotatedUVW(ptDir)[row](0))<1e-6);
-           CPPUNIT_ASSERT(fabs(acc2.rotatedUVW(ptDir)[row](1) - acc.rotatedUVW(ptDir)[row](1))<1e-6);
-           CPPUNIT_ASSERT(fabs(acc2.rotatedUVW(ptDir)[row](2) - acc.rotatedUVW(ptDir)[row](2))<1e-6);
-           CPPUNIT_ASSERT(fabs(acc2.uvwRotationDelay(ptDir,ptDir)[row] - acc.uvwRotationDelay(ptDir,ptDir)[row])<1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.feed1PA()[row], acc2.feed1PA()[row],1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.feed2PA()[row], acc2.feed2PA()[row],1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.uvw()[row](0), acc2.uvw()[row](0),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.uvw()[row](1),acc2.uvw()[row](1), 1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.uvw()[row](2), acc2.uvw()[row](2), 1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.rotatedUVW(ptDir)[row](0),acc2.rotatedUVW(ptDir)[row](0),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.rotatedUVW(ptDir)[row](1),acc2.rotatedUVW(ptDir)[row](1),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.rotatedUVW(ptDir)[row](2),acc2.rotatedUVW(ptDir)[row](2),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.uvwRotationDelay(ptDir,ptDir)[row],
+                                        acc2.uvwRotationDelay(ptDir,ptDir)[row], 1e-6);
            CPPUNIT_ASSERT(acc2.pointingDir1()[row].separation(acc.pointingDir1()[row])<1e-6);
            CPPUNIT_ASSERT(acc2.pointingDir2()[row].separation(acc.pointingDir2()[row])<1e-6);
            CPPUNIT_ASSERT(acc2.dishPointing1()[row].separation(acc.dishPointing1()[row])<1e-6);
@@ -116,7 +118,7 @@ public:
       }
       CPPUNIT_ASSERT(fabs(acc2.time() - acc.time())<1e-6);
       for (casa::uInt chan=0; chan<acc.nChannel(); ++chan) {
-           CPPUNIT_ASSERT(fabs(acc2.frequency()[chan] - acc.frequency()[chan])<1e-6);           
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(acc.frequency()[chan], acc2.frequency()[chan], 1e-6);           
       }
       for (casa::uInt pol=0; pol<acc.nPol(); ++pol) {
            CPPUNIT_ASSERT(acc2.stokes()[pol] == acc.stokes()[pol]);      
@@ -189,6 +191,48 @@ public:
       acc2.associate(acc);
       CPPUNIT_ASSERT(acc2.isAssociated());
       testZeroW(acc2);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(1.3, acc2.coeffA(), 1e-7);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(-0.4, acc2.coeffB(), 1e-7);
+      CPPUNIT_ASSERT(cm != acc2.planeChangeMonitor());
+      cm = acc2.planeChangeMonitor();
+      acc2.associate(acc); // technically this is not necessary
+      CPPUNIT_ASSERT(acc2.isAssociated());
+      // test that we still have the same plane
+      testZeroW(acc2);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(1.3, acc2.coeffA(), 1e-7);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(-0.4, acc2.coeffB(), 1e-7);
+      CPPUNIT_ASSERT(cm == acc2.planeChangeMonitor());
+      // change the plane
+      makeCoplanar(acc, -0.7, 0.5);
+      acc2.associate(acc); // technically this is not necessary
+      testZeroW(acc2);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(-0.7, acc2.coeffA(), 1e-7);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5, acc2.coeffB(), 1e-7);
+      CPPUNIT_ASSERT(cm != acc2.planeChangeMonitor());
+      cm = acc2.planeChangeMonitor();
+      // make a change
+      makeCoplanar(acc, -3.7, -0.05);
+      testZeroW(acc2);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(-3.7, acc2.coeffA(), 1e-7);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(-0.05, acc2.coeffB(), 1e-7);
+      CPPUNIT_ASSERT(cm != acc2.planeChangeMonitor());
+  }
+  
+  void nonCoplanarTest() 
+  {
+      DataAccessorStub acc(true);
+      // leave w-term as it is, i.e. with full non-coplanarity
+      
+      // tolerance of 0.1 wavelength should be strict enough
+      // to cause the exception
+      BestWPlaneDataAccessor acc2(0.1);
+      
+      CPPUNIT_ASSERT(!acc2.isAssociated());
+      acc2.associate(acc);
+      CPPUNIT_ASSERT(acc2.isAssociated());
+      // an exception should be thrown earlier than the result is
+      // tested to be zero
+      testZeroW(acc2);       
   }
   
   /// @brief a helper method to test w == 0
@@ -200,7 +244,7 @@ public:
       const casa::MDirection fakeTangent(acc.dishPointing1()[0], casa::MDirection::J2000);
       const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw = acc.rotatedUVW(fakeTangent);      
       for (casa::uInt row=0; row<acc.nRow(); ++row) {
-           CPPUNIT_ASSERT(fabs(uvw[row](2))<1e-7);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(0,uvw[row](2),1e-7);
       }
   }
   
