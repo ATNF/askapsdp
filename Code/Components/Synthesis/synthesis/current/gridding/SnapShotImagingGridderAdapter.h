@@ -43,6 +43,7 @@
 
 #include <gridding/IVisGridder.h>
 #include <boost/shared_ptr.hpp>
+#include <dataaccess/BestWPlaneDataAccessor.h>
 
 namespace askap {
 
@@ -65,7 +66,9 @@ public:
    /// @brief initialise the adapter
    /// @details
    /// @param[in] gridder a shared pointer to the gridder to be wrapped by this adapter
-   explicit SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder);
+   /// @param[in] tolerance w-term tolerance in wavelengths (a new fit is performed if the old
+   /// plane gives w-deviation exceeding this value)
+   SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder, const double tolerance);
 
 
    /// @brief copy constructor
@@ -125,6 +128,9 @@ private:
    
    /// @brief gridder doing actual job
    boost::shared_ptr<IVisGridder> itsGridder;
+   
+   /// @brief adapter dealing with plane fitting
+   BestWPlaneDataAccessor itsAccessorAdapter;
 };
    
 } // namespace synthesis

@@ -99,6 +99,10 @@ public:
    /// @return change monitor object
    inline scimath::ChangeMonitor planeChangeMonitor() const { return itsPlaneChangeMonitor;}
 
+   /// @brief obtain tolerance
+   /// @return w-tolerance in wavelengths
+   inline double tolerance() const { return itsWTolerance;}
+   
 protected:
 
    /// @brief fit a new plane and update coefficients if necessary

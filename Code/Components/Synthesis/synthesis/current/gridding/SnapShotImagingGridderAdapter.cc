@@ -48,8 +48,11 @@ using namespace askap::synthesis;
 /// @brief initialise the adapter
 /// @details
 /// @param[in] gridder a shared pointer to the gridder to be wrapped by this adapter
-SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder) :
-     itsGridder(gridder) 
+/// @param[in] tolerance w-term tolerance in wavelengths (a new fit is performed if the old
+/// plane gives w-deviation exceeding this value)
+SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder,
+                               const double tolerance) :
+     itsGridder(gridder), itsAccessorAdapter(tolerance)
 {
   ASKAPCHECK(itsGridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
 }
@@ -59,11 +62,13 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared
 /// which is a non-trivial type
 /// @param[in] other an object to copy from
 SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagingGridderAdapter &other) :
-    IVisGridder(other)
+    IVisGridder(other), itsAccessorAdapter(other.itsAccessorAdapter.tolerance())
 {
   ASKAPCHECK(other.itsGridder, 
        "copy constructor of SnapShotImagingGridderAdapter got an object somehow set up with an empty gridder");
-  itsGridder = other.itsGridder->clone();
+  ASKAPCHECK(!other.itsAccessorAdapter.isAssociated(), 
+     "An attempt to copy gridder adapter with the accessor adapter associated with some real data accessor. This shouldn't happen.");
+  itsGridder = other.itsGridder->clone();  
 }
 
 /// @brief clone a copy of this gridder
