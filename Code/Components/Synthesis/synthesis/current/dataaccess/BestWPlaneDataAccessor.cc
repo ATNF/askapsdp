@@ -87,8 +87,108 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >&
        itsRotatedUVW.resize(originalUVW.nelements());
    }
    
-   // tbd
+   // compute tolerance in metres to match units of originalUVW
+   const casa::Vector<double>& freq = acc.frequency();
+   ASKAPCHECK(freq.nelements()>=1, "An unexpected accessor with zero spectral channels has been encountered");
+   
+   // use the largest frequency/smallest wavelength, i.e. worst case scenario
+   const double maxFreq = freq.nelements() == 1 ? freq[0] : casa::max(freq[0],freq[freq.nelements()-1]);
+   ASKAPDEBUGASSERT(maxFreq > 0.); 
+   const double tolInMetres = itsWTolerance * casa::C::c / maxFreq;
+   
+   const double maxDeviation = updatePlaneIfNecessary(originalUVW, tolInMetres);
+   
+   ASKAPCHECK(maxDeviation < tolInMetres, "The antenna layout is significantly non-coplanar. "
+             "The largest w-term deviation after the fit of "<<maxDeviation<<" metres exceedes the w-term tolerance of "<<
+              itsWTolerance<<" wavelengths equivalent to "<<tolInMetres<<" metres.");
+   for (casa::uInt row=0; row<originalUVW.nelements(); ++row) {
+        const casa::RigidVector<casa::Double, 3> currentUVW = originalUVW[row];
+        itsRotatedUVW[row] = currentUVW;
+        // subtract the current plane
+        itsRotatedUVW[row](2) -= coeffA()*currentUVW(0) + coeffB()*currentUVW(1);
+   }
    
    return itsRotatedUVW;
 }	         
+
+/// @brief calculate the largest deviation from the current fitted plane
+/// @details This helper method iterates through the given uvw's and returns
+/// the largest deviation of the w-term from the current best fit plane.
+/// @param[in] uvw a vector with uvw's
+/// @return the largest w-term deviation from the current plane (same units as uvw's)
+double BestWPlaneDataAccessor::maxWDeviation(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw) const
+{
+   double maxDeviation = 0.;
+
+   // we fit w=Au+Bv, the following lines compute the largest deviation from the current plane.
+
+   for (casa::uInt row=0; row<uvw.nelements(); ++row) {
+        const casa::RigidVector<casa::Double, 3> currentUVW = uvw[row];
+        const double deviation = fabs(coeffA()*currentUVW(0) + coeffB()*currentUVW(1) - currentUVW(2));
+        if (deviation > maxDeviation) {
+            maxDeviation = deviation;
+        }
+   }
+   
+   return maxDeviation;
+}
+
+/// @brief fit a new plane and update coefficients if necessary
+/// @details This method iterates over given uvw's, checks whether the 
+/// largest deviation of the w-term from the current plane is above the 
+/// tolerance and updates the fit coefficients if it is. 
+/// planeChangeMonitor() can be used to detect the change in the fit plane.
+/// 
+/// @param[in] uvw a vector with uvw's
+/// @param[in] tolerance tolerance in the same units as uvw's
+/// @return the largest w-term deviation from the fitted plane (same units as uvw's)
+/// @note If a new fit is performed, the devitation is reported with respect to the
+/// new fit (it takes place if the deviation from initial plane exceeds the given tolerance).
+/// Therefore, if the returned deviation exceeds the tolerance, the layout is significantly
+/// non-coplanar, so the required tolerance cannot be achieved.
+/// This method has a conceptual constness as it doesn't change the original accessor.
+double BestWPlaneDataAccessor::updatePlaneIfNecessary(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+                 double tolerance) const
+{
+   const double maxDeviation = maxWDeviation(uvw);
+      
+   // we need at least two rows for a successful fitting, don't bother doing anything if the
+   // number of rows is too small or the deviation is below the tolerance
+   if ((uvw.nelements() < 2) || (maxDeviation < tolerance)) {
+       return maxDeviation;
+   }
+   
+   // we fit w=Au+Bv, the following lines accumulate the necessary sums of the LSF problem
+   
+   double su2 = 0.; // sum of u-squared
+   double sv2 = 0.; // sum of v-squared
+   double suv = 0.; // sum of uv-products
+   double suw = 0.; // sum of uw-products
+   double svw = 0.; // sum of vw-products
+   
+   for (casa::uInt row=0; row<uvw.nelements(); ++row) {
+        const casa::RigidVector<casa::Double, 3> currentUVW = uvw[row];
+
+        su2 += casa::square(currentUVW(0));
+        sv2 += casa::square(currentUVW(1));
+        suv += currentUVW(0) * currentUVW(1);
+        suw += currentUVW(0) * currentUVW(2);
+        svw += currentUVW(1) * currentUVW(2);                
+   }
+   
+   // we need a non-zero determinant for a successful fitting
+   // some tolerance has to be put on the determinant to avoid unconstrained fits
+   // we just accept the current fit results if the new fit is not possible
+   const double D = su2 * sv2 - casa::square(suv);
+
+   if (fabs(D) < 1e-7) {
+       return maxDeviation;
+   }
+
+   // make an update to the coefficients
+   itsCoeffA = (sv2 * suw - suv * svw) / D;
+   itsCoeffB = (su2 * svw - suv * suw) / D;
+   itsPlaneChangeMonitor.notifyOfChanges();
+   return maxWDeviation(uvw);
+}
 

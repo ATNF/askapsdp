@@ -41,6 +41,8 @@
 
 // own includes
 #include <dataaccess/DataAccessorAdapter.h>
+#include <utils/ChangeMonitor.h>
+
 
 namespace askap {
 
@@ -91,6 +93,38 @@ public:
    /// @return fit coefficient B
    inline double coeffB() const { return itsCoeffB; }
    
+   /// @brief track changes to the fitted plane
+   /// @details This change monitor is updated every time A and B
+   /// coefficients are changed.
+   /// @return change monitor object
+   inline scimath::ChangeMonitor planeChangeMonitor() const { return itsPlaneChangeMonitor;}
+
+protected:
+
+   /// @brief fit a new plane and update coefficients if necessary
+   /// @details This method iterates over given uvw's, checks whether the 
+   /// largest deviation of the w-term from the current plane is above the 
+   /// tolerance and updates the fit coefficients if it is. 
+   /// planeChangeMonitor() can be used to detect the change in the fit plane.
+   /// 
+   /// @param[in] uvw a vector with uvw's
+   /// @param[in] tolerance tolerance in the same units as uvw's
+   /// @return the largest w-term deviation from the fitted plane (same units as uvw's)
+   /// @note If a new fit is performed, the devitation is reported with respect to the
+   /// new fit (it takes place if the deviation from initial plane exceeds the given tolerance).
+   /// Therefore, if the returned deviation exceeds the tolerance, the layout is significantly
+   /// non-coplanar, so the required tolerance cannot be achieved.
+   /// This method has a conceptual constness as it doesn't change the original accessor.
+   double updatePlaneIfNecessary(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw,
+                 double tolerance) const;
+
+   /// @brief calculate the largest deviation from the current fitted plane
+   /// @details This helper method iterates through the given uvw's and returns
+   /// the largest deviation of the w-term from the current best fit plane.
+   /// @param[in] uvw a vector with uvw's
+   /// @return the largest w-term deviation from the current plane (same units as uvw's)
+   double maxWDeviation(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw) const;
+            
 private:
    /// @brief w-term tolerance in wavelengths
    /// @details If the deviation from the fitted plane exceeds the tolerance, a new
@@ -99,18 +133,25 @@ private:
    
    /// @brief fit parameter A
    /// @details We fit w=Au+Bv, this is the coefficient A
-   double itsCoeffA;
+   mutable double itsCoeffA;
    
    /// @brief fit parameter B
    /// @details We fit w=Au+Bv, this is the coefficient B
-   double itsCoeffB;
+   mutable double itsCoeffB;
    
    /// @brief change monitor to manage caching
    /// @details This change monitor is updated every time
    /// a new uvw's are calculated (and therefore the quality of
    /// the fit is checked and a new fit is done if necessary).
-   scimath::ChangeMonitor itsUVWChangeMonitor;
+   mutable scimath::ChangeMonitor itsUVWChangeMonitor;
    
+   /// @brief change monitor to track plane changes
+   /// @details This change monitor is updated every time
+   /// fit coefficients A and B are updated. It can be used for
+   /// caching purposes at a higher level (i.e. to check when to
+   /// regrid the image to a new coordinate system)
+   mutable scimath::ChangeMonitor itsPlaneChangeMonitor;
+      
    /// @brief buffer for rotated UVW vector with corrected w
    mutable casa::Vector<casa::RigidVector<casa::Double, 3> > itsRotatedUVW;   
    
