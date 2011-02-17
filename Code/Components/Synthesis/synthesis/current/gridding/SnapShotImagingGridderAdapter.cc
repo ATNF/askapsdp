@@ -57,7 +57,8 @@ using namespace askap::synthesis;
 /// plane gives w-deviation exceeding this value)
 SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder,
                                const double tolerance) :
-     itsGridder(gridder), itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.)
+     itsGridder(gridder), itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.),
+     itsFirstAccessor(true), itsBuffersFinalised(false)
 {
   ASKAPCHECK(itsGridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
 }
@@ -69,7 +70,8 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared
 SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagingGridderAdapter &other) :
     IVisGridder(other), itsAccessorAdapter(other.itsAccessorAdapter.tolerance()), itsDoPSF(other.itsDoPSF),
     itsAxes(other.itsAxes), itsImageBuffer(other.itsImageBuffer.copy()),
-    itsWeightsBuffer(other.itsWeightsBuffer.copy()), itsCoeffA(other.itsCoeffA), itsCoeffB(other.itsCoeffB)
+    itsWeightsBuffer(other.itsWeightsBuffer.copy()), itsCoeffA(other.itsCoeffA), itsCoeffB(other.itsCoeffB),
+    itsFirstAccessor(other.itsFirstAccessor), itsBuffersFinalised(other.itsBuffersFinalised)
 {
   ASKAPCHECK(other.itsGridder, 
        "copy constructor of SnapShotImagingGridderAdapter got an object somehow set up with an empty gridder");
@@ -107,6 +109,11 @@ void SnapShotImagingGridderAdapter::initialiseGrid(const scimath::Axes& axes,
       itsWeightsBuffer.resize(shape);
       itsImageBuffer.set(0.);
       itsWeightsBuffer.set(0.);
+      // the following flag means the gridding will be 
+      // initialised when the first accessor is encountered
+      itsFirstAccessor = true; 
+      // nothing gridded, zero buffers are the correct output
+      itsBuffersFinalised = true; 
   }
 }
 
@@ -120,14 +127,27 @@ void SnapShotImagingGridderAdapter::grid(IConstDataAccessor& acc)
   } else {
       itsAccessorAdapter.associate(acc);
       const scimath::ChangeMonitor cm = itsAccessorAdapter.planeChangeMonitor();
-      // we need a way to do the check before the grid call here
-      if (cm != itsAccessorAdapter.planeChangeMonitor()) {
-          finaliseGriddingOfCurrentPlane();
+      // the call to rotatedUVW method would assess whether the current plane is still
+      // fine. The result is cached, so there is no performance penalty.
+      itsAccessorAdapter.rotatedUVW(getTangentPoint());
+      if ((cm != itsAccessorAdapter.planeChangeMonitor()) || itsFirstAccessor) {
+          if (!itsFirstAccessor) {
+              // there is nothing to finalise, if this is the first accessor
+              finaliseGriddingOfCurrentPlane();
+              itsFirstAccessor = true;
+          }
           // update plane parameters
           itsCoeffA = itsAccessorAdapter.coeffA();
           itsCoeffB = itsAccessorAdapter.coeffB();          
+      } 
+      if (itsFirstAccessor) {
+          scimath::Axes axes = itsAxes;
+          // need to patch axes here before passing to initialise grid
+          itsGridder->initialiseGrid(axes,itsImageBuffer.shape(),isPSFGridder());
+          itsFirstAccessor = false;
       }
       itsGridder->grid(itsAccessorAdapter);
+      itsBuffersFinalised = false;
       // we don't really need this line
       itsAccessorAdapter.detach();
   }
@@ -138,7 +158,14 @@ void SnapShotImagingGridderAdapter::grid(IConstDataAccessor& acc)
 void SnapShotImagingGridderAdapter::finaliseGrid(casa::Array<double>& out)
 {
   ASKAPDEBUGASSERT(itsGridder);
-  itsGridder->finaliseGrid(out);
+  if (isPSFGridder()) {
+      itsGridder->finaliseGrid(out);
+  } else {
+      if (!itsBuffersFinalised) {
+          finaliseGriddingOfCurrentPlane();
+      }
+      out.assign(itsImageBuffer.copy());  
+  }
 }
 
 /// @brief finalise weights
@@ -148,7 +175,14 @@ void SnapShotImagingGridderAdapter::finaliseGrid(casa::Array<double>& out)
 void SnapShotImagingGridderAdapter::finaliseWeights(casa::Array<double>& out)
 {
   ASKAPDEBUGASSERT(itsGridder);
-  itsGridder->finaliseWeights(out);
+  if (isPSFGridder()) {
+      itsGridder->finaliseWeights(out);
+  } else {
+      if (!itsBuffersFinalised) {
+          finaliseGriddingOfCurrentPlane();
+      }
+      out.assign(itsWeightsBuffer.copy());  
+  }      
 }
 
 /// @brief initialise the degridding
@@ -160,7 +194,10 @@ void SnapShotImagingGridderAdapter::initialiseDegrid(const scimath::Axes& axes,
   ASKAPDEBUGASSERT(itsGridder);
   itsDoPSF = false;
   itsAxes = axes;
-  itsGridder->initialiseDegrid(axes,image);
+  itsImageBuffer.assign(image.copy());
+  // the following flag means the gridding will be 
+  // initialised when the first accessor is encountered
+  itsFirstAccessor = true; 
 }					
 
 /// @brief make context-dependant changes to the gridder behaviour
@@ -184,13 +221,40 @@ void SnapShotImagingGridderAdapter::initVisWeights(const IVisWeights::ShPtr &vis
 void SnapShotImagingGridderAdapter::degrid(IDataAccessor& acc)
 {
   ASKAPDEBUGASSERT(itsGridder);
-  itsGridder->degrid(acc);
+  itsAccessorAdapter.associate(acc);
+  const scimath::ChangeMonitor cm = itsAccessorAdapter.planeChangeMonitor();
+  // the call to rotatedUVW method would assess whether the current plane is still
+  // fine. The result is cached, so there is no performance penalty.
+  itsAccessorAdapter.rotatedUVW(getTangentPoint());
+  if ((cm != itsAccessorAdapter.planeChangeMonitor()) || itsFirstAccessor) {
+       if (!itsFirstAccessor) {
+           // there is nothing to finalise, if this is the first accessor
+           itsGridder->finaliseDegrid();
+           itsFirstAccessor = true;
+       }
+       // update plane parameters
+       itsCoeffA = itsAccessorAdapter.coeffA();
+       itsCoeffB = itsAccessorAdapter.coeffB();          
+  } 
+  if (itsFirstAccessor) {
+      scimath::Axes axes = itsAxes;
+      // need to patch axes here before passing to initialise grid
+      casa::Array<double> scratch(itsImageBuffer.shape());
+      imageRegrid(itsImageBuffer,scratch, false);
+      itsGridder->initialiseDegrid(axes,scratch);
+      itsFirstAccessor = false;
+  }
+  itsGridder->degrid(itsAccessorAdapter);
+  // we don't really need this line
+  itsAccessorAdapter.detach();  
 }
 
 /// @brief finalise degridding
 void SnapShotImagingGridderAdapter::finaliseDegrid()
 {
   ASKAPDEBUGASSERT(itsGridder);
+  ASKAPCHECK(!itsFirstAccessor, 
+       "finaliseDegrid is called while the itsFirstAccessor flag is true. This is not supposed to happen");
   itsGridder->finaliseDegrid();
 }
 
@@ -204,11 +268,14 @@ void SnapShotImagingGridderAdapter::finaliseDegrid()
 void SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane()
 {
   ASKAPDEBUGASSERT(itsGridder);
+  ASKAPCHECK(!itsFirstAccessor, 
+       "finaliseGriddingOfCurrentPlane is called while itsFirstAccessor flag is true. This is not supposed to happen");
   casa::Array<double> scratch(itsImageBuffer.shape());
   itsGridder->finaliseGrid(scratch);
   imageRegrid(scratch, itsImageBuffer, true);
   itsGridder->finaliseWeights(scratch);
   imageRegrid(scratch, itsWeightsBuffer, true);  
+  itsBuffersFinalised = true;
 }
 
 /// @brief regrid images between frames
@@ -252,8 +319,26 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
         if (toTarget) {
             outRef += planeIter.getPlane(inRef);
         } else {
-            outRef = planeIter.getPlane(inRef);
+            outRef.assign(planeIter.getPlane(inRef).copy());
         }
    }
 }
+
+/// @brief obtain the tangent point
+/// @details This method extracts the tangent point (reference position) from the
+/// coordinate system.
+/// @return direction measure corresponding to the tangent point
+casa::MVDirection SnapShotImagingGridderAdapter::getTangentPoint() const
+{
+   // at this stage, just a copy of the method from TableVisGridder. May need some refactoring 
+   // in the future
+   ASKAPCHECK(itsAxes.hasDirection(),"Direction axis is missing. axes="<<itsAxes);
+   const casa::Vector<casa::Double> refVal(itsAxes.directionAxis().referenceValue());
+   ASKAPDEBUGASSERT(refVal.nelements() == 2);
+   const casa::Quantum<double> refLon(refVal[0], "rad");
+   const casa::Quantum<double> refLat(refVal[1], "rad");
+   const casa::MVDirection out(refLon, refLat);
+   return out;
+}
+
 

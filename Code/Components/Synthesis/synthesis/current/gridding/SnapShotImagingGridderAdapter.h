@@ -46,6 +46,9 @@
 #include <dataaccess/BestWPlaneDataAccessor.h>
 #include <fitting/Axes.h>
 
+#include <measures/Measures/MDirection.h>
+
+
 namespace askap {
 
 namespace synthesis {
@@ -171,6 +174,11 @@ protected:
    void imageRegrid(const casa::Array<double> &input, casa::Array<double> &output,
                     bool toTarget) const;
    
+   /// @brief obtain the tangent point
+   /// @details This method extracts the tangent point (reference position) from the
+   /// coordinate system.
+   /// @return direction measure corresponding to the tangent point
+   casa::MVDirection getTangentPoint() const;
    
 private:
    
@@ -209,6 +217,16 @@ private:
    /// @details This is a parameter of the best fitted plane 
    /// w=Au+Bv corresponding to the current job done by the wrapped gridder
    double itsCoeffB;      
+   
+   /// @brief true, if this is a first accessor per plane
+   /// @details This flag essentially tracks when we need to call initialise method
+   bool itsFirstAccessor;
+   
+   /// @brief true if the final image has been finalised
+   /// @details finaliseGrid and finaliseWeights can be called in a random order.
+   /// We do the same operations to finalise both. This flag shows that the buffers
+   /// are ready to be returned to the end user.
+   bool itsBuffersFinalised;
 };
    
 } // namespace synthesis
