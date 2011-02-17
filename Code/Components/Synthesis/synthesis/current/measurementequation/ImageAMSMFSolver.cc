@@ -158,7 +158,9 @@ namespace askap
 	  // this can be a facet, hence create a helper
 	  ImageParamsHelper iph(tmIt->first);
 	  // make it 0-order Taylor term
-	  iph.makeTaylorTerm(0);
+	  if(this->itsNumberTaylor>1) {
+	    iph.makeTaylorTerm(0);
+	  }
 	  const casa::IPosition imageShape = ip.value(iph.paramName()).shape();               
 	  const uint nPol = imageShape.nelements()>=3 ? uint(imageShape(2)) : 1;
 	  ASKAPLOG_INFO_STR(logger, "There are " << nPol << " polarisation planes to solve for." );
@@ -200,7 +202,9 @@ namespace askap
 	    ASKAPLOG_INFO_STR(logger, "Preparing iteration for polarisation " 
 			      << plane<<" ("<<tagLogString<<") in image "<<tmIt->first);
 	    // make the helper a 0-order Taylor term
-	    iph.makeTaylorTerm(0);	                
+	    if(this->itsNumberTaylor>1) {
+	      iph.makeTaylorTerm(0);
+	    }
 	    const std::string zeroOrderParam = iph.paramName();
 	    
 	    // Setup the normalization vector	  
@@ -250,7 +254,9 @@ namespace askap
 	    if(firstcycle) limit=2*this->itsNumberTaylor-1;
 	    for( uInt order=0; order < limit; ++order) {
 	      // make helper to represent the given order
-	      iph.makeTaylorTerm(order);
+	      if(this->itsNumberTaylor>1) {
+		iph.makeTaylorTerm(order);
+	      }
 	      const std::string thisOrderParam = iph.paramName();
 	      ASKAPLOG_INFO_STR(logger, "AMSMFS solver: processing order "
 				<< order << " (" << itsNumberTaylor <<
@@ -375,7 +381,9 @@ namespace askap
 	    // Write the final vector of clean model images into parameters
 	    for( uInt order=0; order < itsNumberTaylor; ++order) {
 	      // make the helper to correspond to the given order
-	      iph.makeTaylorTerm(order);
+	      if(this->itsNumberTaylor>1) {
+		iph.makeTaylorTerm(order);
+	      }
 	      const std::string thisOrderParam = iph.paramName();
 	      ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<plane<<" Taylor order="<<order<<
 				" for image "<<tmIt->first);
@@ -385,7 +393,9 @@ namespace askap
 	    // add extra parameters (cross-terms) to the to-be-fixed list
 	    for (uInt order = itsNumberTaylor; order<uInt(tmIt->second); ++order) {
 	      // make the helper to correspond to the given order
-	      iph.makeTaylorTerm(order);
+	      if(this->itsNumberTaylor>1) {
+		iph.makeTaylorTerm(order);
+	      }
 	      const std::string thisOrderParam = iph.paramName();
 	      parametersToBeFixed.insert(thisOrderParam);
 	    }
