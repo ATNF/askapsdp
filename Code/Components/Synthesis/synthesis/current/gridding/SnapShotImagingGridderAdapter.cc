@@ -39,8 +39,13 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding");
+
 #include <gridding/SnapShotImagingGridderAdapter.h>
 #include <askap/AskapError.h>
+#include <utils/MultiDimArrayPlaneIter.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -52,7 +57,7 @@ using namespace askap::synthesis;
 /// plane gives w-deviation exceeding this value)
 SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder,
                                const double tolerance) :
-     itsGridder(gridder), itsAccessorAdapter(tolerance)
+     itsGridder(gridder), itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.)
 {
   ASKAPCHECK(itsGridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
 }
@@ -62,7 +67,9 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared
 /// which is a non-trivial type
 /// @param[in] other an object to copy from
 SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagingGridderAdapter &other) :
-    IVisGridder(other), itsAccessorAdapter(other.itsAccessorAdapter.tolerance())
+    IVisGridder(other), itsAccessorAdapter(other.itsAccessorAdapter.tolerance()), itsDoPSF(other.itsDoPSF),
+    itsAxes(other.itsAxes), itsImageBuffer(other.itsImageBuffer.copy()),
+    itsWeightsBuffer(other.itsWeightsBuffer.copy()), itsCoeffA(other.itsCoeffA), itsCoeffB(other.itsCoeffB)
 {
   ASKAPCHECK(other.itsGridder, 
        "copy constructor of SnapShotImagingGridderAdapter got an object somehow set up with an empty gridder");
@@ -87,8 +94,20 @@ boost::shared_ptr<IVisGridder> SnapShotImagingGridderAdapter::clone()
 void SnapShotImagingGridderAdapter::initialiseGrid(const scimath::Axes& axes,
                 const casa::IPosition& shape, const bool dopsf)
 {
-  ASKAPDEBUGASSERT(itsGridder);
-  itsGridder->initialiseGrid(axes,shape,dopsf);
+  itsDoPSF = dopsf; // other fields are unused for the PSF gridder
+  if (dopsf) {
+      // do the standard initialisation for the PSF gridder
+      ASKAPDEBUGASSERT(itsGridder);
+      itsGridder->initialiseGrid(axes,shape,dopsf);
+  } else {
+      ASKAPDEBUGASSERT(shape.nelements() >= 2);
+      itsAxes = axes;
+      // initialise the buffers for final image and weight
+      itsImageBuffer.resize(shape);
+      itsWeightsBuffer.resize(shape);
+      itsImageBuffer.set(0.);
+      itsWeightsBuffer.set(0.);
+  }
 }
 
 /// @brief grid the visibility data.
@@ -96,7 +115,22 @@ void SnapShotImagingGridderAdapter::initialiseGrid(const scimath::Axes& axes,
 void SnapShotImagingGridderAdapter::grid(IConstDataAccessor& acc)
 {
   ASKAPDEBUGASSERT(itsGridder);
-  itsGridder->grid(acc);
+  if (isPSFGridder()) {
+      itsGridder->grid(acc);
+  } else {
+      itsAccessorAdapter.associate(acc);
+      const scimath::ChangeMonitor cm = itsAccessorAdapter.planeChangeMonitor();
+      // we need a way to do the check before the grid call here
+      if (cm != itsAccessorAdapter.planeChangeMonitor()) {
+          finaliseGriddingOfCurrentPlane();
+          // update plane parameters
+          itsCoeffA = itsAccessorAdapter.coeffA();
+          itsCoeffB = itsAccessorAdapter.coeffB();          
+      }
+      itsGridder->grid(itsAccessorAdapter);
+      // we don't really need this line
+      itsAccessorAdapter.detach();
+  }
 }
 
 /// @brief form the final output image
@@ -124,6 +158,8 @@ void SnapShotImagingGridderAdapter::initialiseDegrid(const scimath::Axes& axes,
 					const casa::Array<double>& image)
 {
   ASKAPDEBUGASSERT(itsGridder);
+  itsDoPSF = false;
+  itsAxes = axes;
   itsGridder->initialiseDegrid(axes,image);
 }					
 
@@ -158,4 +194,66 @@ void SnapShotImagingGridderAdapter::finaliseDegrid()
   itsGridder->finaliseDegrid();
 }
 
+/// @brief finalise gridding for the current plane
+/// @details We execute the gridder pointed by itsGridder
+/// multiple times. Every time the best fitted plane changes
+/// we have to finalise gridding with the wrapped gridder,
+/// regrid the result into target frame and add it to buffers.
+/// The same has to be done for both image and weights. This
+/// method encapsulates all these operations.
+void SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane()
+{
+  ASKAPDEBUGASSERT(itsGridder);
+  casa::Array<double> scratch(itsImageBuffer.shape());
+  itsGridder->finaliseGrid(scratch);
+  imageRegrid(scratch, itsImageBuffer, true);
+  itsGridder->finaliseWeights(scratch);
+  imageRegrid(scratch, itsWeightsBuffer, true);  
+}
+
+/// @brief regrid images between frames
+/// @details This method does the core regridding procedure. It iterates
+/// over 2D planes of the input array, regrids them into the other frame
+/// and either adds the result to the appropriate plane of the output array,
+/// if the regridding is into the target frame or replaces the result if it is
+/// from the target frame. 
+/// @param[in] input input array to be regridded
+/// @param[out] output output array
+/// @param[in] toTarget true, if regridding is from the current frame into the 
+/// target frame (for gridding); false if regridding is from the target frame 
+/// into the current frame (for degridding)
+/// @note The output and input arrays should have the same shape. The iteration
+/// over 2D planes is perfromed explicitly to avoid initialising large scratch 
+/// buffers. An exception is raised if input and output arrays have different 
+/// shapes
+void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input, 
+           casa::Array<double> &output, bool toTarget) const
+{
+   if (toTarget) {
+       ASKAPLOG_INFO_STR(logger, "Regridding image from the frame corresponding to the fitted plane w = u * "<<
+              coeffA()<<" + v * "<<coeffB()<<", into the target frame");
+   } else {
+       ASKAPLOG_INFO_STR(logger, 
+           "Regridding image from the input frame into a frame corresponding to the fitted plane w = u * "<<
+              coeffA()<<" + v * "<<coeffB());       
+   }
+   ASKAPCHECK(input.shape() == output.shape(), 
+           "The shape of input and output arrays should be identical, input.shape()="<<
+              input.shape()<<", output.shape()="<<output.shape());
+   ASKAPDEBUGASSERT(input.shape().nelements() >= 2);
+   
+   // constness is conceptual, we don't do any assignments to the input array
+   // the following line doesn't copy the data (reference semantics)
+   casa::Array<double> inRef(input);
+               
+   for (scimath::MultiDimArrayPlaneIter planeIter(input.shape()); planeIter.hasMore(); planeIter.next()) {
+        // proper regridding comes here, now just do the copy to debug the rest of the logic
+        casa::Array<double> outRef = planeIter.getPlane(output);
+        if (toTarget) {
+            outRef += planeIter.getPlane(inRef);
+        } else {
+            outRef = planeIter.getPlane(inRef);
+        }
+   }
+}
 

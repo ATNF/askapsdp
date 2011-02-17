@@ -44,6 +44,7 @@
 #include <gridding/IVisGridder.h>
 #include <boost/shared_ptr.hpp>
 #include <dataaccess/BestWPlaneDataAccessor.h>
+#include <fitting/Axes.h>
 
 namespace askap {
 
@@ -124,6 +125,53 @@ public:
    /// @brief finalise degridding
    virtual void finaliseDegrid();
 
+protected:
+   /// @brief check whether this is a psf gridder
+   /// @details We pass all calls directly to the wrapped gridder for PSF calculation,
+   /// but may do something fancy if the gridder is calculating dirty image
+   /// @return true, if this gridder is a psf gridder
+   bool inline isPSFGridder() const { return itsDoPSF;}
+
+   /// @brief coefficient A of the fit
+   /// @details This is a parameter of the best fitted plane 
+   /// w=Au+Bv corresponding to the current job done by the wrapped gridder
+   /// @return coefficient A of the fit
+   double inline coeffA() const { return itsCoeffA; }
+
+   /// @brief coefficient B of the fit
+   /// @details This is a parameter of the best fitted plane 
+   /// w=Au+Bv corresponding to the current job done by the wrapped gridder
+   /// @return coefficient B of the fit
+   double inline coeffB() const { return itsCoeffB; }
+   
+   /// @brief finalise gridding for the current plane
+   /// @details We execute the gridder pointed by itsGridder
+   /// multiple times. Every time the best fitted plane changes
+   /// we have to finalise gridding with the wrapped gridder,
+   /// regrid the result into target frame and add it to buffers.
+   /// The same has to be done for both image and weights. This
+   /// method encapsulates all these operations.
+   void finaliseGriddingOfCurrentPlane();
+   
+   /// @brief regrid images between frames
+   /// @details This method does the core regridding procedure. It iterates
+   /// over 2D planes of the input array, regrids them into the other frame
+   /// and either adds the result to the appropriate plane of the output array,
+   /// if the regridding is into the target frame or replaces the result if it is
+   /// from the target frame. 
+   /// @param[in] input input array to be regridded
+   /// @param[out] output output array
+   /// @param[in] toTarget true, if regridding is from the current frame into the 
+   /// target frame (for gridding); false if regridding is from the target frame 
+   /// into the current frame (for degridding)
+   /// @note The output and input arrays should have the same shape. The iteration
+   /// over 2D planes is perfromed explicitly to avoid initialising large scratch 
+   /// buffers. An exception is raised if input and output arrays have different 
+   /// shapes
+   void imageRegrid(const casa::Array<double> &input, casa::Array<double> &output,
+                    bool toTarget) const;
+   
+   
 private:
    
    /// @brief gridder doing actual job
@@ -131,6 +179,36 @@ private:
    
    /// @brief adapter dealing with plane fitting
    BestWPlaneDataAccessor itsAccessorAdapter;
+   
+   /// @brief true if this gridder is computing PSF
+   /// @details We pass all calls to the wrapped gridder for PSF calculation
+   bool itsDoPSF;
+   
+   /// @brief target coordinate system visible from outside
+   /// @details This gridder can setup the wrapped gridder to work with a 
+   /// different coordinate system (corresponding to some fitted plane).
+   /// This field stores the target coordinate system for gridding or 
+   /// input coordinate system for degridding.
+   scimath::Axes itsAxes;
+   
+   /// @brief buffer for the image
+   /// @details It accumulates dirty or model images in the target
+   /// coordinate frame
+   casa::Array<double> itsImageBuffer;
+   
+   /// @brief buffer for weights
+   /// @details It accumulates weights during gridding
+   casa::Array<double> itsWeightsBuffer;
+   
+   /// @brief coefficient A of the fit
+   /// @details This is a parameter of the best fitted plane 
+   /// w=Au+Bv corresponding to the current job done by the wrapped gridder
+   double itsCoeffA;
+   
+   /// @brief coefficient B of the fit
+   /// @details This is a parameter of the best fitted plane 
+   /// w=Au+Bv corresponding to the current job done by the wrapped gridder
+   double itsCoeffB;      
 };
    
 } // namespace synthesis
