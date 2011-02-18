@@ -872,7 +872,7 @@ namespace askap {
                         int maxGauss = std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
 
                         for (int g = 1; g <= maxGauss; g++) {
-			    ASKAPLOG_INFO_STR(logger, "Number of Gaussian components = " << g);
+			    ASKAPLOG_DEBUG_STR(logger, "Number of Gaussian components = " << g);
 
                             fit[ctr].setParams(this->itsFitParams);
                             fit[ctr].setNumGauss(g);
@@ -1299,7 +1299,7 @@ namespace askap {
                         float intfluxfit = fit->flux();
 
                         if (this->itsHeader.needBeamSize())
-                            intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
+			  intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
 
                         columns[duchamp::Column::NUM].printEntry(stream, id.str());
                         columns[duchamp::Column::RAJD].printEntry(stream, thisRA);

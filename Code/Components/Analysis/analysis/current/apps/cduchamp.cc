@@ -85,7 +85,8 @@ int main(int argc, const char** argv)
         LOFAR::ParameterSet parset(parsetFile,LOFAR::StringUtil::Compare::NOCASE);
         LOFAR::ParameterSet subset(parset.makeSubset("Cduchamp."));
         DuchampParallel duchamp(argc, argv, subset);
-        ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
+        if(!duchamp.isParallel() || duchamp.isMaster())
+	  ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         duchamp.readData();
         duchamp.setupLogfile(argc, argv);
         duchamp.gatherStats();

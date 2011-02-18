@@ -177,20 +177,25 @@ namespace askap {
 //             this->itsFitAnnotationFile = parset.getString("fitAnnotationFile", "duchamp-fitResults.ann");
 //             this->itsFitBoxAnnotationFile = parset.getString("fitBoxAnnotationFile", this->itsFitAnnotationFile);
 	    if( parset.isDefined("logFile") || 
-		parset.isDefined("subimageAnnotationFile") ||
-		parset.isDefined("summaryFile") || 
-		parset.isDefined("fitResultsFile") || 
-		parset.isDefined("fitAnnotationFile") || 
-		parset.isDefined("fitBoxAnnotationFile"))  
+		((!this->isParallel() || this->isMaster()) && 
+		 (parset.isDefined("subimageAnnotationFile") ||
+		  parset.isDefined("summaryFile") || 
+		  parset.isDefined("fitResultsFile") || 
+		  parset.isDefined("fitAnnotationFile") || 
+		  parset.isDefined("fitBoxAnnotationFile"))
+		 )
+		)
 	      ASKAPLOG_WARN_STR(logger, "Output filenames have been fixed to certain default values:");
 
 	    this->itsFitSummaryFile = "duchamp-fitResults.txt";
 	    this->itsFitAnnotationFile = "duchamp-fitResults.ann";
 	    this->itsFitBoxAnnotationFile = "duchamp-fitResults.boxes.ann";
 
-	    if(parset.isDefined("summaryFile") || parset.isDefined("fitResultsFile") ) ASKAPLOG_WARN_STR(logger, "fitResultsFile = 'duchamp-fitResults.txt'  (= old parameter summaryFile)");
-	    if(parset.isDefined("fitAnnotationFile")) ASKAPLOG_WARN_STR(logger, "fitAnnotationFile = 'duchamp-fitResults.ann'");
-	    if(parset.isDefined("fitBoxAnnotationFile")) ASKAPLOG_WARN_STR(logger, "fitBoxAnnotationFile = 'duchamp-fitResults.boxes.ann'");
+	    if(!this->isParallel() || this->isMaster()){
+	      if(parset.isDefined("summaryFile") || parset.isDefined("fitResultsFile") ) ASKAPLOG_WARN_STR(logger, "fitResultsFile = 'duchamp-fitResults.txt'  (= old parameter summaryFile)");
+	      if(parset.isDefined("fitAnnotationFile")) ASKAPLOG_WARN_STR(logger, "fitAnnotationFile = 'duchamp-fitResults.ann'");
+	      if(parset.isDefined("fitBoxAnnotationFile")) ASKAPLOG_WARN_STR(logger, "fitBoxAnnotationFile = 'duchamp-fitResults.boxes.ann'");
+	    }
 
             LOFAR::ParameterSet fitParset = parset.makeSubset("Fitter.");
             this->itsFitParams = sourcefitting::FittingParameters(fitParset);
@@ -203,7 +208,8 @@ namespace askap {
 
 //             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
 	    this->itsSubimageAnnotationFile = "duchamp-SubimageLocations.ann";	       
-	    if(parset.isDefined("subimageAnnotationFile")) ASKAPLOG_WARN_STR(logger, "subimageAnnotationFile = 'duchamp-SubimageLocations.ann'");
+	    if((!this->isParallel() || this->isMaster()) && parset.isDefined("subimageAnnotationFile")) 
+	      ASKAPLOG_WARN_STR(logger, "subimageAnnotationFile = 'duchamp-SubimageLocations.ann'");
 
 
 	    if(parset.isDefined("logFile")){
@@ -250,10 +256,10 @@ namespace askap {
             /// @details Returns a vector containing the beam parameters:
             /// major axis [deg], minor axis [deg], position angle [deg].
             std::vector<float> beam(3);
-            beam[0] = this->itsCube.header().getBmajKeyword();
-            beam[1] = this->itsCube.header().getBminKeyword();
-            beam[2] = this->itsCube.header().getBpaKeyword();
-            return beam;
+	    beam[0] = this->itsCube.header().getBmajKeyword();
+	    beam[1] = this->itsCube.header().getBminKeyword();
+	    beam[2] = this->itsCube.header().getBpaKeyword();
+	    return beam;
         }
         //**************************************************************//
 
@@ -270,7 +276,7 @@ namespace askap {
             /// of the data file.
             if (this->isParallel() && this->isMaster()) {
                 int result;
-                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read metadata");
+                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read metadata from image " << this->itsCube.pars().getImageFile());
 
                 if (this->itsIsFITSFile) {
                     this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
@@ -311,7 +317,7 @@ namespace askap {
                     ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsCube.pars().getImageFile() << ".");
                     ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsCube.pars().getImageFile())
                 } else {
-                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read metadata from image " << this->itsCube.pars().getImageFile());
+//                     ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read metadata from image " << this->itsCube.pars().getImageFile());
                 }
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
@@ -321,10 +327,10 @@ namespace askap {
 
             } else if (this->isWorker()) {
 
-                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read data from image " << this->itsCube.pars().getFullImageFile());
+//                 ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read data from image " << this->itsCube.pars().getFullImageFile());
 
-                if (this->itsIsFITSFile) ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reading with FITS code");
-                else                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reading with CASA code");
+//                 if (this->itsIsFITSFile) ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reading with FITS code");
+//                 else                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reading with CASA code");
 
                 int result;
 
@@ -358,7 +364,7 @@ namespace askap {
                     ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in data from image " << this->itsCube.pars().getImageFile());
                     ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsCube.pars().getImageFile());
                 } else {
-                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read data from image " << this->itsCube.pars().getImageFile());
+//                     ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read data from image " << this->itsCube.pars().getImageFile());
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
                                           << this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ());
 
@@ -456,6 +462,7 @@ namespace askap {
                     }
                 }
 
+                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Intermediate list has " << this->itsCube.getNumObj() << " objects.");
                 // merge the objects, and grow them if necessary.
                 this->itsCube.ObjectMerger();
                 this->itsCube.calcObjectWCSparams();

@@ -120,14 +120,13 @@ namespace askap {
                         if (size || !this->itsParams.flagFitThisParam(5))
                             estimate(g, 5) = head.getBpaKeyword() * M_PI / 180.;
                     }
-                }
 
                 this->itsFitter.setFirstEstimate(estimate);
 
-                if (head.getBminKeyword() > 0) this->itsParams.setBeamSize(head.getBminKeyword() / head.getAvPixScale());
+		if (head.getBminKeyword() > 0) this->itsParams.setBeamSize(head.getBminKeyword() / head.getAvPixScale());
                 else this->itsParams.setBeamSize(1.);
 
-                ASKAPLOG_INFO_STR(logger, "Initial estimates of parameters follow: ");
+                ASKAPLOG_DEBUG_STR(logger, "Initial estimates of parameters follow: ");
                 logparameters(estimate);
 
                 if (nCmpnt == 1) {
@@ -192,7 +191,7 @@ namespace askap {
                     for (p = 1; p < m.ncolumn() - 1; p++) outmsg << m(g, p) << ", ";
 
                     outmsg << m(g, p);
-                    ASKAPLOG_INFO_STR(logger, outmsg.str());
+                    ASKAPLOG_DEBUG_STR(logger, outmsg.str());
                 }
             }
 
@@ -258,9 +257,9 @@ namespace askap {
                     cout.precision(6);
 
                     if (this->itsFitter.converged()) {
-                        ASKAPLOG_INFO_STR(logger, "Fit converged. Solution Parameters follow: ");
+                        ASKAPLOG_DEBUG_STR(logger, "Fit converged. Solution Parameters follow: ");
                         logparameters(this->itsSolution);
-                    } else ASKAPLOG_INFO_STR(logger, "Fit did not converge");
+                    } else ASKAPLOG_DEBUG_STR(logger, "Fit did not converge");
 
                     std::string result;
 
@@ -424,9 +423,24 @@ namespace askap {
                 bool passSize = this->passComponentSize();
                 bool passPeak = this->passPeakFlux();
                 bool passIntFlux = this->passIntFlux();
-                ASKAPLOG_INFO_STR(logger, "Passes: " << passConv << passChisq << passLoc << passSep << passSize
-                                      << passFlux << passPeak << passIntFlux);
+//                 ASKAPLOG_INFO_STR(logger, "Passes: " << passConv << passChisq << passLoc << passSep << passSize
+//                                       << passFlux << passPeak << passIntFlux);
+		std::stringstream msg;
+		if(!(passConv || passChisq ||passFlux || passLoc || passSep || passSize || passPeak || passIntFlux))
+		  msg << "Fit failed all criteria";
+		else {
+		  msg << "Fit failed on criteria: ";
+		  if(!passConv) msg << "Converged | ";
+		  if(!passChisq) msg << "Chisq | ";
+		  if(!passFlux) msg << "Flux | ";
+		  if(!passLoc) msg << "Location | ";
+		  if(!passSep) msg << "Separation | ";
+		  if(!passSize) msg << "Size | ";
+		  if(!passPeak) msg << "Peak | ";
+		  if(!passIntFlux) msg << "Integ.Flux | ";
+		}
                 bool thisFitGood = passConv && passChisq && passLoc && passSep && passSize && passFlux && passPeak && passIntFlux;
+		if(!thisFitGood) ASKAPLOG_INFO_STR(logger, msg.str());
                 return thisFitGood;
             }
 
