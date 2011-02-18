@@ -434,19 +434,19 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
    // regridder works with images, so we have to setup temporary 2D images
    // the following may cause an unnecessary copy, there should be a better way
    // of constructing an image out of an array
-   casa::TempImage<double> inImg(casa::TiledShape(planeIter.planeShape()),csInput);
-   casa::TempImage<double> outImg(casa::TiledShape(planeIter.planeShape()),csOutput);
+   casa::TempImage<double> inImg(casa::TiledShape(planeIter.planeShape().nonDegenerate()),csInput);
+   casa::TempImage<double> outImg(casa::TiledShape(planeIter.planeShape().nonDegenerate()),csOutput);
                
    for (; planeIter.hasMore(); planeIter.next()) {
         inImg.put(planeIter.getPlane(inRef));
         regridder.regrid(outImg, casa::Interpolate2D::CUBIC, casa::IPosition(2,0,1), inImg);
         if (toTarget) {
             // create a lattice to benefit from lattice math operators
-            casa::ArrayLattice<double> tempOutputLattice(planeIter.getPlane(output));
+            casa::ArrayLattice<double> tempOutputLattice(planeIter.getPlane(output).nonDegenerate());
             tempOutputLattice += outImg;
         } else {
           // just assign the result
-          casa::Array<double> outRef(planeIter.getPlane(output));
+          casa::Array<double> outRef(planeIter.getPlane(output).nonDegenerate());
           outImg.get(outRef);
         }
    }
