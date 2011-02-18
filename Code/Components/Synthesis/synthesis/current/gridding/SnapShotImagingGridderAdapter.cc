@@ -47,6 +47,8 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <askap/AskapError.h>
 #include <utils/MultiDimArrayPlaneIter.h>
 
+#include <casa/OS/Timer.h>
+
 using namespace askap;
 using namespace askap::synthesis;
 
@@ -58,7 +60,9 @@ using namespace askap::synthesis;
 SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder,
                                const double tolerance) :
      itsGridder(gridder), itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.),
-     itsFirstAccessor(true), itsBuffersFinalised(false)
+     itsFirstAccessor(true), itsBuffersFinalised(false), itsNumOfImageRegrids(0), itsTimeImageRegrid(0.),
+     itsNumOfInitialisations(0), itsLastFitTimeStamp(0.), itsShortestIntervalBetweenFits(3e7),
+     itsLongestIntervalBetweenFits(-1.)
 {
   ASKAPCHECK(itsGridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
 }
@@ -71,7 +75,11 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagi
     IVisGridder(other), itsAccessorAdapter(other.itsAccessorAdapter.tolerance()), itsDoPSF(other.itsDoPSF),
     itsAxes(other.itsAxes), itsImageBuffer(other.itsImageBuffer.copy()),
     itsWeightsBuffer(other.itsWeightsBuffer.copy()), itsCoeffA(other.itsCoeffA), itsCoeffB(other.itsCoeffB),
-    itsFirstAccessor(other.itsFirstAccessor), itsBuffersFinalised(other.itsBuffersFinalised)
+    itsFirstAccessor(other.itsFirstAccessor), itsBuffersFinalised(other.itsBuffersFinalised),
+    itsNumOfImageRegrids(other.itsNumOfImageRegrids), itsTimeImageRegrid(other.itsTimeImageRegrid),
+    itsNumOfInitialisations(other.itsNumOfInitialisations), itsLastFitTimeStamp(other.itsLastFitTimeStamp),
+    itsShortestIntervalBetweenFits(other.itsShortestIntervalBetweenFits), 
+    itsLongestIntervalBetweenFits(other.itsLongestIntervalBetweenFits)
 {
   ASKAPCHECK(other.itsGridder, 
        "copy constructor of SnapShotImagingGridderAdapter got an object somehow set up with an empty gridder");
@@ -79,6 +87,65 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagi
      "An attempt to copy gridder adapter with the accessor adapter associated with some real data accessor. This shouldn't happen.");
   itsGridder = other.itsGridder->clone();  
 }
+
+/// @brief destructor just to print some stats
+SnapShotImagingGridderAdapter::~SnapShotImagingGridderAdapter()
+{
+  if (itsNumOfInitialisations>0) {
+      ASKAPLOG_INFO_STR(logger, "SnapShotImagingGridderAdapter usage statistics");
+      ASKAPLOG_INFO_STR(logger, "   The adapter was initialised for non-PSF gridding and degridding "<<
+                        itsNumOfInitialisations<<" times");
+      ASKAPLOG_INFO_STR(logger, "   Total time spent doing image plane regridding is "<<
+                        itsTimeImageRegrid<<" (s)");
+      ASKAPLOG_INFO_STR(logger, "   Number of regridding events is "<<itsNumOfImageRegrids);
+      ASKAPLOG_INFO_STR(logger, "   or "<<double(itsNumOfImageRegrids)/double(itsNumOfInitialisations)<<
+                        " times per grid/degrid pass");      
+      if (itsNumOfImageRegrids > 0) {
+          ASKAPLOG_INFO_STR(logger, "   Average time spent per image plane regridding is "<<
+                      itsTimeImageRegrid/double(itsNumOfImageRegrids)<<" (s)");
+      } 
+      reportAndInitIntervalStats();     
+  }
+}
+
+/// @brief report current interval stats and initialise them
+/// @details We collect and report such statistics like shortest and longest
+/// intervals between changes to the best fit plane (and therefore between 
+/// image regrids). As the adapter can be reused multiple times, these
+/// stats need to be reset every time a new initialisation is done. This 
+/// method reports current stats to the log (if there is something to report; the
+/// initial values are such that they shouldn't occur in normal operations and can
+/// serve as flags) and initialises them for the next pass.
+void SnapShotImagingGridderAdapter::reportAndInitIntervalStats() const
+{
+  // in principle, (itsNumOfInitialisations > 0) condition is redundant
+  if ((itsLongestIntervalBetweenFits > 0) && (itsNumOfInitialisations > 0) ) {
+      // intervals were initialised, report them
+      ASKAPLOG_INFO_STR(logger, "Longest observing time interval between image plane regrids is "<<
+                         itsLongestIntervalBetweenFits<<" (s)");
+      ASKAPLOG_INFO_STR(logger, "Shortest observing time interval between image plane regrids is "<<
+                         itsShortestIntervalBetweenFits<<" (s)");                         
+  } 
+  itsLongestIntervalBetweenFits = -1.;
+  itsShortestIntervalBetweenFits = 3e7;
+}
+
+/// @brief update interval stats for the new fit
+/// @details This method updates interval statistics for the new fit
+/// @param[in] time current time reported by the accessor triggering fit update
+void SnapShotImagingGridderAdapter::updateIntervalStats(const double time) const
+{
+  const double interval = fabs(time - itsLastFitTimeStamp);
+  if ((interval < itsShortestIntervalBetweenFits) || (itsLongestIntervalBetweenFits < 0)) {
+       itsShortestIntervalBetweenFits = interval;
+  }
+  if (interval > itsLongestIntervalBetweenFits) {
+      itsLongestIntervalBetweenFits = interval;
+  }
+  itsLastFitTimeStamp = time;
+}
+
+
 
 /// @brief clone a copy of this gridder
 /// @return shared pointer to the clone
@@ -103,6 +170,8 @@ void SnapShotImagingGridderAdapter::initialiseGrid(const scimath::Axes& axes,
       itsGridder->initialiseGrid(axes,shape,dopsf);
   } else {
       ASKAPDEBUGASSERT(shape.nelements() >= 2);
+      reportAndInitIntervalStats();
+      ++itsNumOfInitialisations;
       itsAxes = axes;
       // initialise the buffers for final image and weight
       itsImageBuffer.resize(shape);
@@ -135,6 +204,9 @@ void SnapShotImagingGridderAdapter::grid(IConstDataAccessor& acc)
               // there is nothing to finalise, if this is the first accessor
               finaliseGriddingOfCurrentPlane();
               itsFirstAccessor = true;
+              updateIntervalStats(acc.time());
+          } else {
+              itsLastFitTimeStamp = acc.time();
           }
           // update plane parameters
           itsCoeffA = itsAccessorAdapter.coeffA();
@@ -192,6 +264,8 @@ void SnapShotImagingGridderAdapter::initialiseDegrid(const scimath::Axes& axes,
 					const casa::Array<double>& image)
 {
   ASKAPDEBUGASSERT(itsGridder);
+  reportAndInitIntervalStats();
+  ++itsNumOfInitialisations;
   itsDoPSF = false;
   itsAxes = axes;
   itsImageBuffer.assign(image.copy());
@@ -231,6 +305,9 @@ void SnapShotImagingGridderAdapter::degrid(IDataAccessor& acc)
            // there is nothing to finalise, if this is the first accessor
            itsGridder->finaliseDegrid();
            itsFirstAccessor = true;
+           updateIntervalStats(acc.time());
+       } else {
+           itsLastFitTimeStamp = acc.time();
        }
        // update plane parameters
        itsCoeffA = itsAccessorAdapter.coeffA();
@@ -296,6 +373,11 @@ void SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane()
 void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input, 
            casa::Array<double> &output, bool toTarget) const
 {
+   // for stats
+   casa::Timer timer;
+   timer.mark();
+   ++itsNumOfImageRegrids;
+   // actual code
    if (toTarget) {
        ASKAPLOG_INFO_STR(logger, "Regridding image from the frame corresponding to the fitted plane w = u * "<<
               coeffA()<<" + v * "<<coeffB()<<", into the target frame");
@@ -322,6 +404,7 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
             outRef.assign(planeIter.getPlane(inRef).copy());
         }
    }
+   itsTimeImageRegrid += timer.real();
 }
 
 /// @brief obtain the tangent point

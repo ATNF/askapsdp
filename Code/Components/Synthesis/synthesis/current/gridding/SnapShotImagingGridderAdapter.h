@@ -80,6 +80,9 @@ public:
    /// which is a non-trivial type
    /// @param[in] other an object to copy from
    SnapShotImagingGridderAdapter(const SnapShotImagingGridderAdapter &other);
+   
+   /// @brief destructor just to print some stats
+   virtual ~SnapShotImagingGridderAdapter();
 
    /// @brief clone a copy of this gridder
    /// @return shared pointer to the clone
@@ -180,6 +183,21 @@ protected:
    /// @return direction measure corresponding to the tangent point
    casa::MVDirection getTangentPoint() const;
    
+   /// @brief report current interval stats and initialise them
+   /// @details We collect and report such statistics like shortest and longest
+   /// intervals between changes to the best fit plane (and therefore between 
+   /// image regrids). As the adapter can be reused multiple times, these
+   /// stats need to be reset every time a new initialisation is done. This 
+   /// method reports current stats to the log (if there is something to report; the
+   /// initial values are such that they shouldn't occur in normal operations and can
+   /// serve as flags) and initialises them for the next pass.
+   void reportAndInitIntervalStats() const;
+   
+   /// @brief update interval stats for the new fit
+   /// @details This method updates interval statistics for the new fit
+   /// @param[in] time current time reported by the accessor triggering fit update
+   void updateIntervalStats(const double time) const;
+   
 private:
    
    /// @brief gridder doing actual job
@@ -227,6 +245,39 @@ private:
    /// We do the same operations to finalise both. This flag shows that the buffers
    /// are ready to be returned to the end user.
    bool itsBuffersFinalised;
+   
+   /// @brief number of image regridding events
+   /// @details This field is used to build stats.
+   mutable unsigned long itsNumOfImageRegrids; 
+   
+   /// @brief total time spent so far doing image regridding
+   /// @details This field is used to build stats. Time is in seconds.
+   mutable double itsTimeImageRegrid;
+   
+   /// @brief number of initialisations
+   /// @details This field is incremented every time this adapter is initialised
+   /// for gridding or degridding. It is used to build stats in the case the object is
+   /// reused multiple times. Note, stats are not printed, if this number is zero
+   /// (i.e. for unused gridders). We also don't increment it for PSF gridding as 
+   /// all calls are passed through to the wrapped gridder.
+   unsigned long itsNumOfInitialisations;
+   
+   /// @brief time corresponding to current solution
+   /// @details This is the time reported by the accessor at the time a new
+   /// solution for A and B (i.e. a new fit w=Au+Bv) is constructed. It is used to
+   /// build stats for the timespan between individual fits
+   mutable double itsLastFitTimeStamp; 
+   
+   /// @brief shortest time interval between fit operations
+   /// @note the units are those returned by the accessor (configured at the top level,
+   /// currently in seconds).
+   mutable double itsShortestIntervalBetweenFits;
+
+   /// @brief shortest time interval between fit operations
+   /// @note the units are those returned by the accessor (configured at the top level,
+   /// currently in seconds).
+   mutable double itsLongestIntervalBetweenFits;
+   
 };
    
 } // namespace synthesis
