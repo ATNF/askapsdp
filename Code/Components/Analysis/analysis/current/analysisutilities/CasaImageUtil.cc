@@ -65,7 +65,6 @@
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/param.hh>
 #include <duchamp/Cubes/cubes.hh>
-#include <duchamp/FitsIO/DuchampBeam.hh>
 
 using namespace casa;
 using namespace duchamp;

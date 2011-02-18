@@ -120,6 +120,7 @@ namespace askap {
                         if (size || !this->itsParams.flagFitThisParam(5))
                             estimate(g, 5) = head.getBpaKeyword() * M_PI / 180.;
                     }
+		}
 
                 this->itsFitter.setFirstEstimate(estimate);
 
