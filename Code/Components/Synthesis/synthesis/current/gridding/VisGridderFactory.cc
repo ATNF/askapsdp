@@ -167,6 +167,8 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 	{
         double reffreq=parset.getDouble("visweights.MFS.reffreq", 1.405e+09);
         ASKAPLOG_INFO_STR(logger, "Initialising for MFS with reference frequency " << reffreq << " Hz");
+        ASKAPLOG_INFO_STR(logger, "Assuming that the number of Taylor terms is greater than 1");
+
         gridder->initVisWeights(IVisWeights::ShPtr(new VisWeightsMultiFrequency(reffreq)));
 	}
 	else // Null....

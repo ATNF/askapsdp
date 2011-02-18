@@ -281,8 +281,8 @@ namespace askap {
       if(this->control()->psfWidth()>0) {
 	uInt psfWidth=this->control()->psfWidth();
 	if((psfWidth<this->model().shape()(0))&&(psfWidth<this->model().shape()(1))) {
-	  ASKAPLOG_INFO_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth
-			    << " pixels");
+	  //	  ASKAPLOG_INFO_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth
+	  //			    << " pixels");
 	  subPsfShape(0)=psfWidth;
 	  subPsfShape(1)=psfWidth;
 	}
@@ -460,8 +460,6 @@ namespace askap {
     void DeconvolverMultiTermBasisFunction<T,FT>::chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos,
 								  Vector<T>& peakValues, Vector<T>& originalValues)
     {
-      Bool verbose(true);
-      
       uInt nBases(this->itsResidualBasis.nelements());
       
       T absPeakVal(0.0);
@@ -571,8 +569,8 @@ namespace askap {
 	  originalValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos);
 	}
 	// Res: 298.562 Max: 202951 Gain: 0.5 Pos: [493, 397] Scale: 20 Coeffs: 663.175  -701.157   OrigRes: 122.357 -28.997
-	if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "Res: " << maxVal << " Max: " << absPeakVal << " Pos: "
-				      << absPeakPos << " Coeffs: " << peakValues << " OrigRes: " << originalValues);
+	//	ASKAPLOG_INFO_STR(decmtbflogger, "Res: " << maxVal << " Max: " << absPeakVal << " Pos: "
+	//			  << absPeakPos << " Coeffs: " << peakValues << " OrigRes: " << originalValues);
 	
       }
     }
@@ -585,8 +583,6 @@ namespace askap {
       // basis functions so we recalculate for that size
       IPosition subPsfShape(findSubPsfShape());
 
-      Bool verbose(false);
-      
       uInt nBases(this->itsResidualBasis.nelements());
       
       casa::IPosition absPeakPos(2,0);
@@ -599,8 +595,8 @@ namespace askap {
       // We want the worst case residual
       T absPeakVal=max(abs(originalValues));
       
-      if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "All terms: absolute max = " << absPeakVal << " at " << absPeakPos);
-      if(verbose) ASKAPLOG_INFO_STR(decmtbflogger, "Optimum base = " << optimumBase);
+      //      ASKAPLOG_INFO_STR(decmtbflogger, "All terms: absolute max = " << absPeakVal << " at " << absPeakPos);
+      //      ASKAPLOG_INFO_STR(decmtbflogger, "Optimum base = " << optimumBase);
       
       if(this->state()->initialObjectiveFunction()==0.0) {
 	this->state()->setInitialObjectiveFunction(abs(absPeakVal));
