@@ -440,13 +440,14 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
    for (; planeIter.hasMore(); planeIter.next()) {
         inImg.put(planeIter.getPlane(inRef));
         regridder.regrid(outImg, casa::Interpolate2D::CUBIC, casa::IPosition(2,0,1), inImg);
+        // the next line does not do any copying (reference semantics)
+        casa::Array<double> outRef(planeIter.getPlane(output).nonDegenerate());
         if (toTarget) {
             // create a lattice to benefit from lattice math operators
-            casa::ArrayLattice<double> tempOutputLattice(planeIter.getPlane(output).nonDegenerate());
+            casa::ArrayLattice<double> tempOutputLattice(outRef, casa::True);
             tempOutputLattice += outImg;
         } else {
           // just assign the result
-          casa::Array<double> outRef(planeIter.getPlane(output).nonDegenerate());
           outImg.get(outRef);
         }
    }
