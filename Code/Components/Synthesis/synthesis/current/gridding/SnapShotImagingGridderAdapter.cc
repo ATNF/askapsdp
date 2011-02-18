@@ -369,8 +369,23 @@ void SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane()
 casa::DirectionCoordinate SnapShotImagingGridderAdapter::currentPlaneDirectionCoordinate() const
 {
   ASKAPDEBUGASSERT(itsAxes.hasDirection());
-  casa::DirectionCoordinate dc(itsAxes.directionAxis());
-  return dc;
+  const casa::DirectionCoordinate dc(itsAxes.directionAxis());
+  const casa::MDirection::Types directionType = dc.directionType();
+  const casa::Vector<casa::Double> refVal = dc.referenceValue();
+  ASKAPDEBUGASSERT(refVal.nelements() == 2);
+  const casa::Vector<casa::Double> refPix = dc.referencePixel();
+  ASKAPDEBUGASSERT(refPix.nelements() == 2);
+  const casa::Vector<casa::Double> inc = dc.increment();
+  ASKAPDEBUGASSERT(inc.nelements() == 2);
+  const casa::Matrix<casa::Double> xform = dc.linearTransform();
+  // now patch projection
+  casa::Vector<casa::Double> projParams(2);
+  projParams[0] = coeffA();
+  projParams[1] = coeffB();
+  const casa::Projection projection(casa::Projection::SIN, projParams);
+  //
+  return casa::DirectionCoordinate(directionType, projection, refVal[0],refVal[1],
+                   inc[0],inc[1],xform,refPix[0],refPix[1]);
 }
 
 
