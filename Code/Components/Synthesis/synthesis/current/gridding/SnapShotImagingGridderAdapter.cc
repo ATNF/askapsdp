@@ -48,6 +48,12 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <utils/MultiDimArrayPlaneIter.h>
 
 #include <casa/OS/Timer.h>
+#include <images/Images/ImageRegrid.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <lattices/Lattices/ArrayLattice.h>
+#include <casa/Arrays/Array.h>
+#include <images/Images/TempImage.h>
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -355,6 +361,19 @@ void SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane()
   itsBuffersFinalised = true;
 }
 
+/// @brief direction coordinate corresponding to the current fit plane
+/// @details This method forms a direction coordinate corresponding to the
+/// current best fit w=Au+Bv from the direction coordinate stored in 
+/// itsAxes. This is used to setup image plane regridding and coordinate system
+/// of the wrapped gridder during grid/degrid initialisation.
+casa::DirectionCoordinate SnapShotImagingGridderAdapter::currentPlaneDirectionCoordinate() const
+{
+  ASKAPDEBUGASSERT(itsAxes.hasDirection());
+  casa::DirectionCoordinate dc(itsAxes.directionAxis());
+  return dc;
+}
+
+
 /// @brief regrid images between frames
 /// @details This method does the core regridding procedure. It iterates
 /// over 2D planes of the input array, regrids them into the other frame
@@ -394,14 +413,41 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
    // constness is conceptual, we don't do any assignments to the input array
    // the following line doesn't copy the data (reference semantics)
    casa::Array<double> inRef(input);
+   // form coordinate systems
+   const casa::DirectionCoordinate dcCurrent = currentPlaneDirectionCoordinate();
+   const casa::DirectionCoordinate& dcTarget = itsAxes.directionAxis();
+   casa::CoordinateSystem csInput;
+   casa::CoordinateSystem csOutput;
+   if (toTarget) {
+      csInput.addCoordinate(dcCurrent);
+      csOutput.addCoordinate(dcTarget);
+   } else {
+      csInput.addCoordinate(dcTarget);
+      csOutput.addCoordinate(dcCurrent);
+   }
+   
+   // iterator over planes
+   scimath::MultiDimArrayPlaneIter planeIter(input.shape());
+   
+   // regridder
+   casa::ImageRegrid<double> regridder;
+   // regridder works with images, so we have to setup temporary 2D images
+   // the following may cause an unnecessary copy, there should be a better way
+   // of constructing an image out of an array
+   casa::TempImage<double> inImg(casa::TiledShape(planeIter.planeShape()),csInput);
+   casa::TempImage<double> outImg(casa::TiledShape(planeIter.planeShape()),csOutput);
                
-   for (scimath::MultiDimArrayPlaneIter planeIter(input.shape()); planeIter.hasMore(); planeIter.next()) {
-        // proper regridding comes here, now just do the copy to debug the rest of the logic
-        casa::Array<double> outRef = planeIter.getPlane(output);
+   for (; planeIter.hasMore(); planeIter.next()) {
+        inImg.put(planeIter.getPlane(inRef));
+        regridder.regrid(outImg, casa::Interpolate2D::CUBIC, casa::IPosition(2,0,1), inImg);
         if (toTarget) {
-            outRef += planeIter.getPlane(inRef);
+            // create a lattice to benefit from lattice math operators
+            casa::ArrayLattice<double> tempOutputLattice(planeIter.getPlane(output));
+            tempOutputLattice += outImg;
         } else {
-            outRef.assign(planeIter.getPlane(inRef).copy());
+          // just assign the result
+          casa::Array<double> outRef(planeIter.getPlane(output));
+          outImg.get(outRef);
         }
    }
    itsTimeImageRegrid += timer.real();

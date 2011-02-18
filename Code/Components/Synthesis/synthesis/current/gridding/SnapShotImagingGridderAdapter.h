@@ -45,6 +45,7 @@
 #include <boost/shared_ptr.hpp>
 #include <dataaccess/BestWPlaneDataAccessor.h>
 #include <fitting/Axes.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
 
 #include <measures/Measures/MDirection.h>
 
@@ -197,6 +198,13 @@ protected:
    /// @details This method updates interval statistics for the new fit
    /// @param[in] time current time reported by the accessor triggering fit update
    void updateIntervalStats(const double time) const;
+   
+   /// @brief direction coordinate corresponding to the current fit plane
+   /// @details This method forms a direction coordinate corresponding to the
+   /// current best fit w=Au+Bv from the direction coordinate stored in 
+   /// itsAxes. This is used to setup image plane regridding and coordinate system
+   /// of the wrapped gridder during grid/degrid initialisation.
+   casa::DirectionCoordinate currentPlaneDirectionCoordinate() const;   
    
 private:
    
