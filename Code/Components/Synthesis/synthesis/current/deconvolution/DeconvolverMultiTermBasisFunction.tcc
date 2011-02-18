@@ -471,7 +471,7 @@ namespace askap {
       // Here the weighted mask is used as a weight in the determination
       // of the maximum i.e. it finds the max in mask . residual. The values
       // returned are without the mask
-      bool isMasked((this->itsMask.nelements()>0)&&(this->itsMask(0).shape().nonDegenerate().conform(this->itsResidualBasis(0)(0).shape())));
+      bool isMasked((this->itsWeightedMask.nelements()>0)&&(this->itsWeightedMask(0).shape().nonDegenerate().conform(this->itsResidualBasis(0)(0).shape())));
       
       Vector<T> minValues(this->itsNumberTerms);
       Vector<T> maxValues(this->itsNumberTerms);
@@ -504,7 +504,8 @@ namespace askap {
 	    }
 	  }
 	  if(isMasked) {
-	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, criterion, this->itsMask(0).nonDegenerate());
+	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, criterion,
+			       this->itsWeightedMask(0).nonDegenerate());
 	  }
 	  else {
 	    casa::minMax(minVal, maxVal, minPos, maxPos, criterion);
@@ -517,7 +518,7 @@ namespace askap {
 	else if(this->itsSolutionType=="MAXTERM0") {
 	  if(isMasked) {
 	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, coefficients(0),
-			       this->itsMask(0).nonDegenerate());
+			       this->itsWeightedMask(0).nonDegenerate());
 	  }
 	  else {
 	    casa::minMax(minVal, maxVal, minPos, maxPos, coefficients(0));
@@ -530,7 +531,7 @@ namespace askap {
 	else { // MAXBASE
 	  if(isMasked) {
 	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
-			       this->itsMask(0).nonDegenerate());
+			       this->itsWeightedMask(0).nonDegenerate());
 	  }
 	  else {
 	    casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
@@ -559,7 +560,7 @@ namespace askap {
 	
 	if(isMasked) {
 	  casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
-			     this->itsMask(0).nonDegenerate());
+			     this->itsWeightedMask(0).nonDegenerate());
 	}
 	else {
 	  casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
