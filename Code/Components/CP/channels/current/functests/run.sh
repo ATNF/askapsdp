@@ -5,13 +5,24 @@ echo Running test cases...
 
 FAIL=0
 
-# test_channel testcase
-cd test_channel
+# test_eventchannel testcase
+cd test_eventchannel
 ./run.sh
 if [ $? -eq 0 ]; then
-    R1="test_channel  PASS"
+    R1="test_eventchannel  PASS"
 else
-    R1="test_channel  FAIL"
+    R1="test_eventchannel  FAIL"
+    FAIL=1
+fi
+cd $INITIALDIR
+
+# test_uvchannel testcase
+cd test_uvchannel
+./run.sh
+if [ $? -eq 0 ]; then
+    R1="test_uvchannel  PASS"
+else
+    R1="test_uvchannel  FAIL"
     FAIL=1
 fi
 cd $INITIALDIR
