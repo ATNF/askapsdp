@@ -294,6 +294,8 @@ namespace askap
 	    psfZeroArray=psfLongVec(0).copy();
 	    zeroPSFPeak=max(psfZeroArray);
 
+	    casa::Array<float> maskArray(planeIter.planeShape());
+
 	    if(firstcycle) {
 	      // For the first cycle we need to precondition and normalise all PSFs and all dirty images
 	      for(uInt order=0; order < 2 * itsNumberTaylor - 1; ++order) {
@@ -309,7 +311,8 @@ namespace askap
 				    " ("<<tagLogString<< ") and order=" << order);
 		}
 		// Normalise. We need to normalise the PSF only. The dirty vector is along for the ride.
-		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order));
+		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
+				boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
 	      }
 	    }
 	    else {
@@ -322,7 +325,11 @@ namespace askap
 				    " ("<<tagLogString<< ") and order=" << order);
 		}
 		// Normalise. We need to normalise the PSF only. The dirty vector is along for the ride.
-		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order));
+		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
+				boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+	      // Store the new PSF in parameter class to be saved to disk later
+	      saveArrayIntoParameter(ip, tmIt->first, planeIter.shape(), "psf.image",
+				     unpadImage(psfLongVec(order)), planeIter.position());
 	      }
 	    }
 
@@ -338,6 +345,20 @@ namespace askap
 
 	    // Now that we have all the required images, we can initialise the deconvolver
 	    for(uInt order=0; order < itsNumberTaylor; ++order) {
+
+	      // This takes up some memory and we have to ship the residual image out inside
+	      // the parameter class. Therefore, we may not need this functionality in the 
+	      // production version (or may need to implement it in a different way).
+	      saveArrayIntoParameter(ip, tmIt->first, planeIter.shape(), "residual",
+				     unpadImage(dirtyVec(order)), planeIter.position());
+	    
+	      // uncomment the code below to save the mask
+	      if(order==0) {
+		saveArrayIntoParameter(ip, tmIt->first, planeIter.shape(), "mask",
+				       unpadImage(maskArray),
+				       planeIter.position());
+	      }
+	    
 	      if(firstcycle)  {// Initialize everything only once.
 		ASKAPLOG_INFO_STR(logger, "Initialising the solver for plane " << plane
 				  <<" tag "<<imageTag);
@@ -349,10 +370,9 @@ namespace askap
 		
 		itsBasisFunction->initialise(dirtyVec(0).shape());
 		itsCleaners[imageTag]->setBasisFunction(itsBasisFunction);
-
 		itsCleaners[imageTag]->setSolutionType(itsSolutionType);
-
 		itsCleaners[imageTag]->setDecouple(itsDecoupleTerms);
+		itsCleaners[imageTag]->setMask(maskArray, order);
 	      }
 	      else {
 		// Update the dirty images
