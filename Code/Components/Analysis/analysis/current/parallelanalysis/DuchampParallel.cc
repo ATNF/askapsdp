@@ -256,9 +256,12 @@ namespace askap {
             /// @details Returns a vector containing the beam parameters:
             /// major axis [deg], minor axis [deg], position angle [deg].
             std::vector<float> beam(3);
-	    beam[0] = this->itsCube.header().getBmajKeyword();
-	    beam[1] = this->itsCube.header().getBminKeyword();
-	    beam[2] = this->itsCube.header().getBpaKeyword();
+	    beam[0] = this->itsCube.header().beam().maj();
+	    beam[1] = this->itsCube.header().beam().min();
+	    beam[2] = this->itsCube.header().beam().pa();
+// 	      beam[0] = this->itsCube.header().getBmajKeyword();
+// 	      beam[1] = this->itsCube.header().getBminKeyword();
+// 	      beam[2] = this->itsCube.header().getBpaKeyword();
 	    return beam;
         }
         //**************************************************************//

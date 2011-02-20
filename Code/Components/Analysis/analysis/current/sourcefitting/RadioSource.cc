@@ -857,8 +857,10 @@ namespace askap {
 
                         if (*type == "psf") {
                             for (size_t i = 0; i < cmpntList.size(); i++) {
-                                cmpntList[i].setMajor(this->itsHeader.getBeamSize());
-                                cmpntList[i].setMinor(this->itsHeader.getBeamSize());
+//                                 cmpntList[i].setMajor(this->itsHeader.getBeamSize());
+//                                 cmpntList[i].setMinor(this->itsHeader.getBeamSize());
+                                cmpntList[i].setMajor(this->itsHeader.beam().area());
+                                cmpntList[i].setMinor(this->itsHeader.beam().area());			      
                                 cmpntList[i].setPA(0.);
                             }
                         }
@@ -1299,7 +1301,8 @@ namespace askap {
                         float intfluxfit = fit->flux();
 
                         if (this->itsHeader.needBeamSize())
-			  intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
+                            intfluxfit /= this->itsHeader.beam().area(); // Convert from Jy/beam to Jy
+//                             intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
 
                         columns[duchamp::Column::NUM].printEntry(stream, id.str());
                         columns[duchamp::Column::RAJD].printEntry(stream, thisRA);

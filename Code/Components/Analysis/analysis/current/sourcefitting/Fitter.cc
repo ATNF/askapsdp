@@ -105,26 +105,45 @@ namespace askap {
                     estimate(g, 4) = cmpntList[cmpnt].min() / cmpntList[cmpnt].maj();
                     estimate(g, 5) = cmpntList[cmpnt].pa();
 
-                    if (head.getBmajKeyword() > 0) { // if the beam is known,
-                        bool size = (head.getBmajKeyword() / head.getAvPixScale() > cmpntList[cmpnt].maj());
+//                     if (head.getBmajKeyword() > 0) { // if the beam is known,
+//                         bool size = (head.getBmajKeyword() / head.getAvPixScale() > cmpntList[cmpnt].maj());
+
+//                         // if the subcomponent is smaller than the beam, or if we
+//                         // don't want to fit the size parameters, change the
+//                         // estimates of the parameters to the beam size
+//                         if (size || !this->itsParams.flagFitThisParam(3))
+//                             estimate(g, 3) = head.getBmajKeyword() / head.getAvPixScale();
+
+//                         if (size || !this->itsParams.flagFitThisParam(4))
+//                             estimate(g, 4) = head.getBminKeyword() / head.getBmajKeyword();
+
+//                         if (size || !this->itsParams.flagFitThisParam(5))
+//                             estimate(g, 5) = head.getBpaKeyword() * M_PI / 180.;
+//                     }
+                    if (head.beam().originString()!="EMPTY") { // if the beam is known,
+                        bool size = (head.beam().maj() > cmpntList[cmpnt].maj());
 
                         // if the subcomponent is smaller than the beam, or if we
                         // don't want to fit the size parameters, change the
                         // estimates of the parameters to the beam size
                         if (size || !this->itsParams.flagFitThisParam(3))
-                            estimate(g, 3) = head.getBmajKeyword() / head.getAvPixScale();
+                            estimate(g, 3) = head.beam().maj();
 
                         if (size || !this->itsParams.flagFitThisParam(4))
-                            estimate(g, 4) = head.getBminKeyword() / head.getBmajKeyword();
+                            estimate(g, 4) = head.beam().min()/head.beam().maj();
 
                         if (size || !this->itsParams.flagFitThisParam(5))
-                            estimate(g, 5) = head.getBpaKeyword() * M_PI / 180.;
+                            estimate(g, 5) = head.beam().pa() * M_PI / 180.;
                     }
-		}
+
+                }
+
 
                 this->itsFitter.setFirstEstimate(estimate);
 
-		if (head.getBminKeyword() > 0) this->itsParams.setBeamSize(head.getBminKeyword() / head.getAvPixScale());
+//                 if (head.getBminKeyword() > 0) this->itsParams.setBeamSize(head.getBminKeyword() / head.getAvPixScale());
+//                 else this->itsParams.setBeamSize(1.);
+                if (head.beam().min() > 0) this->itsParams.setBeamSize(head.beam().min());
                 else this->itsParams.setBeamSize(1.);
 
                 ASKAPLOG_DEBUG_STR(logger, "Initial estimates of parameters follow: ");
