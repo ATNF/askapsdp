@@ -5,5 +5,5 @@ askapparallel=Code/Base/mwbase/askapparallel/current
 analysis=Code/Components/Analysis/analysis/current
 cfitsio=3rdParty/cfitsio/cfitsio-3.0.6
 wcslib=3rdParty/wcslib/wcslib-4.5.1
-duchamp=3rdParty/Duchamp/Duchamp-1.1.10
+duchamp=3rdParty/Duchamp/Duchamp-1.1.11
 casacore3rdParty/casacore/casacore-1.2.0;casa_casa casa_scimath
