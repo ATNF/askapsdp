@@ -45,6 +45,7 @@
 #include <duchamp/PixelMap/Object2D.hh>
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Detection/finders.hh>
+#include <duchamp/FitsIO/DuchampBeam.hh>
 
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
@@ -266,7 +267,7 @@ namespace askap {
 	  /* } */
 	  CPPUNIT_ASSERT(itsGaussObjlist.size() == 1);
 	  duchamp::FitsHeader head;
-	  head.setBminKeyword(1.);
+	  head.beam().define(1,1,0,duchamp::PARAM);
 	  itsGaussSource.setHeader(head);
 	  itsGaussSource.setFitParams(itsFitparams);
 	  
