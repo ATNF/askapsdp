@@ -52,7 +52,6 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <lattices/Lattices/ArrayLattice.h>
 #include <casa/Arrays/Array.h>
-#include <images/Images/TempImage.h>
 
 
 using namespace askap;
@@ -450,11 +449,12 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
    // regridder works with images, so we have to setup temporary 2D images
    // the following may cause an unnecessary copy, there should be a better way
    // of constructing an image out of an array
-   if (itsTempInImg.shape() != planeIter.planeShape().nonDegenerate()) {
-       itsTempInImg.resize(casa::TiledShape(planeIter.planeShape().nonDegenerate()));
-       itsTempOutImg.resize(casa::TiledShape(planeIter.planeShape().nonDegenerate()));       
+   const casa::IPosition tempShape = planeIter.planeShape().nonDegenerate();
+   if (!itsTempInImg.shape().isEqual(tempShape)) {
+       itsTempInImg.resize(casa::TiledShape(tempShape));
+       itsTempOutImg.resize(casa::TiledShape(tempShape));       
    }
-   ASKAPDEBUGASSERT(itsTempInImg.shape() == itsTempOutImg.shape());
+   ASKAPDEBUGASSERT(itsTempInImg.shape().isEqual(itsTempOutImg.shape()));
    const bool csSuccess = itsTempInImg.setCoordinateInfo(csInput) && itsTempOutImg.setCoordinateInfo(csOutput);
    ASKAPCHECK(csSuccess, "Error setting either input or output coordinate frame during image plane regridding");
                   
