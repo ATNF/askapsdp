@@ -157,10 +157,28 @@ namespace askap
 	  ASKAPDEBUGASSERT(tmIt->second != 0);
 	  // this can be a facet, hence create a helper
 	  ImageParamsHelper iph(tmIt->first);
-	  // make it 0-order Taylor term
+
+	  // nOrders is the number of free parameters
+	  const uInt nOrders = tmIt->second;
+	  
+	  // nOrders is the total number of free parameters. Initially this is 2 * nTaylor - 1.
+	  // This will not work correctly if the number of terms differs between images!
+	  if(itsNumberTaylor==0) {
+	    itsNumberTaylor=(nOrders+1)/2;
+	    ASKAPLOG_INFO_STR(logger, "There are " << itsNumberTaylor << " Taylor terms");
+	    ASKAPLOG_INFO_STR(logger, "There are " << nOrders << " PSFs calculated for this first pass");
+	  }
+	  else {
+	    ASKAPLOG_INFO_STR(decmtbflogger, "There are " << itsNumberTaylor << " Taylor terms");
+	  }
+	  
 	  if(this->itsNumberTaylor>1) {
+            ASKAPLOG_INFO_STR(logger, "Solving for " << this->itsNumberTaylor << " Taylor terms");
 	    iph.makeTaylorTerm(0);
 	  }
+          else {
+            ASKAPLOG_INFO_STR(logger, "No Taylor terms will be solved");
+          }
 	  const casa::IPosition imageShape = ip.value(iph.paramName()).shape();               
 	  const uint nPol = imageShape.nelements()>=3 ? uint(imageShape(2)) : 1;
 	  ASKAPLOG_INFO_STR(logger, "There are " << nPol << " polarisation planes to solve for." );
@@ -202,9 +220,13 @@ namespace askap
 	    ASKAPLOG_INFO_STR(logger, "Preparing iteration for polarisation " 
 			      << plane<<" ("<<tagLogString<<") in image "<<tmIt->first);
 	    // make the helper a 0-order Taylor term
-	    if(this->itsNumberTaylor>1) {
-	      iph.makeTaylorTerm(0);
-	    }
+            if(this->itsNumberTaylor>1) {
+              ASKAPLOG_INFO_STR(logger, "Solving for " << this->itsNumberTaylor << " Taylor terms");
+              iph.makeTaylorTerm(0);
+            }
+            else {
+              ASKAPLOG_INFO_STR(logger, "No Taylor terms will be solved");
+            }
 	    const std::string zeroOrderParam = iph.paramName();
 	    
 	    // Setup the normalization vector	  
@@ -219,30 +241,14 @@ namespace askap
 	    
 	    // a unique string for every Taylor decomposition (unique for every facet for faceting)
 	    const std::string imageTag = tmIt->first + planeIter.tag();
-	    
-	    // nOrders is the number of free parameters
-	    const uInt nOrders = tmIt->second;
-
-	    // nOrders is the total number of free parameters. Initially this is 2 * nTaylor - 1.
-	    // This will not work correctly if the number of terms differs between images!
 	    const bool firstcycle = !SynthesisParamsHelper::hasValue(itsCleaners,imageTag);          
-	    if(itsNumberTaylor==0) {
-	      itsNumberTaylor=(nOrders+1)/2;
-	      ASKAPLOG_INFO_STR(logger, "There are " << itsNumberTaylor << " Taylor terms");
-	      ASKAPLOG_INFO_STR(logger, "There are " << nOrders << " PSFs calculated for this first pass");
-	    }
-	    else {
-	      ASKAPLOG_INFO_STR(decmtbflogger, "There are " << itsNumberTaylor << " Taylor terms");
-	    }
-
+	    
 	    Vector<Array<Float> > cleanVec(itsNumberTaylor);
 
 	    Vector<Array<Float> > dirtyVec(itsNumberTaylor);
 	    Vector<Array<Float> > dirtyLongVec(2*itsNumberTaylor-1);
 	    Vector<Array<Float> > psfVec(itsNumberTaylor);
 	    Vector<Array<Float> > psfLongVec(2*itsNumberTaylor-1);
-	    
-	    // check whether a particular tag has been encountered for the first time
 	    
 	    // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time.
 	    casa::Array<float> psfZeroArray(planeIter.planeShape());
@@ -254,9 +260,13 @@ namespace askap
 	    if(firstcycle) limit=2*this->itsNumberTaylor-1;
 	    for( uInt order=0; order < limit; ++order) {
 	      // make helper to represent the given order
-	      if(this->itsNumberTaylor>1) {
+              if(this->itsNumberTaylor>1) {
+                ASKAPLOG_INFO_STR(logger, "Solving for Taylor term " << this->itsNumberTaylor);
 		iph.makeTaylorTerm(order);
-	      }
+              }
+              else {
+                ASKAPLOG_INFO_STR(logger, "No Taylor terms will be solved");
+              }
 	      const std::string thisOrderParam = iph.paramName();
 	      ASKAPLOG_INFO_STR(logger, "AMSMFS solver: processing order "
 				<< order << " (" << itsNumberTaylor <<
@@ -286,7 +296,7 @@ namespace askap
 		casa::convertArray<float, double>(cleanVec(order), 
 						  planeIter.getPlane(ip.value(thisOrderParam)));
 	      }
-	    }
+	    } // Loop over order
 
 	    // Now precondition the residual images using the zeroth order psf. We need to 
 	    // keep a copy of the zeroth PSF to avoid having it overwritten each time.
@@ -313,7 +323,7 @@ namespace askap
 		// Normalise. We need to normalise the PSF only. The dirty vector is along for the ride.
 		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
 				boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-	      }
+	      }// Loop over order
 	    }
 	    else {
 	      // For the subsequent cycles cycle we need to precondition and normalise the updated dirty images
@@ -327,9 +337,6 @@ namespace askap
 		// Normalise. We need to normalise the PSF only. The dirty vector is along for the ride.
 		doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
 				boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-	      // Store the new PSF in parameter class to be saved to disk later
-	      saveArrayIntoParameter(ip, tmIt->first, planeIter.shape(), "psf.image",
-				     unpadImage(psfLongVec(order)), planeIter.position());
 	      }
 	    }
 
@@ -346,16 +353,31 @@ namespace askap
 	    // Now that we have all the required images, we can initialise the deconvolver
 	    for(uInt order=0; order < itsNumberTaylor; ++order) {
 
+              if(this->itsNumberTaylor>1) {
+                ASKAPLOG_INFO_STR(logger, "Solving for Taylor term " << this->itsNumberTaylor);
+		iph.makeTaylorTerm(order);
+              }
+              else {
+                ASKAPLOG_INFO_STR(logger, "No Taylor terms will be solved");
+              }
+
+	      const std::string thisOrderParam = iph.paramName();
+
 	      // This takes up some memory and we have to ship the residual image out inside
 	      // the parameter class. Therefore, we may not need this functionality in the 
 	      // production version (or may need to implement it in a different way).
-	      saveArrayIntoParameter(ip, tmIt->first, planeIter.shape(), "residual",
+	      saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "residual",
 				     unpadImage(dirtyVec(order)), planeIter.position());
+	    
+	      // This takes up some memory and we have to ship the residual image out inside
+	      // the parameter class. Therefore, we may not need this functionality in the 
+	      // production version (or may need to implement it in a different way).
+	      saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "psf.image",
+				     unpadImage(psfVec(order)), planeIter.position());
 	    
 	      // uncomment the code below to save the mask
 	      if(order==0) {
-		saveArrayIntoParameter(ip, tmIt->first, planeIter.shape(), "mask",
-				       unpadImage(maskArray),
+		saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "mask", unpadImage(maskArray),
 				       planeIter.position());
 	      }
 	    
@@ -401,9 +423,13 @@ namespace askap
 	    // Write the final vector of clean model images into parameters
 	    for( uInt order=0; order < itsNumberTaylor; ++order) {
 	      // make the helper to correspond to the given order
-	      if(this->itsNumberTaylor>1) {
+              if(this->itsNumberTaylor>1) {
+                ASKAPLOG_INFO_STR(logger, "Solved for Taylor term " << this->itsNumberTaylor);
 		iph.makeTaylorTerm(order);
-	      }
+              }
+              else {
+                ASKAPLOG_INFO_STR(logger, "No Taylor terms were solved");
+              }
 	      const std::string thisOrderParam = iph.paramName();
 	      ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<plane<<" Taylor order="<<order<<
 				" for image "<<tmIt->first);
