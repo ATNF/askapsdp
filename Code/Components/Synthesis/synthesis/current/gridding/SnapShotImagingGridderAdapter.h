@@ -48,6 +48,7 @@
 #include <coordinates/Coordinates/DirectionCoordinate.h>
 
 #include <measures/Measures/MDirection.h>
+#include <images/Images/TempImage.h>
 
 
 namespace askap {
@@ -286,6 +287,17 @@ private:
    /// currently in seconds).
    mutable double itsLongestIntervalBetweenFits;
    
+   // buffers used in regridding (promoted to class data members to avoid repeated initialisation
+   // inside the loop)
+   // we don't need to preserve content outside imageRegrid method. However, it may be handy
+   // to initialise these images to a proper size inside initialiseGrid or initialiseDegrid
+   // (it is not done at the moment, all usage of these data fields is confimed to imageRegrid)
+   
+   /// @brief temporary input image for regridding
+   mutable casa::TempImage<double> itsTempInImg;
+   
+   /// @brief temporary output image for regridding
+   mutable casa::TempImage<double> itsTempOutImg;   
 };
    
 } // namespace synthesis

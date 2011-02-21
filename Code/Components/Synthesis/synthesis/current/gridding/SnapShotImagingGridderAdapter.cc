@@ -85,7 +85,8 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagi
     itsNumOfImageRegrids(other.itsNumOfImageRegrids), itsTimeImageRegrid(other.itsTimeImageRegrid),
     itsNumOfInitialisations(other.itsNumOfInitialisations), itsLastFitTimeStamp(other.itsLastFitTimeStamp),
     itsShortestIntervalBetweenFits(other.itsShortestIntervalBetweenFits), 
-    itsLongestIntervalBetweenFits(other.itsLongestIntervalBetweenFits)
+    itsLongestIntervalBetweenFits(other.itsLongestIntervalBetweenFits), 
+    itsTempInImg(), itsTempOutImg()
 {
   ASKAPCHECK(other.itsGridder, 
        "copy constructor of SnapShotImagingGridderAdapter got an object somehow set up with an empty gridder");
@@ -242,7 +243,7 @@ void SnapShotImagingGridderAdapter::finaliseGrid(casa::Array<double>& out)
       if (!itsBuffersFinalised) {
           finaliseGriddingOfCurrentPlane();
       }
-      out.assign(itsImageBuffer.copy());  
+      out.assign(itsImageBuffer);  
   }
 }
 
@@ -259,7 +260,7 @@ void SnapShotImagingGridderAdapter::finaliseWeights(casa::Array<double>& out)
       if (!itsBuffersFinalised) {
           finaliseGriddingOfCurrentPlane();
       }
-      out.assign(itsWeightsBuffer.copy());  
+      out.assign(itsWeightsBuffer);  
   }      
 }
 
@@ -274,7 +275,7 @@ void SnapShotImagingGridderAdapter::initialiseDegrid(const scimath::Axes& axes,
   ++itsNumOfInitialisations;
   itsDoPSF = false;
   itsAxes = axes;
-  itsImageBuffer.assign(image.copy());
+  itsImageBuffer.assign(image);
   // the following flag means the gridding will be 
   // initialised when the first accessor is encountered
   itsFirstAccessor = true; 
@@ -449,21 +450,26 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
    // regridder works with images, so we have to setup temporary 2D images
    // the following may cause an unnecessary copy, there should be a better way
    // of constructing an image out of an array
-   casa::TempImage<double> inImg(casa::TiledShape(planeIter.planeShape().nonDegenerate()),csInput);
-   casa::TempImage<double> outImg(casa::TiledShape(planeIter.planeShape().nonDegenerate()),csOutput);
-               
+   if (itsTempInImg.shape() != planeIter.planeShape().nonDegenerate()) {
+       itsTempInImg.resize(casa::TiledShape(planeIter.planeShape().nonDegenerate()));
+       itsTempOutImg.resize(casa::TiledShape(planeIter.planeShape().nonDegenerate()));       
+   }
+   ASKAPDEBUGASSERT(itsTempInImg.shape() == itsTempOutImg.shape());
+   const bool csSuccess = itsTempInImg.setCoordinateInfo(csInput) && itsTempOutImg.setCoordinateInfo(csOutput);
+   ASKAPCHECK(csSuccess, "Error setting either input or output coordinate frame during image plane regridding");
+                  
    for (; planeIter.hasMore(); planeIter.next()) {
-        inImg.put(planeIter.getPlane(inRef));
-        regridder.regrid(outImg, casa::Interpolate2D::CUBIC, casa::IPosition(2,0,1), inImg);
+        itsTempInImg.put(planeIter.getPlane(inRef));
+        regridder.regrid(itsTempOutImg, casa::Interpolate2D::CUBIC, casa::IPosition(2,0,1), itsTempInImg);
         // the next line does not do any copying (reference semantics)
         casa::Array<double> outRef(planeIter.getPlane(output).nonDegenerate());
         if (toTarget) {
             // create a lattice to benefit from lattice math operators
             casa::ArrayLattice<double> tempOutputLattice(outRef, casa::True);
-            tempOutputLattice += outImg;
+            tempOutputLattice += itsTempOutImg;
         } else {
           // just assign the result
-          outImg.get(outRef);
+          itsTempOutImg.get(outRef);
         }
    }
    itsTimeImageRegrid += timer.real();
