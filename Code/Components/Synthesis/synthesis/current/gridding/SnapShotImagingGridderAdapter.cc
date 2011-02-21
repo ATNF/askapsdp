@@ -198,7 +198,11 @@ void SnapShotImagingGridderAdapter::grid(IConstDataAccessor& acc)
 {
   ASKAPDEBUGASSERT(itsGridder);
   if (isPSFGridder()) {
-      itsGridder->grid(acc);
+      itsAccessorAdapter.associate(acc);
+      // for PSF gridder we don't do any image-plane regridding, because we simulate PSF at the tangent point
+      itsGridder->grid(itsAccessorAdapter);
+      // we don't really need this line
+      itsAccessorAdapter.detach();      
   } else {
       itsAccessorAdapter.associate(acc);
       const scimath::ChangeMonitor cm = itsAccessorAdapter.planeChangeMonitor();
