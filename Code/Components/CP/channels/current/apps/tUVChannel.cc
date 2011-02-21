@@ -43,8 +43,7 @@ using namespace askap::cp::channels;
 // main()
 int main(int argc, char *argv[])
 {
-    //const std::string brokerURI = "tcp://127.0.0.1:61616"
-    const std::string brokerURI = "tcp://gijane:61616"
+    const std::string brokerURI = "tcp://localhost:61616"
         "&conection.useAsyncSend=true"
         "&turboBoost=true"
         "&socketBufferSize=16384"
@@ -53,7 +52,7 @@ int main(int argc, char *argv[])
         //"&wireFormat.tightEncodingEnabled=true"
         ")";
 
-    const std::string topicPrefix = "full";
+    const std::string topicPrefix = "fine";
     const unsigned int nMessages = 5;
     const unsigned int nChans = 152;
 
