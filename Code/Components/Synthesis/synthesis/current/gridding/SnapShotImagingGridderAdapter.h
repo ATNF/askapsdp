@@ -298,6 +298,10 @@ private:
    
    /// @brief temporary output image for regridding
    mutable casa::TempImage<double> itsTempOutImg;   
+
+   /// @brief flag that the model is empty for degridding
+   /// @details It allows to bypass expensive image regridding
+   bool itsModelIsEmpty;
 };
    
 } // namespace synthesis

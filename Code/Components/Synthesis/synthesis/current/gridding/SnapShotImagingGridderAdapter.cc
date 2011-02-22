@@ -53,6 +53,7 @@ ASKAP_LOGGER(logger, ".gridding");
 #include <lattices/Lattices/ArrayLattice.h>
 #include <casa/Arrays/Array.h>
 
+//#include <measurementequation/SynthesisParamsHelper.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -67,7 +68,7 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared
      itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.),
      itsFirstAccessor(true), itsBuffersFinalised(false), itsNumOfImageRegrids(0), itsTimeImageRegrid(0.),
      itsNumOfInitialisations(0), itsLastFitTimeStamp(0.), itsShortestIntervalBetweenFits(3e7),
-     itsLongestIntervalBetweenFits(-1.)
+     itsLongestIntervalBetweenFits(-1.), itsModelIsEmpty(false)
 {
   ASKAPCHECK(gridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
   itsGridder = gridder->clone();
@@ -86,7 +87,7 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagi
     itsNumOfInitialisations(other.itsNumOfInitialisations), itsLastFitTimeStamp(other.itsLastFitTimeStamp),
     itsShortestIntervalBetweenFits(other.itsShortestIntervalBetweenFits), 
     itsLongestIntervalBetweenFits(other.itsLongestIntervalBetweenFits), 
-    itsTempInImg(), itsTempOutImg()
+    itsTempInImg(), itsTempOutImg(), itsModelIsEmpty(other.itsModelIsEmpty)
 {
   ASKAPCHECK(other.itsGridder, 
        "copy constructor of SnapShotImagingGridderAdapter got an object somehow set up with an empty gridder");
@@ -274,6 +275,12 @@ void SnapShotImagingGridderAdapter::finaliseWeights(casa::Array<double>& out)
 void SnapShotImagingGridderAdapter::initialiseDegrid(const scimath::Axes& axes,
 					const casa::Array<double>& image)
 {
+  itsModelIsEmpty = (casa::max(casa::abs(image)) <= 0.);
+  if (itsModelIsEmpty) {
+      ASKAPLOG_INFO_STR(logger, "No need to degrid: model is empty");
+      return;
+  }
+
   ASKAPDEBUGASSERT(itsGridder);
   reportAndInitIntervalStats();
   ++itsNumOfInitialisations;
@@ -305,6 +312,9 @@ void SnapShotImagingGridderAdapter::initVisWeights(const IVisWeights::ShPtr &vis
 /// @param[in] acc non-const data accessor to work with  
 void SnapShotImagingGridderAdapter::degrid(IDataAccessor& acc)
 {
+  if (itsModelIsEmpty) {
+      return;
+  }
   ASKAPDEBUGASSERT(itsGridder);
   itsAccessorAdapter.associate(acc);
   const scimath::ChangeMonitor cm = itsAccessorAdapter.planeChangeMonitor();
@@ -342,6 +352,9 @@ void SnapShotImagingGridderAdapter::degrid(IDataAccessor& acc)
 /// @brief finalise degridding
 void SnapShotImagingGridderAdapter::finaliseDegrid()
 {
+  if (itsModelIsEmpty) {
+      return;
+  }
   ASKAPDEBUGASSERT(itsGridder);
   ASKAPCHECK(!itsFirstAccessor, 
        "finaliseDegrid is called while the itsFirstAccessor flag is true. This is not supposed to happen");
@@ -470,13 +483,13 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
         regridder.regrid(itsTempOutImg, casa::Interpolate2D::CUBIC, casa::IPosition(2,0,1), itsTempInImg);
         // the next line does not do any copying (reference semantics)
         casa::Array<double> outRef(planeIter.getPlane(output).nonDegenerate());
+        // create a lattice to benefit from lattice math operators
+        casa::ArrayLattice<double> tempOutputLattice(outRef, casa::True);
         if (toTarget) {
-            // create a lattice to benefit from lattice math operators
-            casa::ArrayLattice<double> tempOutputLattice(outRef, casa::True);
             tempOutputLattice += itsTempOutImg;
         } else {
           // just assign the result
-          itsTempOutImg.get(outRef);
+          tempOutputLattice.copyData(itsTempOutImg);
         }
    }
    itsTimeImageRegrid += timer.real();
