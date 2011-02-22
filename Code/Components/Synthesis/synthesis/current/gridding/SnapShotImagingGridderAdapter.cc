@@ -64,12 +64,13 @@ using namespace askap::synthesis;
 /// plane gives w-deviation exceeding this value)
 SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder,
                                const double tolerance) :
-     itsGridder(gridder), itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.),
+     itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.),
      itsFirstAccessor(true), itsBuffersFinalised(false), itsNumOfImageRegrids(0), itsTimeImageRegrid(0.),
      itsNumOfInitialisations(0), itsLastFitTimeStamp(0.), itsShortestIntervalBetweenFits(3e7),
      itsLongestIntervalBetweenFits(-1.)
 {
-  ASKAPCHECK(itsGridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
+  ASKAPCHECK(gridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
+  itsGridder = gridder->clone();
 }
 
 /// @brief copy constructor
@@ -326,6 +327,8 @@ void SnapShotImagingGridderAdapter::degrid(IDataAccessor& acc)
   if (itsFirstAccessor) {
       scimath::Axes axes = itsAxes;
       // need to patch axes here before passing to initialise grid
+      axes.addDirectionAxis(currentPlaneDirectionCoordinate());
+      //
       casa::Array<double> scratch(itsImageBuffer.shape());
       imageRegrid(itsImageBuffer,scratch, false);
       itsGridder->initialiseDegrid(axes,scratch);
