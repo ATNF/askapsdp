@@ -3,7 +3,7 @@
 
 from synthprogrunner import *
 
-def analyseResult(spr):
+def analyseResult(spr, checkWeights=True):
    '''
       spr - synthesis program runner (to run imageStats)
 
@@ -41,10 +41,11 @@ def analyseResult(spr):
    if abs(stats['peak']-1.)>0.01:
       raise RuntimeError, "Peak flux in the preconditioned psf image is notably different from 1.0, F=%f" % stats['peak']
 
-   stats = spr.imageStats('weights.field1')
-   print "Statistics for weight image: ",stats
-   if abs(stats['rms']-stats['peak'])>0.1 or abs(stats['rms']-stats['median'])>0.1 or abs(stats['peak']-stats['median'])>0.1:
-      raise RuntimeError, "Weight image is expected to be constant for WProject and WStack gridders"
+   if checkWeights:
+      stats = spr.imageStats('weights.field1')
+      print "Statistics for weight image: ",stats
+      if abs(stats['rms']-stats['peak'])>0.1 or abs(stats['rms']-stats['median'])>0.1 or abs(stats['peak']-stats['median'])>0.1:
+          raise RuntimeError, "Weight image is expected to be constant for WProject and WStack gridders"
 
    stats = spr.imageStats('residual.field1')
    print "Statistics for residual image: ",stats
@@ -63,3 +64,10 @@ spr.initParset()
 spr.addToParset("Cimager.gridder = WStack")
 spr.runImager()
 analyseResult(spr)
+
+spr.initParset()
+spr.addToParset("Cimager.gridder = WProject")
+spr.addToParset("Cimager.gridder.snapshotimaging = true")
+spr.addToParset("Cimager.gridder.snapshotimaging.wtolerance = 500")
+spr.runImager()
+analyseResult(spr,False)
