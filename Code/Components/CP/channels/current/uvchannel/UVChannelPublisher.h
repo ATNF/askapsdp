@@ -30,13 +30,16 @@
 // System includes
 #include <string>
 #include <vector>
+#include <map>
 
 // ASKAPsoft includes
 #include "cpcommon/VisChunk.h"
 #include "Blob/BlobOBufVector.h"
 #include "Blob/BlobOStream.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
+#include "uvchannel/UVChannelConfig.h"
 #include "uvchannel/UVChannelConnection.h"
 
 namespace askap {
@@ -46,19 +49,23 @@ namespace channels {
     class UVChannelPublisher {
 
         public:
-            UVChannelPublisher(const std::string& brokerURI,
-                    const std::string& topicPrefix);
+            UVChannelPublisher(const LOFAR::ParameterSet& parset, const std::string& channelName);
 
             ~UVChannelPublisher();
 
             void publish(const askap::cp::common::VisChunk& data, const int channel);
 
         private:
-            // Connection to the channel
-            UVChannelConnection itsConn;
 
-            // Prefix for topics
-            const std::string itsTopicPrefix;
+            // Returns the connection from the connection map, creating a new one
+            // if there is not already a connection for the specified broker
+            boost::shared_ptr<UVChannelConnection> getConnection(const std::string& brokerId);
+
+            // Mapping between channel names/number and brokers
+            const UVChannelConfig itsConfig;
+
+            // Channel name (used for lookup in the parset)
+            const std::string itsChannelName;
 
             // Buffer for serialising messages
             std::vector<unsigned char> itsBuffer;
@@ -68,6 +75,9 @@ namespace channels {
 
             // Blob output stream
             LOFAR::BlobOStream itsOut;
+
+            // Connection map
+            std::map< std::string, boost::shared_ptr<UVChannelConnection> > itsConnectionMap;
 
             // No support for assignment
             UVChannelPublisher& operator=(const UVChannelPublisher& rhs);

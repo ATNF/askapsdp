@@ -1,0 +1,36 @@
+#
+# Configure brokers
+#
+uvchannel.brokers = [broker1]
+uvchannel.broker.broker1.host = localhost
+uvchannel.broker.broker1.port = 61616
+
+#
+# Configure channels and their mappings to brokers
+#
+uvchannel.channels = [full, avg304]
+
+# Full channel configuration
+uvchannel.channel.full.topic_prefix = full
+uvchannel.channel.full.nblocks = 16
+uvchannel.channel.full.block_1 = [1, 1026, broker1]
+uvchannel.channel.full.block_2 = [1027, 2052, broker1]
+uvchannel.channel.full.block_3 = [2053, 3078, broker1]
+uvchannel.channel.full.block_4 = [3079, 4104, broker1]
+uvchannel.channel.full.block_5 = [4105, 5130, broker1]
+uvchannel.channel.full.block_6 = [5131, 6156, broker1]
+uvchannel.channel.full.block_7 = [6157, 7182, broker1]
+uvchannel.channel.full.block_8 = [7183, 8208, broker1]
+uvchannel.channel.full.block_9 = [8209, 9234, broker1]
+uvchannel.channel.full.block_10 = [9235, 10260, broker1]
+uvchannel.channel.full.block_11 = [10261, 11286, broker1]
+uvchannel.channel.full.block_12 = [11287, 12312, broker1]
+uvchannel.channel.full.block_13 = [12313, 13338, broker1]
+uvchannel.channel.full.block_14 = [13339, 14364, broker1]
+uvchannel.channel.full.block_15 = [14365, 15390, broker1]
+uvchannel.channel.full.block_16 = [15391, 16416, broker1]
+
+# Averaged channel configuration
+uvchannel.channel.full.topic_prefix = avg304
+uvchannel.channel.full.nblocks = 1
+uvchannel.channel.full.block_1 = [1, 304, broker1]

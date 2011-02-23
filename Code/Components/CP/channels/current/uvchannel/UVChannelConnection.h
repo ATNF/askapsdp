@@ -57,6 +57,11 @@ namespace channels {
             /// @brief Destructor.
             ~UVChannelConnection();
 
+            /// @brief Send a byte message to the broker this connection is
+            /// connected to
+            /// @param[in] buffer byte buffer
+            /// @param[in] length the length of the buffer array in bytes
+            /// @param[in] topic pub/sub topic to send the message to
             void sendByteMessage(const unsigned char* buffer,
                     const std::size_t length,
                     const std::string& topic);
@@ -72,7 +77,6 @@ namespace channels {
             virtual void onException(const cms::CMSException &ex);
 
         private:
-
 
             // No support for assignment
             UVChannelConnection& operator=(const UVChannelConnection& rhs);

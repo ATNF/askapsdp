@@ -29,6 +29,7 @@
 
 // System includes
 #include <string>
+#include <map>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -36,19 +37,22 @@
 #include "Blob/BlobOStream.h"
 #include "Blob/BlobOBufVector.h"
 #include "cpcommon/VisChunk.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
+#include "uvchannel/UVChannelConfig.h"
+#include "uvchannel/UVChannelConnection.h"
 
 ASKAP_LOGGER(logger, ".UVChannelPublisher");
 
 // Using
+using namespace std;
 using namespace askap;
 using namespace askap::cp;
 using namespace askap::cp::channels;
 
-UVChannelPublisher::UVChannelPublisher(const std::string& brokerURI,
-                                        const std::string& topicPrefix)
-    : itsConn(brokerURI), itsTopicPrefix(topicPrefix), itsObv(itsBuffer), itsOut(itsObv)
+UVChannelPublisher::UVChannelPublisher(const LOFAR::ParameterSet& parset, const std::string& channelName)
+    : itsConfig(parset), itsChannelName(channelName), itsObv(itsBuffer), itsOut(itsObv)
 {
 }
 
@@ -59,8 +63,9 @@ UVChannelPublisher::~UVChannelPublisher()
 void UVChannelPublisher::publish(const askap::cp::common::VisChunk& data,
         const int channel)
 {
-    std::stringstream ss;
-    ss << itsTopicPrefix << channel;
+    // Get topic and broker id
+    const string topic = itsConfig.getTopic(itsChannelName, channel);
+    const string brokerId = itsConfig.getBrokerId(itsChannelName, channel);
 
     // Reset the blob objects (need to reuse them for performance reasons)
     itsObv.clear();
@@ -72,5 +77,22 @@ void UVChannelPublisher::publish(const askap::cp::common::VisChunk& data,
     itsOut.putEnd();
 
     // Send
-    itsConn.sendByteMessage(itsObv.getBuffer(), itsObv.size(), ss.str());
+    getConnection(brokerId)->sendByteMessage(itsObv.getBuffer(), itsObv.size(), topic);
+}
+
+boost::shared_ptr<UVChannelConnection> UVChannelPublisher::getConnection(const std::string& brokerId)
+{
+    map< std::string, boost::shared_ptr<UVChannelConnection> >::iterator it;
+    if (itsConnectionMap.find(brokerId) == itsConnectionMap.end()) {
+        // Need to create the connecton
+        stringstream ss;
+        ss << "tcp://" << itsConfig.getHost(brokerId) << ":" << itsConfig.getPort(brokerId);
+        ss << "&conection.useAsyncSend=true";
+        ss << "&turboBoost=true";
+        ss << "&socketBufferSize=16384";
+        ss << ")";
+        itsConnectionMap[brokerId] = boost::shared_ptr<UVChannelConnection>(new UVChannelConnection(ss.str()));
+    }
+
+    return itsConnectionMap[brokerId];
 }

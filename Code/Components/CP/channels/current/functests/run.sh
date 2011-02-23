@@ -20,9 +20,9 @@ cd $INITIALDIR
 cd test_uvchannel
 ./run.sh
 if [ $? -eq 0 ]; then
-    R1="test_uvchannel  PASS"
+    R2="test_uvchannel  PASS"
 else
-    R1="test_uvchannel  FAIL"
+    R2="test_uvchannel  FAIL"
     FAIL=1
 fi
 cd $INITIALDIR
@@ -32,6 +32,7 @@ echo
 echo Result Summary:
 echo ===============
 echo $R1
+echo $R2
 
 if [ $FAIL -eq 0 ]; then
     exit 0

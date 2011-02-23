@@ -88,6 +88,9 @@ UVChannelConnection::~UVChannelConnection()
         // Cleanup message
         itsMessage.reset();
 
+        // Cleanup TopicMap
+        itsTopicMap.clear();
+
         // Cleanup producer
         itsProducer->close();
         itsProducer.reset();

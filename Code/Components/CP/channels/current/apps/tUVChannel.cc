@@ -33,6 +33,7 @@
 #include <string>
 
 // ASKAPsoft includes
+#include "Common/ParameterSet.h"
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
@@ -56,8 +57,19 @@ int main(int argc, char *argv[])
     const unsigned int nMessages = 5;
     const unsigned int nChans = 152;
 
+    // Create a configuration parset
+    LOFAR::ParameterSet parset;
+    parset.add("uvchannel.brokers", "[broker1]");
+    parset.add("uvchannel.broker.broker1.host", "localhost");
+    parset.add("uvchannel.broker.broker1.port", "61616");
+    parset.add("uvchannel.channels", "[avg304]");
+
+    parset.add("uvchannel.channel.avg304.topic_prefix", "avg304");
+    parset.add("uvchannel.channel.avg304.nblocks", "1");
+    parset.add("uvchannel.channel.avg304.block_1", "[1, 304, broker1]");
+
     // Setup the channel
-    UVChannelPublisher pub(brokerURI, topicPrefix);
+    UVChannelPublisher pub(parset, "avg304");
 
     // Create a VisChunk
     // This is the size of a BETA VisChunk, 21 baselines (including
@@ -67,8 +79,8 @@ int main(int argc, char *argv[])
     const unsigned int nPols = 4;
     askap::cp::common::VisChunk data(nRows, nChansPerChunk, nPols);
 
-    for (unsigned int i = 0; i < nMessages; ++i) {
-        for (unsigned int c = 0; c < nChans; ++c) {
+    for (unsigned int i = 1; i <= nMessages; ++i) {
+        for (unsigned int c = 1; c <= nChans; ++c) {
             std::cout << "Iteration " << i << " channel " << c << std::endl;
             pub.publish(data, c);
         }
