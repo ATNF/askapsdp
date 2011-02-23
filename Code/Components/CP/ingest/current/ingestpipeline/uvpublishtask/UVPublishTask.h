@@ -1,4 +1,4 @@
-/// @file VisSourceNative.h
+/// @file UVPublishTask.h
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,47 +24,43 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_VISSOURCENATIVE_H
-#define ASKAP_CP_INGEST_VISSOURCENATIVE_H
+#ifndef ASKAP_CP_INGEST_UVPUBLISHTASK_H
+#define ASKAP_CP_INGEST_UVPUBLISHTASK_H
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
 #include "boost/scoped_ptr.hpp"
-#include "boost/thread.hpp"
-#include "cpcommon/VisDatagram.h"
+#include "Common/ParameterSet.h"
+#include "cpcommon/VisChunk.h"
+#include "uvchannel/UVChannelPublisher.h"
 
 // Local package includes
-#include "ingestpipeline/sourcetask/IVisSource.h"
-#include "ingestpipeline/sourcetask/CircularBuffer.h"
+#include "ingestpipeline/ITask.h"
 
 namespace askap {
 namespace cp {
 namespace ingest {
 
-class VisSourceNative : public IVisSource {
+/// @brief  Publish the data stream to the uv-channel
+class UVPublishTask : public askap::cp::ingest::ITask {
     public:
-        VisSourceNative(const unsigned int port, const unsigned int bufSize);
-        ~VisSourceNative();
 
-        boost::shared_ptr<VisDatagram> next(const long timeout = -1);
+        /// @brief Constructor.
+        /// @param[in] parset the configuration parameter set.
+        UVPublishTask(const LOFAR::ParameterSet& parset);
+
+        /// @brief Destructor.
+        virtual ~UVPublishTask();
+
+        /// @brief Process.
+        ///
+        /// @param[in,out] chunk  the instance of VisChunk which will be
+        /// distributed via the uv-channel.
+        virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
 
     private:
-        void run(void);
 
-        // Circular buffer of VisDatagram objects
-        askap::cp::ingest::CircularBuffer< askap::cp::VisDatagram > itsBuffer;
-
-        // Service thread
-        boost::shared_ptr<boost::thread> itsThread;
-
-        // Used to request the service thread to stop
-        bool itsStopRequested;
-
-        // UDP socket file descriptor
-        int itsSockFD;
-
-        // Receive buffer
-        boost::shared_ptr<VisDatagram> itsRecvBuffer;
+        // Publisher object to publish to the uv-channel
+        boost::shared_ptr<askap::cp::channels::UVChannelPublisher> itsPublisher;
 };
 
 }

@@ -7,7 +7,8 @@
 # in the same order as defined below. So the far left task is the first called
 # after the data is sources into the pipeline.
 #
-cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, CalTask, MSSink]
+#cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, CalTask, MSSink]
+cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, CalTask, UVPublishTask, MSSink]
 
 #
 # Merged Source
@@ -470,6 +471,12 @@ cp.ingest.task.CalTask.params.gain.g22.5.34 = [1.0]
 cp.ingest.task.CalTask.params.gain.g22.5.35 = [1.0]
 
 #
+# UV-channel publish task
+#
+cp.ingest.task.UVPublishTask.type    = UVPublishTask
+cp.ingest.task.UVPublishTask.params.channel_name = avg304
+
+#
 # Measurement Set Sink
 #
 cp.ingest.task.MSSink.type                            = MSSink
@@ -541,3 +548,29 @@ cp.ingest.config.spw.stokes               = "XX XY YX YY"
 
 cp.ingest.config.field.name               = test-field
 cp.ingest.config.field.direction          = [12h30m00.000, -45.00.00.000, J2000]
+
+#
+# UV-channel configuration
+#
+
+# Brokers
+cp.ingest.config.uvchannel.brokers = [broker1, broker2]
+cp.ingest.config.uvchannel.broker.broker1.host = localhost
+cp.ingest.config.uvchannel.broker.broker1.port = 61616
+cp.ingest.config.uvchannel.broker.broker2.host = anotherhost
+cp.ingest.config.uvchannel.broker.broker2.port = 61616
+
+# Channels
+cp.ingest.config.uvchannel.channels = [full, avg304]
+
+# Full 16416 channel configuration
+cp.ingest.config.uvchannel.channel.full.topic_prefix = full
+cp.ingest.config.uvchannel.channel.full.nblocks = 2
+cp.ingest.config.uvchannel.channel.full.block_1 = [1, 8208, broker1]
+cp.ingest.config.uvchannel.channel.full.block_2 = [8209, 16416, broker1]
+
+# Averaged channel configuration
+cp.ingest.config.uvchannel.channel.avg304.topic_prefix = avg304
+cp.ingest.config.uvchannel.channel.avg304.nblocks = 2
+cp.ingest.config.uvchannel.channel.avg304.block_1 = [1, 152, broker1]
+cp.ingest.config.uvchannel.channel.avg304.block_2 = [153, 304, broker1]

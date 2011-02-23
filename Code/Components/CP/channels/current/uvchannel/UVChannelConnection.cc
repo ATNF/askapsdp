@@ -27,8 +27,12 @@
 // Include own header file first
 #include "UVChannelConnection.h"
 
+// Include package level header file
+#include "askap_channels.h"
+
 // System includes
 #include <string>
+#include <map>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -46,6 +50,7 @@
 ASKAP_LOGGER(logger, ".UVChannelConnection");
 
 // Using
+using namespace std;
 using namespace askap;
 using namespace askap::cp;
 using namespace askap::cp::channels;
@@ -55,6 +60,8 @@ using namespace cms;
 
 UVChannelConnection::UVChannelConnection(const std::string& brokerURI)
 {
+    ASKAPLOG_DEBUG_STR(logger, "Connecting with URI: " << brokerURI);
+
     // Create a ConnectionFactory
     boost::scoped_ptr<ActiveMQConnectionFactory> connectionFactory(
         new ActiveMQConnectionFactory(brokerURI));
@@ -82,6 +89,7 @@ UVChannelConnection::UVChannelConnection(const std::string& brokerURI)
 
 UVChannelConnection::~UVChannelConnection()
 {
+    ASKAPLOG_DEBUG_STR(logger, "Disconnecting");
     try {
         itsConnection->stop();
 
@@ -127,10 +135,11 @@ void UVChannelConnection::onException(const cms::CMSException& e)
 
 boost::shared_ptr<cms::Destination> UVChannelConnection::getTopic(const std::string& topic)
 {
-    boost::shared_ptr<cms::Destination> dest = itsTopicMap[topic];
-    if (dest.get() == 0) {
-        ASKAPLOG_DEBUG_STR(logger, "Creating destination for topic:" << topic);
-        dest.reset(itsSession->createTopic(topic));
+    map< string, boost::shared_ptr<cms::Destination> >::const_iterator it;
+    it = itsTopicMap.find(topic);
+    if (it == itsTopicMap.end()) {
+        ASKAPLOG_DEBUG_STR(logger, "Creating destination for topic: " << topic);
+        itsTopicMap[topic].reset(itsSession->createTopic(topic));
     }
-    return dest;
+    return itsTopicMap[topic];
 }

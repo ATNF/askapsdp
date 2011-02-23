@@ -27,6 +27,9 @@
 // Include own header file first
 #include "UVChannelPublisher.h"
 
+// Include package level header file
+#include "askap_channels.h"
+
 // System includes
 #include <string>
 #include <map>
@@ -90,7 +93,6 @@ boost::shared_ptr<UVChannelConnection> UVChannelPublisher::getConnection(const s
         ss << "&conection.useAsyncSend=true";
         ss << "&turboBoost=true";
         ss << "&socketBufferSize=16384";
-        ss << ")";
         itsConnectionMap[brokerId] = boost::shared_ptr<UVChannelConnection>(new UVChannelConnection(ss.str()));
     }
 

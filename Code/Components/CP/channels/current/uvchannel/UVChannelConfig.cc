@@ -52,7 +52,7 @@ std::string UVChannelConfig::getBrokerId(const std::string& name, const int chan
 {
     // Confirm the channel name exists
     vector<string> channels = itsParset.getStringVector("channels");
-    vector<string>::iterator it;
+    vector<string>::const_iterator it;
     it = find(channels.begin(), channels.end(), name);
     ASKAPCHECK(it != channels.end(), "Not a vaild channel name");
     

@@ -1,4 +1,4 @@
-/// @file VisSource.cc
+/// @file VisSourceNative.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -46,12 +46,12 @@ using namespace askap;
 using namespace askap::cp;
 using namespace askap::cp::ingest;
 
-ASKAP_LOGGER(logger, ".VisSource");
+ASKAP_LOGGER(logger, ".VisSourceNative");
 
-VisSource::VisSource(const unsigned int port, const unsigned int bufSize) :
+VisSourceNative::VisSourceNative(const unsigned int port, const unsigned int bufSize) :
     itsBuffer(bufSize), itsStopRequested(false)
 {
-    ASKAPLOG_INFO_STR(logger, "VisSource Constructor");
+    ASKAPLOG_INFO_STR(logger, "VisSourceNative Constructor");
     // Create socket
     itsSockFD = socket(PF_INET, SOCK_DGRAM, 0);
     if (itsSockFD == -1) {
@@ -82,13 +82,13 @@ VisSource::VisSource(const unsigned int port, const unsigned int bufSize) :
     }
 
     // Start the thread
-    itsThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&VisSource::run, this)));
-    ASKAPLOG_INFO_STR(logger, "VisSource Constructor Exit");
+    itsThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&VisSourceNative::run, this)));
+    ASKAPLOG_INFO_STR(logger, "VisSourceNative Constructor Exit");
 }
 
-VisSource::~VisSource()
+VisSourceNative::~VisSourceNative()
 {
-    ASKAPLOG_INFO_STR(logger, "VisSource Destructor");
+    ASKAPLOG_INFO_STR(logger, "VisSourceNative Destructor");
     // Signal stopped so now more calls to start_receive() will be made
     itsStopRequested = true;
     close(itsSockFD);
@@ -100,13 +100,13 @@ VisSource::~VisSource()
 
     // Finally close the socket
     close(itsSockFD);
-    ASKAPLOG_INFO_STR(logger, "VisSource Destructor Exit");
+    ASKAPLOG_INFO_STR(logger, "VisSourceNative Destructor Exit");
 }
 
-void VisSource::run(void)
+void VisSourceNative::run(void)
 {
     while (!itsStopRequested) {
-        //ASKAPLOG_INFO_STR(logger, "VisSource run loop top");
+        //ASKAPLOG_INFO_STR(logger, "VisSourceNative run loop top");
         itsRecvBuffer.reset(new VisDatagram);
         ssize_t size = recv(itsSockFD, itsRecvBuffer.get(), sizeof(VisDatagram), MSG_WAITALL);
 
@@ -141,7 +141,7 @@ void VisSource::run(void)
     }
 }
 
-boost::shared_ptr<VisDatagram> VisSource::next(const long timeout)
+boost::shared_ptr<VisDatagram> VisSourceNative::next(const long timeout)
 {
     return itsBuffer.next(timeout);
 }

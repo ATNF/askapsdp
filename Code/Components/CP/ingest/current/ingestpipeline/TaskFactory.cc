@@ -48,6 +48,7 @@
 #include "ingestpipeline/sourcetask/MetadataSource.h"
 #include "ingestpipeline/sourcetask/VisSource.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
+#include "ingestpipeline/uvpublishtask/UVPublishTask.h"
 
 ASKAP_LOGGER(logger, ".TaskFactory");
 
@@ -78,6 +79,8 @@ ITask::ShPtr TaskFactory::createTask(const LOFAR::ParameterSet& parset)
         task.reset(new ChannelAvgTask(params));
     } else if (type == "MSSink") {
         task.reset(new MSSink(params));
+    } else if (type == "UVPublishTask") {
+        task.reset(new UVPublishTask(params));
     } else {
         ASKAPTHROW(AskapError, "Unknown task type specified");
     }
