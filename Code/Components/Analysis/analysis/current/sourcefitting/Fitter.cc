@@ -450,14 +450,15 @@ namespace askap {
 		  msg << "Fit failed all criteria";
 		else {
 		  msg << "Fit failed on criteria: ";
-		  if(!passConv) msg << "Converged | ";
-		  if(!passChisq) msg << "Chisq | ";
-		  if(!passFlux) msg << "Flux | ";
-		  if(!passLoc) msg << "Location | ";
-		  if(!passSep) msg << "Separation | ";
-		  if(!passSize) msg << "Size | ";
-		  if(!passPeak) msg << "Peak | ";
-		  if(!passIntFlux) msg << "Integ.Flux | ";
+		  int ct=0;
+		  if(!passConv){ msg << "Converged "; ct++; }
+		  if(!passChisq) msg << (ct++>0?"| ":"") << "Chisq ";
+		  if(!passFlux) msg << (ct++>0?"| ":"") << "Flux ";
+		  if(!passLoc) msg << (ct++>0?"| ":"") << "Location ";
+		  if(!passSep) msg << (ct++>0?"| ":"") << "Separation ";
+		  if(!passSize) msg << (ct++>0?"| ":"") << "Size ";
+		  if(!passPeak) msg << (ct++>0?"| ":"") << "Peak ";
+		  if(!passIntFlux) msg << (ct++>0?"| ":"") << "Integ.Flux ";
 		}
                 bool thisFitGood = passConv && passChisq && passLoc && passSep && passSize && passFlux && passPeak && passIntFlux;
 		if(!thisFitGood) ASKAPLOG_INFO_STR(logger, msg.str());
