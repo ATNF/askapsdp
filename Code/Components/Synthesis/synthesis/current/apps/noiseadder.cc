@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 
   }
   catch(const cmdlineparser::XParser &) {
-     cerr<<"Usage "<<argv[0]<<" measurement_set noise_variance_in_Jy"<<endl;
+     cerr<<"Usage "<<argv[0]<<" measurement_set noise_variance_in_Jy_squared"<<endl;
 	 return -2;    
   }
   catch(const AskapError &ce) {
