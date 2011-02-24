@@ -32,6 +32,7 @@
 #include <PaddingUtilsTest.h>
 #include <PolConverterTest.h>
 #include <SpheroidalFunctionTest.h>
+#include <EigenDecomposeTest.h>
 
 
 int main(int argc, char *argv[])
@@ -43,6 +44,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::scimath::PaddingUtilsTest::suite());
     runner.addTest(askap::scimath::PolConverterTest::suite());
     runner.addTest(askap::scimath::SpheroidalFunctionTest::suite());
+    runner.addTest(askap::scimath::EigenDecomposeTest::suite());
 
     bool wasSucessful = runner.run();
 

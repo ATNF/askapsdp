@@ -43,7 +43,7 @@ namespace scimath {
 /// @param[in] mtr input matrix (should be symmetric square matrix)
 /// @param[out] eVal vector with eigen values (sorted from largest to smallest)
 /// @param[out] eVect matrix with eigen vectors (in columns)
-void symmEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &eVal, casa::Matrix<double> &eVect);
+void symEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &eVal, casa::Matrix<double> &eVect);
 
 } // namespace scimath
 

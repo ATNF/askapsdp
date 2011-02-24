@@ -73,18 +73,14 @@ private:
 
 } // namespace scimath
 
-} // namespace askap
-
-using namespace askap;
-using namespace askap::scimath;
-
+namespace scimath {
 
 /// @brief eigen decomposition of a symmetric real matrix
 /// @details A vector of eigenvalues and a matrix with eigen vectors are returned (and resized to a proper size)
 /// @param[in] mtr input matrix (should be symmetric square matrix)
 /// @param[out] eVal vector with eigen values (sorted from largest to smallest)
 /// @param[out] eVect matrix with eigen vectors (in columns)
-void symmEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &eVal, casa::Matrix<double> &eVect)
+void symEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &eVal, casa::Matrix<double> &eVect)
 {
     const casa::uInt size = mtr.nrow();
     ASKAPCHECK(size == mtr.ncolumn(), "Expect a square matrix, you have "<<size<<" x "<<mtr.ncolumn()<<" matrix.");
@@ -110,15 +106,17 @@ void symmEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &e
         for (casa::uInt elem = 0; elem<size; ++elem) {
              indices[elem] = elem;
         }
-        std::sort(indices.begin(),indices.end(),utility::indexedCompare<casa::uInt>(utility::GSLVectorRAIterator(gslEVal)));
         
+        std::sort(indices.begin(),indices.end(),utility::indexedCompare<casa::uInt>(utility::GSLVectorRAIterator(gslEVal),
+                  std::greater<casa::uInt>()));
+       
         for (casa::uInt elem = 0; elem<size; ++elem) {
              const casa::uInt index = indices[elem];
              ASKAPDEBUGASSERT(index<size);
              eVal[elem] = gsl_vector_get(gslEVal,index);
              // extract the appropriate eigenvector
              for (casa::uInt i=0; i<size; ++i) {
-                  eVect(elem,i) = gsl_matrix_get(gslEVect,i,index);                             
+                  eVect(i,elem) = gsl_matrix_get(gslEVect,i,index);                             
              }         
         }
     }
@@ -130,5 +128,9 @@ void symmEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &e
          
     ASKAPCHECK(status == GSL_SUCCESS, "Error solving eigenproblem in scimath::symmEigenDecompose, status="<<status);
 }
+
+} // namespace scimath
+
+} // namespace askap
 
 
