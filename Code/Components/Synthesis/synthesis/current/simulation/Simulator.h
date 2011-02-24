@@ -177,6 +177,51 @@ namespace askap
                 /// and integration time (s)
                 double areaTimesSqrtBT() const;
 
+                /// Convert local coordinates to global
+                /// @param xreturned Converted x coordinate
+                /// @param yreturned Converted y coordinate
+                /// @param zreturned Converted z coordinate
+                /// @param location Reference location
+                /// @param xin Input x coordinate
+                /// @param yin Input y coordinate
+                /// @param zin Input z coordinate
+                static void local2global(casa::Vector<double>& xreturned,
+                        casa::Vector<double>& yreturned, casa::Vector<double>& zreturned,
+                        const casa::MPosition& location, const casa::Vector<double>& xin,
+                        const casa::Vector<double>& yin, const casa::Vector<double>& zin);
+
+                /// Convert global coordinates to local
+                /// @param xreturned Converted x coordinate
+                /// @param yreturned Converted y coordinate
+                /// @param zreturned Converted z coordinate
+                /// @param location Reference location
+                /// @param xin Input x coordinate
+                /// @param yin Input y coordinate
+                /// @param zin Input z coordinate
+                static void longlat2global(casa::Vector<double>& xreturned,
+                        casa::Vector<double>& yreturned, casa::Vector<double>& zreturned,
+                        const casa::MPosition& location, const casa::Vector<double>& xin,
+                        const casa::Vector<double>& yin, const casa::Vector<double>& zin);
+            protected:
+            
+                /// Returns the fractional blockage of one antenna by another
+                /// @param fraction1 Fraction of 1 blocked by 2
+                /// @param fraction2 Fraction of 2 blocked by 1
+                /// @param uvw UVW coordinates (same units as diameter)
+                /// @param diam1 Diameter of antenna 1
+                /// @param diam2 Diameter of antenna 2
+                static void blockage(double &fraction1, double &fraction2,
+                        const casa::Vector<double>& uvw, // uvw in same units as diam!
+                        const double diam1, const double diam2);
+
+                /// Provide nicely formatted direction
+                /// @param direction Direction to be formatted
+                static casa::String formatDirection(const casa::MDirection& direction);
+
+                /// Provide nicely formatted time
+                /// @param time Time to be formatted
+                static casa::String formatTime(const double time);
+
             private:
 
                 /// @brief Copy constructor
@@ -212,49 +257,6 @@ namespace askap
                 /// Measurement set points
                 casa::MeasurementSet* ms_p;
 
-                /// Convert local coordinates to global
-                /// @param xreturned Converted x coordinate
-                /// @param yreturned Converted y coordinate
-                /// @param zreturned Converted z coordinate
-                /// @param location Reference location
-                /// @param xin Input x coordinate
-                /// @param yin Input y coordinate
-                /// @param zin Input z coordinate
-                void local2global(casa::Vector<double>& xreturned,
-                        casa::Vector<double>& yreturned, casa::Vector<double>& zreturned,
-                        const casa::MPosition& location, const casa::Vector<double>& xin,
-                        const casa::Vector<double>& yin, const casa::Vector<double>& zin);
-
-                /// Convert global coordinates to local
-                /// @param xreturned Converted x coordinate
-                /// @param yreturned Converted y coordinate
-                /// @param zreturned Converted z coordinate
-                /// @param location Reference location
-                /// @param xin Input x coordinate
-                /// @param yin Input y coordinate
-                /// @param zin Input z coordinate
-                void longlat2global(casa::Vector<double>& xreturned,
-                        casa::Vector<double>& yreturned, casa::Vector<double>& zreturned,
-                        const casa::MPosition& location, const casa::Vector<double>& xin,
-                        const casa::Vector<double>& yin, const casa::Vector<double>& zin);
-
-                /// Returns the fractional blockage of one antenna by another
-                /// @param fraction1 Fraction of 1 blocked by 2
-                /// @param fraction2 Fraction of 2 blocked by 1
-                /// @param uvw UVW coordinates (same units as diameter)
-                /// @param diam1 Diameter of antenna 1
-                /// @param diam2 Diameter of antenna 2
-                void blockage(double &fraction1, double &fraction2,
-                        const casa::Vector<double>& uvw, // uvw in same units as diam!
-                        const double diam1, const double diam2);
-
-                /// Provide nicely formatted direction
-                /// @param direction Direction to be formatted
-                casa::String formatDirection(const casa::MDirection& direction);
-
-                /// Provide nicely formatted time
-                /// @param time Time to be formatted
-                casa::String formatTime(const double time);
 
                 /// Restore default values
                 void defaults();
