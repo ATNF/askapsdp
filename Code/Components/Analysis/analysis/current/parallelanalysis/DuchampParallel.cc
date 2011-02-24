@@ -1145,7 +1145,7 @@ namespace askap {
 	    this->itsCube.clearDetectionList();
 	    for (int n=0;n<this->itsNNode-1;n++){
 	      int numSrc;
-	      ASKAPLOG_INFO_STR(logger, "Master about to read from worker #"<< n+1);
+	      ASKAPLOG_DEBUG_STR(logger, "Master about to read from worker #"<< n+1);
 	      this->itsConnectionSet->read(n, bs);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
@@ -1361,6 +1361,8 @@ namespace askap {
 	    int16 rank;
 	    LOFAR::BlobString bs;
 	    
+	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Distributing edge sources to be fit by workers");
+
 	    // now send the individual sources to each worker in turn
 	    for(size_t i=0;i<this->itsSourceList.size();i++){
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Preparing source #"<<i+1);
@@ -1407,6 +1409,9 @@ namespace askap {
 	      }
 	      in.getEnd();
 	    }
+
+	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished fitting of edge sources");
+
 	  }
 	  else if(this->isWorker()){
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for source fitting");
@@ -1435,6 +1440,7 @@ namespace askap {
 	      in.getEnd();
 	    }
 	    // send sources back to master
+	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Have fitted to " << this->itsSourceList.size() << " edge sources. Returning results to master.");
 	    bs.resize(0);
 	    LOFAR::BlobOBufString bob(bs);
 	    LOFAR::BlobOStream out(bob);
