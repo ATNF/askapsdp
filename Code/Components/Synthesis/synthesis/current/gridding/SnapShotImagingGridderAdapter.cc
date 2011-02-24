@@ -405,7 +405,7 @@ casa::DirectionCoordinate SnapShotImagingGridderAdapter::currentPlaneDirectionCo
   // now patch projection
   casa::Vector<casa::Double> projParams(2);
   projParams[0] = -coeffA();
-  projParams[1] = coeffB();
+  projParams[1] = -coeffB();
   const casa::Projection projection(casa::Projection::SIN, projParams);
   //
   return casa::DirectionCoordinate(directionType, projection, refVal[0],refVal[1],
