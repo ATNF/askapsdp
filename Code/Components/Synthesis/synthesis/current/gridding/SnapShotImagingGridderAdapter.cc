@@ -375,9 +375,11 @@ void SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane()
   ASKAPDEBUGASSERT(itsGridder);
   ASKAPCHECK(!itsFirstAccessor, 
        "finaliseGriddingOfCurrentPlane is called while itsFirstAccessor flag is true. This is not supposed to happen");
+  ASKAPLOG_INFO_STR(logger, "Finalising current dirty image");
   casa::Array<double> scratch(itsImageBuffer.shape());
   itsGridder->finaliseGrid(scratch);
   imageRegrid(scratch, itsImageBuffer, true);
+  ASKAPLOG_INFO_STR(logger, "Finalising current weights");
   itsGridder->finaliseWeights(scratch);
   imageRegrid(scratch, itsWeightsBuffer, true);  
   itsBuffersFinalised = true;
