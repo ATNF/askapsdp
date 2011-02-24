@@ -416,7 +416,7 @@ void Simulator::initSpWindows(const casa::String& spWindowName, const int& nChan
     MSDataDescColumns& ddc = msc.dataDescription();
     MSPolarizationColumns& polc = msc.polarization();
     Int baseSpWID = spwc.nrow();
-    ASKAPLOG_INFO_STR(logger, "Creating new spectral window " << spWindowName << ", ID "
+    ASKAPLOG_DEBUG_STR(logger, "Creating new spectral window " << spWindowName << ", ID "
                           << baseSpWID + 1);
     // fill spectralWindow table
     ms_p->spectralWindow().addRow(1);
