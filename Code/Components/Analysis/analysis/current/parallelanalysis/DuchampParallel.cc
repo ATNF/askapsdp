@@ -1414,6 +1414,8 @@ namespace askap {
 
 	  }
 	  else if(this->isWorker()){
+	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting edge sources passed from master.");
+
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for source fitting");
 	    this->itsCube.pars().setSubsection("");
 	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
