@@ -301,7 +301,10 @@ namespace askap {
                                           << ", dof = " << this->itsNDoF
                                           << ", RMS = " << this->itsFitter.RMS());
                 } else {
-		  ASKAPLOG_INFO_STR(logger, "Insufficient degrees of freedom (size="<<f.size()<<", numGauss="<<this->itsNumGauss<<", nfreeParam="<<  this->itsParams.numFreeParam() <<") - not doing fit.");
+		  ASKAPLOG_INFO_STR(logger, "Num Gaussians = " << this->itsNumGauss
+				    << ": Insufficient degrees of freedom (size="<<f.size()
+				    <<", nfreeParam per Gaussian="<<  this->itsParams.numFreeParam() 
+				    <<") - not doing fit.");
                 }
 
 		return doFit;
