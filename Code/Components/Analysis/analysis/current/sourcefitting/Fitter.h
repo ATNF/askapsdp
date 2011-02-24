@@ -103,7 +103,7 @@ namespace askap {
                     /// @brief Set the mask values
                     void setMasks();
                     /// @brief Fit components to the data
-                    void fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
+                    bool fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
                              casa::Vector<casa::Double> sigma);
 
                     /// @brief Functions to test the fit according to various criteria.

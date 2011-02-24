@@ -873,7 +873,8 @@ namespace askap {
 
                         int maxGauss = std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
 
-                        for (int g = 1; g <= maxGauss; g++) {
+			bool fitPossible=true;
+                        for (int g = 1; g <= maxGauss && fitPossible; g++) {
 			    ASKAPLOG_DEBUG_STR(logger, "Number of Gaussian components = " << g);
 
                             fit[ctr].setParams(this->itsFitParams);
@@ -881,9 +882,9 @@ namespace askap {
                             fit[ctr].setEstimates(cmpntList, this->itsHeader);
                             fit[ctr].setRetries();
                             fit[ctr].setMasks();
-                            fit[ctr].fit(pos, f, sigma);
+			    fitPossible = fit[ctr].fit(pos, f, sigma);
 
-                            if (fit[ctr].acceptable()) {
+                            if (fitPossible && fit[ctr].acceptable()) {
                                 if ((ctr == 0) || (fit[ctr].redChisq() < bestRChisq)) {
                                     fitIsGood = true;
                                     bestFit = ctr;
@@ -1012,11 +1013,11 @@ namespace askap {
                             fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
                             fit.setRetries();
                             fit.setMasks();
-                            fit.fit(pos, f, sigma);
+                            bool fitPossible = fit.fit(pos, f, sigma);
 
                             // Calculate alpha.
 
-                            if (fit.passConverged() && fit.passChisq()) { // the fit is OK
+                            if (fitPossible && fit.passConverged() && fit.passChisq()) { // the fit is OK
                                 ASKAPLOG_DEBUG_STR(logger, "Alpha fitting worked! Values (" << this->itsBestFitMap[*type].numGauss() << " of them) follow:");
 
                                 for (int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
@@ -1128,11 +1129,11 @@ namespace askap {
                             fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
                             fit.setRetries();
                             fit.setMasks();
-                            fit.fit(pos, f, sigma);
+                            bool fitPossible = fit.fit(pos, f, sigma);
 
                             // Calculate beta.
 
-                            if (fit.passConverged() && fit.passChisq()) { // the fit is OK
+                            if (fitPossible && fit.passConverged() && fit.passChisq()) { // the fit is OK
                                 ASKAPLOG_DEBUG_STR(logger, "Beta fitting worked! Values (" << this->itsBestFitMap[*type].numGauss() << " of them) follow:");
 
                                 for (int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {

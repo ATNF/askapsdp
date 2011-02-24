@@ -217,9 +217,14 @@ namespace askap {
 
             //**************************************************************//
 
-            void Fitter::fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
+            bool Fitter::fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
                              casa::Vector<casa::Double> sigma)
             {
+	      /// Fits the required number of Gaussians to the data.
+	      /// Returns the result of testing whether the number of
+	      /// degrees of freedom is positive. The fits are only
+	      /// performed if this is the case.
+
 
 	        this->itsParams.setBoxFlux(f);
                 this->itsSolution.resize();
@@ -229,7 +234,9 @@ namespace askap {
 
                 this->itsNDoF = f.size() - this->itsNumGauss * this->itsParams.numFreeParam() - 1;
 
-                if (this->itsNDoF > 0) {
+		bool doFit = this->itsNDoF > 0;
+
+                if (doFit) {
 
                     for (int fitloop = 0; fitloop < numLoops; fitloop++) {
                         try {
@@ -296,6 +303,9 @@ namespace askap {
                 } else {
 		  ASKAPLOG_INFO_STR(logger, "Insufficient degrees of freedom (size="<<f.size()<<", numGauss="<<this->itsNumGauss<<", nfreeParam="<<  this->itsParams.numFreeParam() <<") - not doing fit.");
                 }
+
+		return doFit;
+		
             }
             //**************************************************************//
 
