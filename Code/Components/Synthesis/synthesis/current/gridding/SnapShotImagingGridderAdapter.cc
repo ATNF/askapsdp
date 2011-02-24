@@ -227,6 +227,8 @@ void SnapShotImagingGridderAdapter::grid(IConstDataAccessor& acc)
       if (itsFirstAccessor) {
           scimath::Axes axes = itsAxes;
           // need to patch axes here before passing to initialise grid
+          axes.addDirectionAxis(currentPlaneDirectionCoordinate());
+          //
           itsGridder->initialiseGrid(axes,itsImageBuffer.shape(),isPSFGridder());
           itsFirstAccessor = false;
       }
@@ -336,7 +338,7 @@ void SnapShotImagingGridderAdapter::degrid(IDataAccessor& acc)
   } 
   if (itsFirstAccessor) {
       scimath::Axes axes = itsAxes;
-      // need to patch axes here before passing to initialise grid
+      // need to patch axes here before passing to initialise degrid
       axes.addDirectionAxis(currentPlaneDirectionCoordinate());
       //
       casa::Array<double> scratch(itsImageBuffer.shape());
