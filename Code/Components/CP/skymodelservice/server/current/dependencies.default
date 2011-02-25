@@ -1,0 +1,5 @@
+ice=3rdParty/Ice/Ice-3.4.1
+log4j=3rdParty/apache-log4j/apache-log4j-1.2.15
+hibernate=3rdParty/hibernate/hibernate-3.6.1
+javaiceinterfaces=Code/Interfaces/java/current
+java-askap=Code/Base/java-askap/current
