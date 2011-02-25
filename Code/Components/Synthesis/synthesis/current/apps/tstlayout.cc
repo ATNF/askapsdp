@@ -39,6 +39,7 @@ ASKAP_LOGGER(logger, "");
 #include <measures/Measures/MPosition.h>
 #include <casa/Arrays/Vector.h>
 #include <measurementequation/MEParsetInterface.h>
+#include <utils/EigenDecompose.h>
 
 // std
 #include <stdexcept>
@@ -151,6 +152,7 @@ void getBaselines(const std::string &fname, casa::Vector<double> &x, casa::Vecto
             z[baseline] = zAnt[ant1] - zAnt[ant2];            
        }
   }
+  ASKAPLOG_INFO_STR(logger, "Formed "<<nBaselines<<" baselines");
 }
 
 /// @brief analyse the layout
@@ -173,8 +175,27 @@ void analyseBaselines(casa::Vector<double> &x, casa::Vector<double> &y, casa::Ve
   normalMatr(1,0) = normalMatr(0,1);
   normalMatr(2,0) = normalMatr(0,2);
   normalMatr(2,1) = normalMatr(1,2);
+  
+  casa::Vector<double> eVal;
+  casa::Matrix<double> eVect;
+  scimath::symEigenDecompose(normalMatr,eVal,eVect);
  
   ASKAPLOG_INFO_STR(logger, "Normal matrix: "<<normalMatr);
+  ASKAPLOG_INFO_STR(logger, "eVal: "<<eVal);
+  ASKAPLOG_INFO_STR(logger, "eVect: "<<eVect);
+  casa::Vector<double> normalVector(eVect.column(2).copy());
+  const double norm = casa::sum(casa::square(normalVector));
+  normalVector /= norm;
+  ASKAPLOG_INFO_STR(logger, "Normalised vector normal to the best fit plane: "<<normalVector);
+  double maxDeviation = -1;
+  for (casa::uInt b = 0; b<nBaselines; ++b) {
+       // (baseline,normalVector)
+       const double dotProduct = x[b]*normalVector[0] + y[b]*normalVector[1] + z[b]*normalVector[2];
+       if (fabs(dotProduct) > maxDeviation) {
+           maxDeviation = fabs(dotProduct);
+       }
+  }
+  ASKAPLOG_INFO_STR(logger, "Largest deviation from the plane is "<<maxDeviation<<" metres");
 }
 
 /// @brief main
