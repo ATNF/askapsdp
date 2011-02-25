@@ -478,23 +478,17 @@ namespace askap {
                 }
 
 		// Remove non-edge sources that are smaller than originally requested, as these won't be grown any further.
-		std::vector<duchamp::Detection> newlist;
+		std::vector<duchamp::Detection> edgelist,goodlist;
 		for(int i=0; i<this->itsCube.getNumObj();i++){
 		  sourcefitting::RadioSource src(this->itsCube.getObject(i));
 		  src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
-		  if(src.isAtEdge()) newlist.push_back(Detection(src));
-		  else{
-		    if( (src.hasEnoughChannels(this->itsCube.pars().getMinChannels()))
-			&& (src.getSpatialSize() >= this->itsCube.pars().getMinPix())
-			&& (src.getSize() >= this->itsCube.pars().getMinVoxels() ) ){
-		      //REMOVE FROM LIST
-		    }else{
-		      newlist.push_back(Detection(src));
-		    }
-		  }
+		  if(src.isAtEdge()) edgelist.push_back(Detection(src));
+		  else goodlist.push_back(Detection(src));
 		}
+		duchamp::finaliseList(goodlist,this->itsCube.pars());
 		this->itsCube.clearDetectionList();
-		this->itsCube.ObjectList() = newlist;
+		for(size_t i=0;i<edgelist.size();i++) goodlist.push_back(edgelist[i]);
+		this->itsCube.ObjectList() = goodlist;
 		//-------
 
                 this->itsCube.calcObjectWCSparams();
