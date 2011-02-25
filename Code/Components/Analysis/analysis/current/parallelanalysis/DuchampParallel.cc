@@ -437,10 +437,12 @@ namespace askap {
                 // remove mininum size criteria, so we don't miss anything on the borders.
                 int minpix = this->itsCube.pars().getMinPix();
                 int minchan = this->itsCube.pars().getMinChannels();
+		int minvox = this->itsCube.pars().getMinVoxels();
 
                 if (this->isParallel()) {
                     this->itsCube.pars().setMinPix(1);
                     this->itsCube.pars().setMinChannels(1);
+		    this->itsCube.pars().setMinVoxels(1);
                 }
 
 
@@ -468,13 +470,36 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Intermediate list has " << this->itsCube.getNumObj() << " objects.");
                 // merge the objects, and grow them if necessary.
                 this->itsCube.ObjectMerger();
-                this->itsCube.calcObjectWCSparams();
-                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " objects.");
 
                 if (isParallel()) {
                     this->itsCube.pars().setMinPix(minpix);
                     this->itsCube.pars().setMinChannels(minchan);
+		    this->itsCube.pars().setMinVoxels(minvox);
                 }
+
+		// Remove non-edge sources that are smaller than originally requested, as these won't be grown any further.
+		std::vector<duchamp::Detection> newlist;
+		for(int i=0; i<this->itsCube.getNumObj();i++){
+		  sourcefitting::RadioSource src(this->itsCube.getObject(i));
+		  src.setAtEdge(this->itsCube, this->itsSubimageDef, this->itsRank - 1);
+		  if(src.isAtEdge()) newlist.push_back(Detection(src));
+		  else{
+		    if( (src.hasEnoughChannels(this->itsCube.pars().getMinChannels()))
+			&& (src.getSpatialSize() >= this->itsCube.pars().getMinPix())
+			&& (src.getSize() >= this->itsCube.pars().getMinVoxels() ) ){
+		      //REMOVE FROM LIST
+		    }else{
+		      newlist.push_back(Detection(src));
+		    }
+		  }
+		}
+		this->itsCube.clearDetectionList();
+		this->itsCube.ObjectList() = newlist;
+		//-------
+
+                this->itsCube.calcObjectWCSparams();
+                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " objects.");
+
             }
 	}
 
@@ -1640,7 +1665,7 @@ namespace askap {
                     }
 
                     double dmean = mean;
-                    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Mean = " << mean);
+                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Mean = " << mean);
                     LOFAR::BlobString bs;
                     bs.resize(0);
                     LOFAR::BlobOBufString bob(bs);
@@ -1713,7 +1738,7 @@ namespace askap {
 
                 if (size > 0 && this->itsCube.pars().getFlagATrous()) delete [] array;
 
-                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "stddev = " << stddev);
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "StdDev = " << stddev);
                 // return it to the master
                 LOFAR::BlobString bs2;
                 bs2.resize(0);
@@ -1843,7 +1868,7 @@ namespace askap {
                     this->itsCube.pars().setThreshold(this->itsCube.stats().getThreshold());
                 }
 
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Overall stddev = " << stddev);
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Overall StdDev = " << stddev);
             }
         }
 
@@ -1866,6 +1891,7 @@ namespace askap {
                 out << threshold << mean << stddev;
                 out.putEnd();
                 this->itsConnectionSet->writeAll(bs);
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Threshold = " << this->itsCube.stats().getThreshold());
 //                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sent threshold ("
 //                                       << this->itsCube.stats().getThreshold() << ") from the master");
             } else {
