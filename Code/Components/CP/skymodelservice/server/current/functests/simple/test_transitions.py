@@ -10,29 +10,29 @@ def checkService():
 
 # Ensure the state returned from getState() is as expected
 def assertState(state):
-    if cpadmin.getState() != state:
+    if smsadmin.getState() != state:
         raise RuntimeError("getState() returned incorrect state")
 
 # Run through the transitions
 def transitions():
     config = dict()
     print "Calling Startup()...",
-    cpadmin.startup(config)
+    smsadmin.startup(config)
     print "DONE"
     assertState(askap.interfaces.component.ComponentState.STANDBY)
-    testresults = cpadmin.selfTest()
+    testresults = smsadmin.selfTest()
     for n in range(0, 2):
         print "  Calling Activate()...",
-        cpadmin.activate()
+        smsadmin.activate()
         print "DONE"
         assertState(askap.interfaces.component.ComponentState.ONLINE)
         checkService()
         print "  Calling Deactivate()...",
-        cpadmin.deactivate()
+        smsadmin.deactivate()
         print "DONE"
         assertState(askap.interfaces.component.ComponentState.STANDBY)
     print "Calling Shutdown()...",
-    cpadmin.shutdown()
+    smsadmin.shutdown()
     print "DONE"
 
 # main()
@@ -57,8 +57,8 @@ ic = None
 try:
     ic = Ice.initialize(sys.argv)
     base = ic.stringToProxy("SkyModelServiceAdmin")
-    cpadmin = askap.interfaces.component.IComponentPrx.checkedCast(base)
-    if not cpadmin:
+    smsadmin = askap.interfaces.component.IComponentPrx.checkedCast(base)
+    if not smsadmin:
         raise RuntimeError("Invalid proxy")
 
     # Run through the state transitions

@@ -34,10 +34,10 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 
 
-public class SkyModelServer {
+public class Server {
 
 	/** Logger. */
-	private static Logger logger = Logger.getLogger(CpManager.class.getName());
+	private static Logger logger = Logger.getLogger(Server.class.getName());
 
 	/**
 	 * @param args

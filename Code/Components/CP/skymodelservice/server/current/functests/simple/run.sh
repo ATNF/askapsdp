@@ -10,8 +10,8 @@ rm -f icegrid.stderr
 # Start the Ice Services
 ../start_services.sh config.icegrid
 
-# Start the cpmanager
-icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add cpmanager.xml"
+# Start the sky model service
+icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add skymodelservice.xml"
 sleep 2
 
 # Run the test
@@ -21,8 +21,8 @@ slice2py -I $INTERFACEDIR $INTERFACEDIR/Component.ice
 python test_transitions.py --Ice.Config=config.icegridadmin
 STATUS=$?
 
-# Remove the cpmanager
-icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application remove cpmanager"
+# Remove the sky model service
+icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application remove skymodelservice"
 
 # Stop the Ice Services
 ../stop_services.sh config.icegrid

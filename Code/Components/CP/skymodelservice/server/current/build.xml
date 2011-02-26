@@ -10,6 +10,6 @@
     <import file="${env.ASKAP_ROOT}/share/ant_tools/askapbuild.xml"/>
 
     <!-- The application for the manifest-->
-    <property name="main.exe" value="askap/cp/sms/SkyModelServer"/>
+    <property name="main.exe" value="askap/cp/sms/Server"/>
 
 </project>
