@@ -64,7 +64,8 @@ public class Server {
 				throw new RuntimeException("ICE Communicator initialisation failed");
 			}
 
-			AdminInterface admin = new AdminInterface(ic);
+			AdminInterface admin = new AdminInterface(ic,
+					"SkyModelService", "SkyModelServiceAdmin");
 			admin.run(); // Blocks until shutdown
 		} catch (Ice.LocalException e) {
 			e.printStackTrace();

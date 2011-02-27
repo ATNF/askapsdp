@@ -4,7 +4,7 @@
             <server id="SkyModelService"
                 exe="java"
                 activation="always">
-                <env>CLASSPATH=$ASKAP_ROOT/Code/Components/CP/skymodelservice/server/current/skymodelservice.jar:$CLASSPATH</env>
+                <env>CLASSPATH=$ASKAP_ROOT/Code/Components/CP/skymodelservice/server/current/skymodelservice.jar:.:$CLASSPATH</env>
                 <option>askap/cp/sms/Server</option>
                 <adapter name="AdminAdapter"
                     id="SkyModelServiceAdminAdapter"

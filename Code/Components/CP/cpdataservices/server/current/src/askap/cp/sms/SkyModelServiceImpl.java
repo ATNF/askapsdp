@@ -25,12 +25,16 @@
  */
 package askap.cp.sms;
 
+// Java imports
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 // ASKAPsoft imports
 import Ice.Current;
 import askap.interfaces.skymodelservice.Component;
 import askap.interfaces.skymodelservice._ISkyModelServiceDisp;
 import org.apache.log4j.Logger;
-
 
 /**
  * 
@@ -38,10 +42,14 @@ import org.apache.log4j.Logger;
 public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 
 	/** Logger. */
-	private static Logger logger = Logger.getLogger(SkyModelServiceImpl.class.getName());
-	
+	private static Logger logger = Logger.getLogger(SkyModelServiceImpl.class
+			.getName());
+
 	/** Ice Communicator */
+	@SuppressWarnings("unused")
 	private Ice.Communicator itsComm;
+
+	private PersistenceInterface itsPersistance;
 	
 	/**
 	 * 
@@ -51,26 +59,80 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	public SkyModelServiceImpl(Ice.Communicator ic) {
 		logger.info("Creating SkyModelService");
 		itsComm = ic;
+		itsPersistance = new PersistenceInterface();
 	}
-	
+
 	public void finalize() {
 		logger.info("Destroying SkyModelService");
 	}
-	
+
 	/**
 	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#coneSearch(double, double, double, Ice.Current)
 	 */
-	public long[] coneSearch(double arg0, double arg1, double arg2, Current arg3) {
+	public List<Long> coneSearch(double ra, double dec, double searchRadius,
+			Current cur) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	/**
-	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#getComponents(long[], Ice.Current)
+	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#getComponents(java.util.List, Ice.Current)
 	 */
-	public Component[] getComponents(long[] arg0, Current arg1) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Component> getComponents(List<Long> componentIds, Current cur) {
+		List<ComponentBean> beans = itsPersistance.getComponents(componentIds);
+		List<Component> components = convertBeanToIce(beans);
+		return components;
 	}
 
+	/**
+	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#addComponents(java.util.List, Ice.Current)
+	 */
+	public List<Long> addComponents(List<Component> components, Current cur) {
+		List<Long> ids = itsPersistance.addComponents(convertIceToBean(components));
+		return ids;
+	}
+
+	/**
+	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#removeAllComponents(Ice.Current)
+	 */
+	public void removeAllComponents(Current cur) {
+		itsPersistance.removeAllComponents();
+	}
+	
+	List<askap.interfaces.skymodelservice.Component> convertBeanToIce(List<ComponentBean> beans) {
+		ArrayList<Component> components = new ArrayList<Component>();
+		
+		Iterator<ComponentBean> it = beans.iterator();
+		while (it.hasNext()) {
+			ComponentBean cb = it.next();
+			Component c = new Component();
+			c.id = cb.getId();
+			c.rightAscension = cb.getRightAscension();
+			c.declination = cb.getDeclination();
+			c.positionAngle = cb.getPositionAngle();
+			c.majorAxis = cb.getMajorAxis();
+			c.minorAxis = cb.getMinorAxis();
+			c.i1400 = cb.getI1400();
+			components.add(c);
+		}
+		return components;
+	}
+	
+	List<ComponentBean> convertIceToBean(List<askap.interfaces.skymodelservice.Component> components) {
+		ArrayList<ComponentBean> beans = new ArrayList<ComponentBean>();
+		
+		Iterator<Component> it = components.iterator();
+		while (it.hasNext()) {
+			Component c = it.next();
+			ComponentBean cb = new ComponentBean();
+			cb.setRightAscension(c.rightAscension);
+			cb.setDeclination(c.declination);
+			cb.setPositionAngle(c.positionAngle);
+			cb.setMajorAxis(c.majorAxis);
+			cb.setMinorAxis(c.minorAxis);
+			cb.setI1400(c.i1400);
+			beans.add(cb);
+		}
+		return beans;
+	}
 }

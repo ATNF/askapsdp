@@ -83,11 +83,13 @@ module skymodelservice
     /**
      * A sequence of component identifiers
      **/
+    ["java:type:java.util.ArrayList<Long>"]
     sequence<long> ComponentIdSeq;
 
     /**
      * A sequence of Components
      **/
+    ["java:type:java.util.ArrayList<askap.interfaces.skymodelservice.Component>"]
     sequence<Component> ComponentSeq;
 
     /**
@@ -124,6 +126,26 @@ module skymodelservice
          * @return                  a sequence of components.
          **/
         ComponentSeq getComponents(ComponentIdSeq componentIds);
+
+        /**
+         * Add a sequence of one or more components to the component database.
+         * 
+         * Note: This is really just here for testing purposes and will likely
+         * not form part of the final API. Indeed the merge LSM into GSM usecase
+         * will replace this one.
+         *
+         * @return a sequence of component ids mapping one-to-one with the
+         * "components" sequence passed to the function.
+         **/
+        ComponentIdSeq addComponents(ComponentSeq components);
+
+        /**
+         * Remove all components from the components table.
+         * 
+         * Note: This is really just here for testing purposes and will likely
+         * not form part of the final API.
+         **/
+        void removeAllComponents();
     };
 
 };

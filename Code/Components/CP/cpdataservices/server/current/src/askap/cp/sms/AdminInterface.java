@@ -67,7 +67,9 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	/**
 	 * Ice identity of the observation service.
 	 */
-	private String itsServiceName = "SkyModelService";
+	private String itsServiceName = "";
+	
+	private String itsAdminName = "";
 
 	/** Logger. */
 	private static Logger logger = Logger.getLogger(AdminInterface.class.getName());
@@ -77,8 +79,11 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	 * @param ic	An already initialised Ice communicator for the object
 	 * 				to use.
 	 */
-	public AdminInterface(Ice.Communicator ic) {
+	public AdminInterface(Ice.Communicator ic, final String serviceName, final String adminName) {
 		super();
+		itsServiceName = serviceName;
+		itsAdminName = adminName;
+		
 		logger.debug("Creating AdminInterface");
 		itsComm = ic;
 		itsAdapter = null;
@@ -162,7 +167,7 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 
 		Ice.Object object = this;
 		itsAdapter.add(object,
-				itsComm.stringToIdentity("SkyModelServiceAdmin"));
+				itsComm.stringToIdentity(itsAdminName));
 		itsAdapter.activate();
 
 		// Block here so main() can block on this
@@ -198,6 +203,9 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		itsState = ComponentState.LOADED;
 
 		itsService = null;
+		
+		// Not critical, but is good if garbage collection can happen here
+		System.gc();
 	}
 
 	/**
@@ -213,7 +221,5 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 
 		// Must transition to standby only once all objects are created
 		itsState = ComponentState.STANDBY;
-
 	}
-
 }

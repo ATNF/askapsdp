@@ -5,12 +5,12 @@ echo Running test cases...
 
 FAIL=0
 
-cd simple
+cd skymodelservice
 ./run.sh
 if [ $? -eq 0 ]; then
-    R1="simple           PASS"
+    R1="skymodelservice     PASS"
 else
-    R1="simple           FAIL"
+    R1="skymodelservice     FAIL"
     FAIL=1
 fi
 cd $INITIALDIR

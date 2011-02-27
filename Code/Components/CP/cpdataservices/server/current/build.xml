@@ -2,6 +2,7 @@
 <project name="cpdataservices" basedir="." default="install">
     <!-- Turn on the debug flag for the compiler -->
     <property name="debug" value="true"/>
+    <property name="verbose" value="true"/>
 
     <!-- Read in the environment so $ASKAP_ROOT can be used -->
     <property environment="env"/>
