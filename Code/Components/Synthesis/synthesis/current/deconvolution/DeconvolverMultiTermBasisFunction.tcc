@@ -561,13 +561,18 @@ namespace askap {
 	if(isMasked) {
 	  casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
 			     this->itsWeightedMask(0).nonDegenerate());
+          originalValues.resize(this->itsNumberTerms);
+          for (uInt term=0;term<this->itsNumberTerms;term++) {
+            originalValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos)
+              *this->itsWeightedMask(0)(absPeakPos);
+          }
 	}
 	else {
 	  casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
-	}
-	originalValues.resize(this->itsNumberTerms);
-	for (uInt term=0;term<this->itsNumberTerms;term++) {
-	  originalValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos);
+          originalValues.resize(this->itsNumberTerms);
+          for (uInt term=0;term<this->itsNumberTerms;term++) {
+            originalValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos);
+          }
 	}
 	// Res: 298.562 Max: 202951 Gain: 0.5 Pos: [493, 397] Scale: 20 Coeffs: 663.175  -701.157   OrigRes: 122.357 -28.997
 	//	ASKAPLOG_INFO_STR(decmtbflogger, "Res: " << maxVal << " Max: " << absPeakVal << " Pos: "

@@ -65,6 +65,7 @@ namespace askap {
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(true), itsDecouple(true),
 	itsDecouplingAlgorithm("diagonal")
     {
+      throw(AipsError("solver=BasisFunction is deprecated, use solver=Clean, algorithm=AMSMFS"));
     };
     
     template<class T, class FT>
@@ -72,6 +73,7 @@ namespace askap {
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsUseCrossTerms(true), itsDecouple(true),
 	itsDecouplingAlgorithm("diagonal")
     {
+      throw(AipsError("solver=BasisFunction is deprecated, use solver=Clean, algorithm=AMSMFS"));
     };
     
     template<class T, class FT>
