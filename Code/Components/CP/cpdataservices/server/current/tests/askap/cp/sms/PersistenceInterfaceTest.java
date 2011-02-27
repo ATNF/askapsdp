@@ -76,7 +76,7 @@ public class PersistenceInterfaceTest {
 	@Before
 	public void setUp() throws Exception {
 		// HSQLDB connection, to interact directly with the database
-		itsConnection = DriverManager.getConnection("jdbc:hsqldb:mem:aname;shutdown=true", "sa", "");
+		//itsConnection = DriverManager.getConnection("jdbc:hsqldb:mem:aname;shutdown=true", "sa", "");
 		
 		// Configure Hibernate
 		Configuration config = new Configuration();
@@ -92,8 +92,8 @@ public class PersistenceInterfaceTest {
 		config.setProperty("hibernate.show_sql", "true");
 		//config.addClass(ComponentBean.class);
 		
-		SessionFactory sessionFactory = config.buildSessionFactory();
-		itsSession = sessionFactory.openSession();
+		//SessionFactory sessionFactory = config.buildSessionFactory();
+		//itsSession = sessionFactory.openSession();
 		
 		//itsInstance = new PersistenceInterface(itsSession);
 	}
