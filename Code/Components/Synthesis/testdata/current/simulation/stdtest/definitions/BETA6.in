@@ -1,4 +1,5 @@
 antennas.telescope            =       BETA6
+antennas.BETA6.coordinates    =       local
 antennas.BETA6.location       =       [+116.6356824deg, -26.7013006deg, 377m, WGS84]
 antennas.BETA6.names          =       [A0, A1, A2, A3, A4, A5]
 antennas.BETA6.diameter       =       12m
