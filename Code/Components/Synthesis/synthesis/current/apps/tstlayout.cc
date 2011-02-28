@@ -155,6 +155,40 @@ void getBaselines(const std::string &fname, casa::Vector<double> &x, casa::Vecto
   ASKAPLOG_INFO_STR(logger, "Formed "<<nBaselines<<" baselines");
 }
 
+/// @brief obtain uvws
+/// @details for given declination and hour angle
+/// @param[in] x baseline coordinates X
+/// @param[in] y baseline coordinates Y
+/// @param[in] z baseline coordinates Z
+/// @param[in] dec declination of the tangent point (in radians)
+/// @param[in] H0 hour angle of the tanget point (at longitude of 0, in radians)
+/// @param[out] u baseline coordinate u
+/// @param[out] v baseline coordinate v
+/// @param[out] w baseline coordinate w
+void calculateUVW(const casa::Vector<double> &x, const casa::Vector<double> &y, const casa::Vector<double> &z,
+                  double dec, double H0, casa::Vector<double> &u, casa::Vector<double> &v,casa::Vector<double> &w)
+{
+   ASKAPDEBUGASSERT(x.nelements() == y.nelements());
+   ASKAPDEBUGASSERT(x.nelements() == z.nelements());
+   ASKAPDEBUGASSERT(y.nelements() == z.nelements());
+   const casa::uInt size = x.nelements();
+   ASKAPDEBUGASSERT(size != 0);
+   u.resize(size);
+   v.resize(size);
+   w.resize(size);
+   const double sDec = sin(dec);
+   const double cDec = cos(dec);
+   const double sH0 = sin(H0);
+   const double cH0 = cos(H0);
+   for (casa::uInt row = 0; row<size; ++row) {
+        u[row] = sH0 * x[row] + cH0 * y[row];
+        v[row] = -sDec * cH0 * x[row] + sDec * sH0 * y[row] + cDec * z[row];
+        w[row] = cDec * cH0 * x[row] - cDec * sH0 * y[row] + sDec * z[row]; 
+   }
+}                  
+
+
+
 /// @brief analyse the layout
 /// @details
 /// @param[in] x baseline coordinate X
@@ -198,6 +232,61 @@ void analyseBaselines(casa::Vector<double> &x, casa::Vector<double> &y, casa::Ve
   ASKAPLOG_INFO_STR(logger, "Largest deviation from the plane is "<<maxDeviation<<" metres");
 }
 
+
+/// @brief analyse the uvw
+/// @details
+/// @param[in] u baseline coordinates U
+/// @param[in] v baseline coordinates V
+/// @param[in] w baseline coordinates W
+/// @return largest residual w-term (negative value means the fit has failed)
+double analyseUVW(casa::Vector<double> &u, casa::Vector<double> &v, casa::Vector<double> &w)
+{
+  casa::Matrix<double> normalMatr(3,3,0.);
+  const casa::uInt nBaselines = u.nelements();
+  for (casa::uInt b = 0; b<nBaselines; ++b) {
+       normalMatr(0,0) += casa::square(u[b]);
+       normalMatr(1,1) += casa::square(v[b]);
+       normalMatr(2,2) += casa::square(w[b]);
+       normalMatr(0,1) += u[b]*v[b];
+       normalMatr(0,2) += u[b]*w[b];
+       normalMatr(1,2) += v[b]*w[b];
+  }
+  normalMatr(1,0) = normalMatr(0,1);
+  normalMatr(2,0) = normalMatr(0,2);
+  normalMatr(2,1) = normalMatr(1,2);
+  
+  casa::Vector<double> eVal;
+  casa::Matrix<double> eVect;
+  scimath::symEigenDecompose(normalMatr,eVal,eVect);
+ 
+  ASKAPLOG_INFO_STR(logger, "(uvw) eVal: "<<eVal);
+  casa::Vector<double> normalVector(eVect.column(2).copy());
+  const double norm = casa::sum(casa::square(normalVector));
+  normalVector /= norm;
+  ASKAPLOG_INFO_STR(logger, "Normalised vector normal to the best fit uvw plane: "<<normalVector);
+  if (fabs(normalVector[2]) > 1e-6) {
+      normalVector[0] /= normalVector[2];
+      normalVector[1] /= normalVector[2];
+      normalVector[0] *= -1.;
+      normalVector[1] *= -1.;
+      ASKAPLOG_INFO_STR(logger, "Best fit plane w = u * "<<normalVector[0]<<" + v * "<<normalVector[1]);
+
+      double maxDeviation = -1;
+      for (casa::uInt b = 0; b<nBaselines; ++b) {
+          // residual w-term
+          const double resW = w[b] - u[b]*normalVector[0] - v[b] * normalVector[1];
+          if (fabs(resW) > maxDeviation) {
+              maxDeviation = fabs(resW);
+          }
+      }
+      ASKAPLOG_INFO_STR(logger, "Largest residual w-term  is "<<maxDeviation<<" metres");
+      return maxDeviation;      
+  } else {
+     ASKAPLOG_INFO_STR(logger, "w is independent on u and v in this layout. Fitting failed");
+  }
+  return -1.;
+}
+
 /// @brief main
 /// @param[in] argc number of arguments
 /// @param[in] argv vector of arguments
@@ -218,6 +307,10 @@ int main(int argc, char **argv) {
      casa::Vector<double> x,y,z;
      getBaselines(cfgName,x,y,z);
      analyseBaselines(x,y,z);
+     
+     casa::Vector<double> u,v,w;
+     calculateUVW(x,y,z,-casa::C::pi/4,0.,u,v,w);
+     analyseUVW(u,v,w);
      
      askap::mwbase::MPIConnection::endMPI();
   }
