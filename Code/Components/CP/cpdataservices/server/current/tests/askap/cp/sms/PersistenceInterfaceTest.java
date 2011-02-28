@@ -90,10 +90,10 @@ public class PersistenceInterfaceTest {
 		config.setProperty("hibernate.cache.provider_class", "org.hibernate.cache.HashtableCacheProvider");
 		config.setProperty("hibernate.hbm2ddl.auto", "create-drop");
 		config.setProperty("hibernate.show_sql", "true");
-		//config.addClass(ComponentBean.class);
+		config.addClass(ComponentBean.class);
 		
-		//SessionFactory sessionFactory = config.buildSessionFactory();
-		//itsSession = sessionFactory.openSession();
+		SessionFactory sessionFactory = config.buildSessionFactory();
+		itsSession = sessionFactory.openSession();
 		
 		//itsInstance = new PersistenceInterface(itsSession);
 	}

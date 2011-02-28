@@ -57,7 +57,7 @@ public class PersistenceInterface {
 		
 		// A SessionFactory is set up for the persistence interface
 		Configuration config = new Configuration();
-		//config.configure("hibernate.cfg.xml");
+		config.configure("hibernate.cfg.xml");
 		config.configure();
 		SessionFactory sessionFactory = config.buildSessionFactory();
 		itsSession = sessionFactory.openSession();

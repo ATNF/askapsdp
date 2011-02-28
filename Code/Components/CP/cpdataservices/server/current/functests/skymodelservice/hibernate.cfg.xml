@@ -27,7 +27,7 @@
         <!-- Drop and re-create the database schema on startup -->
         <property name="hbm2ddl.auto">update</property>
 
-        <mapping resource="Component.hbm.xml"/>
+        <mapping resource="ComponentBean.hbm.xml"/>
 
     </session-factory>
 

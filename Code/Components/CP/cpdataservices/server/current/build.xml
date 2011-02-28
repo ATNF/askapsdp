@@ -2,13 +2,17 @@
 <project name="cpdataservices" basedir="." default="install">
     <!-- Turn on the debug flag for the compiler -->
     <property name="debug" value="true"/>
-    <property name="verbose" value="true"/>
 
     <!-- Read in the environment so $ASKAP_ROOT can be used -->
     <property environment="env"/>
 
     <!-- import common ASKAP definitions -->
     <import file="${env.ASKAP_ROOT}/share/ant_tools/askapbuild.xml"/>
+
+    <!-- Set resources to include in the jar file -->
+    <resources id="resources.list">
+        <fileset dir="resources"/>
+    </resources>
 
     <!-- The application for the manifest-->
     <!-- <property name="main.exe" value="askap/cp/sms/Server"/> -->
