@@ -38,14 +38,18 @@ public class CpManager {
 
 	/** Logger. */
 	private static Logger logger = Logger.getLogger(CpManager.class.getName());
-
+	
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 
 		// Init logging
-		final String logcfg = "askap.log_cfg";
+		String logcfg = System.getenv("LOGCFG");
+		System.err.println("LOGCFG: " + logcfg);
+		if (logcfg == null) {
+			logcfg = "askap.log_cfg";
+		}
 		File f = new File(logcfg);
 		if (f.exists()) {
 			PropertyConfigurator.configure(logcfg);
