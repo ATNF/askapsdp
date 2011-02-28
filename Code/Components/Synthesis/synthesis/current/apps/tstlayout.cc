@@ -36,10 +36,18 @@ ASKAP_LOGGER(logger, "");
 #include <mwcommon/MPIConnection.h>
 #include <casa/Quanta/MVDirection.h>
 #include <casa/Quanta/MVAngle.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/Matrix.h>
+#include <images/Images/PagedImage.h>
+#include <lattices/Lattices/ArrayLattice.h>
+
 #include <measures/Measures/MPosition.h>
 #include <casa/Arrays/Vector.h>
 #include <measurementequation/MEParsetInterface.h>
 #include <utils/EigenDecompose.h>
+
 
 // std
 #include <stdexcept>
@@ -194,7 +202,8 @@ void calculateUVW(const casa::Vector<double> &x, const casa::Vector<double> &y, 
 /// @param[in] x baseline coordinate X
 /// @param[in] y baseline coordinate Y
 /// @param[in] z baseline coordinate Z
-void analyseBaselines(casa::Vector<double> &x, casa::Vector<double> &y, casa::Vector<double> &z)
+/// @return vector normal to the layout
+casa::Vector<double> analyseBaselines(casa::Vector<double> &x, casa::Vector<double> &y, casa::Vector<double> &z)
 {
   casa::Matrix<double> normalMatr(3,3,0.);
   const casa::uInt nBaselines = x.nelements();
@@ -230,6 +239,7 @@ void analyseBaselines(casa::Vector<double> &x, casa::Vector<double> &y, casa::Ve
        }
   }
   ASKAPLOG_INFO_STR(logger, "Largest deviation from the plane is "<<maxDeviation<<" metres");
+  return normalVector;
 }
 
 
@@ -238,8 +248,9 @@ void analyseBaselines(casa::Vector<double> &x, casa::Vector<double> &y, casa::Ve
 /// @param[in] u baseline coordinates U
 /// @param[in] v baseline coordinates V
 /// @param[in] w baseline coordinates W
+/// @param[in] verbose if true, debug messages will be written into log
 /// @return largest residual w-term (negative value means the fit has failed)
-double analyseUVW(casa::Vector<double> &u, casa::Vector<double> &v, casa::Vector<double> &w)
+double analyseUVW(casa::Vector<double> &u, casa::Vector<double> &v, casa::Vector<double> &w, bool verbose = false)
 {
   casa::Matrix<double> normalMatr(3,3,0.);
   const casa::uInt nBaselines = u.nelements();
@@ -258,19 +269,25 @@ double analyseUVW(casa::Vector<double> &u, casa::Vector<double> &v, casa::Vector
   casa::Vector<double> eVal;
   casa::Matrix<double> eVect;
   scimath::symEigenDecompose(normalMatr,eVal,eVect);
- 
-  ASKAPLOG_INFO_STR(logger, "(uvw) eVal: "<<eVal);
+  
+  if (verbose) {
+      ASKAPLOG_DEBUG_STR(logger, "(uvw) eVal: "<<eVal);
+  }
   casa::Vector<double> normalVector(eVect.column(2).copy());
   const double norm = casa::sum(casa::square(normalVector));
   normalVector /= norm;
-  ASKAPLOG_INFO_STR(logger, "Normalised vector normal to the best fit uvw plane: "<<normalVector);
+  if (verbose) {
+      ASKAPLOG_DEBUG_STR(logger, "Normalised vector normal to the best fit uvw plane: "<<normalVector);
+  }
   if (fabs(normalVector[2]) > 1e-6) {
       normalVector[0] /= normalVector[2];
       normalVector[1] /= normalVector[2];
       normalVector[0] *= -1.;
       normalVector[1] *= -1.;
-      ASKAPLOG_INFO_STR(logger, "Best fit plane w = u * "<<normalVector[0]<<" + v * "<<normalVector[1]);
-
+      if (verbose) {      
+          ASKAPLOG_DEBUG_STR(logger, "Best fit plane w = u * "<<normalVector[0]<<" + v * "<<normalVector[1]);
+      }
+      
       double maxDeviation = -1;
       for (casa::uInt b = 0; b<nBaselines; ++b) {
           // residual w-term
@@ -279,13 +296,72 @@ double analyseUVW(casa::Vector<double> &u, casa::Vector<double> &v, casa::Vector
               maxDeviation = fabs(resW);
           }
       }
-      ASKAPLOG_INFO_STR(logger, "Largest residual w-term  is "<<maxDeviation<<" metres");
+      if (verbose) {
+          ASKAPLOG_DEBUG_STR(logger, "Largest residual w-term  is "<<maxDeviation<<" metres");
+      }
       return maxDeviation;      
   } else {
-     ASKAPLOG_INFO_STR(logger, "w is independent on u and v in this layout. Fitting failed");
+     if (verbose) {
+         ASKAPLOG_DEBUG_STR(logger, "w is independent on u and v in this layout. Fitting failed");
+     }
   }
   return -1.;
 }
+
+/// @brief map residual w-term
+/// @details This method calls calculateUVW/analyseUVW for different dec and H0 and makes an image
+/// showing the behavior of the residual w-term.
+/// @param[in] name name of the output image
+/// @param[in] longitude reference longiude (i.e. where hour angle is zero; in radians)
+/// @param[in] x baseline coordinate X
+/// @param[in] y baseline coordinate Y
+/// @param[in] z baseline coordinate Z
+void mapResidualWTerm(const std::string &name, const double longitude, 
+            const casa::Vector<double> &x, const casa::Vector<double> &y, const casa::Vector<double> &z)
+{
+  // sizes
+  const int xSize = 512;
+  const int ySize = 512;
+  // start/stop values
+  const double startDec = -casa::C::pi/2.;
+  const double stopDec = 0.;
+  const double incH = 2.*casa::C::pi/double(xSize)*2./3.;
+  const double incDec = -(stopDec - startDec)/double(ySize);
+  
+  // buffer
+  casa::Matrix<float> buf(xSize,ySize,0.);
+
+  // coordinate system
+  casa::CoordinateSystem coords;
+  casa::Matrix<double> xform(2,2,0.);
+  xform.diagonal() = 1.;
+  const casa::DirectionCoordinate dc(casa::MDirection::HADEC, 
+                  casa::Projection(casa::Projection::STG), casa::C::pi+incH , startDec,
+                  incH,incDec,xform,xSize/2,1.);  
+  coords.addCoordinate(dc);
+  // filling the buffer
+  casa::Vector<casa::Double> pixel(2,0.);
+  casa::MVDirection world;
+  casa::Vector<double> u,v,w;
+  for (int xx = 0; xx<xSize; ++xx) {
+       for (int yy=0; yy<ySize; ++yy) {
+            pixel[0] = double(xx);
+            pixel[1] = double(yy);
+            if (dc.toWorld(world,pixel)) {
+                calculateUVW(x,y,z,world.getLat(),world.getLong()-longitude,u,v,w);
+                const double resW = analyseUVW(u,v,w);                
+                if (resW>=0) {
+                    buf(xx,yy) = resW;
+                }
+            }
+       }
+  }
+  
+  // writing the actual image
+  casa::PagedImage<casa::Float> result(casa::TiledShape(buf.shape()), coords, name);
+  casa::ArrayLattice<casa::Float> lattice(buf);
+  result.copyData(lattice);  
+}            
 
 /// @brief main
 /// @param[in] argc number of arguments
@@ -298,6 +374,8 @@ int main(int argc, char **argv) {
      // command line parameter
      cmdlineparser::GenericParameter<std::string> cfgName;
      parser.add(cfgName, cmdlineparser::Parser::throw_exception);
+     cmdlineparser::GenericParameter<std::string> imgName;
+     parser.add(imgName,cmdlineparser::Parser::return_default);
      parser.process(argc, argv);
      
      // Initialize MPI (also succeeds if no MPI available).
@@ -306,16 +384,21 @@ int main(int argc, char **argv) {
      
      casa::Vector<double> x,y,z;
      getBaselines(cfgName,x,y,z);
-     analyseBaselines(x,y,z);
-     
-     casa::Vector<double> u,v,w;
-     calculateUVW(x,y,z,-casa::C::pi/4,0.,u,v,w);
-     analyseUVW(u,v,w);
-     
+     casa::Vector<double> normalVector = analyseBaselines(x,y,z);
+     ASKAPDEBUGASSERT(normalVector.nelements() == 3);
+     const double centreLong = atan2(normalVector[1],normalVector[0]);
+     const double centreLat = asin(normalVector[2]);
+     ASKAPLOG_INFO_STR(logger, "Centre of the layout is at longitude "<<centreLong*180/casa::C::pi<<
+                       " and latitude "<<centreLat*180/casa::C::pi);
+     if (imgName.defined()) { 
+         ASKAPLOG_INFO_STR(logger, "Image showing largest residual w-term vs. local hour angle and declination will be stored in "<<
+                                    imgName.getValue());
+         mapResidualWTerm(imgName,centreLong,x,y,z);                           
+     }
      askap::mwbase::MPIConnection::endMPI();
   }
   catch(const cmdlineparser::XParser &) {
-     std::cerr<<"Usage "<<argv[0]<<" cfg_name"<<std::endl;
+     std::cerr<<"Usage "<<argv[0]<<" cfg_name [output_image]"<<std::endl;
 	 return -2;    
   }
   catch(const AskapError &ce) {
