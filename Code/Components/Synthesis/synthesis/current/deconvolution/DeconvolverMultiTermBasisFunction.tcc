@@ -120,11 +120,7 @@ namespace askap {
     
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::updateDirty(Array<T>& dirty) {
-      if (!dirty.shape().conform(this->residual(0).shape())) {
-        throw(AskapError("Updated dirty image has different shape"));
-      }
-      this->itsResidual.resize(1);
-      this->itsResidual(0)=dirty.copy();
+      DeconvolverBase<T,FT>::updateDirty(dirty);
       this->itsDirtyChanged=True;
     }
     
