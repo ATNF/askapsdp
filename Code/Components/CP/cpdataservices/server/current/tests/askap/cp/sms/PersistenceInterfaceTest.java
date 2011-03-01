@@ -75,6 +75,14 @@ public class PersistenceInterfaceTest {
 
 	@Before
 	public void setUp() throws Exception {
+
+        // First need to load the driver (not always necessary)
+         try {
+             Class.forName("org.hsqldb.jdbcDriver" );
+         } catch (Exception e) {
+             System.out.println("ERROR: failed to load HSQLDB JDBC driver.");
+         }
+
 		// HSQLDB connection, to interact directly with the database
 		itsConnection = DriverManager.getConnection("jdbc:hsqldb:mem:aname;shutdown=true", "sa", "");
 		
