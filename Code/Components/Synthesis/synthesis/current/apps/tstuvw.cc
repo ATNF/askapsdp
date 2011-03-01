@@ -47,6 +47,9 @@ double analyseUVW(const IConstDataAccessor& acc, int beam = -1)
   casa::Matrix<double> normalMatr(3,3,0.);
   const casa::uInt nRow = acc.nRow();
   for (casa::uInt row = 0; row<nRow; ++row) {
+       if ((int(acc.feed1()[row]) != beam) && (beam>=0)) {
+           continue;
+       }
        normalMatr(0,0) += casa::square(uvw[row](0));
        normalMatr(1,1) += casa::square(uvw[row](1));
        normalMatr(2,2) += casa::square(uvw[row](2));
@@ -70,7 +73,7 @@ double analyseUVW(const IConstDataAccessor& acc, int beam = -1)
       normalVector[1] /= normalVector[2];
       normalVector[0] *= -1.;
       normalVector[1] *= -1.;
-      std::cout<<"Best fit plane w = u * "<<normalVector[0]<<" + v * "<<normalVector[1]<<std::endl;
+      //std::cout<<"Best fit plane w = u * "<<normalVector[0]<<" + v * "<<normalVector[1]<<std::endl;
       
       double maxDeviation = -1;
       for (casa::uInt row = 0; row<nRow; ++row) {
@@ -83,7 +86,7 @@ double analyseUVW(const IConstDataAccessor& acc, int beam = -1)
                maxDeviation = fabs(resW);
            }
       }
-      std::cout<<"Largest residual w-term  is "<<maxDeviation<<" metres"<<std::endl;
+      std::cout<<normalVector[0]<<" "<<normalVector[1]<<" "<<maxDeviation<<" "<<beam<<std::endl;
       return maxDeviation;      
   }
   return -1.;
@@ -105,6 +108,10 @@ void doReadOnlyTest(const IConstDataSource &ds) {
     
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        analyseUVW(*it);
+       for (int beam=0;beam<5;++beam) {
+            analyseUVW(*it,beam);
+       }
+
        /*
        const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw = it->rotatedUVW(tangentDir);
        const casa::Vector<casa::uInt>& beamIDs = it->feed1();
