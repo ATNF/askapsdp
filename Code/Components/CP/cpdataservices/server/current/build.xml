@@ -17,4 +17,29 @@
     <!-- The application for the manifest-->
     <!-- <property name="main.exe" value="askap/cp/sms/Server"/> -->
 
+    <!--
+        This is overridden from the import of askapbuild.xml so the resources
+        directory can be added to the classpath
+    -->
+    <target name="test" depends="compile"
+            description="run junit tests" >
+            <mkdir dir="${report.dir}/"/>
+        <junit printsummary="${verbose}">
+            <classpath>
+                <pathelement path="${classpath}"/>
+                <pathelement path="resources"/>
+                <pathelement location="${env.ASKAP_ROOT}/lib/junit-${junit.version}.jar"/>
+                <!--<pathelement location="${project.jar}"/>-->
+                <pathelement location="${build.dir}"/>
+            </classpath>
+            <batchtest fork="yes" todir="${report.dir}">
+                <formatter type="brief" usefile="false"/>
+                <formatter type="xml"/>
+                <fileset dir="${test.dir}">
+                    <include name="**/*Test*.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
+
 </project>

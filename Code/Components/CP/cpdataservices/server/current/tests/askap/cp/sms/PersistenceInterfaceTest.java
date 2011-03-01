@@ -76,7 +76,7 @@ public class PersistenceInterfaceTest {
 	@Before
 	public void setUp() throws Exception {
 		// HSQLDB connection, to interact directly with the database
-		//itsConnection = DriverManager.getConnection("jdbc:hsqldb:mem:aname;shutdown=true", "sa", "");
+		itsConnection = DriverManager.getConnection("jdbc:hsqldb:mem:aname;shutdown=true", "sa", "");
 		
 		// Configure Hibernate
 		Configuration config = new Configuration();
@@ -90,12 +90,12 @@ public class PersistenceInterfaceTest {
 		config.setProperty("hibernate.cache.provider_class", "org.hibernate.cache.HashtableCacheProvider");
 		config.setProperty("hibernate.hbm2ddl.auto", "create-drop");
 		config.setProperty("hibernate.show_sql", "true");
-		config.addClass(ComponentBean.class);
+		config.addClass(askap.cp.sms.ComponentBean.class);
 		
 		SessionFactory sessionFactory = config.buildSessionFactory();
 		itsSession = sessionFactory.openSession();
 		
-		//itsInstance = new PersistenceInterface(itsSession);
+		itsInstance = new PersistenceInterface(itsSession);
 	}
 
 	@After
@@ -124,25 +124,13 @@ public class PersistenceInterfaceTest {
 
 	@Test
 	public final void testAddComponents() throws SQLException {
-		/*
+		assertTrue(itsSession.isConnected());
 		// Create a component
 		ComponentBean c = new ComponentBean();
 		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
 		components.add(c);
-		
-		
-		// Verify it exists in the database
-		Statement stmt;
-		ResultSet rs;
-		stmt = itsConnection.createStatement();
-		rs = stmt.executeQuery("SELECT COUNT(*) FROM " + itsComponentsTbl);
-		// get the number of rows from the result set
-		rs.next();
-		int rowCount = rs.getInt(1);
-		rs.close();
-		stmt.close();
-		assertEquals(0, rowCount);
-		*/
+
+		itsSession.flush();
 	}
 
 	@Test
