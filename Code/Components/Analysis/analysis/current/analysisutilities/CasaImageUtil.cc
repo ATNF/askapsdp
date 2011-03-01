@@ -28,6 +28,7 @@
 ///
 #include <askap_analysis.h>
 
+#include <analysisutilities/AnalysisUtilities.h>
 #include <analysisutilities/CasaImageUtil.h>
 #include <analysisutilities/SubimageDef.h>
 
@@ -309,10 +310,24 @@ namespace askap {
 
             cube.pars().setSubsection(subsection.getSection());
 
-            if (cube.pars().section().parse(dim) == duchamp::FAILURE)
+	    // Now parse the sections to get them properly set up
+	    if(cube.pars().parseSubsections(dim) == duchamp::FAILURE){
+	      // if here, something went wrong
+	      if (cube.pars().section().parse(dim) == duchamp::FAILURE)
                 ASKAPTHROW(AskapError, "Cannot parse the subsection string " << cube.pars().section().getSection());
+	      if (cube.pars().statsec().parse(dim) == duchamp::FAILURE)
+                ASKAPTHROW(AskapError, "Cannot parse the statistics subsection string " << cube.pars().statsec().getSection());
+	    }
+	    
+            ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " is using subsection " << cube.pars().section().getSection());
+	    if(cube.pars().getFlagStatSec()){
+	      if(cube.pars().statsec().isValid())
+		ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 
+				  << " is using statistics section " << cube.pars().statsec().getSection());
+	      else
+		ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " does not contribute to the statistics section");
+	    }
 
-            ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " is using subsection " << subsection.getSection());
             Slicer slice = subsectionToSlicer(subsection);
             fixSlicer(slice, tempwcs);
 

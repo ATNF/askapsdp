@@ -156,9 +156,10 @@ namespace askap {
 	    if(!flagSubsection) this->itsBaseSubsection = "";
             this->itsWeightImage = parset.getString("weightsimage", "");
 
-            if (this->itsWeightImage != ""){
-                ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
-		this->itsWeighter = new Weighter(*this);
+            if (this->itsWeightImage != "" ){
+	      this->itsWeighter = new Weighter(*this);
+	      if(!this->isParallel() || this->isMaster()) // only log for the master process.
+		ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
 	    }
 
             this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch", false);
@@ -349,7 +350,15 @@ namespace askap {
                     if (this->isParallel()) {
                         duchamp::Section subsection = this->itsSubimageDef.section(this->itsRank - 1, this->itsCube.pars().getSubsection());
                         this->itsCube.pars().setSubsection(subsection.getSection());
-                        this->itsCube.pars().setFlagSubsection(true);
+			this->itsCube.pars().setFlagSubsection(true);
+			this->itsCube.pars().parseSubsections(this->itsCube.getDimArray(), this->itsCube.getNumDim());
+			ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Subsection = " << this->itsCube.pars().section().getSection());
+			if(this->itsCube.pars().getFlagStatSec()){
+			  if(this->itsCube.pars().statsec().isValid())
+			    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Statistics section = " << this->itsCube.pars().statsec().getSection());
+			  else
+			    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " does not contribute to the statistics section");
+			}
                     }
 
                     if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
@@ -501,17 +510,17 @@ namespace askap {
        void DuchampParallel::weightSearch()
       {
 	
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocating SNR array");
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocating weighted image");
 	float *snrAll = new float[this->itsCube.getSize()];
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining SNR array");
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining weighted image");
 	for(size_t i=0; i<size_t(this->itsCube.getSize());i++){
 	  snrAll[i] = this->itsCube.getPixValue(i)*this->itsWeighter->weight(i);
 	}
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving weighted image");
 	this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
 	this->itsCube.setReconFlag(true);
 		
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching SNR map to threshold " << this->itsCube.stats().getThreshold());
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Searching weighted image to threshold " << this->itsCube.stats().getThreshold());
 	this->itsCube.ObjectList() = searchReconArray(this->itsCube.getDimArray(),this->itsCube.getArray(),this->itsCube.getRecon(),this->itsCube.pars(),this->itsCube.stats());
 	this->itsCube.updateDetectMap();
 	if(this->itsCube.pars().getFlagLog())
@@ -1642,34 +1651,42 @@ namespace askap {
                     if (this->itsCube.pars().getFlagATrous()) this->itsCube.ReconCube();
                     else if (this->itsCube.pars().getFlagSmooth()) this->itsCube.SmoothCube();
 
-                    int32 size = this->itsCube.getSize();
+                    int32 size = 0;
                     float mean = 0., stddev;
-                    float *array;
-                    // make a mask in case there are blank pixels.
-                    bool *mask = this->itsCube.pars().makeStatMask(this->itsCube.getArray(), this->itsCube.getDimArray());
-
-                    if (size > 0) {
+		    if(!this->itsCube.pars().getFlagStatSec() || this->itsCube.pars().statsec().isValid()) {
+		      float *array;
+		      // make a mask in case there are blank pixels.
+		      bool *mask = this->itsCube.pars().makeStatMask(this->itsCube.getArray(), this->itsCube.getDimArray());
+		      for(int i=0;i<this->itsCube.getSize();i++) if(mask[i]) size++;		      
+		      
+		      if (size > 0) {
                         if (this->itsCube.pars().getFlagATrous())       array = this->itsCube.getArray();
                         else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
                         else                                     array = this->itsCube.getArray();
-
+			
                         // calculate both mean & stddev, but ignore stddev for the moment.
                         if (this->itsCube.pars().getFlagRobustStats()) findMedianStats(array, size, mask, mean, stddev);
                         else                                    findNormalStats(array, size, mask, mean, stddev);
-                    }
+		      }
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Mean = " << mean);
+		    }
+		    else {
+		      // No good points in the stats section
+		      mean = 0.;
+// 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "No Mean calculated as no pixels in stat sec");
+		    }
+		    double dmean = mean;
+		    LOFAR::BlobString bs;
+		    bs.resize(0);
+		    LOFAR::BlobOBufString bob(bs);
+		    LOFAR::BlobOStream out(bob);
+		    out.putStart("meanW2M", 1);
+		    int16 rank = this->itsRank;
+		    out << rank << dmean << size;
+		    out.putEnd();
+		    this->itsConnectionSet->write(0, bs);
+		      //                     ASKAPLOG_DEBUG_STR(logger, "Sent mean to the master from worker " << this->itsRank);
 
-                    double dmean = mean;
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Mean = " << mean);
-                    LOFAR::BlobString bs;
-                    bs.resize(0);
-                    LOFAR::BlobOBufString bob(bs);
-                    LOFAR::BlobOStream out(bob);
-                    out.putStart("meanW2M", 1);
-                    int16 rank = this->itsRank;
-                    out << rank << dmean << size;
-                    out.putEnd();
-                    this->itsConnectionSet->write(0, bs);
-//                     ASKAPLOG_DEBUG_STR(logger, "Sent mean to the master from worker " << this->itsRank);
                 } else {
                     // serial case -- can just calculate all stats at once.
                     ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating stats");
@@ -1714,25 +1731,31 @@ namespace askap {
                 }
 
                 // use it to calculate the stddev for this section
-                int32 size = this->itsCube.getSize();
+                int32 size = 0;
                 double stddev = 0.;
-                float *array;
+		if(!this->itsCube.pars().getFlagStatSec() || this->itsCube.pars().statsec().isValid()) {
+		  float *array;
+		  
+		  if (this->itsCube.pars().getFlagATrous()) {
+		    array = new float[this->itsCube.getSize()];
+		    
+		    for (int i = 0; i < size; i++) array[i] = this->itsCube.getPixValue(i) - this->itsCube.getReconValue(i);
+		  } else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
+		  else array = this->itsCube.getArray();
+		  
+		  bool *mask = this->itsCube.pars().makeStatMask(array, this->itsCube.getDimArray());
+		  for(int i=0;i<this->itsCube.getSize();i++) if(mask[i]) size++;		      
+		  if(size>0)
+		    stddev = findSpread(this->itsCube.pars().getFlagRobustStats(), mean, size, array, mask);
+		  
+		  if (this->itsCube.pars().getFlagATrous()) delete [] array;
+		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "StdDev = " << stddev);
+		}
+		else {
+		  stddev = 0.;
+// 		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "No pixels to calculate StdDev");
+		}
 
-                if (size > 0) {
-                    if (this->itsCube.pars().getFlagATrous()) {
-                        array = new float[size];
-
-                        for (int i = 0; i < size; i++) array[i] = this->itsCube.getPixValue(i) - this->itsCube.getReconValue(i);
-                    } else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
-                    else array = this->itsCube.getArray();
-
-                    bool *mask = this->itsCube.pars().makeStatMask(array, this->itsCube.getDimArray());
-                    stddev = findSpread(this->itsCube.pars().getFlagRobustStats(), mean, size, array, mask);
-                }
-
-                if (size > 0 && this->itsCube.pars().getFlagATrous()) delete [] array;
-
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "StdDev = " << stddev);
                 // return it to the master
                 LOFAR::BlobString bs2;
                 bs2.resize(0);
@@ -1846,7 +1869,8 @@ namespace askap {
                     in.getEnd();
 //                     ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Received stddev from worker " << rank);
                     size += newsize;
-                    stddev += (newstddev * newstddev * (newsize - 1));
+		    if(newsize>0)
+		      stddev += (newstddev * newstddev * (newsize - 1));
                 }
 
                 if (size > 0) {
