@@ -61,6 +61,10 @@ struct UVWMachineCache {
    /// to initialisation of a new UVW Machine
    explicit UVWMachineCache(size_t cacheSize = 1, double tolerance = 1e-6);
    
+   /// @brief destructor to print some stats
+   /// @details This method writes in the log cache utilisation statistics
+   ~UVWMachineCache();
+   
    /// @brief obtain machine for a particular tangent point and phase centre
    /// @details This is the main method of the class.
    /// @param[in] phaseCentre direction to the input phase centre

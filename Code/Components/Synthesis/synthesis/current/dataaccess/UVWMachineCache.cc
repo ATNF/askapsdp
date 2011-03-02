@@ -32,6 +32,12 @@
 #include <dataaccess/UVWMachineCache.h>
 #include <askap/AskapError.h>
 
+// for logging
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".dataaccess");
+
+
 using namespace askap;
 using namespace askap::synthesis;
 
@@ -49,6 +55,22 @@ UVWMachineCache::UVWMachineCache(size_t cacheSize, double tolerance) : itsCache(
   ASKAPDEBUGASSERT(itsCache.size() == itsTangentPoints.size());
   ASKAPDEBUGASSERT(itsCache.size() == itsPhaseCentres.size());
 }
+
+/// @brief destructor to print some stats
+/// @details This method writes in the log cache utilisation statistics
+UVWMachineCache::~UVWMachineCache()
+{
+   if (itsCache.size()) {
+       size_t cntUsed = 0;
+       for (size_t elem=0; elem < itsCache.size(); ++elem) {
+            if (!itsCache[elem]) {
+                ++cntUsed;
+            }
+       }
+       ASKAPLOG_INFO_STR(logger, "UVW-cache utilisation: used "<<cntUsed<<" cache(s) out of "<<itsCache.size()<<" available");
+    }
+}
+
 
 /// @brief obtain machine for a particular tangent point and phase centre
 /// @details This is the main method of the class.
