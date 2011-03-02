@@ -44,5 +44,6 @@ setup(name = '%s.%s' % (ROOTPKG, PKGNAME),
       license = 'GPL',
       zip_safe = 1,
       dependency = dep,
+      scripts = ["scripts/doc_parset.py"],
       test_suite = "nose.collector",
 )

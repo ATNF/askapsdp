@@ -96,7 +96,8 @@ class ParameterSet(object):
     def __init__(self, *args, **kw):
         object.__setattr__(self, "_keys", [])
         object.__setattr__(self, "_pdict", {})
-        # from file
+        object.__setattr__(self, "_docdict", {})
+       # from file
         if len(args) == 1:
             if isinstance(args[0], basestring):
                 if args[0].find("=") > -1:
@@ -107,9 +108,9 @@ class ParameterSet(object):
                     raise OSError("Given (single) argument is not filename.")
                 i = 1
                 pairs = []
+                doc = ""
                 for line in pfile:
-                    pair = extract(line)
-
+                    pair, comment = extract(line, doc)
                     if pair and pair in pairs:
                         lineno = pairs.index(pair)+1
                         msg = "Overwriting value for key '%s' first "\
@@ -118,11 +119,14 @@ class ParameterSet(object):
                     pairs.append(pair)
                     if pair:
                         try:
-                            self.set_value(*pair)
+                            self.set_value(pair[0], pair[1], comment)
+                            doc = ""
                         except ValueError, ex:
                             raise ValueError("In line %d of %s. %s" % (i,
                                                                        args[0],
                                                                        ex.message))
+                    else:
+                        doc = comment
                     i += 1
 #                logger.info("Read ParameterSet file %s" % args[0])
             elif isinstance(args[0], dict):
@@ -164,9 +168,27 @@ class ParameterSet(object):
             if default is None:
                 raise KeyError("Key '%s' not found." % inkey )
             else:
-                return default
+                return default       
+
+    def get_doc(self, k):
+        """Get the documentation for the specified key `k`"""
+        inkey = k
+        k, tail = self._split(inkey)
+        if k in self._keys:
+            child = self._pdict[k]
+            if isinstance(child, self.__class__):
+                if tail is not None:
+                    return child.get_doc(tail)
+                else:
+                    return self._docdict[k]
+            else:
+                return self._docdict[k]
+        else:
+            raise KeyError("Key '%s' not found." % inkey )
+
 
     def keys(self):
+        """Return the name of the keys in this `ParameterSet`."""
         out = []
         for k in self._keys:
             child = self._pdict[k]
@@ -179,7 +201,7 @@ class ParameterSet(object):
         return out
 
 
-    def set_value(self, k, v):
+    def set_value(self, k, v, doc=""):
         """
         Add or replace key/value pair. This will recursively create keys if
         necessary when the key contains '.' notation. This is the only way to
@@ -206,18 +228,20 @@ class ParameterSet(object):
         if k in self._keys:
             child = self._pdict[k]
             if isinstance(child, self.__class__):
-                child.set_value(tail, v)
+                child.set_value(tail, v, doc)
             else:
                 if tail:
                     raise ValueError("Leaf node %s can't be extended" % k)
                 else:
                     self._pdict[k] = v
+                    self._docdict[k] = doc or "**undocumented**"
         else:
             if not tail:
                 self._pdict[k] = v
+                self._docdict[k] = doc or "**undocumented**"
             else:
                 child = ParameterSet()
-                child.set_value(tail, v)
+                child.set_value(tail, v, doc)
                 self._pdict[k] = child
             self._keys.append(k)
 
@@ -417,13 +441,24 @@ def decode(value):
         return eval(value.title())
     return value
 
-def extract(line):
+def extract(line, comment=""):
     """
     Return a key/value pair from a string. This will most likely be a line in a
-    ParameterSet file.
+    ParameterSet file. It also returns (optinally) a documentation string from
+    lines beginning with '##'.
     """
-    line = line.strip()
-    if len(line) == 0 or line.startswith("#"):
-        return None
-    kv = line.split("=",1)
-    return kv[0].strip(),kv[1].strip()
+    line = line.lstrip()
+    line = line.strip("\n")
+    if len(line) == 0:
+        return None, comment
+    elif line.startswith("#"):
+        if line.startswith("##"):
+            if len(comment):
+                return None, "\n".join((comment, line.strip("#")))
+            else:
+                return None, line.strip("#")
+        return None, comment
+    else:
+        line = line.strip()
+        kv = line.split("=", 1)
+        return [i.strip() for i in kv], comment
