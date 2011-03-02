@@ -11,6 +11,7 @@ ASKAP_LOGGER(logger, "");
 #include <dataaccess/TableManager.h>
 #include <dataaccess/IDataConverterImpl.h>
 #include <utils/EigenDecompose.h>
+#include <askap/AskapUtil.h>
 
 
 // casa
@@ -35,14 +36,17 @@ using namespace synthesis;
 /// @brief analyse the uvw
 /// @details
 /// @param[in] acc accessor 
+/// @param[out] nv normalised vector orthogonal to the fitted plane in uvw-coordinates
 /// @param[in] beam if positive, only this beam will be taken into account
 /// @return largest residual w-term (negative value means the fit has failed)
-double analyseUVW(const IConstDataAccessor& acc, int beam = -1)
+double analyseUVW(const IConstDataAccessor& acc, casa::Vector<double> &nv, int beam = -1)
 {
+  nv.resize(3);
   const casa::MVDirection tangent(SynthesisParamsHelper::convertQuantity("12h30m00.000","rad"),
                                   SynthesisParamsHelper::convertQuantity("-45.00.00.000","rad"));
   const casa::MDirection tangentDir(tangent, casa::MDirection::J2000);
   const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw = acc.rotatedUVW(tangentDir);
+  //const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw = acc.uvw();
   
   casa::Matrix<double> normalMatr(3,3,0.);
   const casa::uInt nRow = acc.nRow();
@@ -68,6 +72,7 @@ double analyseUVW(const IConstDataAccessor& acc, int beam = -1)
   casa::Vector<double> normalVector(eVect.column(2).copy());
   const double norm = casa::sum(casa::square(normalVector));
   normalVector /= norm;
+  nv = normalVector;
   if (fabs(normalVector[2]) > 1e-6) {
       normalVector[0] /= normalVector[2];
       normalVector[1] /= normalVector[2];
@@ -107,10 +112,22 @@ void doReadOnlyTest(const IConstDataSource &ds) {
   const casa::MDirection tangentDir(tangent, casa::MDirection::J2000);
     
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
-       analyseUVW(*it);
+       
+       casa::Vector<double> nvAll;
+       analyseUVW(*it,nvAll,0);
+       ASKAPDEBUGASSERT(nvAll.nelements() == 3);
        for (int beam=0;beam<5;++beam) {
-            analyseUVW(*it,beam);
+            casa::Vector<double> nvCurrentBeam;
+            analyseUVW(*it,nvCurrentBeam,beam);
+            ASKAPDEBUGASSERT(nvCurrentBeam.nelements() == 3);
+            const double dotproduct = nvAll[0]*nvCurrentBeam[0] + nvAll[1]*nvCurrentBeam[1] + nvAll[2]*nvCurrentBeam[2];
+            std::cout<<"angle="<<acos(dotproduct)/casa::C::pi*180.<<std::endl;
        }
+       /*
+       for (casa::uInt row = 0; row<it->nRow(); ++row) {
+            std::cout<<"beam="<<it->feed1()[row]<<" direction: "<<printDirection(it->pointingDir1()[row])<<std::endl;
+       }
+       */
 
        /*
        const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw = it->rotatedUVW(tangentDir);
