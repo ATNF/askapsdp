@@ -40,6 +40,7 @@ ASKAP_LOGGER(logger, "");
 #include <coordinates/Coordinates/DirectionCoordinate.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Matrix.h>
+#include <measures/Measures/UVWMachine.h>
 #include <images/Images/PagedImage.h>
 #include <lattices/Lattices/ArrayLattice.h>
 
@@ -47,6 +48,7 @@ ASKAP_LOGGER(logger, "");
 #include <casa/Arrays/Vector.h>
 #include <measurementequation/MEParsetInterface.h>
 #include <utils/EigenDecompose.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 
 
 // std
@@ -194,8 +196,6 @@ void calculateUVW(const casa::Vector<double> &x, const casa::Vector<double> &y, 
         w[row] = cDec * cH0 * x[row] - cDec * sH0 * y[row] + sDec * z[row]; 
    }
 }                  
-
-
 
 /// @brief analyse the layout
 /// @details
@@ -363,6 +363,42 @@ void mapResidualWTerm(const std::string &name, const double longitude,
   result.copyData(lattice);  
 }            
 
+/// @brief test uvw-rotation
+/// @details this method computes uvw's for two directions on the sky using the first
+/// principles and then does uvw-rotation from one direction to another and compares two
+/// sets of uvws
+/// @param[in] x baseline coordinate X
+/// @param[in] y baseline coordinate Y
+/// @param[in] z baseline coordinate Z
+void testUVWRotation(const casa::Vector<double> &x, const casa::Vector<double> &y, const casa::Vector<double> &z)
+{
+  ASKAPLOG_INFO_STR(logger, "Test of the uvw-rotation");
+  const casa::MVDirection tangent(SynthesisParamsHelper::convertQuantity("12h30m00.000","rad"),
+                                  SynthesisParamsHelper::convertQuantity("-45.00.00.000","rad"));
+  const casa::MDirection tangentDir(tangent, casa::MDirection::J2000);
+  const double raOffset = 2./180.*casa::C::pi;
+  const double decOffset = 2./180.*casa::C::pi;
+  casa::MDirection offsetDir(tangentDir);
+  offsetDir.shift(-raOffset,decOffset,casa::True);
+  casa::Vector<double> uOffset,vOffset,wOffset;
+  // uvw at longitude where the region is close to transit
+  calculateUVW(x,y,z,offsetDir.getValue().getLat(),offsetDir.getValue().getLong()-casa::C::pi,uOffset,vOffset,wOffset);
+  casa::Vector<double> uTangent,vTangent,wTangent;
+  calculateUVW(x,y,z,tangentDir.getValue().getLat(),tangentDir.getValue().getLong()-casa::C::pi,uTangent,vTangent,wTangent);
+  casa::UVWMachine machine(offsetDir,tangentDir,false, true);
+  //casa::UVWMachine machine(tangentDir,offsetDir,false, true);
+  for (casa::uInt row=0; row<x.nelements(); ++row) {
+       casa::Vector<double> buf(3);
+       buf[0]=uOffset[row];
+       buf[1]=vOffset[row];
+       buf[2]=wOffset[row];
+       double delay;
+       machine.convertUVW(delay, buf);
+       ASKAPLOG_INFO_STR(logger,"uvw_rotated-uvw_tangent: "<<buf[0]-uTangent[row]<<" "<<buf[1]-vTangent[row]<<" "<<
+                                buf[2]-wTangent[row]);
+  }
+}
+
 /// @brief main
 /// @param[in] argc number of arguments
 /// @param[in] argv vector of arguments
@@ -390,6 +426,7 @@ int main(int argc, char **argv) {
      const double centreLat = asin(normalVector[2]);
      ASKAPLOG_INFO_STR(logger, "Centre of the layout is at longitude "<<centreLong*180/casa::C::pi<<
                        " and latitude "<<centreLat*180/casa::C::pi);
+     testUVWRotation(x,y,z);
      if (imgName.defined()) { 
          ASKAPLOG_INFO_STR(logger, "Image showing largest residual w-term vs. local hour angle and declination will be stored in "<<
                                     imgName.getValue());
