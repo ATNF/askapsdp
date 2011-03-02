@@ -1665,8 +1665,10 @@ namespace askap {
                         else                                     array = this->itsCube.getArray();
 			
                         // calculate both mean & stddev, but ignore stddev for the moment.
-                        if (this->itsCube.pars().getFlagRobustStats()) findMedianStats(array, size, mask, mean, stddev);
-                        else                                    findNormalStats(array, size, mask, mean, stddev);
+                        if (this->itsCube.pars().getFlagRobustStats()) 
+			  findMedianStats(array, this->itsCube.getSize(), mask, mean, stddev);
+                        else
+			  findNormalStats(array, this->itsCube.getSize(), mask, mean, stddev);
 		      }
 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Mean = " << mean);
 		    }
@@ -1745,8 +1747,9 @@ namespace askap {
 		  
 		  bool *mask = this->itsCube.pars().makeStatMask(array, this->itsCube.getDimArray());
 		  for(int i=0;i<this->itsCube.getSize();i++) if(mask[i]) size++;		      
+
 		  if(size>0)
-		    stddev = findSpread(this->itsCube.pars().getFlagRobustStats(), mean, size, array, mask);
+		    stddev = findSpread(this->itsCube.pars().getFlagRobustStats(), mean, this->itsCube.getSize(), array, mask);
 		  
 		  if (this->itsCube.pars().getFlagATrous()) delete [] array;
 		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "StdDev = " << stddev);
