@@ -45,6 +45,7 @@ namespace synthesis {
 
 class UVWMachineCacheTest : public CppUnit::TestFixture {
    CPPUNIT_TEST_SUITE(UVWMachineCacheTest);
+   CPPUNIT_TEST(uvwMachineTest);
    CPPUNIT_TEST_EXCEPTION(exceptionTest,AskapError);
    CPPUNIT_TEST(oneElementCacheTest);
    CPPUNIT_TEST(twoElementsCacheTest);
@@ -58,6 +59,30 @@ public:
       itsMachineCache.reset(new UVWMachineCache(0,1e-6));
       testCaching();
    };
+   
+   void uvwMachineTest() {
+      // this is actually a test of the UVWMachine, not of our code
+      // intended to be adapted to become a part of casacore
+      
+      // array layout as global XYZ
+      const size_t nAnt = 6;
+      const double layout[nAnt][3] = 
+         {{-2.556088250000000e+06, 5.097405500000000e+06, -2.848428250000000e+06},
+          {-2.556121750000000e+06, 5.097392000000000e+06, -2.848421500000000e+06},
+          {-2.556231500000000e+06, 5.097387500000000e+06, -2.848327500000000e+06},
+          {-2.556006250000000e+06, 5.097327500000000e+06, -2.848641500000000e+06},
+          {-2.555892500000000e+06, 5.097559500000000e+06, -2.848328750000000e+06},
+          {-2.556745500000000e+06, 5.097448000000000e+06, -2.847753750000000e+06}};
+          
+      casa::Vector<casa::RigidVector<double, 3> > baselines(nAnt*nAnt/2);
+      for (size_t ant1 = 0, row=0; ant1<nAnt; ++ant1) {
+           for (size_t ant2 = 0; ant2<ant1; ++ant2,++row) {
+                for (int dim=0; dim<3; ++dim) {
+                     baselines[row](dim) = layout[ant2][dim] - layout[ant1][dim];
+                }
+           }
+      }
+   }
       
    void oneElementCacheTest() {
       itsMachineCache.reset(new UVWMachineCache(1,1e-6));
