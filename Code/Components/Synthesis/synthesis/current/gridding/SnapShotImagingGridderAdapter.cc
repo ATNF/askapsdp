@@ -375,11 +375,11 @@ void SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane()
   ASKAPDEBUGASSERT(itsGridder);
   ASKAPCHECK(!itsFirstAccessor, 
        "finaliseGriddingOfCurrentPlane is called while itsFirstAccessor flag is true. This is not supposed to happen");
-  ASKAPLOG_INFO_STR(logger, "Finalising current dirty image");
+  ASKAPLOG_DEBUG_STR(logger, "Finalising current dirty image");
   casa::Array<double> scratch(itsImageBuffer.shape());
   itsGridder->finaliseGrid(scratch);
   imageRegrid(scratch, itsImageBuffer, true);
-  ASKAPLOG_INFO_STR(logger, "Finalising current weights");
+  ASKAPLOG_DEBUG_STR(logger, "Finalising current weights");
   itsGridder->finaliseWeights(scratch);
   imageRegrid(scratch, itsWeightsBuffer, true);  
   itsBuffersFinalised = true;
@@ -437,10 +437,10 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
    ++itsNumOfImageRegrids;
    // actual code
    if (toTarget) {
-       ASKAPLOG_INFO_STR(logger, "Regridding image from the frame corresponding to the fitted plane w = u * "<<
+       ASKAPLOG_DEBUG_STR(logger, "Regridding image from the frame corresponding to the fitted plane w = u * "<<
               coeffA()<<" + v * "<<coeffB()<<", into the target frame");
    } else {
-       ASKAPLOG_INFO_STR(logger, 
+       ASKAPLOG_DEBUG_STR(logger, 
            "Regridding image from the input frame into a frame corresponding to the fitted plane w = u * "<<
               coeffA()<<" + v * "<<coeffB());       
    }

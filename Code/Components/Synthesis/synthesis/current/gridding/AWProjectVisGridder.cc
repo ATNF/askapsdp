@@ -380,7 +380,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
               cfSupport.itsSize = limitSupportIfNecessary(support); 	   
 			  if (itsSupport == 0) {     
 			      itsSupport = cfSupport.itsSize;
-                  ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
+                  ASKAPLOG_DEBUG_STR(logger, "Number of planes in convolution function = "
 				      << itsConvFunc.size()<<" or "<<itsConvFunc.size()/itsOverSample/itsOverSample<<
 				        " before oversampling with factor "<<itsOverSample);
               }		      
@@ -390,7 +390,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		      // just for log output					
 		      const double cell=std::abs(itsUVCellSize(0)*(casa::C::c
 							     /acc.frequency()[chan]));
-		      ASKAPLOG_INFO_STR(logger, "CF cache w-plane="<<iw<<" feed="<<feed<<" field="<<currentField()<<
+		      ASKAPLOG_DEBUG_STR(logger, "CF cache w-plane="<<iw<<" feed="<<feed<<" field="<<currentField()<<
 		             ": maximum extent = "<< support*cell << " (m) sampled at "<< cell/itsOverSample << " (m)"<<
 		             " offset (m): "<<cfSupport.itsOffsetU*cell<<" "<<cfSupport.itsOffsetV*cell);
 	      }
@@ -443,7 +443,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                 ASKAPLOG_INFO_STR(logger, "Variable support size is used:");
                 const size_t step = casa::max(itsConvFunc.size()/itsOverSample/itsOverSample/10,1);          
                 for (size_t plane = 0; plane<itsConvFunc.size(); plane += step*itsOverSample*itsOverSample) {
-                     ASKAPLOG_INFO_STR(logger, "CF cache plane "<<plane<<" ("<<plane/itsOverSample/itsOverSample<<
+                     ASKAPLOG_DEBUG_STR(logger, "CF cache plane "<<plane<<" ("<<plane/itsOverSample/itsOverSample<<
                         " prior to oversampling) shape is "<<itsConvFunc[plane].shape());
                 }
             } else {
@@ -464,7 +464,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
     /// 2. Sum all planes weighted by the weight for that convolution function.
     void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out) {
       
-      ASKAPLOG_INFO_STR(logger, "Calculating sum of weights image");
+      ASKAPLOG_DEBUG_STR(logger, "Calculating sum of weights image");
       ASKAPDEBUGASSERT(itsShape.nelements()>=3);
       
       const int nx=itsShape(0);
@@ -573,7 +573,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       
       scimath::PaddingUtils::fftPad(cOut, out, paddingFactor());
  
-      ASKAPLOG_INFO_STR(logger, 
+      ASKAPLOG_DEBUG_STR(logger, 
 			"Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
     }
 

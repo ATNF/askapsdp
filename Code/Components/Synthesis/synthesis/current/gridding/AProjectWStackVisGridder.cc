@@ -310,13 +310,13 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
                     const int cSize=2*itsSupport+1;
                     // just for logging
                     const double cell = std::abs(pattern.uCellSize())*(casa::C::c/acc.frequency()[chan]);
-                    ASKAPLOG_INFO_STR(logger, "Convolution function support = "
+                    ASKAPLOG_DEBUG_STR(logger, "Convolution function support = "
                             << itsSupport << " pixels, size = " << cSize
                             << " pixels");
-                    ASKAPLOG_INFO_STR(logger, "Maximum extent = "<< itsSupport
+                    ASKAPLOG_DEBUG_STR(logger, "Maximum extent = "<< itsSupport
                             *cell << " (m) sampled at "<< cell
                             << " (m)");
-                    ASKAPLOG_INFO_STR(logger, "Number of planes in convolution function = "
+                    ASKAPLOG_DEBUG_STR(logger, "Number of planes in convolution function = "
                             << itsConvFunc.size()<<" or "<<itsConvFunc.size()/itsOverSample/itsOverSample<<
                             " before oversampling with factor "<<itsOverSample);
                 } // if itsSupport uninitialized
@@ -361,7 +361,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor&
 // 2. Sum all planes weighted by the weight for that convolution function.
 void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 
-    ASKAPLOG_INFO_STR(logger, "Calculating sum of weights image");
+    ASKAPLOG_DEBUG_STR(logger, "Calculating sum of weights image");
     ASKAPDEBUGASSERT(itsShape.nelements()>=3);
 
     const int nx=itsShape(0);
@@ -455,7 +455,7 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
         } // if has data
     } // loop over convolution functions
     scimath::PaddingUtils::fftPad(cOut, out, paddingFactor());
-    ASKAPLOG_INFO_STR(logger, 
+    ASKAPLOG_DEBUG_STR(logger, 
             "Finished finalising the weights, the sum over all convolution functions is "<<totSumWt);	
 }
 

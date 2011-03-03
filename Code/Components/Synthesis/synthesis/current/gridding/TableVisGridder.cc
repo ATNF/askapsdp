@@ -806,7 +806,7 @@ void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 	initialiseSumOfWeights();
     ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
     initialiseFreqMapping();
-    ASKAPLOG_INFO_STR(logger, "Gridding is set up with tangent centre "<<
+    ASKAPLOG_DEBUG_STR(logger, "Gridding is set up with tangent centre "<<
              printDirection(getTangentPoint())<<" and image centre "<<
              printDirection(getImageCentre())); 
 }
@@ -965,7 +965,7 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		fft2d(scratch2, true);
 		casa::convertArray<casa::Complex,casa::DComplex>(itsGrid[0],scratch2);
 	} else {
-		ASKAPLOG_INFO_STR(logger, "No need to degrid: model is empty");
+		ASKAPLOG_DEBUG_STR(logger, "No need to degrid: model is empty");
 		itsModelIsEmpty=true;
 		itsGrid[0].set(casa::Complex(0.0));
 	}
@@ -982,7 +982,7 @@ void TableVisGridder::initialiseFreqMapping()
   if (itsAxes.has("FREQUENCY") && itsShape.nelements()>=4) {
       itsFreqMapper.setupImage(itsAxes, itsShape(3));
   } else {
-      ASKAPLOG_INFO_STR(logger, "Forced to use single spectral plane gridding (either "
+      ASKAPLOG_DEBUG_STR(logger, "Forced to use single spectral plane gridding (either "
                                 "FREQUENCY axis or the number of channels are missing");
       itsFreqMapper.setupSinglePlaneGridding();
   }

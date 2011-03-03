@@ -182,7 +182,7 @@ void AProjectGridderBase::indexField(const IConstDataAccessor &acc)
       ASKAPCHECK(itsCurrentField < itsDone.ncolumn(),
               "Too many fields: increase maxfields " << itsDone.ncolumn());
       itsPointings(firstFeed, itsCurrentField) = firstPointing;
-      ASKAPLOG_INFO_STR(logger, "Found new field " << itsCurrentField<<" at "<<
+      ASKAPLOG_DEBUG_STR(logger, "Found new field " << itsCurrentField<<" at "<<
                 printDirection(firstPointing));
   } 
 }

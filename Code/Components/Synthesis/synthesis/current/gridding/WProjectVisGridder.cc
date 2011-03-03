@@ -326,11 +326,11 @@ namespace askap
         } // for plane					        
       } // for iw
       if (isSupportPlaneDependent()) {
-          ASKAPLOG_INFO_STR(logger, "Convolution function cache has "<<itsConvFunc.size()<<" planes");
-          ASKAPLOG_INFO_STR(logger, "Variable support size is used:");
+          ASKAPLOG_DEBUG_STR(logger, "Convolution function cache has "<<itsConvFunc.size()<<" planes");
+          ASKAPLOG_DEBUG_STR(logger, "Variable support size is used:");
           const size_t step = casa::max(itsConvFunc.size()/itsOverSample/itsOverSample/10,1);          
           for (size_t plane = 0; plane<itsConvFunc.size(); plane += step*itsOverSample*itsOverSample) {
-               ASKAPLOG_INFO_STR(logger, "CF cache plane "<<plane<<" ("<<plane/itsOverSample/itsOverSample<<
+               ASKAPLOG_DEBUG_STR(logger, "CF cache plane "<<plane<<" ("<<plane/itsOverSample/itsOverSample<<
                 " prior to oversampling) shape is "<<itsConvFunc[plane].shape());
           }
       } else {
@@ -387,7 +387,7 @@ namespace askap
 	      support = itsLimitSupport;
 	  }
       const int cSize=2*support+1;
-      ASKAPLOG_INFO_STR(logger, "Convolution function support = "
+      ASKAPLOG_DEBUG_STR(logger, "Convolution function support = "
            << support << " pixels, convolution function size = "
               << cSize<< " pixels");
       return support;
