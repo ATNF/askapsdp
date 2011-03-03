@@ -63,11 +63,11 @@ UVWMachineCache::~UVWMachineCache()
    if (itsCache.size()) {
        size_t cntUsed = 0;
        for (size_t elem=0; elem < itsCache.size(); ++elem) {
-            if (!itsCache[elem]) {
+            if (itsCache[elem]) {
                 ++cntUsed;
             }
        }
-       ASKAPLOG_INFO_STR(logger, "UVW-cache utilisation: used "<<cntUsed<<" cache(s) out of "<<itsCache.size()<<" available");
+       ASKAPLOG_INFO_STR(logger, "UVW-Machine cache utilisation: used "<<cntUsed<<" cache(s) out of "<<itsCache.size()<<" available");
     }
 }
 
