@@ -381,14 +381,14 @@ void testUVWRotation(const casa::Vector<double> &x, const casa::Vector<double> &
                                   SynthesisParamsHelper::convertQuantity("-45.00.00.000","rad"));
   const casa::MDirection tangentDir(tangent, casa::MDirection::J2000);
   const double raOffset = 2./180.*casa::C::pi;
-  const double decOffset = 2./180.*casa::C::pi;
+  const double decOffset = 0./180.*casa::C::pi;
   casa::MDirection offsetDir(tangentDir);
   offsetDir.shift(-raOffset,decOffset,casa::True);
   casa::Vector<double> uOffset,vOffset,wOffset;
   // uvw at longitude where the region is close to transit
-  calculateUVW(x,y,z,offsetDir.getValue().getLat(),offsetDir.getValue().getLong()-casa::C::pi,uOffset,vOffset,wOffset);
+  calculateUVW(x,y,z,offsetDir.getValue().getLat(),casa::C::pi-offsetDir.getValue().getLong(),uOffset,vOffset,wOffset);
   casa::Vector<double> uTangent,vTangent,wTangent;
-  calculateUVW(x,y,z,tangentDir.getValue().getLat(),tangentDir.getValue().getLong()-casa::C::pi,uTangent,vTangent,wTangent);
+  calculateUVW(x,y,z,tangentDir.getValue().getLat(),casa::C::pi-tangentDir.getValue().getLong(),uTangent,vTangent,wTangent);
   casa::UVWMachine machine(offsetDir,tangentDir,false, true);
   //casa::UVWMachine machine(tangentDir,offsetDir,false, true);
   for (casa::uInt row=0; row<x.nelements(); ++row) {

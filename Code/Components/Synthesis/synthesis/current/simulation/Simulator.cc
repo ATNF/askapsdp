@@ -32,6 +32,7 @@
 ASKAP_LOGGER(logger, ".parallel");
 
 #include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
 
 #include <ms/MeasurementSets/MSDerivedValues.h>
 #include <ms/MeasurementSets/MeasurementSet.h>
@@ -929,6 +930,9 @@ void Simulator::observe(const casa::String& sourceName,
 
             // x direction is flipped to convert az-el type frame to ra-dec
             feed_phc.shift(-beamOffset(0), beamOffset(1), True);
+            ASKAPLOG_DEBUG_STR(logger, "pointing/phase centre for beam="<<feed<<" is "<<
+                               printDirection(feed_phc.getValue())<<" offsets: "<<beamOffset(0)/casa::C::pi*180<<" "<<
+                               beamOffset(1)/casa::C::pi*180<<" mount="<<antenna_mounts[0]);
 
             double ra, dec; // current phase center
             ra = feed_phc.getAngle().getValue()(0);
