@@ -116,7 +116,6 @@ def test_get_fail():
     v = p.get_value('x.y.x')
     v = p['x.y.x']
 
-
 def test_in():
     p = ParameterSet('x.y.z', 1)
     assert 'x' in p
@@ -126,7 +125,7 @@ def test_in():
 
 # check decoded value
 def decoder(k, v):
-    assert decode(k) == v
+    assert_equals(decode(k), v)
 
 # test generator for parset expressions
 def test_decode():
@@ -142,7 +141,8 @@ def test_decode():
             '[3 * false]': 3*[False],
             '1e10': 1e10,
             '.1': 0.1,
-            '-1.0e-10': -1.0e-10
+            '-1.0e-10': -1.0e-10,
+            '[1, 2, "x y"]': [1,2, "x y" ]
             }
 
     for k,v in expr.items():
@@ -162,7 +162,9 @@ def test_encode():
             '[3 * false]': 3*[False],
             'true': True,
             'false': False,
-            '-1e-10': -1.0e-10
+            '-1e-10': -1.0e-10,
+            '[1, 2, "x y"]': [1,2, "x y" ]
+          
             }
     for k,v in expr.items():
         yield encoder, v, k

@@ -341,10 +341,15 @@ def encode(value):
     if hasattr(value, 'tolist'):
         value = value.tolist()
     if isinstance(value, list) or isinstance(value, tuple):
-        def to_str(value):
+        def to_str(value, islement=False):
             if isinstance(value, list) or isinstance(value, tuple):
+                vals = []
                 for i in value:
-                    return "[" + ", ".join([to_str(i) for i in value])  + "]"
+                    # quote text in lists which contains whitespace
+                    if isinstance(i, basestring) and len(i.split()) > 1:
+                        i = '"'+i+'"'
+                    vals.append(to_str(i))
+                return "[" + ", ".join(vals)  + "]"
             else:
                 if isinstance(value, bool):
                     return value and 'true' or 'false'
@@ -356,7 +361,7 @@ def encode(value):
                 val = str(single_str(value[0]))
                 return '[' + str(len(value)) + ' * ' + val + ']'
             # n..m
-            elif isinstance(value[0], int) \
+            elif all([isinstance(i, int) for i in value ])\
                 and value == range(value[0], value[-1]+1):
                 return str(value[0]) + '..' + str(value[-1])
         return to_str(value)
@@ -386,6 +391,7 @@ def decode(value):
     rxisrange = re.compile(r"(\d+)\.{2}(\d+)")
     rxisnum = re.compile(r"^([+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)$")
     rxhex = re.compile("^0x\d+$")
+    rxstr = re.compile('^[\'"](.*)[\'"]$')
     # lists/arrays
     match = rxislist.match(value)
     if match:
@@ -414,9 +420,12 @@ def decode(value):
         out = []
         items = match.groups()[0].split(",")
         for i in items:
+
             i = i.strip()
             if rxisnum.match(i):
                 i = eval(i)
+            elif rxstr.match(i):
+                i = rxstr.match(i).groups()[0]
             out.append(i)
         return out
     # look for  '01..10' type pattern
