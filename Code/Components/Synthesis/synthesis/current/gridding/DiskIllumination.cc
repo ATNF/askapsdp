@@ -37,7 +37,7 @@
 // temporary
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".gridding");
+ASKAP_LOGGER(logger, ".gridding.diskillumination");
 //
 
 using namespace askap;

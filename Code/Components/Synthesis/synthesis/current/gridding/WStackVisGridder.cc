@@ -25,7 +25,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".gridding");
+ASKAP_LOGGER(logger, ".gridding.wstackgridder");
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>

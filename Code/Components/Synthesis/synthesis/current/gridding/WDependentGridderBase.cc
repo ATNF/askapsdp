@@ -37,7 +37,7 @@
 #include <askap/AskapUtil.h>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".gridding");
+ASKAP_LOGGER(logger, ".gridding.wdependentgridderbase");
 
 #include <fstream>
 #include <boost/shared_ptr.hpp>

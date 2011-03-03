@@ -23,7 +23,7 @@
 
 #include "VisWeightsMultiFrequency.h"
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".gridding");
+ASKAP_LOGGER(logger, ".griddingvisweightsmultifrequency");
 
 namespace askap
 {

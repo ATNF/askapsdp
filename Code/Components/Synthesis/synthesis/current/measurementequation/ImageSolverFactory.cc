@@ -23,7 +23,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".measurementequation");
+ASKAP_LOGGER(logger, ".measurementequation.imagesolverfactory");
 
 #include <askap/AskapError.h>
 

@@ -27,7 +27,7 @@
 #include <askap/AskapLogging.h>
 #include <boost/shared_ptr.hpp>
 
-ASKAP_LOGGER(logger, ".measurementequation");
+ASKAP_LOGGER(logger, ".measurementequation.imagemultiscalesolver");
 
 #include <askap/AskapError.h>
 
