@@ -242,16 +242,18 @@ casa::Vector<double> analyseBaselines(casa::Vector<double> &x, casa::Vector<doub
   return normalVector;
 }
 
-
 /// @brief analyse the uvw
 /// @details
 /// @param[in] u baseline coordinates U
 /// @param[in] v baseline coordinates V
 /// @param[in] w baseline coordinates W
+/// @param[out] nv normalised vector orthogonal to the fitted plane in uvw-coordinates
 /// @param[in] verbose if true, debug messages will be written into log
 /// @return largest residual w-term (negative value means the fit has failed)
-double analyseUVW(casa::Vector<double> &u, casa::Vector<double> &v, casa::Vector<double> &w, bool verbose = false)
+double analyseUVW(casa::Vector<double> &u, casa::Vector<double> &v, casa::Vector<double> &w, 
+                  casa::Vector<double> &nv, bool verbose = false)
 {
+  nv.resize(3);
   casa::Matrix<double> normalMatr(3,3,0.);
   const casa::uInt nBaselines = u.nelements();
   for (casa::uInt b = 0; b<nBaselines; ++b) {
@@ -279,6 +281,7 @@ double analyseUVW(casa::Vector<double> &u, casa::Vector<double> &v, casa::Vector
   if (verbose) {
       ASKAPLOG_DEBUG_STR(logger, "Normalised vector normal to the best fit uvw plane: "<<normalVector);
   }
+  nv = normalVector;
   if (fabs(normalVector[2]) > 1e-6) {
       normalVector[0] /= normalVector[2];
       normalVector[1] /= normalVector[2];
@@ -343,13 +346,14 @@ void mapResidualWTerm(const std::string &name, const double longitude,
   casa::Vector<casa::Double> pixel(2,0.);
   casa::MVDirection world;
   casa::Vector<double> u,v,w;
+  casa::Vector<double> unused;
   for (int xx = 0; xx<xSize; ++xx) {
        for (int yy=0; yy<ySize; ++yy) {
             pixel[0] = double(xx);
             pixel[1] = double(yy);
             if (dc.toWorld(world,pixel)) {
                 calculateUVW(x,y,z,world.getLat(),world.getLong()-longitude,u,v,w);
-                const double resW = analyseUVW(u,v,w);                
+                const double resW = analyseUVW(u,v,w,unused);                
                 if (resW>=0) {
                     buf(xx,yy) = resW;
                 }
@@ -394,9 +398,23 @@ void testUVWRotation(const casa::Vector<double> &x, const casa::Vector<double> &
        buf[2]=wOffset[row];
        double delay;
        machine.convertUVW(delay, buf);
-       ASKAPLOG_INFO_STR(logger,"uvw_rotated-uvw_tangent: "<<buf[0]-uTangent[row]<<" "<<buf[1]-vTangent[row]<<" "<<
-                                buf[2]-wTangent[row]);
+       if (row%50 == 0) {
+           ASKAPLOG_INFO_STR(logger,"row="<<row<<" uvw_rotated-uvw_original: "<<buf[0]-uTangent[row]<<" "<<buf[1]-vTangent[row]<<" "<<
+                                 buf[2]-wTangent[row]);
+       }
+       uOffset[row] = buf[0];
+       vOffset[row] = buf[1];
+       wOffset[row] = buf[2];       
   }
+  casa::Vector<double> nvTangent, nvOffset;
+  const double wMaxTangent = analyseUVW(uTangent,vTangent,wTangent,nvTangent);
+  const double wMaxOffset = analyseUVW(uOffset,vOffset,wOffset,nvOffset);
+  ASKAPLOG_INFO_STR(logger,"Largest w-term deviation: "<<wMaxTangent<<" metres for uvw's calculated for original direction");
+  ASKAPLOG_INFO_STR(logger,"  and: "<<wMaxOffset<<" metres for uvw's calculated for offset direction and rotated back");
+  const double dotProduct = nvTangent[0]*nvOffset[0] + nvTangent[1]*nvOffset[1] + nvTangent[2]*nvOffset[2];
+  ASKAPLOG_INFO_STR(logger,"The angle between best fit planes for original uvw distribution and the distribution calculated for the direction, which");
+  ASKAPLOG_INFO_STR(logger,"is offset "<< raOffset/casa::C::pi*180.<<" deg in ra and "<<decOffset/casa::C::pi*180.<<
+            " deg in dec and rotated back to the original direction, is "<< acos(dotProduct)/casa::C::pi*180.<<" deg");
 }
 
 /// @brief main
@@ -426,7 +444,9 @@ int main(int argc, char **argv) {
      const double centreLat = asin(normalVector[2]);
      ASKAPLOG_INFO_STR(logger, "Centre of the layout is at longitude "<<centreLong*180/casa::C::pi<<
                        " and latitude "<<centreLat*180/casa::C::pi);
+
      testUVWRotation(x,y,z);
+
      if (imgName.defined()) { 
          ASKAPLOG_INFO_STR(logger, "Image showing largest residual w-term vs. local hour angle and declination will be stored in "<<
                                     imgName.getValue());
