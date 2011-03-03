@@ -70,13 +70,15 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
+    // This class must have scope outside the main try/catch block
+    askap::mwbase::AskapParallel comms(argc, argv);
     try {
         casa::Timer timer;
         timer.mark();
         std::string parsetFile(getInputs("-inputs", "cimstat.in", argc, argv));
         LOFAR::ParameterSet parset(parsetFile,LOFAR::StringUtil::Compare::NOCASE);
         LOFAR::ParameterSet subset(parset.makeSubset("Cimstat."));
-        DuchampParallel duchamp(argc, argv, subset);
+        DuchampParallel duchamp(comms, subset);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         duchamp.readData();
 //     duchamp.findMeans();
@@ -86,16 +88,15 @@ int main(int argc, const char** argv)
 //     duchamp.combineRMSs();
         duchamp.gatherStats();
         ///==============================================================================
-    } catch (askap::AskapError& x) {
+    } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
-    } catch (std::exception& x) {
+    } catch (const std::exception& x) {
         ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
         std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
     }
 
-    exit(0);
+    return 0;
 }
-

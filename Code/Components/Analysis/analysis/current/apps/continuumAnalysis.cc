@@ -33,6 +33,7 @@
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
 
+#include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
 #include <patternmatching/Matcher.h>
 #include <patternmatching/GrothTriangles.h>
@@ -75,6 +76,8 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
+    // This class must have scope outside the main try/catch block
+    askap::mwbase::AskapParallel comms(argc, argv);
     try {
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
@@ -85,7 +88,7 @@ int main(int argc, const char** argv)
         std::string parsetFile(getInputs("-inputs", "continuumAnalysis.in", argc, argv));
         LOFAR::ParameterSet parset(parsetFile);
         LOFAR::ParameterSet subsetD(parset.makeSubset("Cduchamp."));
-        DuchampParallel image(argc, argv, subsetD);
+        DuchampParallel image(comms, subsetD);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         image.readData();
         image.setupLogfile(argc, argv);
@@ -99,7 +102,7 @@ int main(int argc, const char** argv)
         image.cleanup();
         image.printResults();
 
-        if (image.isMaster()) { // only do the cross matching on the master node.
+        if (comms.isMaster()) { // only do the cross matching on the master node.
             LOFAR::ParameterSet subsetE(parset.makeSubset("imageQual."));
             Matcher matcher(subsetE);
             matcher.setHeader(image.cube().header());
@@ -114,16 +117,16 @@ int main(int argc, const char** argv)
 
         ASKAPLOG_INFO_STR(logger, "Time for execution of contAnalysis = " << timer.real() << " sec");
         ///==============================================================================
-    } catch (askap::AskapError& x) {
+    } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
-    } catch (std::exception& x) {
+    } catch (const std::exception& x) {
         ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
         std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
     }
 
-    exit(0);
+    return 0;
 }
 

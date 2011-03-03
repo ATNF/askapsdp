@@ -43,7 +43,7 @@
 
 #include <patternmatching/Matcher.h>
 #include <patternmatching/GrothTriangles.h>
-
+#include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
 
 using namespace askap;
@@ -72,6 +72,8 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
+    // This class must have scope outside the main try/catch block
+    askap::mwbase::AskapParallel comms(argc, argv);
     try {
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
@@ -82,7 +84,7 @@ int main(int argc, const char** argv)
         std::string parsetFile(getInputs("-inputs", "imageQualTest.in", argc, argv));
         LOFAR::ParameterSet parset(parsetFile);
         LOFAR::ParameterSet subset(parset.makeSubset("imageQual."));
-        DuchampParallel image(argc, argv, subset);
+        DuchampParallel image(comms, subset);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         image.getMetadata();
         ASKAPLOG_INFO_STR(logger, "Read image metadata");
@@ -99,16 +101,16 @@ int main(int argc, const char** argv)
         matcher.addNewMatches();
         matcher.outputLists();
         ASKAPLOG_INFO_STR(logger, "Time for execution of imageQualTest = " << timer.real() << " sec");
-    } catch (askap::AskapError& x) {
+    } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
-    } catch (std::exception& x) {
+    } catch (const std::exception& x) {
         ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
         std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
     }
 
-    exit(0);
+    return 0;
 }
 

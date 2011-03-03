@@ -59,7 +59,7 @@ namespace askap {
         /// If the number of nodes is 1 then everything occurs in the same process.
         ///
         /// @ingroup parallelanalysis
-        class DuchampParallel : public askap::mwbase::AskapParallel {
+        class DuchampParallel {
             public:
 
                 /// @brief Constructor
@@ -68,10 +68,10 @@ namespace askap {
                 /// @param argc Number of command line inputs
                 /// @param argv Command line inputs
                 /// @param parset The parameter set to read Duchamp and other parameters from.
-                DuchampParallel(int argc, const char** argv, const LOFAR::ParameterSet& parset);
+                DuchampParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
                 /// @brief Default constructor
-                DuchampParallel(int argc, const char** argv);
+                DuchampParallel(askap::mwbase::AskapParallel& comms);
 
                 virtual ~DuchampParallel() {};
 
@@ -169,6 +169,9 @@ namespace askap {
                 sourcefitting::RadioSource getSource(int i) {return itsSourceList[i];};
 
             protected:
+
+                // Class for communications
+                askap::mwbase::AskapParallel& itsComms;
 
                 /// Is the image a FITS file or not (if not, probably a casa image...)
                 bool itsIsFITSFile;
