@@ -36,6 +36,10 @@
 #include <casa/Quanta/MVDirection.h>
 #include <measures/Measures/MDirection.h>
 #include <measures/Measures/UVWMachine.h>
+#include <casa/BasicSL/Constants.h>
+#include <casa/Quanta.h>
+#include <scimath/Mathematics/RigidVector.h>
+
 
 #include <boost/shared_ptr.hpp>
 
@@ -60,10 +64,88 @@ public:
       testCaching();
    };
    
+   /// @brief calculate uvw from first principles
+   /// @details
+   /// @param[in] uvw a vector to fill
+   /// @param[in] baselines a vector with baseline coordinates (global XYZ)
+   /// @param[in] dir direction corresponding to the tangent point on the sky
+   void calculateUVW(casa::Vector<casa::RigidVector<double, 3> > &uvw,
+                     const casa::Vector<casa::RigidVector<double, 3> > &baselines,
+                     const casa::MVDirection &dir)
+   {
+      const size_t size = baselines.nelements();
+      uvw.resize(size);
+      const double sDec = sin(dir.getLat());
+      const double cDec = cos(dir.getLat());
+      const double gmst = casa::C::pi; // some random sidereal time
+      const double sH0 = sin(gmst - dir.getLong());
+      const double cH0 = cos(gmst - dir.getLong());
+      for (casa::uInt row = 0; row<size; ++row) {
+           uvw[row](0) = sH0 * baselines[row](0) + cH0 * baselines[row](1);
+           uvw[row](1) = -sDec * cH0 * baselines[row](0) + sDec * sH0 * baselines[row](1) + cDec * baselines[row](2);
+           uvw[row](2) = cDec * cH0 * baselines[row](0) - cDec * sH0 * baselines[row](1) + sDec * baselines[row](2); 
+      }      
+   }
+   
+   /// @brief get a quantity from a string
+   /// @details
+   /// @param[in] str input string
+   /// @return value in radians
+   double convert(const std::string &str) {
+       casa::Quantity q;      
+       casa::Quantity::read(q, str);
+       return q.getValue(casa::Unit("rad"));   
+   }      
+   
+   /// @brief test uvw machine
+   /// @details
+   /// @param[in] baselines vector with baseline coordinates in XYZ
+   /// @param[in] raOffset offset in RA (degrees)
+   /// @param[in] decOffset offset in Dec (degrees)
+   /// @param[in] dec declination of the unshifted direction given as string (i.e. "-45.00.00.0")
+   /// @return largest absolute difference in baseline coordinates
+   double doUVWMachineTest(const casa::Vector<casa::RigidVector<double, 3> > &baselines,
+                double raOffset, double decOffset, const std::string &dec) {
+
+      // unshifted direction
+      const casa::MVDirection tangent(convert("12h30m00.000"),convert(dec));
+      const casa::MDirection dir1(tangent, casa::MDirection::J2000);
+
+      // dir2 is offset from dir1
+      casa::MDirection dir2(dir1);
+      dir2.shift(raOffset*casa::C::pi/180.,decOffset*casa::C::pi/180.,casa::True);
+
+      // get uvw's from first principles for dir1 and dir2 for the same antenna layout
+      casa::Vector<casa::RigidVector<double, 3> > uvw1, uvw2;
+      calculateUVW(uvw1, baselines, dir1.getValue());
+      calculateUVW(uvw2, baselines, dir2.getValue());
+      
+      // rotate uvw via UVWMachine to the original unshifted tangent point
+      casa::UVWMachine machine(dir2,dir1,false, true);
+      for (size_t row=0; row<uvw2.nelements(); ++row) {
+           casa::Vector<double> buf = uvw2[row].vector();
+           machine.convertUVW(buf);
+           uvw2[row] = buf;
+      }
+      
+      // compare with the uvw's obtained for the original unshifted direction
+      double maxDiff = -1;
+      for (size_t row=0; row<uvw2.nelements(); ++row) {
+           const casa::RigidVector<double, 3> uvwDiff = uvw2[row] - uvw1[row];
+           for (int dim=0; dim<3; ++dim) {
+                const double curDiff = fabs(uvwDiff(dim));
+                if (curDiff > maxDiff) {
+                    maxDiff = curDiff;
+                }                    
+           }
+      }
+      return maxDiff;
+   }
+   
    void uvwMachineTest() {
       // this is actually a test of the UVWMachine, not of our code
       // intended to be adapted to become a part of casacore
-      
+
       // array layout as global XYZ
       const size_t nAnt = 6;
       const double layout[nAnt][3] = 
@@ -82,7 +164,19 @@ public:
                 }
            }
       }
-   }
+      /*
+      std::cout<<" dec -45, offsets 2, 2: "<<doUVWMachineTest(baselines, 2., 2., "-45.00.00.0")<<std::endl;
+      std::cout<<" dec -45, offsets 0, 2: "<<doUVWMachineTest(baselines, 0, 2., "-45.00.00.0")<<std::endl;
+      std::cout<<" dec 0, offsets 2, 2: "<<doUVWMachineTest(baselines, 2., 2., "00.00.00.0")<<std::endl;
+      */
+      
+      // the tests below impose very loose tolerances, we need to make them more strict when we
+      // finally figure out what's going on with the uvw-machine
+      CPPUNIT_ASSERT(doUVWMachineTest(baselines, 2., 2., "-45.00.00.0") < 15.);
+      CPPUNIT_ASSERT(doUVWMachineTest(baselines, 0, 2., "-45.00.00.0") < 0.2);
+      CPPUNIT_ASSERT(doUVWMachineTest(baselines, 2., 2., "00.00.00.0") < 1.5);
+   }   
+   
       
    void oneElementCacheTest() {
       itsMachineCache.reset(new UVWMachineCache(1,1e-6));

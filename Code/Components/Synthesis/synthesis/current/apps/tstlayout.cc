@@ -54,6 +54,7 @@ ASKAP_LOGGER(logger, "");
 // std
 #include <stdexcept>
 #include <iostream>
+#include <iomanip>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -150,6 +151,14 @@ void getBaselines(const std::string &fname, casa::Vector<double> &x, casa::Vecto
   loadLayout(fname,xAnt,yAnt,zAnt);
   ASKAPCHECK((xAnt.nelements() == yAnt.nelements()) && (xAnt.nelements() == zAnt.nelements()), 
              "Expect the same number of elements in xAnt, yAnt, zAnt");
+  /*
+  // to export the layout in ASCII format
+  for (casa::uInt ant=0; ant<xAnt.nelements(); ++ant) {
+       std::cout<<std::scientific<<std::setprecision(15)<<xAnt[ant]<<" "<<yAnt[ant]<<" "<<zAnt[ant]<<std::endl;
+  }
+  throw 1;
+  //
+  */         
   const casa::uInt nBaselines = (xAnt.nelements()*(xAnt.nelements()-1)) / 2;
   x.resize(nBaselines);
   y.resize(nBaselines);
@@ -380,8 +389,8 @@ void testUVWRotation(const casa::Vector<double> &x, const casa::Vector<double> &
   const casa::MVDirection tangent(SynthesisParamsHelper::convertQuantity("12h30m00.000","rad"),
                                   SynthesisParamsHelper::convertQuantity("-45.00.00.000","rad"));
   const casa::MDirection tangentDir(tangent, casa::MDirection::J2000);
-  const double raOffset = 2./180.*casa::C::pi;
-  const double decOffset = 0./180.*casa::C::pi;
+  const double raOffset = 0./180.*casa::C::pi;
+  const double decOffset = 2./180.*casa::C::pi;
   casa::MDirection offsetDir(tangentDir);
   offsetDir.shift(-raOffset,decOffset,casa::True);
   casa::Vector<double> uOffset,vOffset,wOffset;
