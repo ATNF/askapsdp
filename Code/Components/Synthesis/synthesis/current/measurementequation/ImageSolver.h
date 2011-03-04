@@ -171,6 +171,17 @@ namespace askap
     /// weight cutoff area (i.e. to ensure that they are not cleaned during S/N-based clean)
     inline void zeroWeightCutoffMask(bool flag) { itsZeroWeightCutoffMask = flag;}      
 
+    /// @brief set save intermediate flag
+      /// @details Force intermediate results to parameters for subsequent saving to disk. This
+      /// uses memory and thus probably will be used mostly in debugging
+    /// @param[in] flag true to force intermediate results (e.g. residuals, mask) to be saved
+      inline void setSaveIntermediate(bool flag) { itsSaveIntermediate=flag;}
+
+    /// @brief get save intermediate flag
+      /// @details Force intermediate results to parameters for subsequent saving to disk. This
+      /// uses memory and thus probably will be used mostly in debugging
+      inline bool saveIntermediate() { return itsSaveIntermediate;}
+
   protected:
      
     /// @brief estimate sensitivity loss due to preconditioning
@@ -258,6 +269,10 @@ private:
     /// in those areas for the S/N-based clean. Otherwise, the mask is set to sqrt(tolerance), which corresponds to
     /// normalisation done by dividing to maximum weight. The default is true.
     bool itsZeroWeightCutoffMask; 
+
+      /// @brief Control saving of intermediate images
+      /// @details If true, then selected images are saved to parameters and thence to disk
+      bool itsSaveIntermediate;
 
     };
 

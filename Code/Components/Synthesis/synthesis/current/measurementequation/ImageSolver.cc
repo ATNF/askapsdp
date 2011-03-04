@@ -63,7 +63,7 @@ namespace askap
   {
 
     ImageSolver::ImageSolver() :
-      itsZeroWeightCutoffArea(false), itsZeroWeightCutoffMask(true)
+      itsZeroWeightCutoffArea(false), itsZeroWeightCutoffMask(true), itsSaveIntermediate(true)
     {
     }
 
@@ -263,8 +263,10 @@ namespace askap
              
              if (wasPreconditioning) {	
                  // Save the new PSF in parameter class to be saved to disk later
+               if(saveIntermediate()) {
                  saveArrayIntoParameter(ip,indit->first,planeIter.shape(),"psf.image",
                                         psfArray,planeIter.position());
+               }
              } // if - wasPreconditioning
 
              ASKAPLOG_INFO_STR(logger, "Peak data vector flux (derivative) "<<max(dirtyArray));
@@ -274,6 +276,7 @@ namespace askap
              // the parameter class. Therefore, we may not need this functionality in the 
              // production version (or may need to implement it in a different way).
 
+             if(saveIntermediate())
              {
                 saveArrayIntoParameter(ip,indit->first,planeIter.shape(),"residual",
                                        dirtyArray,planeIter.position());
@@ -492,6 +495,7 @@ namespace askap
     void ImageSolver::configure(const LOFAR::ParameterSet &parset) {
         setTol(parset.getFloat("tolerance", 0.1));
         setVerbose(parset.getBool("verbose", true));
+        setSaveIntermediate(parset.getBool("saveintermediate", true));
         zeroWeightCutoffMask(!parset.getBool("weightcutoff.clean",false));        
         const std::string weightCutoff = parset.getString("weightcutoff","truncate");
         if (weightCutoff == "zero") {
