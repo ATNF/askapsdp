@@ -118,8 +118,6 @@ namespace askap {
 
                     /// @}
 
-		    /// @brief Log the solution to either DEBUG or INFO level
-		    void logIt(std::string loc="DEBUG");
 
                 protected:
                     /// @brief Is the fit good?

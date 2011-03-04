@@ -915,7 +915,6 @@ namespace askap {
                                           << ", chisq = " << this->itsBestFitMap["best"].chisq()
                                           << ", chisq/nu =  "  << this->itsBestFitMap["best"].redchisq()
                                           << ", RMS = " << this->itsBestFitMap["best"].RMS());
-		    this->itsBestFitMap["best"].logIt("INFO");
                 } else {
                     this->hasFit = false;
                     ASKAPLOG_INFO_STR(logger, "No good fit found.");

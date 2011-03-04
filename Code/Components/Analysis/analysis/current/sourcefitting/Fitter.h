@@ -58,10 +58,6 @@ namespace askap {
             class FittingParameters; // foreshadowing
 
             /// @ingroup sourcefitting
-            /// @brief Simple function to write a list of parameters to the ASKAPLOG
-            void logparameters(Matrix<Double> &m, std::string loc="DEBUG");
-
-            /// @ingroup sourcefitting
             /// @brief A class to manage the 2D profile fitting.
             /// @details The class handles the calling of the fitting
             /// functions, and stores the results using the casa::FitGaussian class

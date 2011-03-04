@@ -195,13 +195,12 @@ namespace askap {
 
             //**************************************************************//
 
-	  void logparameters(Matrix<Double> &m, std::string loc)
+            void logparameters(Matrix<Double> &m)
             {
                 uInt g, p;
 
                 for (g = 0; g < m.nrow(); g++) {
                     std::stringstream outmsg;
-		    outmsg << "Component Flux,X0,Y0,MAJ,MIN,PA = ";
                     outmsg.precision(8);
                     outmsg.setf(ios::fixed);
                     outmsg << m(g, 0) << ", ";
@@ -212,12 +211,11 @@ namespace askap {
                     for (p = 1; p < m.ncolumn() - 1; p++) outmsg << m(g, p) << ", ";
 
                     outmsg << m(g, p);
-		    if(loc=="DEBUG") ASKAPLOG_DEBUG_STR(logger, outmsg.str());
-		    else if(loc=="INFO") ASKAPLOG_INFO_STR(logger, outmsg.str());
+                    ASKAPLOG_DEBUG_STR(logger, outmsg.str());
                 }
             }
 
-           //**************************************************************//
+            //**************************************************************//
 
             bool Fitter::fit(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
                              casa::Vector<casa::Double> sigma)

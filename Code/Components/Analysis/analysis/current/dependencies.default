@@ -8,5 +8,5 @@ boost=3rdParty/boost/boost-1.41.0
 askap=Code/Base/askap/current
 duchamp=3rdParty/Duchamp/Duchamp-1.1.11
 gsl=3rdParty/gsl/gsl-1.10
-cfitsio=3rdParty/cfitsio/cfitsio-3.26
-wcs=3rdParty/wcslib/wcslib-4.7
+cfitsio=3rdParty/cfitsio/cfitsio-3.0.6
+wcs=3rdParty/wcslib/wcslib-4.5.1
