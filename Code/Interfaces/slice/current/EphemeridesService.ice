@@ -129,7 +129,7 @@ module ephem
         idempotent SourceSeq query(SourceQuery q, int limit, int offset);
         
         /**
-         * Return a list names of  the catalogues provided by this service.
+         * Return a list names of the catalogues provided by this service.
          **/
         idempotent StringSeq getCatalogues();
     };
