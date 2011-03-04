@@ -45,9 +45,14 @@ using namespace LOFAR::TYPES;
 #include <casa/BasicSL/String.h>
 #include <casa/OS/Path.h>
 #include <images/Images/ImageOpener.h>
+#include <images/Images/FITSImage.h>
+#include <images/Images/SubImage.h>
 #include <casa/aipstype.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayPartMath.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/IPosition.h>
+#include <casa/Arrays/Slicer.h>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -114,19 +119,6 @@ namespace askap {
 
         //**************************************************************//
 
-        std::string DuchampParallel::workerPrefix()
-        {
-            std::stringstream ss;
-
-            if (itsComms.isParallel()) {
-                if (itsComms.isMaster())
-                    ss << "MASTER: ";
-                else if (itsComms.isWorker())
-                    ss << "Worker #" << itsComms.rank() << ": ";
-            } else ss << "";
-
-            return ss.str();
-        }
 
         DuchampParallel::DuchampParallel(askap::mwbase::AskapParallel& comms)
                 : itsComms(comms)
@@ -247,7 +239,8 @@ namespace askap {
             /// @return The return value of the function that was used:
             /// either duchamp::SUCCESS or duchamp::FAILURE
             if (this->itsIsFITSFile) return this->itsCube.getMetadata();
-            else return casaImageToMetadata(this->itsCube, this->itsSubimageDef, itsComms.rank() - 1);
+            // else return casaImageToMetadata(this->itsCube, this->itsSubimageDef, itsComms);
+            else return this->getCASA(METADATA);
         }
 
         //**************************************************************//
@@ -307,14 +300,15 @@ namespace askap {
                     if (this->itsCube.header().getWCS()->spec >= 0) this->itsCube.header().fixUnits(this->itsCube.pars());
 
                 } else {
-                    result = casaImageToMetadata(this->itsCube, this->itsSubimageDef, itsComms.rank() - 1);
+		  //                    result = casaImageToMetadata(this->itsCube, this->itsSubimageDef, itsComms);
+		  result = this->getCASA(METADATA);
                 }
 
                 ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile << "\".");
 
                 if (this->itsSubimageAnnotationFile != "") {
                     ASKAPLOG_INFO_STR(logger, "Writing annotation file showing subimages to " << this->itsSubimageAnnotationFile);
-                    this->itsSubimageDef.writeAnnotationFile(this->itsSubimageAnnotationFile, this->itsCube.pars().section(),  this->itsCube.header(), this->itsCube.pars().getImageFile(), itsComms.nNodes() - 1);
+                    this->itsSubimageDef.writeAnnotationFile(this->itsSubimageAnnotationFile, this->itsCube.pars().section(),  this->itsCube.header(), this->itsCube.pars().getImageFile(), itsComms);
                 }
 
                 if (result == duchamp::FAILURE) {
@@ -348,7 +342,7 @@ namespace askap {
                     }
 
                     if (itsComms.isParallel()) {
-                        duchamp::Section subsection = this->itsSubimageDef.section(itsComms.rank() - 1, this->itsCube.pars().getSubsection());
+		      duchamp::Section subsection = this->itsSubimageDef.section(itsComms.rank()-1, this->itsCube.pars().getSubsection());
                         this->itsCube.pars().setSubsection(subsection.getSection());
 			this->itsCube.pars().setFlagSubsection(true);
 			this->itsCube.pars().parseSubsections(this->itsCube.getDimArray(), this->itsCube.getNumDim());
@@ -369,7 +363,8 @@ namespace askap {
                                           << "About to read data from image " << this->itsCube.pars().getFullImageFile());
                     result = this->itsCube.getCube();
                 } else { // if it's a CASA image
-                    result = casaImageToCube(this->itsCube, this->itsSubimageDef, itsComms.rank() - 1);
+		  //                    result = casaImageToCube(this->itsCube, this->itsSubimageDef, itsComms);
+		  result = getCASA(IMAGE);
                 }
 
                 if (result == duchamp::FAILURE) {
@@ -1191,7 +1186,8 @@ namespace askap {
 	  else if(itsComms.isWorker()){
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for object calculation");
 	    this->itsCube.pars().setSubsection(this->itsBaseSubsection); // take care of any global offsets due to subsectioning
-	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
+	    //	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
+	    this->getCASA(METADATA,false);
 	    LOFAR::BlobString bs;
 
 	    // now read individual sources
@@ -1446,7 +1442,8 @@ namespace askap {
 
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for source fitting");
 	    this->itsCube.pars().setSubsection("");
-	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
+	    //	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
+	    this->getCASA(METADATA,false);
 	    LOFAR::BlobString bs;
 
 	    // now read individual sources
@@ -1961,6 +1958,167 @@ namespace askap {
                 this->itsCube.pars().setThreshold(threshold);
             }
         }
+
+
+      //**************************************************************//
+
+      long *getDim(const ImageInterface<Float>* imagePtr)
+      {
+	IPosition shape = imagePtr->shape();
+	long *dim = new long[shape.size()];
+
+	for (uint i = 0; i < shape.size(); i++) {
+	  dim[i] = shape(i);
+	  ASKAPCHECK(dim[i] > 0, "Negative dimension: dim[" << i << "]=" << dim[i]);
+	}
+	
+	return dim;
+      }
+
+
+      //**************************************************************//
+
+      duchamp::OUTCOME DuchampParallel::getCASA(DATATYPE typeOfData, bool useSubimageInfo)
+      {
+
+	/// @details This is the front-end to the image-access
+	/// functionality for CASA images. It replicates (kinda) the
+	/// behaviour of duchamp::Cube::getCube(). First the image is
+	/// opened, then we get the metadata for the image via
+	/// getCasaMetadata. Then the subimage that we want is defined
+	/// (including the parsing of any subsections given in the
+	/// parset), then, if we request IMAGE data, the actual pixel
+	/// values are read from the image and stored in the itsCube
+	/// object.
+	/// @param typeOfData What sort of data are we after? Image
+	/// data or just Metadata?
+	/// @param useSubimageInfo Whether to use the information of
+	/// the distributed nature of the data to determine the
+	/// subimage shape, or whether just to get the whole image
+	/// dimensions.
+	/// @return duchamp::SUCCESS if successfull, duchamp::FAILURE otherwise.
+
+	ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
+	if (lattPtr == 0)
+	  ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
+	const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+
+	if(this->getCasaMetadata(imagePtr, typeOfData) == duchamp::FAILURE) return duchamp::FAILURE;
+
+	const SubImage<Float> *sub = this->getSubimage(imagePtr, useSubimageInfo);
+
+	if(typeOfData == IMAGE){
+	  
+	  long *dim = getDim(imagePtr);
+	  this->itsCube.initialiseCube(dim);
+	  if(this->itsCube.getDimZ()==1){
+	    this->itsCube.pars().setMinChannels(0);
+	  }
+	  casa::Array<Float> array = sub->get();
+	  this->itsCube.saveArray(array.data(), array.size());
+	  
+	}
+
+	return duchamp::SUCCESS;
+
+      }
+
+      //**************************************************************//
+
+      const SubImage<Float>* DuchampParallel::getSubimage(const ImageInterface<Float>* imagePtr, bool useSubimageInfo)
+      {
+
+	/// @details Define the shape/size of the subimage being used,
+	/// and return a pointer that can be used to extract the image
+	/// data. The subimage is defined by the itsSubimageDef
+	/// object, which, when useSubimageInfo=true, takes into
+	/// account how the image is distributed amongst workers. If
+	/// useSubimageInfo=false, the whole image is considered. The
+	/// image subsection and the statistics subsection are both
+	/// parsed and tested for validity.
+	/// @param imagePtr Pointer to the image - needs to be opened
+	/// and valid
+	/// @param useSubimageInfo Whether to use infomation about the
+	/// distribution of the image amongst workers.
+	/// @return A casa::SubImage pointer to the desired sub-image.
+
+	wcsprm *wcs = casaImageToWCS(imagePtr);
+	this->itsSubimageDef.define(wcs);
+	this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
+	long *dim = getDim(imagePtr);
+	this->itsSubimageDef.setImageDim(dim, imagePtr->ndim());
+	
+	if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
+	  this->itsCube.pars().setFlagSubsection(true);
+	  this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
+	}
+	
+	duchamp::Section subsection;
+	if(useSubimageInfo){
+	  subsection = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
+	  this->itsCube.pars().section() = subsection;
+	}
+	
+	// Now parse the sections to get them properly set up
+	if(this->itsCube.pars().parseSubsections(dim, imagePtr->ndim()) == duchamp::FAILURE){
+	  // if here, something went wrong
+	  if (this->itsCube.pars().section().parse(dim, imagePtr->ndim()) == duchamp::FAILURE)
+	    ASKAPTHROW(AskapError, "Cannot parse the subsection string " << this->itsCube.pars().section().getSection());
+	  if (this->itsCube.pars().statsec().parse(dim, imagePtr->ndim()) == duchamp::FAILURE)
+	    ASKAPTHROW(AskapError, "Cannot parse the statistics subsection string " << this->itsCube.pars().statsec().getSection());
+	}
+	
+	if(this->itsComms.isMaster() & this->itsCube.pars().getFlagStatSec() && !this->itsCube.pars().statsec().isValid())
+	  ASKAPTHROW(AskapError, "Statistics subsection has no valid pixels");
+	
+	Slicer slice = subsectionToSlicer(subsection);
+	fixSlicer(slice, wcs);
+
+	const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
+	
+	return sub;
+      }
+
+      //**************************************************************//
+
+      duchamp::OUTCOME DuchampParallel::getCasaMetadata(const ImageInterface<Float>*  imagePtr, DATATYPE typeOfData)
+      {
+
+	/// @details Read some basic metadata from the image, storing
+	/// the WCS information, beam information, flux units, setting
+	/// the is2D flag and fixing spectral units if need be. If we
+	/// want METADATA, then the cube is initialised without
+	/// allocation (ie. the dimension array is set and some
+	/// parameter flags are checked). Otherwise, initialisation is
+	/// saved till later.
+	/// @param imagePtr The image, already opened
+	/// @param typeOfData Either IMAGE or METADATA
+
+	long *dim = getDim(imagePtr);
+	wcsprm *wcs = casaImageToWCS(imagePtr);
+	storeWCStoHeader(this->itsCube.header(), this->itsCube.pars(), wcs);
+	this->itsCube.pars().setOffsets(wcs);
+	readBeamInfo(imagePtr, this->itsCube.header(), this->itsCube.pars());
+	this->itsCube.header().setFluxUnits(imagePtr->units().getName());
+	
+	// check the true dimensionality and set the 2D flag in the cube header.
+	this->itsCube.header().set2D(imagePtr->shape().nonDegenerate().size() <= 2);
+	
+	// set up the various flux units
+	if (wcs->spec >= 0) this->itsCube.header().fixUnits(this->itsCube.pars());
+	
+	if(typeOfData == METADATA) this->itsCube.initialiseCube(dim, false);
+	delete [] dim;
+	return duchamp::SUCCESS;
+
+
+      }
+
+
+      //**************************************************************//
+
+
 
 
     }

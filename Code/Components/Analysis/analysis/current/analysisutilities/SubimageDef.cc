@@ -257,7 +257,7 @@ namespace askap {
             }
         }
 
-        void SubimageDef::writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, int numWorkers)
+        void SubimageDef::writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, askap::mwbase::AskapParallel& comms)
         {
             /// @details This creates a Karma annotation file that simply has the borders of the subimages plotted on it.
 
@@ -273,7 +273,7 @@ namespace askap {
 
             for (int i = 0; i < 4; i++) pix[i*3+2] = 0;
 
-            for (int w = 0; w < numWorkers; w++) {
+            for (int w = 0; w < comms.nNodes()-1; w++) {
 
                 duchamp::Section workerSection = this->section(w, fullImageSubsection.getSection());
                 pix[0] = pix[9] =  workerSection.getStart(0) - 0.5 - fullImageSubsection.getStart(0);  // x-start, in pixels relative to the image that has been read

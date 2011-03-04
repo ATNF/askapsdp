@@ -32,11 +32,17 @@
 #include <string>
 #include <vector>
 
+#include <askapparallel/AskapParallel.h>
+
 #include <Common/ParameterSet.h>
 
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
 #include <duchamp/fitsHeader.hh>
+
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/IPosition.h>
 
 namespace askap {
     namespace analysis {
@@ -69,6 +75,7 @@ namespace askap {
                 /// @{
                 void setImageDim(std::vector<int> dim) {itsFullImageDim = std::vector<long>(dim.size()); for (size_t i = 0; i < dim.size(); i++) itsFullImageDim[i] = dim[i];};
                 void setImageDim(std::vector<long> dim) {itsFullImageDim = dim;};
+		void setImageDim(long *dim, size_t size) {itsFullImageDim = std::vector<long>(size); for (size_t i = 0; i < size; i++) itsFullImageDim[i] = dim[i];};
                 std::vector<long> getImageDim() {return itsFullImageDim;};
                 ///@}
 
@@ -100,7 +107,7 @@ namespace askap {
                 /// @}
 
                 /// @brief Create a Karma annotation file showing the borders of the subimages.
-                void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, int numWorkers);
+                void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, askap::mwbase::AskapParallel& comms);
 
             protected:
                 /// @brief Number of subdivisions in the x-direction

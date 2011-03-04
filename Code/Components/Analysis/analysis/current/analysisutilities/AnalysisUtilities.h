@@ -30,6 +30,7 @@
 #define ASKAP_ANALYSIS_ANALYSISUTILS_H_
 
 #include <analysisutilities/SubimageDef.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <string>
 #include <vector>
@@ -42,6 +43,9 @@
 namespace askap {
     namespace analysis {
 
+	/// @brief A simple way of printing the worker number
+	std::string printWorkerPrefix(askap::mwbase::AskapParallel& comms);
+      
         /// @brief Return an array of axis dimensions for a FITS file.
         /// @ingroup analysisutilities
         std::vector<long> getFITSdimensions(std::string filename);

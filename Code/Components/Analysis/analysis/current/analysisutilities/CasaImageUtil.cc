@@ -35,6 +35,8 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
+#include <askapparallel/AskapParallel.h>
+
 #include <casa/aipstype.h>
 #include <images/Images/FITSImage.h>
 #include <images/Images/ImageOpener.h>
@@ -268,7 +270,7 @@ namespace askap {
 
         //**************************************************************//
 
-        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber)
+        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, askap::mwbase::AskapParallel& comms)
         {
             /// @details Equivalent of duchamp::Cube::getImage(), but for
             /// accessing casa images. Reads the pixel data and metadata
@@ -303,7 +305,7 @@ namespace askap {
                 cube.pars().setSubsection(nullSection(subDef.getImageDim().size()));
             }
 
-            duchamp::Section subsection = subDef.section(subimageNumber, cube.pars().getSubsection());
+            duchamp::Section subsection = subDef.section(comms.rank()-1, cube.pars().getSubsection());
 
             if (subsection.parse(dim) == duchamp::FAILURE)
                 ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
@@ -319,13 +321,12 @@ namespace askap {
                 ASKAPTHROW(AskapError, "Cannot parse the statistics subsection string " << cube.pars().statsec().getSection());
 	    }
 	    
-            ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " is using subsection " << cube.pars().section().getSection());
+            ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << " is using subsection " << cube.pars().section().getSection());
 	    if(cube.pars().getFlagStatSec()){
 	      if(cube.pars().statsec().isValid())
-		ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 
-				  << " is using statistics section " << cube.pars().statsec().getSection());
+		ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << " is using statistics section " << cube.pars().statsec().getSection());
 	      else
-		ASKAPLOG_INFO_STR(logger, "Worker #" << subimageNumber + 1 << " does not contribute to the statistics section");
+		ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << " does not contribute to the statistics section");
 	    }
 
             Slicer slice = subsectionToSlicer(subsection);
@@ -469,7 +470,7 @@ namespace askap {
 
         //**************************************************************//
 
-        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, int subimageNumber)
+        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, askap::mwbase::AskapParallel& comms)
         {
             /// @details Equivalent of duchamp::Cube::getMetadata(), but for
             /// accessing casa images, to read the metadata (ie. header
@@ -502,7 +503,7 @@ namespace askap {
                 cube.pars().setSubsection(nullSection(dim.size()));
             }
 
-            duchamp::Section subsection = subDef.section(subimageNumber, cube.pars().getSubsection());
+            duchamp::Section subsection = subDef.section(comms.rank()-1, cube.pars().getSubsection());
 
             if (subsection.parse(dim) == duchamp::FAILURE)
                 ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());

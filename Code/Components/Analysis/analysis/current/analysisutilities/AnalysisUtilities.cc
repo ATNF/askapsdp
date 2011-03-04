@@ -63,6 +63,18 @@ ASKAP_LOGGER(logger, ".analysisutilities");
 namespace askap {
     namespace analysis {
 
+      std::string printWorkerPrefix(askap::mwbase::AskapParallel& comms)
+      {
+	std::stringstream ss;
+	if (comms.isParallel()) {
+	  if (comms.isMaster())
+	    ss << "MASTER: ";
+	  else if (comms.isWorker())
+	    ss << "Worker #" << comms.rank() << ": ";
+	} else ss << "";
+	return ss.str();
+      }
+
         std::vector<long> getFITSdimensions(std::string filename)
         {
             /// @details A simple function to open a FITS file and read the

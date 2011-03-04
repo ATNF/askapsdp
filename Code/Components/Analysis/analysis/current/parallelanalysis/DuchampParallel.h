@@ -31,6 +31,7 @@
 
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Fitter.h>
+#include <analysisutilities/AnalysisUtilities.h>
 #include <analysisutilities/SubimageDef.h>
 #include <parallelanalysis/Weighter.h>
 
@@ -41,11 +42,17 @@
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 
+#include <casa/aipstype.h>
+#include <images/Images/SubImage.h>
+
 #include <vector>
 #include <string>
 
 namespace askap {
     namespace analysis {
+
+      /// @brief An enumeration describing what data we're after when reading CASA images
+      enum DATATYPE { IMAGE, METADATA};
 
         /// @brief Support for parallel source finding
         ///
@@ -98,6 +105,9 @@ namespace askap {
 
                 /// @brief Read in the data from the image file (on the workers)
                 void readData();
+		duchamp::OUTCOME getCASA(DATATYPE typeOfData, bool useSubimageInfo=true);
+		const SubImage<Float>* getSubimage(const ImageInterface<Float>* imagePtr, bool useSubimageInfo=true);
+		duchamp::OUTCOME getCasaMetadata(const ImageInterface<Float>*  imagePtr, DATATYPE typeOfData);
 
                 /// @brief Set up the log file
                 void setupLogfile(int argc, const char** argv);
@@ -160,7 +170,7 @@ namespace askap {
                 bool is2D();
 
                 /// @brief Print out the worker number in form useful for logging.
-                std::string workerPrefix();
+                std::string workerPrefix(){return printWorkerPrefix(itsComms);};
 
                 /// @brief Set the doFit flag
                 void setDoFitFlag(bool f) {itsFlagDoFit = f;};
