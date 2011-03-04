@@ -2004,13 +2004,16 @@ namespace askap {
 	  ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
 	const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
 
+	// Define the subimage - need to be done before metadata, as the latter needs the subsection & offsets
+	const SubImage<Float> *sub = this->getSubimage(imagePtr, useSubimageInfo);
+
 	if(this->getCasaMetadata(imagePtr, typeOfData) == duchamp::FAILURE) return duchamp::FAILURE;
 
-	const SubImage<Float> *sub = this->getSubimage(imagePtr, useSubimageInfo);
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Have subimage with shape " << sub->shape() << " and subsection " << this->itsCube.pars().section().getSection());
 
 	if(typeOfData == IMAGE){
 	  
-	  long *dim = getDim(imagePtr);
+	  long *dim = getDim(sub);
 	  this->itsCube.initialiseCube(dim);
 	  if(this->itsCube.getDimZ()==1){
 	    this->itsCube.pars().setMinChannels(0);
@@ -2054,10 +2057,8 @@ namespace askap {
 	  this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
 	}
 	
-	duchamp::Section subsection;
 	if(useSubimageInfo){
-	  subsection = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
-	  this->itsCube.pars().section() = subsection;
+	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
 	}
 	
 	// Now parse the sections to get them properly set up
@@ -2072,7 +2073,12 @@ namespace askap {
 	if(this->itsComms.isMaster() & this->itsCube.pars().getFlagStatSec() && !this->itsCube.pars().statsec().isValid())
 	  ASKAPTHROW(AskapError, "Statistics subsection has no valid pixels");
 	
-	Slicer slice = subsectionToSlicer(subsection);
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Using subsection " << this->itsCube.pars().section().getSection());
+	if(this->itsCube.pars().getFlagStatSec())
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Using stat-subsection " << this->itsCube.pars().statsec().getSection());
+	
+
+	Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
 	fixSlicer(slice, wcs);
 
 	const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
