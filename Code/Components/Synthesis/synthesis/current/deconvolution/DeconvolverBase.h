@@ -261,6 +261,11 @@ namespace askap {
       Vector<Array<T> > itsWeightedMask;
 
       uInt itsNumberResidualCalc;
+
+      // Audit the memory in use right now
+      void auditAllMemory();
+      uInt auditMemory(Vector<casa::Array<T> >& vecArray);
+      uInt auditMemory(Vector<casa::Array<FT> >& vecArray);
     };
 
   } // namespace synthesis

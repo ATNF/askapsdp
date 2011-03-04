@@ -68,7 +68,7 @@ namespace askap {
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
       itsSolutionType("MAXBASE"), itsDecoupleTerms(true)
     {
-      ASKAPLOG_INFO_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
       this->itsPsfLongVec=psfLong;
     };
     
@@ -78,7 +78,7 @@ namespace askap {
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
       itsSolutionType("MAXBASE"), itsDecoupleTerms(true)
     {
-      ASKAPLOG_INFO_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
       this->itsPsfLongVec.resize(1);
       this->itsPsfLongVec(0)=psf;
     };
@@ -142,7 +142,7 @@ namespace askap {
       defaultScales[2]=30.0;
       std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
       
-      ASKAPLOG_INFO_STR(decmtbflogger, "Constructing Multiscale basis function with scales "
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Constructing Multiscale basis function with scales "
 			<< scales);
       Bool orthogonal=parset.getBool("orthogonal", "false");
       
@@ -159,11 +159,11 @@ namespace askap {
 	solutionType="MAXBASE";
 	itsSolutionType=solutionType;
       }
-      ASKAPLOG_INFO_STR(decmtbflogger, "Solution type = " << solutionType);
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Solution type = " << solutionType);
       
       itsDecoupleTerms=parset.getBool("decouple", "true");
       if(itsDecoupleTerms) {
-	ASKAPLOG_INFO_STR(decmtbflogger, "Decoupling in term using the inverse of the coupling matrix");
+	ASKAPLOG_DEBUG_STR(decmtbflogger, "Decoupling in term using the inverse of the coupling matrix");
       }
     }
       
@@ -174,7 +174,7 @@ namespace askap {
       
       for (uInt base=0;base<itsTermBaseFlux.nelements();base++) {
 	for (uInt term=0;term<itsTermBaseFlux(base).nelements();term++) {
-	  ASKAPLOG_INFO_STR(decmtbflogger, "   Term(" <<term << "), Base(" << base
+	  ASKAPLOG_DEBUG_STR(decmtbflogger, "   Term(" <<term << "), Base(" << base
 			    << "): Flux = " << itsTermBaseFlux(base)(term));
 	}
       }
@@ -186,7 +186,7 @@ namespace askap {
     {
       if(!force&&!this->itsBasisFunctionChanged) return;
       
-      ASKAPLOG_INFO_STR(decmtbflogger,
+      ASKAPLOG_DEBUG_STR(decmtbflogger,
 			"Updating Multi-Term Basis Function deconvolver for change in basis function");
 
       IPosition subPsfShape(findSubPsfShape());
@@ -194,7 +194,7 @@ namespace askap {
       // Use a smaller size for the psfs if specified. 
       this->itsBasisFunction->initialise(subPsfShape);
       
-      ASKAPLOG_INFO_STR(decmtbflogger, "Initialising for PSFs: shape = " << subPsfShape);
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Initialising for PSFs: shape = " << subPsfShape);
       initialisePSF();
       
       itsBasisFunctionChanged=False;
@@ -225,7 +225,7 @@ namespace askap {
       
       ASKAPCHECK(this->itsBasisFunction, "Basis function not initialised");
       
-      ASKAPLOG_INFO_STR(decmtbflogger, "Shape of basis functions "
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Shape of basis functions "
 			<< this->itsBasisFunction->basisFunction().shape());
        
       uInt nBases(this->itsBasisFunction->numberBases());
@@ -236,7 +236,7 @@ namespace askap {
       }
       
       // Calculate residuals convolved with bases [nx,ny][nterms][nbases]
-      ASKAPLOG_INFO_STR(decmtbflogger,
+      ASKAPLOG_DEBUG_STR(decmtbflogger,
 			"Calculating convolutions of residual images with basis functions");
       for (uInt base=0;base<nBases;base++) {
 	// Calculate transform of residual images [nx,ny,nterms]
@@ -261,7 +261,7 @@ namespace askap {
 	  scimath::fft2d(work, false);
 	  
 	  // basis function * psf
-	  ASKAPLOG_INFO_STR(decmtbflogger, "Basis(" << base
+	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Basis(" << base
 			    << ")*Residual(" << term << "): max = " << max(real(work))
 			    << " min = " << min(real(work)));
 	  
@@ -277,7 +277,7 @@ namespace askap {
       if(this->control()->psfWidth()>0) {
 	uInt psfWidth=this->control()->psfWidth();
 	if((psfWidth<this->model().shape()(0))&&(psfWidth<this->model().shape()(1))) {
-	  //	  ASKAPLOG_INFO_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth
+	  //	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth
 	  //			    << " pixels");
 	  subPsfShape(0)=psfWidth;
 	  subPsfShape(1)=psfWidth;
@@ -294,13 +294,13 @@ namespace askap {
       
       ASKAPCHECK(this->itsBasisFunction, "Basis function not initialised");
       
-      ASKAPLOG_INFO_STR(decmtbflogger,
+      ASKAPLOG_DEBUG_STR(decmtbflogger,
 			"Updating Multi-Term Basis Function deconvolver for change in basis function");
       IPosition subPsfShape(findSubPsfShape());
 
       Array<FT> work(subPsfShape);
       
-      ASKAPLOG_INFO_STR(decmtbflogger, "Shape of basis functions "
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Shape of basis functions "
 			<< this->itsBasisFunction->basisFunction().shape());
       
       IPosition stackShape(this->itsBasisFunction->basisFunction().shape());
@@ -333,14 +333,14 @@ namespace askap {
       casa::IPosition maxPos;
       T minVal, maxVal;
       casa::minMax(minVal, maxVal, minPos, maxPos, this->psf(0).nonDegenerate()(subPsfSlicer));
-      ASKAPLOG_INFO_STR(decmtbflogger, "Maximum of PSF(0) = " << maxVal << " at " << maxPos);
-      ASKAPLOG_INFO_STR(decmtbflogger, "Minimum of PSF(0) = " << minVal << " at " << minPos);
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Maximum of PSF(0) = " << maxVal << " at " << maxPos);
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Minimum of PSF(0) = " << minVal << " at " << minPos);
       this->itsPeakPSFVal = maxVal;
       this->itsPeakPSFPos(0)=maxPos(0);
       this->itsPeakPSFPos(1)=maxPos(1);
 	
       IPosition subPsfPeak(2, this->itsPeakPSFPos(0), this->itsPeakPSFPos(1));
-      ASKAPLOG_INFO_STR(decmtbflogger, "Peak of PSF subsection at " << subPsfPeak);
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Peak of PSF subsection at " << subPsfPeak);
 
       // Calculate XFR for the subsection only. We need all PSF's up to
       // 2*nTerms-1
@@ -371,12 +371,12 @@ namespace askap {
 	for (uInt base2=base1;base2<nBases;base2++) {
 	  for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
 	    for (uInt term2=0;term2<this->itsNumberTerms;term2++) {
-	      ASKAPLOG_INFO_STR(decmtbflogger, "Calculating convolutions of PSF("
+	      ASKAPLOG_DEBUG_STR(decmtbflogger, "Calculating convolutions of PSF("
 				<< term1 << "+" << term2 << ") with basis functions");
 	      work=conj(basisFunctionFFT.xyPlane(base1))*basisFunctionFFT.xyPlane(base2)*
 		subXFRVec(term1+term2);
 	      scimath::fft2d(work, false);
-	      ASKAPLOG_INFO_STR(decmtbflogger, "Base(" << base1 << ")*Base(" << base2
+	      ASKAPLOG_DEBUG_STR(decmtbflogger, "Base(" << base1 << ")*Base(" << base2
 				<< ")*PSF(" << term1+term2
 				<< "): max = " << max(real(work))
 				<< " min = " << min(real(work)));
@@ -392,7 +392,7 @@ namespace askap {
 	}
       }
       
-      ASKAPLOG_INFO_STR(decmtbflogger, "Calculating inverses of coupling matrices");
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Calculating inverses of coupling matrices");
       
       // Invert the coupling matrices and check for correctness
       this->itsInverseCouplingMatrix.resize(nBases);
@@ -401,13 +401,13 @@ namespace askap {
       if(this->itsDecoupleTerms) {
 	for (uInt base=0;base<nBases;base++) {
 	  this->itsInverseCouplingMatrix(base).resize(this->itsNumberTerms,this->itsNumberTerms);
-	  ASKAPLOG_INFO_STR(decmtbflogger, "Coupling matrix(" << base << ")="
+	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix(" << base << ")="
 			    << this->itsCouplingMatrix(base));
 	  invertSymPosDef(this->itsInverseCouplingMatrix(base),
 			  this->itsDetCouplingMatrix(base), this->itsCouplingMatrix(base));
-	  ASKAPLOG_INFO_STR(decmtbflogger, "Coupling matrix determinant(" << base << ") = "
+	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix determinant(" << base << ") = "
 			    << this->itsDetCouplingMatrix(base));
-	  ASKAPLOG_INFO_STR(decmtbflogger, "Inverse coupling matrix(" << base
+	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Inverse coupling matrix(" << base
 			    << ")=" << this->itsInverseCouplingMatrix(base));
 	  // Check that the inverse really is an inverse.
 	  Matrix<T> identity(this->itsNumberTerms,this->itsNumberTerms);
@@ -420,7 +420,7 @@ namespace askap {
 				    * this->itsInverseCouplingMatrix(base).column(col));
 	    }
 	  }
-	  ASKAPLOG_INFO_STR(decmtbflogger, "Coupling matrix * inverse " << identity);
+	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix * inverse " << identity);
 	}
       }
       this->itsBasisFunctionChanged=False;

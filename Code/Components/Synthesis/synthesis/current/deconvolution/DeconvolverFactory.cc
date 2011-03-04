@@ -31,6 +31,7 @@ ASKAP_LOGGER(logger, ".deconvolver.factory");
 #include <deconvolution/DeconvolverFactory.h>
 #include <deconvolution/DeconvolverBase.h>
 #include <deconvolution/DeconvolverBasisFunction.h>
+#include <deconvolution/DeconvolverMultiTermBasisFunction.h>
 #include <deconvolution/DeconvolverEntropy.h>
 #include <deconvolution/DeconvolverFista.h>
 #include <deconvolution/DeconvolverHogbom.h>
@@ -83,6 +84,20 @@ namespace askap {
         
         // Now configure the deconvolver
 	LOFAR::ParameterSet subset(parset.makeSubset("solver.Basisfunction."));
+	deconvolver->configure(subset);
+
+      }
+      else if((parset.getString("solver", "Clean")=="Clean")&&(parset.getString("solver.algorithm", "AMSMFS")=="AMSMFS")) {        
+        ASKAPLOG_INFO_STR(logger, "Constructing Multi Term Basis Function deconvolver");
+        deconvolver.reset(new DeconvolverMultiTermBasisFunction<Float, Complex>(dirty, psf));
+        ASKAPASSERT(deconvolver);
+
+	// Get the mask and weights images
+	deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("solver.Basisfunction.mask", parset));
+	deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("solver.Basisfunction.weight", parset));
+        
+        // Now configure the deconvolver
+	LOFAR::ParameterSet subset(parset.makeSubset("solver.Clean."));
 	deconvolver->configure(subset);
 
       }

@@ -52,6 +52,7 @@ namespace askap {
     template<class T, class FT>
     DeconvolverBase<T,FT>::~DeconvolverBase() {
       ASKAPLOG_INFO_STR(decbaselogger, "Number of residual calculations = " << itsNumberResidualCalc);
+      auditAllMemory();
     };
     
     template<class T, class FT>
@@ -121,6 +122,7 @@ namespace askap {
 	scimath::fft2d(this->XFR(term), true);
 	itsLipschitz(term)=casa::max(casa::real(casa::abs(this->XFR(term))));
 	ASKAPLOG_INFO_STR(decbaselogger, "For term " << term << ", Lipschitz number = " << itsLipschitz(term));
+
       }
 
       casa::IPosition minPos;
@@ -146,6 +148,8 @@ namespace askap {
       ASKAPASSERT(itsDC);
       itsDM = boost::shared_ptr<DeconvolverMonitor<T> >(new DeconvolverMonitor<T>());
       ASKAPASSERT(itsDM);
+
+      auditAllMemory();
 
     }      
     
@@ -418,6 +422,35 @@ namespace askap {
       updateResiduals(modelVec);
     }
 
+    template<class T, class FT>
+    uInt DeconvolverBase<T,FT>::auditMemory(Vector<casa::Array<T> >& vecArray) {
+      uInt memory=0;
+      for (uInt term=0;term<vecArray.nelements();term++) {
+        memory+=sizeof(T)*vecArray(term).nelements();
+      }
+      return memory;
+    }
+
+    template<class T, class FT>
+    uInt DeconvolverBase<T,FT>::auditMemory(Vector<casa::Array<FT> >& vecArray) {
+      uInt memory=0;
+      for (uInt term=0;term<vecArray.nelements();term++) {
+        memory+=sizeof(FT)*vecArray(term).nelements();
+      }
+      return memory;
+    }
+
+    template<class T, class FT>
+    void DeconvolverBase<T,FT>::auditAllMemory() {
+      ASKAPLOG_DEBUG_STR(logger, "Dirty images  " << auditMemory(itsDirty));
+      ASKAPLOG_DEBUG_STR(logger, "PSFs          " << auditMemory(itsPsf));
+      ASKAPLOG_DEBUG_STR(logger, "Residuals     " << auditMemory(itsResidual));
+      ASKAPLOG_DEBUG_STR(logger, "Models        " << auditMemory(itsModel));
+      ASKAPLOG_DEBUG_STR(logger, "Backgrounds   " << auditMemory(itsBackground));
+      ASKAPLOG_DEBUG_STR(logger, "XFRs          " << auditMemory(itsXFR));
+      ASKAPLOG_DEBUG_STR(logger, "Masks         " << auditMemory(itsMask));
+      ASKAPLOG_DEBUG_STR(logger, "Weight images " << auditMemory(itsWeight));
+    }
   } // namespace synthesis
   
 } // namespace askap
