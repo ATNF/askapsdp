@@ -97,10 +97,6 @@ namespace askap {
             /// @}
 
             /// @ingroup sourcefitting
-            /// @brief Simple function to write a list of parameters to the ASKAPLOG
-            void logparameters(Matrix<Double> &m);
-
-            /// @ingroup sourcefitting
             /// @brief Check whether a given fit type is valid
             bool isFitTypeValid(std::string type);
 
