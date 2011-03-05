@@ -116,7 +116,7 @@ int main(int argc, const char** argv)
             // parset. We simply copy the dirty image and then write the array into 
             // the resulting image. 
             DeconvolverHelpers::putArrayToImage(deconvolver->model(), "model", "dirty", subset);
-            DeconvolverHelpers::putArrayToImage(deconvolver->residual(), "residual", "dirty", subset);
+            DeconvolverHelpers::putArrayToImage(deconvolver->dirty(), "residual", "dirty", subset);
 
        }
         ASKAPLOG_INFO_STR(logger, "Total times - user:   " << timer.user() << " system: " << timer.system()
