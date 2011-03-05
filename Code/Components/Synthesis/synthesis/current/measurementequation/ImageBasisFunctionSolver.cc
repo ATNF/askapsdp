@@ -202,7 +202,7 @@ namespace askap
 	    ASKAPASSERT(basisFunctionDec);     
 	    basisFunctionDec->setMonitor(itsMonitor);
 	    basisFunctionDec->setControl(itsControl);
-	    basisFunctionDec->setMask(maskArray);
+	    basisFunctionDec->setWeight(maskArray);
 
 	    itsBasisFunction->initialise(dirtyArray.shape());
 	    basisFunctionDec->setBasisFunction(itsBasisFunction);
@@ -215,10 +215,6 @@ namespace askap
 	    basisFunctionDec->state()->setCurrentIter(0);
 	    
 	    ASKAPLOG_INFO_STR(logger, "Starting basis function deconvolution");
-	    // Some algorithms need a fixed background (i.e. previous) image so
-            // we always use it. The background is taken as fixed.
-
-	    basisFunctionDec->setBackground(basisFunctionArray);
 	    basisFunctionDec->deconvolve();
 	    ASKAPLOG_INFO_STR(logger, "Peak flux of the Basis function image "
 			      << max(basisFunctionDec->model()));
@@ -234,7 +230,7 @@ namespace askap
 	    }
 	    ip.fix(peakResParam);	    
 	    planeIter.getPlane(ip.value(indit->first)) =
-	      unpadImage(basisFunctionDec->model()+basisFunctionDec->background());
+	      unpadImage(basisFunctionDec->model());
 	  } // loop over all planes of the image cube
 	} // loop over map of indices
       

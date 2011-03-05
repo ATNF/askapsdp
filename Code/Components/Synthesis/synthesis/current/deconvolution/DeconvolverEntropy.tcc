@@ -1,7 +1,7 @@
 /// @file
 /// @brief Class for a deconvolver based on entropy or min L1 norm
 /// @details This concrete class defines a deconvolver used to estimate an
-/// image from a residual image, psf optionally using a mask and a weights image.
+/// image from a residual image, psf optionally using a weights image.
 /// @ingroup Deconvolver
 ///  
 /// @copyright (c) 2007 CSIRO
@@ -54,7 +54,7 @@ namespace askap {
     
     /// @brief Class for a deconvolver based on the Entropy algorithm of Cornwell and Evans
     /// @details This base class defines a deconvolver used to estimate an
-    /// image from a residual image, psf optionally using a mask and a weights image.
+    /// image from a residual image, psf optionally using a weights image.
     /// The template argument T is the type, and FT is the transform
     /// e.g. DeconvolverEntropy<Double, DComplex>
     /// @ingroup Deconvolver
@@ -121,14 +121,14 @@ namespace askap {
 
       this->updateResiduals(this->model());
 
-      this->model()=this->residual().copy()/this->itsLipschitz;
+      this->model()=this->dirty().copy()/this->itsLipschitz;
 
       Array<T> step(this->model().shape());
       step.set(T(0.0));
         
-      T absPeakVal(max(abs(this->residual())));
+      T absPeakVal(max(abs(this->dirty())));
       T peakSidelobe(0.1);
-      T aFit = max(peakSidelobe*absPeakVal, rms(this->residual()))/this->itsLipschitz(0);
+      T aFit = max(peakSidelobe*absPeakVal, rms(this->dirty()))/this->itsLipschitz(0);
       ASKAPLOG_INFO_STR(decentropylogger, "Scaling = " << aFit << " Jy/pixel");
       this->itsEntropy->setScale(aFit);
 
@@ -138,15 +138,15 @@ namespace askap {
 
       do {
         // Find the current fit
-        chisq = sum(square(this->residual()));  
+        chisq = sum(square(this->dirty()));  
         fit = sqrt(chisq/targetChisq);
 
-        Matrix<T> GDG(this->itsEntropy->formGDGStep(this->model(), this->residual(), step));
+        Matrix<T> GDG(this->itsEntropy->formGDGStep(this->model(), this->dirty(), step));
 
         // Check to see if Alpha and Beta need to be initialised. If so then we need to
         // do so and recalculate the gradients and step
         if(this->itsEntropy->initialiseAlphaBeta(GDG)) {
-          GDG = this->itsEntropy->formGDGStep(this->model(), this->residual(), step);
+          GDG = this->itsEntropy->formGDGStep(this->model(), this->dirty(), step);
         }
  
         T flux=sum(this->model());
@@ -176,7 +176,7 @@ namespace askap {
       
         // Calculate residual for this new trial image
         this->updateResiduals(trialModel);
-        chisq = sum(square(this->residual()));  
+        chisq = sum(square(this->dirty()));  
         
         // Form the scalar Gradient . Step at this new location. Ideally this should be
         // zero. Once we know the value of the gradient initially and for the trial image, we
@@ -184,7 +184,7 @@ namespace askap {
         // step should be O(1) times the original step
         T eps = 1.0;
         T gradDotStep0 = GDG(J,J);
-        T gradDotStep1(this->itsEntropy->formGDS(this->model(), this->residual(), step));
+        T gradDotStep1(this->itsEntropy->formGDS(this->model(), this->dirty(), step));
 
         if (gradDotStep0 != gradDotStep1) {
           eps = gradDotStep0/(gradDotStep0-gradDotStep1);
@@ -200,7 +200,7 @@ namespace askap {
           // Recalculate residual for the new image
         updateResiduals(this->model());
 
-        chisq = sum(square(this->residual()));  
+        chisq = sum(square(this->dirty()));  
       
       // readjust beam volume
       //      itsQ = itsQ*(T(1.0)/max(T(0.5), min(T(2.0),eps))+T(1.0))/T(2.0);
@@ -208,9 +208,9 @@ namespace askap {
         flux=sum(this->model());
         this->itsEntropy->changeAlphaBeta(GDG, targetChisq, chisq, this->control()->targetFlux(), flux);
         
-        absPeakVal=max(abs(this->residual()));
+        absPeakVal=max(abs(this->dirty()));
 
-	aFit = max(peakSidelobe*absPeakVal, rms(this->residual()))/this->itsLipschitz(0);
+	aFit = max(peakSidelobe*absPeakVal, rms(this->dirty()))/this->itsLipschitz(0);
 	ASKAPLOG_INFO_STR(decentropylogger, "Scaling = " << aFit << " Jy/pixel");
 	this->itsEntropy->setScale(aFit);
 

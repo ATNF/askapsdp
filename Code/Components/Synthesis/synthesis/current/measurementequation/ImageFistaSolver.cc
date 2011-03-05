@@ -208,7 +208,7 @@ namespace askap
 	    ASKAPDEBUGASSERT(fistaDec);     
 	    fistaDec->setMonitor(itsMonitor);
 	    fistaDec->setControl(itsControl);
-	    fistaDec->setMask(maskArray);
+	    fistaDec->setWeight(maskArray);
 	    
 	    if(itsBasisFunction) {
 	      itsBasisFunction->initialise(dirtyArray.shape());
@@ -226,12 +226,11 @@ namespace askap
 	    // FISTA is not incremental so we need to set the
 	    // background image which remains fixed during one 
 	    // deconvolve step
-	    fistaDec->setBackground(fistaArray);
 	    fistaDec->deconvolve();
 	    ASKAPLOG_INFO_STR(logger, "Peak flux of the FISTA image "
 			      << max(fistaDec->model()));
 	    ASKAPLOG_INFO_STR(logger, "Peak residual of FISTA image "
-			      << max(abs(fistaDec->residual())));
+			      << max(abs(fistaDec->dirty())));
 	    
 	    const std::string deconvolverKey = indit->first + planeIter.tag();
 	    const std::string peakResParam = std::string("peak_residual.") + deconvolverKey;

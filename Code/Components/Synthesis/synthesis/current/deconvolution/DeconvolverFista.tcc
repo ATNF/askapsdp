@@ -106,7 +106,7 @@ namespace askap {
 
       this->initialise();
 
-      bool isMasked(this->itsWeightedMask(0).shape().conform(this->residual().shape()));
+      bool isMasked(this->itsWeightedMask(0).shape().conform(this->dirty().shape()));
 
       Array<T> X, X_old, X_temp;
 
@@ -117,7 +117,7 @@ namespace askap {
       X_old.set(T(0.0));
 
       X.resize(this->model().shape());
-      X=this->background().copy();
+      X=this->model().copy();
 
       T absPeakVal;
 
@@ -127,7 +127,7 @@ namespace askap {
 
       X_temp=X.copy();
 
-      absPeakVal=max(abs(this->residual()));
+      absPeakVal=max(abs(this->dirty()));
 
       T effectiveLambda(absPeakVal*this->control()->fractionalThreshold()+this->control()->lambda());
       ASKAPLOG_INFO_STR(decfistalogger, "Effective lambda = " << effectiveLambda);
@@ -139,9 +139,9 @@ namespace askap {
 	T t_old=t_new;
 
 	updateResiduals(X);
-	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->residual());
+	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->dirty());
 
-	X=X+this->residual()/this->itsLipschitz(0);
+	X=X+this->dirty()/this->itsLipschitz(0);
 
 	// Transform to other (e.g. multiscale) space
 	Array<T> WX;
@@ -172,11 +172,11 @@ namespace askap {
           T minVal(0.0), maxVal(0.0);
           if (isMasked) {
             casa::minMaxMasked(minVal, maxVal, minPos, maxPos,
-			       this->residual(),
+			       this->dirty(),
                                this->itsWeightedMask(0));
           }
           else {
-            casa::minMax(minVal, maxVal, minPos, maxPos, this->residual());
+            casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty());
           }
           //
           ASKAPLOG_INFO_STR(decfistalogger, "   Maximum = " << maxVal << " at location " << maxPos);
@@ -190,7 +190,7 @@ namespace askap {
         }
 
 	T l1Norm=sum(abs(X_temp));
-	T fit=casa::sum(this->residual()*this->residual());
+	T fit=casa::sum(this->dirty()*this->dirty());
 	T objectiveFunction(fit+effectiveLambda*l1Norm);
         this->state()->setPeakResidual(absPeakVal);
         this->state()->setObjectiveFunction(objectiveFunction);
@@ -209,7 +209,7 @@ namespace askap {
       
       this->finalise();
 
-      absPeakVal=casa::max(casa::abs(this->residual()));
+      absPeakVal=casa::max(casa::abs(this->dirty()));
 
       this->state()->setPeakResidual(absPeakVal);
       this->state()->setObjectiveFunction(absPeakVal);

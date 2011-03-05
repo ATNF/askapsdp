@@ -51,20 +51,17 @@ namespace askap {
     
     template<class T, class FT>
     DeconvolverBase<T,FT>::~DeconvolverBase() {
-      ASKAPLOG_INFO_STR(decbaselogger, "Number of residual calculations = " << itsNumberResidualCalc);
       auditAllMemory();
     };
     
     template<class T, class FT>
     DeconvolverBase<T,FT>::DeconvolverBase(Vector<Array<T> >& dirty, Vector<Array<T> >& psf)
-      : itsNumberResidualCalc(0)
     {
       init(dirty,psf);
     }
 
     template<class T, class FT>
     DeconvolverBase<T,FT>::DeconvolverBase(Array<T>& dirty, Array<T>& psf)
-      : itsNumberResidualCalc(0)
     {
       itsNumberTerms=1;
 
@@ -84,14 +81,9 @@ namespace askap {
       itsNumberTerms=dirtyVec.nelements();
 
       itsDirty.resize(itsNumberTerms);
-      itsResidual.resize(itsNumberTerms);
       itsPsf.resize(itsNumberTerms);
-      itsXFR.resize(itsNumberTerms);
       itsModel.resize(itsNumberTerms);
-      itsBackground.resize(itsNumberTerms);
-      itsMask.resize(itsNumberTerms);
       itsWeight.resize(itsNumberTerms);
-      itsWeightedMask.resize(itsNumberTerms);
       itsLipschitz.resize(itsNumberTerms);
 
       ASKAPLOG_INFO_STR(decbaselogger, "There are " << itsNumberTerms << " dirty images");
@@ -102,7 +94,6 @@ namespace askap {
 	ASKAPASSERT(psfVec(term).nonDegenerate().shape().nelements()==2);
 	
 	this->itsDirty(term)=dirtyVec(term).nonDegenerate();
-	this->itsResidual(term)=dirtyVec(term).nonDegenerate();
 	this->itsPsf(term)=psfVec(term).nonDegenerate();
 
 	ASKAPASSERT(this->itsPsf(term).shape().conform(this->itsDirty(term).shape()));
@@ -112,17 +103,6 @@ namespace askap {
 
 	this->model(term).resize(this->dirty(term).shape());
 	this->model(term).set(T(0.0));
-	this->background(term).resize(this->dirty(term).shape());
-	this->background(term).set(T(0.0));
-	
-	this->XFR(term).resize(this->psf(term).shape());
-	this->XFR(term).set(FT(0.0));
-
-	casa::setReal(this->XFR(term), this->psf(term));
-	scimath::fft2d(this->XFR(term), true);
-	itsLipschitz(term)=casa::max(casa::real(casa::abs(this->XFR(term))));
-	ASKAPLOG_INFO_STR(decbaselogger, "For term " << term << ", Lipschitz number = " << itsLipschitz(term));
-
       }
 
       casa::IPosition minPos;
@@ -134,7 +114,7 @@ namespace askap {
       uInt nx(this->psf(0).shape()(0));
       uInt ny(this->psf(0).shape()(1));
       
-      ASKAPCHECK(uInt(maxPos(0)!=(nx/2-1))||uInt(maxPos(1)!=(ny/2-1)), "Peak of PSF is not at centre pixels");
+      ASKAPCHECK(uInt(maxPos(0)!=(nx/2-1))||uInt(maxPos(1)!=(ny/2-1)), "Peak of PSF(0) is not at centre pixels");
       
       ASKAPLOG_INFO_STR(logger, "Maximum of Psf = " << maxVal << " at " << maxPos);
       ASKAPLOG_INFO_STR(logger, "Minimum of Psf = " << minVal << " at " << minPos);
@@ -176,39 +156,12 @@ namespace askap {
     }
     
     template<class T, class FT>
-    void DeconvolverBase<T,FT>::setResidual(const Array<T> residual, const uInt term) {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      this->itsResidual(term)=residual.nonDegenerate().copy();
-    }
-    
-    template<class T, class FT>
-    Array<T> & DeconvolverBase<T,FT>::residual(const uInt term)
-    {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      return itsResidual(term);
-    }
-    
-    template<class T, class FT>
-    void DeconvolverBase<T,FT>::setBackground(const Array<T> background, const uInt term) {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      this->itsBackground(term)=background.nonDegenerate().copy();
-    }
-    
-    template<class T, class FT>
-    Array<T> & DeconvolverBase<T,FT>::background(const uInt term)
-    {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      return itsBackground(term);
-    }
-    
-    template<class T, class FT>
     void DeconvolverBase<T,FT>::updateDirty(Array<T>& dirty) {
       if (!dirty.shape().nonDegenerate().conform(this->dirty(0).shape())) {
         throw(AskapError("Updated dirty image has different shape"));
       }
       this->itsDirty.resize(1);
       this->itsDirty(0)=dirty.nonDegenerate();
-      this->itsResidual(0)=dirty.nonDegenerate();
     }
     
     template<class T, class FT>
@@ -217,13 +170,11 @@ namespace askap {
         throw(AskapError("Updated dirty image has different shape"));
       }
       this->itsDirty.resize(dirtyVec.nelements());
-      this->itsResidual.resize(dirtyVec.nelements());
       for (uInt term=0;term<dirtyVec.nelements();term++) {
 	if (!dirtyVec(term).nonDegenerate().shape().conform(this->itsDirty(term).nonDegenerate().shape())) {
 	  throw(AskapError("Updated dirty image has different shape from original"));
 	}
 	this->itsDirty(term)=dirtyVec(term).nonDegenerate();
-	this->itsResidual(term)=dirtyVec(term).nonDegenerate();
       }
     }
     
@@ -238,7 +189,7 @@ namespace askap {
     {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      return itsResidual(term);
+      return itsDirty(term);
     }
     
     template<class T, class FT>
@@ -250,33 +201,10 @@ namespace askap {
     }
     
     template<class T, class FT>
-    Array<FT> & DeconvolverBase<T,FT>::XFR(const uInt term)
-    {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      return itsXFR(term);
-    }
-    
-    template<class T, class FT>
-    void DeconvolverBase<T,FT>::setMask(Array<T> mask, const uInt term) {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsMask(term)=mask.nonDegenerate();
-    }
-    
-    template<class T, class FT>
-    Array<T> & DeconvolverBase<T,FT>::mask(const uInt term)
-    {
-      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      return itsMask(term);
-    }
-    
-    template<class T, class FT>
     void DeconvolverBase<T,FT>::setWeight(Array<T> weight, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsMask(term)=weight.nonDegenerate();
+      this->itsWeight(term)=weight.nonDegenerate();
     }
     
     template<class T, class FT>
@@ -345,51 +273,15 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::initialise()
     {
-      ASKAPLOG_INFO_STR(logger, "Initialising mask and weight images"); 
+      ASKAPLOG_INFO_STR(logger, "Initialising weight images"); 
 
       // Always check shapes on initialise
       this->validateShapes();
 
-      for (uInt term=0;term<itsNumberTerms;term++) {
-
-	// First deal with the mask
-	if(this->mask().shape().nonDegenerate().conform(this->dirty().nonDegenerate().shape())) { // mask exists
-	  if(this->weight().shape().nonDegenerate().conform(this->dirty().nonDegenerate().shape())) {
-	    ASKAPLOG_INFO_STR(logger, "Setting weighted mask image");
-	    itsWeightedMask(term)=this->mask(term)*this->weight(term);
-	    ASKAPASSERT(itsWeightedMask(term).shape().nonDegenerate().conform(this->dirty(term).shape().nonDegenerate()));
-	  }
-	  else { // only mask exists
-	    ASKAPLOG_INFO_STR(logger, "Setting mask image"); 
-	    itsWeightedMask(term)=this->mask(term);
-	    ASKAPASSERT(itsWeightedMask(term).shape().nonDegenerate().conform(this->dirty(term).shape().nonDegenerate()));
-	  }
-	} 
-	else { // no mask
-	  if(this->weight(term).shape().nonDegenerate().conform(this->dirty(term).nonDegenerate().shape())) {
-	    ASKAPLOG_INFO_STR(logger, "Setting weights image");
-	    itsWeightedMask(term)=this->weight(term);
-	    ASKAPASSERT(itsWeightedMask(term).shape().nonDegenerate().conform(this->dirty(term).shape().nonDegenerate()));
-	  }
-	  else { // we got nuthin'
-	    ASKAPLOG_INFO_STR(logger, "No weights or mask image for term " << term);
-	  }
-	}
-      }
-
-      // Now we need to find the peak and support of the PSF
-
-      for (uInt term=0;term<itsNumberTerms;term++) {
-	this->itsResidual.resize(this->itsNumberTerms);
-	for(uInt term=0;term<this->itsNumberTerms;term++) {
-	  this->residual(term)=this->dirty(term).copy();
-	}
-      }
     }
 
     template<class T, class FT>
     void DeconvolverBase<T,FT>::finalise() {
-      updateResiduals(itsModel);
     }
 
     template<class T, class FT>
@@ -400,17 +292,19 @@ namespace askap {
 		 << itsNumberTerms);
 
       for (uInt term=0;term<itsNumberTerms;term++) {
+	Array<FT> xfr;
+	xfr.resize(psf(term).shape());
+	casa::setReal(xfr, psf(term));
+	scimath::fft2d(xfr, true);
 	Array<FT> work;
 	// Find residuals for current model model
 	work.resize(model(term).shape());
 	work.set(FT(0.0));
-	casa::setReal(work, model(term)-this->itsBackground(term));
+	casa::setReal(work, model(term));
 	scimath::fft2d(work, true);
-	work=this->XFR(term)*work;
+	work=xfr*work;
 	scimath::fft2d(work, false);
-	this->residual(term)=this->dirty(term)-real(work);
-      
-	itsNumberResidualCalc+=1;
+	this->dirty(term)=this->dirty(term)-real(work);
       }
     }
 
@@ -444,11 +338,7 @@ namespace askap {
     void DeconvolverBase<T,FT>::auditAllMemory() {
       ASKAPLOG_DEBUG_STR(logger, "Dirty images  " << auditMemory(itsDirty));
       ASKAPLOG_DEBUG_STR(logger, "PSFs          " << auditMemory(itsPsf));
-      ASKAPLOG_DEBUG_STR(logger, "Residuals     " << auditMemory(itsResidual));
       ASKAPLOG_DEBUG_STR(logger, "Models        " << auditMemory(itsModel));
-      ASKAPLOG_DEBUG_STR(logger, "Backgrounds   " << auditMemory(itsBackground));
-      ASKAPLOG_DEBUG_STR(logger, "XFRs          " << auditMemory(itsXFR));
-      ASKAPLOG_DEBUG_STR(logger, "Masks         " << auditMemory(itsMask));
       ASKAPLOG_DEBUG_STR(logger, "Weight images " << auditMemory(itsWeight));
     }
   } // namespace synthesis

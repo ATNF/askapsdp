@@ -1,7 +1,7 @@
 /// @file
 /// @brief Class for a deconvolver based on CLEANing with basis functions.
 /// @details This concrete class defines a deconvolver used to estimate an
-/// image from a residual image, psf optionally using a mask and a weights image.
+/// image from a residual image, psf optionally using a weights image.
 /// @ingroup Deconvolver
 ///  
 ///
@@ -56,7 +56,7 @@ namespace askap {
     
     /// @brief Class for a deconvolver based on the BasisFunction Clean
     /// @details This base class defines a deconvolver used to estimate an
-    /// image from a residual image, psf optionally using a mask and a weights image.
+    /// image from a residual image, psf optionally using a weights image.
     /// The template argument T is the type, and FT is the transform
     /// e.g. DeconvolverMultiTermBasisFunction<Double, DComplex>
     /// @ingroup Deconvolver
@@ -221,7 +221,7 @@ namespace askap {
       if(!this->itsDirtyChanged) return;
       
       // Initialise the basis function for residual calculations. 
-      this->itsBasisFunction->initialise(this->residual(0).shape());
+      this->itsBasisFunction->initialise(this->dirty(0).shape());
       
       ASKAPCHECK(this->itsBasisFunction, "Basis function not initialised");
       
@@ -243,19 +243,19 @@ namespace askap {
 	for (uInt term=0;term<this->itsNumberTerms;term++) {
 	  
 	  // Calculate transform of residual image
-	  Array<FT> residualFFT(this->residual(term).shape().nonDegenerate());
+	  Array<FT> residualFFT(this->dirty(term).shape().nonDegenerate());
 	  residualFFT.set(FT(0.0));
-	  casa::setReal(residualFFT, this->residual(term).nonDegenerate());
+	  casa::setReal(residualFFT, this->dirty(term).nonDegenerate());
 	  scimath::fft2d(residualFFT, true);
 	  
 	  // Calculate transform of basis function [nx,ny,nbases]
-	  Matrix<FT> basisFunctionFFT(this->residual(term).shape().nonDegenerate());
+	  Matrix<FT> basisFunctionFFT(this->dirty(term).shape().nonDegenerate());
 	  basisFunctionFFT.set(FT(0.0));
 	  casa::setReal(basisFunctionFFT, Cube<T>(this->itsBasisFunction->basisFunction()).xyPlane(base));
 	  scimath::fft2d(basisFunctionFFT, true);
 	  
 	  // Calculate product and transform back
-	  Array<FT> work(this->residual(term).nonDegenerate().shape());
+	  Array<FT> work(this->dirty(term).nonDegenerate().shape());
 	  ASKAPASSERT(basisFunctionFFT.shape().conform(residualFFT.shape()));
 	  work=conj(basisFunctionFFT)*residualFFT;
 	  scimath::fft2d(work, false);
@@ -371,8 +371,8 @@ namespace askap {
 	for (uInt base2=base1;base2<nBases;base2++) {
 	  for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
 	    for (uInt term2=0;term2<this->itsNumberTerms;term2++) {
-	      ASKAPLOG_DEBUG_STR(decmtbflogger, "Calculating convolutions of PSF("
-				<< term1 << "+" << term2 << ") with basis functions");
+	      //	      ASKAPLOG_DEBUG_STR(decmtbflogger, "Calculating convolutions of PSF("
+	      //				<< term1 << "+" << term2 << ") with basis functions");
 	      work=conj(basisFunctionFFT.xyPlane(base1))*basisFunctionFFT.xyPlane(base2)*
 		subXFRVec(term1+term2);
 	      scimath::fft2d(work, false);
@@ -464,10 +464,10 @@ namespace askap {
 
 
       // Find the base having the peak value in term=0
-      // Here the weighted mask is used as a weight in the determination
-      // of the maximum i.e. it finds the max in mask . residual. The values
-      // returned are without the mask
-      bool isMasked((this->itsWeightedMask.nelements()>0)&&(this->itsWeightedMask(0).shape().nonDegenerate().conform(this->itsResidualBasis(0)(0).shape())));
+      // Here the weights image is used as a weight in the determination
+      // of the maximum i.e. it finds the max in weight . residual. The values
+      // returned are without the weight
+      bool isWeighted((this->itsWeight.nelements()>0)&&(this->itsWeight(0).shape().nonDegenerate().conform(this->itsResidualBasis(0)(0).shape())));
       
       Vector<T> minValues(this->itsNumberTerms);
       Vector<T> maxValues(this->itsNumberTerms);
@@ -481,7 +481,7 @@ namespace askap {
 	// Decouple all terms using inverse coupling matrix
 	Vector<Array<T> > coefficients(this->itsNumberTerms);
 	for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-	  coefficients(term1).resize(this->residual(0).shape().nonDegenerate());
+	  coefficients(term1).resize(this->dirty(0).shape().nonDegenerate());
 	  coefficients(term1).set(T(0.0));
 	  for(uInt term2=0;term2<this->itsNumberTerms;term2++) {
 	    coefficients(term1)=coefficients(term1)
@@ -491,7 +491,7 @@ namespace askap {
 
 	if(this->itsSolutionType=="R5") {
 	  // Now form the criterion image and then search for the peak
-	  Array<T> criterion(this->residual(0).shape().nonDegenerate());
+	  Array<T> criterion(this->dirty(0).shape().nonDegenerate());
 	  criterion.set(T(0.0));
 	  for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
 	    criterion=criterion+T(2.0)*this->itsResidualBasis(base)(term1)*coefficients(term1);
@@ -499,9 +499,9 @@ namespace askap {
 	      criterion=criterion-T(this->itsCouplingMatrix(base)(term1,term2))*coefficients(term1)*coefficients(term2);
 	    }
 	  }
-	  if(isMasked) {
+	  if(isWeighted) {
 	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, criterion,
-			       this->itsWeightedMask(0).nonDegenerate());
+			       this->itsWeight(0).nonDegenerate());
 	  }
 	  else {
 	    casa::minMax(minVal, maxVal, minPos, maxPos, criterion);
@@ -512,9 +512,9 @@ namespace askap {
 	  }
 	}
 	else if(this->itsSolutionType=="MAXTERM0") {
-	  if(isMasked) {
+	  if(isWeighted) {
 	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, coefficients(0),
-			       this->itsWeightedMask(0).nonDegenerate());
+			       this->itsWeight(0).nonDegenerate());
 	  }
 	  else {
 	    casa::minMax(minVal, maxVal, minPos, maxPos, coefficients(0));
@@ -525,9 +525,9 @@ namespace askap {
 	  }
 	}
 	else { // MAXBASE
-	  if(isMasked) {
+	  if(isWeighted) {
 	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
-			       this->itsWeightedMask(0).nonDegenerate());
+			       this->itsWeight(0).nonDegenerate());
 	  }
 	  else {
 	    casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
@@ -554,13 +554,13 @@ namespace askap {
 	  peakValues=maxValues;
 	}
 	
-	if(isMasked) {
+	if(isWeighted) {
 	  casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
-			     this->itsWeightedMask(0).nonDegenerate());
+			     this->itsWeight(0).nonDegenerate());
           originalValues.resize(this->itsNumberTerms);
           for (uInt term=0;term<this->itsNumberTerms;term++) {
             originalValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos)
-              *this->itsWeightedMask(0)(absPeakPos);
+              *this->itsWeight(0)(absPeakPos);
           }
 	}
 	else {
@@ -608,7 +608,7 @@ namespace askap {
       this->state()->setTotalFlux(sum(this->model(0)));
       
       // Now we adjust model and residual for this component
-      const casa::IPosition residualShape(this->residual(0).shape().nonDegenerate());
+      const casa::IPosition residualShape(this->dirty(0).shape().nonDegenerate());
       const casa::IPosition psfShape(2, this->itsBasisFunction->basisFunction().shape()(0),
 				     this->itsBasisFunction->basisFunction().shape()(1));
       

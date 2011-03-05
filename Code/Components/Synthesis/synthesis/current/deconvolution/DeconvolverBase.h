@@ -96,37 +96,10 @@ namespace askap {
       /// @detail Set the model from which iteration will start
       void setModel(const Array<T> model, const uInt term=0);
 
-      /// @brief Get the current residual
-      /// @detail Get the current residual
-      /// @param[out] residual Residual image (array)
-      Array<T>& residual(const uInt term=0);
-
-      /// @brief Set the initial residual
-      /// @detail Set the residual from which iteration will start
-      void setResidual(const Array<T> residual, const uInt term=0);
-
       /// @brief Get the current model
       /// @detail Get the current model
       /// @param[out] model Model image (array)
       Array<T>& model(const uInt term=0);
-
-      /// @brief Set the initial background
-      /// @detail Set the background image. The
-      /// background image is used in those cases where the absolute
-      /// value of the brightness must be known.
-      /// @param[out] background Background image (array)
-      void setBackground(const Array<T> background, const uInt term=0);
-
-      /// @brief Get the current background
-      /// @detail Get the current background
-      /// @param[out] background Background image (array)
-      Array<T>& background(const uInt term=0);
-
-      /// @brief Get the current XFR
-      /// @detail Get the current XFR - the transform of the specified
-      /// point spread function.
-      /// @param[out] XFR image (array)
-      Array<FT>& XFR(const uInt term=0);
 
       /// @brief Update only the dirty image
       /// @detail Update an existing deconvolver for a changed dirty image
@@ -137,17 +110,6 @@ namespace askap {
       /// @detail Update an existing deconvolver for a changed dirty images.
       /// @param[in] dirty Dirty image (vector of arrays)
       virtual void updateDirty(Vector<Array<T> >& dirty);
-
-      /// @brief Set the mask image otherwise there is no mask
-      /// @detail The mask image is used to limit where flux is allowed in
-      /// the image
-      /// @param[in] mask Mask (array)
-      void setMask(Array<T> mask, const uInt term=0);
-
-      /// @brief Get the mask
-      /// @detail Get the mask
-      /// @param[out] mask (array)
-      Array<T> & mask(const uInt term=0);
 
       /// @brief Set the weight image
       /// @detail The weights image (actually the sqrt) is used to 
@@ -227,17 +189,9 @@ namespace askap {
 
       Vector<Array<T> > itsDirty;
 
-      Vector<Array<T> > itsResidual;
-
       Vector<Array<T> > itsPsf;
 
       Vector<Array<T> > itsModel;
-
-      Vector<Array<T> > itsBackground;
-
-      Vector<Array<FT> >itsXFR;
-
-      Vector<Array<T> > itsMask;
 
       Vector<Array<T> > itsWeight;
 
@@ -259,8 +213,6 @@ namespace askap {
       // We need this for the inner loop
       // Mask weighted by weight image
       Vector<Array<T> > itsWeightedMask;
-
-      uInt itsNumberResidualCalc;
 
       // Audit the memory in use right now
       void auditAllMemory();

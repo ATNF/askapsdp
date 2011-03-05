@@ -65,7 +65,6 @@ namespace askap {
         ASKAPASSERT(deconvolver);
 
         // Get the mask and weights images
-        deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("mask", parset));
         deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
         
         // Now get the control parameters
@@ -79,7 +78,6 @@ namespace askap {
         ASKAPASSERT(deconvolver);
 
 	// Get the mask and weights images
-	deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("solver.Basisfunction.mask", parset));
 	deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("solver.Basisfunction.weight", parset));
         
         // Now configure the deconvolver
@@ -93,7 +91,6 @@ namespace askap {
         ASKAPASSERT(deconvolver);
 
 	// Get the mask and weights images
-	deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("solver.Basisfunction.mask", parset));
 	deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("solver.Basisfunction.weight", parset));
         
         // Now configure the deconvolver
@@ -107,7 +104,6 @@ namespace askap {
         ASKAPASSERT(deconvolver);
 
 	// Get the mask and weights images
-	deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("solver.Entropy.mask", parset));
 	deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("solver.Entropy.weight", parset));
         
 	LOFAR::ParameterSet subset(parset.makeSubset("solver.Entropy."));
@@ -125,7 +121,6 @@ namespace askap {
         ASKAPASSERT(deconvolver);
 
         // Get the mask and weights images
-        deconvolver->setMask(DeconvolverHelpers::getArrayFromImage("mask", parset));
         deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
         
         // Now configure the deconvolver

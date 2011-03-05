@@ -67,11 +67,8 @@ public:
     CPPUNIT_ASSERT(itsDB->setMonitor(DM));
     boost::shared_ptr<DeconvolverState<Float> > DS(new DeconvolverState<Float>::DeconvolverState());
     CPPUNIT_ASSERT(itsDB->setControl(DC));
-    itsMask.reset(new Array<Float>(itsDimensions));
-    itsMask->set(1.0);
     itsWeight.reset(new Array<Float>(itsDimensions));
     itsWeight->set(10.0);
-    itsDB->setMask(*itsMask);
     itsDB->setWeight(*itsWeight);
   }
 

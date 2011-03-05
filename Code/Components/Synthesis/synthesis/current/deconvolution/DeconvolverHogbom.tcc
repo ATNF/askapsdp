@@ -112,15 +112,14 @@ namespace askap {
     template<class T, class FT>
     bool DeconvolverHogbom<T,FT>::oneIteration()
     {
-      bool isMasked(this->itsWeightedMask(0).shape().conform(this->dirty(0).shape()));
+      bool isMasked(this->weight(0).shape().conform(this->dirty(0).shape()));
 
       // Find peak in residual image
       casa::IPosition minPos;
       casa::IPosition maxPos;
       T minVal, maxVal;
       if (isMasked) {
-        casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->dirty(0),
-                           this->itsWeightedMask(0));
+        casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->dirty(0), this->weight(0));
       }
       else {
         casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty(0));
@@ -148,9 +147,9 @@ namespace askap {
         return True;
       }
 
-      casa::IPosition residualShape(this->residual().shape());
+      casa::IPosition residualShape(this->dirty().shape());
       casa::IPosition psfShape(this->psf().shape());
-      casa::uInt ndim(this->residual().shape().size());
+      casa::uInt ndim(this->dirty().shape().size());
 
       casa::IPosition residualStart(ndim,0), residualEnd(ndim,0), residualStride(ndim,1);
       casa::IPosition psfStart(ndim,0), psfEnd(ndim,0), psfStride(ndim,1);
@@ -197,7 +196,7 @@ namespace askap {
       this->model()(absPeakPos) = this->model()(absPeakPos) + this->control()->gain()*absPeakVal;      
       
       // Subtract entire PSF from residual image
-      this->residual()(residualSlicer) = this->residual()(residualSlicer)
+      this->dirty()(residualSlicer) = this->dirty()(residualSlicer)
         - this->control()->gain()*absPeakVal*this->psf()(psfSlicer);
       
       return True;

@@ -1,7 +1,7 @@
 /// @file
 /// @brief Class for a deconvolver based on CLEANing with basis functions.
 /// @details This concrete class defines a deconvolver used to estimate an
-/// image from a residual image, psf optionally using a mask and a weights image.
+/// image from a residual image, psf optionally using a weights image.
 /// @ingroup Deconvolver
 ///  
 ///
@@ -37,8 +37,8 @@ ASKAP_LOGGER(decbflogger, ".deconvolution.basisfunction");
 #include <boost/shared_ptr.hpp>
 
 #include <casa/Arrays/Array.h>
-#include <casa/Arrays/ArrayMath.h>
 #include <casa/Arrays/MaskArrMath.h>
+#include <casa/Arrays/ArrayMath.h>
 #include <casa/Arrays/MatrixMath.h>
 #include <scimath/Mathematics/MatrixMathLA.h>
 #include <string>
@@ -55,7 +55,7 @@ namespace askap {
     
     /// @brief Class for a deconvolver based on the BasisFunction Clean
     /// @details This base class defines a deconvolver used to estimate an
-    /// image from a residual image, psf optionally using a mask and a weights image.
+    /// image from a residual image, psf optionally using a weights image.
     /// The template argument T is the type, and FT is the transform
     /// e.g. DeconvolverBasisFunction<Double, DComplex>
     /// @ingroup Deconvolver
@@ -252,9 +252,9 @@ namespace askap {
       casa::setReal(basisFunctionFFT, this->itsBasisFunction->basisFunction());
       scimath::fft2d(basisFunctionFFT, true);
       
-      Array<FT> residualFFT(this->residual().shape().nonDegenerate());
+      Array<FT> residualFFT(this->dirty().shape().nonDegenerate());
       residualFFT.set(FT(0.0));
-      casa::setReal(residualFFT, this->residual().nonDegenerate());
+      casa::setReal(residualFFT, this->dirty().nonDegenerate());
       scimath::fft2d(residualFFT, true);
       
       Array<FT> work(this->model().nonDegenerate().shape());
@@ -448,11 +448,11 @@ namespace askap {
       casa::IPosition minPos;
       casa::IPosition maxPos;
       T minVal(0.0), maxVal(0.0);
-      // Here the weighted mask is used as a weight in the determination
-      // of the maximum i.e. it finds the max in mask . residual. The values
-      // returned are without the mask
+      // Here the weights image is used as a weight in the determination
+      // of the maximum i.e. it finds the max in weight . residual. The values
+      // returned are without the weight
       minMaxMaskedScales(minVal, maxVal, minPos, maxPos, this->itsResidualBasisFunction,
-			 this->itsWeightedMask(0));
+			 this->weight(0));
       casa::IPosition absPeakPos;
       if(abs(minVal)<abs(maxVal)) {
 	absPeakPos=maxPos;
@@ -647,10 +647,10 @@ namespace askap {
     void DeconvolverBasisFunction<T, FT>::minMaxMaskedScales(T& minVal, T& maxVal,
 							     IPosition& minPos, IPosition& maxPos,
 							     const Array<T>& dataArray, 
-							     const Array<T>& maskArray) {
+							     const Array<T>& weightArray) {
       
       const Cube<T> data(dataArray);
-      bool isMasked(maskArray.shape().nonDegenerate().conform(data.xyPlane(0).shape()));
+      bool isWeighted(weightArray.shape().nonDegenerate().conform(data.xyPlane(0).shape()));
       
       uInt nScales=data.shape()(2);
       
@@ -659,10 +659,10 @@ namespace askap {
       Vector<IPosition> sMinPos(nScales);
       Vector<IPosition> sMaxPos(nScales);
       {
-	if(isMasked) {
+	if(isWeighted) {
 	  for (uInt scale=0;scale<nScales;scale++) {
 	    casa::minMaxMasked(sMinVal(scale), sMaxVal(scale), sMinPos(scale), sMaxPos(scale),
-			       Cube<T>(dataArray).xyPlane(scale), maskArray.nonDegenerate());
+			       Cube<T>(dataArray).xyPlane(scale), weightArray.nonDegenerate());
 	  }
 	}
 	else {
@@ -687,7 +687,7 @@ namespace askap {
 	  maxPos=IPosition(3, sMaxPos(scale)(0), sMaxPos(scale)(1), scale);
 	}
       }
-      // If masking (presumably with weights) was done we need to 
+      // If weighting (presumably with weights) was done we need to 
       // look up the original values (without the weights). 
       minVal=data.xyPlane(minPos(2))(minPos);
       maxVal=data.xyPlane(maxPos(2))(maxPos);
