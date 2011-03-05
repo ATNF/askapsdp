@@ -137,6 +137,28 @@ namespace askap {
             }
 
 
+	  void FitResults::logIt(std::string loc)
+	  {
+	    std::vector<casa::Gaussian2D<Double> >::iterator gauss;
+	    for(gauss=this->itsGaussFitSet.begin();gauss<this->itsGaussFitSet.end();gauss++){
+	      std::stringstream outmsg;
+	      outmsg << "Component Flux,X0,Y0,MAJ,MIN,PA = ";
+	      outmsg.precision(8);
+	      outmsg.setf(ios::fixed);
+	      outmsg << gauss->flux() << ", ";
+	      outmsg.precision(3);
+	      outmsg.setf(ios::fixed);
+	      outmsg << gauss->xCenter() << ", " << gauss->yCenter() << ", "
+		     << gauss->majorAxis() << ", " << gauss->minorAxis() << ", " << gauss->PA();
+	      if(loc=="DEBUG") ASKAPLOG_DEBUG_STR(logger, outmsg.str());
+	      else if(loc=="INFO") ASKAPLOG_INFO_STR(logger, outmsg.str());
+	      
+	     
+	    }
+	  }
+
+
+
         }
 
     }
