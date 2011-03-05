@@ -303,6 +303,7 @@ namespace askap
 	  uInt ny(planeIter.planeShape()(1));
 	  IPosition centre(2, nx/2, ny/2);
 	  
+	  
 	  if(firstcycle) {
 	    psfZeroArray=psfLongVec(0).copy();
 	    zeroPSFPeak=max(psfZeroArray);
@@ -327,6 +328,10 @@ namespace askap
 	      doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
 			      boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
 	      ASKAPLOG_DEBUG_STR(logger, "After normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
+	      if(order<itsNumberTaylor) {
+		psfVec(order)=psfLongVec(order);
+		dirtyVec(order)=dirtyLongVec(order);
+	      }
 	    }// Loop over order
 	  }
 	  else {
@@ -340,25 +345,14 @@ namespace askap
 	      }
 	      // Normalise. 
 	      ASKAPLOG_DEBUG_STR(logger, "Before normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-	      doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfVec(order),zeroPSFPeak,dirtyVec(order),
+	      doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
 			      boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
 	      ASKAPLOG_DEBUG_STR(logger, "After normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
+	      dirtyVec(order)=dirtyLongVec(order);
 	    }
 	  }
 	  
 	  ASKAPLOG_DEBUG_STR(logger, "Mask shape = " << maskArray.shape());
-	  
-	  if(firstcycle) {
-	    for(uInt order=0; order < psfVec.nelements(); ++order) {
-	      psfVec(order)=psfLongVec(order);
-	      dirtyVec(order)=dirtyLongVec(order);
-	    }
-	  }
-	  else {
-	    for(uInt order=0; order < psfVec.nelements(); ++order) {
-	      dirtyVec(order)=dirtyLongVec(order);
-	    }
-	  }
 	  
 	  // Now that we have all the required images, we can initialise the deconvolver
 	  for(uInt order=0; order < itsNumberTaylor; ++order) {

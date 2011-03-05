@@ -140,9 +140,7 @@ namespace askap
         casa::IPosition vecShape(1,diag.nelements());
         casa::Vector<float> dirtyVector(dirty.reform(vecShape));
 
-#ifdef ASKAP_DEBUG
-        ASKAPLOG_INFO_STR(logger,"Peak of the dirty vector before normalisation "<<casa::max(dirtyVector));
-#endif // ASKAP_DEBUG        
+        ASKAPLOG_DEBUG_STR(logger,"Peak of the dirty vector before normalisation "<<casa::max(dirtyVector));
         
         casa::Vector<float> maskVector(mask ? mask->reform(vecShape) : casa::Vector<float>());
         for (casa::uInt elem=0; elem<diag.nelements(); ++elem) {
