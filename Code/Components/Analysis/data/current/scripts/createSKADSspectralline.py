@@ -82,7 +82,7 @@ def writeHeaderLine(catfile, database,catfile2="/tmp/nulldata"):
     if(database=='S3SEX'):
         catfile.write("#%9s %10s %20s %10s %10s %10s %10s %10s %10s %10s %5s\n"%("RA","Dec","Flux_1400","Alpha","Beta","Maj_axis","Min_axis","Pos_ang","Redshift","M_HI","Type"))
     elif(database=='S3SAX'):
-        catfile.write("#%9s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n"%("RA","Dec","HI_Flux","Alpha","Beta","Maj_axis","Min_axis","Pos_ang","Redshift","M_HI","F_0", "Fpeak", "Wpeak", "W50", "W20"))
+        catfile.write("#%9s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s %10s\n"%("RA","Dec","HI_Flux","Maj_axis","Min_axis","Pos_ang","Redshift","M_HI","F_0", "Fpeak", "Wpeak", "W50", "W20"))
         catfile2.write("#%20s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s%21s\n"%("galaxy","cluster","galaxyid       ","clusterid     ","box","hubbletype","right_ascension","declination","distance","zapparent  ","himass     ","h2mass     ","hiintflux","cointflux_1","cointflux_2","cointflux_3","cointflux_4","cointflux_5","cointflux_6","cointflux_7","cointflux_8","cointflux_9","cointflux_10","diskpositionangle","diskinclination","gasscaleradius","rmolc  ","hiaxisratio","himajoraxis_msunpc","himajoraxis_max","himajoraxis_50max","himajoraxis_10max","himajoraxis_halfmass","h2axisratio","h2majoraxis_msunpc","h2majoraxis_50max","h2majoraxis_10max","h2majoraxis_halfmass","balancemajoraxis","hilumcenter","hilumpeak ","hiwidthpeak","hiwidth50","hiwidth20","columcenter","columpeak","cowidthpeak","cowidth50","cowidth20","cofillingfactor"))
 
 ############

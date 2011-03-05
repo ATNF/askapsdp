@@ -169,7 +169,7 @@ if __name__ == '__main__':
         catfile2.close()
 ############
 # Make FITS image
-#   use simFITS code in askapsoft
+#   use Analysis/simulation code in askapsoft
 
     print "Writing to image-creating parset file %s"%imageParsetFile
 
