@@ -161,83 +161,83 @@ TableVisGridder& TableVisGridder::operator=(const TableVisGridder &)
 TableVisGridder::~TableVisGridder() {
 	if (itsNumberGridded>0) {
 		if (isPSFGridder()) {
-            ASKAPLOG_INFO_STR(logger, "TableVisGridder PSF gridding statistics");
-		    ASKAPLOG_INFO_STR(logger, "   PSF samples gridded       = "
+            ASKAPLOG_DEBUG_STR(logger, "TableVisGridder PSF gridding statistics");
+		    ASKAPLOG_DEBUG_STR(logger, "   PSF samples gridded       = "
                               << itsSamplesGridded);
-            ASKAPLOG_INFO_STR(logger, "   Visibility vectors flagged (psf)     = "
+            ASKAPLOG_DEBUG_STR(logger, "   Visibility vectors flagged (psf)     = "
                               << itsVectorsFlagged);                  
-		    ASKAPLOG_INFO_STR(logger, "   Total time for PSF gridding   = "
+		    ASKAPLOG_DEBUG_STR(logger, "   Total time for PSF gridding   = "
 				<< itsTimeGridded << " (s)");
-		    ASKAPLOG_INFO_STR(logger, "   PSF gridding time         = " << 1e6
+		    ASKAPLOG_DEBUG_STR(logger, "   PSF gridding time         = " << 1e6
 			 	*itsTimeGridded/itsSamplesGridded << " (us) per sample");
-		    ASKAPLOG_INFO_STR(logger, "   Total time converting for PSF = "
+		    ASKAPLOG_DEBUG_STR(logger, "   Total time converting for PSF = "
 	            << itsTimeCoordinates << " (s)");
-	        ASKAPLOG_INFO_STR(logger, "   Total time building CFs and indices for PSF = "
+	        ASKAPLOG_DEBUG_STR(logger, "   Total time building CFs and indices for PSF = "
 				<< itsTimeConvFunctions << " (s)");				
-		    ASKAPLOG_INFO_STR(logger, "   PSF coord conversion      = "
+		    ASKAPLOG_DEBUG_STR(logger, "   PSF coord conversion      = "
 				  << 1e6 * itsTimeCoordinates/itsSamplesGridded << " (us) per sample");
-		    ASKAPLOG_INFO_STR(logger, "   PSF CFs and indices      = "
+		    ASKAPLOG_DEBUG_STR(logger, "   PSF CFs and indices      = "
 				  << 1e6 * itsTimeConvFunctions/itsSamplesGridded << " (us) per sample");
-		    ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
-		    ASKAPLOG_INFO_STR(logger, "   Points gridded (psf)        = "
+		    ASKAPLOG_DEBUG_STR(logger, "   " << GridKernel::info());
+		    ASKAPLOG_DEBUG_STR(logger, "   Points gridded (psf)        = "
 	              << itsNumberGridded);
-		    ASKAPLOG_INFO_STR(logger, "   Time per point (psf)        = " << 1e9
+		    ASKAPLOG_DEBUG_STR(logger, "   Time per point (psf)        = " << 1e9
 	              *itsTimeGridded/itsNumberGridded << " (ns)");
-		    ASKAPLOG_INFO_STR(logger, "   Performance for PSF         = "
+		    ASKAPLOG_DEBUG_STR(logger, "   Performance for PSF         = "
 				<< 8.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " GFlops");
 		} else {
-            ASKAPLOG_INFO_STR(logger, "TableVisGridder gridding statistics");
-		    ASKAPLOG_INFO_STR(logger, "   Samples gridded       = "
+            ASKAPLOG_DEBUG_STR(logger, "TableVisGridder gridding statistics");
+		    ASKAPLOG_DEBUG_STR(logger, "   Samples gridded       = "
                          << itsSamplesGridded);		
-            ASKAPLOG_INFO_STR(logger, "   Visibility vectors flagged       = "
+            ASKAPLOG_DEBUG_STR(logger, "   Visibility vectors flagged       = "
                           << itsVectorsFlagged);                                           
-		    ASKAPLOG_INFO_STR(logger, "   Total time gridding   = "
+		    ASKAPLOG_DEBUG_STR(logger, "   Total time gridding   = "
 			             << itsTimeGridded << " (s)");
-		    ASKAPLOG_INFO_STR(logger, "   Gridding time         = " << 1e6
+		    ASKAPLOG_DEBUG_STR(logger, "   Gridding time         = " << 1e6
 			  	*itsTimeGridded/itsSamplesGridded << " (us) per sample");
-		    ASKAPLOG_INFO_STR(logger, "   Total time converting = "
+		    ASKAPLOG_DEBUG_STR(logger, "   Total time converting = "
 				<< itsTimeCoordinates << " (s)");
-            ASKAPLOG_INFO_STR(logger, "   Total time building CFs and indices = "
+            ASKAPLOG_DEBUG_STR(logger, "   Total time building CFs and indices = "
 				<< itsTimeConvFunctions << " (s)");				
-		    ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
+		    ASKAPLOG_DEBUG_STR(logger, "   Coord conversion      = "
 				  << 1e6 * itsTimeCoordinates/itsSamplesGridded << " (us) per sample");
-		    ASKAPLOG_INFO_STR(logger, "   CFs and indices      = "
+		    ASKAPLOG_DEBUG_STR(logger, "   CFs and indices      = "
 				  << 1e6 * itsTimeConvFunctions/itsSamplesGridded << " (us) per sample");
-		    ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
-		    ASKAPLOG_INFO_STR(logger, "   Points gridded        = "
+		    ASKAPLOG_DEBUG_STR(logger, "   " << GridKernel::info());
+		    ASKAPLOG_DEBUG_STR(logger, "   Points gridded        = "
 				<< itsNumberGridded);
-		    ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
+		    ASKAPLOG_DEBUG_STR(logger, "   Time per point        = " << 1e9
 				*itsTimeGridded/itsNumberGridded << " (ns)");
-		    ASKAPLOG_INFO_STR(logger, "   Performance           = "
+		    ASKAPLOG_DEBUG_STR(logger, "   Performance           = "
 				<< 8.0 * 1e-9 * itsNumberGridded/itsTimeGridded << " GFlops");
 	    }			
 	}
 	if (itsNumberDegridded>0) {
-		ASKAPLOG_INFO_STR(logger, "TableVisGridder degridding statistics");
-		ASKAPLOG_INFO_STR(logger, "   Samples degridded     = "
+		ASKAPLOG_DEBUG_STR(logger, "TableVisGridder degridding statistics");
+		ASKAPLOG_DEBUG_STR(logger, "   Samples degridded     = "
 				<< itsSamplesDegridded);
-		ASKAPLOG_INFO_STR(logger, "   Total time degridding = "
+		ASKAPLOG_DEBUG_STR(logger, "   Total time degridding = "
 				<< itsTimeDegridded << " (s)");
-		ASKAPLOG_INFO_STR(logger, "   Degridding time       = " << 1e6
+		ASKAPLOG_DEBUG_STR(logger, "   Degridding time       = " << 1e6
 				*itsTimeDegridded/itsSamplesDegridded << " (us) per sample");
-		ASKAPLOG_INFO_STR(logger, "   Total time converting = "
+		ASKAPLOG_DEBUG_STR(logger, "   Total time converting = "
 				<< itsTimeCoordinates << " (s)");
-		ASKAPLOG_INFO_STR(logger, "   Total time building CFs and indices = "
+		ASKAPLOG_DEBUG_STR(logger, "   Total time building CFs and indices = "
 				<< itsTimeConvFunctions << " (s)");				
-		ASKAPLOG_INFO_STR(logger, "   Coord conversion      = "
+		ASKAPLOG_DEBUG_STR(logger, "   Coord conversion      = "
 				  << 1e6 * itsTimeCoordinates/itsSamplesDegridded << " (us) per sample");
-		ASKAPLOG_INFO_STR(logger, "   CFs and indices      = "
+		ASKAPLOG_DEBUG_STR(logger, "   CFs and indices      = "
 				  << 1e6 * itsTimeConvFunctions/itsSamplesDegridded << " (us) per sample");
-		ASKAPLOG_INFO_STR(logger, "   " << GridKernel::info());
-		ASKAPLOG_INFO_STR(logger, "   Points degridded      = "
+		ASKAPLOG_DEBUG_STR(logger, "   " << GridKernel::info());
+		ASKAPLOG_DEBUG_STR(logger, "   Points degridded      = "
 				<< itsNumberDegridded);
-		ASKAPLOG_INFO_STR(logger, "   Time per point        = " << 1e9
+		ASKAPLOG_DEBUG_STR(logger, "   Time per point        = " << 1e9
 				*itsTimeDegridded/itsNumberDegridded << " (ns)");
-		ASKAPLOG_INFO_STR(logger, "   Performance           = "
+		ASKAPLOG_DEBUG_STR(logger, "   Performance           = "
 				<< 8.0 * 1e-9 * itsNumberDegridded/itsTimeDegridded << " GFlops");
 	}
 	if (itsMaxPointingSeparation > 0.) {
-	    ASKAPLOG_INFO_STR(logger, "   Samples rejected due to MaxPointingSeparation = "<<
+	    ASKAPLOG_DEBUG_STR(logger, "   Samples rejected due to MaxPointingSeparation = "<<
 	                               itsRowsRejectedDueToMaxPointingSeparation);
 	}
 	if((itsNumberGridded<1) && (itsNumberDegridded<1)) {
@@ -246,7 +246,7 @@ TableVisGridder::~TableVisGridder() {
           ASKAPLOG_WARN_STR(logger, "It looks like all samples were rejected due to MaxPointingSeparation!");
 	  }
 	} else {
-	  ASKAPLOG_INFO_STR(logger, "   Padding factor    = " << itsPaddingFactor);
+	  ASKAPLOG_DEBUG_STR(logger, "   Padding factor    = " << itsPaddingFactor);
 	  logCFCacheStats();
 	  if(itsName!="") {
 	    save(itsName);
@@ -258,12 +258,12 @@ void TableVisGridder::save(const std::string& name) {
     if (name.find("image:") != 0) {
 	    askap::scimath::ParamsCasaTable iptable(name, false);
 	    askap::scimath::Params ip;
-	    ASKAPLOG_INFO_STR(logger, "Saving " << itsConvFunc.size() << " entries in convolution function");
+	    ASKAPLOG_DEBUG_STR(logger, "Saving " << itsConvFunc.size() << " entries in convolution function");
 	    for (unsigned int i=0; i<itsConvFunc.size(); i++) {
 		   
 			casa::Array<double> realC(itsConvFunc[i].shape());
 			casa::convertArray<double,float>(realC,real(itsConvFunc[i]));
-			//			ASKAPLOG_INFO_STR(logger, "Entry[" <<  i <<  "] has shape " <<  itsConvFunc[i].shape());
+			//			ASKAPLOG_DEBUG_STR(logger, "Entry[" <<  i <<  "] has shape " <<  itsConvFunc[i].shape());
 			std::ostringstream os;
 			os<<"Real.Convolution";
 			os.width(5);
@@ -274,11 +274,11 @@ void TableVisGridder::save(const std::string& name) {
 	    iptable.setParameters(ip);
 	} else {
 	    if (itsNumberGridded == 0) {
-	        ASKAPLOG_INFO_STR(logger, "Ignore tablename="<<name<<" option as no visibilities were gridded");
+	        ASKAPLOG_DEBUG_STR(logger, "Ignore tablename="<<name<<" option as no visibilities were gridded");
 	        return;
             }
             if (isPSFGridder()) {
-                ASKAPLOG_INFO_STR(logger, "Ignore tablename="<<name<<" option for the PSF gridder");
+                ASKAPLOG_DEBUG_STR(logger, "Ignore tablename="<<name<<" option for the PSF gridder");
                  return;
             }
    
@@ -286,7 +286,7 @@ void TableVisGridder::save(const std::string& name) {
 	    // number of planes before oversampling
 	    const unsigned long nPlanes = itsConvFunc.size()/itsOverSample/itsOverSample; 
 	    if (nPlanes > 0) {
-	        ASKAPLOG_INFO_STR(logger, "Saving convolution functions into a cube "<<imgName<<" with " << nPlanes<<
+	        ASKAPLOG_DEBUG_STR(logger, "Saving convolution functions into a cube "<<imgName<<" with " << nPlanes<<
 	                              " planes (first oversampling plane only)");
 	        ASKAPDEBUGASSERT(itsConvFunc.size()>0);
 	        int support = -1;
@@ -326,7 +326,7 @@ void TableVisGridder::save(const std::string& name) {
 	                      imgBuffer(x,y,plane) = casa::real(thisCF(x - xOff,y - yOff));
 	                 }
 	            }
-	            //ASKAPLOG_INFO_STR(logger, "CF plane "<<plane<<" peak of "<<peakVal<<" at "<<peakX<<" , "<<peakY);
+	            //ASKAPLOG_DEBUG_STR(logger, "CF plane "<<plane<<" peak of "<<peakVal<<" at "<<peakX<<" , "<<peakY);
 	        }
 	        SynthesisParamsHelper::saveAsCasaImage(imgName,imgBuffer);
 	    }       
@@ -369,11 +369,11 @@ void TableVisGridder::logCFCacheStats() const
    if (nPlanes > 0) {
        float effectiveSize = (float(memUsed)-float(sizeof(casa::Matrix<casa::Complex>)*nPlanes)) / 
                              (sizeof(casa::Complex)*itsOverSample*itsOverSample*nPlanes);
-       ASKAPLOG_INFO_STR(logger, "Cache of convolution functions take "<<float(memUsed)/1024/1024<<" Mb of memory or "<<std::endl<<
+       ASKAPLOG_DEBUG_STR(logger, "Cache of convolution functions take "<<float(memUsed)/1024/1024<<" Mb of memory or "<<std::endl<<
                                  float(memUsed)/nPlanes/1024/1024<<" Mb of memory per plane (before oversampling)");
        ASKAPDEBUGASSERT(effectiveSize>=0.);
        effectiveSize = sqrt(effectiveSize);
-       ASKAPLOG_INFO_STR(logger, "Effective CF size (in terms of memory usage) is "<<long(effectiveSize)<<", effective support="<<
+       ASKAPLOG_DEBUG_STR(logger, "Effective CF size (in terms of memory usage) is "<<long(effectiveSize)<<", effective support="<<
                                  long((effectiveSize-1)/2));
    }
 }
@@ -459,11 +459,11 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
            // data members related to representative feed and field are used for
            // reverse problem only (from visibilities to image). 
            if (itsUseAllDataForPSF) {
-               ASKAPLOG_INFO_STR(logger, "All data are used to estimate PSF");       
+               ASKAPLOG_DEBUG_STR(logger, "All data are used to estimate PSF");       
            } else {
                itsFeedUsedForPSF = acc.feed1()(i);
                itsPointingUsedForPSF = acc.dishPointing1()(i);    
-               ASKAPLOG_INFO_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<
+               ASKAPLOG_DEBUG_STR(logger, "Using the data for feed "<<itsFeedUsedForPSF<<
                   " and field at "<<printDirection(itsPointingUsedForPSF)<<" to estimate the PSF");
            }
            itsFirstGriddedVis = false;
@@ -526,7 +526,7 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
            /*
            // temporary for debugging
            if (allPolGood && !itsFreqMapper.isMapped(chan)) {
-              ASKAPLOG_INFO_STR(logger, "Channel "<<chan<<" is not mapped to the image cube");       
+              ASKAPLOG_DEBUG_STR(logger, "Channel "<<chan<<" is not mapped to the image cube");       
            }
            */
            
@@ -866,7 +866,7 @@ void TableVisGridder::initRepresentativeFieldAndFeed()
   casa::MVAngle::read(ra,"13:32:22.48");
   casa::MVAngle::read(dec,"-042.16.56.93");
   itsPointingUsedForPSF = casa::MVDirection(ra,dec);
-  ASKAPLOG_INFO_STR(logger, "Field override for PSF, will use "<<printDirection(itsPointingUsedForPSF));
+  ASKAPLOG_DEBUG_STR(logger, "Field override for PSF, will use "<<printDirection(itsPointingUsedForPSF));
   itsFeedUsedForPSF = 0;
   // end of temporary code
   */
@@ -929,7 +929,7 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 			double sumwt=0.0;
 			for (int iz=0; iz<nZ; iz++) {
 			  //			  float sumConvFunc=real(casa::sum(casa::abs(itsConvFunc[iz])));
-			  //			  ASKAPLOG_INFO_STR(logger, "Sum of conv func " << sumConvFunc);
+			  //			  ASKAPLOG_DEBUG_STR(logger, "Sum of conv func " << sumConvFunc);
 				sumwt+=itsSumWeights(iz, pol, chan);
 			}
 			ASKAPDEBUGASSERT(out.shape().nelements() == 4);
@@ -1007,13 +1007,13 @@ void TableVisGridder::customiseForContext(const std::string &context)
 	// RVU : Set up model dependant gridder behaviour
 	//       For MFS, gridders for each Taylor term need different VisWeights.
 	//  parse the 'context' string, and generate the "order" parameter.
-  ASKAPLOG_INFO_STR(logger, "Customising gridder for context " << context);
+  ASKAPLOG_DEBUG_STR(logger, "Customising gridder for context " << context);
 	/*
 	char corder[2];
 	corder[0] = *(context.data()+3); // read the fourth character to get the order of the Taylor coefficient.
 	corder[1] = '\n';
 	int order = atoi(corder);
-	//	ASKAPLOG_INFO_STR(logger, "Customising gridder for context " << context
+	//	ASKAPLOG_DEBUG_STR(logger, "Customising gridder for context " << context
 	//			  << " corder " << corder << " order" << order);
 	if(order <0 || order >9) order = 0;
 	*/
