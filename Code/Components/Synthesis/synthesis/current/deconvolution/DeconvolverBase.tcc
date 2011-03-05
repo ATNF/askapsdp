@@ -108,7 +108,7 @@ namespace askap {
       casa::IPosition minPos;
       casa::IPosition maxPos;
       T minVal, maxVal;
-      ASKAPLOG_INFO_STR(logger, "Validating PSF");
+      ASKAPLOG_INFO_STR(decbaselogger, "Validating PSF");
       casa::minMax(minVal, maxVal, minPos, maxPos, this->psf(0));
       
       uInt nx(this->psf(0).shape()(0));
@@ -116,8 +116,8 @@ namespace askap {
       
       ASKAPCHECK(uInt(maxPos(0)!=(nx/2-1))||uInt(maxPos(1)!=(ny/2-1)), "Peak of PSF(0) is not at centre pixels");
       
-      ASKAPLOG_INFO_STR(logger, "Maximum of Psf = " << maxVal << " at " << maxPos);
-      ASKAPLOG_INFO_STR(logger, "Minimum of Psf = " << minVal << " at " << minPos);
+      ASKAPLOG_INFO_STR(decbaselogger, "Maximum of Psf = " << maxVal << " at " << maxPos);
+      ASKAPLOG_INFO_STR(decbaselogger, "Minimum of Psf = " << minVal << " at " << minPos);
       this->itsPeakPSFVal = maxVal;
       this->itsPeakPSFPos(0)=maxPos(0);
       this->itsPeakPSFPos(1)=maxPos(1);
@@ -273,7 +273,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::initialise()
     {
-      ASKAPLOG_INFO_STR(logger, "Initialising weight images"); 
+      ASKAPLOG_INFO_STR(decbaselogger, "Initialising weight images"); 
 
       // Always check shapes on initialise
       this->validateShapes();
@@ -336,10 +336,10 @@ namespace askap {
 
     template<class T, class FT>
     void DeconvolverBase<T,FT>::auditAllMemory() {
-      ASKAPLOG_DEBUG_STR(logger, "Dirty images  " << auditMemory(itsDirty));
-      ASKAPLOG_DEBUG_STR(logger, "PSFs          " << auditMemory(itsPsf));
-      ASKAPLOG_DEBUG_STR(logger, "Models        " << auditMemory(itsModel));
-      ASKAPLOG_DEBUG_STR(logger, "Weight images " << auditMemory(itsWeight));
+      ASKAPLOG_DEBUG_STR(decbaselogger, "Dirty images  " << auditMemory(itsDirty));
+      ASKAPLOG_DEBUG_STR(decbaselogger, "PSFs          " << auditMemory(itsPsf));
+      ASKAPLOG_DEBUG_STR(decbaselogger, "Models        " << auditMemory(itsModel));
+      ASKAPLOG_DEBUG_STR(decbaselogger, "Weight images " << auditMemory(itsWeight));
     }
   } // namespace synthesis
   

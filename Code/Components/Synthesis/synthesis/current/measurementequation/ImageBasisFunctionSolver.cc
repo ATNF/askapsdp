@@ -229,8 +229,9 @@ namespace askap
 	      ip.add(peakResParam, basisFunctionDec->state()->peakResidual());
 	    }
 	    ip.fix(peakResParam);	    
-	    planeIter.getPlane(ip.value(indit->first)) =
-	      unpadImage(basisFunctionDec->model());
+	    casa::Array<double> aSlice = planeIter.getPlane(ip.value(indit->first)).nonDegenerate();
+	    aSlice=unpadImage(basisFunctionDec->model());
+	    //	    planeIter.getPlane(ip.value(indit->first)) = unpadImage(basisFunctionDec->model());
 	  } // loop over all planes of the image cube
 	} // loop over map of indices
       

@@ -430,6 +430,7 @@ namespace askap
 			      " for image "<<tmIt->first);
 	    casa::Array<double> slice = planeIter.getPlane(ip.value(thisOrderParam)).nonDegenerate();
 	    slice=unpadImage(itsCleaners[imageTag]->model(order));
+
 	  }
 	  // add extra parameters (cross-terms) to the to-be-fixed list
 	  for (uInt order = itsNumberTaylor; order<uInt(tmIt->second); ++order) {
