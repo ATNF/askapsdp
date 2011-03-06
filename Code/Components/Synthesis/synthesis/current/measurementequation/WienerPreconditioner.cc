@@ -117,6 +117,12 @@ namespace askap
       // Make the scratch array into which we will calculate the Wiener filter
       casa::ArrayLattice<casa::Complex> scratch(shape);
       scratch.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
+      if (itsTaperCache) {
+          ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper to the Wiener filter in the image domain");
+          casa::Array<casa::Complex> taperArray(itsTaperCache->taper(shape));
+          casa::ArrayLattice<casa::Complex> taperLattice(taperArray);
+          scratch.copyData(casa::LatticeExpr<casa::Complex>(scratch * taperLattice));
+      }
       LatticeFFT::cfft2d(scratch, True);
        
       // Make the transfer function
@@ -124,13 +130,6 @@ namespace askap
       xfr.copyData(casa::LatticeExpr<casa::Complex>(toComplex(lpsf)));
       LatticeFFT::cfft2d(xfr, True);
        
-      if (itsTaperCache) {
-          ASKAPLOG_INFO_STR(logger, "Applying Gaussian taper to the Wiener filter in the image domain");
-          casa::Array<casa::Complex> taperArray(itsTaperCache->taper(shape));
-          casa::ArrayLattice<casa::Complex> taperLattice(taperArray);
-          scratch.copyData(casa::LatticeExpr<casa::Complex>(scratch * taperLattice));
-      }
-
       // Calculate the Wiener filter
       casa::ArrayLattice<casa::Complex> wienerfilter(shape);
       const float normFactor = itsDoNormalise ? maxPSFBefore : 1.;
