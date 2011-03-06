@@ -219,38 +219,39 @@ namespace askap
 	// temporary
 	ASKAPCHECK(!parset.isDefined("solver.Clean.threshold"), 
 		   "The use of the parameter solver.Clean.threshold is deprecated, use threshold.minorcycle instead");
-	//
 	
 	string algorithm=parset.getString("solver.Clean.algorithm","MultiScale");
-	std::vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
+	casa::Vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 	
 	if (algorithm=="MultiScale") {
-	  solver.reset(new ImageMultiScaleSolver(casa::Vector<float>(scales)));
-	  ASKAPLOG_INFO_STR(logger, "Constructed MultiScale solver" );
-	  solver->setAlgorithm(parset.getString("solver.Clean.algorithm", "MultiScale"));
+	  ASKAPLOG_INFO_STR(logger, "Constructing MultiScale Clean solver" );
+	  solver.reset(new ImageMultiScaleSolver(scales));
+	  solver->setAlgorithm(algorithm);
 	}
 	else if(algorithm=="Basisfunction") {
 	  ASKAPLOG_INFO_STR(logger, "Constructing Basisfunction Clean solver" );
-	  solver.reset(new ImageBasisFunctionSolver());
-	  solver->configure(parset.makeSubset("solver.Basisfunction."));
+	  solver.reset(new ImageBasisFunctionSolver(scales));
 	}
-	else if ((algorithm=="MSMFS")||(algorithm=="MultiScaleMFS")) {
+	else if(algorithm=="Hogbom") {
+	  ASKAPLOG_INFO_STR(logger, "Constructing Hogbom Clean solver");
+	  solver.reset(new ImageMultiScaleSolver());
+	}
+	else if (algorithm=="MSMFS") {
 	  ASKAPCHECK(!parset.isDefined("solver.nterms"), "Specify nterms for each image instead of using solver.nterms");
 	  ASKAPCHECK(!parset.isDefined("solver.Clean.nterms"), "Specify nterms for each image instead of using solver.Clean.nterms");
 	  solver.reset(new ImageMSMFSolver(casa::Vector<float>(scales)));
 	  ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver (CASA version)" );
-	  solver->setAlgorithm(algorithm);
 	}
-	else if ((algorithm=="BFMFS")||(algorithm=="BasisfunctionMFS")) {
+	else if (algorithm=="BFMFS") {
 	  ASKAPCHECK(!parset.isDefined("solver.nterms"), "Specify nterms for each image instead of using solver.nterms");
 	  ASKAPCHECK(!parset.isDefined("solver.Clean.nterms"), "Specify nterms for each image instead of using solver.Clean.nterms");
 	  solver.reset(new ImageAMSMFSolver(casa::Vector<float>(scales)));
 	  ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver (ASKAP version)" );
-	  solver->setAlgorithm(algorithm);
 	}
 	else {
 	  ASKAPTHROW(AskapError, "Unknown Clean algorithm " << algorithm);
 	}
+	solver->setAlgorithm(algorithm);
 	solver->configure(parset.makeSubset("solver.Clean."));
 	solver->setGain(parset.getFloat("solver.Clean.gain", 0.7));
 	solver->setNiter(parset.getInt32("solver.Clean.niter", 100));

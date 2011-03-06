@@ -69,7 +69,15 @@ namespace askap {
       itsSolutionType("MAXBASE"), itsDecoupleTerms(true)
     {
       ASKAPLOG_DEBUG_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
-      this->itsPsfLongVec=psfLong;
+
+      ASKAPCHECK(psfLong.nelements()==(2*this->itsNumberTerms-1), "Long PSF vector has incorrect length " << psfLong.nelements());
+      this->itsPsfLongVec.resize(2*this->itsNumberTerms-1);
+
+      for (uInt term=0;term<(2*this->itsNumberTerms-1);term++) {
+	ASKAPCHECK(psfLong(term).nonDegenerate().shape().nelements()==2, "PSF(" << term << ") has too many dimensions " << psfLong(term).shape());
+	this->itsPsfLongVec(term)=psfLong(term).nonDegenerate();
+      }
+
     };
     
     template<class T, class FT>
@@ -78,7 +86,7 @@ namespace askap {
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
       itsSolutionType("MAXBASE"), itsDecoupleTerms(true)
     {
-      ASKAPLOG_DEBUG_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "There is only one term to be solved");
       this->itsPsfLongVec.resize(1);
       this->itsPsfLongVec(0)=psf;
     };
@@ -230,7 +238,7 @@ namespace askap {
        
       uInt nBases(this->itsBasisFunction->numberBases());
       
-     itsResidualBasis.resize(nBases);
+      itsResidualBasis.resize(nBases);
       for (uInt base=0;base<nBases;base++) {
 	itsResidualBasis(base).resize(this->itsNumberTerms);
       }
@@ -277,8 +285,7 @@ namespace askap {
       if(this->control()->psfWidth()>0) {
 	uInt psfWidth=this->control()->psfWidth();
 	if((psfWidth<this->model().shape()(0))&&(psfWidth<this->model().shape()(1))) {
-	  //	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth
-	  //			    << " pixels");
+	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth << " pixels");
 	  subPsfShape(0)=psfWidth;
 	  subPsfShape(1)=psfWidth;
 	}
@@ -340,10 +347,13 @@ namespace askap {
       this->itsPeakPSFPos(1)=maxPos(1);
 	
       IPosition subPsfPeak(2, this->itsPeakPSFPos(0), this->itsPeakPSFPos(1));
-      ASKAPLOG_DEBUG_STR(decmtbflogger, "Peak of PSF subsection at " << subPsfPeak);
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Peak of PSF subsection at  " << subPsfPeak);
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "Shape of PSF subsection is " << subPsfShape);
 
       // Calculate XFR for the subsection only. We need all PSF's up to
       // 2*nTerms-1
+      ASKAPCHECK(this->itsPsfLongVec.nelements()==(2*this->itsNumberTerms-1), "PSF long vector has wrong length " << this->itsPsfLongVec.nelements());
+
       Vector<Array<FT> > subXFRVec(2*this->itsNumberTerms-1);
       for (uInt term1=0;term1<(2*this->itsNumberTerms-1);term1++) {
 	subXFRVec(term1).resize(subPsfShape);
@@ -351,9 +361,9 @@ namespace askap {
 	casa::setReal(subXFRVec(term1), this->itsPsfLongVec(term1).nonDegenerate()(subPsfSlicer));
 	scimath::fft2d(subXFRVec(term1), true);
       }
-      
+
+      ASKAPLOG_INFO_STR(decmtbflogger, "About to make cross terms");
       itsPSFCrossTerms.resize(nBases,nBases);
-      
       for (uInt base=0;base<nBases;base++) {
 	for (uInt base1=0;base1<nBases;base1++) {
 	  itsPSFCrossTerms(base,base1).resize(this->itsNumberTerms, this->itsNumberTerms);

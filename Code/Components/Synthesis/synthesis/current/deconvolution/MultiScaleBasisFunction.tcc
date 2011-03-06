@@ -31,7 +31,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(decmsbaselogger, ".deconvolution.multiscalebasis");
+ASKAP_LOGGER(decmsbaselogger, ".deconvolution.multiscalebasisfunction");
 
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>

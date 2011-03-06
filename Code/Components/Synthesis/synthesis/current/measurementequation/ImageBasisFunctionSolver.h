@@ -46,6 +46,9 @@ namespace askap {
                 /// @brief default constructor
                 ImageBasisFunctionSolver();
 
+                /// @brief default constructor
+     	        ImageBasisFunctionSolver(casa::Vector<float>& scales);
+
                 /// @brief Initialize this solver
                 virtual void init();
  

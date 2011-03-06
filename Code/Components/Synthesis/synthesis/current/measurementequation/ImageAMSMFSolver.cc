@@ -79,6 +79,8 @@ namespace askap
       itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
       // Now set up monitor
       itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
+
+      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(itsScales));
     }
     
     ImageAMSMFSolver::ImageAMSMFSolver(const casa::Vector<float>& scales) : 
@@ -89,6 +91,8 @@ namespace askap
       itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
       // Now set up monitor
       itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
+
+      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
     }
     
     Solver::ShPtr ImageAMSMFSolver::clone() const
@@ -371,8 +375,10 @@ namespace askap
 	      if(order==0) {
 		saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "psf.image",
 				       unpadImage(psfVec(order)), planeIter.position());
-		saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "mask", unpadImage(maskArray),
-				       planeIter.position());
+		if(maskArray.nelements()) {
+		  saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "mask", unpadImage(maskArray),
+					 planeIter.position());
+		}
 	      }
 	    }
 	    
@@ -387,11 +393,13 @@ namespace askap
 	      
 	      itsCleaners[imageTag]->setControl(itsControl);
 	      
+	      ASKAPCHECK(itsBasisFunction, "Basis function not initialised");
+
 	      itsBasisFunction->initialise(dirtyVec(0).shape());
 	      itsCleaners[imageTag]->setBasisFunction(itsBasisFunction);
 	      itsCleaners[imageTag]->setSolutionType(itsSolutionType);
 	      itsCleaners[imageTag]->setDecouple(itsDecoupleTerms);
-	      if(maskArray.shape().nelements()) {
+	      if(maskArray.nelements()) {
 		itsCleaners[imageTag]->setWeight(maskArray);
 	      }
 	    }
@@ -481,35 +489,26 @@ namespace askap
     
     void ImageAMSMFSolver::configure(const LOFAR::ParameterSet &parset) {
       ImageSolver::configure(parset);
-      if(parset.getString("algorithm")=="AMSMFS") {
-	ASKAPASSERT(this->itsMonitor);
-	this->itsMonitor->configure(parset);
-	ASKAPASSERT(this->itsControl);
-	this->itsControl->configure(parset);
-	
-	// Make the basis function
-	std::vector<float> defaultScales(3);
-	defaultScales[0]=0.0;
-	defaultScales[1]=10.0;
-	defaultScales[2]=30.0;
-	std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
-	itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
-	
-	String solutionType=parset.getString("solutiontype", "MAXBASE");
-	if(solutionType=="R5") {
-	}
-	else if(solutionType=="MAXTERM0") {
-	}
-	else {
-	  solutionType="MAXBASE";
-	}
-	ASKAPLOG_INFO_STR(decmtbflogger, "Solution type = " << solutionType);
-	this->itsSolutionType=solutionType;
-	
-        this->itsDecoupleTerms=parset.getBool("decouple", "true");
-	if(itsDecoupleTerms) {
-	  ASKAPLOG_INFO_STR(decmtbflogger, "Decoupling in term using the inverse of the coupling matrix");
-	}
+
+      ASKAPASSERT(this->itsMonitor);
+      this->itsMonitor->configure(parset);
+      ASKAPASSERT(this->itsControl);
+      this->itsControl->configure(parset);
+      
+      String solutionType=parset.getString("solutiontype", "MAXBASE");
+      if(solutionType=="R5") {
+      }
+      else if(solutionType=="MAXTERM0") {
+      }
+      else {
+	solutionType="MAXBASE";
+      }
+      ASKAPLOG_INFO_STR(decmtbflogger, "Solution type = " << solutionType);
+      this->itsSolutionType=solutionType;
+      
+      this->itsDecoupleTerms=parset.getBool("decouple", "true");
+      if(itsDecoupleTerms) {
+	ASKAPLOG_INFO_STR(decmtbflogger, "Decoupling in term using the inverse of the coupling matrix");
       }
     }
   }

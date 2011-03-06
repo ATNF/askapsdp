@@ -75,6 +75,23 @@ namespace askap
       itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
       // Now set up monitor
       itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
+
+      // Make the basis function
+      std::vector<float> defaultScales(3);
+      defaultScales[0]=0.0;
+      defaultScales[1]=10.0;
+      defaultScales[2]=30.0;
+      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(defaultScales));
+    }
+    
+    ImageBasisFunctionSolver::ImageBasisFunctionSolver(casa::Vector<float>& scales)
+    {
+      // Now set up controller
+      itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
+      // Now set up monitor
+      itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
+
+      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
     }
     
     void ImageBasisFunctionSolver::setBasisFunction(BasisFunction<Float>::ShPtr bf) {
@@ -93,15 +110,6 @@ namespace askap
       this->itsMonitor->configure(parset);
       ASKAPASSERT(this->itsControl);
       this->itsControl->configure(parset);
-
-      // Make the basis function
-      std::vector<float> defaultScales(3);
-      defaultScales[0]=0.0;
-      defaultScales[1]=10.0;
-      defaultScales[2]=30.0;
-      std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
-      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
-      itsUseCrossTerms=parset.getBool("usecrossterms", true);
     }
     
     void ImageBasisFunctionSolver::init()
