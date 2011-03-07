@@ -182,7 +182,7 @@ public:
       /// @param[in] nterms number of terms in the decomposition
       static double sphFunc(const double c, const double alpha, const double eta, const casa::uInt nterms)
       {
-        if (abs(double(eta))>=1) {
+        if (fabs(double(eta))>=1) {
             return 0.;
         }
         casa::Matrix<double> hlp(nterms,nterms,0.);

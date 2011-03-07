@@ -137,8 +137,8 @@ void CalibrationMEBase::correct(IDataAccessor &chunk) const
             }
        }
        invertSymPosDef(reciprocal, det, effect);
-       if (abs(det)<1e-5) {
-           ASKAPTHROW(AskapError, "Unable to apply gains, determinate too close to 0. D="<<abs(det));           
+       if (casa::abs(det)<1e-5) {
+           ASKAPTHROW(AskapError, "Unable to apply gains, determinate too close to 0. D="<<casa::abs(det));           
        }
        casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);
        
