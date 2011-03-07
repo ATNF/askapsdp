@@ -114,7 +114,7 @@ namespace askap {
       uInt nx(this->psf(0).shape()(0));
       uInt ny(this->psf(0).shape()(1));
       
-      ASKAPCHECK(uInt(maxPos(0)!=(nx/2-1))||uInt(maxPos(1)!=(ny/2-1)), "Peak of PSF(0) is not at centre pixels");
+      ASKAPCHECK((uInt(maxPos(0))!=(nx/2-1))||(uInt(maxPos(1))!=(ny/2-1)), "Peak of PSF(0) is not at centre pixels");
       
       ASKAPLOG_INFO_STR(decbaselogger, "Maximum of PSF(0) = " << maxVal << " at " << maxPos);
       ASKAPLOG_INFO_STR(decbaselogger, "Minimum of PSF(0) = " << minVal << " at " << minPos);

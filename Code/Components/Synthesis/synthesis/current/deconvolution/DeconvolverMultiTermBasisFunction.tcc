@@ -284,7 +284,7 @@ namespace askap {
       // Only use the specified psfWidth if it makes sense
       if(this->control()->psfWidth()>0) {
 	uInt psfWidth=this->control()->psfWidth();
-	if((psfWidth<this->model().shape()(0))&&(psfWidth<this->model().shape()(1))) {
+	if((psfWidth<uInt(this->model().shape()(0)))&&(psfWidth<uInt(this->model().shape()(1)))) {
 	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth << " pixels");
 	  subPsfShape(0)=psfWidth;
 	  subPsfShape(1)=psfWidth;
