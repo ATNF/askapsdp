@@ -172,8 +172,8 @@ namespace askap
 	        std::vector<std::string> names = gainModel.names();
 	        for (std::vector<std::string>::const_iterator nameIt = names.begin();
 	             nameIt != names.end(); ++nameIt) {
-	                casa::Complex gain = gainModel.complexValue(*nameIt);
-	                if (abs(gain)<1e-3) {
+	                const casa::Complex gain = gainModel.complexValue(*nameIt);
+	                if (casa::abs(gain)<1e-3) {
 	                    ASKAPLOG_INFO_STR(logger, "Very small gain has been encountered "<<*nameIt
 	                           <<"="<<gain);
 	                    continue;       

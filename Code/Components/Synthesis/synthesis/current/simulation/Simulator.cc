@@ -1128,18 +1128,18 @@ void Simulator::blockage(double &fraction1, double &fraction2,
                          const double diam2)
 {
     double separation = sqrt(square(uvw(0)) + square(uvw(1)));
-    double rmin = 0.5 * min(abs(diam1), abs(diam2));
-    double rmax = 0.5 * max(abs(diam1), abs(diam2));
+    double rmin = 0.5 * min(fabs(diam1), fabs(diam2));
+    double rmax = 0.5 * max(fabs(diam1), fabs(diam2));
 
     if (separation >= (rmin + rmax)) {
         fraction1 = 0.0;
         fraction2 = 0.0;
     } else if ((separation + rmin) <= rmax) {
-        fraction1 = min(1.0, square(abs(diam2) / abs(diam1)));
-        fraction2 = min(1.0, square(abs(diam1) / abs(diam2)));
+        fraction1 = min(1.0, square(fabs(diam2) / fabs(diam1)));
+        fraction2 = min(1.0, square(fabs(diam1) / fabs(diam2)));
     } else {
-        double c = separation / (0.5 * abs(diam1));
-        double s = abs(diam2) / abs(diam1);
+        double c = separation / (0.5 * fabs(diam1));
+        double s = fabs(diam2) / fabs(diam1);
         double sinb = sqrt(2.0 * (square(c * s) + square(c) + square(s)) - pow(c, 4.0) - pow(s, 4.0) - 1.0)
                       / (2.0 * c);
         double sina = sinb / s;

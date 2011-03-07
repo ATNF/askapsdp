@@ -322,7 +322,7 @@ void CalibratorParallel::writeModel(const std::string &postfix)
            it != parlist.end(); ++it) {
            const casa::Complex gain = itsModel->complexValue(*it);
            const casa::Complex diff = gain - par.complexValue(*it);
-           os2<<*it<<" "<<real(diff)<<" "<<imag(diff)<<" "<<abs(diff)<<" "<<arg(diff)/M_PI*180.<<std::endl;
+           os2<<*it<<" "<<real(diff)<<" "<<imag(diff)<<" "<<casa::abs(diff)<<" "<<arg(diff)/M_PI*180.<<std::endl;
       }
       */
   }
