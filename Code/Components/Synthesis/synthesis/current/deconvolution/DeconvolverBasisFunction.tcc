@@ -109,7 +109,7 @@ namespace askap {
       }
       itsUseCrossTerms=parset.getBool("usecrossterms", true);
       if(itsUseCrossTerms) {
-	ASKAPLOG_INFO_STR(decbflogger, "Will use crossterms in subtraction");
+	ASKAPLOG_DEBUG_STR(decbflogger, "Will use crossterms in subtraction");
       }
       itsDecouplingAlgorithm=parset.getString("decouplingalgorithm", "diagonal");
     }
@@ -144,15 +144,19 @@ namespace askap {
       ASKAPLOG_INFO_STR(decbflogger, "Initialising Basis Function deconvolver");
 
       Int psfWidth=this->model().shape()(0);
+      IPosition subPsfShape(2,0,0);
       
       // Only use the specified psfWidth if it makes sense
       if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
 	psfWidth=this->control()->psfWidth();
 	ASKAPLOG_INFO_STR(decbflogger, "Using subregion of Psf : size " << psfWidth
 			  << " pixels");
+	subPsfShape=IPosition(2, psfWidth, psfWidth);
       }
-      IPosition subPsfShape(2, psfWidth, psfWidth);
-      
+      else {
+	subPsfShape=IPosition(2, this->model().shape()(0), this->model().shape()(1));
+      }
+
       this->itsBasisFunction->initialise(this->model().shape());
       initialiseResidual();
       this->itsBasisFunction->initialise(subPsfShape);
@@ -183,7 +187,7 @@ namespace askap {
 	this->itsResidualBasisFunction=invRes.copy();
 
 	if(itsUseCrossTerms) {
-	  ASKAPLOG_INFO_STR(decbflogger, "Overriding usecrossterms since it makes no sense in this case");
+	  ASKAPLOG_DEBUG_STR(decbflogger, "Overriding usecrossterms since it makes no sense in this case");
 	  this->itsUseCrossTerms=false;
 	}
 	//	SynthesisParamsHelper::saveAsCasaImage("BasisFunctionAfterResidualsDecoupling.tab",
@@ -193,27 +197,27 @@ namespace askap {
       }
       else if(this->itsDecouplingAlgorithm=="inverse") {
 	// Correcting coupling at subtraction phase with inverse coupling matrix
-	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse coupling matrix");
+	ASKAPLOG_DEBUG_STR(decbflogger, "Correcting coupling at subtraction phase with inverse coupling matrix");
       }
       else if(this->itsDecouplingAlgorithm=="sqrtdiagonal") {
 	// Correcting coupling at subtraction phase with inverse diag(coupling matrix)
-	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse sqrt(diag(coupling matrix))");
+	ASKAPLOG_DEBUG_STR(decbflogger, "Correcting coupling at subtraction phase with inverse sqrt(diag(coupling matrix))");
       }
       else if(this->itsDecouplingAlgorithm=="diagonal") {
 	// Correcting coupling at subtraction phase with inverse diag(coupling matrix)
-	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse diag(coupling matrix)");
+	ASKAPLOG_DEBUG_STR(decbflogger, "Correcting coupling at subtraction phase with inverse diag(coupling matrix)");
       }
       else if(this->itsDecouplingAlgorithm=="psfscales") {
 	// Correcting coupling at subtraction phase with inverse psfscales
-	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse psfscales");
+	ASKAPLOG_DEBUG_STR(decbflogger, "Correcting coupling at subtraction phase with inverse psfscales");
       }
       else if(this->itsDecouplingAlgorithm=="sqrtpsfscales") {
 	// Correcting coupling at subtraction phase with inverse psfscales
-	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse sqrt(psfscales)");
+	ASKAPLOG_DEBUG_STR(decbflogger, "Correcting coupling at subtraction phase with inverse sqrt(psfscales)");
       }
       else {
 	// Correcting coupling at subtraction phase with inverse diag(coupling matrix)
-	ASKAPLOG_INFO_STR(decbflogger, "Correcting coupling at subtraction phase with inverse diag(coupling matrix)");
+	ASKAPLOG_DEBUG_STR(decbflogger, "Correcting coupling at subtraction phase with inverse diag(coupling matrix)");
       }
       
       uInt nScales(this->itsBasisFunction->numberBases());
@@ -235,9 +239,9 @@ namespace askap {
       
       this->state()->resetInitialObjectiveFunction();
       
-      ASKAPLOG_INFO_STR(decbflogger, "Calculating cache of images");
+      ASKAPLOG_DEBUG_STR(decbflogger, "Calculating cache of images");
       
-      ASKAPLOG_INFO_STR(decbflogger, "Shape of basis functions "
+      ASKAPLOG_DEBUG_STR(decbflogger, "Shape of basis functions "
 			<< this->itsBasisFunction->basisFunction().shape());
       
       IPosition stackShape(this->itsBasisFunction->basisFunction().shape());
@@ -256,7 +260,7 @@ namespace askap {
       scimath::fft2d(residualFFT, true);
       
       Array<FT> work(this->model().nonDegenerate().shape());
-      ASKAPLOG_INFO_STR(decbflogger,
+      ASKAPLOG_DEBUG_STR(decbflogger,
 			"Calculating convolutions of residual image with basis functions");
       
       for (uInt term=0;term<this->itsBasisFunction->numberBases();term++) {
@@ -266,7 +270,7 @@ namespace askap {
         scimath::fft2d(work, false);
 	
         // basis function * residual
-        ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term
+        ASKAPLOG_DEBUG_STR(decbflogger, "Basis function(" << term
 			  << ") * Residual: max = " << max(real(work))
 			  << " min = " << min(real(work)));
 	
@@ -285,7 +289,7 @@ namespace askap {
       // Only use the specified psfWidth if it makes sense
       if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
 	psfWidth=this->control()->psfWidth();
-	ASKAPLOG_INFO_STR(decbflogger, "Using subregion of Psf : size " << psfWidth
+	ASKAPLOG_DEBUG_STR(decbflogger, "Using subregion of Psf : size " << psfWidth
 			  << " pixels");
       }
       
@@ -293,7 +297,7 @@ namespace askap {
       
       Array<FT> work(subPsfShape);
       
-      ASKAPLOG_INFO_STR(decbflogger, "Shape of basis functions "
+      ASKAPLOG_DEBUG_STR(decbflogger, "Shape of basis functions "
 			<< this->itsBasisFunction->basisFunction().shape());
       
       IPosition stackShape(this->itsBasisFunction->basisFunction().shape());
@@ -319,13 +323,27 @@ namespace askap {
       IPosition subPsfStride(2,1,1);
       
       Slicer subPsfSlicer(subPsfStart, subPsfEnd, subPsfStride, Slicer::endIsLast);
+      casa::IPosition minPos;
+      casa::IPosition maxPos;
+      T minVal, maxVal;
+      casa::minMax(minVal, maxVal, minPos, maxPos, this->psf(0).nonDegenerate()(subPsfSlicer));
+      ASKAPLOG_DEBUG_STR(decbflogger, "Maximum of PSF(0) = " << maxVal << " at " << maxPos);
+      ASKAPLOG_DEBUG_STR(decbflogger, "Minimum of PSF(0) = " << minVal << " at " << minPos);
+      this->itsPeakPSFVal = maxVal;
+      this->itsPeakPSFPos(0)=maxPos(0);
+      this->itsPeakPSFPos(1)=maxPos(1);
+	
+      IPosition subPsfPeak(2, this->itsPeakPSFPos(0), this->itsPeakPSFPos(1));
+      ASKAPLOG_DEBUG_STR(decbflogger, "Peak of PSF subsection at  " << subPsfPeak);
+      ASKAPLOG_DEBUG_STR(decbflogger, "Shape of PSF subsection is " << subPsfShape);
+
       
       casa::setReal(subXFR, this->psf().nonDegenerate()(subPsfSlicer));
       scimath::fft2d(subXFR, true);
       
       // Now we have all the ingredients to calculate the convolutions
       // of basis function with psf's, etc.
-      ASKAPLOG_INFO_STR(decbflogger, "Calculating convolutions of Psfs with basis functions");
+      ASKAPLOG_DEBUG_STR(decbflogger, "Calculating convolutions of Psfs with basis functions");
       itsPSFScales.resize(this->itsBasisFunction->numberBases());
       for (uInt term=0;term<this->itsBasisFunction->numberBases();term++) {
 	// basis function * psf
@@ -334,16 +352,16 @@ namespace askap {
 	scimath::fft2d(work, false);
 	Cube<T>(this->itsPSFBasisFunction).xyPlane(term)=real(work);
 	
-	ASKAPLOG_INFO_STR(decbflogger, "Basis function(" << term << ") * PSF: max = " << max(real(work)) << " min = " << min(real(work)));
+	ASKAPLOG_DEBUG_STR(decbflogger, "Basis function(" << term << ") * PSF: max = " << max(real(work)) << " min = " << min(real(work)));
 	
 	itsPSFScales(term)=max(real(work));
       }
 
-      ASKAPLOG_INFO_STR(decbflogger, "Calculating double convolutions of PSF with basis functions");
+      ASKAPLOG_DEBUG_STR(decbflogger, "Calculating double convolutions of PSF with basis functions");
       IPosition crossTermsShape(4, psfWidth, psfWidth,
 				this->itsBasisFunction->numberBases(),
 				this->itsBasisFunction->numberBases());
-      ASKAPLOG_INFO_STR(decbflogger, "Shape of cross terms " << crossTermsShape);
+      ASKAPLOG_DEBUG_STR(decbflogger, "Shape of cross terms " << crossTermsShape);
       itsPSFCrossTerms.resize(crossTermsShape);
       IPosition crossTermsStart(4,0);
       IPosition crossTermsEnd(crossTermsShape-1);
@@ -383,11 +401,11 @@ namespace askap {
 	}
 	this->itsCouplingMatrix(term, term) += Double(this->control()->lambda());
       }
-      ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix " << this->itsCouplingMatrix);
+      ASKAPLOG_DEBUG_STR(decbflogger, "Coupling matrix " << this->itsCouplingMatrix);
       this->itsInverseCouplingMatrix.resize(this->itsCouplingMatrix.shape());
       invertSymPosDef(this->itsInverseCouplingMatrix, this->itsDetCouplingMatrix, this->itsCouplingMatrix);
-      ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix determinant " << this->itsDetCouplingMatrix);
-      ASKAPLOG_INFO_STR(decbflogger, "Inverse coupling matrix " << this->itsInverseCouplingMatrix);
+      ASKAPLOG_DEBUG_STR(decbflogger, "Coupling matrix determinant " << this->itsDetCouplingMatrix);
+      ASKAPLOG_DEBUG_STR(decbflogger, "Inverse coupling matrix " << this->itsInverseCouplingMatrix);
       // Checked that the inverse really is an inverse.
       Matrix<T> identity(this->itsCouplingMatrix.shape());
       identity.set(T(0.0));
@@ -398,7 +416,7 @@ namespace askap {
 	  identity(row,col)=sum(this->itsCouplingMatrix.row(row)*this->itsInverseCouplingMatrix.column(col));
 	}
       }
-      ASKAPLOG_INFO_STR(decbflogger, "Coupling matrix * inverse " << identity);
+      ASKAPLOG_DEBUG_STR(decbflogger, "Coupling matrix * inverse " << identity);
       
       
       // Now look at coupling between adjacent scales: this works well if the
@@ -406,7 +424,7 @@ namespace askap {
       for (uInt term=0;term<this->itsBasisFunction->numberBases()-1;term++) {
 	double det=this->itsCouplingMatrix(term,term)*this->itsCouplingMatrix(term+1,term+1)-
 	  this->itsCouplingMatrix(term,term+1)*this->itsCouplingMatrix(term+1,term);
-	ASKAPLOG_INFO_STR(decbflogger, "Independence between scales " << term << " and "
+	ASKAPLOG_DEBUG_STR(decbflogger, "Independence between scales " << term << " and "
 			  << term+1 << " = " << det);
       }
     }
@@ -558,6 +576,7 @@ namespace askap {
       // Wrangle the start, end, and shape into consistent form. It took me 
       // quite a while to figure this out (slow brain day) so it may be
       // that there are some edge cases for which it fails.
+
       for (uInt dim=0;dim<2;dim++) {
 	residualStart(dim)=max(0, Int(absPeakPos(dim)-psfShape(dim)/2));
 	residualEnd(dim)=min(Int(absPeakPos(dim)+psfShape(dim)/2-1), Int(residualShape(dim)-1));
@@ -574,6 +593,8 @@ namespace askap {
 	modelEnd(dim)=residualEnd(dim);
       }
 
+      casa::Slicer modelSlicer(modelStart, modelEnd, modelStride, Slicer::endIsLast);
+
       // Add to model
       // Note that the model is only two dimensional. We could make it three dimensional
       // and keep the model layers separate
@@ -581,8 +602,6 @@ namespace askap {
       casa::uInt nterms(this->itsResidualBasisFunction.shape()(2));
       for (uInt term=0;term<nterms;term++) {
 	if(abs(peakValues(term))>0.0) {
-	  modelStart(2)=modelEnd(2)=0;
-	  casa::Slicer modelSlicer(modelStart, modelEnd, modelStride, Slicer::endIsLast);
 	  psfStart(2)=psfEnd(2)=term;
 	  casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
 	  this->model()(modelSlicer).nonDegenerate() = this->model()(modelSlicer).nonDegenerate()

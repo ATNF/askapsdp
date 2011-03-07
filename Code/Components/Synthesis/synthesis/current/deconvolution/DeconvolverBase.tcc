@@ -63,8 +63,6 @@ namespace askap {
     template<class T, class FT>
     DeconvolverBase<T,FT>::DeconvolverBase(Array<T>& dirty, Array<T>& psf)
     {
-      itsNumberTerms=1;
-
       Vector<Array<T> > dirtyVec(1);
       dirtyVec(0)=dirty.nonDegenerate();
       Vector<Array<T> > psfVec(1);
