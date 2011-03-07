@@ -44,50 +44,56 @@ class DeconvolverBaseTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(DeconvolverBaseTest);
   CPPUNIT_TEST(testCreate);
-  CPPUNIT_TEST(testCreatePlugins);
   CPPUNIT_TEST_EXCEPTION(testWrongShape, casa::ArrayShapeError);
-  CPPUNIT_TEST_EXCEPTION(testMoreDim, AskapError);
   CPPUNIT_TEST_SUITE_END();
 public:
    
-  void testCreate() {
-    Array<Float> dirty(IPosition(2,100,100));
-    Array<Float> psf(IPosition(2,100,100));
-    itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
+  void setUp() {
+    IPosition dimensions(4,100,100,1,1);
+    itsDirty.reset(new Array<Float>(dimensions));
+    itsDirty->set(0.0);
+    itsPsf.reset(new Array<Float>(dimensions));
+    itsPsf->set(0.0);
+    (*itsPsf)(IPosition(4,50,50,0,0))=1.0;
+    itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(*itsDirty, *itsPsf));
     CPPUNIT_ASSERT(itsDB);
     CPPUNIT_ASSERT(itsDB->control());
     CPPUNIT_ASSERT(itsDB->monitor());
     CPPUNIT_ASSERT(itsDB->state());
-    Array<Float> newDirty(IPosition(2,100,100));
-    itsDB->updateDirty(newDirty);
-  }
-  void testCreatePlugins() {
-    Array<Float> dirty(IPosition(2,100,100));
-    Array<Float> psf(IPosition(2,100,100));
-    itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
-    CPPUNIT_ASSERT(itsDB);
     boost::shared_ptr<DeconvolverControl<Float> > DC(new DeconvolverControl<Float>::DeconvolverControl());
     CPPUNIT_ASSERT(itsDB->setControl(DC));
+    boost::shared_ptr<DeconvolverMonitor<Float> > DM(new DeconvolverMonitor<Float>::DeconvolverMonitor());
+    CPPUNIT_ASSERT(itsDB->setMonitor(DM));
+    boost::shared_ptr<DeconvolverState<Float> > DS(new DeconvolverState<Float>::DeconvolverState());
+    CPPUNIT_ASSERT(itsDB->setControl(DC));
+    itsWeight.reset(new Array<Float>(dimensions));
+    itsWeight->set(10.0);
+    itsDB->setWeight(*itsWeight);
+  }
+
+  void tearDown() {
+      // Ensure arrays are destroyed last
+      itsDB.reset();
+      itsWeight.reset();
+      itsPsf.reset();
+      itsDirty.reset();
+  }
+
+  void testCreate() {
+    Array<Float> newDirty(IPosition(4,100,100,1,1));
+    itsDB->updateDirty(newDirty); 
   }
   void testWrongShape() {
-    Array<Float> dirty(IPosition(2,100,100));
-    Array<Float> psf(IPosition(2,100,100));
-    itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
-    CPPUNIT_ASSERT(itsDB);
-    Array<Float> newDirty(IPosition(2,200,200));
+    Array<Float> newDirty(IPosition(4,200,200,1,1));
     itsDB->updateDirty(newDirty);
   }
-   
-  void testMoreDim() {
-    Array<Float> dirty(IPosition(4,100,100,0,0));
-    Array<Float> psf(IPosition(4,100,100,0,0));
-    itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(dirty, psf));
-    CPPUNIT_ASSERT(itsDB);
-    Array<Float> newDirty(IPosition(2,200,200));
-    itsDB->updateDirty(newDirty);
-  }
-   
 private:
+
+private:
+  boost::shared_ptr< Array<Float> > itsDirty;
+  boost::shared_ptr< Array<Float> > itsPsf;
+  boost::shared_ptr< Array<Float> > itsWeight;
+
    /// @brief DeconvolutionBase class
   boost::shared_ptr<DeconvolverBase<Float, Complex> > itsDB;
 };

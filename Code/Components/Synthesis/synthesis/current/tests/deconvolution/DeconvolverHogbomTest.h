@@ -44,11 +44,11 @@ class DeconvolverHogbomTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(DeconvolverHogbomTest);
   CPPUNIT_TEST(testCreate);
+  CPPUNIT_TEST_EXCEPTION(testWrongShape, casa::ArrayShapeError);
   CPPUNIT_TEST(testDeconvolve);
   CPPUNIT_TEST(testDeconvolveCenter);
   CPPUNIT_TEST(testDeconvolveCorner);
   CPPUNIT_TEST(testDeconvolveZero);
-  CPPUNIT_TEST_EXCEPTION(testWrongShape, casa::ArrayShapeError);
   CPPUNIT_TEST_EXCEPTION(testDeconvolveOffsetPSF, AskapError);
   CPPUNIT_TEST_SUITE_END();
 public:
@@ -78,20 +78,21 @@ public:
 
   void tearDown() {
       // Ensure arrays are destroyed last
-      itsDB.reset();
-      itsWeight.reset();
-      itsMask.reset();
-      itsPsf.reset();
-      itsDirty.reset();
+    itsDB.reset();
+    itsWeight.reset();
+    itsPsf.reset();
+    itsDirty.reset();
   }
 
   void testCreate() {
-    Array<Float> newDirty(IPosition(2,100,100));
-    itsDB->updateDirty(newDirty);
+    itsDirty.reset(new Array<Float>(IPosition(2,100,100)));
+    itsDirty->set(1.0);
+    itsDB->updateDirty(*itsDirty);
   }
   void testWrongShape() {
-    Array<Float> newDirty(IPosition(2,200,200));
-    itsDB->updateDirty(newDirty);
+    itsDirty.reset(new Array<Float>(IPosition(2,200,200)));
+    itsDirty->set(0.0);
+    itsDB->updateDirty(*itsDirty);
   }
   void testDeconvolveZero() {
     itsDB->state()->setCurrentIter(0);
@@ -110,7 +111,7 @@ public:
     itsDB->dirty().set(0.0);
     itsDB->dirty()(IPosition(2,30,20))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
-    //    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
+    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
   }
   void testDeconvolveOffsetPSF() {
     IPosition dimensions(2,100,100);
@@ -135,7 +136,6 @@ public:
     itsWeight->set(10.0);
     itsDB->setWeight(*itsWeight);
     CPPUNIT_ASSERT(itsDB->deconvolve());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
   }
    
   void testDeconvolveCenter() {
@@ -146,7 +146,7 @@ public:
     itsDB->dirty().set(0.0);
     itsDB->dirty()(IPosition(2,50,50))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
-    ///    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
+    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
   }
    
   void testDeconvolveCorner() {
@@ -157,14 +157,13 @@ public:
     itsDB->dirty().set(0.0);
     itsDB->dirty()(IPosition(2,0,0))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
-    //    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
+    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
   }
    
 private:
 
   boost::shared_ptr< Array<Float> > itsDirty;
   boost::shared_ptr< Array<Float> > itsPsf;
-  boost::shared_ptr< Array<Float> > itsMask;
   boost::shared_ptr< Array<Float> > itsWeight;
 
    /// @brief DeconvolutionHogbom class

@@ -47,19 +47,19 @@ class DeconvolverMultiTermBasisFunctionTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE(DeconvolverMultiTermBasisFunctionTest);
   CPPUNIT_TEST(testCreate);
   // Does not work here yet!
-  //  CPPUNIT_TEST(testDeconvolveCenter);
+  CPPUNIT_TEST(testDeconvolveCenter);
   CPPUNIT_TEST_EXCEPTION(testWrongShape, casa::ArrayShapeError);
   CPPUNIT_TEST_EXCEPTION(testDeconvolveOffsetPSF, casa::ArrayConformanceError);
   CPPUNIT_TEST_SUITE_END();
 public:
    
   void setUp() {
-    IPosition dimensions(4,100,100,1,1);
+    IPosition dimensions(2,100,100);
     itsDirty.reset(new Array<Float>(dimensions));
     itsDirty->set(0.0);
     itsPsf.reset(new Array<Float>(dimensions));
     itsPsf->set(0.0);
-    (*itsPsf)(IPosition(4,50,50,0,0))=1.0;
+    (*itsPsf)(IPosition(2,50,50))=1.0;
     itsDB = DeconvolverMultiTermBasisFunction<Float,Complex>::ShPtr(new DeconvolverMultiTermBasisFunction<Float, Complex>(*itsDirty, *itsPsf));
     Vector<Float> scales(3);
     scales[0]=0.0;
@@ -87,34 +87,35 @@ public:
       // Ensure arrays are destroyed last
       itsDB.reset();
       itsWeight.reset();
-      itsMask.reset();
       itsPsf.reset();
       itsDirty.reset();
       itsBasisFunction.reset();
   }
 
   void testCreate() {
-    Array<Float> newDirty(IPosition(4,100,100,1,1));
-    itsDB->updateDirty(newDirty);
+    itsDirty.reset(new Array<Float>(IPosition(2,100,100)));
+    itsDirty->set(1.0);
+    itsDB->updateDirty(*itsDirty);
   }
   void testWrongShape() {
-    Array<Float> newDirty(IPosition(4,200,200,1,1));
-    itsDB->updateDirty(newDirty);
+    itsDirty.reset(new Array<Float>(IPosition(2,200,200)));
+    itsDirty->set(0.0);
+    itsDB->updateDirty(*itsDirty);
   }
   void testDeconvolveOffsetPSF() {
-    IPosition dimensions(4,100,100,1,1);
+    IPosition dimensions(2,100,100);
     itsDirty.reset(new Array<Float>(dimensions));
     itsDirty->set(0.0);
-    itsDB->dirty()(IPosition(4,30,20,0,0))=1.0;
+    itsDB->dirty()(IPosition(2,30,20))=1.0;
     itsPsf.reset(new Array<Float>(dimensions));
     itsPsf->set(0.0);
-    (*itsPsf)(IPosition(4,70,70,0,0))=1.0;
+    (*itsPsf)(IPosition(2,70,70))=1.0;
     itsDB = DeconvolverMultiTermBasisFunction<Float,Complex>::ShPtr(new DeconvolverMultiTermBasisFunction<Float, Complex>(*itsDirty, *itsPsf));
     Vector<Float> scales(3);
     scales[0]=0.0;
     scales[1]=3.0;
     scales[2]=6.0;
-    itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(4,100,100,1,1), scales));
+    itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(2,100,100), scales));
     itsDB->setBasisFunction(itsBasisFunction);
     CPPUNIT_ASSERT(itsDB);
     CPPUNIT_ASSERT(itsDB->control());
@@ -142,14 +143,13 @@ public:
     itsDB->dirty().set(0.0);
     itsDB->dirty()(IPosition(4,50,50,0,0))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()!=DeconvolverControl<Float>::CONVERGED);
+    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
   }
    
 private:
 
   boost::shared_ptr< Array<Float> > itsDirty;
   boost::shared_ptr< Array<Float> > itsPsf;
-  boost::shared_ptr< Array<Float> > itsMask;
   boost::shared_ptr< Array<Float> > itsWeight;
 
    /// @brief DeconvolutionBasisFunction class

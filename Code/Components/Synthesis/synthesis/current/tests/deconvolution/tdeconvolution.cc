@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
     runner.addTest( askap::synthesis::DeconvolverFistaTest::suite());
     runner.addTest( askap::synthesis::DeconvolverHogbomTest::suite());
     runner.addTest( askap::synthesis::DeconvolverMultiTermBasisFunctionTest::suite());
-    //    runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
-    //    runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
-    //    runner.addTest( askap::synthesis::DeconvolverStateTest::suite());
+    runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
+    runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
+    runner.addTest( askap::synthesis::DeconvolverStateTest::suite());
     bool wasSuccessful = runner.run();
 
     return wasSuccessful ? 0 : 1;

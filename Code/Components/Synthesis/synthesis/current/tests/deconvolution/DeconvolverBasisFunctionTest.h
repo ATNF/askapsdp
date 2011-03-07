@@ -48,7 +48,7 @@ class DeconvolverBasisFunctionTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testCreate);
   CPPUNIT_TEST(testDeconvolveCenter);
   CPPUNIT_TEST_EXCEPTION(testWrongShape, casa::ArrayShapeError);
-  //  CPPUNIT_TEST_EXCEPTION(testDeconvolveOffsetPSF, AskapError);
+  CPPUNIT_TEST_EXCEPTION(testDeconvolveOffsetPSF, AskapError);
   CPPUNIT_TEST_SUITE_END();
 public:
    
@@ -86,7 +86,6 @@ public:
       // Ensure arrays are destroyed last
       itsDB.reset();
       itsWeight.reset();
-      itsMask.reset();
       itsPsf.reset();
       itsDirty.reset();
       itsBasisFunction.reset();
@@ -126,11 +125,8 @@ public:
     CPPUNIT_ASSERT(itsDB->setMonitor(DM));
     boost::shared_ptr<DeconvolverState<Float> > DS(new DeconvolverState<Float>::DeconvolverState());
     CPPUNIT_ASSERT(itsDB->setControl(DC));
-    itsMask.reset(new Array<Float>(dimensions));
-    itsMask->set(1.0);
     itsWeight.reset(new Array<Float>(dimensions));
     itsWeight->set(10.0);
-    itsDB->setMask(*itsMask);
     itsDB->setWeight(*itsWeight);
     CPPUNIT_ASSERT(itsDB->deconvolve());
     CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
@@ -151,7 +147,6 @@ private:
 
   boost::shared_ptr< Array<Float> > itsDirty;
   boost::shared_ptr< Array<Float> > itsPsf;
-  boost::shared_ptr< Array<Float> > itsMask;
   boost::shared_ptr< Array<Float> > itsWeight;
 
    /// @brief DeconvolutionBasisFunction class
