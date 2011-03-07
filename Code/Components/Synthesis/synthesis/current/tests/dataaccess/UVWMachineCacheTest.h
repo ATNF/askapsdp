@@ -156,7 +156,7 @@ public:
           {-2.555892500000000e+06, 5.097559500000000e+06, -2.848328750000000e+06},
           {-2.556745500000000e+06, 5.097448000000000e+06, -2.847753750000000e+06}};
           
-      casa::Vector<casa::RigidVector<double, 3> > baselines(nAnt*nAnt/2);
+      casa::Vector<casa::RigidVector<double, 3> > baselines(nAnt*(nAnt-1)/2);
       for (size_t ant1 = 0, row=0; ant1<nAnt; ++ant1) {
            for (size_t ant2 = 0; ant2<ant1; ++ant2,++row) {
                 for (int dim=0; dim<3; ++dim) {
