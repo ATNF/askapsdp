@@ -66,7 +66,7 @@ namespace askap {
 									       Vector<Array<T> >& psf,
 									       Vector<Array<T> >& psfLong)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
-      itsSolutionType("MAXBASE"), itsDecoupleTerms(true)
+      itsSolutionType("MAXBASE"), itsDecoupleTerms(false)
     {
       ASKAPLOG_DEBUG_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
 
@@ -84,7 +84,7 @@ namespace askap {
     DeconvolverMultiTermBasisFunction<T,FT>::DeconvolverMultiTermBasisFunction(Array<T>& dirty,
 									       Array<T>& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
-      itsSolutionType("MAXBASE"), itsDecoupleTerms(true)
+                                                                                   itsSolutionType("MAXBASE"), itsDecoupleTerms(false)
     {
       ASKAPLOG_DEBUG_STR(decmtbflogger, "There is only one term to be solved");
       this->itsPsfLongVec.resize(1);
@@ -169,9 +169,12 @@ namespace askap {
       }
       ASKAPLOG_DEBUG_STR(decmtbflogger, "Solution type = " << solutionType);
       
-      itsDecoupleTerms=parset.getBool("decouple", "true");
+      itsDecoupleTerms=parset.getBool("decouple", "false");
       if(itsDecoupleTerms) {
-	ASKAPLOG_DEBUG_STR(decmtbflogger, "Decoupling in term using the inverse of the coupling matrix");
+	ASKAPLOG_DEBUG_STR(decmtbflogger, "Decoupling and scaling in term using the inverse of the coupling matrix");
+      }
+      else {
+	ASKAPLOG_DEBUG_STR(decmtbflogger, "Scaling in term using the inverse of the diagonal elements of the coupling matrix");
       }
     }
       
@@ -285,7 +288,6 @@ namespace askap {
       if(this->control()->psfWidth()>0) {
 	uInt psfWidth=this->control()->psfWidth();
 	if((psfWidth<uInt(this->model().shape()(0)))&&(psfWidth<uInt(this->model().shape()(1)))) {
-	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Using subregion of PSF: size " << psfWidth << " pixels");
 	  subPsfShape(0)=psfWidth;
 	  subPsfShape(1)=psfWidth;
 	}
@@ -413,6 +415,7 @@ namespace askap {
 	  this->itsInverseCouplingMatrix(base).resize(this->itsNumberTerms,this->itsNumberTerms);
 	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix(" << base << ")="
 			    << this->itsCouplingMatrix(base));
+          ASKAPLOG_DEBUG_STR(decmtbflogger, "Calculating matrix inverse by Cholesky decomposition");
 	  invertSymPosDef(this->itsInverseCouplingMatrix(base),
 			  this->itsDetCouplingMatrix(base), this->itsCouplingMatrix(base));
 	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix determinant(" << base << ") = "
@@ -431,6 +434,21 @@ namespace askap {
 	    }
 	  }
 	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix * inverse " << identity);
+	}
+      }
+      else {
+	for (uInt base=0;base<nBases;base++) {
+	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix(" << base << ")="
+			    << this->itsCouplingMatrix(base));
+          ASKAPLOG_DEBUG_STR(decmtbflogger, "Approximating inverse by diagonal terms only");
+	  uInt nRows(this->itsCouplingMatrix(base).nrow());
+	  this->itsInverseCouplingMatrix(base).resize(this->itsNumberTerms,this->itsNumberTerms);
+          this->itsInverseCouplingMatrix(base).set(0.0);
+          this->itsDetCouplingMatrix(base)=1.0;
+	  for (uInt row=0;row<nRows;row++) {
+            this->itsInverseCouplingMatrix(base)(row,row)=1.0/this->itsCouplingMatrix(base)(row,row);
+            this->itsDetCouplingMatrix(base)=this->itsDetCouplingMatrix(base)*this->itsCouplingMatrix(base)(row,row);
+	  }
 	}
       }
       this->itsBasisFunctionChanged=False;

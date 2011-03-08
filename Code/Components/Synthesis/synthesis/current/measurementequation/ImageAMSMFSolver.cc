@@ -301,27 +301,26 @@ namespace askap
 	    }
 	  } // Loop over order
 	  
-	  casa::Array<float> maskArray(dirtyVec(0).shape());
+	  casa::Array<float> maskArray(planeIter.planeShape());
 	  
 	  uInt nx(planeIter.planeShape()(0));
 	  uInt ny(planeIter.planeShape()(1));
 	  IPosition centre(2, nx/2, ny/2);
-	  
-	  
+
 	  if(firstcycle) {
 	    psfZeroArray=psfLongVec(0).copy();
-	    zeroPSFPeak=max(psfZeroArray);
-	    casa::Array<float> maskArray(planeIter.planeShape());
+	    zeroPSFPeak=psfZeroArray.nonDegenerate()(centre);
 	    // For the first cycle we need to precondition and normalise all PSFs and all dirty images
 	    ASKAPLOG_DEBUG_STR(logger, "PSF(0) centre value " << psfZeroArray.nonDegenerate()(centre));
 	    for(uInt order=0; order < 2 * itsNumberTaylor - 1; ++order) {
 	      // We need to work with the original preconditioning PSF since it gets overridden
 	      psfWorkArray = psfZeroArray.copy();
 	      ASKAPLOG_DEBUG_STR(logger, "Initial PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-	      if(doPreconditioning(psfWorkArray, psfLongVec(order))) {
+              // Precondition this order PSF using PSF(0)
+	      if(doPreconditioning(psfZeroArray, psfLongVec(order))) {
 		ASKAPLOG_DEBUG_STR(logger, "After preconditioning PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
 	      }
-	      // Now we can precondition the dirty (residual) array
+	      // Now we can precondition the dirty (residual) array using PSF(0)
 	      psfWorkArray = psfZeroArray.copy();
 	      if(doPreconditioning(psfWorkArray,dirtyLongVec(order))) {
 		ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
@@ -329,8 +328,14 @@ namespace askap
 	      }
 	      // Normalise. 
 	      ASKAPLOG_DEBUG_STR(logger, "Initial PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-	      doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
-			      boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+              if(order==0) {
+                zeroPSFPeak=doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),dirtyLongVec(order),
+                                            boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+              }
+              else {
+                doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
+                                boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+              }
 	      ASKAPLOG_DEBUG_STR(logger, "After normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
 	      if(order<itsNumberTaylor) {
 		psfVec(order)=psfLongVec(order);
@@ -340,19 +345,28 @@ namespace askap
 	  }
 	  else {
 	    // For the subsequent cycles cycle we need to precondition and normalise the updated dirty images
+            // Precondition the dirty (residual) array
+	    psfZeroArray=psfLongVec(0).copy();
+	    zeroPSFPeak=psfZeroArray.nonDegenerate()(centre);
+            ASKAPLOG_DEBUG_STR(logger, "PSF(0) centre value " << psfZeroArray.nonDegenerate()(centre));
 	    for(uInt order=0; order < itsNumberTaylor; ++order) {
-	      // Precondition the dirty (residual) array
 	      psfWorkArray = psfZeroArray.copy();
 	      if(doPreconditioning(psfWorkArray,dirtyLongVec(order))) {
-		ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
-				  " ("<<tagLogString<< ") and order=" << order);
+		ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<< " ("<<tagLogString<< ") and order=" << order);
 	      }
 	      // Normalise. 
-	      ASKAPLOG_DEBUG_STR(logger, "Before normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-	      doNormalization(padDiagonal(planeIter.getPlane(normdiag)),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
-			      boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-	      ASKAPLOG_DEBUG_STR(logger, "After normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
+              ASKAPLOG_DEBUG_STR(logger, "Before normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
+              if(order==0) {
+                zeroPSFPeak=doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),dirtyLongVec(order),
+                                            boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+              }
+              else {
+                doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
+                                boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+              }
+              ASKAPLOG_DEBUG_STR(logger, "After normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
 	      dirtyVec(order)=dirtyLongVec(order);
+              psfVec(order)=psfLongVec(order);
 	    }
 	  }
 	  
@@ -361,7 +375,7 @@ namespace askap
 	  // Now that we have all the required images, we can initialise the deconvolver
 	  for(uInt order=0; order < itsNumberTaylor; ++order) {
 	    if(this->itsNumberTaylor>1) {
-	      ASKAPLOG_INFO_STR(logger, "Solving for Taylor term " << this->itsNumberTaylor);
+	      ASKAPLOG_INFO_STR(logger, "Solving for Taylor term " << order);
 	      iph.makeTaylorTerm(order);
 	    }
 	    else {
@@ -370,15 +384,17 @@ namespace askap
 	    const std::string thisOrderParam = iph.paramName();
 	    
 	    if(saveIntermediate()) {
+              ASKAPLOG_DEBUG_STR(logger, "Dirty(" << order << ") shape = " << dirtyVec(order).shape());
 	      saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "residual",
 				     unpadImage(dirtyVec(order)), planeIter.position());
-	      if(order==0) {
-		saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "psf.image",
-				       unpadImage(psfVec(order)), planeIter.position());
-		if(maskArray.nelements()) {
-		  saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "mask", unpadImage(maskArray),
-					 planeIter.position());
-		}
+              if(firstcycle) {
+                ASKAPLOG_DEBUG_STR(logger, "PSF(" << order << ") shape = " << psfVec(order).shape());
+                saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "psf.image",
+                                       unpadImage(psfVec(order)), planeIter.position());
+                if(order==0&&maskArray.nelements()) {
+                  saveArrayIntoParameter(ip, thisOrderParam, planeIter.shape(), "mask", unpadImage(maskArray),
+                                         planeIter.position());
+                }
 	      }
 	    }
 	    
@@ -400,6 +416,7 @@ namespace askap
 	      itsCleaners[imageTag]->setSolutionType(itsSolutionType);
 	      itsCleaners[imageTag]->setDecouple(itsDecoupleTerms);
 	      if(maskArray.nelements()) {
+                ASKAPLOG_INFO_STR(logger, "Defining mask as weight image");
 		itsCleaners[imageTag]->setWeight(maskArray);
 	      }
 	    }
@@ -427,7 +444,7 @@ namespace askap
 	  for( uInt order=0; order < itsNumberTaylor; ++order) {
 	    // make the helper to correspond to the given order
 	    if(this->itsNumberTaylor>1) {
-	      ASKAPLOG_INFO_STR(logger, "Solved for Taylor term " << this->itsNumberTaylor);
+	      ASKAPLOG_INFO_STR(logger, "Solved for Taylor term " << order);
 	      iph.makeTaylorTerm(order);
 	    }
 	    else {
