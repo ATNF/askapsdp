@@ -117,6 +117,7 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
     std::string prefix("gridder");	
     const string gridderName = parset.getString(prefix);
     prefix += "." + gridderName + ".";
+    ASKAPLOG_DEBUG_STR(logger, "Attempting to greate gridder "<<gridderName);
     gridder = createGridder (gridderName, parset.makeSubset(prefix));
     
 	ASKAPASSERT(gridder);
