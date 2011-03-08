@@ -51,8 +51,9 @@ namespace synthesis {
 template<typename GridderType>
 boost::shared_ptr<GridderType> AProjectGridderBase::createAProjectGridder(const LOFAR::ParameterSet &parset)
 {
-  const double pointingTol = parset.getDouble("pointingtolerance", 0.0001);
-  const double paTol = parset.getDouble("patolerance", 0.1);
+  const double pointingTol = SynthesisParamsHelper::convertQuantity(
+               parset.getString("pointingtolerance", "0.0001rad"),"rad");
+  const double paTol = SynthesisParamsHelper::convertQuantity(parset.getString("patolerance", "0.1rad"),"rad");
 		
   // load frequency tolerance. It can be a string "infinite", which means to bypass frequency
   // axis checks or a non-negative number. We pass "undefined" by default here as it is not a
@@ -87,6 +88,8 @@ boost::shared_ptr<GridderType> AProjectGridderBase::createAProjectGridder(const 
       ASKAPLOG_INFO_STR(logger,	"Antenna illumination independent of frequency");
   }
   ASKAPLOG_INFO_STR(logger, "Parallactic angle tolerance = "<<paTol/casa::C::pi*180.<<" deg");
+  ASKAPLOG_INFO_STR(logger, "Fields offset by more than "<<pointingTol/casa::C::pi*180.*3600.<<
+                             " arcsec will be considered separate fields");
   if (freqTol<0) {
 	  ASKAPLOG_INFO_STR(logger,"Frequency axis is assumed constant"); 
   } else {

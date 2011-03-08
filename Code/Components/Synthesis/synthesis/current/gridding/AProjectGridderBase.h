@@ -38,6 +38,7 @@
 #include <gridding/UVPattern.h>
 #include <gridding/IVisGridder.h>
 #include <Common/ParameterSet.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 
 namespace askap {
 namespace synthesis {

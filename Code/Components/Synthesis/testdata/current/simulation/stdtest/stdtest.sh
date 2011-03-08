@@ -44,19 +44,14 @@ Csimulator.observe.scan0                        =       [10uJy, Continuum0, -6h,
 # Use a gridder to apply primary beam during the W projection step.
 #
 Csimulator.gridder                              = AWProject
-Csimulator.gridder.AWProject.patolerance	        = 1rad
-Csimulator.gridder.AWProject.illumination	= ATCA
-Csimulator.gridder.AWProject.illumination.tapering.defocusing	= 1rad
 Csimulator.gridder.AWProject.wmax            	= 15000
-Csimulator.gridder.AWProject.nwplanes        	= 1
+Csimulator.gridder.AWProject.nwplanes        	= 129
 Csimulator.gridder.AWProject.oversample     	= 8
 Csimulator.gridder.AWProject.diameter		= 12m
 Csimulator.gridder.AWProject.blockage		= 2m
 Csimulator.gridder.AWProject.maxfeeds		= 1
 Csimulator.gridder.AWProject.maxsupport		= 2048
 Csimulator.gridder.AWProject.frequencydependent = false
-Csimulator.gridder.AWProject.variablesupport		 = true
-Csimulator.gridder.AWProject.offsetsupport		 = true
 Csimulator.gridder.AWProject.tablename		= AWProject.tab
 EOF
 echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
@@ -72,26 +67,23 @@ Cimager.Images.image.i.10uJy_dirty_stdtest.frequency	= [1.420e9,1.420e9]
 Cimager.Images.image.i.10uJy_dirty_stdtest.nchan	= 1
 Cimager.Images.image.i.10uJy_dirty_stdtest.direction	= [12h30m00.00, -45.00.00.00, J2000]
 #
-Cimager.gridder                          	= WProject
-Cimager.gridder.WProject.wmax            	= 15000
-Cimager.gridder.WProject.nwplanes        	= 1
-Cimager.gridder.WProject.oversample     	= 4
-Cimager.gridder.WProject.diameter		= 12m
-Cimager.gridder.WProject.blockage		= 2m
-Cimager.gridder.WProject.maxfeeds		= 1
-Cimager.gridder.WProject.maxsupport       = 512
-Cimager.gridder.WProject.frequencydependent = false
-Cimager.gridder.WProject.variablesupport		 = true
-Cimager.gridder.WProject.tablename = WProject.tab
+Cimager.gridder                          	= AProjectWStack
+Cimager.gridder.AProjectWStack.wmax            	= 15000
+Cimager.gridder.AProjectWStack.nwplanes        	= 33
+Cimager.gridder.AProjectWStack.oversample     	= 4
+Cimager.gridder.AProjectWStack.diameter		= 12m
+Cimager.gridder.AProjectWStack.blockage		= 2m
+Cimager.gridder.AProjectWStack.maxfeeds		= 1
+Cimager.gridder.AProjectWStack.maxsupport       = 512
+Cimager.gridder.AProjectWStack.frequencydependent = false
+Cimager.gridder.AProjectWStack.tablename = AProjectWStack.tab
 #
 Cimager.solver                           	= Dirty
 Cimager.solver.Dirty.tolerance                  = 0.1
 Cimager.solver.Dirty.verbose                   	= True
 Cimager.ncycles                                 = 0
 
-Cimager.preconditioner.Names			= [Wiener, GaussianTaper]
-Cimager.preconditioner.Wiener.robustness		        = 0.0
-Cimager.preconditioner.GaussianTaper		= [20arcsec, 20arcsec, 0deg]
+Cimager.preconditioner.Names			= None
 
 EOF
 echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
@@ -109,7 +101,7 @@ Cimager.Images.image.i.10uJy_clean_stdtest.direction	= [12h30m00.00, -45.00.00.0
 #
 Cimager.gridder                          	= WProject
 Cimager.gridder.WProject.wmax            	= 15000
-Cimager.gridder.WProject.nwplanes        	= 1
+Cimager.gridder.WProject.nwplanes        	= 129
 Cimager.gridder.WProject.oversample     	= 8
 Cimager.gridder.WProject.maxsupport       = 1024
 Cimager.gridder.WProject.tablename = WProject.tab
@@ -136,7 +128,7 @@ Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
 # Use preconditioning for deconvolution
 #
 Cimager.preconditioner.Names			= [Wiener, GaussianTaper]
-Cimager.preconditioner.Wiener.robustness		        = 0.0
+Cimager.preconditioner.Wiener.noisepower	= 100.0
 Cimager.preconditioner.GaussianTaper		= [20arcsec, 20arcsec, 0deg]
 
 EOF
