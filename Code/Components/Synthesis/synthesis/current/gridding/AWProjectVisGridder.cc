@@ -171,7 +171,7 @@ void AWProjectVisGridder::initialiseGrid(const scimath::Axes& axes,  const casa:
     const casa::uInt nx=std::min(maxSupport(), int(itsShape(0)));
     const casa::uInt ny=std::min(maxSupport(), int(itsShape(1)));
 
-    ASKAPLOG_INFO_STR(logger, "Shape for calculating gridding convolution function = "
+    ASKAPLOG_DEBUG_STR(logger, "Shape for calculating gridding convolution function = "
             << nx << " by " << ny << " pixels");
 
     // this is just a buffer in the uv-space, oversampling is
@@ -200,7 +200,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
     const casa::uInt nx=std::min(maxSupport(), int(itsShape(0)));
     const casa::uInt ny=std::min(maxSupport(), int(itsShape(1)));
 
-    ASKAPLOG_INFO_STR(logger, "Shape for calculating degridding convolution function = "
+    ASKAPLOG_DEBUG_STR(logger, "Shape for calculating degridding convolution function = "
             << nx << " by " << ny << " pixels");
 
     // this is just a buffer in the uv-space, oversampling is
