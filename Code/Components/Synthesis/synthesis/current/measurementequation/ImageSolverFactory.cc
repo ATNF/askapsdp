@@ -224,7 +224,7 @@ namespace askap
 	casa::Vector<float> scales=parset.getFloatVector("solver.Clean.scales", defaultScales);
 	
 	if (algorithm=="MultiScale") {
-	  ASKAPLOG_INFO_STR(logger, "Constructing MultiScale Clean solver" );
+	  ASKAPLOG_INFO_STR(logger, "Constructing MultiScale Clean solver (ASKAP version)" );
 	  solver.reset(new ImageMultiScaleSolver(scales));
 	  solver->setAlgorithm(algorithm);
 	}
@@ -236,17 +236,17 @@ namespace askap
 	  ASKAPLOG_INFO_STR(logger, "Constructing Hogbom Clean solver");
 	  solver.reset(new ImageMultiScaleSolver());
 	}
-	else if (algorithm=="MSMFS") {
+	else if ((algorithm=="MSMFS")||(algorithm=="MultiScaleMFS")) {
 	  ASKAPCHECK(!parset.isDefined("solver.nterms"), "Specify nterms for each image instead of using solver.nterms");
 	  ASKAPCHECK(!parset.isDefined("solver.Clean.nterms"), "Specify nterms for each image instead of using solver.Clean.nterms");
 	  solver.reset(new ImageMSMFSolver(casa::Vector<float>(scales)));
 	  ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver (CASA version)" );
 	}
-	else if (algorithm=="BFMFS") {
+	else if ((algorithm=="BFMFS")||(algorithm=="BasisfunctionMFS")) {
 	  ASKAPCHECK(!parset.isDefined("solver.nterms"), "Specify nterms for each image instead of using solver.nterms");
 	  ASKAPCHECK(!parset.isDefined("solver.Clean.nterms"), "Specify nterms for each image instead of using solver.Clean.nterms");
 	  solver.reset(new ImageAMSMFSolver(casa::Vector<float>(scales)));
-	  ASKAPLOG_INFO_STR(logger, "Constructed image multiscale multi-frequency solver (ASKAP version)" );
+	  ASKAPLOG_INFO_STR(logger, "Constructed basis function multi-frequency solver" );
 	}
 	else {
 	  ASKAPTHROW(AskapError, "Unknown Clean algorithm " << algorithm);
@@ -274,11 +274,6 @@ namespace askap
 	solver.reset(new ImageFistaSolver());
 	solver->configure(parset.makeSubset("solver.Fista."));
       } else {
-	// temporary
-	ASKAPCHECK(!parset.isDefined("solver.Dirty.threshold"), 
-		   "The use of the parameter solver.Dirty.threshold is deprecated, use threshold.minorcycle instead");
-	//
-	
 	ASKAPLOG_INFO_STR(logger, "Constructing dirty image solver" );
 	solver = ImageSolver::ShPtr(new ImageSolver);
 	solver->configure(parset.makeSubset("solver.Dirty."));
