@@ -1,0 +1,24 @@
+# @file
+# SConstruct build script for this module.
+# Package dependencies are read from 'dependencies.default'
+#
+# @author Malte Marquarding <Malte.Marquarding@csiro.au>
+#
+
+# Always import this
+from askapenv import env
+
+#env.Append(CCFLAGS=['-O2'])
+env.Append(CCFLAGS=['-O2','-DASKAP_DEBUG'])
+#env.Append(CCFLAGS=['-Wall'])
+#env.Append(CCFLAGS=['-DHAVE_AIPSPP'])
+env.Append(universal=0)
+
+# create build object with library name
+pkg = env.AskapPackage("accessors")
+
+# add sub packages 
+pkg.AddSubPackage("dataaccess")
+
+# run the build process
+pkg()
