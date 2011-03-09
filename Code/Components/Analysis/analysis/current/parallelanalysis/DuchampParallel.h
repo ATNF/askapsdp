@@ -178,6 +178,15 @@ namespace askap {
                 /// @brief Get a particular RadioSource
                 sourcefitting::RadioSource getSource(int i) {return itsSourceList[i];};
 
+		std::string getSubimageAnnotationFile()      {return itsSubimageAnnotationFile;};
+		void        setSubimageAnnotationFile(std::string s){itsSubimageAnnotationFile=s;};
+		std::string getFitSummaryFile()      {return itsFitSummaryFile;};
+		void        setFitSummaryFile(std::string s){itsFitSummaryFile=s;};
+		std::string getFitAnnotationFile()      {return itsFitAnnotationFile;};
+		void        setFitAnnotationFile(std::string s){itsFitAnnotationFile=s;};
+		std::string getFitBoxAnnotationFile()      {return itsFitBoxAnnotationFile;};
+		void        setFitBoxAnnotationFile(std::string s){itsFitBoxAnnotationFile=s;};
+
             protected:
 
                 // Class for communications

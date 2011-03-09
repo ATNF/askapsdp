@@ -72,6 +72,25 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
     return def;
 }
 
+void setSelavyNames(DuchampParallel &finder, askap::mwbase::AskapParallel &comms)
+{
+  finder.cube().pars().setOutFile("selavy-results.txt");
+  finder.cube().pars().setHeaderFile("selavy-results.hdr");
+  finder.cube().pars().setVOTFile("selavy-results.xml");
+  finder.cube().pars().setKarmaFile("selavy-results.ann");
+  if(comms.isParallel() && comms.isMaster())
+    finder.cube().pars().setLogFile("selavy-Logfile-Master.txt");
+  else
+    finder.cube().pars().setLogFile(comms.substitute("selavy-Logfile-%w.txt"));
+
+  finder.setSubimageAnnotationFile("selavy-SubimageLocations.ann");
+  finder.setFitSummaryFile("selavy-fitResults.txt");
+  finder.setFitAnnotationFile("selavy-fitResults.ann");
+  finder.setFitBoxAnnotationFile("selavy-fitResults.boxes.ann");
+  
+}
+
+
 // Main function
 int main(int argc, const char** argv)
 {
@@ -87,9 +106,13 @@ int main(int argc, const char** argv)
         std::string parsetFile(getInputs("-inputs", "selavy.in", argc, argv));
         LOFAR::ParameterSet parset(parsetFile,LOFAR::StringUtil::Compare::NOCASE);
         LOFAR::ParameterSet subset(parset.makeSubset("Selavy."));
-        DuchampParallel finder(comms, subset);
         if(!comms.isParallel() || comms.isMaster())
 	  ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
+        DuchampParallel finder(comms, subset);
+
+	// change the default output names from duchamp-* to selavy-*
+	setSelavyNames(finder,comms);
+
         finder.readData();
         finder.setupLogfile(argc, argv);
         finder.gatherStats();
