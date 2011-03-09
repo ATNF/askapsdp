@@ -31,7 +31,7 @@
 
 // own includes
 #include <dataaccess/MemAntennaSubtableHandler.h>
-#include <askap_synthesis.h>
+#include <askap_accessors.h>
 
 // enable logging when it is actually used
 // #include <askap/AskapLogging.h>

@@ -27,7 +27,6 @@ env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 # add sub packages 
 pkg.AddSubPackage("measurementequation")
-pkg.AddSubPackage("dataaccess")
 pkg.AddSubPackage("gridding")
 pkg.AddSubPackage("parallel")
 pkg.AddSubPackage("simulation")

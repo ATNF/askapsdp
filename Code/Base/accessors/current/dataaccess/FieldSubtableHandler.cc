@@ -36,7 +36,7 @@
 
 // own includes
 #include <dataaccess/FieldSubtableHandler.h>
-#include <askap_synthesis.h>
+#include <askap_accessors.h>
 
 #include <askap/AskapError.h>
 #include <dataaccess/DataAccessError.h>

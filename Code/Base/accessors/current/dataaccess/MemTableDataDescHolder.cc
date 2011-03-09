@@ -29,7 +29,7 @@
 ///
 
 #include <dataaccess/MemTableDataDescHolder.h>
-#include <askap_synthesis.h>
+#include <askap_accessors.h>
 
 // enable logging when it is actually used
 //#include <askap/AskapLogging.h>

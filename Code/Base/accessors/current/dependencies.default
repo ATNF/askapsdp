@@ -1,6 +1,6 @@
 askap=Code/Base/askap/current
+scimath=Code/Base/scimath/current
 casacore=3rdParty/casacore/casacore-1.2.0; casa_ms casa_images casa_components casa_mirlib casa_coordinates casa_fits casa_lattices casa_measures casa_scimath casa_scimath_f casa_tables casa_casa
 common=3rdParty/LOFAR/Common/Common-3.3
 boost=3rdParty/boost/boost-1.41.0
-askap=Code/Base/askap/current
 cmdlineparser=3rdParty/cmdlineparser/cmdlineparser-0.1.1

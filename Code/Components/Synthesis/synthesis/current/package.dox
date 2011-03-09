@@ -1,8 +1,3 @@
-/// @defgroup dataaccess_i Data access subpackage - high level interfaces
-/// @defgroup dataaccess_conv Data access subpackage - converters
-/// @defgroup dataaccess_tm Data access subpackage - table management
-/// @defgroup dataaccess_tab Data access subpackage - table-based implementation
-/// @defgroup dataaccess_hlp Data access subpackage - helper and debug classes
 /// @defgroup measurementequation Measurement equations
 /// @defgroup gridding Gridding algorithms
 /// @defgroup parallel Parallel application support
@@ -46,17 +41,7 @@ namespace askap::synthesis {};
 ///
 /// @section synth_status Current status of the code
 ///
-/// @subsection synth_dataaccess 1. Dataaccess subpackage
-/// @li The subpackage defines interfaces and implements them for a casa measurement set table
-/// @li Selection of a subset of spectral channels (in channels/velocity or frequency) is not implemented
-/// @li On-the-fly averaging is not implemented
-/// @li Polarisation conversion is not implemented
-/// @li Iterface to write flagging information to the measurement set is not implemented
-/// @li Working on the calibration framework suggests that it may be useful to convert polarisations at the accessor level somehow, 
-///rather than for all accessors of a given iterator.
-/// @li There is no methods so far, which support beamforming
-/// 
-/// @subsection synth_measurementequation 2. Measurement Equation
+/// @subsection synth_measurementequation 1. Measurement Equation
 /// @li The subpackage contains calibration and imaging framework (equations which can be solved with the solver from the fitting package)
 /// @li Class diagram could still be a bit untidy mainly because of an early decision to apply the equation to the
 ///whole iterator, rather than a single iteration (accessor). Imaging code requires conversion to
@@ -67,7 +52,7 @@ namespace askap::synthesis {};
 ///contributing to the measured visibilities indirectly after some transform. Probably a specialization of the
 ///CalibrationME template is the way to go. 
 ///
-/// @subsection synth_gridding 3. Gridding
+/// @subsection synth_gridding 2. Gridding
 /// @li The subpackage contains classes performing gridding and degridding operations using various kernels
 /// @li It currently works only for MFS and polarization I. The addition of both should be straightforward.
 /// @li The class GridKernel is a bare bones gridder/degridder. This should be adapted for various
@@ -77,22 +62,17 @@ namespace askap::synthesis {};
 /// refactoring will be helpful.
 /// @li Different primary beams per feed are yet to be included.
 /// 
-/// @subsection synth_parallel 4. Parallel application support
+/// @subsection synth_parallel 3. Parallel application support
 /// @li The subpackage is intended to parallelise measurement equation
 /// @li It uses a simpler version of Ger's Master/Worker framework. It is largely complete and
 /// has not been changed much recently. 
 ///
-/// @subsection synth_simulate 6. Data simulation
+/// @subsection synth_simulate 4. Data simulation
 /// @li The Simulator class is a port of the CASA simulator code to askap. It has similar but not
 /// identical functionality. It is used by the csimulator app.
 ///
 /// @section synth_subpackages Subpackages
 ///
-/// @li @ref dataaccess_i
-/// @li @ref dataaccess_conv
-/// @li @ref dataaccess_tm
-/// @li @ref dataaccess_tab
-/// @li @ref dataaccess_hlp
 /// @li @ref measurementequation
 /// @li @ref gridding
 /// @li @ref parallel

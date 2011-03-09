@@ -32,7 +32,7 @@
 
 #include <dataaccess/TableInfoAccessor.h>
 #include <dataaccess/TableManager.h>
-#include <askap_synthesis.h>
+#include <askap_accessors.h>
 
 // logging is not yet used in this file
 //#include <askap/AskapLogging.h>

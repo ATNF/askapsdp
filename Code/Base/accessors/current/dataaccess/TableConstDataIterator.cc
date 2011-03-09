@@ -41,7 +41,7 @@
 
 /// own includes
 #include <dataaccess/TableConstDataIterator.h>
-#include <askap_synthesis.h>
+#include <askap_accessors.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, "");
 
