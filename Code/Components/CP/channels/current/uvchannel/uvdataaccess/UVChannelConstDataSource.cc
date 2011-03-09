@@ -29,6 +29,7 @@
 #include "UVChannelConstDataSource.h"
 
 // System includes
+#include <string>
 
 // ASPAKsoft includes
 #include "boost/shared_ptr.hpp"
@@ -42,13 +43,16 @@
 // Local package includes
 #include "uvchannel/uvdataaccess/UVChannelDataConverter.h"
 #include "uvchannel/uvdataaccess/UVChannelDataSelector.h"
+#include "uvchannel/uvdataaccess/UVChannelConstDataIterator.h"
 
 // Using
 using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::cp::channels;
 
-UVChannelConstDataSource::UVChannelConstDataSource(const LOFAR::ParameterSet& parset)
+UVChannelConstDataSource::UVChannelConstDataSource(const LOFAR::ParameterSet& parset,
+        const std::string& channelName)
+        : itsChannelConfig(parset), itsChannelName(channelName)
 {
 }
 
@@ -67,5 +71,17 @@ UVChannelConstDataSource::createConstIterator(
     const IDataSelectorConstPtr &sel,
     const IDataConverterConstPtr &conv) const
 {
-    ASKAPTHROW(AskapError, "UVChannelConstDataSource::createConstIterator() not implemented");
+    // cast input selector to "implementation" interface
+    boost::shared_ptr<UVChannelDataSelector const> implSel =
+        boost::dynamic_pointer_cast<UVChannelDataSelector const>(sel);
+    boost::shared_ptr<UVChannelDataConverter const> implConv =
+        boost::dynamic_pointer_cast<UVChannelDataConverter const>(conv);
+
+    if (!implSel || !implConv) {
+        ASKAPTHROW(DataAccessLogicError, "Incompatible selector and/or " <<
+                   "converter was passed to the createConstIterator method");
+    }
+
+    return boost::shared_ptr<IConstDataIterator>(new UVChannelConstDataIterator(
+                itsChannelConfig, itsChannelName, implSel, implConv));
 }

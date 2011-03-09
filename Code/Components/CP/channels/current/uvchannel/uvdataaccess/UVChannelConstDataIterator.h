@@ -32,13 +32,14 @@
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "dataaccess/IConstDataIterator.h"
-#include "dataaccess/IDataConverterImpl.h"
 #include "dataaccess/IDataSelector.h"
 #include "dataaccess/IConstDataAccessor.h"
 
 // Local includes
+#include "uvchannel/UVChannelConfig.h"
 #include "uvchannel/uvdataaccess/UVChannelConstDataSource.h"
 #include "uvchannel/uvdataaccess/UVChannelDataSelector.h"
+#include "uvchannel/uvdataaccess/UVChannelDataConverter.h"
 
 namespace askap {
 namespace cp {
@@ -48,9 +49,10 @@ namespace channels {
 /// uv-channel.
 class UVChannelConstDataIterator : virtual public askap::synthesis::IConstDataIterator {
     public:
-        UVChannelConstDataIterator(UVChannelConstDataSource &source,
-                                   const UVChannelDataSelector &sel,
-                                   const askap::synthesis::IDataConverterImpl &conv);
+        UVChannelConstDataIterator(const UVChannelConfig& channelConfig,
+                                   const std::string& channelName,
+                                   const boost::shared_ptr<const UVChannelDataSelector>& sel,
+                                   const boost::shared_ptr<const UVChannelDataConverter>& conv);
 
         virtual void init();
 
@@ -61,9 +63,10 @@ class UVChannelConstDataIterator : virtual public askap::synthesis::IConstDataIt
         virtual casa::Bool next();
 
     protected:
-        UVChannelConstDataSource &itsSource;
-        const UVChannelDataSelector &itsSelector;
-        const askap::synthesis::IDataConverterImpl &itsConverter;
+        const UVChannelConfig itsChannelConfig;
+        const std::string itsChannelName;
+        const boost::shared_ptr<const UVChannelDataSelector> itsSelector;
+        const boost::shared_ptr<const UVChannelDataConverter> itsConverter;
 };
 
 } // end of namespace channels

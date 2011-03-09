@@ -30,6 +30,11 @@
 
 // ASKAPsoft includes
 #include "dataaccess/BasicDataConverter.h"
+#include "casa/aipstype.h"
+#include "measures/Measures/MEpoch.h"
+#include "measures/Measures/MFrequency.h"
+#include "measures/Measures/MDirection.h"
+#include "measures/Measures/MRadialVelocity.h"
 
 namespace askap {
 namespace cp {

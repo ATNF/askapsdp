@@ -29,6 +29,7 @@
 #include "UVChannelDataSelector.h"
 
 // ASKAPsoft includes
+#include "casa/aipstype.h"
 #include "dataaccess/DataAccessError.h"
 
 // Using
@@ -74,7 +75,13 @@ void UVChannelDataSelector::chooseMaxUVDistance(casa::Double uvDist)
 void UVChannelDataSelector::chooseChannels(casa::uInt nChan,
         casa::uInt start, casa::uInt nAvg)
 {
-    throw DataAccessLogicError("not yet implemented");
+    if (nAvg != 1) {
+        throw DataAccessLogicError("Channel averaging is not yet implemented");
+    }
+
+    ASKAPDEBUGASSERT((nChan > 0) && (start >= 0));
+    itsChannelSelection.first = nChan;
+    itsChannelSelection.second = start;
 }
 
 void UVChannelDataSelector::chooseFrequencies(casa::uInt nChan,
@@ -99,12 +106,12 @@ void UVChannelDataSelector::chooseSpectralWindow(casa::uInt spWinID)
 void UVChannelDataSelector::chooseTimeRange(const casa::MVEpoch &start,
         const casa::MVEpoch &stop)
 {
-    throw DataAccessLogicError("not yet implemented");
+    throw DataAccessLogicError("Not applicable for streaming accessor");
 }
 
 void UVChannelDataSelector::chooseTimeRange(casa::Double start, casa::Double stop)
 {
-    throw DataAccessLogicError("not yet implemented");
+    throw DataAccessLogicError("Not applicable for streaming accessor");
 }
 
 void UVChannelDataSelector::choosePolarizations(const casa::String &pols)
@@ -114,5 +121,15 @@ void UVChannelDataSelector::choosePolarizations(const casa::String &pols)
 
 void UVChannelDataSelector::chooseCycles(casa::uInt start, casa::uInt stop)
 {
-    throw DataAccessLogicError("not yet implemented");
+    throw DataAccessLogicError("Not applicable for streaming accessor");
+}
+
+bool UVChannelDataSelector::channelsSelected() const
+{
+    return (itsChannelSelection.first >= 0);
+}
+
+std::pair<casa::uInt, casa::uInt> UVChannelDataSelector::getChannelSelection() const
+{
+    return itsChannelSelection;
 }

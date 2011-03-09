@@ -29,6 +29,9 @@
 #ifndef ASKAP_CP_CHANNELS_UVCHANNEL_VISSTREAM_DATA_SELECTOR_H
 #define ASKAP_CP_CHANNELS_UVCHANNEL_VISSTREAM_DATA_SELECTOR_H
 
+// System includes
+#include <utility>
+
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "casa/aipstype.h"
@@ -81,7 +84,8 @@ class UVChannelDataSelector : public askap::synthesis::IDataSelector {
         /// @param[in] nAvg a number of adjacent spectral channels to average
         ///             default is no averaging
         virtual void chooseChannels(casa::uInt nChan,
-                                    casa::uInt start, casa::uInt nAvg = 1);
+                                    casa::uInt start,
+                                    casa::uInt nAvg = 1);
 
         /// @brief Choose a subset of frequencies. The reference frame is
         /// defined by the DataSource object
@@ -143,6 +147,41 @@ class UVChannelDataSelector : public askap::synthesis::IDataSelector {
         /// @param[in] start the number of the first cycle to choose
         /// @param[in] stop the number of the last cycle to choose
         virtual void chooseCycles(casa::uInt start, casa::uInt stop);
+
+        /////////////////////////////////////////////////////////////////
+        // Below methods are not part of the fulfillment of the interface
+        /////////////////////////////////////////////////////////////////
+
+        /// @brief Check if channel selection has been done.
+        ///
+        /// By default all channels are selected. However, if chooseChannels
+        /// has been called, less channels are returned. This method returns true if
+        /// this is the case and false otherwise.
+        ///
+        /// @return true, if a subset of channels has been selected, otherwise false.
+        virtual bool channelsSelected() const;
+
+        /// @brief Obtain channel selection
+        ///
+        /// By default all channels are selected. However, if chooseChannels
+        /// has been called, less channels are returned by the accessor. This method
+        /// returns the number of channels and the first channel (in the full sample)
+        /// selected. If the first element of the pair is negative, no channel-based
+        /// selection has been done. This is also checked by channelsSelected method,
+        /// which is probably a prefered way to do this check to retain the code clarity.
+        /// @return a pair, the first element gives the number of channels selected and
+        /// the second element gives the start channel (0-based)
+        virtual std::pair<casa::uInt, casa::uInt> getChannelSelection() const;
+
+    private:
+        /// @brief channel selection
+        /// @details The first field has the number of channels required, the
+        /// second field is the start channel. If the first field is negative,
+        /// no channel-based selection has been defined. This class actually
+        /// doesn't care about the meaning of these two numbers and just passes
+        /// them to the caller. However, in the UVChanneUVChannellConstDataIterator
+        /// we assume the meaning given above.
+        std::pair<casa::uInt, casa::uInt> itsChannelSelection;
 };
 
 } // namespace channels

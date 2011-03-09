@@ -33,6 +33,7 @@
 #include "UVChannelDataConverter.h"
 
 // ASKAPsoft includes
+#include "casa/aipstype.h"
 #include "dataaccess/BasicDataConverter.h"
 #include "dataaccess/DataAccessError.h"
 

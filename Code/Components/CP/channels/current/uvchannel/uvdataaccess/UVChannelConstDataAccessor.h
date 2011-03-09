@@ -29,13 +29,14 @@
 #define ASKAP_CP_CHANNELS_UVCHANNEL_CONST_DATA_ACCESSOR_H
 
 // ASKAPsoft includes
-#include "dataaccess/IConstDataAccessor.h"
-#include "dataaccess/DataAccessError.h"
 #include "casa/aipstype.h"
 #include "casa/Arrays/Cube.h"
 #include "casa/Quanta/MVDirection.h"
 #include "scimath/Mathematics/RigidVector.h"
 #include "cpcommon/VisChunk.h"
+#include "dataaccess/IConstDataAccessor.h"
+#include "dataaccess/DataAccessError.h"
+#include "dataaccess/UVWRotationHandler.h"
 
 namespace askap {
 namespace cp {
@@ -67,6 +68,12 @@ class UVChannelConstDataAccessor : virtual public askap::synthesis::IConstDataAc
 
         virtual const casa::Vector<casa::RigidVector<casa::Double, 3> >&uvw() const;
 
+        virtual const casa::Vector<casa::RigidVector<casa::Double, 3> >& rotatedUVW(
+            const casa::MDirection &tangentPoint) const;
+
+        virtual const casa::Vector<casa::Double>& uvwRotationDelay(
+            const casa::MDirection &tangentPoint, const casa::MDirection &imageCentre) const;
+
         virtual const casa::Vector<casa::Double>& frequency() const;
 
         virtual casa::Double time() const;
@@ -87,8 +94,13 @@ class UVChannelConstDataAccessor : virtual public askap::synthesis::IConstDataAc
 
         virtual const casa::Vector<casa::Double>& velocity() const;
 
+        virtual const casa::Vector<casa::Stokes::StokesTypes>& stokes() const;
+
     private:
+
         const askap::cp::common::VisChunk& itsChunk;
+
+        askap::synthesis::UVWRotationHandler itsRotatedUVW;
 };
 
 } // namespace channels

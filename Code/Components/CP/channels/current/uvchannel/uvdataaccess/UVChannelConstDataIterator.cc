@@ -35,9 +35,11 @@
 #include "cpcommon/VisChunk.h"
 
 // Local includes
+#include "uvchannel/UVChannelConfig.h"
 #include "uvchannel/uvdataaccess/UVChannelConstDataSource.h"
 #include "uvchannel/uvdataaccess/UVChannelConstDataAccessor.h"
 #include "uvchannel/uvdataaccess/UVChannelDataSelector.h"
+#include "uvchannel/uvdataaccess/UVChannelDataConverter.h"
 
 // Using
 using namespace casa;
@@ -45,10 +47,14 @@ using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::cp::channels;
 
-UVChannelConstDataIterator::UVChannelConstDataIterator(UVChannelConstDataSource &source,
-        const UVChannelDataSelector &sel,
-        const IDataConverterImpl &conv)
-        : itsSource(source), itsSelector(sel), itsConverter(conv)
+UVChannelConstDataIterator::UVChannelConstDataIterator(const UVChannelConfig& channelConfig,
+        const std::string& channelName,
+        const boost::shared_ptr<const UVChannelDataSelector> &sel,
+        const boost::shared_ptr<const UVChannelDataConverter> &conv)
+        : itsChannelConfig(channelConfig),
+        itsChannelName(channelName),
+        itsSelector(sel),
+        itsConverter(conv)
 {
 }
 

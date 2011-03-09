@@ -30,11 +30,13 @@
 #define ASKAP_CP_CHANNELS_UVCHANNEL_CONST_DATA_SOURCE_H
 
 // System includes
+#include <string>
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "dataaccess/IConstDataSource.h"
 #include "Common/ParameterSet.h"
+#include "uvchannel/UVChannelConfig.h"
 
 namespace askap {
 namespace cp {
@@ -45,7 +47,10 @@ class UVChannelConstDataSource : virtual public askap::synthesis::IConstDataSour
     public:
         /// @brief Construct a read-only data source object.
         /// @param[in] the source VisStreamObject.
-        UVChannelConstDataSource(const LOFAR::ParameterSet& parset);
+        /// @param[out] channel name for data channel of interest. This must be
+        ///             one of the channel names described in the parset.
+        UVChannelConstDataSource(const LOFAR::ParameterSet& parset,
+                                 const std::string& channelName);
 
         /// @brief Create a converter object corresponding to this type
         /// of the DataSource.
@@ -102,6 +107,10 @@ class UVChannelConstDataSource : virtual public askap::synthesis::IConstDataSour
         /// unless the init method is called for the iterator (and the new
         /// iteration loop is started).
         virtual askap::synthesis::IDataSelectorPtr createSelector() const;
+
+    private:
+        const UVChannelConfig itsChannelConfig;
+        const std::string itsChannelName;
 };
 
 } // namespace channels

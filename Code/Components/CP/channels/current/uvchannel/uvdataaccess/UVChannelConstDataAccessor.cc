@@ -81,6 +81,18 @@ UVChannelConstDataAccessor::uvw() const
     return itsChunk.uvw();
 }
 
+const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVChannelConstDataAccessor::rotatedUVW(
+    const casa::MDirection &tangentPoint) const
+{
+    return itsRotatedUVW.uvw(*this, tangentPoint);
+}
+
+const casa::Vector<casa::Double>& UVChannelConstDataAccessor::uvwRotationDelay(
+    const casa::MDirection &tangentPoint, const casa::MDirection &imageCentre) const
+{
+    return itsRotatedUVW.delays(*this, tangentPoint, imageCentre);
+}
+
 const casa::Vector<casa::Double>& UVChannelConstDataAccessor::frequency() const
 {
     return itsChunk.frequency();
@@ -149,4 +161,9 @@ const casa::Cube<casa::Complex>& UVChannelConstDataAccessor::noise() const
 const casa::Vector<casa::Double>& UVChannelConstDataAccessor::velocity() const
 {
     ASKAPTHROW(AskapError, "UVChannelConstDataAccessor::velocity() not implemented");
+}
+
+const casa::Vector<casa::Stokes::StokesTypes>& UVChannelConstDataAccessor::stokes() const
+{
+    ASKAPTHROW(AskapError, "UVChannelConstDataAccessor::stokes() not implemented");
 }
