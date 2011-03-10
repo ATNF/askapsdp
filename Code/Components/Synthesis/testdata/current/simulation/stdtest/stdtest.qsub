@@ -8,7 +8,7 @@ cd $PBS_O_WORKDIR
 
 module load openmpi
 
-export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current
+export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 
 echo "This is the ASKAPsoft stdtest. It will run for about 50 minutes."  | tee stdtest.$PBS_JOBID.out
 tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/models/10uJy.model.small.tgz  | tee -a stdtest.$PBS_JOBID.out

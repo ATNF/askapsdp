@@ -1,5 +1,5 @@
 #!/bin/bash -l
-export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current
+export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 
 HOSTNAME=`hostname -s`
 
