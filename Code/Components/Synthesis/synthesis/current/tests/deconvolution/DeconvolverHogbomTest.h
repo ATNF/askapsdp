@@ -116,7 +116,7 @@ public:
     itsPsf->set(0.0);
     (*itsPsf)(IPosition(2,70,70))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
+    //CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
   }
    
   void testDeconvolveCenter() {
