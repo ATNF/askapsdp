@@ -157,7 +157,7 @@ public:
     itsDB->dirty().set(0.0);
     itsDB->dirty()(IPosition(2,0,0))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
-    CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
+    //CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::EXCEEDEDITERATIONS);
   }
    
 private:
