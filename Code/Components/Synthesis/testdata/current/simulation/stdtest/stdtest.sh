@@ -56,6 +56,10 @@ Csimulator.gridder.AWProject.tablename		= AWProject.tab
 EOF
 echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
 ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
+ERR=$?
+if [ $ERR -ne 0 ];
+    exit $ERR
+fi
 
 cat > stdtest.dirty.in <<EOF
 Cimager.dataset                                 = 10uJy_stdtest.ms
@@ -88,6 +92,10 @@ Cimager.preconditioner.Names			= None
 EOF
 echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
 ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
+ERR=$?
+if [ $ERR -ne 0 ];
+    exit $ERR
+fi
 
 cat > stdtest.clean.in <<EOF
 Cimager.dataset                                 = 10uJy_stdtest.ms
