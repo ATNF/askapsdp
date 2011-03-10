@@ -57,7 +57,7 @@ EOF
 echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
 ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
 ERR=$?
-if [ $ERR -ne 0 ];
+if [ $ERR -ne 0 ]; then
     exit $ERR
 fi
 
@@ -93,7 +93,7 @@ EOF
 echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
 ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
 ERR=$?
-if [ $ERR -ne 0 ];
+if [ $ERR -ne 0 ]; then
     exit $ERR
 fi
 
