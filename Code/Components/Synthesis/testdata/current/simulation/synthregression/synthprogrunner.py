@@ -20,7 +20,7 @@ class SynthesisProgramRunner:
           raise RuntimeError, "ASKAP_ROOT should be initialised first!"
 
       if 'AIPSPATH' not in os.environ:
-         os.environ['AIPSPATH'] = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/testdata/current')
+         os.environ['AIPSPATH'] = os.path.join(os.environ['ASKAP_ROOT'],'Code/Base/accessors/current')
       self.simulator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh')
       self.imager = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh')
       self.calibrator = os.path.join(os.environ['ASKAP_ROOT'],'Code/Components/Synthesis/synthesis/current/install/bin/ccalibrator.sh')
