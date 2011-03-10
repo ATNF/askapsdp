@@ -364,7 +364,6 @@ namespace askap {
 	scimath::fft2d(subXFRVec(term1), true);
       }
 
-      ASKAPLOG_INFO_STR(decmtbflogger, "About to make cross terms");
       itsPSFCrossTerms.resize(nBases,nBases);
       for (uInt base=0;base<nBases;base++) {
 	for (uInt base1=0;base1<nBases;base1++) {
@@ -382,7 +381,7 @@ namespace askap {
 	itsCouplingMatrix(base1).resize(this->itsNumberTerms,this->itsNumberTerms);
 	for (uInt base2=base1;base2<nBases;base2++) {
 	  for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-	    for (uInt term2=0;term2<this->itsNumberTerms;term2++) {
+	    for (uInt term2=term1;term2<this->itsNumberTerms;term2++) {
 	      //	      ASKAPLOG_DEBUG_STR(decmtbflogger, "Calculating convolutions of PSF("
 	      //				<< term1 << "+" << term2 << ") with basis functions");
 	      work=conj(basisFunctionFFT.xyPlane(base1))*basisFunctionFFT.xyPlane(base2)*
@@ -398,6 +397,7 @@ namespace askap {
 	      itsPSFCrossTerms(base2,base1)(term2,term1)=itsPSFCrossTerms(base1,base2)(term1,term2);
 	      if(base1==base2) {
 		itsCouplingMatrix(base1)(term1,term2)=real(work(subPsfPeak));
+		itsCouplingMatrix(base1)(term2,term1)=real(work(subPsfPeak));
 	      }
 	    }
 	  }
@@ -422,18 +422,6 @@ namespace askap {
 			    << this->itsDetCouplingMatrix(base));
 	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Inverse coupling matrix(" << base
 			    << ")=" << this->itsInverseCouplingMatrix(base));
-	  // Check that the inverse really is an inverse.
-	  Matrix<T> identity(this->itsNumberTerms,this->itsNumberTerms);
-	  identity.set(T(0.0));
-	  uInt nRows(this->itsCouplingMatrix(base).nrow());
-	  uInt nCols(this->itsCouplingMatrix(base).ncolumn());
-	  for (uInt row=0;row<nRows;row++) {
-	    for (uInt col=0;col<nCols;col++) {
-	      identity(row,col)=sum(this->itsCouplingMatrix(base).row(row)
-				    * this->itsInverseCouplingMatrix(base).column(col));
-	    }
-	  }
-	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix * inverse " << identity);
 	}
       }
       else {
@@ -482,14 +470,13 @@ namespace askap {
     // This contains the heart of the Multi-Term BasisFunction Clean algorithm
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos,
-								  Vector<T>& peakValues, Vector<T>& originalValues)
+								  Vector<T>& peakValues)
     {
       uInt nBases(this->itsResidualBasis.nelements());
       
       T absPeakVal(0.0);
       
-      originalValues.resize(this->itsNumberTerms);
-
+      peakValues.resize(this->itsNumberTerms);
 
       // Find the base having the peak value in term=0
       // Here the weights image is used as a weight in the determination
@@ -501,107 +488,100 @@ namespace askap {
       Vector<T> maxValues(this->itsNumberTerms);
 
       for(uInt base=0;base<nBases;base++) {
+
 	// Find peak in residual image cube
 	casa::IPosition minPos(2,0);
 	casa::IPosition maxPos(2,0);
 	T minVal(0.0), maxVal(0.0);
-	
-	// Decouple all terms using inverse coupling matrix
-	Vector<Array<T> > coefficients(this->itsNumberTerms);
-	for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-	  coefficients(term1).resize(this->dirty(0).shape().nonDegenerate());
-	  coefficients(term1).set(T(0.0));
-	  for(uInt term2=0;term2<this->itsNumberTerms;term2++) {
-	    coefficients(term1)=coefficients(term1)
-	      + T(this->itsInverseCouplingMatrix(base)(term1,term2))*this->itsResidualBasis(base)(term2);
-	  }
-	}
 
-	if(this->itsSolutionType=="R5") {
-	  // Now form the criterion image and then search for the peak
-	  Array<T> criterion(this->dirty(0).shape().nonDegenerate());
-	  criterion.set(T(0.0));
-	  for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-	    criterion=criterion+T(2.0)*this->itsResidualBasis(base)(term1)*coefficients(term1);
-	    for (uInt term2=0;term2<this->itsNumberTerms;term2++) {
-	      criterion=criterion-T(this->itsCouplingMatrix(base)(term1,term2))*coefficients(term1)*coefficients(term2);
-	    }
-	  }
-	  if(isWeighted) {
-	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, criterion,
-			       this->itsWeight(0).nonDegenerate());
-	  }
-	  else {
-	    casa::minMax(minVal, maxVal, minPos, maxPos, criterion);
-	  }
-	  for (uInt term=0;term<this->itsNumberTerms;term++) {
-	    minValues(term)=coefficients(term)(minPos);
-	    maxValues(term)=coefficients(term)(maxPos);
-	  }
-	}
-	else if(this->itsSolutionType=="MAXTERM0") {
-	  if(isWeighted) {
-	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, coefficients(0),
-			       this->itsWeight(0).nonDegenerate());
-	  }
-	  else {
-	    casa::minMax(minVal, maxVal, minPos, maxPos, coefficients(0));
-	  }
-	  for (uInt term=0;term<this->itsNumberTerms;term++) {
-	    minValues(term)=coefficients(term)(minPos);
-	    maxValues(term)=coefficients(term)(maxPos);
-	  }
-	}
-	else { // MAXBASE
-	  if(isWeighted) {
-	    casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
-			       this->itsWeight(0).nonDegenerate());
-	  }
-	  else {
-	    casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
-	  }
-	  for (uInt term=0;term<this->itsNumberTerms;term++) {
-	    minValues(term)=this->itsResidualBasis(base)(term)(minPos);
-	    maxValues(term)=this->itsResidualBasis(base)(term)(maxPos);
-	  }
-	  T norm(1/sqrt(this->itsCouplingMatrix(base)(0,0)));
-	  maxVal*=norm;
-	  minVal*=norm;
-	}
+        // We implement various approaches to finding the peak. The first is the cheapest
+        // and evidently the best (according to Urvashi).
+
+        // Look for the maximum in term=0 for this base
+        if(this->itsSolutionType=="MAXBASE") {
+          if(isWeighted) {
+            casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
+                               this->itsWeight(0).nonDegenerate());
+          }
+          else {
+            casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
+          }
+          for (uInt term=0;term<this->itsNumberTerms;term++) {
+            minValues(term)=this->itsResidualBasis(base)(term)(minPos);
+            maxValues(term)=this->itsResidualBasis(base)(term)(maxPos);
+          }
+          // In performing the search for the peak across bases, we want to take into account
+          // the SNR so we normalise out the coupling matrix for term=0 to term=0.
+          T norm(1/sqrt(this->itsCouplingMatrix(base)(0,0)));
+          maxVal*=norm;
+          minVal*=norm;
+        }
+        else {
+          // All these algorithms need the decoupled terms
+
+          // Decouple all terms using inverse coupling matrix
+          Vector<Array<T> > coefficients(this->itsNumberTerms);
+          for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
+            coefficients(term1).resize(this->dirty(0).shape().nonDegenerate());
+            coefficients(term1).set(T(0.0));
+            for(uInt term2=0;term2<this->itsNumberTerms;term2++) {
+              coefficients(term1)=coefficients(term1)
+                + T(this->itsInverseCouplingMatrix(base)(term1,term2))*this->itsResidualBasis(base)(term2);
+            }
+          }
+          if(this->itsSolutionType=="R5") {
+            // Now form the criterion image and then search for the peak
+            Array<T> criterion(this->dirty(0).shape().nonDegenerate());
+            criterion.set(T(0.0));
+            for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
+              criterion=criterion+T(2.0)*this->itsResidualBasis(base)(term1)*coefficients(term1);
+              for (uInt term2=0;term2<this->itsNumberTerms;term2++) {
+                criterion=criterion-T(this->itsCouplingMatrix(base)(term1,term2))*coefficients(term1)*coefficients(term2);
+              }
+            }
+            if(isWeighted) {
+              casa::minMaxMasked(minVal, maxVal, minPos, maxPos, criterion,
+                                 this->itsWeight(0).nonDegenerate());
+            }
+            else {
+              casa::minMax(minVal, maxVal, minPos, maxPos, criterion);
+            }
+            for (uInt term=0;term<this->itsNumberTerms;term++) {
+              minValues(term)=coefficients(term)(minPos);
+              maxValues(term)=coefficients(term)(maxPos);
+            }
+          }
+          else if(this->itsSolutionType=="MAXTERM0") {
+            if(isWeighted) {
+              casa::minMaxMasked(minVal, maxVal, minPos, maxPos, coefficients(0),
+                                 this->itsWeight(0).nonDegenerate());
+            }
+            else {
+              casa::minMax(minVal, maxVal, minPos, maxPos, coefficients(0));
+            }
+            for (uInt term=0;term<this->itsNumberTerms;term++) {
+              minValues(term)=coefficients(term)(minPos);
+              maxValues(term)=coefficients(term)(maxPos);
+            }
+          }
+        }
       
+        // We use the minVal and maxVal to find the optimum base
 	if(abs(minVal)>absPeakVal) {
 	  optimumBase=base;
 	  absPeakVal=abs(minVal);
 	  absPeakPos=minPos;
-	  peakValues=minValues;
 	}
 	if(abs(maxVal)>absPeakVal) {
 	  optimumBase=base;
 	  absPeakVal=abs(maxVal);
 	  absPeakPos=maxPos;
-	  peakValues=maxValues;
 	}
+      }
 	
-	if(isWeighted) {
-	  casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0),
-			     this->itsWeight(0).nonDegenerate());
-          originalValues.resize(this->itsNumberTerms);
-          for (uInt term=0;term<this->itsNumberTerms;term++) {
-            originalValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos)
-              *this->itsWeight(0)(absPeakPos);
-          }
-	}
-	else {
-	  casa::minMax(minVal, maxVal, minPos, maxPos, this->itsResidualBasis(base)(0));
-          originalValues.resize(this->itsNumberTerms);
-          for (uInt term=0;term<this->itsNumberTerms;term++) {
-            originalValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos);
-          }
-	}
-	// Res: 298.562 Max: 202951 Gain: 0.5 Pos: [493, 397] Scale: 20 Coeffs: 663.175  -701.157   OrigRes: 122.357 -28.997
-	//	ASKAPLOG_INFO_STR(decmtbflogger, "Res: " << maxVal << " Max: " << absPeakVal << " Pos: "
-	//			  << absPeakPos << " Coeffs: " << peakValues << " OrigRes: " << originalValues);
-	
+      peakValues.resize(this->itsNumberTerms);
+      for (uInt term=0;term<this->itsNumberTerms;term++) {
+        peakValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos);
       }
     }
     
@@ -618,12 +598,11 @@ namespace askap {
       casa::IPosition absPeakPos(2,0);
       uInt optimumBase(0);
       Vector<T> peakValues(this->itsNumberTerms);
-      Vector<T> originalValues(this->itsNumberTerms);
-      chooseComponent(optimumBase, absPeakPos, peakValues, originalValues);
+      chooseComponent(optimumBase, absPeakPos, peakValues);
       
       // Report on progress
       // We want the worst case residual
-      T absPeakVal=max(abs(originalValues));
+      T absPeakVal=max(abs(peakValues));
       
       //      ASKAPLOG_INFO_STR(decmtbflogger, "All terms: absolute max = " << absPeakVal << " at " << absPeakPos);
       //      ASKAPLOG_INFO_STR(decmtbflogger, "Optimum base = " << optimumBase);
@@ -694,22 +673,6 @@ namespace askap {
       }
       
       return True;
-    }
-    
-    template<class T, class FT>
-    Vector<T> DeconvolverMultiTermBasisFunction<T, FT>::findCoefficients(const Matrix<Double>& invCoupling,
-									 const Vector<T>& peakValues)
-    {
-      uInt nRows(invCoupling.nrow());
-      uInt nCols(invCoupling.ncolumn());
-      Vector<T> coefficients(nRows);
-      for (uInt row=0;row<nRows;row++) {
-	coefficients(row)=T(0.0);
-	for (uInt col=0;col<nCols;col++) {
-	  coefficients(row)+=T(invCoupling(row,col))*peakValues(col);
-	}
-      }
-      return coefficients;
     }
     
   }

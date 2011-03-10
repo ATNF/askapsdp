@@ -64,6 +64,11 @@ public:
     itsWeight.reset(new Array<Float>(itsDimensions));
     itsWeight->set(10.0);
     itsDB->setWeight(*itsWeight);
+    itsDB->state()->setCurrentIter(0);
+    itsDB->control()->setTargetIter(10);
+    itsDB->control()->setGain(1.0);
+    itsDB->control()->setTargetObjectiveFunction(0.000); 
+    itsDB->control()->setLambda(0.00001);
   }
 
   void tearDown() {
@@ -85,11 +90,6 @@ public:
     itsDB->updateDirty(*itsDirty);
   }
   void testDeconvolve() {
-    itsDB->state()->setCurrentIter(0);
-    itsDB->control()->setTargetIter(10);
-    itsDB->control()->setGain(1.0);
-    itsDB->control()->setTargetObjectiveFunction(0.000); 
-    itsDB->control()->setLambda(0.00001);
     itsDB->dirty().set(0.0);
     itsDB->dirty()(IPosition(2,30,20))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());

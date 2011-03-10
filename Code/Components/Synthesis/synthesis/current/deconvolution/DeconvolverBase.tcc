@@ -109,13 +109,14 @@ namespace askap {
       ASKAPLOG_INFO_STR(decbaselogger, "Validating PSF");
       casa::minMax(minVal, maxVal, minPos, maxPos, this->psf(0));
       
-      uInt nx(this->psf(0).shape()(0));
-      uInt ny(this->psf(0).shape()(1));
-      
-      ASKAPCHECK((uInt(maxPos(0))!=(nx/2-1))||(uInt(maxPos(1))!=(ny/2-1)), "Peak of PSF(0) is not at centre pixels");
+      Int nx(this->psf(0).shape()(0));
+      Int ny(this->psf(0).shape()(1));
       
       ASKAPLOG_INFO_STR(decbaselogger, "Maximum of PSF(0) = " << maxVal << " at " << maxPos);
       ASKAPLOG_INFO_STR(decbaselogger, "Minimum of PSF(0) = " << minVal << " at " << minPos);
+
+      ASKAPCHECK((maxPos(0)==nx/2)&&(maxPos(1)==ny/2), "Peak of PSF(0) is at " << maxPos << ": not at centre pixel: [" << nx/2 << "," << ny/2 << "]");
+      
       this->itsPeakPSFVal = maxVal;
       this->itsPeakPSFPos(0)=maxPos(0);
       this->itsPeakPSFPos(1)=maxPos(1);

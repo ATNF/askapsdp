@@ -158,12 +158,7 @@ namespace askap {
       // Initialise the PSFs - only need to do this once per change in basis functions
       virtual void initialiseForBasisFunction(bool force);
 
-      // Find the coefficients for each term by applying the
-      // inverse of the coupling matrix in terms
-      Vector<T> findCoefficients(const Matrix<Double>& invCoupling,
-				 const Vector<T>& peakValues);
-
-      void chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos, Vector<T>& peakValues, Vector<T>& originalValues);
+      void chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos, Vector<T>& peakValues);
 
       // Find shape of cut down PSF
       IPosition findSubPsfShape();

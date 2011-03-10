@@ -80,6 +80,11 @@ public:
     itsWeight.reset(new Array<Float>(dimensions));
     itsWeight->set(10.0);
     itsDB->setWeight(*itsWeight);
+    itsDB->state()->setCurrentIter(0);
+    itsDB->control()->setTargetIter(10);
+    itsDB->control()->setGain(1.0);
+    itsDB->control()->setTargetObjectiveFunction(0.01); 
+    itsDB->dirty().set(0.0);
   }
 
   void tearDown() {
@@ -100,44 +105,14 @@ public:
     itsDB->updateDirty(newDirty);
   }
   void testDeconvolveOffsetPSF() {
-    IPosition dimensions(4,100,100,1,1);
-    itsDirty.reset(new Array<Float>(dimensions));
-    itsDirty->set(0.0);
-    itsDB->dirty()(IPosition(4,30,20,0,0))=1.0;
     itsPsf.reset(new Array<Float>(dimensions));
     itsPsf->set(0.0);
     (*itsPsf)(IPosition(4,70,70,0,0))=1.0;
-    itsDB = DeconvolverBasisFunction<Float,Complex>::ShPtr(new DeconvolverBasisFunction<Float, Complex>(*itsDirty, *itsPsf));
-    CPPUNIT_ASSERT(itsDB);
-    Vector<Float> scales(3);
-    scales[0]=0.0;
-    scales[1]=3.0;
-    scales[2]=6.0;
-    itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(IPosition(4,100,100,1,1), scales));
-    itsDB->setBasisFunction(itsBasisFunction);
-    CPPUNIT_ASSERT(itsDB->control());
-    CPPUNIT_ASSERT(itsDB->monitor());
-    CPPUNIT_ASSERT(itsDB->state());
-    CPPUNIT_ASSERT(itsDB->basisFunction());
-    boost::shared_ptr<DeconvolverControl<Float> > DC(new DeconvolverControl<Float>::DeconvolverControl());
-    CPPUNIT_ASSERT(itsDB->setControl(DC));
-    boost::shared_ptr<DeconvolverMonitor<Float> > DM(new DeconvolverMonitor<Float>::DeconvolverMonitor());
-    CPPUNIT_ASSERT(itsDB->setMonitor(DM));
-    boost::shared_ptr<DeconvolverState<Float> > DS(new DeconvolverState<Float>::DeconvolverState());
-    CPPUNIT_ASSERT(itsDB->setControl(DC));
-    itsWeight.reset(new Array<Float>(dimensions));
-    itsWeight->set(10.0);
-    itsDB->setWeight(*itsWeight);
     CPPUNIT_ASSERT(itsDB->deconvolve());
     CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
   }
    
   void testDeconvolveCenter() {
-    itsDB->state()->setCurrentIter(0);
-    itsDB->control()->setTargetIter(10);
-    itsDB->control()->setGain(1.0);
-    itsDB->control()->setTargetObjectiveFunction(0.01); 
-    itsDB->dirty().set(0.0);
     itsDB->dirty()(IPosition(4,50,50,0,0))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
     CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);

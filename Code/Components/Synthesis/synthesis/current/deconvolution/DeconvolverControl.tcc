@@ -48,7 +48,7 @@ namespace askap {
     
     template<class T>
     DeconvolverControl<T>::DeconvolverControl() :
-      itsAlgorithm(""), itsTerminationCause(NOTTERMINATED), itsTargetIter(0),
+      itsAlgorithm(""), itsTerminationCause(NOTTERMINATED), itsTargetIter(1),
       itsTargetObjectiveFunction(T(0)), itsTargetFlux(T(0.0)),
       itsGain(1.0), itsTolerance(1e-4),
       itsPSFWidth(0), itsLambda(T(100.0))
@@ -67,21 +67,25 @@ namespace askap {
     /// Control the current state
     template<class T>
     Bool DeconvolverControl<T>::terminate(const DeconvolverState<T>& state) {
+
       // Check for convergence
-      if(abs(state.objectiveFunction())<itsTargetObjectiveFunction) {
+      if(abs(state.objectiveFunction())<this->itsTargetObjectiveFunction) {
         ASKAPLOG_INFO_STR(decctllogger, "Objective function " << state.objectiveFunction()
                           << " less than target " << itsTargetObjectiveFunction);
         itsTerminationCause = CONVERGED;
         return True;
       }
       //
-      if(abs(state.objectiveFunction())<itsFractionalThreshold*state.initialObjectiveFunction()) {
+      if(abs(state.objectiveFunction())<this->itsFractionalThreshold*state.initialObjectiveFunction()) {
         ASKAPLOG_INFO_STR(decctllogger, "Objective function " << state.objectiveFunction()
                           << " less than fractional threshold " << itsFractionalThreshold
                           << " * initialObjectiveFunction : " << state.initialObjectiveFunction());
         itsTerminationCause = CONVERGED;
         return True;
       }
+
+      // Terminate if the target number of iterations is not set
+      ASKAPCHECK(this->targetIter()>0, "Target number of iterations not set");
       // Check for too many iterations
       if((state.currentIter()>-1)&&(this->targetIter()>0)&&(state.currentIter()>=this->targetIter())) {
         itsTerminationCause = EXCEEDEDITERATIONS;
