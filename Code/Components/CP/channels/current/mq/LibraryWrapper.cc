@@ -33,20 +33,24 @@
 // Using
 using namespace askap::cp::channels;
 
-bool LibraryWrapper::theirInitialized = false;
+// Static initialisers
+unsigned int LibraryWrapper::theirReferenceCount = 0;
+boost::mutex LibraryWrapper::theirMutex;
 
-LibraryWrapper::LibraryWrapper() : itsResponsible(false)
+LibraryWrapper::LibraryWrapper()
 {
-    if (!theirInitialized) {
-        theirInitialized = true;
-        itsResponsible = true;
+    boost::mutex::scoped_lock lock(theirMutex);
+    if (theirReferenceCount == 0) {
         activemq::library::ActiveMQCPP::initializeLibrary();
     }
+    theirReferenceCount++;
 }
 
 LibraryWrapper::~LibraryWrapper()
 {
-    if (theirInitialized && itsResponsible) {
+    boost::mutex::scoped_lock lock(theirMutex);
+    theirReferenceCount--;
+    if (theirReferenceCount == 0) {
         activemq::library::ActiveMQCPP::shutdownLibrary();
     }
 }

@@ -27,19 +27,33 @@
 #ifndef ASKAP_CP_EVENTCHANNEL_LIBRARY_WRAPPER_H
 #define ASKAP_CP_EVENTCHANNEL_LIBRARY_WRAPPER_H
 
+// ASKAPsoft includes
+#include "boost/thread/mutex.hpp"
+
 namespace askap {
 namespace cp {
 namespace channels {
 
-        class LibraryWrapper {
+    /// Instantiate this before using the ActiveMQ C++ library. The constructor
+    /// initialises the library if the reference count is zero, and increments
+    /// the reference count.
+    /// Conversly, the destructor decrements the reference count and shuts down
+    /// the library if the reference count is zero.
+    class LibraryWrapper {
             public:
+
+                /// Constructor.
                 LibraryWrapper();
+
+                /// Destructor.
                 ~LibraryWrapper();
 
             private:
-                static bool theirInitialized;
-                bool itsResponsible;
+                // Reference count
+                static unsigned int theirReferenceCount;
 
+                // Mutex used to serialise access to this library
+                static boost::mutex theirMutex;
         };
 
 };
