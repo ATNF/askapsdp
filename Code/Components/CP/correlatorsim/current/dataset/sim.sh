@@ -1,6 +1,6 @@
 #!/bin/bash -l
 
-export AIPSPATH=$ASKAP_ROOT/Code/Components/Synthesis/testdata/current
+export AIPSPATH=$ASKAP_ROOT/Code/Base/accessors/current
 
 echo "Extracting 10uJy model" | tee output.out
 tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/models/10uJy.model.small.tgz | tee -a output.out

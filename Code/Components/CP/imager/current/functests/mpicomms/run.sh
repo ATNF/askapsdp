@@ -2,7 +2,7 @@
 
 OUTPUT=output.txt
 
-export AIPSPATH=${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current
+export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 
 if [ ! -x ${ASKAP_ROOT}/Code/Components/CP/imager/current/apps/tMpiComms.sh ]; then
     echo tMpiComms.sh does not exist
