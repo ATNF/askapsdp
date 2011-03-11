@@ -121,14 +121,16 @@ namespace askap {
 
       this->updateResiduals(this->model());
 
-      this->model()=this->dirty().copy()/this->itsLipschitz;
+      T lipschitz(10.0);
+
+      this->model()=this->dirty().copy()/lipschitz;
 
       Array<T> step(this->model().shape());
       step.set(T(0.0));
         
       T absPeakVal(max(abs(this->dirty())));
       T peakSidelobe(0.1);
-      T aFit = max(peakSidelobe*absPeakVal, rms(this->dirty()))/this->itsLipschitz(0);
+      T aFit = max(peakSidelobe*absPeakVal, rms(this->dirty()))/lipschitz;
       ASKAPLOG_INFO_STR(decentropylogger, "Scaling = " << aFit << " Jy/pixel");
       this->itsEntropy->setScale(aFit);
 
@@ -210,7 +212,9 @@ namespace askap {
         
         absPeakVal=max(abs(this->dirty()));
 
-	aFit = max(peakSidelobe*absPeakVal, rms(this->dirty()))/this->itsLipschitz(0);
+        T lipschitz(10.0);
+
+	aFit = max(peakSidelobe*absPeakVal, rms(this->dirty()))/lipschitz;
 	ASKAPLOG_INFO_STR(decentropylogger, "Scaling = " << aFit << " Jy/pixel");
 	this->itsEntropy->setScale(aFit);
 

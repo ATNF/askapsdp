@@ -66,7 +66,7 @@ namespace askap {
 									       Vector<Array<T> >& psf,
 									       Vector<Array<T> >& psfLong)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
-      itsSolutionType("MAXBASE"), itsDecoupleTerms(false)
+      itsSolutionType("MINCHISQ"), itsDecoupleTerms(false)
     {
       ASKAPLOG_DEBUG_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
 
@@ -156,8 +156,8 @@ namespace askap {
       
       itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales,
 											orthogonal));
-      String solutionType=parset.getString("solutiontype", "MAXBASE");
-      if(solutionType=="R5") {
+      String solutionType=parset.getString("solutiontype", "MINCHISQ");
+      if(solutionType=="MINCHISQ") {
 	itsSolutionType=solutionType;
       }
       else if(solutionType=="MAXTERM0") {
@@ -247,6 +247,16 @@ namespace askap {
       }
       
       // Calculate residuals convolved with bases [nx,ny][nterms][nbases]
+      // Calculate transform of PSF(0)
+      Array<FT> xfrZero(this->psf(0).shape().nonDegenerate());
+      xfrZero.set(FT(0.0));
+      casa::setReal(xfrZero, this->psf(0).nonDegenerate());
+      scimath::fft2d(xfrZero, true);
+      T normPSF;
+      normPSF=casa::sum(casa::real(xfrZero*conj(xfrZero)))/xfrZero.nelements();
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "PSF effective volume = " << normPSF);
+      xfrZero=xfrZero/FT(normPSF);
+	  
       ASKAPLOG_DEBUG_STR(decmtbflogger,
 			"Calculating convolutions of residual images with basis functions");
       for (uInt base=0;base<nBases;base++) {
@@ -268,12 +278,12 @@ namespace askap {
 	  // Calculate product and transform back
 	  Array<FT> work(this->dirty(term).nonDegenerate().shape());
 	  ASKAPASSERT(basisFunctionFFT.shape().conform(residualFFT.shape()));
-	  work=conj(basisFunctionFFT)*residualFFT;
+	  work=conj(basisFunctionFFT)*residualFFT*conj(xfrZero);
 	  scimath::fft2d(work, false);
 	  
 	  // basis function * psf
 	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Basis(" << base
-			    << ")*Residual(" << term << "): max = " << max(real(work))
+			    << ")*PSF(0)*Residual(" << term << "): max = " << max(real(work))
 			    << " min = " << min(real(work)));
 	  
 	  this->itsResidualBasis(base)(term)=real(work);
@@ -342,6 +352,7 @@ namespace askap {
       // 2*nTerms-1
       ASKAPCHECK(this->itsPsfLongVec.nelements()==(2*this->itsNumberTerms-1), "PSF long vector has wrong length " << this->itsPsfLongVec.nelements());
 
+      // Calculate all the transfer functions
       Vector<Array<FT> > subXFRVec(2*this->itsNumberTerms-1);
       for (uInt term1=0;term1<(2*this->itsNumberTerms-1);term1++) {
 	subXFRVec(term1).resize(subPsfShape);
@@ -349,6 +360,11 @@ namespace askap {
 	casa::setReal(subXFRVec(term1), this->itsPsfLongVec(term1).nonDegenerate()(subPsfSlicer));
 	scimath::fft2d(subXFRVec(term1), true);
       }
+      // Calculate residuals convolved with bases [nx,ny][nterms][nbases]
+      // Calculate transform of PSF(0)
+      T normPSF;
+      normPSF=casa::sum(casa::real(subXFRVec(0)*conj(subXFRVec(0))))/subXFRVec(0).nelements();
+      ASKAPLOG_DEBUG_STR(decmtbflogger, "PSF effective volume = " << normPSF);
 
       itsPSFCrossTerms.resize(nBases,nBases);
       for (uInt base=0;base<nBases;base++) {
@@ -371,13 +387,15 @@ namespace askap {
 	      //	      ASKAPLOG_DEBUG_STR(decmtbflogger, "Calculating convolutions of PSF("
 	      //				<< term1 << "+" << term2 << ") with basis functions");
 	      work=conj(basisFunctionFFT.xyPlane(base1))*basisFunctionFFT.xyPlane(base2)*
-		subXFRVec(term1+term2);
+                subXFRVec(0)*conj(subXFRVec(term1+term2))/normPSF;
 	      scimath::fft2d(work, false);
 	      ASKAPLOG_DEBUG_STR(decmtbflogger, "Base(" << base1 << ")*Base(" << base2
                                  << ")*PSF(" << term1+term2
-                                 << "): max = " << max(real(work))
+                                 << ")*PSF(0): max = " << max(real(work))
                                  << " min = " << min(real(work))
                                  << " centre = " << real(work(subPsfPeak)));
+              // Remember that casa::Array reuses the same memory where possible so this
+              // apparent redundancy does not cause any memory bloat
 	      itsPSFCrossTerms(base1,base2)(term1,term2)=real(work);
 	      itsPSFCrossTerms(base2,base1)(term1,term2)=itsPSFCrossTerms(base1,base2)(term1,term2);
 	      itsPSFCrossTerms(base1,base2)(term2,term1)=itsPSFCrossTerms(base1,base2)(term1,term2);
@@ -516,12 +534,24 @@ namespace askap {
                 + T(this->itsInverseCouplingMatrix(base)(term1,term2))*this->itsResidualBasis(base)(term2);
             }
           }
-          if(this->itsSolutionType=="R5") {
+
+          // The next is the preferred algorithm
+          //          vecWork_p[scale] = 0.0;
+          //          for(Int taylor1=0;taylor1<ntaylor;taylor1++)
+          //            {
+          //              vecWork_p[scale] = vecWork_p[scale] + (Float)2.0  * (  (matCoeffs_p[IND2(taylor1,scale)])  *  (matR_p[IND2(taylor1,scale)])  );
+          //              for(Int taylor2=0;taylor2<ntaylor;taylor2++)
+          //                vecWork_p[scale] = vecWork_p[scale] - (Float)((matA_p[scale])(taylor1,taylor2)) * matCoeffs_p[IND2(taylor1,scale)] * matCoeffs_p[IND2(taylor2,scale)] ;
+          //            }
+          //          findMaxAbsMask(vecWork_p[scale],vecScaleMasks_p[scale],maxScaleVal_p[scale],maxScalePos_p[scale]);
+          
+
+          if(this->itsSolutionType=="MINCHISQ") {
             // Now form the criterion image and then search for the peak
             Array<T> criterion(this->dirty(0).shape().nonDegenerate());
             criterion.set(T(0.0));
             for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-              criterion=criterion+T(2.0)*this->itsResidualBasis(base)(term1)*coefficients(term1);
+              criterion=criterion+T(2.0)*this->itsResidualBasis(base)(term1) * coefficients(term1);
               for (uInt term2=0;term2<this->itsNumberTerms;term2++) {
                 criterion=criterion-T(this->itsCouplingMatrix(base)(term1,term2))*coefficients(term1)*coefficients(term2);
               }

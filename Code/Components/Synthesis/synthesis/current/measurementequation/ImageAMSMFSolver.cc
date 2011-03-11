@@ -440,6 +440,15 @@ namespace askap
 	  itsCleaners[imageTag]->deconvolve();
 	  ASKAPLOG_INFO_STR(logger, "Finished Minor Cycles." );
 	  
+          // Now update the stored peak residual
+          const std::string peakResParam = std::string("peak_residual.") + imageTag;
+          if (ip.has(peakResParam)) {
+            ip.update(peakResParam, itsCleaners[imageTag]->state()->peakResidual());
+          } else {
+            ip.add(peakResParam, itsCleaners[imageTag]->state()->peakResidual());
+          }
+          ip.fix(peakResParam);	    
+
 	  // Write the final vector of clean model images into parameters
 	  for( uInt order=0; order < itsNumberTaylor; ++order) {
 	    // make the helper to correspond to the given order

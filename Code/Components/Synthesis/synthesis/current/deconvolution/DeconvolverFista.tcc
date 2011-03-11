@@ -134,6 +134,8 @@ namespace askap {
       
       T t_new=1;
 
+      T lipschitz(10.0);
+
       do {
 	X_old=X_temp.copy();
 	T t_old=t_new;
@@ -141,19 +143,19 @@ namespace askap {
 	updateResiduals(X);
 	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->dirty());
 
-	X=X+this->dirty()/this->itsLipschitz(0);
+	X=X+this->dirty()/lipschitz;
 
 	// Transform to other (e.g. multiscale) space
 	Array<T> WX;
-	SynthesisParamsHelper::saveAsCasaImage("X.tab", X);
+        //	SynthesisParamsHelper::saveAsCasaImage("X.tab", X);
 	this->W(WX,X);
-	SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
+        //	SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
 
 	// Now shrink the coefficients towards zero and clip those below
 	// lambda/lipschitz.
 	Array<T> shrink(WX.shape());
 
-	Array<T> truncated(abs(WX)-effectiveLambda/this->itsLipschitz(0));
+	Array<T> truncated(abs(WX)-effectiveLambda/lipschitz);
 	shrink=truncated(truncated>T(0.0));
 	shrink=sign(WX)*shrink;
 	shrink(truncated<T(0.0))=T(0.0);
@@ -162,7 +164,7 @@ namespace askap {
 	// Transform back from other (e.g. wavelet) space here
 	
 	this->WT(X_temp,shrink);
-	SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
+        //	SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
 
 	t_new=(T(1.0)+sqrt(T(1.0)+T(4.0)*square(t_old)))/T(2.0);
 	X=X_temp+((t_old-T(1.0))/t_new)*(X_temp-X_old);

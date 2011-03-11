@@ -195,8 +195,6 @@ namespace askap {
 
       Vector<Array<T> > itsWeight;
 
-      Vector<T> itsLipschitz;
-
       /// The state of the deconvolver
       boost::shared_ptr<DeconvolverState<T> > itsDS;
 

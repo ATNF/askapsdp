@@ -82,7 +82,6 @@ namespace askap {
       itsPsf.resize(itsNumberTerms);
       itsModel.resize(itsNumberTerms);
       itsWeight.resize(itsNumberTerms);
-      itsLipschitz.resize(itsNumberTerms);
 
       ASKAPLOG_INFO_STR(decbaselogger, "There are " << itsNumberTerms << " dirty images");
 
