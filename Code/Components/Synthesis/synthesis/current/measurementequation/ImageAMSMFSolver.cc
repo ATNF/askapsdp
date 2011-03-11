@@ -434,6 +434,10 @@ namespace askap
 	    // major cycle
 	    itsCleaners[imageTag]->state()->setCurrentIter(0);
 	    
+            casa::Array<float> cleanArray(planeIter.planeShape());
+            casa::convertArray<float, double>(cleanArray, planeIter.getPlane(ip.value(thisOrderParam)));
+            itsCleaners[imageTag]->setModel(cleanArray, order);
+
 	  } // end of 'order' loop
 	  
 	  ASKAPLOG_INFO_STR(logger, "Starting Minor Cycles" );
@@ -462,9 +466,7 @@ namespace askap
 	    const std::string thisOrderParam = iph.paramName();
 	    ASKAPLOG_INFO_STR(logger, "About to get model for plane="<<plane<<" Taylor order="<<order<<
 			      " for image "<<tmIt->first);
-	    casa::Array<double> slice = planeIter.getPlane(ip.value(thisOrderParam)).nonDegenerate();
-	    slice=unpadImage(itsCleaners[imageTag]->model(order));
-
+	    planeIter.getPlane(ip.value(thisOrderParam)).nonDegenerate()=unpadImage(itsCleaners[imageTag]->model(order));
 	  }
 	  // add extra parameters (cross-terms) to the to-be-fixed list
 	  for (uInt order = itsNumberTaylor; order<uInt(tmIt->second); ++order) {

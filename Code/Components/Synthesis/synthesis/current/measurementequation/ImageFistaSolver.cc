@@ -222,6 +222,8 @@ namespace askap
 	    // major cycle
 	    fistaDec->state()->setCurrentIter(0);
 	    
+            fistaDec->setModel(fistaArray);
+
 	    ASKAPLOG_INFO_STR(logger, "Starting FISTA deconvolution");
 	    // FISTA is not incremental so we need to set the
 	    // background image which remains fixed during one 
@@ -239,10 +241,8 @@ namespace askap
 	    } else {
 	      ip.add(peakResParam, fistaDec->state()->peakResidual());
 	    }
-	    //	    ip.fix(peakResParam);	    
-	    planeIter.getPlane(ip.value(indit->first)) =
-	      unpadImage(fistaDec->model());
-	    //	      unpadImage(fistaDec->model()+fistaDec->background());
+	    ip.fix(peakResParam);
+            planeIter.getPlane(ip.value(indit->first)).nonDegenerate() = unpadImage(fistaDec->model());
 	  } // loop over all planes of the image cube
 	} // loop over map of indices
       

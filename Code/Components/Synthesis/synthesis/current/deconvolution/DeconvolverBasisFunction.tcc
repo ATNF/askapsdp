@@ -227,7 +227,7 @@ namespace askap {
       this->itsL1image(0).resize(l1Shape);
       this->itsL1image(0).set(0.0);
       
-      this->model().set(T(0.0));
+      //      this->model().set(T(0.0));
 
     }
     
