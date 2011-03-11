@@ -198,6 +198,9 @@ namespace askap {
 		/// The base subsection of the image;
 		std::string itsBaseSubsection;
 
+		/// The base statistics subsection of the image;
+		std::string itsBaseStatSubsection;
+
                 /// An image showing relative weights of pixels
                 std::string itsWeightImage;
 

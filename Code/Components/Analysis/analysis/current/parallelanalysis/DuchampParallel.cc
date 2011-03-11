@@ -146,6 +146,9 @@ namespace askap {
 	    bool flagSubsection = parset.getBool("flagSubsection",false);
 	    this->itsBaseSubsection = parset.getString("subsection","");
 	    if(!flagSubsection) this->itsBaseSubsection = "";
+	    bool flagStatSubsection = parset.getBool("flagStatSec",false);
+	    this->itsBaseStatSubsection = parset.getString("statSec","");
+	    if(!flagStatSubsection) this->itsBaseStatSubsection = "";
             this->itsWeightImage = parset.getString("weightsimage", "");
 
             if (this->itsWeightImage != "" ){
@@ -1975,6 +1978,19 @@ namespace askap {
 	return dim;
       }
 
+	
+      void reportDim(long *dim, size_t size)
+      {
+
+	std::stringstream ss;
+	for (size_t i = 0; i < size; i++) {
+	  ss << dim[i];
+	  if(i < size-1) ss << " x ";
+	}
+	
+	ASKAPLOG_INFO_STR(logger, "Dimensions of input image = " << ss.str());
+	
+      }
 
       //**************************************************************//
 
@@ -2050,6 +2066,7 @@ namespace askap {
 	this->itsSubimageDef.define(wcs);
 	this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
 	long *dim = getDim(imagePtr);
+	reportDim(dim,imagePtr->ndim());
 	this->itsSubimageDef.setImageDim(dim, imagePtr->ndim());
 	
 	if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
@@ -2068,14 +2085,18 @@ namespace askap {
 	    ASKAPTHROW(AskapError, "Cannot parse the subsection string " << this->itsCube.pars().section().getSection());
 	  if (this->itsCube.pars().statsec().parse(dim, imagePtr->ndim()) == duchamp::FAILURE)
 	    ASKAPTHROW(AskapError, "Cannot parse the statistics subsection string " << this->itsCube.pars().statsec().getSection());
+	  if(!this->itsCube.pars().section().isValid())
+	    ASKAPTHROW(AskapError, "Pixel subsection " << this->itsBaseSubsection << " has no pixels");
+	  if(!this->itsCube.pars().statsec().isValid())
+	    ASKAPTHROW(AskapError, "Statistics subsection " << this->itsBaseStatSubsection << " has no pixels in common with the image or the pixel subsection requested");
 	}
 	
 	if(this->itsComms.isMaster() & this->itsCube.pars().getFlagStatSec() && !this->itsCube.pars().statsec().isValid())
 	  ASKAPTHROW(AskapError, "Statistics subsection has no valid pixels");
 	
-	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Using subsection " << this->itsCube.pars().section().getSection());
-	if(this->itsCube.pars().getFlagStatSec())
-	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Using stat-subsection " << this->itsCube.pars().statsec().getSection());
+	ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Using subsection " << this->itsCube.pars().section().getSection());
+	if(this->itsCube.pars().getFlagStatSec() && this->itsCube.pars().statsec().isValid())
+	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Using stat-subsection " << this->itsCube.pars().statsec().getSection());
 	
 
 	Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
