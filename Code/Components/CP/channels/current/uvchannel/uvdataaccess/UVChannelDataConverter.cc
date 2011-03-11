@@ -39,7 +39,7 @@
 
 // Using
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 using namespace askap::cp::channels;
 
 UVChannelDataConverter::UVChannelDataConverter()

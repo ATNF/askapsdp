@@ -41,7 +41,7 @@
 
 // Using
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 using namespace askap::cp::channels;
 using namespace askap::cp::common;
 

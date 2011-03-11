@@ -1,4 +1,4 @@
-/// @file UVChannelConnection.h
+/// @file PublisherActual.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CHANNELS_UVCHANNELCONNECTION_H
-#define ASKAP_CP_CHANNELS_UVCHANNELCONNECTION_H
+#ifndef ASKAP_CP_CHANNELS_PUBLISHERACTUAL_H
+#define ASKAP_CP_CHANNELS_PUBLISHERACTUAL_H
 
 // System includes
 #include <string>
@@ -33,53 +33,58 @@
 
 // ASKAPsoft includes
 #include "boost/scoped_ptr.hpp"
-#include "cms/Connection.h"
+#include "boost/shared_ptr.hpp"
 #include "cms/Session.h"
-#include "cms/ExceptionListener.h"
+#include "cms/MessageProducer.h"
+#include "cms/BytesMessage.h"
 
 // Local package includes
-#include "mq/LibraryWrapper.h"
+#include "uvchannel/UVChannelConnection.h"
 
 namespace askap {
 namespace cp {
 namespace channels {
 
-    class UVChannelConnection : protected cms::ExceptionListener {
+    class PublisherActual {
 
         public:
             /// @param[in] brokerURI    the URI used to identify and connect to
             /// the broker.
-            UVChannelConnection(const std::string& brokerURI);
+            PublisherActual(const std::string& brokerURI);
 
             /// @brief Destructor.
-            ~UVChannelConnection();
+            ~PublisherActual();
 
-            cms::Session* getSession(void);
+            /// @brief Send a byte message to the broker this connection is
+            /// connected to
+            /// @param[in] buffer byte buffer
+            /// @param[in] length the length of the buffer array in bytes
+            /// @param[in] topic pub/sub topic to send the message to
+            void sendByteMessage(const unsigned char* buffer,
+                    const std::size_t length,
+                    const std::string& topic);
 
-        protected:
-
-            /// @brief This is an implementation concept. It is the method
-            /// via which the client (i.e. this class) is notified of an
-            /// exception condition with the CMS provider.
-            /// @internal
-            virtual void onException(const cms::CMSException &ex);
+            boost::shared_ptr<cms::Destination> getTopic(const std::string& topic);
 
         private:
 
             // No support for assignment
-            UVChannelConnection& operator=(const UVChannelConnection& rhs);
+            PublisherActual& operator=(const PublisherActual& rhs);
 
             // No support for copy constructor
-            UVChannelConnection(const UVChannelConnection& src);
+            PublisherActual(const PublisherActual& src);
 
-            // ActiveMQ library wrapper (manages the init/shutdown)
-            LibraryWrapper mqlib;
+            // Channel connection
+            UVChannelConnection itsConnection;
 
-            // ActiveMQ Connection
-            boost::scoped_ptr<cms::Connection> itsConnection;
+            // ActiveMQ MessageProducer
+            boost::scoped_ptr<cms::MessageProducer> itsProducer;
 
-            // ActiveMQ Session
-            boost::scoped_ptr<cms::Session> itsSession;
+            // ActiveMQ BytesMessage
+            boost::scoped_ptr<cms::BytesMessage> itsMessage;
+
+            // Topic map
+            std::map<std::string, boost::shared_ptr<cms::Destination> > itsTopicMap;
     };
 
 };

@@ -44,7 +44,7 @@
 // Using
 using namespace casa;
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 using namespace askap::cp::channels;
 
 UVChannelConstDataIterator::UVChannelConstDataIterator(const UVChannelConfig& channelConfig,

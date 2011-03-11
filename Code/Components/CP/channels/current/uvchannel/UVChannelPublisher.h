@@ -40,7 +40,7 @@
 
 // Local package includes
 #include "uvchannel/UVChannelConfig.h"
-#include "uvchannel/UVChannelConnection.h"
+#include "uvchannel/PublisherActual.h"
 
 namespace askap {
 namespace cp {
@@ -59,7 +59,7 @@ namespace channels {
 
             // Returns the connection from the connection map, creating a new one
             // if there is not already a connection for the specified broker
-            boost::shared_ptr<UVChannelConnection> getConnection(const std::string& brokerId);
+            boost::shared_ptr<PublisherActual> getActual(const std::string& brokerId);
 
             // Mapping between channel names/number and brokers
             const UVChannelConfig itsConfig;
@@ -77,7 +77,7 @@ namespace channels {
             LOFAR::BlobOStream itsOut;
 
             // Connection map
-            std::map< std::string, boost::shared_ptr<UVChannelConnection> > itsConnectionMap;
+            std::map< std::string, boost::shared_ptr<PublisherActual> > itsConnectionMap;
 
             // No support for assignment
             UVChannelPublisher& operator=(const UVChannelPublisher& rhs);

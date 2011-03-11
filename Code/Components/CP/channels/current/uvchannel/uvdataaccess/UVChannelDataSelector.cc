@@ -34,9 +34,9 @@
 
 // Using
 using namespace askap;
-using namespace askap::synthesis;
-using namespace casa;
+using namespace askap::accessors;
 using namespace askap::cp::channels;
+using namespace casa;
 
 UVChannelDataSelector::UVChannelDataSelector()
 {

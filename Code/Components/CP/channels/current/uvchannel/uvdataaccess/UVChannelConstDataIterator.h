@@ -47,7 +47,7 @@ namespace channels {
 
 /// @brief An implementation of the IConstDataIterator interface for the
 /// uv-channel.
-class UVChannelConstDataIterator : virtual public askap::synthesis::IConstDataIterator {
+class UVChannelConstDataIterator : virtual public askap::accessors::IConstDataIterator {
     public:
         UVChannelConstDataIterator(const UVChannelConfig& channelConfig,
                                    const std::string& channelName,
@@ -56,7 +56,7 @@ class UVChannelConstDataIterator : virtual public askap::synthesis::IConstDataIt
 
         virtual void init();
 
-        virtual const askap::synthesis::IConstDataAccessor& operator*() const;
+        virtual const askap::accessors::IConstDataAccessor& operator*() const;
 
         virtual casa::Bool hasMore() const throw();
 

@@ -1,4 +1,4 @@
-/// @file UVChannelConnection.cc
+/// @file PublisherActual.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,85 +25,91 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "UVChannelConnection.h"
+#include "PublisherActual.h"
 
 // Include package level header file
 #include "askap_channels.h"
 
 // System includes
 #include <string>
+#include <map>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "boost/scoped_ptr.hpp"
-#include "activemq/core/ActiveMQConnection.h"
-#include "activemq/core/ActiveMQConnectionFactory.h"
-#include "cms/Connection.h"
 #include "cms/Session.h"
-#include "cms/ExceptionListener.h"
+#include "cms/Destination.h"
+#include "cms/MessageProducer.h"
+#include "cms/BytesMessage.h"
 
-ASKAP_LOGGER(logger, ".UVChannelConnection");
+// Local package includes
+#include "uvchannel/UVChannelConnection.h"
+
+ASKAP_LOGGER(logger, ".PublisherActual");
 
 // Using
 using namespace std;
 using namespace askap;
 using namespace askap::cp;
 using namespace askap::cp::channels;
-using namespace activemq;
-using namespace activemq::core;
 using namespace cms;
 
-UVChannelConnection::UVChannelConnection(const std::string& brokerURI)
+PublisherActual::PublisherActual(const std::string& brokerURI) : itsConnection(brokerURI)
 {
     ASKAPLOG_DEBUG_STR(logger, "Connecting with URI: " << brokerURI);
 
-    // Create a ConnectionFactory
-    boost::scoped_ptr<ActiveMQConnectionFactory> connectionFactory(
-        new ActiveMQConnectionFactory(brokerURI));
-
     try {
-        // Create a Connection
-        itsConnection.reset(connectionFactory->createConnection());
-        ((activemq::core::ActiveMQConnection*)itsConnection.get())->setUseAsyncSend(true);
-        itsConnection->start();
+        // Create a MessageProducer
+        itsProducer.reset(itsConnection.getSession()->createProducer(0));
+        itsProducer->setDeliveryMode(DeliveryMode::NON_PERSISTENT);
 
-        // Create a Session
-        itsSession.reset(itsConnection->createSession(cms::Session::AUTO_ACKNOWLEDGE));
+        // Create a BytesMessage
+        itsMessage.reset(itsConnection.getSession()->createBytesMessage());
     } catch (const cms::CMSException& e) {
         ASKAPLOG_WARN_STR(logger, "Exception connecting to uv-channel: " << e.getMessage());
         ASKAPTHROW(AskapError, e.getMessage());
     }
 }
 
-UVChannelConnection::~UVChannelConnection()
+PublisherActual::~PublisherActual()
 {
     ASKAPLOG_DEBUG_STR(logger, "Disconnecting");
     try {
-        itsConnection->stop();
+        // Cleanup message
+        itsMessage.reset();
 
-        // Cleanup session
-        itsSession->close();
-        itsSession.reset();
+        // Cleanup TopicMap
+        itsTopicMap.clear();
 
-        // Clean up connection
-        itsConnection->close();
-        itsConnection.reset();
+        // Cleanup producer
+        itsProducer->close();
+        itsProducer.reset();
     } catch (const cms::CMSException& e) {
-        ASKAPLOG_WARN_STR(logger, "Exception caught in ~UVChannelConnection: "
+        ASKAPLOG_WARN_STR(logger, "Exception caught in ~PublisherActual: "
                 << e.getMessage());
     } catch (...) {
         // No exception should escape from destructor
-        ASKAPLOG_WARN_STR(logger, "Exception caught in ~UVChannelConnection");
+        ASKAPLOG_WARN_STR(logger, "Exception caught in ~PublisherActual");
     }
 }
 
-cms::Session* UVChannelConnection::getSession(void)
+void PublisherActual::sendByteMessage(const unsigned char* buffer,
+        const std::size_t length,
+        const std::string& topic)
 {
-    return itsSession.get();
+    boost::shared_ptr<cms::Destination> dest = getTopic(topic);
+    itsMessage->setBodyBytes(buffer, length);
+    itsProducer->send(dest.get(), itsMessage.get());
 }
 
-void UVChannelConnection::onException(const cms::CMSException& e)
+boost::shared_ptr<cms::Destination> PublisherActual::getTopic(const std::string& topic)
 {
-    ASKAPLOG_WARN_STR(logger, "Exception on UVChannel: " << e.getMessage());
+    map< string, boost::shared_ptr<cms::Destination> >::const_iterator it;
+    it = itsTopicMap.find(topic);
+    if (it == itsTopicMap.end()) {
+        ASKAPLOG_DEBUG_STR(logger, "Creating destination for topic: " << topic);
+        itsTopicMap[topic].reset(itsConnection.getSession()->createTopic(topic));
+    }
+    return itsTopicMap[topic];
 }

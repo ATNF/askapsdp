@@ -54,7 +54,7 @@ namespace channels {
 /// - setVelocityFrame() is not supported and throws an exception.
 /// - setRestFrequency() is not supported and throws an exception.
 ///
-class UVChannelDataConverter : virtual public askap::synthesis::BasicDataConverter {
+class UVChannelDataConverter : virtual public askap::accessors::BasicDataConverter {
     public:
         UVChannelDataConverter();
 

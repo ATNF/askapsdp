@@ -44,7 +44,7 @@
 
 // Local package includes
 #include "uvchannel/UVChannelConfig.h"
-#include "uvchannel/UVChannelConnection.h"
+#include "uvchannel/PublisherActual.h"
 
 ASKAP_LOGGER(logger, ".UVChannelPublisher");
 
@@ -80,12 +80,12 @@ void UVChannelPublisher::publish(const askap::cp::common::VisChunk& data,
     itsOut.putEnd();
 
     // Send
-    getConnection(brokerId)->sendByteMessage(itsObv.getBuffer(), itsObv.size(), topic);
+    getActual(brokerId)->sendByteMessage(itsObv.getBuffer(), itsObv.size(), topic);
 }
 
-boost::shared_ptr<UVChannelConnection> UVChannelPublisher::getConnection(const std::string& brokerId)
+boost::shared_ptr<PublisherActual> UVChannelPublisher::getActual(const std::string& brokerId)
 {
-    map< std::string, boost::shared_ptr<UVChannelConnection> >::iterator it;
+    map< std::string, boost::shared_ptr<PublisherActual> >::iterator it;
     if (itsConnectionMap.find(brokerId) == itsConnectionMap.end()) {
         // Need to create the connecton
         stringstream ss;
@@ -93,7 +93,7 @@ boost::shared_ptr<UVChannelConnection> UVChannelPublisher::getConnection(const s
         ss << "&conection.useAsyncSend=true";
         ss << "&turboBoost=true";
         ss << "&socketBufferSize=16384";
-        itsConnectionMap[brokerId] = boost::shared_ptr<UVChannelConnection>(new UVChannelConnection(ss.str()));
+        itsConnectionMap[brokerId] = boost::shared_ptr<PublisherActual>(new PublisherActual(ss.str()));
     }
 
     return itsConnectionMap[brokerId];

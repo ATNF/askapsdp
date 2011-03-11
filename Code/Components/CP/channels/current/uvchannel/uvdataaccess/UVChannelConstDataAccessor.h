@@ -44,7 +44,7 @@ namespace channels {
 
 /// @brief An implementation of the IConstDataAccessor interface for the
 /// visibility stream.
-class UVChannelConstDataAccessor : virtual public askap::synthesis::IConstDataAccessor {
+class UVChannelConstDataAccessor : virtual public askap::accessors::IConstDataAccessor {
     public:
         explicit UVChannelConstDataAccessor(const askap::cp::common::VisChunk& chunk);
 
@@ -100,7 +100,7 @@ class UVChannelConstDataAccessor : virtual public askap::synthesis::IConstDataAc
 
         const askap::cp::common::VisChunk& itsChunk;
 
-        askap::synthesis::UVWRotationHandler itsRotatedUVW;
+        askap::accessors::UVWRotationHandler itsRotatedUVW;
 };
 
 } // namespace channels

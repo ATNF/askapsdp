@@ -43,7 +43,7 @@ namespace cp {
 namespace channels {
 
 /// @brief An implementation of IConstDataSource for streamed visibility data.
-class UVChannelConstDataSource : virtual public askap::synthesis::IConstDataSource {
+class UVChannelConstDataSource : virtual public askap::accessors::IConstDataSource {
     public:
         /// @brief Construct a read-only data source object.
         /// @param[in] the source VisStreamObject.
@@ -69,7 +69,7 @@ class UVChannelConstDataSource : virtual public askap::synthesis::IConstDataSour
         /// with a particular DataConverter is undefined, if you change
         /// the DataConverter after the creation of an iterator, unless you
         /// call init() of the iterator (and start a new iteration loop).
-        virtual askap::synthesis::IDataConverterPtr createConverter() const;
+        virtual askap::accessors::IDataConverterPtr createConverter() const;
 
         /// @brief obtain a read-only iterator
         /// @details
@@ -87,9 +87,9 @@ class UVChannelConstDataSource : virtual public askap::synthesis::IConstDataSour
         /// The lifetime of this iterator is the same as the lifetime of
         /// the DataSource object. Therefore, it can be reused multiple times,
         /// if necessary. Call init() to rewind the iterator.
-        virtual boost::shared_ptr<askap::synthesis::IConstDataIterator> createConstIterator(
-            const askap::synthesis::IDataSelectorConstPtr &sel,
-            const askap::synthesis::IDataConverterConstPtr &conv) const;
+        virtual boost::shared_ptr<askap::accessors::IConstDataIterator> createConstIterator(
+            const askap::accessors::IDataSelectorConstPtr &sel,
+            const askap::accessors::IDataConverterConstPtr &conv) const;
 
         /// @brief Create a selector object corresponding to this type of the
         /// DataSource.
@@ -106,7 +106,7 @@ class UVChannelConstDataSource : virtual public askap::synthesis::IConstDataSour
         /// with this DataSelector is undefined, if one changes the selection
         /// unless the init method is called for the iterator (and the new
         /// iteration loop is started).
-        virtual askap::synthesis::IDataSelectorPtr createSelector() const;
+        virtual askap::accessors::IDataSelectorPtr createSelector() const;
 
     private:
         const UVChannelConfig itsChannelConfig;

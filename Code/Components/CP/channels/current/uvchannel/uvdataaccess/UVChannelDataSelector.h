@@ -46,7 +46,7 @@ namespace channels {
 ///
 /// @details This implementation currently supports no selection. All
 /// "choose" methods throw an exception when called.
-class UVChannelDataSelector : public askap::synthesis::IDataSelector {
+class UVChannelDataSelector : public askap::accessors::IDataSelector {
     public:
         explicit UVChannelDataSelector();
 
