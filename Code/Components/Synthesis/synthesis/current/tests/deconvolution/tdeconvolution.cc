@@ -43,8 +43,6 @@ int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
 
-    runner.addTest( askap::synthesis::EntropyTest::suite());
-    runner.addTest( askap::synthesis::BasisFunctionTest::suite());
     runner.addTest( askap::synthesis::DeconvolverBaseTest::suite());
     runner.addTest( askap::synthesis::DeconvolverFistaTest::suite());
     runner.addTest( askap::synthesis::DeconvolverHogbomTest::suite());
@@ -52,6 +50,8 @@ int main(int argc, char *argv[])
     runner.addTest( askap::synthesis::DeconvolverControlTest::suite());
     runner.addTest( askap::synthesis::DeconvolverMonitorTest::suite());
     runner.addTest( askap::synthesis::DeconvolverStateTest::suite());
+    runner.addTest( askap::synthesis::EntropyTest::suite());
+    runner.addTest( askap::synthesis::BasisFunctionTest::suite());
     bool wasSuccessful = runner.run();
 
     return wasSuccessful ? 0 : 1;

@@ -91,8 +91,8 @@ namespace askap {
 	ASKAPASSERT(dirtyVec(term).nonDegenerate().shape().nelements()==2);
 	ASKAPASSERT(psfVec(term).nonDegenerate().shape().nelements()==2);
 	
-	this->itsDirty(term)=dirtyVec(term).nonDegenerate();
-	this->itsPsf(term)=psfVec(term).nonDegenerate();
+	this->itsDirty(term)=dirtyVec(term).nonDegenerate().copy();
+	this->itsPsf(term)=psfVec(term).nonDegenerate().copy();
 
 	ASKAPASSERT(this->itsPsf(term).shape().conform(this->itsDirty(term).shape()));
 
@@ -115,11 +115,12 @@ namespace askap {
       ASKAPLOG_INFO_STR(decbaselogger, "Maximum of PSF(0) = " << maxVal << " at " << maxPos);
       ASKAPLOG_INFO_STR(decbaselogger, "Minimum of PSF(0) = " << minVal << " at " << minPos);
 
-      ASKAPCHECK((maxPos(0)==nx/2)&&(maxPos(1)==ny/2), "Peak of PSF(0) is at " << maxPos << ": not at centre pixel: [" << nx/2 << "," << ny/2 << "]");
+      if((maxPos(0)!=nx/2)||(maxPos(1)!=ny/2)) {
+        ASKAPTHROW(AskapError, "Peak of PSF(0) is at " << maxPos << ": not at centre pixel: [" << nx/2 << "," << ny/2 << "]");
+      }
       
       this->itsPeakPSFVal = maxVal;
-      this->itsPeakPSFPos(0)=maxPos(0);
-      this->itsPeakPSFPos(1)=maxPos(1);
+      this->itsPeakPSFPos = maxPos;
       
       itsDS = boost::shared_ptr<DeconvolverState<T> >(new DeconvolverState<T>());
       ASKAPASSERT(itsDS);
@@ -127,6 +128,8 @@ namespace askap {
       ASKAPASSERT(itsDC);
       itsDM = boost::shared_ptr<DeconvolverMonitor<T> >(new DeconvolverMonitor<T>());
       ASKAPASSERT(itsDM);
+
+      this->validateShapes();
 
       auditAllMemory();
 
@@ -144,6 +147,7 @@ namespace askap {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       this->itsModel(term)=model.nonDegenerate().copy();
+      this->validateShapes();
     }
     
     template<class T, class FT>
@@ -155,12 +159,14 @@ namespace askap {
     }
     
     template<class T, class FT>
-    void DeconvolverBase<T,FT>::updateDirty(Array<T>& dirty) {
-      if (!dirty.shape().nonDegenerate().conform(this->dirty(0).shape())) {
+    void DeconvolverBase<T,FT>::updateDirty(Array<T>& dirty, const uInt term) {
+      ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
+      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
+      if (!dirty.shape().nonDegenerate().conform(this->dirty(term).shape())) {
         throw(AskapError("Updated dirty image has different shape"));
       }
-      this->itsDirty.resize(1);
-      this->itsDirty(0)=dirty.nonDegenerate();
+      this->itsDirty(term)=dirty.nonDegenerate().copy();
+      this->validateShapes();
     }
     
     template<class T, class FT>
@@ -173,8 +179,9 @@ namespace askap {
 	if (!dirtyVec(term).nonDegenerate().shape().conform(this->itsDirty(term).nonDegenerate().shape())) {
 	  throw(AskapError("Updated dirty image has different shape from original"));
 	}
-	this->itsDirty(term)=dirtyVec(term).nonDegenerate();
+	this->itsDirty(term)=dirtyVec(term).nonDegenerate().copy();
       }
+      this->validateShapes();
     }
     
     template<class T, class FT>
@@ -203,7 +210,7 @@ namespace askap {
     void DeconvolverBase<T,FT>::setWeight(Array<T> weight, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
       ASKAPCHECK(term>=0, "Term " << term << " less than zero");
-      this->itsWeight(term)=weight.nonDegenerate();
+      this->itsWeight(term)=weight.nonDegenerate().copy();
     }
     
     template<class T, class FT>
@@ -262,11 +269,42 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::validateShapes()
     {
-      ASKAPASSERT(this->model().shape().size());
-      // The model and dirty image shapes only need to agree on the
-      // first two axes
-      ASKAPASSERT(this->model().shape()[0]==this->dirty().shape()[0]);
-      ASKAPASSERT(this->model().shape()[1]==this->dirty().shape()[1]);
+      casa::IPosition minPos;
+      casa::IPosition maxPos;
+      T minVal, maxVal;
+      casa::minMax(minVal, maxVal, minPos, maxPos, this->psf(0));
+      Int nx(this->psf(0).shape()(0));
+      Int ny(this->psf(0).shape()(1));
+      if((maxPos(0)!=nx/2)||(maxPos(1)!=ny/2)) {
+        ASKAPTHROW(AskapError, "Peak of PSF(0) is at " << maxPos << ": not at centre pixel: [" << nx/2 << "," << ny/2 << "]");
+      }
+
+      for (uInt term=0;term<itsNumberTerms;term++) {
+        if(!(this->dirty(term).shape().size())) {
+          ASKAPTHROW(AskapError, "Dirty image has zero size");
+        }
+        if(!(this->psf(term).shape().size())) {
+          ASKAPTHROW(AskapError, "PSF image has zero size");
+        }
+        if(!(this->psf(term).shape()[0]==this->dirty().shape()[0])||!(this->psf(term).shape()[1]==this->dirty().shape()[1])) {
+          ASKAPTHROW(AskapError, "PSF has different shape from dirty image");
+        }
+
+        // The model and dirty image shapes only need to agree on the
+        // first two axes
+        if(!(this->model(term).shape().size())) {
+          ASKAPTHROW(AskapError, "Model has zero size");
+        }
+        if(!(this->model(term).shape()[0]==this->dirty().shape()[0])||!(this->model(term).shape()[1]==this->dirty().shape()[1])) {
+          ASKAPTHROW(AskapError, "Model has different shape from dirty image");
+        }
+      }
+      if(!this->itsPeakPSFPos.size()) {
+        ASKAPTHROW(AskapError, "Position of PSF peak not defined " << this->itsPeakPSFPos);
+      }
+      if(this->itsPeakPSFVal==0.0) {
+        ASKAPTHROW(AskapError, "PSF peak is zero");
+      }
     }
     
     template<class T, class FT>
@@ -339,6 +377,20 @@ namespace askap {
       ASKAPLOG_DEBUG_STR(decbaselogger, "PSFs          " << auditMemory(itsPsf));
       ASKAPLOG_DEBUG_STR(decbaselogger, "Models        " << auditMemory(itsModel));
       ASKAPLOG_DEBUG_STR(decbaselogger, "Weight images " << auditMemory(itsWeight));
+    }
+
+    template<class T, class FT>
+    IPosition DeconvolverBase<T,FT>::findSubPsfShape() {
+      IPosition subPsfShape(2, this->model().shape()(0), this->model().shape()(1));
+      // Only use the specified psfWidth if it makes sense
+      if(this->control()->psfWidth()>0) {
+	uInt psfWidth=this->control()->psfWidth();
+	if((psfWidth<uInt(this->model().shape()(0)))&&(psfWidth<uInt(this->model().shape()(1)))) {
+	  subPsfShape(0)=psfWidth;
+	  subPsfShape(1)=psfWidth;
+	}
+      }
+      return subPsfShape;
     }
   } // namespace synthesis
   

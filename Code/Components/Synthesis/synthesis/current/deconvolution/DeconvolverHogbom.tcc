@@ -71,6 +71,7 @@ namespace askap {
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf)
     {
     };
+
     template<class T, class FT>
     void DeconvolverHogbom<T,FT>::initialise()
     {
@@ -104,8 +105,6 @@ namespace askap {
     void DeconvolverHogbom<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
       DeconvolverBase<T,FT>::configure(parset);
-      this->control()->setGain(parset.getFloat("gain", 0.1));
-      this->control()->setPSFWidth(parset.getInt("psfwidth", 0));
     }
 
     // This contains the heart of the Hogbom Clean algorithm
@@ -120,6 +119,8 @@ namespace askap {
       T minVal, maxVal;
       if (isMasked) {
         casa::minMaxMasked(minVal, maxVal, minPos, maxPos, this->dirty(0), this->weight(0));
+        minVal=this->dirty(0)(minPos);
+        maxVal=this->dirty(0)(maxPos);
       }
       else {
         casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty(0));
@@ -127,7 +128,8 @@ namespace askap {
       //
       ASKAPLOG_INFO_STR(dechogbomlogger, "Maximum = " << maxVal << " at location " << maxPos);
       ASKAPLOG_INFO_STR(dechogbomlogger, "Minimum = " << minVal << " at location " << minPos);
-      T absPeakVal;
+
+      T absPeakVal=0.0;
       casa::IPosition absPeakPos;
       if(abs(minVal)<abs(maxVal)) {
         absPeakVal=maxVal;
@@ -147,48 +149,52 @@ namespace askap {
         return True;
       }
 
-      casa::IPosition residualShape(this->dirty().shape());
-      casa::IPosition psfShape(this->psf().shape());
-      casa::uInt ndim(this->dirty().shape().size());
-
-      casa::IPosition residualStart(ndim,0), residualEnd(ndim,0), residualStride(ndim,1);
-      casa::IPosition psfStart(ndim,0), psfEnd(ndim,0), psfStride(ndim,1);
-
-      Int psfWidth=this->psf().shape()(0);
-      psfWidth=(psfWidth-psfWidth%2)/2;
-
-      // Only use the specified psfWidth if it makes sense
-      if((this->control()->psfWidth()>0)&&(this->control()->psfWidth()<psfWidth)) {
-        psfWidth=(this->control()->psfWidth()-this->control()->psfWidth()%2);
-      }
-      for (uInt dim=0;dim<ndim;dim++) {
-
-        // Wrangle the start, end, and shape into consistent form. It took me 
-        // quite a while to figure this out (slow brain day) so it may be
-        // that there are some edge cases for which it fails.
-        // Note that the psfWidth can be less than the maximum, and that the
-        // residual image and psf can be different sizes
-        // Next two lines are ALWAYS correct
-        residualStart(dim)=max(0, Int(absPeakPos(dim)-psfWidth));
-        residualEnd(dim)=min(Int(absPeakPos(dim)+psfWidth-1), Int(residualShape(dim)-1));
-        // Now we have to deal with the PSF. Here we want to use enough of the
-        // PSF to clean the residual image.
-        psfStart(dim)=max(0, Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualStart(dim))));
-        psfEnd(dim)=min(Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualEnd(dim))),
-                        Int(psfShape(dim)-1));
-      }
+      uInt nx(this->psf(0).shape()(0));
+      uInt ny(this->psf(0).shape()(1));
       
-      casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
+      IPosition subPsfShape(this->findSubPsfShape());
+
+      // Now we adjust model and residual for this component
+      const casa::IPosition residualShape(this->dirty(0).shape().nonDegenerate());
+      IPosition subPsfStart(2,nx/2-subPsfShape(0)/2,ny/2-subPsfShape(1)/2);
+      IPosition subPsfEnd(2,nx/2+subPsfShape(0)/2-1,ny/2+subPsfShape(1)/2-1);
+      IPosition subPsfStride(2,1,1);
+      
+      Slicer subPsfSlicer(subPsfStart, subPsfEnd, subPsfStride, Slicer::endIsLast);
+      
+      const casa::IPosition psfShape(2, nx, ny);
+      
+      casa::IPosition residualStart(2,0), residualEnd(2,0), residualStride(2,1);
+      casa::IPosition psfStart(2,0), psfEnd(2,0), psfStride(2,1);
+      
+      const casa::IPosition modelShape(this->model(0).shape().nonDegenerate());
+      casa::IPosition modelStart(2,0), modelEnd(2,0), modelStride(2,1);
+      
+      // Wrangle the start, end, and shape into consistent form.
+      for (uInt dim=0;dim<2;dim++) {
+	residualStart(dim)=max(0, Int(absPeakPos(dim)-psfShape(dim)/2));
+	residualEnd(dim)=min(Int(absPeakPos(dim)+psfShape(dim)/2-1), Int(residualShape(dim)-1));
+	// Now we have to deal with the PSF. Here we want to use enough of the
+	// PSF to clean the residual image.
+	psfStart(dim)=max(0, Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualStart(dim))));
+	psfEnd(dim)=min(Int(this->itsPeakPSFPos(dim)-(absPeakPos(dim)-residualEnd(dim))),
+			Int(psfShape(dim)-1));
+	
+	modelStart(dim)=residualStart(dim);
+	modelEnd(dim)=residualEnd(dim);
+      }
+
       casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
+      casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
+      casa::Slicer modelSlicer(modelStart, modelEnd, modelStride, Slicer::endIsLast);
+      
       if(!(residualSlicer.length()==psfSlicer.length())||!(residualSlicer.stride()==psfSlicer.stride())) {
 	ASKAPLOG_INFO_STR(dechogbomlogger, "Peak of PSF  : " << this->itsPeakPSFPos );
 	ASKAPLOG_INFO_STR(dechogbomlogger, "Peak of residual: " << absPeakPos );
-	ASKAPLOG_INFO_STR(dechogbomlogger, "PSF width    : " << psfWidth );
 	ASKAPLOG_INFO_STR(dechogbomlogger, "Residual start  : " << residualStart << " end: " << residualEnd );
 	ASKAPLOG_INFO_STR(dechogbomlogger, "PSF   start  : " << psfStart << " end: " << psfEnd );
 	ASKAPLOG_INFO_STR(dechogbomlogger, "Residual slicer : " << residualSlicer );
 	ASKAPLOG_INFO_STR(dechogbomlogger, "PSF slicer   : " << psfSlicer );
-
         throw AskapError("Mismatch in slicers for residual and psf images");
       }
       
@@ -196,6 +202,7 @@ namespace askap {
       this->model()(absPeakPos) = this->model()(absPeakPos) + this->control()->gain()*absPeakVal;      
       
       // Subtract entire PSF from residual image
+
       this->dirty()(residualSlicer) = this->dirty()(residualSlicer)
         - this->control()->gain()*absPeakVal*this->psf()(psfSlicer);
       

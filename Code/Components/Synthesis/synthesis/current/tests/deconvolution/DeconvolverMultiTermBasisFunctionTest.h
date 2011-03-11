@@ -46,10 +46,9 @@ class DeconvolverMultiTermBasisFunctionTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(DeconvolverMultiTermBasisFunctionTest);
   CPPUNIT_TEST(testCreate);
-  // Does not work here yet!
   CPPUNIT_TEST(testDeconvolveCenter);
   CPPUNIT_TEST_EXCEPTION(testWrongShape, casa::ArrayShapeError);
-  CPPUNIT_TEST_EXCEPTION(testDeconvolveOffsetPSF, casa::ArrayConformanceError);
+  CPPUNIT_TEST_EXCEPTION(testDeconvolveOffsetPSF, AskapError);
   CPPUNIT_TEST_SUITE_END();
 public:
    
@@ -117,7 +116,7 @@ public:
    
   void testDeconvolveCenter() {
     itsDB->dirty().set(0.0);
-    itsDB->dirty()(IPosition(4,50,50,0,0))=1.0;
+    itsDB->dirty()(IPosition(2,50,50))=1.0;
     CPPUNIT_ASSERT(itsDB->deconvolve());
     CPPUNIT_ASSERT(itsDB->control()->terminationCause()==DeconvolverControl<Float>::CONVERGED);
   }

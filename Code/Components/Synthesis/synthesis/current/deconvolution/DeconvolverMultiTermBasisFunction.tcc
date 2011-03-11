@@ -200,7 +200,7 @@ namespace askap {
       ASKAPLOG_DEBUG_STR(decmtbflogger,
 			"Updating Multi-Term Basis Function deconvolver for change in basis function");
 
-      IPosition subPsfShape(findSubPsfShape());
+      IPosition subPsfShape(this->findSubPsfShape());
 
       // Use a smaller size for the psfs if specified. 
       this->itsBasisFunction->initialise(subPsfShape);
@@ -282,20 +282,6 @@ namespace askap {
     }
     
     template<class T, class FT>
-    IPosition DeconvolverMultiTermBasisFunction<T,FT>::findSubPsfShape() {
-      IPosition subPsfShape(2, this->model().shape()(0), this->model().shape()(1));
-      // Only use the specified psfWidth if it makes sense
-      if(this->control()->psfWidth()>0) {
-	uInt psfWidth=this->control()->psfWidth();
-	if((psfWidth<uInt(this->model().shape()(0)))&&(psfWidth<uInt(this->model().shape()(1)))) {
-	  subPsfShape(0)=psfWidth;
-	  subPsfShape(1)=psfWidth;
-	}
-      }
-      return subPsfShape;
-    }
-
-    template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::initialisePSF()
     {
       
@@ -305,7 +291,7 @@ namespace askap {
       
       ASKAPLOG_DEBUG_STR(decmtbflogger,
 			"Updating Multi-Term Basis Function deconvolver for change in basis function");
-      IPosition subPsfShape(findSubPsfShape());
+      IPosition subPsfShape(this->findSubPsfShape());
 
       Array<FT> work(subPsfShape);
       
@@ -388,9 +374,10 @@ namespace askap {
 		subXFRVec(term1+term2);
 	      scimath::fft2d(work, false);
 	      ASKAPLOG_DEBUG_STR(decmtbflogger, "Base(" << base1 << ")*Base(" << base2
-				<< ")*PSF(" << term1+term2
-				<< "): max = " << max(real(work))
-				<< " min = " << min(real(work)));
+                                 << ")*PSF(" << term1+term2
+                                 << "): max = " << max(real(work))
+                                 << " min = " << min(real(work))
+                                 << " centre = " << real(work(subPsfPeak)));
 	      itsPSFCrossTerms(base1,base2)(term1,term2)=real(work);
 	      itsPSFCrossTerms(base2,base1)(term1,term2)=itsPSFCrossTerms(base1,base2)(term1,term2);
 	      itsPSFCrossTerms(base1,base2)(term2,term1)=itsPSFCrossTerms(base1,base2)(term1,term2);
@@ -591,7 +578,7 @@ namespace askap {
       
       // For the psf convolutions, we only need a small part of the
       // basis functions so we recalculate for that size
-      IPosition subPsfShape(findSubPsfShape());
+      IPosition subPsfShape(this->findSubPsfShape());
 
       uInt nBases(this->itsResidualBasis.nelements());
       
@@ -614,8 +601,17 @@ namespace askap {
       this->state()->setObjectiveFunction(abs(absPeakVal));
       this->state()->setTotalFlux(sum(this->model(0)));
       
+      uInt nx(this->psf(0).shape()(0));
+      uInt ny(this->psf(0).shape()(1));
+      
       // Now we adjust model and residual for this component
       const casa::IPosition residualShape(this->dirty(0).shape().nonDegenerate());
+      IPosition subPsfStart(2,nx/2-subPsfShape(0)/2,ny/2-subPsfShape(1)/2);
+      IPosition subPsfEnd(2,nx/2+subPsfShape(0)/2-1,ny/2+subPsfShape(1)/2-1);
+      IPosition subPsfStride(2,1,1);
+      
+      Slicer subPsfSlicer(subPsfStart, subPsfEnd, subPsfStride, Slicer::endIsLast);
+      
       const casa::IPosition psfShape(2, this->itsBasisFunction->basisFunction().shape()(0),
 				     this->itsBasisFunction->basisFunction().shape()(1));
       

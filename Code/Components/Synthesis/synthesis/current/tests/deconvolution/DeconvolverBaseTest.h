@@ -49,23 +49,17 @@ class DeconvolverBaseTest : public CppUnit::TestFixture
 public:
    
   void setUp() {
-    IPosition dimensions(4,100,100,1,1);
+    IPosition dimensions(2,100,100);
     itsDirty.reset(new Array<Float>(dimensions));
     itsDirty->set(0.0);
     itsPsf.reset(new Array<Float>(dimensions));
     itsPsf->set(0.0);
-    (*itsPsf)(IPosition(4,50,50,0,0))=1.0;
+    (*itsPsf)(IPosition(2,50,50))=1.0;
     itsDB = DeconvolverBase<Float,Complex>::ShPtr(new DeconvolverBase<Float, Complex>(*itsDirty, *itsPsf));
     CPPUNIT_ASSERT(itsDB);
     CPPUNIT_ASSERT(itsDB->control());
     CPPUNIT_ASSERT(itsDB->monitor());
     CPPUNIT_ASSERT(itsDB->state());
-    boost::shared_ptr<DeconvolverControl<Float> > DC(new DeconvolverControl<Float>::DeconvolverControl());
-    CPPUNIT_ASSERT(itsDB->setControl(DC));
-    boost::shared_ptr<DeconvolverMonitor<Float> > DM(new DeconvolverMonitor<Float>::DeconvolverMonitor());
-    CPPUNIT_ASSERT(itsDB->setMonitor(DM));
-    boost::shared_ptr<DeconvolverState<Float> > DS(new DeconvolverState<Float>::DeconvolverState());
-    CPPUNIT_ASSERT(itsDB->setControl(DC));
     itsWeight.reset(new Array<Float>(dimensions));
     itsWeight->set(10.0);
     itsDB->setWeight(*itsWeight);

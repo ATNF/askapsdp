@@ -104,7 +104,7 @@ namespace askap {
       /// @brief Update only the dirty image
       /// @detail Update an existing deconvolver for a changed dirty image
       /// @param[in] dirty Dirty image (array)
-      virtual void updateDirty(Array<T>& dirty);
+      virtual void updateDirty(Array<T>& dirty, const uInt term=0);
 
       /// @brief Update only the dirty images
       /// @detail Update an existing deconvolver for a changed dirty images.
@@ -202,6 +202,10 @@ namespace askap {
 
       /// The control used for the deconvolver
       boost::shared_ptr<DeconvolverControl<T> > itsDC;
+
+      // Find the shape of the PSF to be used, this includes
+      // the effects of psfwidth
+      IPosition findSubPsfShape();
 
       /// The monitor used for the deconvolver
       boost::shared_ptr<DeconvolverMonitor<T> > itsDM;

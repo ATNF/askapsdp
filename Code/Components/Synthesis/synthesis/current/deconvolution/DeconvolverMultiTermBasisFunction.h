@@ -160,9 +160,6 @@ namespace askap {
 
       void chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos, Vector<T>& peakValues);
 
-      // Find shape of cut down PSF
-      IPosition findSubPsfShape();
-
       // Long vector of PSFs
       Vector<Array<T> > itsPsfLongVec;
 
