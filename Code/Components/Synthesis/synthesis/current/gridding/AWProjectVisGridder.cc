@@ -93,7 +93,7 @@ namespace askap {
     }
     
     /// Initialize the indices into the cube.
-    void AWProjectVisGridder::initIndices(const IConstDataAccessor& acc) {
+    void AWProjectVisGridder::initIndices(const accessors::IConstDataAccessor& acc) {
       // calculate currentField
       indexField(acc);
       
@@ -221,7 +221,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
     /// @todo Make initConvolutionFunction more robust
-    void AWProjectVisGridder::initConvolutionFunction(const IConstDataAccessor& acc) {
+    void AWProjectVisGridder::initConvolutionFunction(const accessors::IConstDataAccessor& acc) {
       casa::MVDirection out = getImageCentre();
       const int nSamples = acc.nRow();
       

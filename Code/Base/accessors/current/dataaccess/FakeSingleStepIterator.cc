@@ -40,7 +40,7 @@
 #include <askap/AskapUtil.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief initialize stubbed iterator
 FakeSingleStepIterator::FakeSingleStepIterator() : itsOriginFlag(true) {}

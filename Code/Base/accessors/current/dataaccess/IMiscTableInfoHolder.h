@@ -46,7 +46,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface which handles miscelaneous table information
 /// @details The idea of this interface and a derived MiscTableInfoHolder
@@ -74,7 +74,7 @@ struct IMiscTableInfoHolder : virtual public IHolder
   virtual const std::string& defaultDataColumnName() const = 0;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

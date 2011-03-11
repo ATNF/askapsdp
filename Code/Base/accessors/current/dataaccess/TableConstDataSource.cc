@@ -40,7 +40,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 using namespace casa;
 
 /// @brief construct a read-only data source object

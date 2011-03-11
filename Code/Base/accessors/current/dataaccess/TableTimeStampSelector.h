@@ -50,7 +50,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Generalized selection on epoch in the table-based case
 /// @details This class representing a selection of visibility

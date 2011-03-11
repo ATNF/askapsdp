@@ -125,7 +125,7 @@ void AProjectWStackVisGridder::initialiseSumOfWeights()
 }
 
 /// Initialize the indices into the cube.
-void AProjectWStackVisGridder::initIndices(const IConstDataAccessor& acc) {
+void AProjectWStackVisGridder::initIndices(const accessors::IConstDataAccessor& acc) {
     
     // this calculates current field id
     indexField(acc);
@@ -216,7 +216,7 @@ void AProjectWStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
 /// Initialize the convolution function into the cube. If necessary this
 /// could be optimized by using symmetries.
 /// @todo Make initConvolutionFunction more robust
-void AProjectWStackVisGridder::initConvolutionFunction(const IConstDataAccessor& acc) {
+void AProjectWStackVisGridder::initConvolutionFunction(const accessors::IConstDataAccessor& acc) {
 
     ASKAPDEBUGASSERT(itsIllumination);
     // just to avoid a repeated call to a virtual function from inside the loop

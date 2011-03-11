@@ -35,7 +35,7 @@
 #include <askap/AskapError.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief construct the handler
 /// @details Set up basic parameters of the underlying machine cache.

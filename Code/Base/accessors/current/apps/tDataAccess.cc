@@ -54,7 +54,7 @@ using std::cerr;
 using std::endl;
 
 using namespace askap;
-using namespace synthesis;
+using namespace accessors;
 
 void timeDependentSubtableTest(const string &ms, const IConstDataSource &ds) 
 {

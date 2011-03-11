@@ -43,7 +43,7 @@
 
 namespace askap {
 	
-namespace synthesis {
+namespace accessors {
 
 /// to be able to link this class to appropriate iterator
 /// @ingroup dataaccess_tab
@@ -294,7 +294,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

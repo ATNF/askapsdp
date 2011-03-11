@@ -51,7 +51,7 @@ namespace synthesis {
 /// @param[in] row row of the chunk to work with
 /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
 /// this effect
-inline scimath::ComplexDiffMatrix LeakageTerm::get(const IConstDataAccessor &chunk, 
+inline scimath::ComplexDiffMatrix LeakageTerm::get(const accessors::IConstDataAccessor &chunk, 
                                       casa::uInt row) const
 {
    const casa::uInt nPol = chunk.nPol();

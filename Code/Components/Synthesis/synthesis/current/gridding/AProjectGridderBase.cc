@@ -44,6 +44,7 @@ ASKAP_LOGGER(logger, ".gridding.aprojectgridderbase");
 
 using namespace askap;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief initialise common part for mosaicing gridders
 /// @param[in] maxFeeds Maximum number of feeds allowed

@@ -47,7 +47,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 	
 /// short cut for shared pointer to IDataSelector
 typedef boost::shared_ptr<IDataSelector> IDataSelectorPtr;
@@ -206,6 +206,6 @@ public:
 	virtual IDataSelectorPtr createSelector() const = 0;
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 } // end of namespace askap
 #endif // I_CONST_DATA_SOURCE_H

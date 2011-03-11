@@ -40,7 +40,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Interface class for read-only access to visibility data
 /// @details IConstDataAccessor is an interface class for read-only 
@@ -201,7 +201,7 @@ public:
 	virtual const casa::Vector<casa::Stokes::StokesTypes>& stokes() const = 0;
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 

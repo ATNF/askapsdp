@@ -53,6 +53,7 @@ ASKAP_LOGGER(logger, ".parallel");
 
 using namespace askap;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief Constructor from ParameterSet
 /// @details The parset is used to construct the internal state. We could

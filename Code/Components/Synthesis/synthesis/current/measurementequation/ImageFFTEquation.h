@@ -65,23 +65,23 @@ namespace askap
         /// @param ip Parameters
         /// @param idi Data iterator
         ImageFFTEquation(const askap::scimath::Params& ip,
-          IDataSharedIter& idi);
+          accessors::IDataSharedIter& idi);
         
         /// Constructor with default parameters
         /// @param idi Data iterator
-        ImageFFTEquation(IDataSharedIter& idi);
+        ImageFFTEquation(accessors::IDataSharedIter& idi);
 
         /// Standard constructor with specified gridder
         /// @param ip Parameters
         /// @param idi Data iterator
         /// @param gridder Shared pointer to a gridder
         ImageFFTEquation(const askap::scimath::Params& ip,
-          IDataSharedIter& idi, IVisGridder::ShPtr gridder);
+          accessors::IDataSharedIter& idi, IVisGridder::ShPtr gridder);
         
         /// Constructor with default parameters with specified gridder
         /// @param idi Data iterator
         /// @param gridder Shared pointer to a gridder
-        ImageFFTEquation(IDataSharedIter& idi, IVisGridder::ShPtr gridder);
+        ImageFFTEquation(accessors::IDataSharedIter& idi, IVisGridder::ShPtr gridder);
 
         /// Copy constructor
         ImageFFTEquation(const ImageFFTEquation& other);
@@ -111,7 +111,7 @@ namespace askap
         /// All this business is a bit ugly, but should go away when all
         /// measurement equations are converted to work with accessors.
         /// @param idi shared pointer to a new iterator
-        void setIterator(IDataSharedIter& idi);
+        void setIterator(accessors::IDataSharedIter& idi);
         
       private:
       
@@ -128,7 +128,7 @@ namespace askap
         mutable std::map<string, IVisGridder::ShPtr> itsPSFGridders;
 
         /// Iterator giving access to the data
-        mutable IDataSharedIter itsIdi;
+        mutable accessors::IDataSharedIter itsIdi;
 
         /// @brief change monitors per image parameter
         /// @details This objects are used to determine whether a new 

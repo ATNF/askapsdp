@@ -40,7 +40,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface to DATA_DESCRIPTION subtable
 /// @details A class derived from this interface provides access to
@@ -75,7 +75,7 @@ struct ITableDataDescHolder : virtual public IHolder {
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

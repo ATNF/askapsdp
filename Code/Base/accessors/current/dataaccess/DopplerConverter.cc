@@ -45,7 +45,7 @@
 #include <dataaccess/DopplerConverter.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 
 /// constructor

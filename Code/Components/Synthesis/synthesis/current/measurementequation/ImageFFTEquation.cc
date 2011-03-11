@@ -54,6 +54,7 @@ using askap::scimath::Params;
 using askap::scimath::Axes;
 using askap::scimath::ImagingNormalEquations;
 using askap::scimath::DesignMatrix;
+using namespace askap::accessors;
 
 namespace askap
 {

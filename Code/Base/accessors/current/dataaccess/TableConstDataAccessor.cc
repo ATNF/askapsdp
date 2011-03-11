@@ -38,7 +38,7 @@
 #include <dataaccess/TableConstDataIterator.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 
 /// construct an object linked with the given iterator

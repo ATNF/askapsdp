@@ -39,6 +39,7 @@
 
 using namespace askap;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief Standard constructor, which remembers data iterator.
 /// @param idi data iterator

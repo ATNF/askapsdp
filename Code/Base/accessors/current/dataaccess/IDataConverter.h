@@ -52,7 +52,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface to describe on-the-fly conversions
 /// @details IDataConverter is an interface to describe on-the-fly
@@ -130,7 +130,7 @@ public:
 	virtual void setRestFrequency(const casa::MVFrequency &restFreq) = 0;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 #endif // I_DATA_CONVERTER_H

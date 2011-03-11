@@ -33,7 +33,7 @@
 /// own includes
 #include <dataaccess/ITableMeasureFieldSelector.h>
 
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// This file contains just an empty virtual destructor
 /// to keep the compiler happy

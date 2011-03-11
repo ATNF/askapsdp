@@ -53,13 +53,13 @@ namespace askap
   {
 
     ImageDFTEquation::ImageDFTEquation(const askap::scimath::Params& ip,
-      IDataSharedIter& idi) : scimath::Equation(ip),
+      accessors::IDataSharedIter& idi) : scimath::Equation(ip),
                   askap::scimath::GenericEquation(ip), itsIdi(idi) 
       {
         init();
       };
         
-    ImageDFTEquation::ImageDFTEquation(IDataSharedIter& idi) :  
+    ImageDFTEquation::ImageDFTEquation(accessors::IDataSharedIter& idi) :  
       itsIdi(idi) 
     {
       rwParameters()=defaultParameters().clone();

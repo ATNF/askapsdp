@@ -62,6 +62,7 @@
 using namespace askap::cp;
 using namespace askap::scimath;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 ASKAP_LOGGER(logger, ".PreDifferWorker");
 

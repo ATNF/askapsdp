@@ -67,7 +67,7 @@ struct NoXPolGain : public ParameterizedMEComponent {
    /// @param[in] row row of the chunk to work with
    /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
    /// this effect
-   inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
+   inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
                                 casa::uInt row) const;
 protected:
 

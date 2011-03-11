@@ -56,7 +56,7 @@
 #include <dataaccess/MemTablePolarisationHolder.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief construct SubtableInfoHolder
 /// @details The idea is that this constructor is the point where one can choose

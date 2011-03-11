@@ -33,7 +33,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Interface to select a number of polarization products
 /// @details Examples of the polarization selection are, e.g. circulars
@@ -64,7 +64,7 @@ public:
     /// @return true if the selection is a subset of stokes parameters
     bool isStokes() const throw();
 };
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

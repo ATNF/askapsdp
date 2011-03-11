@@ -58,11 +58,11 @@ namespace askap
         /// @param ip Parameters
         /// @param idi Data iterator
         ImageDFTEquation(const askap::scimath::Params& ip,
-          IDataSharedIter& idi);
+          accessors::IDataSharedIter& idi);
         
         /// Constructor with default parameters
         /// @param idi Data iterator
-        ImageDFTEquation(IDataSharedIter& idi);
+        ImageDFTEquation(accessors::IDataSharedIter& idi);
 
         /// Copy constructor
         ImageDFTEquation(const ImageDFTEquation& other);
@@ -90,7 +90,7 @@ namespace askap
 
       private:
       /// Iterator giving access to the visibility data
-        IDataSharedIter itsIdi;
+        accessors::IDataSharedIter itsIdi;
 
         void init();
         /// Calculate visibility, and optionally the derivatives.

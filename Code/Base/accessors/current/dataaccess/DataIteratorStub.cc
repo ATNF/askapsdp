@@ -32,7 +32,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// initialize stubbed iterator,
 ///
@@ -132,6 +132,6 @@ casa::Bool DataIteratorStub::next()
 }
 
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap

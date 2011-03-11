@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A class holding a table object
 /// @details A simple implementation of the ITableHolder interface.
@@ -69,7 +69,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

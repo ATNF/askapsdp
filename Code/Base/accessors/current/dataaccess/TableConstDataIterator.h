@@ -58,7 +58,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Implementation of IConstDataIterator in the table-based case
 /// @details
@@ -453,7 +453,7 @@ private:
 };
 
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 #endif // #ifndef TABLE_CONST_DATA_ITERATOR_H

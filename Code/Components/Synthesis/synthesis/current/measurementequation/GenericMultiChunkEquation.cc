@@ -49,7 +49,7 @@ namespace synthesis {
 
 /// @brief Standard constructor, which remembers data iterator.
 /// @param[in] idi data iterator
-GenericMultiChunkEquation::GenericMultiChunkEquation(const IDataSharedIter& idi) :
+GenericMultiChunkEquation::GenericMultiChunkEquation(const accessors::IDataSharedIter& idi) :
          MultiChunkEquation(idi) {}
 
   
@@ -73,7 +73,7 @@ void GenericMultiChunkEquation::calcGenericEquations(askap::scimath::GenericNorm
 /// to GenericNormalEquations
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
-void GenericMultiChunkEquation::calcEquations(const IConstDataAccessor &chunk,
+void GenericMultiChunkEquation::calcEquations(const accessors::IConstDataAccessor &chunk,
                    askap::scimath::INormalEquations& ne) const
 {
   try {

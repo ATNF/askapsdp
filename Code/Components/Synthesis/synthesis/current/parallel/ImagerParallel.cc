@@ -75,6 +75,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 using namespace askap::mwbase;
 
 namespace askap

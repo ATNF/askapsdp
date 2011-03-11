@@ -54,7 +54,7 @@ namespace synthesis
   public:
      void testNoiseStatistics() 
      { 
-       DataAccessorStub acc(true);
+       accessors::DataAccessorStub acc(true);
        const double variance = 0.1;
        const casa::uInt nRuns = 100;
        GaussianNoiseME me(variance);

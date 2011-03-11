@@ -40,7 +40,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief all logic behind uvw rotations and associated delays
 /// @details
@@ -118,7 +118,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

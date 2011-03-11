@@ -46,7 +46,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief adapter accessor fitting the best w-plane 
 /// @details This is an adapter to data accessor which fits a plane
@@ -167,7 +167,7 @@ private:
    mutable casa::MDirection itsLastTangentPoint;    
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

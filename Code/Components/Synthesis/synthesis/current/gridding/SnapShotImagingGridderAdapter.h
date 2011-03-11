@@ -100,7 +100,7 @@ public:
 
    /// @brief grid the visibility data.
    /// @param[in] acc const data accessor to work with
-   virtual void grid(IConstDataAccessor& acc);
+   virtual void grid(accessors::IConstDataAccessor& acc);
 
    /// @brief form the final output image
    /// @param[in] out output double precision image or PSF
@@ -128,7 +128,7 @@ public:
 
    /// @brief degrid the visibility data.
    /// @param[in] acc non-const data accessor to work with  
-   virtual void degrid(IDataAccessor& acc);
+   virtual void degrid(accessors::IDataAccessor& acc);
 
    /// @brief finalise degridding
    virtual void finaliseDegrid();
@@ -213,7 +213,7 @@ private:
    boost::shared_ptr<IVisGridder> itsGridder;
    
    /// @brief adapter dealing with plane fitting
-   BestWPlaneDataAccessor itsAccessorAdapter;
+   accessors::BestWPlaneDataAccessor itsAccessorAdapter;
    
    /// @brief true if this gridder is computing PSF
    /// @details We pass all calls to the wrapped gridder for PSF calculation

@@ -49,7 +49,7 @@ using namespace casa;
 namespace askap
 {
 
-  namespace synthesis
+  namespace accessors
   {
 
     DataAccessorStub::DataAccessorStub(const bool fill)
@@ -386,6 +386,6 @@ namespace askap
                   return itsStokes;
                 }
 
-              } // namespace synthesis
+              } // namespace accessors
 
             } // namespace askap

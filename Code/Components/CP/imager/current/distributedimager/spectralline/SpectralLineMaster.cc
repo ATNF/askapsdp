@@ -149,13 +149,13 @@ std::vector<std::string> SpectralLineMaster::getDatasets(const LOFAR::ParameterS
 // entire dataset to validate this assumption is going to be too slow.
 int SpectralLineMaster::getNumChannels(const std::string& ms)
 {
-    askap::synthesis::TableConstDataSource ds(ms);
+    askap::accessors::TableConstDataSource ds(ms);
 
-    askap::synthesis::IDataSelectorPtr sel = ds.createSelector();
-    askap::synthesis::IDataConverterPtr conv = ds.createConverter();
+    askap::accessors::IDataSelectorPtr sel = ds.createSelector();
+    askap::accessors::IDataConverterPtr conv = ds.createConverter();
     conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
     conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
 
-    const askap::synthesis::IConstDataSharedIter it = ds.createConstIterator(sel,conv);
+    const askap::accessors::IConstDataSharedIter it = ds.createConstIterator(sel,conv);
     return it->nChannel();
 }

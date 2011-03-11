@@ -643,7 +643,7 @@ int main(int argc, const char** argv)
             axes.addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
                       casa::Projection(casa::Projection::SIN), 0.,0.,cellSize,cellSize,xform,256.,256.));
         
-            DataAccessorStub acc(true);
+            accessors::DataAccessorStub acc(true);
             
             const casa::IPosition shape(4,256,256,1,1);
             gridder.initialiseGrid(axes,shape,false);

@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An iterator stub to work in pair with DataAccessorStub
 /// @ingroup dataaccess_hlp
@@ -180,7 +180,7 @@ private:
 	       boost::shared_ptr<IDataAccessor> > itsBuffers;
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 #endif // #ifndef FAKE_SINGLE_STEP_ITERATOR_H

@@ -63,7 +63,7 @@ struct ImagingMultiChunkEquation : virtual public MultiChunkEquation,
 {  
   /// @brief Standard constructor, which remembers data iterator.
   /// @param[in] idi data iterator
-  ImagingMultiChunkEquation(const IDataSharedIter& idi);
+  ImagingMultiChunkEquation(const accessors::IDataSharedIter& idi);
 
   /// @brief Calculate the normal equations for the iterator
   /// @details This version iterates through all chunks of data and
@@ -82,7 +82,7 @@ struct ImagingMultiChunkEquation : virtual public MultiChunkEquation,
   /// ne converted to ImagingNormalEquations
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
-  virtual void calcEquations(const IConstDataAccessor &chunk,
+  virtual void calcEquations(const accessors::IConstDataAccessor &chunk,
                           askap::scimath::INormalEquations& ne) const;
   
   /// @brief Calculate the normal equation for one accessor (chunk).
@@ -95,7 +95,7 @@ struct ImagingMultiChunkEquation : virtual public MultiChunkEquation,
   /// this method and does type conversion.
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
-  virtual void calcImagingEquations(const IConstDataAccessor &chunk,
+  virtual void calcImagingEquations(const accessors::IConstDataAccessor &chunk,
                           askap::scimath::ImagingNormalEquations& ne) const = 0;
 
   /// @brief Predict model visibility for the iterator.

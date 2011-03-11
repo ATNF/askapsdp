@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface to POLARIZATION subtable
 /// @details A class derived from this interface provides access to
@@ -71,7 +71,7 @@ struct ITablePolarisationHolder : virtual public IHolder {
    virtual casa::Stokes::StokesTypes getType(casa::uInt polID, casa::uInt pol) const = 0;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

@@ -30,7 +30,7 @@
 
 #include <dataaccess/IDataSelector.h>
 
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// An empty virtual destructor to make the compiler happy
 IDataSelector::~IDataSelector()

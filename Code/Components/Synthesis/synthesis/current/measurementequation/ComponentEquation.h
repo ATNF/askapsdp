@@ -73,11 +73,11 @@ namespace askap
         /// @param ip Parameters
         /// @param idi data iterator
         ComponentEquation(const askap::scimath::Params& ip,
-          const IDataSharedIter& idi);
+          const accessors::IDataSharedIter& idi);
 
         /// @brief Constructor using default parameters
         /// @param idi data iterator
-        ComponentEquation(const IDataSharedIter& idi);
+        ComponentEquation(const accessors::IDataSharedIter& idi);
         
         /// Return the default parameters
         static askap::scimath::Params defaultParameters();
@@ -90,7 +90,7 @@ namespace askap
         /// level, outside this class). In the future, I expect that
         /// predict() without parameters will be deprecated.
         /// @param[in] chunk a read-write accessor to work with
-        virtual void predict(IDataAccessor &chunk) const;
+        virtual void predict(accessors::IDataAccessor &chunk) const;
 
         /// @brief Calculate the normal equation for one accessor (chunk).
         /// @details This version of the method works on a single chunk of
@@ -101,7 +101,7 @@ namespace askap
         /// the variant of the method without parameters will be deprecated.
         /// @param[in] chunk a read-write accessor to work with
         /// @param[in] ne Normal equations
-        virtual void calcGenericEquations(const IConstDataAccessor &chunk,
+        virtual void calcGenericEquations(const accessors::IConstDataAccessor &chunk,
                               askap::scimath::GenericNormalEquations& ne) const;
         
         using GenericMultiChunkEquation::predict;
@@ -191,7 +191,7 @@ namespace askap
         /// @brief vector of components plugged into this component equation
         /// this has nothing to do with data accessor, we just reuse the class
         /// for a cached field
-        CachedAccessorField<std::vector<IParameterizedComponentPtr> > itsComponents;     
+        accessors::CachedAccessorField<std::vector<IParameterizedComponentPtr> > itsComponents;     
         
         /// @brief True if all components are unpolarised
         mutable bool itsAllComponentsUnpolarised;

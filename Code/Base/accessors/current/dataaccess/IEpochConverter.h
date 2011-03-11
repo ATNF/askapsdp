@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface for epoch conversion
 /// @details This is a relatively
@@ -72,7 +72,7 @@ struct IEpochConverter : virtual public IConverterBase {
     using IConverterBase::setMeasFrame;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

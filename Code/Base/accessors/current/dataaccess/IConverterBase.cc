@@ -34,7 +34,7 @@
 #include <dataaccess/IConverterBase.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// an empty virtual destructor to keep the compiler happy
 /// for all derived interfaces

@@ -44,7 +44,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Read-only iterator across preselected data
 /// @details Each 
@@ -106,7 +106,7 @@ public:
 	virtual IConstDataIterator& operator++();
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 #endif // #ifndef I_CONST_DATA_ITERATOR_H

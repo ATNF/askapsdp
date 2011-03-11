@@ -71,13 +71,13 @@ namespace askap
       return IVisGridder::ShPtr(new SphFuncVisGridder(*this));
     }
 
-    void SphFuncVisGridder::initIndices(const IConstDataAccessor&)
+    void SphFuncVisGridder::initIndices(const accessors::IConstDataAccessor&)
     {
     }
 
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
-    void SphFuncVisGridder::initConvolutionFunction(const IConstDataAccessor&)
+    void SphFuncVisGridder::initConvolutionFunction(const accessors::IConstDataAccessor&)
     {
       if(itsConvFunc.size() != 0) {
          // a rather poor way of checking that convolution function has already been initialised 

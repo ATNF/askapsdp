@@ -44,7 +44,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface to ANTENNA subtable
 /// @details A class derived from this interface provides access to
@@ -87,7 +87,7 @@ struct IAntennaSubtableHandler : virtual public IHolder {
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

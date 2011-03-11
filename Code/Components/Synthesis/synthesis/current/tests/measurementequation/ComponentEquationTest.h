@@ -65,12 +65,12 @@ namespace askap
       private:
         ComponentEquation *p1, *p2;
         Params *params1, *params2, *params3;
-        IDataSharedIter idi;
+        accessors::IDataSharedIter idi;
 
       public:
         void setUp()
         {
-          idi= IDataSharedIter(new DataIteratorStub(1));
+          idi= accessors::IDataSharedIter(new accessors::DataIteratorStub(1));
 
           params1 = new Params;
           params1->add("flux.i.cena", 100.0);

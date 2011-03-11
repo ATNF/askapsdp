@@ -43,7 +43,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Implementation of the interface to POLARIZATION subtable
 /// @details This class provides access to the content of POLARIZATION subtable 
@@ -83,7 +83,7 @@ private:
 
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

@@ -42,7 +42,7 @@ using namespace askap::synthesis;
 /// It seems that all measurement equations should work with accessors 
 /// rather than iterators (i.e. the iteration over chunks should be 
 /// moved to the higher level, outside this class). 
-void VoidMeasurementEquation::predict(IDataAccessor &) const {}
+void VoidMeasurementEquation::predict(accessors::IDataAccessor &) const {}
 
 /// @brief Calculate the normal equation for one accessor (chunk).
 /// @details This calculation is done for a single chunk of
@@ -50,5 +50,5 @@ void VoidMeasurementEquation::predict(IDataAccessor &) const {}
 /// equations should work with accessors rather than iterators
 /// (i.e. the iteration over chunks should be moved to the higher
 /// level, outside this class). 
-void VoidMeasurementEquation::calcEquations(const IConstDataAccessor &,
+void VoidMeasurementEquation::calcEquations(const accessors::IConstDataAccessor &,
                           askap::scimath::INormalEquations&) const {}

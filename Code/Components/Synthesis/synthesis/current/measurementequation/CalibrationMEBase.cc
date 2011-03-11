@@ -63,6 +63,7 @@ using askap::scimath::ComplexDiffMatrix;
 
 using namespace askap;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief Standard constructor using the parameters and the
 /// data iterator.

@@ -47,7 +47,7 @@
 
 namespace askap {
 	
-namespace synthesis {
+namespace accessors {
 
 /// @brief an adapter to most methods of IConstDataAccessor
 ///
@@ -99,7 +99,7 @@ private:
   mutable casa::Cube<casa::Complex> itsBuffer;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

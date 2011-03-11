@@ -65,7 +65,7 @@ struct ZeroComponent : public MEComponent {
    /// @param[in] row row of the chunk to work with
    /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
    /// this effect
-   inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
+   inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
                                 casa::uInt row) const;
 };
 
@@ -77,7 +77,7 @@ struct ZeroComponent : public MEComponent {
 /// @param[in] row row of the chunk to work with
 /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
 /// this effect
-inline scimath::ComplexDiffMatrix ZeroComponent::get(const IConstDataAccessor &chunk, 
+inline scimath::ComplexDiffMatrix ZeroComponent::get(const accessors::IConstDataAccessor &chunk, 
                                       casa::uInt) const
 {
   return scimath::ComplexDiffMatrix(chunk.nPol(), chunk.nPol(), 0.);

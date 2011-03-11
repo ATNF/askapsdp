@@ -46,6 +46,7 @@
 
 using namespace askap;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief construct iterator
 /// @details The input iterator is remembered and switched to the 

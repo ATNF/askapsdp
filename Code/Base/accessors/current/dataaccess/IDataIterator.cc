@@ -34,7 +34,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// operator-> delivers a pointer. 
 ///
@@ -67,6 +67,6 @@ IDataIterator& IDataIterator::operator++()
   return *this;
 }
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap

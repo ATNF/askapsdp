@@ -43,6 +43,7 @@
 
 using namespace askap;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief constructor, initializes random distribution required.
 /// @param[in] variance required variance of the noise (same as rms

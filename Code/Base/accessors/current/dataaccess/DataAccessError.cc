@@ -32,7 +32,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// constructor - pass the message to the base class
 ///

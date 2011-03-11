@@ -40,7 +40,7 @@
 #include <dataaccess/MiscTableInfoHolder.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief construct a holder of miscellaneous table processing information
 /// @details The class just remembers the default column name passed in

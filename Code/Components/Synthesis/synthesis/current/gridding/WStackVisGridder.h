@@ -103,7 +103,7 @@ namespace askap
 			protected:
 				/// @brief Initialise the indices
 				/// @param[in] acc const accessor to work with
-				virtual void initIndices(const IConstDataAccessor& acc);
+				virtual void initIndices(const accessors::IConstDataAccessor& acc);
 
 				/// Offset into grid
 				/// @param row Row number

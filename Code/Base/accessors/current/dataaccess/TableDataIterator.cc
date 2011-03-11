@@ -51,7 +51,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief an adapter to use stl functions with maps.
 /// @details
@@ -91,7 +91,7 @@ MapMemFun<X> mapMemFun(void (X::*in)()) {
 }
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @param[in] msManager a manager of the measurement set to use
 /// @param[in] sel shared pointer to selector

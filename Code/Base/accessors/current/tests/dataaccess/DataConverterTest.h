@@ -54,7 +54,7 @@ using namespace std;
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 class DataConverterTest : public CppUnit::TestFixture {
 
@@ -303,7 +303,7 @@ private:
    boost::shared_ptr<BasicDataConverter> itsConverter;
 };
 
-} // namespace synthesis
+} // namespace accessors
 } // namespace askap
 
 #endif // #ifndef I_DATA_CONVERTER_TEST_IMPL_H

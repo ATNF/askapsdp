@@ -34,7 +34,7 @@ namespace askap {
 /// compiler happy for all derived classes, which don't 
 /// require any special destructor (we have virtual 
 /// functions, while a default destructor is not virtual)
-synthesis::IConstDataAccessor::~IConstDataAccessor()
+accessors::IConstDataAccessor::~IConstDataAccessor()
 {
 }
 

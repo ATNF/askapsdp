@@ -116,7 +116,7 @@ namespace askap
       /// CalibrationME template.
       /// @param[in] dsi data shared iterator 
       /// @param[in] perfectME uncorrupted measurement equation
-      void createCalibrationME(const IDataSharedIter &dsi, 
+      void createCalibrationME(const accessors::IDataSharedIter &dsi, 
                 const boost::shared_ptr<IMeasurementEquation const> &perfectME);
   
       /// @brief helper method to rotate all phases

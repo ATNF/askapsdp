@@ -55,14 +55,14 @@ namespace askap
   {
 
     ComponentEquation::ComponentEquation(const askap::scimath::Params& ip,
-          const IDataSharedIter& idi) :  scimath::Equation(ip), MultiChunkEquation(idi),  
+          const accessors::IDataSharedIter& idi) :  scimath::Equation(ip), MultiChunkEquation(idi),  
            askap::scimath::GenericEquation(ip), GenericMultiChunkEquation(idi),
            itsAllComponentsUnpolarised(false)
     {
       init();
     };
 
-    ComponentEquation::ComponentEquation(const IDataSharedIter& idi) :
+    ComponentEquation::ComponentEquation(const accessors::IDataSharedIter& idi) :
            MultiChunkEquation(idi), GenericMultiChunkEquation(idi),
            itsAllComponentsUnpolarised(false) 
     {
@@ -226,7 +226,7 @@ void ComponentEquation::addModelToCube(const IUnpolarizedComponent& comp,
 /// level, outside this class). In the future, I expect that
 /// predict() without parameters will be deprecated.
 /// @param chunk a read-write accessor to work with
-void ComponentEquation::predict(IDataAccessor &chunk) const
+void ComponentEquation::predict(accessors::IDataAccessor &chunk) const
 {
   const std::vector<IParameterizedComponentPtr> &compList = 
          itsComponents.value(*this,&ComponentEquation::fillComponentCache);
@@ -340,7 +340,7 @@ void ComponentEquation::updateDesignMatrixAndResiduals(
 /// the variant of the method without parameters will be deprecated.
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
-void ComponentEquation::calcGenericEquations(const IConstDataAccessor &chunk,
+void ComponentEquation::calcGenericEquations(const accessors::IConstDataAccessor &chunk,
                    askap::scimath::GenericNormalEquations& ne) const
 {
   const std::vector<IParameterizedComponentPtr> &compList = 

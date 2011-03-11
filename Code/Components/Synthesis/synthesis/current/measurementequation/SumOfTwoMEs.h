@@ -90,7 +90,7 @@ struct SumOfTwoMEs : virtual public MultiChunkEquation
   /// @param[in] it iterator to work with (temporary)
   SumOfTwoMEs(const boost::shared_ptr<IMeasurementEquation const> &first,
               const boost::shared_ptr<IMeasurementEquation const> &second,
-              const IDataSharedIter &it);
+              const accessors::IDataSharedIter &it);
   
   /// @brief Predict model visibilities for one accessor (chunk).
   /// @details This prediction is done for single chunk of data only. 
@@ -98,7 +98,7 @@ struct SumOfTwoMEs : virtual public MultiChunkEquation
   /// rather than iterators (i.e. the iteration over chunks should be 
   /// moved to the higher level, outside this class). 
   /// @param[in] chunk a read-write accessor to work with
-  virtual void predict(IDataAccessor &chunk) const;
+  virtual void predict(accessors::IDataAccessor &chunk) const;
 
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This calculation is done for a single chunk of
@@ -116,7 +116,7 @@ struct SumOfTwoMEs : virtual public MultiChunkEquation
   /// to CalibrationME template and plug in effects.
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
-  virtual void calcEquations(const IConstDataAccessor &chunk,
+  virtual void calcEquations(const accessors::IConstDataAccessor &chunk,
                           askap::scimath::INormalEquations& ne) const;
 
   /// Clone this into a shared pointer

@@ -45,7 +45,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 
 /// main method, updates table expression node to narrow down the selection

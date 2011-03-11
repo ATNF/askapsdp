@@ -51,11 +51,11 @@ ASKAP_LOGGER(logger, "");
 
 using namespace casa;
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief a helper class to flag the whole row on the basis of FLAG_ROW
 /// @details The method to read a cube (i.e. visibility or flag info) from
@@ -131,7 +131,7 @@ bool WholeRowFlagger<casa::Bool>::copyRequired(casa::uInt row,
 }
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

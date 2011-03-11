@@ -43,7 +43,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Implementation of ITableDataDescHolder holding everything in memory
 /// @details This file contains a class implementing the ITableDataDescHolder
@@ -84,7 +84,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface to FIELD subtable
 /// @details A class derived from this interface provides access to
@@ -96,7 +96,7 @@ struct IFieldSubtableHandler : virtual public IHolder {
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

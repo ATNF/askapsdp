@@ -64,7 +64,7 @@ class MultiChunkEquation : virtual public IMeasurementEquation,
 public:
   /// @brief Standard constructor, which remembers data iterator.
   /// @param idi data iterator
-  explicit MultiChunkEquation(const IDataSharedIter& idi);
+  explicit MultiChunkEquation(const accessors::IDataSharedIter& idi);
 
   /// @brief Calculate the normal equations for the iterator
   /// @details This version iterates through all chunks of data and
@@ -89,15 +89,15 @@ public:
   /// substitute the iterator to something else to beat accessor-based/
   /// iterator-based ME problem.
   /// @param idi data iterator
-  void setIterator(const IDataSharedIter& idi);
+  void setIterator(const accessors::IDataSharedIter& idi);
     
 protected:
   /// @brief access to the iterator associated with this equation
   /// @return a const reference to the iterator held by this object
-  const IDataSharedIter& iterator() const throw();  
+  const accessors::IDataSharedIter& iterator() const throw();  
 private:
   /// Shared iterator for data access
-  IDataSharedIter itsSharedIterator;
+  accessors::IDataSharedIter itsSharedIterator;
 };
 
 } // namespace synthesis

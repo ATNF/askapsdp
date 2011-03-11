@@ -35,7 +35,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// get a read/write iterator over a selected part of the dataset represented
 /// by this DataSource object. Default data conversion policies
@@ -94,6 +94,6 @@ boost::shared_ptr<IDataIterator> IDataSource::createIterator(const
     return createIterator(createSelector(),conv);
 }
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap

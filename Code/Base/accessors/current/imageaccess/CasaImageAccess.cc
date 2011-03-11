@@ -37,7 +37,7 @@ ASKAP_LOGGER(logger, ".casaImageAccessor");
 
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 // reading methods
   

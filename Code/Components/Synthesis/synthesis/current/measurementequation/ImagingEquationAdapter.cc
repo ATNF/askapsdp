@@ -37,6 +37,7 @@
 
 using namespace askap;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 #include <dataaccess/FakeSingleStepIterator.h>
 #include <measurementequation/MultiChunkEquation.h>

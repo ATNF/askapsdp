@@ -42,7 +42,7 @@
 #include <askap/AskapUtil.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 
 /// @brief construct detached accessor

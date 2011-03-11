@@ -39,7 +39,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief an interface class to access buffered visibility data
 /// with a read/write capability.
@@ -69,7 +69,7 @@ public:
 	virtual casa::Cube<casa::Complex>& rwVisibility() = 0;
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 

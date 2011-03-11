@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 class CasaImageAccessTest : public CppUnit::TestFixture 
 {
@@ -133,7 +133,7 @@ private:
    boost::shared_ptr<IImageAccess> itsImageAccessor;         
 };
     
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

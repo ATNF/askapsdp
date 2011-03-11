@@ -61,12 +61,12 @@ namespace askap
       private:
         ImageDFTEquation *p1, *p2;
         Params *params1, *params2, *params3;
-        IDataSharedIter idi;
+        accessors::IDataSharedIter idi;
 
       public:
         void setUp()
         {
-          idi = IDataSharedIter(new DataIteratorStub(1));
+          idi = accessors::IDataSharedIter(new accessors::DataIteratorStub(1));
 
           uint npix=16;
           Axes imageAxes;

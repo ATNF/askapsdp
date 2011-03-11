@@ -38,7 +38,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Interface class representing visibility selection
 /// @details IDataSelector represents a selection of visibility
@@ -153,7 +153,7 @@ public:
 	virtual void chooseCycles(casa::uInt start, casa::uInt stop) = 0;
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 

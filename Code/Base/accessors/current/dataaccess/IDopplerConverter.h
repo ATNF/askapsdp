@@ -48,7 +48,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface for interconversion between frequencies
 /// and velocities.
@@ -80,7 +80,7 @@ struct IDopplerConverter : virtual public IConverterBase {
     virtual const casa::MFrequency&  operator()(const casa::MRadialVelocity &vel) const = 0;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

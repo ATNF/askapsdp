@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Implementation of ITableInfoAccessor
 /// @details This file contains a class, which just returns a reference
@@ -94,7 +94,7 @@ private:
   boost::shared_ptr<ITableManager const> itsTableManager;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

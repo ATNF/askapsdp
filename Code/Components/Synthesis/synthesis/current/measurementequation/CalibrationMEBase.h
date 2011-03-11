@@ -75,7 +75,7 @@ public:
   /// @note In the future, measurement equations will work with accessors
   /// only, and, therefore, the dependency on iterator will be removed
   CalibrationMEBase(const askap::scimath::Params& ip,
-          const IDataSharedIter& idi, 
+          const accessors::IDataSharedIter& idi, 
           const boost::shared_ptr<IMeasurementEquation const> &ime);
   
   /// @brief Predict model visibilities for one accessor (chunk).
@@ -86,7 +86,7 @@ public:
   /// level, outside this class). In the future, I expect that
   /// predict() without parameters will be deprecated.
   /// @param[in] chunk a read-write accessor to work with
-  virtual void predict(IDataAccessor &chunk) const;
+  virtual void predict(accessors::IDataAccessor &chunk) const;
 
   /// @brief correct model visibilities for one accessor (chunk).
   /// @details This method corrects the data in the given accessor
@@ -98,7 +98,7 @@ public:
   /// e.g. amend flagging information? This is not yet implemented as
   /// existing accessors would throw an exception if flagging info is 
   /// changed.
-  virtual void correct(IDataAccessor &chunk) const;
+  virtual void correct(accessors::IDataAccessor &chunk) const;
 
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This version of the method works on a single chunk of
@@ -109,7 +109,7 @@ public:
   /// the variant of the method without parameters will be deprecated.
   /// @param[in] chunk a read-write accessor to work with
   /// @param[in] ne Normal equations
-  virtual void calcGenericEquations(const IConstDataAccessor &chunk,
+  virtual void calcGenericEquations(const accessors::IConstDataAccessor &chunk,
                          askap::scimath::GenericNormalEquations& ne) const;
   
     
@@ -129,7 +129,7 @@ protected:
   /// @param[in] row the row number to work with
   /// @return ComplexDiffMatrix encapsulating information about measurement 
   ///         equation corresponding to the given row
-  virtual scimath::ComplexDiffMatrix buildComplexDiffMatrix(const IConstDataAccessor &acc,
+  virtual scimath::ComplexDiffMatrix buildComplexDiffMatrix(const accessors::IConstDataAccessor &acc,
                     casa::uInt row) const = 0;
       
 private:

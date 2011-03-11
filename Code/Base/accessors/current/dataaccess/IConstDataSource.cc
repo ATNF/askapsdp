@@ -32,7 +32,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 // an empty virtual destructor to make the compiler happy
 IConstDataSource::~IConstDataSource()
@@ -98,6 +98,6 @@ boost::shared_ptr<IConstDataIterator>
     return createConstIterator(createSelector(),conv);
 }
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap

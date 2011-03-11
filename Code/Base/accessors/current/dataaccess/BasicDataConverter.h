@@ -51,7 +51,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief
 /// An implementation of the data converter (IDataConverter interface).
@@ -231,7 +231,7 @@ private:
     boost::shared_ptr<IDopplerConverter>    itsDopplerConverter;
 };
   
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 #endif // BASIC_DATA_CONVERTER_H

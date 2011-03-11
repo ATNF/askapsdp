@@ -34,7 +34,7 @@
 #include <dataaccess/MemTableSpWindowHolder.h>
 
 //enable logging when it is actually used
-//#include <askap_synthesis.h>
+//#include <askap_accessors.h>
 //#include <askap/AskapLogging.h>
 //ASKAP_LOGGER(logger, "");
 
@@ -50,7 +50,7 @@
 
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 using namespace casa;
 
 /// read all required information from the SPECTRAL_WINDOW subtable

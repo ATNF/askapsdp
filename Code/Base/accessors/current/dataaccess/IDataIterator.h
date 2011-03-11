@@ -46,7 +46,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief an interface to the data iterator with associated buffers.
 /// @details See the description of IConstDataIterator
@@ -143,7 +143,7 @@ public:
 	virtual IDataIterator& operator++();
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 #endif // #ifndef I_DATA_ITERATOR_H

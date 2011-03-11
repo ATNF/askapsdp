@@ -36,7 +36,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An iterator stub to work in pair with DataAccessorStub
 /// @ingroup dataaccess_hlp
@@ -128,7 +128,7 @@ public:
 	mutable DataAccessorStub itsAccessor;
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 #endif // #ifndef I_DATA_ITERATOR_H

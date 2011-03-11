@@ -47,7 +47,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Implementation of IConstDataSource in the table-based case
 /// @details
@@ -163,7 +163,7 @@ private:
   double itsUVWCacheTolerance;
 };
  
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

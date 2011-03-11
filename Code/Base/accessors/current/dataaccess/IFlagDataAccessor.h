@@ -40,7 +40,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An read/write interface to flagging information
 /// @details IFlagDataAccessor is a further extension of the
@@ -61,7 +61,7 @@ public:
         virtual casa::Cube<casa::Bool>& rwFlag() = 0;
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 

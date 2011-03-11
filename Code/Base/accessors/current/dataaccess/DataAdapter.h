@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A helper template to be used with SharedIter
 /// @details
@@ -263,7 +263,7 @@ DataAdapter<Iter, BufferSelector, Incremented>
                            BufferSelector(buffer));
 }
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

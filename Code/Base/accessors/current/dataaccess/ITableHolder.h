@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface to something holding a table
 /// @details A class derived from this interface holds a table and returns
@@ -65,7 +65,7 @@ struct ITableHolder : virtual public IHolder {
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

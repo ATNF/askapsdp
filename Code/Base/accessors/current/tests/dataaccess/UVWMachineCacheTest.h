@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 class UVWMachineCacheTest : public CppUnit::TestFixture {
    CPPUNIT_TEST_SUITE(UVWMachineCacheTest);
@@ -229,7 +229,7 @@ private:
    boost::shared_ptr<UVWMachineCache> itsMachineCache;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

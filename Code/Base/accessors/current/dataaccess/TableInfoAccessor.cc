@@ -41,7 +41,7 @@
 #include <askap/AskapError.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 
 /// @brief construct from a shared pointer to info holder

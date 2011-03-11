@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An implementation of the direction converter.
 /// @details This class just call the appropriate functionality
@@ -72,7 +72,7 @@ private:
     casa::MDirection::Ref itsTargetFrame;    
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

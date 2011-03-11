@@ -12,7 +12,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief construct time range selector
 /// @param[in] start start time of the interval
@@ -33,6 +33,6 @@ std::pair<casa::MEpoch, casa::MEpoch>
 }
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap

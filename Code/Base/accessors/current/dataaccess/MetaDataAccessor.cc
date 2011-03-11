@@ -43,7 +43,7 @@
 
 #include <dataaccess/MetaDataAccessor.h>
 
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// construct an object linked with the given const accessor
 /// @param acc a reference to the associated accessor

@@ -44,7 +44,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface to generic buffer (for writing visibilities)
 /// @details Read-write iterator (see IDataIterator) uses the concept
@@ -82,7 +82,7 @@ struct IBufferManager : virtual public IHolder
 			   casa::uInt index) const = 0;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Memory-based implementation of ITableSpWindowHolder
 /// @details This class reads and stores in memory the content
@@ -104,7 +104,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

@@ -52,7 +52,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief TestRunner for tests working with a table (MS)
 /// @details This class is derived from CppUnit's TestRunner
@@ -111,7 +111,7 @@ TableTestRunner::~TableTestRunner()
 
 std::string TableTestRunner::theirTestMSName;
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

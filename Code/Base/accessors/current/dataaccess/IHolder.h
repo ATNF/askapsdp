@@ -37,7 +37,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A base class for classes holding something
 /// @details This class is a structural item used as a base class for
@@ -52,7 +52,7 @@ struct IHolder {
   virtual ~IHolder();
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

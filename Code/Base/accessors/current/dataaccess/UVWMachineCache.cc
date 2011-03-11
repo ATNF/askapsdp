@@ -39,7 +39,7 @@ ASKAP_LOGGER(logger, ".dataaccess");
 
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief construct the cache
 /// @details Set up basic parameters of the cache.

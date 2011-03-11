@@ -49,7 +49,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 
 /// @brief A handler of the FIELD subtable
@@ -156,7 +156,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

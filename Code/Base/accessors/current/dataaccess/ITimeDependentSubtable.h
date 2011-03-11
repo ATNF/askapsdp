@@ -44,7 +44,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 
 /// @brief A base class for handlers of time-dependent subtables
@@ -76,7 +76,7 @@ struct ITimeDependentSubtable : virtual protected ITableHolder {
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

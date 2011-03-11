@@ -44,7 +44,7 @@
 
 namespace askap {
 	
-namespace synthesis {
+namespace accessors {
 
 /// forward declaration of the type returned by reference
 /// @ingroup dataaccess_tab
@@ -115,7 +115,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

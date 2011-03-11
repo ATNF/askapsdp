@@ -37,7 +37,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A class to manage buffers stored in subtable
 /// @details Read-write iterator (see IDataIterator) uses the concept
@@ -80,7 +80,7 @@ struct TableBufferManager : virtual public IBufferManager,
 			   casa::uInt index) const;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

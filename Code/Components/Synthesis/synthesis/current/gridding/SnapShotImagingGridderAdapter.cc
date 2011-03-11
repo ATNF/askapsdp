@@ -57,6 +57,7 @@ ASKAP_LOGGER(logger, ".gridding.snapshotimaginggridderadapter");
 
 using namespace askap;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief initialise the adapter
 /// @details

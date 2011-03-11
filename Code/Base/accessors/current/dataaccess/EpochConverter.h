@@ -41,7 +41,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An implementation of the epoch converter.
 /// @details This class just call the appropriate functionality of
@@ -85,7 +85,7 @@ private:
     casa::Unit  itsTargetUnit;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

@@ -51,7 +51,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 	
 /// @brief Implementation of IDataSelector is the table-based case
 /// @details
@@ -200,7 +200,7 @@ private:
   std::pair<int, int> itsChannelSelection;
 };
   
-} // namespace synthesis
+} // namespace accessors
   
 } // namespace askap
   

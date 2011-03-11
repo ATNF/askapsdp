@@ -42,7 +42,7 @@
 using namespace std;
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// construct the object and link it to the given buffers subtable
 /// @param[in] tab  subtable to use

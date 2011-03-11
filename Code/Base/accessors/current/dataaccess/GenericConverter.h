@@ -44,7 +44,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An implementation of generic measure converter.
 /// @details GenericConverter is an implementation of the low-level
@@ -97,7 +97,7 @@ private:
     casa::Unit  itsTargetUnit;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

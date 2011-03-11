@@ -42,7 +42,7 @@
 #include <dataaccess/UVWMachineCache.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief constructor
 /// @details The only parameter is the w-term tolerance in wavelengths

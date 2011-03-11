@@ -52,7 +52,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface for subtable selection (forms an expression node)
 /// @details ITableDataSelectorImpl is an interface for data selection
@@ -124,7 +124,7 @@ public:
   
 };
   
-} // namespace synthesis
+} // namespace accessors
   
 } // namespace askap
   

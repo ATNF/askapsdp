@@ -39,7 +39,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A base class for all converter classes.
 /// @details It doesn't
@@ -62,7 +62,7 @@ protected: // the following method(s) are not for a general framework user,
     virtual void setMeasFrame(const casa::MeasFrame &frame) = 0;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

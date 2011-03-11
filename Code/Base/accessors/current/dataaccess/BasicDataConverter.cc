@@ -47,7 +47,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 BasicDataConverter::BasicDataConverter() :
      itsEpochConverter(new EpochConverter),

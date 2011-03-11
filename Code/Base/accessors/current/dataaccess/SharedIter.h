@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief a helper template to be used with iterators created by
 ///        factories
@@ -324,7 +324,7 @@ typedef SharedIter<IDataIterator> IDataSharedIter;
 /// short cut to const shared iterator 
 typedef SharedIter<IConstDataIterator> IConstDataSharedIter;
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 

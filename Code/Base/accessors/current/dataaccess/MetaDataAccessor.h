@@ -51,7 +51,7 @@
 
 namespace askap {
 	
-namespace synthesis {
+namespace accessors {
 
 
 /// @brief an adapter to most methods of IConstDataAccessor
@@ -223,7 +223,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

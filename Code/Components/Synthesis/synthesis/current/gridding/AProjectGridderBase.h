@@ -116,7 +116,7 @@ struct AProjectGridderBase : virtual public IVisGridder
   /// @brief checks whether the current field has been updated
   /// @details See currentField for more detailed description.
   /// @param[in] acc input const accessor to analyse
-  void indexField(const IConstDataAccessor &acc);
+  void indexField(const accessors::IConstDataAccessor &acc);
   
   /// @brief check whether CF cache is valid
   /// @details This methods validates CF cache for one particular iteration. If necessary, 
@@ -124,7 +124,7 @@ struct AProjectGridderBase : virtual public IVisGridder
   /// update the stats correctly when updateStats is called. 
   /// @param[in] acc input const accessor to analyse
   /// @param[in] symmetric true, if illumination pattern is symmetric, false otherwise
-  void validateCFCache(const IConstDataAccessor &acc, bool symmetric);
+  void validateCFCache(const accessors::IConstDataAccessor &acc, bool symmetric);
 
   /// @brief toggle the validity flag for a given CF
   /// @details

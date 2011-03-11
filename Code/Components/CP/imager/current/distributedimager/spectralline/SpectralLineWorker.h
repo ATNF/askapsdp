@@ -58,7 +58,7 @@ namespace askap {
                 void processWorkUnit(const SpectralLineWorkUnit& wu);
 
                 // For a given workunit, just process a single channel
-                void processChannel(askap::synthesis::TableDataSource& ds,
+                void processChannel(askap::accessors::TableDataSource& ds,
                         const std::string& imagename, unsigned int localChannel,
                         unsigned int globalChannel);
 

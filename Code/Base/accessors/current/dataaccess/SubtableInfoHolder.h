@@ -50,7 +50,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Implementation of ISubtableInfoHolder
 /// @details This class manages and constructs handlers of
@@ -154,7 +154,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

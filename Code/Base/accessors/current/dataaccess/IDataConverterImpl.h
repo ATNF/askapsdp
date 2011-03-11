@@ -47,7 +47,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A rich interface to describe on-the-fly conversions (not exposed to end user)
 /// @details Interface to describe on-the-fly conversions requested
@@ -135,7 +135,7 @@ public:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 #endif // I_DATA_CONVERTER_IMPL_H

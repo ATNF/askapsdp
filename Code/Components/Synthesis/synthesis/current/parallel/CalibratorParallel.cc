@@ -84,6 +84,7 @@ ASKAP_LOGGER(logger, ".parallel");
 using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 using namespace askap::mwbase;
 
 /// @brief Constructor from ParameterSet

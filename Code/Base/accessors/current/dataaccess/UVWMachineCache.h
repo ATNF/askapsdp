@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief cache of UVW Machines
 /// @details
@@ -128,7 +128,7 @@ private:
    double itsTolerance; 
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

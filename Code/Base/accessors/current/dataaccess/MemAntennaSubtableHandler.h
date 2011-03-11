@@ -41,7 +41,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A handler of  ANTENNA subtable
 /// @details This class provides access to the ANTENNA subtable (which contains 
@@ -97,7 +97,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

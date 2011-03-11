@@ -50,7 +50,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A base class for handler of a time-dependent subtable
 /// @details All classes representing time-dependent subtables are expected
@@ -96,7 +96,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

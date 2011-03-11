@@ -41,7 +41,7 @@
 
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief read all requested information from the table
 /// @param[in] ms an input measurement set (in fact any table which has a

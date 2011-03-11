@@ -46,7 +46,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A class for interconversion between frequencies
 /// and velocities
@@ -129,7 +129,7 @@ private:
     mutable casa::MFrequency itsFrequency;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

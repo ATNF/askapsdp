@@ -43,7 +43,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Interface to a manager of a table and derived information
 /// @details This interface is a pure structural item, which doesn't
@@ -60,7 +60,7 @@ struct ITableManager : virtual public ITableHolder,
 {  
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

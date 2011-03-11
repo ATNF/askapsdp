@@ -49,7 +49,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 	
 /// @brief An implementation of ITableDataSelectorImpl for simple (scalar) fields, like feed ID.
 /// @details This class represents a selection of visibility
@@ -126,7 +126,7 @@ private:
   mutable casa::TableExprNode  itsTableSelector;  
 };
   
-} // namespace synthesis
+} // namespace accessors
   
 } // namespace askap
   

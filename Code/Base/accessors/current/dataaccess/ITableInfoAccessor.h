@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An extention of ITableHolder to derived information
 /// @details A class given in this file is closely related to
@@ -68,7 +68,7 @@ struct ITableInfoAccessor : virtual public ITableHolder {
 
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

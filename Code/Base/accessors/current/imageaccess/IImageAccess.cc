@@ -1,7 +1,7 @@
 /// @file
 /// @brief Basic interface to access an image
 /// @details This interface class is somewhat analogous to casa::ImageInterface. But it has
-/// only methods we need for synthesis and allow more functionality to access a part of the image.
+/// only methods we need for accessors and allow more functionality to access a part of the image.
 /// In the future we can benefit from using this minimalistic interface because it should be 
 /// relatively easy to do parallel operations on the same image or even distributed storage.
 ///  
@@ -35,12 +35,12 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief void virtual desctructor, to keep the compiler happy
 IImageAccess::~IImageAccess() {}
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

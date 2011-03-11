@@ -124,19 +124,19 @@ struct ImagingEquationAdapter : virtual public IMeasurementEquation,
    /// @details This version of predict is implemented via iterator-based
    /// version of itsIterAdapter.
    /// @param[in] chunk a chunk to be filled with predicted data
-   virtual void predict(IDataAccessor &chunk) const;
+   virtual void predict(accessors::IDataAccessor &chunk) const;
    
    /// @brief accessor-based version of calcEquations
    /// @details This version of calcEquations is implemented via iterator-based
    /// version of itsIterAdapter.
    /// @param[in] chunk a chunk of data to work with
    /// @param[in] ne normal equations to update
-   virtual void calcEquations(const IConstDataAccessor &chunk,
+   virtual void calcEquations(const accessors::IConstDataAccessor &chunk,
              scimath::INormalEquations &ne) const;
    
 private:
    /// @brief iterator adapter
-   IDataSharedIter itsIterAdapter;
+   accessors::IDataSharedIter itsIterAdapter;
    /// @brief actual measurement equation 
    scimath::Equation::ShPtr itsActualEquation;
 };

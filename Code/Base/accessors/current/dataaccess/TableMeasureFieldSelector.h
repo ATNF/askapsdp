@@ -39,7 +39,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief partial implementation of ITableMeasureFieldSelector (handles converter)
 /// @details This is a partial implementation of an interface to

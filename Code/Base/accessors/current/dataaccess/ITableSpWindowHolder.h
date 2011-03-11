@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface to SPECTRAL_WINDOW subtable
 /// @details A class derived from this interface provides access to
@@ -85,7 +85,7 @@ struct ITableSpWindowHolder : virtual public IHolder {
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

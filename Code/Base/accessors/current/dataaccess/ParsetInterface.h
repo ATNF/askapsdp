@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief set selections according to the given parset object
 /// @details
@@ -55,7 +55,7 @@ namespace synthesis {
 void operator<<(const boost::shared_ptr<IDataSelector> &sel,
                           const LOFAR::ParameterSet &parset);
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

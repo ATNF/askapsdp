@@ -39,7 +39,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// IDataIterator is an abstract class defining the interface
 /// Only some trivial methods are defined here
@@ -71,6 +71,6 @@ IConstDataIterator& IConstDataIterator::operator++()
   return *this;
 }
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap

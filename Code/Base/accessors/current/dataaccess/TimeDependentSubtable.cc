@@ -47,13 +47,13 @@
 #include <tables/Tables/TableRecord.h>
 
 // uncomment to use the logger, if it is really used somewhere.
-//#include <askap_synthesis.h>
+//#include <askap_accessors.h>
 //#include <askap/AskapLogging.h>
 //ASKAP_LOGGER(logger, "");
 
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief obtain time epoch in the subtable's native format
 /// @details Convert a given epoch to the table's native frame/units

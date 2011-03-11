@@ -38,7 +38,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 struct DataAccessTestImpl {
    /// demonstration of flagging from the given iterator position until the
@@ -52,7 +52,7 @@ struct DataAccessTestImpl {
    static void doTheJob(const boost::shared_ptr<IDataSource> &ds);
 };
 
-} // namespace synthesis
+} // namespace accessors
 } // namespace askap
 
 #endif // #ifndef I_DATA_ACCESS_TEST_IMPL_H

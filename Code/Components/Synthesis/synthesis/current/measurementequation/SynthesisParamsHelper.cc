@@ -71,7 +71,7 @@ namespace askap
   namespace synthesis
   {
     /// @brief image accessor
-    boost::shared_ptr<IImageAccess> SynthesisParamsHelper::theirImageAccessor;              
+    boost::shared_ptr<accessors::IImageAccess> SynthesisParamsHelper::theirImageAccessor;              
     
     /// @brief default frequency frame
     casa::MFrequency::Ref SynthesisParamsHelper::theirFreqFrame(casa::MFrequency::TOPO);  
@@ -730,7 +730,7 @@ namespace askap
     /// image handler. This method allows that. An exception is thrown if no image handler has
     /// been previously set up.
     /// @return a reference to image handler
-    IImageAccess& SynthesisParamsHelper::imageHandler()
+    accessors::IImageAccess& SynthesisParamsHelper::imageHandler()
     {
       ASKAPCHECK(theirImageAccessor, "setUpImageHandler has to be called before any read/write operation");
       return *theirImageAccessor;
@@ -755,7 +755,7 @@ namespace askap
     /// casa image handler is created (however, a call to this method is still required)
     void SynthesisParamsHelper::setUpImageHandler(const LOFAR::ParameterSet &parset)
     {
-      theirImageAccessor = imageAccessFactory(parset);
+      theirImageAccessor = accessors::imageAccessFactory(parset);
     }
  
     

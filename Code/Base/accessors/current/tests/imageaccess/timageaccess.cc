@@ -30,7 +30,7 @@
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest( askap::synthesis::CasaImageAccessTest::suite());
+    runner.addTest( askap::accessors::CasaImageAccessTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

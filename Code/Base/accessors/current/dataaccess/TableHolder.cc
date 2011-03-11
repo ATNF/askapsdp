@@ -36,7 +36,7 @@
 
 #include <dataaccess/TableHolder.h>
 
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// constructor - set the table to work with
 /// @param[in] tab table to work with

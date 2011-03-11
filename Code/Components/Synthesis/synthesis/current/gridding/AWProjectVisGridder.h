@@ -146,7 +146,7 @@ namespace askap
   
       /// @brief Initialise the indices
       /// @param[in] acc const accessor to work with
-      virtual void initIndices(const IConstDataAccessor& acc);
+      virtual void initIndices(const accessors::IConstDataAccessor& acc);
 
       /// Index into convolution function
       /// @param row Row number
@@ -156,7 +156,7 @@ namespace askap
 
       /// Initialize convolution function
       /// @param[in] acc const accessor to work with
-      virtual void initConvolutionFunction(const IConstDataAccessor& acc);
+      virtual void initConvolutionFunction(const accessors::IConstDataAccessor& acc);
 
       /// Correct for gridding convolution function
       /// @param image image to be corrected

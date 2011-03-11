@@ -35,7 +35,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Access casa image
 /// @details This class implements IImageAccess interface for CASA image
@@ -109,7 +109,7 @@ struct CasaImageAccess : public IImageAccess {
 }; 
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

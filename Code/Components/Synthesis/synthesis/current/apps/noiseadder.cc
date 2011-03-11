@@ -62,6 +62,7 @@ using std::endl;
 
 using namespace askap;
 using namespace synthesis;
+using namespace askap::accessors;
 
 
 void addNoise(const IDataSource &ds, const IMeasurementEquation &ime) {

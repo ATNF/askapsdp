@@ -79,9 +79,9 @@ namespace askap
 			virtual void initialiseGrid(const scimath::Axes& axes,
 					const casa::IPosition& shape, const bool dopsf=true) = 0;
 
-            /// @brief Grid the visibility data.
-            /// @param acc const data accessor to work with
-            virtual void grid(IConstDataAccessor& acc) = 0;
+                        /// @brief Grid the visibility data.
+                        /// @param acc const data accessor to work with
+                        virtual void grid(accessors::IConstDataAccessor& acc) = 0;
 
 			/// Form the final output image
 			/// @param out Output double precision image or PSF
@@ -106,9 +106,9 @@ namespace askap
 			/// @param[in] viswt shared pointer to visibility weights
 			virtual void initVisWeights(const IVisWeights::ShPtr &viswt) = 0;
 
-            /// @brief Degrid the visibility data.
-            /// @param[in] acc non-const data accessor to work with  
-            virtual void degrid(IDataAccessor& acc) = 0;
+                        /// @brief Degrid the visibility data.
+                        /// @param[in] acc non-const data accessor to work with  
+                        virtual void degrid(accessors::IDataAccessor& acc) = 0;
 
 			/// @brief Finalise
 			virtual void finaliseDegrid() = 0;

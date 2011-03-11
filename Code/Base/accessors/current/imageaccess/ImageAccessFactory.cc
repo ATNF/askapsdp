@@ -37,7 +37,7 @@
 #include <string>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief Build an appropriate image access class
 /// @details This is a factory method generating a shared pointer to the image
@@ -45,7 +45,7 @@ using namespace askap::synthesis;
 /// @param[in] parset parameters containing description of image accessor to be constructed
 /// @return shared pointer to the image access object
 /// @note CASA images are used by default 
-boost::shared_ptr<IImageAccess> askap::synthesis::imageAccessFactory(const LOFAR::ParameterSet &parset)
+boost::shared_ptr<IImageAccess> askap::accessors::imageAccessFactory(const LOFAR::ParameterSet &parset)
 {
    std::string imageType = parset.getString("imagetype","casa");
    boost::shared_ptr<IImageAccess> result;

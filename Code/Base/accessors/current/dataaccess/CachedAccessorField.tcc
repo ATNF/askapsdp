@@ -13,7 +13,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief a single cached field of the data accessor 
 ///
@@ -88,7 +88,7 @@ const T& CachedAccessorField<T>::value(Reader reader) const
   return itsValue;
 }
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

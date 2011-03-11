@@ -50,6 +50,7 @@
 
 using namespace askap;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief Constructor   
 /// @details Creates a new composite measurement equation equivalent

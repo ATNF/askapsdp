@@ -380,7 +380,7 @@ void TableVisGridder::logCFCacheStats() const
 
 
 /// This is a generic grid/degrid
-void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
+void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
    if (forward&&itsModelIsEmpty)
 		return;
    
@@ -685,11 +685,11 @@ void TableVisGridder::generic(IDataAccessor& acc, bool forward) {
 /// between these two operations. A non-const accessor has to be modified in situ, if a
 /// correction is required. A buffer for read-only visibilities is created on-demand when
 /// rwVisibility method of the accessor is called for the first time.
-void TableVisGridder::correctVisibilities(IDataAccessor &, bool) {}
+void TableVisGridder::correctVisibilities(accessors::IDataAccessor &, bool) {}
 
 /// @brief Degrid the visibility data.
 /// @param[in] acc non-const data accessor to work with  
-void TableVisGridder::degrid(IDataAccessor& acc) {
+void TableVisGridder::degrid(accessors::IDataAccessor& acc) {
 	generic(acc, true);
 	correctVisibilities(acc, true);
 }
@@ -698,8 +698,8 @@ void TableVisGridder::degrid(IDataAccessor& acc) {
 /// @param acc const data accessor to work with
 /// @note a non-const adapter is created behind the scene. If no on-the-fly visibility 
 /// correction is performed, this adapter is equivalent to the original const data accessor
-void TableVisGridder::grid(IConstDataAccessor& acc) {
-    OnDemandBufferDataAccessor bufAcc(acc);
+void TableVisGridder::grid(accessors::IConstDataAccessor& acc) {
+    accessors::OnDemandBufferDataAccessor bufAcc(acc);
 	correctVisibilities(bufAcc, false);
 	generic(bufAcc, false);
 }

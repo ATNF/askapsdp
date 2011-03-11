@@ -46,7 +46,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An implementation of the IMiscTableInfoHolder interface
 /// @details The main idea of this class is to carry around 
@@ -83,7 +83,7 @@ private:
   std::string itsDefaultDataColumnName;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

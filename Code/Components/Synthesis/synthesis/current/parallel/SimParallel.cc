@@ -66,6 +66,7 @@ using namespace std;
 using namespace askap;
 using namespace askap::mwbase;
 using namespace LOFAR;
+using namespace askap::accessors;
 
 namespace askap
 {

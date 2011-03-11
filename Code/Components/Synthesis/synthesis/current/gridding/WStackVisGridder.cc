@@ -67,7 +67,7 @@ namespace askap
 
     /// Initialize the convolution function into the cube. If necessary this
     /// could be optimized by using symmetries.
-    void WStackVisGridder::initIndices(const IConstDataAccessor& acc)
+    void WStackVisGridder::initIndices(const accessors::IConstDataAccessor& acc)
     {
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution

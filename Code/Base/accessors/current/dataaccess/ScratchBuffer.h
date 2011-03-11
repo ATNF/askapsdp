@@ -41,7 +41,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Helper class representing a scratch buffer
 /// @details Read-write access idiom is to work with so-called
@@ -65,7 +65,7 @@ struct ScratchBuffer {
     mutable bool needsFlush;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

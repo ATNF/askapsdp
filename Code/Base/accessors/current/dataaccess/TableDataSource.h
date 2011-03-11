@@ -37,7 +37,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Implementation of IDataSource in the table-based case
 /// @details
@@ -98,7 +98,7 @@ public:
   using IDataSource::createIterator;	   
 };
  
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

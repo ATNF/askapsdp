@@ -52,7 +52,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A class which holds derived information
 /// @details An implementation of this interface constructs holders of
@@ -93,7 +93,7 @@ struct ISubtableInfoHolder : virtual public IHolder {
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

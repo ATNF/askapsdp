@@ -57,7 +57,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A class to access FEED subtable
 /// @details This file contains a class implementing IFeedSubtableHandler interface to
@@ -285,7 +285,7 @@ private:
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

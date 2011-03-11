@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface for direction conversion.
 /// @details This is a
@@ -60,7 +60,7 @@ struct IDirectionConverter : virtual public IConverterBase {
     using IConverterBase::setMeasFrame;
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

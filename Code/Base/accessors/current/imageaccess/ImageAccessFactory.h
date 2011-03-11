@@ -39,7 +39,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Build an appropriate image access class
 /// @details This is a factory method generating a shared pointer to the image
@@ -49,7 +49,7 @@ namespace synthesis {
 /// @note CASA images are used by default 
 boost::shared_ptr<IImageAccess> imageAccessFactory(const LOFAR::ParameterSet &parset);
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

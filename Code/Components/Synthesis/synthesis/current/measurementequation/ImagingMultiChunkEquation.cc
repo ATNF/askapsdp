@@ -49,7 +49,7 @@ namespace synthesis {
 
 /// @brief Standard constructor, which remembers data iterator.
 /// @param[in] idi data iterator
-ImagingMultiChunkEquation::ImagingMultiChunkEquation(const IDataSharedIter& idi) :
+ImagingMultiChunkEquation::ImagingMultiChunkEquation(const accessors::IDataSharedIter& idi) :
          MultiChunkEquation(idi) {}
 
 
@@ -73,7 +73,7 @@ void ImagingMultiChunkEquation::calcImagingEquations(askap::scimath::ImagingNorm
 /// ne converted to ImagingNormalEquations
 /// @param[in] chunk a read-write accessor to work with
 /// @param[in] ne Normal equations
-void ImagingMultiChunkEquation::calcEquations(const IConstDataAccessor &chunk,
+void ImagingMultiChunkEquation::calcEquations(const accessors::IConstDataAccessor &chunk,
                    askap::scimath::INormalEquations& ne) const
 {
   try {

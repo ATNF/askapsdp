@@ -78,7 +78,7 @@ struct Sum : public MEComponent {
    /// @param[in] row row of the chunk to work with
    /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
    /// this effect
-   inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
+   inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
                                 casa::uInt row) const
    { using namespace scimath; return itsEffect1.get(chunk,row)+
           itsEffect2.get(chunk,row)+itsEffect3.get(chunk,row); }
@@ -111,7 +111,7 @@ struct Sum<Effect1, Effect2, MEComponent> : public MEComponent {
    /// @param[in] row row of the chunk to work with
    /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
    /// this effect
-   inline scimath::ComplexDiffMatrix get(const IConstDataAccessor &chunk, 
+   inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
                                 casa::uInt row) const
    { using namespace scimath; return itsEffect1.get(chunk,row) + itsEffect2.get(chunk,row); }
 

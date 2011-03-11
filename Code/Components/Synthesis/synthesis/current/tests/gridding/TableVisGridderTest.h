@@ -86,7 +86,7 @@ namespace askap
       boost::shared_ptr<WStackVisGridder> itsWStack;
       boost::shared_ptr<AProjectWStackVisGridder> itsAProjectWStack;
 
-      IDataSharedIter idi;
+      accessors::IDataSharedIter idi;
       boost::shared_ptr<Axes> itsAxes;
       boost::shared_ptr<casa::Array<double> > itsModel;
       boost::shared_ptr<casa::Array<double> > itsModelPSF;
@@ -95,7 +95,7 @@ namespace askap
   public:
       void setUp()
       {
-        idi = IDataSharedIter(new DataIteratorStub(1));
+        idi = accessors::IDataSharedIter(new accessors::DataIteratorStub(1));
 
         Params ip;
         ip.add("flux.i.cena", 100.0);

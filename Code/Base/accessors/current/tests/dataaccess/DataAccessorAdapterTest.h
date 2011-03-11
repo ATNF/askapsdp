@@ -40,7 +40,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 class DataAccessorAdapterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(DataAccessorAdapterTest);
@@ -291,7 +291,7 @@ public:
   
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

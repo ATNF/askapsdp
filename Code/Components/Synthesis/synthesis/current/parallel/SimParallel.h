@@ -154,7 +154,7 @@ namespace askap
                 /// some other places as well
                 static void addEquation(boost::shared_ptr<scimath::Equation> &equation,
                         const boost::shared_ptr<IMeasurementEquation const> &other, 
-                        const IDataSharedIter &it);
+                        const accessors::IDataSharedIter &it);
 
             protected:
                 /// @brief helper method to obtain the noise per visibility
@@ -179,7 +179,7 @@ namespace askap
                 /// design of the imaging code, when equation requires an iterator. It should 
                 /// get away at some stage)
                 void corruptEquation(boost::shared_ptr<scimath::Equation> &equation,
-                        const IDataSharedIter &it);
+                        const accessors::IDataSharedIter &it);
 
                 /// @brief read seed for the random generator
                 /// @details This is a helper method to read in seed used to set up random number generator.

@@ -32,7 +32,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief A stubbed implementation of the data accessor
 /// @ingroup dataaccess_hlp
@@ -245,7 +245,7 @@ struct DataAccessorStub : virtual public IFlagDataAccessor
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

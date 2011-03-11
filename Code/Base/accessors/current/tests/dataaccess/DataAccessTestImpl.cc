@@ -44,7 +44,7 @@
 using namespace askap;
 using namespace boost;
 using namespace casa;
-using namespace synthesis;
+using namespace accessors;
 
 /// Some example object-function, requires read-write access to
 /// visibility() (original visibility or a buffer)

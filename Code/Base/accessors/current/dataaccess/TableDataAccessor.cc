@@ -36,7 +36,7 @@
 #include <dataaccess/DataAccessError.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// construct an object linked with the given read-write iterator
 /// @param iter a reference to the associated read-write iterator

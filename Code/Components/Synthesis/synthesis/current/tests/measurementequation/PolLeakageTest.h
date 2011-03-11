@@ -60,8 +60,8 @@ namespace askap
      
      public:
       void setUp() {
-          itsIter = boost::shared_ptr<DataIteratorStub>(new DataIteratorStub(1));
-          DataAccessorStub &da = dynamic_cast<DataAccessorStub&>(*itsIter);
+          itsIter = boost::shared_ptr<accessors::DataIteratorStub>(new accessors::DataIteratorStub(1));
+          accessors::DataAccessorStub &da = dynamic_cast<accessors::DataAccessorStub&>(*itsIter);
           ASKAPASSERT(da.itsStokes.nelements() == 1);
           
           casa::Vector<casa::Stokes::StokesTypes> stokes(4);
@@ -175,7 +175,7 @@ namespace askap
       boost::shared_ptr<ComponentEquation> itsCE1, itsCE2;
       boost::shared_ptr<METype> itsEq1,itsEq2;
       boost::shared_ptr<scimath::Params> itsParams1, itsParams2;
-      SharedIter<DataIteratorStub> itsIter;      
+      accessors::SharedIter<accessors::DataIteratorStub> itsIter;      
     };
   } // namespace synthesis
 

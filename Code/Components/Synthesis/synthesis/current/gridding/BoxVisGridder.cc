@@ -55,11 +55,11 @@ namespace askap
     }
 		
 
-		void BoxVisGridder::initIndices(const IConstDataAccessor&) 
+		void BoxVisGridder::initIndices(const accessors::IConstDataAccessor&) 
 		{
 		}
 
-    void BoxVisGridder::initConvolutionFunction(const IConstDataAccessor&)
+    void BoxVisGridder::initConvolutionFunction(const accessors::IConstDataAccessor&)
     {
       itsSupport=1;
       itsOverSample=1;

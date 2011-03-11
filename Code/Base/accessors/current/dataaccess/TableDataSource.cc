@@ -41,7 +41,7 @@
 #include <dataaccess/SubtableInfoHolder.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// construct a read-write data source object
 /// @param[in] fname file name of the measurement set to use

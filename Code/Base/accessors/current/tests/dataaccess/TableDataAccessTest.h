@@ -52,7 +52,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 class TableDataAccessTest : public CppUnit::TestFixture {
 
@@ -531,7 +531,7 @@ void TableDataAccessTest::originalVisRewriteTest()
   }
 }
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

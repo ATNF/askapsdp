@@ -35,7 +35,7 @@
 #include <dataaccess/TableMeasureFieldSelector.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// set the converter to use. It should be fully specified somewhere
 /// else before the actual selection can take place. This method

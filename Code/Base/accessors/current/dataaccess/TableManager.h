@@ -69,7 +69,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Class to manage Table and derived information
 /// @details This class holds a table and
@@ -115,7 +115,7 @@ struct TableManager : virtual public ITableManager,
            MiscTableInfoHolder(dataColumn) {}
 };
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

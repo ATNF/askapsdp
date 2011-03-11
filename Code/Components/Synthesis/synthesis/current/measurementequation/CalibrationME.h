@@ -89,7 +89,7 @@ public:
   /// @note In the future, measurement equations will work with accessors
   /// only, and, therefore, the dependency on iterator will be removed
   CalibrationME(const askap::scimath::Params& ip,
-          const IDataSharedIter& idi, 
+          const accessors::IDataSharedIter& idi, 
           const boost::shared_ptr<IMeasurementEquation const> &ime) :
             scimath::Equation(ip), MultiChunkEquation(idi), askap::scimath::GenericEquation(parameters()),
             CalibrationMEBase(parameters(), idi, ime), itsEffect(rwParameters()) {}
@@ -106,7 +106,7 @@ protected:
   /// @param[in] row the row number to work with
   /// @return ComplexDiffMatrix encapsulating information about measurement 
   ///         equation corresponding to the given row
-  virtual scimath::ComplexDiffMatrix buildComplexDiffMatrix(const IConstDataAccessor &acc,
+  virtual scimath::ComplexDiffMatrix buildComplexDiffMatrix(const accessors::IConstDataAccessor &acc,
                     casa::uInt row) const
       {   return itsEffect.get(acc,row); }
 

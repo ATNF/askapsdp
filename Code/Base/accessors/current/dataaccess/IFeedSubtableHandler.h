@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief An interface to FEED subtable
 /// @details A class derived from this interface provides access to
@@ -173,7 +173,7 @@ struct IFeedSubtableHandler : virtual public IHolder {
 };
 
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap
 

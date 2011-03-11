@@ -54,7 +54,7 @@
 
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// @brief construct the object
 /// @details 

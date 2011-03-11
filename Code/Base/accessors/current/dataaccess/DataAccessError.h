@@ -37,7 +37,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief general exception class used in the data access layer
 /// @ingroup dataaccess_i

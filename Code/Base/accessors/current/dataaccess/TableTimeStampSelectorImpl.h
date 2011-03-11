@@ -40,7 +40,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Implementation of the time range selector
 /// @details This template implements TableTimeStampSelector for the
@@ -75,7 +75,7 @@ private:
    T itsStop;  
 };
 
-} // namespace synthesis
+} // namespace accessors
 } // namespace askap
 
 

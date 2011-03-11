@@ -72,13 +72,13 @@ namespace askap
   private:
       boost::shared_ptr<ImageFFTEquation> p1, p2;
       boost::shared_ptr<Params> params1, params2;
-      IDataSharedIter idi;
+      accessors::IDataSharedIter idi;
       uint npix;
 
   public:
       void setUp()
       {
-        idi = IDataSharedIter(new DataIteratorStub(1));
+        idi = accessors::IDataSharedIter(new accessors::DataIteratorStub(1));
 
         npix=1024;
         Axes imageAxes;
@@ -150,7 +150,7 @@ namespace askap
          params1->value("image.i.cena").assign(pix);         
          p1.reset(new ImageFFTEquation(*params1, idi));
                  
-         DataAccessorStub &da = dynamic_cast<DataAccessorStub&>(*idi);
+         accessors::DataAccessorStub &da = dynamic_cast<accessors::DataAccessorStub&>(*idi);
          da.itsStokes.assign(stokes.copy());
          da.itsVisibility.resize(da.nRow(), 2 ,4);
          da.itsVisibility.set(casa::Complex(-10.,15.));

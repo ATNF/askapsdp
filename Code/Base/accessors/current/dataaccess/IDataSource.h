@@ -42,7 +42,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Access to a source of visibility data
 /// @details
@@ -158,6 +158,6 @@ public:
 		   IDataConverterConstPtr &conv) const = 0;
 
 };
-} // end of namespace synthesis
+} // end of namespace accessors
 } // end of namespace askap
 #endif // I_DATA_SOURCE_H

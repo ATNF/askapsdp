@@ -42,7 +42,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace askap {
-namespace synthesis {
+namespace accessors {
 
 class DataAccessTest : public CppUnit::TestFixture,
                        protected DataAccessTestImpl		       
@@ -65,7 +65,7 @@ public:
     }
 };
  
-} // namespace synthesis
+} // namespace accessors
 } // namespace askap
 
 #endif // #ifndef I_DATA_ACCESS_TEST_H

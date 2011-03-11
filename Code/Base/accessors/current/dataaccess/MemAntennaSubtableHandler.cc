@@ -47,7 +47,7 @@
 #include <casa/Arrays/Array.h>
 
 using namespace askap;
-using namespace askap::synthesis;
+using namespace askap::accessors;
 
 /// read all required information from the ANTENNA subtable
 /// @param[in] ms an input measurement set (a table which has an

@@ -35,13 +35,13 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// void virtual destructor to keep the compiler happy
 IHolder::~IHolder()
 {
 }
 
-} // namespace synthesis
+} // namespace accessors
 
 } // namespace askap

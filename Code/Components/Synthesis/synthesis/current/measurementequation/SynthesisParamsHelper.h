@@ -88,7 +88,7 @@ namespace askap
         /// image handler. This method allows that. An exception is thrown if no image handler has
         /// been previously set up.
         /// @return a reference to image handler
-        static IImageAccess& imageHandler();
+        static accessors::IImageAccess& imageHandler();
         
         /// @brief zero all free model images
         /// @details I (MV) hope that this method is temporary. In the current design of the code we need to 
@@ -399,7 +399,7 @@ namespace askap
         
     private:    
         /// @brief image accessor
-        static boost::shared_ptr<IImageAccess> theirImageAccessor;              
+        static boost::shared_ptr<accessors::IImageAccess> theirImageAccessor;              
 
         /// @brief default frequency frame
         static casa::MFrequency::Ref theirFreqFrame;

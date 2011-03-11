@@ -53,7 +53,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 // forward declaration to be able to define shared pointer to this class
 class TableDataAccessor;
@@ -184,7 +184,7 @@ private:
   casa::uInt itsIterationCounter;
 };
 
-} // end of namespace synthesis
+} // end of namespace accessors
 
 } // end of namespace askap
 

@@ -42,12 +42,12 @@ int main(int argc, char *argv[])
 {
  try {
    //CppUnit::TextUi::TestRunner runner;
-   askap::synthesis::TableTestRunner runner(argv[0]);
-   runner.addTest(askap::synthesis::DataConverterTest::suite());
-   runner.addTest(askap::synthesis::DataAccessTest::suite());
-   runner.addTest(askap::synthesis::TableDataAccessTest::suite());
-   runner.addTest(askap::synthesis::UVWMachineCacheTest::suite());
-   runner.addTest(askap::synthesis::DataAccessorAdapterTest::suite());
+   askap::accessors::TableTestRunner runner(argv[0]);
+   runner.addTest(askap::accessors::DataConverterTest::suite());
+   runner.addTest(askap::accessors::DataAccessTest::suite());
+   runner.addTest(askap::accessors::TableDataAccessTest::suite());
+   runner.addTest(askap::accessors::UVWMachineCacheTest::suite());
+   runner.addTest(askap::accessors::DataAccessorAdapterTest::suite());
    runner.run();
    return 0;
  }

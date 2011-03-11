@@ -63,7 +63,7 @@ namespace synthesis {
 /// @note I hope this adapter is temporary, and a better way of handling 
 /// composite equations will be adopted in the future.
 /// @ingroup measurementequation
-class CalibrationIterator : virtual public IDataIterator
+class CalibrationIterator : virtual public accessors::IDataIterator
 {
 public:
     /// @brief construct iterator
@@ -77,7 +77,7 @@ public:
     /// @note If calME belongs to a type initialized with an iterator, it doesn't
     /// matter which iterator it has been initialized with. This class always
     /// uses accessor-based methods.
-    CalibrationIterator(const IDataSharedIter &iter, 
+    CalibrationIterator(const accessors::IDataSharedIter &iter, 
               const boost::shared_ptr<IMeasurementEquation> &calME);
 	
     /// Return the data accessor (current chunk) in various ways
@@ -88,7 +88,7 @@ public:
     /// constness of the return type is changed to allow read/write
     /// operations.
     ///
-    virtual IDataAccessor& operator*() const;
+    virtual accessors::IDataAccessor& operator*() const;
 	
     /// Switch the output of operator* and operator-> to one of 
     /// the buffers. This is meant to be done to provide the same 
@@ -125,7 +125,7 @@ public:
     /// Because IDataAccessor has both const and non-const visibility()
     /// methods defined separately, it is possible to detect when a
     /// write operation took place and implement a delayed writing
-    virtual IDataAccessor& buffer(const std::string &bufferID) const;
+    virtual accessors::IDataAccessor& buffer(const std::string &bufferID) const;
 	
     /// Restart the iteration from the beginning
     virtual void init();
@@ -140,13 +140,13 @@ public:
     virtual casa::Bool next();
 private:
     /// @brief iterator passed in the constructor
-    IDataSharedIter itsWrappedIterator;	
+    accessors::IDataSharedIter itsWrappedIterator;	
     
     /// @brief measurement equation describing calibration
     boost::shared_ptr<IMeasurementEquation> itsCalibrationME;
     
     /// @brief a buffer for calibrated visibilities
-    mutable boost::shared_ptr<IDataAccessor> itsDataAccessor;
+    mutable boost::shared_ptr<accessors::IDataAccessor> itsDataAccessor;
         
     /// @brief true if one of the buffers is active
     bool itsBufferFlag;

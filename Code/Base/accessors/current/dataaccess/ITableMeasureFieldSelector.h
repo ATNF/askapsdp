@@ -45,7 +45,7 @@
 
 namespace askap {
 
-namespace synthesis {
+namespace accessors {
 
 /// @brief Interface constraining an expression node for measure fields
 /// @details The units and reference frame have to be specified via a

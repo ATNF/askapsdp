@@ -104,7 +104,7 @@ namespace askap
       /// @param acc const data accessor to work with
       /// @note a non-const adapter is created behind the scene. If no on-the-fly visibility 
       /// correction is performed, this adapter is equivalent to the original const data accessor
-      virtual void grid(IConstDataAccessor& acc);
+      virtual void grid(accessors::IConstDataAccessor& acc);
       
       /// Form the final output image
       /// @param out Output double precision image or PSF
@@ -141,7 +141,7 @@ namespace askap
       
       /// @brief Degrid the visibility data.
       /// @param[in] acc non-const data accessor to work with  
-      virtual void degrid(IDataAccessor& acc);
+      virtual void degrid(accessors::IDataAccessor& acc);
 
       /// @brief Finalise
       virtual void finaliseDegrid();
@@ -196,7 +196,7 @@ namespace askap
       /// @param[in] acc non-const accessor with the data to correct, leave it intact if no
       /// correction is required
       /// @param[in] forward true for degridding (image to vis) and false for gridding (vis to image)
-      virtual void correctVisibilities(IDataAccessor &acc, bool forward);
+      virtual void correctVisibilities(accessors::IDataAccessor &acc, bool forward);
   
       /// @brief initialise sum of weights
       /// @details We keep track the number of times each convolution function is used per
@@ -308,11 +308,11 @@ namespace askap
 
       /// @brief Initialize the convolution function - this is the key function to override.
       /// @param[in] acc const accessor to work with
-      virtual void initConvolutionFunction(const IConstDataAccessor& acc) = 0;
+      virtual void initConvolutionFunction(const accessors::IConstDataAccessor& acc) = 0;
 
       /// @brief Initialise the indices
       /// @param[in] acc const accessor to work with
-      virtual void initIndices(const IConstDataAccessor& acc) = 0;
+      virtual void initIndices(const accessors::IConstDataAccessor& acc) = 0;
 
       /// @brief Correct for gridding convolution function
       /// @param image image to be corrected
@@ -417,7 +417,7 @@ namespace askap
       /// @note We have to pass a non-const accessor because this method can either 
       /// write or read. A bit better re-structuring of the code can help to deal with
       /// constness properly.
-      void generic(IDataAccessor& acc, bool forward);
+      void generic(accessors::IDataAccessor& acc, bool forward);
 
       /// Visibility Weights
       IVisWeights::ShPtr itsVisWeight;

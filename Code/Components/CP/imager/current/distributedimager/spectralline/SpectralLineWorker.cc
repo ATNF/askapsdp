@@ -67,6 +67,7 @@ using namespace askap::cp;
 using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
+using namespace askap::accessors;
 
 ASKAP_LOGGER(logger, ".SpectralLineWorker");
 
@@ -146,7 +147,7 @@ void SpectralLineWorker::processWorkUnit(const SpectralLineWorkUnit& wu)
     processChannel(ds, imagename, localChannel, globalChannel);
 }
 
-void SpectralLineWorker::processChannel(askap::synthesis::TableDataSource& ds,
+void SpectralLineWorker::processChannel(askap::accessors::TableDataSource& ds,
         const std::string& imagename, unsigned int localChannel, unsigned int globalChannel)
 {
     askap::scimath::Params::ShPtr model_p(new Params());
