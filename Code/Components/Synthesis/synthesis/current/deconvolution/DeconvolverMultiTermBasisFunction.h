@@ -112,12 +112,6 @@ namespace askap {
       /// @brief Get the type of solution used in finding the optimum component
       const String solutionType();
 
-      /// @brief Set whether to use decoupling in the solution for the optimum flux
-      void setDecouple(Bool decouple);
-
-      /// @brief Whether to use decoupling in finding the optimum component
-      const Bool decouple();
-
       /// @brief Perform the deconvolution
       /// @detail This is the main deconvolution method.
       virtual bool deconvolve();
@@ -190,8 +184,6 @@ namespace askap {
       Bool itsBasisFunctionChanged;
 
       String itsSolutionType;
-
-      Bool itsDecoupleTerms;
     };
 
   } // namespace synthesis

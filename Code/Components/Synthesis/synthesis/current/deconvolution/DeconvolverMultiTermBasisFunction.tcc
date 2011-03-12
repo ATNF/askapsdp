@@ -66,7 +66,7 @@ namespace askap {
 									       Vector<Array<T> >& psf,
 									       Vector<Array<T> >& psfLong)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
-      itsSolutionType("MINCHISQ"), itsDecoupleTerms(false)
+      itsSolutionType("MINCHISQ")
     {
       ASKAPLOG_DEBUG_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
 
@@ -84,7 +84,7 @@ namespace askap {
     DeconvolverMultiTermBasisFunction<T,FT>::DeconvolverMultiTermBasisFunction(Array<T>& dirty,
 									       Array<T>& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
-                                                                                   itsSolutionType("MAXBASE"), itsDecoupleTerms(false)
+                                                                                   itsSolutionType("MINCHISQ")
     {
       ASKAPLOG_DEBUG_STR(decmtbflogger, "There is only one term to be solved");
       this->itsPsfLongVec.resize(1);
@@ -93,16 +93,6 @@ namespace askap {
     
     template<class T, class FT>
     DeconvolverMultiTermBasisFunction<T,FT>::~DeconvolverMultiTermBasisFunction() {
-    };
-    
-    template<class T, class FT>
-    void DeconvolverMultiTermBasisFunction<T,FT>::setDecouple(Bool decouple) {
-      itsDecoupleTerms=decouple;
-    };
-    
-    template<class T, class FT>
-    const Bool DeconvolverMultiTermBasisFunction<T,FT>::decouple() {
-      return itsDecoupleTerms;
     };
     
     template<class T, class FT>
@@ -159,22 +149,16 @@ namespace askap {
       String solutionType=parset.getString("solutiontype", "MINCHISQ");
       if(solutionType=="MINCHISQ") {
 	itsSolutionType=solutionType;
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Component search to minimise chisq");
       }
       else if(solutionType=="MAXTERM0") {
 	itsSolutionType=solutionType;
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Component search to maximise Taylor term 0 over bases");
       }
       else {
 	solutionType="MAXBASE";
 	itsSolutionType=solutionType;
-      }
-      ASKAPLOG_DEBUG_STR(decmtbflogger, "Solution type = " << solutionType);
-      
-      itsDecoupleTerms=parset.getBool("decouple", "false");
-      if(itsDecoupleTerms) {
-	ASKAPLOG_DEBUG_STR(decmtbflogger, "Decoupling and scaling in term using the inverse of the coupling matrix");
-      }
-      else {
-	ASKAPLOG_DEBUG_STR(decmtbflogger, "Scaling in term using the inverse of the diagonal elements of the coupling matrix");
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Component search to maximise over bases");
       }
     }
       
@@ -415,34 +399,17 @@ namespace askap {
       this->itsInverseCouplingMatrix.resize(nBases);
       this->itsDetCouplingMatrix.resize(nBases);
       
-      if(this->itsDecoupleTerms) {
-	for (uInt base=0;base<nBases;base++) {
-	  this->itsInverseCouplingMatrix(base).resize(this->itsNumberTerms,this->itsNumberTerms);
-	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix(" << base << ")="
-			    << this->itsCouplingMatrix(base));
-          ASKAPLOG_DEBUG_STR(decmtbflogger, "Calculating matrix inverse by Cholesky decomposition");
-	  invertSymPosDef(this->itsInverseCouplingMatrix(base),
-			  this->itsDetCouplingMatrix(base), this->itsCouplingMatrix(base));
-	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix determinant(" << base << ") = "
-			    << this->itsDetCouplingMatrix(base));
-	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Inverse coupling matrix(" << base
-			    << ")=" << this->itsInverseCouplingMatrix(base));
-	}
-      }
-      else {
-	for (uInt base=0;base<nBases;base++) {
-	  ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix(" << base << ")="
-			    << this->itsCouplingMatrix(base));
-          ASKAPLOG_DEBUG_STR(decmtbflogger, "Approximating inverse by diagonal terms only");
-	  uInt nRows(this->itsCouplingMatrix(base).nrow());
-	  this->itsInverseCouplingMatrix(base).resize(this->itsNumberTerms,this->itsNumberTerms);
-          this->itsInverseCouplingMatrix(base).set(0.0);
-          this->itsDetCouplingMatrix(base)=1.0;
-	  for (uInt row=0;row<nRows;row++) {
-            this->itsInverseCouplingMatrix(base)(row,row)=1.0/this->itsCouplingMatrix(base)(row,row);
-            this->itsDetCouplingMatrix(base)=this->itsDetCouplingMatrix(base)*this->itsCouplingMatrix(base)(row,row);
-	  }
-	}
+      for (uInt base=0;base<nBases;base++) {
+        this->itsInverseCouplingMatrix(base).resize(this->itsNumberTerms,this->itsNumberTerms);
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix(" << base << ")="
+                           << this->itsCouplingMatrix(base));
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Calculating matrix inverse by Cholesky decomposition");
+        invertSymPosDef(this->itsInverseCouplingMatrix(base),
+                        this->itsDetCouplingMatrix(base), this->itsCouplingMatrix(base));
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Coupling matrix determinant(" << base << ") = "
+                           << this->itsDetCouplingMatrix(base));
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Inverse coupling matrix(" << base
+                           << ")=" << this->itsInverseCouplingMatrix(base));
       }
       this->itsBasisFunctionChanged=False;
     }
@@ -535,33 +502,29 @@ namespace askap {
             }
           }
 
-          // The next is the preferred algorithm
-          //          vecWork_p[scale] = 0.0;
-          //          for(Int taylor1=0;taylor1<ntaylor;taylor1++)
-          //            {
-          //              vecWork_p[scale] = vecWork_p[scale] + (Float)2.0  * (  (matCoeffs_p[IND2(taylor1,scale)])  *  (matR_p[IND2(taylor1,scale)])  );
-          //              for(Int taylor2=0;taylor2<ntaylor;taylor2++)
-          //                vecWork_p[scale] = vecWork_p[scale] - (Float)((matA_p[scale])(taylor1,taylor2)) * matCoeffs_p[IND2(taylor1,scale)] * matCoeffs_p[IND2(taylor2,scale)] ;
-          //            }
-          //          findMaxAbsMask(vecWork_p[scale],vecScaleMasks_p[scale],maxScaleVal_p[scale],maxScalePos_p[scale]);
-          
-
           if(this->itsSolutionType=="MINCHISQ") {
-            // Now form the criterion image and then search for the peak
-            Array<T> criterion(this->dirty(0).shape().nonDegenerate());
-            criterion.set(T(0.0));
+            // Now form the criterion image and then search for the peak.
+            Array<T> negchisq(this->dirty(0).shape().nonDegenerate());
+            negchisq.set(T(0.0));
             for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-              criterion=criterion+T(2.0)*this->itsResidualBasis(base)(term1) * coefficients(term1);
+              negchisq=negchisq+T(2.0)*coefficients(term1)*this->itsResidualBasis(base)(term1);
               for (uInt term2=0;term2<this->itsNumberTerms;term2++) {
-                criterion=criterion-T(this->itsCouplingMatrix(base)(term1,term2))*coefficients(term1)*coefficients(term2);
+                negchisq=negchisq-T(this->itsCouplingMatrix(base)(term1,term2))*coefficients(term1)*coefficients(term2);
               }
             }
+            // Need to take the square root to ensure that the SNR weighting is correct
+            ASKAPCHECK(min(negchisq)>0.0, "Negchisq has negative values");
+            negchisq=sqrt(negchisq);
+            //            SynthesisParamsHelper::saveAsCasaImage("negchisq.img",negchisq);
+            //            SynthesisParamsHelper::saveAsCasaImage("coefficients0.img",coefficients(0));
+            //            SynthesisParamsHelper::saveAsCasaImage("coefficients1.img",coefficients(1));
+            //            ASKAPTHROW(AskapError, "Written debug images");
             if(isWeighted) {
-              casa::minMaxMasked(minVal, maxVal, minPos, maxPos, criterion,
+              casa::minMaxMasked(minVal, maxVal, minPos, maxPos, negchisq,
                                  this->itsWeight(0).nonDegenerate());
             }
             else {
-              casa::minMax(minVal, maxVal, minPos, maxPos, criterion);
+              casa::minMax(minVal, maxVal, minPos, maxPos, negchisq);
             }
             for (uInt term=0;term<this->itsNumberTerms;term++) {
               minValues(term)=coefficients(term)(minPos);
@@ -596,9 +559,16 @@ namespace askap {
 	}
       }
 	
+      // Now that we know the location of the peak found using one of the
+      // above methods we can look up the values of the residuals. Remember
+      // that we have to decouple the answer
       peakValues.resize(this->itsNumberTerms);
-      for (uInt term=0;term<this->itsNumberTerms;term++) {
-        peakValues(term)=this->itsResidualBasis(optimumBase)(term)(absPeakPos);
+      for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
+        peakValues(term1)=0.0;
+        for(uInt term2=0;term2<this->itsNumberTerms;term2++) {
+          peakValues(term1)=peakValues(term1)
+            + T(this->itsInverseCouplingMatrix(optimumBase)(term1,term2))*this->itsResidualBasis(optimumBase)(term2)(absPeakPos);
+        }
       }
     }
     

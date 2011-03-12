@@ -161,7 +161,7 @@ namespace askap
       // switch between these. This optimization may not be sufficient in the long run.
 
       itsIdi.chooseOriginal();
-      ASKAPLOG_INFO_STR(logger, "Initialising for model degridding");
+      ASKAPLOG_DEBUG_STR(logger, "Initialising for model degridding");
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image"+(*it));
@@ -173,7 +173,7 @@ namespace askap
 	    itsModelGridders[imageName]->customiseForContext(*it);
 
         if (notYetDegridded(imageName)) {
-            ASKAPLOG_INFO_STR(logger, "Degridding image "<<imageName);
+            ASKAPLOG_DEBUG_STR(logger, "Degridding image "<<imageName);
             const Axes axes(parameters().axes(imageName));
             casa::Array<double> imagePixels(parameters().value(imageName).copy());
             const casa::IPosition imageShape(imagePixels.shape());
@@ -181,7 +181,7 @@ namespace askap
         }              
       }
       // Loop through degridding the data
-      ASKAPLOG_INFO_STR(logger, "Starting to degrid model" );
+      ASKAPLOG_DEBUG_STR(logger, "Starting to degrid model" );
       
       // report every 5000000 degridded rows into log in the debug mode
       #ifdef ASKAP_DEBUG
@@ -210,11 +210,11 @@ namespace askap
         current_rows += nRow;
         if (current_rows > report_every) {
             current_rows = 0;
-            ASKAPLOG_INFO_STR(logger, "Degridded "<<total_rows<<" rows of data"); 
+            ASKAPLOG_DEBUG_STR(logger, "Degridded "<<total_rows<<" rows of data"); 
         }
         #endif // #ifdef ASKAP_DEBUG
       }
-      ASKAPLOG_INFO_STR(logger, "Finished degridding model" );
+      ASKAPLOG_DEBUG_STR(logger, "Finished degridding model" );
     };
     
     /// @brief assign a different iterator
@@ -260,7 +260,7 @@ namespace askap
         }
       }
       // Now we initialise appropriately
-      ASKAPLOG_INFO_STR(logger, "Initialising for model degridding and residual gridding" );
+      ASKAPLOG_DEBUG_STR(logger, "Initialising for model degridding and residual gridding" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image"+(*it));
@@ -278,7 +278,7 @@ namespace askap
         itsPSFGridders[imageName]->initialiseGrid(axes, imageShape, true);        
       }
       // Now we loop through all the data
-      ASKAPLOG_INFO_STR(logger, "Starting degridding model and gridding residuals" );
+      ASKAPLOG_DEBUG_STR(logger, "Starting degridding model and gridding residuals" );
       size_t counterGrid = 0, counterDegrid = 0;
       for (itsIdi.init();itsIdi.hasMore();itsIdi.next())
       {
@@ -309,14 +309,14 @@ namespace askap
           }
         }
       }
-      ASKAPLOG_INFO_STR(logger, "Finished degridding model and gridding residuals" );
-      ASKAPLOG_INFO_STR(logger, "Number of accessor rows iterated through is "<<counterGrid<<" (gridding) and "<<
+      ASKAPLOG_DEBUG_STR(logger, "Finished degridding model and gridding residuals" );
+      ASKAPLOG_DEBUG_STR(logger, "Number of accessor rows iterated through is "<<counterGrid<<" (gridding) and "<<
                         counterDegrid<<" (degridding)");
 
       // We have looped over all the data, so now we have to complete the 
       // transforms and fill in the normal equations with the results from the
       // residual gridders
-      ASKAPLOG_INFO_STR(logger, "Adding residual image, PSF, and weights image to the normal equations" );
+      ASKAPLOG_DEBUG_STR(logger, "Adding residual image, PSF, and weights image to the normal equations" );
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
       {
         const string imageName("image"+(*it));

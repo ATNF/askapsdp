@@ -70,7 +70,7 @@ namespace askap
     
     
     ImageAMSMFSolver::ImageAMSMFSolver() : itsScales(3,0.), itsNumberTaylor(0),
-					   itsSolutionType("R5"), itsDecoupleTerms(false)
+					   itsSolutionType("R5")
     {
       ASKAPDEBUGASSERT(itsScales.size() == 3);
       itsScales(1)=10;
@@ -85,7 +85,7 @@ namespace askap
     
     ImageAMSMFSolver::ImageAMSMFSolver(const casa::Vector<float>& scales) : 
       itsScales(scales), itsNumberTaylor(0), 
-      itsSolutionType("R5"), itsDecoupleTerms(false)
+      itsSolutionType("R5")
     {
       // Now set up controller
       itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
@@ -414,7 +414,6 @@ namespace askap
 	      itsBasisFunction->initialise(dirtyVec(0).shape());
 	      itsCleaners[imageTag]->setBasisFunction(itsBasisFunction);
 	      itsCleaners[imageTag]->setSolutionType(itsSolutionType);
-	      itsCleaners[imageTag]->setDecouple(itsDecoupleTerms);
 	      if(maskArray.nelements()) {
                 ASKAPLOG_INFO_STR(logger, "Defining mask as weight image");
 		itsCleaners[imageTag]->setWeight(maskArray);
@@ -523,21 +522,16 @@ namespace askap
       ASKAPASSERT(this->itsControl);
       this->itsControl->configure(parset);
       
-      String solutionType=parset.getString("solutiontype", "MAXBASE");
-      if(solutionType=="R5") {
+      String solutionType=parset.getString("solutiontype", "MINCHISQ");
+      if(solutionType=="MAXBASE") {
       }
       else if(solutionType=="MAXTERM0") {
       }
       else {
-	solutionType="MAXBASE";
+	solutionType="MINCHISQ";
       }
       ASKAPLOG_INFO_STR(decmtbflogger, "Solution type = " << solutionType);
       this->itsSolutionType=solutionType;
-      
-      this->itsDecoupleTerms=parset.getBool("decouple", "true");
-      if(itsDecoupleTerms) {
-	ASKAPLOG_INFO_STR(decmtbflogger, "Decoupling in term using the inverse of the coupling matrix");
-      }
     }
   }
 }
