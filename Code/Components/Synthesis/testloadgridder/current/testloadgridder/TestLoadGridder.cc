@@ -65,11 +65,11 @@ namespace askap
       VisGridderFactory::registerGridder (gridderName(), &makeGridder);
     }
 
-    void TestLoadGridder::initIndices(const IConstDataAccessor&) 
+    void TestLoadGridder::initIndices(const accessors::IConstDataAccessor&) 
     {
     }
 
-    void TestLoadGridder::initConvolutionFunction(const IConstDataAccessor&)
+    void TestLoadGridder::initConvolutionFunction(const accessors::IConstDataAccessor&)
     {
       itsSupport=0;
       itsOverSample=1;

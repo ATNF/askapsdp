@@ -25,6 +25,7 @@
 ///
 /// @author Ger van Diepen <diepen at astron dot nl>
 
+#include <gridding/IVisGridder.h>
 #include <gridding/VisGridderFactory.h>
 
 #include <askapparallel/AskapParallel.h>
