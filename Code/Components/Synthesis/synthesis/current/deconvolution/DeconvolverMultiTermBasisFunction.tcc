@@ -513,15 +513,16 @@ namespace askap {
               }
             }
             // Need to take the square root to ensure that the SNR weighting is correct
-            ASKAPCHECK(min(negchisq)>0.0, "Negchisq has negative values");
-            negchisq=sqrt(negchisq);
+            //            ASKAPCHECK(min(negchisq)>0.0, "Negchisq has negative values");
+            //            negchisq=sqrt(negchisq);
             //            SynthesisParamsHelper::saveAsCasaImage("negchisq.img",negchisq);
             //            SynthesisParamsHelper::saveAsCasaImage("coefficients0.img",coefficients(0));
             //            SynthesisParamsHelper::saveAsCasaImage("coefficients1.img",coefficients(1));
             //            ASKAPTHROW(AskapError, "Written debug images");
+            // Remember that the weights must be squared.
             if(isWeighted) {
               casa::minMaxMasked(minVal, maxVal, minPos, maxPos, negchisq,
-                                 this->itsWeight(0).nonDegenerate());
+                                 this->itsWeight(0).nonDegenerate()*this->itsWeight(0).nonDegenerate());
             }
             else {
               casa::minMax(minVal, maxVal, minPos, maxPos, negchisq);
