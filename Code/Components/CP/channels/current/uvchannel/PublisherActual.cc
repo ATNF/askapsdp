@@ -37,14 +37,13 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
-#include "boost/scoped_ptr.hpp"
 #include "cms/Session.h"
 #include "cms/Destination.h"
 #include "cms/MessageProducer.h"
 #include "cms/BytesMessage.h"
 
 // Local package includes
-#include "uvchannel/UVChannelConnection.h"
+#include "uvchannel/ConnectionWrapper.h"
 
 ASKAP_LOGGER(logger, ".PublisherActual");
 
@@ -55,10 +54,10 @@ using namespace askap::cp;
 using namespace askap::cp::channels;
 using namespace cms;
 
+/// @brief Publisher wrapper, wrapping a single ActiveMQ MessagePublisher.
 PublisherActual::PublisherActual(const std::string& brokerURI) : itsConnection(brokerURI)
 {
     ASKAPLOG_DEBUG_STR(logger, "Connecting with URI: " << brokerURI);
-
     try {
         // Create a MessageProducer
         itsProducer.reset(itsConnection.getSession()->createProducer(0));
@@ -98,12 +97,12 @@ void PublisherActual::sendByteMessage(const unsigned char* buffer,
         const std::size_t length,
         const std::string& topic)
 {
-    boost::shared_ptr<cms::Destination> dest = getTopic(topic);
+    boost::shared_ptr<cms::Destination> dest = getDestination(topic);
     itsMessage->setBodyBytes(buffer, length);
     itsProducer->send(dest.get(), itsMessage.get());
 }
 
-boost::shared_ptr<cms::Destination> PublisherActual::getTopic(const std::string& topic)
+boost::shared_ptr<cms::Destination> PublisherActual::getDestination(const std::string& topic)
 {
     map< string, boost::shared_ptr<cms::Destination> >::const_iterator it;
     it = itsTopicMap.find(topic);

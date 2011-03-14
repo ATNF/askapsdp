@@ -28,38 +28,75 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+// Package level header file
+#include "askap_channels.h"
+
 // System includes
 #include <iostream>
 #include <string>
+#include <unistd.h>
 
 // ASKAPsoft includes
+#include "askap/AskapLogging.h"
 #include "Common/ParameterSet.h"
+#include "CommandLineParser.h"
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
 #include "uvchannel/UVChannelPublisher.h"
+#include "uvchannel/UVChannelConsumer.h"
+#include "uvchannel/IUVChannelListener.h"
+
+ASKAP_LOGGER(logger, ".tUVChannel");
 
 using namespace askap::cp::channels;
+
+class MyListener : public IUVChannelListener {
+    public:
+        MyListener() : itsCount(0) { }
+
+        long getCount(void) { return itsCount; }
+
+    protected:
+        virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message) {
+            itsCount++;
+        }
+
+    private:
+        long itsCount;
+};
 
 // main()
 int main(int argc, char *argv[])
 {
-    const unsigned int nMessages = 5;
-    const unsigned int nChans = 152;
+    ASKAPLOG_INIT("askap.log_cfg");
+
+    const unsigned int nMessages = 6;
+    const unsigned int nChans = 304;
+
+    // Command line parser
+    cmdlineparser::Parser parser;
+
+    // Command line parameter
+    cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "tUVChannel.in");
+
+    // Throw an exception if the parameter is not present
+    parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
+    parser.process(argc, const_cast<char**> (argv));
 
     // Create a configuration parset
-    LOFAR::ParameterSet parset;
-    parset.add("uvchannel.brokers", "[broker1]");
-    parset.add("uvchannel.broker.broker1.host", "localhost");
-    parset.add("uvchannel.broker.broker1.port", "61616");
-    parset.add("uvchannel.channels", "[avg304]");
+    LOFAR::ParameterSet parset(inputsPar);
 
-    parset.add("uvchannel.channel.avg304.topic_prefix", "avg304");
-    parset.add("uvchannel.channel.avg304.nblocks", "1");
-    parset.add("uvchannel.channel.avg304.block_1", "[1, 304, broker1]");
-
-    // Setup the channel
+    // Setup the publisher
     UVChannelPublisher pub(parset, "avg304");
+
+    // Setup the consumer
+    MyListener listener;
+    UVChannelConsumer consumer(parset, "avg304", &listener);
+
+    for (unsigned int c = 1; c <= nChans; ++c) {
+        consumer.addSubscription(c);
+    }
 
     // Create a VisChunk
     // This is the size of a BETA VisChunk, 21 baselines (including
@@ -71,10 +108,26 @@ int main(int argc, char *argv[])
 
     for (unsigned int i = 1; i <= nMessages; ++i) {
         for (unsigned int c = 1; c <= nChans; ++c) {
-            std::cout << "Iteration " << i << " channel " << c << std::endl;
+            ASKAPLOG_INFO_STR(logger, "Iteration " << i << " channel " << c);
             pub.publish(data, c);
+
+            // Don't let the publisher get too far ahead of the consumer
+            if ((i * nChans) > listener.getCount()) {
+                usleep(5000);
+            }
         }
     }
 
-    return 0;
+    ASKAPLOG_INFO_STR(logger, "Waiting for messages to arrive...");
+    const int expected = nMessages * nChans;
+
+    for (int i = 0; i < 5; ++i) {
+        if (listener.getCount() == expected) break;
+
+        sleep(1);
+    }
+
+    ASKAPLOG_INFO_STR(logger, "Got " << listener.getCount() << ", expected " << expected);
+
+    return (listener.getCount() == expected);
 }

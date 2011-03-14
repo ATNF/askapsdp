@@ -31,7 +31,7 @@ sleep 10
 
 # Run the uvchannel test 
 echo "Running the testcase..."
-$ASKAP_ROOT/Code/Components/CP/channels/current/apps/tUVChannel.sh
+$ASKAP_ROOT/Code/Components/CP/channels/current/apps/tUVChannel.sh -inputs tUVChannel.in
 STATUS=$?
 echo "Testcase finished"
 sleep 5

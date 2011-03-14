@@ -46,13 +46,24 @@ namespace askap {
 namespace cp {
 namespace channels {
 
+    /// @brief Publisher class. Wraps the process of publishing to the uv-channel,
+    /// regardless of which broker is responsible for the particular channelName
+    /// and/or channel number.
     class UVChannelPublisher {
 
         public:
+            /// Constructor.
             UVChannelPublisher(const LOFAR::ParameterSet& parset, const std::string& channelName);
 
+            /// Destructor.
             ~UVChannelPublisher();
 
+            /// @brief Publish a Vischunk to the uv-channel
+            ///
+            /// @param[in] data the VisChunk instance to publish
+            /// @param[in] channel  the channel number to publish this to. This
+            ///                     corresponds to a spectral channel, which is
+            ///                     then mapped to a specific broker an topic.
             void publish(const askap::cp::common::VisChunk& data, const int channel);
 
         private:

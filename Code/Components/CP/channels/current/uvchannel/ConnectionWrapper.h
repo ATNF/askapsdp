@@ -1,4 +1,4 @@
-/// @file UVChannelConnection.h
+/// @file ConnectionWrapper.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -44,16 +44,23 @@ namespace askap {
 namespace cp {
 namespace channels {
 
-    class UVChannelConnection : protected cms::ExceptionListener {
+    class ConnectionWrapper : protected cms::ExceptionListener {
 
         public:
+            /// Constructor
             /// @param[in] brokerURI    the URI used to identify and connect to
             /// the broker.
-            UVChannelConnection(const std::string& brokerURI);
+            ConnectionWrapper(const std::string& brokerURI);
 
-            /// @brief Destructor.
-            ~UVChannelConnection();
+            /// Destructor.
+            ~ConnectionWrapper();
 
+            /// @brief Get a pointer to the session object.
+            ///
+            /// @return a pointer to the session object. Note: The object is
+            ///         still owned by the ConnectionWrapper and the pointer
+            ///         is only valid while the ConnectionWrapper which
+            ///         provided the pointer exists.
             cms::Session* getSession(void);
 
         protected:
@@ -67,10 +74,10 @@ namespace channels {
         private:
 
             // No support for assignment
-            UVChannelConnection& operator=(const UVChannelConnection& rhs);
+            ConnectionWrapper& operator=(const ConnectionWrapper& rhs);
 
             // No support for copy constructor
-            UVChannelConnection(const UVChannelConnection& src);
+            ConnectionWrapper(const ConnectionWrapper& src);
 
             // ActiveMQ library wrapper (manages the init/shutdown)
             LibraryWrapper mqlib;

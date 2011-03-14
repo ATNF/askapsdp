@@ -1,4 +1,4 @@
-/// @file UVChannelPublisher.cc
+/// @file UVChannelConsumer.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "UVChannelPublisher.h"
+#include "UVChannelConsumer.h"
 
 // Include package level header file
 #include "askap_channels.h"
@@ -39,14 +39,15 @@
 #include "askap/AskapLogging.h"
 #include "Blob/BlobOStream.h"
 #include "Blob/BlobOBufVector.h"
-#include "cpcommon/VisChunk.h"
 #include "Common/ParameterSet.h"
+#include "cms/Message.h"
+#include "cms/BytesMessage.h"
 
 // Local package includes
 #include "uvchannel/UVChannelConfig.h"
 #include "uvchannel/PublisherActual.h"
 
-ASKAP_LOGGER(logger, ".UVChannelPublisher");
+ASKAP_LOGGER(logger, ".UVChannelConsumer");
 
 // Using
 using namespace std;
@@ -54,36 +55,37 @@ using namespace askap;
 using namespace askap::cp;
 using namespace askap::cp::channels;
 
-UVChannelPublisher::UVChannelPublisher(const LOFAR::ParameterSet& parset, const std::string& channelName)
-    : itsConfig(parset), itsChannelName(channelName), itsObv(itsBuffer), itsOut(itsObv)
+UVChannelConsumer::UVChannelConsumer(const LOFAR::ParameterSet& parset,
+        const std::string& channelName,
+        IUVChannelListener* listener)
+    : itsConfig(parset), itsChannelName(channelName), itsVisListener(listener)
+{
+    if (!listener) {
+        ASKAPTHROW(AskapError, "Visibilities listener is null");
+    }
+}
+
+UVChannelConsumer::~UVChannelConsumer()
 {
 }
 
-UVChannelPublisher::~UVChannelPublisher()
-{
-}
-
-void UVChannelPublisher::publish(const askap::cp::common::VisChunk& data,
-        const int channel)
+void UVChannelConsumer::addSubscription(const int channel)
 {
     // Get topic and broker id
     const string topic = itsConfig.getTopic(itsChannelName, channel);
     const string brokerId = itsConfig.getBrokerId(itsChannelName, channel);
-
-    // Reset the blob objects (need to reuse them for performance reasons)
-    itsObv.clear();
-    itsOut.clear();
-
-    // Serialize
-    itsOut.putStart("VisChunk", 1);
-    itsOut << data;
-    itsOut.putEnd();
-
-    // Send
-    getActual(brokerId)->sendByteMessage(itsObv.getBuffer(), itsObv.size() * sizeof(unsigned char), topic);
+    getActual(brokerId)->addSubscription(topic);
 }
 
-boost::shared_ptr<PublisherActual> UVChannelPublisher::getActual(const std::string& brokerId)
+void UVChannelConsumer::removeSubscription(const int channel)
+{
+    // Get topic and broker id
+    const string topic = itsConfig.getTopic(itsChannelName, channel);
+    const string brokerId = itsConfig.getBrokerId(itsChannelName, channel);
+    getActual(brokerId)->removeSubscription(topic);
+}
+
+boost::shared_ptr<ConsumerActual> UVChannelConsumer::getActual(const std::string& brokerId)
 {
     map< std::string, boost::shared_ptr<PublisherActual> >::iterator it;
     if (itsConnectionMap.find(brokerId) == itsConnectionMap.end()) {
@@ -93,7 +95,7 @@ boost::shared_ptr<PublisherActual> UVChannelPublisher::getActual(const std::stri
         ss << "&conection.useAsyncSend=true";
         ss << "&turboBoost=true";
         ss << "&socketBufferSize=16384";
-        itsConnectionMap[brokerId] = boost::shared_ptr<PublisherActual>(new PublisherActual(ss.str()));
+        itsConnectionMap[brokerId] = boost::shared_ptr<ConsumerActual>(new ConsumerActual(ss.str(), itsVisListener));
     }
 
     return itsConnectionMap[brokerId];

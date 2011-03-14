@@ -1,4 +1,4 @@
-/// @file UVChannelConnection.cc
+/// @file ConnectionWrapper.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "UVChannelConnection.h"
+#include "ConnectionWrapper.h"
 
 // Include package level header file
 #include "askap_channels.h"
@@ -43,7 +43,7 @@
 #include "cms/Session.h"
 #include "cms/ExceptionListener.h"
 
-ASKAP_LOGGER(logger, ".UVChannelConnection");
+ASKAP_LOGGER(logger, ".ConnectionWrapper");
 
 // Using
 using namespace std;
@@ -54,7 +54,7 @@ using namespace activemq;
 using namespace activemq::core;
 using namespace cms;
 
-UVChannelConnection::UVChannelConnection(const std::string& brokerURI)
+ConnectionWrapper::ConnectionWrapper(const std::string& brokerURI)
 {
     ASKAPLOG_DEBUG_STR(logger, "Connecting with URI: " << brokerURI);
 
@@ -76,7 +76,7 @@ UVChannelConnection::UVChannelConnection(const std::string& brokerURI)
     }
 }
 
-UVChannelConnection::~UVChannelConnection()
+ConnectionWrapper::~ConnectionWrapper()
 {
     ASKAPLOG_DEBUG_STR(logger, "Disconnecting");
     try {
@@ -90,20 +90,20 @@ UVChannelConnection::~UVChannelConnection()
         itsConnection->close();
         itsConnection.reset();
     } catch (const cms::CMSException& e) {
-        ASKAPLOG_WARN_STR(logger, "Exception caught in ~UVChannelConnection: "
+        ASKAPLOG_WARN_STR(logger, "Exception caught in ~ConnectionWrapper: "
                 << e.getMessage());
     } catch (...) {
         // No exception should escape from destructor
-        ASKAPLOG_WARN_STR(logger, "Exception caught in ~UVChannelConnection");
+        ASKAPLOG_WARN_STR(logger, "Exception caught in ~ConnectionWrapper");
     }
 }
 
-cms::Session* UVChannelConnection::getSession(void)
+cms::Session* ConnectionWrapper::getSession(void)
 {
     return itsSession.get();
 }
 
-void UVChannelConnection::onException(const cms::CMSException& e)
+void ConnectionWrapper::onException(const cms::CMSException& e)
 {
     ASKAPLOG_WARN_STR(logger, "Exception on UVChannel: " << e.getMessage());
 }

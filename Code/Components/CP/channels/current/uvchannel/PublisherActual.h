@@ -34,12 +34,11 @@
 // ASKAPsoft includes
 #include "boost/scoped_ptr.hpp"
 #include "boost/shared_ptr.hpp"
-#include "cms/Session.h"
 #include "cms/MessageProducer.h"
 #include "cms/BytesMessage.h"
 
 // Local package includes
-#include "uvchannel/UVChannelConnection.h"
+#include "uvchannel/ConnectionWrapper.h"
 
 namespace askap {
 namespace cp {
@@ -48,15 +47,17 @@ namespace channels {
     class PublisherActual {
 
         public:
+            /// Constructor
             /// @param[in] brokerURI    the URI used to identify and connect to
             /// the broker.
             PublisherActual(const std::string& brokerURI);
 
-            /// @brief Destructor.
+            /// Destructor.
             ~PublisherActual();
 
             /// @brief Send a byte message to the broker this connection is
             /// connected to
+            ///
             /// @param[in] buffer byte buffer
             /// @param[in] length the length of the buffer array in bytes
             /// @param[in] topic pub/sub topic to send the message to
@@ -64,9 +65,10 @@ namespace channels {
                     const std::size_t length,
                     const std::string& topic);
 
-            boost::shared_ptr<cms::Destination> getTopic(const std::string& topic);
-
         private:
+
+            // Given a topic name, return the destination
+            boost::shared_ptr<cms::Destination> getDestination(const std::string& topic);
 
             // No support for assignment
             PublisherActual& operator=(const PublisherActual& rhs);
@@ -75,7 +77,7 @@ namespace channels {
             PublisherActual(const PublisherActual& src);
 
             // Channel connection
-            UVChannelConnection itsConnection;
+            ConnectionWrapper itsConnection;
 
             // ActiveMQ MessageProducer
             boost::scoped_ptr<cms::MessageProducer> itsProducer;
