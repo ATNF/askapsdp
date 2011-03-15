@@ -43,36 +43,22 @@
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
-#include "uvchannel/UVChannelPublisher.h"
-#include "uvchannel/UVChannelConsumer.h"
-#include "uvchannel/IUVChannelListener.h"
+#include "uvchannel/uvdataaccess/UVChannelConstDataSource.h"
+#include "uvchannel/uvdataaccess/UVChannelConstDataIterator.h"
+#include "uvchannel/uvdataaccess/UVChannelDataSelector.h"
+#include "uvchannel/uvdataaccess/UVChannelDataConverter.h"
+#include "uvchannel/uvdataaccess/UVChannelConstDataAccessor.h"
+#include "dataaccess/SharedIter.h"
 
-ASKAP_LOGGER(logger, ".tUVChannel");
+ASKAP_LOGGER(logger, ".tUVDataAccess");
 
+using namespace askap::accessors;
 using namespace askap::cp::channels;
-
-class MyListener : public IUVChannelListener {
-    public:
-        MyListener() : itsCount(0) { }
-
-        long getCount(void) { return itsCount; }
-
-    protected:
-        virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message) {
-            itsCount++;
-        }
-
-    private:
-        long itsCount;
-};
 
 // main()
 int main(int argc, char *argv[])
 {
     ASKAPLOG_INIT("askap.log_cfg");
-
-    const unsigned int nMessages = 6;
-    const unsigned int nChans = 304;
 
     // Command line parser
     cmdlineparser::Parser parser;
@@ -87,49 +73,20 @@ int main(int argc, char *argv[])
     // Create a configuration parset
     LOFAR::ParameterSet parset(inputsPar);
 
-    // Setup the publisher
-    UVChannelPublisher pub(parset, "avg304");
+    UVChannelConstDataSource ds(parset, "avg304");
 
-    // Setup the consumer
-    MyListener listener;
-    UVChannelConsumer consumer(parset, "avg304", &listener);
+    IDataSelectorPtr sel = ds.createSelector();
+    sel->chooseChannels(1, 1);
 
-    for (unsigned int c = 1; c <= nChans; ++c) {
-        consumer.addSubscription(c);
+    IDataConverterPtr conv = ds.createConverter();
+    conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
+    conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+
+    IConstDataSharedIter it = ds.createConstIterator(sel, conv);
+
+    for (it.init(); it.hasMore(); it.next()) {
+        ASKAPLOG_INFO_STR(logger, "Got an accessor for timestamp: " << it->time());
     }
 
-    // Create a VisChunk
-    // This is the size of a BETA VisChunk, 21 baselines (including
-    // auto correlations) * 36 beams (maximum number of beams)
-    const unsigned int nRows = 21 * 36;
-    const unsigned int nChansPerChunk = 1;
-    const unsigned int nPols = 4;
-    askap::cp::common::VisChunk data(nRows, nChansPerChunk, nPols);
-
-    for (unsigned int i = 1; i <= nMessages; ++i) {
-        for (unsigned int c = 1; c <= nChans; ++c) {
-            data.time() = i;
-
-            ASKAPLOG_INFO_STR(logger, "Iteration " << i << " channel " << c);
-            pub.publish(data, c);
-
-            // Don't let the publisher get too far ahead of the consumer
-            if ((i * nChans) > listener.getCount()) {
-                usleep(5000);
-            }
-        }
-    }
-
-    ASKAPLOG_INFO_STR(logger, "Waiting for messages to arrive...");
-    const int expected = nMessages * nChans;
-
-    for (int i = 0; i < 5; ++i) {
-        if (listener.getCount() == expected) break;
-
-        sleep(1);
-    }
-
-    ASKAPLOG_INFO_STR(logger, "Got " << listener.getCount() << ", expected " << expected);
-
-    return (listener.getCount() == expected);
+    return 0;
 }

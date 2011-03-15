@@ -40,6 +40,7 @@
 #include "uvchannel/uvdataaccess/UVChannelConstDataAccessor.h"
 #include "uvchannel/uvdataaccess/UVChannelDataSelector.h"
 #include "uvchannel/uvdataaccess/UVChannelDataConverter.h"
+#include "uvchannel/uvdataaccess/UVChannelReceiver.h"
 
 // Using
 using namespace casa;
@@ -56,24 +57,36 @@ UVChannelConstDataIterator::UVChannelConstDataIterator(const UVChannelConfig& ch
         itsSelector(sel),
         itsConverter(conv)
 {
+    if (!itsSelector->channelsSelected()) {
+        ASKAPTHROW(AskapError, "UVChannelConstDataIterator() no channels selected");
+    }
+    const casa::uInt startChan = itsSelector->getChannelSelection().first;
+    const casa::uInt nChan = itsSelector->getChannelSelection().second;
+    itsReceiver.reset(new UVChannelReceiver(channelConfig, channelName, startChan, nChan));
 }
 
 void UVChannelConstDataIterator::init()
 {
-    ASKAPTHROW(AskapError, "UVChannelConstDataIterator::init() not implemented");
+    if (itsAccessor.get() == 0) {
+        next();
+    } else {
+        ASKAPTHROW(AskapError, "UVChannelConstDataIterator::init() Can only be initialised once");
+    }
 }
 
 const IConstDataAccessor& UVChannelConstDataIterator::operator*() const
 {
-    ASKAPTHROW(AskapError, "UVChannelConstDataIterator::operator*() not implemented");
+    return *itsAccessor;
 }
 
 casa::Bool UVChannelConstDataIterator::hasMore() const throw()
 {
-    ASKAPTHROW(AskapError, "UVChannelConstDataIterator::hasMore() not implemented");
+    return itsReceiver->hasMore();
 }
 
 casa::Bool UVChannelConstDataIterator::next()
 {
-    ASKAPTHROW(AskapError, "UVChannelConstDataIterator::next() not implemented");
+    boost::shared_ptr<askap::cp::common::VisChunk> chunk = itsReceiver->next();
+    itsAccessor.reset(new UVChannelConstDataAccessor(chunk));
+    return hasMore();
 }

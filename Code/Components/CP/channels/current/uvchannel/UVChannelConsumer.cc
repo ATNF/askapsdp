@@ -65,6 +65,16 @@ UVChannelConsumer::UVChannelConsumer(const LOFAR::ParameterSet& parset,
     }
 }
 
+UVChannelConsumer::UVChannelConsumer(const  UVChannelConfig& channelConfig,
+        const std::string& channelName,
+        IUVChannelListener* listener)
+    : itsConfig(channelConfig), itsChannelName(channelName), itsVisListener(listener)
+{
+    if (!listener) {
+        ASKAPTHROW(AskapError, "Visibilities listener is null");
+    }
+}
+
 UVChannelConsumer::~UVChannelConsumer()
 {
 }

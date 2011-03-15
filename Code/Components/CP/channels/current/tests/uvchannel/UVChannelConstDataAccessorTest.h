@@ -28,6 +28,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 // ASKAPsoft includes
+#include "boost/shared_ptr.hpp"
 #include "casa/aipstype.h"
 #include "Common/ParameterSet.h"
 #include "cpcommon/VisChunk.h"
@@ -62,7 +63,9 @@ class UVChannelConstDataAccessorTest : public CppUnit::TestFixture {
             const casa::uInt nRow = 21;
             const casa::uInt nChannel = 16416;
             const casa::uInt nPol = 4;
-            askap::cp::common::VisChunk chunk(nRow, nChannel, nPol);
+
+            boost::shared_ptr<askap::cp::common::VisChunk> chunk(
+                    new askap::cp::common::VisChunk(nRow, nChannel, nPol));
             UVChannelConstDataAccessor acc(chunk);
 
             CPPUNIT_ASSERT_EQUAL(nRow, acc.nRow());

@@ -31,6 +31,7 @@
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
+#include "boost/scoped_ptr.hpp"
 #include "dataaccess/IConstDataIterator.h"
 #include "dataaccess/IDataSelector.h"
 #include "dataaccess/IConstDataAccessor.h"
@@ -40,6 +41,8 @@
 #include "uvchannel/uvdataaccess/UVChannelConstDataSource.h"
 #include "uvchannel/uvdataaccess/UVChannelDataSelector.h"
 #include "uvchannel/uvdataaccess/UVChannelDataConverter.h"
+#include "uvchannel/uvdataaccess/UVChannelConstDataAccessor.h"
+#include "uvchannel/uvdataaccess/UVChannelReceiver.h"
 
 namespace askap {
 namespace cp {
@@ -67,6 +70,9 @@ class UVChannelConstDataIterator : virtual public askap::accessors::IConstDataIt
         const std::string itsChannelName;
         const boost::shared_ptr<const UVChannelDataSelector> itsSelector;
         const boost::shared_ptr<const UVChannelDataConverter> itsConverter;
+        boost::scoped_ptr<UVChannelReceiver> itsReceiver;
+
+        boost::scoped_ptr<UVChannelConstDataAccessor> itsAccessor;
 };
 
 } // end of namespace channels

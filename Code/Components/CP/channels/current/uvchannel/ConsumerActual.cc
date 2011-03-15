@@ -37,6 +37,7 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "boost/scoped_ptr.hpp"
 #include "Blob/BlobIBufVector.h"
 #include "Blob/BlobIStream.h"
 #include "cms/Session.h"
@@ -86,8 +87,8 @@ void ConsumerActual::addSubscription(const std::string& topic)
     it = itsTopicMap.find(topic);
     if (it == itsTopicMap.end()) {
         ASKAPLOG_DEBUG_STR(logger, "Creating destination and consumer for topic: " << topic);
-        cms::Destination* dest = itsConnection.getSession()->createTopic(topic);
-        cms::MessageConsumer* consumer = itsConnection.getSession()->createConsumer(dest);
+        boost::scoped_ptr<cms::Destination> dest(itsConnection.getSession()->createTopic(topic));
+        cms::MessageConsumer* consumer = itsConnection.getSession()->createConsumer(dest.get());
         consumer->setMessageListener(this);
         itsTopicMap[topic].reset(consumer);
     } else {

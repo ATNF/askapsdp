@@ -53,6 +53,13 @@ namespace channels {
                     const std::string& channelName,
                     IUVChannelListener* listener);
 
+            /// Constructor.
+            /// @param[in] listener pointer to the IUVChannelListener that this class
+            /// will send notifications to.
+            UVChannelConsumer(const  UVChannelConfig& channelConfig,
+                    const std::string& channelName,
+                    IUVChannelListener* listener);
+
             /// Destructor.
             ~UVChannelConsumer();
 

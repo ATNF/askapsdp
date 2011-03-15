@@ -29,6 +29,7 @@
 #include "UVChannelConstDataAccessor.h"
 
 // ASKAPsoft includes
+#include "boost/shared_ptr.hpp"
 #include "askap/AskapError.h"
 #include "casa/aipstype.h"
 #include "casa/Arrays/Cube.h"
@@ -45,40 +46,40 @@ using namespace askap::accessors;
 using namespace askap::cp::channels;
 using namespace askap::cp::common;
 
-UVChannelConstDataAccessor::UVChannelConstDataAccessor(const askap::cp::common::VisChunk& chunk)
+UVChannelConstDataAccessor::UVChannelConstDataAccessor(const boost::shared_ptr<askap::cp::common::VisChunk> chunk)
         : itsChunk(chunk)
 {
 }
 
 casa::uInt UVChannelConstDataAccessor::nRow() const throw()
 {
-    return itsChunk.nRow();
+    return itsChunk->nRow();
 }
 
 casa::uInt UVChannelConstDataAccessor::nChannel() const throw()
 {
-    return itsChunk.nChannel();
+    return itsChunk->nChannel();
 }
 
 casa::uInt UVChannelConstDataAccessor::nPol() const throw()
 {
-    return itsChunk.nPol();
+    return itsChunk->nPol();
 }
 
 const casa::Cube<casa::Complex>& UVChannelConstDataAccessor::visibility() const
 {
-    return itsChunk.visibility();
+    return itsChunk->visibility();
 }
 
 const casa::Cube<casa::Bool>& UVChannelConstDataAccessor::flag() const
 {
-    return itsChunk.flag();
+    return itsChunk->flag();
 }
 
 const casa::Vector<casa::RigidVector<casa::Double, 3> >&
 UVChannelConstDataAccessor::uvw() const
 {
-    return itsChunk.uvw();
+    return itsChunk->uvw();
 }
 
 const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVChannelConstDataAccessor::rotatedUVW(
@@ -95,62 +96,62 @@ const casa::Vector<casa::Double>& UVChannelConstDataAccessor::uvwRotationDelay(
 
 const casa::Vector<casa::Double>& UVChannelConstDataAccessor::frequency() const
 {
-    return itsChunk.frequency();
+    return itsChunk->frequency();
 }
 
 casa::Double UVChannelConstDataAccessor::time() const
 {
-    return itsChunk.time().get();
+    return itsChunk->time().get();
 }
 
 const casa::Vector<casa::uInt>& UVChannelConstDataAccessor::antenna1() const
 {
-    return itsChunk.antenna1();
+    return itsChunk->antenna1();
 }
 
 const casa::Vector<casa::uInt>& UVChannelConstDataAccessor::antenna2() const
 {
-    return itsChunk.antenna2();
+    return itsChunk->antenna2();
 }
 
 const casa::Vector<casa::uInt>& UVChannelConstDataAccessor::feed1() const
 {
-    return itsChunk.beam1();
+    return itsChunk->beam1();
 }
 
 const casa::Vector<casa::uInt>& UVChannelConstDataAccessor::feed2() const
 {
-    return itsChunk.beam2();
+    return itsChunk->beam2();
 }
 
 const casa::Vector<casa::Float>& UVChannelConstDataAccessor::feed1PA() const
 {
-    return itsChunk.beam1PA();
+    return itsChunk->beam1PA();
 }
 
 const casa::Vector<casa::Float>& UVChannelConstDataAccessor::feed2PA() const
 {
-    return itsChunk.beam2PA();
+    return itsChunk->beam2PA();
 }
 
 const casa::Vector<casa::MVDirection>& UVChannelConstDataAccessor::pointingDir1() const
 {
-    return itsChunk.pointingDir1();
+    return itsChunk->pointingDir1();
 }
 
 const casa::Vector<casa::MVDirection>& UVChannelConstDataAccessor::pointingDir2()  const
 {
-    return itsChunk.pointingDir1();
+    return itsChunk->pointingDir1();
 }
 
 const casa::Vector<casa::MVDirection>& UVChannelConstDataAccessor::dishPointing1() const
 {
-    return itsChunk.dishPointing1();
+    return itsChunk->dishPointing1();
 }
 
 const casa::Vector<casa::MVDirection>& UVChannelConstDataAccessor::dishPointing2() const
 {
-    return itsChunk.dishPointing2();
+    return itsChunk->dishPointing2();
 }
 
 const casa::Cube<casa::Complex>& UVChannelConstDataAccessor::noise() const
