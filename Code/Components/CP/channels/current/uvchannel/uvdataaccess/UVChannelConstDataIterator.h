@@ -72,7 +72,7 @@ class UVChannelConstDataIterator : virtual public askap::accessors::IConstDataIt
         const boost::shared_ptr<const UVChannelDataConverter> itsConverter;
         boost::scoped_ptr<UVChannelReceiver> itsReceiver;
 
-        boost::scoped_ptr<UVChannelConstDataAccessor> itsAccessor;
+        boost::scoped_ptr<UVChannelConstDataAccessor> itsConstAccessor;
 };
 
 } // end of namespace channels

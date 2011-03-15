@@ -35,7 +35,12 @@
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "dataaccess/IConstDataSource.h"
+#include "dataaccess/IConstDataIterator.h"
+#include "dataaccess/IDataConverter.h"
+#include "dataaccess/IDataSelector.h"
 #include "Common/ParameterSet.h"
+
+// Local package includes
 #include "uvchannel/UVChannelConfig.h"
 
 namespace askap {
@@ -46,8 +51,8 @@ namespace channels {
 class UVChannelConstDataSource : virtual public askap::accessors::IConstDataSource {
     public:
         /// @brief Construct a read-only data source object.
-        /// @param[in] the source VisStreamObject.
-        /// @param[out] channel name for data channel of interest. This must be
+        /// @param[in] parset the parset which describes the channel configuration.
+        /// @param[in] channel name for data channel of interest. This must be
         ///             one of the channel names described in the parset.
         UVChannelConstDataSource(const LOFAR::ParameterSet& parset,
                                  const std::string& channelName);
@@ -67,8 +72,7 @@ class UVChannelConstDataSource : virtual public askap::accessors::IConstDataSour
         /// DataSource object. Therefore, it can be reused multiple times,
         /// if necessary. However, the behavior of iterators created
         /// with a particular DataConverter is undefined, if you change
-        /// the DataConverter after the creation of an iterator, unless you
-        /// call init() of the iterator (and start a new iteration loop).
+        /// the DataConverter after the creation of an iterator.
         virtual askap::accessors::IDataConverterPtr createConverter() const;
 
         /// @brief obtain a read-only iterator
@@ -85,8 +89,7 @@ class UVChannelConstDataSource : virtual public askap::accessors::IConstDataSour
         /// @note
         /// The method acts as a factory by creating a new DataIterator.
         /// The lifetime of this iterator is the same as the lifetime of
-        /// the DataSource object. Therefore, it can be reused multiple times,
-        /// if necessary. Call init() to rewind the iterator.
+        /// the DataSource object.
         virtual boost::shared_ptr<askap::accessors::IConstDataIterator> createConstIterator(
             const askap::accessors::IDataSelectorConstPtr &sel,
             const askap::accessors::IDataConverterConstPtr &conv) const;
@@ -108,8 +111,10 @@ class UVChannelConstDataSource : virtual public askap::accessors::IConstDataSour
         /// iteration loop is started).
         virtual askap::accessors::IDataSelectorPtr createSelector() const;
 
-    private:
+    protected:
+
         const UVChannelConfig itsChannelConfig;
+
         const std::string itsChannelName;
 };
 

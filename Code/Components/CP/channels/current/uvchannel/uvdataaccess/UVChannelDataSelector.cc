@@ -79,6 +79,10 @@ void UVChannelDataSelector::chooseChannels(casa::uInt nChan,
         throw DataAccessLogicError("Channel averaging is not yet implemented");
     }
 
+    if (nChan != 1) {
+        throw DataAccessLogicError("Only supports single channel");
+    }
+
     ASKAPDEBUGASSERT((nChan > 0) && (start >= 0));
     itsChannelSelection.first = nChan;
     itsChannelSelection.second = start;

@@ -1,4 +1,4 @@
-/// @file UVChannelConstDataIterator.cc
+/// @file UVChannelDataIterator.cc
 /// @brief
 ///
 /// @copyright (c) 2011 CSIRO
@@ -26,18 +26,18 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "UVChannelConstDataIterator.h"
+#include "UVChannelDataIterator.h"
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "dataaccess/DataAccessError.h"
 #include "dataaccess/DirectionConverter.h"
 #include "cpcommon/VisChunk.h"
+#include "dataaccess/MemBufferDataAccessor.h"
 
 // Local includes
 #include "uvchannel/UVChannelConfig.h"
-#include "uvchannel/uvdataaccess/UVChannelConstDataSource.h"
-#include "uvchannel/uvdataaccess/UVChannelConstDataAccessor.h"
+#include "uvchannel/uvdataaccess/UVChannelDataSource.h"
 #include "uvchannel/uvdataaccess/UVChannelDataSelector.h"
 #include "uvchannel/uvdataaccess/UVChannelDataConverter.h"
 #include "uvchannel/uvdataaccess/UVChannelReceiver.h"
@@ -48,45 +48,42 @@ using namespace askap;
 using namespace askap::accessors;
 using namespace askap::cp::channels;
 
-UVChannelConstDataIterator::UVChannelConstDataIterator(const UVChannelConfig& channelConfig,
+UVChannelDataIterator::UVChannelDataIterator(const UVChannelConfig& channelConfig,
         const std::string& channelName,
         const boost::shared_ptr<const UVChannelDataSelector> &sel,
         const boost::shared_ptr<const UVChannelDataConverter> &conv)
-        : itsChannelConfig(channelConfig),
-        itsChannelName(channelName),
-        itsSelector(sel),
-        itsConverter(conv)
+        : UVChannelConstDataIterator(channelConfig, channelName, sel, conv)
 {
-    if (!itsSelector->channelsSelected()) {
-        ASKAPTHROW(AskapError, "UVChannelConstDataIterator() no channels selected");
-    }
-    const casa::uInt startChan = itsSelector->getChannelSelection().first;
-    const casa::uInt nChan = itsSelector->getChannelSelection().second;
-    itsReceiver.reset(new UVChannelReceiver(channelConfig, channelName, startChan, nChan));
 }
 
-void UVChannelConstDataIterator::init()
+casa::Bool UVChannelDataIterator::next()
 {
-    if (itsConstAccessor.get() == 0) {
-        next();
-    } else {
-        ASKAPTHROW(AskapError, "UVChannelConstDataIterator::init() Can only be initialised once");
-    }
+    casa::Bool val = UVChannelConstDataIterator::next();
+    itsAccessor.reset(new MemBufferDataAccessor(*itsAccessor));
+    return val;
 }
 
-const IConstDataAccessor& UVChannelConstDataIterator::operator*() const
+IDataAccessor& UVChannelDataIterator::operator*() const
 {
-    return *itsConstAccessor;
+    return *itsAccessor;
 }
 
-casa::Bool UVChannelConstDataIterator::hasMore() const throw()
+IDataAccessor* UVChannelDataIterator::operator->() const
 {
-    return itsReceiver->hasMore();
+    return itsAccessor.get();
 }
 
-casa::Bool UVChannelConstDataIterator::next()
+void UVChannelDataIterator::chooseBuffer(const std::string &bufferID)
 {
-    boost::shared_ptr<askap::cp::common::VisChunk> chunk = itsReceiver->next();
-    itsConstAccessor.reset(new UVChannelConstDataAccessor(chunk));
-    return hasMore();
+    ASKAPTHROW(AskapError, "UVChannelDataIterator::chooseBuffer() not supported");
+}
+
+void UVChannelDataIterator::chooseOriginal()
+{
+    ASKAPTHROW(AskapError, "UVChannelDataIterator::chooseOriginal() not supported");
+}
+
+IDataAccessor& UVChannelDataIterator::buffer(const std::string &bufferID) const
+{
+    ASKAPTHROW(AskapError, "UVChannelDataIterator::buffer() not supported");
 }
