@@ -122,7 +122,7 @@ namespace askap
 	//        psf /= float(maxDiag);
 	//        ASKAPLOG_INFO_STR(logger, "Peak of PSF = " << casa::max(psf));
 	
-	    ASKAPLOG_INFO_STR(logger, "Maximum diagonal element " <<maxDiag<<
+        ASKAPLOG_INFO_STR(logger, "Maximum diagonal element " <<maxDiag<<
 			  ", cutoff weight is "<<tolerance*100<<"\% of the largest diagonal element");
         const float unnormalisedMaxPSF = casa::max(psf);	  
         if (psfRefPeak<=0.) {
@@ -140,8 +140,15 @@ namespace askap
         casa::IPosition vecShape(1,diag.nelements());
         casa::Vector<float> dirtyVector(dirty.reform(vecShape));
 
-        ASKAPLOG_DEBUG_STR(logger,"Peak of the dirty vector before normalisation "<<casa::max(dirtyVector));
+        if(mask) {
+          ASKAPLOG_DEBUG_STR(logger, "Deconvolution will be based on signal to noise ratio");
+        }
+        else {
+          ASKAPLOG_DEBUG_STR(logger, "Deconvolution will be based on flux only");
+        }
         
+        ASKAPLOG_DEBUG_STR(logger,"Peak of the dirty vector before normalisation "<<casa::max(dirtyVector));
+
         casa::Vector<float> maskVector(mask ? mask->reform(vecShape) : casa::Vector<float>());
         for (casa::uInt elem=0; elem<diag.nelements(); ++elem) {
              if(diag(elem)>cutoff) {
@@ -172,9 +179,7 @@ namespace askap
             ASKAPLOG_INFO_STR(logger, "Converted truncated weights image to clean mask");
         } // if mask required
         ASKAPLOG_INFO_STR(logger, 100.0*float(nAbove)/float(diag.nelements()) << "% of the pixels were above the cutoff " << cutoff);
-#ifdef ASKAP_DEBUG
-        ASKAPLOG_INFO_STR(logger,"Peak of the dirty vector after normalisation "<<casa::max(dirtyVector));
-#endif // ASKAP_DEBUG        
+        ASKAPLOG_DEBUG_STR(logger,"Peak of the dirty vector after normalisation "<<casa::max(dirtyVector));
         return unnormalisedMaxPSF;
     }
 
@@ -502,13 +507,13 @@ namespace askap
             ASKAPCHECK(zeroWeightCutoffMask() == true, "With weightcutoff="<<weightCutoff<<
                        " only weightcutoff.clean = false makes sense");
         } else if (weightCutoff == "truncate") {
-            ASKAPLOG_INFO_STR(logger, "Solver is configured to normalise pixels in the area where weight is below cutoff (tolerance parameter) with the maximum diagonal");
+            ASKAPLOG_INFO_STR(logger, "Solver is configured to truncate pixels in the area where weight is below cutoff (tolerance parameter). These pixels will be normalised by the maximum diagonal");
             zeroWeightCutoffArea(false);
         } else {
             ASKAPTHROW(AskapError, "Only 'zero' and 'truncate' are allowed values for weightcutoff parameter, you have "<<weightCutoff);
         }
         if (zeroWeightCutoffMask()) {
-            ASKAPLOG_INFO_STR(logger, "Pixels in this area are masked out, and no S/N-based cleaning will be done");
+            ASKAPLOG_INFO_STR(logger, "In this area, pixels are masked out, and consequently no S/N-based cleaning will be done");
         } else {
             ASKAPLOG_INFO_STR(logger, "S/N-based clean will search optimum of flux * sqrt(tolerance) in this area");
         }
