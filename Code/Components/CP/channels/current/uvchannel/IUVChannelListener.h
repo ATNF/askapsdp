@@ -51,6 +51,10 @@ class IUVChannelListener {
         /// @param[in] message a shared pointer to the message. The recipient
         /// now has ownership of this message via the shared pointer.
         virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message) = 0;
+
+        /// @brief Called asynchronously when a message indicating end-of-stream
+        /// is received.
+        virtual void onEndOfStream(void) = 0;
 };
 
 };

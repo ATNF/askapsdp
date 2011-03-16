@@ -32,6 +32,9 @@
 #include "askap/AskapError.h"
 #include "cpcommon/VisChunk.h"
 #include "boost/shared_ptr.hpp"
+#include "boost/thread/xtime.hpp"
+#include "boost/thread/mutex.hpp"
+#include "boost/thread/condition.hpp"
 
 // Local includes
 #include "uvchannel/UVChannelConfig.h"
@@ -48,7 +51,7 @@ UVChannelReceiver::UVChannelReceiver(const UVChannelConfig& channelConfig,
         const casa::uInt startChan,
         const casa::uInt nChan,
         const casa::uInt maxQueueSize)
-    : itsMaxQueueSize(maxQueueSize)
+    : itsMaxQueueSize(maxQueueSize), itsEndOfStreamSignaled(false)
 {
     itsConsumer.reset(new UVChannelConsumer(channelConfig, channelName, this));
     for (unsigned int c = startChan; c <= nChan; ++c) {
@@ -63,14 +66,28 @@ UVChannelReceiver::~UVChannelReceiver()
 
 casa::Bool UVChannelReceiver::hasMore(void) const
 {
-    return true;
+    boost::mutex::scoped_lock lock(itsMutex);
+    if (itsQueue.empty() && itsEndOfStreamSignaled) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 boost::shared_ptr<askap::cp::common::VisChunk> UVChannelReceiver::next(void)
 {
+    // Wait until data arrives, or end-of-stream is signalled
     boost::mutex::scoped_lock lock(itsMutex);
-    while (itsQueue.empty()) {
-        itsCondVar.wait(lock);
+    while (itsQueue.empty() && !itsEndOfStreamSignaled) {
+        boost::xtime xt;
+        boost::xtime_get(&xt, boost::TIME_UTC);
+        xt.sec += 1;
+        itsCondVar.timed_wait(lock, xt);
+    }
+
+    // Return a null pointer if no more data is expected
+    if (itsQueue.empty() && itsEndOfStreamSignaled) {
+        return boost::shared_ptr<askap::cp::common::VisChunk>();
     }
 
     boost::shared_ptr<askap::cp::common::VisChunk> obj(itsQueue.front());
@@ -97,4 +114,14 @@ void UVChannelReceiver::onMessage(const boost::shared_ptr<askap::cp::common::Vis
     // Notify any waiters
     lock.unlock();
     itsCondVar.notify_all();
+}
+
+void UVChannelReceiver::onEndOfStream(void)
+{
+    // Aquisition of the mutex here just ensures that any onMessage() invocation
+    // completes before itsEndOfStreamSignaled is set to true. Given the
+    // end-of-stream message should be received AFTER the last VisChunk, this
+    // allows hasMore() to be sane.
+    boost::mutex::scoped_lock lock(itsMutex);
+    itsEndOfStreamSignaled = true;
 }

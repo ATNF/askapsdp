@@ -36,7 +36,6 @@
 #include "boost/scoped_ptr.hpp"
 #include "boost/thread/mutex.hpp"
 #include "boost/thread/condition.hpp"
-#include "boost/thread/xtime.hpp"
 
 // Local includes
 #include "uvchannel/UVChannelConfig.h"
@@ -67,9 +66,13 @@ class UVChannelReceiver : protected IUVChannelListener {
 
         virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message);
 
+        virtual void onEndOfStream(void);
+
     private:
 
         const casa::uInt itsMaxQueueSize;
+
+        casa::Bool itsEndOfStreamSignaled;
 
         boost::scoped_ptr<UVChannelConsumer> itsConsumer;
 
@@ -78,7 +81,7 @@ class UVChannelReceiver : protected IUVChannelListener {
         std::deque< boost::shared_ptr<askap::cp::common::VisChunk> > itsQueue;
 
         // Mutex used for synchronising access to itsQueue
-        boost::mutex itsMutex;
+        mutable boost::mutex itsMutex;
 
         // Condition variable user for synchronising access to itsQueue
         boost::condition itsCondVar;

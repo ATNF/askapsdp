@@ -84,7 +84,8 @@ int main(int argc, char *argv[])
 
     IConstDataSharedIter it = ds.createConstIterator(sel, conv);
 
-    for (it.init(); it.hasMore(); it.next()) {
+    //for (it.init(); it.hasMore(); it.next()) {
+    while (it.next()) {
         ASKAPLOG_INFO_STR(logger, "Got an accessor for timestamp: " << it->time());
     }
 

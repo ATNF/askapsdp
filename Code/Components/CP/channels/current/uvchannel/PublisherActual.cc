@@ -37,6 +37,8 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "boost/scoped_ptr.hpp"
+#include "boost/shared_ptr.hpp"
 #include "cms/Session.h"
 #include "cms/Destination.h"
 #include "cms/MessageProducer.h"
@@ -100,6 +102,14 @@ void PublisherActual::sendByteMessage(const unsigned char* buffer,
     boost::shared_ptr<cms::Destination> dest = getDestination(topic);
     itsMessage->setBodyBytes(buffer, length);
     itsProducer->send(dest.get(), itsMessage.get());
+}
+
+void PublisherActual::sendTextMessage(const std::string& str,
+        const std::string& topic)
+{
+    boost::shared_ptr<cms::Destination> dest = getDestination(topic);
+    boost::scoped_ptr<cms::TextMessage> msg(itsConnection.getSession()->createTextMessage(str));
+    itsProducer->send(dest.get(), msg.get());
 }
 
 boost::shared_ptr<cms::Destination> PublisherActual::getDestination(const std::string& topic)

@@ -66,6 +66,15 @@ namespace channels {
             ///                     then mapped to a specific broker an topic.
             void publish(const askap::cp::common::VisChunk& data, const int channel);
 
+            /// @brief Signal end of stream.
+            /// This sends a message on the topic corresponding to this channel,
+            /// the message indicates end-of-stream.
+            ///
+            /// @param[in] channel  the channel number to publish this to. This
+            ///                     corresponds to a spectral channel, which is
+            ///                     then mapped to a specific broker an topic.
+            void signalEndOfStream(const int channel);
+
         private:
 
             // Returns the connection from the connection map, creating a new one

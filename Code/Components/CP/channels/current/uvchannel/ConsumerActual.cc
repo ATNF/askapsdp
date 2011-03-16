@@ -114,14 +114,7 @@ void ConsumerActual::onMessage(const cms::Message *message)
     const cms::BytesMessage* bytesMessage =
         dynamic_cast<const cms::BytesMessage*>(message);
 
-    if (!bytesMessage) {
-        ASKAPLOG_WARN_STR(logger, "Message of non bytes type received on uvchannel channel");
-        return;
-    }
-
-    // If there is an listener set deliver via that mechanism, otherwise
-    // just ignore the message
-    if (itsVisListener) {
+    if (bytesMessage && itsVisListener) {
         itsBuffer.resize(bytesMessage->getBodyLength());
         bytesMessage->readBytes(itsBuffer);
 
@@ -134,5 +127,15 @@ void ConsumerActual::onMessage(const cms::Message *message)
         in.getEnd();
 
         itsVisListener->onMessage(chunk);
+        return;
     }
+
+    const cms::TextMessage* textMessage =
+        dynamic_cast<const cms::TextMessage*>(message);
+    if (textMessage && itsVisListener) {
+        itsVisListener->onEndOfStream();
+        return;
+    }
+
+    ASKAPLOG_WARN_STR(logger, "Message of unexpected type received on uvchannel channel");
 }

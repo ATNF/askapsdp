@@ -53,17 +53,21 @@ using namespace askap::cp::channels;
 
 class MyListener : public IUVChannelListener {
     public:
-        MyListener() : itsCount(0) { }
+        MyListener() : itsCount(0), itsEos(false) { }
 
         long getCount(void) { return itsCount; }
+        long getEos(void) { return itsEos; }
 
     protected:
         virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message) {
             itsCount++;
         }
 
+        virtual void onEndOfStream(void) { itsEos = true; }
+
     private:
         long itsCount;
+        bool itsEos;
 };
 
 // main()
@@ -116,6 +120,11 @@ int main(int argc, char *argv[])
             // Don't let the publisher get too far ahead of the consumer
             if ((i * nChans) > listener.getCount()) {
                 usleep(5000);
+            }
+
+            // Send end-of-stream message on last iteration
+            if (i == nMessages) {
+                pub.signalEndOfStream(c);
             }
         }
     }

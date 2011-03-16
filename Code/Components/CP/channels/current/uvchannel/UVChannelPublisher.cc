@@ -83,6 +83,16 @@ void UVChannelPublisher::publish(const askap::cp::common::VisChunk& data,
     getActual(brokerId)->sendByteMessage(itsObv.getBuffer(), itsObv.size() * sizeof(unsigned char), topic);
 }
 
+void UVChannelPublisher::signalEndOfStream(const int channel)
+{
+    // Get topic and broker id
+    const string topic = itsConfig.getTopic(itsChannelName, channel);
+    const string brokerId = itsConfig.getBrokerId(itsChannelName, channel);
+
+    // Send
+    getActual(brokerId)->sendTextMessage("End-of-stream", topic);
+}
+
 boost::shared_ptr<PublisherActual> UVChannelPublisher::getActual(const std::string& brokerId)
 {
     map< std::string, boost::shared_ptr<PublisherActual> >::iterator it;

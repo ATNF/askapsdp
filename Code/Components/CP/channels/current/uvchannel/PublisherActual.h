@@ -65,6 +65,13 @@ namespace channels {
                     const std::size_t length,
                     const std::string& topic);
 
+            /// @brief Send a test message to the broker this connection is
+            /// connected to
+            ///
+            /// @param[in] str the message string to send
+            /// @param[in] topic pub/sub topic to send the message to
+            void sendTextMessage(const std::string& str,
+                    const std::string& topic);
         private:
 
             // Given a topic name, return the destination

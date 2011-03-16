@@ -86,7 +86,17 @@ casa::Bool UVChannelConstDataIterator::hasMore() const throw()
 
 casa::Bool UVChannelConstDataIterator::next()
 {
-    boost::shared_ptr<askap::cp::common::VisChunk> chunk = itsReceiver->next();
-    itsConstAccessor.reset(new UVChannelConstDataAccessor(chunk));
-    return hasMore();
+    if (hasMore()) {
+        boost::shared_ptr<askap::cp::common::VisChunk> chunk = itsReceiver->next();
+
+        // If a null pointer is returned this indicates end-of-stream has been
+        // received and there are no more data is expected.
+        if (chunk.get() == 0) {
+            return false;
+        }
+        itsConstAccessor.reset(new UVChannelConstDataAccessor(chunk));
+        return true;
+    } else {
+        return false;
+    }
 }
