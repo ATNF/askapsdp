@@ -308,6 +308,8 @@ namespace askap
       casa::Array<double> pixels(casa::IPosition(4, nx, ny, stokes.nelements(), nchan));
       pixels.set(0.0);
       axes.add("FREQUENCY", freqmin, freqmax);
+      ASKAPLOG_INFO_STR(logger, "Spectral axis will have startFreq="<<freqmin<<" Hz, endFreq="<<freqmax<<
+                                "Hz, nChan="<<nchan);
       ip.add(name, pixels, axes);
     }
     
@@ -838,12 +840,14 @@ namespace askap
       const int nChan = imagePixels.shape()(axesSpectral[0]);
       casa::SpectralCoordinate freq(imageCoords.spectralCoordinate(whichSpectral));
       double startFreq, endFreq;
-      freq.toWorld(startFreq, 1.0);
-      freq.toWorld(endFreq, double(nChan));
+      freq.toWorld(startFreq, 0.0);
+      freq.toWorld(endFreq, double(nChan-1));
       axes.add("FREQUENCY", startFreq, endFreq);
       const casa::IPosition targetShape(4, imagePixels.shape()(0), imagePixels.shape()(1), nPol, nChan);
       ASKAPLOG_INFO_STR(logger, "About to add new image parameter with name "<<name<<
                   " reshaped to "<<targetShape<<" from original image shape "<<imagePixels.shape());
+      ASKAPLOG_INFO_STR(logger, "Spectral axis will have startFreq="<<startFreq<<" Hz, endFreq="<<endFreq<<
+                                "Hz, nChan="<<nChan);
       ASKAPDEBUGASSERT(targetShape.product() == imagePixels.shape().product());
       ip.add(name, imagePixels.reform(targetShape),axes);
       
@@ -918,12 +922,13 @@ namespace askap
       imageCoords.addCoordinate(stokes);
       
       const casa::IPosition shape = ip.value(name).shape();
-      int nchan = shape.nelements() >= 4 ? shape(3) : 1;
-      double restfreq = 0.0;
-      double crpix = (nchan-1)/2;
-      double crval = (axes.start("FREQUENCY")+axes.end("FREQUENCY"))/2.0;
-      double cdelt = (axes.end("FREQUENCY")-axes.start("FREQUENCY"))/double(nchan);
-      casa::SpectralCoordinate freq(casa::MFrequency::castType(theirFreqFrame.getType()), crval, cdelt, crpix, restfreq);
+      const int nchan = shape.nelements() >= 4 ? shape(3) : 1;
+      const double restfreq = 0.0;
+      const double crpix = double(nchan-1)/2.;
+      const double crval = (axes.start("FREQUENCY")+axes.end("FREQUENCY"))/2.0;
+      // we can't estimate increment if there is only one channel and start=stop
+      const double cdelt = nchan>1 ? (axes.end("FREQUENCY")-axes.start("FREQUENCY"))/double(nchan-1) : 1.;
+      const casa::SpectralCoordinate freq(casa::MFrequency::castType(theirFreqFrame.getType()), crval, cdelt, crpix, restfreq);
       imageCoords.addCoordinate(freq);
       
       return imageCoords;
