@@ -87,12 +87,18 @@ void FrequencyMapper::setupMapping(const casa::Vector<casa::Double> &freqs)
       const double increment = (itsEndFreq - itsStartFreq)/double(itsImageNChan-1);
       ASKAPCHECK(fabs(increment)>0, "Frequency axis in the image has the same start and end frequency "<<itsStartFreq);
       for (casa::uInt chan=0; chan<freqs.nelements(); ++chan) {
-           const int imgChan = int((freqs[chan]-itsStartFreq)/increment*1000.)/1000;
+           double imgChanDouble = (freqs[chan]-itsStartFreq)/increment;
+           imgChanDouble += (imgChanDouble < 0.) ? -0.5 : 0.5;
+           const int imgChan = int(imgChanDouble);
            if (imgChan<0 || imgChan>=itsImageNChan) {
                itsMap[chan] = -1;
            } else {
                itsMap[chan] = imgChan;
            }
+           /*
+           std::cout<<"chan="<<chan<<" freqs[chan]="<<freqs[chan]<<" imgChan="<<imgChan<<
+                      " imgChanDouble="<<imgChanDouble<<" mapped to "<<itsMap[chan]<<std::endl;
+           */
       }
    }
 }
@@ -135,5 +141,6 @@ casa::uInt FrequencyMapper::operator()(casa::uInt chan) const
   ASKAPDEBUGASSERT(chan<itsMap.size());
   ASKAPDEBUGASSERT(itsImageNChan>0);
   ASKAPCHECK(itsMap[chan]>=0, "An attempt to call FrequencyMapper::operator() for unmapped channel "<<chan);
-  return itsMap[chan];
+  return casa::uInt(itsMap[chan]);
 }
+

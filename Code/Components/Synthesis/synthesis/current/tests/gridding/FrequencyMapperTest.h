@@ -44,17 +44,37 @@ class FrequencyMapperTest : public CppUnit::TestFixture
 {
    CPPUNIT_TEST_SUITE(FrequencyMapperTest);
    CPPUNIT_TEST(testFreqMapping);
+   CPPUNIT_TEST(testSetupImage);
+   CPPUNIT_TEST(testApproxFreqMapping);
+   CPPUNIT_TEST(testMFSFreqMapping);
    CPPUNIT_TEST_SUITE_END();
 public:
-   
-   void testFreqMapping() {
+
+   void setUp() {
        scimath::Axes axis;
        axis.add("FREQUENCY",1.308e9,1.42e9);
        itsFreqMapper.reset(new FrequencyMapper(axis, 8));
+   }
+   
+   void testSetupImage() {
        casa::Vector<casa::Double> freqs(10);
        for (casa::uInt i=0; i<freqs.nelements(); ++i) {
             freqs[i] = 1.308e9+1.6e7*(double(i)-1.);
        } 
+       CPPUNIT_ASSERT(itsFreqMapper);
+       // MFS mode first
+       itsFreqMapper->setupSinglePlaneGridding();
+       itsFreqMapper->setupMapping(freqs);
+       
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+                CPPUNIT_ASSERT(itsFreqMapper->isMapped(i));                
+                CPPUNIT_ASSERT_EQUAL(0u,(*itsFreqMapper)(i));       
+       }
+       // now we do new setup image call, which should revert the
+       // frequency mapper back to the spectral line mode
+       scimath::Axes axis;
+       axis.add("FREQUENCY",1.308e9,1.42e9);
+       itsFreqMapper->setupImage(axis,8);
        itsFreqMapper->setupMapping(freqs);
        // test the mapping
        for (casa::uInt i=0; i<freqs.nelements(); ++i) {
@@ -62,7 +82,63 @@ public:
                 CPPUNIT_ASSERT(!itsFreqMapper->isMapped(i));                
             } else {
                 CPPUNIT_ASSERT(itsFreqMapper->isMapped(i));                
-                CPPUNIT_ASSERT((*itsFreqMapper)(i) + 1 == i);                
+                CPPUNIT_ASSERT_EQUAL(i,(*itsFreqMapper)(i) + 1);                
+            }
+       }
+   }
+
+   void testApproxFreqMapping() {
+       casa::Vector<casa::Double> freqs(10);
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+            // this time with a negative increment and small wobble in frequency
+            freqs[i] = 1.436e9-1.6e7*double(i) + (i%2 == 0? +1. : -1.)*1e6;
+       } 
+       CPPUNIT_ASSERT(itsFreqMapper);
+       itsFreqMapper->setupMapping(freqs);
+       // test the mapping
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+            if (i==0 || i+1 == freqs.nelements()) {
+                CPPUNIT_ASSERT(!itsFreqMapper->isMapped(i));                
+            } else {
+                CPPUNIT_ASSERT(itsFreqMapper->isMapped(i));                
+                CPPUNIT_ASSERT_EQUAL(casa::uInt(freqs.nelements())-i-1u,(*itsFreqMapper)(i) + 1);                
+            }
+       }
+   }
+
+   void testMFSFreqMapping() {
+       casa::Vector<casa::Double> freqs(20);
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+            //small increment, so two measured channels map into one image channel
+            freqs[i] = 1.304e9+8e6*(double(i)-2.);
+       } 
+       CPPUNIT_ASSERT(itsFreqMapper);
+       itsFreqMapper->setupMapping(freqs);
+       // test the mapping
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+            if (i<2 || i+2 >= freqs.nelements()) {
+                CPPUNIT_ASSERT(!itsFreqMapper->isMapped(i));                
+            } else {
+                CPPUNIT_ASSERT(itsFreqMapper->isMapped(i));                
+                CPPUNIT_ASSERT_EQUAL(i/2,(*itsFreqMapper)(i) + 1);                
+            }
+       }
+   }
+
+   void testFreqMapping() {
+       casa::Vector<casa::Double> freqs(10);
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+            freqs[i] = 1.308e9+1.6e7*(double(i)-1.);
+       } 
+       CPPUNIT_ASSERT(itsFreqMapper);
+       itsFreqMapper->setupMapping(freqs);
+       // test the mapping
+       for (casa::uInt i=0; i<freqs.nelements(); ++i) {
+            if (i==0 || i+1 == freqs.nelements()) {
+                CPPUNIT_ASSERT(!itsFreqMapper->isMapped(i));                
+            } else {
+                CPPUNIT_ASSERT(itsFreqMapper->isMapped(i));                
+                CPPUNIT_ASSERT_EQUAL(i,(*itsFreqMapper)(i) + 1);                
             }
        }
        
@@ -72,7 +148,7 @@ public:
        
        for (casa::uInt i=0; i<freqs.nelements(); ++i) {
                 CPPUNIT_ASSERT(itsFreqMapper->isMapped(i));                
-                CPPUNIT_ASSERT((*itsFreqMapper)(i) == 0);       
+                CPPUNIT_ASSERT_EQUAL(0u,(*itsFreqMapper)(i));       
        }
    }
    
