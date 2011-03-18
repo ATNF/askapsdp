@@ -47,6 +47,10 @@ namespace askap {
 namespace cp {
 namespace channels {
 
+    /// @brief This class is the consumer for a given broker/session. This
+    /// class encapsulates many ActiveMQ message consumers, one for each
+    /// topic.
+    /// @ingroup uvchannel
     class ConsumerActual : protected cms::MessageListener {
 
         public:
@@ -98,7 +102,8 @@ namespace channels {
             // Topic map. Maps topic names to MessageConsumers
             std::map<std::string, boost::shared_ptr<cms::MessageConsumer> > itsTopicMap;
 
-            // Buffer for serialising messages
+            // Buffer for serialising messages. Allows the same memory
+            // to be used between invokations of onMessage.
             std::vector<unsigned char> itsBuffer;
     };
 

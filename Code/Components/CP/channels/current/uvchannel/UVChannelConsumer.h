@@ -43,6 +43,10 @@ namespace askap {
 namespace cp {
 namespace channels {
 
+    /// @brief Consumer class. Wraps the process of consuming from the uv-channel,
+    /// regardless of which broker is responsible for the particular channelName
+    /// and/or channel number.
+    /// @ingroup uvchannel
     class UVChannelConsumer {
 
         public:

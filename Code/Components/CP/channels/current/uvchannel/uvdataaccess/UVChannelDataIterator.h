@@ -1,6 +1,6 @@
 /// @file UVChannelDataIterator.h
 /// @brief An implementation of the IDataIterator interface for the
-/// visibility stream.
+/// uv-channel.
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -52,31 +52,32 @@ namespace channels {
 
 /// @brief An implementation of the IDataIterator interface for the
 /// uv-channel.
+/// @ingroup uvdataaccess
 class UVChannelDataIterator : public UVChannelConstDataIterator,
             virtual public askap::accessors::IDataIterator {
     public:
-        /// @see UVChannelConstDataIterator::UVChannelConstDataIterator()
+        /// @see UVChannelConstDataIterator#UVChannelConstDataIterator()
         UVChannelDataIterator(const UVChannelConfig& channelConfig,
                               const std::string& channelName,
                               const boost::shared_ptr<const UVChannelDataSelector>& sel,
                               const boost::shared_ptr<const UVChannelDataConverter>& conv);
 
-        /// @see IDataIterator::next()
+        /// @see askap::accessors::IDataIterator#next()
         virtual casa::Bool next();
 
-        /// @see IDataIterator::operator*()
+        /// @see askap::accessors::IDataIterator#operator*()
         virtual askap::accessors::IDataAccessor& operator*() const;
 
-        /// @see IDataIterator::operator->()
+        /// @see askap::accessors::IDataIterator#operator->()
         virtual askap::accessors::IDataAccessor* operator->() const;
 
-        /// @see IDataIterator::chooseBuffer()
+        /// @see askap::accessors::IDataIterator#chooseBuffer()
         virtual void chooseBuffer(const std::string &bufferID);
 
-        /// @see IDataIterator::chooseOriginal()
+        /// @see askap::accessors::IDataIterator#chooseOriginal()
         virtual void chooseOriginal();
 
-        /// @see IDataIterator::buffer()
+        /// @see askap::accessors::IDataIterator#buffer()
         virtual askap::accessors::IDataAccessor& buffer(const std::string &bufferID) const;
 
     private:

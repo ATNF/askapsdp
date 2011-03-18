@@ -45,6 +45,7 @@ namespace channels {
 
 /// @brief An implementation of the IConstDataAccessor interface for the
 /// visibility stream.
+/// @ingroup uvdataaccess
 class UVChannelConstDataAccessor : virtual public askap::accessors::IConstDataAccessor {
     public:
         explicit UVChannelConstDataAccessor(const boost::shared_ptr<askap::cp::common::VisChunk> chunk);
@@ -99,9 +100,15 @@ class UVChannelConstDataAccessor : virtual public askap::accessors::IConstDataAc
 
     private:
 
+        // The primary data structure that this accessor is wrapping
         boost::shared_ptr<askap::cp::common::VisChunk> itsChunk;
 
+        // UVW Rotation handler
         askap::accessors::UVWRotationHandler itsRotatedUVW;
+
+        // Temporary cube to contain noise. For now the noise cube is
+        // all 1.0. This needs to be addressed in future.
+        casa::Cube<casa::Complex> itsNoise;
 };
 
 } // namespace channels

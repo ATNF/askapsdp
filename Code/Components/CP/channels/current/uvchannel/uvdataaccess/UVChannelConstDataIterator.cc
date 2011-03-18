@@ -60,8 +60,11 @@ UVChannelConstDataIterator::UVChannelConstDataIterator(const UVChannelConfig& ch
     if (!itsSelector->channelsSelected()) {
         ASKAPTHROW(AskapError, "UVChannelConstDataIterator() no channels selected");
     }
+
     const casa::uInt startChan = itsSelector->getChannelSelection().first;
+
     const casa::uInt nChan = itsSelector->getChannelSelection().second;
+
     itsReceiver.reset(new UVChannelReceiver(channelConfig, channelName, startChan, nChan));
 }
 
@@ -94,6 +97,7 @@ casa::Bool UVChannelConstDataIterator::next()
         if (chunk.get() == 0) {
             return false;
         }
+
         itsConstAccessor.reset(new UVChannelConstDataAccessor(chunk));
         return true;
     } else {

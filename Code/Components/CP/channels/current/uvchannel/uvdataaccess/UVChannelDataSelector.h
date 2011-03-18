@@ -46,6 +46,7 @@ namespace channels {
 ///
 /// @details This implementation currently supports no selection. All
 /// "choose" methods throw an exception when called.
+/// @ingroup uvdataaccess
 class UVChannelDataSelector : public askap::accessors::IDataSelector {
     public:
         explicit UVChannelDataSelector();

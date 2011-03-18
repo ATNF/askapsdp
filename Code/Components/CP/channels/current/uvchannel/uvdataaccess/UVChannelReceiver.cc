@@ -47,13 +47,14 @@ using namespace askap;
 using namespace askap::cp::channels;
 
 UVChannelReceiver::UVChannelReceiver(const UVChannelConfig& channelConfig,
-        const std::string& channelName,
-        const casa::uInt startChan,
-        const casa::uInt nChan,
-        const casa::uInt maxQueueSize)
-    : itsMaxQueueSize(maxQueueSize), itsEndOfStreamSignaled(false)
+                                     const std::string& channelName,
+                                     const casa::uInt startChan,
+                                     const casa::uInt nChan,
+                                     const casa::uInt maxQueueSize)
+        : itsMaxQueueSize(maxQueueSize), itsEndOfStreamSignaled(false)
 {
     itsConsumer.reset(new UVChannelConsumer(channelConfig, channelName, this));
+
     for (unsigned int c = startChan; c <= nChan; ++c) {
         itsConsumer->addSubscription(c);
     }
@@ -67,6 +68,7 @@ UVChannelReceiver::~UVChannelReceiver()
 casa::Bool UVChannelReceiver::hasMore(void) const
 {
     boost::mutex::scoped_lock lock(itsMutex);
+
     if (itsQueue.empty() && itsEndOfStreamSignaled) {
         return false;
     } else {
@@ -78,6 +80,7 @@ boost::shared_ptr<askap::cp::common::VisChunk> UVChannelReceiver::next(void)
 {
     // Wait until data arrives, or end-of-stream is signalled
     boost::mutex::scoped_lock lock(itsMutex);
+
     while (itsQueue.empty() && !itsEndOfStreamSignaled) {
         boost::xtime xt;
         boost::xtime_get(&xt, boost::TIME_UTC);

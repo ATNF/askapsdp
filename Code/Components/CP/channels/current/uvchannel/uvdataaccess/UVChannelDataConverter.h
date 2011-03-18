@@ -46,33 +46,41 @@ namespace channels {
 /// @details This converter is not fully implemented and only support the
 /// bare minimum required by the prototype streaming imager. Currently it
 /// works like so:
-/// - setEpochFrame() is not supported and throws an exception.
-/// - setDirectionFrame() only supports MDirection::Ref of J2000, otherwise
-///   it throws an exception.
-/// - setFrequencyFrame() only supports MFrequency::Ref of TOPO and units
-///   of "Hz" otherwise it throws an exception.
-/// - setVelocityFrame() is not supported and throws an exception.
-/// - setRestFrequency() is not supported and throws an exception.
+/// @li setEpochFrame() is not supported and throws an exception.
+/// @li setDirectionFrame() only supports MDirection::Ref of J2000, otherwise
+///     it throws an exception.
+/// @li setFrequencyFrame() only supports MFrequency::Ref of TOPO and units
+///     of "Hz" otherwise it throws an exception.
+/// @li setVelocityFrame() is not supported and throws an exception.
+/// @li setRestFrequency() is not supported and throws an exception.
 ///
+/// @ingroup uvdataaccess
 class UVChannelDataConverter : virtual public askap::accessors::BasicDataConverter {
     public:
+
+        // Constructor
         UVChannelDataConverter();
 
+        /// @see askap::accessors::BasicDataConverter#setEpochFrame
         virtual void setEpochFrame(const casa::MEpoch &origin = casa::MEpoch(),
                                    const casa::Unit &unit = "s");
 
 
+        /// @see askap::accessors::BasicDataConverter#setDirectionFrame
         virtual void setDirectionFrame(const casa::MDirection::Ref &ref,
                                        const casa::Unit &unit = "rad");
 
 
+        /// @see askap::accessors::BasicDataConverter#setFrequencyFrame
         virtual void setFrequencyFrame(const casa::MFrequency::Ref &ref,
                                        const casa::Unit &unit = "Hz");
 
 
+        /// @see askap::accessors::BasicDataConverter#setVelocityFrame
         virtual void setVelocityFrame(const casa::MRadialVelocity::Ref &ref,
                                       const casa::Unit &unit = "km/s");
 
+        /// @see askap::accessors::BasicDataConverter#setRestFrame
         virtual void setRestFrequency(const casa::MVFrequency &restFreq);
 };
 

@@ -60,7 +60,7 @@ class UVChannelConstDataAccessorTest : public CppUnit::TestFixture {
 
         void testConstructor()
         {
-            const casa::uInt nRow = 21;
+            const casa::uInt nRow = 21*36;
             const casa::uInt nChannel = 16416;
             const casa::uInt nPol = 4;
 
@@ -71,6 +71,25 @@ class UVChannelConstDataAccessorTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(nRow, acc.nRow());
             CPPUNIT_ASSERT_EQUAL(nChannel, acc.nChannel());
             CPPUNIT_ASSERT_EQUAL(nPol, acc.nPol());
+
+            CPPUNIT_ASSERT(acc.visibility().shape() == acc.flag().shape());
+            CPPUNIT_ASSERT(acc.visibility().shape() == acc.noise().shape());
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.antenna1().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.antenna2().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.feed1().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.feed2().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.feed1PA().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.feed2PA().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.pointingDir1().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.pointingDir2().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.dishPointing1().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.dishPointing2().size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nRow), acc.uvw().size());
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nPol), acc.stokes().size());
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(nChannel), acc.frequency().size());
         }
 };
 

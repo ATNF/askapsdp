@@ -57,7 +57,6 @@ using namespace askap;
 using namespace askap::cp;
 using namespace askap::cp::common;
 using namespace askap::cp::channels;
-using namespace cms;
 
 /// @brief Consumer wrapper, wrapping a single ActiveMQ MessageConsumer.
 ConsumerActual::ConsumerActual(const std::string& brokerURI, IUVChannelListener* listener)
@@ -68,8 +67,9 @@ ConsumerActual::ConsumerActual(const std::string& brokerURI, IUVChannelListener*
 
 ConsumerActual::~ConsumerActual()
 {
-    ASKAPLOG_DEBUG_STR(logger, "Disconnecting");
     try {
+        ASKAPLOG_DEBUG_STR(logger, "Disconnecting");
+
         // Cleanup TopicMap
         itsTopicMap.clear();
     } catch (const cms::CMSException& e) {

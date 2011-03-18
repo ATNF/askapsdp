@@ -44,6 +44,8 @@ namespace askap {
 namespace cp {
 namespace channels {
 
+    /// @brief Wraps the ActiveMQ connection and session for a single broker.
+    /// @ingroup uvchannel
     class ConnectionWrapper : protected cms::ExceptionListener {
 
         public:

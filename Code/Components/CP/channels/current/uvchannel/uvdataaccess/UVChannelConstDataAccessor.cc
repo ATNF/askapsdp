@@ -49,6 +49,8 @@ using namespace askap::cp::common;
 UVChannelConstDataAccessor::UVChannelConstDataAccessor(const boost::shared_ptr<askap::cp::common::VisChunk> chunk)
         : itsChunk(chunk)
 {
+    itsNoise.resize(visibility().shape());
+    itsNoise = 1.0;
 }
 
 casa::uInt UVChannelConstDataAccessor::nRow() const throw()
@@ -156,7 +158,7 @@ const casa::Vector<casa::MVDirection>& UVChannelConstDataAccessor::dishPointing2
 
 const casa::Cube<casa::Complex>& UVChannelConstDataAccessor::noise() const
 {
-    ASKAPTHROW(AskapError, "UVChannelConstDataAccessor::noise() not implemented");
+    return itsNoise;
 }
 
 const casa::Vector<casa::Double>& UVChannelConstDataAccessor::velocity() const
@@ -166,5 +168,5 @@ const casa::Vector<casa::Double>& UVChannelConstDataAccessor::velocity() const
 
 const casa::Vector<casa::Stokes::StokesTypes>& UVChannelConstDataAccessor::stokes() const
 {
-    ASKAPTHROW(AskapError, "UVChannelConstDataAccessor::stokes() not implemented");
+    return itsChunk->stokes();
 }

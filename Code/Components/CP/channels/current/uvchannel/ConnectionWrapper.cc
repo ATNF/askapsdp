@@ -78,8 +78,8 @@ ConnectionWrapper::ConnectionWrapper(const std::string& brokerURI)
 
 ConnectionWrapper::~ConnectionWrapper()
 {
-    ASKAPLOG_DEBUG_STR(logger, "Disconnecting");
     try {
+        ASKAPLOG_DEBUG_STR(logger, "Disconnecting");
         itsConnection->stop();
 
         // Cleanup session

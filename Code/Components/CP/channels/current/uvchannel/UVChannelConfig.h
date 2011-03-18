@@ -40,6 +40,7 @@ namespace cp {
 namespace channels {
 
     /// @brief Encapsulates the mappings between channel name, channel number and the broker.
+    /// @ingroup uvchannel
     class UVChannelConfig {
 
         public:
@@ -72,9 +73,13 @@ namespace channels {
 
         private:
 
+            // Helper method which uses a stringstream to convert an instance
+            // of type T to std::string.
             template <class T>
             T strTo(const std::string& str) const;
 
+            // The input parameter set which is to be interpreted as
+            // a channel configuration.
             const LOFAR::ParameterSet itsParset;
     };
 

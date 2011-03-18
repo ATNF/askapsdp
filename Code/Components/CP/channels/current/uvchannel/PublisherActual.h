@@ -44,6 +44,10 @@ namespace askap {
 namespace cp {
 namespace channels {
 
+    /// @brief This class is the producer for a given broker/session. This
+    /// class encapsulates a single ActiveMQ message producer, however it can
+    /// publish to any destination on the associated broker.
+    /// @ingroup uvchannel
     class PublisherActual {
 
         public:

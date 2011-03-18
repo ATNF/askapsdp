@@ -40,6 +40,7 @@ namespace channels {
 
 /// @brief The IUVChannelListener allows uv-channel messages to be
 /// asynchronously received.
+/// @ingroup uvchannel
 class IUVChannelListener {
     public:
 

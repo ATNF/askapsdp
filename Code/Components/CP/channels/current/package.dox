@@ -1,3 +1,7 @@
+/// @defgroup eventchannel Event Channel Subpackage
+/// @defgroup uvchannel UV-Data Channel Subpackage - Core
+/// @defgroup uvdataaccess UV-Data Channel Subpackage - Data Accessor
+
 /// The channels package namespace.
 namespace askap::cp::channels {};
 
@@ -71,4 +75,10 @@ namespace askap::cp::channels {};
 /// @section uvchannel_intro UV-Channel Introduction
 /// The uv-channel package provides......
 ///
+
+/// @section channels_subpackages Subpackages
+/// @li @ref eventchannel
+/// @li @ref uvchannel
+/// @li @ref uvdataaccess
+
 /// @copyright 2010 CSIRO, All Rights Reserved.

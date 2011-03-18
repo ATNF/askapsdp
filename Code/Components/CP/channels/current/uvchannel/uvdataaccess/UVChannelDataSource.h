@@ -47,6 +47,7 @@ namespace cp {
 namespace channels {
 
 /// @brief An implementation of IDataSource for streamed visibility data.
+/// @ingroup uvdataaccess
 class UVChannelDataSource : public UVChannelConstDataSource, virtual public askap::accessors::IDataSource {
     public:
         /// @brief Construct a data source object.

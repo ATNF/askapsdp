@@ -46,34 +46,54 @@ namespace askap {
 namespace cp {
 namespace channels {
 
-/// @brief
+/// @brief Higer level callback handler for VisChunk data and end-of-stream
+/// signal. Also provides a queue of received VisCunk objects.
+/// @ingroup uvdataaccess
 class UVChannelReceiver : protected IUVChannelListener {
 
     public:
+        /// Constructor
         UVChannelReceiver(const UVChannelConfig& channelConfig,
-                const std::string& channelName,
-                const casa::uInt startChan,
-                const casa::uInt nChan,
-                const casa::uInt maxQueueSize = 6);
+                          const std::string& channelName,
+                          const casa::uInt startChan,
+                          const casa::uInt nChan,
+                          const casa::uInt maxQueueSize = 6);
 
+        /// Destructor
         ~UVChannelReceiver();
 
+        /// Checks whether there are more data available.
+        ///
+        /// @return False if the queue is empty and end-of-stream has been
+        ///         signaled, otherwise True.
         casa::Bool hasMore(void) const;
 
+        /// Get a pointer to the next VisChunk. This call blocks until a VisChunk is
+        /// available, but will unblock and return a null pointer if end-of-stream is
+        /// signaled by the producer.
+        ///
+        /// @return a pointer to the next VisChunk, or a null pointer if the queue is
+        ///         empty and end-of-stream has been signaled.
         boost::shared_ptr<askap::cp::common::VisChunk> next(void);
 
     protected:
 
+        /// @internal
         virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message);
 
+        /// @internal
         virtual void onEndOfStream(void);
 
     private:
 
+        // Maximum size the queue will grow to before discarding incoming
+        // messages.
         const casa::uInt itsMaxQueueSize;
 
+        // False if end-of-stream has not been signaled, otherwise True.
         casa::Bool itsEndOfStreamSignaled;
 
+        // Consumer
         boost::scoped_ptr<UVChannelConsumer> itsConsumer;
 
         // Queue of incoming data. Data is pushed on to the back of the queue

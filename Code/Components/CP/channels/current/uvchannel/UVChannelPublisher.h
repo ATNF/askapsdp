@@ -49,6 +49,7 @@ namespace channels {
     /// @brief Publisher class. Wraps the process of publishing to the uv-channel,
     /// regardless of which broker is responsible for the particular channelName
     /// and/or channel number.
+    /// @ingroup uvchannel
     class UVChannelPublisher {
 
         public:

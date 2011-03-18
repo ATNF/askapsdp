@@ -48,6 +48,7 @@ namespace cp {
 namespace channels {
 
 /// @brief An implementation of IConstDataSource for streamed visibility data.
+/// @ingroup uvdataaccess
 class UVChannelConstDataSource : virtual public askap::accessors::IConstDataSource {
     public:
         /// @brief Construct a read-only data source object.
@@ -77,7 +78,7 @@ class UVChannelConstDataSource : virtual public askap::accessors::IConstDataSour
 
         /// @brief obtain a read-only iterator
         /// @details
-        /// get a read/write iterator over a selected part of the dataset
+        /// Get a read/write iterator over a selected part of the dataset
         /// represented by this DataSource object with an explicitly
         /// specified conversion policy.
         ///
