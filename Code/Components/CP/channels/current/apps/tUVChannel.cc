@@ -140,5 +140,5 @@ int main(int argc, char *argv[])
 
     ASKAPLOG_INFO_STR(logger, "Got " << listener.getCount() << ", expected " << expected);
 
-    return (listener.getCount() == expected);
+    return !(listener.getCount() == expected);
 }
