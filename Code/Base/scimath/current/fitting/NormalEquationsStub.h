@@ -55,6 +55,7 @@ namespace scimath {
 /// to reuse the existing framework to parallelize measurement equations based algorithms if no
 /// solution to normal equations is required (i.e. continuum subtraction). Receiving Normal Equation
 /// acts as a barrier in this case to synchronize the parallel streams.
+/// @ingroup fitting
 struct NormalEquationsStub : public INormalEquations {
 
   /// @brief Shared pointer definition

@@ -59,6 +59,7 @@ namespace scimath {
 /// worth while to implement the appropriate generic methods in the approximated 
 /// case as well. This will allow to do some tests with the full matrix for
 /// small images, where we can afford such calculations.
+/// @ingroup fitting
 struct INormalEquations : public ISerializable {
 
   /// @brief Shared pointer definition

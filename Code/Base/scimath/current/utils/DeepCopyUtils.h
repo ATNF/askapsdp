@@ -46,6 +46,7 @@ namespace scimath {
 /// @details Can be moved to utils if found useful somewhere else
 /// @param[in] in input array
 /// @param[out] out output array (will be resized)
+/// @ingroup utils
 template<typename Key, typename T>
 void deepCopyOfSTDMap(const std::map<Key, T> &in,
                          std::map<Key, T> &out)

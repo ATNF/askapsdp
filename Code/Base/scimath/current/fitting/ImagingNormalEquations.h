@@ -65,6 +65,7 @@ namespace askap
 /// matrix is approximated by a sum of diagonal and shift invariant matrices. 
 /// This class represents the approximated case, and is used with imaging 
 /// algorithms.
+/// @ingroup fitting
     class ImagingNormalEquations : public INormalEquations
     {
     public:
@@ -101,7 +102,7 @@ namespace askap
       /// @param[in] datavector Data vector for this parameter
       /// @param[in] shape Shape of this parameter
       /// @param[in] reference Reference point for the slice
-      void addSlice(const string& name,
+      void addSlice(const std::string& name,
                     const casa::Vector<double>& normalmatrixslice,
                     const casa::Vector<double>& normalmatrixdiagonal,
                     const casa::Vector<double>& datavector,
@@ -119,7 +120,7 @@ namespace askap
       ///        this parameter
       /// @param datavector Data vector for this parameter
       /// @param reference Reference point for the slice
-      void addSlice(const string& name,
+      void addSlice(const std::string& name,
                     const casa::Vector<double>& normalmatrixslice,
                     const casa::Vector<double>& normalmatrixdiagonal,
                     const casa::Vector<double>& datavector,
@@ -134,7 +135,7 @@ namespace askap
       /// @param normalmatrixdiagonal Normal Matrix for this parameter
       /// @param datavector Data vector for this parameter
       /// @param shape Shape of this parameter
-      void addDiagonal(const string& name, 
+      void addDiagonal(const std::string& name, 
                        const casa::Vector<double>& normalmatrixdiagonal,
                        const casa::Vector<double>& datavector,
                        const casa::IPosition& shape);
@@ -147,7 +148,7 @@ namespace askap
       /// @param name Name of parameter
       /// @param normalmatrixdiagonal Normal Matrix for this parameter
       /// @param datavector Data vector for this parameter
-      void addDiagonal(const string& name, 
+      void addDiagonal(const std::string& name, 
                        const casa::Vector<double>& normalmatrixdiagonal,
                        const casa::Vector<double>& datavector);
       
@@ -197,19 +198,19 @@ namespace askap
       
       
       /// Return normal equations slice
-      const std::map<string, casa::Vector<double> >& normalMatrixSlice() const;
+      const std::map<std::string, casa::Vector<double> >& normalMatrixSlice() const;
       
       /// Return normal equations diagonal
-      const std::map<string, casa::Vector<double> >& normalMatrixDiagonal() const;
+      const std::map<std::string, casa::Vector<double> >& normalMatrixDiagonal() const;
       
       /// Return data vector
-      const std::map<string, casa::Vector<double> >& dataVector() const;
+      const std::map<std::string, casa::Vector<double> >& dataVector() const;
       
       /// Return shape
-      const std::map<string, casa::IPosition>& shape() const;
+      const std::map<std::string, casa::IPosition>& shape() const;
       
       /// Return references
-      const std::map<string, casa::IPosition >& reference() const;
+      const std::map<std::string, casa::IPosition >& reference() const;
       
       /// Reset to empty
       virtual void reset();
@@ -231,15 +232,15 @@ namespace askap
               
     private:
       /// A slice through a specified plane
-      std::map<string, casa::Vector<double> > itsNormalMatrixSlice;
+      std::map<std::string, casa::Vector<double> > itsNormalMatrixSlice;
       /// The diagonal 
-      std::map<string, casa::Vector<double> > itsNormalMatrixDiagonal;
+      std::map<std::string, casa::Vector<double> > itsNormalMatrixDiagonal;
       /// The shape
-      std::map<string, casa::IPosition> itsShape;
+      std::map<std::string, casa::IPosition> itsShape;
       /// The Reference point for the slice
-      std::map<string, casa::IPosition> itsReference;
+      std::map<std::string, casa::IPosition> itsReference;
       /// The data vectors
-      std::map<string, casa::Vector<double> > itsDataVector;
+      std::map<std::string, casa::Vector<double> > itsDataVector;
     };
     
   }  // namespace scimath

@@ -105,6 +105,7 @@ namespace askap
   namespace scimath
   {
     /// Representa parameterised equation
+    /// @ingroup fitting
     class Equation
     {
       public:

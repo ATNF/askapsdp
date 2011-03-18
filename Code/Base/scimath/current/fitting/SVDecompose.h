@@ -75,6 +75,7 @@ namespace svd {
   ///           2) operator [index]  (index (0..size-1)) returning value_type&
   ///           3) size_t size() const; returning a number of elements
   ///           4) void resize(size_t newsize); resize the array
+  /// @ingroup fitting
   template<class Cont> class Matrix2D {
       size_t m,n; // number of rows and columns;
       Cont &cont; // reference to the container
@@ -134,6 +135,7 @@ namespace svd {
   ///           matter whether the elements are preserved or not).
   /// The function may throw an exception (string) if number of
   /// internal iteration has exceeded the limit
+  /// @ingroup fitting
   template<class Array, class Matrix>
   void computeSVD(Matrix &A, Array &W, Matrix &V) {
        // setup the sizes of the output arrays

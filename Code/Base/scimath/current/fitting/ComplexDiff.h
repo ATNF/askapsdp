@@ -65,6 +65,7 @@ namespace scimath {
 /// to use casa::SparseDiff classes. An extra adapter layer will be required
 /// anyway to convert string indices into integer indices and to deal with
 /// complex-valued parameters properly. 
+/// @ingroup fitting
 struct ComplexDiff {
   /// @brief default constructor -  a constant (0.,0.)
   ComplexDiff();
@@ -218,7 +219,7 @@ protected:
   /// if found necessary. Currently Op::operator() will be called with 
   /// the appropriate derivative set to zero. 
   /// @param[in] operation type performing actual operation
-  /// @param[out] thisDer this operand's derivatives
+  /// @param[in] thisDer this operand's derivatives
   /// @param[in] otherDer a second operand's derivatives 
   /// @param[in] otherVal a second operand's value
   template<typename Op> void binaryOperationInSitu(Op &operation,
@@ -252,7 +253,7 @@ protected:
   /// It doesn't matter at this stage whether the derivative is by real or 
   /// imaginary part as the formulae are always the same. 
   /// @param[in] operation type performing actual operation
-  /// @param[out] der operand's derivatives
+  /// @param[in] der operand's derivatives
   template<typename Op> void unaryOperationInSitu(Op &operation,
               std::map<std::string, casa::Complex> &der) const;
   

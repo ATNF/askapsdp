@@ -122,7 +122,7 @@ casa::Complex ComplexDiff::derivIm(const std::string &name) const
 /// if found necessary. Currently Op::operator() will be called with 
 /// the appropriate derivative set to zero. 
 /// @param[in] operation type performing actual operation
-/// @param[inout] thisDer this operand's derivatives
+/// @param[in] thisDer this operand's derivatives
 /// @param[in] otherDer a second operand's derivatives 
 /// @param[in] otherVal a second operand's value
 template<typename Op> 
@@ -198,7 +198,7 @@ bool ComplexDiff::isConformant(const ComplexDiff &other) const
 /// It doesn't matter at this stage whether the derivative is by real or 
 /// imaginary part as the formulae are always the same. 
 /// @param[in] operation type performing actual operation
-/// @param[inout] der operand's derivatives
+/// @param[in] der operand's derivatives
 template<typename Op> void ComplexDiff::unaryOperationInSitu(Op &operation,
               std::map<std::string, casa::Complex> &der) const
 {

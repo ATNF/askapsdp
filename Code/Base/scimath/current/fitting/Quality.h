@@ -37,6 +37,7 @@ namespace askap
   namespace scimath
   {
     /// Encapsulate the quality of a solutin
+    /// @ingroup fitting
     class Quality
     {
     public:

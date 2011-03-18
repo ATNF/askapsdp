@@ -47,6 +47,7 @@ namespace askap {
 /// @note It should probably go into blob, as scimath is not the appropriate
 /// place for such a general interface. At this stage just declare it outside
 /// the scimath namespace.
+/// @ingroup fitting
 struct ISerializable {
 
   /// @brief an empty virtual destructor to keep the compiler happy

@@ -44,7 +44,7 @@ namespace askap
 /// Derive solveable classes from this base to have standard parameters available.
 /// None of these have standard meanings. Similarly the names of the algorithms
 /// are not specified here.
-
+/// @ingroup fitting
     class Solveable
     {
       public:

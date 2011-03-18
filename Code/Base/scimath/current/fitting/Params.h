@@ -57,6 +57,7 @@ namespace askap
   namespace scimath
   {
     /// @brief Represent parameters for an Equation
+    /// @ingroup fitting
     class Params
     {
       public:

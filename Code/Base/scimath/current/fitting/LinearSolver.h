@@ -40,6 +40,7 @@ namespace askap
   namespace scimath
   {
     /// Solve the normal equations for updates to the parameters
+    /// @ingroup fitting
     class LinearSolver : public Solver
     {
       public:

@@ -63,6 +63,7 @@ class DesignMatrix;
 /// is approximated by a sum of diagonal and shift invariant matrices. This
 /// class represents the generic case, where no approximation to the normal
 /// matrix is done.
+/// @ingroup fitting
 struct GenericNormalEquations : public INormalEquations {
       
   /// @brief a default constructor

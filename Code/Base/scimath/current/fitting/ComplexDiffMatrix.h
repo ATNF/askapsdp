@@ -72,6 +72,7 @@ namespace scimath {
 /// parameters at the matrix level and don't duplicate the map search 
 /// unnecessarily. Such functionality is in the future plans, but it is
 /// hidden behind the interface of this class.
+/// @ingroup fitting
 struct ComplexDiffMatrix {
    /// @brief constant iterator type used to access flattened storage
    typedef std::vector<ComplexDiff>::const_iterator const_iterator;

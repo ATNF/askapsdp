@@ -45,6 +45,7 @@ namespace askap
   namespace scimath
   {
     /// Represent a polynomial of arbitrary degree
+    /// @ingroup fitting
     class PolynomialEquation : public GenericEquation
     {
       public:

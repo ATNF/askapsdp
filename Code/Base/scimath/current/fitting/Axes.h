@@ -67,6 +67,7 @@ namespace askap
     ///
     /// An axis has a name and start and end values (doubles)
     /// An Axes is a ordered set of Axises.
+    /// @ingroup fitting
     class Axes
     {
     public:

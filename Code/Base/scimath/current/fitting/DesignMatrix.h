@@ -74,6 +74,7 @@ typedef std::vector<casa::Vector<casa::Double> > DMWeight;
 
 
 /// @brief Hold the design matrix
+/// @ingroup fitting
 class DesignMatrix {
 public:
 
@@ -102,7 +103,7 @@ public:
   /// @brief Add the derivative of the data with respect to dof of the named parameter
   /// @param[in] name Name of parameter
   /// @param[in] deriv Derivative
-  void addDerivative(const string& name, const casa::Matrix<casa::Double>& deriv);
+  void addDerivative(const std::string& name, const casa::Matrix<casa::Double>& deriv);
 
   /// @brief Add the residual constraint
   /// @param[in] residual Residual vector
@@ -131,7 +132,7 @@ public:
   const std::set<std::string> parameterNames() const;
                 
   /// Return the list of named design matrix terms
-  const DMAMatrix& derivative(const string& name) const;
+  const DMAMatrix& derivative(const std::string& name) const;
 
   /// Return list of the residual vectors
   const DMBVector& residual() const;
@@ -160,7 +161,7 @@ private:
   
   /// Design Matrix = number of parameters x number of dof/parameter x number of data points
   /// The number of dof of parameters can vary from parameter to parameter
-  mutable std::map<string, DMAMatrix > itsAMatrix;
+  mutable std::map<std::string, DMAMatrix > itsAMatrix;
   
   /// Residual matrix = number of data points
   DMBVector itsBVector;

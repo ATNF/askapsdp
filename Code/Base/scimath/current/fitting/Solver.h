@@ -44,6 +44,7 @@ namespace askap
   {
 
     /// Base class for solvers
+    /// @ingroup fitting
     class Solver : public Solveable
     {
       public:

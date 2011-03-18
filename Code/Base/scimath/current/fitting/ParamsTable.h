@@ -36,6 +36,7 @@ namespace askap
   namespace scimath
   {
     /// Abstract base class for parameter persistence
+    /// @ingroup fitting
     class ParamsTable
     {
       public:

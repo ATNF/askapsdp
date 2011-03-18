@@ -49,7 +49,9 @@ namespace utility {
 /// @brief helper class acting as a random access iterator to a gsl vector
 /// @details The gsl vector is held using reference semantics, the user is
 /// responsible for allocation/delallocation.
+/// @ingroup utils
 struct GSLVectorRAIterator {
+   /// @brief value type
    typedef double value_type;
    /// @brief construct the object
    /// @param[in] vect gsl vector
@@ -80,6 +82,7 @@ namespace scimath {
 /// @param[in] mtr input matrix (should be symmetric square matrix)
 /// @param[out] eVal vector with eigen values (sorted from largest to smallest)
 /// @param[out] eVect matrix with eigen vectors (in columns)
+/// @ingroup utils
 void symEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &eVal, casa::Matrix<double> &eVect)
 {
     const casa::uInt size = mtr.nrow();

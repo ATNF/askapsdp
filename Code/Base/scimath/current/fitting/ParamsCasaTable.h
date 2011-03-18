@@ -44,6 +44,7 @@ namespace askap
   {
 
     /// @brief Store params into a Casa table
+    /// @ingroup fitting
     class ParamsCasaTable : public ParamsTable
     {
     public:

@@ -7,11 +7,15 @@ namespace askap::scimath {};
 
 /// @mainpage askap base scimath
 /// @section Modules
-/// @subsection synth_fft 1. FFT interfaces
+/// @subsection scimathh_fft 1. FFT interfaces
 /// @li This is an interface to the FFTW classes. Currently these are bypassed and the 
 /// casacore classes are used instead. We should switch these on soon since FFTW will be
 /// substantially faster.
-
+/// @subsection scimath_fitting 2. Least-square fitting for imaging and calibration
+/// @li Here are generic classes for the LSF
+/// @subsection scimath_utils 3. General utilities
+///
+/// @section Subpackages
 /// @li @ref fft
 /// @li @ref fitting
 /// @li @ref utils

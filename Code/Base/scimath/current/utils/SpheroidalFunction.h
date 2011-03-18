@@ -40,8 +40,8 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
-#ifndef SPEROIDAL_FUNCTION_H
-#define SPEROIDAL_FUNCTION_H
+#ifndef SCIMATH_UTILS_SPEROIDAL_FUNCTION_H
+#define SCIMATH_UTILS_SPEROIDAL_FUNCTION_H
 
 // casa includes
 #include <casa/BasicSL/Constants.h>
@@ -139,6 +139,6 @@ private:
 
 } // namespace askap
 
-#endif // #ifndef SPEROIDAL_FUNCTION_H
+#endif // #ifndef SCIMATH_UTILS_SPEROIDAL_FUNCTION_H
 
 

@@ -42,6 +42,7 @@ namespace askap
   namespace scimath
   {
     /// @brief A composite of Equations
+    /// @ingroup fitting
     class CompositeEquation : public Equation
     {
       public:
