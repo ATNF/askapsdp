@@ -53,6 +53,7 @@ namespace channels {
     /// This class implements the event channel using the ActiveMQ CMS
     /// interface. The singleton instance must be first instantiated by calling
     /// the createSingletonInstance() method.
+    /// @ingroup eventchannel
     class EventChannelConnection : protected cms::ExceptionListener {
 
         public:

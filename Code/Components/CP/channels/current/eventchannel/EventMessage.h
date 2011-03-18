@@ -41,6 +41,7 @@ namespace cp {
 namespace channels {
 
 /// @brief Encapsulates a message to be sent or received via the event channel.
+/// @ingroup eventchannel
 class EventMessage {
     public:
 

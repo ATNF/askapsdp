@@ -39,6 +39,7 @@ namespace channels {
 
 /// @brief The IEventListener allows event messages to be asynchronously
 /// received.
+/// @ingroup eventchannel
 class IEventListener {
     public:
 

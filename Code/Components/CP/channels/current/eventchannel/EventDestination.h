@@ -50,6 +50,7 @@ namespace channels {
 /// by exactly one consumer. If there are no consumers available at the time the
 /// message is sent it will be kept until a consumer is available that can
 /// process the message. 
+/// @ingroup eventchannel
 class EventDestination {
     public:
 

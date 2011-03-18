@@ -50,6 +50,7 @@ namespace channels {
 
 /// @brief The EventConsumer allows event messages to be received from a
 /// given detination.
+/// @ingroup eventchannel
 class EventConsumer : protected cms::MessageListener {
     public:
 

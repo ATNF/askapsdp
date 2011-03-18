@@ -45,6 +45,7 @@ namespace channels {
 
 /// @brief The EventProducer allows event messages to be sent via the event
 /// channel.
+/// @ingroup eventchannel
 class EventProducer {
     public:
 
