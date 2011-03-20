@@ -61,6 +61,9 @@ class UVPublishTask : public askap::cp::ingest::ITask {
 
         // Publisher object to publish to the uv-channel
         boost::shared_ptr<askap::cp::channels::UVChannelPublisher> itsPublisher;
+
+        // MPI rank
+        int itsRank;
 };
 
 }

@@ -88,7 +88,7 @@ class MergedSource {
         IVisSource::ShPtr itsVisSrc;
 
         // The total number of ingest pipeline tasks. Used to determine how many
-        // visibilities this instance is responsible for recieving.
+        // visibilities this instance is responsible for receiving.
         int itsNumTasks;
 
         // Pointers to the two constituent datatypes

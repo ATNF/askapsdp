@@ -152,7 +152,8 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     const casa::uInt nRow = nBaselines * nBeams;
     const casa::uInt period = metadata.period();
 
-    VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol));
+    const casa::uInt chanThisChunk = nChannels / itsNumTasks;
+    VisChunk::ShPtr chunk(new VisChunk(nRow, chanThisChunk, nPol));
 
     // Convert the time from integration start in microseconds to an
     // integration mid-point in seconds
