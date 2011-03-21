@@ -1,6 +1,6 @@
 py-askap=Code/Base/py-askap/current
 py-parset=Code/Base/py-parset/current
-numpy=3rdParty/numpy/numpy-1.3.0
+numpy=3rdParty/numpy/numpy-1.5.1
 MySQLdb=3rdParty/MySQL-python/MySQL-python-1.2.2
 scipy=3rdParty/scipy/scipy-0.7.0
 matplotlib=3rdParty/matplotlib/matplotlib-1.0.0
