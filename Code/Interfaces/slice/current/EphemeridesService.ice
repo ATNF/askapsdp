@@ -42,14 +42,14 @@ module ephem
      **/
     struct SourceQuery {
         /**
-         *  SQL LIKE match on the source name, e.g. 'PKS' will become 'PKS%'
+         *  SQL LIKE match on the source name, e.g. 'PKS' will become '%PKS%'
          *  An empty string means no restriction.
          **/
         string name;
 
         /**
          * The centre of the "cone search". This needs to be specified as
-         * \[longitute, latitude] in degrees.
+         * \[RA, Dec] in radians
          * An empty sequence indicate no restictions.
          **/
         FloatSeq centre;
@@ -86,7 +86,7 @@ module ephem
          **/
         string name;
         /**
-         * The position of the source as \[longitute, latitude] in degrees
+         * The position of the source as \[RA, Dec] in radians
          **/
         FloatSeq position;
 
@@ -109,7 +109,7 @@ module ephem
          * Any extra columns which are found in the data. These are not
          * queriable.
          **/
-        ParameterMap auxilary;
+        ParameterMap auxiliary;
     };
     
     // A sequence of sources
