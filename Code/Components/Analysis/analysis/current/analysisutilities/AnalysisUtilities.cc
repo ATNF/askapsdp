@@ -194,6 +194,8 @@ namespace askap {
 // 	    par.setHeaderFile(parset.getString("headerFile",par.getHeaderFile()));
 	    if(par.getFlagSeparateHeader() && parset.isDefined("headerFile")) 
 	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getHeaderFile()<<"' for the results header file");
+	    par.setFlagPlotSpectra(false); // no graphics, so not plotting
+	    checkUnusedParameter(parset,"flagPlotSpectra");// no graphics
 	    checkUnusedParameter(parset,"spectraFile");// no graphics
 	    checkUnusedParameter(parset,"flagTextSpectra");// can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
 	    checkUnusedParameter(parset,"spectraTextFile");// can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
@@ -217,8 +219,10 @@ namespace askap {
 	    if(par.getFlagKarma() && parset.isDefined("karmaFile"))
 	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getKarmaFile()<<"' for the Karma annotation file");
 	    par.setFlagMaps(false); // flagMaps
+	    checkUnusedParameter(parset,"flagMaps");//  - not using X
 	    checkUnusedParameter(parset,"detectMap");//  - not using X
 	    checkUnusedParameter(parset,"momentMap");//  - not using X
+	    par.setFlagXOutput(false);
 	    checkUnusedParameter(parset,"flagXOutput");//  - not using X
 	    checkUnusedParameter(parset,"newFluxUnits");//  - not using - caused confusion...
 	    par.setPrecFlux(parset.getInt16("precFlux",par.getPrecFlux()));
