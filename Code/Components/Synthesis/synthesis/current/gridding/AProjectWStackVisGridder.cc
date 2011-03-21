@@ -415,6 +415,10 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
             thisPlane.set(0.0);
             const std::pair<int,int> cfOffset = getConvFuncOffset(iz);
             
+            ASKAPDEBUGASSERT((int(itsConvFunc[plane].nrow()) - 1) / 2 == itsSupport);
+            ASKAPDEBUGASSERT(itsConvFunc[plane].nrow() % 2 == 1);
+            ASKAPDEBUGASSERT(itsConvFunc[plane].nrow() == itsConvFunc[plane].ncolumn());
+
             for (int iy=-itsSupport; iy<+itsSupport; ++iy) {
                 for (int ix=-itsSupport; ix<+itsSupport; ++ix) {
                 	 const int xPos = ix + ccenx + cfOffset.first;
@@ -433,7 +437,7 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
             // ASKAPLOG_DEBUG_STR(logger, "Transform of convolution function["<< iz << "] peak = "<< peak);
 
             if(peak>0.0) {
-                //thisPlane*=casa::DComplex(1.0/peak);
+                thisPlane*=casa::DComplex(1.0/peak);
             }
 
             // Now we need to cut out only the part inside the field of view
