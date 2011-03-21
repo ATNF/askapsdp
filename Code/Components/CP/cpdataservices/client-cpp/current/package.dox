@@ -1,0 +1,18 @@
+/// @defgroup skymodelservice Sky Model Service Subpackage
+/// @defgroup rfisourceservice RFI Source Service Service Subpackage
+/// @defgroup caldataservice Calibration Data Service Subpackage
+/// @defgroup lightcurveservice Light Curve Service Subpackage
+
+/// The channels package namespace.
+namespace askap::cp::cpdataservices {};
+
+/// @mainpage ASKAP Central Processor Data Services Package
+///
+
+/// @section channels_subpackages Subpackages
+/// @li @ref skymodelservice
+/// @li @ref rfisourceservice
+/// @li @ref caldataservice
+/// @li @ref lightcurveservice
+
+/// @copyright 2011 CSIRO, All Rights Reserved.
