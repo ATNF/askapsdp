@@ -37,6 +37,14 @@ module ephem
 {
  
     /**
+     * This exceptions is thrown when a malformed query is passed into the
+     * method.
+     **/
+    exception InvalidQueryException extends askap::interfaces::AskapIceException
+    {
+    };
+
+    /**
      * Encapsulation of source query parameters. Note that it is useful to
      * create a default instance in the implementations.
      **/
@@ -124,9 +132,11 @@ module ephem
         /**
          * Return a list of source catalogue entries matching the given query.
          * For long lists 'limit' and offset can be applied to sequentially
-         * return batches. The defaults are limit=200, offset=0.
+         * return batches. 1 <= limit <= 1000 and  offset > 0 apply. 
+         *  
          **/
-        idempotent SourceSeq query(SourceQuery q, int limit, int offset);
+        idempotent SourceSeq query(SourceQuery q, int limit, int offset)
+            throws InvalidQueryException;
         
         /**
          * Return a list names of the catalogues provided by this service.
