@@ -69,6 +69,7 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	/**
 	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#coneSearch(double, double, double, Ice.Current)
 	 */
+	@Override
 	public List<Long> coneSearch(double ra, double dec, double searchRadius,
 			Current cur) {
 		// TODO Auto-generated method stub
@@ -78,6 +79,7 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	/**
 	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#getComponents(java.util.List, Ice.Current)
 	 */
+	@Override
 	public List<Component> getComponents(List<Long> componentIds, Current cur) {
 		List<ComponentBean> beans = itsPersistance.getComponents(componentIds);
 		List<Component> components = convertBeanToIce(beans);
@@ -87,6 +89,7 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	/**
 	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#addComponents(java.util.List, Ice.Current)
 	 */
+	@Override
 	public List<Long> addComponents(List<Component> components, Current cur) {
 		List<Long> ids = itsPersistance.addComponents(convertIceToBean(components));
 		return ids;
@@ -95,6 +98,7 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	/**
 	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#removeAllComponents(Ice.Current)
 	 */
+	@Override
 	public void removeAllComponents(Current cur) {
 		itsPersistance.removeAllComponents();
 	}
