@@ -56,6 +56,13 @@ namespace askap {
 	  this->itsAxisType = FREQUENCY;
         }
 
+        GaussianProfile::GaussianProfile(float restfreq):
+                Spectrum()
+        {
+	  this->itsRestFreq = restfreq;
+	  this->itsAxisType = FREQUENCY;
+        }
+
         GaussianProfile::GaussianProfile(double &height, double &centre, double &width, AXISTYPE &type):
 	  Spectrum(), itsGaussian(height,centre,width), itsAxisType(type)
 	{
@@ -159,7 +166,7 @@ namespace askap {
 	    break;
 	  }
 	  flux = flux / fabs(nu2-nu1);
-	  // ASKAPLOG_DEBUG_STR(logger, "Flux between " << nu1 << " and " << nu2 << " is " << flux << " with scale=" << scale << " and basic integral b/w " << first << "and " << last << " = " << erf(last)-erf(first) );
+	   // ASKAPLOG_DEBUG_STR(logger, "Flux between " << nu1 << " and " << nu2 << " is " << flux << " with scale=" << scale << " and basic integral b/w " << first << "and " << last << " = " << erf(last)-erf(first) );
 	  return flux ;
 	}
 

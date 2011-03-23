@@ -531,7 +531,7 @@ namespace askap {
 	  FullStokesContinuum stokes;
 	  HIprofileS3SEX profSEX;
 	  HIprofileS3SAX profSAX;
-	  GaussianProfile profGauss;
+	  GaussianProfile profGauss(this->itsRestFreq);
 	  FLASHProfile profFLASH;
 	  Spectrum *src = &cont;
 
@@ -644,7 +644,8 @@ namespace askap {
 		else if (this->itsDatabaseOrigin == "S3SAX")
 		  fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
 		else if (this->itsDatabaseOrigin == "Gaussian")
-		  fluxGen.addSpectrumInt(profGauss, pix[0], pix[1], this->itsWCS);
+		  //		  fluxGen.addSpectrumInt(profGauss, pix[0], pix[1], this->itsWCS);
+		  fluxGen.addSpectrum(profGauss, pix[0], pix[1], this->itsWCS);
 		else if (this->itsDatabaseOrigin == "FLASH")
 		  fluxGen.addSpectrumInt(profFLASH, pix[0], pix[1], this->itsWCS);
 		
@@ -748,15 +749,30 @@ namespace askap {
 	  float min = this->itsBeamInfo[1] / fabs(this->itsWCS->cdelt[1]);
 	  float pa = this->itsBeamInfo[2];
 	  GaussSmooth2D<float> smoother(maj, min, pa);
-	  ASKAPLOG_DEBUG_STR(logger, "Defined the smoother, now to do the smoothing");
-	  float *newArray = smoother.smooth(this->itsArray, this->itsAxes[0], this->itsAxes[1]);
-	  ASKAPLOG_DEBUG_STR(logger, "Smoothing done.");
+	  ASKAPLOG_DEBUG_STR(logger, "Defined the smoother with beam=("<<maj<<","<<min<<","<<pa<<"), now to do the smoothing");
+	  // for(int i=0;i<smoother.getKernelWidth()*smoother.getKernelWidth();i++)
+	  //   std::cerr << i << " " << i%smoother.getKernelWidth() << " " << i/smoother.getKernelWidth() << "    " << smoother.getKernel()[i] << "\n";
+	  ASKAPLOG_DEBUG_STR(logger, "Smoothing kernel width = " << smoother.getKernelWidth() << ", stddev scale = " << smoother.getStddevScale());
+	  
+	  ASKAPASSERT(this->itsDim<=4);
+	  size_t xySize = this->itsAxes[0]*this->itsAxes[1];
+	  float *image = new float[xySize];
+	  int specdim = (this->itsDim>2)?this->itsAxes[2]:1;
+	  int stokesdim = (this->itsDim>3)?this->itsAxes[3]:1;
+	  for(int z=0;z<specdim;z++){
+	    for(int j=0;j<stokesdim;j++){
+	      	for(size_t pix=0;pix<xySize;pix++) image[pix] = this->itsArray[z*xySize+pix+j*specdim*xySize];
+		float *newArray = smoother.smooth(image, this->itsAxes[0], this->itsAxes[1],SCALEBYCOVERAGE);
+		// ASKAPLOG_DEBUG_STR(logger, "Smoothing done.");
+		for (size_t pix=0;pix<xySize;pix++) this->itsArray[z*xySize+pix+j*specdim*xySize] = newArray[pix];
+		delete [] newArray;
+	    }
+	  }
 
-	  for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = newArray[i];
+	  delete [] image;
 
 	  ASKAPLOG_DEBUG_STR(logger, "Copying done.");
 
-	  delete [] newArray;
 	}
       }
 

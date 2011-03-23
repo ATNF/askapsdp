@@ -50,6 +50,8 @@ namespace askap {
             public:
                 /// @brief Default constructor
                 GaussianProfile();
+                /// @brief Default constructor with rest freq
+                GaussianProfile(float restFreq);
 		/// @brief Specific constructor
 		GaussianProfile(double &height, double &centre, double &width, AXISTYPE &type);
                 /// @brief Destructor
