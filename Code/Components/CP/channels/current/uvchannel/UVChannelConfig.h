@@ -39,14 +39,15 @@ namespace askap {
 namespace cp {
 namespace channels {
 
-    /// @brief Encapsulates the mappings between channel name, channel number and the broker.
+    /// @brief Encapsulates the mappings between channel name, channel number
+    /// and the broker.
     /// @ingroup uvchannel
     class UVChannelConfig {
 
         public:
             /// @brief Constructor.
-            /// @param[in] parset a parset which describes the mappings between channel name,
-            /// channel number and the broker.
+            /// @param[in] parset a parset which describes the mappings between
+            /// channel name, channel number and the broker.
             UVChannelConfig(const LOFAR::ParameterSet& parset);
 
             /// @brief Given a channel name and channel number, return the brokerId
@@ -65,11 +66,19 @@ namespace channels {
             /// @return the network port number
             int getPort(const std::string& brokerId) const;
 
-            /// @brief Given a channel name and channel number, return the name of the topic
+            /// @brief Given a channel name and channel number, return the name
+            /// of the topic
             /// @param[in] name channel name
             /// @param[in] chan channel number
             /// @return the topic name to use for publishing or subscribing
             std::string getTopic(const std::string& name, const int chan) const;
+
+            /// @brief Given a channel name and topic name, return the channel
+            /// number for that topic
+            /// @param[in] name channel name
+            /// @param[in] topic topic name
+            /// @return the absolute channel number for the specified topic
+            int getChannel(const std::string& name, const std::string& topic) const;
 
         private:
 

@@ -79,6 +79,8 @@ class UVChannelConfigTest : public CppUnit::TestFixture {
                 stringstream ss;
                 ss << "avg304" << "_" << i;
                 CPPUNIT_ASSERT_EQUAL(ss.str(), instance.getTopic("avg304", i));
+
+                CPPUNIT_ASSERT_EQUAL(i, instance.getChannel("avg304", ss.str()));
             }
         }
         
@@ -111,6 +113,8 @@ class UVChannelConfigTest : public CppUnit::TestFixture {
                 stringstream ss;
                 ss << "full" << "_" << i;
                 CPPUNIT_ASSERT_EQUAL(ss.str(), instance.getTopic("full", i));
+
+                CPPUNIT_ASSERT_EQUAL(i, instance.getChannel("full", ss.str()));
             }
         }
 };

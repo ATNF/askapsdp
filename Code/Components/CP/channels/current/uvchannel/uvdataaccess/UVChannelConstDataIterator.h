@@ -101,6 +101,14 @@ class UVChannelConstDataIterator : virtual public askap::accessors::IConstDataIt
 
         // Accessor
         boost::scoped_ptr<UVChannelConstDataAccessor> itsConstAccessor;
+
+    private:
+        // Implementation of the next function for a single channel selection
+        casa::Bool nextSingle(const casa::uInt chan);
+
+        // Implementation of the next function for multiple channel selection
+        casa::Bool nextMultiple(const casa::uInt nChan, const casa::uInt startChan);
+
 };
 
 } // end of namespace channels

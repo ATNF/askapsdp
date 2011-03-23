@@ -59,11 +59,12 @@ class MyListener : public IUVChannelListener {
         long getEos(void) { return itsEos; }
 
     protected:
-        virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message) {
+        virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message,
+                std::string /* destName */) {
             itsCount++;
         }
 
-        virtual void onEndOfStream(void) { itsEos = true; }
+        virtual void onEndOfStream(std::string /* destName */) { itsEos = true; }
 
     private:
         long itsCount;

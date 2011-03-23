@@ -28,6 +28,9 @@
 // Include own header file first
 #include "UVChannelReceiver.h"
 
+// System includes
+#include <string>
+
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "cpcommon/VisChunk.h"
@@ -51,11 +54,12 @@ UVChannelReceiver::UVChannelReceiver(const UVChannelConfig& channelConfig,
                                      const casa::uInt startChan,
                                      const casa::uInt nChan,
                                      const casa::uInt maxQueueSize)
-        : itsMaxQueueSize(maxQueueSize), itsEndOfStreamSignaled(false)
+        : itsChannelConfig(channelConfig), itsChannelName(channelName), itsMaxQueueSize(maxQueueSize)
 {
     itsConsumer.reset(new UVChannelConsumer(channelConfig, channelName, this));
 
-    for (unsigned int c = startChan; c <= nChan; ++c) {
+    for (unsigned int c = startChan; c < startChan+nChan; ++c) {
+        itsEndOfStreamSignaled[c] = false;
         itsConsumer->addSubscription(c);
     }
 }
@@ -65,23 +69,23 @@ UVChannelReceiver::~UVChannelReceiver()
     itsConsumer.reset();
 }
 
-casa::Bool UVChannelReceiver::hasMore(void) const
+casa::Bool UVChannelReceiver::hasMore(const casa::uInt chan) const
 {
     boost::mutex::scoped_lock lock(itsMutex);
 
-    if (itsQueue.empty() && itsEndOfStreamSignaled) {
+    if (itsQueue.find(chan)->second.empty() && itsEndOfStreamSignaled.find(chan)->second) {
         return false;
     } else {
         return true;
     }
 }
 
-boost::shared_ptr<askap::cp::common::VisChunk> UVChannelReceiver::next(void)
+boost::shared_ptr<askap::cp::common::VisChunk> UVChannelReceiver::next(const casa::uInt chan)
 {
     // Wait until data arrives, or end-of-stream is signalled
     boost::mutex::scoped_lock lock(itsMutex);
 
-    while (itsQueue.empty() && !itsEndOfStreamSignaled) {
+    while (itsQueue[chan].empty() && !itsEndOfStreamSignaled[chan]) {
         boost::xtime xt;
         boost::xtime_get(&xt, boost::TIME_UTC);
         xt.sec += 1;
@@ -89,12 +93,12 @@ boost::shared_ptr<askap::cp::common::VisChunk> UVChannelReceiver::next(void)
     }
 
     // Return a null pointer if no more data is expected
-    if (itsQueue.empty() && itsEndOfStreamSignaled) {
+    if (itsQueue[chan].empty() && itsEndOfStreamSignaled[chan]) {
         return boost::shared_ptr<askap::cp::common::VisChunk>();
     }
 
-    boost::shared_ptr<askap::cp::common::VisChunk> obj(itsQueue.front());
-    itsQueue.pop_front();
+    boost::shared_ptr<askap::cp::common::VisChunk> obj(itsQueue[chan].front());
+    itsQueue[chan].pop_front();
     lock.unlock();
 
     // No need to notify producer. The producer doesn't block, instead it
@@ -103,28 +107,33 @@ boost::shared_ptr<askap::cp::common::VisChunk> UVChannelReceiver::next(void)
     return obj;
 }
 
-void UVChannelReceiver::onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message)
+void UVChannelReceiver::onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message,
+        std::string destinationName)
 {
+    const int chan = itsChannelConfig.getChannel(itsChannelName, destinationName);
+
     // Add a pointer to the message to the back of the buffer
     boost::mutex::scoped_lock lock(itsMutex);
 
-    if (itsQueue.size() >= itsMaxQueueSize) {
+    if (itsQueue[chan].size() >= itsMaxQueueSize) {
         return;
     }
 
-    itsQueue.push_back(message);
+    itsQueue[chan].push_back(message);
 
     // Notify any waiters
     lock.unlock();
     itsCondVar.notify_all();
 }
 
-void UVChannelReceiver::onEndOfStream(void)
+void UVChannelReceiver::onEndOfStream(std::string destinationName)
 {
+    const int chan = itsChannelConfig.getChannel(itsChannelName, destinationName);
+
     // Aquisition of the mutex here just ensures that any onMessage() invocation
     // completes before itsEndOfStreamSignaled is set to true. Given the
     // end-of-stream message should be received AFTER the last VisChunk, this
     // allows hasMore() to be sane.
     boost::mutex::scoped_lock lock(itsMutex);
-    itsEndOfStreamSignaled = true;
+    itsEndOfStreamSignaled[chan] = true;
 }

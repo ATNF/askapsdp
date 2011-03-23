@@ -61,9 +61,8 @@ UVChannelConstDataIterator::UVChannelConstDataIterator(const UVChannelConfig& ch
         ASKAPTHROW(AskapError, "UVChannelConstDataIterator() no channels selected");
     }
 
-    const casa::uInt startChan = itsSelector->getChannelSelection().first;
-
-    const casa::uInt nChan = itsSelector->getChannelSelection().second;
+    const casa::uInt nChan = itsSelector->getChannelSelection().first;
+    const casa::uInt startChan = itsSelector->getChannelSelection().second;
 
     itsReceiver.reset(new UVChannelReceiver(channelConfig, channelName, startChan, nChan));
 }
@@ -84,23 +83,97 @@ const IConstDataAccessor& UVChannelConstDataIterator::operator*() const
 
 casa::Bool UVChannelConstDataIterator::hasMore() const throw()
 {
-    return itsReceiver->hasMore();
+    const casa::uInt nChan = itsSelector->getChannelSelection().first;
+    const casa::uInt startChan = itsSelector->getChannelSelection().second;
+
+    // In order for hasMore() to be true, all channels must have more data.
+    for (casa::uInt chan = startChan; chan < startChan+nChan; ++chan) {
+        if (!itsReceiver->hasMore(chan)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 casa::Bool UVChannelConstDataIterator::next()
 {
+    const casa::uInt nChan = itsSelector->getChannelSelection().first;
+    const casa::uInt startChan = itsSelector->getChannelSelection().second;
+
     if (hasMore()) {
-        boost::shared_ptr<askap::cp::common::VisChunk> chunk = itsReceiver->next();
-
-        // If a null pointer is returned this indicates end-of-stream has been
-        // received and there are no more data is expected.
-        if (chunk.get() == 0) {
-            return false;
+        if (nChan == 1) {
+            return nextSingle(startChan);
+        } else {
+            return nextMultiple(nChan, startChan);
         }
-
-        itsConstAccessor.reset(new UVChannelConstDataAccessor(chunk));
-        return true;
     } else {
         return false;
     }
+}
+
+casa::Bool UVChannelConstDataIterator::nextSingle(const casa::uInt chan)
+{
+    boost::shared_ptr<askap::cp::common::VisChunk> chunk = itsReceiver->next(chan);
+
+    // If a null pointer is returned this indicates end-of-stream has been
+    // received and there are no more data is expected.
+    if (chunk.get() == 0) {
+        return false;
+    }
+
+    itsConstAccessor.reset(new UVChannelConstDataAccessor(chunk));
+    return true;
+}
+
+casa::Bool UVChannelConstDataIterator::nextMultiple(const casa::uInt nChan, const casa::uInt startChan)
+{
+    ASKAPASSERT(nChan > 1);
+
+    // First get the starting channel data. This will be used as a basis for building
+    // the larger VisChunk
+    boost::shared_ptr<askap::cp::common::VisChunk> golden = itsReceiver->next(startChan);
+    ASKAPASSERT(golden->nChannel() == 1);
+
+    // If a null pointer is returned this indicates end-of-stream has been
+    // received and there are no more data is expected.
+    if (golden.get() == 0) {
+        return false;
+    }
+
+    const casa::uInt nRow = golden->nRow();
+    const casa::uInt nPol = golden->nPol();
+
+    // Create new containers
+    casa::Cube<casa::Complex> vis(nRow, nChan, nPol);
+    casa::Cube<casa::Bool> flag(nRow, nChan, nPol);
+    casa::Vector<casa::Double> freq(nChan);
+
+    // Populate the new containers
+    boost::shared_ptr<askap::cp::common::VisChunk> chunk;
+    for (casa::uInt chan = 0; chan < nChan; ++chan) {
+        if (chan == 0) {
+            chunk = golden;
+        } else {
+            // The loop uses zero-based channel indexing (for indexing into the cube), but
+            chunk = itsReceiver->next(chan+startChan);
+            if (chunk.get() == 0) {
+                return false;
+            }
+            ASKAPASSERT(chunk->time() == golden->time());
+            ASKAPASSERT(chunk->nRow() == golden->nRow());
+            ASKAPASSERT(chunk->nPol() == golden->nPol());
+            ASKAPASSERT(chunk->nChannel() == 1);
+        }
+        freq(chan) = chunk->frequency()(0);
+        for (casa::uInt row = 0; row < nRow; ++row) {
+            for (casa::uInt pol = 0; pol < nPol; ++pol) {
+                vis(row, chan, pol) = chunk->visibility()(row, 0, pol);
+                flag(row, chan, pol) = chunk->flag()(row, 0, pol);
+            }
+        }
+    }
+
+    golden->resize(vis, flag, freq);
+    itsConstAccessor.reset(new UVChannelConstDataAccessor(golden));
+    return true;
 }

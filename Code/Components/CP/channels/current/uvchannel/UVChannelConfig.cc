@@ -106,6 +106,13 @@ std::string UVChannelConfig::getTopic(const std::string& name, const int chan) c
     return ss.str();
 }
 
+int UVChannelConfig::getChannel(const std::string& name, const std::string& topic) const
+{
+    size_t pos = topic.find("_");
+    std::string num = topic.substr(pos+1);
+    return strTo<int>(num);    
+}
+
 template <class T>
 T UVChannelConfig::strTo(const std::string& str) const
 {

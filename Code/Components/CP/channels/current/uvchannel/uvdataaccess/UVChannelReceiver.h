@@ -29,7 +29,9 @@
 #define ASKAP_CP_CHANNELS_UVCHANNEL_RECIEVER_H
 
 // System includes
+#include <string>
 #include <deque>
+#include <map>
 
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
@@ -66,7 +68,7 @@ class UVChannelReceiver : protected IUVChannelListener {
         ///
         /// @return False if the queue is empty and end-of-stream has been
         ///         signaled, otherwise True.
-        casa::Bool hasMore(void) const;
+        casa::Bool hasMore(const casa::uInt chan) const;
 
         /// Get a pointer to the next VisChunk. This call blocks until a VisChunk is
         /// available, but will unblock and return a null pointer if end-of-stream is
@@ -74,33 +76,40 @@ class UVChannelReceiver : protected IUVChannelListener {
         ///
         /// @return a pointer to the next VisChunk, or a null pointer if the queue is
         ///         empty and end-of-stream has been signaled.
-        boost::shared_ptr<askap::cp::common::VisChunk> next(void);
+        boost::shared_ptr<askap::cp::common::VisChunk> next(const casa::uInt chan);
 
     protected:
 
         /// @internal
-        virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message);
+        virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message,
+                std::string destinationName);
 
         /// @internal
-        virtual void onEndOfStream(void);
+        virtual void onEndOfStream(std::string destinationName);
 
     private:
+
+        // Channel Configuration
+        const UVChannelConfig itsChannelConfig;
+
+        // Channel Name
+        const std::string itsChannelName;
 
         // Maximum size the queue will grow to before discarding incoming
         // messages.
         const casa::uInt itsMaxQueueSize;
 
         // False if end-of-stream has not been signaled, otherwise True.
-        casa::Bool itsEndOfStreamSignaled;
+        std::map<int, casa::Bool> itsEndOfStreamSignaled;
 
         // Consumer
         boost::scoped_ptr<UVChannelConsumer> itsConsumer;
 
         // Queue of incoming data. Data is pushed on to the back of the queue
         // by onMessage() and popped off the front of the queue by next().
-        std::deque< boost::shared_ptr<askap::cp::common::VisChunk> > itsQueue;
+        std::map<int, std::deque< boost::shared_ptr<askap::cp::common::VisChunk> > > itsQueue;
 
-        // Mutex used for synchronising access to itsQueue
+        // Mutex used for synchronising access to itsQueue and itsEndOfStreamSignaled
         mutable boost::mutex itsMutex;
 
         // Condition variable user for synchronising access to itsQueue

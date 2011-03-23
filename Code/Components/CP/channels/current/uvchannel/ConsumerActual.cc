@@ -111,6 +111,40 @@ void ConsumerActual::removeSubscription(const std::string& topic)
 
 void ConsumerActual::onMessage(const cms::Message *message)
 {
+    std::string destName;
+    const cms::Destination* dest = message->getCMSDestination();
+    ASKAPASSERT(dest);
+
+    switch (dest->getDestinationType()) {
+        case cms::Destination::TOPIC: 
+            {
+                const cms::Topic* topic = dynamic_cast<const cms::Topic*>(message->getCMSDestination());
+                destName = topic->getTopicName();
+                break;
+            }
+        case cms::Destination::QUEUE: 
+            {
+                const cms::Queue* queue = dynamic_cast<const cms::Queue*>(message->getCMSDestination());
+                destName = queue->getQueueName();
+                break;
+            }
+        case cms::Destination::TEMPORARY_TOPIC: 
+            {
+                const cms::TemporaryTopic* topic = dynamic_cast<const cms::TemporaryTopic*>(message->getCMSDestination());
+                destName = topic->getTopicName();
+                break;
+            }
+        case cms::Destination::TEMPORARY_QUEUE: 
+            {
+                const cms::TemporaryQueue* queue = dynamic_cast<const cms::TemporaryQueue*>(message->getCMSDestination());
+                destName = queue->getQueueName();
+                break;
+            }
+        default:
+            ASKAPLOG_WARN_STR(logger, "Message with unknown destination type received on uvchannel");
+            break;
+    }
+
     const cms::BytesMessage* bytesMessage =
         dynamic_cast<const cms::BytesMessage*>(message);
 
@@ -126,16 +160,16 @@ void ConsumerActual::onMessage(const cms::Message *message)
         in >> *chunk;
         in.getEnd();
 
-        itsVisListener->onMessage(chunk);
+        itsVisListener->onMessage(chunk, destName);
         return;
     }
 
     const cms::TextMessage* textMessage =
         dynamic_cast<const cms::TextMessage*>(message);
     if (textMessage && itsVisListener) {
-        itsVisListener->onEndOfStream();
+        itsVisListener->onEndOfStream(destName);
         return;
     }
 
-    ASKAPLOG_WARN_STR(logger, "Message of unexpected type received on uvchannel channel");
+    ASKAPLOG_WARN_STR(logger, "Message of unexpected type received on uvchannel");
 }

@@ -76,7 +76,10 @@ int main(int argc, char *argv[])
     UVChannelConstDataSource ds(parset, "avg304");
 
     IDataSelectorPtr sel = ds.createSelector();
-    sel->chooseChannels(1, 1);
+
+    const unsigned int nChan = 4;
+    const unsigned int startChan = 1;
+    sel->chooseChannels(nChan, startChan);
 
     IDataConverterPtr conv = ds.createConverter();
     conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
@@ -84,9 +87,11 @@ int main(int argc, char *argv[])
 
     IConstDataSharedIter it = ds.createConstIterator(sel, conv);
 
-    //for (it.init(); it.hasMore(); it.next()) {
     while (it.next()) {
         ASKAPLOG_INFO_STR(logger, "Got an accessor for timestamp: " << it->time());
+        if (it->nChannel() != nChan) {
+            ASKAPLOG_ERROR_STR(logger, "Expected " << nChan << " but got " << it->nChannel());
+        }
     }
 
     return 0;
