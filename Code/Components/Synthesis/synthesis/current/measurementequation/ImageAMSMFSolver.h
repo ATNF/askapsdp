@@ -121,6 +121,10 @@ namespace askap
 
       Bool itsDecoupleTerms;
 
+      casa::Array<Float> itsPSFZeroArray;
+
+      Float itsPSFZeroCentre;
+
     private:
       
     };

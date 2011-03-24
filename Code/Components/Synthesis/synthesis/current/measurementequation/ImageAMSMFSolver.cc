@@ -70,7 +70,7 @@ namespace askap
     
     
     ImageAMSMFSolver::ImageAMSMFSolver() : itsScales(3,0.), itsNumberTaylor(0),
-					   itsSolutionType("R5")
+					   itsSolutionType("MINCHISQ")
     {
       ASKAPDEBUGASSERT(itsScales.size() == 3);
       itsScales(1)=10;
@@ -84,8 +84,7 @@ namespace askap
     }
     
     ImageAMSMFSolver::ImageAMSMFSolver(const casa::Vector<float>& scales) : 
-      itsScales(scales), itsNumberTaylor(0), 
-      itsSolutionType("R5")
+      itsScales(scales), itsNumberTaylor(0), itsSolutionType("MINCHISQ")
     {
       // Now set up controller
       itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
@@ -253,9 +252,7 @@ namespace askap
 	  
 	  // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time. We keep a copy of
 	  // the first since we will need it for preconditioning the others
-	  casa::Array<float> psfZeroArray(planeIter.planeShape());
-	  float zeroPSFPeak = -1;
-	  
+
 	  uInt limit=this->itsNumberTaylor;
 	  if(firstcycle) limit=2*this->itsNumberTaylor-1;
 	  
@@ -307,36 +304,38 @@ namespace askap
 	  uInt ny(planeIter.planeShape()(1));
 	  IPosition centre(2, nx/2, ny/2);
 
+	  itsPSFZeroArray=psfLongVec(0).copy();
 	  if(firstcycle) {
-	    psfZeroArray=psfLongVec(0).copy();
-	    zeroPSFPeak=psfZeroArray.nonDegenerate()(centre);
+	    ASKAPLOG_DEBUG_STR(logger, "Deriving scale from PSF(0) centre value " << psfLongVec(0).nonDegenerate()(centre));
 	    // For the first cycle we need to precondition and normalise all PSFs and all dirty images
-	    ASKAPLOG_DEBUG_STR(logger, "PSF(0) centre value " << psfZeroArray.nonDegenerate()(centre));
+	    itsPSFZeroCentre=-1;
 	    for(uInt order=0; order < 2 * itsNumberTaylor - 1; ++order) {
 	      // We need to work with the original preconditioning PSF since it gets overridden
-	      psfWorkArray = psfZeroArray.copy();
+	      psfWorkArray = itsPSFZeroArray.copy();
 	      ASKAPLOG_DEBUG_STR(logger, "Initial PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
               // Precondition this order PSF using PSF(0)
-	      if(doPreconditioning(psfZeroArray, psfLongVec(order))) {
+	      if(doPreconditioning(psfWorkArray, psfLongVec(order))) {
 		ASKAPLOG_DEBUG_STR(logger, "After preconditioning PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-	      }
-	      // Now we can precondition the dirty (residual) array using PSF(0)
-	      psfWorkArray = psfZeroArray.copy();
-	      if(doPreconditioning(psfWorkArray,dirtyLongVec(order))) {
+		// Now we can precondition the dirty (residual) array using PSF(0)
+		psfWorkArray = itsPSFZeroArray.copy();
 		ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
 				  " ("<<tagLogString<< ") and order=" << order);
+		doPreconditioning(psfWorkArray,dirtyLongVec(order));
 	      }
 	      // Normalise. 
-	      ASKAPLOG_DEBUG_STR(logger, "Initial PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-              if(order==0) {
-                zeroPSFPeak=doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),dirtyLongVec(order),
-                                            boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-              }
-              else {
-                doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
-                                boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-              }
-	      ASKAPLOG_DEBUG_STR(logger, "After normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
+	      ASKAPLOG_DEBUG_STR(logger, "Normalising PSF and Dirty image for order " << order);
+	      ASKAPLOG_DEBUG_STR(logger, "Before normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
+	      // First call the scaling is via the psf and the value is returned. Thereafter we use that value for the normalisation
+	      // of all the PSFs. Thus for MFS, the first PSF should have centre value 1.0 and the others lower values
+	      if(order==0) {
+		itsPSFZeroCentre=doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),dirtyLongVec(order),
+						 boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+	      }
+	      else {
+		doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),itsPSFZeroCentre,dirtyLongVec(order),
+				boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+	      }
+	      ASKAPLOG_DEBUG_STR(logger, "After  normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
 	      if(order<itsNumberTaylor) {
 		psfVec(order)=psfLongVec(order);
 		dirtyVec(order)=dirtyLongVec(order);
@@ -346,31 +345,17 @@ namespace askap
 	  else {
 	    // For the subsequent cycles cycle we need to precondition and normalise the updated dirty images
             // Precondition the dirty (residual) array
-	    psfZeroArray=psfLongVec(0).copy();
-	    zeroPSFPeak=psfZeroArray.nonDegenerate()(centre);
-            ASKAPLOG_DEBUG_STR(logger, "PSF(0) centre value " << psfZeroArray.nonDegenerate()(centre));
 	    for(uInt order=0; order < itsNumberTaylor; ++order) {
-	      psfWorkArray = psfZeroArray.copy();
-	      if(doPreconditioning(psfWorkArray,dirtyLongVec(order))) {
+	      psfWorkArray = itsPSFZeroArray.copy();
+	      if(doPreconditioning(psfWorkArray,dirtyVec(order))) {
 		ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<< " ("<<tagLogString<< ") and order=" << order);
 	      }
 	      // Normalise. 
-              ASKAPLOG_DEBUG_STR(logger, "Before normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-              if(order==0) {
-                zeroPSFPeak=doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),dirtyLongVec(order),
-                                            boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-              }
-              else {
-                doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),zeroPSFPeak,dirtyLongVec(order),
-                                boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-              }
-              ASKAPLOG_DEBUG_STR(logger, "After normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-	      dirtyVec(order)=dirtyLongVec(order);
-              psfVec(order)=psfLongVec(order);
-	    }
+	      psfWorkArray = itsPSFZeroArray.copy();
+	      doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfWorkArray,itsPSFZeroCentre,dirtyVec(order),
+			      boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+	    }// Loop over order
 	  }
-	  
-	  ASKAPLOG_DEBUG_STR(logger, "Mask shape = " << maskArray.shape());
 	  
 	  // Now that we have all the required images, we can initialise the deconvolver
 	  for(uInt order=0; order < itsNumberTaylor; ++order) {
