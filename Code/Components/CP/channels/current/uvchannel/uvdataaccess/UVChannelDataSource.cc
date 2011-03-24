@@ -57,8 +57,8 @@ UVChannelDataSource::UVChannelDataSource(const LOFAR::ParameterSet& parset,
 }
 
 boost::shared_ptr<IDataIterator> UVChannelDataSource::createIterator(
-    const IDataSelectorPtr &sel,
-    const IDataConverterPtr &conv) const
+    const IDataSelectorConstPtr &sel,
+    const IDataConverterConstPtr &conv) const
 {
     // cast input selector to "implementation" interface
     boost::shared_ptr<UVChannelDataSelector const> implSel =

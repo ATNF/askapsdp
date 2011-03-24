@@ -35,25 +35,113 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
+#include <typeinfo>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "Common/ParameterSet.h"
 #include "CommandLineParser.h"
 #include "cpcommon/VisChunk.h"
+#include "dataaccess/SharedIter.h"
 
 // Local package includes
 #include "uvchannel/UVChannelPublisher.h"
 #include "uvchannel/UVChannelConsumer.h"
 #include "uvchannel/IUVChannelListener.h"
+#include "uvchannel/uvdataaccess/UVChannelConstDataSource.h"
+#include "uvchannel/uvdataaccess/UVChannelConstDataIterator.h"
+#include "uvchannel/uvdataaccess/UVChannelDataSource.h"
+#include "uvchannel/uvdataaccess/UVChannelDataIterator.h"
+#include "uvchannel/uvdataaccess/UVChannelDataSelector.h"
+#include "uvchannel/uvdataaccess/UVChannelDataConverter.h"
+#include "uvchannel/uvdataaccess/UVChannelConstDataAccessor.h"
 
 ASKAP_LOGGER(logger, ".tUVChannel");
 
 using namespace askap::cp::channels;
+using namespace askap::accessors;
 
-class MyListener : public IUVChannelListener {
+class ConstDataAccessTest {
     public:
-        MyListener() : itsCount(0), itsEos(false) { }
+        ConstDataAccessTest(const LOFAR::ParameterSet parset, const std::string& channelName)
+            : itsDataSource(parset, "avg304"), itsCount(0)
+        {
+            itsSelector = itsDataSource.createSelector();
+
+            const unsigned int nChan = 4;
+            const unsigned int startChan = 1;
+            itsSelector->chooseChannels(nChan, startChan);
+
+            itsConverter = itsDataSource.createConverter();
+            itsConverter->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
+            itsConverter->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+
+            std::string sourceType(typeid(itsDataSource).name());
+
+            itsIterator = itsDataSource.createConstIterator(itsSelector, itsConverter);
+        }
+
+        void process(void)
+        {
+            itsIterator.next();
+            itsCount++;
+        }
+
+        long getCount(void)
+        {
+            return itsCount;
+        }
+
+    private:
+        UVChannelConstDataSource itsDataSource;
+        IDataSelectorPtr itsSelector;
+        IDataConverterPtr itsConverter;
+        IConstDataSharedIter itsIterator;
+        long itsCount;
+};
+
+class DataAccessTest {
+    public:
+        DataAccessTest(const LOFAR::ParameterSet parset, const std::string& channelName)
+            : itsDataSource(parset, "avg304"), itsCount(0)
+        {
+            itsSelector = itsDataSource.createSelector();
+
+            const unsigned int nChan = 4;
+            const unsigned int startChan = 1;
+            itsSelector->chooseChannels(nChan, startChan);
+
+            itsConverter = itsDataSource.createConverter();
+            itsConverter->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
+            itsConverter->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+
+            std::string sourceType(typeid(itsDataSource).name());
+
+            itsIterator = itsDataSource.createIterator(itsSelector, itsConverter);
+        }
+
+        void process(void)
+        {
+            itsIterator.next();
+            itsCount++;
+        }
+
+        long getCount(void)
+        {
+            return itsCount;
+        }
+
+    private:
+        UVChannelDataSource itsDataSource;
+        IDataSelectorPtr itsSelector;
+        IDataConverterPtr itsConverter;
+        IDataSharedIter itsIterator;
+        long itsCount;
+};
+
+class CountListener : public IUVChannelListener {
+    public:
+        CountListener() : itsCount(0), itsEos(false) { }
 
         long getCount(void) { return itsCount; }
         long getEos(void) { return itsEos; }
@@ -78,6 +166,7 @@ int main(int argc, char *argv[])
 
     const unsigned int nMessages = 6;
     const unsigned int nChans = 304;
+    const std::string channelName = "avg304";
 
     // Command line parser
     cmdlineparser::Parser parser;
@@ -93,15 +182,19 @@ int main(int argc, char *argv[])
     LOFAR::ParameterSet parset(inputsPar);
 
     // Setup the publisher
-    UVChannelPublisher pub(parset, "avg304");
+    UVChannelPublisher pub(parset, channelName);
 
-    // Setup the consumer
-    MyListener listener;
-    UVChannelConsumer consumer(parset, "avg304", &listener);
+    // Setup the counter consumer
+    CountListener listener;
+    UVChannelConsumer consumer(parset, channelName, &listener);
 
     for (unsigned int c = 1; c <= nChans; ++c) {
         consumer.addSubscription(c);
     }
+
+    // Set up the accessor tests for the const and non-const versions
+    ConstDataAccessTest constAccessTest(parset, channelName);
+    DataAccessTest accessTest(parset, channelName);
 
     // Create a VisChunk
     // This is the size of a BETA VisChunk, 21 baselines (including
@@ -118,6 +211,7 @@ int main(int argc, char *argv[])
             ASKAPLOG_INFO_STR(logger, "Iteration " << i << " channel " << c);
             pub.publish(data, c);
 
+
             // Don't let the publisher get too far ahead of the consumer
             if ((i * nChans) > listener.getCount()) {
                 usleep(5000);
@@ -128,6 +222,10 @@ int main(int argc, char *argv[])
                 pub.signalEndOfStream(c);
             }
         }
+
+        // Give the Data accessor tests a chance to process the messages
+        constAccessTest.process();
+        accessTest.process();
     }
 
     ASKAPLOG_INFO_STR(logger, "Waiting for messages to arrive...");
@@ -139,7 +237,27 @@ int main(int argc, char *argv[])
         sleep(1);
     }
 
-    ASKAPLOG_INFO_STR(logger, "Got " << listener.getCount() << ", expected " << expected);
+    int status = 0;
+    if (listener.getCount() == expected) {
+        ASKAPLOG_INFO_STR(logger, "Message counter got " << listener.getCount() << ", expected " << expected << " (PASS)");
+    } else {
+        ASKAPLOG_INFO_STR(logger, "Message counter got " << listener.getCount() << ", expected " << expected << "(FAIL)");
+        status = 1;
+    }
 
-    return !(listener.getCount() == expected);
+    if (constAccessTest.getCount() == nMessages) {
+        ASKAPLOG_INFO_STR(logger, "Const aata accessor got " << constAccessTest.getCount() << ", expected " << nMessages << " (PASS)");
+    } else {
+        ASKAPLOG_INFO_STR(logger, "Const aata accessor got " << constAccessTest.getCount() << ", expected " << nMessages << " (FAIL)");
+        status = 1;
+    }
+
+    if (accessTest.getCount() == nMessages) {
+        ASKAPLOG_INFO_STR(logger, "Non-const data accessor got " << accessTest.getCount() << ", expected " << nMessages << " (PASS)");
+    } else {
+        ASKAPLOG_INFO_STR(logger, "Non-const data accessor got " << accessTest.getCount() << ", expected " << nMessages << " (FAIL)");
+        status = 1;
+    }
+
+    return status;
 }

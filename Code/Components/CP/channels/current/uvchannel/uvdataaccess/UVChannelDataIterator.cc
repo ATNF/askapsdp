@@ -59,7 +59,9 @@ UVChannelDataIterator::UVChannelDataIterator(const UVChannelConfig& channelConfi
 casa::Bool UVChannelDataIterator::next()
 {
     casa::Bool val = UVChannelConstDataIterator::next();
-    itsAccessor.reset(new MemBufferDataAccessor(*itsAccessor));
+    if (val) {
+        itsAccessor.reset(new MemBufferDataAccessor(*itsConstAccessor));
+    }
     return val;
 }
 

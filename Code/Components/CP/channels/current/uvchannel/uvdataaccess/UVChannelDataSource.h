@@ -74,8 +74,8 @@ class UVChannelDataSource : public UVChannelConstDataSource, virtual public aska
         /// the DataSource object. Therefore, it can be reused multiple times,
         /// if necessary.
         virtual boost::shared_ptr<askap::accessors::IDataIterator> createIterator(
-            const askap::accessors::IDataSelectorPtr &sel,
-            const askap::accessors::IDataConverterPtr &conv) const;
+            const askap::accessors::IDataSelectorConstPtr &sel,
+            const askap::accessors::IDataConverterConstPtr &conv) const;
 };
 
 } // namespace channels
