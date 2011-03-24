@@ -29,7 +29,6 @@
 #include "UVChannelConstDataAccessor.h"
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
 #include "askap/AskapError.h"
 #include "casa/aipstype.h"
 #include "casa/Arrays/Cube.h"
@@ -46,7 +45,7 @@ using namespace askap::accessors;
 using namespace askap::cp::channels;
 using namespace askap::cp::common;
 
-UVChannelConstDataAccessor::UVChannelConstDataAccessor(const boost::shared_ptr<askap::cp::common::VisChunk> chunk)
+UVChannelConstDataAccessor::UVChannelConstDataAccessor(const askap::cp::common::VisChunk::ShPtr chunk)
         : itsChunk(chunk)
 {
     itsNoise.resize(visibility().shape());

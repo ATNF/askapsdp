@@ -152,7 +152,7 @@ void ConsumerActual::onMessage(const cms::Message *message)
         itsBuffer.resize(bytesMessage->getBodyLength());
         bytesMessage->readBytes(itsBuffer);
 
-        boost::shared_ptr<askap::cp::common::VisChunk> chunk(new VisChunk(0,0,0));
+        askap::cp::common::VisChunk::ShPtr chunk(new VisChunk(0,0,0));
         LOFAR::BlobIBufVector<unsigned char> bv(itsBuffer);
         LOFAR::BlobIStream in(bv);
         int version = in.getStart("VisChunk");

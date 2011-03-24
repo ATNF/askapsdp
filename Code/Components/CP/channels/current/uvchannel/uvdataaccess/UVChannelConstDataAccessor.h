@@ -29,7 +29,6 @@
 #define ASKAP_CP_CHANNELS_UVCHANNEL_CONST_DATA_ACCESSOR_H
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
 #include "casa/aipstype.h"
 #include "casa/Arrays/Cube.h"
 #include "casa/Quanta/MVDirection.h"
@@ -48,7 +47,7 @@ namespace channels {
 /// @ingroup uvdataaccess
 class UVChannelConstDataAccessor : virtual public askap::accessors::IConstDataAccessor {
     public:
-        explicit UVChannelConstDataAccessor(const boost::shared_ptr<askap::cp::common::VisChunk> chunk);
+        explicit UVChannelConstDataAccessor(const askap::cp::common::VisChunk::ShPtr chunk);
 
         virtual casa::uInt nRow() const throw();
 
@@ -101,7 +100,7 @@ class UVChannelConstDataAccessor : virtual public askap::accessors::IConstDataAc
     private:
 
         // The primary data structure that this accessor is wrapping
-        boost::shared_ptr<askap::cp::common::VisChunk> itsChunk;
+        askap::cp::common::VisChunk::ShPtr itsChunk;
 
         // UVW Rotation handler
         askap::accessors::UVWRotationHandler itsRotatedUVW;

@@ -34,7 +34,6 @@
 #include <map>
 
 // ASKAPsoft includes
-#include "boost/shared_ptr.hpp"
 #include "boost/scoped_ptr.hpp"
 #include "boost/thread/mutex.hpp"
 #include "boost/thread/condition.hpp"
@@ -76,13 +75,13 @@ class UVChannelReceiver : protected IUVChannelListener {
         ///
         /// @return a pointer to the next VisChunk, or a null pointer if the queue is
         ///         empty and end-of-stream has been signaled.
-        boost::shared_ptr<askap::cp::common::VisChunk> next(const casa::uInt chan);
+        askap::cp::common::VisChunk::ShPtr pop(const casa::uInt chan);
 
     protected:
 
         /// @internal
-        virtual void onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message,
-                std::string destinationName);
+        virtual void onMessage(const askap::cp::common::VisChunk::ShPtr message,
+                               std::string destinationName);
 
         /// @internal
         virtual void onEndOfStream(std::string destinationName);
@@ -107,7 +106,7 @@ class UVChannelReceiver : protected IUVChannelListener {
 
         // Queue of incoming data. Data is pushed on to the back of the queue
         // by onMessage() and popped off the front of the queue by next().
-        std::map<int, std::deque< boost::shared_ptr<askap::cp::common::VisChunk> > > itsQueue;
+        std::map<int, std::deque< askap::cp::common::VisChunk::ShPtr > > itsQueue;
 
         // Mutex used for synchronising access to itsQueue and itsEndOfStreamSignaled
         mutable boost::mutex itsMutex;

@@ -34,7 +34,6 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "cpcommon/VisChunk.h"
-#include "boost/shared_ptr.hpp"
 #include "boost/thread/xtime.hpp"
 #include "boost/thread/mutex.hpp"
 #include "boost/thread/condition.hpp"
@@ -57,8 +56,7 @@ UVChannelReceiver::UVChannelReceiver(const UVChannelConfig& channelConfig,
         : itsChannelConfig(channelConfig), itsChannelName(channelName), itsMaxQueueSize(maxQueueSize)
 {
     itsConsumer.reset(new UVChannelConsumer(channelConfig, channelName, this));
-
-    for (unsigned int c = startChan; c < startChan+nChan; ++c) {
+    for (unsigned int c = startChan; c < startChan + nChan; ++c) {
         itsEndOfStreamSignaled[c] = false;
         itsConsumer->addSubscription(c);
     }
@@ -72,7 +70,6 @@ UVChannelReceiver::~UVChannelReceiver()
 casa::Bool UVChannelReceiver::hasMore(const casa::uInt chan) const
 {
     boost::mutex::scoped_lock lock(itsMutex);
-
     if (itsQueue.find(chan)->second.empty() && itsEndOfStreamSignaled.find(chan)->second) {
         return false;
     } else {
@@ -80,11 +77,10 @@ casa::Bool UVChannelReceiver::hasMore(const casa::uInt chan) const
     }
 }
 
-boost::shared_ptr<askap::cp::common::VisChunk> UVChannelReceiver::next(const casa::uInt chan)
+askap::cp::common::VisChunk::ShPtr UVChannelReceiver::pop(const casa::uInt chan)
 {
     // Wait until data arrives, or end-of-stream is signalled
     boost::mutex::scoped_lock lock(itsMutex);
-
     while (itsQueue[chan].empty() && !itsEndOfStreamSignaled[chan]) {
         boost::xtime xt;
         boost::xtime_get(&xt, boost::TIME_UTC);
@@ -94,10 +90,10 @@ boost::shared_ptr<askap::cp::common::VisChunk> UVChannelReceiver::next(const cas
 
     // Return a null pointer if no more data is expected
     if (itsQueue[chan].empty() && itsEndOfStreamSignaled[chan]) {
-        return boost::shared_ptr<askap::cp::common::VisChunk>();
+        return askap::cp::common::VisChunk::ShPtr();
     }
 
-    boost::shared_ptr<askap::cp::common::VisChunk> obj(itsQueue[chan].front());
+    askap::cp::common::VisChunk::ShPtr obj(itsQueue[chan].front());
     itsQueue[chan].pop_front();
     lock.unlock();
 
@@ -107,8 +103,8 @@ boost::shared_ptr<askap::cp::common::VisChunk> UVChannelReceiver::next(const cas
     return obj;
 }
 
-void UVChannelReceiver::onMessage(const boost::shared_ptr<askap::cp::common::VisChunk> message,
-        std::string destinationName)
+void UVChannelReceiver::onMessage(const askap::cp::common::VisChunk::ShPtr message,
+                                  std::string destinationName)
 {
     const int chan = itsChannelConfig.getChannel(itsChannelName, destinationName);
 
