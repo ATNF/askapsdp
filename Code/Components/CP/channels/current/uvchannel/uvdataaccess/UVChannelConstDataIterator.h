@@ -108,8 +108,6 @@ class UVChannelConstDataIterator : virtual public askap::accessors::IConstDataIt
 
         // Implementation of the next function for multiple channel selection
         casa::Bool nextMultiple(const casa::uInt nChan, const casa::uInt startChan);
-
-        askap::cp::common::VisChunk::ShPtr getNextFromReceiver(const casa::uInt chan, const casa::MVEpoch time);
 };
 
 } // end of namespace channels
