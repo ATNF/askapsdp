@@ -37,7 +37,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 /**
- *
+ * 
  */
 public class PersistenceInterface {
 	/** Logger. */
@@ -76,22 +76,41 @@ public class PersistenceInterface {
 		itsSession.close();
 	}
 	
+	/**
+	 * @param ra
+	 * @param dec
+	 * @param searchRadius
+	 * @return
+	 */
 	public List<Long> coneSearch(double ra, double dec, double searchRadius) {
 		ArrayList<Long> ids = new ArrayList<Long>();
 		
+		// TODO: This code needs to do a database selection based on RA and DEC so
+		// as not to have the entire table returned
+		
 		itsSession.beginTransaction();
 		@SuppressWarnings("unchecked")
-		List<ComponentBean> result = (List<ComponentBean>) itsSession.createQuery( "from components" ).list();
-		for ( ComponentBean c : (List<ComponentBean>) result ) {
-		    System.out.println( "ComponentBean (" + c.getId() + ") : " + c.getI1400() );
-		    ids.add(new Long(c.getId()));
-		}
+		List<ComponentBean> result = (List<ComponentBean>) itsSession.createQuery( "from ComponentBean" ).list();
 		itsSession.getTransaction().commit();
+		for ( ComponentBean comp : (List<ComponentBean>) result ) {
+			// TODO: The below uses simple (Euclidean geometry) Pythagoras
+			// theorem. Need to handle spherical geometry, wrap-around etc.
+			final double a = Math.abs(dec) - Math.abs(comp.getDeclination());
+			final double b = Math.abs(ra) - Math.abs(comp.getRightAscension());
+			final double c = Math.sqrt((Math.pow(a, 2) + Math.pow(b, 2)));
+			if (c <= searchRadius) {
+				ids.add(new Long(comp.getId()));
+			}
+		}
 		
 		return ids;
 	}
 
 
+	/**
+	 * @param componentIds
+	 * @return
+	 */
 	public List<ComponentBean> getComponents(List<Long> componentIds) {
 		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
 		
@@ -105,6 +124,10 @@ public class PersistenceInterface {
 	}
 
 
+	/**
+	 * @param components
+	 * @return
+	 */
 	public List<Long> addComponents(List<ComponentBean> components) {
 		ArrayList<Long> idList = new ArrayList<Long>();
 		
@@ -122,6 +145,9 @@ public class PersistenceInterface {
 	}
 
 
+	/**
+	 * 
+	 */
 	public void removeAllComponents() {
 		logger.warn("removeAllComponents() is not yet implemented");
 	}

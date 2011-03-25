@@ -28,16 +28,48 @@
 
 // System includes
 #include <string>
+#include <cstdlib>
 
 // Local package includes
 #include "skymodelclient/SkyModelServiceClient.h"
+#include "skymodelclient/Component.h"
 
 using namespace askap::cp::skymodelservice;
+
+Component genRandomComponent(void)
+{
+    long id = -1;
+    double rightAscension = drand48();
+    double declination = drand48();
+    double positionAngle = drand48();
+    double majorAxis = drand48();
+    double minorAxis = drand48();
+    double i1400 = drand48();
+
+    return Component(id, rightAscension, declination, positionAngle, majorAxis, minorAxis, i1400);
+}
+
+void populate(SkyModelServiceClient& svc, const unsigned long count)
+{
+    std::vector<Component> components;
+    for (unsigned long i = 0; i < count; ++i) {
+        components.push_back(genRandomComponent());
+    }
+
+    svc.addComponents(components);
+}
+
+void coneSearch(SkyModelServiceClient& svc, double rightAscension, double declination, double searchRadius)
+{
+    std::vector<ComponentId> resultset = svc.coneSearch(rightAscension, declination, searchRadius);
+    std::cout << "Cone search returned " << resultset.size() << " components" << std::endl;
+}
 
 // main()
 int main(int argc, char *argv[])
 {
-
     SkyModelServiceClient svc("localhost", "4061");
+    populate(svc, 100);
+    coneSearch(svc, 0.0, 0.0, 180.0);
     return 0;
 }

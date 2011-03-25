@@ -24,10 +24,11 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_SKYMODELSERVICECLIENT_H
-#define ASKAP_CP_SKYMODELSERVICECLIENT_H
+#ifndef ASKAP_CP_CPDATASERVICES_SKYMODELSERVICECLIENT_H
+#define ASKAP_CP_CPDATASERVICES_SKYMODELSERVICECLIENT_H
 
 // System includes
+#include <string>
 #include <string>
 
 // ASKAPsoft includes
@@ -35,6 +36,7 @@
 #include "SkyModelService.h" // Ice generated interface
 
 // Local package includes
+#include "skymodelclient/Component.h"
 
 namespace askap {
 namespace cp {
@@ -50,6 +52,10 @@ namespace skymodelservice {
             /// Destructor.
             ~SkyModelServiceClient();
 
+            std::vector<ComponentId> addComponents(const std::vector<Component>& components);
+
+            std::vector<ComponentId> coneSearch(double rightAscension, double declination, double searchRadius);
+            
         private:
 
             // Ice Communicator

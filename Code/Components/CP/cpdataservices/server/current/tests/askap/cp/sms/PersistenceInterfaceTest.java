@@ -27,6 +27,7 @@ package askap.cp.sms;
 
 // Java imports
 import java.util.ArrayList;
+import java.util.List;
 
 // JUnit imports
 import static org.junit.Assert.*;
@@ -118,28 +119,86 @@ public class PersistenceInterfaceTest {
 	}
 
 	@Test
-	public final void testConeSearch() {
-		//fail("Not yet implemented");
-	}
-
-	@Test
-	public final void testGetComponents() {
-		//fail("Not yet implemented");
-	}
-
-	@Test
 	public final void testAddComponents() throws SQLException {
-		assertTrue(itsSession.isConnected());
 		// Create a component
 		ComponentBean c = new ComponentBean();
 		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
+		
+		// Add a component
 		components.add(c);
-
-		itsSession.flush();
+		List<Long> ids1 = itsInstance.addComponents(components);
+		assertEquals(1, ids1.size());
+		
+		// Add another component and ensure the id differs from the first
+		List<Long> ids2 = itsInstance.addComponents(components);
+		assertEquals(1, ids2.size());
+		assertNotSame(ids1.get(0), ids2.get(0));
+		
+		// Add multiple components
+		components.clear();
+		final int n = 10;
+		for (int i = 0; i < n; i++) {
+			components.add(c);
+		}
+		
+		List<Long> ids3 = itsInstance.addComponents(components);
+		assertEquals(n, ids3.size());
+		assertNotSame(ids3.get(0), ids3.get(1));
+	}
+	
+	@Test
+	public final void testGetComponents() {
+		// Add some components
+		ComponentBean c = new ComponentBean();
+		final double ra = 90.0;
+		final double dec = -40.0;
+		
+		c.setRightAscension(ra);
+		c.setDeclination(dec);
+		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
+		final int n = 10;
+		for (int i = 0; i < n; i++) {
+			components.add(c);
+		}
+		
+		List<Long> ids = itsInstance.addComponents(components);
+		assertEquals(n, ids.size());
+		
+		// Now get those components back
+		List<ComponentBean> returnedComponents = itsInstance.getComponents(ids);
+		assertEquals(n, returnedComponents.size());
+		final double tolerance = 0.0000001;
+		for (int i = 0; i < n; i++) {
+			assertEquals(ra, returnedComponents.get(i).getRightAscension(), tolerance);
+			assertEquals(dec, returnedComponents.get(i).getDeclination(), tolerance);
+		}
 	}
 
 	@Test
 	public final void testRemoveAllComponents() {
-		//fail("Not yet implemented");
+		// Just call for now
+		itsInstance.removeAllComponents();
+	}
+	
+	@Test
+	public final void testConeSearch() {
+		// Create a component
+		ComponentBean c = new ComponentBean();
+		c.setRightAscension(90.0);
+		c.setDeclination(-40.0);
+		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
+		
+		// Add a component
+		components.add(c);
+		List<Long> ids1 = itsInstance.addComponents(components);
+		assertEquals(1, ids1.size());
+		
+		// Run a cone search, expecting to find the component
+		List<Long> results = itsInstance.coneSearch(90.0, -40.0, 1.0);
+		assertEquals(1, results.size());
+		
+		// Run a cone search, expecting NOT to find the the component
+		List<Long> resultsNone = itsInstance.coneSearch(0.0, 0.0, 1.0);
+		assertEquals(0, resultsNone.size());
 	}
 }

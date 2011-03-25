@@ -41,27 +41,30 @@ import org.apache.log4j.Logger;
  */
 public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 
-	/** Logger. */
+	/** 
+	 * Logger
+	 */
 	private static Logger logger = Logger.getLogger(SkyModelServiceImpl.class
 			.getName());
 
-	/** Ice Communicator */
-	@SuppressWarnings("unused")
-	private Ice.Communicator itsComm;
-
+	/**
+	 * Class which provides access to the persistence layer
+	 */
 	private PersistenceInterface itsPersistance;
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Constructor
+	 */
 	public SkyModelServiceImpl(Ice.Communicator ic) {
 		logger.info("Creating SkyModelService");
-		itsComm = ic;
 		itsPersistance = new PersistenceInterface();
 	}
 
+	/**
+	 * finalize
+	 */
 	public void finalize() {
 		logger.info("Destroying SkyModelService");
 	}
@@ -72,8 +75,7 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	@Override
 	public List<Long> coneSearch(double ra, double dec, double searchRadius,
 			Current cur) {
-		// TODO Auto-generated method stub
-		return null;
+		return itsPersistance.coneSearch(ra, dec, searchRadius);
 	}
 
 	/**

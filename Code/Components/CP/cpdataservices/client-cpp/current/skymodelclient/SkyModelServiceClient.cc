@@ -32,6 +32,7 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -49,6 +50,7 @@ SkyModelServiceClient::SkyModelServiceClient(const std::string& locatorHost,
                             const std::string& locatorPort)
 {
     askap::cp::icewrapper::CommunicatorConfig config(locatorHost, locatorPort);
+    config.setProperty("Ice.MessageSizeMax", "131072");
     askap::cp::icewrapper::CommunicatorFactory commFactory;
     itsComm = commFactory.createCommunicator(config);
 
@@ -64,4 +66,43 @@ SkyModelServiceClient::SkyModelServiceClient(const std::string& locatorHost,
 
 SkyModelServiceClient::~SkyModelServiceClient()
 {
+}
+
+std::vector<ComponentId> SkyModelServiceClient::addComponents(const std::vector<Component>& components)
+{
+    askap::interfaces::skymodelservice::ComponentSeq ice_components;
+    for (size_t i = 0; i < components.size(); ++i) {
+        askap::interfaces::skymodelservice::Component ice_component;
+
+        ice_component.id = components[i].id();
+        ice_component.rightAscension = components[i].rightAscension();
+        ice_component.declination = components[i].declination();
+        ice_component.positionAngle = components[i].positionAngle();
+        ice_component.majorAxis = components[i].majorAxis();
+        ice_component.minorAxis = components[i].minorAxis();
+
+        ice_components.push_back(ice_component);
+    }
+
+    askap::interfaces::skymodelservice::ComponentIdSeq ice_ids = itsService->addComponents(ice_components);
+
+    std::vector<ComponentId> ids(ice_ids.size());
+    for (size_t i = 0; i < ids.size(); ++i) {
+        ids[i] = ice_ids[i];
+    }
+
+    return ids;
+}
+
+std::vector<ComponentId> SkyModelServiceClient::coneSearch(double rightAscension, double declination, double searchRadius)
+{
+    askap::interfaces::skymodelservice::ComponentIdSeq ice_resultset =
+        itsService->coneSearch(rightAscension, declination, searchRadius);
+
+    std::vector<ComponentId> resultset(ice_resultset.size());
+    for (size_t i = 0; i < resultset.size(); ++i) {
+        resultset[i] = ice_resultset[i];
+    }
+
+    return resultset;
 }
