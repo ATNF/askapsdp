@@ -42,7 +42,7 @@ title += "="*(len(title)-1)+"\n"
 print title
 for k in p.keys():
     print "**"+k+"**", "   = :literal:`%s`" % encode(p[k])
-    doc = p.get_doc(k)
+    doc = p.get_doc(k) or "**undocumented**"
     for line in doc.split("\n"):
         print " "*2, line
     print

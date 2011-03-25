@@ -234,11 +234,19 @@ class ParameterSet(object):
                     raise ValueError("Leaf node %s can't be extended" % k)
                 else:
                     self._pdict[k] = v
-                    self._docdict[k] = doc or "**undocumented**"
+                    if k in self._docdict:
+                        if doc:
+                            self._docdict[k] = doc
+                    else:
+                        self._docdict[k] = doc
         else:
             if not tail:
                 self._pdict[k] = v
-                self._docdict[k] = doc or "**undocumented**"
+                if k in self._docdict:
+                    if doc:
+                        self._docdict[k] = doc
+                else:
+                    self._docdict[k] = doc
             else:
                 child = ParameterSet()
                 child.set_value(tail, v, doc)
