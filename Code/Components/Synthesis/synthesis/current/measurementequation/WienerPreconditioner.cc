@@ -94,6 +94,9 @@ namespace askap
       if (!itsUseRobustness && (itsParameter < 1e-6)) {
           return false;
       }
+
+      ASKAPCHECK(psf.shape().conform(dirty.shape()), "Dirty image and PSF do not conform - shapes: " << dirty.shape() << psf.shape());
+
       if (itsUseRobustness) {
           ASKAPLOG_INFO_STR(logger, "Applying Wiener filter with noise power defined via robustness=" << itsParameter);
       } else {
@@ -112,6 +115,7 @@ namespace askap
                   
       casa::ArrayLattice<float> lpsf(psf);      
       casa::ArrayLattice<float> ldirty(dirty);
+
       const casa::IPosition shape = lpsf.shape();
 
       // Make the scratch array into which we will calculate the Wiener filter
