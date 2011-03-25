@@ -227,6 +227,9 @@ namespace askap
 	    // major cycle
 	    basisFunctionDec->state()->setCurrentIter(0);
 	    
+	    basisFunctionDec->control()->setTargetObjectiveFunction(threshold().getValue("Jy"));
+	    basisFunctionDec->control()->setFractionalThreshold(fractionalThreshold());
+
 	    ASKAPLOG_INFO_STR(logger, "Starting basis function deconvolution");
 	    basisFunctionDec->deconvolve();
 	    ASKAPLOG_INFO_STR(logger, "Peak flux of the Basis function image "
