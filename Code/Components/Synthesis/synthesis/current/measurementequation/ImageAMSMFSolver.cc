@@ -152,7 +152,6 @@ namespace askap
 	//        latticecleaner[stokes]->getmodel(order,model[order]);
 	//
 	
-	
 	ASKAPLOG_INFO_STR(logger, "AMSMFS minor cycle, processing image "<<tmIt->first);
 	// Determine the number of stokes planes and ensuring that all Taylor terms
 	// have the same number of polarisations
@@ -347,13 +346,16 @@ namespace askap
             // Precondition the dirty (residual) array
 	    for(uInt order=0; order < itsNumberTaylor; ++order) {
 	      psfWorkArray = itsPSFZeroArray.copy();
-	      if(doPreconditioning(psfWorkArray,dirtyVec(order))) {
+	      if(doPreconditioning(psfWorkArray,dirtyLongVec(order))) {
 		ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<< " ("<<tagLogString<< ") and order=" << order);
 	      }
 	      // Normalise. 
 	      psfWorkArray = itsPSFZeroArray.copy();
-	      doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfWorkArray,itsPSFZeroCentre,dirtyVec(order),
+	      doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfWorkArray,itsPSFZeroCentre,dirtyLongVec(order),
 			      boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
+	      if(order<itsNumberTaylor) {
+		dirtyVec(order)=dirtyLongVec(order);
+	      }
 	    }// Loop over order
 	  }
 	  
@@ -405,6 +407,7 @@ namespace askap
 	      }
 	    }
 	    else {
+	      ASKAPCHECK(itsCleaners[imageTag], "Deconvolver not yet defined");
 	      // Update the dirty images
 	      ASKAPLOG_INFO_STR(logger, "Multi-Term Basis Function deconvolver already exists - update dirty images");
 	      itsCleaners[imageTag]->updateDirty(dirtyVec);
