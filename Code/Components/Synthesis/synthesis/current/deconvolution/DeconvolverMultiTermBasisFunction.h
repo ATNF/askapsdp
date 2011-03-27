@@ -152,7 +152,7 @@ namespace askap {
       // Initialise the PSFs - only need to do this once per change in basis functions
       virtual void initialiseForBasisFunction(bool force);
 
-      void chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos, Vector<T>& peakValues);
+      void chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos, T& absPeakVal, Vector<T>& peakValues);
 
       // Long vector of PSFs
       Vector<Array<T> > itsPsfLongVec;
