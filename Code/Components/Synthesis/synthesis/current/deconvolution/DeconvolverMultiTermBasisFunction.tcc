@@ -442,11 +442,11 @@ namespace askap {
     // This contains the heart of the Multi-Term BasisFunction Clean algorithm
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos,
-								  Vector<T>& peakValues)
+								  T& absPeakVal, Vector<T>& peakValues)
     {
       uInt nBases(this->itsResidualBasis.nelements());
       
-      T absPeakVal(0.0);
+      absPeakVal=0.0;
       
       peakValues.resize(this->itsNumberTerms);
 
@@ -571,6 +571,11 @@ namespace askap {
             + T(this->itsInverseCouplingMatrix(optimumBase)(term1,term2))*this->itsResidualBasis(optimumBase)(term2)(absPeakPos);
         }
       }
+
+      // Take square to get value comparable to peak residual
+      if(this->itsSolutionType=="MINCHISQ") {
+        absPeakVal=sqrt(max(T(0.0),absPeakVal));
+      }
     }
     
     template<class T, class FT>
@@ -584,21 +589,22 @@ namespace askap {
       uInt nBases(this->itsResidualBasis.nelements());
       
       casa::IPosition absPeakPos(2,0);
+      T absPeakVal(0.0);
       uInt optimumBase(0);
       Vector<T> peakValues(this->itsNumberTerms);
-      chooseComponent(optimumBase, absPeakPos, peakValues);
+      chooseComponent(optimumBase, absPeakPos, absPeakVal, peakValues);
       
       // Report on progress
       // We want the worst case residual
-      T absPeakVal=max(abs(peakValues));
+      T absPeakRes=max(abs(peakValues));
       
-      //      ASKAPLOG_INFO_STR(decmtbflogger, "All terms: absolute max = " << absPeakVal << " at " << absPeakPos);
+      //      ASKAPLOG_INFO_STR(decmtbflogger, "All terms: absolute max = " << absPeakRes << " at " << absPeakPos);
       //      ASKAPLOG_INFO_STR(decmtbflogger, "Optimum base = " << optimumBase);
       
       if(this->state()->initialObjectiveFunction()==0.0) {
 	this->state()->setInitialObjectiveFunction(abs(absPeakVal));
       }
-      this->state()->setPeakResidual(abs(absPeakVal));
+      this->state()->setPeakResidual(abs(absPeakRes));
       this->state()->setObjectiveFunction(abs(absPeakVal));
       this->state()->setTotalFlux(sum(this->model(0)));
       
