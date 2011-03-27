@@ -47,7 +47,8 @@ namespace skymodelservice {
         public:
             /// Constructor
             SkyModelServiceClient(const std::string& locatorHost,
-                    const std::string& locatorPort);
+                    const std::string& locatorPort,
+                    const std::string& serviceName = "SkyModelService");
 
             /// Destructor.
             ~SkyModelServiceClient();

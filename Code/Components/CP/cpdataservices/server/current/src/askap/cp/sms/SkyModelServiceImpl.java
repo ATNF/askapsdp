@@ -98,11 +98,11 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	}
 
 	/**
-	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#removeAllComponents(Ice.Current)
+	 * @see askap.interfaces.skymodelservice._ISkyModelServiceOperations#removeComponents(java.util.List, Ice.Current)
 	 */
 	@Override
-	public void removeAllComponents(Current cur) {
-		itsPersistance.removeAllComponents();
+	public void removeComponents(List<Long> componentIds, Current cur) {
+		itsPersistance.removeComponents(componentIds);
 	}
 	
 	List<askap.interfaces.skymodelservice.Component> convertBeanToIce(List<ComponentBean> beans) {

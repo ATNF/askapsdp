@@ -93,6 +93,14 @@ module skymodelservice
     sequence<Component> ComponentSeq;
 
     /**
+     * This exception is thrown when a component id is specified but the component
+     * does not exit, but is expected to.
+     **/
+    exception InvalidComponentIdException extends askap::interfaces::AskapIceException
+    {
+    };
+
+    /**
      * Interface to the Sky Model Service.
      **/
     interface ISkyModelService
@@ -119,7 +127,10 @@ module skymodelservice
         ComponentIdSeq coneSearch(double rightAscension, double declination, double searchRadius);
 
         /**
-         * Obtain a sequence of components.
+         * Obtain a sequence of components. If a component in the componentIds
+         * sequence does not exist in the database, it is simply omitted from
+         * the result set, this the size of the returned sequence of components
+         * may be less than the size of the component id sequence parameter.
          *
          * @param component_ids     a sequence of component identifiers
          *
@@ -140,12 +151,17 @@ module skymodelservice
         ComponentIdSeq addComponents(ComponentSeq components);
 
         /**
-         * Remove all components from the components table.
+         * Remove components from the components table.
          * 
          * Note: This is really just here for testing purposes and will likely
          * not form part of the final API.
+         *
+         * @param component_ids a sequence of component identifiers which
+         *                      reference the components to delete.
+         * @throws InvalidComponentIdException  if one or more of the component
+         *                                      identifiers does not exist.
          **/
-        void removeAllComponents();
+        void removeComponents(ComponentIdSeq componentIds) throws InvalidComponentIdException;
     };
 
 };

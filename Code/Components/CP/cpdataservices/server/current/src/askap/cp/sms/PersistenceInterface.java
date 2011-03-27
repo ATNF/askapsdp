@@ -34,6 +34,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 
 /**
@@ -88,10 +89,8 @@ public class PersistenceInterface {
 		// TODO: This code needs to do a database selection based on RA and DEC so
 		// as not to have the entire table returned
 		
-		itsSession.beginTransaction();
 		@SuppressWarnings("unchecked")
 		List<ComponentBean> result = (List<ComponentBean>) itsSession.createQuery( "from ComponentBean" ).list();
-		itsSession.getTransaction().commit();
 		for ( ComponentBean comp : (List<ComponentBean>) result ) {
 			// TODO: The below uses simple (Euclidean geometry) Pythagoras
 			// theorem. Need to handle spherical geometry, wrap-around etc.
@@ -116,8 +115,10 @@ public class PersistenceInterface {
 		
 		Iterator<Long> it = componentIds.iterator();
 		while(it.hasNext()) {
-			ComponentBean c = (ComponentBean) itsSession.load(ComponentBean.class, it.next());
-			components.add(c);
+			ComponentBean c = (ComponentBean) itsSession.get(ComponentBean.class, it.next());
+			if (c != null) {
+				components.add(c);
+			}
 		}
 				
 		return components;
@@ -132,14 +133,14 @@ public class PersistenceInterface {
 		ArrayList<Long> idList = new ArrayList<Long>();
 		
 		Iterator<ComponentBean> it = components.iterator();
-		itsSession.beginTransaction();
+		Transaction tx = itsSession.beginTransaction();
 	    while(it.hasNext()) {
 	    	ComponentBean c = it.next();
 	    	itsSession.save(c);
 	    	idList.add(new Long(c.getId()));
 	    	
 	    }
-	    itsSession.getTransaction().commit();
+	    tx.commit();
 		
 		return idList;
 	}
@@ -148,7 +149,14 @@ public class PersistenceInterface {
 	/**
 	 * 
 	 */
-	public void removeAllComponents() {
-		logger.warn("removeAllComponents() is not yet implemented");
+	public void removeComponents(List<Long> componentIds) {	
+		Transaction tx = itsSession.beginTransaction();
+		for (Long id : (List<Long>) componentIds) {
+			ComponentBean c = (ComponentBean) itsSession.get(ComponentBean.class, id);
+			if (c != null) {
+				itsSession.delete(c);
+			}
+		}
+		tx.commit();
 	}
 }

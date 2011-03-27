@@ -27,14 +27,63 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // System includes
+#include <fstream>
 #include <string>
-#include <cstdlib>
+#include <vector>
+#include <stdint.h>
+#include <unistd.h>
+#include <sys/times.h>
+#include <stdexcept>
+
+// ASKAPsoft includes
+#include "Common/ParameterSet.h"
+#include "CommandLineParser.h"
 
 // Local package includes
 #include "skymodelclient/SkyModelServiceClient.h"
 #include "skymodelclient/Component.h"
 
+using namespace std;
 using namespace askap::cp::skymodelservice;
+
+#include <sys/times.h>
+
+class Stopwatch {
+    public:
+        Stopwatch() : m_start(static_cast<clock_t>(-1)) { }
+
+        void start()
+        {
+            struct tms t;
+            m_start = times(&t);
+
+            if (m_start == static_cast<clock_t>(-1)) {
+                throw runtime_error("Error calling times()");
+            }
+
+        }
+
+        // Returns elapsed time (since start() was called) in seconds.
+        double stop()
+        {
+            struct tms t;
+            clock_t stop = times(&t);
+
+            if (m_start == static_cast<clock_t>(-1)) {
+                throw runtime_error("Start time not set");
+            }
+
+            if (stop == static_cast<clock_t>(-1)) {
+                throw runtime_error("Error calling times()");
+            }
+
+            return (static_cast<double>(stop - m_start)) / (static_cast<double>(sysconf(_SC_CLK_TCK)));
+
+        }
+
+    private:
+        clock_t m_start;
+};
 
 Component genRandomComponent(void)
 {
@@ -49,27 +98,78 @@ Component genRandomComponent(void)
     return Component(id, rightAscension, declination, positionAngle, majorAxis, minorAxis, i1400);
 }
 
-void populate(SkyModelServiceClient& svc, const unsigned long count)
+void populate(SkyModelServiceClient& svc, const uint32_t count)
 {
-    std::vector<Component> components;
-    for (unsigned long i = 0; i < count; ++i) {
+    vector<Component> components;
+    for (uint32_t i = 0; i < count; ++i) {
         components.push_back(genRandomComponent());
     }
 
     svc.addComponents(components);
 }
 
-void coneSearch(SkyModelServiceClient& svc, double rightAscension, double declination, double searchRadius)
+size_t coneSearch(SkyModelServiceClient& svc, double rightAscension, double declination, double searchRadius)
 {
-    std::vector<ComponentId> resultset = svc.coneSearch(rightAscension, declination, searchRadius);
-    std::cout << "Cone search returned " << resultset.size() << " components" << std::endl;
+    vector<ComponentId> resultset = svc.coneSearch(rightAscension, declination, searchRadius);
+    return resultset.size();
 }
 
 // main()
 int main(int argc, char *argv[])
 {
-    SkyModelServiceClient svc("localhost", "4061");
-    populate(svc, 100);
-    coneSearch(svc, 0.0, 0.0, 180.0);
+    // Command line parser
+    cmdlineparser::Parser parser;
+
+    // Command line parameter
+    cmdlineparser::FlaggedParameter<string> inputsPar("-inputs", "tSkyModelServicePerf.in");
+
+    // Throw an exception if the parameter is not present
+    parser.add(inputsPar, cmdlineparser::Parser::return_default);
+    parser.process(argc, const_cast<char**> (argv));
+
+    // Create a subset
+    LOFAR::ParameterSet parset(inputsPar);
+
+    const string locatorHost = parset.getString("ice.locator.host");
+    const string locatorPort = parset.getString("ice.locator.port");
+    const string serviceName = parset.getString("skymodelservice.name");
+    const uint32_t batchSize = parset.getUint32("test.batchsize");
+    const uint32_t nBatches = parset.getUint32("test.nbatches");
+    const string populateCSV = parset.getString("test.outfile.populate");
+    const string coneCSV = parset.getString("test.outfile.conesearch");
+
+    SkyModelServiceClient svc(locatorHost, locatorPort, serviceName);
+
+    // Open the output (timings) file for population and cone search
+    ofstream populateFile(populateCSV.c_str());
+    ofstream coneFile(coneCSV.c_str());
+
+    // To track total times for populate and conesearch
+    double populateTotal = 0.0;
+    double coneTotal = 0.0;
+
+    Stopwatch sw;
+    for (uint32_t i = 0; i < nBatches; ++i) {
+        // Time populate()
+        sw.start();
+        populate(svc, batchSize);
+        double time = sw.stop();
+        populateTotal += time;
+        populateFile << batchSize << ", " << time << endl;
+
+        // Time conesearch()
+        sw.start();
+        size_t count = coneSearch(svc, 0.0, 0.0, 180.0);
+        time = sw.stop();
+        cout << "Cone search returned " << count << " components" << endl;
+        coneTotal += time;
+        coneFile << batchSize << ", " << count << ", " << time << endl;
+    }
+
+    cout << "Total time for populate():   " << populateTotal << " (seconds)" << endl;
+    cout << "Total time for coneSearch(): " << coneTotal << " (seconds)" << endl;
+
+    populateFile.close();
+    coneFile.close();
     return 0;
 }

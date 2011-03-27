@@ -106,6 +106,8 @@ public class PersistenceInterfaceTest {
 
 	@After
 	public void tearDown() throws Exception {
+		itsInstance = null;
+		
 		if (itsSession != null) {
 			itsSession.close();
 			itsSession = null;
@@ -120,30 +122,33 @@ public class PersistenceInterfaceTest {
 
 	@Test
 	public final void testAddComponents() throws SQLException {
-		// Create a component
+		// Add a component
 		ComponentBean c = new ComponentBean();
 		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
-		
-		// Add a component
 		components.add(c);
 		List<Long> ids1 = itsInstance.addComponents(components);
 		assertEquals(1, ids1.size());
 		
 		// Add another component and ensure the id differs from the first
+		c = new ComponentBean();
+		components.clear();
+		components.add(c);
 		List<Long> ids2 = itsInstance.addComponents(components);
 		assertEquals(1, ids2.size());
-		assertNotSame(ids1.get(0), ids2.get(0));
+
+		assertNotSame(ids1.get(0).longValue(), ids2.get(0).longValue());
 		
 		// Add multiple components
 		components.clear();
 		final int n = 10;
 		for (int i = 0; i < n; i++) {
+			c = new ComponentBean();
 			components.add(c);
 		}
 		
 		List<Long> ids3 = itsInstance.addComponents(components);
 		assertEquals(n, ids3.size());
-		assertNotSame(ids3.get(0), ids3.get(1));
+		assertNotSame(ids3.get(0).longValue(), ids3.get(1).longValue());
 	}
 	
 	@Test
@@ -175,9 +180,38 @@ public class PersistenceInterfaceTest {
 	}
 
 	@Test
-	public final void testRemoveAllComponents() {
-		// Just call for now
-		itsInstance.removeAllComponents();
+	public final void testRemoveComponents() {
+		// Add a component
+		ComponentBean c = new ComponentBean();
+		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
+		components.add(c);
+		List<Long> ids1 = itsInstance.addComponents(components);
+		assertEquals(1, ids1.size());
+		
+		// Add another component (using a new list)
+		c = new ComponentBean();
+		components.clear();
+		components.add(c);
+		List<Long> ids2 = itsInstance.addComponents(components);
+		assertEquals(1, ids2.size());
+		
+		// Remove the first inserted component
+		itsInstance.removeComponents(ids1);
+		
+		// Now get the first inserted component back, the list should be empty
+		List<ComponentBean> returnedComponents = itsInstance.getComponents(ids1);
+		assertEquals(0, returnedComponents.size());
+		
+		// Now get the second inserted component back
+		returnedComponents = itsInstance.getComponents(ids2);
+		assertEquals(1, returnedComponents.size());
+		
+		// Remove the second inserted component
+		itsInstance.removeComponents(ids2);
+		
+		// Now get the second inserted component back, the list should be empty
+		returnedComponents = itsInstance.getComponents(ids2);
+		assertEquals(0, returnedComponents.size());
 	}
 	
 	@Test

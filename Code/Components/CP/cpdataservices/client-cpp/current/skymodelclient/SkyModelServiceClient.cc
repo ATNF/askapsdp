@@ -47,7 +47,8 @@ using namespace askap;
 using namespace askap::cp::skymodelservice;
 
 SkyModelServiceClient::SkyModelServiceClient(const std::string& locatorHost,
-                            const std::string& locatorPort)
+                            const std::string& locatorPort,
+                            const std::string& serviceName)
 {
     askap::cp::icewrapper::CommunicatorConfig config(locatorHost, locatorPort);
     config.setProperty("Ice.MessageSizeMax", "131072");
@@ -56,7 +57,7 @@ SkyModelServiceClient::SkyModelServiceClient(const std::string& locatorHost,
 
     ASKAPDEBUGASSERT(itsComm);
 
-    Ice::ObjectPrx base = itsComm->stringToProxy("SkyModelService");
+    Ice::ObjectPrx base = itsComm->stringToProxy(serviceName);
     itsService = askap::interfaces::skymodelservice::ISkyModelServicePrx::checkedCast(base);
 
     if (!itsService) {
