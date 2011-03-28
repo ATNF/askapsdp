@@ -125,6 +125,8 @@ namespace askap
 
       Float itsPSFZeroCentre;
 
+      Bool itsOrthogonal;
+
     private:
       
     };

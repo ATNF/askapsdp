@@ -102,7 +102,10 @@ namespace askap {
 	std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
 	
 	ASKAPLOG_INFO_STR(decbflogger, "Constructing Multiscale basis function with scales " << scales);
-        Bool orthogonal=parset.getBool("orthogonal", "false");
+        Bool orthogonal=parset.getBool("orthogonal", false);
+	if (orthogonal) {
+	  ASKAPLOG_DEBUG_STR(decbflogger, "Multiscale basis functions will be orthogonalised");
+	}
 
 	itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales,
                                                                                           orthogonal));

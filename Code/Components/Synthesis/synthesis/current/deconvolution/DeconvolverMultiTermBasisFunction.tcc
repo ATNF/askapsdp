@@ -66,7 +66,7 @@ namespace askap {
 									       Vector<Array<T> >& psf,
 									       Vector<Array<T> >& psfLong)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
-      itsSolutionType("MINCHISQ")
+      itsSolutionType("MAXCHISQ")
     {
       ASKAPLOG_DEBUG_STR(decmtbflogger, "There are " << this->itsNumberTerms << " terms to be solved");
 
@@ -84,7 +84,7 @@ namespace askap {
     DeconvolverMultiTermBasisFunction<T,FT>::DeconvolverMultiTermBasisFunction(Array<T>& dirty,
 									       Array<T>& psf)
       : DeconvolverBase<T,FT>::DeconvolverBase(dirty, psf), itsDirtyChanged(True), itsBasisFunctionChanged(True),
-                                                                                   itsSolutionType("MINCHISQ")
+                                                                                   itsSolutionType("MAXCHISQ")
     {
       ASKAPLOG_DEBUG_STR(decmtbflogger, "There is only one term to be solved");
       this->itsPsfLongVec.resize(1);
@@ -142,23 +142,25 @@ namespace askap {
       
       ASKAPLOG_DEBUG_STR(decmtbflogger, "Constructing Multiscale basis function with scales "
 			<< scales);
-      Bool orthogonal=parset.getBool("orthogonal", "false");
+      Bool orthogonal=parset.getBool("orthogonal", false);
+      if (orthogonal) {
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Multiscale basis functions will be orthogonalised");
+      }
       
       itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales,
 											orthogonal));
-      String solutionType=parset.getString("solutiontype", "MINCHISQ");
-      if(solutionType=="MINCHISQ") {
+      String solutionType=parset.getString("solutiontype", "MAXCHISQ");
+      if(solutionType=="MAXBASE") {
 	itsSolutionType=solutionType;
-        ASKAPLOG_DEBUG_STR(decmtbflogger, "Component search to minimise chisq");
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Component search to maximise over bases");
       }
       else if(solutionType=="MAXTERM0") {
 	itsSolutionType=solutionType;
         ASKAPLOG_DEBUG_STR(decmtbflogger, "Component search to maximise Taylor term 0 over bases");
       }
       else {
-	solutionType="MAXBASE";
-	itsSolutionType=solutionType;
-        ASKAPLOG_DEBUG_STR(decmtbflogger, "Component search to maximise over bases");
+	itsSolutionType="MAXCHISQ";
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Component search to find maximum in chi-squared");
       }
     }
       
@@ -502,37 +504,7 @@ namespace askap {
             }
           }
 
-          if(this->itsSolutionType=="MINCHISQ") {
-            // Now form the criterion image and then search for the peak.
-            Array<T> negchisq(this->dirty(0).shape().nonDegenerate());
-            negchisq.set(T(0.0));
-            for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-              negchisq=negchisq+T(2.0)*coefficients(term1)*this->itsResidualBasis(base)(term1);
-              for (uInt term2=0;term2<this->itsNumberTerms;term2++) {
-                negchisq=negchisq-T(this->itsCouplingMatrix(base)(term1,term2))*coefficients(term1)*coefficients(term2);
-              }
-            }
-            // Need to take the square root to ensure that the SNR weighting is correct
-            //            ASKAPCHECK(min(negchisq)>0.0, "Negchisq has negative values");
-            //            negchisq=sqrt(negchisq);
-            //            SynthesisParamsHelper::saveAsCasaImage("negchisq.img",negchisq);
-            //            SynthesisParamsHelper::saveAsCasaImage("coefficients0.img",coefficients(0));
-            //            SynthesisParamsHelper::saveAsCasaImage("coefficients1.img",coefficients(1));
-            //            ASKAPTHROW(AskapError, "Written debug images");
-            // Remember that the weights must be squared.
-            if(isWeighted) {
-              casa::minMaxMasked(minVal, maxVal, minPos, maxPos, negchisq,
-                                 this->itsWeight(0).nonDegenerate()*this->itsWeight(0).nonDegenerate());
-            }
-            else {
-              casa::minMax(minVal, maxVal, minPos, maxPos, negchisq);
-            }
-            for (uInt term=0;term<this->itsNumberTerms;term++) {
-              minValues(term)=coefficients(term)(minPos);
-              maxValues(term)=coefficients(term)(maxPos);
-            }
-          }
-          else if(this->itsSolutionType=="MAXTERM0") {
+          if(this->itsSolutionType=="MAXTERM0") {
             if(isWeighted) {
               casa::minMaxMasked(minVal, maxVal, minPos, maxPos, coefficients(0),
                                  this->itsWeight(0).nonDegenerate());
@@ -545,6 +517,34 @@ namespace askap {
               maxValues(term)=coefficients(term)(maxPos);
             }
           }
+	  else {
+	    // MAXCHISQ
+            // Now form the criterion image and then search for the peak.
+            Array<T> negchisq(this->dirty(0).shape().nonDegenerate());
+            negchisq.set(T(0.0));
+            for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
+	      negchisq=negchisq+coefficients(term1)*this->itsResidualBasis(base)(term1);
+            }
+            // Need to take the square root to ensure that the SNR weighting is correct
+            //            ASKAPCHECK(min(negchisq)>0.0, "Negchisq has negative values");
+            //            negchisq=sqrt(negchisq);
+            //            SynthesisParamsHelper::saveAsCasaImage("negchisq.img",negchisq);
+            //            SynthesisParamsHelper::saveAsCasaImage("coefficients0.img",coefficients(0));
+            //            SynthesisParamsHelper::saveAsCasaImage("coefficients1.img",coefficients(1));
+	    //            ASKAPTHROW(AskapError, "Written debug images");
+            // Remember that the weights must be squared.
+            if(isWeighted) {
+              casa::minMaxMasked(minVal, maxVal, minPos, maxPos, negchisq,
+                                 this->itsWeight(0).nonDegenerate()*this->itsWeight(0).nonDegenerate());
+            }
+            else {
+              casa::minMax(minVal, maxVal, minPos, maxPos, negchisq);
+            }
+            for (uInt term=0;term<this->itsNumberTerms;term++) {
+              minValues(term)=coefficients(term)(minPos);
+              maxValues(term)=coefficients(term)(maxPos);
+            }
+	  }
         }
       
         // We use the minVal and maxVal to find the optimum base
@@ -572,8 +572,8 @@ namespace askap {
         }
       }
 
-      // Take square to get value comparable to peak residual
-      if(this->itsSolutionType=="MINCHISQ") {
+      // Take square root to get value comparable to peak residual
+      if(this->itsSolutionType=="MAXCHISQ") {
         absPeakVal=sqrt(max(T(0.0),absPeakVal));
       }
     }

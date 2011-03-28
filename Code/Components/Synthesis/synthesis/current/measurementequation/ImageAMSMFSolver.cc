@@ -70,7 +70,7 @@ namespace askap
     
     
     ImageAMSMFSolver::ImageAMSMFSolver() : itsScales(3,0.), itsNumberTaylor(0),
-					   itsSolutionType("MINCHISQ")
+					   itsSolutionType("MINCHISQ"), itsOrthogonal(False)
     {
       ASKAPDEBUGASSERT(itsScales.size() == 3);
       itsScales(1)=10;
@@ -80,18 +80,20 @@ namespace askap
       // Now set up monitor
       itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
 
-      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(itsScales));
+      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(itsScales,
+										      itsOrthogonal));
     }
     
     ImageAMSMFSolver::ImageAMSMFSolver(const casa::Vector<float>& scales) : 
-      itsScales(scales), itsNumberTaylor(0), itsSolutionType("MINCHISQ")
+      itsScales(scales), itsNumberTaylor(0), itsSolutionType("MINCHISQ"), itsOrthogonal(False)
     {
       // Now set up controller
       itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
       // Now set up monitor
       itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
 
-      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales));
+      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales,
+										      itsOrthogonal));
     }
     
     Solver::ShPtr ImageAMSMFSolver::clone() const
@@ -510,16 +512,22 @@ namespace askap
       ASKAPASSERT(this->itsControl);
       this->itsControl->configure(parset);
       
-      String solutionType=parset.getString("solutiontype", "MINCHISQ");
+      String solutionType=parset.getString("solutiontype", "MAXCHISQ");
       if(solutionType=="MAXBASE") {
       }
       else if(solutionType=="MAXTERM0") {
       }
       else {
-	solutionType="MINCHISQ";
+	solutionType="MAXCHISQ";
       }
       ASKAPLOG_INFO_STR(decmtbflogger, "Solution type = " << solutionType);
       this->itsSolutionType=solutionType;
+
+      this->itsOrthogonal=parset.getBool("orthogonal", "false");
+      if (this->itsOrthogonal) {
+        ASKAPLOG_DEBUG_STR(decmtbflogger, "Multiscale basis functions will be orthogonalised");
+      }
+
     }
   }
 }
