@@ -1,0 +1,3 @@
+spws.names      = [Continuum]
+
+spws.Continuum  =[ 1, 1.420GHz, -1MHz, "XX XY YX YY"]
