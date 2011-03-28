@@ -489,8 +489,8 @@ namespace askap {
 		for(int i=0; i<this->itsCube.getNumObj();i++){
 		  sourcefitting::RadioSource src(this->itsCube.getObject(i));
 		  src.setAtEdge(this->itsCube, this->itsSubimageDef, itsComms.rank() - 1);
-		  if(src.isAtEdge()) edgelist.push_back(Detection(src));
-		  else goodlist.push_back(Detection(src));
+		  if(src.isAtEdge()) edgelist.push_back(this->itsCube.getObject(i));
+		  else goodlist.push_back(this->itsCube.getObject(i));
 		}
 		duchamp::finaliseList(goodlist,this->itsCube.pars());
 		this->itsCube.clearDetectionList();
@@ -2023,7 +2023,7 @@ namespace askap {
 	// Define the subimage - need to be done before metadata, as the latter needs the subsection & offsets
 	const SubImage<Float> *sub = this->getSubimage(imagePtr, useSubimageInfo);
 
-	if(this->getCasaMetadata(imagePtr, typeOfData) == duchamp::FAILURE) return duchamp::FAILURE;
+	if(this->getCasaMetadata(sub, typeOfData) == duchamp::FAILURE) return duchamp::FAILURE;
 
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Have subimage with shape " << sub->shape() << " and subsection " << this->itsCube.pars().section().getSection());
 
