@@ -82,7 +82,6 @@ namespace askap {
     void DeconvolverFista<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
       DeconvolverBase<T,FT>::configure(parset);
-      
     }
 
     template<class T, class FT>
@@ -106,7 +105,8 @@ namespace askap {
 
       this->initialise();
 
-      bool isMasked(this->itsWeightedMask(0).shape().conform(this->dirty().shape()));
+      bool isMasked(this->itsWeight.nelements());
+      if (!this->itsWeight(0).shape().conform(this->dirty().shape())) isMasked=false;
 
       Array<T> X, X_old, X_temp;
 
@@ -141,7 +141,7 @@ namespace askap {
 	T t_old=t_new;
 
 	updateResiduals(X);
-	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->dirty());
+	//	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->dirty());
 
 	X=X+this->dirty()/lipschitz;
 
@@ -175,7 +175,7 @@ namespace askap {
           if (isMasked) {
             casa::minMaxMasked(minVal, maxVal, minPos, maxPos,
 			       this->dirty(),
-                               this->itsWeightedMask(0));
+                               this->itsWeight(0));
           }
           else {
             casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty());
@@ -197,7 +197,11 @@ namespace askap {
         this->state()->setPeakResidual(absPeakVal);
         this->state()->setObjectiveFunction(objectiveFunction);
         this->state()->setTotalFlux(sum(X_temp));
-        
+
+        if(absPeakVal<effectiveLambda) {
+	  ASKAPLOG_INFO_STR(decfistalogger, "Effective lambda = " << effectiveLambda);
+	  effectiveLambda/=2.0;
+	}
         this->monitor()->monitor(*(this->state()));
         this->state()->incIter();
       }

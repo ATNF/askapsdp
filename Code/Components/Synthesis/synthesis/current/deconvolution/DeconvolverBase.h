@@ -163,7 +163,7 @@ namespace askap {
       virtual void updateResiduals(Array<T>& model);
 
       /// @brief Initialize the deconvolution
-      /// @detail Initialise e.g. set weighted mask
+      /// @detail Initialise e.g. set weights
       virtual void initialise();
 
       /// @brief Finalise the deconvolution
@@ -211,10 +211,6 @@ namespace askap {
       // Peak and location of peak of PSF(0)
       casa::IPosition itsPeakPSFPos;
       T itsPeakPSFVal;
-
-      // We need this for the inner loop
-      // Mask weighted by weight image
-      Vector<Array<T> > itsWeightedMask;
 
       // Audit the memory in use right now
       void auditAllMemory();

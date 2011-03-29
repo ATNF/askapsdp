@@ -255,7 +255,6 @@ namespace askap {
 	itsEntropy=boost::shared_ptr<EntropyBase<T> >(new Emptiness<T>());
         itsEntropy->setTolerance(parset.getFloat("tolerance", 0.3));
       }
-
     }
 
   } // namespace synthesis
