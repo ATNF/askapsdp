@@ -63,6 +63,7 @@ using namespace LOFAR::TYPES;
 #include <askap/AskapError.h>
 
 #include <askapparallel/AskapParallel.h>
+#include <imageaccess/CasaImageAccess.h>
 
 #include <parallelanalysis/DuchampParallel.h>
 #include <analysisutilities/AnalysisUtilities.h>
@@ -159,6 +160,7 @@ namespace askap {
 
             this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch", false);
             this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
+	    this->itsFlagWriteSNRimage = parset.getBool("flagWriteSNRimage", false);
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
@@ -597,6 +599,27 @@ namespace askap {
 	this->itsCube.updateDetectMap();
 	if(this->itsCube.pars().getFlagLog())
 	  this->itsCube.logDetectionList();
+
+	if(this->itsFlagWriteSNRimage){
+
+	  std::string snrImageName=this->itsCube.pars().getImageFile();
+	  // trim .fits off name if present
+	  if(snrImageName.substr(snrImageName.size()-5,5)==".fits") snrImageName=snrImageName.substr(0,snrImageName.size()-5);
+	  snrImageName += "-SNR";
+	  ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	  const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
+	  if (lattPtr == 0)
+	    ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
+	  const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	  Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
+	  fixSlicer(slice, this->itsCube.header().getWCS());
+	  const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
+	  accessors::CasaImageAccess ia;
+	  ia.create(snrImageName, sub->shape(), sub->coordinates());
+	  ia.write(snrImageName, casa::Array<float>(sub->shape(), this->itsCube.getRecon()));
+	  // ia.setUnits(snrImageName, "signal/noise");
+
+	}
 	
 	delete [] snrAll;
 	delete [] imdim;

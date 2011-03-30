@@ -219,6 +219,9 @@ namespace askap {
                 /// The half-width of the box used for median filtering
                 int itsMedianBoxWidth;
 
+		/// Whether to write a casa image containing the S/N ratio
+		bool itsFlagWriteSNRimage;
+
                 /// The list of voxels encompassing detected sources (only for those on the edges of subimages), with fluxes.
                 std::vector<PixelInfo::Voxel> itsVoxelList;
 

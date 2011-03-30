@@ -10,3 +10,4 @@ duchamp=3rdParty/Duchamp/Duchamp-1.1.12
 gsl=3rdParty/gsl/gsl-1.10
 cfitsio=3rdParty/cfitsio/cfitsio-3.26
 wcs=3rdParty/wcslib/wcslib-4.7
+accessors=Code/Base/accessors/current
