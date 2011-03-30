@@ -41,6 +41,9 @@
 #include "iceutils/CommunicatorFactory.h"
 #include "SkyModelService.h" // Ice generated interface
 
+// Local package includes
+#include "skymodelclient/ComponentResultSet.h"
+
 // Using
 using namespace std;
 using namespace askap;
@@ -81,6 +84,7 @@ std::vector<ComponentId> SkyModelServiceClient::addComponents(const std::vector<
         ice_component.positionAngle = components[i].positionAngle();
         ice_component.majorAxis = components[i].majorAxis();
         ice_component.minorAxis = components[i].minorAxis();
+        ice_component.i1400 = components[i].i1400();
 
         ice_components.push_back(ice_component);
     }
@@ -95,15 +99,10 @@ std::vector<ComponentId> SkyModelServiceClient::addComponents(const std::vector<
     return ids;
 }
 
-std::vector<ComponentId> SkyModelServiceClient::coneSearch(double rightAscension, double declination, double searchRadius)
+ComponentResultSet SkyModelServiceClient::coneSearch(double rightAscension, double declination, double searchRadius)
 {
     askap::interfaces::skymodelservice::ComponentIdSeq ice_resultset =
         itsService->coneSearch(rightAscension, declination, searchRadius);
 
-    std::vector<ComponentId> resultset(ice_resultset.size());
-    for (size_t i = 0; i < resultset.size(); ++i) {
-        resultset[i] = ice_resultset[i];
-    }
-
-    return resultset;
+    return ComponentResultSet(ice_resultset, itsService);
 }

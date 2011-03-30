@@ -42,6 +42,7 @@
 // Local package includes
 #include "skymodelclient/SkyModelServiceClient.h"
 #include "skymodelclient/Component.h"
+#include "skymodelclient/ComponentResultSet.h"
 
 using namespace std;
 using namespace askap::cp::skymodelservice;
@@ -110,8 +111,14 @@ void populate(SkyModelServiceClient& svc, const uint32_t count)
 
 size_t coneSearch(SkyModelServiceClient& svc, double rightAscension, double declination, double searchRadius)
 {
-    vector<ComponentId> resultset = svc.coneSearch(rightAscension, declination, searchRadius);
-    return resultset.size();
+    ComponentResultSet results = svc.coneSearch(rightAscension, declination, searchRadius);
+
+    // Iterate over the result set
+    ComponentResultSet::Iterator it;
+    for (it = results.createIterator(); it.hasNext(); it.next()) {
+    }
+
+    return results.size();
 }
 
 // main()

@@ -37,6 +37,7 @@
 
 // Local package includes
 #include "skymodelclient/Component.h"
+#include "skymodelclient/ComponentResultSet.h"
 
 namespace askap {
 namespace cp {
@@ -55,7 +56,7 @@ namespace skymodelservice {
 
             std::vector<ComponentId> addComponents(const std::vector<Component>& components);
 
-            std::vector<ComponentId> coneSearch(double rightAscension, double declination, double searchRadius);
+            ComponentResultSet coneSearch(double rightAscension, double declination, double searchRadius);
             
         private:
 
