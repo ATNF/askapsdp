@@ -25,7 +25,7 @@ import datetime
 import os
 import sys
 
-DEBUG = 0
+DEBUG = 1
 
 CODE     = '${WORKSPACE}/trunk/Code'
 TARGET   = '/var/www/vhosts/pm.atnf.csiro.au/embedded/askap/cmpt/html'
@@ -194,6 +194,7 @@ CopyDocs("doxygen", "current/html", "doxygen.css")
 print "info: Javadocs"
 CopyDocs("javadocs", "current/doc", "stylesheet.css")
 print "info: Sphinx"
-CopyDocs("sphinx", "current/doc/_build/html", "objects.inv")
+#CopyDocs("sphinx", "current/doc/_build/html", "objects.inv")
+CopyDocs("sphinx", "doc/_build/html", "objects.inv")
 print "info: Ice"
 CopyDocs("ice", "slice/current/doc", "_sindex.html")
