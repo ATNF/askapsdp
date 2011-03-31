@@ -37,6 +37,10 @@
 
 
 #include <sstream>
+#include <set>
+#include <vector>
+#include <string>
+#include <algorithm>
 
 #include <mwcommon/MPIConnection.h>
 #include <mwcommon/MPIConnectionSet.h>
@@ -169,6 +173,7 @@ namespace askap
       }
       
       const std::vector<std::string> sources = parset.getStringVector("sources.names");
+      std::set<std::string> loadedImageModels;
       for (size_t i=0; i<sources.size(); ++i) {
 	       const std::string modelPar = std::string("sources.")+sources[i]+".model";
 	       const std::string compPar = std::string("sources.")+sources[i]+".components";
@@ -179,9 +184,15 @@ namespace askap
 	       // 
            if (parset.isDefined(modelPar)) {
                const std::string model=substitute(parset.getString(modelPar));
-               ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
-               const std::string paramName = "image.i."+sources[i];
-               SynthesisParamsHelper::loadImageParameter(*pModel, paramName, model);
+               const std::string paramName = "image."+sources[i];
+               if (std::find(loadedImageModels.begin(),loadedImageModels.end(),model) != loadedImageModels.end()) {
+                   ASKAPLOG_INFO_STR(logger, "Model " << model << " has already been loaded, reusing it for "<< sources[i]);
+               } else {
+                   ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
+                   const std::string paramName = "image."+sources[i];
+                   SynthesisParamsHelper::loadImageParameter(*pModel, paramName, model);
+                   loadedImageModels.insert(model);
+               }
            } else {
                // loop through components
                ASKAPLOG_INFO_STR(logger, "Adding components as model for "<< sources[i] );
