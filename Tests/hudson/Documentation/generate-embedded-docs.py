@@ -25,7 +25,7 @@ import datetime
 import os
 import sys
 
-DEBUG = 1
+DEBUG = 0
 
 CODE     = '${WORKSPACE}/trunk/Code'
 TARGET   = '/var/www/vhosts/pm.atnf.csiro.au/embedded/askap/cmpt/html'
