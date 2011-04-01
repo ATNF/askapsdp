@@ -2124,6 +2124,7 @@ namespace askap {
 
 	Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
 	fixSlicer(slice, wcs);
+	ASKAPLOG_DEBUG_STR(logger, "Slicer used to make subimage is " << slice);
 
 	const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
 	

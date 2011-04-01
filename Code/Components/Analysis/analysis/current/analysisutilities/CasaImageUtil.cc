@@ -601,10 +601,12 @@ namespace askap {
 
             if (!coords.toFITSHeader(hdr, shape, true, 'c', true)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
 
+            std::vector<Double> vals;
             struct wcsprm *wcs;
             wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
             wcs->flag = -1;
             int ndim = shape.size();
+
             int status = wcsini(1, ndim, wcs);
 
             if (status)
@@ -635,8 +637,6 @@ namespace askap {
                     strcpy(wcs->cunit[i++], str.c_str());
                 }
             }
-
-            std::vector<Double> vals;
 
             if (hdr.isDefined("crpix")) {
                 RecordFieldId crpixID("crpix");
@@ -681,6 +681,24 @@ namespace askap {
 
                 for (uint i = 0; i < vals.size(); i++) wcs->pc[i] = double(vals[i]);
             }
+
+	    // THE FOLLOWING IS HARD-CODED FOR PV2_  - NEED TO MAKE THIS MORE FLEXIBLE PERHAPS
+            if (hdr.isDefined("pv2_")) {
+                RecordFieldId pvID("pv2_");
+		Array<Double> pv2 = hdr.asArrayDouble(pvID);
+                pv2.tovector(vals);
+
+	    	int axis=2;
+                for (uint i = 0; i < vals.size(); i++){
+		  struct pvcard thispv;
+		  thispv.i=axis;
+		  thispv.m=i+1;
+		  thispv.value=double(vals[i]);
+		  wcs->pv[i] = thispv;
+		  wcs->npv++;
+		}
+	    }
+
 
             if (hdr.isDefined("lonpole")) {
                 RecordFieldId lonpoleID("lonpole");
@@ -731,8 +749,25 @@ namespace askap {
 
             status = wcsset(wcs);
 
-            if (status)
+            if (status){
                 ASKAPTHROW(AskapError, "casaImageToWCS: wcsset failed! WCSLIB error code=" << status  << ": " << wcs_errmsg[status]);
+	    }
+	    
+	    // Re-do the corrections to account for things like NCP projections
+	    status = wcsfix(1, (const int*)dim, wcs, stat);
+	    if(status) {
+	      std::stringstream errmsg;
+	      errmsg << "wcsfix failed: Function status returns are:\n";
+	      for(int i=0; i<NWCSFIX; i++)
+		if (stat[i] > 0) 
+		  errmsg << i+1 << ": WCSFIX error code=" << stat[i] << ": "
+			 << wcsfix_errmsg[stat[i]] << std::endl;
+	      ASKAPTHROW(AskapError, "casaImageToWCS: " << errmsg.str());
+	    }
+	    
+	    status = wcsset(wcs);
+	    if (status)
+	      ASKAPTHROW(AskapError, "casaImageToWCS: wcsset failed! WCSLIB error code=" << status  << ": " << wcs_errmsg[status]);
 
             delete [] dim;
             return wcs;
