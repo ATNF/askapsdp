@@ -83,7 +83,7 @@ namespace askap
           CPPUNIT_ASSERT(!iph.isFacet());
           CPPUNIT_ASSERT(iph.paramName() == iph.name());
           CPPUNIT_ASSERT(iph.paramName() == "image.cmp.test");
-          CPPUNIT_ASSERT_EQUAL(0u,iph.suffix().size());
+          CPPUNIT_ASSERT_EQUAL(size_t(0),iph.suffix().size());
        }
        
        void testParseFacet() {
@@ -91,7 +91,7 @@ namespace askap
           CPPUNIT_ASSERT(!iph.isTaylorTerm());
           checkFacet(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.facet.1.2");
-          CPPUNIT_ASSERT_EQUAL(".facet.1.2", iph.suffix());
+          CPPUNIT_ASSERT_EQUAL(std::string(".facet.1.2"), iph.suffix());
        }
 
        void testExplicitFacet() {                    
@@ -99,7 +99,7 @@ namespace askap
           CPPUNIT_ASSERT(!iph.isTaylorTerm());
           checkFacet(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.facet.1.2");
-          CPPUNIT_ASSERT_EQUAL(".facet.1.2", iph.suffix());
+          CPPUNIT_ASSERT_EQUAL(std::string(".facet.1.2"), iph.suffix());
        }
        
        void testParseTaylorTerm() {
@@ -107,7 +107,7 @@ namespace askap
           CPPUNIT_ASSERT(!iph.isFacet());
           checkTaylor(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3");
-          CPPUNIT_ASSERT_EQUAL(".taylor.3", iph.suffix());          
+          CPPUNIT_ASSERT_EQUAL(std::string(".taylor.3"), iph.suffix());          
        }
        
        void testExplicitTaylorTerm() {
@@ -115,7 +115,7 @@ namespace askap
           CPPUNIT_ASSERT(!iph.isFacet());
           checkTaylor(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3");
-          CPPUNIT_ASSERT_EQUAL(".taylor.3", iph.suffix());          
+          CPPUNIT_ASSERT_EQUAL(std::string(".taylor.3"), iph.suffix());          
        }
        
        void testParseFacetTaylorTerm() {
@@ -123,7 +123,7 @@ namespace askap
           checkFacet(iph);
           checkTaylor(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3.facet.1.2");          
-          CPPUNIT_ASSERT_EQUAL(".taylor.3.facet.1.2", iph.suffix());          
+          CPPUNIT_ASSERT_EQUAL(std::string(".taylor.3.facet.1.2"), iph.suffix());          
        }
 
        void testExplicitFacetTaylorTerm() {
@@ -131,14 +131,14 @@ namespace askap
           checkFacet(iph);
           checkTaylor(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3.facet.1.2");          
-          CPPUNIT_ASSERT_EQUAL(".taylor.3.facet.1.2", iph.suffix());          
+          CPPUNIT_ASSERT_EQUAL(std::string(".taylor.3.facet.1.2"), iph.suffix());          
        }
        
        void testPartialNames() {
           ImageParamsHelper iph("image.test",3,1,2);
           CPPUNIT_ASSERT(iph.facetName() == "image.test.facet.1.2");
           CPPUNIT_ASSERT(iph.taylorName() == "image.test.taylor.3");
-          CPPUNIT_ASSERT_EQUAL(".taylor.3.facet.1.2", iph.suffix());          
+          CPPUNIT_ASSERT_EQUAL(std::string(".taylor.3.facet.1.2"), iph.suffix());          
        }
        
        void testMakeFacet() {
@@ -148,14 +148,14 @@ namespace askap
           checkFacet(iph);
           checkTaylor(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3.facet.1.2");
-          CPPUNIT_ASSERT_EQUAL(".taylor.3.facet.1.2", iph.suffix());          
+          CPPUNIT_ASSERT_EQUAL(std::string(".taylor.3.facet.1.2"), iph.suffix());          
           
           ImageParamsHelper iph2("planeimage");
           CPPUNIT_ASSERT(!iph2.isFacet());
           CPPUNIT_ASSERT(!iph2.isTaylorTerm());
           iph2.makeFacet(3,0);
           CPPUNIT_ASSERT(iph2.paramName() == "planeimage.facet.3.0");
-          CPPUNIT_ASSERT_EQUAL(".facet.3.0", iph2.suffix());                    
+          CPPUNIT_ASSERT_EQUAL(std::string(".facet.3.0"), iph2.suffix());                    
           CPPUNIT_ASSERT(iph2.isFacet());
           CPPUNIT_ASSERT(!iph2.isTaylorTerm());          
        }
@@ -167,14 +167,14 @@ namespace askap
           checkFacet(iph);
           checkTaylor(iph);
           CPPUNIT_ASSERT(iph.paramName() == "image.test.taylor.3.facet.1.2");          
-          CPPUNIT_ASSERT_EQUAL(".taylor.3.facet.1.2", iph.suffix());                    
+          CPPUNIT_ASSERT_EQUAL(std::string(".taylor.3.facet.1.2"), iph.suffix());                    
 
           ImageParamsHelper iph2("planeimage");
           CPPUNIT_ASSERT(!iph2.isFacet());
           CPPUNIT_ASSERT(!iph2.isTaylorTerm());
           iph2.makeTaylorTerm(0);
           CPPUNIT_ASSERT(iph2.paramName() == "planeimage.taylor.0");
-          CPPUNIT_ASSERT_EQUAL(".taylor.0", iph2.suffix());          
+          CPPUNIT_ASSERT_EQUAL(std::string(".taylor.0"), iph2.suffix());          
           CPPUNIT_ASSERT(!iph2.isFacet());
           CPPUNIT_ASSERT(iph2.isTaylorTerm());
        }
