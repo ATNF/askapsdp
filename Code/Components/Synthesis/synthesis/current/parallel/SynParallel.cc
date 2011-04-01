@@ -34,6 +34,7 @@
 // Include own header file first
 #include <parallel/SynParallel.h>
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <measurementequation/ImageParamsHelper.h>
 
 
 #include <sstream>
@@ -183,15 +184,44 @@ namespace askap
 	             compPar<<"), not both");
 	       // 
            if (parset.isDefined(modelPar)) {
-               const std::string model=substitute(parset.getString(modelPar));
-               const std::string paramName = "image."+sources[i];
-               if (std::find(loadedImageModels.begin(),loadedImageModels.end(),model) != loadedImageModels.end()) {
-                   ASKAPLOG_INFO_STR(logger, "Model " << model << " has already been loaded, reusing it for "<< sources[i]);
-               } else {
-                   ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i] );
-                   const std::string paramName = "image."+sources[i];
-                   SynthesisParamsHelper::loadImageParameter(*pModel, paramName, model);
-                   loadedImageModels.insert(model);
+               const std::vector<std::string> vecModels = parset.getStringVector(modelPar);
+               const int nTaylorTerms = parset.getInt32(std::string("sources.")+sources[i]+".nterms",1);                                                      
+               ASKAPCHECK(nTaylorTerms>0, "Number of Taylor terms is supposed to be a positive number, you gave "<<
+                         nTaylorTerms);
+               if (nTaylorTerms>1) {
+                   ASKAPLOG_INFO_STR(logger,"Simulation from model presented by Taylor series (a.k.a. MFS-model) with "<<
+                               nTaylorTerms<<" terms");
+               }              
+               ASKAPCHECK((vecModels.size() == 1) || (int(vecModels.size()) == nTaylorTerms), 
+                    "Number of model images given by "<<modelPar<<" should be either 1 or one per taylor term, you gave "<<
+                    vecModels.size()<<" nTaylorTerms="<<nTaylorTerms);
+               ImageParamsHelper iph("image."+sources[i]);
+               // for simulations we don't need cross-terms 
+               for (int order = 0; order<nTaylorTerms; ++order) {
+                    if (nTaylorTerms > 1) {
+                        // this is an MFS case, setup Taylor terms
+                        iph.makeTaylorTerm(order);
+                        ASKAPLOG_INFO_STR(logger,"Processing Taylor term "<<order);
+                    }
+                    std::string model = substitute(vecModels[vecModels.size() == 1 ? 0 : order]);
+                    if (vecModels.size() == 1) {
+                        // only base name is given, need to add taylor suffix
+                        model += iph.suffix();
+                    }
+                                        
+                    if (std::find(loadedImageModels.begin(),loadedImageModels.end(),model) != loadedImageModels.end()) {
+                        ASKAPLOG_INFO_STR(logger, "Model " << model << " has already been loaded, reusing it for "<< sources[i]);
+                        if (vecModels.size()!=1) {
+                            ASKAPLOG_WARN_STR(logger, "MFS simulation will not work correctly if you specified the same model "<<
+                                 model<<" for multiple Taylor terms");
+                        }
+                    } else {
+                        ASKAPLOG_INFO_STR(logger, "Adding image " << model << " as model for "<< sources[i]
+                                           << ", parameter name: "<<iph.paramName() );
+                        // need to patch model to append taylor suffix
+                        SynthesisParamsHelper::loadImageParameter(*pModel, iph.paramName(), model);
+                        loadedImageModels.insert(model);
+                    }
                }
            } else {
                // loop through components

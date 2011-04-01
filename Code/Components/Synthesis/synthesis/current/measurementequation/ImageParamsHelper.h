@@ -58,7 +58,7 @@ public:
    ImageParamsHelper();
    
    /// @brief constructor with immediate parsing of a full name
-   /// @details This version construct an object and populates all fields with the parse
+   /// @details This version constructs the object and populates all fields with the parse
    /// results.
    /// @param[in] name full name to parse
    ImageParamsHelper(const std::string &name);
@@ -103,6 +103,14 @@ public:
    /// string and effectively represents a reverse operation.
    /// @return full name of the image parameter
    std::string paramName() const;
+   
+   /// @brief obtain the full suffix
+   /// @details This method composes the suffix from the facet and taylor 
+   /// term. The result returned by paramName is just name()+suffix().
+   /// We need the suffix separately from the full name to be able to
+   /// index model in MSF simulations (the model may have a different name
+   /// than the field).
+   std::string suffix() const;
    
    /// @brief obtain the name of the image with just a facet suffix
    /// @details To have MSMFS algorithm working with facets one needs
