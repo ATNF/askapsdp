@@ -190,9 +190,11 @@ def CopyDocs(doc_type, doc_loc, find_term):
 today = datetime.date.today()
 
 print "info: Doxygen"
-CopyDocs("doxygen", "current/html", "doxygen.css")
+#CopyDocs("doxygen", "current/html", "doxygen.css")
+CopyDocs("doxygen", "html", "doxygen.css")
 print "info: Javadocs"
-CopyDocs("javadocs", "current/doc", "stylesheet.css")
+#CopyDocs("javadocs", "current/doc", "stylesheet.css")
+CopyDocs("javadocs", "doc", "stylesheet.css")
 print "info: Sphinx"
 #CopyDocs("sphinx", "current/doc/_build/html", "objects.inv")
 CopyDocs("sphinx", "doc/_build/html", "objects.inv")
