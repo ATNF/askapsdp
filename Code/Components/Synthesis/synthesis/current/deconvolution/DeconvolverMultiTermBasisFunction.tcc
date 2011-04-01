@@ -131,7 +131,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
-      this->control()->configure(parset);
+      DeconvolverBase<T,FT>::configure(parset);
       
       // Make the basis function
       std::vector<float> defaultScales(3);

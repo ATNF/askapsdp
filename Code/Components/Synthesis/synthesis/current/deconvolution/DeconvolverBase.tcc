@@ -55,13 +55,15 @@ namespace askap {
     };
     
     template<class T, class FT>
-    DeconvolverBase<T,FT>::DeconvolverBase(Vector<Array<T> >& dirty, Vector<Array<T> >& psf)
+    DeconvolverBase<T,FT>::DeconvolverBase(Vector<Array<T> >& dirty, Vector<Array<T> >& psf) :
+      itsBMaj(0.0), itsBMin(0.0), itsBPa(0.0)
     {
       init(dirty,psf);
     }
 
     template<class T, class FT>
-    DeconvolverBase<T,FT>::DeconvolverBase(Array<T>& dirty, Array<T>& psf)
+    DeconvolverBase<T,FT>::DeconvolverBase(Array<T>& dirty, Array<T>& psf) :
+      itsBMaj(0.0), itsBMin(0.0), itsBPa(0.0)
     {
       Vector<Array<T> > dirtyVec(1);
       dirtyVec(0)=dirty.nonDegenerate();
@@ -139,6 +141,15 @@ namespace askap {
     {        
       this->itsDC->configure(parset);
       this->itsDM->configure(parset);
+
+      // Get the beam information
+       const casa::Vector<float> beam = parset.getFloatVector("beam");
+       ASKAPCHECK(beam.size() == 3, "Need three elements for beam. You have "<<beam);
+       ASKAPLOG_INFO_STR(logger, "Restore solver will convolve with the 2D gaussian: "<<beam(0)<<
+			 " x "<<beam(1)<<" pixels at position angle "<<beam(2) << " degrees");
+       itsBMaj=beam(0);
+       itsBMin=beam(1);
+       itsBPa =beam(2);
     }
 
     template<class T, class FT>
@@ -342,6 +353,64 @@ namespace askap {
 	scimath::fft2d(work, false);
 	this->dirty(term)=this->dirty(term)-real(work);
       }
+    }
+
+    template<class T, class FT>
+    bool DeconvolverBase<T,FT>::restore(Vector<Array<T> >& restored)
+    {
+      return restore(restored, itsModel);
+    }
+
+    template<class T, class FT>
+    bool DeconvolverBase<T,FT>::restore(Vector<Array<T> >& restored, Vector<Array<T> >& model)
+    {
+      if(itsBMaj<=0.0) {
+	ASKAPLOG_INFO_STR(decbaselogger, "Beam not specified - no restoration");
+	return false;
+      }
+
+      ASKAPCHECK(model.shape()==itsNumberTerms, "Number of terms in model " << model.shape()
+		 << " not same as number of terms specified "
+		 << itsNumberTerms);
+
+      ASKAPCHECK(restored.shape()==itsNumberTerms, "Number of terms in restored image " << restored.shape()
+		 << " not same as number of terms specified "
+		 << itsNumberTerms);
+
+      int nx(model(0).shape()(0));
+      int ny(model(0).shape()(1));
+      IPosition centre(2, nx/2, ny/2);
+      Matrix<FT> gaussian(nx, ny);
+      gaussian.set(0.0);
+
+      float scalex(itsBMaj*4.0*log(2.0));
+      float scaley(itsBMin*4.0*log(2.0));
+      float theta(itsBPa*C::pi/180.0);
+      float cs(cos(theta));
+      float sn(sin(theta));
+      for (int y=0;y<nx;y++) {
+	float dy=scaley*(y-ny/2);
+	for (int x=0;x<nx;x++) {
+	  float dx=scalex*(x-nx/2);
+	  float rsq=pow((dx*cs+dy*sn),2)+pow((-dx*sn+dy*cs),2);
+	  if(rsq<20.0) {
+	    gaussian(x,y)=exp(-rsq);
+	  }
+	}
+      }
+      scimath::fft2d(gaussian, true);
+
+      for (uInt term=0;term<itsNumberTerms;term++) {
+	Array<FT> vis(model(term).shape());
+	vis.set(FT(0.0));
+	casa::setReal(vis, model(term));
+	scimath::fft2d(vis, true);
+	vis=vis*gaussian;
+	scimath::fft2d(vis, false);
+	restored(term).resize(model(term).shape());
+	restored(term)=this->dirty(term)+real(vis);
+      }
+      return true;
     }
 
     template<class T, class FT>

@@ -82,6 +82,24 @@ namespace askap {
     void DeconvolverFista<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
       DeconvolverBase<T,FT>::configure(parset);
+
+      // Make the basis function
+      {
+	std::vector<float> defaultScales(3);
+	defaultScales[0]=0.0;
+	defaultScales[1]=10.0;
+	defaultScales[2]=30.0;
+	std::vector<float> scales=parset.getFloatVector("scales", defaultScales);
+	
+	ASKAPLOG_INFO_STR(decfistalogger, "Constructing Multiscale basis function with scales " << scales);
+        Bool orthogonal=parset.getBool("orthogonal", false);
+	if (orthogonal) {
+	  ASKAPLOG_DEBUG_STR(decfistalogger, "Multiscale basis functions will be orthogonalised");
+	}
+
+	itsBasisFunction = BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales,
+                                                                                          orthogonal));
+      }
     }
 
     template<class T, class FT>
@@ -129,8 +147,9 @@ namespace askap {
 
       absPeakVal=max(abs(this->dirty()));
 
-      T effectiveLambda(absPeakVal*this->control()->fractionalThreshold()+this->control()->lambda());
-      ASKAPLOG_INFO_STR(decfistalogger, "Effective lambda = " << effectiveLambda);
+      //      T effectiveLambda(absPeakVal*this->control()->fractionalThreshold()+this->control()->lambda());
+      T lambda(absPeakVal*(1.0-this->control()->gain()));
+      ASKAPLOG_INFO_STR(decfistalogger, "Effective lambda = " << lambda);
       
       T t_new=1;
 
@@ -141,30 +160,30 @@ namespace askap {
 	T t_old=t_new;
 
 	updateResiduals(X);
-	//	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->dirty());
+	SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->dirty());
 
 	X=X+this->dirty()/lipschitz;
 
 	// Transform to other (e.g. multiscale) space
 	Array<T> WX;
-        //	SynthesisParamsHelper::saveAsCasaImage("X.tab", X);
+        SynthesisParamsHelper::saveAsCasaImage("X.tab", X);
 	this->W(WX,X);
-        //	SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
+        SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
 
 	// Now shrink the coefficients towards zero and clip those below
 	// lambda/lipschitz.
 	Array<T> shrink(WX.shape());
 
-	Array<T> truncated(abs(WX)-effectiveLambda/lipschitz);
+	Array<T> truncated(abs(WX)-lambda/lipschitz);
 	shrink=truncated(truncated>T(0.0));
 	shrink=sign(WX)*shrink;
 	shrink(truncated<T(0.0))=T(0.0);
 
-	//	SynthesisParamsHelper::saveAsCasaImage("shrink.tab", WX);
+	SynthesisParamsHelper::saveAsCasaImage("shrink.tab", WX);
 	// Transform back from other (e.g. wavelet) space here
 	
 	this->WT(X_temp,shrink);
-        //	SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
+        SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
 
 	t_new=(T(1.0)+sqrt(T(1.0)+T(4.0)*square(t_old)))/T(2.0);
 	X=X_temp+((t_old-T(1.0))/t_new)*(X_temp-X_old);
@@ -180,7 +199,7 @@ namespace askap {
           else {
             casa::minMax(minVal, maxVal, minPos, maxPos, this->dirty());
           }
-          //
+
           ASKAPLOG_INFO_STR(decfistalogger, "   Maximum = " << maxVal << " at location " << maxPos);
           ASKAPLOG_INFO_STR(decfistalogger, "   Minimum = " << minVal << " at location " << minPos);
           if(abs(minVal)<abs(maxVal)) {
@@ -193,14 +212,14 @@ namespace askap {
 
 	T l1Norm=sum(abs(X_temp));
 	T fit=casa::sum(this->dirty()*this->dirty());
-	T objectiveFunction(fit+effectiveLambda*l1Norm);
+	T objectiveFunction(fit+lambda*l1Norm);
         this->state()->setPeakResidual(absPeakVal);
         this->state()->setObjectiveFunction(objectiveFunction);
         this->state()->setTotalFlux(sum(X_temp));
 
-        if(absPeakVal<effectiveLambda) {
-	  ASKAPLOG_INFO_STR(decfistalogger, "Effective lambda = " << effectiveLambda);
-	  effectiveLambda/=2.0;
+        if(absPeakVal<lambda) {
+	  lambda*=1.0-this->control()->gain();
+	  ASKAPLOG_INFO_STR(decfistalogger, "Setting Lagrange multiplier lambda = " << lambda);
 	}
         this->monitor()->monitor(*(this->state()));
         this->state()->incIter();
@@ -234,7 +253,8 @@ namespace askap {
     };
     
     // Apply the convolve operation - this is undecimated and redundant. The 2D image
-    // will be expanded along the third axis
+    // will be expanded along the third axis. Since the basis functions are normalised
+    // to unit volume, the values here should be roughly maintained.
     template <class T, class FT>
     void DeconvolverFista<T, FT>::W(Array<T>& out, const Array<T>& in) {
       if(itsBasisFunction) {
@@ -277,8 +297,8 @@ namespace askap {
 	for (uInt plane=1;plane<nPlanes;plane++) {
 	  casa::setReal(inPlaneTransform, inCube.xyPlane(nPlanes-1-plane));
 	  scimath::fft2d(inPlaneTransform, true);
-	  outTransform=
-	    outTransform+Cube<FT>(itsBasisFunctionTransform).xyPlane(nPlanes-1-plane)*(inPlaneTransform-outTransform);
+	  outTransform=outTransform
+	    +Cube<FT>(itsBasisFunctionTransform).xyPlane(nPlanes-1-plane)*(inPlaneTransform-outTransform);
 	}
 	scimath::fft2d(outTransform, false);
 	out.nonDegenerate()=real(outTransform);

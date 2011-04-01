@@ -118,6 +118,11 @@ int main(int argc, const char** argv)
             DeconvolverHelpers::putArrayToImage(deconvolver->model(), "model", "dirty", subset);
             DeconvolverHelpers::putArrayToImage(deconvolver->dirty(), "residual", "dirty", subset);
 
+	    Vector<Array<float> > restored(1);
+	    if(deconvolver->restore(restored)) {
+	      DeconvolverHelpers::putArrayToImage(restored(0), "restored", "dirty", subset);
+	    }
+
        }
         ASKAPLOG_INFO_STR(logger, "Total times - user:   " << timer.user() << " system: " << timer.system()
                               << " real:   " << timer.real());

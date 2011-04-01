@@ -91,7 +91,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBasisFunction<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
-      this->control()->configure(parset);
+      DeconvolverBase<T,FT>::configure(parset);
       
       // Make the basis function
       {

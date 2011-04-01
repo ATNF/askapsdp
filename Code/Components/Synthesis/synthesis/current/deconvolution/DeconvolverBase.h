@@ -162,6 +162,16 @@ namespace askap {
       /// the specified PSF and subtraction from the dirty image.
       virtual void updateResiduals(Array<T>& model);
 
+      /// @brief Restore with specified beam
+      /// @detail Restore the model by smoothing
+      /// and adding residuals
+      virtual bool restore(Vector<Array<T> >& restored, Vector<Array<T> >& model);
+
+      /// @brief Restore with specified beam
+      /// @detail Restore the model by smoothing
+      /// and adding residuals
+      virtual bool restore(Vector<Array<T> >& restored);
+
       /// @brief Initialize the deconvolution
       /// @detail Initialise e.g. set weights
       virtual void initialise();
@@ -211,6 +221,11 @@ namespace askap {
       // Peak and location of peak of PSF(0)
       casa::IPosition itsPeakPSFPos;
       T itsPeakPSFVal;
+
+      // Beam information, in pixels
+      float itsBMaj;
+      float itsBMin;
+      float itsBPa;
 
       // Audit the memory in use right now
       void auditAllMemory();
