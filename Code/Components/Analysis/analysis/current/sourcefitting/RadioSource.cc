@@ -834,9 +834,9 @@ namespace askap {
                 this->itsFitParams.setPeakFlux(this->peakFlux);
                 this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
 
-                ASKAPLOG_DEBUG_STR(logger, "detect thresh = " << this->itsDetectionThreshold
-                                       << "  peak = " << this->peakFlux
-                                       << "  noise level = " << this->itsNoiseLevel);
+                ASKAPLOG_INFO_STR(logger, "detect threshold = " << this->itsDetectionThreshold
+                                       << ",  peak flux = " << this->peakFlux
+                                       << ",  noise level = " << this->itsNoiseLevel);
                 //
                 // Get the list of subcomponents
                 std::vector<SubComponent> cmpntList = this->getSubComponentList(pos, f);
