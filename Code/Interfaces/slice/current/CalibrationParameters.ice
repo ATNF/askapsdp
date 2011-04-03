@@ -36,7 +36,7 @@ module askap
 module interfaces
 {
 
-module calibparams 
+module calparams 
 {
 
 struct JonesIndex {
@@ -46,6 +46,7 @@ struct JonesIndex {
 
 // sequence of indices (used for group operations
 // on a number of parameters)
+["java:type:java.util.ArrayList<askap.interfaces.calparams.JonesIndex>"]
 sequence<JonesIndex> JonesIndexSeq;
  
 // sequence may be an overkill here, but one
@@ -62,6 +63,7 @@ struct JonesJTerm {
 // so DoubleComplex == JonesDTerm;
 
 // sequence of J-terms, i.e. a bandpass
+["java:type:java.util.ArrayList<askap.interfaces.calparams.JonesJTerm>"]
 sequence<JonesJTerm> JonesJTermSeq;
 
 struct FrequencyDependentJTerm {
