@@ -4,6 +4,8 @@ PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
 
 ECH0='' # Can be overidden by -n option.
 ARGS=''
+PROCESSES='j=2'
+
 LINUX_PYTHON='/usr/bin/python2.6'
 MACOSX_PYTHON='/opt/local/bin/python2.6'
 
@@ -13,7 +15,7 @@ FDATE=`date +"%y%m%d"`
 
 function HelpMessage
 {
-    printf "\n${PNAME} [-hnq] [<targets>]\n"
+    printf "\n${PNAME} [-hnq] [-j6] [<targets>]\n"
     printf "\t-h\thelp\n"
     printf "\t-n\tno execute (debugging)\n"
     printf "\t-q\tbuild Code quietly\n"
@@ -40,7 +42,7 @@ function build
     args=$2
     target=$3
     ${ECHO} cd ${ASKAP_ROOT}/${directory}
-    ${ECHO} rbuild -a -M -S -T -p j=6 ${args} -t ${target}
+    ${ECHO} rbuild -a -M -S -T -p ${PROCESSES}  ${args} -t ${target}
     if [ $? -ne 0 ]; then
         exit 1
     fi
@@ -52,10 +54,12 @@ function build
 #
 
 
-while getopts hnq OPT
+while getopts hj:nq OPT
 do
     case $OPT in
         h)  HelpMessage
+            ;;
+        j)  PROCESSES="j=$OPTARG"
             ;;
         n)  ECHO="echo"
             WORKSPACE="WORKSPACE"
