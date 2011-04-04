@@ -32,6 +32,8 @@ import java.util.List;
 
 // ASKAPsoft imports
 import Ice.Current;
+import askap.cp.sms.persist.ComponentBean;
+import askap.cp.sms.persist.PersistenceInterface;
 import askap.interfaces.skymodelservice.Component;
 import askap.interfaces.skymodelservice._ISkyModelServiceDisp;
 import org.apache.log4j.Logger;

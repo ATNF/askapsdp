@@ -29,7 +29,7 @@
         <!-- Enables autocommit for JDBC pooled connections -->
         <property name="hibernate.connection.autocommit">true</property>
 
-        <mapping resource="askap/cp/sms/ComponentBean.hbm.xml"/>
+        <mapping resource="askap/cp/sms/persist/ComponentBean.hbm.xml"/>
 
     </session-factory>
 

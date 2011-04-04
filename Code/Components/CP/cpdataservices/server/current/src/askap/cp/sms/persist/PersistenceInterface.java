@@ -23,7 +23,7 @@
  * 
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
-package askap.cp.sms;
+package askap.cp.sms.persist;
 
 // Java imports
 import java.util.ArrayList;
@@ -36,6 +36,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+
 
 /**
  * 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="WINDOWS-1251"?>
 <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
-<hibernate-mapping package="askap.cp.sms">
+<hibernate-mapping package="askap.cp.sms.persist">
 
     <class name="ComponentBean" table="components">
         <id name="id" type="long" column="ID">

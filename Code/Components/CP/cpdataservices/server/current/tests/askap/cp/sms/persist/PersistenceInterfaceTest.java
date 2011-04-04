@@ -23,7 +23,7 @@
  * 
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
-package askap.cp.sms;
+package askap.cp.sms.persist;
 
 // Java imports
 import java.util.ArrayList;
@@ -44,6 +44,9 @@ import java.sql.SQLException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+
+import askap.cp.sms.persist.ComponentBean;
+import askap.cp.sms.persist.PersistenceInterface;
 
 public class PersistenceInterfaceTest {
 	
@@ -96,7 +99,7 @@ public class PersistenceInterfaceTest {
 		config.setProperty("hibernate.cache.provider_class", "org.hibernate.cache.HashtableCacheProvider");
 		config.setProperty("hibernate.hbm2ddl.auto", "create-drop");
 		config.setProperty("hibernate.show_sql", "true");
-		config.addClass(askap.cp.sms.ComponentBean.class);
+		config.addClass(askap.cp.sms.persist.ComponentBean.class);
 		
 		SessionFactory sessionFactory = config.buildSessionFactory();
 		itsSession = sessionFactory.openSession();

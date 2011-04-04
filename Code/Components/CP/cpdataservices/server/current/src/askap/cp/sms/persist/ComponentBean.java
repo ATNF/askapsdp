@@ -23,7 +23,7 @@
  * 
  * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
-package askap.cp.sms;
+package askap.cp.sms.persist;
 
 /**
  *
