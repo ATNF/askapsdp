@@ -153,6 +153,7 @@ struct CalibrationParameters {
 // we could have sequence of sequences here to get one item per antenna/beam, but flattened sequence seems to be more appropriate.
 // dictionary indexed with JonesIndex could also be used, but a fixed-size array would make the logic simpler (as there should be
 // one structure for every antenna/beam anyway)
+["java:type:java.util.ArrayList<askap.interfaces.calparams.CalibrationParameters>"]
 sequence<CalibrationParameters> CalibrationParametersSeq;
 
 // collection of all calibration parameters applied at a given time
