@@ -40,7 +40,7 @@ function build
     args=$2
     target=$3
     ${ECHO} cd ${ASKAP_ROOT}/${directory}
-    ${ECHO} rbuild -a -M -S -T -p j=4 ${args} -t ${target}
+    ${ECHO} rbuild -a -M -S -T -p j=6 ${args} -t ${target}
     if [ $? -ne 0 ]; then
         exit 1
     fi
