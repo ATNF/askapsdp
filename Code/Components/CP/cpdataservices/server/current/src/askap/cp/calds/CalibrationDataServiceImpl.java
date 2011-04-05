@@ -23,19 +23,24 @@
  */
 package askap.cp.calds;
 
+// Java imports
+import java.util.Map;
+
 
 //ASKAPsoft imports
 import org.apache.log4j.Logger;
 import Ice.Current;
 import askap.cp.sms.SkyModelServiceImpl;
 import askap.interfaces.caldataservice._ICalibrationDataServiceDisp;
+import askap.interfaces.calparams.CalibrationParameters;
+import askap.interfaces.calparams.JonesIndex;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
 
 /**
- * @author hum092
- *
+ * Implementation of the Calibration Data Service ICE interface.
+ * @author Ben Humphreys
  */
 public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	
@@ -62,17 +67,16 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	}
 	
 
-	/* (non-Javadoc)
+	/**
 	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addBandpassSolution(askap.interfaces.calparams.TimeTaggedBandpassSolution, Ice.Current)
 	 */
 	@Override
-	public void addBandpassSolution(TimeTaggedBandpassSolution solution,
-			Current cur) {
+	public void addBandpassSolution(TimeTaggedBandpassSolution solution, Current cur) {
 		// TODO Auto-generated method stub
 
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addGainsSolution(askap.interfaces.calparams.TimeTaggedGainSolution, Ice.Current)
 	 */
 	@Override
@@ -81,13 +85,22 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addLeakageSolution(askap.interfaces.calparams.TimeTaggedLeakageSolution, Ice.Current)
 	 */
 	@Override
 	public void addLeakageSolution(TimeTaggedLeakageSolution solution, Current cur) {
 		// TODO Auto-generated method stub
 
+	}
+
+	/**
+	 * @see askap.interfaces.caldataservice._ICalibrationDataServiceOperations#getCurrentSolution(Ice.Current)
+	 */
+	@Override
+	public Map<JonesIndex, CalibrationParameters> getCurrentSolution(Current cur) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

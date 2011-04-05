@@ -61,6 +61,14 @@ module caldataservice
          * @param solution  new time tagged leakage solution.
          */
         void addLeakageSolution(askap::interfaces::calparams::TimeTaggedLeakageSolution solution);
+
+        /**
+         * Obtains the most recent calibration solution. The ingest pipeline is
+         * expected to call this periodically to obtain the latest solution.
+         *
+         * @return The most recent calibration solution.
+         */
+         askap::interfaces::calparams::CalibrationParametersMap getCurrentSolution();
     };
 
 };
