@@ -44,9 +44,8 @@ import java.sql.SQLException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-
-import askap.cp.sms.persist.ComponentBean;
 import askap.cp.sms.persist.PersistenceInterface;
+import askap.interfaces.skymodelservice.Component;
 
 public class PersistenceInterfaceTest {
 	
@@ -65,7 +64,7 @@ public class PersistenceInterfaceTest {
 	/**
 	 * Class under test.
 	 */
-	PersistenceInterface itsInstance;
+	askap.cp.sms.persist.PersistenceInterface itsInstance;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -99,7 +98,7 @@ public class PersistenceInterfaceTest {
 		config.setProperty("hibernate.cache.provider_class", "org.hibernate.cache.HashtableCacheProvider");
 		config.setProperty("hibernate.hbm2ddl.auto", "create-drop");
 		config.setProperty("hibernate.show_sql", "true");
-		config.addClass(askap.cp.sms.persist.ComponentBean.class);
+		config.addClass(askap.interfaces.skymodelservice.Component.class);
 		
 		SessionFactory sessionFactory = config.buildSessionFactory();
 		itsSession = sessionFactory.openSession();
@@ -126,14 +125,14 @@ public class PersistenceInterfaceTest {
 	@Test
 	public final void testAddComponents() throws SQLException {
 		// Add a component
-		ComponentBean c = new ComponentBean();
-		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
+		Component c = new Component();
+		ArrayList<Component> components = new ArrayList<Component>();
 		components.add(c);
 		List<Long> ids1 = itsInstance.addComponents(components);
 		assertEquals(1, ids1.size());
 		
 		// Add another component and ensure the id differs from the first
-		c = new ComponentBean();
+		c = new Component();
 		components.clear();
 		components.add(c);
 		List<Long> ids2 = itsInstance.addComponents(components);
@@ -145,7 +144,7 @@ public class PersistenceInterfaceTest {
 		components.clear();
 		final int n = 10;
 		for (int i = 0; i < n; i++) {
-			c = new ComponentBean();
+			c = new Component();
 			components.add(c);
 		}
 		
@@ -157,13 +156,13 @@ public class PersistenceInterfaceTest {
 	@Test
 	public final void testGetComponents() {
 		// Add some components
-		ComponentBean c = new ComponentBean();
+		Component c = new Component();
 		final double ra = 90.0;
 		final double dec = -40.0;
 		
-		c.setRightAscension(ra);
-		c.setDeclination(dec);
-		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
+		c.rightAscension = ra;
+		c.declination = dec;
+		ArrayList<Component> components = new ArrayList<Component>();
 		final int n = 10;
 		for (int i = 0; i < n; i++) {
 			components.add(c);
@@ -173,26 +172,26 @@ public class PersistenceInterfaceTest {
 		assertEquals(n, ids.size());
 		
 		// Now get those components back
-		List<ComponentBean> returnedComponents = itsInstance.getComponents(ids);
+		List<Component> returnedComponents = itsInstance.getComponents(ids);
 		assertEquals(n, returnedComponents.size());
 		final double tolerance = 0.0000001;
 		for (int i = 0; i < n; i++) {
-			assertEquals(ra, returnedComponents.get(i).getRightAscension(), tolerance);
-			assertEquals(dec, returnedComponents.get(i).getDeclination(), tolerance);
+			assertEquals(ra, returnedComponents.get(i).rightAscension, tolerance);
+			assertEquals(dec, returnedComponents.get(i).declination, tolerance);
 		}
 	}
 
 	@Test
 	public final void testRemoveComponents() {
 		// Add a component
-		ComponentBean c = new ComponentBean();
-		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
+		Component c = new Component();
+		ArrayList<Component> components = new ArrayList<Component>();
 		components.add(c);
 		List<Long> ids1 = itsInstance.addComponents(components);
 		assertEquals(1, ids1.size());
 		
 		// Add another component (using a new list)
-		c = new ComponentBean();
+		c = new Component();
 		components.clear();
 		components.add(c);
 		List<Long> ids2 = itsInstance.addComponents(components);
@@ -202,7 +201,7 @@ public class PersistenceInterfaceTest {
 		itsInstance.removeComponents(ids1);
 		
 		// Now get the first inserted component back, the list should be empty
-		List<ComponentBean> returnedComponents = itsInstance.getComponents(ids1);
+		List<Component> returnedComponents = itsInstance.getComponents(ids1);
 		assertEquals(0, returnedComponents.size());
 		
 		// Now get the second inserted component back
@@ -220,10 +219,10 @@ public class PersistenceInterfaceTest {
 	@Test
 	public final void testConeSearch() {
 		// Create a component
-		ComponentBean c = new ComponentBean();
-		c.setRightAscension(90.0);
-		c.setDeclination(-40.0);
-		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
+		Component c = new Component();
+		c.rightAscension = 90.0;
+		c.declination = -40.0;
+		ArrayList<Component> components = new ArrayList<Component>();
 		
 		// Add a component
 		components.add(c);

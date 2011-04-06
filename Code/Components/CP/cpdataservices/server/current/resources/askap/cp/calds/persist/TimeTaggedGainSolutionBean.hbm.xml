@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="WINDOWS-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="askap.cp.calds.persist">
+
+	<class name="TimeTaggedGainSolutionBean" table="gain_solutions">
+		<id name="id" type="long" column="ID">
+			<generator class="native" />
+		</id>
+		<property name="time" type="long" column="time" />
+
+		<list name="solutionElements" table="gain_solutions_elements">
+			<!-- The key column relates the element back to the solution -->
+			<key column="gain_solution_id" />
+
+			<!-- The list-index uniquely identifies the element -->
+			<list-index column="id" />
+
+			<composite-element class="GainSolutionElementBean">
+				<!-- <property name="antennaId" type="short" column="antennaId" /> -->
+				<!-- <property name="beamId" type="short" column="beamId" /> -->
+
+				<nested-composite-element name="jonesIndex" class="JonesIndex">
+					<property name="antennaId" />
+					<property name="beamId" />
+				</nested-composite-element>
+
+				<property name="g1Valid" type="boolean" column="g1Valid" />
+				<property name="g1Real" type="double" column="g1Real" />
+				<property name="g1Imag" type="double" column="g1Imag" />
+
+				<property name="g2Valid" type="boolean" column="g2Valid" />
+				<property name="g2Real" type="double" column="g2Real" />
+				<property name="g2Imag" type="double" column="g2Imag" />
+			</composite-element>
+		</list>
+
+
+	</class>
+
+</hibernate-mapping>

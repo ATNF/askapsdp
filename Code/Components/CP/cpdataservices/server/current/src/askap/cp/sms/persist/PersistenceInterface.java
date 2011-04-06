@@ -37,6 +37,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 
+import askap.interfaces.skymodelservice.Component;
+
 
 /**
  * 
@@ -91,15 +93,15 @@ public class PersistenceInterface {
 		// as not to have the entire table returned
 		
 		@SuppressWarnings("unchecked")
-		List<ComponentBean> result = (List<ComponentBean>) itsSession.createQuery( "from ComponentBean" ).list();
-		for ( ComponentBean comp : (List<ComponentBean>) result ) {
+		List<Component> result = (List<Component>) itsSession.createQuery( "from Component" ).list();
+		for ( Component comp : (List<Component>) result ) {
 			// TODO: The below uses simple (Euclidean geometry) Pythagoras
 			// theorem. Need to handle spherical geometry, wrap-around etc.
-			final double a = Math.abs(dec) - Math.abs(comp.getDeclination());
-			final double b = Math.abs(ra) - Math.abs(comp.getRightAscension());
+			final double a = Math.abs(dec) - Math.abs(comp.declination);
+			final double b = Math.abs(ra) - Math.abs(comp.rightAscension);
 			final double c = Math.sqrt((Math.pow(a, 2) + Math.pow(b, 2)));
 			if (c <= searchRadius) {
-				ids.add(new Long(comp.getId()));
+				ids.add(new Long(comp.id));
 			}
 		}
 		
@@ -111,12 +113,12 @@ public class PersistenceInterface {
 	 * @param componentIds
 	 * @return
 	 */
-	public List<ComponentBean> getComponents(List<Long> componentIds) {
-		ArrayList<ComponentBean> components = new ArrayList<ComponentBean>();
+	public List<Component> getComponents(List<Long> componentIds) {
+		ArrayList<Component> components = new ArrayList<Component>();
 		
 		Iterator<Long> it = componentIds.iterator();
 		while(it.hasNext()) {
-			ComponentBean c = (ComponentBean) itsSession.get(ComponentBean.class, it.next());
+			Component c = (Component) itsSession.get(Component.class, it.next());
 			if (c != null) {
 				components.add(c);
 			}
@@ -130,15 +132,15 @@ public class PersistenceInterface {
 	 * @param components
 	 * @return
 	 */
-	public List<Long> addComponents(List<ComponentBean> components) {
+	public List<Long> addComponents(List<Component> components) {
 		ArrayList<Long> idList = new ArrayList<Long>();
 		
-		Iterator<ComponentBean> it = components.iterator();
+		Iterator<Component> it = components.iterator();
 		Transaction tx = itsSession.beginTransaction();
 	    while(it.hasNext()) {
-	    	ComponentBean c = it.next();
+	    	Component c = it.next();
 	    	itsSession.save(c);
-	    	idList.add(new Long(c.getId()));
+	    	idList.add(new Long(c.id));
 	    	
 	    }
 	    tx.commit();
@@ -153,7 +155,7 @@ public class PersistenceInterface {
 	public void removeComponents(List<Long> componentIds) {	
 		Transaction tx = itsSession.beginTransaction();
 		for (Long id : (List<Long>) componentIds) {
-			ComponentBean c = (ComponentBean) itsSession.get(ComponentBean.class, id);
+			Component c = (Component) itsSession.get(Component.class, id);
 			if (c != null) {
 				itsSession.delete(c);
 			}

@@ -24,16 +24,22 @@
 package askap.cp.calds;
 
 // Java imports
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-
+import java.util.Map.Entry;
 
 //ASKAPsoft imports
 import org.apache.log4j.Logger;
 import Ice.Current;
-import askap.cp.sms.SkyModelServiceImpl;
+import askap.cp.calds.persist.GainSolutionElementBean;
+import askap.cp.calds.persist.PersistenceInterface;
+import askap.cp.calds.persist.TimeTaggedGainSolutionBean;
 import askap.interfaces.caldataservice._ICalibrationDataServiceDisp;
 import askap.interfaces.calparams.CalibrationParameters;
 import askap.interfaces.calparams.JonesIndex;
+import askap.interfaces.calparams.JonesJTerm;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
@@ -47,16 +53,22 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	/** 
 	 * Logger
 	 */
-	private static Logger logger = Logger.getLogger(SkyModelServiceImpl.class
+	private static Logger logger = Logger.getLogger(CalibrationDataServiceImpl.class
 			.getName());
 	
 	private static final long serialVersionUID = 1L;
+	
+	/**
+	 * Class which provides access to the persistence layer
+	 */
+	private PersistenceInterface itsPersistance;
 	
 	/**
 	 * Constructor
 	 */
 	public CalibrationDataServiceImpl(Ice.Communicator ic) {
 		logger.info("Creating Calibration Data Service");
+		itsPersistance = new PersistenceInterface();
 	}
 
 	/**
@@ -66,23 +78,21 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 		logger.info("Destroying Calibration Data Service");
 	}
 	
+	/**
+	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addGainsSolution(askap.interfaces.calparams.TimeTaggedGainSolution, Ice.Current)
+	 */
+	@Override
+	public void addGainsSolution(TimeTaggedGainSolution solution, Current cur) {
+		itsPersistance.addGainSolution(solution);
+
+	}
 
 	/**
 	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addBandpassSolution(askap.interfaces.calparams.TimeTaggedBandpassSolution, Ice.Current)
 	 */
 	@Override
 	public void addBandpassSolution(TimeTaggedBandpassSolution solution, Current cur) {
-		// TODO Auto-generated method stub
-
-	}
-
-	/**
-	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addGainsSolution(askap.interfaces.calparams.TimeTaggedGainSolution, Ice.Current)
-	 */
-	@Override
-	public void addGainsSolution(TimeTaggedGainSolution solution, Current cur) {
-		// TODO Auto-generated method stub
-
+		//itsPersistance.addBandpassSolution(iceToBean(solution));
 	}
 
 	/**
@@ -90,7 +100,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public void addLeakageSolution(TimeTaggedLeakageSolution solution, Current cur) {
-		// TODO Auto-generated method stub
+		//itsPersistance.addLeakageSolution(iceToBean(solution));
 
 	}
 
@@ -102,5 +112,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+
 
 }

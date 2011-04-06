@@ -26,13 +26,10 @@
 package askap.cp.sms;
 
 // Java imports
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 // ASKAPsoft imports
 import Ice.Current;
-import askap.cp.sms.persist.ComponentBean;
 import askap.cp.sms.persist.PersistenceInterface;
 import askap.interfaces.skymodelservice.Component;
 import askap.interfaces.skymodelservice._ISkyModelServiceDisp;
@@ -85,9 +82,7 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	 */
 	@Override
 	public List<Component> getComponents(List<Long> componentIds, Current cur) {
-		List<ComponentBean> beans = itsPersistance.getComponents(componentIds);
-		List<Component> components = convertBeanToIce(beans);
-		return components;
+		return itsPersistance.getComponents(componentIds);
 	}
 
 	/**
@@ -95,8 +90,7 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	 */
 	@Override
 	public List<Long> addComponents(List<Component> components, Current cur) {
-		List<Long> ids = itsPersistance.addComponents(convertIceToBean(components));
-		return ids;
+		return itsPersistance.addComponents(components);
 	}
 
 	/**
@@ -105,42 +99,5 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	@Override
 	public void removeComponents(List<Long> componentIds, Current cur) {
 		itsPersistance.removeComponents(componentIds);
-	}
-	
-	List<askap.interfaces.skymodelservice.Component> convertBeanToIce(List<ComponentBean> beans) {
-		ArrayList<Component> components = new ArrayList<Component>();
-		
-		Iterator<ComponentBean> it = beans.iterator();
-		while (it.hasNext()) {
-			ComponentBean cb = it.next();
-			Component c = new Component();
-			c.id = cb.getId();
-			c.rightAscension = cb.getRightAscension();
-			c.declination = cb.getDeclination();
-			c.positionAngle = cb.getPositionAngle();
-			c.majorAxis = cb.getMajorAxis();
-			c.minorAxis = cb.getMinorAxis();
-			c.i1400 = cb.getI1400();
-			components.add(c);
-		}
-		return components;
-	}
-	
-	List<ComponentBean> convertIceToBean(List<askap.interfaces.skymodelservice.Component> components) {
-		ArrayList<ComponentBean> beans = new ArrayList<ComponentBean>();
-		
-		Iterator<Component> it = components.iterator();
-		while (it.hasNext()) {
-			Component c = it.next();
-			ComponentBean cb = new ComponentBean();
-			cb.setRightAscension(c.rightAscension);
-			cb.setDeclination(c.declination);
-			cb.setPositionAngle(c.positionAngle);
-			cb.setMajorAxis(c.majorAxis);
-			cb.setMinorAxis(c.minorAxis);
-			cb.setI1400(c.i1400);
-			beans.add(cb);
-		}
-		return beans;
 	}
 }
