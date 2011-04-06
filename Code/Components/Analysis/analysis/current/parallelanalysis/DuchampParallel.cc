@@ -1764,7 +1764,7 @@ namespace askap {
 		  if (this->itsCube.pars().getFlagATrous()) {
 		    array = new float[this->itsCube.getSize()];
 		    
-		    for (int i = 0; i < size; i++) array[i] = this->itsCube.getPixValue(i) - this->itsCube.getReconValue(i);
+		    for (int i = 0; i < this->itsCube.getSize(); i++) array[i] = this->itsCube.getPixValue(i) - this->itsCube.getReconValue(i);
 		  } else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
 		  else array = this->itsCube.getArray();
 		  
@@ -1778,6 +1778,7 @@ namespace askap {
 		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "StdDev = " << stddev);
 		}
 		else {
+		  // Only way to get here is for flagStatSec=true but statsec is invalid (ie. has no pixels in this worker)
 		  stddev = 0.;
 // 		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "No pixels to calculate StdDev");
 		}
