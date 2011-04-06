@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="WINDOWS-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="askap.interfaces.calparams">
+
+    <class name="JonesIndex" table="jones_index">
+        <id type="long"  column="id">
+            <generator class="native"/>
+        </id>
+        <property name="AntennaID" type="short" access="field" column="antenna_id" />
+        <property name="BeamID" type="short" access="field" column="beam_id"/>
+    </class>
+
+</hibernate-mapping>
+

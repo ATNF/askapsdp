@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="WINDOWS-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="askap.interfaces.calparams">
+
+	<class name="JonesJTerm" table="jones_jterm">
+		<id type="long" column="id">
+			<generator class="native" />
+		</id>
+
+		<array name="g1" access="field" table="g1" cascade="all-delete-orphan">
+			<!-- The key column relates the element back to the parent -->
+			<key column="parent_id" />
+
+			<!-- The list-index uniquely identifies the element -->
+			<list-index column="id" />
+
+			<one-to-many class="askap.interfaces.DoubleComplex" />
+		</array>
+
+		<array name="g2" access="field" table="g2" cascade="all-delete-orphan">
+			<!-- The key column relates the element back to the parent -->
+			<key column="parent_id" />
+
+			<!-- The list-index uniquely identifies the element -->
+			<list-index column="id" />
+
+			<one-to-many class="askap.interfaces.DoubleComplex" />
+		</array>
+
+	</class>
+
+</hibernate-mapping>
+

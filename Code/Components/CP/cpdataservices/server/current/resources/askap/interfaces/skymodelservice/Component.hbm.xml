@@ -3,8 +3,8 @@
 
 <hibernate-mapping package="askap.interfaces.skymodelservice">
 
-    <class name="Component" table="components_ice">
-        <id name="id" type="long" access="field" column="ID">
+    <class name="Component" table="components">
+        <id name="id" type="long" access="field" column="id">
             <generator class="native"/>
         </id>
         <property name="rightAscension" type="double" access="field" column="right_ascension" />

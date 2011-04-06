@@ -26,17 +26,11 @@
 package askap.cp.calds.persist;
 
 // ASKAPsoft imports
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
-import askap.interfaces.calparams.JonesJTerm;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
@@ -80,37 +74,20 @@ public class PersistenceInterface {
 	
 	public void addGainSolution(TimeTaggedGainSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		//itsSession.save(solution);
+		itsSession.save(solution);
 		tx.commit();
 	}
 	
 	public void addLeakageSolution(TimeTaggedLeakageSolution solution) {
-		//Transaction tx = itsSession.beginTransaction();
-		//itsSession.save(solution);
-		//tx.commit();
+		Transaction tx = itsSession.beginTransaction();
+		itsSession.save(solution);
+		tx.commit();
 	}
 	
 	public void addBandpassSolution(TimeTaggedBandpassSolution solution) {
-		//Transaction tx = itsSession.beginTransaction();
-		//itsSession.save(solution);
-		//tx.commit();
-	}
-	
-	/*
-	 * 
-	 */
-	TimeTaggedGainSolutionBean iceToBean(TimeTaggedGainSolution solution) {
-		List<GainSolutionElementBean> solutionElements = new ArrayList<GainSolutionElementBean>();
-		Map<askap.interfaces.calparams.JonesIndex, JonesJTerm> gainsMap = solution.gain;
-		
-		for (Entry<askap.interfaces.calparams.JonesIndex, JonesJTerm> entry : gainsMap.entrySet()) {
-			GainSolutionElementBean eb = new GainSolutionElementBean();
-			
-			solutionElements.add(eb);
-		}
-		
-		return new TimeTaggedGainSolutionBean(solution.timestamp, solutionElements);
-	
+		Transaction tx = itsSession.beginTransaction();
+		itsSession.save(solution);
+		tx.commit();
 	}
 
 }

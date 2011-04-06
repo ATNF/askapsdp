@@ -27,9 +27,9 @@ import static org.junit.Assert.*;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
+// ASKAPsoft imports
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -38,8 +38,12 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
+import askap.interfaces.DoubleComplex;
+import askap.interfaces.calparams.JonesIndex;
+import askap.interfaces.calparams.JonesJTerm;
+import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
+import askap.interfaces.calparams.TimeTaggedLeakageSolution;
 
 /**
  * 
@@ -95,8 +99,14 @@ public class PersistenceInterfaceTest {
 		config.setProperty("hibernate.cache.provider_class", "org.hibernate.cache.HashtableCacheProvider");
 		config.setProperty("hibernate.hbm2ddl.auto", "create-drop");
 		config.setProperty("hibernate.show_sql", "true");
-		config.addClass(askap.cp.calds.persist.TimeTaggedGainSolutionBean.class);
-		
+		config.addClass(askap.interfaces.DoubleComplex.class);
+		config.addClass(askap.interfaces.calparams.JonesIndex.class);
+		config.addClass(askap.interfaces.calparams.JonesJTerm.class);
+		config.addClass(askap.interfaces.calparams.TimeTaggedGainSolution.class);
+		config.addClass(askap.interfaces.calparams.TimeTaggedLeakageSolution.class);
+		config.addClass(askap.interfaces.calparams.FrequencyDependentJTerm.class);
+		config.addClass(askap.interfaces.calparams.TimeTaggedBandpassSolution.class);
+
 		SessionFactory sessionFactory = config.buildSessionFactory();
 		itsSession = sessionFactory.openSession();
 		
@@ -128,9 +138,18 @@ public class PersistenceInterfaceTest {
 	@Test
 	public void testAddGainSolution() {
 		// Add a Gain Solution
-		TimeTaggedGainSolution solution = new TimeTaggedGainSolution();
+		/*TimeTaggedGainSolution solution = new TimeTaggedGainSolution();
 		solution.timestamp = 123;
-		itsInstance.addGainSolution(solution);
+		
+		// Add the gains
+		JonesJTerm jterm = new JonesJTerm();
+		jterm.g1 = new DoubleComplex[1];
+		jterm.g2 = new DoubleComplex[1];
+		JonesIndex jind = new JonesIndex();
+		solution.gain = new HashMap<JonesIndex, JonesJTerm>();
+		solution.gain.put(jind, jterm);
+		
+		itsInstance.addGainSolution(solution);*/
 	}
 
 	/**
@@ -138,7 +157,10 @@ public class PersistenceInterfaceTest {
 	 */
 	@Test
 	public void testAddLeakageSolution() {
-		//fail("Not yet implemented");
+		// Add a Leakage Solution
+		TimeTaggedLeakageSolution solution = new TimeTaggedLeakageSolution();
+		solution.timestamp = 123;
+		itsInstance.addLeakageSolution(solution);
 	}
 
 	/**
@@ -146,7 +168,10 @@ public class PersistenceInterfaceTest {
 	 */
 	@Test
 	public void testAddBandpassSolution() {
-		//fail("Not yet implemented");
+		// Add a Bandpass Solution
+		TimeTaggedBandpassSolution solution = new TimeTaggedBandpassSolution();
+		solution.timestamp = 123;
+		itsInstance.addBandpassSolution(solution);
 	}
 
 }

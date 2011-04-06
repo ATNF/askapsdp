@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="WINDOWS-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="askap.interfaces.calparams">
+
+	<class name="TimeTaggedGainSolution" table="gain_solutions">
+		<id type="long" column="id">
+			<generator class="native" />
+		</id>
+		
+		<property name="timestamp" type="long" access="field" column="timestamp" />
+
+		<map name="gain" access="field" cascade="all-delete-orphan">
+			<key column="parent_id" not-null="true" />
+			<map-key-many-to-many column="jones_index" class="JonesIndex"/>
+			<one-to-many class="JonesJTerm" />
+		</map>
+
+	</class>
+
+</hibernate-mapping>

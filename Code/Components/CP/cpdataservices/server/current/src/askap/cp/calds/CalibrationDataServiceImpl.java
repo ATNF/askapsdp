@@ -24,22 +24,15 @@
 package askap.cp.calds;
 
 // Java imports
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 //ASKAPsoft imports
 import org.apache.log4j.Logger;
 import Ice.Current;
-import askap.cp.calds.persist.GainSolutionElementBean;
 import askap.cp.calds.persist.PersistenceInterface;
-import askap.cp.calds.persist.TimeTaggedGainSolutionBean;
 import askap.interfaces.caldataservice._ICalibrationDataServiceDisp;
 import askap.interfaces.calparams.CalibrationParameters;
 import askap.interfaces.calparams.JonesIndex;
-import askap.interfaces.calparams.JonesJTerm;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
@@ -112,7 +105,4 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-
-
 }
