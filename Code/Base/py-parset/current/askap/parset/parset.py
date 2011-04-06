@@ -248,7 +248,7 @@ class ParameterSet(object):
                 else:
                     self._docdict[k] = doc
             else:
-                child = ParameterSet()
+                child = self.__class__()
                 child.set_value(tail, v, doc)
                 self._pdict[k] = child
             self._keys.append(k)
