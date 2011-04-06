@@ -329,7 +329,7 @@ namespace askap {
 
                 for (int i = 0; i < size; i++) arrayCopy[i] = fabs(array[i] - middle);
 
-                bool isEven = ((size / 2) == 0);
+                bool isEven = ((size % 2) == 0);
                 std::nth_element(arrayCopy, arrayCopy + size / 2, arrayCopy + size);
                 spread = arrayCopy[size/2];
 
@@ -373,7 +373,7 @@ namespace askap {
 
                 for (int i = 0; i < size; i++) if (mask[i]) arrayCopy[j++] = fabs(array[i] - middle);
 
-                bool isEven = ((goodSize / 2) == 0);
+                bool isEven = ((goodSize % 2) == 0);
                 std::nth_element(arrayCopy, arrayCopy + goodSize / 2, arrayCopy + goodSize);
                 spread = arrayCopy[goodSize/2];
 
