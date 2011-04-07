@@ -259,6 +259,10 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
       return;
   }
   ASKAPCHECK(me, "Uninitialised shared pointer to the measurement equation has been encountered");
+  if (itsFlag.nrow() == 0) {
+      // initialise using the given accessor as a template
+      initialise(acc);
+  }
   accessors::MemBufferDataAccessor modelAcc(acc);
   me->predict(modelAcc);
   const casa::Cube<casa::Complex> &measuredVis = acc.visibility();
@@ -269,6 +273,12 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
   ASKAPDEBUGASSERT(measuredFlag.ncolumn() == acc.nChannel());
   ASKAPDEBUGASSERT(measuredFlag.nplane() == acc.nPol());
   const casa::uInt bufferNPol = nPol();
+  ASKAPDEBUGASSERT(bufferNPol == itsSumModelAmps.nplane());
+  ASKAPDEBUGASSERT(bufferNPol == itsSumVisProducts.nplane());
+  ASKAPDEBUGASSERT(modelVis.shape() == measuredVis.shape());
+  ASKAPDEBUGASSERT(modelVis.shape() == measuredNoise.shape());
+  ASKAPDEBUGASSERT(modelVis.shape() == measuredFlag.shape());
+  
   
   // references to metadata
   const casa::Vector<casa::uInt> &beam1 = acc.feed1();
@@ -292,6 +302,8 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
        }
        const casa::uInt bufRow = casa::uInt(matchRow);
        ASKAPDEBUGASSERT(bufRow < itsFlag.nrow());
+       ASKAPDEBUGASSERT(bufRow < itsSumModelAmps.nrow());
+       ASKAPDEBUGASSERT(bufRow < itsSumVisProducts.nrow());
        for (casa::uInt chan = 0; chan<acc.nChannel(); ++chan) {
             for (casa::uInt pol = 0; pol<acc.nPol(); ++pol) {
                  if ((pol < bufferNPol) && !measuredFlag(row,chan,pol)) {
@@ -299,10 +311,10 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
                      const float visNoise = casa::square(casa::real(measuredNoise(row,chan,pol)));
                      const float weight = (visNoise > 0.) ? 1./visNoise : 0.;
                      // the only supported case is averaging of all frequency channels together
-                     itsSumModelAmps(bufRow,1,pol) += weight * casa::abs(model);
-                     itsSumVisProducts(bufRow,1,pol) += weight * std::conj(model) * measuredVis(row,chan,pol);
+                     itsSumModelAmps(bufRow,0,pol) += weight * casa::abs(model);
+                     itsSumVisProducts(bufRow,0,pol) += weight * std::conj(model) * measuredVis(row,chan,pol);
                      // unflag this row because it now has some data
-                     itsFlag(bufRow,1,pol) = false;
+                     itsFlag(bufRow,0,pol) = false;
                  } else {
                      ++itsFlagIgnored;
                  }
