@@ -46,7 +46,7 @@ using namespace askap::synthesis;
 
 /// @brief default constructor
 /// @details preaveraging is initialised based on the first encountered accessor
-PreAvgCalBuffer::PreAvgCalBuffer() {}
+PreAvgCalBuffer::PreAvgCalBuffer() : itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0) {}
    
 /// @brief constructor with explicit averaging parameters
 /// @details This version of the constructor explicitly defines the number of 
@@ -55,7 +55,8 @@ PreAvgCalBuffer::PreAvgCalBuffer() {}
 /// @param[in] nBeam number of beams, indices are expected to run from 0 to nBeam-1
 PreAvgCalBuffer::PreAvgCalBuffer(casa::uInt nAnt, casa::uInt nBeam) : itsAntenna1(nBeam*nAnt*(nAnt-1)/2), 
       itsAntenna2(nBeam*nAnt*(nAnt-1)/2), itsBeam(nBeam*nAnt*(nAnt-1)/2), itsFlag(nBeam*nAnt*(nAnt-1)/2,1,4),
-      itsSumModelAmps(nBeam*nAnt*(nAnt-1)/2,1,4), itsSumVisProducts(nBeam*nAnt*(nAnt-1)/2,1,4)
+      itsSumModelAmps(nBeam*nAnt*(nAnt-1)/2,1,4), itsSumVisProducts(nBeam*nAnt*(nAnt-1)/2,1,4),
+      itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0)
 {
   initialise(nAnt,nBeam);
 }      
@@ -95,6 +96,10 @@ void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc)
   itsFlag.set(true); 
   itsSumModelAmps.set(0.);
   itsSumVisProducts.set(casa::Complex(0.,0.));  
+  // initialise stats
+  itsVisTypeIgnored = 0;
+  itsNoMatchIgnored = 0;
+  itsFlagIgnored = 0;
 }
    
 /// @brief initialise accumulation explicitly
@@ -129,6 +134,11 @@ void PreAvgCalBuffer::initialise(casa::uInt nAnt, casa::uInt nBeam)
             }
        }
   }
+  
+  // initialise stats
+  itsVisTypeIgnored = 0;
+  itsNoMatchIgnored = 0;
+  itsFlagIgnored = 0;
 }
    
 // implemented accessor methods
@@ -270,12 +280,14 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
   for (casa::uInt row = 0; row<acc.nRow(); ++row) {
        if ((beam1[row] != beam2[row]) || (antenna1[row] == antenna2[row])) {
            // cross-beam correlations and auto-correlations are not supported
+           itsVisTypeIgnored += acc.nChannel() * acc.nPol();
            continue;
        }
        // search which row of the buffer corresponds to the same metadata
        const int matchRow = findMatch(antenna1[row],antenna2[row],beam1[row]);
        if (matchRow<0) {
            // there is no match, skip this sample
+           itsNoMatchIgnored += acc.nChannel() * acc.nPol();
            continue;
        }
        const casa::uInt bufRow = casa::uInt(matchRow);
@@ -291,6 +303,8 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
                      itsSumVisProducts(bufRow,1,pol) += weight * std::conj(model) * measuredVis(row,chan,pol);
                      // unflag this row because it now has some data
                      itsFlag(bufRow,1,pol) = false;
+                 } else {
+                     ++itsFlagIgnored;
                  }
             }
        }

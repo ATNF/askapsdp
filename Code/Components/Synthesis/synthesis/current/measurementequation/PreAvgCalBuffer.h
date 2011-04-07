@@ -149,6 +149,27 @@ public:
    /// @note only predict method of the measurement equation is used.
    void accumulate(const IConstDataAccessor &acc, const boost::shared_ptr<IMeasurementEquation const> &me);
 
+   // access stats
+   
+   /// @brief number of visibilities ignored due to type
+   /// @details This includes auto-correlations and cross-beam cross-correlations.
+   /// @return number of visibilities ignored due to visibility type
+   inline casa::uInt ignoredDueToType() const { return itsVisTypeIgnored;}
+   
+   /// @brief number of visibilities ignored due to lack of match
+   /// @details This covers the visibilities which fell outside the range of
+   /// indices covered by this buffer
+   /// @return number of ignored visibilities due to lack of match
+   inline casa::uInt ignoredNoMatch() const { return itsNoMatchIgnored;}
+   
+   /// @brief number of visibilities ignored due to flags
+   /// @details This includes visibilities flagged in the input accessor
+   /// and visibilities which correspond to polarisation products not managed 
+   /// by the buffer.
+   /// @return number of visibilities ignored due to flags
+   inline casa::uInt ignoredDueToFlags() const { return itsFlagIgnored;}
+   
+
 protected:
    /// @brief helper method to find a match row in the buffer
    /// @details It goes over antenna and beam indices and finds a buffer row which 
@@ -183,6 +204,22 @@ private:
    /// @return nRow x nChannel x nPol cube with weighted sums of 
    /// products between measured and conjugated model visibilities (complex-valued)
    casa::Cube<casa::Complex> itsSumVisProducts;
+   
+   // statistics on the number of samples excluded due to various criteria
+   
+   /// @brief number of ignored samples due to visibility type
+   /// @details (autocorrelation or cross-beam visibility)
+   casa::uInt itsVisTypeIgnored;
+   
+   /// @brief number of ignored samples due to lack of match
+   /// @details We increment this number everytime a visibility sample
+   /// is ignored because it doesn't match any row in the buffer
+   casa::uInt itsNoMatchIgnored;
+   
+   /// @brief number of ignored samples due to flags in the input accessor
+   /// @details This number also accounts for the ignored samples due to 
+   /// polarisation index being too large (beyond the range of the buffer)
+   casa::uInt itsFlagIgnored;
 };
 
 } // namespace synthesis
