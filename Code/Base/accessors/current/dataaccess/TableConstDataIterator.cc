@@ -807,15 +807,13 @@ void TableConstDataIterator::fillParallacticAngleCache(casa::Vector<casa::Double
            const casa::Double pAngle=dirConv(antReferenceDir).
                                positionAngle(dirConv(celestialPole).getValue());
            angles[ant] = pAngle;
-                                                    
+       } else if (antMount == "FIXED"  ||  antMount == "fixed") {
+           // LOFAR has a fixed antenna mount.
+           angles[ant] = 0.;
        } else if (antMount != "EQUATORIAL" && antMount != "equatorial") {
            ASKAPTHROW(DataAccessError,"Unknown mount type "<<antMount<<
               " for antenna "<<ant);
-       } else {
-           // just in case we ever have a mixed array with different mounts
-           angles[ant] = 0.;
        }
-                  
     }   
   } // if all equatorial
 }
