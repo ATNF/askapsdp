@@ -25,15 +25,22 @@
  */
 package askap.cp.calds.persist;
 
+// Java imports
+import java.util.Map;
+
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import askap.interfaces.DoubleComplex;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
+import askap.interfaces.calparams.JonesIndex;
+import askap.interfaces.calparams.JonesJTerm;
+import askap.interfaces.calparams.FrequencyDependentJTerm;
 
 public class PersistenceInterface {
 	/** Logger. */
@@ -74,19 +81,46 @@ public class PersistenceInterface {
 	
 	public void addGainSolution(TimeTaggedGainSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		itsSession.save(solution);
+		itsSession.save(new GainSolutionBean(solution.timestamp));
+		for (Map.Entry<JonesIndex,JonesJTerm> entry : solution.gain.entrySet()) {
+			JonesIndex key = entry.getKey();
+			JonesJTerm value = entry.getValue();
+			itsSession.save(new GainSolutionElementBean(solution.timestamp,
+					key.antennaID, key.beamID,
+					value.g1.real, value.g1.imag, value.g1Valid,
+					value.g2.real, value.g2.imag, value.g2Valid));
+		}
 		tx.commit();
 	}
 	
 	public void addLeakageSolution(TimeTaggedLeakageSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		itsSession.save(solution);
+		itsSession.save(new LeakageSolutionBean(solution.timestamp));
+		for (Map.Entry<JonesIndex,DoubleComplex> entry : solution.leakage.entrySet()) {
+			JonesIndex key = entry.getKey();
+			DoubleComplex value = entry.getValue();
+			itsSession.save(new LeakageSolutionElementBean(solution.timestamp,
+					key.antennaID, key.beamID,
+					value.real, value.imag));
+		}
 		tx.commit();
 	}
 	
 	public void addBandpassSolution(TimeTaggedBandpassSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		itsSession.save(solution);
+		itsSession.save(new BandpassSolutionBean(solution.timestamp, solution.nChan));
+		for (Map.Entry<JonesIndex,FrequencyDependentJTerm> entry : solution.bandpass.entrySet()) {
+			JonesIndex key = entry.getKey();
+			FrequencyDependentJTerm value = entry.getValue();
+			int chan = 1;
+			for (JonesJTerm jterm: value.bandpass) {
+				itsSession.save(new BandpassSolutionElementBean(solution.timestamp,
+						key.antennaID, key.beamID, chan,
+						jterm.g1.real, jterm.g1.imag, jterm.g1Valid,
+						jterm.g2.real, jterm.g2.imag, jterm.g2Valid));
+				chan++;
+			}
+		}
 		tx.commit();
 	}
 

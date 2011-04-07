@@ -76,8 +76,11 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public void addGainsSolution(TimeTaggedGainSolution solution, Current cur) {
+		if (solution.gain == null) {
+			logger.warn("Hash in passed gain solution is null");
+			return;
+		}
 		itsPersistance.addGainSolution(solution);
-
 	}
 
 	/**
@@ -85,7 +88,11 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public void addBandpassSolution(TimeTaggedBandpassSolution solution, Current cur) {
-		//itsPersistance.addBandpassSolution(iceToBean(solution));
+		if (solution.bandpass == null) {
+			logger.warn("Hash in passed bandpass solution is null");
+			return;
+		}
+		itsPersistance.addBandpassSolution(solution);
 	}
 
 	/**
@@ -93,8 +100,11 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public void addLeakageSolution(TimeTaggedLeakageSolution solution, Current cur) {
-		//itsPersistance.addLeakageSolution(iceToBean(solution));
-
+		if (solution.leakage == null) {
+			logger.warn("Hash in passed leakage solution is null");
+			return;
+		}
+		itsPersistance.addLeakageSolution(solution);
 	}
 
 	/**

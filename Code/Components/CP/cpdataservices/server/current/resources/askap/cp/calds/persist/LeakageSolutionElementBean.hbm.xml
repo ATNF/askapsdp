@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="WINDOWS-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="askap.cp.calds.persist">
+
+	<class name="LeakageSolutionElementBean" table="leakage_solution_elements">
+		<id type="long" column="id">
+			<generator class="native" />
+		</id>
+
+		<property name="timestamp" type="long" column="timestamp" />
+
+		<property name="antennaID" type="short" column="antennaID" />
+		<property name="beamID" type="short" column="beamID" />
+
+		<property name="leakageReal" type="double" column="leakage_real" />
+		<property name="leakageImag" type="double" column="leakage_imag" />
+
+
+
+	</class>
+
+</hibernate-mapping>

@@ -29,13 +29,12 @@
         <!-- Enables autocommit for JDBC pooled connections -->
         <property name="hibernate.connection.autocommit">true</property>
 
-        <mapping resource="askap/interfaces/DoubleComplex.hbm.xml"/>
-		<mapping resource="askap/interfaces/calparams/JonesIndex.hbm.xml"/>
-		<mapping resource="askap/interfaces/calparams/JonesJTerm.hbm.xml"/>
-		<mapping resource="askap/interfaces/calparams/TimeTaggedGainSolution.hbm.xml"/>
-		<mapping resource="askap/interfaces/calparams/TimeTaggedLeakageSolution.hbm.xml"/>
-		<mapping resource="askap/interfaces/calparams/FrequencyDependentJTerm.hbm.xml"/>
-		<mapping resource="askap/interfaces/calparams/TimeTaggedBandpassSolution.hbm.xml"/>
+		<mapping resource="askap/cp/calds/persist/GainSolutionBean.hbm.xml"/>
+		<mapping resource="askap/cp/calds/persist/GainSolutionElementBean.hbm.xml"/>
+		<mapping resource="askap/cp/calds/persist/LeakageSolutionBean.hbm.xml"/>
+		<mapping resource="askap/cp/calds/persist/LeakageSolutionElementBean.hbm.xml"/>
+		<mapping resource="askap/cp/calds/persist/BandpassSolutionBean.hbm.xml"/>
+		<mapping resource="askap/cp/calds/persist/BandpassSolutionElementBean.hbm.xml"/>
 
     </session-factory>
 

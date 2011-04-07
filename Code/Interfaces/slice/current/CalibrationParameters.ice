@@ -41,21 +41,25 @@ module calparams
 
 /** Jones Index */
 struct JonesIndex {
-    short AntennaID;
-    short BeamID;
+    short antennaID;
+    short beamID;
 };
 
 /**
  * Jones J-Term 
- * Design Note: Sequence may be an overkill here, but one have to account for the
- * possibility that either g11 or g22 is undefined. Bool flag instead?
  */
 struct JonesJTerm {
     // Gain for polarisation 1
-    DoubleComplexSeq g1;
+    DoubleComplex g1;
+
+    // Flag for polarisation 1 gain, indicating validity.
+    bool g1Valid;
 
     // Gain for polarisation 2
-    DoubleComplexSeq g2;
+    DoubleComplex g2;
+
+    // Flag for polarisation 2 gain, indicating validity.
+    bool g2Valid;
 };
  
 // Only one independent value, i.e. leakage + cross-pol phase
@@ -66,9 +70,6 @@ struct JonesJTerm {
 sequence<JonesJTerm> JonesJTermSeq;
 
 struct FrequencyDependentJTerm {
-    /** Number of channels */
-    int nChan;
-
     /** Bandpass solution. The sequence is size nChan */
     JonesJTermSeq bandpass;
 };
@@ -104,6 +105,9 @@ struct TimeTaggedLeakageSolution {
 struct TimeTaggedBandpassSolution {
     /** Absolute time expressed as microseconds since MJD=0. */
     long timestamp;
+
+    /** Number of channels */
+    int nChan;
 
     /** Bandpass solution */
     BandpassSolution bandpass;
