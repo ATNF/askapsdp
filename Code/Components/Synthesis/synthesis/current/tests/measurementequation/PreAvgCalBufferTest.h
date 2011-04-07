@@ -54,6 +54,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
 {
   CPPUNIT_TEST_SUITE(PreAvgCalBufferTest);
   CPPUNIT_TEST(testInitByAccessor);
+  CPPUNIT_TEST(testInitExplicit);
   CPPUNIT_TEST(testAccumulate);
   CPPUNIT_TEST_SUITE_END();
       
@@ -76,6 +77,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          accessors::DataAccessorStub &da = dynamic_cast<accessors::DataAccessorStub&>(*itsIter);
          ASKAPASSERT(da.itsStokes.nelements() == 1);
          da.itsStokes[0] = casa::Stokes::XX;   
+         da.itsNoise.set(1.0);
          
          itsME.reset(new ComponentEquation(*itsParams, itsIter));               
      }
@@ -85,17 +87,110 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+         CPPUNIT_ASSERT_EQUAL(itsIter->nRow(),pacBuf.nRow());
+         CPPUNIT_ASSERT_EQUAL(1u,pacBuf.nChannel());
+         CPPUNIT_ASSERT_EQUAL(itsIter->nPol(),pacBuf.nPol());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nRow(),pacBuf.flag().nrow());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(),pacBuf.flag().nplane());
+         CPPUNIT_ASSERT_EQUAL(1u,pacBuf.flag().ncolumn());
+                  
+         for (casa::uInt row=0; row < pacBuf.nRow(); ++row)  {
+              CPPUNIT_ASSERT_EQUAL(itsIter->antenna1()[row],pacBuf.antenna1()[row]);
+              CPPUNIT_ASSERT_EQUAL(itsIter->antenna2()[row],pacBuf.antenna2()[row]);
+              CPPUNIT_ASSERT_EQUAL(itsIter->feed1()[row],pacBuf.feed1()[row]);
+              CPPUNIT_ASSERT_EQUAL(itsIter->feed2()[row],pacBuf.feed2()[row]);
+              for (casa::uInt pol=0; pol<pacBuf.nPol(); ++pol) {
+                   CPPUNIT_ASSERT_EQUAL(true,pacBuf.flag()(row,0,pol));
+              }              
+         }
+     }
+     
+     void testInitExplicit() {
+         // 20 antennas instead of 30 available, 2 beams instead of 1 available in the stubbed
+         // accessor
+         PreAvgCalBuffer pacBuf(20,2);
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+         // 20 antennas and 2 beams give 380 rows; 4 polarisation by default
+         CPPUNIT_ASSERT_EQUAL(380u,pacBuf.nRow());
+         CPPUNIT_ASSERT_EQUAL(1u,pacBuf.nChannel());
+         CPPUNIT_ASSERT_EQUAL(4u,pacBuf.nPol());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nRow(),pacBuf.flag().nrow());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(),pacBuf.flag().nplane());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nChannel(),pacBuf.flag().ncolumn());
+         
+         CPPUNIT_ASSERT(itsME);
+         CPPUNIT_ASSERT(itsIter);
+         
+         // simulate visibilities
+         itsME->predict(*itsIter);
+         
+         pacBuf.accumulate(*itsIter, itsME);
+         
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         // (435 - 190) * 8 = 1960 samples unaccounted for 
+         // (accessor has 1 polarisation)
+         CPPUNIT_ASSERT_EQUAL(1960u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+
+         for (casa::uInt row=0; row<pacBuf.nRow(); ++row) {
+              CPPUNIT_ASSERT_EQUAL(pacBuf.feed1()[row], pacBuf.feed2()[row]);
+              for (casa::uInt pol=0; pol<pacBuf.nPol(); ++pol) {
+                   if ((pol == 0) && (pacBuf.feed1()[row] == 0)) {
+                       CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,0,pol));
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(double(pacBuf.sumModelAmps()(row,0,pol)),
+                                              double(real(pacBuf.sumVisProducts()(row,0,pol))),1e-2);
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pacBuf.sumVisProducts()(row,0,pol))),1e-5);
+                       // 8 channels and 100 Jy source give sums of 80000 per accessor summed in
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(80000., double(pacBuf.sumModelAmps()(row,0,pol)),1e-2);
+                   } else {
+                       // nothing should be found in the accessor, so the appropriate samples should be flagged
+                       CPPUNIT_ASSERT_EQUAL(true, pacBuf.flag()(row,0,pol));                    
+                   }
+              }
+         }
+         
+     }
+     
+     void testResults(const PreAvgCalBuffer &pacBuf, const int run = 1) {
+         for (casa::uInt row=0; row<pacBuf.nRow(); ++row) {
+              CPPUNIT_ASSERT_EQUAL(pacBuf.feed1()[row], pacBuf.feed2()[row]);
+              for (casa::uInt pol=0; pol<pacBuf.nPol(); ++pol) {
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(double(pacBuf.sumModelAmps()(row,0,pol)),double(real(pacBuf.sumVisProducts()(row,0,pol))),1e-2*run);
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pacBuf.sumVisProducts()(row,0,pol))),1e-5);
+                   // 8 channels and 100 Jy source give sums of 80000 per accessor summed in
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(80000.*run, double(pacBuf.sumModelAmps()(row,0,pol)),1e-2*run);
+                   CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,0,pol));                       
+              }
+         }
      }
      
      void testAccumulate() {
          PreAvgCalBuffer pacBuf;
+         CPPUNIT_ASSERT(itsME);
+         CPPUNIT_ASSERT(itsIter);
+         
+         // simulate visibilities
+         itsME->predict(*itsIter);
          
          // buffer should be initialised by the first encountered accessor
          pacBuf.accumulate(*itsIter, itsME);
 
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
-         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());                  
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());
+         CPPUNIT_ASSERT_EQUAL(itsIter->nRow(),pacBuf.nRow());
+         CPPUNIT_ASSERT_EQUAL(1u,pacBuf.nChannel());
+         CPPUNIT_ASSERT_EQUAL(itsIter->nPol(),pacBuf.nPol());
+         testResults(pacBuf,1);                  
+
+         // add up another accessor
+         pacBuf.accumulate(*itsIter, itsME);         
+         testResults(pacBuf,2);                  
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
      }
 };
 } // namespace synthesis

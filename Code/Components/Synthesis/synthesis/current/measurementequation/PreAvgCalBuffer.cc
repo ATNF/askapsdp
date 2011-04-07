@@ -126,7 +126,7 @@ void PreAvgCalBuffer::initialise(casa::uInt nAnt, casa::uInt nBeam)
   
   for (casa::uInt beam=0,row=0; beam<nBeam; ++beam) {
        for (casa::uInt ant1=0; ant1<nAnt; ++ant1) {
-            for (casa::uInt ant2=0; ant2<ant1; ++ant2,++row) {
+            for (casa::uInt ant2 = ant1 + 1; ant2<nAnt; ++ant2,++row) {
                  ASKAPDEBUGASSERT(row<numberOfRows);
                  itsAntenna1[row] = ant1;
                  itsAntenna2[row] = ant2;
@@ -311,7 +311,7 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
                      const float visNoise = casa::square(casa::real(measuredNoise(row,chan,pol)));
                      const float weight = (visNoise > 0.) ? 1./visNoise : 0.;
                      // the only supported case is averaging of all frequency channels together
-                     itsSumModelAmps(bufRow,0,pol) += weight * casa::abs(model);
+                     itsSumModelAmps(bufRow,0,pol) += weight * casa::norm(model);
                      itsSumVisProducts(bufRow,0,pol) += weight * std::conj(model) * measuredVis(row,chan,pol);
                      // unflag this row because it now has some data
                      itsFlag(bufRow,0,pol) = false;
