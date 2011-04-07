@@ -40,6 +40,9 @@
 
 #include <dataaccess/DataAccessorAdapter.h>
 #include <dataaccess/IConstDataAccessor.h>
+#include <measurementequation/IMeasurementEquation.h>
+
+#include <boost/shared_ptr.hpp>
 
 namespace askap {
 
@@ -135,6 +138,27 @@ public:
    /// products between measured and conjugated model visibilities (complex-valued)
    const casa::Cube<casa::Complex>& sumVisProducts() const;
    
+   // the actual summing in of an accessor with data
+   
+   /// @brief process one accessor
+   /// @details This method processes the given accessor and updates the internal 
+   /// buffers. The measurement equation is used to calculate model visibilities 
+   /// corresponding to measured visibilities.
+   /// @param[in] acc input accessor with measured data
+   /// @param[in] me shared pointer to the measurement equation
+   /// @note only predict method of the measurement equation is used.
+   void accumulate(const IConstDataAccessor &acc, const boost::shared_ptr<IMeasurementEquation const> &me);
+
+protected:
+   /// @brief helper method to find a match row in the buffer
+   /// @details It goes over antenna and beam indices and finds a buffer row which 
+   /// corresponds to the given indices.
+   /// @param[in] ant1 index of the first antenna
+   /// @param[in] ant2 index of the second antenna
+   /// @param[in] beam beam index
+   /// @return row number in the buffer corresponding to the given (ant1,ant2,beam) or -1 if 
+   /// there is no match
+   int findMatch(casa::uInt ant1, casa::uInt ant2, casa::uInt beam); 
    
 private:
    /// @brief indices of the first antenna for all rows

@@ -37,6 +37,8 @@
 
 #include <measurementequation/PreAvgCalBuffer.h>
 #include <askap/AskapError.h>
+#include <dataaccess/MemBufferDataAccessor.h>
+
 
 
 using namespace askap;
@@ -210,3 +212,89 @@ const casa::Cube<casa::Complex>& PreAvgCalBuffer::sumVisProducts() const
 {
   return itsSumVisProducts;
 }
+
+/// @brief helper method to find a match row in the buffer
+/// @details It goes over antenna and beam indices and finds a buffer row which 
+/// corresponds to the given indices.
+/// @param[in] ant1 index of the first antenna
+/// @param[in] ant2 index of the second antenna
+/// @param[in] beam beam index
+/// @return row number in the buffer corresponding to the given (ant1,ant2,beam) or -1 if 
+/// there is no match
+int PreAvgCalBuffer::findMatch(casa::uInt ant1, casa::uInt ant2, casa::uInt beam)
+{
+  ASKAPDEBUGASSERT(itsAntenna1.nelements() == itsAntenna2.nelements());
+  ASKAPDEBUGASSERT(itsAntenna1.nelements() == itsBeam.nelements());
+  // we can probably implement a more clever search algorithm here because the 
+  // metadata are almost always ordered
+  for (casa::uInt row=0; row<itsAntenna1.nelements(); ++row) {
+       if ((itsAntenna1[row] == ant1) && (itsAntenna2[row] == ant2) && (itsBeam[row] == beam)) {
+           return int(row);
+       }
+  } 
+  return -1;
+}
+
+/// @brief process one accessor
+/// @details This method processes the given accessor and updates the internal 
+/// buffers. The measurement equation is used to calculate model visibilities 
+/// corresponding to measured visibilities.
+/// @param[in] acc input accessor with measured data
+/// @param[in] me shared pointer to the measurement equation
+/// @note only predict method of the measurement equation is used.
+void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::shared_ptr<IMeasurementEquation const> &me)
+{
+  if (acc.nRow() == 0) {
+      // nothing to process
+      return;
+  }
+  ASKAPCHECK(me, "Uninitialised shared pointer to the measurement equation has been encountered");
+  accessors::MemBufferDataAccessor modelAcc(acc);
+  me->predict(modelAcc);
+  const casa::Cube<casa::Complex> &measuredVis = acc.visibility();
+  const casa::Cube<casa::Complex> &modelVis = modelAcc.visibility();
+  const casa::Cube<casa::Complex> &measuredNoise = acc.noise();
+  const casa::Cube<casa::Bool> &measuredFlag = acc.flag();
+  ASKAPDEBUGASSERT(measuredFlag.nrow() == acc.nRow());
+  ASKAPDEBUGASSERT(measuredFlag.ncolumn() == acc.nChannel());
+  ASKAPDEBUGASSERT(measuredFlag.nplane() == acc.nPol());
+  const casa::uInt bufferNPol = nPol();
+  
+  // references to metadata
+  const casa::Vector<casa::uInt> &beam1 = acc.feed1();
+  const casa::Vector<casa::uInt> &beam2 = acc.feed2();
+  const casa::Vector<casa::uInt> &antenna1 = acc.antenna1();
+  const casa::Vector<casa::uInt> &antenna2 = acc.antenna2(); 
+  
+  ASKAPCHECK(nChannel() == 1, "Only single spectral channel is currently supported by the pre-averaging calibration buffer");
+  for (casa::uInt row = 0; row<acc.nRow(); ++row) {
+       if ((beam1[row] != beam2[row]) || (antenna1[row] == antenna2[row])) {
+           // cross-beam correlations and auto-correlations are not supported
+           continue;
+       }
+       // search which row of the buffer corresponds to the same metadata
+       const int matchRow = findMatch(antenna1[row],antenna2[row],beam1[row]);
+       if (matchRow<0) {
+           // there is no match, skip this sample
+           continue;
+       }
+       const casa::uInt bufRow = casa::uInt(matchRow);
+       ASKAPDEBUGASSERT(bufRow < itsFlag.nrow());
+       for (casa::uInt chan = 0; chan<acc.nChannel(); ++chan) {
+            for (casa::uInt pol = 0; pol<acc.nPol(); ++pol) {
+                 if ((pol < bufferNPol) && !measuredFlag(row,chan,pol)) {
+                     const casa::Complex model = modelVis(row,chan,pol);
+                     const float visNoise = casa::square(casa::real(measuredNoise(row,chan,pol)));
+                     const float weight = (visNoise > 0.) ? 1./visNoise : 0.;
+                     // the only supported case is averaging of all frequency channels together
+                     itsSumModelAmps(bufRow,1,pol) += weight * casa::abs(model);
+                     itsSumVisProducts(bufRow,1,pol) += weight * std::conj(model) * measuredVis(row,chan,pol);
+                     // unflag this row because it now has some data
+                     itsFlag(bufRow,1,pol) = false;
+                 }
+            }
+       }
+  }
+}
+
+
