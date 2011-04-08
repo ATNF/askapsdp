@@ -93,7 +93,7 @@ DataAccessorAdapter::DataAccessorAdapter(IDataAccessor &acc)
 /// copying by reference
 /// @param[in] other object to copy from
 DataAccessorAdapter::DataAccessorAdapter(const DataAccessorAdapter &other) : 
-          IDataAccessor(other), itsAccessor(other.itsAccessor) 
+          IConstDataAccessor(other),IDataAccessor(other), itsAccessor(other.itsAccessor) 
 {
   ASKAPTHROW(DataAccessLogicError, "Copy constructor is not supposed to be called for DataAccessorAdapter");
 }
