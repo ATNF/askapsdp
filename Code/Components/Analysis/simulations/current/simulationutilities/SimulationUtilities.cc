@@ -39,6 +39,14 @@
 #include <scimath/Functionals/Gaussian3D.h>
 #include <casa/namespace.h>
 
+#include <wcslib/wcs.h>
+#include <wcslib/wcsunits.h>
+#include <wcslib/wcsfix.h>
+#define WCSLIB_GETWCSTAB // define this so that we don't try to redefine wtbarr
+// (this is a problem when using wcslib-4.2)
+
+#include <Common/ParameterSet.h>
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -77,6 +85,116 @@ namespace askap {
             float z = sqrt(-2.*log(s) / s) * v1;
             return z*sigma + mean;
         }
+
+      struct wcsprm *parsetToWCS(const LOFAR::ParameterSet& theParset, const std::vector<unsigned int> &theAxes, const float &theEquinox, duchamp::Section &theSection)
+      {
+	/// @details Defines a world coordinate system from an
+	/// input parameter set. This looks for parameters that
+	/// define the various FITS header keywords for each
+	/// axis (ctype, cunit, crval, cdelt, crpix, crota), as
+	/// well as the equinox, then defines a WCSLIB wcsprm
+	/// structure and assigns it to either FITSfile::itsWCS
+	/// or FITSfile::itsWCSsources depending on the isImage
+	/// parameter.
+	/// @param theParset The input parset to be examined.
+	/// @param theDim The number of axes expected
+	/// @param theEquinox The value of the Equinox keyword
+	/// @param theSection A duchamp::Section object describing the subsection the current image inhabits - necessary for the crpix values.
+
+	const unsigned int theDim = theAxes.size();
+
+	struct wcsprm *wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+	wcs->flag = -1;
+	wcsini(true , theDim, wcs);
+	wcs->flag = 0;
+	std::vector<std::string> ctype, cunit;
+	std::vector<float> crval, crpix, cdelt, crota;
+	ctype = theParset.getStringVector("ctype");
+
+	if (ctype.size() != theDim)
+	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << theDim <<
+		     ", but ctype has " << ctype.size() << " dimensions.");
+
+	cunit = theParset.getStringVector("cunit");
+
+	if (cunit.size() != theDim)
+	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << theDim <<
+		     ", but cunit has " << cunit.size() << " dimensions.");
+
+	crval = theParset.getFloatVector("crval");
+
+	if (crval.size() != theDim)
+	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << theDim <<
+		     ", but crval has " << crval.size() << " dimensions.");
+
+	crpix = theParset.getFloatVector("crpix");
+
+	if (crpix.size() != theDim)
+	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << theDim <<
+		     ", but crpix has " << crpix.size() << " dimensions.");
+
+	cdelt = theParset.getFloatVector("cdelt");
+
+	if (cdelt.size() != theDim)
+	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << theDim <<
+		     ", but cdelt has " << cdelt.size() << " dimensions.");
+
+	crota = theParset.getFloatVector("crota");
+
+	if (crota.size() != theDim)
+	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << theDim <<
+		     ", but crota has " << crota.size() << " dimensions.");
+
+	for (uint i = 0; i < theDim; i++) {
+	  wcs->crpix[i] = crpix[i] - theSection.getStart(i) + 1;
+	  wcs->cdelt[i] = cdelt[i];
+	  wcs->crval[i] = crval[i];
+	  wcs->crota[i] = crota[i];
+	  strcpy(wcs->cunit[i], cunit[i].c_str());
+	  strcpy(wcs->ctype[i], ctype[i].c_str());
+	}
+
+	wcs->equinox = theEquinox;
+	wcsset(wcs);
+
+	int stat[NWCSFIX];
+	int *axes = new int[theDim];
+
+	for (uint i = 0; i < theDim; i++) axes[i] = theAxes[i];
+	wcsfix(1, (const int*)axes, wcs, stat);
+	wcsset(wcs);
+
+	delete [] axes;
+
+	return wcs;
+	// int nwcs = 1;
+
+	// if (isImage) {
+	//   if (this->itsWCSAllocated) wcsvfree(&nwcs, &this->itsWCS);
+
+	//   this->itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+	//   this->itsWCSAllocated = true;
+	//   this->itsWCS->flag = -1;
+	//   wcsini(true, wcs->naxis, this->itsWCS);
+	//   wcsfix(1, (const int*)axes, wcs, stat);
+	//   wcscopy(true, wcs, this->itsWCS);
+	//   wcsset(this->itsWCS);
+	// } else {
+	//   if (this->itsWCSsourcesAllocated)  wcsvfree(&nwcs, &this->itsWCSsources);
+
+	//   this->itsWCSsources = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+	//   this->itsWCSsourcesAllocated = true;
+	//   this->itsWCSsources->flag = -1;
+	//   wcsini(true, wcs->naxis, this->itsWCSsources);
+	//   wcsfix(1, (const int*)axes, wcs, stat);
+	//   wcscopy(true, wcs, this->itsWCSsources);
+	//   wcsset(this->itsWCSsources);
+	// }
+
+	// wcsvfree(&nwcs, &wcs);
+
+      }
+
 
         bool doAddGaussian(std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss)
         {

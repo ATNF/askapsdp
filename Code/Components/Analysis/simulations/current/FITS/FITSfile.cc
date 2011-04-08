@@ -384,59 +384,59 @@ namespace askap {
 	/// FITSfile::itsWCSsources.
 	/// @param parset The input parset to be examined.
 
-	struct wcsprm *wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
-	wcs->flag = -1;
-	wcsini(true , this->itsDim, wcs);
-	wcs->flag = 0;
-	std::vector<std::string> ctype, cunit;
-	std::vector<float> crval, crpix, cdelt, crota;
-	ctype = parset.getStringVector("ctype");
+	// struct wcsprm *wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
+	// wcs->flag = -1;
+	// wcsini(true , this->itsDim, wcs);
+	// wcs->flag = 0;
+	// std::vector<std::string> ctype, cunit;
+	// std::vector<float> crval, crpix, cdelt, crota;
+	// ctype = parset.getStringVector("ctype");
 
-	if (ctype.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-		     ", but ctype has " << ctype.size() << " dimensions.");
+	// if (ctype.size() != this->itsDim)
+	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
+	// 	     ", but ctype has " << ctype.size() << " dimensions.");
 
-	cunit = parset.getStringVector("cunit");
+	// cunit = parset.getStringVector("cunit");
 
-	if (cunit.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-		     ", but cunit has " << cunit.size() << " dimensions.");
+	// if (cunit.size() != this->itsDim)
+	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
+	// 	     ", but cunit has " << cunit.size() << " dimensions.");
 
-	crval = parset.getFloatVector("crval");
+	// crval = parset.getFloatVector("crval");
 
-	if (crval.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-		     ", but crval has " << crval.size() << " dimensions.");
+	// if (crval.size() != this->itsDim)
+	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
+	// 	     ", but crval has " << crval.size() << " dimensions.");
 
-	crpix = parset.getFloatVector("crpix");
+	// crpix = parset.getFloatVector("crpix");
 
-	if (crpix.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-		     ", but crpix has " << crpix.size() << " dimensions.");
+	// if (crpix.size() != this->itsDim)
+	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
+	// 	     ", but crpix has " << crpix.size() << " dimensions.");
 
-	cdelt = parset.getFloatVector("cdelt");
+	// cdelt = parset.getFloatVector("cdelt");
 
-	if (cdelt.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-		     ", but cdelt has " << cdelt.size() << " dimensions.");
+	// if (cdelt.size() != this->itsDim)
+	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
+	// 	     ", but cdelt has " << cdelt.size() << " dimensions.");
 
-	crota = parset.getFloatVector("crota");
+	// crota = parset.getFloatVector("crota");
 
-	if (crota.size() != this->itsDim)
-	  ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-		     ", but crota has " << crota.size() << " dimensions.");
+	// if (crota.size() != this->itsDim)
+	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
+	// 	     ", but crota has " << crota.size() << " dimensions.");
 
-	for (uint i = 0; i < this->itsDim; i++) {
-	  wcs->crpix[i] = crpix[i] - this->itsSourceSection.getStart(i);
-	  wcs->cdelt[i] = cdelt[i];
-	  wcs->crval[i] = crval[i];
-	  wcs->crota[i] = crota[i];
-	  strcpy(wcs->cunit[i], cunit[i].c_str());
-	  strcpy(wcs->ctype[i], ctype[i].c_str());
-	}
+	// for (uint i = 0; i < this->itsDim; i++) {
+	//   wcs->crpix[i] = crpix[i] - this->itsSourceSection.getStart(i) + 1;
+	//   wcs->cdelt[i] = cdelt[i];
+	//   wcs->crval[i] = crval[i];
+	//   wcs->crota[i] = crota[i];
+	//   strcpy(wcs->cunit[i], cunit[i].c_str());
+	//   strcpy(wcs->ctype[i], ctype[i].c_str());
+	// }
 
-	wcs->equinox = this->itsEquinox;
-	wcsset(wcs);
+	// wcs->equinox = this->itsEquinox;
+	// wcsset(wcs);
 
 	int stat[NWCSFIX];
 	int axes[this->itsAxes.size()];
@@ -444,26 +444,33 @@ namespace askap {
 	for (uint i = 0; i < this->itsAxes.size(); i++) axes[i] = this->itsAxes[i];
 
 	int nwcs = 1;
+	struct wcsprm *wcs;
 
 	if (isImage) {
 	  if (this->itsWCSAllocated) wcsvfree(&nwcs, &this->itsWCS);
 
+	  //this->itsWCS = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
+	  wcs = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
 	  this->itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
 	  this->itsWCSAllocated = true;
 	  this->itsWCS->flag = -1;
 	  wcsini(true, wcs->naxis, this->itsWCS);
 	  wcsfix(1, (const int*)axes, wcs, stat);
 	  wcscopy(true, wcs, this->itsWCS);
+	  //wcscopy(true, parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection), this->itsWCS);
 	  wcsset(this->itsWCS);
 	} else {
 	  if (this->itsWCSsourcesAllocated)  wcsvfree(&nwcs, &this->itsWCSsources);
 
+	  //this->itsWCS = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
+	  wcs = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
 	  this->itsWCSsources = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
 	  this->itsWCSsourcesAllocated = true;
 	  this->itsWCSsources->flag = -1;
 	  wcsini(true, wcs->naxis, this->itsWCSsources);
 	  wcsfix(1, (const int*)axes, wcs, stat);
 	  wcscopy(true, wcs, this->itsWCSsources);
+	  // wcscopy(true, parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection), this->itsWCSsources);
 	  wcsset(this->itsWCSsources);
 	}
 
@@ -543,7 +550,7 @@ namespace askap {
 
 	  while (getline(srclist, line),
 		 !srclist.eof()) {
-	    //		      ASKAPLOG_DEBUG_STR(logger, "input = " << line);
+	    		      ASKAPLOG_DEBUG_STR(logger, "input = " << line);
 
 	    if (line[0] != '#') {  // ignore commented lines
 
@@ -605,6 +612,7 @@ namespace askap {
 
 	      if (this->itsFlagOutputList) {
 		pixToWCSSingle(this->itsWCS, pix, newwld);
+		// if(!this->itsFlagOutputListGoodOnly && doAddPointSource(this->itsAxes,pix)){  // use doAddPointSource since this just checks central position
 		if(!this->itsFlagOutputListGoodOnly){
 		  if (this->itsPosType == "dms") 
 		    src->print(outfile,analysis::decToDMS(newwld[0],"RA"),analysis::decToDMS(newwld[1],"DEC"));
@@ -697,7 +705,7 @@ namespace askap {
 		  }
 		}
 		if(addedSource){
-		  if(this->itsFlagOutputList && this->itsFlagOutputListGoodOnly){
+		  if(this->itsFlagOutputList && this->itsFlagOutputListGoodOnly && doAddPointSource(this->itsAxes,pix)){
 		    if (this->itsPosType == "dms") 
 		      src->print(outfile,analysis::decToDMS(newwld[0],"RA"),analysis::decToDMS(newwld[1],"DEC"));
 		    else 
