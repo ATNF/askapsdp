@@ -76,8 +76,8 @@ namespace synthesis {
 /// implements predict/calcEquations methods and can be used with the solvers
 /// in the usual way.
 /// @ingroup measurementequation
-template<typename Effect>
-class CalibrationME : public CalibrationMEBase 
+template<typename Effect,typename Base = CalibrationMEBase>
+class CalibrationME : public Base
 {
 public:
 
@@ -91,13 +91,13 @@ public:
   CalibrationME(const askap::scimath::Params& ip,
           const accessors::IDataSharedIter& idi, 
           const boost::shared_ptr<IMeasurementEquation const> &ime) :
-            scimath::Equation(ip), MultiChunkEquation(idi), askap::scimath::GenericEquation(parameters()),
-            CalibrationMEBase(parameters(), idi, ime), itsEffect(rwParameters()) {}
+            scimath::Equation(ip), MultiChunkEquation(idi), askap::scimath::GenericEquation(ip),
+            Base(ip, idi, ime), itsEffect(Base::rwParameters()) {}
   
   /// Clone this into a shared pointer
   /// @return shared pointer to a copy
-  virtual ShPtr clone() const
-     { return ShPtr(new CalibrationME<Effect>(*this)); }
+  virtual typename Base::ShPtr clone() const
+     { return (typename Base::ShPtr)(new CalibrationME<Effect>(*this)); }
 
 protected:  
   /// @brief a helper method to form a ComplexDiffMatrix for a given row
