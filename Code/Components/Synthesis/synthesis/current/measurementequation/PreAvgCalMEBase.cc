@@ -35,6 +35,12 @@
 #include <measurementequation/PreAvgCalMEBase.h>
 #include <dataaccess/IDataIterator.h>
 #include <askap/AskapError.h>
+#include <fitting/ComplexDiffMatrix.h>
+#include <fitting/ComplexDiff.h>
+#include <fitting/DesignMatrix.h>
+#include <casa/Arrays/MatrixMath.h>
+
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -98,7 +104,21 @@ void PreAvgCalMEBase::predict() const
 /// been accumulated.
 /// @param[in] ne normal equations to update
 void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) const
-{
+{  
+  for (casa::uInt row = 0; row < itsBuffer.nRow(); ++row) { 
+       casa::Matrix<casa::Complex> sumModelAmps = 
+            casa::RealToComplex(casa::transpose(itsBuffer.sumModelAmps().yzPlane(row)));
+       scimath::ComplexDiffMatrix cdm = buildComplexDiffMatrix(itsBuffer, row) *       
+            scimath::ComplexDiffMatrix(sumModelAmps);
+       casa::Matrix<casa::Complex> measuredSlice = transpose(itsBuffer.sumVisProducts().yzPlane(row));
+       
+       scimath::DesignMatrix designmatrix;
+       // we can probably add below actual weights taken from the data accessor
+       designmatrix.addModel(cdm, measuredSlice, 
+                 casa::Matrix<double>(measuredSlice.nrow(),
+                 measuredSlice.ncolumn(),1.));      
+       ne.add(designmatrix);
+  }
 }
   
 /// @brief initialise accumulation

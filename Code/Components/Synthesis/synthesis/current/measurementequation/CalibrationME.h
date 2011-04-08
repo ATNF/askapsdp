@@ -54,6 +54,7 @@
 #include <fitting/ComplexDiffMatrix.h>
 #include <fitting/ComplexDiff.h>
 #include <measurementequation/CalibrationMEBase.h>
+#include <measurementequation/PreAvgCalMEBase.h>
 
 
 namespace askap {
