@@ -37,6 +37,7 @@
 
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/CalibrationME.h>
+#include <measurementequation/PreAvgCalMEBase.h>
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/IdentityComponent.h>
 #include <measurementequation/Product.h>
@@ -61,7 +62,8 @@ namespace askap
     class CalibrationMETest : public CppUnit::TestFixture
     {
       CPPUNIT_TEST_SUITE(CalibrationMETest);
-      CPPUNIT_TEST(testSolve);
+      CPPUNIT_TEST(testSolveNoPreAvg);
+      CPPUNIT_TEST(testSolvePreAvg);      
       CPPUNIT_TEST_SUITE_END();
       
       private:
@@ -128,8 +130,26 @@ namespace askap
           //eq2.reset(new METype(*params2,idi,p2));
 
         }
+        
+        void testSolvePreAvg() 
+        {
+          // Predict with the "perfect" parameters"
+          eq1->predict();
+          std::vector<std::string> freeNames = params2->freeNames();
+          for (std::vector<std::string>::const_iterator it = freeNames.begin();
+               it!=freeNames.end();++it) {
+               if (it->find("gain") != 0) {
+                   params2->fix(*it);
+               }
+          }
+          typedef CalibrationME<NoXPolGain, PreAvgCalMEBase> PreAvgMEType;
+          // preaverage and iterate over the data
+          boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType(*params2));
+          CPPUNIT_ASSERT(preAvgEq);
+          preAvgEq->accumulate(idi,p2);
+        }
 
-        void testSolve()
+        void testSolveNoPreAvg()
         {
           // Predict with the "perfect" parameters"
           eq1->predict();

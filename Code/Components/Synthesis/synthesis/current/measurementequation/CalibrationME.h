@@ -82,6 +82,12 @@ class CalibrationME : public Base
 {
 public:
 
+  /// @brief constructor with just parameters
+  /// @param[in] ip Parameters
+  explicit CalibrationME(const askap::scimath::Params& ip) :
+    scimath::Equation(ip),
+            Base(ip), itsEffect(Base::rwParameters()) {}
+
   /// @brief Standard constructor using the parameters and the
   /// data iterator.
   /// @param[in] ip Parameters
@@ -98,7 +104,7 @@ public:
   /// Clone this into a shared pointer
   /// @return shared pointer to a copy
   virtual typename Base::ShPtr clone() const
-     { return (typename Base::ShPtr)(new CalibrationME<Effect>(*this)); }
+     { return (typename Base::ShPtr)(new CalibrationME<Effect,Base>(*this)); }
 
 protected:  
   /// @brief a helper method to form a ComplexDiffMatrix for a given row
