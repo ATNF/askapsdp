@@ -30,23 +30,32 @@ public class BandpassSolutionBean {
 	private long itsTimestamp;
 	private int itsNChan;
 	
+	/**
+	 * Constructor
+	 * @note This no-args constructor is needed by Hibernate
+	 */
+	public BandpassSolutionBean() {
+		itsTimestamp = -1;
+		itsNChan = -1;
+	}
+	
 	public BandpassSolutionBean(long timestamp, int nChan) {
-		this.itsTimestamp = timestamp;
-		this.itsNChan = nChan;
+		itsTimestamp = timestamp;
+		itsNChan = nChan;
 	}
 
 	/**
 	 * @return the timestamp
 	 */
 	public long getTimestamp() {
-		return this.itsTimestamp;
+		return itsTimestamp;
 	}
 
 	/**
 	 * @param timestamp the timestamp to set
 	 */
 	public void setTimestamp(long timestamp) {
-		this.itsTimestamp = timestamp;
+		itsTimestamp = timestamp;
 	}
 
 	/**
@@ -62,7 +71,7 @@ public class BandpassSolutionBean {
 	 * @param nChan the nChan to set
 	 */
 	public void setnChan(int nChan) {
-		this.itsNChan = nChan;
+		itsNChan = nChan;
 	}
 
 }

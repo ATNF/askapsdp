@@ -39,6 +39,19 @@ public class BandpassSolutionElementBean {
 	private double itsG2Imag;
 	private boolean itsG2Valid;
 	
+	/**
+	 * Constructor
+	 * @note This no-args constructor is needed by Hibernate
+	 */
+	public BandpassSolutionElementBean() {
+		itsTimestamp = -1;
+		itsAntennaID = -1;
+		itsBeamID = -1;
+		itsChan = -1;
+		itsG1Valid = false;
+		itsG2Valid = false;
+	}
+	
 	public BandpassSolutionElementBean(long timestamp,
 			short antennaID, short beamID, int chan,
 			double g1Real, double g1Imag, boolean g1Valid,
@@ -56,17 +69,17 @@ public class BandpassSolutionElementBean {
 	}
 
 	/**
-	 * @return the itsTimestamp
+	 * @return the timestamp
 	 */
 	public long getTimestamp() {
 		return itsTimestamp;
 	}
 
 	/**
-	 * @param itsTimestamp the itsTimestamp to set
+	 * @param timestamp the timestamp to set
 	 */
 	public void setTimestamp(long timestamp) {
-		this.itsTimestamp = timestamp;
+		itsTimestamp = timestamp;
 	}
 
 	/**
@@ -80,7 +93,7 @@ public class BandpassSolutionElementBean {
 	 * @param antennaID the antennaID to set
 	 */
 	public void setAntennaID(short antennaID) {
-		this.itsAntennaID = antennaID;
+		itsAntennaID = antennaID;
 	}
 
 	/**
@@ -94,7 +107,7 @@ public class BandpassSolutionElementBean {
 	 * @param beamID the beamID to set
 	 */
 	public void setBeamID(short beamID) {
-		this.itsBeamID = beamID;
+		itsBeamID = beamID;
 	}
 	
 	/**
@@ -108,10 +121,9 @@ public class BandpassSolutionElementBean {
 	 * @param chan the chan to set
 	 */
 	public void setChan(int chan) {
-		this.itsChan = chan;
+		itsChan = chan;
 	}
 	
-
 	/**
 	 * @return the g1Real
 	 */
@@ -120,10 +132,10 @@ public class BandpassSolutionElementBean {
 	}
 
 	/**
-	 * @param itsG1Real the g1Real to set
+	 * @param g1Real the g1Real to set
 	 */
 	public void setG1Real(double g1Real) {
-		this.itsG1Real = g1Real;
+		itsG1Real = g1Real;
 	}
 
 	/**
@@ -137,7 +149,7 @@ public class BandpassSolutionElementBean {
 	 * @param g1Imag the g1Imag to set
 	 */
 	public void setG1Imag(double g1Imag) {
-		this.itsG1Imag = g1Imag;
+		itsG1Imag = g1Imag;
 	}
 
 	/**
@@ -151,7 +163,7 @@ public class BandpassSolutionElementBean {
 	 * @param g1Valid the g1Valid to set
 	 */
 	public void setG1Valid(boolean g1Valid) {
-		this.itsG1Valid = g1Valid;
+		itsG1Valid = g1Valid;
 	}
 
 	/**
@@ -165,7 +177,7 @@ public class BandpassSolutionElementBean {
 	 * @param g2Real the g2Real to set
 	 */
 	public void setG2Real(double g2Real) {
-		this.itsG2Real = g2Real;
+		itsG2Real = g2Real;
 	}
 
 	/**
@@ -179,7 +191,7 @@ public class BandpassSolutionElementBean {
 	 * @param g2Imag the g2Imag to set
 	 */
 	public void setG2Imag(double g2Imag) {
-		this.itsG2Imag = g2Imag;
+		itsG2Imag = g2Imag;
 	}
 
 	/**
@@ -193,7 +205,7 @@ public class BandpassSolutionElementBean {
 	 * @param g2Valid the g2Valid to set
 	 */
 	public void setG2Valid(boolean g2Valid) {
-		this.itsG2Valid = g2Valid;
+		itsG2Valid = g2Valid;
 	}
 
 }

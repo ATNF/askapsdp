@@ -38,6 +38,18 @@ public class GainSolutionElementBean {
 	private double itsG2Imag;
 	private boolean itsG2Valid;
 	
+	/**
+	 * Constructor
+	 * @note This no-args constructor is needed by Hibernate
+	 */
+	public GainSolutionElementBean() {
+		itsTimestamp = -1;
+		itsAntennaID = -1;
+		itsBeamID = -1;
+		itsG1Valid = false;
+		itsG2Valid = false;
+	}
+	
 	public GainSolutionElementBean(long timestamp,
 			short antennaID, short beamID,
 			double g1Real, double g1Imag, boolean g1Valid,
@@ -64,7 +76,7 @@ public class GainSolutionElementBean {
 	 * @param itsTimestamp the itsTimestamp to set
 	 */
 	public void setTimestamp(long timestamp) {
-		this.itsTimestamp = timestamp;
+		itsTimestamp = timestamp;
 	}
 
 	/**
@@ -78,7 +90,7 @@ public class GainSolutionElementBean {
 	 * @param itsAntennaID the itsAntennaID to set
 	 */
 	public void setAntennaID(short antennaID) {
-		this.itsAntennaID = antennaID;
+		itsAntennaID = antennaID;
 	}
 
 	/**
@@ -92,7 +104,7 @@ public class GainSolutionElementBean {
 	 * @param itsBeamID the itsBeamID to set
 	 */
 	public void setBeamID(short beamID) {
-		this.itsBeamID = beamID;
+		itsBeamID = beamID;
 	}
 
 	/**
@@ -106,7 +118,7 @@ public class GainSolutionElementBean {
 	 * @param itsG1Real the itsG1Real to set
 	 */
 	public void setG1Real(double g1Real) {
-		this.itsG1Real = g1Real;
+		itsG1Real = g1Real;
 	}
 
 	/**
@@ -120,7 +132,7 @@ public class GainSolutionElementBean {
 	 * @param itsG1Imag the itsG1Imag to set
 	 */
 	public void setG1Imag(double g1Imag) {
-		this.itsG1Imag = g1Imag;
+		itsG1Imag = g1Imag;
 	}
 
 	/**
@@ -134,7 +146,7 @@ public class GainSolutionElementBean {
 	 * @param itsG1Valid the itsG1Valid to set
 	 */
 	public void setG1Valid(boolean g1Valid) {
-		this.itsG1Valid = g1Valid;
+		itsG1Valid = g1Valid;
 	}
 
 	/**
@@ -148,7 +160,7 @@ public class GainSolutionElementBean {
 	 * @param itsG2Real the itsG2Real to set
 	 */
 	public void setG2Real(double g2Real) {
-		this.itsG2Real = g2Real;
+		itsG2Real = g2Real;
 	}
 
 	/**
@@ -162,7 +174,7 @@ public class GainSolutionElementBean {
 	 * @param itsG2Imag the itsG2Imag to set
 	 */
 	public void setG2Imag(double g2Imag) {
-		this.itsG2Imag = g2Imag;
+		itsG2Imag = g2Imag;
 	}
 
 	/**
@@ -176,7 +188,7 @@ public class GainSolutionElementBean {
 	 * @param itsG2Valid the itsG2Valid to set
 	 */
 	public void setG2Valid(boolean g2Valid) {
-		this.itsG2Valid = g2Valid;
+		itsG2Valid = g2Valid;
 	}
 
 }

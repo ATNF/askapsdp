@@ -29,22 +29,30 @@ public class LeakageSolutionBean {
 	
 	private long itsTimestamp;
 	
+	/**
+	 * Constructor
+	 * @note This no-args constructor is needed by Hibernate
+	 */
+	public LeakageSolutionBean() {
+		itsTimestamp = -1;
+	}
+	
 	public LeakageSolutionBean(long timestamp) {
-		this.itsTimestamp = timestamp;
+		itsTimestamp = timestamp;
 	}
 
 	/**
 	 * @return the timestamp
 	 */
 	public long getTimestamp() {
-		return this.itsTimestamp;
+		return itsTimestamp;
 	}
 
 	/**
 	 * @param timestamp the timestamp to set
 	 */
 	public void setTimestamp(long timestamp) {
-		this.itsTimestamp = timestamp;
+		itsTimestamp = timestamp;
 	}
 
 }

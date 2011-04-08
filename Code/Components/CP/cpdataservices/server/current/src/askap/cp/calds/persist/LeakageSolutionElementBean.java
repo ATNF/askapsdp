@@ -33,6 +33,17 @@ public class LeakageSolutionElementBean {
 	private double itsLeakageReal;
 	private double itsLeakageImag;
 
+	/**
+	 * Constructor
+	 * @note This no-args constructor is needed by Hibernate
+	 */
+	public LeakageSolutionElementBean() {
+		itsTimestamp = -1;
+		itsAntennaID = -1;
+		itsBeamID = -1;
+		itsLeakageReal = -1.0;
+		itsLeakageImag = -1.0;
+	}
 	
 	public LeakageSolutionElementBean(long timestamp,
 			short antennaID, short beamID,
@@ -56,7 +67,7 @@ public class LeakageSolutionElementBean {
 	 * @param timestamp the timestamp to set
 	 */
 	public void setTimestamp(long timestamp) {
-		this.itsTimestamp = timestamp;
+		itsTimestamp = timestamp;
 	}
 
 	/**
@@ -70,7 +81,7 @@ public class LeakageSolutionElementBean {
 	 * @param antennaID the antennaID to set
 	 */
 	public void setAntennaID(short antennaID) {
-		this.itsAntennaID = antennaID;
+		itsAntennaID = antennaID;
 	}
 
 	/**
@@ -84,7 +95,7 @@ public class LeakageSolutionElementBean {
 	 * @param beamID the beamID to set
 	 */
 	public void setBeamID(short beamID) {
-		this.itsBeamID = beamID;
+		itsBeamID = beamID;
 	}
 
 	/**
@@ -98,7 +109,7 @@ public class LeakageSolutionElementBean {
 	 * @param leakageReal the leakageReal to set
 	 */
 	public void setLeakageReal(double leakageReal) {
-		this.itsLeakageReal = leakageReal;
+		itsLeakageReal = leakageReal;
 	}
 
 	/**
@@ -112,7 +123,7 @@ public class LeakageSolutionElementBean {
 	 * @param leakageImag the leakageImag to set
 	 */
 	public void setLeakageImag(double leakageImag) {
-		this.itsLeakageImag = leakageImag;
+		itsLeakageImag = leakageImag;
 	}
 
 }

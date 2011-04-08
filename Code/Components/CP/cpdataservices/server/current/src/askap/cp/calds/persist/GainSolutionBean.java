@@ -29,6 +29,14 @@ public class GainSolutionBean {
 	
 	private long itsTimestamp;
 	
+	/**
+	 * Constructor
+	 * @note This no-args constructor is needed by Hibernate
+	 */
+	public GainSolutionBean() {
+		itsTimestamp = -1;
+	}
+	
 	public GainSolutionBean(long timestamp) {
 		this.itsTimestamp = timestamp;
 	}
@@ -37,14 +45,14 @@ public class GainSolutionBean {
 	 * @return the timestamp
 	 */
 	public long getTimestamp() {
-		return this.itsTimestamp;
+		return itsTimestamp;
 	}
 
 	/**
 	 * @param timestamp the timestamp to set
 	 */
 	public void setTimestamp(long timestamp) {
-		this.itsTimestamp = timestamp;
+		itsTimestamp = timestamp;
 	}
 
 }
