@@ -105,7 +105,8 @@ namespace askap
       return ip;
     }
 
-    ImageFFTEquation::ImageFFTEquation(const ImageFFTEquation& other)
+    ImageFFTEquation::ImageFFTEquation(const ImageFFTEquation& other) :
+          Equation(), ImagingEquation()
     {
       operator=(other);
     }

@@ -164,14 +164,12 @@ namespace askap {
     Array<T> & DeconvolverBase<T,FT>::model(const uInt term)
     {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       return itsModel(term);
     }
     
     template<class T, class FT>
     void DeconvolverBase<T,FT>::updateDirty(Array<T>& dirty, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       if (!dirty.shape().nonDegenerate().conform(this->dirty(term).shape())) {
         throw(AskapError("Updated dirty image has different shape"));
       }
@@ -204,7 +202,6 @@ namespace askap {
     Array<T> & DeconvolverBase<T,FT>::dirty(const uInt term)
     {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       return itsDirty(term);
     }
     
@@ -212,14 +209,12 @@ namespace askap {
     Array<T> & DeconvolverBase<T,FT>::psf(const uInt term)
     {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       return itsPsf(term);
     }
     
     template<class T, class FT>
     void DeconvolverBase<T,FT>::setWeight(Array<T> weight, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       this->itsWeight(term)=weight.nonDegenerate().copy();
     }
     
@@ -227,7 +222,6 @@ namespace askap {
     Array<T> & DeconvolverBase<T,FT>::weight(const uInt term)
     {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       return itsWeight(term);
     }
     

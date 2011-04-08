@@ -250,7 +250,7 @@ void AProjectGridderBase::validateCFCache(const IConstDataAccessor &acc, bool sy
 /// @details It is defined as private, so we can't call it and use copy constructor instead.
 /// @param[in] other input object
 /// @return reference to itself
-AProjectGridderBase& AProjectGridderBase::operator=(const AProjectGridderBase &other)
+AProjectGridderBase& AProjectGridderBase::operator=(const AProjectGridderBase &)
 {
   ASKAPTHROW(AskapError, "This method is not supposed to be called!");
   return *this;

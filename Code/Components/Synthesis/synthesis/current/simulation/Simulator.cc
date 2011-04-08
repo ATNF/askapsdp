@@ -356,7 +356,7 @@ void Simulator::longlat2global(casa::Vector<double>& xReturned,
                                const casa::Vector<double>& zIn)
 {
     ASKAPLOG_INFO_STR(logger, "Simulator::longlat2global not yet implemented, passed parameters "<<xIn<<" "<<
-                              yIn<<" "<<zIn<<", and will overwrite "<<xReturned<<" "<<yReturned<<" "<<zReturned);
+                              yIn<<" "<<zIn<<" "<<mRefLocation<<", and will overwrite "<<xReturned<<" "<<yReturned<<" "<<zReturned);
 }
 
 void Simulator::initFields(const casa::String& sourceName,

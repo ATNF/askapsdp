@@ -106,6 +106,7 @@ namespace askap
         
         using GenericMultiChunkEquation::predict;
         using askap::scimath::GenericEquation::calcEquations;
+        using GenericMultiChunkEquation::calcGenericEquations;
        
         /// Clone this into a shared pointer
         /// @return shared pointer to a copy

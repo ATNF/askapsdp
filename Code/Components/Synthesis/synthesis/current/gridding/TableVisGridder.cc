@@ -115,6 +115,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 	/// and the copy.
 	/// @param[in] other input object
 	TableVisGridder::TableVisGridder(const TableVisGridder &other) : 
+             IVisGridder(other),
 	     itsAxes(other.itsAxes), itsShape(other.itsShape), 
 	     itsUVCellSize(other.itsUVCellSize.copy()), 
 	     itsSumWeights(other.itsSumWeights.copy()), 

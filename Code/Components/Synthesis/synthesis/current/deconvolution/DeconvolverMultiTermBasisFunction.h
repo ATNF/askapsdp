@@ -132,7 +132,8 @@ namespace askap {
       /// @brief Update only the dirty image
       /// @detail Update an existing deconvolver for a changed dirty image
       /// @param[in] dirty Dirty image (array)
-      virtual void updateDirty(Array<T>& dirty);
+      /// @param[in] term term to update
+      virtual void updateDirty(Array<T>& dirty, casa::uInt term = 0);
 
       /// @brief Update only the dirty images
       /// @detail Update an existing deconvolver for a changed dirty images.

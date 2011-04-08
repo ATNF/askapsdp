@@ -117,8 +117,8 @@ namespace askap {
     };
     
     template<class T, class FT>
-    void DeconvolverMultiTermBasisFunction<T,FT>::updateDirty(Array<T>& dirty) {
-      DeconvolverBase<T,FT>::updateDirty(dirty);
+    void DeconvolverMultiTermBasisFunction<T,FT>::updateDirty(Array<T>& dirty, casa::uInt term) {
+      DeconvolverBase<T,FT>::updateDirty(dirty,term);
       this->itsDirtyChanged=True;
     }
     

@@ -104,6 +104,7 @@ namespace askap {
       /// @brief Update only the dirty image
       /// @detail Update an existing deconvolver for a changed dirty image
       /// @param[in] dirty Dirty image (array)
+      /// @param[in] term term to update
       virtual void updateDirty(Array<T>& dirty, const uInt term=0);
 
       /// @brief Update only the dirty images
