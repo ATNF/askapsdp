@@ -8,6 +8,7 @@ from askapenv import env
 pkg = env.AskapPackage("cpdataservices")
 
 pkg.AddSubPackage("skymodelclient")
+pkg.AddSubPackage("calibrationclient")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
