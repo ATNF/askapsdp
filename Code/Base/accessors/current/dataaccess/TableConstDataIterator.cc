@@ -810,6 +810,8 @@ void TableConstDataIterator::fillParallacticAngleCache(casa::Vector<casa::Double
        } else if (antMount == "FIXED"  ||  antMount == "fixed") {
            // LOFAR has a fixed antenna mount.
            angles[ant] = 0.;
+       } else if (antMount == "X-Y"  ||  antMount == "x-y") {
+           angles[ant] = 0.;
        } else if (antMount != "EQUATORIAL" && antMount != "equatorial") {
            ASKAPTHROW(DataAccessError,"Unknown mount type "<<antMount<<
               " for antenna "<<ant);
