@@ -102,7 +102,8 @@ inline ComplexDiff& ComplexDiffMatrix::operator[](size_t index)
 
 /// @brief constructor from casa::Matrix
 /// @param[in] matr input matrix
-inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Matrix<casa::Complex> &matr) :
+template<typename T>
+inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Matrix<T> &matr) :
      itsNRows(matr.nrow()), itsNColumns(matr.ncolumn()), 
      itsElements(matr.nrow()*matr.ncolumn()), itsParameterMapInvalid(true)    
 {
@@ -116,7 +117,8 @@ inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Matrix<casa::Complex> &m
 
 /// @brief constructor from casa::Vector
 /// @param[in] vec input vector
-inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Vector<casa::Complex> &vec) :
+template<typename T>
+inline ComplexDiffMatrix::ComplexDiffMatrix(const casa::Vector<T> &vec) :
      itsNRows(vec.nelements()), itsNColumns(1), itsElements(vec.nelements()),
      itsParameterMapInvalid(true)    
 {

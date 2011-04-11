@@ -107,11 +107,13 @@ struct ComplexDiffMatrix {
          
    /// @brief constructor from casa::Matrix
    /// @param[in] matr input matrix
-   inline ComplexDiffMatrix(const casa::Matrix<casa::Complex> &matr);    
+   template<typename T>
+   inline ComplexDiffMatrix(const casa::Matrix<T> &matr);    
 
    /// @brief constructor from casa::Vector
    /// @param[in] vec input matrix
-   inline ComplexDiffMatrix(const casa::Vector<casa::Complex> &vec);    
+   template<typename T>
+   inline ComplexDiffMatrix(const casa::Vector<T> &vec);    
    
    /// @brief access to given matrix element
    /// @param[in] row row
