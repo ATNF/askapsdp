@@ -126,6 +126,13 @@ public:
    ///         information. If True, the corresponding element is flagged bad.
    virtual const casa::Cube<casa::Bool>& flag() const;
 
+   /// @brief polarisation type for each product
+   /// @return a reference to vector containing polarisation types for
+   /// each product in the visibility cube (nPol() elements).
+   /// @note All rows of the accessor have the same structure of the visibility
+   /// cube, i.e. polarisation types returned by this method are valid for all rows.
+   virtual const casa::Vector<casa::Stokes::StokesTypes>& stokes() const;
+
    // access to accumulated statistics
    
    /// @brief obtain weighted sum of model amplitudes
@@ -194,6 +201,9 @@ private:
    
    /// @brief flags for all rows, channels and polarisations
    casa::Cube<casa::Bool> itsFlag;
+   
+   /// @brief types of polarisation products
+   casa::Vector<casa::Stokes::StokesTypes> itsStokes;
    
    /// @brief buffer for accumulated statistics
    /// @details nRow x nChannel x nPol cube with sums of 

@@ -93,6 +93,8 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          CPPUNIT_ASSERT_EQUAL(pacBuf.nRow(),pacBuf.flag().nrow());
          CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(),pacBuf.flag().nplane());
          CPPUNIT_ASSERT_EQUAL(1u,pacBuf.flag().ncolumn());
+         CPPUNIT_ASSERT_EQUAL(1u,casa::uInt(pacBuf.stokes().nelements()));
+         CPPUNIT_ASSERT_EQUAL(casa::Stokes::XX, pacBuf.stokes()[0]);
                   
          for (casa::uInt row=0; row < pacBuf.nRow(); ++row)  {
               CPPUNIT_ASSERT_EQUAL(itsIter->antenna1()[row],pacBuf.antenna1()[row]);
@@ -119,6 +121,11 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          CPPUNIT_ASSERT_EQUAL(pacBuf.nRow(),pacBuf.flag().nrow());
          CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(),pacBuf.flag().nplane());
          CPPUNIT_ASSERT_EQUAL(pacBuf.nChannel(),pacBuf.flag().ncolumn());
+         CPPUNIT_ASSERT_EQUAL(4u,casa::uInt(pacBuf.stokes().nelements()));
+         CPPUNIT_ASSERT(scimath::PolConverter::isLinear(pacBuf.stokes()));
+         for (casa::uInt pol = 0; pol<4; ++pol) {
+              CPPUNIT_ASSERT_EQUAL(pol,scimath::PolConverter::getIndex(pacBuf.stokes()[pol]));
+         }
          
          CPPUNIT_ASSERT(itsME);
          CPPUNIT_ASSERT(itsIter);

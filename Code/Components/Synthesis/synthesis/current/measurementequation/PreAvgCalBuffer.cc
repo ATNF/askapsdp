@@ -38,7 +38,7 @@
 #include <measurementequation/PreAvgCalBuffer.h>
 #include <askap/AskapError.h>
 #include <dataaccess/MemBufferDataAccessor.h>
-
+#include <utils/PolConverter.h>
 
 
 using namespace askap;
@@ -55,6 +55,7 @@ PreAvgCalBuffer::PreAvgCalBuffer() : itsVisTypeIgnored(0), itsNoMatchIgnored(0),
 /// @param[in] nBeam number of beams, indices are expected to run from 0 to nBeam-1
 PreAvgCalBuffer::PreAvgCalBuffer(casa::uInt nAnt, casa::uInt nBeam) : itsAntenna1(nBeam*nAnt*(nAnt-1)/2), 
       itsAntenna2(nBeam*nAnt*(nAnt-1)/2), itsBeam(nBeam*nAnt*(nAnt-1)/2), itsFlag(nBeam*nAnt*(nAnt-1)/2,1,4),
+      itsStokes(4),
       itsSumModelAmps(nBeam*nAnt*(nAnt-1)/2,1,4), itsSumVisProducts(nBeam*nAnt*(nAnt-1)/2,1,4),
       itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0)
 {
@@ -77,7 +78,8 @@ void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc)
       itsBeam.resize(numberOfRows);
       itsFlag.resize(numberOfRows, 1, numberOfPol);
       itsSumModelAmps.resize(numberOfRows, 1, numberOfPol);
-      itsSumVisProducts.resize(numberOfRows, 1, numberOfPol);      
+      itsSumVisProducts.resize(numberOfRows, 1, numberOfPol);
+      itsStokes.resize(numberOfPol);      
   }
   // initialise buffers
   itsAntenna1 = acc.antenna1();
@@ -92,6 +94,7 @@ void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc)
            itsBeam[row] = unusedBeamId;
        }
   }
+  itsStokes = acc.stokes();
   // all elements are flagged until at least something is averaged in
   itsFlag.set(true); 
   itsSumModelAmps.set(0.);
@@ -118,6 +121,7 @@ void PreAvgCalBuffer::initialise(casa::uInt nAnt, casa::uInt nBeam)
      itsFlag.resize(numberOfRows,1,4);
      itsSumModelAmps.resize(numberOfRows,1,4);
      itsSumVisProducts.resize(numberOfRows,1,4);
+     itsStokes.resize(4);
   }
   // initialising buffers
   itsFlag.set(true); // everything is bad, unless at least one sample is summed into the buffer
@@ -133,6 +137,12 @@ void PreAvgCalBuffer::initialise(casa::uInt nAnt, casa::uInt nBeam)
                  itsBeam[row] = beam;
             }
        }
+  }
+  
+  // we don't track polarisation at this stage leaving this up to the user of this class
+  // just fill the vector with Linear Stokes
+  for (casa::uInt pol = 0; pol<itsStokes.nelements(); ++pol) {
+       itsStokes[pol] = scimath::PolConverter::stokesFromIndex(pol, casa::Stokes::XX);
   }
   
   // initialise stats
@@ -203,6 +213,16 @@ const casa::Vector<casa::uInt>& PreAvgCalBuffer::feed2() const
 const casa::Cube<casa::Bool>& PreAvgCalBuffer::flag() const
 {
   return itsFlag;
+}
+
+/// @brief polarisation type for each product
+/// @return a reference to vector containing polarisation types for
+/// each product in the visibility cube (nPol() elements).
+/// @note All rows of the accessor have the same structure of the visibility
+/// cube, i.e. polarisation types returned by this method are valid for all rows.
+const casa::Vector<casa::Stokes::StokesTypes>& PreAvgCalBuffer::stokes() const
+{
+  return itsStokes;
 }
 
 // access to accumulated statistics

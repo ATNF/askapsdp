@@ -62,7 +62,7 @@ namespace askap
     class CalibrationMETest : public CppUnit::TestFixture
     {
       CPPUNIT_TEST_SUITE(CalibrationMETest);
-      CPPUNIT_TEST(testSolveNoPreAvg);
+      //CPPUNIT_TEST(testSolveNoPreAvg);
       CPPUNIT_TEST(testSolvePreAvg);      
       CPPUNIT_TEST_SUITE_END();
       
@@ -74,7 +74,55 @@ namespace askap
         boost::shared_ptr<Params> params1, params2;
         accessors::SharedIter<accessors::DataIteratorStub> idi;
 
-      public:
+      protected:        
+        
+        /// @brief helper method to take care of absolute phase uncertainty
+        void rotatePhase() {
+          CPPUNIT_ASSERT(params2);
+          // taking care of the absolute phase uncertainty
+          const casa::uInt refAnt = 0;
+          const casa::Complex refPhaseTerm = casa::polar(1.f,
+                  -arg(params2->complexValue("gain.g11."+toString(refAnt)+".0")));
+                       
+          std::vector<std::string> freeNames(params2->freeNames());
+          for (std::vector<std::string>::const_iterator it=freeNames.begin();
+                                              it!=freeNames.end();++it)  {
+               const std::string parname = *it;
+               if (parname.find("gain") == 0) {
+                   CPPUNIT_ASSERT(params2->has(parname));                    
+                   params2->update(parname,
+                        params2->complexValue(parname)*refPhaseTerm);                                 
+               } 
+          }
+        }
+        
+        /// @brief check gain parameters
+        /// @details This method checks that all gain parameters in params2 are
+        /// equal to the values from params1.
+        void checkSolution() {
+          CPPUNIT_ASSERT(params1);
+          CPPUNIT_ASSERT(params2);
+          // checking that solved gains should be close to 1 for g11 
+          // and to 0.9 for g22 (we don't have data to solve for the second
+          // polarisation, so it should be left unchanged)
+          std::vector<std::string> completions(params2->completions("gain"));
+          for (std::vector<std::string>::const_iterator it=completions.begin();
+                                                it!=completions.end();++it)  {
+               const std::string parname = "gain"+*it;                                 
+                              
+               if (it->find(".g22") == 0) {
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0,params2->scalarValue(parname),1e-7);
+               } else if (it->find(".g11") == 0) {
+                   const casa::Complex diff = params2->complexValue(parname)-
+                          params1->complexValue(parname);
+                   //std::cout<<parname<<" "<<diff<<" "<<abs(diff)<<std::endl;        
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,abs(diff),1e-7);
+               } else {
+                 ASKAPTHROW(AskapError, "an invalid gain parameter "<<parname<<" has been detected");
+               }
+          }
+        }
+      public:        
         void setUp()
         {
           idi = boost::shared_ptr<accessors::DataIteratorStub>(new accessors::DataIteratorStub(1));
@@ -143,10 +191,24 @@ namespace askap
                }
           }
           typedef CalibrationME<NoXPolGain, PreAvgCalMEBase> PreAvgMEType;
+          for (size_t iter=0; iter<20; ++iter) {
           // preaverage and iterate over the data
           boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType(*params2));
           CPPUNIT_ASSERT(preAvgEq);
           preAvgEq->accumulate(idi,p2);
+               // Calculate gradients using "imperfect" parameters"
+               GenericNormalEquations ne;
+               preAvgEq->setParameters(*params2);
+               preAvgEq->calcEquations(ne);
+               Quality q;
+               LinearSolver solver; 
+               solver.addNormalEquations(ne);
+               solver.setAlgorithm("SVD");
+               solver.solveNormalEquations(*params2,q);  
+               rotatePhase();
+               //std::cout<<iter<<" "<<params2->complexValue("gain.g11.0.0")<<std::endl;
+          }
+          checkSolution();
         }
 
         void testSolveNoPreAvg()
@@ -175,44 +237,10 @@ namespace askap
                //std::cout<<q<<std::endl;               
                               
                // taking care of the absolute phase uncertainty
-               const casa::uInt refAnt = 0;
-               const casa::Complex refPhaseTerm = casa::polar(1.f,
-                       -arg(params2->complexValue("gain.g11."+toString(refAnt)+".0")));
-                       
-               std::vector<std::string> freeNames(params2->freeNames());
-               for (std::vector<std::string>::const_iterator it=freeNames.begin();
-                                                   it!=freeNames.end();++it)  {
-                    const std::string parname = *it;
-                    if (parname.find("gain") == 0) {
-                        CPPUNIT_ASSERT(params2->has(parname));                    
-                        params2->update(parname,
-                             params2->complexValue(parname)*refPhaseTerm);                                 
-                    } 
-               }
-               
+               rotatePhase();
           //std::cout<<*params2<<std::endl;
           }
-        
-          // checking that solved gains should be close to 1 for g11 
-          // and to 0.9 for g22 (we don't have data to solve for the second
-          // polarisation, so it should be left unchanged)
-          ASKAPASSERT(params2);
-          std::vector<std::string> completions(params2->completions("gain"));
-          for (std::vector<std::string>::const_iterator it=completions.begin();
-                                                it!=completions.end();++it)  {
-               const std::string parname = "gain"+*it;                                 
-               
-               if (it->find(".g22") == 0) {
-                   CPPUNIT_ASSERT(fabs(params2->scalarValue(parname)-1.0)<1e-7);
-               } else if (it->find(".g11") == 0) {
-                   const casa::Complex diff = params2->complexValue(parname)-
-                          params1->complexValue(parname);
-                   //std::cout<<parname<<" "<<diff<<" "<<abs(diff)<<std::endl;        
-                   CPPUNIT_ASSERT(abs(diff)<1e-7);
-               } else {
-                 ASKAPTHROW(AskapError, "an invalid gain parameter "<<parname<<" has been detected");
-               }
-          }
+          checkSolution();        
         }
    };
     

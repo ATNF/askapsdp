@@ -106,8 +106,7 @@ void PreAvgCalMEBase::predict() const
 void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) const
 {  
   for (casa::uInt row = 0; row < itsBuffer.nRow(); ++row) { 
-       casa::Matrix<casa::Complex> sumModelAmps = 
-            casa::RealToComplex(casa::transpose(itsBuffer.sumModelAmps().yzPlane(row)));
+       const casa::Matrix<casa::Float> sumModelAmps = casa::transpose(itsBuffer.sumModelAmps().yzPlane(row));
        scimath::ComplexDiffMatrix cdm = buildComplexDiffMatrix(itsBuffer, row) *       
             scimath::ComplexDiffMatrix(sumModelAmps);
        casa::Matrix<casa::Complex> measuredSlice = transpose(itsBuffer.sumVisProducts().yzPlane(row));
