@@ -44,9 +44,12 @@ namespace askap
 
     Equation& Equation::operator=(const Equation& other)
     {
-      if(this!=&other)
-      {
-        rwParameters()=other.itsParams;
+      if(this!=&other) {
+        if (other.itsParams) {
+            setParameters(*other.itsParams);
+        } else {
+            rwParameters().reset();
+        }
       }
       return *this;
     }
@@ -71,7 +74,17 @@ namespace askap
 // Set the parameters to new values
     void Equation::setParameters(const Params& ip) 
     {
-       rwParameters()=ip.clone();
+       if (rwParameters()) {
+           // use assignment operator of Params class, i.e. 
+           // copy will happen at itsParams side and shared pointer will
+           // not change (we somewhat rely on this behavior in the calibration
+           // code)
+           *rwParameters() = ip;
+       } else {
+         // current parameters are empty, clone the input parameters and setup
+         // shared pointer
+         rwParameters()=ip.clone();
+       }
     }
 
     /// @brief non-const reference to paramters
