@@ -110,7 +110,7 @@ public:
   /// @param[in] nAnt number of antennas
   /// @param[in] nBeam number of beams
   void initialise(casa::uInt nAnt, casa::uInt nBeam);
-
+  
 protected:  
   /// @brief a helper method to form a ComplexDiffMatrix for a given row
   /// @details This is the only method which depends on the template type.

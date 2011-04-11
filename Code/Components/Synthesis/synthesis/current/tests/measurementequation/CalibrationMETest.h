@@ -64,6 +64,7 @@ namespace askap
       CPPUNIT_TEST_SUITE(CalibrationMETest);
       //CPPUNIT_TEST(testSolveNoPreAvg);
       CPPUNIT_TEST(testSolvePreAvg);      
+      CPPUNIT_TEST(testSolvePreAvg2);      
       CPPUNIT_TEST_SUITE_END();
       
       private:
@@ -77,28 +78,29 @@ namespace askap
       protected:        
         
         /// @brief helper method to take care of absolute phase uncertainty
-        void rotatePhase() {
-          CPPUNIT_ASSERT(params2);
+        /// @param[in] shared pointer to parameters to update
+        static void rotatePhase(const boost::shared_ptr<Params> &params) {
+          CPPUNIT_ASSERT(params);
           // taking care of the absolute phase uncertainty
           const casa::uInt refAnt = 0;
           const casa::Complex refPhaseTerm = casa::polar(1.f,
-                  -arg(params2->complexValue("gain.g11."+toString(refAnt)+".0")));
+                  -arg(params->complexValue("gain.g11."+toString(refAnt)+".0")));
                        
-          std::vector<std::string> freeNames(params2->freeNames());
+          std::vector<std::string> freeNames(params->freeNames());
           for (std::vector<std::string>::const_iterator it=freeNames.begin();
                                               it!=freeNames.end();++it)  {
                const std::string parname = *it;
                if (parname.find("gain") == 0) {
-                   CPPUNIT_ASSERT(params2->has(parname));                    
-                   params2->update(parname,
-                        params2->complexValue(parname)*refPhaseTerm);                                 
+                   CPPUNIT_ASSERT(params->has(parname));                    
+                   params->update(parname,
+                        params->complexValue(parname)*refPhaseTerm);                                 
                } 
           }
         }
         
         /// @brief check gain parameters
         /// @details This method checks that all gain parameters in params2 are
-        /// equal to the values from params1.
+        /// equal to the values from params1.        
         void checkSolution() {
           CPPUNIT_ASSERT(params1);
           CPPUNIT_ASSERT(params2);
@@ -122,6 +124,23 @@ namespace askap
                }
           }
         }
+        
+        /// @brief prepare data and parameters
+        /// @details This method predicts the data using "perfect" gains and fixes parameters which
+        /// are not to be solved for. Techically, these operations can be put into setUp, but
+        /// doing them in each unit test may be better because some exceptions may be thrown         
+        void initDataAndParameters() {
+           // Predict with the "perfect" parameters"
+           eq1->predict();
+           std::vector<std::string> freeNames = params2->freeNames();
+           for (std::vector<std::string>::const_iterator it = freeNames.begin();
+                it!=freeNames.end();++it) {
+                if (it->find("gain") != 0) {
+                    params2->fix(*it);
+                }
+           }         
+        }
+        
       public:        
         void setUp()
         {
@@ -181,21 +200,42 @@ namespace askap
         
         void testSolvePreAvg() 
         {
-          // Predict with the "perfect" parameters"
-          eq1->predict();
-          std::vector<std::string> freeNames = params2->freeNames();
-          for (std::vector<std::string>::const_iterator it = freeNames.begin();
-               it!=freeNames.end();++it) {
-               if (it->find("gain") != 0) {
-                   params2->fix(*it);
-               }
-          }
+          initDataAndParameters();
           typedef CalibrationME<NoXPolGain, PreAvgCalMEBase> PreAvgMEType;
-          for (size_t iter=0; iter<20; ++iter) {
           // preaverage and iterate over the data
           boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType(*params2));
           CPPUNIT_ASSERT(preAvgEq);
           preAvgEq->accumulate(idi,p2);
+          // major cycles detached from iteration over data
+          for (size_t iter=0; iter<5; ++iter) {
+               // Calculate gradients using "imperfect" parameters"
+               GenericNormalEquations ne;
+               preAvgEq->calcEquations(ne);
+               Quality q;
+               LinearSolver solver; 
+               solver.addNormalEquations(ne);
+               solver.setAlgorithm("SVD");
+               const boost::shared_ptr<Params> params = preAvgEq->rwParameters();
+               CPPUNIT_ASSERT(params);
+               solver.solveNormalEquations(*params,q);  
+               rotatePhase(params);
+          }
+          params2 = preAvgEq->parameters().clone();
+          checkSolution();
+        }
+
+        /// @brief another way to handle parameters in major cycle
+        /// @note Actual calculations are supposed to be identical to testSolvePreAvg2
+        void testSolvePreAvg2() 
+        {
+          initDataAndParameters();
+          typedef CalibrationME<NoXPolGain, PreAvgCalMEBase> PreAvgMEType;
+          // preaverage and iterate over the data
+          boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType(*params2));
+          CPPUNIT_ASSERT(preAvgEq);
+          preAvgEq->accumulate(idi,p2);
+          // major cycles detached from iteration over data
+          for (size_t iter=0; iter<5; ++iter) {
                // Calculate gradients using "imperfect" parameters"
                GenericNormalEquations ne;
                preAvgEq->setParameters(*params2);
@@ -205,7 +245,7 @@ namespace askap
                solver.addNormalEquations(ne);
                solver.setAlgorithm("SVD");
                solver.solveNormalEquations(*params2,q);  
-               rotatePhase();
+               rotatePhase(params2);
                //std::cout<<iter<<" "<<params2->complexValue("gain.g11.0.0")<<std::endl;
           }
           checkSolution();
@@ -213,18 +253,10 @@ namespace askap
 
         void testSolveNoPreAvg()
         {
-          // Predict with the "perfect" parameters"
-          eq1->predict();
-          std::vector<std::string> freeNames = params2->freeNames();
-          for (std::vector<std::string>::const_iterator it = freeNames.begin();
-               it!=freeNames.end();++it) {
-               if (it->find("gain") != 0) {
-                   params2->fix(*it);
-               }
-          }
+          initDataAndParameters();
           for (size_t iter=0; iter<5; ++iter) {
                // Calculate gradients using "imperfect" parameters"
-               GenericNormalEquations ne; //(*params2);
+               GenericNormalEquations ne;
             
                eq2.reset(new METype(*params2,idi,p2));
             
@@ -237,7 +269,7 @@ namespace askap
                //std::cout<<q<<std::endl;               
                               
                // taking care of the absolute phase uncertainty
-               rotatePhase();
+               rotatePhase(params2);
           //std::cout<<*params2<<std::endl;
           }
           checkSolution();        
