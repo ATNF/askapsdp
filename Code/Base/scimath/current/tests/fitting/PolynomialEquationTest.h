@@ -44,6 +44,7 @@ namespace askap
       CPPUNIT_TEST_SUITE(PolynomialEquationTest);
       CPPUNIT_TEST(testConstructors);
       CPPUNIT_TEST(testCopy);
+      CPPUNIT_TEST(testParHandling);
       CPPUNIT_TEST(testPredict);
       CPPUNIT_TEST(testSolutionNESVD);
       CPPUNIT_TEST(testSolutionNEChol);
@@ -114,6 +115,11 @@ namespace askap
         {
           CPPUNIT_ASSERT(itsPolyPerfect->parameters().names().size()==1);
           CPPUNIT_ASSERT(itsPolyPerfect->parameters().names()[0]=="poly");
+          const casa::Vector<double> param = itsPolyPerfect->parameters().value("poly");
+          CPPUNIT_ASSERT(param.nelements() == 3);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,param[0],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(2.,param[1],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.,param[2],1e-7);          
         }
 
         void testCopy()
@@ -121,6 +127,54 @@ namespace askap
           PolynomialEquation poly2(*itsPolyPerfect);
           CPPUNIT_ASSERT(poly2.parameters().names().size()==1);
           CPPUNIT_ASSERT(poly2.parameters().names()[0]=="poly");
+          const casa::Vector<double> param = poly2.parameters().value("poly");
+          CPPUNIT_ASSERT(param.nelements() == 3);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,param[0],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(2.,param[1],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.,param[2],1e-7);          
+        }
+        
+        void testParHandling()
+        {
+          PolynomialEquation poly2(*itsPolyPerfect);
+          CPPUNIT_ASSERT(poly2.parameters().names().size()==1);
+          CPPUNIT_ASSERT(poly2.parameters().names()[0]=="poly");
+          casa::Vector<double> param = poly2.parameters().value("poly").copy();
+          CPPUNIT_ASSERT(param.nelements() == 3);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,param[0],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(2.,param[1],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.,param[2],1e-7);          
+          // update parameters in the copy
+          param.resize(4);
+          param[0]=-3.; param[1]=-1.1; param[2]=6.; param[3]=-8.;
+          Params newParams;
+          newParams.add("poly",param);
+          newParams.add("test",casa::Complex(-1.,3.));
+          poly2.setParameters(newParams);
+          CPPUNIT_ASSERT(poly2.parameters().names().size()==2);
+          CPPUNIT_ASSERT(poly2.parameters().names()[0]=="poly");
+          CPPUNIT_ASSERT(poly2.parameters().names()[1]=="test");          
+          CPPUNIT_ASSERT(itsPolyPerfect->parameters().names().size()==1);
+          CPPUNIT_ASSERT(itsPolyPerfect->parameters().names()[0]=="poly");
+          param.assign(itsPolyPerfect->parameters().value("poly").copy());
+          CPPUNIT_ASSERT(param.nelements() == 3);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,param[0],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(2.,param[1],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.,param[2],1e-7);         
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.,casa::real(poly2.parameters().complexValue("test")),1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.,casa::imag(poly2.parameters().complexValue("test")),1e-7);          
+          param.assign(poly2.parameters().value("poly").copy());
+          CPPUNIT_ASSERT(param.nelements() == 4);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-3.,param[0],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.1,param[1],1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(6.,param[2],1e-7);         
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-8.,param[3],1e-7);         
+          
+          const boost::shared_ptr<Params> pParam = poly2.rwParameters();
+          CPPUNIT_ASSERT(pParam);
+          pParam->update("test",casa::Complex(1,-8.));
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,casa::real(poly2.parameters().complexValue("test")),1e-7);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-8.,casa::imag(poly2.parameters().complexValue("test")),1e-7);                    
         }
 
         void testPredict()

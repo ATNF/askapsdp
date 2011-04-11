@@ -145,7 +145,7 @@ namespace askap
 /// Clone this into a shared pointer
 /// @return shared pointer to a copy
         virtual Equation::ShPtr clone() const = 0;
-    protected:
+
       /// @brief non-const reference to paramters
       /// @details Due to caching, derived classes may need to know when
       /// the parameters of the equation have been updated. To track all
