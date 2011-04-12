@@ -68,6 +68,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/CalibrationME.h>
+#include <measurementequation/PreAvgCalMEBase.h>
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/LeakageTerm.h>
@@ -213,6 +214,8 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
                 const boost::shared_ptr<IMeasurementEquation const> &perfectME)
 {
    ASKAPDEBUGASSERT(itsModel);
+/*
+   // the old code without pre-averaging
    if (itsSolveGains && !itsSolveLeakage) {
        itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,dsi,perfectME));           
    } else if (itsSolveLeakage && !itsSolveGains) {
@@ -222,6 +225,25 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    } else {
        ASKAPTHROW(AskapError, "Unsupported combination of itsSolveGains and itsSolveLeakage. This shouldn't happen. Verify solve parameter");       
    }
+ */
+   // it is handy to have a shared pointer to the base type because it is
+   // not templated
+   boost::shared_ptr<PreAvgCalMEBase> preAvgME;
+   if (itsSolveGains && !itsSolveLeakage) {
+       preAvgME.reset(new CalibrationME<NoXPolGain, PreAvgCalMEBase>());           
+   } else if (itsSolveLeakage && !itsSolveGains) {
+       preAvgME.reset(new CalibrationME<LeakageTerm, PreAvgCalMEBase>());           
+   } else if (itsSolveLeakage && itsSolveGains) {
+       preAvgME.reset(new CalibrationME<Product<NoXPolGain,LeakageTerm>, PreAvgCalMEBase>());       
+   } else {
+       ASKAPTHROW(AskapError, "Unsupported combination of itsSolveGains and itsSolveLeakage. This shouldn't happen. Verify solve parameter");       
+   }
+   ASKAPDEBUGASSERT(preAvgME);
+   preAvgME->accumulate(dsi,perfectME);
+   itsEquation = preAvgME;
+   // this is just because we bypass setting the model for the first major cycle
+   // in the case without pre-averaging
+   itsEquation->setParameters(*itsModel);
 }
 
 /// Calculate the normal equations for a given measurement set
