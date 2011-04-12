@@ -214,7 +214,7 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
                 const boost::shared_ptr<IMeasurementEquation const> &perfectME)
 {
    ASKAPDEBUGASSERT(itsModel);
-/*
+
    // the old code without pre-averaging
    if (itsSolveGains && !itsSolveLeakage) {
        itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,dsi,perfectME));           
@@ -225,7 +225,9 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    } else {
        ASKAPTHROW(AskapError, "Unsupported combination of itsSolveGains and itsSolveLeakage. This shouldn't happen. Verify solve parameter");       
    }
- */
+ 
+   /*
+   // code with pre-averaging
    // it is handy to have a shared pointer to the base type because it is
    // not templated
    boost::shared_ptr<PreAvgCalMEBase> preAvgME;
@@ -244,6 +246,7 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    // this is just because we bypass setting the model for the first major cycle
    // in the case without pre-averaging
    itsEquation->setParameters(*itsModel);
+   */
 }
 
 /// Calculate the normal equations for a given measurement set
