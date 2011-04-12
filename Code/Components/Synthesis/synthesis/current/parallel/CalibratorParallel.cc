@@ -187,11 +187,16 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
                   compEq(new ComponentEquation(*itsPerfectModel,it));
          createCalibrationME(it,compEq);         
       }
+      ASKAPCHECK(itsEquation, "Equation is not defined");
   } else {
       ASKAPLOG_INFO_STR(logger, "Reusing measurement equation" );
+      // we need to update the model held by measurement equation 
+      // because it has been cloned at construction
+      ASKAPCHECK(itsEquation, "Equation is not defined");
+      ASKAPCHECK(itsModel, "Model is not defined");
+      itsEquation->setParameters(*itsModel);
   }
-  ASKAPCHECK(itsEquation, "Equation not defined");
-  ASKAPCHECK(itsNe, "NormalEquations not defined");
+  ASKAPCHECK(itsNe, "NormalEquations are not defined");
   itsEquation->calcEquations(*itsNe);
   ASKAPLOG_INFO_STR(logger, "Calculated normal equations for "<< ms << " in "<< timer.real()
                      << " seconds ");
@@ -230,13 +235,13 @@ void CalibratorParallel::calcNE()
       ASKAPDEBUGASSERT(itsNe);
 
       if (itsComms.isParallel()) {
-          calcOne(measurementSets()[itsComms.rank()-1]);
+          calcOne(measurementSets()[itsComms.rank()-1],false);
           sendNE();
       } else {
           ASKAPCHECK(itsSolver, "Solver not defined correctly");
           itsSolver->init();
           for (size_t iMs=0; iMs<measurementSets().size(); ++iMs) {
-            calcOne(measurementSets()[iMs]);
+            calcOne(measurementSets()[iMs],false);
             itsSolver->addNormalEquations(*itsNe);
           }
       }
