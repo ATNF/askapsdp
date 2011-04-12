@@ -83,8 +83,19 @@ class CalibrationME : public Base
 public:
 
   /// @brief constructor with just parameters
+  /// @details 
   /// @param[in] ip Parameters
-  explicit CalibrationME(const askap::scimath::Params& ip) :
+  /// This version of the constructor can be used with empty parameter list (default value). 
+  /// It is expected that the actual parameters are set just before the calculation of 
+  /// normal equations (i.e. pre-averaging step does not depend on parameters and do not
+  /// require them to be set).
+  /// @note This constructor is intended to be used with the template derived from
+  /// PreAvgCalMEBase, it will not compile if the second template parameter
+  /// is CalibrationMEBase because the latter is derived from MultiChunkEquation, which
+  /// also needs to be initialised. We rely on the fact that only methods which are 
+  /// actually used are going to be compiled for this template. If it causes problems 
+  /// in the future, we can implement proper specialisations.  
+  explicit CalibrationME(const askap::scimath::Params& ip = askap::scimath::Params()) :
     scimath::Equation(ip),
             Base(ip), itsEffect(Base::rwParameters()) {}
 
@@ -94,12 +105,32 @@ public:
   /// @param[in] idi data iterator
   /// @param[in] ime measurement equation describing perfect visibilities
   /// @note In the future, measurement equations will work with accessors
-  /// only, and, therefore, the dependency on iterator will be removed
+  /// only, and, therefore, the dependency on iterator will be removed.
+  /// This constructor is intended to be used with the template derived from
+  /// CalibrationMEBase, it will not compile if the second template parameter
+  /// is PreAvgCalMEBase because the latter is not derived from MultiChunkEquation.
+  /// We rely on the fact that only methods which are actually used are going to be
+  /// compiled for this template. If it causes problems in the future, we can 
+  /// implement proper specialisations.
   CalibrationME(const askap::scimath::Params& ip,
           const accessors::IDataSharedIter& idi, 
           const boost::shared_ptr<IMeasurementEquation const> &ime) :
             scimath::Equation(ip), MultiChunkEquation(idi), askap::scimath::GenericEquation(ip),
             Base(ip, idi, ime), itsEffect(Base::rwParameters()) {}
+  
+  /// @brief copy constructor
+  /// @details It is specialised for the Base class derived from MultiChunkEquation.
+  /// @param[in] other reference to other object
+  template<typename OtherBase>
+  CalibrationME(const CalibrationME<Effect,OtherBase> &other) : 
+    scimath::Equation(other), Base(other), itsEffect(Base::rwParameters()) {}
+        
+  /// @brief copy constructor 
+  /// @details This is the specialised version for the Base class derived from MultiChunkEquation.
+  /// @param[in] other reference to other object
+  CalibrationME(const CalibrationME<Effect,CalibrationMEBase> &other) : 
+    scimath::Equation(other), MultiChunkEquation(other), askap::scimath::GenericEquation(other),
+    CalibrationMEBase(other), itsEffect(CalibrationMEBase::rwParameters()) {}
   
   /// Clone this into a shared pointer
   /// @return shared pointer to a copy
@@ -124,7 +155,6 @@ private:
    /// class and then used inside buildComplexDiffMatrix method.
    Effect itsEffect;
 };
-
 
 } // namespace synthesis
 
