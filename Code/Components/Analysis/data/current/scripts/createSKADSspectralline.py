@@ -133,17 +133,17 @@ def writeResults(catfile, results, database, haveFreqInfo, catfile2="/tmp/nullda
             ra = float(r[6])
             dec = float(r[7])
             z = float(r[9])
-            mHI = float(r[11])
-            intflux=float(r[13])
-            maj = float(r[29])
-            axisratio = float(r[28])
+            mHI = float(r[10])
+            intflux=float(r[12])
+            maj = float(r[28])
+            axisratio = float(r[29])
             min = maj * axisratio
-            pa = float(r[24])
-            f0 = float(r[40])
-            fpeak = float(r[41])
-            wpeak = float(r[42])
-            w50 = float(r[43])
-            w20 = float(r[44])
+            pa = float(r[23])
+            f0 = float(r[39])
+            fpeak = float(r[40])
+            wpeak = float(r[41])
+            w50 = float(r[42])
+            w20 = float(r[43])
             
         if(database=='S3SEX'):
             catfile.write("%10.6f %10.6f %20.16f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %10.6f %5d\n"%(ra,dec,s1400,alpha,beta,maj,min,pa,z,mHI,defaultTypes[type]))
@@ -225,7 +225,7 @@ if __name__ == '__main__':
         cursor = db.cursor()
     
         catfile = file(origCatFile,"w")
-        catfile2 = file("outputcatalogueS3SAX","w")
+        catfile2 = file("outputcatalogueS3SAX.dat","w")
         writeHeaderLine(catfile,database,catfile2)
 
         centres = range(-int(fieldAngSize/2),int(fieldAngSize/2)+1,1)
