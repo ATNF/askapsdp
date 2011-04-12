@@ -231,7 +231,7 @@ namespace askap
           initDataAndParameters();
           typedef CalibrationME<NoXPolGain, PreAvgCalMEBase> PreAvgMEType;
           // preaverage and iterate over the data
-          boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType(*params2));
+          boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType());
           CPPUNIT_ASSERT(preAvgEq);
           preAvgEq->accumulate(idi,p2);
           // major cycles detached from iteration over data
