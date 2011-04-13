@@ -8,12 +8,9 @@ import subprocess
 import sys
 
 if (sys.version_info[0] < 3) and (sys.version_info[1] < 6):
-    if sys.version_info[1] < 5:
-        print ">>> Python versions less than 2.5 are unsupported. Exiting."
+        print ">>> The nominal supported version is 2.6."
+        print ">>> Python versions less than 2.6 are unsupported. Exiting."
         sys.exit(1)
-    else:
-        print ">>> Python version 2.5 is deprecated and will shortly become unsupported."
-        print ">>> The currently supported version is 2.6."
 
 ## execute an svn up command
 #
