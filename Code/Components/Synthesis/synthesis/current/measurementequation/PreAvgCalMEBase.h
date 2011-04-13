@@ -110,6 +110,11 @@ public:
   /// @param[in] nAnt number of antennas
   /// @param[in] nBeam number of beams
   void initialise(casa::uInt nAnt, casa::uInt nBeam);
+
+  /// @brief destructor 
+  /// @details This method just prints statistics on the number of
+  /// visibilities not accumulated due to various reasons
+  ~PreAvgCalMEBase();
   
 protected:  
   /// @brief a helper method to form a ComplexDiffMatrix for a given row

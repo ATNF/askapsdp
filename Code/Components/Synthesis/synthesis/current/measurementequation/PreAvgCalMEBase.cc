@@ -39,6 +39,9 @@
 #include <fitting/ComplexDiff.h>
 #include <fitting/DesignMatrix.h>
 #include <casa/Arrays/MatrixMath.h>
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation.preavgcalmebase");
 
 
 
@@ -129,5 +132,17 @@ void PreAvgCalMEBase::initialise(casa::uInt nAnt, casa::uInt nBeam)
 {
   itsBuffer.initialise(nAnt,nBeam);
 }
+
+/// @brief destructor 
+/// @details This method just prints statistics on the number of
+/// visibilities not accumulated due to various reasons
+PreAvgCalMEBase::~PreAvgCalMEBase()
+{
+  ASKAPLOG_DEBUG_STR(logger, "PreAvgCalMEBase statistics on ignored visibilities");
+  ASKAPLOG_DEBUG_STR(logger, "   ignored due to type (e.g. autocorrelations): "<<itsBuffer.ignoredDueToType());
+  ASKAPLOG_DEBUG_STR(logger, "   no match found for baseline/beam: "<<itsBuffer.ignoredNoMatch());
+  ASKAPLOG_DEBUG_STR(logger, "   ignored because of flags: "<<itsBuffer.ignoredDueToFlags());
+}
+
 
   
