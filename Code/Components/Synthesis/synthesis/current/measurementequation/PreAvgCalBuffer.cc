@@ -333,6 +333,7 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
                      // the only supported case is averaging of all frequency channels together
                      itsSumModelAmps(bufRow,0,pol) += weight * casa::norm(model);
                      itsSumVisProducts(bufRow,0,pol) += weight * std::conj(model) * measuredVis(row,chan,pol);
+                     //std::cout<<"accumulated ("<<bufRow<<","<<pol<<"): "<<model<<" "<<measuredVis(row,chan,pol)<<std::endl;
                      // unflag this row because it now has some data
                      itsFlag(bufRow,0,pol) = false;
                  } else {

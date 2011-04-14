@@ -113,6 +113,7 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
        scimath::ComplexDiffMatrix cdm = buildComplexDiffMatrix(itsBuffer, row) *       
             scimath::ComplexDiffMatrix(sumModelAmps);
        casa::Matrix<casa::Complex> measuredSlice = transpose(itsBuffer.sumVisProducts().yzPlane(row));
+       //std::cout<<"row="<<row<<" measuredSlice="<<casa::Vector<casa::Complex>(measuredSlice)<<" "<<cdm(1,0).value()<<std::endl;
        
        scimath::DesignMatrix designmatrix;
        // we can probably add below actual weights taken from the data accessor
