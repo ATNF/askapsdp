@@ -86,7 +86,7 @@ namespace askap {
             return z*sigma + mean;
         }
 
-      struct wcsprm *parsetToWCS(const LOFAR::ParameterSet& theParset, const std::vector<unsigned int> &theAxes, const float &theEquinox, duchamp::Section &theSection)
+      struct wcsprm *parsetToWCS(const LOFAR::ParameterSet& theParset, const std::vector<unsigned int> &theAxes, const float &theEquinox, const float &theRestFreq, duchamp::Section &theSection)
       {
 	/// @details Defines a world coordinate system from an
 	/// input parameter set. This looks for parameters that
@@ -99,6 +99,7 @@ namespace askap {
 	/// @param theParset The input parset to be examined.
 	/// @param theDim The number of axes expected
 	/// @param theEquinox The value of the Equinox keyword
+	/// @param theRestFreq The value of the restfreq keyword (rest frequency).
 	/// @param theSection A duchamp::Section object describing the subsection the current image inhabits - necessary for the crpix values.
 
 	const unsigned int theDim = theAxes.size();
@@ -155,6 +156,7 @@ namespace askap {
 	}
 
 	wcs->equinox = theEquinox;
+	wcs->restfrq = theRestFreq;
 	wcsset(wcs);
 
 	int stat[NWCSFIX];

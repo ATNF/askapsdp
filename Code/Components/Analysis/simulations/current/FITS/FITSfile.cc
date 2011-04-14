@@ -450,7 +450,7 @@ namespace askap {
 	  if (this->itsWCSAllocated) wcsvfree(&nwcs, &this->itsWCS);
 
 	  //this->itsWCS = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
-	  wcs = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
+	  wcs = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsRestFreq,this->itsSourceSection);
 	  this->itsWCS = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
 	  this->itsWCSAllocated = true;
 	  this->itsWCS->flag = -1;
@@ -463,7 +463,7 @@ namespace askap {
 	  if (this->itsWCSsourcesAllocated)  wcsvfree(&nwcs, &this->itsWCSsources);
 
 	  //this->itsWCS = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
-	  wcs = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsSourceSection);
+	  wcs = parsetToWCS(parset,this->itsAxes,this->itsEquinox,this->itsRestFreq,this->itsSourceSection);
 	  this->itsWCSsources = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
 	  this->itsWCSsourcesAllocated = true;
 	  this->itsWCSsources->flag = -1;

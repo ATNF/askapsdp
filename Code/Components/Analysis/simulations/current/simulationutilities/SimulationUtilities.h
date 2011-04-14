@@ -59,7 +59,7 @@ namespace askap {
         float normalRandomVariable(float mean, float rms);
 
 	/// @brief Create a wcsprm struct from a parset
-	struct wcsprm *parsetToWCS(const LOFAR::ParameterSet& theParset, const std::vector<unsigned int> &theAxes, const float &theEquinox, duchamp::Section &theSection);
+	struct wcsprm *parsetToWCS(const LOFAR::ParameterSet& theParset, const std::vector<unsigned int> &theAxes, const float &theEquinox, const float &theRestFreq, duchamp::Section &theSection);
 
         /// @brief Add a 2D Gaussian component to an array of fluxes.
         bool addGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxG);
