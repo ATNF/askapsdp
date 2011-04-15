@@ -1,6 +1,8 @@
-csvfile='aa.csv'
-outfile='SKA1AA100m.in'
-dmax=100.0
+#csvfile='aa.csv'
+#outfile='SKA1AA2km.in'
+csvfile='dish.csv'
+outfile='SKA1Dish.in'
+dmax=100000.0
 lonref=40.019
 latref=-30.7131
 
@@ -27,55 +29,55 @@ def distance(lat, lon, latref, longref):
     return math.sqrt((lat-latref)*(lat-latref)+(lon-lonref)*(lon-lonref))*17687.5
 
 ants=[]
+lons=[]
+lats=[]
 
 fileid=file(csvfile, 'U')
-n=0
+ant=0
 while(True):
     line=fileid.readline()
     if(line==''):
         break;
-#    ants.append(int(line.split(',')[0]))
     line=line.split(',')
-    lon=float(line[1])
-    lat=float(line[2])
+#    ant=int(line[0])
+    ant=ant+1
+    lon=float(line[0])
+    lat=float(line[1])
     if(distance(lat, lon, latref, lonref)<dmax):
-        n=n+1
-        ants.append(n)
+        ants.append(ant)
+        lons.append(lon)
+        lats.append(lat)
 fileid.close()
 
 print ants
 
 s='antennas.SKA1.names = ['
-for i in range(n):
-    if(i<n-1):
-        s=s+'AA%d,'%ants[i]
+for i in range(len(ants)):
+    if(i<len(ants)-1):
+        s=s+'Dish%d,'%ants[i]
     else:
-        s=s+'AA%d'%ants[i]
+        s=s+'Dish%d'%ants[i]
 
 s=s+']\n'
 
-print "Read %d lines" % n
+print "Read %d lines" % len(ants)
 
 outfileid=file(outfile, 'w')
 outfileid.write('antennas.telescope = SKA1\n')
 outfileid.write('antennas.SKA1.coordinates = global\n')
 outfileid.write(s)
-outfileid.write('antennas.SKA1.diameter = 15m\n')
+outfileid.write('antennas.SKA1.diameter = 80m\n')
 outfileid.write('antennas.SKA1.scale = 1.0\n')
 outfileid.write('antennas.SKA1.mount = alt-az\n')
 
-fileid=file(csvfile, 'U')
-csr=csv.reader(fileid)
-ant=1
-for row in csr:
-    lon=float(row[1])
-    lat=float(row[2])
+
+for ant in range(len(ants)):
+    lon=lons[ant]
+    lat=lats[ant]
     el=300.0
-    if(distance(lat, lon, latref, lonref)<dmax):
-        outfileid.write('# lat: %s; long: %s; el: %s\n' % (lat, lon, el))
-        (xx, yy, zz) = WGS84ToITRF(lat*math.pi/180.0, lon*math.pi/180.0, el)
-        outfileid.write('antennas.SKA1.AA%d=[%s, %s, %s]\n' % (ant, xx, yy, zz))
-    ant=ant+1
+    outfileid.write('# lat: %s; long: %s; el: %s\n' % (lat, lon, el))
+    (xx, yy, zz) = WGS84ToITRF(lat*math.pi/180.0, lon*math.pi/180.0, el)
+    outfileid.write('antennas.SKA1.Dish%d=[%s, %s, %s]\n' % (ants[ant], xx, yy, zz))
 
 fileid.close()
 outfileid.close()
