@@ -247,9 +247,6 @@ namespace askap
       {
         const string imageName("image"+(*it));
         SynthesisParamsHelper::clipImage(parameters(),imageName);
-        const casa::IPosition imageShape(parameters().value(imageName).shape());
-        const Axes axes(parameters().axes(imageName));
-        casa::Array<double> imagePixels(parameters().value(imageName).copy());
         if(itsModelGridders.count(imageName)==0) {
            itsModelGridders[imageName]=itsGridder->clone();
         }
