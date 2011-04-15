@@ -1,6 +1,6 @@
 antennas.telescope = SKA1
 antennas.SKA1.coordinates = global
-antennas.SKA1.names = [Dish1,Dish2,Dish3,Dish4,Dish5,Dish6,Dish7,Dish8,Dish9,Dish10,Dish11,Dish12,Dish13,Dish14,Dish15,Dish16,Dish17,Dish18,Dish19,Dish20,Dish21,Dish22,Dish23,Dish24,Dish25,Dish26,Dish27,Dish28,Dish29,Dish30,Dish31,Dish32,Dish33,Dish34,Dish35,Dish36,Dish37,Dish38,Dish39,Dish40,Dish41,Dish42,Dish43,Dish44,Dish45,Dish46,Dish47,Dish48,Dish49,Dish50,Dish51,Dish52,Dish53,Dish54,Dish55,Dish56,Dish57,Dish58,Dish59,Dish60,Dish61,Dish62,Dish63,Dish64,Dish65,Dish66,Dish67,Dish68,Dish69,Dish70,Dish71,Dish72,Dish73,Dish74,Dish75,Dish76,Dish77,Dish78,Dish79,Dish80,Dish81,Dish82,Dish83,Dish84,Dish85,Dish86,Dish87,Dish88,Dish89,Dish90,Dish91,Dish92,Dish93,Dish94,Dish95,Dish96,Dish97,Dish98,Dish99,Dish100,Dish101,Dish102,Dish103,Dish104,Dish105,Dish106,Dish107,Dish108,Dish109,Dish110,Dish111,Dish112,Dish113,Dish114,Dish115,Dish116,Dish117,Dish118,Dish119,Dish120,Dish121,Dish122,Dish123,Dish124,Dish125,Dish126,Dish127,Dish128,Dish129,Dish130,Dish131,Dish132,Dish133,Dish134,Dish135,Dish136,Dish137,Dish138,Dish139,Dish140,Dish141,Dish142,Dish143,Dish144,Dish145,Dish146,Dish147,Dish148,Dish149,Dish150,Dish151,Dish152,Dish153,Dish154,Dish155,Dish156,Dish157,Dish158,Dish159,Dish160,Dish161,Dish162,Dish163,Dish164,Dish165,Dish166,Dish167,Dish168,Dish169,Dish170,Dish171,Dish172,Dish173,Dish174,Dish175,Dish176,Dish177,Dish178,Dish179,Dish180,Dish181,Dish182,Dish183,Dish184,Dish185,Dish186,Dish187,Dish188,Dish189,Dish190,Dish191,Dish192,Dish193,Dish194,Dish195,Dish196,Dish197,Dish198,Dish199,Dish200,Dish201,Dish202,Dish203,Dish204,Dish205,Dish206,Dish207,Dish208,Dish209,Dish210,Dish211,Dish212,Dish213,Dish214,Dish215,Dish216,Dish217,Dish218,Dish219,Dish220]
+antennas.SKA1.names = [Dish1,Dish2,Dish3,Dish4,Dish5,Dish6,Dish7,Dish8,Dish9,Dish10,Dish11,Dish12,Dish13,Dish14,Dish15,Dish16,Dish17,Dish18,Dish19,Dish20,Dish21,Dish22,Dish23,Dish24,Dish25,Dish26,Dish27,Dish28,Dish29,Dish30,Dish31,Dish32,Dish33,Dish34,Dish35,Dish36,Dish37,Dish38,Dish39,Dish40,Dish41,Dish42,Dish43,Dish44,Dish45,Dish46,Dish47,Dish48,Dish49,Dish50,Dish51,Dish52,Dish53,Dish54,Dish55,Dish56,Dish57,Dish58,Dish59,Dish60,Dish61,Dish62,Dish63,Dish64,Dish65,Dish66,Dish67,Dish68,Dish69,Dish70,Dish71,Dish72,Dish73,Dish74,Dish75,Dish76,Dish77,Dish78,Dish79,Dish80,Dish81,Dish82,Dish83,Dish84,Dish85,Dish86,Dish87,Dish88,Dish89,Dish90,Dish91,Dish92,Dish93,Dish94,Dish95,Dish96,Dish97,Dish98,Dish99,Dish100,Dish101,Dish102,Dish103,Dish104,Dish105,Dish106,Dish107,Dish108,Dish109,Dish110,Dish111,Dish112,Dish113,Dish114,Dish115,Dish116,Dish117,Dish118,Dish119,Dish120,Dish121,Dish122,Dish123,Dish124,Dish125,Dish126,Dish127,Dish128,Dish129,Dish130,Dish131,Dish132,Dish133,Dish134,Dish135,Dish136,Dish137,Dish138,Dish139,Dish140,Dish141,Dish142,Dish143,Dish144,Dish145,Dish146,Dish147,Dish148,Dish149,Dish150,Dish151,Dish152,Dish153,Dish154,Dish155,Dish156,Dish157,Dish158,Dish159,Dish160,Dish161,Dish162,Dish163,Dish164,Dish165,Dish166,Dish167,Dish168,Dish169,Dish170,Dish171,Dish172,Dish173,Dish174,Dish175,Dish176,Dish177,Dish178,Dish179,Dish180,Dish181,Dish182,Dish183,Dish184,Dish185,Dish186,Dish187,Dish188,Dish189,Dish190,Dish191,Dish192,Dish193,Dish194,Dish195,Dish196,Dish197,Dish198,Dish199,Dish200,Dish201,Dish202]
 antennas.SKA1.diameter = 15m
 antennas.SKA1.scale = 1.0
 antennas.SKA1.mount = alt-az
@@ -398,49 +398,13 @@ antennas.SKA1.Dish195=[4214271.25903, 3522565.58099, -3231952.02179]
 antennas.SKA1.Dish196=[4198982.5912, 3533066.92371, -3240321.38014]
 # lat: -30.56387456; long: 39.9833; el: 300.0
 antennas.SKA1.Dish197=[4211971.63608, 3532172.31129, -3224506.48207]
-# lat: -30.64451853; long: 39.8878; el: 300.0
-antennas.SKA1.Dish198=[4214360.55396, 3522227.92126, -3232201.89575]
 # lat: -30.72913778; long: 40.082; el: 300.0
 antennas.SKA1.Dish199=[4198734.694, 3533409.09374, -3240269.85467]
 # lat: -30.5620946; long: 39.9793; el: 300.0
 antennas.SKA1.Dish200=[4212295.10928, 3531942.72374, -3224336.55905]
-# lat: -30.64727041; long: 39.8846; el: 300.0
-antennas.SKA1.Dish201=[4214437.93136, 3521892.81696, -3232464.38122]
 # lat: -30.72847494; long: 40.0865; el: 300.0
 antennas.SKA1.Dish202=[4198485.8971, 3533763.03148, -3240206.68377]
 # lat: -30.56038043; long: 39.9752; el: 300.0
 antennas.SKA1.Dish203=[4212621.88892, 3531703.36983, -3224172.91374]
-# lat: -30.72768628; long: 40.0911; el: 300.0
-antennas.SKA1.Dish204=[4198236.35458, 3534128.86904, -3240131.52124]
 # lat: -30.55873617; long: 39.9709; el: 300.0
 antennas.SKA1.Dish205=[4212957.95923, 3531446.74663, -3224015.9398]
-# lat: -30.55408691; long: 39.8201; el: 300.0
-antennas.SKA1.Dish206=[4222439.23893, 3520514.01575, -3223572.07082]
-# lat: -30.55317635; long: 39.8209; el: 300.0
-antennas.SKA1.Dish207=[4222429.49762, 3520605.83528, -3223485.1364]
-# lat: -30.5544354; long: 39.8214; el: 300.0
-antennas.SKA1.Dish208=[4222344.2749, 3520597.24105, -3223605.3422]
-# lat: -30.55521106; long: 39.8201; el: 300.0
-antennas.SKA1.Dish209=[4222390.57661, 3520473.44291, -3223679.39634]
-# lat: -30.5544354; long: 39.8189; el: 300.0
-antennas.SKA1.Dish210=[4222497.88592, 3520413.00317, -3223605.3422]
-# lat: -30.79017509; long: 39.8267; el: 300.0
-antennas.SKA1.Dish211=[4211779.19996, 3512448.57553, -3246085.08224]
-# lat: -30.78926453; long: 39.8275; el: 300.0
-antennas.SKA1.Dish212=[4211769.8437, 3512540.48112, -3245998.35686]
-# lat: -30.79052358; long: 39.828; el: 300.0
-antennas.SKA1.Dish213=[4211684.31468, 3512531.46907, -3246118.27361]
-# lat: -30.79129924; long: 39.8267; el: 300.0
-antennas.SKA1.Dish214=[4211730.20133, 3512407.71271, -3246192.14968]
-# lat: -30.79052358; long: 39.8255; el: 300.0
-antennas.SKA1.Dish215=[4211837.57377, 3512347.69633, -3246118.27361]
-# lat: -30.61362167; long: 40.2495; el: 300.0
-antennas.SKA1.Dish216=[4193373.41882, 3549889.82117, -3229254.32299]
-# lat: -30.61271111; long: 40.2503; el: 300.0
-antennas.SKA1.Dish217=[4193363.08924, 3549981.58798, -3229167.44114]
-# lat: -30.61397016; long: 40.2508; el: 300.0
-antennas.SKA1.Dish218=[4193277.85646, 3549972.25183, -3229287.57424]
-# lat: -30.61474582; long: 40.2495; el: 300.0
-antennas.SKA1.Dish219=[4193324.97641, 3549848.81237, -3229361.5836]
-# lat: -30.61397016; long: 40.2483; el: 300.0
-antennas.SKA1.Dish220=[4193432.74923, 3549789.28219, -3229287.57424]
