@@ -49,6 +49,25 @@ LeakageSolution::LeakageSolution(const casa::Long timestamp,
         itsAntennaIndex(nAntenna),
         itsBeamIndex(nBeam)
 {
+    casa::DComplex c(-1.0);
+    itsLeakage = c;
+    itsAntennaIndex = 0;
+    itsBeamIndex = 0;
+}
+
+casa::Long LeakageSolution::timestamp(void) const
+{
+        return itsTimestamp;
+}
+
+casa::Short LeakageSolution::nAntenna(void) const
+{
+        return itsNAntenna;
+}
+
+casa::Short LeakageSolution::nBeam(void) const
+{
+        return itsNBeam;
 }
 
 const casa::Matrix<casa::DComplex>& LeakageSolution::leakage(void) const

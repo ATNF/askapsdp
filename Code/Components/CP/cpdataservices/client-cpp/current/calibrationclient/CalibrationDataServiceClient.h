@@ -61,6 +61,8 @@ class CalibrationDataServiceClient {
         void addBandpassSolution(const BandpassSolution& sol);
     private:
 
+        askap::interfaces::calparams::JonesJTerm toIce(askap::cp::caldataservice::JonesJTerm jterm);
+
         // Ice Communicator
         Ice::CommunicatorPtr itsComm;
 

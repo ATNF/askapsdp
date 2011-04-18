@@ -5,4 +5,4 @@ calibrationdataservice.name     = CalibrationDataService
 
 test.nantenna                   = 6
 test.nbeam                      = 36
-test.nchannel                   = 16416
+test.nchannel                   = 1026

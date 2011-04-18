@@ -44,6 +44,12 @@ class LeakageSolution {
                         const casa::Short nAntenna,
                         const casa::Short nBeam);
 
+        casa::Long timestamp(void) const;
+
+        casa::Short nAntenna(void) const;
+
+        casa::Short nBeam(void) const;
+
         const casa::Matrix<casa::DComplex>& leakage(void) const;
         casa::Matrix<casa::DComplex>& leakage(void);
 

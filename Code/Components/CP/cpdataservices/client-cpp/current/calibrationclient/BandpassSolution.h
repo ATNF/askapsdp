@@ -50,6 +50,14 @@ class BandpassSolution {
                          const casa::Short nBeam,
                          const casa::Int nChan);
 
+        casa::Long timestamp(void) const;
+
+        casa::Short nAntenna(void) const;
+
+        casa::Short nBeam(void) const;
+
+        casa::Int nChan(void) const;
+
         const casa::Cube<JonesJTerm>& bandpass(void) const;
         casa::Cube<JonesJTerm>& bandpass(void);
 

@@ -51,6 +51,25 @@ GainSolution::GainSolution(const casa::Long timestamp,
         itsAntennaIndex(nAntenna),
         itsBeamIndex(nBeam)
 {
+    JonesJTerm jterm;
+    itsGains = jterm;
+    itsAntennaIndex = 0;
+    itsBeamIndex = 0;
+}
+
+casa::Long GainSolution::timestamp(void) const
+{
+    return itsTimestamp;
+}
+
+casa::Short GainSolution::nAntenna(void) const
+{
+    return itsNAntenna;
+}
+
+casa::Short GainSolution::nBeam(void) const
+{
+    return itsNBeam;
 }
 
 const casa::Matrix<JonesJTerm>& GainSolution::gains(void) const

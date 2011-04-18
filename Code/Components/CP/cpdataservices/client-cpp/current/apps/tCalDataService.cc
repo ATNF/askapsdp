@@ -34,11 +34,14 @@
 #include <stdexcept>
 
 // ASKAPsoft includes
+#include "casa/aipstype.h"
 #include "Common/ParameterSet.h"
 #include "CommandLineParser.h"
 
 // Local package includes
 #include "calibrationclient/CalibrationDataServiceClient.h"
+#include "calibrationclient/JonesJTerm.h"
+#include "calibrationclient/GainSolution.h"
 
 using namespace std;
 using namespace askap::cp::caldataservice;
@@ -82,6 +85,61 @@ class Stopwatch {
         clock_t m_start;
 };
 
+void addGainSolution(CalibrationDataServiceClient& svc,
+        const casa::Long timestamp,
+        const casa::Short nAntenna, const casa::Short nBeam)
+{
+    GainSolution sol(timestamp, nAntenna, nBeam);
+    // Assign antenna ids
+    for (casa::Short antenna = 0; antenna < nAntenna; ++antenna) {
+        sol.antennaIndex()(antenna) = antenna;
+    }
+    // Assign beam ids
+    for (casa::Short beam = 0; beam < nBeam; ++beam) {
+        sol.beamIndex()(beam) = beam;
+    }
+
+    svc.addGainSolution(sol);
+}
+
+void addLeakageSolution(CalibrationDataServiceClient& svc,
+        const casa::Long timestamp,
+        const casa::Short nAntenna, const casa::Short nBeam)
+{
+    LeakageSolution sol(timestamp, nAntenna, nBeam);
+    // Assign antenna ids
+    for (casa::Short antenna = 0; antenna < nAntenna; ++antenna) {
+        sol.antennaIndex()(antenna) = antenna;
+    }
+    // Assign beam ids
+    for (casa::Short beam = 0; beam < nBeam; ++beam) {
+        sol.beamIndex()(beam) = beam;
+    }
+
+    svc.addLeakageSolution(sol);
+}
+
+void addBandpassSolution(CalibrationDataServiceClient& svc,
+        const casa::Long timestamp,
+        const casa::Short nAntenna, const casa::Short nBeam, const casa::Int nChan)
+{
+    BandpassSolution sol(timestamp, nAntenna, nBeam, nChan);
+    // Assign antenna ids
+    for (casa::Short antenna = 0; antenna < nAntenna; ++antenna) {
+        sol.antennaIndex()(antenna) = antenna;
+    }
+    // Assign beam ids
+    for (casa::Short beam = 0; beam < nBeam; ++beam) {
+        sol.beamIndex()(beam) = beam;
+    }
+    // Assign channel ids
+    for (casa::Int chan = 0; chan < nChan; ++chan) {
+        sol.chanIndex()(chan) = chan;
+    }
+
+    svc.addBandpassSolution(sol);
+}
+
 // main()
 int main(int argc, char *argv[])
 {
@@ -101,11 +159,28 @@ int main(int argc, char *argv[])
     const string locatorHost = parset.getString("ice.locator.host");
     const string locatorPort = parset.getString("ice.locator.port");
     const string serviceName = parset.getString("calibrationdataservice.name");
-    //const uint32_t nantenna = parset.getUint32("test.nantenna");
-    //const uint32_t nbeam = parset.getUint32("test.nbeam");
-    //const uint32_t nchannel = parset.getUint32("test.nchannel");
+    const casa::Short nAntenna = parset.getInt16("test.nantenna");
+    const casa::Short nBeam = parset.getInt16("test.nbeam");
+    const casa::Int nChan = parset.getInt32("test.nchannel");
 
     CalibrationDataServiceClient svc(locatorHost, locatorPort, serviceName);
+    const casa::Long timestamp = 1000;
+
+    Stopwatch sw;
+    sw.start();
+    addGainSolution(svc, timestamp, nAntenna, nBeam);
+    double time = sw.stop();
+    std::cout << "Time to add gains solution: " << time << std::endl;
+
+    sw.start();
+    addLeakageSolution(svc, timestamp, nAntenna, nBeam);
+    time = sw.stop();
+    std::cout << "Time to add leakage solution: " << time << std::endl;
+
+    sw.start();
+    addBandpassSolution(svc, timestamp, nAntenna, nBeam, nChan);
+    time = sw.stop();
+    std::cout << "Time to add bandpass solution: " << time << std::endl;
 
     return 0;
 }

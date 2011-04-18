@@ -47,6 +47,12 @@ class GainSolution {
                      const casa::Short nAntenna,
                      const casa::Short nBeam);
 
+        casa::Long timestamp(void) const;
+
+        casa::Short nAntenna(void) const;
+
+        casa::Short nBeam(void) const;
+
         const casa::Matrix<JonesJTerm>& gains(void) const;
         casa::Matrix<JonesJTerm>& gains(void);
 

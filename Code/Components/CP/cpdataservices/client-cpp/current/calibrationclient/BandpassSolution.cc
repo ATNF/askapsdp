@@ -54,8 +54,32 @@ BandpassSolution::BandpassSolution(const casa::Long timestamp,
         itsBeamIndex(nBeam),
         itsChanIndex(nChan)
 {
+    JonesJTerm jterm;
+    itsBandpass = jterm;
+    itsAntennaIndex = 0;
+    itsBeamIndex = 0;
+    itsChanIndex = 0;
 }
 
+casa::Long BandpassSolution::timestamp(void) const
+{
+    return itsTimestamp;
+}
+
+casa::Short BandpassSolution::nAntenna(void) const
+{
+    return itsNAntenna;
+}
+
+casa::Short BandpassSolution::nBeam(void) const
+{
+    return itsNBeam;
+}
+
+casa::Int BandpassSolution::nChan(void) const
+{
+    return itsNChan;
+}
 
 const casa::Cube<JonesJTerm>& BandpassSolution::bandpass(void) const
 {
