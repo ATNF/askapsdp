@@ -186,9 +186,11 @@ namespace askap
 	    saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "residual", unpadImage(dirtyArray),
 				   planeIter.position());
 	    
+            /*
 	    // uncomment the code below to save the mask
 	    saveArrayIntoParameter(ip, indit->first, planeIter.shape(), "mask", unpadImage(maskArray),
 				   planeIter.position());
+            */
 	    
 	    
 	    // Create a lattice cleaner to do the dirty work :)
