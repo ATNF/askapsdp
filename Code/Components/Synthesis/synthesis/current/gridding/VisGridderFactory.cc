@@ -162,6 +162,23 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 	} else {
 	    ASKAPLOG_INFO_STR(logger, "gridder.alldatapsf option is not used, default to representative feed and field for PSF calculation");
 	}	
+
+    {
+       const bool osWeight = parset.getBool("gridder.oversampleweight",false);
+	   if (osWeight) {
+	       ASKAPLOG_INFO_STR(logger, "Weight will be tracked per oversampling plane");
+	   } else {
+	        ASKAPLOG_INFO_STR(logger, "First oversampling plane will always be used for weight computation");
+	   }
+	   boost::shared_ptr<TableVisGridder> tvg = 
+	       boost::dynamic_pointer_cast<TableVisGridder>(gridder);
+	   if (tvg) {
+           tvg->trackWeightPerPlane(osWeight);
+	   } else {
+	       ASKAPLOG_WARN_STR(logger,"Gridder type ("<<parset.getString("gridder")<<
+	              ") is incompatible with the oversampleweight option (trying to set it to "<<osWeight<<")");
+	   }
+	}	
 	
 	// Initialize the Visibility Weights
 	if (parset.getString("visweights","")=="MFS")

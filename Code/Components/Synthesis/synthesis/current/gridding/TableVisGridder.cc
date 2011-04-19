@@ -89,7 +89,8 @@ TableVisGridder::TableVisGridder() : itsSumWeights(),
 	itsTimeDegridded(0.0), itsDopsf(false),
 	itsPaddingFactor(1.),
 	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false),
-	itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0)
+	itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0),
+	itsTrackWeightPerOversamplePlane(false)
 
 {}
 
@@ -102,7 +103,8 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 		itsTimeDegridded(0.0), itsDopsf(false),
 		itsPaddingFactor(padding),
 		itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false), 	
-		itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0)		
+		itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0),
+		itsTrackWeightPerOversamplePlane(false)
 	{
 		
 		ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
@@ -136,7 +138,8 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
      itsFreqMapper(other.itsFreqMapper),
      itsMaxPointingSeparation(other.itsMaxPointingSeparation),
      itsRowsRejectedDueToMaxPointingSeparation(other.itsRowsRejectedDueToMaxPointingSeparation),
-     itsConvFuncOffsets(other.itsConvFuncOffsets)
+     itsConvFuncOffsets(other.itsConvFuncOffsets), 
+     itsTrackWeightPerOversamplePlane(other.itsTrackWeightPerOversamplePlane)
 {
    deepCopyOfSTDVector(other.itsConvFunc,itsConvFunc);
    deepCopyOfSTDVector(other.itsGrid, itsGrid);   
@@ -248,6 +251,11 @@ TableVisGridder::~TableVisGridder() {
 	  }
 	} else {
 	  ASKAPLOG_DEBUG_STR(logger, "   Padding factor    = " << itsPaddingFactor);
+	  if (itsTrackWeightPerOversamplePlane) {
+	      ASKAPLOG_DEBUG_STR(logger, "   Weights are tracked per oversampling plane");
+	  } else {
+	      ASKAPLOG_DEBUG_STR(logger, "   First oversampling plane is used to compute weights");
+	  }
 	  logCFCacheStats();
 	  if(itsName!="") {
 	    save(itsName);
@@ -855,7 +863,9 @@ void TableVisGridder::initialiseSumOfWeights()
 void TableVisGridder::resizeSumOfWeights(const int numcf)
 {
   ASKAPDEBUGASSERT(numcf>0);
-  itsSumWeights.resize(numcf,itsShape.nelements()>=3 ? itsShape(2) : 1, 
+  const int numRows = itsTrackWeightPerOversamplePlane ? numcf*itsOverSample*itsOverSample : numcf;
+  ASKAPDEBUGASSERT(numRows>0);
+  itsSumWeights.resize(numRows,itsShape.nelements()>=3 ? itsShape(2) : 1, 
                          itsShape.nelements()>=4 ? itsShape(3) : 1);
 }
 

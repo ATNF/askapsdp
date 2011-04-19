@@ -158,6 +158,11 @@ namespace askap
       /// @details Change itsUseAllDataForPSF
       /// @param[in] useAll new value of the flag
       void inline useAllDataForPSF(const bool useAll) { itsUseAllDataForPSF = useAll;} 
+      
+      /// @brief set or reset flag forcing gridder to track weights per oversampling plane
+      /// @details change itsTrackWeightPerOversamplePlane
+      /// @param[in] flag new value of the flag
+      void inline trackWeightPerPlane(const bool flag) { itsTrackWeightPerOversamplePlane = flag;}
 
       /// @brief set the largest angular separation between the pointing centre and the image centre
       /// @details If the threshold is positive, it is interpreted as the largest allowed angular
@@ -232,7 +237,8 @@ namespace askap
       /// this functionality here, so all derived classes work do not need to make a 
       /// distinction how the weights are tracked.
       /// @param[in] row row of the sum of weights cube
-      inline int cfIndexFromSumOfWeightsRow(const int row) const { return itsOverSample*itsOverSample*row; }
+      inline int cfIndexFromSumOfWeightsRow(const int row) const 
+          { return itsTrackWeightPerOversamplePlane ? row : itsOverSample*itsOverSample*row; }
       
       /// @brief helper method to initialise frequency mapping
       /// @details Derived gridders may override initialiseGrid and initialiseDegrid. Howerver, 
@@ -506,6 +512,9 @@ protected:
       /// of CF is beyond the size of this vector, (0,0) offset is assumed. By default this vector is empty,
       /// which means no offset. 
       std::vector<std::pair<int,int> > itsConvFuncOffsets;
+      
+      /// @brief true, if itsSumWeights tracks weights per oversampling plane
+      bool itsTrackWeightPerOversamplePlane;
     };
   }
 }
