@@ -368,7 +368,7 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
     const int nPol=itsShape(2);
     const int nChan=itsShape(3);
 
-    const int nZ=itsSumWeights.shape()(0);
+    const int nZ = sumOfWeights().nrow();
 
     /// We must pad the convolution function to full size, reverse transform
     /// square, and sum multiplied by the corresponding weight
@@ -384,17 +384,14 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
     // for debugging
     double totSumWt = 0.;
 
-    /// itsSumWeights has one element for each separate data plane (feed, field, chan)
-    /// itsConvFunc has overSampling**2 planes for each separate data plane (feed, field, chan)
-    /// We choose the convolution function at zero fractional offset in u,v 
     for (int iz=0; iz<nZ; ++iz) {
-        const int plane=itsOverSample*itsOverSample*iz;
+        const int plane = cfIndexFromSumOfWeightsRow(iz);
 
         bool hasData=false;
         for (int chan=0; chan<nChan; ++chan) {
             for (int pol=0; pol<nPol; ++pol) {
-                const double wt = itsSumWeights(iz, pol, chan);
-                ASKAPCHECK(!std::isnan(wt), "itsSumWeights contains NaN for convolution function "<<iz<<
+                const double wt = sumOfWeights()(iz, pol, chan);
+                ASKAPCHECK(!std::isnan(wt), "sumOfWeights returns NaN for row="<<iz<<
                            " pol="<<pol<<" chan="<<chan);
                 if (wt > 0.0) {
                     hasData=true;
@@ -443,8 +440,8 @@ void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
             for (int chan=0; chan<nChan; ++chan) {
                 for (int pol=0; pol<nPol; ++pol) {
                     casa::IPosition ip(4, 0, 0, pol, chan);
-                    const double wt=itsSumWeights(iz, pol, chan);
-                    ASKAPCHECK(!std::isnan(wt), "itsSumWeights contains NaN for convolution function "<<iz<<
+                    const double wt = sumOfWeights()(iz, pol, chan);
+                    ASKAPCHECK(!std::isnan(wt), "sumWeights returns NaN for row="<<iz<<
                                " pol="<<pol<<" chan="<<chan);
                     for (int ix=0; ix<cnx; ++ix) {
                         ip(0)=ix;

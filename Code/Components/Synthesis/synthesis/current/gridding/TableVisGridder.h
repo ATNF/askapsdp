@@ -221,6 +221,19 @@ namespace askap
       /// @param[in] numcf number of convolution functions in the cache (before oversampling)
       void resizeSumOfWeights(const int numcf);
       
+      /// @brief obtain sum of weights cube
+      /// @return const reference to the sum of weights cube
+      inline const casa::Cube<double>& sumOfWeights() const { return itsSumWeights;}
+      
+      /// @brief translate row of the sum of weights cube into convolution function plane
+      /// @details If we are tracking weights per oversampling plane, the row of the sum of
+      /// weights cube directly corresponds to the plane of the convolution function cache. 
+      /// Otherwise, there is a factor of oversampling squared. It is handy to encapsulate
+      /// this functionality here, so all derived classes work do not need to make a 
+      /// distinction how the weights are tracked.
+      /// @param[in] row row of the sum of weights cube
+      inline int cfIndexFromSumOfWeightsRow(const int row) const { return itsOverSample*itsOverSample*row; }
+      
       /// @brief helper method to initialise frequency mapping
       /// @details Derived gridders may override initialiseGrid and initialiseDegrid. Howerver, 
       /// they still need to be able to initialise frequency axis mapping (between accessor channels
@@ -272,8 +285,11 @@ namespace askap
       /// Cell sizes in wavelengths
       casa::Vector<double> itsUVCellSize;
 
+//temporary comment out
+//private:
       /// @brief Sum of weights (axes are index, pol, chan) 
       casa::Cube<double> itsSumWeights;
+protected:      
 
       /// @brief Convolution function
       /// The convolution function is stored as a vector of arrays so that we can
