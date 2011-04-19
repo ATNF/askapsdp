@@ -153,7 +153,7 @@ namespace askap {
           WProjectVisGridder::initialiseSumOfWeights();
       }
       // Reset the weights
-      itsSumWeights.set(0.0);
+      zeroSumOfWeights();
     }
     
 /// @brief Initialise the gridding
@@ -239,8 +239,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       
       if(itsSupport==0) {
          itsConvFunc.resize(itsOverSample*itsOverSample*nWPlanes()*itsMaxFeeds*itsMaxFields*nChan);
-         itsSumWeights.resize(nWPlanes()*itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
-         itsSumWeights.set(0.0);
+         resizeSumOfWeights(nWPlanes()*itsMaxFeeds*itsMaxFields*nChan);
+         zeroSumOfWeights();
          if (isOffsetSupportAllowed()) {
              initConvFuncOffsets(nWPlanes()*itsMaxFeeds*itsMaxFields*nChan);
 	     }         

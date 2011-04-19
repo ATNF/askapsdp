@@ -120,8 +120,7 @@ void AProjectWStackVisGridder::initialiseSumOfWeights()
         WStackVisGridder::initialiseSumOfWeights();
     }
     // Reset the weights
-    itsSumWeights.set(0.0);
-
+    zeroSumOfWeights();
 }
 
 /// Initialize the indices into the cube.
@@ -238,8 +237,8 @@ void AProjectWStackVisGridder::initConvolutionFunction(const accessors::IConstDa
         itsConvFunc.resize(itsOverSample*itsOverSample*itsMaxFeeds*itsMaxFields*nChan);
 
         ASKAPLOG_INFO_STR(logger, "Resizing sum of weights to " << itsMaxFeeds << "*" << itsMaxFields << "*" << nChan << " entries");
-        itsSumWeights.resize(itsMaxFeeds*itsMaxFields*nChan, itsShape(2), itsShape(3));
-        itsSumWeights.set(0.0);
+        resizeSumOfWeights(itsMaxFeeds*itsMaxFields*nChan);
+        zeroSumOfWeights();
     }
 
     UVPattern &pattern = uvPattern();

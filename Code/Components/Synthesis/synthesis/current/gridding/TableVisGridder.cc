@@ -840,11 +840,24 @@ void TableVisGridder::initialiseCellSize(const scimath::Axes& axes)
 /// been initialised by the time this method is called.
 void TableVisGridder::initialiseSumOfWeights()
 {
-  itsSumWeights.resize(1,itsShape.nelements()>=3 ? itsShape(2) : 1, 
-                         itsShape.nelements()>=4 ? itsShape(3) : 1);
-  itsSumWeights.set(0.0);
+  resizeSumOfWeights(1);
+  zeroSumOfWeights();
 }
 
+/// @brief resize sum of weights
+/// @details This method is used inside initialiseSumOfWeights and its overrides in 
+/// derived classes. It resizes itsSumWeights to a given number of convolution
+/// functions taking into account channels/polarisations according to itsShape. 
+/// Moving this operation into the separate method allows better data encapsulation
+/// and tracking weights per oversampling plane or per convolution function depending
+/// on the user's choice.
+/// @param[in] numcf number of convolution functions in the cache (before oversampling)
+void TableVisGridder::resizeSumOfWeights(const int numcf)
+{
+  ASKAPDEBUGASSERT(numcf>0);
+  itsSumWeights.resize(numcf,itsShape.nelements()>=3 ? itsShape(2) : 1, 
+                         itsShape.nelements()>=4 ? itsShape(3) : 1);
+}
 
 /// @brief a helper method to initialize gridding of the PSF
 /// @details The PSF is calculated using the data for a

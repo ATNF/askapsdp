@@ -206,6 +206,21 @@ namespace askap
       /// been initialised by the time this method is called.
       virtual void initialiseSumOfWeights();
       
+      /// @brief zero sum of weights
+      /// @details This method just sets all values of the current itsSumWeights biffer to zero
+      /// without resizing it. It is done like this for a better encapsulation.
+      void inline zeroSumOfWeights() { itsSumWeights.set(0.); }
+      
+      /// @brief resize sum of weights
+      /// @details This method is used inside initialiseSumOfWeights and its overrides in 
+      /// derived classes. It resizes itsSumWeights to a given number of convolution
+      /// functions taking into account channels/polarisations according to itsShape. 
+      /// Moving this operation into the separate method allows better data encapsulation
+      /// and tracking weights per oversampling plane or per convolution function depending
+      /// on the user's choice.
+      /// @param[in] numcf number of convolution functions in the cache (before oversampling)
+      void resizeSumOfWeights(const int numcf);
+      
       /// @brief helper method to initialise frequency mapping
       /// @details Derived gridders may override initialiseGrid and initialiseDegrid. Howerver, 
       /// they still need to be able to initialise frequency axis mapping (between accessor channels

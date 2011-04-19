@@ -118,7 +118,6 @@ namespace askap
       }
             
       initialiseSumOfWeights();
-      ASKAPCHECK(itsSumWeights.nelements()>0, "SumWeights not yet initialised");      
       
       initialiseFreqMapping();           
       

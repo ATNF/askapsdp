@@ -95,9 +95,8 @@ namespace askap
     /// been initialised by the time this method is called.
     void WProjectVisGridder::initialiseSumOfWeights()
     {
-       itsSumWeights.resize(nWPlanes(), itsShape.nelements()>=3 ? itsShape(2) : 1, 
-                              itsShape.nelements()>=4 ? itsShape(3) : 1);
-       itsSumWeights.set(0.0);
+       resizeSumOfWeights(nWPlanes());
+       zeroSumOfWeights();
     }
 
     /// Initialize the convolution function into the cube. If necessary this
