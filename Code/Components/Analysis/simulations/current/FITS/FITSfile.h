@@ -107,6 +107,9 @@ namespace askap {
 		    /// @brief Check the value of the itsDatabaseOrigin parameter.
 		    bool databaseGood();
 
+		    /// @brief Is the requested database a spectral-line one?
+		    bool databaseSpectral();
+
                     /// @brief Make a flux array with just noise in it.
                     void makeNoiseArray();
 

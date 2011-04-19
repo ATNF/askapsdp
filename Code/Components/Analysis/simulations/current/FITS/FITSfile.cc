@@ -327,6 +327,9 @@ namespace askap {
 	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH'. Setting to Continuum.");
 	  this->itsDatabaseOrigin = "Continuum";
 	}
+	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
+	if(this->databaseSpectral()) this->itsSourceListType="spectralline";
+	ASKAPLOG_DEBUG_STR(logger, "source list type = " << this->itsSourceListType);
 
 	if (this->itsDryRun) {
 	  this->itsFITSOutput = false;
@@ -369,6 +372,18 @@ namespace askap {
 
       //--------------------------------------------------------
 
+      bool FITSfile::databaseSpectral()
+      {
+	bool val=((this->itsDatabaseOrigin == "S3SEX" && this->itsSourceListType=="spectralline") ||
+		  this->itsDatabaseOrigin == "S3SAX" ||
+		  this->itsDatabaseOrigin == "Gaussian" ||
+		  this->itsDatabaseOrigin == "FLASH");
+	return val;
+      }
+
+
+      //--------------------------------------------------------
+
       void FITSfile::setWCS(bool isImage, const LOFAR::ParameterSet& parset)
       {
 	/// @details Defines a world coordinate system from an
@@ -384,59 +399,6 @@ namespace askap {
 	/// FITSfile::itsWCSsources.
 	/// @param parset The input parset to be examined.
 
-	// struct wcsprm *wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
-	// wcs->flag = -1;
-	// wcsini(true , this->itsDim, wcs);
-	// wcs->flag = 0;
-	// std::vector<std::string> ctype, cunit;
-	// std::vector<float> crval, crpix, cdelt, crota;
-	// ctype = parset.getStringVector("ctype");
-
-	// if (ctype.size() != this->itsDim)
-	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-	// 	     ", but ctype has " << ctype.size() << " dimensions.");
-
-	// cunit = parset.getStringVector("cunit");
-
-	// if (cunit.size() != this->itsDim)
-	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-	// 	     ", but cunit has " << cunit.size() << " dimensions.");
-
-	// crval = parset.getFloatVector("crval");
-
-	// if (crval.size() != this->itsDim)
-	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-	// 	     ", but crval has " << crval.size() << " dimensions.");
-
-	// crpix = parset.getFloatVector("crpix");
-
-	// if (crpix.size() != this->itsDim)
-	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-	// 	     ", but crpix has " << crpix.size() << " dimensions.");
-
-	// cdelt = parset.getFloatVector("cdelt");
-
-	// if (cdelt.size() != this->itsDim)
-	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-	// 	     ", but cdelt has " << cdelt.size() << " dimensions.");
-
-	// crota = parset.getFloatVector("crota");
-
-	// if (crota.size() != this->itsDim)
-	//   ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << this->itsDim <<
-	// 	     ", but crota has " << crota.size() << " dimensions.");
-
-	// for (uint i = 0; i < this->itsDim; i++) {
-	//   wcs->crpix[i] = crpix[i] - this->itsSourceSection.getStart(i) + 1;
-	//   wcs->cdelt[i] = cdelt[i];
-	//   wcs->crval[i] = crval[i];
-	//   wcs->crota[i] = crota[i];
-	//   strcpy(wcs->cunit[i], cunit[i].c_str());
-	//   strcpy(wcs->ctype[i], ctype[i].c_str());
-	// }
-
-	// wcs->equinox = this->itsEquinox;
-	// wcsset(wcs);
 
 	int stat[NWCSFIX];
 	int axes[this->itsAxes.size()];
