@@ -28,6 +28,9 @@
 
         <!-- Enables autocommit for JDBC pooled connections -->
         <property name="hibernate.connection.autocommit">true</property>
+        
+        <!-- Set the JDBC batch size -->
+        <property name="hibernate.jdbc.batch_size">20</property>
 
         <mapping resource="askap/interfaces/skymodelservice/Component.hbm.xml"/>
 

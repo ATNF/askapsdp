@@ -21,10 +21,13 @@
         <property name="cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
 
         <!-- Echo all executed SQL to stdout -->
-        <property name="show_sql">true</property>
+        <property name="show_sql">false</property>
 
         <!-- Drop and re-create the database schema on startup -->
         <property name="hbm2ddl.auto">update</property>
+        
+        <!-- Set the JDBC batch size -->
+        <property name="hibernate.jdbc.batch_size">20</property>
 
         <mapping resource="askap/interfaces/skymodelservice/Component.hbm.xml"/>
 

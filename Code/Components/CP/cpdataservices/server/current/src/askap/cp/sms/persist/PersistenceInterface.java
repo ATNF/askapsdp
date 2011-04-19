@@ -44,9 +44,16 @@ import askap.interfaces.skymodelservice.Component;
  * 
  */
 public class PersistenceInterface {
-	/** Logger. */
+	/**
+	 * Logger
+	 */
 	private static Logger logger = Logger.getLogger(PersistenceInterface.class
 			.getName());
+	
+	/**
+	 * Size of batches for SQL inserts and updates
+	 */
+	private int itsBatchSize = 20;
 	
 	/**
 	 * Hibernate session
@@ -137,11 +144,17 @@ public class PersistenceInterface {
 		
 		Iterator<Component> it = components.iterator();
 		Transaction tx = itsSession.beginTransaction();
+		int count = 0;
 	    while(it.hasNext()) {
 	    	Component c = it.next();
 	    	itsSession.save(c);
 	    	idList.add(new Long(c.id));
-	    	
+			if (count == itsBatchSize) {
+				itsSession.flush();
+				itsSession.clear();
+				count = 0;
+			}
+	    	count++;
 	    }
 	    tx.commit();
 		

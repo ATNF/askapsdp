@@ -43,9 +43,16 @@ import askap.interfaces.calparams.JonesJTerm;
 import askap.interfaces.calparams.FrequencyDependentJTerm;
 
 public class PersistenceInterface {
-	/** Logger. */
+	/**
+	 * Logger
+	 * */
 	private static Logger logger = Logger.getLogger(PersistenceInterface.class
 			.getName());
+	
+	/**
+	 * Size of batches for SQL inserts and updates
+	 */
+	private int itsBatchSize = 20;
 	
 	/**
 	 * Hibernate session
@@ -82,6 +89,7 @@ public class PersistenceInterface {
 	public void addGainSolution(TimeTaggedGainSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
 		itsSession.save(new GainSolutionBean(solution.timestamp));
+		int count = 0;
 		for (Map.Entry<JonesIndex,JonesJTerm> entry : solution.gain.entrySet()) {
 			JonesIndex key = entry.getKey();
 			JonesJTerm value = entry.getValue();
@@ -89,6 +97,12 @@ public class PersistenceInterface {
 					key.antennaID, key.beamID,
 					value.g1.real, value.g1.imag, value.g1Valid,
 					value.g2.real, value.g2.imag, value.g2Valid));
+			if (count == itsBatchSize) {
+				itsSession.flush();
+				itsSession.clear();
+				count = 0;
+			}
+			count++;
 		}
 		tx.commit();
 	}
@@ -96,12 +110,19 @@ public class PersistenceInterface {
 	public void addLeakageSolution(TimeTaggedLeakageSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
 		itsSession.save(new LeakageSolutionBean(solution.timestamp));
+		int count = 0;
 		for (Map.Entry<JonesIndex,DoubleComplex> entry : solution.leakage.entrySet()) {
 			JonesIndex key = entry.getKey();
 			DoubleComplex value = entry.getValue();
 			itsSession.save(new LeakageSolutionElementBean(solution.timestamp,
 					key.antennaID, key.beamID,
 					value.real, value.imag));
+			if (count == itsBatchSize) {
+				itsSession.flush();
+				itsSession.clear();
+				count = 0;
+			}
+			count++;
 		}
 		tx.commit();
 	}
@@ -109,6 +130,7 @@ public class PersistenceInterface {
 	public void addBandpassSolution(TimeTaggedBandpassSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
 		itsSession.save(new BandpassSolutionBean(solution.timestamp, solution.nChan));
+		int count = 0;
 		for (Map.Entry<JonesIndex,FrequencyDependentJTerm> entry : solution.bandpass.entrySet()) {
 			JonesIndex key = entry.getKey();
 			FrequencyDependentJTerm value = entry.getValue();
@@ -119,6 +141,13 @@ public class PersistenceInterface {
 						jterm.g1.real, jterm.g1.imag, jterm.g1Valid,
 						jterm.g2.real, jterm.g2.imag, jterm.g2Valid));
 				chan++;
+				
+				if (count == itsBatchSize) {
+					itsSession.flush();
+					itsSession.clear();
+					count = 0;
+				}
+				count++;
 			}
 		}
 		tx.commit();
