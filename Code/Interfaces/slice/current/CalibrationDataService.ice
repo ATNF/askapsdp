@@ -25,6 +25,7 @@
 #ifndef ASKAP_CALIBRATION_DATA_SERVICE_ICE
 #define ASKAP_CALIBRATION_DATA_SERVICE_ICE
 
+#include <CommonTypes.ice>
 #include <CalibrationParameters.ice>
 
 module askap
@@ -33,6 +34,14 @@ module interfaces
 {
 module caldataservice
 {
+    /**
+     * This exception is thrown when a solution id is specified but does not exist,
+     * when is expected to.
+     **/
+    exception UnknownSolutionIdException extends askap::interfaces::AskapIceException
+    {
+    };
+
     /**
      * Interface to the Calibration Data Service.
      **/
@@ -43,32 +52,78 @@ module caldataservice
          * data service.
          * 
          * @param solution  new time tagged gains solution.
+         * @return the unique ID for the added solution.
          */
-        void addGainsSolution(askap::interfaces::calparams::TimeTaggedGainSolution solution);
+        long addGainsSolution(askap::interfaces::calparams::TimeTaggedGainSolution solution);
 
         /**
          * Add a new time tagged bandpass solution to the calibration
          * data service.
          * 
          * @param solution  new time tagged bandpass solution.
+         * @return the unique ID for the added solution.
          */
-        void addBandpassSolution(askap::interfaces::calparams::TimeTaggedBandpassSolution solution);
+        long addBandpassSolution(askap::interfaces::calparams::TimeTaggedBandpassSolution solution);
 
         /**
          * Add a new time tagged leakage solution to the calibration
          * data service.
          * 
          * @param solution  new time tagged leakage solution.
+         * @return the unique ID for the added solution.
          */
-        void addLeakageSolution(askap::interfaces::calparams::TimeTaggedLeakageSolution solution);
+        long addLeakageSolution(askap::interfaces::calparams::TimeTaggedLeakageSolution solution);
 
         /**
-         * Obtains the most recent calibration solution. The ingest pipeline is
-         * expected to call this periodically to obtain the latest solution.
-         *
-         * @return The most recent calibration solution.
+         * Obtain the ID of the current/optimum gain solution.
+         * @return the ID of the latest/optimum gain solution.
          */
-         askap::interfaces::calparams::CalibrationParametersMap getCurrentSolution();
+        long getCurrentGainSolutionID();
+
+        /**
+         * Obtain the ID of the current/optimum leakage solution.
+         * @return the ID of the latest/optimum leakage solution.
+         */
+        long getCurrentLeakageSolutionID();
+
+        /**
+         * Obtain the ID of the current/optimum bandpass solution.
+         * @return the ID of the latest/optimum bandpass solution.
+         */
+        long getCurrentBandpassSolutionID();
+
+        /**
+         * Get a gain solution.
+         * @param id    id of the gain solution to obtain.
+         * @return the gain solution.
+         *
+         * @throws UnknownSolutionIdException   the id parameter does not refer to
+         *                                      a known solution.
+         */
+        askap::interfaces::calparams::TimeTaggedGainSolution getGainSolution(long id)
+            throws UnknownSolutionIdException;
+
+        /**
+         * Get a leakage solution.
+         * @param id    id of the leakage solution to obtain.
+         * @return the leakage solution.
+         *
+         * @throws UnknownSolutionIdException   the id parameter does not refer to
+         *                                      a known solution.
+         */
+        askap::interfaces::calparams::TimeTaggedLeakageSolution getLeakageSolution(long id)
+            throws UnknownSolutionIdException;
+
+        /**
+         * Get a bandpass solution.
+         * @param id    id of the bandpass solution to obtain.
+         * @return the bandpass solution.
+         *
+         * @throws UnknownSolutionIdException   the id parameter does not refer to
+         *                                      a known solution.
+         */
+        askap::interfaces::calparams::TimeTaggedBandpassSolution getBandpassSolution(long id)
+            throws UnknownSolutionIdException;
     };
 
 };

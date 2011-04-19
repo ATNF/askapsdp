@@ -26,6 +26,8 @@
 package askap.cp.calds.persist;
 
 // Java imports
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 // ASKAPsoft imports
@@ -86,14 +88,15 @@ public class PersistenceInterface {
 		itsSession.close();
 	}
 	
-	public void addGainSolution(TimeTaggedGainSolution solution) {
+	public long addGainSolution(TimeTaggedGainSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		itsSession.save(new GainSolutionBean(solution.timestamp));
+		GainSolutionBean solbean = new GainSolutionBean(solution.timestamp);
+		itsSession.save(solbean);
 		int count = 0;
 		for (Map.Entry<JonesIndex,JonesJTerm> entry : solution.gain.entrySet()) {
 			JonesIndex key = entry.getKey();
 			JonesJTerm value = entry.getValue();
-			itsSession.save(new GainSolutionElementBean(solution.timestamp,
+			itsSession.save(new GainSolutionElementBean(solbean.getID(),
 					key.antennaID, key.beamID,
 					value.g1.real, value.g1.imag, value.g1Valid,
 					value.g2.real, value.g2.imag, value.g2Valid));
@@ -105,16 +108,18 @@ public class PersistenceInterface {
 			count++;
 		}
 		tx.commit();
+		return solbean.getID();
 	}
 	
-	public void addLeakageSolution(TimeTaggedLeakageSolution solution) {
+	public long addLeakageSolution(TimeTaggedLeakageSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		itsSession.save(new LeakageSolutionBean(solution.timestamp));
+		LeakageSolutionBean solbean = new LeakageSolutionBean(solution.timestamp);
+		itsSession.save(solbean);
 		int count = 0;
 		for (Map.Entry<JonesIndex,DoubleComplex> entry : solution.leakage.entrySet()) {
 			JonesIndex key = entry.getKey();
 			DoubleComplex value = entry.getValue();
-			itsSession.save(new LeakageSolutionElementBean(solution.timestamp,
+			itsSession.save(new LeakageSolutionElementBean(solbean.getID(),
 					key.antennaID, key.beamID,
 					value.real, value.imag));
 			if (count == itsBatchSize) {
@@ -125,18 +130,20 @@ public class PersistenceInterface {
 			count++;
 		}
 		tx.commit();
+		return solbean.getID();
 	}
 	
-	public void addBandpassSolution(TimeTaggedBandpassSolution solution) {
+	public long addBandpassSolution(TimeTaggedBandpassSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		itsSession.save(new BandpassSolutionBean(solution.timestamp, solution.nChan));
+		BandpassSolutionBean solbean = new BandpassSolutionBean(solution.timestamp, solution.nChan);
+		itsSession.save(solbean);
 		int count = 0;
 		for (Map.Entry<JonesIndex,FrequencyDependentJTerm> entry : solution.bandpass.entrySet()) {
 			JonesIndex key = entry.getKey();
 			FrequencyDependentJTerm value = entry.getValue();
 			int chan = 1;
 			for (JonesJTerm jterm: value.bandpass) {
-				itsSession.save(new BandpassSolutionElementBean(solution.timestamp,
+				itsSession.save(new BandpassSolutionElementBean(solbean.getID(),
 						key.antennaID, key.beamID, chan,
 						jterm.g1.real, jterm.g1.imag, jterm.g1Valid,
 						jterm.g2.real, jterm.g2.imag, jterm.g2Valid));
@@ -151,6 +158,113 @@ public class PersistenceInterface {
 			}
 		}
 		tx.commit();
+		return solbean.getID();
 	}
+	
+	public TimeTaggedGainSolution getGainSolution(long id) {
+		String query = "from GainSolutionBean where id = " + id;
+		@SuppressWarnings("unchecked")
+		List<GainSolutionBean> result = (List<GainSolutionBean>) itsSession.createQuery(query).list();
+		if (result.size() == 0) {
+			return null;
+		} else if (result.size() > 1) {
+			logger.warn("Multiple records returned for query: " + query);
+		}
+		GainSolutionBean bean = result.get(0);
+		
+		// Build the Ice type
+		TimeTaggedGainSolution ice_sol = new TimeTaggedGainSolution();
+		ice_sol.timestamp = bean.getTimestamp();
+		ice_sol.gain = new HashMap<JonesIndex,JonesJTerm>();
+		
+		// Need to query the element table for each map entry
+		query = "from GainSolutionElementBean where solution_id = " + id + " order by antennaID asc, beamID asc";
+		@SuppressWarnings("unchecked")
+		List<GainSolutionElementBean> elements = (List<GainSolutionElementBean>) itsSession.createQuery(query).list();
+		for ( GainSolutionElementBean element : (List<GainSolutionElementBean>) elements ) {
+			JonesIndex jind = new JonesIndex();
+			jind.antennaID = element.getAntennaID();
+			jind.beamID = element.getBeamID();
+			JonesJTerm jterm = new JonesJTerm();
+			
+			jterm.g1 = new askap.interfaces.DoubleComplex();
+			jterm.g1.real = element.getG1Real();
+			jterm.g1.imag = element.getG1Imag();
+			jterm.g1Valid = element.isG1Valid();
+			
+			jterm.g2 = new askap.interfaces.DoubleComplex();
+			jterm.g2.real = element.getG2Real();
+			jterm.g2.imag = element.getG2Imag();
+			jterm.g2Valid = element.isG2Valid();
 
+			ice_sol.gain.put(jind, jterm);
+		}
+
+		return ice_sol;
+	}
+	
+	public TimeTaggedLeakageSolution getLeakageSolution(long id) {
+		String query = "from LeakageSolutionBean where id = " + id;
+		@SuppressWarnings("unchecked")
+		List<LeakageSolutionBean> result = (List<LeakageSolutionBean>) itsSession.createQuery(query).list();
+		if (result.size() == 0) {
+			return null;
+		} else if (result.size() > 1) {
+			logger.warn("Multiple records returned for query: " + query);
+		}
+		LeakageSolutionBean bean = result.get(0);
+		
+		// Build the Ice type
+		TimeTaggedLeakageSolution ice_sol = new TimeTaggedLeakageSolution();
+		ice_sol.timestamp = bean.getTimestamp();
+		ice_sol.leakage = new HashMap<JonesIndex,DoubleComplex>();
+		
+		// Need to query the element table for each map entry
+		query = "from LeakageSolutionElementBean where solution_id = " + id + " order by antennaID asc, beamID asc";
+		@SuppressWarnings("unchecked")
+		List<LeakageSolutionElementBean> elements = (List<LeakageSolutionElementBean>) itsSession.createQuery(query).list();
+		for ( LeakageSolutionElementBean element : (List<LeakageSolutionElementBean>) elements ) {
+			JonesIndex jind = new JonesIndex();
+			jind.antennaID = element.getAntennaID();
+			jind.beamID = element.getBeamID();
+			askap.interfaces.DoubleComplex leakage = new DoubleComplex();
+			leakage.real = element.getLeakageReal();
+			leakage.imag = element.getLeakageImag();
+
+			ice_sol.leakage.put(jind, leakage);
+		}
+
+		return ice_sol;
+	}
+	
+	public TimeTaggedBandpassSolution getBandpassSolution(long id) {
+		String query = "from BandpassSolutionBean where id = " + id;
+		@SuppressWarnings("unchecked")
+		List<BandpassSolutionBean> result = (List<BandpassSolutionBean>) itsSession.createQuery(query).list();
+		if (result.size() == 0) {
+			return null;
+		} else if (result.size() > 1) {
+			logger.warn("Multiple records returned for query: " + query);
+		}
+		BandpassSolutionBean bean = result.get(0);
+		
+		// Build the Ice type
+		TimeTaggedBandpassSolution ice_sol = new TimeTaggedBandpassSolution();
+		ice_sol.timestamp = bean.getTimestamp();
+		ice_sol.bandpass = new HashMap<JonesIndex,FrequencyDependentJTerm>();
+		
+		// Need to query the element table for each map entry
+		query = "from BandpassSolutionElementBean where solution_id = " + id + " order by antennaID asc, beamID asc, chan asc";
+		@SuppressWarnings("unchecked")
+		List<BandpassSolutionElementBean> elements = (List<BandpassSolutionElementBean>) itsSession.createQuery(query).list();
+		for ( BandpassSolutionElementBean element : (List<BandpassSolutionElementBean>) elements ) {
+			JonesIndex jind = new JonesIndex();
+			jind.antennaID = element.getAntennaID();
+			jind.beamID = element.getBeamID();
+
+			//ice_sol.leakage.put(jind, leakage);
+		}
+
+		return ice_sol;
+	}
 }

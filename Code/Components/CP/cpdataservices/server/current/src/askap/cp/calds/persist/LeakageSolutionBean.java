@@ -27,6 +27,7 @@ package askap.cp.calds.persist;
 
 public class LeakageSolutionBean {
 	
+	private long itsID;
 	private long itsTimestamp;
 	
 	/**
@@ -34,11 +35,26 @@ public class LeakageSolutionBean {
 	 * @note This no-args constructor is needed by Hibernate
 	 */
 	public LeakageSolutionBean() {
+		itsID = -1;
 		itsTimestamp = -1;
 	}
 	
 	public LeakageSolutionBean(long timestamp) {
 		itsTimestamp = timestamp;
+	}
+	
+	/**
+	 * @return the ID
+	 */
+	public long getID() {
+		return itsID;
+	}
+
+	/**
+	 * @param id the ID to set
+	 */
+	public void setID(long id) {
+		itsID = id;
 	}
 
 	/**

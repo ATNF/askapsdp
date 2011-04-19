@@ -27,6 +27,7 @@ package askap.cp.calds.persist;
 
 public class GainSolutionBean {
 	
+	private long itsID;
 	private long itsTimestamp;
 	
 	/**
@@ -34,11 +35,26 @@ public class GainSolutionBean {
 	 * @note This no-args constructor is needed by Hibernate
 	 */
 	public GainSolutionBean() {
+		itsID = -1;
 		itsTimestamp = -1;
 	}
 	
 	public GainSolutionBean(long timestamp) {
 		this.itsTimestamp = timestamp;
+	}
+	
+	/**
+	 * @return the ID
+	 */
+	public long getID() {
+		return itsID;
+	}
+
+	/**
+	 * @param id the ID to set
+	 */
+	public void setID(long id) {
+		itsID = id;
 	}
 
 	/**

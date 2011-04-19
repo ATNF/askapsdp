@@ -26,7 +26,7 @@
 package askap.cp.calds.persist;
 
 public class GainSolutionElementBean {
-	private long itsTimestamp;
+	private long itsSolutionID;
 	private short itsAntennaID;
 	private short itsBeamID;
 	
@@ -43,18 +43,18 @@ public class GainSolutionElementBean {
 	 * @note This no-args constructor is needed by Hibernate
 	 */
 	public GainSolutionElementBean() {
-		itsTimestamp = -1;
+		itsSolutionID = -1;
 		itsAntennaID = -1;
 		itsBeamID = -1;
 		itsG1Valid = false;
 		itsG2Valid = false;
 	}
 	
-	public GainSolutionElementBean(long timestamp,
+	public GainSolutionElementBean(long solutionID,
 			short antennaID, short beamID,
 			double g1Real, double g1Imag, boolean g1Valid,
 			double g2Real, double g2Imag, boolean g2Valid) {
-		itsTimestamp = timestamp;
+		itsSolutionID = solutionID;
 		itsAntennaID = antennaID;
 		itsBeamID = beamID;
 		itsG1Real = g1Real;
@@ -66,17 +66,17 @@ public class GainSolutionElementBean {
 	}
 
 	/**
-	 * @return the itsTimestamp
+	 * @return the solutionID
 	 */
-	public long getTimestamp() {
-		return itsTimestamp;
+	public long getSolutionID() {
+		return itsSolutionID;
 	}
 
 	/**
-	 * @param itsTimestamp the itsTimestamp to set
+	 * @param solutionID the solution ID to set
 	 */
-	public void setTimestamp(long timestamp) {
-		itsTimestamp = timestamp;
+	public void setSolutionID(long solutionID) {
+		itsSolutionID = solutionID;
 	}
 
 	/**

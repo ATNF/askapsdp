@@ -26,7 +26,7 @@
 package askap.cp.calds.persist;
 
 public class LeakageSolutionElementBean {
-	private long itsTimestamp;
+	private long itsSolutionID;
 	private short itsAntennaID;
 	private short itsBeamID;
 	
@@ -38,36 +38,36 @@ public class LeakageSolutionElementBean {
 	 * @note This no-args constructor is needed by Hibernate
 	 */
 	public LeakageSolutionElementBean() {
-		itsTimestamp = -1;
+		itsSolutionID = -1;
 		itsAntennaID = -1;
 		itsBeamID = -1;
 		itsLeakageReal = -1.0;
 		itsLeakageImag = -1.0;
 	}
 	
-	public LeakageSolutionElementBean(long timestamp,
+	public LeakageSolutionElementBean(long solutionID,
 			short antennaID, short beamID,
 			double leakageReal, double leakageImag) {
-		itsTimestamp = timestamp;
+		itsSolutionID = solutionID;
 		itsAntennaID = antennaID;
 		itsBeamID = beamID;
-		itsLeakageReal = itsLeakageImag;
+		itsLeakageReal = leakageReal;
 		itsLeakageImag = leakageImag;
 
 	}
 
 	/**
-	 * @return the timestamp
+	 * @return the solutionID
 	 */
-	public long getTimestamp() {
-		return itsTimestamp;
+	public long getSolutionID() {
+		return itsSolutionID;
 	}
 
 	/**
-	 * @param timestamp the timestamp to set
+	 * @param solutionID the solution ID to set
 	 */
-	public void setTimestamp(long timestamp) {
-		itsTimestamp = timestamp;
+	public void setSolutionID(long solutionID) {
+		itsSolutionID = solutionID;
 	}
 
 	/**

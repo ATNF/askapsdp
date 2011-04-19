@@ -23,16 +23,11 @@
  */
 package askap.cp.calds;
 
-// Java imports
-import java.util.Map;
-
 //ASKAPsoft imports
 import org.apache.log4j.Logger;
 import Ice.Current;
 import askap.cp.calds.persist.PersistenceInterface;
 import askap.interfaces.caldataservice._ICalibrationDataServiceDisp;
-import askap.interfaces.calparams.CalibrationParameters;
-import askap.interfaces.calparams.JonesIndex;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
@@ -51,6 +46,10 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	
 	private static final long serialVersionUID = 1L;
 	
+	private long itsOptimumGainID;
+	private long itsOptimumLeakageID;
+	private long itsOptimumBandpassID;
+	
 	/**
 	 * Class which provides access to the persistence layer
 	 */
@@ -62,6 +61,12 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	public CalibrationDataServiceImpl(Ice.Communicator ic) {
 		logger.info("Creating Calibration Data Service");
 		itsPersistance = new PersistenceInterface();
+		
+		// TODO: Currently, the optimum ID is not known unless a call to add*()
+		// occurred. Need to read the database to find the best one on startup.
+		itsOptimumGainID = -1;
+		itsOptimumLeakageID = -1;
+		itsOptimumBandpassID = -1;
 	}
 
 	/**
@@ -75,44 +80,92 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addGainsSolution(askap.interfaces.calparams.TimeTaggedGainSolution, Ice.Current)
 	 */
 	@Override
-	public void addGainsSolution(TimeTaggedGainSolution solution, Current cur) {
+	public long addGainsSolution(TimeTaggedGainSolution solution, Current cur) {
 		if (solution.gain == null) {
 			logger.warn("Hash in passed gain solution is null");
-			return;
+			return -1;
 		}
-		itsPersistance.addGainSolution(solution);
-	}
-
-	/**
-	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addBandpassSolution(askap.interfaces.calparams.TimeTaggedBandpassSolution, Ice.Current)
-	 */
-	@Override
-	public void addBandpassSolution(TimeTaggedBandpassSolution solution, Current cur) {
-		if (solution.bandpass == null) {
-			logger.warn("Hash in passed bandpass solution is null");
-			return;
-		}
-		itsPersistance.addBandpassSolution(solution);
+		
+		final long id = itsPersistance.addGainSolution(solution);
+		itsOptimumGainID = id;
+		return id;
 	}
 
 	/**
 	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addLeakageSolution(askap.interfaces.calparams.TimeTaggedLeakageSolution, Ice.Current)
 	 */
 	@Override
-	public void addLeakageSolution(TimeTaggedLeakageSolution solution, Current cur) {
+	public long addLeakageSolution(TimeTaggedLeakageSolution solution, Current cur) {
 		if (solution.leakage == null) {
 			logger.warn("Hash in passed leakage solution is null");
-			return;
+			return -1;
 		}
-		itsPersistance.addLeakageSolution(solution);
+		
+		final long id = itsPersistance.addLeakageSolution(solution);
+		itsOptimumLeakageID = id;
+		return id;
+	}
+	
+	/**
+	 * @see askap.interfaces.caldataservice._ICalDataServiceOperations#addBandpassSolution(askap.interfaces.calparams.TimeTaggedBandpassSolution, Ice.Current)
+	 */
+	@Override
+	public long addBandpassSolution(TimeTaggedBandpassSolution solution, Current cur) {
+		if (solution.bandpass == null) {
+			logger.warn("Hash in passed bandpass solution is null");
+			return -1;
+		}
+		
+		final long id = itsPersistance.addBandpassSolution(solution); 
+		itsOptimumBandpassID = id;
+		return id;
 	}
 
 	/**
-	 * @see askap.interfaces.caldataservice._ICalibrationDataServiceOperations#getCurrentSolution(Ice.Current)
+	 * @see askap.interfaces.caldataservice._ICalibrationDataServiceOperations#getCurrentGainSolutionID(Ice.Current)
 	 */
 	@Override
-	public Map<JonesIndex, CalibrationParameters> getCurrentSolution(Current cur) {
-		// TODO Auto-generated method stub
-		return null;
+	public long getCurrentGainSolutionID(Current cur) {
+		return itsOptimumGainID;
+	}
+
+	/**
+	 * @see askap.interfaces.caldataservice._ICalibrationDataServiceOperations#getCurrentLeakageSolutionID(Ice.Current)
+	 */
+	@Override
+	public long getCurrentLeakageSolutionID(Current cur) {
+		return itsOptimumLeakageID;
+	}
+	
+	/**
+	 * @see askap.interfaces.caldataservice._ICalibrationDataServiceOperations#getCurrentBandpassSolutionID(Ice.Current)
+	 */
+	@Override
+	public long getCurrentBandpassSolutionID(Current cur) {
+		return itsOptimumBandpassID;
+	}
+
+	/**
+	 * @see askap.interfaces.caldataservice._ICalibrationDataServiceOperations#getGainSolution(long, Ice.Current)
+	 */
+	@Override
+	public TimeTaggedGainSolution getGainSolution(long id, Current cur) {
+		return itsPersistance.getGainSolution(id);
+	}
+
+	/**
+	 * @see askap.interfaces.caldataservice._ICalibrationDataServiceOperations#getLeakageSolution(long, Ice.Current)
+	 */
+	@Override
+	public TimeTaggedLeakageSolution getLeakageSolution(long id, Current cur) {
+		return itsPersistance.getLeakageSolution(id);
+	}
+
+	/**
+	 * @see askap.interfaces.caldataservice._ICalibrationDataServiceOperations#getBandpassSolution(long, Ice.Current)
+	 */
+	@Override
+	public TimeTaggedBandpassSolution getBandpassSolution(long id, Current cur) {
+		return itsPersistance.getBandpassSolution(id);
 	}
 }

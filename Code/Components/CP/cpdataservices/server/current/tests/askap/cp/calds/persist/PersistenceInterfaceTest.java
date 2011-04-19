@@ -138,21 +138,7 @@ public class PersistenceInterfaceTest {
 	 */
 	@Test
 	public void testAddGainSolution() {
-		// Add a Gain Solution
-		TimeTaggedGainSolution solution = new TimeTaggedGainSolution();
-		solution.timestamp = 123;
-		
-		// Flesh out the data structure
-		JonesJTerm jterm = new JonesJTerm();
-		jterm.g1 = new askap.interfaces.DoubleComplex(1.0, 1.0);
-		jterm.g1Valid = true;
-		jterm.g2 = new askap.interfaces.DoubleComplex(1.0, 1.0);
-		jterm.g2Valid = true;
-		JonesIndex jind = new JonesIndex((short)1, (short)1);
-		solution.gain = new HashMap<JonesIndex, JonesJTerm>();
-		solution.gain.put(jind, jterm);
-		
-		itsInstance.addGainSolution(solution);
+		assertTrue(itsInstance.addGainSolution(createTestGainSolution(110)) != -1);
 	}
 
 	/**
@@ -160,16 +146,7 @@ public class PersistenceInterfaceTest {
 	 */
 	@Test
 	public void testAddLeakageSolution() {
-		// Add a Leakage Solution
-		TimeTaggedLeakageSolution solution = new TimeTaggedLeakageSolution();
-		solution.timestamp = 123;
-
-		// Flesh out the data structure
-		solution.leakage = new HashMap<JonesIndex, DoubleComplex>();
-		solution.leakage.put(new JonesIndex((short)1, (short)1), 
-				new DoubleComplex(1.0, 1.0));
-		
-		itsInstance.addLeakageSolution(solution);
+		assertTrue(itsInstance.addLeakageSolution(cretaeTestLeakageSolution(111)) != -1);
 	}
 
 	/**
@@ -177,9 +154,106 @@ public class PersistenceInterfaceTest {
 	 */
 	@Test
 	public void testAddBandpassSolution() {
-		// Add a Bandpass Solution
+		assertTrue(itsInstance.addBandpassSolution(createTestBandpassSolution(112)) != -1);
+	}
+	
+	@Test
+	public void testGetGainSolution() {
+		final long id = itsInstance.addGainSolution(createTestGainSolution(220));
+		assertTrue(id != -1);
+		
+		TimeTaggedGainSolution sol = itsInstance.getGainSolution(id);
+		assertNotNull(sol);
+		
+		// Check the timestamp
+		assertEquals(220, sol.timestamp);
+		
+		// Check the gain member
+		assertNotNull(sol.gain);
+		
+		// Get one JonesJTerm
+		JonesIndex jind = new JonesIndex((short)1, (short)1);
+		JonesJTerm jterm = sol.gain.get(jind);
+		assertNotNull(jterm);
+		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), jterm.g1);
+		assertTrue(jterm.g1Valid);
+		assertEquals(new askap.interfaces.DoubleComplex(2.0, 1.0), jterm.g2);
+		assertFalse(jterm.g2Valid);
+	}
+	
+	@Test
+	public void testGetLeakageSolution() {
+		final long id = itsInstance.addLeakageSolution(cretaeTestLeakageSolution(221));
+		assertTrue(id != -1);
+		
+		TimeTaggedLeakageSolution sol = itsInstance.getLeakageSolution(id);
+		assertNotNull(sol);
+		
+		// Check the timestamp
+		assertEquals(221, sol.timestamp);
+		
+		// Check the leakage member
+		assertNotNull(sol.leakage);
+		
+		JonesIndex jind = new JonesIndex((short)1, (short)1);
+		DoubleComplex leakage = sol.leakage.get(jind);
+		assertNotNull(leakage);
+		assertEquals(1.0, leakage.real, 0.00001);
+		assertEquals(1.0, leakage.imag, 0.00001);
+		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), leakage);
+	}
+	
+	@Test
+	public void testGetBandpassSolution() {
+		final long id = itsInstance.addBandpassSolution(createTestBandpassSolution(222));
+		assertTrue(id != -1);
+		
+		TimeTaggedBandpassSolution sol = itsInstance.getBandpassSolution(id);
+		assertNotNull(sol);
+		
+		// Check the timestamp
+		assertEquals(222, sol.timestamp);
+		
+		// Check the bandpass member
+		assertNotNull(sol.bandpass);		
+	}
+	
+	//////////////////////////////////////////////
+	// Utility Methods
+	//////////////////////////////////////////////
+	
+	TimeTaggedGainSolution createTestGainSolution(long timestamp) {
+		TimeTaggedGainSolution solution = new TimeTaggedGainSolution();
+		solution.timestamp = timestamp;
+		
+		// Flesh out the data structure
+		JonesJTerm jterm = new JonesJTerm();
+		jterm.g1 = new askap.interfaces.DoubleComplex(1.0, 1.0);
+		jterm.g1Valid = true;
+		jterm.g2 = new askap.interfaces.DoubleComplex(2.0, 1.0);
+		jterm.g2Valid = false;
+		JonesIndex jind = new JonesIndex((short)1, (short)1);
+		solution.gain = new HashMap<JonesIndex, JonesJTerm>();
+		solution.gain.put(jind, jterm);
+		
+		return solution;
+	}
+
+	TimeTaggedLeakageSolution cretaeTestLeakageSolution(long timestamp) {
+		TimeTaggedLeakageSolution solution = new TimeTaggedLeakageSolution();
+		solution.timestamp = timestamp;
+
+		// Flesh out the data structure
+		solution.leakage = new HashMap<JonesIndex, DoubleComplex>();
+		solution.leakage.put(new JonesIndex((short)1, (short)1), 
+				new DoubleComplex(1.0, 1.0));
+		
+		return solution;
+	}
+
+	TimeTaggedBandpassSolution createTestBandpassSolution(long timestamp) {
 		TimeTaggedBandpassSolution solution = new TimeTaggedBandpassSolution();
-		solution.timestamp = 123;
+		solution.timestamp = timestamp;
 		solution.nChan = 1;
 		
 		// Flesh out the data structure
@@ -198,7 +272,6 @@ public class PersistenceInterfaceTest {
 		
 		solution.bandpass.put(new JonesIndex((short)1, (short)1), terms);
 		
-		itsInstance.addBandpassSolution(solution);
+		return solution;
 	}
-
 }

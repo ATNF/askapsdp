@@ -8,19 +8,19 @@
 			<generator class="native" />
 		</id>
 
-		<property name="timestamp" type="long" column="timestamp" />
+		<property name="solutionID" type="long" column="solution_id" />
 
-		<property name="antennaID" type="short" column="antennaID" />
-		<property name="beamID" type="short" column="beamID" />
+		<property name="antennaID" type="short" column="antenna_id" />
+		<property name="beamID" type="short" column="beam_id" />
 		<property name="chan" type="int" column="chan" />
 		
-		<property name="g1Valid" type="boolean" column="g1Valid" />
-		<property name="g1Real" type="double" column="g1Real" />
-		<property name="g1Imag" type="double" column="g1Imag" />
+		<property name="g1Valid" type="boolean" column="g1_valid" />
+		<property name="g1Real" type="double" column="g1_real" />
+		<property name="g1Imag" type="double" column="g1_imag" />
 
-		<property name="g2Valid" type="boolean" column="g2Valid" />
-		<property name="g2Real" type="double" column="g2Real" />
-		<property name="g2Imag" type="double" column="g2Imag" />
+		<property name="g2Valid" type="boolean" column="g2_valid" />
+		<property name="g2Real" type="double" column="g2_real" />
+		<property name="g2Imag" type="double" column="g2_imag" />
 
 	</class>
 

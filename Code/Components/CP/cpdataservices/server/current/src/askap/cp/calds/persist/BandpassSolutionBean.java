@@ -27,6 +27,7 @@ package askap.cp.calds.persist;
 
 public class BandpassSolutionBean {
 	
+	private long itsID;
 	private long itsTimestamp;
 	private int itsNChan;
 	
@@ -35,6 +36,7 @@ public class BandpassSolutionBean {
 	 * @note This no-args constructor is needed by Hibernate
 	 */
 	public BandpassSolutionBean() {
+		itsID = -1;
 		itsTimestamp = -1;
 		itsNChan = -1;
 	}
@@ -42,6 +44,20 @@ public class BandpassSolutionBean {
 	public BandpassSolutionBean(long timestamp, int nChan) {
 		itsTimestamp = timestamp;
 		itsNChan = nChan;
+	}
+	
+	/**
+	 * @return the ID
+	 */
+	public long getID() {
+		return itsID;
+	}
+
+	/**
+	 * @param id the ID to set
+	 */
+	public void setID(long id) {
+		itsID = id;
 	}
 
 	/**

@@ -76,7 +76,7 @@ CalibrationDataServiceClient::~CalibrationDataServiceClient()
     itsComm->destroy();
 }
 
-void CalibrationDataServiceClient::addGainSolution(const GainSolution& sol)
+casa::Long CalibrationDataServiceClient::addGainSolution(const GainSolution& sol)
 {
     // Pre-conditions
     ASKAPCHECK(sol.nAntenna() == static_cast<casa::Short>(sol.antennaIndex().size()), 
@@ -97,14 +97,16 @@ void CalibrationDataServiceClient::addGainSolution(const GainSolution& sol)
         }
     }
 
-    itsService->addGainsSolution(ice_sol);
+    const long id = itsService->addGainsSolution(ice_sol);
 
     // Post-conditions
     ASKAPCHECK(static_cast<casa::Int>(ice_sol.gain.size()) == sol.nAntenna() * sol.nBeam(),
             "Map size incorrect - missing elements");
+
+    return id;
 }
 
-void CalibrationDataServiceClient::addLeakageSolution(const LeakageSolution& sol)
+casa::Long CalibrationDataServiceClient::addLeakageSolution(const LeakageSolution& sol)
 {
     // Pre-conditions
     ASKAPCHECK(sol.nAntenna() == static_cast<casa::Short>(sol.antennaIndex().size()), 
@@ -128,14 +130,16 @@ void CalibrationDataServiceClient::addLeakageSolution(const LeakageSolution& sol
         }
     }
 
-    itsService->addLeakageSolution(ice_sol);
+    const long id = itsService->addLeakageSolution(ice_sol);
 
     // Post-conditions
     ASKAPCHECK(static_cast<casa::Int>(ice_sol.leakage.size()) == sol.nAntenna() * sol.nBeam(),
             "Map size incorrect - missing elements");
+
+    return id;
 }
 
-void CalibrationDataServiceClient::addBandpassSolution(const BandpassSolution& sol)
+casa::Long CalibrationDataServiceClient::addBandpassSolution(const BandpassSolution& sol)
 {
     // Pre-conditions
     ASKAPCHECK(sol.nAntenna() == static_cast<casa::Short>(sol.antennaIndex().size()), 
@@ -164,11 +168,13 @@ void CalibrationDataServiceClient::addBandpassSolution(const BandpassSolution& s
         }
     }
 
-    itsService->addBandpassSolution(ice_sol);
+    const long id = itsService->addBandpassSolution(ice_sol);
 
     // Post-conditions
     ASKAPCHECK(static_cast<casa::Int>(ice_sol.bandpass.size()) == sol.nAntenna() * sol.nBeam(),
             "Map size incorrect - missing elements");
+
+    return id;
 }
 
 askap::interfaces::calparams::JonesJTerm CalibrationDataServiceClient::toIce(askap::cp::caldataservice::JonesJTerm jterm)

@@ -26,7 +26,7 @@
 package askap.cp.calds.persist;
 
 public class BandpassSolutionElementBean {
-	private long itsTimestamp;
+	private long itsSolutionID;
 	private short itsAntennaID;
 	private short itsBeamID;
 	private int itsChan;
@@ -44,7 +44,7 @@ public class BandpassSolutionElementBean {
 	 * @note This no-args constructor is needed by Hibernate
 	 */
 	public BandpassSolutionElementBean() {
-		itsTimestamp = -1;
+		itsSolutionID = -1;
 		itsAntennaID = -1;
 		itsBeamID = -1;
 		itsChan = -1;
@@ -52,11 +52,11 @@ public class BandpassSolutionElementBean {
 		itsG2Valid = false;
 	}
 	
-	public BandpassSolutionElementBean(long timestamp,
+	public BandpassSolutionElementBean(long solutionID,
 			short antennaID, short beamID, int chan,
 			double g1Real, double g1Imag, boolean g1Valid,
 			double g2Real, double g2Imag, boolean g2Valid) {
-		itsTimestamp = timestamp;
+		itsSolutionID = solutionID;
 		itsAntennaID = antennaID;
 		itsBeamID = beamID;
 		itsChan = chan;
@@ -69,17 +69,17 @@ public class BandpassSolutionElementBean {
 	}
 
 	/**
-	 * @return the timestamp
+	 * @return the solutionID
 	 */
-	public long getTimestamp() {
-		return itsTimestamp;
+	public long getSolutionID() {
+		return itsSolutionID;
 	}
 
 	/**
-	 * @param timestamp the timestamp to set
+	 * @param solutionID the solution ID to set
 	 */
-	public void setTimestamp(long timestamp) {
-		itsTimestamp = timestamp;
+	public void setSolutionID(long solutionID) {
+		itsSolutionID = solutionID;
 	}
 
 	/**

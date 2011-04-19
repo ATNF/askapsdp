@@ -4,7 +4,7 @@
 <hibernate-mapping package="askap.cp.calds.persist">
 
     <class name="GainSolutionBean" table="gain_solutions">
-        <id type="long" column="id">
+        <id name="ID" type="long" column="id">
             <generator class="native" />
         </id>
         <property name="timestamp" type="long" column="timestamp" />

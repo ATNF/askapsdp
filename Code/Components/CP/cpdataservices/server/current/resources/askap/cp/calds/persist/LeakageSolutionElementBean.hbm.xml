@@ -8,10 +8,10 @@
 			<generator class="native" />
 		</id>
 
-		<property name="timestamp" type="long" column="timestamp" />
+		<property name="solutionID" type="long" column="solution_id" />
 
-		<property name="antennaID" type="short" column="antennaID" />
-		<property name="beamID" type="short" column="beamID" />
+		<property name="antennaID" type="short" column="antenna_id" />
+		<property name="beamID" type="short" column="beam_id" />
 
 		<property name="leakageReal" type="double" column="leakage_real" />
 		<property name="leakageImag" type="double" column="leakage_imag" />
