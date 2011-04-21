@@ -476,8 +476,16 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
    // of constructing an image out of an array
    const casa::IPosition tempShape = planeIter.planeShape().nonDegenerate();
    if (!itsTempInImg.shape().isEqual(tempShape)) {
+       /* 
+       // this resizing is temporary replaced with a more convoluted operation
+       // as a workaround to avoid a possible casacore bug with TempImage
        itsTempInImg.resize(casa::TiledShape(tempShape));
        itsTempOutImg.resize(casa::TiledShape(tempShape));       
+       */
+       // +100 forces to use the memory
+       const double maxMemoryInMB = double(tempShape.product()*sizeof(double))/1024./1024.+100;
+       itsTempInImg = casa::TempImage<double>(casa::TiledShape(tempShape),csInput,maxMemoryInMB);
+       itsTempOutImg = casa::TempImage<double>(casa::TiledShape(tempShape),csOutput,maxMemoryInMB);       
    }
    ASKAPDEBUGASSERT(itsTempInImg.shape().isEqual(itsTempOutImg.shape()));
    const bool csSuccess = itsTempInImg.setCoordinateInfo(csInput) && itsTempOutImg.setCoordinateInfo(csOutput);
