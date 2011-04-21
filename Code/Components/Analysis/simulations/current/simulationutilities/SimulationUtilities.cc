@@ -157,6 +157,7 @@ namespace askap {
 
 	wcs->equinox = theEquinox;
 	wcs->restfrq = theRestFreq;
+	wcs->restwav = 0.;
 	wcsset(wcs);
 
 	int stat[NWCSFIX];

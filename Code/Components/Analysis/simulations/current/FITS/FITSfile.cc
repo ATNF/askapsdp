@@ -237,6 +237,17 @@ namespace askap {
 	  ASKAPLOG_WARN_STR(logger, "Input parameter sourcelisttype needs to be *either* 'continuum' or 'spectralline'. Setting to 'continuum'.");
 	}
 
+	this->itsAddSources = parset.getBool("addSources", true);
+	this->itsDryRun = parset.getBool("dryRun", false);
+	this->itsDatabaseOrigin = parset.getString("database", "Continuum"); 
+	if( !this->databaseGood() ){
+	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH'. Setting to Continuum.");
+	  this->itsDatabaseOrigin = "Continuum";
+	}
+	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
+	if(this->databaseSpectral()) this->itsSourceListType="spectralline";
+	ASKAPLOG_DEBUG_STR(logger, "source list type = " << this->itsSourceListType);
+
 	this->itsPosType = parset.getString("posType", "dms");
 	this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
 	this->itsPAunits = casa::Unit(parset.getString("PAunits", "rad"));
@@ -303,6 +314,10 @@ namespace askap {
 	if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
 
 	this->itsEquinox = parset.getFloat("equinox", 2000.);
+	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
+	ASKAPLOG_DEBUG_STR(logger,"Rest freq = " << this->itsRestFreq);
+	this->itsHaveSpectralInfo = parset.getBool("flagSpectralInfo", false);
+
 	LOFAR::ParameterSet subset(parset.makeSubset("WCSimage."));
 	this->itsWCSAllocated = false;
 	this->setWCS(true, subset);
@@ -314,22 +329,9 @@ namespace askap {
 	  this->setWCS(false, subset);
 	}
 
-	this->itsHaveSpectralInfo = parset.getBool("flagSpectralInfo", false);
 	this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crval[this->itsWCS->spec]);
-	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
 
 	if (!this->itsHaveSpectralInfo) this->itsBaseFreq = this->itsWCS->crval[this->itsWCS->spec];
-
-	this->itsAddSources = parset.getBool("addSources", true);
-	this->itsDryRun = parset.getBool("dryRun", false);
-	this->itsDatabaseOrigin = parset.getString("database", "Continuum"); 
-	if( !this->databaseGood() ){
-	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH'. Setting to Continuum.");
-	  this->itsDatabaseOrigin = "Continuum";
-	}
-	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
-	if(this->databaseSpectral()) this->itsSourceListType="spectralline";
-	ASKAPLOG_DEBUG_STR(logger, "source list type = " << this->itsSourceListType);
 
 	if (this->itsDryRun) {
 	  this->itsFITSOutput = false;
