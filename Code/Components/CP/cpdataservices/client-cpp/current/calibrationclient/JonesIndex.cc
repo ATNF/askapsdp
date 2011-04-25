@@ -61,6 +61,11 @@ bool JonesIndex::operator==(const JonesIndex& rhs) const
     }
 }
 
+bool JonesIndex::operator!=(const JonesIndex& rhs) const
+{
+    return !(*this == rhs);
+}
+
 bool JonesIndex::operator<(const JonesIndex& rhs) const
 {
     if (*this == rhs) {

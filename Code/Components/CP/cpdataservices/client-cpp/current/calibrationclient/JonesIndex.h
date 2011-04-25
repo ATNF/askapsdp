@@ -34,15 +34,34 @@ namespace askap {
 namespace cp {
 namespace caldataservice {
 
+/// Key type used for indexing into the calibration solution maps for the
+/// GainSolution, LeakageSolution and BandpassSolution classes.
 class JonesIndex {
 
     public:
+        /// Constructor
+        ///
+        /// @param[in] antenna  ID of the antenna. This must be the physical
+        ///                     antenna ID.
+        /// @param[in] beam     ID of the beam. Again, must map to an actual
+        ///                     beam.
         JonesIndex(const casa::Short antenna, casa::Short beam);
 
+        /// Obtain the antenna ID
+        /// @return the antenna ID
         casa::Short getAntenna(void) const;
+
+        /// Obtain the beam ID
+        /// @return the beam ID
         casa::Short getBeam(void) const;
 
+        /// Operator...
         bool operator==(const JonesIndex& rhs) const;
+
+        /// Operator...
+        bool operator!=(const JonesIndex& rhs) const;
+
+        /// Operator...
         bool operator<(const JonesIndex& rhs) const;
 
     private:

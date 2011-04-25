@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CPDATASERVICES_JONESJTERM_H
-#define ASKAP_CP_CPDATASERVICES_JONESJTERM_H
+#ifndef ASKAP_CP_CALDATASERVICE_JONESJTERM_H
+#define ASKAP_CP_CALDATASERVICE_JONESJTERM_H
 
 // ASKAPsoft includes
 #include "casa/aipstype.h"
@@ -35,23 +35,45 @@ namespace askap {
 namespace cp {
 namespace caldataservice {
 
+/// JonesJTerm, used for antenna gain and bandpass.
 class JonesJTerm {
 
     public:
-        /// Constructor
-        /// This default (no-args) constructor is needed by casa::Matrix.
+        /// @brief Constructor
+        /// This default (no-args) constructor is needed by various containers,
+        /// for instance to populate a vector or matrix with default values.
+        /// This constructor will set g1Valid and g2Valid to false, indicating
+        /// the data is not valid.
         JonesJTerm();
 
-        /// Constructor
+        /// @brief Constructor.
+        /// @param[in] g1 gain for polarision 1;
+        /// @param[in] g1Valid  flag indicating the validity of the data g1.
+        ///                     Set this to true to indicate g1 contains a
+        ///                     valid gain, otherwise false.
+        /// @param[in] g2 gain for polarision 2;
+        /// @param[in] g2Valid  flag indicating the validity of the data g2.
+        ///                     Set this to true to indicate g1 contains a
+        ///                     valid gain, otherwise false.
         JonesJTerm(const casa::DComplex& g1,
                    const casa::Bool g1Valid,
                    const casa::DComplex& g2,
                    const casa::Bool g2Valid);
 
+        /// Returns the gain for polarisation 1.
+        /// @return the gain for polarisation 1.
         casa::DComplex g1(void) const;
+
+        /// Returns a flag indicating the validity of the data g1;
+        /// @return true if g1 contains a valid gain, otherwise false.
         casa::Bool g1IsValid(void) const;
 
+        /// Returns the gain for polarisation 2.
+        /// @return the gain for polarisation 2.
         casa::DComplex g2(void) const;
+
+        /// Returns a flag indicating the validity of the data g2;
+        /// @return true if g2 contains a valid gain, otherwise false.
         casa::Bool g2IsValid(void) const;
 
     private:

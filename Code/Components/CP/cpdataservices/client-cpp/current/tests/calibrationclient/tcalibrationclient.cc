@@ -1,4 +1,4 @@
-/// @file JonesJTerm.cc
+/// @file tcalibrationclient.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,53 +24,22 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// Include own header file first
-#include "JonesJTerm.h"
-
-// Include package level header file
-#include "askap_cpdataservices.h"
-
-// System includes
-
 // ASKAPsoft includes
-#include "casa/aipstype.h"
+#include <AskapTestRunner.h>
 
-// Local package includes
+// Test includes
+#include "JonesIndexTest.h"
+#include "JonesJTermTest.h"
+#include "IceMapperTest.h"
 
-// Using
-using namespace askap::cp::caldataservice;
-
-JonesJTerm::JonesJTerm()
-        : itsG1(-1.0, -1.0), itsG1Valid(false),
-        itsG2(-1.0, -1.0), itsG2Valid(false)
+int main(int argc, char *argv[])
 {
+    askapdev::testutils::AskapTestRunner runner(argv[0]);
+    runner.addTest(askap::cp::caldataservice::JonesIndexTest::suite());
+    runner.addTest(askap::cp::caldataservice::JonesJTermTest::suite());
+    runner.addTest(askap::cp::caldataservice::IceMapperTest::suite());
+    bool wasSucessful = runner.run();
+
+    return wasSucessful ? 0 : 1;
 }
 
-JonesJTerm::JonesJTerm(const casa::DComplex& g1,
-                       const casa::Bool g1Valid,
-                       const casa::DComplex& g2,
-                       const casa::Bool g2Valid)
-        : itsG1(g1), itsG1Valid(g1Valid),
-        itsG2(g2), itsG2Valid(g2Valid)
-{
-}
-
-casa::DComplex JonesJTerm::g1(void) const
-{
-    return itsG1;
-}
-
-casa::Bool JonesJTerm::g1IsValid(void) const
-{
-    return itsG1Valid;
-}
-
-casa::DComplex JonesJTerm::g2(void) const
-{
-    return itsG2;
-}
-
-casa::Bool JonesJTerm::g2IsValid(void) const
-{
-    return itsG2Valid;
-}

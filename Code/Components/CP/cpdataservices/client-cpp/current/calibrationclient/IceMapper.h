@@ -28,6 +28,7 @@
 #define ASKAP_CP_CALDATASERVICE_ICEMAPPER_H
 
 // ASKAPsoft includes
+#include "casa/aipstype.h"
 #include "CalibrationDataService.h" // Ice generated interface
 
 // Local package includes
@@ -39,6 +40,8 @@ namespace askap {
 namespace cp {
 namespace caldataservice {
 
+/// Utility class that provides conversions between the Ice and Native (i.e. wrapper)
+/// classes.
 class IceMapper {
 
     public:

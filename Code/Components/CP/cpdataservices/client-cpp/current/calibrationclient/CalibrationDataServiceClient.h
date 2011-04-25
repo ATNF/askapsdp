@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CPDATASERVICES_CALIBRATIONDATASERVICE_H
-#define ASKAP_CP_CPDATASERVICES_CALIBRATIONDATASERVICE_H
+#ifndef ASKAP_CP_CALDATASERVICE__CALIBRATIONDATASERVICE_H
+#define ASKAP_CP_CALDATASERVICE__CALIBRATIONDATASERVICE_H
 
 // System includes
 #include <string>
@@ -41,10 +41,19 @@ namespace askap {
 namespace cp {
 namespace caldataservice {
 
+/// @brief C++ client wrapper for the Calibration Data Service.
 class CalibrationDataServiceClient {
 
     public:
-        /// Constructor
+        /// Constructor.
+        ///
+        /// The three parameters passed allow an instance of the calibration
+        /// data service to be located in an ICE registry.
+        ///
+        /// @param[in] locatorHost  host of the ICE locator service.
+        /// @param[in] locatorPort  port of the ICE locator service.
+        /// @param[in] serviceName  identity of the calibration data service
+        ///                         in the ICE registry.
         CalibrationDataServiceClient(const std::string& locatorHost,
                                      const std::string& locatorPort,
                                      const std::string& serviceName = "CalibrationDataService");
@@ -52,13 +61,29 @@ class CalibrationDataServiceClient {
         /// Destructor.
         ~CalibrationDataServiceClient();
 
+        /// Add a new gain solution to the data service. This method is
+        /// intended to be used by the calibratin pipeine, and is called
+        /// to submit new gain solutions.
+        ///
+        /// @param[in] sol  the gain solution to add.
+        /// @return a unique id referencing the solution in the data service.
         casa::Long addGainSolution(const GainSolution& sol);
 
+        /// Add a new leakage solution to the data service. This method is
+        /// intended to be used by the calibratin pipeine, and is called
+        /// to submit new leakage solutions.
+        ///
+        /// @param[in] sol  the leakage solution to add.
+        /// @return a unique id referencing the solution in the data service.
         casa::Long addLeakageSolution(const LeakageSolution& sol);
 
+        /// Add a new bandpass solution to the data service. This method is
+        /// intended to be used by the calibratin pipeine, and is called
+        /// to submit new bandpass solutions.
+        ///
+        /// @param[in] sol  the bandpass solution to add.
+        /// @return a unique id referencing the solution in the data service.
         casa::Long addBandpassSolution(const BandpassSolution& sol);
-
-        /// Obtain the IDs for the optimum gains, leakage and bandpass solutions
 
         /// Obtain the ID for the latest/optimum gain solution.
         ///

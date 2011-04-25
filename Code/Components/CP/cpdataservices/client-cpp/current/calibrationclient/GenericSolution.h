@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CPDATASERVICES_GENERICSOLUTION_H
-#define ASKAP_CP_CPDATASERVICES_GENERICSOLUTION_H
+#ifndef ASKAP_CP_CALDATASERVICE_GENERICSOLUTION_H
+#define ASKAP_CP_CALDATASERVICE_GENERICSOLUTION_H
 
 // System includes
 #include <map>
@@ -42,26 +42,36 @@ namespace askap {
 namespace cp {
 namespace caldataservice {
 
+// Calibration solution template
 template<class T>
 class GenericSolution {
 
     public:
         /// Constructor
+        ///
+        /// @param[in] timestamp    timestamp indicating when the solution was
+        ///                         created. Absolute time expressed as
+        ///                         microseconds since MJD=0.
         GenericSolution(const casa::Long timestamp) {
             itsTimestamp = timestamp;
         }
 
+        /// Returns the timestamp for when the solution was created.
+        /// @return the timestamp.
         casa::Long timestamp(void) const
         {
             return itsTimestamp;
-
         }
 
+        /// Returns a const reference to the map containing the
+        /// calibration parameters.
         const std::map<JonesIndex, T>& map(void) const
         {
             return itsMap;
         }
 
+        /// Returns a non-const reference to the map containing the
+        /// calibration parameters.
         std::map<JonesIndex, T>& map(void)
         {
             return itsMap;
@@ -73,8 +83,13 @@ class GenericSolution {
         std::map<JonesIndex, T> itsMap;
 };
 
+/// Template instance for the Gain Solution
 typedef GenericSolution<JonesJTerm> GainSolution;
+
+/// Template instance for the Leakage Solution
 typedef GenericSolution<casa::DComplex> LeakageSolution;
+
+/// Template instance for the Bandpass Solution
 typedef GenericSolution< std::vector<JonesJTerm> > BandpassSolution;
 
 };
