@@ -153,8 +153,9 @@ public class PersistenceInterface {
 				itsSession.flush();
 				itsSession.clear();
 				count = 0;
+			} else {
+				count++;
 			}
-	    	count++;
 	    }
 	    tx.commit();
 		

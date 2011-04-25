@@ -3,10 +3,10 @@
 /// @defgroup caldataservice Calibration Data Service Subpackage
 /// @defgroup lightcurveservice Light Curve Service Subpackage
 
-/// The channels package namespace.
+/// The central processor data services client package namespace.
 namespace askap::cp::cpdataservices {};
 
-/// @mainpage ASKAP Central Processor Data Services Package
+/// @mainpage ASKAP Central Processor Data Services C++ Client Package
 ///
 
 /// @section channels_subpackages Subpackages

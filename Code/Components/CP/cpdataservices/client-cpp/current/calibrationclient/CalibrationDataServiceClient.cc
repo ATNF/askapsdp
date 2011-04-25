@@ -51,6 +51,7 @@
 using namespace std;
 using namespace askap;
 using namespace askap::cp::caldataservice;
+using askap::interfaces::caldataservice::UnknownSolutionIdException;
 
 CalibrationDataServiceClient::CalibrationDataServiceClient(const std::string& locatorHost,
         const std::string& locatorPort,
@@ -176,6 +177,52 @@ casa::Long CalibrationDataServiceClient::addBandpassSolution(const BandpassSolut
 
     return id;
 }
+
+casa::Long CalibrationDataServiceClient::getCurrentGainSolutionID(void)
+{
+    return itsService->getCurrentGainSolutionID();
+}
+
+casa::Long CalibrationDataServiceClient::getCurrentLeakageSolutionID(void)
+{
+    return itsService->getCurrentLeakageSolutionID();
+}
+
+casa::Long CalibrationDataServiceClient::getCurrentBandpassSolutionID(void)
+{
+    return itsService->getCurrentBandpassSolutionID();
+}
+
+GainSolution CalibrationDataServiceClient::getGainSolution(const casa::Long id)
+{
+    askap::interfaces::calparams::TimeTaggedGainSolution ice_sol;
+    try {
+        ice_sol = itsService->getGainSolution(id);
+    } catch (const UnknownSolutionIdException& e) {
+        ASKAPTHROW(AskapError, "Unknown Solution ID");
+    }
+}
+
+LeakageSolution CalibrationDataServiceClient::getLeakageSolution(const casa::Long id)
+{
+    askap::interfaces::calparams::TimeTaggedLeakageSolution ice_sol;
+    try {
+        ice_sol = itsService->getLeakageSolution(id);
+    } catch (const UnknownSolutionIdException& e) {
+        ASKAPTHROW(AskapError, "Unknown Solution ID");
+    }
+}
+
+BandpassSolution CalibrationDataServiceClient::getBandpassSolution(const casa::Long id)
+{
+    askap::interfaces::calparams::TimeTaggedBandpassSolution ice_sol;
+    try {
+        ice_sol = itsService->getBandpassSolution(id);
+    } catch (const UnknownSolutionIdException& e) {
+        ASKAPTHROW(AskapError, "Unknown Solution ID");
+    }
+}
+
 
 askap::interfaces::calparams::JonesJTerm CalibrationDataServiceClient::toIce(askap::cp::caldataservice::JonesJTerm jterm)
 {

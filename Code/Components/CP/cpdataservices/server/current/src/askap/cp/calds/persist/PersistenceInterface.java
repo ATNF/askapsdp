@@ -26,6 +26,7 @@
 package askap.cp.calds.persist;
 
 // Java imports
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,8 +105,9 @@ public class PersistenceInterface {
 				itsSession.flush();
 				itsSession.clear();
 				count = 0;
+			} else {
+				count++;
 			}
-			count++;
 		}
 		tx.commit();
 		return solbean.getID();
@@ -126,8 +128,9 @@ public class PersistenceInterface {
 				itsSession.flush();
 				itsSession.clear();
 				count = 0;
+			} else {
+				count++;
 			}
-			count++;
 		}
 		tx.commit();
 		return solbean.getID();
@@ -153,8 +156,9 @@ public class PersistenceInterface {
 					itsSession.flush();
 					itsSession.clear();
 					count = 0;
+				} else {
+					count++;
 				}
-				count++;
 			}
 		}
 		tx.commit();
@@ -247,24 +251,51 @@ public class PersistenceInterface {
 			logger.warn("Multiple records returned for query: " + query);
 		}
 		BandpassSolutionBean bean = result.get(0);
-		
+				
 		// Build the Ice type
 		TimeTaggedBandpassSolution ice_sol = new TimeTaggedBandpassSolution();
 		ice_sol.timestamp = bean.getTimestamp();
 		ice_sol.bandpass = new HashMap<JonesIndex,FrequencyDependentJTerm>();
 		
 		// Need to query the element table for each map entry
-		query = "from BandpassSolutionElementBean where solution_id = " + id + " order by antennaID asc, beamID asc, chan asc";
+		query = "from BandpassSolutionElementBean where solution_id = " + id 
+		+ " and chan = 1 order by antennaID asc, beamID asc";
 		@SuppressWarnings("unchecked")
 		List<BandpassSolutionElementBean> elements = (List<BandpassSolutionElementBean>) itsSession.createQuery(query).list();
 		for ( BandpassSolutionElementBean element : (List<BandpassSolutionElementBean>) elements ) {
 			JonesIndex jind = new JonesIndex();
 			jind.antennaID = element.getAntennaID();
 			jind.beamID = element.getBeamID();
+			
+			FrequencyDependentJTerm terms = new FrequencyDependentJTerm();
+			terms.bandpass = new ArrayList<JonesJTerm>(bean.getnChan());
+			
+			// Now need to query just that JonesIndex for all channels
+			query = "from BandpassSolutionElementBean where solution_id = " + id 
+			+ " and antennaID = " + jind.antennaID 
+			+ " and beamID = " + jind.beamID 
+			+ " order by chan asc";
 
-			//ice_sol.leakage.put(jind, leakage);
+			ice_sol.bandpass.put(jind, terms);
+			@SuppressWarnings("unchecked")
+			List<BandpassSolutionElementBean> innerElements = (List<BandpassSolutionElementBean>) itsSession.createQuery(query).list();
+			for ( BandpassSolutionElementBean innerElement : (List<BandpassSolutionElementBean>) innerElements ) {
+				JonesJTerm jterm = new JonesJTerm();
+				jterm.g1 = new askap.interfaces.DoubleComplex();
+				jterm.g1.real = innerElement.getG1Real();
+				jterm.g1.imag = innerElement.getG1Imag();
+				jterm.g1Valid = innerElement.isG1Valid();
+
+				jterm.g2 = new askap.interfaces.DoubleComplex();
+				jterm.g2.real = innerElement.getG2Real();
+				jterm.g2.imag = innerElement.getG2Imag();
+				jterm.g2Valid = innerElement.isG2Valid();
+				terms.bandpass.add(jterm);
+			}
+			assert terms.bandpass.size() == bean.getnChan();
+			ice_sol.bandpass.put(jind, terms);
 		}
-
+		
 		return ice_sol;
 	}
 }

@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 // ASKAPsoft imports
 import org.hibernate.Session;
@@ -215,7 +216,23 @@ public class PersistenceInterfaceTest {
 		assertEquals(222, sol.timestamp);
 		
 		// Check the bandpass member
-		assertNotNull(sol.bandpass);		
+		assertNotNull(sol.bandpass);	
+		
+		JonesIndex jind = new JonesIndex((short)1, (short)1);
+		FrequencyDependentJTerm terms = sol.bandpass.get(jind);
+		assertNotNull(terms.bandpass);
+		
+		// Should have one element in the list
+		List<JonesJTerm> bandpass = terms.bandpass;
+		assertEquals(1, bandpass.size());
+		
+		JonesJTerm jterm = bandpass.get(0);
+		assertNotNull(jterm);
+		
+		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), jterm.g1);
+		assertTrue(jterm.g1Valid);
+		assertEquals(new askap.interfaces.DoubleComplex(2.0, 1.0), jterm.g2);
+		assertFalse(jterm.g2Valid);
 	}
 	
 	//////////////////////////////////////////////
@@ -266,8 +283,8 @@ public class PersistenceInterfaceTest {
 		JonesJTerm jterm = new JonesJTerm();
 		jterm.g1 = new askap.interfaces.DoubleComplex(1.0, 1.0);
 		jterm.g1Valid = true;
-		jterm.g2 = new askap.interfaces.DoubleComplex(1.0, 1.0);
-		jterm.g2Valid = true;
+		jterm.g2 = new askap.interfaces.DoubleComplex(2.0, 1.0);
+		jterm.g2Valid = false;
 		terms.bandpass.add(jterm);
 		
 		solution.bandpass.put(new JonesIndex((short)1, (short)1), terms);
