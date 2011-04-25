@@ -43,7 +43,6 @@ import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
 import askap.interfaces.calparams.JonesIndex;
 import askap.interfaces.calparams.JonesJTerm;
-import askap.interfaces.calparams.FrequencyDependentJTerm;
 
 public class PersistenceInterface {
 	/**
@@ -94,7 +93,7 @@ public class PersistenceInterface {
 		GainSolutionBean solbean = new GainSolutionBean(solution.timestamp);
 		itsSession.save(solbean);
 		int count = 0;
-		for (Map.Entry<JonesIndex,JonesJTerm> entry : solution.gain.entrySet()) {
+		for (Map.Entry<JonesIndex,JonesJTerm> entry : solution.solutionMap.entrySet()) {
 			JonesIndex key = entry.getKey();
 			JonesJTerm value = entry.getValue();
 			itsSession.save(new GainSolutionElementBean(solbean.getID(),
@@ -118,7 +117,7 @@ public class PersistenceInterface {
 		LeakageSolutionBean solbean = new LeakageSolutionBean(solution.timestamp);
 		itsSession.save(solbean);
 		int count = 0;
-		for (Map.Entry<JonesIndex,DoubleComplex> entry : solution.leakage.entrySet()) {
+		for (Map.Entry<JonesIndex,DoubleComplex> entry : solution.solutionMap.entrySet()) {
 			JonesIndex key = entry.getKey();
 			DoubleComplex value = entry.getValue();
 			itsSession.save(new LeakageSolutionElementBean(solbean.getID(),
@@ -138,14 +137,16 @@ public class PersistenceInterface {
 	
 	public long addBandpassSolution(TimeTaggedBandpassSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		BandpassSolutionBean solbean = new BandpassSolutionBean(solution.timestamp, solution.nChan);
+		// TODO: Address hard-coding of number of channels. Need to better understand how
+		// to manage the bandpass solution first.
+		BandpassSolutionBean solbean = new BandpassSolutionBean(solution.timestamp, 16416);
 		itsSession.save(solbean);
 		int count = 0;
-		for (Map.Entry<JonesIndex,FrequencyDependentJTerm> entry : solution.bandpass.entrySet()) {
+		for (Map.Entry< JonesIndex, List<JonesJTerm> > entry : solution.solutionMap.entrySet()) {
 			JonesIndex key = entry.getKey();
-			FrequencyDependentJTerm value = entry.getValue();
+			List<JonesJTerm> value = entry.getValue();
 			int chan = 1;
-			for (JonesJTerm jterm: value.bandpass) {
+			for (JonesJTerm jterm: value) {
 				itsSession.save(new BandpassSolutionElementBean(solbean.getID(),
 						key.antennaID, key.beamID, chan,
 						jterm.g1.real, jterm.g1.imag, jterm.g1Valid,
@@ -179,7 +180,7 @@ public class PersistenceInterface {
 		// Build the Ice type
 		TimeTaggedGainSolution ice_sol = new TimeTaggedGainSolution();
 		ice_sol.timestamp = bean.getTimestamp();
-		ice_sol.gain = new HashMap<JonesIndex,JonesJTerm>();
+		ice_sol.solutionMap = new HashMap<JonesIndex,JonesJTerm>();
 		
 		// Need to query the element table for each map entry
 		query = "from GainSolutionElementBean where solution_id = " + id + " order by antennaID asc, beamID asc";
@@ -201,7 +202,7 @@ public class PersistenceInterface {
 			jterm.g2.imag = element.getG2Imag();
 			jterm.g2Valid = element.isG2Valid();
 
-			ice_sol.gain.put(jind, jterm);
+			ice_sol.solutionMap.put(jind, jterm);
 		}
 
 		return ice_sol;
@@ -221,7 +222,7 @@ public class PersistenceInterface {
 		// Build the Ice type
 		TimeTaggedLeakageSolution ice_sol = new TimeTaggedLeakageSolution();
 		ice_sol.timestamp = bean.getTimestamp();
-		ice_sol.leakage = new HashMap<JonesIndex,DoubleComplex>();
+		ice_sol.solutionMap = new HashMap<JonesIndex,DoubleComplex>();
 		
 		// Need to query the element table for each map entry
 		query = "from LeakageSolutionElementBean where solution_id = " + id + " order by antennaID asc, beamID asc";
@@ -235,7 +236,7 @@ public class PersistenceInterface {
 			leakage.real = element.getLeakageReal();
 			leakage.imag = element.getLeakageImag();
 
-			ice_sol.leakage.put(jind, leakage);
+			ice_sol.solutionMap.put(jind, leakage);
 		}
 
 		return ice_sol;
@@ -255,7 +256,7 @@ public class PersistenceInterface {
 		// Build the Ice type
 		TimeTaggedBandpassSolution ice_sol = new TimeTaggedBandpassSolution();
 		ice_sol.timestamp = bean.getTimestamp();
-		ice_sol.bandpass = new HashMap<JonesIndex,FrequencyDependentJTerm>();
+		ice_sol.solutionMap = new HashMap<JonesIndex, List<JonesJTerm> >();
 		
 		// Need to query the element table for each map entry
 		query = "from BandpassSolutionElementBean where solution_id = " + id 
@@ -267,8 +268,7 @@ public class PersistenceInterface {
 			jind.antennaID = element.getAntennaID();
 			jind.beamID = element.getBeamID();
 			
-			FrequencyDependentJTerm terms = new FrequencyDependentJTerm();
-			terms.bandpass = new ArrayList<JonesJTerm>(bean.getnChan());
+			List<JonesJTerm> terms = new ArrayList<JonesJTerm>(bean.getnChan());
 			
 			// Now need to query just that JonesIndex for all channels
 			query = "from BandpassSolutionElementBean where solution_id = " + id 
@@ -276,7 +276,7 @@ public class PersistenceInterface {
 			+ " and beamID = " + jind.beamID 
 			+ " order by chan asc";
 
-			ice_sol.bandpass.put(jind, terms);
+			ice_sol.solutionMap.put(jind, terms);
 			@SuppressWarnings("unchecked")
 			List<BandpassSolutionElementBean> innerElements = (List<BandpassSolutionElementBean>) itsSession.createQuery(query).list();
 			for ( BandpassSolutionElementBean innerElement : (List<BandpassSolutionElementBean>) innerElements ) {
@@ -290,10 +290,10 @@ public class PersistenceInterface {
 				jterm.g2.real = innerElement.getG2Real();
 				jterm.g2.imag = innerElement.getG2Imag();
 				jterm.g2Valid = innerElement.isG2Valid();
-				terms.bandpass.add(jterm);
+				terms.add(jterm);
 			}
-			assert terms.bandpass.size() == bean.getnChan();
-			ice_sol.bandpass.put(jind, terms);
+			assert terms.size() == bean.getnChan();
+			ice_sol.solutionMap.put(jind, terms);
 		}
 		
 		return ice_sol;

@@ -4,7 +4,7 @@
     <session-factory>
         
         <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-        <property name="connection.url">jdbc:mysql://gijane/calibration</property>
+        <property name="connection.url">jdbc:mysql://localhost/calibration</property>
         <property name="connection.username">calibrationuser</property>
         <property name="connection.password">askap</property>
 

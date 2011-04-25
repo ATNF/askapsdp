@@ -1,4 +1,4 @@
-/// @file BandpassSolution.h
+/// @file GenericSolution.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,62 +24,58 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CPDATASERVICES_BANDPASSSOLUTION_H
-#define ASKAP_CP_CPDATASERVICES_BANDPASSSOLUTION_H
+#ifndef ASKAP_CP_CPDATASERVICES_GENERICSOLUTION_H
+#define ASKAP_CP_CPDATASERVICES_GENERICSOLUTION_H
 
 // System includes
+#include <map>
+#include <vector>
 
 // ASKAPsoft includes
 #include "casa/aipstype.h"
-#include "casa/Arrays/Cube.h"
-#include "casa/Arrays/Vector.h"
 
 // Local package includes
 #include "calibrationclient/JonesJTerm.h"
+#include "calibrationclient/JonesIndex.h"
 
 namespace askap {
 namespace cp {
 namespace caldataservice {
 
-class BandpassSolution {
+template<class T>
+class GenericSolution {
 
     public:
         /// Constructor
-        BandpassSolution(const casa::Long timestamp,
-                         const casa::Short nAntenna,
-                         const casa::Short nBeam,
-                         const casa::Int nChan);
+        GenericSolution(const casa::Long timestamp) {
+            itsTimestamp = timestamp;
+        }
 
-        casa::Long timestamp(void) const;
+        casa::Long timestamp(void) const
+        {
+            return itsTimestamp;
 
-        casa::Short nAntenna(void) const;
+        }
 
-        casa::Short nBeam(void) const;
+        const std::map<JonesIndex, T>& map(void) const
+        {
+            return itsMap;
+        }
 
-        casa::Int nChan(void) const;
-
-        const casa::Cube<JonesJTerm>& bandpass(void) const;
-        casa::Cube<JonesJTerm>& bandpass(void);
-
-        const casa::Vector<casa::Int>& antennaIndex(void) const;
-        casa::Vector<casa::Int>& antennaIndex(void);
-
-        const casa::Vector<casa::Int>& beamIndex(void) const;
-        casa::Vector<casa::Int>& beamIndex(void);
-
-        const casa::Vector<casa::Int>& chanIndex(void) const;
-        casa::Vector<casa::Int>& chanIndex(void);
+        std::map<JonesIndex, T>& map(void)
+        {
+            return itsMap;
+        }
 
     private:
         casa::Long itsTimestamp;
-        casa::Short itsNAntenna;
-        casa::Short itsNBeam;
-        casa::Short itsNChan;
-        casa::Cube<JonesJTerm> itsBandpass;
-        casa::Vector<casa::Int> itsAntennaIndex;
-        casa::Vector<casa::Int> itsBeamIndex;
-        casa::Vector<casa::Int> itsChanIndex;
+
+        std::map<JonesIndex, T> itsMap;
 };
+
+typedef GenericSolution<JonesJTerm> GainSolution;
+typedef GenericSolution<casa::DComplex> LeakageSolution;
+typedef GenericSolution< std::vector<JonesJTerm> > BandpassSolution;
 
 };
 };

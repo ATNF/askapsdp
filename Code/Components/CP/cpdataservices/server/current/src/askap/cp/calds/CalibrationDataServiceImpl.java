@@ -81,7 +81,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public long addGainsSolution(TimeTaggedGainSolution solution, Current cur) {
-		if (solution.gain == null) {
+		if (solution.solutionMap == null) {
 			logger.warn("Hash in passed gain solution is null");
 			return -1;
 		}
@@ -96,7 +96,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public long addLeakageSolution(TimeTaggedLeakageSolution solution, Current cur) {
-		if (solution.leakage == null) {
+		if (solution.solutionMap == null) {
 			logger.warn("Hash in passed leakage solution is null");
 			return -1;
 		}
@@ -111,7 +111,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public long addBandpassSolution(TimeTaggedBandpassSolution solution, Current cur) {
-		if (solution.bandpass == null) {
+		if (solution.solutionMap == null) {
 			logger.warn("Hash in passed bandpass solution is null");
 			return -1;
 		}

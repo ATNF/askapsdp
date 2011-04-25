@@ -69,11 +69,6 @@ struct JonesJTerm {
 ["java:type:java.util.ArrayList<askap.interfaces.calparams.JonesJTerm>"]
 sequence<JonesJTerm> JonesJTermSeq;
 
-struct FrequencyDependentJTerm {
-    /** Bandpass solution. The sequence is size nChan */
-    JonesJTermSeq bandpass;
-};
-
 /** Gain solution indexed with JonesIndex */
 dictionary<JonesIndex,JonesJTerm> GainSolution;
 
@@ -81,7 +76,7 @@ dictionary<JonesIndex,JonesJTerm> GainSolution;
 dictionary<JonesIndex,DoubleComplex> LeakageSolution;
 
 /** Bandpass solution indexed with JonesIndex */
-dictionary<JonesIndex,FrequencyDependentJTerm> BandpassSolution;
+dictionary<JonesIndex, JonesJTermSeq> BandpassSolution;
  
 /** Structure containing gains solution plus a timestamp */
 struct TimeTaggedGainSolution {
@@ -89,7 +84,7 @@ struct TimeTaggedGainSolution {
     long timestamp;
 
     /** Gain solution */
-    GainSolution gain;
+    GainSolution solutionMap;
 };
 
 /** Structure containing leakage solution plus a timestamp */
@@ -98,7 +93,7 @@ struct TimeTaggedLeakageSolution {
     long timestamp;
 
     /** Leakage solution */
-    LeakageSolution leakage;
+    LeakageSolution solutionMap;
 };
 
 /** Structure containing bandpass solution plus a timestamp */
@@ -106,11 +101,8 @@ struct TimeTaggedBandpassSolution {
     /** Absolute time expressed as microseconds since MJD=0. */
     long timestamp;
 
-    /** Number of channels */
-    int nChan;
-
     /** Bandpass solution */
-    BandpassSolution bandpass;
+    BandpassSolution solutionMap;
 };
 
 // Design Note: Structures above describe the calibration solutions as such (i.e.
@@ -178,7 +170,7 @@ struct CalibrationParameters {
     DoubleComplex leakage;
 
     /** Bandpass */
-    FrequencyDependentJTerm bandpass;
+    JonesJTermSeq bandpass;
 
     // Design Note: If we need a separate delay term of a frequency-dependent D-term,
     // they could be added here. Beamformer weights for this particular beam may be

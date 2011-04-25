@@ -43,9 +43,8 @@
 #include "CalibrationDataService.h" // Ice generated interface
 
 // Local package includes
-#include "calibrationclient/GainSolution.h"
-#include "calibrationclient/LeakageSolution.h"
-#include "calibrationclient/BandpassSolution.h"
+#include "calibrationclient/GenericSolution.h"
+#include "calibrationclient/IceMapper.h"
 
 // Using
 using namespace std;
@@ -79,103 +78,17 @@ CalibrationDataServiceClient::~CalibrationDataServiceClient()
 
 casa::Long CalibrationDataServiceClient::addGainSolution(const GainSolution& sol)
 {
-    // Pre-conditions
-    ASKAPCHECK(sol.nAntenna() == static_cast<casa::Short>(sol.antennaIndex().size()), 
-            "Antenna index length != nAntenna");
-    ASKAPCHECK(sol.nBeam() == static_cast<casa::Short>(sol.beamIndex().size()), 
-            "Beam index length != nBeam");
-
-    // Convert the casa type GainSolution to the ice GainSolution
-    askap::interfaces::calparams::TimeTaggedGainSolution ice_sol;
-    ice_sol.timestamp = sol.timestamp();
-
-    for (casa::Short ant = 0; ant < sol.nAntenna(); ++ant) {
-        for (casa::Short beam = 0; beam < sol.nBeam(); ++beam) {
-            askap::interfaces::calparams::JonesIndex jindex;
-            jindex.antennaID = sol.antennaIndex()(ant);
-            jindex.beamID = sol.beamIndex()(beam);
-            ice_sol.gain[jindex] = toIce(sol.gains()(ant,beam));
-        }
-    }
-
-    const long id = itsService->addGainsSolution(ice_sol);
-
-    // Post-conditions
-    ASKAPCHECK(static_cast<casa::Int>(ice_sol.gain.size()) == sol.nAntenna() * sol.nBeam(),
-            "Map size incorrect - missing elements");
-
-    return id;
+    return itsService->addGainsSolution(IceMapper::toIce(sol));
 }
 
 casa::Long CalibrationDataServiceClient::addLeakageSolution(const LeakageSolution& sol)
 {
-    // Pre-conditions
-    ASKAPCHECK(sol.nAntenna() == static_cast<casa::Short>(sol.antennaIndex().size()), 
-            "Antenna index length != nAntenna");
-    ASKAPCHECK(sol.nBeam() == static_cast<casa::Short>(sol.beamIndex().size()), 
-            "Beam index length != nBeam");
-
-    // Convert the casa type LeakageSolution to the ice LeakageSolution
-    askap::interfaces::calparams::TimeTaggedLeakageSolution ice_sol;
-    ice_sol.timestamp = sol.timestamp();
-
-    for (casa::Short ant = 0; ant < sol.nAntenna(); ++ant) {
-        for (casa::Short beam = 0; beam < sol.nBeam(); ++beam) {
-            askap::interfaces::calparams::JonesIndex jindex;
-            jindex.antennaID = sol.antennaIndex()(ant);
-            jindex.beamID = sol.beamIndex()(beam);
-            askap::interfaces::DoubleComplex leakage;
-            leakage.real = sol.leakage()(ant, beam).real();
-            leakage.imag = sol.leakage()(ant, beam).imag();
-            ice_sol.leakage[jindex] = leakage;
-        }
-    }
-
-    const long id = itsService->addLeakageSolution(ice_sol);
-
-    // Post-conditions
-    ASKAPCHECK(static_cast<casa::Int>(ice_sol.leakage.size()) == sol.nAntenna() * sol.nBeam(),
-            "Map size incorrect - missing elements");
-
-    return id;
+    return itsService->addLeakageSolution(IceMapper::toIce(sol));
 }
 
 casa::Long CalibrationDataServiceClient::addBandpassSolution(const BandpassSolution& sol)
 {
-    // Pre-conditions
-    ASKAPCHECK(sol.nAntenna() == static_cast<casa::Short>(sol.antennaIndex().size()), 
-            "Antenna index length != nAntenna");
-    ASKAPCHECK(sol.nBeam() == static_cast<casa::Short>(sol.beamIndex().size()), 
-            "Beam index length != nBeam");
-    ASKAPCHECK(sol.nChan() == static_cast<casa::Int>(sol.chanIndex().size()), 
-            "Channel index length != nChan");
-
-    // Convert the casa type BandpassSolution to the ice BandpassSolution
-    askap::interfaces::calparams::TimeTaggedBandpassSolution ice_sol;
-    ice_sol.timestamp = sol.timestamp();
-
-    for (casa::Short ant = 0; ant < sol.nAntenna(); ++ant) {
-        for (casa::Short beam = 0; beam < sol.nBeam(); ++beam) {
-            askap::interfaces::calparams::JonesIndex jindex;
-            jindex.antennaID = sol.antennaIndex()(ant);
-            jindex.beamID = sol.beamIndex()(beam);
-
-            askap::interfaces::calparams::FrequencyDependentJTerm fdjterm;
-            for (casa::Int chan = 0; chan < sol.nChan(); ++chan)
-            {
-                fdjterm.bandpass.push_back(toIce(sol.bandpass()(ant,beam, chan)));
-            }
-            ice_sol.bandpass[jindex] = fdjterm;
-        }
-    }
-
-    const long id = itsService->addBandpassSolution(ice_sol);
-
-    // Post-conditions
-    ASKAPCHECK(static_cast<casa::Int>(ice_sol.bandpass.size()) == sol.nAntenna() * sol.nBeam(),
-            "Map size incorrect - missing elements");
-
-    return id;
+    return itsService->addBandpassSolution(IceMapper::toIce(sol));
 }
 
 casa::Long CalibrationDataServiceClient::getCurrentGainSolutionID(void)
@@ -201,6 +114,7 @@ GainSolution CalibrationDataServiceClient::getGainSolution(const casa::Long id)
     } catch (const UnknownSolutionIdException& e) {
         ASKAPTHROW(AskapError, "Unknown Solution ID");
     }
+    return IceMapper::fromIce(ice_sol);
 }
 
 LeakageSolution CalibrationDataServiceClient::getLeakageSolution(const casa::Long id)
@@ -211,6 +125,7 @@ LeakageSolution CalibrationDataServiceClient::getLeakageSolution(const casa::Lon
     } catch (const UnknownSolutionIdException& e) {
         ASKAPTHROW(AskapError, "Unknown Solution ID");
     }
+    return IceMapper::fromIce(ice_sol);
 }
 
 BandpassSolution CalibrationDataServiceClient::getBandpassSolution(const casa::Long id)
@@ -221,17 +136,5 @@ BandpassSolution CalibrationDataServiceClient::getBandpassSolution(const casa::L
     } catch (const UnknownSolutionIdException& e) {
         ASKAPTHROW(AskapError, "Unknown Solution ID");
     }
-}
-
-
-askap::interfaces::calparams::JonesJTerm CalibrationDataServiceClient::toIce(askap::cp::caldataservice::JonesJTerm jterm)
-{
-    askap::interfaces::calparams::JonesJTerm ice_jterm;
-    ice_jterm.g1.real = jterm.g1().real();
-    ice_jterm.g1.imag = jterm.g1().imag();
-    ice_jterm.g1Valid = jterm.g1IsValid();
-    ice_jterm.g2.real = jterm.g2().real();
-    ice_jterm.g2.imag = jterm.g2().imag();
-    ice_jterm.g2Valid = jterm.g2IsValid();
-    return ice_jterm;
+    return IceMapper::fromIce(ice_sol);
 }

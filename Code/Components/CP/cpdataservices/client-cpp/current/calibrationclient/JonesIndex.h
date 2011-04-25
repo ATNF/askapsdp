@@ -1,4 +1,4 @@
-/// @file GainSolution.h
+/// @file JonesIndex.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,51 +24,30 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CPDATASERVICES_GAINSOLUTION_H
-#define ASKAP_CP_CPDATASERVICES_GAINSOLUTION_H
+#ifndef ASKAP_CP_CALDATASERVICE_JONESINDEX_H
+#define ASKAP_CP_CALDATASERVICE_JONESINDEX_H
 
 // ASKAPsoft includes
 #include "casa/aipstype.h"
-#include "casa/Arrays/Matrix.h"
-#include "casa/Arrays/Vector.h"
-
-// Local package includes
-#include "calibrationclient/JonesJTerm.h"
 
 namespace askap {
 namespace cp {
 namespace caldataservice {
 
-class GainSolution {
+class JonesIndex {
 
     public:
-        /// Constructor
-        GainSolution(const casa::Long timestamp,
-                     const casa::Short nAntenna,
-                     const casa::Short nBeam);
+        JonesIndex(const casa::Short antenna, casa::Short beam);
 
-        casa::Long timestamp(void) const;
+        casa::Short getAntenna(void) const;
+        casa::Short getBeam(void) const;
 
-        casa::Short nAntenna(void) const;
-
-        casa::Short nBeam(void) const;
-
-        const casa::Matrix<JonesJTerm>& gains(void) const;
-        casa::Matrix<JonesJTerm>& gains(void);
-
-        const casa::Vector<casa::Int>& antennaIndex(void) const;
-        casa::Vector<casa::Int>& antennaIndex(void);
-
-        const casa::Vector<casa::Int>& beamIndex(void) const;
-        casa::Vector<casa::Int>& beamIndex(void);
+        bool operator==(const JonesIndex& rhs) const;
+        bool operator<(const JonesIndex& rhs) const;
 
     private:
-        casa::Long itsTimestamp;
-        casa::Short itsNAntenna;
-        casa::Short itsNBeam;
-        casa::Matrix<JonesJTerm> itsGains;
-        casa::Vector<casa::Int> itsAntennaIndex;
-        casa::Vector<casa::Int> itsBeamIndex;
+        casa::Short itsAntenna;
+        casa::Short itsBeam;
 };
 
 };

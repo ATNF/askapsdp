@@ -41,7 +41,7 @@
 // Local package includes
 #include "calibrationclient/CalibrationDataServiceClient.h"
 #include "calibrationclient/JonesJTerm.h"
-#include "calibrationclient/GainSolution.h"
+#include "calibrationclient/GenericSolution.h"
 
 using namespace std;
 using namespace askap::cp::caldataservice;
@@ -89,14 +89,14 @@ void addGainSolution(CalibrationDataServiceClient& svc,
         const casa::Long timestamp,
         const casa::Short nAntenna, const casa::Short nBeam)
 {
-    GainSolution sol(timestamp, nAntenna, nBeam);
-    // Assign antenna ids
-    for (casa::Short antenna = 0; antenna < nAntenna; ++antenna) {
-        sol.antennaIndex()(antenna) = antenna;
-    }
-    // Assign beam ids
-    for (casa::Short beam = 0; beam < nBeam; ++beam) {
-        sol.beamIndex()(beam) = beam;
+    GainSolution sol(timestamp);
+    // Create a map entry for each antenna/beam combination
+    for (casa::Short antenna = 1; antenna <= nAntenna; ++antenna) {
+        for (casa::Short beam = 1; beam <= nBeam; ++beam) {
+            JonesJTerm jterm(casa::DComplex(1.0, 1.0), true,
+                    casa::DComplex(1.0, 1.0), true);
+            sol.map()[JonesIndex(antenna, beam)] = jterm;
+        }
     }
 
     svc.addGainSolution(sol);
@@ -106,14 +106,12 @@ void addLeakageSolution(CalibrationDataServiceClient& svc,
         const casa::Long timestamp,
         const casa::Short nAntenna, const casa::Short nBeam)
 {
-    LeakageSolution sol(timestamp, nAntenna, nBeam);
-    // Assign antenna ids
-    for (casa::Short antenna = 0; antenna < nAntenna; ++antenna) {
-        sol.antennaIndex()(antenna) = antenna;
-    }
-    // Assign beam ids
-    for (casa::Short beam = 0; beam < nBeam; ++beam) {
-        sol.beamIndex()(beam) = beam;
+    LeakageSolution sol(timestamp);
+    // Create a map entry for each antenna/beam combination
+    for (casa::Short antenna = 1; antenna <= nAntenna; ++antenna) {
+        for (casa::Short beam = 1; beam <= nBeam; ++beam) {
+            sol.map()[JonesIndex(antenna, beam)] = casa::DComplex(1.0, 1.0);
+        }
     }
 
     svc.addLeakageSolution(sol);
@@ -123,18 +121,15 @@ void addBandpassSolution(CalibrationDataServiceClient& svc,
         const casa::Long timestamp,
         const casa::Short nAntenna, const casa::Short nBeam, const casa::Int nChan)
 {
-    BandpassSolution sol(timestamp, nAntenna, nBeam, nChan);
-    // Assign antenna ids
-    for (casa::Short antenna = 0; antenna < nAntenna; ++antenna) {
-        sol.antennaIndex()(antenna) = antenna;
-    }
-    // Assign beam ids
-    for (casa::Short beam = 0; beam < nBeam; ++beam) {
-        sol.beamIndex()(beam) = beam;
-    }
-    // Assign channel ids
-    for (casa::Int chan = 0; chan < nChan; ++chan) {
-        sol.chanIndex()(chan) = chan;
+    BandpassSolution sol(timestamp);
+    // Create a map entry for each antenna/beam combination
+    for (casa::Short antenna = 1; antenna <= nAntenna; ++antenna) {
+        for (casa::Short beam = 1; beam <= nBeam; ++beam) {
+            JonesJTerm jterm(casa::DComplex(1.0, 1.0), true,
+                    casa::DComplex(1.0, 1.0), true);
+            std::vector<JonesJTerm> jterms(nChan, jterm);
+            sol.map()[JonesIndex(antenna, beam)] = jterms;
+        }
     }
 
     svc.addBandpassSolution(sol);

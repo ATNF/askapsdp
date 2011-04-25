@@ -46,7 +46,6 @@ import askap.interfaces.calparams.JonesJTerm;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
-import askap.interfaces.calparams.FrequencyDependentJTerm;
 
 /**
  * 
@@ -170,11 +169,11 @@ public class PersistenceInterfaceTest {
 		assertEquals(220, sol.timestamp);
 		
 		// Check the gain member
-		assertNotNull(sol.gain);
+		assertNotNull(sol.solutionMap);
 		
 		// Get one JonesJTerm
 		JonesIndex jind = new JonesIndex((short)1, (short)1);
-		JonesJTerm jterm = sol.gain.get(jind);
+		JonesJTerm jterm = sol.solutionMap.get(jind);
 		assertNotNull(jterm);
 		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), jterm.g1);
 		assertTrue(jterm.g1Valid);
@@ -194,10 +193,10 @@ public class PersistenceInterfaceTest {
 		assertEquals(221, sol.timestamp);
 		
 		// Check the leakage member
-		assertNotNull(sol.leakage);
+		assertNotNull(sol.solutionMap);
 		
 		JonesIndex jind = new JonesIndex((short)1, (short)1);
-		DoubleComplex leakage = sol.leakage.get(jind);
+		DoubleComplex leakage = sol.solutionMap.get(jind);
 		assertNotNull(leakage);
 		assertEquals(1.0, leakage.real, 0.00001);
 		assertEquals(1.0, leakage.imag, 0.00001);
@@ -216,17 +215,15 @@ public class PersistenceInterfaceTest {
 		assertEquals(222, sol.timestamp);
 		
 		// Check the bandpass member
-		assertNotNull(sol.bandpass);	
+		assertNotNull(sol.solutionMap);	
 		
 		JonesIndex jind = new JonesIndex((short)1, (short)1);
-		FrequencyDependentJTerm terms = sol.bandpass.get(jind);
-		assertNotNull(terms.bandpass);
+		List<JonesJTerm> terms = sol.solutionMap.get(jind);
 		
 		// Should have one element in the list
-		List<JonesJTerm> bandpass = terms.bandpass;
-		assertEquals(1, bandpass.size());
+		assertEquals(1, terms.size());
 		
-		JonesJTerm jterm = bandpass.get(0);
+		JonesJTerm jterm = terms.get(0);
 		assertNotNull(jterm);
 		
 		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), jterm.g1);
@@ -250,8 +247,8 @@ public class PersistenceInterfaceTest {
 		jterm.g2 = new askap.interfaces.DoubleComplex(2.0, 1.0);
 		jterm.g2Valid = false;
 		JonesIndex jind = new JonesIndex((short)1, (short)1);
-		solution.gain = new HashMap<JonesIndex, JonesJTerm>();
-		solution.gain.put(jind, jterm);
+		solution.solutionMap = new HashMap<JonesIndex, JonesJTerm>();
+		solution.solutionMap.put(jind, jterm);
 		
 		return solution;
 	}
@@ -261,8 +258,8 @@ public class PersistenceInterfaceTest {
 		solution.timestamp = timestamp;
 
 		// Flesh out the data structure
-		solution.leakage = new HashMap<JonesIndex, DoubleComplex>();
-		solution.leakage.put(new JonesIndex((short)1, (short)1), 
+		solution.solutionMap = new HashMap<JonesIndex, DoubleComplex>();
+		solution.solutionMap.put(new JonesIndex((short)1, (short)1), 
 				new DoubleComplex(1.0, 1.0));
 		
 		return solution;
@@ -271,13 +268,11 @@ public class PersistenceInterfaceTest {
 	TimeTaggedBandpassSolution createTestBandpassSolution(long timestamp) {
 		TimeTaggedBandpassSolution solution = new TimeTaggedBandpassSolution();
 		solution.timestamp = timestamp;
-		solution.nChan = 1;
 		
 		// Flesh out the data structure
-		solution.bandpass = new HashMap<JonesIndex, FrequencyDependentJTerm>();
+		solution.solutionMap = new HashMap<JonesIndex, List<JonesJTerm> >();
 		
-		FrequencyDependentJTerm terms = new FrequencyDependentJTerm();
-		terms.bandpass = new ArrayList<JonesJTerm>();
+		List<JonesJTerm> terms = new ArrayList<JonesJTerm>();
 		
 		// Add a JTerm to the list (for 1 channel)
 		JonesJTerm jterm = new JonesJTerm();
@@ -285,9 +280,9 @@ public class PersistenceInterfaceTest {
 		jterm.g1Valid = true;
 		jterm.g2 = new askap.interfaces.DoubleComplex(2.0, 1.0);
 		jterm.g2Valid = false;
-		terms.bandpass.add(jterm);
+		terms.add(jterm);
 		
-		solution.bandpass.put(new JonesIndex((short)1, (short)1), terms);
+		solution.solutionMap.put(new JonesIndex((short)1, (short)1), terms);
 		
 		return solution;
 	}

@@ -35,9 +35,7 @@
 #include "CalibrationDataService.h" // Ice generated interface
 
 // Local package includes
-#include "calibrationclient/GainSolution.h"
-#include "calibrationclient/LeakageSolution.h"
-#include "calibrationclient/BandpassSolution.h"
+#include "calibrationclient/GenericSolution.h"
 
 namespace askap {
 namespace cp {
@@ -100,10 +98,6 @@ class CalibrationDataServiceClient {
         BandpassSolution getBandpassSolution(const casa::Long id);
 
     private:
-
-        // Utility function used to convert the casacore typed JonesJTerm to
-        // one with ICE/Slice types.
-        askap::interfaces::calparams::JonesJTerm toIce(askap::cp::caldataservice::JonesJTerm jterm);
 
         // Ice Communicator
         Ice::CommunicatorPtr itsComm;

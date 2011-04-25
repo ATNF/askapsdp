@@ -4,7 +4,7 @@
     <session-factory>
         
         <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-        <property name="connection.url">jdbc:mysql://gijane/skymodel</property>
+        <property name="connection.url">jdbc:mysql://localhost/skymodel</property>
         <property name="connection.username">skymodeluser</property>
         <property name="connection.password">askap</property>
 
