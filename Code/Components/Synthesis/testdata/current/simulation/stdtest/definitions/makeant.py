@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/opt/local/bin/python2.7
 
 import math
 import numpy
@@ -291,7 +291,7 @@ class AntennaList:
 
 		for ant in self.antennas.values():
 			if ant.hasEl() == False:
-				ant.elevation = 377.0
+				ant.elevation = 370.0
 
 	def names(self):
 		n = []
@@ -313,29 +313,101 @@ class AntennaList:
 			x, y, z = self.antennas[antnum].toITRF()
 			print "antennas.%s.%s = [%f, %f, %f]" %(self.config.name, self.antennas[antnum].padName(), x, y, z)
 
+	def dumpcalc(self, axisType, offset, offxyz):
+		print "# Offset of %.3f,%.3f,%.3f applied to all antenna positions." %(offxyz[0], offxyz[1], offxyz[2])
+		for antnum in self.config.antennas:
+			x, y, z = self.antennas[antnum].toITRF()
+			print "%12.3f  %12.3f  %12.3f %3d %5.1f  $%s" %(x + offxyz[0], y + offxyz[1], z + offxyz[2], axisType, offset, self.antennas[antnum].padName())
+
 	def dumplatlong(self):
 		print "Pad,easting,northing,long,lat"
 		for antnum in self.config.antennas:
-			antnum = self.config.antennas[i]
 			lat, lon, el = self.antennas[antnum].toWGS84()
-			print "%d,%f,%f,%16.12f,%16.12f" %(antnum + 1, self.antennas[antnum].easting, self.antennas[antnum].northing, lon * Rad2Deg, lat * Rad2Deg)
+			print "%s,%f,%f,%16.12f,%16.12f" %(self.antennas[antnum].padName(), self.antennas[antnum].easting, self.antennas[antnum].northing, lon * Rad2Deg, lat * Rad2Deg)
 
 class AntennaConfig:
 	def __init__(self, name, antennas):
 		self.name = name
 		self.antennas = antennas
 
+def usage(config):
+	k = config.keys()
+	k.sort()
+	print "Usage:\n%s array type [format]\n" %(sys.argv[0])
+	print "  array = %s" %(" | ".join(k))
+	print "         This specifies the array or subset of the array to use.\n"
+	print "  type = nominal | proposed | installed"
+	print "         This specifies the type of antenna position to use. Nominal positions"
+	print "         are base on the original ASKAP configuration document. Proposed"
+	print "         positions include changes based on other considerations (geographical"
+	print "         and rare species protection). Installed positions include the proposed"
+	print "         positions updated with installed antenna postions where available.\n"
+	print "  format = parset | calc | csv"
+
 config = {}
 config["A27CR3P6B"] = AntennaConfig("A27CR3P6B", range(1, 37))
 config["A27CR3"] = AntennaConfig("A27CR3", range(1, 31))
 config["BETA"] = AntennaConfig("BETA", (1, 3, 6, 8, 9, 29))
+config["BETA2"] = AntennaConfig("BETA2", (1, 3, 6, 8, 9, 2))
+config["BETA4"] = AntennaConfig("BETA4", (1, 3, 6, 8, 9, 4))
+config["BETA5"] = AntennaConfig("BETA5", (1, 3, 6, 8, 9, 5))
+config["BETA7"] = AntennaConfig("BETA7", (1, 3, 6, 8, 9, 7))
+config["BETA10"] = AntennaConfig("BETA10", (1, 3, 6, 8, 9, 10))
+config["BETA11"] = AntennaConfig("BETA11", (1, 3, 6, 8, 9, 11))
+config["BETA12"] = AntennaConfig("BETA12", (1, 3, 6, 8, 9, 12))
+config["BETA13"] = AntennaConfig("BETA13", (1, 3, 6, 8, 9, 13))
+config["BETA14"] = AntennaConfig("BETA14", (1, 3, 6, 8, 9, 14))
+config["BETA15"] = AntennaConfig("BETA15", (1, 3, 6, 8, 9, 15))
+config["BETA16"] = AntennaConfig("BETA16", (1, 3, 6, 8, 9, 16))
+config["BETA17"] = AntennaConfig("BETA17", (1, 3, 6, 8, 9, 17))
+config["BETA18"] = AntennaConfig("BETA18", (1, 3, 6, 8, 9, 18))
+config["BETA19"] = AntennaConfig("BETA19", (1, 3, 6, 8, 9, 19))
+config["BETA20"] = AntennaConfig("BETA20", (1, 3, 6, 8, 9, 20))
+config["BETA21"] = AntennaConfig("BETA21", (1, 3, 6, 8, 9, 21))
+config["BETA22"] = AntennaConfig("BETA22", (1, 3, 6, 8, 9, 22))
+config["BETA23"] = AntennaConfig("BETA23", (1, 3, 6, 8, 9, 23))
+config["BETA24"] = AntennaConfig("BETA24", (1, 3, 6, 8, 9, 24))
+config["BETA25"] = AntennaConfig("BETA25", (1, 3, 6, 8, 9, 25))
+config["BETA26"] = AntennaConfig("BETA26", (1, 3, 6, 8, 9, 26))
+config["BETA27"] = AntennaConfig("BETA27", (1, 3, 6, 8, 9, 27))
+config["BETA28"] = AntennaConfig("BETA28", (1, 3, 6, 8, 9, 28))
+config["BETA29"] = AntennaConfig("BETA29", (1, 3, 6, 8, 9, 29))
+config["BETA29A"] = AntennaConfig("BETA29A", (1, 3, 6, 8, 11, 29))
+config["BETA29B"] = AntennaConfig("BETA29B", (1, 3, 8, 9, 11, 29))
+config["BETA30"] = AntennaConfig("BETA30", (1, 3, 6, 8, 9, 30))
+config["BETA31"] = AntennaConfig("BETA31", (1, 3, 6, 8, 9, 31))
+config["BETA32"] = AntennaConfig("BETA32", (1, 3, 6, 8, 9, 32))
+config["BETA33"] = AntennaConfig("BETA33", (1, 3, 6, 8, 9, 33))
+config["BETA34"] = AntennaConfig("BETA34", (1, 3, 6, 8, 9, 34))
+config["BETA35"] = AntennaConfig("BETA35", (1, 3, 6, 8, 9, 35))
+config["BETA36"] = AntennaConfig("BETA36", (1, 3, 6, 8, 9, 36))
 
 configType = ("nominal", "proposed", "installed")
-if len(sys.argv) != 3 or not string.upper(sys.argv[1]) in config or not string.lower(sys.argv[2]) in configType:
-	print "Usage:\n%s [A27CR3P6B | A27CR3 | BETA] [nominal | proposed | installed]" %(sys.argv[0])
+outputType = ("parset", "calc", "csv")
+if len(sys.argv) < 3:
+	usage(config)
 	sys.exit(1)
+
+at = string.upper(sys.argv[1])
+ct = string.lower(sys.argv[2])
+if not at in config or not ct in configType:
+	usage(config)
+	sys.exit(1)
+
+ot = "parset"
+if len(sys.argv) == 4:
+	ot = string.lower(sys.argv[3])
+	if not ot in outputType:
+		usage(config)
+		sys.exit(1)
 
 antennas = AntennaList(config[string.upper(sys.argv[1])], string.lower(sys.argv[2]), "ASKAP Antenna Locations Master File.csv", 50, "south")
 
-antennas.dump()
-#antennas.dumplatlong()
+offxyz = [-2556743.707 - -2556745.438, 5097440.315 - 5097448.114, -2847749.657 - -2847753.833]
+
+if ot == "parset":
+	antennas.dump()
+if ot == "calc":
+	antennas.dumpcalc(3, 0.0, offxyz)
+if ot == "csv":
+	antennas.dumplatlong()
