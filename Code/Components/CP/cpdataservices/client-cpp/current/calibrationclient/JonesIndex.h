@@ -49,11 +49,11 @@ class JonesIndex {
 
         /// Obtain the antenna ID
         /// @return the antenna ID
-        casa::Short getAntenna(void) const;
+        casa::Short antenna(void) const;
 
         /// Obtain the beam ID
         /// @return the beam ID
-        casa::Short getBeam(void) const;
+        casa::Short beam(void) const;
 
         /// Operator...
         bool operator==(const JonesIndex& rhs) const;

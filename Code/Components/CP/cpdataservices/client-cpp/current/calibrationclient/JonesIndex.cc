@@ -42,19 +42,19 @@ JonesIndex::JonesIndex(const casa::Short antenna,
 {
 }
 
-casa::Short JonesIndex::getAntenna(void) const
+casa::Short JonesIndex::antenna(void) const
 {
     return itsAntenna;
 }
-casa::Short JonesIndex::getBeam(void) const
+casa::Short JonesIndex::beam(void) const
 {
     return itsBeam;
 }
 
 bool JonesIndex::operator==(const JonesIndex& rhs) const
 {
-    if (rhs.getAntenna() == this->getAntenna() &&
-            rhs.getBeam() == this->getBeam()) {
+    if (rhs.antenna() == this->antenna() &&
+            rhs.beam() == this->beam()) {
         return true;
     } else {
         return false;
@@ -72,15 +72,15 @@ bool JonesIndex::operator<(const JonesIndex& rhs) const
         return false;
     }
 
-    if (this->getAntenna() < rhs.getAntenna()) {
+    if (this->antenna() < rhs.antenna()) {
         return true;
     }
 
-    if (this->getAntenna() > rhs.getAntenna()) {
+    if (this->antenna() > rhs.antenna()) {
         return false;
     }
 
-    if (this->getBeam() < rhs.getBeam()) {
+    if (this->beam() < rhs.beam()) {
         return true;
     } else {
         return false;

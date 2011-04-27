@@ -193,8 +193,8 @@ casa::DComplex IceMapper::fromIce(const askap::interfaces::DoubleComplex& ice_va
 askap::interfaces::calparams::JonesIndex IceMapper::toIce(const askap::cp::caldataservice::JonesIndex& jindex)
 {
     askap::interfaces::calparams::JonesIndex ice_jindex;
-    ice_jindex.antennaID = jindex.getAntenna();
-    ice_jindex.beamID = jindex.getBeam();
+    ice_jindex.antennaID = jindex.antenna();
+    ice_jindex.beamID = jindex.beam();
     return ice_jindex;
 }
 
