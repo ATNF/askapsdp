@@ -57,11 +57,13 @@
 #include <Common/Exceptions.h>
 #include <casa/OS/Timer.h>
 
+
 // Local includes
 #include "distributedimager/common/IBasicComms.h"
 #include "distributedimager/common/SolverCore.h"
 #include "messages/SpectralLineWorkUnit.h"
 #include "messages/SpectralLineWorkRequest.h"
+#include "distributedimager/common/Tracing.h"
 
 using namespace askap::cp;
 using namespace askap;
@@ -185,7 +187,9 @@ void SpectralLineWorker::processChannel(askap::accessors::TableDataSource& ds,
         ASKAPCHECK(ne_p, "ne_p is not correctly initialized");
 
         ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
+        Tracing::entry(Tracing::CalcNE);
         equation_p->calcEquations(*ne_p);
+        Tracing::exit(Tracing::CalcNE);
 
         ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for channel "
                 << globalChannel << " in "
@@ -210,7 +214,9 @@ void SpectralLineWorker::processChannel(askap::accessors::TableDataSource& ds,
 
 
             ASKAPCHECK(equation_p, "equation_p is not correctly initialized");
+            Tracing::entry(Tracing::CalcNE);
             equation_p->calcEquations(*ne_p);
+            Tracing::exit(Tracing::CalcNE);
 
             ASKAPLOG_DEBUG_STR(logger, "Calculated normal equations for channel "
                     << globalChannel << " in "
@@ -245,7 +251,9 @@ void SpectralLineWorker::processChannel(askap::accessors::TableDataSource& ds,
         ASKAPLOG_INFO_STR(logger, "*** Finished major cycles ***" );
         ne_p = ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*model_p));
         equation_p->setParameters(*model_p);
+        Tracing::entry(Tracing::CalcNE);
         equation_p->calcEquations(*ne_p);
+        Tracing::exit(Tracing::CalcNE);
         solverCore.addNE(ne_p);
     } // end cycling block
 
