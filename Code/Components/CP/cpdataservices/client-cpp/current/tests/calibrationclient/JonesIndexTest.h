@@ -56,8 +56,8 @@ class JonesIndexTest : public CppUnit::TestFixture {
             const casa::Short beam = 5;
             JonesIndex index(antenna, beam);
 
-            CPPUNIT_ASSERT_EQUAL(antenna, index.getAntenna());
-            CPPUNIT_ASSERT_EQUAL(beam, index.getBeam());
+            CPPUNIT_ASSERT_EQUAL(antenna, index.antenna());
+            CPPUNIT_ASSERT_EQUAL(beam, index.beam());
         }
 
         void testOperatorEqual() {
