@@ -30,9 +30,9 @@
 #include <map>
 
 // ASKAPsoft includes
+#include "boost/program_options.hpp"
 #include "askap/AskapError.h"
 #include "casa/aipstype.h"
-#include "CommandLineParser.h"
 #include "Common/ParameterSet.h"
 #include "boost/algorithm/string.hpp"
 #include "boost/lexical_cast.hpp"
@@ -46,12 +46,7 @@
 using namespace std;
 using namespace askap;
 using namespace askap::cp::caldataservice;
-
-void usage(void)
-{
-    std::cout << "usage: calimport [-h hostname] [-p port] [-s servicename] -f <filename>"
-        << std::endl;
-}
+namespace po = boost::program_options;
 
 void addTo(std::map<JonesIndex, JonesJTerm>& map,
         const casa::Short pol,
@@ -60,8 +55,8 @@ void addTo(std::map<JonesIndex, JonesJTerm>& map,
         const casa::DComplex& gain)
 {
     JonesJTerm jterm; // Initialised with both gains (g11 & g22) invalid
-    ASKAPCHECK(!jterm.g1IsValid(), "");
-    ASKAPCHECK(!jterm.g2IsValid(), "");
+    ASKAPDEBUGASSERT(!jterm.g1IsValid());
+    ASKAPDEBUGASSERT(!jterm.g2IsValid());
 
     // First look for the entry. Need to handle the case where the other polarisation
     // has already been added, as well as duplicates.
@@ -144,24 +139,36 @@ GainSolution buildGainSolution(const LOFAR::ParameterSet& parset)
 // main()
 int main(int argc, char *argv[])
 {
-    // Command line parser
-    cmdlineparser::Parser parser;
+    // Configuration
+    string locatorHost;
+    string locatorPort;
+    string serviceName;
+    string filename;
 
-    // Command line parameter
-    cmdlineparser::FlaggedParameter<string> locatorHost("-h", "localhost");
-    cmdlineparser::FlaggedParameter<string> locatorPort("-p", "4061");
-    cmdlineparser::FlaggedParameter<string> serviceName("-s", "CalibrationDataService");
-    cmdlineparser::FlaggedParameter<string> filename("-f");
+    // Declare the supported options.
+    po::options_description desc("Options");
+    desc.add_options()
+        ("help", "Produce help message")
+        ("host,h", po::value<string>(&locatorHost)->default_value("localhost"),
+             "IceGrid locator host")
+        ("port,p", po::value<string>(&locatorPort)->default_value("4061"),
+             "IceGrid locator port number")
+        ("servicename,s", po::value<string>(&serviceName)->default_value("CalibrationDataService"),
+             "Service name")
+        ("filename,f", po::value<string>(&filename),
+             "Output filename");
 
-    // Throw an exception if the parameter is not present
-    parser.add(locatorHost, cmdlineparser::Parser::return_default);
-    parser.add(locatorPort, cmdlineparser::Parser::return_default);
-    parser.add(serviceName, cmdlineparser::Parser::return_default);
-    parser.add(filename, cmdlineparser::Parser::throw_exception);
+    po::variables_map vm;
     try {
-        parser.process(argc, const_cast<char**> (argv));
-    } catch (const cmdlineparser::XParser& e) {
-        usage();
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);
+    } catch (const po::unknown_option& e) {
+        cerr << desc << endl;
+        return 1;
+    }
+
+    if (vm.count("help") || !vm.count("filename")) {
+        cerr << desc << endl;
         return 1;
     }
 

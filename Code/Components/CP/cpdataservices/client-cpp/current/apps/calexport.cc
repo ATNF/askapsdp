@@ -29,11 +29,12 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <vector>
 
 // ASKAPsoft includes
+#include "boost/program_options.hpp"
 #include "askap/AskapError.h"
 #include "casa/aipstype.h"
-#include "CommandLineParser.h"
 #include "Common/ParameterSet.h"
 
 // Local package includes
@@ -45,64 +46,154 @@
 using namespace std;
 using namespace askap;
 using namespace askap::cp::caldataservice;
-
-void usage(void)
-{
-    std::cout << "usage: calexport [-h hostname] [-p port] [-s servicename] -f <filename>"
-        << std::endl;
-}
+namespace po = boost::program_options;
 
 void dumpGainSolution(const GainSolution& sol, std::ofstream& file)
 {
-    file << "# Gain solution timestamp: " << sol.timestamp() << std::endl;
-    const std::map<JonesIndex, JonesJTerm> map = sol.map();
-    std::map<JonesIndex, JonesJTerm>::const_iterator it;
+    file << "# Gain solution timestamp: " << sol.timestamp() << endl;
+    typedef std::map<JonesIndex, JonesJTerm> MapType;
+    const MapType map = sol.map();
+    MapType::const_iterator it;
     for (it = map.begin(); it != map.end(); ++it) {
         const JonesIndex index = it->first;
         const JonesJTerm jterm = it->second;
         if (jterm.g1IsValid()) {
             file << "gain.g11." << index.antenna() << "." << index.beam() << " = ["
-                << jterm.g1().real() << ", " << jterm.g1().imag() << "]" << std::endl;
+                << jterm.g1().real() << ", " << jterm.g1().imag() << "]" << endl;
         }
         if (jterm.g2IsValid()) {
             file << "gain.g22." << index.antenna() << "." << index.beam() << " = ["
-                << jterm.g2().real() << ", " << jterm.g2().imag() << "]" << std::endl;
+                << jterm.g2().real() << ", " << jterm.g2().imag() << "]" << endl;
         }
+    }
+}
+
+void dumpLeakageSolution(const LeakageSolution& sol, std::ofstream& file)
+{
+    file << "# Leakage solution timestamp: " << sol.timestamp() << endl;
+    typedef std::map<JonesIndex, casa::DComplex> MapType;
+    const MapType map = sol.map();
+    MapType::const_iterator it;
+    for (it = map.begin(); it != map.end(); ++it) {
+        const JonesIndex index = it->first;
+        file << "leakage.dXX." << index.antenna() << "." << index.beam() << " = ["
+            << it->second.real() << ", " << it->second.imag() << "]" << endl;
+    }
+}
+
+// NOTE: This dumps out the entie bandpass solution, ignoring the JonesJTerm
+// validity flags
+void dumpBandpassSolution(const BandpassSolution& sol, std::ofstream& file)
+{
+    file << "# Bandpass solution timestamp: " << sol.timestamp() << endl;
+    typedef std::map<JonesIndex, std::vector<JonesJTerm> > MapType;
+    const MapType map = sol.map();
+    MapType::const_iterator it;
+    for (it = map.begin(); it != map.end(); ++it) {
+        const JonesIndex index = it->first;
+        const std::vector<JonesJTerm> jterms = it->second;
+
+        // Iterator over the vector for g11 and g22 simultaneously, writing the
+        // output into a stringstream
+        std::stringstream g11;
+        std::stringstream g22;
+        g11 << "bandpass.g11." << index.antenna() << "." << index.beam() << " = [";
+        g22 << "bandpass.g22." << index.antenna() << "." << index.beam() << " = [";
+        std::vector<JonesJTerm>::const_iterator vec_it;
+        for (vec_it = jterms.begin(); vec_it != jterms.end(); ++vec_it) {
+            if (vec_it != jterms.begin()) {
+                g11 << ", ";
+                g22 << ", ";
+            }
+            g11 << "[" << vec_it->g1().real() << ", " << vec_it->g1().imag() << "]" << endl;
+            g22 << "[" << vec_it->g2().real() << ", " << vec_it->g2().imag() << "]" << endl;
+        }
+        g11 << "]" << endl;
+        g22 << "]" << endl;
+
+        file << g11.str();
+        file << g22.str();
     }
 }
 
 // main()
 int main(int argc, char *argv[])
 {
-    // Command line parser
-    cmdlineparser::Parser parser;
+    // Configuration
+    string locatorHost;
+    string locatorPort;
+    string serviceName;
+    string filename;
+    long gainID = -1;
+    long leakageID = -1;
+    long bandpassID = -1;
 
-    // Command line parameter
-    cmdlineparser::FlaggedParameter<string> locatorHost("-h", "localhost");
-    cmdlineparser::FlaggedParameter<string> locatorPort("-p", "4061");
-    cmdlineparser::FlaggedParameter<string> serviceName("-s", "CalibrationDataService");
-    cmdlineparser::FlaggedParameter<string> filename("-f");
+    // Declare the supported options.
+    po::options_description desc("Options");
+    desc.add_options()
+        ("help", "Produce help message")
+        ("host,h", po::value<string>(&locatorHost)->default_value("localhost"),
+             "IceGrid locator host")
+        ("port,p", po::value<string>(&locatorPort)->default_value("4061"),
+             "IceGrid locator port number")
+        ("servicename,s", po::value<string>(&serviceName)->default_value("CalibrationDataService"),
+             "Service name")
+        ("gid,g", po::value<long>(&gainID)->default_value(-1),
+             "Gains solution identifier (or -1 to get latest)")
+        ("lid,l", po::value<long>(&leakageID)->default_value(-1),
+             "Leakage solution identifier (or -1 to get latest)")
+        ("bid,b", po::value<long>(&bandpassID)->default_value(-1),
+             "Bandpass solution identifier (or -1 to get latest)")
+        ("filename,f", po::value<string>(&filename),
+             "Output filename");
 
-    // Throw an exception if the parameter is not present
-    parser.add(locatorHost, cmdlineparser::Parser::return_default);
-    parser.add(locatorPort, cmdlineparser::Parser::return_default);
-    parser.add(serviceName, cmdlineparser::Parser::return_default);
-    parser.add(filename, cmdlineparser::Parser::throw_exception);
+    po::variables_map vm;
     try {
-        parser.process(argc, const_cast<char**> (argv));
-    } catch (const cmdlineparser::XParser& e) {
-        usage();
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);    
+    } catch (const po::unknown_option& e) {
+        cerr << desc << endl;
+        return 1;
+    }
+
+    if (vm.count("help") || !vm.count("filename")) {
+        cerr << desc << endl;
         return 1;
     }
 
     CalibrationDataServiceClient svc(locatorHost, locatorPort, serviceName);
+    ofstream file(filename.c_str(), ios::out);
 
-    const casa::Long gainsID = svc.getCurrentGainSolutionID();
-    std::cout << "Obtaining gain solution " << gainsID << std::endl;
-    GainSolution gainSolution = svc.getGainSolution(gainsID);
-    std::ofstream file(filename.getValue().c_str(), ios::out);
+    // Gain Solution
+    if (gainID == -1) {
+        gainID = svc.getCurrentGainSolutionID();
+        cout << "Calibration data service reports latest gain solution is: "
+            << gainID << endl;
+    }
+    cout << "Obtaining gain solution " << gainID << endl;
+    GainSolution gainSolution = svc.getGainSolution(gainID);
     dumpGainSolution(gainSolution, file);
-    file.close();
 
+    // Leakage Solution
+    if (leakageID == -1) {
+        leakageID = svc.getCurrentLeakageSolutionID();
+        cout << "Calibration data service reports latest leakage solution is: "
+            << leakageID << endl;
+    }
+    cout << "Obtaining leakage solution " << leakageID << endl;
+    LeakageSolution leakageSolution = svc.getLeakageSolution(leakageID);
+    dumpLeakageSolution(leakageSolution, file);
+
+    // Bandpass Solution
+    if (bandpassID == -1) {
+        bandpassID = svc.getCurrentBandpassSolutionID();
+        cout << "Calibration data service reports latest bandpass solution is: "
+            << bandpassID << endl;
+    }
+    cout << "Obtaining bandpass solution " << bandpassID << endl;
+    BandpassSolution bandpassSolution = svc.getBandpassSolution(bandpassID);
+    dumpBandpassSolution(bandpassSolution, file);
+
+    file.close();
     return 0;
 }
