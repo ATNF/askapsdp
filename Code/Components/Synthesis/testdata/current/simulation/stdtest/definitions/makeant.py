@@ -317,7 +317,7 @@ class AntennaList:
 		print "# Offset of %.3f,%.3f,%.3f applied to all antenna positions." %(offxyz[0], offxyz[1], offxyz[2])
 		for antnum in self.config.antennas:
 			x, y, z = self.antennas[antnum].toITRF()
-			print "%12.3f  %12.3f  %12.3f %3d %5.1f  $%s" %(x + offxyz[0], y + offxyz[1], z + offxyz[2], axisType, offset, self.antennas[antnum].padName())
+			print "%12.3f  %12.3f  %12.3f %3d %5.1f  $%s" %(x + offxyz[0], y + offxyz[1], z + offxyz[2], axisType, offset, string.upper(self.antennas[antnum].padName()))
 
 	def dumplatlong(self):
 		print "Pad,easting,northing,long,lat"
