@@ -230,6 +230,12 @@ namespace askap
       /// @return const reference to the sum of weights cube
       inline const casa::Cube<double>& sumOfWeights() const { return itsSumWeights;}
       
+      /// @brief log unused spectral planes
+      /// @details It is handy to write down the channel numbers into log if the sum of weights 
+      /// is zero, i.e. if we have no data for this particular channel. This method does it
+      /// (it is called from the destructor, unless the gridder object didn't do any gridding).
+      void logUnusedSpectralPlanes() const;
+      
       /// @brief translate row of the sum of weights cube into convolution function plane
       /// @details If we are tracking weights per oversampling plane, the row of the sum of
       /// weights cube directly corresponds to the plane of the convolution function cache. 

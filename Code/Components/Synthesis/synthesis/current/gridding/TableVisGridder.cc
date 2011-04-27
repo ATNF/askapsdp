@@ -252,10 +252,11 @@ TableVisGridder::~TableVisGridder() {
 	} else {
 	  ASKAPLOG_DEBUG_STR(logger, "   Padding factor    = " << itsPaddingFactor);
 	  if (itsTrackWeightPerOversamplePlane) {
-	      ASKAPLOG_DEBUG_STR(logger, "   Weights are tracked per oversampling plane");
+	      ASKAPLOG_DEBUG_STR(logger, "   Weights were tracked per oversampling plane");
 	  } else {
-	      ASKAPLOG_DEBUG_STR(logger, "   First oversampling plane is used to compute weights");
+	      ASKAPLOG_DEBUG_STR(logger, "   First oversampling plane was used to compute weights");
 	  }
+	  logUnusedSpectralPlanes();
 	  logCFCacheStats();
 	  if(itsName!="") {
 	    save(itsName);
@@ -1011,6 +1012,31 @@ void TableVisGridder::initialiseFreqMapping()
       itsFreqMapper.setupSinglePlaneGridding();
   }
 }
+
+/// @brief log unused spectral planes
+/// @details It is handy to write down the channel numbers into log if the sum of weights 
+/// is zero, i.e. if we have no data for this particular channel. This method does it
+/// (it is called from the destructor, unless the gridder object didn't do any gridding).
+void TableVisGridder::logUnusedSpectralPlanes() const
+{
+   if (itsSumWeights.nelements()>0) {
+       std::string planesList;
+       for (casa::uInt plane = 0; plane<itsSumWeights.nplane(); ++plane) {
+            const double sumWt = casa::sum(itsSumWeights.xyPlane(plane));
+            if (sumWt<=0.) {
+                if (planesList.size()!=0) {
+                    planesList+=",";
+                }
+                planesList += utility::toString<casa::uInt>(plane);
+            }
+       }
+       if (planesList.size() == 0) {
+           planesList = "none";
+       }       
+       ASKAPLOG_DEBUG_STR(logger, "Unused spectral planes: "<<planesList);
+   }  
+}
+
 
 /// This is the default implementation
 void TableVisGridder::finaliseDegrid() {
