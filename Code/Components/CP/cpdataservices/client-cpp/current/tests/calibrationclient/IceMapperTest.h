@@ -80,7 +80,7 @@ class IceMapperTest : public CppUnit::TestFixture {
             const askap::interfaces::calparams::TimeTaggedGainSolution ice_sol = IceMapper::toIce(sol);
 
             // Compare source with the target copy
-            CPPUNIT_ASSERT_EQUAL(theirTimestamp, ice_sol.timestamp);
+            CPPUNIT_ASSERT_EQUAL(static_cast<long>(theirTimestamp), static_cast<long>(ice_sol.timestamp));
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(theirNAntenna * theirNBeam), ice_sol.solutionMap.size());
             val = 1.0;
             for (casa::Short antenna = 1; antenna <= theirNAntenna; ++antenna) {
@@ -111,7 +111,7 @@ class IceMapperTest : public CppUnit::TestFixture {
             const askap::interfaces::calparams::TimeTaggedLeakageSolution ice_sol = IceMapper::toIce(sol);
 
             // Compare source with the target copy
-            CPPUNIT_ASSERT_EQUAL(theirTimestamp, ice_sol.timestamp);
+            CPPUNIT_ASSERT_EQUAL(static_cast<long>(theirTimestamp), static_cast<long>(ice_sol.timestamp));
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), ice_sol.solutionMap.size());
         }
 
@@ -124,7 +124,7 @@ class IceMapperTest : public CppUnit::TestFixture {
             const askap::interfaces::calparams::TimeTaggedBandpassSolution ice_sol = IceMapper::toIce(sol);
 
             // Compare source with the target copy
-            CPPUNIT_ASSERT_EQUAL(theirTimestamp, ice_sol.timestamp);
+            CPPUNIT_ASSERT_EQUAL(static_cast<long>(theirTimestamp), static_cast<long>(ice_sol.timestamp));
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(0), ice_sol.solutionMap.size());
         }
 
