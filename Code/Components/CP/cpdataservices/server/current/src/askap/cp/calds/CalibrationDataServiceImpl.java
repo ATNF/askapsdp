@@ -23,10 +23,9 @@
  */
 package askap.cp.calds;
 
-//ASKAPsoft imports
+// ASKAPsoft imports
 import org.apache.log4j.Logger;
 import Ice.Current;
-import askap.cp.calds.persist.PersistenceInterface;
 import askap.interfaces.caldataservice._ICalibrationDataServiceDisp;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
@@ -46,27 +45,17 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private long itsOptimumGainID;
-	private long itsOptimumLeakageID;
-	private long itsOptimumBandpassID;
-	
 	/**
-	 * Class which provides access to the persistence layer
+	 * Class which manages calibration solutions
 	 */
-	private PersistenceInterface itsPersistance;
+	private SolutionManager itsManager;
 	
 	/**
 	 * Constructor
 	 */
 	public CalibrationDataServiceImpl(Ice.Communicator ic) {
 		logger.info("Creating Calibration Data Service");
-		itsPersistance = new PersistenceInterface();
-		
-		// TODO: Currently, the optimum ID is not known unless a call to add*()
-		// occurred. Need to read the database to find the best one on startup.
-		itsOptimumGainID = -1;
-		itsOptimumLeakageID = -1;
-		itsOptimumBandpassID = -1;
+		itsManager = new SolutionManager(null);
 	}
 
 	/**
@@ -86,9 +75,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 			return -1;
 		}
 		
-		final long id = itsPersistance.addGainSolution(solution);
-		itsOptimumGainID = id;
-		return id;
+		return itsManager.addGainSolution(solution);
 	}
 
 	/**
@@ -101,9 +88,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 			return -1;
 		}
 		
-		final long id = itsPersistance.addLeakageSolution(solution);
-		itsOptimumLeakageID = id;
-		return id;
+		return itsManager.addLeakageSolution(solution);
 	}
 	
 	/**
@@ -116,9 +101,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 			return -1;
 		}
 		
-		final long id = itsPersistance.addBandpassSolution(solution); 
-		itsOptimumBandpassID = id;
-		return id;
+		return itsManager.addBandpassSolution(solution); 
 	}
 
 	/**
@@ -126,7 +109,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public long getCurrentGainSolutionID(Current cur) {
-		return itsOptimumGainID;
+		return itsManager.getCurrentGainSolutionID();
 	}
 
 	/**
@@ -134,7 +117,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public long getCurrentLeakageSolutionID(Current cur) {
-		return itsOptimumLeakageID;
+		return itsManager.getCurrentLeakageSolutionID();
 	}
 	
 	/**
@@ -142,7 +125,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public long getCurrentBandpassSolutionID(Current cur) {
-		return itsOptimumBandpassID;
+		return itsManager.getCurrentBandpassSolutionID();
 	}
 
 	/**
@@ -150,7 +133,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public TimeTaggedGainSolution getGainSolution(long id, Current cur) {
-		return itsPersistance.getGainSolution(id);
+		return itsManager.getGainSolution(id);
 	}
 
 	/**
@@ -158,7 +141,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public TimeTaggedLeakageSolution getLeakageSolution(long id, Current cur) {
-		return itsPersistance.getLeakageSolution(id);
+		return itsManager.getLeakageSolution(id);
 	}
 
 	/**
@@ -166,6 +149,6 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	 */
 	@Override
 	public TimeTaggedBandpassSolution getBandpassSolution(long id, Current cur) {
-		return itsPersistance.getBandpassSolution(id);
+		return itsManager.getBandpassSolution(id);
 	}
 }

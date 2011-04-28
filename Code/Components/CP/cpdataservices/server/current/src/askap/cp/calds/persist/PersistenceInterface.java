@@ -33,10 +33,13 @@ import java.util.Map;
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.criterion.Projections;
+
 import askap.interfaces.DoubleComplex;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
@@ -64,24 +67,18 @@ public class PersistenceInterface {
 	/**
 	 * Constructor
 	 */
-	public PersistenceInterface() {
+	public PersistenceInterface(org.hibernate.Session session) {
 		logger.debug("Creating " + PersistenceInterface.class.getName() );
 		
-		// A SessionFactory is set up for the persistence interface
-		Configuration config = new Configuration();
-		config.configure("calibration-hibernate.cfg.xml");
-		SessionFactory sessionFactory = config.buildSessionFactory();
-		itsSession = sessionFactory.openSession();
-	}
-	
-	/**
-	 * Constructor.
-	 * Used for testing.
-	 * 
-	 * @param session
-	 */
-	public PersistenceInterface(org.hibernate.Session session) {
-		itsSession = session;
+		if (session != null) {
+			itsSession = session;
+		} else {
+			// A SessionFactory is set up for the persistence interface
+			Configuration config = new Configuration();
+			config.configure("calibration-hibernate.cfg.xml");
+			SessionFactory sessionFactory = config.buildSessionFactory();
+			itsSession = sessionFactory.openSession();
+		}
 	}
 
 	protected void finalize() {
@@ -297,5 +294,27 @@ public class PersistenceInterface {
 		}
 		
 		return ice_sol;
+	}
+	
+	public long getLatestGainSolution() {
+		return getLatestSolution(GainSolutionBean.class);
+	}
+	
+	public long getLatestLeakageSolution() {
+		return getLatestSolution(LeakageSolutionBean.class);
+	}
+	
+	public long getLatestBandpassSolution() {
+		return getLatestSolution(BandpassSolutionBean.class);
+	}
+	
+	private long getLatestSolution(Class<?> c) {
+		Criteria criteria = itsSession.createCriteria(c).setProjection(Projections.max("id"));
+		Long id = (Long)criteria.uniqueResult();
+		if (id == null) { 
+			return -1;
+		} else {
+			return id;
+		}
 	}
 }

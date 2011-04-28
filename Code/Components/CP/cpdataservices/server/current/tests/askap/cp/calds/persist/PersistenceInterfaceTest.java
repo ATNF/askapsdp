@@ -146,7 +146,7 @@ public class PersistenceInterfaceTest {
 	 */
 	@Test
 	public void testAddLeakageSolution() {
-		assertTrue(itsInstance.addLeakageSolution(cretaeTestLeakageSolution(111)) != -1);
+		assertTrue(itsInstance.addLeakageSolution(createTestLeakageSolution(111)) != -1);
 	}
 
 	/**
@@ -183,7 +183,7 @@ public class PersistenceInterfaceTest {
 	
 	@Test
 	public void testGetLeakageSolution() {
-		final long id = itsInstance.addLeakageSolution(cretaeTestLeakageSolution(221));
+		final long id = itsInstance.addLeakageSolution(createTestLeakageSolution(221));
 		assertTrue(id != -1);
 		
 		TimeTaggedLeakageSolution sol = itsInstance.getLeakageSolution(id);
@@ -232,6 +232,41 @@ public class PersistenceInterfaceTest {
 		assertFalse(jterm.g2Valid);
 	}
 	
+	@Test
+	public void testGetLatestGainSolution() {
+		assertEquals(-1, itsInstance.getLatestGainSolution());
+		final long id1 = itsInstance.addGainSolution(createTestGainSolution(320));
+		assertEquals(id1, itsInstance.getLatestGainSolution());
+		final long id2 = itsInstance.addGainSolution(createTestGainSolution(325));
+		assertEquals(id2, itsInstance.getLatestGainSolution());
+		
+		// Make sure the others are still -1
+		assertEquals(-1, itsInstance.getLatestLeakageSolution());
+		assertEquals(-1, itsInstance.getLatestBandpassSolution());
+	}
+	
+	@Test
+	public void testGetLatestLeakageSolution() {
+		assertEquals(-1, itsInstance.getLatestLeakageSolution());
+		final long id1 = itsInstance.addLeakageSolution(createTestLeakageSolution(320));
+		assertEquals(id1, itsInstance.getLatestLeakageSolution());
+		
+		// Make sure the others are still -1
+		assertEquals(-1, itsInstance.getLatestGainSolution());
+		assertEquals(-1, itsInstance.getLatestBandpassSolution());
+	}
+	
+	@Test
+	public void testGetLatestBandpassSolution() {
+		assertEquals(-1, itsInstance.getLatestBandpassSolution());
+		final long id1 = itsInstance.addBandpassSolution(createTestBandpassSolution(320));
+		assertEquals(id1, itsInstance.getLatestBandpassSolution());
+		
+		// Make sure the others are still -1
+		assertEquals(-1, itsInstance.getLatestLeakageSolution());
+		assertEquals(-1, itsInstance.getLatestGainSolution());
+	}
+	
 	//////////////////////////////////////////////
 	// Utility Methods
 	//////////////////////////////////////////////
@@ -253,7 +288,7 @@ public class PersistenceInterfaceTest {
 		return solution;
 	}
 
-	TimeTaggedLeakageSolution cretaeTestLeakageSolution(long timestamp) {
+	TimeTaggedLeakageSolution createTestLeakageSolution(long timestamp) {
 		TimeTaggedLeakageSolution solution = new TimeTaggedLeakageSolution();
 		solution.timestamp = timestamp;
 
