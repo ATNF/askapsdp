@@ -13,10 +13,11 @@
 		<property name="antennaID" type="short" column="antenna_id" />
 		<property name="beamID" type="short" column="beam_id" />
 
-		<property name="leakageReal" type="double" column="leakage_real" />
-		<property name="leakageImag" type="double" column="leakage_imag" />
+		<property name="d12Real" type="double" column="d12_real" />
+		<property name="d12Imag" type="double" column="d12_imag" />
 
-
+		<property name="d21Real" type="double" column="d21_real" />
+		<property name="d21Imag" type="double" column="d21_imag" />
 
 	</class>
 

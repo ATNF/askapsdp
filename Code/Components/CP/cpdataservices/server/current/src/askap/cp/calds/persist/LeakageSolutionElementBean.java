@@ -30,8 +30,10 @@ public class LeakageSolutionElementBean {
 	private short itsAntennaID;
 	private short itsBeamID;
 	
-	private double itsLeakageReal;
-	private double itsLeakageImag;
+	private double itsD12Real;
+	private double itsD12Imag;
+	private double itsD21Real;
+	private double itsD21Imag;
 
 	/**
 	 * Constructor
@@ -41,19 +43,23 @@ public class LeakageSolutionElementBean {
 		itsSolutionID = -1;
 		itsAntennaID = -1;
 		itsBeamID = -1;
-		itsLeakageReal = -1.0;
-		itsLeakageImag = -1.0;
+		itsD12Real = -1.0;
+		itsD12Imag = -1.0;
+		itsD21Real = -1.0;
+		itsD21Imag = -1.0;
 	}
 	
 	public LeakageSolutionElementBean(long solutionID,
 			short antennaID, short beamID,
-			double leakageReal, double leakageImag) {
+			double d12Real, double d12Imag,
+			double d21Real, double d21Imag) {
 		itsSolutionID = solutionID;
 		itsAntennaID = antennaID;
 		itsBeamID = beamID;
-		itsLeakageReal = leakageReal;
-		itsLeakageImag = leakageImag;
-
+		itsD12Real = d12Real;
+		itsD12Imag = d12Imag;
+		itsD21Real = d21Real;
+		itsD21Imag = d21Imag;
 	}
 
 	/**
@@ -98,32 +104,67 @@ public class LeakageSolutionElementBean {
 		itsBeamID = beamID;
 	}
 
+	////////////////////////
+	// d12
+	////////////////////////
+	
 	/**
-	 * @return the leakageReal
+	 * @return the d12Real
 	 */
-	public double getLeakageReal() {
-		return itsLeakageReal;
+	public double getD12Real() {
+		return itsD12Real;
 	}
 
 	/**
-	 * @param leakageReal the leakageReal to set
+	 * @param d12Real the d12Real to set
 	 */
-	public void setLeakageReal(double leakageReal) {
-		itsLeakageReal = leakageReal;
+	public void setD12Real(double d12Real) {
+		itsD12Real = d12Real;
 	}
 
 	/**
-	 * @return the leakageImag
+	 * @return the d12Imag
 	 */
-	public double getLeakageImag() {
-		return itsLeakageImag;
+	public double getD12Imag() {
+		return itsD12Imag;
 	}
 
 	/**
-	 * @param leakageImag the leakageImag to set
+	 * @param d12Imag the d12Imag to set
 	 */
-	public void setLeakageImag(double leakageImag) {
-		itsLeakageImag = leakageImag;
+	public void setD12Imag(double d12Imag) {
+		itsD12Imag = d12Imag;
 	}
 
+	////////////////////////
+	// d21
+	////////////////////////
+	
+	/**
+	 * @return the d21Real
+	 */
+	public double getD21Real() {
+		return itsD21Real;
+	}
+
+	/**
+	 * @param d21Real the d21Real to set
+	 */
+	public void setD21Real(double d21Real) {
+		itsD21Real = d21Real;
+	}
+
+	/**
+	 * @return the d21Imag
+	 */
+	public double getD21Imag() {
+		return itsD21Imag;
+	}
+
+	/**
+	 * @param d21Imag the d21Imag to set
+	 */
+	public void setD21Imag(double d21Imag) {
+		itsD21Imag = d21Imag;
+	}
 }

@@ -70,7 +70,7 @@ askap::interfaces::calparams::TimeTaggedLeakageSolution IceMapper::toIce(const a
     ice_sol.timestamp = sol.timestamp();
 
     typedef JonesIndex keyType;
-    typedef casa::DComplex valueType;
+    typedef JonesDTerm valueType;
     const std::map<keyType, valueType>& leakages = sol.map();
     std::map<keyType, valueType>::const_iterator it;
     for (it = leakages.begin(); it != leakages.end(); ++it) {
@@ -136,7 +136,7 @@ askap::cp::caldataservice::LeakageSolution IceMapper::fromIce(const askap::inter
     askap::cp::caldataservice::LeakageSolution sol(ice_sol.timestamp);
 
     typedef askap::interfaces::calparams::JonesIndex keyType;
-    typedef askap::interfaces::DoubleComplex valueType;
+    typedef askap::interfaces::calparams::JonesDTerm valueType;
     const std::map<keyType, valueType>& ice_leakages = ice_sol.solutionMap;
     std::map<keyType, valueType>::const_iterator it;
     for (it = ice_leakages.begin(); it != ice_leakages.end(); ++it) {
@@ -217,4 +217,18 @@ askap::cp::caldataservice::JonesJTerm IceMapper::fromIce(const askap::interfaces
 {
     return askap::cp::caldataservice::JonesJTerm(fromIce(ice_jterm.g1), ice_jterm.g1Valid,
                                                  fromIce(ice_jterm.g2), ice_jterm.g2Valid);
+}
+
+/////
+askap::interfaces::calparams::JonesDTerm IceMapper::toIce(const askap::cp::caldataservice::JonesDTerm& dterm)
+{
+    askap::interfaces::calparams::JonesDTerm ice_dterm;
+    ice_dterm.d12 = toIce(dterm.d12());
+    ice_dterm.d21 = toIce(dterm.d21());
+    return ice_dterm;
+}
+
+askap::cp::caldataservice::JonesDTerm IceMapper::fromIce(const askap::interfaces::calparams::JonesDTerm& ice_dterm)
+{
+    return askap::cp::caldataservice::JonesDTerm(fromIce(ice_dterm.d12), fromIce(ice_dterm.d21));
 }

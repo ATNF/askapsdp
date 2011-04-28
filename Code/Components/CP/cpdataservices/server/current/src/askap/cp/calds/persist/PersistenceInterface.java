@@ -39,13 +39,13 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.criterion.Projections;
-
 import askap.interfaces.DoubleComplex;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
 import askap.interfaces.calparams.JonesIndex;
 import askap.interfaces.calparams.JonesJTerm;
+import askap.interfaces.calparams.JonesDTerm;
 
 public class PersistenceInterface {
 	/**
@@ -94,12 +94,10 @@ public class PersistenceInterface {
 		GainSolutionBean solbean = new GainSolutionBean(solution.timestamp);
 		itsSession.save(solbean);
 		int count = 0;
-		for (Map.Entry<JonesIndex, JonesJTerm> entry : solution.solutionMap
-				.entrySet()) {
+		for (Map.Entry<JonesIndex, JonesJTerm> entry : solution.solutionMap.entrySet()) {
 			JonesIndex key = entry.getKey();
 			JonesJTerm value = entry.getValue();
-			itsSession
-					.save(new GainSolutionElementBean(solbean.getID(),
+			itsSession.save(new GainSolutionElementBean(solbean.getID(),
 							key.antennaID, key.beamID, value.g1.real,
 							value.g1.imag, value.g1Valid, value.g2.real,
 							value.g2.imag, value.g2Valid));
@@ -117,16 +115,16 @@ public class PersistenceInterface {
 
 	public long addLeakageSolution(TimeTaggedLeakageSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		LeakageSolutionBean solbean = new LeakageSolutionBean(
-				solution.timestamp);
+		LeakageSolutionBean solbean = new LeakageSolutionBean(solution.timestamp);
 		itsSession.save(solbean);
 		int count = 0;
-		for (Map.Entry<JonesIndex, DoubleComplex> entry : solution.solutionMap
-				.entrySet()) {
+		for (Map.Entry<JonesIndex, JonesDTerm> entry : solution.solutionMap.entrySet()) {
 			JonesIndex key = entry.getKey();
-			DoubleComplex value = entry.getValue();
+			JonesDTerm value = entry.getValue();
 			itsSession.save(new LeakageSolutionElementBean(solbean.getID(),
-					key.antennaID, key.beamID, value.real, value.imag));
+					key.antennaID, key.beamID,
+					value.d12.real, value.d12.imag,
+					value.d21.real, value.d21.imag));
 			if (count == itsBatchSize) {
 				itsSession.flush();
 				itsSession.clear();
@@ -147,8 +145,7 @@ public class PersistenceInterface {
 				solution.timestamp, 16416);
 		itsSession.save(solbean);
 		int count = 0;
-		for (Map.Entry<JonesIndex, List<JonesJTerm>> entry : solution.solutionMap
-				.entrySet()) {
+		for (Map.Entry<JonesIndex, List<JonesJTerm>> entry : solution.solutionMap.entrySet()) {
 			JonesIndex key = entry.getKey();
 			List<JonesJTerm> value = entry.getValue();
 			int chan = 1;
@@ -175,8 +172,7 @@ public class PersistenceInterface {
 	public TimeTaggedGainSolution getGainSolution(long id) {
 		String query = "from GainSolutionBean where id = " + id;
 		@SuppressWarnings("unchecked")
-		List<GainSolutionBean> result = (List<GainSolutionBean>) itsSession
-				.createQuery(query).list();
+		List<GainSolutionBean> result = (List<GainSolutionBean>) itsSession.createQuery(query).list();
 		if (result.size() == 0) {
 			return null;
 		} else if (result.size() > 1) {
@@ -193,22 +189,20 @@ public class PersistenceInterface {
 		query = "from GainSolutionElementBean where solution_id = " + id
 				+ " order by antennaID asc, beamID asc";
 		@SuppressWarnings("unchecked")
-		List<GainSolutionElementBean> elements = (List<GainSolutionElementBean>) itsSession
-				.createQuery(query).list();
+		List<GainSolutionElementBean> elements = (List<GainSolutionElementBean>) itsSession.createQuery(query).list();
 		for (GainSolutionElementBean element : (List<GainSolutionElementBean>) elements) {
-			JonesIndex jind = new JonesIndex();
-			jind.antennaID = element.getAntennaID();
-			jind.beamID = element.getBeamID();
+			JonesIndex jind = new JonesIndex(element.getAntennaID(), element.getBeamID());
 			JonesJTerm jterm = new JonesJTerm();
 
-			jterm.g1 = new askap.interfaces.DoubleComplex();
-			jterm.g1.real = element.getG1Real();
-			jterm.g1.imag = element.getG1Imag();
+			jterm.g1 = new askap.interfaces.DoubleComplex(
+					element.getG1Real(),
+					element.getG1Imag());
 			jterm.g1Valid = element.isG1Valid();
 
-			jterm.g2 = new askap.interfaces.DoubleComplex();
-			jterm.g2.real = element.getG2Real();
-			jterm.g2.imag = element.getG2Imag();
+			jterm.g2 = new askap.interfaces.DoubleComplex(
+					element.getG2Real(),
+					element.getG2Imag());
+
 			jterm.g2Valid = element.isG2Valid();
 
 			ice_sol.solutionMap.put(jind, jterm);
@@ -220,8 +214,7 @@ public class PersistenceInterface {
 	public TimeTaggedLeakageSolution getLeakageSolution(long id) {
 		String query = "from LeakageSolutionBean where id = " + id;
 		@SuppressWarnings("unchecked")
-		List<LeakageSolutionBean> result = (List<LeakageSolutionBean>) itsSession
-				.createQuery(query).list();
+		List<LeakageSolutionBean> result = (List<LeakageSolutionBean>) itsSession.createQuery(query).list();
 		if (result.size() == 0) {
 			return null;
 		} else if (result.size() > 1) {
@@ -232,7 +225,7 @@ public class PersistenceInterface {
 		// Build the Ice type
 		TimeTaggedLeakageSolution ice_sol = new TimeTaggedLeakageSolution();
 		ice_sol.timestamp = bean.getTimestamp();
-		ice_sol.solutionMap = new HashMap<JonesIndex, DoubleComplex>();
+		ice_sol.solutionMap = new HashMap<JonesIndex, JonesDTerm>();
 
 		// Need to query the element table for each map entry
 		query = "from LeakageSolutionElementBean where solution_id = " + id
@@ -241,12 +234,10 @@ public class PersistenceInterface {
 		List<LeakageSolutionElementBean> elements = (List<LeakageSolutionElementBean>) itsSession
 				.createQuery(query).list();
 		for (LeakageSolutionElementBean element : (List<LeakageSolutionElementBean>) elements) {
-			JonesIndex jind = new JonesIndex();
-			jind.antennaID = element.getAntennaID();
-			jind.beamID = element.getBeamID();
-			askap.interfaces.DoubleComplex leakage = new DoubleComplex();
-			leakage.real = element.getLeakageReal();
-			leakage.imag = element.getLeakageImag();
+			JonesIndex jind = new JonesIndex(element.getAntennaID(), element.getBeamID());
+			askap.interfaces.calparams.JonesDTerm leakage = new JonesDTerm(
+					new DoubleComplex(element.getD12Real(), element.getD12Imag()),
+					new DoubleComplex(element.getD21Real(), element.getD21Imag()));
 
 			ice_sol.solutionMap.put(jind, leakage);
 		}
@@ -257,8 +248,7 @@ public class PersistenceInterface {
 	public TimeTaggedBandpassSolution getBandpassSolution(long id) {
 		String query = "from BandpassSolutionBean where id = " + id;
 		@SuppressWarnings("unchecked")
-		List<BandpassSolutionBean> result = (List<BandpassSolutionBean>) itsSession
-				.createQuery(query).list();
+		List<BandpassSolutionBean> result = (List<BandpassSolutionBean>) itsSession.createQuery(query).list();
 		if (result.size() == 0) {
 			return null;
 		} else if (result.size() > 1) {
@@ -275,12 +265,9 @@ public class PersistenceInterface {
 		query = "from BandpassSolutionElementBean where solution_id = " + id
 				+ " and chan = 1 order by antennaID asc, beamID asc";
 		@SuppressWarnings("unchecked")
-		List<BandpassSolutionElementBean> elements = (List<BandpassSolutionElementBean>) itsSession
-				.createQuery(query).list();
+		List<BandpassSolutionElementBean> elements = (List<BandpassSolutionElementBean>) itsSession.createQuery(query).list();
 		for (BandpassSolutionElementBean element : (List<BandpassSolutionElementBean>) elements) {
-			JonesIndex jind = new JonesIndex();
-			jind.antennaID = element.getAntennaID();
-			jind.beamID = element.getBeamID();
+			JonesIndex jind = new JonesIndex(element.getAntennaID(), element.getBeamID());
 
 			List<JonesJTerm> terms = new ArrayList<JonesJTerm>(bean.getnChan());
 
@@ -295,15 +282,16 @@ public class PersistenceInterface {
 					.createQuery(query).list();
 			for (BandpassSolutionElementBean innerElement : (List<BandpassSolutionElementBean>) innerElements) {
 				JonesJTerm jterm = new JonesJTerm();
-				jterm.g1 = new askap.interfaces.DoubleComplex();
-				jterm.g1.real = innerElement.getG1Real();
-				jterm.g1.imag = innerElement.getG1Imag();
+				jterm.g1 = new askap.interfaces.DoubleComplex(
+						innerElement.getG1Real(),
+						innerElement.getG1Imag());
 				jterm.g1Valid = innerElement.isG1Valid();
 
-				jterm.g2 = new askap.interfaces.DoubleComplex();
-				jterm.g2.real = innerElement.getG2Real();
-				jterm.g2.imag = innerElement.getG2Imag();
+				jterm.g2 = new askap.interfaces.DoubleComplex(
+						innerElement.getG2Real(),
+						innerElement.getG2Imag());
 				jterm.g2Valid = innerElement.isG2Valid();
+				
 				terms.add(jterm);
 			}
 			assert terms.size() == bean.getnChan();

@@ -34,6 +34,7 @@
 // Local package includes
 #include "calibrationclient/JonesIndex.h"
 #include "calibrationclient/JonesJTerm.h"
+#include "calibrationclient/JonesDTerm.h"
 #include "calibrationclient/GenericSolution.h"
 
 namespace askap {
@@ -58,10 +59,12 @@ class IceMapper {
         static askap::interfaces::DoubleComplex toIce(const casa::DComplex& val);
         static askap::interfaces::calparams::JonesIndex toIce(const askap::cp::caldataservice::JonesIndex& jindex);
         static askap::interfaces::calparams::JonesJTerm toIce(const askap::cp::caldataservice::JonesJTerm& jterm);
+        static askap::interfaces::calparams::JonesDTerm toIce(const askap::cp::caldataservice::JonesDTerm& dterm);
 
         static casa::DComplex fromIce(const askap::interfaces::DoubleComplex& ice_val);
-        static askap::cp::caldataservice::JonesJTerm fromIce(const askap::interfaces::calparams::JonesJTerm& ice_jterm);
         static askap::cp::caldataservice::JonesIndex fromIce(const askap::interfaces::calparams::JonesIndex& ice_jindex);
+        static askap::cp::caldataservice::JonesJTerm fromIce(const askap::interfaces::calparams::JonesJTerm& ice_jterm);
+        static askap::cp::caldataservice::JonesDTerm fromIce(const askap::interfaces::calparams::JonesDTerm& ice_dterm);
 };
 
 };

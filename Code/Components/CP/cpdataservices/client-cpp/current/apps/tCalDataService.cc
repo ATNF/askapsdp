@@ -110,7 +110,8 @@ void addLeakageSolution(CalibrationDataServiceClient& svc,
     // Create a map entry for each antenna/beam combination
     for (casa::Short antenna = 1; antenna <= nAntenna; ++antenna) {
         for (casa::Short beam = 1; beam <= nBeam; ++beam) {
-            sol.map()[JonesIndex(antenna, beam)] = casa::DComplex(1.0, 1.0);
+            sol.map()[JonesIndex(antenna, beam)] = JonesDTerm(
+                    casa::DComplex(1.0, 1.0), casa::DComplex(1.0, 1.0));
         }
     }
 
@@ -142,7 +143,7 @@ int main(int argc, char *argv[])
     cmdlineparser::Parser parser;
 
     // Command line parameter
-    cmdlineparser::FlaggedParameter<string> inputsPar("-inputs", "tSkyModelServicePerf.in");
+    cmdlineparser::FlaggedParameter<string> inputsPar("-inputs", "tCalDataService.in");
 
     // Throw an exception if the parameter is not present
     parser.add(inputsPar, cmdlineparser::Parser::return_default);

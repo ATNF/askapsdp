@@ -3,6 +3,6 @@ ice.locator.port                = 4061
 
 calibrationdataservice.name     = CalibrationDataService
 
-test.nantenna                   = 6
+test.nantenna                   = 36
 test.nbeam                      = 36
-test.nchannel                   = 1026
+test.nchannel                   = 304

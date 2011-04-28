@@ -44,6 +44,7 @@ import org.junit.Test;
 import askap.interfaces.DoubleComplex;
 import askap.interfaces.calparams.JonesIndex;
 import askap.interfaces.calparams.JonesJTerm;
+import askap.interfaces.calparams.JonesDTerm;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
@@ -197,11 +198,10 @@ public class PersistenceInterfaceTest {
 		assertNotNull(sol.solutionMap);
 		
 		JonesIndex jind = new JonesIndex((short)1, (short)1);
-		DoubleComplex leakage = sol.solutionMap.get(jind);
+		JonesDTerm leakage = sol.solutionMap.get(jind);
 		assertNotNull(leakage);
-		assertEquals(1.0, leakage.real, 0.00001);
-		assertEquals(1.0, leakage.imag, 0.00001);
-		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), leakage);
+		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), leakage.d12);
+		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), leakage.d21);
 	}
 	
 	@Test
@@ -294,9 +294,10 @@ public class PersistenceInterfaceTest {
 		solution.timestamp = timestamp;
 
 		// Flesh out the data structure
-		solution.solutionMap = new HashMap<JonesIndex, DoubleComplex>();
+		solution.solutionMap = new HashMap<JonesIndex, JonesDTerm>();
 		solution.solutionMap.put(new JonesIndex((short)1, (short)1), 
-				new DoubleComplex(1.0, 1.0));
+				new JonesDTerm(new DoubleComplex(1.0, 1.0),
+						new DoubleComplex(1.0, 1.0)));
 		
 		return solution;
 	}
@@ -311,11 +312,9 @@ public class PersistenceInterfaceTest {
 		List<JonesJTerm> terms = new ArrayList<JonesJTerm>();
 		
 		// Add a JTerm to the list (for 1 channel)
-		JonesJTerm jterm = new JonesJTerm();
-		jterm.g1 = new askap.interfaces.DoubleComplex(1.0, 1.0);
-		jterm.g1Valid = true;
-		jterm.g2 = new askap.interfaces.DoubleComplex(2.0, 1.0);
-		jterm.g2Valid = false;
+		JonesJTerm jterm = new JonesJTerm(
+				new askap.interfaces.DoubleComplex(1.0, 1.0), true,
+				new askap.interfaces.DoubleComplex(2.0, 1.0), false);
 		terms.add(jterm);
 		
 		solution.solutionMap.put(new JonesIndex((short)1, (short)1), terms);

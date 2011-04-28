@@ -71,13 +71,16 @@ void dumpGainSolution(const GainSolution& sol, std::ofstream& file)
 void dumpLeakageSolution(const LeakageSolution& sol, std::ofstream& file)
 {
     file << "# Leakage solution timestamp: " << sol.timestamp() << endl;
-    typedef std::map<JonesIndex, casa::DComplex> MapType;
+    typedef std::map<JonesIndex, JonesDTerm> MapType;
     const MapType map = sol.map();
     MapType::const_iterator it;
     for (it = map.begin(); it != map.end(); ++it) {
         const JonesIndex index = it->first;
-        file << "leakage.dXX." << index.antenna() << "." << index.beam() << " = ["
-            << it->second.real() << ", " << it->second.imag() << "]" << endl;
+        const JonesDTerm dterm = it->second;
+        file << "leakage.d12." << index.antenna() << "." << index.beam() << " = ["
+            << dterm.d12().real() << ", " << dterm.d12().imag() << "]" << endl;
+        file << "leakage.d21." << index.antenna() << "." << index.beam() << " = ["
+            << dterm.d21().real() << ", " << dterm.d21().imag() << "]" << endl;
     }
 }
 

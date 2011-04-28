@@ -39,7 +39,9 @@ module interfaces
 module calparams 
 {
 
-/** Jones Index */
+/**
+ * Jones Index
+ */
 struct JonesIndex {
     short antennaID;
     short beamID;
@@ -49,22 +51,30 @@ struct JonesIndex {
  * Jones J-Term 
  */
 struct JonesJTerm {
-    // Gain for polarisation 1
+    /** Gain for polarisation 1 */
     DoubleComplex g1;
 
-    // Flag for polarisation 1 gain, indicating validity.
+    /** Flag for polarisation 1 gain, indicating validity. */
     bool g1Valid;
 
-    // Gain for polarisation 2
+    /** Gain for polarisation 2 */
     DoubleComplex g2;
 
-    // Flag for polarisation 2 gain, indicating validity.
+    /** Flag for polarisation 2 gain, indicating validity. */
     bool g2Valid;
 };
  
-// Only one independent value, i.e. leakage + cross-pol phase
-// so DoubleComplex == JonesDTerm;
+/**
+ * Jones D-Term (Polarisation leakage)
+ */
+struct JonesDTerm {
+    /** Leakage from feed 1 into feed 2 */
+    DoubleComplex d12;
 
+    /** Leakage from feed 2 into feed 1 */
+    DoubleComplex d21;
+};
+ 
 /** Sequence of J-terms, i.e. a bandpass */
 ["java:type:java.util.ArrayList<askap.interfaces.calparams.JonesJTerm>"]
 sequence<JonesJTerm> JonesJTermSeq;
@@ -73,7 +83,7 @@ sequence<JonesJTerm> JonesJTermSeq;
 dictionary<JonesIndex,JonesJTerm> GainSolution;
 
 /** Leakage solution indexed with JonesIndex */
-dictionary<JonesIndex,DoubleComplex> LeakageSolution;
+dictionary<JonesIndex,JonesDTerm> LeakageSolution;
 
 /** Bandpass solution indexed with JonesIndex */
 dictionary<JonesIndex, JonesJTermSeq> BandpassSolution;
@@ -167,7 +177,7 @@ struct CalibrationParameters {
     JonesJTerm gain;
 
     /** Cross-pol leakage and phase (D-term) */
-    DoubleComplex leakage;
+    JonesDTerm leakage;
 
     /** Bandpass */
     JonesJTermSeq bandpass;

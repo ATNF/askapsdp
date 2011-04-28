@@ -36,6 +36,7 @@
 
 // Local package includes
 #include "calibrationclient/JonesJTerm.h"
+#include "calibrationclient/JonesDTerm.h"
 #include "calibrationclient/JonesIndex.h"
 
 namespace askap {
@@ -87,7 +88,7 @@ class GenericSolution {
 typedef GenericSolution<JonesJTerm> GainSolution;
 
 /// Template instance for the Leakage Solution
-typedef GenericSolution<casa::DComplex> LeakageSolution;
+typedef GenericSolution<JonesDTerm> LeakageSolution;
 
 /// Template instance for the Bandpass Solution
 typedef GenericSolution< std::vector<JonesJTerm> > BandpassSolution;
