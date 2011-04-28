@@ -53,23 +53,27 @@ public class PersistenceInterface {
 	 * */
 	private static Logger logger = Logger.getLogger(PersistenceInterface.class
 			.getName());
-	
+
 	/**
 	 * Size of batches for SQL inserts and updates
 	 */
 	private int itsBatchSize = 20;
-	
+
 	/**
 	 * Hibernate session
 	 */
 	private Session itsSession = null;
-	
+
 	/**
 	 * Constructor
+	 * 
+	 * @param session	allows a hibernate session to be passed in. This exists to
+	 *            		support unit testing. For non-unit test usage null should be
+	 *            		passed.
 	 */
 	public PersistenceInterface(org.hibernate.Session session) {
-		logger.debug("Creating " + PersistenceInterface.class.getName() );
-		
+		logger.debug("Creating " + PersistenceInterface.class.getName());
+
 		if (session != null) {
 			itsSession = session;
 		} else {
@@ -84,19 +88,21 @@ public class PersistenceInterface {
 	protected void finalize() {
 		itsSession.close();
 	}
-	
+
 	public long addGainSolution(TimeTaggedGainSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
 		GainSolutionBean solbean = new GainSolutionBean(solution.timestamp);
 		itsSession.save(solbean);
 		int count = 0;
-		for (Map.Entry<JonesIndex,JonesJTerm> entry : solution.solutionMap.entrySet()) {
+		for (Map.Entry<JonesIndex, JonesJTerm> entry : solution.solutionMap
+				.entrySet()) {
 			JonesIndex key = entry.getKey();
 			JonesJTerm value = entry.getValue();
-			itsSession.save(new GainSolutionElementBean(solbean.getID(),
-					key.antennaID, key.beamID,
-					value.g1.real, value.g1.imag, value.g1Valid,
-					value.g2.real, value.g2.imag, value.g2Valid));
+			itsSession
+					.save(new GainSolutionElementBean(solbean.getID(),
+							key.antennaID, key.beamID, value.g1.real,
+							value.g1.imag, value.g1Valid, value.g2.real,
+							value.g2.imag, value.g2Valid));
 			if (count == itsBatchSize) {
 				itsSession.flush();
 				itsSession.clear();
@@ -108,18 +114,19 @@ public class PersistenceInterface {
 		tx.commit();
 		return solbean.getID();
 	}
-	
+
 	public long addLeakageSolution(TimeTaggedLeakageSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		LeakageSolutionBean solbean = new LeakageSolutionBean(solution.timestamp);
+		LeakageSolutionBean solbean = new LeakageSolutionBean(
+				solution.timestamp);
 		itsSession.save(solbean);
 		int count = 0;
-		for (Map.Entry<JonesIndex,DoubleComplex> entry : solution.solutionMap.entrySet()) {
+		for (Map.Entry<JonesIndex, DoubleComplex> entry : solution.solutionMap
+				.entrySet()) {
 			JonesIndex key = entry.getKey();
 			DoubleComplex value = entry.getValue();
 			itsSession.save(new LeakageSolutionElementBean(solbean.getID(),
-					key.antennaID, key.beamID,
-					value.real, value.imag));
+					key.antennaID, key.beamID, value.real, value.imag));
 			if (count == itsBatchSize) {
 				itsSession.flush();
 				itsSession.clear();
@@ -131,25 +138,27 @@ public class PersistenceInterface {
 		tx.commit();
 		return solbean.getID();
 	}
-	
+
 	public long addBandpassSolution(TimeTaggedBandpassSolution solution) {
 		Transaction tx = itsSession.beginTransaction();
-		// TODO: Address hard-coding of number of channels. Need to better understand how
-		// to manage the bandpass solution first.
-		BandpassSolutionBean solbean = new BandpassSolutionBean(solution.timestamp, 16416);
+		// TODO: Address hard-coding of number of channels. Need to better
+		// understand how to manage the bandpass solution first.
+		BandpassSolutionBean solbean = new BandpassSolutionBean(
+				solution.timestamp, 16416);
 		itsSession.save(solbean);
 		int count = 0;
-		for (Map.Entry< JonesIndex, List<JonesJTerm> > entry : solution.solutionMap.entrySet()) {
+		for (Map.Entry<JonesIndex, List<JonesJTerm>> entry : solution.solutionMap
+				.entrySet()) {
 			JonesIndex key = entry.getKey();
 			List<JonesJTerm> value = entry.getValue();
 			int chan = 1;
-			for (JonesJTerm jterm: value) {
-				itsSession.save(new BandpassSolutionElementBean(solbean.getID(),
-						key.antennaID, key.beamID, chan,
+			for (JonesJTerm jterm : value) {
+				itsSession.save(new BandpassSolutionElementBean(
+						solbean.getID(), key.antennaID, key.beamID, chan,
 						jterm.g1.real, jterm.g1.imag, jterm.g1Valid,
 						jterm.g2.real, jterm.g2.imag, jterm.g2Valid));
 				chan++;
-				
+
 				if (count == itsBatchSize) {
 					itsSession.flush();
 					itsSession.clear();
@@ -162,38 +171,41 @@ public class PersistenceInterface {
 		tx.commit();
 		return solbean.getID();
 	}
-	
+
 	public TimeTaggedGainSolution getGainSolution(long id) {
 		String query = "from GainSolutionBean where id = " + id;
 		@SuppressWarnings("unchecked")
-		List<GainSolutionBean> result = (List<GainSolutionBean>) itsSession.createQuery(query).list();
+		List<GainSolutionBean> result = (List<GainSolutionBean>) itsSession
+				.createQuery(query).list();
 		if (result.size() == 0) {
 			return null;
 		} else if (result.size() > 1) {
 			logger.warn("Multiple records returned for query: " + query);
 		}
 		GainSolutionBean bean = result.get(0);
-		
+
 		// Build the Ice type
 		TimeTaggedGainSolution ice_sol = new TimeTaggedGainSolution();
 		ice_sol.timestamp = bean.getTimestamp();
-		ice_sol.solutionMap = new HashMap<JonesIndex,JonesJTerm>();
-		
+		ice_sol.solutionMap = new HashMap<JonesIndex, JonesJTerm>();
+
 		// Need to query the element table for each map entry
-		query = "from GainSolutionElementBean where solution_id = " + id + " order by antennaID asc, beamID asc";
+		query = "from GainSolutionElementBean where solution_id = " + id
+				+ " order by antennaID asc, beamID asc";
 		@SuppressWarnings("unchecked")
-		List<GainSolutionElementBean> elements = (List<GainSolutionElementBean>) itsSession.createQuery(query).list();
-		for ( GainSolutionElementBean element : (List<GainSolutionElementBean>) elements ) {
+		List<GainSolutionElementBean> elements = (List<GainSolutionElementBean>) itsSession
+				.createQuery(query).list();
+		for (GainSolutionElementBean element : (List<GainSolutionElementBean>) elements) {
 			JonesIndex jind = new JonesIndex();
 			jind.antennaID = element.getAntennaID();
 			jind.beamID = element.getBeamID();
 			JonesJTerm jterm = new JonesJTerm();
-			
+
 			jterm.g1 = new askap.interfaces.DoubleComplex();
 			jterm.g1.real = element.getG1Real();
 			jterm.g1.imag = element.getG1Imag();
 			jterm.g1Valid = element.isG1Valid();
-			
+
 			jterm.g2 = new askap.interfaces.DoubleComplex();
 			jterm.g2.real = element.getG2Real();
 			jterm.g2.imag = element.getG2Imag();
@@ -204,28 +216,31 @@ public class PersistenceInterface {
 
 		return ice_sol;
 	}
-	
+
 	public TimeTaggedLeakageSolution getLeakageSolution(long id) {
 		String query = "from LeakageSolutionBean where id = " + id;
 		@SuppressWarnings("unchecked")
-		List<LeakageSolutionBean> result = (List<LeakageSolutionBean>) itsSession.createQuery(query).list();
+		List<LeakageSolutionBean> result = (List<LeakageSolutionBean>) itsSession
+				.createQuery(query).list();
 		if (result.size() == 0) {
 			return null;
 		} else if (result.size() > 1) {
 			logger.warn("Multiple records returned for query: " + query);
 		}
 		LeakageSolutionBean bean = result.get(0);
-		
+
 		// Build the Ice type
 		TimeTaggedLeakageSolution ice_sol = new TimeTaggedLeakageSolution();
 		ice_sol.timestamp = bean.getTimestamp();
-		ice_sol.solutionMap = new HashMap<JonesIndex,DoubleComplex>();
-		
+		ice_sol.solutionMap = new HashMap<JonesIndex, DoubleComplex>();
+
 		// Need to query the element table for each map entry
-		query = "from LeakageSolutionElementBean where solution_id = " + id + " order by antennaID asc, beamID asc";
+		query = "from LeakageSolutionElementBean where solution_id = " + id
+				+ " order by antennaID asc, beamID asc";
 		@SuppressWarnings("unchecked")
-		List<LeakageSolutionElementBean> elements = (List<LeakageSolutionElementBean>) itsSession.createQuery(query).list();
-		for ( LeakageSolutionElementBean element : (List<LeakageSolutionElementBean>) elements ) {
+		List<LeakageSolutionElementBean> elements = (List<LeakageSolutionElementBean>) itsSession
+				.createQuery(query).list();
+		for (LeakageSolutionElementBean element : (List<LeakageSolutionElementBean>) elements) {
 			JonesIndex jind = new JonesIndex();
 			jind.antennaID = element.getAntennaID();
 			jind.beamID = element.getBeamID();
@@ -238,45 +253,47 @@ public class PersistenceInterface {
 
 		return ice_sol;
 	}
-	
+
 	public TimeTaggedBandpassSolution getBandpassSolution(long id) {
 		String query = "from BandpassSolutionBean where id = " + id;
 		@SuppressWarnings("unchecked")
-		List<BandpassSolutionBean> result = (List<BandpassSolutionBean>) itsSession.createQuery(query).list();
+		List<BandpassSolutionBean> result = (List<BandpassSolutionBean>) itsSession
+				.createQuery(query).list();
 		if (result.size() == 0) {
 			return null;
 		} else if (result.size() > 1) {
 			logger.warn("Multiple records returned for query: " + query);
 		}
 		BandpassSolutionBean bean = result.get(0);
-				
+
 		// Build the Ice type
 		TimeTaggedBandpassSolution ice_sol = new TimeTaggedBandpassSolution();
 		ice_sol.timestamp = bean.getTimestamp();
-		ice_sol.solutionMap = new HashMap<JonesIndex, List<JonesJTerm> >();
-		
+		ice_sol.solutionMap = new HashMap<JonesIndex, List<JonesJTerm>>();
+
 		// Need to query the element table for each map entry
-		query = "from BandpassSolutionElementBean where solution_id = " + id 
-		+ " and chan = 1 order by antennaID asc, beamID asc";
+		query = "from BandpassSolutionElementBean where solution_id = " + id
+				+ " and chan = 1 order by antennaID asc, beamID asc";
 		@SuppressWarnings("unchecked")
-		List<BandpassSolutionElementBean> elements = (List<BandpassSolutionElementBean>) itsSession.createQuery(query).list();
-		for ( BandpassSolutionElementBean element : (List<BandpassSolutionElementBean>) elements ) {
+		List<BandpassSolutionElementBean> elements = (List<BandpassSolutionElementBean>) itsSession
+				.createQuery(query).list();
+		for (BandpassSolutionElementBean element : (List<BandpassSolutionElementBean>) elements) {
 			JonesIndex jind = new JonesIndex();
 			jind.antennaID = element.getAntennaID();
 			jind.beamID = element.getBeamID();
-			
+
 			List<JonesJTerm> terms = new ArrayList<JonesJTerm>(bean.getnChan());
-			
+
 			// Now need to query just that JonesIndex for all channels
-			query = "from BandpassSolutionElementBean where solution_id = " + id 
-			+ " and antennaID = " + jind.antennaID 
-			+ " and beamID = " + jind.beamID 
-			+ " order by chan asc";
+			query = "from BandpassSolutionElementBean where solution_id = "
+					+ id + " and antennaID = " + jind.antennaID
+					+ " and beamID = " + jind.beamID + " order by chan asc";
 
 			ice_sol.solutionMap.put(jind, terms);
 			@SuppressWarnings("unchecked")
-			List<BandpassSolutionElementBean> innerElements = (List<BandpassSolutionElementBean>) itsSession.createQuery(query).list();
-			for ( BandpassSolutionElementBean innerElement : (List<BandpassSolutionElementBean>) innerElements ) {
+			List<BandpassSolutionElementBean> innerElements = (List<BandpassSolutionElementBean>) itsSession
+					.createQuery(query).list();
+			for (BandpassSolutionElementBean innerElement : (List<BandpassSolutionElementBean>) innerElements) {
 				JonesJTerm jterm = new JonesJTerm();
 				jterm.g1 = new askap.interfaces.DoubleComplex();
 				jterm.g1.real = innerElement.getG1Real();
@@ -292,26 +309,27 @@ public class PersistenceInterface {
 			assert terms.size() == bean.getnChan();
 			ice_sol.solutionMap.put(jind, terms);
 		}
-		
+
 		return ice_sol;
 	}
-	
+
 	public long getLatestGainSolution() {
 		return getLatestSolution(GainSolutionBean.class);
 	}
-	
+
 	public long getLatestLeakageSolution() {
 		return getLatestSolution(LeakageSolutionBean.class);
 	}
-	
+
 	public long getLatestBandpassSolution() {
 		return getLatestSolution(BandpassSolutionBean.class);
 	}
-	
+
 	private long getLatestSolution(Class<?> c) {
-		Criteria criteria = itsSession.createCriteria(c).setProjection(Projections.max("id"));
-		Long id = (Long)criteria.uniqueResult();
-		if (id == null) { 
+		Criteria criteria = itsSession.createCriteria(c).setProjection(
+				Projections.max("id"));
+		Long id = (Long) criteria.uniqueResult();
+		if (id == null) {
 			return -1;
 		} else {
 			return id;

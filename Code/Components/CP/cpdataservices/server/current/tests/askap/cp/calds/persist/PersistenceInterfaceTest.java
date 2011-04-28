@@ -25,6 +25,7 @@ package askap.cp.calds.persist;
 
 import static org.junit.Assert.*;
 
+// System imports
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
 
 /**
- * 
+ * Unit test for PersistenceInterface class.
  */
 public class PersistenceInterfaceTest {
 	/**

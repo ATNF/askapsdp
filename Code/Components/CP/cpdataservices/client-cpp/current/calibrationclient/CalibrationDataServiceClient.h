@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CALDATASERVICE__CALIBRATIONDATASERVICE_H
-#define ASKAP_CP_CALDATASERVICE__CALIBRATIONDATASERVICE_H
+#ifndef ASKAP_CP_CALDATASERVICE_CALIBRATIONDATASERVICE_H
+#define ASKAP_CP_CALDATASERVICE_CALIBRATIONDATASERVICE_H
 
 // System includes
 #include <string>
@@ -94,32 +94,44 @@ class CalibrationDataServiceClient {
         /// override is in place, the ID of the solution specified by the
         /// override is supplied instead.
         ///
-        /// @return the ID of the latest/optimum gain solution.
+        /// @return the ID of the latest/optimum gain solution, or -1 in the
+        ///         case the calibration data service has no gain solutions.
         casa::Long getCurrentGainSolutionID(void);
 
         /// Obtain the ID for the latest/optimum leakage solution.
         ///
-        /// @return the ID of the latest/optimum leakage solution.
+        /// @return the ID of the latest/optimum leakage solution, or -1 in the
+        ///         case the calibration data service has no leakage solutions.
         casa::Long getCurrentLeakageSolutionID(void);
 
         /// Obtain the ID for the latest/optimum bandpass solution.
         ///
-        /// @return the ID of the latest/optimum bandpass solution.
+        /// @return the ID of the latest/optimum bandpass solution, or -1 in the
+        ///         case the calibration data service has no bandpass solutions.
         casa::Long getCurrentBandpassSolutionID(void);
 
         /// Get a gain solution.
+        ///
         /// @param[in] id   id of the gain solution to obtain.
         /// @return the gain solution.
+        /// @throw AskapError if the solution specified by the id does not
+        ///         exist.
         GainSolution getGainSolution(const casa::Long id);
 
         /// Get a leakage solution.
+        ///
         /// @param[in] id   id of the leakage solution to obtain.
         /// @return the leakage solution.
+        /// @throw AskapError if the solution specified by the id does not
+        ///         exist.
         LeakageSolution getLeakageSolution(const casa::Long id);
 
         /// Get a bandpass solution.
+        ///
         /// @param[in] id   id of the bandpass solution to obtain.
         /// @return the bandpass solution.
+        /// @throw AskapError if the solution specified by the id does not
+        ///         exist.
         BandpassSolution getBandpassSolution(const casa::Long id);
 
     private:

@@ -43,9 +43,9 @@
 using namespace askap;
 using namespace askap::cp::caldataservice;
 
+// Convert the casa type GainSolution to the ice GainSolution
 askap::interfaces::calparams::TimeTaggedGainSolution IceMapper::toIce(const askap::cp::caldataservice::GainSolution& sol)
 {
-    // Convert the casa type GainSolution to the ice GainSolution
     askap::interfaces::calparams::TimeTaggedGainSolution ice_sol;
     ice_sol.timestamp = sol.timestamp();
 
@@ -63,9 +63,9 @@ askap::interfaces::calparams::TimeTaggedGainSolution IceMapper::toIce(const aska
     return ice_sol;
 }
 
+// Convert the casa type LeakageSolution to the ice LeakageSolution
 askap::interfaces::calparams::TimeTaggedLeakageSolution IceMapper::toIce(const askap::cp::caldataservice::LeakageSolution& sol)
 {
-    // Convert the casa type LeakageSolution to the ice LeakageSolution
     askap::interfaces::calparams::TimeTaggedLeakageSolution ice_sol;
     ice_sol.timestamp = sol.timestamp();
 
@@ -83,22 +83,22 @@ askap::interfaces::calparams::TimeTaggedLeakageSolution IceMapper::toIce(const a
     return ice_sol;
 }
 
+// Convert the casa type BandpassSolution to the ice BandpassSolution
 askap::interfaces::calparams::TimeTaggedBandpassSolution IceMapper::toIce(const askap::cp::caldataservice::BandpassSolution& sol)
 {
-    // Convert the casa type BandpassSolution to the ice BandpassSolution
     askap::interfaces::calparams::TimeTaggedBandpassSolution ice_sol;
     ice_sol.timestamp = sol.timestamp();
 
     typedef JonesIndex keyType;
     typedef std::vector<JonesJTerm> valueType;
     const std::map< keyType, valueType >& bandpass = sol.map();
-    std::map< keyType, valueType >::const_iterator it;
+    std::map<keyType, valueType>::const_iterator it;
     for (it = bandpass.begin(); it != bandpass.end(); ++it) {
         // Handle the vector
         const valueType& terms = it->second;
 
         askap::interfaces::calparams::JonesJTermSeq ice_terms(terms.size());
-        for (casa::uInt chan = 0; chan < terms.size(); ++chan) {
+        for (size_t chan = 0; chan < terms.size(); ++chan) {
             ice_terms.push_back(IceMapper::toIce(terms[chan]));
         }
 
@@ -111,14 +111,14 @@ askap::interfaces::calparams::TimeTaggedBandpassSolution IceMapper::toIce(const 
     return ice_sol;
 }
 
+// Convert the ice type GainSolution to the casa GainSolution
 askap::cp::caldataservice::GainSolution IceMapper::fromIce(const askap::interfaces::calparams::TimeTaggedGainSolution& ice_sol)
 {
-    // Convert the ice type GainSolution to the casa GainSolution
     askap::cp::caldataservice::GainSolution sol(ice_sol.timestamp);
 
     typedef askap::interfaces::calparams::JonesIndex keyType;
     typedef askap::interfaces::calparams::JonesJTerm valueType;
-    const std::map<keyType, valueType> ice_gains = ice_sol.solutionMap;
+    const std::map<keyType, valueType>& ice_gains = ice_sol.solutionMap;
     std::map<keyType, valueType>::const_iterator it;
     for (it = ice_gains.begin(); it != ice_gains.end(); ++it) {
         sol.map()[fromIce(it->first)] = fromIce(it->second);
@@ -130,14 +130,14 @@ askap::cp::caldataservice::GainSolution IceMapper::fromIce(const askap::interfac
     return sol;
 }
 
+// Convert the ice type LeakageSolution to the casa LeakageSolution
 askap::cp::caldataservice::LeakageSolution IceMapper::fromIce(const askap::interfaces::calparams::TimeTaggedLeakageSolution& ice_sol)
 {
-    // Convert the ice type LeakageSolution to the casa LeakageSolution
     askap::cp::caldataservice::LeakageSolution sol(ice_sol.timestamp);
 
     typedef askap::interfaces::calparams::JonesIndex keyType;
     typedef askap::interfaces::DoubleComplex valueType;
-    const std::map<keyType, valueType> ice_leakages = ice_sol.solutionMap;
+    const std::map<keyType, valueType>& ice_leakages = ice_sol.solutionMap;
     std::map<keyType, valueType>::const_iterator it;
     for (it = ice_leakages.begin(); it != ice_leakages.end(); ++it) {
         sol.map()[fromIce(it->first)] = fromIce(it->second);
@@ -149,21 +149,21 @@ askap::cp::caldataservice::LeakageSolution IceMapper::fromIce(const askap::inter
     return sol;
 }
 
+// Convert the ice type BandpassSolution to the casa BandpassSolution
 askap::cp::caldataservice::BandpassSolution IceMapper::fromIce(const askap::interfaces::calparams::TimeTaggedBandpassSolution& ice_sol)
 {
-    // Convert the ice type BandpassSolution to the casa BandpassSolution
     askap::cp::caldataservice::BandpassSolution sol(ice_sol.timestamp);
 
     typedef askap::interfaces::calparams::JonesIndex keyType;
     typedef askap::interfaces::calparams::JonesJTermSeq valueType;
-    const std::map<keyType, valueType> ice_bandpass = ice_sol.solutionMap;
+    const std::map<keyType, valueType>& ice_bandpass = ice_sol.solutionMap;
     std::map<keyType, valueType>::const_iterator it;
     for (it = ice_bandpass.begin(); it != ice_bandpass.end(); ++it) {
         // Handle the vector
         const valueType& ice_terms = it->second;
 
         std::vector<JonesJTerm> terms(ice_terms.size());
-        for (casa::uInt chan = 0; chan < terms.size(); ++chan) {
+        for (size_t chan = 0; chan < terms.size(); ++chan) {
             terms.push_back(IceMapper::fromIce(ice_terms[chan]));
         }
 

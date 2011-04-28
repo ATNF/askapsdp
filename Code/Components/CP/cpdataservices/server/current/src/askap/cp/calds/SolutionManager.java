@@ -32,35 +32,52 @@ import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
 
+/**
+ * Manages calibration solutions. It is intended to manage (but not necessarily
+ * implement itself) functionality such as evaluation of solution quality,
+ * merging of (new) incomplete solutions with (older) existing ones, overrides,
+ * etc.
+ * 
+ * TODO: At the moment this class doesn't do much. Need to add the functionality
+ * described above.
+ * 
+ * @author Ben Humphreys
+ */
 public class SolutionManager {
 	/**
 	 * Logger
 	 * */
 	private static Logger logger = Logger.getLogger(SolutionManager.class
 			.getName());
-	
+
 	/**
 	 * Class which provides access to the persistence layer
 	 */
 	private PersistenceInterface itsPersistance;
-	
+
 	/**
-	 * ID of the current best gain solution 
+	 * ID of the current best gain solution
 	 */
 	private long itsOptimumGainID;
-	
+
 	/**
-	 * ID of the current best leakage solution 
+	 * ID of the current best leakage solution
 	 */
 	private long itsOptimumLeakageID;
-	
+
 	/**
-	 * ID of the current best bandpass solution 
+	 * ID of the current best bandpass solution
 	 */
 	private long itsOptimumBandpassID;
-	
+
 	/**
 	 * Constructor
+	 * 
+	 * @param session
+	 *            allows a hibernate session to be passed in, which is then
+	 *            passed to the PersistenceInterface class. This exists to
+	 *            support unit testing. For non-unit test usage null should be
+	 *            passed.
 	 */
 	SolutionManager(org.hibernate.Session session) {
 		itsPersistance = new PersistenceInterface(session);
@@ -69,15 +86,14 @@ public class SolutionManager {
 		itsOptimumLeakageID = itsPersistance.getLatestLeakageSolution();
 		itsOptimumBandpassID = itsPersistance.getLatestBandpassSolution();
 	}
-	
-	
+
 	public long addGainSolution(TimeTaggedGainSolution solution) {
 		final long id = itsPersistance.addGainSolution(solution);
 		itsOptimumGainID = id;
 		logger.info("New optimum gain solution is: " + id);
 		return id;
 	}
-	
+
 	public long addLeakageSolution(TimeTaggedLeakageSolution solution) {
 		final long id = itsPersistance.addLeakageSolution(solution);
 		itsOptimumLeakageID = id;
@@ -91,7 +107,7 @@ public class SolutionManager {
 		logger.info("New optimum bandpass solution is: " + id);
 		return id;
 	}
-	
+
 	public long getCurrentGainSolutionID() {
 		return itsOptimumGainID;
 	}
@@ -99,19 +115,19 @@ public class SolutionManager {
 	public long getCurrentLeakageSolutionID() {
 		return itsOptimumLeakageID;
 	}
-	
+
 	public long getCurrentBandpassSolutionID() {
 		return itsOptimumBandpassID;
 	}
-	
+
 	public TimeTaggedGainSolution getGainSolution(long id) {
 		return itsPersistance.getGainSolution(id);
 	}
-	
+
 	public TimeTaggedLeakageSolution getLeakageSolution(long id) {
 		return itsPersistance.getLeakageSolution(id);
 	}
-	
+
 	public TimeTaggedBandpassSolution getBandpassSolution(long id) {
 		return itsPersistance.getBandpassSolution(id);
 	}
