@@ -31,8 +31,12 @@
 #include <string>
 
 // ASKAPsoft includes
+#include "boost/shared_ptr.hpp"
+#include "boost/thread/mutex.hpp"
 #include "casa/aipstype.h"
 #include "casa/BasicSL/Complex.h"
+#include "calibrationclient/CalibrationDataServiceClient.h"
+#include "calibrationclient/GenericSolution.h"
 
 // Local package includes
 #include "ingestpipeline/caltask/ISolutionAccessor.h"
@@ -70,6 +74,23 @@ class DataserviceAccessor : public ISolutionAccessor {
                                           casa::uInt chan,
                                           ISolutionAccessor::Pol pol,
                                           casa::Bool& valid) const;
+
+        void updateSolutions(void);
+
+    private:
+        askap::cp::caldataservice::CalibrationDataServiceClient itsService;
+
+        casa::Long itsGainID;
+        boost::shared_ptr<askap::cp::caldataservice::GainSolution> itsGainSolution;
+        mutable boost::mutex itsGainMutex;
+
+        casa::Long itsLeakageID;
+        boost::shared_ptr<askap::cp::caldataservice::LeakageSolution> itsLeakageSolution;
+        mutable boost::mutex itsLeakageMutex;
+
+        casa::Long itsBandpassID;
+        boost::shared_ptr<askap::cp::caldataservice::BandpassSolution> itsBandpassSolution;
+        mutable boost::mutex itsBandpassMutex;
 };
 
 }

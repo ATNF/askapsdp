@@ -62,9 +62,8 @@ class ISolutionAccessor {
         /// polarisation (X or Y), it returns the value of
         /// the parallel-hand gain (i.e. Gxx or Gyy)
         ///
-        /// @param[in] ant  antenna id. This is the physical antenna ID, thus for ASKAP is
-        ///                 in the range of 1-36.
-        /// @param[in] beam beam id.
+        /// @param[in] ant  antenna id. (0-based)
+        /// @param[in] beam beam id (0-based)
         /// @param[in] pol Either XX or YY
         /// @param[out] valid   used to indicate the validity of the returned data.
         ///                     Upon return the valid flag will be true if the
@@ -81,9 +80,8 @@ class ISolutionAccessor {
         /// Returns either d12 (Leakage from feed 1 into feed 2) or d21 (Leakage
         /// from feed 2 into feed 1) depending on the value of the "pol" parameter.
         ///
-        /// @param[in] ant  antenna id. This is the physical antenna ID, thus for ASKAP is
-        ///                 in the range of 1-36.
-        /// @param[in] beam beam id
+        /// @param[in] ant  antenna id. (0-based)
+        /// @param[in] beam beam id (0-based)
         /// @param[in] pol Either D12 or D21
         /// @param[out] valid   used to indicate the validity of the returned data.
         ///                     Upon return the valid flag will be true if the
@@ -99,10 +97,9 @@ class ISolutionAccessor {
         /// Returns the bandpass given the antenna number, beam number, channel
         /// number and polarisation.
         ///
-        /// @param[in] ant  antenna id. This is the physical antenna ID, thus for ASKAP is
-        ///                 in the range of 1-36.
-        /// @param[in] beam beam id
-        /// @param[in] channel channel number
+        /// @param[in] ant  antenna id. (0-based)
+        /// @param[in] beam beam id (0-based)
+        /// @param[in] channel channel number (0-based)
         /// @param[in] pol Either XX or YY
         /// @param[out] valid   used to indicate the validity of the returned data.
         ///                     Upon return the valid flag will be true if the
@@ -118,7 +115,6 @@ class ISolutionAccessor {
 
         /// Shared pointer definition
         typedef boost::shared_ptr<ISolutionAccessor> ShPtr;
-
 };
 
 }
