@@ -40,7 +40,9 @@
 
 // Local package includes
 #include "calibrationclient/CalibrationDataServiceClient.h"
+#include "calibrationclient/JonesIndex.h"
 #include "calibrationclient/JonesJTerm.h"
+#include "calibrationclient/JonesDTerm.h"
 #include "calibrationclient/GenericSolution.h"
 
 using namespace std;
