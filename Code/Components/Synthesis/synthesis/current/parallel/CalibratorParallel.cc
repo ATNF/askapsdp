@@ -297,6 +297,7 @@ void CalibratorParallel::solveNE()
       itsSolver->setAlgorithm("SVD");     
       itsSolver->solveNormalEquations(*itsModel,q);
       ASKAPLOG_INFO_STR(logger, "Solved normal equations in "<< timer.real() << " seconds ");
+      ASKAPLOG_INFO_STR(logger, "Solution quality: "<<q);
       if (itsRefGain != "") {
           ASKAPLOG_INFO_STR(logger, "Rotating phases to have that of "<<itsRefGain<<" equal to 0");
           rotatePhases();

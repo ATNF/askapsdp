@@ -70,7 +70,7 @@ inline scimath::ComplexDiffMatrix LeakageTerm::get(const accessors::IConstDataAc
    // main diagonal is always 1.
    scimath::ComplexDiffMatrix calFactor(4, 4, 1.);
    
-   // flag showin that the polarisation products are present
+   // flag showing that the polarisation products are present
    // in the canonic form (e.g. XX,XY,YX,YY for linears)
    bool canonicPolOrder = (nPol == 4);
    
