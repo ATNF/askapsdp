@@ -171,52 +171,6 @@ enum CalParamStatus {
     INVALID
 };
 
-/** All calibration information for a given antenna/beam combination */
-struct CalibrationParameters {
-    /** Parallel-hand gain */
-    JonesJTerm gain;
-
-    /** Cross-pol leakage and phase (D-term) */
-    JonesDTerm leakage;
-
-    /** Bandpass */
-    JonesJTermSeq bandpass;
-
-    // Design Note: If we need a separate delay term of a frequency-dependent D-term,
-    // they could be added here. Beamformer weights for this particular beam may be
-    // given here too (perhaps per coarse channel)
-
-    /**
-     * Time the gain solution was determined.
-     * Absolute time expressed as microseconds since MJD=0.
-     */
-    long gainTimestamp;
-
-    /**
-     * Time the leakage solution was determined.
-     * Absolute time expressed as microseconds since MJD=0.
-     */
-    long leakageTimestamp;
-
-    /**
-     * Time the bandpass solution was determined.
-     * Absolute time expressed as microseconds since MJD=0.
-     */
-    long bandpassTimestamp;
-
-    /** Status flag for the gain solution */
-    CalParamStatus gainStatus;
-
-    /** Status flag for the leakage solution */
-    CalParamStatus leakageStatus;
-
-    /** Status flag for the bandpass solution */
-    CalParamStatus bandpassStatus;
-};
-
-/** Map type for calibration parameters */
-dictionary<JonesIndex,CalibrationParameters> CalibrationParametersMap;
-
 };
 
 };
