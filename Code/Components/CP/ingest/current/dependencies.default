@@ -8,5 +8,6 @@ cpcommon=Code/Components/CP/common/current
 icewrapper=Code/Components/CP/icewrapper/current
 cppiceinterfaces=Code/Interfaces/cpp/current
 channels=Code/Components/CP/channels/current
+cpdataservices-client=Code/Components/CP/cpdataservices/client-cpp/current
 # Put openmpi last, see ticket 3264
 openmpi=3rdParty/openmpi/current

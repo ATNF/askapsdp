@@ -37,6 +37,7 @@
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
+#include "ingestpipeline/caltask/ISolutionAccessor.h"
 
 namespace askap {
 namespace cp {
@@ -45,61 +46,54 @@ namespace ingest {
 /// @brief Task to apply calibration.
 class CalTask : public askap::cp::ingest::ITask {
     public:
-	/// @brief constructor
-	/// @details Initialise calibration task by passing parameters
-	/// coded in the parset
-	/// @param[in] parset parameters
+        /// @brief constructor
+        /// @details Initialise calibration task by passing parameters
+        /// coded in the parset
+        /// @param[in] parset parameters
         explicit CalTask(const LOFAR::ParameterSet& parset);
 
-	/// @brief destructor
+        /// @brief destructor
         virtual ~CalTask();
 
-	/// @brief main method to apply calibration
-	/// @details It modifies the visibility chunk in situ by applying
-	/// current calibration
-	/// @param[in] chunk shared pointer to visibility chunk
+        /// @brief main method to apply calibration
+        /// @details It modifies the visibility chunk in situ by applying
+        /// current calibration
+        /// @param[in] chunk shared pointer to visibility chunk
         virtual void process(askap::cp::common::VisChunk::ShPtr chunk);
 
     protected:
         /// @brief obtain gain for a given antenna/beam/pol
-	/// @details This is a helper method to separate extraction of
-	/// the values from the parset file from the actual calculation.
-	/// Based on the given number of antenna, beam and polarisation
-	/// (X or Y coded as 0 and 1), it returns the value of the 
-	/// parallel-hand gain (i.e. Gxx or Gyy)
-	/// @param[in] ant 0-based antenna id
-	/// @param[in] beam 0-based beam id
-	/// @param[in] pol Either 0 for XX or 1 for YY
-	casa::Complex getGain(casa::uInt ant, casa::uInt beam, casa::uInt pol) const;
+        /// @details This is a helper method to separate extraction of
+        /// the values from the parset file from the actual calculation.
+        /// Based on the given number of antenna, beam and polarisation
+        /// (X or Y coded as 0 and 1), it returns the value of the
+        /// parallel-hand gain (i.e. Gxx or Gyy)
+        /// @param[in] ant 0-based antenna id
+        /// @param[in] beam 0-based beam id
+        /// @param[in] pol Either 0 for XX or 1 for YY
+        casa::Complex getGain(casa::uInt ant, casa::uInt beam, casa::uInt pol) const;
 
-        /// @brief helper method to load complex parameter
-	/// @details It reads the value from itsGainsParset and
-	/// forms a complex number.
-	/// @param[in] name parameter name
-	/// @return complex number
-	casa::Complex readComplex(const std::string &name) const;
-
-	/// @brief fill Mueller matrix
-	/// @details This method forms the measurement equation
-	/// defined by Mueller matrix for a given baseline and beams.
-	/// The method is implemented in a general way, so it supports
-	/// correlations corresponding to a different beam. However, in
-	/// practice beam1 and beam2 are likely to be the same most of 
-	/// the time.
-	/// @param[in] matr Mueler matrix to fill (must already be resized to 4x4)
-	/// @param[in] ant1 first antenna id (0-based)
-	/// @param[in] ant2 second antenna id (0-based)
-	/// @param[in] beam1 beam id at the first antenna (0-based)
-	/// @param[in] beam2 beam id at the second antenna (0-based)
-	void fillMuellerMatrix(casa::Matrix<casa::Complex> &matr, casa::uInt ant1, 
-	         casa::uInt ant2, casa::uInt beam1, casa::uInt beam2) const;
+        /// @brief fill Mueller matrix
+        /// @details This method forms the measurement equation
+        /// defined by Mueller matrix for a given baseline and beams.
+        /// The method is implemented in a general way, so it supports
+        /// correlations corresponding to a different beam. However, in
+        /// practice beam1 and beam2 are likely to be the same most of
+        /// the time.
+        /// @param[in] matr Mueler matrix to fill (must already be resized to 4x4)
+        /// @param[in] ant1 first antenna id (0-based)
+        /// @param[in] ant2 second antenna id (0-based)
+        /// @param[in] beam1 beam id at the first antenna (0-based)
+        /// @param[in] beam2 beam id at the second antenna (0-based)
+        void fillMuellerMatrix(casa::Matrix<casa::Complex> &matr, casa::uInt ant1,
+                               casa::uInt ant2, casa::uInt beam1, casa::uInt beam2) const;
 
     private:
-	/// @brief parset file with configuration parameters
+        /// @brief parset file with configuration parameters
         const LOFAR::ParameterSet itsParset;
 
-	/// @brief parset file with gains
-	LOFAR::ParameterSet itsGainsParset;
+        /// Calibration solution accessor
+        ISolutionAccessor::ShPtr itsSolutionAccessor;
 };
 
 }
