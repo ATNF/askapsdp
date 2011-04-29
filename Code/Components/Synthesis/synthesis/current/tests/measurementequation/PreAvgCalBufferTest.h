@@ -56,6 +56,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testInitByAccessor);
   CPPUNIT_TEST(testInitExplicit);
   CPPUNIT_TEST(testAccumulate);
+  CPPUNIT_TEST(testAccumulateXPol);
   CPPUNIT_TEST_SUITE_END();
       
   private:
@@ -167,7 +168,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
                    CPPUNIT_ASSERT_DOUBLES_EQUAL(double(pacBuf.sumModelAmps()(row,0,pol)),double(real(pacBuf.sumVisProducts()(row,0,pol))),1e-2*run);
                    CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pacBuf.sumVisProducts()(row,0,pol))),1e-5);
                    // 8 channels and 100 Jy source give sums of 80000 per accessor summed in
-                   CPPUNIT_ASSERT_DOUBLES_EQUAL(80000.*run, double(pacBuf.sumModelAmps()(row,0,pol)),1e-2*run);
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(pol%3 == 0 ? 80000.*run : 0., double(pacBuf.sumModelAmps()(row,0,pol)),1e-2*run);
                    CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,0,pol));                       
               }
          }
@@ -198,6 +199,46 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+     }
+     
+     void testAccumulateXPol() {
+         casa::Vector<casa::Stokes::StokesTypes> stokes(4);
+         stokes[0] = casa::Stokes::XX;
+         stokes[1] = casa::Stokes::XY;
+         stokes[2] = casa::Stokes::YX;
+         stokes[3] = casa::Stokes::YY;         
+
+         CPPUNIT_ASSERT(itsIter);       
+         accessors::DataAccessorStub &da = dynamic_cast<accessors::DataAccessorStub&>(*itsIter);          
+         da.itsStokes.assign(stokes.copy());
+         da.itsVisibility.resize(da.nRow(), da.nChannel() ,4);
+         da.itsVisibility.set(casa::Complex(-10.,15.));
+         da.itsNoise.resize(da.nRow(),da.nChannel(),da.nPol());
+         da.itsNoise.set(1.);
+         da.itsFlag.resize(da.nRow(),da.nChannel(),da.nPol());
+         da.itsFlag.set(casa::False);
+
+         CPPUNIT_ASSERT(itsME);
+         // simulate visibilities
+         itsME->predict(*itsIter);
+         PreAvgCalBuffer pacBuf;
+
+         // buffer should be initialised by the first encountered accessor
+         pacBuf.accumulate(*itsIter, itsME);
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());
+         CPPUNIT_ASSERT_EQUAL(itsIter->nRow(),pacBuf.nRow());
+         CPPUNIT_ASSERT_EQUAL(1u,pacBuf.nChannel());
+         CPPUNIT_ASSERT_EQUAL(itsIter->nPol(),pacBuf.nPol());
+         testResults(pacBuf,1);                  
+
+         // add up another accessor
+         pacBuf.accumulate(*itsIter, itsME);         
+         testResults(pacBuf,2);                  
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());              
      }
 };
 } // namespace synthesis
