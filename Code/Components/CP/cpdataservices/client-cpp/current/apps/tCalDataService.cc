@@ -93,8 +93,8 @@ void addGainSolution(CalibrationDataServiceClient& svc,
     // Create a map entry for each antenna/beam combination
     for (casa::Short antenna = 1; antenna <= nAntenna; ++antenna) {
         for (casa::Short beam = 1; beam <= nBeam; ++beam) {
-            JonesJTerm jterm(casa::DComplex(1.0, 1.0), true,
-                    casa::DComplex(1.0, 1.0), true);
+            JonesJTerm jterm(casa::Complex(1.0, 1.0), true,
+                    casa::Complex(1.0, 1.0), true);
             sol.map()[JonesIndex(antenna, beam)] = jterm;
         }
     }
@@ -111,7 +111,7 @@ void addLeakageSolution(CalibrationDataServiceClient& svc,
     for (casa::Short antenna = 1; antenna <= nAntenna; ++antenna) {
         for (casa::Short beam = 1; beam <= nBeam; ++beam) {
             sol.map()[JonesIndex(antenna, beam)] = JonesDTerm(
-                    casa::DComplex(1.0, 1.0), casa::DComplex(1.0, 1.0));
+                    casa::Complex(1.0, 1.0), casa::Complex(1.0, 1.0));
         }
     }
 
@@ -126,8 +126,8 @@ void addBandpassSolution(CalibrationDataServiceClient& svc,
     // Create a map entry for each antenna/beam combination
     for (casa::Short antenna = 1; antenna <= nAntenna; ++antenna) {
         for (casa::Short beam = 1; beam <= nBeam; ++beam) {
-            JonesJTerm jterm(casa::DComplex(1.0, 1.0), true,
-                    casa::DComplex(1.0, 1.0), true);
+            JonesJTerm jterm(casa::Complex(1.0, 1.0), true,
+                    casa::Complex(1.0, 1.0), true);
             std::vector<JonesJTerm> jterms(nChan, jterm);
             sol.map()[JonesIndex(antenna, beam)] = jterms;
         }

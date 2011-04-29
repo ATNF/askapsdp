@@ -39,7 +39,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.criterion.Projections;
-import askap.interfaces.DoubleComplex;
+import askap.interfaces.FloatComplex;
 import askap.interfaces.calparams.TimeTaggedBandpassSolution;
 import askap.interfaces.calparams.TimeTaggedGainSolution;
 import askap.interfaces.calparams.TimeTaggedLeakageSolution;
@@ -194,12 +194,12 @@ public class PersistenceInterface {
 			JonesIndex jind = new JonesIndex(element.getAntennaID(), element.getBeamID());
 			JonesJTerm jterm = new JonesJTerm();
 
-			jterm.g1 = new askap.interfaces.DoubleComplex(
+			jterm.g1 = new askap.interfaces.FloatComplex(
 					element.getG1Real(),
 					element.getG1Imag());
 			jterm.g1Valid = element.isG1Valid();
 
-			jterm.g2 = new askap.interfaces.DoubleComplex(
+			jterm.g2 = new askap.interfaces.FloatComplex(
 					element.getG2Real(),
 					element.getG2Imag());
 
@@ -236,8 +236,8 @@ public class PersistenceInterface {
 		for (LeakageSolutionElementBean element : (List<LeakageSolutionElementBean>) elements) {
 			JonesIndex jind = new JonesIndex(element.getAntennaID(), element.getBeamID());
 			askap.interfaces.calparams.JonesDTerm leakage = new JonesDTerm(
-					new DoubleComplex(element.getD12Real(), element.getD12Imag()),
-					new DoubleComplex(element.getD21Real(), element.getD21Imag()));
+					new FloatComplex(element.getD12Real(), element.getD12Imag()),
+					new FloatComplex(element.getD21Real(), element.getD21Imag()));
 
 			ice_sol.solutionMap.put(jind, leakage);
 		}
@@ -282,12 +282,12 @@ public class PersistenceInterface {
 					.createQuery(query).list();
 			for (BandpassSolutionElementBean innerElement : (List<BandpassSolutionElementBean>) innerElements) {
 				JonesJTerm jterm = new JonesJTerm();
-				jterm.g1 = new askap.interfaces.DoubleComplex(
+				jterm.g1 = new askap.interfaces.FloatComplex(
 						innerElement.getG1Real(),
 						innerElement.getG1Imag());
 				jterm.g1Valid = innerElement.isG1Valid();
 
-				jterm.g2 = new askap.interfaces.DoubleComplex(
+				jterm.g2 = new askap.interfaces.FloatComplex(
 						innerElement.getG2Real(),
 						innerElement.getG2Imag());
 				jterm.g2Valid = innerElement.isG2Valid();

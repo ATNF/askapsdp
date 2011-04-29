@@ -66,11 +66,11 @@ class IceMapperTest : public CppUnit::TestFixture {
             // Build the source object
             askap::cp::caldataservice::GainSolution sol(theirTimestamp);
 
-            casa::Double val = 1.0;
+            casa::Float val = 1.0;
             for (casa::Short antenna = 1; antenna <= theirNAntenna; ++antenna) {
                 for (casa::Short beam = 1; beam <= theirNBeam; ++beam) {
-                    JonesJTerm jterm(casa::DComplex(val, val), true,
-                            casa::DComplex(0.0, 0.0), false);
+                    JonesJTerm jterm(casa::Complex(val, val), true,
+                            casa::Complex(0.0, 0.0), false);
                     sol.map()[JonesIndex(antenna, beam)] = jterm;
                     val += 0.1;
                 }
@@ -92,7 +92,7 @@ class IceMapperTest : public CppUnit::TestFixture {
 
                     CPPUNIT_ASSERT_EQUAL(true, actual.g1Valid);
                     CPPUNIT_ASSERT_EQUAL(false, actual.g2Valid);
-                    askap::interfaces::DoubleComplex expected;
+                    askap::interfaces::FloatComplex expected;
                     expected.real = val;
                     expected.imag = val;
                     compare(expected, actual.g1);
@@ -134,17 +134,17 @@ class IceMapperTest : public CppUnit::TestFixture {
             askap::interfaces::calparams::TimeTaggedGainSolution ice_sol;
             ice_sol.timestamp = theirTimestamp;
 
-            double val = 1.0;
+            casa::Float val = 1.0;
             for (casa::Short antenna = 1; antenna <= theirNAntenna; ++antenna) {
                 for (casa::Short beam = 1; beam <= theirNBeam; ++beam) {
                     askap::interfaces::calparams::JonesJTerm jterm;
 
-                    askap::interfaces::DoubleComplex g1;
+                    askap::interfaces::FloatComplex g1;
                     g1.real = val;
                     g1.imag = val;
                     jterm.g1 = g1;
                     jterm.g1Valid = true;
-                    askap::interfaces::DoubleComplex g2;
+                    askap::interfaces::FloatComplex g2;
                     g2.real = 0.0;
                     g2.imag = 0.0;
                     jterm.g2 = g2;
@@ -171,7 +171,7 @@ class IceMapperTest : public CppUnit::TestFixture {
 
                     CPPUNIT_ASSERT_EQUAL(true, actual.g1IsValid());
                     CPPUNIT_ASSERT_EQUAL(false, actual.g2IsValid());
-                    compare(casa::DComplex(val, val), actual.g1());
+                    compare(casa::Complex(val, val), actual.g1());
                     val += 0.1;
                 }
             }
@@ -207,15 +207,15 @@ class IceMapperTest : public CppUnit::TestFixture {
 
     private:
 
-        void compare(const casa::DComplex& expected, const casa::DComplex& actual)
+        void compare(const casa::Complex& expected, const casa::Complex& actual)
         {
             const int tolerance = 0.000001;
             CPPUNIT_ASSERT_DOUBLES_EQUAL(expected.real(), actual.real(), tolerance);
             CPPUNIT_ASSERT_DOUBLES_EQUAL(expected.imag(), actual.imag(), tolerance);
         }
 
-        void compare(const askap::interfaces::DoubleComplex& expected,
-                const askap::interfaces::DoubleComplex& actual)
+        void compare(const askap::interfaces::FloatComplex& expected,
+                const askap::interfaces::FloatComplex& actual)
         {
             const int tolerance = 0.000001;
             CPPUNIT_ASSERT_DOUBLES_EQUAL(expected.real, actual.real, tolerance);

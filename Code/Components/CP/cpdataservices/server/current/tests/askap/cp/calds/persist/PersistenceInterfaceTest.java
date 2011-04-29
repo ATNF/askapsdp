@@ -41,7 +41,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import askap.interfaces.DoubleComplex;
+import askap.interfaces.FloatComplex;
 import askap.interfaces.calparams.JonesIndex;
 import askap.interfaces.calparams.JonesJTerm;
 import askap.interfaces.calparams.JonesDTerm;
@@ -278,9 +278,9 @@ public class PersistenceInterfaceTest {
 		
 		// Flesh out the data structure
 		JonesJTerm jterm = new JonesJTerm();
-		jterm.g1 = new askap.interfaces.DoubleComplex(1.0, 1.0);
+		jterm.g1 = new askap.interfaces.FloatComplex(1.0f, 1.0f);
 		jterm.g1Valid = true;
-		jterm.g2 = new askap.interfaces.DoubleComplex(2.0, 1.0);
+		jterm.g2 = new askap.interfaces.FloatComplex(2.0f, 1.0f);
 		jterm.g2Valid = false;
 		JonesIndex jind = new JonesIndex((short)1, (short)1);
 		solution.solutionMap = new HashMap<JonesIndex, JonesJTerm>();
@@ -296,8 +296,8 @@ public class PersistenceInterfaceTest {
 		// Flesh out the data structure
 		solution.solutionMap = new HashMap<JonesIndex, JonesDTerm>();
 		solution.solutionMap.put(new JonesIndex((short)1, (short)1), 
-				new JonesDTerm(new DoubleComplex(1.0, 1.0),
-						new DoubleComplex(1.0, 1.0)));
+				new JonesDTerm(new FloatComplex(1.0f, 1.0f),
+						new FloatComplex(1.0f, 1.0f)));
 		
 		return solution;
 	}
@@ -313,8 +313,8 @@ public class PersistenceInterfaceTest {
 		
 		// Add a JTerm to the list (for 1 channel)
 		JonesJTerm jterm = new JonesJTerm(
-				new askap.interfaces.DoubleComplex(1.0, 1.0), true,
-				new askap.interfaces.DoubleComplex(2.0, 1.0), false);
+				new askap.interfaces.FloatComplex(1.0f, 1.0f), true,
+				new askap.interfaces.FloatComplex(2.0f, 1.0f), false);
 		terms.add(jterm);
 		
 		solution.solutionMap.put(new JonesIndex((short)1, (short)1), terms);

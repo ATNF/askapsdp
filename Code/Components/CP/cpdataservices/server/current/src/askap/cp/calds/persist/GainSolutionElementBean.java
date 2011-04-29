@@ -30,12 +30,12 @@ public class GainSolutionElementBean {
 	private short itsAntennaID;
 	private short itsBeamID;
 	
-	private double itsG1Real;
-	private double itsG1Imag;
+	private float itsG1Real;
+	private float itsG1Imag;
 	private boolean itsG1Valid;
 	
-	private double itsG2Real;
-	private double itsG2Imag;
+	private float itsG2Real;
+	private float itsG2Imag;
 	private boolean itsG2Valid;
 	
 	/**
@@ -46,14 +46,18 @@ public class GainSolutionElementBean {
 		itsSolutionID = -1;
 		itsAntennaID = -1;
 		itsBeamID = -1;
+		itsG1Real = -1.0f;
+		itsG1Imag = -1.0f;
 		itsG1Valid = false;
+		itsG2Real = -1.0f;
+		itsG2Imag = -1.0f;
 		itsG2Valid = false;
 	}
 	
 	public GainSolutionElementBean(long solutionID,
 			short antennaID, short beamID,
-			double g1Real, double g1Imag, boolean g1Valid,
-			double g2Real, double g2Imag, boolean g2Valid) {
+			float g1Real, float g1Imag, boolean g1Valid,
+			float g2Real, float g2Imag, boolean g2Valid) {
 		itsSolutionID = solutionID;
 		itsAntennaID = antennaID;
 		itsBeamID = beamID;
@@ -110,28 +114,28 @@ public class GainSolutionElementBean {
 	/**
 	 * @return the itsG1Real
 	 */
-	public double getG1Real() {
+	public float getG1Real() {
 		return itsG1Real;
 	}
 
 	/**
 	 * @param itsG1Real the itsG1Real to set
 	 */
-	public void setG1Real(double g1Real) {
+	public void setG1Real(float g1Real) {
 		itsG1Real = g1Real;
 	}
 
 	/**
 	 * @return the itsG1Imag
 	 */
-	public double getG1Imag() {
+	public float getG1Imag() {
 		return itsG1Imag;
 	}
 
 	/**
 	 * @param itsG1Imag the itsG1Imag to set
 	 */
-	public void setG1Imag(double g1Imag) {
+	public void setG1Imag(float g1Imag) {
 		itsG1Imag = g1Imag;
 	}
 
@@ -152,28 +156,28 @@ public class GainSolutionElementBean {
 	/**
 	 * @return the itsG2Real
 	 */
-	public double getG2Real() {
+	public float getG2Real() {
 		return itsG2Real;
 	}
 
 	/**
 	 * @param itsG2Real the itsG2Real to set
 	 */
-	public void setG2Real(double g2Real) {
+	public void setG2Real(float g2Real) {
 		itsG2Real = g2Real;
 	}
 
 	/**
 	 * @return the itsG2Imag
 	 */
-	public double getG2Imag() {
+	public float getG2Imag() {
 		return itsG2Imag;
 	}
 
 	/**
 	 * @param itsG2Imag the itsG2Imag to set
 	 */
-	public void setG2Imag(double g2Imag) {
+	public void setG2Imag(float g2Imag) {
 		itsG2Imag = g2Imag;
 	}
 

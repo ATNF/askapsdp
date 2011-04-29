@@ -52,7 +52,7 @@ void addTo(std::map<JonesIndex, JonesJTerm>& map,
         const casa::Short pol,
         const casa::Short antenna,
         const casa::Short beam,
-        const casa::DComplex& gain)
+        const casa::Complex& gain)
 {
     JonesJTerm jterm; // Initialised with both gains (g11 & g22) invalid
     ASKAPDEBUGASSERT(!jterm.g1IsValid());
@@ -84,12 +84,12 @@ void addTo(std::map<JonesIndex, JonesJTerm>& map,
     ASKAPCHECK(jterm.g1IsValid() || jterm.g2IsValid(), "");
 }
 
-casa::DComplex makeComplex(const std::vector<double>& values)
+casa::Complex makeComplex(const std::vector<float>& values)
 {
     if (values.size() == 1) {
-        return casa::DComplex(values.at(0));
+        return casa::Complex(values.at(0));
     } else if (values.size() == 2) {
-        return casa::DComplex(values.at(0), values.at(1));
+        return casa::Complex(values.at(0), values.at(1));
     } else {
         ASKAPTHROW(AskapError, "Can't make a complex number from value");
     }
@@ -128,8 +128,8 @@ GainSolution buildGainSolution(const LOFAR::ParameterSet& parset)
             ASKAPTHROW(AskapError, "Malformed key");
         }
 
-        std::vector<double> values = parset.getDoubleVector(it->first);
-        casa::DComplex gain = makeComplex(values);
+        std::vector<float> values = parset.getFloatVector(it->first);
+        casa::Complex gain = makeComplex(values);
         addTo(sol.map(), pol, antenna, beam, gain);
     }
 

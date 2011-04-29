@@ -177,17 +177,17 @@ askap::cp::caldataservice::BandpassSolution IceMapper::fromIce(const askap::inte
 // Private
 ///////////////////////////////////////////////
 
-askap::interfaces::DoubleComplex IceMapper::toIce(const casa::DComplex& val)
+askap::interfaces::FloatComplex IceMapper::toIce(const casa::Complex& val)
 {
-    askap::interfaces::DoubleComplex ice_val;;
+    askap::interfaces::FloatComplex ice_val;;
     ice_val.real = val.real();
     ice_val.imag = val.imag();
     return ice_val;
 }
 
-casa::DComplex IceMapper::fromIce(const askap::interfaces::DoubleComplex& ice_val)
+casa::Complex IceMapper::fromIce(const askap::interfaces::FloatComplex& ice_val)
 {
-    return casa::DComplex(ice_val.real, ice_val.imag);
+    return casa::Complex(ice_val.real, ice_val.imag);
 }
 
 askap::interfaces::calparams::JonesIndex IceMapper::toIce(const askap::cp::caldataservice::JonesIndex& jindex)

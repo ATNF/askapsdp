@@ -14,12 +14,12 @@
 		<property name="beamID" type="short" column="beam_id" />
 
 		<property name="g1Valid" type="boolean" column="g1_valid" />
-		<property name="g1Real" type="double" column="g1_real" />
-		<property name="g1Imag" type="double" column="g1_imag" />
+		<property name="g1Real" type="float" column="g1_real" />
+		<property name="g1Imag" type="float" column="g1_imag" />
 
 		<property name="g2Valid" type="boolean" column="g2_valid" />
-		<property name="g2Real" type="double" column="g2_real" />
-		<property name="g2Imag" type="double" column="g2_imag" />
+		<property name="g2Real" type="float" column="g2_real" />
+		<property name="g2Imag" type="float" column="g2_imag" />
 
 	</class>
 

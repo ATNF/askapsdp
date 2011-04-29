@@ -55,14 +55,14 @@ class JonesJTerm {
         /// @param[in] g2Valid  flag indicating the validity of the data g2.
         ///                     Set this to true to indicate g1 contains a
         ///                     valid gain, otherwise false.
-        JonesJTerm(const casa::DComplex& g1,
+        JonesJTerm(const casa::Complex& g1,
                    const casa::Bool g1Valid,
-                   const casa::DComplex& g2,
+                   const casa::Complex& g2,
                    const casa::Bool g2Valid);
 
         /// Returns the gain for polarisation 1.
         /// @return the gain for polarisation 1.
-        casa::DComplex g1(void) const;
+        casa::Complex g1(void) const;
 
         /// Returns a flag indicating the validity of the data g1;
         /// @return true if g1 contains a valid gain, otherwise false.
@@ -70,16 +70,16 @@ class JonesJTerm {
 
         /// Returns the gain for polarisation 2.
         /// @return the gain for polarisation 2.
-        casa::DComplex g2(void) const;
+        casa::Complex g2(void) const;
 
         /// Returns a flag indicating the validity of the data g2;
         /// @return true if g2 contains a valid gain, otherwise false.
         casa::Bool g2IsValid(void) const;
 
     private:
-        casa::DComplex itsG1;
+        casa::Complex itsG1;
         casa::Bool itsG1Valid;
-        casa::DComplex itsG2;
+        casa::Complex itsG2;
         casa::Bool itsG2Valid;
 };
 

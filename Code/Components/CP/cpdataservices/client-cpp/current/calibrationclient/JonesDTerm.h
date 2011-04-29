@@ -47,16 +47,16 @@ class JonesDTerm {
         /// @brief Constructor.
         /// @param[in] g12 
         /// @param[in] g21 
-        JonesDTerm(const casa::DComplex& d12,
-                   const casa::DComplex& d21);
+        JonesDTerm(const casa::Complex& d12,
+                   const casa::Complex& d21);
 
-        casa::DComplex d12(void) const;
+        casa::Complex d12(void) const;
 
-        casa::DComplex d21(void) const;
+        casa::Complex d21(void) const;
 
     private:
-        casa::DComplex itsD12;
-        casa::DComplex itsD21;
+        casa::Complex itsD12;
+        casa::Complex itsD21;
 };
 
 };

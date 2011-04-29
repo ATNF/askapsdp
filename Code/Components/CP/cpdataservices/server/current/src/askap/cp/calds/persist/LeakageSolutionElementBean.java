@@ -30,10 +30,10 @@ public class LeakageSolutionElementBean {
 	private short itsAntennaID;
 	private short itsBeamID;
 	
-	private double itsD12Real;
-	private double itsD12Imag;
-	private double itsD21Real;
-	private double itsD21Imag;
+	private float itsD12Real;
+	private float itsD12Imag;
+	private float itsD21Real;
+	private float itsD21Imag;
 
 	/**
 	 * Constructor
@@ -43,16 +43,16 @@ public class LeakageSolutionElementBean {
 		itsSolutionID = -1;
 		itsAntennaID = -1;
 		itsBeamID = -1;
-		itsD12Real = -1.0;
-		itsD12Imag = -1.0;
-		itsD21Real = -1.0;
-		itsD21Imag = -1.0;
+		itsD12Real = -1.0f;
+		itsD12Imag = -1.0f;
+		itsD21Real = -1.0f;
+		itsD21Imag = -1.0f;
 	}
 	
 	public LeakageSolutionElementBean(long solutionID,
 			short antennaID, short beamID,
-			double d12Real, double d12Imag,
-			double d21Real, double d21Imag) {
+			float d12Real, float d12Imag,
+			float d21Real, float d21Imag) {
 		itsSolutionID = solutionID;
 		itsAntennaID = antennaID;
 		itsBeamID = beamID;
@@ -111,28 +111,28 @@ public class LeakageSolutionElementBean {
 	/**
 	 * @return the d12Real
 	 */
-	public double getD12Real() {
+	public float getD12Real() {
 		return itsD12Real;
 	}
 
 	/**
 	 * @param d12Real the d12Real to set
 	 */
-	public void setD12Real(double d12Real) {
+	public void setD12Real(float d12Real) {
 		itsD12Real = d12Real;
 	}
 
 	/**
 	 * @return the d12Imag
 	 */
-	public double getD12Imag() {
+	public float getD12Imag() {
 		return itsD12Imag;
 	}
 
 	/**
 	 * @param d12Imag the d12Imag to set
 	 */
-	public void setD12Imag(double d12Imag) {
+	public void setD12Imag(float d12Imag) {
 		itsD12Imag = d12Imag;
 	}
 
@@ -143,28 +143,28 @@ public class LeakageSolutionElementBean {
 	/**
 	 * @return the d21Real
 	 */
-	public double getD21Real() {
+	public float getD21Real() {
 		return itsD21Real;
 	}
 
 	/**
 	 * @param d21Real the d21Real to set
 	 */
-	public void setD21Real(double d21Real) {
+	public void setD21Real(float d21Real) {
 		itsD21Real = d21Real;
 	}
 
 	/**
 	 * @return the d21Imag
 	 */
-	public double getD21Imag() {
+	public float getD21Imag() {
 		return itsD21Imag;
 	}
 
 	/**
 	 * @param d21Imag the d21Imag to set
 	 */
-	public void setD21Imag(double d21Imag) {
+	public void setD21Imag(float d21Imag) {
 		itsD21Imag = d21Imag;
 	}
 }

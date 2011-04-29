@@ -52,13 +52,13 @@ struct JonesIndex {
  */
 struct JonesJTerm {
     /** Gain for polarisation 1 */
-    DoubleComplex g1;
+    FloatComplex g1;
 
     /** Flag for polarisation 1 gain, indicating validity. */
     bool g1Valid;
 
     /** Gain for polarisation 2 */
-    DoubleComplex g2;
+    FloatComplex g2;
 
     /** Flag for polarisation 2 gain, indicating validity. */
     bool g2Valid;
@@ -69,10 +69,10 @@ struct JonesJTerm {
  */
 struct JonesDTerm {
     /** Leakage from feed 1 into feed 2 */
-    DoubleComplex d12;
+    FloatComplex d12;
 
     /** Leakage from feed 2 into feed 1 */
-    DoubleComplex d21;
+    FloatComplex d21;
 };
  
 /** Sequence of J-terms, i.e. a bandpass */

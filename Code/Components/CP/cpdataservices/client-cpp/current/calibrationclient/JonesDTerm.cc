@@ -43,18 +43,18 @@ JonesDTerm::JonesDTerm()
 {
 }
 
-JonesDTerm::JonesDTerm(const casa::DComplex& d12,
-                       const casa::DComplex& d21)
+JonesDTerm::JonesDTerm(const casa::Complex& d12,
+                       const casa::Complex& d21)
         : itsD12(d12), itsD21(d21)
 {
 }
 
-casa::DComplex JonesDTerm::d12(void) const
+casa::Complex JonesDTerm::d12(void) const
 {
     return itsD12;
 }
 
-casa::DComplex JonesDTerm::d21(void) const
+casa::Complex JonesDTerm::d21(void) const
 {
     return itsD21;
 }
