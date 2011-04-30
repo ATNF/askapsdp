@@ -177,9 +177,9 @@ public class PersistenceInterfaceTest {
 		JonesIndex jind = new JonesIndex((short)1, (short)1);
 		JonesJTerm jterm = sol.solutionMap.get(jind);
 		assertNotNull(jterm);
-		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), jterm.g1);
+		assertEquals(new askap.interfaces.FloatComplex(1.0f, 1.0f), jterm.g1);
 		assertTrue(jterm.g1Valid);
-		assertEquals(new askap.interfaces.DoubleComplex(2.0, 1.0), jterm.g2);
+		assertEquals(new askap.interfaces.FloatComplex(2.0f, 1.0f), jterm.g2);
 		assertFalse(jterm.g2Valid);
 	}
 	
@@ -200,8 +200,8 @@ public class PersistenceInterfaceTest {
 		JonesIndex jind = new JonesIndex((short)1, (short)1);
 		JonesDTerm leakage = sol.solutionMap.get(jind);
 		assertNotNull(leakage);
-		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), leakage.d12);
-		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), leakage.d21);
+		assertEquals(new askap.interfaces.FloatComplex(1.0f, 1.0f), leakage.d12);
+		assertEquals(new askap.interfaces.FloatComplex(1.0f, 1.0f), leakage.d21);
 	}
 	
 	@Test
@@ -227,9 +227,9 @@ public class PersistenceInterfaceTest {
 		JonesJTerm jterm = terms.get(0);
 		assertNotNull(jterm);
 		
-		assertEquals(new askap.interfaces.DoubleComplex(1.0, 1.0), jterm.g1);
+		assertEquals(new askap.interfaces.FloatComplex(1.0f, 1.0f), jterm.g1);
 		assertTrue(jterm.g1Valid);
-		assertEquals(new askap.interfaces.DoubleComplex(2.0, 1.0), jterm.g2);
+		assertEquals(new askap.interfaces.FloatComplex(2.0f, 1.0f), jterm.g2);
 		assertFalse(jterm.g2Valid);
 	}
 	
