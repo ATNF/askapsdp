@@ -34,6 +34,7 @@
 
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/CalibrationME.h>
+#include <measurementequation/PreAvgCalMEBase.h>
 #include <measurementequation/LeakageTerm.h>
 #include <fitting/Params.h>
 
@@ -56,6 +57,7 @@ namespace askap
     {
       CPPUNIT_TEST_SUITE(PolLeakageTest);
       CPPUNIT_TEST(testSolve);
+      CPPUNIT_TEST(testSolvePreAvg);
       CPPUNIT_TEST_SUITE_END();
      
      public:
@@ -169,6 +171,50 @@ namespace askap
                                             itsParams1->complexValue(*it)), 0., 1e-6);
           }
       } 
+      
+      void testSolvePreAvg() {
+          // Predict with the "perfect" parameters"
+          CPPUNIT_ASSERT(itsEq1);
+          itsEq1->predict();
+          std::vector<std::string> freeNames = itsParams2->freeNames();
+          for (std::vector<std::string>::const_iterator it = freeNames.begin();
+               it!=freeNames.end();++it) {
+               if (it->find("leakage") == std::string::npos) {
+                   itsParams2->fix(*it);
+               }
+          }
+    
+          typedef CalibrationME<LeakageTerm,PreAvgCalMEBase> PreAvgMEType;
+          boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType());
+          CPPUNIT_ASSERT(preAvgEq);
+          preAvgEq->accumulate(itsIter,itsCE2);
+
+          for (size_t iter=0; iter<5; ++iter) {
+               // Calculate gradients using "imperfect" parameters"
+               GenericNormalEquations ne; 
+            
+               preAvgEq->setParameters(*itsParams2);            
+               preAvgEq->calcEquations(ne);
+               
+               Quality q;
+               LinearSolver solver1;
+               solver1.addNormalEquations(ne);
+               solver1.setAlgorithm("SVD");
+               solver1.solveNormalEquations(*itsParams2,q);  
+          }
+
+          freeNames = itsParams2->freeNames();
+          for (std::vector<std::string>::const_iterator it = freeNames.begin();
+               it!=freeNames.end();++it) {
+               CPPUNIT_ASSERT(itsParams2->has(*it));
+               CPPUNIT_ASSERT(itsParams1->has(*it));               
+               /*
+               // to be uncommented when the problem is fixed
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(itsParams2->complexValue(*it) -
+                                            itsParams1->complexValue(*it)), 1e-6);
+               */
+          }                   
+      }
       
      private:
       typedef CalibrationME<LeakageTerm> METype;
