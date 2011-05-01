@@ -265,6 +265,52 @@ int PreAvgCalBuffer::findMatch(casa::uInt ant1, casa::uInt ant2, casa::uInt beam
   return -1;
 }
 
+/// @brief polarisation index for a given pair of polarisations
+/// @details We need to keep track of cross-polarisation products. These cross-products are
+/// kept alongside with the parallel-hand products in the same cube. This method translates
+/// a pair of polarisation products (each given by a number ranging from 0 to nPol) into a
+/// single index, which can be used to extract the appropriate statistics out of the cubes
+/// returned by sumVisProducts and sumVisAmps
+/// @param[in] pol1 polarisation of the first visibility
+/// @param[in] pol2 polarisation of the second visibility
+/// @return an index into plane of sumVisProducts and sumVisAmps
+casa::uInt PreAvgCalBuffer::polToIndex(casa::uInt pol1, casa::uInt pol2) const
+{
+  const casa::uInt npol = nPol();
+  ASKAPDEBUGASSERT((pol1<npol) && (pol2<npol));
+  if (pol1 == pol2) {
+      return pol1;
+  }
+  const casa::uInt minPol = casa::min(pol1,pol2);
+  const casa::uInt maxPol = casa::max(pol1,pol2);
+  // order: parallel hand, (1,0), (2,0), (2,1), (3,0),...
+  const casa::uInt index = npol + minPol + (maxPol - 1) * maxPol / 2;
+  ASKAPDEBUGASSERT(index < npol * (npol+1) / 2);
+  return index;
+}
+
+/// @brief polarisations corresponding to a given index
+/// @details We need to keep track of cross-polarisation products. These cross-products are
+/// kept alongside with the parallel-hand products in the same cube. This method is 
+/// a reverse to polToIndex and translates an index back to two polarisation products
+std::pair<casa::uInt,casa::uInt> PreAvgCalBuffer::indexToPol(casa::uInt index) const
+{
+  const casa::uInt npol = nPol();
+  if (index < npol) {
+      // parallel-hand products come first
+      return std::pair<casa::uInt, casa::uInt>(index,index);
+  }
+  index -= npol;
+  for (casa::uInt polMax = 1, sum = 0; polMax<npol; ++polMax) {
+       if (index < sum + polMax) {
+           return std::pair<casa::uInt, casa::uInt>(polMax, index - sum);
+       }
+       sum += polMax;
+  }
+  ASKAPTHROW(AskapError, "Index "<<index<<" exceeds maximum possible for nPol="<<npol);
+}
+
+
 /// @brief process one accessor
 /// @details This method processes the given accessor and updates the internal 
 /// buffers. The measurement equation is used to calculate model visibilities 

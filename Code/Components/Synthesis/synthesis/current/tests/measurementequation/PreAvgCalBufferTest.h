@@ -55,6 +55,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE(PreAvgCalBufferTest);
   CPPUNIT_TEST(testInitByAccessor);
   CPPUNIT_TEST(testInitExplicit);
+  CPPUNIT_TEST(testPolIndex);
   CPPUNIT_TEST(testAccumulate);
   CPPUNIT_TEST(testAccumulateXPol);
   CPPUNIT_TEST_SUITE_END();
@@ -159,6 +160,26 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
               }
          }
          
+     }
+     
+     void testPolIndex() {
+         // 20 antennas, 1 beam + 4 polarisations by default
+         PreAvgCalBuffer pacBuf(20,1);
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+         // 20 antennas and 1 beam give 190 rows; 4 polarisation by default
+         CPPUNIT_ASSERT_EQUAL(190u,pacBuf.nRow());
+         CPPUNIT_ASSERT_EQUAL(1u,pacBuf.nChannel());
+         CPPUNIT_ASSERT_EQUAL(4u,pacBuf.nPol());
+         for (casa::uInt pol1 = 0; pol1 < pacBuf.nPol(); ++pol1) {
+              for (casa::uInt pol2 = 0; pol2 <= pol1; ++pol2) {
+                   const casa::uInt index = pacBuf.polToIndex(pol1,pol2);
+                   const std::pair<casa::uInt, casa::uInt> pols = pacBuf.indexToPol(index);
+                   CPPUNIT_ASSERT_EQUAL(pol1, pols.first);
+                   CPPUNIT_ASSERT_EQUAL(pol2, pols.second);                   
+              }
+         }
      }
      
      void testResults(const PreAvgCalBuffer &pacBuf, const int run = 1) {

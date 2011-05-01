@@ -177,6 +177,23 @@ public:
    inline casa::uInt ignoredDueToFlags() const { return itsFlagIgnored;}
    
 
+   /// @brief polarisation index for a given pair of polarisations
+   /// @details We need to keep track of cross-polarisation products. These cross-products are
+   /// kept alongside with the parallel-hand products in the same cube. This method translates
+   /// a pair of polarisation products (each given by a number ranging from 0 to nPol) into a
+   /// single index, which can be used to extract the appropriate statistics out of the cubes
+   /// returned by sumVisProducts and sumVisAmps
+   /// @param[in] pol1 polarisation of the first visibility
+   /// @param[in] pol2 polarisation of the second visibility
+   /// @return an index into plane of sumVisProducts and sumVisAmps
+   casa::uInt polToIndex(casa::uInt pol1, casa::uInt pol2) const;
+
+   /// @brief polarisations corresponding to a given index
+   /// @details We need to keep track of cross-polarisation products. These cross-products are
+   /// kept alongside with the parallel-hand products in the same cube. This method is 
+   /// a reverse to polToIndex and translates an index back to two polarisation products
+   std::pair<casa::uInt,casa::uInt> indexToPol(casa::uInt index) const; 
+ 
 protected:
    /// @brief helper method to find a match row in the buffer
    /// @details It goes over antenna and beam indices and finds a buffer row which 
@@ -187,7 +204,7 @@ protected:
    /// @return row number in the buffer corresponding to the given (ant1,ant2,beam) or -1 if 
    /// there is no match
    int findMatch(casa::uInt ant1, casa::uInt ant2, casa::uInt beam); 
-   
+      
 private:
    /// @brief indices of the first antenna for all rows
    casa::Vector<casa::uInt> itsAntenna1;   
