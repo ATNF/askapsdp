@@ -33,6 +33,7 @@
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
 #include "boost/thread/mutex.hpp"
+#include "boost/thread.hpp"
 #include "casa/aipstype.h"
 #include "casa/BasicSL/Complex.h"
 #include "calibrationclient/CalibrationDataServiceClient.h"
@@ -48,10 +49,16 @@ namespace ingest {
 /// @brief An interface for accessing calibration solutions.
 class DataserviceAccessor : public ISolutionAccessor {
     public:
-        /// Destructor.
+        /// Constructor.
+        /// @param[in] locatorHost  host of the ICE locator service.
+        /// @param[in] locatorPort  port of the ICE locator service.
+        /// @param[in] serviceName  identity of the calibration data service
+        ///                         in the ICE registry.
+        /// @param[in] updateInterval   solution update interval in seconds.
         DataserviceAccessor(const std::string& locatorHost,
                             const std::string& locatorPort,
-                            const std::string& serviceName);
+                            const std::string& serviceName,
+                            const casa::Int updateInterval);
 
         /// Destructor.
         virtual ~DataserviceAccessor();
@@ -78,7 +85,21 @@ class DataserviceAccessor : public ISolutionAccessor {
         void updateSolutions(void);
 
     private:
+
+        // This is the entry point for the update thread
+        void updateThreadRun(void);
+
+        // Connection to the calibration data service
         askap::cp::caldataservice::CalibrationDataServiceClient itsService;
+
+        // Solution update interval in seconds
+        casa::Int itsUpdateInterval;
+
+        // Solution update thread
+        boost::shared_ptr<boost::thread> itsUpdateThread;
+
+        // Used to request the service thread to stop
+        bool itsStopRequested;
 
         casa::Long itsGainID;
         boost::shared_ptr<askap::cp::caldataservice::GainSolution> itsGainSolution;
@@ -91,6 +112,7 @@ class DataserviceAccessor : public ISolutionAccessor {
         casa::Long itsBandpassID;
         boost::shared_ptr<askap::cp::caldataservice::BandpassSolution> itsBandpassSolution;
         mutable boost::mutex itsBandpassMutex;
+
 };
 
 }

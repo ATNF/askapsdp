@@ -27,10 +27,18 @@
 // Include own header file first
 #include "ingestpipeline/caltask/DataserviceAccessor.h"
 
+// Include package level header file
+#include "askap_cpingest.h"
+
 // System includes
 #include <string>
+#include <unistd.h>
+#include <map>
+#include <vector>
 
 // ASKAPsoft includes
+#include "boost/thread.hpp"
+#include "boost/thread/mutex.hpp"
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "casa/aipstype.h"
@@ -47,42 +55,118 @@ ASKAP_LOGGER(logger, ".DataserviceAccessor");
 
 DataserviceAccessor::DataserviceAccessor(const std::string& locatorHost,
         const std::string& locatorPort,
-        const std::string& serviceName)
-    : itsService(locatorHost, locatorPort, serviceName)
+        const std::string& serviceName,
+        const casa::Int updateInterval)
+    : itsService(locatorHost, locatorPort, serviceName),
+    itsUpdateInterval(updateInterval),
+    itsStopRequested(false),
+    itsGainID(-1), itsLeakageID(-1), itsBandpassID(-1)
 {
     updateSolutions();
+    const std::string msg = "solution available from calibration data service";
+    if (itsGainSolution.get() == 0) {
+        ASKAPLOG_DEBUG_STR(logger, "No gain " << msg);
+    }
+    if (itsLeakageSolution.get() == 0) {
+        ASKAPLOG_DEBUG_STR(logger, "No leakage " << msg);
+    }
+    if (itsBandpassSolution.get() == 0) {
+        ASKAPLOG_DEBUG_STR(logger, "No bandpass " << msg);
+    }
+
+    // Start the thread which updates solutions periodically
+    itsUpdateThread = boost::shared_ptr<boost::thread>(
+            new boost::thread(boost::bind(&DataserviceAccessor::updateThreadRun, this)));
 }
 
 DataserviceAccessor::~DataserviceAccessor()
 {
+    // Signal and wait for the update thread to stop
+    itsStopRequested = true;
+    if (itsUpdateThread.get()) {
+        itsUpdateThread->join();
+    }
+    itsUpdateThread.reset();
 }
 
 casa::Complex DataserviceAccessor::getGain(casa::uInt ant, casa::uInt beam,
         ISolutionAccessor::Pol pol, casa::Bool& valid) const
 {
-    ASKAPTHROW(AskapError, "DataserviceAccessor::getGain() not implemented");
-    ASKAPCHECK(itsGainSolution.get() == 0, "No gain solution available");
+    ASKAPCHECK(itsGainSolution.get(), "No gain solution available");
     boost::mutex::scoped_lock lock(itsGainMutex);
-    return casa::Complex();
+
+    // Locate the gain
+    std::map<JonesIndex, JonesJTerm>::const_iterator pos = itsGainSolution->map().find(JonesIndex(ant, beam));
+    if (pos == itsGainSolution->map().end()) {
+        ASKAPLOG_DEBUG_STR(logger, "Gain not found for ant: " << ant << ", beam: " << beam);
+        valid = false;
+        return casa::Complex();
+    }
+    const JonesJTerm jterm = pos->second;
+    if (pol == XX && jterm.g1IsValid()) {
+        valid = true;
+        return jterm.g1();
+    } else if (pol == YY && jterm.g2IsValid()) {
+        valid = true;
+        return jterm.g2();
+    } else {
+        valid = false;
+        return casa::Complex();
+    }
 }
 
 casa::Complex DataserviceAccessor::getLeakage(casa::uInt ant, casa::uInt beam,
         ISolutionAccessor::LeakageTerm term, casa::Bool& valid) const
 {
-    ASKAPTHROW(AskapError, "DataserviceAccessor::getLeakage() not implemented");
-    ASKAPCHECK(itsLeakageSolution.get() == 0, "No leakage solution available");
+    ASKAPCHECK(itsLeakageSolution.get(), "No leakage solution available");
     boost::mutex::scoped_lock lock(itsLeakageMutex);
-    return casa::Complex();
+
+    // Locate the leakage
+    std::map<JonesIndex, JonesDTerm>::const_iterator pos = itsLeakageSolution->map().find(JonesIndex(ant, beam));
+    if (pos == itsLeakageSolution->map().end()) {
+        valid = false;
+        return casa::Complex();
+    }
+    const JonesDTerm dterm = pos->second;
+    if (term == D12) {
+        valid = true;
+        return dterm.d12();
+    } else if (term == D21) {
+        valid = true;
+        return dterm.d21();
+    } else {
+        ASKAPTHROW(AskapError, "Term type unknown/unhandled");
+    }
 }
 
 casa::Complex DataserviceAccessor::getBandpass(casa::uInt ant, casa::uInt beam,
         casa::uInt chan, ISolutionAccessor::Pol pol,
         casa::Bool& valid) const
 {
-    ASKAPTHROW(AskapError, "DataserviceAccessor::getBandpass() not implemented");
-    ASKAPCHECK(itsBandpassSolution.get() == 0, "No bandpass solution available");
+    ASKAPCHECK(itsBandpassSolution.get(), "No bandpass solution available");
     boost::mutex::scoped_lock lock(itsBandpassMutex);
     return casa::Complex();
+
+    // Locate the bandpass
+    std::map<JonesIndex, std::vector<JonesJTerm> >::const_iterator pos = itsBandpassSolution->map().find(JonesIndex(ant, beam));
+    if (pos == itsBandpassSolution->map().end()) {
+        valid = false;
+        return casa::Complex();
+    }
+    const std::vector<JonesJTerm> jterms = pos->second;
+    ASKAPCHECK(jterms.size() - 1 == chan, "channel index out of bounds");
+    const JonesJTerm& jterm = jterms[chan];
+
+    if (pol == XX && jterm.g1IsValid()) {
+        valid = true;
+        return jterm.g1();
+    } else if (pol == YY && jterm.g2IsValid()) {
+        valid = true;
+        return jterm.g2();
+    } else {
+        valid = false;
+        return casa::Complex();
+    }
 }
 
 void DataserviceAccessor::updateSolutions(void)
@@ -91,24 +175,41 @@ void DataserviceAccessor::updateSolutions(void)
     newID = itsService.getCurrentGainSolutionID();
     if (newID > itsGainID) {
         boost::shared_ptr<askap::cp::caldataservice::GainSolution> temp(new GainSolution(itsService.getGainSolution(newID)));
-        ASKAPLOG_INFO_STR(logger, "Updating gain solution with ID:" << newID);
+        ASKAPLOG_INFO_STR(logger, "Updating gain solution with ID: " << newID);
         boost::mutex::scoped_lock lock(itsGainMutex);
         itsGainSolution = temp;
+        itsGainID = newID;
     }
 
     newID = itsService.getCurrentLeakageSolutionID();
     if (newID > itsLeakageID) {
         boost::shared_ptr<askap::cp::caldataservice::LeakageSolution> temp(new LeakageSolution(itsService.getLeakageSolution(newID)));
-        ASKAPLOG_INFO_STR(logger, "Updating leakage solution with ID:" << newID);
+        ASKAPLOG_INFO_STR(logger, "Updating leakage solution with ID: " << newID);
         boost::mutex::scoped_lock lock(itsLeakageMutex);
         itsLeakageSolution = temp;
+        itsLeakageID = newID;
     }
 
     newID = itsService.getCurrentBandpassSolutionID();
     if (newID > itsBandpassID) {
         boost::shared_ptr<askap::cp::caldataservice::BandpassSolution> temp(new BandpassSolution(itsService.getBandpassSolution(newID)));
-        ASKAPLOG_INFO_STR(logger, "Updating bandpass solution with ID:" << newID);
+        ASKAPLOG_INFO_STR(logger, "Updating bandpass solution with ID: " << newID);
         boost::mutex::scoped_lock lock(itsBandpassMutex);
         itsBandpassSolution = temp;
+        itsBandpassID = newID;
+    }
+}
+
+void DataserviceAccessor::updateThreadRun()
+{
+    while (!itsStopRequested) {
+        updateSolutions();
+        for (int i = 0; i < itsUpdateInterval; ++i) {
+            if (itsStopRequested) {
+                break;
+            } else {
+                sleep(1);
+            }
+        }
     }
 }

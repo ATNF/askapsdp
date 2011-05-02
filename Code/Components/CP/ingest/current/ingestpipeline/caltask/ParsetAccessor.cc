@@ -27,6 +27,9 @@
 // Include own header file first
 #include "ingestpipeline/caltask/ParsetAccessor.h"
 
+// Include package level header file
+#include "askap_cpingest.h"
+
 // System includes
 #include <string>
 

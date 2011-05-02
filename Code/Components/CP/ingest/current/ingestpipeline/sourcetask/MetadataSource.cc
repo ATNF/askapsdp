@@ -28,7 +28,7 @@
 #include "MetadataSource.h"
 
 // Include package level header file
-#include <askap_cpingest.h>
+#include "askap_cpingest.h"
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"

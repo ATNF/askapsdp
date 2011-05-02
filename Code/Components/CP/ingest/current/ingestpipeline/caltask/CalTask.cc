@@ -81,9 +81,10 @@ CalTask::CalTask(const LOFAR::ParameterSet& parset) :
             const std::string port = subset.getString("locator_port");
             const std::string serviceName = subset.getString("service_name",
                     "CalibrationDataService");
+            const casa::Int interval = subset.getInt32("update_interval", 5);
             ASKAPLOG_DEBUG_STR(logger, "Calibration solution source is dataservice: "
                     << host << ":" << port << ":" << serviceName);
-            itsSolutionAccessor.reset(new DataserviceAccessor(host, port, serviceName));
+            itsSolutionAccessor.reset(new DataserviceAccessor(host, port, serviceName, interval));
         } else {
             ASKAPTHROW(AskapError, "Calibration data source type unknown");
         }

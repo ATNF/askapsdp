@@ -37,6 +37,14 @@ cp.ingest.task.ChannelAvgTask.params.averaging              = 54
 # Cal task
 #
 cp.ingest.task.CalTask.type    = CalTask
+
+# The below 4 lines configure the use of the calibration data service
+cp.ingest.task.CalTask.params.source.type           = dataservice
+cp.ingest.task.CalTask.params.source.locator_host   = localhost
+cp.ingest.task.CalTask.params.source.locator_port   = 4061
+cp.ingest.task.CalTask.params.source.service_name   = CalibrationDataService
+
+# If the source is "gainsfile" or "dataservice" the below gains are ignored
 cp.ingest.task.CalTask.params.gain.g11.0.0 = [1.0]
 cp.ingest.task.CalTask.params.gain.g11.0.1 = [1.0]
 cp.ingest.task.CalTask.params.gain.g11.0.2 = [1.0]

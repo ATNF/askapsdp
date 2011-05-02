@@ -28,7 +28,7 @@
 #include "VisSourceNative.h"
 
 // Include package level header file
-#include <askap_cpingest.h>
+#include "askap_cpingest.h"
 
 // System includes
 #include <sys/types.h>
