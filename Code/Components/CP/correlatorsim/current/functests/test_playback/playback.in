@@ -1,4 +1,9 @@
 #
+## Correlator cycle time in seconds
+#
+playback.period = 10
+
+#
 # Telescope Operating Simulator Configuration
 #
 playback.tossim.ice.locator_host            = localhost
