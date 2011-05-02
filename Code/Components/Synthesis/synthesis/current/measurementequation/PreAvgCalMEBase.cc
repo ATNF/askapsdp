@@ -109,7 +109,35 @@ void PreAvgCalMEBase::predict() const
 void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) const
 {  
   for (casa::uInt row = 0; row < itsBuffer.nRow(); ++row) { 
-       const casa::Matrix<casa::Float> sumModelAmps = casa::transpose(itsBuffer.sumModelAmps().yzPlane(row));
+       const casa::Matrix<casa::Float> sumModelAmps = itsBuffer.sumModelAmps().yzPlane(row); 
+       const casa::Matrix<casa::Complex> sumVisProducts = itsBuffer.sumVisProducts().yzPlane(row);
+       const casa::Matrix<casa::Complex> sumModelProducts = itsBuffer.sumModelProducts().yzPlane(row);
+       ASKAPDEBUGASSERT(sumVisProducts.ncolumn() == (itsBuffer.nPol()*(itsBuffer.nPol()+1)/2));
+       ASKAPDEBUGASSERT(sumVisProducts.nrow() == itsBuffer.nChannel());
+       ASKAPDEBUGASSERT(sumModelProducts.ncolumn() == (itsBuffer.nPol()*(itsBuffer.nPol()-1)/2));
+       ASKAPDEBUGASSERT(sumModelProducts.nrow() == itsBuffer.nChannel());
+
+       scimath::ComplexDiffMatrix cdm = buildComplexDiffMatrix(itsBuffer, row); 
+       for (casa::uInt chan = 0; chan < itsBuffer.nChannel(); ++chan) {
+            casa::Vector<casa::Float> sumModelAmpsVect = sumModelAmps.row(chan);
+            ASKAPDEBUGASSERT(sumModelAmpsVect.nelements() == itsBuffer.nPol());
+            //scimath::ComplexDiffMatrix cdVect(sumModelAmpsVect);
+            scimath::ComplexDiffMatrix cdVect(sumModelAmpsVect.nelements(),1,0.);
+            casa::Vector<casa::Complex> measuredVect(cdVect.nRow()); // size is nPol
+            for (casa::uInt pol=0; pol<cdVect.nRow(); ++pol) {
+                 // normal parallel hand term
+                 for (casa::uInt pol2=0; pol2<cdVect.nRow(); ++pol2) {
+                      cdVect[pol] += cdm(pol,pol2) * sumModelAmpsVect[pol2];
+                 }
+                 measuredVect[pol] = sumVisProducts(chan,pol);
+            }
+            scimath::DesignMatrix designmatrix;
+            designmatrix.addModel(cdVect, measuredVect, 
+                 casa::Vector<double>(measuredVect.nelements(),1.));      
+            ne.add(designmatrix);
+       }
+
+       /*
        scimath::ComplexDiffMatrix cdm = buildComplexDiffMatrix(itsBuffer, row) *       
             scimath::ComplexDiffMatrix(sumModelAmps);
        casa::Matrix<casa::Complex> tempMeasured = itsBuffer.sumVisProducts().yzPlane(row);     
@@ -123,6 +151,7 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
                  casa::Matrix<double>(measuredSlice.nrow(),
                  measuredSlice.ncolumn(),1.));      
        ne.add(designmatrix);
+       */
   }
 }
   
