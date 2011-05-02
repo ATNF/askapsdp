@@ -145,6 +145,14 @@ public:
    /// products between measured and conjugated model visibilities (complex-valued)
    const casa::Cube<casa::Complex>& sumVisProducts() const;
    
+   /// @brief obtain weighted sum of products of model visibilities
+   /// @return nRow x nChannel x (nPol*(nPol-1)/2) cube with weighted sums of 
+   /// products of model visibilities corresponding to different polarisations (complex-valued)
+   /// @note parallel-hand products are handled by sumModelAmps, polarisation index can be manipulated
+   /// with polToIndex and indexToPol, although don't forget the offset of nPol() because
+   /// parallel-hand products are not duplicated in this array
+   const casa::Cube<casa::Complex>& sumModelProducts() const;
+   
    // the actual summing in of an accessor with data
    
    /// @brief process one accessor
@@ -228,8 +236,19 @@ private:
    casa::Cube<casa::Float> itsSumModelAmps;
    
    /// @brief buffer for accumulated statistics
-   /// @return nRow x nChannel x nPol cube with weighted sums of 
+   /// @details nRow x nChannel x (nPol*(nPol-1)/2) cube with weighted sums of
+   /// products between model visibilities corresponding to different polarisations.
+   /// Parallel-hand terms are stored separately in itsSumModelAmps preserving 
+   /// their real-valued status (to avoid unnecessary equations describing imaginary part
+   /// index into polarisation plane can be manipulated via polToIndex and indexToPol, 
+   /// note however, the actual plane index into this cube is smaller by nPol
+   /// (because parallel-hand products are stored separately)
+   casa::Cube<casa::Complex> itsSumModelProducts;
+   
+   /// @brief buffer for accumulated statistics
+   /// @return nRow x nChannel x (nPol*(nPol+1)/2) cube with weighted sums of 
    /// products between measured and conjugated model visibilities (complex-valued)
+   /// index into polarisation plane can be obtained via polToIndex and indexToPol
    casa::Cube<casa::Complex> itsSumVisProducts;
    
    // statistics on the number of samples excluded due to various criteria

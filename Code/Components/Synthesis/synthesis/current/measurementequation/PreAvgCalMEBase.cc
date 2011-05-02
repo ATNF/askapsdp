@@ -112,7 +112,9 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
        const casa::Matrix<casa::Float> sumModelAmps = casa::transpose(itsBuffer.sumModelAmps().yzPlane(row));
        scimath::ComplexDiffMatrix cdm = buildComplexDiffMatrix(itsBuffer, row) *       
             scimath::ComplexDiffMatrix(sumModelAmps);
-       casa::Matrix<casa::Complex> measuredSlice = transpose(itsBuffer.sumVisProducts().yzPlane(row));
+       casa::Matrix<casa::Complex> tempMeasured = itsBuffer.sumVisProducts().yzPlane(row);     
+       casa::Matrix<casa::Complex> measuredSlice = transpose(tempMeasured(casa::Slice(),
+                                                             casa::Slice(0,itsBuffer.nPol())));
        //std::cout<<"row="<<row<<" measuredSlice="<<casa::Vector<casa::Complex>(measuredSlice)<<" "<<cdm(1,0).value()<<std::endl;
        
        scimath::DesignMatrix designmatrix;
