@@ -1,0 +1,7 @@
+/// The channels package namespace.
+namespace askap::cp::pipelinetasks {};
+
+/// @mainpage ASKAP Central Processor Pipeline Tasks
+///
+
+/// @copyright 2011 CSIRO, All Rights Reserved.
