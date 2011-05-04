@@ -39,6 +39,7 @@
 
 // own includes
 #include <fitting/ComplexDiffMatrix.h>
+#include <algorithm>
 
 namespace askap {
 
@@ -77,6 +78,15 @@ void ComplexDiffMatrix::buildParameterMap() const
        }
   }
   itsParameterMapInvalid = false;
+}
+
+/// @brief set all element to a given value
+/// @param[in] val value
+void ComplexDiffMatrix::set(const ComplexDiff &val)
+{
+  ASKAPDEBUGASSERT(itsElements.size() > 0);
+  std::fill(itsElements.begin(),itsElements.end(),val);
+  itsParameterMapInvalid = true;
 }
 
 } // namespace scimath

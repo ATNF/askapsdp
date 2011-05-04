@@ -115,6 +115,11 @@ struct ComplexDiffMatrix {
    template<typename T>
    inline ComplexDiffMatrix(const casa::Vector<T> &vec);    
    
+   /// @brief set all element to a given value
+   /// @param[in] val value
+   void set(const ComplexDiff &val);
+         
+   
    /// @brief access to given matrix element
    /// @param[in] row row
    /// @param[in] col column
