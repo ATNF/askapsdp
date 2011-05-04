@@ -121,20 +121,30 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
        for (casa::uInt chan = 0; chan < itsBuffer.nChannel(); ++chan) {
             casa::Vector<casa::Float> sumModelAmpsVect = sumModelAmps.row(chan);
             ASKAPDEBUGASSERT(sumModelAmpsVect.nelements() == itsBuffer.nPol());
-            //scimath::ComplexDiffMatrix cdVect(sumModelAmpsVect);
-            scimath::ComplexDiffMatrix cdVect(sumModelAmpsVect.nelements(),1,0.);
-            casa::Vector<casa::Complex> measuredVect(cdVect.nRow()); // size is nPol
-            for (casa::uInt pol=0; pol<cdVect.nRow(); ++pol) {
-                 // normal parallel hand term
-                 for (casa::uInt pol2=0; pol2<cdVect.nRow(); ++pol2) {
-                      cdVect[pol] += cdm(pol,pol2) * sumModelAmpsVect[pol2];
-                 }
-                 measuredVect[pol] = sumVisProducts(chan,pol);
+            scimath::ComplexDiffMatrix cdVect(sumVisProducts.ncolumn(),1,0.);
+            casa::Vector<casa::Complex> measuredVect(cdVect.nRow()); // size is nPol*(nPol+1)/2 (with cross-terms)
+            ASKAPDEBUGASSERT(cdVect.nRow() >= itsBuffer.nPol());
+            
+            for (casa::uInt eqn=0; eqn<cdVect.nRow(); ++eqn) {
+                 if (eqn < itsBuffer.nPol()) {
+                     // normal parallel hand term
+                     for (casa::uInt pol=0; pol<itsBuffer.nPol(); ++pol) {
+                          cdVect[eqn] += cdm(eqn,pol) * sumModelAmpsVect[pol];
+                     }
+                 } else { 
+                     const std::pair<casa::uInt, casa::uInt> crossPolProduct = itsBuffer.indexToPol(eqn);
+                     ASKAPDEBUGASSERT(crossPolProduct.first < cdm.nRow());
+                     ASKAPDEBUGASSERT(crossPolProduct.second < cdm.nColumn());        
+                     const casa::uInt modelIndex = eqn - itsBuffer.nPol();
+                     ASKAPDEBUGASSERT(modelIndex < sumModelProducts.ncolumn());
+                     cdVect[eqn] += cdm(crossPolProduct.first,crossPolProduct.second) * sumModelProducts(chan,modelIndex);
+                 }   
+                 measuredVect[eqn] = sumVisProducts(chan,eqn);
             }
             scimath::DesignMatrix designmatrix;
             designmatrix.addModel(cdVect, measuredVect, 
                  casa::Vector<double>(measuredVect.nelements(),1.));      
-            ne.add(designmatrix);
+            ne.add(designmatrix);            
        }
 
        /*

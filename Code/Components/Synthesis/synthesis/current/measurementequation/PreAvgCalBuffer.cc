@@ -300,6 +300,10 @@ casa::uInt PreAvgCalBuffer::polToIndex(casa::uInt pol1, casa::uInt pol2) const
   if (pol1 == pol2) {
       return pol1;
   }
+  // the code below is generic, but it is handy to enforce that pol1>=pol2
+  // here, because it otherwise has to be taken into account in other parts of the code
+  ASKAPCHECK(pol1 >= pol2, "Expect pol1>=pol2 you have pol1="<<pol1<<" pol2="<<pol2);
+  //
   const casa::uInt minPol = casa::min(pol1,pol2);
   const casa::uInt maxPol = casa::max(pol1,pol2);
   // order: parallel hand, (1,0), (2,0), (2,1), (3,0),...
