@@ -36,75 +36,86 @@ module interfaces
 module fcm
 {
     
-    enum UpdateStatus {
-        ADDED,
-        CHANGED,
-        DELETED
+    exception NoSuchKeyException extends askap::interfaces::AskapIceException
+    {
     };
     
-    struct UpdatedKeys {
-        string key;
-        UpdateStatus state;
-        long revision;
+    exception KeyExistsException extends askap::interfaces::AskapIceException
+    {
     };
 
-    sequence<UpdatedKeys> UpdatedKeysSeq;
-    
-    struct History {
+    enum UpdateStatus {
+        ADDED,
+        UPDATED,
+        REMOVED
+    };
+
+    struct RevisionInfo {
         long revision;
         string user;
         string log;
+        string date;
     };
     
-    sequence<History> HistorySeq;
-
+    sequence<RevisionInfo> RevisionInfoSeq;
+    
+    struct UpdatedKeys {
+        ParameterMap parameters;
+        RevisionInfo info;
+        UpdateStatus state;        
+    };
+    
     /**
      * 
      **/
-    interface FCMService
+    interface IFCMService
     {
         /**
          * Retrieve the facility configuration parameters at the specified
-         * version. A version less than zero will return the latest revision.
+         * version. A version less than one will return the latest revision.
          * If key is empty all parameters are returned otherwise only those
          * starting with the given key.
          **/
-        idempotent ParameterMap get(string key, long revision);
-
+        idempotent ParameterMap get(long revision, string key)
+            throws NoSuchKeyException;
         /**
          * Store the given list of configuration parameters. This adds
          * or overwrites. The user name and a log message are also required.
          **/
-        long put(ParameterMap parms, string user, string log);
+        long update(ParameterMap parms, string user, string log)
+            throws NoSuchKeyException;
+        /**
+         * Store the given list of configuration parameters. This adds
+         * or overwrites. The user name and a log message are also required.
+         **/
+        long add(ParameterMap parms, string user, string log)
+            throws KeyExistsException;
 
         /**
          * Remove the given keys from the configuration. The user name and a
          * log message are also required.
          **/
-        long remove(StringSeq keys, string user, string log);
-
+        long remove(StringSeq keys, string user, string log)
+            throws NoSuchKeyException;
         /**
          * Get the information about the revision history up to the given
          * revision.
-         * A revision less than zero indicates the whole history
+         * If key is empty all history entries are returned otherwise
+         * only the history for the given key.
+         * A revision less than one indicates the whole history
          **/
-        idempotent HistorySeq history(long revision);
-
-        /**
-         * Return the differences between revision1 and revision2.
-         **/
-        UpdatedKeysSeq diff(long revision1, long revision2);
+        idempotent RevisionInfoSeq history(long revision, string key);
 
     };
     
     /**
-     * Publisher FCM chnage events.
+     * Publisher FCM change events.
      **/
-    interface FCMMonitor {
+    interface IFCMMonitor {
         /**
          * Notify when a configuration has changed
          **/
-        idempotent void updated(UpdatedKeysSeq changes);
+        idempotent void updated(UpdatedKeys changes);
         
     };
 };
