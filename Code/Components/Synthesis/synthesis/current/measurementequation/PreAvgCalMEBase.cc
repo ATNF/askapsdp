@@ -121,26 +121,51 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
        for (casa::uInt chan = 0; chan < itsBuffer.nChannel(); ++chan) {
             casa::Vector<casa::Float> sumModelAmpsVect = sumModelAmps.row(chan);
             ASKAPDEBUGASSERT(sumModelAmpsVect.nelements() == itsBuffer.nPol());
-            scimath::ComplexDiffMatrix cdVect(sumVisProducts.ncolumn(),1,0.);
-            casa::Vector<casa::Complex> measuredVect(cdVect.nRow()); // size is nPol*(nPol+1)/2 (with cross-terms)
-            ASKAPDEBUGASSERT(cdVect.nRow() >= itsBuffer.nPol());
+            scimath::ComplexDiffMatrix cdVect(itsBuffer.nPol()*itsBuffer.nPol(),1,0.);
+            casa::Vector<casa::Complex> measuredVect(cdVect.nRow()); // size is nPol*nPol (for cross-terms)
             
-            for (casa::uInt eqn=0; eqn<cdVect.nRow(); ++eqn) {
-                 if (eqn < itsBuffer.nPol()) {
-                     // normal parallel hand term
-                     for (casa::uInt pol=0; pol<itsBuffer.nPol(); ++pol) {
-                          cdVect[eqn] += cdm(eqn,pol) * sumModelAmpsVect[pol];
-                     }
-                 } else { 
-                     const std::pair<casa::uInt, casa::uInt> crossPolProduct = itsBuffer.indexToPol(eqn);
-                     ASKAPDEBUGASSERT(crossPolProduct.first < cdm.nRow());
-                     ASKAPDEBUGASSERT(crossPolProduct.second < cdm.nColumn());        
-                     const casa::uInt modelIndex = eqn - itsBuffer.nPol();
-                     ASKAPDEBUGASSERT(modelIndex < sumModelProducts.ncolumn());
-                     cdVect[eqn] += cdm(crossPolProduct.first,crossPolProduct.second) * sumModelProducts(chan,modelIndex);
-                 }   
-                 measuredVect[eqn] = sumVisProducts(chan,eqn);
+            // we have nPol x nPol equations (each original design equation is 
+            // multiplied by conjugate of Vpol1)
+            for (casa::uInt pol1 = 0, eqn = 0; pol1<itsBuffer.nPol(); ++pol1)   {
+                 for (casa::uInt pol2 = 0; pol2 < itsBuffer.nPol(); ++pol2, ++eqn) {
+                      if (pol1 == pol2) {
+                          // parallel hand data term
+                          measuredVect[eqn] = sumVisProducts(chan,pol2);
+                      } else {
+                          // cross terms (equations corresponding to multiplication by another
+                          // polarisation product
+                          const casa::uInt minPol = casa::min(pol1,pol2);
+                          const casa::uInt maxPol = casa::max(pol1,pol2);
+                          // index into sumVisProducts
+                          const casa::uInt svpIndex = itsBuffer.polToIndex(maxPol,minPol); 
+                          measuredVect[eqn] = pol1 > pol2 ? sumVisProducts(chan,svpIndex) :
+                                                            std::conj(sumVisProducts(chan,svpIndex));
+                      }
+                      // this loop is to form the matrix element
+                      for (casa::uInt pol = 0; pol < itsBuffer.nPol(); ++pol) {
+                           const casa::uInt minPol = casa::min(pol1,pol);
+                           const casa::uInt maxPol = casa::max(pol1,pol);
+                           // index into sumVisProducts (we access sumModelProducts only,
+                           // but this index takes care of parallel hand elements)
+                           const casa::uInt svpIndex = itsBuffer.polToIndex(maxPol,minPol); 
+                           if (svpIndex < itsBuffer.nPol()) {
+                               // parallel hand case
+                               ASKAPDEBUGASSERT(pol1 == pol);
+                               // treat amplitudes separately, because they are real, not complex -
+                               // no unnecessary equations this way
+                               cdVect[eqn] += cdm(pol2,pol) * sumModelAmpsVect[pol];
+                           } else {
+                               // offset to get index into sumModelProducts
+                               const casa::uInt smpIndex = svpIndex - itsBuffer.nPol();
+                               ASKAPDEBUGASSERT(smpIndex < sumModelProducts.ncolumn());
+                               const casa::Complex smp = pol1 > pol ? sumModelProducts(chan,smpIndex) :
+                                                         std::conj(sumModelProducts(chan,smpIndex));
+                               cdVect[eqn] += cdm(pol2,pol) * smp;
+                           }
+                      }
+                 }
             }
+
             scimath::DesignMatrix designmatrix;
             designmatrix.addModel(cdVect, measuredVect, 
                  casa::Vector<double>(measuredVect.nelements(),1.));      

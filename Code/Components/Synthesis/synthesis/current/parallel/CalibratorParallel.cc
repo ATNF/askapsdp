@@ -216,8 +216,9 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    ASKAPDEBUGASSERT(itsModel);
    // temporary logic while preaveraging is being debugged for polarisation 
    // calibration
+   const bool doPreAveraging = false;
    //const bool doPreAveraging = true;
-   const bool doPreAveraging = !itsSolveLeakage;
+   //const bool doPreAveraging = !itsSolveLeakage;
   if (!doPreAveraging)  {
    
    
