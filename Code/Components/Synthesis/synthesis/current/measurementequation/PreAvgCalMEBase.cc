@@ -121,13 +121,23 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
        for (casa::uInt chan = 0; chan < itsBuffer.nChannel(); ++chan) {
             casa::Vector<casa::Float> sumModelAmpsVect = sumModelAmps.row(chan);
             ASKAPDEBUGASSERT(sumModelAmpsVect.nelements() == itsBuffer.nPol());
-            scimath::ComplexDiffMatrix cdVect(itsBuffer.nPol()*itsBuffer.nPol(),1,0.);
+
+            casa::uInt tempSz = itsBuffer.nPol() >= 2 ? itsBuffer.nPol() - 2 : 0;
+            ++tempSz; 
+            
+            scimath::ComplexDiffMatrix cdVect(/*itsBuffer.nPol()*/ tempSz * itsBuffer.nPol(),1,0.);
             casa::Vector<casa::Complex> measuredVect(cdVect.nRow()); // size is nPol*nPol (for cross-terms)
             
             // we have nPol x nPol equations (each original design equation is 
             // multiplied by conjugate of Vpol1)
             for (casa::uInt pol1 = 0, eqn = 0; pol1<itsBuffer.nPol(); ++pol1)   {
                  for (casa::uInt pol2 = 0; pol2 < itsBuffer.nPol(); ++pol2, ++eqn) {
+                      if ((pol1 != pol2) && ((pol2==0) || (pol2+1 == itsBuffer.nPol()))) {
+                          --eqn;
+                          continue;
+                      }
+                      ASKAPDEBUGASSERT(eqn < measuredVect.nelements());
+                      ASKAPDEBUGASSERT(eqn < cdVect.nRow());
                       if (pol1 == pol2) {
                           // parallel hand data term
                           measuredVect[eqn] = sumVisProducts(chan,pol2);
