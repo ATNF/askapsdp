@@ -138,7 +138,7 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
                           const casa::uInt maxPol = casa::max(pol1,pol2);
                           // index into sumVisProducts
                           const casa::uInt svpIndex = itsBuffer.polToIndex(maxPol,minPol); 
-                          ASKAPDEBUGASSERT(svpIndex < sumVisProducts.nchannel());
+                          ASKAPDEBUGASSERT(svpIndex < sumVisProducts.ncolumn());
                           measuredVect[eqn] = pol1 > pol2 ? sumVisProducts(chan,svpIndex) :
                                                             std::conj(sumVisProducts(chan,svpIndex));
                       }
