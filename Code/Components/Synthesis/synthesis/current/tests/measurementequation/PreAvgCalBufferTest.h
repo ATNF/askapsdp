@@ -185,12 +185,29 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
      void testResults(const PreAvgCalBuffer &pacBuf, const int run = 1) {
          for (casa::uInt row=0; row<pacBuf.nRow(); ++row) {
               CPPUNIT_ASSERT_EQUAL(pacBuf.feed1()[row], pacBuf.feed2()[row]);
+              CPPUNIT_ASSERT(pacBuf.nPol() > 0);
+              const casa::uInt nExtraProducts = pacBuf.nPol() * (pacBuf.nPol() - 1) / 2;
+              CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(), pacBuf.sumModelAmps().nplane());
+              CPPUNIT_ASSERT_EQUAL(nExtraProducts, pacBuf.sumModelProducts().nplane());
+              CPPUNIT_ASSERT_EQUAL(nExtraProducts + pacBuf.nPol(), pacBuf.sumVisProducts().nplane());
+              
               for (casa::uInt pol=0; pol<pacBuf.nPol(); ++pol) {
                    CPPUNIT_ASSERT_DOUBLES_EQUAL(double(pacBuf.sumModelAmps()(row,0,pol)),double(real(pacBuf.sumVisProducts()(row,0,pol))),1e-2*run);
                    CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pacBuf.sumVisProducts()(row,0,pol))),1e-5);
                    // 8 channels and 100 Jy source give sums of 80000 per accessor summed in
                    CPPUNIT_ASSERT_DOUBLES_EQUAL(pol%3 == 0 ? 80000.*run : 0., double(pacBuf.sumModelAmps()(row,0,pol)),1e-2*run);
                    CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,0,pol));                       
+              }
+              // checking cross-pol terms, if any
+              for (casa::uInt term = 0; term<nExtraProducts; ++term) {
+                   const casa::uInt index = term + pacBuf.nPol();
+                   const std::pair<casa::uInt, casa::uInt> pols = pacBuf.indexToPol(index);
+                   CPPUNIT_ASSERT(pols.first > pols.second);
+                   const casa::Complex expected = ((pols.first == 3) && (pols.second == 0)) ? casa::Complex(80000.*run,0.) : casa::Complex(0.,0.);
+                   CPPUNIT_ASSERT(term < pacBuf.sumModelProducts().nplane());
+                   CPPUNIT_ASSERT(index < pacBuf.sumVisProducts().nplane());                   
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pacBuf.sumModelProducts()(row,0,term)),1e-2*run);
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pacBuf.sumVisProducts()(row,0,index)),1e-2*run);
               }
          }
      }
