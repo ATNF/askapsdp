@@ -1,5 +1,4 @@
 import os
-from pkg_resources import require
 from askapdev.rbuild.dependencies import Dependency
 
 # Check the service interface is available
@@ -42,7 +41,6 @@ dep = Dependency()
 dep.add_package()
 os.chdir(origdir)
 
-require(dep.get_python_requires())
 import IcePy
 import time
 import sys, traceback, Ice
