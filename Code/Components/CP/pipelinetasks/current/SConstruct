@@ -8,7 +8,7 @@ from askapenv import env
 # create build object with library name
 pkg = env.AskapPackage("pipelinetasks")
 
-#pkg.AddSubPackage("mq")
+pkg.AddSubPackage("cmodel")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])

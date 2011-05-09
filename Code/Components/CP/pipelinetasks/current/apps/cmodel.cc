@@ -29,17 +29,53 @@
 
 // System include
 #include <string>
+#include <fstream>
+#include <sstream>
 
 // ASKAPsoft includes
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "askap/Log4cxxLogSink.h"
 #include "Common/ParameterSet.h"
 #include "CommandLineParser.h"
 
+// Casacore
+#include "casa/aipstype.h"
+#include "casa/Logging/LogIO.h"
+#include "casa/Logging/LogSinkInterface.h"
+#include "components/ComponentModels/ComponentList.h"
+
+// Local packages includes
+#include "cmodel/DuchampAccessor.h"
+#include "cmodel/CasaWriter.h"
+
 // Using
 using namespace std;
+using namespace casa;
+using namespace askap;
+using namespace askap::cp::pipelinetasks;
+
+ASKAP_LOGGER(logger, ".cmodel");
 
 // main()
 int main(int argc, char *argv[])
 {
+    // Initialize the logger before we use it. If a log configuraton
+    // exists in the current directory then use it, otherwise try to
+    // use the programs default one.
+    std::ifstream config("askap.log_cfg", std::ifstream::in);
+    if (config) {
+        ASKAPLOG_INIT("askap.log_cfg");
+    } else {
+        std::ostringstream ss;
+        ss << argv[0] << ".log_cfg";
+        ASKAPLOG_INIT(ss.str().c_str());
+    }
+
+    // Ensure that CASA log messages are captured
+    casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+    casa::LogSink::globalSink(globalSink);
+
     // Command line parser
     cmdlineparser::Parser parser;
 
@@ -52,6 +88,16 @@ int main(int argc, char *argv[])
 
     // Create a parset
     LOFAR::ParameterSet parset(inputsPar);
+
+    const std::string sources = parset.getString("Cmodel.gsm.file");
+    std::ifstream file(sources.c_str());
+    DuchampAccessor acc(file);
+
+    ComponentList list = acc.coneSearch(0.0, 0.0, 90.0);
+    ASKAPLOG_INFO_STR(logger, "List nelements: " << list.nelements());
+
+    CasaWriter writer(parset);
+    writer.write(list);
 
     return 0;
 }
