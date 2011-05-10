@@ -38,6 +38,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
+#include <cmath> //Temporary
 
 // ASKAPsoft include
 #include "askap/AskapLogging.h"
@@ -64,9 +65,14 @@ using namespace askap::cp::pipelinetasks;
 
 ASKAP_LOGGER(logger, ".DuchampAccessor");
 
-DuchampAccessor::DuchampAccessor(std::ifstream& file)
-    : itsFile(file)
+DuchampAccessor::DuchampAccessor(const std::string& filename)
+    : itsFile(filename.c_str())
 {
+}
+
+DuchampAccessor::~DuchampAccessor()
+{
+    itsFile.close();
 }
 
 // TODO: This doesn actually implement a conesearch. Instead it returns
@@ -112,6 +118,25 @@ SkyComponent DuchampAccessor::createComponent(const std::string& line)
     const casa::Double _majorAxis = boost::lexical_cast<casa::Double>(tokens[7]);
     const casa::Double _minorAxis = boost::lexical_cast<casa::Double>(tokens[8]);
     const casa::Double _positionAngle = boost::lexical_cast<casa::Double>(tokens[9]);
+
+    /*
+    //////////////////////////////////////////////////////////////////////////////////////
+    // The below Matt's SKADS .dat file format
+    //////////////////////////////////////////////////////////////////////////////////////
+    if (tokens.size() != 13) {
+        std::cerr << "nTokens: " << tokens.size() << std::endl;
+        ASKAPTHROW(AskapError, "Malformed entry");
+    }
+
+    // Build either a GaussianShape or PointShape
+    const casa::Double _ra = boost::lexical_cast<casa::Double>(tokens[3]);
+    const casa::Double _dec = boost::lexical_cast<casa::Double>(tokens[4]);
+    const casa::Double _flux = pow(10, boost::lexical_cast<casa::Double>(tokens[10]));
+    const casa::Double _majorAxis = boost::lexical_cast<casa::Double>(tokens[6]);
+    const casa::Double _minorAxis = boost::lexical_cast<casa::Double>(tokens[7]);
+    const casa::Double _positionAngle = boost::lexical_cast<casa::Double>(tokens[5]);
+    //////////////////////////////////////////////////////////////////////////////////////
+    */
 
     const Quantum<casa::Double> ra(_ra, "deg");
     const Quantum<casa::Double> dec(_dec, "deg");

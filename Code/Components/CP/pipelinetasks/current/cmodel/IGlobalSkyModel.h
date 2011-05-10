@@ -35,7 +35,7 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief An interface for accessing calibration solutions.
+/// @brief An interface for accessing the Global Sky Model (GSM).
 class IGlobalSkyModel {
     public:
         // Destructor

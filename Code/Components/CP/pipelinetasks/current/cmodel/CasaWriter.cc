@@ -39,6 +39,7 @@
 #include "casa/aipstype.h"
 #include "casa/Quanta/MVAngle.h"
 #include "casa/Quanta/Quantum.h"
+#include "casa/Arrays/Matrix.h"
 #include "measures/Measures/MDirection.h"
 #include "components/ComponentModels/ComponentList.h"
 #include "components/ComponentModels/SkyComponent.h"
@@ -53,7 +54,6 @@
 #include "coordinates/Coordinates/CoordinateSystem.h"
 #include "coordinates/Coordinates/DirectionCoordinate.h"
 #include "coordinates/Coordinates/SpectralCoordinate.h"
-#include "coordinates/Coordinates/CoordinateUtil.h" // Temporary
 
 // Local package includes
 #include "cmodel/ParsetUtils.h"
@@ -66,10 +66,6 @@ ASKAP_LOGGER(logger, ".CasaWriter");
 
 CasaWriter::CasaWriter(const LOFAR::ParameterSet& parset)
     : itsParset(parset.makeSubset("Cmodel."))
-{
-}
-
-CasaWriter::~CasaWriter()
 {
 }
 
@@ -105,15 +101,17 @@ casa::CoordinateSystem CasaWriter::createCoordinateSystem(casa::uInt nx, casa::u
         Matrix<Double> xform(2, 2);
         xform = 0.0;
         xform.diagonal() = 1.0;
-        const Quantum<Double> ra = ParsetUtils::createQuantity(dirVector.at(0), "deg");
-        const Quantum<Double> dec = ParsetUtils::createQuantity(dirVector.at(1), "deg");
+        const Quantum<Double> ra = ParsetUtils::asQuantity(dirVector.at(0), "deg");
+        const Quantum<Double> dec = ParsetUtils::asQuantity(dirVector.at(1), "deg");
         ASKAPLOG_INFO_STR(logger, "Direction: " << ra.getValue() << " degrees, " << dec.getValue() << " degrees");
 
-        const Quantum<Double> xcellsize = ParsetUtils::createQuantity(cellSizeVector.at(0), "arcsec") * -1.0;
-        const Quantum<Double> ycellsize = ParsetUtils::createQuantity(cellSizeVector.at(1), "arcsec");
+        const Quantum<Double> xcellsize = ParsetUtils::asQuantity(cellSizeVector.at(0), "arcsec") * -1.0;
+        const Quantum<Double> ycellsize = ParsetUtils::asQuantity(cellSizeVector.at(1), "arcsec");
         ASKAPLOG_INFO_STR(logger, "Cellsize: " << xcellsize.getValue() << " arcsec, " << ycellsize.getValue() << " arcsec");
 
-        DirectionCoordinate radec(MDirection::J2000, Projection(Projection::SIN),
+        casa::MDirection::Types type;
+        casa::MDirection::getType(type, dirVector.at(2));
+        const DirectionCoordinate radec(type, Projection(Projection::SIN),
                 ra, dec, xcellsize, ycellsize, xform, nx/2, ny/2);
 
         coordsys.addCoordinate(radec);
@@ -121,10 +119,10 @@ casa::CoordinateSystem CasaWriter::createCoordinateSystem(casa::uInt nx, casa::u
 
     // Spectral Coordinate
     {
-        Quantum<Double> f0(1.4, "GHz");
-        Quantum<Double> inc(304, "MHz");
-        Double refPix = 0.0;  // is the reference pixel
-        SpectralCoordinate sc(MFrequency::TOPO, f0, inc, refPix);
+        const Quantum<Double> f0 = ParsetUtils::asQuantity(itsParset.getString("frequency"), "Hz");
+        const Quantum<Double> inc = ParsetUtils::asQuantity(itsParset.getString("increment"), "Hz");
+        const Double refPix = 0.0;  // is the reference pixel
+        const SpectralCoordinate sc(MFrequency::TOPO, f0, inc, refPix);
 
         coordsys.addCoordinate(sc);
     }  

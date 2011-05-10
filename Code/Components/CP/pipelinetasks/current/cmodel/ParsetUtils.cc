@@ -35,6 +35,8 @@
 // ASKAPsoft include
 #include "askap/AskapError.h"
 #include "casa/aipstype.h"
+#include "measures/Measures/MDirection.h"
+#include "casa/Quanta/Quantum.h"
 
 // Using
 using namespace askap::cp::pipelinetasks;
@@ -53,10 +55,13 @@ casa::MDirection ParsetUtils::asMDirection(const std::vector<std::string>& direc
     return dir;
 }
 
-casa::Quantum<casa::Double> ParsetUtils::createQuantity(const std::string &strval,
-        const std::string &unit)
+casa::Quantum<casa::Double> ParsetUtils::asQuantity(const std::string& strval,
+        const std::string& unit)
 {
     casa::Quantity q;
     casa::Quantity::read(q, strval);
+    if (!q.isConform(casa::Unit(unit))) {
+        ASKAPTHROW(AskapError, "Quantity: " << strval << " does not conform to unit " << unit);
+    }
     return q;
 }

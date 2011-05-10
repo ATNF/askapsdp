@@ -89,9 +89,8 @@ int main(int argc, char *argv[])
     // Create a parset
     LOFAR::ParameterSet parset(inputsPar);
 
-    const std::string sources = parset.getString("Cmodel.gsm.file");
-    std::ifstream file(sources.c_str());
-    DuchampAccessor acc(file);
+    const std::string filename = parset.getString("Cmodel.gsm.file");
+    DuchampAccessor acc(filename);
 
     ComponentList list = acc.coneSearch(0.0, 0.0, 90.0);
     ASKAPLOG_INFO_STR(logger, "List nelements: " << list.nelements());

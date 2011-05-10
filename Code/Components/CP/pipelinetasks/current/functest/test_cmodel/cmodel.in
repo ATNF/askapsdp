@@ -9,16 +9,15 @@ Cmodel.gsm.file           = small-duchamp.txt
 #Cmodel.gsm.service_name   = SkyModelService
 
 # General parameters
-Cmodel.bunit              = Jy/beam
+Cmodel.bunit              = Jy/pixel
 Cmodel.frequency          = 1.420GHz
 Cmodel.increment          = 304MHz
 Cmodel.flux_limit         = 1mJy
-#Cmodel.shape              = [2048, 2048]
-#Cmodel.cellsize           = [7.5arcsec, 7.5arcsec]
 Cmodel.shape              = [6144, 6144]
 Cmodel.cellsize           = [2.5arcsec, 2.5arcsec]
 Cmodel.direction          = [12h30m00.00, -45.00.00.00, J2000]
 Cmodel.stokes             = [I]
 
+# Output specific parameters
 Cmodel.output             = casa
 Cmodel.filename           = image.skymodel

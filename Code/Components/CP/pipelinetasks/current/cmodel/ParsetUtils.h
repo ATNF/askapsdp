@@ -40,15 +40,23 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief An interface for accessing calibration solutions.
+/// @brief A helper class containing functions supporting the parsing of
+/// ParameterSets.
 class ParsetUtils {
     public:
-            /// @brief Interpret string as an MDirection
-            /// @param direction String to be interpreted 
+        /// @brief Interpret string as an MDirection
+        /// @param[in] direction    string to be interpreted .
         static casa::MDirection asMDirection(const std::vector<std::string>& direction);
 
-        static casa::Quantum<casa::Double> createQuantity(const std::string &strval,
-                const std::string &unit);
+        /// @brief Convert a string to a Quantity
+        /// @param[in] strval   string to be interpreted.
+        /// @param[in] unit     ensure the constructed quantity conforms to
+        ///                     units of this type.
+        /// @throw AskapError   if the string "strval" cannot be interpreted as
+        ///                     a quantity which conforms to the units specified
+        ///                     by the "unit" parameters.
+        static casa::Quantum<casa::Double> asQuantity(const std::string& strval,
+                const std::string& unit);
 
 };
 

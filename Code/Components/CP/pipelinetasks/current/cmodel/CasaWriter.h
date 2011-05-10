@@ -42,21 +42,28 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief An interface for accessing calibration solutions.
+/// @brief An instance of ILocalSkyModelWriter supporting writing the LSM
+/// to a CASA image.
 class CasaWriter : ILocalSkyModelWriter {
     public:
-        // Constructor
+        /// Constructor
         CasaWriter(const LOFAR::ParameterSet& parset);
 
-        // Destructor
-        ~CasaWriter();
-
+        /// Creates and writes out an image generated from the component list.
+        /// @note The image parameters are read from the itsParset
+        /// member.
+        ///
+        /// @param[in] component    the component list from which the image is
+        ///                         generated.
         void write(const casa::ComponentList& components);
 
     private:
 
+        // Create a coordinate system
+        // @note The image parameters are read from the itsParset
         casa::CoordinateSystem createCoordinateSystem(casa::uInt nx, casa::uInt ny);
 
+        // Parameter set
         const LOFAR::ParameterSet itsParset;
 };
 

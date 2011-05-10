@@ -28,8 +28,8 @@
 #define ASKAP_CP_PIPELINETASKS_DUCHAMPACCESSOR_H
 
 // System includes
-#include <fstream>
 #include <string>
+#include <fstream>
 
 // ASKAPsoft includes
 #include "casa/aipstype.h"
@@ -43,11 +43,15 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief An interface for accessing calibration solutions.
+/// @brief An object providing access to a sky model contained in a duchamp
+/// output ASCII text file.
 class DuchampAccessor : IGlobalSkyModel {
     public:
         // Constructor
-        DuchampAccessor(std::ifstream& file);
+        DuchampAccessor(const std::string& filename);
+
+        // Destructor
+        ~DuchampAccessor();
 
         // Conesearch (or filter)
         virtual casa::ComponentList coneSearch(const casa::Double ra,
@@ -57,7 +61,7 @@ class DuchampAccessor : IGlobalSkyModel {
     private:
         casa::SkyComponent createComponent(const std::string& line);
 
-        std::ifstream& itsFile;
+        std::ifstream itsFile;
 };
 
 }

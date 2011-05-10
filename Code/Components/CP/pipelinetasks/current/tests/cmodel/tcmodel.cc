@@ -1,4 +1,4 @@
-/// @file ILocalSkyModelWriter.h
+/// @file tcmodel.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,32 +24,17 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_ILOCALSKYMODELWRITER_H
-#define ASKAP_CP_PIPELINETASKS_ILOCALSKYMODELWRITER_H
-
 // ASKAPsoft includes
-#include "components/ComponentModels/ComponentList.h"
+#include "AskapTestRunner.h"
 
-namespace askap {
-namespace cp {
-namespace pipelinetasks {
+// Test includes
+#include "ParsetUtilsTest.h"
 
-/// @brief An interface for writing the local sky model to an output format.
-class ILocalSkyModelWriter {
-    public:
-        // Destructor
-        ~ILocalSkyModelWriter();
+int main(int argc, char *argv[])
+{
+    askapdev::testutils::AskapTestRunner runner(argv[0]);
+    runner.addTest(askap::cp::pipelinetasks::ParsetUtilsTest::suite());
+    bool wasSucessful = runner.run();
 
-        /// Creates and writes out a local sky model generated from the
-        /// component list.
-        ///
-        /// @param[in] component    the component list from which the LSM is
-        ///                         generated.
-        virtual void write(const casa::ComponentList& components) = 0;
-};
-
+    return wasSucessful ? 0 : 1;
 }
-}
-}
-
-#endif
