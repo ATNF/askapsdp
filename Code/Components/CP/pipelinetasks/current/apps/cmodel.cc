@@ -29,6 +29,7 @@
 
 // System include
 #include <string>
+#include <vector>
 #include <fstream>
 #include <sstream>
 
@@ -44,10 +45,12 @@
 #include "casa/Logging/LogIO.h"
 #include "casa/Logging/LogSinkInterface.h"
 #include "components/ComponentModels/ComponentList.h"
+#include "casa/Quanta/Quantum.h"
 
 // Local packages includes
 #include "cmodel/DuchampAccessor.h"
 #include "cmodel/CasaWriter.h"
+#include "cmodel/ParsetUtils.h"
 
 // Using
 using namespace std;
@@ -92,7 +95,16 @@ int main(int argc, char *argv[])
     const std::string filename = parset.getString("Cmodel.gsm.file");
     DuchampAccessor acc(filename);
 
-    ComponentList list = acc.coneSearch(0.0, 0.0, 90.0);
+    const std::string fluxLimitStr = parset.getString("Cmodel.flux_limit");
+    const Quantum<Double> fluxLimit = ParsetUtils::asQuantity(fluxLimitStr, "Jy");
+
+    // Direction
+    const std::vector<std::string> dirVector = parset.getStringVector("Cmodel.direction");
+    const Quantum<Double> ra = ParsetUtils::asQuantity(dirVector.at(0), "deg");
+    const Quantum<Double> dec = ParsetUtils::asQuantity(dirVector.at(1), "deg");
+
+    // TODO: Search radius is hardcoded to 10deg, fix this!!
+    ComponentList list = acc.coneSearch(ra, dec, casa::Quantity(2.0, "deg"), fluxLimit);
     ASKAPLOG_INFO_STR(logger, "List nelements: " << list.nelements());
 
     CasaWriter writer(parset);

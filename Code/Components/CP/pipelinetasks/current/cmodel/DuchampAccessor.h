@@ -33,6 +33,7 @@
 
 // ASKAPsoft includes
 #include "casa/aipstype.h"
+#include "casa/Quanta/Quantum.h"
 #include "components/ComponentModels/ComponentList.h"
 #include "components/ComponentModels/SkyComponent.h"
 
@@ -54,9 +55,10 @@ class DuchampAccessor : IGlobalSkyModel {
         ~DuchampAccessor();
 
         // Conesearch (or filter)
-        virtual casa::ComponentList coneSearch(const casa::Double ra,
-                const casa::Double dec,
-                const casa::Double searchRadius);
+        virtual casa::ComponentList coneSearch(const casa::Quantity& ra,
+                const casa::Quantity& dec,
+                const casa::Quantity& searchRadius,
+                const casa::Quantity& fluxLimit);
 
     private:
         casa::SkyComponent createComponent(const std::string& line);

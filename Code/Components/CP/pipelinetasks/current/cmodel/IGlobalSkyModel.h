@@ -30,6 +30,7 @@
 // ASKAPsoft includes
 #include "casa/aipstype.h"
 #include "components/ComponentModels/ComponentList.h"
+#include "casa/Quanta/Quantum.h"
 
 namespace askap {
 namespace cp {
@@ -41,10 +42,16 @@ class IGlobalSkyModel {
         // Destructor
         ~IGlobalSkyModel();
 
-        // Conesearch (or filter)
-        virtual casa::ComponentList coneSearch(const casa::Double ra,
-                const casa::Double dec,
-                const casa::Double searchRadius) = 0;
+        /// Conesearch (or filter)
+        /// @param[in] ra right ascension for search centre (units: degrees)
+        /// @param[in] dec declination for search centre (units: degrees)
+        /// @param[in] searchRadius search radius (units: degrees)
+        /// @param[in] fluxLimit    low limit on flux on sources returned (units: Jy)
+        //                          all returned sources shall have flux >= fluxLimit 
+        virtual casa::ComponentList coneSearch(const casa::Quantity& ra,
+                const casa::Quantity& dec,
+                const casa::Quantity& searchRadius,
+                const casa::Quantity& fluxLimit) = 0;
 };
 
 }
