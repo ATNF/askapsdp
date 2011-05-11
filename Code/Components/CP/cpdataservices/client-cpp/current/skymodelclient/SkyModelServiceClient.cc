@@ -40,6 +40,7 @@
 #include "iceutils/CommunicatorConfig.h"
 #include "iceutils/CommunicatorFactory.h"
 #include "SkyModelService.h" // Ice generated interface
+#include "casa/Quanta/Quantum.h"
 
 // Local package includes
 #include "skymodelclient/ComponentResultSet.h"
@@ -79,12 +80,12 @@ std::vector<ComponentId> SkyModelServiceClient::addComponents(const std::vector<
         askap::interfaces::skymodelservice::Component ice_component;
 
         ice_component.id = components[i].id();
-        ice_component.rightAscension = components[i].rightAscension();
-        ice_component.declination = components[i].declination();
-        ice_component.positionAngle = components[i].positionAngle();
-        ice_component.majorAxis = components[i].majorAxis();
-        ice_component.minorAxis = components[i].minorAxis();
-        ice_component.i1400 = components[i].i1400();
+        ice_component.rightAscension = components[i].rightAscension().getValue("deg");
+        ice_component.declination = components[i].declination().getValue("deg");
+        ice_component.positionAngle = components[i].positionAngle().getValue("rad");
+        ice_component.majorAxis = components[i].majorAxis().getValue("arcsec");
+        ice_component.minorAxis = components[i].minorAxis().getValue("arcsec");
+        ice_component.i1400 = components[i].i1400().getValue("Jy");
 
         ice_components.push_back(ice_component);
     }

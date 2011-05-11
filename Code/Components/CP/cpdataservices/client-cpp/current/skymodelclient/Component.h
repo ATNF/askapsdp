@@ -27,32 +27,28 @@
 #ifndef ASKAP_CP_SKYMODELSERVICE_COMPONENT_H
 #define ASKAP_CP_SKYMODELSERVICE_COMPONENT_H
 
-// System includes
-#include <string>
-
 // ASKAPsoft includes
-#include "casa/aips.h"
-
-// Local package includes
+#include "casa/aipstype.h"
+#include "casa/Quanta/Quantum.h"
 
 namespace askap {
 namespace cp {
 namespace skymodelservice {
 
 // Component identifier typedef
-typedef long ComponentId;
+typedef casa::Long ComponentId;
 
 class Component {
 
     public:
 
         Component(const ComponentId id,
-                  double rightAscension,
-                  double declination,
-                  double positionAngle,
-                  double majorAxis,
-                  double minorAxis,
-                  double i1400);
+                  casa::Quantity rightAscension,
+                  casa::Quantity declination,
+                  casa::Quantity positionAngle,
+                  casa::Quantity majorAxis,
+                  casa::Quantity minorAxis,
+                  casa::Quantity i1400);
 
         /**
          * Unique component index number
@@ -61,49 +57,49 @@ class Component {
 
         /**
          * Right ascension in the J2000 coordinate system
-         * Units: degrees
+         * Base units: degrees
          */
-        double rightAscension() const;
+        casa::Quantity rightAscension() const;
 
         /**
          * Declination in the J2000 coordinate system
-         * Units: degrees
+         * Base units: degrees
          */
-        double declination() const;
+        casa::Quantity declination() const;
 
         /**
          * Position angle. Counted east from north.
-         * Units: radians
+         * Base units: radians
          */
-        double positionAngle() const;
+        casa::Quantity positionAngle() const;
 
         /**
          * Major axis
-         * Units: arcsecs
+         * Base units: arcsecs
          */
-        double majorAxis() const;
+        casa::Quantity majorAxis() const;
 
         /**
          * Minor axis
-         * Units: arcsecs
+         * Base units: arcsecs
          */
-        double minorAxis() const;
+        casa::Quantity minorAxis() const;
 
         /**
          * Flux at 1400 Mhz
-         * Units: Jy (log10 of flux in Jy???)
+         * Base units: Jy
          */
-        double i1400() const;
+        casa::Quantity i1400() const;
 
 
     private:
         ComponentId itsId;
-        double itsRightAscension;
-        double itsDeclination;
-        double itsPositionAngle;
-        double itsMajorAxis;
-        double itsMinorAxis;
-        double itsI1400;
+        casa::Quantity itsRightAscension;
+        casa::Quantity itsDeclination;
+        casa::Quantity itsPositionAngle;
+        casa::Quantity itsMajorAxis;
+        casa::Quantity itsMinorAxis;
+        casa::Quantity itsI1400;
 };
 
 };

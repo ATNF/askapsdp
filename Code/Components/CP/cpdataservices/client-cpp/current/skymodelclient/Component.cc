@@ -30,23 +30,20 @@
 // Include package level header file
 #include "askap_cpdataservices.h"
 
-// System includes
-#include <string>
-
 // ASKAPsoft includes
 #include "askap/AskapError.h"
+#include "casa/Quanta/Quantum.h"
 
 // Using
-using namespace std;
 using namespace askap::cp::skymodelservice;
 
 Component::Component(const ComponentId id,
-        double rightAscension,
-        double declination,
-        double positionAngle,
-        double majorAxis,
-        double minorAxis,
-        double i1400)
+        casa::Quantity rightAscension,
+        casa::Quantity declination,
+        casa::Quantity positionAngle,
+        casa::Quantity majorAxis,
+        casa::Quantity minorAxis,
+        casa::Quantity i1400)
     : itsId(id),
     itsRightAscension(rightAscension),
     itsDeclination(declination),
@@ -62,32 +59,32 @@ ComponentId Component::id() const
     return itsId;
 }
 
-double Component::rightAscension() const
+casa::Quantity Component::rightAscension() const
 {
     return itsRightAscension;
 }
 
-double Component::declination() const
+casa::Quantity Component::declination() const
 {
     return itsDeclination;
 }
 
-double Component::positionAngle() const
+casa::Quantity Component::positionAngle() const
 {
     return itsPositionAngle;
 }
 
-double Component::majorAxis() const
+casa::Quantity Component::majorAxis() const
 {
     return itsMajorAxis;
 }
 
-double Component::minorAxis() const
+casa::Quantity Component::minorAxis() const
 {
     return itsMinorAxis;
 }
 
-double Component::i1400() const
+casa::Quantity Component::i1400() const
 {
     return itsI1400;
 }

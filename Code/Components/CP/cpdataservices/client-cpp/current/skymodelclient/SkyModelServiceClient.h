@@ -29,7 +29,7 @@
 
 // System includes
 #include <string>
-#include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include "Ice/Ice.h"

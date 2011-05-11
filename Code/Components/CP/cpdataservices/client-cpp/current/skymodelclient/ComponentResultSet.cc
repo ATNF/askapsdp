@@ -30,17 +30,15 @@
 // Include package level header file
 #include "askap_cpdataservices.h"
 
-// System includes
-
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "SkyModelService.h" // Ice generated interface
+#include "casa/Quanta/Quantum.h"
 
 // Local package includes
 #include "skymodelclient/Component.h"
 
 // Using
-using namespace std;
 using namespace askap::cp::skymodelservice;
 
 ComponentResultSet::ComponentResultSet(const askap::interfaces::skymodelservice::ComponentIdSeq& componentList,
@@ -87,12 +85,12 @@ void ComponentResultSet::Iterator::next()
     ASKAPDEBUGASSERT(resultset.size() > 0);
     askap::interfaces::skymodelservice::Component* c = &resultset[0]; 
     itsComponent.reset(new Component(c->id,
-                c->rightAscension,
-                c->declination,
-                c->positionAngle,
-                c->majorAxis,
-                c->minorAxis,
-                c->i1400));
+                casa::Quantity(c->rightAscension, "deg"),
+                casa::Quantity(c->declination, "deg"),
+                casa::Quantity(c->positionAngle, "rad"),
+                casa::Quantity(c->majorAxis, "arcsec"),
+                casa::Quantity(c->minorAxis, "arcsec"),
+                casa::Quantity(c->i1400, "Jy")));
 }
 
 const Component& ComponentResultSet::Iterator::operator*()
