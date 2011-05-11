@@ -75,7 +75,7 @@ module skymodelservice
 
         /**
          * Flux at 1400 Mhz
-         * Units: Jy (log10 of flux in Jy???)
+         * Units: Jy
          **/
         double i1400;
     };
