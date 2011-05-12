@@ -175,7 +175,7 @@ SkyComponent DuchampAccessor::createComponent(const std::string& line)
     // Build either a GaussianShape or PointShape
     const casa::Double _ra = boost::lexical_cast<casa::Double>(tokens[3]);
     const casa::Double _dec = boost::lexical_cast<casa::Double>(tokens[4]);
-    const casa::Double _flux = pow(10, boost::lexical_cast<casa::Double>(tokens[10]));
+    const casa::Double _flux = pow(10.0, boost::lexical_cast<casa::Double>(tokens[10]));
     casa::Double _majorAxis = boost::lexical_cast<casa::Double>(tokens[6]);
     casa::Double _minorAxis = boost::lexical_cast<casa::Double>(tokens[7]);
     const casa::Double _positionAngle = boost::lexical_cast<casa::Double>(tokens[5]);
