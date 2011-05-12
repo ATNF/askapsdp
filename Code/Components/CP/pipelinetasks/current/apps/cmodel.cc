@@ -29,7 +29,6 @@
 
 // System include
 #include <string>
-#include <vector>
 #include <fstream>
 #include <sstream>
 
@@ -41,22 +40,14 @@
 #include "CommandLineParser.h"
 
 // Casacore
-#include "casa/aipstype.h"
 #include "casa/Logging/LogIO.h"
 #include "casa/Logging/LogSinkInterface.h"
-#include "components/ComponentModels/ComponentList.h"
-#include "casa/Quanta/Quantum.h"
 
 // Local packages includes
-#include "cmodel/DuchampAccessor.h"
-#include "cmodel/CasaWriter.h"
-#include "cmodel/ParsetUtils.h"
+#include "cmodel/CModelImpl.h"
 
 // Using
-using namespace std;
-using namespace casa;
 using namespace askap;
-using namespace askap::cp::pipelinetasks;
 
 ASKAP_LOGGER(logger, ".cmodel");
 
@@ -67,6 +58,7 @@ int main(int argc, char *argv[])
     // exists in the current directory then use it, otherwise try to
     // use the programs default one.
     std::ifstream config("askap.log_cfg", std::ifstream::in);
+
     if (config) {
         ASKAPLOG_INIT("askap.log_cfg");
     } else {
@@ -87,28 +79,15 @@ int main(int argc, char *argv[])
 
     // Throw an exception if the parameter is not present
     parser.add(inputsPar, cmdlineparser::Parser::return_default);
-    parser.process(argc, const_cast<char**> (argv));
+    parser.process(argc, const_cast<char**>(argv));
 
-    // Create a parset
+    // Create a parset and subset
     LOFAR::ParameterSet parset(inputsPar);
+    LOFAR::ParameterSet subset = parset.makeSubset("Cmodel.");
 
-    const std::string filename = parset.getString("Cmodel.gsm.file");
-    DuchampAccessor acc(filename);
-
-    const std::string fluxLimitStr = parset.getString("Cmodel.flux_limit");
-    const Quantum<Double> fluxLimit = ParsetUtils::asQuantity(fluxLimitStr, "Jy");
-
-    // Direction
-    const std::vector<std::string> dirVector = parset.getStringVector("Cmodel.direction");
-    const Quantum<Double> ra = ParsetUtils::asQuantity(dirVector.at(0), "deg");
-    const Quantum<Double> dec = ParsetUtils::asQuantity(dirVector.at(1), "deg");
-
-    // TODO: Search radius is hardcoded to 10deg, fix this!!
-    ComponentList list = acc.coneSearch(ra, dec, casa::Quantity(2.0, "deg"), fluxLimit);
-    ASKAPLOG_INFO_STR(logger, "List nelements: " << list.nelements());
-
-    CasaWriter writer(parset);
-    writer.write(list);
+    // Run the model creator
+    askap::cp::pipelinetasks::CModelImpl impl(subset);
+    impl.run();
 
     return 0;
 }

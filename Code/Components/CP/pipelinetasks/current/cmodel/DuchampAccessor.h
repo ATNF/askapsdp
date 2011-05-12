@@ -32,6 +32,7 @@
 #include <fstream>
 
 // ASKAPsoft includes
+#include "boost/scoped_ptr.hpp"
 #include "casa/aipstype.h"
 #include "casa/Quanta/Quantum.h"
 #include "components/ComponentModels/ComponentList.h"
@@ -46,24 +47,39 @@ namespace pipelinetasks {
 
 /// @brief An object providing access to a sky model contained in a duchamp
 /// output ASCII text file.
-class DuchampAccessor : IGlobalSkyModel {
+class DuchampAccessor : public IGlobalSkyModel {
     public:
-        // Constructor
+        /// Constructor
+        /// @param[in] filename name of the file containing the source catalog
         DuchampAccessor(const std::string& filename);
+
+        /// Constructor
+        /// Used for testing only, so a stringstream can be
+        /// passed in.
+        /// @param[in] stream   istream from which data will be read.
+        DuchampAccessor(const std::stringstream& sstream);
 
         // Destructor
         ~DuchampAccessor();
 
         // Conesearch (or filter)
         virtual casa::ComponentList coneSearch(const casa::Quantity& ra,
-                const casa::Quantity& dec,
-                const casa::Quantity& searchRadius,
-                const casa::Quantity& fluxLimit);
+                                               const casa::Quantity& dec,
+                                               const casa::Quantity& searchRadius,
+                                               const casa::Quantity& fluxLimit);
 
     private:
-        casa::SkyComponent createComponent(const std::string& line);
+        void processLine(const std::string& line,
+                         const casa::Quantity& searchRA,
+                         const casa::Quantity& searchDec,
+                         const casa::Quantity& searchRadius,
+                         const casa::Quantity& fluxLimit,
+                         casa::ComponentList& list);
 
-        std::ifstream itsFile;
+        //std::ifstream itsFile;
+        boost::scoped_ptr<std::istream> itsFile;
+        casa::uLong itsBelowFluxLimit;
+        casa::uLong itsOutsideSearchCone;
 };
 
 }

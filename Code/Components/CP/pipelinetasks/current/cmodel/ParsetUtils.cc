@@ -43,7 +43,7 @@ using namespace askap::cp::pipelinetasks;
 
 casa::MDirection ParsetUtils::asMDirection(const std::vector<std::string>& direction)
 {
-    ASKAPCHECK(direction.size()==3, "Not a valid direction");
+    ASKAPCHECK(direction.size() == 3, "Not a valid direction");
 
     casa::Quantity lng;
     casa::Quantity::read(lng, direction[0]);
@@ -60,8 +60,10 @@ casa::Quantum<casa::Double> ParsetUtils::asQuantity(const std::string& strval,
 {
     casa::Quantity q;
     casa::Quantity::read(q, strval);
+
     if (!q.isConform(casa::Unit(unit))) {
         ASKAPTHROW(AskapError, "Quantity: " << strval << " does not conform to unit " << unit);
     }
+
     return q;
 }

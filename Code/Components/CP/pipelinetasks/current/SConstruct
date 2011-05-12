@@ -12,6 +12,7 @@ pkg.AddSubPackage("cmodel")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
+env.Append(CCFLAGS=['-O2'])
 env.Append(CCFLAGS=['-DASKAP_DEBUG'])
 
 # run the build process

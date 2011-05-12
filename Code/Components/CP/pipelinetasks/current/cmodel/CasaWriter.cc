@@ -65,7 +65,7 @@ using namespace casa;
 ASKAP_LOGGER(logger, ".CasaWriter");
 
 CasaWriter::CasaWriter(const LOFAR::ParameterSet& parset)
-    : itsParset(parset.makeSubset("Cmodel."))
+        : itsParset(parset)
 {
 }
 
@@ -103,16 +103,18 @@ casa::CoordinateSystem CasaWriter::createCoordinateSystem(casa::uInt nx, casa::u
         xform.diagonal() = 1.0;
         const Quantum<Double> ra = ParsetUtils::asQuantity(dirVector.at(0), "deg");
         const Quantum<Double> dec = ParsetUtils::asQuantity(dirVector.at(1), "deg");
-        ASKAPLOG_INFO_STR(logger, "Direction: " << ra.getValue() << " degrees, " << dec.getValue() << " degrees");
+        ASKAPLOG_INFO_STR(logger, "Direction: " << ra.getValue() << " degrees, "
+                << dec.getValue() << " degrees");
 
         const Quantum<Double> xcellsize = ParsetUtils::asQuantity(cellSizeVector.at(0), "arcsec") * -1.0;
         const Quantum<Double> ycellsize = ParsetUtils::asQuantity(cellSizeVector.at(1), "arcsec");
-        ASKAPLOG_INFO_STR(logger, "Cellsize: " << xcellsize.getValue() << " arcsec, " << ycellsize.getValue() << " arcsec");
+        ASKAPLOG_INFO_STR(logger, "Cellsize: " << xcellsize.getValue()
+                << " arcsec, " << ycellsize.getValue() << " arcsec");
 
         casa::MDirection::Types type;
         casa::MDirection::getType(type, dirVector.at(2));
         const DirectionCoordinate radec(type, Projection(Projection::SIN),
-                ra, dec, xcellsize, ycellsize, xform, nx/2, ny/2);
+                                        ra, dec, xcellsize, ycellsize, xform, nx / 2, ny / 2);
 
         coordsys.addCoordinate(radec);
     }
@@ -125,7 +127,7 @@ casa::CoordinateSystem CasaWriter::createCoordinateSystem(casa::uInt nx, casa::u
         const SpectralCoordinate sc(MFrequency::TOPO, f0, inc, refPix);
 
         coordsys.addCoordinate(sc);
-    }  
+    }
 
     return coordsys;
 }

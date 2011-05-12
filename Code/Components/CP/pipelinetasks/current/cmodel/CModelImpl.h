@@ -1,4 +1,4 @@
-/// @file tcmodel.cc
+/// @file CModelImpl.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,19 +24,31 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_PIPELINETASKS_CMODELIMPL_H
+#define ASKAP_CP_PIPELINETASKS_CMODELIMPL_H
+
 // ASKAPsoft includes
-#include "AskapTestRunner.h"
+#include "Common/ParameterSet.h"
 
-// Test includes
-#include "ParsetUtilsTest.h"
-#include "DuchampAccessorTest.h"
+namespace askap {
+namespace cp {
+namespace pipelinetasks {
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::pipelinetasks::ParsetUtilsTest::suite());
-    runner.addTest(askap::cp::pipelinetasks::DuchampAccessorTest::suite());
-    bool wasSucessful = runner.run();
+class CModelImpl {
+    public:
+        /// Constructor
+        CModelImpl(const LOFAR::ParameterSet& parset);
 
-    return wasSucessful ? 0 : 1;
+        void run(void);
+
+    private:
+
+        // Parameter set
+        const LOFAR::ParameterSet itsParset;
+};
+
 }
+}
+}
+
+#endif

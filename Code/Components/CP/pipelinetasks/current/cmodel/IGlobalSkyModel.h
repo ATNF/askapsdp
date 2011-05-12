@@ -47,11 +47,11 @@ class IGlobalSkyModel {
         /// @param[in] dec declination for search centre (units: degrees)
         /// @param[in] searchRadius search radius (units: degrees)
         /// @param[in] fluxLimit    low limit on flux on sources returned (units: Jy)
-        //                          all returned sources shall have flux >= fluxLimit 
+        //                          all returned sources shall have flux >= fluxLimit
         virtual casa::ComponentList coneSearch(const casa::Quantity& ra,
-                const casa::Quantity& dec,
-                const casa::Quantity& searchRadius,
-                const casa::Quantity& fluxLimit) = 0;
+                                               const casa::Quantity& dec,
+                                               const casa::Quantity& searchRadius,
+                                               const casa::Quantity& fluxLimit) = 0;
 };
 
 }
