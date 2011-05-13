@@ -32,6 +32,8 @@ import java.util.List;
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
+import org.hibernate.ScrollMode;
+import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -97,18 +99,20 @@ public class PersistenceInterface {
 			double searchRadius, double fluxLimit) {
 		ArrayList<Long> ids = new ArrayList<Long>();
 		
-		// TODO: This code needs to do a database selection based on RA and DEC so
-		// as not to have the entire table returned
+		// TODO: Need to do the cone search in the query, instead of returning
+		// components regardless of position.
 		
-		@SuppressWarnings("unchecked")
-		List<Component> result = (List<Component>) itsSession.createQuery( "from Component" ).list();
-		for ( Component comp : (List<Component>) result ) {
+		final String query = "from Component where i1400 >=" + fluxLimit;		
+		ScrollableResults components = itsSession.createQuery(query).scroll(ScrollMode.FORWARD_ONLY);
+		while (components.next()) {
+			Component comp = (Component) components.get(0);
 			// TODO: The below uses simple (Euclidean geometry) Pythagoras
 			// theorem. Need to handle spherical geometry, wrap-around etc.
 			final double a = Math.abs(dec) - Math.abs(comp.declination);
 			final double b = Math.abs(ra) - Math.abs(comp.rightAscension);
 			final double c = Math.sqrt((Math.pow(a, 2) + Math.pow(b, 2)));
-			if (c <= searchRadius && comp.i1400 >= fluxLimit) {
+			assert(comp.i1400 >= fluxLimit);
+			if (c <= searchRadius) {
 				ids.add(new Long(comp.id));
 			}
 		}
