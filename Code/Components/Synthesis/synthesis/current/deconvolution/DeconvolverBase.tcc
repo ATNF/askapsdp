@@ -377,22 +377,26 @@ namespace askap {
       Matrix<FT> gaussian(nx, ny);
       gaussian.set(0.0);
 
-      float scalex(itsBMaj*4.0*log(2.0));
-      float scaley(itsBMin*4.0*log(2.0));
+      float scalex(sqrt(4.0*log(2.0))/itsBMaj);
+      float scaley(sqrt(4.0*log(2.0))/itsBMin);
       float theta(itsBPa*C::pi/180.0);
       float cs(cos(theta));
       float sn(sin(theta));
       for (int y=0;y<nx;y++) {
-	float dy=scaley*(y-ny/2);
+	float dy=(y-ny/2)*scaley;
 	for (int x=0;x<nx;x++) {
-	  float dx=scalex*(x-nx/2);
+	  float dx=(x-nx/2)*scalex;
 	  float rsq=pow((dx*cs+dy*sn),2)+pow((-dx*sn+dy*cs),2);
 	  if(rsq<20.0) {
 	    gaussian(x,y)=exp(-rsq);
 	  }
 	}
       }
-      scimath::fft2d(gaussian, true);
+      float volume(sum(real(gaussian)));
+
+      scimath::fft2d(gaussian, true); 
+
+      ASKAPLOG_INFO_STR(logger, "Volume of PSF = " << volume << " pixels");
 
       for (uInt term=0;term<itsNumberTerms;term++) {
 	Array<FT> vis(model(term).shape());
