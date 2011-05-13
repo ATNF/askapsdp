@@ -100,10 +100,13 @@ std::vector<ComponentId> SkyModelServiceClient::addComponents(const std::vector<
     return ids;
 }
 
-ComponentResultSet SkyModelServiceClient::coneSearch(double rightAscension, double declination, double searchRadius)
+ComponentResultSet SkyModelServiceClient::coneSearch(const casa::Quantity& ra, 
+        const casa::Quantity& dec, const casa::Quantity& searchRadius,
+        const casa::Quantity& fluxLimit)
 {
     askap::interfaces::skymodelservice::ComponentIdSeq ice_resultset =
-        itsService->coneSearch(rightAscension, declination, searchRadius);
+        itsService->coneSearch(ra.getValue("deg"), dec.getValue("deg"),
+                searchRadius.getValue("deg"), fluxLimit.getValue("Jy"));
 
     return ComponentResultSet(ice_resultset, itsService);
 }

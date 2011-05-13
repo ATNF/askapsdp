@@ -1,4 +1,4 @@
-/// @file DuchampAccessor.h
+/// @file DataserviceAccessor.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,19 +24,16 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_DUCHAMPACCESSOR_H
-#define ASKAP_CP_PIPELINETASKS_DUCHAMPACCESSOR_H
+#ifndef ASKAP_CP_PIPELINETASKS_DATASERVICEACCESSOR_H
+#define ASKAP_CP_PIPELINETASKS_DATASERVICEACCESSOR_H
 
 // System includes
 #include <string>
-#include <fstream>
-#include <sstream>
 
 // ASKAPsoft includes
-#include "boost/scoped_ptr.hpp"
-#include "casa/aipstype.h"
 #include "casa/Quanta/Quantum.h"
 #include "components/ComponentModels/ComponentList.h"
+#include "skymodelclient/SkyModelServiceClient.h"
 
 // Local package includes
 #include "cmodel/IGlobalSkyModel.h"
@@ -45,22 +42,15 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief An object providing access to a sky model contained in a duchamp
-/// output ASCII text file.
-class DuchampAccessor : public IGlobalSkyModel {
+class DataserviceAccessor : public IGlobalSkyModel {
     public:
         /// Constructor
-        /// @param[in] filename name of the file containing the source catalog
-        DuchampAccessor(const std::string& filename);
-
-        /// Constructor
-        /// Used for testing only, so a stringstream can be
-        /// passed in.
-        /// @param[in] stream   istream from which data will be read.
-        DuchampAccessor(const std::stringstream& sstream);
+        DataserviceAccessor(const std::string& locatorHost,
+                const std::string& locatorPort,
+                const std::string& serviceName);
 
         // Destructor
-        ~DuchampAccessor();
+        ~DataserviceAccessor();
 
         // Conesearch (or filter)
         virtual casa::ComponentList coneSearch(const casa::Quantity& ra,
@@ -69,16 +59,7 @@ class DuchampAccessor : public IGlobalSkyModel {
                                                const casa::Quantity& fluxLimit);
 
     private:
-        void processLine(const std::string& line,
-                         const casa::Quantity& searchRA,
-                         const casa::Quantity& searchDec,
-                         const casa::Quantity& searchRadius,
-                         const casa::Quantity& fluxLimit,
-                         casa::ComponentList& list);
-
-        boost::scoped_ptr<std::istream> itsFile;
-        casa::uLong itsBelowFluxLimit;
-        casa::uLong itsOutsideSearchCone;
+        askap::cp::skymodelservice::SkyModelServiceClient itsService;
 };
 
 }

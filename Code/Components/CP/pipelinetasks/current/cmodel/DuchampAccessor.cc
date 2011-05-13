@@ -80,8 +80,6 @@ DuchampAccessor::~DuchampAccessor()
 {
 }
 
-// TODO: This doesn actually implement a conesearch. Instead it returns
-// the full result set.
 casa::ComponentList DuchampAccessor::coneSearch(const casa::Quantity& ra,
         const casa::Quantity& dec,
         const casa::Quantity& searchRadius,

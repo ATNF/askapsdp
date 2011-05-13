@@ -109,9 +109,11 @@ void populate(SkyModelServiceClient& svc, const uint32_t count)
     svc.addComponents(components);
 }
 
-size_t coneSearch(SkyModelServiceClient& svc, double rightAscension, double declination, double searchRadius)
+size_t coneSearch(SkyModelServiceClient& svc, const casa::Quantity& ra,
+        const casa::Quantity& dec, const casa::Quantity& searchRadius,
+        const casa::Quantity& fluxLimit)
 {
-    ComponentResultSet results = svc.coneSearch(rightAscension, declination, searchRadius);
+    ComponentResultSet results = svc.coneSearch(ra, dec, searchRadius, fluxLimit);
 
     // Iterate over the result set
     ComponentResultSet::Iterator it;
@@ -155,6 +157,12 @@ int main(int argc, char *argv[])
     double populateTotal = 0.0;
     double coneTotal = 0.0;
 
+    // Cone search parameters
+    const casa::Quantity ra(0.0, "deg");
+    const casa::Quantity dec(0.0, "deg");
+    const casa::Quantity searchRadius(180, "deg");
+    const casa::Quantity fluxLimit(1, "uJy");
+
     Stopwatch sw;
     for (uint32_t i = 0; i < nBatches; ++i) {
         // Time populate()
@@ -166,7 +174,7 @@ int main(int argc, char *argv[])
 
         // Time conesearch()
         sw.start();
-        size_t count = coneSearch(svc, 0.0, 0.0, 180.0);
+        size_t count = coneSearch(svc, ra, dec, searchRadius, fluxLimit);
         time = sw.stop();
         cout << "Cone search returned " << count << " components" << endl;
         coneTotal += time;

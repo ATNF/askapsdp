@@ -34,6 +34,7 @@
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 #include "SkyModelService.h" // Ice generated interface
+#include "casa/Quanta/Quantum.h"
 
 // Local package includes
 #include "skymodelclient/Component.h"
@@ -56,7 +57,10 @@ namespace skymodelservice {
 
             std::vector<ComponentId> addComponents(const std::vector<Component>& components);
 
-            ComponentResultSet coneSearch(double rightAscension, double declination, double searchRadius);
+            ComponentResultSet coneSearch(const casa::Quantity& ra,
+                    const casa::Quantity& dec,
+                    const casa::Quantity& searchRadius,
+                    const casa::Quantity& fluxLimit);
             
         private:
 

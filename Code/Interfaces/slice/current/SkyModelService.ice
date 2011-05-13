@@ -117,14 +117,18 @@ module skymodelservice
          * result set at a time.
          *
          * @param right_ascension   the right ascension of the centre of the
-         *                          search area (in decimal degrees).
+         *                          search area (Units: decimal degrees).
          * @param declination       the declination of the centre of the search
-         *                          area (in decimal degrees).
-         * @param radius            the search radius in decimal degrees.
+         *                          area (Units: decimal degrees).
+         * @param radius            the search radius (Units: decimal degrees).
+         * @param fluxLimit         low limit on flux on sources returned all
+         *                          returned sources shall have flux >= fluxLimit
+         *                          (Units: Jy).
          *
          * @return                  a sequence of component identifiers.
          **/
-        ComponentIdSeq coneSearch(double rightAscension, double declination, double searchRadius);
+        ComponentIdSeq coneSearch(double rightAscension, double declination,
+            double searchRadius, double fluxLimit);
 
         /**
          * Obtain a sequence of components. If a component in the componentIds
