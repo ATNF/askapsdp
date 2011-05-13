@@ -48,6 +48,7 @@
 
 // Local package includes
 #include "cmodel/DuchampAccessor.h"
+#include "cmodel/DataserviceAccessor.h"
 #include "cmodel/CasaWriter.h"
 #include "cmodel/ParsetUtils.h"
 
@@ -75,7 +76,10 @@ void CModelImpl::run(void)
         const std::string filename = itsParset.getString("gsm.file");
         gsm.reset(new DuchampAccessor(filename));
     } else if (database == "dataservice") {
-        ASKAPTHROW(AskapError, "GSM database type \'dataservice\' not implemented");
+        const std::string host = itsParset.getString("gsm.locator_host");
+        const std::string port = itsParset.getString("gsm.locator_port");
+        const std::string serviceName = itsParset.getString("gsm.service_name");
+        gsm.reset(new DataserviceAccessor(host, port, serviceName));
     } else {
         ASKAPTHROW(AskapError, "Unknown GSM database type: " << database);
     }

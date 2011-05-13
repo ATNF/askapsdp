@@ -88,7 +88,7 @@ casa::ComponentList DataserviceAccessor::coneSearch(const casa::Quantity& ra,
                            << " deg, Fluxlimit: " << fluxLimit.getValue("Jy") << " Jy");
 
 
-    ComponentResultSet rs = itsService.coneSearch(ra, dec, searchRadius);
+    ComponentResultSet rs = itsService.coneSearch(ra, dec, searchRadius, fluxLimit);
     ComponentResultSet::Iterator it = rs.createIterator();
     ComponentList list;
     while (it.hasNext()) {
