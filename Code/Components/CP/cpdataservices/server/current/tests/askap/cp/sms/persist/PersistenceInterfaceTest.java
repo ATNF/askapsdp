@@ -222,6 +222,7 @@ public class PersistenceInterfaceTest {
 		Component c = new Component();
 		c.rightAscension = 90.0;
 		c.declination = -40.0;
+		c.i1400 = 0.001; // 1mJy
 		ArrayList<Component> components = new ArrayList<Component>();
 		
 		// Add a component
@@ -230,11 +231,17 @@ public class PersistenceInterfaceTest {
 		assertEquals(1, ids1.size());
 		
 		// Run a cone search, expecting to find the component
-		List<Long> results = itsInstance.coneSearch(90.0, -40.0, 1.0);
+		List<Long> results = itsInstance.coneSearch(90.0, -40.0, 1.0, 0.00001);
 		assertEquals(1, results.size());
 		
-		// Run a cone search, expecting NOT to find the the component
-		List<Long> resultsNone = itsInstance.coneSearch(0.0, 0.0, 1.0);
-		assertEquals(0, resultsNone.size());
+		// Run a cone search, expecting NOT to find the the component due to
+		// it being outside the search radius yet within the flux limits
+		List<Long> resultsNone1 = itsInstance.coneSearch(0.0, 0.0, 1.0, 0.00001);
+		assertEquals(0, resultsNone1.size());
+		
+		// Run a cone search, expecting NOT to find the the component due to
+		// it being outside flux limit yet inside the search radius
+		List<Long> resultsNone2 = itsInstance.coneSearch(90.0, -40.0, 1.0, 0.1);
+		assertEquals(0, resultsNone2.size());
 	}
 }

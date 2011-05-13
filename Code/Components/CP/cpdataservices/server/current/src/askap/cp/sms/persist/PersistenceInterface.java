@@ -93,7 +93,8 @@ public class PersistenceInterface {
 	 * @param searchRadius
 	 * @return
 	 */
-	public List<Long> coneSearch(double ra, double dec, double searchRadius) {
+	public List<Long> coneSearch(double ra, double dec,
+			double searchRadius, double fluxLimit) {
 		ArrayList<Long> ids = new ArrayList<Long>();
 		
 		// TODO: This code needs to do a database selection based on RA and DEC so
@@ -107,7 +108,7 @@ public class PersistenceInterface {
 			final double a = Math.abs(dec) - Math.abs(comp.declination);
 			final double b = Math.abs(ra) - Math.abs(comp.rightAscension);
 			final double c = Math.sqrt((Math.pow(a, 2) + Math.pow(b, 2)));
-			if (c <= searchRadius) {
+			if (c <= searchRadius && comp.i1400 >= fluxLimit) {
 				ids.add(new Long(comp.id));
 			}
 		}

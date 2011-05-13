@@ -73,8 +73,8 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	 */
 	@Override
 	public List<Long> coneSearch(double ra, double dec, double searchRadius,
-			Current cur) {
-		return itsPersistance.coneSearch(ra, dec, searchRadius);
+			double fluxLimit, Current cur) {
+		return itsPersistance.coneSearch(ra, dec, searchRadius, fluxLimit);
 	}
 
 	/**
