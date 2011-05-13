@@ -2,14 +2,12 @@
 <hibernate-configuration>
 
     <session-factory>
-        
-        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-        <property name="connection.url">jdbc:mysql://localhost/calibraton</property>
-        <property name="connection.username">calibration</property>
-        <property name="connection.password">askap</property>
 
-        <!-- JDBC connection pool (use the built-in) -->
-        <property name="connection.pool_size">1</property>
+        <!-- Connection properties --> 
+        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="connection.url">jdbc:mysql://gijane/calibration</property>
+        <property name="connection.username">calibrationuser</property>
+        <property name="connection.password">askap</property>
 
         <!-- SQL dialect -->
         <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
@@ -29,6 +27,15 @@
         <!-- Set the JDBC batch size -->
         <property name="hibernate.jdbc.batch_size">20</property>
 
+        <!-- C3P0 Connection pool -->
+        <property name="hibernate.c3p0.acquire_increment">1</property>
+        <property name="hibernate.c3p0.idle_test_period">100</property> <!-- seconds -->
+        <property name="hibernate.c3p0.max_size">10</property>
+        <property name="hibernate.c3p0.max_statements">0</property>
+        <property name="hibernate.c3p0.min_size">2</property>
+        <property name="hibernate.c3p0.timeout">100</property> <!-- seconds -->
+
+        <!-- Mappings -->
 		<mapping resource="askap/cp/calds/persist/GainSolutionBean.hbm.xml"/>
 		<mapping resource="askap/cp/calds/persist/GainSolutionElementBean.hbm.xml"/>
 		<mapping resource="askap/cp/calds/persist/LeakageSolutionBean.hbm.xml"/>
