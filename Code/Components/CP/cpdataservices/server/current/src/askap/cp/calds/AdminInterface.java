@@ -99,7 +99,7 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	 * 
 	 */
     @Override
-	public void activate(Current curr) throws TransitionException {
+	public synchronized void activate(Current curr) throws TransitionException {
 		if (itsState != ComponentState.STANDBY) {
 			throw new TransitionException("Not in STANDBY state");
 		}
@@ -124,7 +124,7 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	 * 
 	 */
     @Override
-	public void deactivate(Current curr) throws TransitionException {
+	public synchronized void deactivate(Current curr) throws TransitionException {
 		if (itsState != ComponentState.ONLINE) {
 			throw new TransitionException("Not in ONLINE state");
 		}
@@ -186,7 +186,7 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	 * 
 	 */
 	@Override
-	public ComponentTestResult[] selfTest(Current curr)
+	public synchronized ComponentTestResult[] selfTest(Current curr)
 			throws CannotTestException {
 		if (itsState != ComponentState.STANDBY) {
 			throw new CannotTestException("Not in STANDBY state");
@@ -199,7 +199,7 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	 * 
 	 */
 	@Override
-	public void shutdown(Current curr) throws TransitionException {
+	public synchronized void shutdown(Current curr) throws TransitionException {
 		if (itsState != ComponentState.STANDBY) {
 			throw new TransitionException("Not in STANDBY state");
 		}
@@ -217,7 +217,7 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	 * 
 	 */
 	@Override
-	public void startup(Map<String, String> config, Current curr)
+	public synchronized void startup(Map<String, String> config, Current curr)
 			throws TransitionException {
 		if (itsState != ComponentState.LOADED) {
 			throw new TransitionException("Not in UNLOADED state");
