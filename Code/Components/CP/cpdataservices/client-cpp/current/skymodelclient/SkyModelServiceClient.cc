@@ -104,6 +104,11 @@ ComponentResultSet SkyModelServiceClient::coneSearch(const casa::Quantity& ra,
         const casa::Quantity& dec, const casa::Quantity& searchRadius,
         const casa::Quantity& fluxLimit)
 {
+    ASKAPCHECK(ra.isConform("deg"), "ra must conform to degrees");
+    ASKAPCHECK(dec.isConform("deg"), "dec must conform to degrees");
+    ASKAPCHECK(searchRadius.isConform("deg"), "searchRadius must conform to degrees");
+    ASKAPCHECK(fluxLimit.isConform("Jy"), "fluxLimit must conform to Jy");
+
     askap::interfaces::skymodelservice::ComponentIdSeq ice_resultset =
         itsService->coneSearch(ra.getValue("deg"), dec.getValue("deg"),
                 searchRadius.getValue("deg"), fluxLimit.getValue("Jy"));

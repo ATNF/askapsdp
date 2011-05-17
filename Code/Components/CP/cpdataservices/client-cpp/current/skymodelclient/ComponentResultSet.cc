@@ -75,7 +75,10 @@ bool ComponentResultSet::Iterator::hasNext() const
 
 void ComponentResultSet::Iterator::next()
 {
-    ASKAPDEBUGASSERT(itsComponentList->size() > 0);
+    // Pre-conditions
+    ASKAPCHECK(!itsComponentList->empty(), "Component list is empty");
+    ASKAPCHECK(itsIndex < itsComponentList->size(),
+            "Index to component list out of bounds");
 
     askap::interfaces::skymodelservice::ComponentIdSeq ids;
     ids.push_back(itsComponentList->at(itsIndex));

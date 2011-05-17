@@ -42,39 +42,71 @@ namespace askap {
 namespace cp {
 namespace skymodelservice {
 
+/// Encapsulates a result set from the sky model service cone search.
+/// Contains an iterator which may be used to access the individual components.
+///
+/// The below example illustrates how to use the iterator:
+/// @code
+///   ComponentResultSet rs = itsService.coneSearch(.....);
+///    ComponentResultSet::Iterator it = rs.createIterator();
+///    while (it.hasNext()) {
+///      it.next();
+///      const Component& c = *it;
+///    }
+/// @endcode
 class ComponentResultSet {
 
     public:
 
         // Constructor
-        ComponentResultSet(const askap::interfaces::skymodelservice::ComponentIdSeq& componentList,
+        // @note This is used internally to the package and typically should not be
+        // called directly.
+        ComponentResultSet(
+                const askap::interfaces::skymodelservice::ComponentIdSeq& componentList,
                 askap::interfaces::skymodelservice::ISkyModelServicePrx& service);
 
-        // Returns the number of components in the result set.
+        /// Returns the number of components in the result set.
+        /// @return the number of components in the result set.
         size_t size() const;
 
         // Constant iterator for ComponentResultSet
         class Iterator
         {
             public:
+                /// Constructor.
+                /// @note This is intended to be used by ComponentResultSet::createIterator() only.
                 Iterator();
 
                 void next();
+
                 const Component& operator*();
+
                 const Component* operator->();
 
                 bool hasNext() const;
 
-                // This is intended to be used by ComponentResultSet::createIterator() only.
+                /// @note This is intended to be used by ComponentResultSet::createIterator() only.
                 void init(const askap::interfaces::skymodelservice::ComponentIdSeq* componentList,
                         askap::interfaces::skymodelservice::ISkyModelServicePrx* service);
+
             private:
+                // Index/iterator position
                 size_t itsIndex;
+
+                // List of component ids returned from search. Note: The object this
+                // pointer points to is owned by the ComponentResultSet
                 const askap::interfaces::skymodelservice::ComponentIdSeq* itsComponentList;
+
+                // Proxy object for remote service: Note: The object this
+                // pointer points to is owned by the ComponentResultSet
                 askap::interfaces::skymodelservice::ISkyModelServicePrx* itsService;
+
+                // Buffer - The component the iterator currently points to.
                 boost::shared_ptr<Component> itsComponent;
         };
 
+        /// Create an iterator.
+        /// @return an iterator for the result set.
         Iterator createIterator();
 
     private:

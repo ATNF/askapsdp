@@ -116,6 +116,8 @@ module skymodelservice
          * the client to deal with one a smaller (more manageable) subset of the
          * result set at a time.
          *
+         * Coordinate frame is J2000.
+         *
          * @param right_ascension   the right ascension of the centre of the
          *                          search area (Units: decimal degrees).
          * @param declination       the declination of the centre of the search

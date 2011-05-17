@@ -52,6 +52,12 @@ Component::Component(const ComponentId id,
     itsMinorAxis(minorAxis),
     itsI1400(i1400)
 {
+    ASKAPCHECK(itsRightAscension.isConform("deg"), "ra must conform to degrees");
+    ASKAPCHECK(itsDeclination.isConform("deg"), "dec must conform to degrees");
+    ASKAPCHECK(itsPositionAngle.isConform("rad"), "position angle must conform to radians");
+    ASKAPCHECK(itsMajorAxis.isConform("arcsec"), "major axis must conform to degrees");
+    ASKAPCHECK(itsMinorAxis.isConform("arcsec"), "minor axis must conform to degrees");
+    ASKAPCHECK(itsI1400.isConform("Jy"), "i1400 must conform to Jy");
 }
 
 ComponentId Component::id() const

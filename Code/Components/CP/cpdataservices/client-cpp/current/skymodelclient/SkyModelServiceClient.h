@@ -48,6 +48,13 @@ namespace skymodelservice {
 
         public:
             /// Constructor
+            /// The three parameters passed allow an instance of the sky model
+            /// service to be located in an ICE registry.
+            ///
+            /// @param[in] locatorHost  host of the ICE locator service.
+            /// @param[in] locatorPort  port of the ICE locator service.
+            /// @param[in] serviceName  identity of the calibration data service
+            ///                         in the ICE registry.
             SkyModelServiceClient(const std::string& locatorHost,
                     const std::string& locatorPort,
                     const std::string& serviceName = "SkyModelService");
@@ -55,13 +62,28 @@ namespace skymodelservice {
             /// Destructor.
             ~SkyModelServiceClient();
 
+            /// Temporary method, to be replaced by a method allowing updating of the GSM
+            /// from an updated LSM.
             std::vector<ComponentId> addComponents(const std::vector<Component>& components);
 
+            /// Cone search.
+            ///
+            /// @param ra   the right ascension of the centre of the
+            ///             search area (Unit conformance: decimal degrees).
+            /// @param dec  the declination of the centre of the search
+            ///              area (Unit conformance: decimal degrees).
+            /// @param searchRadius the search radius (Unit conformance:
+            ///                      decimal degrees).
+            /// @param fluxLimit    low limit on flux on sources returned all
+            ///                     returned sources shall have flux >= fluxLimit
+            ///                     (Unit conformance: Jy).
+            /// @throw  AskapError  in the case one ore more of the Quantities does not
+            ///                     conform to the appropriate unit.
             ComponentResultSet coneSearch(const casa::Quantity& ra,
                     const casa::Quantity& dec,
                     const casa::Quantity& searchRadius,
                     const casa::Quantity& fluxLimit);
-            
+
         private:
 
             // Ice Communicator
