@@ -244,4 +244,46 @@ public class PersistenceInterfaceTest {
 		List<Long> resultsNone2 = itsInstance.coneSearch(90.0, -40.0, 1.0, 0.1);
 		assertEquals(0, resultsNone2.size());
 	}
+	
+	@Test
+	public final void testAngularSeparation() {
+		Component c = new Component();
+		
+		// NOTE: Expected results are based on those results the casa::MVidrection
+		// class produces
+		
+		// Use an arc second tolerance. Should be sufficient for cone search
+		final double tolerance = 1.0 / 60 / 60;
+		
+		// Ref and component at same location
+		c.rightAscension = 1.0;
+		c.declination = -45.0;
+		assertEquals(0.0, itsInstance.angularSeparation(c.rightAscension,
+				c.declination, c), tolerance);
+		
+		// Test RA wraparound
+		c.rightAscension = 1.0;
+		c.declination = -45.0;
+		assertEquals(0.777811, itsInstance.angularSeparation(359.9, -45.0, c), tolerance);
+		
+		// Test Dec (Pole) wraparound
+		c.rightAscension = 187.5;
+		c.declination = -89.9;
+		assertEquals(0.2, itsInstance.angularSeparation(7.5, -89.9, c), tolerance);
+		
+		// Test far apart in RA (Range 0-180 degrees)
+		c.rightAscension = 1.0;
+		c.declination = 0.0;
+		assertEquals(180.0, itsInstance.angularSeparation(181.0, 0.0, c), tolerance);
+		
+		// Test far apart in RA (Range 181-360 degrees)
+		c.rightAscension = 190.0;
+		c.declination = 0.0;
+		assertEquals(160.0, itsInstance.angularSeparation(350.0, 0.0, c), tolerance);
+		
+		// Test far apart in Dec 
+		c.rightAscension = 150.0;
+		c.declination = 80.0;
+		assertEquals(160, itsInstance.angularSeparation(150.0, -80.0, c), tolerance);
+	}
 }
