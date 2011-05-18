@@ -31,12 +31,13 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <vector>
 
 // ASKAPsoft includes
 #include "boost/scoped_ptr.hpp"
 #include "casa/aipstype.h"
 #include "casa/Quanta/Quantum.h"
-#include "components/ComponentModels/ComponentList.h"
+#include "skymodelclient/Component.h"
 
 // Local package includes
 #include "cmodel/IGlobalSkyModel.h"
@@ -63,7 +64,7 @@ class DuchampAccessor : public IGlobalSkyModel {
         ~DuchampAccessor();
 
         // Conesearch (or filter)
-        virtual casa::ComponentList coneSearch(const casa::Quantity& ra,
+        virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
                                                const casa::Quantity& dec,
                                                const casa::Quantity& searchRadius,
                                                const casa::Quantity& fluxLimit);
@@ -74,7 +75,7 @@ class DuchampAccessor : public IGlobalSkyModel {
                          const casa::Quantity& searchDec,
                          const casa::Quantity& searchRadius,
                          const casa::Quantity& fluxLimit,
-                         casa::ComponentList& list);
+                         std::vector<askap::cp::skymodelservice::Component>& list);
 
         boost::scoped_ptr<std::istream> itsFile;
         casa::uLong itsBelowFluxLimit;

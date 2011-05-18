@@ -27,10 +27,13 @@
 #ifndef ASKAP_CP_PIPELINETASKS_ISKYMODELACCESSOR_H
 #define ASKAP_CP_PIPELINETASKS_ISKYMODELACCESSOR_H
 
+// System includes
+#include <vector>
+
 // ASKAPsoft includes
 #include "casa/aipstype.h"
-#include "components/ComponentModels/ComponentList.h"
 #include "casa/Quanta/Quantum.h"
+#include "skymodelclient/Component.h"
 
 namespace askap {
 namespace cp {
@@ -48,7 +51,7 @@ class IGlobalSkyModel {
         /// @param[in] searchRadius search radius (units: degrees)
         /// @param[in] fluxLimit    low limit on flux on sources returned (units: Jy)
         //                          all returned sources shall have flux >= fluxLimit
-        virtual casa::ComponentList coneSearch(const casa::Quantity& ra,
+        virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
                                                const casa::Quantity& dec,
                                                const casa::Quantity& searchRadius,
                                                const casa::Quantity& fluxLimit) = 0;

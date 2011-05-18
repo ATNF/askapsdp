@@ -40,10 +40,10 @@
 #include "askap/AskapError.h"
 #include "boost/scoped_ptr.hpp"
 #include "Common/ParameterSet.h"
+#include "skymodelclient/Component.h"
 
 // Casacore includes
 #include "casa/aipstype.h"
-#include "components/ComponentModels/ComponentList.h"
 #include "casa/Quanta/Quantum.h"
 
 // Local package includes
@@ -111,9 +111,9 @@ void CModelImpl::run(void)
     const casa::Double largestCellSize = std::max(xcellsize.getValue("deg"), ycellsize.getValue("deg"));
     const casa::Quantity searchRadius(largestCellSize * maxNPix, "deg");
 
-    const ComponentList list = gsm->coneSearch(ra, dec, searchRadius, fluxLimit);
+    const std::vector<askap::cp::skymodelservice::Component> list = gsm->coneSearch(ra, dec, searchRadius, fluxLimit);
     gsm.reset(0);
-    ASKAPLOG_INFO_STR(logger, "Number of components in result set: " << list.nelements());
+    ASKAPLOG_INFO_STR(logger, "Number of components in result set: " << list.size());
 
     CasaWriter writer(itsParset);
     writer.write(list);

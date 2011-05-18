@@ -27,16 +27,17 @@
 #ifndef ASKAP_CP_PIPELINETASKS_ICASAWRITER_H
 #define ASKAP_CP_PIPELINETASKS_ICASAWRITER_H
 
+// System includes
+#include <vector>
+
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
+#include "skymodelclient/Component.h"
 
 // Casacore includes
 #include "casa/aipstype.h"
 #include "components/ComponentModels/ComponentList.h"
 #include "coordinates/Coordinates/CoordinateSystem.h"
-
-// Local package includes
-#include "cmodel/ILocalSkyModelWriter.h"
 
 namespace askap {
 namespace cp {
@@ -44,7 +45,7 @@ namespace pipelinetasks {
 
 /// @brief An instance of ILocalSkyModelWriter supporting writing the LSM
 /// to a CASA image.
-class CasaWriter : ILocalSkyModelWriter {
+class CasaWriter {
     public:
         /// Constructor
         CasaWriter(const LOFAR::ParameterSet& parset);
@@ -55,9 +56,11 @@ class CasaWriter : ILocalSkyModelWriter {
         ///
         /// @param[in] component    the component list from which the image is
         ///                         generated.
-        void write(const casa::ComponentList& components);
+        void write(const std::vector<askap::cp::skymodelservice::Component> components);
 
     private:
+
+        casa::ComponentList translateComponentList(const std::vector<askap::cp::skymodelservice::Component> components);
 
         // Create a coordinate system
         // @note The image parameters are read from the itsParset

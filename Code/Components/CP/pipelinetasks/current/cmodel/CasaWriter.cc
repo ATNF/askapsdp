@@ -30,10 +30,15 @@
 // Include package level header file
 #include "askap_pipelinetasks.h"
 
+// System includes
+#include <string>
+#include <vector>
+
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
+#include "skymodelclient/Component.h"
 
 // Casacore includes
 #include "casa/aipstype.h"
@@ -69,7 +74,7 @@ CasaWriter::CasaWriter(const LOFAR::ParameterSet& parset)
 {
 }
 
-void CasaWriter::write(const casa::ComponentList& components)
+void CasaWriter::write(const std::vector<askap::cp::skymodelservice::Component> components)
 {
     const casa::uInt nx = itsParset.getUintVector("shape").at(0);
     const casa::uInt ny = itsParset.getUintVector("shape").at(1);
@@ -86,7 +91,7 @@ void CasaWriter::write(const casa::ComponentList& components)
     image.setUnits(casa::Unit(units));
 
     // Build the image
-    ComponentImager::project(image, components);
+    ComponentImager::project(image, translateComponentList(components));
 }
 
 casa::CoordinateSystem CasaWriter::createCoordinateSystem(casa::uInt nx, casa::uInt ny)
@@ -130,4 +135,41 @@ casa::CoordinateSystem CasaWriter::createCoordinateSystem(casa::uInt nx, casa::u
     }
 
     return coordsys;
+}
+
+casa::ComponentList CasaWriter::translateComponentList(const std::vector<askap::cp::skymodelservice::Component> components)
+{
+    casa::ComponentList list;
+
+    std::vector<askap::cp::skymodelservice::Component>::const_iterator it;
+    for (it = components.begin(); it != components.end(); ++it) {
+        const askap::cp::skymodelservice::Component& c = *it;
+
+        // Build either a GaussianShape or PointShape
+        const MDirection dir(c.rightAscension(), c.declination(), MDirection::J2000);
+        const Flux<casa::Double> flux(c.i1400().getValue("Jy"), 0.0, 0.0, 0.0);
+        const ConstantSpectrum spectrum;
+
+        // Is guassian or point shape?
+        if (c.majorAxis().getValue() > 0.0 || c.minorAxis().getValue() > 0.0) {
+            std::cerr << "Major axis: " << c.majorAxis().getValue("arcsec") << ", Minor axis: " << c.minorAxis().getValue("arcsec") << std::endl;
+            ASKAPDEBUGASSERT(c.majorAxis().getValue("arcsec") >= c.minorAxis().getValue("arcsec"));
+
+            // If one is > 0, both must be
+            ASKAPDEBUGASSERT(c.majorAxis().getValue() > 0.0);
+            ASKAPDEBUGASSERT(c.minorAxis().getValue() > 0.0);
+
+            const GaussianShape shape(dir,
+                    c.majorAxis(),
+                    c.minorAxis(),
+                    c.positionAngle());
+
+            list.add(SkyComponent(flux, shape, spectrum));
+        } else {
+            const PointShape shape(dir);
+            list.add(SkyComponent(flux, shape, spectrum));
+        }
+    }
+
+    return list;
 }

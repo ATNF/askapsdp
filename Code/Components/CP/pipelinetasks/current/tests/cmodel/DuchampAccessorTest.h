@@ -30,8 +30,9 @@
 // Support classes
 #include <string>
 #include <sstream>
+#include <vector>
 #include "casa/Quanta/Quantum.h"
-#include "components/ComponentModels/ComponentList.h"
+#include "skymodelclient/Component.h"
 
 // Classes to test
 #include "cmodel/DuchampAccessor.h"
@@ -68,8 +69,8 @@ class DuchampAccessorTest : public CppUnit::TestFixture {
             casa::Quantity ra(187.5, "deg");
             casa::Quantity dec(-45.0, "deg");
             DuchampAccessor acc(ss);
-            ComponentList list = acc.coneSearch(ra, dec, radius, fluxLimit);
-            CPPUNIT_ASSERT_EQUAL(1u, list.nelements());
+            std::vector<askap::cp::skymodelservice::Component> list = acc.coneSearch(ra, dec, radius, fluxLimit);
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), list.size());
         }
 
         void testConeSearchRadiusCutoff() {
@@ -83,8 +84,8 @@ class DuchampAccessorTest : public CppUnit::TestFixture {
             casa::Quantity ra(187.5, "deg");
             casa::Quantity dec(-45.0, "deg");
             DuchampAccessor acc(ss);
-            ComponentList list = acc.coneSearch(ra, dec, radius, fluxLimit);
-            CPPUNIT_ASSERT_EQUAL(1u, list.nelements());
+            std::vector<askap::cp::skymodelservice::Component> list = acc.coneSearch(ra, dec, radius, fluxLimit);
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), list.size());
         }
 
         void testConeSearchWraparoundRA() {
@@ -97,8 +98,8 @@ class DuchampAccessorTest : public CppUnit::TestFixture {
             casa::Quantity ra(359.5, "deg");
             casa::Quantity dec(-45.0, "deg");
             DuchampAccessor acc(ss);
-            ComponentList list = acc.coneSearch(ra, dec, radius, fluxLimit);
-            CPPUNIT_ASSERT_EQUAL(1u, list.nelements());
+            std::vector<askap::cp::skymodelservice::Component> list = acc.coneSearch(ra, dec, radius, fluxLimit);
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), list.size());
         }
 
         void testConeSearchWraparoundPole() {
@@ -111,10 +112,9 @@ class DuchampAccessorTest : public CppUnit::TestFixture {
             casa::Quantity ra(7.5, "deg");
             casa::Quantity dec(-89.5, "deg");
             DuchampAccessor acc(ss);
-            ComponentList list = acc.coneSearch(ra, dec, radius, fluxLimit);
-            CPPUNIT_ASSERT_EQUAL(1u, list.nelements());
+            std::vector<askap::cp::skymodelservice::Component> list = acc.coneSearch(ra, dec, radius, fluxLimit);
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), list.size());
         }
-
 };
 
 }   // End namespace pipelinetasks

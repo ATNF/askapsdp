@@ -29,10 +29,11 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include "casa/Quanta/Quantum.h"
-#include "components/ComponentModels/ComponentList.h"
+#include "skymodelclient/Component.h"
 #include "skymodelclient/SkyModelServiceClient.h"
 
 // Local package includes
@@ -53,7 +54,7 @@ class DataserviceAccessor : public IGlobalSkyModel {
         ~DataserviceAccessor();
 
         // Conesearch (or filter)
-        virtual casa::ComponentList coneSearch(const casa::Quantity& ra,
+        virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
                                                const casa::Quantity& dec,
                                                const casa::Quantity& searchRadius,
                                                const casa::Quantity& fluxLimit);

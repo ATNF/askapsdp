@@ -32,6 +32,7 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // ASKAPsoft include
 #include "askap/AskapLogging.h"
@@ -42,15 +43,6 @@
 // Casacore includes
 #include "casa/aipstype.h"
 #include "casa/Quanta/Quantum.h"
-#include "casa/Quanta/MVDirection.h"
-#include "measures/Measures/MDirection.h"
-#include "components/ComponentModels/ComponentList.h"
-#include "components/ComponentModels/SkyComponent.h"
-#include "components/ComponentModels/ComponentList.h"
-#include "components/ComponentModels/GaussianShape.h"
-#include "components/ComponentModels/PointShape.h"
-#include "components/ComponentModels/ConstantSpectrum.h"
-#include "components/ComponentModels/Flux.h"
 
 // Using
 using namespace casa;
@@ -71,7 +63,7 @@ DataserviceAccessor::~DataserviceAccessor()
 {
 }
 
-casa::ComponentList DataserviceAccessor::coneSearch(const casa::Quantity& ra,
+std::vector<askap::cp::skymodelservice::Component> DataserviceAccessor::coneSearch(const casa::Quantity& ra,
         const casa::Quantity& dec,
         const casa::Quantity& searchRadius,
         const casa::Quantity& fluxLimit)
@@ -90,38 +82,14 @@ casa::ComponentList DataserviceAccessor::coneSearch(const casa::Quantity& ra,
 
     ComponentResultSet rs = itsService.coneSearch(ra, dec, searchRadius, fluxLimit);
     ComponentResultSet::Iterator it = rs.createIterator();
-    ComponentList list;
+    std::vector<askap::cp::skymodelservice::Component> list;
     while (it.hasNext()) {
         it.next();
-        const Component& c = *it;
-
-        // Build either a GaussianShape or PointShape
-        const MDirection dir(c.rightAscension(), c.declination(), MDirection::J2000);
-        const Flux<casa::Double> flux(c.i1400().getValue("Jy"), 0.0, 0.0, 0.0);
-        const ConstantSpectrum spectrum;
-
-        // Is guassian or point shape?
-        if (c.majorAxis().getValue() > 0.0 || c.minorAxis().getValue() > 0.0) {
-            ASKAPDEBUGASSERT(c.majorAxis().getValue("arcsec") >= c.minorAxis().getValue("arcsec"));
-            
-            // If one is > 0, both must be
-            ASKAPDEBUGASSERT(c.majorAxis().getValue() > 0.0);
-            ASKAPDEBUGASSERT(c.minorAxis().getValue() > 0.0);
-
-            const GaussianShape shape(dir,
-                    c.majorAxis(),
-                    c.minorAxis(),
-                    c.positionAngle());
-
-            list.add(SkyComponent(flux, shape, spectrum));
-        } else {
-            const PointShape shape(dir);
-            list.add(SkyComponent(flux, shape, spectrum));
-        }
+        list.push_back(*it);
     }
 
     // Post-conditions
-    ASKAPCHECK(list.ok(), "ComponentList is not consistent");
+    ASKAPCHECK(list.size() == rs.size(), "Component list size mismatch");
 
     return list;
 }

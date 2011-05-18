@@ -39,24 +39,19 @@
 #include <algorithm>
 #include <iterator>
 #include <cmath>
+#include <vector>
 
 // ASKAPsoft include
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "boost/lexical_cast.hpp"
+#include "skymodelclient/Component.h"
 
 // Casacore includes
 #include "casa/aipstype.h"
 #include "casa/Quanta/Quantum.h"
 #include "casa/Quanta/MVDirection.h"
 #include "measures/Measures/MDirection.h"
-#include "components/ComponentModels/ComponentList.h"
-#include "components/ComponentModels/SkyComponent.h"
-#include "components/ComponentModels/ComponentList.h"
-#include "components/ComponentModels/GaussianShape.h"
-#include "components/ComponentModels/PointShape.h"
-#include "components/ComponentModels/ConstantSpectrum.h"
-#include "components/ComponentModels/Flux.h"
 
 // Using
 using namespace casa;
@@ -80,7 +75,7 @@ DuchampAccessor::~DuchampAccessor()
 {
 }
 
-casa::ComponentList DuchampAccessor::coneSearch(const casa::Quantity& ra,
+std::vector<askap::cp::skymodelservice::Component> DuchampAccessor::coneSearch(const casa::Quantity& ra,
         const casa::Quantity& dec,
         const casa::Quantity& searchRadius,
         const casa::Quantity& fluxLimit)
@@ -96,7 +91,7 @@ casa::ComponentList DuchampAccessor::coneSearch(const casa::Quantity& ra,
     itsBelowFluxLimit = 0;
     itsOutsideSearchCone = 0;
     casa::uLong total = 0;
-    ComponentList list;
+    std::vector<askap::cp::skymodelservice::Component> list;
 
     while (getline(*itsFile, line)) {
         if (line.find_first_of("#") == std::string::npos) {
@@ -109,7 +104,7 @@ casa::ComponentList DuchampAccessor::coneSearch(const casa::Quantity& ra,
         }
     }
 
-    ASKAPLOG_DEBUG_STR(logger, "Sources discarded due to threshold: " << itsBelowFluxLimit);
+    ASKAPLOG_DEBUG_STR(logger, "Sources discarded due to flux threshold: " << itsBelowFluxLimit);
     ASKAPLOG_DEBUG_STR(logger, "Sourced discarded due to being outside the search cone: " << itsOutsideSearchCone);
     return list;
 }
@@ -119,7 +114,7 @@ void DuchampAccessor::processLine(const std::string& line,
                                   const casa::Quantity& searchDec,
                                   const casa::Quantity& searchRadius,
                                   const casa::Quantity& fluxLimit,
-                                  casa::ComponentList& list)
+                                  std::vector<askap::cp::skymodelservice::Component>& list)
 {
     // Positions of the tokens of interest
 
@@ -159,22 +154,20 @@ void DuchampAccessor::processLine(const std::string& line,
     }
 
     // Extract the values from the tokens
-    const casa::Double _ra = boost::lexical_cast<casa::Double>(tokens[raPos]);
-    const casa::Double _dec = boost::lexical_cast<casa::Double>(tokens[decPos]);
-    const casa::Double _flux = pow(10.0, boost::lexical_cast<casa::Double>(tokens[fluxPos]));
-    casa::Double _majorAxis = boost::lexical_cast<casa::Double>(tokens[majorAxisPos]);
-    casa::Double _minorAxis = boost::lexical_cast<casa::Double>(tokens[minorAxisPos]);
-    const casa::Double _positionAngle = boost::lexical_cast<casa::Double>(tokens[positionAnglePos]);
+    const casa::Quantity ra(boost::lexical_cast<casa::Double>(tokens[raPos]), "deg");
+    const casa::Quantity dec(boost::lexical_cast<casa::Double>(tokens[decPos]), "deg");
+    const casa::Quantity flux(pow(10.0, boost::lexical_cast<casa::Double>(tokens[fluxPos])), "Jy");
+    casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(tokens[majorAxisPos]), "arcsec");
+    casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(tokens[minorAxisPos]), "arcsec");
+    const casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(tokens[positionAnglePos]), "rad");
 
     // Discard if below flux limit
-    if (_flux < fluxLimit.getValue("Jy")) {
+    if (flux.getValue("Jy") < fluxLimit.getValue("Jy")) {
         itsBelowFluxLimit++;
         return;
     }
 
     // Discard if outside cone
-    const Quantity ra(_ra, "deg");
-    const Quantity dec(_dec, "deg");
     const MVDirection searchRefDir(searchRA, searchDec);
     const MVDirection componentDir(ra, dec);
     const Quantity separation = searchRefDir.separation(componentDir, "deg");
@@ -184,35 +177,20 @@ void DuchampAccessor::processLine(const std::string& line,
         return;
     }
 
-    // Build either a GaussianShape or PointShape
-    const MDirection dir(ra, dec, MDirection::J2000);
-    const Flux<casa::Double> flux(_flux, 0.0, 0.0, 0.0);
-    const ConstantSpectrum spectrum;
-
-    if (_majorAxis > 0.0 || _minorAxis > 0.0) {
-
-        // Ensure major axis is larger than minor axis
-        if (_majorAxis < _minorAxis) {
-            casa::Double tmp = _minorAxis;
-            _minorAxis = _majorAxis;
-            _majorAxis = tmp;
-        }
-
-        ASKAPDEBUGASSERT(_majorAxis >= _minorAxis);
-
-        // Fix for casa::Gaussian2D not liking minor axis of 0.0
-        if (_minorAxis == 0.0) {
-            _minorAxis = 1.0e-15;
-        }
-
-        const GaussianShape shape(dir,
-                                  Quantity(_majorAxis, "arcsec"),
-                                  Quantity(_minorAxis, "arcsec"),
-                                  Quantity(_positionAngle, "rad"));
-
-        list.add(SkyComponent(flux, shape, spectrum));
-    } else {
-        const PointShape shape(dir);
-        list.add(SkyComponent(flux, shape, spectrum));
+    // Ensure major axis is larger than minor axis
+    if (majorAxis.getValue() < minorAxis.getValue()) {
+        casa::Quantity tmp = minorAxis;
+        minorAxis = majorAxis;
+        majorAxis = tmp;
     }
+
+    if (majorAxis.getValue() > 0.0 && minorAxis.getValue() == 0.0) {
+        minorAxis = casa::Quantity(1.0e-15, "arcsec");
+    }
+
+    // Build the Component object and add to the list
+    // NOTE: The Component ID is not used for this accessor
+    askap::cp::skymodelservice::Component c(-1, ra, dec, positionAngle,
+            majorAxis, minorAxis, flux);
+    list.push_back(c);
 }
