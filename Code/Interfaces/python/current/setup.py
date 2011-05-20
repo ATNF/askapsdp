@@ -1,8 +1,9 @@
+import glob
+
 from askapdev.rbuild import setup
 from askapdev.rbuild.dependencies import Dependency
 from setuptools import find_packages
 from setuptools.command.build_py import build_py
-import glob
 from icebuild import build_ice, clean_ice
 
 class build_py2(build_py):

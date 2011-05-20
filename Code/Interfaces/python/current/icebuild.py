@@ -2,7 +2,8 @@ from __future__ import with_statement
 import os
 import glob
 from setuptools import Command
-from askapdev.rbuild.commands import clean as rbuild_clean
+
+from askapdev.rbuild.setup.commands import clean as rbuild_clean
 
 class build_ice(Command):
     description = "Generate ice stubs using slice2py"
