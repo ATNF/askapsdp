@@ -209,7 +209,7 @@ class IceMapperTest : public CppUnit::TestFixture {
 
         void compare(const casa::Complex& expected, const casa::Complex& actual)
         {
-            const int tolerance = 0.000001;
+            const double tolerance = 0.000001;
             CPPUNIT_ASSERT_DOUBLES_EQUAL(expected.real(), actual.real(), tolerance);
             CPPUNIT_ASSERT_DOUBLES_EQUAL(expected.imag(), actual.imag(), tolerance);
         }
@@ -217,7 +217,7 @@ class IceMapperTest : public CppUnit::TestFixture {
         void compare(const askap::interfaces::FloatComplex& expected,
                 const askap::interfaces::FloatComplex& actual)
         {
-            const int tolerance = 0.000001;
+            const double tolerance = 0.000001;
             CPPUNIT_ASSERT_DOUBLES_EQUAL(expected.real, actual.real, tolerance);
             CPPUNIT_ASSERT_DOUBLES_EQUAL(expected.imag, actual.imag, tolerance);
         }
