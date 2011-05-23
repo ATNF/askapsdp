@@ -279,23 +279,21 @@ void MPIBasicComms::sendComponents(const std::vector<askap::cp::skymodelservice:
     int size = components.size();
     send(&size, sizeof(int), dest, itsComponentTag);
 
+    const int nDoubles = 6;
+    double payload[nDoubles];
+
     for (int i = 0; i < size; ++i) {
         // Extract the data from the component
         long id = components[i].id();
-        double ra = components[i].rightAscension().getValue("deg");
-        double dec = components[i].declination().getValue("deg");
-        double positionAngle = components[i].positionAngle().getValue("rad");
-        double majorAxis = components[i].majorAxis().getValue("arcsec");
-        double minorAxis = components[i].minorAxis().getValue("arcsec");
-        double i1400 = components[i].i1400().getValue("Jy");
+        payload[0] = components[i].rightAscension().getValue("deg");
+        payload[1] = components[i].declination().getValue("deg");
+        payload[2] = components[i].positionAngle().getValue("rad");
+        payload[3] = components[i].majorAxis().getValue("arcsec");
+        payload[4] = components[i].minorAxis().getValue("arcsec");
+        payload[5] = components[i].i1400().getValue("Jy");
 
         send(&id, sizeof(long), dest, itsComponentTag);
-        send(&ra, sizeof(double), dest, itsComponentTag);
-        send(&dec, sizeof(double), dest, itsComponentTag);
-        send(&positionAngle, sizeof(double), dest, itsComponentTag);
-        send(&majorAxis, sizeof(double), dest, itsComponentTag);
-        send(&minorAxis, sizeof(double), dest, itsComponentTag);
-        send(&i1400, sizeof(double), dest, itsComponentTag);
+        send(&payload, sizeof(double) * nDoubles, dest, itsComponentTag);
     }
 }
 
@@ -307,6 +305,9 @@ std::vector<askap::cp::skymodelservice::Component> MPIBasicComms::receiveCompone
     int size;
     receive(&size, sizeof(int), source, itsComponentTag, status);
 
+    const int nDoubles = 6;
+    double payload[nDoubles];
+
     std::vector<askap::cp::skymodelservice::Component> components;
     if (size > 0) {
         components.reserve(size);
@@ -314,26 +315,15 @@ std::vector<askap::cp::skymodelservice::Component> MPIBasicComms::receiveCompone
     for (int i = 0; i < size; ++i) {
         long id;
         receive(&id, sizeof(long), source, itsComponentTag, status);
-        double ra;
-        receive(&ra, sizeof(double), source, itsComponentTag, status);
-        double dec;
-        receive(&dec, sizeof(double), source, itsComponentTag, status);
-        double positionAngle;
-        receive(&positionAngle, sizeof(double), source, itsComponentTag, status);
-        double majorAxis;
-        receive(&majorAxis, sizeof(double), source, itsComponentTag, status);
-        double minorAxis;
-        receive(&minorAxis, sizeof(double), source, itsComponentTag, status);
-        double i1400;
-        receive(&i1400, sizeof(double), source, itsComponentTag, status);
+        receive(&payload, sizeof(double) * nDoubles, source, itsComponentTag, status);
 
         components.push_back(askap::cp::skymodelservice::Component(id,
-                    casa::Quantity(ra, "deg"),
-                    casa::Quantity(dec, "deg"),
-                    casa::Quantity(positionAngle, "rad"),
-                    casa::Quantity(majorAxis, "arcsec"),
-                    casa::Quantity(minorAxis, "arcsec"),
-                    casa::Quantity(i1400, "Jy"))); 
+                    casa::Quantity(payload[0], "deg"),
+                    casa::Quantity(payload[1], "deg"),
+                    casa::Quantity(payload[2], "rad"),
+                    casa::Quantity(payload[3], "arcsec"),
+                    casa::Quantity(payload[4], "arcsec"),
+                    casa::Quantity(payload[5], "Jy"))); 
     }
 
     return components;
