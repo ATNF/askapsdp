@@ -1,4 +1,4 @@
-/// @file CasaWriter.h
+/// @file CModelMaster.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,50 +24,33 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_ICASAWRITER_H
-#define ASKAP_CP_PIPELINETASKS_ICASAWRITER_H
-
-// System includes
-#include <vector>
+#ifndef ASKAP_CP_PIPELINETASKS_CMODELMASTER_H
+#define ASKAP_CP_PIPELINETASKS_CMODELMASTER_H
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
-#include "skymodelclient/Component.h"
 
-// Casacore includes
-#include "casa/aipstype.h"
-#include "components/ComponentModels/ComponentList.h"
-#include "coordinates/Coordinates/CoordinateSystem.h"
+// Local package includes
+#include "cmodel/MPIBasicComms.h"
 
 namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief An instance of ILocalSkyModelWriter supporting writing the LSM
-/// to a CASA image.
-class CasaWriter {
+class CModelMaster {
     public:
         /// Constructor
-        CasaWriter(const LOFAR::ParameterSet& parset);
+        CModelMaster(const LOFAR::ParameterSet& parset, MPIBasicComms& comms);
 
-        /// Creates and writes out an image generated from the component list.
-        /// @note The image parameters are read from the itsParset
-        /// member.
-        ///
-        /// @param[in] component    the component list from which the image is
-        ///                         generated.
-        void write(const std::vector<askap::cp::skymodelservice::Component> components);
+        void run(void);
 
     private:
 
-        casa::ComponentList translateComponentList(const std::vector<askap::cp::skymodelservice::Component> components);
-
-        // Create a coordinate system
-        // @note The image parameters are read from the itsParset
-        casa::CoordinateSystem createCoordinateSystem(casa::uInt nx, casa::uInt ny);
-
         // Parameter set
         const LOFAR::ParameterSet itsParset;
+
+        // Reference to MPI comms wrapper
+        MPIBasicComms& itsComms;
 };
 
 }

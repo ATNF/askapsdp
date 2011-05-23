@@ -15,5 +15,11 @@ env.Append(CCFLAGS=['-g'])
 env.Append(CCFLAGS=['-O2'])
 env.Append(CCFLAGS=['-DASKAP_DEBUG'])
 
+# Use MPI compiler wrapper
+env["CC"] = "mpicc"
+env["CXX"] = "mpicxx"
+env["LINK"] = "mpicxx"
+env["SHLINK"] = "mpicxx"
+
 # run the build process
 pkg()

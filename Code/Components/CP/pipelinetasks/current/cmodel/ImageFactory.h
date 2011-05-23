@@ -1,4 +1,4 @@
-/// @file ParsetUtils.h
+/// @file ImageFactory.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,40 +24,37 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_PARSETUTILS_H
-#define ASKAP_CP_PIPELINETASKS_PARSETUTILS_H
+#ifndef ASKAP_CP_PIPELINETASKS_IMAGEFACTORY_H
+#define ASKAP_CP_PIPELINETASKS_IMAGEFACTORY_H
 
 // System includes
 #include <string>
-#include <vector>
 
 // ASKAPsoft includes
+#include "Common/ParameterSet.h"
+
+// Casacore includes
 #include "casa/aipstype.h"
-#include "measures/Measures/MDirection.h"
-#include "casa/Quanta/Quantum.h"
+#include "coordinates/Coordinates/CoordinateSystem.h"
+#include "images/Images/TempImage.h"
+#include "images/Images/PagedImage.h"
 
 namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief A helper class containing functions supporting the parsing of
-/// ParameterSets.
-class ParsetUtils {
+class ImageFactory {
     public:
-        /// @brief Interpret string as an MDirection
-        /// @param[in] direction    string to be interpreted .
-        static casa::MDirection asMDirection(const std::vector<std::string>& direction);
+        static casa::TempImage<casa::Float> createTempImage(const LOFAR::ParameterSet& parset);
 
-        /// @brief Convert a string to a Quantity
-        /// @param[in] strval   string to be interpreted.
-        /// @param[in] unit     ensure the constructed quantity conforms to
-        ///                     units of this type.
-        /// @throw AskapError   if the string "strval" cannot be interpreted as
-        ///                     a quantity which conforms to the units specified
-        ///                     by the "unit" parameters.
-        static casa::Quantum<casa::Double> asQuantity(const std::string& strval,
-                const std::string& unit);
+        static casa::PagedImage<casa::Float> createPagedImage(const LOFAR::ParameterSet& parset,
+                const std::string& filename);
 
+    private:
+        // Create a coordinate system
+        // @note The image parameters are read from the parset
+        static casa::CoordinateSystem createCoordinateSystem(casa::uInt nx, casa::uInt ny,
+                const LOFAR::ParameterSet& parset);
 };
 
 }

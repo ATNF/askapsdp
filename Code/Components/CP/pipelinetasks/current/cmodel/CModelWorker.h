@@ -1,4 +1,4 @@
-/// @file CModelImpl.h
+/// @file CModelWorker.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,27 +24,29 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_CMODELIMPL_H
-#define ASKAP_CP_PIPELINETASKS_CMODELIMPL_H
+#ifndef ASKAP_CP_PIPELINETASKS_CMODELWORKER_H
+#define ASKAP_CP_PIPELINETASKS_CMODELWORKER_H
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
+
+// Local package includes
+#include "cmodel/MPIBasicComms.h"
 
 namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-class CModelImpl {
+class CModelWorker {
     public:
         /// Constructor
-        CModelImpl(const LOFAR::ParameterSet& parset);
+        CModelWorker(MPIBasicComms& comms);
 
         void run(void);
 
     private:
 
-        // Parameter set
-        const LOFAR::ParameterSet itsParset;
+        // Reference to MPI comms wrapper
+        MPIBasicComms& itsComms;
 };
 
 }

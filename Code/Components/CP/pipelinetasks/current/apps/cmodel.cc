@@ -44,10 +44,13 @@
 #include "casa/Logging/LogSinkInterface.h"
 
 // Local packages includes
-#include "cmodel/CModelImpl.h"
+#include "cmodel/MPIBasicComms.h"
+#include "cmodel/CModelMaster.h"
+#include "cmodel/CModelWorker.h"
 
 // Using
 using namespace askap;
+using namespace askap::cp::pipelinetasks;
 
 ASKAP_LOGGER(logger, ".cmodel");
 
@@ -85,9 +88,17 @@ int main(int argc, char *argv[])
     LOFAR::ParameterSet parset(inputsPar);
     LOFAR::ParameterSet subset = parset.makeSubset("Cmodel.");
 
-    // Run the model creator
-    askap::cp::pipelinetasks::CModelImpl impl(subset);
-    impl.run();
+    // Create the comms instance
+    MPIBasicComms comms(argc, argv);
+
+    // Instantiate and run the model creator
+    if (comms.getId() == 0) {
+        CModelMaster master(subset, comms);
+        master.run();
+    } else {
+        CModelWorker worker(comms);
+        worker.run();
+    }
 
     return 0;
 }

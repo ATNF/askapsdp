@@ -47,17 +47,17 @@ class DataserviceAccessor : public IGlobalSkyModel {
     public:
         /// Constructor
         DataserviceAccessor(const std::string& locatorHost,
-                const std::string& locatorPort,
-                const std::string& serviceName);
+                            const std::string& locatorPort,
+                            const std::string& serviceName);
 
         // Destructor
         ~DataserviceAccessor();
 
         // Conesearch (or filter)
         virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
-                                               const casa::Quantity& dec,
-                                               const casa::Quantity& searchRadius,
-                                               const casa::Quantity& fluxLimit);
+                const casa::Quantity& dec,
+                const casa::Quantity& searchRadius,
+                const casa::Quantity& fluxLimit);
 
     private:
         askap::cp::skymodelservice::SkyModelServiceClient itsService;

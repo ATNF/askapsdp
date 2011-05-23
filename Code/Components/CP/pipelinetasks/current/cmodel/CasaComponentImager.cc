@@ -1,4 +1,4 @@
-/// @file CasaWriter.cc
+/// @file CasaComponentImager.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,13 +25,12 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "cmodel/CasaWriter.h"
+#include "cmodel/CasaComponentImager.h"
 
 // Include package level header file
 #include "askap_pipelinetasks.h"
 
 // System includes
-#include <string>
 #include <vector>
 
 // ASKAPsoft includes
@@ -42,9 +41,7 @@
 
 // Casacore includes
 #include "casa/aipstype.h"
-#include "casa/Quanta/MVAngle.h"
 #include "casa/Quanta/Quantum.h"
-#include "casa/Arrays/Matrix.h"
 #include "measures/Measures/MDirection.h"
 #include "components/ComponentModels/ComponentList.h"
 #include "components/ComponentModels/SkyComponent.h"
@@ -52,13 +49,8 @@
 #include "components/ComponentModels/PointShape.h"
 #include "components/ComponentModels/ConstantSpectrum.h"
 #include "components/ComponentModels/Flux.h"
-#include "images/Images/PagedImage.h"
 #include "images/Images/ComponentImager.h"
-#include "casa/Arrays/IPosition.h"
-#include "lattices/Lattices/TiledShape.h"
-#include "coordinates/Coordinates/CoordinateSystem.h"
-#include "coordinates/Coordinates/DirectionCoordinate.h"
-#include "coordinates/Coordinates/SpectralCoordinate.h"
+#include "images/Images/ImageInterface.h"
 
 // Local package includes
 #include "cmodel/ParsetUtils.h"
@@ -67,77 +59,21 @@
 using namespace askap::cp::pipelinetasks;
 using namespace casa;
 
-ASKAP_LOGGER(logger, ".CasaWriter");
+ASKAP_LOGGER(logger, ".CasaComponentImager");
 
-CasaWriter::CasaWriter(const LOFAR::ParameterSet& parset)
+CasaComponentImager::CasaComponentImager(const LOFAR::ParameterSet& parset)
         : itsParset(parset)
 {
 }
 
-void CasaWriter::write(const std::vector<askap::cp::skymodelservice::Component> components)
+void CasaComponentImager::projectComponents(const std::vector<askap::cp::skymodelservice::Component>& components,
+        casa::ImageInterface<casa::Float>& image)
 {
-    const casa::uInt nx = itsParset.getUintVector("shape").at(0);
-    const casa::uInt ny = itsParset.getUintVector("shape").at(1);
-    const std::string units = itsParset.getString("bunit");
-    const std::string imageName = itsParset.getString("filename");
-
-    // Open the image
-    IPosition shape(3, nx, ny, 1);
-
-    CoordinateSystem coordsys = createCoordinateSystem(nx, ny);
-    PagedImage<Float> image(TiledShape(shape), coordsys, imageName);
-
-    // Set brightness units
-    image.setUnits(casa::Unit(units));
-
     // Build the image
     ComponentImager::project(image, translateComponentList(components));
 }
 
-casa::CoordinateSystem CasaWriter::createCoordinateSystem(casa::uInt nx, casa::uInt ny)
-{
-    CoordinateSystem coordsys;
-    const std::vector<std::string> dirVector = itsParset.getStringVector("direction");
-    const std::vector<std::string> cellSizeVector = itsParset.getStringVector("cellsize");
-    const casa::MDirection refDir = ParsetUtils::asMDirection(dirVector);
-
-    // Direction Coordinate
-    {
-        Matrix<Double> xform(2, 2);
-        xform = 0.0;
-        xform.diagonal() = 1.0;
-        const Quantum<Double> ra = ParsetUtils::asQuantity(dirVector.at(0), "deg");
-        const Quantum<Double> dec = ParsetUtils::asQuantity(dirVector.at(1), "deg");
-        ASKAPLOG_INFO_STR(logger, "Direction: " << ra.getValue() << " degrees, "
-                << dec.getValue() << " degrees");
-
-        const Quantum<Double> xcellsize = ParsetUtils::asQuantity(cellSizeVector.at(0), "arcsec") * -1.0;
-        const Quantum<Double> ycellsize = ParsetUtils::asQuantity(cellSizeVector.at(1), "arcsec");
-        ASKAPLOG_INFO_STR(logger, "Cellsize: " << xcellsize.getValue()
-                << " arcsec, " << ycellsize.getValue() << " arcsec");
-
-        casa::MDirection::Types type;
-        casa::MDirection::getType(type, dirVector.at(2));
-        const DirectionCoordinate radec(type, Projection(Projection::SIN),
-                                        ra, dec, xcellsize, ycellsize, xform, nx / 2, ny / 2);
-
-        coordsys.addCoordinate(radec);
-    }
-
-    // Spectral Coordinate
-    {
-        const Quantum<Double> f0 = ParsetUtils::asQuantity(itsParset.getString("frequency"), "Hz");
-        const Quantum<Double> inc = ParsetUtils::asQuantity(itsParset.getString("increment"), "Hz");
-        const Double refPix = 0.0;  // is the reference pixel
-        const SpectralCoordinate sc(MFrequency::TOPO, f0, inc, refPix);
-
-        coordsys.addCoordinate(sc);
-    }
-
-    return coordsys;
-}
-
-casa::ComponentList CasaWriter::translateComponentList(const std::vector<askap::cp::skymodelservice::Component> components)
+casa::ComponentList CasaComponentImager::translateComponentList(const std::vector<askap::cp::skymodelservice::Component>& components)
 {
     casa::ComponentList list;
 
@@ -152,7 +88,6 @@ casa::ComponentList CasaWriter::translateComponentList(const std::vector<askap::
 
         // Is guassian or point shape?
         if (c.majorAxis().getValue() > 0.0 || c.minorAxis().getValue() > 0.0) {
-            std::cerr << "Major axis: " << c.majorAxis().getValue("arcsec") << ", Minor axis: " << c.minorAxis().getValue("arcsec") << std::endl;
             ASKAPDEBUGASSERT(c.majorAxis().getValue("arcsec") >= c.minorAxis().getValue("arcsec"));
 
             // If one is > 0, both must be

@@ -80,7 +80,7 @@ std::vector<askap::cp::skymodelservice::Component> DuchampAccessor::coneSearch(c
         const casa::Quantity& searchRadius,
         const casa::Quantity& fluxLimit)
 {
-    ASKAPLOG_DEBUG_STR(logger, "Cone search - ra: " << ra.getValue("deg")
+    ASKAPLOG_INFO_STR(logger, "Cone search - ra: " << ra.getValue("deg")
                            << " deg, dec: " << dec.getValue("deg")
                            << " deg, radius: " << searchRadius.getValue("deg")
                            << " deg, Fluxlimit: " << fluxLimit.getValue("Jy") << " Jy");

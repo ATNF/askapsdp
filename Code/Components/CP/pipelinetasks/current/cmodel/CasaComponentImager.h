@@ -1,4 +1,4 @@
-/// @file ParsetUtils.h
+/// @file CasaComponentImager.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,40 +24,45 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_PARSETUTILS_H
-#define ASKAP_CP_PIPELINETASKS_PARSETUTILS_H
+#ifndef ASKAP_CP_PIPELINETASKS_CASACOMPONENTIMAGER_H
+#define ASKAP_CP_PIPELINETASKS_CASACOMPONENTIMAGER_H
 
 // System includes
-#include <string>
 #include <vector>
 
 // ASKAPsoft includes
-#include "casa/aipstype.h"
-#include "measures/Measures/MDirection.h"
-#include "casa/Quanta/Quantum.h"
+#include "Common/ParameterSet.h"
+#include "skymodelclient/Component.h"
+
+// Casacore includes
+#include "components/ComponentModels/ComponentList.h"
+#include "images/Images/ImageInterface.h"
 
 namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief A helper class containing functions supporting the parsing of
-/// ParameterSets.
-class ParsetUtils {
+/// @brief A wrapper around the CASA component imager.
+class CasaComponentImager {
     public:
-        /// @brief Interpret string as an MDirection
-        /// @param[in] direction    string to be interpreted .
-        static casa::MDirection asMDirection(const std::vector<std::string>& direction);
+        /// Constructor
+        /// @param[in] parset   input parameters.
+        CasaComponentImager(const LOFAR::ParameterSet& parset);
 
-        /// @brief Convert a string to a Quantity
-        /// @param[in] strval   string to be interpreted.
-        /// @param[in] unit     ensure the constructed quantity conforms to
-        ///                     units of this type.
-        /// @throw AskapError   if the string "strval" cannot be interpreted as
-        ///                     a quantity which conforms to the units specified
-        ///                     by the "unit" parameters.
-        static casa::Quantum<casa::Double> asQuantity(const std::string& strval,
-                const std::string& unit);
+        /// Project components onto the image
+        /// @param[in] vector of components to be projected.
+        /// @param[in] image to which the components will be projected.
+        void projectComponents(const std::vector<askap::cp::skymodelservice::Component>& components,
+                               casa::ImageInterface<casa::Float>& image);
 
+    private:
+        // Converts a vector of components (as obtained from the sky model
+        // service) into CASA omponents.
+        casa::ComponentList translateComponentList(
+            const std::vector<askap::cp::skymodelservice::Component>& components);
+
+        // Parameter set
+        const LOFAR::ParameterSet itsParset;
 };
 
 }
