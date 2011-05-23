@@ -37,11 +37,13 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
+/// @brief Implementation of the cmodel program for the master process.
 class CModelMaster {
     public:
         /// Constructor
         CModelMaster(const LOFAR::ParameterSet& parset, MPIBasicComms& comms);
 
+        /// Run the master
         void run(void);
 
     private:

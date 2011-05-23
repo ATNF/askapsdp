@@ -60,16 +60,21 @@ class DuchampAccessor : public IGlobalSkyModel {
         /// @param[in] stream   istream from which data will be read.
         DuchampAccessor(const std::stringstream& sstream);
 
-        // Destructor
-        ~DuchampAccessor();
+        /// Destructor
+        virtual ~DuchampAccessor();
 
-        // Conesearch (or filter)
+        /// @see askap::cp::pipelinetasks::IGlobalSkyModel::coneSearch
         virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
                 const casa::Quantity& dec,
                 const casa::Quantity& searchRadius,
                 const casa::Quantity& fluxLimit);
 
     private:
+
+        // Process a single (non comment) line of the input file.
+        // This method processes a line, building a component instance
+        // for each component which meets the search radius and flux limit
+        // criteria. The component is then added to the list.
         void processLine(const std::string& line,
                          const casa::Quantity& searchRA,
                          const casa::Quantity& searchDec,
@@ -78,7 +83,11 @@ class DuchampAccessor : public IGlobalSkyModel {
                          std::vector<askap::cp::skymodelservice::Component>& list);
 
         boost::scoped_ptr<std::istream> itsFile;
+
+        // Count of components below the flux limit
         casa::uLong itsBelowFluxLimit;
+
+        // Count of components outside of the search radius
         casa::uLong itsOutsideSearchCone;
 };
 

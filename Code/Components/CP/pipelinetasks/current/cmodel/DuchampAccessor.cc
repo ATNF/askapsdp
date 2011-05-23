@@ -171,7 +171,6 @@ void DuchampAccessor::processLine(const std::string& line,
     const MVDirection searchRefDir(searchRA, searchDec);
     const MVDirection componentDir(ra, dec);
     const Quantity separation = searchRefDir.separation(componentDir, "deg");
-
     if (separation.getValue("deg") > searchRadius.getValue("deg")) {
         itsOutsideSearchCone++;
         return;
@@ -184,12 +183,13 @@ void DuchampAccessor::processLine(const std::string& line,
         majorAxis = tmp;
     }
 
+    // Ensure if major axis is non-zero, so is the minor axis
     if (majorAxis.getValue() > 0.0 && minorAxis.getValue() == 0.0) {
         minorAxis = casa::Quantity(1.0e-15, "arcsec");
     }
 
     // Build the Component object and add to the list
-    // NOTE: The Component ID is not used for this accessor
+    // NOTE: The Component ID has no meaning for this accessor
     askap::cp::skymodelservice::Component c(-1, ra, dec, positionAngle,
             majorAxis, minorAxis, flux);
     list.push_back(c);

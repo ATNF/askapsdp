@@ -36,11 +36,13 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
+/// @brief Implementation of the cmodel program for the worker process.
 class CModelWorker {
     public:
         /// Constructor
         CModelWorker(MPIBasicComms& comms);
 
+        /// Run the worker.
         void run(void);
 
     private:

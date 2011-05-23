@@ -51,15 +51,17 @@ class DataserviceAccessor : public IGlobalSkyModel {
                             const std::string& serviceName);
 
         // Destructor
-        ~DataserviceAccessor();
+        virtual ~DataserviceAccessor();
 
-        // Conesearch (or filter)
+        /// @see askap::cp::pipelinetasks::IGlobalSkyModel::coneSearch
         virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
                 const casa::Quantity& dec,
                 const casa::Quantity& searchRadius,
                 const casa::Quantity& fluxLimit);
 
     private:
+
+        // Handle to the sky model service
         askap::cp::skymodelservice::SkyModelServiceClient itsService;
 };
 

@@ -42,7 +42,7 @@ namespace pipelinetasks {
 class IGlobalSkyModel {
     public:
         // Destructor
-        ~IGlobalSkyModel();
+        virtual ~IGlobalSkyModel();
 
         /// Conesearch (or filter)
         /// @param[in] ra right ascension for search centre (units: degrees)

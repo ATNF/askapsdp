@@ -83,7 +83,6 @@ void CModelWorker::run(void)
     std::vector<askap::cp::skymodelservice::Component> list = itsComms.receiveComponents(0);
 
     while (!list.empty()) {
-        ASKAPLOG_DEBUG_STR(logger, "# RA: " << list.at(0).rightAscension());
         ASKAPLOG_DEBUG_STR(logger, "Imaging list of " << list.size() << " components");
         imager.projectComponents(list, image);
 
