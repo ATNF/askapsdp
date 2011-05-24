@@ -66,7 +66,7 @@ ComponentResultSet::Iterator::Iterator()
 
 bool ComponentResultSet::Iterator::hasNext() const
 {
-    if (itsIndex < (itsComponentList->size() - 1)) {
+    if (itsIndex < (itsComponentList->size())) {
         return true;
     } else {
         return false;

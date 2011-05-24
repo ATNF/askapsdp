@@ -83,9 +83,12 @@ std::vector<askap::cp::skymodelservice::Component> DataserviceAccessor::coneSear
     ComponentResultSet rs = itsService.coneSearch(ra, dec, searchRadius, fluxLimit);
     ComponentResultSet::Iterator it = rs.createIterator();
     std::vector<askap::cp::skymodelservice::Component> list;
-    while (it.hasNext()) {
-        it.next();
+    if (rs.size() > 0) {
         list.push_back(*it);
+        while (it.hasNext()) {
+            it.next();
+            list.push_back(*it);
+        }
     }
 
     // Post-conditions
