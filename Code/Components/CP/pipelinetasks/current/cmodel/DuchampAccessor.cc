@@ -104,8 +104,8 @@ std::vector<askap::cp::skymodelservice::Component> DuchampAccessor::coneSearch(c
         }
     }
 
-    ASKAPLOG_DEBUG_STR(logger, "Sources discarded due to flux threshold: " << itsBelowFluxLimit);
-    ASKAPLOG_DEBUG_STR(logger, "Sourced discarded due to being outside the search cone: " << itsOutsideSearchCone);
+    ASKAPLOG_INFO_STR(logger, "Sources discarded due to flux threshold: " << itsBelowFluxLimit);
+    ASKAPLOG_INFO_STR(logger, "Sourced discarded due to being outside the search cone: " << itsOutsideSearchCone);
     return list;
 }
 
