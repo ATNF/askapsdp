@@ -33,7 +33,6 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -51,7 +50,6 @@
 #include "casa/aipstype.h"
 #include "casa/Quanta/Quantum.h"
 #include "casa/Quanta/MVDirection.h"
-#include "measures/Measures/MDirection.h"
 
 // Using
 using namespace casa;
@@ -116,6 +114,12 @@ void DuchampAccessor::processLine(const std::string& line,
                                   const casa::Quantity& fluxLimit,
                                   std::vector<askap::cp::skymodelservice::Component>& list)
 {
+    // Create these once to avoid the performance impact of creating them over and over.
+    static casa::Unit deg("deg");
+    static casa::Unit rad("rad");
+    static casa::Unit arcsec("arcsec");
+    static casa::Unit Jy("Jy");
+
     // Positions of the tokens of interest
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -154,15 +158,15 @@ void DuchampAccessor::processLine(const std::string& line,
     }
 
     // Extract the values from the tokens
-    const casa::Quantity ra(boost::lexical_cast<casa::Double>(tokens[raPos]), "deg");
-    const casa::Quantity dec(boost::lexical_cast<casa::Double>(tokens[decPos]), "deg");
-    const casa::Quantity flux(pow(10.0, boost::lexical_cast<casa::Double>(tokens[fluxPos])), "Jy");
-    casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(tokens[majorAxisPos]), "arcsec");
-    casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(tokens[minorAxisPos]), "arcsec");
-    const casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(tokens[positionAnglePos]), "rad");
+    const casa::Quantity ra(boost::lexical_cast<casa::Double>(tokens[raPos]), deg);
+    const casa::Quantity dec(boost::lexical_cast<casa::Double>(tokens[decPos]), deg);
+    const casa::Quantity flux(pow(10.0, boost::lexical_cast<casa::Double>(tokens[fluxPos])), Jy);
+    casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(tokens[majorAxisPos]), arcsec);
+    casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(tokens[minorAxisPos]), arcsec);
+    const casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(tokens[positionAnglePos]), rad);
 
     // Discard if below flux limit
-    if (flux.getValue("Jy") < fluxLimit.getValue("Jy")) {
+    if (flux.getValue(Jy) < fluxLimit.getValue(Jy)) {
         itsBelowFluxLimit++;
         return;
     }
@@ -170,8 +174,8 @@ void DuchampAccessor::processLine(const std::string& line,
     // Discard if outside cone
     const MVDirection searchRefDir(searchRA, searchDec);
     const MVDirection componentDir(ra, dec);
-    const Quantity separation = searchRefDir.separation(componentDir, "deg");
-    if (separation.getValue("deg") > searchRadius.getValue("deg")) {
+    const Quantity separation = searchRefDir.separation(componentDir, deg);
+    if (separation.getValue(deg) > searchRadius.getValue(deg)) {
         itsOutsideSearchCone++;
         return;
     }
@@ -185,7 +189,7 @@ void DuchampAccessor::processLine(const std::string& line,
 
     // Ensure if major axis is non-zero, so is the minor axis
     if (majorAxis.getValue() > 0.0 && minorAxis.getValue() == 0.0) {
-        minorAxis = casa::Quantity(1.0e-15, "arcsec");
+        minorAxis = casa::Quantity(1.0e-15, arcsec);
     }
 
     // Build the Component object and add to the list
