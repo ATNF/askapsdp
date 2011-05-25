@@ -21,4 +21,4 @@ Cmodel.stokes             = [I]
 
 # Output specific parameters
 Cmodel.output             = casa
-Cmodel.filename           = image_1mJy.skymodel
+Cmodel.filename           = image_10mJy.skymodel
