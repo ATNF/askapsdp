@@ -44,14 +44,16 @@ namespace skymodelservice {
 
 /// Encapsulates a result set from the sky model service cone search.
 /// Contains an iterator which may be used to access the individual components.
+/// Upon creation of the iterator it points to the first element in the 
+/// result set.
 ///
 /// The below example illustrates how to use the iterator:
 /// @code
 ///   ComponentResultSet rs = itsService.coneSearch(.....);
 ///    ComponentResultSet::Iterator it = rs.createIterator();
 ///    while (it.hasNext()) {
-///      it.next();
 ///      const Component& c = *it;
+///      it.next();
 ///    }
 /// @endcode
 class ComponentResultSet {
@@ -73,23 +75,41 @@ class ComponentResultSet {
         class Iterator
         {
             public:
+
+                /// The class ComponentResultSet is a friend so it can call the
+                /// private init method.
+                friend class ComponentResultSet;
+
                 /// Constructor.
-                /// @note This is intended to be used by ComponentResultSet::createIterator() only.
+                /// @note This is intended to be used by ComponentResultSet::createIterator()
+                /// only.
                 Iterator();
 
+                /// Move the cursor forward one position
+                /// @throw AskapError In the case the cursor is already pointing
+                /// to the last element. If hasNext() returns true, this
+                /// exception will not be thrown.
                 void next();
 
+                /// Returns true if the cursor is still not at the end of
+                /// the iterator.
+                bool hasNext() const;
+
+                /// Access the element the cursor currently refers to.
                 const Component& operator*();
 
+                /// Access the element the cursor currently refers to.
                 const Component* operator->();
 
-                bool hasNext() const;
+            private:
 
                 /// @note This is intended to be used by ComponentResultSet::createIterator() only.
                 void init(const askap::interfaces::skymodelservice::ComponentIdSeq* componentList,
                         askap::interfaces::skymodelservice::ISkyModelServicePrx* service);
 
-            private:
+                // Fills the buffer (itsComponentBuffer) with components
+                void fillBuffer(void);
+
                 // Index/iterator position
                 size_t itsIndex;
 
@@ -102,7 +122,7 @@ class ComponentResultSet {
                 askap::interfaces::skymodelservice::ISkyModelServicePrx* itsService;
 
                 // Buffer - The component the iterator currently points to.
-                boost::shared_ptr<Component> itsComponent;
+                std::deque< boost::shared_ptr<Component> > itsComponentBuffer;
         };
 
         /// Create an iterator.

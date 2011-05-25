@@ -66,52 +66,104 @@ ComponentResultSet::Iterator::Iterator()
 
 bool ComponentResultSet::Iterator::hasNext() const
 {
-    if (itsIndex < (itsComponentList->size())) {
+    ASKAPCHECK(itsComponentList && itsService, "Iterator not initialised");
+    if ((itsComponentBuffer.size() > 1) || (itsIndex < (itsComponentList->size()))) {
         return true;
     } else {
         return false;
     }
 }
 
+// The iterator always points to the component at the front of the 
+// itsComponentBuffer queue. The next() method has a post condition
+// which ensures the buffer is not empty.
 void ComponentResultSet::Iterator::next()
 {
     // Pre-conditions
-    ASKAPCHECK(!itsComponentList->empty(), "Component list is empty");
-    ASKAPCHECK(itsIndex < itsComponentList->size(),
+    ASKAPCHECK(hasNext(), "Component result set overrun");
+    ASKAPCHECK(itsComponentList && itsService, "Iterator not initialised");
+
+    // If the deque has less than two components, and if there
+    // are more to be read from the server then buffer another batch
+    if ((itsComponentBuffer.size() <= 2) &&
+            (itsIndex+1 < itsComponentList->size())) {
+        fillBuffer();
+    }
+
+    // Assuming the buffer has more than two components (checked above)
+    // then incrementing the iterator simply involves poping the component
+    // off the front of the deque.
+    itsComponentBuffer.pop_front();
+
+    // Post-conditions
+    ASKAPCHECK(itsIndex <= itsComponentList->size(),
             "Index to component list out of bounds");
-
-    askap::interfaces::skymodelservice::ComponentIdSeq ids;
-    ids.push_back(itsComponentList->at(itsIndex));
-    itsIndex++;
-
-    askap::interfaces::skymodelservice::ComponentSeq resultset = (*itsService)->getComponents(ids);
-    ASKAPDEBUGASSERT(resultset.size() > 0);
-    askap::interfaces::skymodelservice::Component* c = &resultset[0]; 
-    itsComponent.reset(new Component(c->id,
-                casa::Quantity(c->rightAscension, "deg"),
-                casa::Quantity(c->declination, "deg"),
-                casa::Quantity(c->positionAngle, "rad"),
-                casa::Quantity(c->majorAxis, "arcsec"),
-                casa::Quantity(c->minorAxis, "arcsec"),
-                casa::Quantity(c->i1400, "Jy")));
+    ASKAPCHECK(!itsComponentBuffer.empty(), "Component list is empty");
 }
 
 const Component& ComponentResultSet::Iterator::operator*()
 {
-    ASKAPDEBUGASSERT(itsComponent.get() != 0);
-    return *itsComponent;
+    ASKAPCHECK(itsComponentList && itsService, "Iterator not initialised");
+    ASKAPDEBUGASSERT(itsComponentBuffer.front().get() != 0);
+    return *(itsComponentBuffer.front());
 }
 
 const Component* ComponentResultSet::Iterator::operator->()
 {
-    return itsComponent.get();
+    ASKAPCHECK(itsComponentList && itsService, "Iterator not initialised");
+    return itsComponentBuffer.front().get();
 }
 
 void ComponentResultSet::Iterator::init(
         const askap::interfaces::skymodelservice::ComponentIdSeq* componentList,
         askap::interfaces::skymodelservice::ISkyModelServicePrx* service)
 {
+    ASKAPCHECK(componentList->size() > 0, "Component list is empty");
     itsComponentList = componentList;
     itsService = service;
-    next();
+    fillBuffer();
+}
+
+void ComponentResultSet::Iterator::fillBuffer(void)
+{
+    // Pre-conditions
+    ASKAPCHECK(itsComponentList && itsService, "Iterator not initialised");
+    ASKAPCHECK(itsIndex < itsComponentList->size(),
+            "Index to component list out of bounds");
+
+    // Maximum number of components to get in one batch
+    const size_t batchSize = 1000;
+
+    // Build a list of which components to obtain
+    askap::interfaces::skymodelservice::ComponentIdSeq ids;
+    for (size_t i = 0; i < batchSize; ++i) {
+        if (itsIndex >= itsComponentList->size()) {
+            break;
+        }
+        ids.push_back(itsComponentList->at(itsIndex));
+        itsIndex++;
+    }
+    ASKAPCHECK(ids.size() > 0, "Component list is empty");
+
+    // Perform the RPC
+    askap::interfaces::skymodelservice::ComponentSeq resultset = (*itsService)->getComponents(ids);
+    ASKAPCHECK(ids.size() == resultset.size(), "Downloaded list size != requested size");
+
+    // Add those recieved components to the deque
+    for (size_t i = 0; i < resultset.size(); ++i) {
+        askap::interfaces::skymodelservice::Component* c = &resultset[i]; 
+        boost::shared_ptr<Component> component(new Component(c->id,
+                    casa::Quantity(c->rightAscension, "deg"),
+                    casa::Quantity(c->declination, "deg"),
+                    casa::Quantity(c->positionAngle, "rad"),
+                    casa::Quantity(c->majorAxis, "arcsec"),
+                    casa::Quantity(c->minorAxis, "arcsec"),
+                    casa::Quantity(c->i1400, "Jy")));
+        itsComponentBuffer.push_back(component);
+    }
+
+    // Post-conditions
+    ASKAPCHECK(itsIndex <= itsComponentList->size(),
+            "Index to component list out of bounds");
+    ASKAPCHECK(!itsComponentBuffer.empty(), "Component list is empty");
 }
