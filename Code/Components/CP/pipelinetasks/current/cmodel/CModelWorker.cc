@@ -30,9 +30,6 @@
 // Include package level header file
 #include "askap_pipelinetasks.h"
 
-// System includes
-#include <sstream>
-
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
@@ -69,27 +66,20 @@ void CModelWorker::run(void)
     // Obtain the parset via broadcast
     itsComms.broadcastParset(parset, 0);
 
-    // Name for the image (note: this is temporary, need to use TempImage)
-    std::stringstream ss;
-    ss << "image.worker_" << itsComms.getId();
-
-    // Create an image and project the components
-    casa::PagedImage<casa::Float> image = ImageFactory::createPagedImage(parset, ss.str());
-
+    // Create a TempImage and the component imager
+    casa::TempImage<casa::Float> image = ImageFactory::createTempImage(parset);
     CasaComponentImager imager(parset);
 
-    // Signal master ready and Receive initial set of components
-    itsComms.signalReady(0);
-    std::vector<askap::cp::skymodelservice::Component> list = itsComms.receiveComponents(0);
-
-    while (!list.empty()) {
-        ASKAPLOG_DEBUG_STR(logger, "Imaging list of " << list.size() << " components");
-        imager.projectComponents(list, image);
-
-        // Signal ready again and receive the next batch of components
+    // Signal master ready, receive and image components until the master
+    // signals completion by sending an empty list
+    std::vector<askap::cp::skymodelservice::Component> list;
+    do {
         itsComms.signalReady(0);
         list = itsComms.receiveComponents(0);
-    }
+
+        ASKAPLOG_DEBUG_STR(logger, "Imaging list of " << list.size() << " components");
+        imager.projectComponents(list, image);
+    } while (!list.empty());
 
     ASKAPLOG_DEBUG_STR(logger, "Beginning reduction");
     itsComms.sumImages(image, 0);

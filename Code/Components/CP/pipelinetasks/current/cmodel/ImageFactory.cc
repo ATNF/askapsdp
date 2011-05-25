@@ -69,7 +69,7 @@ casa::TempImage<casa::Float> ImageFactory::createTempImage(const LOFAR::Paramete
     IPosition shape(3, nx, ny, 1);
 
     CoordinateSystem coordsys = createCoordinateSystem(nx, ny, parset);
-    casa::TempImage<casa::Float> image(casa::TempImage<casa::Float>(TiledShape(shape), coordsys));
+    casa::TempImage<casa::Float> image(TiledShape(shape), coordsys);
 
     // Set brightness units
     image.setUnits(casa::Unit(units));
@@ -82,7 +82,6 @@ casa::PagedImage<casa::Float> ImageFactory::createPagedImage(const LOFAR::Parame
     const casa::uInt nx = parset.getUintVector("shape").at(0);
     const casa::uInt ny = parset.getUintVector("shape").at(1);
     const std::string units = parset.getString("bunit");
-    //const std::string filename = parset.getString("filename");
 
     // Open the image
     IPosition shape(3, nx, ny, 1);
