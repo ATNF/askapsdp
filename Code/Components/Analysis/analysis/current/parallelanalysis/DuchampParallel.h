@@ -47,12 +47,22 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 namespace askap {
     namespace analysis {
 
       /// @brief An enumeration describing what data we're after when reading CASA images
       enum DATATYPE { IMAGE, METADATA};
+
+/*       /// Comparison operator for Voxels */
+/*       struct voxComp { */
+/* 	bool operator() (const PixelInfo::Voxel &lhs, const PixelInfo::Voxel &rhs) const { */
+/* 	  if(lhs.getZ()!=rhs.getZ()) return lhs.getZ()<rhs.getZ(); */
+/* 	  else if(lhs.getY()!=rhs.getY()) return lhs.getY()<rhs.getY(); */
+/* 	  else return lhs.getX()<rhs.getX(); */
+/* 	} */
+/*       }; */
 
         /// @brief Support for parallel source finding
         ///
@@ -222,8 +232,13 @@ namespace askap {
 		/// Whether to write a casa image containing the S/N ratio
 		bool itsFlagWriteSNRimage;
 
+		/// Name of S/N image to be written
+		std::string itsSNRimageName;
+		
                 /// The list of voxels encompassing detected sources (only for those on the edges of subimages), with fluxes.
                 std::vector<PixelInfo::Voxel> itsVoxelList;
+/*                 std::map<PixelInfo::Voxel,float,voxComp> itsVoxelMap; */
+		std::map<PixelInfo::Voxel,float> itsVoxelMap;
 
                 /// The list of voxels for edge sources that encodes the S/N ratio (only used when itsFlagDoMedianSearch is true)
                 std::vector<PixelInfo::Voxel> itsSNRVoxelList;
