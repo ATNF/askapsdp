@@ -100,7 +100,6 @@ casa::CoordinateSystem ImageFactory::createCoordinateSystem(casa::uInt nx, casa:
     CoordinateSystem coordsys;
     const std::vector<std::string> dirVector = parset.getStringVector("direction");
     const std::vector<std::string> cellSizeVector = parset.getStringVector("cellsize");
-    const casa::MDirection refDir = ParsetUtils::asMDirection(dirVector);
 
     // Direction Coordinate
     {

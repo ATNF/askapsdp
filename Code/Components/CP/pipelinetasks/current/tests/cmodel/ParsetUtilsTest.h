@@ -63,6 +63,12 @@ class ParsetUtilsTest : public CppUnit::TestFixture {
             input.push_back("12h30m00.00");
             input.push_back("-45.00.00.00");
             input.push_back("J2000");
+
+            const casa::MDirection dir = ParsetUtils::asMDirection(input);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-172.5, dir.getAngle("deg").getValue()(0),
+                    dblTolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(-45.0, dir.getAngle("deg").getValue()(1),
+                    dblTolerance);
         }
 
         void testAsQuantity() {
@@ -115,7 +121,7 @@ class ParsetUtilsTest : public CppUnit::TestFixture {
         }
 
         private:
-            static const double dblTolerance = 10e-15;
+            static const double dblTolerance = 10e-14;
 };
 
 }   // End namespace pipelinetasks

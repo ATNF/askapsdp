@@ -82,6 +82,13 @@ class DuchampAccessor : public IGlobalSkyModel {
                          const casa::Quantity& fluxLimit,
                          std::vector<askap::cp::skymodelservice::Component>& list);
 
+        // This should be a temporary function. It is used to get the column
+        // index for the data of interest. Currently this exists so both the
+        // Duchamp file format and SKADS database extract can be read by
+        // this class. 
+        std::vector<casa::uShort> getPositions(const casa::uShort nTokens);
+
+        // File stream from which components will be read
         boost::scoped_ptr<std::istream> itsFile;
 
         // Count of components below the flux limit

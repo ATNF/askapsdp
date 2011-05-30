@@ -120,32 +120,6 @@ void DuchampAccessor::processLine(const std::string& line,
     static casa::Unit arcsec("arcsec");
     static casa::Unit Jy("Jy");
 
-    // Positions of the tokens of interest
-
-    //////////////////////////////////////////////////////////////////////////////////////
-    // The below is the Duchamp ASCII format
-    //////////////////////////////////////////////////////////////////////////////////////
-    /*
-       const casa::Short totalTokens = 17;
-       const casa::Short raPos = 1;
-       const casa::Short decPos = 2;
-       const casa::Short fluxPos = 3;
-       const casa::Short majorAxisPos = 7;
-       const casa::Short minorAxisPos = 8;
-       const casa::Short positionAnglePos = 9;
-       */
-
-    //////////////////////////////////////////////////////////////////////////////////////
-    // The below Matt's SKADS .dat file format
-    //////////////////////////////////////////////////////////////////////////////////////
-    const casa::uShort totalTokens = 13;
-    const casa::uShort raPos = 3;
-    const casa::uShort decPos = 4;
-    const casa::uShort fluxPos = 10;
-    const casa::uShort majorAxisPos = 6;
-    const casa::uShort minorAxisPos = 7;
-    const casa::uShort positionAnglePos = 5;
-
     // Tokenize the line
     stringstream iss(line);
     vector<string> tokens;
@@ -153,14 +127,29 @@ void DuchampAccessor::processLine(const std::string& line,
          istream_iterator<string>(),
          back_inserter<vector<string> >(tokens));
 
-    if (tokens.size() != totalTokens) {
-        ASKAPTHROW(AskapError, "Malformed entry - Expected " << totalTokens << " tokens");
-    }
+    // Positions of the tokens of interest
+    const std::vector<casa::uShort> positions = getPositions(tokens.size());
+    ASKAPDEBUGASSERT(positions.size() == 6);
+    const casa::uShort raPos = positions[0];
+    const casa::uShort decPos = positions[1];
+    const casa::uShort fluxPos = positions[2];
+    const casa::uShort majorAxisPos = positions[3];
+    const casa::uShort minorAxisPos = positions[4];
+    const casa::uShort positionAnglePos = positions[5];
 
     // Extract the values from the tokens
     const casa::Quantity ra(boost::lexical_cast<casa::Double>(tokens[raPos]), deg);
     const casa::Quantity dec(boost::lexical_cast<casa::Double>(tokens[decPos]), deg);
-    const casa::Quantity flux(pow(10.0, boost::lexical_cast<casa::Double>(tokens[fluxPos])), Jy);
+
+    // Need to get rid of this hack to support the SKADS type. The plan is to drop
+    // support for this filetype and just use the Duchamp format.
+    casa::Quantity flux;
+    if (positions[2] == 10) {
+        flux = casa::Quantity(pow(10.0, boost::lexical_cast<casa::Double>(tokens[fluxPos])), Jy);
+    } else {
+        flux = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[fluxPos]), Jy);
+    }
+
     casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(tokens[majorAxisPos]), arcsec);
     casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(tokens[minorAxisPos]), arcsec);
     const casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(tokens[positionAnglePos]), rad);
@@ -197,4 +186,30 @@ void DuchampAccessor::processLine(const std::string& line,
     askap::cp::skymodelservice::Component c(-1, ra, dec, positionAngle,
             majorAxis, minorAxis, flux);
     list.push_back(c);
+}
+
+std::vector<casa::uShort> DuchampAccessor::getPositions(const casa::uShort nTokens)
+{
+    std::vector<casa::uShort> positions(6);
+    if (nTokens == 17) {
+        // Duchamp format
+        positions[0] = 1; // RA
+        positions[1] = 2; // Dec
+        positions[2] = 3; // Flux
+        positions[3] = 7; // Major Axis
+        positions[4] = 8; // Minor Axis
+        positions[5] = 9; // Position Angle
+    } else if (nTokens == 13) {
+        // SKADS Sky Simulations extract format
+        positions[0] = 3; // RA
+        positions[1] = 4; // Dec
+        positions[2] = 10; // Flux
+        positions[3] = 6; // Major Axis
+        positions[4] = 7; // Minor Axis
+        positions[5] = 5; // Position Angle
+    } else {
+        ASKAPTHROW(AskapError, "Malformed entry - Expected 13 or 17 tokens");
+    }
+
+    return positions;
 }
