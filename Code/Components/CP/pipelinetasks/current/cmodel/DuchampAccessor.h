@@ -29,7 +29,7 @@
 
 // System includes
 #include <string>
-#include <fstream>
+#include <istream>
 #include <sstream>
 #include <vector>
 
@@ -71,6 +71,16 @@ class DuchampAccessor : public IGlobalSkyModel {
 
     private:
 
+        // Supports the getPositions() method.
+        struct TokenPositions {
+            casa::uShort raPos;
+            casa::uShort decPos;
+            casa::uShort fluxPos;
+            casa::uShort majorAxisPos;
+            casa::uShort minorAxisPos;
+            casa::uShort positionAnglePos;
+        };
+
         // Process a single (non comment) line of the input file.
         // This method processes a line, building a component instance
         // for each component which meets the search radius and flux limit
@@ -86,7 +96,7 @@ class DuchampAccessor : public IGlobalSkyModel {
         // index for the data of interest. Currently this exists so both the
         // Duchamp file format and SKADS database extract can be read by
         // this class. 
-        std::vector<casa::uShort> getPositions(const casa::uShort nTokens);
+        TokenPositions getPositions(const casa::uShort nTokens);
 
         // File stream from which components will be read
         boost::scoped_ptr<std::istream> itsFile;

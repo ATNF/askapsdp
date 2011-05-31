@@ -128,31 +128,37 @@ void DuchampAccessor::processLine(const std::string& line,
          back_inserter<vector<string> >(tokens));
 
     // Positions of the tokens of interest
-    const std::vector<casa::uShort> positions = getPositions(tokens.size());
-    ASKAPDEBUGASSERT(positions.size() == 6);
-    const casa::uShort raPos = positions[0];
-    const casa::uShort decPos = positions[1];
-    const casa::uShort fluxPos = positions[2];
-    const casa::uShort majorAxisPos = positions[3];
-    const casa::uShort minorAxisPos = positions[4];
-    const casa::uShort positionAnglePos = positions[5];
+    const TokenPositions pos = getPositions(tokens.size());
 
     // Extract the values from the tokens
-    const casa::Quantity ra(boost::lexical_cast<casa::Double>(tokens[raPos]), deg);
-    const casa::Quantity dec(boost::lexical_cast<casa::Double>(tokens[decPos]), deg);
+    const casa::Quantity ra(boost::lexical_cast<casa::Double>(tokens[pos.raPos]), deg);
+    const casa::Quantity dec(boost::lexical_cast<casa::Double>(tokens[pos.decPos]), deg);
 
     // Need to get rid of this hack to support the SKADS type. The plan is to drop
     // support for this filetype and just use the Duchamp format.
     casa::Quantity flux;
-    if (positions[2] == 10) {
-        flux = casa::Quantity(pow(10.0, boost::lexical_cast<casa::Double>(tokens[fluxPos])), Jy);
+    if (pos.fluxPos == 10) {
+        // SKADS format - Flux is log of flux in Jy
+        flux = casa::Quantity(pow(10.0, boost::lexical_cast<casa::Double>(tokens[pos.fluxPos])), Jy);
     } else {
-        flux = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[fluxPos]), Jy);
+        // Duchamp format - Flux is in Jy
+        flux = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[pos.fluxPos]), Jy);
     }
 
-    casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(tokens[majorAxisPos]), arcsec);
-    casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(tokens[minorAxisPos]), arcsec);
-    const casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(tokens[positionAnglePos]), rad);
+    casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(tokens[pos.majorAxisPos]), arcsec);
+    casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(tokens[pos.minorAxisPos]), arcsec);
+
+
+    // Need to get rid of this hack to support the SKADS type. The plan is to drop
+    // support for this filetype and just use the Duchamp format.
+    casa::Quantity positionAngle;
+    if (pos.positionAnglePos == 5) {
+        // SKADS format uses radians
+        positionAngle = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[pos.positionAnglePos]), rad);
+    } else {
+        // Duchamp format uses degrees
+        positionAngle = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[pos.positionAnglePos]), deg);
+    }
 
     // Discard if below flux limit
     if (flux.getValue(Jy) < fluxLimit.getValue(Jy)) {
@@ -188,28 +194,28 @@ void DuchampAccessor::processLine(const std::string& line,
     list.push_back(c);
 }
 
-std::vector<casa::uShort> DuchampAccessor::getPositions(const casa::uShort nTokens)
+DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort nTokens)
 {
-    std::vector<casa::uShort> positions(6);
+    TokenPositions pos;
     if (nTokens == 17) {
         // Duchamp format
-        positions[0] = 1; // RA
-        positions[1] = 2; // Dec
-        positions[2] = 3; // Flux
-        positions[3] = 7; // Major Axis
-        positions[4] = 8; // Minor Axis
-        positions[5] = 9; // Position Angle
+        pos.raPos = 1;
+        pos.decPos = 2;
+        pos.fluxPos = 3;
+        pos.majorAxisPos = 7;
+        pos.minorAxisPos = 8;
+        pos.positionAnglePos = 9;
     } else if (nTokens == 13) {
         // SKADS Sky Simulations extract format
-        positions[0] = 3; // RA
-        positions[1] = 4; // Dec
-        positions[2] = 10; // Flux
-        positions[3] = 6; // Major Axis
-        positions[4] = 7; // Minor Axis
-        positions[5] = 5; // Position Angle
+        pos.raPos = 3;
+        pos.decPos = 4;
+        pos.fluxPos = 10;
+        pos.majorAxisPos = 6;
+        pos.minorAxisPos = 7;
+        pos.positionAnglePos = 5;
     } else {
         ASKAPTHROW(AskapError, "Malformed entry - Expected 13 or 17 tokens");
     }
 
-    return positions;
+    return pos;
 }
