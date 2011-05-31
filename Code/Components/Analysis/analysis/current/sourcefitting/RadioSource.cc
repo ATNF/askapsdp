@@ -260,12 +260,15 @@ namespace askap {
                 /// @param array Array of pixel values
                 /// @param dim Set of dimensions for array
                 /// @param boxSize The side length of the box used.
-                int hw = boxSize / 2;
+	        if(boxSize%2==0) boxSize+=1;
+	        int hw = boxSize / 2;
                 float *localArray = new float[boxSize*boxSize];
                 long xmin = max(0, this->xpeak - hw);
                 long ymin = max(0, this->ypeak - hw);
                 long xmax = min(dim[0] - 1, this->xpeak + hw);
                 long ymax = min(dim[1] - 1, this->ypeak + hw);
+		//		ASKAPLOG_DEBUG_STR(logger, "boxSize="<<boxSize<<" xmin="<<xmin<<" ymin="<<ymin <<" xmax="<<xmax <<" ymax="<<ymax<<" xpeak="<<xpeak << " ypeak="<<ypeak << " dim[0]="<<dim[0]<<" dim[1]="<<dim[1]);
+		ASKAPASSERT((xmax-xmin+1)*(ymax-ymin+1) <= boxSize*boxSize);
                 size_t size = 0;
 
                 for (int x = xmin; x <= xmax; x++) {
@@ -296,6 +299,7 @@ namespace askap {
                 }
 
                 this->itsNoiseLevel = Statistics::madfmToSigma(madfm);
+		ASKAPLOG_DEBUG_STR(logger, "Setting noise level to " << this->itsNoiseLevel);
 
                 delete [] localArray;
             }
