@@ -7,7 +7,8 @@
 # in the same order as defined below. So the far left task is the first called
 # after the data is sources into the pipeline.
 #
-cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, CalTask, MSSink]
+cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, MSSink]
+#cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, CalTask, MSSink]
 #cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, CalTask, UVPublishTask, MSSink]
 
 #
@@ -511,45 +512,55 @@ cp.ingest.config.antennas.A4              =  [-157.031570,  -815.570068,   0.000
 cp.ingest.config.antennas.A5              =  [-521.311646,  -754.674927,   0.0000]
 cp.ingest.config.feeds.names              = [feed0, feed1, feed2, feed3, feed4, feed5, feed6,
 feed7, feed8, feed9, feed10, feed11, feed12, feed13, feed14, feed15, feed16, feed17, feed18, feed19,
-feed20, feed21, feed22, feed23, feed24, feed25, feed26, feed27, feed28, feed29, feed30, feed31]
+feed20, feed21, feed22, feed23, feed24, feed25, feed26, feed27, feed28, feed29, feed30, feed31,
+feed32, feed33, feed34, feed35]
 
 cp.ingest.config.feeds.spacing            = 1deg
 
-cp.ingest.config.feeds.feed0              = [-2.5, -1.5]
-cp.ingest.config.feeds.feed1              = [-2.5, -0.5]
-cp.ingest.config.feeds.feed2              = [-2.5,  0.5]
-cp.ingest.config.feeds.feed3              = [-2.5,  1.5]
-cp.ingest.config.feeds.feed4              = [-1.5, -2.5]
-cp.ingest.config.feeds.feed5              = [-1.5, -1.5]
-cp.ingest.config.feeds.feed6              = [-1.5, -0.5]
-cp.ingest.config.feeds.feed7              = [-1.5,  0.5]
-cp.ingest.config.feeds.feed8              = [-1.5,  1.5]
-cp.ingest.config.feeds.feed9              = [-1.5,  2.5]
-cp.ingest.config.feeds.feed10             = [-0.5, -2.5]
-cp.ingest.config.feeds.feed11             = [-0.5, -1.5]
-cp.ingest.config.feeds.feed12             = [-0.5, -0.5]
-cp.ingest.config.feeds.feed13             = [-0.5,  0.5]
-cp.ingest.config.feeds.feed14             = [-0.5,  1.5]
-cp.ingest.config.feeds.feed15             = [-0.5,  2.5]
-cp.ingest.config.feeds.feed16             = [0.5, -2.5]
-cp.ingest.config.feeds.feed17             = [0.5, -1.5]
-cp.ingest.config.feeds.feed18             = [0.5, -0.5]
-cp.ingest.config.feeds.feed19             = [0.5,  0.5]
-cp.ingest.config.feeds.feed20             = [0.5,  1.5]
-cp.ingest.config.feeds.feed21             = [0.5,  2.5]
-cp.ingest.config.feeds.feed22             = [1.5, -2.5]
-cp.ingest.config.feeds.feed23             = [1.5, -1.5]
-cp.ingest.config.feeds.feed24             = [1.5, -0.5]
-cp.ingest.config.feeds.feed25             = [1.5,  0.5]
-cp.ingest.config.feeds.feed26             = [1.5,  1.5]
-cp.ingest.config.feeds.feed27             = [1.5,  2.5]
-cp.ingest.config.feeds.feed28             = [2.5, -1.5]
-cp.ingest.config.feeds.feed29             = [2.5, -0.5]
-cp.ingest.config.feeds.feed30             = [2.5,  0.5]
-cp.ingest.config.feeds.feed31             = [2.5,  1.5]
+cp.ingest.config.feeds.feed0          =       [-2.5, -2.5]
+cp.ingest.config.feeds.feed1          =       [-2.5, -1.5]
+cp.ingest.config.feeds.feed2          =       [-2.5, -0.5]
+cp.ingest.config.feeds.feed3          =       [-2.5,  0.5]
+cp.ingest.config.feeds.feed4          =       [-2.5,  1.5]
+cp.ingest.config.feeds.feed5          =       [-2.5,  2.5]
+
+cp.ingest.config.feeds.feed6          =       [-1.5, -2.5]
+cp.ingest.config.feeds.feed7          =       [-1.5, -1.5]
+cp.ingest.config.feeds.feed8          =       [-1.5, -0.5]
+cp.ingest.config.feeds.feed9          =       [-1.5,  0.5]
+cp.ingest.config.feeds.feed10         =       [-1.5,  1.5]
+cp.ingest.config.feeds.feed11         =       [-1.5,  2.5]
+
+cp.ingest.config.feeds.feed12         =       [-0.5, -2.5]
+cp.ingest.config.feeds.feed13         =       [-0.5, -1.5]
+cp.ingest.config.feeds.feed14         =       [-0.5, -0.5]
+cp.ingest.config.feeds.feed15         =       [-0.5,  0.5]
+cp.ingest.config.feeds.feed16         =       [-0.5,  1.5]
+cp.ingest.config.feeds.feed17         =       [-0.5,  2.5]
+
+cp.ingest.config.feeds.feed18         =       [0.5, -2.5]
+cp.ingest.config.feeds.feed19         =       [0.5, -1.5]
+cp.ingest.config.feeds.feed20         =       [0.5, -0.5]
+cp.ingest.config.feeds.feed21         =       [0.5,  0.5]
+cp.ingest.config.feeds.feed22         =       [0.5,  1.5]
+cp.ingest.config.feeds.feed23         =       [0.5,  2.5]
+
+cp.ingest.config.feeds.feed24         =       [1.5, -2.5]
+cp.ingest.config.feeds.feed25         =       [1.5, -1.5]
+cp.ingest.config.feeds.feed26         =       [1.5, -0.5]
+cp.ingest.config.feeds.feed27         =       [1.5,  0.5]
+cp.ingest.config.feeds.feed28         =       [1.5,  1.5]
+cp.ingest.config.feeds.feed29         =       [1.5,  2.5]
+
+cp.ingest.config.feeds.feed30         =       [2.5, -2.5]
+cp.ingest.config.feeds.feed31         =       [2.5, -1.5]
+cp.ingest.config.feeds.feed32         =       [2.5, -0.5]
+cp.ingest.config.feeds.feed33         =       [2.5,  0.5]
+cp.ingest.config.feeds.feed34         =       [2.5,  1.5]
+cp.ingest.config.feeds.feed35         =       [2.5,  2.5]
 
 cp.ingest.config.spw.name                 = ASKAPCorrelator
-cp.ingest.config.spw.nchan                = 304
+cp.ingest.config.spw.nchan                = 152
 cp.ingest.config.spw.start_freq           = 1.420GHz
 cp.ingest.config.spw.freq_inc             = 1MHz
 cp.ingest.config.spw.stokes               = "XX XY YX YY"
