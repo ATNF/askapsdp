@@ -1,6 +1,6 @@
-/// @file tingestpipeline.cc
+/// @file TopicConfig.h
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,27 +24,45 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+#ifndef ASKAP_CP_INGEST_TOPICCONFIG_H
+#define ASKAP_CP_INGEST_TOPICCONFIG_H
 
-// Test includes
-#include "CircularBufferTest.h"
-#include "VisChunkTest.h"
-#include "MergedSourceTest.h"
-#include "CalcUVWTaskTest.h"
-#include "ChannelAvgTaskTest.h"
-#include "CalTaskTest.h"
+// System includes
+#include <string>
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::ingest::CircularBufferTest::suite());
-    runner.addTest(askap::cp::ingest::VisChunkTest::suite());
-    runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
-    runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
-    runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());
-    runner.addTest(askap::cp::ingest::CalTaskTest::suite());
-    bool wasSucessful = runner.run();
+namespace askap {
+namespace cp {
+namespace ingest {
 
-    return wasSucessful ? 0 : 1;
+/// @brief TODO: Write documentation...
+class TopicConfig {
+    public:
+
+        /// @brief Constructor
+        TopicConfig(const std::string& registryHost,
+                    const std::string& registryPort,
+                    const std::string& topicManager,
+                    const std::string& topic);
+
+        std::string registryHost(void) const;
+
+        std::string registryPort(void) const;
+
+        std::string topicManager(void) const;
+
+        std::string topic(void) const;
+
+    private:
+
+        const std::string itsRegistryHost;
+        const std::string itsRegistryPort;
+        const std::string itsTopicManager;
+        const std::string itsTopic;
+
+};
+
 }
+}
+}
+
+#endif

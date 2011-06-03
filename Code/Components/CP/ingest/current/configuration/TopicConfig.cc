@@ -1,6 +1,6 @@
-/// @file tingestpipeline.cc
+/// @file TopicConfig.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,27 +24,50 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+// Include own header file first
+#include "TopicConfig.h"
+
+// Include package level header file
+#include "askap_cpingest.h"
+
+// System includes
+
 // ASKAPsoft includes
-#include <AskapTestRunner.h>
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
 
-// Test includes
-#include "CircularBufferTest.h"
-#include "VisChunkTest.h"
-#include "MergedSourceTest.h"
-#include "CalcUVWTaskTest.h"
-#include "ChannelAvgTaskTest.h"
-#include "CalTaskTest.h"
+// Local package includes
 
-int main(int argc, char *argv[])
+ASKAP_LOGGER(logger, ".TopicConfig");
+
+using namespace askap;
+using namespace askap::cp::ingest;
+
+TopicConfig::TopicConfig(const std::string& registryHost,
+                         const std::string& registryPort,
+                         const std::string& topicManager,
+                         const std::string& topic)
+        : itsRegistryHost(registryHost), itsRegistryPort(registryPort),
+        itsTopicManager(topicManager), itsTopic(topic)
 {
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::ingest::CircularBufferTest::suite());
-    runner.addTest(askap::cp::ingest::VisChunkTest::suite());
-    runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
-    runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
-    runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());
-    runner.addTest(askap::cp::ingest::CalTaskTest::suite());
-    bool wasSucessful = runner.run();
+}
 
-    return wasSucessful ? 0 : 1;
+std::string TopicConfig::registryHost(void) const
+{
+    return itsRegistryHost;
+}
+
+std::string TopicConfig::registryPort(void) const
+{
+    return itsRegistryPort;
+}
+
+std::string TopicConfig::topicManager(void) const
+{
+    return itsTopicManager;
+}
+
+std::string TopicConfig::topic(void) const
+{
+    return itsTopic;
 }

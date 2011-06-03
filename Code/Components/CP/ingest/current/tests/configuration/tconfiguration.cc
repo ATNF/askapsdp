@@ -1,4 +1,4 @@
-/// @file tingestpipeline.cc
+/// @file tconfiguration.cc
 ///
 /// @copyright (c) 2010 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -28,23 +28,19 @@
 #include <AskapTestRunner.h>
 
 // Test includes
-#include "CircularBufferTest.h"
-#include "VisChunkTest.h"
-#include "MergedSourceTest.h"
-#include "CalcUVWTaskTest.h"
-#include "ChannelAvgTaskTest.h"
-#include "CalTaskTest.h"
+#include "ConfigurationTest.h"
+#include "TopicConfigTest.h"
+#include "ServiceConfigTest.h"
+#include "TaskDescTest.h"
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::ingest::CircularBufferTest::suite());
-    runner.addTest(askap::cp::ingest::VisChunkTest::suite());
-    runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
-    runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
-    runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());
-    runner.addTest(askap::cp::ingest::CalTaskTest::suite());
-    bool wasSucessful = runner.run();
+    runner.addTest(askap::cp::ingest::ConfigurationTest::suite());
+    runner.addTest(askap::cp::ingest::TopicConfigTest::suite());
+    runner.addTest(askap::cp::ingest::ServiceConfigTest::suite());
+    runner.addTest(askap::cp::ingest::TaskDescTest::suite());
+    const bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;
 }

@@ -1,6 +1,6 @@
-/// @file tingestpipeline.cc
+/// @file TaskDesc.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,27 +24,41 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+// Include own header file first
+#include "TaskDesc.h"
+
+// Include package level header file
+#include "askap_cpingest.h"
+
+// System includes
+#include <string>
+
 // ASKAPsoft includes
-#include <AskapTestRunner.h>
+#include "askap/AskapError.h"
+#include "Common/ParameterSet.h"
 
-// Test includes
-#include "CircularBufferTest.h"
-#include "VisChunkTest.h"
-#include "MergedSourceTest.h"
-#include "CalcUVWTaskTest.h"
-#include "ChannelAvgTaskTest.h"
-#include "CalTaskTest.h"
+using namespace std;
+using namespace askap;
+using namespace askap::cp::ingest;
 
-int main(int argc, char *argv[])
+TaskDesc::TaskDesc(const std::string& name,
+        const TaskDesc::Type type,
+        const LOFAR::ParameterSet& parset)
+    : itsName(name), itsType(type), itsParset(parset)
 {
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::ingest::CircularBufferTest::suite());
-    runner.addTest(askap::cp::ingest::VisChunkTest::suite());
-    runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
-    runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
-    runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());
-    runner.addTest(askap::cp::ingest::CalTaskTest::suite());
-    bool wasSucessful = runner.run();
+}
 
-    return wasSucessful ? 0 : 1;
+std::string TaskDesc::name(void) const
+{
+    return itsName;
+}
+
+TaskDesc::Type TaskDesc::type(void) const
+{
+    return itsType;
+}
+
+LOFAR::ParameterSet TaskDesc::parset(void) const
+{
+    return itsParset;
 }

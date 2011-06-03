@@ -1,6 +1,6 @@
-/// @file tingestpipeline.cc
+/// @file ConfigurationTest.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,27 +24,39 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+// CPPUnit includes
+#include <cppunit/extensions/HelperMacros.h>
 
-// Test includes
-#include "CircularBufferTest.h"
-#include "VisChunkTest.h"
-#include "MergedSourceTest.h"
-#include "CalcUVWTaskTest.h"
-#include "ChannelAvgTaskTest.h"
-#include "CalTaskTest.h"
+// Support classes
+#include "Common/ParameterSet.h"
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::ingest::CircularBufferTest::suite());
-    runner.addTest(askap::cp::ingest::VisChunkTest::suite());
-    runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
-    runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
-    runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());
-    runner.addTest(askap::cp::ingest::CalTaskTest::suite());
-    bool wasSucessful = runner.run();
+// Classes to test
+#include "configuration/Configuration.h"
 
-    return wasSucessful ? 0 : 1;
-}
+namespace askap {
+namespace cp {
+namespace ingest {
+
+class ConfigurationTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(ConfigurationTest);
+        CPPUNIT_TEST(testFactory);
+        CPPUNIT_TEST_SUITE_END();
+
+    public:
+        void setUp() {
+        };
+
+        void tearDown() {
+        }
+
+        void testFactory() {
+        };
+
+    private:
+        LOFAR::ParameterSet itsParset;
+
+};
+
+}   // End namespace ingest
+}   // End namespace cp
+}   // End namespace askap

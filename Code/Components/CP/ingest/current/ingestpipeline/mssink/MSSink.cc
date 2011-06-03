@@ -38,6 +38,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "cpcommon/VisChunk.h"
 
 // Casecore includes
 #include "casa/aips.h"
@@ -53,7 +54,6 @@
 #include "tables/Tables/TiledShapeStMan.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
-#include "cpcommon/VisChunk.h"
 
 // Local package includes
 #include "ingestutils/ParsetConfiguration.h"
@@ -106,7 +106,7 @@ void MSSink::process(VisChunk::ShPtr chunk)
     msc.fieldId().put(baseRow, 0);
     msc.dataDescId().put(baseRow, 0);
 
-    casa::Quantity chunkMidpoint = chunk->time().getTime();
+    const casa::Quantity chunkMidpoint = chunk->time().getTime();
     msc.time().put(baseRow, chunkMidpoint.getValue("s"));
     msc.time().put(baseRow, chunkMidpoint.getValue("s"));
     msc.timeCentroid().put(baseRow, chunkMidpoint.getValue("s"));
@@ -131,7 +131,7 @@ void MSSink::process(VisChunk::ShPtr chunk)
         msc.flagRow().put(row, False);
 
         // TODO: Need to get this data from somewhere
-        Vector<Float> tmp(chunk->nPol(), 1.0);
+        const Vector<Float> tmp(chunk->nPol(), 1.0);
         msc.weight().put(row, tmp);
         msc.sigma().put(row, tmp);
     }
@@ -248,8 +248,6 @@ void MSSink::create(void)
 
 void MSSink::initAntennas(void)
 {
-    const LOFAR::ParameterSet antSubset(itsParset.makeSubset("antennas."));
-
     std::string station;
     casa::Vector<std::string> name;
     casa::Matrix<double> antXYZ;
@@ -532,7 +530,6 @@ void MSSink::initFields(void)
     fieldc.delayDirMeasCol().put(baseFieldID, direction);
     fieldc.phaseDirMeasCol().put(baseFieldID, direction);
     fieldc.referenceDirMeasCol().put(baseFieldID, direction);
-
 }
 
 void MSSink::initObs(void)

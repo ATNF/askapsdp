@@ -35,9 +35,6 @@
 #include <vector>
 #include <sstream>
 
-// Boost includes
-#include <boost/scoped_ptr.hpp>
-
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"

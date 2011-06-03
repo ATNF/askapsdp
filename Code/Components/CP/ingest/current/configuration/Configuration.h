@@ -1,6 +1,6 @@
-/// @file tingestpipeline.cc
+/// @file Configuration.h
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,27 +24,40 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_INGEST_CONFIGURATION_H
+#define ASKAP_CP_INGEST_CONFIGURATION_H
+
 // ASKAPsoft includes
-#include <AskapTestRunner.h>
+#include <boost/scoped_ptr.hpp>
 
-// Test includes
-#include "CircularBufferTest.h"
-#include "VisChunkTest.h"
-#include "MergedSourceTest.h"
-#include "CalcUVWTaskTest.h"
-#include "ChannelAvgTaskTest.h"
-#include "CalTaskTest.h"
+// Local package includes
+#include "configuration/TopicConfig.h"
+#include "configuration/ServiceConfig.h"
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::ingest::CircularBufferTest::suite());
-    runner.addTest(askap::cp::ingest::VisChunkTest::suite());
-    runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
-    runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
-    runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());
-    runner.addTest(askap::cp::ingest::CalTaskTest::suite());
-    bool wasSucessful = runner.run();
+namespace askap {
+namespace cp {
+namespace ingest {
 
-    return wasSucessful ? 0 : 1;
+/// @brief TODO: Write documentation...
+class Configuration {
+    public:
+
+        /// @brief Constructor
+        Configuration();
+
+        //const TopicConfig& metadataTopicConfig(void) const;
+        //const ServiceConfig& calibrationDataServiceConfig(void) const;
+
+    private:
+
+        //const boost::scoped_ptr<TopicConfig> itsMetadataTopicConfig;
+        //const boost::scoped_ptr<ServiceConfig> itsCalibrationDataServiceConfig;
+
+
+};
+
 }
+}
+}
+
+#endif
