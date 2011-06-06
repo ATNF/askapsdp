@@ -47,6 +47,7 @@ struct Peak {
 };
 
 struct Position {
+    __host__ __device__
     Position(int _x, int _y) : x(_x), y(_y) { };
     int x;
     int y;
