@@ -228,6 +228,13 @@ namespace askap
                 /// @details If noise is simulated, this field contains the noise variance in Jy^2.
                 /// Otherwise it is negative (i.e. undefined)
                 double itsNoiseVariance;
+ 
+                /// @brief flag to check parameters for noise calculation
+                /// @details Parameters like integration time, antenna dish sizes and spectral resolution can
+                /// in principle change during the simulated observations. While this can be handle by the measurement
+                /// set, current way to calculate noise implies that consistency checks are sometimes needed after every new scan.
+                /// if this flag is true, such checks are performed.
+                mutable bool itsDoChecksForNoise;
         };
 
     }

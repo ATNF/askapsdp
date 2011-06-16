@@ -702,11 +702,11 @@ void Simulator::observe(const casa::String& sourceName,
     polc.corrProduct().get(baseSpWID, corrProduct);
     Int nCorr = corrProduct.ncolumn();
     {
-        ASKAPLOG_INFO_STR(logger, "Spectral window : " << spWindowName << endl
-                              << "     reference frequency : " << startFreq / 1.0e9 << "GHz" << endl
-                              << "     number of channels : " << nChan << endl
-                              << "     total bandwidth : " << nChan*freqInc / 1.0e9 << "GHz" << endl
-                              << "     number of correlations : " << nCorr << endl);
+        ASKAPLOG_INFO_STR(logger, "Spectral window : " << spWindowName);
+        ASKAPLOG_INFO_STR(logger, "   reference frequency : " << startFreq / 1.0e9 << "GHz");
+        ASKAPLOG_INFO_STR(logger, "   number of channels : " << nChan);
+        ASKAPLOG_INFO_STR(logger, "   total bandwidth : " << nChan*freqInc / 1.0e9 << "GHz");
+        ASKAPLOG_INFO_STR(logger, "   number of correlations : " << nCorr);
     }
     
     if (itsChanBandwidthForNoise < -10) {

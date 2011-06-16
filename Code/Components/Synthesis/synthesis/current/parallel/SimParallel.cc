@@ -75,7 +75,8 @@ namespace synthesis
 
 SimParallel::SimParallel(askap::mwbase::AskapParallel& comms,
                          const LOFAR::ParameterSet& parset) :
-        SynParallel(comms,parset), itsModelReadByMaster(true), itsNoiseVariance(-1.)
+        SynParallel(comms,parset), itsModelReadByMaster(true), itsNoiseVariance(-1.), 
+        itsDoChecksForNoise(false)
 {
   itsModelReadByMaster = parset.getBool("modelReadByMaster", true);
   ASKAPCHECK(getFreqRefFrame().getType() == casa::MFrequency::Ref(casa::MFrequency::TOPO).getType(), 
@@ -125,6 +126,7 @@ void SimParallel::init()
         readSimulation();
 
         // extract noise figure if needed
+        itsDoChecksForNoise = false;
         if (parset().getBool("noise", false)) {
             itsNoiseVariance = getNoise(parset().makeSubset("noise."));
             ASKAPCHECK(itsNoiseVariance>0., 
@@ -374,6 +376,13 @@ void SimParallel::simulate()
             itsSim->observe(source, spw,
                             MEParsetInterface::asQuantity(line[2]),
                             MEParsetInterface::asQuantity(line[3]));
+            if (itsDoChecksForNoise) {
+                // integration time, spectral resolution and array sizes can change for every scan (in principle)
+                // the following checks consistency and throws an exception in the case of mismatch
+                // (this avoids nasty problems when wrong value is used; it seems impractical to spend time implementing
+                // unconstrained case)
+                itsSim->areaTimesSqrtBT();
+            }
         }
 
         ASKAPLOG_INFO_STR(logger, "Successfully simulated " << nScans << " scans");
@@ -487,6 +496,7 @@ double SimParallel::getNoise(const LOFAR::ParameterSet& parset) const
       "if noise magnitude is overridden with an explicit value given by rms or variance");
    if (parset.isDefined("Tsys")) {
        // automatic noise estimate
+       itsDoChecksForNoise = true;
        ASKAPCHECK(!parset.isDefined("rms") && !parset.isDefined("variance"), 
           "If an automatic noise estimate is used, neither 'rms', nor 'variance' parset parameters should be given");
    
