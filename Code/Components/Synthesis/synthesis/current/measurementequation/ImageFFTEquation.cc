@@ -346,7 +346,7 @@ namespace askap
         */
 
         itsResidualGridders[imageName]->finaliseWeights(imageWeight);
-        { 
+        /*{ 
           casa::Array<double> imagePSFWeight(imageShape);
           itsPSFGridders[imageName]->finaliseWeights(imagePSFWeight);
           const double maxPSFWeight = casa::max(imagePSFWeight);
@@ -363,7 +363,7 @@ namespace askap
              // do nothing for zero weight, it just means that this part of normal equations is empty. However,
              // we may still be able to have data after summing all parts of the NE
           } 
-        }
+        }*/
         {
           casa::IPosition reference(4, imageShape(0)/2, imageShape(1)/2, 0, 0);
           casa::IPosition vecShape(1, imagePSF.nelements());
