@@ -83,6 +83,7 @@ namespace askap {
                 size_t dim = parset.getInt32("dim", 2);
                 std::vector<int> axes = parset.getInt32Vector("axes");
 
+		this->itsSubimageDef.setInputSubsection(duchamp::nullSection(dim));
                 this->itsSubimageDef.define(dim);
                 this->itsSubimageDef.setImageDim(axes);
 
@@ -93,7 +94,8 @@ namespace askap {
 
                 if (itsComms.isParallel() && itsComms.isWorker()) {
 
-                    this->itsSubsection = this->itsSubimageDef.section(itsComms.rank() - 1, duchamp::nullSection(dim));
+		  //                    this->itsSubsection = this->itsSubimageDef.section(itsComms.rank() - 1, duchamp::nullSection(dim));
+                    this->itsSubsection = this->itsSubimageDef.section(itsComms.rank() - 1);
                     this->itsSubsection.parse(axes);
 
                     ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << " has offsets (" << this->itsSubsection.getStart(0) << "," << this->itsSubsection.getStart(1)
