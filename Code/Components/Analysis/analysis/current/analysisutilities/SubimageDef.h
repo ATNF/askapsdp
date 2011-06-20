@@ -31,6 +31,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 #include <askapparallel/AskapParallel.h>
 
@@ -43,6 +44,7 @@
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/IPosition.h>
+#include <casa/Arrays/Slicer.h>
 
 namespace askap {
     namespace analysis {
@@ -82,8 +84,12 @@ namespace askap {
                 /// @brief Set the image name.
                 void setImage(std::string imageName) {itsImageName = imageName;};
 
+                /// @brief Set the input subsection
+                void setInputSubsection(std::string section) {itsInputSection = section;};
+
                 /// @brief Return a subsection specification for a given worker
-                duchamp::Section section(int workerNum, std::string inputSection);
+		//                duchamp::Section section(int workerNum, std::string inputSection);
+                duchamp::Section section(int workerNum);
 
                 /// @brief Return the number of subimages.
                 int numSubs() {return itsNSubX*itsNSubY*itsNSubZ;};
@@ -109,6 +115,13 @@ namespace askap {
                 /// @brief Create a Karma annotation file showing the borders of the subimages.
                 void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, askap::mwbase::AskapParallel& comms);
 
+		/// @brief Which worker(s) does a given location fall in?
+		std::set<int> affectedWorkers(int x, int y, int z);
+		std::set<int> affectedWorkers(float x, float y, float z);
+		std::set<int> affectedWorkers(casa::IPosition pos);
+		/// @brief Which workers does a given slice overlap with?
+		std::set<int> affectedWorkers(casa::Slicer &slice);
+
             protected:
                 /// @brief Number of subdivisions in the x-direction
                 int itsNSubX;
@@ -132,6 +145,8 @@ namespace askap {
                 std::vector<long> itsFullImageDim;
                 /// @brief The name of the image
                 std::string itsImageName;
+		/// @brief The subsection of the input image
+		std::string itsInputSection;
                 /// @brief Which axis in the longitude axis
                 int itsLng;
                 /// @brief Which axis in the latitude axis

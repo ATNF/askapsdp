@@ -350,7 +350,9 @@ namespace askap {
                     }
 
                     if (itsComms.isParallel()) {
-		      duchamp::Section subsection = this->itsSubimageDef.section(itsComms.rank()-1, this->itsCube.pars().getSubsection());
+		      //		      duchamp::Section subsection = this->itsSubimageDef.section(itsComms.rank()-1, this->itsCube.pars().getSubsection());
+		      this->itsSubimageDef.setInputSubsection(this->itsCube.pars().getSubsection());
+		      duchamp::Section subsection = this->itsSubimageDef.section(itsComms.rank()-1);
                         this->itsCube.pars().setSubsection(subsection.getSection());
 			this->itsCube.pars().setFlagSubsection(true);
 			this->itsCube.pars().parseSubsections(this->itsCube.getDimArray(), this->itsCube.getNumDim());
@@ -2245,6 +2247,7 @@ namespace askap {
 	wcsprm *wcs = casaImageToWCS(imagePtr);
 	this->itsSubimageDef.define(wcs);
 	this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
+	this->itsSubimageDef.setInputSubsection(this->itsCube.pars().getSubsection());
 	long *dim = getDim(imagePtr);
 	reportDim(dim,imagePtr->ndim());
 	this->itsSubimageDef.setImageDim(dim, imagePtr->ndim());
@@ -2255,7 +2258,8 @@ namespace askap {
 	}
 	
 	if(useSubimageInfo){
-	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
+	  //	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
+	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
 	}
 	
 	// Now parse the sections to get them properly set up

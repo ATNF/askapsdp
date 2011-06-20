@@ -90,8 +90,10 @@ namespace askap {
                     baseSection = "[*,*,*,*]";
                     subdef = SubimageDef(parset);
                     subdef.setImageDim(imageDim);
+		    subdef.setInputSubsection(baseSection);
                     subdef.define(dummyWCS);
-                    CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection);
+		    //                    CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection);
+                    CPPUNIT_ASSERT(subdef.section(-1).getSection() == baseSection);
                 }
 
                 void fullFieldQuarterNoOverlap() {
@@ -99,13 +101,19 @@ namespace askap {
                     parset.replace("nsubx", "2");
                     parset.replace("nsuby", "2");
                     subdef = SubimageDef(parset);
-                    subdef.setImageDim(imageDim);
+ 		    subdef.setInputSubsection(baseSection);
+		    subdef.setImageDim(imageDim);
                     subdef.define(dummyWCS);
-                    CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection);
-                    CPPUNIT_ASSERT(subdef.section(0, baseSection).getSection() == "[1:50,1:50,*,*]");
-                    CPPUNIT_ASSERT(subdef.section(1, baseSection).getSection() == "[51:100,1:50,*,*]");
-                    CPPUNIT_ASSERT(subdef.section(2, baseSection).getSection() == "[1:50,51:100,*,*]");
-                    CPPUNIT_ASSERT(subdef.section(3, baseSection).getSection() == "[51:100,51:100,*,*]");
+                    /* CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection); */
+                    /* CPPUNIT_ASSERT(subdef.section(0, baseSection).getSection() == "[1:50,1:50,*,*]"); */
+                    /* CPPUNIT_ASSERT(subdef.section(1, baseSection).getSection() == "[51:100,1:50,*,*]"); */
+                    /* CPPUNIT_ASSERT(subdef.section(2, baseSection).getSection() == "[1:50,51:100,*,*]"); */
+                    /* CPPUNIT_ASSERT(subdef.section(3, baseSection).getSection() == "[51:100,51:100,*,*]"); */
+                    CPPUNIT_ASSERT(subdef.section(-1).getSection() == baseSection);
+                    CPPUNIT_ASSERT(subdef.section(0).getSection() == "[1:50,1:50,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(1).getSection() == "[51:100,1:50,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(2).getSection() == "[1:50,51:100,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(3).getSection() == "[51:100,51:100,*,*]");
                 }
 
                 void fullFieldQuarterOverlap() {
@@ -115,13 +123,19 @@ namespace askap {
                     parset.replace("overlapx", "10");
                     parset.replace("overlapy", "10");
                     subdef = SubimageDef(parset);
+ 		    subdef.setInputSubsection(baseSection);
                     subdef.setImageDim(imageDim);
                     subdef.define(dummyWCS);
-                    CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection);
-                    CPPUNIT_ASSERT(subdef.section(0, baseSection).getSection() == "[1:55,1:55,*,*]");
-                    CPPUNIT_ASSERT(subdef.section(1, baseSection).getSection() == "[46:100,1:55,*,*]");
-                    CPPUNIT_ASSERT(subdef.section(2, baseSection).getSection() == "[1:55,46:100,*,*]");
-                    CPPUNIT_ASSERT(subdef.section(3, baseSection).getSection() == "[46:100,46:100,*,*]");
+                    /* CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection); */
+                    /* CPPUNIT_ASSERT(subdef.section(0, baseSection).getSection() == "[1:55,1:55,*,*]"); */
+                    /* CPPUNIT_ASSERT(subdef.section(1, baseSection).getSection() == "[46:100,1:55,*,*]"); */
+                    /* CPPUNIT_ASSERT(subdef.section(2, baseSection).getSection() == "[1:55,46:100,*,*]"); */
+                    /* CPPUNIT_ASSERT(subdef.section(3, baseSection).getSection() == "[46:100,46:100,*,*]"); */
+		    CPPUNIT_ASSERT(subdef.section(-1).getSection() == baseSection);
+                    CPPUNIT_ASSERT(subdef.section(0).getSection() == "[1:55,1:55,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(1).getSection() == "[46:100,1:55,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(2).getSection() == "[1:55,46:100,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(3).getSection() == "[46:100,46:100,*,*]");
                 }
 
                 void subsectionQuarterOverlap() {
@@ -131,13 +145,19 @@ namespace askap {
                     parset.replace("overlapx", "10");
                     parset.replace("overlapy", "10");
                     subdef = SubimageDef(parset);
+ 		    subdef.setInputSubsection(baseSection);
                     subdef.setImageDim(imageDim);
                     subdef.define(dummyWCS);
-                    CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection);
-                    CPPUNIT_ASSERT(subdef.section(0, baseSection).getSection() == "[26:55,31:65,*,*]");
-                    CPPUNIT_ASSERT(subdef.section(1, baseSection).getSection() == "[46:75,31:65,*,*]");
-                    CPPUNIT_ASSERT(subdef.section(2, baseSection).getSection() == "[26:55,56:90,*,*]");
-                    CPPUNIT_ASSERT(subdef.section(3, baseSection).getSection() == "[46:75,56:90,*,*]");
+                    /* CPPUNIT_ASSERT(subdef.section(-1, baseSection).getSection() == baseSection); */
+                    /* CPPUNIT_ASSERT(subdef.section(0, baseSection).getSection() == "[26:55,31:65,*,*]"); */
+                    /* CPPUNIT_ASSERT(subdef.section(1, baseSection).getSection() == "[46:75,31:65,*,*]"); */
+                    /* CPPUNIT_ASSERT(subdef.section(2, baseSection).getSection() == "[26:55,56:90,*,*]"); */
+                    /* CPPUNIT_ASSERT(subdef.section(3, baseSection).getSection() == "[46:75,56:90,*,*]"); */
+		    CPPUNIT_ASSERT(subdef.section(-1).getSection() == baseSection);
+                    CPPUNIT_ASSERT(subdef.section(0).getSection() == "[26:55,31:65,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(1).getSection() == "[46:75,31:65,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(2).getSection() == "[26:55,56:90,*,*]");
+                    CPPUNIT_ASSERT(subdef.section(3).getSection() == "[46:75,56:90,*,*]");
                 }
 
         };

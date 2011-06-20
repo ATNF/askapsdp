@@ -44,6 +44,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <set>
 
 #include <casa/aipstype.h>
 #include <images/Images/FITSImage.h>
@@ -96,7 +97,12 @@ namespace askap {
             this->itsOverlapX = parset.getInt16("overlapx", 0);
             this->itsOverlapY = parset.getInt16("overlapy", 0);
             this->itsOverlapZ = parset.getInt16("overlapz", 0);
-        }
+	    bool flagSub = parset.getBool("flagsubsection",false);
+	    if(flagSub)
+	      this->itsInputSection = parset.getString("subsection","");
+	    
+	}
+
 
 
         SubimageDef& SubimageDef::operator= (const SubimageDef& s)
@@ -206,7 +212,34 @@ namespace askap {
             this->define(imageHeader.getWCS());
         }
 
-        duchamp::Section SubimageDef::section(int workerNum, std::string inputSubsection)
+      // void SubimageDef::defineSubs(std::vector<long> dim)
+      // {
+      // 	this->itsFullImageDim = dim;
+      // 	duchamp::Section inputSec(this->itsInputSection);
+      // 	inputSec.parse(this->itsFullImageDim);
+
+      // 	this->itsXminmax=std::vector<std::pair<int,int> >(itsNSubX);
+      // 	this->itsYminmax=std::vector<std::pair<int,int> >(itsNSubY);
+      // 	this->itsZminmax=std::vector<std::pair<int,int> >(itsNSubZ);
+      // 	for(int zsub=0;zsub<this->itsNSubZ;zsub++){
+      // 	  int length = inputSec.getDim(i);
+      // 	  float sublength = float(length) / float(this->itsNSub[i]);
+      // 	  int min = std::max(long(inputSec.getStart(i)), long(inputSec.getStart(i) + sub[i] * sublength - this->itsOverlap[i] / 2)) + 1;
+      // 	  int max = std::min(long(inputSec.getEnd(i) + 1), long(inputSec.getStart(i) + (sub[i] + 1) * sublength + this->itsOverlap[i] / 2));
+      // 	}
+      // 	for(int ysub=0;ysub<this->itsNSubY;ysub++){
+
+      // 	}
+	
+      // 	for(int xsub=0;xsub<this->itsNSubX;xsub++){
+	      
+      // 	}      
+
+      // }
+
+
+      //      duchamp::Section SubimageDef::section(int workerNum, std::string inputSubsection)
+      duchamp::Section SubimageDef::section(int workerNum)
         {
             /// @details Return the subsection object for the given worker
             /// number. (These start at 0). The subimages are tiled across
@@ -221,10 +254,13 @@ namespace askap {
 
             if (workerNum < 0) {
 //                 ASKAPLOG_INFO_STR(logger, "Master node, so returning input subsection");
-                return inputSubsection;
+//                return inputSubsection;
+	      return this->itsInputSection;
+	      
             } else {
 //                 ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << inputSubsection);
-                duchamp::Section inputSec(inputSubsection);
+//                duchamp::Section inputSec(inputSubsection);
+                duchamp::Section inputSec(this->itsInputSection);
                 inputSec.parse(this->itsFullImageDim);
 //                 ASKAPLOG_INFO_STR(logger, "Input subsection is OK");
                 long *sub = new long[this->itsNAxis];
@@ -275,7 +311,8 @@ namespace askap {
 
             for (int w = 0; w < comms.nNodes()-1; w++) {
 
-                duchamp::Section workerSection = this->section(w, fullImageSubsection.getSection());
+	      //                duchamp::Section workerSection = this->section(w, fullImageSubsection.getSection());
+	      duchamp::Section workerSection = this->section(w);
                 pix[0] = pix[9] =  workerSection.getStart(0) - 0.5 - fullImageSubsection.getStart(0);  // x-start, in pixels relative to the image that has been read
                 pix[1] = pix[4] =  workerSection.getStart(1) - 0.5 - fullImageSubsection.getStart(1);  // y-start
                 pix[3] = pix[6] =  workerSection.getEnd(0)  + 0.5 - fullImageSubsection.getStart(0); // x-end
@@ -297,6 +334,76 @@ namespace askap {
             fAnnot.close();
 
         }
+
+      std::set<int> SubimageDef::affectedWorkers(int x, int y, int z)
+      {
+	if (this->itsFullImageDim.size() == 0) {
+	  ASKAPTHROW(AskapError, "SubimageDef::affectedWorkers : tried to define a section but the image dimensions have not been set!");
+	}
+	int ref[3]={x,y,z};
+	int axID[3]={this->itsLng,this->itsLat,this->itsSpec};
+	std::set<int> pos[3]; // use sets, as can have one *or* two nodes that the pixel falls in
+	
+	// for(int i=0;i<3;i++){
+	//   int length = inputSec.getDim(i);
+	//   float sublength = float(this->itsFullImageDim[axID[i]]) / float(this->itsNSub[i]);
+	  
+	//   if(this->itsOverlap[axID[i]] == 0) pos[i].insert(ref[i]/this->itsNSub[i]);
+	//   else{
+	//     if( (ref[i]%this->itsNSub[i]))
+	//       }
+	  
+	// }
+	
+	std::set<int> result;
+	// std::set<int>::iterator x,y,z;
+	// for(z=pos[2].begin();z<pos[2].end();z++){
+	//   for(y=pos[1].begin();y<pos[1].end();y++){
+	//     for(x=pos[0].begin();x<pos[0].end();x++){
+	//       int node = z * this->itsNSubX*this->itsNSubY + y*this->itsNSubX + x;
+	//       result.insert(node);
+	//     }
+	//   }
+	// }
+	return result;
+      }
+
+      std::set<int> SubimageDef::affectedWorkers(float x, float y, float z)
+      {
+	return affectedWorkers(int(floor(x)),int(floor(y)),int(floor(z)));
+      }
+
+      std::set<int> SubimageDef::affectedWorkers(casa::IPosition pos)
+      {
+	ASKAPASSERT(pos.size()>=3);
+	return affectedWorkers(int(pos[0]),int(pos[1]),int(pos[2]));
+      }
+
+      std::set<int> SubimageDef::affectedWorkers(casa::Slicer &slice)
+      {
+
+	IPosition blc=slice.start();
+	IPosition trc=slice.end();
+	std::set<int> start=affectedWorkers(blc);
+	std::set<int> end=affectedWorkers(trc);
+	std::set<int> result;
+	// want all nodes in rectangular pattern from minimum of start to maximum of end
+	int xmin = *(start.begin())%this->itsNSubX;
+	int ymin = *(start.begin())/this->itsNSubX;
+	int zmin = *(start.begin())%(this->itsNSubX*this->itsNSubY);
+	int xmax = *(end.begin())%this->itsNSubX;
+	int ymax = *(end.begin())/this->itsNSubX;
+	int zmax = *(end.begin())%(this->itsNSubX*this->itsNSubY);
+	for(int i=*(start.begin());i<=*(end.rbegin());i++){
+	  int xpos = i % this->itsNSubX;
+	  int ypos = i / this->itsNSubX;
+	  int zpos = i % (this->itsNSubX * this->itsNSubY);
+	  if( (xpos >= xmin && xpos <= xmax) && (ypos>=ymin && ypos<=ymax) && (zpos>=zmin && zpos<=zmax) ) result.insert(i);
+	}
+	return result;
+
+      }
+
 
     }
 

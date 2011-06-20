@@ -298,6 +298,7 @@ namespace askap {
             wcsprm *tempwcs = casaImageToWCS(imagePtr);
             subDef.define(tempwcs);
             subDef.setImage(cube.pars().getImageFile());
+	    subDef.setInputSubsection(cube.pars().getSubsection());
             subDef.setImageDim(dim);
 
             if (!cube.pars().getFlagSubsection() || cube.pars().getSubsection() == "") {
@@ -305,7 +306,8 @@ namespace askap {
                 cube.pars().setSubsection(nullSection(subDef.getImageDim().size()));
             }
 
-            duchamp::Section subsection = subDef.section(comms.rank()-1, cube.pars().getSubsection());
+	    //            duchamp::Section subsection = subDef.section(comms.rank()-1, cube.pars().getSubsection());
+            duchamp::Section subsection = subDef.section(comms.rank()-1);
 
             if (subsection.parse(dim) == duchamp::FAILURE)
                 ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
@@ -496,6 +498,7 @@ namespace askap {
             wcsprm *tempwcs = casaImageToWCS(imagePtr);
             subDef.define(tempwcs);
             subDef.setImage(cube.pars().getImageFile());
+	    subDef.setInputSubsection(cube.pars().getSubsection());
             subDef.setImageDim(dim);
 
             if (!cube.pars().getFlagSubsection() || cube.pars().getSubsection() == "") {
@@ -503,7 +506,8 @@ namespace askap {
                 cube.pars().setSubsection(nullSection(dim.size()));
             }
 
-            duchamp::Section subsection = subDef.section(comms.rank()-1, cube.pars().getSubsection());
+	    //            duchamp::Section subsection = subDef.section(comms.rank()-1, cube.pars().getSubsection());
+            duchamp::Section subsection = subDef.section(comms.rank()-1);
 
             if (subsection.parse(dim) == duchamp::FAILURE)
                 ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
