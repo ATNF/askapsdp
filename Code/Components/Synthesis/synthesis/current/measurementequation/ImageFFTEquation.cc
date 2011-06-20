@@ -350,12 +350,19 @@ namespace askap
           casa::Array<double> imagePSFWeight(imageShape);
           itsPSFGridders[imageName]->finaliseWeights(imagePSFWeight);
           const double maxPSFWeight = casa::max(imagePSFWeight);
-          ASKAPCHECK(maxPSFWeight>0, "PSF weight is 0, most likely no data were gridded");
-          const double psfScalingFactor = casa::max(imageWeight)/maxPSFWeight;
-          //std::cout<<"psf peak = "<<casa::max(imagePSF)<<" maxPSFWeight = "<<maxPSFWeight<<" factor="<<
-          //     psfScalingFactor<<" maxImageWeight="<<casa::max(imageWeight)<<std::endl;
-          imagePSF *= psfScalingFactor;
-          // now psf has the same peak as the weight image
+          if (maxPSFWeight > 0) {
+              const double psfScalingFactor = casa::max(imageWeight)/maxPSFWeight;
+              //std::cout<<"psf peak = "<<casa::max(imagePSF)<<" maxPSFWeight = "<<maxPSFWeight<<" factor="<<
+              //     psfScalingFactor<<" maxImageWeight="<<casa::max(imageWeight)<<std::endl;
+              imagePSF *= psfScalingFactor;
+              // now psf has the same peak as the weight image
+          } else {
+             if (maxPSFWeight < 0) {
+                 ASKAPTHROW(AskapError, "PSF weight is supposed to be non-negative, you have "<<maxPSFWeight);
+             }
+             // do nothing for zero weight, it just means that this part of normal equations is empty. However,
+             // we may still be able to have data after summing all parts of the NE
+          } 
         }
         {
           casa::IPosition reference(4, imageShape(0)/2, imageShape(1)/2, 0, 0);
