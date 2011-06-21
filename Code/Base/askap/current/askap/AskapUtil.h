@@ -1,4 +1,4 @@
-/// @file
+/// @file AskapUtils.h
 /// @brief Common ASKAP utility functions and classes
 ///
 /// @copyright (c) 2007 CSIRO
@@ -29,68 +29,102 @@
 #ifndef ASKAP_UTIL_H
 #define ASKAP_UTIL_H
 
-#include <askap/AskapError.h>
-
-
+// System includes
 #include <ostream>
 #include <string>
 #include <vector>
 #include <list>
 #include <sstream>
 
-#include <casa/Quanta/MVDirection.h>
+// ASKAPsoft includes
+#include "askap/AskapError.h"
+#include "casa/aips.h"
+#include "casa/Quanta.h"
+#include "casa/Quanta/MVDirection.h"
+#include "measures/Measures/MDirection.h"
+#include "measures/Measures/MPosition.h"
+#include "measures/Measures/MEpoch.h"
 
 namespace askap {
 
-  /// Get the hostname of the machine (as per unistd.h gethostname)
-  /// @param full get the full name with domain or base name
-  /// @return a string representing the hostname
-  std::string getHostName(bool full=false);
+/// Get the hostname of the machine (as per unistd.h gethostname)
+/// @param full get the full name with domain or base name
+/// @return a string representing the hostname
+std::string getHostName(bool full = false);
 
-  /// Convert a string to uppercase.
-  std::string toUpper(std::string s);
+/// Convert a string to uppercase.
+std::string toUpper(std::string s);
 
-  /// Convert a string to lowercase.
-  std::string toLower(std::string s);
+/// Convert a string to lowercase.
+std::string toLower(std::string s);
 
-	/// Round to nearest integer
-	/// @param x Value to be rounded
-	int nint(double x);
+/// Round to nearest integer
+/// @param x Value to be rounded
+int nint(double x);
 
-	/// Round to nearest integer
-	/// @param x Value to be rounded
-	int nint(float x);
+/// Round to nearest integer
+/// @param x Value to be rounded
+int nint(float x);
 
-  /// Write a vector to an ostream with a given separator, prefix and postfix.
-  /// \note operator<<() must be defined for the container elements.
-  template<typename Container>
-  void printContainer(std::ostream& os, const Container& ctr,
-		      const char* separator=",",
-		      const char* prefix="[", const char* postfix="]")
-    {
+/// Write a vector to an ostream with a given separator, prefix and postfix.
+/// \note operator<<() must be defined for the container elements.
+template<typename Container>
+void printContainer(std::ostream& os, const Container& ctr,
+                    const char* separator = ",",
+                    const char* prefix = "[", const char* postfix = "]")
+{
     os << prefix;
+
     for (typename Container::const_iterator it = ctr.begin();
-	 it!=ctr.end();
-	 ++it) {
-      if (it != ctr.begin()) {
-	os << separator;
-      }
-      os << *it;
+            it != ctr.end();
+            ++it) {
+        if (it != ctr.begin()) {
+            os << separator;
+        }
+
+        os << *it;
     }
+
     os << postfix;
-  }
-  
-  /// @brief a helper method to print directions nicely
-  /// @details By default an instance of casa::MVDirection is printed
-  /// as 3 direction cosines. It is not very convenient. This method
-  /// allows to print it in a more log-reader-friendly way. 
-  /// This is the only method in this file (so far) which introduces
-  /// dependency on casacore. It can be moved to a separate sub-package
-  /// if necessary
-  /// @param[in] dir MVDirection object to print
-  /// @return a string containing a nice representation of the direction
-  std::string printDirection(const casa::MVDirection &dir);
-  
+}
+
+/// @brief a helper method to print directions nicely
+/// @details By default an instance of casa::MVDirection is printed
+/// as 3 direction cosines. It is not very convenient. This method
+/// allows to print it in a more log-reader-friendly way.
+/// This is the only method in this file (so far) which introduces
+/// dependency on casacore. It can be moved to a separate sub-package
+/// if necessary
+/// @param[in] dir MVDirection object to print
+/// @return a string containing a nice representation of the direction
+std::string printDirection(const casa::MVDirection &dir);
+
+/// @brief Interpret string as a quantity.
+/// Interpret a string such as "2.5arcsec" as a casa::Quantity
+///
+/// @param[in] s    String to be interpreted
+/// @param[in] unit ensure the constructed quantity conforms to
+///                 units of this type.
+/// @throw AskapError   if the string "s" cannot be interpreted as
+///                     a quantity which conforms to the units specified
+///                     by the "unit" parameters.
+casa::Quantity asQuantity(const std::string& s,
+        const std::string& unit = "");
+
+/// @brief Interpret string as an MEpoch
+/// @param[in] epoch String to be interpreted
+casa::MEpoch asMEpoch(const std::vector<std::string>& epoch);
+
+/// @brief Interpret string vector as an MDirection
+/// The string vector shall have RA in the first element, declination in
+/// the second and reference frame in the third. For example:
+/// [12h30m00.00, -45.00.00.00, J2000]
+/// @param[in] direction String to be interpreted
+casa::MDirection asMDirection(const std::vector<std::string>& direction);
+
+/// @brief Interpret string as an MPosition
+/// @param position[in] String to be interpreted
+casa::MPosition asMPosition(const std::vector<std::string>& position);
 
 /// a number of helper functions are gathered in this namespace
 namespace utility {
@@ -101,7 +135,7 @@ namespace utility {
 // It sat for a while inside GainCalibrationEquation, but now I need it in
 // other unrelated classes, so the code has been moved here.
 // If the appropriate code existing somewhere else in askap,
-// we can switch to use that code instead. 
+// we can switch to use that code instead.
 
 /// @brief helper method to interpret string
 /// @details any type supported by the input stream can be converted
@@ -109,14 +143,17 @@ namespace utility {
 /// @param[in] str input string
 /// @return result of the conversion
 /// @exception AskapError is thrown if the conversion failed
-template<class T> T fromString(const std::string &str) throw(AskapError) {
-         std::istringstream is(str);
-         T buf;
-         is>>buf;
-         if (!is) {
-             ASKAPTHROW(AskapError, "Unable to convert "<<str);
-         } 
-         return buf;
+template<class T> T fromString(const std::string &str) throw(AskapError)
+{
+    std::istringstream is(str);
+    T buf;
+    is >> buf;
+
+    if (!is) {
+        ASKAPTHROW(AskapError, "Unable to convert " << str);
+    }
+
+    return buf;
 }
 
 /// @brief helper method to convert any type (e.g. numbers) to a string
@@ -125,13 +162,16 @@ template<class T> T fromString(const std::string &str) throw(AskapError) {
 /// @param[in] in a const reference to the value to convert
 /// @return resulting string
 /// @exception AskapError is thrown if the conversion failed
-template<class T> std::string toString(const T &in) throw(AskapError) {
-         std::ostringstream os;
-         os<<in;
-         if (!os) {
-             ASKAPTHROW(AskapError, "Unable to convert "<<in<<" to string");
-         }
-         return os.str();
+template<class T> std::string toString(const T &in) throw(AskapError)
+{
+    std::ostringstream os;
+    os << in;
+
+    if (!os) {
+        ASKAPTHROW(AskapError, "Unable to convert " << in << " to string");
+    }
+
+    return os.str();
 }
 
 /// @brief helper class - null deleter
@@ -140,38 +180,35 @@ template<class T> std::string toString(const T &in) throw(AskapError) {
 /// apparently there is a need for a wider visibility of this method. We can strip the
 /// code into a separate file later, if it is really needed.
 struct NullDeleter {
-   /// @brief dummy method, does nothing
-   void operator()(void const *) const {}
+    /// @brief dummy method, does nothing
+    void operator()(void const *) const {}
 };
 
 
 } // namespace utility
-
-
 } // end namespace askap
 
 
 namespace std {
-  /// @name operator<< Extensions
-  /// Print the contents of a vector or list.
-  ///
-  /// Enclose it in square brackets, using a comma as separator.
-  /// \note operator<<() must be defined for type \c T.
-  //@{
-  template<typename T>
-  inline ostream& operator<<(ostream& os, const vector<T>& c)
-  {
+/// @name operator<< Extensions
+/// Print the contents of a vector or list.
+///
+/// Enclose it in square brackets, using a comma as separator.
+/// \note operator<<() must be defined for type \c T.
+//@{
+template<typename T>
+inline ostream& operator<<(ostream& os, const vector<T>& c)
+{
     askap::printContainer(os, c, ",", "[", "]");
     return os;
-  }
-  template<typename T>
-  inline ostream& operator<<(ostream& os, const list<T>& c)
-  {
+}
+template<typename T>
+inline ostream& operator<<(ostream& os, const list<T>& c)
+{
     askap::printContainer(os, c, ",", "[", "]");
     return os;
-  }
-  //@}
+}
+//@}
 } // end namespace std
-
 
 #endif
