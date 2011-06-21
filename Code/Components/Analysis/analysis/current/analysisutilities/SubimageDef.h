@@ -90,6 +90,8 @@ namespace askap {
                 /// @brief Return a subsection specification for a given worker
 		//                duchamp::Section section(int workerNum, std::string inputSection);
                 duchamp::Section section(int workerNum);
+		/// @brief Define the subsection specification for *every* worker
+		void defineAllSections();
 
                 /// @brief Return the number of subimages.
                 int numSubs() {return itsNSubX*itsNSubY*itsNSubZ;};
@@ -147,6 +149,8 @@ namespace askap {
                 std::string itsImageName;
 		/// @brief The subsection of the input image
 		std::string itsInputSection;
+		/// @brief The set of subsection specifications for all workers
+		std::vector<duchamp::Section> itsSectionList;
                 /// @brief Which axis in the longitude axis
                 int itsLng;
                 /// @brief Which axis in the latitude axis

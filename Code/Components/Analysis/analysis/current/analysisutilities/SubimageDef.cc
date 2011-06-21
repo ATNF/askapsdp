@@ -75,8 +75,10 @@ namespace askap {
             this->itsNSubZ = 1;
             this->itsOverlapX = this->itsOverlapY = this->itsOverlapZ = 0;
             this->itsImageName = "";
+            this->itsInputSection = "";
             this->itsNSub = 0;
             this->itsOverlap = 0;
+	    this->itsSectionList = std::vector<duchamp::Section>();
         }
 
         SubimageDef::~SubimageDef()
@@ -100,7 +102,6 @@ namespace askap {
 	    bool flagSub = parset.getBool("flagsubsection",false);
 	    if(flagSub)
 	      this->itsInputSection = parset.getString("subsection","");
-	    
 	}
 
 
@@ -120,7 +121,8 @@ namespace askap {
             this->itsNAxis = s.itsNAxis;
             this->itsFullImageDim = s.itsFullImageDim;
             this->itsImageName = s.itsImageName;
-
+	    this->itsInputSection = s.itsInputSection;
+	    this->itsSectionList = s.itsSectionList;
             if (this->itsNAxis > 0) {
                 this->itsNSub = new int[this->itsNAxis];
                 this->itsOverlap = new int[this->itsNAxis];
@@ -212,30 +214,28 @@ namespace askap {
             this->define(imageHeader.getWCS());
         }
 
-      // void SubimageDef::defineSubs(std::vector<long> dim)
-      // {
-      // 	this->itsFullImageDim = dim;
-      // 	duchamp::Section inputSec(this->itsInputSection);
-      // 	inputSec.parse(this->itsFullImageDim);
+      void SubimageDef::defineAllSections()
+      {
+	if (this->itsFullImageDim.size() == 0) {
+	  ASKAPTHROW(AskapError, "SubimageDef::defineAllSections : image dimensions have not been set!");
+	}
+	if (this->itsInputSection == "") 
+	  {
+	    ASKAPTHROW(AskapError, "SubimageDef::defineAllSections : input subsection not defined!");
+	  }
+      	duchamp::Section inputSec(this->itsInputSection);
+      	inputSec.parse(this->itsFullImageDim);
 
-      // 	this->itsXminmax=std::vector<std::pair<int,int> >(itsNSubX);
-      // 	this->itsYminmax=std::vector<std::pair<int,int> >(itsNSubY);
-      // 	this->itsZminmax=std::vector<std::pair<int,int> >(itsNSubZ);
-      // 	for(int zsub=0;zsub<this->itsNSubZ;zsub++){
-      // 	  int length = inputSec.getDim(i);
-      // 	  float sublength = float(length) / float(this->itsNSub[i]);
-      // 	  int min = std::max(long(inputSec.getStart(i)), long(inputSec.getStart(i) + sub[i] * sublength - this->itsOverlap[i] / 2)) + 1;
-      // 	  int max = std::min(long(inputSec.getEnd(i) + 1), long(inputSec.getStart(i) + (sub[i] + 1) * sublength + this->itsOverlap[i] / 2));
-      // 	}
-      // 	for(int ysub=0;ysub<this->itsNSubY;ysub++){
-
-      // 	}
+	int nSub=this->itsNSubX*this->itsNSubY*this->itsNSubZ;
+	this->itsSectionList = std::vector<duchamp::Section>(nSub);
 	
-      // 	for(int xsub=0;xsub<this->itsNSubX;xsub++){
-	      
-      // 	}      
+	for(int i=0;i<nSub;i++)
+	  {
+	    this->itsSectionList[i] = this->section(i);
+	  }
+	
 
-      // }
+      }
 
 
       //      duchamp::Section SubimageDef::section(int workerNum, std::string inputSubsection)
@@ -338,34 +338,29 @@ namespace askap {
       std::set<int> SubimageDef::affectedWorkers(int x, int y, int z)
       {
 	if (this->itsFullImageDim.size() == 0) {
-	  ASKAPTHROW(AskapError, "SubimageDef::affectedWorkers : tried to define a section but the image dimensions have not been set!");
+	  ASKAPTHROW(AskapError, "SubimageDef::affectedWorkers : image dimensions have not been set!");
 	}
+	if (this->itsSectionList.size() == 0) 
+	  {
+	    ASKAPTHROW(AskapError, "SubimageDef::affectedWorkers : worker sections have not been defined!");
+	  }
+	
 	int ref[3]={x,y,z};
 	int axID[3]={this->itsLng,this->itsLat,this->itsSpec};
-	std::set<int> pos[3]; // use sets, as can have one *or* two nodes that the pixel falls in
+	std::set<int> goodNodes; // use sets, as can have more than one node that the pixel falls in
+
+	int nsub=this->itsNSubX*this->itsNSubY*this->itsNSubZ;
+	for(int n=0;n<nsub;n++)
+	  {
+	    bool isIn=true;
+	    for(int i=0;i<3;i++)
+	      {
+		isIn = isIn && (ref[i] >= this->itsSectionList[n].getStart(axID[i])) && (ref[i]<=this->itsSectionList[n].getEnd(axID[i]));
+	      }
+	    if(isIn) goodNodes.insert(n);
+	  }
 	
-	// for(int i=0;i<3;i++){
-	//   int length = inputSec.getDim(i);
-	//   float sublength = float(this->itsFullImageDim[axID[i]]) / float(this->itsNSub[i]);
-	  
-	//   if(this->itsOverlap[axID[i]] == 0) pos[i].insert(ref[i]/this->itsNSub[i]);
-	//   else{
-	//     if( (ref[i]%this->itsNSub[i]))
-	//       }
-	  
-	// }
-	
-	std::set<int> result;
-	// std::set<int>::iterator x,y,z;
-	// for(z=pos[2].begin();z<pos[2].end();z++){
-	//   for(y=pos[1].begin();y<pos[1].end();y++){
-	//     for(x=pos[0].begin();x<pos[0].end();x++){
-	//       int node = z * this->itsNSubX*this->itsNSubY + y*this->itsNSubX + x;
-	//       result.insert(node);
-	//     }
-	//   }
-	// }
-	return result;
+	return goodNodes;
       }
 
       std::set<int> SubimageDef::affectedWorkers(float x, float y, float z)
