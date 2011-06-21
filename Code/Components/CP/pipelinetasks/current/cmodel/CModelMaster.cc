@@ -38,6 +38,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "boost/scoped_ptr.hpp"
 #include "Common/ParameterSet.h"
 #include "skymodelclient/Component.h"
@@ -50,7 +51,6 @@
 // Local package includes
 #include "cmodel/DuchampAccessor.h"
 #include "cmodel/DataserviceAccessor.h"
-#include "cmodel/ParsetUtils.h"
 #include "cmodel/MPIBasicComms.h"
 #include "cmodel/ImageFactory.h"
 
@@ -93,12 +93,12 @@ void CModelMaster::run(void)
 
     // Get the flux limit
     const std::string fluxLimitStr = itsParset.getString("flux_limit");
-    const Quantity fluxLimit = ParsetUtils::asQuantity(fluxLimitStr, "Jy");
+    const Quantity fluxLimit = asQuantity(fluxLimitStr, "Jy");
 
     // Get the centre of the image
     const std::vector<std::string> dirVector = itsParset.getStringVector("direction");
-    const Quantity ra = ParsetUtils::asQuantity(dirVector.at(0), "deg");
-    const Quantity dec = ParsetUtils::asQuantity(dirVector.at(1), "deg");
+    const Quantity ra = asQuantity(dirVector.at(0), "deg");
+    const Quantity dec = asQuantity(dirVector.at(1), "deg");
 
     // Detrmine the search radius
     // At the moment just use the 1D size of the image multiplied by the
@@ -113,8 +113,8 @@ void CModelMaster::run(void)
     const casa::uInt ny = itsParset.getUintVector("shape").at(1);
     const casa::uInt maxNPix = std::max(nx, ny);
     const std::vector<std::string> cellSizeVector = itsParset.getStringVector("cellsize");
-    const Quantity xcellsize = ParsetUtils::asQuantity(cellSizeVector.at(0), "arcsec");
-    const Quantity ycellsize = ParsetUtils::asQuantity(cellSizeVector.at(1), "arcsec");
+    const Quantity xcellsize = asQuantity(cellSizeVector.at(0), "arcsec");
+    const Quantity ycellsize = asQuantity(cellSizeVector.at(1), "arcsec");
     const casa::Double largestCellSize = std::max(xcellsize.getValue("deg"), ycellsize.getValue("deg"));
     const casa::Quantity searchRadius(largestCellSize * maxNPix, "deg");
 

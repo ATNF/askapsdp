@@ -28,13 +28,11 @@
 #include "AskapTestRunner.h"
 
 // Test includes
-#include "ParsetUtilsTest.h"
 #include "DuchampAccessorTest.h"
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::pipelinetasks::ParsetUtilsTest::suite());
     runner.addTest(askap::cp::pipelinetasks::DuchampAccessorTest::suite());
     bool wasSucessful = runner.run();
 

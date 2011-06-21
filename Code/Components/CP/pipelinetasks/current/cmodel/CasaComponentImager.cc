@@ -52,9 +52,6 @@
 #include "images/Images/ComponentImager.h"
 #include "images/Images/ImageInterface.h"
 
-// Local package includes
-#include "cmodel/ParsetUtils.h"
-
 // Using
 using namespace askap::cp::pipelinetasks;
 using namespace casa;

@@ -36,6 +36,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "Common/ParameterSet.h"
 
 // Casacore includes
@@ -50,10 +51,8 @@
 #include "coordinates/Coordinates/DirectionCoordinate.h"
 #include "coordinates/Coordinates/SpectralCoordinate.h"
 
-// Local package includes
-#include "cmodel/ParsetUtils.h"
-
 // Using
+using namespace askap;
 using namespace askap::cp::pipelinetasks;
 using namespace casa;
 
@@ -106,13 +105,13 @@ casa::CoordinateSystem ImageFactory::createCoordinateSystem(casa::uInt nx, casa:
         Matrix<Double> xform(2, 2);
         xform = 0.0;
         xform.diagonal() = 1.0;
-        const Quantum<Double> ra = ParsetUtils::asQuantity(dirVector.at(0), "deg");
-        const Quantum<Double> dec = ParsetUtils::asQuantity(dirVector.at(1), "deg");
+        const Quantum<Double> ra = asQuantity(dirVector.at(0), "deg");
+        const Quantum<Double> dec = asQuantity(dirVector.at(1), "deg");
         ASKAPLOG_DEBUG_STR(logger, "Direction: " << ra.getValue() << " degrees, "
                 << dec.getValue() << " degrees");
 
-        const Quantum<Double> xcellsize = ParsetUtils::asQuantity(cellSizeVector.at(0), "arcsec") * -1.0;
-        const Quantum<Double> ycellsize = ParsetUtils::asQuantity(cellSizeVector.at(1), "arcsec");
+        const Quantum<Double> xcellsize = asQuantity(cellSizeVector.at(0), "arcsec") * -1.0;
+        const Quantum<Double> ycellsize = asQuantity(cellSizeVector.at(1), "arcsec");
         ASKAPLOG_DEBUG_STR(logger, "Cellsize: " << xcellsize.getValue()
                 << " arcsec, " << ycellsize.getValue() << " arcsec");
 
@@ -126,8 +125,8 @@ casa::CoordinateSystem ImageFactory::createCoordinateSystem(casa::uInt nx, casa:
 
     // Spectral Coordinate
     {
-        const Quantum<Double> f0 = ParsetUtils::asQuantity(parset.getString("frequency"), "Hz");
-        const Quantum<Double> inc = ParsetUtils::asQuantity(parset.getString("increment"), "Hz");
+        const Quantum<Double> f0 = asQuantity(parset.getString("frequency"), "Hz");
+        const Quantum<Double> inc = asQuantity(parset.getString("increment"), "Hz");
         const Double refPix = 0.0;  // is the reference pixel
         const SpectralCoordinate sc(MFrequency::TOPO, f0, inc, refPix);
 
