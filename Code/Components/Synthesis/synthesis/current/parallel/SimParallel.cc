@@ -39,6 +39,7 @@
 #include <askap_synthesis.h>
 #include <askap/AskapError.h>
 #include <askap/AskapLogging.h>
+#include <askap/AskapUtil.h>
 #include <askapparallel/AskapParallel.h>
 #include <Common/ParameterSet.h>
 ASKAP_LOGGER(logger, ".parallel");
@@ -50,7 +51,6 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/ImageFFTEquation.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageRestoreSolver.h>
-#include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/CalibrationME.h>
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/Product.h>
@@ -173,7 +173,7 @@ void SimParallel::readAntennas()
     ASKAPCHECK((mount == "equatorial") || (mount == "alt-az"), "Antenna mount unknown");
 
     /// Csimulator.ASKAP.mount=equatorial
-    double diameter = MEParsetInterface::asQuantity(antParset.getString("diameter", "12m")).getValue("m");
+    double diameter = asQuantity(antParset.getString("diameter", "12m")).getValue("m");
     ASKAPCHECK(diameter > 0.0, "Antenna diameter not positive");
 
     /// Csimulator.ASKAP.coordinates=local
@@ -211,7 +211,7 @@ void SimParallel::readAntennas()
     /// Csimulator.ASKAP.location=[+115deg, -26deg, 192km, WGS84]
     casa::MPosition location;
     if(coordinates == "local") {
-        location = MEParsetInterface::asMPosition(antParset.getStringVector("location"));
+        location = asMPosition(antParset.getStringVector("location"));
     }
     itsSim->initAnt(telName, x, y, z, dishDiameter, offset, mounts, name,
                     casa::String(coordinates), location);
@@ -248,7 +248,7 @@ void SimParallel::readFeeds()
     }
 
     if (parset.isDefined("feeds.spacing")) {
-        casa::Quantity qspacing = MEParsetInterface::asQuantity(parset.getString("feeds.spacing"));
+        casa::Quantity qspacing = asQuantity(parset.getString("feeds.spacing"));
         double spacing = qspacing.getValue("rad");
         ASKAPLOG_INFO_STR(logger, "Scaling feed specifications by " << qspacing);
         x *= spacing;
@@ -277,7 +277,7 @@ void SimParallel::readSources()
             ostringstream oos;
             oos << "sources." << sources[i] << ".direction";
             ASKAPLOG_INFO_STR(logger, "Simulating source " << sources[i]);
-            casa::MDirection direction(MEParsetInterface::asMDirection(parset.getStringVector(oos.str())));
+            casa::MDirection direction(asMDirection(parset.getStringVector(oos.str())));
             itsSim->initFields(casa::String(sources[i]), direction, casa::String(""));
         }
     }
@@ -302,13 +302,13 @@ void SimParallel::readSpws()
         os << "spws." << names[spw];
         vector<string> line = parset.getStringVector(os.str());
         ASKAPASSERT(line.size() >= 4);
-        const casa::Quantity startFreq = MEParsetInterface::asQuantity(line[1]);
-        const casa::Quantity freqInc = MEParsetInterface::asQuantity(line[2]);
+        const casa::Quantity startFreq = asQuantity(line[1]);
+        const casa::Quantity freqInc = asQuantity(line[2]);
         ASKAPCHECK(startFreq.isConform("Hz"), "start frequency for spectral window " << names[spw] << " is supposed to be in units convertible to Hz, you gave " <<
                    line[1]);
         ASKAPCHECK(freqInc.isConform("Hz"), "frequency increment for spectral window " << names[spw] << " is supposed to be in units convertible to Hz, you gave " <<
                    line[1]);
-        itsSim->initSpWindows(names[spw], MEParsetInterface::asInteger(line[0]),
+        itsSim->initSpWindows(names[spw], askap::utility::fromString<int>(line[0]),
                               startFreq, freqInc, freqInc, line[3]);
     }
 
@@ -326,20 +326,20 @@ void SimParallel::readSimulation()
     /// Csimulator.simulate.blockage=0.1
     itsSim->setFractionBlockageLimit(parset.getDouble("simulation.blockage", 0.0));
     /// Csimulator.simulate.elevationlimit=8deg
-    itsSim->setElevationLimit(MEParsetInterface::asQuantity(parset.getString(
+    itsSim->setElevationLimit(asQuantity(parset.getString(
                                   "simulation.elevationlimit", "8deg")));
     /// Csimulator.simulate.autocorrwt=0.0
     itsSim->setAutoCorrelationWt(parset.getFloat("simulation.autocorrwt", 0.0));
 
     /// Csimulator.simulate.integrationtime=10s
     casa::Quantity
-    integrationTime(MEParsetInterface::asQuantity(parset.getString(
+    integrationTime(asQuantity(parset.getString(
                         "simulation.integrationtime", "10s")));
     /// Csimulator.simulate.usehourangles=true
     bool useHourAngles(parset.getBool("simulation.usehourangles", true));
     /// Csimulator.simulate.referencetime=2007Mar07
     vector<string> refTimeString(parset.getStringVector("simulation.referencetime"));
-    casa::MEpoch refTime(MEParsetInterface::asMEpoch(refTimeString));
+    casa::MEpoch refTime(asMEpoch(refTimeString));
     itsSim->settimes(integrationTime, useHourAngles, refTime);
     ASKAPLOG_INFO_STR(logger, "Successfully set simulation parameters");
 }
@@ -371,11 +371,11 @@ void SimParallel::simulate()
             string spw = substitute(line[1]);
             ASKAPLOG_INFO_STR(logger, "Observing scan " << scan << " on source " << source
                                   << " at band " << spw << " from "
-                                  << MEParsetInterface::asQuantity(line[2]) << " to "
-                                  << MEParsetInterface::asQuantity(line[3]));
+                                  << asQuantity(line[2]) << " to "
+                                  << asQuantity(line[3]));
             itsSim->observe(source, spw,
-                            MEParsetInterface::asQuantity(line[2]),
-                            MEParsetInterface::asQuantity(line[3]));
+                            asQuantity(line[2]),
+                            asQuantity(line[3]));
             if (itsDoChecksForNoise) {
                 // integration time, spectral resolution and array sizes can change for every scan (in principle)
                 // the following checks consistency and throws an exception in the case of mismatch

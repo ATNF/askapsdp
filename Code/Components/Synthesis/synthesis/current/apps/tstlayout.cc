@@ -26,38 +26,37 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
-#include <askap_synthesis.h>
-#include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, "");
-
-#include <askap/AskapError.h>
-#include <CommandLineParser.h>
-#include <simulation/Simulator.h>
-#include <mwcommon/MPIConnection.h>
-#include <casa/Quanta/MVDirection.h>
-#include <casa/Quanta/MVAngle.h>
-#include <coordinates/Coordinates/CoordinateSystem.h>
-#include <coordinates/Coordinates/DirectionCoordinate.h>
-#include <casa/Arrays/Array.h>
-#include <casa/Arrays/Matrix.h>
-#include <measures/Measures/UVWMachine.h>
-#include <images/Images/PagedImage.h>
-#include <lattices/Lattices/ArrayLattice.h>
-
-#include <measures/Measures/MPosition.h>
-#include <casa/Arrays/Vector.h>
-#include <measurementequation/MEParsetInterface.h>
-#include <utils/EigenDecompose.h>
-#include <measurementequation/SynthesisParamsHelper.h>
-
-
-// std
+// Std includes
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
 #include <vector>
 #include <string>
 #include <sstream>
+
+// Askapsoft includes
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, "");
+
+#include <askap/AskapError.h>
+#include <askap/AskapUtil.h>
+#include <CommandLineParser.h>
+#include <simulation/Simulator.h>
+#include <mwcommon/MPIConnection.h>
+#include <casa/Quanta/MVDirection.h>
+#include <casa/Quanta/MVAngle.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/Matrix.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <measures/Measures/UVWMachine.h>
+#include <measures/Measures/MPosition.h>
+#include <images/Images/PagedImage.h>
+#include <lattices/Lattices/ArrayLattice.h>
+#include <utils/EigenDecompose.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -109,7 +108,7 @@ void loadLayout(const std::string &fname, casa::Vector<double> &x, casa::Vector<
 
   /// Csimulator.ASKAP.location=[+115deg, -26deg, 192km, WGS84]
   if((coordinates == "local") || (coordinates == "longlat") ) {
-     const casa::MPosition location = MEParsetInterface::asMPosition(antParset.getStringVector("location"));
+     const casa::MPosition location = asMPosition(antParset.getStringVector("location"));
       
      casa::MVAngle mvLong = location.getAngle().getValue()(0);
      casa::MVAngle mvLat = location.getAngle().getValue()(1);
