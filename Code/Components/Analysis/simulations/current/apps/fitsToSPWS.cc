@@ -67,7 +67,7 @@ void usage() {
 	    << "     -n: Base name for spws entries. Default is taken from fits filename (without .fits if present)\n"
 	    << "     -b: Spectral binning (number of channels to combine per entry) [default=1]\n"
 	    << "     -p: Polarisation info: either number of polarisations or specific polarisation string\n"
-	    << "         [default is 2 pol, \"XX YY\"]"
+	    << "         [default is 2 pol, \"XX YY\"]\n"
 	    << "     -u: Spectral units [default=MHz]\n"
 	    << "     -P: Precision for frequency & increment values [default=3]\n"
 	    << "     -g: Group size [default=0=no groups]\n";
@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
       case 'h':
       default:
 	usage();
+	exit(0);
       }
     }
     ASKAPCHECK(image!="","Need to supply a FITS image via the -i option.");

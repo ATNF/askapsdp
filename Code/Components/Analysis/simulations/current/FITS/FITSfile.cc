@@ -997,8 +997,14 @@ namespace askap {
 	    ASKAPLOG_DEBUG_STR(logger, "Dimension of stokes axis = " << nstokes << ", databaseOrigin = " << this->itsDatabaseOrigin);
 	    casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
 
-	    ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape);
-	    casa::PagedImage<float> img(casa::TiledShape(shape), csys, newName);
+	    casa::IPosition tileshape(shape.size(),1);
+	    tileshape(this->itsWCS->lng) = 128;
+	    tileshape(this->itsWCS->lat) = 128;
+	    if(this->itsWCS->spec>=0)
+	      tileshape(this->itsWCS->spec) = 16;
+
+	    ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape << " and tileshape " << tileshape);
+	    casa::PagedImage<float> img(casa::TiledShape(shape,tileshape), csys, newName);
 
 	    img.setUnits(this->itsBunit);
 
