@@ -33,6 +33,9 @@
 #include <SignalManagerTest.h>
 #include <SignalCounterTest.h>
 
+
+const double askap::AskapUtilTest::dblTolerance;
+
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
