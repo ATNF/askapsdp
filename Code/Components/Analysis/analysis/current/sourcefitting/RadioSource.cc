@@ -202,7 +202,7 @@ namespace askap {
                     int *overlap = subimage.overlap();
                     int colnum = workerNum % nsub[0];
                     int rownum = workerNum / nsub[0];
-                    int znum = workerNum % (nsub[0] * nsub[1]);
+                    int znum = workerNum / (nsub[0] * nsub[1]);
                     xminEdge = (colnum == 0) ? 0 : overlap[0];
                     xmaxEdge = (colnum == nsub[0] - 1) ? cube.getDimX() - 1 : cube.getDimX() - 1 - overlap[0];
                     yminEdge = (rownum == 0) ? 0 : overlap[1];
@@ -223,16 +223,17 @@ namespace askap {
                         flagBoundary = flagBoundary || (this->getZmax() >= zmaxEdge);
                     }
                 } else {
-                    flagBoundary = flagBoundary || (this->getXmin() - xminEdge < threshS);
+                    flagBoundary = flagBoundary || ((this->getXmin() - xminEdge) < threshS);
                     flagBoundary = flagBoundary || ((xmaxEdge - this->getXmax()) < threshS);
-                    flagBoundary = flagBoundary || (this->getYmin() - yminEdge < threshS);
+                    flagBoundary = flagBoundary || ((this->getYmin() - yminEdge) < threshS);
                     flagBoundary = flagBoundary || ((ymaxEdge - this->getYmax()) < threshS);
 
                     if (cube.getDimZ() > 1) {
-                        flagBoundary = flagBoundary || (this->getZmin() - zminEdge < threshV);
+                        flagBoundary = flagBoundary || ((this->getZmin() - zminEdge) < threshV);
                         flagBoundary = flagBoundary || ((zmaxEdge - this->getZmax()) < threshV);
                     }
                 }
+		//		if(this->getSize()==557) ASKAPLOG_DEBUG_STR(logger, "Odd source! atEdge flag = " << flagBoundary);
 
                 this->atEdge = flagBoundary;
             }
