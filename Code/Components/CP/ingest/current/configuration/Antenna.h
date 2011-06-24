@@ -1,4 +1,4 @@
-/// @file TaskDesc.h
+/// @file Antenna.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,50 +24,49 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_TASKDESC_H
-#define ASKAP_CP_INGEST_TASKDESC_H
-
-// System includes
-#include <string>
+#ifndef ASKAP_CP_INGEST_ANTENNA_H
+#define ASKAP_CP_INGEST_ANTENNA_H
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
+#include "casa/aips.h"
+#include "casa/Quanta.h"
+#include "casa/BasicSL.h"
+#include "casa/Arrays/Vector.h"
 
 // Local package includes
+#include "configuration/FeedConfig.h"
 
 namespace askap {
 namespace cp {
 namespace ingest {
 
 /// @brief TODO: Write documentation...
-class TaskDesc {
+class Antenna {
     public:
 
-        enum Type {
-            MergedSource,
-            CalcUVWTask,
-            ChannelAvgTask,
-            CalTask,
-            UVPublishTask,
-            MSSink
-        };
-
         /// @brief Constructor
-        TaskDesc(const std::string& name,
-                 const TaskDesc::Type type,
-                 const LOFAR::ParameterSet& parset);
+        Antenna(const casa::String& name,
+                const casa::String& mount,
+                const casa::Vector<casa::Double>& position,
+                const casa::Quantity& diameter,
+                const FeedConfig& feeds);
 
-        std::string name(void) const;
+        casa::String name(void) const;
 
-        TaskDesc::Type type(void) const;
+        casa::String mount(void) const;
 
-        LOFAR::ParameterSet parset(void) const;
+        casa::Vector<casa::Double> position(void) const;
+
+        casa::Quantity diameter(void) const;
+
+        FeedConfig feeds(void) const;
 
     private:
-
-        const std::string itsName;
-        const TaskDesc::Type itsType;
-        const LOFAR::ParameterSet itsParset;
+        const casa::String itsName;
+        const casa::String itsMount;
+        const casa::Vector<casa::Double> itsPosition;
+        const casa::Quantity itsDiameter;
+        const FeedConfig itsFeeds;
 
 };
 

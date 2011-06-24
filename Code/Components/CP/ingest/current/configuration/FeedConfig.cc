@@ -1,4 +1,4 @@
-/// @file TaskDesc.cc
+/// @file FeedConfig.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,40 +25,60 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "TaskDesc.h"
+#include "FeedConfig.h"
 
 // Include package level header file
 #include "askap_cpingest.h"
 
 // System includes
-#include <string>
 
 // ASKAPsoft includes
+#include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "Common/ParameterSet.h"
+#include "casa/aips.h"
+#include "casa/BasicSL.h"
+#include "casa/Quanta.h"
+#include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/Vector.h"
 
-using namespace std;
+// Local package includes
+
+ASKAP_LOGGER(logger, ".FeedConfig");
+
 using namespace askap;
 using namespace askap::cp::ingest;
 
-TaskDesc::TaskDesc(const std::string& name,
-                   const TaskDesc::Type type,
-                   const LOFAR::ParameterSet& parset)
-        : itsName(name), itsType(type), itsParset(parset)
+FeedConfig::FeedConfig(const casa::Matrix<casa::Quantity>& offsets,
+                       const casa::Vector<casa::String>& pols) :
+        itsOffsets(offsets), itsPols(pols)
 {
+    ASKAPCHECK(offsets.ncolumn() == 2,
+               "Offset matrix should have two columns");
+    ASKAPCHECK(offsets.nrow() > 0,
+               "Offsets should have at least one row");
+    ASKAPCHECK(offsets.nrow() == pols.nelements(),
+               "shape of offsets matrix and polarisations vector not consistent");
+
+    // Ensure all offsets conform to radians
+    casa::Matrix<casa::Quantity>::const_iterator it;
+
+    for (it = itsOffsets.begin(); it != itsOffsets.end(); ++it) {
+        ASKAPCHECK(it->isConform("rad"), "Offset must conform to radians");
+    }
 }
 
-std::string TaskDesc::name(void) const
+casa::Quantity FeedConfig::offsetX(int i) const
 {
-    return itsName;
+    return itsOffsets(i, 0);
 }
 
-TaskDesc::Type TaskDesc::type(void) const
+casa::Quantity FeedConfig::offsetY(int i) const
 {
-    return itsType;
+    return itsOffsets(i, 1);
 }
 
-LOFAR::ParameterSet TaskDesc::parset(void) const
+casa::String FeedConfig::pol(int i) const
 {
-    return itsParset;
+    return itsPols(i);
 }
+

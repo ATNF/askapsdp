@@ -1,4 +1,4 @@
-/// @file TaskDesc.cc
+/// @file CorrelatorMode.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,40 +25,52 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "TaskDesc.h"
+#include "CorrelatorMode.h"
 
 // Include package level header file
 #include "askap_cpingest.h"
 
 // System includes
-#include <string>
+#include "vector"
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
-#include "Common/ParameterSet.h"
+#include "casa/aips.h"
+#include "casa/BasicSL.h"
+#include "casa/Quanta.h"
+#include "measures/Measures/Stokes.h"
 
-using namespace std;
 using namespace askap;
 using namespace askap::cp::ingest;
 
-TaskDesc::TaskDesc(const std::string& name,
-                   const TaskDesc::Type type,
-                   const LOFAR::ParameterSet& parset)
-        : itsName(name), itsType(type), itsParset(parset)
+CorrelatorMode::CorrelatorMode(const casa::String& name,
+                               const casa::uInt nChan,
+                               const casa::Quantity chanWidth,
+                               const std::vector<casa::Stokes::StokesTypes> stokes)
+        : itsName(name), itsNChan(nChan),
+        itsChanWidth(chanWidth), itsStokes(stokes)
 {
+    ASKAPCHECK(chanWidth.isConform("Hz"),
+               "Channel width must conform to Hz");
+    ASKAPCHECK(!stokes.empty(), "Stokes vector is empty");
 }
 
-std::string TaskDesc::name(void) const
+casa::String CorrelatorMode::name(void) const
 {
     return itsName;
 }
 
-TaskDesc::Type TaskDesc::type(void) const
+casa::uInt CorrelatorMode::nChan(void) const
 {
-    return itsType;
+    return itsNChan;
 }
 
-LOFAR::ParameterSet TaskDesc::parset(void) const
+casa::Quantity CorrelatorMode::chanWidth(void) const
 {
-    return itsParset;
+    return itsChanWidth;
+}
+
+std::vector<casa::Stokes::StokesTypes> CorrelatorMode::stokes(void) const
+{
+    return itsStokes;
 }

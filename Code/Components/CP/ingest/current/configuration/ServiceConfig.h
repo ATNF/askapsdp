@@ -40,8 +40,8 @@ class ServiceConfig {
 
         /// @brief Constructor
         ServiceConfig(const std::string& registryHost,
-                    const std::string& registryPort,
-                    const std::string& serviceIdentity);
+                      const std::string& registryPort,
+                      const std::string& serviceIdentity);
 
         std::string registryHost(void) const;
 

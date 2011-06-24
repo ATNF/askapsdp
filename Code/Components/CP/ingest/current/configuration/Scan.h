@@ -1,6 +1,6 @@
-/// @file tconfiguration.cc
+/// @file Scan.h
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,27 +24,46 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_INGEST_SCAN_H
+#define ASKAP_CP_INGEST_SCAN_H
+
 // ASKAPsoft includes
-#include <AskapTestRunner.h>
+#include "casa/BasicSL.h"
+#include "casa/Quanta.h"
+#include "measures/Measures/MDirection.h"
 
-// Test includes
-#include "TopicConfigTest.h"
-#include "ServiceConfigTest.h"
-#include "TaskDescTest.h"
-#include "FeedConfigTest.h"
-#include "AntennaTest.h"
-#include "ConfigurationFactoryTest.h"
+namespace askap {
+namespace cp {
+namespace ingest {
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::ingest::TopicConfigTest::suite());
-    runner.addTest(askap::cp::ingest::ServiceConfigTest::suite());
-    runner.addTest(askap::cp::ingest::TaskDescTest::suite());
-    runner.addTest(askap::cp::ingest::FeedConfigTest::suite());
-    runner.addTest(askap::cp::ingest::AntennaTest::suite());
-    runner.addTest(askap::cp::ingest::ConfigurationFactoryTest::suite());
-    const bool wasSucessful = runner.run();
+/// @brief TODO: Write documentation...
+class Scan {
+    public:
 
-    return wasSucessful ? 0 : 1;
+        /// @brief Constructor
+        Scan(const casa::String& fieldName,
+             const casa::MDirection& fieldDirection,
+             const casa::Quantity& centreFreq,
+             const casa::String& correlatorMode);
+
+        casa::String name(void) const;
+
+        casa::MDirection fieldDirection(void) const;
+
+        casa::Quantity centreFreq(void) const;
+
+        casa::String correlatorMode(void) const;
+
+    private:
+        casa::String itsFieldName;
+        casa::MDirection itsFieldDirection;
+        casa::Quantity itsCentreFreq;
+        casa::String itsCorrelatorMode;
+
+};
+
 }
+}
+}
+
+#endif

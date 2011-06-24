@@ -27,10 +27,22 @@
 #ifndef ASKAP_CP_INGEST_CONFIGURATIONFACTORY_H
 #define ASKAP_CP_INGEST_CONFIGURATIONFACTORY_H
 
+// System includes
+#include <string>
+#include <vector>
+#include <map>
+
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
+#include "casa/BasicSL.h"
 
 // Local package includes
+#include "configuration/TopicConfig.h"
+#include "configuration/ServiceConfig.h"
+#include "configuration/TaskDesc.h"
+#include "configuration/Antenna.h"
+#include "configuration/CorrelatorMode.h"
+#include "configuration/Observation.h"
 #include "configuration/Configuration.h"
 
 namespace askap {
@@ -43,6 +55,24 @@ class ConfigurationFactory {
 
         /// @brief Factory method
         static Configuration createConfiguraton(const LOFAR::ParameterSet& parset);
+
+    private:
+        static casa::String createArrayName(const LOFAR::ParameterSet& parset);
+
+        static std::vector<TaskDesc> createTasks(const LOFAR::ParameterSet& parset);
+
+        static std::vector<Antenna> createAntennas(const LOFAR::ParameterSet& parset);
+
+        static std::map<std::string, CorrelatorMode> createCorrelatorModes(const LOFAR::ParameterSet& parset);
+
+        static Observation createObservation(const LOFAR::ParameterSet& parset);
+
+        static TopicConfig createMetadataTopicConfig(const LOFAR::ParameterSet& parset);
+
+        static ServiceConfig createCalibrationDataServiceConfig(const LOFAR::ParameterSet& parset);
+
+        static std::string makeKey(const std::string& prefix,
+                const std::string& suffix);
 };
 
 }

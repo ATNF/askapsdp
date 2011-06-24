@@ -1,4 +1,4 @@
-/// @file ConfigurationTest.cc
+/// @file CorrelatorMode.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,39 +24,48 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// CPPUnit includes
-#include <cppunit/extensions/HelperMacros.h>
+#ifndef ASKAP_CP_INGEST_CORRELATORMODE_H
+#define ASKAP_CP_INGEST_CORRELATORMODE_H
 
-// Support classes
-#include "Common/ParameterSet.h"
+// System includes
+#include <vector>
 
-// Classes to test
-#include "configuration/Configuration.h"
+// ASKAPsoft includes
+#include "casa/aips.h"
+#include "casa/BasicSL.h"
+#include "casa/Quanta.h"
+#include "measures/Measures/Stokes.h"
 
 namespace askap {
 namespace cp {
 namespace ingest {
 
-class ConfigurationTest : public CppUnit::TestFixture {
-        CPPUNIT_TEST_SUITE(ConfigurationTest);
-        CPPUNIT_TEST(testFactory);
-        CPPUNIT_TEST_SUITE_END();
-
+/// @brief TODO: Write documentation...
+class CorrelatorMode {
     public:
-        void setUp() {
-        };
 
-        void tearDown() {
-        }
+        /// @brief Constructor
+        CorrelatorMode(const casa::String& name,
+                       const casa::uInt nChan,
+                       const casa::Quantity chanWidth,
+                       const std::vector<casa::Stokes::StokesTypes> stokes);
 
-        void testFactory() {
-        };
+        casa::String name(void) const;
+        casa::uInt nChan(void) const;
+        casa::Quantity chanWidth(void) const;
+        std::vector<casa::Stokes::StokesTypes> stokes(void) const;
 
     private:
-        LOFAR::ParameterSet itsParset;
+
+        const casa::String itsName;
+        const casa::uInt itsNChan;
+        const casa::Quantity itsChanWidth;
+        const std::vector<casa::Stokes::StokesTypes> itsStokes;
 
 };
 
-}   // End namespace ingest
-}   // End namespace cp
-}   // End namespace askap
+}
+}
+}
+
+#endif

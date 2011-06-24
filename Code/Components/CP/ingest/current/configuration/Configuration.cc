@@ -31,18 +31,71 @@
 #include "askap_cpingest.h"
 
 // System includes
+#include <string>
+#include <vector>
+#include <map>
 
 // ASKAPsoft includes
-#include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "boost/scoped_ptr.hpp"
+#include "casa/BasicSL.h"
 
 // Local package includes
-
-ASKAP_LOGGER(logger, ".Configuration");
+#include "configuration/TopicConfig.h"
+#include "configuration/ServiceConfig.h"
+#include "configuration/TaskDesc.h"
+#include "configuration/Antenna.h"
+#include "configuration/CorrelatorMode.h"
+#include "configuration/Observation.h"
 
 using namespace askap;
 using namespace askap::cp::ingest;
 
-Configuration::Configuration()
+Configuration::Configuration(const casa::String& arrayName,
+                             const std::vector<TaskDesc>& tasks,
+                             const std::vector<Antenna>& antennas,
+                             const std::map<std::string, CorrelatorMode>& correlatorModes,
+                             const Observation& observation,
+                             const TopicConfig& metadataTopic,
+                             const ServiceConfig& calibrationDataService)
+        : itsArrayName(arrayName), itsTasks(tasks), itsAntennas(antennas),
+        itsCorrelatorModes(correlatorModes), itsObservation(observation),
+        itsMetadataTopicConfig(metadataTopic),
+        itsCalibrationDataServiceConfig(calibrationDataService)
 {
+}
+
+casa::String Configuration::arrayName(void) const
+{
+    return itsArrayName;
+}
+
+std::vector<TaskDesc> Configuration::tasks(void) const
+{
+    return itsTasks;
+}
+
+std::vector<Antenna> Configuration::antennas(void) const
+{
+    return itsAntennas;
+}
+
+std::map<std::string, CorrelatorMode> Configuration::correlatorModes(void) const
+{
+    return itsCorrelatorModes;
+}
+
+Observation Configuration::observation(void) const
+{
+    return itsObservation;
+}
+
+TopicConfig Configuration::metadataTopic(void) const
+{
+    return itsMetadataTopicConfig;
+}
+
+ServiceConfig Configuration::calibrationDataService(void) const
+{
+    return itsCalibrationDataServiceConfig;
 }

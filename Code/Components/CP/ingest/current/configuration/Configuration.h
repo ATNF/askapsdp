@@ -27,10 +27,18 @@
 #ifndef ASKAP_CP_INGEST_CONFIGURATION_H
 #define ASKAP_CP_INGEST_CONFIGURATION_H
 
+// System includes
+#include <vector>
+#include <map>
+
 // ASKAPsoft includes
-#include <boost/scoped_ptr.hpp>
+#include "casa/BasicSL.h"
 
 // Local package includes
+#include "configuration/TaskDesc.h"
+#include "configuration/Antenna.h"
+#include "configuration/CorrelatorMode.h"
+#include "configuration/Observation.h"
 #include "configuration/TopicConfig.h"
 #include "configuration/ServiceConfig.h"
 
@@ -43,15 +51,30 @@ class Configuration {
     public:
 
         /// @brief Constructor
-        Configuration();
+        Configuration(const casa::String& arrayName,
+                      const std::vector<TaskDesc>& tasks,
+                      const std::vector<Antenna>& antennas,
+                      const std::map<std::string, CorrelatorMode>& correlatorModes,
+                      const Observation& observation,
+                      const TopicConfig& metadataTopic,
+                      const ServiceConfig& calibrationDataService);
 
-        //const TopicConfig& metadataTopicConfig(void) const;
-        //const ServiceConfig& calibrationDataServiceConfig(void) const;
+        casa::String arrayName(void) const;
+        std::vector<TaskDesc> tasks(void) const;
+        std::vector<Antenna> antennas(void) const;
+        std::map<std::string, CorrelatorMode> correlatorModes(void) const;
+        Observation observation(void) const;
+        TopicConfig metadataTopic(void) const;
+        ServiceConfig calibrationDataService(void) const;
 
     private:
-
-        //const boost::scoped_ptr<TopicConfig> itsMetadataTopicConfig;
-        //const boost::scoped_ptr<ServiceConfig> itsCalibrationDataServiceConfig;
+        const casa::String itsArrayName;
+        const std::vector<TaskDesc> itsTasks;
+        const std::vector<Antenna> itsAntennas;
+        const std::map<std::string, CorrelatorMode> itsCorrelatorModes;
+        const Observation itsObservation;
+        const TopicConfig itsMetadataTopicConfig;
+        const ServiceConfig itsCalibrationDataServiceConfig;
 
 
 };

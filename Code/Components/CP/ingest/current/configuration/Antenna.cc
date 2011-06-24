@@ -1,4 +1,4 @@
-/// @file TaskDesc.cc
+/// @file Antenna.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,40 +25,64 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "TaskDesc.h"
+#include "Antenna.h"
 
 // Include package level header file
 #include "askap_cpingest.h"
 
 // System includes
-#include <string>
 
 // ASKAPsoft includes
+#include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "Common/ParameterSet.h"
+#include "casa/aips.h"
+#include "casa/Quanta.h"
+#include "casa/BasicSL.h"
+#include "measures/Measures/MPosition.h"
 
-using namespace std;
+// Local package includes
+#include "configuration/FeedConfig.h"
+
+ASKAP_LOGGER(logger, ".Antenna");
+
 using namespace askap;
 using namespace askap::cp::ingest;
 
-TaskDesc::TaskDesc(const std::string& name,
-                   const TaskDesc::Type type,
-                   const LOFAR::ParameterSet& parset)
-        : itsName(name), itsType(type), itsParset(parset)
+Antenna::Antenna(const casa::String& name,
+                 const casa::String& mount,
+                 const casa::Vector<casa::Double>& position,
+                 const casa::Quantity& diameter,
+                 const FeedConfig& feeds)
+        : itsName(name), itsMount(mount), itsPosition(position),
+        itsDiameter(diameter), itsFeeds(feeds)
 {
+    ASKAPCHECK(itsDiameter.isConform("m"),
+               "Diameter must conform to meters");
+    ASKAPCHECK(position.nelements() == 3,
+               "Position vector must have three elements");
 }
 
-std::string TaskDesc::name(void) const
+casa::String Antenna::name(void) const
 {
     return itsName;
 }
 
-TaskDesc::Type TaskDesc::type(void) const
+casa::String Antenna::mount(void) const
 {
-    return itsType;
+    return itsMount;
 }
 
-LOFAR::ParameterSet TaskDesc::parset(void) const
+casa::Vector<casa::Double> Antenna::position(void) const
 {
-    return itsParset;
+    return itsPosition;
+}
+
+casa::Quantity Antenna::diameter(void) const
+{
+    return itsDiameter;
+}
+
+FeedConfig Antenna::feeds(void) const
+{
+    return itsFeeds;
 }

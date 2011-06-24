@@ -1,4 +1,4 @@
-/// @file TaskDesc.h
+/// @file FeedConfig.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,50 +24,43 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_TASKDESC_H
-#define ASKAP_CP_INGEST_TASKDESC_H
-
-// System includes
-#include <string>
+#ifndef ASKAP_CP_CPINGEST_FEEDCONFIG_H
+#define ASKAP_CP_CPINGEST_FEEDCONFIG_H
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
-
-// Local package includes
+#include "casa/aips.h"
+#include "casa/BasicSL.h"
+#include "casa/Quanta.h"
+#include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/Vector.h"
 
 namespace askap {
 namespace cp {
 namespace ingest {
 
 /// @brief TODO: Write documentation...
-class TaskDesc {
+class FeedConfig {
     public:
 
-        enum Type {
-            MergedSource,
-            CalcUVWTask,
-            ChannelAvgTask,
-            CalTask,
-            UVPublishTask,
-            MSSink
-        };
-
         /// @brief Constructor
-        TaskDesc(const std::string& name,
-                 const TaskDesc::Type type,
-                 const LOFAR::ParameterSet& parset);
+        /// @param[in] offsets  Feeds (or synthesised beam) offsets in radians. The
+        ///                     Matrix is sized Matrix(nFeeds,2). I.E. An offset in
+        ///                     X and in Y for each feed. The first column is the
+        ///                     offset in X and the second the offset in Y.
+        ///
+        /// @param[in] pols    Polarisations, size if nFeeds.
+        FeedConfig(const casa::Matrix<casa::Quantity>& offsets,
+                   const casa::Vector<casa::String>& pols);
 
-        std::string name(void) const;
+        casa::Quantity offsetX(int i) const;
 
-        TaskDesc::Type type(void) const;
+        casa::Quantity offsetY(int i) const;
 
-        LOFAR::ParameterSet parset(void) const;
+        casa::String pol(int i) const;
 
     private:
-
-        const std::string itsName;
-        const TaskDesc::Type itsType;
-        const LOFAR::ParameterSet itsParset;
+        const casa::Matrix<casa::Quantity> itsOffsets;
+        const casa::Vector<casa::String> itsPols;
 
 };
 

@@ -1,6 +1,6 @@
-/// @file tconfiguration.cc
+/// @file Scan.cc
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,27 +24,48 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+// Include own header file first
+#include "Scan.h"
+
+// Include package level header file
+#include "askap_cpingest.h"
+
 // ASKAPsoft includes
-#include <AskapTestRunner.h>
+#include "askap/AskapError.h"
+#include "casa/BasicSL.h"
+#include "casa/Quanta.h"
+#include "measures/Measures/MDirection.h"
 
-// Test includes
-#include "TopicConfigTest.h"
-#include "ServiceConfigTest.h"
-#include "TaskDescTest.h"
-#include "FeedConfigTest.h"
-#include "AntennaTest.h"
-#include "ConfigurationFactoryTest.h"
+using namespace askap;
+using namespace askap::cp::ingest;
 
-int main(int argc, char *argv[])
+Scan::Scan(const casa::String& fieldName,
+           const casa::MDirection& fieldDirection,
+           const casa::Quantity& centreFreq,
+           const casa::String& correlatorMode)
+        : itsFieldName(fieldName), itsFieldDirection(fieldDirection),
+        itsCentreFreq(centreFreq), itsCorrelatorMode(correlatorMode)
 {
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::ingest::TopicConfigTest::suite());
-    runner.addTest(askap::cp::ingest::ServiceConfigTest::suite());
-    runner.addTest(askap::cp::ingest::TaskDescTest::suite());
-    runner.addTest(askap::cp::ingest::FeedConfigTest::suite());
-    runner.addTest(askap::cp::ingest::AntennaTest::suite());
-    runner.addTest(askap::cp::ingest::ConfigurationFactoryTest::suite());
-    const bool wasSucessful = runner.run();
+    ASKAPCHECK(centreFreq.isConform("Hz"),
+            "Centre frequency must conform to Hz");
+}
 
-    return wasSucessful ? 0 : 1;
+casa::String Scan::name(void) const
+{
+    return itsFieldName;
+}
+
+casa::MDirection Scan::fieldDirection(void) const
+{
+    return itsFieldDirection;
+}
+
+casa::Quantity Scan::centreFreq(void) const
+{
+    return itsCentreFreq;
+}
+
+casa::String Scan::correlatorMode(void) const
+{
+    return itsCorrelatorMode;
 }

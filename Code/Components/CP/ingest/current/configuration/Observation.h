@@ -1,6 +1,6 @@
-/// @file tconfiguration.cc
+/// @file Observation.h
 ///
-/// @copyright (c) 2010 CSIRO
+/// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,27 +24,42 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
+#ifndef ASKAP_CP_INGEST_OBSERVATION_H
+#define ASKAP_CP_INGEST_OBSERVATION_H
+
+// System includes
+#include <vector>
+
 // ASKAPsoft includes
-#include <AskapTestRunner.h>
+#include "casa/aips.h"
 
-// Test includes
-#include "TopicConfigTest.h"
-#include "ServiceConfigTest.h"
-#include "TaskDescTest.h"
-#include "FeedConfigTest.h"
-#include "AntennaTest.h"
-#include "ConfigurationFactoryTest.h"
+// Local package includes
+#include "configuration/Scan.h"
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::ingest::TopicConfigTest::suite());
-    runner.addTest(askap::cp::ingest::ServiceConfigTest::suite());
-    runner.addTest(askap::cp::ingest::TaskDescTest::suite());
-    runner.addTest(askap::cp::ingest::FeedConfigTest::suite());
-    runner.addTest(askap::cp::ingest::AntennaTest::suite());
-    runner.addTest(askap::cp::ingest::ConfigurationFactoryTest::suite());
-    const bool wasSucessful = runner.run();
+namespace askap {
+namespace cp {
+namespace ingest {
 
-    return wasSucessful ? 0 : 1;
+/// @brief TODO: Write documentation...
+class Observation {
+    public:
+
+        /// @brief Constructor
+        Observation(const casa::uInt schedulingBlockID,
+                    const std::vector<Scan>& scans);
+
+        casa::uInt schedulingBlockID(void) const;
+
+        std::vector<Scan> scans(void) const;
+
+    private:
+        const casa::uInt itsSchedulingBlockID;
+        const std::vector<Scan> itsScans;
+
+};
+
 }
+}
+}
+
+#endif
