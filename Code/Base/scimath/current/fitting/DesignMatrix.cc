@@ -58,16 +58,6 @@ namespace askap
 
     DesignMatrix::DesignMatrix() : itsParameterNamesInvalid(true) {}
     
-/*
-    DesignMatrix::DesignMatrix(const Params& ip) : itsParams(ip.clone()),
-                                 itsParameterNamesInvalid(true)
-    {
-      itsAMatrix.clear();
-      itsBVector.clear();
-      itsWeight.clear();
-    }
-    */
-
     DesignMatrix::DesignMatrix(const DesignMatrix& other)
     {
       operator=(other);
@@ -75,30 +65,24 @@ namespace askap
 
     DesignMatrix& DesignMatrix::operator=(const DesignMatrix& other)
     {
-      if(this!=&other)
-      {
+      if(this!=&other) {
         itsAMatrix.clear();
         itsBVector.clear();
         itsWeight.clear();
-        //itsParams=other.itsParams;
         itsParameterNamesInvalid = true;
         // We need to do a deep copy to ensure that future changes don't propagate here
-        for (std::map<string, DMAMatrix>::const_iterator AIt=other.itsAMatrix.begin();AIt!=other.itsAMatrix.end();AIt++)
-        {
+        for (std::map<string, DMAMatrix>::const_iterator AIt=other.itsAMatrix.begin(); AIt!=other.itsAMatrix.end(); ++AIt) {
           const DMAMatrix& otherDMAMatrix(AIt->second);
           DMAMatrix& thisDMAMatrix(itsAMatrix[AIt->first]);
-          for (DMAMatrix::const_iterator it=otherDMAMatrix.begin();it!=otherDMAMatrix.end();it++)
-          {
+          for (DMAMatrix::const_iterator it=otherDMAMatrix.begin(); it!=otherDMAMatrix.end(); ++it) {
             thisDMAMatrix.push_back(it->copy());
           }
         }        
-        for (uint i=0;i<other.itsBVector.size();i++)
-        {
-          itsBVector[i]=other.itsBVector[i].copy();
+        for (uint i=0; i<other.itsBVector.size(); ++i) {
+          itsBVector[i] = other.itsBVector[i].copy();
         }
-        for (uint i=0;i<other.itsWeight.size();i++)
-        {
-          itsWeight[i]=other.itsWeight[i].copy();
+        for (uint i=0; i<other.itsWeight.size(); ++i) {
+          itsWeight[i] = other.itsWeight[i].copy();
         }
       }
       return *this;
@@ -110,22 +94,20 @@ namespace askap
     }
 
     void DesignMatrix::merge(const DesignMatrix& other)
-    {
-      //itsParams->merge(*other.itsParams);
-      
+    {      
       for (std::map<std::string,DMAMatrix>::const_iterator cit = 
-           other.itsAMatrix.begin();cit!=other.itsAMatrix.end();++cit) {
+           other.itsAMatrix.begin(); cit!=other.itsAMatrix.end(); ++cit) {
            const DMAMatrix& AM = cit->second;
            for (DMAMatrix::const_iterator AMIt = AM.begin(); AMIt!=AM.end(); ++AMIt) {
                 addDerivative(cit->first,AMIt->copy());
            }
       }
 
-      for (uint i=0;i<other.itsBVector.size();i++)
+      for (uint i=0;i<other.itsBVector.size();++i)
       {
         itsBVector.push_back(other.itsBVector[i].copy());
       }
-      for (uint i=0;i<other.itsWeight.size();i++)
+      for (uint i=0;i<other.itsWeight.size();++i)
       {
         itsWeight.push_back(other.itsWeight[i].copy());
       }
@@ -135,7 +117,6 @@ namespace askap
     void DesignMatrix::addDerivative(const string& name, const casa::Matrix<casa::Double>& deriv)
     { 
       itsParameterNamesInvalid = true;
-      //ASKAPCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
       itsAMatrix[name].push_back(deriv.copy());
     }
 
@@ -165,7 +146,7 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
    ASKAPDEBUGASSERT(cdm.nRow() == weights.nrow());
    
    // buffer for derivatives of complex Parameters. Each complex value 
-   // corresponds to two adjacent double elements. The first row is 
+   // corresponds to two adjacent double elements. The first column is 
    // a derivative by real part, the second - that by imaginary part of the
    // parameter (filled only if the parameter is complex)
    casa::Matrix<casa::Double> derivatives(nDataPoints*2, 2);
@@ -260,7 +241,6 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
 
     const DMAMatrix& DesignMatrix::derivative(const string& name) const
     {
-      //ASKAPCHECK(itsParams->has(name), "Parameter "+name+" does not exist in the declared parameters");
       ASKAPCHECK(itsAMatrix.count(name)>0, "Parameter "+name+" does not exist in the assigned values");
       return itsAMatrix[name];
     }
@@ -288,8 +268,7 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
       double sum=0.0;
       DMBVector::const_iterator bIt = itsBVector.begin();
       DMWeight::const_iterator wIt = itsWeight.begin(); 
-      for (; (bIt!=itsBVector.end())&&(wIt!=itsWeight.end());++bIt, ++wIt)
-      {
+      for (; (bIt!=itsBVector.end())&&(wIt!=itsWeight.end());++bIt, ++wIt)  {
         sumwt+=casa::sum(*wIt);
         sum+=casa::sum((*wIt)*((*bIt)*(*bIt)));
       }
@@ -300,9 +279,8 @@ void DesignMatrix::addModel(const ComplexDiffMatrix &cdm,
     casa::uInt DesignMatrix::nData() const
     {
       casa::uInt nData=0;
-      for (DMBVector::const_iterator bIt=itsBVector.begin();bIt!=itsBVector.end();++bIt)
-      {
-        nData+=bIt->size();
+      for (DMBVector::const_iterator bIt=itsBVector.begin();bIt!=itsBVector.end();++bIt) {
+        nData += bIt->size();
       }
       return nData;
     }
