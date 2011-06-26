@@ -188,7 +188,7 @@ void GenericNormalEquations::mergeParameter(const std::string &par,
 }
 
 /// @brief Add/update one parameter using given matrix and data vector
-/// @details This helper method is the main workhorse use in merging two
+/// @details This helper method is the main workhorse used in merging two
 /// normal equations, adding an independent parameter or a design matrix.
 /// The normal matrix to be integrated with this class is given in the form
 /// of map of matrices (effectively a sparse matrix). Each element of the map
@@ -218,7 +218,7 @@ void GenericNormalEquations::addParameter(const std::string &par,
             
            // search for an appropriate parameter in the input matrix 
            MapOfMatrices::const_iterator inNMIt = inNM.find(nmColIt->first);           
-           // work with cross-terms only if the input matrix have them
+           // work with cross-terms if the input matrix have them
            if (inNMIt != inNM.end()) {
                ASKAPCHECK(inNMIt->second.shape() == nmColIt->second.shape(),
                         "shape mismatch for normal matrix, parameters ("<<
@@ -239,8 +239,8 @@ void GenericNormalEquations::addParameter(const std::string &par,
       destVec += inDV; // add up a vector  
   } else {
      // this is a brand new parameter
+     // obtain iterator, which points to this parameter in inNM map.
      nmRowIt = itsNormalMatrix.insert(std::make_pair(par,MapOfMatrices())).first;
-     // iterator, which points to this parameter in inNM map.
      const casa::uInt newParDimension = parameterDimension(inNM); 
        
      // process normal matrix - add cross terms for all parameters, names are
