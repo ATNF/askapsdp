@@ -90,7 +90,16 @@ namespace askap {
                 if (axes.size() != dim)
                     ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << dim << ", but axes has " << axes.size() << " dimensions.");
 
-                this->itsFlagStagedWriting = parset.getBool("stagedWriting", true);
+                this->itsFlagStagedWriting = parset.getBool("stagedWriting", true) && this->itsComms.isParallel();
+		this->itsFlagWriteByNode = parset.getBool("writeByNode",false) && this->itsComms.isParallel();
+		if(this->itsFlagWriteByNode) {
+		  if(this->itsFlagStagedWriting) ASKAPLOG_WARN_STR(logger, "writeByNode flag is true, so setting stagedWriting flag to false");
+		  this->itsFlagStagedWriting = false;
+		  std::string newname = workerImageName(parset.getString("filename"));
+		  newparset.replace("filename",newname);
+		  ASKAPLOG_INFO_STR(logger, "Using writeByNode mode, so changing requested image name to " << newname);
+		}
+		  
 
                 if (itsComms.isParallel() && itsComms.isWorker()) {
 
@@ -127,6 +136,22 @@ namespace askap {
 
             //--------------------------------------------------
 
+	  std::string FITSparallel::workerImageName(std::string name)
+	  {
+	    std::stringstream newname;
+	    size_t pos = name.rfind(".fits");
+	    if (pos == std::string::npos) { // imageName doesn't have a .fits extension
+	      newname << name << "_w" << this->itsComms.rank();
+	    }
+	    else{
+	      newname << name.substr(0,pos) << "_w" << this->tisComms.rank() << ".fits";
+	    }
+	    return newname.str();
+	  }
+
+
+            //--------------------------------------------------
+
             void FITSparallel::toMaster()
             {
 
@@ -137,7 +162,7 @@ namespace askap {
                 /// flux array. When run in serial mode, this function does
                 /// nothing.
 
-                if (itsComms.isParallel() && !this->itsFlagStagedWriting) {
+                if (itsComms.isParallel() && !this->itsFlagStagedWriting && !this->itsFlagWriteByNode) {
 
                     if (itsComms.isWorker()) {
                         ASKAPLOG_DEBUG_STR(logger, "Worker #" << itsComms.rank() << ": about to send data to Master");
@@ -221,9 +246,9 @@ namespace askap {
                 } else {
                     // There is convolution and we're adding the noise after it.
                     // In this case, we need to work out where the data is and only do it for the correct node
-                    if ((this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
-                            (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
-                        itsFITSfile->addNoise();
+		  addNoise = this->itsComms.isMaster();
+		  if(this->itsFlagStagedWriting || this->itsFlagWriteByNode) addNoise = this->itsComms.isWorker();
+		  if (addNoise) itsFITSfile->addNoise();
                 }
             }
 
@@ -237,8 +262,11 @@ namespace askap {
 
             void FITSparallel::convolveWithBeam()
             {
-                if ((this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
-                        (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
+	      bool doConv = this->itsComms.isMaster();
+	      if(this->itsFlagStagedWriting || this->itsFlagWriteByNode) doConv = this->itsComms.isWorker();
+		//                if ((this->itsFlagStagedWriting && this->itsComms.isWorker()) ||
+		//                        (!this->itsFlagStagedWriting && this->itsComms.isMaster()))
+	      if(doConv)
                     itsFITSfile->convolveWithBeam();
             }
 
@@ -254,14 +282,16 @@ namespace askap {
 
             void FITSparallel::writeFITSimage()
             {
-                if (itsComms.isMaster())
-                    itsFITSfile->writeFITSimage();
+	      bool doWrite = this->itsComms.isMaster();
+	      if(this->itsFlagWriteByNode) doWrite = this->itsComms.isWorker();
+	      if (doWrite) itsFITSfile->writeFITSimage();
             }
 
             void FITSparallel::writeCASAimage()
             {
-                if (itsComms.isMaster())
-                    itsFITSfile->writeCASAimage();
+	      bool doWrite = this->itsComms.isMaster();
+	      if(this->itsFlagWriteByNode) doWrite = !this->itsComms.isWorker();
+	      if (doWrite) itsFITSfile->writeCASAimage();
             }
 
 

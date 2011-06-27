@@ -108,6 +108,9 @@ namespace askap {
 
                     /// @brief Whether to write the images in a staged manner
                     bool itsFlagStagedWriting;
+
+		    /// @brief Whether to write individual images for each worker node
+		    bool itsFlagWriteByNode;
             };
 
         }
