@@ -144,7 +144,7 @@ namespace askap {
 	      newname << name << "_w" << this->itsComms.rank();
 	    }
 	    else{
-	      newname << name.substr(0,pos) << "_w" << this->tisComms.rank() << ".fits";
+	      newname << name.substr(0,pos) << "_w" << this->itsComms.rank() << ".fits";
 	    }
 	    return newname.str();
 	  }
@@ -246,9 +246,9 @@ namespace askap {
                 } else {
                     // There is convolution and we're adding the noise after it.
                     // In this case, we need to work out where the data is and only do it for the correct node
-		  addNoise = this->itsComms.isMaster();
-		  if(this->itsFlagStagedWriting || this->itsFlagWriteByNode) addNoise = this->itsComms.isWorker();
-		  if (addNoise) itsFITSfile->addNoise();
+		  bool doAdd = this->itsComms.isMaster();
+		  if(this->itsFlagStagedWriting || this->itsFlagWriteByNode) doAdd = this->itsComms.isWorker();
+		  if (doAdd) itsFITSfile->addNoise();
                 }
             }
 

@@ -80,6 +80,9 @@ namespace askap {
                     /// @brief Convolve the flux array with a beam
                     void convolveWithBeam();
 
+		    /// @brief Convert image name to one suitable for writing by worker node
+		    std::string workerImageName(std::string name);
+
                     /// @brief Save the array to a FITS file
                     void writeFITSimage();
 
