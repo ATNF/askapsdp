@@ -346,6 +346,7 @@ namespace askap {
 
 	this->itsOutputSourceList = parset.getString("outputSourceList", "");
 
+	this->itsArrayAllocated = false;
 	if (allocateMemory && !this->itsDryRun) {
 	  ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() << " with " << this->itsNumPix << " pixels, each of size " << sizeof(float) << " bytes");
 	  this->itsArray = new float[this->itsNumPix];
