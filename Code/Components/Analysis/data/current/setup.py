@@ -1,4 +1,4 @@
-from askapdev.rbuild import setup
+from askapdev.rbuild.setup import setup
 from askapdev.rbuild.dependencies import Dependency
 from setuptools import find_packages
 
