@@ -67,18 +67,28 @@ FeedConfig::FeedConfig(const casa::Matrix<casa::Quantity>& offsets,
     }
 }
 
-casa::Quantity FeedConfig::offsetX(int i) const
+casa::Quantity FeedConfig::offsetX(casa::uInt i) const
 {
+    ASKAPCHECK(i < itsOffsets.nrow(),
+               "Feed index out of bounds");
     return itsOffsets(i, 0);
 }
 
-casa::Quantity FeedConfig::offsetY(int i) const
+casa::Quantity FeedConfig::offsetY(casa::uInt i) const
 {
+    ASKAPCHECK(i < itsOffsets.nrow(),
+               "Feed index out of bounds");
     return itsOffsets(i, 1);
 }
 
-casa::String FeedConfig::pol(int i) const
+casa::String FeedConfig::pol(casa::uInt i) const
 {
+    ASKAPCHECK(i < itsPols.nelements(),
+               "Feed index out of bounds");
     return itsPols(i);
 }
 
+casa::uInt FeedConfig::nFeeds(void) const
+{
+    return itsOffsets.nrow();
+}

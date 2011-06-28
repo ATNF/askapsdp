@@ -52,16 +52,17 @@ class FeedConfig {
         FeedConfig(const casa::Matrix<casa::Quantity>& offsets,
                    const casa::Vector<casa::String>& pols);
 
-        casa::Quantity offsetX(int i) const;
+        casa::uInt nFeeds(void) const;
 
-        casa::Quantity offsetY(int i) const;
+        casa::Quantity offsetX(casa::uInt i) const;
 
-        casa::String pol(int i) const;
+        casa::Quantity offsetY(casa::uInt i) const;
+
+        casa::String pol(casa::uInt i) const;
 
     private:
-        const casa::Matrix<casa::Quantity> itsOffsets;
-        const casa::Vector<casa::String> itsPols;
-
+        casa::Matrix<casa::Quantity> itsOffsets;
+        casa::Vector<casa::String> itsPols;
 };
 
 }

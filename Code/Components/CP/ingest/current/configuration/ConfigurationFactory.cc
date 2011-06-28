@@ -41,8 +41,12 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
-#include "casa/BasicSL.h"
 #include "Common/ParameterSet.h"
+#include "casa/aips.h"
+#include "casa/BasicSL.h"
+#include "casa/Quanta.h"
+#include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/Vector.h"
 
 // Local package includes
 #include "configuration/TopicConfig.h"
@@ -79,12 +83,47 @@ casa::String ConfigurationFactory::createArrayName(const LOFAR::ParameterSet& pa
 std::vector<TaskDesc> ConfigurationFactory::createTasks(const LOFAR::ParameterSet& parset)
 {
     vector<TaskDesc> tasks;
+
+    // Iterator over all tasks
+    const vector<string> names = parset.getStringVector("tasks.tasklist");
+    vector<string>::const_iterator it;
+    for (it = names.begin(); it != names.end(); ++it) {
+        const string keyBase = makeKey("tasks", *it);
+        const string typeStr = parset.getString(makeKey(keyBase, "type"));
+        const TaskDesc::Type type = TaskDesc::toType(typeStr);
+        ostringstream ss;
+        ss << keyBase << ".params.";
+        const LOFAR::ParameterSet params = parset.makeSubset(ss.str());
+
+        tasks.push_back(TaskDesc(*it, type, params));
+    }
+
     return tasks;
 }
 
 std::vector<Antenna> ConfigurationFactory::createAntennas(const LOFAR::ParameterSet& parset)
 {
     vector<Antenna> antennas;
+    std::map<std::string, FeedConfig> feedConfigs = createFeeds(parset);
+
+    // Iterator over all antennas
+    const vector<string> names = parset.getStringVector("antennas.names");
+    vector<string>::const_iterator it;
+    for (it = names.begin(); it != names.end(); ++it) {
+        const string keyBase = makeKey("antennas", *it);
+        const string mount = parset.getString(makeKey(keyBase, "mount"));
+        const vector<casa::Double> location = parset.getDoubleVector(makeKey(keyBase, "location"));
+        const casa::Quantity diameter = asQuantity(parset.getString(
+                    makeKey(keyBase, "diameter")), "m");
+        const string feedConfigName = parset.getString(makeKey(keyBase, "feed_config"));
+        std::map<std::string, FeedConfig>::const_iterator feedIt = feedConfigs.find(feedConfigName);
+        if (feedIt == feedConfigs.end()) {
+                ASKAPTHROW(AskapError, "Invalid feed config: " << feedConfigName);
+        }
+
+        antennas.push_back(Antenna(*it, mount, location, diameter, feedIt->second));
+    }
+
     return antennas;
 }
 
@@ -92,9 +131,9 @@ std::map<std::string, CorrelatorMode> ConfigurationFactory::createCorrelatorMode
 {
     map<string, CorrelatorMode> modes;
 
-    const vector<string> modeNames = parset.getStringVector("correlator.modes");
+    const vector<string> names = parset.getStringVector("correlator.modes");
     vector<string>::const_iterator it;
-    for (it = modeNames.begin(); it != modeNames.end(); ++it) {
+    for (it = names.begin(); it != names.end(); ++it) {
         const string keyBase = makeKey("correlator.mode", *it);
         const casa::uInt nChan = parset.getUint32(makeKey(keyBase, "n_chan"));
         const casa::Quantity chanWidth = asQuantity(parset.getString(
@@ -169,3 +208,39 @@ std::string ConfigurationFactory::makeKey(const std::string& prefix,
     return ss.str();
 }
 
+std::map<std::string, FeedConfig> ConfigurationFactory::createFeeds(const LOFAR::ParameterSet& parset)
+{
+    const int nReceptors = 2; // Only support receptors "X Y"
+
+    map<string, FeedConfig> feedConfigs;
+
+    const vector<string> names = parset.getStringVector("feeds.names");
+    vector<string>::const_iterator it;
+    for (it = names.begin(); it != names.end(); ++it) {
+        const string keyBase = makeKey("feeds", *it);
+        const casa::uInt nFeeds = parset.getUint32(makeKey(keyBase, "n_feeds"));
+        const casa::Quantity spacing = asQuantity(parset.getString(
+                    makeKey(keyBase, "spacing")), "rad");
+
+        // Get offsets for each feed/beam
+        casa::Matrix<casa::Quantity> offsets(nFeeds, nReceptors);
+        for (unsigned int i = 0; i < nFeeds; ++i) {
+            ostringstream ss;
+            ss << keyBase << "." << "feed" << i;
+            if (!parset.isDefined(ss.str())) {
+                ASKAPTHROW(AskapError, "Expected " << nFeeds << " feed offsets");
+            }
+            const vector<casa::Double> xy = parset.getDoubleVector(ss.str());
+            offsets(i, 0) = spacing * xy.at(0);
+            offsets(i, 1) = spacing * xy.at(1);
+        }
+
+        casa::Vector<casa::String> pols(nFeeds, "X Y");
+
+        // Create the FeedConfig instance and add to the map
+        pair<string, FeedConfig> element(*it, FeedConfig(offsets, pols)); 
+        feedConfigs.insert(element);
+    }
+
+    return feedConfigs;
+}

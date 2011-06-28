@@ -43,8 +43,8 @@ using namespace askap::cp::ingest;
 
 TaskDesc::TaskDesc(const std::string& name,
                    const TaskDesc::Type type,
-                   const LOFAR::ParameterSet& parset)
-        : itsName(name), itsType(type), itsParset(parset)
+                   const LOFAR::ParameterSet& params)
+        : itsName(name), itsType(type), itsParams(params)
 {
 }
 
@@ -58,7 +58,31 @@ TaskDesc::Type TaskDesc::type(void) const
     return itsType;
 }
 
-LOFAR::ParameterSet TaskDesc::parset(void) const
+LOFAR::ParameterSet TaskDesc::params(void) const
 {
-    return itsParset;
+    return itsParams;
+}
+
+TaskDesc::Type TaskDesc::toType(const std::string& type)
+{
+    if (type == "MergedSource") {
+        return TaskDesc::MergedSource;
+    }
+    if (type == "CalcUVWTask") {
+        return TaskDesc::CalcUVWTask;
+    }
+    if (type == "ChannelAvgTask") {
+        return TaskDesc::ChannelAvgTask;
+    }
+    if (type == "CalTask") {
+        return TaskDesc::CalTask;
+    }
+    if (type == "UVPublishTask") {
+        return TaskDesc::UVPublishTask;
+    }
+    if (type == "MSSink") {
+        return TaskDesc::MSSink;
+    }
+
+    ASKAPTHROW(AskapError, "Unknown task type");
 }

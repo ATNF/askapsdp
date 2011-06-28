@@ -73,6 +73,9 @@ class ConfigurationFactory {
 
         static std::string makeKey(const std::string& prefix,
                 const std::string& suffix);
+
+        static std::map<std::string, FeedConfig> createFeeds(const LOFAR::ParameterSet& parset);
+
 };
 
 }

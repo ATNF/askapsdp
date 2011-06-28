@@ -30,6 +30,7 @@
 // Support classes
 #include "Common/ParameterSet.h"
 #include "configuration/Configuration.h"
+#include "casa/BasicSL.h"
 
 // Classes to test
 #include "configuration/ConfigurationFactory.h"
@@ -40,7 +41,7 @@ namespace ingest {
 
 class ConfigurationFactoryTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(ConfigurationFactoryTest);
-        CPPUNIT_TEST(testFactory);
+        CPPUNIT_TEST(testCreateConfiguration);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -58,7 +59,7 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
             itsParset.add("feeds.names", "[SPF, PAF4]");
 
             itsParset.add("feeds.SPF.n_feeds", "1");
-            itsParset.add("feeds.SPF.spacing", "0");
+            itsParset.add("feeds.SPF.spacing", "1deg");
             itsParset.add("feeds.SPF.feed0", "[0.0, 0.0]");
 
             itsParset.add("feeds.PAF4.n_feeds", "4");
@@ -70,13 +71,17 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
 
 
             // Antennas
-            itsParset.add("antennas.names", "[A0, A1, A2, A3, A4, A5]");
+            itsParset.add("antennas.names", "[A0, A1]");
 
-            itsParset.add("antennas.A0.location" , "");
+            itsParset.add("antennas.A0.location" , "[-175.233429,  -1673.460938,  0.0000]");
             itsParset.add("antennas.A0.diameter" , "12m");
             itsParset.add("antennas.A0.mount" , "equatorial");
-            itsParset.add("antennas.A1.feed_config" , "PAF4");
+            itsParset.add("antennas.A0.feed_config" , "PAF4");
 
+            itsParset.add("antennas.A1.location" , "[-175.233429,  -1673.460938,  0.0000]");
+            itsParset.add("antennas.A1.diameter" , "15m");
+            itsParset.add("antennas.A1.mount" , "equatorial");
+            itsParset.add("antennas.A1.feed_config" , "SPF");
 
             // Observation specific
             itsParset.add("observation.sbid", "0");
@@ -95,17 +100,103 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
             itsParset.add("cal_data_service.ice.locator_host", "localhost");
             itsParset.add("cal_data_service.ice.locator_port", "4061");
             itsParset.add("cal_data_service.servicename", "CalibrationDataService");
+
+            /////////////////////////////
+            // Task Configuration
+            /////////////////////////////
+            itsParset.add("tasks.tasklist", "[MergedSource, CalcUVWTask, ChannelAvgTask, MSSink]");
+
+            // MergedSource
+            itsParset.add("tasks.MergedSource.type", "MergedSource");
+            itsParset.add("tasks.MergedSource.params.vis_source.port", "3000");
+            itsParset.add("tasks.MergedSource.params.vis_source.buffer_size", "459648");
+
+            // CalcUVWTask
+            itsParset.add("tasks.CalcUVWTask.type", "CalcUVWTask");
+
+            // ChannelAvgTask
+            itsParset.add("tasks.ChannelAvgTask.type", "ChannelAvgTask");
+            itsParset.add("tasks.ChannelAvgTask.params.averaging", "54");
+
+            // MSSink
+            itsParset.add("tasks.MSSink.type", "MSSink");
+            itsParset.add("tasks.MSSink.params.filenamebase", "ingest_test");
+            itsParset.add("tasks.MSSink.params.stman.bucketsize", "1048576");
+            itsParset.add("tasks.MSSink.params.stman.tilencorr", "4");
+            itsParset.add("tasks.MSSink.params.stman.tilenchan", "1");
         };
 
         void tearDown() {
             itsParset.clear();
         }
 
-        void testFactory() {
+        void testCreateConfiguration() {
             Configuration conf = ConfigurationFactory::createConfiguraton(itsParset);
 
             // Check array name
-            CPPUNIT_ASSERT(conf.arrayName().compare("ASKAP") == 0);
+            CPPUNIT_ASSERT_EQUAL(casa::String("ASKAP"), conf.arrayName());
+
+            // Check correlator modes
+            CPPUNIT_ASSERT_EQUAL(1ul, conf.correlatorModes().size());
+            CorrelatorMode correlatorMode = conf.correlatorModes().find("StandardMode")->second;
+            CPPUNIT_ASSERT_EQUAL(casa::String("StandardMode"), correlatorMode.name());
+            CPPUNIT_ASSERT_EQUAL(16416u, correlatorMode.nChan());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(18.51851851, "kHz"), correlatorMode.chanWidth());
+            CPPUNIT_ASSERT_EQUAL(4ul, correlatorMode.stokes().size());
+
+
+            // Check antennas
+            CPPUNIT_ASSERT_EQUAL(2ul, conf.antennas().size());
+
+            // A0
+            unsigned int idx = 0;
+            CPPUNIT_ASSERT_EQUAL(casa::String("A0"), conf.antennas().at(idx).name());
+            CPPUNIT_ASSERT_EQUAL(casa::String("equatorial"), conf.antennas().at(idx).mount());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(12, "m"), conf.antennas().at(idx).diameter());
+            CPPUNIT_ASSERT_EQUAL(4u, conf.antennas().at(idx).feeds().nFeeds());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(-0.5, "deg"),
+                    conf.antennas().at(idx).feeds().offsetX(0));
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.5, "deg"),
+                    conf.antennas().at(idx).feeds().offsetY(0));
+            CPPUNIT_ASSERT_EQUAL(casa::String("X Y"), conf.antennas().at(0).feeds().pol(0));
+
+            // A1
+            idx = 1;
+            CPPUNIT_ASSERT_EQUAL(casa::String("A1"), conf.antennas().at(idx).name());
+            CPPUNIT_ASSERT_EQUAL(casa::String("equatorial"), conf.antennas().at(idx).mount());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(15, "m"), conf.antennas().at(idx).diameter());
+            CPPUNIT_ASSERT_EQUAL(1u, conf.antennas().at(idx).feeds().nFeeds());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.0, "deg"),
+                    conf.antennas().at(idx).feeds().offsetX(0));
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.0, "deg"),
+                    conf.antennas().at(idx).feeds().offsetY(0));
+            CPPUNIT_ASSERT_EQUAL(casa::String("X Y"), conf.antennas().at(0).feeds().pol(0));
+
+            // Check tasks
+            CPPUNIT_ASSERT_EQUAL(4ul, conf.tasks().size());
+
+            idx = 0;
+            CPPUNIT_ASSERT_EQUAL(std::string("MergedSource"), conf.tasks().at(idx).name());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::MergedSource);
+            CPPUNIT_ASSERT_EQUAL(2, conf.tasks().at(idx).params().size());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).params().isDefined("vis_source.port"));
+            CPPUNIT_ASSERT(conf.tasks().at(idx).params().isDefined("vis_source.buffer_size"));
+
+            idx = 1;
+            CPPUNIT_ASSERT_EQUAL(std::string("CalcUVWTask"), conf.tasks().at(idx).name());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::CalcUVWTask);
+            CPPUNIT_ASSERT_EQUAL(0, conf.tasks().at(idx).params().size());
+
+            idx = 2;
+            CPPUNIT_ASSERT_EQUAL(std::string("ChannelAvgTask"), conf.tasks().at(idx).name());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::ChannelAvgTask);
+            CPPUNIT_ASSERT_EQUAL(1, conf.tasks().at(idx).params().size());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).params().isDefined("averaging"));
+
+            idx = 3;
+            CPPUNIT_ASSERT_EQUAL(std::string("MSSink"), conf.tasks().at(idx).name());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::MSSink);
+            CPPUNIT_ASSERT_EQUAL(4, conf.tasks().at(idx).params().size());
         };
 
     private:

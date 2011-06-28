@@ -54,13 +54,13 @@ class TaskDescTest : public CppUnit::TestFixture {
         void testAll() {
             const string name = "CalcUVWTask";
             const TaskDesc::Type type = TaskDesc::CalcUVWTask;
-            LOFAR::ParameterSet parset;
-            parset.add("a_key", "a_value");
+            LOFAR::ParameterSet params;
+            params.add("a_key", "a_value");
 
-            TaskDesc instance(name, type, parset);
+            TaskDesc instance(name, type, params);
             CPPUNIT_ASSERT_EQUAL(name, instance.name());
             CPPUNIT_ASSERT_EQUAL(type, instance.type());
-            CPPUNIT_ASSERT_EQUAL(parset.size(), instance.parset().size());
+            CPPUNIT_ASSERT_EQUAL(params.size(), instance.params().size());
         };
 };
 

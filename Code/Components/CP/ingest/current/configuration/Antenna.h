@@ -62,12 +62,11 @@ class Antenna {
         FeedConfig feeds(void) const;
 
     private:
-        const casa::String itsName;
-        const casa::String itsMount;
-        const casa::Vector<casa::Double> itsPosition;
-        const casa::Quantity itsDiameter;
-        const FeedConfig itsFeeds;
-
+        casa::String itsName;
+        casa::String itsMount;
+        casa::Vector<casa::Double> itsPosition;
+        casa::Quantity itsDiameter;
+        FeedConfig itsFeeds;
 };
 
 }

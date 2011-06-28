@@ -55,20 +55,21 @@ class TaskDesc {
         /// @brief Constructor
         TaskDesc(const std::string& name,
                  const TaskDesc::Type type,
-                 const LOFAR::ParameterSet& parset);
+                 const LOFAR::ParameterSet& params);
 
         std::string name(void) const;
 
         TaskDesc::Type type(void) const;
 
-        LOFAR::ParameterSet parset(void) const;
+        LOFAR::ParameterSet params(void) const;
+
+        static TaskDesc::Type toType(const std::string& type);
 
     private:
 
-        const std::string itsName;
-        const TaskDesc::Type itsType;
-        const LOFAR::ParameterSet itsParset;
-
+        std::string itsName;
+        TaskDesc::Type itsType;
+        LOFAR::ParameterSet itsParams;
 };
 
 }
