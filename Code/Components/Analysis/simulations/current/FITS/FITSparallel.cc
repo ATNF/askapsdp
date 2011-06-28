@@ -294,7 +294,7 @@ namespace askap {
             void FITSparallel::writeCASAimage()
             {
 	      bool doWrite = this->itsComms.isMaster();
-	      if(this->itsFlagWriteByNode) doWrite = !this->itsComms.isWorker();
+	      if(this->itsFlagWriteByNode) doWrite = this->itsComms.isWorker();
 	      if (doWrite) itsFITSfile->writeCASAimage();
             }
 

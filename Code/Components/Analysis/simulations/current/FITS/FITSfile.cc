@@ -1020,18 +1020,24 @@ namespace askap {
 
 	  if (saveData) {
 
-	    casa::PagedImage<float> img(newName);
-
-	    // make the casa::Array, sharing the memory storage so there is minimal additional impact
-	    Array<Float> arr(shape, this->itsArray, casa::SHARE);
-
-	    casa::IPosition location(this->itsDim);
-
-	    for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
-
-	    ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location);
-	    ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
-	    img.putSlice(arr, location);
+	    if(this->itsArrayAllocated){
+	      
+	      casa::PagedImage<float> img(newName);
+	      
+	      // make the casa::Array, sharing the memory storage so there is minimal additional impact
+	      Array<Float> arr(shape, this->itsArray, casa::SHARE);
+	      
+	      casa::IPosition location(this->itsDim);
+	      
+	      for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
+	      
+	      ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location);
+	      ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
+	      img.putSlice(arr, location);
+	    }
+	    else{
+	      ASKAPLOG_WARN_STR(logger, "Cannot write array as it has not been allocated");
+	    }
 	  }
 
 	}
