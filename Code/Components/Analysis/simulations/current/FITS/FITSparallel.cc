@@ -125,8 +125,12 @@ namespace askap {
                 }
 
                 ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
-		bool doAllocation = (parset.getBool("fitsOutput",true)||parset.getBool("casaOutput",false)) && 
-		  (this->itsComms.isWorker() || !this->itsFlagStagedWriting);
+		//		bool doAllocation = (parset.getBool("fitsOutput",true)||parset.getBool("casaOutput",false)) &&  (this->itsComms.isWorker() || !this->itsFlagStagedWriting);
+		// if we want to write, start by assuming we need to allocate
+		bool doAllocation = (parset.getBool("fitsOutput",true)||parset.getBool("casaOutput",false));   
+		// for the master node, turn allocation off when doing *either* staged writing or writing by node.
+		if(this->itsComms.isMaster()) doAllocation = doAllocation && !this->itsFlagStagedWriting && !this->itsFlagWriteByNode; 
+
                 this->itsFITSfile = new FITSfile(newparset, doAllocation);
                 ASKAPLOG_DEBUG_STR(logger, "Defined");
 
