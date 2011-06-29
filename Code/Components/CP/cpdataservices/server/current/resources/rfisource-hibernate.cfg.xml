@@ -1,0 +1,43 @@
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+
+    <session-factory>
+
+        <!-- Connection properties --> 
+        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="connection.url">jdbc:mysql://gijane/rfisource</property>
+        <property name="connection.username">rfisourceuser</property>
+        <property name="connection.password">askap</property>
+
+        <!-- SQL dialect -->
+        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+
+        <!-- Enable Hibernate's automatic session context management -->
+        <property name="current_session_context_class">thread</property>
+
+        <!-- Disable the second-level cache  -->
+        <property name="cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
+
+        <!-- Echo all executed SQL to stdout -->
+        <property name="show_sql">false</property>
+
+        <!-- Drop and re-create the database schema on startup -->
+        <property name="hbm2ddl.auto">update</property>
+        
+        <!-- Set the JDBC batch size -->
+        <property name="hibernate.jdbc.batch_size">20</property>
+
+        <!-- C3P0 Connection pool -->
+        <property name="hibernate.c3p0.acquire_increment">1</property> 
+        <property name="hibernate.c3p0.idle_test_period">100</property> <!-- seconds --> 
+        <property name="hibernate.c3p0.max_size">10</property> 
+        <property name="hibernate.c3p0.max_statements">0</property> 
+        <property name="hibernate.c3p0.min_size">2</property> 
+        <property name="hibernate.c3p0.timeout">100</property> <!-- seconds --> 
+
+        <!-- Mappings -->
+        <mapping resource="askap/interfaces/rfisourcesvc/RFIEntry.hbm.xml"/>
+
+    </session-factory>
+
+</hibernate-configuration>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="WINDOWS-1251"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="askap.interfaces.rfisourcesvc">
+
+    <class name="RFIEntry" table="rfi_entries">
+        <id name="id" type="long" access="field" column="id">
+            <generator class="native"/>
+        </id>
+        <property name="active" type="boolean" access="field" column="active" />
+
+        <property name="skyFrequency" type="double" access="field" column="declination"/>
+        <property name="bandwidth" type="double" access="field" column="position_angle"/>
+
+        <property name="dirSpecific" type="boolean" access="field" column="dir_specific"/>
+
+        <property name="azimuth" type="double" access="field" column="azimuth"/>
+        <property name="azimuthRange" type="double" access="field" column="azimuth_range"/>
+
+        <property name="elevation" type="double" access="field" column="elevation"/>
+        <property name="elevationRange" type="double" access="field" column="elevation_range"/>
+
+        <property name="timeSpecific" type="boolean" access="field" column="time_specific"/>
+        <property name="startTime" type="int" access="field" column="start_time"/>
+        <property name="endTime" type="int" access="field" column="end_time"/>
+
+        <property name="dateReported" type="long" access="field" column="date_reported"/>
+
+        <property name="source" type="string" access="field" column="source"/>
+
+        <property name="comments" type="string" access="field" column="comments"/>
+
+    </class>
+
+</hibernate-mapping>
+

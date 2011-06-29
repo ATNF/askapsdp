@@ -31,7 +31,7 @@ module askap
 {
 module interfaces
 {
-module rfisourceservice
+module rfisourcesvc
 {
     /**
      * An RFI database entry 
@@ -144,7 +144,7 @@ module rfisourceservice
     /**
      * A sequence of RFI source entries
      **/
-    ["java:type:java.util.ArrayList<askap.interfaces.rfisourceservice.RFIEntry>"]
+    ["java:type:java.util.ArrayList<askap.interfaces.rfisourcesvc.RFIEntry>"]
     sequence<RFIEntry> RFIEntrySeq;
 
     /**
@@ -177,9 +177,8 @@ module rfisourceservice
          * @param   entry the entry to modify to the database. The entry
          * with the id contained in the RFIEntry parameter is replaced with
          * contents of the RFIEntry parameter.
-         * @return the entry ID assigned to the added entry.
          **/
-        long modifyEntry(RFIEntry entry) throws EntryDoesNotExistException;
+        void modifyEntry(RFIEntry entry) throws EntryDoesNotExistException;
 
         /**
          * Returns all entries in the RFI source database.
