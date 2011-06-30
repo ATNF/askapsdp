@@ -212,10 +212,9 @@ namespace askap
 	    basisFunctionDec->setControl(itsControl);
 	    basisFunctionDec->setWeight(maskArray);
 
-	    const std::string deconvolverKey = indit->first + planeIter.tag();
-            casa::Array<float> cleanArray(planeIter.planeShape());
-            casa::convertArray<float, double>(cleanArray, planeIter.getPlane(ip.value(deconvolverKey)));
-            basisFunctionDec->setModel(cleanArray);
+        casa::Array<float> cleanArray(planeIter.planeShape());
+        casa::convertArray<float, double>(cleanArray, planeIter.getPlane(ip.value(indit->first)));
+        basisFunctionDec->setModel(cleanArray);
 
 	    itsBasisFunction->initialise(dirtyArray.shape());
 	    basisFunctionDec->setBasisFunction(itsBasisFunction);
@@ -237,14 +236,14 @@ namespace askap
 	    ASKAPLOG_INFO_STR(logger, "Peak residual of Basis function image "
 			      << max(abs(basisFunctionDec->dirty())));
 	    
-	    const std::string peakResParam = std::string("peak_residual.") + deconvolverKey;
+	    const std::string peakResParam = std::string("peak_residual.") + indit->first;
 	    if (ip.has(peakResParam)) {
 	      ip.update(peakResParam, basisFunctionDec->state()->peakResidual());
 	    } else {
 	      ip.add(peakResParam, basisFunctionDec->state()->peakResidual());
 	    }
 	    ip.fix(peakResParam);	    
-            planeIter.getPlane(ip.value(deconvolverKey)).nonDegenerate()=unpadImage(basisFunctionDec->model());
+            planeIter.getPlane(ip.value(indit->first)).nonDegenerate()=unpadImage(basisFunctionDec->model());
 	  } // loop over all planes of the image cube
 	} // loop over map of indices
       

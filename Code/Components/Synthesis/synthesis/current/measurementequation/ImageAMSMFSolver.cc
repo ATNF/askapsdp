@@ -120,7 +120,7 @@ namespace askap
       // Find all the free parameters beginning with image
       vector<string> names(ip.completions("image"));
       for (vector<string>::iterator it = names.begin(); it!=names.end(); ++it) {
-	*it = "image" + *it;
+           *it = "image" + *it;
       }
       // this should work for faceting as well, taylorMap would contain one element
       // per facet in this case
@@ -196,12 +196,14 @@ namespace askap
 	  nParameters += thisShape.product(); // add up the number of pixels for this order
 	}
 	
+	/*
 	// this check is temporary, to avoid unnecessary surprises while further developing the code
 	if (imageShape.nelements()>=4) {
 	  ASKAPCHECK(imageShape(3) == 1, "Output cube for MSMFS solver should have just one spectral plane, shape="<<
 		     imageShape<<" nPol="<<nPol);
 	}
 	//
+	*/
 	
 	// as polarisations are not necessarily represented by a different parameter
 	// we have to build a set of parameters which are going to be fixed inside the loop
@@ -316,12 +318,12 @@ namespace askap
 	      ASKAPLOG_DEBUG_STR(logger, "Initial PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
               // Precondition this order PSF using PSF(0)
 	      if(doPreconditioning(psfWorkArray, psfLongVec(order))) {
-		ASKAPLOG_DEBUG_STR(logger, "After preconditioning PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-		// Now we can precondition the dirty (residual) array using PSF(0)
-		psfWorkArray = itsPSFZeroArray.copy();
-		ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
-				  " ("<<tagLogString<< ") and order=" << order);
-		doPreconditioning(psfWorkArray,dirtyLongVec(order));
+             ASKAPLOG_DEBUG_STR(logger, "After preconditioning PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
+             // Now we can precondition the dirty (residual) array using PSF(0)
+             psfWorkArray = itsPSFZeroArray.copy();
+             ASKAPLOG_INFO_STR(logger, "Preconditioning dirty image for plane=" << plane<<
+                                " ("<<tagLogString<< ") and order=" << order);
+             doPreconditioning(psfWorkArray,dirtyLongVec(order));
 	      }
 	      // Normalise. 
 	      ASKAPLOG_DEBUG_STR(logger, "Normalising PSF and Dirty image for order " << order);
@@ -329,17 +331,16 @@ namespace askap
 	      // First call the scaling is via the psf and the value is returned. Thereafter we use that value for the normalisation
 	      // of all the PSFs. Thus for MFS, the first PSF should have centre value 1.0 and the others lower values
 	      if(order==0) {
-		itsPSFZeroCentre=doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),dirtyLongVec(order),
+             itsPSFZeroCentre = doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),dirtyLongVec(order),
 						 boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
-	      }
-	      else {
-		doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),itsPSFZeroCentre,dirtyLongVec(order),
+	      }  else {
+             doNormalization(planeIter.getPlaneVector(normdiag),tol(),psfLongVec(order),itsPSFZeroCentre,dirtyLongVec(order),
 				boost::shared_ptr<casa::Array<float> >(&maskArray, utility::NullDeleter()));
 	      }
 	      ASKAPLOG_DEBUG_STR(logger, "After  normalisation PSF(" << order << ") centre value " << psfLongVec(order).nonDegenerate()(centre));
-	      if(order<itsNumberTaylor) {
-		psfVec(order)=psfLongVec(order);
-		dirtyVec(order)=dirtyLongVec(order);
+	      if (order<itsNumberTaylor) {
+              psfVec(order)=psfLongVec(order);
+              dirtyVec(order)=dirtyLongVec(order);
 	      }
 	    }// Loop over order
 	  }
