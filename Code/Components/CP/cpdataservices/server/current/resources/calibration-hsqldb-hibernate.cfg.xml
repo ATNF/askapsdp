@@ -32,12 +32,12 @@
         <!-- Set the JDBC batch size -->
         <property name="hibernate.jdbc.batch_size">20</property>
 
-		<mapping resource="askap/cp/calds/persist/GainSolutionBean.hbm.xml"/>
-		<mapping resource="askap/cp/calds/persist/GainSolutionElementBean.hbm.xml"/>
-		<mapping resource="askap/cp/calds/persist/LeakageSolutionBean.hbm.xml"/>
-		<mapping resource="askap/cp/calds/persist/LeakageSolutionElementBean.hbm.xml"/>
-		<mapping resource="askap/cp/calds/persist/BandpassSolutionBean.hbm.xml"/>
-		<mapping resource="askap/cp/calds/persist/BandpassSolutionElementBean.hbm.xml"/>
+		<mapping resource="askap/cp/caldatasvc/persist/GainSolutionBean.hbm.xml"/>
+		<mapping resource="askap/cp/caldatasvc/persist/GainSolutionElementBean.hbm.xml"/>
+		<mapping resource="askap/cp/caldatasvc/persist/LeakageSolutionBean.hbm.xml"/>
+		<mapping resource="askap/cp/caldatasvc/persist/LeakageSolutionElementBean.hbm.xml"/>
+		<mapping resource="askap/cp/caldatasvc/persist/BandpassSolutionBean.hbm.xml"/>
+		<mapping resource="askap/cp/caldatasvc/persist/BandpassSolutionElementBean.hbm.xml"/>
 
     </session-factory>
 
