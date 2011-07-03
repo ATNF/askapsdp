@@ -7,7 +7,7 @@
 /// (i.e. not via DesignMatrix as for the calibration without preaveraging).
 /// Such helper class is handy to have, otherwise the interface bloats up 
 /// considerably. In addition, we can enforce symmetries (i.e. conj(Vi)*Vj =
-/// conj(conj(Vj)*Vi)) and don't calculate keep all Npol^2 products.
+/// conj(conj(Vj)*Vi)) and avoid calculation (and keeping) of all Npol^2 products.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -71,10 +71,19 @@ XPolProducts::XPolProducts(const casa::uInt npol, const casa::IPosition &shape, 
 /// @return the one dimensional slice at the given position
 XPolProducts XPolProducts::slice(const casa::IPosition &pos) 
 {
+  ASKAPDEBUGASSERT(nPol()>0);
+  ASKAPDEBUGASSERT(pos.nelements() + 1 == itsModelProducts.shape().nelements());
+  ASKAPDEBUGASSERT(itsModelMeasProducts.shape() == itsModelProducts.shape());
+
   XPolProducts result(nPol());
-  // need to make proper slice here
-  result.itsModelProducts = itsModelProducts;
-  result.itsModelMeasProducts = itsModelMeasProducts;
+  // setup Slicer  
+  const casa::IPosition endPos = pos.concatenate(casa::IPosition(1,int(nPol()*(nPol()+1)/2-1)));
+  casa::IPosition startPos(endPos);
+  startPos(pos.nelements()) = 0;
+  const casa::Slicer slc(startPos, endPos, casa::Slicer::endIsLast);
+  // take the slices
+  result.itsModelProducts = itsModelProducts(slc);
+  result.itsModelMeasProducts = itsModelMeasProducts(slc);
   return result;
 }
    
@@ -121,9 +130,15 @@ casa::Complex XPolProducts::getModelProduct(const casa::uInt x, const casa::uInt
                          const casa::uInt pol1, const casa::uInt pol2) const
 {
   ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 3);
-  // currently just a stub
-  const casa::IPosition pos(3,int(x),int(y),int(pol1)*itsNPol+int(pol2));
-  return itsModelProducts(pos);
+
+  // products are indexed with the first polarisation index being the largest. If the pol1<pol2 pair
+  // is requested we need to conjugate
+  if (pol1 >= pol2) { 
+      const int index = int(polToIndex(pol1,pol2));
+      return itsModelProducts(casa::IPosition(3,int(x),int(y),index));
+  }
+  const int index = int(polToIndex(pol2,pol1));
+  return conj(itsModelProducts(casa::IPosition(3,int(x),int(y),index)));  
 }
 
     
@@ -137,9 +152,14 @@ casa::Complex XPolProducts::getModelProduct(const casa::uInt x, const casa::uInt
 casa::Complex XPolProducts::getModelProduct(const casa::uInt pol1, const casa::uInt pol2) const
 {
   ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 1);
-  // currently just a stub
-  const casa::IPosition pos(1,int(pol1)*itsNPol+int(pol2));
-  return itsModelProducts(pos);
+  // products are indexed with the first polarisation index being the largest. If the pol1<pol2 pair
+  // is requested we need to conjugate
+  if (pol1 >= pol2) { 
+      const int index = int(polToIndex(pol1,pol2));
+      return itsModelProducts(casa::IPosition(1,index));
+  }
+  const int index = int(polToIndex(pol2,pol1));
+  return conj(itsModelProducts(casa::IPosition(1,index)));
 }
 
 /// @brief obtain the value for cross-products between model and measured visibilities
@@ -155,9 +175,15 @@ casa::Complex XPolProducts::getModelMeasProduct(const casa::uInt x, const casa::
                                                 const casa::uInt pol1, const casa::uInt pol2) const
 {
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 3);
-  // currently just a stub
-  const casa::IPosition pos(3,int(x),int(y),int(pol1)*itsNPol+int(pol2));
-  return itsModelMeasProducts(pos);
+
+  // products are indexed with the first polarisation index being the largest. If the pol1<pol2 pair
+  // is requested we need to conjugate
+  if (pol1 >= pol2) { 
+      const int index = int(polToIndex(pol1,pol2));
+      return itsModelMeasProducts(casa::IPosition(3,int(x),int(y),index));
+  }
+  const int index = int(polToIndex(pol2,pol1));
+  return conj(itsModelMeasProducts(casa::IPosition(3,int(x),int(y),index)));  
 }
                                                 
     
@@ -171,9 +197,14 @@ casa::Complex XPolProducts::getModelMeasProduct(const casa::uInt x, const casa::
 casa::Complex XPolProducts::getModelMeasProduct(const casa::uInt pol1, const casa::uInt pol2) const
 {
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 1);
-  // currently just a stub
-  const casa::IPosition pos(1,int(pol1)*itsNPol+int(pol2));
-  return itsModelMeasProducts(pos);
+  // products are indexed with the first polarisation index being the largest. If the pol1<pol2 pair
+  // is requested we need to conjugate
+  if (pol1 >= pol2) { 
+      const int index = int(polToIndex(pol1,pol2));
+      return itsModelMeasProducts(casa::IPosition(1,index));
+  }
+  const int index = int(polToIndex(pol2,pol1));
+  return conj(itsModelMeasProducts(casa::IPosition(1,index)));  
 }
 
    
@@ -192,10 +223,63 @@ void XPolProducts::add(const casa::uInt x, const casa::uInt y, const casa::uInt 
 {
   ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 3);
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 3);
-  // currently just a stub
-  const casa::IPosition pos(3,int(x),int(y),int(pol1)*itsNPol+int(pol2));
+  // we can enforce pol1 >= pol2 here making the user responsible for correct conjugation of the cross terms
+  // this is just the easiest option because technically we don't need generality
+  ASKAPDEBUGASSERT(pol1 >= pol2);
+  const int index = int(polToIndex(pol1,pol2));
+  const casa::IPosition pos(3,int(x),int(y),index);
   itsModelProducts(pos) += modelProduct;
   itsModelMeasProducts(pos) += modelMeasProduct;
+}
+   
+/// @brief polarisation index for a given pair of polarisations
+/// @details We need to keep track of cross-polarisation products. These cross-products are
+/// kept alongside with the parallel-hand products in the same cube. This method translates
+/// a pair of polarisation products (each given by a number ranging from 0 to nPol) into a
+/// single index, which can be used to extract the appropriate statistics out of the cubes
+/// itsModelProducts and itsModelMeasProducts
+/// @param[in] pol1 polarisation of the first visibility
+/// @param[in] pol2 polarisation of the second visibility
+/// @return an index into plane of sumVisProducts and sumVisAmps
+casa::uInt XPolProducts::polToIndex(casa::uInt pol1, casa::uInt pol2) const
+{
+  const casa::uInt npol = nPol();
+  ASKAPDEBUGASSERT((pol1<npol) && (pol2<npol));
+  if (pol1 == pol2) {
+      return pol1;
+  }
+  // the code below is generic, but it is handy to enforce that pol1>=pol2
+  // here, because otherwise this condition has to be taken into account in other 
+  // parts of the code (i.e. when we decide whether to conjugate or not)
+  ASKAPCHECK(pol1 >= pol2, "Expect pol1>=pol2 you have pol1="<<pol1<<" pol2="<<pol2);
+  //
+  const casa::uInt minPol = casa::min(pol1,pol2);
+  const casa::uInt maxPol = casa::max(pol1,pol2);
+  // order: parallel hand, (1,0), (2,0), (2,1), (3,0),...
+  const casa::uInt index = npol + minPol + (maxPol - 1) * maxPol / 2;
+  ASKAPDEBUGASSERT(index < npol * (npol+1) / 2);
+  return index;
+}
+
+/// @brief polarisations corresponding to a given index
+/// @details We need to keep track of cross-polarisation products. These cross-products are
+/// kept alongside with the parallel-hand products in the same cube. This method is 
+/// a reverse to polToIndex and translates an index back to two polarisation products
+std::pair<casa::uInt,casa::uInt> XPolProducts::indexToPol(casa::uInt index) const
+{
+  const casa::uInt npol = nPol();
+  if (index < npol) {
+      // parallel-hand products come first
+      return std::pair<casa::uInt, casa::uInt>(index,index);
+  }
+  index -= npol;
+  for (casa::uInt polMax = 1, sum = 0; polMax<npol; ++polMax) {
+       if (index < sum + polMax) {
+           return std::pair<casa::uInt, casa::uInt>(polMax, index - sum);
+       }
+       sum += polMax;
+  }
+  ASKAPTHROW(AskapError, "Index "<<index<<" exceeds maximum possible for nPol="<<npol);
 }
             
 

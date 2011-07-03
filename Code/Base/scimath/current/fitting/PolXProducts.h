@@ -7,7 +7,7 @@
 /// (i.e. not via DesignMatrix as for the calibration without preaveraging).
 /// Such helper class is handy to have, otherwise the interface bloats up 
 /// considerably. In addition, we can enforce symmetries (i.e. conj(Vi)*Vj =
-/// conj(conj(Vj)*Vi)) and don't calculate keep all Npol^2 products.
+/// conj(conj(Vj)*Vi)) and avoid calculation (and keeping) of all Npol^2 products.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -154,6 +154,24 @@ public:
    /// @brief obtain number of polarisations
    /// @return the number of polarisations
    inline casa::uInt nPol() const { return itsNPol; }
+
+protected:   
+   /// @brief polarisation index for a given pair of polarisations
+   /// @details We need to keep track of cross-polarisation products. These cross-products are
+   /// kept alongside with the parallel-hand products in the same cube. This method translates
+   /// a pair of polarisation products (each given by a number ranging from 0 to nPol) into a
+   /// single index, which can be used to extract the appropriate statistics out of the cubes
+   /// itsModelProducts and itsModelMeasProducts
+   /// @param[in] pol1 polarisation of the first visibility
+   /// @param[in] pol2 polarisation of the second visibility
+   /// @return an index into plane of sumVisProducts and sumVisAmps
+   casa::uInt polToIndex(casa::uInt pol1, casa::uInt pol2) const;
+
+   /// @brief polarisations corresponding to a given index
+   /// @details We need to keep track of cross-polarisation products. These cross-products are
+   /// kept alongside with the parallel-hand products in the same cube. This method is 
+   /// a reverse to polToIndex and translates an index back to two polarisation products
+   std::pair<casa::uInt,casa::uInt> indexToPol(casa::uInt index) const; 
    
 private:
    /// @brief number of polarisations (i.e. dimension of visibility vector)
