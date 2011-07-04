@@ -286,16 +286,20 @@ namespace askap {
 
             void FITSparallel::writeFITSimage()
             {
-	      bool doWrite = this->itsComms.isMaster();
-	      if(this->itsFlagWriteByNode) doWrite = this->itsComms.isWorker();
-	      if (doWrite) itsFITSfile->writeFITSimage();
+	      bool doCreate = this->itsComms.isMaster();
+	      if(this->itsFlagWriteByNode) doCreate = this->itsComms.isWorker();
+	      bool doWrite = !(this->itsFlagWriteByNode && this->itsComms.isMaster());
+	      bool useOffset = !this->itsFlagWriteByNode;
+	      itsFITSfile->writeFITSimage(doCreate,doWrite,useOffset);
             }
 
             void FITSparallel::writeCASAimage()
             {
-	      bool doWrite = this->itsComms.isMaster();
-	      if(this->itsFlagWriteByNode) doWrite = this->itsComms.isWorker();
-	      if (doWrite) itsFITSfile->writeCASAimage();
+	      bool doCreate = this->itsComms.isMaster();
+	      if(this->itsFlagWriteByNode) doCreate = this->itsComms.isWorker();
+	      bool doWrite = !(this->itsFlagWriteByNode && this->itsComms.isMaster());
+	      bool useOffset = !this->itsFlagWriteByNode;
+	      if (doWrite) itsFITSfile->writeCASAimage(doCreate,doWrite,useOffset);
             }
 
 
@@ -317,8 +321,8 @@ namespace askap {
                     if (this->itsComms.isMaster()) {
 
                         ASKAPLOG_DEBUG_STR(logger, "MASTER: Setting up images");
-                        this->itsFITSfile->writeFITSimage(true, false);
-                        this->itsFITSfile->writeCASAimage(true, false);
+                        this->itsFITSfile->writeFITSimage(true, false, true);
+                        this->itsFITSfile->writeCASAimage(true, false, true);
 
                         // Send out the OK to the workers, so that they access the file in turn
                         ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' messages to each worker");
@@ -373,8 +377,8 @@ namespace askap {
                         if (OK) {
                             ASKAPLOG_INFO_STR(logger,  "Worker #" << this->itsComms.rank() << ": About to write data to image ");
 
-                            this->itsFITSfile->writeFITSimage(false, true);
-                            this->itsFITSfile->writeCASAimage(false, true);
+                            this->itsFITSfile->writeFITSimage(false, true, true);
+                            this->itsFITSfile->writeCASAimage(false, true, true);
 
                             // Return the OK to the master to say that we've read the image
                             if (this->itsComms.isParallel()) {

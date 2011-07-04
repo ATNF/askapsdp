@@ -123,10 +123,10 @@ namespace askap {
                     void convolveWithBeam();
 
                     /// @brief Save the array to a FITS file
-                    void writeFITSimage(bool creatFile = true, bool saveData = true);
+                    void writeFITSimage(bool creatFile = true, bool saveData = true, bool useOffset = true);
 
                     /// @brief Save the array to a CASA image
-                    void writeCASAimage(bool creatFile = true, bool saveData = true);
+                    void writeCASAimage(bool creatFile = true, bool saveData = true, bool useOffset = true);
 
 		    double maxFreq();
 		    double minFreq();

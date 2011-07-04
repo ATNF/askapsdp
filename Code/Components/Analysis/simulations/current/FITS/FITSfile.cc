@@ -764,7 +764,7 @@ namespace askap {
 
       //--------------------------------------------------------
 
-      void FITSfile::writeFITSimage(bool createFile, bool saveData)
+      void FITSfile::writeFITSimage(bool createFile, bool saveData, bool useOffset)
       {
 	/// @details Creates a FITS file with the appropriate headers
 	/// and saves the flux array into it. Uses the CFITSIO library
@@ -918,8 +918,14 @@ namespace askap {
 	    long *lpixel = new long[this->itsDim];
 
 	    for (uint i = 0; i < this->itsDim; i++) {
-	      fpixel[i] = this->itsSourceSection.getStart(i) + 1;
-	      lpixel[i] = this->itsSourceSection.getEnd(i) + 1;
+	      if(useOffset){
+		fpixel[i] = this->itsSourceSection.getStart(i) + 1;
+		lpixel[i] = this->itsSourceSection.getEnd(i) + 1;
+	      }
+	      else{
+		fpixel[i] = 1;
+		lpixel[i] = this->itsAxes[i];
+	      }
 	    }
 
 	    status = 0;
@@ -974,7 +980,7 @@ namespace askap {
 
       //--------------------------------------------------------
 
-      void FITSfile::writeCASAimage(bool createFile, bool saveData)
+      void FITSfile::writeCASAimage(bool createFile, bool saveData, bool useOffset)
       {
 	/// @details Writes the data to a casa image. The WCS is
 	/// converted to a casa-format coordinate system using
@@ -1027,9 +1033,10 @@ namespace askap {
 	      // make the casa::Array, sharing the memory storage so there is minimal additional impact
 	      Array<Float> arr(shape, this->itsArray, casa::SHARE);
 	      
-	      casa::IPosition location(this->itsDim);
+	      casa::IPosition location(this->itsDim,0);
 	      
-	      for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
+	      if(useOffset)
+		for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
 	      
 	      ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location);
 	      ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
