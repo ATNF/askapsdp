@@ -44,12 +44,7 @@
 
 // BLAS includes
 #ifdef USEBLAS
-
-#define CAXPY cblas_caxpy
-#define CDOTU_SUB cblas_cdotu_sub
-
 #include <mkl_cblas.h>
-
 #endif
 
 using std::cout;
@@ -57,8 +52,6 @@ using std::endl;
 using std::abs;
 
 // Typedefs for easy testing
-// Cost of using double for Coord is low, cost for
-// double for Real is also low
 typedef double Coord;
 typedef float Real;
 typedef std::complex<Real> Value;
@@ -82,9 +75,9 @@ typedef std::complex<Real> Value;
 // grid - Output grid: shape (gSize, *)
 // gSize - size of one axis of grid
 void gridKernel(const std::vector<Value>& data, const int support,
-                const std::vector<Value>& C, const std::vector<int>& cOffset,
-                const std::vector<int>& iu, const std::vector<int>& iv,
-                std::vector<Value>& grid, const int gSize)
+        const std::vector<Value>& C, const std::vector<int>& cOffset,
+        const std::vector<int>& iu, const std::vector<int>& iv,
+        std::vector<Value>& grid, const int gSize)
 {
     const int sSize = 2 * support + 1;
 
@@ -117,42 +110,42 @@ int gridKernelMIC(const Value* data, const size_t dataSize,
         Value* grid, const size_t gridSize,
         const int gSize, const int support)
 {
-#pragma offload target(mic) in(data:length(dataSize)) in(C:length(CSize)) \
-    in(cOffset:length(cOffsetSize)), in(iu:length(iuSize)) in(iv:length(ivSize)) \
-    inout(grid:length(gridSize))
+    #pragma offload target(mic) in(data:length(dataSize)) in(C:length(CSize)) \
+        in(cOffset:length(cOffsetSize)), in(iu:length(iuSize)) in(iv:length(ivSize)) \
+        inout(grid:length(gridSize))
     {
-    const int sSize = 2 * support + 1;
-    #pragma omp parallel default(shared)
-    {
-        const int tid = omp_get_thread_num();
-        const int nthreads = omp_get_num_threads();
+        const int sSize = 2 * support + 1;
+        #pragma omp parallel default(shared)
+        {
+            const int tid = omp_get_thread_num();
+            const int nthreads = omp_get_num_threads();
 
-        for (int dind = 0; dind < int(dataSize); ++dind) {
-            // The actual grid point
-            int gind = iu[dind] + gSize * iv[dind] - support;
-            // The Convoluton function point from which we offset
-            int cind = cOffset[dind];
-            int row = iv[dind];
-            for (int suppv = 0; suppv < sSize; suppv++) {
-                if (row % nthreads == tid) {
+            for (int dind = 0; dind < int(dataSize); ++dind) {
+                // The actual grid point
+                int gind = iu[dind] + gSize * iv[dind] - support;
+                // The Convoluton function point from which we offset
+                int cind = cOffset[dind];
+                int row = iv[dind];
+                for (int suppv = 0; suppv < sSize; suppv++) {
+                    if (row % nthreads == tid) {
 #ifdef USEBLAS
-                    CAXPY(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
+                        cblas_caxpy(sSize, &data[dind], &C[cind], 1, &grid[gind], 1);
 #else
-                    Value* gptr = &grid[gind];
-                    const Value* cptr = &C[cind];
-                    const Value d = data[dind];
+                        Value* gptr = &grid[gind];
+                        const Value* cptr = &C[cind];
+                        const Value d = data[dind];
 
-                    for (int suppu = 0; suppu < sSize; suppu++) {
-                        *(gptr++) += d * (*(cptr++));
-                    }
+                        for (int suppu = 0; suppu < sSize; suppu++) {
+                            *(gptr++) += d * (*(cptr++));
+                        }
 #endif
+                    }
+                    gind += gSize;
+                    cind += sSize;
+                    row++;
                 }
-                gind += gSize;
-                cind += sSize;
-                row++;
             }
-        }
-    } // End omp parallel
+        } // End omp parallel
     } // End pragma offload
 
     return omp_get_max_threads_target(TARGET_MIC, 0);
@@ -160,9 +153,9 @@ int gridKernelMIC(const Value* data, const size_t dataSize,
 
 // Perform degridding
 void degridKernel(const std::vector<Value>& grid, const int gSize, const int support,
-                  const std::vector<Value>& C, const std::vector<int>& cOffset,
-                  const std::vector<int>& iu, const std::vector<int>& iv,
-                  std::vector<Value>& data)
+        const std::vector<Value>& C, const std::vector<int>& cOffset,
+        const std::vector<int>& iu, const std::vector<int>& iv,
+        std::vector<Value>& data)
 {
     const int sSize = 2 * support + 1;
 
@@ -191,50 +184,50 @@ void degridKernel(const std::vector<Value>& grid, const int gSize, const int sup
 }
 
 int degridKernelMIC(const Value* grid, const size_t gridSize,
-                    const Value* C, const size_t CSize,
-                    const int* cOffset, const size_t cOffsetSize,
-                    const int* iu, const size_t iuSize,
-                    const int* iv, const size_t ivSize,
-                    Value* data, const size_t dataSize,
-                    const int gSize, const int support)
+        const Value* C, const size_t CSize,
+        const int* cOffset, const size_t cOffsetSize,
+        const int* iu, const size_t iuSize,
+        const int* iv, const size_t ivSize,
+        Value* data, const size_t dataSize,
+        const int gSize, const int support)
 {
-#pragma offload target(mic) in(grid:length(gridSize)) in(C:length(CSize)) \
-    in(cOffset:length(cOffsetSize)), in(iu:length(iuSize)) in(iv:length(ivSize)) \
-    inout(data:length(dataSize))
+    #pragma offload target(mic) in(grid:length(gridSize)) in(C:length(CSize)) \
+        in(cOffset:length(cOffsetSize)), in(iu:length(iuSize)) in(iv:length(ivSize)) \
+        inout(data:length(dataSize))
     {
-    const int sSize = 2 * support + 1;
+        const int sSize = 2 * support + 1;
 
-    #pragma omp parallel for  \
-        default(shared)   \
-        schedule(dynamic, 32)
-    for (int dind = 0; dind < int(dataSize); ++dind) {
-        data[dind] = 0.0;
+        #pragma omp parallel for  \
+            default(shared)
+            //schedule(dynamic, 32)
+        for (int dind = 0; dind < int(dataSize); ++dind) {
+            data[dind] = 0.0;
 
-        // The actual grid point from which we offset
-        int gind = iu[dind] + gSize * iv[dind] - support;
-        // The Convoluton function point from which we offset
-        int cind = cOffset[dind];
+            // The actual grid point from which we offset
+            int gind = iu[dind] + gSize * iv[dind] - support;
+            // The Convoluton function point from which we offset
+            int cind = cOffset[dind];
 
-        for (int suppv = 0; suppv < sSize; suppv++) {
+            for (int suppv = 0; suppv < sSize; suppv++) {
 #ifdef USEBLAS
-            Value dot;
-            CDOTU_SUB(sSize, &grid[gind], 1, &C[cind], 1, &dot);
-            data[dind] += dot;
+                Value dot;
+                cblas_cdotu_sub(sSize, &grid[gind], 1, &C[cind], 1, &dot);
+                data[dind] += dot;
 #else
-            Value* d = &data[dind];
-            const Value* gptr = &grid[gind];
-            const Value* cptr = &C[cind];
+                Value* d = &data[dind];
+                const Value* gptr = &grid[gind];
+                const Value* cptr = &C[cind];
 
-            for (int suppu = 0; suppu < sSize; suppu++) {
-                (*d) += (*(gptr++)) * (*(cptr++));
+                for (int suppu = 0; suppu < sSize; suppu++) {
+                    (*d) += (*(gptr++)) * (*(cptr++));
+                }
+#endif
+
+                gind += gSize;
+                cind += sSize;
             }
 
-#endif
-            gind += gSize;
-            cind += sSize;
-        }
-
-    } // End for loop
+        } // End for loop
     } // End pragma offload
 
     return omp_get_max_threads_target(TARGET_MIC, 0);
@@ -250,13 +243,13 @@ int degridKernelMIC(const Value* grid, const size_t gridSize,
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
 void initC(const std::vector<Coord>& freq, const Coord cellSize,
-           const Coord baseline,
-           const int wSize, int& support, int& overSample,
-           Coord& wCellSize, std::vector<Value>& C)
+        const Coord baseline,
+        const int wSize, int& support, int& overSample,
+        Coord& wCellSize, std::vector<Value>& C)
 {
     cout << "Initializing W projection convolution function" << endl;
     support = static_cast<int>(1.5 * sqrt(std::abs(baseline) * static_cast<Coord>(cellSize)
-                                          * freq[0]) / cellSize);
+                * freq[0]) / cellSize);
     overSample = 8;
     cout << "Support = " << support << " pixels" << endl;
     wCellSize = 2 * baseline * freq[0] / wSize;
@@ -274,9 +267,9 @@ void initC(const std::vector<Coord>& freq, const Coord cellSize,
 
     C.resize(sSize*sSize*overSample*overSample*wSize);
     cout << "Size of convolution function = " << sSize*sSize*overSample
-         *overSample*wSize*sizeof(Value) / (1024*1024) << " MB" << std::endl;
+        *overSample*wSize*sizeof(Value) / (1024*1024) << " MB" << std::endl;
     cout << "Shape of convolution function = [" << sSize << ", " << sSize << ", "
-             << overSample << ", " << overSample << ", " << wSize << "]" << std::endl;
+        << overSample << ", " << overSample << ", " << wSize << "]" << std::endl;
 
     for (int k = 0; k < wSize; k++) {
         double w = double(k - wSize / 2);
@@ -324,11 +317,11 @@ void initC(const std::vector<Coord>& freq, const Coord cellSize,
 // wCellSize - size of one w grid cell in wavelengths
 // wSize - Size of lookup table in w
 void initCOffset(const std::vector<Coord>& u, const std::vector<Coord>& v,
-                 const std::vector<Coord>& w, const std::vector<Coord>& freq,
-                 const Coord cellSize, const Coord wCellSize,
-                 const int wSize, const int gSize, const int support, const int overSample,
-                 std::vector<int>& cOffset, std::vector<int>& iu,
-                 std::vector<int>& iv)
+        const std::vector<Coord>& w, const std::vector<Coord>& freq,
+        const Coord cellSize, const Coord wCellSize,
+        const int wSize, const int gSize, const int support, const int overSample,
+        std::vector<int>& cOffset, std::vector<int>& iu,
+        std::vector<int>& iv)
 {
     const int nSamples = u.size();
     const int nChan = freq.size();
@@ -440,7 +433,7 @@ int main()
 
     initC(freq, cellSize, baseline, wSize, support, overSample, wCellSize, C);
     initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize, support,
-                overSample, cOffset, iu, iv);
+            overSample, cOffset, iu, iv);
     const int sSize = 2 * support + 1;
 
     const double griddings = (double(nSamples * nChan) * double((sSize) * (sSize)));
@@ -506,8 +499,8 @@ int main()
     for (unsigned int i = 0; i < cpugrid.size(); ++i) {
         if (fabs(cpugrid[i].real() - ompgrid[i].real()) > 0.00001) {
             cout << "Fail (Expected " << cpugrid[i].real() << " got "
-                     << ompgrid[i].real() << " at index " << i << ")"
-                     << std::endl;
+                << ompgrid[i].real() << " at index " << i << ")"
+                << std::endl;
             return 1;
         }
     }
@@ -574,8 +567,8 @@ int main()
     for (unsigned int i = 0; i < cpuoutdata.size(); ++i) {
         if (fabs(cpuoutdata[i].real() - ompoutdata[i].real()) > 0.00001) {
             cout << "Fail (Expected " << cpuoutdata[i].real() << " got "
-                     << ompoutdata[i].real() << " at index " << i << ")"
-                     << std::endl;
+                << ompoutdata[i].real() << " at index " << i << ")"
+                << std::endl;
             return 1;
         }
     }
