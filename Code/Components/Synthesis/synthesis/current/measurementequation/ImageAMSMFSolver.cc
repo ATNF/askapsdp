@@ -213,7 +213,6 @@ namespace askap
 	// Iterate through Polarisations
 	for (scimath::MultiDimArrayPlaneIter planeIter(imageShape); planeIter.hasMore(); planeIter.next()) {
 	  const uint plane = planeIter.sequenceNumber();
-	  ASKAPDEBUGASSERT(plane<nPol);
 	  std::string tagLogString(planeIter.tag());
 	  if (tagLogString.size()) {
 	    tagLogString = "tagged as " + tagLogString;
@@ -221,7 +220,7 @@ namespace askap
 	    tagLogString = "not tagged";
 	  }
 	  
-	  ASKAPLOG_INFO_STR(logger, "Preparing iteration for polarisation " 
+	  ASKAPLOG_INFO_STR(logger, "Preparing iteration for plane " 
 			    << plane<<" ("<<tagLogString<<") in image "<<tmIt->first);
 	  // make the helper a 0-order Taylor term
 	  if(this->itsNumberTaylor>1) {
