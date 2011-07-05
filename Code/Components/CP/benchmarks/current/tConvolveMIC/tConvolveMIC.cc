@@ -199,7 +199,6 @@ int degridKernelMIC(const Value* grid, const size_t gridSize,
 
         #pragma omp parallel for  \
             default(shared)
-            //schedule(dynamic, 32)
         for (int dind = 0; dind < int(dataSize); ++dind) {
             data[dind] = 0.0;
 
