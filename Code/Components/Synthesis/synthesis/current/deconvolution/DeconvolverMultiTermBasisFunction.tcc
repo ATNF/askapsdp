@@ -311,14 +311,18 @@ namespace askap {
 	itsTermBaseFlux(base)=0.0;
       }
       
-      uInt nx(this->psf(0).shape()(0));
-      uInt ny(this->psf(0).shape()(1));
+      const uInt nx(this->psf(0).shape()(0));
+      const uInt ny(this->psf(0).shape()(1));
       
-      IPosition subPsfStart(2,nx/2-subPsfShape(0)/2,ny/2-subPsfShape(1)/2);
-      IPosition subPsfEnd(2,nx/2+subPsfShape(0)/2-1,ny/2+subPsfShape(1)/2-1);
-      IPosition subPsfStride(2,1,1);
+      const IPosition subPsfStart(2,(nx-subPsfShape(0))/2,(ny-subPsfShape(1))/2);
+      //const IPosition subPsfEnd(2,(nx+subPsfShape(0))/2-1,(ny+subPsfShape(1))/2-1);
+      //const IPosition subPsfStride(2,1,1);
       
-      Slicer subPsfSlicer(subPsfStart, subPsfEnd, subPsfStride, Slicer::endIsLast);
+      //Slicer subPsfSlicer(subPsfStart, subPsfEnd, subPsfStride, Slicer::endIsLast);
+      Slicer subPsfSlicer(subPsfStart, subPsfShape);
+      // check just in case
+      ASKAPCHECK(subPsfSlicer.length() == subPsfShape, "Slicer selected length of "<<subPsfSlicer.length()<<
+                 " is different from requested shape "<<subPsfShape);
       
       casa::IPosition minPos;
       casa::IPosition maxPos;
