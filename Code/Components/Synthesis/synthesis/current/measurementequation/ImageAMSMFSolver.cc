@@ -429,9 +429,9 @@ namespace askap
 
 	  } // end of 'order' loop
 	  
-	  ASKAPLOG_INFO_STR(logger, "Starting Minor Cycles" );
+	  ASKAPLOG_INFO_STR(logger, "Starting Minor Cycles ("<<imageTag<<").");
 	  itsCleaners[imageTag]->deconvolve();
-	  ASKAPLOG_INFO_STR(logger, "Finished Minor Cycles." );
+	  ASKAPLOG_INFO_STR(logger, "Finished Minor Cycles ("<<imageTag<<").");
 	  
           // Now update the stored peak residual
           const std::string peakResParam = std::string("peak_residual.") + imageTag;
