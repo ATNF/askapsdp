@@ -27,6 +27,9 @@
 #ifndef ASKAP_CP_MANAGER_ADMININTERFACE_H
 #define ASKAP_CP_MANAGER_ADMININTERFACE_H
 
+// System includes
+#include <string>
+
 // ASKAPsoft includes
 #include "Ice/Ice.h"
 
@@ -61,6 +64,7 @@ class AdminInterface : public askap::interfaces::component::IComponent {
         void deactivate(const Ice::Current& cur);
         askap::interfaces::component::ComponentTestResultSeq selfTest(const Ice::Current& cur);
         askap::interfaces::component::ComponentState getState(const Ice::Current& cur);
+        std::string getVersion(const Ice::Current& cur);
 
     private:
         // ICE Communicator

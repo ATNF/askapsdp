@@ -206,6 +206,13 @@ module component
         idempotent ComponentState getState();
 
         /**
+         * Returns a string containing the version of the component.
+         *
+         * @return  the version of the component.
+         **/
+        ["ami"] idempotent string getVersion();
+
+        /**
          * Requests the component perform a self test. There is no concept
          * of pass/fail for the overall component, this function however
          * returns a sequence containing a list of tests carried out, the

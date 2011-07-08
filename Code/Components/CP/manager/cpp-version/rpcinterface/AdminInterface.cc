@@ -27,13 +27,16 @@
 // Include own header file first
 #include "AdminInterface.h"
 
+// Include package level header file
+#include "askap_cpmanager.h"
+
 // ASKAPsoft includes
-#include <askap/AskapError.h>
-#include <askap/AskapLogging.h>
-#include <Ice/Ice.h>
+#include "askap/AskapError.h"
+#include "askap/AskapLogging.h"
+#include "Ice/Ice.h"
 
 // Local package includes
-#include <rpcinterface/ObsService.h>
+#include "rpcinterface/ObsService.h"
 
 // Using
 using namespace askap;
@@ -152,5 +155,10 @@ askap::interfaces::component::ComponentTestResultSeq AdminInterface::selfTest(co
 askap::interfaces::component::ComponentState AdminInterface::getState(const Ice::Current& cur)
 {
     return itsState;
+}
+
+std::string AdminInterface::getVersion(const Ice::Current& cur)
+{
+    return ASKAP_PACKAGE_VERSION;
 }
 

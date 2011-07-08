@@ -146,8 +146,15 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	 */
     @Override
 	public ComponentState getState(Current curr) {
-		// TODO Auto-generated method stub
 		return itsState;
+	}
+
+	/**
+	 * Returns a string containing the version of the component.
+	 */
+    @Override
+	public String getVersion(Current curr) {
+		return "Not available";
 	}
 
 	/**
