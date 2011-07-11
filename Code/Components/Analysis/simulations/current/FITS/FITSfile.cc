@@ -1008,7 +1008,7 @@ namespace askap {
 	    tileshape(this->itsWCS->lng) = 128;
 	    tileshape(this->itsWCS->lat) = 128;
 	    if(this->itsWCS->spec>=0)
-	      tileshape(this->itsWCS->spec) = 16;
+	      tileshape(this->itsWCS->spec) = std::min(16L,shape(this->itsWCS->spec));
 
 	    ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape << " and tileshape " << tileshape);
 	    casa::PagedImage<float> img(casa::TiledShape(shape,tileshape), csys, newName);
