@@ -129,23 +129,21 @@ int main(int argc, char *argv[])
     Int axis=imagePtr->coordinates().worldAxes(index)[0];
     
     IPosition shape = imagePtr->shape().nonDegenerate();
-//     std::cout << "Image has shape " << imagePtr->shape() << " or " << shape << " as non-degenerate.\n";
-//     std::cout << "Coordinate system has " << imagePtr->coordinates().nCoordinates()  << " coordinates\n";
-//     for(int i=0;i<imagePtr->coordinates().nCoordinates();i++)
-//       std::cout << imagePtr->coordinates().worldAxes(i) << " " << imagePtr->coordinates().showType(i) << "\n";
-//     std::cout << "Spectral axis is determined to be number " << axis << " with length " << shape(axis) <<"\n\n";
     SpectralCoordinate specCoo = imagePtr->coordinates().spectralCoordinate(index);
 
     casa::Vector<casa::Double> inc = specCoo.increment();
     MFrequency increment(Quantity(inc[0],specCoo.worldAxisUnits()[0]));
 
     std::cout << "spws.names = [";
+    int count=0;
     for (int z=0;z < shape(axis); z++) {
-      std::stringstream groupname;
-      if(group>1) groupname << z/group << "_" << z%group;
-      else groupname << z;
-      std::cout << basename << groupname.str();
-      if(z<shape(axis)-1) std::cout <<", ";
+      if(z%binning==0){
+	std::stringstream groupname;
+	if(group>1) groupname << (z/binning)/group << "_" << (z/binning)%group;
+	else groupname << z/binning;
+	std::cout << basename << groupname.str();
+	if(++count < (shape(axis)/binning)) std::cout << ",";
+      }
     }
     std::cout << "]\n\n";
 
@@ -154,10 +152,9 @@ int main(int argc, char *argv[])
 	MFrequency freq;
 	specCoo.toWorld(freq,double(z));
 	std::stringstream groupname;
-	if(group>1) groupname << z/group << "_" << z%group;
-	else groupname << z;
+	if(group>1) groupname << (z/binning)/group << "_" << (z/binning)%group;
+	else groupname << z/binning;
 	std::cout.setf(std::ios::fixed);
-	//	std::cout << "spws."<<basename<<z <<"   = ["
 	std::cout << "spws."<<basename<<groupname.str() <<"   = ["
 		  << binning << ", "
 		  << std::setprecision(prec) << freq.get(units) <<", "
