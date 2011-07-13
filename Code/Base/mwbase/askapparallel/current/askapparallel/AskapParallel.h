@@ -29,8 +29,11 @@
 #ifndef ASKAP_MWBASE_ASKAPPARALLEL_H_
 #define ASKAP_MWBASE_ASKAPPARALLEL_H_
 
-#include <mwcommon/MPIConnectionSet.h>
+// System includes
+#include <string>
 
+// ASKAPsoft includes
+#include "mwcommon/MPIConnectionSet.h"
 
 namespace askap
 {

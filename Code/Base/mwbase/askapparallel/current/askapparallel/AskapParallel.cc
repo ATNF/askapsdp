@@ -32,7 +32,7 @@
 /// 
 
 // Include own header file first
-#include <mwcommon/MPIConnection.h>
+#include "askapparallel/AskapParallel.h"
 
 // System includes
 #include <sstream>
@@ -40,26 +40,16 @@
 #include <string>
 
 // ASKAPsoft includes
-#include <mwcommon/MPIConnectionSet.h>
-#include <mwcommon/MWIos.h>
-
-#include <Blob/BlobString.h>
-#include <Blob/BlobIBufString.h>
-#include <Blob/BlobOBufString.h>
-#include <Blob/BlobIStream.h>
-#include <Blob/BlobOStream.h>
-
-#include <casa/OS/Timer.h>
-#include <casa/Utilities/Regex.h>
-#include <casa/BasicSL/String.h>
-#include <casa/OS/Path.h>
-
-#include <askap_askapparallel.h>
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
-
-#include <askapparallel/AskapParallel.h>
-
+#include "askap_askapparallel.h"
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "mwcommon/MPIConnection.h"
+#include "mwcommon/MPIConnectionSet.h"
+#include "mwcommon/MWIos.h"
+#include "casa/OS/Timer.h"
+#include "casa/Utilities/Regex.h"
+#include "casa/BasicSL/String.h"
+#include "casa/OS/Path.h"
 
 using namespace std;
 using namespace askap;
