@@ -173,8 +173,9 @@ namespace askap {
 	    else
 	      ASKAPLOG_ERROR_STR(logger, "No image defined - use either 'imageFile' or 'image' parameters (the former is for consistency with Duchamp parameters)");
             par.setFlagSubsection(parset.getBool("flagSubsection", false));
-            if (par.getFlagSubsection())
-                par.setSubsection(parset.getString("subsection", ""));
+	    par.setSubsection(parset.getString("subsection", ""));
+	    if(!par.getFlagSubsection())
+	      par.setSubsection("");
 	    checkUnusedParameter(parset,"flagReconExists");	    // 
 	    checkUnusedParameter(parset,"reconFile");// 
 	    checkUnusedParameter(parset,"flagSmoothExists");// 

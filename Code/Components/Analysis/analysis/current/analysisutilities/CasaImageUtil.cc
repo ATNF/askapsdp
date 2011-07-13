@@ -541,6 +541,7 @@ namespace askap {
             /// beam info in the image, or to store the beam size (in
             /// pixels) if there is.
             casa::Vector<casa::Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
+	    //	    ASKAPLOG_DEBUG_STR(logger, "Read beam from casa image: " << beam );
 
             if (beam.size() == 0) {
                 std::stringstream errmsg;
@@ -563,6 +564,9 @@ namespace askap {
 		head.beam().define(bmaj/pixScale,bmin/pixScale,bpa,HEADER);
             }
 	    par.setBeamAsUsed(head.beam());
+
+	    //	    ASKAPLOG_DEBUG_STR(logger, "Beam to be used: (maj,min,pa)=("<<head.beam().maj()<<","<<head.beam().min()<<","<<head.beam().pa()<<")");
+
         }
 
         //**************************************************************//

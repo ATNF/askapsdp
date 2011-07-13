@@ -115,7 +115,8 @@ namespace askap {
                 /// @}
 
                 /// @brief Create a Karma annotation file showing the borders of the subimages.
-                void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, askap::mwbase::AskapParallel& comms);
+		//                void writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, askap::mwbase::AskapParallel& comms);
+                void writeAnnotationFile(std::string filename, duchamp::FitsHeader &head, std::string imageName, askap::mwbase::AskapParallel& comms);
 
 		/// @brief Which worker(s) does a given location fall in?
 		std::set<int> affectedWorkers(int x, int y, int z);

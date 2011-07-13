@@ -221,7 +221,8 @@ namespace askap {
 	}
 	if (this->itsInputSection == "") 
 	  {
-	    ASKAPTHROW(AskapError, "SubimageDef::defineAllSections : input subsection not defined!");
+	    ASKAPLOG_WARN_STR(logger, "SubimageDef::defineAllSections : input subsection not defined! Setting to null subsection");
+	    this->itsInputSection = duchamp::nullSection(this->itsFullImageDim.size());
 	  }
       	duchamp::Section inputSec(this->itsInputSection);
       	inputSec.parse(this->itsFullImageDim);
@@ -258,7 +259,13 @@ namespace askap {
 	      return this->itsInputSection;
 	      
             } else {
-//                 ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << inputSubsection);
+	      //                 ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << inputSubsection);
+	      if (this->itsInputSection == "") 
+		{
+		  ASKAPLOG_WARN_STR(logger, "SubimageDef::section : input subsection not defined! Setting to null subsection");
+		  this->itsInputSection = duchamp::nullSection(this->itsFullImageDim.size());
+		}
+	      //	      ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << this->itsInputSection);
 //                duchamp::Section inputSec(inputSubsection);
                 duchamp::Section inputSec(this->itsInputSection);
                 inputSec.parse(this->itsFullImageDim);
@@ -286,16 +293,26 @@ namespace askap {
                 }
 
                 std::string secstring = "[" + section.str() + "]";
-//                 ASKAPLOG_INFO_STR(logger, "New subsection to be used is " << secstring);
+		//                ASKAPLOG_INFO_STR(logger, "New subsection to be used is " << secstring);
                 duchamp::Section sec(secstring);
                 sec.parse(this->itsFullImageDim);
                 return sec;
             }
         }
 
-        void SubimageDef::writeAnnotationFile(std::string filename, duchamp::Section fullImageSubsection, duchamp::FitsHeader &head, std::string imageName, askap::mwbase::AskapParallel& comms)
+        void SubimageDef::writeAnnotationFile(std::string filename, duchamp::FitsHeader &head, std::string imageName, askap::mwbase::AskapParallel& comms)
         {
             /// @details This creates a Karma annotation file that simply has the borders of the subimages plotted on it.
+
+	    if (this->itsInputSection == "") 
+	      {
+		ASKAPLOG_WARN_STR(logger, "SubimageDef::defineAllSections : input subsection not defined! Setting to null subsection");
+		this->itsInputSection = duchamp::nullSection(this->itsFullImageDim.size());
+	      }
+	    ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << this->itsInputSection);
+	    //                duchamp::Section inputSec(inputSubsection);
+	    duchamp::Section fullImageSubsection(this->itsInputSection);
+	    fullImageSubsection.parse(this->itsFullImageDim);
 
             std::ofstream fAnnot(filename.c_str());
             fAnnot << "# Borders of subimaages for image " << imageName << "\n#\n";

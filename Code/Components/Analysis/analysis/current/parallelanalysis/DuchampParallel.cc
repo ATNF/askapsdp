@@ -149,6 +149,7 @@ namespace askap {
 	    bool flagSubsection = parset.getBool("flagSubsection",false);
 	    this->itsBaseSubsection = parset.getString("subsection","");
 	    if(!flagSubsection) this->itsBaseSubsection = "";
+	    else ASKAPLOG_DEBUG_STR(logger, "Requested subsection " << this->itsBaseSubsection);
 	    bool flagStatSubsection = parset.getBool("flagStatSec",false);
 	    this->itsBaseStatSubsection = parset.getString("statSec","");
 	    if(!flagStatSubsection) this->itsBaseStatSubsection = "";
@@ -316,7 +317,8 @@ namespace askap {
 
                 if (this->itsSubimageAnnotationFile != "") {
                     ASKAPLOG_INFO_STR(logger, "Writing annotation file showing subimages to " << this->itsSubimageAnnotationFile);
-                    this->itsSubimageDef.writeAnnotationFile(this->itsSubimageAnnotationFile, this->itsCube.pars().section(),  this->itsCube.header(), this->itsCube.pars().getImageFile(), itsComms);
+		    //                    this->itsSubimageDef.writeAnnotationFile(this->itsSubimageAnnotationFile, this->itsCube.pars().section(),  this->itsCube.header(), this->itsCube.pars().getImageFile(), itsComms);
+                    this->itsSubimageDef.writeAnnotationFile(this->itsSubimageAnnotationFile, this->itsCube.header(), this->itsCube.pars().getImageFile(), itsComms);
                 }
 
                 if (result == duchamp::FAILURE) {
@@ -351,18 +353,21 @@ namespace askap {
 
                     if (itsComms.isParallel()) {
 		      //		      duchamp::Section subsection = this->itsSubimageDef.section(itsComms.rank()-1, this->itsCube.pars().getSubsection());
-		      this->itsSubimageDef.setInputSubsection(this->itsCube.pars().getSubsection());
+		      //		      this->itsSubimageDef.setInputSubsection(this->itsCube.pars().getSubsection());
+		      this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);
 		      duchamp::Section subsection = this->itsSubimageDef.section(itsComms.rank()-1);
-                        this->itsCube.pars().setSubsection(subsection.getSection());
-			this->itsCube.pars().setFlagSubsection(true);
-			this->itsCube.pars().parseSubsections(this->itsCube.getDimArray(), this->itsCube.getNumDim());
-			ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Subsection = " << this->itsCube.pars().section().getSection());
-			if(this->itsCube.pars().getFlagStatSec()){
-			  if(this->itsCube.pars().statsec().isValid())
-			    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Statistics section = " << this->itsCube.pars().statsec().getSection());
-			  else
-			    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " does not contribute to the statistics section");
-			}
+		      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<<"Starting with base section = |"<<this->itsBaseSubsection<<"| and node #"<<itsComms.rank()-1<<" we get section "<<subsection.getSection());
+		      //		      this->itsCube.pars().setSubsection(subsection.getSection());
+		      //		      this->itsCube.pars().parseSubsections(this->itsCube.getDimArray(), this->itsCube.getNumDim());
+		      this->itsCube.pars().setFlagSubsection(true);
+		      this->itsCube.pars().section()=subsection;
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Subsection = " << this->itsCube.pars().section().getSection());
+		      if(this->itsCube.pars().getFlagStatSec()){
+			if(this->itsCube.pars().statsec().isValid())
+			  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Statistics section = " << this->itsCube.pars().statsec().getSection());
+			else
+			  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " does not contribute to the statistics section");
+		      }
                     }
 
                     if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
@@ -876,6 +881,8 @@ namespace askap {
 	else src.setDetectionThreshold(this->itsVoxelList, this->itsSNRVoxelList, this->itsFlagDoMedianSearch);
 
 	src.setHeader(this->itsCube.getHead());
+	src.setOffsets(this->itsCube.pars());
+	if(!this->itsFlagDoFit) this->itsFitParams.setBoxPadSize(0);
 	src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 
       }
@@ -1047,6 +1054,7 @@ namespace askap {
 		  int numVox;
 		  bool haveSNRvalues;
 		  in >> numVox >> haveSNRvalues;
+		  //		  ASKAPLOG_DEBUG_STR(logger,this->workerPrefix() << "Edge source from worker #"<<i<<": (x,y,z) = ("<<src.getXcentre()<<","<<src.getYcentre()<<","<<src.getZcentre()<<") in ["<<src.getXmin()<<":"<<src.getXmax()<<","<<src.getYmin()<<":"<<src.getYmax()<<","<<src.getZmin()<<":"<<src.getZmax()<<"], numVox="<<numVox);
 
 		  for (int p = 0; p < numVox; p++) {
 		    int32 x, y, z;
@@ -2247,21 +2255,25 @@ namespace askap {
 	wcsprm *wcs = casaImageToWCS(imagePtr);
 	this->itsSubimageDef.define(wcs);
 	this->itsSubimageDef.setImage(this->itsCube.pars().getImageFile());
-	this->itsSubimageDef.setInputSubsection(this->itsCube.pars().getSubsection());
+	//	this->itsSubimageDef.setInputSubsection(this->itsCube.pars().getSubsection());
+	this->itsSubimageDef.setInputSubsection(this->itsBaseSubsection);
 	long *dim = getDim(imagePtr);
 	reportDim(dim,imagePtr->ndim());
 	this->itsSubimageDef.setImageDim(dim, imagePtr->ndim());
 	
-	if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
-	  this->itsCube.pars().setFlagSubsection(true);
-	  this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
-	}
+	//	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Cube's param subsection = " << this->itsCube.pars().getSubsection() << " or " << this->itsCube.pars().section().getSection());
 	
 	if(useSubimageInfo){
 	  //	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
-	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
+	  if(this->itsComms.isMaster()) this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
+	  else this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
 	}
-	
+	else if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
+	  this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
+	}
+	this->itsCube.pars().setFlagSubsection(true);
+
+	//	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Cube's param subsection = " << this->itsCube.pars().getSubsection() << " or " << this->itsCube.pars().section().getSection());
 	// Now parse the sections to get them properly set up
 	if(this->itsCube.pars().parseSubsections(dim, imagePtr->ndim()) == duchamp::FAILURE){
 	  // if here, something went wrong
@@ -2285,7 +2297,7 @@ namespace askap {
 
 	Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
 	fixSlicer(slice, wcs);
-	ASKAPLOG_DEBUG_STR(logger, "Slicer used to make subimage is " << slice);
+	//	ASKAPLOG_DEBUG_STR(logger, "Slicer used to make subimage is " << slice);
 
 	const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
 	
@@ -2311,6 +2323,7 @@ namespace askap {
 	wcsprm *wcs = casaImageToWCS(imagePtr);
 	storeWCStoHeader(this->itsCube.header(), this->itsCube.pars(), wcs);
 	this->itsCube.pars().setOffsets(wcs);
+	//	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<<"Pixelsec = " << this->itsCube.pars().section().getSection() <<" offsets = " << this->itsCube.pars().getXOffset() <<" " << this->itsCube.pars().getYOffset() <<" " << this->itsCube.pars().getZOffset() << " flagSubsection = " << this->itsCube.pars().getFlagSubsection());
 	readBeamInfo(imagePtr, this->itsCube.header(), this->itsCube.pars());
 	this->itsCube.header().setFluxUnits(imagePtr->units().getName());
 	
