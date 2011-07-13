@@ -34,7 +34,7 @@
 #include <FITS/FITSparallel.h>
 #include <FITS/FITSfile.h>
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <duchamp/Utils/Section.hh>
 #include <analysisutilities/SubimageDef.h>
 
@@ -63,7 +63,7 @@ namespace askap {
         namespace FITS {
 
 
-            FITSparallel::FITSparallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset)
+            FITSparallel::FITSparallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset)
                     : itsComms(comms)
             {
                 /// @details Assignment of the necessary parameters, reading from the ParameterSet.

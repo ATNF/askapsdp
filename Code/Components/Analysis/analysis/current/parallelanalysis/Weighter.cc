@@ -30,7 +30,7 @@
 #include <parallelanalysis/Weighter.h>
 #include <analysisutilities/CasaImageUtil.h>
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -54,7 +54,7 @@ namespace askap {
 
   namespace analysis {
 
-    Weighter::Weighter(askap::mwbase::AskapParallel& comms):
+    Weighter::Weighter(askap::mwcommon::AskapParallel& comms):
       itsComms(comms)
     {
     }

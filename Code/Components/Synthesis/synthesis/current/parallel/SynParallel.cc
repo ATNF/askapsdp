@@ -33,6 +33,7 @@
 
 // Include own header file first
 #include <parallel/SynParallel.h>
+
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageParamsHelper.h>
 
@@ -45,7 +46,6 @@
 
 #include <mwcommon/MPIConnection.h>
 #include <mwcommon/MPIConnectionSet.h>
-#include <mwcommon/MWIos.h>
 
 #include <Blob/BlobString.h>
 #include <Blob/BlobIBufString.h>
@@ -67,7 +67,7 @@ ASKAP_LOGGER(logger, ".parallel");
 
 using namespace std;
 using namespace askap;
-using namespace askap::mwbase;
+using namespace askap::mwcommon;
 using namespace askap::scimath;
 
 namespace askap
@@ -75,7 +75,7 @@ namespace askap
   namespace synthesis
   {
 
-    SynParallel::SynParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
+    SynParallel::SynParallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
                          itsComms(comms), itsParset(parset)
     {
       itsModel.reset(new Params());

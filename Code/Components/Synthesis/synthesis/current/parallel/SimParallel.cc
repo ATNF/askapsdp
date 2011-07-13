@@ -40,7 +40,7 @@
 #include <askap/AskapError.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapUtil.h>
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <Common/ParameterSet.h>
 ASKAP_LOGGER(logger, ".parallel");
 
@@ -64,7 +64,7 @@ ASKAP_LOGGER(logger, ".parallel");
 
 using namespace std;
 using namespace askap;
-using namespace askap::mwbase;
+using namespace askap::mwcommon;
 using namespace LOFAR;
 using namespace askap::accessors;
 
@@ -73,7 +73,7 @@ namespace askap
 namespace synthesis
 {
 
-SimParallel::SimParallel(askap::mwbase::AskapParallel& comms,
+SimParallel::SimParallel(askap::mwcommon::AskapParallel& comms,
                          const LOFAR::ParameterSet& parset) :
         SynParallel(comms,parset), itsModelReadByMaster(true), itsNoiseVariance(-1.), 
         itsDoChecksForNoise(false)

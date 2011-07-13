@@ -35,7 +35,7 @@
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
 
 #include <duchamp/duchamp.hh>
@@ -76,7 +76,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 int main(int argc, const char** argv)
 {
     // This class must have scope outside the main try/catch block
-    askap::mwbase::AskapParallel comms(argc, argv);
+    askap::mwcommon::AskapParallel comms(argc, argv);
     try {
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();

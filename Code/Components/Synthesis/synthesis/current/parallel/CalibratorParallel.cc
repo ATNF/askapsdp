@@ -75,7 +75,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/Product.h>
 #include <measurementequation/ImagingEquationAdapter.h>
 #include <gridding/VisGridderFactory.h>
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <Common/ParameterSet.h>
 
 // casa includes
@@ -86,7 +86,7 @@ using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
 using namespace askap::accessors;
-using namespace askap::mwbase;
+using namespace askap::mwcommon;
 
 /// @brief Constructor from ParameterSet
 /// @details The parset is used to construct the internal state. We could
@@ -94,7 +94,7 @@ using namespace askap::mwbase;
 /// The command line inputs are needed solely for MPI - currently no
 /// application specific information is passed on the command line.
 /// @param[in] parset ParameterSet for inputs
-CalibratorParallel::CalibratorParallel(askap::mwbase::AskapParallel& comms,
+CalibratorParallel::CalibratorParallel(askap::mwcommon::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
       MEParallelApp(comms,parset), 
       itsPerfectModel(new scimath::Params()), itsSolveGains(false), itsSolveLeakage(false)

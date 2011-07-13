@@ -29,7 +29,7 @@
 #ifndef ASKAP_SIMULATIONS_FITSPARALLEL_H_
 #define ASKAP_SIMULATIONS_FITSPARALLEL_H_
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 
 #include <Common/ParameterSet.h>
 #include <duchamp/Utils/Section.hh>
@@ -63,7 +63,7 @@ namespace askap {
                     /// @param argc Number of command line inputs
                     /// @param argv Command line inputs
                     /// @param parset The parameter set to read Duchamp and other parameters from.
-                    FITSparallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
+                    FITSparallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
                     /// @brief Destructor
                     virtual ~FITSparallel() {};
@@ -107,7 +107,7 @@ namespace askap {
                     duchamp::Section itsSubsection;
 
                     /// @brief Class for communications
-                    askap::mwbase::AskapParallel& itsComms;
+                    askap::mwcommon::AskapParallel& itsComms;
 
                     /// @brief Whether to write the images in a staged manner
                     bool itsFlagStagedWriting;

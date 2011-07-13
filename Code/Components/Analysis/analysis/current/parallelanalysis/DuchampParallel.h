@@ -35,7 +35,7 @@
 #include <analysisutilities/SubimageDef.h>
 #include <parallelanalysis/Weighter.h>
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 
 #include <Common/ParameterSet.h>
 
@@ -85,10 +85,10 @@ namespace askap {
                 /// @param argc Number of command line inputs
                 /// @param argv Command line inputs
                 /// @param parset The parameter set to read Duchamp and other parameters from.
-                DuchampParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
+                DuchampParallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
                 /// @brief Default constructor
-                DuchampParallel(askap::mwbase::AskapParallel& comms);
+                DuchampParallel(askap::mwcommon::AskapParallel& comms);
 
                 virtual ~DuchampParallel() {};
 
@@ -200,7 +200,7 @@ namespace askap {
             protected:
 
                 // Class for communications
-                askap::mwbase::AskapParallel& itsComms;
+                askap::mwcommon::AskapParallel& itsComms;
 
                 /// Is the image a FITS file or not (if not, probably a casa image...)
                 bool itsIsFITSFile;

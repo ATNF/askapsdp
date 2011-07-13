@@ -40,7 +40,7 @@
 #include <fitting/Params.h>
 #include <askap/Log4cxxLogSink.h>
 // just for logging
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 
 // command line parser
 #include <CommandLineParser.h>
@@ -68,7 +68,7 @@ int main(int argc, const char **argv)
 
    // This class must have scope outside the main try/catch block
    // we need it to initialise the logging properly
-   mwbase::AskapParallel comms(argc, argv);
+   mwcommon::AskapParallel comms(argc, argv);
 
    try {
       // Ensure that CASA log messages are captured

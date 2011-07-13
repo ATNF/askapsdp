@@ -36,7 +36,7 @@
 #include <Common/ParameterSet.h>
 
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <measures/Measures/MFrequency.h>
 
 namespace askap
@@ -64,7 +64,7 @@ namespace askap
       /// is the parset to be used in derived classes
       /// @param[in] comms communications object
       /// @param[in] parset parameter set      
-      SynParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
+      SynParallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
       ~SynParallel();
 
@@ -101,7 +101,7 @@ namespace askap
       askap::scimath::Params::ShPtr itsModel;
 
       /// Class for communications
-      askap::mwbase::AskapParallel& itsComms;
+      askap::mwcommon::AskapParallel& itsComms;
 
       /// obtain frequency reference frame
       inline casa::MFrequency::Ref getFreqRefFrame() const { return itsFreqRefFrame;}

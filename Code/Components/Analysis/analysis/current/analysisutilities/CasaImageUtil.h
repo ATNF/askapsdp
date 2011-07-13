@@ -34,7 +34,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 
 #include <string>
 
@@ -61,7 +61,7 @@ namespace askap {
         /// @brief Save a casa image to a duchamp::Cube object
         /// @name
         /// @{
-        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, askap::mwbase::AskapParallel& comms);
+        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, askap::mwcommon::AskapParallel& comms);
         int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
         /// @}
 
@@ -72,7 +72,7 @@ namespace askap {
         /// @name
         /// @ingroup analysisutilities
         /// @{
-        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, askap::mwbase::AskapParallel& comms);
+        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, askap::mwcommon::AskapParallel& comms);
         int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
         /// @}
 

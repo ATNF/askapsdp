@@ -30,7 +30,7 @@
 #define ASKAP_SYNTHESIS_MEPARALLEL_H_
 
 #include <parallel/SynParallel.h>
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 
 namespace askap
 {
@@ -82,7 +82,7 @@ namespace askap
                 /// is the parset to be used in derived classes
 				/// @param[in] comms communication object
 				/// @param[in] parset parameter set      				
-				MEParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset);
+				MEParallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
 				virtual ~MEParallel();
 

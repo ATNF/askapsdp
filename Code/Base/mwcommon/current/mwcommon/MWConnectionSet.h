@@ -1,4 +1,4 @@
-/// @file
+/// @file MWConnectionSet.h
 /// @brief Abstract base class for all MWConnectionSets.
 ///
 /// @copyright (c) 2007 CSIRO
@@ -25,7 +25,6 @@
 ///
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
-//# $Id$
 
 #ifndef ASKAP_MWCOMMON_MWCONNECTIONSET_H
 #define ASKAP_MWCOMMON_MWCONNECTIONSET_H
@@ -50,7 +49,6 @@ namespace askap { namespace mwcommon {
   /// the original.
   ///
   /// See class MWConnection for a description of connections.
-
   class MWConnectionSet
   {
   public:
@@ -58,7 +56,7 @@ namespace askap { namespace mwcommon {
     typedef boost::shared_ptr<MWConnectionSet> ShPtr;
 
     MWConnectionSet()
-      {}
+    {}
 
     virtual ~MWConnectionSet();
 

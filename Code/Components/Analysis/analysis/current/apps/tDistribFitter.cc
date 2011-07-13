@@ -31,7 +31,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 
 #include <Common/ParameterSet.h>
 #include <Common/LofarTypedefs.h>
@@ -70,7 +70,7 @@ using namespace LOFAR::TYPES;
 
 using namespace casa;
 using namespace askap;
-using namespace askap::mwbase;
+using namespace askap::mwcommon;
 using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "tDistribFitter.log");

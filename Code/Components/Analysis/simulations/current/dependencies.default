@@ -1,7 +1,6 @@
 askap=Code/Base/askap/current
 common=3rdParty/LOFAR/Common/Common-3.3
-mwcommon=Code/Base/mwbase/mwcommon/current
-askapparallel=Code/Base/mwbase/askapparallel/current
+mwcommon=Code/Base/mwcommon/current
 analysis=Code/Components/Analysis/analysis/current
 cfitsio=3rdParty/cfitsio/cfitsio-3.26
 wcslib=3rdParty/wcslib/wcslib-4.7

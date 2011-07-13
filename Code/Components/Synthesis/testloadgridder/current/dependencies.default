@@ -1,3 +1,3 @@
 synthesis=Code/Components/Synthesis/synthesis/current
-askapparallel=Code/Base/mwbase/askapparallel/current
+mwcommon=Code/Base/mwcommon/current
 accessors=Code/Base/accessors/current

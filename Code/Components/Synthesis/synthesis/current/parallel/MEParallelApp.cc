@@ -50,7 +50,7 @@ using namespace askap::synthesis;
 /// @details sets communication object and parameter set
 /// @param[in] comms communication object
 /// @param[in] parset parameter set
-MEParallelApp::MEParallelApp(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
+MEParallelApp::MEParallelApp(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
    MEParallel(comms,parset),   
    itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6)   
 {

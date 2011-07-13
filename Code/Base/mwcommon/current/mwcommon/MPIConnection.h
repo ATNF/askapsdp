@@ -25,7 +25,6 @@
 ///
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
-//# $Id$
 
 #ifndef ASKAP_MWCOMMON_MPICONNECTION_H
 #define ASKAP_MWCOMMON_MPICONNECTION_H
@@ -66,6 +65,7 @@ namespace askap { namespace mwcommon {
     /// (e.g. prediffer or solver).
     MPIConnection (int destinationRank, int tag);
 
+    /// @brief Destructor
     virtual ~MPIConnection();
 
     /// Check the state of the connection. Default is true.
@@ -90,6 +90,7 @@ namespace askap { namespace mwcommon {
     static int getRank();
     static int getNrNodes();
     static std::string getNodeName();
+    /// @}
 
   private:
     // Add a byte offset to the  specified pointer, returning the result

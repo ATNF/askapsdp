@@ -1,4 +1,4 @@
-/// @file
+/// @file MPIConnectionSet.h
 /// @brief Class to hold a set of MPI connections.
 ///
 /// @copyright (c) 2007 CSIRO
@@ -25,7 +25,6 @@
 ///
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
-/// $Id$
 
 #ifndef ASKAP_MWCOMMON_MPICONNECTIONSET_H
 #define ASKAP_MWCOMMON_MPICONNECTIONSET_H
@@ -33,10 +32,12 @@
 // System includes
 #include <vector>
 
+// ASKAPsoft includes
+#include "boost/shared_ptr.hpp"
+
 // Local package includes
 #include "mwcommon/MWConnectionSet.h"
 #include "mwcommon/MPIConnection.h"
-
 
 namespace askap { namespace mwcommon {
 
@@ -61,6 +62,7 @@ namespace askap { namespace mwcommon {
     /// Set up a connection set to destinations using MPI.
     MPIConnectionSet();
 
+    /// @brief Destructor
     virtual ~MPIConnectionSet();
 
     /// Clone the derived object to contain only the connections

@@ -34,7 +34,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 
 #include <Common/ParameterSet.h>
 #include <Common/LofarTypedefs.h>
@@ -71,19 +71,19 @@ using namespace LOFAR::TYPES;
 
 using namespace casa;
 using namespace askap;
-using namespace askap::mwbase;
+using namespace askap::mwcommon;
 
 ASKAP_LOGGER(logger, "tParallelCasaAccess.log");
 
 
 /// A simple front-end to AskapParallel that allows direct access of
 /// the node & rank numbers, plus the connectionSet.
-class MyAskapParallel: public askap::mwbase::AskapParallel {
+class MyAskapParallel: public askap::mwcommon::AskapParallel {
     public:
         MyAskapParallel(int argc, const char **argv): AskapParallel(argc, argv) {};
         int nnode() {return itsNNode;};
         int rank() {return itsRank;};
-        askap::mwbase::MPIConnectionSet::ShPtr connectionSet() {return itsConnectionSet;};
+        askap::mwcommon::MPIConnectionSet::ShPtr connectionSet() {return itsConnectionSet;};
 
 };
 

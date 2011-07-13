@@ -97,10 +97,10 @@ int main(int argc, char **argv) {
      parser.process(argc, argv);
      
      // Initialize MPI (also succeeds if no MPI available).
-     askap::mwbase::MPIConnection::initMPI(argc, (const char **&)argv);
+     askap::mwcommon::MPIConnection::initMPI(argc, (const char **&)argv);
 
      casa::Int seed1 = casa::Int(time(0));
-     casa::Int seed2 = casa::Int(askap::mwbase::MPIConnection::getRank());
+     casa::Int seed2 = casa::Int(askap::mwcommon::MPIConnection::getRank());
      std::cerr<<"Using seeds: "<<seed1<<" "<<seed2<<std::endl;
      GaussianNoiseME noiseME(noiseVariance,seed1,seed2);
      
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
      addNoise(ds,noiseME);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
-     askap::mwbase::MPIConnection::endMPI();
+     askap::mwcommon::MPIConnection::endMPI();
 
   }
   catch(const cmdlineparser::XParser &) {

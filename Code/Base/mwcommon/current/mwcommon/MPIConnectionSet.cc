@@ -1,4 +1,4 @@
-/// @file
+/// @file MPIConnectionSet.cc
 /// @brief Set of MPI connections
 ///
 /// @copyright (c) 2007 CSIRO
@@ -46,13 +46,13 @@ namespace askap { namespace mwcommon {
   MWConnectionSet::ShPtr
   MPIConnectionSet::clone (const std::vector<int>& inx) const
   {
-    int nrconn = size();
+    const int nrconn = size();
     MPIConnectionSet* set = new MPIConnectionSet();
     MWConnectionSet::ShPtr mwset(set);
     for (std::vector<int>::const_iterator it=inx.begin();
          it!=inx.end();
          ++it) {
-      int i = *it;
+      const int i = *it;
       ASKAPASSERT (i>=0 && i<nrconn);
       set->itsConns.push_back (itsConns[i]);
     }
@@ -61,7 +61,7 @@ namespace askap { namespace mwcommon {
 
   int MPIConnectionSet::addConnection (int rank, int tag)
   {
-    int seqnr = itsConns.size();
+    const int seqnr = itsConns.size();
     MPIConnection::ShPtr ptr(new MPIConnection (rank, tag));
     itsConns.push_back (ptr);
     return seqnr;
@@ -89,7 +89,7 @@ namespace askap { namespace mwcommon {
 
   void MPIConnectionSet::writeAll (const LOFAR::BlobString& buf)
   {
-    for (unsigned i=0; i<itsConns.size(); ++i) {
+    for (unsigned int i=0; i<itsConns.size(); ++i) {
       itsConns[i]->write (buf);
     }
   }

@@ -1,4 +1,4 @@
-/// @file
+/// @file MWConnectionSet.cc
 /// @brief Abstract base class for all MWConnectionSets
 ///
 /// @copyright (c) 2007 CSIRO

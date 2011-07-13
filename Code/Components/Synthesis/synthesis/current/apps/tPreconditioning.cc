@@ -44,7 +44,7 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 
 #include <mwcommon/MPIConnection.h>
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 
 ASKAP_LOGGER(logger, ".tpreconditioner");
 
@@ -58,7 +58,7 @@ struct RandomGenerator : public GaussianNoiseME
 {
   explicit RandomGenerator(double variance) :
       GaussianNoiseME(variance, casa::Int(time(0)), 
-           casa::Int(askap::mwbase::MPIConnection::getRank())) {}
+           casa::Int(askap::mwcommon::MPIConnection::getRank())) {}
   using GaussianNoiseME::getRandomComplexNumber;
   float operator()() const { return casa::real(getRandomComplexNumber());}
 };
@@ -102,8 +102,8 @@ int main(int argc, char **argv) {
 
      timer.mark();
      // Initialize MPI (also succeeds if no MPI available).
-     //askap::mwbase::MPIConnection::initMPI(argc, (const char **&)argv);
-     askap::mwbase::AskapParallel ap(argc, (const char **&)argv);
+     //askap::mwcommon::MPIConnection::initMPI(argc, (const char **&)argv);
+     askap::mwcommon::AskapParallel ap(argc, (const char **&)argv);
 
      // Ensure that CASA log messages are captured
      casa::LogSinkInterface* globalSink = new Log4cxxLogSink();

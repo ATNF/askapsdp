@@ -34,7 +34,7 @@
 #include <ms/MeasurementSets/MeasurementSet.h>
 #include <dataaccess/SharedIter.h>
 #include <measurementequation/IMeasurementEquation.h>
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <parallel/SynParallel.h>
 #include <simulation/Simulator.h>
 
@@ -120,7 +120,7 @@ namespace askap
                 /// @details 
                 /// @param comms communication object
                 /// @param parset ParameterSet for inputs
-                SimParallel(askap::mwbase::AskapParallel& comms,
+                SimParallel(askap::mwcommon::AskapParallel& comms,
                         const LOFAR::ParameterSet& parset);
 
                 ~SimParallel();

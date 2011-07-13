@@ -48,11 +48,11 @@
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".parallel");
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <fitting/ImagingNormalEquations.h>
 
 using namespace askap;
-using namespace askap::mwbase;
+using namespace askap::mwcommon;
 using namespace askap::scimath;
 
 namespace askap
@@ -60,7 +60,7 @@ namespace askap
   namespace synthesis
   {
 
-    MEParallel::MEParallel(askap::mwbase::AskapParallel& comms, const LOFAR::ParameterSet& parset) :
+    MEParallel::MEParallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset) :
       SynParallel(comms,parset)
     {
       itsSolver = Solver::ShPtr(new Solver);

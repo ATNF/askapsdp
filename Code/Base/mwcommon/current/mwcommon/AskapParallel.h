@@ -1,4 +1,4 @@
-/// @file
+/// @file AskapParallel.h
 ///
 /// Provides generic methods for parallel algorithms
 ///
@@ -49,8 +49,6 @@ namespace askap
     ///
     /// If the number of nodes is 1 then everything occurs in the same process with
     /// no overall for transmission of model.
-    ///
-    /// @ingroup parallel
     class AskapParallel
     {
   public:
@@ -62,6 +60,7 @@ namespace askap
       /// @param argv Command line inputs
       AskapParallel(int argc, const char** argv);
 
+      /// @brief Destructor 
       ~AskapParallel();
 
       /// Is this running in parallel?
@@ -79,10 +78,12 @@ namespace askap
       /// Number of nodes
       int nNodes();
 
-      // Connection set
+      /// Connection set
       MPIConnectionSet::ShPtr connectionSet();
 
-      /// Substitute %w by worker number, and %n by number of workers (one less than the number of nodes) This allows workers to do different work!
+      /// Substitute %w by worker number, and %n by number of workers
+      // (one less than the number of nodes) This allows workers to
+      // do different work!
       std::string substitute(const std::string& s);
 
   protected:

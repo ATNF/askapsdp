@@ -1,4 +1,4 @@
-/// @file
+/// @file MWConnection.h
 /// @brief Abstract base class for all MWConnections.
 ///
 /// @copyright (c) 2007 CSIRO
@@ -25,13 +25,15 @@
 ///
 /// @author Ger van Diepen (diepen AT astron nl)
 ///
-//# $Id$
 
 #ifndef ASKAP_MWCOMMON_MWCONNECTION_H
 #define ASKAP_MWCOMMON_MWCONNECTION_H
 
-#include <unistd.h>
-#include <boost/shared_ptr.hpp>
+// System includes
+#include "unistd.h"
+
+// ASKAPsoft includes
+#include "boost/shared_ptr.hpp"
 
 //# Forward Declarations
 namespace LOFAR {
@@ -62,16 +64,17 @@ namespace askap { namespace mwcommon {
   ///
   /// Derived classes (e.g. MPIConnection) implement the concrete transport
   /// classes.
-
   class MWConnection
   {
   public:
     /// Define a shared pointer to this object.
     typedef boost::shared_ptr<MWConnection> ShPtr;
 
+    /// @brief Constructor
     MWConnection()
     {}
 
+    /// @brief Destructor
     virtual ~MWConnection();
 
     /// Initialize the Transport; this may for instance open a file,

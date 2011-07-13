@@ -62,7 +62,7 @@ using namespace askap::accessors;
 /// application specific information is passed on the command line.
 /// @param comms communication object 
 /// @param parset ParameterSet for inputs
-ContSubtractParallel::ContSubtractParallel(askap::mwbase::AskapParallel& comms,
+ContSubtractParallel::ContSubtractParallel(askap::mwcommon::AskapParallel& comms,
       const LOFAR::ParameterSet& parset) : MEParallelApp(comms,parset)
 {
   // the stub allows to reuse MEParallelApp code although we're not solving

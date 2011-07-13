@@ -32,7 +32,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/Log4cxxLogSink.h>
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <casa/Logging/LogIO.h>
 #include <casa/OS/Timer.h>
 #include <Common/ParameterSet.h>
@@ -51,7 +51,7 @@ using namespace askap::synthesis;
 int main(int argc, const char** argv)
 {
     // This class must have scope outside the main try/catch block
-    askap::mwbase::AskapParallel comms(argc, argv);
+    askap::mwcommon::AskapParallel comms(argc, argv);
 
     try {
         casa::Timer timer;

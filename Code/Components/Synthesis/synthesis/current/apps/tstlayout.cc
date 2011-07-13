@@ -60,7 +60,7 @@ ASKAP_LOGGER(logger, "");
 
 using namespace askap;
 using namespace askap::synthesis;
-using namespace askap::mwbase;
+using namespace askap::mwcommon;
 using namespace LOFAR;
 
 /// @brief load layout
@@ -441,7 +441,7 @@ int main(int argc, char **argv) {
      parser.process(argc, argv);
      
      // Initialize MPI (also succeeds if no MPI available).
-     askap::mwbase::MPIConnection::initMPI(argc, (const char **&)argv);
+     askap::mwcommon::MPIConnection::initMPI(argc, (const char **&)argv);
      ASKAPLOG_INIT("askap.log_cfg");
      
      casa::Vector<double> x,y,z;
@@ -460,7 +460,7 @@ int main(int argc, char **argv) {
                                     imgName.getValue());
          mapResidualWTerm(imgName,centreLong,x,y,z);                           
      }
-     askap::mwbase::MPIConnection::endMPI();
+     askap::mwcommon::MPIConnection::endMPI();
   }
   catch(const cmdlineparser::XParser &) {
      std::cerr<<"Usage "<<argv[0]<<" cfg_name [output_image]"<<std::endl;

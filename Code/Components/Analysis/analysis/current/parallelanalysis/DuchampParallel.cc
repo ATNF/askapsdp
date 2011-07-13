@@ -62,7 +62,7 @@ using namespace LOFAR::TYPES;
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <imageaccess/CasaImageAccess.h>
 
 #include <parallelanalysis/DuchampParallel.h>
@@ -97,7 +97,7 @@ ASKAP_LOGGER(logger, ".parallelanalysis");
 
 using namespace std;
 using namespace askap;
-using namespace askap::mwbase;
+using namespace askap::mwcommon;
 
 using namespace duchamp;
 
@@ -123,7 +123,7 @@ namespace askap {
         //**************************************************************//
 
 
-        DuchampParallel::DuchampParallel(askap::mwbase::AskapParallel& comms)
+        DuchampParallel::DuchampParallel(askap::mwcommon::AskapParallel& comms)
                 : itsComms(comms)
         {
             this->itsFitParams = sourcefitting::FittingParameters(LOFAR::ParameterSet());
@@ -131,7 +131,7 @@ namespace askap {
         }
         //**************************************************************//
 
-        DuchampParallel::DuchampParallel(askap::mwbase::AskapParallel& comms,
+        DuchampParallel::DuchampParallel(askap::mwcommon::AskapParallel& comms,
                                          const LOFAR::ParameterSet& parset)
                 : itsComms(comms)
         {

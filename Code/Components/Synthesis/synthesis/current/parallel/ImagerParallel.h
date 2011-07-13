@@ -31,7 +31,7 @@
 #define ASKAP_SYNTHESIS_IMAGERPARALLEL_H_
 
 // ASKAPsoft includes
-#include <askapparallel/AskapParallel.h>
+#include <mwcommon/AskapParallel.h>
 #include <fitting/Solver.h>
 #include <Common/ParameterSet.h>
 
@@ -102,7 +102,7 @@ namespace askap
       /// application specific information is passed on the command line.
       /// @param comms communication object 
       /// @param parset ParameterSet for inputs
-      ImagerParallel(askap::mwbase::AskapParallel& comms,
+      ImagerParallel(askap::mwcommon::AskapParallel& comms,
           const LOFAR::ParameterSet& parset);
 
       /// @brief Calculate the normalequations (runs in the prediffers)

@@ -62,6 +62,7 @@ namespace askap
     namespace mwcommon
     {
 
+        /// Logger
         ASKAP_LOGGER(logger, ".askapparallel");
 
         AskapParallel::AskapParallel(int argc, const char** argv)
@@ -100,7 +101,6 @@ namespace askap
             }
             ASKAPLOG_REMOVECONTEXT("hostname");
             ASKAPLOG_PUTCONTEXT("hostname", nodeName.c_str());
-
 
             itsIsParallel=(itsNNode>1);
             itsIsMaster=(itsRank==0);

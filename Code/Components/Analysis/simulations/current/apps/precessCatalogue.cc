@@ -74,7 +74,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char **argv)
 {
-    askap::mwbase::AskapParallel comms(argc, argv);
+    askap::mwcommon::AskapParallel comms(argc, argv);
 
     try {
         std::string parsetFile(getInputs("-inputs", "precessCatalogue.in", argc, argv));

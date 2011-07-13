@@ -46,7 +46,7 @@ namespace askap { namespace mwcommon {
         return true;
     }
 
-    void MWConnection::read (LOFAR::BlobString& buf)
+    void MWConnection::read(LOFAR::BlobString& buf)
     {
         unsigned long size = 0;
         receive(&size, sizeof(unsigned long));
