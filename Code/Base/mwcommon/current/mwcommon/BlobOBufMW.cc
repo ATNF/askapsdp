@@ -29,11 +29,11 @@
 
 // System includes
 #include <algorithm> 
+#include <iterator> 
 
 // ASKAPSoft includes
 #include "askap/AskapError.h"
 #include "Common/LofarTypes.h"
-#include "Blob/BlobOBuffer.h"
 #include "Blob/BlobHeader.h"
 
 // Local package includes
@@ -73,10 +73,9 @@ LOFAR::uint64 BlobOBufMW::put(const void* buffer, LOFAR::uint64 nbytes)
     if (nbytes > itsMaxBufSize) {
         send(buffer, nbytes);
     } else {
-        const size_t oldSize = itsBuffer.size();
-        itsBuffer.resize(itsBuffer.size() + nbytes);
-        std::copy(reinterpret_cast<const char*>(buffer), reinterpret_cast<const char*>(buffer)+nbytes, itsBuffer.begin()+oldSize); 
-        ASKAPCHECK(itsBuffer.size() == oldSize + nbytes, "New buffer size is incorrect");
+        std::copy(reinterpret_cast<const char*>(buffer),
+                  reinterpret_cast<const char*>(buffer) + nbytes,
+                  std::back_inserter(itsBuffer)); 
     }
 
     // 4: Finally, if the buffer concludes with the end-of-blob value

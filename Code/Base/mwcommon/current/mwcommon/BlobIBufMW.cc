@@ -34,7 +34,6 @@
 // ASKAPSoft includes
 #include "askap/AskapError.h"
 #include "Common/LofarTypes.h"
-#include "Blob/BlobOBuffer.h"
 
 // Local package includes
 #include "mwcommon/AskapParallel.h"
@@ -71,8 +70,9 @@ LOFAR::uint64 BlobIBufMW::get(void* buffer, LOFAR::uint64 nbytes)
     // 2: Now enough data exists to fulfill the request action it.
     ASKAPCHECK(itsBuffer.size() >= nbytes,
             "Buffer doesn't have sufficient data to fulfill request");
-    std::copy(itsBuffer.begin(), itsBuffer.begin()+nbytes, reinterpret_cast<char*>(buffer));
-    itsBuffer.erase(itsBuffer.begin(), itsBuffer.begin()+nbytes);
+    std::copy(itsBuffer.begin(), itsBuffer.begin() + nbytes,
+            reinterpret_cast<char*>(buffer));
+    itsBuffer.erase(itsBuffer.begin(), itsBuffer.begin() + nbytes);
 
     return nbytes;
 }
