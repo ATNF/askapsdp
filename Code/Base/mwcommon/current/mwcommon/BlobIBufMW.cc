@@ -43,8 +43,10 @@ using namespace askap::mwcommon;
 
 // Constructor.
 BlobIBufMW::BlobIBufMW(AskapParallel& comms, int seqnr)
-: itsComms(comms) , itsSeqNr(seqnr)
+    : itsComms(comms) , itsSeqNr(seqnr)
 {
+    ASKAPCHECK(itsComms.isParallel(), 
+            "This class cannot be used in non parallel applications");
 }
 
 // Destructor.
@@ -55,7 +57,6 @@ BlobIBufMW::~BlobIBufMW()
 // Get the requested nr of bytes.
 LOFAR::uint64 BlobIBufMW::get(void* buffer, LOFAR::uint64 nbytes)
 {
-
     // 1: If itsBuff doesn't have sufficient data to fulfill the request
     // then get enough data first
     LOFAR::uint64 size;

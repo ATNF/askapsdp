@@ -44,6 +44,8 @@ using namespace askap::mwcommon;
 BlobOBufMW::BlobOBufMW(AskapParallel& comms, int seqnr, size_t maxBufSize)
     : itsComms(comms), itsSeqNr(seqnr), itsMaxBufSize(maxBufSize)
 {
+    ASKAPCHECK(itsComms.isParallel(),
+            "This class cannot be used in non parallel applications");
 }
 
 BlobOBufMW::~BlobOBufMW()
