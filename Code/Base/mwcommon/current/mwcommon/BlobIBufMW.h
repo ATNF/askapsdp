@@ -27,6 +27,9 @@
 #ifndef ASKAP_MWCOMMON_BLOGIBUFMW_H
 #define ASKAP_MWCOMMON_BLOGIBUFMW_H
 
+// System includes
+#include <vector>
+
 // ASKAPSoft includes
 #include "Common/LofarTypes.h"
 #include "Blob/BlobIBuffer.h"
@@ -40,27 +43,32 @@ namespace mwcommon {
 class BlobIBufMW : public LOFAR::BlobIBuffer
 {
 public:
-    // Constructor.
-    BlobIBufMW(AskapParallel& comms);
+    /// Constructor.
+    BlobIBufMW(AskapParallel& comms, int seqnr);
 
-    // Destructor.
+    /// Destructor.
     virtual ~BlobIBufMW();
 
-    // Get the requested nr of bytes.
+    /// Get the requested nr of bytes.
     virtual LOFAR::uint64 get(void* buffer, LOFAR::uint64 nbytes);
 
-    // Get the position in the stream.
-    // -1 is returned if the stream is not seekable.
+    /// Get the position in the stream.
+    /// -1 is returned if the stream is not seekable.
     virtual LOFAR::int64 tellPos() const;
 
-    // Set the position in the stream.
-    // It returns the new position which is -1 if the stream is not seekable.
+    /// Set the position in the stream.
+    /// It returns the new position which is -1 if the stream is not seekable.
     virtual LOFAR::int64 setPos(LOFAR::int64 pos);
 
 private:
-    AskapParallel& itsComms;
-};
 
+    void receive(void* buffer, size_t nbytes);
+
+    AskapParallel& itsComms;
+    const int itsSeqNr;
+    std::vector<char> itsBuffer;
+    size_t itsReadIndex;
+};
 
 } // end namespace mwcommon
 } // end namespace askap

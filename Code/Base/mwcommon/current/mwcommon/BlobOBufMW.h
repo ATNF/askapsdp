@@ -40,23 +40,33 @@ namespace mwcommon {
 class BlobOBufMW : public LOFAR::BlobOBuffer
 { 
     public:
-        BlobOBufMW(AskapParallel& comms);
+        /// Constructor
+        BlobOBufMW(AskapParallel& comms, int seqnr);
 
+        /// Destructor
         virtual ~BlobOBufMW();
 
-        // Put the requested nr of bytes.
+        /// Put the requested nr of bytes.
+        /// @return the number of bytes put.
         virtual LOFAR::uint64 put(const void* buffer, LOFAR::uint64 nbytes);
 
-        // Get the position in the stream.
-        // -1 is returned if the stream is not seekable.
+        /// Get the position in the stream.
+        /// -1 is returned if the stream is not seekable.
         virtual LOFAR::int64 tellPos() const;
 
-        // Set the position in the stream.
-        // It returns the new position which is -1 if the stream is not seekable.
+        /// Set the position in the stream.
+        /// It returns the new position which is -1 if the stream is not seekable.
         virtual LOFAR::int64 setPos(LOFAR::int64 pos);
 
+        /// Flush the stream and signal the recipient that the stream
+        /// has ended.
+        void signalDone(void);
+
     private:
-            AskapParallel& itsComms;
+        void send(const void* buffer, size_t nbytes);
+
+        AskapParallel& itsComms;
+        const int itsSeqNr;
 };
 
 } // end namespace mwcommon

@@ -27,6 +27,10 @@
 // Include own header file first
 #include "BlobIBufMW.h"
 
+// System includes
+#include <vector>
+#include <iostream>
+
 // ASKAPSoft includes
 #include "askap/AskapError.h"
 #include "Common/LofarTypes.h"
@@ -38,8 +42,8 @@
 using namespace askap::mwcommon;
 
 // Constructor.
-BlobIBufMW::BlobIBufMW(AskapParallel& comms)
-: itsComms(comms)
+BlobIBufMW::BlobIBufMW(AskapParallel& comms, int seqnr)
+: itsComms(comms) , itsSeqNr(seqnr), itsReadIndex(0)
 {
 }
 
@@ -51,7 +55,31 @@ BlobIBufMW::~BlobIBufMW()
 // Get the requested nr of bytes.
 LOFAR::uint64 BlobIBufMW::get(void* buffer, LOFAR::uint64 nbytes)
 {
-    ASKAPTHROW(AskapError, "Not implemented");
+    std::cerr << "BlobIBufMW::put - ENTRY" << std::endl;
+    if (itsBuffer.empty()) {
+        std::cerr << "BlobIBufMW::put - RECEIVING" << std::endl;
+        LOFAR::uint64 size;
+        do {
+            std::cerr << "BlobIBufMW::put - RECV LOOP BEGIN" << std::endl;
+            receive(&size, sizeof(LOFAR::uint64));
+            std::cerr << "BlobIBufMW::put - RECV LOOP Got size of: " << size << std::endl;
+            if (size == 0) {
+                break; // End of stream
+            }
+            const size_t oldSize = itsBuffer.size();
+            itsBuffer.resize(itsBuffer.size() + size);
+            receive(&itsBuffer[oldSize], size);
+            std::cerr << "BlobIBufMW::put - RECV LOOP END" << std::endl;
+        } while (size > 0);
+    }
+
+    ASKAPCHECK(itsReadIndex + nbytes <= itsBuffer.size(),
+            "Buffer read overrun");
+    std::cerr << "BlobIBufMW::put - memcpying" << std::endl;
+    memcpy(buffer, &itsBuffer[itsReadIndex], nbytes);
+    itsReadIndex += nbytes;
+    std::cerr << "BlobIBufMW::put - EXIT" << std::endl;
+    return nbytes;
 }
 
 // Get the position in the stream.
@@ -68,3 +96,7 @@ LOFAR::int64 BlobIBufMW::setPos(LOFAR::int64 pos)
     return -1;
 }
 
+void BlobIBufMW::receive(void* buffer, size_t nbytes)
+{
+    itsComms.connectionSet()->read(itsSeqNr, buffer, nbytes);
+}

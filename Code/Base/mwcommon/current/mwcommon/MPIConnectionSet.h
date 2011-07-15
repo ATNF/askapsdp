@@ -73,7 +73,7 @@ namespace askap { namespace mwcommon {
     /// The tag can be used to define the type of destination
     /// (e.g. prediffer or solver).
     /// It returns the sequence nr of the connection.
-    int addConnection (int rank, int tag);
+    int addConnection(int rank, int tag);
 
     /// Get the number of connections.
     virtual int size() const;
@@ -82,16 +82,24 @@ namespace askap { namespace mwcommon {
     /// <0 means no connection ready yet.
     virtual int getReadyConnection();
 
+    /// Read the data into the buffer using the connection
+    /// with the given sequence nr.
+    virtual void read(int seqnr, void* buf, size_t size);
+
+    /// Write the data from the buffer using the connection
+    /// with the given sequence nr.
+    virtual void write(int seqnr, void* buf, size_t size);
+
     /// Read the data into the BlobString buffer using the connection
     /// with the given sequence nr.
-    virtual void read (int seqnr, LOFAR::BlobString&);
+    virtual void read(int seqnr, LOFAR::BlobString&);
 
     /// Write the data from the BlobString buffer using the connection
     /// with the given sequence nr.
-    virtual void write (int seqnr, const LOFAR::BlobString&);
+    virtual void write(int seqnr, const LOFAR::BlobString&);
 
     /// Write the data from the BlobString buffer to all connections.
-    virtual void writeAll (const LOFAR::BlobString&);
+    virtual void writeAll(const LOFAR::BlobString&);
 
   private:
     std::vector<MPIConnection::ShPtr> itsConns;

@@ -77,14 +77,24 @@ namespace askap { namespace mwcommon {
     return -1;
   }
 
+  void MPIConnectionSet::read(int seqnr, void* buf, size_t size)
+  {
+    itsConns[seqnr]->receive(buf, size);
+  }
+
+  void MPIConnectionSet::write(int seqnr, void* buf, size_t size)
+  {
+    itsConns[seqnr]->send(buf, size);
+  }
+
   void MPIConnectionSet::read (int seqnr, LOFAR::BlobString& buf)
   {
-    itsConns[seqnr]->read (buf);
+    itsConns[seqnr]->read(buf);
   }
 
   void MPIConnectionSet::write (int seqnr, const LOFAR::BlobString& buf)
   {
-    itsConns[seqnr]->write (buf);
+    itsConns[seqnr]->write(buf);
   }
 
   void MPIConnectionSet::writeAll (const LOFAR::BlobString& buf)
