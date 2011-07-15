@@ -35,6 +35,7 @@
 #include <ComplexDiffTest.h>
 #include <ComplexDiffMatrixTest.h>
 #include <AxesTest.h>
+#include <PolXProductsTest.h>
 
 int main(int argc, char *argv[])
 {
@@ -51,6 +52,7 @@ int main(int argc, char *argv[])
     runner.addTest(askap::scimath::GeneralFittingTest::suite());
     runner.addTest(askap::scimath::ComplexDiffTest::suite());
     runner.addTest(askap::scimath::ComplexDiffMatrixTest::suite());
+    runner.addTest(askap::scimath::PolXProductsTest::suite());
 
     bool wasSucessful = runner.run();
 

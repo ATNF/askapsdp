@@ -45,7 +45,7 @@ using namespace askap::scimath;
 /// @param[in] npol number of polarisations (i.e. dimension of visibility vector)
 /// @note The arrays are left uninitialised after this constructor, their size have to be changed 
 /// before they can be used
-XPolProducts::XPolProducts(const casa::uInt npol) : itsNPol(npol) {}
+PolXProducts::PolXProducts(const casa::uInt npol) : itsNPol(npol) {}
    
 /// @brief constructor initialising arrays
 /// @param[in] npol number of polarisations (i.e. dimension of visibility vector)
@@ -53,7 +53,7 @@ XPolProducts::XPolProducts(const casa::uInt npol) : itsNPol(npol) {}
 /// @param[in] doZero if true (default), the buffer arrays are filled with zeros. 
 /// @note This version of the constructor does initialise the arrays to the requested size and by default
 /// fills them with zeros.
-XPolProducts::XPolProducts(const casa::uInt npol, const casa::IPosition &shape, const bool doZero) : itsNPol(npol),
+PolXProducts::PolXProducts(const casa::uInt npol, const casa::IPosition &shape, const bool doZero) : itsNPol(npol),
      itsModelProducts(shape.concatenate(casa::IPosition(1,int(npol*(npol+1)/2)))),
      itsModelMeasProducts(shape.concatenate(casa::IPosition(1,int(npol*(npol+1)/2)))) 
 {
@@ -69,13 +69,13 @@ XPolProducts::XPolProducts(const casa::uInt npol, const casa::IPosition &shape, 
 /// @param[in] pos position vector for all axes except the last one (polarisation). The vector size
 /// should be the dimension of arrays minus 1.
 /// @return the one dimensional slice at the given position
-XPolProducts XPolProducts::slice(const casa::IPosition &pos) 
+PolXProducts PolXProducts::slice(const casa::IPosition &pos) 
 {
   ASKAPDEBUGASSERT(nPol()>0);
   ASKAPDEBUGASSERT(pos.nelements() + 1 == itsModelProducts.shape().nelements());
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape() == itsModelProducts.shape());
 
-  XPolProducts result(nPol());
+  PolXProducts result(nPol());
   // setup Slicer  
   const casa::IPosition endPos = pos.concatenate(casa::IPosition(1,int(nPol()*(nPol()+1)/2-1)));
   casa::IPosition startPos(endPos);
@@ -93,7 +93,7 @@ XPolProducts XPolProducts::slice(const casa::IPosition &pos)
 /// @param[in] npol number of polarisations (i.e. dimension of visibility vector)
 /// @param[in] shape shape of the arrays without polarisation dimension which is always added last
 /// @param[in] doZero if true (default), the buffer arrays are filled with zeros. 
-void XPolProducts::resize(const casa::uInt npol, const casa::IPosition &shape, const bool doZero) 
+void PolXProducts::resize(const casa::uInt npol, const casa::IPosition &shape, const bool doZero) 
 {
   itsNPol = npol;
   resize(shape,doZero);
@@ -104,7 +104,7 @@ void XPolProducts::resize(const casa::uInt npol, const casa::IPosition &shape, c
 /// vector is not changed.
 /// @param[in] shape shape of the arrays without polarisation dimension which is always added last
 /// @param[in] doZero if true (default), the buffer arrays are filled with zeros. 
-void XPolProducts::resize(const casa::IPosition &shape, const bool doZero)
+void PolXProducts::resize(const casa::IPosition &shape, const bool doZero)
 {
   const casa::IPosition targetShape = shape.concatenate(casa::IPosition(1,int(itsNPol*(itsNPol+1)/2)));
   itsModelProducts.resize(targetShape);
@@ -126,7 +126,7 @@ void XPolProducts::resize(const casa::IPosition &shape, const bool doZero)
 /// @param[in] pol1 first polarisation coordinate of the pair forming the product
 /// @param[in] pol2 second polarisation coordinate of the pair forming the product
 /// @return the value of cross-product
-casa::Complex XPolProducts::getModelProduct(const casa::uInt x, const casa::uInt y, 
+casa::Complex PolXProducts::getModelProduct(const casa::uInt x, const casa::uInt y, 
                          const casa::uInt pol1, const casa::uInt pol2) const
 {
   ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 3);
@@ -149,7 +149,7 @@ casa::Complex XPolProducts::getModelProduct(const casa::uInt x, const casa::uInt
 /// @param[in] pol1 first polarisation coordinate of the pair forming the product
 /// @param[in] pol2 second polarisation coordinate of the pair forming the product
 /// @return the value of cross-product
-casa::Complex XPolProducts::getModelProduct(const casa::uInt pol1, const casa::uInt pol2) const
+casa::Complex PolXProducts::getModelProduct(const casa::uInt pol1, const casa::uInt pol2) const
 {
   ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 1);
   // products are indexed with the first polarisation index being the largest. If the pol1<pol2 pair
@@ -171,7 +171,7 @@ casa::Complex XPolProducts::getModelProduct(const casa::uInt pol1, const casa::u
 /// @param[in] pol1 first polarisation coordinate of the pair forming the product
 /// @param[in] pol2 second polarisation coordinate of the pair forming the product
 /// @return the value of cross-product
-casa::Complex XPolProducts::getModelMeasProduct(const casa::uInt x, const casa::uInt y, 
+casa::Complex PolXProducts::getModelMeasProduct(const casa::uInt x, const casa::uInt y, 
                                                 const casa::uInt pol1, const casa::uInt pol2) const
 {
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 3);
@@ -194,7 +194,7 @@ casa::Complex XPolProducts::getModelMeasProduct(const casa::uInt x, const casa::
 /// @param[in] pol1 first polarisation coordinate of the pair forming the product
 /// @param[in] pol2 second polarisation coordinate of the pair forming the product
 /// @return the value of cross-product
-casa::Complex XPolProducts::getModelMeasProduct(const casa::uInt pol1, const casa::uInt pol2) const
+casa::Complex PolXProducts::getModelMeasProduct(const casa::uInt pol1, const casa::uInt pol2) const
 {
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 1);
   // products are indexed with the first polarisation index being the largest. If the pol1<pol2 pair
@@ -218,7 +218,7 @@ casa::Complex XPolProducts::getModelMeasProduct(const casa::uInt pol1, const cas
 /// @param[in] pol2 second polarisation coordinate of the pair forming the product
 /// @param[in] modelProduct a complex number to add to the modelProduct buffer   
 /// @param[in] modelMeasProduct a complex number to add to the modelMeasProduct buffer   
-void XPolProducts::add(const casa::uInt x, const casa::uInt y, const casa::uInt pol1, const casa::uInt pol2, 
+void PolXProducts::add(const casa::uInt x, const casa::uInt y, const casa::uInt pol1, const casa::uInt pol2, 
             const casa::Complex modelProduct, const casa::Complex modelMeasProduct)
 {
   ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 3);
@@ -241,7 +241,7 @@ void XPolProducts::add(const casa::uInt x, const casa::uInt y, const casa::uInt 
 /// @param[in] pol1 polarisation of the first visibility
 /// @param[in] pol2 polarisation of the second visibility
 /// @return an index into plane of sumVisProducts and sumVisAmps
-casa::uInt XPolProducts::polToIndex(casa::uInt pol1, casa::uInt pol2) const
+casa::uInt PolXProducts::polToIndex(casa::uInt pol1, casa::uInt pol2) const
 {
   const casa::uInt npol = nPol();
   ASKAPDEBUGASSERT((pol1<npol) && (pol2<npol));
@@ -265,7 +265,7 @@ casa::uInt XPolProducts::polToIndex(casa::uInt pol1, casa::uInt pol2) const
 /// @details We need to keep track of cross-polarisation products. These cross-products are
 /// kept alongside with the parallel-hand products in the same cube. This method is 
 /// a reverse to polToIndex and translates an index back to two polarisation products
-std::pair<casa::uInt,casa::uInt> XPolProducts::indexToPol(casa::uInt index) const
+std::pair<casa::uInt,casa::uInt> PolXProducts::indexToPol(casa::uInt index) const
 {
   const casa::uInt npol = nPol();
   if (index < npol) {

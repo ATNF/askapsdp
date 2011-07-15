@@ -57,13 +57,13 @@ namespace scimath {
 /// conj(conj(Vj)*Vi)) and don't calculate keep all Npol^2 products.
 /// @note This class uses reference semantics (i.e. handy to ship the data)
 /// @ingroup fitting
-class XPolProducts {
+class PolXProducts {
 public:
    /// @brief basic constructor, uninitialised arrays
    /// @param[in] npol number of polarisations (i.e. dimension of visibility vector)
    /// @note The arrays are left uninitialised after this constructor, their size have to be changed 
    /// before they can be used
-   explicit XPolProducts(const casa::uInt npol);
+   explicit PolXProducts(const casa::uInt npol);
    
    /// @brief constructor initialising arrays
    /// @param[in] npol number of polarisations (i.e. dimension of visibility vector)
@@ -71,7 +71,7 @@ public:
    /// @param[in] doZero if true (default), the buffer arrays are filled with zeros. 
    /// @note This version of the constructor does initialise the arrays to the requested size and by default
    /// fills them with zeros.
-   XPolProducts(const casa::uInt npol, const casa::IPosition &shape, const bool doZero = true);
+   PolXProducts(const casa::uInt npol, const casa::IPosition &shape, const bool doZero = true);
    
    /// @brief obtain the slice at given position
    /// @details This method makes a slice of the underlying arrays along the polarisation axis 
@@ -79,7 +79,7 @@ public:
    /// @param[in] pos position vector for all axes except the last one (polarisation). The vector size
    /// should be the dimension of arrays minus 1.
    /// @return the one dimensional slice at the given position
-   XPolProducts slice(const casa::IPosition &pos);
+   PolXProducts slice(const casa::IPosition &pos);
    
    /// @brief resize the arrays storing products
    /// @details After a call to this method the class is put to the same state as after the call
