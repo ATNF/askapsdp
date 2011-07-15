@@ -345,10 +345,10 @@ namespace askap {
       // Calculate all the transfer functions
       Vector<Array<FT> > subXFRVec(2*this->itsNumberTerms-1);
       for (uInt term1=0;term1<(2*this->itsNumberTerms-1);term1++) {
-	subXFRVec(term1).resize(subPsfShape);
-	subXFRVec(term1).set(0.0);
-	casa::setReal(subXFRVec(term1), this->itsPsfLongVec(term1).nonDegenerate()(subPsfSlicer));
-	scimath::fft2d(subXFRVec(term1), true);
+           subXFRVec(term1).resize(subPsfShape);
+           subXFRVec(term1).set(0.0);          
+           casa::setReal(subXFRVec(term1), this->itsPsfLongVec(term1).nonDegenerate()(subPsfSlicer));
+           scimath::fft2d(subXFRVec(term1), true);
       }
       // Calculate residuals convolved with bases [nx,ny][nterms][nbases]
       // Calculate transform of PSF(0)

@@ -46,7 +46,8 @@ using namespace askap::synthesis;
 
 /// @brief default constructor
 /// @details preaveraging is initialised based on the first encountered accessor
-PreAvgCalBuffer::PreAvgCalBuffer() : itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0) {}
+PreAvgCalBuffer::PreAvgCalBuffer() : itsPolXProducts(0), // set nPol = 0 for now as a proper initialisation is pending
+    itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0) {}
    
 /// @brief constructor with explicit averaging parameters
 /// @details This version of the constructor explicitly defines the number of 
@@ -55,10 +56,8 @@ PreAvgCalBuffer::PreAvgCalBuffer() : itsVisTypeIgnored(0), itsNoMatchIgnored(0),
 /// @param[in] nBeam number of beams, indices are expected to run from 0 to nBeam-1
 PreAvgCalBuffer::PreAvgCalBuffer(casa::uInt nAnt, casa::uInt nBeam) : itsAntenna1(nBeam*nAnt*(nAnt-1)/2), 
       itsAntenna2(nBeam*nAnt*(nAnt-1)/2), itsBeam(nBeam*nAnt*(nAnt-1)/2), itsFlag(nBeam*nAnt*(nAnt-1)/2,1,4),
-      itsStokes(4),
-      // npol=4, npol*(npol-1)/2 = 6, npol*(npol+1)/2=10
-      itsSumModelAmps(nBeam*nAnt*(nAnt-1)/2,1,4), itsSumModelProducts(nBeam*nAnt*(nAnt-1)/2,1,6),
-      itsSumVisProducts(nBeam*nAnt*(nAnt-1)/2,1,10),
+      // npol=4
+      itsStokes(4), itsPolXProducts(4,casa::IPosition(2,int(nBeam*nAnt*(nAnt-1)/2),1)),
       itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0)
 {
   initialise(nAnt,nBeam);
@@ -79,9 +78,7 @@ void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc)
       itsAntenna2.resize(numberOfRows);
       itsBeam.resize(numberOfRows);
       itsFlag.resize(numberOfRows, 1, numberOfPol);
-      itsSumModelAmps.resize(numberOfRows, 1, numberOfPol);
-      itsSumModelProducts.resize(numberOfRows, 1, numberOfPol * (numberOfPol - 1) / 2);
-      itsSumVisProducts.resize(numberOfRows, 1, numberOfPol * (numberOfPol + 1) / 2);
+      itsPolXProducts.resize(numberOfPol,casa::IPosition(2,casa::Int(numberOfRows), 1),false);
       itsStokes.resize(numberOfPol);      
   }
   // initialise buffers
@@ -100,9 +97,7 @@ void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc)
   itsStokes = acc.stokes();
   // all elements are flagged until at least something is averaged in
   itsFlag.set(true); 
-  itsSumModelAmps.set(0.);
-  itsSumModelProducts.set(casa::Complex(0.,0.));  
-  itsSumVisProducts.set(casa::Complex(0.,0.));  
+  itsPolXProducts.reset();
   // initialise stats
   itsVisTypeIgnored = 0;
   itsNoMatchIgnored = 0;
@@ -122,18 +117,14 @@ void PreAvgCalBuffer::initialise(casa::uInt nAnt, casa::uInt nBeam)
      itsAntenna1.resize(numberOfRows);
      itsAntenna2.resize(numberOfRows);
      itsBeam.resize(numberOfRows);
+     // npol=4
      itsFlag.resize(numberOfRows,1,4);
-     // npol=4, npol*(npol-1)/2 = 6, npol*(npol+1)/2=10
-     itsSumModelAmps.resize(numberOfRows,1,4);
-     itsSumModelProducts.resize(numberOfRows,1,6);
-     itsSumVisProducts.resize(numberOfRows,1,10);
+     itsPolXProducts.resize(4,casa::IPosition(2,casa::Int(numberOfRows), 1),false);
      itsStokes.resize(4);
   }
   // initialising buffers
   itsFlag.set(true); // everything is bad, unless at least one sample is summed into the buffer
-  itsSumModelAmps.set(0.);
-  itsSumModelProducts.set(casa::Complex(0.,0.));
-  itsSumVisProducts.set(casa::Complex(0.,0.));
+  itsPolXProducts.reset();
   
   for (casa::uInt beam=0,row=0; beam<nBeam; ++beam) {
        for (casa::uInt ant1=0; ant1<nAnt; ++ant1) {
@@ -232,36 +223,6 @@ const casa::Vector<casa::Stokes::StokesTypes>& PreAvgCalBuffer::stokes() const
   return itsStokes;
 }
 
-// access to accumulated statistics
-   
-/// @brief obtain weighted sum of model amplitudes
-/// @return nRow x nChannel x nPol cube with sums of 
-/// absolute values of complex visibilities (real-valued)
-const casa::Cube<casa::Float>& PreAvgCalBuffer::sumModelAmps() const
-{
-  return itsSumModelAmps;
-}
-   
-/// @brief obtain weighted sum of products of model and measured visibilities
-/// @return nRow x nChannel x nPol cube with weighted sums of 
-/// products between measured and conjugated model visibilities (complex-valued)
-const casa::Cube<casa::Complex>& PreAvgCalBuffer::sumVisProducts() const
-{
-  return itsSumVisProducts;
-}
-
-/// @brief obtain weighted sum of products of model visibilities
-/// @return nRow x nChannel x (nPol*(nPol-1)/2) cube with weighted sums of 
-/// products of model visibilities corresponding to different polarisations (complex-valued)
-/// @note parallel-hand products are handled by sumModelAmps, polarisation index can be manipulated
-/// with polToIndex and indexToPol, although don't forget the offset of nPol() because
-/// parallel-hand products are not duplicated in this array
-const casa::Cube<casa::Complex>& PreAvgCalBuffer::sumModelProducts() const
-{
-  return itsSumModelProducts;
-}
-
-
 /// @brief helper method to find a match row in the buffer
 /// @details It goes over antenna and beam indices and finds a buffer row which 
 /// corresponds to the given indices.
@@ -284,56 +245,6 @@ int PreAvgCalBuffer::findMatch(casa::uInt ant1, casa::uInt ant2, casa::uInt beam
   return -1;
 }
 
-/// @brief polarisation index for a given pair of polarisations
-/// @details We need to keep track of cross-polarisation products. These cross-products are
-/// kept alongside with the parallel-hand products in the same cube. This method translates
-/// a pair of polarisation products (each given by a number ranging from 0 to nPol) into a
-/// single index, which can be used to extract the appropriate statistics out of the cubes
-/// returned by sumVisProducts and sumVisAmps
-/// @param[in] pol1 polarisation of the first visibility
-/// @param[in] pol2 polarisation of the second visibility
-/// @return an index into plane of sumVisProducts and sumVisAmps
-casa::uInt PreAvgCalBuffer::polToIndex(casa::uInt pol1, casa::uInt pol2) const
-{
-  const casa::uInt npol = nPol();
-  ASKAPDEBUGASSERT((pol1<npol) && (pol2<npol));
-  if (pol1 == pol2) {
-      return pol1;
-  }
-  // the code below is generic, but it is handy to enforce that pol1>=pol2
-  // here, because it otherwise has to be taken into account in other parts of the code
-  ASKAPCHECK(pol1 >= pol2, "Expect pol1>=pol2 you have pol1="<<pol1<<" pol2="<<pol2);
-  //
-  const casa::uInt minPol = casa::min(pol1,pol2);
-  const casa::uInt maxPol = casa::max(pol1,pol2);
-  // order: parallel hand, (1,0), (2,0), (2,1), (3,0),...
-  const casa::uInt index = npol + minPol + (maxPol - 1) * maxPol / 2;
-  ASKAPDEBUGASSERT(index < npol * (npol+1) / 2);
-  return index;
-}
-
-/// @brief polarisations corresponding to a given index
-/// @details We need to keep track of cross-polarisation products. These cross-products are
-/// kept alongside with the parallel-hand products in the same cube. This method is 
-/// a reverse to polToIndex and translates an index back to two polarisation products
-std::pair<casa::uInt,casa::uInt> PreAvgCalBuffer::indexToPol(casa::uInt index) const
-{
-  const casa::uInt npol = nPol();
-  if (index < npol) {
-      // parallel-hand products come first
-      return std::pair<casa::uInt, casa::uInt>(index,index);
-  }
-  index -= npol;
-  for (casa::uInt polMax = 1, sum = 0; polMax<npol; ++polMax) {
-       if (index < sum + polMax) {
-           return std::pair<casa::uInt, casa::uInt>(polMax, index - sum);
-       }
-       sum += polMax;
-  }
-  ASKAPTHROW(AskapError, "Index "<<index<<" exceeds maximum possible for nPol="<<npol);
-}
-
-
 /// @brief process one accessor
 /// @details This method processes the given accessor and updates the internal 
 /// buffers. The measurement equation is used to calculate model visibilities 
@@ -352,6 +263,7 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
       // initialise using the given accessor as a template
       initialise(acc);
   }
+  ASKAPDEBUGASSERT(itsPolXProducts.nPol() > 0);
   accessors::MemBufferDataAccessor modelAcc(acc);
   me->predict(modelAcc);
   const casa::Cube<casa::Complex> &measuredVis = acc.visibility();
@@ -362,9 +274,7 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
   ASKAPDEBUGASSERT(measuredFlag.ncolumn() == acc.nChannel());
   ASKAPDEBUGASSERT(measuredFlag.nplane() == acc.nPol());
   const casa::uInt bufferNPol = nPol();
-  ASKAPDEBUGASSERT(bufferNPol == itsSumModelAmps.nplane());
-  ASKAPDEBUGASSERT(bufferNPol * (bufferNPol + 1) / 2 == itsSumVisProducts.nplane());
-  ASKAPDEBUGASSERT(bufferNPol * (bufferNPol - 1) / 2 == itsSumModelProducts.nplane());
+  ASKAPDEBUGASSERT(bufferNPol == itsPolXProducts.nPol());
   ASKAPDEBUGASSERT(modelVis.shape() == measuredVis.shape());
   ASKAPDEBUGASSERT(modelVis.shape() == measuredNoise.shape());
   ASKAPDEBUGASSERT(modelVis.shape() == measuredFlag.shape());
@@ -392,8 +302,6 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
        }
        const casa::uInt bufRow = casa::uInt(matchRow);
        ASKAPDEBUGASSERT(bufRow < itsFlag.nrow());
-       ASKAPDEBUGASSERT(bufRow < itsSumModelAmps.nrow());
-       ASKAPDEBUGASSERT(bufRow < itsSumVisProducts.nrow());
        for (casa::uInt chan = 0; chan<acc.nChannel(); ++chan) {
             for (casa::uInt pol = 0; pol<acc.nPol(); ++pol) {
                  if ((pol < bufferNPol) && !measuredFlag(row,chan,pol)) {
@@ -401,15 +309,14 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
                      const float visNoise = casa::square(casa::real(measuredNoise(row,chan,pol)));
                      const float weight = (visNoise > 0.) ? 1./visNoise : 0.;
                      // the only supported case is averaging of all frequency channels together
-                     itsSumModelAmps(bufRow,0,pol) += weight * casa::norm(model);
-                     itsSumVisProducts(bufRow,0,pol) += weight * std::conj(model) * measuredVis(row,chan,pol);
+                     itsPolXProducts.add(bufRow,0,pol,pol,
+                               weight * casa::norm(model), weight * std::conj(model) * measuredVis(row,chan,pol));
                      // now fill cross-terms
                      for (casa::uInt pol2 = 0; pol2<pol; ++pol2) {
-                          const casa::uInt index = polToIndex(pol,pol2);
                           // different polarisations can have different weight?
-                          itsSumVisProducts(bufRow,0,index) += weight * std::conj(model) * measuredVis(row,chan,pol2);
-                          ASKAPDEBUGASSERT(index >= bufferNPol);
-                          itsSumModelProducts(bufRow,0,index - bufferNPol) += weight * std::conj(model) * modelVis(row,chan,pol2);
+                          // ignoring for now
+                          itsPolXProducts.add(bufRow,0,pol,pol2, weight * std::conj(model) * modelVis(row,chan,pol2),
+                               weight * std::conj(model) * measuredVis(row,chan,pol2));
                      }
                      //std::cout<<"accumulated ("<<bufRow<<","<<pol<<"): "<<model<<" "<<measuredVis(row,chan,pol)<<std::endl;
                      // unflag this row because it now has some data

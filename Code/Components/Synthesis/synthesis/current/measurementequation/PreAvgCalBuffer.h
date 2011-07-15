@@ -41,6 +41,7 @@
 #include <dataaccess/DataAccessorAdapter.h>
 #include <dataaccess/IConstDataAccessor.h>
 #include <measurementequation/IMeasurementEquation.h>
+#include <fitting/PolXProducts.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -135,23 +136,16 @@ public:
 
    // access to accumulated statistics
    
-   /// @brief obtain weighted sum of model amplitudes
-   /// @return nRow x nChannel x nPol cube with sums of 
-   /// absolute values of complex visibilities (real-valued)
-   const casa::Cube<casa::Float>& sumModelAmps() const;
+   /// @brief obtain weighted sum of polarisation products
+   /// @details We accumulate cross-products of polarisation
+   /// components of model and measured visibilities 
+   /// (and model visibilities alone) using the helper class of
+   /// type PolXProducts. This method allows to get a reference
+   /// to the buffer class (to be used to construct normal equations)
+   /// managed by this instance of PreAvgCalBuffer.
+   /// @return const reference to the helper class
+   inline const scimath::PolXProducts& polXProducts() const { return itsPolXProducts; }
    
-   /// @brief obtain weighted sum of products of model and measured visibilities
-   /// @return nRow x nChannel x nPol cube with weighted sums of 
-   /// products between measured and conjugated model visibilities (complex-valued)
-   const casa::Cube<casa::Complex>& sumVisProducts() const;
-   
-   /// @brief obtain weighted sum of products of model visibilities
-   /// @return nRow x nChannel x (nPol*(nPol-1)/2) cube with weighted sums of 
-   /// products of model visibilities corresponding to different polarisations (complex-valued)
-   /// @note parallel-hand products are handled by sumModelAmps, polarisation index can be manipulated
-   /// with polToIndex and indexToPol, although don't forget the offset of nPol() because
-   /// parallel-hand products are not duplicated in this array
-   const casa::Cube<casa::Complex>& sumModelProducts() const;
    
    // the actual summing in of an accessor with data
    
@@ -183,25 +177,7 @@ public:
    /// by the buffer.
    /// @return number of visibilities ignored due to flags
    inline casa::uInt ignoredDueToFlags() const { return itsFlagIgnored;}
-   
-
-   /// @brief polarisation index for a given pair of polarisations
-   /// @details We need to keep track of cross-polarisation products. These cross-products are
-   /// kept alongside with the parallel-hand products in the same cube. This method translates
-   /// a pair of polarisation products (each given by a number ranging from 0 to nPol) into a
-   /// single index, which can be used to extract the appropriate statistics out of the cubes
-   /// returned by sumVisProducts and sumVisAmps
-   /// @param[in] pol1 polarisation of the first visibility
-   /// @param[in] pol2 polarisation of the second visibility
-   /// @return an index into plane of sumVisProducts and sumVisAmps
-   casa::uInt polToIndex(casa::uInt pol1, casa::uInt pol2) const;
-
-   /// @brief polarisations corresponding to a given index
-   /// @details We need to keep track of cross-polarisation products. These cross-products are
-   /// kept alongside with the parallel-hand products in the same cube. This method is 
-   /// a reverse to polToIndex and translates an index back to two polarisation products
-   std::pair<casa::uInt,casa::uInt> indexToPol(casa::uInt index) const; 
- 
+    
 protected:
    /// @brief helper method to find a match row in the buffer
    /// @details It goes over antenna and beam indices and finds a buffer row which 
@@ -230,26 +206,10 @@ private:
    /// @brief types of polarisation products
    casa::Vector<casa::Stokes::StokesTypes> itsStokes;
    
-   /// @brief buffer for accumulated statistics
-   /// @details nRow x nChannel x nPol cube with sums of 
-   /// absolute values of complex visibilities (real-valued)
-   casa::Cube<casa::Float> itsSumModelAmps;
-   
-   /// @brief buffer for accumulated statistics
-   /// @details nRow x nChannel x (nPol*(nPol-1)/2) cube with weighted sums of
-   /// products between model visibilities corresponding to different polarisations.
-   /// Parallel-hand terms are stored separately in itsSumModelAmps preserving 
-   /// their real-valued status (to avoid unnecessary equations describing imaginary part
-   /// index into polarisation plane can be manipulated via polToIndex and indexToPol, 
-   /// note however, the actual plane index into this cube is smaller by nPol
-   /// (because parallel-hand products are stored separately)
-   casa::Cube<casa::Complex> itsSumModelProducts;
-   
-   /// @brief buffer for accumulated statistics
-   /// @return nRow x nChannel x (nPol*(nPol+1)/2) cube with weighted sums of 
-   /// products between measured and conjugated model visibilities (complex-valued)
-   /// index into polarisation plane can be obtained via polToIndex and indexToPol
-   casa::Cube<casa::Complex> itsSumVisProducts;
+   /// @brief buffer for accumulated cross-products
+   /// @details This helper object handles two buffers for
+   /// cross-products of conj(Vmodel)*Vmodel and conj(Vmodel)*Vmeasured.
+   scimath::PolXProducts itsPolXProducts;
    
    // statistics on the number of samples excluded due to various criteria
    

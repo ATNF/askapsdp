@@ -38,6 +38,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <measurementequation/PreAvgCalBuffer.h>
 #include <measurementequation/ComponentEquation.h>
+#include <fitting/PolXProducts.h>
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
@@ -143,19 +144,21 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          CPPUNIT_ASSERT_EQUAL(1960u,pacBuf.ignoredNoMatch());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
 
+         const PolXProducts& pxp = pacBuf.polXProducts();
          for (casa::uInt row=0; row<pacBuf.nRow(); ++row) {
               CPPUNIT_ASSERT_EQUAL(pacBuf.feed1()[row], pacBuf.feed2()[row]);
               for (casa::uInt pol=0; pol<pacBuf.nPol(); ++pol) {
                    if ((pol == 0) && (pacBuf.feed1()[row] == 0)) {
-                       CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,0,pol));
-                       CPPUNIT_ASSERT_DOUBLES_EQUAL(double(pacBuf.sumModelAmps()(row,0,pol)),
-                                              double(real(pacBuf.sumVisProducts()(row,0,pol))),1e-2);
-                       CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pacBuf.sumVisProducts()(row,0,pol))),1e-5);
+                       CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,0,pol));                       
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(double(real(pxp.getModelProduct(row,0,pol,pol))),
+                                              double(real(pxp.getModelMeasProduct(row,0,pol,pol))),1e-2);
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelMeasProduct(row,0,pol,pol))),1e-5);
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelProduct(row,0,pol,pol))),1e-5);
                        // 8 channels and 100 Jy source give sums of 80000 per accessor summed in
-                       CPPUNIT_ASSERT_DOUBLES_EQUAL(80000., double(pacBuf.sumModelAmps()(row,0,pol)),1e-2);
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(80000., double(real(pxp.getModelProduct(row,0,pol,pol))),1e-2);
                    } else {
                        // nothing should be found in the accessor, so the appropriate samples should be flagged
-                       CPPUNIT_ASSERT_EQUAL(true, pacBuf.flag()(row,0,pol));                    
+                       CPPUNIT_ASSERT_EQUAL(true, pacBuf.flag()(row,0,pol));
                    }
               }
          }
@@ -172,12 +175,11 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          CPPUNIT_ASSERT_EQUAL(190u,pacBuf.nRow());
          CPPUNIT_ASSERT_EQUAL(1u,pacBuf.nChannel());
          CPPUNIT_ASSERT_EQUAL(4u,pacBuf.nPol());
+         const scimath::PolXProducts &pxp = pacBuf.polXProducts();
          for (casa::uInt pol1 = 0; pol1 < pacBuf.nPol(); ++pol1) {
               for (casa::uInt pol2 = 0; pol2 <= pol1; ++pol2) {
-                   const casa::uInt index = pacBuf.polToIndex(pol1,pol2);
-                   const std::pair<casa::uInt, casa::uInt> pols = pacBuf.indexToPol(index);
-                   CPPUNIT_ASSERT_EQUAL(pol1, pols.first);
-                   CPPUNIT_ASSERT_EQUAL(pol2, pols.second);                   
+                   // now check polarisation indexing inside pacBuf (now handled by PolXProducts class)
+                   pxp.getModelProduct(0,0,pol1,pol2);
               }
          }
      }
@@ -186,28 +188,23 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          for (casa::uInt row=0; row<pacBuf.nRow(); ++row) {
               CPPUNIT_ASSERT_EQUAL(pacBuf.feed1()[row], pacBuf.feed2()[row]);
               CPPUNIT_ASSERT(pacBuf.nPol() > 0);
-              const casa::uInt nExtraProducts = pacBuf.nPol() * (pacBuf.nPol() - 1) / 2;
-              CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(), pacBuf.sumModelAmps().nplane());
-              CPPUNIT_ASSERT_EQUAL(nExtraProducts, pacBuf.sumModelProducts().nplane());
-              CPPUNIT_ASSERT_EQUAL(nExtraProducts + pacBuf.nPol(), pacBuf.sumVisProducts().nplane());
               
+              const scimath::PolXProducts &pxp = pacBuf.polXProducts();              
               for (casa::uInt pol=0; pol<pacBuf.nPol(); ++pol) {
-                   CPPUNIT_ASSERT_DOUBLES_EQUAL(double(pacBuf.sumModelAmps()(row,0,pol)),double(real(pacBuf.sumVisProducts()(row,0,pol))),1e-2*run);
-                   CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pacBuf.sumVisProducts()(row,0,pol))),1e-5);
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(double(real(pxp.getModelProduct(row,0,pol,pol))),
+                                                double(real(pxp.getModelMeasProduct(row,0,pol,pol))),1e-2*run);
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelMeasProduct(row,0,pol,pol))),1e-5);
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelProduct(row,0,pol,pol))),1e-5);
                    // 8 channels and 100 Jy source give sums of 80000 per accessor summed in
-                   CPPUNIT_ASSERT_DOUBLES_EQUAL(pol%3 == 0 ? 80000.*run : 0., double(pacBuf.sumModelAmps()(row,0,pol)),1e-2*run);
-                   CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,0,pol));                       
-              }
-              // checking cross-pol terms, if any
-              for (casa::uInt term = 0; term<nExtraProducts; ++term) {
-                   const casa::uInt index = term + pacBuf.nPol();
-                   const std::pair<casa::uInt, casa::uInt> pols = pacBuf.indexToPol(index);
-                   CPPUNIT_ASSERT(pols.first > pols.second);
-                   const casa::Complex expected = ((pols.first == 3) && (pols.second == 0)) ? casa::Complex(80000.*run,0.) : casa::Complex(0.,0.);
-                   CPPUNIT_ASSERT(term < pacBuf.sumModelProducts().nplane());
-                   CPPUNIT_ASSERT(index < pacBuf.sumVisProducts().nplane());                   
-                   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pacBuf.sumModelProducts()(row,0,term)),1e-2*run);
-                   CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pacBuf.sumVisProducts()(row,0,index)),1e-2*run);
+                   CPPUNIT_ASSERT_DOUBLES_EQUAL(pol%3 == 0 ? 80000.*run : 0., double(real(pxp.getModelProduct(row,0,pol,pol))),1e-2*run);
+                   CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,0,pol));                                     
+    
+                  // checking cross-pol terms, if any
+                  for (casa::uInt pol2 = 0; pol2<pol; ++pol2) {
+                       const casa::Complex expected = ((pol == 3) && (pol2 == 0)) ? casa::Complex(80000.*run,0.) : casa::Complex(0.,0.);
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pxp.getModelProduct(row,0,pol,pol2)),1e-2*run);
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(expected - pxp.getModelMeasProduct(row,0,pol,pol2)),1e-2*run);
+                  }
               }
          }
      }
