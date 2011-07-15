@@ -96,6 +96,10 @@ public:
    /// @param[in] doZero if true (default), the buffer arrays are filled with zeros. 
    void resize(const casa::IPosition &shape, const bool doZero = true);
    
+   /// @brief reset buffers to zero
+   /// @details This method resets accumulation without changing the dimensions
+   void reset();
+   
    // data access
    
    /// @brief obtain the value for model visibility cross-products
@@ -164,7 +168,7 @@ protected:
    /// itsModelProducts and itsModelMeasProducts
    /// @param[in] pol1 polarisation of the first visibility
    /// @param[in] pol2 polarisation of the second visibility
-   /// @return an index into plane of sumVisProducts and sumVisAmps
+   /// @return an index into plane of itsModelProducts and itsModelMeasProducts
    casa::uInt polToIndex(casa::uInt pol1, casa::uInt pol2) const;
 
    /// @brief polarisations corresponding to a given index

@@ -82,8 +82,8 @@ PolXProducts PolXProducts::slice(const casa::IPosition &pos)
   startPos(pos.nelements()) = 0;
   const casa::Slicer slc(startPos, endPos, casa::Slicer::endIsLast);
   // take the slices
-  result.itsModelProducts = itsModelProducts(slc);
-  result.itsModelMeasProducts = itsModelMeasProducts(slc);
+  result.itsModelProducts = itsModelProducts(slc).nonDegenerate();
+  result.itsModelMeasProducts = itsModelMeasProducts(slc).nonDegenerate();
   return result;
 }
    
@@ -110,10 +110,17 @@ void PolXProducts::resize(const casa::IPosition &shape, const bool doZero)
   itsModelProducts.resize(targetShape);
   itsModelMeasProducts.resize(targetShape); 
   if (doZero) {
-      itsModelProducts.set(0.);
-      itsModelMeasProducts.set(0.);
+      reset();
   }  
 }
+
+/// @brief reset buffers to zero
+/// @details This method resets accumulation without changing the dimensions
+void PolXProducts::reset() {
+  itsModelProducts.set(0.);
+  itsModelMeasProducts.set(0.);
+}
+
    
 // data access
    
@@ -240,7 +247,7 @@ void PolXProducts::add(const casa::uInt x, const casa::uInt y, const casa::uInt 
 /// itsModelProducts and itsModelMeasProducts
 /// @param[in] pol1 polarisation of the first visibility
 /// @param[in] pol2 polarisation of the second visibility
-/// @return an index into plane of sumVisProducts and sumVisAmps
+/// @return an index into plane of itsModelProducts and itsModelMeasProducts
 casa::uInt PolXProducts::polToIndex(casa::uInt pol1, casa::uInt pol2) const
 {
   const casa::uInt npol = nPol();
