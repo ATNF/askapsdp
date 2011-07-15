@@ -29,7 +29,7 @@
 
 // System includes
 #include <vector>
-#include <iostream>
+#include <algorithm>
 
 // ASKAPSoft includes
 #include "askap/AskapError.h"
@@ -43,7 +43,7 @@ using namespace askap::mwcommon;
 
 // Constructor.
 BlobIBufMW::BlobIBufMW(AskapParallel& comms, int seqnr)
-: itsComms(comms) , itsSeqNr(seqnr), itsReadIndex(0)
+: itsComms(comms) , itsSeqNr(seqnr)
 {
 }
 
@@ -55,30 +55,24 @@ BlobIBufMW::~BlobIBufMW()
 // Get the requested nr of bytes.
 LOFAR::uint64 BlobIBufMW::get(void* buffer, LOFAR::uint64 nbytes)
 {
-    std::cerr << "BlobIBufMW::put - ENTRY" << std::endl;
-    if (itsBuffer.empty()) {
-        std::cerr << "BlobIBufMW::put - RECEIVING" << std::endl;
-        LOFAR::uint64 size;
-        do {
-            std::cerr << "BlobIBufMW::put - RECV LOOP BEGIN" << std::endl;
-            receive(&size, sizeof(LOFAR::uint64));
-            std::cerr << "BlobIBufMW::put - RECV LOOP Got size of: " << size << std::endl;
-            if (size == 0) {
-                break; // End of stream
-            }
-            const size_t oldSize = itsBuffer.size();
-            itsBuffer.resize(itsBuffer.size() + size);
-            receive(&itsBuffer[oldSize], size);
-            std::cerr << "BlobIBufMW::put - RECV LOOP END" << std::endl;
-        } while (size > 0);
+
+    // 1: If itsBuff doesn't have sufficient data to fulfill the request
+    // then get enough data first
+    LOFAR::uint64 size;
+    while (itsBuffer.size() < nbytes) {
+        receive(&size, sizeof(LOFAR::uint64));
+        ASKAPCHECK(size > 0, "Message of size zero is invalid");
+        const size_t oldSize = itsBuffer.size();
+        itsBuffer.resize(itsBuffer.size() + size);
+        receive(&itsBuffer[oldSize], size);
     }
 
-    ASKAPCHECK(itsReadIndex + nbytes <= itsBuffer.size(),
-            "Buffer read overrun");
-    std::cerr << "BlobIBufMW::put - memcpying" << std::endl;
-    memcpy(buffer, &itsBuffer[itsReadIndex], nbytes);
-    itsReadIndex += nbytes;
-    std::cerr << "BlobIBufMW::put - EXIT" << std::endl;
+    // 2: Now enough data exists to fulfill the request action it.
+    ASKAPCHECK(itsBuffer.size() >= nbytes,
+            "Buffer doesn't have sufficient data to fulfill request");
+    std::copy(itsBuffer.begin(), itsBuffer.begin()+nbytes, reinterpret_cast<char*>(buffer));
+    itsBuffer.erase(itsBuffer.begin(), itsBuffer.begin()+nbytes);
+
     return nbytes;
 }
 
@@ -99,4 +93,6 @@ LOFAR::int64 BlobIBufMW::setPos(LOFAR::int64 pos)
 void BlobIBufMW::receive(void* buffer, size_t nbytes)
 {
     itsComms.connectionSet()->read(itsSeqNr, buffer, nbytes);
+    if (nbytes != sizeof(LOFAR::uint64)) {
+    }
 }

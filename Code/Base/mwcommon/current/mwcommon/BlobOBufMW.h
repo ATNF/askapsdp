@@ -27,6 +27,9 @@
 #ifndef ASKAP_MWCOMMON_BLOBOBUFMW_H
 #define ASKAP_MWCOMMON_BLOBOBUFMW_H
 
+// System includes
+#include <vector>
+
 // ASKAPSoft includes
 #include "Common/LofarTypes.h"
 #include "Blob/BlobOBuffer.h"
@@ -37,11 +40,30 @@
 namespace askap {
 namespace mwcommon {
 
+/// @brief An implementation of BlobOBuffer which streams data directly to
+/// the destination.
+///
+/// @details While this class will stream larger buffers to the destination,
+/// it will group smaller buffers into a temporary buffer, flushing it when
+/// it gets full, or when the end-of-blob is reached.
 class BlobOBufMW : public LOFAR::BlobOBuffer
 { 
     public:
         /// Constructor
-        BlobOBufMW(AskapParallel& comms, int seqnr);
+        /// @param[in] comms    class which provides communication
+        ///                     functionality.
+        /// @param[in] seqnr    the sequence number indicating the destination
+        ///                     for the data stream. This relates to the
+        ///                     sequence number in the MPIConnectionSet.
+        /// @param[in] maxBufSize   the maximum size of the internal buffer used
+        ///                         to group data which has been submitted by
+        ///                         put() such that it can be sent in batches.
+        ///                         Where buffers larger than "maxBufSize" are
+        ///                         passed to put(), that data is sent directly
+        ///                         right out of the buffer rather than being
+        ///                         copied into the internal buffer.
+        BlobOBufMW(AskapParallel& comms, int seqnr,
+                size_t maxBufSize = 1048576);
 
         /// Destructor
         virtual ~BlobOBufMW();
@@ -58,15 +80,33 @@ class BlobOBufMW : public LOFAR::BlobOBuffer
         /// It returns the new position which is -1 if the stream is not seekable.
         virtual LOFAR::int64 setPos(LOFAR::int64 pos);
 
-        /// Flush the stream and signal the recipient that the stream
-        /// has ended.
-        void signalDone(void);
-
     private:
+        // Utility function to send the buffer to the destination indicated
+        // by itsSeqNr
         void send(const void* buffer, size_t nbytes);
 
+        // When called the contents of itsBuffer will be sent the the
+        // intended destination and itsBuffer is emptied.
+        void flushBuffer(void);
+
+        // Utility function which checks the tail of the buffer for the
+        // end-of-blob value
+        // @return true if end-of-blob value is found, otherwise false
+        bool isEndOfBlob(const void* buffer, size_t nbytes);
+
+        // Class which provides the acutal communication functionality
         AskapParallel& itsComms;
+
+        // The sequence number of the connection. This relates to the
+        // MPIConnectionSet sequence number.
         const int itsSeqNr;
+
+        // The maximum size of the buffer
+        const size_t itsMaxBufSize;
+
+        // Internal buffer used to store subsets of the stream so
+        // data can be sent in batches
+        std::vector<char> itsBuffer;
 };
 
 } // end namespace mwcommon

@@ -40,10 +40,21 @@
 namespace askap {
 namespace mwcommon {
 
+/// @brief An implementation of BlobIBuffer which streams data from the sender
+/// directly.
+///
+/// @details This class does have an internal buffer and will use it to
+/// buffer data from the sender. The buffer will only ever grow to the size
+/// of the largest object sent via the stream.
 class BlobIBufMW : public LOFAR::BlobIBuffer
 {
 public:
     /// Constructor.
+    /// @param[in] comms    class which provides communication
+    ///                     functionality.
+    /// @param[in] seqnr    the sequence number indicating the destination
+    ///                     for the data stream. This relates to the
+    ///                     sequence number in the MPIConnectionSet.
     BlobIBufMW(AskapParallel& comms, int seqnr);
 
     /// Destructor.
@@ -61,13 +72,19 @@ public:
     virtual LOFAR::int64 setPos(LOFAR::int64 pos);
 
 private:
-
+    // Utility function to read data from the destination indicated by
+    // by itsSeqNr, and write it into the passed buffer
     void receive(void* buffer, size_t nbytes);
 
+    // Class which provides the acutal communication functionality
     AskapParallel& itsComms;
+
+    // The sequence number of the connection. This relates to the
+    // MPIConnectionSet sequence number.
     const int itsSeqNr;
+
+    // Internal buffer used to buffer data read from the connection
     std::vector<char> itsBuffer;
-    size_t itsReadIndex;
 };
 
 } // end namespace mwcommon

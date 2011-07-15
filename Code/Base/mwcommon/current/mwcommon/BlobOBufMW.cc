@@ -27,40 +27,62 @@
 // Include own header file first
 #include "BlobOBufMW.h"
 
-#include <iostream>
+// System includes
+#include <algorithm> 
 
 // ASKAPSoft includes
 #include "askap/AskapError.h"
 #include "Common/LofarTypes.h"
 #include "Blob/BlobOBuffer.h"
+#include "Blob/BlobHeader.h"
 
 // Local package includes
 #include "mwcommon/AskapParallel.h"
 
 using namespace askap::mwcommon;
 
-
-BlobOBufMW::BlobOBufMW(AskapParallel& comms, int seqnr)
-    : itsComms(comms), itsSeqNr(seqnr)
+BlobOBufMW::BlobOBufMW(AskapParallel& comms, int seqnr, size_t maxBufSize)
+    : itsComms(comms), itsSeqNr(seqnr), itsMaxBufSize(maxBufSize)
 {
 }
 
 BlobOBufMW::~BlobOBufMW()
 {
+    flushBuffer();
 }
 
-// Put the requested nr of bytes.
+// Put the requested nbytes of bytes.
 LOFAR::uint64 BlobOBufMW::put(const void* buffer, LOFAR::uint64 nbytes)
 {
-    std::cerr << "BlobOBufMW::put - ENTRY" << std::endl;
-    if (nbytes > 0) {
-        std::cerr << "BlobOBufMW::put - Sending size of " << nbytes << std::endl;
-        send(&nbytes, sizeof(LOFAR::uint64));
-
-        std::cerr << "BlobOBufMW::put - sending payload" << std::endl;
-        send(buffer, nbytes);
+    // 1: Check for zero size request
+    if (nbytes == 0) {
+        return nbytes;
     }
-    std::cerr << "BlobOBufMW::put - EXIT" << std::endl;
+
+    // 2: If the current itsBuffer plus the current "put" exceeds itsMaxBufSize
+    // flush the buffer.
+    if (itsBuffer.size() + nbytes > itsMaxBufSize) {
+        flushBuffer();
+    }
+
+    // 3: If the current "put" is larger than itsMaxBufSize then just send
+    // it directly out of the buffer supplied, otherwise copy it to
+    // itsBuffer for sending later
+    if (nbytes > itsMaxBufSize) {
+        send(buffer, nbytes);
+    } else {
+        const size_t oldSize = itsBuffer.size();
+        itsBuffer.resize(itsBuffer.size() + nbytes);
+        std::copy(reinterpret_cast<const char*>(buffer), reinterpret_cast<const char*>(buffer)+nbytes, itsBuffer.begin()+oldSize); 
+        ASKAPCHECK(itsBuffer.size() == oldSize + nbytes, "New buffer size is incorrect");
+    }
+
+    // 4: Finally, if the buffer concludes with the end-of-blob value
+    // flush the buffer
+    if (isEndOfBlob(buffer, nbytes)) {
+        flushBuffer();
+    }
+
     return nbytes;
 }
 
@@ -78,19 +100,31 @@ LOFAR::int64 BlobOBufMW::setPos(LOFAR::int64 pos)
     return -1;
 }
 
-void BlobOBufMW::signalDone(void)
-{
-    std::cerr << "BlobOBufMW::signalDone - ENTRY" << std::endl;
-    LOFAR::uint64 zero = 0;
-    itsComms.connectionSet()->write(itsSeqNr, &zero, sizeof(LOFAR::uint64));
-    std::cerr << "BlobOBufMW::signalDone - EXIT" << std::endl;
-}
-
 void BlobOBufMW::send(const void* buffer, size_t nbytes)
 {
     // This const_cast relies on the fact that the MPI_send() is allowed
     // to reshuffle the data for sending but should put it back the way
     // it origninally was before returning. Thus this function call has
     // the appearance of treating "buffer" as a const.
-    itsComms.connectionSet()->write(itsSeqNr, const_cast<void*>(buffer), nbytes);
+
+    itsComms.connectionSet()->write(itsSeqNr, &nbytes, sizeof(LOFAR::uint64));
+    if (nbytes > 0) {
+        itsComms.connectionSet()->write(itsSeqNr, const_cast<void*>(buffer), nbytes);
+    }
+}
+
+void BlobOBufMW::flushBuffer(void)
+{
+    if (!itsBuffer.empty()) {
+        send(&itsBuffer[0], itsBuffer.size());
+        itsBuffer.clear();
+    }
+    ASKAPCHECK(itsBuffer.empty(), "Buffer flushed but not empty");
+}
+
+bool BlobOBufMW::isEndOfBlob(const void* buffer, size_t nbytes)
+{
+    const LOFAR::uint32* lastInt = reinterpret_cast<const LOFAR::uint32*>(
+            reinterpret_cast<const char*>(buffer) + nbytes - sizeof(LOFAR::uint32));
+    return (*lastInt == LOFAR::BlobHeader::eobMagicValue());
 }
