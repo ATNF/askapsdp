@@ -54,11 +54,10 @@ class TopicConfig {
 
     private:
 
-        const std::string itsRegistryHost;
-        const std::string itsRegistryPort;
-        const std::string itsTopicManager;
-        const std::string itsTopic;
-
+        std::string itsRegistryHost;
+        std::string itsRegistryPort;
+        std::string itsTopicManager;
+        std::string itsTopic;
 };
 
 }

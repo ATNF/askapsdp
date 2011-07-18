@@ -45,6 +45,7 @@
 #include "ingestpipeline/caltask/ISolutionAccessor.h"
 #include "ingestpipeline/caltask/ParsetAccessor.h"
 #include "ingestpipeline/caltask/DataserviceAccessor.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".CalTask");
 
@@ -56,7 +57,8 @@ using namespace askap::cp::ingest;
 /// @details Initialise calibration task by passing parameters
 /// coded in the parset
 /// @param[in] parset parameters
-CalTask::CalTask(const LOFAR::ParameterSet& parset) :
+CalTask::CalTask(const LOFAR::ParameterSet& parset,
+        const Configuration& config) :
         itsParset(parset), itsSolutionAccessor(new ParsetAccessor(parset))
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");

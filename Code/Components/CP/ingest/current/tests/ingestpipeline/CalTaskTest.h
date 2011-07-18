@@ -33,6 +33,8 @@
 #include "measures/Measures.h"
 #include "casa/Quanta/MVEpoch.h"
 #include "utils/PolConverter.h"
+#include "configuration/Configuration.h"
+#include "ConfigurationHelper.h"
 
 // Classes to test
 #include "ingestpipeline/caltask/CalTask.h"
@@ -72,7 +74,7 @@ class CalTaskTest : public CppUnit::TestFixture {
             configureDataChunk(chunk);
             chunk->stokes() = scimath::PolConverter::fromString("XX");
 
-            CalTask task(itsParset);
+            CalTask task(itsParset, ConfigurationHelper::createDummyConfig());
             task.process(chunk);
 
             // check results of calibration
@@ -96,7 +98,7 @@ class CalTaskTest : public CppUnit::TestFixture {
             configureDataChunk(chunk);
             chunk->stokes() = scimath::PolConverter::fromString("XX,YY");
 
-            CalTask task(itsParset);
+            CalTask task(itsParset, ConfigurationHelper::createDummyConfig());
             task.process(chunk);
 
             // check results of calibration
@@ -121,7 +123,7 @@ class CalTaskTest : public CppUnit::TestFixture {
             configureDataChunk(chunk);
             chunk->stokes() = scimath::PolConverter::fromString("XX,XY,YX,YY");
 
-            CalTask task(itsParset);
+            CalTask task(itsParset, ConfigurationHelper::createDummyConfig());
             task.process(chunk);
 
             // check results of calibration
@@ -167,7 +169,6 @@ class CalTaskTest : public CppUnit::TestFixture {
     private:
 
         LOFAR::ParameterSet itsParset;
-
 };
 
 }   // End namespace ingest

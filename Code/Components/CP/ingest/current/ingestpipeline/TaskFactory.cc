@@ -49,62 +49,70 @@
 #include "ingestpipeline/sourcetask/VisSource.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
 #include "ingestpipeline/uvpublishtask/UVPublishTask.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".TaskFactory");
 
 using namespace askap;
 using namespace askap::cp::ingest;
 
-TaskFactory::TaskFactory(const LOFAR::ParameterSet& configParset)
-    : itsConfigParset(configParset)
+TaskFactory::TaskFactory(const Configuration& config)
+    : itsConfig(config)
 {
 }
 
-ITask::ShPtr TaskFactory::createTask(const LOFAR::ParameterSet& parset)
+ITask::ShPtr TaskFactory::createTask(const TaskDesc& taskDescription)
 {
     // Extract task type & parameters
-    const std::string type = parset.getString("type");
-    LOFAR::ParameterSet params = parset.makeSubset("params.");
-
-    // Merge the system configuration parset into the params
-    params.adoptCollection(itsConfigParset, "config.");
+    const TaskDesc::Type type = taskDescription.type();
+    const LOFAR::ParameterSet params = taskDescription.params();
 
     // Create the task
     ITask::ShPtr task;
-    if (type == "CalcUVWTask") {
-        task.reset(new CalcUVWTask(params));
-    } else if (type == "CalTask") {
-        task.reset(new CalTask(params));
-    } else if (type == "ChannelAvgTask") {
-        task.reset(new ChannelAvgTask(params));
-    } else if (type == "MSSink") {
-        task.reset(new MSSink(params));
-    } else if (type == "UVPublishTask") {
-        task.reset(new UVPublishTask(params));
-    } else {
-        ASKAPTHROW(AskapError, "Unknown task type specified");
+    switch (type) {
+        case TaskDesc::CalcUVWTask :
+            task.reset(new CalcUVWTask(params, itsConfig));
+            break;
+        case  TaskDesc::CalTask :
+            task.reset(new CalTask(params, itsConfig));
+            break;
+        case TaskDesc::ChannelAvgTask :
+            task.reset(new ChannelAvgTask(params, itsConfig));
+            break;
+        case TaskDesc::MSSink :
+            task.reset(new MSSink(params, itsConfig));
+            break;
+        case TaskDesc::UVPublishTask :
+            task.reset(new UVPublishTask(params, itsConfig));
+            break;
+        default:
+            ASKAPTHROW(AskapError, "Unknown task type specified");
+            break;
     }
+
     return task;
 }
 
-boost::shared_ptr< MergedSource > TaskFactory::createSource(const LOFAR::ParameterSet& parset)
+boost::shared_ptr< MergedSource > TaskFactory::createSource(void)
 {
+    // Pre-conditions
+    ASKAPCHECK(itsConfig.tasks().at(0).name().compare("MergedSource") == 0,
+            "First defined task is not the Merged Source");
+
     // 1) Configure and create the metadata source
-    const LOFAR::ParameterSet mdSubset = parset.makeSubset("MergedSource.metadata_source.");
-    const std::string mdLocatorHost = mdSubset.getString("ice.locator_host");
-    const std::string mdLocatorPort = mdSubset.getString("ice.locator_port");
-    const std::string mdTopicManager = mdSubset.getString("icestorm.topicmanager");
-    const std::string mdTopic = mdSubset.getString("icestorm.topic");
-    const unsigned int mdBufSz = mdSubset.getUint32("buffer_size", 12);
-    const std::string mdAdapterName = "IngestPipeline";
+    const std::string mdLocatorHost = itsConfig.metadataTopic().registryHost();
+    const std::string mdLocatorPort = itsConfig.metadataTopic().registryPort();
+    const std::string mdTopicManager = itsConfig.metadataTopic().topicManager();
+    const std::string mdTopic = itsConfig.metadataTopic().topic();
+    const unsigned int mdBufSz = 12; // TODO: Make this a tunable
+    const std::string mdAdapterName = "IngestPipeline"; // TODO: Eliminate this
     IMetadataSource::ShPtr metadataSrc(new MetadataSource(mdLocatorHost,
                 mdLocatorPort, mdTopicManager, mdTopic, mdAdapterName, mdBufSz));
 
     // 2) Configure and create the visibility source
-    const LOFAR::ParameterSet visSubset = parset.makeSubset("MergedSource.vis_source.");
-    const unsigned int visPort = visSubset.getUint32("port");
+    const unsigned int visPort = itsConfig.tasks().at(0).params().getUint32("vis_source.port");
     const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
-    const unsigned int visBufSz = visSubset.getUint32("buffer_size", defaultBufSz);
+    const unsigned int visBufSz = itsConfig.tasks().at(0).params().getUint32("buffer_size", defaultBufSz);
     int rank, numTasks;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &numTasks);

@@ -37,6 +37,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "casa/Arrays/Matrix.h"
 #include "measures/Measures/MPosition.h"
 #include "measures/Measures/MCPosition.h"
@@ -82,8 +83,6 @@ AntennaPositions::AntennaPositions(const LOFAR::ParameterSet& parset)
         z[iant] = xyz[2] * scale;
     }
 
-    /// cp.ingest.uvw.antennas.location = [+115deg, -26deg, 192km, WGS84]
-    casa::MPosition mRefLocation = asMPosition(parset.getStringVector("location"));
 
     // These three vectors will hold the absolute antenna locations
     Vector<double> xx(x.nelements());
@@ -96,6 +95,8 @@ AntennaPositions::AntennaPositions(const LOFAR::ParameterSet& parset)
         zz = z;
         ASKAPLOG_DEBUG_STR(logger, "Using global coordinates for the antennas");
     } else if (coordsystem == "local") {
+        /// cp.ingest.uvw.antennas.location = [+115deg, -26deg, 192km, WGS84]
+        casa::MPosition mRefLocation = asMPosition(parset.getStringVector("location"));
 
         casa::MVAngle mvLong = mRefLocation.getAngle().getValue()(0);
         casa::MVAngle mvLat = mRefLocation.getAngle().getValue()(1);
@@ -106,6 +107,7 @@ AntennaPositions::AntennaPositions(const LOFAR::ParameterSet& parset)
         local2global(xx, yy, zz, mRefLocation, x, y, z);
     } else if (coordsystem == "longlat") {
         ASKAPLOG_DEBUG_STR(logger, "Using longitude-latitude coordinates for the antennas");
+        casa::MPosition mRefLocation = asMPosition(parset.getStringVector("location"));
         longlat2global(xx, yy, zz, mRefLocation, x, y, z);
     } else {
         ASKAPTHROW(AskapError, "Unknown coordinate system type: " << coordsystem);
@@ -173,21 +175,4 @@ void AntennaPositions::longlat2global(casa::Vector<double>& xReturned,
         const casa::Vector<double>& zIn)
 {
     ASKAPLOG_ERROR_STR(logger, "AntennaPositions::longlat2global not yet implemented");
-}
-
-casa::MPosition AntennaPositions::asMPosition(const std::vector<std::string>& position)
-{
-    ASKAPCHECK(position.size()==4, "Not a valid position");
-
-    casa::Quantity lng;
-    casa::Quantity::read(lng, position[0]);
-    casa::Quantity lat;
-    casa::Quantity::read(lat, position[1]);
-    casa::Quantity height;
-    casa::Quantity::read(height, position[2]);
-    casa::MPosition::Types type;
-    casa::MPosition::getType(type, position[3]);
-    casa::MVPosition mvPos(height, lng, lat);
-    casa::MPosition pos(mvPos, type);
-    return pos;
 }

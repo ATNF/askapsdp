@@ -32,12 +32,13 @@
 #include "cpcommon/VisChunk.h"
 
 // CASA includes
-#include <casa/complex.h>
-#include <casa/Arrays/Matrix.h>
+#include "casa/complex.h"
+#include "casa/Arrays/Matrix.h"
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/caltask/ISolutionAccessor.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 namespace askap {
 namespace cp {
@@ -50,7 +51,8 @@ class CalTask : public askap::cp::ingest::ITask {
         /// @details Initialise calibration task by passing parameters
         /// coded in the parset
         /// @param[in] parset parameters
-        explicit CalTask(const LOFAR::ParameterSet& parset);
+        explicit CalTask(const LOFAR::ParameterSet& parset,
+                const Configuration& config);
 
         /// @brief destructor
         virtual ~CalTask();

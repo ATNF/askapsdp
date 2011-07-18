@@ -36,6 +36,8 @@
 #include "measures/Measures/MDirection.h"
 #include "casa/Quanta/MVEpoch.h"
 #include "casa/Arrays/Vector.h"
+#include "configuration/Configuration.h"
+#include "ConfigurationHelper.h"
 
 // Classes to test
 #include "ingestpipeline/calcuvwtask/CalcUVWTask.h"
@@ -57,28 +59,9 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
 
     public:
         void setUp() {
-            // Setup a parameter set
-            itsParset.add("config.antennas.location", "[+117.471deg, -25.692deg, 192m, WGS84]");
-            itsParset.add("config.antennas.names", "[A0, A1, A2, A3, A4, A5]");
-            itsParset.add("config.antenna.scale", "1.0");
-            itsParset.add("config.antennas.A0", "[-175.233429,  -1673.460938,  0.0000]");
-            itsParset.add("config.antennas.A1", "[261.119019,   -796.922119,   0.0000]");
-            itsParset.add("config.antennas.A2", "[-29.200520,   -744.432068,   0.0000]");
-            itsParset.add("config.antennas.A3", "[-289.355286,  -586.936035,   0.0000]");
-            itsParset.add("config.antennas.A4", "[-157.031570,  -815.570068,   0.0000]");
-            itsParset.add("config.antennas.A5", "[-521.311646,  -754.674927,   0.0000]");
-
-            itsParset.add("config.feeds.names", "[feed0, feed1, feed2, feed3]");
-            itsParset.add("config.feeds.spacing", "1deg");
-            itsParset.add("config.feeds.feed0", "[-2.5, -1.5]");
-            itsParset.add("config.feeds.feed1", "[-2.5, -0.5]");
-            itsParset.add("config.feeds.feed2", "[-2.5,  0.5]");
-            itsParset.add("config.feeds.feed3", "[-2.5,  1.5]");
-
         };
 
         void tearDown() {
-            itsParset.clear();
         }
 
         void testOffset() {
@@ -139,7 +122,7 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
 
             // Instantiate the class under test and call process() to
             // add UVW coordinates to the VisChunk
-            CalcUVWTask task(itsParset);
+            CalcUVWTask task(itsParset, createTestConfig());
             task.process(chunk);
 
             CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
@@ -153,10 +136,69 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_DOUBLES_EQUAL(w, uvw(2), tol); //w
         };
 
+        Antenna createAntenna(const std::string& name, const casa::Double& x,
+                const casa::Double& y, const casa::Double& z)
+        {
+            // Setup feed config
+            const casa::uInt nFeeds = 4;
+            const casa::uInt nReceptors = 2;
+            const casa::Quantity spacing(1, "deg");
+            casa::Matrix<casa::Quantity> offsets(nFeeds, nReceptors);
+            casa::Vector<casa::String> pols(nFeeds, "X Y");
+            offsets(0, 0) = spacing * -2.5;
+            offsets(0, 1) = spacing * -1.5;
+
+            offsets(1, 0) = spacing * -2.5;
+            offsets(1, 1) = spacing * -0.5;
+
+            offsets(2, 0) = spacing * -2.5;
+            offsets(2, 1) = spacing * 0.5;
+
+            offsets(3, 0) = spacing * -2.5;
+            offsets(3, 1) = spacing * 1.5;
+
+            FeedConfig paf4(offsets, pols);
+           
+            // Setup antenna
+            const std::string mount = "equatorial";
+            const casa::Quantity diameter(12.0, "m");
+
+            casa::Vector<casa::Double> pos(3);
+            pos(0) = x;
+            pos(1) = y;
+            pos(2) = z;
+            return Antenna(name,
+                    mount,
+                    pos,
+                    diameter,
+                    paf4);
+        };
+
+        Configuration createTestConfig(void)
+        {
+            Configuration empty = ConfigurationHelper::createDummyConfig();
+
+            // Setup antennas
+            std::vector<Antenna> antennas;
+            antennas.push_back(createAntenna("A0", -2652616.854602326, 5102312.637997697, -2749946.411592145));
+            antennas.push_back(createAntenna("A1", -2653178.349042055, 5102446.673161191, -2749155.53718417));
+            antennas.push_back(createAntenna("A2", -2652931.204894244, 5102600.67778301, -2749108.177002157));
+            antennas.push_back(createAntenna("A3", -2652731.709913884, 5102780.937978324, -2748966.073105379));
+            antennas.push_back(createAntenna("A4", -2652803.638192114, 5102632.431992128, -2749172.362663322));
+            antennas.push_back(createAntenna("A5", -2652492.544738157, 5102823.769989723, -2749117.418823366));
+
+            return Configuration(empty.arrayName(),
+                    empty.tasks(),
+                    antennas,
+                    empty.correlatorModes(),
+                    empty.observation(),
+                    empty.metadataTopic(),
+                    empty.calibrationDataService());
+        };
+
     private:
 
         LOFAR::ParameterSet itsParset;
-
 };
 
 }   // End namespace ingest

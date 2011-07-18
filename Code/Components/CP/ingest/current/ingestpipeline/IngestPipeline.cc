@@ -33,6 +33,7 @@
 // System includes
 #include <string>
 #include <vector>
+#include <iterator>
 #include <sstream>
 
 // ASKAPsoft includes
@@ -45,6 +46,8 @@
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/TaskFactory.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
+#include "configuration/ConfigurationFactory.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
 
@@ -53,7 +56,8 @@ using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
 IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset)
-    : itsParset(parset), itsRunning(false)
+    : itsConfig(ConfigurationFactory::createConfiguraton(parset)),
+    itsRunning(false)
 {
 }
 
@@ -75,23 +79,21 @@ void IngestPipeline::abort(void)
 void IngestPipeline::ingest(void)
 {
     // 1) Create a Task Factory
-    const LOFAR::ParameterSet configParset = itsParset.makeSubset("config.");
-    TaskFactory factory(configParset);
+    TaskFactory factory(itsConfig);
 
     // 2) Setup source
-    itsSource = factory.createSource(itsParset);
+    itsSource = factory.createSource();
 
     // 3) Setup tasks
-    const std::vector<std::string> tasklist = itsParset.getStringVector("tasklist");
-    ASKAPLOG_DEBUG_STR(logger, "Setting up these tasks: " << tasklist);
-    std::vector<std::string>::const_iterator it = tasklist.begin();
-    while (it != tasklist.end()) {
-        std::stringstream key;
-        key << "task." << *it << ".";
-        LOFAR::ParameterSet taskParset = itsParset.makeSubset(key.str());
-        ITask::ShPtr task = factory.createTask(taskParset);
-        itsTasks.push_back(task);
-        ++it;
+    const std::vector<TaskDesc>& tasks = itsConfig.tasks();
+    for (size_t i = 0; i < tasks.size(); ++i) {
+        if (i == 0) {
+            ASKAPCHECK(tasks[0].type() == TaskDesc::MergedSource,
+                    "First task should be a MergedSource");
+        } else {
+            ITask::ShPtr task = factory.createTask(tasks[i]);
+            itsTasks.push_back(task);
+        }
     }
 
     // 4) Process correlator integrations, one at a time

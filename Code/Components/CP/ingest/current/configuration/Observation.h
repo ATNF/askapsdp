@@ -53,9 +53,8 @@ class Observation {
         std::vector<Scan> scans(void) const;
 
     private:
-        const casa::uInt itsSchedulingBlockID;
-        const std::vector<Scan> itsScans;
-
+        casa::uInt itsSchedulingBlockID;
+        std::vector<Scan> itsScans;
 };
 
 }

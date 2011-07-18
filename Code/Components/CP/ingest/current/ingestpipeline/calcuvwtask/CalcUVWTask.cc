@@ -51,6 +51,7 @@
 
 // Local package includes
 #include "ingestutils/ParsetConfiguration.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".CalcUVWTask");
 
@@ -59,19 +60,13 @@ using namespace askap;
 using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
-CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset)
+CalcUVWTask::CalcUVWTask(const LOFAR::ParameterSet& parset,
+        const Configuration& config)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
 
-    // Extract the config part of the parset
-    const LOFAR::ParameterSet configSubset = parset.makeSubset("config.");
-
-    const LOFAR::ParameterSet antSubset(configSubset.makeSubset("antennas."));
-    itsAntennaPositions.reset(new AntennaPositions(antSubset));
-    itsConfig.reset(new ParsetConfiguration(configSubset));
-
-    setupAntennaPositions();
-    setupBeamOffsets();
+    createPositionMatrix(config);
+    setupBeamOffsets(config);
 }
 
 CalcUVWTask::~CalcUVWTask()
@@ -148,28 +143,25 @@ void CalcUVWTask::calcForRow(VisChunk::ShPtr chunk, const casa::uInt row)
     chunk->uvw()(row) = uvwvec;
 }
 
-void CalcUVWTask::setupAntennaPositions(void)
+void CalcUVWTask::createPositionMatrix(const Configuration& config)
 {
-    itsAntXYZ.assign(itsAntennaPositions->getPositionMatrix());
+    const std::vector<Antenna> antennas = config.antennas();
+    const size_t nAnt = antennas.size();
+    itsAntXYZ = casa::Matrix<double>(3, nAnt);
+    for (size_t i = 0; i < nAnt; ++i) {
+        itsAntXYZ(0, i) = antennas.at(i).position()(0); // x
+        itsAntXYZ(1, i) = antennas.at(i).position()(1); // y
+        itsAntXYZ(2, i) = antennas.at(i).position()(2); // z
+    }
 }
 
-void CalcUVWTask::setupBeamOffsets(void)
+void CalcUVWTask::setupBeamOffsets(const Configuration& config)
 {
-        casa::String mode;
-        casa::Vector<double> x;
-        casa::Vector<double> y;
-        casa::Vector<casa::String> pol;
-
-        itsConfig->getFeeds(mode, x, y, pol);
-
-        ASKAPCHECK(x.nelements() > 0, "No feed offset information present");
-        ASKAPCHECK(x.nelements() == y.nelements(), "Feed x and y must be the same length");
-        uInt nFeeds = x.nelements();
-
+        const FeedConfig& feeds = config.antennas().at(0).feeds();
+        const uInt nFeeds = feeds.nFeeds();
         itsBeamOffset.resize(nFeeds);
-
         for (uInt feed = 0; feed < nFeeds; feed++) {
-            itsBeamOffset(feed)(0) = x(feed);
-            itsBeamOffset(feed)(1) = y(feed);
+            itsBeamOffset(feed)(0) = feeds.offsetX(feed).getValue("rad");
+            itsBeamOffset(feed)(1) = feeds.offsetY(feed).getValue("rad");
         }
 }

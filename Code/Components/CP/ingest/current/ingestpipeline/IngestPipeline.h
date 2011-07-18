@@ -37,6 +37,8 @@
 // Local package includes
 #include "ingestpipeline/sourcetask/MergedSource.h"
 #include "ingestpipeline/ITask.h"
+#include "configuration/ConfigurationFactory.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 namespace askap {
 namespace cp {
@@ -67,7 +69,7 @@ class IngestPipeline {
 
         bool ingestOne(void);
 
-        const LOFAR::ParameterSet itsParset;
+        const Configuration itsConfig;
 
         bool itsRunning;
 

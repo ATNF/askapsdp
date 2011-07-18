@@ -44,6 +44,7 @@
 
 // Local package includes
 #include "ingestutils/ParsetConfiguration.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".UVPublishTask");
 
@@ -53,7 +54,8 @@ using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 using namespace askap::cp::channels;
 
-UVPublishTask::UVPublishTask(const LOFAR::ParameterSet& parset) : itsRank(-1)
+UVPublishTask::UVPublishTask(const LOFAR::ParameterSet& parset,
+        const Configuration& /*config*/) : itsRank(-1)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
 

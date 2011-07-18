@@ -51,10 +51,9 @@ class ServiceConfig {
 
     private:
 
-        const std::string itsRegistryHost;
-        const std::string itsRegistryPort;
-        const std::string itsServiceIdentity;
-
+        std::string itsRegistryHost;
+        std::string itsRegistryPort;
+        std::string itsServiceIdentity;
 };
 
 }

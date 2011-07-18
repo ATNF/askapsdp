@@ -9,7 +9,6 @@ from askapenv import env
 pkg = env.AskapPackage("cpingest")
 
 pkg.AddSubPackage("configuration")
-pkg.AddSubPackage("ingestutils")
 pkg.AddSubPackage("ingestpipeline")
 
 env["CC"] = "mpicc"

@@ -28,11 +28,12 @@
 #define ASKAP_CP_INGEST_TASKFACTORY_H
 
 // ASKAPsoft includes
-#include "Common/ParameterSet.h"
+#include "boost/shared_ptr.hpp"
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 namespace askap {
 namespace cp {
@@ -41,7 +42,7 @@ namespace ingest {
 class TaskFactory {
     public:
 
-        TaskFactory(const LOFAR::ParameterSet& configParset);
+        TaskFactory(const Configuration& config);
 
         /// @brief Creates an instance of a task given the parameters specified
         /// in the parameter set.
@@ -57,24 +58,21 @@ class TaskFactory {
         /// ..
         /// ..
         ///
-        /// @param[in] parset   the parameter set which defines the task to be
-        ///                     created.
+        /// @param[in] taskDescription   an object describing the task.
         /// @return a shared pointer to a task.
         /// @throw AskapError   if the task type is unknown.
-        ITask::ShPtr createTask(const LOFAR::ParameterSet& parset);
+        ITask::ShPtr createTask(const TaskDesc& taskDescription);
 
         /// @brief Create a source (MergedSource) given the parameters specified
         /// in the parameter set.
         ///
         /// TODO: It would be good to just treat a souce as a normal task.
         ///
-        /// @param[in] parset   the parameter set which defines the task to be
-        ///                     created.
         /// @return a shared pointer to the source task.
-        boost::shared_ptr< MergedSource > createSource(const LOFAR::ParameterSet& parset);
+        boost::shared_ptr< MergedSource > createSource(void);
 
     private:
-        const LOFAR::ParameterSet itsConfigParset;
+        const Configuration itsConfig;
 };
 
 }

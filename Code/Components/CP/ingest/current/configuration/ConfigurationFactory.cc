@@ -94,7 +94,6 @@ std::vector<TaskDesc> ConfigurationFactory::createTasks(const LOFAR::ParameterSe
         ostringstream ss;
         ss << keyBase << ".params.";
         const LOFAR::ParameterSet params = parset.makeSubset(ss.str());
-
         tasks.push_back(TaskDesc(*it, type, params));
     }
 

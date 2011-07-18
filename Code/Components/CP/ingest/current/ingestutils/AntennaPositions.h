@@ -78,20 +78,6 @@ class AntennaPositions {
                             const casa::Vector<double>& yIn,
                             const casa::Vector<double>& zIn);
 
-        /// @brief Convert a string representation of a position to a
-        /// casa::MPosition.
-        /// Syntax for the position string is:
-        /// @verbatim
-        /// [latitude, longitude, altitude, type]
-        /// @endverbatim
-        ///
-        /// For example:
-        /// @verbatim
-        /// [+117.471deg, -25.692deg, 192m, WGS84]
-        /// @endverbatim
-        /// Supported types are WGS84 and ITRF.
-        casa::MPosition asMPosition(const std::vector<std::string>& position);
-
         // The antenna positions. Size is 3 rows by nAntenna columns.
         // Rows are x, y, z and columns are indexed by antenna id.
         casa::Matrix<double> itsAntXYZ;

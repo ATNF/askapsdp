@@ -36,8 +36,7 @@
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
-#include "ingestutils/AntennaPositions.h"
-#include "ingestutils/IConfiguration.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 namespace askap {
 namespace cp {
@@ -78,7 +77,8 @@ class CalcUVWTask : public askap::cp::ingest::ITask {
 
         /// @breif Constructor.
         /// @param[in] parset the configuration parameter set.
-        CalcUVWTask(const LOFAR::ParameterSet& parset);
+        CalcUVWTask(const LOFAR::ParameterSet& parset,
+                const Configuration& config);
 
         /// @brief Destructor.
         virtual ~CalcUVWTask();
@@ -95,18 +95,10 @@ class CalcUVWTask : public askap::cp::ingest::ITask {
         void calcForRow(askap::cp::common::VisChunk::ShPtr chunk, const casa::uInt row);
 
         // Populates the antenna Position Matrix
-        void setupAntennaPositions(void);
+        void createPositionMatrix(const Configuration& config);
 
         // Populates the itsBeamOffset vector
-        void setupBeamOffsets(void);
-
-        // Antenna positions
-        boost::scoped_ptr<AntennaPositions> itsAntennaPositions;
-        
-        // Configuration (from parset)
-        // Currently used for obtaining beam offsets
-        // TODO: Unify configuration
-        boost::scoped_ptr<IConfiguration> itsConfig;
+        void setupBeamOffsets(const Configuration& config);
 
         // A matrix containing antenna positions.
         // The antenna positions. Size is 3 (x, y & z) rows by nAntenna columns.

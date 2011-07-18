@@ -3,593 +3,167 @@
 #
 
 #
-# This defines a list of tasks to create. They will be added to the pipeline
-# in the same order as defined below. So the far left task is the first called
-# after the data is sources into the pipeline.
+# Array Name
 #
-cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, MSSink]
-#cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, CalTask, MSSink]
-#cp.ingest.tasklist = [CalcUVWTask, ChannelAvgTask, CalTask, UVPublishTask, MSSink]
+arrayname = ASKAP
 
 #
-# Merged Source
-# 
-cp.ingest.MergedSource.metadata_source.ice.locator_host          = localhost
-cp.ingest.MergedSource.metadata_source.ice.locator_port          = 4061
-cp.ingest.MergedSource.metadata_source.icestorm.topicmanager     = IceStorm/TopicManager
-cp.ingest.MergedSource.metadata_source.icestorm.topic            = tosmetadata
-cp.ingest.MergedSource.metadata_source.buffer_size               = 12
-cp.ingest.MergedSource.vis_source.port                           = 3000
-cp.ingest.MergedSource.vis_source.buffer_size                    = 459648
-# The above is 21 (baselines) * 36 (beams) * 304 (coarse channels) * 4 cycles
+# Correlator Modes
+#
+correlator.modes                            = [StandardMode]
+correlator.mode.StandardMode.n_chan         = 152
+correlator.mode.StandardMode.chan_width     = 18.51851851kHz
+correlator.mode.StandardMode.stokes         = [XX, XY, YX, YY]
 
 #
-# Calc UVW Task
+# Feed Configurations
 #
-cp.ingest.task.CalcUVWTask.type                         = CalcUVWTask
+feeds.names                 = [PAF36]
+feeds.PAF36.n_feeds         = 36
+feeds.PAF36.spacing         = 1deg
+
+feeds.PAF36.feed0           = [-2.5, -2.5]
+feeds.PAF36.feed1           = [-2.5, -1.5]
+feeds.PAF36.feed2           = [-2.5, -0.5]
+feeds.PAF36.feed3           = [-2.5,  0.5]
+feeds.PAF36.feed4           = [-2.5,  1.5]
+feeds.PAF36.feed5           = [-2.5,  2.5]
+
+feeds.PAF36.feed6           = [-1.5, -2.5]
+feeds.PAF36.feed7           = [-1.5, -1.5]
+feeds.PAF36.feed8           = [-1.5, -0.5]
+feeds.PAF36.feed9           = [-1.5,  0.5]
+feeds.PAF36.feed10          = [-1.5,  1.5]
+feeds.PAF36.feed11          = [-1.5,  2.5]
+
+feeds.PAF36.feed12          = [-0.5, -2.5]
+feeds.PAF36.feed13          = [-0.5, -1.5]
+feeds.PAF36.feed14          = [-0.5, -0.5]
+feeds.PAF36.feed15          = [-0.5,  0.5]
+feeds.PAF36.feed16          = [-0.5,  1.5]
+feeds.PAF36.feed17          = [-0.5,  2.5]
+
+feeds.PAF36.feed18          = [0.5, -2.5]
+feeds.PAF36.feed19          = [0.5, -1.5]
+feeds.PAF36.feed20          = [0.5, -0.5]
+feeds.PAF36.feed21          = [0.5,  0.5]
+feeds.PAF36.feed22          = [0.5,  1.5]
+feeds.PAF36.feed23          = [0.5,  2.5]
+
+feeds.PAF36.feed24          = [1.5, -2.5]
+feeds.PAF36.feed25          = [1.5, -1.5]
+feeds.PAF36.feed26          = [1.5, -0.5]
+feeds.PAF36.feed27          = [1.5,  0.5]
+feeds.PAF36.feed28          = [1.5,  1.5]
+feeds.PAF36.feed29          = [1.5,  2.5]
+
+feeds.PAF36.feed30          = [2.5, -2.5]
+feeds.PAF36.feed31          = [2.5, -1.5]
+feeds.PAF36.feed32          = [2.5, -0.5]
+feeds.PAF36.feed33          = [2.5,  0.5]
+feeds.PAF36.feed34          = [2.5,  1.5]
+feeds.PAF36.feed35          = [2.5,  2.5]
 
 #
-# Channel Averaging Task
+# Antennas
 #
-cp.ingest.task.ChannelAvgTask.type                          = ChannelAvgTask
-cp.ingest.task.ChannelAvgTask.params.averaging              = 54
-            
-#
-# Cal task
-#
-cp.ingest.task.CalTask.type    = CalTask
+antennas.names              = [Pad01,Pad03,Pad06,Pad08,Pad09,Pad29]
 
-# The below 4 lines configure the use of the calibration data service
-cp.ingest.task.CalTask.params.source.type           = dataservice
-cp.ingest.task.CalTask.params.source.locator_host   = localhost
-cp.ingest.task.CalTask.params.source.locator_port   = 4061
-cp.ingest.task.CalTask.params.source.service_name   = CalibrationDataService
+# easting: 463334.040000; northing: 7047071.010000; el: 370.140000; Zone: 50 south
+# # lat: -26.697000721961; long: 116.631424285887; el: 370.140000
+antennas.Pad01.location     = [-2556088.333184, 5097405.644248, -2848428.243729]
+antennas.Pad01.diameter     = 12m
+antennas.Pad01.mount        = equatorial
+antennas.Pad01.feed_config  = PAF36
 
-# If the source is "gainsfile" or "dataservice" the below gains are ignored
-cp.ingest.task.CalTask.params.gain.g11.0.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.0.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.1.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.2.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.3.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.4.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g11.5.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.0.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.1.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.2.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.3.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.4.35 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.0 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.1 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.2 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.3 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.4 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.5 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.6 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.7 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.8 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.9 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.10 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.11 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.12 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.13 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.14 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.15 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.16 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.17 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.18 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.19 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.20 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.21 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.22 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.23 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.24 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.25 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.26 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.27 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.28 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.29 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.30 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.31 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.32 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.33 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.34 = [1.0]
-cp.ingest.task.CalTask.params.gain.g22.5.35 = [1.0]
+# # easting: 463369.990000; northing: 7047078.500000; el: 369.580000; Zone: 50 south
+# # lat: -26.696934033924; long: 116.631785875968; el: 369.580000
+antennas.Pad03.location     = [-2556121.766414, 5097392.033236, -2848421.390498]
+antennas.Pad03.diameter     = 12m
+antennas.Pad03.mount        = equatorial
+antennas.Pad03.feed_config  = PAF36
 
-#
-# UV-channel publish task
-#
-cp.ingest.task.UVPublishTask.type    = UVPublishTask
-cp.ingest.task.UVPublishTask.params.channel_name = avg304
+# # easting: 463469.700000; northing: 7047183.010000; el: 367.890000; Zone: 50 south
+# # lat: -26.695993030157; long: 116.632791194436; el: 367.890000
+antennas.Pad06.location     = [-2556231.527388, 5097387.706446, -2848327.478204]
+antennas.Pad06.diameter     = 12m
+antennas.Pad06.mount        = equatorial
+antennas.Pad06.feed_config  = PAF36
 
-#
-# Measurement Set Sink
-#
-cp.ingest.task.MSSink.type                            = MSSink
-cp.ingest.task.MSSink.params.filenamebase             = ingest_test
-cp.ingest.task.MSSink.params.stman.bucketsize         = 1048576
-cp.ingest.task.MSSink.params.stman.tilencorr          = 4
-cp.ingest.task.MSSink.params.stman.tilenchan          = 1
+# # easting: 463296.230000; northing: 7046832.500000; el: 370.810000; Zone: 50 south
+# # lat: -26.699153192237; long: 116.631037279591; el: 370.810000
+antennas.Pad08.location     = [-2556006.138107, 5097327.654894, -2848641.621908]
+antennas.Pad08.diameter     = 12m
+antennas.Pad08.mount        = equatorial
+antennas.Pad08.feed_config  = PAF36
+
+# # easting: 463089.830000; northing: 7047181.560000; el: 370.110000; Zone: 50 south
+# # lat: -26.695996195140; long: 116.628972698055; el: 370.110000
+antennas.Pad09.location     = [-2555892.622948, 5097559.688165, -2848328.788867]
+antennas.Pad09.diameter     = 12m
+antennas.Pad09.mount        = equatorial
+antennas.Pad09.feed_config  = PAF36
+
+# # easting: 463899.970000; northing: 7047824.220000; el: 364.280000; Zone: 50 south
+# # lat: -26.690214789597; long: 116.637134608883; el: 364.280000
+antennas.Pad29.location     = [-2556745.438405, 5097448.114406, -2847753.833282]
+antennas.Pad29.diameter     = 12m
+antennas.Pad29.mount        = equatorial
+antennas.Pad29.feed_config  = PAF36
 
 
 #
-# System Configuration Information
+#  Observation specific
 #
-cp.ingest.config.antennas.station         = ASKAP-BETA
-cp.ingest.config.antennas.location        =   [+117.471deg, -25.692deg, 192m, WGS84]
-cp.ingest.config.antennas.names           =  [A0, A1, A2, A3, A4, A5]
-cp.ingest.config.antennas.diameter        =  12m
-cp.ingest.config.antennas.scale           =  1.0
-cp.ingest.config.antennas.mount           =  equatorial
-cp.ingest.config.antennas.A0              =  [-175.233429,  -1673.460938,  0.0000]
-cp.ingest.config.antennas.A1              =  [261.119019,   -796.922119,   0.0000]
-cp.ingest.config.antennas.A2              =  [-29.200520,   -744.432068,   0.0000]
-cp.ingest.config.antennas.A3              =  [-289.355286,  -586.936035,   0.0000]
-cp.ingest.config.antennas.A4              =  [-157.031570,  -815.570068,   0.0000]
-cp.ingest.config.antennas.A5              =  [-521.311646,  -754.674927,   0.0000]
-cp.ingest.config.feeds.names              = [feed0, feed1, feed2, feed3, feed4, feed5, feed6,
-feed7, feed8, feed9, feed10, feed11, feed12, feed13, feed14, feed15, feed16, feed17, feed18, feed19,
-feed20, feed21, feed22, feed23, feed24, feed25, feed26, feed27, feed28, feed29, feed30, feed31,
-feed32, feed33, feed34, feed35]
-
-cp.ingest.config.feeds.spacing            = 1deg
-
-cp.ingest.config.feeds.feed0          =       [-2.5, -2.5]
-cp.ingest.config.feeds.feed1          =       [-2.5, -1.5]
-cp.ingest.config.feeds.feed2          =       [-2.5, -0.5]
-cp.ingest.config.feeds.feed3          =       [-2.5,  0.5]
-cp.ingest.config.feeds.feed4          =       [-2.5,  1.5]
-cp.ingest.config.feeds.feed5          =       [-2.5,  2.5]
-
-cp.ingest.config.feeds.feed6          =       [-1.5, -2.5]
-cp.ingest.config.feeds.feed7          =       [-1.5, -1.5]
-cp.ingest.config.feeds.feed8          =       [-1.5, -0.5]
-cp.ingest.config.feeds.feed9          =       [-1.5,  0.5]
-cp.ingest.config.feeds.feed10         =       [-1.5,  1.5]
-cp.ingest.config.feeds.feed11         =       [-1.5,  2.5]
-
-cp.ingest.config.feeds.feed12         =       [-0.5, -2.5]
-cp.ingest.config.feeds.feed13         =       [-0.5, -1.5]
-cp.ingest.config.feeds.feed14         =       [-0.5, -0.5]
-cp.ingest.config.feeds.feed15         =       [-0.5,  0.5]
-cp.ingest.config.feeds.feed16         =       [-0.5,  1.5]
-cp.ingest.config.feeds.feed17         =       [-0.5,  2.5]
-
-cp.ingest.config.feeds.feed18         =       [0.5, -2.5]
-cp.ingest.config.feeds.feed19         =       [0.5, -1.5]
-cp.ingest.config.feeds.feed20         =       [0.5, -0.5]
-cp.ingest.config.feeds.feed21         =       [0.5,  0.5]
-cp.ingest.config.feeds.feed22         =       [0.5,  1.5]
-cp.ingest.config.feeds.feed23         =       [0.5,  2.5]
-
-cp.ingest.config.feeds.feed24         =       [1.5, -2.5]
-cp.ingest.config.feeds.feed25         =       [1.5, -1.5]
-cp.ingest.config.feeds.feed26         =       [1.5, -0.5]
-cp.ingest.config.feeds.feed27         =       [1.5,  0.5]
-cp.ingest.config.feeds.feed28         =       [1.5,  1.5]
-cp.ingest.config.feeds.feed29         =       [1.5,  2.5]
-
-cp.ingest.config.feeds.feed30         =       [2.5, -2.5]
-cp.ingest.config.feeds.feed31         =       [2.5, -1.5]
-cp.ingest.config.feeds.feed32         =       [2.5, -0.5]
-cp.ingest.config.feeds.feed33         =       [2.5,  0.5]
-cp.ingest.config.feeds.feed34         =       [2.5,  1.5]
-cp.ingest.config.feeds.feed35         =       [2.5,  2.5]
-
-cp.ingest.config.spw.name                 = ASKAPCorrelator
-cp.ingest.config.spw.nchan                = 152
-cp.ingest.config.spw.start_freq           = 1.420GHz
-cp.ingest.config.spw.freq_inc             = 1MHz
-cp.ingest.config.spw.stokes               = "XX XY YX YY"
-
-cp.ingest.config.field.name               = test-field
-cp.ingest.config.field.direction          = [12h30m00.000, -45.00.00.000, J2000]
+observation.sbid                    = 0
+observation.scan0.field_name        = test-field
+observation.scan0.field_direction   = [12h30m00.000, -45.00.00.000, J2000]
+observation.scan0.centre_freq       = 1.420GHz
+observation.scan0.correlator_mode   = StandardMode
 
 #
-# UV-channel configuration
+# Metadata topic config
 #
+metadata_source.ice.locator_host        = localhost
+metadata_source.ice.locator_port        = 4061
+metadata_source.icestorm.topicmanager   = IceStorm/TopicManager
+metadata_source.icestorm.topic          = tosmetadata
 
-# Brokers
-cp.ingest.config.uvchannel.brokers = [broker1, broker2]
-cp.ingest.config.uvchannel.broker.broker1.host = localhost
-cp.ingest.config.uvchannel.broker.broker1.port = 61616
-cp.ingest.config.uvchannel.broker.broker2.host = gijoe
-cp.ingest.config.uvchannel.broker.broker2.port = 61616
+#
+# Calibration data service config
+#
+cal_data_service.ice.locator_host       = localhost
+cal_data_service.ice.locator_port       = 4061
+cal_data_service.servicename            = CalibrationDataService
 
-# Channels
-cp.ingest.config.uvchannel.channels = [full, avg304]
+#
+# Task List
+#
+tasks.tasklist                          = [MergedSource, CalcUVWTask, ChannelAvgTask, MSSink]
 
-# Full 16416 channel configuration
-cp.ingest.config.uvchannel.channel.full.topic_prefix = full
-cp.ingest.config.uvchannel.channel.full.nblocks = 2
-cp.ingest.config.uvchannel.channel.full.block_1 = [1, 8208, broker1]
-cp.ingest.config.uvchannel.channel.full.block_2 = [8209, 16416, broker2]
+#
+# MergedSource
+#
+tasks.MergedSource.type                 = MergedSource
+tasks.MergedSource.params.vis_source.port           = 3000
+tasks.MergedSource.params.vis_source.buffer_size    = 459648
 
-# Averaged channel configuration
-cp.ingest.config.uvchannel.channel.avg304.topic_prefix = avg304
-cp.ingest.config.uvchannel.channel.avg304.nblocks = 2
-cp.ingest.config.uvchannel.channel.avg304.block_1 = [1, 152, broker1]
-cp.ingest.config.uvchannel.channel.avg304.block_2 = [153, 304, broker2]
+#
+# CalcUVWTask
+#
+tasks.CalcUVWTask.type                  = CalcUVWTask
+
+#
+# ChannelAvgTask
+#
+tasks.ChannelAvgTask.type               = ChannelAvgTask
+tasks.ChannelAvgTask.params.averaging   = 54
+
+#
+# MSSink
+#
+tasks.MSSink.type                       = MSSink
+tasks.MSSink.params.filenamebase        = ingest_test
+tasks.MSSink.params.stman.bucketsize    = 1048576
+tasks.MSSink.params.stman.tilencorr     = 4
+tasks.MSSink.params.stman.tilenchan     = 1

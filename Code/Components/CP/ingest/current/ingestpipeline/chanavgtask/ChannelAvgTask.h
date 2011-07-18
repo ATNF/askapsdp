@@ -34,6 +34,7 @@
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 namespace askap {
 namespace cp {
@@ -53,7 +54,7 @@ class ChannelAvgTask : public askap::cp::ingest::ITask {
     public:
         /// @brief Constructor.
         /// @param[in] parset   the parameter set used to configure this task.
-        ChannelAvgTask(const LOFAR::ParameterSet& parset);
+        ChannelAvgTask(const LOFAR::ParameterSet& parset, const Configuration& /*config*/);
 
         /// @brief Destructor.
         virtual ~ChannelAvgTask();

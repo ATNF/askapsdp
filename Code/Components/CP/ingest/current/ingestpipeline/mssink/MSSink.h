@@ -36,7 +36,7 @@
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
-#include "ingestutils/IConfiguration.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 namespace askap {
 namespace cp {
@@ -48,7 +48,8 @@ class MSSink : public askap::cp::ingest::ITask {
     public:
         /// @brief Constructor.
         /// @param[in] parset   the parameter set used to configure this task.
-        MSSink(const LOFAR::ParameterSet& parset);
+        MSSink(const LOFAR::ParameterSet& parset,
+                const Configuration& config);
 
         /// @brief Destructor.
         virtual ~MSSink();
@@ -83,8 +84,8 @@ class MSSink : public askap::cp::ingest::ITask {
         // Parameter set
         const LOFAR::ParameterSet itsParset;
 
-        // Configuration wrapper (around parset)
-        boost::scoped_ptr<IConfiguration> itsConfig;
+        // Configuration object
+        const Configuration itsConfig;
 
         // Measurement set
         boost::scoped_ptr<casa::MeasurementSet> itsMs;
@@ -94,7 +95,6 @@ class MSSink : public askap::cp::ingest::ITask {
 
         // No support for copy constructor
         MSSink(const MSSink& src);
-
 };
 
 }

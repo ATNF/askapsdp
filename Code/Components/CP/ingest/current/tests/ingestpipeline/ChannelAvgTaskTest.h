@@ -37,6 +37,8 @@
 #include "measures/Measures/MDirection.h"
 #include "casa/Quanta/MVEpoch.h"
 #include "casa/Arrays/Vector.h"
+#include "configuration/Configuration.h"
+#include "ConfigurationHelper.h"
 
 // Classes to test
 #include "ingestpipeline/chanavgtask/ChannelAvgTask.h"
@@ -156,7 +158,7 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
 
             // Instantiate the class under test and call process() to
             // average channels in the VisChunk
-            ChannelAvgTask task(itsParset);
+            ChannelAvgTask task(itsParset, ConfigurationHelper::createDummyConfig());
             task.process(chunk);
 
             // Tolerance for double equality
@@ -184,7 +186,6 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
     private:
 
         LOFAR::ParameterSet itsParset;
-
 };
 
 }   // End namespace ingest

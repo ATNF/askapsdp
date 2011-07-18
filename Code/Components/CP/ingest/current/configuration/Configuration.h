@@ -68,13 +68,13 @@ class Configuration {
         ServiceConfig calibrationDataService(void) const;
 
     private:
-        const casa::String itsArrayName;
-        const std::vector<TaskDesc> itsTasks;
-        const std::vector<Antenna> itsAntennas;
-        const std::map<std::string, CorrelatorMode> itsCorrelatorModes;
-        const Observation itsObservation;
-        const TopicConfig itsMetadataTopicConfig;
-        const ServiceConfig itsCalibrationDataServiceConfig;
+        casa::String itsArrayName;
+        std::vector<TaskDesc> itsTasks;
+        std::vector<Antenna> itsAntennas;
+        std::map<std::string, CorrelatorMode> itsCorrelatorModes;
+        Observation itsObservation;
+        TopicConfig itsMetadataTopicConfig;
+        ServiceConfig itsCalibrationDataServiceConfig;
 
 
 };

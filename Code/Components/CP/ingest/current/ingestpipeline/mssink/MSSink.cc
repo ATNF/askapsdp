@@ -56,8 +56,7 @@
 #include "ms/MeasurementSets/MSColumns.h"
 
 // Local package includes
-#include "ingestutils/ParsetConfiguration.h"
-#include "ingestutils/AntennaPositions.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".MSSink");
 
@@ -70,12 +69,11 @@ using namespace casa;
 // Public methods
 //////////////////////////////////
 
-MSSink::MSSink(const LOFAR::ParameterSet& parset) :
-    itsParset(parset)
+MSSink::MSSink(const LOFAR::ParameterSet& parset,
+        const Configuration& config) :
+    itsParset(parset), itsConfig(config)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
-    const LOFAR::ParameterSet configSubset = parset.makeSubset("config.");
-    itsConfig.reset(new ParsetConfiguration(configSubset));
     create();
     initAntennas();
     initFeeds();
@@ -88,7 +86,6 @@ MSSink::~MSSink()
 {
     ASKAPLOG_DEBUG_STR(logger, "Destructor");
     itsMs.reset();
-    itsConfig.reset();
 }
 
 void MSSink::process(VisChunk::ShPtr chunk)
@@ -248,15 +245,27 @@ void MSSink::create(void)
 
 void MSSink::initAntennas(void)
 {
-    std::string station;
-    casa::Vector<std::string> name;
-    casa::Matrix<double> antXYZ;
-    casa::Matrix<double> offset;
-    casa::Vector<casa::Double> dishDiameter;
-    casa::Vector<std::string> mount;
+    const std::vector<Antenna> antennas = itsConfig.antennas();
+    const casa::uInt nAnt = antennas.size();
 
-    itsConfig->getAntennas(name, station, antXYZ, offset, dishDiameter, mount);
-    casa::uInt nAnt = name.size();
+    std::string station = itsConfig.arrayName();
+    casa::Vector<std::string> name(nAnt);
+    casa::Matrix<double> antXYZ(3, nAnt);
+    casa::Vector<casa::Double> dishDiameter(nAnt);
+    casa::Vector<std::string> mount(nAnt);
+
+    for (size_t i = 0; i < nAnt; ++i) {
+        name(i) = antennas[i].name(); 
+
+        antXYZ(0, i) = antennas[i].position()(0); // x
+        antXYZ(1, i) = antennas[i].position()(1); // y
+        antXYZ(2, i) = antennas[i].position()(2); // z
+
+        dishDiameter(i) = antennas[i].diameter().getValue("m"); 
+        mount(i) = antennas[i].mount(); 
+    }
+
+    /////////////////////////////////////////////////////////////////
 
     // Write the rows to the measurement set
     MSColumns msc(*itsMs);
@@ -280,13 +289,21 @@ void MSSink::initAntennas(void)
 
 void MSSink::initFeeds(void)
 {
-    casa::String mode;
-    casa::Vector<double> x;
-    casa::Vector<double> y;
-    casa::Vector<casa::String> pol;
+    const FeedConfig& feeds = itsConfig.antennas().at(0).feeds();
+    const uInt nFeeds = feeds.nFeeds();
 
-    itsConfig->getFeeds(mode, x, y, pol);
+    casa::Vector<double> x(nFeeds);
+    casa::Vector<double> y(nFeeds);
+    casa::Vector<casa::String> pol(nFeeds);
 
+    for (size_t i = 0; i < nFeeds; ++i) {
+        x(i) = feeds.offsetX(i).getValue("rad");
+        y(i) = feeds.offsetY(i).getValue("rad");
+        pol(i) = "X Y";
+    }
+
+    /////////////////////////////////////////////////////////////////
+   
     MSColumns msc(*itsMs);
     MSAntennaColumns& antc = msc.antenna();
     const uInt nAnt = antc.nrow();
@@ -311,12 +328,8 @@ void MSSink::initFeeds(void)
                    "Feed polarization list must be same length as the number of positions");
     } else {
         nFeed = 1;
-
-        // mode == "perfect R L" OR "perfect X Y"
-        if (mode.contains("X", 0)) {
-            feedPol0 = "X";
-            feedPol1 = "Y";
-        }
+        feedPol0 = "X";
+        feedPol1 = "Y";
     }
 
     const uInt nRow = nFeed * nAnt;
@@ -418,35 +431,25 @@ void MSSink::initFeeds(void)
 
 void MSSink::initSpws(void)
 {
-    casa::String spWindowName;
-    int nChan;
-    casa::Quantity startFreq;
-    casa::Quantity freqInc;
-    casa::String stokesString;
+    // TODO: Add support for multiple scans
+    ASKAPCHECK(itsConfig.observation().scans().size() == 1,
+            "Only one scan supported");
+    const Scan scan = itsConfig.observation().scans().at(0);
+    const std::string modeString = scan.correlatorMode();
+    const CorrelatorMode cmode = itsConfig.correlatorModes().find(modeString)->second;
 
-    itsConfig->getSpWindows(spWindowName, nChan, startFreq, freqInc, stokesString);
-
-    Vector<Int> stokesTypes(4);
-    stokesTypes = Stokes::Undefined;
-    String myStokesString = stokesString;
-    Int nCorr = 0;
-
-    for (Int j = 0; j < 4; j++) {
-        while (myStokesString.at(0, 1) == " ") {
-            myStokesString.del(0, 1);
-        }
-
-        if (myStokesString.length() == 0)
-            break;
-
-        stokesTypes(j) = Stokes::type(myStokesString.at(0, 2));
-        myStokesString.del(0, 2);
-        nCorr = j + 1;
-
-        if (stokesTypes(j) == Stokes::Undefined) {
-            ASKAPLOG_INFO_STR(logger, " Undefined polarization type in input");
-        }
+    casa::String spWindowName = cmode.name();
+    int nChan = cmode.nChan();
+    casa::Quantity startFreq = scan.centreFreq();
+    casa::Quantity freqInc = cmode.chanWidth();
+    
+    /////////////////////////////////////////////////////////////////
+    Vector<Int> stokesTypes(cmode.stokes().size());
+    for (size_t i = 0; i < cmode.stokes().size(); ++i) {
+        stokesTypes(i) = cmode.stokes().at(i);
     }
+
+    const Int nCorr = stokesTypes.size();
 
     MSColumns msc(*itsMs);
     MSSpWindowColumns& spwc = msc.spectralWindow();
@@ -506,11 +509,15 @@ void MSSink::initSpws(void)
 
 void MSSink::initFields(void)
 {
-    casa::String fieldName;
-    casa::MDirection fieldDirection;
-    casa::String calCode;
+    // TODO: Add support for multiple scans
+    ASKAPCHECK(itsConfig.observation().scans().size() == 1,
+            "Only one scan supported");
+    const Scan scan = itsConfig.observation().scans().at(0);
+    const casa::String fieldName = scan.name();
+    const casa::MDirection fieldDirection = scan.fieldDirection();
+    const casa::String calCode = "";
 
-    itsConfig->getFields(fieldName, fieldDirection, calCode);
+    /////////////////////////////////////////////////////////////////
 
     MSColumns msc(*itsMs);
     MSFieldColumns& fieldc = msc.field();

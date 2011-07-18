@@ -35,6 +35,7 @@
 
 // Local package includes
 #include "ingestpipeline/ITask.h"
+#include "configuration/Configuration.h" // Includes all configuration attributes too
 
 namespace askap {
 namespace cp {
@@ -46,7 +47,8 @@ class UVPublishTask : public askap::cp::ingest::ITask {
 
         /// @brief Constructor.
         /// @param[in] parset the configuration parameter set.
-        UVPublishTask(const LOFAR::ParameterSet& parset);
+        UVPublishTask(const LOFAR::ParameterSet& parset,
+                const Configuration& /*config*/);
 
         /// @brief Destructor.
         virtual ~UVPublishTask();

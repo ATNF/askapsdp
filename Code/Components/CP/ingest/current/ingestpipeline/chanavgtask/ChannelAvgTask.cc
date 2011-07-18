@@ -38,13 +38,17 @@
 #include "casa/Arrays/Cube.h"
 #include "cpcommon/VisChunk.h"
 
+// Local package includes
+#include "configuration/Configuration.h"
+
 ASKAP_LOGGER(logger, ".ChannelAvgTask");
 
 using namespace askap;
 using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
-ChannelAvgTask::ChannelAvgTask(const LOFAR::ParameterSet& parset) :
+ChannelAvgTask::ChannelAvgTask(const LOFAR::ParameterSet& parset,
+        const Configuration& /* config */) :
     itsParset(parset)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");

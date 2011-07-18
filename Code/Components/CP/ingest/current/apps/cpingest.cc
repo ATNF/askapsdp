@@ -123,10 +123,9 @@ int main(int argc, char *argv[])
 
         // Create a subset
         LOFAR::ParameterSet parset(parsetFile);
-        const LOFAR::ParameterSet subset = parset.makeSubset("cp.ingest.");
 
         // Run the pipeline
-        IngestPipeline pipeline(subset);
+        IngestPipeline pipeline(parset);
         pipeline.start();
 
     } catch (const cmdlineparser::XParser& e) {
