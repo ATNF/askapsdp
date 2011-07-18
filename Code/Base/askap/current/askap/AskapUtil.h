@@ -122,8 +122,20 @@ casa::MEpoch asMEpoch(const std::vector<std::string>& epoch);
 /// @param[in] direction String to be interpreted
 casa::MDirection asMDirection(const std::vector<std::string>& direction);
 
-/// @brief Interpret string as an MPosition
+/// @brief Convert a string representation of a position to a
+/// casa::MPosition. Syntax for the position string is:
+/// @verbatim
+/// [latitude, longitude, altitude, type]
+/// @endverbatim
+///
+/// For example:
+/// @verbatim
+/// [+117.471deg, -25.692deg, 192m, WGS84]
+/// @endverbatim
+/// Supported types are WGS84 and ITRF.
+///
 /// @param position[in] String to be interpreted
+/// @return an MPosition
 casa::MPosition asMPosition(const std::vector<std::string>& position);
 
 /// a number of helper functions are gathered in this namespace
