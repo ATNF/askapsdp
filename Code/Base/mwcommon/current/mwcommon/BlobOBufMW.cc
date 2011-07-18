@@ -73,9 +73,9 @@ LOFAR::uint64 BlobOBufMW::put(const void* buffer, LOFAR::uint64 nbytes)
     if (nbytes > itsMaxBufSize) {
         send(buffer, nbytes);
     } else {
-        std::copy(reinterpret_cast<const char*>(buffer),
-                  reinterpret_cast<const char*>(buffer) + nbytes,
-                  std::back_inserter(itsBuffer)); 
+        itsBuffer.insert(itsBuffer.end(),
+                reinterpret_cast<const char*>(buffer),
+                reinterpret_cast<const char*>(buffer) + nbytes);
     }
 
     // 4: Finally, if the buffer concludes with the end-of-blob value
