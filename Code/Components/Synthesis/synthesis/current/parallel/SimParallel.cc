@@ -181,7 +181,7 @@ void SimParallel::readAntennas()
     ASKAPCHECK((coordinates == "local") || (coordinates == "global"), "Coordinates type unknown");
 
     /// Csimulator.ASKAP.scale=0.333
-    float scale = antParset.getFloat("scale", 1.0);
+    const double scale = antParset.getDouble("scale", 1.0);
 
     /// Now we get the coordinates for each antenna in turn
     casa::Vector<double> x(nAnt);
@@ -199,7 +199,7 @@ void SimParallel::readAntennas()
     /// antennas.ASKAP.antenna0=[x,y,z]
     /// ...
     for (int iant = 0; iant < nAnt; iant++) {
-        vector<float> xyz = antParset.getFloatVector(antNames[iant]);
+        const vector<double> xyz = antParset.getDoubleVector(antNames[iant]);
         x[iant] = xyz[0] * scale;
         y[iant] = xyz[1] * scale;
         z[iant] = xyz[2] * scale;
