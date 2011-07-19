@@ -43,6 +43,8 @@
 
 // own includes
 #include <fitting/INormalEquations.h>
+#include <fitting/ComplexDiffMatrix.h>
+#include <fitting/PolXProducts.h>
 
 // std includes
 #include <map>
@@ -117,6 +119,22 @@ struct GenericNormalEquations : public INormalEquations {
   /// @param[in] dm Design matrix to use
   void add(const DesignMatrix& dm);
   
+  /// @brief add special type of design equations formed as a matrix product
+  /// @details This method adds design equations formed by a product of
+  /// a certain CompleDiffMatrix and a vector. It is equivalent to adding a design
+  /// matrix formed from the result of this product. However, bypassing design 
+  /// matrix allows to delay calculation of contributions to the normal matrix and
+  /// use buffer cross terms (between model and measured visibilities, which are
+  /// expected to be a part of the vector cdm is multiplied to) separately. This
+  /// is used for pre-averaging (or pre-summing to be exact) calibration. The 
+  /// cross-products of visibilities are tracked using the PolXProduct object
+  /// @param[in] cdm matrix with derivatives and values (to be multiplied to a 
+  /// vector represented by cross-products given in the second parameter). Should be
+  /// a square matrix of npol x npol size.
+  /// @param[in] pxp cross-products (model by measured and model by model, where 
+  /// measured is the vector cdm is multiplied to).
+  void add(const ComplexDiffMatrix &cdm, const PolXProducts &pxp);
+    
   /// @brief add normal matrix for a given parameter
   /// @details This means that the cross terms between parameters 
   /// are excluded. However the terms inside a parameter are retained.
