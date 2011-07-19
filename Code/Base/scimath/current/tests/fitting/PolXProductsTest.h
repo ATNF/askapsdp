@@ -120,7 +120,7 @@ public:
      // now check all slices
      for (casa::uInt x=0; x<3; ++x) {
           for (casa::uInt y=0; y<5; ++y) {
-               const PolXProducts slice = pxp.slice(casa::IPosition(2,x,y));
+               const PolXProducts slice = pxp.slice(x,y);
                for (casa::uInt p1=0; p1<4; ++p1) {
                     for (casa::uInt p2=0; p2<=p1; ++p2) {
                          const float tagValue = 10.*x+100.*y+float(p1)+0.1*p2;
@@ -135,7 +135,30 @@ public:
                     }
                }
           }
-     }     
+     }
+     // check reference semantics and read-only access
+     for (casa::uInt x=0; x<3; ++x) {
+          for (casa::uInt y=0; y<5; ++y) {
+               PolXProducts slice = pxp.slice(casa::IPosition(2,int(x),int(y)));
+               const PolXProducts roSlice = pxp.roSlice(x,y);
+               slice.reset(); // this shouldn't affect roSlice, which is a copy
+               for (casa::uInt p1=0; p1<4; ++p1) {
+                    for (casa::uInt p2=0; p2<=p1; ++p2) {
+                         const float tagValue = 10.*x+100.*y+float(p1)+0.1*p2;
+                         const casa::Complex cTag(tagValue,-tagValue);
+                         // roSlice should have the old value
+                         compareComplex(cTag, roSlice.getModelProduct(p1,p2));
+                         compareComplex(-cTag, roSlice.getModelMeasProduct(p1,p2));
+                         // slice should be set to 0.
+                         compareComplex(0., slice.getModelProduct(p1,p2));
+                         compareComplex(0., slice.getModelMeasProduct(p1,p2));
+                         // original buffer should be set to 0. because of the reference semantics
+                         compareComplex(0., pxp.getModelProduct(x,y,p1,p2));
+                         compareComplex(0., pxp.getModelMeasProduct(x,y,p1,p2));                         
+                    }
+               }
+          }
+     }               
   }
   void testResize() {
      PolXProducts pxp(2,casa::IPosition(),true);

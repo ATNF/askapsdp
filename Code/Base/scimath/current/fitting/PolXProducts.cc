@@ -71,21 +71,64 @@ PolXProducts::PolXProducts(const casa::uInt npol, const casa::IPosition &shape, 
 /// @return the one dimensional slice at the given position
 PolXProducts PolXProducts::slice(const casa::IPosition &pos) 
 {
-  ASKAPDEBUGASSERT(nPol()>0);
-  ASKAPDEBUGASSERT(pos.nelements() + 1 == itsModelProducts.shape().nelements());
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape() == itsModelProducts.shape());
+  // setup the Slicer  
+  const casa::Slicer slc = getSlicer(pos);
 
   PolXProducts result(nPol());
+  // take the slices. Note, the reference method is used here. The assignment operator makes a copy!
+  result.itsModelProducts.reference(itsModelProducts(slc).nonDegenerate());
+  result.itsModelMeasProducts.reference(itsModelMeasProducts(slc).nonDegenerate());
+  return result;
+}
+
+/// @brief setup a slicer for a given position
+/// @details This is a helper method used in methods making a slice along polarisation dimension.
+/// Given the position, it forms a slicer object for buffer arrays.
+/// @param[in] pos position vector for all axes except the last one (polarisation). The vector size
+/// should be the dimension of arrays minus 1.
+/// @return an instance of the slicer object
+casa::Slicer PolXProducts::getSlicer(const casa::IPosition &pos) const
+{
+  ASKAPDEBUGASSERT(nPol()>0);
+  ASKAPDEBUGASSERT(pos.nelements() + 1 == itsModelProducts.shape().nelements());
   // setup Slicer  
   const casa::IPosition endPos = pos.concatenate(casa::IPosition(1,int(nPol()*(nPol()+1)/2-1)));
   casa::IPosition startPos(endPos);
   startPos(pos.nelements()) = 0;
-  const casa::Slicer slc(startPos, endPos, casa::Slicer::endIsLast);
-  // take the slices
-  result.itsModelProducts = itsModelProducts(slc).nonDegenerate();
-  result.itsModelMeasProducts = itsModelMeasProducts(slc).nonDegenerate();
-  return result;
+  return casa::Slicer(startPos, endPos, casa::Slicer::endIsLast);
 }
+
+
+/// @brief obtain the slice at the given position
+/// @details This method makes a slice of the underlying arrays along the polarisation axis 
+/// at the given position for other dimensions. Note, unlike slice, this method makes a copy, so
+/// it needs a read-only access to the original buffer. 
+/// @param[in] pos position vector for all axes except the last one (polarisation). The vector size
+/// should be the dimension of arrays minus 1.
+/// @return the one dimensional slice at the given position
+PolXProducts PolXProducts::roSlice(const casa::IPosition &pos) const
+{
+  ASKAPDEBUGASSERT(itsModelMeasProducts.shape() == itsModelProducts.shape());
+  // setup the Slicer  
+  const casa::Slicer slc = getSlicer(pos);
+
+  PolXProducts result(nPol());
+
+  // take the slices, make copies; const_cast is used to bypass constness requirement introduced because
+  // of the reference semantics. We don't actually change anything and moreover make a copy after the slice
+  // is taken.
+
+  casa::Array<casa::Complex> & modelProducts = const_cast<casa::Array<casa::Complex>&>(itsModelProducts);
+  // assignment operator for arrays makes a copy!
+  result.itsModelProducts = modelProducts(slc).nonDegenerate();
+
+  casa::Array<casa::Complex> & modelMeasProducts = const_cast<casa::Array<casa::Complex>&>(itsModelMeasProducts);
+  // assignment operator for arrays makes a copy!
+  result.itsModelMeasProducts = modelMeasProducts(slc).nonDegenerate();
+  return result;  
+}
+
    
 /// @brief resize the arrays storing products
 /// @details After a call to this method the class is put to the same state as after the call

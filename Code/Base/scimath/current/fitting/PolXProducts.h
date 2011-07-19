@@ -41,6 +41,7 @@
 #include <casa/Arrays/Cube.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/Slicer.h>
 
 namespace askap {
 
@@ -80,6 +81,35 @@ public:
    /// should be the dimension of arrays minus 1.
    /// @return the one dimensional slice at the given position
    PolXProducts slice(const casa::IPosition &pos);
+   
+   /// @brief obtain the slice at the given position
+   /// @details This method makes a slice of the underlying arrays along the polarisation axis 
+   /// at the given position for other dimensions. Note, unlike slice, this method makes a copy, so
+   /// it needs a read-only access to the original buffer. 
+   /// @param[in] pos position vector for all axes except the last one (polarisation). The vector size
+   /// should be the dimension of arrays minus 1.
+   /// @return the one dimensional slice at the given position
+   PolXProducts roSlice(const casa::IPosition &pos) const;   
+   
+   /// @brief obtain the slice at the given position
+   /// @details This is a specialisation of the method which makes a slice of the underlying arrays along 
+   /// the polarisation axis at the given position for other dimensions. It is valid for 3-dimensional buffers
+   /// (x,y + polarisation dimension). Note, reference semantics implied. 
+   /// @param[in] x first coordinate
+   /// @param[in] y second coordinate
+   /// @return the one dimensional slice at the given position
+   inline PolXProducts slice(const casa::uInt x, const casa::uInt y) 
+     { return slice(casa::IPosition(2, casa::Int(x), casa::Int(y)));}
+   
+   /// @brief obtain the slice at the given position
+   /// @details This specialisation works with 3-dimensional buffers (x,y + polarisation dimension) and takes
+   /// the coordinates of the slice position explicitly. 
+   /// @param[in] x first coordinate
+   /// @param[in] y second coordinate
+   /// @return the one dimensional slice at the given position
+   inline PolXProducts roSlice(const casa::uInt x, const casa::uInt y) const
+     { return roSlice(casa::IPosition(2, casa::Int(x), casa::Int(y)));}
+   
    
    /// @brief resize the arrays storing products
    /// @details After a call to this method the class is put to the same state as after the call
@@ -160,6 +190,14 @@ public:
    inline casa::uInt nPol() const { return itsNPol; }
 
 protected:   
+   /// @brief setup a slicer for a given position
+   /// @details This is a helper method used in methods making a slice along polarisation dimension.
+   /// Given the position, it forms a slicer object for buffer arrays.
+   /// @param[in] pos position vector for all axes except the last one (polarisation). The vector size
+   /// should be the dimension of arrays minus 1.
+   /// @return an instance of the slicer object
+   casa::Slicer getSlicer(const casa::IPosition &pos) const;      
+
    /// @brief polarisation index for a given pair of polarisations
    /// @details We need to keep track of cross-polarisation products. These cross-products are
    /// kept alongside with the parallel-hand products in the same cube. This method translates
