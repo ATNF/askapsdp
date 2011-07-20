@@ -302,6 +302,9 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
        }
        const casa::uInt bufRow = casa::uInt(matchRow);
        ASKAPDEBUGASSERT(bufRow < itsFlag.nrow());
+       // making a slice referenced to the full cross-product buffer
+       scimath::PolXProducts pxpSlice = itsPolXProducts.slice(bufRow,0);
+       // the code below works with this 1D slice
        for (casa::uInt chan = 0; chan<acc.nChannel(); ++chan) {
             for (casa::uInt pol = 0; pol<acc.nPol(); ++pol) {
                  if ((pol < bufferNPol) && !measuredFlag(row,chan,pol)) {
@@ -312,11 +315,13 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
                      itsPolXProducts.add(bufRow,0,pol,pol,
                                weight * casa::norm(model), weight * std::conj(model) * measuredVis(row,chan,pol));
                      // now fill cross-terms
-                     for (casa::uInt pol2 = 0; pol2<pol; ++pol2) {
+                     for (casa::uInt pol2 = 0; pol2<acc.nPol(); ++pol2) {
                           // different polarisations can have different weight?
                           // ignoring for now
-                          itsPolXProducts.add(bufRow,0,pol,pol2, weight * std::conj(model) * modelVis(row,chan,pol2),
-                               weight * std::conj(model) * measuredVis(row,chan,pol2));
+                          pxpSlice.addModelMeasProduct(pol,pol2,weight * std::conj(model) * measuredVis(row,chan,pol2));
+                          if (pol2<=pol) {
+                              pxpSlice.addModelProduct(pol,pol2, weight * std::conj(model) * modelVis(row,chan,pol2));
+                          }
                      }
                      //std::cout<<"accumulated ("<<bufRow<<","<<pol<<"): "<<model<<" "<<measuredVis(row,chan,pol)<<std::endl;
                      // unflag this row because it now has some data
