@@ -419,14 +419,20 @@ namespace askap
                 }
            }
            
-           /*
+           // check that data vectors obtained by these two approaches match
+           
            for (size_t par=0; par<unknowns1.size(); ++par) {
                 const std::string parName = unknowns1[par];                
-                std::cout<<"par="<<parName<<" dataVector1 = "<<ne1.dataVector(parName)<<
-                           " dataVector2 = "<<ne2.dataVector(parName)<<std::endl;
+                CPPUNIT_ASSERT(contained(unknowns2,parName));
+                const casa::Vector<double> dv1 = ne1.dataVector(parName);
+                const casa::Vector<double> dv2 = ne2.dataVector(parName);
+                CPPUNIT_ASSERT_EQUAL(dv1.nelements(),dv2.nelements());
+                for (size_t index=0; index<dv1.nelements(); ++index) {
+                     // we use single precision Complex and have large numbers like 100. squared
+                     // and subtracted, therefore the tolerance is set to a somewhat high value 
+                     CPPUNIT_ASSERT_DOUBLES_EQUAL(dv1[index],dv2[index],1e-4);
+                }
            }
-           */
-           
         }
     protected:
         /// @brief helper method to check the presence of an element

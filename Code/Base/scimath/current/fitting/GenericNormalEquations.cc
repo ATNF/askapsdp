@@ -357,8 +357,8 @@ void GenericNormalEquations::add(const ComplexDiffMatrix &cdm, const PolXProduct
                       const ComplexDiff &cd2 = cdm(p,p2);
                       const casa::Complex val2 = cd2.value();
                       const casa::Complex modelProduct = pxp.getModelProduct(p1,p2);
-                      dataVector[0] -= real(conj(rowParDerivRe1) * modelProduct);
-                      dataVector[1] -= real(conj(rowParDerivIm1) * modelProduct);                      
+                      dataVector[0] -= real(conj(rowParDerivRe1) * val2 * modelProduct);
+                      dataVector[1] -= real(conj(rowParDerivIm1) * val2 * modelProduct);                      
                  }
             }
        }
