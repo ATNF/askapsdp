@@ -184,6 +184,55 @@ public:
    /// @param[in] modelMeasProduct a complex number to add to the modelMeasProduct buffer   
    void add(const casa::uInt x, const casa::uInt y, const casa::uInt pol1, const casa::uInt pol2, 
             const casa::Complex modelProduct, const casa::Complex modelMeasProduct);
+            
+   /// @brief add to the model product buffer
+   /// @details The real usage of the model product buffer. This method encapsulates
+   /// index handling and adds up the given complex value to the buffer of model cross-products.
+   /// This version of the method is intended for 3-dimensional buffers.
+   /// @param[in] x first coordinate
+   /// @param[in] y second coordinate
+   /// @param[in] pol1 first polarisation coordinate of the pair forming the product
+   /// @param[in] pol2 second polarisation coordinate of the pair forming the product
+   /// @param[in] modelProduct a complex number to add to the modelProduct buffer   
+   /// @note to avoid bugs with unnecessary addition we enforce here that pol1>=pol2
+   void addModelProduct(const casa::uInt x, const casa::uInt y, const casa::uInt pol1, 
+            const casa::uInt pol2, const casa::Complex modelProduct);   
+
+   /// @brief add to the model product buffer
+   /// @details The real usage of the model product buffer. This method encapsulates
+   /// index handling and adds up the given complex value to the buffer of model cross-products.
+   /// This version of the method is intended for 1-dimensional buffers.
+   /// @param[in] pol1 first polarisation coordinate of the pair forming the product
+   /// @param[in] pol2 second polarisation coordinate of the pair forming the product
+   /// @param[in] modelProduct a complex number to add to the modelProduct buffer   
+   /// @note to avoid bugs with unnecessary addition we enforce here that pol1>=pol2
+   void addModelProduct(const casa::uInt pol1, const casa::uInt pol2, const casa::Complex modelProduct);   
+   
+   /// @brief add to the model and measured product buffer
+   /// @details The real usage of the model and measured product buffer. This method encapsulates
+   /// index handling and adds up the given complex value to the buffer of model by measured cross-products.
+   /// This version of the method is intended for 3-dimensional buffers.
+   /// @param[in] x first coordinate
+   /// @param[in] y second coordinate
+   /// @param[in] pol1 first polarisation coordinate of the pair forming the product
+   /// @param[in] pol2 second polarisation coordinate of the pair forming the product
+   /// @param[in] modelMeasProduct a complex number to add to the modelMeasProduct buffer   
+   /// @note For cross-products between model and measured data any combination of pol1 and
+   /// pol2 is allowed (i.e. there is no restriction that pol1>=pol2)
+   void addModelMeasProduct(const casa::uInt x, const casa::uInt y, const casa::uInt pol1, 
+            const casa::uInt pol2, const casa::Complex modelMeasProduct);   
+
+   /// @brief add to the model and measured product buffer
+   /// @details The real usage of the model and measured product buffer. This method encapsulates
+   /// index handling and adds up the given complex value to the buffer of model by measured cross-products.
+   /// This version of the method is intended for 1-dimensional buffers.
+   /// @param[in] pol1 first polarisation coordinate of the pair forming the product
+   /// @param[in] pol2 second polarisation coordinate of the pair forming the product
+   /// @param[in] modelMeasProduct a complex number to add to the modelMeasProduct buffer   
+   /// @note For cross-products between model and measured data any combination of pol1 and
+   /// pol2 is allowed (i.e. there is no restriction that pol1>=pol2)
+   void addModelMeasProduct(const casa::uInt pol1, const casa::uInt pol2, const casa::Complex modelMeasProduct);   
+   
    
    /// @brief obtain number of polarisations
    /// @return the number of polarisations
@@ -195,8 +244,9 @@ protected:
    /// Given the position, it forms a slicer object for buffer arrays.
    /// @param[in] pos position vector for all axes except the last one (polarisation). The vector size
    /// should be the dimension of arrays minus 1.
+   /// @param[in] forMeasProduct if true the last dimension of the array is assumed to be npol squared
    /// @return an instance of the slicer object
-   casa::Slicer getSlicer(const casa::IPosition &pos) const;      
+   casa::Slicer getSlicer(const casa::IPosition &pos, bool forMeasProduct) const;      
 
    /// @brief polarisation index for a given pair of polarisations
    /// @details We need to keep track of cross-polarisation products. These cross-products are

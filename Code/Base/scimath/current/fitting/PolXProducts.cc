@@ -55,7 +55,7 @@ PolXProducts::PolXProducts(const casa::uInt npol) : itsNPol(npol) {}
 /// fills them with zeros.
 PolXProducts::PolXProducts(const casa::uInt npol, const casa::IPosition &shape, const bool doZero) : itsNPol(npol),
      itsModelProducts(shape.concatenate(casa::IPosition(1,int(npol*(npol+1)/2)))),
-     itsModelMeasProducts(shape.concatenate(casa::IPosition(1,int(npol*(npol+1)/2)))) 
+     itsModelMeasProducts(shape.concatenate(casa::IPosition(1,int(npol*npol)))) 
 {
   if (doZero) {
       itsModelProducts.set(0.);
@@ -71,14 +71,15 @@ PolXProducts::PolXProducts(const casa::uInt npol, const casa::IPosition &shape, 
 /// @return the one dimensional slice at the given position
 PolXProducts PolXProducts::slice(const casa::IPosition &pos) 
 {
-  ASKAPDEBUGASSERT(itsModelMeasProducts.shape() == itsModelProducts.shape());
-  // setup the Slicer  
-  const casa::Slicer slc = getSlicer(pos);
+  const casa::uInt nDim = itsModelMeasProducts.shape().nelements();
+  ASKAPDEBUGASSERT(nDim == itsModelProducts.shape().nelements());
+  ASKAPASSERT(nDim>0);
+  ASKAPDEBUGASSERT(itsModelMeasProducts.shape().getFirst(nDim-1) == itsModelProducts.shape().getFirst(nDim-1));
 
   PolXProducts result(nPol());
   // take the slices. Note, the reference method is used here. The assignment operator makes a copy!
-  result.itsModelProducts.reference(itsModelProducts(slc).nonDegenerate());
-  result.itsModelMeasProducts.reference(itsModelMeasProducts(slc).nonDegenerate());
+  result.itsModelProducts.reference(itsModelProducts(getSlicer(pos,false)).nonDegenerate());
+  result.itsModelMeasProducts.reference(itsModelMeasProducts(getSlicer(pos,true)).nonDegenerate());
   return result;
 }
 
@@ -87,13 +88,14 @@ PolXProducts PolXProducts::slice(const casa::IPosition &pos)
 /// Given the position, it forms a slicer object for buffer arrays.
 /// @param[in] pos position vector for all axes except the last one (polarisation). The vector size
 /// should be the dimension of arrays minus 1.
+/// @param[in] forMeasProduct if true the last dimension of the array is assumed to be npol squared
 /// @return an instance of the slicer object
-casa::Slicer PolXProducts::getSlicer(const casa::IPosition &pos) const
+casa::Slicer PolXProducts::getSlicer(const casa::IPosition &pos, bool forMeasProduct) const
 {
   ASKAPDEBUGASSERT(nPol()>0);
   ASKAPDEBUGASSERT(pos.nelements() + 1 == itsModelProducts.shape().nelements());
   // setup Slicer  
-  const casa::IPosition endPos = pos.concatenate(casa::IPosition(1,int(nPol()*(nPol()+1)/2-1)));
+  const casa::IPosition endPos = pos.concatenate(casa::IPosition(1,int(forMeasProduct ? nPol()*nPol()-1 : nPol()*(nPol()+1)/2-1)));
   casa::IPosition startPos(endPos);
   startPos(pos.nelements()) = 0;
   return casa::Slicer(startPos, endPos, casa::Slicer::endIsLast);
@@ -109,9 +111,10 @@ casa::Slicer PolXProducts::getSlicer(const casa::IPosition &pos) const
 /// @return the one dimensional slice at the given position
 PolXProducts PolXProducts::roSlice(const casa::IPosition &pos) const
 {
-  ASKAPDEBUGASSERT(itsModelMeasProducts.shape() == itsModelProducts.shape());
-  // setup the Slicer  
-  const casa::Slicer slc = getSlicer(pos);
+  const casa::uInt nDim = itsModelMeasProducts.shape().nelements();
+  ASKAPDEBUGASSERT(nDim == itsModelProducts.shape().nelements());
+  ASKAPASSERT(nDim>0);
+  ASKAPDEBUGASSERT(itsModelMeasProducts.shape().getFirst(nDim-1) == itsModelProducts.shape().getFirst(nDim-1));
 
   PolXProducts result(nPol());
 
@@ -121,11 +124,11 @@ PolXProducts PolXProducts::roSlice(const casa::IPosition &pos) const
 
   casa::Array<casa::Complex> & modelProducts = const_cast<casa::Array<casa::Complex>&>(itsModelProducts);
   // assignment operator for arrays makes a copy!
-  result.itsModelProducts = modelProducts(slc).nonDegenerate();
+  result.itsModelProducts = modelProducts(getSlicer(pos,false)).nonDegenerate();
 
   casa::Array<casa::Complex> & modelMeasProducts = const_cast<casa::Array<casa::Complex>&>(itsModelMeasProducts);
   // assignment operator for arrays makes a copy!
-  result.itsModelMeasProducts = modelMeasProducts(slc).nonDegenerate();
+  result.itsModelMeasProducts = modelMeasProducts(getSlicer(pos,true)).nonDegenerate();
   return result;  
 }
 
@@ -149,9 +152,10 @@ void PolXProducts::resize(const casa::uInt npol, const casa::IPosition &shape, c
 /// @param[in] doZero if true (default), the buffer arrays are filled with zeros. 
 void PolXProducts::resize(const casa::IPosition &shape, const bool doZero)
 {
-  const casa::IPosition targetShape = shape.concatenate(casa::IPosition(1,int(itsNPol*(itsNPol+1)/2)));
-  itsModelProducts.resize(targetShape);
-  itsModelMeasProducts.resize(targetShape); 
+  const casa::IPosition targetShapeModel = shape.concatenate(casa::IPosition(1,int(itsNPol*(itsNPol+1)/2)));
+  const casa::IPosition targetShapeMeas = shape.concatenate(casa::IPosition(1,int(itsNPol*itsNPol)));
+  itsModelProducts.resize(targetShapeModel);
+  itsModelMeasProducts.resize(targetShapeMeas); 
   if (doZero) {
       reset();
   }  
@@ -226,14 +230,8 @@ casa::Complex PolXProducts::getModelMeasProduct(const casa::uInt x, const casa::
 {
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 3);
 
-  // products are indexed with the first polarisation index being the largest. If the pol1<pol2 pair
-  // is requested we need to conjugate
-  if (pol1 >= pol2) { 
-      const int index = int(polToIndex(pol1,pol2));
-      return itsModelMeasProducts(casa::IPosition(3,int(x),int(y),index));
-  }
-  const int index = int(polToIndex(pol2,pol1));
-  return conj(itsModelMeasProducts(casa::IPosition(3,int(x),int(y),index)));  
+  const int index = int(pol1 + nPol() * pol2);
+  return itsModelMeasProducts(casa::IPosition(3,int(x),int(y),index));
 }
                                                 
     
@@ -247,14 +245,8 @@ casa::Complex PolXProducts::getModelMeasProduct(const casa::uInt x, const casa::
 casa::Complex PolXProducts::getModelMeasProduct(const casa::uInt pol1, const casa::uInt pol2) const
 {
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 1);
-  // products are indexed with the first polarisation index being the largest. If the pol1<pol2 pair
-  // is requested we need to conjugate
-  if (pol1 >= pol2) { 
-      const int index = int(polToIndex(pol1,pol2));
-      return itsModelMeasProducts(casa::IPosition(1,index));
-  }
-  const int index = int(polToIndex(pol2,pol1));
-  return conj(itsModelMeasProducts(casa::IPosition(1,index)));  
+  const int index = int(pol1 + nPol() * pol2);
+  return itsModelMeasProducts(casa::IPosition(1,index));  
 }
 
    
@@ -271,15 +263,91 @@ casa::Complex PolXProducts::getModelMeasProduct(const casa::uInt pol1, const cas
 void PolXProducts::add(const casa::uInt x, const casa::uInt y, const casa::uInt pol1, const casa::uInt pol2, 
             const casa::Complex modelProduct, const casa::Complex modelMeasProduct)
 {
+  // all necessary checks are done inside addModelProduct
+  addModelProduct(x,y,pol1,pol2,modelProduct);
+  itsModelMeasProducts(casa::IPosition(3,int(x),int(y),int(pol1 + nPol() * pol2))) += modelMeasProduct;
+}
+
+/// @brief add to the model product buffer
+/// @details The real usage of the model product buffer. This method encapsulates
+/// index handling and adds up the given complex value to the buffer of model cross-products.
+/// This version of the method is intended for 3-dimensional buffers.
+/// @param[in] x first coordinate
+/// @param[in] y second coordinate
+/// @param[in] pol1 first polarisation coordinate of the pair forming the product
+/// @param[in] pol2 second polarisation coordinate of the pair forming the product
+/// @param[in] modelProduct a complex number to add to the modelProduct buffer   
+/// @note to avoid bugs with unnecessary addition we enforce here that pol1>=pol2
+void PolXProducts::addModelProduct(const casa::uInt x, const casa::uInt y, const casa::uInt pol1, 
+            const casa::uInt pol2, const casa::Complex modelProduct)
+{
   ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 3);
   ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 3);
-  // we can enforce pol1 >= pol2 here making the user responsible for correct conjugation of the cross terms
-  // this is just the easiest option because technically we don't need generality
+  // enforcing pol1 >= pol2 here to avoid bugs in the code using this method (although it is not
+  // required technically and we could've just conjugate the input value if this condition is not
+  // fulfilled)
   ASKAPDEBUGASSERT(pol1 >= pol2);
   const int index = int(polToIndex(pol1,pol2));
   const casa::IPosition pos(3,int(x),int(y),index);
-  itsModelProducts(pos) += modelProduct;
-  itsModelMeasProducts(pos) += modelMeasProduct;
+  itsModelProducts(pos) += modelProduct;   
+}            
+
+/// @brief add to the model product buffer
+/// @details The real usage of the model product buffer. This method encapsulates
+/// index handling and adds up the given complex value to the buffer of model cross-products.
+/// This version of the method is intended for 1-dimensional buffers.
+/// @param[in] pol1 first polarisation coordinate of the pair forming the product
+/// @param[in] pol2 second polarisation coordinate of the pair forming the product
+/// @param[in] modelProduct a complex number to add to the modelProduct buffer   
+/// @note to avoid bugs with unnecessary addition we enforce here that pol1>=pol2
+void PolXProducts::addModelProduct(const casa::uInt pol1, const casa::uInt pol2, const casa::Complex modelProduct)
+{
+  ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 1);
+  ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 1);
+  // enforcing pol1 >= pol2 here to avoid bugs in the code using this method (although it is not
+  // required technically and we could've just conjugate the input value if this condition is not
+  // fulfilled)
+  ASKAPDEBUGASSERT(pol1 >= pol2);
+  const int index = int(polToIndex(pol1,pol2));
+  itsModelProducts(casa::IPosition(1,index)) += modelProduct;
+}
+   
+/// @brief add to the model and measured product buffer
+/// @details The real usage of the model and measured product buffer. This method encapsulates
+/// index handling and adds up the given complex value to the buffer of model by measured cross-products.
+/// This version of the method is intended for 3-dimensional buffers.
+/// @param[in] x first coordinate
+/// @param[in] y second coordinate
+/// @param[in] pol1 first polarisation coordinate of the pair forming the product
+/// @param[in] pol2 second polarisation coordinate of the pair forming the product
+/// @param[in] modelMeasProduct a complex number to add to the modelMeasProduct buffer   
+/// @note For cross-products between model and measured data any combination of pol1 and
+/// pol2 is allowed (i.e. there is no restriction that pol1>=pol2)
+void PolXProducts::addModelMeasProduct(const casa::uInt x, const casa::uInt y, const casa::uInt pol1, 
+         const casa::uInt pol2, const casa::Complex modelMeasProduct)
+{
+  ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 3);
+  ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 3);
+  const int index = int(pol1 + nPol() * pol2);
+  const casa::IPosition pos(3,int(x),int(y),index);
+  itsModelMeasProducts(pos) += modelMeasProduct;   
+}            
+
+/// @brief add to the model and measured product buffer
+/// @details The real usage of the model and measured product buffer. This method encapsulates
+/// index handling and adds up the given complex value to the buffer of model by measured cross-products.
+/// This version of the method is intended for 1-dimensional buffers.
+/// @param[in] pol1 first polarisation coordinate of the pair forming the product
+/// @param[in] pol2 second polarisation coordinate of the pair forming the product
+/// @param[in] modelMeasProduct a complex number to add to the modelMeasProduct buffer   
+/// @note For cross-products between model and measured data any combination of pol1 and
+/// pol2 is allowed (i.e. there is no restriction that pol1>=pol2)
+void PolXProducts::addModelMeasProduct(const casa::uInt pol1, const casa::uInt pol2, const casa::Complex modelMeasProduct)
+{
+  ASKAPDEBUGASSERT(itsModelProducts.shape().nelements() == 1);
+  ASKAPDEBUGASSERT(itsModelMeasProducts.shape().nelements() == 1);
+  const int index = int(pol1 + nPol() * pol2);
+  itsModelMeasProducts(casa::IPosition(1,index)) += modelMeasProduct;
 }
    
 /// @brief polarisation index for a given pair of polarisations

@@ -47,6 +47,7 @@ class PolXProductsTest : public CppUnit::TestFixture
   CPPUNIT_TEST(testSlice);
   CPPUNIT_TEST(testResize);
   CPPUNIT_TEST(testPolIndices);
+  CPPUNIT_TEST(testAdd);
 #ifdef ASKAP_DEBUG  
   // dimension mismatch is detected in the debug mode only
   CPPUNIT_TEST_EXCEPTION(testDimensionMismatch, askap::AssertError);
@@ -130,7 +131,8 @@ public:
                          if (p1 != p2) {
                              // test conjugation
                              compareComplex(cTag, conj(slice.getModelProduct(p2,p1)));
-                             compareComplex(-cTag, conj(slice.getModelMeasProduct(p2,p1)));                             
+                             // we didn't set anything for the model by measured product for p2>p1
+                             compareComplex(0., slice.getModelMeasProduct(p2,p1));                             
                          }
                     }
                }
@@ -210,6 +212,72 @@ public:
      CPPUNIT_ASSERT_EQUAL(4u,pxp.nPol());
      // the following will throw an exception
      pxp.getModelProduct(0,1);     
+  }
+  
+  void testAdd() {
+     PolXProducts pxp(4,casa::IPosition(2,3,5),true);
+     CPPUNIT_ASSERT_EQUAL(4u,pxp.nPol());
+     // fill the buffers with different values
+     for (casa::uInt x=0; x<3; ++x) {
+          for (casa::uInt y=0; y<5; ++y) {
+               for (casa::uInt p1=0; p1<pxp.nPol(); ++p1) {
+                    for (casa::uInt p2=0; p2<pxp.nPol(); ++p2) {
+                         // unique value for every product
+                         const float tagValue = 10.*x+100.*y+float(p1)+0.1*p2;
+                         const casa::Complex cTag(tagValue,-tagValue);
+                         pxp.addModelMeasProduct(x,y,p1,p2,cTag);
+                         if (p2<=p1) {
+                             pxp.addModelProduct(x,y,p1,p2,-cTag);
+                         }
+                    }
+               }
+          }
+     }
+     // now check all elements, check 1D vectors through the slices, check
+     // reference semantics by updating elements via slices
+     for (casa::uInt x=0; x<3; ++x) {
+          for (casa::uInt y=0; y<5; ++y) {
+               PolXProducts slice = pxp.slice(x,y);
+               const PolXProducts roSlice = pxp.roSlice(x,y);
+               CPPUNIT_ASSERT_EQUAL(pxp.nPol(),slice.nPol());
+               CPPUNIT_ASSERT_EQUAL(pxp.nPol(),roSlice.nPol());
+               for (casa::uInt p1=0; p1<slice.nPol(); ++p1) {
+                    for (casa::uInt p2=0; p2<slice.nPol(); ++p2) {
+                         const float tagValue = 10.*x+100.*y+float(p1)+0.1*p2;
+                         const casa::Complex cTag(tagValue,-tagValue);
+                         compareComplex(cTag, roSlice.getModelMeasProduct(p1,p2));
+                         compareComplex(cTag, slice.getModelMeasProduct(p1,p2));
+                         compareComplex(cTag, pxp.getModelMeasProduct(x,y,p1,p2));
+                         if (p1 >= p2) {
+                             compareComplex(-cTag, slice.getModelProduct(p1,p2));
+                             compareComplex(-cTag, roSlice.getModelProduct(p1,p2));
+                             compareComplex(-cTag, pxp.getModelProduct(x,y,p1,p2));                             
+                         } else {
+                             // model products should be equal to the conjugated product for (p2,p1)  
+                             const casa::Complex expected = conj(roSlice.getModelProduct(p2,p1));
+                             // do checks
+                             compareComplex(expected, roSlice.getModelProduct(p1,p2));
+                             compareComplex(expected, slice.getModelProduct(p1,p2));
+                             compareComplex(expected, pxp.getModelProduct(x,y,p1,p2));                             
+                         }
+                         // now modify the sum via the read-write 1D slice
+                         slice.addModelMeasProduct(p1,p2,-cTag);
+                         // roSlice has been decoupled, other buffers should give 0.
+                         compareComplex(cTag, roSlice.getModelMeasProduct(p1,p2));
+                         compareComplex(0., slice.getModelMeasProduct(p1,p2));
+                         compareComplex(0., pxp.getModelMeasProduct(x,y,p1,p2));
+                         if (p1 >= p2) {
+                             slice.addModelProduct(p1,p2,cTag);
+                             // roSlice has been decoupled, other buffers should give 0.
+                             compareComplex(-cTag, roSlice.getModelProduct(p1,p2));
+                             compareComplex(0., slice.getModelProduct(p1,p2));
+                             compareComplex(0., pxp.getModelProduct(x,y,p1,p2));                                                          
+                         }                         
+                    }
+               }
+          }
+     }
+     checkAllElementsAreZero(pxp,3,5);     
   }
 };
 
