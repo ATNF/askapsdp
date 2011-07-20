@@ -115,56 +115,11 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
 
        scimath::ComplexDiffMatrix cdm = buildComplexDiffMatrix(itsBuffer, row); 
        for (casa::uInt chan = 0; chan < itsBuffer.nChannel(); ++chan) {
-            casa::uInt tempSz = itsBuffer.nPol() >= 2 ? itsBuffer.nPol() - 2 : 0;
-            ++tempSz; 
             
-            scimath::ComplexDiffMatrix cdVect(/*itsBuffer.nPol()*/ tempSz * itsBuffer.nPol(),1,0.);
-            casa::Vector<casa::Complex> measuredVect(cdVect.nRow()); // size is nPol*nPol (for cross-terms)
-            
-            // take a slice, so we don't need to index along the first two axes inside the following loops
+            // take a slice, this takes care of indices along the first two axes (row and channel)
             const scimath::PolXProducts pxpSlice = polXProducts.roSlice(row,chan);
-            
-            // we have nPol x nPol equations (each original design equation is 
-            // multiplied by conjugate of Vpol1)
-            for (casa::uInt pol1 = 0, eqn = 0; pol1<itsBuffer.nPol(); ++pol1)   {
-                 for (casa::uInt pol2 = 0; pol2 < itsBuffer.nPol(); ++pol2, ++eqn) {
-                      if ((pol1 != pol2) && ((pol2==0) || (pol2+1 == itsBuffer.nPol()))) {
-                          --eqn;
-                          continue;
-                      }
-                      ASKAPDEBUGASSERT(eqn < measuredVect.nelements());
-                      ASKAPDEBUGASSERT(eqn < cdVect.nRow());
-
-                      measuredVect[eqn] = pxpSlice.getModelMeasProduct(pol1,pol2);
-                      
-                      // this loop is to form the matrix element
-                      for (casa::uInt pol = 0; pol < itsBuffer.nPol(); ++pol) {
-                           cdVect[eqn] += cdm(pol2,pol) * pxpSlice.getModelProduct(pol1, pol);
-                      }
-                 }
-            }
-
-            scimath::DesignMatrix designmatrix;
-            designmatrix.addModel(cdVect, measuredVect, 
-                 casa::Vector<double>(measuredVect.nelements(),1.));      
-            ne.add(designmatrix);            
+            ne.add(cdm,pxpSlice);
        }
-
-       /*
-       scimath::ComplexDiffMatrix cdm = buildComplexDiffMatrix(itsBuffer, row) *       
-            scimath::ComplexDiffMatrix(sumModelAmps);
-       casa::Matrix<casa::Complex> tempMeasured = itsBuffer.sumVisProducts().yzPlane(row);     
-       casa::Matrix<casa::Complex> measuredSlice = transpose(tempMeasured(casa::Slice(),
-                                                             casa::Slice(0,itsBuffer.nPol())));
-       //std::cout<<"row="<<row<<" measuredSlice="<<casa::Vector<casa::Complex>(measuredSlice)<<" "<<cdm(1,0).value()<<std::endl;
-       
-       scimath::DesignMatrix designmatrix;
-       // we can probably add below actual weights taken from the data accessor
-       designmatrix.addModel(cdm, measuredSlice, 
-                 casa::Matrix<double>(measuredSlice.nrow(),
-                 measuredSlice.ncolumn(),1.));      
-       ne.add(designmatrix);
-       */
   }
 }
   

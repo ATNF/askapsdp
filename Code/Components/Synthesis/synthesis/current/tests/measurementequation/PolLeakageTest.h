@@ -207,12 +207,9 @@ namespace askap
           for (std::vector<std::string>::const_iterator it = freeNames.begin();
                it!=freeNames.end();++it) {
                CPPUNIT_ASSERT(itsParams2->has(*it));
-               CPPUNIT_ASSERT(itsParams1->has(*it));               
-               /*
-               // to be uncommented when the problem is fixed
+               CPPUNIT_ASSERT(itsParams1->has(*it));                              
                CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(itsParams2->complexValue(*it) -
-                                            itsParams1->complexValue(*it)), 1e-6);
-               */
+                                            itsParams1->complexValue(*it)), 1e-6);               
           }                   
       }
       

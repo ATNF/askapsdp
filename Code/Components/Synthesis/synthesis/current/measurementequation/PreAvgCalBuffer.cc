@@ -303,6 +303,7 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
        const casa::uInt bufRow = casa::uInt(matchRow);
        ASKAPDEBUGASSERT(bufRow < itsFlag.nrow());
        // making a slice referenced to the full cross-product buffer
+       // the only supported case is averaging of all frequency channels together
        scimath::PolXProducts pxpSlice = itsPolXProducts.slice(bufRow,0);
        // the code below works with this 1D slice
        for (casa::uInt chan = 0; chan<acc.nChannel(); ++chan) {
@@ -311,10 +312,6 @@ void PreAvgCalBuffer::accumulate(const IConstDataAccessor &acc, const boost::sha
                      const casa::Complex model = modelVis(row,chan,pol);
                      const float visNoise = casa::square(casa::real(measuredNoise(row,chan,pol)));
                      const float weight = (visNoise > 0.) ? 1./visNoise : 0.;
-                     // the only supported case is averaging of all frequency channels together
-                     itsPolXProducts.add(bufRow,0,pol,pol,
-                               weight * casa::norm(model), weight * std::conj(model) * measuredVis(row,chan,pol));
-                     // now fill cross-terms
                      for (casa::uInt pol2 = 0; pol2<acc.nPol(); ++pol2) {
                           // different polarisations can have different weight?
                           // ignoring for now

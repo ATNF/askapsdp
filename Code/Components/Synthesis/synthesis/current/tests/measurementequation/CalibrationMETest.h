@@ -62,7 +62,7 @@ namespace askap
     class CalibrationMETest : public CppUnit::TestFixture
     {
       CPPUNIT_TEST_SUITE(CalibrationMETest);
-      //CPPUNIT_TEST(testSolveNoPreAvg);
+      CPPUNIT_TEST(testSolveNoPreAvg);
       CPPUNIT_TEST(testSolvePreAvg);      
       CPPUNIT_TEST(testSolvePreAvg2);      
       CPPUNIT_TEST_SUITE_END();
