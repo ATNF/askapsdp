@@ -23,9 +23,11 @@
  */
 package askap.cp.manager.rman;
 
+// System imports
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+// ASAKPsoft imports
 import org.apache.log4j.Logger;
 
 /**
@@ -170,4 +172,8 @@ public class QJob implements IJob {
         return status;
 	}
 
+    @Override
+    public String toString() {
+    	return this.getId();
+    }
 }

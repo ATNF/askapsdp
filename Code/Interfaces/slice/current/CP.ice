@@ -34,6 +34,20 @@ module interfaces
 module cp
 {
     /**
+     * Used to indicate the specified scheduling block does not exist
+     */
+    exception NoSuchSchedulingBlockException extends askap::interfaces::AskapIceException
+    {
+    };
+
+    /**
+     * Used to indicate the ingest pipeline is already running.
+     */
+    exception AlreadyRunningException extends askap::interfaces::AskapIceException
+    {
+    };
+
+    /**
      * Observing Service
      *
      * This service is used in association with the Telescope Operating System
@@ -52,8 +66,14 @@ module cp
          * telescope operating system. The central processor takes some time to
          * prepare for an observation (on the order of a few seconds), hence the
          * need to indicate when it is ready by blocking.
+         * @throws NoSuchSchedulingBlockException   if the schheduling block id
+         *              is not valid (i.e. not known to the data service)
+         * @throws AlreadyRunningException  if an observation is already in
+         *              in progress. This observation must either be aborted or
+         *              left to conclude normally.
          */
-        ["ami"] void startObs(long sbid);
+        ["ami"] void startObs(long sbid) throws NoSuchSchedulingBlockException,
+            AlreadyRunningException;
 
         /**
          * Calling this method instructs the central processor to abort the

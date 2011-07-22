@@ -23,6 +23,9 @@
  */
 package askap.cp.manager.rman;
 
+// System imports
+import java.io.File;
+
 /**
  * Interface to the resource manager.
  */
@@ -39,9 +42,10 @@ public interface IResourceManager {
 	
     /**
      * Submit a new job for execution
-     * @param jobTemplate	template for the job to submit.
-     * @param queue		name of the queue to submit the job to.
+     * @param jobfile	the job file to submit.
+     * @param workdir	the working directory from which the job will 
+     * 					be executed.
      * @return			a object which references the submitted job.
      */
-    public IJob submitJob(JobTemplate jobTemplate, final String queue);
+    public IJob submitJob(final File jobfile, final File workdir);
 }

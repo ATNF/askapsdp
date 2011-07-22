@@ -25,14 +25,12 @@ package askap.cp.manager.rman;
 
 // System imports
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Map;
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
-
-import askap.cp.manager.rman.JobTemplate.DependType;
 
 /**
  * An implementation of IResourceManager which uses the qsub/qstat command
@@ -50,7 +48,7 @@ public class QResourceManager implements IResourceManager {
 	public ServerStatus getStatus() {
 		int status = -1;
 		try {
-			Process p = Runtime.getRuntime().exec("qsub");
+			Process p = Runtime.getRuntime().exec("qstat");
 			status = p.waitFor();
 		} catch (IOException e) {
 			logger.info("Failed to exec: " + e.getMessage());
@@ -71,15 +69,12 @@ public class QResourceManager implements IResourceManager {
 	 * @see askap.cp.manager.rman.IResourceManager#submitJob(askap.cp.manager.rman.JobTemplate,
 	 *      java.lang.String)
 	 */
-	public IJob submitJob(JobTemplate template, String queue) {
-		// Build the command
-		String cmd = "qsub " + buildDependencyArg(template)
-			+ template.getScriptLocation();
-
+	public IJob submitJob(final File jobfile, final File workdir) {
+		String cmd = "qsub " + jobfile.getPath();
 		// Submit the job
 		int status = -1;
 		try {
-			Process p = Runtime.getRuntime().exec(cmd);
+			Process p = Runtime.getRuntime().exec(cmd, null, workdir);
 			status = p.waitFor();
 
 			if (status == 0) {
@@ -98,44 +93,6 @@ public class QResourceManager implements IResourceManager {
 			e.printStackTrace();
 			throw new RuntimeException(e.getClass().getName());
 		}
-	}
-
-	/**
-	 * Builds the dependency argument (to qsub) based on the dependencies
-	 * listed in the job template.
-	 * @param template	the job template which contains the dependencies.
-	 * @return the dependency argument to be passed to qsub
-	 */
-	String buildDependencyArg(JobTemplate template) {
-		Map<IJob, DependType> dependencies = template.getDependencies();
-		if (dependencies.size() == 0) {
-			return "";
-		}
-
-		String str = "-W depend=";
-		int count = 0;
-		for (Map.Entry<IJob, DependType> entry : dependencies.entrySet()) {
-			if (count > 0) {
-				str = str + ",";
-			}
-			QJob job = (QJob)entry.getKey();
-			switch (entry.getValue()) {
-			case AFTERSTART:
-				str = str + "after:" + job.getId();
-				break;
-			case AFTEROK:
-				str = str + "afterok:" + job.getId();
-				break;
-			case AFTERNOTOK:
-				str = str + "afternotok:" + job.getId();
-				break;
-			default:
-				logger.error("Unhandled dependency type");
-				break;
-			}
-			count++;
-		}
-		return str;
 	}
 
 }

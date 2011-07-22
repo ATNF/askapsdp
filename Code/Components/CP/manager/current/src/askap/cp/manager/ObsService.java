@@ -25,23 +25,50 @@
  */
 package askap.cp.manager;
 
+// Core Java imports
+import java.util.Map;
+
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
 import Ice.Current;
 import askap.interfaces.cp._ICPObsServiceDisp;
 
+// Local package includes
+import askap.cp.manager.ingest.IngestControl;
+import askap.cp.manager.rman.QResourceManager;
+import askap.cp.manager.svcclients.DataServiceClient;
+import askap.cp.manager.svcclients.FCMClient;
+
+
 public class ObsService extends _ICPObsServiceDisp {
 	
 	private static final long serialVersionUID = 1L;
-	
-    //private Ice.Communicator itsComm;
-	
-	/** Logger. */
+		
+	/**
+	 * Logger.
+	 */
 	private static Logger logger = Logger.getLogger(ObsService.class.getName());
+	
+	/**
+	 * Facility Configuration Manager client wrapper instance
+	 */
+	FCMClient itsFCM;
+	
+	/**
+	 * TOS Data Service client wrapper instance
+	 */
+	DataServiceClient itsDataService;
+	
+	/**
+	 * Ingest Pipeline Controller
+	 */
+	IngestControl itsIngestControl;
     
 	public ObsService(Ice.Communicator ic) {
-		//itsComm = ic;
 		logger.info("Creating ObsService");
+		itsFCM = new FCMClient(ic);
+		itsDataService = new DataServiceClient(ic);
+		itsIngestControl = new IngestControl(new QResourceManager());
 	}
 	
 	public void finalize() {
@@ -49,13 +76,30 @@ public class ObsService extends _ICPObsServiceDisp {
 	}
 	
 	@Override
-	public void abortObs(Current curr) {
-		// TODO Auto-generated method stub
+	public void startObs(long sbid, Current curr)
+			throws askap.interfaces.cp.NoSuchSchedulingBlockException,
+			askap.interfaces.cp.AlreadyRunningException
+	{
+		logger.debug("Querying FCM");
+		Map<String, String> fc = itsFCM.get();
+		
+		logger.debug("Getting observation parameters");
+		Map<String, String> obsParams;
+		
+		try {
+			obsParams = itsDataService.getObsParameters(sbid);
+		} catch (askap.interfaces.schedblock.NoSuchSchedulingBlockException e) {
+			String msg = "Scheduling block " + sbid + " does not exist";
+			throw new askap.interfaces.cp.NoSuchSchedulingBlockException(msg);
+		}
+		
+		// Blocking (until started)
+		itsIngestControl.start(fc, obsParams);
 	}
-
+	
 	@Override
-	public void startObs(long sbid, Current curr) {
-		// TODO Auto-generated method stub
+	public void abortObs(Current curr) {
+		// Blocking (until aborted)
+		itsIngestControl.abort();
 	}
-
 }

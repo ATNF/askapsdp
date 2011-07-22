@@ -21,37 +21,33 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  * 
+ * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
-package askap.cp.manager.rman;
+package askap.cp.manager.svcclients;
 
-/**
- * Interface to a class which encapsulates a batch job.
- */
-public interface IJob {
+// System imports
+import java.util.Map;
+
+// ASKAPsoft imports
+import org.apache.log4j.Logger;
+import askap.interfaces.schedblock.ISchedulingBlockServicePrx;
+import askap.interfaces.schedblock.ISchedulingBlockServicePrxHelper;
+import askap.interfaces.schedblock.NoSuchSchedulingBlockException;
+
+public class DataServiceClient {
 	
-	/**
-	 * Identifies the state the job is in.
-	 */
-    public enum JobStatus {
-        QUEUED,
-        RUNNING,
-        HELD,
-        COMPLETED,
-        UNKNOWN
-    }
-    
-    /**
-     * Returns the job state.
-     * @return the job state.
-     */
-    public JobStatus status();
-    
-    /**
-     * Abort the job. If the job is queued or held the job is simply 
-     * deleted from the queue. If the job is executing it is terminated.
-     */
-    public void abort();
-    
-    @Override
-    public String toString();
+	/** Logger. */
+	private static Logger logger = Logger.getLogger(DataServiceClient.class.getName());
+	
+	ISchedulingBlockServicePrx itsProxy;
+	
+	public DataServiceClient(Ice.Communicator ic) {
+		logger.info("Creating DataServiceClient");
+		Ice.ObjectPrx obj = ic.stringToProxy("SchedulingBlockService");
+		itsProxy = ISchedulingBlockServicePrxHelper.checkedCast(obj);
+	}
+	public Map<String, String> getObsParameters(long sbid)
+			throws NoSuchSchedulingBlockException {
+		return itsProxy.getObsParameters(sbid);
+	}
 }
