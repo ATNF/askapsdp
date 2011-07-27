@@ -57,14 +57,16 @@ module pksdatacapture
          *              in progress. The stop() method must be called before
          *              calling start again().
          */
-        ["ami"] void start() throws AlreadyRunningException;
+        ["ami"] void start(long sbid) throws AlreadyRunningException;
 
         /**
          * Calling this method instructs the data capture service to stop
          * the current data capture.
          *
-         * This method will block until the data capture has been stoped and
-         * the service is ready to start a new data capture.
+         * This method will block until the data capture has been stopped and
+         * the service is ready to start a new data capture. If this method is
+         * called when the service is already stopped (i.e. not running) this
+         * function returns without any action taken.
          */
         ["ami"] void stop();
     };
