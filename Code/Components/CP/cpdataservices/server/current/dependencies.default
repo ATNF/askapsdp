@@ -6,3 +6,6 @@ mysql-connector-java=3rdParty/mysql-connector-java/mysql-connector-java-5.1.15
 hsqldb=3rdParty/hsqldb/hsqldb-2.1.0-rc4
 javaiceinterfaces=Code/Interfaces/java/current
 java-askap=Code/Base/java-askap/current
+# The Python Slice interfaces are for the functests only
+pyiceinterfaces=Code/Interfaces/python/current
+

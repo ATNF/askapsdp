@@ -15,9 +15,6 @@ icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add calda
 sleep 2
 
 # Run the test
-INTERFACEDIR=$ASKAP_ROOT/Code/Interfaces/slice/current
-slice2py -I $INTERFACEDIR $INTERFACEDIR/CommonTypes.ice
-slice2py -I $INTERFACEDIR $INTERFACEDIR/Component.ice
 python test_transitions.py --Ice.Config=config.icegridadmin
 STATUS=$?
 
@@ -28,7 +25,6 @@ icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application remove ca
 ../stop_services.sh config.icegrid
 
 # Cleanup
-rm -f CommonTypes_ice.py Component_ice.py CommonTypes_ice.pyc Component_ice.pyc
 rm -rf askap
 
 exit $STATUS

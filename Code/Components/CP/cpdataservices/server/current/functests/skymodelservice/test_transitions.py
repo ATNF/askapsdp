@@ -47,8 +47,8 @@ import sys, traceback, Ice
 import askap
 
 # Import interfaces
-import CommonTypes_ice
-import Component_ice
+from askap.slice import CommonTypes
+from askap.slice import Component
 
 status = 0
 ic = None

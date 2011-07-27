@@ -2,3 +2,5 @@ ice=3rdParty/Ice/Ice-3.4.1
 log4j=3rdParty/apache-log4j/apache-log4j-1.2.15
 javaiceinterfaces=Code/Interfaces/java/current
 java-askap=Code/Base/java-askap/current
+# The Python Slice interfaces are for the functests only
+pyiceinterfaces=Code/Interfaces/python/current
