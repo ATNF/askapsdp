@@ -158,7 +158,8 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
      */
     @Override
     public String getVersion(Current curr) {
-        return "Not available";
+	Package p = this.getClass().getPackage();
+        return p.getImplementationVersion();
     }
 
 	/**
