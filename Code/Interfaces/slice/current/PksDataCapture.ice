@@ -41,6 +41,13 @@ module pksdatacapture
     };
 
     /**
+     * Used to indicate the scheduling block ID is not valid
+     */
+    exception InvalidSBException extends askap::interfaces::AskapIceException
+    {
+    };
+
+    /**
      * Parkes Data Capture Service
      */
     interface IPksDataCaptureService
@@ -56,8 +63,11 @@ module pksdatacapture
          * @throws AlreadyRunningException  if data capture is already in
          *              in progress. The stop() method must be called before
          *              calling start again().
+         * @throws InvalidSBException  if the scheduling block id is less
+         *                             than zero. 
          */
-        ["ami"] void start(long sbid) throws AlreadyRunningException;
+        ["ami"] void start(long sbid) throws AlreadyRunningException,
+            InvalidSBException;
 
         /**
          * Calling this method instructs the data capture service to stop
@@ -69,6 +79,16 @@ module pksdatacapture
          * function returns without any action taken.
          */
         ["ami"] void stop();
+        
+        /**
+         * Returns the state of the data capture service, which includes the
+         * ID of the scheduling block for which data capture is currently
+         * in progress.
+         *
+         * @return The scheduling block ID for which data capture is currently
+         *          occuring, or -1 if data capture is not running.
+         */
+        ["ami"] long getState();
     };
 
 };
