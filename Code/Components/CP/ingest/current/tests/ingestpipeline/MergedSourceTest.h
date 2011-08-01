@@ -30,6 +30,7 @@
 // Support classes
 #include <cmath>
 #include "boost/shared_ptr.hpp"
+#include "Common/ParameterSet.h"
 #include "ingestpipeline/sourcetask/test/MockMetadataSource.h"
 #include "ingestpipeline/sourcetask/test/MockVisSource.h"
 #include "cpcommon/VisDatagram.h"
@@ -59,7 +60,12 @@ class MergedSourceTest : public CppUnit::TestFixture {
         void setUp() {
             itsMetadataSrc.reset(new MockMetadataSource);
             itsVisSrc.reset(new MockVisSource);
-            itsInstance.reset(new MergedSource(itsMetadataSrc, itsVisSrc, 1));
+
+            LOFAR::ParameterSet params;
+            std::ostringstream ss;
+            ss << N_CHANNELS_PER_SLICE;
+            params.add("n_channels.0", ss.str());
+            itsInstance.reset(new MergedSource(params, itsMetadataSrc, itsVisSrc, 1, 0));
         }
 
         void tearDown() {
@@ -120,16 +126,12 @@ class MergedSourceTest : public CppUnit::TestFixture {
             // Populate a VisDatagram to match the metadata
             askap::cp::VisDatagram vis;
             vis.version = VISPAYLOAD_VERSION;
-            vis.coarseChannel = 1;
+            vis.slice = 0;
             vis.antenna1 = 0;
             vis.antenna2 = 1;
             vis.beam1 = 0;
             vis.beam2 = 0;
             vis.timestamp = starttime;
-
-            for (unsigned int i = 0; i < N_FINE_PER_COARSE * N_POL; ++i) {
-                vis.nSamples[i] = 1;
-            }
 
             boost::shared_ptr<VisDatagram> copy1(new VisDatagram(vis));
             itsVisSrc->add(copy1);
@@ -153,7 +155,7 @@ class MergedSourceTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_DOUBLES_EQUAL(midpoint, chunkMidpoint.getValue("s"), 1.0E-10);
 
             // Ensure other metadata is as expected
-            CPPUNIT_ASSERT_EQUAL(nCoarseChan * N_FINE_PER_COARSE, chunk->nChannel());
+            CPPUNIT_ASSERT_EQUAL(1 * N_CHANNELS_PER_SLICE, chunk->nChannel());
             CPPUNIT_ASSERT_EQUAL(nCorr, chunk->nPol());
             const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
             CPPUNIT_ASSERT_EQUAL(nBaselines * nBeam, chunk->nRow());
@@ -162,8 +164,8 @@ class MergedSourceTest : public CppUnit::TestFixture {
             // are not flagged, and that the rest are flagged
 
             // First calculate the channel range that was set
-            const unsigned int startChan = vis.coarseChannel * N_FINE_PER_COARSE; //inclusive
-            const unsigned int endChan = (vis.coarseChannel + 1) * N_FINE_PER_COARSE; //exclusive
+            const unsigned int startChan = vis.slice * N_CHANNELS_PER_SLICE; //inclusive
+            const unsigned int endChan = (vis.slice + 1) * N_CHANNELS_PER_SLICE; //exclusive
 
             for (unsigned int row = 0; row < chunk->nRow(); ++row) {
                 for (unsigned int chan = 0; chan < chunk->nChannel(); ++chan) {

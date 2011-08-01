@@ -55,9 +55,15 @@ using namespace casa;
 ASKAP_LOGGER(logger, ".CorrelatorSimulator");
 
 CorrelatorSimulator::CorrelatorSimulator(const std::string& dataset,
-        const std::string& hostname, const std::string& port)
-: itsCurrentRow(0)
+        const std::string& hostname, const std::string& port,
+        const unsigned int expansionFactor)
+: itsExpansionFactor(expansionFactor), itsCurrentRow(0)
 {
+    if (expansionFactor > 1) {
+        ASKAPLOG_DEBUG_STR(logger, "Using expansion factor of " << expansionFactor);
+    } else {
+        ASKAPLOG_DEBUG_STR(logger, "No expansion factor");
+    }
     itsMS.reset(new casa::MeasurementSet(dataset, casa::Table::Old));
     itsPort.reset(new askap::cp::VisPort(hostname, port));
 }
@@ -131,26 +137,36 @@ bool CorrelatorSimulator::sendNext(void)
         payload.beam1 = msc.feed1()(itsCurrentRow);
         payload.beam2 = msc.feed2()(itsCurrentRow);
 
-        // Set all nSamples to 1 and ensure nominalNSamples is also 1
-        for (unsigned int i = 0; i < N_FINE_PER_COARSE * N_POL; ++i) {
-            payload.nSamples[i] = 1;
-        }
+        // Get the expansion factor, producing the actual number of channels
+        // to simulate
+        const unsigned int nChanActual = itsExpansionFactor * nChan;
+
+        // Calculate how many slices to send to encompass all channels
+        const unsigned int nSlices = nChanActual / N_CHANNELS_PER_SLICE;
+        ASKAPCHECK(nChanActual % N_CHANNELS_PER_SLICE == 0,
+                "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
+
+        // TODO: Below, the slice starts at zero for each process where only
+        // rank zero should start at slice zero. Rank 1 will start at some
+        // offset. Fix this in future.
 
         // This matrix is: Matrix<Complex> data(nCorr, nChan)
         const casa::Matrix<casa::Complex> data = msc.data()(itsCurrentRow);
-        for (unsigned int coarseChan = 0; coarseChan < nChan; ++coarseChan) {
-            payload.coarseChannel = coarseChan;
-            for (unsigned int fineChan = 0; fineChan < N_FINE_PER_COARSE; ++fineChan) {
+        for (unsigned int slice = 0; slice < nSlices; ++slice) {
+            payload.slice = slice;
+            for (unsigned int chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
                 for (unsigned int pol = 0; pol < N_POL; ++pol) {
-                    const int idx = pol + (N_POL * fineChan);
-                    payload.vis[idx].real = data(pol, coarseChan).real();
-                    payload.vis[idx].imag = data(pol, coarseChan).imag();
+                    const int idx = pol + (N_POL * chan);
+                    const unsigned int offset = static_cast<unsigned int>(
+                            ceil(((slice * N_CHANNELS_PER_SLICE) + chan) / itsExpansionFactor));
+                    payload.vis[idx].real = data(pol, offset).real();
+                    payload.vis[idx].imag = data(pol, offset).imag();
                 }
             }
             // Finished populating, send this payload but then reuse it in the
-            // next iteration of the loop for the next coarse channel
+            // next iteration of the loop for the next packet
             itsPort->send(payload);
-            usleep(10);
+            usleep(100);
         }
 
         itsCurrentRow++;

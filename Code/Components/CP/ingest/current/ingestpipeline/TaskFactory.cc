@@ -105,20 +105,21 @@ boost::shared_ptr< MergedSource > TaskFactory::createSource(void)
     const std::string mdTopicManager = itsConfig.metadataTopic().topicManager();
     const std::string mdTopic = itsConfig.metadataTopic().topic();
     const unsigned int mdBufSz = 12; // TODO: Make this a tunable
-    const std::string mdAdapterName = "IngestPipeline"; // TODO: Eliminate this
+    const std::string mdAdapterName = "IngestPipeline";
     IMetadataSource::ShPtr metadataSrc(new MetadataSource(mdLocatorHost,
                 mdLocatorPort, mdTopicManager, mdTopic, mdAdapterName, mdBufSz));
 
     // 2) Configure and create the visibility source
-    const unsigned int visPort = itsConfig.tasks().at(0).params().getUint32("vis_source.port");
+    const LOFAR::ParameterSet params = itsConfig.tasks().at(0).params();
+    const unsigned int visPort = params.getUint32("vis_source.port");
     const unsigned int defaultBufSz = 666 * 36 * 19 * 2;
-    const unsigned int visBufSz = itsConfig.tasks().at(0).params().getUint32("buffer_size", defaultBufSz);
+    const unsigned int visBufSz = params.getUint32("buffer_size", defaultBufSz);
     int rank, numTasks;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &numTasks);
     VisSource::ShPtr visSrc(new VisSource(visPort + rank, visBufSz));
 
     // 3) Create and configure the merged source
-    boost::shared_ptr< MergedSource > source(new MergedSource(metadataSrc, visSrc, numTasks));
+    boost::shared_ptr< MergedSource > source(new MergedSource(params, metadataSrc, visSrc, numTasks, rank));
     return source;
 }

@@ -31,16 +31,18 @@
 #include "askap_cpingest.h"
 
 // System includes
+#include <sstream>
 #include <string>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "boost/scoped_ptr.hpp"
-#include "cpcommon/TosMetadata.h"
-#include "cpcommon/VisDatagram.h"
+#include "Common/ParameterSet.h"
 #include "measures/Measures.h"
 #include "casa/Quanta/MVEpoch.h"
+#include "cpcommon/TosMetadata.h"
+#include "cpcommon/VisDatagram.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
@@ -52,9 +54,12 @@ using namespace askap;
 using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
-MergedSource::MergedSource(IMetadataSource::ShPtr metadataSrc,
-        IVisSource::ShPtr visSrc, int numTasks) :
-    itsMetadataSrc(metadataSrc), itsVisSrc(visSrc), itsNumTasks(numTasks)
+MergedSource::MergedSource(const LOFAR::ParameterSet& params,
+        IMetadataSource::ShPtr metadataSrc,
+        IVisSource::ShPtr visSrc, int numTasks, int id) :
+     itsMetadataSrc(metadataSrc), itsVisSrc(visSrc),
+     itsNumTasks(numTasks), itsId(id),
+     itsChansPerRank(initChannelMappings(params))
 {
 }
 
@@ -101,12 +106,12 @@ VisChunk::ShPtr MergedSource::next(void)
 
     // Determine how many VisDatagrams are expected for a single integration
     const casa::uInt nAntenna = itsMetadata->nAntenna();
-    const casa::uInt nCoarseChannels = itsMetadata->nCoarseChannels();
+    const casa::uInt nChannels = nChannelsHandled();
     const casa::uInt nBeams = itsMetadata->nBeams();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
-    ASKAPCHECK((nBaselines * nCoarseChannels * nBeams) % itsNumTasks == 0,
-            "Num ingest nodes must equally divide the number of expected datagrams");
-    const casa::uInt datagramsExpected = nBaselines * nCoarseChannels * nBeams / itsNumTasks;
+    ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
+            "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
+    const casa::uInt datagramsExpected = nBaselines * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
     const casa::uInt timeout = itsMetadata->period() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
@@ -144,16 +149,14 @@ VisChunk::ShPtr MergedSource::next(void)
 VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 {
     const casa::uInt nAntenna = metadata.nAntenna();
-    const casa::uInt nCoarseChannels = metadata.nCoarseChannels();
-    const casa::uInt nChannels = nCoarseChannels * N_FINE_PER_COARSE;
+    const casa::uInt nChannels = nChannelsHandled();
     const casa::uInt nBeams = metadata.nBeams();
     const casa::uInt nPol = metadata.nPol();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
     const casa::uInt nRow = nBaselines * nBeams;
     const casa::uInt period = metadata.period();
 
-    const casa::uInt chanThisChunk = nChannels / itsNumTasks;
-    VisChunk::ShPtr chunk(new VisChunk(nRow, chanThisChunk, nPol));
+    VisChunk::ShPtr chunk(new VisChunk(nRow, nChannels, nPol));
 
     // Convert the time from integration start in microseconds to an
     // integration mid-point in seconds
@@ -170,8 +173,6 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     chunk->visibility() = 0.0;
 
     // For now polarisation data is hardcoded.
-    // TODO: In the long run this needs to come from some sort of
-    // correlator configuration database
     ASKAPCHECK(nPol == 4, "Only supporting 4 polarisation products");
     chunk->stokes()(0) = casa::Stokes::XX;
     chunk->stokes()(1) = casa::Stokes::XY;
@@ -254,20 +255,17 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     ASKAPCHECK(chunk->beam2()(row) == vis.beam2, errorMsg);
 
     // 3) Determine the channel offset and add the visibilities
-    ASKAPCHECK(vis.coarseChannel < 304, "Coarse channel index is invalid");
-    const casa::uInt chanOffset = (vis.coarseChannel) * N_FINE_PER_COARSE;
-    for (casa::uInt chan = 0; chan < N_FINE_PER_COARSE; ++chan) {
+    ASKAPCHECK(vis.slice < 71, "Slice index is invalid");
+    const casa::uInt chanOffset = (vis.slice) * N_CHANNELS_PER_SLICE;
+    for (casa::uInt chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
         for (casa::uInt pol = 0; pol < N_POL; ++pol) {
             const casa::uInt index = pol + ((N_POL) * chan);
             casa::Complex sample(vis.vis[index].real, vis.vis[index].imag);
             ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
             chunk->visibility()(row, chanOffset + chan, pol) = sample;
 
-            // Unflag the sample, if nSamples is non-zero. A zero value can
-            // indicate the correlator has flagged the sample.
-            if (vis.nSamples[index] > 0) {
-                chunk->flag()(row, chanOffset + chan, pol) = false;
-            }
+            // Unflag the sample
+            chunk->flag()(row, chanOffset + chan, pol) = false;
         }
     }
 }
@@ -329,5 +327,29 @@ void MergedSource::doFlaggingSample(VisChunk::ShPtr chunk,
 inline
 unsigned int MergedSource::fineToCoarseChannel(const unsigned int& fineChannel)
 {
-        return ((fineChannel - (fineChannel % N_FINE_PER_COARSE)) / 304);
+    const unsigned int N_FINE_PER_COARSE = 54;
+    return ((fineChannel - (fineChannel % N_FINE_PER_COARSE)) / 304);
 }
+
+std::map<int, unsigned int> MergedSource::initChannelMappings(const LOFAR::ParameterSet& params)
+{
+    std::map<int, unsigned int> m;
+    for (int i = 0; i < itsNumTasks; ++i) {
+        std::ostringstream ss;
+        ss << "n_channels." << i;
+        m[i] = params.getUint32(ss.str());
+        ASKAPLOG_DEBUG_STR(logger, "Channel Mappings - Rank " << i
+                << " will handle " << m[i] << " channels");
+    }
+    return m;
+}
+
+unsigned int MergedSource::nChannelsHandled()
+{
+    std::map<int,unsigned int>::const_iterator it = itsChansPerRank.find(itsId);
+    if (it == itsChansPerRank.end()) {
+        ASKAPTHROW(AskapError, "No channel mapping for this rank");
+    }
+    return it->second;
+}
+

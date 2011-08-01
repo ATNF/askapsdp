@@ -60,8 +60,7 @@ static void termination_handler (int signum)
     exit(0);
 }
 
-// Indexing function for indexing into the VisDatagram vis and
-// nSamples arrays
+// Indexing function for indexing into the VisDatagram vis array
 int index(int pol, int chan) {
     return pol + ((N_POL) * chan);
 }
@@ -77,7 +76,7 @@ int index(int pol, int chan) {
 static void printAdditional(const VisDatagram& v)
 {
     std::cout << "\tVisibilities:" << std::endl;
-    for (unsigned int i = 0; i < N_FINE_PER_COARSE; ++i) {
+    for (unsigned int i = 0; i < N_CHANNELS_PER_SLICE; ++i) {
         std::cout << "\t\tch" << i << " [ ";
         for (unsigned int j = 0; j < N_POL; ++j) {
             std::cout << "(" << v.vis[index(j, i)].real <<
@@ -95,7 +94,7 @@ static void printAdditional(const VisDatagram& v)
 // The format of the output is:
 //
 // Timestamp:  4679919826828364
-//    Coarse channel: 0
+//    Slice:      0
 //    Antenna1:   0
 //    Antenna2:   1
 //    Beam1:      0
@@ -105,7 +104,7 @@ static void printAdditional(const VisDatagram& v)
 static void printPayload(const VisDatagram& v)
 {
     std::cout << "Timestamp:\t" << v.timestamp << std::endl;
-    std::cout << "\tCoarse channel:\t" << v.coarseChannel << std::endl;
+    std::cout << "\tSlice:\t\t" << v.slice << std::endl;
     std::cout << "\tAntenna1:\t" << v.antenna1 << std::endl;
     std::cout << "\tAntenna2:\t" << v.antenna2 << std::endl;
     std::cout << "\tBeam1:\t\t" << v.beam1 << std::endl;

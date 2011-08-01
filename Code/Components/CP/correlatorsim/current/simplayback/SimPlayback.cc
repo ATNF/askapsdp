@@ -133,7 +133,9 @@ boost::shared_ptr<CorrelatorSimulator> SimPlayback::makeCorrelatorSim(void)
     const std::string dataset = subset.getString("dataset");
     const std::string hostname = subset.getString("out.hostname");
     const std::string port = subset.getString("out.port");
-    return boost::shared_ptr<CorrelatorSimulator>(new CorrelatorSimulator(dataset, hostname, port));
+    const unsigned int expansion = itsParset.getUint32("corrsim.expansion_factor", 1);
+    return boost::shared_ptr<CorrelatorSimulator>(
+            new CorrelatorSimulator(dataset, hostname, port, expansion));
 }
 
 void SimPlayback::run(void)

@@ -53,9 +53,16 @@ class CorrelatorSimulator : public ISimulator {
         ///                     UDP data stream will be sent.
         /// @param[in] port     UDP port number to which the UDP data stream will
         ///                     be sent.
+        /// @param[in] expansionFactor  the channel multiplication factor. A
+        ///     non-unity expansion factor allows a small input dataset to be
+        ///     used to produce a larger output data stream. For example
+        ///     simulating a small 304 channel (1MHz channels) dataset and using
+        ///     an expansion factor of 54 to get to a 16416 (18.5KHz channels)
+        ///     data stream.
         CorrelatorSimulator(const std::string& dataset,
                             const std::string& hostname,
-                            const std::string& port);
+                            const std::string& port,
+                            const unsigned int expansionFactor = 1);
 
         /// Destructor
         virtual ~CorrelatorSimulator();
@@ -68,6 +75,9 @@ class CorrelatorSimulator : public ISimulator {
         bool sendNext(void);
 
     private:
+        // Channel multiplication factor
+        const unsigned int itsExpansionFactor;
+
         // Cursor (index) for the main table of the measurement set
         unsigned int itsCurrentRow;
 

@@ -12,7 +12,7 @@ arrayname = ASKAP
 #
 correlator.modes                            = [StandardMode]
 correlator.mode.StandardMode.n_chan         = 152
-correlator.mode.StandardMode.chan_width     = 18.51851851kHz
+correlator.mode.StandardMode.chan_width     = 1MHz
 correlator.mode.StandardMode.stokes         = [XX, XY, YX, YY]
 
 #
@@ -144,9 +144,13 @@ tasks.tasklist                          = [MergedSource, CalcUVWTask, ChannelAvg
 #
 # MergedSource
 #
-tasks.MergedSource.type                 = MergedSource
+tasks.MergedSource.type                             = MergedSource
 tasks.MergedSource.params.vis_source.port           = 3000
 tasks.MergedSource.params.vis_source.buffer_size    = 459648
+
+# Number of channels a given ingest process is meant to receive/process
+tasks.MergedSource.params.n_channels.0              = 8208
+tasks.MergedSource.params.n_channels.1              = 8208
 
 #
 # CalcUVWTask

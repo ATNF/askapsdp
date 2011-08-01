@@ -44,10 +44,11 @@ namespace askap {
         /// @brief Version number for the VisDatagram.
         static const unsigned int VISPAYLOAD_VERSION = 0x1;
 
-        /// @brief Number of fine channels per coarse channel in the VisDatagram.
+        /// @brief Number of fine channels per slice in the VisDatagram. One
+        /// Visatagram will then contain data for N_CHANNELS_PER_SLICE channels.
         /// This is hardcoded to the standard ASKAP configuration so fixed size
         /// UDP datagrams can be used.
-        static const unsigned int N_FINE_PER_COARSE = 54;
+        static const unsigned int N_CHANNELS_PER_SLICE = 228;
 
         /// @brief Number of polarisations present in the VisDatagram. This is
         /// hardcoded to the standard ASKAP configuration so fixed size UDP
@@ -64,14 +65,18 @@ namespace askap {
             /// type.
             unsigned int version;
 
+            /// Slice number. Which slice of the channel space this packet
+            /// relates to. For example, for a spectral window configuration of
+            /// 16416 channels and N_CHANNELS_PER_SLICE of 228 there will be
+            /// a total of 72 slices.
+            /// 
+            /// This number is zero indexed, so the slices in the above example
+            /// will be numbered 0 to 71.
+            unsigned int slice;
+
             /// Timestamp - Binary Atomic Time (BAT). The number of microseconds
             /// since Modified Julian Day (MJD) = 0
             unsigned long timestamp;
-
-            /// Coarse Channel. Which coarse channel this block of data relates
-            /// to. This is a one based number and should be in the range of
-            /// 1 to 304 for ASKAP.
-            unsigned int coarseChannel;
 
             /// First antenna
             unsigned int antenna1;
@@ -87,25 +92,18 @@ namespace askap {
 
             /// Visibilities
             ///
-            /// Both the vis and nSamples arrays are indexed like so: [fine_channel][pol]
+            /// Both the vis and nSamples arrays are indexed like so: [channel][pol]
             /// An example of an indexing function:
             /// @verbatim
             /// /*
-            ///  * Both pol and fine_channel are zero based and must be between
-            ///  * zero and (n_pol - 1) and (n_fine_per_coarse - 1) respectively.
+            ///  * Both pol and channel are zero based and must be between
+            ///  * zero and (n_pol - 1) and (n_channels_per_slice - 1) respectively.
             ///  */
-            /// int index(unsigned int pol, unsigned int fine_channel) {
-            ///     return pol + ((n_pol) * fine_channel));
+            /// int index(unsigned int pol, unsigned int channel) {
+            ///     return pol + ((n_pol) * channel));
             ///     }
             /// @endverbatim
-            FloatComplex vis[N_FINE_PER_COARSE * N_POL];
-
-            /// The number of voltage samples that made up the visibility for this
-            /// integration. This has the same dimension as "vis. i.e. one nSamples
-            /// value per visibility in the "vis" array. An nSamples value of zero for
-            /// any channel/polarization indicates that visibility has been flagged by
-            /// the correlator as bad.
-            unsigned char nSamples[N_FINE_PER_COARSE * N_POL];
+            FloatComplex vis[N_CHANNELS_PER_SLICE * N_POL];
         };
 
     };

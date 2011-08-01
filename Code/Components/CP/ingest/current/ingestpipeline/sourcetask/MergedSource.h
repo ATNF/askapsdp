@@ -27,8 +27,12 @@
 #ifndef ASKAP_CP_INGEST_MERGEDSOURCE_H
 #define ASKAP_CP_INGEST_MERGEDSOURCE_H
 
+// System includes
+#include <map>
+
 // ASKAPsoft includes
 #include "boost/shared_ptr.hpp"
+#include "Common/ParameterSet.h"
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/VisDatagram.h"
 #include "cpcommon/VisChunk.h"
@@ -55,8 +59,9 @@ class MergedSource {
         /// @param[in] numTasks     Total number of ingest pipeline tasks. This enables
         ///                         the merged source to determine how many visibilities
         ///                         it is responsible for receiving.
-        MergedSource(IMetadataSource::ShPtr metadataSource,
-                     IVisSource::ShPtr visSource, int numTasks);
+        MergedSource(const LOFAR::ParameterSet& params,
+                     IMetadataSource::ShPtr metadataSource,
+                     IVisSource::ShPtr visSource, int numTasks, int id);
 
         /// @brief Destructor.
         ~MergedSource();
@@ -80,20 +85,34 @@ class MergedSource {
                               const unsigned int chan,
                               const unsigned int pol);
 
+        // Convert from find channels to coarse
         unsigned int fineToCoarseChannel(const unsigned int& fineChannel);
 
-        // The two sources which will be merged. These two objects provide
-        // the input stream.
+        // Initialise the ingest process to #channels map
+        std::map<int, unsigned int> initChannelMappings(const LOFAR::ParameterSet& params);
+
+        // Returns the number of channels handled by this ingest process
+        unsigned int nChannelsHandled();
+
+        // The object that is the source of telescope metadata
         IMetadataSource::ShPtr itsMetadataSrc;
+        
+        // The object that is the source of visibilities
         IVisSource::ShPtr itsVisSrc;
 
         // The total number of ingest pipeline tasks. Used to determine how many
         // visibilities this instance is responsible for receiving.
         int itsNumTasks;
 
+        // The rank (identity amongst all ingest processes) of this process
+        int itsId;
+
         // Pointers to the two constituent datatypes
         boost::shared_ptr<TosMetadata> itsMetadata;
         boost::shared_ptr<VisDatagram> itsVis;
+
+        // Maps rank to number of channels
+        const std::map<int, unsigned int> itsChansPerRank;
 
         // No support for assignment
         MergedSource& operator=(const MergedSource& rhs);

@@ -16,6 +16,12 @@ playback.tossim.icestorm.topic              = tosmetadata
 #
 playback.corrsim.n_shelves                  = 2
 
+# A non-unity expansion factor allows a small input dataset to be used
+# to produce a larger output data stream. For example simulating a
+# small 304 channel (1MHz channels) dataset and using an expansion
+# factor of 54 to get to a 16416 (18.5KHz channels) data stream.
+playback.corrsim.expansion_factor           = 54
+
 # Correlator Shelf 1
 playback.corrsim.shelf1.dataset             = ../../dataset/beta1.ms
 playback.corrsim.shelf1.out.hostname        = localhost
