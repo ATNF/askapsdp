@@ -241,7 +241,7 @@ namespace askap {
 	this->itsDryRun = parset.getBool("dryRun", false);
 	this->itsDatabaseOrigin = parset.getString("database", "Continuum"); 
 	if( !this->databaseGood() ){
-	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian' or 'FLASH'. Setting to Continuum.");
+	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'NVSS', 'Gaussian' or 'FLASH'. Setting to Continuum.");
 	  this->itsDatabaseOrigin = "Continuum";
 	}
 	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
@@ -367,6 +367,7 @@ namespace askap {
 		  this->itsDatabaseOrigin == "POSSUM" ||
 		  this->itsDatabaseOrigin == "S3SAX" ||
 		  this->itsDatabaseOrigin == "S3SEX" ||
+		  this->itsDatabaseOrigin == "NVSS" ||
 		  this->itsDatabaseOrigin == "Gaussian" ||
 		  this->itsDatabaseOrigin == "FLASH");
 	return val;
@@ -476,6 +477,64 @@ namespace askap {
 
       //--------------------------------------------------------
 
+      Spectrum *FITSfile::getSource(std::string line) 
+      {
+	Spectrum *src=0;
+
+	if (line[0] != '#') {  // ignore commented lines
+
+	  if(this->itsDatabaseOrigin == "Continuum") {
+	    Continuum *cont = new Continuum;
+	    cont->define(line);
+	    cont->setNuZero(this->itsBaseFreq);
+	    src = &(*cont);
+	  }
+	  else if(this->itsDatabaseOrigin == "POSSUM"){
+	    FullStokesContinuum *stokes = new FullStokesContinuum;
+	    stokes->define(line);
+	    stokes->setNuZero(this->itsBaseFreq);
+	    src = &(*stokes);
+	  }
+	  else if(this->itsDatabaseOrigin == "NVSS"){
+	    ContinuumNVSS *nvss = new ContinuumNVSS;
+	    nvss->define(line);
+	    nvss->setNuZero(this->itsBaseFreq);
+	    src = &(*nvss);
+	  }
+	  else if (this->itsDatabaseOrigin == "S3SEX") {
+	    if(this->itsSourceListType == "continuum"){
+	      ContinuumS3SEX *contS3SEX = new ContinuumS3SEX;
+	      contS3SEX->define(line);
+	      contS3SEX->setNuZero(this->itsBaseFreq);
+	      src = &(*contS3SEX);
+	    }else if(this->itsSourceListType == "spectralline") {
+	      HIprofileS3SEX *profSEX = new HIprofileS3SEX;
+	      profSEX->define(line);
+	      src = &(*profSEX);
+	    }
+	  }else if (this->itsDatabaseOrigin == "S3SAX") {
+	    HIprofileS3SAX *profSAX = new HIprofileS3SAX;
+	    profSAX->define(line);
+	    src = &(*profSAX);
+	  } else if (this->itsDatabaseOrigin == "Gaussian") {
+	    GaussianProfile *profGauss = new GaussianProfile(this->itsRestFreq);
+	    profGauss->define(line);
+	    src = &(*profGauss);
+	  } else if (this->itsDatabaseOrigin == "FLASH") {
+	    FLASHProfile *profFLASH = new FLASHProfile;
+	    profFLASH->define(line);
+	    src = &(*profFLASH);
+	  } else {
+	    ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
+		       << this->itsDatabaseOrigin << "' - needs to be one of: 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
+	  }
+	}
+	
+	return src;
+
+      }
+      
+
       void FITSfile::processSources()
       {
 	/// @details Adds sources to the array. If the source list
@@ -500,6 +559,7 @@ namespace askap {
 
 	  Continuum cont;
 	  ContinuumS3SEX contS3SEX;
+	  ContinuumNVSS nvss;
 	  FullStokesContinuum stokes;
 	  HIprofileS3SEX profSEX;
 	  HIprofileS3SAX profSAX;
@@ -529,6 +589,12 @@ namespace askap {
 		stokes.setNuZero(this->itsBaseFreq);
 		src = &stokes;
 	      }
+	      else if(this->itsDatabaseOrigin == "NVSS"){
+		nvss = new ContinuumNVSS;
+		nvss->define(line);
+		nvss->setNuZero(this->itsBaseFreq);
+		src = &(*nvss);
+	      }
 	      else if (this->itsDatabaseOrigin == "S3SEX") {
 		if(this->itsSourceListType == "continuum"){
 		  contS3SEX.define(line);
@@ -549,7 +615,7 @@ namespace askap {
 		src = &profFLASH;
 	      } else {
 		ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
-			   << this->itsDatabaseOrigin << "' - needs to be 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
+			   << this->itsDatabaseOrigin << "' - needs to be 'Continuum', 'POSSUM', 'NVSS', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
 	      }
 
 	      // convert fluxes to correct units according to the image BUNIT keyword
@@ -608,6 +674,8 @@ namespace askap {
 		  fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
 		else if (this->itsDatabaseOrigin=="POSSUM")
 		  fluxGen.addSpectrumStokes(stokes, pix[0], pix[1], this->itsWCS);
+		else if (this->itsDatabaseOrigin=="NVSS")
+		  fluxGen.addSpectrum(nvss, pix[0], pix[1], this->itsWCS);
 		else if (this->itsDatabaseOrigin == "S3SEX"){
 		  if(this->itsSourceListType == "continuum")
 		    fluxGen.addSpectrum(contS3SEX, pix[0], pix[1], this->itsWCS);

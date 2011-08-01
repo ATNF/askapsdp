@@ -33,11 +33,14 @@
 
 #include <Common/ParameterSet.h>
 #include <casa/Quanta/Unit.h>
+#include <casa/Arrays/Slice.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
 #include <duchamp/Utils/Section.hh>
+
+#include <simulationUtilities/Spectrum.h>
 
 #include <vector>
 #include <utility>
@@ -118,6 +121,9 @@ namespace askap {
 
                     /// @brief Add sources to the flux array
                     void processSources();
+		    void processSource(std::string line){};
+		    casa::Slicer getFootprint(std::string line){return casa::Slicer();};
+		    Spectrum *getSource(std::string line);
 
                     /// @brief Convolve the flux array with a beam
                     void convolveWithBeam();
