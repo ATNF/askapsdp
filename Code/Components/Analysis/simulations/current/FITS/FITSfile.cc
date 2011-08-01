@@ -36,6 +36,7 @@
 #include <simulationutilities/SpectralUtilities.h>
 #include <simulationutilities/FluxGenerator.h>
 #include <simulationutilities/Continuum.h>
+#include <simulationutilities/ContinuumNVSS.h>
 #include <simulationutilities/ContinuumS3SEX.h>
 #include <simulationutilities/FullStokesContinuum.h>
 #include <simulationutilities/HIprofile.h>
@@ -590,10 +591,9 @@ namespace askap {
 		src = &stokes;
 	      }
 	      else if(this->itsDatabaseOrigin == "NVSS"){
-		nvss = new ContinuumNVSS;
-		nvss->define(line);
-		nvss->setNuZero(this->itsBaseFreq);
-		src = &(*nvss);
+		nvss.define(line);
+		nvss.setNuZero(this->itsBaseFreq);
+		src = &nvss;
 	      }
 	      else if (this->itsDatabaseOrigin == "S3SEX") {
 		if(this->itsSourceListType == "continuum"){
