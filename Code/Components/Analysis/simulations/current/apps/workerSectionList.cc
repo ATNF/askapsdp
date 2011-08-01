@@ -88,13 +88,21 @@ int main(int argc, const char** argv)
         LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
  
 	std::string outfile = subset.getString("workerList","workerSectionList.txt");
-	int nworkers = subset.getInt32("nsubx",0) * subset.getInt32("nsuby",0) * subset.getInt32("nsubz",0);
-
+	int nsubx = subset.getInt32("nsubx",1);
+	int nsuby = subset.getInt32("nsuby",1);
+	int nsubz = subset.getInt32("nsubz",1);
+	int nworkers = nsubx * nsuby * nsubz;
+	ASKAPLOG_DEBUG_STR(logger, nsubx << " " << nsuby << " " << nsubz << " " <<nworkers);
+	if(nworkers<=1){
+	  ASKAPLOG_WARN_STR(logger, "Number of workers required by parset is only one!");
+	  exit(0);
+	}
 	size_t dim = subset.getInt32("dim", 2);
 	std::vector<int> axes = subset.getInt32Vector("axes");
 	analysis::SubimageDef subdef = analysis::SubimageDef(subset);
 	subdef.define(dim);
 	subdef.setImageDim(axes);
+	subdef.setInputSubsection(duchamp::nullSection(dim));
 	subdef.defineAllSections();
 	
 	std::ofstream output(outfile.c_str());
