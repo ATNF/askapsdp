@@ -205,7 +205,7 @@ namespace askap {
             /// @param axes The shape of the flux array
             /// @param gauss The 2D Gaussian component to be added
             /// @return True if the component would be added to any pixels in the array. False if not.
-            float majorSigma = gauss.majorAxis() / SIGMAtoFWHM;
+	    float majorSigma = SIGMAtoFWHM(gauss.majorAxis());
             float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
             int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), int(axes[0] - 1));
@@ -247,9 +247,9 @@ namespace askap {
             /// @param gauss The 2-dimensional Gaussian component.
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
 
-            float majorSigma = gauss.majorAxis() / SIGMAtoFWHM;
+	  float majorSigma = SIGMAtoFWHM(gauss.majorAxis()) ;
             float zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            float minorSigma = gauss.minorAxis() / SIGMAtoFWHM;
+            float minorSigma = SIGMAtoFWHM(gauss.minorAxis());
             float zeroPointMin = minorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPointMax), 0);
             int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPointMax), int(axes[0] - 1));
@@ -269,7 +269,7 @@ namespace askap {
                                        << "] (zeropoints = " << zeroPointMax << "," << zeroPointMin << ") (dimensions of array=" << ss.str() << ")");
 
                 // Test to see whether this should be treated as a point source
-                float minSigma = (std::min(gauss.majorAxis(), gauss.minorAxis()) / SIGMAtoFWHM);
+                float minSigma = SIGMAtoFWHM(std::min(gauss.majorAxis(), gauss.minorAxis()));
 //        float delta = std::min(0.01,pow(10., floor(log10(minSigma/5.))));
 //        float delta = pow(10.,floor(log10(minSigma))-1.);
                 float delta = std::min(1. / 32., pow(10., floor(log10(minSigma / 5.) / log10(2.)) * log10(2.)));
@@ -407,7 +407,7 @@ namespace askap {
             else if (sinpa == 0.) direction = VERTICAL;
             else specialCase = false;
 
-            double majorSigma = gauss.majorAxis() / SIGMAtoFWHM;
+            double majorSigma = SIGMAtoFWHM(gauss.majorAxis());
             double zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             double length = 0.;
             double increment = 0.;
