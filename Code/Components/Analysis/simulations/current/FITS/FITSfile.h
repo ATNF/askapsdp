@@ -40,7 +40,7 @@
 
 #include <duchamp/Utils/Section.hh>
 
-#include <simulationUtilities/Spectrum.h>
+#include <simulationutilities/Spectrum.h>
 
 #include <vector>
 #include <utility>
