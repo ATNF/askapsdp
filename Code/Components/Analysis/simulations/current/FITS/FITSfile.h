@@ -106,6 +106,10 @@ namespace askap {
                     unsigned int getSpectralAxisIndex() {return itsWCS->spec;};
                     /// @brief Return the number of pixels
                     size_t getSize() {return itsNumPix;};
+		    /// @brief Get the size of the Stokes axis
+		    int getNumStokes();
+		    /// @brief Get the size of the spectral axis
+		    int getNumChan();
 
 		    /// @brief Check the value of the itsDatabaseOrigin parameter.
 		    bool databaseGood();

@@ -386,6 +386,30 @@ namespace askap {
 	return val;
       }
 
+      //--------------------------------------------------------
+
+      int FITSfile::getNumStokes()
+      {
+	// first find which axis is the STOKES axis. Return its dimension, or 1 if there isn't one.
+	bool haveStokes=false;
+	int stokesAxis=-1;
+	for(int i=0;i<this->itsDim && !haveStokes;i++){
+	  haveStokes = (std::string(this->itsWCS->ctype[i]) == "STOKES");
+	  if(haveStokes) stokesAxis=i;
+	}
+
+	if(haveStokes) return this->itsAxes[stokesAxis];
+	else return 1;
+      }
+
+
+      //--------------------------------------------------------
+
+      int FITSfile::getNumChan()
+      {
+	if(this->getSpectralAxisIndex() > 0) return this->itsAxes[this->itsWCS->spec];
+	else return 1;
+      }
 
       //--------------------------------------------------------
 
@@ -568,7 +592,10 @@ namespace askap {
 	  FLASHProfile profFLASH;
 	  Spectrum *src = &cont;
 
-	  FluxGenerator fluxGen;
+	  
+	  FluxGenerator fluxGen(this->getNumChan(), this->getNumStokes());
+	  ASKAPLOG_DEBUG_STR(logger, "Defining flux generator with " << fluxGen.nChan() << " channels and " << fluxGen.nStokes() << " Stokes parameters");
+
 	  casa::Gaussian2D<casa::Double> gauss;
 	  const float arcsecToPixel = 3600. * sqrt(fabs(this->itsWCS->cdelt[0] * this->itsWCS->cdelt[1]));
 
@@ -576,8 +603,8 @@ namespace askap {
 
 	  while (getline(srclist, line),
 		 !srclist.eof()) {
-	    		      // ASKAPLOG_DEBUG_STR(logger, "input = " << line);
-
+	    //ASKAPLOG_DEBUG_STR(logger, "input = " << line);
+			       
 	    if (line[0] != '#') {  // ignore commented lines
 
 	      if(this->itsDatabaseOrigin == "Continuum") {
@@ -592,6 +619,7 @@ namespace askap {
 	      }
 	      else if(this->itsDatabaseOrigin == "NVSS"){
 		nvss.define(line);
+		//		ASKAPLOG_DEBUG_STR(logger, "NVSS: " << nvss);
 		nvss.setNuZero(this->itsBaseFreq);
 		src = &nvss;
 	      }
@@ -664,12 +692,6 @@ namespace askap {
 
 	      if (lookAtSource) {
 
-		if( this->itsDatabaseOrigin == "POSSUM") fluxGen.setNumStokes(4);
-
-		// These calls also initialise fluxGen to zero everywhere.
-		if (this->itsWCS->spec > 0) fluxGen.setNumChan(this->itsAxes[this->itsWCS->spec]);
-		else fluxGen.setNumChan(1);
-
 		if(this->itsDatabaseOrigin == "Continuum") 
 		  fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
 		else if (this->itsDatabaseOrigin=="POSSUM")
@@ -692,6 +714,7 @@ namespace askap {
 		
 
 		bool addedSource=false;
+		//		ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
 		if (src->maj() > 0) {
 		  // convert widths from arcsec to pixels
 		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
@@ -703,9 +726,12 @@ namespace askap {
 
 		  if (src->fluxZero() == 0.) src->setFluxZero(1.e-99);
 
+		  //		  ASKAPLOG_DEBUG_STR(logger, "Defining Gaussian with axes " << src->maj() << " x " << src->min() << " pixels and PA of " << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
+
 		  gauss.setXcenter(pix[0]);
 		  gauss.setYcenter(pix[1]);
 		  gauss.setMinorAxis(std::min(gauss.majorAxis(),src->maj()));  // need this so that we never have the minor axis > major axis
+		  //		  gauss.setMinorAxis(src->maj());
 		  gauss.setMajorAxis(src->maj());
 		  gauss.setMinorAxis(src->min());
 		  gauss.setPA(casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
