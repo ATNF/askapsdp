@@ -369,6 +369,10 @@ namespace askap {
 			  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << " does not contribute to the statistics section");
 		      }
                     }
+		    else{
+		      this->itsCube.pars().setSubsection(this->itsBaseSubsection);
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Subsection = " << this->itsCube.pars().section().getSection());
+		    }
 
                     if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
                         ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
@@ -2261,11 +2265,11 @@ namespace askap {
 	reportDim(dim,imagePtr->ndim());
 	this->itsSubimageDef.setImageDim(dim, imagePtr->ndim());
 	
-	//	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Cube's param subsection = " << this->itsCube.pars().getSubsection() << " or " << this->itsCube.pars().section().getSection());
+	//      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Cube's param subsection = " << this->itsCube.pars().getSubsection() << " or " << this->itsCube.pars().section().getSection());
 	
 	if(useSubimageInfo){
 	  //	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
-	  if(this->itsComms.isMaster()) this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
+	  if(this->itsComms.isMaster() && this->itsComms.isParallel()) this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
 	  else this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
 	}
 	else if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
