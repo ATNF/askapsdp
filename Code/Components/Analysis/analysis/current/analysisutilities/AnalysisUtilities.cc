@@ -41,6 +41,9 @@
 
 #include <gsl/gsl_sf_gamma.h>
 
+#include <casa/namespace.h>
+#include <scimath/Functionals/Gaussian2D.h>
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -51,6 +54,7 @@
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/Section.hh>
+#include <duchamp/FitsIO/Beam.hh>
 #include <duchamp/param.hh>
 
 #define WCSLIB_GETWCSTAB // define this so that we don't try and redefine 
@@ -613,7 +617,50 @@ namespace askap {
             gl = gl * 180. / M_PI + ASC_NODE;
         }
 
+      std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam)
+      {
+	
+	double a2=beam.maj(),b2=beam.min(),pa2=beam.pa();
+	double a0=measured.majorAxis(),b0=measured.minorAxis(),pa0=measured.PA();
+	ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b2 <<" from beam "<<a2 << "x"<<b2);
+	double d0=a0*a0-b0*b0,d2=a2*a2-b2*b2;
 
+	double d1 = sqrt( d0*d0 + d2*d2 - 2*d0*d2*cos(2.*(pa0-pa2)) );
+	double a1sq = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2+d1), b1sq = 0.5*(a0*a0+b0*b0-a2*a2-b2*b2-d1);
+	double a1=0.,b1=0.;
+	if(a1sq>0.) a1=sqrt(a1sq);
+	if(b1sq>0.) b1=sqrt(b1sq);
+
+	double pa1;
+	if((d0*cos(2.*pa0)-d2*cos(2.*pa2))==0.) pa1=0.;
+	else{
+	  double sin2pa1 = (d0 * sin(2.*pa0) + d2 * sin(2.*pa2));
+	  double cos2pa1 = (d0 * cos(2.*pa0) + d2 * cos(2.*pa2));
+	  pa1 = atan(fabs(sin2pa1 / cos2pa1));
+
+	  // atan of the absolute value of the ratio returns a value between 0 and 90 degrees.
+	  // Need to correct the value of pa according to the correct quandrant it is in.
+	  // This is worked out using the signs of sin and cos
+	  if (sin2pa1 > 0) {
+	    if (cos2pa1 > 0) pa1 = pa1;
+	    else             pa1 = M_PI - pa1;
+	  } else {
+	    if (cos2pa1 > 1) pa1 = 2.*M_PI - pa1;
+	    else             pa1 = M_PI + pa1;
+	  }
+	}
+
+	std::vector<Double> deconv(3);
+	double maj=std::max(std::max(a1,b1),0.);
+	double min=std::max(std::min(a1,b1),0.);
+	ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min);
+	deconv[0] = maj;
+	deconv[1] = min;
+	deconv[2] = pa1;
+
+	return deconv;
+
+      }
 
 
     }

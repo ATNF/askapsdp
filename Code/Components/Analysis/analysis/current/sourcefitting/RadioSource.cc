@@ -1200,6 +1200,9 @@ namespace askap {
                 duchamp::Column::Col majFit("Maj(fit)", "", 10, 3);
                 duchamp::Column::Col minFit("Min(fit)", "", 10, 3);
                 duchamp::Column::Col paFit("P.A.(fit)", "", 10, 2);
+                duchamp::Column::Col majDeconv("Maj(fit, deconv.)", "", 19, 3);
+                duchamp::Column::Col minDeconv("Min(fit, deconv.)", "", 19, 3);
+                duchamp::Column::Col paDeconv("P.A.(fit, deconv.)", "", 19, 2);		
 		duchamp::Column::Col alpha("Alpha", "", 10, 2);
 		duchamp::Column::Col beta("Beta", "", 10, 2);
                 duchamp::Column::Col chisqFit("Chisq(fit)", "", 20, 9);
@@ -1222,6 +1225,9 @@ namespace askap {
                     majFit.printTitle(stream);
                     minFit.printTitle(stream);
                     paFit.printTitle(stream);
+                    majDeconv.printTitle(stream);
+                    minDeconv.printTitle(stream);
+                    paDeconv.printTitle(stream);
 		    if(doSpectralIndex){
 		      alpha.printTitle(stream);
 		      beta.printTitle(stream);
@@ -1270,6 +1276,9 @@ namespace askap {
                     majFit.printEntry(stream, zero);
                     minFit.printEntry(stream, zero);
                     paFit.printEntry(stream, zero);
+                    majDeconv.printEntry(stream, zero);
+                    minDeconv.printEntry(stream, zero);
+                    paDeconv.printEntry(stream, zero);
 		    if(doSpectralIndex){
 		      alpha.printEntry(stream, zero);
 		      beta.printEntry(stream, zero);
@@ -1293,6 +1302,9 @@ namespace askap {
                                "Sizes of fitSet (" << fitSet.size() << ") and beta Set (" << this->itsBetaMap[fittype].size() << ") don't match!");
 
                     for (; fit < fitSet.end(); fit++, alphaIter++, betaIter++) {
+
+		      std::vector<Double> deconv = deconvolveGaussian(*fit,this->itsHeader.getBeam());
+
                         std::stringstream id;
                         id << this->getID() << char(firstSuffix + suffixCtr++);
                         double *pix = new double[3];
@@ -1321,6 +1333,9 @@ namespace askap {
                         majFit.printEntry(stream, fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
                         minFit.printEntry(stream, fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
                         paFit.printEntry(stream, fit->PA()*180. / M_PI);
+                        majDeconv.printEntry(stream, deconv[0]*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
+                        minDeconv.printEntry(stream, deconv[1]*this->itsHeader.getAvPixScale()*3600.);
+                        paDeconv.printEntry(stream, deconv[2]*180. / M_PI);
 			if(doSpectralIndex){
 			  alpha.printEntry(stream, *alphaIter);
 			  beta.printEntry(stream, *betaIter);
