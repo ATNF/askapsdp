@@ -32,12 +32,12 @@ Csimulator.simulation.integrationtime           =       10s
 # Observe source 10uJy for 12 hours with a single channel spectral window
 #
 Csimulator.observe.number                       =       1
-Csimulator.observe.scan0                        =       [10uJy, Coarse2_1, -6h, 6h]
+Csimulator.observe.scan0                        =       [10uJy, Coarse2_1, 0h, 0h02m]
 #
 # Use a gridder to apply primary beam during the W projection step.
 #
 Csimulator.gridder                              = AWProject
-Csimulator.gridder.AWProject.wmax               = 6000
+Csimulator.gridder.AWProject.wmax               = 3000
 Csimulator.gridder.AWProject.nwplanes           = 11
 Csimulator.gridder.AWProject.oversample         = 2
 Csimulator.gridder.AWProject.diameter           = 12m
