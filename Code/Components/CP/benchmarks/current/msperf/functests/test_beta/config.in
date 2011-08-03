@@ -1,8 +1,8 @@
 # Filename for the output files
-msperf.filename         = testdata_%w.ms
+msperf.filename         = /scratch/astronomy99/hum092/massdata/testdata_%w.ms
 
 # Storage manager configuration
-msperf.stman.bucketsize = 2097152
+msperf.stman.bucketsize = 524288
 msperf.stman.tilencorr  = 4
 msperf.stman.tilenchan  = 32
 
