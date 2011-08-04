@@ -623,7 +623,10 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
                          const casa::Complex visComplexNoise = imagePolFrameNoise[pol];
                           
                          const float visNoise = casa::square(casa::real(visComplexNoise));
+                         //const float visNoise = casa::norm(visComplexNoise);
                          const float visNoiseWt = (visNoise > 0.) ? 1./visNoise : 0.;
+                         ASKAPCHECK(visNoiseWt>0., "Weight is supposed to be a positive number; visNoiseWt="<<
+                                    visNoiseWt<<" visNoise="<<visNoise<<" visComplexNoise="<<visComplexNoise);
                                   
                          if (!isPSFGridder()) {
                              /// Gridding visibility data onto grid

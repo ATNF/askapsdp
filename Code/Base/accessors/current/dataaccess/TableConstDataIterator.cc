@@ -508,7 +508,12 @@ void TableConstDataIterator::fillNoise(casa::Cube<casa::Complex> &noise) const
                for (uInt chan = 0; chan< nChan; ++chan) {
                     ASKAPDEBUGASSERT(chan< slice.nrow());
                     casa::Vector<casa::Complex> polNoise = slice.row(chan);
-                    convertArray(polNoise,buf);
+                    for (casa::uInt pol=0; pol<polNoise.nelements(); ++pol) {
+                         ASKAPDEBUGASSERT(pol<buf.nelements());
+                         // same polarisation for both real and imaginary parts
+                         const casa::Float val = buf(casa::IPosition(1,pol));
+                         polNoise[pol] = casa::Complex(val,val);
+                    }
                }
            } else {
                // noise is given per channel and polarisation
@@ -523,7 +528,17 @@ void TableConstDataIterator::fillNoise(casa::Cube<casa::Complex> &noise) const
                const IPosition blc(2,startChan,0);
                const IPosition trc(2,startChan+nChan-1,itsNumberOfPols-1);               
                casa::Matrix<casa::Complex> rowNoise = noise.yzPlane(row);
-               convertArray(rowNoise, buf(blc,trc));            
+               const casa::Matrix<casa::Float> inVals = buf(blc,trc);
+               //convertArray(rowNoise, buf(blc,trc));            
+               for (casa::uInt x=0; x<rowNoise.nrow(); ++x) {
+                    for (casa::uInt y=0; y<rowNoise.ncolumn(); ++y) {
+                         ASKAPDEBUGASSERT(x<inVals.nrow());
+                         ASKAPDEBUGASSERT(y<inVals.ncolumn());
+                         // same polarisation for both real and imaginary parts
+                         const casa::Float val = inVals(x,y);
+                         rowNoise(x,y) = casa::Complex(val,val);
+                    } 
+               }     
            }
       } // loop over rows
   } // if-statement checking that SIGMA column is present
