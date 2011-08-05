@@ -162,24 +162,24 @@ void SimPlayback::run(void)
     bool moreData = true;
     while (moreData) {
         const unsigned long nextTime =
-            static_cast<unsigned int>(MPI_Wtime() * 1000.0 * 1000.0) + period;
+            static_cast<unsigned long>(MPI_Wtime() * 1000.0 * 1000.0) + period;
         MPI_Barrier(MPI_COMM_WORLD);
         moreData = sim->sendNext();
 
         // Wait before sending the next integration
-        unsigned long now = static_cast<unsigned int>(MPI_Wtime() * 1000.0 * 1000.0);
+        unsigned long now = static_cast<unsigned long>(MPI_Wtime() * 1000.0 * 1000.0);
 
         // But first check and report if we are behind schedule
         if (itsRank == 0) {
             if (now > nextTime) {
-                ASKAPLOG_WARN_STR(logger, "Running slower than integration cycle period");
+                ASKAPLOG_DEBUG_STR(logger, "Running slower than integration cycle period");
             }
         }
 
         while (now < nextTime) {
             const unsigned long sleepTime = nextTime - now;
             usleep(sleepTime);
-            now = static_cast<unsigned int>(MPI_Wtime() * 1000.0 * 1000.0);
+            now = static_cast<unsigned long>(MPI_Wtime() * 1000.0 * 1000.0);
         }
     }
 }
