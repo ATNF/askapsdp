@@ -300,7 +300,7 @@ namespace askap {
                 }
 
                 this->itsNoiseLevel = Statistics::madfmToSigma(madfm);
-		ASKAPLOG_DEBUG_STR(logger, "Setting noise level to " << this->itsNoiseLevel);
+		//		ASKAPLOG_DEBUG_STR(logger, "Setting noise level to " << this->itsNoiseLevel);
 
                 delete [] localArray;
             }
