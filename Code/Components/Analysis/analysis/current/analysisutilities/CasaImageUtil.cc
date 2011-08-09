@@ -39,6 +39,7 @@
 
 #include <casa/aipstype.h>
 #include <images/Images/FITSImage.h>
+#include <images/Images/MIRIADImage.h>
 #include <images/Images/ImageOpener.h>
 #include <images/Images/SubImage.h>
 #include <lattices/Lattices/LatticeLocker.h>
@@ -284,6 +285,7 @@ namespace askap {
             /// @param cube The duchamp::Cube object in which info is stored
             /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
 
             if (lattPtr == 0)
@@ -354,6 +356,7 @@ namespace askap {
             /// @param filename The filename of the image
             /// @return An STL vector with all axis dimensions.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(filename);
 
             if (lattPtr == 0)
@@ -389,6 +392,7 @@ namespace askap {
             /// @param noiseBoxSize The side length of the box
 
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(filename);
 
             if (lattPtr == 0)
@@ -446,6 +450,7 @@ namespace askap {
 
 	  ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName << " with slicer " << box);
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
 
             if (lattPtr == 0)
@@ -484,6 +489,7 @@ namespace askap {
             /// @param cube The duchamp::Cube object in which info is stored
             /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
 
             if (lattPtr == 0)
@@ -578,6 +584,7 @@ namespace askap {
             /// @param imageName The name of the image to access
             /// @return A wcsprm pointer containing the wcs information of the image.
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
 
             if (lattPtr == 0)

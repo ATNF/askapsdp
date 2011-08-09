@@ -46,6 +46,7 @@ using namespace LOFAR::TYPES;
 #include <casa/OS/Path.h>
 #include <images/Images/ImageOpener.h>
 #include <images/Images/FITSImage.h>
+#include <images/Images/MIRIADImage.h>
 #include <images/Images/SubImage.h>
 #include <casa/aipstype.h>
 #include <casa/Arrays/Array.h>
@@ -592,6 +593,7 @@ namespace askap {
       {
 	if(this->itsFlagWriteSNRimage){
 	  ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	  ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
 	  if(this->itsSNRimageName==""){
 	    // if it has not been specified, construct name from input image
 	    this->itsSNRimageName=this->itsCube.pars().getImageFile();
@@ -2212,6 +2214,7 @@ namespace askap {
 	/// @return duchamp::SUCCESS if successfull, duchamp::FAILURE otherwise.
 
 	ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
 	const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
 	if (lattPtr == 0)
 	  ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
