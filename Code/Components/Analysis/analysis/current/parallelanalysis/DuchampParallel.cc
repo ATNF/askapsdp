@@ -146,10 +146,13 @@ namespace askap {
             this->itsIsFITSFile = (imageType == ImageOpener::FITS);
 	    bool useCasa = parset.getBool("useCASAforFITS",true);
 	    this->itsIsFITSFile = this->itsIsFITSFile && !useCasa;
+
 	    bool flagSubsection = parset.getBool("flagSubsection",false);
 	    this->itsBaseSubsection = parset.getString("subsection","");
 	    if(!flagSubsection) this->itsBaseSubsection = "";
 	    else ASKAPLOG_DEBUG_STR(logger, "Requested subsection " << this->itsBaseSubsection);
+	    if(this->itsBaseSubsection=="") this->itsBaseSubsection = duchamp::nullSection( getCASAdimensions(this->itsCube.pars().getImageFile()).size() );
+
 	    bool flagStatSubsection = parset.getBool("flagStatSec",false);
 	    this->itsBaseStatSubsection = parset.getString("statSec","");
 	    if(!flagStatSubsection) this->itsBaseStatSubsection = "";
