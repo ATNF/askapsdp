@@ -318,7 +318,7 @@ namespace askap {
             fAnnot << "# Borders of subimaages for image " << imageName << "\n#\n";
             fAnnot << "COLOR YELLOW\n";
             fAnnot << "COORD W\n";
-            fAnnot << "FONT lucidasans-24\n";
+            fAnnot << "#FONT lucidasans-24\n";
 
             double *pix = new double[12];
             double *wld = new double[12];

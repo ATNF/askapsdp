@@ -1763,14 +1763,14 @@ namespace askap {
                 outfile << "COLOR BLUE\n";
                 outfile << "COORD W\n";
                 outfile << "PA SKY\n";
-                outfile << "FONT lucidasans-12\n";
+                outfile << "#FONT lucidasans-12\n";
                 std::ofstream outfile2;
 
                 if (this->itsFitAnnotationFile != this->itsFitBoxAnnotationFile) {
                     outfile2.open(this->itsFitBoxAnnotationFile.c_str());
                     outfile << "COLOR BLUE\n";
                     outfile << "COORD W\n";
-                    outfile << "FONT lucidasans-12\n";
+                    outfile << "#FONT lucidasans-12\n";
                 }
 
                 std::vector<sourcefitting::RadioSource>::iterator src;
