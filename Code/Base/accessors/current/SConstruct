@@ -22,6 +22,7 @@ pkg = env.AskapPackage("accessors")
 # add sub packages 
 pkg.AddSubPackage("dataaccess")
 pkg.AddSubPackage("imageaccess")
+pkg.AddSubPackage("calibaccess")
 
 # run the build process
 pkg()
