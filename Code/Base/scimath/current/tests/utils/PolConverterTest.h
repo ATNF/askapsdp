@@ -28,11 +28,15 @@
 #ifndef POL_CONVERTER_TEST_H
 #define POL_CONVERTER_TEST_H
 
-// cppunit includes
+// System includes
+#include <cmath>
+
+// Cppunit includes
 #include <cppunit/extensions/HelperMacros.h>
-// own includes
-#include <utils/PolConverter.h>
-#include <askap/AskapError.h>
+
+// ASKAPsoft includes
+#include "utils/PolConverter.h"
+#include "askap/AskapError.h"
 
 namespace askap {
 
@@ -190,7 +194,7 @@ public:
      noise.assign(pc.noise(inNoise));
      CPPUNIT_ASSERT(noise.nelements() == out.nelements());
      for (casa::uInt dim = 0; dim<noise.nelements(); ++dim) {
-          CPPUNIT_ASSERT(abs(casa::real(noise[dim])-casa::imag(noise[dim]))<1e-5);
+          CPPUNIT_ASSERT(fabsf(casa::real(noise[dim])-casa::imag(noise[dim]))<1e-5);
           // 202 == 9*9+11*11, 198 = 2*9*11
           const float targetVal = 0.001*(dim<2 ? sqrt(202.) : sqrt(198.));
           CPPUNIT_ASSERT(abs(noise[dim]-casa::Complex(targetVal,targetVal))<1e-5);
@@ -259,7 +263,7 @@ public:
      noise.assign(pc.noise(inNoise));
      CPPUNIT_ASSERT(noise.nelements() == out.nelements());
      for (casa::uInt dim = 0; dim<noise.nelements(); ++dim) {
-          CPPUNIT_ASSERT(abs(casa::real(noise[dim])-casa::imag(noise[dim]))<1e-5);
+          CPPUNIT_ASSERT(fabsf(casa::real(noise[dim])-casa::imag(noise[dim]))<1e-5);
           // 202 == 9*9+11*11, 198 = 2*9*11
           const float targetVal = 0.001*(dim % 2 == 0 ? sqrt(202.) : sqrt(198.));
           CPPUNIT_ASSERT(abs(noise[dim]-casa::Complex(targetVal,targetVal))<1e-5);

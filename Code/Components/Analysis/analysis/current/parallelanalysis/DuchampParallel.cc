@@ -708,7 +708,7 @@ namespace askap {
 
 	    ASKAPLOG_DEBUG_STR(logger, "Saving SNR map to image \"" << this->itsSNRimageName <<"\"");
 	    bool writeOK=false;
-	    int rank;
+//	    int rank;
 // 	    if(itsComms.isParallel()){
 // 	      do {
 // 		LOFAR::BlobString bs;
