@@ -440,7 +440,7 @@ void MSSink::initSpws(void)
 
     casa::String spWindowName = cmode.name();
     int nChan = cmode.nChan();
-    casa::Quantity startFreq = scan.centreFreq();
+    casa::Quantity startFreq = scan.startFreq();
     casa::Quantity freqInc = cmode.chanWidth();
     
     /////////////////////////////////////////////////////////////////

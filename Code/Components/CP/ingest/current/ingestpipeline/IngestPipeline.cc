@@ -34,7 +34,6 @@
 #include <string>
 #include <vector>
 #include <iterator>
-#include <sstream>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"

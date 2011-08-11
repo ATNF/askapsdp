@@ -41,12 +41,12 @@ using namespace askap::cp::ingest;
 
 Scan::Scan(const casa::String& fieldName,
            const casa::MDirection& fieldDirection,
-           const casa::Quantity& centreFreq,
+           const casa::Quantity& startFreq,
            const casa::String& correlatorMode)
         : itsFieldName(fieldName), itsFieldDirection(fieldDirection),
-        itsCentreFreq(centreFreq), itsCorrelatorMode(correlatorMode)
+        itsCentreFreq(startFreq), itsCorrelatorMode(correlatorMode)
 {
-    ASKAPCHECK(centreFreq.isConform("Hz"),
+    ASKAPCHECK(startFreq.isConform("Hz"),
             "Centre frequency must conform to Hz");
 }
 
@@ -60,7 +60,7 @@ casa::MDirection Scan::fieldDirection(void) const
     return itsFieldDirection;
 }
 
-casa::Quantity Scan::centreFreq(void) const
+casa::Quantity Scan::startFreq(void) const
 {
     return itsCentreFreq;
 }

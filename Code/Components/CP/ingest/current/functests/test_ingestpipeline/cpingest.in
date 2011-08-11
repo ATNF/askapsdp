@@ -118,7 +118,7 @@ antennas.Pad29.feed_config  = PAF36
 observation.sbid                    = 0
 observation.scan0.field_name        = test-field
 observation.scan0.field_direction   = [12h30m00.000, -45.00.00.000, J2000]
-observation.scan0.centre_freq       = 1.420GHz
+observation.scan0.start_freq        = 1.420GHz
 observation.scan0.correlator_mode   = StandardMode
 
 #

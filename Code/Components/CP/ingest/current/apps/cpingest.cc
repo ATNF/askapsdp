@@ -38,6 +38,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "askap/Log4cxxLogSink.h"
 #include "Common/ParameterSet.h"
 #include "CommandLineParser.h"
@@ -71,9 +72,7 @@ static std::string getRank(void)
 {
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    std::ostringstream ss;
-    ss << rank;
-    return ss.str();
+    return utility::toString(rank);
 }
 
 int main(int argc, char *argv[])

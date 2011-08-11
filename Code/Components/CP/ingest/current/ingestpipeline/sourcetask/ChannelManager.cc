@@ -40,6 +40,7 @@
 #include "askap/AskapError.h"
 #include "casa/aips.h"
 #include "Common/ParameterSet.h"
+#include "casa/Arrays/Vector.h"
 
 ASKAP_LOGGER(logger, ".ChannelManager");
 
@@ -52,21 +53,47 @@ ChannelManager::ChannelManager(const LOFAR::ParameterSet& params)
     for (int i = 0; i < numeric_limits<int>::max(); ++i) {
         ostringstream ss;
         ss << "n_channels." << i;
+
         if (!params.isDefined(ss.str())) {
             break;
         }
+
         itsChannelMap[i] = params.getUint32(ss.str());
         ASKAPLOG_DEBUG_STR(logger, "Channel Mappings - Rank " << i
-                << " will handle " << itsChannelMap[i] << " channels");
+                               << " will handle " << itsChannelMap[i] << " channels");
     }
 }
 
-unsigned int ChannelManager::nChannelsHandled(const int rank)
+unsigned int ChannelManager::localNChannels(const int rank) const
 {
-    map<int,unsigned int>::const_iterator it = itsChannelMap.find(rank);
+    map<int, unsigned int>::const_iterator it = itsChannelMap.find(rank);
+
     if (it == itsChannelMap.end()) {
         ASKAPTHROW(AskapError, "No channel mapping for this rank");
     }
+
     return it->second;
 
+}
+
+casa::Vector<casa::Double> ChannelManager::localFrequencies(const int rank,
+        const casa::Double startFreq,
+        const casa::Double chanWidth) const
+{
+    casa::Vector<casa::Double> frequencies(localNChannels(rank));;
+
+    // 1: Find the first frequency (freq of lowest channel) for this rank
+    casa::Double firstFreq = startFreq;
+
+    for (int i = 0; i < rank; ++i) {
+        firstFreq += localNChannels(i) * chanWidth;
+    }
+
+    // 2: Populate the vector with the frequencies the process specified
+    // by the "rank" parameter handles
+    for (unsigned int i = 0; i < frequencies.size(); ++i) {
+        frequencies(i) = firstFreq + (i * chanWidth);
+    }
+
+    return frequencies;
 }

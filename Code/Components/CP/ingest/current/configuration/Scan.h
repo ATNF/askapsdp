@@ -43,14 +43,14 @@ class Scan {
         /// @brief Constructor
         Scan(const casa::String& fieldName,
              const casa::MDirection& fieldDirection,
-             const casa::Quantity& centreFreq,
+             const casa::Quantity& startFreq,
              const casa::String& correlatorMode);
 
         casa::String name(void) const;
 
         casa::MDirection fieldDirection(void) const;
 
-        casa::Quantity centreFreq(void) const;
+        casa::Quantity startFreq(void) const;
 
         casa::String correlatorMode(void) const;
 

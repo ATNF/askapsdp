@@ -87,7 +87,7 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
             itsParset.add("observation.sbid", "0");
             itsParset.add("observation.scan0.field_name", "test-field");
             itsParset.add("observation.scan0.field_direction", "[12h30m00.000, -45.00.00.000, J2000]");
-            itsParset.add("observation.scan0.centre_freq", "1.420GHz");
+            itsParset.add("observation.scan0.start_freq", "1.420GHz");
             itsParset.add("observation.scan0.correlator_mode", "StandardMode");
 
             // Metadata topic config

@@ -33,8 +33,7 @@
 // ASKAPsoft includes
 #include "casa/aips.h"
 #include "Common/ParameterSet.h"
-
-// Local package includes
+#include "casa/Arrays/Vector.h"
 
 namespace askap {
 namespace cp {
@@ -43,16 +42,52 @@ namespace ingest {
 /// Encapsulates management of spectral channels.
 class ChannelManager {
     public:
+        /// @brief Constructor
+        /// The input parameter set will describe the number of channels
+        /// handled by each node. For example to describe two nodes, each
+        /// handling 1024 spectral channels the following parameters would
+        /// be used:
+        /// @verbatim
+        /// n_channels.0 = 1024
+        /// n_channels.1 = 1024
+        /// @endverbatim
+        ///
+        /// @param[in] params the input parameter set.
         ChannelManager(const LOFAR::ParameterSet& params);
 
-        unsigned int nChannelsHandled(const int rank);
+        /// Returns the number of spectral channels the process
+        /// specified by the "rank" parameter handles.
+        ///
+        /// @param[in] rank the MPI rank of the process for which
+        ///                 information is desired.
+        /// @return the number of spectral channels the process
+        ///     specified by the "rank" parameter handles.
+        unsigned int localNChannels(const int rank) const;
+
+        /// Returns a vector containing the frequencies of the spectral
+        /// channels handled by the process specified by the "rank"
+        /// parameter.
+        /// @note The unit for startFreq and chanWidth should be the same
+        /// and the unit for the return value will also be the same as
+        /// for those parameters.
+        ///
+        /// @param[in] rank the MPI rank of the process for which
+        ///                 information is desired.
+        /// @param[in] startFreq    the frequency of the lowest numbered
+        ///                         channel for the whole system.
+        /// @param[in] chanWidth    the width of the spectral channels. All
+        ///                         channels thus have the same width given
+        ///                         this is a scalar parameter.
+        casa::Vector<casa::Double> localFrequencies(const int rank,
+                const casa::Double startFreq,
+                const casa::Double chanWidth) const;
 
     private:
-   
-    // Tracks the number of channels each process handles
-    // first: is the process rank, second: is the number
-    // of spectral channels it handles
-    std::map<int, unsigned int> itsChannelMap;
+
+        // Tracks the number of channels each process handles
+        // first: is the process rank, second: is the number
+        // of spectral channels it handles
+        std::map<int, unsigned int> itsChannelMap;
 };
 
 }

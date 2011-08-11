@@ -28,6 +28,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 // Support classes
+#include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
 #include "askap/AskapUtil.h"
 
@@ -42,7 +43,8 @@ namespace ingest {
 
 class ChannelManagerTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(ChannelManagerTest);
-        CPPUNIT_TEST(testNChannelsHandled);
+        CPPUNIT_TEST(testLocalNChannels);
+        CPPUNIT_TEST(testLocalFrequencies);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -52,14 +54,42 @@ class ChannelManagerTest : public CppUnit::TestFixture {
         void tearDown() {
         };
 
-        void testNChannelsHandled() {
+        void testLocalNChannels() {
             LOFAR::ParameterSet params;
             params.add("n_channels.0", utility::toString(256));
             params.add("n_channels.1", utility::toString(512));
 
             ChannelManager cman(params);
-            CPPUNIT_ASSERT_EQUAL(256u, cman.nChannelsHandled(0));
-            CPPUNIT_ASSERT_EQUAL(512u, cman.nChannelsHandled(1));
+            CPPUNIT_ASSERT_EQUAL(256u, cman.localNChannels(0));
+            CPPUNIT_ASSERT_EQUAL(512u, cman.localNChannels(1));
+
+            CPPUNIT_ASSERT_THROW(cman.localNChannels(2), askap::AskapError);
+        };
+
+        void testLocalFrequencies() {
+            LOFAR::ParameterSet params;
+            params.add("n_channels.0", utility::toString(2));
+            params.add("n_channels.1", utility::toString(4));
+
+            const double startFreq = 1.4;
+            const double chanWidth = 0.1;
+            const double tolerance = 1e-15;
+
+            ChannelManager cman(params);
+            casa::Vector<casa::Double> f0 = cman.localFrequencies(0, startFreq, chanWidth);
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(2), f0.size());
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(1.4, f0(0), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(1.5, f0(1), tolerance);
+
+            casa::Vector<casa::Double> f1 = cman.localFrequencies(1, startFreq, chanWidth);
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(4), f1.size());
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(1.6, f1(0), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(1.7, f1(1), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(1.8, f1(2), tolerance);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(1.9, f1(3), tolerance);
+
+            CPPUNIT_ASSERT_THROW(cman.localFrequencies(2, startFreq, chanWidth),
+                    askap::AskapError);
         };
 
     private:

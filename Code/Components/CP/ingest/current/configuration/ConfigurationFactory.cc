@@ -171,12 +171,12 @@ Observation ConfigurationFactory::createObservation(const LOFAR::ParameterSet& p
         const casa::String fieldName = parset.getString(makeKey(keyBase, "field_name"));
         const casa::MDirection fieldDirection = asMDirection(
                 parset.getStringVector(makeKey(keyBase, "field_direction")));
-        const casa::Quantity centreFreq = asQuantity(
-                parset.getString(makeKey(keyBase, "centre_freq")),
+        const casa::Quantity startFreq = asQuantity(
+                parset.getString(makeKey(keyBase, "start_freq")),
                 "Hz"); // Must conform to Hz
         const casa::String correlatorMode = parset.getString(makeKey(keyBase, "correlator_mode"));
 
-        scans.push_back(Scan(fieldName, fieldDirection, centreFreq, correlatorMode));
+        scans.push_back(Scan(fieldName, fieldDirection, startFreq, correlatorMode));
     }
 
     return Observation(schedulingBlockID, scans);
