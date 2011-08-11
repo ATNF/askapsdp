@@ -1359,7 +1359,13 @@ namespace askap {
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for object calculation");
 	    this->itsCube.pars().setSubsection(this->itsBaseSubsection); // take care of any global offsets due to subsectioning
 	    //	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
-	    this->getCASA(METADATA,false);
+	    if(this->itsIsFITSFile){
+	      this->itsCube.pars().verifySubsection();
+	      this->itsCube.getMetadata();
+	    }
+	    else{
+	      this->getCASA(METADATA,false);
+	    }
 	    LOFAR::BlobString bs;
 
 	    // now read individual sources
