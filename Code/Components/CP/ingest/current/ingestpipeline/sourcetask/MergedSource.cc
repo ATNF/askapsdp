@@ -31,7 +31,6 @@
 #include "askap_cpingest.h"
 
 // System includes
-#include <sstream>
 #include <string>
 
 // ASKAPsoft includes
@@ -48,6 +47,7 @@
 #include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
 #include "ingestpipeline/sourcetask/ScanManager.h"
+#include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "configuration/Configuration.h"
 
 ASKAP_LOGGER(logger, ".MergedSource");
@@ -63,8 +63,8 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
      itsConfig(config),
      itsMetadataSrc(metadataSrc), itsVisSrc(visSrc),
      itsNumTasks(numTasks), itsId(id),
-     itsChansPerRank(initChannelMappings(params)),
-     itsScanManager(config)
+     itsScanManager(config),
+     itsChannelManager(params)
 {
 }
 
@@ -115,7 +115,7 @@ VisChunk::ShPtr MergedSource::next(void)
 
     // Determine how many VisDatagrams are expected for a single integration
     const casa::uInt nAntenna = itsMetadata->nAntenna();
-    const casa::uInt nChannels = nChannelsHandled();
+    const casa::uInt nChannels = itsChannelManager.nChannelsHandled(itsId);
     const casa::uInt nBeams = itsMetadata->nBeams();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
@@ -158,7 +158,7 @@ VisChunk::ShPtr MergedSource::next(void)
 VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 {
     const casa::uInt nAntenna = metadata.nAntenna();
-    const casa::uInt nChannels = nChannelsHandled();
+    const casa::uInt nChannels = itsChannelManager.nChannelsHandled(itsId);
     const casa::uInt nBeams = metadata.nBeams();
     const casa::uInt nPol = metadata.nPol();
     const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
@@ -352,26 +352,3 @@ unsigned int MergedSource::fineToCoarseChannel(const unsigned int& fineChannel)
     const unsigned int N_FINE_PER_COARSE = 54;
     return ((fineChannel - (fineChannel % N_FINE_PER_COARSE)) / 304);
 }
-
-std::map<int, unsigned int> MergedSource::initChannelMappings(const LOFAR::ParameterSet& params)
-{
-    std::map<int, unsigned int> m;
-    for (int i = 0; i < itsNumTasks; ++i) {
-        std::ostringstream ss;
-        ss << "n_channels." << i;
-        m[i] = params.getUint32(ss.str());
-        ASKAPLOG_DEBUG_STR(logger, "Channel Mappings - Rank " << i
-                << " will handle " << m[i] << " channels");
-    }
-    return m;
-}
-
-unsigned int MergedSource::nChannelsHandled()
-{
-    std::map<int,unsigned int>::const_iterator it = itsChansPerRank.find(itsId);
-    if (it == itsChansPerRank.end()) {
-        ASKAPTHROW(AskapError, "No channel mapping for this rank");
-    }
-    return it->second;
-}
-

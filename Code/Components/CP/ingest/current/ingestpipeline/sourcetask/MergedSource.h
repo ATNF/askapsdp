@@ -41,6 +41,7 @@
 #include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
 #include "ingestpipeline/sourcetask/ScanManager.h"
+#include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "configuration/Configuration.h"
 
 namespace askap {
@@ -93,12 +94,6 @@ class MergedSource {
         // Convert from find channels to coarse
         unsigned int fineToCoarseChannel(const unsigned int& fineChannel);
 
-        // Initialise the ingest process to #channels map
-        std::map<int, unsigned int> initChannelMappings(const LOFAR::ParameterSet& params);
-
-        // Returns the number of channels handled by this ingest process
-        unsigned int nChannelsHandled();
-
         // Configuration
         const Configuration itsConfig;
 
@@ -119,11 +114,11 @@ class MergedSource {
         boost::shared_ptr<TosMetadata> itsMetadata;
         boost::shared_ptr<VisDatagram> itsVis;
 
-        // Maps rank to number of channels
-        const std::map<int, unsigned int> itsChansPerRank;
-
         // Scan Manager
         ScanManager itsScanManager;
+
+        // Channel Manager
+        ChannelManager itsChannelManager;
 
         // No support for assignment
         MergedSource& operator=(const MergedSource& rhs);
