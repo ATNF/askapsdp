@@ -72,6 +72,7 @@ VisChunk::VisChunk(const casa::uInt nRow,
         itsFlag(nRow, nChannel, nPol),
         itsUVW(nRow),
         itsFrequency(nChannel),
+        itsChannelWidth(-1),
         itsStokes(nPol),
         itsDirectionFrame(casa::MDirection::DEFAULT)
 {
@@ -254,6 +255,16 @@ casa::Vector<casa::Double>& VisChunk::frequency()
 const casa::Vector<casa::Double>& VisChunk::frequency() const
 {
     return itsFrequency;
+}
+
+casa::Double& VisChunk::channelWidth()
+{
+    return itsChannelWidth;
+}
+
+const casa::Double& VisChunk::channelWidth() const
+{
+    return itsChannelWidth;
 }
 
 casa::Vector<casa::Stokes::StokesTypes>& VisChunk::stokes()

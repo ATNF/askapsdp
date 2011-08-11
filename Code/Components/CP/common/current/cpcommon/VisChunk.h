@@ -87,7 +87,8 @@ class VisChunk : public ISerializable {
         /// @copydoc VisChunk::time()
         const casa::MVEpoch& time() const;
 
-        /// Data sampling interval in seconds.
+        /// Data sampling interval.
+        /// Units: Seconds
         casa::Double& interval();
 
         /// @copydoc VisChunk::interval()
@@ -138,16 +139,18 @@ class VisChunk : public ISerializable {
         const casa::Vector<casa::uInt>& beam2() const;
 
         /// Position angles of the first beam for all rows
-        /// @return a vector with position angles (in radians) of the
+        /// @return a vector with position angles of the
         /// first beam corresponding to each visibility
+        /// Units: Radians
         casa::Vector<casa::Float>& beam1PA();
 
         /// @copydoc VisChunk::beam1PA()
         const casa::Vector<casa::Float>& beam1PA() const;
 
         /// Position angles of the second beam for all rows
-        /// @return a vector with position angles (in radians) of the
+        /// @return a vector with position angles of the
         /// second beam corresponding to each visibility
+        /// Units: Radians
         casa::Vector<casa::Float>& beam2PA();
 
         /// @copydoc VisChunk::beamsPA()
@@ -181,8 +184,7 @@ class VisChunk : public ISerializable {
 
         /// pointing direction for the centre of the first antenna
         /// @details The same as pointingDir2, if the beam offsets are zero
-        /// @return a vector with direction measures (coordinate system
-        /// is is set via IDataConverter), one direction for each
+        /// @return a vector with direction measures one direction for each
         /// visibility/row
         casa::Vector<casa::MVDirection>& dishPointing2();
 
@@ -214,13 +216,25 @@ class VisChunk : public ISerializable {
         /// @copydoc VisChunk::uvw()
         const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw() const;
 
-        /// Frequency for each channel
+        /// Frequency for each channel.
+        /// Units: Hz
         /// @return a reference to vector containing frequencies for each
         ///         spectral channel (vector size is nChannel).
         casa::Vector<casa::Double>& frequency();
 
         /// @copydoc VisChunk::frequency()
         const casa::Vector<casa::Double>& frequency() const;
+
+        /// Channel width of each spectral channel.
+        /// All spectral channels in the frequency vector have a channel
+        /// width which can be derived from frequency() by differencing,
+        /// however is stored here for efficiency.
+        /// Units: Hz
+        /// @return  a refernece to the channel width of each spectral channel.
+        casa::Double& channelWidth();
+
+        /// @copydoc VisChunk::channelWidth()
+        const casa::Double& channelWidth() const;
 
         /// @brief polarisation type for each product
         /// @return a reference to vector containing polarisation types for
@@ -335,6 +349,9 @@ class VisChunk : public ISerializable {
 
         /// Frequency
         casa::Vector<casa::Double> itsFrequency;
+
+        /// Channel Width
+        casa::Double itsChannelWidth;
 
         /// Stokes
         casa::Vector<casa::Stokes::StokesTypes> itsStokes;
