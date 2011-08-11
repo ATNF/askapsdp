@@ -38,6 +38,7 @@
 #include "cpcommon/TosMetadataAntenna.h"
 #include "cpcommon/VisChunk.h"
 #include "measures/Measures.h"
+#include "ConfigurationHelper.h"
 
 // Classes to test
 #include "ingestpipeline/sourcetask/MergedSource.h"
@@ -65,7 +66,8 @@ class MergedSourceTest : public CppUnit::TestFixture {
             std::ostringstream ss;
             ss << N_CHANNELS_PER_SLICE;
             params.add("n_channels.0", ss.str());
-            itsInstance.reset(new MergedSource(params, itsMetadataSrc, itsVisSrc, 1, 0));
+            Configuration config = ConfigurationHelper::createDummyConfig();
+            itsInstance.reset(new MergedSource(params, config, itsMetadataSrc, itsVisSrc, 1, 0));
         }
 
         void tearDown() {

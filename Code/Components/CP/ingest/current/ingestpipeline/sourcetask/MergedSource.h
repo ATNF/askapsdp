@@ -40,6 +40,8 @@
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
+#include "ingestpipeline/sourcetask/ScanManager.h"
+#include "configuration/Configuration.h"
 
 namespace askap {
 namespace cp {
@@ -52,6 +54,8 @@ class MergedSource {
     public:
         /// @brief Constructor.
         ///
+        /// @param[in] params           Parameters specific to this task
+        /// @param[in] config           Configuration
         /// @param[in] metadataSource   Instance of a IMetadataSource from which the TOS
         ///                             TOS metadata will be sourced.
         /// @param[in] visSource    Instance of a IVisSource from which the visibilities
@@ -60,6 +64,7 @@ class MergedSource {
         ///                         the merged source to determine how many visibilities
         ///                         it is responsible for receiving.
         MergedSource(const LOFAR::ParameterSet& params,
+                     const Configuration& config,
                      IMetadataSource::ShPtr metadataSource,
                      IVisSource::ShPtr visSource, int numTasks, int id);
 
@@ -94,6 +99,9 @@ class MergedSource {
         // Returns the number of channels handled by this ingest process
         unsigned int nChannelsHandled();
 
+        // Configuration
+        const Configuration itsConfig;
+
         // The object that is the source of telescope metadata
         IMetadataSource::ShPtr itsMetadataSrc;
         
@@ -113,6 +121,9 @@ class MergedSource {
 
         // Maps rank to number of channels
         const std::map<int, unsigned int> itsChansPerRank;
+
+        // Scan Manager
+        ScanManager itsScanManager;
 
         // No support for assignment
         MergedSource& operator=(const MergedSource& rhs);

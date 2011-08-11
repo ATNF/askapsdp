@@ -144,6 +144,10 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(casa::Quantity(18.51851851, "kHz"), correlatorMode.chanWidth());
             CPPUNIT_ASSERT_EQUAL(4ul, correlatorMode.stokes().size());
 
+            // Check observation
+            const Observation obs = conf.observation();
+            CPPUNIT_ASSERT_EQUAL(0u, obs.schedulingBlockID());
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), obs.scans().size());
 
             // Check antennas
             CPPUNIT_ASSERT_EQUAL(2ul, conf.antennas().size());

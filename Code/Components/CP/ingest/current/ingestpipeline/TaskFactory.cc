@@ -120,6 +120,6 @@ boost::shared_ptr< MergedSource > TaskFactory::createSource(void)
     VisSource::ShPtr visSrc(new VisSource(visPort + rank, visBufSz));
 
     // 3) Create and configure the merged source
-    boost::shared_ptr< MergedSource > source(new MergedSource(params, metadataSrc, visSrc, numTasks, rank));
+    boost::shared_ptr< MergedSource > source(new MergedSource(params, itsConfig, metadataSrc, visSrc, numTasks, rank));
     return source;
 }

@@ -30,6 +30,7 @@
 // Test includes
 #include "CircularBufferTest.h"
 #include "VisChunkTest.h"
+#include "ScanManagerTest.h"
 #include "MergedSourceTest.h"
 #include "CalcUVWTaskTest.h"
 #include "ChannelAvgTaskTest.h"
@@ -40,6 +41,7 @@ int main(int argc, char *argv[])
     askapdev::testutils::AskapTestRunner runner(argv[0]);
     runner.addTest(askap::cp::ingest::CircularBufferTest::suite());
     runner.addTest(askap::cp::ingest::VisChunkTest::suite());
+    runner.addTest(askap::cp::ingest::ScanManagerTest::suite());
     runner.addTest(askap::cp::ingest::MergedSourceTest::suite());
     runner.addTest(askap::cp::ingest::CalcUVWTaskTest::suite());
     runner.addTest(askap::cp::ingest::ChannelAvgTaskTest::suite());

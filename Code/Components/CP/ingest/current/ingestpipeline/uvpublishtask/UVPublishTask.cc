@@ -43,7 +43,6 @@
 #include "uvchannel/UVChannelPublisher.h"
 
 // Local package includes
-#include "ingestutils/ParsetConfiguration.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".UVPublishTask");

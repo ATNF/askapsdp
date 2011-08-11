@@ -47,6 +47,8 @@
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
 #include "ingestpipeline/sourcetask/IMetadataSource.h"
+#include "ingestpipeline/sourcetask/ScanManager.h"
+#include "configuration/Configuration.h"
 
 ASKAP_LOGGER(logger, ".MergedSource");
 
@@ -55,11 +57,14 @@ using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
 MergedSource::MergedSource(const LOFAR::ParameterSet& params,
+        const Configuration& config,
         IMetadataSource::ShPtr metadataSrc,
         IVisSource::ShPtr visSrc, int numTasks, int id) :
+     itsConfig(config),
      itsMetadataSrc(metadataSrc), itsVisSrc(visSrc),
      itsNumTasks(numTasks), itsId(id),
-     itsChansPerRank(initChannelMappings(params))
+     itsChansPerRank(initChannelMappings(params)),
+     itsScanManager(config)
 {
 }
 
@@ -72,8 +77,12 @@ VisChunk::ShPtr MergedSource::next(void)
     // Get the next TosMetadata
     itsMetadata = itsMetadataSrc->next();
 
+    // Update the Scan Manager
+    itsScanManager.update(itsMetadata->antenna(0).scanActive(),
+            itsMetadata->antenna(0).scanId());
+
     // Check if the TOS/TOM has indicated the observation is complete
-    if (!itsMetadata->antenna(0).scanActive()) {
+    if (itsScanManager.observationComplete()) {
         ASKAPLOG_DEBUG_STR(logger, "Received metadata indiating scan_active is false");
         return VisChunk::ShPtr();
     }
