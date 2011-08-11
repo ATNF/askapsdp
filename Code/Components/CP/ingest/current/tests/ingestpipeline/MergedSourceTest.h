@@ -192,6 +192,10 @@ class MergedSourceTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT(chunk->stokes()(1) == casa::Stokes::XY);
             CPPUNIT_ASSERT(chunk->stokes()(2) == casa::Stokes::YX);
             CPPUNIT_ASSERT(chunk->stokes()(3) == casa::Stokes::YY);
+
+            // Check frequency vector
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(N_CHANNELS_PER_SLICE),
+                    chunk->frequency().size());
         }
 
     private:

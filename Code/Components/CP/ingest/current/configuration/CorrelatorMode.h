@@ -57,10 +57,10 @@ class CorrelatorMode {
 
     private:
 
-        const casa::String itsName;
-        const casa::uInt itsNChan;
-        const casa::Quantity itsChanWidth;
-        const std::vector<casa::Stokes::StokesTypes> itsStokes;
+        casa::String itsName;
+        casa::uInt itsNChan;
+        casa::Quantity itsChanWidth;
+        std::vector<casa::Stokes::StokesTypes> itsStokes;
 
 };
 

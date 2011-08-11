@@ -35,6 +35,7 @@
 // ASKAPsoft includes
 #include "casa/Quanta/Quantum.h"
 #include "measures/Measures/MDirection.h"
+#include "measures/Measures/Stokes.h"
 
 // Local package includes
 #include "configuration/Configuration.h"
@@ -54,7 +55,18 @@ class ConfigurationHelper {
             const std::string arrayName;
             std::vector<TaskDesc> tasks;
             std::vector<Antenna> antennas;
+
+            // Add a correlator mode to est with
             std::map<std::string, CorrelatorMode> correlatorModes;
+            const std::string modeName = "StandardMode";
+            std::vector<casa::Stokes::StokesTypes> stokes;
+            stokes.push_back(casa::Stokes::XX);
+            stokes.push_back(casa::Stokes::XY);
+            stokes.push_back(casa::Stokes::YX);
+            stokes.push_back(casa::Stokes::YY);
+
+            correlatorModes.insert(std::pair<std::string, CorrelatorMode>(modeName,
+                        CorrelatorMode(modeName, 16416, casa::Quantity(18.5, "kHz"), stokes)));
 
             // An observation must have at least one scan, so add one
             Scan scan0("test-field",
@@ -62,7 +74,7 @@ class ConfigurationHelper {
                         casa::Quantity(-45.0, "deg"),
                         MDirection::J2000),
                     casa::Quantity(1400, "GHz"),
-                    "");
+                    modeName);
             std::vector<Scan> scans;
             scans.push_back(scan0);
 
