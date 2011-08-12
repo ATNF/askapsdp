@@ -33,7 +33,6 @@
 // System includes
 #include <string>
 #include <vector>
-#include <map>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -45,7 +44,6 @@
 #include "configuration/ServiceConfig.h"
 #include "configuration/TaskDesc.h"
 #include "configuration/Antenna.h"
-#include "configuration/CorrelatorMode.h"
 #include "configuration/Observation.h"
 
 using namespace askap;
@@ -54,13 +52,11 @@ using namespace askap::cp::ingest;
 Configuration::Configuration(const casa::String& arrayName,
                              const std::vector<TaskDesc>& tasks,
                              const std::vector<Antenna>& antennas,
-                             const std::map<std::string, CorrelatorMode>& correlatorModes,
                              const Observation& observation,
                              const TopicConfig& metadataTopic,
                              const ServiceConfig& calibrationDataService)
         : itsArrayName(arrayName), itsTasks(tasks), itsAntennas(antennas),
-        itsCorrelatorModes(correlatorModes), itsObservation(observation),
-        itsMetadataTopicConfig(metadataTopic),
+        itsObservation(observation), itsMetadataTopicConfig(metadataTopic),
         itsCalibrationDataServiceConfig(calibrationDataService)
 {
 }
@@ -78,11 +74,6 @@ std::vector<TaskDesc> Configuration::tasks(void) const
 std::vector<Antenna> Configuration::antennas(void) const
 {
     return itsAntennas;
-}
-
-std::map<std::string, CorrelatorMode> Configuration::correlatorModes(void) const
-{
-    return itsCorrelatorModes;
 }
 
 Observation Configuration::observation(void) const

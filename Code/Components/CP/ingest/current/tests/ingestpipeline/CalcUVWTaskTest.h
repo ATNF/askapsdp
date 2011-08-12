@@ -190,7 +190,6 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
             return Configuration(empty.arrayName(),
                     empty.tasks(),
                     antennas,
-                    empty.correlatorModes(),
                     empty.observation(),
                     empty.metadataTopic(),
                     empty.calibrationDataService());

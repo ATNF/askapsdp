@@ -41,7 +41,6 @@
 #include "configuration/ServiceConfig.h"
 #include "configuration/TaskDesc.h"
 #include "configuration/Antenna.h"
-#include "configuration/CorrelatorMode.h"
 #include "configuration/Observation.h"
 #include "configuration/Configuration.h"
 
@@ -62,8 +61,6 @@ class ConfigurationFactory {
         static std::vector<TaskDesc> createTasks(const LOFAR::ParameterSet& parset);
 
         static std::vector<Antenna> createAntennas(const LOFAR::ParameterSet& parset);
-
-        static std::map<std::string, CorrelatorMode> createCorrelatorModes(const LOFAR::ParameterSet& parset);
 
         static Observation createObservation(const LOFAR::ParameterSet& parset);
 

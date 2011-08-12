@@ -435,18 +435,16 @@ void MSSink::initSpws(void)
     ASKAPCHECK(itsConfig.observation().scans().size() == 1,
             "Only one scan supported");
     const Scan scan = itsConfig.observation().scans().at(0);
-    const std::string modeString = scan.correlatorMode();
-    const CorrelatorMode cmode = itsConfig.correlatorModes().find(modeString)->second;
 
-    casa::String spWindowName = cmode.name();
-    int nChan = cmode.nChan();
+    casa::String spWindowName("NO_NAME"); // TODO: Add name
+    int nChan = scan.nChan();
     casa::Quantity startFreq = scan.startFreq();
-    casa::Quantity freqInc = cmode.chanWidth();
+    casa::Quantity freqInc = scan.chanWidth();
     
     /////////////////////////////////////////////////////////////////
-    Vector<Int> stokesTypes(cmode.stokes().size());
-    for (size_t i = 0; i < cmode.stokes().size(); ++i) {
-        stokesTypes(i) = cmode.stokes().at(i);
+    Vector<Int> stokesTypes(scan.stokes().size());
+    for (size_t i = 0; i < scan.stokes().size(); ++i) {
+        stokesTypes(i) = scan.stokes().at(i);
     }
 
     const Int nCorr = stokesTypes.size();

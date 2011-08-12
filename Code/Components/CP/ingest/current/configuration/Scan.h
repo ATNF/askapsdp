@@ -31,6 +31,7 @@
 #include "casa/BasicSL.h"
 #include "casa/Quanta.h"
 #include "measures/Measures/MDirection.h"
+#include "measures/Measures/Stokes.h"
 
 namespace askap {
 namespace cp {
@@ -44,7 +45,9 @@ class Scan {
         Scan(const casa::String& fieldName,
              const casa::MDirection& fieldDirection,
              const casa::Quantity& startFreq,
-             const casa::String& correlatorMode);
+             const casa::uInt nChan,
+             const casa::Quantity& chanWidth,
+             const std::vector<casa::Stokes::StokesTypes>& stokes);
 
         casa::String name(void) const;
 
@@ -52,14 +55,19 @@ class Scan {
 
         casa::Quantity startFreq(void) const;
 
-        casa::String correlatorMode(void) const;
+        casa::uInt nChan(void) const;
+
+        casa::Quantity chanWidth(void) const;
+
+        std::vector<casa::Stokes::StokesTypes> stokes(void) const;
 
     private:
         casa::String itsFieldName;
         casa::MDirection itsFieldDirection;
         casa::Quantity itsCentreFreq;
-        casa::String itsCorrelatorMode;
-
+        casa::uInt itsNChan;
+        casa::Quantity itsChanWidth;
+        std::vector<casa::Stokes::StokesTypes> itsStokes;
 };
 
 }

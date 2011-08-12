@@ -49,11 +49,6 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
             // Array name
             itsParset.add("arrayname", "ASKAP");
 
-            // Correlator modes
-            itsParset.add("correlator.modes", "[StandardMode]");
-            itsParset.add("correlator.mode.StandardMode.n_chan", "16416");
-            itsParset.add("correlator.mode.StandardMode.chan_width", "18.51851851kHz");
-            itsParset.add("correlator.mode.StandardMode.stokes", "[XX, XY, YX, YY]");
 
             // Feed configurations
             itsParset.add("feeds.names", "[SPF, PAF4]");
@@ -88,7 +83,10 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
             itsParset.add("observation.scan0.field_name", "test-field");
             itsParset.add("observation.scan0.field_direction", "[12h30m00.000, -45.00.00.000, J2000]");
             itsParset.add("observation.scan0.start_freq", "1.420GHz");
-            itsParset.add("observation.scan0.correlator_mode", "StandardMode");
+            itsParset.add("observation.scan0.n_chan", "16416");
+            itsParset.add("observation.scan0.chan_width", "18.51851851kHz");
+            itsParset.add("observation.scan0.stokes", "[XX, XY, YX, YY]");
+
 
             // Metadata topic config
             itsParset.add("metadata_source.ice.locator_host", "localhost");
@@ -136,18 +134,18 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
             // Check array name
             CPPUNIT_ASSERT_EQUAL(casa::String("ASKAP"), conf.arrayName());
 
-            // Check correlator modes
-            CPPUNIT_ASSERT_EQUAL(1ul, conf.correlatorModes().size());
-            CorrelatorMode correlatorMode = conf.correlatorModes().find("StandardMode")->second;
-            CPPUNIT_ASSERT_EQUAL(casa::String("StandardMode"), correlatorMode.name());
-            CPPUNIT_ASSERT_EQUAL(16416u, correlatorMode.nChan());
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(18.51851851, "kHz"), correlatorMode.chanWidth());
-            CPPUNIT_ASSERT_EQUAL(4ul, correlatorMode.stokes().size());
-
             // Check observation
             const Observation obs = conf.observation();
             CPPUNIT_ASSERT_EQUAL(0u, obs.schedulingBlockID());
+
+            // Check Scans
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), obs.scans().size());
+            Scan s = obs.scans().at(0);
+            CPPUNIT_ASSERT_EQUAL(casa::String("test-field"), s.name());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(1.420, "GHz"), s.startFreq());
+            CPPUNIT_ASSERT_EQUAL(16416u, s.nChan());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(18.51851851, "kHz"), s.chanWidth());
+            CPPUNIT_ASSERT_EQUAL(4ul, s.stokes().size());
 
             // Check antennas
             CPPUNIT_ASSERT_EQUAL(2ul, conf.antennas().size());

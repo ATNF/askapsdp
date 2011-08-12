@@ -56,17 +56,12 @@ class ConfigurationHelper {
             std::vector<TaskDesc> tasks;
             std::vector<Antenna> antennas;
 
-            // Add a correlator mode to est with
-            std::map<std::string, CorrelatorMode> correlatorModes;
-            const std::string modeName = "StandardMode";
+            // Create Stokes vector for the scan configuration
             std::vector<casa::Stokes::StokesTypes> stokes;
             stokes.push_back(casa::Stokes::XX);
             stokes.push_back(casa::Stokes::XY);
             stokes.push_back(casa::Stokes::YX);
             stokes.push_back(casa::Stokes::YY);
-
-            correlatorModes.insert(std::pair<std::string, CorrelatorMode>(modeName,
-                        CorrelatorMode(modeName, 16416, casa::Quantity(18.5, "kHz"), stokes)));
 
             // An observation must have at least one scan, so add one
             Scan scan0("test-field",
@@ -74,7 +69,9 @@ class ConfigurationHelper {
                         casa::Quantity(-45.0, "deg"),
                         MDirection::J2000),
                     casa::Quantity(1400, "GHz"),
-                    modeName);
+                    16416,
+                    casa::Quantity(18.5, "kHz"),
+                    stokes);
             std::vector<Scan> scans;
             scans.push_back(scan0);
 
@@ -82,7 +79,7 @@ class ConfigurationHelper {
             TopicConfig metadataTopic("", "", "", "");
             ServiceConfig calibrationDataService("", "", "");
 
-            return Configuration(arrayName, tasks, antennas, correlatorModes, observation,
+            return Configuration(arrayName, tasks, antennas, observation,
                     metadataTopic, calibrationDataService);
         }
 };

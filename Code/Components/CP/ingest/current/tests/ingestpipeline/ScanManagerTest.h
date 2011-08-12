@@ -104,7 +104,8 @@ class ScanManagerTest : public CppUnit::TestFixture {
         {
             // Start with a basic configuration then use it to build
             // one with three scans
-            Configuration base = ConfigurationHelper::createDummyConfig();
+            const Configuration base = ConfigurationHelper::createDummyConfig();
+            const Scan baseScan = base.observation().scans().at(0);
 
             std::vector<Scan> scans;
 
@@ -114,7 +115,9 @@ class ScanManagerTest : public CppUnit::TestFixture {
                         casa::Quantity(-45.0, "deg"),
                         MDirection::J2000),
                     casa::Quantity(1400, "GHz"),
-                    "");
+                    baseScan.nChan(),
+                    baseScan.chanWidth(),
+                    baseScan.stokes());
             scans.push_back(scan0);
 
             // Scan 1
@@ -123,7 +126,9 @@ class ScanManagerTest : public CppUnit::TestFixture {
                         casa::Quantity(-45.0, "deg"),
                         MDirection::J2000),
                     casa::Quantity(1400, "GHz"),
-                    "");
+                    baseScan.nChan(),
+                    baseScan.chanWidth(),
+                    baseScan.stokes());
             scans.push_back(scan1);
 
             // Scan 2
@@ -132,7 +137,9 @@ class ScanManagerTest : public CppUnit::TestFixture {
                         casa::Quantity(-45.0, "deg"),
                         MDirection::J2000),
                     casa::Quantity(1400, "GHz"),
-                    "");
+                    baseScan.nChan(),
+                    baseScan.chanWidth(),
+                    baseScan.stokes());
             scans.push_back(scan2);
 
             Observation obs(0, scans);
@@ -140,7 +147,6 @@ class ScanManagerTest : public CppUnit::TestFixture {
             return Configuration(base.arrayName(),
                     base.tasks(),
                     base.antennas(),
-                    base.correlatorModes(),
                     obs,
                     base.metadataTopic(),
                     base.calibrationDataService());

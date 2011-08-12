@@ -53,7 +53,6 @@
 #include "configuration/ServiceConfig.h"
 #include "configuration/TaskDesc.h"
 #include "configuration/Antenna.h"
-#include "configuration/CorrelatorMode.h"
 #include "configuration/Observation.h"
 #include "configuration/Configuration.h"
 
@@ -69,7 +68,6 @@ Configuration ConfigurationFactory::createConfiguraton(const LOFAR::ParameterSet
             createArrayName(parset),
             createTasks(parset),
             createAntennas(parset),
-            createCorrelatorModes(parset),
             createObservation(parset),
             createMetadataTopicConfig(parset),
             createCalibrationDataServiceConfig(parset));
@@ -126,33 +124,6 @@ std::vector<Antenna> ConfigurationFactory::createAntennas(const LOFAR::Parameter
     return antennas;
 }
 
-std::map<std::string, CorrelatorMode> ConfigurationFactory::createCorrelatorModes(const LOFAR::ParameterSet& parset)
-{
-    map<string, CorrelatorMode> modes;
-
-    const vector<string> names = parset.getStringVector("correlator.modes");
-    vector<string>::const_iterator it;
-    for (it = names.begin(); it != names.end(); ++it) {
-        const string keyBase = makeKey("correlator.mode", *it);
-        const casa::uInt nChan = parset.getUint32(makeKey(keyBase, "n_chan"));
-        const casa::Quantity chanWidth = asQuantity(parset.getString(
-                    makeKey(keyBase, "chan_width")), "Hz");
-
-        vector<casa::Stokes::StokesTypes> stokes;
-        const vector<string> stokesStrings = parset.getStringVector(makeKey(keyBase, "stokes"));
-        vector<string>::const_iterator itStokes;
-        for (itStokes = stokesStrings.begin(); itStokes != stokesStrings.end(); ++itStokes) {
-            stokes.push_back(casa::Stokes::type(*itStokes));
-        }
-
-        CorrelatorMode mode(*it, nChan, chanWidth, stokes);
-        pair<string, CorrelatorMode> element(mode.name(), mode); 
-        modes.insert(element);
-    }
-
-    return modes;
-}
-
 Observation ConfigurationFactory::createObservation(const LOFAR::ParameterSet& parset)
 {
     const casa::uInt schedulingBlockID = parset.getUint32("observation.sbid");
@@ -174,9 +145,20 @@ Observation ConfigurationFactory::createObservation(const LOFAR::ParameterSet& p
         const casa::Quantity startFreq = asQuantity(
                 parset.getString(makeKey(keyBase, "start_freq")),
                 "Hz"); // Must conform to Hz
-        const casa::String correlatorMode = parset.getString(makeKey(keyBase, "correlator_mode"));
 
-        scans.push_back(Scan(fieldName, fieldDirection, startFreq, correlatorMode));
+        const casa::uInt nChan = parset.getUint32(makeKey(keyBase, "n_chan"));
+        const casa::Quantity chanWidth = asQuantity(parset.getString(
+                    makeKey(keyBase, "chan_width")), "Hz"); // Must conform to Hz
+
+        vector<casa::Stokes::StokesTypes> stokes;
+        const vector<string> stokesStrings = parset.getStringVector(makeKey(keyBase, "stokes"));
+        for (vector<string>::const_iterator it = stokesStrings.begin();
+                it != stokesStrings.end(); ++it) {
+            stokes.push_back(casa::Stokes::type(*it));
+        }
+
+        scans.push_back(Scan(fieldName, fieldDirection, startFreq, nChan,
+                    chanWidth, stokes));
     }
 
     return Observation(schedulingBlockID, scans);

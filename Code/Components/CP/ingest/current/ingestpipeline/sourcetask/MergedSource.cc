@@ -189,14 +189,8 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     chunk->stokes()(3) = casa::Stokes::YY;
 
     // Determine and add the spectral channel width
-    Scan scanDetail = itsConfig.observation().scans().at(itsScanManager.scanIndex());
-    std::map<std::string, CorrelatorMode>::const_iterator it;
-    it = itsConfig.correlatorModes().find(scanDetail.correlatorMode());
-    if (it == itsConfig.correlatorModes().end()) {
-        ASKAPTHROW(AskapError, "Correlator Mode is unknown");
-    }
-    const CorrelatorMode cmode = it->second;
-    chunk->channelWidth() = cmode.chanWidth().getValue("Hz");
+    Scan scanInfo = itsConfig.observation().scans().at(itsScanManager.scanIndex());
+    chunk->channelWidth() = scanInfo.chanWidth().getValue("Hz");
 
     casa::uInt row = 0;
     for (casa::uInt beam = 0; beam < nBeams; ++beam) {
@@ -235,8 +229,8 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
                 
                 // Frequency vector is not of length nRows, but instead nChannels
                 chunk->frequency() = itsChannelManager.localFrequencies(itsId,
-                        scanDetail.startFreq().getValue("Hz"),
-                        cmode.chanWidth().getValue("Hz"));
+                        scanInfo.startFreq().getValue("Hz"),
+                        scanInfo.chanWidth().getValue("Hz"));
 
                 row++;
             }

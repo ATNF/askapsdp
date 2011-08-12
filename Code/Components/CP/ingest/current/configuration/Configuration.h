@@ -29,7 +29,6 @@
 
 // System includes
 #include <vector>
-#include <map>
 
 // ASKAPsoft includes
 #include "casa/BasicSL.h"
@@ -37,7 +36,6 @@
 // Local package includes
 #include "configuration/TaskDesc.h"
 #include "configuration/Antenna.h"
-#include "configuration/CorrelatorMode.h"
 #include "configuration/Observation.h"
 #include "configuration/TopicConfig.h"
 #include "configuration/ServiceConfig.h"
@@ -54,7 +52,6 @@ class Configuration {
         Configuration(const casa::String& arrayName,
                       const std::vector<TaskDesc>& tasks,
                       const std::vector<Antenna>& antennas,
-                      const std::map<std::string, CorrelatorMode>& correlatorModes,
                       const Observation& observation,
                       const TopicConfig& metadataTopic,
                       const ServiceConfig& calibrationDataService);
@@ -62,7 +59,6 @@ class Configuration {
         casa::String arrayName(void) const;
         std::vector<TaskDesc> tasks(void) const;
         std::vector<Antenna> antennas(void) const;
-        std::map<std::string, CorrelatorMode> correlatorModes(void) const;
         Observation observation(void) const;
         TopicConfig metadataTopic(void) const;
         ServiceConfig calibrationDataService(void) const;
@@ -71,11 +67,9 @@ class Configuration {
         casa::String itsArrayName;
         std::vector<TaskDesc> itsTasks;
         std::vector<Antenna> itsAntennas;
-        std::map<std::string, CorrelatorMode> itsCorrelatorModes;
         Observation itsObservation;
         TopicConfig itsMetadataTopicConfig;
         ServiceConfig itsCalibrationDataServiceConfig;
-
 
 };
 

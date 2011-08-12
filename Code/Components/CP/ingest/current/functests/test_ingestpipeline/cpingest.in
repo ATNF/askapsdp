@@ -8,14 +8,6 @@
 arrayname = ASKAP
 
 #
-# Correlator Modes
-#
-correlator.modes                            = [StandardMode]
-correlator.mode.StandardMode.n_chan         = 152
-correlator.mode.StandardMode.chan_width     = 1MHz
-correlator.mode.StandardMode.stokes         = [XX, XY, YX, YY]
-
-#
 # Feed Configurations
 #
 feeds.names                 = [PAF36]
@@ -119,7 +111,9 @@ observation.sbid                    = 0
 observation.scan0.field_name        = test-field
 observation.scan0.field_direction   = [12h30m00.000, -45.00.00.000, J2000]
 observation.scan0.start_freq        = 1.420GHz
-observation.scan0.correlator_mode   = StandardMode
+observation.scan0.n_chan            = 152
+observation.scan0.chan_width        = 1MHz
+observation.scan0.stokes            = [XX, XY, YX, YY]
 
 #
 # Metadata topic config

@@ -35,6 +35,7 @@
 #include "casa/BasicSL.h"
 #include "casa/Quanta.h"
 #include "measures/Measures/MDirection.h"
+#include "measures/Measures/Stokes.h"
 
 using namespace askap;
 using namespace askap::cp::ingest;
@@ -42,12 +43,18 @@ using namespace askap::cp::ingest;
 Scan::Scan(const casa::String& fieldName,
            const casa::MDirection& fieldDirection,
            const casa::Quantity& startFreq,
-           const casa::String& correlatorMode)
-        : itsFieldName(fieldName), itsFieldDirection(fieldDirection),
-        itsCentreFreq(startFreq), itsCorrelatorMode(correlatorMode)
+           const casa::uInt nChan,
+           const casa::Quantity& chanWidth,
+           const std::vector<casa::Stokes::StokesTypes>& stokes)
+: itsFieldName(fieldName), itsFieldDirection(fieldDirection),
+    itsCentreFreq(startFreq), itsNChan(nChan),
+    itsChanWidth(chanWidth), itsStokes(stokes)
 {
     ASKAPCHECK(startFreq.isConform("Hz"),
-            "Centre frequency must conform to Hz");
+            "Start frequency must conform to Hz");
+    ASKAPCHECK(chanWidth.isConform("Hz"),
+            "Channel width must conform to Hz");
+    ASKAPCHECK(!stokes.empty(), "Stokes vector is empty");
 }
 
 casa::String Scan::name(void) const
@@ -65,7 +72,17 @@ casa::Quantity Scan::startFreq(void) const
     return itsCentreFreq;
 }
 
-casa::String Scan::correlatorMode(void) const
+casa::uInt Scan::nChan(void) const
 {
-    return itsCorrelatorMode;
+        return itsNChan;
+}
+
+casa::Quantity Scan::chanWidth(void) const
+{
+        return itsChanWidth;
+}
+
+std::vector<casa::Stokes::StokesTypes> Scan::stokes(void) const
+{
+        return itsStokes;
 }
