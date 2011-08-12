@@ -42,6 +42,9 @@
 namespace askap {
 namespace accessors {
 
+/// timestamp type
+typedef casa::Long SolutionTimestamp;
+
 // Calibration solution template
 template<class T>
 class GenericSolution {
@@ -52,33 +55,35 @@ class GenericSolution {
         /// @param[in] timestamp    timestamp indicating when the solution was
         ///                         created. Absolute time expressed as
         ///                         microseconds since MJD=0.
-        GenericSolution(const casa::Long timestamp) {
+        GenericSolution(const SolutionTimestamp timestamp) {
             itsTimestamp = timestamp;
         }
 
         /// Returns the timestamp for when the solution was created.
         /// @return the timestamp.
-        casa::Long timestamp(void) const
+        SolutionTimestamp timestamp(void) const
         {
             return itsTimestamp;
         }
 
         /// Returns a const reference to the map containing the
         /// calibration parameters.
-        const std::map<JonesIndex, T>& map(void) const
+        /// @rturn const reference to the map with parameters
+        inline const std::map<JonesIndex, T>& map(void) const
         {
             return itsMap;
         }
 
         /// Returns a non-const reference to the map containing the
         /// calibration parameters.
-        std::map<JonesIndex, T>& map(void)
+        /// @return non-const reference to the map with parameters
+        inline std::map<JonesIndex, T>& map(void)
         {
             return itsMap;
         }
 
     private:
-        casa::Long itsTimestamp;
+        SolutionTimestamp itsTimestamp;
 
         std::map<JonesIndex, T> itsMap;
 };
