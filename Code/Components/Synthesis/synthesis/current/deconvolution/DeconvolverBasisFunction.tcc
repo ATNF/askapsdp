@@ -607,8 +607,8 @@ namespace askap {
 	if(abs(peakValues(term))>0.0) {
 	  psfStart(2)=psfEnd(2)=term;
 	  casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
-	  this->model()(modelSlicer).nonDegenerate() = this->model()(modelSlicer).nonDegenerate()
-	    + this->control()->gain()*peakValues(term)*
+          typename casa::Array<T> modelSlice = this->model()(modelSlicer).nonDegenerate();
+	  modelSlice += this->control()->gain()*peakValues(term)*
 	    this->itsBasisFunction->basisFunction()(psfSlicer).nonDegenerate();
 	}
       }	
@@ -617,8 +617,7 @@ namespace askap {
 	if(abs(peakValues(term))>0.0) {
 	  IPosition l1PeakPos(3, absPeakPos(0), absPeakPos(1), term);
 	  casa::Slicer modelSlicer(modelStart, modelEnd, modelStride, Slicer::endIsLast);
-	  this->itsL1image(0)(l1PeakPos) = this->itsL1image(0)(l1PeakPos)
-	    + this->control()->gain()*abs(peakValues(term));
+	  this->itsL1image(0)(l1PeakPos) += this->control()->gain()*abs(peakValues(term));
 	  this->itsScaleFlux(term)+=this->control()->gain()*peakValues(term);
 	}
       }
@@ -630,9 +629,8 @@ namespace askap {
 	  casa::Slicer psfSlicer(psfStart, psfEnd, psfStride, Slicer::endIsLast);
 	  residualStart(2)=residualEnd(2)=term;
 	  casa::Slicer residualSlicer(residualStart, residualEnd, residualStride, Slicer::endIsLast);
-	  this->itsResidualBasisFunction(residualSlicer).nonDegenerate() =
-	    this->itsResidualBasisFunction(residualSlicer).nonDegenerate()
-	    - this->control()->gain()*peakValues(term)*this->itsPSFBasisFunction(psfSlicer).nonDegenerate();
+          typename casa::Array<T> residualBFSlice = this->itsResidualBasisFunction(residualSlicer).nonDegenerate();
+          residualBFSlice -= this->control()->gain()*peakValues(term)*this->itsPSFBasisFunction(psfSlicer).nonDegenerate();
 	}
       }
 
@@ -650,9 +648,8 @@ namespace askap {
 		psfCrossTermsStart(3)=term;
 		psfCrossTermsEnd(3)=term;
 		casa::Slicer psfCrossTermsSlicer(psfCrossTermsStart, psfCrossTermsEnd, psfCrossTermsStride, Slicer::endIsLast);
-		this->itsResidualBasisFunction(residualSlicer).nonDegenerate() =
-		  this->itsResidualBasisFunction(residualSlicer).nonDegenerate()
-		  - this->control()->gain()*peakValues(term1) *
+                typename casa::Array<T> residualBFSlice = this->itsResidualBasisFunction(residualSlicer).nonDegenerate();
+                residualBFSlice -= this->control()->gain()*peakValues(term1) *
 		  this->itsPSFCrossTerms(psfCrossTermsSlicer).nonDegenerate();
 	      }
 	    }
