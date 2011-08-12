@@ -4,6 +4,7 @@
 /// @defgroup dataaccess_tab Data access subpackage - table-based implementation
 /// @defgroup dataaccess_hlp Data access subpackage - helper and debug classes
 /// @defgroup imageaccess Image access subpackage
+/// @defgroup calibaccess Calibration data access subpackage
 
 /// The package namespace
 namespace askap::accessors {};
