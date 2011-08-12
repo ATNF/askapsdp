@@ -75,17 +75,21 @@ MergedSource::~MergedSource()
 VisChunk::ShPtr MergedSource::next(void)
 {
     // Get the next TosMetadata
-    itsMetadata = itsMetadataSrc->next();
+    do {
+        itsMetadata = itsMetadataSrc->next();
 
-    // Update the Scan Manager
-    itsScanManager.update(itsMetadata->antenna(0).scanActive(),
-            itsMetadata->antenna(0).scanId());
+        ASKAPLOG_DEBUG_STR(logger, "Received telescope metadata with scan_active false");
 
-    // Check if the TOS/TOM has indicated the observation is complete
-    if (itsScanManager.observationComplete()) {
-        ASKAPLOG_DEBUG_STR(logger, "Received metadata indiating scan_active is false");
-        return VisChunk::ShPtr();
-    }
+        // Update the Scan Manager
+        itsScanManager.update(itsMetadata->antenna(0).scanActive(),
+                itsMetadata->antenna(0).scanId());
+
+        // Check if the TOS/TOM has indicated the observation is complete
+        if (itsScanManager.observationComplete()) {
+            ASKAPLOG_INFO_STR(logger, "End-of-observation condition met");
+            return VisChunk::ShPtr();
+        }
+    } while (!itsMetadata->antenna(0).scanActive());
 
     // Get the next VisDatagram if there isn't already one in the buffer
     if (!itsVis) {
@@ -188,8 +192,11 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
     chunk->stokes()(2) = casa::Stokes::YX;
     chunk->stokes()(3) = casa::Stokes::YY;
 
+    // Add the scan index
+    chunk->scan() = itsScanManager.scanIndex();
+
     // Determine and add the spectral channel width
-    Scan scanInfo = itsConfig.observation().scans().at(itsScanManager.scanIndex());
+    Scan scanInfo = itsConfig.observation().scans().at(chunk->scan());
     chunk->channelWidth() = scanInfo.chanWidth().getValue("Hz");
 
     casa::uInt row = 0;

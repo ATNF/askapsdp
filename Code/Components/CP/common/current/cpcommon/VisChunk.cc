@@ -97,6 +97,16 @@ casa::uInt VisChunk::nPol() const
     return itsNumberOfPolarisations;
 }
 
+casa::uInt& VisChunk::scan()
+{
+    return itsScan;
+}
+
+const casa::uInt& VisChunk::scan() const
+{
+    return itsScan;
+}
+
 casa::Vector<casa::uInt>& VisChunk::antenna1()
 {
     return itsAntenna1;
@@ -323,6 +333,7 @@ void VisChunk::writeToBlob(LOFAR::BlobOStream& os) const
     os << itsNumberOfPolarisations;
     os << itsTime;
     os << itsInterval;
+    os << itsScan;
     os << itsAntenna1;
     os << itsAntenna2;
     os << itsBeam1;
@@ -337,6 +348,7 @@ void VisChunk::writeToBlob(LOFAR::BlobOStream& os) const
     os << itsFlag;
     os << itsUVW;
     os << itsFrequency;
+    os << itsChannelWidth;
     os << itsStokes;
     os << itsDirectionFrame;
 }
@@ -348,6 +360,7 @@ void VisChunk::readFromBlob(LOFAR::BlobIStream& is)
     is >> itsNumberOfPolarisations;
     is >> itsTime;
     is >> itsInterval;
+    is >> itsScan;
     is >> itsAntenna1;
     is >> itsAntenna2;
     is >> itsBeam1;
@@ -362,6 +375,7 @@ void VisChunk::readFromBlob(LOFAR::BlobIStream& is)
     is >> itsFlag;
     is >> itsUVW;
     is >> itsFrequency;
+    is >> itsChannelWidth;
     is >> itsStokes;
     is >> itsDirectionFrame;
 }

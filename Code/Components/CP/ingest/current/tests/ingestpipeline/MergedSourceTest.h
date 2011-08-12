@@ -117,7 +117,7 @@ class MergedSourceTest : public CppUnit::TestFixture {
                 ant.onSource(true);
                 ant.hwError(false);
                 ant.scanActive(true);
-                ant.scanId("test scan");
+                ant.scanId("scan0");
             }
 
             // Make a copy of the metadata and add it to the mock
@@ -186,6 +186,9 @@ class MergedSourceTest : public CppUnit::TestFixture {
                     }
                 }
             }
+
+            // Check scan index
+            CPPUNIT_ASSERT_EQUAL(0u, chunk->scan());
 
             // Check stokes
             CPPUNIT_ASSERT(chunk->stokes()(0) == casa::Stokes::XX);

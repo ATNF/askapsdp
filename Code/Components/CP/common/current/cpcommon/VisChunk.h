@@ -94,6 +94,12 @@ class VisChunk : public ISerializable {
         /// @copydoc VisChunk::interval()
         const casa::Double& interval() const;
 
+        /// Scan index number (zero based).
+        casa::uInt& scan();
+
+        /// @copydoc VisChunk::scan()
+        const casa::uInt& scan() const;
+
         /// First antenna IDs for all rows
         ///
         /// @note Antenna ID is zero based
@@ -307,6 +313,9 @@ class VisChunk : public ISerializable {
 
         /// Interval
         casa::Double itsInterval;
+
+        /// Scan Index
+        casa::uInt itsScan;
 
         /// Antenna1
         casa::Vector<casa::uInt> itsAntenna1;
