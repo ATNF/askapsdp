@@ -99,7 +99,7 @@ void MSSink::process(VisChunk::ShPtr chunk)
 
     // First set the constant things outside the loop,
     // as they apply to all rows
-    msc.scanNumber().put(baseRow, 0);
+    msc.scanNumber().put(baseRow, chunk->scan());
     msc.fieldId().put(baseRow, 0);
     msc.dataDescId().put(baseRow, 0);
 
@@ -238,7 +238,7 @@ void MSSink::create(void)
     {
         TableInfo& info(itsMs->tableInfo());
         info.setType(TableInfo::type(TableInfo::MEASUREMENTSET));
-        info.setSubType(String("simulator"));
+        info.setSubType(String(""));
         info.readmeAddLine("This is a MeasurementSet Table holding simulated astronomical observations");
     }
 }
@@ -246,44 +246,13 @@ void MSSink::create(void)
 void MSSink::initAntennas(void)
 {
     const std::vector<Antenna> antennas = itsConfig.antennas();
-    const casa::uInt nAnt = antennas.size();
-
-    std::string station = itsConfig.arrayName();
-    casa::Vector<std::string> name(nAnt);
-    casa::Matrix<double> antXYZ(3, nAnt);
-    casa::Vector<casa::Double> dishDiameter(nAnt);
-    casa::Vector<std::string> mount(nAnt);
-
-    for (size_t i = 0; i < nAnt; ++i) {
-        name(i) = antennas[i].name(); 
-
-        antXYZ(0, i) = antennas[i].position()(0); // x
-        antXYZ(1, i) = antennas[i].position()(1); // y
-        antXYZ(2, i) = antennas[i].position()(2); // z
-
-        dishDiameter(i) = antennas[i].diameter().getValue("m"); 
-        mount(i) = antennas[i].mount(); 
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-    // Write the rows to the measurement set
-    MSColumns msc(*itsMs);
-    MSAntennaColumns& antc = msc.antenna();
-    ASKAPCHECK(antc.nrow() == 0, "Antenna table already has data");
-
-    MSAntenna& ant = itsMs->antenna();
-    ant.addRow(nAnt);
-
-    antc.type().fillColumn("GROUND-BASED");
-    antc.station().fillColumn(station);
-    antc.flagRow().fillColumn(false);
-    antc.position().putColumn(antXYZ);
-
-    for (unsigned int row = 0; row < nAnt; ++row) {
-        antc.name().put(row, name(row));
-        antc.mount().put(row, mount(row));
-        antc.dishDiameter().put(row, dishDiameter(row));
+    std::vector<Antenna>::const_iterator it;
+    for (it = antennas.begin(); it != antennas.end(); ++it) {
+        addAntenna(itsConfig.arrayName(),
+                it->position(),
+                it->name(),
+                it->mount(),
+                it->diameter().getValue("m"));
     }
 }
 
@@ -302,8 +271,97 @@ void MSSink::initFeeds(void)
         pol(i) = "X Y";
     }
 
-    /////////////////////////////////////////////////////////////////
-   
+    addFeeds(x, y, pol);
+}
+
+void MSSink::initSpws(void)
+{
+    // TODO: Add support for multiple scans
+    ASKAPCHECK(itsConfig.observation().scans().size() == 1,
+            "Only one scan supported");
+    const Scan scan = itsConfig.observation().scans().at(0);
+
+    casa::String spWindowName("NO_NAME"); // TODO: Add name
+    int nChan = scan.nChan();
+    const casa::Quantity startFreq = scan.startFreq();
+    const casa::Quantity freqInc = scan.chanWidth();
+
+    Vector<Int> stokesTypes(scan.stokes().size());
+    for (size_t i = 0; i < scan.stokes().size(); ++i) {
+        stokesTypes(i) = scan.stokes().at(i);
+    }
+
+    addSpws(spWindowName, nChan, startFreq, freqInc, stokesTypes);
+}
+
+void MSSink::initFields(void)
+{
+    const Scan scan = itsConfig.observation().scans().at(0);
+    addField(scan.name(), scan.fieldDirection(), "");
+}
+
+void MSSink::initObs(void)
+{
+    addObs("ASKAP", "", 0, 0);
+}
+
+void MSSink::addObs(const std::string& telescope, 
+        const std::string& observer,
+        const double obsStartTime,
+        const double obsEndTime)
+{
+    MSColumns msc(*itsMs);
+    MSObservation& obs = itsMs->observation();
+    MSObservationColumns& obsc = msc.observation();
+    const uInt row = obsc.nrow();
+    obs.addRow();
+    obsc.telescopeName().put(row, telescope);
+    Vector<double> timeRange(2);
+    timeRange(0) = obsStartTime;
+    timeRange(1) = obsEndTime;
+    obsc.timeRange().put(row, timeRange);
+    obsc.observer().put(row, observer);
+
+    // Post-conditions
+    ASKAPCHECK(obsc.nrow() == (row + 1), "Unexpected observation row count");
+}
+
+void MSSink::addField(const std::string& fieldName,
+        const casa::MDirection& fieldDirection,
+        const std::string& calCode)
+{
+    MSColumns msc(*itsMs);
+    MSFieldColumns& fieldc = msc.field();
+    const uInt row = fieldc.nrow();
+
+    ASKAPLOG_INFO_STR(logger, "Creating new field " << fieldName << ", ID "
+            << row);
+
+    itsMs->field().addRow();
+    fieldc.name().put(row, fieldName);
+    fieldc.code().put(row, calCode);
+    fieldc.time().put(row, 0.0);
+    fieldc.numPoly().put(row, 0);
+    fieldc.sourceId().put(row, 0);
+    Vector<MDirection> direction(1);
+    direction(0) = fieldDirection;
+    fieldc.delayDirMeasCol().put(row, direction);
+    fieldc.phaseDirMeasCol().put(row, direction);
+    fieldc.referenceDirMeasCol().put(row, direction);
+
+    // Post-conditions
+    ASKAPCHECK(fieldc.nrow() == (row + 1), "Unexpected field row count");
+}
+
+void MSSink::addFeeds(const casa::Vector<double>& x,
+        const casa::Vector<double>& y,
+        const casa::Vector<casa::String>& pol)
+{
+    // Pre-conditions
+    ASKAPCHECK(x.size() == y.size(), "X and Y vectors must be of equal length");
+    ASKAPCHECK(x.size() == pol.size(),
+            "Pol vector must have hte same length as X and Y");
+
     MSColumns msc(*itsMs);
     MSAntennaColumns& antc = msc.antenna();
     const uInt nAnt = antc.nrow();
@@ -429,39 +487,58 @@ void MSSink::initFeeds(void)
     }
 }
 
-void MSSink::initSpws(void)
+void MSSink::addAntenna(const std::string& station,
+        const casa::Vector<double>& antXYZ,
+        const std::string& name,
+        const std::string& mount,
+        const casa::Double& dishDiameter)
 {
-    // TODO: Add support for multiple scans
-    ASKAPCHECK(itsConfig.observation().scans().size() == 1,
-            "Only one scan supported");
-    const Scan scan = itsConfig.observation().scans().at(0);
+    // Pre-conditions
+    ASKAPCHECK(antXYZ.size() == 3, "Antenna position vector must contain 3 elements");
 
-    casa::String spWindowName("NO_NAME"); // TODO: Add name
-    int nChan = scan.nChan();
-    casa::Quantity startFreq = scan.startFreq();
-    casa::Quantity freqInc = scan.chanWidth();
-    
-    /////////////////////////////////////////////////////////////////
-    Vector<Int> stokesTypes(scan.stokes().size());
-    for (size_t i = 0; i < scan.stokes().size(); ++i) {
-        stokesTypes(i) = scan.stokes().at(i);
-    }
+    // Write the rows to the measurement set
+    MSColumns msc(*itsMs);
+    MSAntennaColumns& antc = msc.antenna();
+    const uInt row = antc.nrow();
 
-    const Int nCorr = stokesTypes.size();
+    MSAntenna& ant = itsMs->antenna();
+    ant.addRow();
+
+    antc.name().put(row, name);
+    antc.station().put(row,station);
+    antc.type().put(row, "GROUND-BASED");
+    antc.mount().put(row, mount);
+    antc.position().put(row, antXYZ);
+    antc.dishDiameter().put(row, dishDiameter);
+    antc.flagRow().put(row, false);
+
+    // Post-conditions
+    ASKAPCHECK(antc.nrow() == (row + 1), "Unexpected antenna row count");
+}
+
+void MSSink::addSpws(const std::string& name,
+            const int nChan,
+            const casa::Quantity& startFreq,
+            const casa::Quantity& freqInc,
+            const casa::Vector<casa::Int>& stokesTypes)
+{
+    casa::Vector<casa::Int> _stokesTypes = stokesTypes;
+
+    const Int nCorr = _stokesTypes.size();
 
     MSColumns msc(*itsMs);
     MSSpWindowColumns& spwc = msc.spectralWindow();
     MSDataDescColumns& ddc = msc.dataDescription();
     MSPolarizationColumns& polc = msc.polarization();
     const uInt baseSpWID = spwc.nrow();
-    ASKAPLOG_INFO_STR(logger, "Creating new spectral window " << spWindowName << ", ID "
+    ASKAPLOG_INFO_STR(logger, "Creating new spectral window " << name << ", ID "
                           << baseSpWID + 1);
     // fill spectralWindow table
     itsMs->spectralWindow().addRow(1);
     itsMs->polarization().addRow(1);
     itsMs->dataDescription().addRow(1);
     spwc.numChan().put(baseSpWID, nChan);
-    spwc.name().put(baseSpWID, spWindowName);
+    spwc.name().put(baseSpWID, name);
     spwc.netSideband().fillColumn(1);
     spwc.ifConvChain().fillColumn(0);
     spwc.freqGroup().fillColumn(0);
@@ -486,12 +563,12 @@ void MSSink::initSpws(void)
     // fallibles.
     Matrix<Int> corrProduct(uInt(2), uInt(nCorr));
     Fallible<Int> fi;
-    stokesTypes.resize(nCorr, True);
+    _stokesTypes.resize(nCorr, True);
 
     for (Int j = 0; j < nCorr; j++) {
-        fi = Stokes::receptor1(Stokes::type(stokesTypes(j)));
+        fi = Stokes::receptor1(Stokes::type(_stokesTypes(j)));
         corrProduct(0, j) = (fi.isValid() ? fi.value() : 0);
-        fi = Stokes::receptor2(Stokes::type(stokesTypes(j)));
+        fi = Stokes::receptor2(Stokes::type(_stokesTypes(j)));
         corrProduct(1, j) = (fi.isValid() ? fi.value() : 0);
     }
 
@@ -501,53 +578,6 @@ void MSSink::initSpws(void)
     spwc.effectiveBW().put(baseSpWID, bandwidth);
     spwc.resolution().put(baseSpWID, bandwidth);
     spwc.totalBandwidth().put(baseSpWID, nChan*vFreqInc);
-    polc.corrType().put(baseSpWID, stokesTypes);
+    polc.corrType().put(baseSpWID, _stokesTypes);
     polc.corrProduct().put(baseSpWID, corrProduct);
-}
-
-void MSSink::initFields(void)
-{
-    // TODO: Add support for multiple scans
-    ASKAPCHECK(itsConfig.observation().scans().size() == 1,
-            "Only one scan supported");
-    const Scan scan = itsConfig.observation().scans().at(0);
-    const casa::String fieldName = scan.name();
-    const casa::MDirection fieldDirection = scan.fieldDirection();
-    const casa::String calCode = "";
-
-    /////////////////////////////////////////////////////////////////
-
-    MSColumns msc(*itsMs);
-    MSFieldColumns& fieldc = msc.field();
-    const uInt baseFieldID = fieldc.nrow();
-
-    ASKAPLOG_INFO_STR(logger, "Creating new field " << fieldName << ", ID " << baseFieldID
-            + 1);
-
-    itsMs->field().addRow(1);
-    fieldc.name().put(baseFieldID, fieldName);
-    fieldc.code().put(baseFieldID, calCode);
-    fieldc.time().put(baseFieldID, 0.0);
-    fieldc.numPoly().put(baseFieldID, 0);
-    fieldc.sourceId().put(baseFieldID, 0);
-    Vector<MDirection> direction(1);
-    direction(0) = fieldDirection;
-    fieldc.delayDirMeasCol().put(baseFieldID, direction);
-    fieldc.phaseDirMeasCol().put(baseFieldID, direction);
-    fieldc.referenceDirMeasCol().put(baseFieldID, direction);
-}
-
-void MSSink::initObs(void)
-{
-    MSColumns msc(*itsMs);
-    MSObservation& obs = itsMs->observation();
-    MSObservationColumns& obsc = msc.observation();
-    const uInt nobsrow = obsc.nrow();
-    obs.addRow();
-    obsc.telescopeName().put(nobsrow, "ASKAP");
-    Vector<double> timeRange(2);
-    timeRange(0) = 0;
-    timeRange(1) = 0;
-    obsc.timeRange().put(nobsrow, timeRange);
-    obsc.observer().put(nobsrow, "");
 }

@@ -31,7 +31,10 @@
 #include "boost/scoped_ptr.hpp"
 #include "Common/ParameterSet.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
+#include "casa/aips.h"
 #include "casa/Quanta.h"
+#include "casa/Arrays/Vector.h"
+#include "casa/Arrays/Matrix.h"
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
@@ -80,6 +83,36 @@ class MSSink : public askap::cp::ingest::ITask {
 
         // Create the measurement set
         void create(void);
+
+        // Add a row the the observation table
+        void addObs(const std::string& telescope,
+                const std::string& observer,
+                const double obsStartTime,
+                const double obsEndTime);
+
+        // Add a row to the field table
+        void addField(const std::string& fieldName,
+                const casa::MDirection& fieldDirection,
+                const std::string& calCode);
+
+        // Add feeds
+        void addFeeds(const casa::Vector<double>& x,
+                const casa::Vector<double>& y,
+                const casa::Vector<casa::String>& pol);
+
+        // Add antenna
+        void addAntenna(const std::string& station,
+                const casa::Vector<double>& antXYZ,
+                const std::string& name,
+                const std::string& mount,
+                const casa::Double& dishDiameter);
+
+        // Add spectral windows
+        void addSpws(const std::string& name,
+                const int nChan,
+                const casa::Quantity& startFreq,
+                const casa::Quantity& freqInc,
+                const casa::Vector<casa::Int>& stokesTypes);
 
         // Parameter set
         const LOFAR::ParameterSet itsParset;

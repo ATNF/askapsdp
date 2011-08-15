@@ -78,7 +78,9 @@ VisChunk::ShPtr MergedSource::next(void)
     do {
         itsMetadata = itsMetadataSrc->next();
 
-        ASKAPLOG_DEBUG_STR(logger, "Received telescope metadata with scan_active false");
+        if (!itsMetadata->antenna(0).scanActive()) {
+            ASKAPLOG_DEBUG_STR(logger, "Received telescope metadata with scan_active false");
+        }
 
         // Update the Scan Manager
         itsScanManager.update(itsMetadata->antenna(0).scanActive(),
