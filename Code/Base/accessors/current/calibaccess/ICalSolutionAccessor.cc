@@ -56,7 +56,8 @@ void ICalSolutionAccessor::setJonesElement(const JonesIndex &index, const casa::
   } else if ( (stokes == casa::Stokes::XY) || (stokes == casa::Stokes::YX) ) {
       // cross-pol case (need to implement validity flags at some stage)
       const JonesDTerm oldDTerm = leakage(index);
-      setLeakage(index, stokes == casa::Stokes::XY ? JonesDTerm(elem, oldDTerm.d21()) : JonesDTerm(oldDTerm.d12(),elem));
+      setLeakage(index, stokes == casa::Stokes::XY ? JonesDTerm(elem, true, oldDTerm.d21(), oldDTerm.d21IsValid()) : 
+                     JonesDTerm(oldDTerm.d12(), oldDTerm.d12IsValid(), elem, true));
   } else {
       ASKAPTHROW(AskapError, "Only XX, YY, XY and YX stokes are supported by setJonesElement, you passed stokes="<<stokes);
   }    

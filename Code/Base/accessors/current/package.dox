@@ -35,5 +35,7 @@ namespace askap::accessors {};
 /// @li @ref dataaccess_tm
 /// @li @ref dataaccess_tab
 /// @li @ref dataaccess_hlp
+/// @li @ref imageaccess
+/// @li @ref calibaccess
 ///
 /// @copyright 2007 CSIRO, All Rights Reserved.

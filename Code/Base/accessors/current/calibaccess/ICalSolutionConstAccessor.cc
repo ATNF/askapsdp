@@ -57,10 +57,9 @@ casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const Jone
   result(0,0) = gTerm.g1IsValid() ? gTerm.g1() : casa::Complex(1.,0.);
   result(1,1) = gTerm.g2IsValid() ? gTerm.g2() : casa::Complex(1.,0.);
   const JonesDTerm dTerm = leakage(index);
-  // we need to do checks of validity here as well, when the appropriate flags
-  // are implemented
-  result(0,1) = dTerm.d12();
-  result(1,0) = dTerm.d21();
+
+  result(0,1) = dTerm.d12IsValid() ? dTerm.d12() : 0.;
+  result(1,0) = dTerm.d21IsValid() ? dTerm.d21() : 0.;
 
   const JonesJTerm bpTerm = bandpass(index,chan);
   if (bpTerm.g1IsValid()) {
@@ -103,8 +102,9 @@ bool ICalSolutionConstAccessor::jonesValid(const JonesIndex &index, const casa::
 {
   const JonesJTerm gTerm = gain(index);
   const JonesJTerm bpTerm = bandpass(index,chan);
-  // leakage validity flag also needs to be accounted for here, when implemented
-  return gTerm.g1IsValid() && gTerm.g2IsValid() && bpTerm.g1IsValid() && bpTerm.g2IsValid();
+  const JonesDTerm dTerm = leakage(index);
+  return gTerm.g1IsValid() && gTerm.g2IsValid() && bpTerm.g1IsValid() && bpTerm.g2IsValid() &&
+         dTerm.d12IsValid() && dTerm.d21IsValid();
 }
    
 /// @brief obtain validity flag for the full 2x2 Jones Matrix
