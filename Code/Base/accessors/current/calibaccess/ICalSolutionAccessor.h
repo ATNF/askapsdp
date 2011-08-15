@@ -47,7 +47,7 @@ namespace accessors {
 /// class. Various implementations are possible, i.e. parset-based, 
 /// table-based and working via database ice service.
 /// @ingroup calibaccess
-struct ICalSolutionAccessor : public ICalSolutionConstAccessor {
+struct ICalSolutionAccessor : virtual public ICalSolutionConstAccessor {
 
    // virtual methods which need to be overridden in concrete 
    // implementation classes
@@ -122,6 +122,9 @@ struct ICalSolutionAccessor : public ICalSolutionConstAccessor {
    /// @param[in] elem value to set
    void setBandpassElement(const casa::uInt ant, const casa::uInt beam, const casa::Stokes::StokesTypes stokes, 
                            const casa::uInt chan, const casa::Complex &elem);
+   
+   /// @brief shared pointer definition
+   typedef boost::shared_ptr<ICalSolutionAccessor> ShPtr;
    
 };
 
