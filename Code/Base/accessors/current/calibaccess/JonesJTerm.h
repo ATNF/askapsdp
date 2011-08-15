@@ -34,7 +34,10 @@
 namespace askap {
 namespace accessors {
 
-/// JonesJTerm, used for antenna gain and bandpass.
+/// @brief JonesJTerm (parallel-hand gain)
+/// @details This class is also used to represent bandpass (with a separate instance 
+/// for each spectral channel)
+/// @ingroup calibaccess
 class JonesJTerm {
 
     public:

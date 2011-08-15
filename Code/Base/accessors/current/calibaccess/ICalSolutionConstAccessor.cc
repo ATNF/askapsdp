@@ -50,7 +50,7 @@ ICalSolutionConstAccessor::~ICalSolutionConstAccessor()
 /// @param[in] index ant/beam index
 /// @param[in] chan spectral channel of interest
 /// @return 2x2 Jones matrix
-casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const JonesIndex &index, casa::uInt chan) const
+casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const JonesIndex &index, const casa::uInt chan) const
 {
   casa::SquareMatrix<casa::Complex, 2> result;
   const JonesJTerm gTerm = gain(index);
@@ -82,7 +82,8 @@ casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const Jone
 /// @param[in] beam beam index
 /// @param[in] chan spectral channel of interest
 /// @return 2x2 Jones matrix
-casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(casa::uInt ant, casa::uInt beam, casa::uInt chan) const
+casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const casa::uInt ant, 
+                                     const casa::uInt beam, const casa::uInt chan) const
 {
   ASKAPCHECK(ant < 128, "Antenna index is supposed to be less than 128");
   ASKAPCHECK(beam < 128, "Beam index supposed to be less than 128");
@@ -98,7 +99,7 @@ casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(casa::uInt
 /// @param[in] chan spectral channel of interest
 /// @return true, if the matrix returned by jones(...) method called with the same parameters is
 /// valid, false otherwise
-bool ICalSolutionConstAccessor::jonesValid(const JonesIndex &index, casa::uInt chan) const
+bool ICalSolutionConstAccessor::jonesValid(const JonesIndex &index, const casa::uInt chan) const
 {
   const JonesJTerm gTerm = gain(index);
   const JonesJTerm bpTerm = bandpass(index,chan);
@@ -114,7 +115,7 @@ bool ICalSolutionConstAccessor::jonesValid(const JonesIndex &index, casa::uInt c
 /// @param[in] chan spectral channel of interest
 /// @return true, if the matrix returned by jones(...) method called with the same parameters is
 /// valid, false otherwise
-bool ICalSolutionConstAccessor::jonesValid(casa::uInt ant, casa::uInt beam, casa::uInt chan) const
+bool ICalSolutionConstAccessor::jonesValid(const casa::uInt ant, const casa::uInt beam, const casa::uInt chan) const
 {
   ASKAPCHECK(ant < 128, "Antenna index is supposed to be less than 128");
   ASKAPCHECK(beam < 128, "Beam index supposed to be less than 128");

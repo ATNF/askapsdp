@@ -34,7 +34,8 @@
 namespace askap {
 namespace accessors {
 
-/// JonesDTerm (Polarisation leakage)
+/// @brief JonesDTerm (Polarisation leakage)
+/// @ingroup calibaccess
 class JonesDTerm {
 
     public:

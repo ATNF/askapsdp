@@ -33,8 +33,10 @@
 namespace askap {
 namespace accessors {
 
-/// Key type used for indexing into the calibration solution maps for the
+/// @brief antenna/beam indices combined in a class to be used as an index 
+/// @details Key type used for indexing into the calibration solution maps for the
 /// GainSolution, LeakageSolution and BandpassSolution classes.
+/// @ingroup calibaccess
 class JonesIndex {
 
     public:
