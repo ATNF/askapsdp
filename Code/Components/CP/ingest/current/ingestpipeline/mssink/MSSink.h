@@ -70,7 +70,7 @@ class MSSink : public askap::cp::ingest::ITask {
         void initAntennas(void);
 
         // Initialises the FEED table
-        void initFeeds(void);
+        void initFeeds(const FeedConfig& feeds, const casa::Int antennaID);
 
         // Initialises the  SPECTRAL WINDOW table
         void initSpws(void);
@@ -96,12 +96,13 @@ class MSSink : public askap::cp::ingest::ITask {
                 const std::string& calCode);
 
         // Add feeds
-        void addFeeds(const casa::Vector<double>& x,
+        void addFeeds(const casa::Int antennaID,
+                const casa::Vector<double>& x,
                 const casa::Vector<double>& y,
-                const casa::Vector<casa::String>& pol);
+                const casa::Vector<casa::String>& polType);
 
         // Add antenna
-        void addAntenna(const std::string& station,
+        casa::Int addAntenna(const std::string& station,
                 const casa::Vector<double>& antXYZ,
                 const std::string& name,
                 const std::string& mount,

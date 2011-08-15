@@ -75,8 +75,7 @@ MSSink::MSSink(const LOFAR::ParameterSet& parset,
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
     create();
-    initAntennas();
-    initFeeds();
+    initAntennas(); // Includes FEED table
     initSpws();
     initFields();
     initObs();
@@ -248,17 +247,20 @@ void MSSink::initAntennas(void)
     const std::vector<Antenna> antennas = itsConfig.antennas();
     std::vector<Antenna>::const_iterator it;
     for (it = antennas.begin(); it != antennas.end(); ++it) {
-        addAntenna(itsConfig.arrayName(),
+        casa::Int id = addAntenna(itsConfig.arrayName(),
                 it->position(),
                 it->name(),
                 it->mount(),
                 it->diameter().getValue("m"));
+
+        // For each antenna one or more feed entries must be created
+        const FeedConfig& feeds = it->feeds();
+        initFeeds(feeds, id);
     }
 }
 
-void MSSink::initFeeds(void)
+void MSSink::initFeeds(const FeedConfig& feeds, const casa::Int antennaID)
 {
-    const FeedConfig& feeds = itsConfig.antennas().at(0).feeds();
     const uInt nFeeds = feeds.nFeeds();
 
     casa::Vector<double> x(nFeeds);
@@ -271,7 +273,7 @@ void MSSink::initFeeds(void)
         pol(i) = "X Y";
     }
 
-    addFeeds(x, y, pol);
+    addFeeds(antennaID, x, y, pol);
 }
 
 void MSSink::initSpws(void)
@@ -353,141 +355,76 @@ void MSSink::addField(const std::string& fieldName,
     ASKAPCHECK(fieldc.nrow() == (row + 1), "Unexpected field row count");
 }
 
-void MSSink::addFeeds(const casa::Vector<double>& x,
+void MSSink::addFeeds(const casa::Int antennaID,
+        const casa::Vector<double>& x,
         const casa::Vector<double>& y,
-        const casa::Vector<casa::String>& pol)
+        const casa::Vector<casa::String>& polType)
 {
     // Pre-conditions
-    ASKAPCHECK(x.size() == y.size(), "X and Y vectors must be of equal length");
-    ASKAPCHECK(x.size() == pol.size(),
-            "Pol vector must have hte same length as X and Y");
+    const uInt nFeeds = x.size();
+    ASKAPCHECK(nFeeds == y.size(), "X and Y vectors must be of equal length");
+    ASKAPCHECK(nFeeds == polType.size(),
+            "Pol type vector must have the same length as X and Y");
 
+    // Add to the Feed table
     MSColumns msc(*itsMs);
-    MSAntennaColumns& antc = msc.antenna();
-    const uInt nAnt = antc.nrow();
-
-    if (nAnt <= 0) {
-        ASKAPLOG_INFO_STR(logger, "initFeeds: must call initAntenna() first");
-    }
-
-    uInt nFeed = x.nelements();
-
-    String feedPol0 = "R", feedPol1 = "L";
-    Bool isList = False;
-
-    if (nFeed > 0) {
-        isList = True;
-
-        if (x.nelements() != y.nelements()) {
-            ASKAPLOG_ERROR_STR(logger, "Feed x and y must be the same length");
-        }
-
-        ASKAPCHECK(pol.nelements() == x.nelements(),
-                   "Feed polarization list must be same length as the number of positions");
-    } else {
-        nFeed = 1;
-        feedPol0 = "X";
-        feedPol1 = "Y";
-    }
-
-    const uInt nRow = nFeed * nAnt;
-    Vector<Int> feedAntId(nRow);
-    Vector<Int> feedId(nRow);
-    Vector<Int> feedSpWId(nRow);
-    Vector<Int> feedBeamId(nRow);
-
-    Vector<Int> feedNumRec(nRow);
-    Cube<double> beamOffset(2, 2, nRow);
-
-    Matrix<String> feedPol(2, nRow);
-    Matrix<double> feedXYZ(3, nRow);
-    Matrix<double> feedAngle(2, nRow);
-    Cube<Complex> polResp(2, 2, nRow);
-
-    Int iRow = 0;
-
-    if (isList) {
-        polResp = Complex(0.0, 0.0);
-
-        for (uInt i = 0; i < nAnt; i++) {
-            for (uInt j = 0; j < nFeed; j++) {
-                feedAntId(iRow) = i;
-                feedId(iRow) = j;
-                feedSpWId(iRow) = -1;
-                feedBeamId(iRow) = 0;
-                feedNumRec(iRow) = 2;
-                beamOffset(0, 0, iRow) = x(j);
-                beamOffset(1, 0, iRow) = y(j);
-                beamOffset(0, 1, iRow) = x(j);
-                beamOffset(1, 1, iRow) = y(j);
-                feedXYZ(0, iRow) = 0.0;
-                feedXYZ(1, iRow) = 0.0;
-                feedXYZ(2, iRow) = 0.0;
-                feedAngle(0, iRow) = 0.0;
-                feedAngle(1, iRow) = 0.0;
-
-                if (pol(j).contains("X", 0)) {
-                    feedPol(0, iRow) = "X";
-                    feedPol(1, iRow) = "Y";
-                } else {
-                    feedPol(0, iRow) = "L";
-                    feedPol(1, iRow) = "R";
-                }
-
-                polResp(0, 0, iRow) = polResp(1, 1, iRow) = Complex(1.0, 0.0);
-                iRow++;
-            }
-        }
-    } else {
-        polResp = Complex(0.0, 0.0);
-
-        for (uInt i = 0; i < nAnt; i++) {
-            feedAntId(iRow) = i;
-            feedId(iRow) = 0;
-            feedSpWId(iRow) = -1;
-            feedBeamId(iRow) = 0;
-            feedNumRec(iRow) = 2;
-            beamOffset(0, 0, iRow) = 0.0;
-            beamOffset(1, 0, iRow) = 0.0;
-            beamOffset(0, 1, iRow) = 0.0;
-            beamOffset(1, 1, iRow) = 0.0;
-            feedXYZ(0, iRow) = 0.0;
-            feedXYZ(1, iRow) = 0.0;
-            feedXYZ(2, iRow) = 0.0;
-            feedAngle(0, iRow) = 0.0;
-            feedAngle(1, iRow) = 0.0;
-            feedPol(0, iRow) = feedPol0;
-            feedPol(1, iRow) = feedPol1;
-            polResp(0, 0, iRow) = polResp(1, 1, iRow) = Complex(1.0, 0.0);
-            iRow++;
-        }
-    }
-
-    // fill Feed table - don't check to see if any of the positions match
     MSFeedColumns& feedc = msc.feed();
-    const uInt numFeeds = feedc.nrow();
-    Slicer feedSlice(IPosition(1, numFeeds), IPosition(1, nRow + numFeeds - 1),
-                     IPosition(1, 1), Slicer::endIsLast);
-    itsMs->feed().addRow(nRow);
-    feedc.antennaId().putColumnRange(feedSlice, feedAntId);
-    feedc.feedId().putColumnRange(feedSlice, feedId);
-    feedc.spectralWindowId().putColumnRange(feedSlice, feedSpWId);
-    feedc.beamId().putColumnRange(feedSlice, feedBeamId);
-    feedc.numReceptors().putColumnRange(feedSlice, feedNumRec);
-    feedc.position().putColumnRange(feedSlice, feedXYZ);
-    const double forever = 1.e30;
+    const uInt startRow = feedc.nrow();
+    itsMs->feed().addRow(nFeeds);
 
-    for (uInt i = numFeeds; i < (nRow + numFeeds); i++) {
-        feedc.beamOffset().put(i, beamOffset.xyPlane(i - numFeeds));
-        feedc.polarizationType().put(i, feedPol.column(i - numFeeds));
-        feedc.polResponse().put(i, polResp.xyPlane(i - numFeeds));
-        feedc.receptorAngle().put(i, feedAngle.column(i - numFeeds));
-        feedc.time().put(i, 0.0);
-        feedc.interval().put(i, forever);
-    }
+    for (casa::uInt i = 0; i < nFeeds; ++i) {
+        casa::uInt row = startRow + i;
+        feedc.antennaId().put(row, antennaID);
+        feedc.feedId().put(row, i);
+        feedc.spectralWindowId().put(row, -1);
+        feedc.beamId().put(row, 0);
+        feedc.numReceptors().put(row, 2);
+
+        // Feed position
+        Vector<double> feedXYZ(3);
+        feedXYZ = 0.0;
+        feedc.position().put(row, feedXYZ);
+
+        // Beam offset
+        Matrix<double> beamOffset(2, 2);
+        beamOffset(0, 0) = x(i);
+        beamOffset(1, 0) = y(i);
+        beamOffset(0, 1) = x(i);
+        beamOffset(1, 1) = y(i);
+        feedc.beamOffset().put(row, beamOffset);
+
+        // Polarisation type
+        Vector<String> feedPol(2);
+        if (polType(i).contains("X", 0)) {
+            feedPol(0) = "X";
+            feedPol(1) = "Y";
+        } else {
+            feedPol(0) = "L";
+            feedPol(1) = "R";
+        }
+        feedc.polarizationType().put(row, feedPol);
+
+        // Polarisation response
+        Matrix<Complex> polResp(2, 2);
+        polResp = Complex(0.0, 0.0);
+        polResp(1, 1) = Complex(1.0, 0.0);
+        polResp(0, 0) = Complex(1.0, 0.0);
+        feedc.polResponse().put(row, polResp);
+
+        // Receptor angle
+        Vector<double> feedAngle(2);
+        feedAngle = 0.0;
+        feedc.receptorAngle().put(row, feedAngle);
+
+        // Time
+        feedc.time().put(row, 0.0);
+
+        // Interval - 1.e30 is effectivly forever
+        feedc.interval().put(row, 1.e30);
+    };
 }
 
-void MSSink::addAntenna(const std::string& station,
+casa::Int MSSink::addAntenna(const std::string& station,
         const casa::Vector<double>& antXYZ,
         const std::string& name,
         const std::string& mount,
@@ -514,6 +451,8 @@ void MSSink::addAntenna(const std::string& station,
 
     // Post-conditions
     ASKAPCHECK(antc.nrow() == (row + 1), "Unexpected antenna row count");
+
+    return row;
 }
 
 void MSSink::addSpws(const std::string& name,
