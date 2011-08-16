@@ -35,6 +35,7 @@
 #include "casa/Quanta.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
+#include "casa/BasicSL.h"
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
@@ -73,10 +74,7 @@ class MSSink : public askap::cp::ingest::ITask {
         void initFeeds(const FeedConfig& feeds, const casa::Int antennaID);
 
         // Initialises the  SPECTRAL WINDOW table
-        void initSpws(void);
-
-        // Initialises the FIELDS table
-        void initFields(void);
+        void initDataDesc(void);
 
         // Initialises the OBSERVATION table
         void initObs(void);
@@ -85,15 +83,15 @@ class MSSink : public askap::cp::ingest::ITask {
         void create(void);
 
         // Add a row the the observation table
-        void addObs(const std::string& telescope,
-                const std::string& observer,
+        casa::Int addObs(const casa::String& telescope,
+                const casa::String& observer,
                 const double obsStartTime,
                 const double obsEndTime);
 
         // Add a row to the field table
-        void addField(const std::string& fieldName,
+        casa::Int addField(const casa::String& fieldName,
                 const casa::MDirection& fieldDirection,
-                const std::string& calCode);
+                const casa::String& calCode);
 
         // Add feeds
         void addFeeds(const casa::Int antennaID,
@@ -102,18 +100,37 @@ class MSSink : public askap::cp::ingest::ITask {
                 const casa::Vector<casa::String>& polType);
 
         // Add antenna
-        casa::Int addAntenna(const std::string& station,
+        casa::Int addAntenna(const casa::String& station,
                 const casa::Vector<double>& antXYZ,
-                const std::string& name,
-                const std::string& mount,
+                const casa::String& name,
+                const casa::String& mount,
                 const casa::Double& dishDiameter);
 
-        // Add spectral windows
-        void addSpws(const std::string& name,
+        // Add data description
+        casa::Int addDataDesc(const casa::String& name,
                 const int nChan,
                 const casa::Quantity& startFreq,
                 const casa::Quantity& freqInc,
                 const casa::Vector<casa::Int>& stokesTypes);
+
+        // Add spectral window
+        casa::Int addSpectralWindow(const casa::String& name,
+                const int nChan,
+                const casa::Quantity& startFreq,
+                const casa::Quantity& freqInc);
+
+        // Add polarisation
+        casa::Int addPolarisation(const casa::Vector<casa::Int>& stokesTypes);
+
+        // Find or add a FIELD table entry for the provided scan index number.
+        casa::Int findOrAddField(const casa::Int scanId);
+
+        // Find or add a DATA DESCRIPTION (including SPECTRAL INDEX and POLARIZATION)
+        // table entry for the provided scan index number.
+        casa::Int findOrAddDataDesc(const casa::Int scanId);
+
+        // Helper function to compare MDirections
+        static bool equal(const casa::MDirection &dir1, const casa::MDirection &dir2);
 
         // Parameter set
         const LOFAR::ParameterSet itsParset;

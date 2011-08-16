@@ -33,6 +33,7 @@
 // System includes
 #include <string>
 #include <sstream>
+#include <limits>
 #include <mpi.h>
 
 // ASKAPsoft includes
@@ -76,8 +77,7 @@ MSSink::MSSink(const LOFAR::ParameterSet& parset,
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
     create();
     initAntennas(); // Includes FEED table
-    initSpws();
-    initFields();
+    initDataDesc();
     initObs();
 }
 
@@ -99,8 +99,8 @@ void MSSink::process(VisChunk::ShPtr chunk)
     // First set the constant things outside the loop,
     // as they apply to all rows
     msc.scanNumber().put(baseRow, chunk->scan());
-    msc.fieldId().put(baseRow, 0);
-    msc.dataDescId().put(baseRow, 0);
+    msc.fieldId().put(baseRow, findOrAddField(chunk->scan()));
+    msc.dataDescId().put(baseRow, findOrAddDataDesc(chunk->scan()));
 
     const casa::Quantity chunkMidpoint = chunk->time().getTime();
     msc.time().put(baseRow, chunkMidpoint.getValue("s"));
@@ -162,13 +162,13 @@ void MSSink::create(void)
     casa::uInt bucketSize = itsParset.getUint32("stman.bucketsize", 1024 * 1024);
     casa::uInt tileNcorr = itsParset.getUint32("stman.tilencorr", 4);
     casa::uInt tileNchan = itsParset.getUint32("stman.tilenchan", 1);
-    const std::string filenamebase = itsParset.getString("filenamebase");
+    const casa::String filenamebase = itsParset.getString("filenamebase");
 
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
     std::ostringstream ss;
     ss << filenamebase << rank << ".ms";
-    const std::string filename = ss.str();
+    const casa::String filename = ss.str();
 
     if (bucketSize < 8192) {
         bucketSize = 8192;
@@ -276,7 +276,7 @@ void MSSink::initFeeds(const FeedConfig& feeds, const casa::Int antennaID)
     addFeeds(antennaID, x, y, pol);
 }
 
-void MSSink::initSpws(void)
+void MSSink::initDataDesc(void)
 {
     // TODO: Add support for multiple scans
     ASKAPCHECK(itsConfig.observation().scans().size() == 1,
@@ -293,13 +293,7 @@ void MSSink::initSpws(void)
         stokesTypes(i) = scan.stokes().at(i);
     }
 
-    addSpws(spWindowName, nChan, startFreq, freqInc, stokesTypes);
-}
-
-void MSSink::initFields(void)
-{
-    const Scan scan = itsConfig.observation().scans().at(0);
-    addField(scan.name(), scan.fieldDirection(), "");
+    addDataDesc(spWindowName, nChan, startFreq, freqInc, stokesTypes);
 }
 
 void MSSink::initObs(void)
@@ -307,8 +301,8 @@ void MSSink::initObs(void)
     addObs("ASKAP", "", 0, 0);
 }
 
-void MSSink::addObs(const std::string& telescope, 
-        const std::string& observer,
+casa::Int MSSink::addObs(const casa::String& telescope, 
+        const casa::String& observer,
         const double obsStartTime,
         const double obsEndTime)
 {
@@ -326,11 +320,13 @@ void MSSink::addObs(const std::string& telescope,
 
     // Post-conditions
     ASKAPCHECK(obsc.nrow() == (row + 1), "Unexpected observation row count");
+
+    return row;
 }
 
-void MSSink::addField(const std::string& fieldName,
+casa::Int MSSink::addField(const casa::String& fieldName,
         const casa::MDirection& fieldDirection,
-        const std::string& calCode)
+        const casa::String& calCode)
 {
     MSColumns msc(*itsMs);
     MSFieldColumns& fieldc = msc.field();
@@ -353,6 +349,8 @@ void MSSink::addField(const std::string& fieldName,
 
     // Post-conditions
     ASKAPCHECK(fieldc.nrow() == (row + 1), "Unexpected field row count");
+
+    return row;
 }
 
 void MSSink::addFeeds(const casa::Int antennaID,
@@ -381,8 +379,7 @@ void MSSink::addFeeds(const casa::Int antennaID,
         feedc.numReceptors().put(row, 2);
 
         // Feed position
-        Vector<double> feedXYZ(3);
-        feedXYZ = 0.0;
+        Vector<double> feedXYZ(3, 0.0);
         feedc.position().put(row, feedXYZ);
 
         // Beam offset
@@ -412,8 +409,7 @@ void MSSink::addFeeds(const casa::Int antennaID,
         feedc.polResponse().put(row, polResp);
 
         // Receptor angle
-        Vector<double> feedAngle(2);
-        feedAngle = 0.0;
+        Vector<double> feedAngle(2, 0.0);
         feedc.receptorAngle().put(row, feedAngle);
 
         // Time
@@ -422,12 +418,15 @@ void MSSink::addFeeds(const casa::Int antennaID,
         // Interval - 1.e30 is effectivly forever
         feedc.interval().put(row, 1.e30);
     };
+
+    // Post-conditions
+    ASKAPCHECK(feedc.nrow() == (startRow + nFeeds), "Unexpected feed row count");
 }
 
-casa::Int MSSink::addAntenna(const std::string& station,
+casa::Int MSSink::addAntenna(const casa::String& station,
         const casa::Vector<double>& antXYZ,
-        const std::string& name,
-        const std::string& mount,
+        const casa::String& name,
+        const casa::String& mount,
         const casa::Double& dishDiameter)
 {
     // Pre-conditions
@@ -455,42 +454,55 @@ casa::Int MSSink::addAntenna(const std::string& station,
     return row;
 }
 
-void MSSink::addSpws(const std::string& name,
+casa::Int MSSink::addDataDesc(const casa::String& spwName,
             const int nChan,
             const casa::Quantity& startFreq,
             const casa::Quantity& freqInc,
             const casa::Vector<casa::Int>& stokesTypes)
 {
-    casa::Vector<casa::Int> _stokesTypes = stokesTypes;
+    // 1: Create spectral window and polarisation table entries
+    const casa::Int spwId = addSpectralWindow(spwName, nChan, startFreq, freqInc);
+    const casa::Int polId = addPolarisation(stokesTypes);
 
-    const Int nCorr = _stokesTypes.size();
+    // 2: Add new row and determine its offset
+    MSColumns msc(*itsMs);
+    MSDataDescColumns& ddc = msc.dataDescription();
+    const uInt row = ddc.nrow();
+    itsMs->dataDescription().addRow();
 
+    // 2: Populate DATA DESCRIPTION table
+    ddc.flagRow().put(row, False);
+    ddc.spectralWindowId().put(row, spwId);
+    ddc.polarizationId().put(row, polId);
+
+    return row;
+}
+
+casa::Int MSSink::addSpectralWindow(const casa::String& spwName,
+            const int nChan,
+            const casa::Quantity& startFreq,
+            const casa::Quantity& freqInc)
+{
     MSColumns msc(*itsMs);
     MSSpWindowColumns& spwc = msc.spectralWindow();
-    MSDataDescColumns& ddc = msc.dataDescription();
-    MSPolarizationColumns& polc = msc.polarization();
-    const uInt baseSpWID = spwc.nrow();
-    ASKAPLOG_INFO_STR(logger, "Creating new spectral window " << name << ", ID "
-                          << baseSpWID + 1);
-    // fill spectralWindow table
-    itsMs->spectralWindow().addRow(1);
-    itsMs->polarization().addRow(1);
-    itsMs->dataDescription().addRow(1);
-    spwc.numChan().put(baseSpWID, nChan);
-    spwc.name().put(baseSpWID, name);
-    spwc.netSideband().fillColumn(1);
-    spwc.ifConvChain().fillColumn(0);
-    spwc.freqGroup().fillColumn(0);
-    spwc.freqGroupName().fillColumn("Group 1");
-    spwc.flagRow().fillColumn(False);
-    spwc.measFreqRef().fillColumn(MFrequency::TOPO);
-    polc.flagRow().fillColumn(False);
-    ddc.flagRow().fillColumn(False);
-    polc.numCorr().put(baseSpWID, nCorr);
-    Vector <double> freqs(nChan), bandwidth(nChan);
-    bandwidth = freqInc.getValue("Hz");
-    ddc.spectralWindowId().put(baseSpWID, baseSpWID);
-    ddc.polarizationId().put(baseSpWID, baseSpWID);
+    const uInt row = spwc.nrow();
+    ASKAPLOG_INFO_STR(logger, "Creating new spectral window " << spwName
+            << ", ID " << row);
+
+    itsMs->spectralWindow().addRow();
+
+    spwc.numChan().put(row, nChan);
+    spwc.name().put(row, spwName);
+    spwc.netSideband().put(row, 1);
+    spwc.ifConvChain().put(row, 0);
+    spwc.freqGroup().put(row, 0);
+    spwc.freqGroupName().put(row, "Group 1");
+    spwc.flagRow().put(row, False);
+    spwc.measFreqRef().put(row, MFrequency::TOPO);
+
+    Vector<double> freqs(nChan);
+    Vector<double> bandwidth(nChan, freqInc.getValue("Hz"));
+
     double vStartFreq(startFreq.getValue("Hz"));
     double vFreqInc(freqInc.getValue("Hz"));
 
@@ -498,7 +510,30 @@ void MSSink::addSpws(const std::string& name,
         freqs(chan) = vStartFreq + chan * vFreqInc;
     }
 
-    // translate stokesTypes into receptor products, catch invalid
+    spwc.refFrequency().put(row, vStartFreq);
+    spwc.chanFreq().put(row, freqs);
+    spwc.chanWidth().put(row, bandwidth);
+    spwc.effectiveBW().put(row, bandwidth);
+    spwc.resolution().put(row, bandwidth);
+    spwc.totalBandwidth().put(row, nChan * vFreqInc);
+
+    return row;
+}
+
+casa::Int MSSink::addPolarisation(const casa::Vector<casa::Int>& stokesTypes)
+{
+    casa::Vector<casa::Int> _stokesTypes = stokesTypes;
+    const Int nCorr = _stokesTypes.size();
+
+    MSColumns msc(*itsMs);
+    MSPolarizationColumns& polc = msc.polarization();
+    const uInt row = polc.nrow();
+    itsMs->polarization().addRow();
+
+    polc.flagRow().put(row, False);
+    polc.numCorr().put(row, nCorr);
+
+    // Translate stokesTypes into receptor products, catch invalid
     // fallibles.
     Matrix<Int> corrProduct(uInt(2), uInt(nCorr));
     Fallible<Int> fi;
@@ -511,12 +546,44 @@ void MSSink::addSpws(const std::string& name,
         corrProduct(1, j) = (fi.isValid() ? fi.value() : 0);
     }
 
-    spwc.refFrequency().put(baseSpWID, vStartFreq);
-    spwc.chanFreq().put(baseSpWID, freqs);
-    spwc.chanWidth().put(baseSpWID, bandwidth);
-    spwc.effectiveBW().put(baseSpWID, bandwidth);
-    spwc.resolution().put(baseSpWID, bandwidth);
-    spwc.totalBandwidth().put(baseSpWID, nChan*vFreqInc);
-    polc.corrType().put(baseSpWID, _stokesTypes);
-    polc.corrProduct().put(baseSpWID, corrProduct);
+    polc.corrType().put(row, _stokesTypes);
+    polc.corrProduct().put(row, corrProduct);
+
+    return row;
+}
+
+casa::Int MSSink::findOrAddField(const casa::Int scanId)
+{
+    const Scan scan = itsConfig.observation().scans().at(scanId);
+    const casa::String fieldName = scan.name();
+    const casa::MDirection fieldDirection = scan.fieldDirection();
+    const casa::String& calCode = "";
+
+    MSColumns msc(*itsMs);
+    ROMSFieldColumns& fieldc = msc.field();
+    const uInt nRows = fieldc.nrow();
+
+    for (uInt i = 0; i < nRows; ++i) {
+        const Vector<MDirection> dirVec = fieldc.referenceDirMeasCol()(i);
+        if ((fieldName.compare(fieldc.name()(i)) == 0)
+                && (calCode.compare(fieldc.code()(i)) == 0)
+                && equal(dirVec[0],  fieldDirection)) {
+            return i;
+        }
+    }
+
+    return addField(fieldName, fieldDirection, calCode);
+}
+
+casa::Int MSSink::findOrAddDataDesc(const casa::Int scanId)
+{
+    return 0;
+}
+
+bool MSSink::equal(const casa::MDirection &dir1, const casa::MDirection &dir2)
+{
+    if (dir1.getRef().getType() != dir2.getRef().getType()) {
+        return false;
+    }
+    return dir1.getValue().separation(dir2.getValue()) < std::numeric_limits<double>::epsilon();
 }
