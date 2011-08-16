@@ -75,36 +75,6 @@ namespace askap
     
     /// @brief default frequency frame
     casa::MFrequency::Ref SynthesisParamsHelper::theirFreqFrame(casa::MFrequency::TOPO);  
-  
-    // use // deliberatly here to avoid doxygen complaining about duplicated documentation 
-    // here and in the header file
-    // @brief populate scimath parameters from a LOFAR Parset object
-    // @details One often needs a possibility to populate 
-    // scimath::Params class from a Parset file (e.g. to load 
-    // initial gains from an external file). A number of add methods
-    // collected in this class happen to be image-specific. This is
-    // a generic method, which just copies all numeric fields
-    // @param[in] params a reference to scimath parameter object, where the
-    // parameters from parset file will be added
-    // @param[in] parset a const reference to a parset object
-    // @return a reference to params passed as an input (for chaining)
-    scimath::Params& operator<<(scimath::Params &params, const LOFAR::ParameterSet &parset)
-    {
-       for (LOFAR::ParameterSet::const_iterator ci = parset.begin();
-            ci != parset.end();++ci) {
-            try {
-               vector<double> vec = parset.getDoubleVector(ci->first);
-               casa::Vector<double> arr(vec.size());
-               std::copy(vec.begin(),vec.end(),arr.cbegin());
-               params.add(ci->first, arr);
-            }
-            catch (const LOFAR::Exception &) {
-               // ignore non-numeric parameters
-            }
-       }
-       return params;
-    }
-
 
     void SynthesisParamsHelper::setUpImages(const askap::scimath::Params::ShPtr& params,
 				const LOFAR::ParameterSet &parset)

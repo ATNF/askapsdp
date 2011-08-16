@@ -52,6 +52,8 @@
 #include <string>
 #include <ostream>
 
+#include <Common/ParameterSet.h>
+
 namespace askap
 {
   namespace scimath
@@ -315,6 +317,21 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
         mutable std::map<std::string, ChangeMonitor> itsChangeMonitors;
     };
 
-  }
-}
+  } // namespace scimath
+  
+  /// @brief populate scimath parameters from a LOFAR Parset object
+  /// @details One needs often needs a possibility to populate 
+  /// scimath::Params class from a Parset file (e.g. to load 
+  /// initial gains from an external file).  This is
+  /// a generic method, which just copies all numeric fields
+  /// @param[in] params a reference to scimath parameter object, where the
+  /// parameters from parset file will be added
+  /// @param[in] parset a const reference to a parset object
+  /// @return a reference to params passed as an input (for chaining)
+  /// @note This operator is declared outside of scimath namespace quite deliberately.
+  /// Definining it in askap namespace will allow us to use it anywhere throughout our
+  /// code without worrying about using statements.
+  scimath::Params& operator<<(scimath::Params &params, const LOFAR::ParameterSet &parset);
+  
+} // namespace askap
 #endif

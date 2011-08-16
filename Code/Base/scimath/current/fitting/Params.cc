@@ -561,5 +561,38 @@ bool Params::isChanged(const std::string &name, const ChangeMonitor &cm) const
             return is;
 		}
 
-	}
-}
+	} // namespace scimath
+	
+    /// @brief populate scimath parameters from a LOFAR Parset object
+    /// @details One often needs a possibility to populate 
+    /// scimath::Params class from a Parset file (e.g. to load 
+    /// initial gains from an external file). A number of add methods
+    /// collected in this class happen to be image-specific. This is
+    /// a generic method, which just copies all numeric fields
+    /// @param[in] params a reference to scimath parameter object, where the
+    /// parameters from parset file will be added
+    /// @param[in] parset a const reference to a parset object
+    /// @return a reference to params passed as an input (for chaining)
+    /// @note This operator is declared outside of scimath namespace quite deliberately.
+    /// Definining it in askap namespace will allow us to use it anywhere throughout our
+    /// code without worrying about using statements. 
+    scimath::Params& operator<<(scimath::Params &params, const LOFAR::ParameterSet &parset)
+    {
+       for (LOFAR::ParameterSet::const_iterator ci = parset.begin();
+            ci != parset.end();++ci) {
+            try {
+               vector<double> vec = parset.getDoubleVector(ci->first);
+               casa::Vector<double> arr(vec.size());
+               std::copy(vec.begin(),vec.end(),arr.cbegin());
+               params.add(ci->first, arr);
+            }
+            catch (const LOFAR::Exception &) {
+               // ignore non-numeric parameters
+            }
+       }
+       return params;
+    }
+	
+} // namespace askap
+
+

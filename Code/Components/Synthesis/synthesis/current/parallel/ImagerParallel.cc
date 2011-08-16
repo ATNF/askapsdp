@@ -82,6 +82,7 @@ namespace askap
 {
   namespace synthesis
   {
+    using askap::operator<<;
 
     ImagerParallel::ImagerParallel(askap::mwcommon::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
