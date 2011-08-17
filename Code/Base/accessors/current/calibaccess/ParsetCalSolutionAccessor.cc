@@ -35,6 +35,19 @@
 #include <calibaccess/ParsetCalSolutionAccessor.h>
 #include <askap/AskapError.h>
 
+// LOFAR
+#include <Common/ParameterSet.h>
+#include <Common/Exceptions.h>
+
+// logging stuff
+#include <askap_accessors.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".calibaccess");
+
+// std includes
+#include <vector>
+#include <fstream>
+
 namespace askap {
 
 namespace accessors {
@@ -44,9 +57,16 @@ namespace accessors {
 /// operations are performed via this cache which is stored into file in the destructor.
 /// @param[in] parset parset file name
 ParsetCalSolutionAccessor::ParsetCalSolutionAccessor(const std::string &parset) : itsParsetFileName(parset), 
-        itsWriteRequired(false) 
+        itsWriteRequired(false)
 {
-  // read parset here
+  try {
+     itsCache << LOFAR::ParameterSet(itsParsetFileName);
+     ASKAPLOG_INFO_STR(logger, "Successfully read calibration solution from a parset file "<<itsParsetFileName);
+  }
+  catch (const LOFAR::APSException &) {
+     // nothing read, this is probably a write case
+     ASKAPLOG_INFO_STR(logger, "Set up ParsetCalSolutionAccessor to write results into "<<itsParsetFileName);
+  } 
 }        
   
 /// @brief destructor, stores the cache
@@ -55,7 +75,14 @@ ParsetCalSolutionAccessor::ParsetCalSolutionAccessor(const std::string &parset) 
 ParsetCalSolutionAccessor::~ParsetCalSolutionAccessor()
 {
   if (itsWriteRequired) {
-      // write itsCache here
+      ASKAPLOG_INFO_STR(logger, "Writing out calibration results into a parset file "<<itsParsetFileName);
+      std::vector<std::string> parlist = itsCache.names();
+      std::ofstream os(itsParsetFileName.c_str());
+      for (std::vector<std::string>::const_iterator it = parlist.begin(); 
+           it != parlist.end(); ++it) {
+           const casa::Complex val = itsCache.complexValue(*it);
+           os<<*it<<" = ["<<real(val)<<","<<imag(val)<<"]"<<std::endl;
+      }     
   }
 }
   
@@ -70,7 +97,20 @@ ParsetCalSolutionAccessor::~ParsetCalSolutionAccessor()
 /// @return JonesJTerm object with gains and validity flags
 JonesJTerm ParsetCalSolutionAccessor::gain(const JonesIndex &index) const
 {
-  return JonesJTerm(); // extract the value from the cache here
+  casa::Complex g1(1.,0.), g2(1.,0.);
+  bool g1Valid = false, g2Valid = false;
+  const std::string paramG1 = paramName(index, casa::Stokes::XX);
+  const std::string paramG2 = paramName(index, casa::Stokes::YY);
+  
+  if (itsCache.has(paramG1)) {
+      g1Valid = true;
+      g1 = itsCache.complexValue(paramG1);
+  }
+  if (itsCache.has(paramG2)) {
+      g2Valid = true;
+      g2 = itsCache.complexValue(paramG2);
+  }    
+  return JonesJTerm(g1,g1Valid,g2,g2Valid);
 }
    
 /// @brief obtain leakage (D-Jones)
@@ -83,7 +123,20 @@ JonesJTerm ParsetCalSolutionAccessor::gain(const JonesIndex &index) const
 /// @return JonesDTerm object with leakages and validity flags
 JonesDTerm ParsetCalSolutionAccessor::leakage(const JonesIndex &index) const
 {
-  return JonesDTerm(); // extract the value from the cache here
+  casa::Complex d12(0.,0.), d21(0.,0.);
+  bool d12Valid = false, d21Valid = false;
+  const std::string paramD12 = paramName(index, casa::Stokes::XY);
+  const std::string paramD21 = paramName(index, casa::Stokes::YX);
+  
+  if (itsCache.has(paramD12)) {
+      d12Valid = true;
+      d12 = itsCache.complexValue(paramD12);
+  }
+  if (itsCache.has(paramD21)) {
+      d21Valid = true;
+      d21 = itsCache.complexValue(paramD21);
+  }    
+  return JonesDTerm(d12, d12Valid, d21, d21Valid);
 }
    
 /// @brief obtain bandpass (frequency dependent J-Jones)
@@ -102,6 +155,26 @@ JonesJTerm ParsetCalSolutionAccessor::bandpass(const JonesIndex &, const casa::u
   // always return 1.0 as bandpass gain for all spectral channels
   return JonesJTerm(1., true, 1., true);
 }
+
+/// @brief helper method to update given parameter in the cache
+/// @details Different methods of scimath::Params have to be used depending on whether
+/// this parameter is new or not. This method makes it simpler by encapsulating this logic.
+/// In addition it handles the logic on what to do with invalid data (for now we just ignore 
+/// such values).
+/// @param[in] name string name of the parameter
+/// @param[in] val complex value to be set
+/// @param[in] isValid true, if the given value is valid (method just returns otherwise)
+void ParsetCalSolutionAccessor::updateParamInCache(const std::string &name, const casa::Complex &val, const bool isValid)
+{
+  if (isValid) {
+      if (itsCache.has(name)) {
+          itsCache.update(name, val);
+      } else {
+          itsCache.add(name, val);
+      }
+  }
+}
+
   
 /// @brief set gains (J-Jones)
 /// @details This method writes parallel-hand gains for both 
@@ -110,7 +183,8 @@ JonesJTerm ParsetCalSolutionAccessor::bandpass(const JonesIndex &, const casa::u
 /// @param[in] gains JonesJTerm object with gains and validity flags
 void ParsetCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTerm &gains)
 {
-  // add parameters to the cache
+  updateParamInCache(paramName(index, casa::Stokes::XX), gains.g1(), gains.g1IsValid());
+  updateParamInCache(paramName(index, casa::Stokes::YY), gains.g2(), gains.g2IsValid());
   itsWriteRequired = true;
 }
    
@@ -121,7 +195,8 @@ void ParsetCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTer
 /// @param[in] leakages JonesDTerm object with leakages and validity flags
 void ParsetCalSolutionAccessor::setLeakage(const JonesIndex &index, const JonesDTerm &leakages)
 {
-  // add parameters to the cache
+  updateParamInCache(paramName(index, casa::Stokes::XY), leakages.d12(), leakages.d12IsValid());
+  updateParamInCache(paramName(index, casa::Stokes::YX), leakages.d21(), leakages.d21IsValid());
   itsWriteRequired = true;
 }
   
@@ -140,6 +215,30 @@ void ParsetCalSolutionAccessor::setBandpass(const JonesIndex &index, const Jones
              "(g1="<<bp.g1()<<" g2="<<bp.g2()<<" validity flags: "<<
              bp.g1IsValid()<<","<<bp.g2IsValid()<<"); Operation is not implemented");
 }
+
+/// @brief helper method to form the name of the parameter
+/// @details This method determines naming convention for the parameters in parset 
+/// (and in itsCache)
+/// @param[in] index antenna/beam index
+/// @param[in] par parameter to get the name for as StokesTypes. XX,YY,XY and YX correspond to 
+/// parallel-hand gains g11 and g22 and cross-pol leakages d12 and d21, respectively
+std::string ParsetCalSolutionAccessor::paramName(const JonesIndex &index, casa::Stokes::StokesTypes par)
+{
+   std::string res;
+   if ((par == casa::Stokes::XX) || (par == casa::Stokes::YY)) {
+       res = "gain."; 
+       res += (par == casa::Stokes::XX ? "g11." : "g22.");
+   } else if ((par == casa::Stokes::XY) || (par == casa::Stokes::YX)) {
+       res = "leakage."; 
+       res += (par == casa::Stokes::XY ? "d12." : "d21.");
+   } else {
+       ASKAPTHROW(AskapError, 
+           "Unsupported polarisation descriptor passed to ParsetCalSolutionAccessor::paramName, only XX,XY,YX and YY are allowed");
+   }
+   
+   return res + utility::toString<casa::Short>(index.antenna()) +"."+ utility::toString<casa::Short>(index.beam());
+}
+
 
 } // namespace accessors
 

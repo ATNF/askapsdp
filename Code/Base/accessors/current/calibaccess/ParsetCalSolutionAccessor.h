@@ -128,6 +128,25 @@ public:
   /// approximated somehow, e.g. by a polynomial. For simplicity, for now we deal with 
   /// gains set explicitly for each channel.
   virtual void setBandpass(const JonesIndex &index, const JonesJTerm &bp, const casa::uInt chan);
+
+protected:
+  /// @brief helper method to form the name of the parameter
+  /// @details This method determines naming convention for the parameters in parset 
+  /// (and in itsCache)
+  /// @param[in] index antenna/beam index
+  /// @param[in] par parameter to get the name for as StokesTypes. XX,YY,XY and YX correspond to 
+  /// parallel-hand gains g11 and g22 and cross-pol leakages d12 and d21, respectively
+  static std::string paramName(const JonesIndex &index, casa::Stokes::StokesTypes par);
+  
+  /// @brief helper method to update given parameter in the cache
+  /// @details Different methods of scimath::Params have to be used depending on whether
+  /// this parameter is new or not. This method makes it simpler by encapsulating this logic.
+  /// In addition it handles the logic on what to do with invalid data (for now we just ignore 
+  /// such values).
+  /// @param[in] name string name of the parameter
+  /// @param[in] val complex value to be set
+  /// @param[in] isValid true, if the given value is valid (method just returns otherwise)
+  void updateParamInCache(const std::string &name, const casa::Complex &val, const bool isValid = true);
   
 private:
   /// @brief parset file name for reading or writing
