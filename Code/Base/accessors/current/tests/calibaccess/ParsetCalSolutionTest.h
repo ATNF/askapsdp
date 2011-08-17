@@ -57,10 +57,27 @@ protected:
             }
        }
    }   
+   
+   void testComplex(const casa::Complex &expected, const casa::Complex &obtained, const float tol = 1e-5) {
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(real(expected),real(obtained),tol);
+      CPPUNIT_ASSERT_DOUBLES_EQUAL(imag(expected),imag(obtained),tol);      
+   }
 public:
    void testReadWrite() {
         const std::string fname = "tmp.testparset";
         createDummyParset(fname);
+        ParsetCalSolutionAccessor acc(fname);
+        for (casa::uInt ant=0; ant<5; ++ant) {
+            for (casa::uInt beam=0; beam<4; ++beam) { 
+                 CPPUNIT_ASSERT(acc.jonesValid(ant,beam,0));
+                 const casa::SquareMatrix<casa::Complex, 2> jones = acc.jones(ant,beam,0);
+                 const float tag = float(ant)/100. + float(beam)/1000.;
+                 testComplex(casa::Complex(1.1+tag,0.1), jones(0,0));
+                 testComplex(casa::Complex(1.1,-0.1-tag), jones(1,1));
+                 testComplex(casa::Complex(0.1+tag,-0.1), jones(0,1));
+                 testComplex(casa::Complex(-0.1,0.1+tag), jones(1,0));                 
+            }
+        }       
         
    }
 };

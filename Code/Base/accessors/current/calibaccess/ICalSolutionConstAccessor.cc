@@ -52,7 +52,7 @@ ICalSolutionConstAccessor::~ICalSolutionConstAccessor()
 /// @return 2x2 Jones matrix
 casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const JonesIndex &index, const casa::uInt chan) const
 {
-  casa::SquareMatrix<casa::Complex, 2> result;
+  casa::SquareMatrix<casa::Complex, 2> result(casa::SquareMatrix<casa::Complex, 2>::General);
   const JonesJTerm gTerm = gain(index);
   result(0,0) = gTerm.g1IsValid() ? gTerm.g1() : casa::Complex(1.,0.);
   result(1,1) = gTerm.g2IsValid() ? gTerm.g2() : casa::Complex(1.,0.);
