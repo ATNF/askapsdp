@@ -622,7 +622,7 @@ namespace askap {
 	
 	double a2=beam.maj(),b2=beam.min(),pa2=beam.pa();
 	double a0=measured.majorAxis(),b0=measured.minorAxis(),pa0=measured.PA();
-	ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b2 <<" from beam "<<a2 << "x"<<b2);
+	//	ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b2 <<" from beam "<<a2 << "x"<<b2);
 	double d0=a0*a0-b0*b0,d2=a2*a2-b2*b2;
 
 	double d1 = sqrt( d0*d0 + d2*d2 - 2*d0*d2*cos(2.*(pa0-pa2)) );
@@ -653,7 +653,7 @@ namespace askap {
 	std::vector<Double> deconv(3);
 	double maj=std::max(std::max(a1,b1),0.);
 	double min=std::max(std::min(a1,b1),0.);
-	ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min);
+	//	ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min);
 	deconv[0] = maj;
 	deconv[1] = min;
 	deconv[2] = pa1;
