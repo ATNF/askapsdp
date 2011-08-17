@@ -72,12 +72,12 @@ using namespace casa;
 
 MSSink::MSSink(const LOFAR::ParameterSet& parset,
         const Configuration& config) :
-    itsParset(parset), itsConfig(config)
+    itsParset(parset), itsConfig(config), itsPreviousScanIndex(-1),
+    itsFieldRow(-1), itsDataDescRow(-1)
 {
     ASKAPLOG_DEBUG_STR(logger, "Constructor");
     create();
     initAntennas(); // Includes FEED table
-    initDataDesc();
     initObs();
 }
 
@@ -91,6 +91,13 @@ void MSSink::process(VisChunk::ShPtr chunk)
 {
     ASKAPLOG_DEBUG_STR(logger, "process()");
 
+    // Handle the details for when a new scan starts
+    if (itsPreviousScanIndex != static_cast<casa::Int>(chunk->scan())) {
+        itsFieldRow = findOrAddField(chunk->scan());
+        itsDataDescRow = findOrAddDataDesc(chunk->scan());
+        itsPreviousScanIndex = chunk->scan();
+    }
+
     MSColumns msc(*itsMs);
     const casa::uInt baseRow = msc.nrow();
     const casa::uInt newRows = chunk->nRow();
@@ -99,8 +106,8 @@ void MSSink::process(VisChunk::ShPtr chunk)
     // First set the constant things outside the loop,
     // as they apply to all rows
     msc.scanNumber().put(baseRow, chunk->scan());
-    msc.fieldId().put(baseRow, findOrAddField(chunk->scan()));
-    msc.dataDescId().put(baseRow, findOrAddDataDesc(chunk->scan()));
+    msc.fieldId().put(baseRow, itsFieldRow);
+    msc.dataDescId().put(baseRow, itsDataDescRow);
 
     const casa::Quantity chunkMidpoint = chunk->time().getTime();
     msc.time().put(baseRow, chunkMidpoint.getValue("s"));
@@ -147,7 +154,7 @@ void MSSink::process(VisChunk::ShPtr chunk)
         timeRange(0) = Tstart; 
     }
 
-    const casa::Double Tend = Tmid - (Tint / 2);
+    const casa::Double Tend = Tmid + (Tint / 2);
     timeRange(1) = Tend;
     obsc.timeRange().put(0, timeRange);
 }
@@ -159,7 +166,7 @@ void MSSink::process(VisChunk::ShPtr chunk)
 void MSSink::create(void)
 {
     // Get configuration first to ensure all parameters are present
-    casa::uInt bucketSize = itsParset.getUint32("stman.bucketsize", 1024 * 1024);
+    casa::uInt bucketSize = itsParset.getUint32("stman.bucketsize", 128 * 1024);
     casa::uInt tileNcorr = itsParset.getUint32("stman.tilencorr", 4);
     casa::uInt tileNchan = itsParset.getUint32("stman.tilenchan", 1);
     const casa::String filenamebase = itsParset.getString("filenamebase");
@@ -274,26 +281,6 @@ void MSSink::initFeeds(const FeedConfig& feeds, const casa::Int antennaID)
     }
 
     addFeeds(antennaID, x, y, pol);
-}
-
-void MSSink::initDataDesc(void)
-{
-    // TODO: Add support for multiple scans
-    ASKAPCHECK(itsConfig.observation().scans().size() == 1,
-            "Only one scan supported");
-    const Scan scan = itsConfig.observation().scans().at(0);
-
-    casa::String spWindowName("NO_NAME"); // TODO: Add name
-    int nChan = scan.nChan();
-    const casa::Quantity startFreq = scan.startFreq();
-    const casa::Quantity freqInc = scan.chanWidth();
-
-    Vector<Int> stokesTypes(scan.stokes().size());
-    for (size_t i = 0; i < scan.stokes().size(); ++i) {
-        stokesTypes(i) = scan.stokes().at(i);
-    }
-
-    addDataDesc(spWindowName, nChan, startFreq, freqInc, stokesTypes);
 }
 
 void MSSink::initObs(void)
@@ -454,17 +441,9 @@ casa::Int MSSink::addAntenna(const casa::String& station,
     return row;
 }
 
-casa::Int MSSink::addDataDesc(const casa::String& spwName,
-            const int nChan,
-            const casa::Quantity& startFreq,
-            const casa::Quantity& freqInc,
-            const casa::Vector<casa::Int>& stokesTypes)
+casa::Int MSSink::addDataDesc(const casa::Int spwId, const casa::Int polId)
 {
-    // 1: Create spectral window and polarisation table entries
-    const casa::Int spwId = addSpectralWindow(spwName, nChan, startFreq, freqInc);
-    const casa::Int polId = addPolarisation(stokesTypes);
-
-    // 2: Add new row and determine its offset
+    // 1: Add new row and determine its offset
     MSColumns msc(*itsMs);
     MSDataDescColumns& ddc = msc.dataDescription();
     const uInt row = ddc.nrow();
@@ -478,6 +457,9 @@ casa::Int MSSink::addDataDesc(const casa::String& spwName,
     return row;
 }
 
+/// @note The implementation of method isSpectralWindowRowEqual() is tightly
+/// coupled to the implementation of this method. If this method is changed
+/// it is likely isSpectralWindowRowEqual() should be too.
 casa::Int MSSink::addSpectralWindow(const casa::String& spwName,
             const int nChan,
             const casa::Quantity& startFreq,
@@ -520,10 +502,12 @@ casa::Int MSSink::addSpectralWindow(const casa::String& spwName,
     return row;
 }
 
-casa::Int MSSink::addPolarisation(const casa::Vector<casa::Int>& stokesTypes)
+/// @note The implementation of method isPolarisationRowEqual() is tightly
+/// coupled to the implementation of this method. If this method is changed
+/// it is likely isPolarisationRowEqual() should be too.
+casa::Int MSSink::addPolarisation(const casa::Vector<casa::Stokes::StokesTypes>& stokesTypes)
 {
-    casa::Vector<casa::Int> _stokesTypes = stokesTypes;
-    const Int nCorr = _stokesTypes.size();
+    const Int nCorr = stokesTypes.size();
 
     MSColumns msc(*itsMs);
     MSPolarizationColumns& polc = msc.polarization();
@@ -537,16 +521,17 @@ casa::Int MSSink::addPolarisation(const casa::Vector<casa::Int>& stokesTypes)
     // fallibles.
     Matrix<Int> corrProduct(uInt(2), uInt(nCorr));
     Fallible<Int> fi;
-    _stokesTypes.resize(nCorr, True);
 
-    for (Int j = 0; j < nCorr; j++) {
-        fi = Stokes::receptor1(Stokes::type(_stokesTypes(j)));
-        corrProduct(0, j) = (fi.isValid() ? fi.value() : 0);
-        fi = Stokes::receptor2(Stokes::type(_stokesTypes(j)));
-        corrProduct(1, j) = (fi.isValid() ? fi.value() : 0);
+    casa::Vector<casa::Int> stokesTypesInt(nCorr);
+    for (Int i = 0; i < nCorr; i++) {
+        fi = Stokes::receptor1(stokesTypes(i));
+        corrProduct(0, i) = (fi.isValid() ? fi.value() : 0);
+        fi = Stokes::receptor2(stokesTypes(i));
+        corrProduct(1, i) = (fi.isValid() ? fi.value() : 0);
+        stokesTypesInt(i) = stokesTypes(i);
     }
 
-    polc.corrType().put(row, _stokesTypes);
+    polc.corrType().put(row, stokesTypesInt);
     polc.corrProduct().put(row, corrProduct);
 
     return row;
@@ -577,7 +562,124 @@ casa::Int MSSink::findOrAddField(const casa::Int scanId)
 
 casa::Int MSSink::findOrAddDataDesc(const casa::Int scanId)
 {
-    return 0;
+   casa::Int spwId;
+   casa::Int polId;
+   const Scan scan = itsConfig.observation().scans().at(scanId);
+
+   // 1: Try to find a data description that matches the scan
+   MSColumns msc(*itsMs);
+   ROMSDataDescColumns& ddc = msc.dataDescription();
+   uInt nRows = ddc.nrow();
+   for (uInt row = 0; row < nRows; ++row) {
+       spwId = ddc.spectralWindowId()(row);
+       polId = ddc.polarizationId()(row);
+       if (isSpectralWindowRowEqual(scan, spwId) &&
+               isPolarisationRowEqual(scan, polId)) {
+           return row;
+       }
+   }
+
+   // The value -1 indicates an entry that matches the scan has not
+   // been found.
+   spwId = -1;
+   polId = -1;
+
+   // 2: Try to find a spectral window row that matches
+   nRows = msc.spectralWindow().nrow();
+   for (uInt row = 0; row < nRows; ++row) {
+       if (isSpectralWindowRowEqual(scan, row)) {
+           spwId = row;
+           break;
+       }
+   }
+
+
+   // 3: Try to find a polarisation row that matches
+   nRows = msc.polarization().nrow();
+   for (uInt row = 0; row < nRows; ++row) {
+       if (isPolarisationRowEqual(scan, row)) {
+           polId = row;
+           break;
+       }
+   }
+
+   // 4: Create the missing entry and a data desc
+   if (spwId == -1) {
+       const casa::String spWindowName("NO_NAME"); // TODO: Add name
+       spwId = addSpectralWindow(spWindowName, scan.nChan(), scan.startFreq(), scan.chanWidth());
+   }
+   if (polId == -1) {
+       polId = addPolarisation(scan.stokes());
+   }
+
+   return addDataDesc(spwId, polId);
+}
+
+// Compares the given row in the spectral window table with the spectral window
+// setup as defined in the Scan.
+//
+// @note This is not an apples to apples comparison, and depends somewhat on
+// how the infomration in the "Scan" object was translated to a spectral
+// window setup. For this reason, the implementation of this method is
+// tightly coupled to the addSpectralWindow() method in this class. If that
+// method is modified, so should this.
+//
+// @return true if the two are effectivly equal, otherwise false.
+bool MSSink::isSpectralWindowRowEqual(const Scan& s, const casa::uInt row) const
+{
+    MSColumns msc(*itsMs);
+    ROMSSpWindowColumns& spwc = msc.spectralWindow();
+    ASKAPCHECK(row < spwc.nrow(), "Row index out of bounds");
+
+    if (spwc.numChan()(row) != static_cast<casa::Int>(s.nChan())) {
+        return false;
+    }
+    if (spwc.flagRow()(row) != false) {
+        return false;
+    }
+    const casa::Vector<double> freqs = spwc.chanFreq()(row);
+    const double dblEpsilon = std::numeric_limits<double>::epsilon();
+    if (fabs(freqs(0) - s.startFreq().getValue("Hz")) > dblEpsilon) {
+        return false;
+    }
+    const casa::Vector<double> bandwidth = spwc.chanWidth()(row);
+    if (fabs(bandwidth(0) - s.chanWidth().getValue("Hz")) > dblEpsilon) {
+        return false;
+    }
+
+    return true;
+}
+
+// Compares the given row in the polarisation table with the polarisation
+// setup as defined in the Scan.
+//
+// @note This is not an apples to apples comparison, and depends somewhat on
+// how the infomration in the "Scan" object was translated to a spectral
+// window setup. For this reason, the implementation of this method is
+// tightly coupled to the addPolarisation() method in this class. If that
+// method is modified, so should this.
+//
+// @return true if the two are effectivly equal, otherwise false.
+bool MSSink::isPolarisationRowEqual(const Scan& s, const casa::uInt row) const
+{
+    MSColumns msc(*itsMs);
+    ROMSPolarizationColumns& polc = msc.polarization();
+    ASKAPCHECK(row < polc.nrow(), "Row index out of bounds");
+
+    if (polc.numCorr()(row) != static_cast<casa::Int>(s.stokes().size())) {
+        return false;
+    }
+    if (polc.flagRow()(row) != false) {
+        return false;
+    }
+    casa::Vector<casa::Int> stokesTypesInt = polc.corrType()(row);
+    for (casa::uInt i = 0; i < stokesTypesInt.size(); ++i) {
+        if (stokesTypesInt(i) != s.stokes().at(i)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool MSSink::equal(const casa::MDirection &dir1, const casa::MDirection &dir2)

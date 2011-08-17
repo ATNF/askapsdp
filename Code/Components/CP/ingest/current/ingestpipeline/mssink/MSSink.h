@@ -32,10 +32,10 @@
 #include "Common/ParameterSet.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "casa/aips.h"
+#include "casa/BasicSL.h"
 #include "casa/Quanta.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
-#include "casa/BasicSL.h"
 #include "cpcommon/VisChunk.h"
 
 // Local package includes
@@ -48,10 +48,20 @@ namespace ingest {
 
 /// @brief A sink task for the central processor ingest pipeline which writes
 /// the data out to a measurement set.
+/// 
+/// When constructing this class a measurement set is created, the default tables
+/// are created and the ANTENNA, FEEDS, and OBSERVATION tables are populated
+/// based on the "Configuration" instance passed to the constructor.
+///
+/// As observing takes place process() is called for each integration cycle. If
+/// the VisChunk passed to process() is the first chunk for a new scan then rows
+/// are added to the SPECTRAL WINDOW, POLARIZATION and DATA DESCRIPTION tables.
+/// The visibilities and related data are also written into the main table.
 class MSSink : public askap::cp::ingest::ITask {
     public:
         /// @brief Constructor.
         /// @param[in] parset   the parameter set used to configure this task.
+        /// @param[in] config   an object containing the system configuration.
         MSSink(const LOFAR::ParameterSet& parset,
                 const Configuration& config);
 
@@ -73,54 +83,47 @@ class MSSink : public askap::cp::ingest::ITask {
         // Initialises the FEED table
         void initFeeds(const FeedConfig& feeds, const casa::Int antennaID);
 
-        // Initialises the  SPECTRAL WINDOW table
-        void initDataDesc(void);
-
         // Initialises the OBSERVATION table
         void initObs(void);
 
         // Create the measurement set
         void create(void);
 
-        // Add a row the the observation table
+        // Add observation table row
         casa::Int addObs(const casa::String& telescope,
                 const casa::String& observer,
                 const double obsStartTime,
                 const double obsEndTime);
 
-        // Add a row to the field table
+        // Add field table row
         casa::Int addField(const casa::String& fieldName,
                 const casa::MDirection& fieldDirection,
                 const casa::String& calCode);
 
-        // Add feeds
+        // Add feeds table rows
         void addFeeds(const casa::Int antennaID,
                 const casa::Vector<double>& x,
                 const casa::Vector<double>& y,
                 const casa::Vector<casa::String>& polType);
 
-        // Add antenna
+        // Add antenna table row
         casa::Int addAntenna(const casa::String& station,
                 const casa::Vector<double>& antXYZ,
                 const casa::String& name,
                 const casa::String& mount,
                 const casa::Double& dishDiameter);
 
-        // Add data description
-        casa::Int addDataDesc(const casa::String& name,
-                const int nChan,
-                const casa::Quantity& startFreq,
-                const casa::Quantity& freqInc,
-                const casa::Vector<casa::Int>& stokesTypes);
+        // Add data description table row
+        casa::Int addDataDesc(const casa::Int spwId, const casa::Int polId);
 
-        // Add spectral window
+        // Add spectral window table row
         casa::Int addSpectralWindow(const casa::String& name,
                 const int nChan,
                 const casa::Quantity& startFreq,
                 const casa::Quantity& freqInc);
 
-        // Add polarisation
-        casa::Int addPolarisation(const casa::Vector<casa::Int>& stokesTypes);
+        // Add polarisation table row
+        casa::Int addPolarisation(const casa::Vector<casa::Stokes::StokesTypes>& stokesTypes);
 
         // Find or add a FIELD table entry for the provided scan index number.
         casa::Int findOrAddField(const casa::Int scanId);
@@ -128,6 +131,14 @@ class MSSink : public askap::cp::ingest::ITask {
         // Find or add a DATA DESCRIPTION (including SPECTRAL INDEX and POLARIZATION)
         // table entry for the provided scan index number.
         casa::Int findOrAddDataDesc(const casa::Int scanId);
+
+        // Compares the given row in the spectral window table with the spectral window
+        // setup as defined in the Scan.
+        bool isSpectralWindowRowEqual(const Scan& s, const casa::uInt row) const;
+
+        // Compares the given row in the polarisation table with the polarisation
+        // setup as defined in the Scan.
+        bool isPolarisationRowEqual(const Scan& s, const casa::uInt row) const;
 
         // Helper function to compare MDirections
         static bool equal(const casa::MDirection &dir1, const casa::MDirection &dir2);
@@ -137,6 +148,19 @@ class MSSink : public askap::cp::ingest::ITask {
 
         // Configuration object
         const Configuration itsConfig;
+
+        // The index number of the scan for the previous VisChunk. Some things
+        // (such as spectral window or field) are allowed to change from scan
+        // to scan, this allows a new scan to be detected
+        casa::Int itsPreviousScanIndex;
+
+        // The current field row. This is cached until the scan index is
+        // incremented
+        casa::Int itsFieldRow;
+
+        // The current data description row. This is cached until the scan
+        // index is incremented
+        casa::Int itsDataDescRow;
 
         // Measurement set
         boost::scoped_ptr<casa::MeasurementSet> itsMs;
