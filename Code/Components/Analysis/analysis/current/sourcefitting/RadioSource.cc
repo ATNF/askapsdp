@@ -1200,9 +1200,9 @@ namespace askap {
                 duchamp::Column::Col majFit("Maj(fit)", "", 10, 3);
                 duchamp::Column::Col minFit("Min(fit)", "", 10, 3);
                 duchamp::Column::Col paFit("P.A.(fit)", "", 10, 2);
-                duchamp::Column::Col majDeconv("Maj(fit, deconv.)", "", 19, 3);
-                duchamp::Column::Col minDeconv("Min(fit, deconv.)", "", 19, 3);
-                duchamp::Column::Col paDeconv("P.A.(fit, deconv.)", "", 19, 2);		
+                duchamp::Column::Col majDeconv("Maj(fit_deconv.)", "", 17, 3);
+                duchamp::Column::Col minDeconv("Min(fit_deconv.)", "", 17, 3);
+                duchamp::Column::Col paDeconv("P.A.(fit_deconv.)", "", 18, 2);		
 		duchamp::Column::Col alpha("Alpha", "", 10, 2);
 		duchamp::Column::Col beta("Beta", "", 10, 2);
                 duchamp::Column::Col chisqFit("Chisq(fit)", "", 20, 9);
