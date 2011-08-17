@@ -71,9 +71,7 @@ void ICalSolutionAccessor::setJonesElement(const JonesIndex &index, const casa::
 /// @param[in] elem value to set
 void ICalSolutionAccessor::setJonesElement(casa::uInt ant, casa::uInt beam, const casa::Stokes::StokesTypes stokes, const casa::Complex &elem)
 {
-  ASKAPCHECK(ant < 128, "Antenna index is supposed to be less than 128");
-  ASKAPCHECK(beam < 128, "Beam index supposed to be less than 128");
-  setJonesElement(JonesIndex(casa::Short(ant), casa::Short(beam)), stokes, elem);
+  setJonesElement(JonesIndex(ant, beam), stokes, elem);
 }
    
 /// @brief set a single element of bandpass
@@ -113,10 +111,8 @@ void ICalSolutionAccessor::setBandpassElement(const JonesIndex &index, const cas
 void ICalSolutionAccessor::setBandpassElement(casa::uInt ant, casa::uInt beam, const casa::Stokes::StokesTypes stokes, casa::uInt chan, 
                                               const casa::Complex &elem)
 {
-  ASKAPCHECK(ant < 128, "Antenna index is supposed to be less than 128");
-  ASKAPCHECK(beam < 128, "Beam index supposed to be less than 128");
   ASKAPCHECK(chan < 16416, "Channel number is supposed to be less than 16416");
-  setBandpassElement(JonesIndex(casa::Short(ant), casa::Short(beam)), stokes, chan, elem);
+  setBandpassElement(JonesIndex(ant, beam), stokes, chan, elem);
 }
 
 } // namespace accessors

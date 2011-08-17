@@ -84,10 +84,8 @@ casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const Jone
 casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const casa::uInt ant, 
                                      const casa::uInt beam, const casa::uInt chan) const
 {
-  ASKAPCHECK(ant < 128, "Antenna index is supposed to be less than 128");
-  ASKAPCHECK(beam < 128, "Beam index supposed to be less than 128");
   ASKAPCHECK(chan < 16416, "Channel number is supposed to be less than 16416");
-  return jones(JonesIndex(casa::Short(ant), casa::Short(beam)), chan);
+  return jones(JonesIndex(ant, beam), chan);
 }
    
 /// @brief obtain validity flag for the full 2x2 Jones Matrix
@@ -117,10 +115,8 @@ bool ICalSolutionConstAccessor::jonesValid(const JonesIndex &index, const casa::
 /// valid, false otherwise
 bool ICalSolutionConstAccessor::jonesValid(const casa::uInt ant, const casa::uInt beam, const casa::uInt chan) const
 {
-  ASKAPCHECK(ant < 128, "Antenna index is supposed to be less than 128");
-  ASKAPCHECK(beam < 128, "Beam index supposed to be less than 128");
   ASKAPCHECK(chan < 16416, "Channel number is supposed to be less than 16416");
-  return jonesValid(JonesIndex(casa::Short(ant), casa::Short(beam)), chan);
+  return jonesValid(JonesIndex(ant, beam), chan);
 }
 
 } // namespace accessors

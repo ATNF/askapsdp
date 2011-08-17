@@ -32,6 +32,7 @@
 
 // ASKAPsoft includes
 #include "casa/aipstype.h"
+#include <askap/AskapError.h>
 
 // Using
 using namespace askap::accessors;
@@ -40,6 +41,18 @@ JonesIndex::JonesIndex(const casa::Short antenna,
                        const casa::Short beam)
         : itsAntenna(antenna), itsBeam(beam)
 {
+}
+
+/// @brief constructor accepting uInt
+/// @param[in] antenna  ID of the antenna. This must be the physical
+///                     antenna ID.
+/// @param[in] beam     ID of the beam. Again, must map to an actual
+///                     beam.
+JonesIndex::JonesIndex(const casa::uInt antenna, casa::uInt beam) :
+    itsAntenna(casa::Short(antenna)), itsBeam(casa::Short(beam))
+{
+  ASKAPCHECK(antenna < 128, "Antenna index is supposed to be less than 128");
+  ASKAPCHECK(beam < 128, "Beam index supposed to be less than 128");
 }
 
 casa::Short JonesIndex::antenna(void) const

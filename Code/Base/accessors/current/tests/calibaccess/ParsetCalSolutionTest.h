@@ -28,9 +28,11 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
+#include <casa/aipstype.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <calibaccess/ParsetCalSolutionSource.h>
 #include <calibaccess/ParsetCalSolutionAccessor.h>
+#include <calibaccess/JonesIndex.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -75,7 +77,27 @@ public:
                  testComplex(casa::Complex(1.1+tag,0.1), jones(0,0));
                  testComplex(casa::Complex(1.1,-0.1-tag), jones(1,1));
                  testComplex(casa::Complex(0.1+tag,-0.1), jones(0,1));
-                 testComplex(casa::Complex(-0.1,0.1+tag), jones(1,0));                 
+                 testComplex(casa::Complex(-0.1,0.1+tag), jones(1,0));
+                 
+                 const JonesIndex index(ant,beam); 
+                 CPPUNIT_ASSERT(index.antenna() == casa::Short(ant));                
+                 CPPUNIT_ASSERT(index.beam() == casa::Short(beam));                
+                 const JonesJTerm jTerm = acc.gain(index);
+                 CPPUNIT_ASSERT(jTerm.g1IsValid() && jTerm.g2IsValid());
+                 testComplex(casa::Complex(1.1+tag,0.1), jTerm.g1());
+                 testComplex(casa::Complex(1.1,-0.1-tag), jTerm.g2());
+                 
+                 const JonesDTerm dTerm = acc.leakage(index);
+                 CPPUNIT_ASSERT(dTerm.d12IsValid() && dTerm.d21IsValid());
+                 testComplex(casa::Complex(0.1+tag,-0.1), dTerm.d12());
+                 testComplex(casa::Complex(-0.1,0.1+tag), dTerm.d21()); 
+                 
+                 for (casa::uInt chan=0; chan<20; ++chan) {
+                      const JonesJTerm bpTerm = acc.bandpass(index, chan);
+                      CPPUNIT_ASSERT(bpTerm.g1IsValid() && bpTerm.g2IsValid());
+                      testComplex(casa::Complex(1.,0.), bpTerm.g1());
+                      testComplex(casa::Complex(1.,0.), bpTerm.g2());
+                 }
             }
         }       
         

@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_CALDATASERVICE_JONESINDEX_H
-#define ASKAP_CP_CALDATASERVICE_JONESINDEX_H
+#ifndef ASKAP_ACCESSORS_JONES_INDEX_H
+#define ASKAP_ACCESSORS_JONES_INDEX_H
 
 // ASKAPsoft includes
 #include "casa/aipstype.h"
@@ -47,6 +47,14 @@ class JonesIndex {
         /// @param[in] beam     ID of the beam. Again, must map to an actual
         ///                     beam.
         JonesIndex(const casa::Short antenna, casa::Short beam);
+        
+        /// @brief constructor accepting uInt
+        /// @param[in] antenna  ID of the antenna. This must be the physical
+        ///                     antenna ID.
+        /// @param[in] beam     ID of the beam. Again, must map to an actual
+        ///                     beam.
+        JonesIndex(const casa::uInt antenna, casa::uInt beam);
+        
 
         /// Obtain the antenna ID
         /// @return the antenna ID
@@ -73,4 +81,5 @@ class JonesIndex {
 };
 };
 
-#endif
+#endif // #ifndef ASKAP_ACCESSORS_JONES_INDEX_H
+
