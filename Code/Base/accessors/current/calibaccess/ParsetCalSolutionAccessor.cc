@@ -57,7 +57,7 @@ namespace accessors {
 /// operations are performed via this cache which is stored into file in the destructor.
 /// @param[in] parset parset file name
 ParsetCalSolutionAccessor::ParsetCalSolutionAccessor(const std::string &parset) : itsParsetFileName(parset), 
-        itsWriteRequired(false)
+        itsWriteRequired(false), itsFirstWrite(true)
 {
   try {
      itsCache << LOFAR::ParameterSet(itsParsetFileName);
@@ -175,6 +175,22 @@ void ParsetCalSolutionAccessor::updateParamInCache(const std::string &name, cons
   }
 }
 
+/// @brief helper method executed on every write
+/// @details This method manages flags associated with the write operation
+void ParsetCalSolutionAccessor::prepareToWrite()
+{
+  itsWriteRequired = true;
+  if (itsFirstWrite) {
+      itsFirstWrite = false;
+      const std::vector<std::string> names = itsCache.names();
+      if (names.size()) {
+          ASKAPLOG_WARN_STR(logger, "Overwriting existing parset "<<itsParsetFileName<<
+              " with calibration parameters ("<<names[0]<<",...)");
+      }
+      itsCache.reset();
+  }
+}
+
   
 /// @brief set gains (J-Jones)
 /// @details This method writes parallel-hand gains for both 
@@ -183,9 +199,9 @@ void ParsetCalSolutionAccessor::updateParamInCache(const std::string &name, cons
 /// @param[in] gains JonesJTerm object with gains and validity flags
 void ParsetCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTerm &gains)
 {
+  prepareToWrite();
   updateParamInCache(paramName(index, casa::Stokes::XX), gains.g1(), gains.g1IsValid());
   updateParamInCache(paramName(index, casa::Stokes::YY), gains.g2(), gains.g2IsValid());
-  itsWriteRequired = true;
 }
    
 /// @brief set leakages (D-Jones)
@@ -195,9 +211,9 @@ void ParsetCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTer
 /// @param[in] leakages JonesDTerm object with leakages and validity flags
 void ParsetCalSolutionAccessor::setLeakage(const JonesIndex &index, const JonesDTerm &leakages)
 {
+  prepareToWrite();
   updateParamInCache(paramName(index, casa::Stokes::XY), leakages.d12(), leakages.d12IsValid());
   updateParamInCache(paramName(index, casa::Stokes::YX), leakages.d21(), leakages.d21IsValid());
-  itsWriteRequired = true;
 }
   
 /// @brief set gains for a single bandpass channel

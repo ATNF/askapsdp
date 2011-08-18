@@ -148,6 +148,12 @@ protected:
   /// @param[in] isValid true, if the given value is valid (method just returns otherwise)
   void updateParamInCache(const std::string &name, const casa::Complex &val, const bool isValid = true);
   
+  /// @brief helper method executed on every write
+  /// @details This method manages flags associated with the write operation and should be called prior
+  /// to adding of any new values into cache. 
+  /// @note It cleans the cache on the first write.
+  void prepareToWrite();
+  
 private:
   /// @brief parset file name for reading or writing
   std::string itsParsetFileName;
@@ -157,6 +163,13 @@ private:
   
   /// @brief cache of parameters
   scimath::Params itsCache;
+  
+  /// @brief true, if no write operations took place so far
+  /// @details We need to combine reading and writing API in the same class. It is not known in
+  /// advance how each particular instance is going to be used. This flag ensures that the output
+  /// is overwritten completely after the first write operation and the old content of the disk
+  /// file does not interfere with the new result
+  bool itsFirstWrite;
 };
 
 } // namespace accessors
