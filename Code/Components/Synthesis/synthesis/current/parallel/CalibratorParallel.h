@@ -40,6 +40,8 @@
 #include <gridding/IVisGridder.h>
 #include <measurementequation/IMeasurementEquation.h>
 #include <dataaccess/SharedIter.h>
+#include <fitting/Solver.h>
+#include <calibaccess/ICalSolutionAccessor.h>
 
 // std includes
 #include <string>
@@ -47,7 +49,6 @@
 
 // boost includes
 #include <boost/shared_ptr.hpp>
-#include <fitting/Solver.h>
 
 namespace askap
 {
@@ -152,6 +153,11 @@ namespace askap
       
       /// @brief flag swtiching the leakage calibration on
       bool itsSolveLeakage;
+      
+      /// @brief solution accessor to store the result
+      /// @details This object is initialised by the master. It stores the solution
+      /// in parset file, casa table or a database.
+      boost::shared_ptr<accessors::ICalSolutionAccessor> itsSolutionAccessor;
     };
 
   }

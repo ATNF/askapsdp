@@ -77,6 +77,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <gridding/VisGridderFactory.h>
 #include <mwcommon/AskapParallel.h>
 #include <Common/ParameterSet.h>
+#include <calibaccess/ParsetCalSolutionSource.h>
 
 // casa includes
 #include <casa/aips.h>
@@ -147,6 +148,13 @@ CalibratorParallel::CalibratorParallel(askap::mwcommon::AskapParallel& comms,
       itsSolver.reset(new LinearSolver);
       ASKAPCHECK(itsSolver, "Solver not defined correctly");
       itsRefGain = parset.getString("refgain","");
+      
+      // setup solution accessor
+      ParsetCalSolutionSource css("result.dat");
+      // need to get time here somehow
+      long solutionID = css.newSolutionID(0.);
+      itsSolutionAccessor = css.rwSolution(solutionID);
+      ASKAPDEBUGASSERT(itsSolutionAccessor);
   }
   if (itsComms.isWorker()) {
       // load sky model, populate itsPerfectModel
@@ -342,8 +350,9 @@ void CalibratorParallel::rotatePhases()
 void CalibratorParallel::writeModel(const std::string &postfix)
 {
   if (itsComms.isMaster()) {
-      ASKAPLOG_INFO_STR(logger, "Writing out results into a parset file");
+      ASKAPLOG_INFO_STR(logger, "Writing results of the calibration");
       ASKAPCHECK(postfix == "", "postfix parameter is not supposed to be used in the calibration code");
+      ASKAPCHECK(itsSolutionAccessor, "Solution Accessor has to be defined by this stage");
       
       ASKAPDEBUGASSERT(itsModel);
       std::vector<std::string> parlist = itsModel->names();

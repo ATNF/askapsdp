@@ -232,29 +232,6 @@ void ParsetCalSolutionAccessor::setBandpass(const JonesIndex &index, const Jones
              bp.g1IsValid()<<","<<bp.g2IsValid()<<"); Operation is not implemented");
 }
 
-/// @brief helper method to form the name of the parameter
-/// @details This method determines naming convention for the parameters in parset 
-/// (and in itsCache)
-/// @param[in] index antenna/beam index
-/// @param[in] par parameter to get the name for as StokesTypes. XX,YY,XY and YX correspond to 
-/// parallel-hand gains g11 and g22 and cross-pol leakages d12 and d21, respectively
-std::string ParsetCalSolutionAccessor::paramName(const JonesIndex &index, casa::Stokes::StokesTypes par)
-{
-   std::string res;
-   if ((par == casa::Stokes::XX) || (par == casa::Stokes::YY)) {
-       res = "gain."; 
-       res += (par == casa::Stokes::XX ? "g11." : "g22.");
-   } else if ((par == casa::Stokes::XY) || (par == casa::Stokes::YX)) {
-       res = "leakage."; 
-       res += (par == casa::Stokes::XY ? "d12." : "d21.");
-   } else {
-       ASKAPTHROW(AskapError, 
-           "Unsupported polarisation descriptor passed to ParsetCalSolutionAccessor::paramName, only XX,XY,YX and YY are allowed");
-   }
-   
-   return res + utility::toString<casa::Short>(index.antenna()) +"."+ utility::toString<casa::Short>(index.beam());
-}
-
 
 } // namespace accessors
 

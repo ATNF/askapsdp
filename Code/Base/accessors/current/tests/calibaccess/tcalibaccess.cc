@@ -26,10 +26,12 @@
 
 // Test includes
 #include <ParsetCalSolutionTest.h>
+#include <CalParamNameHelperTest.h>
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
+    runner.addTest( askap::accessors::CalParamNameHelperTest::suite());
     runner.addTest( askap::accessors::ParsetCalSolutionTest::suite());
     bool wasSucessful = runner.run();
 

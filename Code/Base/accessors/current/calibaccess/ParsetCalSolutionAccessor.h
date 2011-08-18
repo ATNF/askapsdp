@@ -37,6 +37,7 @@
 
 // own includes
 #include <calibaccess/ICalSolutionAccessor.h>
+#include <calibaccess/CalParamNameHelper.h>
 #include <fitting/Params.h>
 
 // std includes
@@ -55,7 +56,8 @@ namespace accessors {
 /// implementation, e.g. table-based). This implementation is just to convert the legacy code.
 /// There is only one implementation of this class which is used for both reading and writing.
 /// @ingroup calibaccess
-class ParsetCalSolutionAccessor : virtual public ICalSolutionAccessor {
+class ParsetCalSolutionAccessor : virtual public ICalSolutionAccessor,
+                                  virtual protected CalParamNameHelper {
 public:
   /// @brief constructor 
   /// @details It reads the given parset file, if it exists, and caches the values. Write
@@ -130,13 +132,6 @@ public:
   virtual void setBandpass(const JonesIndex &index, const JonesJTerm &bp, const casa::uInt chan);
 
 protected:
-  /// @brief helper method to form the name of the parameter
-  /// @details This method determines naming convention for the parameters in parset 
-  /// (and in itsCache)
-  /// @param[in] index antenna/beam index
-  /// @param[in] par parameter to get the name for as StokesTypes. XX,YY,XY and YX correspond to 
-  /// parallel-hand gains g11 and g22 and cross-pol leakages d12 and d21, respectively
-  static std::string paramName(const JonesIndex &index, casa::Stokes::StokesTypes par);
   
   /// @brief helper method to update given parameter in the cache
   /// @details Different methods of scimath::Params have to be used depending on whether
