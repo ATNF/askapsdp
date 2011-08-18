@@ -77,7 +77,9 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <gridding/VisGridderFactory.h>
 #include <mwcommon/AskapParallel.h>
 #include <Common/ParameterSet.h>
+#include <calibaccess/CalParamNameHelper.h>
 #include <calibaccess/ParsetCalSolutionSource.h>
+
 
 // casa includes
 #include <casa/aips.h>
@@ -127,9 +129,8 @@ CalibratorParallel::CalibratorParallel(askap::mwcommon::AskapParallel& comms,
           ASKAPLOG_INFO_STR(logger, "Initialise gains (unknowns) for "<<nAnt<<" antennas and "<<nBeam<<" beam(s).");
           for (casa::uInt ant = 0; ant<nAnt; ++ant) {
                for (casa::uInt beam = 0; beam<nBeam; ++beam) {
-                    itsModel->add("gain.g11."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(1.,0.));
-                    itsModel->add("gain.g22."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(1.,0.));
-                    //itsModel->fix("gain.g11."+utility::toString(ant));
+                    itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::XX), casa::Complex(1.,0.));
+                    itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::YY),casa::Complex(1.,0.));
                }
           }
       }
@@ -137,8 +138,8 @@ CalibratorParallel::CalibratorParallel(askap::mwcommon::AskapParallel& comms,
           ASKAPLOG_INFO_STR(logger, "Initialise leakages (unknowns) for "<<nAnt<<" antennas and "<<nBeam<<" beam(s).");
           for (casa::uInt ant = 0; ant<nAnt; ++ant) {
                for (casa::uInt beam = 0; beam<nBeam; ++beam) {
-                    itsModel->add("leakage.d12."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(0.,0.));
-                    itsModel->add("leakage.d21."+utility::toString(ant)+"."+utility::toString(beam),casa::Complex(0.,0.));
+                    itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::XY),casa::Complex(0.,0.));
+                    itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::YX),casa::Complex(0.,0.));
                }
           }
       }
@@ -356,25 +357,13 @@ void CalibratorParallel::writeModel(const std::string &postfix)
       
       ASKAPDEBUGASSERT(itsModel);
       std::vector<std::string> parlist = itsModel->names();
-      std::ofstream os("result.dat"); // for now just hard code it
       for (std::vector<std::string>::const_iterator it = parlist.begin(); 
            it != parlist.end(); ++it) {
-           const casa::Complex gain = itsModel->complexValue(*it);
-           os<<*it<<" = ["<<real(gain)<<","<<imag(gain)<<"]"<<std::endl;
+           const casa::Complex val = itsModel->complexValue(*it);
+           const std::pair<accessors::JonesIndex, casa::Stokes::StokesTypes> paramType = 
+                 accessors::CalParamNameHelper::parseParam(*it);
+           itsSolutionAccessor->setJonesElement(paramType.first, paramType.second, val);
       }
-      /*
-      // temporary for debugging/research
-      std::ofstream os2("deviation.dat"); // for now just hard code it
-      LOFAR::ParameterSet trueGains("rndgains.in");
-      scimath::Params par;
-      par<<trueGains;
-      for (std::vector<std::string>::const_iterator it = parlist.begin(); 
-           it != parlist.end(); ++it) {
-           const casa::Complex gain = itsModel->complexValue(*it);
-           const casa::Complex diff = gain - par.complexValue(*it);
-           os2<<*it<<" "<<real(diff)<<" "<<imag(diff)<<" "<<casa::abs(diff)<<" "<<arg(diff)/M_PI*180.<<std::endl;
-      }
-      */
   }
 }
 

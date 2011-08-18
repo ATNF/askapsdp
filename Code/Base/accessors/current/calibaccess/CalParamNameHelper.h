@@ -60,6 +60,16 @@ struct CalParamNameHelper {
   /// parallel-hand gains g11 and g22 and cross-pol leakages d12 and d21, respectively
   /// @return string name of the parameter
   static std::string paramName(const JonesIndex &index, casa::Stokes::StokesTypes par);
+  
+  /// @brief form the name pf the parameter
+  /// @details This version works with explicit antenna and beam indices
+  /// @param[in] ant antenna index
+  /// @param[in] beam beam index
+  /// @param[in] par parameter to get the name for as StokesTypes. XX,YY,XY and YX correspond to 
+  /// parallel-hand gains g11 and g22 and cross-pol leakages d12 and d21, respectively
+  /// @return string name of the parameter
+  inline static std::string paramName(const casa::uInt ant, const casa::uInt beam, casa::Stokes::StokesTypes par)
+      { return paramName(JonesIndex(ant,beam), par); }  
 
   /// @brief parse the name of the parameter
   /// @details This method is a reverse of paramName. It receive the string with the parameter
