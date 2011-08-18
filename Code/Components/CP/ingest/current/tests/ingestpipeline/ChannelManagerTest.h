@@ -56,8 +56,8 @@ class ChannelManagerTest : public CppUnit::TestFixture {
 
         void testLocalNChannels() {
             LOFAR::ParameterSet params;
-            params.add("n_channels.0", utility::toString(256));
-            params.add("n_channels.1", utility::toString(512));
+            params.add("n_channels.0", "256");
+            params.add("n_channels.1", "512");
 
             ChannelManager cman(params);
             CPPUNIT_ASSERT_EQUAL(256u, cman.localNChannels(0));
@@ -68,8 +68,8 @@ class ChannelManagerTest : public CppUnit::TestFixture {
 
         void testLocalFrequencies() {
             LOFAR::ParameterSet params;
-            params.add("n_channels.0", utility::toString(2));
-            params.add("n_channels.1", utility::toString(4));
+            params.add("n_channels.0", "2");
+            params.add("n_channels.1", "4");
 
             const double startFreq = 1.4;
             const double chanWidth = 0.1;

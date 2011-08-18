@@ -95,8 +95,8 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
             itsParset.add("averaging", ss.str());
 
             const unsigned int row = 0;
-            const double startFreq = 1.4 * 1000 * 1000;
-            const double freqInc = 18.5 * 1000;
+            const double startFreq = 1.4 * 1000 * 1000; // Hz
+            const double freqInc = 18.5 * 1000; // Hz
             MEpoch starttime(MVEpoch(Quantity(50237.29, "d")),
                              MEpoch::Ref(MEpoch::UTC));
             MDirection fieldCenter(Quantity(20, "deg"),
@@ -116,6 +116,7 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
             chunk->pointingDir2()(row) = fieldCenter.getAngle();
             chunk->dishPointing1()(row) = fieldCenter.getAngle();
             chunk->dishPointing2()(row) = fieldCenter.getAngle();
+            chunk->channelWidth() = freqInc;
 
             // Determine how many channels will exist after averaging
             casa::uInt nChanNew = nChan / channelAveraging;
@@ -181,6 +182,9 @@ class ChannelAvgTaskTest : public CppUnit::TestFixture {
                 CPPUNIT_ASSERT_DOUBLES_EQUAL(realAvg, chunk->visibility()(row, i, pol).real(), tol);
                 CPPUNIT_ASSERT_DOUBLES_EQUAL(imagAvg, chunk->visibility()(row, i, pol).imag(), tol);
             }
+
+            // Check the channel width has been updated
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(freqInc * channelAveraging, chunk->channelWidth(), tol);
         };
 
     private:

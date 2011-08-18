@@ -87,6 +87,9 @@ void ChannelAvgTask::process(VisChunk::ShPtr chunk)
         newFreq(newIdx) = sum / itsAveraging;
     }
 
+    // Update the channel width
+    chunk->channelWidth() = chunk->channelWidth() * itsAveraging;
+
     // Average vis and flag cubes
     const casa::uInt nRow = chunk->nRow();
     const casa::uInt nPol = chunk->nPol();

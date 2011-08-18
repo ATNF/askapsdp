@@ -94,7 +94,7 @@ void MSSink::process(VisChunk::ShPtr chunk)
     // Handle the details for when a new scan starts
     if (itsPreviousScanIndex != static_cast<casa::Int>(chunk->scan())) {
         itsFieldRow = findOrAddField(chunk->scan());
-        itsDataDescRow = findOrAddDataDesc(chunk->scan());
+        itsDataDescRow = findOrAddDataDesc(chunk);
         itsPreviousScanIndex = chunk->scan();
     }
 
@@ -560,11 +560,10 @@ casa::Int MSSink::findOrAddField(const casa::Int scanId)
     return addField(fieldName, fieldDirection, calCode);
 }
 
-casa::Int MSSink::findOrAddDataDesc(const casa::Int scanId)
+casa::Int MSSink::findOrAddDataDesc(askap::cp::common::VisChunk::ShPtr chunk)
 {
    casa::Int spwId;
    casa::Int polId;
-   const Scan scan = itsConfig.observation().scans().at(scanId);
 
    // 1: Try to find a data description that matches the scan
    MSColumns msc(*itsMs);
@@ -573,8 +572,8 @@ casa::Int MSSink::findOrAddDataDesc(const casa::Int scanId)
    for (uInt row = 0; row < nRows; ++row) {
        spwId = ddc.spectralWindowId()(row);
        polId = ddc.polarizationId()(row);
-       if (isSpectralWindowRowEqual(scan, spwId) &&
-               isPolarisationRowEqual(scan, polId)) {
+       if (isSpectralWindowRowEqual(chunk, spwId) &&
+               isPolarisationRowEqual(chunk, polId)) {
            return row;
        }
    }
@@ -587,7 +586,7 @@ casa::Int MSSink::findOrAddDataDesc(const casa::Int scanId)
    // 2: Try to find a spectral window row that matches
    nRows = msc.spectralWindow().nrow();
    for (uInt row = 0; row < nRows; ++row) {
-       if (isSpectralWindowRowEqual(scan, row)) {
+       if (isSpectralWindowRowEqual(chunk, row)) {
            spwId = row;
            break;
        }
@@ -597,7 +596,7 @@ casa::Int MSSink::findOrAddDataDesc(const casa::Int scanId)
    // 3: Try to find a polarisation row that matches
    nRows = msc.polarization().nrow();
    for (uInt row = 0; row < nRows; ++row) {
-       if (isPolarisationRowEqual(scan, row)) {
+       if (isPolarisationRowEqual(chunk, row)) {
            polId = row;
            break;
        }
@@ -606,10 +605,13 @@ casa::Int MSSink::findOrAddDataDesc(const casa::Int scanId)
    // 4: Create the missing entry and a data desc
    if (spwId == -1) {
        const casa::String spWindowName("NO_NAME"); // TODO: Add name
-       spwId = addSpectralWindow(spWindowName, scan.nChan(), scan.startFreq(), scan.chanWidth());
+       spwId = addSpectralWindow(spWindowName,
+               chunk->nChannel(),
+               casa::Quantity(chunk->frequency()(0), "Hz"),
+               casa::Quantity(chunk->channelWidth(), "Hz"));
    }
    if (polId == -1) {
-       polId = addPolarisation(scan.stokes());
+       polId = addPolarisation(chunk->stokes());
    }
 
    return addDataDesc(spwId, polId);
@@ -625,13 +627,14 @@ casa::Int MSSink::findOrAddDataDesc(const casa::Int scanId)
 // method is modified, so should this.
 //
 // @return true if the two are effectivly equal, otherwise false.
-bool MSSink::isSpectralWindowRowEqual(const Scan& s, const casa::uInt row) const
+bool MSSink::isSpectralWindowRowEqual(askap::cp::common::VisChunk::ShPtr chunk,
+        const casa::uInt row) const
 {
     MSColumns msc(*itsMs);
     ROMSSpWindowColumns& spwc = msc.spectralWindow();
     ASKAPCHECK(row < spwc.nrow(), "Row index out of bounds");
 
-    if (spwc.numChan()(row) != static_cast<casa::Int>(s.nChan())) {
+    if (spwc.numChan()(row) != static_cast<casa::Int>(chunk->nChannel())) {
         return false;
     }
     if (spwc.flagRow()(row) != false) {
@@ -639,11 +642,11 @@ bool MSSink::isSpectralWindowRowEqual(const Scan& s, const casa::uInt row) const
     }
     const casa::Vector<double> freqs = spwc.chanFreq()(row);
     const double dblEpsilon = std::numeric_limits<double>::epsilon();
-    if (fabs(freqs(0) - s.startFreq().getValue("Hz")) > dblEpsilon) {
+    if (fabs(freqs(0) - chunk->frequency()(0)) > dblEpsilon) {
         return false;
     }
     const casa::Vector<double> bandwidth = spwc.chanWidth()(row);
-    if (fabs(bandwidth(0) - s.chanWidth().getValue("Hz")) > dblEpsilon) {
+    if (fabs(bandwidth(0) - chunk->channelWidth()) > dblEpsilon) {
         return false;
     }
 
@@ -660,13 +663,14 @@ bool MSSink::isSpectralWindowRowEqual(const Scan& s, const casa::uInt row) const
 // method is modified, so should this.
 //
 // @return true if the two are effectivly equal, otherwise false.
-bool MSSink::isPolarisationRowEqual(const Scan& s, const casa::uInt row) const
+bool MSSink::isPolarisationRowEqual(askap::cp::common::VisChunk::ShPtr chunk,
+        const casa::uInt row) const
 {
     MSColumns msc(*itsMs);
     ROMSPolarizationColumns& polc = msc.polarization();
     ASKAPCHECK(row < polc.nrow(), "Row index out of bounds");
 
-    if (polc.numCorr()(row) != static_cast<casa::Int>(s.stokes().size())) {
+    if (polc.numCorr()(row) != static_cast<casa::Int>(chunk->stokes().size())) {
         return false;
     }
     if (polc.flagRow()(row) != false) {
@@ -674,7 +678,7 @@ bool MSSink::isPolarisationRowEqual(const Scan& s, const casa::uInt row) const
     }
     casa::Vector<casa::Int> stokesTypesInt = polc.corrType()(row);
     for (casa::uInt i = 0; i < stokesTypesInt.size(); ++i) {
-        if (stokesTypesInt(i) != s.stokes().at(i)) {
+        if (stokesTypesInt(i) != chunk->stokes()(i)) {
             return false;
         }
     }

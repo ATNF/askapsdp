@@ -130,15 +130,17 @@ class MSSink : public askap::cp::ingest::ITask {
 
         // Find or add a DATA DESCRIPTION (including SPECTRAL INDEX and POLARIZATION)
         // table entry for the provided scan index number.
-        casa::Int findOrAddDataDesc(const casa::Int scanId);
+        casa::Int findOrAddDataDesc(askap::cp::common::VisChunk::ShPtr chunk);
 
         // Compares the given row in the spectral window table with the spectral window
         // setup as defined in the Scan.
-        bool isSpectralWindowRowEqual(const Scan& s, const casa::uInt row) const;
+        bool isSpectralWindowRowEqual(askap::cp::common::VisChunk::ShPtr chunk,
+                const casa::uInt row) const;
 
         // Compares the given row in the polarisation table with the polarisation
         // setup as defined in the Scan.
-        bool isPolarisationRowEqual(const Scan& s, const casa::uInt row) const;
+        bool isPolarisationRowEqual(askap::cp::common::VisChunk::ShPtr chunk,
+                const casa::uInt row) const;
 
         // Helper function to compare MDirections
         static bool equal(const casa::MDirection &dir1, const casa::MDirection &dir2);
