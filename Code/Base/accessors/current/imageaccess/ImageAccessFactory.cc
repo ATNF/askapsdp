@@ -47,7 +47,7 @@ using namespace askap::accessors;
 /// @note CASA images are used by default 
 boost::shared_ptr<IImageAccess> askap::accessors::imageAccessFactory(const LOFAR::ParameterSet &parset)
 {
-   std::string imageType = parset.getString("imagetype","casa");
+   const std::string imageType = parset.getString("imagetype","casa");
    boost::shared_ptr<IImageAccess> result;
    if (imageType == "casa") {
        boost::shared_ptr<CasaImageAccess> iaCASA(new CasaImageAccess());

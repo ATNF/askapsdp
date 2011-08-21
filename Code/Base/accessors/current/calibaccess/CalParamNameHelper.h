@@ -61,7 +61,7 @@ struct CalParamNameHelper {
   /// @return string name of the parameter
   static std::string paramName(const JonesIndex &index, casa::Stokes::StokesTypes par);
   
-  /// @brief form the name pf the parameter
+  /// @brief form the name of the parameter
   /// @details This version works with explicit antenna and beam indices
   /// @param[in] ant antenna index
   /// @param[in] beam beam index
