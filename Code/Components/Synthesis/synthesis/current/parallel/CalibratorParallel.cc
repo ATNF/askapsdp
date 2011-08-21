@@ -78,7 +78,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <mwcommon/AskapParallel.h>
 #include <Common/ParameterSet.h>
 #include <calibaccess/CalParamNameHelper.h>
-#include <calibaccess/ParsetCalSolutionSource.h>
+#include <calibaccess/CalibAccessFactory.h>
 
 
 // casa includes
@@ -150,12 +150,9 @@ CalibratorParallel::CalibratorParallel(askap::mwcommon::AskapParallel& comms,
       ASKAPCHECK(itsSolver, "Solver not defined correctly");
       itsRefGain = parset.getString("refgain","");
       
-      // setup solution accessor
-      ParsetCalSolutionSource css("result.dat");
-      // need to get time here somehow
-      long solutionID = css.newSolutionID(0.);
-      itsSolutionAccessor = css.rwSolution(solutionID);
-      ASKAPDEBUGASSERT(itsSolutionAccessor);
+      // setup solution source (or sink to be exact, because we're writing the soltion here)
+      itsSolutionSource = CalibAccessFactory::rwCalSolutionSource(parset);
+      ASKAPASSERT(itsSolutionSource);
   }
   if (itsComms.isWorker()) {
       // load sky model, populate itsPerfectModel
@@ -353,7 +350,13 @@ void CalibratorParallel::writeModel(const std::string &postfix)
   if (itsComms.isMaster()) {
       ASKAPLOG_INFO_STR(logger, "Writing results of the calibration");
       ASKAPCHECK(postfix == "", "postfix parameter is not supposed to be used in the calibration code");
-      ASKAPCHECK(itsSolutionAccessor, "Solution Accessor has to be defined by this stage");
+
+      ASKAPCHECK(itsSolutionSource, "Solution source has to be defined by this stage");
+
+      // need to get time here somehow (via parameter?)
+      const long solutionID = itsSolutionSource->newSolutionID(0.);
+      boost::shared_ptr<ICalSolutionAccessor> solAcc = itsSolutionSource->rwSolution(solutionID);
+      ASKAPASSERT(solAcc);
       
       ASKAPDEBUGASSERT(itsModel);
       std::vector<std::string> parlist = itsModel->names();
@@ -362,7 +365,7 @@ void CalibratorParallel::writeModel(const std::string &postfix)
            const casa::Complex val = itsModel->complexValue(*it);
            const std::pair<accessors::JonesIndex, casa::Stokes::StokesTypes> paramType = 
                  accessors::CalParamNameHelper::parseParam(*it);
-           itsSolutionAccessor->setJonesElement(paramType.first, paramType.second, val);
+           solAcc->setJonesElement(paramType.first, paramType.second, val);
       }
   }
 }

@@ -41,7 +41,7 @@
 #include <measurementequation/IMeasurementEquation.h>
 #include <dataaccess/SharedIter.h>
 #include <fitting/Solver.h>
-#include <calibaccess/ICalSolutionAccessor.h>
+#include <calibaccess/ICalSolutionSource.h>
 
 // std includes
 #include <string>
@@ -154,10 +154,10 @@ namespace askap
       /// @brief flag swtiching the leakage calibration on
       bool itsSolveLeakage;
       
-      /// @brief solution accessor to store the result
+      /// @brief solution source to store the result
       /// @details This object is initialised by the master. It stores the solution
       /// in parset file, casa table or a database.
-      boost::shared_ptr<accessors::ICalSolutionAccessor> itsSolutionAccessor;
+      boost::shared_ptr<accessors::ICalSolutionSource> itsSolutionSource;
     };
 
   }
