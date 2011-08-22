@@ -129,10 +129,41 @@ protected:
   ///         equation corresponding to the given row
   virtual scimath::ComplexDiffMatrix buildComplexDiffMatrix(const accessors::IConstDataAccessor &acc,
                     casa::uInt row) const = 0;
-    
+  
+  /// @brief a helper method to manage dataset-related statistics   
+  /// @details It manages statistics data fields and processes one data accessor.
+  /// @param[in] acc input data accessor
+  void accumulateStats(const accessors::IConstDataAccessor &acc);
+  
+  /// @brief a helper method to update metadata associated with the normal equations
+  /// @details This method manipulates metadata stored in the normal equations indexed
+  /// by the given keyword. If itsNoDataProcessedFlag is true, the given item is removed,
+  /// otherwise it is updated with the given value.
+  /// @param[in] ne normal equations to work with
+  /// @param[in] keyword keyword of the metadata of interest
+  /// @param[in] val new value
+  void updateMetadata(scimath::GenericNormalEquations &ne, const std::string &keyword, 
+                      const double val) const;
 private:
   /// @brief buffer with partial sums
   PreAvgCalBuffer itsBuffer;    
+  
+  // some statistics useful to tag the resulting calibration solution
+  // (workers manipulate data, so we need to add these statistics to the normal equations to pass
+  // them to the master)
+  
+  /// @brief true if no data have been accumulated
+  bool itsNoDataProcessedFlag;
+  
+  /// @brief minimal time encountered in the data
+  /// @details (the units are the same as returned by time() method of the data accessor).
+  /// This data field is undefined if itsNoDataProcessedFlag is true.
+  double itsMinTime; 
+
+  /// @brief maximal time encountered in the data
+  /// @details (the units are the same as returned by time() method of the data accessor)
+  /// This data field is undefined if itsNoDataProcessedFlag is true.
+  double itsMaxTime;   
 };
 
 } // namespace synthesis

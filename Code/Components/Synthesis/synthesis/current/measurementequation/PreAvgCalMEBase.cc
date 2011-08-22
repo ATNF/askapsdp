@@ -39,6 +39,7 @@
 #include <fitting/ComplexDiff.h>
 #include <fitting/DesignMatrix.h>
 #include <fitting/PolXProducts.h>
+#include <fitting/Params.h>
 #include <casa/Arrays/MatrixMath.h>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -52,7 +53,8 @@ using namespace askap::synthesis;
 /// @brief constructor setting up only parameters
 /// @param[in] ip Parameters
 PreAvgCalMEBase::PreAvgCalMEBase(const askap::scimath::Params& ip) :
-    scimath::GenericEquation(ip) {}
+    scimath::GenericEquation(ip), itsNoDataProcessedFlag(true), itsMinTime(0.), itsMaxTime(0.)
+     {}
 
 /// @brief Standard constructor using the parameters and the
 /// data iterator.
@@ -63,7 +65,8 @@ PreAvgCalMEBase::PreAvgCalMEBase(const askap::scimath::Params& ip) :
 PreAvgCalMEBase::PreAvgCalMEBase(const askap::scimath::Params& ip,
         const accessors::IDataSharedIter& idi, 
         const boost::shared_ptr<IMeasurementEquation const> &ime) :
-        scimath::GenericEquation(ip)
+        scimath::GenericEquation(ip), itsNoDataProcessedFlag(true), 
+        itsMinTime(0.), itsMaxTime(0.)
 {
   accumulate(idi,ime);
 }
@@ -77,6 +80,7 @@ void PreAvgCalMEBase::accumulate(const accessors::IConstDataAccessor &acc,
           const boost::shared_ptr<IMeasurementEquation const> &me)
 {
   itsBuffer.accumulate(acc,me);
+  accumulateStats(acc);
 }
           
 /// @brief accumulate all data
@@ -90,6 +94,7 @@ void PreAvgCalMEBase::accumulate(const accessors::IDataSharedIter& idi,
   accessors::IDataSharedIter iter(idi);
   for (iter.init(); iter.hasMore(); iter.next()) {
        itsBuffer.accumulate(*iter,ime);
+       accumulateStats(*iter);
   }
 }        
                     
@@ -100,6 +105,50 @@ void PreAvgCalMEBase::accumulate(const accessors::IDataSharedIter& idi,
 void PreAvgCalMEBase::predict() const
 {
   ASKAPTHROW(AskapError, "PreAvgCalMEBase::predict() is not supposed to be called");
+}
+
+/// @brief a helper method to manage dataset-related statistics   
+/// @details It manages statistics data fields and processes one data accessor.
+/// @param[in] acc input data accessor
+void PreAvgCalMEBase::accumulateStats(const accessors::IConstDataAccessor &acc)
+{
+  if (itsNoDataProcessedFlag) {
+      itsNoDataProcessedFlag = false;
+      itsMinTime = acc.time();
+      itsMaxTime = itsMinTime;
+  } else {
+      const double time = acc.time();
+      if (time < itsMinTime) {
+          itsMinTime = time;
+      }
+      if (time > itsMaxTime) {
+          itsMaxTime = time;
+      }
+  }
+}
+
+/// @brief a helper method to update metadata associated with the normal equations
+/// @details This method manipulates metadata stored in the normal equations indexed
+/// by the given keyword. If itsNoDataProcessedFlag is true, the given item is removed,
+/// otherwise it is updated with the given value.
+/// @param[in] ne normal equations to work with
+/// @param[in] keyword keyword of the metadata of interest
+/// @param[in] val new value
+void PreAvgCalMEBase::updateMetadata(scimath::GenericNormalEquations &ne, const std::string &keyword, 
+                      const double val) const
+{
+  scimath::Params& metadata = ne.metadata();  
+  if (itsNoDataProcessedFlag) {
+      if (metadata.has(keyword)) {
+          metadata.remove(keyword);
+      }
+  } else {
+      if (metadata.has(keyword)) {
+          metadata.update(keyword,val);
+      } else {
+          metadata.add(keyword,val);
+      }
+  }
 }
 
 /// @brief calculate normal equations in the general form 
@@ -121,6 +170,8 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
             ne.add(cdm,pxpSlice);
        }
   }
+  updateMetadata(ne,"min_time",itsMinTime);
+  updateMetadata(ne,"max_time",itsMaxTime);  
 }
   
 /// @brief initialise accumulation
@@ -131,6 +182,9 @@ void PreAvgCalMEBase::calcGenericEquations(scimath::GenericNormalEquations &ne) 
 void PreAvgCalMEBase::initialise(casa::uInt nAnt, casa::uInt nBeam)
 {
   itsBuffer.initialise(nAnt,nBeam);
+  itsNoDataProcessedFlag = true;
+  itsMinTime = 0.;
+  itsMaxTime = 0.;
 }
 
 /// @brief destructor 
@@ -142,6 +196,9 @@ PreAvgCalMEBase::~PreAvgCalMEBase()
   ASKAPLOG_DEBUG_STR(logger, "   ignored due to type (e.g. autocorrelations): "<<itsBuffer.ignoredDueToType());
   ASKAPLOG_DEBUG_STR(logger, "   no match found for baseline/beam: "<<itsBuffer.ignoredNoMatch());
   ASKAPLOG_DEBUG_STR(logger, "   ignored because of flags: "<<itsBuffer.ignoredDueToFlags());
+  if (!itsNoDataProcessedFlag) {
+      ASKAPLOG_DEBUG_STR(logger, "Last solution calculated using the data from time range ("<<itsMinTime<<", "<<itsMaxTime<<")");
+  }
 }
 
 
