@@ -45,6 +45,7 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/ComplexDiffMatrix.h>
 #include <fitting/PolXProducts.h>
+#include <fitting/Params.h>
 
 // std includes
 #include <map>
@@ -187,6 +188,22 @@ struct GenericNormalEquations : public INormalEquations {
   /// equations are done
   virtual std::vector<std::string> unknowns() const; 
 
+  /// @brief obtain reference to metadata
+  /// @details It is handy to have key=value type metadata transported along with the
+  /// normal equations. The main applications are the metadata for calibration parameters
+  /// (i.e. time the solution corresponds to) and parameters which could assist merging of
+  /// the normal equations in a more intelligent way in the imaging case. At this stage,
+  /// calibration is the main driver. Therefore, this data field and handling methods are
+  /// implemented only for GenericNormalEquations. We could move this up in the hierarchy
+  /// and even expose access methods via the main interface.
+  /// @return reference to metadata
+  inline Params& metadata() { return itsMetadata;}
+  
+  /// @brief obtain const reference to metadata
+  /// @details This is a const version of the metadata() method
+  /// @return const reference to metadata
+  inline const Params& metadata() const { return itsMetadata;}
+    
 protected:
   /// @brief map of matrices (data element of each row map)
   typedef std::map<std::string, casa::Matrix<double> > MapOfMatrices;
@@ -285,6 +302,15 @@ private:
   /// hierarchy
   MapOfVectors itsDataVector;
   
+  /// @brief metadata
+  /// @details It is handy to have key=value type metadata transported along with the
+  /// normal equations. The main applications are the metadata for calibration parameters
+  /// (i.e. time the solution corresponds to) and parameters which could assist merging of
+  /// the normal equations in a more intelligent way in the imaging case. At this stage,
+  /// calibration is the main driver. Therefore, this data field and handling methods are
+  /// implemented only for GenericNormalEquations. We could move this up in the hierarchy
+  /// and even expose access methods via the main interface.
+  Params itsMetadata; 
 };
 
 } // namespace scimath

@@ -80,7 +80,7 @@ GenericNormalEquations::GenericNormalEquations(const DesignMatrix& dm)
 /// of casa containers)
 /// @param[in] src other class
 GenericNormalEquations::GenericNormalEquations(const GenericNormalEquations &src) :
-        INormalEquations(src)
+        INormalEquations(src), itsMetadata(src.itsMetadata)
 {
   deepCopyOfSTDMap(src.itsDataVector, itsDataVector);  
   for (std::map<string, MapOfMatrices>::const_iterator ci = src.itsNormalMatrix.begin();
@@ -103,7 +103,8 @@ GenericNormalEquations& GenericNormalEquations::operator=(const GenericNormalEqu
       for (std::map<string, MapOfMatrices>::const_iterator ci = src.itsNormalMatrix.begin();
            ci!=src.itsNormalMatrix.end(); ++ci) {           
            deepCopyOfSTDMap(ci->second, itsNormalMatrix[ci->first]);
-      }      
+      } 
+      itsMetadata = src.itsMetadata;     
   }
   return *this;
 }
@@ -116,6 +117,7 @@ void GenericNormalEquations::reset()
 {
   itsDataVector.clear();
   itsNormalMatrix.clear();
+  itsMetadata.reset();
 }
           
 /// @brief Clone this into a shared pointer
@@ -148,7 +150,8 @@ void GenericNormalEquations::merge(const INormalEquations& src)
       for (MapOfVectors::const_iterator ci = gne.itsDataVector.begin(); 
            ci != gne.itsDataVector.end(); ++ci) {
            mergeParameter(ci->first, gne);
-      }          
+      }    
+      itsMetadata.merge(gne.metadata());      
    }
    catch (const AskapError &) {
       throw;
@@ -613,8 +616,8 @@ void GenericNormalEquations::writeToBlob(LOFAR::BlobOStream& os) const
 { 
   // increment version number on the next line and in the next method
   // if any new data members are added  
-  os.putStart("GenericNormalEquations",1);
-  os<<itsNormalMatrix<<itsDataVector;
+  os.putStart("GenericNormalEquations",2);
+  os<<itsNormalMatrix<<itsDataVector<<itsMetadata;
   os.putEnd();
 }
 
@@ -624,10 +627,10 @@ void GenericNormalEquations::writeToBlob(LOFAR::BlobOStream& os) const
 void GenericNormalEquations::readFromBlob(LOFAR::BlobIStream& is)
 { 
   const int version = is.getStart("GenericNormalEquations");
-  ASKAPCHECK(version == 1, 
+  ASKAPCHECK(version == 2, 
               "Attempting to read from a blob stream an object of the wrong "
-              "version: expect version 1, found version "<<version);
-  is>>itsNormalMatrix>>itsDataVector;
+              "version: expect version 2, found version "<<version);
+  is>>itsNormalMatrix>>itsDataVector>>itsMetadata;
   is.getEnd();
 }
 
@@ -649,7 +652,7 @@ std::vector<std::string> GenericNormalEquations::unknowns() const
 // extra consistency checks in the debug mode
 #ifdef ASKAP_DEBUG
        ASKAPCHECK(itsDataVector.find(ci->first) != itsDataVector.end(), 
-                  "The parameter "<<ci->first<<" is present in the mornal matrix but missing in the data vector");
+                  "The parameter "<<ci->first<<" is present in the normal matrix but missing in the data vector");
 #endif // #ifdef ASKAP_DEBUG
   }
   return result;

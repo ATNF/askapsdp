@@ -73,6 +73,7 @@ namespace askap
       CPPUNIT_TEST_EXCEPTION(testNonConformanceError, askap::CheckError);
       CPPUNIT_TEST(testBlobStream);
       CPPUNIT_TEST(testAddProduct);
+      CPPUNIT_TEST(testMetadata);
       CPPUNIT_TEST_SUITE_END();
 
       private:
@@ -109,6 +110,58 @@ namespace askap
           checkScalarResults(nData);
           const char* expected[2] = {"Value0","Value1"};
           checkUnknowns<2>(expected);
+        }
+        
+        void testMetadata() {
+          testAddDesignMatrixScalar();
+          CPPUNIT_ASSERT(itsNE);
+          CPPUNIT_ASSERT_EQUAL(0u,itsNE->metadata().size());                    
+          itsNE->metadata().add("mdata1",1.23);
+          itsNE->metadata().add("mdata2",3.45);
+          itsNE->metadata().add("mdata3",6.78);
+          itsNE->metadata().update("mdata1",-1.32);
+          CPPUNIT_ASSERT_EQUAL(3u,itsNE->metadata().size());                    
+          CPPUNIT_ASSERT(itsNE->metadata().has("mdata1"));
+          CPPUNIT_ASSERT(itsNE->metadata().has("mdata2"));
+          CPPUNIT_ASSERT(itsNE->metadata().has("mdata3"));
+          CPPUNIT_ASSERT(!itsNE->metadata().has("mdata4"));
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.32, itsNE->metadata().scalarValue("mdata1"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.45, itsNE->metadata().scalarValue("mdata2"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(6.78, itsNE->metadata().scalarValue("mdata3"),1e-6);
+          
+          // test copy constructor
+          GenericNormalEquations gne(*itsNE);
+          CPPUNIT_ASSERT_EQUAL(3u,gne.metadata().size());                    
+          CPPUNIT_ASSERT(gne.metadata().has("mdata1"));
+          CPPUNIT_ASSERT(gne.metadata().has("mdata2"));
+          CPPUNIT_ASSERT(gne.metadata().has("mdata3"));
+          CPPUNIT_ASSERT(!gne.metadata().has("mdata4"));
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.32, gne.metadata().scalarValue("mdata1"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.45, gne.metadata().scalarValue("mdata2"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(6.78, gne.metadata().scalarValue("mdata3"),1e-6);
+          
+          // test that a proper copy has been done
+          itsNE->metadata().update("mdata1",6.78);
+          itsNE->metadata().update("mdata3",1.23);
+          CPPUNIT_ASSERT_EQUAL(3u,itsNE->metadata().size());                    
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(6.78, itsNE->metadata().scalarValue("mdata1"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.45, itsNE->metadata().scalarValue("mdata2"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.23, itsNE->metadata().scalarValue("mdata3"),1e-6);
+          CPPUNIT_ASSERT_EQUAL(3u,gne.metadata().size());                    
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.32, gne.metadata().scalarValue("mdata1"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(3.45, gne.metadata().scalarValue("mdata2"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(6.78, gne.metadata().scalarValue("mdata3"),1e-6);
+          
+          // test of assignment operator
+          itsNE->metadata().remove("mdata2");
+          gne = *itsNE;
+          CPPUNIT_ASSERT_EQUAL(2u,gne.metadata().size()); 
+          CPPUNIT_ASSERT(gne.metadata().has("mdata1"));
+          CPPUNIT_ASSERT(!gne.metadata().has("mdata2"));
+          CPPUNIT_ASSERT(gne.metadata().has("mdata3"));
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(6.78, gne.metadata().scalarValue("mdata1"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.23, gne.metadata().scalarValue("mdata3"),1e-6);          
+          
         }
         
         void checkScalarResults(casa::uInt nData) 
@@ -330,10 +383,18 @@ namespace askap
           LOFAR::BlobOBufString bob(bstr);
           LOFAR::BlobOStream bos(bob);
           
+          CPPUNIT_ASSERT(itsNE);
+          CPPUNIT_ASSERT_EQUAL(0u,itsNE->metadata().size());
+          itsNE->metadata().add("mdata_keyword1",1.34e3);
+          itsNE->metadata().add("mdata_keyword2",-1.1e-2);
+          
+          // serialize
           bos<<*itsNE;
           
           itsNE->reset();
+          CPPUNIT_ASSERT_EQUAL(0u,itsNE->metadata().size());          
           
+          // deserialize
           LOFAR::BlobIBufString bib(bstr);
           LOFAR::BlobIStream bis(bib);
           bis>>*itsNE;
@@ -341,7 +402,13 @@ namespace askap
           checkNonScalarResults(10);
           //
           const char* expected[3] = {"ScalarValue","Value0","Value1"};
-          checkUnknowns<3>(expected);          
+          checkUnknowns<3>(expected);
+          // check metadata
+          CPPUNIT_ASSERT_EQUAL(2u,itsNE->metadata().size());
+          CPPUNIT_ASSERT(itsNE->metadata().has("mdata_keyword1"));
+          CPPUNIT_ASSERT(itsNE->metadata().has("mdata_keyword2"));
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.34e3, itsNE->metadata().scalarValue("mdata_keyword1"),1e-6);
+          CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.1e-2, itsNE->metadata().scalarValue("mdata_keyword2"),1e-6);
         }
                         
         // testing addition of normal equations based on a product of
