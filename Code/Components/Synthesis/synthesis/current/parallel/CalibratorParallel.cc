@@ -341,6 +341,33 @@ void CalibratorParallel::rotatePhases()
   }             
 }
 
+/// @brief helper method to extract solution time from NE.
+/// @details To be able to time tag the calibration solutions we add
+/// start and stop times extracted from the dataset as metadata to normal
+/// equations. It allows us to send these times to the master, which
+/// ultimately writes the calibration solution. Otherwise, these times 
+/// could only be obtained in workers who deal with the actual data.
+/// @return solution time (seconds since 0 MJD)
+/// @note if no start/stop time metadata are present in the normal equations
+/// this method returns 0.
+double CalibratorParallel::solutionTime() const
+{
+  // use the earliest time corresponding to the data used to make this calibration solution
+  // to tag the solution. A request for any latest time than this would automatically 
+  // extract this solution as most recent.
+  ASKAPASSERT(itsNe);
+  
+  boost::shared_ptr<scimath::GenericNormalEquations> gne = boost::dynamic_pointer_cast<scimath::GenericNormalEquations>(itsNe);
+  if (gne) {
+      scimath::Params& metadata = gne->metadata();
+      if (metadata.has("min_time")) {
+          return metadata.scalarValue("min_time");
+      }
+  }
+  return 0.;
+}
+
+
 /// @brief Write the results (runs in the solver)
 /// @details The solution (calibration parameters) is written into 
 /// an external file in the parset file format.
@@ -353,8 +380,7 @@ void CalibratorParallel::writeModel(const std::string &postfix)
 
       ASKAPCHECK(itsSolutionSource, "Solution source has to be defined by this stage");
 
-      // need to get time here somehow (via parameter?)
-      const long solutionID = itsSolutionSource->newSolutionID(0.);
+      const long solutionID = itsSolutionSource->newSolutionID(solutionTime());
       boost::shared_ptr<ICalSolutionAccessor> solAcc = itsSolutionSource->rwSolution(solutionID);
       ASKAPASSERT(solAcc);
       

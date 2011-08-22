@@ -130,6 +130,17 @@ namespace askap
       /// the parameters of itsModel
       void rotatePhases();
       
+      /// @brief helper method to extract solution time from NE.
+      /// @details To be able to time tag the calibration solutions we add
+      /// start and stop times extracted from the dataset as metadata to normal
+      /// equations. It allows us to send these times to the master, which
+      /// ultimately writes the calibration solution. Otherwise, these times 
+      /// could only be obtained in workers who deal with the actual data.
+      /// @return solution time (seconds since 0 MJD)
+      /// @note if no start/stop time metadata are present in the normal equations
+      /// this method returns 0.
+      double solutionTime() const;
+      
   private:
       /// @brief read the model from parset file and populate itsPerfectModel
       /// @details This method is common between several classes and probably
