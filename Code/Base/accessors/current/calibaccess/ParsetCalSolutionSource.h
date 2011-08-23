@@ -36,6 +36,7 @@
 
 #include <calibaccess/ICalSolutionSource.h>
 #include <calibaccess/ParsetCalSolutionAccessor.h>
+#include <calibaccess/CalSolutionSourceStub.h>
 
 namespace askap {
 
@@ -48,9 +49,7 @@ namespace accessors {
 /// Main functionality is implemented in the corresponding ParsetCalSolutionAccessor class.
 /// This class just creates an instance of the accessor and manages it.
 /// @ingroup calibaccess
-class ParsetCalSolutionSource : virtual public ICalSolutionSource {
-public:
-
+struct ParsetCalSolutionSource : public CalSolutionSourceStub {
   /// @brief constructor
   /// @details Creates solution source object for a given parset file
   /// (whether it is for writing or reading depends on the actual methods
@@ -58,67 +57,9 @@ public:
   /// @param[in] parset parset file name
   explicit ParsetCalSolutionSource(const std::string &parset);
   
-  /// @brief obtain ID for the most recent solution
-  /// @return ID for the most recent solution
-  /// @note This particular implementation doesn't support multiple
-  /// solutions and, therefore, always returns the same ID.
-  virtual long mostRecentSolution() const;
-  
-  /// @brief obtain solution ID for a given time
-  /// @details This method looks for a solution valid at the given time
-  /// and returns its ID. It is equivalent to mostRecentSolution() if
-  /// called with a time sufficiently into the future.
-  /// @param[in] time time stamp in seconds since MJD of 0.
-  /// @return solution ID
-  /// @note This particular implementation doesn't support multiple
-  /// solutions and, therefore, always returns the same ID.
-  virtual long solutionID(const double time) const;
-  
-  /// @brief obtain read-only accessor for a given solution ID
-  /// @details This method returns a shared pointer to the solution accessor, which
-  /// can be used to read the parameters. If a solution with the given ID doesn't 
-  /// exist, an exception is thrown. Existing solutions with undefined parameters 
-  /// are managed via validity flags of gains, leakages and bandpasses
-  /// @param[in] id solution ID to read
-  /// @return shared pointer to an accessor object
-  /// @note This particular implementation doesn't support multiple solutions and
-  /// always returns the same accessor (for both reading and writing)
-  virtual boost::shared_ptr<ICalSolutionConstAccessor> roSolution(const long id) const;
-  
-
-  /// @brief obtain a solution ID to store new solution
-  /// @details This method provides a solution ID for a new solution. It must
-  /// be called before any write operation (one needs a writable accessor to
-  /// write the actual solution and to get this accessor one needs an ID).
-  /// @param[in] time time stamp of the new solution in seconds since MJD of 0.
-  /// @return solution ID
-  /// @note This particular implementation always returns the same ID as it
-  /// doesn't hangle multiple solution. Use table-based implementation to handle
-  /// multiple (e.g. time-dependent) solutions
-  virtual long newSolutionID(const double time);
-  
-  /// @brief obtain a writeable accessor for a given solution ID
-  /// @details This method returns a shared pointer to the solution accessor, which
-  /// can be used to both read the parameters and write them back. If a solution with 
-  /// the given ID doesn't exist, an exception is thrown. Existing solutions with undefined 
-  /// parameters are managed via validity flags of gains, leakages and bandpasses
-  /// @param[in] id solution ID to access
-  /// @return shared pointer to an accessor object
-  /// @note This particular implementation returns the same accessor regardless of the
-  /// chosen ID (for both reading and writing)
-  virtual boost::shared_ptr<ICalSolutionAccessor> rwSolution(const long id) const;
-    
   /// @brief shared pointer definition
   typedef boost::shared_ptr<ParsetCalSolutionSource> ShPtr;
-private:
-  /// @brief accessor doing actual work
-  boost::shared_ptr<ParsetCalSolutionAccessor> itsAccessor;
-  
-  /// @brief helper flag that at least no solution has been written before
-  /// @details We use this to give a warning which might help us in the future when
-  /// ccalibrators supports time-dependent solutions and parset-based implementation
-  /// (which doesn't not support time-dependent behavior) is chosen by mistake.
-  bool itsFirstSolution;
+
 };
 
 

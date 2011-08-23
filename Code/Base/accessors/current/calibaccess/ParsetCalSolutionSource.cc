@@ -48,76 +48,8 @@ namespace accessors {
 /// used).
 /// @param[in] parset parset file name
 ParsetCalSolutionSource::ParsetCalSolutionSource(const std::string &parset) :
-   itsAccessor(new ParsetCalSolutionAccessor(parset)), itsFirstSolution(true) {}
+   CalSolutionSourceStub(boost::shared_ptr<ParsetCalSolutionAccessor>(new ParsetCalSolutionAccessor(parset))) {}
   
-/// @brief obtain ID for the most recent solution
-/// @return ID for the most recent solution
-/// @note This particular implementation doesn't support multiple
-/// solutions and, therefore, always returns the same ID.
-long ParsetCalSolutionSource::mostRecentSolution() const 
-{
-  return 0;
-}
-  
-/// @brief obtain solution ID for a given time
-/// @details This method looks for a solution valid at the given time
-/// and returns its ID. It is equivalent to mostRecentSolution() if
-/// called with a time sufficiently into the future.
-/// @return solution ID
-/// @note This particular implementation doesn't support multiple
-/// solutions and, therefore, always returns the same ID.
-long ParsetCalSolutionSource::solutionID(const double) const
-{
-  return 0; 
-}
-  
-/// @brief obtain read-only accessor for a given solution ID
-/// @details This method returns a shared pointer to the solution accessor, which
-/// can be used to read the parameters. If a solution with the given ID doesn't 
-/// exist, an exception is thrown. Existing solutions with undefined parameters 
-/// are managed via validity flags of gains, leakages and bandpasses
-/// @return shared pointer to an accessor object
-/// @note This particular implementation doesn't support multiple solutions and
-/// always returns the same accessor (for both reading and writing)
-boost::shared_ptr<ICalSolutionConstAccessor> ParsetCalSolutionSource::roSolution(const long) const
-{
-  return itsAccessor;
-}
-  
-/// @brief obtain a solution ID to store new solution
-/// @details This method provides a solution ID for a new solution. It must
-/// be called before any write operation (one needs a writable accessor to
-/// write the actual solution and to get this accessor one needs an ID).
-/// @param[in] time time stamp of the new solution in seconds since MJD of 0.
-/// @return solution ID
-/// @note This particular implementation always returns the same ID as it
-/// doesn't hangle multiple solution. Use table-based implementation to handle
-/// multiple (e.g. time-dependent) solutions
-long ParsetCalSolutionSource::newSolutionID(const double time)
-{
-  if (itsFirstSolution) {
-      ASKAPLOG_INFO_STR(logger, "About to write a new calibration solution tagged with time "<<time<<" (seconds since MJD)");
-  } else {
-      ASKAPLOG_WARN_STR(logger, "New calibration solution for time "<<time<<
-         " (seconds since MJD); parset-based implementation doesn't support multiple solutions. Old values are going to be overwritten.");
-  }
-  itsFirstSolution = false;
-  return 0;
-}
-  
-/// @brief obtain a writeable accessor for a given solution ID
-/// @details This method returns a shared pointer to the solution accessor, which
-/// can be used to both read the parameters and write them back. If a solution with 
-/// the given ID doesn't exist, an exception is thrown. Existing solutions with undefined 
-/// parameters are managed via validity flags of gains, leakages and bandpasses
-/// @return shared pointer to an accessor object
-/// @note This particular implementation returns the same accessor regardless of the
-/// chosen ID (for both reading and writing)
-boost::shared_ptr<ICalSolutionAccessor> ParsetCalSolutionSource::rwSolution(const long) const
-{
-  return itsAccessor;
-}
-
 } // accessors
 
 } // namespace askap
