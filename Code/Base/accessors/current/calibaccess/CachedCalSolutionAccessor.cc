@@ -35,14 +35,6 @@
 #include <calibaccess/CachedCalSolutionAccessor.h>
 #include <askap/AskapError.h>
 
-// logging stuff
-#include <askap_accessors.h>
-#include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".calibaccess");
-
-// std includes
-#include <vector>
-
 namespace askap {
 
 namespace accessors {
@@ -58,9 +50,16 @@ CachedCalSolutionAccessor::CachedCalSolutionAccessor() :
 /// @param[in] cache shared pointer to the Params class to use as a cache
 CachedCalSolutionAccessor::CachedCalSolutionAccessor(const boost::shared_ptr<scimath::Params> &cache) : itsCache(cache)
 {
-  ASKAPCHECK(itsCache, "An attempt to initialise CachedCalSolutionAccessor with an void shared pointer");
+  ASKAPCHECK(itsCache, "An attempt to initialise CachedCalSolutionAccessor with a void shared pointer");
 }        
     
+/// @brief copy constructor
+/// @details it is required because the actual cache is referred to by the shared pointer. This method
+/// clones the cache.
+/// @param[in] src a reference to another instance of the class of this type
+CachedCalSolutionAccessor::CachedCalSolutionAccessor(const CachedCalSolutionAccessor &src) :
+    itsCache(src.cache().clone()) {}
+     
 // implementation of abstract methods of the interface
   
 /// @brief obtain gains (J-Jones)

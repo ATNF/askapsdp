@@ -65,6 +65,12 @@ public:
   /// @param[in] cache shared pointer to the Params class to use as a cache
   CachedCalSolutionAccessor(const boost::shared_ptr<scimath::Params> &cache);
     
+  /// @brief copy constructor
+  /// @details it is required because the actual cache is referred to by the shared pointer. This method
+  /// clones the cache.
+  /// @param[in] src a reference to another instance of the class of this type
+  CachedCalSolutionAccessor(const CachedCalSolutionAccessor &src);
+    
   // implementation of the abstract methods of the interface
   
   /// @brief obtain gains (J-Jones)

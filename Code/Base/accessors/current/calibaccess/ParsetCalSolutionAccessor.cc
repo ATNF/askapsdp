@@ -60,7 +60,7 @@ ParsetCalSolutionAccessor::ParsetCalSolutionAccessor(const std::string &parset) 
         itsWriteRequired(false), itsFirstWrite(true)
 {
   try {
-     itsCache << LOFAR::ParameterSet(itsParsetFileName);
+     cache() << LOFAR::ParameterSet(itsParsetFileName);
      ASKAPLOG_INFO_STR(logger, "Successfully read calibration solution from a parset file "<<itsParsetFileName);
   }
   catch (const LOFAR::APSException &) {
@@ -76,105 +76,16 @@ ParsetCalSolutionAccessor::~ParsetCalSolutionAccessor()
 {
   if (itsWriteRequired) {
       ASKAPLOG_INFO_STR(logger, "Writing out calibration results into a parset file "<<itsParsetFileName);
-      std::vector<std::string> parlist = itsCache.names();
+      const std::vector<std::string> parlist = cache().names();
       std::ofstream os(itsParsetFileName.c_str());
       for (std::vector<std::string>::const_iterator it = parlist.begin(); 
            it != parlist.end(); ++it) {
-           const casa::Complex val = itsCache.complexValue(*it);
+           const casa::Complex val = cache().complexValue(*it);
            os<<*it<<" = ["<<real(val)<<","<<imag(val)<<"]"<<std::endl;
       }     
   }
 }
-  
-// implementation of abstract methods of the interface
-  
-/// @brief obtain gains (J-Jones)
-/// @details This method retrieves parallel-hand gains for both 
-/// polarisations (corresponding to XX and YY). If no gains are defined
-/// for a particular index, gains of 1. with invalid flags set are
-/// returned.
-/// @param[in] index ant/beam index 
-/// @return JonesJTerm object with gains and validity flags
-JonesJTerm ParsetCalSolutionAccessor::gain(const JonesIndex &index) const
-{
-  casa::Complex g1(1.,0.), g2(1.,0.);
-  bool g1Valid = false, g2Valid = false;
-  const std::string paramG1 = paramName(index, casa::Stokes::XX);
-  const std::string paramG2 = paramName(index, casa::Stokes::YY);
-  
-  if (itsCache.has(paramG1)) {
-      g1Valid = true;
-      g1 = itsCache.complexValue(paramG1);
-  }
-  if (itsCache.has(paramG2)) {
-      g2Valid = true;
-      g2 = itsCache.complexValue(paramG2);
-  }    
-  return JonesJTerm(g1,g1Valid,g2,g2Valid);
-}
-   
-/// @brief obtain leakage (D-Jones)
-/// @details This method retrieves cross-hand elements of the 
-/// Jones matrix (polarisation leakages). There are two values
-/// (corresponding to XY and YX) returned (as members of JonesDTerm 
-/// class). If no leakages are defined for a particular index,
-/// zero leakages are returned with invalid flags set. 
-/// @param[in] index ant/beam index
-/// @return JonesDTerm object with leakages and validity flags
-JonesDTerm ParsetCalSolutionAccessor::leakage(const JonesIndex &index) const
-{
-  casa::Complex d12(0.,0.), d21(0.,0.);
-  bool d12Valid = false, d21Valid = false;
-  const std::string paramD12 = paramName(index, casa::Stokes::XY);
-  const std::string paramD21 = paramName(index, casa::Stokes::YX);
-  
-  if (itsCache.has(paramD12)) {
-      d12Valid = true;
-      d12 = itsCache.complexValue(paramD12);
-  }
-  if (itsCache.has(paramD21)) {
-      d21Valid = true;
-      d21 = itsCache.complexValue(paramD21);
-  }    
-  return JonesDTerm(d12, d12Valid, d21, d21Valid);
-}
-   
-/// @brief obtain bandpass (frequency dependent J-Jones)
-/// @details This method retrieves parallel-hand spectral
-/// channel-dependent gain (also known as bandpass) for a
-/// given channel and antenna/beam. The actual implementation
-/// does not necessarily store these channel-dependent gains
-/// in an array. It could also implement interpolation or 
-/// sample a polynomial fit at the given channel (and 
-/// parameters of the polynomial could be in the database). If
-/// no bandpass is defined (at all or for this particular channel),
-/// gains of 1.0 are returned (with invalid flag is set).
-/// @return JonesJTerm object with gains and validity flags
-JonesJTerm ParsetCalSolutionAccessor::bandpass(const JonesIndex &, const casa::uInt) const
-{
-  // always return 1.0 as bandpass gain for all spectral channels
-  return JonesJTerm(1., true, 1., true);
-}
-
-/// @brief helper method to update given parameter in the cache
-/// @details Different methods of scimath::Params have to be used depending on whether
-/// this parameter is new or not. This method makes it simpler by encapsulating this logic.
-/// In addition it handles the logic on what to do with invalid data (for now we just ignore 
-/// such values).
-/// @param[in] name string name of the parameter
-/// @param[in] val complex value to be set
-/// @param[in] isValid true, if the given value is valid (method just returns otherwise)
-void ParsetCalSolutionAccessor::updateParamInCache(const std::string &name, const casa::Complex &val, const bool isValid)
-{
-  if (isValid) {
-      if (itsCache.has(name)) {
-          itsCache.update(name, val);
-      } else {
-          itsCache.add(name, val);
-      }
-  }
-}
-
+    
 /// @brief helper method executed on every write
 /// @details This method manages flags associated with the write operation
 void ParsetCalSolutionAccessor::prepareToWrite()
@@ -182,16 +93,15 @@ void ParsetCalSolutionAccessor::prepareToWrite()
   itsWriteRequired = true;
   if (itsFirstWrite) {
       itsFirstWrite = false;
-      const std::vector<std::string> names = itsCache.names();
+      const std::vector<std::string> names = cache().names();
       if (names.size()) {
           ASKAPLOG_WARN_STR(logger, "Overwriting existing parset "<<itsParsetFileName<<
               " with calibration parameters ("<<names[0]<<",...)");
       }
-      itsCache.reset();
+      cache().reset();
   }
 }
 
-  
 /// @brief set gains (J-Jones)
 /// @details This method writes parallel-hand gains for both 
 /// polarisations (corresponding to XX and YY)
@@ -200,8 +110,7 @@ void ParsetCalSolutionAccessor::prepareToWrite()
 void ParsetCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTerm &gains)
 {
   prepareToWrite();
-  updateParamInCache(paramName(index, casa::Stokes::XX), gains.g1(), gains.g1IsValid());
-  updateParamInCache(paramName(index, casa::Stokes::YY), gains.g2(), gains.g2IsValid());
+  CachedCalSolutionAccessor::setGain(index, gains);
 }
    
 /// @brief set leakages (D-Jones)
@@ -212,26 +121,9 @@ void ParsetCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTer
 void ParsetCalSolutionAccessor::setLeakage(const JonesIndex &index, const JonesDTerm &leakages)
 {
   prepareToWrite();
-  updateParamInCache(paramName(index, casa::Stokes::XY), leakages.d12(), leakages.d12IsValid());
-  updateParamInCache(paramName(index, casa::Stokes::YX), leakages.d21(), leakages.d21IsValid());
+  CachedCalSolutionAccessor::setLeakage(index,leakages);
 }
   
-/// @brief set gains for a single bandpass channel
-/// @details This method writes parallel-hand gains corresponding to a single
-/// spectral channel (i.e. one bandpass element).
-/// @param[in] index ant/beam index 
-/// @param[in] bp JonesJTerm object with gains for the given channel and validity flags
-/// @param[in] chan spectral channel
-/// @note We may add later variants of this method assuming that the bandpass is
-/// approximated somehow, e.g. by a polynomial. For simplicity, for now we deal with 
-/// gains set explicitly for each channel.
-void ParsetCalSolutionAccessor::setBandpass(const JonesIndex &index, const JonesJTerm &bp, const casa::uInt chan)
-{
-  ASKAPTHROW(AskapError, "Attempt to set bandpass for ant="<<index.antenna()<<" beam="<<index.beam()<<" chan="<<chan<<
-             "(g1="<<bp.g1()<<" g2="<<bp.g2()<<" validity flags: "<<
-             bp.g1IsValid()<<","<<bp.g2IsValid()<<"); Operation is not implemented");
-}
-
 
 } // namespace accessors
 
