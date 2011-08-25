@@ -42,7 +42,8 @@
 #include <dataaccess/MemBufferDataAccessor.h>
 #include <askap/AskapError.h>
 
-#include <measurementequation/CalibrationMEBase.h>
+#include <measurementequation/ICalibrationApplicator.h>
+
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -97,9 +98,9 @@ IDataAccessor& CalibrationIterator::operator*() const
       
       // correct data
       ASKAPDEBUGASSERT(itsCalibrationME);
-      boost::shared_ptr<CalibrationMEBase> calME = 
-              boost::dynamic_pointer_cast<CalibrationMEBase>(itsCalibrationME);
-      ASKAPCHECK(calME, "An attempt to use CalibrationIterator with a wrong type of the calibration ME");
+      boost::shared_ptr<ICalibrationApplicator> calME = 
+              boost::dynamic_pointer_cast<ICalibrationApplicator>(itsCalibrationME);
+      ASKAPCHECK(calME, "An attempt to use CalibrationIterator with a wrong type of the ME (doesn't allow correction)");
               
       calME->correct(*itsDataAccessor);
   }

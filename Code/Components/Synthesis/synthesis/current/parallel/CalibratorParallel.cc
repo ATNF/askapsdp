@@ -175,6 +175,8 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
       IDataConverterPtr conv=ds.createConverter();
       conv->setFrequencyFrame(getFreqRefFrame(), "Hz");
       conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+      // ensure that time is counted in seconds since 0 MJD
+      conv->setEpochFrame();
       IDataSharedIter it=ds.createIterator(sel, conv);
       ASKAPCHECK(itsPerfectModel, "Uncorrupted model not defined");
       ASKAPCHECK(itsModel, "Initial assumption of parameters is not defined");

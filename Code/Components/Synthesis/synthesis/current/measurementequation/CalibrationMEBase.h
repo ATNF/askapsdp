@@ -40,6 +40,7 @@
 #include <fitting/GenericEquation.h>
 #include <fitting/Params.h>
 #include <fitting/GenericNormalEquations.h>
+#include <measurementequation/ICalibrationApplicator.h>
 
 #include <measurementequation/GenericMultiChunkEquation.h>
 #include <dataaccess/IDataAccessor.h>
@@ -63,7 +64,8 @@ namespace synthesis {
 /// See CalibrationME template for more details. This class contains all
 /// functionality, which doesn't depend on the template parameter.
 /// @ingroup measurementequation
-class CalibrationMEBase : public GenericMultiChunkEquation
+class CalibrationMEBase : public GenericMultiChunkEquation,
+                          virtual public ICalibrationApplicator
 {
 public:
 

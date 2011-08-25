@@ -68,18 +68,7 @@ struct LeakageTerm : public ParameterizedMEComponent {
    /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
    /// this effect
    inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
-                                casa::uInt row) const;
-protected:
-   
-   /// @brief obtain a name of the parameter
-   /// @details This method produces a parameter name in the form d12.x.y or d21.x.y depending on the
-   /// polarisation index (12 or 21), antenna (x) and beam (y) ids.
-   /// @param[in] ant antenna number (0-based)
-   /// @param[in] beam beam number (0-based)
-   /// @param[in] pol12 index of the polarisation product (12 == true or 21 == false)
-   /// @return name of the parameter
-   static std::string paramName(casa::uInt ant, casa::uInt beam, bool pol12);
-   
+                                casa::uInt row) const;   
 };
 
 } // namespace synthesis

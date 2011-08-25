@@ -157,6 +157,9 @@ namespace askap
         IDataConverterPtr conv=ds.createConverter();
         conv->setFrequencyFrame(getFreqRefFrame(), "Hz");
         conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+        // ensure that time is counted in seconds since 0 MJD
+        conv->setEpochFrame();
+        
         IDataSharedIter it=ds.createIterator(sel, conv);
         ASKAPCHECK(itsModel, "Model not defined");
         ASKAPCHECK(gridder(), "Gridder not defined");
@@ -168,23 +171,6 @@ namespace askap
             
             scimath::Params gainModel; 
             gainModel << LOFAR::ParameterSet(itsGainsFile);
-	        /*
-	        // temporary "matrix inversion". we need to do it properly in the
-	        // CalibrationME class. The code below won't work for cross-pols
-	        std::vector<std::string> names = gainModel.names();
-	        for (std::vector<std::string>::const_iterator nameIt = names.begin();
-	             nameIt != names.end(); ++nameIt) {
-	                const casa::Complex gain = gainModel.complexValue(*nameIt);
-	                if (casa::abs(gain)<1e-3) {
-	                    ASKAPLOG_INFO_STR(logger, "Very small gain has been encountered "<<*nameIt
-	                           <<"="<<gain);
-	                    continue;       
-	                } else {
-	                  gainModel.update(*nameIt, casa::Complex(1.,0.)/gain);
-	                }
-	             }
-	        //
-	        */
 	        if (!itsVoidME) {
 	            itsVoidME.reset(new VoidMeasurementEquation);
 	        }

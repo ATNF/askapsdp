@@ -68,25 +68,7 @@ struct NoXPolGain : public ParameterizedMEComponent {
    /// @return ComplexDiffMatrix filled with Mueller matrix corresponding to
    /// this effect
    inline scimath::ComplexDiffMatrix get(const accessors::IConstDataAccessor &chunk, 
-                                casa::uInt row) const;
-protected:
-
-   /// @brief obtain a name of the parameter
-   /// @details This method returns the parameter name for a gain of the
-   /// given antenna and polarisation. 
-   /// @param[in] ant antenna number (0-based)
-   /// @param[in] pol index of the polarisation product
-   /// @return name of the parameter
-   static std::string paramName(casa::uInt ant, casa::uInt pol);
-   
-   /// @brief obtain a name of the parameter
-   /// @details This version takes into account beam number
-   /// @param[in] ant antenna number (0-based)
-   /// @param[in] beam beam number (0-based)
-   /// @param[in] pol index of the polarisation product
-   /// @return name of the parameter
-   static std::string paramName(casa::uInt ant, casa::uInt beam, casa::uInt pol);
-   
+                                casa::uInt row) const;   
 };
 
 } // namespace synthesis

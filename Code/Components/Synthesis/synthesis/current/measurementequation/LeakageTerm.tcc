@@ -33,6 +33,10 @@
 
 // own includes
 #include <utils/PolConverter.h>
+#include <calibaccess/CalParamNameHelper.h>
+
+// casa includes
+#include <measures/Measures/Stokes.h>
 
 // std includes
 #include <string>
@@ -74,11 +78,11 @@ inline scimath::ComplexDiffMatrix LeakageTerm::get(const accessors::IConstDataAc
    // in the canonic form (e.g. XX,XY,YX,YY for linears)
    bool canonicPolOrder = (nPol == 4);
    
-   calFactor(3, 1) = -1.*getParameter(paramName(ant1, beam1, false));
-   calFactor(1, 3) = getParameter(paramName(ant1, beam1, true));
+   calFactor(3, 1) = -1.*getParameter(accessors::CalParamNameHelper::paramName(ant1, beam1, casa::Stokes::YX));
+   calFactor(1, 3) = getParameter(accessors::CalParamNameHelper::paramName(ant1, beam1, casa::Stokes::XY));
    
-   calFactor(3, 2) = -1.*conj(getParameter(paramName(ant2, beam2, false)));
-   calFactor(2, 3) = -1.*conj(getParameter(paramName(ant2, beam2, true)));
+   calFactor(3, 2) = -1.*conj(getParameter(accessors::CalParamNameHelper::paramName(ant2, beam2, casa::Stokes::YX)));
+   calFactor(2, 3) = -1.*conj(getParameter(accessors::CalParamNameHelper::paramName(ant2, beam2, casa::Stokes::XY)));
    
    for (casa::uInt pol=0; pol<4; ++pol) {
         
@@ -96,8 +100,10 @@ inline scimath::ComplexDiffMatrix LeakageTerm::get(const accessors::IConstDataAc
         }
 
         // cross-diagonal terms                   
-        calFactor(pol, 3 - pol) = (pol % 3 == 0 ? 1. : -1.)*getParameter(paramName(ant1, beam1, pol < 2))*
-                            conj(getParameter(paramName(ant2, beam2, pol % 2 == 0)));
+        calFactor(pol, 3 - pol) = (pol % 3 == 0 ? 1. : -1.)*getParameter(accessors::CalParamNameHelper::paramName(ant1, 
+                            beam1, pol < 2 ? casa::Stokes::XY : casa::Stokes::YX))*
+                            conj(getParameter(accessors::CalParamNameHelper::paramName(ant2, beam2, 
+                            pol % 2 == 0 ? casa::Stokes::XY : casa::Stokes::YX)));
         if (pol % 3 != 0) {
             // middle rows and columns of the 4x4 matrix (index is 0-based)
             // exploit the symmetries

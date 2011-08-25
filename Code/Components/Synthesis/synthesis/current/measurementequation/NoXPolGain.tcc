@@ -33,6 +33,10 @@
 
 // own includes
 #include <utils/PolConverter.h>
+#include <calibaccess/CalParamNameHelper.h>
+
+// casa includes
+#include <measures/Measures/Stokes.h>
 
 // std includes
 #include <string>
@@ -77,10 +81,12 @@ inline scimath::ComplexDiffMatrix NoXPolGain::get(const accessors::IConstDataAcc
         // we need an index into matrix 
 
         // gains for antenna 1, polarisation X if XX or XY, or Y if YX or YY
-        const std::string g1name = paramName(ant1, beam1, polIndex / 2);
+        const std::string g1name = accessors::CalParamNameHelper::paramName(ant1, beam1, 
+                      polIndex / 2 == 0 ? casa::Stokes::XX : casa::Stokes::YY);
             
         // gains for antenna 2, polarisation X if XX or YX, or Y if XY or YY
-        const std::string g2name = paramName(ant2, beam2, polIndex % 2);
+        const std::string g2name = accessors::CalParamNameHelper::paramName(ant2, beam2, 
+                      polIndex % 2 == 0 ? casa::Stokes::XX : casa::Stokes::YY);
             
         calFactor(pol,pol) = getParameter(g1name)*conj(getParameter(g2name));            
    }
