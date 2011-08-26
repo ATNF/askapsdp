@@ -34,6 +34,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <measurementequation/CalibrationApplicatorME.h>
+#include <casa/Arrays/MatrixMath.h>
 #include <askap/AskapError.h>
 
 namespace askap {
@@ -62,7 +63,45 @@ CalibrationApplicatorME::CalibrationApplicatorME(const boost::shared_ptr<accesso
 /// changed.
 void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
 {
+  casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
+  ASKAPDEBUGASSERT(rwVis.nelements());
   updateAccessor(chunk.time());
+  const casa::Vector<casa::uInt>& antenna1 = chunk.antenna1();
+  const casa::Vector<casa::uInt>& antenna2 = chunk.antenna2();
+  const casa::Vector<casa::uInt>& beam1 = chunk.feed1();
+  const casa::Vector<casa::uInt>& beam2 = chunk.feed2();
+  
+  const casa::uInt nPol = chunk.nPol();
+  ASKAPDEBUGASSERT(nPol <= 4);
+  casa::Matrix<casa::Complex> mueller(nPol, nPol);
+  casa::Matrix<casa::Complex> reciprocal(nPol, nPol);
+  
+  for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
+       casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);
+       for (casa::uInt chan = 0; chan < chunk.nChannel(); ++chan) {
+            casa::SquareMatrix<casa::Complex, 2> jones1 = calSolution().jones(antenna1[row],beam1[row], chan);
+            casa::SquareMatrix<casa::Complex, 2> jones2 = calSolution().jones(antenna2[row],beam2[row], chan);
+            for (casa::uInt i = 0; i < nPol; ++i) {
+                 for (casa::uInt j = 0; j < nPol; ++j) {
+                      mueller(i,j) = jones1(i / 2, j / 2) * jones2(i % 2, j % 2);
+                 }
+            }
+            casa::Complex det = 0.;
+            invertSymPosDef(reciprocal, det, mueller);
+            ASKAPCHECK(casa::abs(det)>1e-5, "Unable to apply calibration, determinate is too close to 0. D="<<casa::abs(det));           
+            casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
+            const casa::Vector<casa::Complex> origVis = thisChan.copy();
+            ASKAPDEBUGASSERT(thisChan.nelements() == nPol);
+            // matrix multiplication
+            for (casa::uInt pol = 0; pol < nPol; ++pol) {
+                 casa::Complex temp(0.,0.);
+                 for (casa::uInt k = 0; k < nPol; ++k) {
+                     temp += reciprocal(pol,k) * origVis[k];
+                 }
+                 thisChan[pol] = temp;
+            }
+       }       
+  }
 }
 
 /// @brief helper method to update accessor pointer if necessary
