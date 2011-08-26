@@ -45,6 +45,9 @@
 #include <measurementequation/ZeroComponent.h>
 #include <fitting/LinearSolver.h>
 #include <dataaccess/DataIteratorStub.h>
+#include <measurementequation/CalibrationApplicatorME.h>
+#include <calibaccess/CachedCalSolutionAccessor.h>
+#include <calibaccess/CalSolutionSourceStub.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <askap/AskapError.h>
@@ -64,7 +67,8 @@ namespace askap
       CPPUNIT_TEST_SUITE(CalibrationMETest);
       CPPUNIT_TEST(testSolveNoPreAvg);
       CPPUNIT_TEST(testSolvePreAvg);      
-      CPPUNIT_TEST(testSolvePreAvg2);      
+      CPPUNIT_TEST(testSolvePreAvg2);
+      CPPUNIT_TEST(testApplication);      
       CPPUNIT_TEST_SUITE_END();
       
       private:
@@ -273,6 +277,83 @@ namespace askap
           //std::cout<<*params2<<std::endl;
           }
           checkSolution();        
+        }
+        
+        void testApplication()
+        {        
+          // set up for full stokes
+          accessors::DataAccessorStub &da = dynamic_cast<accessors::DataAccessorStub&>(*idi);
+          ASKAPASSERT(da.itsStokes.nelements() == 1);
+          casa::Vector<casa::Stokes::StokesTypes> stokes(4);
+          stokes[0] = casa::Stokes::XX;
+          stokes[1] = casa::Stokes::XY;
+          stokes[2] = casa::Stokes::YX;
+          stokes[3] = casa::Stokes::YY;         
+          
+          da.itsStokes.assign(stokes.copy());
+          da.itsVisibility.resize(da.nRow(), 2 ,4);
+          da.itsVisibility.set(casa::Complex(1.,0.));
+          da.itsNoise.resize(da.nRow(),da.nChannel(),da.nPol());
+          da.itsNoise.set(1.);
+          da.itsFlag.resize(da.nRow(),da.nChannel(),da.nPol());
+          da.itsFlag.set(casa::False);
+          da.itsFrequency.resize(da.nChannel());
+          for (casa::uInt ch = 0; ch < da.nChannel(); ++ch) {
+               da.itsFrequency[ch] = 1.4e9 + 20e6*double(ch);
+          }
+          
+          
+          const casa::uInt nAnt = 30;
+          const double realGains[nAnt] = {1.1, 0.9, 1.05, 0.87, 1.333,
+                                          1.1, 1.0, 1.0, -1.0, 0.3, 
+                                         -0.5, 1.1, 0.9, 0.98, 1.03,
+                                         -0.3, -1.1, 0.9, 1.1, 1.05,
+                                          1.0, -0.3, 1.1, 0.3, 1.8,
+                                          0.5, -0.7, 1.054, 1.0, 1.1}; 
+          const double imagGains[nAnt] = {0.0, 0., -0.05, 0.587, 0.,
+                                          0., -0.1, 0.02, -0.1, 0.84, 
+                                          0.86, 0.1, 0.1, 0., 0.03,
+                                         -0.84, 0., 0., -0.1, -0.05,
+                                          0.2, 0.9, 1.1, 0.3, -0.1,
+                                         -0.9, 0.72, -0.04, 0.05, -0.1}; 
+          
+          params1.reset(new Params);
+          params1->add("flux.i.cena", 1.);
+          params1->add("direction.ra.cena", 0.*casa::C::arcsec);
+          params1->add("direction.dec.cena", 0.*casa::C::arcsec);
+          for (casa::uInt ant=0; ant<nAnt; ++ant) {
+               params1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::XX),
+                            casa::Complex(realGains[ant],imagGains[ant]));
+               params1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::YY),
+                            casa::Complex(realGains[nAnt - 1 - ant],imagGains[nAnt - 1 - ant]));
+               /*             
+               params1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::XY),
+                            casa::Complex(realGains[ant] - 1.,imagGains[ant])/casa::Complex(10.,0.));
+               params1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::YX),
+                            casa::Complex(realGains[ant] - 1.,imagGains[ant])/casa::Complex(10.,0.));                            
+               */
+          }
+
+          p1.reset(new ComponentEquation(*params1, idi));
+          eq1.reset(new METype(*params1,idi,p1));
+          eq1->predict();
+          
+          accessors::CachedCalSolutionAccessor acc(params1);
+          accessors::CalSolutionSourceStub src(boost::shared_ptr<accessors::CachedCalSolutionAccessor>(&acc,utility::NullDeleter()));
+          CalibrationApplicatorME calME(boost::shared_ptr<accessors::CalSolutionSourceStub>(&src,utility::NullDeleter()));
+          calME.correct(da);
+
+          // check visibilities after calibration application
+          const casa::Cube<casa::Complex>& vis = da.visibility();
+          for (casa::uInt row = 0; row < da.nRow(); ++row) {
+               for (casa::uInt chan = 0; chan < da.nChannel(); ++chan) {
+                    for (casa::uInt pol = 0; pol < da.nPol(); ++pol) {
+                         //std::cout<<row<<" "<<da.antenna1()[row]<<" "<<da.antenna2()[row]<<" "<<vis(row,chan,pol)<<" "<<chan<<std::endl;
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 1. : 0., real(vis(row,chan,pol)),1e-1);
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(vis(row,chan,pol)),1e-1);                         
+                    }
+               }
+          }
         }
    };
     

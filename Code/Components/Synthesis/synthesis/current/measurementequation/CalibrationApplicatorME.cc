@@ -83,11 +83,11 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
             casa::SquareMatrix<casa::Complex, 2> jones2 = calSolution().jones(antenna2[row],beam2[row], chan);
             for (casa::uInt i = 0; i < nPol; ++i) {
                  for (casa::uInt j = 0; j < nPol; ++j) {
-                      mueller(i,j) = jones1(i / 2, j / 2) * jones2(i % 2, j % 2);
+                      mueller(i,j) = jones1(i / 2, j / 2) * conj(jones2(i % 2, j % 2));
                  }
             }
             casa::Complex det = 0.;
-            invertSymPosDef(reciprocal, det, mueller);
+            invert(reciprocal, det, mueller);
             ASKAPCHECK(casa::abs(det)>1e-5, "Unable to apply calibration, determinate is too close to 0. D="<<casa::abs(det));           
             casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
             const casa::Vector<casa::Complex> origVis = thisChan.copy();
