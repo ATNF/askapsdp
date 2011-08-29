@@ -88,6 +88,7 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
             }
             casa::Complex det = 0.;
             invert(reciprocal, det, mueller);
+            //invertSymPosDef(reciprocal, det, mueller);
             ASKAPCHECK(casa::abs(det)>1e-5, "Unable to apply calibration, determinate is too close to 0. D="<<casa::abs(det));           
             casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
             const casa::Vector<casa::Complex> origVis = thisChan.copy();

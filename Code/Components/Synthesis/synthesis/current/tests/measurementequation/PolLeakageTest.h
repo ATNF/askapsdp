@@ -40,6 +40,9 @@
 
 #include <fitting/LinearSolver.h>
 #include <dataaccess/DataIteratorStub.h>
+#include <measurementequation/CalibrationApplicatorME.h>
+#include <calibaccess/CachedCalSolutionAccessor.h>
+#include <calibaccess/CalSolutionSourceStub.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <askap/AskapError.h>
@@ -58,6 +61,7 @@ namespace askap
       CPPUNIT_TEST_SUITE(PolLeakageTest);
       CPPUNIT_TEST(testSolve);
       CPPUNIT_TEST(testSolvePreAvg);
+      CPPUNIT_TEST(testApplication);            
       CPPUNIT_TEST_SUITE_END();
      
      public:
@@ -212,6 +216,70 @@ namespace askap
                                             itsParams1->complexValue(*it)), 1e-6);               
           }                   
       }
+      void testApplication() {        
+          // check that everything is set up for full stokes
+          CPPUNIT_ASSERT(itsIter);
+          accessors::DataAccessorStub &da = dynamic_cast<accessors::DataAccessorStub&>(*itsIter);          
+          CPPUNIT_ASSERT(da.itsStokes.nelements() == 4);
+          da.rwVisibility().set(0.);          
+          
+          const casa::uInt nAnt = 30;
+          // use the following values to form both gains and leakages
+          const double realGains[nAnt] = {1.1, 0.9, 1.05, 0.87, 1.333,
+                                          1.1, 1.0, 1.0, -1.0, 0.3, 
+                                         -0.5, 1.1, 0.9, 0.98, 1.03,
+                                         -0.3, -1.1, 0.9, 1.1, 1.05,
+                                          1.0, -0.3, 1.1, 0.3, 1.8,
+                                          0.5, -0.7, 1.054, 1.0, 1.1}; 
+          const double imagGains[nAnt] = {0.0, 0., -0.05, 0.587, 0.,
+                                          0., -0.1, 0.02, -0.1, 0.84, 
+                                          0.86, 0.1, 0.1, 0., 0.03,
+                                         -0.84, 0., 0., -0.1, -0.05,
+                                          0.2, 0.9, 1.1, 0.3, -0.1,
+                                         -0.9, 0.72, -0.04, 0.05, -0.1}; 
+          
+          itsParams1.reset(new scimath::Params);
+          itsParams1->add("flux.i.cena", 1.);
+          itsParams1->add("direction.ra.cena", 0.*casa::C::arcsec);
+          itsParams1->add("direction.dec.cena", 0.*casa::C::arcsec);
+          for (casa::uInt ant=0; ant<nAnt; ++ant) {
+               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::XX),
+                            casa::Complex(realGains[ant],imagGains[ant]));
+               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::YY),
+                            casa::Complex(realGains[nAnt - 1 - ant],imagGains[nAnt - 1 - ant]));
+                            /*
+               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::XY),
+                            casa::Complex(realGains[ant] - 1.,imagGains[ant])/casa::Complex(10.,0.));
+               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::YX),
+                            casa::Complex(realGains[ant] - 1.,imagGains[ant])/casa::Complex(10.,0.));                                           
+                            */
+          }
+
+          itsCE1.reset(new ComponentEquation(*itsParams1, itsIter));
+          //typedef CalibrationME<Product<NoXPolGain,LeakageTerm> > METype2;
+          typedef CalibrationME<NoXPolGain> METype2;
+          
+          boost::shared_ptr<METype2> eq1(new METype2(*itsParams1,itsIter,itsCE1));
+          eq1->predict();
+          
+          accessors::CachedCalSolutionAccessor acc(itsParams1);
+          accessors::CalSolutionSourceStub src(boost::shared_ptr<accessors::CachedCalSolutionAccessor>(&acc,utility::NullDeleter()));
+          CalibrationApplicatorME calME(boost::shared_ptr<accessors::CalSolutionSourceStub>(&src,utility::NullDeleter()));
+          calME.correct(da);
+
+          // check visibilities after calibration application
+          const casa::Cube<casa::Complex>& vis = da.visibility();
+          for (casa::uInt row = 0; row < da.nRow(); ++row) {
+               for (casa::uInt chan = 0; chan < da.nChannel(); ++chan) {
+                    for (casa::uInt pol = 0; pol < da.nPol(); ++pol) {
+                         //std::cout<<row<<" "<<da.antenna1()[row]<<" "<<da.antenna2()[row]<<" "<<vis(row,chan,pol)<<" "<<chan<<" "<<pol<<std::endl;
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 1. : 0., real(vis(row,chan,pol)),1e-1);
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(vis(row,chan,pol)),1e-1);                         
+                    }
+               }
+          }
+        }
+      
       
      private:
       typedef CalibrationME<LeakageTerm> METype;
