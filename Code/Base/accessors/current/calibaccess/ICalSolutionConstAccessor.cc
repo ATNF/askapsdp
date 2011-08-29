@@ -50,6 +50,11 @@ ICalSolutionConstAccessor::~ICalSolutionConstAccessor()
 /// @param[in] index ant/beam index
 /// @param[in] chan spectral channel of interest
 /// @return 2x2 Jones matrix
+/// @note The relation between leakage terms and Jones matrices matches 
+/// the definition of Hamaker, Bregman & Sault. See their equation 
+/// (14) for details. Our parameters d12 (corresponding to Stokes:XY) and
+/// d21 (corresponding to Stokes::YX) correspond to d_{Ap} and d_{Aq} from
+/// Hamaker, Bregman & Sault, respectively.
 casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const JonesIndex &index, const casa::uInt chan) const
 {
   casa::SquareMatrix<casa::Complex, 2> result(casa::SquareMatrix<casa::Complex, 2>::General);
@@ -59,7 +64,7 @@ casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const Jone
   const JonesDTerm dTerm = leakage(index);
 
   result(0,1) = dTerm.d12IsValid() ? dTerm.d12() : 0.;
-  result(1,0) = dTerm.d21IsValid() ? dTerm.d21() : 0.;
+  result(1,0) = dTerm.d21IsValid() ? -dTerm.d21() : 0.;
 
   const JonesJTerm bpTerm = bandpass(index,chan);
   if (bpTerm.g1IsValid()) {

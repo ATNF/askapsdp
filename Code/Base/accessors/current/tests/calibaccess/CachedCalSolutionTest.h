@@ -73,7 +73,7 @@ protected:
                  testComplex(casa::Complex(1.1+tag,0.1), jones(0,0));
                  testComplex(casa::Complex(1.1,-0.1-tag), jones(1,1));
                  testComplex(casa::Complex(0.1+tag,-0.1), jones(0,1));
-                 testComplex(casa::Complex(-0.1,0.1+tag), jones(1,0));
+                 testComplex(casa::Complex(-0.1,0.1+tag), -jones(1,0));
                                                    
                  const JonesIndex index(ant,beam); 
                  CPPUNIT_ASSERT(index.antenna() == casa::Short(ant));                
@@ -83,7 +83,7 @@ protected:
                  testComplex(casa::Complex(1.1+tag,0.1), jones2(0,0));
                  testComplex(casa::Complex(1.1,-0.1-tag), jones2(1,1));
                  testComplex(casa::Complex(0.1+tag,-0.1), jones2(0,1));
-                 testComplex(casa::Complex(-0.1,0.1+tag), jones2(1,0));
+                 testComplex(casa::Complex(-0.1,0.1+tag), -jones2(1,0));
                  
                  
                  const JonesJTerm jTerm = acc.gain(index);
@@ -148,7 +148,7 @@ public:
         testComplex(casa::Complex(1.0,0.), jones(1,1));
         // undefined leakage is zero
         testComplex(casa::Complex(0.,0.), jones(0,1));
-        testComplex(casa::Complex(-0.14,0.11), jones(1,0));     
+        testComplex(casa::Complex(-0.14,0.11), -jones(1,0));     
         
         // remove the parameters manually
         const std::string par1 = CalParamNameHelper::paramName(index.antenna(),index.beam(),casa::Stokes::XX);
@@ -164,7 +164,7 @@ public:
         testComplex(casa::Complex(1.0,0.), jones2(0,0));
         testComplex(casa::Complex(1.0,0.), jones2(1,1));
         testComplex(casa::Complex(0.,0.), jones2(0,1));
-        testComplex(casa::Complex(0.,0.), jones2(1,0));
+        testComplex(casa::Complex(0.,0.), -jones2(1,0));
    }
  
    /*  

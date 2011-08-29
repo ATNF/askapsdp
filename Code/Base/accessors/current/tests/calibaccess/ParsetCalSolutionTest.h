@@ -81,7 +81,7 @@ protected:
                  testComplex(casa::Complex(1.1+tag,0.1), jones(0,0));
                  testComplex(casa::Complex(1.1,-0.1-tag), jones(1,1));
                  testComplex(casa::Complex(0.1+tag,-0.1), jones(0,1));
-                 testComplex(casa::Complex(-0.1,0.1+tag), jones(1,0));
+                 testComplex(casa::Complex(-0.1,0.1+tag), -jones(1,0));
                                                    
                  const JonesIndex index(ant,beam); 
                  CPPUNIT_ASSERT(index.antenna() == casa::Short(ant));                
@@ -91,7 +91,7 @@ protected:
                  testComplex(casa::Complex(1.1+tag,0.1), jones2(0,0));
                  testComplex(casa::Complex(1.1,-0.1-tag), jones2(1,1));
                  testComplex(casa::Complex(0.1+tag,-0.1), jones2(0,1));
-                 testComplex(casa::Complex(-0.1,0.1+tag), jones2(1,0));
+                 testComplex(casa::Complex(-0.1,0.1+tag), -jones2(1,0));
                  
                  
                  const JonesJTerm jTerm = acc.gain(index);
@@ -147,13 +147,13 @@ public:
                      testComplex(casa::Complex(1.1,0.1), jones(0,0));
                      testComplex(casa::Complex(1.05,-0.1), jones(1,1));
                      testComplex(casa::Complex(0.13,-0.12), jones(0,1));
-                     testComplex(casa::Complex(-0.14,0.11), jones(1,0));
+                     testComplex(casa::Complex(-0.14,0.11), -jones(1,0));
                  } else {
                      // expect default values for undefined gains/leakages
                      testComplex(casa::Complex(1.,0.), jones(0,0));
                      testComplex(casa::Complex(1.,0.), jones(1,1));
                      testComplex(casa::Complex(0.,0.), jones(0,1));
-                     testComplex(casa::Complex(0.,0.), jones(1,0));
+                     testComplex(casa::Complex(0.,0.), -jones(1,0));
                  }
             }
         }
@@ -180,7 +180,7 @@ public:
         testComplex(casa::Complex(1.0,0.), jones(1,1));
         // undefined leakage is zero
         testComplex(casa::Complex(0.,0.), jones(0,1));
-        testComplex(casa::Complex(-0.14,0.11), jones(1,0));                
+        testComplex(casa::Complex(-0.14,0.11), -jones(1,0));                
    }
    
    void testSolutionSource() {
