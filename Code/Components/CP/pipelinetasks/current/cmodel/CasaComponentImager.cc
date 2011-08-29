@@ -32,8 +32,10 @@
 
 // System includes
 #include <vector>
+#include <limits>
 
 // ASKAPsoft includes
+#include "boost/scoped_ptr.hpp"
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
@@ -48,6 +50,7 @@
 #include "components/ComponentModels/GaussianShape.h"
 #include "components/ComponentModels/PointShape.h"
 #include "components/ComponentModels/ConstantSpectrum.h"
+#include "components/ComponentModels/SpectralIndex.h"
 #include "components/ComponentModels/Flux.h"
 #include "images/Images/ComponentImager.h"
 #include "images/Images/ImageInterface.h"
@@ -81,9 +84,17 @@ casa::ComponentList CasaComponentImager::translateComponentList(const std::vecto
         // Build either a GaussianShape or PointShape
         const MDirection dir(c.rightAscension(), c.declination(), MDirection::J2000);
         const Flux<casa::Double> flux(c.i1400().getValue("Jy"), 0.0, 0.0, 0.0);
-        const ConstantSpectrum spectrum;
 
-        // Is guassian or point shape?
+        boost::scoped_ptr<casa::SpectralModel> spectrum;
+        const double dblEpsilon = std::numeric_limits<double>::epsilon();
+        if (c.spectralIndex() > dblEpsilon) {
+            spectrum.reset(new casa::SpectralIndex(MFrequency(Quantity(1.4, "GHz")),
+                        c.spectralIndex()));
+        } else {
+            spectrum.reset(new casa::ConstantSpectrum);
+        }
+
+        // Is gaussian or point shape?
         if (c.majorAxis().getValue() > 0.0 || c.minorAxis().getValue() > 0.0) {
             ASKAPDEBUGASSERT(c.majorAxis().getValue("arcsec") >= c.minorAxis().getValue("arcsec"));
 
@@ -96,10 +107,10 @@ casa::ComponentList CasaComponentImager::translateComponentList(const std::vecto
                     c.minorAxis(),
                     c.positionAngle());
 
-            list.add(SkyComponent(flux, shape, spectrum));
+            list.add(SkyComponent(flux, shape, *spectrum));
         } else {
             const PointShape shape(dir);
-            list.add(SkyComponent(flux, shape, spectrum));
+            list.add(SkyComponent(flux, shape, *spectrum));
         }
     }
 

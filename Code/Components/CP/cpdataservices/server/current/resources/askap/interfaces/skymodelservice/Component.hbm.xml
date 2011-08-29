@@ -13,6 +13,7 @@
         <property name="majorAxis" type="double" access="field" column="major_axis"/>
         <property name="minorAxis" type="double" access="field" column="minor_axis"/>
         <property name="i1400" type="double" access="field" column="i1400"/>
+        <property name="spectralIndex" type="double" access="field" column="spectral_index"/>
 
     </class>
 

@@ -78,6 +78,12 @@ module skymodelservice
          * Units: Jy
          **/
         double i1400;
+
+        /**
+         * Spectral index
+         * Units: N/A
+         **/
+        double spectralIndex;
     };
 
     /**

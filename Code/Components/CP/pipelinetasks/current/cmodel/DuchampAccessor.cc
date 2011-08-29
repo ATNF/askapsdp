@@ -187,10 +187,11 @@ void DuchampAccessor::processLine(const std::string& line,
         minorAxis = casa::Quantity(1.0e-15, arcsec);
     }
 
-    // Build the Component object and add to the list
+    // Build the Component object and add to the list. This component
+    // has a constant spectrum
     // NOTE: The Component ID has no meaning for this accessor
     askap::cp::skymodelservice::Component c(-1, ra, dec, positionAngle,
-            majorAxis, minorAxis, flux);
+            majorAxis, minorAxis, flux, 0.0);
     list.push_back(c);
 }
 

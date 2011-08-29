@@ -95,8 +95,10 @@ Component genRandomComponent(void)
     double majorAxis = drand48();
     double minorAxis = drand48();
     double i1400 = drand48();
+    double spectralIndex = 0.0;
 
-    return Component(id, rightAscension, declination, positionAngle, majorAxis, minorAxis, i1400);
+    return Component(id, rightAscension, declination, positionAngle, majorAxis,
+            minorAxis, i1400, spectralIndex);
 }
 
 void populate(SkyModelServiceClient& svc, const uint32_t count)

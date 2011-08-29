@@ -51,12 +51,13 @@ class Component {
         /// not conform to the appropriate unit. See the accessor methods for
         /// the specification of units for each attribute.
         Component(const ComponentId id,
-                  casa::Quantity rightAscension,
-                  casa::Quantity declination,
-                  casa::Quantity positionAngle,
-                  casa::Quantity majorAxis,
-                  casa::Quantity minorAxis,
-                  casa::Quantity i1400);
+                  const casa::Quantity& rightAscension,
+                  const casa::Quantity& declination,
+                  const casa::Quantity& positionAngle,
+                  const casa::Quantity& majorAxis,
+                  const casa::Quantity& minorAxis,
+                  const casa::Quantity& i1400,
+                  const casa::Double& spectralIndex);
 
         /// Unique component index number
         ComponentId id() const;
@@ -85,6 +86,11 @@ class Component {
         /// Base units: Jy
         casa::Quantity i1400() const;
 
+        /// Spectral index
+        /// Base units: N/A
+        casa::Double spectralIndex() const;
+
+
     private:
         ComponentId itsId;
         casa::Quantity itsRightAscension;
@@ -93,6 +99,7 @@ class Component {
         casa::Quantity itsMajorAxis;
         casa::Quantity itsMinorAxis;
         casa::Quantity itsI1400;
+        casa::Double itsSpectralIndex;
 };
 
 };

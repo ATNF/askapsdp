@@ -28,6 +28,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <limits>
 
 // ASKAPsoft includes
 #include "boost/program_options.hpp"
@@ -51,7 +52,8 @@ void processLine(const std::string& line, std::vector<Component>& components)
     const casa::uShort totalTokens = 13;
     const casa::uShort raPos = 3;
     const casa::uShort decPos = 4;
-    const casa::uShort fluxPos = 10;
+    const casa::uShort i_610_Pos = 9;
+    const casa::uShort i_1400_Pos = 10;
     const casa::uShort majorAxisPos = 6;
     const casa::uShort minorAxisPos = 7;
     const casa::uShort positionAnglePos = 5;
@@ -68,35 +70,42 @@ void processLine(const std::string& line, std::vector<Component>& components)
     }
 
     // Extract the values from the tokens
-    casa::Double _ra = boost::lexical_cast<casa::Double>(tokens[raPos]);
-    casa::Double _dec = boost::lexical_cast<casa::Double>(tokens[decPos]);
-    casa::Double _flux = pow(10.0, boost::lexical_cast<casa::Double>(tokens[fluxPos]));
-    casa::Double _majorAxis = boost::lexical_cast<casa::Double>(tokens[majorAxisPos]);
-    casa::Double _minorAxis = boost::lexical_cast<casa::Double>(tokens[minorAxisPos]);
-    casa::Double _positionAngle = boost::lexical_cast<casa::Double>(tokens[positionAnglePos]);
+    casa::Double ra = boost::lexical_cast<casa::Double>(tokens[raPos]);
+    casa::Double dec = boost::lexical_cast<casa::Double>(tokens[decPos]);
+    casa::Double i_610 = pow(10.0, boost::lexical_cast<casa::Double>(tokens[i_610_Pos]));
+    casa::Double i_1400 = pow(10.0, boost::lexical_cast<casa::Double>(tokens[i_1400_Pos]));
+    casa::Double majorAxis = boost::lexical_cast<casa::Double>(tokens[majorAxisPos]);
+    casa::Double minorAxis = boost::lexical_cast<casa::Double>(tokens[minorAxisPos]);
+    casa::Double positionAngle = boost::lexical_cast<casa::Double>(tokens[positionAnglePos]);
 
     // Fix some quirks in gaussian sources
-    if (_majorAxis > 0.0 || _minorAxis > 0.0) {
+    if (majorAxis > 0.0 || minorAxis > 0.0) {
 
         // Ensure major axis is larger than minor axis
-        if (_majorAxis < _minorAxis) {
-            casa::Double tmp = _minorAxis;
-            _minorAxis = _majorAxis;
-            _majorAxis = tmp;
+        if (majorAxis < minorAxis) {
+            casa::Double tmp = minorAxis;
+            minorAxis = majorAxis;
+            majorAxis = tmp;
         }
 
-        if (_minorAxis == 0.0) {
-            _minorAxis = 1.0e-15;
+        // TODO: Fix Remove this once the component imager is fixed. Currently, for gaussian
+        // shapes the component imager fails where the minor axis is zero.
+        if (minorAxis == 0.0) {
+            minorAxis = 1.0e-15;
         }
     }
 
+    // Determine spectral index
+    const double spectralIndex = log10(i_610/i_1400) / log10(610.0/1400.0);
+
     components.push_back(Component(-1,
-            casa::Quantity(_ra, "deg"),
-            casa::Quantity(_dec, "deg"),
-            casa::Quantity(_positionAngle, "rad"),
-            casa::Quantity(_majorAxis, "arcsec"),
-            casa::Quantity(_minorAxis, "arcsec"),
-            casa::Quantity(_flux, "Jy")));
+            casa::Quantity(ra, "deg"),
+            casa::Quantity(dec, "deg"),
+            casa::Quantity(positionAngle, "rad"),
+            casa::Quantity(majorAxis, "arcsec"),
+            casa::Quantity(minorAxis, "arcsec"),
+            casa::Quantity(i_1400, "Jy"),
+            spectralIndex));
 }
 
 void uploadComponents(SkyModelServiceClient& svc, std::vector<Component>& components)
@@ -128,7 +137,7 @@ int main(int argc, char *argv[])
         ("servicename,s", po::value<string>(&serviceName)->default_value("SkyModelService"),
              "Service name")
         ("filename,f", po::value<string>(&filename),
-             "Output filename");
+             "Input filename");
 
     po::variables_map vm;
     try {

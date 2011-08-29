@@ -38,19 +38,21 @@
 using namespace askap::cp::skymodelservice;
 
 Component::Component(const ComponentId id,
-        casa::Quantity rightAscension,
-        casa::Quantity declination,
-        casa::Quantity positionAngle,
-        casa::Quantity majorAxis,
-        casa::Quantity minorAxis,
-        casa::Quantity i1400)
+        const casa::Quantity& rightAscension,
+        const casa::Quantity& declination,
+        const casa::Quantity& positionAngle,
+        const casa::Quantity& majorAxis,
+        const casa::Quantity& minorAxis,
+        const casa::Quantity& i1400,
+        const casa::Double& spectralIndex)
     : itsId(id),
     itsRightAscension(rightAscension),
     itsDeclination(declination),
     itsPositionAngle(positionAngle),
     itsMajorAxis(majorAxis),
     itsMinorAxis(minorAxis),
-    itsI1400(i1400)
+    itsI1400(i1400),
+    itsSpectralIndex(spectralIndex)
 {
     ASKAPCHECK(itsRightAscension.isConform("deg"), "ra must conform to degrees");
     ASKAPCHECK(itsDeclination.isConform("deg"), "dec must conform to degrees");
@@ -93,4 +95,9 @@ casa::Quantity Component::minorAxis() const
 casa::Quantity Component::i1400() const
 {
     return itsI1400;
+}
+
+casa::Double Component::spectralIndex() const
+{
+    return itsSpectralIndex;
 }
