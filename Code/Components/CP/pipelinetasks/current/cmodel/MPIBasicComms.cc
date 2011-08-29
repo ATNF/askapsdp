@@ -306,7 +306,7 @@ std::vector<askap::cp::skymodelservice::Component> MPIBasicComms::receiveCompone
     int size;
     receive(&size, sizeof(int), source, itsComponentTag, status);
 
-    const int nDoubles = 6;
+    const int nDoubles = 7;
     double payload[nDoubles];
 
     std::vector<askap::cp::skymodelservice::Component> components;
