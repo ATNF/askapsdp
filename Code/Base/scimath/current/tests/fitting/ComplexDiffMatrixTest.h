@@ -34,6 +34,9 @@
 // casa includes
 #include <casa/BasicSL/Complex.h>
 #include <casa/Arrays/Vector.h>
+#include <casa/Arrays/MatrixMath.h>
+#include <scimath/Mathematics/MatrixMathLA.h>
+
 
 // own includes
 #include <fitting/ComplexDiff.h>
@@ -59,6 +62,7 @@ class ComplexDiffMatrixTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE(ComplexDiffMatrixTest);
   CPPUNIT_TEST(testAdd);
   CPPUNIT_TEST(testMultiply);
+  CPPUNIT_TEST(testMatrixMultiply);
   CPPUNIT_TEST(testMultiplyByScalar);
   CPPUNIT_TEST(testParameterList);
   CPPUNIT_TEST(testCreateFromVector);  
@@ -72,6 +76,7 @@ public:
   void setUp();
   void testAdd();
   void testMultiply();
+  void testMatrixMultiply();
   void testMultiplyByScalar();
   void testCreateFromVector();
   void testCreateFromMatrix();
@@ -152,6 +157,48 @@ void ComplexDiffMatrixTest::testMultiply()
   CPPUNIT_ASSERT(abs(cdm3(1,1).derivIm("g1")-casa::Complex(15.,35.))<1e-7);
   CPPUNIT_ASSERT(abs(cdm3(1,1).derivRe("g2")-casa::Complex(35.,-15.))<1e-7);
   CPPUNIT_ASSERT(abs(cdm3(1,1).derivIm("g2")-casa::Complex(15.,35.))<1e-7);  
+}
+
+void ComplexDiffMatrixTest::testMatrixMultiply()
+{
+  // this test is explicitly intended to test matrix multiply rather than
+  // carriage of derivatives (which is reasonably tested in ComplexDiff test)
+  
+  casa::Matrix<casa::Complex> M(4,4);
+  M(0,0) = casa::Complex(1.234,-0.01);   M(0,1) = casa::Complex(0.234,0.31);
+  M(0,2) = casa::Complex(-0.74,-0.023);  M(0,3) = casa::Complex(0.0004,0.03);
+  M(1,0) = casa::Complex(-0.0154,casa::C::pi/10.); M(1,1) = casa::Complex(2.4,-1.3);
+  M(1,2) = casa::Complex(0.04,-0.0123); M(1,3) = casa::Complex(2.9e-4,0.089);
+  M(2,0) = casa::Complex(1.0,-0.42); M(2,1) = casa::Complex(-0.097,-0.067);
+  M(2,2) = casa::Complex(3.4,0.8); M(2,3) = casa::Complex(-0.43,0.33);
+  M(3,0) = casa::Complex(-0.09,-0.038); M(3,1) = casa::Complex(-0.74,0.023);
+  M(3,2) = casa::Complex(0.,0.); M(3,3) = casa::Complex(1.0,0.0);
+  // fill CDM
+  ComplexDiffMatrix cdm(M);     
+  // compute inverse
+  casa::Matrix<casa::Complex> reciprocal(M.nrow(),M.ncolumn());
+  casa::Complex det = 0.;
+  casa::invert(reciprocal,det,M);
+  CPPUNIT_ASSERT(abs(det)>1e-5);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(),reciprocal.nrow());
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn(),reciprocal.ncolumn());
+  CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn(),casa::uInt(cdm.nColumn()));
+  // fill another CDM
+  ComplexDiffMatrix cdm2(reciprocal);
+  CPPUNIT_ASSERT_EQUAL(M.nrow(),casa::uInt(cdm2.nRow()));
+  CPPUNIT_ASSERT_EQUAL(M.ncolumn(),casa::uInt(cdm2.nColumn()));
+  // compute the product
+  ComplexDiffMatrix cdm3 = cdm * cdm2;
+  CPPUNIT_ASSERT(cdm3.paramBegin() == cdm3.paramEnd());
+  for (size_t i = 0; i<cdm3.nRow(); ++i) {
+       for (size_t j = 0; j<cdm3.nColumn(); ++j) {
+            const casa::Complex val = cdm3(i,j).value();
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(i == j ? 1. : 0., real(val), 1e-6);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(val), 1e-6);            
+       }
+  } 
+  
 }
 
 void ComplexDiffMatrixTest::testMultiplyByScalar()
