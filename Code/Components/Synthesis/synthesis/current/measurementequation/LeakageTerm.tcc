@@ -82,7 +82,7 @@ inline scimath::ComplexDiffMatrix LeakageTerm::get(const accessors::IConstDataAc
    calFactor(1, 3) = getParameter(accessors::CalParamNameHelper::paramName(ant1, beam1, casa::Stokes::XY));
    
    calFactor(3, 2) = -1.*conj(getParameter(accessors::CalParamNameHelper::paramName(ant2, beam2, casa::Stokes::YX)));
-   calFactor(2, 3) = -1.*conj(getParameter(accessors::CalParamNameHelper::paramName(ant2, beam2, casa::Stokes::XY)));
+   calFactor(2, 3) = conj(getParameter(accessors::CalParamNameHelper::paramName(ant2, beam2, casa::Stokes::XY)));
    
    for (casa::uInt pol=0; pol<4; ++pol) {
         

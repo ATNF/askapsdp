@@ -35,6 +35,7 @@
 
 #include <measurementequation/CalibrationApplicatorME.h>
 #include <casa/Arrays/MatrixMath.h>
+#include <scimath/Mathematics/MatrixMathLA.h>
 #include <askap/AskapError.h>
 
 namespace askap {
@@ -86,9 +87,10 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
                       mueller(i,j) = jones1(i / 2, j / 2) * conj(jones2(i % 2, j % 2));
                  }
             }
+            
             casa::Complex det = 0.;
             invert(reciprocal, det, mueller);
-            //invertSymPosDef(reciprocal, det, mueller);
+            
             ASKAPCHECK(casa::abs(det)>1e-5, "Unable to apply calibration, determinate is too close to 0. D="<<casa::abs(det));           
             casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
             const casa::Vector<casa::Complex> origVis = thisChan.copy();

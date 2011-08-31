@@ -51,6 +51,11 @@ namespace synthesis {
 /// @brief Calibration effect: polarisation leakage
 /// @details This is a simple effect which can be used in conjunction
 /// with the CalibrationME template (as its template argument)
+/// @note The relation between leakage terms and Jones matrices matches 
+/// the definition of Hamaker, Bregman & Sault. See their equation 
+/// (14) for details. Our parameters d12 (corresponding to Stokes:XY) and
+/// d21 (corresponding to Stokes::YX) correspond to d_{Ap} and d_{Aq} from
+/// Hamaker, Bregman & Sault, respectively.
 /// @ingroup measurementequation
 struct LeakageTerm : public ParameterizedMEComponent {
    

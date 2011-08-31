@@ -36,6 +36,9 @@
 #include <measurementequation/CalibrationME.h>
 #include <measurementequation/PreAvgCalMEBase.h>
 #include <measurementequation/LeakageTerm.h>
+#include <measurementequation/NoXPolGain.h>
+#include <measurementequation/Product.h>
+#include <fitting/ComplexDiffMatrix.h>
 #include <fitting/Params.h>
 
 #include <fitting/LinearSolver.h>
@@ -59,6 +62,7 @@ namespace askap
     class PolLeakageTest : public CppUnit::TestFixture
     {
       CPPUNIT_TEST_SUITE(PolLeakageTest);
+      CPPUNIT_TEST(testBuildCDM);
       CPPUNIT_TEST(testSolve);
       CPPUNIT_TEST(testSolvePreAvg);
       CPPUNIT_TEST(testApplication);            
@@ -138,6 +142,79 @@ namespace askap
           itsCE2.reset(new ComponentEquation(*itsParams2, itsIter));
       
       }
+      /// @brief creates dummy parameters
+      /// @details This method resets and fills itsParams1 with some dummy values
+      /// to be used in individual unit tests
+      void fillGainsAndLeakages() {
+          const casa::uInt nAnt = 30;
+          // use the following values to form both gains and leakages
+          const double realGains[nAnt] = {1.1, 0.9, 1.05, 0.87, 1.333,
+                                          1.1, 1.0, 1.0, -1.0, 0.3, 
+                                         -0.5, 1.1, 0.9, 0.98, 1.03,
+                                         -0.3, -1.1, 0.9, 1.1, 1.05,
+                                          1.0, -0.3, 1.1, 0.3, 1.8,
+                                          0.5, -0.7, 1.054, 1.0, 1.1}; 
+          const double imagGains[nAnt] = {0.0, 0., -0.05, 0.587, 0.,
+                                          0., -0.1, 0.02, -0.1, 0.84, 
+                                          0.86, 0.1, 0.1, 0., 0.03,
+                                         -0.84, 0., 0., -0.1, -0.05,
+                                          0.2, 0.9, 1.1, 0.3, -0.1,
+                                         -0.9, 0.72, -0.04, 0.05, -0.1}; 
+          itsParams1.reset(new scimath::Params);
+          itsParams1->add("flux.i.cena", 1.);
+          itsParams1->add("direction.ra.cena", 0.*casa::C::arcsec);
+          itsParams1->add("direction.dec.cena", 0.*casa::C::arcsec);
+          for (casa::uInt ant=0; ant<nAnt; ++ant) {
+               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::XX),
+                            casa::Complex(realGains[ant],imagGains[ant]));
+               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::YY),
+                            casa::Complex(realGains[nAnt - 1 - ant],imagGains[nAnt - 1 - ant]));
+                            
+               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::XY),
+                            casa::Complex(realGains[ant] - 1.,imagGains[ant])/casa::Complex(10.,0.));
+               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::YX),
+                            casa::Complex(realGains[ant] - 1.,imagGains[ant])/casa::Complex(10.,0.));                                           
+                            
+          }
+      }
+      
+      void testBuildCDM() {
+          fillGainsAndLeakages();
+          CPPUNIT_ASSERT(itsParams1);
+          typedef Product<NoXPolGain,LeakageTerm> EffectType; 
+          
+          const EffectType effect(itsParams1);
+          CPPUNIT_ASSERT(itsIter);
+          const casa::uInt nPol = 4;
+          CPPUNIT_ASSERT(itsIter->stokes().nelements() == nPol);
+          accessors::CachedCalSolutionAccessor acc(itsParams1);                    
+          CPPUNIT_ASSERT(itsIter->nRow() > 0);
+          CPPUNIT_ASSERT(itsIter->nPol() == nPol);
+          for (casa::uInt testRow = 0; testRow < itsIter->nRow(); ++testRow) {
+          
+               const scimath::ComplexDiffMatrix cdm = effect.get(*itsIter,testRow);
+
+               const casa::uInt testAnt1 = itsIter->antenna1()[testRow];
+               const casa::uInt testAnt2 = itsIter->antenna2()[testRow];
+               const casa::uInt testBeam1 = itsIter->feed1()[testRow];
+               const casa::uInt testBeam2 = itsIter->feed2()[testRow];
+
+               const casa::SquareMatrix<casa::Complex, 2> jones1 = acc.jones(testAnt1,testBeam1, 0);
+               const casa::SquareMatrix<casa::Complex, 2> jones2 = acc.jones(testAnt2,testBeam2, 0);
+               
+               for (casa::uInt i = 0; i < nPol; ++i) {
+                    for (casa::uInt j = 0; j < nPol; ++j) {
+                         // element of the Mueller matrix obtained from first principles (outer product)
+                         const casa::Complex expected = jones1(i / 2, j / 2) * conj(jones2(i % 2, j % 2));
+                         CPPUNIT_ASSERT(i < cdm.nRow());
+                         CPPUNIT_ASSERT(j < cdm.nColumn());                         
+                         const casa::Complex obtained = cdm(i,j).value();
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(real(expected),real(obtained),1e-6);
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(imag(expected),imag(obtained),1e-6);                         
+                    }
+               }
+          }                    
+      }
      
       void testSolve() {
           // Predict with the "perfect" parameters"
@@ -151,7 +228,7 @@ namespace askap
                }
           }
           
-          for (size_t iter=0; iter<5; ++iter) {
+          for (size_t iter=0; iter<10; ++iter) {
                // Calculate gradients using "imperfect" parameters"
                GenericNormalEquations ne; //(*params2);
             
@@ -170,9 +247,11 @@ namespace askap
           for (std::vector<std::string>::const_iterator it = freeNames.begin();
                it!=freeNames.end();++it) {
                CPPUNIT_ASSERT(itsParams2->has(*it));
-               CPPUNIT_ASSERT(itsParams1->has(*it));               
-               CPPUNIT_ASSERT_DOUBLES_EQUAL(casa::abs(itsParams2->complexValue(*it) -
-                                            itsParams1->complexValue(*it)), 0., 1e-6);
+               CPPUNIT_ASSERT(itsParams1->has(*it));       
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(casa::real(itsParams2->complexValue(*it) -
+                                            itsParams1->complexValue(*it)), 0., 5e-3);
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(casa::imag(itsParams2->complexValue(*it) -
+                                            itsParams1->complexValue(*it)), 0., 5e-3);
           }
       } 
       
@@ -193,7 +272,7 @@ namespace askap
           CPPUNIT_ASSERT(preAvgEq);
           preAvgEq->accumulate(itsIter,itsCE2);
 
-          for (size_t iter=0; iter<5; ++iter) {
+          for (size_t iter=0; iter<10; ++iter) {
                // Calculate gradients using "imperfect" parameters"
                GenericNormalEquations ne; 
             
@@ -212,10 +291,14 @@ namespace askap
                it!=freeNames.end();++it) {
                CPPUNIT_ASSERT(itsParams2->has(*it));
                CPPUNIT_ASSERT(itsParams1->has(*it));                              
-               CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,casa::abs(itsParams2->complexValue(*it) -
-                                            itsParams1->complexValue(*it)), 1e-6);               
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(casa::real(itsParams2->complexValue(*it) -
+                                            itsParams1->complexValue(*it)), 0., 5e-3);
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(casa::imag(itsParams2->complexValue(*it) -
+                                            itsParams1->complexValue(*it)), 0., 5e-3);
           }                   
       }
+      
+      
       void testApplication() {        
           // check that everything is set up for full stokes
           CPPUNIT_ASSERT(itsIter);
@@ -223,46 +306,16 @@ namespace askap
           CPPUNIT_ASSERT(da.itsStokes.nelements() == 4);
           da.rwVisibility().set(0.);          
           
-          const casa::uInt nAnt = 30;
-          // use the following values to form both gains and leakages
-          const double realGains[nAnt] = {1.1, 0.9, 1.05, 0.87, 1.333,
-                                          1.1, 1.0, 1.0, -1.0, 0.3, 
-                                         -0.5, 1.1, 0.9, 0.98, 1.03,
-                                         -0.3, -1.1, 0.9, 1.1, 1.05,
-                                          1.0, -0.3, 1.1, 0.3, 1.8,
-                                          0.5, -0.7, 1.054, 1.0, 1.1}; 
-          const double imagGains[nAnt] = {0.0, 0., -0.05, 0.587, 0.,
-                                          0., -0.1, 0.02, -0.1, 0.84, 
-                                          0.86, 0.1, 0.1, 0., 0.03,
-                                         -0.84, 0., 0., -0.1, -0.05,
-                                          0.2, 0.9, 1.1, 0.3, -0.1,
-                                         -0.9, 0.72, -0.04, 0.05, -0.1}; 
+          fillGainsAndLeakages();
+          CPPUNIT_ASSERT(itsParams1);
           
-          itsParams1.reset(new scimath::Params);
-          itsParams1->add("flux.i.cena", 1.);
-          itsParams1->add("direction.ra.cena", 0.*casa::C::arcsec);
-          itsParams1->add("direction.dec.cena", 0.*casa::C::arcsec);
-          for (casa::uInt ant=0; ant<nAnt; ++ant) {
-               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::XX),
-                            casa::Complex(realGains[ant],imagGains[ant]));
-               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::YY),
-                            casa::Complex(realGains[nAnt - 1 - ant],imagGains[nAnt - 1 - ant]));
-                            /*
-               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::XY),
-                            casa::Complex(realGains[ant] - 1.,imagGains[ant])/casa::Complex(10.,0.));
-               itsParams1->add(accessors::CalParamNameHelper::paramName(ant,0,casa::Stokes::YX),
-                            casa::Complex(realGains[ant] - 1.,imagGains[ant])/casa::Complex(10.,0.));                                           
-                            */
-          }
-
           itsCE1.reset(new ComponentEquation(*itsParams1, itsIter));
-          //typedef CalibrationME<Product<NoXPolGain,LeakageTerm> > METype2;
-          typedef CalibrationME<NoXPolGain> METype2;
+          typedef CalibrationME<Product<NoXPolGain,LeakageTerm> > METype2;
           
           boost::shared_ptr<METype2> eq1(new METype2(*itsParams1,itsIter,itsCE1));
           eq1->predict();
           
-          accessors::CachedCalSolutionAccessor acc(itsParams1);
+          accessors::CachedCalSolutionAccessor acc(itsParams1);                    
           accessors::CalSolutionSourceStub src(boost::shared_ptr<accessors::CachedCalSolutionAccessor>(&acc,utility::NullDeleter()));
           CalibrationApplicatorME calME(boost::shared_ptr<accessors::CalSolutionSourceStub>(&src,utility::NullDeleter()));
           calME.correct(da);
@@ -272,9 +325,8 @@ namespace askap
           for (casa::uInt row = 0; row < da.nRow(); ++row) {
                for (casa::uInt chan = 0; chan < da.nChannel(); ++chan) {
                     for (casa::uInt pol = 0; pol < da.nPol(); ++pol) {
-                         //std::cout<<row<<" "<<da.antenna1()[row]<<" "<<da.antenna2()[row]<<" "<<vis(row,chan,pol)<<" "<<chan<<" "<<pol<<std::endl;
-                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 1. : 0., real(vis(row,chan,pol)),1e-1);
-                         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(vis(row,chan,pol)),1e-1);                         
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 1. : 0., real(vis(row,chan,pol)),1e-6);
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(vis(row,chan,pol)),1e-6);                         
                     }
                }
           }
