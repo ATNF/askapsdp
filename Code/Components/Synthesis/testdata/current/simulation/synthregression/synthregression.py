@@ -9,4 +9,5 @@ import facetingtest
 print "calibratortest: test of ccalibrator"
 import calibratortest
 print "leakagecalibtest: test of polarisation leakage calibration"
-import leakagecalibtest
+print "temporary disabled"
+#import leakagecalibtest
