@@ -63,8 +63,8 @@ casa::SquareMatrix<casa::Complex, 2> ICalSolutionConstAccessor::jones(const Jone
   result(1,1) = gTerm.g2IsValid() ? gTerm.g2() : casa::Complex(1.,0.);
   const JonesDTerm dTerm = leakage(index);
 
-  result(0,1) = dTerm.d12IsValid() ? dTerm.d12() : 0.;
-  result(1,0) = dTerm.d21IsValid() ? -dTerm.d21() : 0.;
+  result(0,1) = (dTerm.d12IsValid() ? dTerm.d12() : 0.) * result(1,1);
+  result(1,0) = (dTerm.d21IsValid() ? -dTerm.d21() : 0.) * result(0,0);
 
   const JonesJTerm bpTerm = bandpass(index,chan);
   if (bpTerm.g1IsValid()) {
