@@ -36,7 +36,9 @@
 #include <measurementequation/CalibrationApplicatorME.h>
 #include <casa/Arrays/MatrixMath.h>
 #include <scimath/Mathematics/MatrixMathLA.h>
+#include <scimath/Mathematics/RigidVector.h>
 #include <askap/AskapError.h>
+#include <utils/PolConverter.h>
 
 namespace askap {
 
@@ -71,11 +73,20 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
   const casa::Vector<casa::uInt>& antenna2 = chunk.antenna2();
   const casa::Vector<casa::uInt>& beam1 = chunk.feed1();
   const casa::Vector<casa::uInt>& beam2 = chunk.feed2();
+  const casa::Vector<casa::Stokes::StokesTypes> stokes = chunk.stokes();   
   
   const casa::uInt nPol = chunk.nPol();
   ASKAPDEBUGASSERT(nPol <= 4);
   casa::Matrix<casa::Complex> mueller(nPol, nPol);
   casa::Matrix<casa::Complex> reciprocal(nPol, nPol);
+  
+  casa::RigidVector<casa::uInt, 4> indices(0u);
+  for (casa::uInt pol = 0; pol<nPol; ++pol) {
+       indices(pol) = scimath::PolConverter::getIndex(stokes[pol]);
+  }
+  
+  // full 4x4 Mueller matrix
+  casa::SquareMatrix<casa::Complex, 2> fullMueller(casa::SquareMatrix<casa::Complex, 2>::General);
   
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
        casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);
@@ -84,7 +95,9 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
             casa::SquareMatrix<casa::Complex, 2> jones2 = calSolution().jones(antenna2[row],beam2[row], chan);
             for (casa::uInt i = 0; i < nPol; ++i) {
                  for (casa::uInt j = 0; j < nPol; ++j) {
-                      mueller(i,j) = jones1(i / 2, j / 2) * conj(jones2(i % 2, j % 2));
+                      const casa::uInt index1 = indices(i);
+                      const casa::uInt index2 = indices(j);
+                      mueller(i,j) = jones1(index1 / 2, index2 / 2) * conj(jones2(index1 % 2, index2 % 2));
                  }
             }
             
