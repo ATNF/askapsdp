@@ -218,13 +218,19 @@ int main(int argc, char **argv)
            for (size_t pol = 0; pol<nPol; ++pol) {
                 for (int feed = 0; feed<(nFeed<0 ? 1 : nFeed); ++feed) { 
                      if (pol < 2) {
+                         //casa::Complex value = 1.;//gen();
                          casa::Complex value = gen();
                          const std::string parName = gainParameterName(ant,pol, nFeed<0 ? nFeed : feed);
                          os<<parName<<" = ["<<real(value)<<","<<imag(value)<<"]"<<std::endl;
                      } else {
+                         //if (pol==3) continue;
                          casa::Complex value = leakageGen();
                          const std::string parName = leakageParameterName(ant, pol - 2, nFeed<0 ? nFeed : feed);
                          os<<parName<<" = ["<<real(value)<<","<<imag(value)<<"]"<<std::endl;
+                         /*
+                         const std::string parName2 = leakageParameterName(ant, 1, nFeed<0 ? nFeed : feed);
+                         os<<parName2<<" = ["<<real(value)<<","<<imag(value)<<"]"<<std::endl;
+                         */
                      }
                 }
            }
