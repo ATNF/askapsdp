@@ -56,7 +56,9 @@ namespace accessors {
 /// @details It reads the given parset file, if it exists, and caches the values. Write
 /// operations are performed via this cache which is stored into file in the destructor.
 /// @param[in] parset parset file name
-ParsetCalSolutionAccessor::ParsetCalSolutionAccessor(const std::string &parset) : itsParsetFileName(parset), 
+/// @param[in] readonly if true, additional checks are done that file exists, otherwise
+/// it is assumed that we may write a new file
+ParsetCalSolutionAccessor::ParsetCalSolutionAccessor(const std::string &parset, bool readonly) : itsParsetFileName(parset), 
         itsWriteRequired(false), itsFirstWrite(true)
 {
   try {
@@ -64,7 +66,10 @@ ParsetCalSolutionAccessor::ParsetCalSolutionAccessor(const std::string &parset) 
      ASKAPLOG_INFO_STR(logger, "Successfully read calibration solution from a parset file "<<itsParsetFileName);
   }
   catch (const LOFAR::APSException &) {
-     // nothing read, this is probably a write case
+     // nothing read, this could be a write case, unless we know otherwise
+     if (readonly) {
+         throw;
+     }
      ASKAPLOG_INFO_STR(logger, "Set up ParsetCalSolutionAccessor to write results into "<<itsParsetFileName);
   } 
 }        

@@ -60,7 +60,9 @@ public:
   /// @details It reads the given parset file, if it exists, and caches the values. Write
   /// operations are performed via this cache which is stored into file in the destructor.
   /// @param[in] parset parset file name
-  explicit ParsetCalSolutionAccessor(const std::string &parset);
+  /// @param[in] readonly if true, additional checks are done that file exists, otherwise
+  /// it is assumed that we may write a new file
+  explicit ParsetCalSolutionAccessor(const std::string &parset, bool readonly = false);
   
   /// @brief destructor, stores the cache
   /// @details Actual write operation is performed here. All values stored in the cache are written
