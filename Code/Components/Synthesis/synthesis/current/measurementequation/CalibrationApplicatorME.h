@@ -40,6 +40,7 @@
 #include <measurementequation/ICalibrationApplicator.h>
 #include <calibaccess/ICalSolutionConstSource.h>
 #include <calibaccess/ICalSolutionConstAccessor.h>
+#include <measurementequation/CalibrationSolutionHandler.h>
 #include <dataaccess/IDataAccessor.h>
 
 // boost includes
@@ -59,7 +60,8 @@ namespace synthesis {
 /// jones matrix for each antenna/beam combination). This class handles time-dependence
 /// properly provided the solution source interface supports it as well.
 /// @ingroup measurementequation
-class CalibrationApplicatorME : virtual public ICalibrationApplicator {
+class CalibrationApplicatorME : virtual public ICalibrationApplicator,
+                                protected CalibrationSolutionHandler {
 public:
 
   /// @brief constructor 
@@ -78,31 +80,6 @@ public:
   /// existing accessors would throw an exception if flagging info is 
   /// changed.
   virtual void correct(accessors::IDataAccessor &chunk) const;  
-
-protected:
-  /// @brief helper method to update accessor pointer if necessary
-  /// @details This method updates the accessor shared pointer if it is 
-  /// uninitialised, or if it has been updated for the given time.
-  /// @param[in] time timestamp (seconds since 0 MJD)
-  void updateAccessor(const double time) const;
-  
-  /// @brief helper method to get current solution accessor
-  /// @details This method returns a reference to the current solution
-  /// accessor or throws an exception if it is uninitialised
-  /// (this shouldn't happen if updateAccessor is called first)
-  /// @return a const reference to the calibration solution accessor
-  const accessors::ICalSolutionConstAccessor& calSolution() const;
-  
-private:
-  /// @brief solution source to work with
-  boost::shared_ptr<accessors::ICalSolutionConstSource> itsCalSolutionSource;
-  
-  /// @brief shared pointer to the current solution accessor 
-  /// @details It is updated every time the time changes.
-  mutable boost::shared_ptr<accessors::ICalSolutionConstAccessor> itsCalSolutionAccessor;  
-  
-  /// @brief solution ID corresponding to the current solution accessor
-  mutable long itsCurrentSolutionID;
 };
 
 } // namespace synthesis

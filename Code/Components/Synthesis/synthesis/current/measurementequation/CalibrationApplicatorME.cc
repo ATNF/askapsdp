@@ -48,11 +48,7 @@ namespace synthesis {
 /// @details It initialises ME for a given solution source.
 /// @param[in] src calibration solution source to work with
 CalibrationApplicatorME::CalibrationApplicatorME(const boost::shared_ptr<accessors::ICalSolutionConstSource> &src) :
-     itsCalSolutionSource(src), itsCurrentSolutionID(-1) 
-{
-  ASKAPCHECK(itsCalSolutionSource, 
-      "An attempt to initialise CalibrationApplicatorME with a void calibration solution source shared pointer");
-}
+     CalibrationSolutionHandler(src) {}
 
 /// @brief correct model visibilities for one accessor (chunk).
 /// @details This method corrects the data in the given accessor
@@ -118,31 +114,6 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
             }
        }       
   }
-}
-
-/// @brief helper method to update accessor pointer if necessary
-/// @details This method updates the accessor shared pointer if it is 
-/// uninitialised, or if it has been updated for the given time.
-/// @param[in] time timestamp (seconds since 0 MJD)
-void CalibrationApplicatorME::updateAccessor(const double time) const
-{
-  ASKAPDEBUGASSERT(itsCalSolutionSource);
-  const long newID = itsCalSolutionSource->solutionID(time);
-  if ((newID != itsCurrentSolutionID) || !itsCalSolutionAccessor) {
-      itsCalSolutionAccessor = itsCalSolutionSource->roSolution(newID);
-      itsCurrentSolutionID = newID;
-  }
-}
-  
-/// @brief helper method to get current solution accessor
-/// @details This method returns a reference to the current solution
-/// accessor or throws an exception if it is uninitialised
-/// (this shouldn't happen if updateAccessor is called first)
-/// @return a const reference to the calibration solution accessor
-const accessors::ICalSolutionConstAccessor& CalibrationApplicatorME::calSolution() const
-{
-  ASKAPASSERT(itsCalSolutionAccessor);
-  return *itsCalSolutionAccessor;
 }
 
 
