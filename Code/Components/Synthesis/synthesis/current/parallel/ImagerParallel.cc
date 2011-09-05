@@ -53,14 +53,15 @@ ASKAP_LOGGER(logger, ".measurementequation");
 #include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/CalibrationIterator.h>
-#include <measurementequation/VoidMeasurementEquation.h>
-#include <measurementequation/CalibrationME.h>
 #include <measurementequation/NoXPolGain.h>
 #include <measurementequation/ImageParamsHelper.h>
 #include <fitting/Params.h>
 #include <utils/MultiDimArrayPlaneIter.h>
 
 #include <measurementequation/ImageSolverFactory.h>
+#include <calibaccess/CalibAccessFactory.h>
+#include <measurementequation/CalibrationApplicatorME.h>
+
 
 #include <casa/aips.h>
 #include <casa/OS/Timer.h>
@@ -128,7 +129,31 @@ namespace askap
       }
       if (itsComms.isWorker())
       {
-        itsGainsFile = parset.getString("gainsfile","");
+        bool doCalib = parset.getBool("calibrate",false);
+        if (doCalib) {
+            ASKAPCHECK(!parset.isDefined("gainsfile"), "Deprecated 'gainsfile' keyword is found together with calibrate=true, please remove it");
+            // setup solution source from the parset directly using the factory
+            itsSolutionSource = CalibAccessFactory::roCalSolutionSource(parset);            
+            ASKAPASSERT(itsSolutionSource);
+        } else if (parset.isDefined("gainsfile")) {
+            // temporary code to support deprecated gainsfile parameter (used in various tests)
+            const std::string gainsFile = parset.getString("gainsfile");
+            ASKAPLOG_WARN_STR(logger, "The parset has deprecated 'gainsfile = "<<gainsFile<<
+                       "' parameter defined. Use calibrate=true and calibaccess.parset=filename instead");
+            ASKAPCHECK(!parset.isDefined("calibaccess") && !parset.isDefined("calibaccess.parset"),
+                       "Detected a mix of deprecated and new parameters defining calibration solution access, remove gainsfile!");
+            LOFAR::ParameterSet tmpParset(parset);
+            tmpParset.add("calibaccess.parset", gainsFile);
+            tmpParset.add("calibaccess", "parset");
+            // setup solution source from the temporary parset
+            itsSolutionSource = CalibAccessFactory::roCalSolutionSource(tmpParset);
+            ASKAPASSERT(itsSolutionSource);            
+        }
+        if (itsSolutionSource) {
+            ASKAPLOG_INFO_STR(logger, "Data will be calibrated before imaging");
+        } else {
+            ASKAPLOG_INFO_STR(logger, "No calibration will be performed");
+        }         
       }
     }
 
@@ -163,21 +188,12 @@ namespace askap
         IDataSharedIter it=ds.createIterator(sel, conv);
         ASKAPCHECK(itsModel, "Model not defined");
         ASKAPCHECK(gridder(), "Gridder not defined");
-        if (!itsGainsFile.size()) {
+        if (!itsSolutionSource) {
             ASKAPLOG_INFO_STR(logger, "No calibration is applied" );
             itsEquation = askap::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, gridder()));
         } else {
-            ASKAPLOG_INFO_STR(logger, "Calibration will be performed using gains from '"<<itsGainsFile<<"'");
-            
-            scimath::Params gainModel; 
-            gainModel << LOFAR::ParameterSet(itsGainsFile);
-	        if (!itsVoidME) {
-	            itsVoidME.reset(new VoidMeasurementEquation);
-	        }
-	        // in the following statement it doesn't matter which iterator is passed
-	        // to the class as long as it is valid (it is not used at all).
-	        boost::shared_ptr<IMeasurementEquation> 
-	               calME(new CalibrationME<NoXPolGain>(gainModel,it,itsVoidME));
+            ASKAPLOG_INFO_STR(logger, "Calibration will be performed using solution source");
+            boost::shared_ptr<ICalibrationApplicator> calME(new CalibrationApplicatorME(itsSolutionSource));
             
             IDataSharedIter calIter(new CalibrationIterator(it,calME));
             itsEquation = askap::scimath::Equation::ShPtr(

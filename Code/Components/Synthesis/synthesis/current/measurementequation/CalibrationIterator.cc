@@ -61,7 +61,7 @@ using namespace askap::accessors;
 /// matter which iterator it has been initialized with. This class always
 /// uses accessor-based methods.
 CalibrationIterator::CalibrationIterator(const IDataSharedIter &iter, 
-              const boost::shared_ptr<IMeasurementEquation> &calME) :
+              const boost::shared_ptr<ICalibrationApplicator> &calME) :
     itsWrappedIterator(iter), itsCalibrationME(calME), itsBufferFlag(false)
 {
   ASKAPASSERT(itsWrappedIterator);
@@ -97,12 +97,8 @@ IDataAccessor& CalibrationIterator::operator*() const
       itsDataAccessor->rwVisibility() = itsWrappedIterator->visibility().copy();
       
       // correct data
-      ASKAPDEBUGASSERT(itsCalibrationME);
-      boost::shared_ptr<ICalibrationApplicator> calME = 
-              boost::dynamic_pointer_cast<ICalibrationApplicator>(itsCalibrationME);
-      ASKAPCHECK(calME, "An attempt to use CalibrationIterator with a wrong type of the ME (doesn't allow correction)");
-              
-      calME->correct(*itsDataAccessor);
+      ASKAPDEBUGASSERT(itsCalibrationME);              
+      itsCalibrationME->correct(*itsDataAccessor);
   }
   return *itsDataAccessor;
 }

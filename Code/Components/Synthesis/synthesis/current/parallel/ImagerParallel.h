@@ -38,6 +38,7 @@
 // Local package includes
 #include <parallel/MEParallelApp.h>
 #include <measurementequation/IMeasurementEquation.h>
+#include <calibaccess/ICalSolutionConstSource.h>
 
 namespace askap
 {
@@ -161,11 +162,14 @@ namespace askap
       /// @brief Do we want to keep scratch buffers in memory instead of writing them in a subtable?
       /// @details Turining this flag to true allows to work with a read-only dataset
       bool itsUseMemoryBuffers;
-      
-      /// @brief name of external file with gains to be used
-      /// @details An empty string means no calibration
-      std::string itsGainsFile;
-      
+            
+      /// @brief solution source to get calibration data from
+      /// @details This object is initialised by workers. It knows how to
+      /// retrieve calibration solutions (from a parset file, casa table or a database).
+      /// Uninitialised shared pointer means that no calibration is done and the data are
+      /// imaged as they are.
+      boost::shared_ptr<accessors::ICalSolutionConstSource> itsSolutionSource;
+            
       /// @brief void measurement equation
       /// @details Does nothing, just returns calls to predict and 
       /// calcNormalEquations. This shared pointer is initialized at the

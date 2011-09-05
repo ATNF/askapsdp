@@ -43,7 +43,7 @@
 
 #include <dataaccess/IDataIterator.h>
 #include <dataaccess/SharedIter.h>
-#include <measurementequation/IMeasurementEquation.h>
+#include <measurementequation/ICalibrationApplicator.h>
 
 namespace askap {
 
@@ -74,11 +74,8 @@ public:
     /// lead to an unpredictable result.
     /// @param[in] iter input iterator
     /// @param[in] calME calibration measurement equation
-    /// @note If calME belongs to a type initialized with an iterator, it doesn't
-    /// matter which iterator it has been initialized with. This class always
-    /// uses accessor-based methods.
     CalibrationIterator(const accessors::IDataSharedIter &iter, 
-              const boost::shared_ptr<IMeasurementEquation> &calME);
+              const boost::shared_ptr<ICalibrationApplicator> &calME);
 	
     /// Return the data accessor (current chunk) in various ways
     /// operator* delivers a reference to data accessor (current chunk)
@@ -143,7 +140,7 @@ private:
     accessors::IDataSharedIter itsWrappedIterator;	
     
     /// @brief measurement equation describing calibration
-    boost::shared_ptr<IMeasurementEquation> itsCalibrationME;
+    boost::shared_ptr<ICalibrationApplicator> itsCalibrationME;
     
     /// @brief a buffer for calibrated visibilities
     mutable boost::shared_ptr<accessors::IDataAccessor> itsDataAccessor;
