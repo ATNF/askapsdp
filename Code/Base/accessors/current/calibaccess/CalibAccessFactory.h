@@ -66,7 +66,7 @@ struct CalibAccessFactory {
    /// (without leading Cimager., etc)
    /// @return shared pointer to the calibration solution source object
    static boost::shared_ptr<ICalSolutionSource> rwCalSolutionSource(const LOFAR::ParameterSet &parset);
-   
+        
    /// @brief Build an appropriate "calibration source" class
    /// @details This is a factory method generating a shared pointer to the calibration
    /// solution source according to the parset file which allows read operation only.
@@ -75,7 +75,19 @@ struct CalibAccessFactory {
    /// @note For now we have the same implementation for write and for read and therefore implement
    /// read-only method via read-write one.
    inline static boost::shared_ptr<ICalSolutionConstSource> roCalSolutionSource(const LOFAR::ParameterSet &parset)
-      { return rwCalSolutionSource(parset); }
+      { return calSolutionSource(parset,true); }
+      
+protected:
+   /// @brief Build an appropriate "calibration source" class
+   /// @details This is a factory method generating a shared pointer to the calibration
+   /// solution source according to the parset file. The code for read-only and 
+   /// read-write operations is similar. Therefore, it is handy to contain it in one method only.
+   /// @param[in] parset parameters containing description of the class to be constructed 
+   /// (without leading Cimager., etc)
+   /// @param[in] readonly true if a read-only solution source is required
+   /// @return shared pointer to the calibration solution source object
+   static boost::shared_ptr<ICalSolutionConstSource> calSolutionSource(const LOFAR::ParameterSet &parset, bool readonly);
+   
 };
 
 } // namespace accessors

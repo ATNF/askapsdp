@@ -34,6 +34,7 @@
 
 #include <calibaccess/CalibAccessFactory.h>
 #include <calibaccess/ParsetCalSolutionSource.h>
+#include <calibaccess/ParsetCalSolutionConstSource.h>
 #include <askap/AskapError.h>
 
 // logging stuff
@@ -45,6 +46,7 @@ namespace askap {
 
 namespace accessors {
 
+
 /// @brief Build an appropriate "calibration source" class
 /// @details This is a factory method generating a shared pointer to the calibration
 /// solution source according to the parset file which allows write operation.
@@ -53,14 +55,34 @@ namespace accessors {
 /// @return shared pointer to the calibration solution source object
 boost::shared_ptr<ICalSolutionSource> CalibAccessFactory::rwCalSolutionSource(const LOFAR::ParameterSet &parset)
 {
+  const boost::shared_ptr<ICalSolutionSource> css = boost::dynamic_pointer_cast<ICalSolutionSource>(calSolutionSource(parset,false));
+  ASKAPCHECK(css, "Unable to cast calibration solution source to read-write type. This shouldn't have happened. It's a bug!");
+  return css;
+}
+
+/// @brief Build an appropriate "calibration source" class
+/// @details This is a factory method generating a shared pointer to the calibration
+/// solution source according to the parset file. The code for read-only and 
+/// read-write operations is similar. Therefore, it is handy to contain it in one method only.
+/// @param[in] parset parameters containing description of the class to be constructed 
+/// (without leading Cimager., etc)
+/// @param[in] readonly true if a read-only solution source is required
+/// @return shared pointer to the calibration solution source object
+boost::shared_ptr<ICalSolutionConstSource> CalibAccessFactory::calSolutionSource(const LOFAR::ParameterSet &parset, bool readonly)
+{
    const std::string calAccType = parset.getString("calibaccess","parset");
    ASKAPCHECK(calAccType == "parset", 
        "Only parset-based implementation is supported by the calibration access factory at the moment; you request: "<<calAccType);
    const std::string fname = parset.getString("calibacces.parset", "result.dat");
    ASKAPLOG_INFO_STR(logger, "Using implementation of the calibration solution accessor working with parset file "<<fname);
-   boost::shared_ptr<ParsetCalSolutionSource> result;
-   result.reset(new ParsetCalSolutionSource(fname));
+   boost::shared_ptr<ICalSolutionConstSource> result;
+   if (readonly) {
+      result.reset(new ParsetCalSolutionConstSource(fname));
+   } else {
+      result.reset(new ParsetCalSolutionSource(fname));
+   }
    // further configuration fine tuning can happen here
+   ASKAPDEBUGASSERT(result);
    return result;
 }
 
