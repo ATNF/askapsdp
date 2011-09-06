@@ -146,13 +146,29 @@ namespace askap
 /// @return shared pointer to a copy
         virtual Equation::ShPtr clone() const = 0;
 
-      /// @brief non-const reference to paramters
+      /// @brief shared pointer to paramters
       /// @details Due to caching, derived classes may need to know when
       /// the parameters of the equation have been updated. To track all
       /// updates, itsParams is made private. All changes to parameters are
       /// done via this method (including setParameters exposed to the user).
-      virtual Params::ShPtr& rwParameters() throw();
+      /// @note This method allows non-const manipulation of the parameters, but
+      /// not the change of the actual shared pointer class. The latter is done only
+      /// inside this class and not in derived classes.
+      /// @return non-const reference to the shared pointer
+      virtual const Params::ShPtr& rwParameters() const throw();
       
+    /// @brief reference the given parameter object
+    /// @details Sometimes it is handy to have a number of equations sharing exactly
+    /// the same parameters and use reference semantics. A call to this method allows
+    /// to reference itsParams member of this class to any given shared pointer to
+    /// scimath::Params. In particular, a shared pointer can be obtained using rwParameters
+    /// method. Use with caution. There is some legacy code/design which keep track of 
+    /// changes in parameters by overriding rwParameters. This methanism will not work 
+    /// correctly if referencing is used. Ideally, we want to convert this approach to
+    /// use change monitors together with scimath::Params class.
+    /// @param[in] params shared pointer to scimath::Params class to adopt in this equation
+    void reference(const Params::ShPtr &params);
+            
     private:
       /// Parameters
         Params::ShPtr itsParams;

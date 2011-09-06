@@ -65,7 +65,8 @@ CalibParamsMEAdapter::CalibParamsMEAdapter(const boost::shared_ptr<IMeasurementE
   // parameters. Throwing an exception for now because it is not our intended use case.
   boost::shared_ptr<scimath::Equation> eqn = boost::dynamic_pointer_cast<scimath::Equation>(itsSlaveME);
   ASKAPCHECK(eqn, "Attempt to initialise CalibParamsMEAdapter with an incompatible type of slave measurement equation");
-  rwParameters() = eqn->rwParameters();
+  reference(eqn->rwParameters());
+  ASKAPASSERT(rwParameters());
 }
    
 /// @brief Predict model visibilities for one accessor (chunk).
@@ -106,6 +107,7 @@ void CalibParamsMEAdapter::processAntBeamPair(const casa::uInt ant, const casa::
 /// @param[in] val new value
 void CalibParamsMEAdapter::updateParameter(const std::string &name, const casa::Complex &val) const
 {
+  ASKAPDEBUGASSERT(rwParameters());
 }
 
 

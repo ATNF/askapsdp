@@ -62,7 +62,7 @@ namespace askap
     ImageDFTEquation::ImageDFTEquation(accessors::IDataSharedIter& idi) :  
       itsIdi(idi) 
     {
-      rwParameters()=defaultParameters().clone();
+      reference(defaultParameters().clone());
       init();
     }
 

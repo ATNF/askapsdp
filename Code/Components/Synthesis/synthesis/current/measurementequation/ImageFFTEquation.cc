@@ -74,7 +74,7 @@ namespace askap
       itsIdi(idi)
     {
       itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
-      rwParameters()=defaultParameters().clone();
+      reference(defaultParameters().clone());
       init();
     }
 
@@ -90,7 +90,7 @@ namespace askap
         IVisGridder::ShPtr gridder) :
       itsGridder(gridder), itsIdi(idi)
     {
-      rwParameters()=defaultParameters().clone();
+      reference(defaultParameters().clone());
       init();
     }
 

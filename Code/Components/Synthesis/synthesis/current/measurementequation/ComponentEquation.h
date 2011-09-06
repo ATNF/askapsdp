@@ -186,7 +186,7 @@ namespace askap
         /// @brief read-write access to parameters
         /// @details This method is overridden to invalidate component cache.
         /// @return a non-const reference to Param::ShPtr
-        virtual scimath::Params::ShPtr& rwParameters() throw();
+        virtual const scimath::Params::ShPtr& rwParameters() const throw();
         
     private:   
         /// @brief vector of components plugged into this component equation
