@@ -46,6 +46,7 @@
 #include <measurementequation/CalibrationApplicatorME.h>
 #include <calibaccess/CachedCalSolutionAccessor.h>
 #include <calibaccess/CalSolutionSourceStub.h>
+#include <measurementequation/CalibParamsMEAdapter.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <askap/AskapError.h>
@@ -65,7 +66,8 @@ namespace askap
       CPPUNIT_TEST(testBuildCDM);
       CPPUNIT_TEST(testSolve);
       CPPUNIT_TEST(testSolvePreAvg);
-      CPPUNIT_TEST(testApplication);            
+      CPPUNIT_TEST(testApplication);
+      CPPUNIT_TEST(testSimulation);            
       CPPUNIT_TEST_SUITE_END();
      
      public:
@@ -331,7 +333,74 @@ namespace askap
                }
           }
         }
-      
+        
+        void checkTwoParamsClasses(const scimath::Params &param1, const scimath::Params &param2) {
+            const std::vector<string> names = param1.names();
+            CPPUNIT_ASSERT_EQUAL(names.size(), param2.names().size());
+            for (std::vector<string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
+                 CPPUNIT_ASSERT(param1.has(*ci) && param2.has(*ci));
+                 CPPUNIT_ASSERT_DOUBLES_EQUAL(real(param1.complexValue(*ci)),real(param2.complexValue(*ci)), 1e-6);
+                 CPPUNIT_ASSERT_DOUBLES_EQUAL(imag(param1.complexValue(*ci)),imag(param2.complexValue(*ci)), 1e-6);                 
+            }
+        }
+        
+        void testSimulation() {
+          // this test is similar to testApplication, but simulation is done using parameters obtained
+          // via calibration solution interface
+          // check that everything is set up for full stokes
+          CPPUNIT_ASSERT(itsIter);
+          accessors::DataAccessorStub &da = dynamic_cast<accessors::DataAccessorStub&>(*itsIter);          
+          CPPUNIT_ASSERT(da.itsStokes.nelements() == 4);
+          da.rwVisibility().set(0.);          
+          
+          fillGainsAndLeakages();
+          CPPUNIT_ASSERT(itsParams1);
+          itsParams1->remove("flux.i.cena");
+          itsParams1->remove("direction.ra.cena");
+          itsParams1->remove("direction.dec.cena");          
+          scimath::Params tmpParams1(*itsParams1);          
+          accessors::CachedCalSolutionAccessor acc(itsParams1);                    
+          accessors::CalSolutionSourceStub css(boost::shared_ptr<accessors::CachedCalSolutionAccessor>(&acc,utility::NullDeleter()));
+          
+          itsParams2.reset(new scimath::Params);
+          itsParams2->add("flux.i.cena", 1.);
+          itsParams2->add("direction.ra.cena", 0.*casa::C::arcsec);
+          itsParams2->add("direction.dec.cena", 0.*casa::C::arcsec);
+          
+          itsCE1.reset(new ComponentEquation(*itsParams2, itsIter));
+          typedef CalibrationME<Product<NoXPolGain,LeakageTerm> > METype2;
+          
+          boost::shared_ptr<METype2> eqn(new METype2(*itsParams2,itsIter,itsCE1));
+          boost::shared_ptr<accessors::CalSolutionSourceStub> cssPtr(&css, utility::NullDeleter());
+          scimath::Params tmpParams2(*itsParams2);
+          
+          CalibParamsMEAdapter adapter(eqn,cssPtr,itsIter);                    
+          // this should simulate 1 Jy point source in the phase centre with gains and leakages applied
+          adapter.predict();
+          //eqn->predict();
+          
+          // check that itsParams1 and 2 are intact
+          checkTwoParamsClasses(tmpParams2, *itsParams2);
+          checkTwoParamsClasses(tmpParams1, *itsParams1);
+          
+          // now correct using the same solution source          
+          CalibrationApplicatorME calME(cssPtr);
+          calME.correct(da);
+
+          /*
+          // check visibilities after calibration application
+          const casa::Cube<casa::Complex>& vis = da.visibility();
+          for (casa::uInt row = 0; row < da.nRow(); ++row) {
+               for (casa::uInt chan = 0; chan < da.nChannel(); ++chan) {
+                    for (casa::uInt pol = 0; pol < da.nPol(); ++pol) {
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 1. : 0., real(vis(row,chan,pol)),1e-4);
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(vis(row,chan,pol)),1e-4);                         
+                    }
+               }
+          }
+          */
+           
+        }
       
      private:
       typedef CalibrationME<LeakageTerm> METype;

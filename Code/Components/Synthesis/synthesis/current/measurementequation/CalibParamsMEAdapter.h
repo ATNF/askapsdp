@@ -93,6 +93,22 @@ public:
                 const boost::shared_ptr<accessors::ICalSolutionConstSource> &css = boost::shared_ptr<accessors::ICalSolutionConstSource>(), 
                 const accessors::IDataSharedIter& idi = accessors::IDataSharedIter());
    
+   /// @brief copy constructor
+   /// @details We need it because some data members have non-trivial types (shared pointers)
+   /// @param[in] other other object to copy from
+   CalibParamsMEAdapter(const CalibParamsMEAdapter &other);
+   
+   /// @brief assignment operator
+   /// @details We need it because some data members have non-trivial types (shared pointers)
+   /// @param[in] other other object to copy from
+   const CalibParamsMEAdapter& operator=(const CalibParamsMEAdapter &other);
+   
+   /// @brief clone method
+   /// @details
+   /// @return shared pointer to a clone
+   virtual boost::shared_ptr<scimath::Equation> clone() const 
+      { return boost::shared_ptr<scimath::Equation>(new CalibParamsMEAdapter(*this));}
+   
    /// @brief Predict model visibilities for one accessor (chunk).
    /// @details This prediction is done for single chunk of data only.
    /// This method overrides pure virtual method of the base class. 
@@ -109,6 +125,9 @@ public:
    
    // to make this method public
    using CalibrationSolutionHandler::setCalSolutionSource;
+   // make iterator-based methods visible here
+   using MultiChunkEquation::predict;
+   using MultiChunkEquation::calcEquations;
 
 protected:   
    /// @brief process parameters for a given antenna/beam   

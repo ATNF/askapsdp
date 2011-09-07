@@ -73,6 +73,58 @@ CalibParamsMEAdapter::CalibParamsMEAdapter(const boost::shared_ptr<IMeasurementE
   reference(eqn->rwParameters());
   ASKAPASSERT(rwParameters());
 }
+
+/// @brief copy constructor
+/// @details We need it because some data members have non-trivial types (shared pointers)
+/// @param[in] other other object to copy from
+CalibParamsMEAdapter::CalibParamsMEAdapter(const CalibParamsMEAdapter &other) : Equation(other), MultiChunkEquation(other), 
+       CalibrationSolutionHandler(other), 
+       itsCalSolutionCM(other.itsCalSolutionCM), itsAntBeamPairs(other.itsAntBeamPairs) 
+{
+  ASKAPCHECK(other.itsSlaveME, "Slave ME is uninitialised in a call to the copy constructor");
+  // deliberately reuse shared pointer between the slaved measurement equation and this adapter to
+  // ensure reference semantics for parameters if we could. It is not clear what to do if we can't extract the
+  // parameters. Throwing an exception for now because it is not our intended use case.
+  boost::shared_ptr<scimath::Equation> eqn = boost::dynamic_pointer_cast<scimath::Equation>(other.itsSlaveME);
+  ASKAPCHECK(eqn, "Attempt to initialise CalibParamsMEAdapter with an incompatible type of slave measurement equation");
+  itsSlaveME = boost::dynamic_pointer_cast<IMeasurementEquation>(eqn->clone());
+  ASKAPDEBUGASSERT(itsSlaveME);
+  eqn = boost::dynamic_pointer_cast<scimath::Equation>(itsSlaveME);
+  ASKAPDEBUGASSERT(eqn);
+  reference(eqn->rwParameters());
+  ASKAPASSERT(rwParameters());
+  // 
+  ASKAPTHROW(AskapError, "This code has not been tested and technically we don't need it");
+}
+
+/// @brief assignment operator
+/// @details We need it because some data members have non-trivial types (shared pointers)
+/// @param[in] other other object to copy from
+const CalibParamsMEAdapter& CalibParamsMEAdapter::operator=(const CalibParamsMEAdapter &other)
+{
+  if (this != &other) {
+      MultiChunkEquation::operator=(other);
+      CalibrationSolutionHandler::operator=(other);
+      itsCalSolutionCM = other.itsCalSolutionCM;
+      itsAntBeamPairs = other.itsAntBeamPairs;
+      ASKAPCHECK(other.itsSlaveME, "Slave ME is uninitialised in a call to the copy constructor");
+      // deliberately reuse shared pointer between the slaved measurement equation and this adapter to
+      // ensure reference semantics for parameters if we could. It is not clear what to do if we can't extract the
+      // parameters. Throwing an exception for now because it is not our intended use case.
+      boost::shared_ptr<scimath::Equation> eqn = boost::dynamic_pointer_cast<scimath::Equation>(other.itsSlaveME);
+      ASKAPCHECK(eqn, "Attempt to initialise CalibParamsMEAdapter with an incompatible type of slave measurement equation");
+      itsSlaveME = boost::dynamic_pointer_cast<IMeasurementEquation>(eqn->clone());
+      ASKAPDEBUGASSERT(itsSlaveME);
+      eqn = boost::dynamic_pointer_cast<scimath::Equation>(itsSlaveME);
+      ASKAPDEBUGASSERT(eqn);
+      reference(eqn->rwParameters());
+      ASKAPASSERT(rwParameters());
+      // 
+      ASKAPTHROW(AskapError, "This code has not been tested and technically we don't need it");      
+  }
+  return *this;
+}
+
    
 /// @brief Predict model visibilities for one accessor (chunk).
 /// @details This prediction is done for single chunk of data only.
