@@ -35,6 +35,7 @@
 // own includes
 #include <calibaccess/ICalSolutionConstSource.h>
 #include <calibaccess/ICalSolutionConstAccessor.h>
+#include <utils/ChangeMonitor.h>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
@@ -77,6 +78,14 @@ public:
   /// (this shouldn't happen if updateAccessor is called first)
   /// @return a const reference to the calibration solution accessor
   const accessors::ICalSolutionConstAccessor& calSolution() const;
+  
+  /// @brief obtain change monitor
+  /// @details This class is handy if one wants to track changes in the
+  /// solution accessor without analysing its content in detail (i.e. for
+  /// caching of derived information). One just has to compare change monitors
+  /// and if they're not equal, obtain a new solution accessor via calSolution
+  /// (and a new change monitor)
+  inline scimath::ChangeMonitor changeMonitor() const { return itsChangeMonitor;}
 
 private:
   /// @brief solution source to work with
@@ -89,6 +98,8 @@ private:
   /// @brief solution ID corresponding to the current solution accessor
   mutable long itsCurrentSolutionID;
 
+  /// @brief change monitor (to track changes in the accessor returned by calSolution)
+  mutable scimath::ChangeMonitor itsChangeMonitor;
 };
 
 } // namespace synthesis

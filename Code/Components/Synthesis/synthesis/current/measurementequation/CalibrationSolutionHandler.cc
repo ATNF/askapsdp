@@ -60,7 +60,8 @@ void CalibrationSolutionHandler::setCalSolutionSource(const boost::shared_ptr<ac
       "An attempt to initialise CalibrationSolutionHandler with a void calibration solution source shared pointer");  
   itsCalSolutionSource = css;
   itsCalSolutionAccessor.reset();
-  itsCurrentSolutionID = -1;    
+  itsCurrentSolutionID = -1;
+  itsChangeMonitor.notifyOfChanges();    
 }
 
 
@@ -75,6 +76,7 @@ void CalibrationSolutionHandler::updateAccessor(const double time) const
   if ((newID != itsCurrentSolutionID) || !itsCalSolutionAccessor) {
       itsCalSolutionAccessor = itsCalSolutionSource->roSolution(newID);
       itsCurrentSolutionID = newID;
+      itsChangeMonitor.notifyOfChanges();    
   }
 }
   

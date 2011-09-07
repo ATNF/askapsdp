@@ -38,9 +38,14 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 // own includes
+#include <askap_synthesis.h>
 #include <measurementequation/CalibParamsMEAdapter.h>
 #include <askap/AskapError.h>
 #include <fitting/Equation.h>
+#include <askap/AskapLogging.h>
+#include <calibaccess/CalParamNameHelper.h>
+ASKAP_LOGGER(logger, ".measurementequation");
+
 
 namespace askap {
 
@@ -75,6 +80,31 @@ CalibParamsMEAdapter::CalibParamsMEAdapter(const boost::shared_ptr<IMeasurementE
 /// @param[in] chunk a read-write accessor to work with
 void CalibParamsMEAdapter::predict(accessors::IDataAccessor &chunk) const
 {
+  updateAccessor(chunk.time());
+  if (itsCalSolutionCM != changeMonitor()) {
+      itsCalSolutionCM = changeMonitor();
+      // there was an update, we need to rebuild parameters before calling predict
+      // method of the slave ME.
+      ASKAPLOG_INFO_STR(logger, "CalibParamsMEAdapter - new calibration solution (time="<<chunk.time()<<
+                        " seconds since 0 MJD), regenerating calibration parameters");
+      itsAntBeamPairs.clear();      
+  }
+  // iterate over all rows as even if there is no change in calibration solution the new
+  // visibility chunk may have antennas/beams not previously seen in the data.
+  const casa::Vector<casa::uInt>& ant1IDs = chunk.antenna1();
+  const casa::Vector<casa::uInt>& ant2IDs = chunk.antenna2();
+  const casa::Vector<casa::uInt>& beam1IDs = chunk.feed1();
+  const casa::Vector<casa::uInt>& beam2IDs = chunk.feed2();
+  const casa::uInt nRow = chunk.nRow();
+  ASKAPDEBUGASSERT(nRow == ant1IDs.nelements());
+  ASKAPDEBUGASSERT(nRow == ant2IDs.nelements());
+  ASKAPDEBUGASSERT(nRow == beam1IDs.nelements());
+  ASKAPDEBUGASSERT(nRow == beam2IDs.nelements());
+  for (casa::uInt row = 0; row < nRow; ++row) {
+       processAntBeamPair(ant1IDs[row], beam1IDs[row]);
+       processAntBeamPair(ant2IDs[row], beam2IDs[row]);
+  }
+  // parameters are now ready, predict visibilities using the slave measurement equation
   itsSlaveME->predict(chunk);
 }
    
@@ -85,7 +115,22 @@ void CalibParamsMEAdapter::calcEquations(const accessors::IConstDataAccessor &,
                           askap::scimath::INormalEquations&) const
 {
   ASKAPTHROW(AskapError, "CalibParamsMEAdapter::calcEquations is not supposed to be used");
-}                          
+}  
+
+/// @brief manage update for a one antenna/beam
+/// @details This method manages cache and calls virtual 
+/// updateSingleAntBeam method if an update is necessary
+/// @param[in] ant antenna index   
+/// @param[in] beam beam index
+void CalibParamsMEAdapter::processAntBeamPair(const casa::uInt ant, const casa::uInt beam) const
+{
+   const accessors::JonesIndex index(ant, beam);
+   if (itsAntBeamPairs.find(index) == itsAntBeamPairs.end()) {
+       itsAntBeamPairs.insert(index);
+       updateSingleAntBeam(index);    
+   }   
+}
+                        
 
 /// @brief process parameters for a given antenna/beam   
 /// @details This method encapsulates update of the parameters 
@@ -93,21 +138,34 @@ void CalibParamsMEAdapter::calcEquations(const accessors::IConstDataAccessor &,
 /// the current calibration solution accessor. Override this
 /// method for non-standard parameter names (use updateParameter
 /// for the actual update).
-/// @param[in] ant antenna index
-/// @param[in] beam beam index
-void CalibParamsMEAdapter::processAntBeamPair(const casa::uInt ant, const casa::uInt beam) const
+/// @param[in] index ant/beam index
+void CalibParamsMEAdapter::updateSingleAntBeam(const accessors::JonesIndex &index) const
 {
+  // it is not clear how to deal with the bandpass. Just use channel 0 for now.
+  casa::SquareMatrix<casa::Complex, 2> jones = calSolution().jones(index, 0u);
+  // we could've also used the validity flag for calibration information to adjust the
+  // flags for visibilities. However, for now we skip this step for simplicity (this code
+  // is intended to be used with the simulator only).
+  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::XX), jones(0,0));
+  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::YY), jones(1,1));
+  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::XY), jones(0,1));
+  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::YX), -jones(1,0));  
 }
    
 /// @brief helper method to update a given parameter if necessary
 /// @details This method checks whether the parameter is new and
-/// adds or updates as required to the parameter class held by the
+/// adds or updates as required in the parameter class held by the
 /// slave measurement equation.
 /// @param[in] name parameter name
 /// @param[in] val new value
 void CalibParamsMEAdapter::updateParameter(const std::string &name, const casa::Complex &val) const
 {
   ASKAPDEBUGASSERT(rwParameters());
+  if (rwParameters()->has(name)) {
+      rwParameters()->update(name,val);
+  } else {
+      rwParameters()->add(name,val);
+  }
 }
 
 

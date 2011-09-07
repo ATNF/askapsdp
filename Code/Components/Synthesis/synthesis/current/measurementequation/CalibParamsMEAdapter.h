@@ -46,9 +46,16 @@
 #include <measurementequation/CalibrationSolutionHandler.h>
 #include <dataaccess/SharedIter.h>
 #include <calibaccess/ICalSolutionConstSource.h>
+#include <calibaccess/JonesIndex.h>
+#include <utils/ChangeMonitor.h>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
+
+// std includes
+#include <string>
+#include <set>
+
 
 namespace askap {
 
@@ -110,13 +117,20 @@ protected:
    /// the current calibration solution accessor. Override this
    /// method for non-standard parameter names (use updateParameter
    /// for the actual update).
-   /// @param[in] ant antenna index
+   /// @param[in] index ant/beam index   
+   virtual void updateSingleAntBeam(const accessors::JonesIndex &index) const;
+   
+   /// @brief manage update for a one antenna/beam
+   /// @details This method manages cache and calls virtual 
+   /// updateSingleAntBeam method if an update is necessary
+   /// @param[in] ant antenna index   
    /// @param[in] beam beam index
-   virtual void processAntBeamPair(const casa::uInt ant, const casa::uInt beam) const;
+   void processAntBeamPair(const casa::uInt ant, const casa::uInt beam) const;
+   
    
    /// @brief helper method to update a given parameter if necessary
    /// @details This method checks whether the parameter is new and
-   /// adds or updates as required to the parameter class held by the
+   /// adds or updates as required in the parameter class held by the
    /// slave measurement equation.
    /// @param[in] name parameter name
    /// @param[in] val new value
@@ -124,7 +138,19 @@ protected:
 private:
     
     /// @brief slave measurement equation
-    boost::shared_ptr<IMeasurementEquation> itsSlaveME;      
+    boost::shared_ptr<IMeasurementEquation> itsSlaveME;  
+    
+    /// @brief change monitor corresponding to the current parameters held by this class
+    /// @details It is used for caching, parameters are rebuilt if change of calibration
+    /// solution did take place.
+    mutable scimath::ChangeMonitor itsCalSolutionCM;
+    
+    /// @brief antenna/beam pairs for which calibration parameters have been generated
+    /// @details We skip generation of parameters if it has been done already. This set
+    /// keeps track of the antenna/beam pairs for which parameters have been added into
+    /// scimath::Params class held by this adapter (and accessible via rwParameters).
+    mutable std::set<accessors::JonesIndex> itsAntBeamPairs;
+    
 }; // class CalibParamsMEAdapter                            
 
 } // namespace synthesis
