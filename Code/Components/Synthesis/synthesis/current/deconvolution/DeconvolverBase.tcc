@@ -155,7 +155,6 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverBase<T,FT>::setModel(const Array<T> model, const uInt term) {
       ASKAPCHECK(term<itsNumberTerms, "Term " << term << " greater than allowed " << itsNumberTerms);
-      ASKAPCHECK(term>=0, "Term " << term << " less than zero");
       this->itsModel(term)=model.nonDegenerate().copy();
       this->validateShapes();
     }

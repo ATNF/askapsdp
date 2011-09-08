@@ -171,7 +171,7 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
         bool isFree(const std::string& name) const;
 
 /// Return number of values in the parameter
-        const uint size() const;
+        uint size() const;
 
 /// Return array value for the parameter with this name (const)
 /// @param name Name of param

@@ -85,8 +85,6 @@ struct GenericMultiChunkEquation : virtual public MultiChunkEquation,
   /// @param[in] ne Normal equations
   virtual void calcEquations(const accessors::IConstDataAccessor &chunk,
                           askap::scimath::INormalEquations& ne) const;
-
-  using GenericEquation::calcEquations;
   
   /// @brief Calculate the normal equation for one accessor (chunk).
   /// @details This calculation is done for a single chunk of
@@ -115,7 +113,6 @@ struct GenericMultiChunkEquation : virtual public MultiChunkEquation,
   virtual void calcEquations(askap::scimath::INormalEquations& ne) const;
   
   using MultiChunkEquation::predict;
-  using MultiChunkEquation::calcEquations;
 };
 
 

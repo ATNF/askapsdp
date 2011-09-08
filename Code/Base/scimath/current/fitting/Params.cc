@@ -251,7 +251,7 @@ namespace askap
 			notifyAboutChange(name);
 		}
 
-		const uint Params::size() const
+		uint Params::size() const
 		{
 			return static_cast<uint>(itsFree.size());
 		}
