@@ -355,10 +355,17 @@ namespace askap
           
           fillGainsAndLeakages();
           CPPUNIT_ASSERT(itsParams1);
+          typedef CalibrationME<Product<NoXPolGain,LeakageTerm> > METype;
+          itsCE2.reset(new ComponentEquation(*itsParams1, itsIter));
+          boost::shared_ptr<METype> firstPrinciplesEqn(new METype(*itsParams1,itsIter,itsCE2));
+          
+          // itsParams1 has been copied inside firstPrinciplesEqn and itsCE2, can 
+          // leave only gains/leakages in there
           itsParams1->remove("flux.i.cena");
           itsParams1->remove("direction.ra.cena");
           itsParams1->remove("direction.dec.cena");          
           scimath::Params tmpParams1(*itsParams1);          
+          
           accessors::CachedCalSolutionAccessor acc(itsParams1);                    
           accessors::CalSolutionSourceStub css(boost::shared_ptr<accessors::CachedCalSolutionAccessor>(&acc,utility::NullDeleter()));
           
@@ -368,9 +375,8 @@ namespace askap
           itsParams2->add("direction.dec.cena", 0.*casa::C::arcsec);
           
           itsCE1.reset(new ComponentEquation(*itsParams2, itsIter));
-          typedef CalibrationME<Product<NoXPolGain,LeakageTerm> > METype2;
           
-          boost::shared_ptr<METype2> eqn(new METype2(*itsParams2,itsIter,itsCE1));
+          boost::shared_ptr<METype> eqn(new METype(*itsParams2,itsIter,itsCE1));
           boost::shared_ptr<accessors::CalSolutionSourceStub> cssPtr(&css, utility::NullDeleter());
           scimath::Params tmpParams2(*itsParams2);
           
@@ -382,24 +388,37 @@ namespace askap
           // check that itsParams1 and 2 are intact
           checkTwoParamsClasses(tmpParams2, *itsParams2);
           checkTwoParamsClasses(tmpParams1, *itsParams1);
+          const casa::Cube<casa::Complex> corruptedVis(da.visibility().copy());
           
           // now correct using the same solution source          
           CalibrationApplicatorME calME(cssPtr);
           calME.correct(da);
 
-          /*
+          
           // check visibilities after calibration application
           const casa::Cube<casa::Complex>& vis = da.visibility();
           for (casa::uInt row = 0; row < da.nRow(); ++row) {
                for (casa::uInt chan = 0; chan < da.nChannel(); ++chan) {
                     for (casa::uInt pol = 0; pol < da.nPol(); ++pol) {
-                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 1. : 0., real(vis(row,chan,pol)),1e-4);
-                         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(vis(row,chan,pol)),1e-4);                         
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(pol % 3 == 0 ? 1. : 0., real(vis(row,chan,pol)),1e-6);
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., imag(vis(row,chan,pol)),1e-6);                         
                     }
                }
           }
-          */
-           
+          // simulate corrupted visibilities again from "first principles", i.e. using explicitly
+          // defined gains and leakages in the parameters of the measurement equation
+          CPPUNIT_ASSERT(firstPrinciplesEqn);
+          firstPrinciplesEqn->predict();
+          // check that the result is the same as with the ME adapter
+          CPPUNIT_ASSERT_EQUAL(corruptedVis.shape(),vis.shape());
+          for (casa::uInt row = 0; row < da.nRow(); ++row) {
+               for (casa::uInt chan = 0; chan < da.nChannel(); ++chan) {
+                    for (casa::uInt pol = 0; pol < da.nPol(); ++pol) {
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(real(vis(row,chan,pol)),real(corruptedVis(row,chan,pol)),1e-6);
+                         CPPUNIT_ASSERT_DOUBLES_EQUAL(imag(vis(row,chan,pol)),imag(corruptedVis(row,chan,pol)),1e-6);                         
+                    }
+               }
+          }           
         }
       
      private:

@@ -42,6 +42,8 @@
 #include <measurementequation/CalibParamsMEAdapter.h>
 #include <askap/AskapError.h>
 #include <fitting/Equation.h>
+#include <calibaccess/JonesJTerm.h>
+#include <calibaccess/JonesDTerm.h>
 #include <askap/AskapLogging.h>
 #include <calibaccess/CalParamNameHelper.h>
 ASKAP_LOGGER(logger, ".measurementequation");
@@ -193,15 +195,22 @@ void CalibParamsMEAdapter::processAntBeamPair(const casa::uInt ant, const casa::
 /// @param[in] index ant/beam index
 void CalibParamsMEAdapter::updateSingleAntBeam(const accessors::JonesIndex &index) const
 {
-  // it is not clear how to deal with the bandpass. Just use channel 0 for now.
-  casa::SquareMatrix<casa::Complex, 2> jones = calSolution().jones(index, 0u);
+  // it is not clear how to deal with the bandpass, ignore it for now
   // we could've also used the validity flag for calibration information to adjust the
-  // flags for visibilities. However, for now we skip this step for simplicity (this code
-  // is intended to be used with the simulator only).
-  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::XX), jones(0,0));
-  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::YY), jones(1,1));
-  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::XY), jones(0,1));
-  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::YX), -jones(1,0));  
+  // flags for visibilities, but don't bother for now for simplicity (this code
+  // is intended to be used with the simulator only anyway).
+  
+  const accessors::JonesJTerm gain = calSolution().gain(index);  
+  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::XX), 
+                  gain.g1IsValid() ? gain.g1() : casa::Complex(1.,0.));
+  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::YY), 
+                  gain.g2IsValid() ? gain.g2() : casa::Complex(1.,0.));
+                  
+  const accessors::JonesDTerm leakage = calSolution().leakage(index);    
+  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::XY), 
+                  leakage.d12IsValid() ? leakage.d12() : casa::Complex(0.,0.));
+  updateParameter(accessors::CalParamNameHelper::paramName(index, casa::Stokes::YX),  
+                  leakage.d21IsValid() ? leakage.d21() : casa::Complex(0.,0.));
 }
    
 /// @brief helper method to update a given parameter if necessary
