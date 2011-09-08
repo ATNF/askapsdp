@@ -51,7 +51,8 @@ Csimulator.gridder                              = SphFunc
 
 # optional corruption due to calibration effect
 #Csimulator.corrupt                              = true
-Csimulator.corrupt.gainsfile                    = rndgains.in
+Csimulator.calibaccess                          = parset
+Csimulator.calibaccess.parset                   = rndgains.in
 
 # optional noise addition
 Csimulator.noise                                = false
@@ -112,6 +113,8 @@ Ccalibrator.dataset                              = field1.ms
 Ccalibrator.nAnt                                 = 36
 Ccalibrator.nBeam                                = 1
 #Ccalibrator.refgain                              = gain.g11.0.0
+Ccalibrator.calibaccess                         = parset
+Ccalibrator.calibaccess.parset                  = result.dat
 
 #
 # The name of the model source is 10uJy. Specify direction and model file

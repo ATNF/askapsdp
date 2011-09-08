@@ -52,7 +52,8 @@ Csimulator.gridder                              = SphFunc
 # optional corruption due to calibration effect
 #Csimulator.corrupt                              = true
 #Csimulator.corrupt.leakage                      = true
-Csimulator.corrupt.gainsfile                    = rndgainsandleakages.in
+Csimulator.calibaccess                          = parset
+Csimulator.calibaccess.parset                   = rndgainsandleakages.in
 
 # optional noise addition
 Csimulator.noise                                = false
@@ -127,4 +128,6 @@ Ccalibrator.gridder.WProject.oversample             = 8
 Ccalibrator.gridder.WProject.maxsupport       = 1024
 Ccalibrator.gridder.WProject.cutoff           = 0.001
 Ccalibrator.solve                             = "gains,leakages"
+Ccalibrator.calibaccess                       = parset
+Ccalibrator.calibaccess.parset                = "result.dat"
 Ccalibrator.ncycles                                 = 5
