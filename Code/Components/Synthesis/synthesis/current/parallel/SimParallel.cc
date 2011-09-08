@@ -60,6 +60,8 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/GaussianNoiseME.h>
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/ImageSolverFactory.h>
+#include <calibaccess/CalibAccessFactory.h>
+#include <measurementequation/CalibParamsMEAdapter.h>
 #include <gridding/VisGridderFactory.h>
 
 using namespace std;
@@ -137,6 +139,27 @@ void SimParallel::init()
                 itsNoiseVariance << " Jy^2 or sigma="<<rms<<" Jy)");
             itsSim->setNoiseRMS(rms);
         }
+        
+        // initialise calibration solution source, if the visibilities are going to be corrupted
+        if (parset().getBool("corrupt", false)) {
+            if (parset().isDefined("corrupt.gainsfile")) {
+                ASKAPCHECK(!parset().isDefined("calibaccess") && !parset().isDefined("calibaccess.parset"),
+                      "corrupt.gainsfile option conflicts with calibaccess, the former is deprecated - please correct your parset file");
+                ASKAPLOG_WARN_STR(logger, "The parset has deprecated corrupt.gainsfile keyword, use calibaccess.parset instead");
+                LOFAR::ParameterSet tmpParset(parset());
+                tmpParset.add("calibaccess.parset", parset().getString("corrupt.gainsfile"));
+                tmpParset.add("calibaccess", "parset");
+                // setup solution source from the temporary parset
+                itsSolutionSource = CalibAccessFactory::roCalSolutionSource(tmpParset);
+            } else {
+                itsSolutionSource = CalibAccessFactory::roCalSolutionSource(parset());
+            }
+            ASKAPASSERT(itsSolutionSource);                      
+        } else {
+            ASKAPLOG_INFO_STR(logger, "Calibration effects will not be simulated");
+            itsSolutionSource.reset();
+        }
+        
     }
 }
 
@@ -408,6 +431,8 @@ void SimParallel::predict(const string& ms)
         IDataConverterPtr conv = ds.createConverter();
         conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO), "Hz");
         conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+        // ensure that time is counted in seconds since 0 MJD
+        conv->setEpochFrame(); 
         IDataSharedIter it = ds.createIterator(sel, conv);
         /// Create the gridder using a factory acting on a
         /// parameterset
@@ -453,7 +478,7 @@ void SimParallel::predict(const string& ms)
             ASKAPTHROW(AskapError, "No sky models are defined");
         }
 
-        if (parset().getBool("corrupt", false)) {
+        if (itsSolutionSource) {
             corruptEquation(equation, it);
         } else {
             ASKAPLOG_INFO_STR(logger, "Calibration effects are not simulated");
@@ -573,21 +598,20 @@ void SimParallel::corruptEquation(boost::shared_ptr<scimath::Equation> &equation
         accessorBasedEquation = new_equation;
     }
 
-    scimath::Params gainModel;
-    ASKAPCHECK(parset().isDefined("corrupt.gainsfile"), "corrupt.gainsfile is missing in the input parset. It should point to the parset file with gains");
-    const std::string gainsfile = parset().getString("corrupt.gainsfile");
-    ASKAPLOG_INFO_STR(logger, "Loading gains from file '" << gainsfile << "'");
-    gainModel << ParameterSet(gainsfile);
     ASKAPDEBUGASSERT(accessorBasedEquation);
     
+    boost::shared_ptr<CalibrationMEBase> calME;
     const bool polLeakage = parset().getBool("corrupt.leakage",false);
     if (polLeakage) {
         ASKAPLOG_INFO_STR(logger, "Polarisation leakage will be simulated");
-       equation.reset(new CalibrationME<Product<NoXPolGain, LeakageTerm> >(gainModel, it, accessorBasedEquation));
+        calME.reset(new CalibrationME<Product<NoXPolGain, LeakageTerm> >(scimath::Params(), it, accessorBasedEquation));
     } else {
         ASKAPLOG_INFO_STR(logger, "Only parallel-hand gains will be simulated. Polarisation leakage will not be simulated.");
-       equation.reset(new CalibrationME<NoXPolGain>(gainModel, it, accessorBasedEquation));
+        calME.reset(new CalibrationME<NoXPolGain>(scimath::Params(), it, accessorBasedEquation));
     }
+    ASKAPDEBUGASSERT(calME);
+    // set up the adapter
+    equation.reset(new CalibParamsMEAdapter(calME, itsSolutionSource, it));
 }
 
 /// @brief a helper method to add up an equation

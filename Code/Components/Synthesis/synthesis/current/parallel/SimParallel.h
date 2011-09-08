@@ -37,6 +37,7 @@
 #include <mwcommon/AskapParallel.h>
 #include <parallel/SynParallel.h>
 #include <simulation/Simulator.h>
+#include <calibaccess/ICalSolutionConstSource.h>
 
 namespace askap
 {
@@ -235,6 +236,13 @@ namespace askap
                 /// set, current way to calculate noise implies that consistency checks are sometimes needed after every new scan.
                 /// if this flag is true, such checks are performed.
                 mutable bool itsDoChecksForNoise;
+                
+                /// @brief solution source to get calibration data from
+                /// @details This object is initialised by workers. It knows how to
+                /// retrieve calibration solutions (from a parset file, casa table or a database).
+                /// Uninitialised shared pointer means that no calibration is simulated
+                boost::shared_ptr<accessors::ICalSolutionConstSource> itsSolutionSource;
+                
         };
 
     }

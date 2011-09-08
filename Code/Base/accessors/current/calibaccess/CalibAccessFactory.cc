@@ -73,7 +73,7 @@ boost::shared_ptr<ICalSolutionConstSource> CalibAccessFactory::calSolutionSource
    const std::string calAccType = parset.getString("calibaccess","parset");
    ASKAPCHECK(calAccType == "parset", 
        "Only parset-based implementation is supported by the calibration access factory at the moment; you request: "<<calAccType);
-   const std::string fname = parset.getString("calibacces.parset", "result.dat");
+   const std::string fname = parset.getString("calibaccess.parset", "result.dat");
    ASKAPLOG_INFO_STR(logger, "Using implementation of the calibration solution accessor working with parset file "<<fname);
    boost::shared_ptr<ICalSolutionConstSource> result;
    if (readonly) {
