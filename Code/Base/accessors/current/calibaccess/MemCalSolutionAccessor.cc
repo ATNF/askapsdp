@@ -50,8 +50,10 @@ namespace accessors {
 /// @return JonesJTerm object with gains and validity flags
 JonesJTerm MemCalSolutionAccessor::gain(const JonesIndex &index) const
 {
-  const std::pair<casa::Complex, casa::Bool> g1 = extractFromCube(itsGains, 0, index);
-  const std::pair<casa::Complex, casa::Bool> g2 = extractFromCube(itsGains, 1, index);
+  const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& gains = 
+        itsGains.value(*itsSolutionFiller, &CalSolutionFiller::fillGains);
+  const std::pair<casa::Complex, casa::Bool> g1 = extract(gains, 0, index);
+  const std::pair<casa::Complex, casa::Bool> g2 = extract(gains, 1, index);
   return JonesJTerm(g1.first, g1.second, g2.first, g2.second);
 }
    
@@ -65,8 +67,8 @@ JonesJTerm MemCalSolutionAccessor::gain(const JonesIndex &index) const
 /// @return JonesDTerm object with leakages and validity flags
 JonesDTerm MemCalSolutionAccessor::leakage(const JonesIndex &index) const
 {
-  const std::pair<casa::Complex, casa::Bool> d12 = extractFromCube(itsLeakages, 0, index);
-  const std::pair<casa::Complex, casa::Bool> d21 = extractFromCube(itsGains, 1, index);
+  const std::pair<casa::Complex, casa::Bool> d12 = extract(itsLeakages, 0, index);
+  const std::pair<casa::Complex, casa::Bool> d21 = extract(itsLeakages, 1, index);
   return JonesDTerm(d12.first, d12.second, d21.first, d21.second);  
 }
    
@@ -85,8 +87,8 @@ JonesDTerm MemCalSolutionAccessor::leakage(const JonesIndex &index) const
 /// @return JonesJTerm object with gains and validity flags
 JonesJTerm MemCalSolutionAccessor::bandpass(const JonesIndex &index, const casa::uInt chan) const
 { 
-  const std::pair<casa::Complex, casa::Bool> g1 = extractFromCube(itsBandpasses, 2 * chan, index);
-  const std::pair<casa::Complex, casa::Bool> g2 = extractFromCube(itsBandpasses, 2 * chan + 1, index);
+  const std::pair<casa::Complex, casa::Bool> g1 = extract(itsBandpasses, 2 * chan, index);
+  const std::pair<casa::Complex, casa::Bool> g2 = extract(itsBandpasses, 2 * chan + 1, index);
   return JonesJTerm(g1.first, g1.second, g2.first, g2.second);
 }
 
@@ -97,8 +99,10 @@ JonesJTerm MemCalSolutionAccessor::bandpass(const JonesIndex &index, const casa:
 /// @param[in] gains JonesJTerm object with gains and validity flags
 void MemCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTerm &gains)
 {
-  setInCube(itsGains, std::pair<casa::Complex, casa::Bool>(gains.g1(),gains.g1IsValid()), 0, index);
-  setInCube(itsGains, std::pair<casa::Complex, casa::Bool>(gains.g2(),gains.g2IsValid()), 1, index);  
+  std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > buf = 
+       itsGains.value(*itsSolutionFiller, &CalSolutionFiller::fillGains);
+  store(buf, gains.g1(),gains.g1IsValid(), 0, index);
+  store(buf, gains.g2(),gains.g2IsValid(), 1, index);  
 }
    
 /// @brief set leakages (D-Jones)
@@ -108,8 +112,8 @@ void MemCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTerm &
 /// @param[in] leakages JonesDTerm object with leakages and validity flags
 void MemCalSolutionAccessor::setLeakage(const JonesIndex &index, const JonesDTerm &leakages)
 {
-  setInCube(itsLeakages, std::pair<casa::Complex, casa::Bool>(leakages.d12(),leakages.d12IsValid()), 0, index);
-  setInCube(itsLeakages, std::pair<casa::Complex, casa::Bool>(leakages.d21(),leakages.d21IsValid()), 1, index);
+  store(itsLeakages, leakages.d12(),leakages.d12IsValid(), 0, index);
+  store(itsLeakages, leakages.d21(),leakages.d21IsValid(), 1, index);
 }
    
 /// @brief set gains for a single bandpass channel
@@ -123,43 +127,47 @@ void MemCalSolutionAccessor::setLeakage(const JonesIndex &index, const JonesDTer
 /// gains set explicitly for each channel.
 void MemCalSolutionAccessor::setBandpass(const JonesIndex &index, const JonesJTerm &bp, const casa::uInt chan)
 {
-  setInCube(itsBandpasses, std::pair<casa::Complex, casa::Bool>(bp.g1(),bp.g1IsValid()), chan * 2, index);
-  setInCube(itsBandpasses, std::pair<casa::Complex, casa::Bool>(bp.g2(),bp.g2IsValid()), chan * 2 + 1, index);  
+  store(itsBandpasses, bp.g1(),bp.g1IsValid(), chan * 2, index);
+  store(itsBandpasses, bp.g2(),bp.g2IsValid(), chan * 2 + 1, index);  
 } 
 
 /// @details helper method to extract value and validity flag for a given ant/beam pair
-/// @param[in] cube const reference to a cube
+/// @param[in] cubes const reference to a cube pair
 /// @param[in] row polarisation/channel index (row of the cube)
 /// @param[in] index ant/beam index
-/// @return value/validity flag pair
-std::pair<casa::Complex, casa::Bool> MemCalSolutionAccessor::extractFromCube(const casa::Cube<std::pair<casa::Complex, casa::Bool> > &cube,
+/// @return value/validity flag pair   
+std::pair<casa::Complex, casa::Bool> MemCalSolutionAccessor::extract(const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >  &cubes,
                    const casa::uInt row, const JonesIndex &index)
 {
-  ASKAPDEBUGASSERT(row < cube.nrow());
+  ASKAPDEBUGASSERT(row < cubes.first.nrow());
   const casa::Short ant = index.antenna();
   const casa::Short beam = index.beam();
-  
-  ASKAPCHECK((ant >= 0) && (casa::uInt(ant) < cube.ncolumn()), "Requested antenna index "<<ant<<" is outside the shape of the cache: "<<cube.shape());
-  ASKAPCHECK((beam >= 0) && (casa::uInt(beam) < cube.nplane()), "Requested beam index "<<beam<<" is outside the shape of the cache: "<<cube.shape());
-  return cube(row,casa::uInt(ant),casa::uInt(beam));  
+  ASKAPDEBUGASSERT(cubes.first.shape() == cubes.second.shape());
+  ASKAPCHECK((ant >= 0) && (casa::uInt(ant) < cubes.first.ncolumn()), "Requested antenna index "<<ant<<" is outside the shape of the cache: "<<cubes.first.shape());
+  ASKAPCHECK((beam >= 0) && (casa::uInt(beam) < cubes.first.nplane()), "Requested beam index "<<beam<<" is outside the shape of the cache: "<<cubes.first.shape());
+  return std::pair<casa::Complex, casa::Bool>(cubes.first(row,casa::uInt(ant),casa::uInt(beam)),
+              cubes.second(row,casa::uInt(ant),casa::uInt(beam)));  
 }                   
 
 /// @details helper method to set the value and validity flag for a given ant/beam pair
-/// @param[in] cube non-const reference to a cube
-/// @param[in] val const reference to the value/validity flag pair
+/// @param[in] cubes non-const reference to a cube pair
+/// @param[in] val const reference to the value
+/// @param[in] isValid validity flag   
 /// @param[in] row polarisation/channel index (row of the cube)
 /// @param[in] index ant/beam index
-void MemCalSolutionAccessor::setInCube(casa::Cube<std::pair<casa::Complex, casa::Bool> > &cube,
-                   const std::pair<casa::Complex, casa::Bool> &val,
-                   const casa::uInt row, const JonesIndex &index)
+void MemCalSolutionAccessor::store(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >  &cubes,
+                   const casa::Complex &val, const casa::Bool isValid,
+                   const casa::uInt row, const JonesIndex &index)                   
 {
-  ASKAPDEBUGASSERT(row < cube.nrow());
+  ASKAPDEBUGASSERT(row < cubes.first.nrow());
   const casa::Short ant = index.antenna();
   const casa::Short beam = index.beam();
-  
-  ASKAPCHECK((ant >= 0) && (casa::uInt(ant) < cube.ncolumn()), "Requested antenna index "<<ant<<" is outside the shape of the cache: "<<cube.shape());
-  ASKAPCHECK((beam >= 0) && (casa::uInt(beam) < cube.nplane()), "Requested beam index "<<beam<<" is outside the shape of the cache: "<<cube.shape());
-  cube(row,casa::uInt(ant),casa::uInt(beam)) = val;
+  ASKAPDEBUGASSERT(cubes.first.shape() == cubes.second.shape());
+  ASKAPCHECK((ant >= 0) && (casa::uInt(ant) < cubes.first.ncolumn()), "Requested antenna index "<<ant<<" is outside the shape of the cache: "<<cubes.first.shape());
+  ASKAPCHECK((beam >= 0) && (casa::uInt(beam) < cubes.first.nplane()), "Requested beam index "<<beam<<" is outside the shape of the cache: "<<cubes.first.shape());
+ 
+  cubes.first(row,casa::uInt(ant),casa::uInt(beam)) = val;
+  cubes.second(row,casa::uInt(ant),casa::uInt(beam)) = isValid;
 }
 
 } // namespace accessors

@@ -39,15 +39,27 @@
 
 // own includes
 #include <calibaccess/ICalSolutionAccessor.h>
+#include <dataaccess/CachedAccessorField.tcc>
 
 // casa includes
 #include <casa/Arrays/Cube.h>
 #include <casa/BasicSL/Complex.h>
 
+// boost includes
+#include <boost/shared_ptr.hpp>
 
 namespace askap {
 
 namespace accessors {
+
+
+// temporary
+struct CalSolutionFiller {
+  virtual ~CalSolutionFiller() {};
+  virtual void fillGains(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &) const = 0;
+  virtual void fillLeakages(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &) const = 0;
+  virtual void fillBandpasses(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &) const = 0;  
+};
 
 /// @brief implementation of the calibration solution accessor returning cached values
 /// @details This class is very similar to CachedCalSolutionAccessor and perhaps should have
@@ -131,34 +143,36 @@ public:
    typedef boost::shared_ptr<MemCalSolutionAccessor> ShPtr;
 protected:
    /// @details helper method to extract value and validity flag for a given ant/beam pair
-   /// @param[in] cube const reference to a cube
+   /// @param[in] cubes const reference to a cube pair
    /// @param[in] row polarisation/channel index (row of the cube)
    /// @param[in] index ant/beam index
    /// @return value/validity flag pair   
-   static std::pair<casa::Complex, casa::Bool> extractFromCube(const casa::Cube<std::pair<casa::Complex, casa::Bool> > &cube,
+   static std::pair<casa::Complex, casa::Bool> extract(const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >  &cubes,
                    const casa::uInt row, const JonesIndex &index);
 
    /// @details helper method to set the value and validity flag for a given ant/beam pair
-   /// @param[in] cube non-const reference to a cube
-   /// @param[in] val const reference to the value/validity flag pair
+   /// @param[in] cubes non-const reference to a cube pair
+   /// @param[in] val const reference to the value
+   /// @param[in] isValid validity flag   
    /// @param[in] row polarisation/channel index (row of the cube)
    /// @param[in] index ant/beam index
-   static void setInCube(casa::Cube<std::pair<casa::Complex, casa::Bool> > &cube,
-                   const std::pair<casa::Complex, casa::Bool> &val,
+   static void store(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >  &cubes,
+                   const casa::Complex &val, const casa::Bool isValid,
                    const casa::uInt row, const JonesIndex &index);
                    
 private:
    // cache fields
    
    /// @brief gains and validity flags (2 x nAnt x nBeam), first row is XX, second is YY
-   casa::Cube<std::pair<casa::Complex, casa::Bool> > itsGains;
+   CachedAccessorField<std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > > itsGains;
    
    /// @brief leakages and validity flags  (2 x nAnt x nBeam), first row is XY, second is YX
-   casa::Cube<std::pair<casa::Complex, casa::Bool> > itsLeakages;
+   std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >  itsLeakages;
 
    /// @brief bandpasses and validity flags ((2*nChan) x nAnt x nBeam), rows are XX chan 0, YX
-   casa::Cube<std::pair<casa::Complex, casa::Bool> > itsBandpasses;   
+   std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >  itsBandpasses;   
    
+   boost::shared_ptr<CalSolutionFiller> itsSolutionFiller;   
 }; // class MemCalSolutionAccessor
 
 } // namespace accessors
