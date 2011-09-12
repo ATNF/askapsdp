@@ -36,7 +36,7 @@
 #include <fitting/DesignMatrix.h>
 
 
-#include <dataaccess/CachedAccessorField.tcc>
+#include <dataaccess/CachedAccessorField.h>
 
 #include <measurementequation/IParameterizedComponent.h>
 #include <measurementequation/IUnpolarizedComponent.h>

@@ -38,7 +38,7 @@
 // own includes
 #include <dataaccess/IConstDataAccessor.h>
 #include <dataaccess/DataAccessError.h>
-#include <dataaccess/CachedAccessorField.tcc>
+#include <dataaccess/CachedAccessorField.h>
 #include <dataaccess/UVWRotationHandler.h>
 
 namespace askap {

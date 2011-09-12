@@ -39,7 +39,7 @@
 
 // own includes
 #include <calibaccess/ICalSolutionAccessor.h>
-#include <dataaccess/CachedAccessorField.tcc>
+#include <dataaccess/CachedAccessorField.h>
 
 // casa includes
 #include <casa/Arrays/Cube.h>
