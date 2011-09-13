@@ -40,6 +40,7 @@
 // own includes
 #include <calibaccess/ICalSolutionAccessor.h>
 #include <dataaccess/CachedAccessorField.h>
+#include <calibaccess/ICalSolutionFiller.h>
 
 // casa includes
 #include <casa/Arrays/Cube.h>
@@ -52,14 +53,6 @@ namespace askap {
 
 namespace accessors {
 
-
-// temporary
-struct CalSolutionFiller {
-  virtual ~CalSolutionFiller() {};
-  virtual void fillGains(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &) const = 0;
-  virtual void fillLeakages(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &) const = 0;
-  virtual void fillBandpasses(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &) const = 0;  
-};
 
 /// @brief implementation of the calibration solution accessor returning cached values
 /// @details This class is very similar to CachedCalSolutionAccessor and perhaps should have
@@ -75,8 +68,11 @@ struct CalSolutionFiller {
 class MemCalSolutionAccessor : virtual public ICalSolutionAccessor {
 
 public:
-   // @brief constructor
-   //MemCalSolutionAccessor
+
+   /// @brief constructor
+   /// @details 
+   /// @param[in] filler shared pointer to the solution filler
+   explicit MemCalSolutionAccessor(const boost::shared_ptr<ICalSolutionFiller> &filler);
    
    // implemented pure-virtual methods of the interface
    
@@ -167,12 +163,12 @@ private:
    CachedAccessorField<std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > > itsGains;
    
    /// @brief leakages and validity flags  (2 x nAnt x nBeam), first row is XY, second is YX
-   std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >  itsLeakages;
+   CachedAccessorField<std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > > itsLeakages;
 
    /// @brief bandpasses and validity flags ((2*nChan) x nAnt x nBeam), rows are XX chan 0, YX
-   std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >  itsBandpasses;   
+   CachedAccessorField<std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > >  itsBandpasses;   
    
-   boost::shared_ptr<CalSolutionFiller> itsSolutionFiller;   
+   boost::shared_ptr<ICalSolutionFiller> itsSolutionFiller;   
 }; // class MemCalSolutionAccessor
 
 } // namespace accessors

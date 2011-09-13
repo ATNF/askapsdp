@@ -41,6 +41,16 @@ namespace askap {
 
 namespace accessors {
 
+
+/// @brief constructor
+/// @details 
+/// @param[in] filler shared pointer to the solution filler
+MemCalSolutionAccessor::MemCalSolutionAccessor(const boost::shared_ptr<ICalSolutionFiller> &filler) :
+   itsSolutionFiller(filler)
+{
+  ASKAPCHECK(itsSolutionFiller, "Uninitialised solution filler has been passes to MemCalSolutionAccessor");
+}
+
 /// @brief obtain gains (J-Jones)
 /// @details This method retrieves parallel-hand gains for both 
 /// polarisations (corresponding to XX and YY). If no gains are defined
@@ -50,8 +60,9 @@ namespace accessors {
 /// @return JonesJTerm object with gains and validity flags
 JonesJTerm MemCalSolutionAccessor::gain(const JonesIndex &index) const
 {
+  ASKAPASSERT(itsSolutionFiller);
   const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& gains = 
-        itsGains.value(*itsSolutionFiller, &CalSolutionFiller::fillGains);
+        itsGains.value(*itsSolutionFiller, &ICalSolutionFiller::fillGains);
   const std::pair<casa::Complex, casa::Bool> g1 = extract(gains, 0, index);
   const std::pair<casa::Complex, casa::Bool> g2 = extract(gains, 1, index);
   return JonesJTerm(g1.first, g1.second, g2.first, g2.second);
@@ -67,8 +78,11 @@ JonesJTerm MemCalSolutionAccessor::gain(const JonesIndex &index) const
 /// @return JonesDTerm object with leakages and validity flags
 JonesDTerm MemCalSolutionAccessor::leakage(const JonesIndex &index) const
 {
-  const std::pair<casa::Complex, casa::Bool> d12 = extract(itsLeakages, 0, index);
-  const std::pair<casa::Complex, casa::Bool> d21 = extract(itsLeakages, 1, index);
+  ASKAPASSERT(itsSolutionFiller);
+  const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& leakages = 
+        itsGains.value(*itsSolutionFiller, &ICalSolutionFiller::fillLeakages);
+  const std::pair<casa::Complex, casa::Bool> d12 = extract(leakages, 0, index);
+  const std::pair<casa::Complex, casa::Bool> d21 = extract(leakages, 1, index);
   return JonesDTerm(d12.first, d12.second, d21.first, d21.second);  
 }
    
@@ -87,8 +101,11 @@ JonesDTerm MemCalSolutionAccessor::leakage(const JonesIndex &index) const
 /// @return JonesJTerm object with gains and validity flags
 JonesJTerm MemCalSolutionAccessor::bandpass(const JonesIndex &index, const casa::uInt chan) const
 { 
-  const std::pair<casa::Complex, casa::Bool> g1 = extract(itsBandpasses, 2 * chan, index);
-  const std::pair<casa::Complex, casa::Bool> g2 = extract(itsBandpasses, 2 * chan + 1, index);
+  ASKAPASSERT(itsSolutionFiller);
+  const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& bp = 
+        itsGains.value(*itsSolutionFiller, &ICalSolutionFiller::fillBandpasses);
+  const std::pair<casa::Complex, casa::Bool> g1 = extract(bp, 2 * chan, index);
+  const std::pair<casa::Complex, casa::Bool> g2 = extract(bp, 2 * chan + 1, index);
   return JonesJTerm(g1.first, g1.second, g2.first, g2.second);
 }
 
@@ -99,8 +116,9 @@ JonesJTerm MemCalSolutionAccessor::bandpass(const JonesIndex &index, const casa:
 /// @param[in] gains JonesJTerm object with gains and validity flags
 void MemCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTerm &gains)
 {
-  std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > buf = 
-       itsGains.value(*itsSolutionFiller, &CalSolutionFiller::fillGains);
+  ASKAPASSERT(itsSolutionFiller);
+  std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& buf = 
+       itsGains.rwValue(*itsSolutionFiller, &ICalSolutionFiller::fillGains);
   store(buf, gains.g1(),gains.g1IsValid(), 0, index);
   store(buf, gains.g2(),gains.g2IsValid(), 1, index);  
 }
@@ -112,8 +130,11 @@ void MemCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTerm &
 /// @param[in] leakages JonesDTerm object with leakages and validity flags
 void MemCalSolutionAccessor::setLeakage(const JonesIndex &index, const JonesDTerm &leakages)
 {
-  store(itsLeakages, leakages.d12(),leakages.d12IsValid(), 0, index);
-  store(itsLeakages, leakages.d21(),leakages.d21IsValid(), 1, index);
+  ASKAPASSERT(itsSolutionFiller);
+  std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& buf = 
+       itsLeakages.rwValue(*itsSolutionFiller, &ICalSolutionFiller::fillLeakages);
+  store(buf, leakages.d12(),leakages.d12IsValid(), 0, index);
+  store(buf, leakages.d21(),leakages.d21IsValid(), 1, index);
 }
    
 /// @brief set gains for a single bandpass channel
@@ -127,8 +148,11 @@ void MemCalSolutionAccessor::setLeakage(const JonesIndex &index, const JonesDTer
 /// gains set explicitly for each channel.
 void MemCalSolutionAccessor::setBandpass(const JonesIndex &index, const JonesJTerm &bp, const casa::uInt chan)
 {
-  store(itsBandpasses, bp.g1(),bp.g1IsValid(), chan * 2, index);
-  store(itsBandpasses, bp.g2(),bp.g2IsValid(), chan * 2 + 1, index);  
+  ASKAPASSERT(itsSolutionFiller);
+  std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& bandpasses = 
+       itsBandpasses.rwValue(*itsSolutionFiller, &ICalSolutionFiller::fillBandpasses);
+  store(bandpasses, bp.g1(),bp.g1IsValid(), chan * 2, index);
+  store(bandpasses, bp.g2(),bp.g2IsValid(), chan * 2 + 1, index);  
 } 
 
 /// @details helper method to extract value and validity flag for a given ant/beam pair
