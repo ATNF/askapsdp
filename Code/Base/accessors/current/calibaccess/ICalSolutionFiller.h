@@ -61,6 +61,21 @@ struct ICalSolutionFiller {
   /// @details
   /// @param[in] bp pair of cubes with bandpasses and validity flags (to be resised to (2*nChan) x nAnt x nBeam)
   virtual void fillBandpasses(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &bp) const = 0;  
+  
+  /// @brief gains writer
+  /// @details
+  /// @param[in] gains pair of cubes with gains and validity flags (should be 2 x nAnt x nBeam)
+  virtual void writeGains(const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &gains) const = 0;
+  
+  /// @brief leakage writer  
+  /// @details
+  /// @param[in] leakages pair of cubes with leakages and validity flags (should be 2 x nAnt x nBeam)
+  virtual void writeLeakages(const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &leakages) const = 0;
+
+  /// @brief bandpass writer  
+  /// @details
+  /// @param[in] bp pair of cubes with bandpasses and validity flags (should be (2*nChan) x nAnt x nBeam)
+  virtual void writeBandpasses(const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &bp) const = 0;    
 };
 
 

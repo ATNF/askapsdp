@@ -45,8 +45,13 @@ namespace accessors {
 /// @brief constructor
 /// @details 
 /// @param[in] filler shared pointer to the solution filler
-MemCalSolutionAccessor::MemCalSolutionAccessor(const boost::shared_ptr<ICalSolutionFiller> &filler) :
-   itsSolutionFiller(filler)
+/// @param[in] roCheck if true an exception is thrown if setter methods are called
+/// @note, an attempt to write into read-only accessor will presumably be realised
+/// when the caches are flushed, however using this flag for read-only operation allows
+/// to generate the exception closer to the point where misuse occurs (hopefully aiding the
+/// debugging)
+MemCalSolutionAccessor::MemCalSolutionAccessor(const boost::shared_ptr<ICalSolutionFiller> &filler, bool roCheck) :
+   itsSolutionFiller(filler), itsSettersAllowed(!roCheck)
 {
   ASKAPCHECK(itsSolutionFiller, "Uninitialised solution filler has been passes to MemCalSolutionAccessor");
 }
@@ -116,6 +121,7 @@ JonesJTerm MemCalSolutionAccessor::bandpass(const JonesIndex &index, const casa:
 /// @param[in] gains JonesJTerm object with gains and validity flags
 void MemCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTerm &gains)
 {
+  ASKAPCHECK(itsSettersAllowed, "Setters methods are now allowed - roCheck=true in the constructor");
   ASKAPASSERT(itsSolutionFiller);
   std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& buf = 
        itsGains.rwValue(*itsSolutionFiller, &ICalSolutionFiller::fillGains);
@@ -130,6 +136,7 @@ void MemCalSolutionAccessor::setGain(const JonesIndex &index, const JonesJTerm &
 /// @param[in] leakages JonesDTerm object with leakages and validity flags
 void MemCalSolutionAccessor::setLeakage(const JonesIndex &index, const JonesDTerm &leakages)
 {
+  ASKAPCHECK(itsSettersAllowed, "Setters methods are now allowed - roCheck=true in the constructor");
   ASKAPASSERT(itsSolutionFiller);
   std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& buf = 
        itsLeakages.rwValue(*itsSolutionFiller, &ICalSolutionFiller::fillLeakages);
@@ -148,6 +155,7 @@ void MemCalSolutionAccessor::setLeakage(const JonesIndex &index, const JonesDTer
 /// gains set explicitly for each channel.
 void MemCalSolutionAccessor::setBandpass(const JonesIndex &index, const JonesJTerm &bp, const casa::uInt chan)
 {
+  ASKAPCHECK(itsSettersAllowed, "Setters methods are now allowed - roCheck=true in the constructor");
   ASKAPASSERT(itsSolutionFiller);
   std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& bandpasses = 
        itsBandpasses.rwValue(*itsSolutionFiller, &ICalSolutionFiller::fillBandpasses);
@@ -193,6 +201,35 @@ void MemCalSolutionAccessor::store(std::pair<casa::Cube<casa::Complex>, casa::Cu
   cubes.first(row,casa::uInt(ant),casa::uInt(beam)) = val;
   cubes.second(row,casa::uInt(ant),casa::uInt(beam)) = isValid;
 }
+
+/// @brief write back cache, if necessary
+/// @details This method checks whether caches need flush and calls appropriate methods of the filler
+void MemCalSolutionAccessor::syncCache() const
+{
+  if (itsSolutionFiller) {
+      if (itsGains.flushNeeded()) {
+          itsSolutionFiller->writeGains(itsGains.value());
+          itsGains.flushed();
+      }
+      if (itsLeakages.flushNeeded()) {
+          itsSolutionFiller->writeLeakages(itsLeakages.value());
+          itsLeakages.flushed();
+      }
+      if (itsBandpasses.flushNeeded()) {
+          itsSolutionFiller->writeBandpasses(itsBandpasses.value());
+          itsBandpasses.flushed();
+      }      
+  }
+}
+
+/// @brief destructor
+/// @details We need it to call syncCache at the end
+MemCalSolutionAccessor::~MemCalSolutionAccessor()
+{
+  syncCache();
+}
+
+
 
 } // namespace accessors
 

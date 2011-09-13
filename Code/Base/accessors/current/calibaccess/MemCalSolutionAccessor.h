@@ -72,7 +72,16 @@ public:
    /// @brief constructor
    /// @details 
    /// @param[in] filler shared pointer to the solution filler
-   explicit MemCalSolutionAccessor(const boost::shared_ptr<ICalSolutionFiller> &filler);
+   /// @param[in] roCheck if true an exception is thrown if setter methods are called
+   /// @note, an attempt to write into read-only accessor will presumably be realised
+   /// when the caches are flushed, however using this flag for read-only operation allows
+   /// to generate the exception closer to the point where misuse occurs (hopefully aiding the
+   /// debugging)
+   explicit MemCalSolutionAccessor(const boost::shared_ptr<ICalSolutionFiller> &filler, bool roCheck = false);
+   
+   /// @brief destructor
+   /// @details We need it to call syncCache at the end
+   ~MemCalSolutionAccessor();
    
    // implemented pure-virtual methods of the interface
    
@@ -134,6 +143,10 @@ public:
    /// approximated somehow, e.g. by a polynomial. For simplicity, for now we deal with 
    /// gains set explicitly for each channel.
    virtual void setBandpass(const JonesIndex &index, const JonesJTerm &bp, const casa::uInt chan);
+   
+   /// @brief write back cache, if necessary
+   /// @details This method checks whether caches need flush and calls appropriate methods of the filler
+   void syncCache() const;
 
    /// @brief shared pointer definition
    typedef boost::shared_ptr<MemCalSolutionAccessor> ShPtr;
@@ -168,7 +181,11 @@ private:
    /// @brief bandpasses and validity flags ((2*nChan) x nAnt x nBeam), rows are XX chan 0, YX
    CachedAccessorField<std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > >  itsBandpasses;   
    
-   boost::shared_ptr<ICalSolutionFiller> itsSolutionFiller;   
+   /// @brief shared pointer to the filler which knows how to write and read cubes
+   const boost::shared_ptr<ICalSolutionFiller> itsSolutionFiller;   
+   
+   /// @brief flag, if false an exception is thrown in setter methods
+   const bool itsSettersAllowed;
 }; // class MemCalSolutionAccessor
 
 } // namespace accessors
