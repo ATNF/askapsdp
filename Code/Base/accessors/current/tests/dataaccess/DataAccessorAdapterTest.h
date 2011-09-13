@@ -1,5 +1,5 @@
 /// @file
-/// $brief Tests of the on-demand buffering adapter
+/// @brief Tests of the on-demand buffering adapter
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
