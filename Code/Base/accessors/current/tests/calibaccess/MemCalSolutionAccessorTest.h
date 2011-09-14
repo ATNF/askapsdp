@@ -55,6 +55,12 @@ class MemCalSolutionAccessorTest : public CppUnit::TestFixture,
    CPPUNIT_TEST(testWriteGains);
    CPPUNIT_TEST(testWriteLeakages);
    CPPUNIT_TEST(testWriteBandpasses);   
+   CPPUNIT_TEST_EXCEPTION(testOverwriteROGains,AskapError);
+   CPPUNIT_TEST_EXCEPTION(testOverwriteROLeakages,AskapError);
+   CPPUNIT_TEST_EXCEPTION(testOverwriteROBandpasses,AskapError);
+   CPPUNIT_TEST_EXCEPTION(testOverwriteXX,AskapError);
+   CPPUNIT_TEST_EXCEPTION(testOverwriteXY,AskapError);
+   CPPUNIT_TEST_EXCEPTION(testOverwriteBPElement,AskapError);   
    CPPUNIT_TEST_SUITE_END();
 protected:
    static void fillCube(casa::Cube<casa::Complex> &cube) {
@@ -382,6 +388,60 @@ public:
      CPPUNIT_ASSERT(!itsGainsWritten);
      CPPUNIT_ASSERT(!itsLeakagesWritten);
      CPPUNIT_ASSERT(itsBandpassesWritten);     
+  }
+  
+  void testOverwriteROGains() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(true);
+     const JonesJTerm gain;
+     acc->setGain(JonesIndex(0u,0u),gain);     
+  }
+
+  void testOverwriteROLeakages() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(true);
+     const JonesDTerm leakage;
+     acc->setLeakage(JonesIndex(0u,0u),leakage);     
+  }
+
+  void testOverwriteROBandpasses() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(true);
+     const JonesJTerm gain;
+     acc->setBandpass(JonesIndex(0u,0u),gain,0);     
+  }
+  
+  void testOverwriteXX() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(true);
+     try {
+       acc->setJonesElement(0,0,casa::Stokes::XX, casa::Complex(0.));       
+     }
+     catch (const AskapError &) {
+       // we should read the gains before write is attempted
+       CPPUNIT_ASSERT(itsGainsRead); 
+       throw;
+     }
+  }
+
+  void testOverwriteXY() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(true);
+     try {
+       acc->setJonesElement(0,0,casa::Stokes::XY, casa::Complex(0.));       
+     }
+     catch (const AskapError &) {
+       // we should read the leakages before write is attempted
+       CPPUNIT_ASSERT(itsLeakagesRead); 
+       throw;
+     }
+  }
+
+  void testOverwriteBPElement() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(true);
+     try {
+       acc->setBandpassElement(0,0,casa::Stokes::XX, 0, casa::Complex(0.));       
+     }
+     catch (const AskapError &) {
+       // we should read the bandpass before write is attempted
+       CPPUNIT_ASSERT(itsBandpassesRead); 
+       throw;
+     }
   }
   
 private:
