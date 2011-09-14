@@ -45,6 +45,9 @@
 #include <calibaccess/ICalSolutionFiller.h>
 #include <dataaccess/TableBufferManager.h>
 
+// std includes
+#include <string>
+
 namespace askap {
 
 namespace accessors {
@@ -63,9 +66,23 @@ namespace accessors {
 class TableCalSolutionFiller : virtual protected TableBufferManager,
                                virtual public ICalSolutionFiller {
 public:
-   /// @brief construct the object and link it to the given table
-   /// @param[in] tab  table to use
-   explicit TableCalSolutionFiller(const casa::Table& tab);
+  /// @brief construct the object and link it to the given table
+  /// @details read-only operation is assumed
+  /// @param[in] tab  table to use
+  /// @param[in] row reference row
+  TableCalSolutionFiller(const casa::Table& tab, const long row);
+
+  /// @brief construct the object and link it to the given table
+  /// @details Maximum allowed numbers of antennas, beams and spectral channels are
+  /// set by this constructor which is essential for read-write operations (i.e. new
+  /// table entries may need to be created
+  /// @param[in] tab  table to use
+  /// @param[in] row reference row
+  /// @param[in] nAnt maximum number of antennas
+  /// @param[in] nBeam maximum number of beams   
+  /// @param[in] nChan maximum number of channels   
+  TableCalSolutionFiller(const casa::Table& tab, const long row, const casa::uInt nAnt, 
+         const casa::uInt nBeam, const casa::uInt nChan);
 
   /// @brief gains filler  
   /// @details
@@ -97,6 +114,43 @@ public:
   /// @param[in] bp pair of cubes with bandpasses and validity flags (should be (2*nChan) x nAnt x nBeam)
   virtual void writeBandpasses(const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &bp) const;    
 
+protected:
+
+  /// @brief find first defined cube searching backwards
+  /// @details This assumes that the table rows are given in the time order. If the cell at the reference row
+  /// doesn't have a cube defined, the search is continued up to the top of the table. An exception is thrown
+  /// if no defined cube has been found.
+  /// @param[in] name column name
+  /// @return row number for a defined cube
+  /// @note The code always returns non-negative number.
+  long findDefinedCube(const std::string &name) const;
+  
+  /// @brief helper method to check whether we are creating a new row  
+  void checkForNewRow();
+  
+private:
+  /// @brief number of antennas (used when new solutions are created)
+  casa::uInt itsNAnt;
+  /// @brief number of beams (used when new solutions are created)
+  casa::uInt itsNBeam;
+  /// @brief number of spectral channels (used when new solutions are created)
+  casa::uInt itsNChan;
+  /// @brief reference row for the selected solution (actual solution will be searched from this row up)
+  long itsRefRow;
+
+  // actual row numbers for gains, leakages and bandpasses (negative value means it is not yet determined)
+
+  /// @brief row for gains
+  mutable long itsGainsRow;
+
+  /// @brief row for leakages
+  mutable long itsLeakagesRow;
+  
+  /// @brief row for bandpasses
+  mutable long itsBandpassesRow;   
+  
+  /// @brief true if a new row is to be created
+  bool itsCreateNew; 
 }; // class TableCalSolutionFiller
 
 } // accessors
