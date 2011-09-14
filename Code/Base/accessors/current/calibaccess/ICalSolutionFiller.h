@@ -32,6 +32,10 @@
 #ifndef I_CAL_SOLUTION_FILLER_H
 #define I_CAL_SOLUTION_FILLER_H
 
+#include <casa/Arrays/Cube.h>
+#include <casa/BasicSL/Complex.h>
+#include <utility>
+
 namespace askap {
 
 namespace accessors {

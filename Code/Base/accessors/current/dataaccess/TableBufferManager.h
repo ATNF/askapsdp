@@ -34,6 +34,9 @@
 
 #include <dataaccess/IBufferManager.h>
 #include <dataaccess/TableHolder.h>
+#include <casa/BasicSL/Complex.h>
+#include <casa/Arrays/Cube.h>
+
 
 namespace askap {
 
@@ -78,10 +81,43 @@ struct TableBufferManager : virtual public IBufferManager,
   /// @param[in] index a sequential index in the buffer
   virtual bool bufferExists(const std::string &name,
 			   casa::uInt index) const;
+protected:
+  // templated methods to handle cubes of different types
+
+  /// @brief populate the cube with the data stored in the given table cell
+  /// @details The method throws an exception if the requested table cell
+  /// does not exist
+  /// @param[in] cube a reference to a cube of some type
+  /// @param[in] name a name of the column to work with
+  /// @param[in] index row number
+  template<typename T>
+  void readCube(casa::Cube<T> &cube, const std::string &name,
+			    casa::uInt index) const;
+  
+  /// @brief write the cube back to the table
+  /// @details The table cell is populated with values on the first write 
+  /// operation
+  /// @param[in] cube to take the data from 
+  /// @param[in] name a name of the column to work with
+  /// @param[in] index row number
+  template<typename T>
+  void writeCube(const casa::Cube<T> &cube, const std::string &name,
+			     casa::uInt index) const;
+
+  /// @brief check whether a particular table cell exists
+  /// @param[in] name a name of the table column to query
+  /// @param[in] index row number 
+  /// @return true, if the given cell exists and has an array
+  /// @note template type defined the type of the data
+  template<typename T>
+  bool cellDefined(const std::string &name,
+			      casa::uInt index) const;  			   
 };
 
 } // namespace accessors
 
 } // namespace askap
+
+#include <dataaccess/TableBufferManager.tcc>
 
 #endif // #ifndef TABLE_BUFFER_MANAGER_H
