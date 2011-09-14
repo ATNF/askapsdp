@@ -51,6 +51,10 @@ class MemCalSolutionAccessorTest : public CppUnit::TestFixture,
 {
    CPPUNIT_TEST_SUITE(MemCalSolutionAccessorTest);
    CPPUNIT_TEST(testRead);
+   CPPUNIT_TEST(testCache);
+   CPPUNIT_TEST(testWriteGains);
+   CPPUNIT_TEST(testWriteLeakages);
+   CPPUNIT_TEST(testWriteBandpasses);   
    CPPUNIT_TEST_SUITE_END();
 protected:
    static void fillCube(casa::Cube<casa::Complex> &cube) {
@@ -77,11 +81,18 @@ protected:
       CPPUNIT_ASSERT_DOUBLES_EQUAL(imag(expected), imag(val), 1e-6);      
    }
    
+   boost::shared_ptr<ICalSolutionAccessor> initAccessor(const bool roFlag) {
+      boost::shared_ptr<ICalSolutionFiller> csf(this, utility::NullDeleter());
+      boost::shared_ptr<MemCalSolutionAccessor> acc(new MemCalSolutionAccessor(csf,roFlag));
+      CPPUNIT_ASSERT(acc);
+      return acc;
+   }
+   
 public:
    void setUp() {
       itsNAnt = 36;
       itsNBeam = 30;
-      itsNChan = 256;
+      itsNChan = 16;
       // flags showing  that write operation has taken place
       itsGainsWritten  = false;
       itsLeakagesWritten  = false;
@@ -161,9 +172,7 @@ public:
    
   // test methods
   void testRead() {
-     boost::shared_ptr<ICalSolutionFiller> csf(this, utility::NullDeleter());
-     boost::shared_ptr<MemCalSolutionAccessor> itsAccessor(new MemCalSolutionAccessor(csf,true));
-     CPPUNIT_ASSERT(itsAccessor);
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(true);
      CPPUNIT_ASSERT(!itsGainsRead);
      CPPUNIT_ASSERT(!itsLeakagesRead);
      CPPUNIT_ASSERT(!itsBandpassesRead);
@@ -173,7 +182,7 @@ public:
      for (casa::uInt ant = 0; ant<itsNAnt; ++ant) {
           for (casa::uInt beam = 0; beam<itsNBeam; ++beam) {
                const JonesIndex index(ant,beam);
-               const JonesJTerm gain = itsAccessor->gain(index);
+               const JonesJTerm gain = acc->gain(index);
                CPPUNIT_ASSERT(gain.g1IsValid());
                CPPUNIT_ASSERT(gain.g2IsValid());               
                testValue(gain.g1(),index,0);
@@ -186,8 +195,195 @@ public:
      CPPUNIT_ASSERT(!itsGainsWritten);
      CPPUNIT_ASSERT(!itsLeakagesWritten);
      CPPUNIT_ASSERT(!itsBandpassesWritten);
-     
+
+     for (casa::uInt ant = 0; ant<itsNAnt; ++ant) {
+          for (casa::uInt beam = 0; beam<itsNBeam; ++beam) {
+               const JonesIndex index(ant,beam);
+               const JonesDTerm leakage = acc->leakage(index);
+               CPPUNIT_ASSERT(leakage.d12IsValid());
+               CPPUNIT_ASSERT(leakage.d21IsValid());               
+               testValue(leakage.d12(),index,0);
+               testValue(leakage.d21(),index,1);               
+          }
+     }
+     CPPUNIT_ASSERT(itsGainsRead);
+     CPPUNIT_ASSERT(itsLeakagesRead);
+     CPPUNIT_ASSERT(!itsBandpassesRead);
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);
+
+     for (casa::uInt ant = 0; ant<itsNAnt; ++ant) {
+          for (casa::uInt beam = 0; beam<itsNBeam; ++beam) {
+               const JonesIndex index(ant,beam);
+               for (casa::uInt chan = 0; chan<itsNChan; ++chan) {
+                    const JonesJTerm bp = acc->bandpass(index,chan);
+                    CPPUNIT_ASSERT(bp.g1IsValid());
+                    CPPUNIT_ASSERT(bp.g2IsValid());               
+                    testValue(bp.g1(), index, 2 * chan);
+                    testValue(bp.g2(), index, 2 * chan + 1);               
+               }
+          }
+     }
+     CPPUNIT_ASSERT(itsGainsRead);
+     CPPUNIT_ASSERT(itsLeakagesRead);
+     CPPUNIT_ASSERT(itsBandpassesRead);
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);
+     // reset accessor and check that there was no write
+     acc.reset();
+     CPPUNIT_ASSERT(itsGainsRead);
+     CPPUNIT_ASSERT(itsLeakagesRead);
+     CPPUNIT_ASSERT(itsBandpassesRead);
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);     
   }
+  
+  void testCache() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(true);     
+     // the following should read gains, bandpasses and leakages
+     acc->jones(0,0,0);
+     CPPUNIT_ASSERT(itsGainsRead);
+     CPPUNIT_ASSERT(itsLeakagesRead);
+     CPPUNIT_ASSERT(itsBandpassesRead);
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);
+     // reset read flags
+     itsGainsRead = false;
+     itsLeakagesRead = false;
+     itsBandpassesRead = false;
+     // now read operation shouldn't happen because it has been done already
+     acc->jones(0,0,0);
+     CPPUNIT_ASSERT(!itsGainsRead);
+     CPPUNIT_ASSERT(!itsLeakagesRead);
+     CPPUNIT_ASSERT(!itsBandpassesRead);
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);     
+  }
+  
+  void testWriteGains() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(false);
+     for (casa::uInt ant = 0; ant<itsNAnt; ++ant) {
+          for (casa::uInt beam = 0; beam<itsNBeam; ++beam) {
+               const JonesIndex index(ant,beam);
+               const JonesJTerm gains(casa::Complex(1.,-1.), (ant % 2 == 0), casa::Complex(-1.,1.), (beam % 2 == 0));
+               acc->setGain(index,gains);
+          }
+      }
+     CPPUNIT_ASSERT(itsGainsRead);
+     CPPUNIT_ASSERT(!itsLeakagesRead);
+     CPPUNIT_ASSERT(!itsBandpassesRead);
+     // no write happened yet, the values are cached
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);     
+     // check values
+     for (casa::uInt ant = 0; ant<itsNAnt; ++ant) {
+          for (casa::uInt beam = 0; beam<itsNBeam; ++beam) {
+               const JonesIndex index(ant,beam);
+               const JonesJTerm gain = acc->gain(index);
+               CPPUNIT_ASSERT_EQUAL((ant % 2 == 0),gain.g1IsValid());
+               CPPUNIT_ASSERT_EQUAL((beam % 2 == 0),gain.g2IsValid());               
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,real(gain.g1()),1e-6);
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.,imag(gain.g1()),1e-6);
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.,real(gain.g2()),1e-6);
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,imag(gain.g2()),1e-6);
+          }
+     }
+     acc.reset();
+     // now write should be done as the accessor has gone out of scope
+     CPPUNIT_ASSERT(itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);     
+  }
+
+  void testWriteLeakages() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(false);
+     for (casa::uInt ant = 0; ant<itsNAnt; ++ant) {
+          for (casa::uInt beam = 0; beam<itsNBeam; ++beam) {
+               const JonesIndex index(ant,beam);
+               const JonesDTerm leakages(casa::Complex(1.,-1.), (ant % 2 == 0), casa::Complex(-1.,1.), (beam % 2 == 0));
+               acc->setLeakage(index,leakages);
+          }
+      }
+     CPPUNIT_ASSERT(!itsGainsRead);
+     CPPUNIT_ASSERT(itsLeakagesRead);
+     CPPUNIT_ASSERT(!itsBandpassesRead);
+     // no write happened yet, the values are cached
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);     
+     // check values
+     for (casa::uInt ant = 0; ant<itsNAnt; ++ant) {
+          for (casa::uInt beam = 0; beam<itsNBeam; ++beam) {
+               const JonesIndex index(ant,beam);
+               const JonesDTerm leakage = acc->leakage(index);
+               CPPUNIT_ASSERT_EQUAL((ant % 2 == 0),leakage.d12IsValid());
+               CPPUNIT_ASSERT_EQUAL((beam % 2 == 0),leakage.d21IsValid());               
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,real(leakage.d12()),1e-6);
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.,imag(leakage.d12()),1e-6);
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.,real(leakage.d21()),1e-6);
+               CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,imag(leakage.d21()),1e-6);
+          }
+     }
+     acc.reset();
+     // now write should be done as the accessor has gone out of scope
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);     
+  }
+
+  void testWriteBandpasses() {
+     boost::shared_ptr<ICalSolutionAccessor> acc = initAccessor(false);
+     for (casa::uInt ant = 0; ant<itsNAnt; ++ant) {
+          for (casa::uInt beam = 0; beam<itsNBeam; ++beam) {
+               const JonesIndex index(ant,beam);
+               const JonesJTerm bp(casa::Complex(1.,-1.), (ant % 2 == 0), casa::Complex(-1.,1.), (beam % 2 == 0));
+               for (casa::uInt chan = 0; chan<itsNChan; chan+=2) {
+                    acc->setBandpass(index,bp,chan);
+               }
+          }
+     }
+     CPPUNIT_ASSERT(!itsGainsRead);
+     CPPUNIT_ASSERT(!itsLeakagesRead);
+     CPPUNIT_ASSERT(itsBandpassesRead);
+     // no write happened yet, the values are cached
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(!itsBandpassesWritten);     
+     // check values
+     for (casa::uInt ant = 0; ant<itsNAnt; ++ant) {
+          for (casa::uInt beam = 0; beam<itsNBeam; ++beam) {
+               const JonesIndex index(ant,beam);
+               for (casa::uInt chan = 0; chan<itsNChan; ++chan) {
+                    const JonesJTerm bp = acc->bandpass(index,chan);
+                    if (chan % 2 == 0) {
+                        CPPUNIT_ASSERT_EQUAL((ant % 2 == 0),bp.g1IsValid());
+                        CPPUNIT_ASSERT_EQUAL((beam % 2 == 0),bp.g2IsValid());               
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,real(bp.g1()),1e-6);
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.,imag(bp.g1()),1e-6);
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(-1.,real(bp.g2()),1e-6);
+                        CPPUNIT_ASSERT_DOUBLES_EQUAL(1.,imag(bp.g2()),1e-6);
+                    } else {
+                        CPPUNIT_ASSERT(bp.g1IsValid());
+                        CPPUNIT_ASSERT(bp.g2IsValid());               
+                        testValue(bp.g1(), index, 2 * chan);
+                        testValue(bp.g2(), index, 2 * chan + 1);                    
+                    }
+               }
+          }
+     }
+     acc.reset();
+     // now write should be done as the accessor has gone out of scope
+     CPPUNIT_ASSERT(!itsGainsWritten);
+     CPPUNIT_ASSERT(!itsLeakagesWritten);
+     CPPUNIT_ASSERT(itsBandpassesWritten);     
+  }
+  
 private:
   casa::uInt itsNAnt;
   casa::uInt itsNBeam;

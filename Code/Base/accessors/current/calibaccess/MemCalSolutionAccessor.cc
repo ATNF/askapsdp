@@ -85,7 +85,7 @@ JonesDTerm MemCalSolutionAccessor::leakage(const JonesIndex &index) const
 {
   ASKAPASSERT(itsSolutionFiller);
   const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& leakages = 
-        itsGains.value(*itsSolutionFiller, &ICalSolutionFiller::fillLeakages);
+        itsLeakages.value(*itsSolutionFiller, &ICalSolutionFiller::fillLeakages);
   const std::pair<casa::Complex, casa::Bool> d12 = extract(leakages, 0, index);
   const std::pair<casa::Complex, casa::Bool> d21 = extract(leakages, 1, index);
   return JonesDTerm(d12.first, d12.second, d21.first, d21.second);  
@@ -108,7 +108,7 @@ JonesJTerm MemCalSolutionAccessor::bandpass(const JonesIndex &index, const casa:
 { 
   ASKAPASSERT(itsSolutionFiller);
   const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& bp = 
-        itsGains.value(*itsSolutionFiller, &ICalSolutionFiller::fillBandpasses);
+        itsBandpasses.value(*itsSolutionFiller, &ICalSolutionFiller::fillBandpasses);
   const std::pair<casa::Complex, casa::Bool> g1 = extract(bp, 2 * chan, index);
   const std::pair<casa::Complex, casa::Bool> g2 = extract(bp, 2 * chan + 1, index);
   return JonesJTerm(g1.first, g1.second, g2.first, g2.second);
