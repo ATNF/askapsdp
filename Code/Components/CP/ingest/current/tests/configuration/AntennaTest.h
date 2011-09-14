@@ -60,7 +60,7 @@ class AntennaTest : public CppUnit::TestFixture {
             casa::Double dblTolerance = 1e-15;
 
             // Setup objects to create the instance with
-            const casa::Double nFeeds = 3;
+            const casa::Int nFeeds = 3;
             casa::Matrix<casa::Quantity> offsets(nFeeds, 2);
             casa::Vector<casa::String> pols(nFeeds);
             for (casa::Int i = 0; i < nFeeds; ++i) {
