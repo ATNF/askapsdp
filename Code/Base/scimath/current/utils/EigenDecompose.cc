@@ -111,7 +111,7 @@ void symEigenDecompose(const casa::Matrix<double> &mtr, casa::Vector<double> &eV
         }
         
         std::sort(indices.begin(),indices.end(),utility::indexedCompare<casa::uInt>(utility::GSLVectorRAIterator(gslEVal),
-                  std::greater<casa::uInt>()));
+                  std::greater<double>()));
        
         for (casa::uInt elem = 0; elem<size; ++elem) {
              const casa::uInt index = indices[elem];

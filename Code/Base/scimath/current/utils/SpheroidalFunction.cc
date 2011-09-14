@@ -65,7 +65,7 @@ double SpheroidalFunction::operator()(const double nu) const
   
   // force normalisation to 1. at eta=0., functions corresponding to n=0 are even, so such normalisation
   // should not cause any problems
-  const double res = sumLegendreSeries(nu,itsAlpha) / itsSum0;
+  const double res = sumLegendreSeries(nu,int(itsAlpha)) / itsSum0;
   return res * pow(1.-nu*nu, -itsAlpha/2.);
 }
 
@@ -84,11 +84,11 @@ SpheroidalFunction::SpheroidalFunction(const double c, const double alpha, const
   
   casa::Matrix<double> hlp(nterms,nterms,0.);
   
-  fillHelperMatrix(hlp,c,alpha);
+  fillHelperMatrix(hlp,c,int(alpha));
         
   fillLegendreCoeffs(hlp);
 
-  itsSum0 = sumLegendreSeries(0., alpha);
+  itsSum0 = sumLegendreSeries(0., int(alpha));
 }
 
 /// @brief sum of the Legendre series

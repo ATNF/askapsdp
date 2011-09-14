@@ -152,4 +152,4 @@ struct ICalSolutionConstAccessor {
 } // namespace askap
 
 #endif // #ifndef I_CAL_SOLUTION_CONST_ACCESSOR_H
- 
+
