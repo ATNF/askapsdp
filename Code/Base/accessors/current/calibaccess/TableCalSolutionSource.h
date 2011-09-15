@@ -57,12 +57,20 @@ public:
   /// @brief constructor using a table defined explicitly
   /// @details
   /// @param[in] tab table to work with
-  TableCalSolutionSource(const casa::Table &tab);
+  /// @param[in] nAnt maximum number of antennas
+  /// @param[in] nBeam maximum number of beams   
+  /// @param[in] nChan maximum number of channels   
+  TableCalSolutionSource(const casa::Table &tab, const casa::uInt nAnt, 
+         const casa::uInt nBeam, const casa::uInt nChan);
  
   /// @brief constructor using a file name
   /// @details The table is opened for writing
   /// @param[in] name table file name 
-  TableCalSolutionSource(const std::string &name);
+  /// @param[in] nAnt maximum number of antennas
+  /// @param[in] nBeam maximum number of beams   
+  /// @param[in] nChan maximum number of channels     
+  TableCalSolutionSource(const std::string &name, const casa::uInt nAnt, 
+         const casa::uInt nBeam, const casa::uInt nChan);
   
   // remaining virtual methods of the interface
   
@@ -85,8 +93,13 @@ public:
   
     /// @brief shared pointer definition
   typedef boost::shared_ptr<TableCalSolutionSource> ShPtr;
-protected:
-   
+private:
+  /// @brief number of antennas (used when new solutions are created)
+  casa::uInt itsNAnt;
+  /// @brief number of beams (used when new solutions are created)
+  casa::uInt itsNBeam;
+  /// @brief number of spectral channels (used when new solutions are created)
+  casa::uInt itsNChan;     
 }; // class TableCalSolutionSource
 
 } // namespace accessors

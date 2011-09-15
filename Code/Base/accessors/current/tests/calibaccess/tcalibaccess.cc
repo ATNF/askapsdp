@@ -29,6 +29,7 @@
 #include <ParsetCalSolutionTest.h>
 #include <CalParamNameHelperTest.h>
 #include <MemCalSolutionAccessorTest.h>
+#include <TableCalSolutionTest.h>
 
 int main(int argc, char *argv[])
 {
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
     runner.addTest( askap::accessors::CachedCalSolutionTest::suite());
     runner.addTest( askap::accessors::ParsetCalSolutionTest::suite());
     runner.addTest( askap::accessors::MemCalSolutionAccessorTest::suite());
+    runner.addTest( askap::accessors::TableCalSolutionTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

@@ -54,16 +54,25 @@ namespace accessors {
 /// @brief constructor using a table defined explicitly
 /// @details
 /// @param[in] tab table to work with
-TableCalSolutionSource::TableCalSolutionSource(const casa::Table &tab) : TableHolder(tab), TableCalSolutionConstSource(tab) {}
+/// @param[in] nAnt maximum number of antennas
+/// @param[in] nBeam maximum number of beams   
+/// @param[in] nChan maximum number of channels   
+TableCalSolutionSource::TableCalSolutionSource(const casa::Table &tab, const casa::uInt nAnt, 
+         const casa::uInt nBeam, const casa::uInt nChan) : TableHolder(tab), 
+   TableCalSolutionConstSource(tab), itsNAnt(nAnt), itsNBeam(nBeam), itsNChan(nChan) {}
  
 /// @brief constructor using a file name
 /// @details The table is opened for writing
 /// @param[in] name table file name 
-TableCalSolutionSource::TableCalSolutionSource(const std::string &name) : 
-   TableHolder(casa::Table()), TableCalSolutionConstSource(table()) 
+/// @param[in] nAnt maximum number of antennas
+/// @param[in] nBeam maximum number of beams   
+/// @param[in] nChan maximum number of channels   
+TableCalSolutionSource::TableCalSolutionSource(const std::string &name, const casa::uInt nAnt, 
+         const casa::uInt nBeam, const casa::uInt nChan) : 
+   TableHolder(casa::Table()), TableCalSolutionConstSource(table()), itsNAnt(nAnt), itsNBeam(nBeam), itsNChan(nChan)
 {
   try {
-     table() = casa::Table(name,casa::Table::Old);
+     table() = casa::Table(name,casa::Table::Update);
   }
   catch (...) {
      // we couldn't just opened an existing table
@@ -93,7 +102,7 @@ long TableCalSolutionSource::newSolutionID(const double time) {
            "Time stamp when the calibration solution was obtained");
        table().addColumn(timeColDesc);    
        casa::TableMeasRefDesc measRef(casa::MEpoch::UTC);
-       casa::TableMeasValueDesc measVal(table().actualTableDesc(), "Time");
+       casa::TableMeasValueDesc measVal(table().actualTableDesc(), "TIME");
        casa::TableMeasDesc<casa::MEpoch> mepochCol(measVal, measRef);
        mepochCol.write(table());
    }
@@ -116,7 +125,8 @@ long TableCalSolutionSource::newSolutionID(const double time) {
 /// @return shared pointer to an accessor object
 boost::shared_ptr<ICalSolutionAccessor> TableCalSolutionSource::rwSolution(const long id) const {
    ASKAPCHECK((id >= 0) && (long(table().nrow()) > id), "Requested solution id="<<id<<" is not in the table");
-   boost::shared_ptr<TableCalSolutionFiller> filler(new TableCalSolutionFiller(table(),id));
+   boost::shared_ptr<TableCalSolutionFiller> filler(new TableCalSolutionFiller(table(),id,itsNAnt, 
+          itsNBeam, itsNChan));
    ASKAPDEBUGASSERT(filler);
    boost::shared_ptr<MemCalSolutionAccessor> acc(new MemCalSolutionAccessor(filler,false));
    ASKAPDEBUGASSERT(acc);

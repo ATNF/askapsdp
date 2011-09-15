@@ -44,9 +44,16 @@ namespace accessors {
 /// @brief helper method to check whether we are creating a new row
 void TableCalSolutionFiller::checkForNewRow()
 {
-  itsCreateNew = (itsRefRow >= long(table().nrow()));
+  ASKAPDEBUGASSERT(itsRefRow <= long(table().nrow()));
+  itsCreateNew = (itsRefRow + 1 == long(table().nrow()));
   if (itsCreateNew) {
-      // this is a new row in the table to be created
+      const bool gainsWritten = cellDefined<casa::Complex>("GAIN", casa::uInt(itsRefRow));
+      const bool leakagesWritten = cellDefined<casa::Complex>("LEAKAGE", casa::uInt(itsRefRow));
+      const bool bpWritten = cellDefined<casa::Complex>("BANDPASS", casa::uInt(itsRefRow));
+      itsCreateNew = !gainsWritten && !leakagesWritten && !bpWritten;
+  }
+  if (itsCreateNew) {
+      // this is a new row in the table to be created, only TIME column exists
       ASKAPCHECK(itsNAnt > 0, "TableCalSolutionFiller needs to know the number of antennas to be able to setup new table rows");
       ASKAPCHECK(itsNBeam > 0, "TableCalSolutionFiller needs to know the number of beams to be able to setup new table rows");
       ASKAPCHECK(itsNChan > 0, "TableCalSolutionFiller needs to know the number of spectral channels to be able to setup new table rows");      
