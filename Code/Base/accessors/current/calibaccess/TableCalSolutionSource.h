@@ -56,7 +56,7 @@ public:
 
   /// @brief constructor using a table defined explicitly
   /// @details
-  /// @param[in] tab table to read the solutions from
+  /// @param[in] tab table to work with
   TableCalSolutionSource(const casa::Table &tab);
  
   /// @brief constructor using a file name
@@ -85,7 +85,8 @@ public:
   
     /// @brief shared pointer definition
   typedef boost::shared_ptr<TableCalSolutionSource> ShPtr;
-  
+protected:
+   
 }; // class TableCalSolutionSource
 
 } // namespace accessors

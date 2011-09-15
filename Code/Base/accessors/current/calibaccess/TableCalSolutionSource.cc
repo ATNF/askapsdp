@@ -34,6 +34,18 @@
 #include <calibaccess/TableCalSolutionSource.h>
 #include <calibaccess/TableCalSolutionFiller.h>
 #include <calibaccess/MemCalSolutionAccessor.h>
+#include <measures/TableMeasures/TableMeasDesc.h>
+#include <measures/TableMeasures/TableMeasRefDesc.h>
+#include <measures/TableMeasures/TableMeasValueDesc.h>
+#include <tables/Tables/ScaColDesc.h>
+#include <tables/Tables/Table.h>
+#include <measures/Measures/MEpoch.h>
+#include <measures/TableMeasures/ScalarMeasColumn.h>
+#include <measures/Measures/MCEpoch.h>
+#include <tables/Tables/TableError.h>
+#include <tables/Tables/SetupNewTab.h>
+#include <tables/Tables/TableDesc.h>
+
 
 namespace askap {
 
@@ -41,14 +53,31 @@ namespace accessors {
 
 /// @brief constructor using a table defined explicitly
 /// @details
-/// @param[in] tab table to read the solutions from
+/// @param[in] tab table to work with
 TableCalSolutionSource::TableCalSolutionSource(const casa::Table &tab) : TableHolder(tab), TableCalSolutionConstSource(tab) {}
  
 /// @brief constructor using a file name
 /// @details The table is opened for writing
 /// @param[in] name table file name 
 TableCalSolutionSource::TableCalSolutionSource(const std::string &name) : 
-   TableHolder(casa::Table(name, casa::Table::New)), TableCalSolutionConstSource(table()) {}
+   TableHolder(casa::Table()), TableCalSolutionConstSource(table()) 
+{
+  try {
+     table() = casa::Table(name,casa::Table::Old);
+  }
+  catch (...) {
+     // we couldn't just opened an existing table
+     try {
+        casa::SetupNewTable maker(name, casa::TableDesc(), casa::Table::New);
+        table() = casa::Table(maker);
+     }
+     catch (const casa::TableError &te) {
+        ASKAPTHROW(DataAccessError,"Unable create a new table for calibration solutions with the name="<<name<<
+                   ". AipsError: " << te.what());     
+     }
+  }
+}
+
 
 
 /// @brief obtain a solution ID to store new solution
@@ -58,8 +87,23 @@ TableCalSolutionSource::TableCalSolutionSource(const std::string &name) :
 /// @param[in] time time stamp of the new solution in seconds since MJD of 0.
 /// @return solution ID
 long TableCalSolutionSource::newSolutionID(const double time) {
+   if (!table().actualTableDesc().isColumn("TIME")) {
+       // this is a new table, we need to create new TIME column
+       casa::ScalarColumnDesc<casa::Double> timeColDesc("TIME", 
+           "Time stamp when the calibration solution was obtained");
+       table().addColumn(timeColDesc);    
+       casa::TableMeasRefDesc measRef(casa::MEpoch::UTC);
+       casa::TableMeasValueDesc measVal(table().actualTableDesc(), "Time");
+       casa::TableMeasDesc<casa::MEpoch> mepochCol(measVal, measRef);
+       mepochCol.write(table());
+   }
    const casa::uInt newRow = table().nrow();
-   // need to do something with time
+   table().addRow(1);
+   ASKAPDEBUGASSERT(newRow < table().nrow());
+   casa::ScalarMeasColumn<casa::MEpoch> bufCol(table(),"TIME");
+   const casa::Quantity qTime(time,"s");
+   const casa::MEpoch epoch(qTime,casa::MEpoch::UTC);
+   bufCol.put(newRow, epoch);
    return long(newRow);
 }
   
@@ -71,6 +115,7 @@ long TableCalSolutionSource::newSolutionID(const double time) {
 /// @param[in] id solution ID to access
 /// @return shared pointer to an accessor object
 boost::shared_ptr<ICalSolutionAccessor> TableCalSolutionSource::rwSolution(const long id) const {
+   ASKAPCHECK((id >= 0) && (long(table().nrow()) > id), "Requested solution id="<<id<<" is not in the table");
    boost::shared_ptr<TableCalSolutionFiller> filler(new TableCalSolutionFiller(table(),id));
    ASKAPDEBUGASSERT(filler);
    boost::shared_ptr<MemCalSolutionAccessor> acc(new MemCalSolutionAccessor(filler,false));

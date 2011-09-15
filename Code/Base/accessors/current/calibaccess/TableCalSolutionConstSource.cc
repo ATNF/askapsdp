@@ -33,6 +33,10 @@
 #include <calibaccess/TableCalSolutionConstSource.h>
 #include <calibaccess/TableCalSolutionFiller.h>
 #include <calibaccess/MemCalSolutionAccessor.h>
+#include <measures/TableMeasures/ScalarMeasColumn.h>
+#include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MCEpoch.h>
+
 
 namespace askap {
 
@@ -70,9 +74,15 @@ long TableCalSolutionConstSource::mostRecentSolution() const
 /// @return solution ID
 long TableCalSolutionConstSource::solutionID(const double time) const
 {
-  // need to work with TIME column here
-  ASKAPASSERT(time>0);
-  return 0; // for now
+  ASKAPASSERT(table().nrow()>0);
+  casa::ROScalarMeasColumn<casa::MEpoch> bufCol(table(),"TIME");
+  for (casa::uInt row = table().nrow(); row > 0; --row) {
+       const double cTime = bufCol.convert(row - 1,casa::MEpoch::UTC).get("s").getValue();
+       if (time >= cTime) {
+           return long(row) - 1;
+       }
+  }
+  ASKAPTHROW(AskapError, "Unable to find solution matching the time "<<time<<", the table doesn't go that far into past");
 }
   
 /// @brief obtain read-only accessor for a given solution ID
@@ -84,6 +94,7 @@ long TableCalSolutionConstSource::solutionID(const double time) const
 /// @return shared pointer to an accessor object
 boost::shared_ptr<ICalSolutionConstAccessor> TableCalSolutionConstSource::roSolution(const long id) const
 {
+  ASKAPCHECK((id >= 0) && (long(table().nrow()) > id), "Requested solution id="<<id<<" is not in the table");
   boost::shared_ptr<TableCalSolutionFiller> filler(new TableCalSolutionFiller(table(),id));
   ASKAPDEBUGASSERT(filler);
   boost::shared_ptr<MemCalSolutionAccessor> acc(new MemCalSolutionAccessor(filler,true));
