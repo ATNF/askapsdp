@@ -135,12 +135,18 @@ void GaussianTaperCache::initTaperCache(const casa::IPosition &shape) const
   // may be we need just to sum values?
   //const double normFactor = 2.*M_PI*itsMajorAxis*itsMinorAxis*erf(double(nx)/(2.*sqrt(2.)*itsMajorAxis))*
   //            erf(double(ny)/(2.*sqrt(2.)*itsMinorAxis));
-  double sum = 0.;            
+  double sum = 0.;    
+  const double maxRadius = double(casa::min(nx,ny)/2);        
   for (index[0] = 0; index[0]<nx; ++index[0]) {
        for (index[1] = 0; index[1]<ny; ++index[1]) {
             casa::RigidVector<casa::Double, 2> offset;
             offset(0) = (double(index[0])-double(nx)/2.);
             offset(1) = (double(index[1])-double(ny)/2.);
+            if (sqrt(offset(0)*offset(0)+offset(1)*offset(1)) > maxRadius) {
+                // fill on a circular rather than rectangular support
+                itsTaperCache(index) = 0.;
+                continue;
+            } 
             // operator* is commented out in RigidVector due to
             // problems with some compilers. We have to use operator*= instead.
             // according to manual it is equivalent to v=Mv, rather than to v=v*M
