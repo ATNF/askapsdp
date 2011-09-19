@@ -107,7 +107,7 @@ void TableCalSolutionFiller::fillGains(std::pair<casa::Cube<casa::Complex>, casa
          itsGainsRow = findDefinedCube("GAIN");
      }
      ASKAPASSERT(itsGainsRow>=0);
-     ASKAPCHECK(cellDefined<casa::Complex>("GAIN_VALID", casa::uInt(itsGainsRow)), 
+     ASKAPCHECK(cellDefined<casa::Bool>("GAIN_VALID", casa::uInt(itsGainsRow)), 
          "Wrong format of the calibration table: GAIN element should always be accompanied by GAIN_VALID");
      readCube(gains.first, "GAIN", casa::uInt(itsGainsRow));
      readCube(gains.second, "GAIN_VALID", casa::uInt(itsGainsRow));
@@ -132,7 +132,7 @@ void TableCalSolutionFiller::fillLeakages(std::pair<casa::Cube<casa::Complex>, c
          itsLeakagesRow = findDefinedCube("LEAKAGE");
      }
      ASKAPASSERT(itsLeakagesRow>=0);
-     ASKAPCHECK(cellDefined<casa::Complex>("LEAKAGE_VALID", casa::uInt(itsLeakagesRow)), 
+     ASKAPCHECK(cellDefined<casa::Bool>("LEAKAGE_VALID", casa::uInt(itsLeakagesRow)), 
          "Wrong format of the calibration table: LEAKAGE element should always be accompanied by LEAKAGE_VALID");
      readCube(leakages.first, "LEAKAGE", casa::uInt(itsLeakagesRow));
      readCube(leakages.second, "LEAKAGE_VALID", casa::uInt(itsLeakagesRow));
@@ -157,7 +157,7 @@ void TableCalSolutionFiller::fillBandpasses(std::pair<casa::Cube<casa::Complex>,
          itsBandpassesRow = findDefinedCube("BANDPASS");
      }
      ASKAPASSERT(itsBandpassesRow>=0);
-     ASKAPCHECK(cellDefined<casa::Complex>("BANDPASS_VALID", casa::uInt(itsBandpassesRow)), 
+     ASKAPCHECK(cellDefined<casa::Bool>("BANDPASS_VALID", casa::uInt(itsBandpassesRow)), 
          "Wrong format of the calibration table: BANDPASS element should always be accompanied by BANDPASS_VALID");
      readCube(bp.first, "BANDPASS", casa::uInt(itsBandpassesRow));
      readCube(bp.second, "BANDPASS_VALID", casa::uInt(itsBandpassesRow));
