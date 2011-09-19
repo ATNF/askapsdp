@@ -34,10 +34,6 @@
 #include <calibaccess/ParsetCalSolutionAccessor.h>
 #include <calibaccess/JonesIndex.h>
 #include <tables/Tables/Table.h>
-#include <tables/Tables/TableError.h>
-#include <casa/OS/RegularFile.h>
-#include <casa/OS/Directory.h>
-#include <casa/OS/File.h>
 
 
 
@@ -59,38 +55,11 @@ class TableCalSolutionTest : public CppUnit::TestFixture
    CPPUNIT_TEST_EXCEPTION(testUndefinedSolution, AskapError);
    CPPUNIT_TEST_SUITE_END();
 protected:
-   static bool tableExists(const std::string &fname) {
-       try {
-          casa::Table testTab(fname,casa::Table::Old);
-          testTab.throwIfNull();
-       } 
-       catch (const casa::TableError &) {
-          return false;
-       }
-       return true; 
-   }
 
    static boost::shared_ptr<ICalSolutionSource> rwSource(bool doRemove) {
        const std::string fname("calibdata.tab");
        if (doRemove) {
-           if (casa::Table::canDeleteTable(fname,false)) {
-               casa::Table::deleteTable(fname, false);
-           } else {
-              // check that the table simply doesn't exist
-              CPPUNIT_ASSERT(!tableExists(fname));
-              casa::File tmpFile(fname);
-              if (tmpFile.exists()) {
-                  // we need to remove the file with the given name
-                  if (tmpFile.isDirectory()) {
-                      casa::Directory dir(fname);
-                      dir.remove();
-                  } else {
-                      CPPUNIT_ASSERT(tmpFile.isRegular());
-                      casa::RegularFile rf(fname);
-                      rf.remove();
-                  }
-              }
-           }
+           TableCalSolutionSource::removeOldTable(fname);
        }
        boost::shared_ptr<TableCalSolutionSource> css(new TableCalSolutionSource(fname,6,3,8));
        CPPUNIT_ASSERT(css);

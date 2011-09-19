@@ -96,6 +96,14 @@ public:
   
   /// @brief shared pointer definition
   typedef boost::shared_ptr<TableCalSolutionConstSource> ShPtr;
+  
+  /// @brief check that the table exists and can be opened
+  /// @details This is a helper method which tries to open a given table
+  /// to determine whether it exists and can be used. It catches the exception and
+  /// returns false if it was generated
+  /// @param[in] fname file name of the table to test
+  /// @return true, if table exists and is useable, false otherwise
+  static bool tableExists(const std::string &fname);
 };
 
 

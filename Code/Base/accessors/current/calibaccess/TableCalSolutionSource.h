@@ -93,6 +93,16 @@ public:
   
     /// @brief shared pointer definition
   typedef boost::shared_ptr<TableCalSolutionSource> ShPtr;
+  
+  /// @brief helper method to remove an old table
+  /// @details It just deletes the given table, which allows to create a new one
+  /// from scratch (this functionality is used if one needs to overwrite the previous
+  /// solution).
+  /// @param[in] fname file name to delete
+  /// @param[in] removeIfNotTable if true, the file is removed even if it is not a table.
+  /// An exception is thrown in this case if this parameter is false.
+  static void removeOldTable(const std::string &fname, const bool removeIfNotTable = true);
+  
 private:
   /// @brief number of antennas (used when new solutions are created)
   casa::uInt itsNAnt;

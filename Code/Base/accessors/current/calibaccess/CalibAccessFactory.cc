@@ -35,6 +35,8 @@
 #include <calibaccess/CalibAccessFactory.h>
 #include <calibaccess/ParsetCalSolutionSource.h>
 #include <calibaccess/ParsetCalSolutionConstSource.h>
+#include <calibaccess/TableCalSolutionSource.h>
+#include <calibaccess/TableCalSolutionConstSource.h>
 #include <askap/AskapError.h>
 
 // logging stuff
@@ -71,17 +73,44 @@ boost::shared_ptr<ICalSolutionSource> CalibAccessFactory::rwCalSolutionSource(co
 boost::shared_ptr<ICalSolutionConstSource> CalibAccessFactory::calSolutionSource(const LOFAR::ParameterSet &parset, bool readonly)
 {
    const std::string calAccType = parset.getString("calibaccess","parset");
-   ASKAPCHECK(calAccType == "parset", 
-       "Only parset-based implementation is supported by the calibration access factory at the moment; you request: "<<calAccType);
-   const std::string fname = parset.getString("calibaccess.parset", "result.dat");
-   ASKAPLOG_INFO_STR(logger, "Using implementation of the calibration solution accessor working with parset file "<<fname);
+   ASKAPCHECK((calAccType == "parset") || (calAccType == "table"), 
+       "Only parset-based and table-based implementations are supported by the calibration access factory at the moment; you request: "<<calAccType);
    boost::shared_ptr<ICalSolutionConstSource> result;
-   if (readonly) {
-      result.reset(new ParsetCalSolutionConstSource(fname));
+   if (calAccType == "parset") {    
+       const std::string fname = parset.getString("calibaccess.parset", "result.dat");
+       ASKAPLOG_INFO_STR(logger, "Using implementation of the calibration solution accessor working with parset file "<<fname);
+       if (readonly) {
+           result.reset(new ParsetCalSolutionConstSource(fname));
+       } else {
+           result.reset(new ParsetCalSolutionSource(fname));
+       }       
+       // further configuration fine tuning can happen here
    } else {
-      result.reset(new ParsetCalSolutionSource(fname));
+       ASKAPDEBUGASSERT(calAccType == "table");
+       const std::string fname = parset.getString("calibaccess.table", "calibdata.tab");
+       ASKAPLOG_INFO_STR(logger, "Using implementation of the calibration solution accessor working with casa table "<<fname);
+       if (readonly) {
+           result.reset(new TableCalSolutionConstSource(fname));
+       } else {
+           const casa::uInt maxAnt = parset.getUint32("calibaccess.table.maxant",36);
+           const casa::uInt maxBeam = parset.getUint32("calibaccess.table.maxbeam",30);
+           const casa::uInt maxChan = parset.getUint32("calibaccess.table.maxchan",16416);
+           const bool reuse = parset.getBool("calibaccess.table.reuse", false);
+           if (reuse) {
+               if (TableCalSolutionConstSource::tableExists(fname)) {
+                   ASKAPLOG_INFO_STR(logger, "New calibration solutions will be appended to table "<<fname);
+               } else {
+                   ASKAPLOG_INFO_STR(logger, "Unable to open table "<<fname<<
+                                     ", a new table will be created to store calibration solutions");
+               }
+           } else {
+               ASKAPLOG_INFO_STR(logger, "A new table "<<fname<<" is to be created, any old file with the same name is going to be removed");
+               TableCalSolutionSource::removeOldTable(fname);
+           }
+           result.reset(new TableCalSolutionSource(fname,maxAnt,maxBeam,maxChan));
+       }
    }
-   // further configuration fine tuning can happen here
+   
    ASKAPDEBUGASSERT(result);
    return result;
 }

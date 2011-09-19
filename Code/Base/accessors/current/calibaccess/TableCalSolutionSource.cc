@@ -34,6 +34,8 @@
 #include <calibaccess/TableCalSolutionSource.h>
 #include <calibaccess/TableCalSolutionFiller.h>
 #include <calibaccess/MemCalSolutionAccessor.h>
+
+// casa includes
 #include <measures/TableMeasures/TableMeasDesc.h>
 #include <measures/TableMeasures/TableMeasRefDesc.h>
 #include <measures/TableMeasures/TableMeasValueDesc.h>
@@ -45,6 +47,10 @@
 #include <tables/Tables/TableError.h>
 #include <tables/Tables/SetupNewTab.h>
 #include <tables/Tables/TableDesc.h>
+#include <casa/OS/RegularFile.h>
+#include <casa/OS/Directory.h>
+#include <casa/OS/File.h>
+
 
 
 namespace askap {
@@ -132,6 +138,39 @@ boost::shared_ptr<ICalSolutionAccessor> TableCalSolutionSource::rwSolution(const
    ASKAPDEBUGASSERT(acc);
    return acc;  
 }
+
+/// @brief helper method to remove an old table
+/// @details It just deletes the given table, which allows to create a new one
+/// from scratch (this functionality is used if one needs to overwrite the previous
+/// solution).
+/// @param[in] fname file name to delete
+/// @param[in] removeIfNotTable if true, the file is removed even if it is not a table.
+/// An exception is thrown in this case if this parameter is false.
+void TableCalSolutionSource::removeOldTable(const std::string &fname, const bool removeIfNotTable)
+{
+  if (casa::Table::canDeleteTable(fname,false)) {
+      casa::Table::deleteTable(fname, false);
+  } else {
+     // check that the table simply doesn't exist
+     ASKAPCHECK(!tableExists(fname), "Unable to delete existing table "<<fname);
+     casa::File tmpFile(fname);
+     if (tmpFile.exists()) {
+         ASKAPCHECK(removeIfNotTable, 
+                    "TableCalSolutionSource::removeOldTable: File or directory "<<fname<<
+                    " exists, but it is not a table - unable to remove");
+         // we need to remove the file with the given name
+         if (tmpFile.isDirectory()) {
+             casa::Directory dir(fname);
+             dir.remove();
+         } else {
+             ASKAPASSERT(tmpFile.isRegular());
+             casa::RegularFile rf(fname);
+             rf.remove();
+         }
+     }
+  }
+}
+
 
 } // namespace accessors
 

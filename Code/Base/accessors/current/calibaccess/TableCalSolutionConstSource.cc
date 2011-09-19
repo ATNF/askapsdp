@@ -36,6 +36,8 @@
 #include <measures/TableMeasures/ScalarMeasColumn.h>
 #include <measures/Measures/MEpoch.h>
 #include <measures/Measures/MCEpoch.h>
+#include <tables/Tables/Table.h>
+#include <tables/Tables/TableError.h>
 
 
 namespace askap {
@@ -101,6 +103,25 @@ boost::shared_ptr<ICalSolutionConstAccessor> TableCalSolutionConstSource::roSolu
   ASKAPDEBUGASSERT(acc);
   return acc;
 }
+
+/// @brief check that the table exists and can be opened
+/// @details This is a helper method which tries to open a given table
+/// to determine whether it exists and can be used. It catches the exception and
+/// returns false if it was generated
+/// @param[in] fname file name of the table to test
+/// @return true, if table exists and is useable, false otherwise
+bool TableCalSolutionConstSource::tableExists(const std::string &fname)
+{
+  try {
+     casa::Table testTab(fname,casa::Table::Old);
+     testTab.throwIfNull();
+  } 
+  catch (const casa::TableError &) {
+     return false;
+  }
+  return true; 
+}
+
 
 } // namespace accessors
 
