@@ -66,6 +66,8 @@ int main(int argc, char **argv) {
      casa::LogSink::globalSink(globalSink);
 
 
+     LOFAR::ParameterSet parset("test.in");
+     SynthesisParamsHelper::setUpImageHandler(parset);
      casa::Array<float> psf = SynthesisParamsHelper::imageHandler().read("picmf.psf");
      casa::Array<float> img = SynthesisParamsHelper::imageHandler().read("testimg.img");
      ASKAPASSERT(psf.shape().nonDegenerate() == img.shape().nonDegenerate());
@@ -74,7 +76,6 @@ int main(int argc, char **argv) {
      std::cerr<<"Image initialization: "<<timer.real()<<std::endl;
      timer.mark();
      
-     LOFAR::ParameterSet parset("test.in");
      boost::shared_ptr<WienerPreconditioner> wp = WienerPreconditioner::createPreconditioner(parset);
      ASKAPASSERT(wp);
      
