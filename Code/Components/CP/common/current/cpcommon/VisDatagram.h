@@ -39,12 +39,12 @@ namespace askap {
 
             /// The imaginary part of the complex number.
             float imag;
-        };
+        } __attribute__((__packed__));
 
         /// @brief Version number for the VisDatagram.
         static const unsigned int VISPAYLOAD_VERSION = 0x1;
 
-        /// @brief Number of fine channels per slice in the VisDatagram. One
+        /// @brief Number of channels per slice in the VisDatagram. One
         /// Visatagram will then contain data for N_CHANNELS_PER_SLICE channels.
         /// This is hardcoded to the standard ASKAP configuration so fixed size
         /// UDP datagrams can be used.
@@ -99,12 +99,12 @@ namespace askap {
             ///  * Both pol and channel are zero based and must be between
             ///  * zero and (n_pol - 1) and (n_channels_per_slice - 1) respectively.
             ///  */
-            /// int index(unsigned int pol, unsigned int channel) {
+            /// unsigned int index(unsigned int pol, unsigned int channel) {
             ///     return pol + ((n_pol) * channel));
             ///     }
             /// @endverbatim
             FloatComplex vis[N_CHANNELS_PER_SLICE * N_POL];
-        };
+        } __attribute__((__packed__));
 
     };
 };
