@@ -627,6 +627,17 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
                          const float visNoiseWt = (visNoise > 0.) ? 1./visNoise : 0.;
                          ASKAPCHECK(visNoiseWt>0., "Weight is supposed to be a positive number; visNoiseWt="<<
                                     visNoiseWt<<" visNoise="<<visNoise<<" visComplexNoise="<<visComplexNoise);
+                         
+                         // row in itsSumWeights to work with
+                         const int sumWeightsRow = itsTrackWeightPerOversamplePlane ? cInd : cIndex(i,pol,chan);
+      
+                         ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
+                         ASKAPDEBUGASSERT(itsSumWeights.shape().nelements() >= 3);
+                         ASKAPCHECK(sumWeightsRow < int(itsSumWeights.shape()(0)),
+                                    "Index into itsSumWeights of " << sumWeightsRow << " is greater than allowed " << 
+                                     int(itsSumWeights.shape()(0)));
+                         ASKAPDEBUGASSERT(pol < uint(itsSumWeights.shape()(1)));
+                         ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
                                   
                          if (!isPSFGridder()) {
                              /// Gridding visibility data onto grid
@@ -640,13 +651,7 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
                              itsSamplesGridded+=1.0;
                              itsNumberGridded+=double((2*support+1)*(2*support+1));
       
-                             ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
-                             ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)),
-                                        "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
-                             ASKAPDEBUGASSERT(pol < uint(itsSumWeights.shape()(1)));
-                             ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
-
-                             itsSumWeights(cIndex(i,pol,chan), pol, imageChan) += visNoiseWt; //1.0;
+                             itsSumWeights(sumWeightsRow, pol, imageChan) += visNoiseWt; //1.0;
                          }
                          /// Grid PSF?
                          if (isPSFGridder() && (itsUseAllDataForPSF || ((itsFeedUsedForPSF == acc.feed1()(i)) &&
@@ -661,13 +666,7 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
                               itsSamplesGridded+=1.0;
                               itsNumberGridded+=double((2*support+1)*(2*support+1));
     
-                              ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
-                              ASKAPCHECK(cIndex(i,pol,chan) < int(itsSumWeights.shape()(0)), "Index " << cIndex(i,pol,chan) << " greater than allowed " << int(itsSumWeights.shape()(0)));
-                              ASKAPDEBUGASSERT(pol < uint(itsSumWeights.shape()(1)));
-                              ASKAPDEBUGASSERT(imageChan < int(itsSumWeights.shape()(2)));
-
-                              itsSumWeights(cIndex(i,pol,chan), pol, imageChan) += visNoiseWt; //1.0;
-                   
+                              itsSumWeights(sumWeightsRow, pol, imageChan) += visNoiseWt; //1.0;               
                          } // end if psf needs to be done
 		     } // end if forward (else case, reverse operation)
                  } // end of on-grid if statement
