@@ -103,12 +103,12 @@ public:
 	
 	/// Checks whether there are more data available.
 	/// @return True if there are more data available
-	casa::Bool hasMore() const throw(); 
+	virtual casa::Bool hasMore() const throw(); 
 	
 	/// advance the iterator one step further
 	/// @return True if there are more data (so constructions like
 	///         while(it.next()) {} are possible)
-	casa::Bool next();
+	virtual casa::Bool next();
 	
 	/// @brief assign a read/write accessor to this iterator
 	/// @details itsDataAccessor is initialized with a reference
