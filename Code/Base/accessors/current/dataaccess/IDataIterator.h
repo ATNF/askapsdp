@@ -136,11 +136,9 @@ public:
 	///
 	/// @return A reference to itself (to allow ++++it synthax)
 	///
-	/// The default implementation is via next(), however one can
-	/// override this method in a derived class to avoid this (slight)
-	/// overhead. This method overrides the the method of the base
-	/// class to return the correct type 
-	virtual IDataIterator& operator++();
+	/// The implementation is via next(). This method overrides the
+	/// method of the base class to return the correct type 
+	IDataIterator& operator++();
 };
 
 } // end of namespace accessors

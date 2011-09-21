@@ -97,20 +97,6 @@ IDataAccessor& DataIteratorStub::buffer(const std::string &) const
   return itsAccessor;
 }
 
-/// advance the iterator one step further
-///
-/// @return A reference to itself (to allow ++++it synthax)
-///
-/// The default implementation is via next(), however one can
-/// override this method in a derived class to avoid this (slight)
-/// overhead. This method overrides the the method of the base
-/// class to return the correct type 
-IDataIterator& DataIteratorStub::operator++()
-{
-  ++itsCounter;
-  return *this;  
-}
-
 /// Restart the iteration from the beginning
 void DataIteratorStub::init()
 {

@@ -100,10 +100,8 @@ public:
 
 	/// advance the iterator one step further
 	/// @return A reference to itself (to allow ++++it syntax)
-	/// The default implementation is via next(), however one can
-	/// override this method in a derived class to avoid this (slight)
-	/// overhead
-	virtual IConstDataIterator& operator++();
+	/// The implementation is via next()
+	IConstDataIterator& operator++();
 };
 
 } // end of namespace accessors

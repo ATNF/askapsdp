@@ -97,16 +97,6 @@ public:
 	/// methods defined separately, it is possible to detect when a
 	/// write operation took place and implement a delayed writing
 	virtual IDataAccessor& buffer(const std::string &bufferID) const;
-
-	/// advance the iterator one step further
-	///
-	/// @return A reference to itself (to allow ++++it synthax)
-	///
-	/// The default implementation is via next(), however one can
-	/// override this method in a derived class to avoid this (slight)
-	/// overhead. This method overrides the method of the base
-	/// class to return the correct type 
-	virtual IDataIterator& operator++();
 	
 	/// Restart the iteration from the beginning
 	virtual void init();

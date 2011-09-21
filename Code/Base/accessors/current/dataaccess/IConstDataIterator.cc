@@ -62,9 +62,7 @@ const IConstDataAccessor* IConstDataIterator::operator->() const
 
 /// advance the iterator one step further
 /// @return A reference to itself (to allow ++++it synthax)
-/// The default implementation is via next(), however one can
-/// override this method in a derived class to avoid this (slight)
-/// overhead
+/// The implementation is via next()
 IConstDataIterator& IConstDataIterator::operator++()
 {
   next();

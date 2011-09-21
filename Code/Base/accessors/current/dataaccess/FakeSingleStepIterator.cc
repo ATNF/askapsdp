@@ -134,21 +134,6 @@ IDataAccessor& FakeSingleStepIterator::buffer(const std::string &bufferID) const
       boost::shared_ptr<IDataAccessor>(new MemBufferDataAccessor(
                                        *itsDataAccessor)));
 }
-
-/// advance the iterator one step further
-///
-/// @return A reference to itself (to allow ++++it synthax)
-///
-/// The default implementation is via next(), however one can
-/// override this method in a derived class to avoid this (slight)
-/// overhead. This method overrides the method of the base
-/// class to return the correct type 
-IDataIterator& FakeSingleStepIterator::operator++()
-{
-  ASKAPDEBUGASSERT(itsOriginFlag);
-  itsOriginFlag = false;
-  return *this;
-}
 	
 /// Restart the iteration from the beginning
 void FakeSingleStepIterator::init()
@@ -168,6 +153,7 @@ casa::Bool FakeSingleStepIterator::hasMore() const throw()
 ///         while(it.next()) {} are possible)
 casa::Bool FakeSingleStepIterator::next()
 {
+  ASKAPDEBUGASSERT(itsOriginFlag);
   itsOriginFlag = false;
   return false; // we have just one element to iterate over
 }

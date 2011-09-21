@@ -57,10 +57,8 @@ IDataAccessor* IDataIterator::operator->() const
 ///
 /// @return A reference to itself (to allow ++++it synthax)
 ///
-/// The default implementation is via next(), however one can
-/// override this method in a derived class to avoid this (slight)
-/// overhead. This method overrides the the method of the base
-/// class to return the correct type 
+/// The implementation is via next(). This method overrides 
+/// the the method of the base class to return the correct type 
 IDataIterator& IDataIterator::operator++()
 {
   next();
