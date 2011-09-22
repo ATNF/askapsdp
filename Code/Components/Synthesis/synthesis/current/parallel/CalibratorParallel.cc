@@ -59,6 +59,7 @@ ASKAP_LOGGER(logger, ".parallel");
 
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/ParsetInterface.h>
+#include <dataaccess/DataIteratorAdapter.h>
 
 #include <fitting/LinearSolver.h>
 #include <fitting/GenericNormalEquations.h>
@@ -177,7 +178,9 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
       conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
       // ensure that time is counted in seconds since 0 MJD
       conv->setEpochFrame();
-      IDataSharedIter it=ds.createIterator(sel, conv);
+      //IDataSharedIter it=ds.createIterator(sel, conv);
+      IDataSharedIter it(new accessors::DataIteratorAdapter(ds.createIterator(sel, conv)));
+      
       ASKAPCHECK(itsPerfectModel, "Uncorrupted model not defined");
       ASKAPCHECK(itsModel, "Initial assumption of parameters is not defined");
       ASKAPCHECK(gridder(), "Gridder not defined");
