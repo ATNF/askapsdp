@@ -42,6 +42,8 @@
 // own includes
 #include <dataaccess/IConstDataIterator.h>
 #include <dataaccess/IDataIterator.h>
+#include <dataaccess/IDataAccessor.h>
+#include <dataaccess/DataAccessorAdapter.h>
 #include <utils/ChangeMonitor.h>
 
 // boost includes
@@ -96,6 +98,66 @@ public:
   /// @return true, if write is possible
   bool canWrite() const;
   
+  // const iterator methods
+  
+  /// Restart the iteration from the beginning
+  virtual void init();
+
+  // Return the data accessor (current chunk) in various ways
+  
+  /// operator* delivers a reference to data accessor (current chunk)
+  /// @return a reference to the current chunk
+  virtual IDataAccessor& operator*() const;
+
+  /// Checks whether there are more data available.
+  /// @return True if there are more data available
+  virtual casa::Bool hasMore() const throw();
+
+  /// advance the iterator one step further 
+  /// @return True if there are more data (so constructions like 
+  ///         while(it.next()) {} are possible)
+  virtual casa::Bool next();
+  
+  // methods specific for non-const iterator
+  
+  /// Switch the output of operator* and operator-> to one of 
+  /// the buffers. This is meant to be done to provide the same 
+  /// interface for a buffer access as exists for the original 
+  /// visibilities (e.g. it->visibility() to get the cube).
+  /// It can be used for an easy substitution of the original 
+  /// visibilities to ones stored in a buffer, when the iterator is
+  /// passed as a parameter to mathematical algorithms. 
+  /// 
+  /// The operator* and operator-> will refer to the chosen buffer
+  /// until a new buffer is selected or the chooseOriginal() method
+  /// is executed to revert operators to their default meaning
+  /// (to refer to the primary visibility data).
+  ///
+  /// @param[in] bufferID  the name of the buffer to choose
+  ///
+  virtual void chooseBuffer(const std::string &bufferID);
+
+  /// Switch the output of operator* and operator-> to the original
+  /// state (present after the iterator is just constructed) 
+  /// where they point to the primary visibility data. This method
+  /// is indended to cancel the results of chooseBuffer(casa::uInt)
+  ///
+  virtual void chooseOriginal();
+
+  /// return any associated buffer for read/write access. The 
+  /// buffer is identified by its bufferID. The method 
+  /// ignores a chooseBuffer/chooseOriginal setting.
+  /// 
+  /// @param[in] bufferID the name of the buffer requested
+  /// @return a reference to writable data accessor to the
+  ///         buffer requested
+  ///
+  /// Because IDataAccessor has both const and non-const visibility()
+  /// methods defined separately, it is possible to detect when a
+  /// write operation took place and implement a delayed writing
+  virtual IDataAccessor& buffer(const std::string &bufferID) const;
+  
+  
 protected:
   /// @brief obtain change monitor
   /// @details It can be used in derived classes to compare whether we still
@@ -106,6 +168,21 @@ protected:
   /// A comparison of two change monitors with a non-equal result means that the
   /// accessor was updated some time in between these two calls
   inline scimath::ChangeMonitor changeMonitor() const { return itsChangeMonitor; }
+  
+  /// @brief obtain a reference to associated iterator for read-only access
+  /// @details This method checks the validity of the shared pointer and
+  /// returns a reference of the const iterator type. The operation should always be
+  /// successful, provided this adapter is associated with an iterator. Otherwise an
+  /// exception is thrown
+  /// @return a refernce to associated read-only iterator
+  IConstDataIterator & roIterator() const;
+
+  /// @brief obtain a reference to associated iterator for read-write access
+  /// @details This method checks that the iterator is writeable (i.e. the appropriate 
+  /// shared pointer is valid) and returns the reference. An exception
+  /// is thrown if the associated iterator is of the const type.
+  /// @return a refernce to associated non-const iterator
+  IDataIterator & rwIterator() const;
   
 private:
   /// @brief shared pointer to const iterator
@@ -123,6 +200,12 @@ private:
   /// updated in the derived classes. Change monitor provides
   /// an efficient way of doing it.
   scimath::ChangeMonitor itsChangeMonitor;  
+  
+  /// @brief shared pointer to an accessor
+  /// @details We need this persistence because accessors are returned by reference.
+  /// In addition, we might need to setup an accessor adapter to ensure a correct
+  /// type is returned
+  mutable DataAccessorAdapter itsAccessorAdapter;
 };
 
 } // namespace accessors

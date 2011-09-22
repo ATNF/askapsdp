@@ -84,10 +84,8 @@ public:
 	/// operator-> delivers a pointer. 
 	/// @return a pointer to the current chunk
 	/// Allows the syntax like it->visibility()
-	/// The default implementation works via operator*, however to 
-	/// avoid an additional function call, the method
-	/// can be specialized in the derived classes
-	virtual const IConstDataAccessor* operator->() const;
+	/// This implementation works via operator*.
+	const IConstDataAccessor* operator->() const;
 
 	/// Checks whether there are more data available.
 	/// @return True if there are more data available

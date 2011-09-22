@@ -86,14 +86,12 @@ public:
 	/// @return a pointer to the current chunk
 	///
 	/// Allows the syntax like it->visibility()
-	/// The default implementation works via operator*, however to 
-	/// avoid an additional function call, the method
-	/// can be specialized in the derived classes
+	/// This implementation works via operator*.
 	///
 	/// constness of the return type is changed to allow read/write
 	/// operations.
 	///
-	virtual IDataAccessor* operator->() const;
+	IDataAccessor* operator->() const;
 
 	/// Switch the output of operator* and operator-> to one of 
 	/// the buffers. This is meant to be done to provide the same 
