@@ -99,7 +99,7 @@ casa::Bool TimeChunkIteratorAdapter::next()
       itsCurrentChunkTime = curTime;
       itsPrevTime = curTime;
   }
-  ASKAPCHECK(curTime < itsPrevTime, 
+  ASKAPCHECK(curTime >= itsPrevTime, 
       "Data appear to be not in time order, TimeChunkIteratorAdapter can't handle this situation. Last time = "<<
       itsPrevTime<<" s, current time = "<<curTime);
   itsPrevTime = curTime;  
