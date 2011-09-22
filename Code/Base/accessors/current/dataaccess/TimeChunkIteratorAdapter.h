@@ -115,7 +115,7 @@ private:
   /// @brief change monitor for iterators
   /// @details It allows us to find when iterator is updated and, therefore, when
   /// a new chunk has to be started.
-  scimath::ChangeMonitor itsChangeMonitor;    
+  scimath::ChangeMonitor itsChangeMonitor;  
 };
 
 } // namespace accessors

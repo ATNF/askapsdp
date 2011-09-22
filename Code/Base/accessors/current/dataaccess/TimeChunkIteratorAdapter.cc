@@ -79,7 +79,12 @@ void TimeChunkIteratorAdapter::setInterval(const double interval)
 /// current chunk rather than to all dataset
 casa::Bool TimeChunkIteratorAdapter::hasMore() const throw()
 {
-  return DataIteratorAdapter::hasMore();
+  if (itsChangeMonitor != changeMonitor() || (itsInterval < 0)) {
+      return DataIteratorAdapter::hasMore();
+  }
+  const double curTime = roIterator()->time();
+  ASKAPDEBUGASSERT((curTime >= itsCurrentChunkTime));
+  return DataIteratorAdapter::hasMore() && (curTime - itsCurrentChunkTime < itsInterval);
 }
   
 /// advance the iterator one step further 
@@ -87,6 +92,17 @@ casa::Bool TimeChunkIteratorAdapter::hasMore() const throw()
 ///         while(it.next()) {} are possible)
 casa::Bool TimeChunkIteratorAdapter::next()
 {
+  const double curTime = roIterator()->time();
+  if (itsChangeMonitor != changeMonitor()) {
+      // the iterator has been updated, need to start new chunk
+      itsChangeMonitor = changeMonitor();
+      itsCurrentChunkTime = curTime;
+      itsPrevTime = curTime;
+  }
+  ASKAPCHECK(curTime < itsPrevTime, 
+      "Data appear to be not in time order, TimeChunkIteratorAdapter can't handle this situation. Last time = "<<
+      itsPrevTime<<" s, current time = "<<curTime);
+  itsPrevTime = curTime;  
   return DataIteratorAdapter::next();
 }
   
@@ -103,6 +119,9 @@ bool TimeChunkIteratorAdapter::moreDataAvailable() const
 /// can continue until the end of the following chunk (or the end of the data)
 void TimeChunkIteratorAdapter::resume() const
 {
+   ASKAPCHECK(moreDataAvailable(), "Unable to resume iteration as no more data are available");
+   itsCurrentChunkTime = roIterator()->time();
+   itsPrevTime = itsCurrentChunkTime;  
 }
 
 
