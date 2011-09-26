@@ -38,7 +38,10 @@
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/IConstDataSource.h>
 #include <dataaccess/TimeChunkIteratorAdapter.h>
+#include <askap/AskapError.h>
 #include "TableTestRunner.h"
+#include <askap/AskapUtil.h>
+
 
 namespace askap {
 
@@ -46,7 +49,9 @@ namespace accessors {
 
 class TimeChunkIteratorAdapterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TimeChunkIteratorAdapterTest);
-  CPPUNIT_TEST(testAdapter);  
+  CPPUNIT_TEST(testTimeChunks);  
+  CPPUNIT_TEST_EXCEPTION(testReadOnlyBuffer,AskapError);  
+  CPPUNIT_TEST_EXCEPTION(testReadOnlyAccessor,AskapError);  
   CPPUNIT_TEST_SUITE_END();
 protected:
   static size_t countSteps(const IConstDataSharedIter &it) {
@@ -55,7 +60,7 @@ protected:
      return counter;     
   }
 public:
-  void testAdapter() {
+  void testTimeChunks() {
      TableConstDataSource ds(TableTestRunner::msName());
      IDataConverterPtr conv=ds.createConverter();
      conv->setEpochFrame(); // ensures seconds since 0 MJD
@@ -71,7 +76,43 @@ public:
           }
      }
      CPPUNIT_ASSERT_EQUAL(size_t(420), counter);     
+     // now trying bigger chunks
+     it.reset(new TimeChunkIteratorAdapter(ds.createConstIterator(conv),5990));
+     for (counter = 0; it->moreDataAvailable(); ++counter) {
+          CPPUNIT_ASSERT_EQUAL(size_t(10),countSteps(it));
+          if (it->moreDataAvailable()) {
+              it->resume();
+          }
+     }
+     CPPUNIT_ASSERT_EQUAL(size_t(42), counter);     
+     
   }
+  
+  void testReadOnlyBuffer() {
+     TableConstDataSource ds(TableTestRunner::msName());
+     boost::shared_ptr<TimeChunkIteratorAdapter> it(new TimeChunkIteratorAdapter(ds.createConstIterator()));
+     // this should generate an exception
+     it->buffer("TEST");
+  }
+
+  void testReadOnlyAccessor() {
+     TableConstDataSource ds(TableTestRunner::msName());
+     boost::shared_ptr<TimeChunkIteratorAdapter> it(new TimeChunkIteratorAdapter(ds.createConstIterator()));
+     boost::shared_ptr<IDataAccessor> acc;
+     try {
+        boost::shared_ptr<IDataAccessor> staticAcc(it->operator->(),utility::NullDeleter());
+        ASKAPASSERT(staticAcc);
+        acc = staticAcc;
+     }
+     catch (const AskapError &) {
+        // just to ensure no exception is thrown from the try-block
+        CPPUNIT_ASSERT(false);
+     }
+     CPPUNIT_ASSERT(acc);
+     // this should generate an exception
+     acc->rwVisibility();
+  }
+ 
 };
 
 } // namespace accessors
