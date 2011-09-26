@@ -1099,8 +1099,8 @@ namespace askap {
 	    casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
 
 	    casa::IPosition tileshape(shape.size(),1);
-	    tileshape(this->itsWCS->lng) = 128;
-	    tileshape(this->itsWCS->lat) = 128;
+	    tileshape(this->itsWCS->lng) = std::min(128L,shape(this->itsWCS->lng));
+	    tileshape(this->itsWCS->lat) = std::min(128L,shape(this->itsWCS->lat));
 	    if(this->itsWCS->spec>=0)
 	      tileshape(this->itsWCS->spec) = std::min(16L,shape(this->itsWCS->spec));
 
