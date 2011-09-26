@@ -306,8 +306,22 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
 /// Calculate the normal equations for a given measurement set
 void CalibratorParallel::calcNE()
 {
-  /// Now we need to recreate the normal equations
-  itsNe.reset(new GenericNormalEquations);
+  // Now we need to recreate the normal equations
+  
+  // we need to preserve at least one metadata item which is a flag whether we have more
+  // data available. This flag is filled at the first iteration and would be overwritten by reset
+  // unless we do something. The following code looks ugly, but it is probably the easiest way to
+  // achieve what we want
+  scimath::Params tempMetadata;
+  if (itsNe) {
+      boost::shared_ptr<scimath::GenericNormalEquations> gne = boost::dynamic_pointer_cast<scimath::GenericNormalEquations>(itsNe);
+      if (gne) {
+          tempMetadata = gne->metadata();
+      }
+  }
+  boost::shared_ptr<scimath::GenericNormalEquations> gne(new GenericNormalEquations);
+  gne->metadata() = tempMetadata;
+  itsNe = gne;
 
   if (itsComms.isWorker()) {
         
