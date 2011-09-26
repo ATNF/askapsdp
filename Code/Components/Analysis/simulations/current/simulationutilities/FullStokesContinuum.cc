@@ -147,7 +147,7 @@ namespace askap {
         {
             if (this == &c) return *this;
 
-            ((Spectrum &) *this) = c;
+            ((Continuum &) *this) = c;
 	    this->itsSourceID = c.itsSourceID;
 	    this->itsClusterID = c.itsClusterID;
 	    this->itsGalaxyID = c.itsGalaxyID;

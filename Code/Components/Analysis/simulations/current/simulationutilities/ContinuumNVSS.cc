@@ -115,8 +115,8 @@ namespace askap {
 	  for(size_t i=0;i<this->itsDec.size();i++) if(this->itsDec[i]==' ') this->itsDec[i]=':';
 
 	  this->itsComponent.setPeak(this->itsS1400);
-	  this->itsComponent.setMajor( this->itsMajorAxisLimit=='<' ? 0 : this->itsMajorAxis );
-	  this->itsComponent.setMinor( this->itsMinorAxisLimit=='<' ? 0 : this->itsMinorAxis );
+	  this->itsComponent.setMajor( this->itsMajorAxisLimit=='<' ? 0. : this->itsMajorAxis );
+	  this->itsComponent.setMinor( this->itsMinorAxisLimit=='<' ? 0. : this->itsMinorAxis );
 	  if(this->itsComponent.maj()<this->itsComponent.min()){
 	    this->itsComponent.setMajor(this->itsComponent.min());
 	    this->itsComponent.setMinor(this->itsComponent.maj());
