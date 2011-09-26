@@ -42,6 +42,8 @@
 #include <dataaccess/SharedIter.h>
 #include <fitting/Solver.h>
 #include <calibaccess/ICalSolutionSource.h>
+#include <dataaccess/TimeChunkIteratorAdapter.h>
+
 
 // std includes
 #include <string>
@@ -106,10 +108,46 @@ namespace askap
       /// an external file in the parset file format.
       /// @param[in] postfix a string to be added to the file name
 	  virtual void writeModel(const std::string &postfix = std::string());
-      
-
-  protected:      
   
+      /// @brief helper method to extract next chunk flag
+      /// @details This method is a reverse operation to that of setNextChunkFlag. It
+      /// extracts the flag from the metadata attached to the normal equations and 
+      /// returns it. 
+      /// @note false is returned if no appropriate metadata element is found or the normal
+      /// equations object does not support metadata. 
+      /// @return true, if the flag is set
+      bool extractNextChunkFlag() const;
+      
+      /// @brief initalise measurement equation and model
+      /// @details This method is indended to be called if this object is reused to
+      /// get more than one solution. It initialises the model and normal equations.
+      /// It is called from constructor, so if only one solution is required the constructor
+      /// is sufficient.
+      /// @param[in] parset ParameterSet for inputs
+      void init(const LOFAR::ParameterSet& parset);      
+      
+  protected:      
+      /// @brief initialise the class to iterate over next portion of data
+      /// @details This method signals to the iterator adapter to switch to the
+      /// next chunk of data. It also checks whether more data are available. 
+      /// @note This method is intended to be called from workers (which have 
+      /// the iterator initialised). An exception is thrown if the iterator 
+      /// adapter is not initialised
+      /// @return true, if more data chunks are available
+      bool nextChunk() const;
+      
+      /// @brief helper method to set next chunk flag
+      /// @details In the current design, iteration over the data is done by workers.
+      /// However, maser needs to make the decision whether more iterations are required,
+      /// i.e. whether a new chunk of the data is available. We carry this information from
+      /// worker to maser with the normal equations using metadata. This method encodes the
+      /// given value of the flag in the normal equations class. 
+      /// @note Nothing is done if the normal equations object does not support metadata.
+      /// An exception is thrown if this method is called from the maser. We could've join
+      /// this method and nextChunk, but it would require making this method non-const
+      /// @param[in] flag flag value to set
+      void setNextChunkFlag(const bool flag);
+              
       /// @brief create measurement equation
       /// @details This method initialises itsEquation with shared pointer to a proper type.
       /// It uses internal flags to create a correct type (i.e. polarisation calibration or
@@ -169,6 +207,18 @@ namespace askap
       /// @details This object is initialised by the master. It stores the solution
       /// in parset file, casa table or a database.
       boost::shared_ptr<accessors::ICalSolutionSource> itsSolutionSource;
+      
+      /// @brief iterator to be used in workers
+      /// @details The adapter wraps around actual iterator over data and can break
+      /// iteration at given intervals. This is used to provide time-dependent solution.
+      /// This field is initialised upon the first call to calcOne.
+      boost::shared_ptr<accessors::TimeChunkIteratorAdapter> itsIteratorAdapter;
+      
+      /// @brief optional solution interval in seconds
+      /// @details If a positive number is given, the calibration solution will be
+      /// obtained for each time chunk with the duration given by this field.
+      /// This field is initialised and used only in workers
+      double itsSolutionInterval;
     };
 
   }

@@ -59,7 +59,7 @@ ASKAP_LOGGER(logger, ".parallel");
 
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/ParsetInterface.h>
-#include <dataaccess/DataIteratorAdapter.h>
+#include <dataaccess/TimeChunkIteratorAdapter.h>
 
 #include <fitting/LinearSolver.h>
 #include <fitting/GenericNormalEquations.h>
@@ -101,7 +101,8 @@ using namespace askap::mwcommon;
 CalibratorParallel::CalibratorParallel(askap::mwcommon::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
       MEParallelApp(comms,parset), 
-      itsPerfectModel(new scimath::Params()), itsSolveGains(false), itsSolveLeakage(false)
+      itsPerfectModel(new scimath::Params()), itsSolveGains(false), itsSolveLeakage(false),
+      itsSolutionInterval(-1.)
 {  
   const std::string what2solve = parset.getString("solve","gains");
   if (what2solve.find("gains") != std::string::npos) {
@@ -116,13 +117,42 @@ CalibratorParallel::CalibratorParallel(askap::mwcommon::AskapParallel& comms,
       "Nothing to solve! Either gains or leakages (or both) have to be solved for, you specified solve='"<<
       what2solve<<"'");
   
+  init(parset);
   if (itsComms.isMaster()) {
+                  
+      /// Create the solver  
+      itsSolver.reset(new LinearSolver);
+      ASKAPCHECK(itsSolver, "Solver not defined correctly");
+      itsRefGain = parset.getString("refgain","");
       
-      // itsModel has gain parameters for calibration, populate them with
-      // an initial guess
+      // setup solution source (or sink to be exact, because we're writing the soltion here)
+      itsSolutionSource = CalibAccessFactory::rwCalSolutionSource(parset);
+      ASKAPASSERT(itsSolutionSource);
+  }
+  if (itsComms.isWorker()) {
+      // load sky model, populate itsPerfectModel
+      readModels();
+      itsSolutionInterval = SynthesisParamsHelper::convertQuantity(parset.getString("interval","-1s"), "s");
+      if (itsSolutionInterval < 0) {
+          ASKAPLOG_INFO_STR(logger, "A single solution will be made for the whole duration of the dataset");
+      } else {
+          ASKAPLOG_INFO_STR(logger, "Solution will be made for each "<<itsSolutionInterval<<" seconds chunk of the dataset");
+      }
+  }
+}
+
+/// @brief initalise measurement equation and model
+/// @details This method is indended to be called if this object is reused to
+/// get more than one solution. It initialises the model and normal equations.
+/// It is called from constructor, so if only one solution is required the constructor
+/// is sufficient.
+/// @param[in] parset ParameterSet for inputs
+void CalibratorParallel::init(const LOFAR::ParameterSet& parset)
+{
+  if (itsComms.isMaster()) {
       ASKAPDEBUGASSERT(itsModel); // should be initialized in SynParallel
-      
-      
+      itsModel->reset();
+
       // initial assumption of the parameters
       const casa::uInt nAnt = parset.getInt32("nAnt",36); // 28  
       const casa::uInt nBeam = parset.getInt32("nBeam",1); 
@@ -144,22 +174,13 @@ CalibratorParallel::CalibratorParallel(askap::mwcommon::AskapParallel& comms,
                }
           }
       }
-      
-      
-      /// Create the solver  
-      itsSolver.reset(new LinearSolver);
-      ASKAPCHECK(itsSolver, "Solver not defined correctly");
-      itsRefGain = parset.getString("refgain","");
-      
-      // setup solution source (or sink to be exact, because we're writing the soltion here)
-      itsSolutionSource = CalibAccessFactory::rwCalSolutionSource(parset);
-      ASKAPASSERT(itsSolutionSource);
   }
   if (itsComms.isWorker()) {
-      // load sky model, populate itsPerfectModel
-      readModels();
+      // a greater reuse of the measurement equation could probably be achieved as the sky model didn't change
+      itsEquation.reset();
   }
 }
+
 
 void CalibratorParallel::calcOne(const std::string& ms, bool discard)
 {
@@ -169,17 +190,27 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
   // First time around we need to generate the equation 
   if ((!itsEquation) || discard) {
       ASKAPLOG_INFO_STR(logger, "Creating measurement equation" );
-      TableDataSource ds(ms, TableDataSource::DEFAULT, dataColumn());
-      ds.configureUVWMachineCache(uvwMachineCacheSize(),uvwMachineCacheTolerance());      
-      IDataSelectorPtr sel=ds.createSelector();
-      sel << parset();
-      IDataConverterPtr conv=ds.createConverter();
-      conv->setFrequencyFrame(getFreqRefFrame(), "Hz");
-      conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
-      // ensure that time is counted in seconds since 0 MJD
-      conv->setEpochFrame();
-      //IDataSharedIter it=ds.createIterator(sel, conv);
-      IDataSharedIter it(new accessors::DataIteratorAdapter(ds.createIterator(sel, conv)));
+      if (!itsIteratorAdapter) {
+          ASKAPLOG_INFO_STR(logger, "Creating iterator over data" );
+          TableDataSource ds(ms, TableDataSource::DEFAULT, dataColumn());
+          ds.configureUVWMachineCache(uvwMachineCacheSize(),uvwMachineCacheTolerance());      
+          IDataSelectorPtr sel=ds.createSelector();
+          sel << parset();
+          IDataConverterPtr conv=ds.createConverter();
+          conv->setFrequencyFrame(getFreqRefFrame(), "Hz");
+          conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
+          // ensure that time is counted in seconds since 0 MJD
+          conv->setEpochFrame();
+          //IDataSharedIter it=ds.createIterator(sel, conv);
+          itsIteratorAdapter.reset(new accessors::TimeChunkIteratorAdapter(ds.createIterator(sel, conv), itsSolutionInterval));
+          if (itsSolutionInterval >= 0) {
+              ASKAPLOG_INFO_STR(logger, "Iterator has been created, solution interval = "<<itsSolutionInterval<<" s");
+          } else {
+              ASKAPLOG_INFO_STR(logger, "Iterator has been created, infinite solution interval");
+          }
+      }
+      ASKAPDEBUGASSERT(itsIteratorAdapter);
+      IDataSharedIter it(itsIteratorAdapter);
       
       ASKAPCHECK(itsPerfectModel, "Uncorrupted model not defined");
       ASKAPCHECK(itsModel, "Initial assumption of parameters is not defined");
@@ -232,7 +263,9 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    //const bool doPreAveraging = !itsSolveLeakage;
   if (!doPreAveraging)  {
    
-   
+   ASKAPCHECK(itsSolutionInterval < 0, "Time-dependent solutions are supported only with pre-averaging, you have interval = "<<
+              itsSolutionInterval<<" seconds");
+              
    // the old code without pre-averaging
    if (itsSolveGains && !itsSolveLeakage) {
        itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,dsi,perfectME));           
@@ -265,7 +298,8 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    // this is just because we bypass setting the model for the first major cycle
    // in the case without pre-averaging
    itsEquation->setParameters(*itsModel);
-   
+   // set the next chunk flag, if necessary (time-dependent solution is supported only with pre-averaging)
+   setNextChunkFlag(nextChunk());
   }
 }
 
@@ -284,6 +318,11 @@ void CalibratorParallel::calcNE()
           sendNE();
       } else {
           ASKAPCHECK(itsSolver, "Solver not defined correctly");
+          // just throw exception for now, although we could've maintained a map of dataset names/iterators
+          // to allow reuse of the right iterator
+          ASKAPCHECK((itsSolutionInterval < 0) || (measurementSets().size() < 2), 
+              "The code currently doesn't support time-dependent solutions for a number of measurement sets in the serial mode");
+          //
           itsSolver->init();
           for (size_t iMs=0; iMs<measurementSets().size(); ++iMs) {
             calcOne(measurementSets()[iMs],false);
@@ -370,6 +409,73 @@ double CalibratorParallel::solutionTime() const
       }
   }
   return 0.;
+}
+
+/// @brief helper method to set next chunk flag
+/// @details In the current design, iteration over the data is done by workers.
+/// However, maser needs to make the decision whether more iterations are required,
+/// i.e. whether a new chunk of the data is available. We carry this information from
+/// worker to maser with the normal equations using metadata. This method encodes the
+/// given value of the flag in the normal equations class. 
+/// @note Nothing is done if the normal equations object does not support metadata.
+/// An exception is thrown if this method is called from the maser. We could've join
+/// this method and nextChunk, but it would require making this method non-const
+/// @param[in] flag flag value to set
+void CalibratorParallel::setNextChunkFlag(const bool flag)
+{
+  ASKAPCHECK(itsComms.isWorker(), "setNextChunkFlag is supposed to be used in workers");
+  if (itsNe) {  
+      const boost::shared_ptr<scimath::GenericNormalEquations> gne = boost::dynamic_pointer_cast<scimath::GenericNormalEquations>(itsNe);
+      if (gne) {
+          scimath::Params& metadata = gne->metadata();
+          const double encodedVal = flag ? 1. : -1.;
+          const std::string parName = "next_chunk_flag";
+          if (metadata.has(parName)) {
+              metadata.update(parName, encodedVal);
+          } else {
+              metadata.add(parName, encodedVal);
+          }
+      }
+  }
+}
+
+/// @brief helper method to extract next chunk flag
+/// @details This method is a reverse operation to that of setNextChunkFlag. It
+/// extracts the flag from the metadata attached to the normal equations and 
+/// returns it. 
+/// @note false is returned if no appropriate metadata element is found or the normal
+/// equations object does not support metadata. 
+/// @return true, if the flag is set
+bool CalibratorParallel::extractNextChunkFlag() const
+{
+  if (itsNe) {  
+      const boost::shared_ptr<scimath::GenericNormalEquations> gne = boost::dynamic_pointer_cast<scimath::GenericNormalEquations>(itsNe);
+      if (gne) {
+          const scimath::Params& metadata = gne->metadata();
+          const std::string parName = "next_chunk_flag";
+          if (metadata.has(parName)) {
+              const double encodedVal = metadata.scalarValue(parName);
+              return encodedVal > 0;
+          } 
+      }
+  }
+  return false;
+}
+
+
+/// @brief initialise the class to iterate over next portion of data
+/// @details This method signals to the iterator adapter to switch to the
+/// next chunk of data. It also checks whether more data are available.
+/// @note an exception is thrown if the iterator adapter is not initialised
+/// @return true, if more data chunks are available
+bool CalibratorParallel::nextChunk() const
+{
+  ASKAPCHECK(itsIteratorAdapter, "Iterator adapter is not defined in nextChunk!");
+  const bool result = itsIteratorAdapter->moreDataAvailable();
+  if (result) {
+      itsIteratorAdapter->resume();
+  }
+  return result;
 }
 
 

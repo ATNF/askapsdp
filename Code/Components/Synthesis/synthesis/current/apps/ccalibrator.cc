@@ -80,24 +80,31 @@ int main(int argc, const char** argv)
             ASKAPCHECK(nCycles >= 0, " Number of calibration iterations should be a non-negative number, you have " <<
                        nCycles);
 
-            for (int cycle = 0; cycle < nCycles; ++cycle) {
-                ASKAPLOG_INFO_STR(logger, "*** Starting calibration iteration " << cycle + 1 << " ***");
-                calib.broadcastModel();
-                calib.receiveModel();
-                calib.calcNE();
-                calib.solveNE();
-                ASKAPLOG_INFO_STR(logger,  "user:   " << timer.user() << " system: " << timer.system()
+            size_t solution = 0;
+            for (bool continueFlag = true; continueFlag; ++solution) {
+               ASKAPLOG_INFO_STR(logger, "Calibration solution interval "<<solution + 1);
+               for (int cycle = 0; cycle < nCycles; ++cycle) {
+                    ASKAPLOG_INFO_STR(logger, "*** Starting calibration iteration " << cycle + 1 << " ***");
+                    calib.broadcastModel();
+                    calib.receiveModel();
+                    calib.calcNE();
+                    calib.solveNE();
+                    ASKAPLOG_INFO_STR(logger,  "user:   " << timer.user() << " system: " << timer.system()
                                       << " real:   " << timer.real());
-            }
+               }
 
-            ASKAPLOG_INFO_STR(logger,  "*** Finished calibration cycles ***");
-            /*
-            calib.broadcastModel();
-            calib.receiveModel();
-            calib.calcNE();
-            calib.receiveNE();
-            */
-            calib.writeModel();
+               ASKAPLOG_INFO_STR(logger,  "*** Finished calibration cycles ***");
+               calib.writeModel();
+               
+               continueFlag = calib.extractNextChunkFlag();
+               if (continueFlag) {
+                   ASKAPLOG_INFO_STR(logger, "More data are available, continue to make solution for the next interval");
+                   // initialise the model and measurement equation
+                   calib.init(subset);
+               } else {
+                   ASKAPLOG_INFO_STR(logger, "No more data are available, this was the last solution interval");
+               }
+            }
         }
         ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
                               << " real:   " << timer.real());
