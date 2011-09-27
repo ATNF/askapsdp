@@ -128,6 +128,11 @@ protected:
   /// @brief helper method to check whether we are creating a new row  
   void checkForNewRow();
   
+  /// @brief helper method to check that the given column exists
+  /// @param[in] name column name
+  /// @return true if the given column exists
+  bool columnExists(const std::string &name) const;
+  
 private:
   /// @brief number of antennas (used when new solutions are created)
   casa::uInt itsNAnt;

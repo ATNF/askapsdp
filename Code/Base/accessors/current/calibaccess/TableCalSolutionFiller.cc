@@ -90,12 +90,21 @@ TableCalSolutionFiller::TableCalSolutionFiller(const casa::Table& tab, const lon
   checkForNewRow();
 }
 
+/// @brief helper method to check that the given column exists
+/// @param[in] name column name
+/// @return true if the given column exists
+bool TableCalSolutionFiller::columnExists(const std::string &name) const
+{
+  return table().actualTableDesc().isColumn(name);
+}
+
+
 /// @brief gains filler  
 /// @details
 /// @param[in] gains pair of cubes with gains and validity flags (to be resised to 2 x nAnt x nBeam)
 void TableCalSolutionFiller::fillGains(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &gains) const
 {
-  if (itsCreateNew) {
+  if (itsCreateNew || !columnExists("GAIN")) {
       ASKAPDEBUGASSERT(itsGainsRow < 0);
       gains.first.resize(2, itsNAnt, itsNBeam);
       gains.first.set(1.);
@@ -120,7 +129,7 @@ void TableCalSolutionFiller::fillGains(std::pair<casa::Cube<casa::Complex>, casa
 /// @param[in] leakages pair of cubes with leakages and validity flags (to be resised to 2 x nAnt x nBeam)
 void TableCalSolutionFiller::fillLeakages(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &leakages) const
 {
-  if (itsCreateNew) {
+  if (itsCreateNew || !columnExists("LEAKAGE")) {
       ASKAPDEBUGASSERT(itsLeakagesRow < 0);
       leakages.first.resize(2, itsNAnt, itsNBeam);
       leakages.first.set(0.);
@@ -145,7 +154,7 @@ void TableCalSolutionFiller::fillLeakages(std::pair<casa::Cube<casa::Complex>, c
 /// @param[in] bp pair of cubes with bandpasses and validity flags (to be resised to (2*nChan) x nAnt x nBeam)
 void TableCalSolutionFiller::fillBandpasses(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &bp) const
 {
-  if (itsCreateNew) {
+  if (itsCreateNew || !columnExists("BANDPASS")) {
       ASKAPDEBUGASSERT(itsBandpassesRow < 0);
       bp.first.resize(2 * itsNChan, itsNAnt, itsNBeam);
       bp.first.set(1.);
