@@ -118,11 +118,21 @@ public:
      TableConstDataSource ds(TableTestRunner::msName());
      IDataConverterPtr conv=ds.createConverter();
      conv->setEpochFrame(); // ensures seconds since 0 MJD
-     boost::shared_ptr<TimeChunkIteratorAdapter> it(new TimeChunkIteratorAdapter(ds.createConstIterator(conv),599));     
+     boost::shared_ptr<TimeChunkIteratorAdapter> it(new TimeChunkIteratorAdapter(ds.createConstIterator(conv),5990));     
      try {
         // this code shouldn't throw AskapError 
-        CPPUNIT_ASSERT(it->hasMore());
-        CPPUNIT_ASSERT_EQUAL(size_t(1),countSteps(it));
+        CPPUNIT_ASSERT(it->hasMore());        
+        boost::shared_ptr<IConstDataIterator> cit = boost::dynamic_pointer_cast<IConstDataIterator>(it);
+        CPPUNIT_ASSERT(cit);
+        cit->next();
+        CPPUNIT_ASSERT(cit->hasMore());        
+        // just to access some data field
+        *(*cit);
+        (*cit)->antenna1();
+        // access those fields directly
+        *(*it);
+        (*it)->antenna1();
+        CPPUNIT_ASSERT_EQUAL(size_t(9),countSteps(it));
         CPPUNIT_ASSERT(it->moreDataAvailable());
         CPPUNIT_ASSERT(!it->hasMore());
      }
