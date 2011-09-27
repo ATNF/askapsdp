@@ -113,8 +113,14 @@ Ccalibrator.dataset                              = field1.ms
 Ccalibrator.nAnt                                 = 36
 Ccalibrator.nBeam                                = 1
 #Ccalibrator.refgain                              = gain.g11.0.0
-Ccalibrator.calibaccess                         = parset
+#Ccalibrator.calibaccess                         = parset
 Ccalibrator.calibaccess.parset                  = result.dat
+Ccalibrator.calibaccess.table                   = "caldata.tab"
+Ccalibrator.calibaccess.table.maxant            = 36
+Ccalibrator.calibaccess.table.maxbeam           = 1
+Ccalibrator.calibaccess.table.maxchan           = 1
+Ccalibrator.calibaccess.table.reuse           = false
+
 
 #
 # The name of the model source is 10uJy. Specify direction and model file
