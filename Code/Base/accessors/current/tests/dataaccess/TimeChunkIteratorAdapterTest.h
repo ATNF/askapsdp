@@ -51,7 +51,8 @@ class TimeChunkIteratorAdapterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_SUITE(TimeChunkIteratorAdapterTest);
   CPPUNIT_TEST(testTimeChunks);  
   CPPUNIT_TEST_EXCEPTION(testReadOnlyBuffer,AskapError);  
-  CPPUNIT_TEST_EXCEPTION(testReadOnlyAccessor,AskapError);  
+  CPPUNIT_TEST_EXCEPTION(testReadOnlyAccessor,AskapError); 
+  CPPUNIT_TEST_EXCEPTION(testNoResume,AskapError); 
   CPPUNIT_TEST_SUITE_END();
 protected:
   static size_t countSteps(const IConstDataSharedIter &it) {
@@ -111,6 +112,25 @@ public:
      CPPUNIT_ASSERT(acc);
      // this should generate an exception
      acc->rwVisibility();
+  }
+  
+  void testNoResume() {
+     TableConstDataSource ds(TableTestRunner::msName());
+     IDataConverterPtr conv=ds.createConverter();
+     conv->setEpochFrame(); // ensures seconds since 0 MJD
+     boost::shared_ptr<TimeChunkIteratorAdapter> it(new TimeChunkIteratorAdapter(ds.createConstIterator(conv),599));     
+     try {
+        // this code shouldn't throw AskapError 
+        CPPUNIT_ASSERT(it->hasMore());
+        CPPUNIT_ASSERT_EQUAL(size_t(1),countSteps(it));
+        CPPUNIT_ASSERT(it->moreDataAvailable());
+        CPPUNIT_ASSERT(!it->hasMore());
+     }
+     catch (const AskapError &) {
+        CPPUNIT_ASSERT(false);
+     }
+     // the following should throw AskapError
+     CPPUNIT_ASSERT(it->next());
   }
  
 };

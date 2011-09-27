@@ -92,6 +92,7 @@ casa::Bool TimeChunkIteratorAdapter::hasMore() const throw()
 ///         while(it.next()) {} are possible)
 casa::Bool TimeChunkIteratorAdapter::next()
 {
+  ASKAPCHECK(hasMore(), "There are no more data available in this chunk (or at all, if resume method has been called)");
   const double curTime = roIterator()->time();
   if (itsChangeMonitor != changeMonitor()) {
       // the iterator has been updated, need to start new chunk
