@@ -219,6 +219,11 @@ namespace askap
       /// obtained for each time chunk with the duration given by this field.
       /// This field is initialised and used only in workers
       double itsSolutionInterval;
+      
+      /// @brief shared pointer to measurement equation correspondent to the perfect model
+      /// @details It is handy to store the perfect measurement equation, so it is not
+      /// recreated every time for each solution interval. 
+      boost::shared_ptr<IMeasurementEquation const> itsPerfectME;
     };
 
   }

@@ -176,7 +176,8 @@ void CalibratorParallel::init(const LOFAR::ParameterSet& parset)
       }
   }
   if (itsComms.isWorker()) {
-      // a greater reuse of the measurement equation could probably be achieved as the sky model didn't change
+      // a greater reuse of the measurement equation could probably be achieved
+      // at this stage we cache just the "perfect" ME, but recreate calibration ME.
       itsEquation.reset();
   }
 }
@@ -213,25 +214,31 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
       }
       ASKAPDEBUGASSERT(itsIteratorAdapter);
       IDataSharedIter it(itsIteratorAdapter);
-      
-      ASKAPCHECK(itsPerfectModel, "Uncorrupted model not defined");
+
       ASKAPCHECK(itsModel, "Initial assumption of parameters is not defined");
-      ASKAPCHECK(gridder(), "Gridder not defined");
-      if (SynthesisParamsHelper::hasImage(itsPerfectModel)) {
-         ASKAPCHECK(!SynthesisParamsHelper::hasComponent(itsPerfectModel),
-                 "Image + component case has not yet been implemented");
-         // have to create an image-specific equation        
-         boost::shared_ptr<ImagingEquationAdapter> ieAdapter(new ImagingEquationAdapter);
-         ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, gridder());
-         createCalibrationME(it,ieAdapter);
-      } else {
-         // model is a number of components, don't need an adapter here
+      
+      if (!itsPerfectME) {
+          ASKAPLOG_INFO_STR(logger, "Constructing measurement equation corresponding to the uncorrupted model");
+          ASKAPCHECK(itsPerfectModel, "Uncorrupted model not defined");
+          if (SynthesisParamsHelper::hasImage(itsPerfectModel)) {
+              ASKAPCHECK(!SynthesisParamsHelper::hasComponent(itsPerfectModel),
+                         "Image + component case has not yet been implemented");
+              // have to create an image-specific equation        
+              boost::shared_ptr<ImagingEquationAdapter> ieAdapter(new ImagingEquationAdapter);
+              ASKAPCHECK(gridder(), "Gridder not defined");
+              ieAdapter->assign<ImageFFTEquation>(*itsPerfectModel, gridder());
+              itsPerfectME = ieAdapter;
+          } else {
+              // model is a number of components, don't need an adapter here
          
-         // it doesn't matter which iterator is passed below. It is not used
-         boost::shared_ptr<ComponentEquation> 
+              // it doesn't matter which iterator is passed below. It is not used
+              boost::shared_ptr<ComponentEquation> 
                   compEq(new ComponentEquation(*itsPerfectModel,it));
-         createCalibrationME(it,compEq);         
+              itsPerfectME = compEq;
+          }
       }
+      // now we could've used class data members directly instead of passing them to createCalibrationME
+      createCalibrationME(it,itsPerfectME);         
       ASKAPCHECK(itsEquation, "Equation is not defined");
   } else {
       ASKAPLOG_INFO_STR(logger, "Reusing measurement equation" );
@@ -258,6 +265,7 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
                 const boost::shared_ptr<IMeasurementEquation const> &perfectME)
 {
    ASKAPDEBUGASSERT(itsModel);
+   ASKAPDEBUGASSERT(perfectME);
    // temporary logic while preaveraging is being debugged for polarisation 
    // calibration
    //const bool doPreAveraging = false;
