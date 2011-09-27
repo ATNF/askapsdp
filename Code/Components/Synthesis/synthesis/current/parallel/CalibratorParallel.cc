@@ -208,6 +208,8 @@ void CalibratorParallel::calcOne(const std::string& ms, bool discard)
           } else {
               ASKAPLOG_INFO_STR(logger, "Iterator has been created, infinite solution interval");
           }
+      } else {
+          ASKAPLOG_INFO_STR(logger, "Reusing iterator adapter (this is a subsequent solution interval)");
       }
       ASKAPDEBUGASSERT(itsIteratorAdapter);
       IDataSharedIter it(itsIteratorAdapter);

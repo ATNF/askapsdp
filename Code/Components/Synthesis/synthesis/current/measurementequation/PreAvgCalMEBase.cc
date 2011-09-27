@@ -92,7 +92,7 @@ void PreAvgCalMEBase::accumulate(const accessors::IDataSharedIter& idi,
         const boost::shared_ptr<IMeasurementEquation const> &ime)
 {
   accessors::IDataSharedIter iter(idi);
-  for (iter.init(); iter.hasMore(); iter.next()) {
+  for (; iter.hasMore(); iter.next()) {
        itsBuffer.accumulate(*iter,ime);
        accumulateStats(*iter);
   }
