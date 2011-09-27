@@ -178,12 +178,6 @@ void CalibratorParallel::init(const LOFAR::ParameterSet& parset)
   if (itsComms.isWorker()) {
       // a greater reuse of the measurement equation could probably be achieved as the sky model didn't change
       itsEquation.reset();
-      if (itsIteratorAdapter) {
-          // this initialisation is done before resuming the iteration
-          ASKAPDEBUGASSERT(itsIteratorAdapter->moreDataAvailable());
-          ASKAPDEBUGASSERT(!itsIteratorAdapter->hasMore());
-          itsIteratorAdapter->resume();
-      }
   }
 }
 
@@ -493,7 +487,8 @@ bool CalibratorParallel::nextChunk() const
   ASKAPCHECK(itsIteratorAdapter, "Iterator adapter is not defined in nextChunk!");
   const bool result = itsIteratorAdapter->moreDataAvailable();
   if (result) {
-      itsIteratorAdapter->resume();
+      ASKAPDEBUGASSERT(!itsIteratorAdapter->hasMore());  
+      itsIteratorAdapter->resume();      
   }
   return result;
 }
