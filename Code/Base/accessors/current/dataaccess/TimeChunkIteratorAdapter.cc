@@ -123,6 +123,7 @@ void TimeChunkIteratorAdapter::resume() const
    ASKAPCHECK(moreDataAvailable(), "Unable to resume iteration as no more data are available");
    itsCurrentChunkTime = roIterator()->time();
    itsPrevTime = itsCurrentChunkTime;  
+   ASKAPDEBUGASSERT(hasMore());
 }
 
 
