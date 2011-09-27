@@ -272,6 +272,7 @@ namespace askap
           typedef CalibrationME<LeakageTerm,PreAvgCalMEBase> PreAvgMEType;
           boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType());
           CPPUNIT_ASSERT(preAvgEq);
+          itsIter.init();          
           preAvgEq->accumulate(itsIter,itsCE2);
 
           for (size_t iter=0; iter<10; ++iter) {

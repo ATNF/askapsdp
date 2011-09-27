@@ -205,6 +205,7 @@ namespace askap
           // preaverage and iterate over the data
           boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType(*params2));
           CPPUNIT_ASSERT(preAvgEq);
+          idi.init();
           preAvgEq->accumulate(idi,p2);
           // major cycles detached from iteration over data
           for (size_t iter=0; iter<5; ++iter) {
@@ -233,6 +234,7 @@ namespace askap
           // preaverage and iterate over the data
           boost::shared_ptr<PreAvgMEType> preAvgEq(new PreAvgMEType());
           CPPUNIT_ASSERT(preAvgEq);
+          idi.init();
           preAvgEq->accumulate(idi,p2);
           // major cycles detached from iteration over data
           for (size_t iter=0; iter<5; ++iter) {
