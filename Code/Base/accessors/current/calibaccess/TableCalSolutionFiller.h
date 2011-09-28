@@ -114,6 +114,18 @@ public:
   /// @param[in] bp pair of cubes with bandpasses and validity flags (should be (2*nChan) x nAnt x nBeam)
   virtual void writeBandpasses(const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &bp) const;    
 
+  /// @brief check for gain solution
+  /// @return true, if there is no gain solution, false otherwise
+  virtual bool noGain() const;
+  
+  /// @brief check for leakage solution
+  /// @return true, if there is no leakage solution, false otherwise
+  virtual bool noLeakage() const;
+  
+  /// @brief check for bandpass solution
+  /// @return true, if there is no bandpass solution, false otherwise
+  virtual bool noBandpass() const;  
+
 protected:
 
   /// @brief find first defined cube searching backwards

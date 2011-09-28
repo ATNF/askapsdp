@@ -79,7 +79,24 @@ struct ICalSolutionFiller {
   /// @brief bandpass writer  
   /// @details
   /// @param[in] bp pair of cubes with bandpasses and validity flags (should be (2*nChan) x nAnt x nBeam)
-  virtual void writeBandpasses(const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &bp) const = 0;    
+  virtual void writeBandpasses(const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &bp) const = 0; 
+  
+  // the following methods can be overriden to provide information that a particular solution doesn't exist at all
+  // (and therefore reading should always return a default value). This allows to use read-only fillers without 
+  // giving a maximum number of antennas, beams and spectral channels. By default, these methods return that all
+  // types of solutions exist
+  
+  /// @brief check for gain solution
+  /// @return true, if there is no gain solution, false otherwise
+  virtual bool noGain() const { return false; }
+  
+  /// @brief check for leakage solution
+  /// @return true, if there is no leakage solution, false otherwise
+  virtual bool noLeakage() const { return false; }
+  
+  /// @brief check for bandpass solution
+  /// @return true, if there is no bandpass solution, false otherwise
+  virtual bool noBandpass() const { return false; }  
 };
 
 

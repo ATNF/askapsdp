@@ -66,6 +66,10 @@ MemCalSolutionAccessor::MemCalSolutionAccessor(const boost::shared_ptr<ICalSolut
 JonesJTerm MemCalSolutionAccessor::gain(const JonesIndex &index) const
 {
   ASKAPASSERT(itsSolutionFiller);
+  if (itsSolutionFiller->noGain()) {
+      // return default gains
+      return JonesJTerm(1., false, 1., false);
+  }
   const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& gains = 
         itsGains.value(*itsSolutionFiller, &ICalSolutionFiller::fillGains);
   const std::pair<casa::Complex, casa::Bool> g1 = extract(gains, 0, index);
@@ -84,6 +88,10 @@ JonesJTerm MemCalSolutionAccessor::gain(const JonesIndex &index) const
 JonesDTerm MemCalSolutionAccessor::leakage(const JonesIndex &index) const
 {
   ASKAPASSERT(itsSolutionFiller);
+  if (itsSolutionFiller->noLeakage()) {
+      // return default leakages
+      return JonesDTerm(0., false, 0., false);
+  }
   const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& leakages = 
         itsLeakages.value(*itsSolutionFiller, &ICalSolutionFiller::fillLeakages);
   const std::pair<casa::Complex, casa::Bool> d12 = extract(leakages, 0, index);
@@ -107,6 +115,10 @@ JonesDTerm MemCalSolutionAccessor::leakage(const JonesIndex &index) const
 JonesJTerm MemCalSolutionAccessor::bandpass(const JonesIndex &index, const casa::uInt chan) const
 { 
   ASKAPASSERT(itsSolutionFiller);
+  if (itsSolutionFiller->noBandpass()) {
+      // default bandpasses
+      return JonesJTerm(1., false, 1., false);
+  }
   const std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> >& bp = 
         itsBandpasses.value(*itsSolutionFiller, &ICalSolutionFiller::fillBandpasses);
   const std::pair<casa::Complex, casa::Bool> g1 = extract(bp, 2 * chan, index);

@@ -186,6 +186,7 @@ private:
    
    /// @brief flag, if false an exception is thrown in setter methods
    const bool itsSettersAllowed;
+   
 }; // class MemCalSolutionAccessor
 
 } // namespace accessors

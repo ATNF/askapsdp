@@ -98,13 +98,34 @@ bool TableCalSolutionFiller::columnExists(const std::string &name) const
   return table().actualTableDesc().isColumn(name);
 }
 
+/// @brief check for gain solution
+/// @return true, if there is no gain solution, false otherwise
+bool TableCalSolutionFiller::noGain() const
+{
+  return !columnExists("GAIN");
+}
+  
+/// @brief check for leakage solution
+/// @return true, if there is no leakage solution, false otherwise
+bool TableCalSolutionFiller::noLeakage() const
+{
+  return !columnExists("LEAKAGE");
+}
+  
+/// @brief check for bandpass solution
+/// @return true, if there is no bandpass solution, false otherwise
+bool TableCalSolutionFiller::noBandpass() const
+{
+  return !columnExists("BANDPASS");
+}
+
 
 /// @brief gains filler  
 /// @details
 /// @param[in] gains pair of cubes with gains and validity flags (to be resised to 2 x nAnt x nBeam)
 void TableCalSolutionFiller::fillGains(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &gains) const
 {
-  if (itsCreateNew || !columnExists("GAIN")) {
+  if (itsCreateNew || noGain()) {
       ASKAPDEBUGASSERT(itsGainsRow < 0);
       gains.first.resize(2, itsNAnt, itsNBeam);
       gains.first.set(1.);
@@ -129,7 +150,7 @@ void TableCalSolutionFiller::fillGains(std::pair<casa::Cube<casa::Complex>, casa
 /// @param[in] leakages pair of cubes with leakages and validity flags (to be resised to 2 x nAnt x nBeam)
 void TableCalSolutionFiller::fillLeakages(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &leakages) const
 {
-  if (itsCreateNew || !columnExists("LEAKAGE")) {
+  if (itsCreateNew || noLeakage()) {
       ASKAPDEBUGASSERT(itsLeakagesRow < 0);
       leakages.first.resize(2, itsNAnt, itsNBeam);
       leakages.first.set(0.);
@@ -154,7 +175,7 @@ void TableCalSolutionFiller::fillLeakages(std::pair<casa::Cube<casa::Complex>, c
 /// @param[in] bp pair of cubes with bandpasses and validity flags (to be resised to (2*nChan) x nAnt x nBeam)
 void TableCalSolutionFiller::fillBandpasses(std::pair<casa::Cube<casa::Complex>, casa::Cube<casa::Bool> > &bp) const
 {
-  if (itsCreateNew || !columnExists("BANDPASS")) {
+  if (itsCreateNew || noBandpass()) {
       ASKAPDEBUGASSERT(itsBandpassesRow < 0);
       bp.first.resize(2 * itsNChan, itsNAnt, itsNBeam);
       bp.first.set(1.);
