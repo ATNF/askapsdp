@@ -905,6 +905,7 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 	// buffer for result as doubles
 	casa::Array<double> dBuffer(itsGrid[0].shape());
 	ASKAPDEBUGASSERT(dBuffer.shape().nelements()>=2);
+    ASKAPDEBUGASSERT(itsShape == scimath::PaddingUtils::paddedShape(out.shape(),paddingFactor()));	
 
     /// Loop over all grids Fourier transforming and accumulating
 	for (unsigned int i=0; i<itsGrid.size(); i++) {
@@ -922,7 +923,7 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 	// Now we can do the convolution correction
 	correctConvolution(dBuffer);
 	dBuffer*=double(dBuffer.shape()(0))*double(dBuffer.shape()(1));
-	out = scimath::PaddingUtils::extract(dBuffer,itsPaddingFactor);
+	out = scimath::PaddingUtils::extract(dBuffer,paddingFactor());
 }
 
 /// @brief store given grid
@@ -944,6 +945,7 @@ void TableVisGridder::storeGrid(const std::string &name, casa::uInt numGrid) con
 /// This is the default implementation
 void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 	ASKAPDEBUGASSERT(itsShape.nelements() >= 4);
+	ASKAPDEBUGASSERT(itsShape == scimath::PaddingUtils::paddedShape(out.shape(),paddingFactor()));
 
 	int nPol=itsShape(2);
 	int nChan=itsShape(3);
