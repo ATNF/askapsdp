@@ -149,5 +149,5 @@ spr.runCalibrator()
 spr.addToParset("Cimager.calibrate = true")
 spr.addToParset("Cimager.calibaccess = table")
 spr.addToParset("Cimager.calibaccess.table = \"caldata.tab\"")
-# temporary disabled
-#spr.runImager()
+spr.runImager()
+analyseResult(spr)
