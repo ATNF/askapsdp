@@ -24,8 +24,7 @@
 # module load intel-mkl
 # module load intel-cc
 CXX=icpc
-CFLAGS=-O3 -O3 -xS -ip -ipo -openmp -DUSEMKLLIB -DUSEBLAS
-LIBS=-lmkl_rt -liomp5 -L/apps/intel-mkl/10.3.0/lib/em64t
+CFLAGS=-O3 -ipo -openmp -mkl=sequential -DUSEMKLLIB -DUSEBLAS
 
 all:		tConvolveOMP
 
@@ -34,7 +33,7 @@ Stopwatch.o:	Stopwatch.cc Stopwatch.h
 
 tConvolveOMP:	tConvolveOMP.cc Stopwatch.o
 		$(CXX) $(CFLAGS) -c tConvolveOMP.cc
-		$(CXX) $(CFLAGS) -o tConvolveOMP tConvolveOMP.o Stopwatch.o $(LIBS)
+		$(CXX) $(CFLAGS) -o tConvolveOMP tConvolveOMP.o Stopwatch.o
 
 clean:
 		rm -f *.o tConvolveOMP
