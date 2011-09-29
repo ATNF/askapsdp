@@ -46,6 +46,7 @@ ASKAP_LOGGER(logger, ".gridding.snapshotimaginggridderadapter");
 #include <gridding/SnapShotImagingGridderAdapter.h>
 #include <askap/AskapError.h>
 #include <utils/MultiDimArrayPlaneIter.h>
+#include <utils/PaddingUtils.h>
 
 #include <casa/OS/Timer.h>
 #include <images/Images/ImageRegrid.h>
@@ -69,7 +70,7 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared
      itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.),
      itsFirstAccessor(true), itsBuffersFinalised(false), itsNumOfImageRegrids(0), itsTimeImageRegrid(0.),
      itsNumOfInitialisations(0), itsLastFitTimeStamp(0.), itsShortestIntervalBetweenFits(3e7),
-     itsLongestIntervalBetweenFits(-1.), itsModelIsEmpty(false)
+     itsLongestIntervalBetweenFits(-1.), itsModelIsEmpty(false), itsClippingFactor(0.)
 {
   ASKAPCHECK(gridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
   itsGridder = gridder->clone();
@@ -88,7 +89,7 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagi
     itsNumOfInitialisations(other.itsNumOfInitialisations), itsLastFitTimeStamp(other.itsLastFitTimeStamp),
     itsShortestIntervalBetweenFits(other.itsShortestIntervalBetweenFits), 
     itsLongestIntervalBetweenFits(other.itsLongestIntervalBetweenFits), 
-    itsTempInImg(), itsTempOutImg(), itsModelIsEmpty(other.itsModelIsEmpty)
+    itsTempInImg(), itsTempOutImg(), itsModelIsEmpty(other.itsModelIsEmpty), itsClippingFactor(other.itsClippingFactor)
 {
   ASKAPCHECK(other.itsGridder, 
        "copy constructor of SnapShotImagingGridderAdapter got an object somehow set up with an empty gridder");
@@ -109,6 +110,7 @@ SnapShotImagingGridderAdapter::~SnapShotImagingGridderAdapter()
       ASKAPLOG_INFO_STR(logger, "   Number of regridding events is "<<itsNumOfImageRegrids);
       ASKAPLOG_INFO_STR(logger, "   or "<<double(itsNumOfImageRegrids)/double(itsNumOfInitialisations)<<
                         " times per grid/degrid pass");      
+      ASKAPLOG_INFO_STR(logger, "   Image clipping factor (clipping during regrids) is "<< itsClippingFactor);
       if (itsNumOfImageRegrids > 0) {
           ASKAPLOG_INFO_STR(logger, "   Average time spent per image plane regridding is "<<
                       itsTimeImageRegrid/double(itsNumOfImageRegrids)<<" (s)");
@@ -504,6 +506,8 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
           // just assign the result
           tempOutputLattice.copyData(itsTempOutImg);
         }
+        // optional clipping
+        imageClip(outRef);
    }
    itsTimeImageRegrid += timer.real();
 }
@@ -523,6 +527,34 @@ casa::MVDirection SnapShotImagingGridderAdapter::getTangentPoint() const
    const casa::Quantum<double> refLat(refVal[1], "rad");
    const casa::MVDirection out(refLon, refLat);
    return out;
+}
+
+/// @brief set clipping factor
+/// @details The image could be optionally clipped during regridding (to avoid edge effects). 
+/// This parameter represents the fraction of the image size (on each directional axis) which is
+/// zeroed (equally from both sides). It should be a non-negative number less than 1. Set to zero to avoid
+/// any clipping (this is the default behavior)
+/// @param[in] factor clipping factor
+void SnapShotImagingGridderAdapter::setClippingFactor(const float factor) 
+{
+  ASKAPCHECK((factor >= 0.) && (factor < 1), "Clipping factor should be a non-negative number less than 1, you have "<<factor);
+  itsClippingFactor = factor;
+}
+
+/// @brief clip image 
+/// @details This method clips the image by zeroing the edges according to the
+/// assigned clipping factor.
+/// @param[in] img array to modify
+void SnapShotImagingGridderAdapter::imageClip(casa::Array<double> &img) const
+{
+  ASKAPDEBUGASSERT(itsClippingFactor < 1.);
+  const float unpaddingFactor = 1. - itsClippingFactor;
+  ASKAPDEBUGASSERT(unpaddingFactor <= 1.);
+  const casa::IPosition shapeToPreserve = scimath::PaddingUtils::paddedShape(img.shape(), unpaddingFactor);
+  if (shapeToPreserve != img.shape()) {
+      ASKAPASSERT(img.shape().nelements() == 2);
+      scimath::PaddingUtils::clip(img, shapeToPreserve);
+  }
 }
 
 

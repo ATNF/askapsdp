@@ -33,6 +33,7 @@
 
 // own includes
 #include <gridding/IVisGridder.h>
+#include <gridding/VisGridderWithPadding.h>
 #include <dataaccess/IDataAccessor.h>
 #include <gridding/FrequencyMapper.h>
 
@@ -63,7 +64,7 @@ namespace askap
     /// This is calculated by direct evaluation.
     ///
     /// @ingroup gridding
-    class TableVisGridder : virtual public IVisGridder
+    class TableVisGridder : virtual public VisGridderWithPadding
     {
   public:
 
@@ -145,14 +146,6 @@ namespace askap
 
       /// @brief Finalise
       virtual void finaliseDegrid();
-
-      /// @brief return padding factor
-      /// @return current padding factor
-      float inline paddingFactor() const { return itsPaddingFactor;}
-
-      /// @brief set padding factor
-      /// @param[in] padding new padding factor
-      void inline setPaddingFactor(const float padding) { itsPaddingFactor = padding;}
 
       /// @brief set or reset flag forcing gridder to use all data for PSF
       /// @details Change itsUseAllDataForPSF
@@ -448,10 +441,7 @@ protected:
 
       /// @brief is this gridder a PSF gridder?
       bool itsDopsf;
-      
-      /// @brief internal padding factor, 1 by default
-      float itsPaddingFactor;
-  
+        
       /// Generic grid/degrid - this is the heart of this framework. It should never
       /// need to be overridden
       /// @param[in] acc non-const data accessor to work with.  

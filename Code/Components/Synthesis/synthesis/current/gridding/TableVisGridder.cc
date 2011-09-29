@@ -87,7 +87,6 @@ TableVisGridder::TableVisGridder() : itsSumWeights(),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
 	itsTimeDegridded(0.0), itsDopsf(false),
-	itsPaddingFactor(1.),
 	itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false),
 	itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0),
 	itsTrackWeightPerOversamplePlane(false)
@@ -95,13 +94,12 @@ TableVisGridder::TableVisGridder() : itsSumWeights(),
 {}
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
-        const float padding, const std::string& name) : itsSumWeights(),
+        const float padding, const std::string& name) : VisGridderWithPadding(padding), itsSumWeights(),
 		 itsSupport(support), itsOverSample(overSample), itsName(name),
 				itsModelIsEmpty(false), itsSamplesGridded(0),
 				itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 		itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
 		itsTimeDegridded(0.0), itsDopsf(false),
-		itsPaddingFactor(padding),
 		itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false), 	
 		itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0),
 		itsTrackWeightPerOversamplePlane(false)
@@ -117,7 +115,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 	/// and the copy.
 	/// @param[in] other input object
 	TableVisGridder::TableVisGridder(const TableVisGridder &other) : 
-             IVisGridder(other),
+             IVisGridder(other), VisGridderWithPadding(other),
 	     itsAxes(other.itsAxes), itsShape(other.itsShape), 
 	     itsUVCellSize(other.itsUVCellSize.copy()), 
 	     itsSumWeights(other.itsSumWeights.copy()), 
@@ -130,7 +128,7 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
      itsTimeConvFunctions(other.itsTimeConvFunctions),
      itsTimeGridded(other.itsTimeGridded),
      itsTimeDegridded(other.itsTimeDegridded),
-     itsDopsf(other.itsDopsf), itsPaddingFactor(other.itsPaddingFactor),
+     itsDopsf(other.itsDopsf),
      itsFirstGriddedVis(other.itsFirstGriddedVis),
      itsFeedUsedForPSF(other.itsFeedUsedForPSF),
      itsPointingUsedForPSF(other.itsPointingUsedForPSF),
@@ -250,7 +248,7 @@ TableVisGridder::~TableVisGridder() {
           ASKAPLOG_WARN_STR(logger, "It looks like all samples were rejected due to MaxPointingSeparation!");
 	  }
 	} else {
-	  ASKAPLOG_DEBUG_STR(logger, "   Padding factor    = " << itsPaddingFactor);
+	  ASKAPLOG_DEBUG_STR(logger, "   Padding factor    = " << paddingFactor());
 	  if (itsTrackWeightPerOversamplePlane) {
 	      ASKAPLOG_DEBUG_STR(logger, "   Weights were tracked per oversampling plane");
 	  } else {
@@ -726,9 +724,9 @@ casa::MVDirection TableVisGridder::getImageCentre() const
    casa::MDirection out;
    casa::Vector<casa::Double> centrePixel(2);
    ASKAPDEBUGASSERT(itsShape.nelements()>=2);
-   ASKAPDEBUGASSERT(itsPaddingFactor>0);
+   ASKAPDEBUGASSERT(paddingFactor()>0);
    for (size_t dim=0; dim<2; ++dim) {
-        centrePixel[dim] = double(itsShape[dim])/2./double(itsPaddingFactor);
+        centrePixel[dim] = double(itsShape[dim])/2./double(paddingFactor());
    }
    ASKAPCHECK(itsAxes.directionAxis().toWorld(out, centrePixel), 
         "Unable to obtain world coordinates for the centre of the image. Something is wrong with the coordinate system");
@@ -973,7 +971,7 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		const casa::Array<double>& in) {
     configureForPSF(false);
-	itsShape = scimath::PaddingUtils::paddedShape(in.shape(),itsPaddingFactor);
+	itsShape = scimath::PaddingUtils::paddedShape(in.shape(),paddingFactor());
 	
 	initialiseCellSize(axes);
     initStokes();
@@ -987,7 +985,7 @@ void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	if (casa::max(casa::abs(in))>0.0) {
 		itsModelIsEmpty=false;
 		casa::Array<double> scratch(itsShape,0.);
-		scimath::PaddingUtils::extract(scratch, itsPaddingFactor) = in;
+		scimath::PaddingUtils::extract(scratch, paddingFactor()) = in;
 		correctConvolution(scratch);
 		casa::Array<casa::DComplex> scratch2(itsGrid[0].shape());
 		toComplex(scratch2, scratch);

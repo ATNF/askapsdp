@@ -66,7 +66,7 @@ namespace synthesis {
 ///     algorithm. The main driver for snap-shot imaging is an attempt to decrease the support size
 ///     of convolution functions (largely caused by w-projection).  
 /// @ingroup gridding
-class SnapShotImagingGridderAdapter : public IVisGridder 
+class SnapShotImagingGridderAdapter : virtual public IVisGridder 
 {
 public:
    /// @brief initialise the adapter
@@ -133,6 +133,14 @@ public:
    /// @brief finalise degridding
    virtual void finaliseDegrid();
 
+   /// @brief set clipping factor
+   /// @details The image could be optionally clipped during regridding (to avoid edge effects). 
+   /// This parameter represents the fraction of the image size (on each directional axis) which is
+   /// zeroed (equally from both sides). It should be a non-negative number less than 1. Set to zero to avoid
+   /// any clipping (this is the default behavior)
+   /// @param[in] factor clipping factor
+   void setClippingFactor(const float factor);
+   
 protected:
    /// @brief check whether this is a psf gridder
    /// @details We pass all calls directly to the wrapped gridder for PSF calculation,
@@ -178,6 +186,13 @@ protected:
    /// shapes
    void imageRegrid(const casa::Array<double> &input, casa::Array<double> &output,
                     bool toTarget) const;
+   
+   
+   /// @brief clip image 
+   /// @details This method clips the image by zeroing the edges according to the
+   /// assigned clipping factor.
+   /// @param[in] img array to modify
+   void imageClip(casa::Array<double> &img) const;
    
    /// @brief obtain the tangent point
    /// @details This method extracts the tangent point (reference position) from the
@@ -302,6 +317,12 @@ private:
    /// @brief flag that the model is empty for degridding
    /// @details It allows to bypass expensive image regridding
    bool itsModelIsEmpty;
+   
+   /// @brief clipping factor
+   /// @details The image could be optionally clipped during regridding (to avoid edge effects). 
+   /// This parameter represents the fraction of the image size (on each directional axis) which is
+   /// zeroed (equally from both sides). It should be a non-negative number less than 1.
+   float itsClippingFactor;
 };
    
 } // namespace synthesis

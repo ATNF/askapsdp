@@ -27,6 +27,7 @@ ASKAP_LOGGER(logger, ".gridding.visgridderfactory");
 
 #include <askap/AskapError.h>
 #include <gridding/VisGridderFactory.h>
+#include <gridding/VisGridderWithPadding.h>
 #include <gridding/BoxVisGridder.h>
 #include <gridding/SphFuncVisGridder.h>
 #include <gridding/WProjectVisGridder.h>
@@ -124,11 +125,11 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 	if (parset.isDefined("gridder.padding")) {
 	    const float padding =parset.getFloat("gridder.padding");
 	    ASKAPLOG_INFO_STR(logger, "Use padding at the gridder level, padding factor = "<<padding);
-	    boost::shared_ptr<TableVisGridder> tvg = 
-	        boost::dynamic_pointer_cast<TableVisGridder>(gridder);
-	    ASKAPCHECK(tvg, "Gridder type ("<<parset.getString("gridder")<<
+	    boost::shared_ptr<VisGridderWithPadding> vg = 
+	        boost::dynamic_pointer_cast<VisGridderWithPadding>(gridder);
+	    ASKAPCHECK(vg, "Gridder type ("<<parset.getString("gridder")<<
 	               ") is incompatible with the padding option");
-	    tvg->setPaddingFactor(padding);           
+	    vg->setPaddingFactor(padding);           
 	} else {
             ASKAPLOG_INFO_STR(logger,"No padding at the gridder level");
     }
@@ -199,7 +200,10 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
             const double wtolerance = parset.getDouble("gridder.snapshotimaging.wtolerance"); 
 	    ASKAPLOG_INFO_STR(logger, "w-coordinate tolerance is "<<wtolerance<<" wavelengths");
 	    boost::shared_ptr<SnapShotImagingGridderAdapter> adapter(new SnapShotImagingGridderAdapter(gridder,wtolerance));
-	    // possible configuration comes here
+	    const double clippingFactor = parset.getDouble("gridder.snapshotimaging.clipping", 0.);
+	    ASKAPLOG_INFO_STR(logger, "Clipping factor is "<<clippingFactor);
+	    adapter->setClippingFactor(float(clippingFactor));
+	    // possible additional configuration comes here
 	    gridder = adapter;
 	}
 	
