@@ -86,8 +86,6 @@ namespace askap {
 	    ss >> this->itsComponentNum >> this->itsGalaxyNum >> this->itsStructure 
 	       >> this->itsRA >> this->itsDec >> pa >> maj >> min 
 	       >> this->itsI151 >> this->itsI610 >> this->itsI1400 >> this->itsI4860 >> this->itsI18000;
-	    flux = pow(10,this->itsI1400);
-            this->itsComponent.setPeak(flux);
 	    if(maj>=min){
 	      this->itsComponent.setMajor(maj);
 	      this->itsComponent.setMinor(min);
@@ -96,7 +94,26 @@ namespace askap {
 	      this->itsComponent.setMinor(maj);
 	    }
             this->itsComponent.setPA(pa);
-	    this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
+	    if(this->itsNuZero<610.e6){
+	      this->itsAlpha = (this->itsI610-this->itsI151)/log10(610./151.);
+	      flux = this->itsI151 + this->itsAlpha * log10(this->itsNuZero/151.e6);
+	    }
+	    else if(this->itsNuZero < 1400.e6){
+	      this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
+	      flux = this->itsI610 + this->itsAlpha * log10(this->itsNuZero/610.e6);
+	    }
+	    else if(this->itsNuZero < 4.86e9){
+	      this->itsAlpha = (this->itsI4860-this->itsI1400)/log10(4860./1400.);
+	      flux = this->itsI1400 + this->itsAlpha * log10(this->itsNuZero/1400.e6);
+	    }
+	    else{
+	      this->itsAlpha = (this->itsI18000-this->itsI4860)/log10(18000./4860.);
+	      flux = this->itsI4860 + this->itsAlpha * log10(this->itsNuZero/4860.e6);
+	    }
+		//	    this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
+		//	    flux = pow(10,this->itsI1400);
+		//            this->itsComponent.setPeak(flux);
+	    this->itsComponent.setPeak(pow(10,flux));
 	    this->itsBeta = 0.;
         }
 

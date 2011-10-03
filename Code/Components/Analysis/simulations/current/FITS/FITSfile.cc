@@ -603,7 +603,7 @@ namespace askap {
 
 	  while (getline(srclist, line),
 		 !srclist.eof()) {
-	    //ASKAPLOG_DEBUG_STR(logger, "input = " << line);
+// 	    ASKAPLOG_DEBUG_STR(logger, "input = " << line);
 			       
 	    if (line[0] != '#') {  // ignore commented lines
 
@@ -625,8 +625,8 @@ namespace askap {
 	      }
 	      else if (this->itsDatabaseOrigin == "S3SEX") {
 		if(this->itsSourceListType == "continuum"){
-		  contS3SEX.define(line);
 		  contS3SEX.setNuZero(this->itsBaseFreq);
+		  contS3SEX.define(line);
 		  src = &contS3SEX;
 		}else if(this->itsSourceListType == "spectralline") {
 		  profSEX.define(line);
