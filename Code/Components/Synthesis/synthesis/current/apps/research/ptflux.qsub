@@ -7,8 +7,10 @@
 #PBS -j oe
 #PBS -r n
 
-export ASKAP_ROOT=/work0/vor010/ASKAPsoft
-export AIPSPATH=$ASKAP_ROOT/Code/Components/Synthesis/testdata/current
+#export ASKAP_ROOT=/work0/vor010/ASKAPsoft
+export ASKAP_ROOT=/DATA/DELPHINUS_1/vor010/giant/ASKAPsoft
+#export AIPSPATH=$ASKAP_ROOT/Code/Components/Synthesis/testdata/current
+export AIPSPATH=/opt/casapy-32.0.15111-002-64b/
 
 simulator=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh
 imager=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh
@@ -29,10 +31,10 @@ donoise=true
 doclean=true
 freqdep=true
 gridder=AWProject
-illum=ATCA
+illum=disk
 
 
-resultdir=${PBS_O_WORKDIR}/sim3
+resultdir=${PBS_O_WORKDIR}/ptflux
 mkdir ${resultdir}
 cp $0 ${resultdir}
 cd ${resultdir}
@@ -40,9 +42,9 @@ touch `date +%F.%H.%M.%S`
 rm -f stats.log
 
 
-configdir=/data/DELPHINUS_1/vor010/ASKAPsoft/Code/Components/Synthesis/synthesis/current/apps/definitions
+configdir=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/definitions
 
-for df in 1250MHz 
+for df in 1250 1251 1252 1253 1254 1255 1256 1257 1259
 do
 
 csimparset=csimulator-${df}.in
@@ -68,7 +70,7 @@ Csimulator.feeds.definition                     =       $configdir/ASKAP${nfeeds
 
 Csimulator.spws.names=[Spectral0]
 #Csimulator.spws.Spectral0  =[ 1, 1250.000000MHz, -2.533333MHz, "XX XY YX YY"]
-Csimulator.spws.Spectral0  =[ 1, ${df}, -2.533333MHz, "XX XY YX YY"]
+Csimulator.spws.Spectral0  =[ 1, ${df}MHz, -2.533333MHz, "XX XY YX YY"]
 
 # Standard settings for the simulation step
 Csimulator.simulation.blockage                  =       0.01
@@ -80,17 +82,17 @@ Csimulator.simulation.integrationtime           =       200s
 #
 # Observe source SKADS_S3SEX for 8 hrs with a single channel spectral window, rotating between fields
 Csimulator.observe.number                       =       11
-Csimulator.observe.scan0                        =       [src, Wide0, -5.0416667h, -4.9583333h]
-Csimulator.observe.scan1                        =       [src, Wide0, -4.0416667h, -3.9583333h]
-Csimulator.observe.scan2                        =       [src, Wide0, -3.0416667h, -2.9583333h]
-Csimulator.observe.scan3                        =       [src, Wide0, -2.0416667h, -1.9583333h]
-Csimulator.observe.scan4                        =       [src, Wide0, -1.0416667h, -0.9583333h]
-Csimulator.observe.scan5                        =       [src, Wide0, -0.0416667h, 0.0416667h]
-Csimulator.observe.scan6                        =       [src, Wide0, 0.9583333h, 1.0416667h]
-Csimulator.observe.scan7                        =       [src, Wide0, 1.9583333h, 2.0416667h]
-Csimulator.observe.scan8                        =       [src, Wide0, 2.9583333h, 3.0416667h]
-Csimulator.observe.scan9                        =       [src, Wide0, 3.9583333h, 4.0416667h]
-Csimulator.observe.scan10                       =       [src, Wide0, 4.9583333h, 5.0416667h]
+Csimulator.observe.scan0                        =       [src, Spectral0, -5.0416667h, -4.9583333h]
+Csimulator.observe.scan1                        =       [src, Spectral0, -4.0416667h, -3.9583333h]
+Csimulator.observe.scan2                        =       [src, Spectral0, -3.0416667h, -2.9583333h]
+Csimulator.observe.scan3                        =       [src, Spectral0, -2.0416667h, -1.9583333h]
+Csimulator.observe.scan4                        =       [src, Spectral0, -1.0416667h, -0.9583333h]
+Csimulator.observe.scan5                        =       [src, Spectral0, -0.0416667h, 0.0416667h]
+Csimulator.observe.scan6                        =       [src, Spectral0, 0.9583333h, 1.0416667h]
+Csimulator.observe.scan7                        =       [src, Spectral0, 1.9583333h, 2.0416667h]
+Csimulator.observe.scan8                        =       [src, Spectral0, 2.9583333h, 3.0416667h]
+Csimulator.observe.scan9                        =       [src, Spectral0, 3.9583333h, 4.0416667h]
+Csimulator.observe.scan10                       =       [src, Spectral0, 4.9583333h, 5.0416667h]
 
 #
 # Use a gridder to apply primary beam during the W projection step.
@@ -201,6 +203,6 @@ then
 fi
 
 echo ${df} >> stats.log
-$imgstat ${diffimg} | grep -v DEC >> stats.log
+$imgstat ${cleanim}.restored | grep -v DEC >> stats.log
 
 done
