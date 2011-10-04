@@ -12,6 +12,7 @@ export AIPSPATH=$ASKAP_ROOT/Code/Components/Synthesis/testdata/current
 
 simulator=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh
 imager=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh
+imgstat=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/imgstat.sh
 
 npix=2048
 maxsupport=4096
@@ -30,19 +31,23 @@ freqdep=true
 gridder=AWProject
 illum=ATCA
 
-modelimage=/work0/cor203/Projects/ASKAP/simulations/models/empty_5arcsec
 
 resultdir=${PBS_O_WORKDIR}/sim3
 mkdir ${resultdir}
 cp $0 ${resultdir}
 cd ${resultdir}
 touch `date +%F.%H.%M.%S`
+rm -f stats.log
 
-mssub=ptflux.ms
-configdir=/work0/cor203/Projects/ASKAP/simulations/configs
 
-csimparset=csimulator.in
-csimlog=csimulator.log
+configdir=/data/DELPHINUS_1/vor010/ASKAPsoft/Code/Components/Synthesis/synthesis/current/apps/definitions
+
+for df in 1250MHz 
+do
+
+csimparset=csimulator-${df}.in
+csimlog=csimulator-${df}.log
+mssub=ptflux-${df}.ms
 
 cat > $csimparset <<EOF
 Csimulator.dataset                              =       $mssub
@@ -50,7 +55,6 @@ Csimulator.dataset                              =       $mssub
 
 Csimulator.sources.names                        =       [src]
 Csimulator.sources.src.direction        =       [12h30m00.000, -45.00.00.000, J2000]
-#Csimulator.sources.src.model            =       $modelimage
 Csimulator.sources.src.components             =       [src1]
 Csimulator.sources.src1.flux.i                  = 1.0
 Csimulator.sources.src1.direction.dec          = 0.00387850580564
@@ -63,7 +67,8 @@ Csimulator.antennas.definition                  =       $configdir/A27CR3.in
 Csimulator.feeds.definition                     =       $configdir/ASKAP${nfeeds}feeds.in
 
 Csimulator.spws.names=[Spectral0]
-Csimulator.spws.Spectral0  =[ 1, 1250.000000MHz, -2.533333MHz, "XX XY YX YY"]
+#Csimulator.spws.Spectral0  =[ 1, 1250.000000MHz, -2.533333MHz, "XX XY YX YY"]
+Csimulator.spws.Spectral0  =[ 1, ${df}, -2.533333MHz, "XX XY YX YY"]
 
 # Standard settings for the simulation step
 Csimulator.simulation.blockage                  =       0.01
@@ -74,8 +79,19 @@ Csimulator.simulation.referencetime             =       [2007Mar07, UTC]
 Csimulator.simulation.integrationtime           =       200s
 #
 # Observe source SKADS_S3SEX for 8 hrs with a single channel spectral window, rotating between fields
-Csimulator.observe.number                       =       1
-Csimulator.observe.scan0                        =       [src, Spectral0, -4h, +4h]
+Csimulator.observe.number                       =       11
+Csimulator.observe.scan0                        =       [src, Wide0, -5.0416667h, -4.9583333h]
+Csimulator.observe.scan1                        =       [src, Wide0, -4.0416667h, -3.9583333h]
+Csimulator.observe.scan2                        =       [src, Wide0, -3.0416667h, -2.9583333h]
+Csimulator.observe.scan3                        =       [src, Wide0, -2.0416667h, -1.9583333h]
+Csimulator.observe.scan4                        =       [src, Wide0, -1.0416667h, -0.9583333h]
+Csimulator.observe.scan5                        =       [src, Wide0, -0.0416667h, 0.0416667h]
+Csimulator.observe.scan6                        =       [src, Wide0, 0.9583333h, 1.0416667h]
+Csimulator.observe.scan7                        =       [src, Wide0, 1.9583333h, 2.0416667h]
+Csimulator.observe.scan8                        =       [src, Wide0, 2.9583333h, 3.0416667h]
+Csimulator.observe.scan9                        =       [src, Wide0, 3.9583333h, 4.0416667h]
+Csimulator.observe.scan10                       =       [src, Wide0, 4.9583333h, 5.0416667h]
+
 #
 # Use a gridder to apply primary beam during the W projection step.
 Csimulator.gridder                                      = ${gridder}
@@ -113,10 +129,10 @@ then
 fi
 
 #for df in 1 
-for df in 1 10 20 30 40 50 60 70 80 90 100
-do
+#for df in 1 10 20 30 40 50 60 70 80 90 100
+#do
 
-image=image.i.ptflux${df}
+image=image.ptflux${df}
 cleanim=${image}
 
 cimparsetC=cimager-clean-${df}.in
@@ -160,10 +176,11 @@ Cimager.solver.Clean.verbose                    = True
 Cimager.threshold.minorcycle                    = [10%]
 #Cimager.threshold.majorcycle                    = 1.0mJy
 #Cimager.restore.equalise = True
-Cimager.ncycles                                 = ${df}
+#Cimager.ncycles                                 = ${df}
+Cimager.ncycles                                 = 0
 
-Cimager.solver.Clean.weightcutoff               = zero
-Cimager.solver.Clean.weightcutoff.clean         = false
+#Cimager.solver.Clean.weightcutoff               = zero
+#Cimager.solver.Clean.weightcutoff.clean         = false
 
 #
 Cimager.preconditioner.Names                    = [Robust, GaussianTaper]
@@ -182,5 +199,8 @@ then
     mpirun -mca mpi_paffinity_alone 1  $imager -inputs $cimparsetC | tee -a $cimlogC
     echo END CLEAN IMAGER `date` | tee -a $cimlogC
 fi
+
+echo ${df} >> stats.log
+$imgstat ${diffimg} | grep -v DEC >> stats.log
 
 done
