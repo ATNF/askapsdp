@@ -92,12 +92,18 @@ void SupportSearcher::debugStoreImage(const casa::Matrix<casa::Complex> &in);
 /// @details This search method doesn't assume anything about the peak and
 /// searches for its position and peak beforehand. The search starts at the
 /// edges and progresses towards the peak. The edge of the support region
-/// is where the value first time exceeds the cutoff*peakVal.
+/// is where the value first time exceeds the cutoff*peakVal, or cutoff*value
+/// if value given as a second parameter is positive
 /// @param[in] in input 2D matrix with an image 
+/// @param[in] value optional peak value, if a positive value is given it will be used
+/// instead of the peak amplitude (although the positon of the peak will still be searched for)
 template<typename T>
-void SupportSearcher::search(const casa::Matrix<T> &in)
+void SupportSearcher::search(const casa::Matrix<T> &in, const double value)
 {
   findPeak(in);
+  if (value > 0) {
+      itsPeakVal = value;
+  }
   doSupportSearch(in);
 }
 
