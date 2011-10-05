@@ -604,7 +604,9 @@ namespace askap {
 	  while (getline(srclist, line),
 		 !srclist.eof()) {
 // 	    ASKAPLOG_DEBUG_STR(logger, "input = " << line);
-			       
+	    
+	    fluxGen.zero();
+	    
 	    if (line[0] != '#') {  // ignore commented lines
 
 	      if(this->itsDatabaseOrigin == "Continuum") {
@@ -720,7 +722,7 @@ namespace askap {
 		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
 		  if (src->maj() > 0 && !(src->min() > this->itsMinMinorAxis)) {
-		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
+// 		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
 		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 

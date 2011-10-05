@@ -115,15 +115,19 @@ namespace askap {
             if (this->itsNChan <= 0)
                 ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
 
-            double *pix = new double[3];
-            double *wld = new double[3];
-            pix[0] = x; pix[1] = y;
+            double *pix = new double[3*this->itsNChan];
+            double *wld = new double[3*this->itsNChan];
+            for (int z = 0; z < this->itsNChan; z++) {
+                pix[3*z+0] = x;
+                pix[3*z+1] = y;
+                pix[3*z+2] = double(z);
+            }
 
-            for (double z = 0; z < this->itsNChan; z++) {
-                pix[2] = z;
-                pixToWCSSingle(wcs, pix, wld);
-                float freq = wld[2];
-                this->itsFluxValues[0][int(z)] += spec.flux(freq);
+            pixToWCSMulti(wcs, pix, wld, this->itsNChan);
+
+            for (int z = 0; z < this->itsNChan; z++) {
+// 	      ASKAPLOG_DEBUG_STR(logger, "Adding flux of " << spec.flux(wld[3*z+2]) << " to freq " << wld[3*z+2]);
+                this->itsFluxValues[0][z] += spec.flux(wld[3*z+2]);
             }
 
             delete [] pix;
@@ -147,16 +151,19 @@ namespace askap {
             if (this->itsNChan <= 0)
                 ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
 
-            double *pix = new double[3];
-            double *wld = new double[3];
-            pix[0] = x; pix[1] = y;
+            double *pix = new double[3*this->itsNChan];
+            double *wld = new double[3*this->itsNChan];
+            for (int z = 0; z < this->itsNChan; z++) {
+                pix[3*z+0] = x;
+                pix[3*z+1] = y;
+                pix[3*z+2] = double(z);
+            }
+
+            pixToWCSMulti(wcs, pix, wld, this->itsNChan);
 
 	    for(int istokes=0; istokes < this->itsNStokes; istokes++){
-	      for (double z = 0; z < this->itsNChan; z++) {
-                pix[2] = z;
-                pixToWCSSingle(wcs, pix, wld);
-                float freq = wld[2];
-                this->itsFluxValues[istokes][int(z)] += stokes.flux(istokes,freq);
+	      for (int z = 0; z < this->itsNChan; z++) {
+                this->itsFluxValues[istokes][z] += stokes.flux(istokes,wld[3*z+2]);
 	      }
 	    }
 
@@ -191,16 +198,20 @@ namespace askap {
 
             pixToWCSMulti(wcs, pix, wld, this->itsNChan);
 
+	    int i;
+	    double df;
+
 	    for(int istokes=0; istokes < this->itsNStokes; istokes++){
+	      i=2;
 	      for (int z = 0; z < this->itsNChan; z++) {
-                int i = 3 * z + 2;
-                double df;
 		
                 if (z < this->itsNChan - 1) df = fabs(wld[i] - wld[i+3]);
                 else df = fabs(wld[i] - wld[i-3]);
 
 //     ASKAPLOG_DEBUG_STR(logger,"addSpectrumInt: freq="<<wld[i]<<", df="<<df<<", getting flux between "<<wld[i]-df/2.<<" and " <<wld[i]+df/2.);
                 this->itsFluxValues[istokes][z] += spec.flux(wld[i] - df / 2., wld[i] + df / 2.);
+
+		i += 3;
 	      }
 	    }
 

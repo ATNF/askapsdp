@@ -228,6 +228,46 @@ namespace askap {
             return (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]);
         }
 
+
+      void findEllipseLimits(double major, double minor, double pa, float &xmin, float &xmax, float &ymin, float &ymax)
+      {
+
+	// Use the parametric equation for an ellipse (u = a cos(t), v = b sin(t)) to find the limits of x and y once converted from u & v.
+
+	double cospa = cos(pa);
+	double sinpa = sin(pa);
+	double tanpa = tan(pa);
+	double x1,x2,y1,y2;
+	if(fabs(cospa)<1.e-8) {
+	  x1=-minor;
+	  x2=minor;
+	  y1=-major;
+	  y2=major;
+	}
+	else if(fabs(sinpa)<1.e-8){
+	  x1=-major;
+	  x2=major;
+	  y1=-minor;
+	  y2=minor;
+	}
+	else{
+	  double t_x1 = atan( tanpa * minor/major);
+	  double t_x2 = t_x1 + M_PI;
+	  double t_y1 = atan( minor/(major*tanpa));
+	  double t_y2 = t_y1 + M_PI;
+	  x1=major*cospa*cos(t_x1) - minor*sinpa*sin(t_x1);
+	  x2=major*cospa*cos(t_x2) - minor*sinpa*sin(t_x2);
+	  y1=major*cospa*cos(t_y1) - minor*sinpa*sin(t_y1);
+	  y2=major*cospa*cos(t_y2) - minor*sinpa*sin(t_y2);
+	}
+	xmin=std::min(x1,x2);
+	xmax=std::max(x1,x2);
+	ymin=std::min(y1,y2);
+	ymax=std::max(y1,y2);
+
+      }
+
+
         bool addGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
         {
             /// @details Adds the flux of a given 2D Gaussian to the pixel
@@ -255,6 +295,7 @@ namespace askap {
             int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPointMax), int(axes[0] - 1));
             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPointMax), 0);
             int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPointMax), int(axes[1] - 1));
+// 	    ASKAPLOG_DEBUG_STR(logger, zeroPointMax << " " << zeroPointMin<< "   " << xmin << " " << xmax << " " << ymin << " " << ymax);
 
 	    bool addSource = (xmax >= xmin) && (ymax >= ymin);
             if (addSource) {  // if there are object pixels falling within the image boundaries
@@ -265,7 +306,7 @@ namespace askap {
 
                 for (size_t i = 1; i < axes.size(); i++) ss << "x" << axes[i];
 
-                ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with bounds [" << xmin << ":" << xmax << "," << ymin << ":" << ymax
+                ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with flux="<<gauss.flux() << " and bounds [" << xmin << ":" << xmax << "," << ymin << ":" << ymax
                                        << "] (zeropoints = " << zeroPointMax << "," << zeroPointMin << ") (dimensions of array=" << ss.str() << ")");
 
                 // Test to see whether this should be treated as a point source
@@ -323,9 +364,15 @@ namespace askap {
 
                             separation = mindv * mindv / (zeroPointMax * zeroPointMax) + mindu * mindu / (zeroPointMin * zeroPointMin);
 
+			    float xlim1,xlim2,ylim1,ylim2;
+			    findEllipseLimits(zeroPointMax, zeroPointMin, gauss.PA(),xlim1,xlim2,ylim1,ylim2);
+// 			    ASKAPLOG_DEBUG_STR(logger, xlim1 << " " << xlim2 << " " << ylim1 << " " << ylim2);
+// 			    ASKAPLOG_DEBUG_STR(logger, dx[0] << " " << dx[1] << " " << dy[0] << " " << dy[1]);
+			    
                             if (separation <= 1. ||
-                                    ((du[0]*du[1] < 0 || du[0]*du[2] < 0 || du[0]*du[3] < 0) && mindv < zeroPointMax) ||
-                                    ((dv[0]*dv[1] < 0 || dv[0]*dv[2] < 0 || dv[0]*dv[3] < 0) && mindu < zeroPointMin)) { //only do the integrations if it lies within the maximal ellipse
+				((dx[0]<=xlim1 && dx[1]>=xlim2) && (dy[0]<=ylim1 && dy[1]>=ylim2))){
+//                                     ((du[0]*du[1] < 0 || du[0]*du[2] < 0 || du[0]*du[3] < 0) && mindv < zeroPointMax) ||
+//                                     ((dv[0]*dv[1] < 0 || dv[0]*dv[2] < 0 || dv[0]*dv[3] < 0) && mindu < zeroPointMin)) { //only do the integrations if it lies within the maximal ellipse
 
                                 xpos = x - 0.5 - delta;
 
@@ -355,10 +402,14 @@ namespace askap {
                                 pixelVal *= (delta * delta / 9.);
                             }
 
+// 			    ASKAPLOG_DEBUG_STR(logger, du[0] << " " << du[1] << " " << du[2] << " " << du[3] << "     " << dv[0] << " " << dv[1] <<" " << dv[2] << " " << dv[3]);
+// 			    ASKAPLOG_DEBUG_STR(logger, separation << " " << mindu << " " << mindv << " " << nstep << " " << delta << " " << delta*delta/9. << " " << pixelVal);
+
                             // For this pixel, loop over all channels and assign the correctly-scaled pixel value.
 			    for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
 			      for (int z = 0; z < fluxGen.nChan(); z++) {
                                 pix = x + y * axes[0] + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
+// 				ASKAPLOG_DEBUG_STR(logger, "Adding flux of " << pixelVal*fluxGen.getFlux(z,istokes) << " to (x,y,z)=("<<x<<","<<y<<","<<z<<")");
                                 array[pix] += pixelVal * fluxGen.getFlux(z,istokes);
 			      }
 			    }
@@ -479,7 +530,7 @@ namespace askap {
             if(addSource)  {
 
                 ASKAPLOG_DEBUG_STR(logger, "Adding Point Source with x=" << pix[0] << " & y=" << pix[1]
-                                       << "  to  axes = [" << axes[0] << "," << axes[1] << "]");
+				   << " and flux0=" << fluxGen.getFlux(0) << " to  axes = [" << axes[0] << "," << axes[1] << "]");
 
 		int loc = 0;
 		for(int istokes=0; istokes<fluxGen.nStokes();istokes++){

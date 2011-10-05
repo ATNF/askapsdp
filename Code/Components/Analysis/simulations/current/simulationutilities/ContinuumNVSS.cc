@@ -80,41 +80,41 @@ namespace askap {
 	    ///  @param line A line from the ascii input file
 
 	  this->itsInputLine      = line;
-	  this->itsRadius         = atof(line.substr(0,8).c_str());
-	  this->itsXoff           = atof(line.substr(9,9).c_str());
-	  this->itsYoff           = atof(line.substr(19,9).c_str());
-	  this->itsRecno          = atoi(line.substr(29,8).c_str());
-	  this->itsField          = line.substr(38,8);
-	  this->itsFieldXpos      = atof(line.substr(47,7).c_str());
-	  this->itsFieldYpos      = atof(line.substr(55,7).c_str());
-	  this->itsName           = line.substr(63,14);
-	  this->itsRAstring       = line.substr(78,11);
-	  this->itsDecstring      = line.substr(90,11);
-	  this->itsRA_err         = atof(line.substr(102,5).c_str());
-	  this->itsDec_err        = atof(line.substr(108,4).c_str());
-	  this->itsS1400          = atof(line.substr(113,8).c_str());
-	  this->itsS1400_err      = atof(line.substr(122,7).c_str());
-	  this->itsMajorAxisLimit = line[130];
-	  this->itsMajorAxis      = atof(line.substr(132,5).c_str());
-	  this->itsMinorAxisLimit = line[138];
-	  this->itsMinorAxis      = atof(line.substr(140,5).c_str());
-	  this->itsPA             = atof(line.substr(146,5).c_str());
-	  this->itsMajorAxis_err  = atof(line.substr(152,4).c_str());
-	  this->itsMinorAxis_err  = atof(line.substr(157,4).c_str());
-	  this->itsPA_err         = atof(line.substr(162,4).c_str());
-	  this->itsFlagResidual   = line.substr(167,2);
-	  this->itsResidualFlux   = atoi(line.substr(170,4).c_str());
-	  this->itsPolFlux        = atof(line.substr(175,6).c_str());
-	  this->itsPolPA          = atof(line.substr(182,5).c_str());
-	  this->itsPolFlux_err    = atof(line.substr(188,5).c_str());
-	  this->itsPolPA_err      = atof(line.substr(194,4).c_str());
+	  this->itsRadius         = atof(line.substr(0,9).c_str());
+	  this->itsXoff           = atof(line.substr(10,10).c_str());
+	  this->itsYoff           = atof(line.substr(21,10).c_str());
+	  this->itsRecno          = atoi(line.substr(32,8).c_str());
+	  this->itsField          = line.substr(41,8);
+	  this->itsFieldXpos      = atof(line.substr(50,7).c_str());
+	  this->itsFieldYpos      = atof(line.substr(58,7).c_str());
+	  this->itsName           = line.substr(66,14);
+	  this->itsRAstring       = line.substr(81,11);
+	  this->itsDecstring      = line.substr(93,11);
+	  this->itsRA_err         = atof(line.substr(105,5).c_str());
+	  this->itsDec_err        = atof(line.substr(111,4).c_str());
+	  this->itsS1400          = atof(line.substr(116,8).c_str());
+	  this->itsS1400_err      = atof(line.substr(125,7).c_str());
+	  this->itsMajorAxisLimit = line[133];
+	  this->itsMajorAxis      = atof(line.substr(135,5).c_str());
+	  this->itsMinorAxisLimit = line[141];
+	  this->itsMinorAxis      = atof(line.substr(143,5).c_str());
+	  this->itsPA             = atof(line.substr(149,5).c_str());
+	  this->itsMajorAxis_err  = atof(line.substr(155,4).c_str());
+	  this->itsMinorAxis_err  = atof(line.substr(160,4).c_str());
+	  this->itsPA_err         = atof(line.substr(165,4).c_str());
+	  this->itsFlagResidual   = line.substr(170,2);
+	  this->itsResidualFlux   = atoi(line.substr(173,4).c_str());
+	  this->itsPolFlux        = atof(line.substr(178,6).c_str());
+	  this->itsPolPA          = atof(line.substr(185,5).c_str());
+	  this->itsPolFlux_err    = atof(line.substr(191,5).c_str());
+	  this->itsPolPA_err      = atof(line.substr(197,4).c_str());
 	  
 	  this->itsRA = this->itsRAstring;
 	  for(size_t i=0;i<this->itsRA.size();i++) if(this->itsRA[i]==' ') this->itsRA[i]=':';
 	  this->itsDec = this->itsDecstring;
 	  for(size_t i=0;i<this->itsDec.size();i++) if(this->itsDec[i]==' ') this->itsDec[i]=':';
 
-	  this->itsComponent.setPeak(this->itsS1400);
+	  this->itsComponent.setPeak(this->itsS1400/1.e3); // put into Jy
 	  this->itsComponent.setMajor( this->itsMajorAxisLimit=='<' ? 0. : this->itsMajorAxis );
 	  this->itsComponent.setMinor( this->itsMinorAxisLimit=='<' ? 0. : this->itsMinorAxis );
 	  if(this->itsComponent.maj()<this->itsComponent.min()){
