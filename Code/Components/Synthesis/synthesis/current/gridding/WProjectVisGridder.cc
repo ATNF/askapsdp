@@ -54,9 +54,7 @@ namespace askap
 	    itsMaxSupport(maxSupport), itsCutoff(cutoff), itsLimitSupport(limitSupport),
 	    itsPlaneDependentCFSupport(false), itsOffsetSupportAllowed(false), itsCutoffAbs(false)
     {
-      ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
-      ASKAPCHECK(cutoff>0.0, "Cutoff must be positive");
-      ASKAPCHECK(cutoff<1.0, "Cutoff must be less than 1.0");
+      ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");     
       ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
       itsSupport=0;
       itsOverSample=overSample;
@@ -454,6 +452,8 @@ namespace askap
            ASKAPLOG_INFO_STR(logger, "Cutoff value of "<<itsCutoff<<" will be treated as an absolute threshold during CF generation");
        } else {
            ASKAPLOG_INFO_STR(logger, "Cutoff value of "<<itsCutoff<<" will be treated as a threshold relative to the peak during CF generation");
+           ASKAPCHECK(itsCutoff>0.0, "Cutoff must be positive");
+           ASKAPCHECK(itsCutoff<1.0, "Cutoff must be less than 1.0");
        }
        setAbsCutoffFlag(absCutoff);
     }
