@@ -605,18 +605,8 @@ AWProjectVisGridder& AWProjectVisGridder::operator=(const AWProjectVisGridder &)
 IVisGridder::ShPtr AWProjectVisGridder::createGridder(const LOFAR::ParameterSet& parset)
 {
   boost::shared_ptr<AWProjectVisGridder> gridder = createAProjectGridder<AWProjectVisGridder>(parset);
-  const bool planeDependentSupport = parset.getBool("variablesupport",false);
-  if (planeDependentSupport) {
-      ASKAPLOG_INFO_STR(logger, "Support size will be calculated separately for each plane of the CF cache");
-  } else {
-      ASKAPLOG_INFO_STR(logger, "Common support size will be used for all planes of the CF cache");
-  }
-  gridder->planeDependentSupport(planeDependentSupport);
-  
-  const bool offsetSupport = parset.getBool("offsetsupport",false);
-  ASKAPCHECK((!offsetSupport && !planeDependentSupport) || planeDependentSupport, 
-             "offsetsupport option of the gridder should only be used together with variablesupport option");
-  gridder->offsetSupport(offsetSupport);            
+  gridder->configureGridder(parset);
+           
   return gridder;
 }
     

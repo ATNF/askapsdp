@@ -96,7 +96,13 @@ namespace askap
       static IVisGridder::ShPtr createGridder(const LOFAR::ParameterSet& parset);
 
   protected:
-  
+      /// @brief additional operations to configure gridder
+      /// @details This method is supposed to be called from createGridder and could be
+      /// used in derived classes to avoid too much duplication of the code. For this
+      /// particular class it configures variable/offset support and cutoff behavior.
+      /// @param[in] parset input parset file
+      void configureGridder(const LOFAR::ParameterSet& parset);
+        
       /// @brief obtain buffer used to create convolution functions
       /// @return a reference to the buffer held as a shared pointer   
       casa::Matrix<casa::DComplex> getCFBuffer() const; 
@@ -181,6 +187,15 @@ namespace askap
       
       /// Mapping from row, pol, and channel to planes of convolution function
       casa::Cube<int> itsCMap;
+      
+      /// @brief obtain absolute cutoff flag
+      /// @return true if itsCutoff is an absolute cutoff rather than relative to the peak
+      inline bool isCutoffAbsolute() const { return itsCutoffAbs;}
+      
+      /// @bnrief set absolute cutoff flag
+      /// @param[in] flag true, if cutoff should be treated as an absolute value
+      inline void setAbsCutoffFlag(const bool flag) { itsCutoffAbs = flag; }
+      
   private:    
       /// @brief assignment operator
       /// @details Defined as private, so it can't be called (to enforce usage of the 
@@ -208,8 +223,11 @@ namespace askap
       /// of convolution functions. To speed things up, the allocation of the buffer is taken
       /// outside initConvolutionFunction method. A shared pointer to this buffer is held as a 
       /// data member as initialisation and usage happen in different methods of this class.
-      boost::shared_ptr<casa::Matrix<casa::DComplex> > itsCFBuffer;            
-    };
+      boost::shared_ptr<casa::Matrix<casa::DComplex> > itsCFBuffer;  
+      
+      /// @brief itsCutoff is an absolute cutoff, rather than relative to the peak of a particular CF plane
+      bool itsCutoffAbs;       
+   };
   }
 }
 #endif

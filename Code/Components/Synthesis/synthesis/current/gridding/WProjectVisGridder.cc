@@ -52,7 +52,7 @@ namespace askap
 	const int maxSupport, const int limitSupport, const std::string& name) :
 	    WDependentGridderBase(wmax,nwplanes),
 	    itsMaxSupport(maxSupport), itsCutoff(cutoff), itsLimitSupport(limitSupport),
-	    itsPlaneDependentCFSupport(false), itsOffsetSupportAllowed(false)
+	    itsPlaneDependentCFSupport(false), itsOffsetSupportAllowed(false), itsCutoffAbs(false)
     {
       ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
       ASKAPCHECK(cutoff>0.0, "Cutoff must be positive");
@@ -78,7 +78,8 @@ namespace askap
          itsCMap(other.itsCMap.copy()), itsMaxSupport(other.itsMaxSupport),
          itsCutoff(other.itsCutoff), itsLimitSupport(other.itsLimitSupport),
          itsPlaneDependentCFSupport(other.itsPlaneDependentCFSupport),
-         itsOffsetSupportAllowed(other.itsOffsetSupportAllowed) {}
+         itsOffsetSupportAllowed(other.itsOffsetSupportAllowed),
+         itsCutoffAbs(other.itsCutoffAbs) {}
            
 
     /// Clone a copy of this Gridder
@@ -353,7 +354,11 @@ namespace askap
     {
        CFSupport result(-1);
        SupportSearcher ss(itsCutoff);
-       ss.search(cfPlane);
+       if (isCutoffAbsolute()) {
+          ss.search(cfPlane, 1.);
+       } else {
+          ss.search(cfPlane);
+       }
        if (isOffsetSupportAllowed()) {
            result.itsSize= ss.support();
            const casa::IPosition peakPos = ss.peakPos();
@@ -419,22 +424,40 @@ namespace askap
        ASKAPLOG_INFO_STR(logger, "Gridding using W projection with " << nwplanes<<" w-planes");
        boost::shared_ptr<WProjectVisGridder> gridder(new WProjectVisGridder(wmax, nwplanes, cutoff, oversample,
 								  maxSupport, limitSupport, tablename));      
+       gridder->configureGridder(parset);              
+       gridder->configureWSampling(parset);       
+	   return gridder;
+    }
+    
+    /// @brief additional operations to configure gridder
+    /// @details This method is supposed to be called from createGridder and could be
+    /// used in derived classes to avoid too much duplication of the code. For this
+    /// particular class it configures variable/offset support and cutoff behavior.
+    /// @param[in] parset input parset file
+    void WProjectVisGridder::configureGridder(const LOFAR::ParameterSet& parset)
+    {
        const bool planeDependentSupport = parset.getBool("variablesupport",false);
        if (planeDependentSupport) {
           ASKAPLOG_INFO_STR(logger, "Support size will be calculated separately for each w-plane");
        } else {
           ASKAPLOG_INFO_STR(logger, "Common support size will be used for all w-planes");
        }
-       gridder->planeDependentSupport(planeDependentSupport);
+       WProjectVisGridder::planeDependentSupport(planeDependentSupport);
        
        const bool offsetSupport = parset.getBool("offsetsupport",false);
        ASKAPCHECK((!offsetSupport && !planeDependentSupport) || planeDependentSupport, 
              "offsetsupport option of the gridder should only be used together with variablesupport option");
-       gridder->offsetSupport(offsetSupport);            
+       WProjectVisGridder::offsetSupport(offsetSupport);            
        
-       gridder->configureWSampling(parset);       
-	   return gridder;
+       const bool absCutoff = parset.getBool("cutoff.absolute", false);
+       if (absCutoff) {
+           ASKAPLOG_INFO_STR(logger, "Cutoff value of "<<itsCutoff<<" will be treated as an absolute threshold during CF generation");
+       } else {
+           ASKAPLOG_INFO_STR(logger, "Cutoff value of "<<itsCutoff<<" will be treated as a threshold relative to the peak during CF generation");
+       }
+       setAbsCutoffFlag(absCutoff);
     }
+    
 
     /// @brief obtain buffer used to create convolution functions
     /// @return a reference to the buffer held as a shared pointer   
