@@ -379,6 +379,9 @@ int randomInt()
 // Main testing routine
 int main()
 {
+    // Use one less than the number of cores in the card
+    omp_set_num_threads_target(TARGET_MIC, 0, 31);
+
     // Change these if necessary to adjust run time
     const int nSamples = 160000; // Number of data samples
     const int wSize = 33; // Number of lookup planes in w projection
