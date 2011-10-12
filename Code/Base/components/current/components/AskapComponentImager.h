@@ -37,7 +37,9 @@ namespace components {
 /// @brief Project the componentlist onto the image.
 /// This class is designed to be interface compatible (in the general sense,
 /// not in the OO sense, since there is no interface class) with the casacore
-/// Component Imager.
+/// Component Imager. This class is based on the implementation of the casacore
+/// ComponentImager however is implemented in a manner which should be
+/// more performant.
 class AskapComponentImager {
     public:
         // Project the componentlist onto the image.

@@ -34,7 +34,17 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "images/Images/ImageInterface.h"
+#include "components/ComponentModels/SkyComponent.h"
 #include "components/ComponentModels/ComponentList.h"
+#include "components/ComponentModels/Flux.h"
+#include "components/ComponentModels/ConstantSpectrum.h"
+#include "components/ComponentModels/SpectralIndex.h"
+#include "components/ComponentModels/SpectralModel.h"
+#include "components/ComponentModels/ComponentType.h"
+#include "components/ComponentModels/ComponentShape.h"
+#include "components/ComponentModels/PointShape.h"
+#include "components/ComponentModels/GaussianShape.h"
+#include "components/ComponentModels/DiskShape.h"
 
 ASKAP_LOGGER(logger, ".AskapComponentImager");
 
@@ -45,4 +55,16 @@ using namespace casa;
 template<class T>
 void project(casa::ImageInterface<T>& image, const casa::ComponentList& list)
 {
+    if (list.nelements() == 0) {
+        return;
+    }
+
+    const CoordinateSystem& coords = image.coordinates();
+    const IPosition imageShape = image.shape();
+
+
+    // Process each SkyComponent individually
+    for (uInt i = 0; i < list.nelements(); ++i) {
+        const SkyComponent& c = list.component(i);
+    }
 }
