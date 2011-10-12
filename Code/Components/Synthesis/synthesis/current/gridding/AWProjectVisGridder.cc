@@ -260,6 +260,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       double ccellx=1.0/(double(qnx)*itsUVCellSize(0));
       double ccelly=1.0/(double(qny)*itsUVCellSize(1));
 
+      
       casa::Vector<double> ccfx(nx);
       casa::Vector<double> ccfy(ny);
       for (casa::uInt ix=0; ix<nx; ++ix) {
@@ -270,6 +271,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
            const double nuy=std::abs(double(iy)-double(ny/2))/double(ny/2);
            ccfy(iy)=grdsf(nuy); // /double(qny);
       }
+      
       
       UVPattern &pattern = uvPattern();
       casa::Matrix<casa::DComplex> thisPlane = getCFBuffer();
@@ -427,9 +429,17 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 					    (iy+cfSupport.itsOffsetV)*itsOverSample+fracv+ny/2);
 		    } // for ix
 		  } // for iy
-		   		  
+		  
+		  // force normalization for all fractional offsets (or planes)
+		  const double norm = sum(casa::real(itsConvFunc[plane]));
+          // ASKAPLOG_INFO_STR(logger, "Sum of convolution function = " << norm);             
+	      ASKAPDEBUGASSERT(norm>0.);
+          if (norm>0.) {
+              itsConvFunc[plane]/=casa::Complex(norm); 
+          }  
 		} // for fracv
 	      } // for fracu
+	     	      
 	    } // w loop
 	  } // chan loop
 	  
