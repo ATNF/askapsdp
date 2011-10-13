@@ -24,6 +24,8 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 
 #include <gridding/AWProjectVisGridder.h>
+#include <casa/Arrays/ArrayIter.h>
+
 
 #include <casa/BasicSL/Complex.h>
 #include <casa/Arrays/Array.h>
@@ -291,12 +293,6 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                            *cos(out.getLat()) - cos(offset.getLat())*sin(out.getLat())
                            *cos(offset.getLong()-out.getLong());
 	  
-               /*
-               // factor in the w-term for the centre of the current beam
-               const double cntWTermFactor = sqrt(1.-casa::square(rwSlopes()(0,feed,currentField())) - 
-                                                     casa::square(rwSlopes()(1,feed,currentField()))) - 1.;
-               */
-
                const double parallacticAngle = hasSymmetricIllumination ? 0. : acc.feed1PA()(row);
 	  
                for (int chan=0; chan<nChan; ++chan) {
@@ -319,8 +315,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                          // Loop over the central nx, ny region, setting it to the product
                          // of the phase screen and the spheroidal function
                          double maxCF=0.0;
-                         double peak=0.0;
-                         double w=2.0f*casa::C::pi*getWTerm(iw);
+                         const double w=2.0f*casa::C::pi*getWTerm(iw);
                          //std::cout<<"plane "<<iw<<" w="<<w<<std::endl;
 	      
 	      for (int iy=0; iy<int(ny); ++iy) {
@@ -330,12 +325,10 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                         const double x2=casa::square((double(ix)-double(nx)/2)*ccellx);
                         const double r2=x2+y2;
                         if (r2<1.0) {
-                            const double phase=w*(1.0-sqrt(1.0-r2) /*+ cntWTermFactor*/);
-                            const casa::DComplex wt=pattern(ix, iy)*conj(pattern(ix, iy))
-                                       *casa::DComplex(ccfx(ix)*ccfy(iy));
-                            if (casa::abs(wt)>peak) {
-                                peak=casa::abs(wt);
-                            }
+                            const double phase=w*(1.0-sqrt(1.0-r2));
+                            // grid correction is temporary disabled as otherwise the fluxes are overestimated
+                            const casa::DComplex wt=pattern(ix, iy)*conj(pattern(ix, iy));
+                                       //*casa::DComplex(ccfx(ix)*ccfy(iy)); 
                             // this ensures the oversampling is done
                             thisPlane(ix, iy)=wt*casa::DComplex(cos(phase), -sin(phase));
                             maxCF+=casa::abs(wt);
@@ -343,11 +336,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		   }
 	      }	
 	      
-	      	      
-
 	      ASKAPCHECK(maxCF>0.0, "Convolution function is empty");
-	      thisPlane*=casa::DComplex(1.0/peak);
-	      maxCF/=peak;
 	      
 	      
 	      // At this point, we have the phase screen multiplied by the spheroidal
@@ -360,7 +349,9 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	      
 	      // Now correct for normalization of FFT
 	      thisPlane*=casa::DComplex(1.0/(double(nx)*double(ny)));
-	      maxCF/=double(nx)*double(ny);
+              // use this norm later on during normalisation
+              const double thisPlaneNorm = sum(real(thisPlane));
+              ASKAPDEBUGASSERT(thisPlaneNorm>0.);
 
 	      const int zIndex=iw+nWPlanes()*(chan+nChan*(feed+itsMaxFeeds*currentField()));
 	      	      	    
@@ -430,15 +421,16 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		    } // for ix
 		  } // for iy
 		  
-                  /*
+                  
 		  // force normalization for all fractional offsets (or planes)
-		  const double norm = sum(casa::real(itsConvFunc[plane]));
-          // ASKAPLOG_INFO_STR(logger, "Sum of convolution function = " << norm);             
-	      ASKAPDEBUGASSERT(norm>0.);
-          if (norm>0.) {
-              itsConvFunc[plane]/=casa::Complex(norm); 
-          }  
-                */
+                  const double norm = sum(real(itsConvFunc[plane]));
+                  //    ASKAPLOG_INFO_STR(logger, "Sum of convolution function = " << norm<<" for plane "<<plane<<
+                  //       " full buffer has sum="<<thisPlaneNorm<<" ratio="<<norm/thisPlaneNorm);             
+                  ASKAPDEBUGASSERT(norm>0.);
+                  if (norm>0.) {
+                      //itsConvFunc[plane]*=casa::Complex(norm/thisPlaneNorm); 
+                  }  
+                
 		} // for fracv
 	      } // for fracu
 	     	      
@@ -546,19 +538,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	    }
 	  }	  
 	  
-	  double peak=real(casa::max(casa::abs(thisPlane)));
-	  //	  ASKAPLOG_INFO_STR(logger, "Convolution function["<< iz << "] peak = "<< peak);
 	  scimath::fft2d(thisPlane, false);
 	  thisPlane*=casa::DComplex(cnx*cny);
-	  
-	  peak=real(casa::max(casa::abs(thisPlane)));
-	  //	  ASKAPLOG_INFO_STR(logger, "Transform of convolution function["<< iz
-	  //			    << "] peak = "<< peak);
-	  if(peak>0.0) {
-	    //	    thisPlane*=casa::DComplex(double(nx*ny)/peak);
-	    thisPlane*=casa::DComplex(1.0/peak);
-	  }
-	  
 	  
 	  // Now we need to cut out only the part inside the field of view
 	  for (int chan=0; chan<nChan; chan++) {
@@ -590,7 +571,79 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 /// Correct for gridding convolution function
 /// @param image image to be corrected
 void AWProjectVisGridder::correctConvolution(casa::Array<double>& /*image*/)
-{}
+{
+
+  // experiments with grid-correction, I didn't manage to bring this code
+  // into working order so far, so it is commented out (and grid-correction is
+  // temporary disabled during the generation of CFs
+
+  /*
+
+  // unlike for plain spheroidal function gridder or w-projection we multuply
+  // by FT of the antialiasing filter rather than divide here. The reason is 
+  // because the weight also computed from acutal CFs with the antialiasing filter
+  // applied (weight squared is in denominator). The alternative approach would be
+  // to grid-correct the weight as well, but then searching for maximum becomes difficult
+
+  ASKAPDEBUGASSERT(itsShape.nelements()>=2);
+  ASKAPDEBUGASSERT(image.shape() == itsShape);
+  const casa::Int xHalfSize = itsShape(0)/2;
+  const casa::Int yHalfSize = itsShape(1)/2;
+  const casa::Int nx = itsShape(0);
+  const casa::Int ny = itsShape(1);
+  casa::Vector<double> ccfx(itsShape(0));
+  casa::Vector<double> ccfy(itsShape(1));
+  ASKAPDEBUGASSERT(itsShape(0)>1);
+  ASKAPDEBUGASSERT(itsShape(1)>1);
+
+  // note grdsf(-1)=0.
+  for (int ix=0; ix<nx; ++ix) {
+       const double nux=std::abs(double(ix-xHalfSize))/double(xHalfSize);
+       ccfx(ix) = grdsf(nux);
+  }
+  for (int iy=0; iy<ny; ++iy) {
+       const double nuy=std::abs(double(iy-yHalfSize))/double(yHalfSize);
+       ccfy(iy) = grdsf(nuy);
+  }
+  casa::Matrix<casa::DComplex> buffer(nx,ny);
+  for (casa::Int ix = 0; ix < nx; ++ix) {
+       for (casa::Int iy = 0; iy < ny; ++iy) {
+            buffer(ix,iy) = ccfx(ix)*ccfy(iy);
+       }
+  }
+  scimath::fft2d(buffer, true);
+  buffer *= casa::DComplex(1./(double(nx)*double(ny)));
+  for (casa::Int x = 0; x < nx; ++x) {
+       for (casa::Int y = 0; y < ny; ++y) {
+            buffer(x,y) *= conj(buffer(x,y));
+       }
+  }
+  scimath::fft2d(buffer, false);
+  buffer *= casa::DComplex(double(nx)*double(ny));
+
+
+  for (casa::ArrayIterator<double> it(image, 2); !it.pastEnd(); it.next()) {
+     casa::Matrix<double> mat(it.array());
+     ASKAPDEBUGASSERT(int(mat.nrow()) == nx);
+     ASKAPDEBUGASSERT(int(mat.ncolumn()) == ny);
+     for (int ix=0; ix<nx; ++ix) {
+          for (int iy=0; iy<ny; ++iy) {
+               const double val = ccfx(ix)*ccfy(iy);
+               if (casa::abs(val)<1e-20) {
+                   mat(ix,iy) = 0.;
+               } else {
+                  mat(ix, iy) *= real(buffer(ix,iy))/val;
+               }
+          }
+     }
+     
+     //casa::Array<float> img(mat.shape());
+     //casa::convertArray<float, double>(img, mat);
+     //SynthesisParamsHelper::saveAsCasaImage("dbg.img",img);
+     //throw 1;
+  }
+  */
+}
         
     int AWProjectVisGridder::cIndex(int row, int pol, int chan) {
       return itsCMap(row, pol, chan);

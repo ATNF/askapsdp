@@ -47,10 +47,12 @@ spr = SynthesisProgramRunner(template_parset = 'pbcorrtest_template.in')
 spr.runSimulator()
 
 spr.runImager()
-analyseResult(spr,3.853)
+#analyseResult(spr,3.853)
+analyseResult(spr,3.3)
 
 spr.initParset()
 spr.addToParset("Cimager.restore.equalise = True")
 spr.runImager()
-analyseResult(spr,3.725)
+#analyseResult(spr,3.725)
+analyseResult(spr,3.19)
 
