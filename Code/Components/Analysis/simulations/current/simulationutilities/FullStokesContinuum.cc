@@ -128,6 +128,7 @@ namespace askap {
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
 	theStream << std::setw(10)<<this->itsPolFracRef << std::setw(10)<<this->itsI4p8L << std::setw(10)<<this->itsI18L << std::setw(10)<<this->itsCosVA 
 		  << std::setw(11)<<this->itsRM << std::setw(11)<<this->itsRMflag;
+	theStream << "\n";
       }
 
       std::ostream& operator<<(std::ostream &theStream, FullStokesContinuum &stokes)
