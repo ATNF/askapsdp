@@ -8,6 +8,10 @@ echo "Started " `date` " on " $HOSTNAME  | tee -a stdtest.$HOSTNAME.out
 
 echo "Extracting 10uJy model" | tee -a stdtest.$HOSTNAME.out
 tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/models/10uJy.model.small.tgz | tee -a stdtest.$HOSTNAME.out
+ERR=${PIPESTATUS[0]}
+if [ $ERR -ne 0 ]; then
+    exit $ERR
+fi
 
 cat > stdtest.simulator.in <<EOF 
 Csimulator.dataset                              =       10uJy_stdtest.ms
@@ -56,7 +60,7 @@ Csimulator.gridder.AWProject.tablename		= AWProject.tab
 EOF
 echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
 ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
-ERR=$?
+ERR=${PIPESTATUS[0]}
 if [ $ERR -ne 0 ]; then
     exit $ERR
 fi
@@ -92,7 +96,7 @@ Cimager.preconditioner.Names			= None
 EOF
 echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
 ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
-ERR=$?
+ERR=${PIPESTATUS[0]}
 if [ $ERR -ne 0 ]; then
     exit $ERR
 fi
@@ -142,4 +146,8 @@ Cimager.preconditioner.GaussianTaper		= [20arcsec, 20arcsec, 0deg]
 EOF
 echo "Running cimager to form Clean image of single pointing" | tee -a  stdtest.$HOSTNAME.out
 ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.clean.in | tee -a stdtest.$HOSTNAME.out
+ERR=${PIPESTATUS[0]}
 echo "Ended " `date` " on " $HOSTNAME  | tee -a stdtest.$HOSTNAME.out
+if [ $ERR -ne 0 ]; then
+        exit $ERR
+fi

@@ -12,6 +12,10 @@ export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 
 echo "This is the ASKAPsoft stdtest. It will run for about 50 minutes."  | tee stdtest.$PBS_JOBID.out
 tar zxvf ${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/models/10uJy.model.small.tgz  | tee -a stdtest.$PBS_JOBID.out
+ERR=${PIPESTATUS[0]}
+if [ $ERR -ne 0 ]; then
+        exit $ERR
+fi
 
 prun="mpirun -np 2 -x AIPSPATH time"
 
@@ -62,6 +66,10 @@ Csimulator.gridder.AWProject.tablename          = AWProject.tab
 EOF
 echo "Running csimulator to create MeasurementSet for a single pointing" | tee -a  stdtest.$HOSTNAME.out
 $prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh -inputs stdtest.simulator.in | tee -a stdtest.$HOSTNAME.out
+ERR=${PIPESTATUS[0]}
+if [ $ERR -ne 0 ]; then
+        exit $ERR
+fi
 
 cat > stdtest.dirty.in <<EOF
 Cimager.dataset                                 = 10uJy_stdtest.ms
@@ -93,6 +101,10 @@ Cimager.preconditioner.Names                    = None
 EOF
 echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
 $prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.dirty.in | tee -a stdtest.$HOSTNAME.out
+ERR=${PIPESTATUS[0]}
+if [ $ERR -ne 0 ]; then
+        exit $ERR
+fi
 
 cat > stdtest.clean.in <<EOF
 Cimager.dataset                                 = 10uJy_stdtest.ms
@@ -139,3 +151,7 @@ EOF
 echo "Running cimager to form Clean image of single pointing" | tee -a  stdtest.$HOSTNAME.out
 
 $prun ${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs stdtest.clean.in | tee -a stdtest.$HOSTNAME.out
+ERR=${PIPESTATUS[0]}
+if [ $ERR -ne 0 ]; then
+        exit $ERR
+fi
