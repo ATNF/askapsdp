@@ -61,6 +61,9 @@ ASKAP_LOGGER(logger, ".DuchampAccessor");
 DuchampAccessor::DuchampAccessor(const std::string& filename)
         : itsFile(new std::ifstream(filename.c_str()))
 {
+    if (!itsFile->good()) {
+        ASKAPTHROW(AskapError, "Error opening file: " << filename);
+    }
 }
 
 DuchampAccessor::DuchampAccessor(const std::stringstream& sstream)

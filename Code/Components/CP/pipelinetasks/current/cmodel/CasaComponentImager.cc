@@ -40,6 +40,7 @@
 #include "askap/AskapError.h"
 #include "Common/ParameterSet.h"
 #include "skymodelclient/Component.h"
+#include "components/AskapComponentImager.h"
 
 // Casacore includes
 #include "casa/aipstype.h"
@@ -69,8 +70,17 @@ CasaComponentImager::CasaComponentImager(const LOFAR::ParameterSet& parset)
 void CasaComponentImager::projectComponents(const std::vector<askap::cp::skymodelservice::Component>& components,
         casa::ImageInterface<casa::Float>& image)
 {
-    // Build the image
-    ComponentImager::project(image, translateComponentList(components));
+    // Build the image using the specified imager (or casa component imager)
+    // if none was specified
+    const std::string imager = itsParset.getString("imager", "casa");
+    if (imager.compare("casa") == 0) {
+        casa::ComponentImager::project(image, translateComponentList(components));
+    } else if (imager.compare("askap") == 0) {
+        askap::components::AskapComponentImager::project(image,
+                translateComponentList(components));
+    } else {
+        ASKAPTHROW(AskapError, "Unknown component imager: " << imager);
+    } 
 }
 
 casa::ComponentList CasaComponentImager::translateComponentList(const std::vector<askap::cp::skymodelservice::Component>& components)
