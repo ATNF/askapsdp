@@ -436,7 +436,7 @@ void SimParallel::predict(const string& ms)
         IDataSharedIter it = ds.createIterator(sel, conv);
         /// Create the gridder using a factory acting on a
         /// parameterset
-        IVisGridder::ShPtr gridder = VisGridderFactory::make(parset());
+        IVisGridder::ShPtr gridder = createGridder(itsComms, parset());
         ASKAPCHECK(gridder, "Gridder not defined correctly");
 
         // a part of the equation defined via image
