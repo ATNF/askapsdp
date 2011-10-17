@@ -422,6 +422,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		  } // for iy
 		  
                   
+                  /*
 		  // force normalization for all fractional offsets (or planes)
                   const double norm = sum(real(itsConvFunc[plane]));
                   //    ASKAPLOG_INFO_STR(logger, "Sum of convolution function = " << norm<<" for plane "<<plane<<
@@ -430,6 +431,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                   if (norm>0.) {
                       //itsConvFunc[plane]*=casa::Complex(norm/thisPlaneNorm); 
                   }  
+                  */
                 
 		} // for fracv
 	      } // for fracu
