@@ -167,6 +167,13 @@ namespace askap
       /// The gridder is initialised by default with the negative threshold, i.e. all data are used by default.
       /// @param[in] threshold largest allowed angular separation in radians, use negative value to select all data
       void inline maxPointingSeparation(double threshold = -1.) { itsMaxPointingSeparation = threshold; }
+
+      /// @brief set table name to store the CFs to
+      /// @details This method makes it possible to enable writing CFs to disk in destructor after the 
+      /// gridder is created. The main use case is to allow a better control of this feature in the parallel
+      /// environment (we don't want all workers to write CFs)
+      /// @param[in] name table name to store the CFs to (or an empty string if CFs are not to be stored)
+      void setTableName(const std::string &name) { itsName = name; }
       
   protected:
       /// @brief helper method to print CF cache stats in the log
@@ -395,8 +402,6 @@ protected:
       int itsSupport;
       /// Oversampling of convolution function
       int itsOverSample;
-      /// Name of table to save to
-      std::string itsName;
 
       /// Is the model empty? Used to shortcut degridding
       bool itsModelIsEmpty;
@@ -405,6 +410,16 @@ protected:
       std::vector<casa::Array<casa::Complex> > itsGrid;
             
   private:
+
+      /// @brief return the table name to store the result to
+      /// @details This method could probably be made private as it is not used outside
+      /// this class
+      /// @return table name to store the CFs to (or an empty string if CFs are not to be stored)
+      std::string tableName() const { return itsName; }
+
+      /// Name of table to save to
+      std::string itsName;
+
       /// @brief assignment operator
       /// @details it is required to decouple arrays between the input object
       /// and the copy.

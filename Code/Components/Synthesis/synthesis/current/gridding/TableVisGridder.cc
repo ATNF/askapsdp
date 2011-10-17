@@ -83,7 +83,7 @@ void deepCopyOfSTDVector(const std::vector<T> &in,
 
 TableVisGridder::TableVisGridder() : itsSumWeights(),
         itsSupport(-1), itsOverSample(-1),
-	itsName(""), itsModelIsEmpty(false), itsSamplesGridded(0),
+	itsModelIsEmpty(false), itsSamplesGridded(0),
 			itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
 	itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
 	itsTimeDegridded(0.0), itsDopsf(false),
@@ -95,14 +95,14 @@ TableVisGridder::TableVisGridder() : itsSumWeights(),
 
 TableVisGridder::TableVisGridder(const int overSample, const int support,
         const float padding, const std::string& name) : VisGridderWithPadding(padding), itsSumWeights(),
-		 itsSupport(support), itsOverSample(overSample), itsName(name),
-				itsModelIsEmpty(false), itsSamplesGridded(0),
-				itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
-		itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
-		itsTimeDegridded(0.0), itsDopsf(false),
-		itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false), 	
-		itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0),
-		itsTrackWeightPerOversamplePlane(false)
+         itsSupport(support), itsOverSample(overSample), 
+        itsModelIsEmpty(false), itsName(name), itsSamplesGridded(0),
+        itsSamplesDegridded(0), itsVectorsFlagged(0), itsNumberGridded(0), itsNumberDegridded(0),
+        itsTimeCoordinates(0.0), itsTimeConvFunctions(0.0), itsTimeGridded(0.0), 
+        itsTimeDegridded(0.0), itsDopsf(false),
+        itsFirstGriddedVis(true), itsFeedUsedForPSF(0), itsUseAllDataForPSF(false), 	
+        itsMaxPointingSeparation(-1.), itsRowsRejectedDueToMaxPointingSeparation(0),
+        itsTrackWeightPerOversamplePlane(false)
 	{
 		
 		ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
@@ -120,8 +120,8 @@ TableVisGridder::TableVisGridder(const int overSample, const int support,
 	     itsUVCellSize(other.itsUVCellSize.copy()), 
 	     itsSumWeights(other.itsSumWeights.copy()), 
      itsSupport(other.itsSupport), itsOverSample(other.itsOverSample),
-     itsName(other.itsName),
-     itsModelIsEmpty(other.itsModelIsEmpty), itsSamplesGridded(other.itsSamplesGridded),
+     itsModelIsEmpty(other.itsModelIsEmpty), 
+     itsName(other.itsName), itsSamplesGridded(other.itsSamplesGridded),
      itsSamplesDegridded(other.itsSamplesDegridded), itsVectorsFlagged(other.itsVectorsFlagged),
      itsNumberGridded(other.itsNumberGridded),
      itsNumberDegridded(other.itsNumberDegridded), itsTimeCoordinates(other.itsTimeCoordinates),
@@ -256,8 +256,8 @@ TableVisGridder::~TableVisGridder() {
 	  }
 	  logUnusedSpectralPlanes();
 	  logCFCacheStats();
-	  if(itsName!="") {
-	    save(itsName);
+	  if(tableName() != "") {
+	    save(tableName());
 	  }
 	}
 }

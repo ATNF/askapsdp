@@ -41,6 +41,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <parallel/MEParallelApp.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <gridding/VisGridderFactory.h>
+#include <gridding/TableVisGridder.h>
 
 
 using namespace askap;
@@ -99,7 +100,7 @@ MEParallelApp::MEParallelApp(askap::mwcommon::AskapParallel& comms, const LOFAR:
        ASKAPLOG_INFO_STR(logger, "Tolerance on the directions is "<<itsUVWMachineCacheTolerance/casa::C::pi*180.*3600.<<" arcsec");
         
        // Create the gridder using a factory acting on a parameterset
-       itsGridder=VisGridderFactory::make(parset);
+       itsGridder = createGridder(comms, parset);
        ASKAPCHECK(itsGridder, "Gridder is not defined correctly");              
    }
 }

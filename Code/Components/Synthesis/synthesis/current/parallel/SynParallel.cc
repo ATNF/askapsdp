@@ -36,6 +36,9 @@
 
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageParamsHelper.h>
+#include <gridding/VisGridderFactory.h>
+#include <gridding/TableVisGridder.h>
+#include <gridding/IVisGridder.h>
 
 
 #include <sstream>
@@ -154,6 +157,36 @@ namespace askap
     std::string SynParallel::substitute(const std::string& s) const
     {
        return itsComms.substitute(s);
+    }
+
+    /// @brief helper method to create and configure gridder
+    /// @details It is expected to be called from the constructor of derived classes
+    /// @param[in] comms communications object
+    /// @param[in] parset parameter set      
+    IVisGridder::ShPtr SynParallel::createGridder(const askap::mwcommon::AskapParallel& comms, 
+                           const LOFAR::ParameterSet& parset)
+    {
+       // Create the gridder using a factory acting on a parameterset
+       IVisGridder::ShPtr gridder = VisGridderFactory::make(parset);
+       ASKAPCHECK(gridder, "Gridder is not defined correctly");              
+       if (comms.isParallel()) {
+           const int rankStoringCF = parset.getInt32("rankstoringcf", 1);
+           if (comms.rank() == rankStoringCF) {
+               ASKAPLOG_INFO_STR(logger, "Rank "<<rankStoringCF<<
+                       " will attempt to export convolution functions (if export is requested)");
+           } else {
+               boost::shared_ptr<TableVisGridder> tvg = boost::dynamic_pointer_cast<TableVisGridder>(gridder);
+               if (tvg) {
+                   ASKAPLOG_INFO_STR(logger, "Export of convolution functions will be inhibited for rank "<<
+                         comms.rank());
+                   tvg->setTableName("");
+               } else {
+                   ASKAPLOG_INFO_STR(logger, "Unable to inhibit export of CFs for rank "<<
+                         comms.rank()<<" - operation not supported by the chosen type of the gridder");
+               }
+           }
+       }
+       return gridder;
     }
     
     /// @brief read the models from parset file to the given params object

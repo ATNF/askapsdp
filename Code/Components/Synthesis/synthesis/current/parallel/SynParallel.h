@@ -34,6 +34,7 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/Params.h>
 #include <Common/ParameterSet.h>
+#include <gridding/IVisGridder.h>
 
 
 #include <mwcommon/AskapParallel.h>
@@ -105,6 +106,13 @@ namespace askap
 
       /// obtain frequency reference frame
       inline casa::MFrequency::Ref getFreqRefFrame() const { return itsFreqRefFrame;}
+
+      /// @brief helper method to create and configure gridder
+      /// @details It is expected to be called from the constructor of derived classes
+      /// @param[in] comms communications object
+      /// @param[in] parset parameter set      
+      static IVisGridder::ShPtr createGridder(const askap::mwcommon::AskapParallel& comms, 
+                           const LOFAR::ParameterSet& parset);
   private:
       /// @brief parameter set to get the parameters from
       LOFAR::ParameterSet itsParset;

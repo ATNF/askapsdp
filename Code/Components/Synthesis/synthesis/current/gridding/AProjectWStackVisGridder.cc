@@ -76,7 +76,7 @@ AProjectWStackVisGridder::AProjectWStackVisGridder(const boost::shared_ptr<IBasi
     itsOverSample=overSample;
     itsMaxSupport=maxSupport;
     itsLimitSupport=limitSupport;
-    itsName=name;
+    setTableName(name);
 }
 
 /// @brief copy constructor

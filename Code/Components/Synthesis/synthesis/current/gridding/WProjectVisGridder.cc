@@ -58,7 +58,7 @@ namespace askap
       ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
       itsSupport=0;
       itsOverSample=overSample;
-      itsName=name;
+      setTableName(name);
 
       itsConvFunc.resize(nWPlanes()*itsOverSample*itsOverSample);
     }
@@ -334,9 +334,6 @@ namespace askap
       } else {
          ASKAPLOG_INFO_STR(logger, "Shape of convolution function = "
           << itsConvFunc[0].shape() << " by "<< itsConvFunc.size() << " planes");
-      }
-      if (itsName!="") {
-          save(itsName);
       }
       ASKAPCHECK(itsSupport>0, "Support not calculated correctly");
       // we can free up the memory because for WProject gridder this method is called only once!

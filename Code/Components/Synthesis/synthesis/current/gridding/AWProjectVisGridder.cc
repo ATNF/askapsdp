@@ -75,7 +75,7 @@ namespace askap {
       ASKAPCHECK(maxFields>0, "Maximum number of fields must be one or more");
       ASKAPCHECK(overSample>0, "Oversampling must be greater than 0");
       ASKAPCHECK(maxSupport>0, "Maximum support must be greater than 0")
-      itsName=name;
+      setTableName(name);
     }
     
     /// @brief copy constructor
