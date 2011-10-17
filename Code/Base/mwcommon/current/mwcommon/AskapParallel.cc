@@ -137,31 +137,31 @@ namespace askap
         }
 
         /// Is this running in parallel?
-        bool AskapParallel::isParallel()
+        bool AskapParallel::isParallel() const
         {
             return itsIsParallel;
         }
 
         /// Is this the master?
-        bool AskapParallel::isMaster()
+        bool AskapParallel::isMaster() const
         {
             return itsIsMaster;
         }
 
         /// Is this a worker?
-        bool AskapParallel::isWorker()
+        bool AskapParallel::isWorker() const
         {
             return itsIsWorker;
         }
 
         /// Rank
-        int AskapParallel::rank()
+        int AskapParallel::rank() const
         {
             return itsRank;
         }
 
         /// Number of nodes
-        int AskapParallel::nNodes()
+        int AskapParallel::nNodes() const
         {
             return itsNNode;
         }

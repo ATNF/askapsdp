@@ -64,19 +64,19 @@ namespace askap
       ~AskapParallel();
 
       /// Is this running in parallel?
-      bool isParallel();
+      bool isParallel() const;
 
       /// Is this the master?
-      bool isMaster();
+      bool isMaster() const;
 
       /// Is this a worker?
-      bool isWorker();
+      bool isWorker() const;
 
       /// Rank
-      int rank();
+      int rank() const;
 
       /// Number of nodes
-      int nNodes();
+      int nNodes() const;
 
       /// Connection set
       MPIConnectionSet::ShPtr connectionSet();
