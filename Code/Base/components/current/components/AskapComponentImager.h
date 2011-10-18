@@ -30,6 +30,9 @@
 // ASKAPsoft includes
 #include "images/Images/ImageInterface.h"
 #include "components/ComponentModels/ComponentList.h"
+#include "components/ComponentModels/SkyComponent.h"
+#include "images/Images/ImageInterface.h"
+#include "coordinates/Coordinates/DirectionCoordinate.h"
 
 namespace askap {
 namespace components {
@@ -45,7 +48,17 @@ class AskapComponentImager {
         // Project the componentlist onto the image.
         template<class T>
         static void project(casa::ImageInterface<T>& image, const casa::ComponentList& list);
+
+        template<class T>
+        static void imagePointShape(casa::ImageInterface<T>& image,
+                const casa::SkyComponent& c, const casa::uInt freq,
+                const casa::DirectionCoordinate& dirCoord);
+
 };
+
+// Explicit instantiations exist for float and double types only
+extern template void AskapComponentImager::project(casa::ImageInterface<float>&, const casa::ComponentList&);
+extern template void AskapComponentImager::project(casa::ImageInterface<double>&, const casa::ComponentList&);
 
 }
 }
