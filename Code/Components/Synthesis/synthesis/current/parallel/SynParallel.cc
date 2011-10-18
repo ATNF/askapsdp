@@ -98,6 +98,13 @@ namespace askap
       } else {
           ASKAPTHROW(AskapError, "Unsupported frequency frame "<<freqFrame);
       }    
+      const std::string parString = itsComms.isParallel() ? "parallel" : "serial";
+      std::string mwString = itsComms.isWorker() ? "worker" : "master";
+      if (itsComms.isWorker() && itsComms.isMaster()) {
+          mwString += "&master";
+      } 
+      ASKAPLOG_INFO_STR(logger, "SynParallel in "<<parString<<" mode("<<mwString<<"), rank = "<<itsComms.rank()<<
+                        " nNodes="<<itsComms.nNodes());
     }
 
     SynParallel::~SynParallel()
