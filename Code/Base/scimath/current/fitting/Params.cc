@@ -451,7 +451,8 @@ namespace askap
 				else
 				{
 					const casa::Array<double> &arrVal = params.value(*it);
-					os << " (array : shape " << arrVal.shape();
+					os << " (array : shape " << arrVal.shape()<<" max abs. value: "<<
+                                           casa::max(casa::abs(arrVal));
 					if (arrVal.nelements() == 2 && arrVal.ndim() == 1) {
 					    os<<" or complex: "<<params.complexValue(*it);
 					}

@@ -122,6 +122,7 @@ namespace askap
       if (itsComms.isParallel() && itsComms.isMaster())
       {
         ASKAPCHECK(itsModel, "Model not defined prior to broadcast")
+        ASKAPLOG_DEBUG_STR(logger, "Current model held by the master: "<<*itsModel);
         casa::Timer timer;
         timer.mark();
 
@@ -158,6 +159,7 @@ namespace askap
         in.getEnd();
         ASKAPLOG_INFO_STR(logger, "Received model from the master via MPI in "<< timer.real()
                            << " seconds ");
+        ASKAPLOG_DEBUG_STR(logger, "Current model held by the worker: "<<*itsModel);
       }
     }
 
