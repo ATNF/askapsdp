@@ -167,12 +167,19 @@ void AskapComponentImager::imagePointShape(casa::ImageInterface<T>& image,
     const bool toPixelOk = dirCoord.toPixel(pixelPosition, dir);
     ASKAPCHECK(toPixelOk, "toPixel failed");
 
-    const IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
-            pixelPosition[0], pixelPosition[1], freqIdx, polIdx);
+    // Don't image this component if it falls outside the image
+    const IPosition imageShape = image.shape();
+    if (pixelPosition(0) < 0 || pixelPosition(0) > (imageShape(latAxis) - 1)
+            || pixelPosition(1) < 0 || pixelPosition(1) > (imageShape(longAxis) - 1)) {
+        return;
+    }
 
     // Flux::value(Stokes...) is not a const method, so copy the flux object
     // rather than cast to non-const
     Flux<Double> flux = c.flux();
+
+    const IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
+            pixelPosition[0], pixelPosition[1], freqIdx, polIdx);
     image.putAt(image.getAt(pos) + (flux.value(stokes, true).getValue("Jy")), pos);
 }
 
