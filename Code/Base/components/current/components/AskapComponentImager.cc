@@ -31,6 +31,9 @@
 // Include package level header file
 #include "askap_components.h"
 
+// System includes
+#include <cmath>
+
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
@@ -82,8 +85,6 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
     ASKAPCHECK(dirAxes.nelements() == 2, "Coordinate system has unsupported number of direction axes");
     const uInt latAxis = dirAxes(0);
     const uInt longAxis = dirAxes(1);
-    ASKAPLOG_INFO_STR(logger, "latAxis: " << latAxis); // DEBUG
-    ASKAPLOG_INFO_STR(logger, "longAxis: " << longAxis); // DEBUG
 
     // Find the Direction coordinate and check the right number of axes exists
     DirectionCoordinate dirCoord = coords.directionCoordinate(coords.findCoordinate(Coordinate::DIRECTION));
@@ -168,6 +169,8 @@ void AskapComponentImager::imagePointShape(casa::ImageInterface<T>& image,
     ASKAPCHECK(toPixelOk, "toPixel failed");
 
     // Don't image this component if it falls outside the image
+    // Note: This code will cull those components which may (due to rounding)
+    // have been positioned in the edge pixels.
     const IPosition imageShape = image.shape();
     if (pixelPosition(0) < 0 || pixelPosition(0) > (imageShape(latAxis) - 1)
             || pixelPosition(1) < 0 || pixelPosition(1) > (imageShape(longAxis) - 1)) {
@@ -179,7 +182,9 @@ void AskapComponentImager::imagePointShape(casa::ImageInterface<T>& image,
     Flux<Double> flux = c.flux();
 
     const IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
-            pixelPosition[0], pixelPosition[1], freqIdx, polIdx);
+            static_cast<size_t>(nearbyint(pixelPosition[0])),
+            static_cast<size_t>(nearbyint(pixelPosition[1])),
+            freqIdx, polIdx);
     image.putAt(image.getAt(pos) + (flux.value(stokes, true).getValue("Jy")), pos);
 }
 
