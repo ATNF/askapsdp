@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 
     // Centre of the image
     const MDirection dir(casa::Quantity(187.5, "deg"),
-            casa::Quantity(-45.05, "deg"),
+            casa::Quantity(-45.0, "deg"),
             MDirection::J2000);
 
     // Create a component

@@ -33,12 +33,14 @@
 #include "components/ComponentModels/SkyComponent.h"
 #include "images/Images/ImageInterface.h"
 #include "coordinates/Coordinates/DirectionCoordinate.h"
+#include "measures/Measures/Stokes.h"
+#include "casa/Arrays/IPosition.h"
 
 namespace askap {
 namespace components {
 
 /// @brief Project the componentlist onto the image.
-/// This class is designed to be interface compatible (in the general sense,
+/// This class is designed to be interface compatible (in the method signature sense,
 /// not in the OO sense, since there is no interface class) with the casacore
 /// Component Imager. This class is based on the implementation of the casacore
 /// ComponentImager however is implemented in a manner which should be
@@ -49,17 +51,36 @@ class AskapComponentImager {
         template<class T>
         static void project(casa::ImageInterface<T>& image, const casa::ComponentList& list);
 
+    private:
         template<class T>
         static void imagePointShape(casa::ImageInterface<T>& image,
-                const casa::SkyComponent& c, const casa::uInt freq,
-                const casa::DirectionCoordinate& dirCoord);
+                                    const casa::SkyComponent& c,
+                                    const casa::Int latAxis, const casa::Int longAxis,
+                                    const casa::DirectionCoordinate& dirCoord,
+                                    const casa::Int freqAxis, const casa::uInt freqIdx,
+                                    const casa::Int polAxis, const casa::uInt polIdx,
+                                    const casa::Stokes::StokesTypes& stokes);
 
+        template<class T>
+        static void imageGaussianShape(casa::ImageInterface<T>& image,
+                                       const casa::SkyComponent& c,
+                                       const casa::Int latAxis, const casa::Int longAxis,
+                                       const casa::DirectionCoordinate& dirCoord,
+                                       const casa::Int freqAxis, const casa::uInt freqIdx,
+                                       const casa::Int polAxis, const casa::uInt polIdx,
+                                       const casa::Stokes::StokesTypes& stokes);
+
+        static casa::IPosition makePosition(const casa::Int latAxis, const casa::Int longAxis,
+                                            const casa::Int spectralAxis, const casa::Int polAxis,
+                                            const casa::uInt latIdx, const casa::uInt longIdx,
+                                            const casa::uInt spectralIdx, const casa::uInt polIdx);
 };
 
 // Explicit instantiations exist for float and double types only
-extern template void AskapComponentImager::project(casa::ImageInterface<float>&, const casa::ComponentList&);
-extern template void AskapComponentImager::project(casa::ImageInterface<double>&, const casa::ComponentList&);
-
+extern template void AskapComponentImager::project(casa::ImageInterface<float>&,
+        const casa::ComponentList&);
+extern template void AskapComponentImager::project(casa::ImageInterface<double>&,
+        const casa::ComponentList&);
 }
 }
 

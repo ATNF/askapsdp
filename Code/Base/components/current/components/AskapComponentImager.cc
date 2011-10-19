@@ -34,6 +34,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "casa/Arrays/IPosition.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Quanta/MVAngle.h"
 #include "casa/Quanta/MVDirection.h"
@@ -81,7 +82,6 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
     ASKAPCHECK(dirAxes.nelements() == 2, "Coordinate system has unsupported number of direction axes");
     const uInt latAxis = dirAxes(0);
     const uInt longAxis = dirAxes(1);
-
     ASKAPLOG_INFO_STR(logger, "latAxis: " << latAxis); // DEBUG
     ASKAPLOG_INFO_STR(logger, "longAxis: " << longAxis); // DEBUG
 
@@ -89,41 +89,11 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
     DirectionCoordinate dirCoord = coords.directionCoordinate(coords.findCoordinate(Coordinate::DIRECTION));
     ASKAPCHECK(dirCoord.nPixelAxes() == 2, "DirectionCoordinate has unsupported number of pixel axes");
     ASKAPCHECK(dirCoord.nWorldAxes() == 2, "DirectionCoordinate has unsupported number of world axes");
-    dirCoord.setWorldAxisUnits(Vector<String>(2, "rad"));
+    dirCoord.setWorldAxisUnits(Vector<String>(2, "deg"));
 
     // Get the pixel sizes
-    MVAngle pixelLatSize, pixelLongSize;
-    {
-        const Vector<Double> inc = dirCoord.increment();
-        pixelLatSize = MVAngle(abs(inc(0)));
-        pixelLongSize = MVAngle(abs(inc(1)));
-    }
-
-    ASKAPLOG_INFO_STR(logger, "pixelLatSize: " << pixelLatSize); // DEBUG
-    ASKAPLOG_INFO_STR(logger, "pixelLongSize: " << pixelLongSize); // DEBUG
-
-    ///// DEBUG
-    dirCoord.setWorldAxisUnits(Vector<String>(2, "deg"));
-    const Vector<Double>& refPix = dirCoord.referencePixel();
-    Vector<Double> pixel(2), world(2);
-    ASKAPLOG_INFO_STR(logger, "refPix.size(): " << refPix.size());
-    ASKAPLOG_INFO_STR(logger, "refPix[0]: " << refPix[0]);
-    ASKAPLOG_INFO_STR(logger, "refPix[1]: " << refPix[1]);
-
-    dirCoord.toWorld(world, pixel);
-    ASKAPLOG_INFO_STR(logger, "world[0]: " << world[0]);
-    ASKAPLOG_INFO_STR(logger, "world[1]: " << world[1]);
-
-    //world[0] = 187.5;
-    //world[1] = -45.0;
-    const bool res = dirCoord.toPixel(pixel, world);
-    ASKAPLOG_INFO_STR(logger, "toPixel(): " << res);
-    ASKAPLOG_INFO_STR(logger, "pixel[0]: " << pixel[0]);
-    ASKAPLOG_INFO_STR(logger, "pixel[1]: " << pixel[1]);
-
-
-    dirCoord.setWorldAxisUnits(Vector<String>(2, "rad"));
-    ///// DEBUG END
+    //const MVAngle pixelLatSize = MVAngle(abs(dirCoord.increment()(0)));
+    //const MVAngle pixelLongSize = MVAngle(abs(dirCoord.increment()(1)));
 
     // Check if there is a Stokes Axes and if so which polarizations.
     // Otherwise only image the I polarisation.
@@ -132,16 +102,16 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
     // Find which axis is the stokes pixel axis
     const Int polAxis = CoordinateUtil::findStokesAxis(stokes, coords);
     const uInt nStokes = stokes.nelements();
+
     if (polAxis >= 0) {
         ASKAPASSERT(static_cast<uInt>(imageShape(polAxis)) == nStokes);
         // If there is a Stokes axis it can only contain Stokes::I,Q,U,V pols.
         for (uInt p = 0; p < nStokes; ++p) {
             ASKAPCHECK(stokes(p) == Stokes::I || stokes(p) == Stokes::Q ||
-                    stokes(p) == Stokes::U || stokes(p) == Stokes::V,
-                    "Stokes axis can only contain I, Q, U or V pols");
+                       stokes(p) == Stokes::U || stokes(p) == Stokes::V,
+                       "Stokes axis can only contain I, Q, U or V pols");
         }
     }
-    ASKAPLOG_INFO_STR(logger, "polAxis: " << polAxis); // DEBUG
 
     // Get the frequency axis and get the all the frequencies
     // as a Vector<MVFrequency>.
@@ -154,36 +124,94 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
         coords.spectralCoordinate(coords.findCoordinate(Coordinate::SPECTRAL));
     specCoord.setWorldAxisUnits(Vector<String>(1, "Hz"));
 
-    ASKAPLOG_INFO_STR(logger, "freqAxis: " << freqAxis); // DEBUG
-
     // Process each SkyComponent individually
     for (uInt i = 0; i < list.nelements(); ++i) {
         const SkyComponent& c = list.component(i);
-        for (uInt freq = 0; freq < nFreqs; ++freq) {
-            // Handle point shapes only right now
-            if (c.shape().type() == ComponentType::POINT) {
-                imagePointShape(image, c, freq, dirCoord);
-            }
-        }
-    }
+
+        for (uInt freqIdx = 0; freqIdx < nFreqs; ++freqIdx) {
+            for (uInt polIdx = 0; polIdx < stokes.size(); ++polIdx) {
+
+                switch (c.shape().type()) {
+                    case ComponentType::POINT:
+                        imagePointShape(image, c, latAxis, longAxis, dirCoord,
+                                        freqAxis, freqIdx, polAxis, polIdx, stokes(polIdx));
+                        break;
+
+                    case ComponentType::GAUSSIAN:
+                        imageGaussianShape(image, c, latAxis, longAxis, dirCoord,
+                                           freqAxis, freqIdx, polAxis, polIdx, stokes(polIdx));
+                        break;
+
+                    default:
+                        break;
+                }
+
+            } // end polIdx loop
+        } // End freqIdx loop
+
+    } // End component list loop
 }
 
 template<class T>
 void AskapComponentImager::imagePointShape(casa::ImageInterface<T>& image,
-        const casa::SkyComponent& c, const casa::uInt freq,
-        const casa::DirectionCoordinate& dirCoord)
+        const casa::SkyComponent& c,
+        const casa::Int latAxis, const casa::Int longAxis,
+        const casa::DirectionCoordinate& dirCoord,
+        const casa::Int freqAxis, const casa::uInt freqIdx,
+        const casa::Int polAxis, const casa::uInt polIdx,
+        const casa::Stokes::StokesTypes& stokes)
 {
-                // Convert world position to pixel position
-                const MDirection& dir = c.shape().refDirection();
-                Vector<Double> pixelPosition(2);
-                const bool toPixelOk = dirCoord.toPixel(pixelPosition, dir);
-                ASKAPCHECK(toPixelOk, "toPixel failed");
-                IPosition pos(3, pixelPosition[0], pixelPosition[1], freq);
-                T oldVal = image.getAt(pos);
-                ASKAPLOG_INFO_STR(logger, "Adding component with flux: " << abs(c.flux().value(0)));
-                image.putAt(oldVal + abs(c.flux().value(0)), pos);
+    // Convert world position to pixel position
+    const MDirection& dir = c.shape().refDirection();
+    Vector<Double> pixelPosition(2);
+    const bool toPixelOk = dirCoord.toPixel(pixelPosition, dir);
+    ASKAPCHECK(toPixelOk, "toPixel failed");
+
+    const IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
+            pixelPosition[0], pixelPosition[1], freqIdx, polIdx);
+
+    // Flux::value(Stokes...) is not a const method, so copy the flux object
+    // rather than cast to non-const
+    Flux<Double> flux = c.flux();
+    image.putAt(image.getAt(pos) + (flux.value(stokes, true).getValue("Jy")), pos);
+}
+
+template<class T>
+void AskapComponentImager::imageGaussianShape(casa::ImageInterface<T>& image,
+        const casa::SkyComponent& c,
+        const casa::Int latAxis, const casa::Int longAxis,
+        const casa::DirectionCoordinate& dirCoord,
+        const casa::Int freqAxis, const casa::uInt freqIdx,
+        const casa::Int polAxis, const casa::uInt polIdx,
+        const casa::Stokes::StokesTypes& stokes)
+{
+}
+
+IPosition AskapComponentImager::makePosition(const casa::Int latAxis, const casa::Int longAxis,
+        const casa::Int spectralAxis, const casa::Int polAxis,
+        const casa::uInt latIdx, const casa::uInt longIdx,
+        const casa::uInt spectralIdx, const casa::uInt polIdx)
+{
+    // Count the number of valid axis
+    uInt naxis = 0;
+
+    if (latAxis >= 0) ++naxis;
+    if (longAxis >= 0) ++naxis;
+    if (spectralAxis >= 0) ++naxis;
+    if (polAxis >= 0) ++naxis;
+
+    // Create the IPosition
+    IPosition pos(naxis);
+    if (latAxis >= 0) pos(latAxis) = latIdx;
+    if (longAxis >= 0) pos(longAxis) = longIdx;
+    if (spectralAxis >= 0) pos(spectralAxis) = spectralIdx;
+    if (polAxis >= 0) pos(polAxis) = polIdx;
+
+    return pos;
 }
 
 // Explicit instantiation
-template void AskapComponentImager::project(casa::ImageInterface<float>&, const casa::ComponentList&);
-template void AskapComponentImager::project(casa::ImageInterface<double>&, const casa::ComponentList&);
+template void AskapComponentImager::project(casa::ImageInterface<float>&,
+        const casa::ComponentList&);
+template void AskapComponentImager::project(casa::ImageInterface<double>&,
+        const casa::ComponentList&);
