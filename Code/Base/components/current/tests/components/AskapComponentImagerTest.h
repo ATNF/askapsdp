@@ -46,6 +46,7 @@
 #include "components/ComponentModels/ComponentList.h"
 #include "components/ComponentModels/Flux.h"
 #include "components/ComponentModels/ConstantSpectrum.h"
+#include "components/ComponentModels/SpectralIndex.h"
 #include "components/ComponentModels/PointShape.h"
 #include "coordinates/Coordinates/CoordinateSystem.h"
 #include "coordinates/Coordinates/DirectionCoordinate.h"
@@ -77,24 +78,36 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
         }
 
         void testFourPols() {
+            ComponentList list;
+
             // Centre of the image
             const MDirection dir(casa::Quantity(187.5, "deg"),
                     casa::Quantity(-45.0, "deg"),
                     MDirection::J2000);
 
-            // Create a component
+            // Create a component at the image centre with constant spectrum
             Vector<Double> fluxVals(4);
             fluxVals(0) = 1.0; 
             fluxVals(1) = 0.7; 
             fluxVals(2) = 0.6; 
             fluxVals(3) = 0.5; 
             const Flux<casa::Double> flux(fluxVals(0), fluxVals(1), fluxVals(2), fluxVals(3));
-            const ConstantSpectrum spectrum;
-            const PointShape shape(dir);
+            {
+                const ConstantSpectrum spectrum;
+                const PointShape shape(dir);
+                list.add(SkyComponent(flux, shape, spectrum));
+            }
 
-            // Add it to the component list
-            ComponentList list;
-            list.add(SkyComponent(flux, shape, spectrum));
+            // Create another, offset from the centre, with a spectral index
+            // spectral model
+            SpectralIndex spectrum2(MFrequency(Quantity(850, "MHz")), -0.7);
+            {
+                const PointShape shape(MDirection(
+                            casa::Quantity(187.5, "deg"),
+                            casa::Quantity(-45.02, "deg"),
+                            MDirection::J2000));
+                list.add(SkyComponent(flux, shape, spectrum2));
+            }
 
             Vector<Int> iquv(4);
             iquv(0) = Stokes::I; iquv(1) = Stokes::Q;
@@ -104,9 +117,14 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
 
             // Check the one pixel has the expected flux
             const double tolerance = 1e-7;
+            const Double scale = spectrum2.sample(MFrequency(Quantity(1400, "MHz")));
             for (uInt pol = 0; pol < iquv.size(); ++pol) {
-                IPosition pixelPos(4, 128, 128, 0, pol);
-                CPPUNIT_ASSERT_DOUBLES_EQUAL(fluxVals(pol), image.getAt(pixelPos), tolerance);
+                const IPosition pixelPos1(4, 128, 128, 0, pol);
+                CPPUNIT_ASSERT_DOUBLES_EQUAL(fluxVals(pol), image.getAt(pixelPos1), tolerance);
+
+                const IPosition pixelPos2(4, 128, 114, 0, pol);
+                CPPUNIT_ASSERT_DOUBLES_EQUAL(fluxVals(pol) * scale,
+                            image.getAt(pixelPos2), tolerance);
             }
 
             // Uncomment the below two lines to write out the image
@@ -139,7 +157,7 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
 
             // Spectral Coordinate
             {
-                const Quantum<Double> f0(1.4, "MHz");
+                const Quantum<Double> f0(1400.0, "MHz");
                 const Quantum<Double> inc(300.0, "MHz");
                 const Double refPix = 0.0;  // is the reference pixel
                 const SpectralCoordinate sc(MFrequency::TOPO, f0, inc, refPix);
