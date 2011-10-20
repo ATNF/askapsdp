@@ -109,21 +109,40 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
         // If there is a Stokes axis it can only contain Stokes::I,Q,U,V pols.
         for (uInt p = 0; p < nStokes; ++p) {
             ASKAPCHECK(stokes(p) == Stokes::I || stokes(p) == Stokes::Q ||
-                       stokes(p) == Stokes::U || stokes(p) == Stokes::V,
-                       "Stokes axis can only contain I, Q, U or V pols");
+                    stokes(p) == Stokes::U || stokes(p) == Stokes::V,
+                    "Stokes axis can only contain I, Q, U or V pols");
         }
+    } else {
+        ASKAPLOG_DEBUG_STR(logger, "No polarisation axis, assuming Stokes I");
     }
 
     // Get the frequency axis and get the all the frequencies
     // as a Vector<MVFrequency>.
-    MeasRef<MFrequency> freqRef;
     const Int freqAxis = CoordinateUtil::findSpectralAxis(coords);
     ASKAPCHECK(freqAxis >= 0, "Image must have a frequency axis");
     const uInt nFreqs = static_cast<uInt>(imageShape(freqAxis));
     Vector<MVFrequency> freqValues(nFreqs);
-    SpectralCoordinate specCoord =
-        coords.spectralCoordinate(coords.findCoordinate(Coordinate::SPECTRAL));
-    specCoord.setWorldAxisUnits(Vector<String>(1, "Hz"));
+    {
+        SpectralCoordinate specCoord =
+            coords.spectralCoordinate(coords.findCoordinate(Coordinate::SPECTRAL));
+        specCoord.setWorldAxisUnits(Vector<String>(1, "Hz"));
+
+        // Create Frequency MeasFrame; this will enable conversions between
+        // spectral frames (e.g. the CS frame might be TOPO and the CL
+        // frame LSRK)
+        MFrequency::Types specConv;
+        MEpoch epochConv;
+        MPosition posConv;
+        MDirection dirConv;
+        specCoord.getReferenceConversion(specConv, epochConv, posConv, dirConv);
+        for (uInt f = 0; f < nFreqs; f++) {
+            Double thisFreq;
+            if (!specCoord.toWorld(thisFreq, static_cast<Double>(f))) {
+                ASKAPTHROW(AskapError, "Cannot convert a frequency value");
+            }
+            freqValues(f) = MVFrequency(thisFreq);
+        }
+    }
 
     // Process each SkyComponent individually
     for (uInt i = 0; i < list.nelements(); ++i) {
@@ -132,15 +151,19 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
         for (uInt freqIdx = 0; freqIdx < nFreqs; ++freqIdx) {
             for (uInt polIdx = 0; polIdx < stokes.size(); ++polIdx) {
 
+                const MFrequency chanFrequency(freqValues(freqIdx).get());
+
                 switch (c.shape().type()) {
                     case ComponentType::POINT:
-                        imagePointShape(image, c, latAxis, longAxis, dirCoord,
-                                        freqAxis, freqIdx, polAxis, polIdx, stokes(polIdx));
+                        projectPointShape(image, c, latAxis, longAxis, dirCoord,
+                                        freqAxis, freqIdx, chanFrequency,
+                                        polAxis, polIdx, stokes(polIdx));
                         break;
 
                     case ComponentType::GAUSSIAN:
-                        imageGaussianShape(image, c, latAxis, longAxis, dirCoord,
-                                           freqAxis, freqIdx, polAxis, polIdx, stokes(polIdx));
+                        projectGaussianShape(image, c, latAxis, longAxis, dirCoord,
+                                           freqAxis, freqIdx, chanFrequency,
+                                           polAxis, polIdx, stokes(polIdx));
                         break;
 
                     default:
@@ -154,11 +177,12 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
 }
 
 template<class T>
-void AskapComponentImager::imagePointShape(casa::ImageInterface<T>& image,
+void AskapComponentImager::projectPointShape(casa::ImageInterface<T>& image,
         const casa::SkyComponent& c,
         const casa::Int latAxis, const casa::Int longAxis,
         const casa::DirectionCoordinate& dirCoord,
         const casa::Int freqAxis, const casa::uInt freqIdx,
+        const casa::MFrequency& centerFrequency,
         const casa::Int polAxis, const casa::uInt polIdx,
         const casa::Stokes::StokesTypes& stokes)
 {
@@ -177,23 +201,26 @@ void AskapComponentImager::imagePointShape(casa::ImageInterface<T>& image,
         return;
     }
 
-    // Flux::value(Stokes...) is not a const method, so copy the flux object
-    // rather than cast to non-const
-    Flux<Double> flux = c.flux();
+    // Scale flux based on spectral model
+    Flux<Double> flux = c.flux().copy();
+    const Double scale = c.spectrum().sample(centerFrequency);
+    flux.scaleValue(scale, scale, scale, scale);
 
+    // Add to image
     const IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
             static_cast<size_t>(nearbyint(pixelPosition[0])),
             static_cast<size_t>(nearbyint(pixelPosition[1])),
             freqIdx, polIdx);
-    image.putAt(image.getAt(pos) + (flux.value(stokes, true).getValue("Jy")), pos);
+    image.putAt(image(pos) + (flux.value(stokes, true).getValue("Jy")), pos);
 }
 
 template<class T>
-void AskapComponentImager::imageGaussianShape(casa::ImageInterface<T>& image,
+void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
         const casa::SkyComponent& c,
         const casa::Int latAxis, const casa::Int longAxis,
         const casa::DirectionCoordinate& dirCoord,
         const casa::Int freqAxis, const casa::uInt freqIdx,
+        const casa::MFrequency& centerFrequency,
         const casa::Int polAxis, const casa::uInt polIdx,
         const casa::Stokes::StokesTypes& stokes)
 {
@@ -204,7 +231,7 @@ IPosition AskapComponentImager::makePosition(const casa::Int latAxis, const casa
         const casa::uInt latIdx, const casa::uInt longIdx,
         const casa::uInt spectralIdx, const casa::uInt polIdx)
 {
-    // Count the number of valid axis
+    // Count the number of valid axes
     uInt naxis = 0;
 
     if (latAxis >= 0) ++naxis;

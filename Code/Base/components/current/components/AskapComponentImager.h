@@ -53,22 +53,24 @@ class AskapComponentImager {
 
     private:
         template<class T>
-        static void imagePointShape(casa::ImageInterface<T>& image,
+        static void projectPointShape(casa::ImageInterface<T>& image,
                                     const casa::SkyComponent& c,
                                     const casa::Int latAxis, const casa::Int longAxis,
                                     const casa::DirectionCoordinate& dirCoord,
                                     const casa::Int freqAxis, const casa::uInt freqIdx,
+                                    const casa::MFrequency& centerFrequency,
                                     const casa::Int polAxis, const casa::uInt polIdx,
                                     const casa::Stokes::StokesTypes& stokes);
 
         template<class T>
-        static void imageGaussianShape(casa::ImageInterface<T>& image,
-                                       const casa::SkyComponent& c,
-                                       const casa::Int latAxis, const casa::Int longAxis,
-                                       const casa::DirectionCoordinate& dirCoord,
-                                       const casa::Int freqAxis, const casa::uInt freqIdx,
-                                       const casa::Int polAxis, const casa::uInt polIdx,
-                                       const casa::Stokes::StokesTypes& stokes);
+        static void projectGaussianShape(casa::ImageInterface<T>& image,
+                                    const casa::SkyComponent& c,
+                                    const casa::Int latAxis, const casa::Int longAxis,
+                                    const casa::DirectionCoordinate& dirCoord,
+                                    const casa::Int freqAxis, const casa::uInt freqIdx,
+                                    const casa::MFrequency& centerFrequency,
+                                    const casa::Int polAxis, const casa::uInt polIdx,
+                                    const casa::Stokes::StokesTypes& stokes);
 
         static casa::IPosition makePosition(const casa::Int latAxis, const casa::Int longAxis,
                                             const casa::Int spectralAxis, const casa::Int polAxis,

@@ -83,7 +83,7 @@ casa::CoordinateSystem createCoordinateSystem(casa::uInt nx, casa::uInt ny)
 
     // Spectral Coordinate
     {
-        const Quantum<Double> f0(1.4, "MHz");
+        const Quantum<Double> f0(1400.0, "MHz");
         const Quantum<Double> inc(300.0, "MHz");
         const Double refPix = 0.0;  // is the reference pixel
         const SpectralCoordinate sc(MFrequency::TOPO, f0, inc, refPix);
