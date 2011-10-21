@@ -255,8 +255,7 @@ namespace askap
 	  // Setup the PSFs - all ( 2 x ntaylor - 1 ) of them for the first time. We keep a copy of
 	  // the first since we will need it for preconditioning the others
 
-	  uInt limit=this->itsNumberTaylor;
-	  if(firstcycle) limit=2*this->itsNumberTaylor-1;
+	  const uInt limit = firstcycle ? 2*this->itsNumberTaylor-1 : this->itsNumberTaylor;
 	  
 	  // Now precondition the residual images using the zeroth order psf. We need to 
 	  // keep a copy of the zeroth PSF to avoid having it overwritten each time.
@@ -362,8 +361,44 @@ namespace askap
 	  }
 	  
 	  // Now that we have all the required images, we can initialise the deconvolver
-	  for(uInt order=0; order < itsNumberTaylor; ++order) {
-	    if(this->itsNumberTaylor>1) {
+	  if (firstcycle)  {// Initialize everything only once.
+	      ASKAPLOG_INFO_STR(logger, "Creating solver for plane " << plane <<" tag "<<imageTag);
+	      itsCleaners[imageTag].reset(new DeconvolverMultiTermBasisFunction<Float, Complex>(dirtyVec, psfVec, psfLongVec));
+	      ASKAPDEBUGASSERT(itsCleaners[imageTag]);
+	      
+	      itsCleaners[imageTag]->setMonitor(itsMonitor);
+	      itsControl->setTargetObjectiveFunction(threshold().getValue("Jy"));
+	      itsControl->setFractionalThreshold(fractionalThreshold());
+	      
+	      itsCleaners[imageTag]->setControl(itsControl);
+	      
+	      ASKAPCHECK(itsBasisFunction, "Basis function not initialised");
+
+              ASKAPDEBUGASSERT(dirtyVec.nelements() > 0);
+	      itsBasisFunction->initialise(dirtyVec(0).shape());
+	      itsCleaners[imageTag]->setBasisFunction(itsBasisFunction);
+	      itsCleaners[imageTag]->setSolutionType(itsSolutionType);
+	      if (maskArray.nelements()) {
+                  ASKAPLOG_INFO_STR(logger, "Defining mask as weight image");
+		  itsCleaners[imageTag]->setWeight(maskArray);
+	      }
+	  } else {
+	      ASKAPCHECK(itsCleaners[imageTag], "Deconvolver not yet defined");
+	      // Update the dirty images
+	      ASKAPLOG_INFO_STR(logger, "Multi-Term Basis Function deconvolver already exists - update dirty images");
+	      itsCleaners[imageTag]->updateDirty(dirtyVec);
+	      ASKAPLOG_INFO_STR(logger, "Successfully updated dirty images");
+	  }
+	    
+	  // We have to reset the initial objective function
+	  // so that the fractional threshold mechanism will work.
+	  itsCleaners[imageTag]->state()->resetInitialObjectiveFunction();
+	  // By convention, iterations are counted from scratch each
+	  // major cycle
+	  itsCleaners[imageTag]->state()->setCurrentIter(0);
+
+	  for (uInt order=0; order < itsNumberTaylor; ++order) {
+	    if (this->itsNumberTaylor>1) {
 	      ASKAPLOG_INFO_STR(logger, "Solving for Taylor term " << order);
 	      iph.makeTaylorTerm(order);
 	    }
@@ -387,46 +422,9 @@ namespace askap
 	      }
 	    }
 	    
-	    if(firstcycle)  {// Initialize everything only once.
-	      ASKAPLOG_INFO_STR(logger, "Creating solver for plane " << plane <<" tag "<<imageTag);
-	      itsCleaners[imageTag].reset(new DeconvolverMultiTermBasisFunction<Float, Complex>(dirtyVec, psfVec, psfLongVec));
-	      ASKAPDEBUGASSERT(itsCleaners[imageTag]);
-	      
-	      itsCleaners[imageTag]->setMonitor(itsMonitor);
-	      itsControl->setTargetObjectiveFunction(threshold().getValue("Jy"));
-	      itsControl->setFractionalThreshold(fractionalThreshold());
-	      
-	      itsCleaners[imageTag]->setControl(itsControl);
-	      
-	      ASKAPCHECK(itsBasisFunction, "Basis function not initialised");
-
-	      itsBasisFunction->initialise(dirtyVec(0).shape());
-	      itsCleaners[imageTag]->setBasisFunction(itsBasisFunction);
-	      itsCleaners[imageTag]->setSolutionType(itsSolutionType);
-	      if(maskArray.nelements()) {
-                ASKAPLOG_INFO_STR(logger, "Defining mask as weight image");
-		itsCleaners[imageTag]->setWeight(maskArray);
-	      }
-	    }
-	    else {
-	      ASKAPCHECK(itsCleaners[imageTag], "Deconvolver not yet defined");
-	      // Update the dirty images
-	      ASKAPLOG_INFO_STR(logger, "Multi-Term Basis Function deconvolver already exists - update dirty images");
-	      itsCleaners[imageTag]->updateDirty(dirtyVec);
-	      ASKAPLOG_INFO_STR(logger, "Successfully updated dirty images");
-	    }
-	    
-	    // We have to reset the initial objective function
-	    // so that the fractional threshold mechanism will work.
-	    itsCleaners[imageTag]->state()->resetInitialObjectiveFunction();
-	    // By convention, iterations are counted from scratch each
-	    // major cycle
-	    itsCleaners[imageTag]->state()->setCurrentIter(0);
-	    
             casa::Array<float> cleanArray(planeIter.planeShape());
             casa::convertArray<float, double>(cleanArray, planeIter.getPlane(ip.value(thisOrderParam)));
             itsCleaners[imageTag]->setModel(cleanArray, order);
-
 	  } // end of 'order' loop
 	  
 	  ASKAPLOG_INFO_STR(logger, "Starting Minor Cycles ("<<imageTag<<").");

@@ -423,7 +423,6 @@ namespace askap {
     template<class T, class FT>
     bool DeconvolverMultiTermBasisFunction<T,FT>::deconvolve()
     {
-      
       this->initialise();
       
       ASKAPLOG_INFO_STR(decmtbflogger, "Performing Multi-Term BasisFunction CLEAN for "
@@ -454,7 +453,7 @@ namespace askap {
       
       absPeakVal=0.0;
       
-      peakValues.resize(this->itsNumberTerms);
+      ASKAPDEBUGASSERT(peakValues.nelements() <= this->itsNumberTerms);
 
       // Find the base having the peak value in term=0
       // Here the weights image is used as a weight in the determination
@@ -567,12 +566,11 @@ namespace askap {
       // Now that we know the location of the peak found using one of the
       // above methods we can look up the values of the residuals. Remember
       // that we have to decouple the answer
-      peakValues.resize(this->itsNumberTerms);
-      for (uInt term1=0;term1<this->itsNumberTerms;term1++) {
-        peakValues(term1)=0.0;
-        for(uInt term2=0;term2<this->itsNumberTerms;term2++) {
-          peakValues(term1)=peakValues(term1)
-            + T(this->itsInverseCouplingMatrix(optimumBase)(term1,term2))*this->itsResidualBasis(optimumBase)(term2)(absPeakPos);
+      for (uInt term1=0; term1<this->itsNumberTerms; ++term1) {
+           peakValues(term1)=0.0;
+           for(uInt term2=0; term2<this->itsNumberTerms; ++term2) {
+               peakValues(term1) +=
+                   T(this->itsInverseCouplingMatrix(optimumBase)(term1,term2))*this->itsResidualBasis(optimumBase)(term2)(absPeakPos);
         }
       }
 
@@ -654,13 +652,12 @@ namespace askap {
       
       // Add to model
       // We loop over all terms for the optimum base and ignore those terms with no flux
-      for (uInt term=0;term<this->itsNumberTerms;term++) {
+      for (uInt term=0; term<this->itsNumberTerms; ++term) {
 	if(abs(peakValues(term))>0.0) {
-	  this->model(term).nonDegenerate()(modelSlicer)
-	    = this->model(term).nonDegenerate()(modelSlicer)
-	    + this->control()->gain()*peakValues(term)*
+	   casa::Array<float> slice = this->model(term).nonDegenerate()(modelSlicer);
+	   slice += this->control()->gain()*peakValues(term)*
 	    Cube<T>(this->itsBasisFunction->basisFunction()).xyPlane(optimumBase).nonDegenerate()(psfSlicer);
-	  this->itsTermBaseFlux(optimumBase)(term)+=this->control()->gain()*peakValues(term);
+	   this->itsTermBaseFlux(optimumBase)(term)+=this->control()->gain()*peakValues(term);
 	}
       }	
       
