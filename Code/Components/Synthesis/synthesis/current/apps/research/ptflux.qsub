@@ -16,21 +16,22 @@ simulator=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/cs
 imager=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh
 imgstat=$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/install/bin/imgstat.sh
 
-npix=4096
+npix=2048
 maxsupport=4096
-cell=2arcsec
-os=4
+cell=4arcsec
+os=16
 rob=0.0
-snwplanes=1
-inwplanes=1
+snwplanes=33
+inwplanes=33
 noise=1.53e-2
-ctol=0.00
+ctol=0.03
 nfeeds=1
 dosim=true
 donoise=true
 doclean=true
 freqdep=true
 gridder=AWProject
+#gridder=WProject
 illum=disk
 
 
@@ -44,6 +45,7 @@ rm -f stats.log
 
 configdir=${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/definitions
 
+#for df in 1250
 for df in 1250 1251 1252 1253 1254 1255 1256 1257 1257.25 1257.5 1257.75 1258 1258.25 1258.5 1258.75 1259 1260 1261 1262 1263 1264 1265
 do
 
@@ -58,6 +60,7 @@ Csimulator.dataset                              =       $mssub
 
 Csimulator.sources.names                        =       [src]
 Csimulator.sources.src.direction        =       [12h30m00.000, -45.00.00.000, J2000]
+#Csimulator.sources.src.model             =       [/DATA/DELPHINUS_1/vor010/giant/ASKAPsoft/Code/Components/Synthesis/synthesis/current/apps/research/ptsrcmodel.img]
 Csimulator.sources.src.components             =       [src1]
 Csimulator.sources.src1.flux.i                  = 1.0
 Csimulator.sources.src1.direction.dec          = 0.00387850580564
@@ -71,7 +74,8 @@ Csimulator.feeds.definition                     =       $configdir/ASKAP${nfeeds
 
 Csimulator.spws.names=[Spectral0]
 #Csimulator.spws.Spectral0  =[ 1, 1250.000000MHz, -2.533333MHz, "XX XY YX YY"]
-Csimulator.spws.Spectral0  =[ 1, ${df}MHz, -2.533333MHz, "XX XY YX YY"]
+#Csimulator.spws.Spectral0  =[ 1, ${df}MHz, -2.533333MHz, "XX XY YX YY"]
+Csimulator.spws.Spectral0  =[ 1, ${df}MHz, -2.533333MHz, "XX YY"]
 
 # Standard settings for the simulation step
 Csimulator.simulation.blockage                  =       0.01
@@ -167,6 +171,9 @@ Cimager.gridder.${gridder}.maxsupport         = ${maxsupport}
 Cimager.gridder.${gridder}.frequencydependent = ${freqdep}
 Cimager.gridder.${gridder}.variablesupport = true 
 Cimager.gridder.${gridder}.offsetsupport = true 
+Cimager.gridder.${gridder}.padding  = 1.2 
+Cimager.gridder.${gridder}.oversampleweight  = true
+Cimager.gridder.${gridder}.cutoff  = 0.03
 #
 #For the clean image
 Cimager.solver                                  = Clean
@@ -182,7 +189,7 @@ Cimager.threshold.minorcycle                    = [10%]
 #Cimager.ncycles                                 = ${df}
 Cimager.ncycles                                 = 0
 
-#Cimager.solver.Clean.weightcutoff               = zero
+Cimager.solver.Clean.weightcutoff               = zero
 #Cimager.solver.Clean.weightcutoff.clean         = false
 
 #
@@ -191,8 +198,8 @@ Cimager.preconditioner.Robust.robustness	= ${rob}
 Cimager.preconditioner.GaussianTaper            = [10arcsec,10arcsec,0deg]
 #
 Cimager.restore                                 = true
-Cimager.restore.beam                            = fit
-#Cimager.restore.beam                            = [30arcsec, 30arcsec, 0deg]
+#Cimager.restore.beam                            = fit
+Cimager.restore.beam                            = [10arcsec, 10arcsec, 0deg]
 EOF
 
 if ${doclean}

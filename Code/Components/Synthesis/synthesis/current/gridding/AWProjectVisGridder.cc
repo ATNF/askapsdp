@@ -486,6 +486,23 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
       const int cny=std::min(maxSupport(), ny);
       const int ccenx=cnx/2;
       const int cceny=cny/2;
+
+      /*
+      // the following code is for grid-correction of the weight
+      casa::Vector<double> ccfx(cnx);
+      casa::Vector<double> ccfy(cny);
+      for (int ix=0; ix<cnx; ++ix) {
+           const double nux = std::abs(double(ix)-double(ccenx))/double(ccenx);
+           const double val = grdsf(nux);
+           ccfx(ix) = val; //casa::abs(val) > 1e-10 ? 1./val : 0.;
+      }
+      for (int iy=0; iy<cny; ++iy) {
+           const double nuy = std::abs(double(iy)-double(cceny))/double(cceny);
+           const double val = grdsf(nuy);
+           ccfx(iy) = val; //casa::abs(val) > 1e-10 ? 1./val : 0.;
+      }
+      //
+      */
       
       /// This is the output array before sinc padding
       casa::Array<double> cOut(casa::IPosition(4, cnx, cny, nPol, nChan));
@@ -542,7 +559,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	  
 	  scimath::fft2d(thisPlane, false);
 	  thisPlane*=casa::DComplex(cnx*cny);
-	  
+
 	  // Now we need to cut out only the part inside the field of view
 	  for (int chan=0; chan<nChan; chan++) {
 	    for (int pol=0; pol<nPol; pol++) {
@@ -554,8 +571,8 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		ip(0)=ix;
 		for (int iy=0; iy<cny; iy++) {
 		  ip(1)=iy;
-		  cOut(ip)+=double(wt)*casa::real(thisPlane(ix, iy)
-						 *conj(thisPlane(ix, iy)));
+                  const casa::DComplex val = thisPlane(ix,iy);
+		  cOut(ip)+=double(wt)*casa::real(val*conj(val));//*ccfx(ix)*ccfy(iy);
 		}
 	      }
 	    }
@@ -563,6 +580,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 	}
       }
       
+      //SphFuncVisGridder::correctConvolution(cOut);
       scimath::PaddingUtils::fftPad(cOut, out, paddingFactor());
  
       ASKAPLOG_DEBUG_STR(logger, 
@@ -574,6 +592,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 /// @param image image to be corrected
 void AWProjectVisGridder::correctConvolution(casa::Array<double>& /*image*/)
 {
+  //SphFuncVisGridder::correctConvolution(image);
 
   // experiments with grid-correction, I didn't manage to bring this code
   // into working order so far, so it is commented out (and grid-correction is
