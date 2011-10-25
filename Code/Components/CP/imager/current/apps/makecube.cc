@@ -134,6 +134,7 @@ int main(int argc, char *argv[])
         << "GB. This may take a few minutes." << std::endl;
 
     casa::PagedImage<float> cube(casa::TiledShape(cubeShape), newCSys, name);
+    cube.set(0.0);
     cube.setUnits(units);
 
     // Open source images and write the slices into the cube

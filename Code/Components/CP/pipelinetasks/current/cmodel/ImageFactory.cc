@@ -69,6 +69,7 @@ casa::TempImage<casa::Float> ImageFactory::createTempImage(const LOFAR::Paramete
 
     CoordinateSystem coordsys = createCoordinateSystem(nx, ny, parset);
     casa::TempImage<casa::Float> image(TiledShape(shape), coordsys);
+    image.set(0.0);
 
     // Set brightness units
     image.setUnits(casa::Unit(units));
@@ -87,6 +88,7 @@ casa::PagedImage<casa::Float> ImageFactory::createPagedImage(const LOFAR::Parame
 
     CoordinateSystem coordsys = createCoordinateSystem(nx, ny, parset);
     casa::PagedImage<casa::Float> image(TiledShape(shape), coordsys, filename);
+    image.set(0.0);
 
     // Set brightness units
     image.setUnits(casa::Unit(units));
