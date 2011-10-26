@@ -331,6 +331,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
                                        //*casa::DComplex(ccfx(ix)*ccfy(iy)); 
                             // this ensures the oversampling is done
                             thisPlane(ix, iy)=wt*casa::DComplex(cos(phase), -sin(phase));
+                            //thisPlane(ix, iy)=wt*casa::DComplex(cos(phase));
                             maxCF+=casa::abs(wt);
                         }
 		   }

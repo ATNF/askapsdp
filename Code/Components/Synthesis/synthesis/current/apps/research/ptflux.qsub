@@ -172,7 +172,7 @@ Cimager.gridder.${gridder}.frequencydependent = ${freqdep}
 Cimager.gridder.${gridder}.variablesupport = true 
 Cimager.gridder.${gridder}.offsetsupport = true 
 Cimager.gridder.${gridder}.padding  = 1.2 
-Cimager.gridder.${gridder}.oversampleweight  = true
+Cimager.gridder.${gridder}.oversampleweight  = false
 Cimager.gridder.${gridder}.cutoff  = 0.03
 #
 #For the clean image

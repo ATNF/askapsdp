@@ -228,7 +228,8 @@ namespace askap
                ASKAPDEBUGASSERT(iy-qny/2+ny/2 < ny);
                ASKAPDEBUGASSERT(ix+nx/2 >= qnx/2);
                ASKAPDEBUGASSERT(iy+ny/2 >= qny/2);
-               thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::DComplex(wt*cos(phase), -wt*sin(phase));
+               //thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::DComplex(wt*cos(phase), -wt*sin(phase));
+               thisPlane(ix-qnx/2+nx/2, iy-qny/2+ny/2)=casa::DComplex(wt*cos(phase));
             }
           }
         }
