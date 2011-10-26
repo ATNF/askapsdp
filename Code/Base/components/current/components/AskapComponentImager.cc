@@ -33,6 +33,9 @@
 
 // System includes
 #include <cmath>
+#include <limits>
+#include <algorithm>
+#include <typeinfo>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -62,6 +65,7 @@
 #include "coordinates/Coordinates/CoordinateSystem.h"
 #include "coordinates/Coordinates/DirectionCoordinate.h"
 #include "coordinates/Coordinates/SpectralCoordinate.h"
+#include "scimath/Functionals/Gaussian2D.h"
 
 ASKAP_LOGGER(logger, ".AskapComponentImager");
 
@@ -90,11 +94,7 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
     DirectionCoordinate dirCoord = coords.directionCoordinate(coords.findCoordinate(Coordinate::DIRECTION));
     ASKAPCHECK(dirCoord.nPixelAxes() == 2, "DirectionCoordinate has unsupported number of pixel axes");
     ASKAPCHECK(dirCoord.nWorldAxes() == 2, "DirectionCoordinate has unsupported number of world axes");
-    dirCoord.setWorldAxisUnits(Vector<String>(2, "deg"));
-
-    // Get the pixel sizes
-    //const MVAngle pixelLatSize = MVAngle(abs(dirCoord.increment()(0)));
-    //const MVAngle pixelLongSize = MVAngle(abs(dirCoord.increment()(1)));
+    dirCoord.setWorldAxisUnits(Vector<String>(2, "rad"));
 
     // Check if there is a Stokes Axes and if so which polarizations.
     // Otherwise only image the I polarisation.
@@ -224,6 +224,60 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
         const casa::Int polAxis, const casa::uInt polIdx,
         const casa::Stokes::StokesTypes& stokes)
 {
+    // Convert world position to pixel position
+    const MDirection& dir = c.shape().refDirection();
+    Vector<Double> pixelPosition(2);
+    const bool toPixelOk = dirCoord.toPixel(pixelPosition, dir);
+    ASKAPCHECK(toPixelOk, "toPixel failed");
+
+    // Don't image this component if it falls outside the image
+    // Note: This code will cull those components which may (due to rounding)
+    // have been positioned in the edge pixels.
+    const IPosition imageShape = image.shape();
+    if (pixelPosition(0) < 0 || pixelPosition(0) > (imageShape(latAxis) - 1)
+            || pixelPosition(1) < 0 || pixelPosition(1) > (imageShape(longAxis) - 1)) {
+        return;
+    }
+
+    // Scale flux based on spectral model
+    Flux<Double> flux = c.flux().copy();
+    const Double scale = c.spectrum().sample(centerFrequency);
+    flux.scaleValue(scale, scale, scale, scale);
+
+    // Get the pixel sizes then convert the axis sizes to pixels
+    const GaussianShape& cShape = dynamic_cast<const GaussianShape&>(c.shape());
+    const MVAngle pixelLatSize = MVAngle(abs(dirCoord.increment()(0)));
+    const MVAngle pixelLongSize = MVAngle(abs(dirCoord.increment()(1)));
+    ASKAPCHECK(pixelLatSize == pixelLongSize, "Non-equal pixel sizes not supported");
+    const double majorAxisPixels = cShape.majorAxisInRad() / pixelLongSize.radian();
+    const double minorAxisPixels = cShape.minorAxisInRad() / pixelLongSize.radian();
+
+    // Create the guassian function
+    Gaussian2D<T> gauss;
+    gauss.setXcenter(pixelPosition(0));
+    gauss.setYcenter(pixelPosition(1));
+    gauss.setMinorAxis(std::numeric_limits<T>::min());
+    gauss.setMajorAxis(std::max(majorAxisPixels, minorAxisPixels));
+    gauss.setMinorAxis(std::min(majorAxisPixels, minorAxisPixels));
+    gauss.setPA(cShape.positionAngleInRad());
+    gauss.setFlux(flux.value(stokes, true).getValue("Jy"));
+
+    IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
+            static_cast<size_t>(nearbyint(pixelPosition[0])),
+            static_cast<size_t>(nearbyint(pixelPosition[1])),
+            freqIdx, polIdx);
+
+    // For each pixel in the image
+    for (int lat = 0; lat < imageShape(latAxis); ++lat) {
+        for (int lon = 0; lon < imageShape(longAxis); ++lon) {
+            const float f = gauss(lat, lon);
+            if (f > 0.0) {
+                pos(latAxis) = lat;
+                pos(longAxis) = lon;
+                image.putAt(image(pos) + gauss(lat, lon), pos);
+            }
+        }
+    }
 }
 
 IPosition AskapComponentImager::makePosition(const casa::Int latAxis, const casa::Int longAxis,

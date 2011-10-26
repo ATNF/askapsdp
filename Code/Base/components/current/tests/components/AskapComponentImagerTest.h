@@ -48,6 +48,7 @@
 #include "components/ComponentModels/ConstantSpectrum.h"
 #include "components/ComponentModels/SpectralIndex.h"
 #include "components/ComponentModels/PointShape.h"
+#include "components/ComponentModels/GaussianShape.h"
 #include "coordinates/Coordinates/CoordinateSystem.h"
 #include "coordinates/Coordinates/DirectionCoordinate.h"
 #include "coordinates/Coordinates/SpectralCoordinate.h"
@@ -68,6 +69,7 @@ namespace components {
 class AskapComponentImagerTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(AskapComponentImagerTest);
         CPPUNIT_TEST(testFourPols);
+        CPPUNIT_TEST(testGaussian);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -128,7 +130,38 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
             }
 
             // Uncomment the below two lines to write out the image
-            //PagedImage<Float> pimage(image.shape(), image.coordinates(), "image.unittest.casa");
+            //PagedImage<Float> pimage(image.shape(), image.coordinates(), "image.unittest_pointshape.casa");
+            //pimage.copyData(image);
+        }
+
+        void testGaussian() {
+            ComponentList list;
+
+            // Centre of the image
+            const MDirection dir(casa::Quantity(187.5, "deg"),
+                    casa::Quantity(-45.0, "deg"),
+                    MDirection::J2000);
+
+            // Create a component at the image centre with constant spectrum
+            const Flux<casa::Double> flux(1.0);
+            const ConstantSpectrum spectrum;
+            const GaussianShape shape(dir,
+                    casa::Quantity(12.0, "arcsec"),
+                    casa::Quantity(6.0, "arcsec"),
+                    casa::Quantity(0, "deg"));
+            list.add(SkyComponent(flux, shape, spectrum));
+
+            Vector<Int> iquv(1);
+            iquv(0) = Stokes::I;
+            TempImage<Float> image = createImage<Float>(dir, 256, 256, iquv);
+            AskapComponentImager::project(image, list);
+
+            // Test there is some flux in the centre pixel
+            const IPosition pixelPos1(4, 128, 128, 0, 0);
+            CPPUNIT_ASSERT(image.getAt(pixelPos1) > 0.0);
+
+            // Uncomment the below two lines to write out the image
+            //PagedImage<Float> pimage(image.shape(), image.coordinates(), "image.unittest_gaussian.casa");
             //pimage.copyData(image);
         }
 
@@ -182,6 +215,7 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
             IPosition imgShape(4, nx, ny, 1, stokes.size());
             CoordinateSystem coordsys = createCoordinateSystem(nx, ny, stokes);
             casa::TempImage<T> image(TiledShape(imgShape), coordsys);
+            image.set(0.0);
 
             // Set brightness units
             image.setUnits(casa::Unit("Jy/pixel"));
