@@ -3,4 +3,4 @@ askap=Code/Base/askap/current
 scimath=Code/Base/scimath/current
 common=3rdParty/LOFAR/Common/Common-3.3
 blob=3rdParty/LOFAR/Blob/Blob-1.2
-casacore=3rdParty/casacore/casacore-1.2.0;casa_ms casa_images casa_components casa_mirlib casa_coordinates casa_fits casa_lattices casa_measures casa_scimath casa_scimath_f casa_tables casa_casa
+casacore=3rdParty/casacore/casacore-1.3.0;casa_ms casa_images casa_components casa_mirlib casa_coordinates casa_fits casa_lattices casa_measures casa_scimath casa_scimath_f casa_tables casa_casa
