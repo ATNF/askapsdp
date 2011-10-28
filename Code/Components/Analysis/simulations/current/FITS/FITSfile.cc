@@ -392,8 +392,8 @@ namespace askap {
       {
 	// first find which axis is the STOKES axis. Return its dimension, or 1 if there isn't one.
 	bool haveStokes=false;
-	int stokesAxis=-1;
-	for(int i=0;i<this->itsDim && !haveStokes;i++){
+	unsigned int stokesAxis=-1;
+	for(unsigned int i=0;i<this->itsDim && !haveStokes;i++){
 	  haveStokes = (std::string(this->itsWCS->ctype[i]) == "STOKES");
 	  if(haveStokes) stokesAxis=i;
 	}
