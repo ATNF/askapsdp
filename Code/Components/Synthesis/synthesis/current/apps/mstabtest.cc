@@ -83,11 +83,11 @@ try {
 
     std::list<std::string> boolColumns;
     boolColumns.push_back("FLAG");
-    boolColumns.push_back("FLAG_CATEGORY");
     
     std::list<std::string> skipColumns;
     skipColumns.push_back("UVW");
     skipColumns.push_back("DATA");
+    skipColumns.push_back("FLAG_CATEGORY");
     
   
     casa::TableColumn outcol;
