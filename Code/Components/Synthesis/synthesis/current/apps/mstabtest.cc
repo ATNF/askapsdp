@@ -33,6 +33,7 @@
 #include <tables/Tables/Table.h>
 #include <tables/Tables/TableDesc.h>
 #include <tables/Tables/TableColumn.h>
+#include <casa/Arrays/ArrayMath.h>
 
 // std
 #include <stdexcept>
@@ -48,16 +49,28 @@ try {
   const casa::uInt nOrigRows = mytab.nrow();
   std::cout<<"Table has "<<nOrigRows<<" rows and "<<td.ncolumn()<<" columns"<<std::endl;
   casa::Vector<casa::String> colList = td.columnNames();
-  casa::TableColumn outcol;
-  casa::ROTableColumn incol;
   mytab.addRow(nOrigRows);
-  for (casa::uInt col = 0; col<colList.nelements(); ++col) {
-       std::cout<<"col = "<<col<<": "<<colList[col]<<std::endl;       
-       incol.attach(mytab,col);
-       outcol.attach(mytab,col);
-       for (casa::uInt row = 0; row<nOrigRows; ++row) {
-            outcol.put(nOrigRows + row, incol, row);
-       }       
+  {
+    casa::TableColumn outcol;
+    casa::ROTableColumn incol;
+    for (casa::uInt col = 0; col<colList.nelements(); ++col) {
+         std::cout<<"col = "<<col<<": "<<colList[col]<<std::endl;       
+         incol.attach(mytab,col);
+         outcol.attach(mytab,col);
+         for (casa::uInt row = 0; row<nOrigRows; ++row) {
+              outcol.put(nOrigRows + row, incol, row);
+         }       
+    }
+  }
+  casa::ArrayColumn<double> uvwCol(mytab,"UVW");
+  casa::ArrayColumn<casa::Complex> dataCol(mytab,"DATA");
+  casa::Array<double> dBuf;
+  casa::Array<casa::Complex> cBuf;
+  for (casa::uInt row=0; row<nOrigRows; ++row) {       
+       uvwCol.get(row,dBuf,casa::True);
+       uvwCol.put(nOrigRows + row, -1.*dBuf);
+       dataCol.get(row,cBuf,casa::True);
+       dataCol.put(nOrigRows + row, casa::conj(cBuf));   
   }
 }  
 catch (const std::exception &ex) {
