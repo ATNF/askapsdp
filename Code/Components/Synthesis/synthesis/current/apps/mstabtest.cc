@@ -35,9 +35,35 @@
 #include <tables/Tables/TableColumn.h>
 #include <casa/Arrays/ArrayMath.h>
 
+// own includes
+#include <askap/AskapError.h>
+
 // std
 #include <stdexcept>
+#include <list>
+#include <string>
+#include <algorithm>
 
+using namespace askap;
+
+template<typename T>
+void copyArrayColumn(casa::Table &tab, const std::string &name, const casa::uInt nOrigRows)
+{
+  const casa::TableDesc td = tab.actualTableDesc();
+  ASKAPASSERT(tab.nrow() == 2*nOrigRows);
+  const casa::ColumnDesc cd = td[name];
+  ASKAPASSERT(cd.isArray());
+  casa::ArrayColumn<T> col(tab, name);
+  casa::Array<T> buf;
+  for (casa::uInt row=0; row<nOrigRows; ++row) {       
+       col.get(row,buf,casa::True);
+       col.put(nOrigRows + row, buf);
+  }  
+}
+
+bool has(const std::list<std::string> & lst, const std::string &name) {
+  return std::find(lst.begin(), lst.end(), name) != lst.end();
+}
 
 int main(int argc, const char **argv) {
 try {
@@ -51,21 +77,43 @@ try {
   casa::Vector<casa::String> colList = td.columnNames();
   mytab.addRow(nOrigRows);
   {
+    std::list<std::string> floatColumns;
+    floatColumns.push_back("WEIGHT");
+    floatColumns.push_back("SIGMA");
+
+    std::list<std::string> boolColumns;
+    boolColumns.push_back("FLAG");
+    boolColumns.push_back("FLAG_CATEGORY");
+    
+    std::list<std::string> skipColumns;
+    skipColumns.push_back("UVW");
+    skipColumns.push_back("DATA");
+    
+  
     casa::TableColumn outcol;
     casa::ROTableColumn incol;
     for (casa::uInt col = 0; col<colList.nelements(); ++col) {
-         std::cout<<"col = "<<col<<": "<<colList[col]<<std::endl;       
-         if (colList[col] == "FLAG_CATEGORY") {
+         const std::string colName = colList[col];
+         std::cout<<"col = "<<col<<": "<<colName<<std::endl;       
+         if (has(skipColumns, colName)) {
              std::cout<<"skipping..."<<std::endl;
-             continue;
+         } else if (has(floatColumns,colName)) {
+             std::cout<<"copy as array of floats..."<<std::endl;             
+             copyArrayColumn<casa::Float>(mytab,colName, nOrigRows);
+         } else if (has(boolColumns,colName)) {
+             std::cout<<"copy as array of bool..."<<std::endl;             
+             copyArrayColumn<casa::Bool>(mytab,colName, nOrigRows);
+         } else {
+            std::cout<<"default processing..."<<std::endl;
+            incol.attach(mytab,col);
+            outcol.attach(mytab,col);
+            for (casa::uInt row = 0; row<nOrigRows; ++row) {
+                outcol.put(nOrigRows + row, incol, row);
+            }       
          }
-         incol.attach(mytab,col);
-         outcol.attach(mytab,col);
-         for (casa::uInt row = 0; row<nOrigRows; ++row) {
-              outcol.put(nOrigRows + row, incol, row);
-         }       
     }
   }
+  std::cout<<"processing UVW and DATA columns"<<std::endl;
   casa::ArrayColumn<double> uvwCol(mytab,"UVW");
   casa::ArrayColumn<casa::Complex> dataCol(mytab,"DATA");
   casa::Array<double> dBuf;
