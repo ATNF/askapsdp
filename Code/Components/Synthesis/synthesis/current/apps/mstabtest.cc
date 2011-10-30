@@ -55,6 +55,10 @@ try {
     casa::ROTableColumn incol;
     for (casa::uInt col = 0; col<colList.nelements(); ++col) {
          std::cout<<"col = "<<col<<": "<<colList[col]<<std::endl;       
+         if (colList[col] == "FLAG_CATEGORY") {
+             std::cout<<"skipping..."<<std::endl;
+             continue;
+         }
          incol.attach(mytab,col);
          outcol.attach(mytab,col);
          for (casa::uInt row = 0; row<nOrigRows; ++row) {
