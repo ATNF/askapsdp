@@ -293,7 +293,7 @@ namespace askap
           counterDegrid+=accBuffer.nRow();
         }
         accBuffer.rwVisibility() -= itsIdi->visibility();
-        accBuffer.rwVisibility() *= -1.;
+        accBuffer.rwVisibility() *= float(-1.);
 
         /// Now we can calculate the residual visibility and image
         for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
