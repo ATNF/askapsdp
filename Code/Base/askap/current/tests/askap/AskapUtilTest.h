@@ -72,13 +72,15 @@ class AskapUtilTest : public CppUnit::TestFixture {
         }
 
         void testNint() {
-            const double testvals[] = {0.9, 2.2, 4.499999, 4.5, -0.1, -0.5, -3.9};
-            const int results[] = {1, 2, 4, 5, 0, -1, -4};
-            const size_t nVal = 7;
+            const double testvals[] = {0.9, 2.2, 4.499999, 4.5, -0.1, -0.5, -3.9, 0.499999, -1.49999, -1.500001};
+            const int results[] = {1, 2, 4, 5, 0, -1, -4, 0, -1, -2};
+            const size_t nVal = 9;
 
             for (size_t i = 0; i < nVal; ++i) {
                 CPPUNIT_ASSERT(askap::nint(testvals[i]) == results[i]);
                 CPPUNIT_ASSERT(askap::nint(float(testvals[i])) == results[i]);
+                CPPUNIT_ASSERT(askap::nint(-testvals[i]) == -results[i]);
+                CPPUNIT_ASSERT(askap::nint(-float(testvals[i])) == -results[i]);
             }
 
             testV(-272.75);

@@ -96,7 +96,7 @@ int nint(double x)
 
 int nint(float x)
 {
-    return x > 0 ? int(x + 0.5) : int(x - 0.5);
+    return x > 0 ? int(x + 0.5f) : int(x - 0.5f);
 }
 
 casa::Quantity asQuantity(const string& s, const std::string& unit)
