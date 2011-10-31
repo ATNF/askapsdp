@@ -63,6 +63,21 @@ WDependentGridderBase::WDependentGridderBase(const double wmax, const int nwplan
   }
 }
 
+/// @brief destructor, writes w-plane hit distribution if necessary
+WDependentGridderBase::~WDependentGridderBase()
+{
+  if (itsWPlaneStats.size()) {
+      ASKAPLOG_INFO_STR(logger, "W-plane hit statistics:  plane   w-term  Number of hits");
+      for (int plane = 0; plane<itsWPlaneStats; ++plane) {
+           if (plane < itsNWPlanes) {
+               const int val = itsWPlaneStats[plane];
+               ASKAPLOG_INFO_STR(logger, "W-plane hit statistics:     "<<plane<<"  "<<getWTerm(plane)<<"  "<<val);
+           }
+      }
+  }
+}
+
+
 /// @brief obtain plane number
 /// @details
 /// @param[in] w w-term (in wavelengths) to map
@@ -100,6 +115,11 @@ int WDependentGridderBase::getWPlane(const double w) const
 double WDependentGridderBase::getWTerm(const int plane) const
 {
   ASKAPDEBUGASSERT( (plane >=0 ) && (plane<itsNWPlanes) );
+  // update statistics if necessary
+  if (itsWPlaneStats.size()) {
+      ASKAPDEBUGASSERT(itsWPlaneStats.size() == itsNWPlanes);
+      ++itsWPlaneStats[plane];
+  }         
   const int halfNPlanes = (itsNWPlanes-1)/2;
   if (itsWSampling && (itsNWPlanes>1)) {
       // non-linear sampling of w-space is probably used
@@ -153,6 +173,12 @@ void WDependentGridderBase::configureWSampling(const LOFAR::ParameterSet& parset
       }
   } else {
      ASKAPLOG_INFO_STR(logger, "Linear sampling of the w-space");
+  }
+  
+  // optionally show w-plane hit statistics
+  if (parset.getBool("wstats", false)) {
+      ASKAPLOG_INFO_STR(logger, "W-plane usage distribution will be written into log at the end of processing");
+      itsWPlaneStats.resize(nWPlanes(),0);
   }
   
   // optionally export w-terms corresponding to each w-plane into dat file (largely for debugging)

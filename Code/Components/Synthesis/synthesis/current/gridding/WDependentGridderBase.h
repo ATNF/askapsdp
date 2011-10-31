@@ -57,6 +57,9 @@ public:
    /// @param[in] nwplanes Number of w planes   
    WDependentGridderBase(const double wmax, const int nwplanes); 
    
+   /// @brief destructor, writes w-plane hit distribution if necessary
+   virtual ~WDependentGridderBase();
+   
    /// @brief obtain the number of w-planes
    /// @details 
    /// @return the number of w-planes
@@ -120,6 +123,12 @@ private:
    /// actual mapping and is not changed after construction. Therefore, several gridders may reuse the same
    /// mapper class instance and no cloning operation is needed. 
    boost::shared_ptr<IWSampling> itsWSampling;
+   
+   /// @brief w-plane access statistics
+   /// @details If this vector has a non-zero size, every call to getWPlane increments the appropriate
+   /// element (i.e. the size is supposed to be equal to the number of w-planes). The statistics are
+   /// then written into log in the destructor.
+   mutable std::vector<int> itsWPlaneStats;
 };
 
 } // namespace synthesis
