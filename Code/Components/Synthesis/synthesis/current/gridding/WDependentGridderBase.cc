@@ -117,7 +117,7 @@ double WDependentGridderBase::getWTerm(const int plane) const
   ASKAPDEBUGASSERT( (plane >=0 ) && (plane<itsNWPlanes) );
   // update statistics if necessary
   if (itsWPlaneStats.size()) {
-      ASKAPDEBUGASSERT(itsWPlaneStats.size() == itsNWPlanes);
+      ASKAPDEBUGASSERT(int(itsWPlaneStats.size()) == itsNWPlanes);
       ++itsWPlaneStats[plane];
   }         
   const int halfNPlanes = (itsNWPlanes-1)/2;
