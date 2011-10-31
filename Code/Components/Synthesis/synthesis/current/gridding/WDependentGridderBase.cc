@@ -40,6 +40,7 @@
 ASKAP_LOGGER(logger, ".gridding.wdependentgridderbase");
 
 #include <fstream>
+#include <iomanip>
 #include <boost/shared_ptr.hpp>
 
 using namespace askap;
@@ -67,16 +68,30 @@ WDependentGridderBase::WDependentGridderBase(const double wmax, const int nwplan
 WDependentGridderBase::~WDependentGridderBase()
 {
   if (itsWPlaneStats.size()) {
-      ASKAPLOG_INFO_STR(logger, "W-plane hit statistics:  plane   w-term  Number of hits");
-      for (int plane = 0; plane<itsWPlaneStats; ++plane) {
+      const std::string tag = isPSFGridder() ? "(PSF gridder)" : "(non-PSF gridder)";
+      ASKAPLOG_INFO_STR(logger, "W-plane hit statistics "<<tag<<":  plane(nwplanes="<<itsNWPlanes<<")  w-term(wmax="<<getWMax()<<")  Number of hits");
+      for (int plane = 0; plane<int(itsWPlaneStats.size()); ++plane) {
            if (plane < itsNWPlanes) {
                const int val = itsWPlaneStats[plane];
-               ASKAPLOG_INFO_STR(logger, "W-plane hit statistics:     "<<plane<<"  "<<getWTerm(plane)<<"  "<<val);
+               ASKAPLOG_INFO_STR(logger, "W-plane hit statistics:     "<<std::setw(4)<<plane<<"  "<<std::setw(9)<<std::setprecision(7)<<getWTerm(plane)<<"  "<<val);
            }
       }
   }
 }
 
+/// @brief increment w-plane hit statistics
+/// @details This method is called from derived classes. It increments the cache of statistics
+/// every time the appropriate plane is used.
+/// @param[in] plane w-plane used (should be less than the number of wplanes)
+void WDependentGridderBase::notifyOfWPlaneUse(const int plane) const
+{
+  // update statistics if necessary
+  if (itsWPlaneStats.size()) {
+      ASKAPDEBUGASSERT(int(itsWPlaneStats.size()) == itsNWPlanes);
+      ASKAPDEBUGASSERT(plane < itsNWPlanes);
+      ++itsWPlaneStats[plane];
+  }         
+}
 
 /// @brief obtain plane number
 /// @details
@@ -115,11 +130,6 @@ int WDependentGridderBase::getWPlane(const double w) const
 double WDependentGridderBase::getWTerm(const int plane) const
 {
   ASKAPDEBUGASSERT( (plane >=0 ) && (plane<itsNWPlanes) );
-  // update statistics if necessary
-  if (itsWPlaneStats.size()) {
-      ASKAPDEBUGASSERT(int(itsWPlaneStats.size()) == itsNWPlanes);
-      ++itsWPlaneStats[plane];
-  }         
   const int halfNPlanes = (itsNWPlanes-1)/2;
   if (itsWSampling && (itsNWPlanes>1)) {
       // non-linear sampling of w-space is probably used

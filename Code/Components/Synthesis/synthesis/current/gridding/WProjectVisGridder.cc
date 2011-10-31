@@ -209,6 +209,7 @@ namespace askap
       {
         thisPlane.set(0.0);
 
+        //const float w = isPSFGridder() ? 0. : 2.0f*casa::C::pi*getWTerm(iw);
         const float w = 2.0f*casa::C::pi*getWTerm(iw);
         // Loop over the central nx, ny region, setting it to the product
         // of the phase screen and the spheroidal function
@@ -395,8 +396,10 @@ namespace askap
 
     int WProjectVisGridder::cIndex(int row, int pol, int chan)
     {
-      ASKAPDEBUGASSERT(itsCMap(row, pol, chan)>=0);
-      return itsCMap(row, pol, chan);
+      const int plane = itsCMap(row, pol, chan);
+      ASKAPDEBUGASSERT(plane>=0);
+      notifyOfWPlaneUse(plane);
+      return plane;
     }
 
 

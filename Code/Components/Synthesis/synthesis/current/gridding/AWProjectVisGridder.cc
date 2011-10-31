@@ -668,7 +668,11 @@ void AWProjectVisGridder::correctConvolution(casa::Array<double>& /*image*/)
 }
         
     int AWProjectVisGridder::cIndex(int row, int pol, int chan) {
-      return itsCMap(row, pol, chan);
+      const int plane = itsCMap(row, pol, chan);
+      if (nWPlanes() > 0) {
+          notifyOfWPlaneUse(plane % nWPlanes());
+      }
+      return plane;
     }
 
 /// @brief assignment operator (not to be called)

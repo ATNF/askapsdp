@@ -247,7 +247,9 @@ namespace askap
 
     int WStackVisGridder::gIndex(int row, int pol, int chan)
     {
-      return itsGMap(row, pol, chan);
+      const int plane = itsGMap(row, pol, chan);
+      notifyOfWPlaneUse(plane);
+      return plane;
     }
 
     /// @brief static method to create gridder

@@ -109,6 +109,12 @@ protected:
    /// @return maximum w-term in wavelengths
    inline double getWMax() const { return itsWScale * ((itsNWPlanes-1)/2); }
       
+   /// @brief increment w-plane hit statistics
+   /// @details This method is called from derived classes. It increments the cache of statistics
+   /// every time the appropriate plane is used.
+   /// @param[in] plane w-plane used (should be less than the number of wplanes)
+   void notifyOfWPlaneUse(const int plane) const;
+
 private:
    /// Scaling
    double itsWScale;
