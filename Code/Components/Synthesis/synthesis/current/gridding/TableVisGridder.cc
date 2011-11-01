@@ -578,7 +578,8 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
                  // cIndex gives the index for this row, polarization and channel. On top of
                  // that, we need to adjust for the oversampling since each oversampled
                  // plane is kept as a separate matrix.
-                 const int cInd=fracu+itsOverSample*(fracv+itsOverSample*cIndex(i, pol, chan));
+                 const int beforeOversamplePlaneIndex = cIndex(i,pol,chan);
+                 const int cInd=fracu+itsOverSample*(fracv+itsOverSample*beforeOversamplePlaneIndex);
                  ASKAPCHECK(cInd>-1,"Index into convolution functions is less than zero");
                  ASKAPCHECK(cInd<int(itsConvFunc.size()),
                             "Index into convolution functions exceeds number of planes");
@@ -600,7 +601,7 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
                  casa::Matrix<casa::Complex> grid(aGrid.nonDegenerate());
   
                  // the following accounts for a possible offset of the convolution function
-                 const std::pair<int,int> cfOffset = getConvFuncOffset(cIndex(i,pol,chan));
+                 const std::pair<int,int> cfOffset = getConvFuncOffset(beforeOversamplePlaneIndex);
                  const int iuOffset = iu + cfOffset.first;
                  const int ivOffset = iv + cfOffset.second;
 			   
@@ -627,7 +628,7 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
                                     visNoiseWt<<" visNoise="<<visNoise<<" visComplexNoise="<<visComplexNoise);
                          
                          // row in itsSumWeights to work with
-                         const int sumWeightsRow = itsTrackWeightPerOversamplePlane ? cInd : cIndex(i,pol,chan);
+                         const int sumWeightsRow = itsTrackWeightPerOversamplePlane ? cInd : beforeOversamplePlaneIndex;
       
                          ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
                          ASKAPDEBUGASSERT(itsSumWeights.shape().nelements() >= 3);
