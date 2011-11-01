@@ -156,16 +156,16 @@ namespace askap
       
 
       /// These are the actual cell sizes used
-      float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
-      float celly=1.0/(float(itsShape(1))*itsUVCellSize(1));
+      const double cellx=1.0/(double(itsShape(0))*itsUVCellSize(0));
+      const double celly=1.0/(double(itsShape(1))*itsUVCellSize(1));
 
       /// Limit the size of the convolution function since
       /// we don't need it finely sampled in image space. This
       /// will reduce the time taken to calculate it.
       //      int nx=std::min(maxSupport(), itsShape(0));
       //      int ny=std::min(maxSupport(), itsShape(1));
-      int nx=maxSupport();
-      int ny=maxSupport();
+      const int nx=maxSupport();
+      const int ny=maxSupport();
       
       // initialise the buffer for full-sized CF
       ASKAPDEBUGASSERT((nx>0) && (ny>0));
@@ -179,8 +179,8 @@ namespace askap
 
       // Find the actual cellsizes in x and y (radians) after over
       // oversampling (in uv space)
-      float ccellx=float(itsShape(0))*cellx/float(qnx);
-      float ccelly=float(itsShape(1))*celly/float(qny);
+      const double ccellx=double(itsShape(0))*cellx/double(qnx);
+      const double ccelly=double(itsShape(1))*celly/double(qny);
 
       casa::Vector<float> ccfx(qnx);
       casa::Vector<float> ccfy(qny);
@@ -215,15 +215,15 @@ namespace askap
         // of the phase screen and the spheroidal function
         for (int iy=0; iy<qny; iy++)
         {
-          float y2=float(iy-qny/2)*ccelly;
+          double y2=float(iy-qny/2)*ccelly;
           y2*=y2;
           for (int ix=0; ix<qnx; ix++)
           {
-            float x2=float(ix-qnx/2)*ccellx;
+            double x2=float(ix-qnx/2)*ccellx;
             x2*=x2;
             float r2=x2+y2;
             if(r2<1.0) {
-               const float phase=w*(1.0-sqrt(1.0-r2));
+               const double phase=w*(1.0-sqrt(1.0-r2));
                const float wt=ccfx(ix)*ccfy(iy);
                ASKAPDEBUGASSERT(ix-qnx/2+nx/2 < nx);
                ASKAPDEBUGASSERT(iy-qny/2+ny/2 < ny);
