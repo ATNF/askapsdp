@@ -209,17 +209,17 @@ namespace askap
       {
         thisPlane.set(0.0);
 
-        //const float w = isPSFGridder() ? 0. : 2.0f*casa::C::pi*getWTerm(iw);
-        const float w = 2.0f*casa::C::pi*getWTerm(iw);
+        //const double w = isPSFGridder() ? 0. : 2.0f*casa::C::pi*getWTerm(iw);
+        const double w = 2.0f*casa::C::pi*getWTerm(iw);
         // Loop over the central nx, ny region, setting it to the product
         // of the phase screen and the spheroidal function
         for (int iy=0; iy<qny; iy++)
         {
-          double y2=float(iy-qny/2)*ccelly;
+          double y2=double(iy-qny/2)*ccelly;
           y2*=y2;
           for (int ix=0; ix<qnx; ix++)
           {
-            double x2=float(ix-qnx/2)*ccellx;
+            double x2=double(ix-qnx/2)*ccellx;
             x2*=x2;
             float r2=x2+y2;
             if(r2<1.0) {
