@@ -336,15 +336,6 @@ namespace askap
         */
 
         itsPSFGridders[imageName]->finaliseGrid(imagePSF);
-        /*
-        casa::Array<casa::DComplex> temp(imagePSF.shape());
-        casa::convertArray<casa::DComplex,double>(temp,imagePSF);
-        scimath::fft2d(temp,true);
-        casa::Array<float> buf(imagePSF.shape());
-        casa::convertArray<float,double>(buf,imag(temp));
-        SynthesisParamsHelper::saveAsCasaImage("uvcoverage"+(*it),buf);
-        throw 1;
-        */
 
         itsResidualGridders[imageName]->finaliseWeights(imageWeight);
         /*{ 

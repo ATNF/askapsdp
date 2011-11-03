@@ -585,7 +585,7 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
                             "Index into convolution functions exceeds number of planes");
 			   
                  casa::Matrix<casa::Complex> & convFunc(itsConvFunc[cInd]);
- 			      
+
                  // support only square convolution functions at the moment
                  ASKAPDEBUGASSERT(convFunc.nrow() == convFunc.ncolumn());
                  ASKAPCHECK(convFunc.nrow() % 2 == 1, 
@@ -604,6 +604,18 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
                  const std::pair<int,int> cfOffset = getConvFuncOffset(beforeOversamplePlaneIndex);
                  const int iuOffset = iu + cfOffset.first;
                  const int ivOffset = iv + cfOffset.second;
+
+                 
+                 
+                 /*
+                 if (isPSFGridder()) {
+                     if (i!=0) continue;
+                     std::cout<<"sample "<<i<<" iu="<<iu<<" uScaled="<<uScaled<<" fracu="<<fracu<<" "<<
+                            "iv="<<iv<<" vScaled="<<vScaled<<" fracv="<<fracv<<
+                            " wplane="<<beforeOversamplePlaneIndex<<std::endl;
+                 }
+                 */
+                 
 			   
                  /// Need to check if this point lies on the grid (taking into 
                  /// account the support)
@@ -910,6 +922,53 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
 	for (unsigned int i=0; i<itsGrid.size(); i++) {
 	    casa::Array<casa::DComplex> scratch(itsGrid[i].shape());
 	    casa::convertArray<casa::DComplex,casa::Complex>(scratch, itsGrid[i]);
+
+            /*
+            // for debugging
+            if (isPSFGridder()) {
+                casa::Array<float> buf(scratch.shape());
+                casa::convertArray<float,double>(buf,imag(scratch));
+                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.imag",buf);
+                casa::convertArray<float,double>(buf,real(scratch));
+                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.real",buf);
+                // adjust values to extract part which gives a real symmetric FT and the remainder
+                casa::Matrix<float> bufM(buf.nonDegenerate());
+                for (int x=0; x<int(bufM.nrow()); ++x) {
+                     for (int y=0; y<int(bufM.ncolumn())/2; ++y) {
+                          const float val = 0.5*(bufM(x,y)+bufM(bufM.nrow() - x -1, bufM.ncolumn() - y -1));
+                          bufM(x,y) = val;
+                          bufM(bufM.nrow() - x -1, bufM.ncolumn() - y -1) = val;
+                     }
+                }
+                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.sympart",buf);
+                casa::Matrix<casa::DComplex> scratchM(scratch.nonDegenerate());
+                for (int x=0; x<int(scratchM.nrow()); ++x) {
+                     for (int y=0; y<int(scratchM.ncolumn()); ++y) {
+                          scratchM(x,y) -= double(bufM(x,y));
+                      }
+                }
+                // as we ignore imaginary part after FT, make scratch hermitian to be fair
+                for (int x=0; x<int(scratchM.nrow()); ++x) {
+                     for (int y=0; y<int(scratchM.ncolumn())/2; ++y) {
+                          const casa::DComplex val = 0.5*(scratchM(x,y)+
+                                conj(scratchM(scratchM.nrow() - x -1, scratchM.ncolumn() - y -1)));
+                          scratchM(x,y) = val;
+                          scratchM(scratchM.nrow() - x -1, scratchM.ncolumn() - y -1) = conj(val);
+                     }
+                }
+                casa::convertArray<float,double>(buf,imag(scratch));
+                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.asympart.imag",buf);
+                casa::convertArray<float,double>(buf,real(scratch));
+                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.asympart.real",buf);
+		fft2d(scratch, false);
+                casa::convertArray<float,double>(buf,real(scratch));
+                SynthesisParamsHelper::saveAsCasaImage("psf.asympart.real",buf);
+                
+                ASKAPCHECK(false, "Debug termination");
+            }
+            //
+            */
+            
 		fft2d(scratch, false);
 		if (i==0) {
 			toDouble(dBuffer, scratch);
