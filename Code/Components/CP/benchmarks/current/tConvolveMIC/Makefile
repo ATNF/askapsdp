@@ -22,19 +22,18 @@
 #
 
 CXX=icpc
-MIC_MKL_LIB_PATH=/opt/intel/composerxe_mic/mkl/lib/mic
-MIC_MKL_LIBS=-lmkl_core
-CFLAGS=-O3 -offload-build -openmp -mkl -DUSEBLAS
-LDFLAGS=-offload-ldopts:"-L$(MIC_MKL_LIB_PATH) $(MIC_MKL_LIBS)"
+CFLAGS=-O3 -offload-build -openmp -mmic -mkl -DUSEBLAS
 
-all:		tConvolveMIC
+EXENAME=tConvolveMIC
+OBJS = $(EXENAME).o Stopwatch.o
 
-Stopwatch.o:	Stopwatch.cc Stopwatch.h
-		$(CXX) $(CFLAGS) -c Stopwatch.cc
+all:        $(EXENAME)
 
-tConvolveMIC:	tConvolveMIC.cc Stopwatch.o
-		$(CXX) $(CFLAGS) -c tConvolveMIC.cc
-		$(CXX) $(CFLAGS) $(LDFLAGS) -o tConvolveMIC tConvolveMIC.o Stopwatch.o
+%.o:        %.cc %.h
+			$(CXX) $(CFLAGS) -c $<
+
+$(EXENAME): $(OBJS)
+	        $(CXX) $(CFLAGS) -o $(EXENAME) $(OBJS)
 
 clean:
-		rm -f *.o tConvolveMIC tConvolveMICMIC.out
+	        rm -f $(EXENAME) *.o $(EXENAME)MIC.out
