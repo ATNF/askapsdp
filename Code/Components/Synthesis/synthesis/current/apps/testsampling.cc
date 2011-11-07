@@ -1,8 +1,5 @@
 /// @file 
 ///
-/// @brief Perform calibration and write result in the parset file
-/// @details This application performs calibration of a measurement set
-/// and writes the solution to an external parset file
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -33,6 +30,8 @@
 #include <casa/Arrays/Vector.h>
 #include <casa/BasicSL/Constants.h>
 
+// for debugging
+#include <apps/SimpleCorrelator.h>
 
 #include <stdexcept>
 #include <iostream>
