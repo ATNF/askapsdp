@@ -72,7 +72,7 @@ void SimpleCorrelator<AccType, IndexType>::reset()
 /// @param[in] size number of samples
 template<typename AccType, typename IndexType>         
 template<typename Iter>
-void SimpleCorrelator<AccType, IndexType>::accumulate(Iter stream1, Iter stream2, const IndexType size)
+void SimpleCorrelator<AccType, IndexType>::accumulate(const Iter stream1, const Iter stream2, const IndexType size)
 {
   IndexType offset1 = itsDelay < 0 ? -itsDelay : 0;
   IndexType offset2 = itsDelay > 0 ? itsDelay : 0;

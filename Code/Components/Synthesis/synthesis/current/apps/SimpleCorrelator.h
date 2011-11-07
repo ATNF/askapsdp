@@ -95,7 +95,7 @@ public:
   /// @param[in] stream2 start iterator of the second stream
   /// @param[in] size number of samples
   template<typename Iter>
-  void accumulate(Iter stream1, Iter stream2, const IndexType size);
+  void accumulate(const Iter stream1, const Iter stream2, const IndexType size);
     
 private:
   /// @brief delay (in samples) for the second stream w.r.t. the first

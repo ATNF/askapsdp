@@ -29,6 +29,8 @@
 #include <fft/FFTWrapper.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/BasicSL/Constants.h>
+#include <casa/OS/Timer.h>
+
 
 // for debugging
 #include <apps/SimpleCorrelator.h>
@@ -82,6 +84,9 @@ void storeArray(const std::string &name, const casa::Vector<casa::Complex> &buf)
 int main(int, const char** argv)
 {
     try {
+       casa::Timer timer;
+       timer.mark();
+    
        const float samplingRate = 32./27.*1e6; // in samples per second
        casa::Vector<casa::Complex> buf1;
        casa::Vector<casa::Complex> buf2;
@@ -99,13 +104,27 @@ int main(int, const char** argv)
        acquire(buf1,buf2,5.2e-6,32*31250,samplingRate);
        // assume that antenna1 = antenna3 for this simple test
        casa::Vector<casa::Complex> buf3(buf1);
-       int nDelays = 32;
+       std::cout<<"initialisation of dummy data "<<"user:   " << timer.user() << " system: " << timer.system()
+                                      << " real:   " << timer.real()<<std::endl;
+       timer.mark();
+       int nDelays = 1;
        SimpleCorrelator<> sc12(nDelays);
        SimpleCorrelator<> sc13(nDelays);
        SimpleCorrelator<> sc23(nDelays);
-       sc12.accumulate(buf1.data(), buf2.data(), int(buf1.nelements()));
-       sc13.accumulate(buf1.data(), buf3.data(), int(buf1.nelements()));
-       sc23.accumulate(buf2.data(), buf3.data(), int(buf2.nelements()));
+
+       std::cout<<"initialisation of correlators "<<"user:   " << timer.user() << " system: " << timer.system()
+                                      << " real:   " << timer.real()<<std::endl;
+       timer.mark();
+       for (size_t i=0; i<64*18; ++i) {
+           sc12.accumulate(buf1.data(), buf2.data(), int(buf1.nelements()));
+           sc13.accumulate(buf1.data(), buf3.data(), int(buf1.nelements()));
+           sc23.accumulate(buf2.data(), buf3.data(), int(buf2.nelements()));
+       }
+
+       std::cout<<"accumulation "<<"user:   " << timer.user() << " system: " << timer.system()
+                                      << " real:   " << timer.real()<<std::endl;
+       std::cout<<"throughput for 64 MHz, 9 beams, 3 baselines and "<<nDelays<<" delay steps is "<<1e3 / timer.real() <<
+                  " kSamples/sec"<<std::endl;                               
        
     }
     catch (const askap::AskapError& x) {
