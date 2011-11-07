@@ -80,6 +80,7 @@ void storeArray(const std::string &name, const casa::Vector<casa::Complex> &buf)
   }
 }
 
+
 // Main function
 int main(int, const char** argv)
 {
@@ -104,7 +105,7 @@ int main(int, const char** argv)
        acquire(buf1,buf2,5.2e-6,32*31250,samplingRate);
        // assume that antenna1 = antenna3 for this simple test
        casa::Vector<casa::Complex> buf3(buf1);
-       //
+       /*
        std::vector<std::complex<int> > ant1(buf1.nelements());
        std::vector<std::complex<int> > ant2(buf2.nelements());
        std::vector<std::complex<int> > ant3(buf3.nelements());
@@ -114,12 +115,13 @@ int main(int, const char** argv)
             ant2[i] = std::complex<int>(int(real(buf2[i])*factor),int(imag(buf2[i])*factor));
             ant3[i] = std::complex<int>(int(real(buf3[i])*factor),int(imag(buf3[i])*factor));            
        }
-       //
+       */
        std::cout<<"initialisation of dummy data "<<"user:   " << timer.user() << " system: " << timer.system()
                                       << " real:   " << timer.real()<<std::endl;
        timer.mark();
-       int nDelays = 8;
-       typedef std::complex<int> accType;
+       int nDelays = 1;
+       //typedef std::complex<int> accType;
+       typedef casa::Complex accType;
        SimpleCorrelator<accType> sc12(nDelays);
        SimpleCorrelator<accType> sc13(nDelays);
        SimpleCorrelator<accType> sc23(nDelays);
@@ -128,14 +130,15 @@ int main(int, const char** argv)
                                       << " real:   " << timer.real()<<std::endl;
        timer.mark();
        for (size_t i=0; i<64*18; ++i) {
-           /*
+           
            sc12.accumulate(buf1.data(), buf2.data(), int(buf1.nelements()));
            sc13.accumulate(buf1.data(), buf3.data(), int(buf1.nelements()));
            sc23.accumulate(buf2.data(), buf3.data(), int(buf2.nelements()));
-           */
+           /*
            sc12.accumulate(ant1.begin(), ant2.begin(), int(ant1.size()));
            sc13.accumulate(ant1.begin(), ant3.begin(), int(ant3.size()));
            sc23.accumulate(ant2.begin(), ant3.begin(), int(ant2.size()));
+           */
         }
 
        std::cout<<"accumulation "<<"user:   " << timer.user() << " system: " << timer.system()

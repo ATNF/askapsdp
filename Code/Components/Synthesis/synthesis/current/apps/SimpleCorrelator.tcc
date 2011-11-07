@@ -76,7 +76,18 @@ void SimpleCorrelator<AccType, IndexType>::accumulate(const Iter stream1, const 
 {
   IndexType offset1 = itsDelay < 0 ? -itsDelay : 0;
   IndexType offset2 = itsDelay > 0 ? itsDelay : 0;
-  for (; (offset1 + itsNDelays < size) && (offset2 + itsNDelays < size); offset1 += itsNDelays, offset2 += itsNDelays) {
+  if (itsNDelays == 1) {
+    // special case of a single delay = 0 step (i.e. just cross-correlation of two streams)
+    Iter offsetStream1 = stream1 + offset1;
+    Iter offsetStream2 = stream2 + offset2;
+    AccType result = 0;
+    for (; (offset1 < size) && (offset2 < size); ++offset1, ++offset2, ++offsetStream1, ++offsetStream2) {
+         result += AccType(*offsetStream1) * conj(AccType(*offsetStream2));
+    }
+    itsAccumulator[0] = result;
+  } else {
+    // general case of multiple delay steps
+    for (; (offset1 + itsNDelays < size) && (offset2 + itsNDelays < size); offset1 += itsNDelays, offset2 += itsNDelays) {
        typename std::vector<AccType>::iterator it = itsAccumulator.begin();
        Iter offsetStream1 = stream1 + offset1;
        Iter offsetStream2 = stream2 + offset2;
@@ -87,6 +98,7 @@ void SimpleCorrelator<AccType, IndexType>::accumulate(const Iter stream1, const 
                  *it += first * std::conj(second);
             }
        }
+    }
   }  
 }
 
