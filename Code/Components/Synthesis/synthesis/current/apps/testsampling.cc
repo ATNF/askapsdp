@@ -85,6 +85,7 @@ int main(int, const char** argv)
        const float samplingRate = 32./27.*1e6; // in samples per second
        casa::Vector<casa::Complex> buf1;
        casa::Vector<casa::Complex> buf2;
+       /*
        acquire(buf1,buf2,5.2e-6,32,samplingRate);
        fft(buf1, true);       
        fft(buf2, true); 
@@ -94,6 +95,18 @@ int main(int, const char** argv)
        fft(buf1, false);
        
        storeArray("a.dat",buf1);
+       */
+       acquire(buf1,buf2,5.2e-6,32*31250,samplingRate);
+       // assume that antenna1 = antenna3 for this simple test
+       casa::Vector<casa::Complex> buf3(buf1);
+       int nDelays = 32;
+       SimpleCorrelator<> sc12(nDelays);
+       SimpleCorrelator<> sc13(nDelays);
+       SimpleCorrelator<> sc23(nDelays);
+       sc12.accumulate(buf1.data(), buf2.data(), int(buf1.nelements()));
+       sc13.accumulate(buf1.data(), buf3.data(), int(buf1.nelements()));
+       sc23.accumulate(buf2.data(), buf3.data(), int(buf2.nelements()));
+       
     }
     catch (const askap::AskapError& x) {
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;

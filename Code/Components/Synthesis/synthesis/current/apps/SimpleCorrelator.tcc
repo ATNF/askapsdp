@@ -36,8 +36,6 @@
 #ifndef SIMPLE_CORRELATOR_TCC
 #define SIMPLE_CORRELATOR_TCC
 
-#include <apps/SimpleCorrelator.h>
-
 namespace askap {
 
 /// @brief reset accumulator, adjust delays if necessary
@@ -47,19 +45,19 @@ namespace askap {
 /// @param[in] delay2 delay (in samples) for the second stream
 /// @note the buffers are treated as parts of the continuous
 /// stream. Incomplete buffers are ignored for simplicity.
-template<typename AccType = std::complex<float>, typename IndexType = int>         
-void SimpleCorrelator::reset(const IndexType delay1, const IndexType delay2) 
+template<typename AccType, typename IndexType>         
+void SimpleCorrelator<AccType, IndexType>::reset(const IndexType delay1, const IndexType delay2) 
 {
-  itsDelay = delay2 - delay1;
+  this->itsDelay = delay2 - delay1;
   this->reset();
 }
 
 /// @brief just reset accumulator
 /// @details This method can be used to move to the next integration cycle
-template<typename AccType = std::complex<float>, typename IndexType = int>         
-void SimpleCorrelator::reset() 
+template<typename AccType, typename IndexType>         
+void SimpleCorrelator<AccType, IndexType>::reset() 
 {
-  for (std::vector<AccType>::iterator it = itsAccumulator.begin(); it != itsAccumulator.end(); ++it) {
+  for (typename std::vector<AccType>::iterator it = this->itsAccumulator.begin(); it != this->itsAccumulator.end(); ++it) {
        *it = AccType(0);
   }
 }
@@ -72,9 +70,9 @@ void SimpleCorrelator::reset()
 /// @param[in] stream1 start iterator of the first stream
 /// @param[in] stream2 start iterator of the second stream
 /// @param[in] size number of samples
-template<typename AccType = std::complex<float>, typename IndexType = int>         
+template<typename AccType, typename IndexType>         
 template<typename Iter>
-void SimpleCorrelator::accumulate(Iter stream1, Iter stream2, const IndexType size)
+void SimpleCorrelator<AccType, IndexType>::accumulate(Iter stream1, Iter stream2, const IndexType size)
 {
   IndexType offset1 = itsDelay < 0 ? -itsDelay : 0;
   IndexType offset2 = itsDelay > 0 ? itsDelay : 0;

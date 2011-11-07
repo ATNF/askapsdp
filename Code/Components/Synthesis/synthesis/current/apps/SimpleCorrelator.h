@@ -113,5 +113,7 @@ private:
 
 } // namespace askap
 
+#include <apps/SimpleCorrelator.tcc>
+
 #endif // #ifndef SIMPLE_CORRELATOR_H
 
