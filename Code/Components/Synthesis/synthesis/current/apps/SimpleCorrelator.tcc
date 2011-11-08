@@ -167,16 +167,10 @@ void Simple3BaselineCorrelator<AccType, IndexType>::accumulate(const Iter stream
   IndexType offset2 = itsDelay2;
   IndexType offset3 = itsDelay3;  
 
-  for (; (min(offset1, min(offset2, offset3)) < size); ++offset1, ++offset2, ++offset3) {
-       if ((offset1 < size) && (offset2 < size)) {
-            itsVis12 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream2+offset2)));
-       }
-       if ((offset1 < size) && (offset3 < size)) {
-            itsVis13 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream3+offset3)));
-       }
-       if ((offset2 < size) && (offset3 < size)) {
-            itsVis23 += AccType(*(stream2 + offset2)) * conj(AccType(*(stream3+offset3)));
-       }
+  for (; (offset1 < size) && (offset2 < size) && (offset3 < size); ++offset1, ++offset2, ++offset3) {
+       itsVis12 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream2+offset2)));
+       itsVis13 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream3+offset3)));
+       itsVis23 += AccType(*(stream2 + offset2)) * conj(AccType(*(stream3+offset3)));
   }
 }            
 
