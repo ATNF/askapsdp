@@ -131,7 +131,9 @@ int main(int, const char** argv)
        std::cout<<"initialisation of correlators "<<"user:   " << timer.user() << " system: " << timer.system()
                                       << " real:   " << timer.real()<<std::endl;
        timer.mark();
-       for (size_t i=0; i<64*18; ++i) {
+       const size_t nBeams = 1; //18;
+       const size_t nChan = 16; //64;
+       for (size_t i=0; i<nBeams * nChan; ++i) {
            s3bc.accumulate(buf1.data(), buf2.data(), buf3.data(), int(buf1.nelements()));
            /*
            sc12.accumulate(buf1.data(), buf2.data(), int(buf1.nelements()));
@@ -147,7 +149,7 @@ int main(int, const char** argv)
 
        std::cout<<"accumulation "<<"user:   " << timer.user() << " system: " << timer.system()
                                       << " real:   " << timer.real()<<std::endl;
-       std::cout<<"throughput for 64 MHz, 9 dual pol beams, 3 baselines and "<<nDelays<<" delay steps is "<<1e3 / timer.real() <<
+       std::cout<<"throughput for "<<nChan<<" MHz, "<<nBeams<<" single pol beams, 3 baselines and "<<nDelays<<" delay steps is "<<1e3 / timer.real() <<
                   " kSamples/sec"<<std::endl;                               
        
     }
