@@ -122,18 +122,22 @@ int main(int, const char** argv)
        int nDelays = 1;
        //typedef std::complex<int> accType;
        typedef casa::Complex accType;
+       Simple3BaselineCorrelator<accType> s3bc;
+       /*
        SimpleCorrelator<accType> sc12(nDelays);
        SimpleCorrelator<accType> sc13(nDelays);
        SimpleCorrelator<accType> sc23(nDelays);
-
+*/
        std::cout<<"initialisation of correlators "<<"user:   " << timer.user() << " system: " << timer.system()
                                       << " real:   " << timer.real()<<std::endl;
        timer.mark();
        for (size_t i=0; i<64*18; ++i) {
-           
+           s3bc.accumulate(buf1.data(), buf2.data(), buf3.data(), int(buf1.nelements()));
+           /*
            sc12.accumulate(buf1.data(), buf2.data(), int(buf1.nelements()));
            sc13.accumulate(buf1.data(), buf3.data(), int(buf1.nelements()));
            sc23.accumulate(buf2.data(), buf3.data(), int(buf2.nelements()));
+           */
            /*
            sc12.accumulate(ant1.begin(), ant2.begin(), int(ant1.size()));
            sc13.accumulate(ant1.begin(), ant3.begin(), int(ant3.size()));

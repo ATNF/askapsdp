@@ -103,6 +103,84 @@ void SimpleCorrelator<AccType, IndexType>::accumulate(const Iter stream1, const 
 }
 
 
+/// @brief constructor, optionally setup initial delays
+/// @details 
+/// @param[in] delay1 delay (in samples) for the first stream
+/// @param[in] delay2 delay (in samples) for the second stream
+/// @param[in] delay3 delay (in samples) for the third stream
+/// @note the buffers are treated as parts of the continuous
+/// stream. Incomplete buffers are ignored for simplicity.
+template<typename AccType, typename IndexType>         
+Simple3BaselineCorrelator<AccType, IndexType>::Simple3BaselineCorrelator(const IndexType delay1, 
+         const IndexType delay2, const IndexType delay3) : itsDelay1(delay1), itsDelay2(delay2),
+         itsDelay3(delay3), itsVis12(AccType(0)), itsVis13(AccType(0)), itsVis23(AccType(0)) 
+{
+  const IndexType minDelay = min(itsDelay1, min(itsDelay2, itsDelay3));
+  itsDelay1 -= minDelay;
+  itsDelay2 -= minDelay;
+  itsDelay3 -= minDelay;  
+}
+
+/// @brief reset accumulator, adjust delays
+/// @details This method is equivalent to the constructor
+/// @param[in] delay1 delay (in samples) for the first stream
+/// @param[in] delay2 delay (in samples) for the second stream
+/// @param[in] delay3 delay (in samples) for the third stream
+/// @note the buffers are treated as parts of the continuous
+/// stream. Incomplete buffers are ignored for simplicity.
+template<typename AccType, typename IndexType>         
+void Simple3BaselineCorrelator<AccType, IndexType>::reset(const IndexType delay1, const IndexType delay2, const IndexType delay3)
+{
+  const IndexType minDelay = min(itsDelay1, min(itsDelay2, itsDelay3));
+  itsDelay1 -= minDelay;
+  itsDelay2 -= minDelay;
+  itsDelay3 -= minDelay;  
+  reset();
+}
+
+/// @brief just reset accumulator
+/// @details This method can be used to move to the next integration cycle
+template<typename AccType, typename IndexType>         
+void Simple3BaselineCorrelator<AccType, IndexType>::reset()
+{
+  itsVis12 = AccType(0);
+  itsVis13 = AccType(0);
+  itsVis23 = AccType(0);  
+}
+
+
+/// @brief accumulate buffers
+/// @details 
+/// The parameter of the template is as follows.
+///    Iter - type of the read-only random-access iterator to read the data buffer
+///           (it could be just an ordinary pointer)
+/// @param[in] stream1 start iterator of the first stream
+/// @param[in] stream2 start iterator of the second stream
+/// @param[in] stream3 start iterator of the second stream
+/// @param[in] size number of samples
+template<typename AccType, typename IndexType>         
+template<typename Iter>
+void Simple3BaselineCorrelator<AccType, IndexType>::accumulate(const Iter stream1, const Iter stream2, 
+            const Iter stream3, const IndexType size)
+{
+  IndexType offset1 = itsDelay1;
+  IndexType offset2 = itsDelay2;
+  IndexType offset3 = itsDelay3;  
+
+  for (; (min(offset1, min(offset2, offset3)) < size); ++offset1, ++offset2, ++offset3) {
+       if ((offset1 < size) && (offset2 < size)) {
+            itsVis12 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream2+offset2)));
+       }
+       if ((offset1 < size) && (offset3 < size)) {
+            itsVis13 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream3+offset3)));
+       }
+       if ((offset2 < size) && (offset3 < size)) {
+            itsVis23 += AccType(*(stream2 + offset2)) * conj(AccType(*(stream3+offset3)));
+       }
+  }
+}            
+
+
 } // namespace askap
 
 #endif // #ifndef SIMPLE_CORRELATOR_TCC

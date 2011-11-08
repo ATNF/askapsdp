@@ -111,6 +111,82 @@ private:
   IndexType itsNDelays;
 };
 
+/// @brief correlator for 3 baselines and single delay step
+/// @details This is what we might need to get the performance out.
+/// Template parameters:
+///    AccType - type of the accumulated values (may be different from the input data type 
+///              to allow overflow)
+///    IndexType - type of the sample index 
+template<typename AccType = std::complex<float>, typename IndexType = int>         
+class Simple3BaselineCorrelator {
+public:
+  /// @brief constructor, optionally setup initial delays
+  /// @details 
+  /// @param[in] delay1 delay (in samples) for the first stream
+  /// @param[in] delay2 delay (in samples) for the second stream
+  /// @param[in] delay3 delay (in samples) for the third stream
+  /// @note the buffers are treated as parts of the continuous
+  /// stream. Incomplete buffers are ignored for simplicity.
+  explicit Simple3BaselineCorrelator(const IndexType delay1 = 0, 
+           const IndexType delay2 = 0, const IndexType delay3 = 0);
+  
+  /// @brief reset accumulator, adjust delays
+  /// @details This method is equivalent to the constructor
+  /// @param[in] delay1 delay (in samples) for the first stream
+  /// @param[in] delay2 delay (in samples) for the second stream
+  /// @param[in] delay3 delay (in samples) for the third stream
+  /// @note the buffers are treated as parts of the continuous
+  /// stream. Incomplete buffers are ignored for simplicity.
+  void reset(const IndexType delay1, const IndexType delay2, const IndexType delay3);
+  
+  /// @brief just reset accumulator
+  /// @details This method can be used to move to the next integration cycle
+  void reset();
+  
+  /// @brief obtain buffer
+  /// @return nDelays x (nDelays + 1) /2 long vector with accumulated statistics
+  inline AccType getVis12() const { return itsVis12; }
+
+  /// @brief obtain buffer
+  /// @return nDelays x (nDelays + 1) /2 long vector with accumulated statistics
+  inline AccType getVis13() const { return itsVis13; }
+
+  /// @brief obtain buffer
+  /// @return nDelays x (nDelays + 1) /2 long vector with accumulated statistics
+  inline AccType getVis23() const { return itsVis23; }
+
+  /// @brief accumulate buffers
+  /// @details 
+  /// The parameter of the template is as follows.
+  ///    Iter - type of the read-only random-access iterator to read the data buffer
+  ///           (it could be just an ordinary pointer)
+  /// @param[in] stream1 start iterator of the first stream
+  /// @param[in] stream2 start iterator of the second stream
+  /// @param[in] stream3 start iterator of the second stream
+  /// @param[in] size number of samples
+  template<typename Iter>
+  void accumulate(const Iter stream1, const Iter stream2, const Iter stream3, const IndexType size);
+    
+private:
+  /// @brief delay (in samples) for the first stream
+  IndexType itsDelay1;
+
+  /// @brief delay (in samples) for the second stream
+  IndexType itsDelay2;
+  
+  /// @brief delay (in samples) for the third stream
+  IndexType itsDelay3;
+  
+  /// @brief accumulator for baseline 12
+  AccType itsVis12;
+
+  /// @brief accumulator for baseline 13
+  AccType itsVis13;
+
+  /// @brief accumulator for baseline 23
+  AccType itsVis23;  
+};
+
 } // namespace askap
 
 #include <apps/SimpleCorrelator.tcc>
