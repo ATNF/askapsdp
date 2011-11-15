@@ -31,7 +31,7 @@
 #include <vector>
 #include <algorithm>
 #include <limits>
-#include <cassert>
+#include <cstddef>
 
 // OpenMP includes
 #include <omp.h>
