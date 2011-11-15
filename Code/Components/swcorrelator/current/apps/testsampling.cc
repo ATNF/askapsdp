@@ -33,7 +33,7 @@
 
 
 // for debugging
-#include <apps/SimpleCorrelator.h>
+#include <swcorrelator/SimpleCorrelator.h>
 
 #include <stdexcept>
 #include <iostream>
@@ -43,6 +43,7 @@
 using namespace std;
 using namespace askap;
 using namespace askap::scimath;
+using namespace askap::swcorrelator;
 
 casa::Complex sampledFunc(const float time, const float delay)
 {

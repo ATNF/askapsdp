@@ -1,0 +1,12 @@
+/// @defgroup swcorelator Software correlator for BETA3 experiments
+
+/// The software correlator namespace
+namespace askap::swcorrelator {};
+
+/// @mainpage ASKAP Central Processor Data Services C++ Client Package
+///
+
+/// @section channels_subpackages Subpackages
+/// @li @ref swcorrelator
+
+/// @copyright 2011 CSIRO, All Rights Reserved.

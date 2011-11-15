@@ -43,6 +43,8 @@
 
 namespace askap {
 
+namespace swcorrelator {
+
 /// @brief This is a template providing a basic X-step of a correlator
 /// @details For BETA-3 experiments we want to be able to correlate the data
 /// in software. This templated class implements a core functionality of a
@@ -55,6 +57,7 @@ namespace askap {
 ///    AccType - type of the accumulated values (may be different from the input data type 
 ///              to allow overflow)
 ///    IndexType - type of the sample index 
+/// @ingroup swcorrelator
 template<typename AccType = std::complex<float>, typename IndexType = int>         
 class SimpleCorrelator {
 public:
@@ -117,6 +120,7 @@ private:
 ///    AccType - type of the accumulated values (may be different from the input data type 
 ///              to allow overflow)
 ///    IndexType - type of the sample index 
+/// @ingroup swcorrelator
 template<typename AccType = std::complex<float>, typename IndexType = int>         
 class Simple3BaselineCorrelator {
 public:
@@ -187,9 +191,11 @@ private:
   AccType itsVis23;  
 };
 
+} // namespace swcorrelator
+
 } // namespace askap
 
-#include <apps/SimpleCorrelator.tcc>
+#include <swcorrelator/SimpleCorrelator.tcc>
 
 #endif // #ifndef SIMPLE_CORRELATOR_H
 

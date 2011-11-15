@@ -38,6 +38,8 @@
 
 namespace askap {
 
+namespace swcorrelator {
+
 /// @brief reset accumulator, adjust delays if necessary
 /// @details This method is equivalent to the constructor, but it doesn't change the number
 /// of delay steps supported by the class
@@ -174,6 +176,7 @@ void Simple3BaselineCorrelator<AccType, IndexType>::accumulate(const Iter stream
   }
 }            
 
+} // namespace swcorrelator
 
 } // namespace askap
 
