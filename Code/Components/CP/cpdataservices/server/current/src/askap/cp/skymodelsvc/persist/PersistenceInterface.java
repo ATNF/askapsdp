@@ -109,15 +109,24 @@ public class PersistenceInterface {
 		// components regardless of position.
 
 		final String query = "from Component where i1400 >=" + fluxLimit;		
+        long count = 0;
 		ScrollableResults components = itsSession.createQuery(query).scroll(ScrollMode.FORWARD_ONLY);
 		while (components.next()) {
 			Component comp = (Component) components.get(0);
 			assert(comp.i1400 >= fluxLimit);
 			if (angularSeparation(ra, dec, comp) <= searchRadius) {
 				ids.add(new Long(comp.id));
-			}
-		}
+            }
 
+            // Need to clear the cache occasionally so as not to run out of memory
+            count++;
+            if (count % 1000 == 0) {
+                itsSession.flush();
+                itsSession.clear();
+            }
+        }
+
+        components.close();
 		return ids;
 	}
 

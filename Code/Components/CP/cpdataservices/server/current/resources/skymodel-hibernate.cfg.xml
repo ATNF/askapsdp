@@ -5,7 +5,7 @@
 
         <!-- Connection properties --> 
         <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
-        <property name="connection.url">jdbc:mysql://gijane/skymodel</property>
+        <property name="connection.url">jdbc:mysql://gijane/skymodel?useCursorFetch=true&amp;defaultFetchSize=1000</property>
         <property name="connection.username">skymodeluser</property>
         <property name="connection.password">askap</property>
 
