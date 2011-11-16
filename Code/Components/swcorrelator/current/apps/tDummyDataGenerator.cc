@@ -44,6 +44,8 @@
 
 ASKAP_LOGGER(logger, ".tDummyDataGenerator");
 
+#include <boost/thread/thread.hpp>
+
 
 using namespace std;
 using namespace askap;
@@ -73,6 +75,26 @@ void acquire(casa::Vector<casa::Complex> &buf1, casa::Vector<casa::Complex> &buf
   }
 }
 
+struct Worker {
+   Worker(const casa::Vector<casa::Complex> &data, const int nbeams) : itsData(data), itsNBeam(nbeams) {}
+   
+   void operator()() const {
+      boost::this_thread::disable_interruption di;
+      while (!boost::this_thread::interruption_requested()) {
+         boost::this_thread::sleep(boost::posix_time::seconds(1));
+         std::cout<<"test"<<std::endl;
+      }
+      std::cout<<"finishing"<<std::endl;
+   }
+   
+   void exit() { 
+       itsContinueFlag = false;
+   }
+private:
+   casa::Vector<casa::Complex> itsData;   
+   int itsNBeam;
+   bool itsContinueFlag;
+};
 
 // Main function
 int main(int, const char** argv)
@@ -84,7 +106,7 @@ int main(int, const char** argv)
        const float samplingRate = 32./27.*1e6; // in samples per second
        casa::Vector<casa::Complex> buf1;
        casa::Vector<casa::Complex> buf2;
-       acquire(buf1,buf2,5.2e-6,32*31250,samplingRate);
+       //acquire(buf1,buf2,5.2e-6,32*31250,samplingRate);
        // assume that antenna1 = antenna3 for this simple test
        casa::Vector<casa::Complex> buf3(buf1);
 
@@ -92,6 +114,19 @@ int main(int, const char** argv)
                                       << " real:   " << timer.real()<<std::endl;
        timer.mark();
        // connection to the correlator server comes here along with the threading stuff
+       const int nBeam = 1;
+       const int nChan = 1;
+       
+       boost::thread_group threads;
+       for (int cnt = 0; cnt<nChan; ++cnt) {
+            threads.create_thread(Worker(buf1, nBeam));
+       }
+       std::cout<<"sending signal"<<std::endl;
+       //worker.exit();
+       sleep(10);
+       threads.interrupt_all();
+       std::cout<<"waiting to finish"<<std::endl;       
+       threads.join_all();
        //              
     }
     catch (const askap::AskapError& x) {
