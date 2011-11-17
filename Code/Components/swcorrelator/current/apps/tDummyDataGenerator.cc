@@ -75,11 +75,6 @@ void acquire(casa::Vector<casa::Complex> &buf1, casa::Vector<casa::Complex> &buf
   }
 }
 
-// global parameters to emulate simultaneous sampling on all antennas with potentially asynchronous arrival
-boost::condition_variable sampleTrigger;
-boost::mutex sampleTriggerMutex;
-long sampleBAT = 0;
-
 struct Worker {
    Worker(const casa::Vector<casa::Complex> &data, const int antID, const int chanID, const int nbeams) : 
           itsData(data), itsAnt(antID), itsChan(chanID), itsNBeam(nbeams) 
@@ -90,8 +85,27 @@ struct Worker {
      ASKAPCHECK(sizeof(float) == sizeof(long), "float and long has different sizes, packing of the data stream is likely to fail!");
    }
    
+   /// @brief wait for the next timestamp
+   /// @details This method suspends the current data receiving thread until the next sampling trigger (with a different
+   /// BAT from the one given as the parameter)
+   /// @param[in] lastBAT BAT at the start of the last sampling trigger
+   /// @return BAT time of the new sample or a negative number if the termination of the thread had been requested
+   static long waitForSamplingTrigger(const long lastBAT) {
+        try {
+           // using shared_lock - multiple readers, single writer design
+           boost::shared_lock<boost::shared_mutex> lock(theirSampleTriggerMutex);
+           while ((theirSampleBAT == lastBAT) && !boost::this_thread::interruption_requested()) {  
+                 theirSampleTrigger.wait(lock);
+           }
+           //boost::this_thread::sleep(boost::posix_time::seconds(1));
+           return theirSampleBAT;      
+        }
+        catch (const boost::thread_interrupted&) {}
+        return -1;
+   }
+   
    void operator()() const {      
-      boost::this_thread::disable_interruption di;
+      //boost::this_thread::disable_interruption di;
       boost::scoped_array<float> buffer(new float[2*itsData.nelements()*itsNBeam+3]); // BAT, antenna and channel indices are in the stream
       // C-stype packing of the 3 compulsory IDs
       long *idPtr = (long*)buffer.get();
@@ -105,29 +119,47 @@ struct Worker {
                 buffer[counter+1] = imag(itsData[sample]);                
            }
       }
-      // buffer ready, wait for sampling trigger
-      while (!boost::this_thread::interruption_requested()) {
-             boost::unique_lock<boost::mutex> lock(sampleTriggerMutex);
-             while ((sampleBAT == idPtr[0]) && !boost::this_thread::interruption_requested()) {  
-                 sampleTrigger.wait(lock);
-             }
-             //boost::this_thread::sleep(boost::posix_time::seconds(1));
-             if (!boost::this_thread::interruption_requested()) {
-                 idPtr[0] = sampleBAT;
-                 //
-                 // here we will send the buffer over the socket
-                 std::cout<<"test, BAT="<<idPtr[0]<<std::endl;
-             }
+      try {
+         // buffer ready, wait for sampling trigger
+         for (long newBAT = waitForSamplingTrigger(idPtr[0]); newBAT > 0; newBAT = waitForSamplingTrigger(idPtr[0])) {
+              idPtr[0] = newBAT;
+              //
+              // here we will send the buffer over the socket
+              std::cout<<"test, BAT="<<idPtr[0]<<std::endl;
+         }
       }
-      std::cout<<"finishing"<<std::endl;
+      catch (const boost::thread_interrupted&) {
+        std::cout<<"finishing"<<std::endl;
+      }
+   }
+   
+   /// @brief set BAT corresponding to the new sample, notify all threads
+   /// @details This method is supposed to be called from the main thread when the
+   /// sampling takes place (and therefore it is static and common to all threads)
+   /// @param[in] newBAT BAT of the new sample
+   static void triggerSample(const long newBAT) {
+      {
+        boost::lock_guard<boost::shared_mutex> lock(theirSampleTriggerMutex);
+        theirSampleBAT = long(time(0));
+      }
+      theirSampleTrigger.notify_all();
    }
    
 private:
+   // static parameters to emulate simultaneous sampling on all antennas with potentially asynchronous arrival
+   static boost::condition_variable_any theirSampleTrigger;
+   static boost::shared_mutex theirSampleTriggerMutex;
+   static long theirSampleBAT;
+   // data
    casa::Vector<casa::Complex> itsData;   
    int itsAnt;
    int itsChan;
    int itsNBeam;
 };
+
+long Worker::theirSampleBAT = 0;
+boost::condition_variable_any Worker::theirSampleTrigger;
+boost::shared_mutex Worker::theirSampleTriggerMutex;
 
 // Main function
 int main(int, const char** argv)
@@ -135,7 +167,6 @@ int main(int, const char** argv)
     try {
        casa::Timer timer;
        timer.mark();
-       casa::Time time;
     
        const float samplingRate = 32./27.*1e6; // in samples per second
        casa::Vector<casa::Complex> buf1;
@@ -153,19 +184,16 @@ int main(int, const char** argv)
        boost::thread_group threads;
        for (int cnt = 0; cnt<nChan; ++cnt) {
             threads.create_thread(Worker(buf1, 0, cnt, nBeam));
+            threads.create_thread(Worker(buf2, 1, cnt, nBeam));
+            threads.create_thread(Worker(buf1, 2, cnt, nBeam));
        }
        
        for (size_t cycle = 0; cycle < 10; ++cycle) {
             std::cout<<"cycle "<<cycle<<std::endl;
-            {
-              boost::lock_guard<boost::mutex> lock(sampleTriggerMutex);
-              sampleBAT = long(time.age());
-            }
-            sampleTrigger.notify_all();
+            Worker::triggerSample(long(time(0)));
             sleep(1);
        }
        threads.interrupt_all();
-       sampleTrigger.notify_all();
        std::cout<<"waiting to finish"<<std::endl;       
        threads.join_all();
        //              
