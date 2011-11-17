@@ -35,6 +35,8 @@
 #include <casa/OS/Timer.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
+#include <mwcommon/AskapParallel.h>
+
 
 
 #include <stdexcept>
@@ -46,6 +48,7 @@ ASKAP_LOGGER(logger, ".tDummyDataGenerator");
 
 #include <boost/thread/thread.hpp>
 #include <boost/scoped_array.hpp>
+#include <boost/asio.hpp>
 
 using namespace std;
 using namespace askap;
@@ -105,8 +108,8 @@ struct Worker {
    }
    
    void operator()() const {      
-      //boost::this_thread::disable_interruption di;
-      boost::scoped_array<float> buffer(new float[2*itsData.nelements()*itsNBeam+3]); // BAT, antenna and channel indices are in the stream
+      const long msgSize = 2*itsData.nelements()*itsNBeam+3; // BAT, antenna and channel indices are in the stream
+      boost::scoped_array<float> buffer(new float[msgSize]); 
       // C-stype packing of the 3 compulsory IDs
       long *idPtr = (long*)buffer.get();
       idPtr[0] = 0; // initialise BAT with 0
@@ -125,11 +128,11 @@ struct Worker {
               idPtr[0] = newBAT;
               //
               // here we will send the buffer over the socket
-              std::cout<<"test, BAT="<<idPtr[0]<<std::endl;
+              ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<idPtr[0]);
          }
       }
       catch (const boost::thread_interrupted&) {
-        std::cout<<"finishing"<<std::endl;
+        ASKAPLOG_INFO_STR(logger, "Thread is finishing");
       }
    }
    
@@ -162,8 +165,11 @@ boost::condition_variable_any Worker::theirSampleTrigger;
 boost::shared_mutex Worker::theirSampleTriggerMutex;
 
 // Main function
-int main(int, const char** argv)
+int main(int argc, const char** argv)
 {
+    // This class must have scope outside the main try/catch block
+    askap::mwcommon::AskapParallel comms(argc, argv);
+
     try {
        casa::Timer timer;
        timer.mark();
@@ -174,8 +180,8 @@ int main(int, const char** argv)
        acquire(buf1,buf2,5.2e-6,32*3125,samplingRate);
        // assume that antenna1 = antenna3 for this simple test
 
-       std::cout<<"initialisation of dummy data "<<"user:   " << timer.user() << " system: " << timer.system()
-                                      << " real:   " << timer.real()<<std::endl;
+       ASKAPLOG_INFO_STR(logger, "initialisation of dummy data "<<"user:   " << timer.user() << " system: " << timer.system()
+                                      << " real:   " << timer.real());
        timer.mark();
        // connection to the correlator server comes here along with the threading stuff
        const int nBeam = 1;
@@ -189,12 +195,12 @@ int main(int, const char** argv)
        }
        
        for (size_t cycle = 0; cycle < 10; ++cycle) {
-            std::cout<<"cycle "<<cycle<<std::endl;
+            ASKAPLOG_INFO_STR(logger, "cycle "<<cycle);
             Worker::triggerSample(long(time(0)));
             sleep(1);
        }
        threads.interrupt_all();
-       std::cout<<"waiting to finish"<<std::endl;       
+       ASKAPLOG_INFO_STR(logger, "Waiting to finish");
        threads.join_all();
        //              
     }
