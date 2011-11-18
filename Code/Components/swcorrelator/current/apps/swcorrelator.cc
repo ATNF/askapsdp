@@ -34,6 +34,7 @@
 #include <askap/AskapError.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
+#include <swcorrelator/CorrServer.h>
 
 // casa includes
 #include <casa/OS/Timer.h>
@@ -42,14 +43,26 @@
 #include <mwcommon/AskapParallel.h>
 #include <Common/ParameterSet.h>
 #include <CommandLineParser.h>
+#include <signal.h>
+
+// boost includes
+#include <boost/asio.hpp>
+#include <boost/thread/thread.hpp>
 
 ASKAP_LOGGER(logger, ".swcorrelator");
+
+void signalHandler(int sig) {
+  signal(sig, SIG_DFL);
+  askap::swcorrelator::CorrServer::stop();
+}
 
 // Main function
 int main(int argc, const char** argv)
 {
     // This class must have scope outside the main try/catch block
     askap::mwcommon::AskapParallel comms(argc, argv);
+    
+    signal(SIGTERM, &signalHandler);
 
     try {
        casa::Timer timer;
@@ -66,8 +79,9 @@ int main(int argc, const char** argv)
 
        const LOFAR::ParameterSet parset(inputsPar);
        const LOFAR::ParameterSet subset(parset.makeSubset("swcorrelator."));
-       const int port = subset.getInt32("port");
-       ASKAPLOG_INFO_STR(logger, "Software correlator will listen port "<<port);
+             
+       askap::swcorrelator::CorrServer server(subset);
+       server.run();       
        
        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
                           << " real:   " << timer.real());
