@@ -1,4 +1,4 @@
-/// @file CasaComponentImager.h
+/// @file ComponentImagerWrapper.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_CASACOMPONENTIMAGER_H
-#define ASKAP_CP_PIPELINETASKS_CASACOMPONENTIMAGER_H
+#ifndef ASKAP_CP_PIPELINETASKS_COMPONENTIMAGERWRAPPER_H
+#define ASKAP_CP_PIPELINETASKS_COMPONENTIMAGERWRAPPER_H
 
 // System includes
 #include <vector>
@@ -43,17 +43,18 @@ namespace cp {
 namespace pipelinetasks {
 
 /// @brief A wrapper around the CASA component imager.
-class CasaComponentImager {
+class ComponentImagerWrapper {
     public:
         /// Constructor
         /// @param[in] parset   input parameters.
-        CasaComponentImager(const LOFAR::ParameterSet& parset);
+        ComponentImagerWrapper(const LOFAR::ParameterSet& parset);
 
         /// Project components onto the image
         /// @param[in] vector of components to be projected.
         /// @param[in] image to which the components will be projected.
         void projectComponents(const std::vector<askap::cp::skymodelservice::Component>& components,
-                               casa::ImageInterface<casa::Float>& image);
+                               casa::ImageInterface<casa::Float>& image,
+                               const unsigned int term);
 
     private:
         // Converts a vector of components (as obtained from the sky model

@@ -70,6 +70,7 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(AskapComponentImagerTest);
         CPPUNIT_TEST(testFourPols);
         CPPUNIT_TEST(testGaussian);
+        CPPUNIT_TEST(testTaylorTerms);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -163,6 +164,39 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
             // Uncomment the below two lines to write out the image
             //PagedImage<Float> pimage(image.shape(), image.coordinates(), "image.unittest_gaussian.casa");
             //pimage.copyData(image);
+        }
+
+        void testTaylorTerms() {
+            ComponentList list;
+
+            // Centre of the image
+            const MDirection dir(casa::Quantity(187.5, "deg"),
+                    casa::Quantity(-45.0, "deg"),
+                    MDirection::J2000);
+
+            // Create a component at the image centre with spectral index
+            const Flux<casa::Double> flux(1.0);
+            const Double spectralIndex = -0.7;
+            {
+                const SpectralIndex spectrum(MFrequency(Quantity(850, "MHz")), spectralIndex);
+                const PointShape shape(dir);
+                list.add(SkyComponent(flux, shape, spectrum));
+            }
+
+            Vector<Int> iquv(1);
+            iquv(0) = Stokes::I;
+
+            // Test all terms
+            TempImage<Float> image = createImage<Float>(dir, 256, 256, iquv);
+            for (unsigned int i = 0; i < 3; ++i) {
+                image.set(0.0);
+                AskapComponentImager::project(image, list, i);
+            }
+
+            // Check terms > 2 result in an exception being thrown
+            image.set(0.0);
+            CPPUNIT_ASSERT_THROW(AskapComponentImager::project(image, list, 3),
+                    askap::AskapError);
         }
 
     private:

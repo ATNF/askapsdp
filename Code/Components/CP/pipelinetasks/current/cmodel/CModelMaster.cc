@@ -122,41 +122,53 @@ void CModelMaster::run(void)
     gsm.reset(0);
     ASKAPLOG_INFO_STR(logger, "Number of components in result set: " << list.size());
 
-    // Send components to each worker until complete
     const casa::uInt batchSize = itsParset.getUint("batchsize", 100);
-    size_t idx = 0;
-    std::vector<askap::cp::skymodelservice::Component> subset;
-    while (idx < list.size()) {
-        // Get a batch ready
-        for (casa::uInt i = 0; i < batchSize; ++i) {
-            subset.push_back(list.at(idx));
-            idx++;
-            if (idx == list.size()) {
-                break;
-            }
+    const unsigned int nterms = itsParset.getUint("nterms", 1);
+
+    // Send components to each worker until complete
+    for (unsigned int term = 0; term < nterms; ++term) {
+        if (nterms > 1) {
+            ASKAPLOG_INFO_STR(logger, "Imaging taylor term " << term);
         }
-        // Wait for a worker to become available
-        const int worker = itsComms.getReadyWorkerId();
-        ASKAPLOG_DEBUG_STR(logger, "Allocating " << subset.size()
-                << " components to worker " << worker);
-        itsComms.sendComponents(subset, worker);
+        size_t idx = 0;
+        std::vector<askap::cp::skymodelservice::Component> subset;
+        while (idx < list.size()) {
+            // Get a batch ready
+            for (casa::uInt i = 0; i < batchSize; ++i) {
+                subset.push_back(list.at(idx));
+                idx++;
+                if (idx == list.size()) {
+                    break;
+                }
+            }
+            // Wait for a worker to become available
+            const int worker = itsComms.getReadyWorkerId();
+            ASKAPLOG_DEBUG_STR(logger, "Allocating " << subset.size()
+                    << " components to worker " << worker);
+            itsComms.sendComponents(subset, worker);
+            subset.clear();
+            ASKAPLOG_INFO_STR(logger, "Master has allocated " << idx << " of "
+                    << list.size() << " components");
+        }
+
+        // Send each worker an empty list to signal completion, need to first consume
+        // the ready signals so the workers will unblock.
         subset.clear();
-        ASKAPLOG_INFO_STR(logger, "Master has allocated " << idx << " of "
-                << list.size() << " components");
-    }
+        for (int i = 1; i < itsComms.getNumNodes(); ++i) {
+            const int worker = itsComms.getReadyWorkerId();
+            itsComms.sendComponents(subset, worker);
+        }
 
-    // Send each worker an empty list to signal completion, need to first consume
-    // the ready signals so the workers will unblock.
-    subset.clear();
-    for (int i = 1; i < itsComms.getNumNodes(); ++i) {
-        const int worker = itsComms.getReadyWorkerId();
-        itsComms.sendComponents(subset, worker);
-    }
+        // Create an image and sum all workers images to the master
+        std::string filename = parset.getString("filename");
+        if (nterms > 1) {
+            filename += ".";
+            filename += askap::utility::toString(term);
+        }
 
-    // Create an image and sum all workers images to the master
-    const std::string filename = parset.getString("filename");
-    casa::PagedImage<casa::Float> image = ImageFactory::createPagedImage(parset, filename);
-    ASKAPLOG_INFO_STR(logger, "Beginning reduction step");
-    itsComms.sumImages(image, 0);
-    ASKAPLOG_INFO_STR(logger, "Completed reduction step");
+        casa::PagedImage<casa::Float> image = ImageFactory::createPagedImage(parset, filename);
+        ASKAPLOG_INFO_STR(logger, "Beginning reduction step");
+        itsComms.sumImages(image, 0);
+        ASKAPLOG_INFO_STR(logger, "Completed reduction step");
+    }
 }

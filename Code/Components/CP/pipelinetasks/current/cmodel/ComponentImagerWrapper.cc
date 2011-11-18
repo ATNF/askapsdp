@@ -1,4 +1,4 @@
-/// @file CasaComponentImager.cc
+/// @file ComponentImagerWrapper.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "cmodel/CasaComponentImager.h"
+#include "cmodel/ComponentImagerWrapper.h"
 
 // Include package level header file
 #include "askap_pipelinetasks.h"
@@ -60,30 +60,35 @@
 using namespace askap::cp::pipelinetasks;
 using namespace casa;
 
-ASKAP_LOGGER(logger, ".CasaComponentImager");
+ASKAP_LOGGER(logger, ".ComponentImagerWrapper");
 
-CasaComponentImager::CasaComponentImager(const LOFAR::ParameterSet& parset)
+ComponentImagerWrapper::ComponentImagerWrapper(const LOFAR::ParameterSet& parset)
         : itsParset(parset)
 {
 }
 
-void CasaComponentImager::projectComponents(const std::vector<askap::cp::skymodelservice::Component>& components,
-        casa::ImageInterface<casa::Float>& image)
+void ComponentImagerWrapper::projectComponents(const std::vector<askap::cp::skymodelservice::Component>& components,
+        casa::ImageInterface<casa::Float>& image,
+        const unsigned int term)
 {
-    // Build the image using the specified imager (or casa component imager)
-    // if none was specified
-    const std::string imager = itsParset.getString("imager", "casa");
+    // Build the image using the specified imager (or askap component imager
+    // if none was specified)
+    const std::string imager = itsParset.getString("imager", "askap");
     if (imager.compare("casa") == 0) {
+        if (term > 0) {
+            ASKAPTHROW(AskapError, "Casa component imager doesn't support taylor terms");
+        }
         casa::ComponentImager::project(image, translateComponentList(components));
     } else if (imager.compare("askap") == 0) {
         askap::components::AskapComponentImager::project(image,
-                translateComponentList(components));
+                translateComponentList(components),
+                term);
     } else {
         ASKAPTHROW(AskapError, "Unknown component imager: " << imager);
     } 
 }
 
-casa::ComponentList CasaComponentImager::translateComponentList(const std::vector<askap::cp::skymodelservice::Component>& components)
+casa::ComponentList ComponentImagerWrapper::translateComponentList(const std::vector<askap::cp::skymodelservice::Component>& components)
 {
     casa::ComponentList list;
 

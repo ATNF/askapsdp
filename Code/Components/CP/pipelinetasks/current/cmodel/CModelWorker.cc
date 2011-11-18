@@ -43,7 +43,7 @@
 
 // Local package includes
 #include "cmodel/MPIBasicComms.h"
-#include "cmodel/CasaComponentImager.h"
+#include "cmodel/ComponentImagerWrapper.h"
 #include "cmodel/ImageFactory.h"
 
 // Using
@@ -66,23 +66,27 @@ void CModelWorker::run(void)
     // Obtain the parset via broadcast
     itsComms.broadcastParset(parset, 0);
 
-    // Create a TempImage and the component imager
-    casa::TempImage<casa::Float> image = ImageFactory::createTempImage(parset);
-    CasaComponentImager imager(parset);
+    // How many terms to handle?
+    const unsigned int nterms = parset.getUint("nterms", 1);
 
-    // Signal master ready, receive and image components until the master
-    // signals completion by sending an empty list
-    std::vector<askap::cp::skymodelservice::Component> list;
-    do {
-        itsComms.signalReady(0);
-        list = itsComms.receiveComponents(0);
+    for (unsigned int term = 0; term < nterms; ++term) {
+        // Create a TempImage and the component imager
+        casa::TempImage<casa::Float> image = ImageFactory::createTempImage(parset);
+        ComponentImagerWrapper imager(parset);
 
-        ASKAPLOG_DEBUG_STR(logger, "Imaging list of " << list.size() << " components");
-        imager.projectComponents(list, image);
-    } while (!list.empty());
+        // Signal master ready, receive and image components until the master
+        // signals completion by sending an empty list
+        std::vector<askap::cp::skymodelservice::Component> list;
+        do {
+            itsComms.signalReady(0);
+            list = itsComms.receiveComponents(0);
 
-    ASKAPLOG_DEBUG_STR(logger, "Beginning reduction");
-    itsComms.sumImages(image, 0);
-    ASKAPLOG_DEBUG_STR(logger, "Reduction complete");
+            ASKAPLOG_DEBUG_STR(logger, "Imaging list of " << list.size() << " components");
+            imager.projectComponents(list, image, term);
+        } while (!list.empty());
 
+        ASKAPLOG_DEBUG_STR(logger, "Beginning reduction");
+        itsComms.sumImages(image, 0);
+        ASKAPLOG_DEBUG_STR(logger, "Reduction complete");
+    }
 }

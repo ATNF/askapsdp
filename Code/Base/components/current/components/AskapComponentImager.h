@@ -28,6 +28,7 @@
 #define ASKAP_COMPONENTS_ASKAPCOMPONENTIMAGER_H
 
 // ASKAPsoft includes
+#include "casa/aipstype.h"
 #include "images/Images/ImageInterface.h"
 #include "components/ComponentModels/ComponentList.h"
 #include "components/ComponentModels/SkyComponent.h"
@@ -35,6 +36,7 @@
 #include "coordinates/Coordinates/DirectionCoordinate.h"
 #include "measures/Measures/Stokes.h"
 #include "casa/Arrays/IPosition.h"
+#include "components/ComponentModels/Flux.h"
 
 namespace askap {
 namespace components {
@@ -47,42 +49,51 @@ namespace components {
 /// more performant.
 class AskapComponentImager {
     public:
-        // Project the componentlist onto the image.
+        /// Project the componentlist onto the image.
+        ///
+        /// @param[inout] image the image onto which the components will be projected.
+        /// @param[in] list the list of components to project.
         template<class T>
-        static void project(casa::ImageInterface<T>& image, const casa::ComponentList& list);
+        static void project(casa::ImageInterface<T>& image,
+                            const casa::ComponentList& list,
+                            const unsigned int term = 0);
 
     private:
         template<class T>
         static void projectPointShape(casa::ImageInterface<T>& image,
-                                    const casa::SkyComponent& c,
-                                    const casa::Int latAxis, const casa::Int longAxis,
-                                    const casa::DirectionCoordinate& dirCoord,
-                                    const casa::Int freqAxis, const casa::uInt freqIdx,
-                                    const casa::MFrequency& centerFrequency,
-                                    const casa::Int polAxis, const casa::uInt polIdx,
-                                    const casa::Stokes::StokesTypes& stokes);
+                                      const casa::SkyComponent& c,
+                                      const casa::Int latAxis, const casa::Int longAxis,
+                                      const casa::DirectionCoordinate& dirCoord,
+                                      const casa::Int freqAxis, const casa::uInt freqIdx,
+                                      const casa::Flux<casa::Double>& flux,
+                                      const casa::Int polAxis, const casa::uInt polIdx,
+                                      const casa::Stokes::StokesTypes& stokes);
 
         template<class T>
         static void projectGaussianShape(casa::ImageInterface<T>& image,
-                                    const casa::SkyComponent& c,
-                                    const casa::Int latAxis, const casa::Int longAxis,
-                                    const casa::DirectionCoordinate& dirCoord,
-                                    const casa::Int freqAxis, const casa::uInt freqIdx,
-                                    const casa::MFrequency& centerFrequency,
-                                    const casa::Int polAxis, const casa::uInt polIdx,
-                                    const casa::Stokes::StokesTypes& stokes);
+                                         const casa::SkyComponent& c,
+                                         const casa::Int latAxis, const casa::Int longAxis,
+                                         const casa::DirectionCoordinate& dirCoord,
+                                         const casa::Int freqAxis, const casa::uInt freqIdx,
+                                         const casa::Flux<casa::Double>& flux,
+                                         const casa::Int polAxis, const casa::uInt polIdx,
+                                         const casa::Stokes::StokesTypes& stokes);
 
         static casa::IPosition makePosition(const casa::Int latAxis, const casa::Int longAxis,
                                             const casa::Int spectralAxis, const casa::Int polAxis,
                                             const casa::uInt latIdx, const casa::uInt longIdx,
                                             const casa::uInt spectralIdx, const casa::uInt polIdx);
+
+        static casa::Flux<casa::Double> makeFlux(const casa::SkyComponent& c,
+                const casa::MFrequency& chanFrequency,
+                const unsigned int term);
 };
 
 // Explicit instantiations exist for float and double types only
 extern template void AskapComponentImager::project(casa::ImageInterface<float>&,
-        const casa::ComponentList&);
+        const casa::ComponentList&, const unsigned int);
 extern template void AskapComponentImager::project(casa::ImageInterface<double>&,
-        const casa::ComponentList&);
+        const casa::ComponentList&, const unsigned int);
 }
 }
 

@@ -40,16 +40,18 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "casa/aipstype.h"
 #include "casa/Arrays/IPosition.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Quanta/MVAngle.h"
 #include "casa/Quanta/MVDirection.h"
 #include "casa/Quanta/MVFrequency.h"
+#include "scimath/Functionals/Gaussian2D.h"
+#include "images/Images/ImageInterface.h"
 #include "measures/Measures/Stokes.h"
 #include "measures/Measures/MDirection.h"
 #include "measures/Measures/MFrequency.h"
 #include "measures/Measures/MeasRef.h"
-#include "images/Images/ImageInterface.h"
 #include "components/ComponentModels/SkyComponent.h"
 #include "components/ComponentModels/ComponentList.h"
 #include "components/ComponentModels/Flux.h"
@@ -65,7 +67,6 @@
 #include "coordinates/Coordinates/CoordinateSystem.h"
 #include "coordinates/Coordinates/DirectionCoordinate.h"
 #include "coordinates/Coordinates/SpectralCoordinate.h"
-#include "scimath/Functionals/Gaussian2D.h"
 
 ASKAP_LOGGER(logger, ".AskapComponentImager");
 
@@ -74,7 +75,8 @@ using namespace askap::components;
 using namespace casa;
 
 template<class T>
-void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::ComponentList& list)
+void AskapComponentImager::project(casa::ImageInterface<T>& image,
+        const casa::ComponentList& list, const unsigned int term)
 {
     if (list.nelements() == 0) {
         return;
@@ -91,7 +93,8 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
     const uInt longAxis = dirAxes(1);
 
     // Find the Direction coordinate and check the right number of axes exists
-    DirectionCoordinate dirCoord = coords.directionCoordinate(coords.findCoordinate(Coordinate::DIRECTION));
+    DirectionCoordinate dirCoord = coords.directionCoordinate(
+            coords.findCoordinate(Coordinate::DIRECTION));
     ASKAPCHECK(dirCoord.nPixelAxes() == 2, "DirectionCoordinate has unsupported number of pixel axes");
     ASKAPCHECK(dirCoord.nWorldAxes() == 2, "DirectionCoordinate has unsupported number of world axes");
     dirCoord.setWorldAxisUnits(Vector<String>(2, "rad"));
@@ -149,21 +152,24 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image, const casa::C
         const SkyComponent& c = list.component(i);
 
         for (uInt freqIdx = 0; freqIdx < nFreqs; ++freqIdx) {
-            for (uInt polIdx = 0; polIdx < stokes.size(); ++polIdx) {
 
-                const MFrequency chanFrequency(freqValues(freqIdx).get());
+            // Scale flux based on spectral model and taylor term
+            const MFrequency chanFrequency(freqValues(freqIdx).get());
+            Flux<Double> flux = makeFlux(c, chanFrequency, term);
+
+            for (uInt polIdx = 0; polIdx < stokes.size(); ++polIdx) {
 
                 switch (c.shape().type()) {
                     case ComponentType::POINT:
                         projectPointShape(image, c, latAxis, longAxis, dirCoord,
-                                        freqAxis, freqIdx, chanFrequency,
-                                        polAxis, polIdx, stokes(polIdx));
+                                freqAxis, freqIdx, flux,
+                                polAxis, polIdx, stokes(polIdx));
                         break;
 
                     case ComponentType::GAUSSIAN:
                         projectGaussianShape(image, c, latAxis, longAxis, dirCoord,
-                                           freqAxis, freqIdx, chanFrequency,
-                                           polAxis, polIdx, stokes(polIdx));
+                                freqAxis, freqIdx, flux,
+                                polAxis, polIdx, stokes(polIdx));
                         break;
 
                     default:
@@ -182,7 +188,7 @@ void AskapComponentImager::projectPointShape(casa::ImageInterface<T>& image,
         const casa::Int latAxis, const casa::Int longAxis,
         const casa::DirectionCoordinate& dirCoord,
         const casa::Int freqAxis, const casa::uInt freqIdx,
-        const casa::MFrequency& centerFrequency,
+        const casa::Flux<casa::Double>& flux,
         const casa::Int polAxis, const casa::uInt polIdx,
         const casa::Stokes::StokesTypes& stokes)
 {
@@ -193,25 +199,20 @@ void AskapComponentImager::projectPointShape(casa::ImageInterface<T>& image,
     ASKAPCHECK(toPixelOk, "toPixel failed");
 
     // Don't image this component if it falls outside the image
-    // Note: This code will cull those components which may (due to rounding)
-    // have been positioned in the edge pixels.
     const IPosition imageShape = image.shape();
-    if (pixelPosition(0) < 0 || pixelPosition(0) > (imageShape(latAxis) - 1)
-            || pixelPosition(1) < 0 || pixelPosition(1) > (imageShape(longAxis) - 1)) {
+    const double latPosition = round(pixelPosition(0));
+    const double lonPosition = round(pixelPosition(1));
+    if (latPosition < 0 || latPosition > (imageShape(latAxis) - 1)
+            || lonPosition < 0 || lonPosition > (imageShape(longAxis) - 1)) {
         return;
     }
 
-    // Scale flux based on spectral model
-    Flux<Double> flux = c.flux().copy();
-    const Double scale = c.spectrum().sample(centerFrequency);
-    flux.scaleValue(scale, scale, scale, scale);
-
     // Add to image
     const IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
-            static_cast<size_t>(nearbyint(pixelPosition[0])),
-            static_cast<size_t>(nearbyint(pixelPosition[1])),
+            static_cast<size_t>(latPosition),
+            static_cast<size_t>(lonPosition),
             freqIdx, polIdx);
-    image.putAt(image(pos) + (flux.value(stokes, true).getValue("Jy")), pos);
+    image.putAt(image(pos) + (flux.copy().value(stokes, true).getValue("Jy")), pos);
 }
 
 template<class T>
@@ -220,7 +221,7 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
         const casa::Int latAxis, const casa::Int longAxis,
         const casa::DirectionCoordinate& dirCoord,
         const casa::Int freqAxis, const casa::uInt freqIdx,
-        const casa::MFrequency& centerFrequency,
+        const casa::Flux<casa::Double>& flux,
         const casa::Int polAxis, const casa::uInt polIdx,
         const casa::Stokes::StokesTypes& stokes)
 {
@@ -238,11 +239,6 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
             || pixelPosition(1) < 0 || pixelPosition(1) > (imageShape(longAxis) - 1)) {
         return;
     }
-
-    // Scale flux based on spectral model
-    Flux<Double> flux = c.flux().copy();
-    const Double scale = c.spectrum().sample(centerFrequency);
-    flux.scaleValue(scale, scale, scale, scale);
 
     // Get the pixel sizes then convert the axis sizes to pixels
     const GaussianShape& cShape = dynamic_cast<const GaussianShape&>(c.shape());
@@ -260,7 +256,7 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
     gauss.setMajorAxis(std::max(majorAxisPixels, minorAxisPixels));
     gauss.setMinorAxis(std::min(majorAxisPixels, minorAxisPixels));
     gauss.setPA(cShape.positionAngleInRad());
-    gauss.setFlux(flux.value(stokes, true).getValue("Jy"));
+    gauss.setFlux(flux.copy().value(stokes, true).getValue("Jy"));
 
     IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
             static_cast<size_t>(nearbyint(pixelPosition[0])),
@@ -303,8 +299,60 @@ IPosition AskapComponentImager::makePosition(const casa::Int latAxis, const casa
     return pos;
 }
 
+casa::Flux<casa::Double> AskapComponentImager::makeFlux(const casa::SkyComponent& c,
+        const casa::MFrequency& chanFrequency,
+        const unsigned int term)
+{
+    // Transform flux for the given spectral model
+    Flux<Double> flux;
+    if (c.spectrum().type() == ComponentType::CONSTANT_SPECTRUM) {
+        flux = c.flux().copy();
+
+    } else if (c.spectrum().type() == ComponentType::SPECTRAL_INDEX) {
+        // Scale flux based on spectral index
+        flux = c.flux().copy();
+        const Double scale = c.spectrum().sample(chanFrequency);
+        flux.scaleValue(scale, scale, scale, scale);
+
+    } else {
+        ASKAPTHROW(AskapError, "Unsupported spectral model");
+    }
+
+    // Now transform flux for the given taylor term
+    if (term == 0) {
+        // Taylor Term 0 
+        // I0 = I(v0)
+    } else if (term == 1) {
+        // Taylor Term 1
+        // I1 = I(v0) * alpha
+        Double alpha = 0.0;
+        if (c.spectrum().type() == ComponentType::SPECTRAL_INDEX) {
+            const casa::SpectralIndex& spectralModel =
+                dynamic_cast<const casa::SpectralIndex&>(c.spectrum());
+            alpha = spectralModel.index();
+        }
+        flux.scaleValue(alpha, alpha, alpha, alpha);
+    } else if (term == 2) {
+        // Taylor Term 2
+        // I2 = I(v0) * (0.5 * alpha * (alpha - 1) + beta)
+        Double alpha = 0.0;
+        if (c.spectrum().type() == ComponentType::SPECTRAL_INDEX) {
+            const casa::SpectralIndex& spectralModel =
+                dynamic_cast<const casa::SpectralIndex&>(c.spectrum());
+            alpha = spectralModel.index();
+        }
+        const Double beta = 0.0;
+        const Double factor = (0.5 * alpha * (alpha - 1.0) + beta);
+        flux.scaleValue(factor, factor, factor, factor);
+    } else {
+        ASKAPTHROW(AskapError, "Only support taylor terms 0, 1 & 2");
+    }
+
+    return flux;
+}
+
 // Explicit instantiation
 template void AskapComponentImager::project(casa::ImageInterface<float>&,
-        const casa::ComponentList&);
+        const casa::ComponentList&, const unsigned int);
 template void AskapComponentImager::project(casa::ImageInterface<double>&,
-        const casa::ComponentList&);
+        const casa::ComponentList&, const unsigned int);
