@@ -131,9 +131,8 @@ struct Worker {
               ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<idPtr[0]);
          }
       }
-      catch (const boost::thread_interrupted&) {
-        ASKAPLOG_INFO_STR(logger, "Thread is finishing");
-      }
+      catch (const boost::thread_interrupted&) {}
+      ASKAPLOG_INFO_STR(logger, "Thread is finishing");
    }
    
    /// @brief set BAT corresponding to the new sample, notify all threads
