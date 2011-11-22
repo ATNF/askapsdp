@@ -862,11 +862,12 @@ namespace askap {
 
                         if (*type == "psf") {
                             for (size_t i = 0; i < cmpntList.size(); i++) {
-//                                 cmpntList[i].setMajor(this->itsHeader.getBeamSize());
-//                                 cmpntList[i].setMinor(this->itsHeader.getBeamSize());
-                                cmpntList[i].setMajor(this->itsHeader.beam().area());
-                                cmpntList[i].setMinor(this->itsHeader.beam().area());			      
-                                cmpntList[i].setPA(0.);
+			      //cmpntList[i].setMajor(this->itsHeader.beam().area());
+			      //cmpntList[i].setMinor(this->itsHeader.beam().area());			      
+			      //cmpntList[i].setPA(0.);
+                                cmpntList[i].setMajor(this->itsHeader.beam().maj());
+                                cmpntList[i].setMinor(this->itsHeader.beam().min());			      
+                                cmpntList[i].setPA(this->itsHeader.beam().pa());
                             }
                         }
 
@@ -995,8 +996,13 @@ namespace askap {
                             pos.row(i) = curpos;
                         }
                     }
-
-                    casa::Vector<casa::Double> f = getPixelsInBox(taylor1Name, this->itsBox);
+		    
+		    Slice xrange=casa::Slice(this->boxXmin(),this->boxXmax()-this->boxXmin()+1,1);
+		    Slice yrange=casa::Slice(this->boxYmin(),this->boxYmax()-this->boxYmin()+1,1);
+		    Slicer theBox=casa::Slicer(xrange, yrange);
+		    ASKAPLOG_DEBUG_STR(logger, xrange << " " << yrange << " " << theBox);
+		    //                    casa::Vector<casa::Double> f = getPixelsInBox(taylor1Name, this->itsBox);
+                    casa::Vector<casa::Double> f = getPixelsInBox(taylor1Name, theBox);
 
                     ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor 1 term");
 
@@ -1016,6 +1022,8 @@ namespace askap {
                             fit.rparams().setFlagFitThisParam("height");
                             fit.rparams().setNegativeFluxPossible(true);
                             fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
+			    ASKAPLOG_DEBUG_STR(logger, "Setting estimate with the following:");
+			    this->itsBestFitMap[*type].logIt("DEBUG");
                             fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
                             fit.setRetries();
                             fit.setMasks();
@@ -1027,8 +1035,9 @@ namespace askap {
                                 ASKAPLOG_DEBUG_STR(logger, "Alpha fitting worked! Values (" << this->itsBestFitMap[*type].numGauss() << " of them) follow:");
 
                                 for (int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
-                                    alphaValues[i] = fit.gaussian(i).flux() / this->itsBestFitMap[*type].gaussian(i).flux();
-                                    ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << alphaValues[i]);
+				    float Iref=this->itsBestFitMap[*type].gaussian(i).flux();
+                                    alphaValues[i] = fit.gaussian(i).flux() / Iref;
+                                    ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << alphaValues[i] << ", calculated with fitted flux of " << fit.gaussian(i).flux()<<", peaking at "<<fit.gaussian(i).height()<<", best fit taylor0 flux of " << Iref);
                                 }
                             }
 
@@ -1097,22 +1106,39 @@ namespace askap {
                     // Get taylor1 values for box, and define positions
                     casa::Matrix<casa::Double> pos;
                     casa::Vector<casa::Double> sigma;
-                    pos.resize(this->boxSize(), 2);
-                    sigma.resize(this->boxSize());
                     casa::Vector<casa::Double> curpos(2);
-                    curpos = 0;
+//                     pos.resize(this->boxSize(), 2);
+//                     sigma.resize(this->boxSize());
+//                     curpos = 0;
 
-                    for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
-                        for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
-                            int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
-                            sigma(i) = 1.;
-                            curpos(0) = x;
-                            curpos(1) = y;
-                            pos.row(i) = curpos;
-                        }
-                    }
+//                     for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+//                         for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+//                             int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+//                             sigma(i) = 1.;
+//                             curpos(0) = x;
+//                             curpos(1) = y;
+//                             pos.row(i) = curpos;
+//                         }
+//                     }
 
-                    casa::Vector<casa::Double> f = getPixelsInBox(taylor2Name, this->itsBox);
+                    casa::Vector<casa::Double> fbox = getPixelsInBox(taylor2Name, this->itsBox);
+		    casa::Vector<casa::Double> f;
+		    pos.resize(this->getSize(),2);
+		    f.resize(this->getSize());
+		    sigma.resize(this->getSize());
+		    int i=0;
+		    for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+		      for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+			if(this->isInObject(PixelInfo::Voxel(x,y,0))){
+			  sigma(i)=1.;
+			  curpos(0)=x;
+			  curpos(1)=y;
+			  pos.row(i) = curpos;
+			  f(i) = fbox(x-this->boxXmin() + (y-this->boxYmin())*this->boxXsize());
+			  i++;
+			}
+		      }
+		    }
 
                     ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor 2 term");
 
@@ -1144,8 +1170,9 @@ namespace askap {
 
                                 for (int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
                                     float alpha = this->itsAlphaMap[*type][i];
-                                    betaValues[i] = fit.gaussian(i).flux() / this->itsBestFitMap[*type].gaussian(i).flux() - 0.5 * alpha * (alpha - 1.);
-                                    ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << betaValues[i]);
+				    float Iref = this->itsBestFitMap[*type].gaussian(i).flux();// / this->itsHeader.beam().area();
+                                    betaValues[i] = fit.gaussian(i).flux() / Iref - 0.5 * alpha * (alpha - 1.);
+                                    ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << betaValues[i] << ", calculated with fitted flux of " << fit.gaussian(i).flux()<<", peaking at "<<fit.gaussian(i).height()<<", best fit taylor0 flux of " << Iref<< ", and alpha="<<alpha);
                                 }
                             }
 

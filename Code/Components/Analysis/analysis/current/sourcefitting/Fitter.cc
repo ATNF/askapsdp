@@ -126,13 +126,18 @@ namespace askap {
                         // if the subcomponent is smaller than the beam, or if we
                         // don't want to fit the size parameters, change the
                         // estimates of the parameters to the beam size
-                        if (size || !this->itsParams.flagFitThisParam(3))
+
+			// WTF??? WE MAY WANT TO KEEP THE SHAPE CONSTANT AT SOMETHING OTHER THAN THE BEAM. REMOVING CHECKS ON THE FIT FLAGS
+			//                        if (size || !this->itsParams.flagFitThisParam(3))
+                        if (size)
                             estimate(g, 3) = head.beam().maj();
 
-                        if (size || !this->itsParams.flagFitThisParam(4))
+			//                        if (size || !this->itsParams.flagFitThisParam(4))
+                        if (size)
                             estimate(g, 4) = head.beam().min()/head.beam().maj();
 
-                        if (size || !this->itsParams.flagFitThisParam(5))
+			//                        if (size || !this->itsParams.flagFitThisParam(5))
+                        if (size)
                             estimate(g, 5) = head.beam().pa() * M_PI / 180.;
                     }
 

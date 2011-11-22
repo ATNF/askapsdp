@@ -457,15 +457,19 @@ namespace askap {
                 ASKAPTHROW(AskapError, "Requested image \"" << imageName << "\" does not exist or could not be opened.");
 
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-	    
+	    ASKAPLOG_DEBUG_STR(logger, "Image shape = " << imagePtr->shape());
+
+	    ASKAPLOG_DEBUG_STR(logger, box);
+	    lengthenSlicer(box,imagePtr->ndim());
 	    casa::Slicer newSlicer=box;
 	    if(fixSlice){
 	      wcsprm *tempwcs = casaImageToWCS(imagePtr);
 	      fixSlicer(newSlicer, tempwcs);
 	    }
+	    ASKAPLOG_DEBUG_STR(logger, newSlicer);
 
 	    casa::Array<Float> array;
-	    array = imagePtr->getSlice(newSlicer);
+	    array = imagePtr->getSlice(newSlicer,true);
             float *data = array.data();
             casa::Vector<Double> vec(array.size());
 
@@ -546,8 +550,9 @@ namespace askap {
             /// @param par Used for default beam size in case there is no
             /// beam info in the image, or to store the beam size (in
             /// pixels) if there is.
+	  ASKAPLOG_DEBUG_STR(logger, "What follows is the imageInfo:\n"<<imagePtr->imageInfo());
             casa::Vector<casa::Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
-	    //	    ASKAPLOG_DEBUG_STR(logger, "Read beam from casa image: " << beam );
+	    ASKAPLOG_DEBUG_STR(logger, "Read beam from casa image: " << beam );
 
             if (beam.size() == 0) {
                 std::stringstream errmsg;
@@ -571,7 +576,7 @@ namespace askap {
             }
 	    par.setBeamAsUsed(head.beam());
 
-	    //	    ASKAPLOG_DEBUG_STR(logger, "Beam to be used: (maj,min,pa)=("<<head.beam().maj()<<","<<head.beam().min()<<","<<head.beam().pa()<<")");
+	    ASKAPLOG_DEBUG_STR(logger, "Beam to be used: (maj,min,pa)=("<<head.beam().maj()<<","<<head.beam().min()<<","<<head.beam().pa()<<")");
 
         }
 
@@ -886,6 +891,27 @@ namespace askap {
             slice = Slicer(start, end, stride, Slicer::endIsLast);
         }
 
+        //**************************************************************//
+
+      void lengthenSlicer(Slicer &slice, int ndim)
+        {
+	  int oldDim=slice.ndim();
+	  if(oldDim<ndim){
+	    
+            IPosition start = slice.start();
+	    start.resize(ndim);
+	    for(int i=oldDim; i<ndim;i++) start[i]=0;
+            IPosition end = slice.end();
+	    end.resize(ndim);
+	    for(int i=oldDim; i<ndim;i++) end[i]=0;
+            IPosition stride = slice.stride();
+	    stride.resize(ndim);
+	    for(int i=oldDim; i<ndim;i++) stride[i]=1;
+
+            slice = Slicer(start, end, stride, Slicer::endIsLast);
+	  }
+
+	}
 
 
     }

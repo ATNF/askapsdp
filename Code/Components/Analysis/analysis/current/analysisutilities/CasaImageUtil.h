@@ -107,6 +107,8 @@ namespace askap {
         /// @brief Return a vector of pixel values in a box subsection of an image.
         casa::Vector<casa::Double> getPixelsInBox(std::string imageName, casa::Slicer box, bool fixSlicer=true);
 
+	/// @brief Increase the length of a Slicer by adding degenerate dimensions on the end
+	void lengthenSlicer(Slicer &slice, int ndim);
     }
 
 }
