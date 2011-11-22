@@ -14,7 +14,9 @@ env["CC"] = "mpicc"
 env["CXX"] = "mpicxx"
 env["LINK"] = "mpicxx"
 env["SHLINK"] = "mpicxx"
-env.Append(CCFLAGS=['-O2', '-g'])
+
+env.AppendUnique(CCFLAGS='-O3')
+env.AppendUnique(CCFLAGS='-g')
 
 # run the build process
 pkg()

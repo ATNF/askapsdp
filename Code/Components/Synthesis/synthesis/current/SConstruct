@@ -13,12 +13,16 @@ if 'AIPSPATH' not in os.environ:
    os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Base/accessors/current'
 env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
-#env.Append(CCFLAGS=['-O2', '-DASKAP_DEBUG', '-DASKAP_GRID_WITH_BLAS', '-g'])
-env.Append(CCFLAGS=['-O2', '-DASKAP_DEBUG', '-DASKAP_GRID_WITH_POINTERS', '-g'])
+#env.AppendUnique(CCFLAGS='-DASKAP_GRID_WITH_BLAS')
+env.AppendUnique(CCFLAGS='-DASKAP_GRID_WITH_POINTERS')
+env.AppendUnique(CCFLAGS='-DASKAP_DEBUG')
+env.AppendUnique(CCFLAGS='-g')
+env.AppendUnique(CCFLAGS='-O3')
+env.AppendUnique(CCFLAGS='-g')
 
 # Optimization for complex arithmetic. The functionality this flag enables
 # was default behaviour prior to GCC 4.3.
-env.Append(CCFLAGS=['-fcx-limited-range'])
+env.AppendUnique(CCFLAGS=['-fcx-limited-range'])
 
 env.Append(universal=0)
 

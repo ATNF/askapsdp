@@ -8,10 +8,9 @@
 # Always import this
 from askapenv import env
 
-#env.Append(CCFLAGS=['-O2'])
-env.Append(CCFLAGS=['-O2','-DASKAP_DEBUG'])
-#env.Append(CCFLAGS=['-Wall'])
-#env.Append(CCFLAGS=['-DHAVE_AIPSPP'])
+env.AppendUnique(CCFLAGS='-g')
+env.AppendUnique(CCFLAGS='-O3')
+env.AppendUnique(CCFLAGS='-DASKAP_DEBUG')
 env.Append(universal=0)
 
 # create build object with library name

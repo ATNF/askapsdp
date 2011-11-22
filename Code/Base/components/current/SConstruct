@@ -10,9 +10,8 @@ pkg = env.AskapPackage("components")
 
 pkg.AddSubPackage("components")
 
-env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
-env.Append(CCFLAGS=['-O2'])
+env.Append(CCFLAGS=['-O3'])
 env.Append(CCFLAGS=['-DASKAP_DEBUG'])
 
 # run the build process
