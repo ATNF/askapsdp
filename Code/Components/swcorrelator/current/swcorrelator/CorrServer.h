@@ -32,6 +32,9 @@
 #ifndef ASKAP_SWCORRELATOR_CORRSERVER_H
 #define ASKAP_SWCORRELATOR_CORRSERVER_H
 
+// own includes
+#include <swcorrelator/BufferManager.h>
+
 // other 3rd party
 #include <Common/ParameterSet.h>
 
@@ -94,6 +97,9 @@ private:
   
   /// @brief temporary buffer for the handler of asynchronous connection
   boost::shared_ptr<IConnection> itsConnectionHandlerBuf;
+  
+  /// @brief manager of the buffers
+  boost::shared_ptr<BufferManager> itsBufferManager;
 };
 
 } // namespace swcorrelator

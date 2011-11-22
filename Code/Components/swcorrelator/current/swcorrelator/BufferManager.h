@@ -43,6 +43,7 @@
 #include <complex>
 #include <vector>
 #include <utility>
+#include <stdexcept>
 
 #include <casa/Arrays/Cube.h>
 
@@ -90,7 +91,19 @@ public:
    /// @details
    /// @param[in] id buffer ID (should be non-negative)
    /// @return pointer to the first data element of the buffer
-   std::complex<float>* data(const int id) const;   
+   std::complex<float>* data(const int id) const;  
+   
+   /// @brief access to the buffer as a whole
+   /// @details This method is intended to be used with the actual
+   /// receiving code (which doesn't discriminate between the header
+   /// and the data)
+   /// @param[in] id buffer ID (should be non-negative)
+   /// @return pointer to the buffer
+   void* buffer(const int id) const;  
+   
+   /// @brief size of a single buffer
+   /// @return size of a single buffer in bytes
+   int bufferSize() const;
    
    /// @brief obtain a buffer to receive data
    /// @details This method return an ID of a free buffer used to
@@ -133,7 +146,9 @@ protected:
    /// @return true if nothing has been found so far, false otherwise
    /// @note The method assumes that a lock has been acquired
    bool findCompleteSet(std::pair<int,int> &index) const;
-   
+
+   /// @brief exception used internally
+   struct HelperException : public std::exception {};   
 private:
    /// @brief maximum number of buffers supported (fixed at 6*nChan*nBeam)
    int itsNBuf;

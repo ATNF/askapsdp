@@ -34,6 +34,10 @@
 #include <swcorrelator/BufferManager.h>
 #include <askap/AskapError.h>
 #include <boost/thread/thread.hpp>
+#include <askap_swcorrelator.h>
+#include <askap/AskapLogging.h>
+
+ASKAP_LOGGER(logger, ".swcorrelator");
 
 namespace askap {
 
@@ -76,6 +80,26 @@ std::complex<float>* BufferManager::data(const int id) const
    ASKAPDEBUGASSERT((id >= 0) && (id<itsNBuf));
    float *start = itsBuffer.get() + id * itsBufferSize + int(sizeof(BufferHeader)/sizeof(float));
    return (std::complex<float>*)(start);
+}
+
+/// @brief access to the buffer as a whole
+/// @details This method is intended to be used with the actual
+/// receiving code (which doesn't discriminate between the header
+/// and the data)
+/// @param[in] id buffer ID (should be non-negative)
+/// @return pointer to the buffer
+void* BufferManager::buffer(const int id) const
+{
+   ASKAPDEBUGASSERT((id >= 0) && (id<itsNBuf));
+   float *start = itsBuffer.get() + id * itsBufferSize;
+   return (void*)start;   
+}
+   
+/// @brief size of a single buffer
+/// @return size of a single buffer in bytes
+int BufferManager::bufferSize() const
+{
+  return itsBufferSize * sizeof(float);
 }
    
 /// @brief obtain a buffer to receive data
@@ -179,14 +203,27 @@ void BufferManager::releaseBuffers(const BufferSet &ids) const
 void BufferManager::bufferFilled(const int id) const
 {
   ASKAPDEBUGASSERT((id >= 0) && (id < itsNBuf));
-  {
+  try {
     boost::lock_guard<boost::mutex> lock(itsStatusCVMutex);  
     itsStatus[id] = BUF_READY;       
     const BufferHeader& hdr = header(id);
-    ASKAPCHECK(hdr.antenna < itsReadyBuffers.nrow(), "Antenna index is out of bounds");
-    ASKAPCHECK(hdr.freqId < itsReadyBuffers.ncolumn(), "Card (channel) index is out of bounds");
-    ASKAPCHECK(hdr.beam < itsReadyBuffers.nplane(), "Beam index is out of bounds");
+    if ((hdr.antenna >= itsReadyBuffers.nrow()) || (hdr.antenna < 0)) {
+        ASKAPLOG_WARN_STR(logger, "Received data from unknown antenna "<<hdr.antenna<<" - ignoring");
+        throw BufferManager::HelperException();
+    }
+    if ((hdr.freqId >= itsReadyBuffers.ncolumn()) || (hdr.freqId < 0)) {
+        ASKAPLOG_WARN_STR(logger, "Received data from unknown channel (card) "<<hdr.freqId<<" - ignoring");
+        throw BufferManager::HelperException();
+    }
+    if ((hdr.beam >= itsReadyBuffers.nplane()) || (hdr.beam < 0)) {
+        ASKAPLOG_WARN_STR(logger, "Received data from unknown beam "<<hdr.beam<<" - ignoring");
+        throw BufferManager::HelperException();
+    }
     itsReadyBuffers(hdr.antenna, hdr.freqId, hdr.beam) = id;
+  } catch (const BufferManager::HelperException &) {
+    itsStatus[id] = BUF_FREE; 
+    // no need to wake other threads up unnecessarily as long as we ignore this buffer
+    return;    
   }
   itsStatusCV.notify_all();
 }
