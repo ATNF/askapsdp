@@ -30,8 +30,7 @@
 #ifndef ASKAP_SWCORRELATOR_BUFFER_HEADER
 #define ASKAP_SWCORRELATOR_BUFFER_HEADER
 
-#include <boost/integer.hpp>
-#include <sys/types.h>
+#include <inttypes.h>
 
 namespace askap {
 
