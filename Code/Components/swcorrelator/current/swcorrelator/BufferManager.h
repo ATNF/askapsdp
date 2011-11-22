@@ -34,8 +34,11 @@
 #ifndef ASKAP_SWCORRELATOR_BUFFER_MANAGER
 #define ASKAP_SWCORRELATOR_BUFFER_MANAGER
 
+#include <swcorrelator/BufferHeader.h>
+
 #include <boost/thread/thread.hpp>
 #include <boost/scoped_array.hpp>
+
 
 #include <complex>
 #include <vector>
@@ -46,17 +49,6 @@
 namespace askap {
 
 namespace swcorrelator {
-
-/// @brief header preceding each data chunk for all buffers
-struct BufferHeader {
-    uint64_t    bat;     // BAT of first sample
-    uint32_t    antenna; // antenna number
-    uint32_t    freqId;  // currently card number 1-16.  If we go to more DSPs will be 1-64 (same as FreqId field is FITs acm capture)
-    uint32_t    beam;    // beam number 1-18
-    uint32_t    frame;   // frame number of first sample (from digitiser packet, see below)
-    uint32_t    control; // user defined value, can be hooked up thru epics to send control via OSL script or gui to software correlator if necessary
-    uint32_t    length;  // length of data (should always be 4194304 (num ddr pages * bytes per beam) for 16MHz
-};
 
 /// @brief manages buffers for broad-band data
 /// @details This class manages buffers for broad-band data 
