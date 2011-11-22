@@ -60,12 +60,12 @@ namespace askap {
         itsResidual->set(10.0);
         itsStep.reset(new Array<Float>(itsModelShape));
         itsStep->set(1.0);
-	itsEntropy=EntropyBase<Float>::ShPtr(new Emptiness<Float>::Emptiness());
+	itsEntropy=EntropyBase<Float>::ShPtr(new Emptiness<Float>());
         itsEntropy->setPrior(*itsPrior);
         itsEntropy->setMask(*itsMask);
       }
       void testEntropyI() {
-	itsEntropy=EntropyBase<Float>::ShPtr(new EntropyI<Float>::EntropyI());
+	itsEntropy=EntropyBase<Float>::ShPtr(new EntropyI<Float>());
         itsPrior->set(3.0);
         itsEntropy->setPrior(*itsPrior);
         itsEntropy->setMask(*itsMask);

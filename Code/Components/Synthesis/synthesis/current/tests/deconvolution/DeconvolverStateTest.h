@@ -50,7 +50,7 @@ class DeconvolverStateTest : public CppUnit::TestFixture
 public:
    
   void setUp() {
-    itsDS=boost::shared_ptr<DeconvolverState<Float> >(new DeconvolverState<Float>::DeconvolverState());
+    itsDS=boost::shared_ptr<DeconvolverState<Float> >(new DeconvolverState<Float>());
   }
    void testSetGet() {
      {

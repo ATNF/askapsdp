@@ -48,7 +48,7 @@ class DeconvolverMonitorTest : public CppUnit::TestFixture
 public:
    
   void setUp() {
-    itsDM=boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>::DeconvolverMonitor());
+    itsDM=boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
   }
    void testMonitor() {
      {

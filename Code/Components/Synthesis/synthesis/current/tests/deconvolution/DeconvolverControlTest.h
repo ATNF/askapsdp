@@ -50,7 +50,7 @@ namespace askap {
     public:
       
       void setUp() {
-        itsDC=boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>::DeconvolverControl());
+        itsDC=boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
       }
       void testSetGet() {
         {

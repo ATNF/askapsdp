@@ -58,7 +58,7 @@ namespace askap {
 	scales[0]=0.0;
 	scales[1]=3.0;
 	scales[2]=6.0;
-	itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(scales));
+	itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>(scales));
 	itsBasisFunction->initialise(itsBasisFunctionShape);
       }
       void testSetup() {
@@ -70,7 +70,7 @@ namespace askap {
       void testPoint() {
         {
           itsBasisFunction.reset();
-          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new PointBasisFunction<Float>::PointBasisFunction());
+          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new PointBasisFunction<Float>());
 	  itsBasisFunction->initialise(itsBasisFunctionShape);
           CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,50,50,1));
           CPPUNIT_ASSERT(itsBasisFunction->numberBases()==1);
@@ -85,7 +85,7 @@ namespace askap {
           scales[0]=0.0;
           scales[1]=3.0;
           scales[2]=6.0;
-          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(scales));
+          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>(scales));
 	  itsBasisFunction->initialise(itsBasisFunctionShape);
           CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,50,50,3));
           CPPUNIT_ASSERT(itsBasisFunction->numberBases()==3);
@@ -105,7 +105,7 @@ namespace askap {
           scales[0]=0.0;
           scales[1]=3.0;
           scales[2]=6.0;
-          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>::MultiScaleBasisFunction(scales));
+          itsBasisFunction=boost::shared_ptr<BasisFunction<Float> >(new MultiScaleBasisFunction<Float>(scales));
 	  itsBasisFunction->initialise(IPosition(2,20,20));
           CPPUNIT_ASSERT(itsBasisFunction->basisFunction().shape()==IPosition(3,20,20,3));
           CPPUNIT_ASSERT(itsBasisFunction->numberBases()==3);
