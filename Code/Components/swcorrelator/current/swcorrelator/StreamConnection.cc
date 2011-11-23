@@ -62,7 +62,27 @@ void StreamConnection::operator()()
   ASKAPLOG_INFO_STR(logger, "Data stream thread started, id="<<boost::this_thread::get_id());
   try {
     ASKAPDEBUGASSERT(itsSocket);
-    ASKAPDEBUGASSERT(itsBufferManager);        
+    ASKAPDEBUGASSERT(itsBufferManager); 
+    while (true) {
+       boost::this_thread::sleep(boost::posix_time::seconds(1));
+       
+       // for debugging emulate data coming from all antennas here
+       const uint64_t bat = uint64_t(time(0));
+       for (int ant=0; ant<3; ++ant) {
+          const int bufId = itsBufferManager->getBufferToFill();
+          if (bufId < 0) {
+              ASKAPLOG_FATAL_STR(logger, "Not keeping up - buffer overflow in the data stream thread");
+              break;
+          }
+          ASKAPLOG_INFO_STR(logger, "Got bufId="<<bufId<<" from the manager");
+          BufferHeader* buf = (BufferHeader*)itsBufferManager->buffer(bufId);
+          buf->bat = bat;
+          buf->antenna = ant;
+          buf->beam = 0;
+          buf->freqId = 0;
+          itsBufferManager->bufferFilled(bufId);
+       }
+    }    
   } catch (const AskapError &ae) {
     ASKAPLOG_FATAL_STR(logger, "Data stream thread (id="<<boost::this_thread::get_id()<<") is about to die: "<<ae.what());
     throw;

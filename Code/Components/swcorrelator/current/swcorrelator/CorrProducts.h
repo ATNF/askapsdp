@@ -68,7 +68,7 @@ struct CorrProducts : private boost::noncopyable {
   int itsBeam;
   
   /// @brief time
-  uint64_t    itsBAT;
+  uint64_t itsBAT;
   
   /// @brief baseline spacings for all 3 baselines (rows are baselines)
   casa::Matrix<double> itsUVW;

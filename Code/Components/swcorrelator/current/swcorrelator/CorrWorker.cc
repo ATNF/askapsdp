@@ -63,12 +63,26 @@ void CorrWorker::operator()()
     ASKAPDEBUGASSERT(itsFiller);
     ASKAPDEBUGASSERT(itsBufferManager);
     while (true) {
-       // just for debugging generate a fake result every second (asynchronously - so can't debug multiple beams/channels)
-       boost::this_thread::sleep(boost::posix_time::seconds(1));
-       const uint64_t bat = uint64_t(time(0));
-       CorrProducts& cp = itsFiller->productsBuffer(0, bat);
+       // extract the first complete set of buffers
+       BufferManager::BufferSet ids = itsBufferManager->getFilledBuffers();
+       const uint64_t bat = itsBufferManager->header(ids.itsAnt1).bat;
+       const int beam = itsBufferManager->header(ids.itsAnt1).beam;
+       const int chan = itsBufferManager->header(ids.itsAnt1).freqId;
+       // consistency checks
+       ASKAPDEBUGASSERT(beam == int(itsBufferManager->header(ids.itsAnt2).beam));
+       ASKAPDEBUGASSERT(beam == int(itsBufferManager->header(ids.itsAnt3).beam));
+       ASKAPDEBUGASSERT(chan == int(itsBufferManager->header(ids.itsAnt2).freqId));
+       ASKAPDEBUGASSERT(chan == int(itsBufferManager->header(ids.itsAnt3).freqId));
+       ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt2).bat);
+       ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt3).bat);
+       // run correlation here
+       itsBufferManager->releaseBuffers(ids);
+       // store the result
+       CorrProducts& cp = itsFiller->productsBuffer(beam, bat);
        cp.itsBAT = bat;
-       itsFiller->notifyProductsReady(0);
+       // unflag this channel
+       cp.itsFlag.column(chan).set(false);       
+       itsFiller->notifyProductsReady(beam);
     }
   } catch (const AskapError &ae) {
      ASKAPLOG_FATAL_STR(logger, "Correlator thread (id="<<boost::this_thread::get_id()<<") is about to die: "<<ae.what());

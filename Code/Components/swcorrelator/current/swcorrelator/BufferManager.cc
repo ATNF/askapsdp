@@ -53,7 +53,7 @@ const int nSamples = 524288;
 /// @param[in] nChan number of channels (cards)
 BufferManager::BufferManager(const size_t nBeam, const size_t nChan) : itsNBuf(6*nBeam*nChan),
      itsBufferSize(2*nSamples + int(sizeof(BufferHeader)/sizeof(float))),
-     itsBuffer(new float[2*nSamples + int(sizeof(BufferHeader)/sizeof(float))]),
+     itsBuffer(new float[(2*nSamples + int(sizeof(BufferHeader)/sizeof(float)))*itsNBuf]),
      itsStatus(itsNBuf, BUF_FREE),
      itsReadyBuffers(3, nChan, nBeam, -1)
 {
@@ -116,7 +116,7 @@ int BufferManager::getBufferToFill() const
          return id;
      }
   }
-  return 0;
+  return -1;
 }
    
 /// @brief get filled buffers for a matching channel + beam
@@ -205,6 +205,8 @@ void BufferManager::bufferFilled(const int id) const
   ASKAPDEBUGASSERT((id >= 0) && (id < itsNBuf));
   try {
     boost::lock_guard<boost::mutex> lock(itsStatusCVMutex);  
+    ASKAPCHECK(itsStatus[id] == BUF_BEING_FILLED, "An attempt to release the buffer which is not being filled, status="<<
+               itsStatus[id]);
     itsStatus[id] = BUF_READY;       
     const BufferHeader& hdr = header(id);
     if ((hdr.antenna >= itsReadyBuffers.nrow()) || (hdr.antenna < 0)) {
