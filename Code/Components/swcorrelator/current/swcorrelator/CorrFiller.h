@@ -80,6 +80,58 @@ public:
   /// closes the MS which is currently being written.
   void shutdown();
   
+  /// @brief manage the flush status flag
+  
+  /// @brief get buffer to write it to MS
+  /// @details This method is intended to be called from the writing thread. It obtains
+  /// a buffer corresponding to the given beam. It is assumed the required locks have
+  /// already been obtained.
+  /// @param[in] beam beam of interest
+  /// @oaram[in] useFirst true, if the first set of buffers is flushed, false otherwise
+  /// @return reference to the buffer
+  CorrProducts& getProductsToWrite(const int beam, const bool useFirst) const;
+
+  /// @brief get job for writing 
+  /// @details This method is intended to be called from the writing thread. It acquires
+  /// the required locks (and block the thread until it happens). The method returns
+  /// the flag showing which buffer set is to be written.
+  /// @return true, if the first buffer is to be written, false otherwise
+  bool getWritingJob();
+  
+  /// @brief notify that the writing job has been finished
+  /// @details This method is intended to be called from the writing thread. It releases
+  /// the whole set of buffers unlocking them for the corelation threads.
+  /// @param[in] isFirst true, if the first set of buffers is released, false otherwise
+  void notifyWritingDone(const bool useFirst);
+    
+  /// @brief get buffer to be fileld with new data
+  /// @details This method is intended to be called from correlator threads when
+  /// new visibility data are ready to be stored
+  /// @param[in] beam beam index
+  /// @param[in] bat time stamp
+  /// @return reference to the buffer
+  /// @note it calls notifyOfNewData
+  CorrProducts& productsBuffer(const int beam, const uint64_t bat);
+  
+  /// @brief notify that the buffer has been filled with data
+  /// @param[in] beam beam index
+  void notifyProductsReady(const int beam);
+
+protected:
+  
+  /// @brief notify that the new data are about to be received
+  /// @details This method is intended to be called from correlator threads when
+  /// a new piece of data is about to be stored in a buffer. It triggers write and
+  /// a buffer swap if the new BAT is different from that of the buffer.
+  /// @param[in] bat time stamp of the new data
+  void notifyOfNewData(const uint64_t bat);
+  
+  /// @brief wait for all fill operations to complete
+  /// @details This method waits for all buffer fill operations to complete,
+  /// this is necessary before the buffer swap could be initiated and the
+  /// current buffer could be transfered to the writing thread to store.
+  void waitFillCompletion();
+  
 private:
  
   /// @brief maximum number of antennas (should always be 3 for now)
@@ -103,18 +155,35 @@ private:
   /// writing to be complete
   std::pair<bool, bool> itsFlushStatus;
   
+  /// @brief true if the first set of buffers is active for writing
+  bool itsFirstActive;
+  
+  /// @brief time corresponding to the active buffer (i.e what is correlated now)
+  /// @note uint64_t(-1) is a flag of an uninitialised BAT (i.e. active buffer is fresh)
+  uint64_t  itsActiveBAT;
+  
+  /// @brief true if flush is requested
+  /// @details This flag is monitored (through the condition variable) by the writing thread. If it is
+  /// raised, the active buffer is deactivated and write operation commences.
+  bool itsReadyToWrite;
+  
   /// @brief status of the current active buffers
   /// @details The writing is done in parallel, separately for each beam.
   /// Therefore, we keep status flag per beam. true means the appropriate
   /// buffer is being filled.
   std::vector<bool> itsFillStatus;
-  
+
   /// @brief status condition variable
   mutable boost::condition_variable itsStatusCV;
   
   /// @brief mutex associated with the status condition variable
   mutable boost::mutex itsStatusCVMutex;
-  
+
+  /// @brief true if buffer swap is being handled
+  /// @details We have multiple writing threads and have to unlock the mutex to wait
+  /// for all threads to finish. To avoid any of these writing threads to jump into
+  /// buffer swap mechanism, this condition is checked before swap is initiated.  
+  bool itsSwapHandled;
 };
 
 } // namespace swcorrelator
