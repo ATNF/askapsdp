@@ -222,19 +222,22 @@ CorrProducts& CorrFiller::productsBuffer(const int beam, const uint64_t bat)
 {
   ASKAPDEBUGASSERT((beam>=0) || (beam < nBeam()));
   notifyOfNewData(bat);
-  boost::lock_guard<boost::mutex> lock(itsStatusCVMutex);
-  if (bat != itsActiveBAT) {
-      ASKAPLOG_FATAL_STR(logger, "Not keeping up buffer swap has been initiated while the result was copied");
-  } else {
-      if (itsFillStatus[beam]) {
-          ASKAPLOG_FATAL_STR(logger, "The buffer for beam="<<beam<<" and bat="<<bat<<" is already being filled");
-      } 
-      itsFillStatus[beam] = true;
-  }  
-  const int offset = itsFirstActive ? 0 : nBeam();
-  boost::shared_ptr<CorrProducts> cp = itsCorrProducts[beam + offset];
-  ASKAPDEBUGASSERT(cp);
-  return *cp;
+  {
+    // acquire lock of the given product (different threads working on different
+    // spectral channels may want to write at the same time
+    boost::unique_lock<boost::mutex> lock(itsStatusCVMutex);
+    while (itsFillStatus[beam]) {
+        itsStatusCV.wait(lock);
+    }
+    if (bat != itsActiveBAT) {
+        ASKAPLOG_FATAL_STR(logger, "Not keeping up - buffer swap has been initiated");
+    } 
+    itsFillStatus[beam] = true;
+    const int offset = itsFirstActive ? 0 : nBeam();
+    boost::shared_ptr<CorrProducts> cp = itsCorrProducts[beam + offset];
+    ASKAPDEBUGASSERT(cp);
+    return *cp;
+  }
 }
   
 /// @brief notify that the buffer has been filled with data
