@@ -35,6 +35,7 @@
 ASKAP_LOGGER(logger, ".corrfiller");
 
 #include <string>
+#include <boost/thread.hpp>
 
 namespace askap {
 
@@ -49,16 +50,22 @@ FillerWorker::FillerWorker(const boost::shared_ptr<CorrFiller> &filler) : itsFil
 /// @brief entry point for the parallel thread
 void FillerWorker::operator()()
 {
-  ASKAPLOG_INFO_STR(logger, "Writing thread started");
-  while (true) {
-     const bool buffer = itsFiller->getWritingJob();
-     const std::string bufType = buffer ? "first" : "second";
-     for (int beam=0; beam < itsFiller->nBeam(); ++beam) {
-          CorrProducts &cp = itsFiller->getProductsToWrite(beam, buffer);
-          ASKAPLOG_INFO_STR(logger, "Write for buffer `"<<bufType<<"` beam="<<beam<<" bat="<<cp.itsBAT<<
-             "vis="<<cp.itsVisibility<<" flag="<<cp.itsFlag);
-     }
-     itsFiller->notifyWritingDone(buffer);
+  ASKAPLOG_INFO_STR(logger, "Writing thread started, id="<<boost::this_thread::get_id());
+  try {
+    ASKAPDEBUGASSERT(itsFiller);
+    while (true) {       
+       const bool buffer = itsFiller->getWritingJob();
+       const std::string bufType = buffer ? "first" : "second";
+       for (int beam=0; beam < itsFiller->nBeam(); ++beam) {
+            CorrProducts &cp = itsFiller->getProductsToWrite(beam, buffer);
+            ASKAPLOG_INFO_STR(logger, "Write for buffer `"<<bufType<<"` beam="<<beam<<" bat="<<cp.itsBAT<<
+               " vis="<<cp.itsVisibility<<" flag="<<cp.itsFlag);
+       }
+       itsFiller->notifyWritingDone(buffer);
+    }
+  } catch (const AskapError &ae) {
+     ASKAPLOG_FATAL_STR(logger, "Writing thread (id="<<boost::this_thread::get_id()<<") is about to die: "<<ae.what());
+     throw;
   }
 }
 

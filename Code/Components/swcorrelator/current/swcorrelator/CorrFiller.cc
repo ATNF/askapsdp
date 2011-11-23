@@ -207,7 +207,9 @@ void CorrFiller::waitFillCompletion()
            break;
        }
     }
-    itsStatusCV.wait(lock);
+    if (keepGoing) {
+        itsStatusCV.wait(lock);
+    }
   }
 }
 

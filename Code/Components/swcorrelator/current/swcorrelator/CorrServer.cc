@@ -35,6 +35,7 @@
 #include <askap/AskapLogging.h>
 #include <swcorrelator/CorrServer.h>
 #include <swcorrelator/FillerWorker.h>
+#include <swcorrelator/CorrWorker.h>
 #include <boost/asio.hpp>
 
 ASKAP_LOGGER(logger, ".swcorrelator");
@@ -98,6 +99,11 @@ void CorrServer::run()
   ASKAPDEBUGASSERT(itsBufferManager);
   ASKAPLOG_INFO_STR(logger, "About to start writing thread");
   itsThreads.create_thread(FillerWorker(itsFiller));
+  const int nCorrThreads = itsFiller->nBeam() * itsFiller->nChan();
+  ASKAPLOG_INFO_STR(logger, "About to start "<<nCorrThreads<<" correlator thread(s)");
+  for (int i = 0; i<nCorrThreads; ++i) {
+      itsThreads.create_thread(CorrWorker(itsFiller,itsBufferManager));
+  }
   
   ASKAPLOG_INFO_STR(logger, "About to run I/O service loop");
   theirIOService.run();
