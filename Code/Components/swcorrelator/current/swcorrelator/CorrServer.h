@@ -34,6 +34,7 @@
 
 // own includes
 #include <swcorrelator/BufferManager.h>
+#include <swcorrelator/CorrFiller.h>
 
 // other 3rd party
 #include <Common/ParameterSet.h>
@@ -79,10 +80,7 @@ private:
   /// @brief handler of asynchronous accept
   /// @param[in] e error code
   void asyncAcceptHandler(const boost::system::error_code &e);
- 
-  /// @brief parset with configuration
-  LOFAR::ParameterSet itsParset;
-  
+   
   /// @brief acceptor
   boost::asio::ip::tcp::acceptor itsAcceptor;
   
@@ -100,6 +98,9 @@ private:
   
   /// @brief manager of the buffers
   boost::shared_ptr<BufferManager> itsBufferManager;
+  
+  /// @brief filler/collater of the result
+  boost::shared_ptr<CorrFiller> itsFiller;
 };
 
 } // namespace swcorrelator

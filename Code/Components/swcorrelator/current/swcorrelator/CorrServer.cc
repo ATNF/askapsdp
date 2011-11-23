@@ -70,17 +70,14 @@ void CorrServer::stop()
 /// @brief constructor, attaches the server to the given port
 /// @details Configuration is done via the parset
 /// @param[in] parset parset file with configuration info
-CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsParset(parset), 
-    itsAcceptor(theirIOService)
+CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOService)
 {
   // setup acceptor
-  const int port = itsParset.getInt32("port");
+  const int port = parset.getInt32("port");
   ASKAPLOG_INFO_STR(logger, "Software correlator will listen port "<<port);
-  const int nAnt = itsParset.getInt32("nant",3);
-  const int nBeam = itsParset.getInt32("nbeam",1);
-  const int nChan = itsParset.getInt32("nchan",1);
-  ASKAPLOG_INFO_STR(logger, "Initialise for "<<nAnt<<" antennas and up to "<<nBeam<<" beams and "<<nChan<<" channels(cards)");
-  itsBufferManager.reset(new BufferManager(nBeam,nChan));
+
+  itsFiller.reset(new CorrFiller(parset));  
+  itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan()));
   
   // initialise tcp endpoint
   boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
@@ -98,8 +95,11 @@ void CorrServer::run()
 {
   ASKAPLOG_INFO_STR(logger, "About to run I/O service loop");
   theirIOService.run();
-  ASKAPLOG_INFO_STR(logger, "Waiting for all threads to finish");
+  ASKAPLOG_INFO_STR(logger, "Waiting for all I/O and correlator threads to finish");
+  itsThreads.interrupt_all();
   itsThreads.join_all();
+  ASKAPLOG_INFO_STR(logger, "Shutting down the filler");
+  itsFiller->shutdown();
 }
 
 /// @brief initiate asynchronous accept

@@ -38,17 +38,19 @@ namespace swcorrelator {
 
 /// @brief constructor 
 /// @param[in] nchan number of channels (cards)
-CorrProducts::CorrProducts(const int nchan) : itsVisibility(3, nchan, casa::Complex(0.,0.)), itsFlag(3, nchan, true), itsBeam(-1),
-      itsBAT(0), itsUVW(3, 3, 0.), itsUVWValid(false) {}
+  /// @param[in] beam beam number corresponding to this buffer
+CorrProducts::CorrProducts(const int nchan, const int beam) : itsVisibility(3, nchan, casa::Complex(0.,0.)), 
+      itsFlag(3, nchan, true), itsBeam(beam),
+      itsBAT(0), itsUVW(3, 3, 0.), itsUVWValid(false) 
+{
+  ASKAPDEBUGASSERT(beam >= 0);
+}
   
 /// @brief initialise the buffer for a given beam and bat
 /// @details
-/// @param[in] beam beam number
 /// @param[in] bat time
-void CorrProducts::init(const int beam, const uint64_t bat)
+void CorrProducts::init(const uint64_t bat)
 {
-  ASKAPDEBUGASSERT(beam >= 0);
-  itsBeam = beam;
   itsBAT = bat;
   itsUVW.set(0.);
   itsUVWValid = false;

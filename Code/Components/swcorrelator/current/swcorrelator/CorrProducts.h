@@ -50,13 +50,13 @@ struct CorrProducts : private boost::noncopyable {
   
   /// @brief constructor 
   /// @param[in] nchan number of channels (cards)
-  CorrProducts(const int nchan);
+  /// @param[in] beam beam number corresponding to this buffer
+  CorrProducts(const int nchan, const int beam);
   
   /// @brief initialise the buffer for a given beam and bat
   /// @details
-  /// @param[in] beam beam number
   /// @param[in] bat time
-  void init(const int beam, const uint64_t bat);
+  void init(const uint64_t bat);
   
   /// @brief visibility buffer (dimensions are baseline and channel)
   casa::Matrix<casa::Complex> itsVisibility;   

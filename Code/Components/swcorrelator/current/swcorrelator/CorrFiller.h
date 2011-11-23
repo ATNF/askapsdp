@@ -32,6 +32,20 @@
 #ifndef ASKAP_SWCORRELATOR_CORR_FILLER
 #define ASKAP_SWCORRELATOR_CORR_FILLER
 
+// own includes
+#include <swcorrelator/CorrProducts.h>
+
+// other 3rd party
+#include <Common/ParameterSet.h>
+
+// std includes
+#include <vector>
+#include <utility>
+
+// boost includes
+#include <boost/shared_ptr.hpp>
+#include <boost/thread/thread.hpp>
+
 namespace askap {
 
 namespace swcorrelator {
@@ -43,7 +57,64 @@ namespace swcorrelator {
 /// @ingroup swcorrelator
 class CorrFiller {
 public:
-   
+  /// @brief constructor, sets up the filler
+  /// @details Configuration is done via the parset
+  /// @param[in] parset parset file with configuration info
+  CorrFiller(const LOFAR::ParameterSet &parset);
+  
+  /// @brief maximum number of antennas
+  /// @return number of antennas
+  inline int nAnt() const { return itsNAnt; }
+  
+  /// @brief maximum number of beams
+  /// @return maximum number of beams
+  inline int nBeam() const {return itsNBeam;}
+  
+  /// @brief maximum number of spectral channels
+  /// @return maximum number of spectral channels (or cards)
+  inline int nChan() const {return itsNChan;}
+  
+  /// @brief shutdown the filler
+  /// @detais This method is effectively a destructor, which can be
+  /// called more explicitly. It stops the writing thread and
+  /// closes the MS which is currently being written.
+  void shutdown();
+  
+private:
+ 
+  /// @brief maximum number of antennas (should always be 3 for now)
+  int itsNAnt;
+  
+  /// @brief maximum number of beams
+  int itsNBeam;
+  
+  /// @brief maximum number of spectral channels (or cards)
+  int itsNChan;
+  
+  /// @brief two products for every beam (active and standby)
+  std::vector<boost::shared_ptr<CorrProducts> > itsCorrProducts;
+  
+  /// @brief status of the first and the second buffers
+  /// @details We have two buffers per beam. When BAT changes, the current 
+  /// content is made ready to be flushed to disk. The flag is true
+  /// if the appropriate set of buffers (i.e. first or second) is currently
+  /// being written to disk by the parallel thread and false otherwise.
+  /// The transition to flush status (i.e. true) requires to wait for all
+  /// writing to be complete
+  std::pair<bool, bool> itsFlushStatus;
+  
+  /// @brief status of the current active buffers
+  /// @details The writing is done in parallel, separately for each beam.
+  /// Therefore, we keep status flag per beam. true means the appropriate
+  /// buffer is being filled.
+  std::vector<bool> itsFillStatus;
+  
+  /// @brief status condition variable
+  mutable boost::condition_variable itsStatusCV;
+  
+  /// @brief mutex associated with the status condition variable
+  mutable boost::mutex itsStatusCVMutex;
+  
 };
 
 } // namespace swcorrelator
