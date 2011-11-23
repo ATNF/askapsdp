@@ -48,11 +48,6 @@ namespace askap {
 
 namespace swcorrelator {
 
-struct IConnection {
-  virtual ~IConnection() {};
-  virtual void start() = 0;
-};
-
 /// @brief main tcp server functionality for the correlator
 /// @details This class manages tcp server side which starts a new 
 /// receiving thread for each new tcp connection. Each thread receives
@@ -93,8 +88,8 @@ private:
   /// @brief flag to stop the server
   static bool theirStopRequested;
   
-  /// @brief temporary buffer for the handler of asynchronous connection
-  boost::shared_ptr<IConnection> itsConnectionHandlerBuf;
+  /// @brief temporary buffer for a socket to handle asynchronous connection
+  boost::shared_ptr<boost::asio::ip::tcp::socket> itsSocketBuf;
   
   /// @brief manager of the buffers
   boost::shared_ptr<BufferManager> itsBufferManager;

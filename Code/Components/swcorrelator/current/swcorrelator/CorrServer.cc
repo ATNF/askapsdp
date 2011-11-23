@@ -36,6 +36,7 @@
 #include <swcorrelator/CorrServer.h>
 #include <swcorrelator/FillerWorker.h>
 #include <swcorrelator/CorrWorker.h>
+#include <swcorrelator/StreamConnection.h>
 #include <boost/asio.hpp>
 
 ASKAP_LOGGER(logger, ".swcorrelator");
@@ -44,18 +45,6 @@ namespace askap {
 
 namespace swcorrelator {
 
-struct Worker : public IConnection {
-  Worker(const boost::shared_ptr<boost::asio::ip::tcp::socket> &socket) : itsSocket(socket) {}
-  
-  void operator()() {
-    ASKAPLOG_INFO_STR(logger, "Thread started to manage connection");
-  }
-  
-  virtual void start() {}
-  
-private:
-  boost::shared_ptr<boost::asio::ip::tcp::socket> itsSocket;
-};
 
 bool CorrServer::theirStopRequested = false;
 
@@ -117,9 +106,8 @@ void CorrServer::run()
 /// @brief initiate asynchronous accept
 void CorrServer::initAsyncAccept()
 {
-  boost::shared_ptr<boost::asio::ip::tcp::socket> socket(new boost::asio::ip::tcp::socket(theirIOService));
-  itsConnectionHandlerBuf.reset(new Worker(socket));
-  itsAcceptor.async_accept(*socket, boost::bind(&CorrServer::asyncAcceptHandler, this, boost::asio::placeholders::error));
+  itsSocketBuf.reset(new boost::asio::ip::tcp::socket(theirIOService));
+  itsAcceptor.async_accept(*itsSocketBuf, boost::bind(&CorrServer::asyncAcceptHandler, this, boost::asio::placeholders::error));
 }
   
 /// @brief handler of asynchronous accept
@@ -127,9 +115,8 @@ void CorrServer::initAsyncAccept()
 void CorrServer::asyncAcceptHandler(const boost::system::error_code &e)
 {
   if (!e) {
-     itsConnectionHandlerBuf->start();
-     boost::shared_ptr<Worker> worker = boost::dynamic_pointer_cast<Worker>(itsConnectionHandlerBuf);
-     itsThreads.create_thread(*worker);     
+     itsThreads.create_thread(StreamConnection(itsSocketBuf, itsBufferManager));
+     itsSocketBuf.reset();
   }
   if (!theirStopRequested) {
      initAsyncAccept();
