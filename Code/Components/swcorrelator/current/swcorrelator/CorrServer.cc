@@ -34,6 +34,7 @@
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
 #include <swcorrelator/CorrServer.h>
+#include <swcorrelator/FillerWorker.h>
 #include <boost/asio.hpp>
 
 ASKAP_LOGGER(logger, ".swcorrelator");
@@ -93,6 +94,11 @@ CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOS
 /// manage each connection.
 void CorrServer::run()
 {
+  ASKAPDEBUGASSERT(itsFiller);
+  ASKAPDEBUGASSERT(itsBufferManager);
+  ASKAPLOG_INFO_STR(logger, "About to start writing thread");
+  itsThreads.create_thread(FillerWorker(itsFiller));
+  
   ASKAPLOG_INFO_STR(logger, "About to run I/O service loop");
   theirIOService.run();
   ASKAPLOG_INFO_STR(logger, "Waiting for all I/O and correlator threads to finish");
