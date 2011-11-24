@@ -58,6 +58,7 @@ BufferManager::BufferManager(const size_t nBeam, const size_t nChan) : itsNBuf(6
      itsReadyBuffers(3, nChan, nBeam, -1)
 {
    ASKAPCHECK(sizeof(BufferHeader) % sizeof(float) == 0, "Some padding is required");
+   ASKAPCHECK(sizeof(std::complex<float>) == 2*sizeof(float), "std::complex<float> is not just two floats!");
 }
    
 /// @brief obtain a header for the given buffer

@@ -62,6 +62,9 @@ void CorrWorker::operator()()
   try {
     ASKAPDEBUGASSERT(itsFiller);
     ASKAPDEBUGASSERT(itsBufferManager);
+    Simple3BaselineCorrelator<std::complex<float>, int> s3bc;
+    // buffer size in complex floats
+    const int size = (itsBufferManager->bufferSize() - int(sizeof(BufferHeader))) / sizeof(float) / 2;
     while (true) {
        // extract the first complete set of buffers
        BufferManager::BufferSet ids = itsBufferManager->getFilledBuffers();
@@ -75,13 +78,19 @@ void CorrWorker::operator()()
        ASKAPDEBUGASSERT(chan == int(itsBufferManager->header(ids.itsAnt3).freqId));
        ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt2).bat);
        ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt3).bat);
-       // run correlation here
+       // run correlation
+       s3bc.reset(0,0,0); // zero delays for now
+       s3bc.accumulate(itsBufferManager->data(ids.itsAnt1), itsBufferManager->data(ids.itsAnt2), 
+                       itsBufferManager->data(ids.itsAnt3), size);
        itsBufferManager->releaseBuffers(ids);
        // store the result
        CorrProducts& cp = itsFiller->productsBuffer(beam, bat);
        cp.itsBAT = bat;
        // unflag this channel
-       cp.itsFlag.column(chan).set(false);       
+       cp.itsFlag.column(chan).set(false);
+       cp.itsVisibility(0,chan) = s3bc.getVis12();
+       cp.itsVisibility(1,chan) = s3bc.getVis23();
+       cp.itsVisibility(2,chan) = s3bc.getVis13();       
        itsFiller->notifyProductsReady(beam);
     }
   } catch (const AskapError &ae) {
