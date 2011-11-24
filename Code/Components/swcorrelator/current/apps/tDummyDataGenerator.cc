@@ -128,9 +128,17 @@ struct Worker {
         // buffer is filled
         boost::asio::io_service ioService;
         boost::asio::ip::tcp::resolver resolver(ioService);
-        const std::string host = "localhost";
+        //const std::string host = "localhost";
+        const std::string host = "delphinus";
         boost::asio::ip::tcp::resolver::query query(host,"3000");
-        boost::asio::ip::tcp::endpoint endpoint = *(++resolver.resolve(query));
+        boost::asio::ip::tcp::endpoint endpoint;
+        // for now just used the last endpoint (at least it seems to work)
+        // ideally, we want to try every endpoint and then use the first one which works
+        // I am too bored to code accurate exception handling here
+        for(boost::asio::ip::tcp::resolver::iterator destination = resolver.resolve(query); 
+            destination != boost::asio::ip::tcp::resolver::iterator(); ++destination) {
+            endpoint = *destination;
+        }            
         ASKAPLOG_INFO_STR(logger, "Data generation thread (id="<<boost::this_thread::get_id()<<") is about to connect to endpoint="<<endpoint);
         boost::asio::ip::tcp::socket socket(ioService);
         socket.connect(endpoint);
