@@ -224,7 +224,7 @@ int main(int argc, const char** argv)
        for (int cnt = 0; cnt<nChan; ++cnt) {
             threads.create_thread(Worker(buf1, 0, cnt, nBeam));
             threads.create_thread(Worker(buf2, 1, cnt, nBeam));
-            //threads.create_thread(Worker(buf1, 2, cnt, nBeam));
+            threads.create_thread(Worker(buf1, 2, cnt, nBeam));
        }
        
        for (size_t cycle = 0; cycle < 10; ++cycle) {

@@ -35,6 +35,7 @@
 ASKAP_LOGGER(logger, ".corrfiller");
 
 #include <string>
+#include <fstream>
 #include <boost/thread.hpp>
 
 namespace askap {
@@ -56,10 +57,23 @@ void FillerWorker::operator()()
     while (true) {       
        const bool buffer = itsFiller->getWritingJob();
        const std::string bufType = buffer ? "first" : "second";
+       
        for (int beam=0; beam < itsFiller->nBeam(); ++beam) {
             CorrProducts &cp = itsFiller->getProductsToWrite(beam, buffer);
             ASKAPLOG_INFO_STR(logger, "Write for buffer `"<<bufType<<"` beam="<<beam<<" bat="<<cp.itsBAT<<
                " vis="<<cp.itsVisibility<<" flag="<<cp.itsFlag);
+            // for real-time monitoring
+            if (beam == 0) {
+                std::ofstream os("spectra.dat");
+                os<<cp.itsBAT<<" ";
+                for (casa::uInt chan=0; chan < cp.itsVisibility.ncolumn(); ++chan) {
+                    os<<chan<<" ";
+                    for (casa::uInt baseline = 0; baseline < cp.itsVisibility.nrow(); ++baseline) {
+                         os<<abs(cp.itsVisibility(baseline,chan))<<" "<<arg(cp.itsVisibility(baseline,chan))/casa::C::pi*180.<<" ";                       
+                    }
+                    os<<std::endl;
+                }
+            }
        }
        itsFiller->notifyWritingDone(buffer);
     }
