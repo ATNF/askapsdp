@@ -214,29 +214,29 @@ void BufferManager::releaseBuffers(const BufferSet &ids) const
 void BufferManager::bufferFilled(const int id) const
 {
   ASKAPDEBUGASSERT((id >= 0) && (id < itsNBuf));
-  try {
+  { // mutex is locked in this block only
     boost::lock_guard<boost::mutex> lock(itsStatusCVMutex);  
-    ASKAPCHECK(itsStatus[id] == BUF_BEING_FILLED, "An attempt to release the buffer which is not being filled, status="<<
-               itsStatus[id]);
-    itsStatus[id] = BUF_READY;       
-    const BufferHeader& hdr = header(id);
-    if ((hdr.antenna >= itsReadyBuffers.nrow()) || (hdr.antenna < 0)) {
-        ASKAPLOG_WARN_STR(logger, "Received data from unknown antenna "<<hdr.antenna<<" - ignoring");
-        throw BufferManager::HelperException();
+    try {
+      ASKAPCHECK(itsStatus[id] == BUF_BEING_FILLED, "An attempt to release the buffer which is not being filled, status="<<
+                 itsStatus[id]);
+      itsStatus[id] = BUF_READY;       
+      const BufferHeader& hdr = header(id);
+      if ((hdr.antenna >= itsReadyBuffers.nrow()) || (hdr.antenna < 0)) {
+          ASKAPLOG_WARN_STR(logger, "Received data from unknown antenna "<<hdr.antenna<<" - ignoring");
+          throw BufferManager::HelperException();
+      }
+      if ((hdr.freqId >= itsReadyBuffers.ncolumn()) || (hdr.freqId < 0)) {
+          ASKAPLOG_WARN_STR(logger, "Received data from unknown channel (card) "<<hdr.freqId<<" - ignoring");
+          throw BufferManager::HelperException();
+      }
+      if ((hdr.beam >= itsReadyBuffers.nplane()) || (hdr.beam < 0)) {
+          ASKAPLOG_WARN_STR(logger, "Received data from unknown beam "<<hdr.beam<<" - ignoring");
+          throw BufferManager::HelperException();
+      }
+      itsReadyBuffers(hdr.antenna, hdr.freqId, hdr.beam) = id;
+    } catch (const BufferManager::HelperException &) {
+      itsStatus[id] = BUF_FREE;          
     }
-    if ((hdr.freqId >= itsReadyBuffers.ncolumn()) || (hdr.freqId < 0)) {
-        ASKAPLOG_WARN_STR(logger, "Received data from unknown channel (card) "<<hdr.freqId<<" - ignoring");
-        throw BufferManager::HelperException();
-    }
-    if ((hdr.beam >= itsReadyBuffers.nplane()) || (hdr.beam < 0)) {
-        ASKAPLOG_WARN_STR(logger, "Received data from unknown beam "<<hdr.beam<<" - ignoring");
-        throw BufferManager::HelperException();
-    }
-    itsReadyBuffers(hdr.antenna, hdr.freqId, hdr.beam) = id;
-  } catch (const BufferManager::HelperException &) {
-    itsStatus[id] = BUF_FREE; 
-    // no need to wake other threads up unnecessarily as long as we ignore this buffer
-    return;    
   }
   itsStatusCV.notify_all();
 }

@@ -128,7 +128,8 @@ struct Worker {
         // buffer is filled
         boost::asio::io_service ioService;
         boost::asio::ip::tcp::resolver resolver(ioService);
-        boost::asio::ip::tcp::resolver::query query("localhost","3000");
+        const std::string host = "localhost";
+        boost::asio::ip::tcp::resolver::query query(host,"3000");
         boost::asio::ip::tcp::endpoint endpoint = *(++resolver.resolve(query));
         ASKAPLOG_INFO_STR(logger, "Data generation thread (id="<<boost::this_thread::get_id()<<") is about to connect to endpoint="<<endpoint);
         boost::asio::ip::tcp::socket socket(ioService);
@@ -142,7 +143,7 @@ struct Worker {
                 ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<hdr->bat);
                 // here we will send the buffer over the socket
                 for (int beam=0; beam<itsNBeam; ++beam) {
-                     boost::asio::write(socket, boost::asio::buffer((void*)buffer.get(),msgSize));    
+                     boost::asio::write(socket, boost::asio::buffer((void*)buffer.get(),msgSize*sizeof(float)));    
                 }
            }
         }
