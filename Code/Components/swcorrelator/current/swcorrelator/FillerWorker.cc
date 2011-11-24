@@ -65,7 +65,6 @@ void FillerWorker::operator()()
             // for real-time monitoring
             if (beam == 0) {
                 std::ofstream os("spectra.dat");
-                os<<cp.itsBAT<<" ";
                 for (casa::uInt chan=0; chan < cp.itsVisibility.ncolumn(); ++chan) {
                     os<<chan<<" ";
                     for (casa::uInt baseline = 0; baseline < cp.itsVisibility.nrow(); ++baseline) {
