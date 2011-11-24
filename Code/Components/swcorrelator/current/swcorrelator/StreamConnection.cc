@@ -63,26 +63,36 @@ void StreamConnection::operator()()
   try {
     ASKAPDEBUGASSERT(itsSocket);
     ASKAPDEBUGASSERT(itsBufferManager); 
-    while (true) {
-       boost::this_thread::sleep(boost::posix_time::seconds(1));
-       
-       // for debugging emulate data coming from all antennas here
+    bool haveData = true;
+    while (haveData) {
+       /* 
+       boost::this_thread::sleep(boost::posix_time::seconds(1));       
        const uint64_t bat = uint64_t(time(0));
-       for (int ant=0; ant<3; ++ant) {
-          const int bufId = itsBufferManager->getBufferToFill();
-          if (bufId < 0) {
-              ASKAPLOG_FATAL_STR(logger, "Not keeping up - buffer overflow in the data stream thread");
-              break;
-          }
-          ASKAPLOG_INFO_STR(logger, "Got bufId="<<bufId<<" from the manager");
-          BufferHeader* buf = (BufferHeader*)itsBufferManager->buffer(bufId);
-          buf->bat = bat;
-          buf->antenna = ant;
-          buf->beam = 0;
-          buf->freqId = 0;
-          itsBufferManager->bufferFilled(bufId);
+       */
+       const int bufId = itsBufferManager->getBufferToFill();       
+       if (bufId < 0) {
+           ASKAPLOG_FATAL_STR(logger, "Not keeping up - buffer overflow in the data stream thread");
+           break;
+       }
+       ASKAPLOG_DEBUG_STR(logger, "Got bufId="<<bufId<<" from the manager");
+       try {
+          boost::asio::read(*itsSocket,boost::asio::buffer(itsBufferManager->buffer(bufId), 
+                          itsBufferManager->bufferSize()));
+       } catch (const std::exception &ex) {
+          haveData = false;
+          // release the buffer back without raising a valid flag
+          BufferManager::BufferSet bs;
+          bs.itsAnt1 = bufId; // others are initialised with -1, no action expected
+          itsBufferManager->releaseBuffers(bs);
+       }
+       if (haveData) {
+           // this releases the buffer, but marks it as valid for further processing
+           itsBufferManager->bufferFilled(bufId);                 
        }
     }    
+    ASKAPLOG_INFO_STR(logger, "Data stream thread (id="<<boost::this_thread::get_id()<<") is finishing (end of the data stream)");
+    itsSocket.reset();
+    itsBufferManager.reset();
   } catch (const AskapError &ae) {
     ASKAPLOG_FATAL_STR(logger, "Data stream thread (id="<<boost::this_thread::get_id()<<") is about to die: "<<ae.what());
     throw;
