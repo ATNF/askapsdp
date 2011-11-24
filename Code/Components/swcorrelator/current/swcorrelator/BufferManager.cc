@@ -233,29 +233,26 @@ void BufferManager::bufferFilled(const int id) const
           ASKAPLOG_WARN_STR(logger, "Received data from unknown beam "<<hdr.beam<<" - ignoring");
           throw BufferManager::HelperException();
       }
-      itsReadyBuffers(hdr.antenna, hdr.freqId, hdr.beam) = id;
-      // check that buffers for all other baselines correspond to the same bat
+      // check that buffers which have already been filled correspond to the same bat
       // release those buffers which are not
       const uint64_t newBAT = hdr.bat;
       for (int ant = 0; ant<int(itsReadyBuffers.nrow()); ++ant) {
-           if (ant != int(hdr.antenna)) {
-               const int thisID = itsReadyBuffers(ant, hdr.freqId, hdr.beam);
-               if (thisID >= 0) {
-                   ASKAPDEBUGASSERT(thisID < itsNBuf);
-                   if (newBAT < header(thisID).bat) {
-                       ASKAPLOG_WARN_STR(logger, "Not keeping up - received data for antenna "<<hdr.antenna<<" which are too old, ignoring");
-                       itsReadyBuffers(hdr.antenna, hdr.freqId, hdr.beam) = -1;
-                       throw BufferManager::HelperException();
-                   }
-                   if (newBAT > header(thisID).bat) {
-                       ASKAPLOG_WARN_STR(logger, "Incomplete old data detected for antenna "<<ant<<", beam "<<hdr.beam<<", channel "<<
-                                          hdr.freqId<<" - cleaning up");
-                       itsReadyBuffers(ant, hdr.freqId, hdr.beam) = -1;
-                       itsStatus[thisID] = BUF_FREE;
-                   }
+           const int thisID = itsReadyBuffers(ant, hdr.freqId, hdr.beam);
+           if (thisID >= 0) {
+               ASKAPDEBUGASSERT(thisID < itsNBuf);
+               if (newBAT < header(thisID).bat) {
+                   ASKAPLOG_WARN_STR(logger, "Not keeping up - received data for antenna "<<hdr.antenna<<" which are too old, ignoring");
+                   throw BufferManager::HelperException();
+               }
+               if (newBAT > header(thisID).bat) {
+                   ASKAPLOG_WARN_STR(logger, "Incomplete old data detected in buffer "<<thisID<<" corresponding to antenna "<<
+                           ant<<", beam "<<hdr.beam<<", channel "<<hdr.freqId<<" - cleaning up");
+                   itsReadyBuffers(ant, hdr.freqId, hdr.beam) = -1;
+                   itsStatus[thisID] = BUF_FREE;
                }
            }
       }
+      itsReadyBuffers(hdr.antenna, hdr.freqId, hdr.beam) = id;      
     } catch (const BufferManager::HelperException &) {
       itsStatus[id] = BUF_FREE;          
     }
