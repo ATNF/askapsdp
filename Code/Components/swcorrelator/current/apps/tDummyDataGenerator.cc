@@ -145,6 +145,11 @@ struct Worker {
       
         // starting the loop
         try {
+           if (hdr->antenna == 1) {
+               // introduce a pause to test not-keeping-up
+               boost::this_thread::sleep(boost::posix_time::seconds(1));
+           }
+           
            // buffer ready, wait for sampling trigger
            for (long newBAT = waitForSamplingTrigger(long(hdr->bat)); newBAT > 0; newBAT = waitForSamplingTrigger(long(hdr->bat))) {
                 hdr->bat = uint64_t(newBAT);
