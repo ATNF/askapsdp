@@ -110,31 +110,46 @@ struct Worker {
    }
    
    void operator()() const {      
-      const long msgSize = 2*itsData.nelements()+sizeof(BufferHeader)/sizeof(float); // in floats
-      boost::scoped_array<float> buffer(new float[msgSize]); 
-      // C-stype packing of metadata
-      BufferHeader* hdr = (BufferHeader*)buffer.get();
-      hdr->bat = 0; // initialise BAT with 0
-      hdr->antenna = itsAnt; // antenna ID
-      hdr->freqId = itsChan; // channel ID      
-      //
-      for (long sample = 0, counter = sizeof(BufferHeader)/sizeof(float); 
-                sample < long(itsData.nelements()); ++sample, counter+=2) {
-           buffer[counter] = real(itsData[sample]);
-           buffer[counter+1] = imag(itsData[sample]);                
+      ASKAPLOG_INFO_STR(logger, "Data generator thread started, id="<<boost::this_thread::get_id());
+      try {   
+        const long msgSize = 2*itsData.nelements()+sizeof(BufferHeader)/sizeof(float); // in floats
+        boost::scoped_array<float> buffer(new float[msgSize]); 
+        // C-stype packing of metadata
+        BufferHeader* hdr = (BufferHeader*)buffer.get();
+        hdr->bat = 0; // initialise BAT with 0
+        hdr->antenna = itsAnt; // antenna ID
+        hdr->freqId = itsChan; // channel ID      
+        //
+        for (long sample = 0, counter = sizeof(BufferHeader)/sizeof(float); 
+                  sample < long(itsData.nelements()); ++sample, counter+=2) {
+             buffer[counter] = real(itsData[sample]);
+             buffer[counter+1] = imag(itsData[sample]);                
+        }
+        // buffer is filled
+        boost::asio::io_service ioService;
+        boost::asio::ip::tcp::resolver resolver(ioService);
+        boost::asio::ip::tcp::resolver::query query("localhost","3000");
+        boost::asio::ip::tcp::endpoint endpoint = *(++resolver.resolve(query));
+        ASKAPLOG_INFO_STR(logger, "Data generation thread (id="<<boost::this_thread::get_id()<<") is about to connect to endpoint="<<endpoint);
+        boost::asio::ip::tcp::socket socket(ioService);
+        socket.connect(endpoint);
+      
+        // starting the loop
+        try {
+           // buffer ready, wait for sampling trigger
+           for (long newBAT = waitForSamplingTrigger(long(hdr->bat)); newBAT > 0; newBAT = waitForSamplingTrigger(long(hdr->bat))) {
+                hdr->bat = uint64_t(newBAT);
+                ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<hdr->bat);
+                // here we will send the buffer over the socket
+                for (int beam=0; beam<itsNBeam; ++beam) {
+                     boost::asio::write(socket, boost::asio::buffer((void*)buffer.get(),msgSize));    
+                }
+           }
+        }
+        catch (const boost::thread_interrupted&) {}
+      } catch (const std::exception &ex) {
+        ASKAPLOG_FATAL_STR(logger, "Data generation thread (id="<<boost::this_thread::get_id()<<") is about to die: "<<ex.what());
       }
-      // buffer is filled
-      try {
-         // buffer ready, wait for sampling trigger
-         for (long newBAT = waitForSamplingTrigger(long(hdr->bat)); newBAT > 0; newBAT = waitForSamplingTrigger(long(hdr->bat))) {
-              hdr->bat = uint64_t(newBAT);
-              ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<hdr->bat);
-              // here we will send the buffer over the socket
-              for (int beam=0; beam<itsNBeam; ++beam) {
-              }
-         }
-      }
-      catch (const boost::thread_interrupted&) {}
       ASKAPLOG_INFO_STR(logger, "Thread is finishing");
    }
    
