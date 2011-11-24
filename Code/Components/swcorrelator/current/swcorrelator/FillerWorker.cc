@@ -29,6 +29,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <swcorrelator/FillerWorker.h>
+#include <casa/Arrays/Cube.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
 
@@ -54,16 +55,29 @@ void FillerWorker::operator()()
   ASKAPLOG_INFO_STR(logger, "Writing thread started, id="<<boost::this_thread::get_id());
   try {
     ASKAPDEBUGASSERT(itsFiller);
+    const int nHistory = 120;
+    int lastHistPos = 0;
+    bool wasWrapped = false;
+    casa::Cube<casa::Complex> history(nHistory,itsFiller->nBeam(),3,casa::Complex(0.,0.));
+    std::vector<uint64_t> bats(nHistory,0);
+    
     while (true) {       
        const bool buffer = itsFiller->getWritingJob();
        const std::string bufType = buffer ? "first" : "second";
-       
+       // for history
+       ++lastHistPos;
+       if (lastHistPos >= int(history.nrow())) {
+           lastHistPos = 0;
+           wasWrapped = true;
+       }
+       //
        for (int beam=0; beam < itsFiller->nBeam(); ++beam) {
             CorrProducts &cp = itsFiller->getProductsToWrite(beam, buffer);
             ASKAPLOG_INFO_STR(logger, "Write for buffer `"<<bufType<<"` beam="<<beam<<" bat="<<cp.itsBAT<<
                " vis="<<cp.itsVisibility<<" flag="<<cp.itsFlag);
             // for real-time monitoring
             if (beam == 0) {
+                bats[lastHistPos] = cp.itsBAT;                
                 std::ofstream os("spectra.dat");
                 for (casa::uInt chan=0; chan < cp.itsVisibility.ncolumn(); ++chan) {
                     os<<chan<<" ";
@@ -73,8 +87,32 @@ void FillerWorker::operator()()
                     os<<std::endl;
                 }
             }
+            for (casa::uInt baseline = 0; baseline < cp.itsVisibility.nrow(); ++baseline) {
+                 casa::Complex temp(0.,0.);
+                 // average in frequency
+                 for (casa::uInt chan=0; chan < cp.itsVisibility.ncolumn(); ++chan) {
+                      temp += cp.itsVisibility(baseline,chan);
+                 }
+                 history(lastHistPos,beam,baseline) = temp / float(cp.itsVisibility.ncolumn());
+            }
        }
        itsFiller->notifyWritingDone(buffer);
+       // dump time history to a file
+       std::ofstream os("visplot.dat");
+       for (int i=0, curPos = wasWrapped ? lastHistPos + 1 : 0; i<nHistory; ++i) {
+            if (curPos >= nHistory) {
+                curPos = 0;
+                if (!wasWrapped) {
+                    break;
+                }
+            }
+            os<<bats[curPos]<<" ";
+            for (int beam=0; beam < int(history.ncolumn()); ++beam) {
+                for (casa::uInt baseline = 0; baseline < history.nplane(); ++baseline) {
+                     os<<abs(history(curPos,beam,baseline))<<" "<<arg(history(curPos,beam,baseline))/casa::C::pi*180.<<" ";
+                }
+            }
+       }
     }
   } catch (const AskapError &ae) {
      ASKAPLOG_FATAL_STR(logger, "Writing thread (id="<<boost::this_thread::get_id()<<") is about to die: "<<ae.what());
