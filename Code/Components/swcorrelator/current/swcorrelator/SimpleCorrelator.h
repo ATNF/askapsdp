@@ -158,6 +158,15 @@ public:
   /// @brief obtain buffer
   /// @return nDelays x (nDelays + 1) /2 long vector with accumulated statistics
   inline AccType getVis23() const { return itsVis23; }
+  
+  /// @return obtain number of accumulated samples
+  inline IndexType nSamples12() const { return itsSamples12;}
+
+  /// @return obtain number of accumulated samples
+  inline IndexType nSamples13() const { return itsSamples13;}
+  
+  /// @return obtain number of accumulated samples
+  inline IndexType nSamples23() const { return itsSamples23;}
 
   /// @brief accumulate buffers
   /// @details 
@@ -189,6 +198,16 @@ private:
 
   /// @brief accumulator for baseline 23
   AccType itsVis23;  
+  
+  /// @bruef number of accumulated samples for baseline 12
+  IndexType itsSamples12;
+
+  /// @bruef number of accumulated samples for baseline 13
+  IndexType itsSamples13;
+  
+  /// @bruef number of accumulated samples for baseline 23
+  IndexType itsSamples23;
+  
 };
 
 } // namespace swcorrelator

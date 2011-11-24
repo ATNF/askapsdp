@@ -88,9 +88,9 @@ void CorrWorker::operator()()
        cp.itsBAT = bat;
        // unflag this channel
        cp.itsFlag.column(chan).set(false);
-       cp.itsVisibility(0,chan) = s3bc.getVis12();
-       cp.itsVisibility(1,chan) = s3bc.getVis23();
-       cp.itsVisibility(2,chan) = s3bc.getVis13();       
+       cp.itsVisibility(0,chan) = s3bc.getVis12() / float(s3bc.nSamples12()!=0 ? s3bc.nSamples12() : 1.);
+       cp.itsVisibility(1,chan) = s3bc.getVis23() / float(s3bc.nSamples23()!=0 ? s3bc.nSamples23() : 1.);
+       cp.itsVisibility(2,chan) = s3bc.getVis13() / float(s3bc.nSamples13()!=0 ? s3bc.nSamples13() : 1.);       
        itsFiller->notifyProductsReady(beam);
     }
   } catch (const AskapError &ae) {

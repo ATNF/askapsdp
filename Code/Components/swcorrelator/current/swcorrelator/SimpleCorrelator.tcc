@@ -115,7 +115,8 @@ void SimpleCorrelator<AccType, IndexType>::accumulate(const Iter stream1, const 
 template<typename AccType, typename IndexType>         
 Simple3BaselineCorrelator<AccType, IndexType>::Simple3BaselineCorrelator(const IndexType delay1, 
          const IndexType delay2, const IndexType delay3) : itsDelay1(delay1), itsDelay2(delay2),
-         itsDelay3(delay3), itsVis12(AccType(0)), itsVis13(AccType(0)), itsVis23(AccType(0)) 
+         itsDelay3(delay3), itsVis12(AccType(0)), itsVis13(AccType(0)), itsVis23(AccType(0)),
+         itsSamples12(0), itsSamples13(0), itsSamples23(0) 
 {
   const IndexType minDelay = std::min(itsDelay1, std::min(itsDelay2, itsDelay3));
   itsDelay1 -= minDelay;
@@ -148,6 +149,9 @@ void Simple3BaselineCorrelator<AccType, IndexType>::reset()
   itsVis12 = AccType(0);
   itsVis13 = AccType(0);
   itsVis23 = AccType(0);  
+  itsSamples12 = IndexType(0);
+  itsSamples13 = IndexType(0);
+  itsSamples23 = IndexType(0);
 }
 
 
@@ -173,6 +177,13 @@ void Simple3BaselineCorrelator<AccType, IndexType>::accumulate(const Iter stream
        itsVis12 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream2+offset2)));
        itsVis13 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream3+offset3)));
        itsVis23 += AccType(*(stream2 + offset2)) * conj(AccType(*(stream3+offset3)));
+  }
+  const IndexType largestDelay = std::max(itsDelay1, std::max(itsDelay2, itsDelay3));
+  if (largestDelay < size) {
+      const IndexType addSamples = size - largestDelay;
+      itsSamples12 += addSamples;
+      itsSamples13 += addSamples;
+      itsSamples23 += addSamples;      
   }
 }            
 
