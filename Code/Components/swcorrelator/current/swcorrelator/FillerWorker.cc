@@ -112,6 +112,7 @@ void FillerWorker::operator()()
                      os<<abs(history(curPos,beam,baseline))<<" "<<arg(history(curPos,beam,baseline))/casa::C::pi*180.<<" ";
                 }
             }
+            os<<std::endl;
        }
     }
   } catch (const AskapError &ae) {
