@@ -36,7 +36,8 @@
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
 #include <mwcommon/AskapParallel.h>
-
+// we don't use the manager as such, but it is handy to use other stuff defined there
+#include <swcorrelator/BufferManager.h>
 
 
 #include <stdexcept>
@@ -53,6 +54,7 @@ ASKAP_LOGGER(logger, ".tDummyDataGenerator");
 using namespace std;
 using namespace askap;
 using namespace askap::scimath;
+using namespace askap::swcorrelator;
 
 casa::Complex sampledFunc(const float time, const float delay)
 {
@@ -108,27 +110,28 @@ struct Worker {
    }
    
    void operator()() const {      
-      const long msgSize = 2*itsData.nelements()*itsNBeam+3; // BAT, antenna and channel indices are in the stream
+      const long msgSize = 2*itsData.nelements()+sizeof(BufferHeader)/sizeof(float); // in floats
       boost::scoped_array<float> buffer(new float[msgSize]); 
-      // C-stype packing of the 3 compulsory IDs
-      long *idPtr = (long*)buffer.get();
-      idPtr[0] = 0; // initialise BAT with 0
-      idPtr[1] = itsAnt; // antenna ID
-      idPtr[2] = itsChan; // channel ID
+      // C-stype packing of metadata
+      BufferHeader* hdr = (BufferHeader*)buffer.get();
+      hdr->bat = 0; // initialise BAT with 0
+      hdr->antenna = itsAnt; // antenna ID
+      hdr->freqId = itsChan; // channel ID      
       //
-      for (long beam = 0, counter = 3; beam < itsNBeam; ++beam) {
-           for (long sample = 0; sample < long(itsData.nelements()); ++sample, counter+=2) {
-                buffer[counter] = real(itsData[sample]);
-                buffer[counter+1] = imag(itsData[sample]);                
-           }
+      for (long sample = 0, counter = sizeof(BufferHeader)/sizeof(float); 
+                sample < long(itsData.nelements()); ++sample, counter+=2) {
+           buffer[counter] = real(itsData[sample]);
+           buffer[counter+1] = imag(itsData[sample]);                
       }
+      // buffer is filled
       try {
          // buffer ready, wait for sampling trigger
-         for (long newBAT = waitForSamplingTrigger(idPtr[0]); newBAT > 0; newBAT = waitForSamplingTrigger(idPtr[0])) {
-              idPtr[0] = newBAT;
-              //
+         for (long newBAT = waitForSamplingTrigger(long(hdr->bat)); newBAT > 0; newBAT = waitForSamplingTrigger(long(hdr->bat))) {
+              hdr->bat = uint64_t(newBAT);
+              ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<hdr->bat);
               // here we will send the buffer over the socket
-              ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<idPtr[0]);
+              for (int beam=0; beam<itsNBeam; ++beam) {
+              }
          }
       }
       catch (const boost::thread_interrupted&) {}
@@ -176,7 +179,7 @@ int main(int argc, const char** argv)
        const float samplingRate = 32./27.*1e6; // in samples per second
        casa::Vector<casa::Complex> buf1;
        casa::Vector<casa::Complex> buf2;
-       acquire(buf1,buf2,5.2e-6,32*3125,samplingRate);
+       acquire(buf1,buf2,5.2e-6,BufferManager::NumberOfSamples(),samplingRate);
        // assume that antenna1 = antenna3 for this simple test
 
        ASKAPLOG_INFO_STR(logger, "initialisation of dummy data "<<"user:   " << timer.user() << " system: " << timer.system()

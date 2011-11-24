@@ -131,6 +131,13 @@ public:
    /// This finishes operations with this buffer in the I/O thread.
    /// @param[in] id buffer ID (should be non-negative)
    void bufferFilled(const int id) const;
+   
+   /// @brief get the number of samples
+   /// @details This number is hard coded (defined by the data communication
+   /// protocol). It is handy to have it defined in a single place and 
+   /// access via this method.
+   /// @return number of samples (each is complex float)   
+   static int NumberOfSamples();
 protected:
    /// @brief release single buffer after correlation
    /// @details This method is called from releaseBuffers for each individual

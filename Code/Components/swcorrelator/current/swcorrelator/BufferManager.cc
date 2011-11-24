@@ -47,6 +47,16 @@ namespace swcorrelator {
 //const int nSamples = 4194304;
 const int nSamples = 524288;
 
+
+/// @brief get the number of samples
+/// @details This number is hard coded (defined by the data communication
+/// protocol). It is handy to have it defined in a single place and 
+/// access via this method.
+/// @return number of samples (each is complex float)
+int BufferManager::NumberOfSamples() {
+  return nSamples;
+}
+
 /// @brief constructor
 /// @details
 /// @param[in] nBeam number of beams
