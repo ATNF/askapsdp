@@ -99,7 +99,7 @@ void FillerWorker::operator()()
        itsFiller->notifyWritingDone(buffer);
        // dump time history to a file
        std::ofstream os("visplot.dat");
-       for (int i=0, curPos = wasWrapped ? lastHistPos + 1 : 0; i<nHistory; ++i) {
+       for (int i=0, curPos = wasWrapped ? lastHistPos + 1 : 0; i<nHistory; ++i,++curPos) {
             if (curPos >= nHistory) {
                 curPos = 0;
                 if (!wasWrapped) {
@@ -113,6 +113,9 @@ void FillerWorker::operator()()
                 }
             }
             os<<std::endl;
+            if (wasWrapped && (curPos == lastHistPos)) {
+                break;
+            }
        }
     }
   } catch (const AskapError &ae) {
