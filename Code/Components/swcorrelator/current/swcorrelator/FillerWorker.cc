@@ -56,7 +56,7 @@ void FillerWorker::operator()()
   try {
     ASKAPDEBUGASSERT(itsFiller);
     const int nHistory = 120;
-    int lastHistPos = 0;
+    int lastHistPos = -1;
     bool wasWrapped = false;
     casa::Cube<casa::Complex> history(nHistory,itsFiller->nBeam(),3,casa::Complex(0.,0.));
     std::vector<uint64_t> bats(nHistory,0);
@@ -113,7 +113,7 @@ void FillerWorker::operator()()
                 }
             }
             os<<std::endl;
-            if (wasWrapped && (curPos == lastHistPos)) {
+            if (curPos == lastHistPos) {
                 break;
             }
        }
