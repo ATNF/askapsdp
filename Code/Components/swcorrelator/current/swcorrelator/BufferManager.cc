@@ -238,7 +238,7 @@ void BufferManager::bufferFilled(const int id) const
       // release those buffers which are not
       const uint64_t newBAT = hdr.bat;
       for (int ant = 0; ant<int(itsReadyBuffers.nrow()); ++ant) {
-           if (ant != hdr.antenna) {
+           if (ant != int(hdr.antenna)) {
                const int thisID = itsReadyBuffers(ant, hdr.freqId, hdr.beam);
                if (thisID >= 0) {
                    ASKAPDEBUGASSERT(thisID < itsNBuf);
