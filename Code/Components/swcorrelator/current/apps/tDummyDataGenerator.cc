@@ -75,8 +75,8 @@ void acquire(casa::Vector<casa::Complex> &buf1, casa::Vector<casa::Complex> &buf
   buf2.resize(nSamples);
   for (int i=0; i<nSamples; ++i) {
        const float time = float(i) / rate;
-       buf1[i] = sampledFunc(time,0.);
-       buf2[i] = sampledFunc(time, delay);       
+       buf1[i] = casa::Complex(4000)*sampledFunc(time,0.);
+       buf2[i] = casa::Complex(4000)*sampledFunc(time, delay);       
   }
 }
 
@@ -112,18 +112,18 @@ struct Worker {
    void operator()() const {      
       ASKAPLOG_INFO_STR(logger, "Data generator thread started, id="<<boost::this_thread::get_id());
       try {   
-        const long msgSize = 2*itsData.nelements()+sizeof(BufferHeader)/sizeof(float); // in floats
-        boost::scoped_array<float> buffer(new float[msgSize]); 
+        const long msgSize = 2*itsData.nelements()+sizeof(BufferHeader)/sizeof(int16_t); // in 16 bit integers
+        boost::scoped_array<int16_t> buffer(new int16_t[msgSize]); 
         // C-stype packing of metadata
         BufferHeader* hdr = (BufferHeader*)buffer.get();
         hdr->bat = 0; // initialise BAT with 0
         hdr->antenna = itsAnt; // antenna ID
         hdr->freqId = itsChan; // channel ID      
         //
-        for (long sample = 0, counter = sizeof(BufferHeader)/sizeof(float); 
+        for (long sample = 0, counter = sizeof(BufferHeader)/sizeof(int16_t); 
                   sample < long(itsData.nelements()); ++sample, counter+=2) {
-             buffer[counter] = real(itsData[sample]);
-             buffer[counter+1] = imag(itsData[sample]);                
+             buffer[counter] = int16_t(real(itsData[sample]));
+             buffer[counter+1] = int16_t(imag(itsData[sample]));                
         }
         // buffer is filled
         boost::asio::io_service ioService;
@@ -158,7 +158,7 @@ struct Worker {
                 ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<hdr->bat);
                 // here we will send the buffer over the socket
                 for (int beam=0; beam<itsNBeam; ++beam) {
-                     boost::asio::write(socket, boost::asio::buffer((void*)buffer.get(),msgSize*sizeof(float)));    
+                     boost::asio::write(socket, boost::asio::buffer((void*)buffer.get(),msgSize*sizeof(int16_t)));    
                 }
            }
         }
@@ -210,7 +210,7 @@ int main(int argc, const char** argv)
        const float samplingRate = 32./27.*1e6; // in samples per second
        casa::Vector<casa::Complex> buf1;
        casa::Vector<casa::Complex> buf2;
-       acquire(buf1,buf2,5.2e-6,BufferManager::NumberOfSamples(),samplingRate);
+       acquire(buf1,buf2,5.2e-7,BufferManager::NumberOfSamples(),samplingRate);
        // assume that antenna1 = antenna3 for this simple test
 
        ASKAPLOG_INFO_STR(logger, "initialisation of dummy data "<<"user:   " << timer.user() << " system: " << timer.system()
@@ -230,7 +230,7 @@ int main(int argc, const char** argv)
        for (size_t cycle = 0; cycle < 10; ++cycle) {
             ASKAPLOG_INFO_STR(logger, "cycle "<<cycle);
             Worker::triggerSample(long(time(0)));
-            sleep(1);
+            sleep(2);
        }
        threads.interrupt_all();
        ASKAPLOG_INFO_STR(logger, "Waiting to finish");
