@@ -33,6 +33,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <swcorrelator/StreamConnection.h>
+#include <swcorrelator/BufferHeader.h>
 #include <askap/AskapError.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
@@ -64,6 +65,8 @@ void StreamConnection::operator()()
     ASKAPDEBUGASSERT(itsSocket);
     ASKAPDEBUGASSERT(itsBufferManager); 
     bool haveData = true;
+    const int msgSize =sizeof(BufferHeader)/sizeof(int16_t) + 2*BufferManager::NumberOfSamples();
+    boost::scoped_array<int16_t> tmpbuf(new int16_t[msgSize]);
     while (haveData) {
        /* 
        boost::this_thread::sleep(boost::posix_time::seconds(1));       
@@ -76,8 +79,9 @@ void StreamConnection::operator()()
        }
        ASKAPLOG_DEBUG_STR(logger, "Got bufId="<<bufId<<" from the manager");
        try {
-          boost::asio::read(*itsSocket,boost::asio::buffer(itsBufferManager->buffer(bufId), 
-                          itsBufferManager->bufferSize()));
+          boost::asio::read(*itsSocket,boost::asio::buffer((void*)tmpbuf.get(), msgSize*sizeof(int16_t)));
+          //boost::asio::read(*itsSocket,boost::asio::buffer(itsBufferManager->buffer(bufId), 
+          //                itsBufferManager->bufferSize()));
        } catch (const std::exception &ex) {
           haveData = false;
           // release the buffer back without raising a valid flag
@@ -86,6 +90,17 @@ void StreamConnection::operator()()
           itsBufferManager->releaseBuffers(bs);
        }
        if (haveData) {
+           int16_t *outbuf = (int16_t*)(itsBufferManager->buffer(bufId));
+           int16_t *inbuf = (int16_t*)tmpbuf.get();
+           for (size_t i=0; i<sizeof(BufferHeader); i+=sizeof(int16_t)) {
+                *(outbuf++) = *(inbuf++);
+           }
+           std::complex<float>* outbuf2 = (std::complex<float>*)(outbuf);
+           for (int i=0; i<BufferManager::NumberOfSamples(); ++i) {
+                const int16_t im = *(inbuf++);
+                const int16_t rl = *(inbuf++);
+                *(outbuf2++) = std::complex<float>(float(rl),float(im));
+           }
            // this releases the buffer, but marks it as valid for further processing
            itsBufferManager->bufferFilled(bufId);                 
        }

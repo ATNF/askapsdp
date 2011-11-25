@@ -45,7 +45,8 @@ namespace swcorrelator {
 
 // number of samples per buffer
 //const int nSamples = 4194304;
-const int nSamples = 524288;
+//const int nSamples = 524288;
+const int nSamples = 1048576;
 
 
 /// @brief get the number of samples
@@ -220,6 +221,7 @@ void BufferManager::bufferFilled(const int id) const
       ASKAPCHECK(itsStatus[id] == BUF_BEING_FILLED, "An attempt to release the buffer which is not being filled, status="<<
                  itsStatus[id]);
       itsStatus[id] = BUF_READY;       
+      //((BufferHeader*)buffer(id))->beam-=2;
       const BufferHeader& hdr = header(id);
       if ((hdr.antenna >= itsReadyBuffers.nrow()) || (hdr.antenna < 0)) {
           ASKAPLOG_WARN_STR(logger, "Received data from unknown antenna "<<hdr.antenna<<" - ignoring");
