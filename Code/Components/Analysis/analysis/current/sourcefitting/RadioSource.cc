@@ -827,7 +827,7 @@ namespace askap {
                 /// @return The return value is the value of hasFit,
                 /// which indicates whether a valid fit was made.
 
-	      ASKAPLOG_INFO_STR(logger, "Fitting source at RA=" << this->raS << ", Dec=" << this->decS 
+	      ASKAPLOG_INFO_STR(logger, "Fitting source " << this->name << " at RA=" << this->raS << ", Dec=" << this->decS 
 				<< ", or global position (x,y)=("<<this->getXcentre()+this->getXOffset()
 				<< "," << this->getYcentre()+this->getYOffset() << ")");
 	      if (this->getSpatialSize() < baseFitter.minFitSize()){
@@ -867,7 +867,7 @@ namespace askap {
 			      //cmpntList[i].setPA(0.);
                                 cmpntList[i].setMajor(this->itsHeader.beam().maj());
                                 cmpntList[i].setMinor(this->itsHeader.beam().min());			      
-                                cmpntList[i].setPA(this->itsHeader.beam().pa());
+                                cmpntList[i].setPA(this->itsHeader.beam().pa()*M_PI/180.);
                             }
                         }
 
@@ -997,10 +997,10 @@ namespace askap {
                         }
                     }
 		    
-		    Slice xrange=casa::Slice(this->boxXmin(),this->boxXmax()-this->boxXmin()+1,1);
-		    Slice yrange=casa::Slice(this->boxYmin(),this->boxYmax()-this->boxYmin()+1,1);
+		    Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
+		    Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
 		    Slicer theBox=casa::Slicer(xrange, yrange);
-		    ASKAPLOG_DEBUG_STR(logger, xrange << " " << yrange << " " << theBox);
+		    ASKAPLOG_DEBUG_STR(logger, "xrange="<<xrange << " | yrange=" << yrange << " || slicer=" << theBox);
 		    //                    casa::Vector<casa::Double> f = getPixelsInBox(taylor1Name, this->itsBox);
                     casa::Vector<casa::Double> f = getPixelsInBox(taylor1Name, theBox);
 
@@ -1107,38 +1107,44 @@ namespace askap {
                     casa::Matrix<casa::Double> pos;
                     casa::Vector<casa::Double> sigma;
                     casa::Vector<casa::Double> curpos(2);
-//                     pos.resize(this->boxSize(), 2);
-//                     sigma.resize(this->boxSize());
-//                     curpos = 0;
+                    pos.resize(this->boxSize(), 2);
+                    sigma.resize(this->boxSize());
+                    curpos = 0;
 
-//                     for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
-//                         for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
-//                             int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
-//                             sigma(i) = 1.;
-//                             curpos(0) = x;
-//                             curpos(1) = y;
-//                             pos.row(i) = curpos;
-//                         }
-//                     }
+                    for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+                        for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+                            int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+                            sigma(i) = 1.;
+                            curpos(0) = x;
+                            curpos(1) = y;
+                            pos.row(i) = curpos;
+                        }
+                    }
 
-                    casa::Vector<casa::Double> fbox = getPixelsInBox(taylor2Name, this->itsBox);
-		    casa::Vector<casa::Double> f;
-		    pos.resize(this->getSize(),2);
-		    f.resize(this->getSize());
-		    sigma.resize(this->getSize());
-		    int i=0;
-		    for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
-		      for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
-			if(this->isInObject(PixelInfo::Voxel(x,y,0))){
-			  sigma(i)=1.;
-			  curpos(0)=x;
-			  curpos(1)=y;
-			  pos.row(i) = curpos;
-			  f(i) = fbox(x-this->boxXmin() + (y-this->boxYmin())*this->boxXsize());
-			  i++;
-			}
-		      }
-		    }
+		    Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
+		    Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
+		    Slicer theBox=casa::Slicer(xrange, yrange);
+		    ASKAPLOG_DEBUG_STR(logger, "xrange="<<xrange << " | yrange=" << yrange << " || slicer=" << theBox);
+                    casa::Vector<casa::Double> f = getPixelsInBox(taylor2Name, theBox);
+
+		    //                    casa::Vector<casa::Double> fbox = getPixelsInBox(taylor2Name, this->itsBox);
+// 		    casa::Vector<casa::Double> f;
+// 		    pos.resize(this->getSize(),2);
+// 		    f.resize(this->getSize());
+// 		    sigma.resize(this->getSize());
+// 		    int i=0;
+// 		    for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+// 		      for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+// 			if(this->isInObject(PixelInfo::Voxel(x,y,0))){
+// 			  sigma(i)=1.;
+// 			  curpos(0)=x;
+// 			  curpos(1)=y;
+// 			  pos.row(i) = curpos;
+// 			  f(i) = fbox(x-this->boxXmin() + (y-this->boxYmin())*this->boxXsize());
+// 			  i++;
+// 			}
+// 		      }
+// 		    }
 
                     ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor 2 term");
 
@@ -1230,11 +1236,11 @@ namespace askap {
                 duchamp::Column::Col majDeconv("Maj(fit_deconv.)", "", 17, 3);
                 duchamp::Column::Col minDeconv("Min(fit_deconv.)", "", 17, 3);
                 duchamp::Column::Col paDeconv("P.A.(fit_deconv.)", "", 18, 2);		
-		duchamp::Column::Col alpha("Alpha", "", 10, 2);
-		duchamp::Column::Col beta("Beta", "", 10, 2);
-                duchamp::Column::Col chisqFit("Chisq(fit)", "", 20, 9);
+		duchamp::Column::Col alpha("Alpha", "", 11, 3);
+		duchamp::Column::Col beta("Beta", "", 11, 3);
+                duchamp::Column::Col chisqFit("Chisq(fit)", "", 27, 9);
                 duchamp::Column::Col rmsIm("RMS(image)", "", fluxWidth, fluxPrec);
-                duchamp::Column::Col rmsFit("RMS(fit)", "", 11, 6);
+                duchamp::Column::Col rmsFit("RMS(fit)", "", 15, 6);
                 duchamp::Column::Col nfree("Nfree(fit)", "", 11, 0);
                 duchamp::Column::Col ndofFit("NDoF(fit)", "", 10, 0);
                 duchamp::Column::Col npixFit("NPix(fit)", "", 10, 0);
@@ -1243,6 +1249,7 @@ namespace askap {
                 if (doHeader) {
                     stream << "#";
                     columns[duchamp::Column::NUM].printTitle(stream);
+		    columns[duchamp::Column::NAME].printTitle(stream);
                     columns[duchamp::Column::RAJD].printTitle(stream);
                     columns[duchamp::Column::DECJD].printTitle(stream);
                     columns[duchamp::Column::FINT].printTitle(stream);
@@ -1277,6 +1284,9 @@ namespace askap {
                                 majFit.getWidth() +
                                 minFit.getWidth() +
                                 paFit.getWidth() +
+                                majDeconv.getWidth() +
+                                minDeconv.getWidth() +
+                                paDeconv.getWidth() +
                                 chisqFit.getWidth() +
                                 rmsIm.getWidth() +
                                 rmsFit.getWidth() +
@@ -1294,6 +1304,7 @@ namespace askap {
                 if (!results.isGood()) { //if no fits were made...
                     float zero = 0.;
                     columns[duchamp::Column::NUM].printEntry(stream, this->getID());
+		    columns[duchamp::Column::NAME].printEntry(stream, this->getName());
                     columns[duchamp::Column::RAJD].printEntry(stream, this->getRA());
                     columns[duchamp::Column::DECJD].printEntry(stream, this->getDec());
                     columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
@@ -1351,6 +1362,7 @@ namespace askap {
 //                             intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
 
                         columns[duchamp::Column::NUM].printEntry(stream, id.str());
+			columns[duchamp::Column::NAME].printEntry(stream, this->getName());
                         columns[duchamp::Column::RAJD].printEntry(stream, thisRA);
                         columns[duchamp::Column::DECJD].printEntry(stream, thisDec);
                         columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
