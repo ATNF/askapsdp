@@ -42,7 +42,9 @@
 #include <tables/Tables/Table.h>
 #include <tables/Tables/TableError.h>
 #include <tables/Tables/ArrayColumn.h>
+#include <tables/Tables/ArrColDesc.h>
 #include <tables/Tables/TableRecord.h>
+#include <tables/Tables/TiledShapeStMan.h>
 
 
 // other 3rd party
@@ -69,6 +71,31 @@ void insert1D(const std::string &name, casa::Table &in, const casa::uInt where, 
       outVal[targetPos] = inVal[i];
   }
   outCol.put(0,outVal);
+}
+
+// change shape of a single array column
+template<typename T>
+void reShapeColumn(const std::string &name, casa::Table &tab, const casa::uInt factor) 
+{
+  ASKAPDEBUGASSERT(tab.nrow()>=1);
+  ASKAPCHECK(tab.actualTableDesc().isColumn(name), "Column "<<name<<" doesn't appear to exist");
+  typename casa::ArrayColumn<T> col(tab, name);
+  for (casa::uInt row=0; row<tab.nrow(); ++row) {
+       casa::IPosition newShape = col.shape(row);
+       if (newShape.nelements() == 1) {
+           newShape(0) *= factor;
+           ASKAPCHECK(tab.nrow() == 1, "Spectral window subtable is supposed to have just one row, you have "<<tab.nrow());
+           col.setShape(0,newShape);
+           break;
+       } else {
+          ASKAPCHECK(newShape.nelements() == 2, "Shape for column "<<name<<" is "<<newShape);
+          newShape(1) *= factor;
+       }
+       col.basePut(row,casa::Array<T>(newShape));
+  }
+  ASKAPLOG_INFO_STR(logger,  "Changed shape of the "<<name<<" column in the output dataset/spectral window subtable");
+  //tab.removeColumn(name);
+  //tab.addColumn(colDesc);
 }
 
 // Main function
@@ -103,34 +130,23 @@ int main(int argc, const char** argv)
        ASKAPLOG_INFO_STR(logger,  "First copy "<<inNames[0].getValue()<<" into "<<outName.getValue());
        {
          casa::Table inTab(inNames[0].getValue());
-         inTab.copy(outName.getValue(),casa::Table::New);
+         inTab.deepCopy(outName.getValue(),casa::Table::New);
        }
        if (inNames.size()>1) {
            casa::Table outTab(outName.getValue(), casa::Table::Update);
            casa::Table outSpWin(outTab.keywordSet().asTable("SPECTRAL_WINDOW"));
            ASKAPCHECK(outSpWin.nrow() == 1, "Spectral window subtable is supposed to have just one row");
+           reShapeColumn<casa::Bool>("FLAG",outTab,inNames.size());
+           reShapeColumn<casa::Complex>("DATA",outTab,inNames.size());
+           reShapeColumn<casa::Double>("CHAN_FREQ",outSpWin,inNames.size());
+           reShapeColumn<casa::Double>("CHAN_WIDTH",outSpWin,inNames.size());
+           reShapeColumn<casa::Double>("EFFECTIVE_BW",outSpWin,inNames.size());
+           reShapeColumn<casa::Double>("RESOLUTION",outSpWin,inNames.size());
+           outTab.flush();
+           outSpWin.flush();
            casa::ArrayColumn<casa::Bool> flag(outTab,"FLAG");
            casa::ArrayColumn<casa::Complex> data(outTab,"DATA");
-           {
-             casa::ArrayColumn<casa::Double> chanFreq(outSpWin, "CHAN_FREQ");
-             casa::ArrayColumn<casa::Double> chanWidth(outSpWin, "CHAN_WIDTH");
-             casa::ArrayColumn<casa::Double> effectiveBW(outSpWin, "EFFECTIVE_BW");
-             casa::ArrayColumn<casa::Double> resolution(outSpWin, "RESOLUTION");
-             chanFreq.setShape(0,casa::IPosition(1,chanFreq.shape(0)(0)));
-             chanWidth.setShape(0,casa::IPosition(1,chanWidth.shape(0)(0)));
-             effectiveBW.setShape(0,casa::IPosition(1,effectiveBW.shape(0)(0)));
-             resolution.setShape(0,casa::IPosition(1,resolution.shape(0)(0)));
-           }
            
-           for (casa::uInt row=0; outTab.nrow(); ++row) {
-                const casa::IPosition origShape = data.shape(row);
-                ASKAPDEBUGASSERT(origShape == flag.shape(row));
-                ASKAPDEBUGASSERT(origShape.nelements() == 2);
-                casa::IPosition newShape(origShape);
-                newShape(1) *= inNames.size();
-                data.setShape(row,newShape);
-                flag.setShape(row,newShape); 
-           }
            for (size_t i=0; i<inNames.size(); ++i) {
                 ASKAPLOG_INFO_STR(logger,  "Processing "<<inNames[i].getValue());
                 casa::Table inTab(inNames[i].getValue());
