@@ -106,9 +106,16 @@ public class PersistenceInterface {
 		ArrayList<Long> ids = new ArrayList<Long>();
 
 		// TODO: Need to do the cone search in the query, instead of returning
-		// components regardless of position.
+		// components with respect to declination only.
+		// Also, the flux limit will return results based on 1.4GHz flux, without
+		// taking into account the observing frequency, spectral index or 
+		// spectral curvature. Need to move this into a stored procedure I would
+		// think.
 
-		final String query = "from Component where i1400 >=" + fluxLimit;		
+		final String query = "FROM Component WHERE (i1400 >=" + fluxLimit 
+				+ ") AND (declination >= " + (dec - searchRadius)
+				+ ") AND (declination <= " + (dec + searchRadius) + ")";
+						
         long count = 0;
 		ScrollableResults components = itsSession.createQuery(query).scroll(ScrollMode.FORWARD_ONLY);
 		while (components.next()) {
