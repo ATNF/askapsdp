@@ -158,8 +158,8 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
             AskapComponentImager::project(image, list);
 
             // Test there is some flux in the centre pixel
-            const IPosition pixelPos1(4, 128, 128, 0, 0);
-            CPPUNIT_ASSERT(image.getAt(pixelPos1) > 0.0);
+            const IPosition pixelPos(4, 128, 128, 0, 0);
+            CPPUNIT_ASSERT(image.getAt(pixelPos) > 0.0);
 
             // Uncomment the below two lines to write out the image
             //PagedImage<Float> pimage(image.shape(), image.coordinates(), "image.unittest_gaussian.casa");
@@ -175,13 +175,13 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
                     MDirection::J2000);
 
             // Create a component at the image centre with spectral index
-            const Flux<casa::Double> flux(1.0);
+            const Double fluxVal = 7.0; // Jy
+            const Flux<casa::Double> flux(fluxVal);
             const Double spectralIndex = -0.7;
-            {
-                const SpectralIndex spectrum(MFrequency(Quantity(850, "MHz")), spectralIndex);
-                const PointShape shape(dir);
-                list.add(SkyComponent(flux, shape, spectrum));
-            }
+            const SpectralIndex spectrum(MFrequency(Quantity(1400, "MHz")), spectralIndex);
+            const PointShape shape(dir);
+            list.add(SkyComponent(flux, shape, spectrum));
+
 
             Vector<Int> iquv(1);
             iquv(0) = Stokes::I;
@@ -191,6 +191,22 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
             for (unsigned int i = 0; i < 3; ++i) {
                 image.set(0.0);
                 AskapComponentImager::project(image, list, i);
+
+                // Verify the flux in the centre pixel
+                const Double tolerance = 1e-7;
+                const IPosition pixelPos(4, 128, 128, 0, 0);
+                if (i == 0) {
+                    // I0 = I(v0)
+                    CPPUNIT_ASSERT_DOUBLES_EQUAL(fluxVal, image.getAt(pixelPos), tolerance);
+                } else if (i == 1) {
+                    // I1 = I(v0) * alpha
+                    CPPUNIT_ASSERT_DOUBLES_EQUAL(fluxVal * spectralIndex, image.getAt(pixelPos), tolerance);
+                } else {
+                    // I2 = I(v0) * (0.5 * alpha * (alpha - 1) + beta)
+                    const Double spectralCurvature = 0.0;
+                    const Double factor = (0.5 * spectralIndex * (spectralIndex - 1.0) + spectralCurvature);
+                    CPPUNIT_ASSERT_DOUBLES_EQUAL(fluxVal * factor, image.getAt(pixelPos), tolerance);
+                }
             }
 
             // Check terms > 2 result in an exception being thrown
