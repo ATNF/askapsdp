@@ -51,6 +51,7 @@
 #include <string>
 #include <iostream>
 
+#include <duchamp/duchamp.hh>
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Utils/Section.hh>
 
@@ -125,6 +126,10 @@ int main(int argc, const char *argv[])
     } catch (askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+        exit(1);
+    } catch (const duchamp::DuchampError& x) {
+        ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
+        std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
         exit(1);
     } catch (std::exception& x) {
         ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
