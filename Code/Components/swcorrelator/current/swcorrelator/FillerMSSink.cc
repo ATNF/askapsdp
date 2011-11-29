@@ -35,8 +35,19 @@
 #include <askap/AskapError.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
-#include <ms/MeasurementSets/MSColumns.h>
+#include <askap/AskapUtil.h>
 
+// casa includes
+#include <casa/OS/File.h>
+#include <ms/MeasurementSets/MSColumns.h>
+#include "tables/Tables/TableDesc.h"
+#include "tables/Tables/SetupNewTab.h"
+#include "tables/Tables/IncrementalStMan.h"
+#include "tables/Tables/StandardStMan.h"
+#include "tables/Tables/TiledShapeStMan.h"
+
+// std includes
+#include <sstream>
 
 ASKAP_LOGGER(logger, ".fillermssink");
 
@@ -48,32 +59,205 @@ namespace swcorrelator {
 /// @details Configuration is done via the parset, a lot of the metadata are just filled
 /// via the parset.
 /// @param[in] parset parset file with configuration info
-FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset) {}
+FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset), itsDataDescID(0),
+   itsFieldID(0)
+{
+  create();
+  initAntennasAndBeams(); 
+  addObs("ASKAP", "team", 0, 0);
+  initFields();
+  initDataDesc();
+}
 
-/// @brief Initialises the ANTENNA table
+
+/// @brief Initialises ANTENNA and FEED tables
 /// @details This method extracts configuration from the parset and fills in the 
-/// compulsory ANTENNA table. It also caches antenna positions in the form suitable for
-/// calculation of uvw's.
-void FillerMSSink::initAntennas()
+/// compulsory ANTENNA and FEED tables. It also caches antenna positions and beam offsets 
+/// in the form suitable for calculation of uvw's.
+void FillerMSSink::initAntennasAndBeams()
+{
+  LOFAR::ParameterSet parset(itsParset);
+  if (parset.isDefined("antennas.definition")) {
+      parset = LOFAR::ParameterSet(itsParset.getString("antennas.definition"));
+  }
+  
+  const std::string telName = parset.getString("antennas.telescope");
+  ASKAPLOG_INFO_STR(logger, "Simulating " << telName);
+  std::ostringstream oos;
+  oos << "antennas." << telName << ".";
+  LOFAR::ParameterSet antParset(parset.makeSubset(oos.str()));
+
+  ASKAPCHECK(antParset.isDefined("names"), "Subset (antennas."<<telName<<") of the antenna definition parset does not have 'names' keyword.");
+  std::vector<std::string> antNames(antParset.getStringVector("names"));
+  const int nAnt = int(antNames.size());
+  ASKAPCHECK(nAnt > 0, "No antennas defined in parset file");
+
+  /// Csimulator.ASKAP.mount=equatorial
+  const std::string mount = antParset.getString("mount", "equatorial");
+  ASKAPCHECK((mount == "equatorial") || (mount == "alt-az"), "Antenna mount unknown: "<<mount);
+
+  /// Csimulator.ASKAP.mount=equatorial
+  const double diameter = asQuantity(antParset.getString("diameter", "12m")).getValue("m");
+  ASKAPCHECK(diameter > 0.0, "Antenna diameter not positive, diam="<<diameter);
+  const std::string coordinates = antParset.getString("coordinates", "local");
+  ASKAPCHECK((coordinates == "global") || (coordinates == "local"), "Coordinates type unknown: "<<coordinates);
+
+  const double scale = antParset.getDouble("scale", 1.0);
+
+  /// Now we get the coordinates for each antenna in turn
+  itsAntXYZ.resize(nAnt,3);
+
+  /// antennas.ASKAP.location=[+115deg, -26deg, 192km, WGS84]
+  casa::MPosition location;
+  if (coordinates == "local") {
+      location = asMPosition(antParset.getStringVector("location"));
+  }
+
+  /// Antenna information in the form:
+  /// antennas.ASKAP.antenna0=[x,y,z]
+  /// ...
+  for (int iant = 0; iant < nAnt; ++iant) {
+       const vector<double> xyz = antParset.getDoubleVector(antNames[iant]);
+       itsAntXYZ(iant,0) = xyz[0] * scale;
+       itsAntXYZ(iant,1) = xyz[1] * scale;
+       itsAntXYZ(iant,2) = xyz[2] * scale;
+       if (coordinates == "local") {
+           casa::MPosition::Convert loc2(location, casa::MPosition::ITRF);
+           const casa::MPosition locitrf(loc2());
+           const casa::Vector<double> angRef = locitrf.getAngle("rad").getValue();
+           const double cosLong = cos(angRef(0));
+           const double sinLong = sin(angRef(0));
+           const double cosLat = cos(angRef(1));
+           const double sinLat = sin(angRef(1));
+           
+           const double xG1 = -sinLat * itsAntXYZ(iant,1) + cosLat * itsAntXYZ(iant,2);
+           const double yG1 = itsAntXYZ(iant,0);
+
+           casa::Vector<double> xyzNew = locitrf.get("m").getValue();
+           xyzNew(0) += cosLong * xG1 - sinLong * yG1;
+           xyzNew(1) += sinLong * xG1 + cosLong * yG1;
+           xyzNew(2) += cosLat * itsAntXYZ(iant,1) + sinLat * itsAntXYZ(iant,2);
+           itsAntXYZ.row(iant) = xyzNew;               
+       }
+       addAntenna(telName, itsAntXYZ.row(iant),antNames[iant], mount, diameter);
+   }
+   ASKAPLOG_INFO_STR(logger, "Successfully defined " << nAnt
+           << " antennas of " << telName);  
+}
+
+
+/// @brief initialises field information
+void FillerMSSink::initFields()
 {
 }
   
-/// @brief Initialises the FEED table
-/// @details This method reads in feed information given in the parset and writes a dummy 
-/// feed table
-void FillerMSSink::initFeeds() 
+/// @brief initialises spectral and polarisation info (data descriptor)
+void FillerMSSink::initDataDesc()
 {
 }
   
-/// @brief Initialises the OBSERVATION table
-/// @details This method sets up observation table and fills some dummy data from the parset
-void FillerMSSink::initObs()
+
+/// @brief helper method to make a string out of an integer
+/// @param[in] in unsigned integer number
+/// @return a string padded with zero on the left size, if necessary
+std::string FillerMSSink::makeString(const casa::uInt in)
 {
+  ASKAPASSERT(in<100);
+  std::string result;
+  if (in<10) {
+      result += "0";
+  }
+  result+=utility::toString(in);
+  return result;
 }
+
 
 /// @brief Create the measurement set
 void FillerMSSink::create()
 {
+    // Get configuration first to ensure all parameters are present
+    casa::uInt bucketSize = itsParset.getUint32("stman.bucketsize", 128 * 1024);
+    casa::uInt tileNcorr = itsParset.getUint32("stman.tilencorr", 4);
+    casa::uInt tileNchan = itsParset.getUint32("stman.tilenchan", 1);
+    casa::String filename = itsParset.getString("filename","");
+    if (filename == "") {
+        casa::Time tm;
+        tm.now();
+        filename = utility::toString(tm.year())+"-"+makeString(tm.month())+"-"+makeString(tm.dayOfMonth())+"_"+
+                   makeString(tm.hours())+makeString(tm.minutes())+makeString(tm.seconds())+".ms";        
+    }
+
+    if (bucketSize < 8192) {
+        bucketSize = 8192;
+    }
+    if (tileNcorr < 1) {
+        tileNcorr = 1;
+    }
+    if (tileNchan < 1) {
+        tileNchan = 1;
+    }
+
+    ASKAPLOG_INFO_STR(logger, "Creating dataset " << filename);
+    ASKAPCHECK(!casa::File(filename).exists(), "File or table "<<filename<<" already exists!");
+
+    // Make MS with standard columns
+    casa::TableDesc msDesc(casa::MS::requiredTableDesc());
+
+    // Add the DATA column.
+    casa::MS::addColumnToDesc(msDesc, casa::MS::DATA, 2);
+
+    casa::SetupNewTable newMS(filename, msDesc, casa::Table::New);
+
+    // Set the default Storage Manager to be the Incr one
+    {
+        casa::IncrementalStMan incrStMan("ismdata", bucketSize);
+        newMS.bindAll(incrStMan, casa::True);
+    }
+
+    // Bind ANTENNA1, and ANTENNA2 to the standardStMan 
+    // as they may change sufficiently frequently to make the
+    // incremental storage manager inefficient for these columns.
+
+    {
+        casa::StandardStMan ssm("ssmdata", bucketSize);
+        newMS.bindColumn(casa::MS::columnName(casa::MS::ANTENNA1), ssm);
+        newMS.bindColumn(casa::MS::columnName(casa::MS::ANTENNA2), ssm);
+        newMS.bindColumn(casa::MS::columnName(casa::MS::UVW), ssm);
+    }
+
+    // These columns contain the bulk of the data so save them in a tiled way
+    {
+        // Get nr of rows in a tile.
+        const int nrowTile = std::max(1u, bucketSize / (8*tileNcorr*tileNchan));
+        casa::TiledShapeStMan dataMan("TiledData",
+                casa::IPosition(3, tileNcorr, tileNchan, nrowTile));
+        newMS.bindColumn(casa::MeasurementSet::columnName(casa::MeasurementSet::DATA),
+                dataMan);
+        newMS.bindColumn(casa::MeasurementSet::columnName(casa::MeasurementSet::FLAG),
+                dataMan);
+    }
+    {
+        const int nrowTile = std::max(1u, bucketSize / (4*8));
+        casa::TiledShapeStMan dataMan("TiledWeight",
+                casa::IPosition(2, 4, nrowTile));
+        newMS.bindColumn(casa::MeasurementSet::columnName(casa::MeasurementSet::SIGMA),
+                dataMan);
+        newMS.bindColumn(casa::MeasurementSet::columnName(casa::MeasurementSet::WEIGHT),
+                dataMan);
+    }
+
+    // Now we can create the MeasurementSet and add the (empty) subtables
+    itsMs.reset(new casa::MeasurementSet(newMS, 0));
+    itsMs->createDefaultSubtables(casa::Table::New);
+    itsMs->flush();
+
+    // Set the TableInfo
+    {
+        casa::TableInfo& info(itsMs->tableInfo());
+        info.setType(casa::TableInfo::type(casa::TableInfo::MEASUREMENTSET));
+        info.setSubType(casa::String(""));
+        info.readmeAddLine("This is a MeasurementSet Table holding astronomical observations obtained with ASKAP software correlator");
+    }
 }
 
 // methods borrowed from Ben's MSSink class (see CP/ingest)

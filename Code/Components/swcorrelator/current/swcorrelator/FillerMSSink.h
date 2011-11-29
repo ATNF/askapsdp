@@ -38,6 +38,7 @@
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include <casa/BasicSL.h>
 #include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
 #include <casa/Quanta.h>
 #include <measures/Measures/Stokes.h>
 #include <measures/Measures/MDirection.h>
@@ -48,6 +49,9 @@
 
 // boost includes
 #include "boost/scoped_ptr.hpp"
+
+// std includes
+#include <string>
 
 namespace askap {
 
@@ -68,21 +72,23 @@ public:
   FillerMSSink(const LOFAR::ParameterSet &parset);
 
 protected:
-  /// @brief Initialises the ANTENNA table
+  /// @brief helper method to make a string out of an integer
+  /// @param[in] in unsigned integer number
+  /// @return a string padded with zero on the left size, if necessary
+  static std::string makeString(const casa::uInt in);
+    
+  /// @brief Initialises ANTENNA and FEED tables
   /// @details This method extracts configuration from the parset and fills in the 
-  /// compulsory ANTENNA table. It also caches antenna positions in the form suitable for
-  /// calculation of uvw's.
-  void initAntennas();
+  /// compulsory ANTENNA and FEED tables. It also caches antenna positions and beam offsets 
+  /// in the form suitable for calculation of uvw's.
+  void initAntennasAndBeams();
   
-  /// @brief Initialises the FEED table
-  /// @details This method reads in feed information given in the parset and writes a dummy 
-  /// feed table
-  void initFeeds();
+  /// @brief initialises field information
+  void initFields();
   
-  /// @brief Initialises the OBSERVATION table
-  /// @details This method sets up observation table and fills some dummy data from the parset
-  void initObs();
-
+  /// @brief initialises spectral and polarisation info (data descriptor)
+  void initDataDesc();
+    
   /// @brief Create the measurement set
   void create();
 
@@ -127,6 +133,16 @@ protected:
 private:
   /// @brief parameters
   LOFAR::ParameterSet itsParset;
+  
+  /// @brief data descriptor ID used for all added rows
+  casa::uInt itsDataDescID;
+  
+  /// @brief field ID used for all added rows
+  casa::uInt itsFieldID;
+  
+  /// @brief global (ITRF) coordinates of all antennas
+  /// @details row is antenna number, column is X,Y and Z
+  casa::Matrix<double> itsAntXYZ;
   
   /// @brief Measurement set
   boost::scoped_ptr<casa::MeasurementSet> itsMs;
