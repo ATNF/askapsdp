@@ -36,6 +36,12 @@
 
 // casa includes
 #include "ms/MeasurementSets/MeasurementSet.h"
+#include <casa/BasicSL.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Quanta.h>
+#include <measures/Measures/Stokes.h>
+#include <measures/Measures/MDirection.h>
+
 
 // other 3rd party
 #include <Common/ParameterSet.h>
@@ -79,6 +85,44 @@ protected:
 
   /// @brief Create the measurement set
   void create();
+
+  // methods borrowed from Ben's MSSink class (see CP/ingest)
+
+  // Add observation table row
+  casa::Int addObs(const casa::String& telescope,
+             const casa::String& observer,
+             const double obsStartTime,
+             const double obsEndTime);
+
+  // Add field table row
+  casa::Int addField(const casa::String& fieldName,
+             const casa::MDirection& fieldDirection,
+             const casa::String& calCode);
+
+  // Add feeds table rows
+  void addFeeds(const casa::Int antennaID,
+             const casa::Vector<double>& x,
+             const casa::Vector<double>& y,
+             const casa::Vector<casa::String>& polType);
+  
+  // Add antenna table row
+  casa::Int addAntenna(const casa::String& station,
+             const casa::Vector<double>& antXYZ,
+             const casa::String& name,
+             const casa::String& mount,
+             const casa::Double& dishDiameter);
+
+  // Add data description table row
+  casa::Int addDataDesc(const casa::Int spwId, const casa::Int polId);
+  
+  // Add spectral window table row
+  casa::Int addSpectralWindow(const casa::String& name,
+            const int nChan,
+            const casa::Quantity& startFreq,
+            const casa::Quantity& freqInc);
+
+  // Add polarisation table row
+  casa::Int addPolarisation(const casa::Vector<casa::Stokes::StokesTypes>& stokesTypes);
   
 private:
   /// @brief parameters
