@@ -102,7 +102,7 @@ casa::ComponentList ComponentImagerWrapper::translateComponentList(const std::ve
 
         boost::scoped_ptr<casa::SpectralModel> spectrum;
         const double dblEpsilon = std::numeric_limits<double>::epsilon();
-        if (c.spectralIndex() > dblEpsilon) {
+        if (abs(c.spectralIndex()) > dblEpsilon) {
             spectrum.reset(new casa::SpectralIndex(MFrequency(Quantity(1.4, "GHz")),
                         c.spectralIndex()));
         } else {

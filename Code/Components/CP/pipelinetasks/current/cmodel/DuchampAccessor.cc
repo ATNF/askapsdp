@@ -190,25 +190,39 @@ void DuchampAccessor::processLine(const std::string& line,
         minorAxis = casa::Quantity(1.0e-15, arcsec);
     }
 
+    // Spectral Index if present
+    double spectralIndex = 0.0;
+    if (pos.spectralIndexPos >= 0) {
+        spectralIndex = boost::lexical_cast<casa::Double>(tokens[pos.spectralIndexPos]);
+    }
+
+    // Spectral Curvature if present
+    double spectralCurvature = 0.0;
+    if (pos.spectralCurvaturePos >= 0) {
+        spectralCurvature = boost::lexical_cast<casa::Double>(tokens[pos.spectralCurvaturePos]);
+    }
+
     // Build the Component object and add to the list. This component
     // has a constant spectrum
     // NOTE: The Component ID has no meaning for this accessor
     askap::cp::skymodelservice::Component c(-1, ra, dec, positionAngle,
-            majorAxis, minorAxis, flux, 0.0, 0.0);
+            majorAxis, minorAxis, flux, spectralIndex, spectralCurvature);
     list.push_back(c);
 }
 
 DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort nTokens)
 {
     TokenPositions pos;
-    if (nTokens == 17) {
+    if (nTokens == 23) {
         // Duchamp format
-        pos.raPos = 1;
-        pos.decPos = 2;
-        pos.fluxPos = 3;
-        pos.majorAxisPos = 7;
-        pos.minorAxisPos = 8;
-        pos.positionAnglePos = 9;
+        pos.raPos = 2;
+        pos.decPos = 3;
+        pos.fluxPos = 4;
+        pos.majorAxisPos = 8;
+        pos.minorAxisPos = 9;
+        pos.positionAnglePos = 10;
+        pos.spectralIndexPos = 14;
+        pos.spectralCurvaturePos = 15;
     } else if (nTokens == 13) {
         // SKADS Sky Simulations extract format
         pos.raPos = 3;
@@ -217,8 +231,10 @@ DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort
         pos.majorAxisPos = 6;
         pos.minorAxisPos = 7;
         pos.positionAnglePos = 5;
+        pos.spectralIndexPos = -1; // Not present
+        pos.spectralCurvaturePos = -1; // Not present
     } else {
-        ASKAPTHROW(AskapError, "Malformed entry - Expected 13 or 17 tokens");
+        ASKAPTHROW(AskapError, "Malformed entry - Expected 13 or 23 tokens");
     }
 
     return pos;

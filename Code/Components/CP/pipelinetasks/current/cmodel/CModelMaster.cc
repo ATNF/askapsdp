@@ -107,8 +107,6 @@ void CModelMaster::run(void)
     // field, but given the current implementations of cone search do not
     // include extended components with centre outside the field, it is best
     // to search a larger radius anyway.
-    // TODO: When coneSearch implementations are fixed, restrict the radius
-    // to only the required radius.
     const casa::uInt nx = itsParset.getUintVector("shape").at(0);
     const casa::uInt ny = itsParset.getUintVector("shape").at(1);
     const casa::uInt maxNPix = std::max(nx, ny);

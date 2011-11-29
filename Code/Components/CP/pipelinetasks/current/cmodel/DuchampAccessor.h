@@ -73,12 +73,14 @@ class DuchampAccessor : public IGlobalSkyModel {
 
         // Supports the getPositions() method.
         struct TokenPositions {
-            casa::uShort raPos;
-            casa::uShort decPos;
-            casa::uShort fluxPos;
-            casa::uShort majorAxisPos;
-            casa::uShort minorAxisPos;
-            casa::uShort positionAnglePos;
+            casa::Short raPos;
+            casa::Short decPos;
+            casa::Short fluxPos;
+            casa::Short majorAxisPos;
+            casa::Short minorAxisPos;
+            casa::Short positionAnglePos;
+            casa::Short spectralIndexPos;
+            casa::Short spectralCurvaturePos;
         };
 
         // Process a single (non comment) line of the input file.
