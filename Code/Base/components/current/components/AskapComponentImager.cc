@@ -267,7 +267,7 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
     for (int lat = 0; lat < imageShape(latAxis); ++lat) {
         for (int lon = 0; lon < imageShape(longAxis); ++lon) {
             const float f = gauss(lat, lon);
-            if (f > 0.0) {
+            if (abs(f) > 0.0) {
                 pos(latAxis) = lat;
                 pos(longAxis) = lon;
                 image.putAt(image(pos) + gauss(lat, lon), pos);
