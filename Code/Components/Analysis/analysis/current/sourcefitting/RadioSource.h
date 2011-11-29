@@ -225,6 +225,9 @@ namespace askap {
                     /// @brief Set the fitting parameters by passing a set
                     void setFitParams(FittingParameters &fitpars) {itsFitParams = fitpars;};
 
+		    /// @brief Find the spectral index or curvature for each fitted component in the source
+		    void findSpectralTerm(std::string imageName, int term, bool doCalc);
+
                     /// @brief Find the spectral index for each fitted component
                     void findAlpha(std::string imageName, bool doCalc = true);
 

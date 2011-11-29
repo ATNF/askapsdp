@@ -933,6 +933,150 @@ namespace askap {
 
             //**************************************************************//
 
+	  void RadioSource::findSpectralTerm(std::string imageName, int term, bool doCalc)
+            {
+                /// @details This function finds the value of the spectral
+                /// index for each Gaussian component fitted to the zeroth
+                /// Taylor term image. The procedure is:
+                /// @li Find the Taylor 1 image from the provided image
+                /// name (must be of format *.taylor.0*)
+                /// @li Extract pixel values within the source's box
+                /// @li For each Gaussian component of the source, and for
+                /// each fit type, fit the same shape & location Gaussian
+                /// (that is, only fit the height of the Gaussian).
+                /// @li Calculate the spectral index using the ratio of
+                /// the fluxes of the Taylor1 & Taylor0 Gaussian
+                /// components
+                /// @li Store the spectral index value in a map indexed by
+                /// fit type.
+                /// Note that if the imageName provided is not of the correct format, nothing is done.
+                /// @param imageName The name of the image in which sources have been found
+                /// @param doCalc If true, do all the calculations. If false, fill the alpha values to -99. for all fit types.
+
+	      std::string termtype[3]={"","spectral index","spectral curvature"};
+
+	        ASKAPCHECK(term==1 || term==2, 
+			   "Term number ("<<term<<") must be either 1 (for spectral index) or 2 (for spectral curvature)");
+
+                size_t pos = imageName.rfind(".taylor.0");
+
+                if (!doCalc || pos == std::string::npos) {
+                    // image provided is not a Taylor series term - notify and do nothing
+                    if (doCalc)
+                        ASKAPLOG_WARN_STR(logger, "radioSource::findSpectralTerm : Image name provided ("
+                                              << imageName << ") is not a Taylor term. Cannot find spectral information.");
+
+                    std::vector<std::string>::iterator type;
+                    std::vector<std::string> typelist = availableFitTypes;
+
+                    for (type = typelist.begin(); type < typelist.end(); type++) {
+		      if(term==1)
+                        this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), -99.);
+		      else if(term==2)
+                        this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), -99.);
+                    }
+
+		    if(term==1)
+		      this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
+		    else if(term==2)
+		      this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
+
+
+                } else {
+
+		  ASKAPLOG_DEBUG_STR(logger, "About to find the "<<termtype[term]<<", for image " << imageName);
+
+                    // Get Taylor-term image name
+		  std::stringstream ss;
+		  ss << ".taylor."<<term;
+		  std::string taylorName = imageName.replace(pos, 9, ss.str());
+
+		  ASKAPLOG_DEBUG_STR(logger, "Using Taylor "<<term<<" image " << taylorName);
+
+                    // Get taylor1 values for box, and define positions
+                    casa::Matrix<casa::Double> pos;
+                    casa::Vector<casa::Double> sigma;
+                    pos.resize(this->boxSize(), 2);
+                    sigma.resize(this->boxSize());
+                    casa::Vector<casa::Double> curpos(2);
+                    curpos = 0;
+
+                    for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+                        for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+                            int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+                            sigma(i) = 1.;
+                            curpos(0) = x;
+                            curpos(1) = y;
+                            pos.row(i) = curpos;
+                        }
+                    }
+		    
+		    Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
+		    Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
+		    Slicer theBox=casa::Slicer(xrange, yrange);
+		    ASKAPLOG_DEBUG_STR(logger, "xrange="<<xrange << " | yrange=" << yrange << " || slicer=" << theBox);
+                    casa::Vector<casa::Double> f = getPixelsInBox(taylorName, theBox);
+
+                    ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor "<<term<<" term");
+
+                    // Set up fit with same parameters and do the fit
+                    std::vector<std::string>::iterator type;
+                    std::vector<std::string> typelist = availableFitTypes;
+
+                    for (type = typelist.begin(); type < typelist.end(); type++) {
+                        std::vector<float> termValues(this->itsBestFitMap[*type].numGauss(), -99.);
+
+                        if (this->itsBestFitMap[*type].isGood()){
+			    ASKAPLOG_DEBUG_STR(logger, "Finding "<<termtype[term]<<" values for fit type \"" << *type << "\", with " << this->itsBestFitMap[*type].numGauss() << " components ");
+                            Fitter fit;
+                            fit.setParams(this->itsFitParams);
+                            fit.rparams().setFlagFitThisParam("height");
+                            fit.rparams().setNegativeFluxPossible(true);
+                            fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
+			    ASKAPLOG_DEBUG_STR(logger, "Setting estimate with the following:");
+			    this->itsBestFitMap[*type].logIt("DEBUG");
+                            fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
+                            fit.setRetries();
+                            fit.setMasks();
+                            bool fitPossible = fit.fit(pos, f, sigma);
+
+                            // Calculate taylor term value
+
+                            if (fitPossible && fit.passConverged() && fit.passChisq()) { // the fit is OK
+			      ASKAPLOG_DEBUG_STR(logger, "Values for "<<termtype[term]<<" follow (" 
+						 << this->itsBestFitMap[*type].numGauss() << " of them):");
+
+                                for (int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
+				    float Iref=this->itsBestFitMap[*type].gaussian(i).flux();
+                                    if(term==1){
+				      termValues[i] = fit.gaussian(i).flux() / Iref;
+				    }
+				    else if(term==2){
+				      float alpha = this->itsAlphaMap[*type][i];
+				      termValues[i] = fit.gaussian(i).flux() / Iref - 0.5 * alpha * (alpha - 1.);
+				    }
+				      ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << termValues[i] << ", calculated with fitted flux of " << fit.gaussian(i).flux()<<", peaking at "<<fit.gaussian(i).height()<<", best fit taylor0 flux of " << Iref);
+                                }
+                            }
+
+                        }
+
+			if(term==1) this->itsAlphaMap[*type] = termValues;
+			else if(term==2) this->itsBetaMap[*type] = termValues;
+                    }
+
+                    ASKAPLOG_DEBUG_STR(logger, "Finished finding the "<<termtype[term]<<" values");
+
+                }
+		
+		if(term==1)       this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
+		else if(term==2)  this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
+
+            }
+
+
+            //**************************************************************//
+
             void RadioSource::findAlpha(std::string imageName, bool doCalc)
             {
                 /// @details This function finds the value of the spectral
