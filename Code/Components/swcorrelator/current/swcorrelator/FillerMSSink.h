@@ -83,6 +83,10 @@ protected:
   /// in the form suitable for calculation of uvw's.
   void initAntennasAndBeams();
   
+  
+  /// @brief read beam information, populate itsBeamOffsets
+  void readBeamInfo();
+  
   /// @brief initialises field information
   void initFields();
   
@@ -143,6 +147,10 @@ private:
   /// @brief global (ITRF) coordinates of all antennas
   /// @details row is antenna number, column is X,Y and Z
   casa::Matrix<double> itsAntXYZ;
+  
+  /// @brief beam offsets in radians
+  /// @details assumed the same for all antennas, row is antenna numbers, column is the coordinate
+  casa::Matrix<double> itsBeamOffsets;
   
   /// @brief Measurement set
   boost::scoped_ptr<casa::MeasurementSet> itsMs;

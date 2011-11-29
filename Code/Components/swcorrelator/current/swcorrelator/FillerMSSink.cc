@@ -69,6 +69,38 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
   initDataDesc();
 }
 
+/// @brief read beam information, populate itsBeamOffsets
+void FillerMSSink::readBeamInfo()
+{
+   LOFAR::ParameterSet parset(itsParset);
+
+   if (parset.isDefined("feeds.definition")) {
+       parset = LOFAR::ParameterSet(itsParset.getString("feeds.definition"));
+   }
+
+    std::vector<std::string> feedNames(parset.getStringVector("feeds.names"));
+    int nFeeds = int(feedNames.size());
+    ASKAPCHECK(nFeeds > 0, "No feeds specified");
+    const std::string mode = parset.getString("feeds.mode","perfect X Y");
+    ASKAPCHECK(mode == "perfect X Y", "Unknown feed mode: "<<mode);
+
+    double spacing = 1.;
+    if (parset.isDefined("feeds.spacing")) {
+        const casa::Quantity qspacing = asQuantity(parset.getString("feeds.spacing"));
+        spacing = qspacing.getValue("rad");
+        ASKAPLOG_INFO_STR(logger, "Scaling beam offsets by " << qspacing);
+    }
+    itsBeamOffsets.resize(nFeeds,2);
+    for (int feed = 0; feed < nFeeds; ++feed) {
+        std::ostringstream os;
+        os << "feeds." << feedNames[feed];
+        std::vector<double> xy(parset.getDoubleVector(os.str()));
+        ASKAPCHECK(xy.size() == 2, "Expect two elements in the beam offset vector, you have: "<<xy);
+        itsBeamOffsets(feed,0) = xy[0];
+        itsBeamOffsets(feed,1) = xy[1];
+    }
+    ASKAPLOG_INFO_STR(logger, "Successfully defined " << nFeeds << " beams");
+}
 
 /// @brief Initialises ANTENNA and FEED tables
 /// @details This method extracts configuration from the parset and fills in the 
@@ -76,6 +108,12 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
 /// in the form suitable for calculation of uvw's.
 void FillerMSSink::initAntennasAndBeams()
 {
+  readBeamInfo();
+  ASKAPDEBUGASSERT(itsBeamOffsets.nrow()>0);
+  ASKAPDEBUGASSERT(itsBeamOffsets.ncolumn() == 2);  
+  const casa::Vector<casa::String> polTypes(itsBeamOffsets.nrow(), "X Y");
+  
+  // read antenna layout
   LOFAR::ParameterSet parset(itsParset);
   if (parset.isDefined("antennas.definition")) {
       parset = LOFAR::ParameterSet(itsParset.getString("antennas.definition"));
@@ -140,6 +178,10 @@ void FillerMSSink::initAntennasAndBeams()
            itsAntXYZ.row(iant) = xyzNew;               
        }
        addAntenna(telName, itsAntXYZ.row(iant),antNames[iant], mount, diameter);
+       
+       // setup feeds corresponding to this antenna
+       ASKAPDEBUGASSERT(iant>=0);
+       addFeeds(casa::uInt(iant), itsBeamOffsets.column(0), itsBeamOffsets.column(1), polTypes);
    }
    ASKAPLOG_INFO_STR(logger, "Successfully defined " << nAnt
            << " antennas of " << telName);  
