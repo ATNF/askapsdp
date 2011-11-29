@@ -927,8 +927,6 @@ namespace askap {
 	  else src.fitGauss(&this->itsVoxelList, this->itsFitParams);
 	}
 
-	//	src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
-	//	src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
 	for(int t=1;t<=2;t++)
 	  src.findSpectralTerm(this->itsCube.pars().getImageFile(), t, this->itsFlagFindSpectralIndex);
 
@@ -1240,8 +1238,6 @@ namespace askap {
 			      src.fitGauss(&this->itsVoxelList, this->itsFitParams);
                             }
 
-//                             src.findAlpha(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
-//                             src.findBeta(this->itsCube.pars().getImageFile(), this->itsFlagFindSpectralIndex);
 			    for(int t=1;t<=2;t++)
 			      src.findSpectralTerm(this->itsCube.pars().getImageFile(), t, this->itsFlagFindSpectralIndex);
 			  }
