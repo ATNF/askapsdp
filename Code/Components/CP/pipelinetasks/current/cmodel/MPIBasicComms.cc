@@ -279,7 +279,7 @@ void MPIBasicComms::sendComponents(const std::vector<askap::cp::skymodelservice:
     int size = components.size();
     send(&size, sizeof(int), dest, itsComponentTag);
 
-    const int nDoubles = 7;
+    const int nDoubles = 8;
     double payload[nDoubles];
 
     for (int i = 0; i < size; ++i) {
@@ -292,6 +292,7 @@ void MPIBasicComms::sendComponents(const std::vector<askap::cp::skymodelservice:
         payload[4] = components[i].minorAxis().getValue("arcsec");
         payload[5] = components[i].i1400().getValue("Jy");
         payload[6] = components[i].spectralIndex();
+        payload[7] = components[i].spectralCurvature();
 
         send(&id, sizeof(long), dest, itsComponentTag);
         send(&payload, sizeof(double) * nDoubles, dest, itsComponentTag);
@@ -306,7 +307,7 @@ std::vector<askap::cp::skymodelservice::Component> MPIBasicComms::receiveCompone
     int size;
     receive(&size, sizeof(int), source, itsComponentTag, status);
 
-    const int nDoubles = 7;
+    const int nDoubles = 8;
     double payload[nDoubles];
 
     std::vector<askap::cp::skymodelservice::Component> components;
@@ -325,7 +326,8 @@ std::vector<askap::cp::skymodelservice::Component> MPIBasicComms::receiveCompone
                     casa::Quantity(payload[3], "arcsec"),
                     casa::Quantity(payload[4], "arcsec"),
                     casa::Quantity(payload[5], "Jy"),
-                    payload[6])); 
+                    payload[6],
+                    payload[7])); 
     }
 
     return components;

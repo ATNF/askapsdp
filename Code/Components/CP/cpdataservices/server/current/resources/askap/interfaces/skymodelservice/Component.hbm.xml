@@ -14,6 +14,7 @@
         <property name="minorAxis" type="double" access="field" column="minor_axis"/>
         <property name="i1400" type="double" access="field" column="i1400"/>
         <property name="spectralIndex" type="double" access="field" column="spectral_index"/>
+        <property name="spectralCurvature" type="double" access="field" column="spectral_curvature"/>
 
     </class>
 

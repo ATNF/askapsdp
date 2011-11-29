@@ -44,7 +44,8 @@ Component::Component(const ComponentId id,
         const casa::Quantity& majorAxis,
         const casa::Quantity& minorAxis,
         const casa::Quantity& i1400,
-        const casa::Double& spectralIndex)
+        const casa::Double& spectralIndex,
+        const casa::Double& spectralCurvature)
     : itsId(id),
     itsRightAscension(rightAscension),
     itsDeclination(declination),
@@ -52,7 +53,8 @@ Component::Component(const ComponentId id,
     itsMajorAxis(majorAxis),
     itsMinorAxis(minorAxis),
     itsI1400(i1400),
-    itsSpectralIndex(spectralIndex)
+    itsSpectralIndex(spectralIndex),
+    itsSpectralCurvature(spectralCurvature)
 {
     ASKAPCHECK(itsRightAscension.isConform("deg"), "ra must conform to degrees");
     ASKAPCHECK(itsDeclination.isConform("deg"), "dec must conform to degrees");
@@ -100,4 +102,9 @@ casa::Quantity Component::i1400() const
 casa::Double Component::spectralIndex() const
 {
     return itsSpectralIndex;
+}
+
+casa::Double Component::spectralCurvature() const
+{
+    return itsSpectralCurvature;
 }

@@ -54,7 +54,8 @@ class ComponentTest : public CppUnit::TestFixture {
             itsMajorAxis = casa::Quantity(12.0, "arcsec");
             itsMinorAxis = casa::Quantity(8.0, "arcsec");
             itsI1400 = casa::Quantity(0.1, "Jy");
-            itsSpectralIndex = 0.0;
+            itsSpectralIndex = -0.1;
+            itsSpectralCurvature = 0.01;
         };
 
         void tearDown() {
@@ -65,22 +66,22 @@ class ComponentTest : public CppUnit::TestFixture {
             casa::Quantity conformJy(0.1, "Jy");
             casa::Quantity conformDeg(187.5, "deg");
             CPPUNIT_ASSERT_THROW(Component(-1, conformJy, itsDec, itsPositionAngle,
-                    itsMajorAxis, itsMinorAxis, itsI1400, itsSpectralIndex), askap::AskapError);
+                    itsMajorAxis, itsMinorAxis, itsI1400, itsSpectralIndex, itsSpectralCurvature), askap::AskapError);
             CPPUNIT_ASSERT_THROW(Component(-1, itsRA, conformJy, itsPositionAngle,
-                    itsMajorAxis, itsMinorAxis, itsI1400, itsSpectralIndex), askap::AskapError);
+                    itsMajorAxis, itsMinorAxis, itsI1400, itsSpectralIndex, itsSpectralCurvature), askap::AskapError);
             CPPUNIT_ASSERT_THROW(Component(-1, itsRA, itsDec, conformJy,
-                    itsMajorAxis, itsMinorAxis, itsI1400, itsSpectralIndex), askap::AskapError);
+                    itsMajorAxis, itsMinorAxis, itsI1400, itsSpectralIndex, itsSpectralCurvature), askap::AskapError);
             CPPUNIT_ASSERT_THROW(Component(-1, itsRA, itsDec, itsPositionAngle,
-                    conformJy, itsMinorAxis, itsI1400, itsSpectralIndex), askap::AskapError);
+                    conformJy, itsMinorAxis, itsI1400, itsSpectralIndex, itsSpectralCurvature), askap::AskapError);
             CPPUNIT_ASSERT_THROW(Component(-1, itsRA, itsDec, itsPositionAngle,
-                    itsMajorAxis, conformJy, itsI1400, itsSpectralIndex), askap::AskapError);
+                    itsMajorAxis, conformJy, itsI1400, itsSpectralIndex, itsSpectralCurvature), askap::AskapError);
             CPPUNIT_ASSERT_THROW(Component(-1, itsRA, itsDec, itsPositionAngle,
-                    itsMajorAxis, itsMinorAxis, conformDeg, itsSpectralIndex), askap::AskapError);
+                    itsMajorAxis, itsMinorAxis, conformDeg, itsSpectralIndex, itsSpectralCurvature), askap::AskapError);
         }
 
         void testGetters() {
             Component c(-1, itsRA, itsDec, itsPositionAngle,
-                    itsMajorAxis, itsMinorAxis, itsI1400, itsSpectralIndex);
+                    itsMajorAxis, itsMinorAxis, itsI1400, itsSpectralIndex, itsSpectralCurvature);
 
             const double dblEpsilon = std::numeric_limits<double>::epsilon();
             CPPUNIT_ASSERT_DOUBLES_EQUAL(itsRA.getValue(), c.rightAscension().getValue(), dblEpsilon);
@@ -90,6 +91,7 @@ class ComponentTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_DOUBLES_EQUAL(itsMinorAxis.getValue(), c.minorAxis().getValue(), dblEpsilon);
             CPPUNIT_ASSERT_DOUBLES_EQUAL(itsI1400.getValue(), c.i1400().getValue(), dblEpsilon);
             CPPUNIT_ASSERT_DOUBLES_EQUAL(itsSpectralIndex, c.spectralIndex(), dblEpsilon);
+            CPPUNIT_ASSERT_DOUBLES_EQUAL(itsSpectralCurvature, c.spectralCurvature(), dblEpsilon);
         }
 
         private:
@@ -100,6 +102,7 @@ class ComponentTest : public CppUnit::TestFixture {
         casa::Quantity itsMinorAxis;
         casa::Quantity itsI1400;
         casa::Double itsSpectralIndex;
+        casa::Double itsSpectralCurvature;
 };
 
 }   // End namespace skymodelservice

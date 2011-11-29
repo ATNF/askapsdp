@@ -84,6 +84,12 @@ module skymodelservice
          * Units: N/A
          **/
         double spectralIndex;
+
+        /**
+         * Spectral curvature
+         * Units: N/A
+         **/
+        double spectralCurvature;
     };
 
     /**

@@ -194,7 +194,7 @@ void DuchampAccessor::processLine(const std::string& line,
     // has a constant spectrum
     // NOTE: The Component ID has no meaning for this accessor
     askap::cp::skymodelservice::Component c(-1, ra, dec, positionAngle,
-            majorAxis, minorAxis, flux, 0.0);
+            majorAxis, minorAxis, flux, 0.0, 0.0);
     list.push_back(c);
 }
 

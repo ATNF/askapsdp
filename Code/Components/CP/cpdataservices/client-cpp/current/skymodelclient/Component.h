@@ -57,7 +57,8 @@ class Component {
                   const casa::Quantity& majorAxis,
                   const casa::Quantity& minorAxis,
                   const casa::Quantity& i1400,
-                  const casa::Double& spectralIndex);
+                  const casa::Double& spectralIndex,
+                  const casa::Double& spectralCurvature);
 
         /// Unique component index number
         ComponentId id() const;
@@ -90,6 +91,9 @@ class Component {
         /// Base units: N/A
         casa::Double spectralIndex() const;
 
+        /// Spectral curvature
+        /// Base units: N/A
+        casa::Double spectralCurvature() const;
 
     private:
         ComponentId itsId;
@@ -100,6 +104,7 @@ class Component {
         casa::Quantity itsMinorAxis;
         casa::Quantity itsI1400;
         casa::Double itsSpectralIndex;
+        casa::Double itsSpectralCurvature;
 };
 
 };

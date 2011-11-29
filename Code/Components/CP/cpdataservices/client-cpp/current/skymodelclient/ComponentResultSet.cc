@@ -159,7 +159,8 @@ void ComponentResultSet::Iterator::fillBuffer(void)
                     casa::Quantity(c->majorAxis, "arcsec"),
                     casa::Quantity(c->minorAxis, "arcsec"),
                     casa::Quantity(c->i1400, "Jy"),
-                    c->spectralIndex));
+                    c->spectralIndex,
+                    c->spectralCurvature));
         itsComponentBuffer.push_back(component);
     }
 

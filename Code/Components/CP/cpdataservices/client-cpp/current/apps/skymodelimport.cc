@@ -95,8 +95,9 @@ void processLine(const std::string& line, std::vector<Component>& components)
         }
     }
 
-    // Determine spectral index
+    // Determine spectral index and curvature (zero for now)
     const double spectralIndex = log10(i_610/i_1400) / log10(610.0/1400.0);
+    const double spectralCurvature = 0.0;
 
     components.push_back(Component(-1,
             casa::Quantity(ra, "deg"),
@@ -105,7 +106,8 @@ void processLine(const std::string& line, std::vector<Component>& components)
             casa::Quantity(majorAxis, "arcsec"),
             casa::Quantity(minorAxis, "arcsec"),
             casa::Quantity(i_1400, "Jy"),
-            spectralIndex));
+            spectralIndex,
+            spectralCurvature));
 }
 
 void uploadComponents(SkyModelServiceClient& svc, std::vector<Component>& components)
