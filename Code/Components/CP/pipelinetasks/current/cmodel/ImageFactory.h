@@ -29,12 +29,14 @@
 
 // System includes
 #include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
 
 // Casacore includes
 #include "casa/aipstype.h"
+#include "casa/Arrays/Vector.h"
 #include "coordinates/Coordinates/CoordinateSystem.h"
 #include "images/Images/TempImage.h"
 #include "images/Images/PagedImage.h"
@@ -55,6 +57,13 @@ class ImageFactory {
         // @note The image parameters are read from the parset
         static casa::CoordinateSystem createCoordinateSystem(casa::uInt nx, casa::uInt ny,
                 const LOFAR::ParameterSet& parset);
+
+        // Convert a std::vector of strings (either I, Q, U or V) to a vector of
+        // integers mapping to casa::Stokes types
+        static casa::Vector<casa::Int> parseStokes(const std::vector<std::string>& input);
+
+        // Given a coordinate system instance, return the number of stokes parameters
+        static casa::uInt getNumStokes(const casa::CoordinateSystem& coordsys);
 };
 
 }

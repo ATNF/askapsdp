@@ -44,12 +44,15 @@
 #include "casa/Quanta.h"
 #include "casa/Quanta/Quantum.h"
 #include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/Vector.h"
 #include "measures/Measures/MDirection.h"
+#include "measures/Measures/Stokes.h"
 #include "casa/Arrays/IPosition.h"
 #include "lattices/Lattices/TiledShape.h"
 #include "coordinates/Coordinates/CoordinateSystem.h"
 #include "coordinates/Coordinates/DirectionCoordinate.h"
 #include "coordinates/Coordinates/SpectralCoordinate.h"
+#include "coordinates/Coordinates/CoordinateUtil.h"
 
 // Using
 using namespace askap;
@@ -64,10 +67,11 @@ casa::TempImage<casa::Float> ImageFactory::createTempImage(const LOFAR::Paramete
     const casa::uInt ny = parset.getUintVector("shape").at(1);
     const std::string units = parset.getString("bunit");
 
-    // Open the image
-    IPosition shape(3, nx, ny, 1);
-
+    // Create the Coordinate System
     CoordinateSystem coordsys = createCoordinateSystem(nx, ny, parset);
+
+    // Open the image
+    IPosition shape(4, nx, ny, 1, getNumStokes(coordsys));
     casa::TempImage<casa::Float> image(TiledShape(shape), coordsys);
     image.set(0.0);
 
@@ -83,10 +87,11 @@ casa::PagedImage<casa::Float> ImageFactory::createPagedImage(const LOFAR::Parame
     const casa::uInt ny = parset.getUintVector("shape").at(1);
     const std::string units = parset.getString("bunit");
 
-    // Open the image
-    IPosition shape(3, nx, ny, 1);
-
+    // Create the Coordinate System
     CoordinateSystem coordsys = createCoordinateSystem(nx, ny, parset);
+
+    // Open the image
+    IPosition shape(4, nx, ny, 1, getNumStokes(coordsys));
     casa::PagedImage<casa::Float> image(TiledShape(shape), coordsys, filename);
     image.set(0.0);
 
@@ -135,5 +140,49 @@ casa::CoordinateSystem ImageFactory::createCoordinateSystem(casa::uInt nx, casa:
         coordsys.addCoordinate(sc);
     }
 
+    // Stokes Coordinate
+    {
+        Vector<Int> stokes;
+        if (parset.isDefined("stokes")) {
+            stokes = parseStokes(parset.getStringVector("stokes"));
+        } else {
+            stokes.resize(1);
+            stokes(0) = Stokes::I;
+        }
+
+        const StokesCoordinate stokescoord(stokes);
+        coordsys.addCoordinate(stokescoord);
+    }
+
+
     return coordsys;
+}
+
+Vector<casa::Int> ImageFactory::parseStokes(const std::vector<std::string>& input)
+{
+    const size_t size = input.size();
+    Vector<Int> stokes(size);
+
+    for (size_t i = 0; i < size; ++i) {
+        if (input[i].compare("I") == 0) {
+            stokes(i) = Stokes::I;
+        } else if (input[i].compare("Q") == 0) {
+            stokes(i) = Stokes::Q;
+        } else if (input[i].compare("U") == 0) {
+            stokes(i) = Stokes::U;
+        } else if (input[i].compare("V") == 0) {
+            stokes(i) = Stokes::V;
+        } else {
+            ASKAPTHROW(AskapError, "Unknown stokes parameter in parset");
+        }
+    }
+
+    return stokes;
+}
+
+casa::uInt ImageFactory::getNumStokes(const casa::CoordinateSystem& coordsys)
+{
+    Vector<Stokes::StokesTypes> stokes;
+    CoordinateUtil::findStokesAxis(stokes, coordsys);
+    return stokes.size();
 }
