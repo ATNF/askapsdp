@@ -936,22 +936,20 @@ namespace askap {
 	  void RadioSource::findSpectralTerm(std::string imageName, int term, bool doCalc)
             {
                 /// @details This function finds the value of the spectral
-                /// index for each Gaussian component fitted to the zeroth
+                /// index or spectral curvature for each Gaussian component fitted to the zeroth
                 /// Taylor term image. The procedure is:
-                /// @li Find the Taylor 1 image from the provided image
+                /// @li Find the Taylor 1/2 image from the provided image
                 /// name (must be of format *.taylor.0*)
                 /// @li Extract pixel values within the source's box
                 /// @li For each Gaussian component of the source, and for
                 /// each fit type, fit the same shape & location Gaussian
                 /// (that is, only fit the height of the Gaussian).
-                /// @li Calculate the spectral index using the ratio of
-                /// the fluxes of the Taylor1 & Taylor0 Gaussian
-                /// components
-                /// @li Store the spectral index value in a map indexed by
-                /// fit type.
+                /// @li Calculate the spectral index or curvature using the appropriate formulae
+                /// @li Store the spectral index value in a map indexed by fit type.
                 /// Note that if the imageName provided is not of the correct format, nothing is done.
                 /// @param imageName The name of the image in which sources have been found
-                /// @param doCalc If true, do all the calculations. If false, fill the alpha values to -99. for all fit types.
+	        /// @param term Which Taylor term to do - either 1 or 2, other values trigger an exception
+                /// @param doCalc If true, do all the calculations. If false, fill the alpha & beta values to 0. for all fit types.
 
 	      std::string termtype[3]={"","spectral index","spectral curvature"};
 
@@ -971,9 +969,9 @@ namespace askap {
 
                     for (type = typelist.begin(); type < typelist.end(); type++) {
 		      if(term==1)
-                        this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), -99.);
+                        this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
 		      else if(term==2)
-                        this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), -99.);
+                        this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
                     }
 
 		    if(term==1)
