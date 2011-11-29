@@ -145,7 +145,8 @@ namespace askap {
 	      outmsg << "Component Flux,X0,Y0,MAJ,MIN,PA = ";
 	      outmsg.precision(8);
 	      outmsg.setf(ios::fixed);
-	      outmsg << gauss->flux() << ", ";
+	      //	      outmsg << gauss->flux() << ", ";
+	      outmsg << gauss->height() << ", ";
 	      outmsg.precision(3);
 	      outmsg.setf(ios::fixed);
 	      outmsg << gauss->xCenter() << ", " << gauss->yCenter() << ", "

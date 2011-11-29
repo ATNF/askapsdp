@@ -1014,7 +1014,6 @@ namespace askap {
 		    Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
 		    Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
 		    Slicer theBox=casa::Slicer(xrange, yrange);
-		    ASKAPLOG_DEBUG_STR(logger, "xrange="<<xrange << " | yrange=" << yrange << " || slicer=" << theBox);
                     casa::Vector<casa::Double> f = getPixelsInBox(taylorName, theBox);
 
                     ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor "<<term<<" term");
@@ -1033,8 +1032,8 @@ namespace askap {
                             fit.rparams().setFlagFitThisParam("height");
                             fit.rparams().setNegativeFluxPossible(true);
                             fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
-			    ASKAPLOG_DEBUG_STR(logger, "Setting estimate with the following:");
-			    this->itsBestFitMap[*type].logIt("DEBUG");
+// 			    ASKAPLOG_DEBUG_STR(logger, "Setting estimate with the following:");
+// 			    this->itsBestFitMap[*type].logIt("DEBUG");
                             fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
                             fit.setRetries();
                             fit.setMasks();

@@ -448,7 +448,7 @@ namespace askap {
             /// @param box The region within in the image
             /// @return A casa::Vector of casa::Double pixel values
 
-	  ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName << " with slicer " << box);
+	  //	  ASKAPLOG_DEBUG_STR(logger, "getPixelsInBox: starting to look in image " << imageName << " with slicer " << box);
             ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
 	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
             const LatticeBase* lattPtr = ImageOpener::openImage(imageName);
@@ -457,16 +457,13 @@ namespace askap {
                 ASKAPTHROW(AskapError, "Requested image \"" << imageName << "\" does not exist or could not be opened.");
 
             const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-	    ASKAPLOG_DEBUG_STR(logger, "Image shape = " << imagePtr->shape());
 
-	    ASKAPLOG_DEBUG_STR(logger, box);
 	    lengthenSlicer(box,imagePtr->ndim());
 	    casa::Slicer newSlicer=box;
 	    if(fixSlice){
 	      wcsprm *tempwcs = casaImageToWCS(imagePtr);
 	      fixSlicer(newSlicer, tempwcs);
 	    }
-	    ASKAPLOG_DEBUG_STR(logger, newSlicer);
 
 	    casa::Array<Float> array;
 	    array = imagePtr->getSlice(newSlicer,true);
