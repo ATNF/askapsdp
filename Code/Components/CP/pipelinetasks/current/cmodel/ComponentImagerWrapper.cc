@@ -38,6 +38,7 @@
 #include "boost/scoped_ptr.hpp"
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "askap/AskapUtil.h"
 #include "Common/ParameterSet.h"
 #include "skymodelclient/Component.h"
 #include "components/AskapComponentImager.h"
@@ -91,6 +92,9 @@ void ComponentImagerWrapper::projectComponents(const std::vector<askap::cp::skym
 casa::ComponentList ComponentImagerWrapper::translateComponentList(const std::vector<askap::cp::skymodelservice::Component>& components)
 {
     casa::ComponentList list;
+    
+    // Obtain the GSM reference frequency
+    const MFrequency refFreq = MFrequency(asQuantity(itsParset.getString("gsm.ref_freq"), "Hz"));
 
     std::vector<askap::cp::skymodelservice::Component>::const_iterator it;
     for (it = components.begin(); it != components.end(); ++it) {
@@ -103,8 +107,7 @@ casa::ComponentList ComponentImagerWrapper::translateComponentList(const std::ve
         boost::scoped_ptr<casa::SpectralModel> spectrum;
         const double dblEpsilon = std::numeric_limits<double>::epsilon();
         if (abs(c.spectralIndex()) > dblEpsilon) {
-            spectrum.reset(new casa::SpectralIndex(MFrequency(Quantity(1.4, "GHz")),
-                        c.spectralIndex()));
+            spectrum.reset(new casa::SpectralIndex(refFreq, c.spectralIndex()));
         } else {
             spectrum.reset(new casa::ConstantSpectrum);
         }

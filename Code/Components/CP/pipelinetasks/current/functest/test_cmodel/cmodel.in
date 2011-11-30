@@ -1,6 +1,7 @@
 # The below specifies the GSM source is a duchamp output file
 Cmodel.gsm.database       = duchamp
 Cmodel.gsm.file           = small-duchamp.txt
+Cmodel.gsm.ref_freq       = 1.421GHz
 #Cmodel.gsm.file           = SKADS_S3SEX_1uJy_input_catalogue.dat
 
 # The below specifies the GSM source is the Sky Model Service
@@ -8,6 +9,7 @@ Cmodel.gsm.file           = small-duchamp.txt
 #Cmodel.gsm.locator_host   = localhost
 #Cmodel.gsm.locator_port   = 4061
 #Cmodel.gsm.service_name   = SkyModelService
+#Cmodel.gsm.ref_freq       = 1.4GHz
 
 # General parameters
 Cmodel.bunit              = Jy/pixel
