@@ -76,14 +76,20 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
 /// @return time epoch corresponding to the BAT of the buffer
 casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
 {
+  // note, we need to specify 'ull' type for the constant as the value exceeds the capacity of long, 
+  // which is assumed by default
+  const uint64_t microsecondsPerDay = 86400000000ull;
+  const casa::MVEpoch timeTAI(double(buf.itsBAT / microsecondsPerDay), double(buf.itsBAT % microsecondsPerDay)/double(microsecondsPerDay));
+  const casa::MEpoch epoch = casa::MEpoch::Convert(casa::MEpoch(timeTAI, casa::MEpoch::Ref(casa::MEpoch::TAI)), 
+                             casa::MEpoch::Ref(casa::MEpoch::UTC))();
   if (buf.itsUVWValid) {
-      return casa::MEpoch();
+      return epoch;
   }
   buf.itsUVWValid = true;
   // only 3 antennas are supported
   buf.itsUVW.resize(3,3);
   ASKAPDEBUGASSERT(itsAntXYZ.nrow() == 3);
-  return casa::MEpoch();
+  return epoch;
 }
   
 /// @brief write one buffer to the measurement set
