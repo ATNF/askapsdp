@@ -70,6 +70,92 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
   initDataDesc();
 }
 
+/// @brief calculate uvw for the given buffer
+/// @param[in] buf products buffer
+/// @note The calculation is bypassed if itsUVWValid flag is already set in the buffer
+/// @return time epoch corresponding to the BAT of the buffer
+casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
+{
+  if (buf.itsUVWValid) {
+      return casa::MEpoch();
+  }
+  buf.itsUVWValid = true;
+  // only 3 antennas are supported
+  buf.itsUVW.resize(3,3);
+  ASKAPDEBUGASSERT(itsAntXYZ.nrow() == 3);
+  return casa::MEpoch();
+}
+  
+/// @brief write one buffer to the measurement set
+/// @details Current fieldID and dataDescID are assumed
+/// @param[in] buf products buffer
+/// @note This method could've received a const reference to the buffer. However, more
+/// workarounds would be required with casa arrays, so we don't bother doing this at the moment.
+/// In addition, we could call calculateUVW inside this method (but we still need an option to
+/// calculate uvw's ahead of writing the buffer if we implement some form of delay tracking).
+void FillerMSSink::write(CorrProducts &buf) const
+{
+  const casa::MEpoch epoch = calculateUVW(buf);
+  ASKAPDEBUGASSERT(itsMs);
+  // antenna IDs for all baselines
+  const int antIDs[3][2] = {{0, 1}, {1,2}, {0, 2}};
+  casa::MSColumns msc(*itsMs);
+  const casa::uInt baseRow = msc.nrow();
+  const casa::uInt newRows = buf.itsVisibility.nrow();
+  ASKAPDEBUGASSERT(newRows == 3);
+  itsMs->addRow(newRows);
+
+  // First set the constant things outside the loop,
+  // as they apply to all rows
+  msc.scanNumber().put(baseRow, 0);
+  msc.fieldId().put(baseRow, itsFieldID);
+  msc.dataDescId().put(baseRow, itsDataDescID);
+
+  msc.time().put(baseRow, epoch.getValue().getTime().getValue("s"));
+  msc.timeCentroid().put(baseRow, epoch.getValue().getTime().getValue("s") + 0.5);
+
+  msc.arrayId().put(baseRow, 0);
+  msc.processorId().put(baseRow, 0);
+  msc.exposure().put(baseRow, 1.);
+  msc.interval().put(baseRow, 1.);
+  msc.observationId().put(baseRow, 0);
+  msc.stateId().put(baseRow, -1);
+  for (casa::uInt i = 0; i < newRows; ++i) {
+       const casa::uInt row = i + baseRow;
+       msc.antenna1().put(row, antIDs[i][0]);
+       msc.antenna2().put(row, antIDs[i][1]);
+       msc.feed1().put(row, buf.itsBeam);
+       msc.feed2().put(row, buf.itsBeam);
+       msc.uvw().put(row, buf.itsUVW.row(i));
+
+       msc.data().put(row, buf.itsVisibility.row(i));
+       msc.flag().put(row, buf.itsFlag.row(i));
+       msc.flagRow().put(row, casa::False);
+
+       const casa::Vector<casa::Float> tmp(1, 1.0);
+       msc.weight().put(row, tmp);
+       msc.sigma().put(row, tmp);
+  }
+
+  //
+  // Update the observation table
+  //
+  // If this is the first integration cycle update the start time,
+  // otherwise just update the end time.
+  const casa::Double Tstart = epoch.getValue().getTime().getValue("s");
+
+  casa::MSObservationColumns& obsc = msc.observation();
+  casa::Vector<casa::Double> timeRange = obsc.timeRange()(0);
+  if (timeRange(0) == 0) {
+      timeRange(0) = Tstart; 
+  }
+
+  const casa::Double Tend = Tstart + 1;
+  timeRange(1) = Tend;
+  obsc.timeRange().put(0, timeRange);  
+}
+
+
 /// @brief read beam information, populate itsBeamOffsets
 void FillerMSSink::readBeamInfo()
 {

@@ -34,6 +34,9 @@
 #ifndef ASKAP_SWCORRELATOR_FILLER_MS_SINK
 #define ASKAP_SWCORRELATOR_FILLER_MS_SINK
 
+// own includes
+#include <swcorrelator/CorrProducts.h>
+
 // casa includes
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include <casa/BasicSL.h>
@@ -42,6 +45,7 @@
 #include <casa/Quanta.h>
 #include <measures/Measures/Stokes.h>
 #include <measures/Measures/MDirection.h>
+#include <measures/Measures/MEpoch.h>
 
 
 // other 3rd party
@@ -49,6 +53,7 @@
 
 // boost includes
 #include "boost/scoped_ptr.hpp"
+#include <boost/utility.hpp>
 
 // std includes
 #include <string>
@@ -63,7 +68,7 @@ namespace swcorrelator {
 /// much of the metadata as we can via the parset file. It is envisaged that we may
 /// use this class also for the conversion of the DiFX output into MS. 
 /// @ingroup swcorrelator
-class FillerMSSink {
+class FillerMSSink : private boost::noncopyable {
 public:
   /// @brief constructor, sets up  MS writer
   /// @details Configuration is done via the parset, a lot of the metadata are just filled
@@ -71,6 +76,21 @@ public:
   /// @param[in] parset parset file with configuration info
   FillerMSSink(const LOFAR::ParameterSet &parset);
 
+  /// @brief calculate uvw for the given buffer
+  /// @param[in] buf products buffer
+  /// @note The calculation is bypassed if itsUVWValid flag is already set in the buffer
+  /// @return time epoch corresponding to the BAT of the buffer
+  casa::MEpoch calculateUVW(CorrProducts &buf) const;
+  
+  /// @brief write one buffer to the measurement set
+  /// @details Current fieldID and dataDescID are assumed
+  /// @param[in] buf products buffer
+  /// @note This method could've received a const reference to the buffer. However, more
+  /// workarounds would be required with casa arrays, so we don't bother doing this at the moment.
+  /// In addition, we could call calculateUVW inside this method (but we still need an option to
+  /// calculate uvw's ahead of writing the buffer if we implement some form of delay tracking).
+  void write(CorrProducts &buf) const;
+  
 protected:
   /// @brief helper method to make a string out of an integer
   /// @param[in] in unsigned integer number
