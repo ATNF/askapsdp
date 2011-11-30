@@ -36,6 +36,7 @@
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapUtil.h>
+#include <utils/PolConverter.h>
 
 // casa includes
 #include <casa/OS/File.h>
@@ -191,11 +192,66 @@ void FillerMSSink::initAntennasAndBeams()
 /// @brief initialises field information
 void FillerMSSink::initFields()
 {
+   LOFAR::ParameterSet parset(itsParset);
+
+   if (itsParset.isDefined("sources.definition")) {
+       parset = LOFAR::ParameterSet(itsParset.getString("sources.definition"));
+   }
+
+   const std::vector<std::string> sources = parset.getStringVector("sources.names");
+   ASKAPCHECK(sources.size()>0, "At least one field has to be defined in the parset!");
+   const std::string defaultName = parset.getString("defaultfield",sources[0]);
+   bool defaultNameSighted = false;
+   for (size_t i = 0; i < sources.size(); ++i) {
+        ASKAPLOG_INFO_STR(logger, "Defining FIELD table entry for " << sources[i]);
+        const std::string dirPar = std::string("sources.") + sources[i] + ".direction";
+        const casa::MDirection direction(asMDirection(parset.getStringVector(dirPar)));
+        const std::string calCode = parset.getString("sources." + sources[i] + ".calcode", "");
+        const casa::uInt fieldID = addField(sources[i], direction, calCode); 
+        if (sources[i] == defaultName) {
+            itsFieldID = fieldID;
+            defaultNameSighted = true;
+        }
+   }
+   ASKAPCHECK(defaultNameSighted, "Default field name "<<defaultName<<" is not present in field names "<<sources);
+
+   ASKAPLOG_INFO_STR(logger, "Successfully defined "<<sources.size()<<" sources (fields), default fieldID is "<<itsFieldID);   
 }
   
 /// @brief initialises spectral and polarisation info (data descriptor)
 void FillerMSSink::initDataDesc()
 {
+   LOFAR::ParameterSet parset(itsParset);
+
+   if (itsParset.isDefined("spws.definition")) {
+       parset = LOFAR::ParameterSet(itsParset.getString("spws.definition"));
+   }
+
+   std::vector<std::string> names(parset.getStringVector("spws.names"));
+   const size_t nSpw = names.size();
+   ASKAPCHECK(nSpw > 0, "No spectral windows defined");
+   const std::string defaultWindow = parset.getString("defaultwindow",names[0]);
+   bool defaultWindowSighted = false;
+   for (size_t spw = 0; spw < nSpw; ++spw) {
+        std::vector<std::string> line = parset.getStringVector("spws." + names[spw]);
+        ASKAPASSERT(line.size() >= 4);
+        const casa::Quantity startFreq = asQuantity(line[1]);
+        const casa::Quantity freqInc = asQuantity(line[2]);
+        ASKAPCHECK(startFreq.isConform("Hz"), "start frequency for spectral window " << names[spw] << " is supposed to be in units convertible to Hz, you gave " <<
+                   line[1]);
+        ASKAPCHECK(freqInc.isConform("Hz"), "frequency increment for spectral window " << names[spw] << " is supposed to be in units convertible to Hz, you gave " <<
+                   line[1]);
+        const casa::Int spWinID = addSpectralWindow(names[spw], askap::utility::fromString<int>(line[0]), startFreq, freqInc);
+        const casa::Int polID = addPolarisation(scimath::PolConverter::fromString(line[3]));
+        const casa::Int dataDescID = addDataDesc(spWinID, polID);
+        if (names[spw] == defaultWindow) {
+            defaultWindowSighted = true;
+            itsDataDescID = dataDescID;
+        }
+    }
+
+    ASKAPLOG_INFO_STR(logger, "Successfully defined " << nSpw << " spectral windows");
+   
 }
   
 
