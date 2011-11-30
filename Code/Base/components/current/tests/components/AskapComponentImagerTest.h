@@ -122,10 +122,10 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
             const double tolerance = 1e-7;
             const Double scale = spectrum2.sample(MFrequency(Quantity(1400, "MHz")));
             for (uInt pol = 0; pol < iquv.size(); ++pol) {
-                const IPosition pixelPos1(4, 128, 128, 0, pol);
+                const IPosition pixelPos1(4, 128, 128, pol, 0);
                 CPPUNIT_ASSERT_DOUBLES_EQUAL(fluxVals(pol), image.getAt(pixelPos1), tolerance);
 
-                const IPosition pixelPos2(4, 128, 114, 0, pol);
+                const IPosition pixelPos2(4, 128, 114, pol, 0);
                 CPPUNIT_ASSERT_DOUBLES_EQUAL(fluxVals(pol) * scale,
                             image.getAt(pixelPos2), tolerance);
             }
@@ -238,6 +238,12 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
                 coordsys.addCoordinate(radec);
             }
 
+            // Stokes Coordinate
+            {
+                const StokesCoordinate stokescoord(stokes);
+                coordsys.addCoordinate(stokescoord);
+            }
+
             // Spectral Coordinate
             {
                 const Quantum<Double> f0(1400.0, "MHz");
@@ -248,12 +254,6 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
                 coordsys.addCoordinate(sc);
             }
 
-            // Stokes Coordinate
-            {
-                const StokesCoordinate stokescoord(stokes);
-                coordsys.addCoordinate(stokescoord);
-            }
-
             return coordsys;
         }
 
@@ -262,7 +262,7 @@ class AskapComponentImagerTest : public CppUnit::TestFixture {
             const uInt nx, const uInt ny, const Vector<Int>& stokes) {
 
             // Create the image
-            IPosition imgShape(4, nx, ny, 1, stokes.size());
+            IPosition imgShape(4, nx, ny, stokes.size(), 1);
             CoordinateSystem coordsys = createCoordinateSystem(nx, ny, stokes);
             casa::TempImage<T> image(TiledShape(imgShape), coordsys);
             image.set(0.0);

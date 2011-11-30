@@ -71,7 +71,7 @@ casa::TempImage<casa::Float> ImageFactory::createTempImage(const LOFAR::Paramete
     CoordinateSystem coordsys = createCoordinateSystem(nx, ny, parset);
 
     // Open the image
-    IPosition shape(4, nx, ny, 1, getNumStokes(coordsys));
+    IPosition shape(4, nx, ny, getNumStokes(coordsys), 1);
     casa::TempImage<casa::Float> image(TiledShape(shape), coordsys);
     image.set(0.0);
 
@@ -91,7 +91,7 @@ casa::PagedImage<casa::Float> ImageFactory::createPagedImage(const LOFAR::Parame
     CoordinateSystem coordsys = createCoordinateSystem(nx, ny, parset);
 
     // Open the image
-    IPosition shape(4, nx, ny, 1, getNumStokes(coordsys));
+    IPosition shape(4, nx, ny, getNumStokes(coordsys), 1);
     casa::PagedImage<casa::Float> image(TiledShape(shape), coordsys, filename);
     image.set(0.0);
 
@@ -130,16 +130,6 @@ casa::CoordinateSystem ImageFactory::createCoordinateSystem(casa::uInt nx, casa:
         coordsys.addCoordinate(radec);
     }
 
-    // Spectral Coordinate
-    {
-        const Quantum<Double> f0 = asQuantity(parset.getString("frequency"), "Hz");
-        const Quantum<Double> inc = asQuantity(parset.getString("increment"), "Hz");
-        const Double refPix = 0.0;  // is the reference pixel
-        const SpectralCoordinate sc(MFrequency::TOPO, f0, inc, refPix);
-
-        coordsys.addCoordinate(sc);
-    }
-
     // Stokes Coordinate
     {
         Vector<Int> stokes;
@@ -154,6 +144,15 @@ casa::CoordinateSystem ImageFactory::createCoordinateSystem(casa::uInt nx, casa:
         coordsys.addCoordinate(stokescoord);
     }
 
+    // Spectral Coordinate
+    {
+        const Quantum<Double> f0 = asQuantity(parset.getString("frequency"), "Hz");
+        const Quantum<Double> inc = asQuantity(parset.getString("increment"), "Hz");
+        const Double refPix = 0.0;  // is the reference pixel
+        const SpectralCoordinate sc(MFrequency::TOPO, f0, inc, refPix);
+
+        coordsys.addCoordinate(sc);
+    }
 
     return coordsys;
 }
