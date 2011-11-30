@@ -164,6 +164,12 @@ private:
   /// @brief field ID used for all added rows
   casa::uInt itsFieldID;
   
+  /// @brief dish pointing centre corresponding to itsFieldID
+  casa::MDirection itsDishPointing;
+  
+  /// @brief true if uvw's are calculated for the centre of each beam (default)
+  bool itsBeamOffsetUVW;
+  
   /// @brief global (ITRF) coordinates of all antennas
   /// @details row is antenna number, column is X,Y and Z
   casa::Matrix<double> itsAntXYZ;
@@ -174,6 +180,9 @@ private:
   
   /// @brief Measurement set
   boost::scoped_ptr<casa::MeasurementSet> itsMs;
+  
+  /// @brief antenna indicies for all 3 baselines in our standard order
+  static const int theirAntIDs[3][2];
 };
 
 } // namespace swcorrelator

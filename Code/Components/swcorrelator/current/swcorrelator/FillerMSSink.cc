@@ -46,6 +46,7 @@
 #include "tables/Tables/IncrementalStMan.h"
 #include "tables/Tables/StandardStMan.h"
 #include "tables/Tables/TiledShapeStMan.h"
+#include <casa/Arrays/MatrixMath.h>
 
 // std includes
 #include <sstream>
@@ -61,13 +62,18 @@ namespace swcorrelator {
 /// via the parset.
 /// @param[in] parset parset file with configuration info
 FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset), itsDataDescID(0),
-   itsFieldID(0)
+   itsFieldID(0), itsBeamOffsetUVW(parset.getBool("beamoffsetuvw",true))
 {
   create();
   initAntennasAndBeams(); 
   addObs("ASKAP", "team", 0, 0);
   initFields();
   initDataDesc();
+  if (itsBeamOffsetUVW) {
+      ASKAPLOG_INFO_STR(logger, "UVW will be calculated taking beam offsets into account (i.e. assuming phase tracking per beam)");   
+  } else {
+      ASKAPLOG_INFO_STR(logger, "UVW will be calculated for the same position for all beams (i.e. same phase tracking for all beams)");   
+  }
 }
 
 /// @brief calculate uvw for the given buffer
@@ -89,8 +95,37 @@ casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
   // only 3 antennas are supported
   buf.itsUVW.resize(3,3);
   ASKAPDEBUGASSERT(itsAntXYZ.nrow() == 3);
+  ASKAPDEBUGASSERT(buf.itsBeam < int(itsBeamOffsets.nrow()));
+  ASKAPDEBUGASSERT(itsBeamOffsets.ncolumn() == 2);
+  casa::MDirection phaseCntr(itsDishPointing);
+  // need to rotate beam offsets here if we dish rotation does not compensate parallactic angle rotation perfectly
+  if (itsBeamOffsetUVW) {
+      phaseCntr.shift(-itsBeamOffsets(buf.itsBeam,0), itsBeamOffsets(buf.itsBeam,1), casa::True);
+  }
+  const double ra = phaseCntr.getAngle().getValue()(0);
+  const double dec = phaseCntr.getAngle().getValue()(1);
+  const double gmstInDays = casa::MEpoch::Convert(epoch,casa::MEpoch::Ref(casa::MEpoch::GMST1))().get("d").getValue("d");
+  const double gmst = (gmstInDays - casa::Int(gmstInDays)) * casa::C::_2pi; // in radians
+  
+  const double H0 = gmst - ra, sH0 = sin(H0), cH0 = cos(H0), sd = sin(dec), cd = cos(dec);
+  // quick and dirty calculation without taking aberration and other fine effects into account
+  // it should be fine for the sort of baselines we have with BETA3
+  casa::Matrix<double> trans(3, 3, 0.);
+  trans(0, 0) = -sH0; trans(0, 1) = -cH0;
+  trans(1, 0) = sd * cH0; trans(1, 1) = -sd * sH0; trans(1, 2) = -cd;
+  trans(2, 0) = -cd * cH0; trans(2, 1) = cd * sH0; trans(2, 2) = -sd;
+  const casa::Matrix<double> antUVW = casa::product(trans,casa::transpose(itsAntXYZ));
+  for (casa::uInt baseline = 0; baseline < buf.itsUVW.nrow(); ++baseline) {
+       for (casa::uInt dim = 0; dim < buf.itsUVW.ncolumn(); ++dim) {
+            buf.itsUVW(baseline,dim) = antUVW(dim,theirAntIDs[baseline][1]) - antUVW(dim,theirAntIDs[baseline][0]);
+       }
+  }
   return epoch;
 }
+
+/// @brief antenna indicies for all 3 baselines in our standard order
+const int FillerMSSink::theirAntIDs[3][2] = {{0, 1}, {1,2}, {0, 2}};
+
   
 /// @brief write one buffer to the measurement set
 /// @details Current fieldID and dataDescID are assumed
@@ -103,8 +138,6 @@ void FillerMSSink::write(CorrProducts &buf) const
 {
   const casa::MEpoch epoch = calculateUVW(buf);
   ASKAPDEBUGASSERT(itsMs);
-  // antenna IDs for all baselines
-  const int antIDs[3][2] = {{0, 1}, {1,2}, {0, 2}};
   casa::MSColumns msc(*itsMs);
   const casa::uInt baseRow = msc.nrow();
   const casa::uInt newRows = buf.itsVisibility.nrow();
@@ -128,8 +161,8 @@ void FillerMSSink::write(CorrProducts &buf) const
   msc.stateId().put(baseRow, -1);
   for (casa::uInt i = 0; i < newRows; ++i) {
        const casa::uInt row = i + baseRow;
-       msc.antenna1().put(row, antIDs[i][0]);
-       msc.antenna2().put(row, antIDs[i][1]);
+       msc.antenna1().put(row, theirAntIDs[i][0]);
+       msc.antenna2().put(row, theirAntIDs[i][1]);
        msc.feed1().put(row, buf.itsBeam);
        msc.feed2().put(row, buf.itsBeam);
        msc.uvw().put(row, buf.itsUVW.row(i));
@@ -303,6 +336,7 @@ void FillerMSSink::initFields()
         if (sources[i] == defaultName) {
             itsFieldID = fieldID;
             defaultNameSighted = true;
+            itsDishPointing = direction;
         }
    }
    ASKAPCHECK(defaultNameSighted, "Default field name "<<defaultName<<" is not present in field names "<<sources);
