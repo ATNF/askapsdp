@@ -79,11 +79,11 @@ public:
      const int nchan = 16;
      const int nbeam = 9;
      for (int timestamp = 0; timestamp < 10; ++timestamp) {
-          for (int beam = 9; beam < nbeam; ++beam) { 
+          for (int beam = 0; beam < nbeam; ++beam) { 
               CorrProducts buf(nchan,beam);
               buf.itsVisibility.set(casa::Complex(4.,3.));
               buf.itsFlag.set(casa::False);
-              buf.itsBAT = (4752000000ull + uint64_t(timestamp)) * 10000000ull;
+              buf.itsBAT = (4752000000ull + uint64_t(timestamp)*10) * 1000000ull;
               sink.write(buf);
           }
      }

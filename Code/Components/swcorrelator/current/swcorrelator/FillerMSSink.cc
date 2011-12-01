@@ -171,11 +171,18 @@ void FillerMSSink::write(CorrProducts &buf) const
        msc.feed2().put(row, buf.itsBeam);
        msc.uvw().put(row, buf.itsUVW.row(i));
 
-       msc.data().put(row, buf.itsVisibility.row(i));
-       msc.flag().put(row, buf.itsFlag.row(i));
+       const casa::uInt npol = 2;
+       casa::Matrix<casa::Complex> visBuf(npol,buf.itsVisibility.ncolumn());
+       casa::Matrix<casa::Bool> flagBuf(npol,buf.itsFlag.ncolumn());
+       for (casa::uInt pol = 0; pol < npol; ++pol) {
+            visBuf.row(pol) = buf.itsVisibility.row(i);
+            flagBuf.row(pol) = buf.itsFlag.row(i);
+       }
+       msc.data().put(row, visBuf);
+       msc.flag().put(row, flagBuf);
        msc.flagRow().put(row, casa::False);
 
-       const casa::Vector<casa::Float> tmp(1, 1.0);
+       const casa::Vector<casa::Float> tmp(npol, 1.0);
        msc.weight().put(row, tmp);
        msc.sigma().put(row, tmp);
   }
