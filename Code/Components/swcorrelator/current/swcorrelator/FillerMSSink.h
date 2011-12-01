@@ -36,6 +36,7 @@
 
 // own includes
 #include <swcorrelator/CorrProducts.h>
+#include <swcorrelator/ISink.h>
 
 // casa includes
 #include "ms/MeasurementSets/MeasurementSet.h"
@@ -68,7 +69,7 @@ namespace swcorrelator {
 /// much of the metadata as we can via the parset file. It is envisaged that we may
 /// use this class also for the conversion of the DiFX output into MS. 
 /// @ingroup swcorrelator
-class FillerMSSink : private boost::noncopyable {
+class FillerMSSink : public ISink {
 public:
   /// @brief constructor, sets up  MS writer
   /// @details Configuration is done via the parset, a lot of the metadata are just filled
@@ -80,7 +81,7 @@ public:
   /// @param[in] buf products buffer
   /// @note The calculation is bypassed if itsUVWValid flag is already set in the buffer
   /// @return time epoch corresponding to the BAT of the buffer
-  casa::MEpoch calculateUVW(CorrProducts &buf) const;
+  virtual casa::MEpoch calculateUVW(CorrProducts &buf) const;
   
   /// @brief write one buffer to the measurement set
   /// @details Current fieldID and dataDescID are assumed
@@ -89,7 +90,7 @@ public:
   /// workarounds would be required with casa arrays, so we don't bother doing this at the moment.
   /// In addition, we could call calculateUVW inside this method (but we still need an option to
   /// calculate uvw's ahead of writing the buffer if we implement some form of delay tracking).
-  void write(CorrProducts &buf) const;
+  virtual void write(CorrProducts &buf) const;
   
 protected:
   /// @brief helper method to make a string out of an integer
