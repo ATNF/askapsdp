@@ -34,6 +34,7 @@
 
 // own includes
 #include <swcorrelator/CorrProducts.h>
+#include <swcorrelator/ISink.h>
 
 // other 3rd party
 #include <Common/ParameterSet.h>
@@ -45,6 +46,7 @@
 // boost includes
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace askap {
 
@@ -117,6 +119,10 @@ public:
   /// @param[in] beam beam index
   void notifyProductsReady(const int beam);
 
+  /// @brief obtain a reference to result sink doing low-level writing of the result
+  /// @return const reference to the sink class
+  const ISink& resultSink() const;
+  
 protected:
   
   /// @brief notify that the new data are about to be received
@@ -184,6 +190,9 @@ private:
   /// for all threads to finish. To avoid any of these writing threads to jump into
   /// buffer swap mechanism, this condition is checked before swap is initiated.  
   bool itsSwapHandled;
+  
+  /// @brief actual MS filler doing all low-level job
+  boost::scoped_ptr<ISink> itsResultSink;
 };
 
 } // namespace swcorrelator

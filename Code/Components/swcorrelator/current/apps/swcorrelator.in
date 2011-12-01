@@ -1,3 +1,44 @@
 swcorrelator.port = 3000
 swcorrelator.nbeam = 1
 swcorrelator.nchan = 16
+
+# MS-writer parameters
+swcorrelator.beamoffsetuvw = true
+swcorrelator.filename = ""
+
+swcorrelator.sources.names                 =       [field1]
+swcorrelator.sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J2000]
+swcorrelator.sources.field1.calcode        =       ""
+swcorrelator.defaultfield      = "field1"
+
+swcorrelator.spws.names                      =       [IF]
+swcorrelator.spws.IF  =  [ 16, 1.200GHz, -4MHz, "XX YY"]
+swcorrelator.defaultwindow    = "IF"
+
+# antenna layout
+swcorrelator.antennas.telescope            =       BETA3
+swcorrelator.antennas.BETA3.coordinates    =       local
+swcorrelator.antennas.BETA3.location       =       [+116.6356824deg, -26.7013006deg, 377m, WGS84]
+swcorrelator.antennas.BETA3.names          =       [A0, A2, A5]
+swcorrelator.antennas.BETA3.diameter       =       12m
+swcorrelator.antennas.BETA3.scale          =        1.0
+swcorrelator.antennas.BETA3.mount          =       equatorial
+swcorrelator.antennas.BETA3.A0             =       [-289.355286,  +586.936035,   0.0000] 
+swcorrelator.antennas.BETA3.A2             =       [-686.248901,  +590.285278,   0.0000] 
+swcorrelator.antennas.BETA3.A5             =       [-425.000000,  +475.000000,   0.0000] 
+
+# beam layout
+swcorrelator.feeds.spacing        =       1deg
+swcorrelator.feeds.mode = "perfect X Y"
+
+swcorrelator.feeds.names     = [feed0, feed1, feed2, feed3, feed4, feed5, feed6, feed7, feed8]
+
+swcorrelator.feeds.feed0          =       [-1, -1]
+swcorrelator.feeds.feed1          =       [-1, 0]
+swcorrelator.feeds.feed2          =       [-1, 1]
+swcorrelator.feeds.feed3          =       [0, -1]
+swcorrelator.feeds.feed4          =       [0, 0]
+swcorrelator.feeds.feed5          =       [0, 1]
+swcorrelator.feeds.feed6          =       [1, -1]
+swcorrelator.feeds.feed7          =       [1, 0]
+swcorrelator.feeds.feed8          =       [1, 1]

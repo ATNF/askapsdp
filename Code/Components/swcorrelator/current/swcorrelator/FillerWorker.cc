@@ -75,6 +75,10 @@ void FillerWorker::operator()()
             CorrProducts &cp = itsFiller->getProductsToWrite(beam, buffer);
             ASKAPLOG_INFO_STR(logger, "Write for buffer `"<<bufType<<"` beam="<<beam<<" bat="<<cp.itsBAT<<
                " vis="<<cp.itsVisibility<<" flag="<<cp.itsFlag);
+            
+            // write data into MS
+            itsFiller->resultSink().write(cp);
+               
             // for real-time monitoring
             if (beam == 0) {
                 bats[lastHistPos] = cp.itsBAT;                

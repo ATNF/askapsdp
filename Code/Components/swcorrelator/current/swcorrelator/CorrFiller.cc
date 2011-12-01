@@ -30,6 +30,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <swcorrelator/CorrFiller.h>
+#include <swcorrelator/FillerMSSink.h>
 #include <askap/AskapError.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
@@ -60,7 +61,8 @@ CorrFiller::CorrFiller(const LOFAR::ParameterSet &parset) :
        itsCorrProducts[buf].reset(new CorrProducts(nChan(), buf % nBeam()));
   }
   itsFillStatus.resize(nBeam(),false);  
-  // initialisation of MS will come here
+  // initialisation of MS
+  itsResultSink.reset(new FillerMSSink(parset));
 }
 
 /// @brief shutdown the filler
@@ -257,6 +259,13 @@ void CorrFiller::notifyProductsReady(const int beam)
   itsStatusCV.notify_all();
 }
 
+/// @brief obtain a reference to result sink doing low-level writing of the result
+/// @return const reference to the sink class
+const ISink& CorrFiller::resultSink() const
+{
+  ASKAPDEBUGASSERT(itsResultSink);
+  return *itsResultSink;
+}
 
 } // namespace swcorrelator
 
