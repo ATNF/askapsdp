@@ -74,6 +74,10 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
   } else {
       ASKAPLOG_INFO_STR(logger, "UVW will be calculated for the same position for all beams (i.e. same phase tracking for all beams)");   
   }
+  // trigger a dummy UVW calculation to get measures set up their caches in the main thread and avoid race condition
+  CorrProducts dummy(1,0);
+  dummy.itsBAT = 55000000000ull*86400ull;
+  calculateUVW(dummy);
 }
 
 /// @brief calculate uvw for the given buffer
@@ -246,7 +250,7 @@ void FillerMSSink::initAntennasAndBeams()
   }
   
   const std::string telName = parset.getString("antennas.telescope");
-  ASKAPLOG_INFO_STR(logger, "Simulating " << telName);
+  ASKAPLOG_INFO_STR(logger, "Defining array layout for " << telName);
   std::ostringstream oos;
   oos << "antennas." << telName << ".";
   LOFAR::ParameterSet antParset(parset.makeSubset(oos.str()));

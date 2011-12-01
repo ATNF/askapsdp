@@ -1,0 +1,39 @@
+beamoffsetuvw = true
+filename = "test.ms"
+
+sources.names                 =       [field1]
+sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J2000]
+sources.field1.calcode        =       ""
+defaultfield      = "field1"
+
+spws.names                      =       [IF]
+spws.IF  =  [ 16, 1.200GHz, -4MHz, "XX YY"]
+defaultwindow    = "IF"
+
+# antenna layout
+antennas.telescope            =       BETA3
+antennas.BETA3.coordinates    =       local
+antennas.BETA3.location       =       [+116.6356824deg, -26.7013006deg, 377m, WGS84]
+antennas.BETA3.names          =       [A0, A2, A5]
+antennas.BETA3.diameter       =       12m
+antennas.BETA3.scale          =        1.0
+antennas.BETA3.mount          =       equatorial
+antennas.BETA3.A0             =       [-289.355286,  +586.936035,   0.0000] 
+antennas.BETA3.A2             =       [-686.248901,  +590.285278,   0.0000] 
+antennas.BETA3.A5             =       [-425.000000,  +475.000000,   0.0000] 
+
+# beam layout
+feeds.spacing        =       1deg
+feeds.mode = "perfect X Y"
+
+feeds.names     = [feed0, feed1, feed2, feed3, feed4, feed5, feed6, feed7, feed8]
+
+feeds.feed0          =       [-1, -1]
+feeds.feed1          =       [-1, 0]
+feeds.feed2          =       [-1, 1]
+feeds.feed3          =       [0, -1]
+feeds.feed4          =       [0, 0]
+feeds.feed5          =       [0, 1]
+feeds.feed6          =       [1, -1]
+feeds.feed7          =       [1, 0]
+feeds.feed8          =       [1, 1]
