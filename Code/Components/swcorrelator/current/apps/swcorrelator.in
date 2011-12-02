@@ -5,6 +5,7 @@ swcorrelator.nchan = 16
 # MS-writer parameters
 swcorrelator.beamoffsetuvw = true
 swcorrelator.filename = ""
+swcorrelator.basepath = "apps/"
 
 swcorrelator.sources.names                 =       [field1]
 swcorrelator.sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J2000]

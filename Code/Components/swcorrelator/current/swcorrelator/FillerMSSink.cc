@@ -40,6 +40,7 @@
 
 // casa includes
 #include <casa/OS/File.h>
+#include <casa/OS/Path.h>
 #include <ms/MeasurementSets/MSColumns.h>
 #include "tables/Tables/TableDesc.h"
 #include "tables/Tables/SetupNewTab.h"
@@ -203,6 +204,8 @@ void FillerMSSink::write(CorrProducts &buf) const
   const casa::Double Tend = Tstart + 1;
   timeRange(1) = Tend;
   obsc.timeRange().put(0, timeRange);  
+  // to avoid a corrupted MS if the process terminates abnormally outside write
+  itsMs->flush();
 }
 
 
@@ -421,6 +424,9 @@ void FillerMSSink::create()
         filename = utility::toString(tm.year())+"-"+makeString(tm.month())+"-"+makeString(tm.dayOfMonth())+"_"+
                    makeString(tm.hours())+makeString(tm.minutes())+makeString(tm.seconds())+".ms";        
     }
+    casa::Path outPath(itsParset.getString("basepath",""));
+    outPath.append(filename);
+    filename = outPath.expandedName();
 
     if (bucketSize < 8192) {
         bucketSize = 8192;
