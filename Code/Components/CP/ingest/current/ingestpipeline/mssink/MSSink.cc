@@ -157,6 +157,8 @@ void MSSink::process(VisChunk::ShPtr chunk)
     const casa::Double Tend = Tmid + (Tint / 2);
     timeRange(1) = Tend;
     obsc.timeRange().put(0, timeRange);
+
+    itsMs->flush();
 }
 
 //////////////////////////////////
