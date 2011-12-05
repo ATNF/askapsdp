@@ -62,7 +62,7 @@ public class IceAppender extends AppenderSkeleton {
         protected int itsMaxBuffer = 500;
 
         /** The queue of unsent messages. */
-        protected static Vector<ILogEvent> itsBuffer = new Vector<ILogEvent>();
+        protected static LinkedList<ILogEvent> itsBuffer = new LinkedList<ILogEvent>();
 
         public IceLoggerThread(String host, String port, String topic) {
             itsLocatorHost = host;
@@ -106,9 +106,13 @@ public class IceAppender extends AppenderSkeleton {
                 try {
                     while (!itsBuffer.isEmpty()) {
                         // Try to send the next message
-                        ILogEvent event = itsBuffer.get(0);
+                        ILogEvent event = itsBuffer.pollFirst();
+                        if (event == null) {
+                            // pollFirst returns null in the case the list is empty.
+                            // While this should not happen, protect against it.
+                            break;
+                        }
                         itsLoggingService.send(event);
-                        itsBuffer.remove(0);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -133,7 +137,7 @@ public class IceAppender extends AppenderSkeleton {
         protected void submitLog(ILogEvent event) {
             synchronized (itsBuffer) {
                 if (itsBuffer.size() < itsMaxBuffer) {
-                    itsBuffer.add(event);
+                    itsBuffer.addLast(event);
                     itsBuffer.notify();
                 }
             }
@@ -307,8 +311,7 @@ public class IceAppender extends AppenderSkeleton {
         }
 
         // Map all log4j log levels to ASKAP/ICE log levels so a log4j event can
-        // be
-        // turned into an ASKAP LogEvent
+        // be turned into an ASKAP LogEvent
         if (itsLevelMap.size() == 0) {
             itsLevelMap.put(Level.TRACE, askap.interfaces.logging.LogLevel.TRACE);
             itsLevelMap.put(Level.DEBUG, askap.interfaces.logging.LogLevel.DEBUG);
