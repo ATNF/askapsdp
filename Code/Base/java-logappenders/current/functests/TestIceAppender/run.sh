@@ -41,7 +41,7 @@ waitIceStorm()
 }
 
 # Setup the environment
-source ../../init_package_env.sh
+source `dirname $0`/../../init_package_env.sh
 
 # Create directories for IceGrid and IceStorm
 mkdir -p data/registry

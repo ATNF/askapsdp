@@ -1,11 +1,13 @@
 #!/bin/bash
 
+cd `dirname $0`
+
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/channels/current/init_package_env.sh
+source ../../init_package_env.sh
 
 # Run the uvchannel test 
 echo "Running the testcase..."
-$ASKAP_ROOT/Code/Components/CP/channels/current/apps/tUVChannel.sh -inputs tUVChannel.in
+../../apps/tUVChannel.sh -inputs tUVChannel.in
 STATUS=$?
 echo "Testcase finished"
 

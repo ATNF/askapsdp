@@ -1,26 +1,28 @@
 #!/bin/bash
 
+cd `dirname $0`
+
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/correlatorsim/current/init_package_env.sh
+source ../../init_package_env.sh
 
 # Start the Ice Services
 ../start_services.sh config.icegrid
 sleep 2
 
 # Start the metadata subscriber (don't use the script so this script can kill it)
-$ASKAP_ROOT/Code/Components/CP/correlatorsim/current/apps/msnoop -inputs msnoop.in > msnoop.log 2>&1 &
+../../apps/msnoop -inputs msnoop.in > msnoop.log 2>&1 &
 MDPID=$!
 
 # Start the visibilities receiver (don't use the script so this script can kill it)
-$ASKAP_ROOT/Code/Components/CP/correlatorsim/current/apps/vsnoop -v -p 3000 > vsnoop1.log 2>&1 &
+../../apps/vsnoop -v -p 3000 > vsnoop1.log 2>&1 &
 VISPID1=$!
 
 # And for the second correlator shelf
-$ASKAP_ROOT/Code/Components/CP/correlatorsim/current/apps/vsnoop -v -p 3001 > vsnoop2.log 2>&1 &
+../../apps/vsnoop -v -p 3001 > vsnoop2.log 2>&1 &
 VISPID2=$!
 
 # Run the test
-mpirun -np 3 $ASKAP_ROOT/Code/Components/CP/correlatorsim/current/apps/playback.sh -inputs playback.in
+mpirun -np 3 ../../apps/playback.sh -inputs playback.in
 STATUS=$?
 
 # Give the subscriber a moment to get the last messages then exit

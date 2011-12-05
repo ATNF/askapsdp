@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd `dirname $0`
+
 INITIALDIR=`pwd`
 echo Running test cases...
 

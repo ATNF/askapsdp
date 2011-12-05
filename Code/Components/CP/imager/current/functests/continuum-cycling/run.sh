@@ -1,10 +1,12 @@
 #!/bin/bash
 
+cd `dirname $0`
+
 OUTPUT=output.txt
 
 export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 
-if [ ! -x ${ASKAP_ROOT}/Code/Components/CP/imager/current/apps/imager.sh ]; then
+if [ ! -x ../../apps/imager.sh ]; then
     echo imager.sh does not exit
 fi
 
@@ -15,13 +17,13 @@ echo Done
 
 echo -n Extracting measurement set...
 tar zxf ../10uJy_stdtest.ms.tgz
-mv 10uJy_stdtest.ms 10uJy_stdtest_0.ms
+mv -f 10uJy_stdtest.ms 10uJy_stdtest_0.ms
 tar zxf ../10uJy_stdtest.ms.tgz
-mv 10uJy_stdtest.ms 10uJy_stdtest_1.ms
+mv -f 10uJy_stdtest.ms 10uJy_stdtest_1.ms
 echo Done
 
 # Run the imager with the test configuration
-mpirun -np 2 ${ASKAP_ROOT}/Code/Components/CP/imager/current/apps/imager.sh -inputs clean.in | tee $OUTPUT
+mpirun -np 2 ../../apps/imager.sh -inputs clean.in | tee $OUTPUT
 if [ $? -ne 0 ]; then
     echo Error: mpirun returned an error
     exit 1

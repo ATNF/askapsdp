@@ -1,7 +1,9 @@
 #!/bin/bash
 
+cd `dirname $0`
+
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/channels/current/init_package_env.sh
+source ../../init_package_env.sh
 
 # Remove ActiveMQ data files
 rm -rf $ASKAP_ROOT/3rdParty/apache-activemq/apache-activemq-5.4.1/install/data
@@ -31,7 +33,7 @@ sleep 10
 
 # Run the event channel test
 echo "Running the testcase..."
-$ASKAP_ROOT/Code/Components/CP/channels/current/apps/tEventChannel.sh
+../../apps/tEventChannel.sh
 STATUS=$?
 echo "Testcase finished"
 sleep 5

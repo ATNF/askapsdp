@@ -1,7 +1,9 @@
 #!/bin/bash
 
+cd `dirname $0`
+
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/manager/current/init_package_env.sh
+source ../../init_package_env.sh
 
 # Remove the IceGrid log files
 rm -f icegrid.stdout

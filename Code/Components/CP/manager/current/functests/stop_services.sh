@@ -12,7 +12,7 @@ if [ ! -f $1 ]; then
 fi
 
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/manager/current/init_package_env.sh
+source `dirname $0`/../init_package_env.sh
 
 echo -n "Stopping IceGrid..."
 # Request IceGrid shutdown and wait

@@ -1,7 +1,9 @@
 #!/bin/bash
 
+cd `dirname $0`
+
 # Setup the environment
-source $ASKAP_ROOT/Code/Components/CP/channels/current/init_package_env.sh
+source ../../init_package_env.sh
 
 # Remove ActiveMQ data files
 rm -rf $ASKAP_ROOT/3rdParty/apache-activemq/apache-activemq-5.4.1/install/data

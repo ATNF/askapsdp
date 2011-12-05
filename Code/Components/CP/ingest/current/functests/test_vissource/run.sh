@@ -1,8 +1,10 @@
 #!/bin/bash
 
+cd `dirname $0`
+
 # Run the test harness
 echo "Running the testcase..."
-$ASKAP_ROOT/Code/Components/CP/ingest/current/apps/tVisSource.sh
+../../apps/tVisSource.sh
 STATUS=$?
 echo "Testcase finished"
 
