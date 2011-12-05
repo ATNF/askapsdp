@@ -50,6 +50,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
     private static final Logger log = Logger.getLogger(TestIceAppender.class);
+    static public int total = 100;
     static public int count = 0;
 
     public void send(askap.interfaces.logging.ILogEvent event, Ice.Current current) {
@@ -112,15 +113,16 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
             PropertyConfigurator.configure(args[0]);
 
             System.err.println("Test: Sending log messages");
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < total; i++) {
                 log.debug("Debug   Message");
                 log.warn ("Warning Message");
                 log.error("Error   Message");
+                Thread.sleep(20);
             }
 
-            // Wait for the three messages, up to a maximum of 5 seconds
-            for (int i = 0; i < 5; ++i) {
-                if (count == 300) {
+            // Wait for the three messages, up to a maximum of 10 seconds
+            for (int i = 0; i < 10; ++i) {
+                if (count == total * 3) {
                     // Success, got all messages expected
                     status = 0;
                     break;
@@ -130,12 +132,8 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
                 } catch (InterruptedException e) {}
             }
 
-        } catch (Ice.LocalException e) {
-            e.printStackTrace();
-            System.exit(1);
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            System.exit(1);
         } finally {
             // Cleanup ICE
             if (ic != null) {
@@ -148,10 +146,11 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
                     ic.destroy();
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
-                    System.exit(1);
                 }
             }
         }
+
+        System.out.println("Received " + count + " of expected " + total * 3 + " messages");
         System.exit(status);
     }
 }
