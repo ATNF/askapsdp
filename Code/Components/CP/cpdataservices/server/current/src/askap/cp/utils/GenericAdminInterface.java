@@ -21,23 +21,29 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  */
-package askap.cp.skymodelsvc;
+package askap.cp.utils;
 
 // Java imports
 import java.util.Map;
 
 // ASKAPsoft imports
-import Ice.Current;
 import org.apache.log4j.Logger;
-import askap.interfaces.component.*;
+import Ice.Current;
+
+// Ice Interfaces
+import askap.interfaces.component.CannotTestException;
+import askap.interfaces.component.ComponentState;
+import askap.interfaces.component.ComponentTestResult;
+import askap.interfaces.component.TransitionException;
+import askap.interfaces.component._IComponentDisp;
 
 /**
  * This class implements the askap.interfaces.component.IComponent
- * interface, allowing the sky model service to be administered
+ * interface, allowing a generic service to be administered
  * (i.e. started, shutdown) programmatically.
  */
-public class AdminInterface extends askap.interfaces.component._IComponentDisp {
-	
+public class GenericAdminInterface extends _IComponentDisp {
+
 	/**
 	 * Id for ISeralizable
 	 */
@@ -59,47 +65,61 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	private ComponentState itsState;
 
 	/**
-	 * Reference to the SkyModelServiceImpl Service object, which provides
-	 * the Sky Model Service service.
+	 * Reference to the Service object..
 	 */
-	private SkyModelServiceImpl itsService;
-	
+	private Ice.ObjectImpl itsService;
+
 	/**
-	 * Ice identity of the observation service.
+	 * Ice identity of the service.
 	 */
 	private String itsServiceName = "";
-	
-	private String itsAdminName = "";
 
-	/** Logger. */
-	private static Logger logger = Logger.getLogger(AdminInterface.class.getName());
 
 	/**
-	 * Constructor
-	 * @param ic	An already initialised Ice communicator for the object
-	 * 				to use.
+	 * Ice identity of the admin interface.
 	 */
-	public AdminInterface(Ice.Communicator ic, final String serviceName, final String adminName) {
+	private String itsAdminName = "";
+
+	/**
+	 * Logger.
+	 * */
+	private static Logger logger = Logger.getLogger(
+			GenericAdminInterface.class.getName());
+
+	/**
+	 * A factory that is used to create the service instance.
+	 */
+	IServiceFactory itsFactory = null;
+	
+	/**
+	 * Constructor
+	 * 
+	 * @param ic An already initialised Ice communicator for the object to use.
+	 * @param factory A factory that is used to create the service interface.
+	 * @param serviceName The ICE identity of the service.
+	 * @param adminName The ICE identity of the admin interface.
+	 */
+	public GenericAdminInterface(Ice.Communicator ic, IServiceFactory factory,
+			final String serviceName, final String adminName) {
 		super();
+		logger.debug("Creating AdminInterface: " + adminName);
+		
+		itsComm = ic;
+		itsFactory = factory;
 		itsServiceName = serviceName;
 		itsAdminName = adminName;
 		
-		logger.debug("Creating AdminInterface");
-		itsComm = ic;
 		itsAdapter = null;
 		itsService = null;
 		itsState = ComponentState.LOADED;
 	}
 
-    public void finalize() {
-		logger.debug("Destroying AdminInterface");
-    }
+	public void finalize() {
+		logger.debug("Destroying AdminInterface: " + itsAdminName);
+	}
 
-	/**
-	 * 
-	 */
-    @Override
-	public synchronized void activate(Current curr) throws TransitionException {
+	@Override
+	public synchronized void activate(Current cur) throws TransitionException {
 		if (itsState != ComponentState.STANDBY) {
 			throw new TransitionException("Not in STANDBY state");
 		}
@@ -120,47 +140,77 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		itsState = ComponentState.ONLINE;
 	}
 
-	/**
-	 * 
-	 */
-    @Override
-	public synchronized void deactivate(Current curr) throws TransitionException {
+	@Override
+	public synchronized void deactivate(Current cur) throws TransitionException {
 		if (itsState != ComponentState.ONLINE) {
 			throw new TransitionException("Not in ONLINE state");
 		}
 
 		// Must transition to STANDBY before deactivating any services
 		itsState = ComponentState.STANDBY;
-		
-        // Stop the server
-        itsAdapter.remove(itsComm.stringToIdentity(itsServiceName));
 
-        // Block until service is actually unregistered
-        while (itsAdapter.find(itsAdapter.getCommunicator().stringToIdentity(itsServiceName)) != null) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-            	// No consequence
-            }
-        }
+		// Stop the server
+		itsAdapter.remove(itsComm.stringToIdentity(itsServiceName));
+
+		// Block until service is actually unregistered
+		while (itsAdapter.find(itsAdapter.getCommunicator().stringToIdentity(
+				itsServiceName)) != null) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// No consequence
+			}
+		}
 	}
 
-	/**
-	 * 
-	 */
-    @Override
-	public ComponentState getState(Current curr) {
+	@Override
+	public synchronized ComponentState getState(Current cur) {
 		return itsState;
 	}
 
-    /**
-     * Returns a string containing the version of the component.
-     */
-    @Override
-    public String getVersion(Current curr) {
-	Package p = this.getClass().getPackage();
-        return p.getImplementationVersion();
-    }
+	@Override
+	public String getVersion(Current cur) {
+		Package p = this.getClass().getPackage();
+		return p.getImplementationVersion();
+	}
+
+	@Override
+	public synchronized ComponentTestResult[] selfTest(Current cur)
+			throws CannotTestException {
+		if (itsState != ComponentState.STANDBY) {
+			throw new CannotTestException("Not in STANDBY state");
+		}
+
+		return new ComponentTestResult[0];
+	}
+
+	@Override
+	public synchronized void shutdown(Current cur) throws TransitionException {
+		if (itsState != ComponentState.STANDBY) {
+			throw new TransitionException("Not in STANDBY state");
+		}
+
+		// Must transition to LOADED before destroying any objects
+		itsState = ComponentState.LOADED;
+
+		itsService = null;
+
+		// Not critical, but is good if garbage collection can happen here
+		System.gc();
+	}
+
+	@Override
+	public synchronized void startup(Map<String, String> params, Current cur)
+			throws TransitionException {
+		if (itsState != ComponentState.LOADED) {
+			throw new TransitionException("Not in UNLOADED state");
+		}
+
+		itsService = itsFactory.create(itsComm);
+		
+		// Must transition to standby only once all objects are created
+		itsState = ComponentState.STANDBY;
+	}
 
 	/**
 	 * 
@@ -177,63 +227,15 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 		}
 
 		Ice.Object object = this;
-		itsAdapter.add(object,
-				itsComm.stringToIdentity(itsAdminName));
+		itsAdapter.add(object, itsComm.stringToIdentity(itsAdminName));
 		itsAdapter.activate();
 
 		// Block here so main() can block on this
 		itsComm.waitForShutdown();
 		logger.info("Stopping AdminInterface");
 
-        itsAdapter.deactivate();
-        itsAdapter.destroy();
-        logger.info("AdminInterface stopped");
-    }
-
-	/**
-	 * 
-	 */
-	@Override
-	public synchronized ComponentTestResult[] selfTest(Current curr)
-			throws CannotTestException {
-		if (itsState != ComponentState.STANDBY) {
-			throw new CannotTestException("Not in STANDBY state");
-		}
-
-		return new ComponentTestResult[0];
-	}
-
-	/**
-	 * 
-	 */
-	@Override
-	public synchronized void shutdown(Current curr) throws TransitionException {
-		if (itsState != ComponentState.STANDBY) {
-			throw new TransitionException("Not in STANDBY state");
-		}
-
-		// Must transition to LOADED before destroying any objects
-		itsState = ComponentState.LOADED;
-
-		itsService = null;
-		
-		// Not critical, but is good if garbage collection can happen here
-		System.gc();
-	}
-
-	/**
-	 * 
-	 */
-	@Override
-	public synchronized void startup(Map<String, String> config, Current curr)
-			throws TransitionException {
-		if (itsState != ComponentState.LOADED) {
-			throw new TransitionException("Not in UNLOADED state");
-		}
-
-		itsService = new SkyModelServiceImpl(itsComm);
-
-		// Must transition to standby only once all objects are created
-		itsState = ComponentState.STANDBY;
+		itsAdapter.deactivate();
+		itsAdapter.destroy();
+		logger.info("AdminInterface stopped");
 	}
 }

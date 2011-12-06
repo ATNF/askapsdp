@@ -32,6 +32,7 @@ import java.io.File;
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
+import askap.cp.utils.GenericAdminInterface;
 
 public class Server {
 
@@ -63,7 +64,8 @@ public class Server {
 				throw new RuntimeException("ICE Communicator initialisation failed");
 			}
 
-			AdminInterface admin = new askap.cp.rfisourcesvc.AdminInterface(ic,
+			GenericAdminInterface admin = new GenericAdminInterface(ic,
+					new RFISourceServiceFactory(),
 					"RFISourceService", "RFISourceServiceAdmin");
 			admin.run(); // Blocks until shutdown
 		} catch (Ice.LocalException e) {
