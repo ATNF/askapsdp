@@ -109,12 +109,12 @@ void CModelMaster::run(void)
     // to search a larger radius anyway.
     const casa::uInt nx = itsParset.getUintVector("shape").at(0);
     const casa::uInt ny = itsParset.getUintVector("shape").at(1);
-    const casa::uInt maxNPix = std::max(nx, ny);
     const std::vector<std::string> cellSizeVector = itsParset.getStringVector("cellsize");
     const Quantity xcellsize = asQuantity(cellSizeVector.at(0), "arcsec");
     const Quantity ycellsize = asQuantity(cellSizeVector.at(1), "arcsec");
-    const casa::Double largestCellSize = std::max(xcellsize.getValue("deg"), ycellsize.getValue("deg"));
-    const casa::Quantity searchRadius(largestCellSize * maxNPix, "deg");
+    const casa::Quantity searchRadius(
+            std::max(xcellsize.getValue("deg") * nx, ycellsize.getValue("deg") * ny),
+            "deg");
 
     const std::vector<askap::cp::skymodelservice::Component> list = gsm->coneSearch(ra, dec, searchRadius, fluxLimit);
     gsm.reset(0);
