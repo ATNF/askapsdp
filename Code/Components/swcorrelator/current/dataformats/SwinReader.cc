@@ -31,6 +31,9 @@
 #include <dataformats/SwinReader.h>
 #include <askap/AskapError.h>
 #include <casa/OS/File.h>
+#include <inttypes.h>
+#include <utils/PolConverter.h>
+
 
 namespace askap {
 
@@ -83,6 +86,15 @@ bool SwinReader::hasMore() const
 void SwinReader::next()
 {
   readHeader();
+  if (hasMore()) {
+      for (casa::uInt chan = 0; chan<itsVisibility.nelements(); ++chan) {
+           float re = 0., im = 0.;
+           itsStream->read((char*) &re, sizeof(float));
+           itsStream->read((char*) &im, sizeof(float));
+           ASKAPCHECK(*itsStream, "Error while reading the stream, channel="<<chan);
+           itsVisibility[chan] = casa::Complex(re,im);
+      }
+  }
 }
    
 /// @brief obtain current UVW
@@ -125,7 +137,58 @@ casa::MEpoch SwinReader::epoch() const
 /// @brief helper method to read the header   
 void SwinReader::readHeader()
 {
-  
+   ASKAPCHECK(itsStream, "An attempt to read from a stream which is closed"); 
+   if (!(*itsStream)) {
+       itsStream.reset();
+       return;
+   }              
+   int32_t intBuf;
+   itsStream->read((char*)&intBuf, 4);
+   ASKAPCHECK(intBuf == int32_t(0xFF00FF00), "Sync word is not as expected ("<<std::hex<<intBuf<<
+              ") wrong file format or mismanaged read (i.e. wrong number of channels)");
+   if (!(*itsStream)) {
+       itsStream.reset();
+       return;
+   }              
+   itsStream->read((char*)&intBuf, 4);
+   ASKAPCHECK(intBuf == 1, "Expect header version 1, you have "<<intBuf);
+   // baseline
+   itsStream->read((char*)&intBuf, 4);
+   const int ant1 = intBuf / 256 - 1;
+   const int ant2 = intBuf % 256 - 1;
+   ASKAPCHECK((ant1 < 256) && (ant1 >=0), "Illegal 1st antenna ID: "<<ant1+1<<" baseline index "<<intBuf);
+   ASKAPCHECK((ant2 < 256) && (ant2 >=0), "Illegal 2nd antenna ID: "<<ant2+1<<" baseline index "<<intBuf);
+   itsBaseline.first = casa::uInt(ant1);
+   itsBaseline.second = casa::uInt(ant2);
+   // mjd
+   itsStream->read((char*)&intBuf, 4);
+   double doubleBuf;
+   // seconds
+   itsStream->read((char*)&doubleBuf, 8);
+   itsEpoch = casa::MEpoch(casa::MVEpoch(double(intBuf), doubleBuf / 86400.), casa::MEpoch::Ref(casa::MEpoch::UTC));
+   // this will read config, source and freq indices, which we ignore for the moment
+   itsStream->read((char*)&intBuf, 4);
+   itsStream->read((char*)&intBuf, 4);
+   itsStream->read((char*)&intBuf, 4);
+   // stokes descriptor
+   char polBuf[3];
+   polBuf[2] = 0;
+   itsStream->read(polBuf, 2);
+   const casa::Vector<casa::Stokes::StokesTypes> stokesBuf = 
+           scimath::PolConverter::fromString(polBuf);
+   ASKAPCHECK(stokesBuf.nelements() == 1, "Expected only one element in the stokes vector, you have "<<stokesBuf.nelements());
+   itsStokes = stokesBuf[0];
+   // pulsar bin - ignored
+   itsStream->read((char*)&intBuf, 4);
+   // weight - ignored for now
+   itsStream->read((char*)&doubleBuf, 8);
+   ASKAPDEBUGASSERT(itsUVW.nelements() == 3);
+   itsStream->read((char*)&doubleBuf, 8);
+   itsUVW[0] = doubleBuf;
+   itsStream->read((char*)&doubleBuf, 8);
+   itsUVW[1] = doubleBuf;
+   itsStream->read((char*)&doubleBuf, 8);
+   itsUVW[2] = doubleBuf;              
 }
 
 

@@ -113,7 +113,7 @@ private:
    
    /// @brief file stream to work with
    /// @details An empty shared pointer indicates that the end of file is reached
-   boost::shared_ptr<std::fstream> itsStream;
+   boost::shared_ptr<std::ifstream> itsStream;
    
    /// @brief UVWs
    casa::Vector<double> itsUVW;

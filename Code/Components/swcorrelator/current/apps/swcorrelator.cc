@@ -36,6 +36,8 @@
 #include <askap/AskapLogging.h>
 #include <swcorrelator/CorrServer.h>
 
+#include <dataformats/SwinReader.h>
+
 // casa includes
 #include <casa/OS/Timer.h>
 

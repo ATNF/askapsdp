@@ -27,6 +27,7 @@ env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 # add sub packages 
 pkg.AddSubPackage("swcorrelator")
+pkg.AddSubPackage("dataformats")
 
 # run the build process
 pkg()
