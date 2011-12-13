@@ -9,10 +9,26 @@ swin2ms.sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J200
 swin2ms.sources.field1.calcode        =       ""
 swin2ms.defaultfield      = "field1"
 
-swin2ms.spws.names                      =       [IF]
+#swin2ms.spws.names                      =       [IF]
 #swin2ms.spws.IF  =  [ 16, 1.200GHz, -4MHz, "XX YY"]
-swin2ms.spws.IF  =  [ 256, 1.490GHz, -3.90624kHz, "XX YY"]
-swin2ms.defaultwindow    = "IF"
+swin2ms.spws.names   =   [ch00,ch01,ch02,ch03,ch04,ch05,ch06,ch07,ch08,ch09,ch10,ch11,ch12,ch13,ch14,ch15]
+swin2ms.spws.ch00 =  [ 256, 1.490GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch01 =  [ 256, 1.486GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch02 =  [ 256, 1.482GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch03 =  [ 256, 1.478GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch04 =  [ 256, 1.474GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch05 =  [ 256, 1.470GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch06 =  [ 256, 1.466GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch07 =  [ 256, 1.462GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch08 =  [ 256, 1.458GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch09 =  [ 256, 1.454GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch10 =  [ 256, 1.450GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch11 =  [ 256, 1.446GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch12 =  [ 256, 1.442GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch13 =  [ 256, 1.438GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch14 =  [ 256, 1.434GHz, -3.90624kHz, "XX YY"]
+swin2ms.spws.ch15 =  [ 256, 1.430GHz, -3.90624kHz, "XX YY"]
+swin2ms.defaultwindow    = "ch00"
 
 # antenna layout
 swin2ms.antennas.telescope            =       BETA3

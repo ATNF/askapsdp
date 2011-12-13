@@ -85,6 +85,7 @@ int main(int argc, const char** argv)
             ASKAPLOG_INFO_STR(logger,  "Processing "<<*ci);
             casa::uInt counter = 0;
             for (reader.assign(*ci); reader.hasMore(); reader.next(), ++counter) {
+                 msSink.setDataDescID(reader.freqID());
             }
             ASKAPLOG_INFO_STR(logger,  "Read "<<counter<<" records");
        }

@@ -114,6 +114,10 @@ public:
    /// @return epoch measure
    casa::MEpoch epoch() const;   
    
+   /// @brief get frequency ID of the current record
+   /// @return frequency ID
+   casa::uInt freqID() const;
+   
 protected:
    /// @brief helper method to read the header   
    void readHeader();
@@ -146,7 +150,10 @@ private:
    std::pair<casa::uInt, casa::uInt> itsBaseline;
    
    /// @brief epoch
-   casa::MEpoch itsEpoch;      
+   casa::MEpoch itsEpoch; 
+        
+   /// @brief frequency ID
+   casa::uInt itsFreqID;
 };
 
 } // namespace swcorrelator

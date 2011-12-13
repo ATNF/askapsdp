@@ -48,7 +48,8 @@ namespace swcorrelator {
 /// @param[in] name file name
 /// @param[in] nchan number of spectral channels
 SwinReader::SwinReader(const std::string &name, const casa::uInt nchan) :
-    itsFileName(name), itsUVW(3,0.), itsVisibility(nchan, casa::Complex(0.,0.))
+    itsFileName(name), itsUVW(3,0.), itsVisibility(nchan, casa::Complex(0.,0.)),
+    itsFreqID(0)
 {
   // this would start the read and create a stream
   rewind();
@@ -64,7 +65,7 @@ SwinReader::SwinReader(const std::string &name, const casa::uInt nchan) :
 /// is required before reading can happen.
 /// @param[in] nchan number of spectral channels
 SwinReader::SwinReader(const casa::uInt nchan) : itsUVW(3,0.), 
-    itsVisibility(nchan, casa::Complex(0.,0.))
+    itsVisibility(nchan, casa::Complex(0.,0.)), itsFreqID(0)
 {
 }
 
@@ -146,6 +147,14 @@ std::pair<casa::uInt, casa::uInt> SwinReader::baseline() const
   return itsBaseline;
 }
 
+/// @brief get frequency ID of the current record
+/// @return frequency ID
+casa::uInt SwinReader::freqID() const
+{
+  return itsFreqID;
+}
+
+
 /// @brief time corresponding to the current baseline
 /// @return epoch measure
 casa::MEpoch SwinReader::epoch() const
@@ -216,6 +225,8 @@ void SwinReader::readHeader()
    itsStream->read((char*)&intBuf, 4);
    itsStream->read((char*)&intBuf, 4);
    itsStream->read((char*)&intBuf, 4);
+   ASKAPCHECK(intBuf >= 0, "Negative frequency ID is not allowed, you have "<<intBuf);
+   itsFreqID = casa::uInt(intBuf);
    // stokes descriptor
    char polBuf[3];
    polBuf[2] = 0;

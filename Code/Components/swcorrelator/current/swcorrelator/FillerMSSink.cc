@@ -63,7 +63,7 @@ namespace swcorrelator {
 /// via the parset.
 /// @param[in] parset parset file with configuration info
 FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset), itsDataDescID(0),
-   itsFieldID(0), itsBeamOffsetUVW(parset.getBool("beamoffsetuvw",true))
+   itsFieldID(0), itsBeamOffsetUVW(parset.getBool("beamoffsetuvw",true)), itsNumberOfDataDesc(-1)
 {
   create();
   initAntennasAndBeams(); 
@@ -670,6 +670,10 @@ casa::Int FillerMSSink::addDataDesc(const casa::Int spwId, const casa::Int polId
     ddc.spectralWindowId().put(row, spwId);
     ddc.polarizationId().put(row, polId);
 
+    // 3: update number of data descriptors
+    if (int(row) + 1 > itsNumberOfDataDesc) {
+        itsNumberOfDataDesc = int(row) + 1;
+    }
     return row;
 }
 
@@ -756,6 +760,24 @@ int FillerMSSink::nChan() const
   ASKAPCHECK(itsNumberOfChannels > 0, "A positive number of channels is expected, you have "<<
              itsNumberOfChannels<<", check that it has been initialised");
   return itsNumberOfChannels;           
+}
+
+/// @brief obtain number of defined data descriptors
+/// @return number of data descriptors
+int FillerMSSink::numDataDescIDs() const
+{
+  return itsNumberOfDataDesc;
+}
+  
+/// @brief set new default data descriptor
+/// @details This will be used for all future write operations
+/// @param[in] desc new data descriptor
+void FillerMSSink::setDataDescID(const int desc)
+{
+  ASKAPCHECK((desc >= 0) && (desc < numDataDescIDs()), 
+       "Data Descriptor ID is supposed to be a non-negative number not exceeding the number of spectral setups in your parset = "<<
+       numDataDescIDs()<<" you have "<<desc);
+  itsDataDescID = desc;
 }
 
 

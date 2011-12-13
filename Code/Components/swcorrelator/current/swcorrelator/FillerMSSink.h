@@ -99,6 +99,15 @@ public:
   /// @return the number of channels in the active configuration
   int nChan() const;
   
+  /// @brief obtain number of defined data descriptors
+  /// @return number of data descriptors
+  int numDataDescIDs() const;
+  
+  /// @brief set new default data descriptor
+  /// @details This will be used for all future write operations
+  /// @param[in] desc new data descriptor
+  void setDataDescID(const int desc);  
+  
 protected:
   /// @brief helper method to make a string out of an integer
   /// @param[in] in unsigned integer number
@@ -195,6 +204,11 @@ private:
   /// @brief cached number of channels
   /// @details We don't use it for the real-time correlator, but it is handy for the converter
   int itsNumberOfChannels;
+  
+  /// @brief number of data descriptor IDs
+  /// @details It is equivalent to the number of rows in the appropriate table
+  /// (indices go from 0 to itsNumberOfDataDesc)
+  int itsNumberOfDataDesc;
 };
 
 } // namespace swcorrelator
