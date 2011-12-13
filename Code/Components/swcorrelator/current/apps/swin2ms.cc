@@ -1,10 +1,11 @@
 /// @file 
 ///
-/// @brief real time software correlator for BETA3 tests
-/// @details This application is intended to evolve to become real time software 
-/// correlator for BETA3 tests. It takes configuration paramters from the parset file, which
+/// @brief converter from SWIN format to MS
+/// @details This application is intended to convert DiFX output to a measurement set. 
+/// It takes configuration paramters from the parset file, which
 /// allows a flexible control over some parameters which we may need to change during the test 
-/// (e.g. beam details, antenna locations, delay fudge factors). 
+/// (e.g. beam details, antenna locations, delay fudge factors). Same code is shared with the
+/// real time software correlator, so parset parameters are the same.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -34,7 +35,7 @@
 #include <askap/AskapError.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
-#include <swcorrelator/CorrServer.h>
+#include <dataformats/SwinReader.h>
 
 // casa includes
 #include <casa/OS/Timer.h>
@@ -43,18 +44,14 @@
 #include <mwcommon/AskapParallel.h>
 #include <Common/ParameterSet.h>
 #include <CommandLineParser.h>
-#include <signal.h>
 
-// boost includes
-#include <boost/asio.hpp>
-#include <boost/thread/thread.hpp>
+#include <vector>
+#include <string>
 
 ASKAP_LOGGER(logger, ".swcorrelator");
 
-void signalHandler(int sig) {
-  signal(sig, SIG_DFL);
-  askap::swcorrelator::CorrServer::stop();
-}
+using namespace askap;
+using namespace askap::swcorrelator;
 
 // Main function
 int main(int argc, const char** argv)
@@ -62,8 +59,6 @@ int main(int argc, const char** argv)
     // This class must have scope outside the main try/catch block
     askap::mwcommon::AskapParallel comms(argc, argv);
     
-    signal(SIGTERM, &signalHandler);
-
     try {
        casa::Timer timer;
        timer.mark();
@@ -71,17 +66,21 @@ int main(int argc, const char** argv)
        cmdlineparser::Parser parser; // a command line parser
        // command line parameter
        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs",
-                    "swcorrelator.in");
+                    "swin2ms.in");
        // this parameter is optional
        parser.add(inputsPar, cmdlineparser::Parser::return_default);
 
        parser.process(argc, argv);
 
        const LOFAR::ParameterSet parset(inputsPar);
-       const LOFAR::ParameterSet subset(parset.makeSubset("swcorrelator."));
-             
-       askap::swcorrelator::CorrServer server(subset);
-       server.run();       
+       const LOFAR::ParameterSet subset(parset.makeSubset("swin2ms."));
+       ASKAPCHECK(subset.isDefined("filename"), "Output file name should be defined in the parset!");
+       const std::vector<std::string> names = subset.getStringVector("inputfiles");
+       
+       SwinReader reader(1);
+       for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
+            ASKAPLOG_INFO_STR(logger,  "Processing "<<*ci);
+       }
        
        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
                           << " real:   " << timer.real());
@@ -99,4 +98,6 @@ int main(int argc, const char** argv)
     }
 
     return 0;
+    
 }
+

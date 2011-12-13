@@ -64,7 +64,18 @@ public:
    /// everything would go out of sync and reading would fail.
    /// @param[in] name file name
    /// @param[in] nchan number of spectral channels
-   explicit SwinReader(const std::string &name, const casa::uInt nchan);
+   SwinReader(const std::string &name, const casa::uInt nchan);
+
+   /// @brief constructor
+   /// @details The DiFX output knows nothing about the beam number.
+   /// We will assign some beam id later when the data are written into MS.
+   /// This class is beam agnostic. The number of channels has to be set up
+   /// externally because it is not present in the file. If it is wrong, 
+   /// everything would go out of sync and reading would fail. This version of
+   /// the constructor creates a reader in the detached state. A call to assign
+   /// is required before reading can happen.
+   /// @param[in] nchan number of spectral channels
+   explicit SwinReader(const casa::uInt nchan);
    
    /// @brief start reading the same file again
    void rewind();
