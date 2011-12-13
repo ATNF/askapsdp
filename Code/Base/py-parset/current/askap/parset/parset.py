@@ -375,6 +375,20 @@ def encode(value):
         return to_str(value)
     return str(value)
 
+def _fromdotdot(match, value):
+    rxisrange = re.compile(r"(\d+)\.{2}(\d+)")
+    r = match.groups()
+    r0 = int(r[0])
+    r1 = int(r[1])
+    sgn = (r0 < r1) and 1 or -1
+    rng  = range(r0, r1+sgn, sgn)
+    # just numerical range
+    if match.span()[0] == 0 and match.span()[1] == len(value):
+        return rng
+    nwidth = max(len(r[0]), len(r[1]))
+    strg = rxisrange.sub("%%0%ii" % nwidth, value)
+    return [ strg % i for i in rng ]
+
 def decode(value):
     """
     This function takes text a string which is using ParameterSet syntax
@@ -403,6 +417,11 @@ def decode(value):
     # lists/arrays
     match = rxislist.match(value)
     if match:
+        # look for  '01..10' type pattern inside []
+        svalue = match.groups()[0]
+        submatch = rxisrange.search(svalue) 
+        if submatch:
+            return _fromdotdot(submatch, svalue)
         # check for [ n * <value> ] and expand
         # doesn't work for vectors elements
         if value.count(",")  == 0:
@@ -437,19 +456,9 @@ def decode(value):
             out.append(i)
         return out
     # look for  '01..10' type pattern
-    match = rxisrange.search(value)
+    match = rxisrange.search(value)        
     if match:
-        r = match.groups()
-        r0 = int(r[0])
-        r1 = int(r[1])
-        sgn = (r0 < r1) and 1 or -1
-        rng  = range(r0, r1+sgn, sgn)
-        # just numerical range
-        if match.span()[0] == 0 and match.span()[1] == len(value):
-            return rng
-        nwidth = max(len(r[0]), len(r[1]))
-        strg = rxisrange.sub("%%0%ii" % nwidth, value)
-        return [ strg % i for i in rng ]
+        return _fromdotdot(match, value)
     # int/float
     if rxisnum.match(value):
         return eval(value)
