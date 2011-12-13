@@ -1,0 +1,43 @@
+swin2ms.inputfiles = "apps/DIFX_55895_077926.s0000.b0000"
+# MS-writer parameters
+swin2ms.beamoffsetuvw = true
+swin2ms.filename = "out.ms"
+swin2ms.basepath = "apps/"
+
+swin2ms.sources.names                 =       [field1]
+swin2ms.sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J2000]
+swin2ms.sources.field1.calcode        =       ""
+swin2ms.defaultfield      = "field1"
+
+swin2ms.spws.names                      =       [IF]
+#swin2ms.spws.IF  =  [ 16, 1.200GHz, -4MHz, "XX YY"]
+swin2ms.spws.IF  =  [ 256, 1.490GHz, -3.90624kHz, "XX YY"]
+swin2ms.defaultwindow    = "IF"
+
+# antenna layout
+swin2ms.antennas.telescope            =       BETA3
+swin2ms.antennas.BETA3.coordinates    =       local
+swin2ms.antennas.BETA3.location       =       [+116.6356824deg, -26.7013006deg, 377m, WGS84]
+swin2ms.antennas.BETA3.names          =       [A0, A2, A5]
+swin2ms.antennas.BETA3.diameter       =       12m
+swin2ms.antennas.BETA3.scale          =        1.0
+swin2ms.antennas.BETA3.mount          =       equatorial
+swin2ms.antennas.BETA3.A0             =       [-289.355286,  +586.936035,   0.0000] 
+swin2ms.antennas.BETA3.A2             =       [-686.248901,  +590.285278,   0.0000] 
+swin2ms.antennas.BETA3.A5             =       [-425.000000,  +475.000000,   0.0000] 
+
+# beam layout
+swin2ms.feeds.spacing        =       1deg
+swin2ms.feeds.mode = "perfect X Y"
+
+swin2ms.feeds.names     = [feed0, feed1, feed2, feed3, feed4, feed5, feed6, feed7, feed8]
+
+swin2ms.feeds.feed0          =       [-1, -1]
+swin2ms.feeds.feed1          =       [-1, 0]
+swin2ms.feeds.feed2          =       [-1, 1]
+swin2ms.feeds.feed3          =       [0, -1]
+swin2ms.feeds.feed4          =       [0, 0]
+swin2ms.feeds.feed5          =       [0, 1]
+swin2ms.feeds.feed6          =       [1, -1]
+swin2ms.feeds.feed7          =       [1, 0]
+swin2ms.feeds.feed8          =       [1, 1]

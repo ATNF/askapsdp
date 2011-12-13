@@ -77,7 +77,10 @@ void SwinReader::rewind()
   ASKAPCHECK(itsFileName!="", "Empty file name has been given");    
   ASKAPCHECK(casa::File(itsFileName).exists(), "File "<<itsFileName<<" does not exist!");  
   itsStream.reset(new std::ifstream(itsFileName.c_str()));
-  next();
+  readSyncWord();
+  if (itsStream) {
+      next();
+  }
 }
    
 /// @brief assign a new file and start iteration from the beginning
@@ -110,6 +113,7 @@ void SwinReader::next()
            itsVisibility[chan] = casa::Complex(re,im);
       }
   }
+  readSyncWord();
 }
    
 /// @brief obtain current UVW
@@ -146,25 +150,52 @@ std::pair<casa::uInt, casa::uInt> SwinReader::baseline() const
 /// @return epoch measure
 casa::MEpoch SwinReader::epoch() const
 {
+  /*
+   // for debugging
+   int32_t intBuf;
+   for (size_t i=0; i<18; ++i) {
+       itsStream->read((char*)&intBuf, 4);
+       char cBuf[5];
+       *((int32_t *)cBuf) = intBuf;
+       for (size_t s=0; s<4; ++s) {
+            if (!isalpha(cBuf[s])) {
+                cBuf[s] = '.';
+            }
+       }
+       cBuf[4] = 0;       
+       std::cout<<i<<" "<<std::dec<<intBuf<<" "<<std::hex<<intBuf<<" "<<cBuf<<std::endl;
+   }
+  */
   return itsEpoch;
+}
+
+/// @brief helper method to check sync word
+/// @details We attempt to read the sync word corresponding to
+/// the next record immediately after the previous record has been read.
+/// This allows us to detect the end of file.
+/// @note An exception is thrown if the sync word is not as expected
+void SwinReader::readSyncWord()
+{
+   ASKAPCHECK(itsStream, "An attempt to read from a stream which is closed"); 
+   if (itsStream->eof()) {
+       itsStream.reset();
+       return;
+   }              
+   int32_t intBuf;
+   itsStream->read((char*)&intBuf, 4);
+   if (itsStream->eof()) {
+       itsStream.reset();
+   } else {   
+      ASKAPCHECK(intBuf == int32_t(0xff00ff00), "Sync word is not as expected ("<<std::hex<<intBuf<<
+              ") wrong file format or mismanaged read (i.e. wrong number of channels)");
+   }
 }
    
 /// @brief helper method to read the header   
 void SwinReader::readHeader()
 {
    ASKAPCHECK(itsStream, "An attempt to read from a stream which is closed"); 
-   if (!(*itsStream)) {
-       itsStream.reset();
-       return;
-   }              
    int32_t intBuf;
-   itsStream->read((char*)&intBuf, 4);
-   ASKAPCHECK(intBuf == int32_t(0xFF00FF00), "Sync word is not as expected ("<<std::hex<<intBuf<<
-              ") wrong file format or mismanaged read (i.e. wrong number of channels)");
-   if (!(*itsStream)) {
-       itsStream.reset();
-       return;
-   }              
    itsStream->read((char*)&intBuf, 4);
    ASKAPCHECK(intBuf == 1, "Expect header version 1, you have "<<intBuf);
    // baseline

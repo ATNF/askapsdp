@@ -36,6 +36,7 @@
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
 #include <dataformats/SwinReader.h>
+#include <swcorrelator/FillerMSSink.h>
 
 // casa includes
 #include <casa/OS/Timer.h>
@@ -75,11 +76,17 @@ int main(int argc, const char** argv)
        const LOFAR::ParameterSet parset(inputsPar);
        const LOFAR::ParameterSet subset(parset.makeSubset("swin2ms."));
        ASKAPCHECK(subset.isDefined("filename"), "Output file name should be defined in the parset!");
-       const std::vector<std::string> names = subset.getStringVector("inputfiles");
-       
-       SwinReader reader(1);
+       FillerMSSink msSink(subset);
+       const std::vector<std::string> names = subset.getStringVector("inputfiles");       
+       SwinReader reader(msSink.nChan());
+       ASKAPLOG_INFO_STR(logger,  "Conversion will assume "<<msSink.nChan()<<" spectral channels");
+       CorrProducts cp(msSink.nChan(),0);
        for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
             ASKAPLOG_INFO_STR(logger,  "Processing "<<*ci);
+            casa::uInt counter = 0;
+            for (reader.assign(*ci); reader.hasMore(); reader.next(), ++counter) {
+            }
+            ASKAPLOG_INFO_STR(logger,  "Read "<<counter<<" records");
        }
        
        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()

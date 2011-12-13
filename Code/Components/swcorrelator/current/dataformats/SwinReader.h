@@ -118,6 +118,13 @@ protected:
    /// @brief helper method to read the header   
    void readHeader();
    
+   /// @brief helper method to check sync word
+   /// @details We attempt to read the sync word corresponding to
+   /// the next record immediately after the previous record has been read.
+   /// This allows us to detect the end of file.
+   /// @note An exception is thrown if the sync word is not as expected
+   void readSyncWord();
+   
 private:
    /// @brief current file name
    std::string itsFileName;

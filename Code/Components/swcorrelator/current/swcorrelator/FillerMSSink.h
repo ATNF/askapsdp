@@ -92,6 +92,13 @@ public:
   /// calculate uvw's ahead of writing the buffer if we implement some form of delay tracking).
   virtual void write(CorrProducts &buf) const;
   
+  
+  /// @brief obtain the number of channels in the current setup
+  /// @details This method throws an exception if the number of channels has not been
+  /// set up (normally it takes place when MS is initialised)
+  /// @return the number of channels in the active configuration
+  int nChan() const;
+  
 protected:
   /// @brief helper method to make a string out of an integer
   /// @param[in] in unsigned integer number
@@ -184,6 +191,10 @@ private:
   
   /// @brief antenna indicies for all 3 baselines in our standard order
   static const int theirAntIDs[3][2];
+  
+  /// @brief cached number of channels
+  /// @details We don't use it for the real-time correlator, but it is handy for the converter
+  int itsNumberOfChannels;
 };
 
 } // namespace swcorrelator

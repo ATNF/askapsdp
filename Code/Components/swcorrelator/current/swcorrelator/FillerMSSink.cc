@@ -381,12 +381,14 @@ void FillerMSSink::initDataDesc()
                    line[1]);
         ASKAPCHECK(freqInc.isConform("Hz"), "frequency increment for spectral window " << names[spw] << " is supposed to be in units convertible to Hz, you gave " <<
                    line[1]);
-        const casa::Int spWinID = addSpectralWindow(names[spw], askap::utility::fromString<int>(line[0]), startFreq, freqInc);
+        const int numChan = askap::utility::fromString<int>(line[0]);           
+        const casa::Int spWinID = addSpectralWindow(names[spw], numChan, startFreq, freqInc);
         const casa::Int polID = addPolarisation(scimath::PolConverter::fromString(line[3]));
         const casa::Int dataDescID = addDataDesc(spWinID, polID);
         if (names[spw] == defaultWindow) {
             defaultWindowSighted = true;
             itsDataDescID = dataDescID;
+            itsNumberOfChannels = numChan;
         }
     }
 
@@ -743,6 +745,17 @@ casa::Int FillerMSSink::addPolarisation(const casa::Vector<casa::Stokes::StokesT
     polc.corrProduct().put(row, corrProduct);
 
     return row;
+}
+
+/// @brief obtain the number of channels in the current setup
+/// @details This method throws an exception if the number of channels has not been
+/// set up (normally it takes place when MS is initialised)
+/// @return the number of channels in the active configuration
+int FillerMSSink::nChan() const
+{
+  ASKAPCHECK(itsNumberOfChannels > 0, "A positive number of channels is expected, you have "<<
+             itsNumberOfChannels<<", check that it has been initialised");
+  return itsNumberOfChannels;           
 }
 
 
