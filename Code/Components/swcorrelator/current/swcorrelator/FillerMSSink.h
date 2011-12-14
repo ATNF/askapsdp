@@ -108,6 +108,12 @@ public:
   /// @param[in] desc new data descriptor
   void setDataDescID(const int desc);  
   
+  /// @brief obtain number of beams in the current setup
+  /// @details This method throws an exception if the number of beams has not been
+  /// set up  (normally it takes place when MS is initialised)
+  /// @return the number of beams
+  int nBeam() const;
+  
 protected:
   /// @brief helper method to make a string out of an integer
   /// @param[in] in unsigned integer number
@@ -209,6 +215,11 @@ private:
   /// @details It is equivalent to the number of rows in the appropriate table
   /// (indices go from 0 to itsNumberOfDataDesc)
   int itsNumberOfDataDesc;
+  
+  /// @brief number of beams defined in the FEED table
+  /// @details It is equivalent to the number of rows of the FEED table.
+  /// (indices go from 0 to itsNumberOfBeams)
+  int itsNumberOfBeams;    
 };
 
 } // namespace swcorrelator

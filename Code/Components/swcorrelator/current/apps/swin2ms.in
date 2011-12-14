@@ -1,4 +1,4 @@
-swin2ms.inputfiles = "apps/DIFX_55895_077926.s0000.b0000"
+swin2ms.beam0files = "apps/DIFX_55895_077926.s0000.b0000"
 # MS-writer parameters
 swin2ms.beamoffsetuvw = true
 swin2ms.filename = "out.ms"

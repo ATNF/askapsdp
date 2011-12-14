@@ -77,17 +77,25 @@ int main(int argc, const char** argv)
        const LOFAR::ParameterSet subset(parset.makeSubset("swin2ms."));
        ASKAPCHECK(subset.isDefined("filename"), "Output file name should be defined in the parset!");
        FillerMSSink msSink(subset);
-       const std::vector<std::string> names = subset.getStringVector("inputfiles");       
        SwinReader reader(msSink.nChan());
        ASKAPLOG_INFO_STR(logger,  "Conversion will assume "<<msSink.nChan()<<" spectral channels");
-       CorrProducts cp(msSink.nChan(),0);
-       for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
-            ASKAPLOG_INFO_STR(logger,  "Processing "<<*ci);
-            casa::uInt counter = 0;
-            for (reader.assign(*ci); reader.hasMore(); reader.next(), ++counter) {
-                 msSink.setDataDescID(reader.freqID());
+       ASKAPLOG_INFO_STR(logger,  "Setup has "<<msSink.nBeam()<<" beam(s) defined");
+       for (int beam = 0; beam<msSink.nBeam(); ++beam) {
+            const std::string namesKeyword = "beam"+utility::toString<int>(beam)+"files";
+            if (subset.isDefined(namesKeyword)) {
+               const std::vector<std::string> names = subset.getStringVector(namesKeyword);       
+               CorrProducts cp(msSink.nChan(),beam);
+               for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
+                    ASKAPLOG_INFO_STR(logger,  "Processing "<<*ci<<" as beam "<<beam<<" (zero-based) data");
+                    casa::uInt counter = 0;
+                    for (reader.assign(*ci); reader.hasMore(); reader.next(), ++counter) {
+                         msSink.setDataDescID(reader.freqID());
+                    }
+                    ASKAPLOG_INFO_STR(logger,  "Read "<<counter<<" records");
+               }
+            } else {
+               ASKAPLOG_WARN_STR(logger,  "No input files defined for beam "<<beam<<" (zero based), ignoring...");
             }
-            ASKAPLOG_INFO_STR(logger,  "Read "<<counter<<" records");
        }
        
        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()

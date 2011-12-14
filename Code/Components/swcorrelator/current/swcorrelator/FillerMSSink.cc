@@ -63,7 +63,8 @@ namespace swcorrelator {
 /// via the parset.
 /// @param[in] parset parset file with configuration info
 FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset), itsDataDescID(0),
-   itsFieldID(0), itsBeamOffsetUVW(parset.getBool("beamoffsetuvw",true)), itsNumberOfDataDesc(-1)
+   itsFieldID(0), itsBeamOffsetUVW(parset.getBool("beamoffsetuvw",true)), itsNumberOfDataDesc(-1),
+   itsNumberOfBeams(-1)
 {
   create();
   initAntennasAndBeams(); 
@@ -624,6 +625,7 @@ void FillerMSSink::addFeeds(const casa::Int antennaID,
 
     // Post-conditions
     ASKAPCHECK(feedc.nrow() == (startRow + nFeeds), "Unexpected feed row count");
+    itsNumberOfBeams = int(nFeeds);
 }
 
 casa::Int FillerMSSink::addAntenna(const casa::String& station,
@@ -778,6 +780,17 @@ void FillerMSSink::setDataDescID(const int desc)
        "Data Descriptor ID is supposed to be a non-negative number not exceeding the number of spectral setups in your parset = "<<
        numDataDescIDs()<<" you have "<<desc);
   itsDataDescID = desc;
+}
+
+/// @brief obtain number of beams in the current setup
+/// @details This method throws an exception if the number of beams has not been
+/// set up  (normally it takes place when MS is initialised)
+/// @return the number of beams
+int FillerMSSink::nBeam() const
+{
+  ASKAPCHECK(itsNumberOfBeams > 0, "A positive number of beams is expected, you have "<<itsNumberOfBeams<<
+             ", check that it has been initialised");
+  return itsNumberOfBeams;           
 }
 
 
