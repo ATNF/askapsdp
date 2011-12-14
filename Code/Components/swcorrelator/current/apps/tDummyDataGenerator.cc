@@ -103,6 +103,9 @@ struct Worker {
                  theirSampleTrigger.wait(lock);
            }
            //boost::this_thread::sleep(boost::posix_time::seconds(1));
+           if (boost::this_thread::interruption_requested()) {
+               return -1;
+           }           
            return theirSampleBAT;      
         }
         catch (const boost::thread_interrupted&) {}
@@ -129,7 +132,8 @@ struct Worker {
         boost::asio::io_service ioService;
         boost::asio::ip::tcp::resolver resolver(ioService);
         //const std::string host = "localhost";
-        const std::string host = "delphinus";
+        //const std::string host = "delphinus";
+        const std::string host = "aktos01.atnf.csiro.au";
         boost::asio::ip::tcp::resolver::query query(host,"3000");
         boost::asio::ip::tcp::endpoint endpoint;
         // for now just used the last endpoint (at least it seems to work)
@@ -230,7 +234,7 @@ int main(int argc, const char** argv)
        for (size_t cycle = 0; cycle < 10; ++cycle) {
             ASKAPLOG_INFO_STR(logger, "cycle "<<cycle);
             Worker::triggerSample(long(time(0)));
-            sleep(2);
+            sleep(4);
        }
        threads.interrupt_all();
        ASKAPLOG_INFO_STR(logger, "Waiting to finish");
