@@ -139,6 +139,15 @@ public:
    /// @return number of samples (each is complex float)   
    static int NumberOfSamples();
 protected:
+   /// @brief optional index substitution
+   /// @details We want to be quite flexible and allow various substitutions of
+   /// indices (e.g. call beam an antenna or renumber them). This method modifies
+   /// the header in place for this purpose
+   /// @param[in] id buffer ID (should be non-negative)
+   /// @note it is assumed that this method called from bufferFilled and the appropriate
+   /// mutex lock has been obtained.
+   void preprocessIndices(const int id) const;
+
    /// @brief release single buffer after correlation
    /// @details This method is called from releaseBuffers for each individual
    /// buffer id. It is assumed that the exclusive lock on mutex has already 

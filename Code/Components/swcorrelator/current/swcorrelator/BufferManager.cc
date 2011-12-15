@@ -206,6 +206,18 @@ void BufferManager::releaseBuffers(const BufferSet &ids) const
   }
   itsStatusCV.notify_all();
 }
+
+/// @brief optional index substitution
+/// @details We want to be quite flexible and allow various substitutions of
+/// indices (e.g. call beam an antenna or renumber them). This method modifies
+/// the header in place for this purpose
+/// @param[in] id buffer ID (should be non-negative)
+/// @note it is assumed that this method called from bufferFilled and the appropriate
+/// mutex lock has been obtained.
+void BufferManager::preprocessIndices(const int /*id*/) const
+{
+   // just a placeholder at the moment
+}
    
 /// @brief notify that the buffer is ready for correlation
 /// @details This method notifies the manager that the data buffer
@@ -222,6 +234,7 @@ void BufferManager::bufferFilled(const int id) const
                  itsStatus[id]);
       itsStatus[id] = BUF_READY;       
       //((BufferHeader*)buffer(id))->beam-=2;
+      preprocessIndices(id);
       const BufferHeader& hdr = header(id);
       if ((hdr.antenna >= itsReadyBuffers.nrow()) || (hdr.antenna < 0)) {
           ASKAPLOG_WARN_STR(logger, "Received data from unknown antenna "<<hdr.antenna<<" - ignoring");
