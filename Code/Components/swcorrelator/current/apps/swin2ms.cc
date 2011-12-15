@@ -40,6 +40,10 @@
 
 // casa includes
 #include <casa/OS/Timer.h>
+#include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MeasConvert.h>
+#include <measures/Measures/MCEpoch.h>
+
 
 // other 3rd party
 #include <mwcommon/AskapParallel.h>
@@ -48,6 +52,7 @@
 
 #include <vector>
 #include <string>
+#include <set>
 
 ASKAP_LOGGER(logger, ".swcorrelator");
 
@@ -87,11 +92,49 @@ int main(int argc, const char** argv)
                CorrProducts cp(msSink.nChan(),beam);
                for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
                     ASKAPLOG_INFO_STR(logger,  "Processing "<<*ci<<" as beam "<<beam<<" (zero-based) data");
-                    casa::uInt counter = 0;
+                    casa::uInt counter = 0, ignoreCounter = 0;
+                    std::set<casa::uInt> autoCorrWarningGiven;
                     for (reader.assign(*ci); reader.hasMore(); reader.next(), ++counter) {
+                         const std::pair<casa::uInt, casa::uInt> baseline = reader.baseline();
+                         if (baseline.first == baseline.second) {
+                             if (autoCorrWarningGiven.find(baseline.first) == autoCorrWarningGiven.end()) {
+                                 ASKAPLOG_WARN_STR(logger, "Ignoring autocorrelation for antenna "<<baseline.first);
+                                 autoCorrWarningGiven.insert(baseline.first);
+                             }
+                             ++ignoreCounter;
+                             continue;
+                         }                    
+                     
                          msSink.setDataDescID(reader.freqID());
+                         const casa::MVEpoch epochTAI= casa::MEpoch::Convert(reader.epoch(), 
+                               casa::MEpoch::Ref(casa::MEpoch::TAI))().getValue();
+                         const uint64_t microsecondsPerDay = 86400000000ull;
+                         const uint64_t startOfDayBAT = uint64_t(epochTAI.getDay()*microsecondsPerDay);
+                         cp.itsBAT = startOfDayBAT + uint64_t(epochTAI.getDayFraction()*microsecondsPerDay);
+                         ASKAPDEBUGASSERT(cp.itsUVW.shape() == casa::IPosition(2,3,3));
+                         ASKAPDEBUGASSERT(cp.itsVisibility.shape() == casa::IPosition(2,3,int(msSink.nChan())));
+                         ASKAPDEBUGASSERT(cp.itsFlag.shape() == casa::IPosition(2,3,int(msSink.nChan())));
+                         cp.itsFlag.set(true);
+                         cp.itsVisibility.set(casa::Complex(0.,0.));
+                         cp.itsUVW.set(0.);
+                         int baselineID = FillerMSSink::baselineIndex(baseline.first, baseline.second);
+                         if (baselineID>=0) {
+                             ASKAPDEBUGASSERT(baselineID < 3);
+                             cp.itsVisibility.row(baselineID) = reader.visibility();
+                             cp.itsUVW.row(baselineID) = reader.uvw();
+                         } else {
+                             baselineID = FillerMSSink::baselineIndex(baseline.second, baseline.first);
+                             ASKAPCHECK(baselineID >= 0, "Unable to find matching baseline index for ant1="<<
+                                        baseline.first<<" and ant2="<<baseline.second);
+                             ASKAPDEBUGASSERT(baselineID < 3);
+                             cp.itsVisibility.row(baselineID) = casa::conj(reader.visibility());
+                             cp.itsUVW.row(baselineID) = -1. * reader.uvw();                                       
+                         }                         
+                         cp.itsUVWValid = true;
+                         cp.itsFlag.row(baselineID).set(false);
+                         msSink.write(cp);
                     }
-                    ASKAPLOG_INFO_STR(logger,  "Read "<<counter<<" records");
+                    ASKAPLOG_INFO_STR(logger,  "Read "<<counter<<" records, ignored "<<ignoreCounter<<" autocorrelation records");
                }
             } else {
                ASKAPLOG_WARN_STR(logger,  "No input files defined for beam "<<beam<<" (zero based), ignoring...");

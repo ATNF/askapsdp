@@ -113,6 +113,18 @@ public:
   /// set up  (normally it takes place when MS is initialised)
   /// @return the number of beams
   int nBeam() const;
+
+  /// @brief return baseline index for a given baseline
+  /// @details The data are passed in CorrProducts structure gathering all baselines in a single
+  /// matrix (for visibility data and for flags). There is a standard order (see also theirAntIDs)
+  /// of baselines. In the software correlator itself, the data are produced directly in the standard
+  /// order, but this method is handy for other uses of this class (i.e. format converter). It
+  /// returns an index for a given baseline
+  /// @param[in] ant1 zero-based indicex of the first antenna  
+  /// @param[in] ant2 zero-based indicex of the second antenna
+  /// @return index into visibility of flag matrix (row of the matrix)
+  /// @note a negative value is returned if the given baseline is not found
+  static int baselineIndex(const casa::uInt ant1, const casa::uInt ant2);
   
 protected:
   /// @brief helper method to make a string out of an integer
