@@ -37,6 +37,7 @@
 #include <swcorrelator/FillerWorker.h>
 #include <swcorrelator/CorrWorker.h>
 #include <swcorrelator/StreamConnection.h>
+#include <swcorrelator/HeaderPreprocessor.h>
 #include <boost/asio.hpp>
 
 ASKAP_LOGGER(logger, ".swcorrelator");
@@ -67,8 +68,9 @@ CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOS
   const int port = parset.getInt32("port");
   ASKAPLOG_INFO_STR(logger, "Software correlator will listen port "<<port);
 
-  itsFiller.reset(new CorrFiller(parset));  
-  itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan()));
+  itsFiller.reset(new CorrFiller(parset));
+  boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
+  itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan(), hdrProc));
   
   // initialise tcp endpoint
   boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);

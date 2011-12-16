@@ -34,17 +34,22 @@
 #ifndef ASKAP_SWCORRELATOR_BUFFER_MANAGER
 #define ASKAP_SWCORRELATOR_BUFFER_MANAGER
 
+// own includes
 #include <swcorrelator/BufferHeader.h>
+#include <swcorrelator/HeaderPreprocessor.h>
 
+// boost includes
 #include <boost/thread/thread.hpp>
 #include <boost/scoped_array.hpp>
+#include <boost/shared_ptr.hpp>
 
-
+// std includes
 #include <complex>
 #include <vector>
 #include <utility>
 #include <stdexcept>
 
+// casa includes
 #include <casa/Arrays/Cube.h>
 
 namespace askap {
@@ -79,7 +84,9 @@ public:
    /// @details
    /// @param[in] nBeam number of beams
    /// @param[in] nChan number of channels (cards)
-   BufferManager(const size_t nBeam, const size_t nChan);
+   /// @param[in[ hdrProc optionan shared pointer to the header preprocessor
+   BufferManager(const size_t nBeam, const size_t nChan, 
+         const boost::shared_ptr<HeaderPreprocessor> &hdrProc = boost::shared_ptr<HeaderPreprocessor>());
    
    /// @brief obtain a header for the given buffer
    /// @details
@@ -146,7 +153,8 @@ protected:
    /// @param[in] id buffer ID (should be non-negative)
    /// @note it is assumed that this method called from bufferFilled and the appropriate
    /// mutex lock has been obtained.
-   void preprocessIndices(const int id) const;
+   /// @return true if the current buffer has to be rejected (no mapping available)
+   bool preprocessIndices(const int id) const;
 
    /// @brief release single buffer after correlation
    /// @details This method is called from releaseBuffers for each individual
@@ -184,7 +192,12 @@ private:
    /// @details To optimise the look up operation we store IDs for those buffers 
    /// which are ready for correlation into this cube (dimensions are antennas, channels and beams).
    /// All non-negative values stored in this cube correspond to IDs of buffers in the BUF_READY state
-   mutable casa::Cube<int> itsReadyBuffers;   
+   mutable casa::Cube<int> itsReadyBuffers; 
+   
+   /// @brief header preprocessor
+   /// @details If it is set, the header will be passed through this object to allow 
+   /// various substitutions to be made
+   boost::shared_ptr<HeaderPreprocessor> itsHeaderPreprocessor;  
 };
 
 } // namespace swcorrelator

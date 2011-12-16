@@ -54,7 +54,7 @@
 #include <string>
 #include <set>
 
-ASKAP_LOGGER(logger, ".swcorrelator");
+ASKAP_LOGGER(logger, ".swin2ms");
 
 using namespace askap;
 using namespace askap::swcorrelator;

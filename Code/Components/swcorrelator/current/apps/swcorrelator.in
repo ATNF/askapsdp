@@ -2,6 +2,12 @@ swcorrelator.port = 3000
 swcorrelator.nbeam = 1
 swcorrelator.nchan = 16
 
+# optional index substitution
+swcorrelator.makeBeamAnt = false
+swcorrelator.antmap = ""
+swcorrelator.beammap = ""
+swcorrelator.freqmap = ""
+
 # MS-writer parameters
 swcorrelator.beamoffsetuvw = true
 swcorrelator.filename = ""

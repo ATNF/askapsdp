@@ -62,11 +62,13 @@ int BufferManager::NumberOfSamples() {
 /// @details
 /// @param[in] nBeam number of beams
 /// @param[in] nChan number of channels (cards)
-BufferManager::BufferManager(const size_t nBeam, const size_t nChan) : itsNBuf(6*nBeam*nChan),
+/// @param[in[ hdrProc optionan shared pointer to the header preprocessor
+BufferManager::BufferManager(const size_t nBeam, const size_t nChan, 
+     const boost::shared_ptr<HeaderPreprocessor> &hdrProc) : itsNBuf(6*nBeam*nChan),
      itsBufferSize(2*nSamples + int(sizeof(BufferHeader)/sizeof(float))),
      itsBuffer(new float[(2*nSamples + int(sizeof(BufferHeader)/sizeof(float)))*itsNBuf]),
      itsStatus(itsNBuf, BUF_FREE),
-     itsReadyBuffers(3, nChan, nBeam, -1)
+     itsReadyBuffers(3, nChan, nBeam, -1), itsHeaderPreprocessor(hdrProc)
 {
    ASKAPCHECK(sizeof(BufferHeader) % sizeof(float) == 0, "Some padding is required");
    ASKAPCHECK(sizeof(std::complex<float>) == 2*sizeof(float), "std::complex<float> is not just two floats!");
@@ -214,9 +216,16 @@ void BufferManager::releaseBuffers(const BufferSet &ids) const
 /// @param[in] id buffer ID (should be non-negative)
 /// @note it is assumed that this method called from bufferFilled and the appropriate
 /// mutex lock has been obtained.
-void BufferManager::preprocessIndices(const int /*id*/) const
+/// @return true if the current buffer has to be rejected (no mapping available)
+bool BufferManager::preprocessIndices(const int id) const
 {
-   // just a placeholder at the moment
+   if (itsHeaderPreprocessor) {
+       // can't use the header method here because it's const, but it is easy enough to replicate
+       BufferHeader &hdr = *((BufferHeader*)buffer(id));
+       return itsHeaderPreprocessor->updateHeader(hdr);
+   } 
+   // preprocessor is not set up
+   return false;
 }
    
 /// @brief notify that the buffer is ready for correlation
@@ -234,7 +243,14 @@ void BufferManager::bufferFilled(const int id) const
                  itsStatus[id]);
       itsStatus[id] = BUF_READY;       
       //((BufferHeader*)buffer(id))->beam-=2;
-      preprocessIndices(id);
+      if (preprocessIndices(id)) {
+          // we could've just defined hdr above if-operator, but it is neater this way because the content of
+          // hdr may change after preprocessIndices.
+          const BufferHeader& hdr = header(id);
+          ASKAPLOG_WARN_STR(logger, "Received data which are not mapped to any valid antenna/beam/frequency ("<<
+              hdr.antenna<<","<<hdr.beam<<","<<hdr.freqId<<") - ignoring");
+          throw BufferManager::HelperException();
+      }
       const BufferHeader& hdr = header(id);
       if ((hdr.antenna >= itsReadyBuffers.nrow()) || (hdr.antenna < 0)) {
           ASKAPLOG_WARN_STR(logger, "Received data from unknown antenna "<<hdr.antenna<<" - ignoring");

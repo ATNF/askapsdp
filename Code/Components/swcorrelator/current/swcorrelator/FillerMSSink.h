@@ -75,7 +75,7 @@ public:
   /// @details Configuration is done via the parset, a lot of the metadata are just filled
   /// via the parset.
   /// @param[in] parset parset file with configuration info
-  FillerMSSink(const LOFAR::ParameterSet &parset);
+  explicit FillerMSSink(const LOFAR::ParameterSet &parset);
 
   /// @brief calculate uvw for the given buffer
   /// @param[in] buf products buffer
