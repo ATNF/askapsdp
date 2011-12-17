@@ -36,6 +36,7 @@
 #include <swcorrelator/CorrServer.h>
 #include <swcorrelator/FillerWorker.h>
 #include <swcorrelator/CorrWorker.h>
+#include <swcorrelator/CaptureWorker.h>
 #include <swcorrelator/StreamConnection.h>
 #include <swcorrelator/HeaderPreprocessor.h>
 #include <boost/asio.hpp>
@@ -62,15 +63,21 @@ void CorrServer::stop()
 /// @brief constructor, attaches the server to the given port
 /// @details Configuration is done via the parset
 /// @param[in] parset parset file with configuration info
-CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOService)
+CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOService), 
+     itsCaptureMode(parset.getBool("capturemode", false))
 {
   // setup acceptor
   const int port = parset.getInt32("port");
   ASKAPLOG_INFO_STR(logger, "Software correlator will listen port "<<port);
 
-  itsFiller.reset(new CorrFiller(parset));
-  boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
-  itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan(), hdrProc));
+  if (itsCaptureMode) {
+     boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
+     itsBufferManager.reset(new BufferManager(2,16, hdrProc));     
+  } else {
+     itsFiller.reset(new CorrFiller(parset));
+     boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
+     itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan(), hdrProc));
+  }
   
   // initialise tcp endpoint
   boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
@@ -86,14 +93,19 @@ CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOS
 /// manage each connection.
 void CorrServer::run()
 {
-  ASKAPDEBUGASSERT(itsFiller);
   ASKAPDEBUGASSERT(itsBufferManager);
-  ASKAPLOG_INFO_STR(logger, "About to start writing thread");
-  itsThreads.create_thread(FillerWorker(itsFiller));
-  const int nCorrThreads = itsFiller->nBeam() * itsFiller->nChan();
-  ASKAPLOG_INFO_STR(logger, "About to start "<<nCorrThreads<<" correlator thread(s)");
-  for (int i = 0; i<nCorrThreads; ++i) {
-      itsThreads.create_thread(CorrWorker(itsFiller,itsBufferManager));
+  if (!itsCaptureMode) {
+      ASKAPDEBUGASSERT(itsFiller);
+      ASKAPLOG_INFO_STR(logger, "About to start writing thread");
+      itsThreads.create_thread(FillerWorker(itsFiller));
+      const int nCorrThreads = itsFiller->nBeam() * itsFiller->nChan();
+      ASKAPLOG_INFO_STR(logger, "About to start "<<nCorrThreads<<" correlator thread(s)");
+      for (int i = 0; i<nCorrThreads; ++i) {
+          itsThreads.create_thread(CorrWorker(itsFiller,itsBufferManager));
+      }
+  } else {
+      ASKAPLOG_INFO_STR(logger, "About to start data dump thread");
+      itsThreads.create_thread(CaptureWorker(itsBufferManager));
   }
   
   ASKAPLOG_INFO_STR(logger, "About to run I/O service loop");

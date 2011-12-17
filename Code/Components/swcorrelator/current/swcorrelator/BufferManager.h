@@ -124,13 +124,29 @@ public:
    /// completely filled buffers corresponding to the same channel
    /// and beam. The calling thread is blocked until a suitable set
    /// is available for correlation.
+   /// @return a set of buffers ready for correlation
    BufferSet getFilledBuffers() const;
    
+   /// @brief get one filled buffer
+   /// @details This method is only used with the capture, correlation
+   /// always accesses 3 buffers at once
+   /// @return a buffer ready to be dumped into disk
+   int getFilledBuffer() const;
+   
+   /// @brief release one buffer
+   /// @details This method notifies the manager that data dump is 
+   /// now complete and the data buffers can now be released.
+   /// @param[in] id the buffer to release
+   /// @note the correlation uses an overloaded version of this 
+   /// method which releases 3 buffers in a row
+   void releaseBuffers(const int id) const;
+      
    /// @brief release the buffers
    /// @details This method notifies the manager that correlation is
    /// now complete and the data buffers can now be released.
    /// @param[in] ids buffer set to release
    void releaseBuffers(const BufferSet &ids) const;
+  
    
    /// @brief notify that the buffer is ready for correlation
    /// @details This method notifies the manager that the data buffer

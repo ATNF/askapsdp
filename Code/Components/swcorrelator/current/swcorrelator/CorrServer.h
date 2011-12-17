@@ -96,6 +96,9 @@ private:
   
   /// @brief filler/collater of the result
   boost::shared_ptr<CorrFiller> itsFiller;
+  
+  /// @brief true if the correlator is run in the capture mode
+  bool itsCaptureMode;
 };
 
 } // namespace swcorrelator

@@ -187,6 +187,41 @@ bool BufferManager::findCompleteSet(std::pair<int,int> &index) const
    index.second = -1;
    return true;
 }
+
+/// @brief get one filled buffer
+/// @details This method is only used with the capture, correlation
+/// always accesses 3 buffers at once
+/// @return a buffer ready to be dumped into disk
+int BufferManager::getFilledBuffer() const
+{
+  boost::unique_lock<boost::mutex> lock(itsStatusCVMutex);
+  while (true) {
+     for (int id = 0; id < itsNBuf; ++id) {
+         if (itsStatus[id] == BUF_READY) {
+             return id;
+         }
+     }
+     itsStatusCV.wait(lock);
+  }  
+}
+   
+/// @brief release one buffer
+/// @details This method notifies the manager that data dump is 
+/// now complete and the data buffers can now be released.
+/// @param[in] id the buffer to release
+/// @note the correlation uses an overloaded version of this 
+/// method which releases 3 buffers in a row
+void BufferManager::releaseBuffers(const int id) const
+{
+  {
+    boost::lock_guard<boost::mutex> lock(itsStatusCVMutex);  
+    if (id >= 0) {
+        releaseOneBuffer(id);
+    }
+  }
+  itsStatusCV.notify_all();
+}
+
    
 /// @brief release the buffers
 /// @details This method notifies the manager that correlation is
