@@ -1,6 +1,7 @@
 swcorrelator.port = 3000
 swcorrelator.nbeam = 1
 swcorrelator.nchan = 16
+swcorrelator.capturemode = false
 
 # optional index substitution
 swcorrelator.makeBeamAnt = false

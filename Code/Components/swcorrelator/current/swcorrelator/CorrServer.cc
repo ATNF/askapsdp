@@ -72,7 +72,7 @@ CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOS
 
   if (itsCaptureMode) {
      boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
-     itsBufferManager.reset(new BufferManager(2,16, hdrProc));     
+     itsBufferManager.reset(new BufferManager(parset.getInt("nbeam"),parset.getInt("nchan"), hdrProc));     
   } else {
      itsFiller.reset(new CorrFiller(parset));
      boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
@@ -113,8 +113,10 @@ void CorrServer::run()
   ASKAPLOG_INFO_STR(logger, "Waiting for all I/O and correlator threads to finish");
   itsThreads.interrupt_all();
   itsThreads.join_all();
-  ASKAPLOG_INFO_STR(logger, "Shutting down the filler");
-  itsFiller->shutdown();
+  if (!itsCaptureMode) {
+      ASKAPLOG_INFO_STR(logger, "Shutting down the filler");
+      itsFiller->shutdown();
+  }
 }
 
 /// @brief initiate asynchronous accept
