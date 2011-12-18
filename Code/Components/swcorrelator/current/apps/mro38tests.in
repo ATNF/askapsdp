@@ -5,8 +5,9 @@ swcorrelator.capturemode = false
 
 # optional index substitution
 swcorrelator.makeBeamAnt = true
-swcorrelator.antmap = ""
-swcorrelator.beammap = ""
+#swcorrelator.antmap = "0:1,2:0,4:2"
+swcorrelator.antmap = "1:1,3:0,5:2"
+swcorrelator.beammap = "3:0"
 swcorrelator.freqmap = "14:0,12:1,10:2,8:3,6:4,4:5,0:6,1:7,2:8,3:9,5:10,7:11,9:12,11:13,13:14,15:15"
 
 # MS-writer parameters
