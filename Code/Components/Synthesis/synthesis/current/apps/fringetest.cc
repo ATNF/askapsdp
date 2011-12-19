@@ -61,7 +61,7 @@ using namespace askap::accessors;
 
 void process(const IConstDataSource &ds, size_t nAvg) {
   IDataSelectorPtr sel=ds.createSelector();
-  sel->chooseBaseline(0,1);
+  sel->chooseBaseline(1,2);
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
@@ -89,7 +89,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        buf += it->visibility().xyPlane(0).row(0);
        if (++counter == nAvg) {
            buf /= float(nAvg);
-           buf[13]=0.;
+           //buf[13]=0.;
            scimath::fft(buf, true);
            imgBuf.column(currentStep++) = buf;
            buf.set(casa::Complex(0.,0.));
@@ -100,7 +100,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   }
   if (counter!=0) {
       buf /= float(counter);
-      buf[13]=0.;
+      //buf[13]=0.;
       scimath::fft(buf, true);
       imgBuf.column(currentStep) = buf;
   } else if (currentStep > 0) {
@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
      // number of cycles to average
-     const size_t nAvg = 30;
+     const size_t nAvg = 15;
      process(ds, nAvg);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
