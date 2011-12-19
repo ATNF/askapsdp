@@ -37,6 +37,6 @@ int main(int argc, char **argv) {
    std::ofstream os("hist.dat");
    for (size_t i = 0; i<nbins; ++i) {
        float x = maxAmp + (float(i)/float(nbins))*maxAmp*2;
-       os << maxAmp << " " << reCounts[i]<< " "<< imCounts[i]<<std::endl;
+       os << i<<" "<< x << " " << reCounts[i]<< " "<< imCounts[i]<<std::endl;
    }
 }
