@@ -36,7 +36,6 @@
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
 
-
 namespace askap {
 
 namespace swcorrelator {
@@ -62,7 +61,7 @@ IndexConverter::IndexConverter(const std::string &indexMap)
 void IndexConverter::add(const int in, const int target)
 {
   if (target >= int(itsMap.size())) {
-      itsMap.resize(target+1);
+      itsMap.resize(target+1,-1);
       itsMap[target] = in;
   } else {
       itsMap[target] = in;
