@@ -60,7 +60,11 @@ public:
      IndexConverter ic("1:0");
      for (int index=0; index<30; ++index) {
          CPPUNIT_ASSERT_EQUAL(index == 1 ? 0 : -1, ic(index));
-     }          
+     } 
+     IndexConverter ic2("2:8");
+     for (int index=0; index<30; ++index) {
+         CPPUNIT_ASSERT_EQUAL(index == 2 ? 8 : -1, ic2(index));
+     }               
   }
 
   void testManyElements() {
