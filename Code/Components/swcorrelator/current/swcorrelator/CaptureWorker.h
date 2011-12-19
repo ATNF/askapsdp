@@ -36,6 +36,9 @@
 
 #include <boost/shared_ptr.hpp>
 #include <swcorrelator/BufferManager.h>
+#include <vector>
+#include <string>
+#include <complex>
 
 namespace askap {
 
@@ -57,6 +60,13 @@ struct CaptureWorker {
 
   /// @brief entry point for the parallel thread
   void operator()();
+  
+  /// @brief method to simplify reading the file
+  /// @details It allows to encapsulate all low-level file 
+  /// operations in the same file.
+  /// @param[in] fname file name
+  /// @return a vector with data
+  static std::vector<std::complex<float> > read(const std::string &fname);
   
 private:
   /// @brief buffer manager

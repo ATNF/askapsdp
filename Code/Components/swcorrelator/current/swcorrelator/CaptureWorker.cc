@@ -87,6 +87,29 @@ void CaptureWorker::operator()()
     
 }
 
+/// @brief method to simplify reading the file
+/// @details It allows to encapsulate all low-level file 
+/// operations in the same file.
+/// @param[in] fname file name
+/// @return a vector with data
+std::vector<std::complex<float> > CaptureWorker::read(const std::string &fname)
+{
+  std::ifstream is(fname.c_str());
+  int size = 0;
+  is.read((char*)&size, sizeof(int));
+  ASKAPCHECK(size>0, "Expected a positive size; first word of "<<fname<<" is "<<size);
+  std::vector<std::complex<float> > result(size);
+  for (size_t i = 0; i<size_t(size); ++i) {
+       float reBuf = 0., imBuf = 0.;
+       is.read((char*)&reBuf, sizeof(float));
+       is.read((char*)&imBuf, sizeof(float));
+       ASKAPCHECK(is, "File ended prematurely, or there is an error while reading "<<fname<<" at complex record "<<i);
+       result[i] = std::complex<float>(reBuf, imBuf);
+  }
+  return result;
+}
+
+
 } // namespace swcorrelator
 
 } // namespace askap

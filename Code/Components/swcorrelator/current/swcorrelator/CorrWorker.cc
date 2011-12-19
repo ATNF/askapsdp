@@ -96,9 +96,9 @@ void CorrWorker::operator()()
   } catch (const AskapError &ae) {
      ASKAPLOG_FATAL_STR(logger, "Correlator thread (id="<<boost::this_thread::get_id()<<") is about to die: "<<ae.what());
      throw;
-  }
-  
+  }  
 }
+
 
 } // namespace swcorrelator
 
