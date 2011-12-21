@@ -304,7 +304,13 @@ namespace askap {
 
 		    //                    result = this->itsCube.getMetadata();
                     result = this->itsCube.getMetadata( this->itsCube.pars().getImageFile());
-		    if(result == duchamp::FAILURE) ASKAPTHROW(AskapError, this->workerPrefix() << "Something went wrong with itsCube.getMetadata()");
+		    if(result == duchamp::FAILURE) {
+		      ASKAPTHROW(AskapError, this->workerPrefix() << "Something went wrong with itsCube.getMetadata()");
+		    }
+		    else{
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
+					<< this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ());
+		    }
 		    
                     // check the true dimensionality and set the 2D flag in the cube header.
                     int numDim = 0;
@@ -2304,8 +2310,10 @@ namespace askap {
 	
 	if(useSubimageInfo){
 	  //	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
-	  if(this->itsComms.isMaster() && this->itsComms.isParallel()) this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
-	  else this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
+// 	  if(this->itsComms.isMaster() && this->itsComms.isParallel()) this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
+// 	  else this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
+	  if(!this->itsComms.isParallel() || this->itsComms.isWorker()) 
+	    this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
 	}
 	else if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
 	  this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
