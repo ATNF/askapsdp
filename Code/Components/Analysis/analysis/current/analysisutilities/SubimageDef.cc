@@ -319,6 +319,7 @@ namespace askap {
             fAnnot << "COLOR YELLOW\n";
             fAnnot << "COORD W\n";
             fAnnot << "#FONT lucidasans-24\n";
+	    fAnnot.close();
 
             double *pix = new double[12];
             double *wld = new double[12];
@@ -337,18 +338,20 @@ namespace askap {
                 head.pixToWCS(pix, wld, 4);
                 xcentre = (wld[0] + wld[3] + wld[6] + wld[9]) / 4.;
                 ycentre = (wld[1] + wld[4] + wld[7] + wld[10]) / 4.;
+		fAnnot.open(filename.c_str(),std::ios::app);
                 fAnnot << "CLINES ";
 
                 for (int i = 0; i < 4; i++) fAnnot << wld[i*3] << " " << wld[i*3+1] << " ";
 
                 fAnnot << wld[0] << " " << wld[1] << "\n";
                 fAnnot << "TEXT " << xcentre << " " << ycentre << " " << w + 1 << "\n";
+		fAnnot.close();
             }
 
             delete [] pix;
             delete [] wld;
 
-            fAnnot.close();
+	    //           fAnnot.close();
 
         }
 
