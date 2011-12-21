@@ -88,6 +88,7 @@ namespace askap {
                 this->itsCriterium = parset.getDouble("criterium", 0.0001);
                 this->itsMaxIter = parset.getUint32("maxIter", 1024);
                 this->itsUseNoise = parset.getBool("useNoise", true);
+		this->itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", false);
                 this->itsFlagFitThisParam = std::vector<bool>(6, true);
 		this->itsUseBoxFlux = true;
 
@@ -145,6 +146,7 @@ namespace askap {
                 this->itsCriterium = f.itsCriterium;
                 this->itsMaxIter = f.itsMaxIter;
                 this->itsUseNoise = f.itsUseNoise;
+		this->itsStopAfterFirstGoodFit = f.itsStopAfterFirstGoodFit;
                 this->itsFlagFitThisParam = f.itsFlagFitThisParam;
                 this->itsFitTypes = f.itsFitTypes;
                 return *this;

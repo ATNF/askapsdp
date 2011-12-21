@@ -880,7 +880,8 @@ namespace askap {
                         int maxGauss = std::min(this->itsFitParams.maxNumGauss(), int(f.size()));
 
 			bool fitPossible=true;
-                        for (int g = 1; g <= maxGauss && fitPossible; g++) {
+			bool stopNow=false;
+                        for (int g = 1; g <= maxGauss && fitPossible && !stopNow; g++) {
 			    ASKAPLOG_DEBUG_STR(logger, "Number of Gaussian components = " << g);
 
                             fit[ctr].setParams(this->itsFitParams);
@@ -897,7 +898,7 @@ namespace askap {
                                     bestRChisq = fit[ctr].redChisq();
                                 }
                             }
-
+			    stopNow = this->itsFitParams.stopAfterFirstGoodFit() && fit[ctr].acceptable();
                             ctr++;
                         } // end of 'g' for-loop
 

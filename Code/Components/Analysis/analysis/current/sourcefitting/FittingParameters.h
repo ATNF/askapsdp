@@ -160,6 +160,7 @@ namespace askap {
                     void setUseNoise(bool b) {itsUseNoise = b;};
                     void setFlagFitThisParam(int i, bool b) {itsFlagFitThisParam[i] = b;};
                     void setFlagFitThisParam(std::string type);
+		    void setStopAfterFirstGoodFit(bool b){itsStopAfterFirstGoodFit = b;};
                     void setNegativeFluxPossible(bool b) {itsNegativeFluxPossible = b;};
 		    void setFitTypes(std::vector<std::string> types){itsFitTypes = types;};
 
@@ -179,6 +180,7 @@ namespace askap {
                     Double criterium() {return itsCriterium;};
                     uInt   maxIter() {return itsMaxIter;};
                     bool   useNoise() {return itsUseNoise;};
+		    bool   stopAfterFirstGoodFit(){return itsStopAfterFirstGoodFit;};
                     bool   flagFitThisParam(int i) {return itsFlagFitThisParam[i];};
                     bool   negativeFluxPossible() {return itsNegativeFluxPossible;};
 
@@ -260,6 +262,9 @@ namespace askap {
 
                     /// @brief Whether the flux of a fitted component can be negative
                     bool itsNegativeFluxPossible;
+
+		    /// @brief Do we stop after first good fit, or do all fits up to maxNumGauss?
+		    bool itsStopAfterFirstGoodFit;
 
                     /// @brief The extent of the box surrounding the object used for the fitting
                     /// @{
