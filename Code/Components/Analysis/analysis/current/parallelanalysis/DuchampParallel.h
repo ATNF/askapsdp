@@ -214,6 +214,9 @@ namespace askap {
                 /// An image showing relative weights of pixels
                 std::string itsWeightImage;
 
+		/// Whether to work out a SNR threshold for each individual subimage.
+		bool itsFlagThresholdPerWorker;
+
 		/// The weighting of each pixel
 		Weighter *itsWeighter;
 

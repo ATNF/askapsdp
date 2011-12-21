@@ -159,6 +159,8 @@ namespace askap {
 	    if(!flagStatSubsection) this->itsBaseStatSubsection = "";
             this->itsWeightImage = parset.getString("weightsimage", "");
 
+	    this->itsFlagThresholdPerWorker = parset.getBool("thresholdPerWorker",false);
+	    
             if (this->itsWeightImage != "" ){
 	      this->itsWeighter = new Weighter(itsComms);
 	      if(!itsComms.isParallel() || itsComms.isMaster()) // only log for the master process.
@@ -300,7 +302,10 @@ namespace askap {
                     if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
                         ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
 
-                    result = this->itsCube.getMetadata();
+		    //                    result = this->itsCube.getMetadata();
+                    result = this->itsCube.getMetadata( this->itsCube.pars().getImageFile());
+		    if(result == duchamp::FAILURE) ASKAPTHROW(AskapError, this->workerPrefix() << "Something went wrong with itsCube.getMetadata()");
+		    
                     // check the true dimensionality and set the 2D flag in the cube header.
                     int numDim = 0;
                     long *dim = this->itsCube.getDimArray();
@@ -329,7 +334,7 @@ namespace askap {
                     ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Could not read in metadata from image " << this->itsCube.pars().getImageFile() << ".");
                     ASKAPTHROW(AskapError, this->workerPrefix() << "Unable to read image " << this->itsCube.pars().getImageFile())
                 } else {
-//                     ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read metadata from image " << this->itsCube.pars().getImageFile());
+                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Read metadata from image " << this->itsCube.pars().getImageFile());
                 }
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
@@ -1801,39 +1806,57 @@ namespace askap {
 
         //**************************************************************//
 
-        void DuchampParallel::gatherStats()
-        {
-            /// @details A front-end function that calls all the statistics
-            /// functions. Net effect is to find the mean/median and
-            /// stddev/MADFM for the entire dataset and store these values in
-            /// the master's itsCube statsContainer.
-            if (!this->itsFlagDoMedianSearch &&
-                    (!this->itsCube.pars().getFlagUserThreshold() ||
-                     (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold()))) {
-                findMeans();
-                combineMeans();
-                broadcastMean();
-                findStddevs();
-                combineStddevs();
-            } else {
-	      if (this->itsFlagDoMedianSearch){
-		if(this->itsCube.pars().getFlagUserThreshold())
-		  ASKAPLOG_WARN_STR(logger, "Since median searching has been requested, the threshold given ("
-				    <<this->itsCube.stats().getThreshold()<<") is changed to a S/N-based one of "<<this->itsCube.pars().getCut()<<" sigma");
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
-		this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
-		this->itsCube.pars().setFlagUserThreshold(true);
-		if(this->itsCube.pars().getFlagGrowth()){
-		  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user growth threshold to " << this->itsCube.pars().getGrowthCut());
-		  this->itsCube.pars().setGrowthThreshold(this->itsCube.pars().getGrowthCut());
-		  this->itsCube.pars().setFlagUserGrowthThreshold(true);
-		}
-		this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
-		
-	      }
-	      else this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
+      void DuchampParallel::gatherStats()
+      {
+	/// @details A front-end function that calls all the statistics
+	/// functions. Net effect is to find the mean/median and
+	/// stddev/MADFM for the entire dataset and store these values in
+	/// the master's itsCube statsContainer.
+	if(!this->itsComms.isParallel() || this->itsFlagThresholdPerWorker){
+	  if(this->itsComms.isWorker()){
+	    if(this->itsComms.isParallel())
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating stats for each worker individually");
+	    else
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating stats");
+	    this->itsCube.setCubeStats();
+	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Stats are as follows:");
+	    std::cout << this->itsCube.stats();
+	  }
+	  if(this->itsComms.isParallel() && this->itsComms.isMaster()){
+	    this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
+	    this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
+	  }
+	  else                          this->itsCube.pars().setThreshold(this->itsCube.stats().getThreshold());
+	  this->itsCube.pars().setFlagUserThreshold(true);
+	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Threshold = " << this->itsCube.stats().getThreshold());
+	}    
+	else if (!this->itsFlagDoMedianSearch &&
+		 (!this->itsCube.pars().getFlagUserThreshold() ||
+		  (this->itsCube.pars().getFlagGrowth() && !this->itsCube.pars().getFlagUserGrowthThreshold()))) {
+	  findMeans();
+	  combineMeans();
+	  broadcastMean();
+	  findStddevs();
+	  combineStddevs();
+	} else {
+	  if (this->itsFlagDoMedianSearch){
+	    if(this->itsCube.pars().getFlagUserThreshold())
+	      ASKAPLOG_WARN_STR(logger, "Since median searching has been requested, the threshold given ("
+				<<this->itsCube.stats().getThreshold()<<") is changed to a S/N-based one of "<<this->itsCube.pars().getCut()<<" sigma");
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
+	    this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
+	    this->itsCube.pars().setFlagUserThreshold(true);
+	    if(this->itsCube.pars().getFlagGrowth()){
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user growth threshold to " << this->itsCube.pars().getGrowthCut());
+	      this->itsCube.pars().setGrowthThreshold(this->itsCube.pars().getGrowthCut());
+	      this->itsCube.pars().setFlagUserGrowthThreshold(true);
 	    }
+	    this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
+		
+	  }
+	  else this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
 	}
+      }
 
 
         //**************************************************************//
@@ -1895,10 +1918,10 @@ namespace askap {
 
                 } else {
                     // serial case -- can just calculate all stats at once.
-                    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating stats");
-                    this->itsCube.setCubeStats();
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Stats are as follows:");
-                    std::cout << this->itsCube.stats();
+//                     ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating stats");
+//                     this->itsCube.setCubeStats();
+//                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Stats are as follows:");
+//                     std::cout << this->itsCube.stats();
                 }
             } else {
             }
@@ -1991,7 +2014,7 @@ namespace askap {
             /// overall value is the weighted (by size) average of the
             /// means/medians of the individual images). The value is stored
             /// in the StatsContainer in itsCube.
-            if (itsComms.isMaster() && itsComms.isParallel()) {
+            if (itsComms.isMaster() && itsComms.isParallel() && !this->itsFlagThresholdPerWorker) {
                 // get the means from the workers
 //                 ASKAPLOG_DEBUG_STR(logger,  this->workerPrefix() << "Receiving Means and combining");
                 LOFAR::BlobString bs1;
@@ -2031,7 +2054,7 @@ namespace askap {
         {
             /// @details The mean/median value of the full dataset is sent
             /// via LOFAR Blobs to the workers.
-            if (itsComms.isMaster() && itsComms.isParallel()) {
+            if (itsComms.isMaster() && itsComms.isParallel() && !this->itsFlagThresholdPerWorker) {
                 // now send the overall mean to the workers so they can calculate the stddev
                 double av = this->itsCube.stats().getMean();
                 LOFAR::BlobString bs2;
@@ -2057,7 +2080,7 @@ namespace askap {
             /// calculated on the workers, they are treated as estimates of
             /// the stddev and are combined as if they are stddev values. The
             /// overall value is stored in the StatsContainer in itsCube.
-            if (itsComms.isMaster() && itsComms.isParallel()) {
+            if (itsComms.isMaster() && itsComms.isParallel() && !this->itsFlagThresholdPerWorker) {
                 // get the means from the workers
 //                 ASKAPLOG_DEBUG_STR(logger,  this->workerPrefix() << "Receiving STDDEV values and combining");
                 LOFAR::BlobString bs;
@@ -2104,7 +2127,7 @@ namespace askap {
         {
             /// @details The detection threshold value (which has been
             /// already calculated) is sent to the workers via LOFAR Blobs.
-            if (itsComms.isMaster() && itsComms.isParallel()) {
+            if (itsComms.isMaster() && itsComms.isParallel() && !this->itsFlagThresholdPerWorker) {
                 // now send the overall mean to the workers so they can calculate the stddev
                 LOFAR::BlobString bs;
                 bs.resize(0);
@@ -2130,7 +2153,7 @@ namespace askap {
         void DuchampParallel::receiveThreshold()
         {
             /// @details The workers read the detection threshold sent via LOFAR Blobs from the master.
-            if (itsComms.isWorker()) {
+            if (itsComms.isWorker() && !this->itsFlagThresholdPerWorker) {
                 double threshold, mean, stddev;
 
                 if (itsComms.isParallel()) {
