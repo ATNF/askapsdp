@@ -39,5 +39,5 @@ $(EXENAME):	$(OBJS)
 		$(CXX) $(CFLAGS) -o $(EXENAME) $(OBJS)
 
 clean:
-		rm -f $(EXENAME) *.o $(EXENAME)MIC.out
+		rm -f $(EXENAME) *.o
 
