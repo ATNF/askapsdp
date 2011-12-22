@@ -253,9 +253,59 @@ namespace askap {
             /// FITS data or a CASA image
             /// @return The return value of the function that was used:
             /// either duchamp::SUCCESS or duchamp::FAILURE
-            if (this->itsIsFITSFile) return this->itsCube.getMetadata();
+	    int returnCode;
+            if (this->itsIsFITSFile){
+                   this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
+                    this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
+
+                    if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
+                        this->itsCube.pars().setFlagSubsection(true);
+                        this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
+                    }
+
+                    if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
+                        ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
+
+                    returnCode = this->itsCube.getMetadata( this->itsCube.pars().getImageFile());
+		    if(returnCode == duchamp::FAILURE) {
+		      ASKAPTHROW(AskapError, this->workerPrefix() << "Something went wrong with itsCube.getMetadata()");
+		    }
+		    else{
+
+		      long *dimarr=this->itsCube.getDimArray();
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions ("<<this->itsCube.getNumDim()<<" of them) before correction are "
+					<< dimarr[0] << "x"<<dimarr[1] << "x" << dimarr[2]);
+		      int lng=this->itsCube.header().WCS().lng, lat=this->itsCube.header().WCS().lat, spec=this->itsCube.header().WCS().spec;
+		      dimarr[0] = this->itsCube.pars().section().getDim(lng);
+		      dimarr[1] = this->itsCube.pars().section().getDim(lat);
+		      dimarr[2] = this->itsCube.pars().section().getDim(spec);
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions after correction are "
+					<< dimarr[0] << "x"<<dimarr[1] << "x" << dimarr[2]);
+
+		      this->itsCube.header().WCS().crpix[lng] -= this->itsCube.pars().section().getStart(lng);
+		      this->itsCube.header().WCS().crpix[lat] -= this->itsCube.pars().section().getStart(lat);
+		      this->itsCube.header().WCS().crpix[spec] -= this->itsCube.pars().section().getStart(spec);
+
+		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
+					<< this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ());
+		    }
+		    
+                    // check the true dimensionality and set the 2D flag in the cube header.
+                    int numDim = 0;
+                    long *dim = this->itsCube.getDimArray();
+
+                    for (int i = 0; i < this->itsCube.getNumDim(); i++) if (dim[i] > 1) numDim++;
+
+                    this->itsCube.header().set2D(numDim <= 2);
+
+                    // set up the various flux units
+                    if (this->itsCube.header().getWCS()->spec >= 0) this->itsCube.header().fixUnits(this->itsCube.pars());
+
+	    }
             // else return casaImageToMetadata(this->itsCube, this->itsSubimageDef, itsComms);
-            else return this->getCASA(METADATA);
+            else returnCode = this->getCASA(METADATA);
+
+	    return returnCode;
         }
 
         //**************************************************************//
@@ -290,43 +340,7 @@ namespace askap {
                 int result;
                 ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read metadata from image " << this->itsCube.pars().getImageFile());
 
-                if (this->itsIsFITSFile) {
-                    this->itsSubimageDef.defineFITS(this->itsCube.pars().getImageFile());
-                    this->itsSubimageDef.setImageDim(getFITSdimensions(this->itsCube.pars().getImageFile()));
-
-                    if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
-                        this->itsCube.pars().setFlagSubsection(true);
-                        this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
-                    }
-
-                    if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
-                        ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
-
-		    //                    result = this->itsCube.getMetadata();
-                    result = this->itsCube.getMetadata( this->itsCube.pars().getImageFile());
-		    if(result == duchamp::FAILURE) {
-		      ASKAPTHROW(AskapError, this->workerPrefix() << "Something went wrong with itsCube.getMetadata()");
-		    }
-		    else{
-		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions are "
-					<< this->itsCube.getDimX() << " " << this->itsCube.getDimY() << " " << this->itsCube.getDimZ());
-		    }
-		    
-                    // check the true dimensionality and set the 2D flag in the cube header.
-                    int numDim = 0;
-                    long *dim = this->itsCube.getDimArray();
-
-                    for (int i = 0; i < this->itsCube.getNumDim(); i++) if (dim[i] > 1) numDim++;
-
-                    this->itsCube.header().set2D(numDim <= 2);
-
-                    // set up the various flux units
-                    if (this->itsCube.header().getWCS()->spec >= 0) this->itsCube.header().fixUnits(this->itsCube.pars());
-
-                } else {
-		  //                    result = casaImageToMetadata(this->itsCube, this->itsSubimageDef, itsComms);
-		  result = this->getCASA(METADATA);
-                }
+		this->getMetadata();
 
                 ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile << "\".");
 
@@ -1369,17 +1383,10 @@ namespace askap {
 	  else if(itsComms.isWorker()){
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for object calculation");
 	    this->itsCube.pars().setSubsection(this->itsBaseSubsection); // take care of any global offsets due to subsectioning
-	    //	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
-	    if(this->itsIsFITSFile){
-	      this->itsCube.pars().verifySubsection();
-	      this->itsCube.getMetadata();
-	    }
-	    else{
-	      this->getCASA(METADATA,false);
-	    }
-	    LOFAR::BlobString bs;
+	    this->getMetadata();
 
 	    // now read individual sources
+	    LOFAR::BlobString bs;
 	    int objsize=1;
 	    this->itsCube.clearDetectionList();
 	    while(objsize>0) {	    
