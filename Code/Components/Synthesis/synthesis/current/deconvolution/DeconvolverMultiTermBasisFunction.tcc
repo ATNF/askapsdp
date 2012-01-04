@@ -425,20 +425,21 @@ namespace askap {
     {
       this->initialise();
       
-      ASKAPLOG_INFO_STR(decmtbflogger, "Performing Multi-Term BasisFunction CLEAN for "
-			<< this->control()->targetIter() << " iterations");
-      do {
-	this->oneIteration();
-	this->monitor()->monitor(*(this->state()));
-	this->state()->incIter();
+      if (this->control()->targetIter() != 0) {
+          ASKAPLOG_INFO_STR(decmtbflogger, "Performing Multi-Term BasisFunction CLEAN for "
+                            << this->control()->targetIter() << " iterations");
+          do {
+             this->oneIteration();
+             this->monitor()->monitor(*(this->state()));
+             this->state()->incIter();
+          } while (!this->control()->terminate(*(this->state())));      
+
+          ASKAPLOG_INFO_STR(decmtbflogger, "Performed Multi-Term BasisFunction CLEAN for "
+	   	                    << this->state()->currentIter() << " iterations");      
+          ASKAPLOG_INFO_STR(decmtbflogger, this->control()->terminationString());
+      } else {
+          ASKAPLOG_INFO_STR(decmtbflogger, "Bypassed Multi-Term BasisFunction CLEAN due to 0 iterations in the setup");
       }
-      while (!this->control()->terminate(*(this->state())));
-      
-      ASKAPLOG_INFO_STR(decmtbflogger, "Performed Multi-Term BasisFunction CLEAN for "
-			<< this->state()->currentIter() << " iterations");
-      
-      ASKAPLOG_INFO_STR(decmtbflogger, this->control()->terminationString());
-      
       this->finalise();
       
       return True;

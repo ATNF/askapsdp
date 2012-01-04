@@ -76,24 +76,25 @@ namespace askap
       itsScales(1)=10;
       itsScales(2)=30;
       // Now set up controller
-      itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
+      itsControl.reset(new DeconvolverControl<Float>());
       // Now set up monitor
-      itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
-
-      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(itsScales,
+      itsMonitor.reset(new DeconvolverMonitor<Float>());
+      const BasisFunction<Float>::ShPtr bfPtr(new MultiScaleBasisFunction<Float>(itsScales,
 										      itsOrthogonal));
+      itsBasisFunction = bfPtr;
     }
     
     ImageAMSMFSolver::ImageAMSMFSolver(const casa::Vector<float>& scales) : 
       itsScales(scales), itsNumberTaylor(0), itsSolutionType("MINCHISQ"), itsOrthogonal(False)
     {
       // Now set up controller
-      itsControl = boost::shared_ptr<DeconvolverControl<Float> >(new DeconvolverControl<Float>());
+      itsControl.reset(new DeconvolverControl<Float>());
       // Now set up monitor
-      itsMonitor = boost::shared_ptr<DeconvolverMonitor<Float> >(new DeconvolverMonitor<Float>());
+      itsMonitor.reset(new DeconvolverMonitor<Float>());
 
-      itsBasisFunction=BasisFunction<Float>::ShPtr(new MultiScaleBasisFunction<Float>(scales,
+      const BasisFunction<Float>::ShPtr bfPtr(new MultiScaleBasisFunction<Float>(scales,
 										      itsOrthogonal));
+      itsBasisFunction = bfPtr;
     }
     
     Solver::ShPtr ImageAMSMFSolver::clone() const

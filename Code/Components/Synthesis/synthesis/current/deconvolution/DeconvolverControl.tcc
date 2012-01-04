@@ -86,6 +86,7 @@ namespace askap {
 
       // Terminate if the target number of iterations is not set
       ASKAPCHECK(this->targetIter()>0, "Target number of iterations not set");
+
       // Check for too many iterations
       if((state.currentIter()>-1)&&(this->targetIter()>0)&&(state.currentIter()>=this->targetIter())) {
         itsTerminationCause = EXCEEDEDITERATIONS;
