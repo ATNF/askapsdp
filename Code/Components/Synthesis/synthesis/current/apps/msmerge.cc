@@ -66,7 +66,7 @@ void insert1D(const std::string &name, casa::Table &in, const casa::uInt where, 
   casa::Vector<casa::Double> outVal = outCol(0);
   casa::Vector<casa::Double> inVal = inCol(0);
   for (casa::uInt i=0; i<inVal.nelements(); ++i) {
-      const casa::uInt targetPos = where*inVal.nelements() + 1;
+      const casa::uInt targetPos = where*inVal.nelements() + i;
       ASKAPDEBUGASSERT(targetPos < outVal.nelements());
       outVal[targetPos] = inVal[i];
   }
@@ -79,9 +79,18 @@ void reShapeColumn(const std::string &name, casa::Table &tab, const casa::uInt f
 {
   ASKAPDEBUGASSERT(tab.nrow()>=1);
   ASKAPCHECK(tab.actualTableDesc().isColumn(name), "Column "<<name<<" doesn't appear to exist");
+  std::string origName;
+  if ((name == "FLAG") || (name == "DATA")) {
+      casa::ColumnDesc cd = tab.actualTableDesc().columnDesc(name);
+      origName = "OLD_" + name;
+      ASKAPLOG_INFO_STR(logger,  "Renaming column "<<name<<" into "<<origName);
+      tab.renameColumn(origName,name);
+      tab.addColumn(cd);
+  }
   typename casa::ArrayColumn<T> col(tab, name);
+  
   for (casa::uInt row=0; row<tab.nrow(); ++row) {
-       casa::IPosition newShape = col.shape(row);
+       casa::IPosition newShape = (origName.size() ? casa::ROArrayColumn<T>(tab,origName).shape(row) : col.shape(row));
        if (newShape.nelements() == 1) {
            newShape(0) *= factor;
            ASKAPCHECK(tab.nrow() == 1, "Spectral window subtable is supposed to have just one row, you have "<<tab.nrow());
@@ -90,12 +99,11 @@ void reShapeColumn(const std::string &name, casa::Table &tab, const casa::uInt f
        } else {
           ASKAPCHECK(newShape.nelements() == 2, "Shape for column "<<name<<" is "<<newShape);
           newShape(1) *= factor;
+          col.setShape(row,newShape);
        }
-       col.basePut(row,casa::Array<T>(newShape));
   }
-  ASKAPLOG_INFO_STR(logger,  "Changed shape of the "<<name<<" column in the output dataset/spectral window subtable");
-  //tab.removeColumn(name);
-  //tab.addColumn(colDesc);
+  ASKAPLOG_INFO_STR(logger,  "Changed shape of the "<<name<<
+     " column in the output dataset/spectral window subtable, factor="<<factor);
 }
 
 // Main function
@@ -154,7 +162,7 @@ int main(int argc, const char** argv)
                 casa::ROArrayColumn<casa::Complex> inData(inTab,"DATA");
                 ASKAPCHECK(outTab.nrow() == inTab.nrow(), "Number of rows differ, input table has "<<inTab.nrow()<<
                            " rows, we need "<<outTab.nrow());
-                for (casa::uInt row=0; outTab.nrow(); ++row) {
+                for (casa::uInt row=0; row<outTab.nrow(); ++row) {
                      casa::Matrix<casa::Bool> flagVal = flag(row);
                      casa::Matrix<casa::Bool> inFlagVal = inFlag(row);
                      ASKAPDEBUGASSERT(inFlagVal.nrow() == flagVal.nrow());
@@ -164,6 +172,10 @@ int main(int argc, const char** argv)
                      for (casa::uInt x = 0; x<inFlagVal.nrow(); ++x) {
                           for (casa::uInt y = 0; y<inFlagVal.ncolumn(); ++y) {
                                const casa::uInt targetCol = i*inFlagVal.ncolumn()+y;
+                               ASKAPCHECK(targetCol < flagVal.ncolumn(), "targetCol = "<<targetCol<<
+                                  " is outside shape="<<flagVal.shape()<<" for flags, row="<<row);
+                               ASKAPCHECK(targetCol < dataVal.ncolumn(), "targetCol = "<<targetCol<<
+                                  " is outside shape="<<dataVal.shape()<<" for data, row="<<row);
                                flagVal(x,targetCol) = inFlagVal(x,y);
                                dataVal(x,targetCol) = inDataVal(x,y);
                           }
