@@ -1,5 +1,5 @@
 /// @file 
-/// @brief client iterator implementing parallel write
+/// @brief iterator implementing parallel write
 /// @details This is an implementation of data iterator
 /// (see Base/accessors) which runs in a particular worker to
 /// allow parallel writing of visibilities. Read operation is not
@@ -7,7 +7,9 @@
 /// master side at the same time. It gathers the data (and distributes jobs
 /// between workers). The decision was made to have this class in synthesis/parallel
 /// rather than Base/accessors because it uses master-working specific code and
-/// is not a general purpose class.
+/// is not a general purpose class. The master (server iterator) is implemented as 
+/// a static method of this class, so the communication protocol is encapsulated here.
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -140,6 +142,7 @@ casa::Bool ParallelWriteIterator::next()
 /// the visibility cube with the master before advancing to the next iteration.
 void ParallelWriteIterator::advance()
 {
+  ASKAPDEBUGASSERT(itsComms.isWorker());
   if (itsNotAtOrigin) {
       // sync the result
   }
@@ -148,6 +151,24 @@ void ParallelWriteIterator::advance()
   if (itsAccessorValid) {
       // receive metadata, fill itsAccessor
   }
+}
+
+/// @brief server method
+/// @details It iterates through the given iterator, serves metadata
+/// to client iterators and combines visibilities in a single cube.
+/// @param comms communication object
+/// @param iter shared iterator to use
+void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comms, const accessors::IDataSharedIter &iter)
+{
+  ASKAPDEBUGASSERT(comms.isMaster());
+  accessors::IDataSharedIter it(iter);
+  do {
+    // send status
+    if (it.hasMore()) {
+        // send metadata
+        // receive the result and store it in rwVisibility
+    }
+  } while (it.next());  
 }
 
 
