@@ -2315,11 +2315,12 @@ namespace askap {
 	
 	//      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Cube's param subsection = " << this->itsCube.pars().getSubsection() << " or " << this->itsCube.pars().section().getSection());
 	
-	if(useSubimageInfo){
-	  //	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
-// 	  if(this->itsComms.isMaster() && this->itsComms.isParallel()) this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
-// 	  else this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
-	  if(!this->itsComms.isParallel() || this->itsComms.isWorker()) 
+// 	if(useSubimageInfo){
+// 	  //	  this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1, this->itsCube.pars().getSubsection());
+// // 	  if(this->itsComms.isMaster() && this->itsComms.isParallel()) this->itsCube.pars().setSubsection(nullSection(this->itsSubimageDef.getImageDim().size()));
+// // 	  else this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
+// 	  if(!this->itsComms.isParallel() || this->itsComms.isWorker()) 
+	if(useSubimageInfo && (!this->itsComms.isParallel() || this->itsComms.isWorker())){
 	    this->itsCube.pars().section() = this->itsSubimageDef.section(this->itsComms.rank()-1);
 	}
 	else if (!this->itsCube.pars().getFlagSubsection() || this->itsCube.pars().getSubsection() == "") {
