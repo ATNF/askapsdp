@@ -52,6 +52,16 @@ namespace askap { namespace mwcommon {
   MPIConnection::~MPIConnection()
   {}
 
+  /// @brief check the rank for broadcast
+  /// @details We need to be able to check the rank. However, it is defined in
+  /// MPIConnection only. This method allows us to do this check.
+  /// @param[in] root root rank
+  /// @return true if this process is root
+  bool MPIConnection::isRoot(int root) const 
+  {
+    return getRank() == root;
+  }
+
 
 #ifdef HAVE_MPI
 
@@ -141,6 +151,49 @@ namespace askap { namespace mwcommon {
 
     ASKAPCHECK(remaining == 0, "MPIConnection::send() Didn't send all data");
   }
+  
+  /// @brief broadcast data to all ranks
+  /// @details This method is a wrapper around MPI_Bcast.
+  /// @param[in] buf buffer for data (with data for the root rank)
+  /// @param[in] size data size
+  /// @param[in] root root rank
+  void MPIConnection::bcast(void *buf, size_t size, int root)
+  {
+    const unsigned int c_maxint = std::numeric_limits<int>::max();
+    ASKAPCHECK(buf != 0, "MPIConnection::broadcast() Null buf pointer passed");
+
+    // First broadcast the size of the buffer.
+    unsigned long lsize = size;  // Promote for simplicity
+    int result = MPI_Bcast(&lsize, 1, MPI_UNSIGNED_LONG, root, MPI_COMM_WORLD);
+    if (result != MPI_SUCCESS) {
+        ASKAPTHROW (AskapError, "MPIConnection::broadcast on rank " << getRank()
+                << " failed: " << size << " bytes, root rank " << root);
+    }
+
+    // Broadcast in chunks of size MAXINT until complete
+    size_t remaining = size;
+    while (remaining > 0) {
+        size_t offset = size - remaining;
+
+        void* addr = addOffset(buf, offset);
+        if (remaining >= c_maxint) {
+            result = MPI_Bcast(addr, c_maxint, MPI_BYTE,
+                    root, MPI_COMM_WORLD);
+            remaining -= c_maxint;
+        } else {
+            result = MPI_Bcast(addr, remaining, MPI_BYTE,
+                    root, MPI_COMM_WORLD);
+            remaining = 0;
+        }
+        if (result != MPI_SUCCESS) {
+            ASKAPTHROW (AskapError, "MPIConnection::broadcast on rank " << getRank()
+                    << " failed: " << size << " bytes, root " << root
+                    << " remaining " << remaining<<" bytes");
+        }
+    }
+
+    ASKAPCHECK(remaining == 0, "MPIConnection::broadcast() Didn't broadcast all data");
+  }
 
   bool MPIConnection::isConnected() const
   {
@@ -207,6 +260,12 @@ namespace askap { namespace mwcommon {
   void MPIConnection::send (const void*, size_t)
   {
     ASKAPTHROW (AskapError, "MPIConnection::send cannot be used: "
+		 "configured without MPI");
+  }
+  
+  void MPIConnection::bcast(void *, size_t, int)
+  {
+    ASKAPTHROW (AskapError, "MPIConnection::broadcast cannot be used: "
 		 "configured without MPI");
   }
 

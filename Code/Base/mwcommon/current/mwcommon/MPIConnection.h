@@ -73,7 +73,7 @@ namespace askap { namespace mwcommon {
 
     /// Get the length of the message.
     virtual int getMessageLength();
-
+        
     /// Receive the data sent by the destination
     /// and wait until data has been received into buf.
     virtual void receive (void* buf, size_t size);
@@ -81,6 +81,13 @@ namespace askap { namespace mwcommon {
     /// Send the data to the destination
     /// and wait until the data has been sent.
     virtual void send (const void* buf, size_t size);
+
+    /// @brief broadcast data to all ranks
+    /// @details This method is a wrapper around MPI_Bcast.
+    /// @param[in] buf buffer for data (with data for the root rank)
+    /// @param[in] size data size
+    /// @param[in] root root rank
+    virtual void bcast(void *buf, size_t size, int root);
 
     /// Functions to access MPI.
     /// If no MPI available, getRank returns 0 and getNrNodes returns 1.
@@ -91,7 +98,15 @@ namespace askap { namespace mwcommon {
     static int getNrNodes();
     static std::string getNodeName();
     /// @}
-
+  protected:
+    
+    /// @brief check the rank for broadcast
+    /// @details We need to be able to check the rank. However, it is defined in
+    /// MPIConnection only. This method allows us to do this check.
+    /// @param[in] root root rank
+    /// @return true if this process is root
+    virtual bool isRoot(int root) const;
+    
   private:
     // Add a byte offset to the  specified pointer, returning the result
     void* addOffset(const void *ptr, size_t offset);

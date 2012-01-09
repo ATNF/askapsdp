@@ -96,6 +96,21 @@ namespace askap { namespace mwcommon {
     /// and wait until the data has been sent.
     /// By default is uses function \a send to send the data.
     virtual void write (const LOFAR::BlobString& buf);
+    
+    /// @brief broadcast blob to all ranks by the connected MWConnection
+    /// @details this method waits until all data has arrived into \a buf.
+    /// The buffer is resized as needed.
+    /// @param[in] buf blob string
+    /// @param[in] root root rank which has the data
+    virtual void broadcast(LOFAR::BlobString& buf, int root);
+
+  protected:
+    /// @brief check the rank for broadcast
+    /// @details We need to be able to check the rank. However, it is defined in
+    /// MPIConnection only. This method allows us to do this check.
+    /// @param[in] root root rank
+    /// @return true if this process is root
+    virtual bool isRoot(int root) const = 0;
 
   private:
     /// Cannot make a copy of this object (thus also of derived classes).
@@ -116,6 +131,13 @@ namespace askap { namespace mwcommon {
     /// Send the fixed sized data to the connected MWConnection
     /// and wait until the data has been sent.
     virtual void send (const void* buf, size_t size) = 0;
+    
+    /// @brief broadcast data to all ranks
+    /// @details This method is a wrapper around MPI_Bcast.
+    /// @param[in] buf buffer for data (with data for the root rank)
+    /// @param[in] size data size
+    /// @param[in] root root rank
+    virtual void bcast(void *buf, size_t size, int root) = 0;
   };
 
 }} /// end namespaces

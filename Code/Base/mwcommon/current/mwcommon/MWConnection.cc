@@ -62,5 +62,23 @@ namespace askap { namespace mwcommon {
         send(&size, sizeof(unsigned long));
         send(buf.data(), size);
     }
+    
+    /// @brief broadcast blob to all ranks by the connected MWConnection
+    /// @details this method waits until all data has arrived into \a buf.
+    /// The buffer is resized as needed.
+    /// @param[in] buf blob string
+    /// @param[in] root root rank which has the data
+    void MWConnection::broadcast(LOFAR::BlobString& buf, int root)
+    {
+       // first broadcast the length of the message
+       unsigned long size = isRoot(root) ? buf.size() : 0;
+       bcast(&size,sizeof(unsigned long),root);
+       
+       if (!isRoot(root)) {
+           buf.resize(size);
+       }
+       bcast(buf.data(), size, root);
+    }
+    
 
 }} // end namespaces
