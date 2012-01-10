@@ -37,9 +37,17 @@
 ///
 
 #include <parallel/ParallelWriteIterator.h>
+#include <parallel/ParallelIteratorStatus.h>
 #include <askap_synthesis.h>
 #include <askap/AskapError.h>
 #include <askap/AskapLogging.h>
+
+#include <Blob/BlobString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOBufString.h>
+#include <Blob/BlobIStream.h>
+#include <Blob/BlobOStream.h>
+
 ASKAP_LOGGER(logger, ".parallel");
 
 namespace askap {
@@ -148,6 +156,17 @@ void ParallelWriteIterator::advance()
   }
   // get status
   // update itsAccessorValid from status
+  {
+    LOFAR::BlobString bs;
+    bs.resize(0);
+    itsComms.connectionSet()->broadcast(bs,0);
+    LOFAR::BlobIBufString bib(bs);
+    LOFAR::BlobIStream in(bib);
+    ParallelIteratorStatus status;
+    in>>status;
+    itsAccessorValid = status.itsHasMore;
+  }
+        
   if (itsAccessorValid) {
       // receive metadata, fill itsAccessor
   }
@@ -163,7 +182,22 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
   ASKAPDEBUGASSERT(comms.isMaster());
   accessors::IDataSharedIter it(iter);
   do {
-    // send status
+    ParallelIteratorStatus status;
+    status.itsHasMore = it.hasMore();
+    if (status.itsHasMore) {
+       status.itsNRow = it->nRow();
+       status.itsNChan = it->nChannel(); // need to reduce to the actual number of channels
+       status.itsNPol = it->nPol();
+    }
+    {
+      LOFAR::BlobString bs;
+      bs.resize(0);
+      LOFAR::BlobOBufString bob(bs);
+      LOFAR::BlobOStream out(bob);
+      out << status;
+      comms.connectionSet()->broadcast(bs,0);
+    }
+    
     if (it.hasMore()) {
         // send metadata
         // receive the result and store it in rwVisibility
