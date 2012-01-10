@@ -156,6 +156,14 @@ namespace askap {
                 end(1)   = std::min(long(sec.getEnd(1) - this->ySubOffset), this->getYmax() + fitParams.boxPadSize());
                 start(2) = std::max(long(sec.getStart(spectralAxis) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
                 end(2)   = std::min(long(sec.getEnd(spectralAxis) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
+		if(start>=end){
+		  ASKAPLOG_DEBUG_STR(logger, "RadioSource::defineBox failing : sec="<<sec.getSection()
+				     <<", offsets: "<<this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset
+				     <<", mins: " <<this->getXmin() << " " << this->getYmin() << " " << this->getZmin()
+				     <<", maxs: " <<this->getXmax() << " " << this->getYmax() << " " << this->getZmax()
+				     <<", boxpadsize: " << fitParams.boxPadSize());
+		  ASKAPTHROW(AskapError, "RadioSource::defineBox bad slicer: end("<<end<<") < start ("<<start<<")");
+		}
                 this->itsBox = casa::Slicer(start, end, stride, Slicer::endIsLast);
             }
 

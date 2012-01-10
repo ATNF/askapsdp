@@ -885,6 +885,10 @@ namespace askap {
                 }
             }
 
+	    if(start >= end){
+	      ASKAPLOG_FATAL_STR(logger, "ERROR with fixSlicer: start="<<start<<", end="<<end<<", stride="<<stride <<", caused by Slicer "<<slice<<" and WCS indices ("<<wcs->lng<<","<<wcs->lat<<","<<wcs->spec<<")");
+	    }
+
             slice = Slicer(start, end, stride, Slicer::endIsLast);
         }
 
@@ -905,7 +909,11 @@ namespace askap {
 	    stride.resize(ndim);
 	    for(int i=oldDim; i<ndim;i++) stride[i]=1;
 
-            slice = Slicer(start, end, stride, Slicer::endIsLast);
+ 	    if(start >= end){
+	      ASKAPLOG_FATAL_STR(logger, "ERROR with lengthenSlicer: start="<<start<<", end="<<end<<", stride="<<stride <<", caused by Slicer "<<slice<<" going from "<<oldDim<<"dim to "<<ndim<<"dim");
+	    }
+
+           slice = Slicer(start, end, stride, Slicer::endIsLast);
 	  }
 
 	}
