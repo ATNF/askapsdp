@@ -303,7 +303,7 @@ namespace askap {
 
 	    }
             // else return casaImageToMetadata(this->itsCube, this->itsSubimageDef, itsComms);
-            else returnCode = this->getCASA(METADATA);
+            else returnCode = this->getCASA(METADATA,false);
 
 	    return returnCode;
         }
