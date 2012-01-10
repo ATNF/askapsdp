@@ -182,6 +182,7 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
 {
   ASKAPDEBUGASSERT(comms.isMaster());
   accessors::IDataSharedIter it(iter);
+  bool contFlag = true;
   do {
     ParallelIteratorStatus status;
     status.itsHasMore = it.hasMore();
@@ -189,6 +190,8 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
        status.itsNRow = it->nRow();
        status.itsNChan = it->nChannel(); // need to reduce to the actual number of channels
        status.itsNPol = it->nPol();
+    } else {
+      contFlag = false;
     }
     {
       LOFAR::BlobString bs;
@@ -204,7 +207,8 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
         // send metadata
         // receive the result and store it in rwVisibility
     }
-  } while (it.next());  
+    it.next();
+  } while (contFlag);  
 }
 
 
