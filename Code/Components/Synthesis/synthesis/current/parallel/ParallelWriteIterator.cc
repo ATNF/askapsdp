@@ -47,6 +47,8 @@
 #include <Blob/BlobOBufString.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
+#include <Blob/BlobArray.h>
+
 
 ASKAP_LOGGER(logger, ".parallel");
 
@@ -156,22 +158,62 @@ void ParallelWriteIterator::advance()
   }
   // get status
   // update itsAccessorValid from status
+  ParallelIteratorStatus status;
   {
     LOFAR::BlobString bs;
     bs.resize(0);
     itsComms.connectionSet()->broadcast(bs,0);
     LOFAR::BlobIBufString bib(bs);
     LOFAR::BlobIStream in(bib);
-    ParallelIteratorStatus status;
     in>>status;
     itsAccessorValid = status.itsHasMore;
     //ASKAPLOG_INFO_STR(logger, "Received status "<<itsAccessorValid<<" (rank "<<itsComms.rank()<<")");
   }
         
   if (itsAccessorValid) {
-      // receive metadata, fill itsAccessor
+      // receive common metadata
+      {
+        LOFAR::BlobString bs;
+        bs.resize(0);
+        itsComms.connectionSet()->broadcast(bs,0);
+        LOFAR::BlobIBufString bib(bs);
+        LOFAR::BlobIStream in(bib);
+        casa::Matrix<casa::Double> uvwBuf;
+        casa::Matrix<casa::Vector<casa::Double> > dirBuf;
+        casa::Vector<casa::Int> stokesBuf;
+        const int version = in.getStart("AccessorMetadata");
+        ASKAPCHECK(version == 1, "Version mismatch for AccessorMetadata stream, you have version="<<version);
+        in >> itsAccessor.itsAntenna1 >> itsAccessor.itsAntenna2 >> itsAccessor.itsFeed1 >> itsAccessor.itsFeed2 >> 
+              itsAccessor.itsFeed1PA >> itsAccessor.itsFeed2PA >> dirBuf >> uvwBuf >> itsAccessor.itsTime >> stokesBuf;        
+        in.getEnd();        
+        ASKAPASSERT(dirBuf.nrow() == status.itsNRow);
+        ASKAPASSERT(uvwBuf.nrow() == status.itsNRow);
+        ASKAPASSERT(dirBuf.ncolumn() == 4);
+        ASKAPASSERT(uvwBuf.nrow() == 3);
+        itsAccessor.itsUVW.resize(uvwBuf.nrow());
+        itsAccessor.itsPointingDir1.resize(dirBuf.nrow());
+        itsAccessor.itsPointingDir2.resize(dirBuf.nrow());
+        itsAccessor.itsDishPointing1.resize(dirBuf.nrow());
+        itsAccessor.itsDishPointing2.resize(dirBuf.nrow());
+        for (casa::uInt row = 0; row<dirBuf.nrow(); ++row) {
+             itsAccessor.itsPointingDir1[row] = casa::MVDirection(dirBuf(row,0));                  
+             itsAccessor.itsPointingDir2[row] = casa::MVDirection(dirBuf(row,1));
+             itsAccessor.itsDishPointing1[row] = casa::MVDirection(dirBuf(row,2));                  
+             itsAccessor.itsDishPointing2[row] = casa::MVDirection(dirBuf(row,3));
+             for (casa::uInt col = 0; col<3; ++col) {
+                  itsAccessor.itsUVW[row](col) = uvwBuf(row,col);
+             }
+        }
+        itsAccessor.itsStokes.resize(stokesBuf.nelements());
+        ASKAPASSERT(stokesBuf.nelements() == status.itsNPol);
+        for (casa::uInt pol = 0; pol<status.itsNPol; ++pol) {
+             itsAccessor.itsStokes[pol] = casa::Stokes::StokesTypes(stokesBuf[pol]);
+        }
+      }
+      // receive unique metadata, fill itsAccessor
   }
 }
+
 
 /// @brief server method
 /// @details It iterates through the given iterator, serves metadata
@@ -187,8 +229,11 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
     ParallelIteratorStatus status;
     status.itsHasMore = it.hasMore();
     if (status.itsHasMore) {
+       ASKAPCHECK(it->nChannel() % (comms.nNodes() - 1) == 0, 
+               "Current implementation of the parallel iterator requires the number of channels to be evenly distributed between workers. You have "
+               <<it->nChannel()<<" spectral channels and "<<(comms.nNodes() - 1)<<" workers");
        status.itsNRow = it->nRow();
-       status.itsNChan = it->nChannel(); // need to reduce to the actual number of channels
+       status.itsNChan = it->nChannel() / (comms.nNodes() - 1); // need to reduce to the actual number of channels
        status.itsNPol = it->nPol();
     } else {
       contFlag = false;
@@ -204,7 +249,31 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
     }
     
     if (contFlag) {
-        // send metadata
+        // broadcast common metadata
+        {
+          LOFAR::BlobString bs;
+          bs.resize(0);
+          LOFAR::BlobOBufString bob(bs);
+          LOFAR::BlobOStream out(bob);
+          out.putStart("AccessorMetadata", 1);
+          casa::Matrix<casa::Double> uvwBuf(it->nRow(),3);
+          casa::Matrix<casa::Vector<casa::Double> > dirBuf(it->nRow(),4);
+          for (casa::uInt row = 0; row<it->nRow(); ++row) {
+               for (casa::uInt col = 0; col<3; ++col) {
+                    uvwBuf(row,col) = it->uvw()[row](col);
+               }
+               dirBuf(row,0) = it->pointingDir1()[row].get();
+               dirBuf(row,1) = it->pointingDir2()[row].get();
+               dirBuf(row,2) = it->dishPointing1()[row].get();
+               dirBuf(row,3) = it->dishPointing2()[row].get();               
+          }
+          out << it->antenna1() << it->antenna2() << it->feed1() << it->feed2() << it->feed1PA() <<
+                 it->feed2PA() << dirBuf << uvwBuf << it->time() << it->stokes();
+          out.putEnd();   
+          comms.connectionSet()->broadcast(bs,0);
+        }
+        // point-to-point transfer of data which differ
+        
         // receive the result and store it in rwVisibility
         it.next();
     }
