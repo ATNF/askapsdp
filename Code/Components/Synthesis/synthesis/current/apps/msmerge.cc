@@ -32,8 +32,6 @@
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 
-
-
 // casa includes
 #include <casa/OS/Timer.h>
 #include <casa/OS/RegularFile.h>
@@ -46,9 +44,7 @@
 #include <tables/Tables/TableRecord.h>
 #include <tables/Tables/TiledShapeStMan.h>
 
-
 // other 3rd party
-#include <mwcommon/AskapParallel.h>
 #include <Common/ParameterSet.h>
 #include <CommandLineParser.h>
 
@@ -109,9 +105,6 @@ void reShapeColumn(const std::string &name, casa::Table &tab, const casa::uInt f
 // Main function
 int main(int argc, const char** argv)
 {
-    // This class must have scope outside the main try/catch block
-    askap::mwcommon::AskapParallel comms(argc, argv);
-    
     try {
        casa::Timer timer;
        timer.mark();
