@@ -165,6 +165,7 @@ void ParallelWriteIterator::advance()
     ParallelIteratorStatus status;
     in>>status;
     itsAccessorValid = status.itsHasMore;
+    ASKAPLOG_INFO_STR(logger, "Received status "<<itsAccessorValid<<" (rank "<<itsComms.rank()<<")");
   }
         
   if (itsAccessorValid) {
@@ -195,6 +196,7 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
       LOFAR::BlobOBufString bob(bs);
       LOFAR::BlobOStream out(bob);
       out << status;
+      ASKAPLOG_INFO_STR(logger, "About to send status "<<status.itsHasMore<<" (rank "<<comms.rank()<<")");      
       comms.connectionSet()->broadcast(bs,0);
     }
     
