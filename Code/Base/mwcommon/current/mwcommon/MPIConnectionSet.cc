@@ -103,5 +103,19 @@ namespace askap { namespace mwcommon {
       itsConns[i]->write (buf);
     }
   }
+  
+  /// @brief broadcast blob to all ranks by the connected MWConnection
+  /// @details this method waits until all data has arrived into \a buf.
+  /// The buffer is resized as needed.
+  /// @param[in] buf blob string
+  /// @param[in] root root rank which has the data
+  /// @note This method requires at least one connection to be defined
+  void MPIConnectionSet::broadcast(LOFAR::BlobString& buf, int root)
+  {
+    ASKAPCHECK(itsConns.size()>0, "MPIConnectionSet::broadcast - no connections defined!");
+    ASKAPDEBUGASSERT(itsConns[0]);
+    itsConns[0]->broadcast(buf,root);
+  }
+  
 
 }} // end namespaces

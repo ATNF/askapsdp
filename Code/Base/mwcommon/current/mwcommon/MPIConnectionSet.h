@@ -101,6 +101,14 @@ namespace askap { namespace mwcommon {
     /// Write the data from the BlobString buffer to all connections.
     virtual void writeAll(const LOFAR::BlobString&);
 
+    /// @brief broadcast blob to all ranks by the connected MWConnection
+    /// @details this method waits until all data has arrived into \a buf.
+    /// The buffer is resized as needed.
+    /// @param[in] buf blob string
+    /// @param[in] root root rank which has the data
+    /// @note This method requires at least one connection to be defined
+    virtual void broadcast(LOFAR::BlobString& buf, int root);
+
   private:
     std::vector<MPIConnection::ShPtr> itsConns;
   };
