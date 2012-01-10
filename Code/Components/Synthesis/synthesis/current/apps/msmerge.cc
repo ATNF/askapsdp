@@ -32,6 +32,10 @@
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 
+// system includes
+#include <sstream>
+#include <string>
+
 // casa includes
 #include <casa/OS/Timer.h>
 #include <casa/OS/RegularFile.h>
@@ -43,6 +47,7 @@
 #include <tables/Tables/ArrColDesc.h>
 #include <tables/Tables/TableRecord.h>
 #include <tables/Tables/TiledShapeStMan.h>
+#include <askap/Log4cxxLogSink.h>
 
 // other 3rd party
 #include <Common/ParameterSet.h>
@@ -99,12 +104,20 @@ void reShapeColumn(const std::string &name, casa::Table &tab, const casa::uInt f
        }
   }
   ASKAPLOG_INFO_STR(logger,  "Changed shape of the "<<name<<
-     " column in the output dataset/spectral window subtable, factor="<<factor);
+          " column in the output dataset/spectral window subtable, factor="<<factor);
 }
 
 // Main function
 int main(int argc, const char** argv)
 {
+    std::ostringstream ss;
+    ss << argv[0] << ".log_cfg";
+    ASKAPLOG_INIT(ss.str().c_str());
+
+    // Ensure that CASA log messages are captured
+    casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+    casa::LogSink::globalSink(globalSink);
+
     try {
        casa::Timer timer;
        timer.mark();
