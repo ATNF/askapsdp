@@ -81,7 +81,9 @@ void doReadWriteTest(askap::mwcommon::AskapParallel &comms, const IDataSource &d
            it->antenna1();
            it->feed1();
            it->uvw();
-           it->rwVisibility().set(casa::Complex(1.,0.0));
+           for (casa::uInt chan=0; chan<it->nChannel(); ++chan) {
+                it->rwVisibility().xzPlane(chan).set(casa::Complex(1.+float(chan),0.));
+           }
            const double l=0., m=0.003975472185;
            for (casa::uInt row = 0; row<it->nRow(); ++row) {
                 for (casa::uInt chan=0; chan<it->nChannel(); ++chan) {

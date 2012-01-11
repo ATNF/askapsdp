@@ -155,6 +155,15 @@ void ParallelWriteIterator::advance()
   ASKAPDEBUGASSERT(itsComms.isWorker());
   if (itsNotAtOrigin) {
       // sync the result
+      ASKAPDEBUGASSERT(itsAccessor.itsVisibility.shape() == itsAccessor.itsFlag.shape()); 
+      LOFAR::BlobString bs;
+      bs.resize(0);
+      LOFAR::BlobOBufString bob(bs);
+      LOFAR::BlobOStream out(bob);
+      out.putStart("AccessorVisibilities",1);
+      out<<itsAccessor.itsVisibility;
+      out.putEnd();
+      itsComms.connectionSet()->write(0,bs);      
   }
   // get status
   // update itsAccessorValid from status
@@ -218,6 +227,24 @@ void ParallelWriteIterator::advance()
         ASKAPASSERT(itsAccessor.itsFeed2PA.nelements() == status.itsNRow);        
       }
       // receive unique metadata, fill itsAccessor
+      {
+        LOFAR::BlobString bs;
+        bs.resize(0);
+        itsComms.connectionSet()->read(0,bs);
+        LOFAR::BlobIBufString bib(bs);
+        LOFAR::BlobIStream in(bib);
+        const int version = in.getStart("AccessorVariableMetadata");
+        ASKAPCHECK(version == 1, "Version mismatch receiving rank-specific metadata");
+        in>>itsAccessor.itsFlag>>itsAccessor.itsNoise>>itsAccessor.itsFrequency;
+        in.getEnd();
+        itsAccessor.itsVisibility.resize(itsAccessor.itsFlag.nrow(), itsAccessor.itsFlag.ncolumn(), itsAccessor.itsFlag.nplane());
+        itsAccessor.itsVisibility.set(0.);    
+        // consistency checks
+        ASKAPASSERT(itsAccessor.nRow() == itsAccessor.itsVisibility.nrow());
+        ASKAPASSERT(itsAccessor.nChannel() == itsAccessor.itsVisibility.ncolumn());
+        ASKAPASSERT(itsAccessor.nPol() == itsAccessor.itsVisibility.nplane());
+        ASKAPASSERT(itsAccessor.nChannel() == itsAccessor.itsFrequency.nelements());            
+      }
   }
 }
 
@@ -239,7 +266,10 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
        status.itsNChan = it->nChannel() / (comms.nNodes() - 1);
        if (it->nChannel() % (comms.nNodes() - 1) != 0) {
            ++status.itsNChan;
-       }                                    
+       }    
+       if (status.itsNChan == 0) {
+           status.itsNChan = 1;
+       }                                
        status.itsNRow = it->nRow();
        status.itsNPol = it->nPol();
     } else {
@@ -284,8 +314,70 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
           comms.connectionSet()->broadcast(bs,0);
         }
         // point-to-point transfer of data which differ
+        for (int rank = 1; rank < comms.nNodes(); ++rank) {
+             // start and stop of the slice
+             casa::IPosition start(3,0);
+             ASKAPDEBUGASSERT((it->nRow()!=0) && (it->nChannel()!=0) && (it->nPol()));
+             casa::IPosition end(3,int(it->nRow()) - 1, int(it->nChannel()) - 1, int(it->nPol()) - 1);
+             start(1) = status.itsNChan * (rank - 1);
+             end(1) = status.itsNChan * rank;
+             if (rank + 1 < comms.nNodes()) {
+                 ASKAPASSERT(end(1) < int(it->nChannel()));
+             }
+             if (end(1) >= int(it->nChannel())) {
+                 end(1) = int(it->nChannel()) - 1;
+             }
+             const casa::IPosition vecStart(1, start(1));
+             const casa::IPosition vecEnd(1, end(1));
+             // send slices of flags, noise and frequency. Assuming that visibility is zero (can be changed here).
+             {
+               LOFAR::BlobString bs;
+               bs.resize(0);
+               LOFAR::BlobOBufString bob(bs);
+               LOFAR::BlobOStream out(bob);
+               out.putStart("AccessorVariableMetadata", 1);
+               casa::Cube<casa::Bool> flagBuf(it->flag());
+               casa::Cube<casa::Complex> noiseBuf(it->noise());
+               casa::Vector<casa::Double> freqBuf(it->frequency());
+               out<<flagBuf(start,end)<<noiseBuf(start,end)<<freqBuf(vecStart,vecEnd);
+               out.putEnd();
+               comms.connectionSet()->write(rank,bs);
+             }
+        }
         
         // receive the result and store it in rwVisibility
+        for (int rank = 1; rank < comms.nNodes(); ++rank) {
+             // start and stop of the slice
+             casa::IPosition start(3,0);
+             ASKAPDEBUGASSERT((it->nRow()!=0) && (it->nChannel()!=0) && (it->nPol()));
+             casa::IPosition end(3,int(it->nRow()) - 1, int(it->nChannel()) - 1, int(it->nPol()) - 1);
+             start(1) = status.itsNChan * (rank - 1);
+             end(1) = status.itsNChan * rank;
+             if (rank + 1 < comms.nNodes()) {
+                 ASKAPASSERT(end(1) < int(it->nChannel()));
+             }
+             if (end(1) >= int(it->nChannel())) {
+                 end(1) = int(it->nChannel()) - 1;
+             }
+             // receive a slice of visibility
+             {
+               LOFAR::BlobString bs;
+               bs.resize(0);
+               comms.connectionSet()->read(rank,bs);               
+               LOFAR::BlobIBufString bib(bs);
+               LOFAR::BlobIStream in(bib);
+               const int version = in.getStart("AccessorVisibilities");
+               ASKAPCHECK(version == 1, "Version mismatch in serialising of visibilities");
+               casa::Cube<casa::Complex> visBuf;
+               in>>visBuf;
+               in.getEnd();
+               casa::Cube<casa::Complex> visSlice = it->rwVisibility()(start,end);
+               ASKAPCHECK(visSlice.shape() == visBuf.shape(), "Shape mismatch of the visibility cube, received has shape="<<
+                        visBuf.shape()<<" expected shape="<<visSlice.shape());
+               visSlice = visBuf;
+             }
+        }
+        
         it.next();
     }
   } while (contFlag);  
