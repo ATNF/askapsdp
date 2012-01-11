@@ -88,14 +88,14 @@ namespace askap {
 	       >> this->itsNfree >> this->itsNdof >> this->itsNpixFIT >> this->itsNpixObj;
 
 	    if(this->itsMajFIT>=this->itsMinFIT){
-	      this->itsComponent.setMajor(this->itsMajFIT);
-	      this->itsComponent.setMinor(this->itsMinFIT);
+	      this->setMaj(this->itsMajFIT);
+	      this->setMin(this->itsMinFIT);
 	    } else{
-	      this->itsComponent.setMajor(this->itsMinFIT);
-	      this->itsComponent.setMinor(this->itsMajFIT);
+	      this->setMaj(this->itsMinFIT);
+	      this->setMin(this->itsMajFIT);
 	    }
-            this->itsComponent.setPA(this->itsPAFIT);
-	    this->itsComponent.setPeak(this->itsFpeakFIT);
+            this->setPA(this->itsPAFIT);
+	    this->setFluxZero(this->itsFintFIT);
         }
 
         ContinuumSelavy::ContinuumSelavy(const ContinuumSelavy& c):
