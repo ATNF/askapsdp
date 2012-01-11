@@ -189,7 +189,7 @@ void ParallelWriteIterator::advance()
         ASKAPASSERT(dirBuf.nrow() == status.itsNRow);
         ASKAPASSERT(uvwBuf.nrow() == status.itsNRow);
         ASKAPASSERT(dirBuf.ncolumn() == 4);
-        ASKAPASSERT(uvwBuf.nrow() == 3);
+        ASKAPASSERT(uvwBuf.ncolumn() == 3);
         itsAccessor.itsUVW.resize(uvwBuf.nrow());
         itsAccessor.itsPointingDir1.resize(dirBuf.nrow());
         itsAccessor.itsPointingDir2.resize(dirBuf.nrow());
