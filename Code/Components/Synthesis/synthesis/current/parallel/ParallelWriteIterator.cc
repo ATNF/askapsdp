@@ -63,8 +63,10 @@ ParallelWriteIterator::ParallelWriteIterator(askap::mwcommon::AskapParallel& com
    itsComms(comms), itsNotAtOrigin(false), itsAccessorValid(false)
 {
   ASKAPASSERT(itsComms.connectionSet());
-  ASKAPCHECK(itsComms.connectionSet()->size() + 1 >= itsComms.nNodes(), "Number of connections "<<itsComms.connectionSet()->size()<<
-        " should not be less than the number of workers, nNodes="<<itsComms.nNodes());
+  ASKAPCHECK(itsComms.isWorker() && itsComms.isParallel(), 
+      "ParallelWriteIterator class is supposed to be used only in workers in the parallel mode");
+  ASKAPCHECK(itsComms.connectionSet()->size() == 1, "Number of connections "<<itsComms.connectionSet()->size()<<
+        " should be just one (connection to the master)");
   advance();
 }    
     
@@ -262,6 +264,8 @@ void ParallelWriteIterator::advance()
 void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comms, const accessors::IDataSharedIter &iter)
 {
   ASKAPDEBUGASSERT(comms.isMaster());
+  ASKAPCHECK(comms.connectionSet()->size() == (comms.nNodes() - 1), "Number of connections "<<comms.connectionSet()->size()<<
+        " should be equal to the number of workers ("<<(comms.nNodes() - 1)<<")");
   accessors::IDataSharedIter it(iter);
   bool contFlag = true;
   do {
@@ -319,15 +323,15 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
           comms.connectionSet()->broadcast(bs,0);
         }
         // point-to-point transfer of data which differ
-        for (int rank = 1; rank < comms.nNodes(); ++rank) {
-             ASKAPLOG_INFO_STR(logger, "About to send rank-specific metadata to rank "<<rank);
+        for (int worker = 0; worker < comms.nNodes() - 1; ++worker) {
+             ASKAPLOG_INFO_STR(logger, "About to send rank-specific metadata to rank "<<worker + 1);
              // start and stop of the slice
              casa::IPosition start(3,0);
              ASKAPDEBUGASSERT((it->nRow()!=0) && (it->nChannel()!=0) && (it->nPol()));
              casa::IPosition end(3,int(it->nRow()) - 1, int(it->nChannel()) - 1, int(it->nPol()) - 1);
-             start(1) = status.itsNChan * (rank - 1);
-             end(1) = status.itsNChan * rank - 1;
-             if (rank + 1 < comms.nNodes()) {
+             start(1) = status.itsNChan * worker;
+             end(1) = status.itsNChan * (worker + 1) - 1;
+             if (worker + 2 < comms.nNodes()) {
                  ASKAPASSERT(end(1) < int(it->nChannel()));
              }
              if (end(1) >= int(it->nChannel())) {
@@ -348,20 +352,20 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
                casa::Vector<casa::Double> freqBuf(it->frequency());
                out<<flagBuf(start,end)<<noiseBuf(start,end)<<freqBuf(vecStart,vecEnd);
                out.putEnd();
-               comms.connectionSet()->write(rank,bs);
+               comms.connectionSet()->write(worker,bs);
              }
         }
         
         // receive the result and store it in rwVisibility
-        for (int rank = 1; rank < comms.nNodes(); ++rank) {
-             ASKAPLOG_INFO_STR(logger, "About to receive visibilities from rank "<<rank);
+        for (int worker = 0; worker < comms.nNodes() - 1; ++worker) {
+             ASKAPLOG_INFO_STR(logger, "About to receive visibilities from rank "<<worker + 1);
              // start and stop of the slice
              casa::IPosition start(3,0);
              ASKAPDEBUGASSERT((it->nRow()!=0) && (it->nChannel()!=0) && (it->nPol()));
              casa::IPosition end(3,int(it->nRow()) - 1, int(it->nChannel()) - 1, int(it->nPol()) - 1);
-             start(1) = status.itsNChan * (rank - 1);
-             end(1) = status.itsNChan * rank - 1;
-             if (rank + 1 < comms.nNodes()) {
+             start(1) = status.itsNChan * worker;
+             end(1) = status.itsNChan * (worker + 1) - 1;
+             if (worker + 2 < comms.nNodes()) {
                  ASKAPASSERT(end(1) < int(it->nChannel()));
              }
              if (end(1) >= int(it->nChannel())) {
@@ -372,7 +376,7 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
              {
                LOFAR::BlobString bs;
                bs.resize(0);
-               comms.connectionSet()->read(rank,bs);               
+               comms.connectionSet()->read(worker,bs);               
                LOFAR::BlobIBufString bib(bs);
                LOFAR::BlobIStream in(bib);
                const int version = in.getStart("AccessorVisibilities");
