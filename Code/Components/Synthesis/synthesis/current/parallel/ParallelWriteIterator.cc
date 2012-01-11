@@ -63,7 +63,8 @@ ParallelWriteIterator::ParallelWriteIterator(askap::mwcommon::AskapParallel& com
    itsComms(comms), itsNotAtOrigin(false), itsAccessorValid(false)
 {
   ASKAPASSERT(itsComms.connectionSet());
-  ASKAPASSERT(itsComms.connectionSet()->size() >= itsComms.rank());
+  ASKAPCHECK(itsComms.connectionSet()->size() + 1 >= itsComms.nNodes(), "Number of connections "<<itsComms.connectionSet()->size()<<
+        " should not be less than the number of workers, nNodes="<<itsComms.nNodes());
   advance();
 }    
     
