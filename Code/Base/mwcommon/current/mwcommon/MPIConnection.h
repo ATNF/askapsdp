@@ -94,6 +94,7 @@ namespace askap { namespace mwcommon {
     /// @{
     static void initMPI (int argc, const char**& argv);
     static void endMPI();
+    static void abortMPI();
     static int getRank();
     static int getNrNodes();
     static std::string getNodeName();

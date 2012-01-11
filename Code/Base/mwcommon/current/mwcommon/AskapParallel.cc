@@ -135,6 +135,19 @@ namespace askap
             ASKAPLOG_INFO_STR(logger, "Exiting MPI");
             MPIConnection::endMPI();
         }
+        
+        /// @brief abort the execution, this method never returns
+        /// @details This method is intended to be used in exception handlers to
+        /// terminate all ranks.
+        void AskapParallel::abort()
+        {
+           if (isParallel()) {
+              MPIConnection::abortMPI();
+           } else {
+              exit(-1);
+           }
+        }
+        
 
         /// Is this running in parallel?
         bool AskapParallel::isParallel() const

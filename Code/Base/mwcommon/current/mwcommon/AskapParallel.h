@@ -77,6 +77,11 @@ namespace askap
 
       /// Number of nodes
       int nNodes() const;
+      
+      /// @brief abort the execution, this method never returns
+      /// @details This method is intended to be used in exception handlers to
+      /// terminate all ranks.
+      void abort();
 
       /// Connection set
       MPIConnectionSet::ShPtr connectionSet();

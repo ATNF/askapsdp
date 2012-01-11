@@ -219,6 +219,11 @@ namespace askap { namespace mwcommon {
       MPI_Finalize();
     }
   }
+  
+  void MPIConnection::abortMPI()
+  {
+    MPI_Abort(MPI_COMM_WORLD,-1);
+  }
 
   int MPIConnection::getRank()
   {
@@ -243,6 +248,10 @@ namespace askap { namespace mwcommon {
   }
 
 #else
+
+  void MPIConnection::abortMPI()
+  {
+  }
 
 
   int MPIConnection::getMessageLength()
