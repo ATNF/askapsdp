@@ -59,8 +59,9 @@ using namespace askap::synthesis;
 
 
 
-void doReadWriteTest(askap::mwcommon::AskapParallel &comms, const IDataSource &ds) {
+void doReadWriteTest(askap::mwcommon::AskapParallel &comms, const std::string &name) {
   if (comms.isMaster()) {
+     TableDataSource ds(name,TableDataSource::MEMORY_BUFFERS | TableDataSource::WRITE_PERMITTED);     
      IDataSelectorPtr sel=ds.createSelector();
      //sel->chooseFeed(1);  
      IDataConverterPtr conv=ds.createConverter();
@@ -117,10 +118,9 @@ int main(int argc, const char **argv) {
      }
      ASKAPCHECK(comms.isParallel(), "This test could only be run as a parallel MPI job");
      
-     TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS | TableDataSource::WRITE_PERMITTED);     
      ASKAPLOG_INFO_STR(logger, "Initialization: "<<timer.real());
      timer.mark();
-     doReadWriteTest(comms,ds);    
+     doReadWriteTest(comms,argv[1]);    
      ASKAPLOG_INFO_STR(logger, "Job: "<<timer.real());
      
   }
