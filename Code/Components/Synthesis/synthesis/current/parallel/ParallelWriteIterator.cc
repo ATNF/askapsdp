@@ -274,8 +274,12 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
                dirBuf(row,2) = it->dishPointing1()[row].get();
                dirBuf(row,3) = it->dishPointing2()[row].get();               
           }
+          casa::Vector<casa::Int> stokesBuf(it->stokes().nelements());
+          for (casa::uInt pol = 0; pol<stokesBuf.nelements(); ++pol) {
+               stokesBuf[pol] = casa::Int(it->stokes()[pol]);
+          }
           out << it->antenna1() << it->antenna2() << it->feed1() << it->feed2() << it->feed1PA() <<
-                 it->feed2PA() << dirBuf << uvwBuf << it->time() << it->stokes();
+                 it->feed2PA() << dirBuf << uvwBuf << it->time() << stokesBuf;
           out.putEnd();   
           comms.connectionSet()->broadcast(bs,0);
         }
