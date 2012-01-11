@@ -62,6 +62,8 @@ namespace synthesis {
 ParallelWriteIterator::ParallelWriteIterator(askap::mwcommon::AskapParallel& comms) : 
    itsComms(comms), itsNotAtOrigin(false), itsAccessorValid(false)
 {
+  ASKAPASSERT(itsComms.connectionSet());
+  ASKAPASSERT(itsComms.connectionSet()->size() >= itsComms.rank());
   advance();
 }    
     
@@ -155,6 +157,7 @@ void ParallelWriteIterator::advance()
   ASKAPDEBUGASSERT(itsComms.isWorker());
   if (itsNotAtOrigin) {
       // sync the result
+      ASKAPLOG_INFO_STR(logger, "About to send visibilities from rank "<<itsComms.rank());
       ASKAPDEBUGASSERT(itsAccessor.itsVisibility.shape() == itsAccessor.itsFlag.shape()); 
       LOFAR::BlobString bs;
       bs.resize(0);
@@ -228,6 +231,7 @@ void ParallelWriteIterator::advance()
       }
       // receive unique metadata, fill itsAccessor
       {
+        ASKAPLOG_INFO_STR(logger, "About to receive rank-specific metadata in rank "<<itsComms.rank());        
         LOFAR::BlobString bs;
         bs.resize(0);
         itsComms.connectionSet()->read(0,bs);
@@ -315,18 +319,20 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
         }
         // point-to-point transfer of data which differ
         for (int rank = 1; rank < comms.nNodes(); ++rank) {
+             ASKAPLOG_INFO_STR(logger, "About to send rank-specific metadata to rank "<<rank);
              // start and stop of the slice
              casa::IPosition start(3,0);
              ASKAPDEBUGASSERT((it->nRow()!=0) && (it->nChannel()!=0) && (it->nPol()));
              casa::IPosition end(3,int(it->nRow()) - 1, int(it->nChannel()) - 1, int(it->nPol()) - 1);
              start(1) = status.itsNChan * (rank - 1);
-             end(1) = status.itsNChan * rank;
+             end(1) = status.itsNChan * rank - 1;
              if (rank + 1 < comms.nNodes()) {
                  ASKAPASSERT(end(1) < int(it->nChannel()));
              }
              if (end(1) >= int(it->nChannel())) {
                  end(1) = int(it->nChannel()) - 1;
              }
+             ASKAPDEBUGASSERT(start(1)<=end(1));
              const casa::IPosition vecStart(1, start(1));
              const casa::IPosition vecEnd(1, end(1));
              // send slices of flags, noise and frequency. Assuming that visibility is zero (can be changed here).
@@ -347,18 +353,20 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
         
         // receive the result and store it in rwVisibility
         for (int rank = 1; rank < comms.nNodes(); ++rank) {
+             ASKAPLOG_INFO_STR(logger, "About to receive visibilities from rank "<<rank);
              // start and stop of the slice
              casa::IPosition start(3,0);
              ASKAPDEBUGASSERT((it->nRow()!=0) && (it->nChannel()!=0) && (it->nPol()));
              casa::IPosition end(3,int(it->nRow()) - 1, int(it->nChannel()) - 1, int(it->nPol()) - 1);
              start(1) = status.itsNChan * (rank - 1);
-             end(1) = status.itsNChan * rank;
+             end(1) = status.itsNChan * rank - 1;
              if (rank + 1 < comms.nNodes()) {
                  ASKAPASSERT(end(1) < int(it->nChannel()));
              }
              if (end(1) >= int(it->nChannel())) {
                  end(1) = int(it->nChannel()) - 1;
              }
+             ASKAPDEBUGASSERT(start(1)<=end(1));
              // receive a slice of visibility
              {
                LOFAR::BlobString bs;
