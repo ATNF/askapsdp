@@ -236,11 +236,11 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
     ParallelIteratorStatus status;
     status.itsHasMore = it.hasMore();
     if (status.itsHasMore) {
-       ASKAPCHECK(it->nChannel() % (comms.nNodes() - 1) == 0, 
-               "Current implementation of the parallel iterator requires the number of channels to be evenly distributed between workers. You have "
-               <<it->nChannel()<<" spectral channels and "<<(comms.nNodes() - 1)<<" workers");
+       status.itsNChan = it->nChannel() / (comms.nNodes() - 1);
+       if (it->nChannel() % (comms.nNodes() - 1) != 0) {
+           ++status.itsNChan;
+       }                                    
        status.itsNRow = it->nRow();
-       status.itsNChan = it->nChannel() / (comms.nNodes() - 1); // need to reduce to the actual number of channels
        status.itsNPol = it->nPol();
     } else {
       contFlag = false;
