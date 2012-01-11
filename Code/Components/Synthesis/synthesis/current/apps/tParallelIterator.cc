@@ -124,15 +124,15 @@ int main(int argc, const char **argv) {
   }
   catch(const AskapError &ce) {
      ASKAPLOG_FATAL_STR(logger, "AskapError has been caught. "<<ce.what());
-     return -1;
+     exit(-1);
   }
   catch(const std::exception &ex) {
      ASKAPLOG_FATAL_STR(logger, "std::exception has been caught. "<<ex.what());
-     return -1;
+     exit(-1);
   }
   catch(...) {
      ASKAPLOG_FATAL_STR(logger, "an unexpected exception has been caught");
-     return -1;
+     exit(-1);
   }
   return 0;
 }

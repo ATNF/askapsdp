@@ -209,6 +209,13 @@ void ParallelWriteIterator::advance()
         for (casa::uInt pol = 0; pol<status.itsNPol; ++pol) {
              itsAccessor.itsStokes[pol] = casa::Stokes::StokesTypes(stokesBuf[pol]);
         }
+        // consistency check
+        ASKAPASSERT(itsAccessor.itsAntenna1.nelements() == status.itsNRow);
+        ASKAPASSERT(itsAccessor.itsAntenna2.nelements() == status.itsNRow);
+        ASKAPASSERT(itsAccessor.itsFeed1.nelements() == status.itsNRow);
+        ASKAPASSERT(itsAccessor.itsFeed2.nelements() == status.itsNRow);
+        ASKAPASSERT(itsAccessor.itsFeed1PA.nelements() == status.itsNRow);
+        ASKAPASSERT(itsAccessor.itsFeed2PA.nelements() == status.itsNRow);        
       }
       // receive unique metadata, fill itsAccessor
   }
