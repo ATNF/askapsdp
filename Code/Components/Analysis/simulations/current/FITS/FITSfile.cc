@@ -38,6 +38,7 @@
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/ContinuumNVSS.h>
 #include <simulationutilities/ContinuumS3SEX.h>
+#include <simulationutilities/ContinuumSelavy.h>
 #include <simulationutilities/FullStokesContinuum.h>
 #include <simulationutilities/HIprofile.h>
 #include <simulationutilities/HIprofileS3SEX.h>
@@ -242,7 +243,7 @@ namespace askap {
 	this->itsDryRun = parset.getBool("dryRun", false);
 	this->itsDatabaseOrigin = parset.getString("database", "Continuum"); 
 	if( !this->databaseGood() ){
-	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'NVSS', 'Gaussian' or 'FLASH'. Setting to Continuum.");
+	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'Selavy', 'POSSUM', 'S3SEX', 'S3SAX', 'NVSS', 'Gaussian' or 'FLASH'. Setting to Continuum.");
 	  this->itsDatabaseOrigin = "Continuum";
 	}
 	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
@@ -365,6 +366,7 @@ namespace askap {
       bool FITSfile::databaseGood()
       {
 	bool val=(this->itsDatabaseOrigin == "Continuum" ||
+		  this->itsDatabaseOrigin == "Selavy" ||
 		  this->itsDatabaseOrigin == "POSSUM" ||
 		  this->itsDatabaseOrigin == "S3SAX" ||
 		  this->itsDatabaseOrigin == "S3SEX" ||
@@ -514,6 +516,12 @@ namespace askap {
 	    cont->setNuZero(this->itsBaseFreq);
 	    src = &(*cont);
 	  }
+	  else if(this->itsDatabaseOrigin == "Selavy"){
+	    ContinuumSelavy *sel = new ContinuumSelavy;
+	    sel->define(line);
+	    sel->setNuZero(this->itsBaseFreq);
+	    src = &(*sel);
+	  }
 	  else if(this->itsDatabaseOrigin == "POSSUM"){
 	    FullStokesContinuum *stokes = new FullStokesContinuum;
 	    stokes->define(line);
@@ -551,7 +559,7 @@ namespace askap {
 	    src = &(*profFLASH);
 	  } else {
 	    ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
-		       << this->itsDatabaseOrigin << "' - needs to be one of: 'Continuum', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
+		       << this->itsDatabaseOrigin << "' - needs to be one of: 'Continuum', 'Selavy', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
 	  }
 	}
 	
@@ -584,6 +592,7 @@ namespace askap {
 
 	  Continuum cont;
 	  ContinuumS3SEX contS3SEX;
+	  ContinuumSelavy sel;
 	  ContinuumNVSS nvss;
 	  FullStokesContinuum stokes;
 	  HIprofileS3SEX profSEX;
@@ -613,6 +622,11 @@ namespace askap {
 		cont.define(line);
 		cont.setNuZero(this->itsBaseFreq);
 		src = &cont;
+	      }
+	      else if(this->itsDatabaseOrigin == "Selavy"){
+		sel.define(line);
+		sel.setNuZero(this->itsBaseFreq);
+		src = &sel;
 	      }
 	      else if(this->itsDatabaseOrigin == "POSSUM"){
 		stokes.define(line);
@@ -696,6 +710,8 @@ namespace askap {
 
 		if(this->itsDatabaseOrigin == "Continuum") 
 		  fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
+		else if (this->itsDatabaseOrigin=="Selavy")
+		  fluxGen.addSpectrum(sel, pix[0], pix[1], this->itsWCS);
 		else if (this->itsDatabaseOrigin=="POSSUM")
 		  fluxGen.addSpectrumStokes(stokes, pix[0], pix[1], this->itsWCS);
 		else if (this->itsDatabaseOrigin=="NVSS")

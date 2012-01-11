@@ -26,8 +26,8 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#ifndef ASKAP_SIMS_CONT_S3SEX_H_
-#define ASKAP_SIMS_CONT_S3SEX_H_
+#ifndef ASKAP_SIMS_CONT_SELAVY_H_
+#define ASKAP_SIMS_CONT_SELAVY_H_
 
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
