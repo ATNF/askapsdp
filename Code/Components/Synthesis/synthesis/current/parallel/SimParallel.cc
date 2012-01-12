@@ -63,6 +63,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <calibaccess/CalibAccessFactory.h>
 #include <measurementequation/CalibParamsMEAdapter.h>
 #include <gridding/VisGridderFactory.h>
+#include <parallel/ParallelWriteIterator.h>
 
 using namespace std;
 using namespace askap;
@@ -77,12 +78,19 @@ namespace synthesis
 
 SimParallel::SimParallel(askap::mwcommon::AskapParallel& comms,
                          const LOFAR::ParameterSet& parset) :
-        SynParallel(comms,parset), itsModelReadByMaster(true), itsNoiseVariance(-1.), 
+        SynParallel(comms,parset), itsModelReadByMaster(true), itsMSWrittenByMaster(false), itsNoiseVariance(-1.), 
         itsDoChecksForNoise(false)
 {
   itsModelReadByMaster = parset.getBool("modelReadByMaster", true);
+  itsMSWrittenByMaster = parset.getBool("msWrittenByMaster", false);
   ASKAPCHECK(getFreqRefFrame().getType() == casa::MFrequency::Ref(casa::MFrequency::TOPO).getType(), 
              "Only topocentric reference frame is currently understood by the simulator");
+  if (itsMSWrittenByMaster) {
+      ASKAPCHECK(comms.isParallel(), "msWrittenByMaster can only be used in the parallel case");
+      ASKAPLOG_INFO_STR(logger, "Master will receive data from workers and write a single measurement set");      
+  } else if (comms.isParallel()) {
+      ASKAPLOG_INFO_STR(logger, "Each worker will write its own measurement set");        
+  }
 }
 
 void SimParallel::init()
@@ -96,7 +104,9 @@ void SimParallel::init()
         }
     }
 
-    if (itsComms.isWorker()) {
+    // the following code can be executed both in master and in workers depending who is
+    // writing the measurement set
+    if (itsComms.isWorker() != itsMSWrittenByMaster) {
         string msname(substitute(parset().getString("dataset",
                                  "test%w.ms")));
         int bucketSize  = parset().getInt32("stman.bucketsize", 32768);
@@ -139,7 +149,9 @@ void SimParallel::init()
                 itsNoiseVariance << " Jy^2 or sigma="<<rms<<" Jy)");
             itsSim->setNoiseRMS(rms);
         }
-        
+    }
+    // calibration is only dealt with in workers
+    if (itsComms.isWorker()) {    
         // initialise calibration solution source, if the visibilities are going to be corrupted
         if (parset().getBool("corrupt", false)) {
             if (parset().isDefined("corrupt.gainsfile")) {
@@ -158,14 +170,13 @@ void SimParallel::init()
         } else {
             ASKAPLOG_INFO_STR(logger, "Calibration effects will not be simulated");
             itsSolutionSource.reset();
-        }
-        
+        }        
     }
 }
 
 SimParallel::~SimParallel()
 {
-    if (itsComms.isWorker() && itsMs) {
+    if ((itsComms.isWorker() != itsMSWrittenByMaster) && itsMs) {
         itsMs->flush();
     }
 }
@@ -374,7 +385,7 @@ void SimParallel::readSimulation()
 void SimParallel::simulate()
 {
 
-    if (itsComms.isWorker()) {
+    if (itsComms.isWorker() != itsMSWrittenByMaster) {
         /// Now that the simulator is defined, we can observe each scan
         ParameterSet parset(SynParallel::parset());
 
@@ -411,15 +422,19 @@ void SimParallel::simulate()
         ASKAPLOG_INFO_STR(logger, "Successfully simulated " << nScans << " scans");
         ASKAPDEBUGASSERT(itsMs);
         itsMs->flush();
-
+    }
+    if (itsComms.isWorker() != itsMSWrittenByMaster) {
         predict(itsMs->tableName());
-
+    } else if (itsMSWrittenByMaster && itsComms.isWorker()) {
+        // to run clients
+        predict("");
     }
 }
 
 void SimParallel::predict(const string& ms)
 {
-    if (itsComms.isWorker()) {
+    if (itsComms.isWorker() != itsMSWrittenByMaster) {
+        ASKAPDEBUGASSERT(ms != "");
         casa::Timer timer;
         timer.mark();
         ASKAPLOG_INFO_STR(logger, "Simulating data for " << ms);
@@ -434,6 +449,33 @@ void SimParallel::predict(const string& ms)
         // ensure that time is counted in seconds since 0 MJD
         conv->setEpochFrame(); 
         IDataSharedIter it = ds.createIterator(sel, conv);
+        if (itsComms.isWorker()) {
+            // default case, workers write their own measurement sets
+            predict(it);
+        } 
+        if (itsComms.isMaster()) {
+            // server code
+            ParallelWriteIterator::masterIteration(itsComms, it);
+        }        
+        ASKAPLOG_INFO_STR(logger,  "Predicted data for " << ms << " in " << timer.real() << " seconds ");
+    }
+    if (itsComms.isWorker() && itsMSWrittenByMaster) {
+        // client code
+        ASKAPDEBUGASSERT(ms == "");
+        casa::Timer timer;
+        timer.mark();
+        IDataSharedIter it(new ParallelWriteIterator(itsComms));
+        predict(it);
+        ASKAPLOG_INFO_STR(logger,  "Finished prediction in worker at rank " << itsComms.rank() << " in " << timer.real() << " seconds ");
+    }
+}       
+
+/// Predict data for current model
+/// @param it data iterator to store the result to
+void SimParallel::predict(IDataSharedIter &it)
+{
+    if (itsComms.isWorker()) { 
+        ASKAPDEBUGASSERT(it);      
         /// Create the gridder using a factory acting on a
         /// parameterset
         IVisGridder::ShPtr gridder = createGridder(itsComms, parset());
@@ -502,7 +544,6 @@ void SimParallel::predict(const string& ms)
         }
 
         equation->predict();
-        ASKAPLOG_INFO_STR(logger,  "Predicted data for " << ms << " in " << timer.real() << " seconds ");
     }
 }
 

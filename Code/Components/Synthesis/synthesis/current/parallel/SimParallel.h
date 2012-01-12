@@ -202,6 +202,12 @@ namespace askap
                 /// can either be read in the master and distributed across the workers or read
                 /// by workers directly. This data member is true, if the model is read by the master
                 bool itsModelReadByMaster;
+                
+                /// @brief ms is written by master?
+                /// @details There are two mode of operations. Each worker can write its own ms
+                /// or workers can send data to the master for writing. This flag determines the
+                /// mode.
+                bool itsMSWrittenByMaster;
 
                 /// Read the telescope info from the parset specified in the main parset
                 void readAntennas();
@@ -224,6 +230,10 @@ namespace askap
                 /// Predict data for current model
                 /// @param ds Data set to predict for
                 void predict(const std::string& ds);
+                                
+                /// Predict data for current model
+                /// @param it data iterator to store the result to
+                void predict(accessors::IDataSharedIter &it);
 
                 /// @brief noise variance 
                 /// @details If noise is simulated, this field contains the noise variance in Jy^2.

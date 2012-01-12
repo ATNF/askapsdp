@@ -163,7 +163,7 @@ void ParallelWriteIterator::advance()
   ASKAPDEBUGASSERT(itsComms.isWorker());
   if (itsNotAtOrigin) {
       // sync the result
-      ASKAPLOG_INFO_STR(logger, "About to send visibilities from rank "<<itsComms.rank());
+      //ASKAPLOG_INFO_STR(logger, "About to send visibilities from rank "<<itsComms.rank());
       ASKAPDEBUGASSERT(itsAccessor.itsVisibility.shape() == itsAccessor.itsFlag.shape()); 
       LOFAR::BlobString bs;
       bs.resize(0);
@@ -237,7 +237,7 @@ void ParallelWriteIterator::advance()
       }
       // receive unique metadata, fill itsAccessor
       {
-        ASKAPLOG_INFO_STR(logger, "About to receive rank-specific metadata in rank "<<itsComms.rank());        
+        //ASKAPLOG_INFO_STR(logger, "About to receive rank-specific metadata in rank "<<itsComms.rank());        
         LOFAR::BlobString bs;
         bs.resize(0);
         itsComms.connectionSet()->read(0,bs);
@@ -327,7 +327,7 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
         }
         // point-to-point transfer of data which differ
         for (int worker = 0; worker < comms.nNodes() - 1; ++worker) {
-             ASKAPLOG_INFO_STR(logger, "About to send rank-specific metadata to rank "<<worker + 1);
+             //ASKAPLOG_INFO_STR(logger, "About to send rank-specific metadata to rank "<<worker + 1);
              // start and stop of the slice
              casa::IPosition start(3,0);
              ASKAPDEBUGASSERT((it->nRow()!=0) && (it->nChannel()!=0) && (it->nPol()));
@@ -361,7 +361,7 @@ void ParallelWriteIterator::masterIteration(askap::mwcommon::AskapParallel& comm
         
         // receive the result and store it in rwVisibility
         for (int worker = 0; worker < comms.nNodes() - 1; ++worker) {
-             ASKAPLOG_INFO_STR(logger, "About to receive visibilities from rank "<<worker + 1);
+             //ASKAPLOG_INFO_STR(logger, "About to receive visibilities from rank "<<worker + 1);
              // start and stop of the slice
              casa::IPosition start(3,0);
              ASKAPDEBUGASSERT((it->nRow()!=0) && (it->nChannel()!=0) && (it->nPol()));
