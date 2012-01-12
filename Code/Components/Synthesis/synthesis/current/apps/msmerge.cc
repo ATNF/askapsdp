@@ -31,6 +31,7 @@
 #include <askap/AskapError.h>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
+#include <askap/Log4cxxLogSink.h>
 
 // system includes
 #include <sstream>
@@ -41,13 +42,14 @@
 #include <casa/OS/RegularFile.h>
 #include <casa/OS/Directory.h>
 #include <casa/OS/File.h>
+#include <casa/Arrays/Slicer.h>
+#include <casa/Arrays/IPosition.h>
 #include <tables/Tables/Table.h>
 #include <tables/Tables/TableError.h>
 #include <tables/Tables/ArrayColumn.h>
 #include <tables/Tables/ArrColDesc.h>
 #include <tables/Tables/TableRecord.h>
 #include <tables/Tables/TiledShapeStMan.h>
-#include <askap/Log4cxxLogSink.h>
 
 // other 3rd party
 #include <Common/ParameterSet.h>
@@ -58,14 +60,14 @@ ASKAP_LOGGER(logger, ".msmerge");
 using namespace askap;
 
 // process one column of the spectral window table
-void insert1D(const std::string &name, casa::Table &in, const casa::uInt where, casa::Table &out)
+void insert1D(const std::string &name, const casa::Table &in, const casa::uInt where, casa::Table &out)
 {
-  casa::ROArrayColumn<casa::Double> inCol(in, name);
+  const casa::ROArrayColumn<casa::Double> inCol(in, name);
   casa::ArrayColumn<casa::Double> outCol(out, name);
   ASKAPDEBUGASSERT(in.nrow()==1);
   ASKAPDEBUGASSERT(out.nrow()==1);
   casa::Vector<casa::Double> outVal = outCol(0);
-  casa::Vector<casa::Double> inVal = inCol(0);
+  const casa::Vector<casa::Double> inVal = inCol(0);
   for (casa::uInt i=0; i<inVal.nelements(); ++i) {
       const casa::uInt targetPos = where*inVal.nelements() + i;
       ASKAPDEBUGASSERT(targetPos < outVal.nelements());
@@ -163,34 +165,28 @@ int main(int argc, const char** argv)
            
            for (size_t i=0; i<inNames.size(); ++i) {
                 ASKAPLOG_INFO_STR(logger,  "Processing "<<inNames[i].getValue());
-                casa::Table inTab(inNames[i].getValue());
-                casa::ROArrayColumn<casa::Bool> inFlag(inTab,"FLAG");
-                casa::ROArrayColumn<casa::Complex> inData(inTab,"DATA");
+                const casa::Table inTab(inNames[i].getValue());
+                const casa::ROArrayColumn<casa::Bool> inFlag(inTab,"FLAG");
+                const casa::ROArrayColumn<casa::Complex> inData(inTab,"DATA");
                 ASKAPCHECK(outTab.nrow() == inTab.nrow(), "Number of rows differ, input table has "<<inTab.nrow()<<
-                           " rows, we need "<<outTab.nrow());
+                        " rows, we need "<<outTab.nrow());
                 for (casa::uInt row=0; row<outTab.nrow(); ++row) {
-                     casa::Matrix<casa::Bool> flagVal = flag(row);
-                     casa::Matrix<casa::Bool> inFlagVal = inFlag(row);
-                     ASKAPDEBUGASSERT(inFlagVal.nrow() == flagVal.nrow());
-                     casa::Matrix<casa::Complex> dataVal = data(row);
-                     casa::Matrix<casa::Complex> inDataVal = inData(row);
-                     ASKAPDEBUGASSERT(inDataVal.nrow() == dataVal.nrow());                     
-                     for (casa::uInt x = 0; x<inFlagVal.nrow(); ++x) {
-                          for (casa::uInt y = 0; y<inFlagVal.ncolumn(); ++y) {
-                               const casa::uInt targetCol = i*inFlagVal.ncolumn()+y;
-                               ASKAPCHECK(targetCol < flagVal.ncolumn(), "targetCol = "<<targetCol<<
-                                  " is outside shape="<<flagVal.shape()<<" for flags, row="<<row);
-                               ASKAPCHECK(targetCol < dataVal.ncolumn(), "targetCol = "<<targetCol<<
-                                  " is outside shape="<<dataVal.shape()<<" for data, row="<<row);
-                               flagVal(x,targetCol) = inFlagVal(x,y);
-                               dataVal(x,targetCol) = inDataVal(x,y);
-                          }
-                     }
-                     flag.put(row,flagVal);
-                     data.put(row,dataVal);
+                    const casa::Matrix<casa::Bool> inFlagVal = inFlag(row);
+                    const casa::Slicer flagSlicer(
+                            casa::IPosition(2, 0, i * inFlagVal.ncolumn()),
+                            inFlagVal.shape(),
+                            casa::Slicer::endIsLength);
+                    flag.putSlice(row, flagSlicer, inFlagVal);
+
+                    const casa::Matrix<casa::Complex> inDataVal = inData(row);
+                    const casa::Slicer dataSlicer(
+                            casa::IPosition(2, 0, i * inDataVal.ncolumn()),
+                            inDataVal.shape(),
+                            casa::Slicer::endIsLength);
+                    data.putSlice(row, dataSlicer, inDataVal);
                 } 
                 // update spectral window subtable
-                casa::Table inSpWin(inTab.keywordSet().asTable("SPECTRAL_WINDOW"));
+                const casa::Table inSpWin(inTab.keywordSet().asTable("SPECTRAL_WINDOW"));
                 ASKAPCHECK(inSpWin.nrow() == 1, "Spectral window subtable is supposed to have just one row, check "<<inNames[i].getValue());
                 insert1D("CHAN_FREQ", inSpWin, i, outSpWin);
                 insert1D("CHAN_WIDTH", inSpWin, i, outSpWin);
