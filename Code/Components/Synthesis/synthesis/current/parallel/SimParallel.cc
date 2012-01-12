@@ -103,6 +103,13 @@ void SimParallel::init()
             broadcastModel();
         }
     }
+    if (itsComms.isWorker()) {
+        if (itsModelReadByMaster) {
+            receiveModel();
+        } else {
+            readModels();
+        }
+    }
 
     // the following code can be executed both in master and in workers depending who is
     // writing the measurement set
@@ -121,11 +128,6 @@ void SimParallel::init()
 
         // Get the source definitions and get the model from the master
         readSources();
-        if (itsModelReadByMaster) {
-            receiveModel();
-        } else {
-            readModels();
-        }
 
         // Get the feed definitions
         readFeeds();
