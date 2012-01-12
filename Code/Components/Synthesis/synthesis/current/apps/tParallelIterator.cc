@@ -83,7 +83,7 @@ void doReadWriteTest(askap::mwcommon::AskapParallel &comms, const std::string &n
            it->feed1();
            it->uvw();
            for (casa::uInt chan=0; chan<it->nChannel(); ++chan) {
-                it->rwVisibility().xzPlane(chan).set(casa::Complex(1.+float(chan),0.));
+                it->rwVisibility().xzPlane(chan).set(casa::Complex(it->frequency()[chan]-1420.,0.));
            }
            const double l=0., m=0.003975472185;
            for (casa::uInt row = 0; row<it->nRow(); ++row) {

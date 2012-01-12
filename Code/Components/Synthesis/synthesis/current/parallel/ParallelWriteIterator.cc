@@ -59,8 +59,11 @@ namespace synthesis {
 /// @brief constructor
 /// @details 
 /// @param comms communication object
-ParallelWriteIterator::ParallelWriteIterator(askap::mwcommon::AskapParallel& comms) : 
-   itsComms(comms), itsNotAtOrigin(false), itsAccessorValid(false)
+/// @param[in] cacheSize uvw-machine cache size
+/// @param[in] tolerance pointing direction tolerance in radians, exceeding
+/// which leads to initialisation of a new UVW machine and recompute of the rotated uvws/delays  
+ParallelWriteIterator::ParallelWriteIterator(askap::mwcommon::AskapParallel& comms, size_t cacheSize, double tolerance) : 
+   itsComms(comms), itsNotAtOrigin(false), itsAccessor(cacheSize, tolerance), itsAccessorValid(false)
 {
   ASKAPASSERT(itsComms.connectionSet());
   ASKAPCHECK(itsComms.isWorker() && itsComms.isParallel(), 

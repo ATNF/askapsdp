@@ -39,7 +39,7 @@
 #define ASKAP_SYNTHESIS_PARALLEL_WRITE_ITERATOR_H
 
 #include <dataaccess/IDataIterator.h>
-#include <dataaccess/DataAccessorStub.h>
+#include <parallel/ParallelAccessor.h>
 #include <dataaccess/SharedIter.h>
 #include <mwcommon/AskapParallel.h>
 
@@ -63,7 +63,10 @@ public:
     /// @brief constructor
     /// @details 
     /// @param comms communication object
-    explicit ParallelWriteIterator(askap::mwcommon::AskapParallel& comms);
+    /// @param[in] cacheSize uvw-machine cache size
+    /// @param[in] tolerance pointing direction tolerance in radians, exceeding
+    /// which leads to initialisation of a new UVW machine and recompute of the rotated uvws/delays  
+    explicit ParallelWriteIterator(askap::mwcommon::AskapParallel& comms, size_t cacheSize = 1, double tolerance = 1e-6);
     
     
 	// Return the data accessor (current chunk) in various ways	
@@ -149,7 +152,7 @@ private:
 	bool itsNotAtOrigin;
 
 	/// @brief buffer for the accessor
-	mutable accessors::DataAccessorStub itsAccessor;
+	mutable ParallelAccessor itsAccessor;
 	
 	/// @brief true if current accessor contains valid data
 	bool itsAccessorValid;
