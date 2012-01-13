@@ -455,7 +455,7 @@ void SimParallel::predict(const string& ms)
             // default case, workers write their own measurement sets
             predict(it);
         } 
-        if (itsComms.isMaster()) {
+        if (itsComms.isMaster() && itsMSWrittenByMaster) {
             // server code
             ParallelWriteIterator::masterIteration(itsComms, it);
         }        
