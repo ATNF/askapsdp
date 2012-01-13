@@ -749,7 +749,7 @@ namespace askap {
                         if (vox == voxelList->end()) failed = true;
                         else f(i) = vox->getF();
 
-                        if (failed) ASKAPLOG_ERROR_STR(logger, "RadioSource flux allocation failed on voxel (" << x << "," << y << "," << z << ")");
+                        if (failed) ASKAPTHROW(AskapError, "RadioSource flux allocation failed on voxel (" << x << "," << y << "," << z << ")");
 
                         sigma(i) = this->itsNoiseLevel;
                         curpos(0) = x;
@@ -1125,7 +1125,7 @@ namespace askap {
 		duchamp::Column::Col beta("Beta", "", 11, 3);
                 duchamp::Column::Col chisqFit("Chisq(fit)", "", 27, 9);
                 duchamp::Column::Col rmsIm("RMS(image)", "", fluxWidth, fluxPrec);
-                duchamp::Column::Col rmsFit("RMS(fit)", "", 15, 6);
+                duchamp::Column::Col rmsFit("RMS(fit)", "", fluxWidth, fluxPrec);
                 duchamp::Column::Col nfree("Nfree(fit)", "", 11, 0);
                 duchamp::Column::Col ndofFit("NDoF(fit)", "", 10, 0);
                 duchamp::Column::Col npixFit("NPix(fit)", "", 10, 0);
