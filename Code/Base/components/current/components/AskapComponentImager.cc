@@ -74,7 +74,7 @@ using namespace askap;
 using namespace askap::components;
 using namespace casa;
 
-template<class T>
+template <class T>
 void AskapComponentImager::project(casa::ImageInterface<T>& image,
         const casa::ComponentList& list, const unsigned int term)
 {
@@ -173,6 +173,7 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image,
                         break;
 
                     default:
+                        ASKAPTHROW(AskapError, "Unsupported shape type");
                         break;
                 }
 
@@ -182,7 +183,7 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image,
     } // End component list loop
 }
 
-template<class T>
+template <class T>
 void AskapComponentImager::projectPointShape(casa::ImageInterface<T>& image,
         const casa::SkyComponent& c,
         const casa::Int latAxis, const casa::Int longAxis,
@@ -215,7 +216,7 @@ void AskapComponentImager::projectPointShape(casa::ImageInterface<T>& image,
     image.putAt(image(pos) + (flux.copy().value(stokes, true).getValue("Jy")), pos);
 }
 
-template<class T>
+template <class T>
 void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
         const casa::SkyComponent& c,
         const casa::Int latAxis, const casa::Int longAxis,
@@ -258,20 +259,30 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
     gauss.setPA(cShape.positionAngleInRad());
     gauss.setFlux(flux.copy().value(stokes, true).getValue("Jy"));
 
+    // Determine how far to sample before the flux gets too low to be meaningful
+    // We do this by going out from the centre position along both the x and y
+    // axis then choose the maximum of the two
+    const T epsilon = std::numeric_limits<T>::epsilon();
+    const int cutoff = findCutoff(gauss, std::max(imageShape(latAxis), imageShape(longAxis)), epsilon);
+
+    // Determine the starting and end pixels which need processing on both axes. Note
+    // that these are "inclusive" ranges.
+    const int startLat = std::max(0, static_cast<int>(pixelPosition(0)) - cutoff);
+    const int endLat = std::min(static_cast<int>(imageShape(latAxis)), static_cast<int>(pixelPosition(0)) + cutoff);
+    const int startLon = std::max(0, static_cast<int>(pixelPosition(1)) - cutoff);
+    const int endLon = std::min(static_cast<int>(imageShape(longAxis)), static_cast<int>(pixelPosition(1)) + cutoff);
+
     IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
             static_cast<size_t>(nearbyint(pixelPosition[0])),
             static_cast<size_t>(nearbyint(pixelPosition[1])),
             freqIdx, polIdx);
 
-    // For each pixel in the image
-    for (int lat = 0; lat < imageShape(latAxis); ++lat) {
-        for (int lon = 0; lon < imageShape(longAxis); ++lon) {
-            const float f = gauss(lat, lon);
-            if (abs(f) > 0.0) {
-                pos(latAxis) = lat;
-                pos(longAxis) = lon;
-                image.putAt(image(pos) + gauss(lat, lon), pos);
-            }
+    // For each pixel in the region bounded by the source centre + cutoff
+    for (int lat = startLat; lat <= endLat; ++lat) {
+        for (int lon = startLon; lon <= endLon; ++lon) {
+            pos(latAxis) = lat;
+            pos(longAxis) = lon;
+            image.putAt(image(pos) + gauss(lat, lon), pos);
         }
     }
 }
@@ -349,6 +360,18 @@ casa::Flux<casa::Double> AskapComponentImager::makeFlux(const casa::SkyComponent
     }
 
     return flux;
+}
+
+template <class T>
+int AskapComponentImager::findCutoff(const Gaussian2D<T>& gauss, const int spatialLimit, const double fluxLimit)
+{
+    int cutoff = 0;
+    while (abs(gauss(gauss.xCenter() + cutoff, gauss.yCenter())) >= fluxLimit &&
+           abs(gauss(gauss.xCenter(), gauss.yCenter() + cutoff)) >= fluxLimit &&
+           cutoff <= spatialLimit) {
+        ++cutoff;
+    }
+    return cutoff;
 }
 
 // Explicit instantiation
