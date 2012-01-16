@@ -88,15 +88,18 @@ void AskapComponentImager::project(casa::ImageInterface<T>& image,
     // Find which pixel axes correspond to the DirectionCoordinate in the
     // supplied coordinate system
     const Vector<Int> dirAxes = CoordinateUtil::findDirectionAxes(coords);
-    ASKAPCHECK(dirAxes.nelements() == 2, "Coordinate system has unsupported number of direction axes");
+    ASKAPCHECK(dirAxes.nelements() == 2,
+            "Coordinate system has unsupported number of direction axes");
     const uInt latAxis = dirAxes(0);
     const uInt longAxis = dirAxes(1);
 
     // Find the Direction coordinate and check the right number of axes exists
     DirectionCoordinate dirCoord = coords.directionCoordinate(
             coords.findCoordinate(Coordinate::DIRECTION));
-    ASKAPCHECK(dirCoord.nPixelAxes() == 2, "DirectionCoordinate has unsupported number of pixel axes");
-    ASKAPCHECK(dirCoord.nWorldAxes() == 2, "DirectionCoordinate has unsupported number of world axes");
+    ASKAPCHECK(dirCoord.nPixelAxes() == 2,
+            "DirectionCoordinate has unsupported number of pixel axes");
+    ASKAPCHECK(dirCoord.nWorldAxes() == 2,
+            "DirectionCoordinate has unsupported number of world axes");
     dirCoord.setWorldAxisUnits(Vector<String>(2, "rad"));
 
     // Check if there is a Stokes Axes and if so which polarizations.
@@ -268,9 +271,11 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
     // Determine the starting and end pixels which need processing on both axes. Note
     // that these are "inclusive" ranges.
     const int startLat = std::max(0, static_cast<int>(pixelPosition(0)) - cutoff);
-    const int endLat = std::min(static_cast<int>(imageShape(latAxis)), static_cast<int>(pixelPosition(0)) + cutoff);
+    const int endLat = std::min(static_cast<int>(imageShape(latAxis)),
+                                static_cast<int>(pixelPosition(0)) + cutoff);
     const int startLon = std::max(0, static_cast<int>(pixelPosition(1)) - cutoff);
-    const int endLon = std::min(static_cast<int>(imageShape(longAxis)), static_cast<int>(pixelPosition(1)) + cutoff);
+    const int endLon = std::min(static_cast<int>(imageShape(longAxis)),
+                                static_cast<int>(pixelPosition(1)) + cutoff);
 
     IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
             static_cast<size_t>(nearbyint(pixelPosition[0])),
@@ -363,7 +368,8 @@ casa::Flux<casa::Double> AskapComponentImager::makeFlux(const casa::SkyComponent
 }
 
 template <class T>
-int AskapComponentImager::findCutoff(const Gaussian2D<T>& gauss, const int spatialLimit, const double fluxLimit)
+int AskapComponentImager::findCutoff(const Gaussian2D<T>& gauss, const int spatialLimit,
+        const double fluxLimit)
 {
     int cutoff = 0;
     while (abs(gauss(gauss.xCenter() + cutoff, gauss.yCenter())) >= fluxLimit &&
