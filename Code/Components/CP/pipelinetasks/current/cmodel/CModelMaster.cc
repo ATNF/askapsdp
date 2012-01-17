@@ -34,6 +34,8 @@
 #include <cmath>
 #include <string>
 #include <vector>
+#include <iterator>
+#include <algorithm>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -120,7 +122,7 @@ void CModelMaster::run(void)
     gsm.reset(0);
     ASKAPLOG_INFO_STR(logger, "Number of components in result set: " << list.size());
 
-    const casa::uInt batchSize = itsParset.getUint("batchsize", 100);
+    const casa::uInt batchSize = itsParset.getUint("batchsize", 200);
     const unsigned int nterms = itsParset.getUint("nterms", 1);
 
     // Send components to each worker until complete
@@ -131,14 +133,11 @@ void CModelMaster::run(void)
         size_t idx = 0;
         std::vector<askap::cp::skymodelservice::Component> subset;
         while (idx < list.size()) {
-            // Get a batch ready
-            for (casa::uInt i = 0; i < batchSize; ++i) {
-                subset.push_back(list.at(idx));
-                idx++;
-                if (idx == list.size()) {
-                    break;
-                }
-            }
+            // Get a batch ready - an "nelement" subset of "list" will be sent
+            const size_t nelements = (idx + batchSize < list.size()) ? batchSize : (list.size() - idx);
+            std::copy(list.begin() + idx, list.begin() + idx + batchSize, std::back_inserter(subset));
+            idx += nelements;
+
             // Wait for a worker to become available
             const int worker = itsComms.getReadyWorkerId();
             ASKAPLOG_DEBUG_STR(logger, "Allocating " << subset.size()
