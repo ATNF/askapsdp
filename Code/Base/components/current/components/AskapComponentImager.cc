@@ -283,7 +283,6 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
             freqIdx, polIdx);
 
     // For each pixel in the region bounded by the source centre + cutoff
-    ASKAPLOG_DEBUG_STR(logger, "Gaussian: (" << startLat << "-" << endLat << ") (" << startLon << "-" << endLon);
     for (int lat = startLat; lat <= endLat; ++lat) {
         for (int lon = startLon; lon <= endLon; ++lon) {
             pos(latAxis) = lat;
