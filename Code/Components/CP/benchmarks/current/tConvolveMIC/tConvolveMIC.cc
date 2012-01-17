@@ -379,9 +379,6 @@ int randomInt()
 // Main testing routine
 int main()
 {
-    // Use one less than the number of cores in the card
-    omp_set_num_threads_target(TARGET_MIC, 0, 31);
-
     // Change these if necessary to adjust run time
     const int nSamples = 160000; // Number of data samples
     const int wSize = 33; // Number of lookup planes in w projection
@@ -469,7 +466,7 @@ int main()
         // Now we can do the timing for the GPU implementation
         cout << "+++++ Forward processing (MIC OpenMP) +++++" << endl;
 
-        // Time is measured inside this function call, unlike the CPU versions
+    	omp_set_num_threads_target(TARGET_MIC, 0, 31);
         Stopwatch sw;
         sw.start();
         const int nthreads = gridKernelMIC(&data[0], data.size(),
@@ -536,7 +533,7 @@ int main()
         // Now we can do the timing for the GPU implementation
         cout << "+++++ Reverse processing (MIC OpenMP) +++++" << endl;
 
-        // Time is measured inside this function call, unlike the CPU versions
+    	omp_set_num_threads_target(TARGET_MIC, 0, 124);
         Stopwatch sw;
         sw.start();
         const int nthreads = degridKernelMIC(&ompgrid[0], ompgrid.size(),
