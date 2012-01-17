@@ -39,6 +39,7 @@
 #include <iterator>
 #include <cmath>
 #include <vector>
+#include <list>
 
 // ASKAPsoft include
 #include "askap/AskapLogging.h"
@@ -92,7 +93,9 @@ std::vector<askap::cp::skymodelservice::Component> DuchampAccessor::coneSearch(c
     itsBelowFluxLimit = 0;
     itsOutsideSearchCone = 0;
     casa::uLong total = 0;
-    std::vector<askap::cp::skymodelservice::Component> list;
+
+    // Initially built as a list to allow efficient growth
+    std::list<askap::cp::skymodelservice::Component> list;
 
     while (getline(*itsFile, line)) {
         if (line.find_first_of("#") == std::string::npos) {
@@ -107,7 +110,9 @@ std::vector<askap::cp::skymodelservice::Component> DuchampAccessor::coneSearch(c
 
     ASKAPLOG_INFO_STR(logger, "Sources discarded due to flux threshold: " << itsBelowFluxLimit);
     ASKAPLOG_INFO_STR(logger, "Sourced discarded due to being outside the search cone: " << itsOutsideSearchCone);
-    return list;
+
+    // Returned as a vector to minimise memory usage
+    return std::vector<askap::cp::skymodelservice::Component>(list.begin(), list.end());
 }
 
 void DuchampAccessor::processLine(const std::string& line,
@@ -115,7 +120,7 @@ void DuchampAccessor::processLine(const std::string& line,
                                   const casa::Quantity& searchDec,
                                   const casa::Quantity& searchRadius,
                                   const casa::Quantity& fluxLimit,
-                                  std::vector<askap::cp::skymodelservice::Component>& list)
+                                  std::list<askap::cp::skymodelservice::Component>& list)
 {
     // Create these once to avoid the performance impact of creating them over and over.
     static casa::Unit deg("deg");
@@ -126,6 +131,7 @@ void DuchampAccessor::processLine(const std::string& line,
     // Tokenize the line
     stringstream iss(line);
     vector<string> tokens;
+    tokens.reserve(23); // The current largest expected number is 23 tokens
     copy(istream_iterator<string>(iss),
          istream_iterator<string>(),
          back_inserter<vector<string> >(tokens));

@@ -32,6 +32,7 @@
 #include <istream>
 #include <sstream>
 #include <vector>
+#include <list>
 
 // ASKAPsoft includes
 #include "boost/scoped_ptr.hpp"
@@ -92,7 +93,7 @@ class DuchampAccessor : public IGlobalSkyModel {
                          const casa::Quantity& searchDec,
                          const casa::Quantity& searchRadius,
                          const casa::Quantity& fluxLimit,
-                         std::vector<askap::cp::skymodelservice::Component>& list);
+                         std::list<askap::cp::skymodelservice::Component>& list);
 
         // This should be a temporary function. It is used to get the column
         // index for the data of interest. Currently this exists so both the
