@@ -149,7 +149,7 @@ void MPIBasicComms::send(const void* buf, size_t size, int dest, int tag)
     ASKAPCHECK(remaining == 0, "MPIBasicComms::send() Didn't send all data");
 }
 
-void MPIBasicComms::receive(void* buf, size_t size, int source, int tag, MPI_Status& status)
+void MPIBasicComms::receive(void* buf, size_t size, int source, int tag)
 {
     const unsigned int c_maxint = std::numeric_limits<int>::max();
 
@@ -159,12 +159,8 @@ void MPIBasicComms::receive(void* buf, size_t size, int source, int tag, MPI_Sta
     // number of bytes that can be received.
     unsigned long payloadSize;
     int result = MPI_Recv(&payloadSize, 1, MPI_UNSIGNED_LONG,
-            source, tag, itsCommunicator, &status);
+            source, tag, itsCommunicator, MPI_STATUS_IGNORE);
     checkError(result, "MPI_Recv");
-
-    // The source parameter may be MPI_ANY_SOURCE, so the actual
-    // source needs to be recorded for later use.
-    const int actualSource = status.MPI_SOURCE;
 
     // Receive the smaller of size or payloadSize
     size_t remaining = (payloadSize > size) ? size : payloadSize;
@@ -174,11 +170,11 @@ void MPIBasicComms::receive(void* buf, size_t size, int source, int tag, MPI_Sta
         void* addr = addOffset(buf, offset);
         if (remaining >= c_maxint) {
             result = MPI_Recv(addr, c_maxint, MPI_BYTE,
-                    actualSource, tag, itsCommunicator, &status);
+                    source, tag, itsCommunicator, MPI_STATUS_IGNORE);
             remaining -= c_maxint;
         } else {
             result = MPI_Recv(addr, remaining, MPI_BYTE,
-                    actualSource, tag, itsCommunicator, &status);
+                    source, tag, itsCommunicator, MPI_STATUS_IGNORE);
             remaining = 0;
         }
         checkError(result, "MPI_Recv");
@@ -301,11 +297,9 @@ void MPIBasicComms::sendComponents(const std::vector<askap::cp::skymodelservice:
 
 std::vector<askap::cp::skymodelservice::Component> MPIBasicComms::receiveComponents(int source)
 {
-    MPI_Status status; // not really used
-
     // First receive the number of elements to expect
     int size;
-    receive(&size, sizeof(int), source, itsComponentTag, status);
+    receive(&size, sizeof(int), source, itsComponentTag);
 
     const int nDoubles = 8;
     double payload[nDoubles];
@@ -316,8 +310,8 @@ std::vector<askap::cp::skymodelservice::Component> MPIBasicComms::receiveCompone
     }
     for (int i = 0; i < size; ++i) {
         long id;
-        receive(&id, sizeof(long), source, itsComponentTag, status);
-        receive(&payload, sizeof(double) * nDoubles, source, itsComponentTag, status);
+        receive(&id, sizeof(long), source, itsComponentTag);
+        receive(&payload, sizeof(double) * nDoubles, source, itsComponentTag);
 
         components.push_back(askap::cp::skymodelservice::Component(id,
                     casa::Quantity(payload[0], "deg"),
@@ -352,14 +346,17 @@ void MPIBasicComms::signalReady(int dest)
     // of the tag used. Although it is verified in the method
     // getReadyWorkerId() as a simple consisteny check.
     int id = getId();
-    send(&id, sizeof(int), dest, itsReadyTag);
+    int result = MPI_Send(&id, 1, MPI_INT, dest, itsReadyTag, itsCommunicator);
+    checkError(result, "MPI_Send");
 }
 
 int MPIBasicComms::getReadyWorkerId(void)
 {
     MPI_Status status;
     int id;
-    receive(&id, sizeof(int), MPI_ANY_SOURCE, itsReadyTag, status);
+    int result = MPI_Recv(&id, 1, MPI_INT, MPI_ANY_SOURCE, itsReadyTag, itsCommunicator, &status);
+    checkError(result, "MPI_Recv");
+
     ASKAPCHECK(id == status.MPI_SOURCE, "Expected payload to equal MPI_SOURCE");
     return status.MPI_SOURCE;
 }

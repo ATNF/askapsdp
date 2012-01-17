@@ -54,18 +54,21 @@ class MPIBasicComms {
         /// @brief Destructor
         virtual ~MPIBasicComms();
 
-        /// @copydoc IBasicComms::getId()
+        /// @brief Returns the MPI rank of the calling process
         virtual int getId(void);
 
-        /// @copydoc IBasicComms::getNumNodes()
+        /// @brief Returns the size of the communicator group (i.e. the number
+        /// of processes)
         virtual int getNumNodes(void);
 
-        /// @copydoc IBasicComms::abort()
+        /// @brief Request all nodes in the communictor group abort.
         virtual void abort(void);
 
+        /// @brief MPI_bcast a ParameterSet
         void broadcastParset(LOFAR::ParameterSet& parset, int root);
 
         void sendComponents(const std::vector<askap::cp::skymodelservice::Component>& components, int dest);
+
         std::vector<askap::cp::skymodelservice::Component> receiveComponents(int source);
 
         void sumImages(casa::ImageInterface<casa::Float>& image, int root);
@@ -90,9 +93,7 @@ class MPIBasicComms {
         /// @param[in] size    the number of bytes to receive.
         /// @param[in] source  the id of the process to receive from.
         /// @param[in] tag the MPI tag to be used in the communication.
-        /// @param[out] status MPI_Status structure returned by the call to
-        ///                     MPI_Recv()
-        void receive(void* buf, size_t size, int source, int tag, MPI_Status& status);
+        void receive(void* buf, size_t size, int source, int tag);
 
         /// @brief MPI_Bcast a raw buffer.
         ///
