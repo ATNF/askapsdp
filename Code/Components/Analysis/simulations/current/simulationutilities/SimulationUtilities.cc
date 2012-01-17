@@ -549,6 +549,48 @@ namespace askap {
 
         }
 
+      std::vector<float> fitQuadratic(std::vector<float> x, std::vector<float> y)
+      {
+	std::vector<float> sig(x.size(),1);
+	return fitQuadratic(x,y,sig);
+      }
+	
+
+      std::vector<float> fitQuadratic(std::vector<float> x, std::vector<float> y, std::vector<float> sig)
+      {
+	ASKAPASSERT(x.size() == y.size());
+	ASKAPASSERT(x.size() == sig.size());
+	
+	int n=x.size();
+
+	float A=0,B=0,C=0,D=0,E=0,F=0,G=0,H=0,ss;
+	for(int i=0;i<n;i++){
+	  ss = sig[i]*sig[i];
+	  ASKAPASSERT(ss>0.);
+	  A += 1./ss;
+	  B += x[i]/ss;
+	  C += x[i]*x[i]/ss;
+	  D += x[i]*x[i]*x[i]/ss;
+	  E += x[i]*x[i]*x[i]*x[i]/ss;
+	  F += y[i]/ss;
+	  G += x[i]*y[i]/ss;
+	  H += x[i]*x[i]*y[i]/ss;
+	}
+	
+	float det=A*(C*E-D*D) + B*B*E - C*C*C;
+
+	std::vector<float> results(3);
+	results[0] = ( (C*E-D*D)*F + (B*E-C*D)*G + (B*D-C*C)*H ) / det;
+	results[1] = ( (B*E-C*D)*F + (A*E-C*C)*G + (A*D-B*C)*H ) / det;
+	results[1] = ( (B*D-C*C)*F + (A*D-B*C)*G + (A*C-B*B)*H ) / det;
+	  
+	return results;
+
+      }
+    
+
+      
+
 
     }
 

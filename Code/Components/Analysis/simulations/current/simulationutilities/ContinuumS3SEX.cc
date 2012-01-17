@@ -29,6 +29,7 @@
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/ContinuumS3SEX.h>
+#include <simulationutilities/SimulationUtilities.h>
 
 #include <sourcefitting/Component.h>
 
@@ -94,27 +95,46 @@ namespace askap {
 	      this->itsComponent.setMinor(maj);
 	    }
             this->itsComponent.setPA(pa);
-	    if(this->itsNuZero<610.e6){
-	      this->itsAlpha = (this->itsI610-this->itsI151)/log10(610./151.);
-	      flux = this->itsI151 + this->itsAlpha * log10(this->itsNuZero/151.e6);
-	    }
-	    else if(this->itsNuZero < 1400.e6){
-	      this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
-	      flux = this->itsI610 + this->itsAlpha * log10(this->itsNuZero/610.e6);
-	    }
-	    else if(this->itsNuZero < 4.86e9){
-	      this->itsAlpha = (this->itsI4860-this->itsI1400)/log10(4860./1400.);
-	      flux = this->itsI1400 + this->itsAlpha * log10(this->itsNuZero/1400.e6);
-	    }
-	    else{
-	      this->itsAlpha = (this->itsI18000-this->itsI4860)/log10(18000./4860.);
-	      flux = this->itsI4860 + this->itsAlpha * log10(this->itsNuZero/4860.e6);
-	    }
-		//	    this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
-		//	    flux = pow(10,this->itsI1400);
-		//            this->itsComponent.setPeak(flux);
-	    this->itsComponent.setPeak(pow(10,flux));
-	    this->itsBeta = 0.;
+
+// 	    if(this->itsNuZero<610.e6){
+// 	      this->itsAlpha = (this->itsI610-this->itsI151)/log10(610./151.);
+// 	      flux = this->itsI151 + this->itsAlpha * log10(this->itsNuZero/151.e6);
+// 	    }
+// 	    else if(this->itsNuZero < 1400.e6){
+// 	      this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
+// 	      flux = this->itsI610 + this->itsAlpha * log10(this->itsNuZero/610.e6);
+// 	    }
+// 	    else if(this->itsNuZero < 4.86e9){
+// 	      this->itsAlpha = (this->itsI4860-this->itsI1400)/log10(4860./1400.);
+// 	      flux = this->itsI1400 + this->itsAlpha * log10(this->itsNuZero/1400.e6);
+// 	    }
+// 	    else{
+// 	      this->itsAlpha = (this->itsI18000-this->itsI4860)/log10(18000./4860.);
+// 	      flux = this->itsI4860 + this->itsAlpha * log10(this->itsNuZero/4860.e6);
+// 	    }
+// 		//	    this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
+// 		//	    flux = pow(10,this->itsI1400);
+// 		//            this->itsComponent.setPeak(flux);
+// 	    this->itsComponent.setPeak(pow(10,flux));
+// 	    this->itsBeta = 0.;
+
+	    std::vector<float> x,y,fit;
+	    x[0]=log10(151.);
+	    x[1]=log10(610.);
+	    x[2]=log10(1400.);
+	    x[3]=log10(4860.);
+	    x[4]=log10(18000.);
+	    y[0]=this->itsI151;
+	    y[1]=this->itsI610;
+	    y[2]=this->itsI1400;
+	    y[3]=this->itsI4860;
+	    y[4]=this->itsI18000;
+	    fit=fitQuadratic(x,y);
+	    flux=fit[0];
+	    this->itsComponent.setPeak(pow(10.,flux));
+	    this->itsAlpha=fit[1]/flux;
+	    this->itsBeta=fit[2]/flux - 0.5*this->itsAlpha*(this->itsAlpha-1);
+
         }
 
         ContinuumS3SEX::ContinuumS3SEX(const ContinuumS3SEX& c):
@@ -147,11 +167,12 @@ namespace askap {
       void ContinuumS3SEX::print(std::ostream& theStream)
       {
 	theStream.setf(std::ios::showpoint);
+	theStream.setf(std::ios::fixed);
 	theStream << std::setw(11) << this->itsComponentNum << " " 
 		  << std::setw(9) << this->itsGalaxyNum << " " 
 		  << std::setw(9)  << this->itsStructure << " "
-		  << std::setw(15) << std::setprecision(5) << this->itsRA << " " 
-		  << std::setw(11) << std::setprecision(5) << this->itsDec << " "
+		  << std::setw(15) << std::setprecision(6) << this->itsRA << " " 
+		  << std::setw(11) << std::setprecision(6) << this->itsDec << " "
 		  << std::setw(14) << std::setprecision(3) << this->itsComponent.pa() << " " 
 		  << std::setw(10) << std::setprecision(3) << this->itsComponent.maj() << " " 
 		  << std::setw(10) << std::setprecision(3) << this->itsComponent.min() << " " 
