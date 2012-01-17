@@ -271,10 +271,10 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
     // Determine the starting and end pixels which need processing on both axes. Note
     // that these are "inclusive" ranges.
     const int startLat = std::max(0, static_cast<int>(pixelPosition(0)) - cutoff);
-    const int endLat = std::min(static_cast<int>(imageShape(latAxis)),
+    const int endLat = std::min(static_cast<int>(imageShape(latAxis) - 1),
                                 static_cast<int>(pixelPosition(0)) + cutoff);
     const int startLon = std::max(0, static_cast<int>(pixelPosition(1)) - cutoff);
-    const int endLon = std::min(static_cast<int>(imageShape(longAxis)),
+    const int endLon = std::min(static_cast<int>(imageShape(longAxis) - 1),
                                 static_cast<int>(pixelPosition(1)) + cutoff);
 
     IPosition pos = makePosition(latAxis, longAxis, freqAxis, polAxis,
@@ -283,10 +283,12 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
             freqIdx, polIdx);
 
     // For each pixel in the region bounded by the source centre + cutoff
+    ASKAPLOG_DEBUG_STR(logger, "Gaussian: (" << startLat << "-" << endLat << ") (" << startLon << "-" << endLon);
     for (int lat = startLat; lat <= endLat; ++lat) {
         for (int lon = startLon; lon <= endLon; ++lon) {
             pos(latAxis) = lat;
             pos(longAxis) = lon;
+            //ASKAPLOG_DEBUG_STR(logger, "Putting pixel at lat: " << lat << ", lon: " << lon);
             image.putAt(image(pos) + gauss(lat, lon), pos);
         }
     }
