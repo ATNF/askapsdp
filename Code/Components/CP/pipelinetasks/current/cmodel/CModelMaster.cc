@@ -135,7 +135,7 @@ void CModelMaster::run(void)
         while (idx < list.size()) {
             // Get a batch ready - an "nelement" subset of "list" will be sent
             const size_t nelements = (idx + batchSize < list.size()) ? batchSize : (list.size() - idx);
-            std::copy(list.begin() + idx, list.begin() + idx + batchSize, std::back_inserter(subset));
+            std::copy(list.begin() + idx, list.begin() + idx + nelements, std::back_inserter(subset));
             idx += nelements;
 
             // Wait for a worker to become available
