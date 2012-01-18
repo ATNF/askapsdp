@@ -135,7 +135,7 @@ void CModelMaster::run(void)
         while (idx < list.size()) {
             // Get a batch ready - an "nelement" subset of "list" will be sent
             const size_t nelements = (idx + batchSize < list.size()) ? batchSize : (list.size() - idx);
-            std::copy(list.begin() + idx, list.begin() + idx + nelements, std::back_inserter(subset));
+            subset.assign(list.begin() + idx, list.begin() + idx + nelements);
             idx += nelements;
 
             // Wait for a worker to become available
@@ -143,7 +143,6 @@ void CModelMaster::run(void)
             ASKAPLOG_DEBUG_STR(logger, "Allocating " << subset.size()
                     << " components to worker " << worker);
             itsComms.sendComponents(subset, worker);
-            subset.clear();
             ASKAPLOG_INFO_STR(logger, "Master has allocated " << idx << " of "
                     << list.size() << " components");
         }
