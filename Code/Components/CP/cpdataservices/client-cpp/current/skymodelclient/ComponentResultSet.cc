@@ -134,15 +134,14 @@ void ComponentResultSet::Iterator::fillBuffer(void)
     // Maximum number of components to get in one batch
     const size_t batchSize = 1000;
 
-    // Build a list of which components to obtain
-    askap::interfaces::skymodelservice::ComponentIdSeq ids;
-    for (size_t i = 0; i < batchSize; ++i) {
-        if (itsIndex >= itsComponentList->size()) {
-            break;
-        }
-        ids.push_back(itsComponentList->at(itsIndex));
-        itsIndex++;
-    }
+    // Build a sequence containing the components to obtain - an "nelement" subset of
+    // "itsComponentList" will be obtained
+    const size_t nelements = (itsIndex + batchSize < itsComponentList->size()) ?
+        batchSize : (itsComponentList->size() - itsIndex);
+    const askap::interfaces::skymodelservice::ComponentIdSeq ids(
+            itsComponentList->begin() + itsIndex,
+            itsComponentList->begin() + itsIndex + nelements);
+    itsIndex += nelements;
     ASKAPCHECK(ids.size() > 0, "Component list is empty");
 
     // Perform the RPC
