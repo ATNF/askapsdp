@@ -29,8 +29,6 @@
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
 
-#include <sourcefitting/Component.h>
-
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -84,18 +82,11 @@ namespace askap {
             std::stringstream ss(line);
 	    //	    int component,galaxy,structure;
 	    //	    double i_151,i_610,i_4860,i_18000;
-	    ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa;
+	    ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA;
 	    //	    ss >> component >> galaxy >> structure >> this->itsRA >> this->itsDec >> pa >> maj >> min >> i_151 >> i_610 >> flux >> i_4860 >> i_18000;
-	    flux = pow(10,flux);
-            this->itsComponent.setPeak(flux);
-	    if(maj>=min){
-	      this->itsComponent.setMajor(maj);
-	      this->itsComponent.setMinor(min);
-	    } else{
-	      this->itsComponent.setMajor(min);
-	      this->itsComponent.setMinor(maj);
-	    }
-            this->itsComponent.setPA(pa);
+	    this->itsFlux = pow(10,flux);
+	    this->checkShape();
+
         }
 
         Continuum::Continuum(const Continuum& c):
@@ -127,8 +118,8 @@ namespace askap {
       void Continuum::print(std::ostream& theStream)
       {
 	theStream << this->itsRA << "\t" << this->itsDec << "\t" 
-		  << this->itsComponent.peak() << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t" 
-		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() << "\n";
+		  << this->itsFlux << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t" 
+		  << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\n";
       }
 
         std::ostream& operator<< (std::ostream& theStream, Continuum &cont)

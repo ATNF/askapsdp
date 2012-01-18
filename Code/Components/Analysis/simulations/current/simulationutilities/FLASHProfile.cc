@@ -32,7 +32,6 @@
 #include <simulationutilities/GaussianProfile.h>
 #include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/SpectralUtilities.h>
-#include <sourcefitting/Component.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
@@ -95,18 +94,10 @@ namespace askap {
 	  /// and is converted to redshift.
             /// @param line A line from the ascii input file
 
-	    double maj, min, pa;
             std::stringstream ss(line);
-            ss >> this->itsComponentNum >> this->itsRA >> this->itsDec >> this->itsContinuumFlux >> maj >> min >> pa >> this->itsPeakOpticalDepth >> this->itsCentreRedshift >> this->itsVelocityWidth;
-            this->itsComponent.setPeak(this->itsContinuumFlux);
-	    if(maj>=min){
-	      this->itsComponent.setMajor(maj);
-	      this->itsComponent.setMinor(min);
-	    } else{
-	      this->itsComponent.setMajor(min);
-	      this->itsComponent.setMinor(maj);
-	    }
-            this->itsComponent.setPA(pa);
+            ss >> this->itsComponentNum >> this->itsRA >> this->itsDec >> this->itsContinuumFlux >> this->itsMaj >> this->itsMin >> this->itsPA >> this->itsPeakOpticalDepth >> this->itsCentreRedshift >> this->itsVelocityWidth;
+            this->itsFlux = this->itsContinuumFlux;
+	    this->checkShape();
 
 	    double depth = (exp(-1.*this->itsPeakOpticalDepth)-1.)*this->itsContinuumFlux;
 	    this->itsGaussian.setHeight(depth);
@@ -126,7 +117,7 @@ namespace askap {
       void FLASHProfile::print(std::ostream& theStream)
       {
 	theStream << this->itsComponentNum << "\t" << this->itsRA << "\t" << this->itsDec << "\t" << this->itsContinuumFlux << "\t" 
-		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() << "\t" 
+		  << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\t" 
 		  << this->itsPeakOpticalDepth << "\t" << this->itsCentreRedshift << "\t" << this->itsVelocityWidth << "\n";
       }
 

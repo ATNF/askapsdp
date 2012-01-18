@@ -67,21 +67,11 @@ namespace askap {
             /// to set up the profile description.
             /// @param line A line from the ascii input file
 
-	  double flux, maj, min, pa;
             int type;
             std::stringstream ss(line);
-            ss >> this->itsRA >> this->itsDec >> flux >> this->itsAlpha >> this->itsBeta >> maj >> min >> pa >> this->itsRedshift >> this->itsMHI >> type;
+            ss >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA >> this->itsRedshift >> this->itsMHI >> type;
             this->itsSourceType = GALTYPE(type);
-            this->itsComponent.setPeak(flux);
-	    if(maj>=min){
-	      this->itsComponent.setMajor(maj);
-	      this->itsComponent.setMinor(min);
-	    } else{
-	      this->itsComponent.setMajor(min);
-	      this->itsComponent.setMinor(maj);
-	    }
-            this->itsComponent.setPA(pa);
-
+	    this->checkShape();
             this->setup(this->itsSourceType, this->itsRedshift, this->itsMHI, this->maj(), this->min());
         }
 
@@ -133,8 +123,8 @@ namespace askap {
       void HIprofileS3SEX::print(std::ostream& theStream)
       {
 	theStream << this->itsRA << "\t" << this->itsDec << "\t" 
-		  << this->itsComponent.peak() << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t" 
-		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() << "\t"
+		  << this->itsFlux << "\t" << this->itsAlpha << "\t" << this->itsBeta << "\t" 
+		  << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\t"
 		  << this->itsRedshift << "\t" << this->itsMHI << "\t" << int(this->itsSourceType) << "\n";
       }
 

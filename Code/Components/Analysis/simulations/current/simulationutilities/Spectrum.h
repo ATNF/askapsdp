@@ -32,8 +32,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <sourcefitting/Component.h>
-
 namespace askap {
 
     namespace simulations {
@@ -42,7 +40,7 @@ namespace askap {
         /// @details This class holds information on a profile that
         /// changes with spectral coordinate. This is the base class, that holds
         /// the sky position (RA & Dec), as well as shape information and a flux
-        /// normalisation (the latter in an askap::sourcefitting::SubComponent object).
+        /// normalisation.
         class Spectrum {
             public:
                 /// @brief Default constructor
@@ -62,26 +60,28 @@ namespace askap {
                 /// @brief Return the decliination
                 std::string dec() {return itsDec;};
                 /// @brief Return the flux normalisation
-                double fluxZero() {return itsComponent.peak();};
+                double fluxZero() {return itsFlux;};
                 /// @brief Return the major axis
-                double maj() {return itsComponent.maj();};
+                double maj() {return itsMaj;};
                 /// @brief Return the minor axis
-                double min() {return itsComponent.min();};
+                double min() {return itsMin;};
                 /// @brief Return the position angle
-                double pa() {return itsComponent.pa();};
+                double pa() {return itsPA;};
 
 		virtual void setRA(double r, int prec=5);
 		virtual void setRA(std::string r){itsRA=r;};
 		virtual void setDec(double d, int prec=5);
 		virtual void setDec(std::string d){itsDec=d;};
                 /// @brief Set the flux normalisation
-                void setFluxZero(float f) {itsComponent.setPeak(f);};
+                void setFluxZero(float f) {itsFlux=f;};
                 /// @brief Set the major axis
-                void setMaj(float f) {itsComponent.setMajor(f);};
+                void setMaj(float f) {itsMaj=f;};
                 /// @brief Set the minor axis
-                void setMin(float f) {itsComponent.setMinor(f);};
+                void setMin(float f) {itsMin=f;};
                 /// @brief Set the position angle
-                void setPA(float f) {itsComponent.setPA(f);};
+                void setPA(float f) {itsPA=f;};
+		/// @brief Make sure the major axis is the bigger
+		void checkShape();
 
                 /// @brief Return the flux at a given frequency - not used for the base class
                 virtual double flux(double freq)  {return -77.;};
@@ -98,8 +98,10 @@ namespace askap {
                 std::string itsRA;
                 /// @brief The declination of the object
                 std::string itsDec;
-                /// @brief The shape and flux information for the object.
-                analysis::sourcefitting::SubComponent itsComponent;
+		float itsFlux;
+		float itsMaj;
+		float itsMin;
+		float itsPA;
 
         };
 

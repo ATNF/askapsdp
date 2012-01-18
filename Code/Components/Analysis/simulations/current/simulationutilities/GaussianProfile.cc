@@ -31,7 +31,6 @@
 #include <simulationutilities/GaussianProfile.h>
 #include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/SpectralUtilities.h>
-#include <sourcefitting/Component.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
@@ -95,18 +94,12 @@ namespace askap {
             /// Peak height - central position - FWHM.
             /// @param line A line from the ascii input file
 
-	    double flux, maj, min, pa, peak, centre, width;
+	    double peak, centre, width;
             std::stringstream ss(line);
-            ss >> this->itsRA >> this->itsDec >> flux >> maj >> min >> pa >> peak >> centre >> width;
-            this->itsComponent.setPeak(flux);
-	    if(maj>=min){
-	      this->itsComponent.setMajor(maj);
-	      this->itsComponent.setMinor(min);
-	    } else{
-	      this->itsComponent.setMajor(min);
-	      this->itsComponent.setMinor(maj);
-	    }
-            this->itsComponent.setPA(pa);
+            ss >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsMaj >> this->itsMin >> this->itsPA >> peak >> centre >> width;
+
+	    this->checkShape();
+	    if(this->itsMaj<this->itsMin) std::swap(this->itsMaj,this->itsMin);
 
 	    this->itsGaussian.setHeight(peak);
 	    this->itsGaussian.setCenter(centre);

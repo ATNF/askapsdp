@@ -31,8 +31,6 @@
 #include <simulationutilities/ContinuumS3SEX.h>
 #include <simulationutilities/SimulationUtilities.h>
 
-#include <sourcefitting/Component.h>
-
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -82,19 +80,13 @@ namespace askap {
             /// (Alpha & Beta are the spectral index & spectral curvature).
             /// @param line A line from the ascii input file
 
-            double flux, maj, min, pa;
+            double flux;
             std::stringstream ss(line);
 	    ss >> this->itsComponentNum >> this->itsGalaxyNum >> this->itsStructure 
-	       >> this->itsRA >> this->itsDec >> pa >> maj >> min 
+	       >> this->itsRA >> this->itsDec >> this->itsPA >> this->itsMaj >> this->itsMin 
 	       >> this->itsI151 >> this->itsI610 >> this->itsI1400 >> this->itsI4860 >> this->itsI18000;
-	    if(maj>=min){
-	      this->itsComponent.setMajor(maj);
-	      this->itsComponent.setMinor(min);
-	    } else{
-	      this->itsComponent.setMajor(min);
-	      this->itsComponent.setMinor(maj);
-	    }
-            this->itsComponent.setPA(pa);
+	    
+	    this->checkShape();
 
 	    if(this->itsNuZero<610.e6){
 	      this->itsAlpha = (this->itsI610-this->itsI151)/log10(610./151.);
@@ -114,8 +106,8 @@ namespace askap {
 	    }
 		//	    this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
 		//	    flux = pow(10,this->itsI1400);
-		//            this->itsComponent.setPeak(flux);
-	    this->itsComponent.setPeak(pow(10.,flux));
+		//            this->itsFlux = flux;
+	    this->itsFlux = pow(10.,flux);
 	    this->itsBeta = 0.;
 
 // 	    std::vector<float> x,y,fit;
@@ -131,7 +123,7 @@ namespace askap {
 // 	    y[4]=this->itsI18000;
 // 	    fit=fitQuadratic(x,y);
 // 	    flux=fit[0];
-// 	    this->itsComponent.setPeak(pow(10.,flux));
+// 	    this->itsFlux = pow(10.,flux);
 // 	    this->itsAlpha=fit[1]/flux;
 // 	    this->itsBeta=fit[2]/flux - 0.5*this->itsAlpha*(this->itsAlpha-1);
 
@@ -175,9 +167,9 @@ namespace askap {
 		  << std::setw(9)  << this->itsStructure << " "
 		  << std::setw(15) << std::setprecision(6) << this->itsRA << " " 
 		  << std::setw(11) << std::setprecision(6) << this->itsDec << " "
-		  << std::setw(14) << std::setprecision(3) << this->itsComponent.pa() << " " 
-		  << std::setw(10) << std::setprecision(3) << this->itsComponent.maj() << " " 
-		  << std::setw(10) << std::setprecision(3) << this->itsComponent.min() << " " 
+		  << std::setw(14) << std::setprecision(3) << this->itsPA << " " 
+		  << std::setw(10) << std::setprecision(3) << this->itsMaj << " " 
+		  << std::setw(10) << std::setprecision(3) << this->itsMin << " " 
 		  << std::setw(7) << std::setprecision(4) << this->itsI151 << " " 
 		  << std::setw(7) << std::setprecision(4) << this->itsI610 << " " 
 		  << std::setw(7) << std::setprecision(4) << this->itsI1400 << " " 

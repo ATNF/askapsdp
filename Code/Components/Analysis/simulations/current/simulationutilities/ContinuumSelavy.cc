@@ -30,8 +30,6 @@
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/ContinuumSelavy.h>
 
-#include <sourcefitting/Component.h>
-
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -87,15 +85,11 @@ namespace askap {
 	       >> this->itsChisq >> this->itsRMSimage >> this->itsRMSfit 
 	       >> this->itsNfree >> this->itsNdof >> this->itsNpixFIT >> this->itsNpixObj;
 
-	    if(this->itsMajFIT>=this->itsMinFIT){
-	      this->setMaj(this->itsMajFIT);
-	      this->setMin(this->itsMinFIT);
-	    } else{
-	      this->setMaj(this->itsMinFIT);
-	      this->setMin(this->itsMajFIT);
-	    }
+	    this->setMaj(std::max(this->itsMajFIT,this->itsMinFIT));
+	    this->setMin(std::min(this->itsMajFIT,this->itsMinFIT));
             this->setPA(this->itsPAFIT);
 	    this->setFluxZero(this->itsFintFIT);
+
         }
 
         ContinuumSelavy::ContinuumSelavy(const ContinuumSelavy& c):

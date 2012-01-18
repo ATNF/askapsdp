@@ -30,8 +30,6 @@
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/FullStokesContinuum.h>
 
-#include <sourcefitting/Component.h>
-
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -83,32 +81,23 @@ namespace askap {
             /// text from an ascii file. The format of the line is currently taken from the POSSUM catalogue supplied by Jeroen Stil.
             /// @param line A line from the ascii input file
 
-            double pa,maj,min,i1420;
             std::stringstream ss(line);
             ss >> this->itsSourceID >> this->itsClusterID >> this->itsGalaxyID 
 	       >> this->itsSFtype >> this->itsAGNtype >> this->itsStructure 
 	       >> this->itsRA >> this->itsDec >> this->itsDistance >> this->itsRedshift 
-	       >> pa >> maj >> min 
-	       >> this->itsI151L >> this->itsI610L >> i1420 
+	       >> this->itsPA >> this->itsMaj >> this->itsMin 
+	       >> this->itsI151L >> this->itsI610L >> this->itsFlux 
 	       >> this->itsStokesQref >> this->itsStokesUref >> this->itsPolFluxRef >> this->itsPolFracRef 
 	       >> this->itsI4p8L >> this->itsI18L >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
 
-            this->itsComponent.setPeak(i1420);
-	    if(maj>=min){
-	      this->itsComponent.setMajor(maj);
-	      this->itsComponent.setMinor(min);
-	    } else{
-	      this->itsComponent.setMajor(min);
-	      this->itsComponent.setMinor(maj);
-	    }
-            this->itsComponent.setPA(pa);
+	    this->checkShape();
 	    this->itsStokesRefFreq = 1.4e9;
 	    this->itsStokesVref = 0.;     // Setting Stokes V to be zero for now!
 	    if(this->itsPolFluxRef>0.)
 	      this->itsPolAngleRef = acos(this->itsStokesQref/this->itsPolFluxRef);
 	    else 
 	      this->itsPolAngleRef = 0.;
-	    this->itsAlpha = (log10(i1420)-this->itsI610L)/log10(1420./610.);
+	    this->itsAlpha = (log10(this->itsFlux)-this->itsI610L)/log10(1420./610.);
         }
 
       void FullStokesContinuum::print(std::ostream &theStream)
@@ -120,11 +109,11 @@ namespace askap {
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
 	theStream << std::setprecision(3)<<std::setw(11)<<this->itsDistance << std::setprecision(6)<<std::setw(11)<<this->itsRedshift;
 	theStream.precision(3);
-	theStream << std::setw(10)<<this->itsComponent.pa() << std::setw(10)<<this->itsComponent.maj() << std::setw(10)<<this->itsComponent.min();
+	theStream << std::setw(10)<<this->itsPA << std::setw(10)<<this->itsMaj << std::setw(10)<<this->itsMin;
 	theStream.precision(4);
 	theStream << std::setw(10)<<this->itsI151L << std::setw(10)<<this->itsI610L;
 	theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed); 
-	theStream << std::setw(12)<<this->itsComponent.peak() << std::setw(12)<<this->itsStokesQref << std::setw(12)<<this->itsStokesUref << std::setw(12)<<this->itsPolFluxRef;
+	theStream << std::setw(12)<<this->itsFlux << std::setw(12)<<this->itsStokesQref << std::setw(12)<<this->itsStokesUref << std::setw(12)<<this->itsPolFluxRef;
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
 	theStream << std::setw(10)<<this->itsPolFracRef << std::setw(10)<<this->itsI4p8L << std::setw(10)<<this->itsI18L << std::setw(10)<<this->itsCosVA 
 		  << std::setw(11)<<this->itsRM << std::setw(11)<<this->itsRMflag;

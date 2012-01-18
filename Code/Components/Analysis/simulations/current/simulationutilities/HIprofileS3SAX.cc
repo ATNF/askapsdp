@@ -98,7 +98,7 @@ namespace askap {
       void HIprofileS3SAX::print(std::ostream& theStream)
       {
 	theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsIntFlux << "\t" 
-		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() <<"\t"
+		  << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA <<"\t"
 		  << this->itsRedshift << "\t" << this->itsMHI << "\t" 
 		  << this->itsFlux0 << "\t" << this->itsFluxPeak << "\t" << this->itsWidthPeak << "\t" << this->itsWidth50 << "\t" << this->itsWidth20 << "\n";
       }
@@ -136,21 +136,13 @@ namespace askap {
             /// to set up the profile description.
             /// @param line A line from the ascii input file
 
-	  double maj, min, pa;
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> this->itsIntFlux 
-	       >> maj >> min >> pa
+	       >> this->itsMaj >> this->itsMin >> this->itsPA
 	       >> this->itsRedshift >> this->itsMHI 
 	       >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
-            this->itsComponent.setPeak(this->itsFluxPeak * this->itsIntFlux);
-	    if(maj>=min){
-	      this->itsComponent.setMajor(maj);
-	      this->itsComponent.setMinor(min);
-	    } else{
-	      this->itsComponent.setMajor(min);
-	      this->itsComponent.setMinor(maj);
-	    }
-            this->itsComponent.setPA(pa);
+            this->itsFlux = this->itsFluxPeak * this->itsIntFlux;
+	    this->checkShape();
             this->setup();
         }
 

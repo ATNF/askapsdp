@@ -28,8 +28,10 @@
 ///
 #include <askap_simulations.h>
 
+#include <iostream>
+#include <iomanip>
+
 #include <simulationutilities/Spectrum.h>
-#include <sourcefitting/Component.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -58,25 +60,29 @@ namespace askap {
             /// RA - DEC - Flux - Major axis - Minor axis - Pos.Angle
             /// @param line A line from the ascii input file
 
-            double flux, maj, min, pa;
             std::stringstream ss(line);
-            ss >> this->itsRA >> this->itsDec >> flux >> maj >> min >> pa;
-            this->itsComponent.setPeak(flux);
-	    if(maj>=min){
-	      this->itsComponent.setMajor(maj);
-	      this->itsComponent.setMinor(min);
-	    } else{
-	      this->itsComponent.setMajor(min);
-	      this->itsComponent.setMinor(maj);
-	    }
-            this->itsComponent.setPA(pa);
+            ss >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsMaj >> this->itsMin >> this->itsPA;
+	    this->checkShape();
         }
+
+      void Spectrum::checkShape()
+      {
+	if(this->itsMaj < this->itsMin){
+	  float t=this->itsMaj;
+	  this->itsMaj = this->itsMin;
+	  this->itsMin = t;
+	}
+      }
+	
 
         Spectrum::Spectrum(const Spectrum& s)
         {
             this->itsRA = s.itsRA;
             this->itsDec = s.itsDec;
-            this->itsComponent = s.itsComponent;
+            this->itsFlux = s.itsFlux;
+	    this->itsMaj = s.itsMaj;
+	    this->itsMin = s.itsMin;
+	    this->itsPA = s.itsPA;
         }
 
       void Spectrum::setRA(double r, int prec)
@@ -117,8 +123,8 @@ namespace askap {
       }
       void Spectrum::print(std::ostream& theStream)
       {
-	theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsComponent.peak() << "\t" 
-		  << this->itsComponent.maj() << "\t" << this->itsComponent.min() << "\t" << this->itsComponent.pa() << "\n"; 
+	theStream << this->itsRA << "\t" << this->itsDec << "\t" << this->itsFlux << "\t" 
+		  << this->itsMaj << "\t" << this->itsMin << "\t" << this->itsPA << "\n"; 
       }
 
         std::ostream& operator<< (std::ostream& theStream, Spectrum &spec)

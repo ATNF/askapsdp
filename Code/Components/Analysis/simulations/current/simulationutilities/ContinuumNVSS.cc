@@ -30,8 +30,6 @@
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/ContinuumNVSS.h>
 
-#include <sourcefitting/Component.h>
-
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -114,15 +112,11 @@ namespace askap {
 	  this->itsDec = this->itsDecstring;
 	  for(size_t i=0;i<this->itsDec.size();i++) if(this->itsDec[i]==' ') this->itsDec[i]=':';
 
-	  this->itsComponent.setPeak(this->itsS1400/1.e3); // put into Jy
-	  this->itsComponent.setMajor( this->itsMajorAxisLimit=='<' ? 0. : this->itsMajorAxis );
-	  this->itsComponent.setMinor( this->itsMinorAxisLimit=='<' ? 0. : this->itsMinorAxis );
-	  if(this->itsComponent.maj()<this->itsComponent.min()){
-	    this->itsComponent.setMajor(this->itsComponent.min());
-	    this->itsComponent.setMinor(this->itsComponent.maj());
-	  }
-	  this->itsComponent.setPA(this->itsPA);
-	  
+	  this->itsFlux = this->itsS1400/1.e3; // put into Jy
+	  this->itsMaj = this->itsMajorAxisLimit=='<' ? 0. : this->itsMajorAxis;
+	  this->itsMin = this->itsMinorAxisLimit=='<' ? 0. : this->itsMinorAxis;
+	  this->checkShape();
+
         }
 
         ContinuumNVSS::ContinuumNVSS(const ContinuumNVSS& c):
@@ -161,9 +155,9 @@ namespace askap {
 	// 	  << std::setw(9)  << this->itsStructure << " "
 	// 	  << std::setw(15) << std::setprecision(5) << this->itsRA << " " 
 	// 	  << std::setw(11) << std::setprecision(5) << this->itsDec << " "
-	// 	  << std::setw(14) << std::setprecision(3) << this->itsComponent.pa() << " " 
-	// 	  << std::setw(10) << std::setprecision(3) << this->itsComponent.maj() << " " 
-	// 	  << std::setw(10) << std::setprecision(3) << this->itsComponent.min() << " " 
+	// 	  << std::setw(14) << std::setprecision(3) << this->itsPA() << " " 
+	// 	  << std::setw(10) << std::setprecision(3) << this->itsMaj() << " " 
+	// 	  << std::setw(10) << std::setprecision(3) << this->itsMin() << " " 
 	// 	  << std::setw(7) << std::setprecision(4) << this->itsI151 << " " 
 	// 	  << std::setw(7) << std::setprecision(4) << this->itsI610 << " " 
 	// 	  << std::setw(7) << std::setprecision(4) << this->itsI1400 << " " 
@@ -203,7 +197,6 @@ namespace askap {
 		  << "\n"
 		  << "\nRA = " << this->itsRA
 		  << "\nDec = " << this->itsDec
-		  << "\nComponent = " << this->itsComponent
 		  << "\n";
       }
       
