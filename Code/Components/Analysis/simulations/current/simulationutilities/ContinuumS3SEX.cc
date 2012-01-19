@@ -31,6 +31,8 @@
 #include <simulationutilities/ContinuumS3SEX.h>
 #include <simulationutilities/SimulationUtilities.h>
 
+#include <gsl/gsl_multifit.h>
+
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -44,7 +46,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-ASKAP_LOGGER(logger, ".continuum");
+ASKAP_LOGGER(logger, ".continuumS3SEX");
 
 namespace askap {
 
@@ -52,6 +54,12 @@ namespace askap {
 
         ContinuumS3SEX::ContinuumS3SEX():
                 Continuum()
+        {
+            this->defineSource(0., 0., 1400.);
+        }
+
+        ContinuumS3SEX::ContinuumS3SEX(Continuum &c):
+                Continuum(c)
         {
             this->defineSource(0., 0., 1400.);
         }
@@ -80,54 +88,105 @@ namespace askap {
             /// (Alpha & Beta are the spectral index & spectral curvature).
             /// @param line A line from the ascii input file
 
-            double flux;
             std::stringstream ss(line);
 	    ss >> this->itsComponentNum >> this->itsGalaxyNum >> this->itsStructure 
 	       >> this->itsRA >> this->itsDec >> this->itsPA >> this->itsMaj >> this->itsMin 
 	       >> this->itsI151 >> this->itsI610 >> this->itsI1400 >> this->itsI4860 >> this->itsI18000;
 	    
 	    this->checkShape();
+	    this->defineSED();
+				 
 
-	    if(this->itsNuZero<610.e6){
-	      this->itsAlpha = (this->itsI610-this->itsI151)/log10(610./151.);
-	      flux = this->itsI151 + this->itsAlpha * log10(this->itsNuZero/151.e6);
-	    }
-	    else if(this->itsNuZero < 1400.e6){
-	      this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
-	      flux = this->itsI610 + this->itsAlpha * log10(this->itsNuZero/610.e6);
-	    }
-	    else if(this->itsNuZero < 4.86e9){
-	      this->itsAlpha = (this->itsI4860-this->itsI1400)/log10(4860./1400.);
-	      flux = this->itsI1400 + this->itsAlpha * log10(this->itsNuZero/1400.e6);
-	    }
-	    else{
-	      this->itsAlpha = (this->itsI18000-this->itsI4860)/log10(18000./4860.);
-	      flux = this->itsI4860 + this->itsAlpha * log10(this->itsNuZero/4860.e6);
-	    }
-		//	    this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
-		//	    flux = pow(10,this->itsI1400);
-		//            this->itsFlux = flux;
-	    this->itsFlux = pow(10.,flux);
-	    this->itsBeta = 0.;
+	}
 
-// 	    std::vector<float> x,y,fit;
-// 	    x[0]=log10(151.);
-// 	    x[1]=log10(610.);
-// 	    x[2]=log10(1400.);
-// 	    x[3]=log10(4860.);
-// 	    x[4]=log10(18000.);
-// 	    y[0]=this->itsI151;
-// 	    y[1]=this->itsI610;
-// 	    y[2]=this->itsI1400;
-// 	    y[3]=this->itsI4860;
-// 	    y[4]=this->itsI18000;
-// 	    fit=fitQuadratic(x,y);
+        void ContinuumS3SEX::defineSED()
+	{ 
+	  /// @details Define the values of the flux, the spectral
+	  /// index (alpha) and curvature (beta), based on the five
+	  /// flux values provided.
+	  
+	    double flux;
+// 	    this->itsFlux=pow(10.,this->itsI1400);
+// 	    this->itsAlpha = (log10(this->itsFlux)-this->itsI610)/log10(1400./610.);
+// 	    this->itsBeta = 0.;
+
+// 	    if(this->itsNuZero<610.e6){
+// 	      this->itsAlpha = (this->itsI610-this->itsI151)/log10(610./151.);
+// 	      flux = this->itsI151 + this->itsAlpha * log10(this->itsNuZero/151.e6);
+// 	    }
+// 	    else if(this->itsNuZero < 1400.e6){
+// 	      this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
+// 	      flux = this->itsI610 + this->itsAlpha * log10(this->itsNuZero/610.e6);
+// 	    }
+// 	    else if(this->itsNuZero < 4.86e9){
+// 	      this->itsAlpha = (this->itsI4860-this->itsI1400)/log10(4860./1400.);
+// 	      flux = this->itsI1400 + this->itsAlpha * log10(this->itsNuZero/1400.e6);
+// 	    }
+// 	    else{
+// 	      this->itsAlpha = (this->itsI18000-this->itsI4860)/log10(18000./4860.);
+// 	      flux = this->itsI4860 + this->itsAlpha * log10(this->itsNuZero/4860.e6);
+// 	    }
+// 	    this->itsFlux = pow(10.,flux);
+// 	    this->itsBeta = 0.;
+			      
+	    std::vector<float> xdat(5),ydat(5),fit;
+	    xdat[0]=log10(151.e6/this->itsNuZero);
+	    xdat[1]=log10(610.e6/this->itsNuZero);
+	    xdat[2]=log10(1400.e6/this->itsNuZero);
+	    xdat[3]=log10(4860.e6/this->itsNuZero);
+	    xdat[4]=log10(18000.e6/this->itsNuZero);
+	    ydat[0]=this->itsI151;
+	    ydat[1]=this->itsI610;
+	    ydat[2]=this->itsI1400;
+	    ydat[3]=this->itsI4860;
+	    ydat[4]=this->itsI18000;
+// 	    fit=fitQuadratic(xdat,ydat);
 // 	    flux=fit[0];
 // 	    this->itsFlux = pow(10.,flux);
 // 	    this->itsAlpha=fit[1]/flux;
 // 	    this->itsBeta=fit[2]/flux - 0.5*this->itsAlpha*(this->itsAlpha-1);
+	    
+	    int ndata=5, nterms=5;
+	    double chisq;
+	    gsl_matrix *x, *cov;
+	    gsl_vector *y, *w, *c;
+	    x = gsl_matrix_alloc(ndata,nterms);
+	    y = gsl_vector_alloc(ndata);
+	    w = gsl_vector_alloc(ndata);
+	    c = gsl_vector_alloc(nterms);
+	    cov = gsl_matrix_alloc(nterms,nterms);
+	    for(int i=0;i<ndata;i++){
+	      gsl_matrix_set(x,i,0,1.);
+	      gsl_matrix_set(x,i,1,xdat[i]);
+	      gsl_matrix_set(x,i,2,xdat[i]*xdat[i]);
+	      gsl_matrix_set(x,i,3,xdat[i]*xdat[i]*xdat[i]);
+	      gsl_matrix_set(x,i,4,xdat[i]*xdat[i]*xdat[i]*xdat[i]);
+	      
+	      gsl_vector_set(y,i,ydat[i]);
+	      gsl_vector_set(w,i,1.);
+	    }
 
-	    ASKAPLOG_DEBUG_STR(logger, "S3SEX source: ID="<<this->itsComponentNum<<", flux="<<flux<<", alpha="<<this->itsAlpha<<", beta="<<this->itsBeta);
+	    gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (ndata,nterms);
+	    gsl_multifit_wlinear (x, w, y, c, cov, &chisq, work);
+	    gsl_multifit_linear_free (work);
+	    
+	    ASKAPLOG_DEBUG_STR(logger, "GSL fit: chisq="<<chisq
+			       <<", results: [0]="<<gsl_vector_get(c,0)<<" [1]="<<gsl_vector_get(c,1)
+			       <<" [2]="<<gsl_vector_get(c,2)<<" [3]="<<gsl_vector_get(c,3)
+			       <<" [4]="<<gsl_vector_get(c,4));
+	    flux=gsl_vector_get(c,0);
+	    this->itsFlux = pow(10.,flux);
+	    this->itsAlpha=gsl_vector_get(c,1);
+	    this->itsBeta=gsl_vector_get(c,2);
+	    
+
+	    ASKAPLOG_DEBUG_STR(logger, "S3SEX source: ID="<<this->itsComponentNum
+			       <<", I151="<<itsI151<<", I610="<<itsI610
+			       <<", I1400="<<itsI1400<<", I4860="<<itsI4860
+			       <<", I18000="<<itsI18000<<", nu0="<<itsNuZero
+			       <<", flux="<<log10(this->itsFlux)
+			       <<", alpha="<<this->itsAlpha
+			       <<", beta="<<this->itsBeta);
 
         }
 

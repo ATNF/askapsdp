@@ -78,7 +78,7 @@ namespace askap {
             /// (Alpha & Beta are the spectral index & spectral curvature).
             /// @param line A line from the ascii input file
 
-            double flux, maj, min, pa;
+	    double flux;
             std::stringstream ss(line);
 	    //	    int component,galaxy,structure;
 	    //	    double i_151,i_610,i_4860,i_18000;

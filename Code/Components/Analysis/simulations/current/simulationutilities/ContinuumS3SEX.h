@@ -74,6 +74,9 @@ namespace askap {
 		/// @brief Define using a line of input from an ascii file
 		void define(std::string &line);
 
+		/// @brief Define the flux & spectral slope/curvature based on the catalogue fluxes.
+		void defineSED();
+
 		void print(std::ostream& theStream);
                 /// @brief Output the parameters for the source
                 friend std::ostream& operator<< (std::ostream& theStream, ContinuumS3SEX &cont);

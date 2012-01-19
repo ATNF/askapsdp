@@ -28,6 +28,7 @@
 ///
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
+#include <simulationutilities/ContinuumS3SEX.h>
 #include <simulationutilities/FullStokesContinuum.h>
 
 #include <askap/AskapLogging.h>
@@ -50,21 +51,27 @@ namespace askap {
     namespace simulations {
 
         FullStokesContinuum::FullStokesContinuum():
-                Continuum()
+	  ContinuumS3SEX()
         {
-            this->defineSource(0., 0., 1400.);
+            this->defineSource(0., 0., 1400.e6);
+        }
+
+        FullStokesContinuum::FullStokesContinuum(ContinuumS3SEX &c):
+	  ContinuumS3SEX(c)
+        {
+            this->defineSource(0., 0., 1400.e6);
         }
 
         FullStokesContinuum::FullStokesContinuum(Continuum &c):
-                Continuum(c)
+	  ContinuumS3SEX(c)
         {
-            this->defineSource(0., 0., 1400.);
+            this->defineSource(0., 0., 1400.e6);
         }
 
         FullStokesContinuum::FullStokesContinuum(Spectrum &s):
-	  Continuum(s)
+	  ContinuumS3SEX(s)
         {
-            this->defineSource(0., 0., 1400.);
+            this->defineSource(0., 0., 1400.e6);
         }
 
         FullStokesContinuum::FullStokesContinuum(std::string &line)
@@ -81,29 +88,34 @@ namespace askap {
             /// text from an ascii file. The format of the line is currently taken from the POSSUM catalogue supplied by Jeroen Stil.
             /// @param line A line from the ascii input file
 
+	  float flux1400;
             std::stringstream ss(line);
-            ss >> this->itsSourceID >> this->itsClusterID >> this->itsGalaxyID 
+            ss >> this->itsComponentNum >> this->itsClusterID >> this->itsGalaxyNum 
 	       >> this->itsSFtype >> this->itsAGNtype >> this->itsStructure 
 	       >> this->itsRA >> this->itsDec >> this->itsDistance >> this->itsRedshift 
 	       >> this->itsPA >> this->itsMaj >> this->itsMin 
-	       >> this->itsI151L >> this->itsI610L >> this->itsFlux 
+	       >> this->itsI151 >> this->itsI610 >> flux1400 
 	       >> this->itsStokesQref >> this->itsStokesUref >> this->itsPolFluxRef >> this->itsPolFracRef 
-	       >> this->itsI4p8L >> this->itsI18L >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
-
+	       >> this->itsI4860 >> this->itsI18000 >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
+	    
+	    this->itsI1400 = log10(flux1400);
+	    ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1400<<" and itsI1400="<<this->itsI1400);
 	    this->checkShape();
-	    this->itsStokesRefFreq = 1.4e9;
+	    this->defineSED();
+
+	    this->itsStokesRefFreq = POLREFFREQ;
 	    this->itsStokesVref = 0.;     // Setting Stokes V to be zero for now!
 	    if(this->itsPolFluxRef>0.)
 	      this->itsPolAngleRef = acos(this->itsStokesQref/this->itsPolFluxRef);
 	    else 
 	      this->itsPolAngleRef = 0.;
-	    this->itsAlpha = (log10(this->itsFlux)-this->itsI610L)/log10(1420./610.);
+// 	    this->itsAlpha = (log10(this->itsFlux)-this->itsI610)/log10(1400./610.);
         }
 
       void FullStokesContinuum::print(std::ostream &theStream)
       {
 	theStream.setf(std::ios::showpoint);
-	theStream << this->itsSourceID << std::setw(7)<<this->itsClusterID << std::setw(11)<<this->itsGalaxyID 
+	theStream << this->itsComponentNum << std::setw(7)<<this->itsClusterID << std::setw(11)<<this->itsGalaxyNum
 		  << std::setw(3)<<this->itsSFtype << std::setw(3)<<this->itsAGNtype << std::setw(3)<<this->itsStructure;
 	theStream << std::setw(12)<<this->itsRA << std::setw(12)<<this->itsDec;
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
@@ -111,11 +123,11 @@ namespace askap {
 	theStream.precision(3);
 	theStream << std::setw(10)<<this->itsPA << std::setw(10)<<this->itsMaj << std::setw(10)<<this->itsMin;
 	theStream.precision(4);
-	theStream << std::setw(10)<<this->itsI151L << std::setw(10)<<this->itsI610L;
+	theStream << std::setw(10)<<this->itsI151 << std::setw(10)<<this->itsI610;
 	theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed); 
 	theStream << std::setw(12)<<this->itsFlux << std::setw(12)<<this->itsStokesQref << std::setw(12)<<this->itsStokesUref << std::setw(12)<<this->itsPolFluxRef;
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
-	theStream << std::setw(10)<<this->itsPolFracRef << std::setw(10)<<this->itsI4p8L << std::setw(10)<<this->itsI18L << std::setw(10)<<this->itsCosVA 
+	theStream << std::setw(10)<<this->itsPolFracRef << std::setw(10)<<this->itsI4860 << std::setw(10)<<this->itsI18000 << std::setw(10)<<this->itsCosVA 
 		  << std::setw(11)<<this->itsRM << std::setw(11)<<this->itsRMflag;
 	theStream << "\n";
       }
@@ -128,7 +140,7 @@ namespace askap {
 
 
         FullStokesContinuum::FullStokesContinuum(const FullStokesContinuum& c):
-                Continuum(c)
+                ContinuumS3SEX(c)
         {
             operator=(c);
         }
@@ -137,19 +149,12 @@ namespace askap {
         {
             if (this == &c) return *this;
 
-            ((Continuum &) *this) = c;
-	    this->itsSourceID = c.itsSourceID;
+            ((ContinuumS3SEX &) *this) = c;
 	    this->itsClusterID = c.itsClusterID;
-	    this->itsGalaxyID = c.itsGalaxyID;
 	    this->itsSFtype = c.itsSFtype;
 	    this->itsAGNtype = c.itsAGNtype;
-	    this->itsStructure = c.itsStructure;
 	    this->itsDistance = c.itsDistance;
 	    this->itsRedshift = c.itsRedshift;
-	    this->itsI151L = c.itsI151L;
-	    this->itsI610L = c.itsI610L;
-	    this->itsI4p8L = c.itsI4p8L;
-	    this->itsI18L = c.itsI18L;
 	    this->itsCosVA = c.itsCosVA;
 	    this->itsStokesRefFreq = c.itsStokesRefFreq;
 	    this->itsStokesQref = c.itsStokesQref;
@@ -168,7 +173,16 @@ namespace askap {
             if (this == &c) return *this;
 
             ((Continuum &) *this) = c;
-            this->defineSource(0., 0., 1400.);
+            this->defineSource(0., 0., 1400.e6);
+            return *this;
+        }
+
+        FullStokesContinuum& FullStokesContinuum::operator= (const ContinuumS3SEX& c)
+        {
+            if (this == &c) return *this;
+
+            ((ContinuumS3SEX &) *this) = c;
+            this->defineSource(0., 0., 1400.e6);
             return *this;
         }
 
@@ -177,7 +191,7 @@ namespace askap {
             if (this == &c) return *this;
 
             ((Spectrum &) *this) = c;
-            this->defineSource(0., 0., 1400.);
+            this->defineSource(0., 0., 1400.e6);
             return *this;
         }
 

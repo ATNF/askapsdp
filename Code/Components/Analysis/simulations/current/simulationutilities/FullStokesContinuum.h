@@ -31,12 +31,14 @@
 
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
+#include <simulationutilities/ContinuumS3SEX.h>
 
 namespace askap {
 
   namespace simulations {
 
     const double C=299279458.;
+    const float POLREFFREQ=1.42e9;  // Reference frequency for polarisation angle - each component of a source has the same angle at this freq
 
     /// @brief A class to hold spectral information for a continuum spectrum with polarisation.
     /// @details This class holds information on the continuum
@@ -45,11 +47,13 @@ namespace askap {
     /// new items are the fluxes of various Stokes parameters and the Rotation
     /// Measure.
 
-    class FullStokesContinuum : public Continuum {
+    class FullStokesContinuum : public ContinuumS3SEX {
     public:
 
       /// @brief Default constructor
       FullStokesContinuum();
+      /// @brief Constructor from ContinuumS3SEX object
+      FullStokesContinuum(ContinuumS3SEX &s);
       /// @brief Constructor from Continuum object
       FullStokesContinuum(Continuum &s);
       /// @brief Constructor from Spectrum object
@@ -63,6 +67,8 @@ namespace askap {
 
       /// @brief Assignment operator for FullStokesContinuum.
       FullStokesContinuum& operator= (const FullStokesContinuum& c);
+      /// @brief Assignment operator for FullStokesContinuum, using a ContinuumS3SEX object
+      FullStokesContinuum& operator= (const ContinuumS3SEX& c);
       /// @brief Assignment operator for FullStokesContinuum, using a Continuum object
       FullStokesContinuum& operator= (const Continuum& c);
       /// @brief Assignment operator for FullStokesContinuum, using a Spectrum object
@@ -81,18 +87,11 @@ namespace askap {
 
     protected:
 		
-      int    itsSourceID;
       int    itsClusterID;
-      int    itsGalaxyID;
       int    itsSFtype;
       int    itsAGNtype;
-      int    itsStructure;
       double itsDistance;
       double itsRedshift;
-      double itsI151L;
-      double itsI610L;
-      double itsI4p8L;
-      double itsI18L;
       double itsCosVA;
 
       double itsStokesRefFreq;
