@@ -205,7 +205,7 @@ namespace askap {
             /// @param axes The shape of the flux array
             /// @param gauss The 2D Gaussian component to be added
             /// @return True if the component would be added to any pixels in the array. False if not.
-	    float majorSigma = SIGMAtoFWHM(gauss.majorAxis());
+	    float majorSigma = FWHMtoSIGMA(gauss.majorAxis());
             float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
             int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), int(axes[0] - 1));
@@ -287,15 +287,15 @@ namespace askap {
             /// @param gauss The 2-dimensional Gaussian component.
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
 
-	  float majorSigma = SIGMAtoFWHM(gauss.majorAxis()) ;
+	  float majorSigma = FWHMtoSIGMA(gauss.majorAxis()) ;
             float zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            float minorSigma = SIGMAtoFWHM(gauss.minorAxis());
+            float minorSigma = FWHMtoSIGMA(gauss.minorAxis());
             float zeroPointMin = minorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPointMax), 0);
             int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPointMax), int(axes[0] - 1));
             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPointMax), 0);
             int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPointMax), int(axes[1] - 1));
-// 	    ASKAPLOG_DEBUG_STR(logger, zeroPointMax << " " << zeroPointMin<< "   " << xmin << " " << xmax << " " << ymin << " " << ymax);
+	    ASKAPLOG_DEBUG_STR(logger, majorSigma << " " << minorSigma << " " << zeroPointMax << " " << zeroPointMin<< "   " << xmin << " " << xmax << " " << ymin << " " << ymax);
 
 	    bool addSource = (xmax >= xmin) && (ymax >= ymin);
             if (addSource) {  // if there are object pixels falling within the image boundaries
@@ -310,7 +310,7 @@ namespace askap {
                                        << "] (zeropoints = " << zeroPointMax << "," << zeroPointMin << ") (dimensions of array=" << ss.str() << ")");
 
                 // Test to see whether this should be treated as a point source
-                float minSigma = SIGMAtoFWHM(std::min(gauss.majorAxis(), gauss.minorAxis()));
+                float minSigma = FWHMtoSIGMA(std::min(gauss.majorAxis(), gauss.minorAxis()));
 //        float delta = std::min(0.01,pow(10., floor(log10(minSigma/5.))));
 //        float delta = pow(10.,floor(log10(minSigma))-1.);
                 float delta = std::min(1. / 32., pow(10., floor(log10(minSigma / 5.) / log10(2.)) * log10(2.)));
@@ -366,8 +366,9 @@ namespace askap {
 
 			    float xlim1,xlim2,ylim1,ylim2;
 			    findEllipseLimits(zeroPointMax, zeroPointMin, gauss.PA(),xlim1,xlim2,ylim1,ylim2);
-// 			    ASKAPLOG_DEBUG_STR(logger, xlim1 << " " << xlim2 << " " << ylim1 << " " << ylim2);
-// 			    ASKAPLOG_DEBUG_STR(logger, dx[0] << " " << dx[1] << " " << dy[0] << " " << dy[1]);
+// 			    ASKAPLOG_DEBUG_STR(logger, "separation = " << separation << " (needs to be less than 1, or dx within xlim etc");
+// 			    ASKAPLOG_DEBUG_STR(logger, "xlims,ylims: " << xlim1 << " " << xlim2 << " " << ylim1 << " " << ylim2);
+// 			    ASKAPLOG_DEBUG_STR(logger, "dxs, dys: " << dx[0] << " " << dx[1] << " " << dy[0] << " " << dy[1]);
 			    
                             if (separation <= 1. ||
 				((dx[0]<=xlim1 && dx[1]>=xlim2) && (dy[0]<=ylim1 && dy[1]>=ylim2))){
@@ -395,6 +396,7 @@ namespace askap {
                                         else yScaleFactor = (dy % 2 == 1) ? 4. : 2.;
 
                                         pixelVal += gauss(xpos, ypos) * (xScaleFactor * yScaleFactor);
+// 					if(gauss(xpos,ypos)>0.) ASKAPLOG_DEBUG_STR(logger, xpos << " " << ypos << " " << gauss(xpos,ypos));
 
                                     }
                                 }
@@ -409,7 +411,7 @@ namespace askap {
 			    for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
 			      for (int z = 0; z < fluxGen.nChan(); z++) {
                                 pix = x + y * axes[0] + z * axes[0] * axes[1] + istokes*axes[0]*axes[1]*axes[2];
-// 				ASKAPLOG_DEBUG_STR(logger, "Adding flux of " << pixelVal*fluxGen.getFlux(z,istokes) << " to (x,y,z)=("<<x<<","<<y<<","<<z<<")");
+// 				ASKAPLOG_DEBUG_STR(logger, "Adding flux of " << pixelVal*fluxGen.getFlux(z,istokes) << " (from pixelval="<<pixelVal<<" and fluxGen(z)="<<fluxGen.getFlux(z,istokes)<<") to (x,y,z)=("<<x<<","<<y<<","<<z<<")");
                                 array[pix] += pixelVal * fluxGen.getFlux(z,istokes);
 			      }
 			    }
@@ -458,7 +460,7 @@ namespace askap {
             else if (sinpa == 0.) direction = VERTICAL;
             else specialCase = false;
 
-            double majorSigma = SIGMAtoFWHM(gauss.majorAxis());
+            double majorSigma = FWHMtoSIGMA(gauss.majorAxis());
             double zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             double length = 0.;
             double increment = 0.;
@@ -576,13 +578,16 @@ namespace askap {
 	  G += x[i]*y[i]/ss;
 	  H += x[i]*x[i]*y[i]/ss;
 	}
+	ASKAPLOG_DEBUG_STR(logger, "A="<<A<<" B="<<B<<" C="<<C<<" D="<<D<<" E="<<E<<" F="<<F<<" G="<<G<<" H="<<H);
 	
 	float det=A*(C*E-D*D) + B*B*E - C*C*C;
 
 	std::vector<float> results(3);
 	results[0] = ( (C*E-D*D)*F + (B*E-C*D)*G + (B*D-C*C)*H ) / det;
 	results[1] = ( (B*E-C*D)*F + (A*E-C*C)*G + (A*D-B*C)*H ) / det;
-	results[1] = ( (B*D-C*C)*F + (A*D-B*C)*G + (A*C-B*B)*H ) / det;
+	results[2] = ( (B*D-C*C)*F + (A*D-B*C)*G + (A*C-B*B)*H ) / det;
+
+	ASKAPLOG_DEBUG_STR(logger, "Quadratic fit results: [0]="<<results[0]<<" [1]="<<results[1]<<" [2]="<<results[2]);
 	  
 	return results;
 
