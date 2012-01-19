@@ -155,7 +155,6 @@ namespace askap {
 	this->itsSourceSection = f.itsSourceSection;
 	this->itsHaveBeam = f.itsHaveBeam;
 	this->itsBeamInfo = f.itsBeamInfo;
-	this->itsHaveSpectralInfo = f.itsHaveSpectralInfo;
 	this->itsBaseFreq = f.itsBaseFreq;
 	this->itsRestFreq = f.itsRestFreq;
 	this->itsAddSources = f.itsAddSources;
@@ -318,7 +317,6 @@ namespace askap {
 	this->itsEquinox = parset.getFloat("equinox", 2000.);
 	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
 	ASKAPLOG_DEBUG_STR(logger,"Rest freq = " << this->itsRestFreq);
-	this->itsHaveSpectralInfo = parset.getBool("flagSpectralInfo", false);
 
 	LOFAR::ParameterSet subset(parset.makeSubset("WCSimage."));
 	this->itsWCSAllocated = false;
@@ -332,8 +330,7 @@ namespace askap {
 	}
 
 	this->itsBaseFreq = parset.getFloat("baseFreq", this->itsWCS->crval[this->itsWCS->spec]);
-
-	if (!this->itsHaveSpectralInfo) this->itsBaseFreq = this->itsWCS->crval[this->itsWCS->spec];
+	ASKAPLOG_DEBUG_STR(logger,"Base freq = " << this->itsBaseFreq);
 
 	if (this->itsDryRun) {
 	  this->itsFITSOutput = false;
@@ -350,7 +347,7 @@ namespace askap {
 
 	this->itsArrayAllocated = false;
 	if (allocateMemory && !this->itsDryRun) {
-	  ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() << " with " << this->itsNumPix << " pixels, each of size " << sizeof(float) << " bytes");
+	  ASKAPLOG_DEBUG_STR(logger, "Allocating array of dimensions " << ss.str() << " with " << this->itsNumPix << " pixels, each of size " << sizeof(float) << " bytes, for total size of " << this->itsNumPix*sizeof(float)/1024./1024./1024. << "GB");
 	  this->itsArray = new float[this->itsNumPix];
 	  this->itsArrayAllocated = true;
 	  ASKAPLOG_DEBUG_STR(logger, "Allocation done.");
@@ -512,20 +509,20 @@ namespace askap {
 
 	  if(this->itsDatabaseOrigin == "Continuum") {
 	    Continuum *cont = new Continuum;
-	    cont->define(line);
 	    cont->setNuZero(this->itsBaseFreq);
+	    cont->define(line);
 	    src = &(*cont);
 	  }
 	  else if(this->itsDatabaseOrigin == "Selavy"){
 	    ContinuumSelavy *sel = new ContinuumSelavy;
-	    sel->define(line);
 	    sel->setNuZero(this->itsBaseFreq);
+	    sel->define(line);
 	    src = &(*sel);
 	  }
 	  else if(this->itsDatabaseOrigin == "POSSUM"){
 	    FullStokesContinuum *stokes = new FullStokesContinuum;
-	    stokes->define(line);
 	    stokes->setNuZero(this->itsBaseFreq);
+	    stokes->define(line);
 	    src = &(*stokes);
 	  }
 	  else if(this->itsDatabaseOrigin == "NVSS"){
@@ -537,8 +534,8 @@ namespace askap {
 	  else if (this->itsDatabaseOrigin == "S3SEX") {
 	    if(this->itsSourceListType == "continuum"){
 	      ContinuumS3SEX *contS3SEX = new ContinuumS3SEX;
-	      contS3SEX->define(line);
 	      contS3SEX->setNuZero(this->itsBaseFreq);
+	      contS3SEX->define(line);
 	      src = &(*contS3SEX);
 	    }else if(this->itsSourceListType == "spectralline") {
 	      HIprofileS3SEX *profSEX = new HIprofileS3SEX;
@@ -619,30 +616,31 @@ namespace askap {
 	    if (line[0] != '#') {  // ignore commented lines
 
 	      if(this->itsDatabaseOrigin == "Continuum") {
-		cont.define(line);
 		cont.setNuZero(this->itsBaseFreq);
+		cont.define(line);
 		src = &cont;
 	      }
 	      else if(this->itsDatabaseOrigin == "Selavy"){
-		sel.define(line);
 		sel.setNuZero(this->itsBaseFreq);
+		sel.define(line);
 		src = &sel;
 	      }
 	      else if(this->itsDatabaseOrigin == "POSSUM"){
-		stokes.define(line);
 		stokes.setNuZero(this->itsBaseFreq);
+		stokes.define(line);
 		src = &stokes;
 	      }
 	      else if(this->itsDatabaseOrigin == "NVSS"){
+		nvss.setNuZero(this->itsBaseFreq);
 		nvss.define(line);
 		//		ASKAPLOG_DEBUG_STR(logger, "NVSS: " << nvss);
-		nvss.setNuZero(this->itsBaseFreq);
 		src = &nvss;
 	      }
 	      else if (this->itsDatabaseOrigin == "S3SEX") {
 		if(this->itsSourceListType == "continuum"){
 		  contS3SEX.setNuZero(this->itsBaseFreq);
 		  contS3SEX.define(line);
+// 		  ASKAPLOG_DEBUG_STR(logger, "RA="<<contS3SEX.ra() << ", DEC= " << contS3SEX.dec());
 		  src = &contS3SEX;
 		}else if(this->itsSourceListType == "spectralline") {
 		  profSEX.define(line);

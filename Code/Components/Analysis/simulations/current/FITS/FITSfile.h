@@ -187,8 +187,6 @@ namespace askap {
                     /// @brief The beam specifications: major axis, minor axis, position angle
                     std::vector<float> itsBeamInfo;
 
-                    /// @brief Do the sources have spectral information for a third axis?
-                    bool itsHaveSpectralInfo;
                     /// @brief The base frequency (used only for Continuum sources)
                     float itsBaseFreq;
                     /// @brief The rest frequency for emission-line sources: stored as RESTFREQ in the FITS header
