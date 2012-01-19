@@ -140,11 +140,6 @@ namespace askap {
 	    ydat[2]=this->itsI1400;
 	    ydat[3]=this->itsI4860;
 	    ydat[4]=this->itsI18000;
-// 	    fit=fitQuadratic(xdat,ydat);
-// 	    flux=fit[0];
-// 	    this->itsFlux = pow(10.,flux);
-// 	    this->itsAlpha=fit[1]/flux;
-// 	    this->itsBeta=fit[2]/flux - 0.5*this->itsAlpha*(this->itsAlpha-1);
 	    
 	    int ndata=5, nterms=5;
 	    double chisq;

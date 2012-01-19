@@ -74,9 +74,6 @@ namespace askap {
         bool doAddGaussian(std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss);
         bool doAddPointSource(std::vector<unsigned int> axes, double *pix);
 
-	/// @brief Fitting a quadaratic directly to a bunch of points. No comment about goodness of fit.
-	std::vector<float> fitQuadratic(std::vector<float> x, std::vector<float> y);
-	std::vector<float> fitQuadratic(std::vector<float> x, std::vector<float> y, std::vector<float> sig);
     }
 
 }
