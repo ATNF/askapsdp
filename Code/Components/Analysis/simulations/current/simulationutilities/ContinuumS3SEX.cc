@@ -26,6 +26,8 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
+#include <askap_simulations.h>
+
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/ContinuumS3SEX.h>
@@ -165,23 +167,28 @@ namespace askap {
 	    gsl_multifit_wlinear (x, w, y, c, cov, &chisq, work);
 	    gsl_multifit_linear_free (work);
 	    
-	    ASKAPLOG_DEBUG_STR(logger, "GSL fit: chisq="<<chisq
-			       <<", results: [0]="<<gsl_vector_get(c,0)<<" [1]="<<gsl_vector_get(c,1)
-			       <<" [2]="<<gsl_vector_get(c,2)<<" [3]="<<gsl_vector_get(c,3)
-			       <<" [4]="<<gsl_vector_get(c,4));
+	    // ASKAPLOG_DEBUG_STR(logger, "GSL fit: chisq="<<chisq
+	    // 		       <<", results: [0]="<<gsl_vector_get(c,0)<<" [1]="<<gsl_vector_get(c,1)
+	    // 		       <<" [2]="<<gsl_vector_get(c,2)<<" [3]="<<gsl_vector_get(c,3)
+	    // 		       <<" [4]="<<gsl_vector_get(c,4));
 	    flux=gsl_vector_get(c,0);
 	    this->itsFlux = pow(10.,flux);
 	    this->itsAlpha=gsl_vector_get(c,1);
 	    this->itsBeta=gsl_vector_get(c,2);
 	    
+	    gsl_matrix_free (x);
+	    gsl_vector_free (y);
+	    gsl_vector_free (w);
+	    gsl_vector_free (c);
+	    gsl_matrix_free (cov);
 
-	    ASKAPLOG_DEBUG_STR(logger, "S3SEX source: ID="<<this->itsComponentNum
-			       <<", I151="<<itsI151<<", I610="<<itsI610
-			       <<", I1400="<<itsI1400<<", I4860="<<itsI4860
-			       <<", I18000="<<itsI18000<<", nu0="<<itsNuZero
-			       <<", flux="<<log10(this->itsFlux)
-			       <<", alpha="<<this->itsAlpha
-			       <<", beta="<<this->itsBeta);
+	    // ASKAPLOG_DEBUG_STR(logger, "S3SEX source: ID="<<this->itsComponentNum
+	    // 		       <<", I151="<<itsI151<<", I610="<<itsI610
+	    // 		       <<", I1400="<<itsI1400<<", I4860="<<itsI4860
+	    // 		       <<", I18000="<<itsI18000<<", nu0="<<itsNuZero
+	    // 		       <<", flux="<<log10(this->itsFlux)
+	    // 		       <<", alpha="<<this->itsAlpha
+	    // 		       <<", beta="<<this->itsBeta);
 
         }
 

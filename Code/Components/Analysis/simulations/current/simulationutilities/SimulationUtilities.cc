@@ -295,7 +295,7 @@ namespace askap {
             int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPointMax), int(axes[0] - 1));
             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPointMax), 0);
             int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPointMax), int(axes[1] - 1));
-	    ASKAPLOG_DEBUG_STR(logger, majorSigma << " " << minorSigma << " " << zeroPointMax << " " << zeroPointMin<< "   " << xmin << " " << xmax << " " << ymin << " " << ymax);
+	    // ASKAPLOG_DEBUG_STR(logger, majorSigma << " " << minorSigma << " " << zeroPointMax << " " << zeroPointMin<< "   " << xmin << " " << xmax << " " << ymin << " " << ymax);
 
 	    bool addSource = (xmax >= xmin) && (ymax >= ymin);
             if (addSource) {  // if there are object pixels falling within the image boundaries

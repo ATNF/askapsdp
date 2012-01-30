@@ -26,6 +26,8 @@
 ///
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
+#include <askap_simulations.h>
+
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/ContinuumS3SEX.h>
@@ -99,7 +101,7 @@ namespace askap {
 	       >> this->itsI4860 >> this->itsI18000 >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
 	    
 	    this->itsI1400 = log10(flux1400);
-	    ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1400<<" and itsI1400="<<this->itsI1400);
+	    // ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1400<<" and itsI1400="<<this->itsI1400);
 	    this->checkShape();
 	    this->defineSED();
 

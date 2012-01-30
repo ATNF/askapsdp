@@ -26,6 +26,8 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
+#include <askap_simulations.h>
+
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/ContinuumNVSS.h>
