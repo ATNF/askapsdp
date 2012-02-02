@@ -36,6 +36,8 @@ namespace askap {
 
     namespace simulations {
 
+      enum SEDTYPE { SIMPLE_POWERLAW, POWERLAW, FIT };
+
         /// @brief A class to hold spectral information for a continuum spectrum.
         /// @details This class holds information on the continuum
         /// properties of a spectral profile. The information kept is the spectral
@@ -74,8 +76,12 @@ namespace askap {
 		/// @brief Define using a line of input from an ascii file
 		void define(std::string &line);
 
+		/// @brief Set the type of SED to apply
+		void setSEDtype(SEDTYPE type){itsSEDtype=type;};
+		void defaultSEDtype(){itsSEDtype = FIT;};
+
 		/// @brief Define the flux & spectral slope/curvature based on the catalogue fluxes.
-		void defineSED();
+		void prepareForUse();
 
 		void print(std::ostream& theStream);
                 /// @brief Output the parameters for the source
@@ -90,6 +96,8 @@ namespace askap {
 		double itsI1400;
 		double itsI4860;
 		double itsI18000;
+
+		SEDTYPE itsSEDtype;
 
 		
         };

@@ -103,7 +103,6 @@ namespace askap {
 	    this->itsI1400 = log10(flux1400);
 	    // ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1400<<" and itsI1400="<<this->itsI1400);
 	    this->checkShape();
-	    this->defineSED();
 
 	    this->itsStokesRefFreq = POLREFFREQ;
 	    this->itsStokesVref = 0.;     // Setting Stokes V to be zero for now!

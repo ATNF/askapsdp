@@ -57,6 +57,8 @@ namespace askap {
 
 		void define(std::string &line);
 
+		void prepareForUse();
+
 		void print(std::ostream& theStream);
                 /// @brief Output the parameters for the source
                 friend std::ostream& operator<< (std::ostream& theStream, FLASHProfile &prof);

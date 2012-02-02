@@ -99,20 +99,26 @@ namespace askap {
             this->itsFlux = this->itsContinuumFlux;
 	    this->checkShape();
 
-	    double depth = (exp(-1.*this->itsPeakOpticalDepth)-1.)*this->itsContinuumFlux;
-	    this->itsGaussian.setHeight(depth);
-
-	    double centreFreq = redshiftToFreq(this->itsCentreRedshift,this->itsRestFreq);
-	    this->itsGaussian.setCenter(centreFreq);
-
-	    double freqmax=velToFreq(redshiftToVel(this->itsCentreRedshift)-this->itsVelocityWidth/2.,this->itsRestFreq);
-	    double freqmin=velToFreq(redshiftToVel(this->itsCentreRedshift)+this->itsVelocityWidth/2.,this->itsRestFreq);
-	    this->itsGaussian.setWidth(fabs(freqmax-freqmin));
-
 	    // ASKAPLOG_DEBUG_STR(logger, "FLASH input: " << line);
 	    // ASKAPLOG_DEBUG_STR(logger, "Defined source " << this->itsComponentNum << " with continuum flux="<<this->itsContinuumFlux<<", Component: " << this->itsComponent << " and Gaussian " << this->itsGaussian);
 
         }
+
+      void FLASHProfile::prepareForUse()
+      {
+	
+	double depth = (exp(-1.*this->itsPeakOpticalDepth)-1.)*this->itsContinuumFlux;
+	this->itsGaussian.setHeight(depth);
+	
+	double centreFreq = redshiftToFreq(this->itsCentreRedshift,this->itsRestFreq);
+	this->itsGaussian.setCenter(centreFreq);
+	
+	double freqmax=velToFreq(redshiftToVel(this->itsCentreRedshift)-this->itsVelocityWidth/2.,this->itsRestFreq);
+	double freqmin=velToFreq(redshiftToVel(this->itsCentreRedshift)+this->itsVelocityWidth/2.,this->itsRestFreq);
+	this->itsGaussian.setWidth(fabs(freqmax-freqmin));
+	
+      }
+
 
       void FLASHProfile::print(std::ostream& theStream)
       {

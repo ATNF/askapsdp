@@ -75,6 +75,7 @@ namespace askap {
 
                 /// @brief Set up the profile's parameters
                 void setup(GALTYPE type, double z, double mhi, double maj, double min);
+		void prepareForUse();
 
                 /// @brief What source type is this?
                 GALTYPE type() {return itsSourceType;};

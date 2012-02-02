@@ -72,7 +72,6 @@ namespace askap {
             ss >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA >> this->itsRedshift >> this->itsMHI >> type;
             this->itsSourceType = GALTYPE(type);
 	    this->checkShape();
-            this->setup(this->itsSourceType, this->itsRedshift, this->itsMHI, this->maj(), this->min());
         }
 
         HIprofileS3SEX::HIprofileS3SEX(const HIprofileS3SEX& h):
@@ -155,15 +154,28 @@ namespace askap {
             /// @param maj The major axis - used to get the inclination angle, and hence the \f$\Delta V\f$ value from VRot
             /// @param min The minor axis - used to get the inclination angle, and hence the \f$\Delta V\f$ value from VRot
 
+	  this->itsSourceType = type;
+	  this->itsRedshift = z;
+	  this->itsMHI = mhi;
+	  this->itsMaj = maj;
+	  this->itsMin = min;
+	  
+	  this->prepareForUse();
+
+	}
+
+      void HIprofileS3SEX::prepareForUse()
+      {
+
             const double rootTwoPi = 4. * M_SQRT1_2 / M_2_SQRTPI;  // sqrt(2pi), using, from math.h: M_SQRT1_2=1/sqrt(2) and M_2_SQRTPI=2/sqrt(pi),
 
-            this->itsIntFlux = this->integratedFlux(z, mhi);
-            this->itsVRot = vrotMin[type] + (vrotMax[type] - vrotMin[type]) * random() / (RAND_MAX + 1.0);
+            this->itsIntFlux = this->integratedFlux(this->itsRedshift, this->itsMHI);
+            this->itsVRot = vrotMin[this->itsSourceType] + (vrotMax[this->itsSourceType] - vrotMin[this->itsSourceType]) * random() / (RAND_MAX + 1.0);
 
-            if (maj == min) this->itsDeltaVel = 0.01 * this->itsVRot;
-            else this->itsDeltaVel = this->itsVRot * sin(acos(min / maj));
+            if (this->itsMaj == this->itsMin) this->itsDeltaVel = 0.01 * this->itsVRot;
+            else this->itsDeltaVel = this->itsVRot * sin(acos(this->itsMin / this->itsMaj));
 
-            this->itsVelZero = redshiftToVel(z);
+            this->itsVelZero = redshiftToVel(this->itsRedshift);
 
             this->itsSigmaEdge = normalRandomVariable(doubleHornShape[EDGE_SIG_MEAN], doubleHornShape[EDGE_SIG_SD]);
             this->itsSigmaEdge = std::max(this->itsSigmaEdge, doubleHornShape[EDGE_SIG_MIN]);

@@ -58,18 +58,21 @@ namespace askap {
                 Continuum()
         {
             this->defineSource(0., 0., 1400.);
+	    this->defaultSEDtype();
         }
 
         ContinuumS3SEX::ContinuumS3SEX(Continuum &c):
                 Continuum(c)
         {
             this->defineSource(0., 0., 1400.);
+	    this->defaultSEDtype();
         }
 
         ContinuumS3SEX::ContinuumS3SEX(Spectrum &s):
                 Continuum(s)
         {
             this->defineSource(0., 0., 1400.);
+	    this->defaultSEDtype();
         }
 
         ContinuumS3SEX::ContinuumS3SEX(std::string &line)
@@ -78,6 +81,7 @@ namespace askap {
             /// text from an ascii file. Uses the ContinuumS3SEX::define()
             /// function.
 	  this->define(line);
+	  this->defaultSEDtype();
 	}
 
         void ContinuumS3SEX::define(std::string &line)
@@ -96,41 +100,42 @@ namespace askap {
 	       >> this->itsI151 >> this->itsI610 >> this->itsI1400 >> this->itsI4860 >> this->itsI18000;
 	    
 	    this->checkShape();
-	    this->defineSED();
-				 
 
 	}
 
-        void ContinuumS3SEX::defineSED()
+        void ContinuumS3SEX::prepareForUse()
 	{ 
 	  /// @details Define the values of the flux, the spectral
 	  /// index (alpha) and curvature (beta), based on the five
 	  /// flux values provided.
 	  
-	    double flux;
-// 	    this->itsFlux=pow(10.,this->itsI1400);
-// 	    this->itsAlpha = (log10(this->itsFlux)-this->itsI610)/log10(1400./610.);
-// 	    this->itsBeta = 0.;
-
-// 	    if(this->itsNuZero<610.e6){
-// 	      this->itsAlpha = (this->itsI610-this->itsI151)/log10(610./151.);
-// 	      flux = this->itsI151 + this->itsAlpha * log10(this->itsNuZero/151.e6);
-// 	    }
-// 	    else if(this->itsNuZero < 1400.e6){
-// 	      this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
-// 	      flux = this->itsI610 + this->itsAlpha * log10(this->itsNuZero/610.e6);
-// 	    }
-// 	    else if(this->itsNuZero < 4.86e9){
-// 	      this->itsAlpha = (this->itsI4860-this->itsI1400)/log10(4860./1400.);
-// 	      flux = this->itsI1400 + this->itsAlpha * log10(this->itsNuZero/1400.e6);
-// 	    }
-// 	    else{
-// 	      this->itsAlpha = (this->itsI18000-this->itsI4860)/log10(18000./4860.);
-// 	      flux = this->itsI4860 + this->itsAlpha * log10(this->itsNuZero/4860.e6);
-// 	    }
-// 	    this->itsFlux = pow(10.,flux);
-// 	    this->itsBeta = 0.;
-			      
+	  double flux;
+	  if(this->itsSEDtype == SIMPLE_POWERLAW) {
+	    this->itsFlux=pow(10.,this->itsI1400);
+	    this->itsAlpha = (log10(this->itsFlux)-this->itsI610)/log10(1400./610.);
+	    this->itsBeta = 0.;
+	  }
+	  else if(this->itsSEDtype == POWERLAW) {
+	    if(this->itsNuZero<610.e6){
+	      this->itsAlpha = (this->itsI610-this->itsI151)/log10(610./151.);
+	      flux = this->itsI151 + this->itsAlpha * log10(this->itsNuZero/151.e6);
+	    }
+	    else if(this->itsNuZero < 1400.e6){
+	      this->itsAlpha = (this->itsI1400-this->itsI610)/log10(1400./610.);
+	      flux = this->itsI610 + this->itsAlpha * log10(this->itsNuZero/610.e6);
+	    }
+	    else if(this->itsNuZero < 4.86e9){
+	      this->itsAlpha = (this->itsI4860-this->itsI1400)/log10(4860./1400.);
+	      flux = this->itsI1400 + this->itsAlpha * log10(this->itsNuZero/1400.e6);
+	    }
+	    else{
+	      this->itsAlpha = (this->itsI18000-this->itsI4860)/log10(18000./4860.);
+	      flux = this->itsI4860 + this->itsAlpha * log10(this->itsNuZero/4860.e6);
+	    }
+	    this->itsFlux = pow(10.,flux);
+	    this->itsBeta = 0.;
+	  }
+	  else if(this->itsSEDtype == FIT) {
 	    std::vector<float> xdat(5),ydat(5),fit;
 	    xdat[0]=log10(151.e6/this->itsNuZero);
 	    xdat[1]=log10(610.e6/this->itsNuZero);
@@ -171,6 +176,7 @@ namespace askap {
 	    // 		       <<", results: [0]="<<gsl_vector_get(c,0)<<" [1]="<<gsl_vector_get(c,1)
 	    // 		       <<" [2]="<<gsl_vector_get(c,2)<<" [3]="<<gsl_vector_get(c,3)
 	    // 		       <<" [4]="<<gsl_vector_get(c,4));
+
 	    flux=gsl_vector_get(c,0);
 	    this->itsFlux = pow(10.,flux);
 	    this->itsAlpha=gsl_vector_get(c,1);
@@ -189,34 +195,37 @@ namespace askap {
 	    // 		       <<", flux="<<log10(this->itsFlux)
 	    // 		       <<", alpha="<<this->itsAlpha
 	    // 		       <<", beta="<<this->itsBeta);
-
+	  }
+	  else{
+	    ASKAPLOG_ERROR_STR(logger, "Unknown SED type in ContinuumS3SEX");
+	  }
         }
 
-        ContinuumS3SEX::ContinuumS3SEX(const ContinuumS3SEX& c):
-                Continuum(c)
-        {
-            operator=(c);
-        }
+      ContinuumS3SEX::ContinuumS3SEX(const ContinuumS3SEX& c):
+	Continuum(c)
+      {
+	operator=(c);
+      }
 
-        ContinuumS3SEX& ContinuumS3SEX::operator= (const ContinuumS3SEX& c)
-        {
-            if (this == &c) return *this;
+      ContinuumS3SEX& ContinuumS3SEX::operator= (const ContinuumS3SEX& c)
+      {
+	if (this == &c) return *this;
 
-            ((Continuum &) *this) = c;
-            this->itsAlpha      = c.itsAlpha;
-            this->itsBeta       = c.itsBeta;
-            this->itsNuZero     = c.itsNuZero;
-            return *this;
-        }
+	((Continuum &) *this) = c;
+	this->itsAlpha      = c.itsAlpha;
+	this->itsBeta       = c.itsBeta;
+	this->itsNuZero     = c.itsNuZero;
+	return *this;
+      }
 
-        ContinuumS3SEX& ContinuumS3SEX::operator= (const Spectrum& c)
-        {
-            if (this == &c) return *this;
+      ContinuumS3SEX& ContinuumS3SEX::operator= (const Spectrum& c)
+      {
+	if (this == &c) return *this;
 
-            ((Continuum &) *this) = c;
-            this->defineSource(0., 0., 1400.);
-            return *this;
-        }
+	((Continuum &) *this) = c;
+	this->defineSource(0., 0., 1400.);
+	return *this;
+      }
 
 
       void ContinuumS3SEX::print(std::ostream& theStream)

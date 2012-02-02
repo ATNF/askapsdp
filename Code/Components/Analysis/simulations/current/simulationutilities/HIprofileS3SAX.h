@@ -73,7 +73,7 @@ namespace askap {
 		void define(std::string &line);
 
                 /// @brief Set up the profile's parameters
-                void setup();
+                void prepareForUse();
 
 		/// @brief Return the integrated flux of the profile
 		double intFlux(){return itsIntFlux;};

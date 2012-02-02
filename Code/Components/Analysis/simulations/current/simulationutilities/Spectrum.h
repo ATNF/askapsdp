@@ -83,6 +83,9 @@ namespace askap {
 		/// @brief Make sure the major axis is the bigger
 		void checkShape();
 
+		/// @brief Calculate any parameters that are needed before making use of the class
+		virtual void prepareForUse(){};
+
                 /// @brief Return the flux at a given frequency - not used for the base class
                 virtual double flux(double freq)  {return -77.;};
                 /// @brief Return the flux integrated between two frequencies - not used for the base class

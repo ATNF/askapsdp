@@ -143,10 +143,9 @@ namespace askap {
 	       >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
             this->itsFlux = this->itsFluxPeak * this->itsIntFlux;
 	    this->checkShape();
-            this->setup();
         }
 
-        void HIprofileS3SAX::setup()
+        void HIprofileS3SAX::prepareForUse()
         {
             /// @details Sets up the \f$k_i\f$ parameters and the
             /// integrated fluxes, according to the equations described in
