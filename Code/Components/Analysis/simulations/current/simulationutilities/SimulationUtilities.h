@@ -53,8 +53,8 @@ namespace askap {
     namespace simulations {
 
         /// @brief Convert between a Gaussian's sigma and its FWHM
-      inline double SIGMAtoFWHM(double f){return f / (2. * M_SQRT2 * sqrt(M_LN2));};
-      inline double FWHMtoSIGMA(double s){return s * (2. * M_SQRT2 * sqrt(M_LN2));};
+      inline double FWHMtoSIGMA(double f){return f / (2. * M_SQRT2 * sqrt(M_LN2));};
+      inline double SIGMAtoFWHM(double s){return s * (2. * M_SQRT2 * sqrt(M_LN2));};
 
         /// @brief Return a normal random variable
         float normalRandomVariable(float mean, float rms);
