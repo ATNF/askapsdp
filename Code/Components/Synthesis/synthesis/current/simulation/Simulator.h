@@ -148,6 +148,17 @@ namespace askap
                     itsNoiseRMS = rms;
                 }
 
+                /// @brief set relative Tsys/eff per antenna
+                /// @details This method allows to simulate different Tsys 
+                /// and efficiencies per antenna. The noise will be scaled
+                /// up with the given factors. Empty array switches the
+                /// scaling off and has the same effect as an array of 1
+                /// with the number of elements equal to the number of antennas
+                void setRelAntennaWeight(const casa::Vector<double> &wt)
+                {
+                   itsRelAntennaWeight.assign(wt.copy());
+                }
+
                 /// @brief Set meaning of times for observing
                 /// @param integrationtime Integration time e.g. "10s"
                 /// @param usehourangles Use hour angles for observing times?
@@ -288,6 +299,11 @@ namespace askap
                 /// matter for the final image). This field is 1. by default (to mimic the old behavior),
                 /// but can be set to the proper noise figure via the appropriate setter method.
                 double itsNoiseRMS;
+
+                /// @brief relative Tsys/eff per antenna
+                /// @details It is used to apply different scaling factor (to itsNoiseRMS) per antenna
+                /// Empty array means that the numbers are identical for all antennas.
+                casa::Vector<double> itsRelAntennaWeight;
         };
 
     }

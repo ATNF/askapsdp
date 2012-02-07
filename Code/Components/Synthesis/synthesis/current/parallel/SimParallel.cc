@@ -568,15 +568,39 @@ double SimParallel::getNoise(const LOFAR::ParameterSet& parset) const
        ASKAPCHECK(!parset.isDefined("rms") && !parset.isDefined("variance"), 
           "If an automatic noise estimate is used, neither 'rms', nor 'variance' parset parameters should be given");
    
-       const double Tsys = parset.getDouble("Tsys");
-       const double eff = parset.getDouble("efficiency");
-       ASKAPLOG_INFO_STR(logger, "Noise level is estimated automatically using Tsys="<<Tsys<<
-                                 " K and efficiency="<<eff);
-       ASKAPCHECK((eff > 0) && (eff <= 1.), "Efficiency is supposed to be from (0,1] interval");
-       ASKAPCHECK(Tsys>0, "Tsys is supposed to be positive");
+       const casa::Vector<double> tSysVector = parset.getDoubleVector("Tsys");
+       const casa::Vector<double> effVector = parset.getDoubleVector("efficiency");
+       ASKAPCHECK(tSysVector.nelements()>=1, "At least one Tsys has to be defined");
+       ASKAPCHECK(effVector.nelements()>=1, "At least one efficiency has to be defined");
+       ASKAPLOG_INFO_STR(logger, "Noise level is estimated automatically using Tsys="<<tSysVector<<
+                                 " K and efficiency="<<effVector);
+       for (casa::uInt ant = 0; ant<tSysVector.nelements(); ++ant) {
+            ASKAPCHECK(tSysVector[ant]>0, "Tsys is supposed to be positive, you have "<<tSysVector<<" ant="<<ant);
+       }
+       for (casa::uInt ant = 0; ant<effVector.nelements(); ++ant) {
+            ASKAPCHECK((effVector[ant] > 0) && (effVector[ant] <= 1.), "Efficiency is supposed to be from (0,1] interval, you have "<<
+                        effVector<<" ant="<<ant);
+       }
+       double TsysOverEff = tSysVector[0] / effVector[0];
+       ASKAPCHECK((tSysVector.nelements() == effVector.nelements()) || (tSysVector.nelements() == 1) || (effVector.nelements() == 1),
+                  "If multiple Tsys and efficiencies are given, their numbers should be equal");
        ASKAPASSERT(itsSim);                          
-       const double rms = 1e26*sqrt(2.)*1.38e-23*Tsys/eff/itsSim->areaTimesSqrtBT();
-       ASKAPLOG_INFO_STR(logger, " resulting in rms of "<<rms<<" Jy");
+       if (tSysVector.nelements() * effVector.nelements() > 1) {
+           casa::Vector<double> relWeights(tSysVector.nelements() != 1 ? tSysVector.nelements() : effVector.nelements(), 1.);
+           for (casa::uInt ant=0; ant<relWeights.nelements(); ++ant) {
+                relWeights[ant] = tSysVector[ant < tSysVector.nelements() ? ant : 0] / 
+                                  effVector[ant < effVector.nelements() ? ant : 0];
+                if (relWeights[ant] > TsysOverEff) {
+                    TsysOverEff = relWeights[ant];
+                }
+           }
+           for (casa::uInt ant=0; ant<relWeights.nelements(); ++ant) {
+                relWeights[ant] /= TsysOverEff;
+           }
+           itsSim->setRelAntennaWeight(relWeights);
+       }
+       const double rms = 1e26*sqrt(2.)*1.38e-23*TsysOverEff/itsSim->areaTimesSqrtBT();
+       ASKAPLOG_INFO_STR(logger, " resulting in peak rms of "<<rms<<" Jy");
        return rms*rms;
    } 
     

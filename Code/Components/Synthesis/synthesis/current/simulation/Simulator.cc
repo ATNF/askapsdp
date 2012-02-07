@@ -129,6 +129,7 @@ void Simulator::defaults()
     MVTime::read(today, "today");
     mRefTime_p = MEpoch(today, MEpoch::UTC);
     itsNoiseRMS = 1.;
+    itsRelAntennaWeight.assign(casa::Vector<double>());
 }
 
 Simulator::Simulator(const casa::String& MSName, int bucketSize,
@@ -989,9 +990,18 @@ void Simulator::observe(const casa::String& sourceName,
                             isShadowed(ant2) = True;
                         }
                     }
+                    // case with variable Tsys/efficiency
+                    double noiseRMS = itsNoiseRMS;
+                    if (itsRelAntennaWeight.nelements() > 0) {
+                        ASKAPCHECK(ant1 < casa::Int(itsRelAntennaWeight.nelements()), "encountered antenna index "<<ant1<<
+                                   " which is beyond the array of Tsys and/or efficiencies (variable efficiency case)");
+                        ASKAPCHECK(ant2 < casa::Int(itsRelAntennaWeight.nelements()), "encountered antenna index "<<ant2<<
+                                   " which is beyond the array of Tsys and/or efficiencies (variable efficiency case)");
+                        noiseRMS *= sqrt(itsRelAntennaWeight[ant1]*itsRelAntennaWeight[ant2]);
+                    }
 
                     // Deal with differing diameter case
-                    const Float sigma1 = diamMax2 / (antDiam(ant1) * antDiam(ant2)) * itsNoiseRMS;
+                    const Float sigma1 = diamMax2 / (antDiam(ant1) * antDiam(ant2)) * noiseRMS;
                     Float wt = 1 / square(sigma1);
 
                     if (ant1 == ant2) {
