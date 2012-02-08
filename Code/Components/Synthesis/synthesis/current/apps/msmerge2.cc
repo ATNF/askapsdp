@@ -47,8 +47,6 @@
 #include "casa/aips.h"
 #include "casa/Quanta.h"
 #include "casa/Arrays/Vector.h"
-#include "casa/Arrays/Matrix.h"
-#include "casa/Arrays/Cube.h"
 #include "casa/Arrays/MatrixMath.h"
 #include "tables/Tables/TableDesc.h"
 #include "tables/Tables/SetupNewTab.h"
@@ -391,8 +389,8 @@ void mergeMainTable(const std::vector< boost::shared_ptr<const ROMSColumns> >& s
 
         // 3: Copy the data from each input into the output matrix
         for (uInt i = 0; i < srcMscs.size(); ++i) {
-            const casa::Matrix<casa::Complex>& srcData = srcMscs[i]->data()(row);
-            const casa::Matrix<casa::Bool>& srcFlag = srcMscs[i]->flag()(row);
+            const casa::Matrix<casa::Complex> srcData = srcMscs[i]->data()(row);
+            const casa::Matrix<casa::Bool> srcFlag = srcMscs[i]->flag()(row);
             for (uInt pol = 0; pol < nPol; ++pol) {
                 for (uInt chan = 0; chan < nChan; ++chan) {
                     data(pol, chan + (nChan * i)) = srcData(pol, chan);

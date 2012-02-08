@@ -409,8 +409,8 @@ void splitMainTable(const casa::MeasurementSet& source,
         casa::Matrix<casa::Bool> flag(nPol, nChanOut);
 
         // 3: Copy the data from each input into the output matrix
-        const casa::Matrix<casa::Complex>& srcData = sc.data()(row);
-        const casa::Matrix<casa::Bool>& srcFlag = sc.flag()(row);
+        const casa::Matrix<casa::Complex> srcData = sc.data()(row);
+        const casa::Matrix<casa::Bool> srcFlag = sc.flag()(row);
 
         for (uInt pol = 0; pol < nPol; ++pol) {
             for (uInt destChan = 0; destChan < nChanOut; ++destChan) {
