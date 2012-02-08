@@ -64,13 +64,11 @@ ASKAP_LOGGER(logger, ".msmerge2");
 using namespace askap;
 using namespace casa;
 
-boost::shared_ptr<casa::MeasurementSet> create(const std::string& filename)
+boost::shared_ptr<casa::MeasurementSet> create(const std::string& filename,
+                                               casa::uInt bucketSize,
+                                               casa::uInt tileNcorr,
+                                               casa::uInt tileNchan)
 {
-    // Get configuration first to ensure all parameters are present
-    casa::uInt bucketSize =  128 * 1024;
-    casa::uInt tileNcorr = 4;
-    casa::uInt tileNchan = 1;
-
     if (bucketSize < 8192) {
         bucketSize = 8192;
     }
@@ -320,22 +318,36 @@ void splitSpectralWindow(const casa::MeasurementSet& source,
         dc.netSideband().put(row, sc.netSideband()(row));
 
         // 2: Now process each source measurement set, building up the arrays
+        const uInt nChanIn = endChan - startChan + 1;
+        const uInt nChanOut = nChanIn / width;
         std::vector<double> chanFreq;
         std::vector<double> chanWidth;
         std::vector<double> effectiveBW;
         std::vector<double> resolution;
-        const uInt nChanIn = endChan - startChan + 1;
-        const uInt nChanOut = nChanIn / width;
+        chanFreq.resize(nChanOut);
+        chanWidth.resize(nChanOut);
+        effectiveBW.resize(nChanOut);
+        resolution.resize(nChanOut);
         double totalBandwidth = 0.0;
 
-        for (uInt chan = startChan - 1; chan < nChanOut; ++chan) {
-            // Chan is zero-based inside this loop
-            totalBandwidth += sc.chanWidth()(row)(casa::IPosition(1, chan));
+        for (uInt destChan = 0; destChan < nChanOut; ++destChan) {
+            chanFreq[destChan] = 0.0;
+            chanWidth[destChan] = 0.0;
+            effectiveBW[destChan] = 0.0;
+            resolution[destChan] = 0.0;
 
-            chanFreq.push_back(sc.chanFreq()(row)(casa::IPosition(1, chan)));
-            chanWidth.push_back(sc.chanWidth()(row)(casa::IPosition(1, chan)));
-            effectiveBW.push_back(sc.effectiveBW()(row)(casa::IPosition(1, chan)));
-            resolution.push_back(sc.resolution()(row)(casa::IPosition(1, chan)));
+            // The offset for the first input channel for this destination channel
+            const uInt chanOffset = startChan - 1 + (destChan * width);
+            for (uInt i = chanOffset; i < chanOffset + width; ++i) {
+                chanFreq[destChan] += sc.chanFreq()(row)(casa::IPosition(1, i));
+                chanWidth[destChan] += sc.chanWidth()(row)(casa::IPosition(1, i));
+                effectiveBW[destChan] += sc.effectiveBW()(row)(casa::IPosition(1, i));
+                resolution[destChan] += sc.resolution()(row)(casa::IPosition(1, i));
+                totalBandwidth += sc.chanWidth()(row)(casa::IPosition(1, i));
+            }
+
+            // Finally average chanFreq
+            chanFreq[destChan] = chanFreq[destChan] / width;
         }
 
         // 3: Add those splitting/averaging cells
@@ -399,13 +411,25 @@ void splitMainTable(const casa::MeasurementSet& source,
         // 3: Copy the data from each input into the output matrix
         const casa::Matrix<casa::Complex>& srcData = sc.data()(row);
         const casa::Matrix<casa::Bool>& srcFlag = sc.flag()(row);
+
         for (uInt pol = 0; pol < nPol; ++pol) {
-            unsigned int destChan = 0;
-            for (uInt chan = startChan - 1; chan < nChanOut; ++chan) {
-                // Chan is zero-based inside this loop
-                data(pol, destChan) = srcData(pol, chan);
-                flag(pol, destChan) = srcFlag(pol, chan);
-                destChan++;
+            for (uInt destChan = 0; destChan < nChanOut; ++destChan) {
+                casa::Complex sum(0.0, 0.0);
+                casa::Bool overallFlag = false;
+
+                // The offset for the first input channel for this destination channel
+                const uInt chanOffset = startChan - 1 + (destChan * width);
+                for (uInt i = chanOffset; i < chanOffset + width; ++i) {
+                    sum += srcData(pol, i);
+                    if (srcFlag(pol, i)) {
+                        overallFlag = true;
+                    }
+                }
+
+                // Now the input channels have been average
+                data(pol, destChan) = casa::Complex(sum.real() / width,
+                                                    sum.imag() / width);
+                flag(pol, destChan) = overallFlag;
             }
         }
 
@@ -416,12 +440,22 @@ void splitMainTable(const casa::MeasurementSet& source,
 }
 
 int split(const std::string& invis, const std::string& outvis,
-           const unsigned int startChan,
-           const unsigned int endChan,
-           const unsigned int width)
+          const unsigned int startChan,
+          const unsigned int endChan,
+          const unsigned int width,
+          const LOFAR::ParameterSet& parset)
 {
+    ASKAPLOG_INFO_STR(logger,  "Splitting out channel range " << startChan << " to "
+            << endChan << " (inclusive)");
+    if (width > 1) {
+        ASKAPLOG_INFO_STR(logger,  "Averaging " << width << " channels to form 1");
+    } else {
+        ASKAPLOG_INFO_STR(logger,  "No averaging");
+    }
+
     // Verify split parameters
-    if (((endChan - startChan) % width != 0) && (width > 0)) {
+    const uInt nChanIn = endChan - startChan + 1;
+    if ((width < 1) || (nChanIn % width != 0)) {
         ASKAPLOG_ERROR_STR(logger, "Width must equally divide the channel range");
         return 1;
     }
@@ -434,14 +468,10 @@ int split(const std::string& invis, const std::string& outvis,
             ASKAPLOG_ERROR_STR(logger, "File or table " << outvis << " already exists!");
             return 1;
     }
-    boost::shared_ptr<casa::MeasurementSet> out(create(outvis));
-
-    ASKAPLOG_INFO_STR(logger,  "Splitting out channel range " << startChan << " to " << endChan << " (inclusive)");
-    if (width != 1) {
-        ASKAPLOG_INFO_STR(logger,  "Averaging " << width << " channels to form one");
-    } else {
-        ASKAPLOG_INFO_STR(logger,  "No averaging");
-    }
+    const casa::uInt bucketSize = parset.getUint32("stman.bucketsize", 128 * 1024);
+    const casa::uInt tileNcorr = parset.getUint32("stman.tilencorr", 4);
+    const casa::uInt tileNchan = parset.getUint32("stman.tilenchan", 1);
+    boost::shared_ptr<casa::MeasurementSet> out(create(outvis, bucketSize, tileNcorr, tileNchan));
 
     // Copy ANTENNA
     ASKAPLOG_INFO_STR(logger,  "Copying ANTENNA table");
@@ -482,7 +512,7 @@ int split(const std::string& invis, const std::string& outvis,
     return 0;
 }
 
-std::pair<unsigned int, unsigned int> parseRange(const LOFAR::ParameterSet parset)
+std::pair<unsigned int, unsigned int> parseRange(const LOFAR::ParameterSet& parset)
 {
     std::pair<unsigned int, unsigned int> result;
     const std::string raw = parset.getString("channel");
@@ -545,12 +575,12 @@ int main(int argc, const char** argv)
         const std::string invis = parset.getString("vis");
         const std::string outvis = parset.getString("outputvis");
         const std::pair<unsigned int, unsigned int> range = parseRange(parset);
-
         const unsigned int width = parset.getUint32("width", 1);
-        error = split(invis, outvis, range.first, range.second, width);
 
-        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
-                              << " real:   " << timer.real());
+        error = split(invis, outvis, range.first, range.second, width, parset);
+
+        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: "
+                << timer.system() << " real:   " << timer.real());
     } catch (const cmdlineparser::XParser &ex) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         ASKAPLOG_FATAL_STR(logger, "Usage: " << argv[0] << " -o output.ms inMS1 ... inMSn");
