@@ -33,6 +33,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <utility>
 #include <algorithm>
 #include <iterator>
 
@@ -290,17 +291,62 @@ void copyPolarization(const casa::MeasurementSet& source, casa::MeasurementSet& 
     dc.corrProduct().putColumn(sc.corrProduct());
 }
 
-void appendToVector(const casa::Vector<double>& src, std::vector<double>& dest)
-{
-    std::copy(src.begin(), src.end(), std::back_inserter(dest));
-}
-
 void splitSpectralWindow(const casa::MeasurementSet& source,
                          casa::MeasurementSet& dest,
                          const unsigned int startChan,
                          const unsigned int endChan,
                          const unsigned int width)
 {
+    MSColumns destCols(dest);
+    const ROMSColumns srcCols(source);
+
+    MSSpWindowColumns& dc = destCols.spectralWindow();
+    const ROMSSpWindowColumns& sc = srcCols.spectralWindow();
+    const uInt nrows = sc.nrow();
+    ASKAPCHECK(nrows == 1, "Only single spectral window is supported");
+    dest.spectralWindow().addRow(nrows);
+
+    // For each row
+    for (uInt row = 0; row < nrows; ++row) {
+
+        // 1: Copy over the simple cells (i.e. those not needing splitting/averaging)
+        dc.measFreqRef().put(row, sc.measFreqRef()(row));
+        dc.refFrequency().put(row, sc.refFrequency()(row));
+        dc.flagRow().put(row, sc.flagRow()(row));
+        dc.freqGroup().put(row, sc.freqGroup()(row));
+        dc.freqGroupName().put(row, sc.freqGroupName()(row));
+        dc.ifConvChain().put(row, sc.ifConvChain()(row));
+        dc.name().put(row, sc.name()(row));
+        dc.netSideband().put(row, sc.netSideband()(row));
+
+        // 2: Now process each source measurement set, building up the arrays
+        std::vector<double> chanFreq;
+        std::vector<double> chanWidth;
+        std::vector<double> effectiveBW;
+        std::vector<double> resolution;
+        const uInt nChanIn = endChan - startChan + 1;
+        const uInt nChanOut = nChanIn / width;
+        double totalBandwidth = 0.0;
+
+        for (uInt chan = startChan - 1; chan < nChanOut; ++chan) {
+            // Chan is zero-based inside this loop
+            totalBandwidth += sc.chanWidth()(row)(casa::IPosition(1, chan));
+
+            chanFreq.push_back(sc.chanFreq()(row)(casa::IPosition(1, chan)));
+            chanWidth.push_back(sc.chanWidth()(row)(casa::IPosition(1, chan)));
+            effectiveBW.push_back(sc.effectiveBW()(row)(casa::IPosition(1, chan)));
+            resolution.push_back(sc.resolution()(row)(casa::IPosition(1, chan)));
+        }
+
+        // 3: Add those splitting/averaging cells
+        dc.numChan().put(row, nChanOut);
+        dc.chanFreq().put(row, casa::Vector<double>(chanFreq));
+        dc.chanWidth().put(row, casa::Vector<double>(chanWidth));
+        dc.effectiveBW().put(row, casa::Vector<double>(effectiveBW));
+        dc.resolution().put(row, casa::Vector<double>(resolution));
+        dc.totalBandwidth().put(row, totalBandwidth);
+
+    } // End for rows
 }
 
 void splitMainTable(const casa::MeasurementSet& source,
@@ -309,20 +355,93 @@ void splitMainTable(const casa::MeasurementSet& source,
                     const unsigned int endChan,
                     const unsigned int width)
 {
+    const ROMSColumns sc(source);
+    MSColumns dc(dest);
+
+    // Add rows upfront
+    const casa::uInt nRows = sc.nrow();
+    dest.addRow(nRows);
+
+    // For each row
+    for (uInt row = 0; row < nRows; ++row) {
+        if (row % 10000 == 0) {
+            ASKAPLOG_INFO_STR(logger,  "Splitting and/or averaging row " << row << " of " << nRows);
+        }
+
+        // 1: Copy over the simple cells (i.e. those not needing averaging/merging)
+        dc.scanNumber().put(row, sc.scanNumber()(row));
+        dc.fieldId().put(row, sc.fieldId()(row));
+        dc.dataDescId().put(row, sc.dataDescId()(row));
+        dc.time().put(row, sc.time()(row));
+        dc.timeCentroid().put(row, sc.timeCentroid()(row));
+        dc.arrayId().put(row, sc.arrayId()(row));
+        dc.processorId().put(row, sc.processorId()(row));
+        dc.exposure().put(row, sc.exposure()(row));
+        dc.interval().put(row, sc.interval()(row));
+        dc.observationId().put(row, sc.observationId()(row));
+        dc.antenna1().put(row, sc.antenna1()(row));
+        dc.antenna2().put(row, sc.antenna2()(row));
+        dc.feed1().put(row, sc.feed1()(row));
+        dc.feed2().put(row, sc.feed2()(row));
+        dc.uvw().put(row, sc.uvw()(row));
+        dc.flagRow().put(row, sc.flagRow()(row));
+        dc.weight().put(row, sc.weight()(row));
+        dc.sigma().put(row, sc.sigma()(row));
+
+        // 2: Size the matrix for data and flag
+        const uInt nPol = sc.data()(row).shape()(0);
+        const uInt nChanIn = endChan - startChan + 1;
+        const uInt nChanOut = nChanIn / width;
+
+        casa::Matrix<casa::Complex> data(nPol, nChanOut);
+        casa::Matrix<casa::Bool> flag(nPol, nChanOut);
+
+        // 3: Copy the data from each input into the output matrix
+        const casa::Matrix<casa::Complex>& srcData = sc.data()(row);
+        const casa::Matrix<casa::Bool>& srcFlag = sc.flag()(row);
+        for (uInt pol = 0; pol < nPol; ++pol) {
+            unsigned int destChan = 0;
+            for (uInt chan = startChan - 1; chan < nChanOut; ++chan) {
+                // Chan is zero-based inside this loop
+                data(pol, destChan) = srcData(pol, chan);
+                flag(pol, destChan) = srcFlag(pol, chan);
+                destChan++;
+            }
+        }
+
+        // 4: Add those split/merged cells
+        dc.data().put(row, data);
+        dc.flag().put(row, flag);
+    }
 }
 
-void split(const std::string& invis, const std::string& outvis,
+int split(const std::string& invis, const std::string& outvis,
            const unsigned int startChan,
            const unsigned int endChan,
            const unsigned int width)
 {
+    // Verify split parameters
+    if (((endChan - startChan) % width != 0) && (width > 0)) {
+        ASKAPLOG_ERROR_STR(logger, "Width must equally divide the channel range");
+        return 1;
+    }
+
     // Open the input measurement set
     const casa::MeasurementSet in(invis);
 
     // Create the output measurement set
-    ASKAPCHECK(!casa::File(outvis).exists(), "File or table "
-                   << outvis << " already exists!");
+    if (casa::File(outvis).exists()) {
+            ASKAPLOG_ERROR_STR(logger, "File or table " << outvis << " already exists!");
+            return 1;
+    }
     boost::shared_ptr<casa::MeasurementSet> out(create(outvis));
+
+    ASKAPLOG_INFO_STR(logger,  "Splitting out channel range " << startChan << " to " << endChan << " (inclusive)");
+    if (width != 1) {
+        ASKAPLOG_INFO_STR(logger,  "Averaging " << width << " channels to form one");
+    } else {
+        ASKAPLOG_INFO_STR(logger,  "No averaging");
+    }
 
     // Copy ANTENNA
     ASKAPLOG_INFO_STR(logger,  "Copying ANTENNA table");
@@ -359,11 +478,13 @@ void split(const std::string& invis, const std::string& outvis,
     // Split main table
     ASKAPLOG_INFO_STR(logger,  "Splitting main table");
     splitMainTable(in, *out, startChan, endChan, width);
+
+    return 0;
 }
 
-std::vector<unsigned int> parseRange(const LOFAR::ParameterSet parset)
+std::pair<unsigned int, unsigned int> parseRange(const LOFAR::ParameterSet parset)
 {
-    std::vector<unsigned int> results;
+    std::pair<unsigned int, unsigned int> result;
     const std::string raw = parset.getString("channel");
 
     // These are the two possible patterns, either a single integer, or an
@@ -372,26 +493,23 @@ std::vector<unsigned int> parseRange(const LOFAR::ParameterSet parset)
     const boost::regex e2("([\\d]+)\\s*-\\s*([\\d]+)");
 
     boost::smatch what;
-
     if (regex_match(raw, what, e1)) {
-        results.push_back(utility::fromString<unsigned int>(raw));
+        result.first = utility::fromString<unsigned int>(raw);
+        result.second = result.first;
     } else if (regex_match(raw, e2)) {
         // Now extract the first and second integer
         const boost::regex digits("[\\d]+");
         boost::sregex_iterator it(raw.begin(), raw.end(), digits);
         boost::sregex_iterator end;
 
-        for (; it != end; ++it) {
-            results.push_back(utility::fromString<unsigned int>(it->str()));
-        }
-
-        ASKAPCHECK(results.size() == 2,
-                   "Internal error: expected two integers in result vector");
+        result.first = utility::fromString<unsigned int>(it->str());
+        ++it;
+        result.second = utility::fromString<unsigned int>(it->str());
     } else {
         ASKAPLOG_ERROR_STR(logger, "Invalid format 'channel' parameter");
     }
 
-    return results;
+    return result;
 }
 
 // Main function
@@ -405,6 +523,7 @@ int main(int argc, const char** argv)
     casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
     casa::LogSink::globalSink(globalSink);
 
+    int error = 0;
     try {
         casa::Timer timer;
         timer.mark();
@@ -425,27 +544,24 @@ int main(int argc, const char** argv)
         // Get the parameters to split
         const std::string invis = parset.getString("vis");
         const std::string outvis = parset.getString("outputvis");
-        const std::vector<unsigned int> range = parseRange(parset);
+        const std::pair<unsigned int, unsigned int> range = parseRange(parset);
 
-        if (range.empty()) {
-            return 1;
-        }
         const unsigned int width = parset.getUint32("width", 1);
-        split(invis, outvis, range[0], range[1], width);
+        error = split(invis, outvis, range.first, range.second, width);
 
         ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
                               << " real:   " << timer.real());
     } catch (const cmdlineparser::XParser &ex) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         ASKAPLOG_FATAL_STR(logger, "Usage: " << argv[0] << " -o output.ms inMS1 ... inMSn");
-        return 1;
+        error = 1;
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        return 1;
+        error = 1;
     } catch (const std::exception& x) {
         ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        return 1;
+        error = 1;
     }
 
-    return 0;
+    return error;
 }
