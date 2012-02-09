@@ -49,6 +49,9 @@
 #include "casa/OS/Timer.h"
 #include "casa/OS/File.h"
 #include "casa/aips.h"
+#include "casa/Arrays/IPosition.h"
+#include "casa/Arrays/Slicer.h"
+#include "casa/Arrays/Array.h"
 #include "casa/Arrays/Vector.h"
 #include "casa/Arrays/Matrix.h"
 #include "tables/Tables/TableDesc.h"
@@ -59,7 +62,7 @@
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
 
-ASKAP_LOGGER(logger, ".msmerge2");
+ASKAP_LOGGER(logger, ".msplit");
 
 using namespace askap;
 using namespace casa;
@@ -409,31 +412,35 @@ void splitMainTable(const casa::MeasurementSet& source,
         casa::Matrix<casa::Bool> flag(nPol, nChanOut);
 
         // 3: Copy the data from each input into the output matrix
-        const casa::Matrix<casa::Complex> srcData = sc.data()(row);
-        const casa::Matrix<casa::Bool> srcFlag = sc.flag()(row);
-
         for (uInt pol = 0; pol < nPol; ++pol) {
             for (uInt destChan = 0; destChan < nChanOut; ++destChan) {
                 casa::Complex sum(0.0, 0.0);
-                casa::Bool overallFlag = false;
+                casa::Bool outputFlag = false;
 
                 // The offset for the first input channel for this destination channel
                 const uInt chanOffset = startChan - 1 + (destChan * width);
-                for (uInt i = chanOffset; i < chanOffset + width; ++i) {
+
+                // Get a slice of the data and flag matrices for the whole width
+                // (i.e. all channels to be averaged)
+                const Slicer arrslicer(IPosition(2, 0, chanOffset), IPosition(2, nPol, width));
+                const casa::Matrix<casa::Complex> srcData = sc.data().getSlice(row, arrslicer);
+                const casa::Matrix<casa::Bool> srcFlag = sc.flag().getSlice(row, arrslicer);
+
+                for (uInt i = 0; i < width; ++i) {
                     sum += srcData(pol, i);
-                    if (srcFlag(pol, i)) {
-                        overallFlag = true;
+                    if (outputFlag == false && srcFlag(pol, i)) {
+                        outputFlag = true;
                     }
                 }
 
-                // Now the input channels have been average
+                // Now the input channels have been averaged
                 data(pol, destChan) = casa::Complex(sum.real() / width,
                                                     sum.imag() / width);
-                flag(pol, destChan) = overallFlag;
+                flag(pol, destChan) = outputFlag;
             }
         }
 
-        // 4: Add those split/merged cells
+        // 4: Add those split/averaged cells
         dc.data().put(row, data);
         dc.flag().put(row, flag);
     }
