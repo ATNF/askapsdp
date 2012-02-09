@@ -182,3 +182,16 @@ def test_items():
     p = ParameterSet('x.y.z', 1)
     p.set_value('x.a', 2)
     assert_equals(p.items(), [('x.a', 2), ('x.y.z', 1)])
+
+def test_del():
+    d = {'a.b.c': 0, 'a.b.d': 0, 'a.x' : 0}
+    p = ParameterSet(**d)
+    del p['a.b']
+    assert_equals(p.keys(), ['a.x'])
+
+def test_pop():
+    d = {'a.b.c': 0, 'a.b.d': 0, 'a.x' : 0}
+    p = ParameterSet(**d)
+    v = p.pop('a.b')
+    assert_equals(p.keys(), ['a.x'])
+    assert_equals(v.items(), [('c', 0),('d', 0),])

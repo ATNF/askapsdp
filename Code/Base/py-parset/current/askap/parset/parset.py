@@ -262,6 +262,24 @@ class ParameterSet(object):
     def __getitem__(self, k):
         return self.get_value(k)
 
+    def __delitem__(self, k):
+        inkey = k
+        k, tail = self._split(inkey)
+        if k in self._keys:
+            child = self._pdict[k]
+            if isinstance(child, self.__class__) and tail is not None:
+                if tail is not None:
+                    del child[tail]
+                    return
+            else:
+                del self._pdict[k]
+                if k in self._docdict:
+                    del self._docdict[k]
+                self._keys.remove(k)
+        else:
+            raise KeyError("Key '%s' not found." % inkey )
+
+
     def __getattr__(self, k):
         return self.get_value(k)
 
@@ -327,6 +345,11 @@ class ParameterSet(object):
 
     def __iter__(self):
         yield iter(self.keys())
+
+    def pop(self, key):
+        out = self[key]
+        del self[key]
+        return out
 
     def items(self):
         return [(k, self.get_value(k)) for k in self.keys()]
