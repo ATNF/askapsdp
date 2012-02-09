@@ -51,8 +51,18 @@ using namespace askap::accessors;
 /// @param[in] seed1 a first seed to initialize the random generator
 /// @param[in] seed2 a second seed to initialize the random generator 
 GaussianNoiseME::GaussianNoiseME(double variance, casa::Int seed1, casa::Int seed2) :
-  itsGen(seed1, seed2), itsNoiseGen(&itsGen,0.,variance) {}
- 
+  itsGen(seed1, seed2), itsNoiseGen(&itsGen,0.,variance), itsExplicitVariance(true) {}
+
+/// @brief constructor, initializes random distribution required.
+/// @details The required noise rms is obtained from the accessor. The
+/// object constructed this way can simulate noise with different statistics
+/// for different visibilities. of the noise (same as rms
+/// squared here because the mean is always zero)
+/// @param[in] seed1 a first seed to initialize the random generator
+/// @param[in] seed2 a second seed to initialize the random generator 
+GaussianNoiseME::GaussianNoiseME(casa::Int seed1, casa::Int seed2)  :
+  itsGen(seed1, seed2), itsNoiseGen(&itsGen,0.,1.), itsExplicitVariance(false) {}
+
 /// @brief Predict model visibilities for one accessor (chunk).
 /// @details This prediction is done for single chunk of data only. 
 /// It seems that all measurement equations should work with accessors 
@@ -62,6 +72,7 @@ GaussianNoiseME::GaussianNoiseME(double variance, casa::Int seed1, casa::Int see
 void GaussianNoiseME::predict(IDataAccessor &chunk) const
 {
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
+  const casa::Cube<casa::Complex> &noise = chunk.noise();
   for (casa::uInt row = 0; row<rwVis.nrow(); ++row) {
        bool isAutoCorrelation = false;
        if (chunk.antenna1()(row) == chunk.antenna2()(row)) {
@@ -71,10 +82,11 @@ void GaussianNoiseME::predict(IDataAccessor &chunk) const
        }
        for (casa::uInt chan = 0; chan<rwVis.ncolumn(); ++chan) {
             for (casa::uInt pol = 0; pol<rwVis.nplane(); ++pol) {
+                 const casa::Float scale = itsExplicitVariance ? 1. : std::real(noise(row,chan,pol));
                  if (isAutoCorrelation) {
-                     rwVis(row,chan,pol) = std::abs(getRandomComplexNumber());
+                     rwVis(row,chan,pol) = scale * std::real(getRandomComplexNumber());
                  } else {
-                     rwVis(row,chan,pol) = getRandomComplexNumber();
+                     rwVis(row,chan,pol) = scale * getRandomComplexNumber();
                  }
             }
        }

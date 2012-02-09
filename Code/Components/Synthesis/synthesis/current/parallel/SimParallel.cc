@@ -531,8 +531,7 @@ void SimParallel::predict(IDataSharedIter &it)
         ASKAPCHECK(equation, "Equation is not defined correctly");
 
         if (itsNoiseVariance > 0.) {
-            ASKAPLOG_INFO_STR(logger, "Gaussian noise (variance=" << itsNoiseVariance <<
-                         " Jy^2 or sigma="<<sqrt(itsNoiseVariance)<<" Jy) will be added to visibilities");
+            ASKAPDEBUGASSERT(itsSim);
 
             const casa::Int seed1 = getSeed("noise.seed1","time");                  
             const casa::Int seed2 = getSeed("noise.seed2","%w");                  
@@ -540,9 +539,18 @@ void SimParallel::predict(IDataSharedIter &it)
             ASKAPLOG_INFO_STR(logger, "Set seed1 to " << seed1);
             ASKAPLOG_INFO_STR(logger, "Set seed2 to " << seed2);
 
-            boost::shared_ptr<GaussianNoiseME const> noiseME(new
-                    GaussianNoiseME(itsNoiseVariance, seed1, seed2));
-            addEquation(equation, noiseME, it);
+            if (itsSim->relAntennaWeight().nelements()) {
+                ASKAPLOG_INFO_STR(logger, "Gaussian noise (matching SIGMA column of the measurement set) will be added to visibilities");
+                boost::shared_ptr<GaussianNoiseME const> noiseME(new GaussianNoiseME(seed1, seed2));
+                addEquation(equation, noiseME, it);
+            } else {
+                ASKAPLOG_INFO_STR(logger, "Gaussian noise (variance=" << itsNoiseVariance <<
+                         " Jy^2 or sigma="<<sqrt(itsNoiseVariance)<<" Jy) will be added to visibilities");
+
+                boost::shared_ptr<GaussianNoiseME const> noiseME(new
+                       GaussianNoiseME(itsNoiseVariance, seed1, seed2));
+                addEquation(equation, noiseME, it);
+           }
         }
 
         equation->predict();

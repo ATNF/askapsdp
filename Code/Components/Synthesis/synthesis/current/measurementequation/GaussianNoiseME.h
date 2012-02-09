@@ -75,6 +75,16 @@ struct GaussianNoiseME : public IMeasurementEquation
   /// @param[in] seed2 a second seed to initialize the random generator 
   explicit GaussianNoiseME(double variance, casa::Int seed1 = 0, 
                                             casa::Int seed2 = 10);
+
+  /// @brief constructor, initializes random distribution required.
+  /// @details The required noise rms is obtained from the accessor. The
+  /// object constructed this way can simulate noise with different statistics
+  /// for different visibilities. of the noise (same as rms
+  /// squared here because the mean is always zero)
+  /// @param[in] seed1 a first seed to initialize the random generator
+  /// @param[in] seed2 a second seed to initialize the random generator 
+  explicit GaussianNoiseME(casa::Int seed1 = 0, casa::Int seed2 = 10);
+  
   
   /// @brief Predict model visibilities for one accessor (chunk).
   /// @details This prediction is done for single chunk of data only. 
@@ -107,6 +117,14 @@ private:
   mutable casa::MLCG itsGen;
   /// @brief random number distrubiton
   mutable casa::Normal itsNoiseGen;
+  
+  /// @brief true, if the variance given explicitly is to be used
+  /// @details If the noise distribution is the same for all visibilities,
+  /// the class can be set up with some value of variance given explicitly
+  /// (it is passed to the random number generator). Alternatively, we can
+  /// scale the actual random numbers with the noise figure returned by the
+  /// accessor, but simulate them with the variance of 1.
+  bool itsExplicitVariance;
 };
 
 } // namespace synthesis

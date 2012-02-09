@@ -158,6 +158,13 @@ namespace askap
                 {
                    itsRelAntennaWeight.assign(wt.copy());
                 }
+                
+                /// @brief access vector of relative antenna weights
+                /// @details At the moment, we only use this to distinguish
+                /// between the constant and variable noise cases
+                /// (zero and non-zero length of the vector).
+                /// @return const reference to the vector with relative antenna weights 
+                const casa::Vector<double>& relAntennaWeight() const { return itsRelAntennaWeight; }
 
                 /// @brief Set meaning of times for observing
                 /// @param integrationtime Integration time e.g. "10s"
