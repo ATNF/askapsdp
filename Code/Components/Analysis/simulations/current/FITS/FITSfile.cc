@@ -660,8 +660,10 @@ namespace askap {
 			   << this->itsDatabaseOrigin << "' - needs to be 'Continuum', 'POSSUM', 'NVSS', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
 	      }
 
-	      // convert fluxes to correct units according to the image BUNIT keyword
-	      src->setFluxZero(casa::Quantity(src->fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
+// 	      src->prepareForUse();
+
+// 	      // convert fluxes to correct units according to the image BUNIT keyword
+// 	      src->setFluxZero(casa::Quantity(src->fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
 
 	      // convert sky position to pixels
 	      if (this->itsPosType == "dms") {
@@ -696,6 +698,32 @@ namespace askap {
 
 	      bool lookAtSource = (this->itsArrayAllocated && this->itsAddSources) || this->itsDryRun;
 
+	      if(src->maj() > 0) {
+
+		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+
+		  if (src->maj() > 0 && !(src->min() > this->itsMinMinorAxis)) {
+// 		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
+		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+		  if (src->fluxZero() == 0.) src->setFluxZero(1.e-99);
+ 		  ASKAPLOG_DEBUG_STR(logger, "Defining Gaussian with axes " << src->maj() << " x " << src->min() << " pixels and PA of " << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
+		  gauss.setXcenter(pix[0]);
+		  gauss.setYcenter(pix[1]);
+		  gauss.setMinorAxis(std::min(gauss.majorAxis(),src->maj()));  // need this so that we never have the minor axis > major axis
+		  //		  gauss.setMinorAxis(src->maj());
+		  gauss.setMajorAxis(src->maj());
+		  gauss.setMinorAxis(src->min());
+		  gauss.setPA(casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
+		  gauss.setFlux(src->fluxZero());
+		  ASKAPLOG_DEBUG_STR(logger, "Gaussian source: " << gauss);
+
+		  lookAtSource = lookAtSource && doAddGaussian(this->itsAxes, gauss);
+	      }
+	      else{
+		lookAtSource = lookAtSource && doAddPointSource(this->itsAxes, pix);
+	      }
+
 	      if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
 		// check the frequency limits for this source to see whether we need to look at it.
 		ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
@@ -705,6 +733,12 @@ namespace askap {
 	      }
 
 	      if (lookAtSource) {
+
+		src->prepareForUse();
+	      
+		// convert fluxes to correct units according to the image BUNIT keyword
+		src->setFluxZero(casa::Quantity(src->fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
+
 
 		if(this->itsDatabaseOrigin == "Continuum") 
 		  fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
@@ -730,28 +764,29 @@ namespace askap {
 		
 
 		bool addedSource=false;
-		//		ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
+		ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
 		if (src->maj() > 0) {
-		  // convert widths from arcsec to pixels
-		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+// 		  // convert widths from arcsec to pixels
+// 		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
-		  if (src->maj() > 0 && !(src->min() > this->itsMinMinorAxis)) {
-// 		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
-		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+// 		  if (src->maj() > 0 && !(src->min() > this->itsMinMinorAxis)) {
+// // 		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
+// 		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
+// 		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 
-		  if (src->fluxZero() == 0.) src->setFluxZero(1.e-99);
+// 		  if (src->fluxZero() == 0.) src->setFluxZero(1.e-99);
 
-		  //		  ASKAPLOG_DEBUG_STR(logger, "Defining Gaussian with axes " << src->maj() << " x " << src->min() << " pixels and PA of " << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
+// 		  ASKAPLOG_DEBUG_STR(logger, "Defining Gaussian with axes " << src->maj() << " x " << src->min() << " pixels and PA of " << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
 
-		  gauss.setXcenter(pix[0]);
-		  gauss.setYcenter(pix[1]);
-		  gauss.setMinorAxis(std::min(gauss.majorAxis(),src->maj()));  // need this so that we never have the minor axis > major axis
-		  //		  gauss.setMinorAxis(src->maj());
-		  gauss.setMajorAxis(src->maj());
-		  gauss.setMinorAxis(src->min());
-		  gauss.setPA(casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
-		  gauss.setFlux(src->fluxZero());
+// 		  gauss.setXcenter(pix[0]);
+// 		  gauss.setYcenter(pix[1]);
+// 		  gauss.setMinorAxis(std::min(gauss.majorAxis(),src->maj()));  // need this so that we never have the minor axis > major axis
+// 		  //		  gauss.setMinorAxis(src->maj());
+// 		  gauss.setMajorAxis(src->maj());
+// 		  gauss.setMinorAxis(src->min());
+// 		  gauss.setPA(casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
+// 		  gauss.setFlux(src->fluxZero());
+// 		  ASKAPLOG_DEBUG_STR(logger, "Gaussian source: " << gauss);
 
 		  if (!this->itsDryRun){
 		    addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
