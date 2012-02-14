@@ -46,8 +46,9 @@
 ASKAP_LOGGER(logger, ".parallel");
 
 #include <mwcommon/AskapParallel.h>
-#include <mwcommon/BlobIBufMW.h>
-#include <mwcommon/BlobOBufMW.h>
+#include <Blob/BlobString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOBufString.h>
 #include <fitting/ImagingNormalEquations.h>
 
 using namespace askap;
@@ -79,11 +80,14 @@ namespace askap
         timer.mark();
         ASKAPLOG_INFO_STR(logger, "Sending normal equations to the solver via MPI" );
 
-        BlobOBufMW bobmw(itsComms, 0);
-        LOFAR::BlobOStream out(bobmw);
+        LOFAR::BlobString bs;
+        bs.resize(0);
+        LOFAR::BlobOBufString bob(bs);
+        LOFAR::BlobOStream out(bob);
         out.putStart("ne", 1);
         out << itsComms.rank() << *itsNe;
         out.putEnd();
+        itsComms.connectionSet()->write(0, bs);
         ASKAPLOG_INFO_STR(logger, "Sent normal equations to the solver via MPI in "
                            << timer.real()<< " seconds ");
       }
@@ -102,12 +106,14 @@ namespace askap
         casa::Timer timer;
         timer.mark();
 
+        LOFAR::BlobString bs;
         int rank;
 
         for (int i=1; i<itsComms.nNodes(); i++)
         {
-          BlobIBufMW bibmw(itsComms, i-1);
-          LOFAR::BlobIStream in(bibmw);
+          itsComms.connectionSet()->read(i-1, bs);
+          LOFAR::BlobIBufString bib(bs);
+          LOFAR::BlobIStream in(bib);
           int version=in.getStart("ne");
           ASKAPASSERT(version==1);
           in >> rank >> *itsNe;
