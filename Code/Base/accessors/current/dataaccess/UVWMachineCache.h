@@ -53,6 +53,12 @@ namespace accessors {
 /// is  the key). The number of machines cached and the direction tolerance are specified as parameters.
 /// @ingroup dataaccess
 struct UVWMachineCache {
+   
+   /// @brief UVWMachine class type
+   /// @details For debugging, it is handy to substitute UVWMachine class by another type
+   /// (to be able to implement only methods we need and to reduce our dependence on 
+   /// the fix to casacore). This typedef defines what class is cached.
+   typedef casa::UVWMachine  machineType;
 
    /// @brief construct the cache
    /// @details Set up basic parameters of the cache.
@@ -70,7 +76,7 @@ struct UVWMachineCache {
    /// @param[in] phaseCentre direction to the input phase centre
    /// @param[in] tangent direction to tangent point
    /// @return a const reference to uvw machine 
-   const casa::UVWMachine& machine(const casa::MDirection &phaseCentre, 
+   const machineType& machine(const casa::MDirection &phaseCentre, 
                                    const casa::MDirection &tangent) const;
    
    /// @brief a helper method to check whether two directions are matching
@@ -112,7 +118,7 @@ private:
    /// @note We're using a plain vector-based cache here instead of the std queue because we
    /// need a flexible iteration over all elements to determine whether the requested tangent
    /// point is already in the cache.
-   mutable std::vector<boost::shared_ptr<casa::UVWMachine> > itsCache;
+   mutable std::vector<boost::shared_ptr<machineType> > itsCache;
 
    /// @brief cached tangent directions
    mutable std::vector<casa::MDirection> itsTangentPoints;

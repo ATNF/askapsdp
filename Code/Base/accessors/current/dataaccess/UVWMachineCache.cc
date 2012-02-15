@@ -77,17 +77,17 @@ UVWMachineCache::~UVWMachineCache()
 /// @param[in] phaseCentre direction to the input phase centre
 /// @param[in] tangent direction to tangent point
 /// @return a const reference to uvw machine 
-const casa::UVWMachine& UVWMachineCache::machine(const casa::MDirection &phaseCentre,
+const UVWMachineCache::machineType& UVWMachineCache::machine(const casa::MDirection &phaseCentre,
                                                  const casa::MDirection &tangent) const
 {   
    const size_t index = getIndex(phaseCentre,tangent);
-   boost::shared_ptr<casa::UVWMachine> &machinePtr = itsCache[index];
+   boost::shared_ptr<machineType> &machinePtr = itsCache[index];
    if (!machinePtr) {
        // need to set up a new machine here
        // swap the arguments in the uvw machine call. It gives the correct result on real data
        // although the casacore manual clearly says that the first argument is "out" and the second is "in".
-//       machinePtr.reset(new casa::UVWMachine(tangent, phaseCentre, false, true));
-       machinePtr.reset(new casa::UVWMachine(phaseCentre, tangent, false, true));
+//       machinePtr.reset(new machineType(tangent, phaseCentre, false, true));
+       machinePtr.reset(new machineType(phaseCentre, tangent, false, true));
    }
    return *machinePtr;
 }
