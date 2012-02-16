@@ -3,6 +3,7 @@
 /// @details We suspect a bug in casacore's UVWMachine. This class is used
 /// for debugging. Only uvw machine methods we're using are implemented. In the 
 /// future, we will probably revert back to casacore's UVWMachine when it is fixed.
+/// The code is heavily based on casacore's UVWMachine code.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -33,8 +34,13 @@
 #define ASKAP_ACCESSORS_TEMP_UVW_MACHINE_H
 
 // casa includes
+#include <measures/Measures.h>
 #include <measures/Measures/MDirection.h>
 #include <casa/Arrays/Vector.h>
+#include <measures/Measures/MCDirection.h>
+#include <casa/Quanta/MVPosition.h>
+#include <casa/Quanta/RotMatrix.h>
+
 
 // boost includes
 #include <boost/utility.hpp>
@@ -64,17 +70,31 @@ public:
    /// @param[in] delay reference to delay buffer
    /// @param[in] uvw reference to uvw vector to update
    void convertUVW(casa::Double &delay, casa::Vector<casa::Double> &uvw) const;
+
+   /// @brief convert uvw
+   /// @param[in] uvw reference to uvw vector to update
+   void convertUVW(casa::Vector<casa::Double> &uvw) const;
    
 private:
    /// @brief initialise transform matrices
    void init();
       
    /// @brief direction corresponding to the old delay centre
-   /// @note the reference frame corresponds to the new delay centre
+   /// @note the reference frame corresponds to the old delay centre
    casa::MDirection itsIn;
    
    /// @brief direction corresponding to the new delay centre
    casa::MDirection itsOut;   
+   
+   /// @brief uvw rotation
+   /// @note The uvw vector is right-multiplied by this rotation matrix, so the actual rotation matrix is transposed
+   casa::RotMatrix itsUVWRotation;
+   
+   /// @brief phase rotation
+   casa::MVPosition itsPhaseRotation;
+   
+   /// @brief conversion engine 
+   casa::MDirection::Convert itsConv;
 };
 
 } // namespace accessors

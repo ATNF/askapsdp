@@ -3,6 +3,7 @@
 /// @details We suspect a bug in casacore's UVWMachine. This class is used
 /// for debugging. Only uvw machine methods we're using are implemented. In the 
 /// future, we will probably revert back to casacore's UVWMachine when it is fixed.
+/// The code is heavily based on casacore's UVWMachine code.
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -42,23 +43,68 @@ namespace accessors {
 /// @param[in] out output direction
 /// @note in and out are swapped w.r.t. casa UVWMachine as this is how it is used in
 /// the current code
-TempUVWMachine::TempUVWMachine(const casa::MDirection &in, const casa::MDirection &out, const bool, const bool) : itsIn(in), itsOut(out) 
-{}
+TempUVWMachine::TempUVWMachine(const casa::MDirection &in, const casa::MDirection &out, const bool, const bool) : itsIn(in), itsOut(out)
+{
+  const casa::MDirection::Ref outref = out.getRef();
+  itsConv = casa::MDirection::Convert(in, outref);
+  init();
+}
 
 /// @brief convert uvw
 /// @param[in] delay reference to delay buffer
 /// @param[in] uvw reference to uvw vector to update
 void TempUVWMachine::convertUVW(casa::Double &delay, casa::Vector<casa::Double> &uvw) const
 {
-  // temporary
-  delay=0;
-  uvw.set(0.);
+  casa::MVPosition tmp(uvw);
+  tmp *= itsUVWRotation;
+  delay = itsPhaseRotation * tmp;
+  // reprojection comes here
+  // tmp *= itsProjRotation;
+  uvw = tmp.getValue();
+}
+
+/// @brief convert uvw
+/// @param[in] uvw reference to uvw vector to update
+void TempUVWMachine::convertUVW(casa::Vector<casa::Double> &uvw) const
+{
+  casa::Double delay;
+  convertUVW(delay, uvw);
 }
 
 
 /// @brief initialise transform matrices
 void TempUVWMachine::init()
 {
+  // The first rotation is from the uvw coordinate system corresponding to the input 
+  // frame (pole towards in-direction and X-axis west) into the standard XYZ frame.
+  // This rotation is composed of rotation around x-axis (90-lat) followed by
+  // rotation around z-axis over (90-long).
+  const casa::RotMatrix rot1(casa::Euler(casa::C::pi_2 - itsIn.getValue().get()(1), 1,
+          casa::C::pi_2 - itsIn.getValue().get()(0), 3));
+  
+  // define axes
+  const casa::MVDirection mVz(0.,0.,1.);
+  const casa::MVDirection mVy(0.,1.,0.);
+  const casa::MVDirection mVx(1.,0.,0.);
+  // obtain rotation matrix from the old to the new reference frame
+  casa::RotMatrix rot2;
+  rot2.set(itsConv(mVx).getValue().getValue(),
+           itsConv(mVy).getValue().getValue(),
+           itsConv(mVz).getValue().getValue());           
+  rot2.transpose(); // RotMatrix::set fills rows with the given vectors, we need columns.
+  
+  // The final rotation is from the standard XYZ frame into the uvw coordinate system
+  // corresponding to the output frame (pole towards out-direction)
+  const casa::RotMatrix rot3(casa::Euler(itsOut.getValue().get()(0) - casa::C::pi_2, 3,
+           itsOut.getValue().get()(1) - casa::C::pi_2, 1));
+  // reprojection will come here
+  //
+  itsUVWRotation = rot3 * rot2 * rot1;
+  itsUVWRotation.transpose(); // because we right-multiply the vector by the rotation matrix
+  // to compute associated delay change we need to convert the direction increment vector into the 
+  // target uvw frame (i.e. elements become l,m,n instead of dX, dY and dZ)
+  // itsConv() gives the old delay centre in the new coordinates
+  itsPhaseRotation = rot3 * (casa::MVPosition(itsOut.getValue()) - casa::MVPosition(itsConv().getValue()));
 }
 
 } // namespace accessors
