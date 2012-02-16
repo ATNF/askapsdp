@@ -55,8 +55,7 @@ TempUVWMachine::TempUVWMachine(const casa::MDirection &in, const casa::MDirectio
 /// @param[in] uvw reference to uvw vector to update
 void TempUVWMachine::convertUVW(casa::Double &delay, casa::Vector<casa::Double> &uvw) const
 {
-  casa::MVPosition tmp(uvw);
-  tmp *= itsUVWRotation;
+  casa::MVPosition tmp = itsUVWRotation * casa::MVPosition(uvw);
   delay = itsPhaseRotation * tmp;
   // reprojection comes here
   // tmp *= itsProjRotation;
@@ -81,7 +80,6 @@ void TempUVWMachine::init()
   // rotation around z-axis over (90-long).
   const casa::RotMatrix rot1(casa::Euler(casa::C::pi_2 - itsIn.getValue().get()(1), 1,
           casa::C::pi_2 - itsIn.getValue().get()(0), 3));
-  
   // define axes
   const casa::MVDirection mVz(0.,0.,1.);
   const casa::MVDirection mVy(0.,1.,0.);
@@ -92,15 +90,20 @@ void TempUVWMachine::init()
            itsConv(mVy).getValue().getValue(),
            itsConv(mVz).getValue().getValue());           
   rot2.transpose(); // RotMatrix::set fills rows with the given vectors, we need columns.
+  // (assuming transformation between two frames is orthogonal, this would express new basis via the old one
+  // as for other rotX matrices).
   
   // The final rotation is from the standard XYZ frame into the uvw coordinate system
   // corresponding to the output frame (pole towards out-direction)
   const casa::RotMatrix rot3(casa::Euler(itsOut.getValue().get()(0) - casa::C::pi_2, 3,
            itsOut.getValue().get()(1) - casa::C::pi_2, 1));
   // reprojection will come here
-  //
-  itsUVWRotation = rot3 * rot2 * rot1;
-  itsUVWRotation.transpose(); // because we right-multiply the vector by the rotation matrix
+  // the order of multiplication is reversed in the following statement to account for the fact that
+  // rotX matrices express the new basis via the old one, i.e. instead of right-multiplying by the matrix
+  // expressing the old basis via the new one we left-multiply by the reverse transform. The reverse 
+  // amounts to transposition for orthogonal transformations such as rotations, but transpose requires the
+  // order to be reversed.
+  itsUVWRotation = rot1 * rot2 * rot3;
   // to compute associated delay change we need to convert the direction increment vector into the 
   // target uvw frame (i.e. elements become l,m,n instead of dX, dY and dZ)
   // itsConv() gives the old delay centre in the new coordinates
