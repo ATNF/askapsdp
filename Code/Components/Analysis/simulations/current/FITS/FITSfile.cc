@@ -628,7 +628,7 @@ namespace askap {
 	      else if(this->itsDatabaseOrigin == "POSSUM"){
 		stokes.setNuZero(this->itsBaseFreq);
 		stokes.define(line);
-		stokes.setFluxZero(2.*pow(10,stokes.I1400()));
+		stokes.setFluxZero(2.*pow(10.,stokes.I1400()));
 		src = &stokes;
 	      }
 	      else if(this->itsDatabaseOrigin == "NVSS"){
@@ -641,7 +641,7 @@ namespace askap {
 		if(this->itsSourceListType == "continuum"){
 		  contS3SEX.setNuZero(this->itsBaseFreq);
 		  contS3SEX.define(line);
-		  contS3SEX.setFluxZero(2.*pow(10,contS3SEX.I1400()));
+		  contS3SEX.setFluxZero(2.*pow(10.,contS3SEX.I1400()));
 // 		  ASKAPLOG_DEBUG_STR(logger, "RA="<<contS3SEX.ra() << ", DEC= " << contS3SEX.dec());
 		  src = &contS3SEX;
 		}else if(this->itsSourceListType == "spectralline") {
