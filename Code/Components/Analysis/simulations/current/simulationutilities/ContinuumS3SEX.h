@@ -80,6 +80,12 @@ namespace askap {
 		void setSEDtype(SEDTYPE type){itsSEDtype=type;};
 		void defaultSEDtype(){itsSEDtype = FIT;};
 
+		double I151(){return itsI151;};
+		double I610(){return itsI610;};
+		double I1400(){return itsI1400;};
+		double I4860(){return itsI4860;};
+		double I18000(){return itsI18000;};
+
 		/// @brief Define the flux & spectral slope/curvature based on the catalogue fluxes.
 		void prepareForUse();
 
