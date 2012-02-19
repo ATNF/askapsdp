@@ -62,6 +62,12 @@ namespace askap {
 
         namespace FITS {
 
+	  FITSparallel::~FITSparallel()
+	  {
+	    
+	    delete this->itsFITSfile;
+	    
+	  }
 
             FITSparallel::FITSparallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset)
                     : itsComms(comms)

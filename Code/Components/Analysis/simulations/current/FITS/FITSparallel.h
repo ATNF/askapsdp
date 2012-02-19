@@ -66,7 +66,7 @@ namespace askap {
                     FITSparallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
                     /// @brief Destructor
-                    virtual ~FITSparallel() {};
+                    virtual ~FITSparallel();
 
                     /// @brief Send the array to the Master node
                     void toMaster();
