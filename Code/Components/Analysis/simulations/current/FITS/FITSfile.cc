@@ -126,6 +126,7 @@ namespace askap {
 	this->itsFileName = f.itsFileName;
 	this->itsFITSOutput = f.itsFITSOutput;
 	this->itsCasaOutput = f.itsCasaOutput;
+	this->itsFlagWriteByChannel = f.itsFlagWriteByChannel;
 	this->itsSourceList = f.itsSourceList;
 	this->itsSourceListType = f.itsSourceListType;
 	this->itsDatabaseOrigin = f.itsDatabaseOrigin;
@@ -221,6 +222,7 @@ namespace askap {
 	this->itsFileName = parset.getString("filename", "");
 	this->itsFITSOutput = parset.getBool("fitsOutput", true);
 	this->itsCasaOutput = parset.getBool("casaOutput", false);
+	this->itsFlagWriteByChannel = parset.getBool("flagWriteByChannel",false);
 	this->itsBunit = casa::Unit(parset.getString("bunit", "Jy/beam"));
 	this->itsSourceList = parset.getString("sourcelist", "");
 	std::ifstream file;
@@ -1176,17 +1178,32 @@ namespace askap {
 	      
 	      casa::PagedImage<float> img(newName);
 	      
+	      if (this->itsFlagWriteByChannel) {
+		shape(this->itsWCS->spec) = 1;
+		casa::IPosition location(this->itsDim,0);
+		//		ASKAPLOG_INFO_STR(logger, "Writing an array channel-by-channel with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
+		for(int z=0;z<=this->itsAxes[this->itsWCS->spec];z++){
+		  int spatsize=this->itsAxes[this->itsWCS->lat] * this->itsAxes[this->itsWCS->lng];
+		  Array<Float> arr(shape,this->itsArray+z*spatsize,casa::SHARE);
+		  if(useOffset)
+		    for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
+		  img.putSlice(arr, location);
+		  
+		}
+	      }
+	      else{
 	      // make the casa::Array, sharing the memory storage so there is minimal additional impact
-	      Array<Float> arr(shape, this->itsArray, casa::SHARE);
+		Array<Float> arr(shape, this->itsArray, casa::SHARE);
+		
+		casa::IPosition location(this->itsDim,0);
 	      
-	      casa::IPosition location(this->itsDim,0);
-	      
-	      if(useOffset)
-		for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
-	      
-	      ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location);
-	      ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
-	      img.putSlice(arr, location);
+		if(useOffset)
+		  for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
+		
+		ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location);
+		ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
+		img.putSlice(arr, location);
+	      }
 	    }
 	    else{
 	      ASKAPLOG_WARN_STR(logger, "Cannot write array as it has not been allocated");

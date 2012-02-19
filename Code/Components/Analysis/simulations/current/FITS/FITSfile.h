@@ -149,6 +149,8 @@ namespace askap {
                     bool itsFITSOutput;
                     /// @brief Whether to write to a CASA-format image
                     bool itsCasaOutput;
+		    /// @brief Whether to write the CASA image channel-by-channel
+		    bool itsFlagWriteByChannel;
                     /// @brief The file containing the list of sources
                     std::string itsSourceList;
                     /// @brief The type of input list: either "continuum" or "spectralline"
