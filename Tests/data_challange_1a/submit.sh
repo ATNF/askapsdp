@@ -24,6 +24,10 @@ INPUT_SKYMODEL=../input/skymodel-duchamp.txt
 # If ASKAP_ROOT is not set in your environment, add the path here and uncomment
 #ASKAP_ROOT=<path to ASKAPsoft>
 
+# PBS queue to submit jobs to. This is usually the "routequeue" for epic, however
+# if a reservation has been made this can be changed to submit into the reservation
+BATCH_QUEUE=routequeue
+
 ##############################################################################
 # General initial steps
 ##############################################################################
@@ -104,6 +108,7 @@ fi
 # Create the qsub file
 cat > split_coarse.qsub << EOF
 #!/bin/bash
+#PBS -q ${BATCH_QUEUE}
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
 #PBS -l walltime=06:00:00
@@ -165,6 +170,7 @@ SKYMODEL_OUTPUT=skymodel.image.taylor
 
 cat > cmodel.qsub << EOF
 #!/bin/bash
+#PBS -q ${BATCH_QUEUE}
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=2:ncpus=12:mem=23GB:mpiprocs=12
 #PBS -l walltime=00:15:00
@@ -218,6 +224,7 @@ CALOUTPUT=calparameters.tab
 
 cat > ccalibrator.qsub << EOF
 #!/bin/bash
+#PBS -q ${BATCH_QUEUE}
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+25:ncpus=12:mem=23GB:mpiprocs=12
 #PBS -l walltime=12:00:00
@@ -284,6 +291,7 @@ fi
 
 cat > cimager-cont.qsub << EOF
 #!/bin/bash
+#PBS -q ${BATCH_QUEUE}
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+50:ncpus=6:mem=23GB:mpiprocs=6
 #PBS -l walltime=02:00:00
