@@ -54,6 +54,7 @@ class TableCalSolutionTest : public CppUnit::TestFixture
    CPPUNIT_TEST_EXCEPTION(testUndefinedBandpasses, AskapError);
    CPPUNIT_TEST_EXCEPTION(testUndefinedSolution, AskapError);
    CPPUNIT_TEST(testCreateManyRows);
+   CPPUNIT_TEST(testCreateManyRows1);
    CPPUNIT_TEST_SUITE_END();
 protected:
 
@@ -266,6 +267,54 @@ public:
                       testComplex(-val, gain.g2());
                       CPPUNIT_ASSERT(gain.g1IsValid());
                       CPPUNIT_ASSERT(gain.g2IsValid());                               
+                 }
+            }
+       }
+   }
+   void testCreateManyRows1() {
+       boost::shared_ptr<ICalSolutionSource> css = rwSource(true);
+       const size_t nSolutions = 10;
+       for (size_t sol = 0; sol<nSolutions; ++sol) {
+            const long newID = css->newSolutionID(55553.*86400+3600.*double(sol));
+            CPPUNIT_ASSERT_EQUAL(long(sol), newID);
+            boost::shared_ptr<ICalSolutionAccessor> acc = css->rwSolution(newID);
+            ASKAPDEBUGASSERT(acc);
+            for (casa::uInt ant = 0; ant<6; ++ant) {
+                 for (casa::uInt beam=0; beam<3; ++beam) {
+                      const float amp = float(ant)/6. + 0.5 + 0.1*float(sol);
+                      const float phase = casa::C::pi/3.*float(beam);
+                      const casa::Complex val = casa::Complex(sin(phase),cos(phase))*amp;
+                      const accessors::JonesIndex index(ant,beam);
+                      acc->setJonesElement(index, casa::Stokes::XX, val);
+                      acc->setJonesElement(index, casa::Stokes::YY, -val);
+                      acc->setJonesElement(index, casa::Stokes::XY, val*0.1f);
+                      acc->setJonesElement(index, casa::Stokes::YX, -val*0.1f);
+                 }
+            }
+       }
+       // reuse solution source
+       css.reset();
+       css = rwSource(false);
+       for (size_t sol = 0; sol<nSolutions; ++sol) {
+            const long id = css->solutionID(55553.*86400+3600.*double(sol)+0.5);
+            CPPUNIT_ASSERT_EQUAL(long(sol), id);
+            const boost::shared_ptr<ICalSolutionConstAccessor> acc = css->roSolution(id);
+            CPPUNIT_ASSERT(acc);
+            for (casa::Short ant = 0; ant<6; ++ant) {
+                 for (casa::Short beam=0; beam<3; ++beam) {
+                      const float amp = float(ant)/6. + 0.5 + 0.1*float(sol);
+                      const float phase = casa::C::pi/3.*float(beam);
+                      const casa::Complex val = casa::Complex(sin(phase),cos(phase))*amp;
+                      const JonesJTerm gain = acc->gain(JonesIndex(ant,beam));
+                      testComplex(val, gain.g1());
+                      testComplex(-val, gain.g2());
+                      CPPUNIT_ASSERT(gain.g1IsValid());
+                      CPPUNIT_ASSERT(gain.g2IsValid());                               
+                      const JonesDTerm leakage = acc->leakage(JonesIndex(ant,beam));
+                      testComplex(val*0.1f, leakage.d12());
+                      testComplex(-val*0.1f, leakage.d21());
+                      CPPUNIT_ASSERT(leakage.d12IsValid());
+                      CPPUNIT_ASSERT(leakage.d21IsValid());
                  }
             }
        }
