@@ -66,7 +66,7 @@ MemCalSolutionAccessor::MemCalSolutionAccessor(const boost::shared_ptr<ICalSolut
 JonesJTerm MemCalSolutionAccessor::gain(const JonesIndex &index) const
 {
   ASKAPASSERT(itsSolutionFiller);
-  if (itsSolutionFiller->noGain()) {
+  if (itsSolutionFiller->noGain() && !itsGains.flushNeeded()) {
       // return default gains
       return JonesJTerm(1., false, 1., false);
   }
@@ -88,7 +88,7 @@ JonesJTerm MemCalSolutionAccessor::gain(const JonesIndex &index) const
 JonesDTerm MemCalSolutionAccessor::leakage(const JonesIndex &index) const
 {
   ASKAPASSERT(itsSolutionFiller);
-  if (itsSolutionFiller->noLeakage()) {
+  if (itsSolutionFiller->noLeakage() && !itsLeakages.flushNeeded()) {
       // return default leakages
       return JonesDTerm(0., false, 0., false);
   }
@@ -115,7 +115,7 @@ JonesDTerm MemCalSolutionAccessor::leakage(const JonesIndex &index) const
 JonesJTerm MemCalSolutionAccessor::bandpass(const JonesIndex &index, const casa::uInt chan) const
 { 
   ASKAPASSERT(itsSolutionFiller);
-  if (itsSolutionFiller->noBandpass()) {
+  if (itsSolutionFiller->noBandpass() && !itsBandpasses.flushNeeded()) {
       // default bandpasses
       return JonesJTerm(1., false, 1., false);
   }
