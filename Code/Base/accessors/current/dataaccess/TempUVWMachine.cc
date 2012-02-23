@@ -78,8 +78,10 @@ void TempUVWMachine::init()
   // frame (pole towards in-direction and X-axis west) into the standard XYZ frame.
   // This rotation is composed of rotation around x-axis (90-lat) followed by
   // rotation around z-axis over (90-long).
-  const casa::RotMatrix rot1(casa::Euler(casa::C::pi_2 - itsIn.getValue().get()(1), 1,
-          casa::C::pi_2 - itsIn.getValue().get()(0), 3));
+  //const casa::RotMatrix rot1(casa::Euler(casa::C::pi_2 - itsIn.getValue().get()(1), 1,
+  //        casa::C::pi_2 - itsIn.getValue().get()(0), 3));
+  const casa::RotMatrix rot1(casa::Euler(casa::C::pi_2 - itsIn.getValue().get()(0), 3,
+            casa::C::pi_2 - itsIn.getValue().get()(1), 1));
   // define axes
   const casa::MVDirection mVz(0.,0.,1.);
   const casa::MVDirection mVy(0.,1.,0.);
@@ -93,10 +95,13 @@ void TempUVWMachine::init()
   // (assuming transformation between two frames is orthogonal, this would express new basis via the old one
   // as for other rotX matrices).
   
+  
   // The final rotation is from the standard XYZ frame into the uvw coordinate system
   // corresponding to the output frame (pole towards out-direction)
-  const casa::RotMatrix rot3(casa::Euler(itsOut.getValue().get()(0) - casa::C::pi_2, 3,
-           itsOut.getValue().get()(1) - casa::C::pi_2, 1));
+  //const casa::RotMatrix rot3(casa::Euler(-casa::C::pi_2 + itsOut.getValue().get()(0), 3,
+  //         itsOut.getValue().get()(1) - casa::C::pi_2, 1));
+  const casa::RotMatrix rot3(casa::Euler(itsOut.getValue().get()(1) - casa::C::pi_2, 1,
+              -casa::C::pi_2 + itsOut.getValue().get()(0), 3));
   // reprojection will come here
   // the order of multiplication is reversed in the following statement to account for the fact that
   // rotX matrices express the new basis via the old one, i.e. instead of right-multiplying by the matrix
@@ -107,7 +112,7 @@ void TempUVWMachine::init()
   // to compute associated delay change we need to convert the direction increment vector into the 
   // target uvw frame (i.e. elements become l,m,n instead of dX, dY and dZ)
   // itsConv() gives the old delay centre in the new coordinates
-  itsPhaseRotation = rot3 * (casa::MVPosition(itsOut.getValue()) - casa::MVPosition(itsConv().getValue()));
+  itsPhaseRotation = (casa::MVPosition(itsOut.getValue()) - casa::MVPosition(itsConv().getValue())) * rot3;
 }
 
 } // namespace accessors
