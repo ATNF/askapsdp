@@ -42,6 +42,8 @@
 #include <measures/Measures/MDirection.h>
 #include <measures/Measures/UVWMachine.h>
 
+#include <dataaccess/TempUVWMachine.h>
+
 
 namespace askap {
 
@@ -59,6 +61,7 @@ struct UVWMachineCache {
    /// (to be able to implement only methods we need and to reduce our dependence on 
    /// the fix to casacore). This typedef defines what class is cached.
    typedef casa::UVWMachine  machineType;
+   //typedef TempUVWMachine  machineType;
 
    /// @brief construct the cache
    /// @details Set up basic parameters of the cache.
