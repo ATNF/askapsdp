@@ -206,13 +206,13 @@ protected:
       casa::MDirection dir1j2000(dir1, casa::MDirection::J2000);
       casa::MDirection dir2j2000(dir2, casa::MDirection::J2000);
       ASKAPASSERT(itsMachineCache);
-      const casa::UVWMachine &cachedMachine = itsMachineCache->machine(dir1,dir2);
+      const accessors::UVWMachineCache::machineType &cachedMachine = itsMachineCache->machine(dir1,dir2);
       // create a proper machine by hand
-      casa::UVWMachine machine2(dir1,dir2,false, true);
+      accessors::UVWMachineCache::machineType machine2(dir1,dir2,false, true);
       compareMachines(cachedMachine, machine2);         
    }
    
-   static void compareMachines(const casa::UVWMachine &m1, const casa::UVWMachine &m2) {
+   static void compareMachines(const accessors::UVWMachineCache::machineType &m1, const accessors::UVWMachineCache::machineType &m2) {
        casa::Vector<double> uvw(3);
        uvw[0]=1000.0; uvw[1]=-3250.0; uvw[2]=12.5;
        casa::Vector<double> uvwCopy(uvw.copy());
