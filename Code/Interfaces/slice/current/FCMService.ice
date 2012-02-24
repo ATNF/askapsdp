@@ -106,10 +106,15 @@ module fcm
          **/
         idempotent RevisionInfoSeq history(long revision, string key);
 
+        /**
+         * Retrieve the version number  of the latest revision in the FCM.
+         **/
+        long getLatestRevision();
+
     };
     
     /**
-     * Publisher FCM change events.
+     * Publisher of FCM change events.
      **/
     interface IFCMMonitor {
         /**
