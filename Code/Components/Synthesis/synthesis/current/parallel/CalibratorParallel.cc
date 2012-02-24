@@ -439,10 +439,10 @@ double CalibratorParallel::solutionTime() const
 /// @details In the current design, iteration over the data is done by workers.
 /// However, maser needs to make the decision whether more iterations are required,
 /// i.e. whether a new chunk of the data is available. We carry this information from
-/// worker to maser with the normal equations using metadata. This method encodes the
+/// worker to master with the normal equations using metadata. This method encodes the
 /// given value of the flag in the normal equations class. 
 /// @note Nothing is done if the normal equations object does not support metadata.
-/// An exception is thrown if this method is called from the maser. We could've join
+/// An exception is thrown if this method is called from the master. We could've join
 /// this method and nextChunk, but it would require making this method non-const
 /// @param[in] flag flag value to set
 void CalibratorParallel::setNextChunkFlag(const bool flag)

@@ -100,7 +100,8 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
             casa::Complex det = 0.;
             invert(reciprocal, det, mueller);
             
-            ASKAPCHECK(casa::abs(det)>1e-5, "Unable to apply calibration, determinate is too close to 0. D="<<casa::abs(det));           
+            ASKAPCHECK(casa::abs(det)>1e-5, "Unable to apply calibration for (antenna1,beam1)=("<<antenna1[row]<<","<<beam1[row]<<") and (antenna2,beam2)=("<<antenna2[row]<<
+                               ","<<beam2[row]<<"), determinate is too close to 0. D="<<casa::abs(det));           
             casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
             const casa::Vector<casa::Complex> origVis = thisChan.copy();
             ASKAPDEBUGASSERT(thisChan.nelements() == nPol);
