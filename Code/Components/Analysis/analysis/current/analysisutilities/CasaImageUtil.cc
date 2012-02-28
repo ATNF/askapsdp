@@ -616,7 +616,7 @@ namespace askap {
             CoordinateSystem coords = imagePtr->coordinates();
             Record hdr;
 
-            if (!coords.toFITSHeader(hdr, shape, true, 'c', true)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
+            if (!coords.toFITSHeader(hdr, shape, true, 'c', true,true,false)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
 
             std::vector<Double> vals;
             struct wcsprm *wcs;
@@ -629,10 +629,16 @@ namespace askap {
             if (status)
                 ASKAPTHROW(AskapError, "casaImageToWCS: wcsini failed! Code=" << status << ": " << wcs_errmsg[status]);
 
+           status = wcsset(wcs);
+
+            if (status){
+                ASKAPTHROW(AskapError, "casaImageToWCS: wcsset failed! WCSLIB error code=" << status  << ": " << wcs_errmsg[status]);
+	    }
+
             Array<String>::iterator it;
             int i;
 
-            if (hdr.isDefined("ctype")) {
+	    if (hdr.isDefined("ctype")) {
                 RecordFieldId ctypeID("ctype");
                 Array<String> ctype = hdr.asArrayString(ctypeID);
                 Array<String>::iterator it;
@@ -641,7 +647,16 @@ namespace askap {
                 for (it = ctype.begin(); it != ctype.end(); it++) {
                     String str = *it;
                     strcpy(wcs->ctype[i++], str.c_str());
+
+// 		    char stype[5],scode[4],sname[23],units[9],ptype[2],xtype[2];
+// 		    int restflag;
+// 		    status=spctyp(wcs->ctype[i-1],stype,scode,sname,units,ptype,xtype,&restflag);
+// 		    ASKAPLOG_DEBUG_STR(logger, i-1<<" " <<status << " " <<wcs->ctype[i-1] << " : " 
+// 				       << stype << " " << scode << " " << sname
+// 				       << " " << units << " " << ptype << " " << xtype << " " << restflag);
+
                 }
+// 		ASKAPLOG_DEBUG_STR(logger, "1 wcs->ctype[spec] = " << wcs->ctype[wcs->spec] << " spec="<<wcs->spec);
             }
 
             if (hdr.isDefined("cunit")) {
@@ -747,11 +762,13 @@ namespace askap {
                 strcpy(wcs->dateobs, date.c_str());
             }
 
+// 	    wcsprt(wcs);
+
             int stat[NWCSFIX];
             // Applies all necessary corrections to the wcsprm structure
             //  (missing cards, non-standard units or spectral types, ...)
             status = wcsfix(1, (const int*)dim, wcs, stat);
-
+	    
             if (status) {
                 std::stringstream errmsg;
                 errmsg << "casaImageToWCS: wcsfix failed: Function status returns are:\n";
@@ -763,6 +780,8 @@ namespace askap {
 
                 ASKAPTHROW(AskapError, errmsg.str());
             }
+
+// 	    ASKAPLOG_DEBUG_STR(logger, "2 wcs->ctype[spec] = " << wcs->ctype[wcs->spec] << " spec="<<wcs->spec);
 
             status = wcsset(wcs);
 
@@ -782,11 +801,16 @@ namespace askap {
 	      ASKAPTHROW(AskapError, "casaImageToWCS: " << errmsg.str());
 	    }
 	    
+// 	    ASKAPLOG_DEBUG_STR(logger, "3 wcs->ctype[spec] = " << wcs->ctype[wcs->spec] << " spec="<<wcs->spec);
 	    status = wcsset(wcs);
 	    if (status)
 	      ASKAPTHROW(AskapError, "casaImageToWCS: wcsset failed! WCSLIB error code=" << status  << ": " << wcs_errmsg[status]);
+// 	    ASKAPLOG_DEBUG_STR(logger, "4 wcs->ctype[spec] = " << wcs->ctype[wcs->spec] << " spec="<<wcs->spec);
 
             delete [] dim;
+
+// 	    wcsprt(wcs);
+
             return wcs;
         }
 

@@ -157,6 +157,10 @@ namespace askap {
 
                 /// @brief Write a Karma annotation file showing the fits (on the master).
                 void writeFitAnnotation();
+		
+		/// @brief Write an array to an image
+		void writeImage(std::string imageName, Float* data);
+		void writeImage(std::string imageName, casa::Array<Float> data);
 
                 /// @brief Find the mean (on the workers)
                 void findMeans();

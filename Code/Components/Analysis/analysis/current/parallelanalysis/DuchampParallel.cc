@@ -587,7 +587,7 @@ namespace askap {
       }
 
       
-      void findSNR(float *input, float *output, casa::IPosition shape, casa::IPosition box, int loc, bool isSpatial, int spatSize, int specSize)
+      void findSNR(float *input, float *output, float *outmed, float *outmadfm, float *outdiff, float *outin, casa::IPosition shape, casa::IPosition box, int loc, bool isSpatial, int spatSize, int specSize)
       {
 	casa::Array<Float> base(shape, input);
  	casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
@@ -598,7 +598,9 @@ namespace askap {
 // 	casa::Array<Float> snr = (base - mean);
 	
 	// Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
+	Float* baseData=base.data();
  	Float* madfmData=madfm.data();
+	Float* medianData=median.data();
 //	Float* stddevData=stddev.data();
 	Float *snrData=snr.data();
 	int imax = isSpatial ? spatSize : specSize;
@@ -609,8 +611,53 @@ namespace askap {
 	  if(madfmData[i]>0) output[pos] = snrData[i]/madfmData[i];
 	  //if(stddevData[i]>0) output[pos] = snrData[i]/stddevData[i];
 	  else output[pos] = 0.;
+	  outmed[pos] = medianData[i];
+	  outmadfm[pos] = madfmData[i];
+	  outdiff[pos] = snrData[i];
+	  outin[pos] = baseData[i];
 	}
 	
+      }
+
+
+      void DuchampParallel::writeImage(std::string imageName, Float* data)
+      {
+	      const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
+	      if (lattPtr == 0)
+		ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
+	      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	      Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
+	      fixSlicer(slice, this->itsCube.header().getWCS());
+	      ASKAPLOG_DEBUG_STR(logger, "Writing into subimage defined by slicer " << slice << " which comes from "<< this->itsCube.pars().section().getSection());
+	      const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
+	      accessors::CasaImageAccess ia;
+
+	      ia.create(imageName, sub->shape(), sub->coordinates());
+
+// 	      ia.write(imageName, casa::Array<float>(sub->shape(), this->itsCube.getRecon()), slice.start());
+	      ia.write(imageName, casa::Array<float>(sub->shape(), data) );
+	      delete imagePtr;
+
+      }
+
+      void DuchampParallel::writeImage(std::string imageName, casa::Array<Float> data)
+      {
+	      const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
+	      if (lattPtr == 0)
+		ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
+	      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	      Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
+	      fixSlicer(slice, this->itsCube.header().getWCS());
+	      ASKAPLOG_DEBUG_STR(logger, "Writing into subimage defined by slicer " << slice << " which comes from "<< this->itsCube.pars().section().getSection());
+	      const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
+	      accessors::CasaImageAccess ia;
+
+	      ia.create(imageName, sub->shape(), sub->coordinates());
+
+// 	      ia.write(imageName, casa::Array<float>(sub->shape(), this->itsCube.getRecon()), slice.start());
+	      ia.write(imageName, data );
+	      delete imagePtr;
+
       }
 
 
@@ -685,6 +732,10 @@ namespace askap {
 	  int spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
 	  int specSize = this->itsCube.getDimZ();
  	  float *snrAll = new float[this->itsCube.getSize()];
+ 	  float *medAll = new float[this->itsCube.getSize()];
+ 	  float *madfmAll = new float[this->itsCube.getSize()];
+ 	  float *diffAll = new float[this->itsCube.getSize()];
+ 	  float *inputAll = new float[this->itsCube.getSize()];
 	  long *imdim = new long[2];
 	
 	  if(this->itsCube.pars().getSearchType()=="spatial"){
@@ -694,7 +745,7 @@ namespace askap {
 	    duchamp::Image *chanIm = new duchamp::Image(imdim);
 	    for (int z = 0; z < specSize; z++) {
 	      chanIm->extractImage(this->itsCube, z);
-	      findSNR(chanIm->getArray(),snrAll,shape,box,z,true,spatSize,specSize);
+	      findSNR(chanIm->getArray(),snrAll,medAll,madfmAll,diffAll,inputAll,shape,box,z,true,spatSize,specSize);
 	    }
 	  }
 	  else if(this->itsCube.pars().getSearchType()=="spectral"){
@@ -704,7 +755,7 @@ namespace askap {
 	    duchamp::Image *chanIm = new duchamp::Image(imdim);
 	    for (int i = 0; i < spatSize; i++) {
 	      chanIm->extractSpectrum(this->itsCube, i);
- 	      findSNR(chanIm->getArray(),snrAll,shape,box,i,false,spatSize,specSize);
+ 	      findSNR(chanIm->getArray(),snrAll,medAll,madfmAll,diffAll,inputAll,shape,box,i,false,spatSize,specSize);
 	    }
 	  }
 	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
@@ -755,6 +806,13 @@ namespace askap {
 	      this->itsSNRimageName += addition.str();
 	      ASKAPLOG_DEBUG_STR(logger, "SNR image name is now " << this->itsSNRimageName);
 
+	      this->writeImage(this->itsSNRimageName,this->itsCube.getRecon());
+	      this->writeImage(this->itsSNRimageName+"-med",medAll);
+	      this->writeImage(this->itsSNRimageName+"-madfm",madfmAll);
+	      this->writeImage(this->itsSNRimageName+"-diff",diffAll);
+	      this->writeImage(this->itsSNRimageName+"-orig",inputAll);
+
+	      /*
 	      const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
 	      if (lattPtr == 0)
 		ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
@@ -770,6 +828,7 @@ namespace askap {
 // 	      ia.write(this->itsSNRimageName, casa::Array<float>(sub->shape(), this->itsCube.getRecon()), slice.start());
 	      ia.write(this->itsSNRimageName, casa::Array<float>(sub->shape(), this->itsCube.getRecon()));
 	      delete imagePtr;
+	      */
 	    }
 // 	    // Return the OK to the master to say that we've read the image
 // 	    if (itsComms.isParallel()) {
@@ -786,6 +845,8 @@ namespace askap {
 	  }
 	
 	  delete [] snrAll;
+	  delete [] medAll;
+	  delete [] madfmAll;
 	  delete [] imdim;
 	}
       }
@@ -916,7 +977,7 @@ namespace askap {
 
 	src.setHeader(this->itsCube.getHead());
 	src.setOffsets(this->itsCube.pars());
-	if(!this->itsFlagDoFit) this->itsFitParams.setBoxPadSize(0);
+	if(!this->itsFlagDoFit) this->itsFitParams.setBoxPadSize(1);
 	src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 
       }
