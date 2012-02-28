@@ -589,7 +589,7 @@ namespace askap {
       
       void findSNR(float *input, float *output, float *outmed, float *outmadfm, float *outdiff, float *outin, casa::IPosition shape, casa::IPosition box, int loc, bool isSpatial, int spatSize, int specSize)
       {
-	casa::Array<Float> base(shape, input);
+	casa::Array<Float> base(shape, input, casa::SHARE);
  	casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
  	casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
  	casa::Array<Float> snr = (base - median);
@@ -598,6 +598,7 @@ namespace askap {
 // 	casa::Array<Float> snr = (base - mean);
 	
 	// Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
+	/*
 	Float* baseData=base.data();
  	Float* madfmData=madfm.data();
 	Float* medianData=median.data();
@@ -616,6 +617,24 @@ namespace askap {
 	  outdiff[pos] = snrData[i];
 	  outin[pos] = baseData[i];
 	}
+	*/
+	Array<Float>::iterator baseEnd(base.end()), medianEnd(median.end()), madfmEnd(madfm.end()),snrEnd(snr.end());
+	Array<Float>::iterator iterBase=base.begin(),iterMedian=median.begin(),iterMadfm=madfm.begin(),iterSnr=snr.begin();
+	int i=0,pos=0;
+	for(;iterBase!=baseEnd;iterBase++,iterMedian++,iterMadfm++,iterSnr++){
+	  if(isSpatial) pos = i+loc*spatSize;
+	  else pos = loc+i*spatSize;
+	  if(*iterMadfm>0) output[pos] = (*iterSnr)/(*iterMadfm);
+	  //if(*iterStddev>0) output[pos] = (*iterSnr)/(*iterStddev);
+	  else output[pos] = 0.;
+	  outmed[pos] = *iterMedian;
+	  outmadfm[pos] = *iterMadfm;
+	  outdiff[pos] = *iterSnr;
+	  outin[pos] = *iterBase;
+	  i++;
+	}
+	
+
 	
       }
 
