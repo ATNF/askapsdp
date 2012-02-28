@@ -79,23 +79,25 @@ class AskapParallel : public MPIComms {
         /// Number of processes
         virtual int nProcs() const;
 
-        /// Receive the data blob sent by the connected MWConnection
-        /// and wait until data has been received into \a buf.
-        /// The buffer is resized as needed.
-        /// By default it uses the functions \a getMessageLength and \a receive
-        /// to determine the length of the message and to receive the data.
-        virtual void receiveBlob(LOFAR::BlobString& buf, int source);
-
-        /// Send the data to the connected MWConnection
-        /// and wait until the data has been sent.
-        /// By default is uses function \a send to send the data.
+        /// @brief Send a BlobString to the specified destination
+        /// process.
+        ///
+        /// @param[in] buf a reference to the BlobString to send.
+        /// @param[in] dest    the id of the process to send to.
         virtual void sendBlob(const LOFAR::BlobString& buf, int dest);
 
-        /// @brief broadcast blob to all ranks by the connected MWConnection
-        /// @details this method waits until all data has arrived into \a buf.
+        /// @brief Receive a BlobString from the specified source process.
         /// The buffer is resized as needed.
-        /// @param[in] buf blob string
-        /// @param[in] root root rank which has the data
+        ///
+        /// @param[out] buf a reference to the BlobString to receive data into.
+        /// @param[in] source  the id of the process to receive from.
+        virtual void receiveBlob(LOFAR::BlobString& buf, int source);
+
+        /// @brief Broadcast a BlobString to all ranks.
+        /// On the root rank, the BlobString is resized as needed.
+        ///
+        /// @param[in,out] buf    BlobString.
+        /// @param[in] root       id of the root process.
         virtual void broadcastBlob(LOFAR::BlobString& buf, int root);
 
         /// Substitute %w by worker number, and %n by number of workers

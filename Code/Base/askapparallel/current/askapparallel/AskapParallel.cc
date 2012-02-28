@@ -170,7 +170,7 @@ void AskapParallel::broadcastBlob(LOFAR::BlobString& buf, int root)
     unsigned long size = isRoot ? buf.size() : 0;
     broadcast(&size, sizeof(unsigned long), root);
 
-    if (isRoot) {
+    if (!isRoot) {
         buf.resize(size);
     }
     broadcast(buf.data(), size, root);
