@@ -43,7 +43,7 @@ ASKAP_LOGGER(logger, ".measurementequation");
 // need it just for null deleter
 #include <askap/AskapUtil.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <dataaccess/DataAccessError.h>
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/ParsetInterface.h>
@@ -77,7 +77,7 @@ using namespace askap;
 using namespace askap::scimath;
 using namespace askap::synthesis;
 using namespace askap::accessors;
-using namespace askap::mwcommon;
+using namespace askap::askapparallel;
 
 namespace askap
 {
@@ -85,7 +85,7 @@ namespace askap
   {
     using askap::operator<<;
 
-    ImagerParallel::ImagerParallel(askap::mwcommon::AskapParallel& comms,
+    ImagerParallel::ImagerParallel(askap::askapparallel::AskapParallel& comms,
         const LOFAR::ParameterSet& parset) :
       MEParallelApp(comms,parset),
       itsExportSensitivityImage(false), itsExpSensitivityCutoff(0.)

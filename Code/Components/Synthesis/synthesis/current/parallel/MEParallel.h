@@ -30,7 +30,7 @@
 #define ASKAP_SYNTHESIS_MEPARALLEL_H_
 
 #include <parallel/SynParallel.h>
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 namespace askap
 {
@@ -82,7 +82,7 @@ namespace askap
                 /// is the parset to be used in derived classes
 				/// @param[in] comms communication object
 				/// @param[in] parset parameter set      				
-				MEParallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset);
+				MEParallel(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
 				virtual ~MEParallel();
 
@@ -99,11 +99,18 @@ namespace askap
 				/// @brief Send the normal equations from this worker to the master
 				void sendNE();
 
-				/// @brief Receive the normal equations from all workers into this master
-				void receiveNE();
+                /// @brief Receive the normal equations from all workers into this master
+                void receiveNE();
+
+                /// @brief Perform a reduction for normal equations from all
+                /// workers to the master.
+                void reduceNE(askap::scimath::INormalEquations::ShPtr ne);
 
 			protected:
 			
+                void sendNormalEquations(askap::scimath::INormalEquations::ShPtr ne, int dest);
+                askap::scimath::INormalEquations::ShPtr receiveNormalEquations(int source);
+
 				/// Holder for the normal equations
 				askap::scimath::INormalEquations::ShPtr itsNe;
 

@@ -43,8 +43,7 @@
 #include <measurementequation/GaussianNoiseME.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
-#include <mwcommon/MPIConnection.h>
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 ASKAP_LOGGER(logger, ".tpreconditioner");
 
@@ -58,8 +57,7 @@ int main(int argc, char **argv) {
 
      timer.mark();
      // Initialize MPI (also succeeds if no MPI available).
-     //askap::mwcommon::MPIConnection::initMPI(argc, (const char **&)argv);
-     askap::mwcommon::AskapParallel ap(argc, (const char **&)argv);
+     askap::askapparallel::AskapParallel ap(argc, (const char **&)argv);
 
      // Ensure that CASA log messages are captured
      casa::LogSinkInterface* globalSink = new Log4cxxLogSink();

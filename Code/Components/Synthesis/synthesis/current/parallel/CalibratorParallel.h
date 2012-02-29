@@ -34,7 +34,7 @@
 #define CALIBRATOR_PARALLEL_H
 
 // own includes
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <parallel/MEParallelApp.h>
 #include <Common/ParameterSet.h>
 #include <gridding/IVisGridder.h>
@@ -89,7 +89,7 @@ namespace askap
       /// application specific information is passed on the command line.
       /// @param[in] comms communication object
       /// @param[in] parset ParameterSet for inputs
-      CalibratorParallel(askap::mwcommon::AskapParallel& comms,
+      CalibratorParallel(askap::askapparallel::AskapParallel& comms,
           const LOFAR::ParameterSet& parset);
 
       /// @brief Calculate the normal equations (runs in the prediffers)

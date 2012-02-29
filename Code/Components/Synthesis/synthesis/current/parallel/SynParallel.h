@@ -37,7 +37,7 @@
 #include <gridding/IVisGridder.h>
 
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <measures/Measures/MFrequency.h>
 
 namespace askap
@@ -65,7 +65,7 @@ namespace askap
       /// is the parset to be used in derived classes
       /// @param[in] comms communications object
       /// @param[in] parset parameter set      
-      SynParallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset);
+      SynParallel(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
       ~SynParallel();
 
@@ -102,7 +102,7 @@ namespace askap
       askap::scimath::Params::ShPtr itsModel;
 
       /// Class for communications
-      askap::mwcommon::AskapParallel& itsComms;
+      askap::askapparallel::AskapParallel& itsComms;
 
       /// obtain frequency reference frame
       inline casa::MFrequency::Ref getFreqRefFrame() const { return itsFreqRefFrame;}
@@ -111,7 +111,7 @@ namespace askap
       /// @details It is expected to be called from the constructor of derived classes
       /// @param[in] comms communications object
       /// @param[in] parset parameter set      
-      static IVisGridder::ShPtr createGridder(const askap::mwcommon::AskapParallel& comms, 
+      static IVisGridder::ShPtr createGridder(const askap::askapparallel::AskapParallel& comms, 
                            const LOFAR::ParameterSet& parset);
   private:
       /// @brief parameter set to get the parameters from

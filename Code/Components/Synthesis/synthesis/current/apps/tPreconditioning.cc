@@ -43,8 +43,7 @@
 #include <measurementequation/GaussianNoiseME.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
-#include <mwcommon/MPIConnection.h>
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 ASKAP_LOGGER(logger, ".tpreconditioner");
 
@@ -56,9 +55,9 @@ using namespace askap::synthesis;
 /// @details We could have used casa stuff directly
 struct RandomGenerator : public GaussianNoiseME 
 {
-  explicit RandomGenerator(double variance) :
+  explicit RandomGenerator(double variance, askap::askapparallel::AskapParallel& comms) :
       GaussianNoiseME(variance, casa::Int(time(0)), 
-           casa::Int(askap::mwcommon::MPIConnection::getRank())) {}
+           casa::Int(comms.rank())) {}
   using GaussianNoiseME::getRandomComplexNumber;
   float operator()() const { return casa::real(getRandomComplexNumber());}
 };
@@ -102,14 +101,13 @@ int main(int argc, char **argv) {
 
      timer.mark();
      // Initialize MPI (also succeeds if no MPI available).
-     //askap::mwcommon::MPIConnection::initMPI(argc, (const char **&)argv);
-     askap::mwcommon::AskapParallel ap(argc, (const char **&)argv);
+     askap::askapparallel::AskapParallel ap(argc, (const char **&)argv);
 
      // Ensure that CASA log messages are captured
      casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
      casa::LogSink::globalSink(globalSink);
 
-     RandomGenerator rg(0.01);
+     RandomGenerator rg(0.01, ap);
      // hard coded parameters of the test
      const casa::Int size = 1024;
      const size_t numberOfRuns = 5;

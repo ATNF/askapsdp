@@ -47,7 +47,7 @@
 #include <gridding/AProjectGridderBase.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 // just for logging
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 // command line parser
 #include <CommandLineParser.h>
@@ -65,7 +65,7 @@ int main(int argc, const char** argv) {
 
   // This class must have scope outside the main try/catch block
   // we need it to initialise the logging properly
-  mwcommon::AskapParallel comms(argc, argv);
+  askapparallel::AskapParallel comms(argc, argv);
   try {
      casa::Timer timer;
      timer.mark();

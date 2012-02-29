@@ -36,7 +36,7 @@ ASKAP_LOGGER(logger, "");
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/IDataConverterImpl.h>
 #include <parallel/ParallelWriteIterator.h>
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 // casa
 #include <measures/Measures/MFrequency.h>
@@ -59,7 +59,7 @@ using namespace askap::synthesis;
 
 
 
-void doReadWriteTest(askap::mwcommon::AskapParallel &comms, const std::string &name) {
+void doReadWriteTest(askap::askapparallel::AskapParallel &comms, const std::string &name) {
   if (comms.isMaster()) {
      TableDataSource ds(name,TableDataSource::MEMORY_BUFFERS | TableDataSource::WRITE_PERMITTED);     
      IDataSelectorPtr sel=ds.createSelector();
@@ -101,7 +101,7 @@ void doReadWriteTest(askap::mwcommon::AskapParallel &comms, const std::string &n
 
 int main(int argc, const char **argv) {
   // This class must have scope outside the main try/catch block
-  askap::mwcommon::AskapParallel comms(argc, argv);
+  askap::askapparallel::AskapParallel comms(argc, argv);
   
   try {
      // Ensure that CASA log messages are captured

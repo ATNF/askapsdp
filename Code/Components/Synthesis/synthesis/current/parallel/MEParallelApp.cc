@@ -51,7 +51,7 @@ using namespace askap::synthesis;
 /// @details sets communication object and parameter set
 /// @param[in] comms communication object
 /// @param[in] parset parameter set
-MEParallelApp::MEParallelApp(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
+MEParallelApp::MEParallelApp(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
    MEParallel(comms,parset),   
    itsUVWMachineCacheSize(1), itsUVWMachineCacheTolerance(1e-6)   
 {
@@ -67,14 +67,14 @@ MEParallelApp::MEParallelApp(askap::mwcommon::AskapParallel& comms, const LOFAR:
        itsMs = parset.getStringVector("dataset");
         
        ASKAPCHECK(itsMs.size()>0, "Need dataset specification");
-       const int nNodes = itsComms.nNodes();
+       const int nProcs = itsComms.nProcs();
        
        if (itsMs.size() == 1) {
            const string tmpl=itsMs[0];
-           if (nNodes>2) {
-               itsMs.resize(nNodes-1);
+           if (nProcs>2) {
+               itsMs.resize(nProcs-1);
            }
-           for (int i=0; i<nNodes-1; ++i) {
+           for (int i=0; i<nProcs-1; ++i) {
                 itsMs[i] = substitute(tmpl);
                 if ((itsComms.rank() - 1) == i) {
                     ASKAPLOG_INFO_STR(logger, "Measurement set "<<tmpl<<" for rank "<<i+1<<" is substituted by "<<itsMs[i]);
@@ -83,8 +83,8 @@ MEParallelApp::MEParallelApp(askap::mwcommon::AskapParallel& comms, const LOFAR:
        } else {
           ASKAPLOG_INFO_STR(logger, "Skip measurment set substitution, names are given explicitly: "<<itsMs);
        }
-       if (nNodes>1) {
-           ASKAPCHECK(int(itsMs.size()) == (nNodes-1),
+       if (nProcs>1) {
+           ASKAPCHECK(int(itsMs.size()) == (nProcs-1),
               "When running in parallel, need one data set per node");
        } 
        

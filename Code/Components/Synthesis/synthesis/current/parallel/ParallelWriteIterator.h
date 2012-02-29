@@ -41,7 +41,7 @@
 #include <dataaccess/IDataIterator.h>
 #include <parallel/ParallelAccessor.h>
 #include <dataaccess/SharedIter.h>
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 namespace askap {
 
@@ -66,7 +66,7 @@ public:
     /// @param[in] cacheSize uvw-machine cache size
     /// @param[in] tolerance pointing direction tolerance in radians, exceeding
     /// which leads to initialisation of a new UVW machine and recompute of the rotated uvws/delays  
-    explicit ParallelWriteIterator(askap::mwcommon::AskapParallel& comms, size_t cacheSize = 1, double tolerance = 1e-6);
+    explicit ParallelWriteIterator(askap::askapparallel::AskapParallel& comms, size_t cacheSize = 1, double tolerance = 1e-6);
     
     
 	// Return the data accessor (current chunk) in various ways	
@@ -131,7 +131,7 @@ public:
     /// to client iterators and combines visibilities in a single cube.
     /// @param comms communication object
     /// @param iter shared iterator to use
-    static void masterIteration(askap::mwcommon::AskapParallel& comms, const accessors::IDataSharedIter &iter);
+    static void masterIteration(askap::askapparallel::AskapParallel& comms, const accessors::IDataSharedIter &iter);
 	
 protected:
     
@@ -144,7 +144,7 @@ protected:
     
 private:
     /// @brief communicator
-    askap::mwcommon::AskapParallel& itsComms;
+    askap::askapparallel::AskapParallel& itsComms;
 	
 	/// @brief true, if at least one chunk of data have been received
 	/// @details We use this flag to assert that no attempts to restart

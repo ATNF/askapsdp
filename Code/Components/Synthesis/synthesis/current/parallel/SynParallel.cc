@@ -47,9 +47,6 @@
 #include <string>
 #include <algorithm>
 
-#include <mwcommon/MPIConnection.h>
-#include <mwcommon/MPIConnectionSet.h>
-
 #include <Blob/BlobString.h>
 #include <Blob/BlobIBufString.h>
 #include <Blob/BlobOBufString.h>
@@ -70,7 +67,7 @@ ASKAP_LOGGER(logger, ".parallel");
 
 using namespace std;
 using namespace askap;
-using namespace askap::mwcommon;
+using namespace askap::askapparallel;
 using namespace askap::scimath;
 
 namespace askap
@@ -78,7 +75,7 @@ namespace askap
   namespace synthesis
   {
 
-    SynParallel::SynParallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
+    SynParallel::SynParallel(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset) : 
                          itsComms(comms), itsParset(parset)
     {
       itsModel.reset(new Params());
@@ -104,7 +101,7 @@ namespace askap
           mwString += "&master";
       } 
       ASKAPLOG_INFO_STR(logger, "SynParallel in "<<parString<<" mode("<<mwString<<"), rank = "<<itsComms.rank()<<
-                        " nNodes="<<itsComms.nNodes());
+                        " nProcs="<<itsComms.nProcs());
     }
 
     SynParallel::~SynParallel()
@@ -133,8 +130,8 @@ namespace askap
         out.putStart("model", 1);
         out << *itsModel;
         out.putEnd();
-        itsComms.connectionSet()->writeAll(bs);
-        ASKAPLOG_INFO_STR(logger, "Sent model to the workers via MPI in "<< timer.real()
+        itsComms.broadcastBlob(bs ,0);
+        ASKAPLOG_INFO_STR(logger, "Broadcast model to the workers in "<< timer.real()
                            << " seconds ");
       }
     }
@@ -147,17 +144,17 @@ namespace askap
         ASKAPCHECK(itsModel, "Model not defined prior to receiving")
         casa::Timer timer;
         timer.mark();
-        ASKAPLOG_INFO_STR(logger, "Wait to receive the model from the master via MPI");
+        ASKAPLOG_INFO_STR(logger, "Wait to receive the model from the master");
         LOFAR::BlobString bs;
         bs.resize(0);
-        itsComms.connectionSet()->read(0, bs);
+        itsComms.broadcastBlob(bs, 0);
         LOFAR::BlobIBufString bib(bs);
         LOFAR::BlobIStream in(bib);
         int version=in.getStart("model");
         ASKAPASSERT(version==1);
         in >> *itsModel;
         in.getEnd();
-        ASKAPLOG_INFO_STR(logger, "Received model from the master via MPI in "<< timer.real()
+        ASKAPLOG_INFO_STR(logger, "Received model from the master in "<< timer.real()
                            << " seconds ");
         ASKAPLOG_DEBUG_STR(logger, "Current model held by the worker: "<<*itsModel);
       }
@@ -172,7 +169,7 @@ namespace askap
     /// @details It is expected to be called from the constructor of derived classes
     /// @param[in] comms communications object
     /// @param[in] parset parameter set      
-    IVisGridder::ShPtr SynParallel::createGridder(const askap::mwcommon::AskapParallel& comms, 
+    IVisGridder::ShPtr SynParallel::createGridder(const askap::askapparallel::AskapParallel& comms, 
                            const LOFAR::ParameterSet& parset)
     {
        // Create the gridder using a factory acting on a parameterset

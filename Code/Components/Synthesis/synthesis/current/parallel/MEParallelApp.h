@@ -34,7 +34,7 @@
 #define ME_PARALLEL_APP_H
 
 // ASKAPsoft includes
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <Common/ParameterSet.h>
 #include <parallel/MEParallel.h>
 #include <gridding/IVisGridder.h>
@@ -60,7 +60,7 @@ public:
    /// @details sets communication object and parameter set
    /// @param[in] comms communication object
    /// @param[in] parset parameter set
-   MEParallelApp(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset);
+   MEParallelApp(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
 protected:
    

@@ -52,7 +52,7 @@ public:
    /// application specific information is passed on the command line.
    /// @param comms communication object 
    /// @param parset ParameterSet for inputs
-   ContSubtractParallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset);
+   ContSubtractParallel(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset);
  
    /// @brief Initialise continuum subtractor
    /// @details The parameters are taken from the parset file supplied in the constructor.

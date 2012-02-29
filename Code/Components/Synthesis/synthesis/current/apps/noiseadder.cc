@@ -48,9 +48,7 @@ ASKAP_LOGGER(logger, "");
 #include <measurementequation/GaussianNoiseME.h>
 #include <measurementequation/IMeasurementEquation.h>
 #include <dataaccess/MemBufferDataAccessor.h>
-
-#include <mwcommon/MPIConnection.h>
-
+#include <askapparallel/MPIComms.h>
 
 // std
 #include <stdexcept>
@@ -97,10 +95,10 @@ int main(int argc, char **argv) {
      parser.process(argc, argv);
      
      // Initialize MPI (also succeeds if no MPI available).
-     askap::mwcommon::MPIConnection::initMPI(argc, (const char **&)argv);
+     askap::askapparallel::MPIComms comms(argc, argv);
 
      casa::Int seed1 = casa::Int(time(0));
-     casa::Int seed2 = casa::Int(askap::mwcommon::MPIConnection::getRank());
+     casa::Int seed2 = casa::Int(comms.rank());
      std::cerr<<"Using seeds: "<<seed1<<" "<<seed2<<std::endl;
      GaussianNoiseME noiseME(noiseVariance,seed1,seed2);
      
@@ -112,8 +110,6 @@ int main(int argc, char **argv) {
      addNoise(ds,noiseME);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
-     askap::mwcommon::MPIConnection::endMPI();
-
   }
   catch(const cmdlineparser::XParser &) {
      cerr<<"Usage "<<argv[0]<<" measurement_set noise_variance_in_Jy_squared"<<endl;
