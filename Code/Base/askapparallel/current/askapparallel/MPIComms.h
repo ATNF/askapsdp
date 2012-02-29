@@ -103,7 +103,12 @@ class MPIComms {
         // Add a byte offset to the  specified pointer, returning the result
         void* addOffset(const void *ptr, size_t offset) const;
 
+
 #ifdef HAVE_MPI
+        // Actual implementation of receive method, used by the two
+        // public methods.
+        int receiveImpl(void* buf, size_t size, int source, int tag);
+
         // Specific MPI Communicator for this class
         MPI_Comm itsCommunicator;
 #endif

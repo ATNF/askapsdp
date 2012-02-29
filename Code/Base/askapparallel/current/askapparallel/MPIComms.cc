@@ -147,6 +147,16 @@ void MPIComms::send(const void* buf, size_t size, int dest, int tag)
 
 void MPIComms::receive(void* buf, size_t size, int source, int tag)
 {
+    receiveImpl(buf, size, source, tag);
+}
+
+int MPIComms::receiveAnySrc(void* buf, size_t size, int tag)
+{
+    return receiveImpl(buf, size, MPI_ANY_SOURCE, tag);
+}
+
+int MPIComms::receiveImpl(void* buf, size_t size, int source, int tag)
+{
     const unsigned int c_maxint = std::numeric_limits<int>::max();
 
     // First receive the size of the payload to be received,
@@ -154,9 +164,18 @@ void MPIComms::receive(void* buf, size_t size, int source, int tag)
     // just the maximum size of the buffer, and hence the maximum
     // number of bytes that can be received.
     unsigned long payloadSize;
+    MPI_Status status;
     int result = MPI_Recv(&payloadSize, 1, MPI_UNSIGNED_LONG,
-                          source, tag, itsCommunicator, MPI_STATUS_IGNORE);
+                          source, tag, itsCommunicator, &status);
     checkError(result, "MPI_Recv");
+
+    // The source parameter may be MPI_ANY_SOURCE, so the actual
+    // source needs to be recorded for later use.
+    const int actualSource = status.MPI_SOURCE;
+    if (source != MPI_ANY_SOURCE) {
+        ASKAPCHECK(actualSource == source,
+                "Actual source of message differs from requested source");
+    }
 
     // Receive the smaller of size or payloadSize
     size_t remaining = (payloadSize > size) ? size : payloadSize;
@@ -167,11 +186,11 @@ void MPIComms::receive(void* buf, size_t size, int source, int tag)
 
         if (remaining >= c_maxint) {
             result = MPI_Recv(addr, c_maxint, MPI_BYTE,
-                              source, tag, itsCommunicator, MPI_STATUS_IGNORE);
+                              actualSource, tag, itsCommunicator, MPI_STATUS_IGNORE);
             remaining -= c_maxint;
         } else {
             result = MPI_Recv(addr, remaining, MPI_BYTE,
-                              source, tag, itsCommunicator, MPI_STATUS_IGNORE);
+                              actualSource, tag, itsCommunicator, MPI_STATUS_IGNORE);
             remaining = 0;
         }
 
@@ -179,11 +198,7 @@ void MPIComms::receive(void* buf, size_t size, int source, int tag)
     }
 
     ASKAPCHECK(remaining == 0, "MPIComms::receive() Didn't receive all data");
-}
-
-int MPIComms::receiveAnySrc(void* buf, size_t size, int tag)
-{
-    ASKAPTHROW(AskapError, "MPIComms::receiveAnySrc() not yet implemented");
+    return actualSource;
 }
 
 void MPIComms::broadcast(void* buf, size_t size, int root)
