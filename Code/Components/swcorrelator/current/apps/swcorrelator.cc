@@ -40,7 +40,7 @@
 #include <casa/OS/Timer.h>
 
 // other 3rd party
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <Common/ParameterSet.h>
 #include <CommandLineParser.h>
 #include <signal.h>
@@ -60,7 +60,7 @@ void signalHandler(int sig) {
 int main(int argc, const char** argv)
 {
     // This class must have scope outside the main try/catch block
-    askap::mwcommon::AskapParallel comms(argc, argv);
+    askap::askapparallel::AskapParallel comms(argc, argv);
     
     signal(SIGTERM, &signalHandler);
 

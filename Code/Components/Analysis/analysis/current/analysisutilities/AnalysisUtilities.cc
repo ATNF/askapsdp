@@ -35,7 +35,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <analysisutilities/AnalysisUtilities.h>
 
@@ -67,7 +67,7 @@ ASKAP_LOGGER(logger, ".analysisutilities");
 namespace askap {
     namespace analysis {
 
-      std::string printWorkerPrefix(askap::mwcommon::AskapParallel& comms)
+      std::string printWorkerPrefix(askap::askapparallel::AskapParallel& comms)
       {
 	std::stringstream ss;
 	if (comms.isParallel()) {

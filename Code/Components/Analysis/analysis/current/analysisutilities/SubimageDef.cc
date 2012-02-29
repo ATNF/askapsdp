@@ -32,7 +32,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <analysisutilities/AnalysisUtilities.h>
 #include <analysisutilities/CasaImageUtil.h>
@@ -314,7 +314,7 @@ namespace askap {
             }
         }
 
-        void SubimageDef::writeAnnotationFile(std::string filename, duchamp::FitsHeader &head, std::string imageName, askap::mwcommon::AskapParallel& comms)
+        void SubimageDef::writeAnnotationFile(std::string filename, duchamp::FitsHeader &head, std::string imageName, askap::askapparallel::AskapParallel& comms)
         {
             /// @details This creates a Karma annotation file that simply has the borders of the subimages plotted on it.
 
@@ -341,7 +341,7 @@ namespace askap {
 
             for (int i = 0; i < 4; i++) pix[i*3+2] = 0;
 
-            for (int w = 0; w < comms.nNodes()-1; w++) {
+            for (int w = 0; w < comms.nProcs()-1; w++) {
 
 	      //                duchamp::Section workerSection = this->section(w, fullImageSubsection.getSection());
 	      duchamp::Section workerSection = this->section(w);

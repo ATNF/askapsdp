@@ -29,7 +29,7 @@
 #ifndef ASKAP_ANALYSIS_WEIGHTER_H_
 #define ASKAP_ANALYSIS_WEIGHTER_H_
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <analysisutilities/CasaImageUtil.h>
 #include <duchamp/Utils/Section.hh>
 #include <casa/aipstype.h>
@@ -47,7 +47,7 @@ namespace askap {
       {
 
       public:
-	Weighter(askap::mwcommon::AskapParallel& comms);
+	Weighter(askap::askapparallel::AskapParallel& comms);
 	virtual ~Weighter(){};
 	
 	void initialise(std::string &weightsImage, duchamp::Section &section, bool doAllocation=true);
@@ -56,7 +56,7 @@ namespace askap {
 	float weight(size_t i);
 
       protected:
-	askap::mwcommon::AskapParallel& itsComms;
+	askap::askapparallel::AskapParallel& itsComms;
 	std::string itsImage;
 	duchamp::Section itsSection;
 	float itsNorm;

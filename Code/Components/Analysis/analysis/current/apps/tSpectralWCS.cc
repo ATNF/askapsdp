@@ -48,7 +48,7 @@ ASKAP_LOGGER(logger, "tSpectralWCS.log");
 int main(int argc, const char *argv[])
 {
     // This class must have scope outside the main try/catch block
-    askap::mwcommon::AskapParallel comms(argc, argv);
+    askap::askapparallel::AskapParallel comms(argc, argv);
     try {
       std::string imageName,outfile;
 

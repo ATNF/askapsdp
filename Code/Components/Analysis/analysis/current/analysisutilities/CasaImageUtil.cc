@@ -35,7 +35,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <casa/aipstype.h>
 #include <images/Images/FITSImage.h>
@@ -271,7 +271,7 @@ namespace askap {
 
         //**************************************************************//
 
-        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, askap::mwcommon::AskapParallel& comms)
+        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, askap::askapparallel::AskapParallel& comms)
         {
             /// @details Equivalent of duchamp::Cube::getImage(), but for
             /// accessing casa images. Reads the pixel data and metadata
@@ -478,7 +478,7 @@ namespace askap {
 
         //**************************************************************//
 
-        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, askap::mwcommon::AskapParallel& comms)
+        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, askap::askapparallel::AskapParallel& comms)
         {
             /// @details Equivalent of duchamp::Cube::getMetadata(), but for
             /// accessing casa images, to read the metadata (ie. header

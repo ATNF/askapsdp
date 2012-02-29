@@ -30,7 +30,7 @@
 #include <parallelanalysis/Weighter.h>
 #include <analysisutilities/CasaImageUtil.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
@@ -54,7 +54,7 @@ namespace askap {
 
   namespace analysis {
 
-    Weighter::Weighter(askap::mwcommon::AskapParallel& comms):
+    Weighter::Weighter(askap::askapparallel::AskapParallel& comms):
       itsComms(comms)
     {
     }
@@ -88,10 +88,10 @@ namespace askap {
 	  out.putStart("localmax", 1);
 	  out << maxW;
 	  out.putEnd();
-	  itsComms.connectionSet()->write(0, bs);
+	  itsComms.sendBlob(bs, 0);
 
 	  // now read actual maximum from master
-	  itsComms.connectionSet()->read(0, bs);
+	  itsComms.broadcastBlob(bs, 0);
 	  LOFAR::BlobIBufString bib(bs);
 	  LOFAR::BlobIStream in(bib);
 	  int version = in.getStart("maxweight");
@@ -101,9 +101,9 @@ namespace askap {
 	}
 	else if(itsComms.isMaster()) {
 	  // read local maxima from workers and find the maximum of them
-	  for (int n=0;n<itsComms.nNodes()-1;n++){
+	  for (int n=0;n<itsComms.nProcs()-1;n++){
 	    float localmax;
-	    itsComms.connectionSet()->read(n, bs);
+	    itsComms.receiveBlob(bs, n + 1);
 	    LOFAR::BlobIBufString bib(bs);
 	    LOFAR::BlobIStream in(bib);
 	    int version = in.getStart("localmax");
@@ -119,7 +119,7 @@ namespace askap {
 	  out.putStart("maxweight", 1);
 	  out << this->itsNorm;
 	  out.putEnd();
-	  itsComms.connectionSet()->writeAll(bs);
+	  itsComms.broadcastBlob(bs, 0);
 	  }
       }
       else { 

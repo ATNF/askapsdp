@@ -34,7 +34,7 @@
 #include <FITS/FITSparallel.h>
 #include <FITS/FITSfile.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <duchamp/Utils/Section.hh>
 #include <analysisutilities/SubimageDef.h>
 
@@ -69,7 +69,7 @@ namespace askap {
 	    
 	  }
 
-            FITSparallel::FITSparallel(askap::mwcommon::AskapParallel& comms, const LOFAR::ParameterSet& parset)
+            FITSparallel::FITSparallel(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset)
                     : itsComms(comms)
             {
                 /// @details Assignment of the necessary parameters, reading from the ParameterSet.
@@ -81,10 +81,10 @@ namespace askap {
                 this->itsSubimageDef = analysis::SubimageDef(parset);
                 int numSub = this->itsSubimageDef.nsubx() * this->itsSubimageDef.nsuby();
 
-                if (itsComms.isParallel() && (numSub != itsComms.nNodes() - 1))
+                if (itsComms.isParallel() && (numSub != itsComms.nProcs() - 1))
                     ASKAPTHROW(AskapError, "Number of requested subimages (" << numSub << ", = "
                                    << this->itsSubimageDef.nsubx() << "x" << this->itsSubimageDef.nsuby()
-                                   << ") does not match the number of worker nodes (" << itsComms.nNodes() - 1 << ")");
+                                   << ") does not match the number of worker nodes (" << itsComms.nProcs() - 1 << ")");
 
                 size_t dim = parset.getInt32("dim", 2);
                 std::vector<int> axes = parset.getInt32Vector("axes");
@@ -201,15 +201,15 @@ namespace askap {
                         }
 
                         out.putEnd();
-                        itsComms.connectionSet()->write(0, bs);
+                        itsComms.sendBlob(bs, 0);
 
                     } else if (itsComms.isMaster()) {
 
                         LOFAR::BlobString bs;
 
-                        for (int n = 1; n < itsComms.nNodes(); n++) {
+                        for (int n = 1; n < itsComms.nProcs(); n++) {
                             ASKAPLOG_DEBUG_STR(logger, "MASTER: about to read data from Worker #" << n);
-                            itsComms.connectionSet()->read(n - 1, bs);
+                            itsComms.receiveBlob(bs, n);
                             LOFAR::BlobIBufString bib(bs);
                             LOFAR::BlobIStream in(bib);
                             int version = in.getStart("pixW2M");
@@ -333,7 +333,7 @@ namespace askap {
                         // Send out the OK to the workers, so that they access the file in turn
                         ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' messages to each worker");
 
-                        for (int i = 1; i < this->itsComms.nNodes(); i++) {
+                        for (int i = 1; i < this->itsComms.nProcs(); i++) {
                             // First send the node number
                             ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' to worker#" << i);
                             bs.resize(0);
@@ -342,13 +342,12 @@ namespace askap {
                             out.putStart("goInput", 1);
                             out << i ;
                             out.putEnd();
-			    //                            this->itsComms.connectionSet()->writeAll(bs);
-                            this->itsComms.connectionSet()->write(i-1,bs);
+                            this->itsComms.sendBlob(bs, i);
 			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Sent. Now waiting for reply from worker#"<<i);
                             // Then wait for the OK from that node
                             bs.resize(0);
 			    ASKAPLOG_DEBUG_STR(logger, "MASTER: Reading from connection "<< i-1);
-                            this->itsComms.connectionSet()->read(i - 1, bs);
+                            this->itsComms.receiveBlob(bs, i);
                             LOFAR::BlobIBufString bib(bs);
                             LOFAR::BlobIStream in(bib);
                             int version = in.getStart("inputDone");
@@ -369,7 +368,7 @@ namespace askap {
                         if (this->itsComms.isParallel()) {
                             do {
                                 bs.resize(0);
-                                this->itsComms.connectionSet()->read(0, bs);
+                                this->itsComms.receiveBlob(bs, 0);
                                 LOFAR::BlobIBufString bib(bs);
                                 LOFAR::BlobIStream in(bib);
                                 version = in.getStart("goInput");
@@ -395,7 +394,7 @@ namespace askap {
                                 out.putStart("inputDone", 1);
                                 out << OK;
                                 out.putEnd();
-                                this->itsComms.connectionSet()->write(0, bs);
+                                this->itsComms.sendBlob(bs, 0);
 				ASKAPLOG_DEBUG_STR(logger, "Worker #" << this->itsComms.rank() << ": All done.");
 
                             }

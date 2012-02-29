@@ -71,7 +71,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 int main(int argc, const char** argv)
 {
     // This class must have scope outside the main try/catch block
-    askap::mwcommon::AskapParallel comms(argc, argv);
+    askap::askapparallel::AskapParallel comms(argc, argv);
     try {
         casa::Timer timer;
         timer.mark();

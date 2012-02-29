@@ -35,7 +35,7 @@
 #include <casa/OS/Timer.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 // we don't use the manager as such, but it is handy to use other stuff defined there
 #include <swcorrelator/BufferManager.h>
 
@@ -205,7 +205,7 @@ boost::shared_mutex Worker::theirSampleTriggerMutex;
 int main(int argc, const char** argv)
 {
     // This class must have scope outside the main try/catch block
-    askap::mwcommon::AskapParallel comms(argc, argv);
+    askap::askapparallel::AskapParallel comms(argc, argv);
 
     try {
        casa::Timer timer;

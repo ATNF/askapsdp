@@ -74,7 +74,7 @@ std::string getInputs(const std::string& key, const std::string& def, int argc,
 // Main function
 int main(int argc, const char** argv)
 {
-    askap::mwcommon::AskapParallel comms(argc, argv);
+    askap::askapparallel::AskapParallel comms(argc, argv);
 //     try {
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();

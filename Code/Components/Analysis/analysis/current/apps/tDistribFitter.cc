@@ -31,7 +31,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <Common/ParameterSet.h>
 #include <Common/LofarTypedefs.h>
@@ -71,7 +71,7 @@ using namespace LOFAR::TYPES;
 
 using namespace casa;
 using namespace askap;
-using namespace askap::mwcommon;
+using namespace askap::askapparallel;
 using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "tDistribFitter.log");
@@ -96,7 +96,7 @@ int main(int argc, const char *argv[])
 	LOFAR::BlobString bs;
 	for(int i=0;i<size;i++){
 	  // loop over the list of numbers, find a free worker and send a number to it
-	  // parl.connectionSet()->read(0, bs);
+	  // parl.receiveBlob(bs, 0);
 	  // LOFAR::BlobIBufString bib(bs);
 	  // LOFAR::BlobIStream in(bib);
 	  // int version = in.getStart("fitready");
@@ -111,7 +111,7 @@ int main(int argc, const char *argv[])
 	  // rank = status.MPI_SOURCE;
 
 
-	  rank = i%(parl.nNodes()-1);
+	  rank = i%(parl.nProcs()-1);
 	  ASKAPLOG_INFO_STR(logger, "Master about to send number " << mylist[i] << " to worker #"<< rank+1);
 	  bs.resize(0);
 	  LOFAR::BlobOBufString bob(bs);
@@ -119,7 +119,7 @@ int main(int argc, const char *argv[])
 	  out.putStart("fitsrc", 1);
 	  out << true << mylist[i];
 	  out.putEnd();
-	  parl.connectionSet()->write(rank, bs);
+	  parl.sendBlob(bs, rank + 1);
 	  ASKAPLOG_INFO_STR(logger, "Done");
 	}
 	// now notify all workers that we're finished.
@@ -130,17 +130,21 @@ int main(int argc, const char *argv[])
 	// sourcefitting::RadioSource dudSrc;
 	// out << false << dudSrc;
 	// out.putEnd();
-	// parl.connectionSet()->writeAll(bs);
+    //for (int i = 1; i < parl.nProcs(); ++i) {
+	//    parl.sendBlob(bs, i);
+    //}
 	out << false << -1;
 	out.putEnd();
-	parl.connectionSet()->writeAll(bs);
+    for (int i = 1; i < parl.nProcs(); ++i) {
+	    parl.sendBlob(bs, i);
+    }
 
 	// read data back from workers
 	std::vector<int> newlist;
-	for (int n=0;n<parl.nNodes()-1;n++){
+	for (int n=0;n<parl.nProcs()-1;n++){
 	  int size,num;
 	  ASKAPLOG_INFO_STR(logger, "Master about to read from worker #"<< n);
-	  parl.connectionSet()->read(n, bs);
+	  parl.receiveBlob(bs, n + 1);
 	  LOFAR::BlobIBufString bib(bs);
 	  LOFAR::BlobIStream in(bib);
 	  int version = in.getStart("final");
@@ -171,13 +175,13 @@ int main(int argc, const char *argv[])
 	  // out.putStart("fitready", 1);
 	  // out << true;
 	  // out.putEnd();
-	  // parl.connectionSet()->write(0,bs);
+	  // parl.sendBlob(bs, 0);
 
 	  // const unsigned long size = 0;
 	  // const int dest=0;
 	  // send(&size, sizeof(long), dest, 0);
 	    
-	  parl.connectionSet()->read(0, bs);
+	  parl.receiveBlob(bs, 0);
 	  LOFAR::BlobIBufString bib(bs);
 	  LOFAR::BlobIStream in(bib);
 	  int version = in.getStart("fitsrc");
@@ -202,7 +206,7 @@ int main(int argc, const char *argv[])
 	out << int(numbers.size());
 	for(size_t i=0;i<numbers.size();i++) out << numbers[i];
 	out.putEnd();
-	parl.connectionSet()->write(0,bs);
+	parl.sendBlob(bs, 0);
 	
 
       }

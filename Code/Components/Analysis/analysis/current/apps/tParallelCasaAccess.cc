@@ -34,7 +34,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 
 #include <Common/ParameterSet.h>
 #include <Common/LofarTypedefs.h>
@@ -72,23 +72,10 @@ using namespace LOFAR::TYPES;
 
 using namespace casa;
 using namespace askap;
-using namespace askap::mwcommon;
+using namespace askap::askapparallel;
 
 ASKAP_LOGGER(logger, "tParallelCasaAccess.log");
 
-
-/// A simple front-end to AskapParallel that allows direct access of
-/// the node & rank numbers, plus the connectionSet.
-class MyAskapParallel: public askap::mwcommon::AskapParallel {
-    public:
-        MyAskapParallel(int argc, const char **argv): AskapParallel(argc, argv) {};
-        int nnode() {return itsNNode;};
-        int rank() {return itsRank;};
-        askap::mwcommon::MPIConnectionSet::ShPtr connectionSet() {return itsConnectionSet;};
-
-};
-
-// bool getSubImage(std::string name, SubImage<Float> &subimage, MyAskapParallel &parl)
 bool getSubImage(std::string name, SubImage<Float> &subimage, AskapParallel &parl)
 {
     /// Trying ways of accessing an image in a way that allows
@@ -109,7 +96,7 @@ bool getSubImage(std::string name, SubImage<Float> &subimage, AskapParallel &par
     ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": Shape of original image = " << shape);
     IPosition newLength = shape;
 //    newLength(0) = newLength(0) / (parl.nnode() - 1);
-    newLength(0) = newLength(0) / (parl.nNodes() - 1);
+    newLength(0) = newLength(0) / (parl.nProcs() - 1);
     ASKAPLOG_DEBUG_STR(logger, "Worker #" << parl.rank() << ": New shape = " << newLength);
     int startpos = (parl.rank() - 1) * newLength(0);
     IPosition start(shape.size(), 0);
@@ -151,7 +138,6 @@ int main(int argc, const char *argv[])
         else imageName = argv[1];
 
         ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-//         MyAskapParallel parl(argc, argv);
         AskapParallel parl(argc, argv);
 
         if (!parl.isParallel()) {
@@ -160,8 +146,7 @@ int main(int argc, const char *argv[])
         }
 
         if (parl.isMaster()) {
-//             ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nnode() << ")");
-            ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nNodes() << ")");
+            ASKAPLOG_INFO_STR(logger, "In Master (#" << parl.rank() << " / " << parl.nProcs() << ")");
             ASKAPLOG_INFO_STR(logger, "Master done!");
         } else if (parl.isWorker()) {
             ASKAPLOG_INFO_STR(logger, "In Worker #" << parl.rank());

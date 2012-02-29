@@ -63,7 +63,7 @@ using namespace LOFAR::TYPES;
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <imageaccess/CasaImageAccess.h>
 
 #include <parallelanalysis/DuchampParallel.h>
@@ -98,7 +98,7 @@ ASKAP_LOGGER(logger, ".parallelanalysis");
 
 using namespace std;
 using namespace askap;
-using namespace askap::mwcommon;
+using namespace askap::askapparallel;
 
 using namespace duchamp;
 
@@ -124,7 +124,7 @@ namespace askap {
         //**************************************************************//
 
 
-        DuchampParallel::DuchampParallel(askap::mwcommon::AskapParallel& comms)
+        DuchampParallel::DuchampParallel(askap::askapparallel::AskapParallel& comms)
                 : itsComms(comms)
         {
             this->itsFitParams = sourcefitting::FittingParameters(LOFAR::ParameterSet());
@@ -132,7 +132,7 @@ namespace askap {
         }
         //**************************************************************//
 
-        DuchampParallel::DuchampParallel(askap::mwcommon::AskapParallel& comms,
+        DuchampParallel::DuchampParallel(askap::askapparallel::AskapParallel& comms,
                                          const LOFAR::ParameterSet& parset)
                 : itsComms(comms)
         {
@@ -716,7 +716,7 @@ namespace askap {
 // 	      // send OK message to all workers
 // 	      LOFAR::BlobString bs;
 // 	      bool writingOK;
-// 	      for (int i = 1; i < itsComms.nNodes(); i++) {
+// 	      for (int i = 1; i < itsComms.nProcs(); i++) {
 // 		// First send the node number
 // 		ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' to worker#" << i);
 // 		bs.resize(0);
@@ -725,12 +725,12 @@ namespace askap {
 // 		out.putStart("SNRimageGood", 1);
 // 		out << i ;
 // 		out.putEnd();
-// 		itsComms.connectionSet()->write(i-1,bs);
+// 		itsComms.sendBlob(bs, i);
 // 		ASKAPLOG_DEBUG_STR(logger, "MASTER: Sent. Now waiting for reply from worker#"<<i);
 // 		// Then wait for the OK from that node
 // 		bs.resize(0);
 // 		ASKAPLOG_DEBUG_STR(logger, "MASTER: Reading from connection "<< i-1);
-// 		this->itsComms.connectionSet()->read(i - 1, bs);
+// 		this->itsComms.receiveBlob(bs, i);
 // 		LOFAR::BlobIBufString bib(bs);
 // 		LOFAR::BlobIStream in(bib);
 // 		int version = in.getStart("SNRimageDone");
@@ -807,7 +807,7 @@ namespace askap {
 // 	    if(itsComms.isParallel()){
 // 	      do {
 // 		LOFAR::BlobString bs;
-// 		this->itsComms.connectionSet()->read(0, bs);
+// 		this->itsComms.receiveBlob(bs, 0);
 // 		LOFAR::BlobIBufString bib(bs);
 // 		LOFAR::BlobIStream in(bib);
 // 		int version = in.getStart("SNRimageGood");
@@ -858,7 +858,7 @@ namespace askap {
 // 	      out.putStart("SNRimageDone", 1);
 // 	      out << true;
 // 	      out.putEnd();
-// 	      itsComms.connectionSet()->write(0, bs);
+// 	      itsComms.sendBlob(bs, 0);
 // 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << ": All done.");
 // 	    }
 	  }
@@ -965,7 +965,7 @@ namespace askap {
 		    // Only do fit if object is not next to boundary
 		    src.setAtEdge(this->itsCube, this->itsSubimageDef, itsComms.rank() - 1);
 		    
-		    if (itsComms.nNodes() == 1) src.setAtEdge(false);
+		    if (itsComms.nProcs() == 1) src.setAtEdge(false);
 
 		    if (!src.isAtEdge() && this->itsFlagDoFit) 
 		      this->fitSource(src, true);
@@ -1102,7 +1102,7 @@ namespace askap {
                     }
 
                     out.putEnd();
-                    itsComms.connectionSet()->write(0, bs);
+                    itsComms.sendBlob(bs, 0);
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Sent detection list to the master");
                 } else {
                 }
@@ -1130,8 +1130,8 @@ namespace askap {
 	    bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
 	    this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
 
-	    for (int i = 1; i < itsComms.nNodes(); i++) {
-	      itsComms.connectionSet()->read(i - 1, bs);
+	    for (int i = 1; i < itsComms.nProcs(); i++) {
+	      itsComms.receiveBlob(bs, i);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
 	      int version = in.getStart("detW2M");
@@ -1416,7 +1416,7 @@ namespace askap {
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Using subsection for box calcs: " << fullSec.getSection());
 	    // now send the individual sources to each worker in turn
 	    for(int i=0;i<this->itsCube.getNumObj();i++){
-	      rank = i % (itsComms.nNodes() - 1);
+	      rank = i % (itsComms.nProcs() - 1);
 	      objsize = this->itsCube.getObject(i).getSize();
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << objsize << " to worker "<<rank+1);
 	      bs.resize(0);
@@ -1428,7 +1428,7 @@ namespace askap {
 	      src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 	      out << src;
 	      out.putEnd();
-	      itsComms.connectionSet()->write(rank, bs);
+	      itsComms.sendBlob(bs, rank + 1); // First worker is rank 1
 	    }
 	    // now send a zero size to tell everyone the list has finished.
 	    objsize=0;
@@ -1438,15 +1438,16 @@ namespace askap {
 	    out.putStart("paramsrc", 1);
 	    out << objsize;
 	    out.putEnd();
-	    itsComms.connectionSet()->writeAll(bs);
-
+        for (int i = 1; i < itsComms.nProcs(); ++i) {
+	        itsComms.sendBlob(bs, i);
+        }
 	    // now read back the sources from the workers
 	    this->itsSourceList.clear();
 	    this->itsCube.clearDetectionList();
-	    for (int n=0;n<itsComms.nNodes()-1;n++){
+	    for (int n=0;n<itsComms.nProcs()-1;n++){
 	      int numSrc;
 	      ASKAPLOG_DEBUG_STR(logger, "Master about to read from worker #"<< n+1);
-	      itsComms.connectionSet()->read(n, bs);
+	      itsComms.receiveBlob(bs, n + 1);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
 	      int version = in.getStart("final");
@@ -1470,7 +1471,7 @@ namespace askap {
 	    int objsize=1;
 	    this->itsCube.clearDetectionList();
 	    while(objsize>0) {	    
-	      itsComms.connectionSet()->read(0, bs);
+	      itsComms.receiveBlob(bs, 0);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
 	      int version = in.getStart("paramsrc");
@@ -1548,7 +1549,7 @@ namespace askap {
 	      out << src;
 	    }
 	    out.putEnd();
-	    itsComms.connectionSet()->write(0,bs);
+	    itsComms.sendBlob(bs, 0);
 
 	  }
 	}
@@ -1639,7 +1640,7 @@ namespace askap {
 	    for(size_t p=0;p<this->itsVoxelList.size();p++) 
 	      out << int32(this->itsVoxelList[p].getX()) << int32(this->itsVoxelList[p].getY()) << int32(this->itsVoxelList[p].getZ()) << this->itsVoxelList[p].getF();
 	    out.putEnd();
-	    itsComms.connectionSet()->writeAll(bs);
+	    itsComms.broadcastBlob(bs, 0);
 	  }
 	  else if(itsComms.isWorker()){
 	    // first read the voxel list
@@ -1647,7 +1648,7 @@ namespace askap {
 // 	    bool(*fn_pt)(PixelInfo::Voxel,PixelInfo::Voxel)=voxComp;
 // 	    this->itsVoxelMap = std::map<PixelInfo::Voxel,float>(fn_pt);
 	    LOFAR::BlobString bs;
-	    itsComms.connectionSet()->read(0, bs);
+	    itsComms.broadcastBlob(bs, 0);
 	    LOFAR::BlobIBufString bib(bs);
 	    LOFAR::BlobIStream in(bib);
 	    int version = in.getStart("voxels");
@@ -1686,7 +1687,7 @@ namespace askap {
 	    for(size_t i=0;i<this->itsSourceList.size();i++){
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Preparing source #"<<i+1);
 	      this->prepareSourceForFit(this->itsSourceList[i],false);
-	      rank = i % (itsComms.nNodes() - 1);
+	      rank = i % (itsComms.nProcs() - 1);
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << this->itsSourceList[i].getSize() << " to worker "<<rank+1);
 	      bs.resize(0);
 	      LOFAR::BlobOBufString bob(bs);
@@ -1694,7 +1695,7 @@ namespace askap {
 	      out.putStart("fitsrc", 1);
 	      out << true << this->itsSourceList[i];
 	      out.putEnd();
-	      itsComms.connectionSet()->write(rank, bs);
+	      itsComms.sendBlob(bs, rank + 1);
 	    }
 
 	    // now notify all workers that we're finished.
@@ -1707,14 +1708,16 @@ namespace askap {
 	    out.putStart("fitsrc", 1);
 	    out << false;
 	    out.putEnd();
-	    itsComms.connectionSet()->writeAll(bs);
+        for (int i = 1; i < itsComms.nProcs(); ++i) {
+	        itsComms.sendBlob(bs, i);
+        }
 
 	    // now read back the sources from the workers
 	    this->itsSourceList.clear();
-	    for (int n=0;n<itsComms.nNodes()-1;n++){
+	    for (int n=0;n<itsComms.nProcs()-1;n++){
 	      int numSrc;
 	      ASKAPLOG_INFO_STR(logger, "Master about to read from worker #"<< n+1);
-	      itsComms.connectionSet()->read(n, bs);
+	      itsComms.receiveBlob(bs, n + 1);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
 	      int version = in.getStart("final");
@@ -1746,7 +1749,7 @@ namespace askap {
 	    this->itsSourceList.clear();
 	    while(isOK) {	    
 	      sourcefitting::RadioSource src;
-	      itsComms.connectionSet()->read(0, bs);
+	      itsComms.receiveBlob(bs, 0);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
 	      int version = in.getStart("fitsrc");
@@ -1770,7 +1773,7 @@ namespace askap {
 	    out << int(this->itsSourceList.size());
 	    for(size_t i=0;i<this->itsSourceList.size();i++) out << this->itsSourceList[i];
 	    out.putEnd();
-	    itsComms.connectionSet()->write(0,bs);
+	    itsComms.sendBlob(bs, 0);
 
 	  }
 	}
@@ -2006,7 +2009,7 @@ namespace askap {
 		    int16 rank = itsComms.rank();
 		    out << rank << dmean << size;
 		    out.putEnd();
-		    itsComms.connectionSet()->write(0, bs);
+		    itsComms.sendBlob(bs, 0);
 		      //                     ASKAPLOG_DEBUG_STR(logger, "Sent mean to the master from worker " << itsComms.rank());
 
                 } else {
@@ -2041,7 +2044,7 @@ namespace askap {
 
                 if (itsComms.isParallel()) {
                     LOFAR::BlobString bs1;
-                    itsComms.connectionSet()->read(0, bs1);
+                    itsComms.receiveBlob(bs1, 0);
                     LOFAR::BlobIBufString bib(bs1);
                     LOFAR::BlobIStream in(bib);
                     int version = in.getStart("meanM2W");
@@ -2089,7 +2092,7 @@ namespace askap {
                 int16 rank = itsComms.rank();
                 out << rank << stddev << size;
                 out.putEnd();
-                itsComms.connectionSet()->write(0, bs2);
+                itsComms.sendBlob(bs2, 0);
 //                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sent local stddev to the master");
             } else {
             }
@@ -2114,8 +2117,8 @@ namespace askap {
                 int64 size = 0;
                 double av = 0;
 
-                for (int i = 1; i < itsComms.nNodes(); i++) {
-                    itsComms.connectionSet()->read(i - 1, bs1);
+                for (int i = 1; i < itsComms.nProcs(); i++) {
+                    itsComms.receiveBlob(bs1, i);
                     LOFAR::BlobIBufString bib(bs1);
                     LOFAR::BlobIStream in(bib);
                     int version = in.getStart("meanW2M");
@@ -2157,7 +2160,9 @@ namespace askap {
                 out.putStart("meanM2W", 1);
                 out << av;
                 out.putEnd();
-                itsComms.connectionSet()->writeAll(bs2);
+                for (int i = 1; i < itsComms.nProcs(); ++i) {
+                    itsComms.sendBlob(bs2, i);
+                }
 //                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcast overall mean from master to workers.");
             } else {
             }
@@ -2180,8 +2185,8 @@ namespace askap {
                 int64 size = 0;
                 double stddev = 0;
 
-                for (int i = 1; i < itsComms.nNodes(); i++) {
-                    itsComms.connectionSet()->read(i - 1, bs);
+                for (int i = 1; i < itsComms.nProcs(); i++) {
+                    itsComms.receiveBlob(bs, i);
                     LOFAR::BlobIBufString bib(bs);
                     LOFAR::BlobIStream in(bib);
                     int version = in.getStart("stddevW2M");
@@ -2232,7 +2237,7 @@ namespace askap {
                 double stddev = this->itsCube.stats().getSpread();
                 out << threshold << mean << stddev;
                 out.putEnd();
-                itsComms.connectionSet()->writeAll(bs);
+                itsComms.broadcastBlob(bs, 0);
 		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Threshold = " << this->itsCube.stats().getThreshold());
 //                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sent threshold ("
 //                                       << this->itsCube.stats().getThreshold() << ") from the master");
@@ -2251,7 +2256,7 @@ namespace askap {
 
                 if (itsComms.isParallel()) {
                     LOFAR::BlobString bs;
-                    itsComms.connectionSet()->read(0, bs);
+                    itsComms.broadcastBlob(bs, 0);
                     LOFAR::BlobIBufString bib(bs);
                     LOFAR::BlobIStream in(bib);
                     int version = in.getStart("threshM2W");

@@ -28,7 +28,7 @@
 #include <gridding/IVisGridder.h>
 #include <gridding/VisGridderFactory.h>
 
-#include <mwcommon/AskapParallel.h>
+#include <askapparallel/AskapParallel.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/Log4cxxLogSink.h>
@@ -51,7 +51,7 @@ int main (int argc, const char** argv)
     casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
     casa::LogSink::globalSink (globalSink);
     // the following line is necessary just to initialise the logger
-    askap::mwcommon::AskapParallel ap(argc, argv);
+    askap::askapparallel::AskapParallel ap(argc, argv);
     ASKAPLOG_INFO_STR(logger, "Testing dynamic loading of the gridder");
 
     // Create a TestLoadGridder instance.
