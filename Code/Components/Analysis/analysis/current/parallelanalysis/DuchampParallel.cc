@@ -587,15 +587,27 @@ namespace askap {
       }
 
       
-      void findSNR(float *input, float *output, float *outmed, float *outmadfm, float *outdiff, float *outin, casa::IPosition shape, casa::IPosition box, int loc, bool isSpatial, int spatSize, int specSize)
+      void findSNR(float *input, float *output, float *outmed, float *outmadfm, float *outdiff, float *outin, casa::IPosition shape, casa::IPosition box, size_t loc, bool isSpatial, size_t spatSize, size_t specSize)
       {
-	casa::Array<Float> base(shape, input, casa::SHARE);
- 	casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>());
+	casa::Array<Float> base(shape, input, casa::COPY);
+ 	casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>(False,True,True));
  	casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
- 	casa::Array<Float> snr = (base - median);
-// 	casa::Array<Float> mean = slidingArrayMath(base, box, MeanFunc<Float>());
-// 	casa::Array<Float> stddev = slidingArrayMath(base, box, StddevFunc<Float>()) / Statistics::correctionFactor;
-// 	casa::Array<Float> snr = (base - mean);
+	//	ASKAPLOG_DEBUG_STR(logger, loc<<":   " << base(IPosition(1,100)) << " " << median(IPosition(1,100)) << " " << madfm(IPosition(1,100)) << "    " << base(IPosition(1,101)) << " " << median(IPosition(1,101)) << " " << madfm(IPosition(1,101)));
+	casa::Array<Float> mean = slidingArrayMath(base, box, MeanFunc<Float>());
+	casa::Array<Float> stddev = slidingArrayMath(base, box, StddevFunc<Float>());
+	casa::Array<Float> sum = slidingArrayMath(base, box, SumFunc<Float>());
+	casa::Array<Float> snr = (base - median);
+ 	//casa::Array<Float> snr = (base - mean);
+	if((isSpatial && loc==100)|| (!isSpatial && loc==(100*150+100))){
+	  ASKAPLOG_DEBUG_STR(logger, "shape="<<shape<<", box="<<box);
+	  //	  for(size_t i=0;i<base.size();i++) ASKAPLOG_DEBUG_STR(logger, base.data()+i << "  " << base.data()[i]);
+	  ASKAPLOG_DEBUG_STR(logger, "Base: " << base);
+ 	  ASKAPLOG_DEBUG_STR(logger, "Median: " << median);
+ 	  ASKAPLOG_DEBUG_STR(logger, "MADFM: " << madfm);
+	  ASKAPLOG_DEBUG_STR(logger, "Mean: " << mean);
+	  ASKAPLOG_DEBUG_STR(logger, "Stddev: " << stddev);
+	  ASKAPLOG_DEBUG_STR(logger, "Sum: " << sum);
+	}
 	
 	// Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
 	/*
@@ -618,23 +630,31 @@ namespace askap {
 	  outin[pos] = baseData[i];
 	}
 	*/
-	Array<Float>::iterator baseEnd(base.end()), medianEnd(median.end()), madfmEnd(madfm.end()),snrEnd(snr.end());
-	Array<Float>::iterator iterBase=base.begin(),iterMedian=median.begin(),iterMadfm=madfm.begin(),iterSnr=snr.begin();
+	Array<Float>::iterator baseEnd(base.end());
+	Array<Float>::iterator iterBase(base.begin()),iterMedian(median.begin()),iterMadfm(madfm.begin()),iterSnr(snr.begin()),iterMean(mean.begin()),iterStddev(stddev.begin());
 	int i=0,pos=0;
-	for(;iterBase!=baseEnd;iterBase++,iterMedian++,iterMadfm++,iterSnr++){
+	//	for(;iterBase!=baseEnd;iterBase++,iterMedian++,iterMadfm++,iterSnr++){
+	while(iterBase != baseEnd){
 	  if(isSpatial) pos = i+loc*spatSize;
 	  else pos = loc+i*spatSize;
-	  if(*iterMadfm>0) output[pos] = (*iterSnr)/(*iterMadfm);
-	  //if(*iterStddev>0) output[pos] = (*iterSnr)/(*iterStddev);
-	  else output[pos] = 0.;
-	  outmed[pos] = *iterMedian;
-	  outmadfm[pos] = *iterMadfm;
+	  output[pos] = (*iterMadfm > 0) ? (*iterSnr)/(*iterMadfm) : 0.;
+	  //	  output[pos] = (*iterStddev > 0) ? output[pos] = (*iterSnr)/(*iterStddev) : 0.;
+ 	  outmed[pos] = *iterMedian;
+ 	  outmadfm[pos] = *iterMadfm;
+// 	  outmed[pos] = *iterMean;
+// 	  outmadfm[pos] = *iterStddev;
 	  outdiff[pos] = *iterSnr;
 	  outin[pos] = *iterBase;
+	  //outin[pos] = input[i];
 	  i++;
+	  iterBase++;
+	  iterMedian++;
+	  iterMadfm++;
+	  iterMean++;
+	  iterStddev++;
+	  iterSnr++;
 	}
 	
-
 	
       }
 
@@ -748,8 +768,8 @@ namespace askap {
 	if(itsComms.isWorker()){
 
 	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "About to find median & MADFM arrays, and use these to search");
-	  int spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
-	  int specSize = this->itsCube.getDimZ();
+	  size_t spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
+	  size_t specSize = this->itsCube.getDimZ();
  	  float *snrAll = new float[this->itsCube.getSize()];
  	  float *medAll = new float[this->itsCube.getSize()];
  	  float *madfmAll = new float[this->itsCube.getSize()];
@@ -762,20 +782,25 @@ namespace askap {
 	    casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
 	    imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
 	    duchamp::Image *chanIm = new duchamp::Image(imdim);
-	    for (int z = 0; z < specSize; z++) {
+	    for (size_t z = 0; z < specSize; z++) {
 	      chanIm->extractImage(this->itsCube, z);
 	      findSNR(chanIm->getArray(),snrAll,medAll,madfmAll,diffAll,inputAll,shape,box,z,true,spatSize,specSize);
 	    }
+	    delete chanIm;
 	  }
 	  else if(this->itsCube.pars().getSearchType()=="spectral"){
-	    casa::IPosition box(1, this->itsMedianBoxWidth);
-	    casa::IPosition shape(1, this->itsCube.getDimZ());
+// 	    casa::IPosition box(2, 0,this->itsMedianBoxWidth);
+// 	    casa::IPosition shape(2, 1,this->itsCube.getDimZ());
+	    casa::IPosition box(1,this->itsMedianBoxWidth);
+	    casa::IPosition shape(1,this->itsCube.getDimZ());
 	    imdim[0] = this->itsCube.getDimZ(); imdim[1] = 1;
 	    duchamp::Image *chanIm = new duchamp::Image(imdim);
-	    for (int i = 0; i < spatSize; i++) {
+	    ASKAPLOG_DEBUG_STR(logger, "Finding SNR map in spectral mode, with shape="<<shape<<" and box="<<box);
+	    for (size_t i = 0; i < spatSize; i++) {
 	      chanIm->extractSpectrum(this->itsCube, i);
  	      findSNR(chanIm->getArray(),snrAll,medAll,madfmAll,diffAll,inputAll,shape,box,i,false,spatSize,specSize);
 	    }
+	    delete chanIm;
 	  }
 	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Saving SNR map");
 	  this->itsCube.saveRecon(snrAll, this->itsCube.getSize());
