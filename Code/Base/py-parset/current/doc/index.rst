@@ -47,6 +47,7 @@ It generates the following:
 
 .. parameterset:: example.parset
 
+
 Extra options can be specified to control the display
 
 Include a title:
@@ -65,11 +66,11 @@ Show only a specific key:
    
    .. parameterset:: example.parset
       :show-title:
-      :key: x
+      :key: a.b
 
 .. parameterset:: example.parset
     :show-title:
-    :key: x
+    :key: a.b
 
 
 Show the full key name:
@@ -77,17 +78,16 @@ Show the full key name:
 .. code-block:: rest
    
    .. parameterset:: example.parset
-      :show-title:
-      :key: x
+      :key: a.b
+      :show-key:
 
 .. parameterset:: example.parset
-    :show-title:
-    :key: x
+    :key: a.b
     :show-key:
+
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
