@@ -203,7 +203,10 @@ void MEParallel::sendNormalEquations(askap::scimath::INormalEquations::ShPtr ne,
 
 askap::scimath::INormalEquations::ShPtr MEParallel::receiveNormalEquations(int source)
 {
-    askap::scimath::INormalEquations::ShPtr ne = ImagingNormalEquations::ShPtr(new ImagingNormalEquations());
+    // Clone the normal equations so the right type is used as a temporary buffer.
+    askap::scimath::INormalEquations::ShPtr ne = itsNe->clone(); 
+    ne->reset(); // Reset the normal equation, not the pointer!
+
     ASKAPLOG_DEBUG_STR(logger, "Waiting to receive normal equations from rank " << source);
     casa::Timer timer;
     timer.mark();
