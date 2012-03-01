@@ -23,6 +23,14 @@ API
 
 Sphinx extension
 ================
+To enable the sphinx extension the *conf.py* for the sphinx project needs
+the extension added like this (append if there are existing entries)::
+
+    # Add any Sphinx extension module names here, as strings. They can
+    # be extensions coming with Sphinx (named 'sphinx.ext.*') or your
+    # custom ones.
+    extensions = [ 'askap.parset.sphinxext' ]
+
 
 The following example parset can be documented using the sphinx extension
 
