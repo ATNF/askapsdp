@@ -1,0 +1,10 @@
+## a flag
+a.b.c.flag = False
+## a test range
+a.b.c.test = 1..10
+## a value
+x.y = 10
+
+# a comment not for the docs
+x.z = 5
+
