@@ -50,6 +50,7 @@
 #include <Blob/BlobIBufString.h>
 #include <Blob/BlobOBufString.h>
 #include <fitting/ImagingNormalEquations.h>
+#include <fitting/GenericNormalEquations.h>
 #include <casa/OS/Timer.h>
 
 ASKAP_LOGGER(logger, ".parallel");
@@ -203,9 +204,22 @@ void MEParallel::sendNormalEquations(askap::scimath::INormalEquations::ShPtr ne,
 
 askap::scimath::INormalEquations::ShPtr MEParallel::receiveNormalEquations(int source)
 {
-    // Clone the normal equations so the right type is used as a temporary buffer.
-    askap::scimath::INormalEquations::ShPtr ne = itsNe->clone(); 
-    ne->reset(); // Reset the normal equation, not the pointer!
+    askap::scimath::INormalEquations::ShPtr ne;
+
+    // This code needs to create an (ideally) empty/pristine normal equations
+    // instance. To do this the type is needed, information which is not directly
+    // available. The close/reset method below functionally works but is prone
+    // to significant memory bloat, especially in the case of huge ImagingNormalEquations.
+    // So (a bit of a hack) this code deals with those types is knows, and just clones
+    // in the case it doesn't.
+    if (dynamic_cast<ImagingNormalEquations*>(itsNe.get())) {
+        ne = ImagingNormalEquations::ShPtr(new ImagingNormalEquations());
+    } else if (dynamic_cast<GenericNormalEquations*>(itsNe.get())) {
+        ne = GenericNormalEquations::ShPtr(new GenericNormalEquations());
+    } else {
+        ne = itsNe->clone(); 
+        ne->reset(); // Reset the normal equation, not the pointer!
+    }
 
     ASKAPLOG_DEBUG_STR(logger, "Waiting to receive normal equations from rank " << source);
     casa::Timer timer;
