@@ -206,9 +206,9 @@ askap::scimath::INormalEquations::ShPtr MEParallel::receiveNormalEquations(int s
 {
     askap::scimath::INormalEquations::ShPtr ne;
 
-    // This code needs to create an (ideally) empty/pristine normal equations
+    // This code needs to create an empty/pristine normal equations
     // instance. To do this the type is needed, information which is not directly
-    // available. The close/reset method below functionally works but is prone
+    // available. The clone/reset method below functionally works but is prone
     // to significant memory bloat, especially in the case of huge ImagingNormalEquations.
     // So (a bit of a hack) this code deals with those types is knows, and just clones
     // in the case it doesn't.
