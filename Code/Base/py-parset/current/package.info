@@ -1,3 +1,4 @@
 pymodule=askap.parset
 # pure python module
 libs=
+incdir=
