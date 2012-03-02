@@ -49,6 +49,10 @@
 #include <Blob/BlobString.h>
 #include <Blob/BlobIBufString.h>
 #include <Blob/BlobOBufString.h>
+#include <Common/ParameterSet.h>
+#include <fitting/Equation.h>
+#include <fitting/Solver.h>
+#include <fitting/INormalEquations.h>
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/GenericNormalEquations.h>
 #include <casa/OS/Timer.h>
@@ -171,13 +175,13 @@ void MEParallel::reduceNE(askap::scimath::INormalEquations::ShPtr ne)
             // Receive from the left child if it exists
             const int left = (2 * rank) + 1;
             if (left < nProcs) {
-                itsNe->merge(*receiveNormalEquations(left));
+                ne->merge(*receiveNormalEquations(left));
             }
 
             // Receive from the right child if it exists
             const int right = (2 * rank) + 2;
             if (right < nProcs) {
-                itsNe->merge(*receiveNormalEquations(right));
+                ne->merge(*receiveNormalEquations(right));
             }
         } else {
             // This round I am a non-participant
@@ -185,7 +189,7 @@ void MEParallel::reduceNE(askap::scimath::INormalEquations::ShPtr ne)
     }
 }
 
-void MEParallel::sendNormalEquations(askap::scimath::INormalEquations::ShPtr ne, int dest)
+void MEParallel::sendNormalEquations(const askap::scimath::INormalEquations::ShPtr ne, int dest)
 {
     casa::Timer timer;
     timer.mark();

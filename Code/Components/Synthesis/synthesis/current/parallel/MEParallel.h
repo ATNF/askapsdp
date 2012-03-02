@@ -29,8 +29,18 @@
 #ifndef ASKAP_SYNTHESIS_MEPARALLEL_H_
 #define ASKAP_SYNTHESIS_MEPARALLEL_H_
 
-#include <parallel/SynParallel.h>
+// System includes
+#include <string>
+
+// ASKAPsoft includes
 #include <askapparallel/AskapParallel.h>
+#include <Common/ParameterSet.h>
+#include <fitting/INormalEquations.h>
+#include <fitting/Equation.h>
+#include <fitting/Solver.h>
+
+// Loacl package includes
+#include <parallel/SynParallel.h>
 
 namespace askap
 {
@@ -107,8 +117,16 @@ namespace askap
                 void reduceNE(askap::scimath::INormalEquations::ShPtr ne);
 
 			protected:
-			
-                void sendNormalEquations(askap::scimath::INormalEquations::ShPtr ne, int dest);
+		
+                // Point-to-point send normal equations
+                // @param[in] ne    pointer to normal equations to send
+                // @param[in] dest  rank of process to send normal equations to    
+                void sendNormalEquations(const askap::scimath::INormalEquations::ShPtr ne, int dest);
+
+                // Point-to-point receive normal equations
+                // @param[in] source    rank of the process from which normal
+                // equations will be received
+                // @return a shared pointer, pointing to the received normal equations
                 askap::scimath::INormalEquations::ShPtr receiveNormalEquations(int source);
 
 				/// Holder for the normal equations
