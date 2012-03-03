@@ -34,13 +34,19 @@ swcorrelator.defaultwindow    = "IF"
 # antenna layout
 swcorrelator.antennas.telescope            =       BETA3
 swcorrelator.antennas.BETA3.coordinates    =       global
-swcorrelator.antennas.BETA3.names          =       [AK03, AK08, AK03BF]
+#swcorrelator.antennas.BETA3.names          =       [AK03, AK08, AK03BF]
+swcorrelator.antennas.BETA3.names          =       [AK01, AK07, AK03BF]
 swcorrelator.antennas.BETA3.diameter       =       12m
 swcorrelator.antennas.BETA3.scale          =        1.0
 swcorrelator.antennas.BETA3.mount          =       equatorial
 swcorrelator.antennas.BETA3.AK03 = [-2556121.766414, 5097392.033236, -2848421.390498]
 swcorrelator.antennas.BETA3.AK03BF = [-2556121.766414, 5097392.033236, -2848421.390498]
 swcorrelator.antennas.BETA3.AK08 = [-2556006.138107, 5097327.654894, -2848641.621908]
+# new
+swcorrelator.antennas.BETA3.AK07 = [-2556282.740493, 5097252.346251, -2848527.130700]
+swcorrelator.antennas.BETA3.AK01 = [-2556088.333184, 5097405.644248, -2848428.243729]
+
+
 
 
 # beam layout
