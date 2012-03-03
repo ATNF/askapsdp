@@ -1,0 +1,52 @@
+swcorrelator.port = 3000
+swcorrelator.nbeam = 1
+swcorrelator.nchan = 16
+swcorrelator.capturemode = false
+
+# optional index substitution
+swcorrelator.makeBeamAnt = true
+#swcorrelator.antmap = "0:1,2:0,4:2"
+swcorrelator.antmap = "0:1,3:0,4:2"
+swcorrelator.beammap = "1:0"
+swcorrelator.freqmap = "14:0,12:1,10:2,8:3,6:4,4:5,0:6,1:7,2:8,3:9,5:10,7:11,9:12,11:13,13:14,15:15"
+#swcorrelator.freqmap = "2:0"
+#swcorrelator.antmap = "1:1,3:0"
+
+# MS-writer parameters
+swcorrelator.beamoffsetuvw = true
+swcorrelator.filename = ""
+swcorrelator.basepath = "apps/"
+
+swcorrelator.sources.names                 =       [field1]
+# 1934-638
+#swcorrelator.sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J2000]
+# 1742-289 (Galactic centre)
+swcorrelator.sources.field1.direction      =       [17h45m40.04, -29.00.28.07, J2000]
+# Virgo
+#swcorrelator.sources.field1.direction      =       [12h30m49.43, 12.23.28.01, J2000]
+swcorrelator.sources.field1.calcode        =       ""
+swcorrelator.defaultfield      = "field1"
+
+swcorrelator.spws.names                      =       [IF]
+swcorrelator.spws.IF  =  [ 16, 1.272GHz, +4MHz, "XX YY"]
+swcorrelator.defaultwindow    = "IF"
+
+# antenna layout
+swcorrelator.antennas.telescope            =       BETA3
+swcorrelator.antennas.BETA3.coordinates    =       global
+swcorrelator.antennas.BETA3.names          =       [AK03, AK08, AK03BF]
+swcorrelator.antennas.BETA3.diameter       =       12m
+swcorrelator.antennas.BETA3.scale          =        1.0
+swcorrelator.antennas.BETA3.mount          =       equatorial
+swcorrelator.antennas.BETA3.AK03 = [-2556121.766414, 5097392.033236, -2848421.390498]
+swcorrelator.antennas.BETA3.AK03BF = [-2556121.766414, 5097392.033236, -2848421.390498]
+swcorrelator.antennas.BETA3.AK08 = [-2556006.138107, 5097327.654894, -2848641.621908]
+
+
+# beam layout
+swcorrelator.feeds.spacing        =       1deg
+swcorrelator.feeds.mode = "perfect X Y"
+
+swcorrelator.feeds.names     = [beam0]
+
+swcorrelator.feeds.beam0          =       [0, 0]
