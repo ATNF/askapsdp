@@ -470,7 +470,7 @@ void CalibratorParallel::setNextChunkFlag(const bool flag)
 /// @note false is returned if no appropriate metadata element is found or the normal
 /// equations object does not support metadata. 
 /// @return true, if the flag is set
-bool CalibratorParallel::extractNextChunkFlag() const
+bool CalibratorParallel::getNextChunkFlag() const
 {
   if (itsNe) {  
       const boost::shared_ptr<scimath::GenericNormalEquations> gne = boost::dynamic_pointer_cast<scimath::GenericNormalEquations>(itsNe);
@@ -486,6 +486,20 @@ bool CalibratorParallel::extractNextChunkFlag() const
   return false;
 }
 
+/// @brief Helper method to remove the next chunk flag
+void CalibratorParallel::removeNextChunkFlag()
+{
+  if (itsNe) {  
+      const boost::shared_ptr<scimath::GenericNormalEquations> gne = boost::dynamic_pointer_cast<scimath::GenericNormalEquations>(itsNe);
+      if (gne) {
+          scimath::Params& metadata = gne->metadata();
+          const std::string parName = "next_chunk_flag";
+          if (metadata.has(parName)) {
+              metadata.remove(parName);
+          }
+      }
+  }
+}
 
 /// @brief initialise the class to iterate over next portion of data
 /// @details This method signals to the iterator adapter to switch to the

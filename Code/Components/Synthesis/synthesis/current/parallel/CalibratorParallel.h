@@ -116,8 +116,11 @@ namespace askap
       /// @note false is returned if no appropriate metadata element is found or the normal
       /// equations object does not support metadata. 
       /// @return true, if the flag is set
-      bool extractNextChunkFlag() const;
-      
+      bool getNextChunkFlag() const;
+
+      /// @brief helper method to remove the next chunk flag
+      void removeNextChunkFlag();
+
       /// @brief initalise measurement equation and model
       /// @details This method is indended to be called if this object is reused to
       /// get more than one solution. It initialises the model and normal equations.

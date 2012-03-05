@@ -96,7 +96,7 @@ int main(int argc, const char** argv)
                ASKAPLOG_INFO_STR(logger,  "*** Finished calibration cycles ***");
                calib.writeModel();
                
-               continueFlag = calib.extractNextChunkFlag();
+               continueFlag = calib.getNextChunkFlag();
                if (continueFlag) {
                    ASKAPLOG_INFO_STR(logger, "More data are available, continue to make solution for the next interval");
                    // initialise the model and measurement equation
@@ -104,6 +104,12 @@ int main(int argc, const char** argv)
                } else {
                    ASKAPLOG_INFO_STR(logger, "No more data are available, this was the last solution interval");
                }
+               
+               // Remove the next chunk flag since merge will not update the
+               // value if it already exists. This is important for the graph
+               // reduction of normal equations. This is really only needed for
+               // the master, but doesn't hurt at the worker.
+               calib.removeNextChunkFlag();
             }
         }
         ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
