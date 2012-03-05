@@ -26,7 +26,8 @@ INPUT_SKYMODEL=../input/skymodel-duchamp.txt
 
 # PBS queue to submit jobs to. This is usually the "routequeue" for epic, however
 # if a reservation has been made this can be changed to submit into the reservation
-BATCH_QUEUE=routequeue
+# Default: If this is not set, the system default queue will be used.
+#BATCH_QUEUE=routequeue
 
 ##############################################################################
 # General initial steps
@@ -44,6 +45,13 @@ cd ${WORKDIR}
 if [ $? -ne 0 ]; then
     echo "Error: Failed to CD to workdir"
     exit 1
+fi
+
+# Set the qsub alias based
+if [ ${BATCH_QUEUE} ]; then
+    QSUB_CMD="qsub -q ${BATCH_QUEUE}"
+else
+    QSUB_CMD="qsub"
 fi
 
 # Verify the input measurement set exists
@@ -108,7 +116,6 @@ fi
 # Create the qsub file
 cat > split_coarse.qsub << EOF
 #!/bin/bash
-#PBS -q ${BATCH_QUEUE}
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
 #PBS -l walltime=06:00:00
@@ -156,7 +163,7 @@ EOF
 
 if [ ! -e MS/coarse_chan_0.ms ]; then
     echo "MS Split and Average: Submitting task"
-    QSUB_MSSPLIT=`qsub -h -J 0-299 split_coarse.qsub`
+    QSUB_MSSPLIT=`${QSUB_CMD} -h -J 0-299 split_coarse.qsub`
     QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
 else
     echo "MS Split and Average: Skipping task - Output already exists"
@@ -170,7 +177,6 @@ SKYMODEL_OUTPUT=skymodel.image.taylor
 
 cat > cmodel.qsub << EOF
 #!/bin/bash
-#PBS -q ${BATCH_QUEUE}
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=2:ncpus=12:mem=23GB:mpiprocs=12
 #PBS -l walltime=00:15:00
@@ -210,7 +216,7 @@ EOF
 
 if [ ! -e ${SKYMODEL_OUTPUT}.0 ]; then
     echo "Sky Model Image: Submitting task"
-    QSUB_CMODEL=`qsub -h cmodel.qsub`
+    QSUB_CMODEL=`${QSUB_CMD} -h cmodel.qsub`
     QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CMODEL}"
 else
     echo "Sky Model Image: Skipping task - Output already exists"
@@ -224,9 +230,8 @@ CALOUTPUT=calparameters.tab
 
 cat > ccalibrator.qsub << EOF
 #!/bin/bash
-#PBS -q ${BATCH_QUEUE}
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+25:ncpus=12:mem=23GB:mpiprocs=12
+#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+50:ncpus=6:mem=23GB:mpiprocs=6
 #PBS -l walltime=12:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N ccalibrator
@@ -247,7 +252,6 @@ Ccalibrator.calibaccess                          = table
 Ccalibrator.calibaccess.table                    = ${CALOUTPUT}
 Ccalibrator.calibaccess.table.maxant             = 6
 Ccalibrator.calibaccess.table.maxbeam            = 36
-Ccalibrator.calibaccess.table.maxchan            = 300
 
 # Skymodel
 Ccalibrator.sources.names                        = skymodel
@@ -257,17 +261,17 @@ Ccalibrator.sources.skymodel.nterms              = 3
 
 # Gridder config
 Ccalibrator.gridder                              = AWProject
-Ccalibrator.gridder.AWProject.wmax               = 5000
-Ccalibrator.gridder.AWProject.nwplanes           = 1
+Ccalibrator.gridder.AWProject.wmax               = 3500
+Ccalibrator.gridder.AWProject.nwplanes           = 5
 Ccalibrator.gridder.AWProject.oversample         = 4
 Ccalibrator.gridder.AWProject.diameter           = 12m
 Ccalibrator.gridder.AWProject.blockage           = 2m
 Ccalibrator.gridder.AWProject.maxfeeds           = 36
-Ccalibrator.gridder.AWProject.maxsupport         = 512
-Ccalibrator.gridder.AWProject.frequencydependent = false
+Ccalibrator.gridder.AWProject.maxsupport         = 2048
+Ccalibrator.gridder.AWProject.frequencydependent = true
 
 Ccalibrator.ncycles                              = 5
-Ccalibrator.interval                             = 3600s
+Ccalibrator.interval                             = 10800s
 EOF_INNER
 
 mpirun --mca btl ^openib --mca mtl ^psm \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -inputs ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator.log
@@ -276,10 +280,10 @@ EOF
 if [ ! -e ${CALOUTPUT} ]; then
     echo "Calibration: Submitting Task"
     if [ ! ${QSUB_CMODEL} ] && [ ! ${QSUB_MSSPLIT} ]; then
-        QSUB_CCAL=`qsub ccalibrator.qsub`
+        QSUB_CCAL=`${QSUB_CMD} ccalibrator.qsub`
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CCAL}"
     else 
-        QSUB_CCAL=`qsub -W depend=afterok:${QSUB_CMODEL},afterok:${QSUB_MSSPLIT} ccalibrator.qsub`
+        QSUB_CCAL=`${QSUB_CMD} -W depend=afterok:${QSUB_CMODEL},afterok:${QSUB_MSSPLIT} ccalibrator.qsub`
     fi
 else
     echo "Calibration: Skipping task - Output exists"
@@ -291,7 +295,6 @@ fi
 
 cat > cimager-cont.qsub << EOF
 #!/bin/bash
-#PBS -q ${BATCH_QUEUE}
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+50:ncpus=6:mem=23GB:mpiprocs=6
 #PBS -l walltime=02:00:00
@@ -313,10 +316,10 @@ Cimager.Images.image.i.dirty.nchan              = 1
 Cimager.Images.image.i.dirty.direction          = [12h30m00.00, -45.00.00.00, J2000]
 #
 Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = 3000
+Cimager.gridder.snapshotimaging.wtolerance      = 2000
 Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = 3000
-Cimager.gridder.AWProject.nwplanes              = 5
+Cimager.gridder.AWProject.wmax                  = 2000
+Cimager.gridder.AWProject.nwplanes              = 7
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m
 Cimager.gridder.AWProject.blockage              = 2m
@@ -344,9 +347,9 @@ EOF
 
 echo "Continuum Imager: Submitting task"
 if [ ${QSUB_CCAL} ]; then
-    QSUB_CONTIMG=`qsub -W depend=afterok:${QSUB_CCAL} cimager-cont.qsub`
+    QSUB_CONTIMG=`${QSUB_CMD} -W depend=afterok:${QSUB_CCAL} cimager-cont.qsub`
 else 
-    QSUB_CONTIMG=`qsub cimager-cont.qsub`
+    QSUB_CONTIMG=`${QSUB_CMD} cimager-cont.qsub`
     QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTIMG}"
 fi
 
