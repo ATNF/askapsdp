@@ -68,7 +68,8 @@ BufferManager::BufferManager(const size_t nBeam, const size_t nChan,
      itsBufferSize(2*nSamples + int(sizeof(BufferHeader)/sizeof(float))),
      itsBuffer(new float[(2*nSamples + int(sizeof(BufferHeader)/sizeof(float)))*itsNBuf]),
      itsStatus(itsNBuf, BUF_FREE),
-     itsReadyBuffers(3, nChan, nBeam, -1), itsHeaderPreprocessor(hdrProc)
+     itsReadyBuffers(3, nChan, nBeam, -1), itsHeaderPreprocessor(hdrProc),
+     itsDuplicate2nd(false)
 {
    ASKAPCHECK(sizeof(BufferHeader) % sizeof(float) == 0, "Some padding is required");
    ASKAPCHECK(sizeof(std::complex<float>) == 2*sizeof(float), "std::complex<float> is not just two floats!");
@@ -149,7 +150,7 @@ BufferManager::BufferSet BufferManager::getFilledBuffers() const
   BufferManager::BufferSet result;
   result.itsAnt1 = itsReadyBuffers(0, index.first, index.second);
   result.itsAnt2 = itsReadyBuffers(1, index.first, index.second);
-  result.itsAnt3 = itsReadyBuffers(2, index.first, index.second);    
+  result.itsAnt3 = itsReadyBuffers(itsDuplicate2nd ? 1 : 2, index.first, index.second);    
   for (casa::uInt ant = 0; ant < itsReadyBuffers.nrow(); ++ant) {
        const int id = itsReadyBuffers(ant, index.first, index.second);
        ASKAPDEBUGASSERT(id < itsNBuf);
@@ -170,7 +171,7 @@ bool BufferManager::findCompleteSet(std::pair<int,int> &index) const
    for (casa::uInt chan = 0; chan < itsReadyBuffers.ncolumn(); ++chan) {
         for (casa::uInt beam = 0; beam < itsReadyBuffers.nplane(); ++beam) {
              bool isGood = true;
-             for (casa::uInt ant = 0; ant < itsReadyBuffers.nrow(); ++ant) {
+             for (casa::uInt ant = 0; (itsDuplicate2nd ? ant + 1 : ant) < itsReadyBuffers.nrow(); ++ant) {
                   if (itsReadyBuffers(ant,chan,beam) < 0) {
                       isGood = false;
                       break;
@@ -237,7 +238,7 @@ void BufferManager::releaseBuffers(const BufferSet &ids) const
     if (ids.itsAnt2 >= 0) {
         releaseOneBuffer(ids.itsAnt2);
     }
-    if (ids.itsAnt3 >= 0) {
+    if (ids.itsAnt3 >= 0 && !itsDuplicate2nd) {
        releaseOneBuffer(ids.itsAnt3);
     }  
   }
@@ -291,6 +292,10 @@ void BufferManager::bufferFilled(const int id) const
           ASKAPLOG_WARN_STR(logger, "Received data from unknown antenna "<<hdr.antenna<<" - ignoring");
           throw BufferManager::HelperException();
       }
+      if ((hdr.antenna + 1 == itsReadyBuffers.nrow()) && itsDuplicate2nd) {
+          ASKAPLOG_WARN_STR(logger, "The correlator is configured to duplicate data from 2nd antenna as if they would come from the 3rd, ignoring antenna "<<hdr.antenna);
+          throw BufferManager::HelperException();
+      }
       if ((hdr.freqId >= itsReadyBuffers.ncolumn()) || (hdr.freqId < 0)) {
           ASKAPLOG_WARN_STR(logger, "Received data from unknown channel (card) "<<hdr.freqId<<" - ignoring");
           throw BufferManager::HelperException();
@@ -335,6 +340,18 @@ void BufferManager::releaseOneBuffer(const int id) const
 {
    ASKAPDEBUGASSERT(id < itsNBuf);
    itsStatus[id] = BUF_FREE;   
+}
+
+
+/// @brief control itsDuplicate2nd flag
+/// @details If this flag is true, the data from the second antenna (id=1)
+/// will be used as the data from the third antenna (id=2) allowing operations
+/// in the single baseline case.
+/// @param[in] duplicate the new value of the flag
+/// @note The optional substitution is done before duplication of the antenna
+void BufferManager::duplicate2nd(const bool duplicate)
+{
+   itsDuplicate2nd = duplicate;
 }
 
 

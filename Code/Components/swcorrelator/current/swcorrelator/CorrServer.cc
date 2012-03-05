@@ -78,6 +78,12 @@ CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOS
      boost::shared_ptr<HeaderPreprocessor> hdrProc(new HeaderPreprocessor(parset));
      itsBufferManager.reset(new BufferManager(itsFiller->nBeam(),itsFiller->nChan(), hdrProc));
   }
+  const bool duplicate2nd = parset.getBool("duplicate2nd", false);
+  if (duplicate2nd) {
+      ASKAPLOG_INFO_STR(logger, "The data from the 2nd antenna will be duplicated to get the 3rd antenna");
+  }
+  ASKAPDEBUGASSERT(itsBufferManager);
+  itsBufferManager->duplicate2nd(duplicate2nd);
   
   // initialise tcp endpoint
   boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);

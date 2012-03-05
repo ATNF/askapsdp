@@ -161,6 +161,15 @@ public:
    /// access via this method.
    /// @return number of samples (each is complex float)   
    static int NumberOfSamples();
+
+   /// @brief control itsDuplicate2nd flag
+   /// @details If this flag is true, the data from the second antenna (id=1)
+   /// will be used as the data from the third antenna (id=2) allowing operations
+   /// in the single baseline case.
+   /// @param[in] duplicate the new value of the flag
+   /// @note The optional substitution is done before duplication of the antenna
+   void duplicate2nd(const bool duplicate);
+
 protected:
    /// @brief optional index substitution
    /// @details We want to be quite flexible and allow various substitutions of
@@ -214,6 +223,9 @@ private:
    /// @details If it is set, the header will be passed through this object to allow 
    /// various substitutions to be made
    boost::shared_ptr<HeaderPreprocessor> itsHeaderPreprocessor;  
+
+   /// @brief if true, duplicate the 2nd antenna (id=1 after preprocessing) as the 3rd
+   bool itsDuplicate2nd;
 };
 
 } // namespace swcorrelator
