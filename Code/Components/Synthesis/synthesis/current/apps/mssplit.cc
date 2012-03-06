@@ -104,9 +104,15 @@ boost::shared_ptr<casa::MeasurementSet> create(const std::string& filename,
     // as they may change sufficiently frequently to make the
     // incremental storage manager inefficient for these columns.
     {
+        // NOTE: The addition of the FEED columns here is a bit unusual.
+        // While the FEED columns are perfect candidates for the incremental
+        // storage manager, for some reason doing so results in a huge
+        // increase in I/O to the file (see ticket: 4094 for details).
         StandardStMan ssm("ssmdata", bucketSize);
         newMS.bindColumn(MS::columnName(MS::ANTENNA1), ssm);
         newMS.bindColumn(MS::columnName(MS::ANTENNA2), ssm);
+        newMS.bindColumn(MS::columnName(MS::FEED1), ssm);
+        newMS.bindColumn(MS::columnName(MS::FEED2), ssm);
         newMS.bindColumn(MS::columnName(MS::UVW), ssm);
     }
 
@@ -376,6 +382,44 @@ void splitMainTable(const casa::MeasurementSet& source,
     // Add rows upfront
     const casa::uInt nRows = sc.nrow();
     dest.addRow(nRows);
+
+    // Optimized path for a single channel
+    if ((startChan - endChan) == 0 && width == 1) {
+        const Slicer rowslicer(IPosition(1, 0), IPosition(1, nRows), Slicer::endIsLength);
+        const uInt nPol = sc.data()(0).shape()(0);
+        const Slicer arrslicer(IPosition(2, 0, startChan - 1), IPosition(2, nPol, 1), Slicer::endIsLength);
+
+        // Copy over the simple cells (i.e. those not needing averaging/merging)
+        dc.scanNumber().putColumn(sc.scanNumber().getColumn());
+        dc.fieldId().putColumn(sc.fieldId().getColumn());
+        dc.dataDescId().putColumn(sc.dataDescId().getColumn());
+        dc.time().putColumn(sc.time().getColumn());
+        dc.timeCentroid().putColumn(sc.timeCentroid().getColumn());
+        dc.arrayId().putColumn(sc.arrayId().getColumn());
+        dc.processorId().putColumn(sc.processorId().getColumn());
+        dc.exposure().putColumn(sc.exposure().getColumn());
+        dc.interval().putColumn(sc.interval().getColumn());
+        dc.observationId().putColumn(sc.observationId().getColumn());
+        dc.antenna1().putColumn(sc.antenna1().getColumn());
+        dc.antenna2().putColumn(sc.antenna2().getColumn());
+        dc.feed1().putColumn(sc.feed1().getColumn());
+        dc.feed2().putColumn(sc.feed2().getColumn());
+        dc.uvw().putColumn(sc.uvw().getColumn());
+        dc.flagRow().putColumn(sc.flagRow().getColumn());
+        dc.weight().putColumn(sc.weight().getColumn());
+        dc.sigma().putColumn(sc.sigma().getColumn());
+
+        // Copy over the split columns
+        for (uInt row = 0; row < nRows; ++row) {
+            dc.data().setShape(row, IPosition(2, nPol, 1));
+            dc.flag().setShape(row, IPosition(2, nPol, 1));
+        }
+        dc.data().putColumnRange(rowslicer, arrslicer,
+                sc.data().getColumnRange(rowslicer, arrslicer));
+        dc.flag().putColumnRange(rowslicer, arrslicer,
+                sc.flag().getColumnRange(rowslicer, arrslicer));
+        return;
+    }
 
     // For each row
     for (uInt row = 0; row < nRows; ++row) {
