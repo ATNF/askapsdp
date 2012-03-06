@@ -383,13 +383,9 @@ void splitMainTable(const casa::MeasurementSet& source,
     const casa::uInt nRows = sc.nrow();
     dest.addRow(nRows);
 
-    // Optimized path for a single channel
-    if ((startChan - endChan) == 0 && width == 1) {
-        const Slicer rowslicer(IPosition(1, 0), IPosition(1, nRows), Slicer::endIsLength);
-        const uInt nPol = sc.data()(0).shape()(0);
-        const Slicer arrslicer(IPosition(2, 0, startChan - 1), IPosition(2, nPol, 1), Slicer::endIsLength);
-
-        // Copy over the simple cells (i.e. those not needing averaging/merging)
+    // Optimized path for where no averageing is needed
+    if (width == 1) {
+        // Copy over the simple cells (i.e. those not split)
         dc.scanNumber().putColumn(sc.scanNumber().getColumn());
         dc.fieldId().putColumn(sc.fieldId().getColumn());
         dc.dataDescId().putColumn(sc.dataDescId().getColumn());
@@ -409,17 +405,25 @@ void splitMainTable(const casa::MeasurementSet& source,
         dc.weight().putColumn(sc.weight().getColumn());
         dc.sigma().putColumn(sc.sigma().getColumn());
 
-        // Copy over the split columns
+        // Copy over the split columns, first setting the shape of the arrays
+        const uInt nPol = sc.data()(0).shape()(0);
         for (uInt row = 0; row < nRows; ++row) {
-            dc.data().setShape(row, IPosition(2, nPol, 1));
-            dc.flag().setShape(row, IPosition(2, nPol, 1));
+            const int nChansToCopy = endChan - startChan + 1; // + 1 because range is inclusive
+            dc.data().setShape(row, IPosition(2, nPol, nChansToCopy));
+            dc.flag().setShape(row, IPosition(2, nPol, nChansToCopy));
         }
-        dc.data().putColumnRange(rowslicer, arrslicer,
-                sc.data().getColumnRange(rowslicer, arrslicer));
-        dc.flag().putColumnRange(rowslicer, arrslicer,
-                sc.flag().getColumnRange(rowslicer, arrslicer));
+        // For each channel (which are one-based in the input, but zero-based in
+        // the actual data arrays).
+        for (unsigned int chan = startChan - 1; chan <= endChan - 1; ++chan) {
+            const Slicer rowslicer(IPosition(1, 0), IPosition(1, nRows), Slicer::endIsLength);
+            const Slicer arrslicer(IPosition(2, 0, chan), IPosition(2, nPol, 1), Slicer::endIsLength);
+            dc.data().putColumnRange(rowslicer, arrslicer,
+                    sc.data().getColumnRange(rowslicer, arrslicer));
+            dc.flag().putColumnRange(rowslicer, arrslicer,
+                    sc.flag().getColumnRange(rowslicer, arrslicer));
+        }
         return;
-    }
+    } // End no-averaging optimisation
 
     // For each row
     for (uInt row = 0; row < nRows; ++row) {
