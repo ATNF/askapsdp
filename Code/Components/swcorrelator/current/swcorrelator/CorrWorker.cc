@@ -78,6 +78,10 @@ void CorrWorker::operator()()
        ASKAPDEBUGASSERT(chan == int(itsBufferManager->header(ids.itsAnt3).freqId));
        ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt2).bat);
        ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt3).bat);
+       // for debugging
+       if (chan == 1) {
+          ASKAPLOG_INFO_STR(logger, "Frame difference (ant0 - ant1) is "<<itsBufferManager->header(ids.itsAnt1).frame - itsBufferManager->header(ids.itsAnt2).frame);
+       }
        // run correlation
        s3bc.reset(0,0,0); // zero delays for now
        s3bc.accumulate(itsBufferManager->data(ids.itsAnt1), itsBufferManager->data(ids.itsAnt2), 

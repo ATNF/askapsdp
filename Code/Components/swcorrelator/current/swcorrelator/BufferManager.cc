@@ -37,6 +37,7 @@
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
 
+
 ASKAP_LOGGER(logger, ".swcorrelator");
 
 namespace askap {
@@ -324,6 +325,11 @@ void BufferManager::bufferFilled(const int id) const
            }
       }
       itsReadyBuffers(hdr.antenna, hdr.freqId, hdr.beam) = id;      
+      // for debugging
+      if (hdr.freqId == 1) {
+          ASKAPLOG_INFO_STR(logger, "Header for ant/chan/beam="<<hdr.antenna<<"/"<<hdr.freqId<<"/"<<hdr.beam<<" corresponds to frame="<<hdr.frame<<" and bat="<<hdr.bat);
+      }
+      //
     } catch (const BufferManager::HelperException &) {
       itsStatus[id] = BUF_FREE;          
     }

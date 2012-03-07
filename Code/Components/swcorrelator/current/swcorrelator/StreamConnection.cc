@@ -77,7 +77,7 @@ void StreamConnection::operator()()
            ASKAPLOG_FATAL_STR(logger, "Not keeping up - buffer overflow in the data stream thread");
            break;
        }
-       ASKAPLOG_DEBUG_STR(logger, "Got bufId="<<bufId<<" from the manager");
+       //ASKAPLOG_DEBUG_STR(logger, "Got bufId="<<bufId<<" from the manager");
        try {
           boost::asio::read(*itsSocket,boost::asio::buffer((void*)tmpbuf.get(), msgSize*sizeof(int16_t)));
           //boost::asio::read(*itsSocket,boost::asio::buffer(itsBufferManager->buffer(bufId), 
