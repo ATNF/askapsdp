@@ -79,7 +79,7 @@ void CorrWorker::operator()()
        ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt2).bat);
        ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt3).bat);
        // for debugging
-       if (chan == 1) {
+       if (chan == 0) {
           ASKAPLOG_INFO_STR(logger, "Frame difference (ant0 - ant1) is "<<itsBufferManager->header(ids.itsAnt1).frame - itsBufferManager->header(ids.itsAnt2).frame);
        }
        // run correlation

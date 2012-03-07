@@ -326,7 +326,7 @@ void BufferManager::bufferFilled(const int id) const
       }
       itsReadyBuffers(hdr.antenna, hdr.freqId, hdr.beam) = id;      
       // for debugging
-      if (hdr.freqId == 1) {
+      if (hdr.freqId == 0) {
           ASKAPLOG_INFO_STR(logger, "Header for ant/chan/beam="<<hdr.antenna<<"/"<<hdr.freqId<<"/"<<hdr.beam<<" corresponds to frame="<<hdr.frame<<" and bat="<<hdr.bat);
       }
       //

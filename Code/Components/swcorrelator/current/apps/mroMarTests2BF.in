@@ -9,6 +9,7 @@ swcorrelator.makeBeamAnt = false
 swcorrelator.antmap = "1:0,3:1"
 swcorrelator.beammap = "1:0"
 swcorrelator.freqmap = "15:0,13:1,11:2,9:3,7:4,5:5,1:6,2:7,3:8,4:9,6:10,8:11,10:12,12:13,14:14,16:15"
+#swcorrelator.freqmap = "15:0"
 
 # MS-writer parameters
 swcorrelator.beamoffsetuvw = true
