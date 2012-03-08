@@ -6,7 +6,7 @@
                 activation="always">
                 <env>CLASSPATH=$ASKAP_ROOT/Code/Components/CP/skymodelservice/server/current/skymodelservice.jar:.:$CLASSPATH</env>
                 <option>-Xmx1024m</option>
-                <option>askap/cp/sms/Server</option>
+                <option>askap/cp/skymodelsvc/Server</option>
                 <adapter name="AdminAdapter"
                     id="SkyModelServiceAdminAdapter"
                     endpoints="tcp">

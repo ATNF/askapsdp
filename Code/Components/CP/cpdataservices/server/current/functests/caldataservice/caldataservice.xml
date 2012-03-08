@@ -5,7 +5,7 @@
                 exe="java"
                 activation="always">
                 <option>-Xmx1024m</option>
-                <option>askap/cp/calds/Server</option>
+                <option>askap/cp/caldatasvc/Server</option>
                 <adapter name="AdminAdapter"
                     id="CalibrationDataServiceAdminAdapter"
                     endpoints="tcp">

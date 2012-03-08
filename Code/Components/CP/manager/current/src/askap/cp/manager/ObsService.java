@@ -66,8 +66,8 @@ public class ObsService extends _ICPObsServiceDisp {
     
 	public ObsService(Ice.Communicator ic) {
 		logger.info("Creating ObsService");
-		itsFCM = new FCMClient(ic);
-		itsDataService = new DataServiceClient(ic);
+		//itsFCM = new FCMClient(ic);
+		//itsDataService = new DataServiceClient(ic);
 		itsIngestControl = new IngestControl(new QResourceManager());
 	}
 	

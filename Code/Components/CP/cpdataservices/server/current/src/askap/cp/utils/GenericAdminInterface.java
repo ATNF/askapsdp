@@ -228,7 +228,27 @@ public class GenericAdminInterface extends _IComponentDisp {
 
 		Ice.Object object = this;
 		itsAdapter.add(object, itsComm.stringToIdentity(itsAdminName));
-		itsAdapter.activate();
+		
+		boolean activated = false;
+		while(!activated) {
+			final int interval = 5; // seconds
+			final String baseWarn = "  - will retry in " + interval + " seconds";
+			try {
+				itsAdapter.activate();
+				activated = true;
+			} catch (Ice.ConnectionRefusedException e) {
+				logger.warn("Connection refused" + baseWarn); 
+			} catch (Ice.NoEndpointException e) {
+				logger.warn("No endpoint exception" + baseWarn);
+			} catch (Ice.NotRegisteredException e) {
+				logger.warn("Not registered exception" + baseWarn);
+			}
+			try {
+				Thread.sleep(interval * 1000);
+			} catch (InterruptedException e) {
+				// In this rare case this might happen, faster polling is ok
+			}
+		}
 
 		// Block here so main() can block on this
 		itsComm.waitForShutdown();
