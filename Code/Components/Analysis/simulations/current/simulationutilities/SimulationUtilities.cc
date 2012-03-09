@@ -335,7 +335,7 @@ namespace askap {
                     float pixelVal;
                     float xScaleFactor, yScaleFactor;
 
-		    int pix = 0;
+		    size_t pix = 0;
 
                     for (int x = xmin; x <= xmax; x++) {
                         for (int y = ymin; y <= ymax; y++) {
@@ -472,7 +472,7 @@ namespace askap {
             unsigned int yref = int(y + 0.5);
             unsigned int spatialPixel = xref + axes[0] * yref;
 
-            int pix = 0;
+            size_t pix = 0;
             double pixelVal = 0.;
             bool addPixel = true;
 
@@ -534,7 +534,7 @@ namespace askap {
                 ASKAPLOG_DEBUG_STR(logger, "Adding Point Source with x=" << pix[0] << " & y=" << pix[1]
 				   << " and flux0=" << fluxGen.getFlux(0) << " to  axes = [" << axes[0] << "," << axes[1] << "]");
 
-		int loc = 0;
+		size_t loc = 0;
 		for(int istokes=0; istokes<fluxGen.nStokes();istokes++){
 		  for (int z = 0 ; z < fluxGen.nChan(); z++) {
 

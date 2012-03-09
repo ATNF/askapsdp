@@ -1183,8 +1183,8 @@ namespace askap {
 		casa::IPosition location(this->itsDim,0);
 		if(useOffset)
 		  for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
-		for(int z=0;z<this->itsAxes[this->itsWCS->spec];z++){
-		  int spatsize=this->itsAxes[this->itsWCS->lat] * this->itsAxes[this->itsWCS->lng];
+		for(size_t z=0;z<this->itsAxes[this->itsWCS->spec];z++){
+		  size_t spatsize=this->itsAxes[this->itsWCS->lat] * this->itsAxes[this->itsWCS->lng];
 		  Array<Float> arr(shape,this->itsArray+z*spatsize,casa::SHARE);
 		  img.putSlice(arr, location);
 // 		  ASKAPLOG_DEBUG_STR(logger, "Writing an array into channel " << z << " with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
