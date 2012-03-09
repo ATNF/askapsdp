@@ -416,12 +416,19 @@ void splitMainTable(const casa::MeasurementSet& source,
         // For each channel (which are one-based in the input, but zero-based in
         // the actual data arrays).
         for (unsigned int chan = startChan - 1; chan <= endChan - 1; ++chan) {
+            // Row slicer is common for both source and destination, since they both
+            // have the same number of rows
             const Slicer rowslicer(IPosition(1, 0), IPosition(1, nRows), Slicer::endIsLength);
-            const Slicer arrslicer(IPosition(2, 0, chan), IPosition(2, nPol, 1), Slicer::endIsLength);
-            dc.data().putColumnRange(rowslicer, arrslicer,
-                    sc.data().getColumnRange(rowslicer, arrslicer));
-            dc.flag().putColumnRange(rowslicer, arrslicer,
-                    sc.flag().getColumnRange(rowslicer, arrslicer));
+
+            // The flag and data column array slicer is different depending on if we are
+            // taking a slice from the src or dest.
+            const Slicer srcarrslicer(IPosition(2, 0, chan), IPosition(2, nPol, 1), Slicer::endIsLength);
+            const Slicer destarrslicer(IPosition(2, 0, chan - (startChan - 1)), IPosition(2, nPol, 1), Slicer::endIsLength);
+
+            dc.data().putColumnRange(rowslicer, destarrslicer,
+                    sc.data().getColumnRange(rowslicer, srcarrslicer));
+            dc.flag().putColumnRange(rowslicer, destarrslicer,
+                    sc.flag().getColumnRange(rowslicer, srcarrslicer));
         }
         return;
     } // End no-averaging optimisation
