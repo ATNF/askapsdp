@@ -18,8 +18,8 @@ cat > ${CONFIGDIR}/cimager-cont-dirty.in << EOF_INNER
 Cimager.dataset                                 = MS/coarse_chan_%w.ms
 
 Cimager.Images.Names                            = [image.i.dirty]
-Cimager.Images.shape                            = [3560,3560]
-Cimager.Images.cellsize                         = [9.1234arcsec, 9.1234arcsec]
+Cimager.Images.shape                            = [3584,3584]
+Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
 Cimager.Images.image.i.dirty.frequency          = [1.420e9,1.420e9]
 Cimager.Images.image.i.dirty.nchan              = 1
 Cimager.Images.image.i.dirty.direction          = [12h30m00.00, -45.00.00.00, J2000]

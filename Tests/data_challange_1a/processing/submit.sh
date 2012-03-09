@@ -77,11 +77,23 @@ EOF
 # Enqueue the processing tasks
 ##############################################################################
 
+# These jobs are executed if their outputs do not exist
 . ${SCRIPTDIR}/create-coarse-ms.sh
 . ${SCRIPTDIR}/gains-calibration.sh
 . ${SCRIPTDIR}/generate-sky-model.sh
+
+# These jobs are executed per the preference in config.sh
+if [ $DO_CONTINUUM_DIRTY == "true" ]; then
 . ${SCRIPTDIR}/imager-cont-clean.sh
+fi
+
+if [ $DO_CONTINUUM_CLEAN == "true" ]; then
 . ${SCRIPTDIR}/imager-cont-dirty.sh
+fi
+
+if [ $DO_SPECTRAL_LINE == "true" ]; then
+. ${SCRIPTDIR}/imager-spectral-line.sh
+fi
 
 ##############################################################################
 # Execute!!

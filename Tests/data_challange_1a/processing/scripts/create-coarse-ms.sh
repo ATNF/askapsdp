@@ -7,7 +7,7 @@ AVGMSDIR=MS
 if [ ! -d ${AVGMSDIR} ]; then
     mkdir ${AVGMSDIR}
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to create directory ${AVGDIR}"
+        echo "Error: Failed to create directory ${AVGMSDIR}"
         exit 1
     fi
 fi
@@ -25,7 +25,7 @@ cat > split_coarse.qsub << EOF
 
 #######
 # TO RUN (300 jobs):
-#  qsub -J 0-299 split.qsub
+#  qsub -J 0-299 split_coarse.qsub
 #######
 
 cd \${PBS_O_WORKDIR}

@@ -32,3 +32,12 @@ INPUT_SKYMODEL=../input/skymodel-duchamp.txt
 # If this is set to anything, the jobs will not be enqueued, only configuration
 # files, etc. will be created.
 #DRYRUN=1
+
+# Do Continuum Imaging (Dirty)
+DO_CONTINUUM_DIRTY=true
+
+# Do Continuum Imaging (Clean)
+DO_CONTINUUM_CLEAN=true
+
+# Do Spectral Line Imaging
+DO_SPECTRAL_LINE=true
