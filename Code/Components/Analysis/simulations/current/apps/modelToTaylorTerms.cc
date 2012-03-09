@@ -94,6 +94,10 @@ int main(int argc, const char **argv)
       }
       else{
 
+        // Ensure that CASA log messages are captured
+        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
+        casa::LogSink::globalSink(globalSink);
+
 	std::string parsetFile(getInputs("-inputs", "modelToTaylorTerms.in", argc, argv));
 	ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
 	LOFAR::ParameterSet parset(parsetFile);
@@ -102,40 +106,44 @@ int main(int argc, const char **argv)
 	ASKAPLOG_INFO_STR(logger, "Subset follows:\n"<<subset);
 
 	std::string modelimage=subset.getString("inputmodel","");
+	std::string modelimagebase = modelimage.substr(modelimage.rfind('/')+1,modelimage.size());
 	int nsubx=subset.getInt16("nsubx",1);
 	int nsuby=subset.getInt16("nsuby",1);
 	const int nterms=3;
-	int logevery = subset.getInt16("logevery",10);
+	float logevery = subset.getFloat("logevery",10.);
 	ASKAPLOG_INFO_STR(logger, "Will log every "<<logevery << "% of the time");
 
 	casa::PagedImage<Float> img(modelimage);
 	IPosition shape = img.shape();
 	int specCoord = img.coordinates().findCoordinate(Coordinate::SPECTRAL);
 	int specAxis = img.coordinates().worldAxes(specCoord)[0];
-	ASKAPLOG_DEBUG_STR(logger, "Model image " << modelimage << " has shape " << shape << " and the spectral axis is #"<<specAxis );
+	ASKAPLOG_DEBUG_STR(logger, "Model image " << modelimage << " with basename " << modelimagebase << " has shape " << shape << " and the spectral axis is #"<<specAxis );
 	
-	int nx=0,ny=0,xmin,xmax,ymin,ymax;
+	int nx=0,ny=0;
+	size_t xmin,xmax,ymin,ymax,xlen,ylen;
 	std::stringstream outputnamebase;
 	if(comms.isParallel()){
 	  nx = (comms.rank()-1) % nsubx;
 	  ny = (comms.rank()-1) / nsubx;
-	  xmin = int( nx * float(shape[0])/float(nsubx) );
-	  xmax = int( (nx+1) * float(shape[0])/float(nsubx) )-1;
-	  ymin = int( ny * float(shape[1])/float(nsuby) );
-	  ymax = int( (ny+1) * float(shape[1])/float(nsuby) )-1;
-	  outputnamebase<<modelimage << "_w"<<comms.rank()-1;
+	  xmin = size_t( nx * float(shape[0])/float(nsubx) );
+	  xmax = size_t( (nx+1) * float(shape[0])/float(nsubx) )-1;
+	  ymin = size_t( ny * float(shape[1])/float(nsuby) );
+	  ymax = size_t( (ny+1) * float(shape[1])/float(nsuby) )-1;
+	  outputnamebase<<modelimagebase << "_w"<<comms.rank()-1;
 	}
 	else{ // if serial mode, use the full range of x & y
 	  xmin=ymin=0;
 	  xmax=shape[0]-1;
 	  ymax=shape[1]-1;
-	  outputnamebase << modelimage;
+	  outputnamebase << modelimagebase;
 	}
+	xlen=xmax-xmin+1;
+	ylen=ymax-ymin+1;
 
 	ASKAPLOG_DEBUG_STR(logger, "isParallel="<<comms.isParallel()<< " rank="<<comms.rank()<<"   x in ["<<xmin<<","<<xmax<<"]   y in ["<<ymin << "," << ymax << "]");
 
 
-	casa::IPosition outshape(2,shape[0],shape[1]);
+	casa::IPosition outshape(2,xlen,ylen);
 	outshape[specAxis] = 1;
 	ASKAPLOG_DEBUG_STR(logger, "Shape of output images is " << outshape);
 	casa::Array<Float> outputs[nterms];
@@ -143,8 +151,6 @@ int main(int argc, const char **argv)
 	  outputs[i] = casa::Array<Float>(outshape,0.);
 	}
 
-	casa::IPosition start(shape.size(),0);
-	casa::IPosition end(shape-1);      
 
 	const int ndata=shape[specAxis];
 	const int degree=nterms+2;
@@ -169,41 +175,90 @@ int main(int argc, const char **argv)
 	  gsl_matrix_set(xdat,i,0,1.);
 	  gsl_matrix_set(xdat,i,1,logfreq);
 	  gsl_matrix_set(xdat,i,2,logfreq*logfreq);
-// 	  gsl_matrix_set(xdat,i,3,logfreq*logfreq*logfreq);
-// 	  gsl_matrix_set(xdat,i,4,logfreq*logfreq*logfreq*logfreq);
+	  gsl_matrix_set(xdat,i,3,logfreq*logfreq*logfreq);
+	  gsl_matrix_set(xdat,i,4,logfreq*logfreq*logfreq*logfreq);
 	  gsl_vector_set(w,i,1.);
 	}
 
-	for(int y=ymin; y<=ymax; y++){
-	  for(int x=xmin; x<=xmax; x++){
+	
+	casa::IPosition start(shape.size(),0);
+	start[0]=xmin;
+	start[1]=ymin;
+	casa::IPosition end(shape-1);
+	end[0] = xmax;
+	end[1] = ymax;
+	casa::IPosition outpos(2,0,0);
+	
+	float *subcube = new float[xlen*ylen*shape[specAxis]];
+	for(int z=0;z<specAxis;z++){
+	  start[specAxis] = end[specAxis] = z;
+	  casa::Slicer specslice(start,end,casa::Slicer::endIsLast);
+	  casa::Array<Float> channel = img.getSlice(specslice,True);
+	  for(int y=0;y<ylen;y++){
+	    for(int x=0;x<xlen;x++){
+	      subcube[x+y*xlen+z*xlen*ylen] = channel(IPosition(2,x,y));
+	    }
+	  }
+	}
+
+
+
+
+
+
+	// // casa::Array<Float> spectrum(casa::IPosition(1,shape[specAxis]),0.);
+	// casa::IPosition start(shape.size(),0);
+	// //	casa::IPosition specshape(shape.size(),1);
+	// //	specshape[specAxis]=shape[specAxis];
+	// casa::IPosition end(shape-1);
+	// casa::IPosition outpos(2,0,0);
+	for(size_t y=0; y<ylen; y++){
+	  // start[1]=end[1]=outpos[1]=y;
+	  outpos[1]=y;
+	  for(size_t x=0; x<xlen; x++){
+
+	    // start[0]=end[0]=outpos[0]=x;
+	    outpos[0]=x;
+
+	    size_t pos=x+y*xlen;
 
 	    // LOOP OVER Y AND X
 	    // EXTRACT SPECTRUM FROM MODEL IMAGE
 	    // FIT TO SPECTRUM
 	    // STORE FIT RESULTS IN OUTPUT ARRAYS
 
-	    if( (x+y*(xmax-xmin+1)) % int((xmax-xmin+1)*(ymax-ymin+1)*logevery/100.) == 0 )
-	      ASKAPLOG_INFO_STR(logger, "Done " << x+y*(xmax-xmin+1) << " spectra out of " << (xmax-xmin+1)*(ymax-ymin+1) <<" with x="<<x<<" and y="<<y);
+	    if( pos % int(xlen*ylen*logevery/100.) == 0 )
+	      ASKAPLOG_INFO_STR(logger, "Done " << pos << " spectra out of " << xlen*ylen <<" with x="<<x<<" and y="<<y);
 
-	    start[0]=end[0]=x;
-	    start[1]=end[1]=y;
-	    casa::Slicer specslice(start,end,casa::Slicer::endIsLast);
-	    casa::Array<Float> spectrum = img.getSlice(specslice,True);
-	    if(spectrum(IPosition(shape.size(),0))>1.e-20){
-	      casa::Array<Float>::iterator iterSpec=spectrum.begin();
+	    // ASKAPLOG_DEBUG_STR(logger, "Definding slicer with start="<<start << " and end = " << end);
+	    // casa::Slicer specslice(start,end,casa::Slicer::endIsLast);
+	    // casa::Array<Float> *spectrum;
+	    // ASKAPLOG_DEBUG_STR(logger, "About to get spectrum with slicer " << specslice);
+	    // img.doGetSlice(*spectrum, specslice);
+
+	    // //	    ASKAPLOG_DEBUG_STR(logger, "getting spectrum at start="<<start << " and shape = " << specshape);
+	    // //	    img.getSlice(spectrum,start,specshape,True);
+	    // // if(!img.getSlice(spectrum,specslice,True)){
+	    // //   ASKAPTHROW(AskapError, "Error extracting spectrum at (x,y)=("<<x<<","<<y<<")");
+	    // // }
+	    // // ASKAPLOG_DEBUG_STR(logger, "spectrum shape = " << spectrum.shape());
+
+
+	    if(subcube[pos]>1.e-20){
+	      // casa::Array<Float>::iterator iterSpec=spectrum->begin();
 	      for (int i=0;i<ndata;i++){
-		gsl_vector_set(ydat,i,log10(double(*iterSpec++)));
+		// gsl_vector_set(ydat,i,log10(double(*iterSpec++)));
+		gsl_vector_set(ydat,i,log10(subcube[pos]));
 	      }
 	      gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (ndata,degree);
 	      gsl_multifit_wlinear (xdat, w, ydat, c, cov, &chisq, work);
 	      gsl_multifit_linear_free (work);
 	      
-	      casa::IPosition outpos(2,x,y);
-	      float logflux=gsl_vector_get(c,0);
-	      outputs[0](outpos) = pow(10.,logflux);
+	      outputs[0](outpos) = pow(10.,gsl_vector_get(c,0));
 	      outputs[1](outpos) = gsl_vector_get(c,1);
 	      outputs[2](outpos) = gsl_vector_get(c,2);
 	    }
+	    // delete spectrum;
 	  }
 	}
 
@@ -233,18 +288,22 @@ int main(int argc, const char **argv)
 	
 	}
       }
-
+      
     } catch (const askap::AskapError& x) {
     ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
     std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+    exit(1);
+  } catch (const duchamp::DuchampError& x) {
+    ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
+    std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   } catch (const std::exception& x) {
     ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
     std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
     exit(1);
   }
-
+  
   return 0;
-
-
+  
+  
 }
