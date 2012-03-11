@@ -63,6 +63,8 @@
 #include <images/Images/ImageInfo.h>
 #include <casa/Arrays/ArrayBase.h>
 
+#include <gsl/gsl_multifit.h>
+
 #include <wcslib/wcs.h>
 #include <wcslib/wcsunits.h>
 #include <wcslib/wcsfix.h>
@@ -96,6 +98,7 @@ namespace askap {
 	this->itsArrayAllocated = false;
 	this->itsWCSAllocated = false;
 	this->itsWCSsourcesAllocated = false;
+	this->itsCreateTaylorTerms = false;
       }
 
       //--------------------------------------------------------
@@ -127,6 +130,8 @@ namespace askap {
 	this->itsFITSOutput = f.itsFITSOutput;
 	this->itsCasaOutput = f.itsCasaOutput;
 	this->itsFlagWriteByChannel = f.itsFlagWriteByChannel;
+	this->itsCreateTaylorTerms = f.itsCreateTaylorTerms;
+	this->itsMaxTaylorTerm = f.itsMaxTaylorTerm;
 	this->itsSourceList = f.itsSourceList;
 	this->itsSourceListType = f.itsSourceListType;
 	this->itsDatabaseOrigin = f.itsDatabaseOrigin;
@@ -223,6 +228,9 @@ namespace askap {
 	this->itsFITSOutput = parset.getBool("fitsOutput", true);
 	this->itsCasaOutput = parset.getBool("casaOutput", false);
 	this->itsFlagWriteByChannel = parset.getBool("flagWriteByChannel",false);
+	this->itsCreateTaylorTerms = parset.getBool("createTaylorTerms",false);
+	this->itsMaxTaylorTerm = parset.getInt16("maxTaylorTerm", 2);
+
 	this->itsBunit = casa::Unit(parset.getString("bunit", "Jy/beam"));
 	this->itsSourceList = parset.getString("sourcelist", "");
 	std::ifstream file;
@@ -1144,11 +1152,14 @@ namespace askap {
 
 	  std::string newName = casafy(this->itsFileName);
 	  casa::IPosition shape(this->itsDim);
+	  casa::IPosition ttshape(shape);
+	  ttshape(this->itsWCS->spec)=1;
 
 	  for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
 
 	  if (createFile) {
-	    int nstokes = (this->itsDatabaseOrigin == "POSSUM")?4:1;
+	    // int nstokes = (this->itsDatabaseOrigin == "POSSUM")?4:1;
+	    int nstokes = this->getNumStokes();
 	    ASKAPLOG_DEBUG_STR(logger, "Dimension of stokes axis = " << nstokes << ", databaseOrigin = " << this->itsDatabaseOrigin);
 	    casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
 
@@ -1162,14 +1173,22 @@ namespace askap {
 	    casa::PagedImage<float> img(casa::TiledShape(shape,tileshape), csys, newName);
 
 	    img.setUnits(this->itsBunit);
+	    casa::ImageInfo ii = img.imageInfo();
 
 	    if (this->itsHaveBeam) {
-	      casa::ImageInfo ii = img.imageInfo();
 	      ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0], "deg"),
 				  casa::Quantity(this->itsBeamInfo[1], "deg"),
 				  casa::Quantity(this->itsBeamInfo[2], "deg"));
 	      img.setImageInfo(ii);
 	    }
+
+	    if (this->itsCreateTaylorTerms){
+
+	      tileshape(this->itsWCS->spec) = 1;
+	      createTaylorTermImages(newName,csys,ttshape,tileshape,this->itsBunit,ii);
+
+	    }
+
 	  }
 
 	  if (saveData) {
@@ -1177,10 +1196,10 @@ namespace askap {
 	    if(this->itsArrayAllocated){
 	      
 	      casa::PagedImage<float> img(newName);
+	      casa::IPosition location(this->itsDim,0);
 	      
 	      if (this->itsFlagWriteByChannel) {
 		shape(this->itsWCS->spec) = 1;
-		casa::IPosition location(this->itsDim,0);
 		if(useOffset)
 		  for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
 		for(size_t z=0;z<this->itsAxes[this->itsWCS->spec];z++){
@@ -1206,6 +1225,13 @@ namespace askap {
 		ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
 		img.putSlice(arr, location);
 	      }
+
+	      if(this->itsCreateTaylorTerms){
+		
+		location(this->itsWCS->spec) = this->itsSourceSection.getStart(this->itsWCS->spec);
+		writeTaylorTermImages(newName,ttshape,location);
+		  
+	      }
 	    }
 	    else{
 	      ASKAPLOG_WARN_STR(logger, "Cannot write array as it has not been allocated");
@@ -1228,6 +1254,109 @@ namespace askap {
 	return this->itsWCS->crval[spec] - (this->itsAxes[spec]/2+0.5)*this->itsWCS->cdelt[spec];
       }
 	 
+
+      void FITSfile::createTaylorTermImages(std::string nameBase, casa::CoordinateSystem csys, casa::IPosition shape, casa::IPosition tileshape, casa::Unit bunit, casa::ImageInfo iinfo)
+      {
+
+
+	for(int t=0;t<=this->itsMaxTaylorTerm;t++){
+
+	  std::stringstream outname;
+	  outname << nameBase << ".taylor."<<t;
+	  
+	  ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << outname.str() << " with the shape " << shape << " and tileshape " << tileshape);
+	  casa::PagedImage<float> outimg(casa::TiledShape(shape,tileshape), csys, outname.str());
+	
+	  outimg.setUnits(bunit);
+	  outimg.setImageInfo(iinfo);
+
+	}
+
+      }
+
+
+      void FITSfile::writeTaylorTermImages(std::string nameBase, casa::IPosition shape, casa::IPosition location)
+      {
+	const size_t spec=this->itsWCS->spec;
+	const int maxterm = 2;
+	if(this->itsMaxTaylorTerm > maxterm){
+	  ASKAPLOG_WARN_STR(logger, "A maximum taylor term of " << this->itsMaxTaylorTerm << " was requested. We will only fill terms up to .taylor."<<maxterm);
+	}
+
+	casa::Array<Float> outputs[this->itsMaxTaylorTerm+1];
+	for(int i=0;i<=this->itsMaxTaylorTerm;i++){
+	  outputs[i] = casa::Array<Float>(shape,0.);
+	}
+	const int ndata=this->itsAxes[this->itsWCS->spec];
+	const int degree=this->itsMaxTaylorTerm+3;
+	double chisq;
+	gsl_matrix *xdat, *cov;
+	gsl_vector *ydat, *w, *c;
+	xdat = gsl_matrix_alloc(ndata,degree);
+	ydat = gsl_vector_alloc(ndata);
+	w = gsl_vector_alloc(ndata);
+	c = gsl_vector_alloc(degree);
+	cov = gsl_matrix_alloc(degree,degree);
+
+      
+	//	double reffreq = csys.spectralCoordinate(specCoord).referenceValue()[0];
+	double reffreq = this->itsWCS->crval[spec];
+	for(int i=0;i<ndata;i++){
+	  double freq;
+	  //	  if(!csys.spectralCoordinate(specCoord).toWorld(freq,double(i)))
+	  freq = this->itsWCS->crval[spec] + (i-this->itsWCS->crpix[spec])*this->itsWCS->cdelt[spec];
+	    ASKAPLOG_ERROR_STR(logger, "Error converting spectral coordinate at channel " << i);
+	  float logfreq = log10(freq/reffreq);
+	  gsl_matrix_set(xdat,i,0,1.);
+	  gsl_matrix_set(xdat,i,1,logfreq);
+	  gsl_matrix_set(xdat,i,2,logfreq*logfreq);
+	  gsl_matrix_set(xdat,i,3,logfreq*logfreq*logfreq);
+	  gsl_matrix_set(xdat,i,4,logfreq*logfreq*logfreq*logfreq);
+	  gsl_vector_set(w,i,1.);
+	}
+
+	const size_t xlen=this->itsAxes[this->itsWCS->lng];
+	const size_t ylen=this->itsAxes[this->itsWCS->lat];
+	casa::IPosition outpos(2,0);
+	for(size_t y=0; y<ylen; y++){
+	  outpos[1]=y;
+
+	  for(size_t x=0; x<x; x++){
+	    outpos[0]=x;
+
+	    size_t pos=x+y*xlen;
+
+	    // if( pos % int(xlen*ylen*logevery/100.) == 0 )
+	    //   ASKAPLOG_INFO_STR(logger, "Done " << pos << " spectra out of " << xlen*ylen <<" with x="<<x<<" and y="<<y);
+
+	    if(this->itsArray[pos]>1.e-20){
+	      for (int i=0;i<ndata;i++){
+		gsl_vector_set(ydat,i,log10(this->itsArray[pos+i*xlen*ylen]));
+	      }
+	      gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (ndata,degree);
+	      gsl_multifit_wlinear (xdat, w, ydat, c, cov, &chisq, work);
+	      gsl_multifit_linear_free (work);
+	      
+	      outputs[0](outpos) = pow(10.,gsl_vector_get(c,0));
+	      outputs[1](outpos) = gsl_vector_get(c,1);
+	      outputs[2](outpos) = gsl_vector_get(c,2);
+	    }
+	  }
+	}
+
+	for(int t=0;t<=this->itsMaxTaylorTerm; t++){
+	  std::stringstream outname;
+	  outname << nameBase <<".taylor." << t;
+	  casa::PagedImage<float> outimg(outname.str());
+	  ASKAPLOG_INFO_STR(logger, "Writing to CASA image " << outname.str() << " at location " << location);
+	  outimg.putSlice(outputs[t], location);
+	}
+						
+      }
+
+
+
+
 
     }
 

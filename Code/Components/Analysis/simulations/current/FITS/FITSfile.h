@@ -34,6 +34,9 @@
 #include <Common/ParameterSet.h>
 #include <casa/Quanta/Unit.h>
 #include <casa/Arrays/Slice.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <images/Images/ImageInfo.h>
+
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -141,6 +144,10 @@ namespace askap {
 		    double maxFreq();
 		    double minFreq();
 
+		    void createTaylorTermImages(std::string nameBase, casa::CoordinateSystem csys, casa::IPosition shape, casa::IPosition tileshape, casa::Unit bunit, casa::ImageInfo iinfo);
+		    void writeTaylorTermImages(std::string nameBase, casa::IPosition shape, casa::IPosition location);
+
+
                 protected:
 
                     /// @brief The name of the file to be written to
@@ -151,6 +158,10 @@ namespace askap {
                     bool itsCasaOutput;
 		    /// @brief Whether to write the CASA image channel-by-channel
 		    bool itsFlagWriteByChannel;
+		    /// @brief Whether to write Taylor term images matching the spectral cube
+		    bool itsCreateTaylorTerms;
+		    /// @brief The maximum Taylor term to be created
+		    bool itsMaxTaylorTerm;
                     /// @brief The file containing the list of sources
                     std::string itsSourceList;
                     /// @brief The type of input list: either "continuum" or "spectralline"
