@@ -96,17 +96,6 @@ namespace askap {
                 if (axes.size() != dim)
                     ASKAPTHROW(AskapError, "Dimension mismatch: dim = " << dim << ", but axes has " << axes.size() << " dimensions.");
 
-                this->itsFlagStagedWriting = parset.getBool("stagedWriting", true) && this->itsComms.isParallel();
-		this->itsFlagWriteByNode = parset.getBool("writeByNode",false) && this->itsComms.isParallel();
-		if(this->itsFlagWriteByNode) {
-		  if(this->itsFlagStagedWriting) ASKAPLOG_WARN_STR(logger, "writeByNode flag is true, so setting stagedWriting flag to false");
-		  this->itsFlagStagedWriting = false;
-		  std::string newname = workerImageName(parset.getString("filename"));
-		  newparset.replace("filename",newname);
-		  ASKAPLOG_INFO_STR(logger, "Using writeByNode mode, so changing requested image name to " << newname);
-		}
-		  
-
                 if (itsComms.isParallel() && itsComms.isWorker()) {
 
 		  //                    this->itsSubsection = this->itsSubimageDef.section(itsComms.rank() - 1, duchamp::nullSection(dim));
@@ -130,6 +119,16 @@ namespace askap {
                     this->itsSubsection.parse(axes);
                 }
 
+                this->itsFlagStagedWriting = parset.getBool("stagedWriting", true) && this->itsComms.isParallel();
+		this->itsFlagWriteByNode = parset.getBool("writeByNode",false) && this->itsComms.isParallel();
+		if(this->itsFlagWriteByNode) {
+		  if(this->itsFlagStagedWriting) ASKAPLOG_WARN_STR(logger, "writeByNode flag is true, so setting stagedWriting flag to false");
+		  this->itsFlagStagedWriting = false;
+		  std::string newname = workerImageName(parset.getString("filename"));
+		  newparset.replace("filename",newname);
+		  ASKAPLOG_INFO_STR(logger, "Using writeByNode mode, so changing requested image name to " << newname);
+		}
+		  
                 ASKAPLOG_DEBUG_STR(logger, "Defining FITSfile");
 		//		bool doAllocation = (parset.getBool("fitsOutput",true)||parset.getBool("casaOutput",false)) &&  (this->itsComms.isWorker() || !this->itsFlagStagedWriting);
 		// if we want to write, start by assuming we need to allocate

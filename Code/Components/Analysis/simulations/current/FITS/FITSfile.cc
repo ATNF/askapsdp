@@ -99,7 +99,6 @@ namespace askap {
 	this->itsWCSAllocated = false;
 	this->itsWCSsourcesAllocated = false;
 	this->itsCreateTaylorTerms = false;
-	this->itsTTmaps = 0;
       }
 
       //--------------------------------------------------------
@@ -108,8 +107,6 @@ namespace askap {
       {
 	/// @details Destructor deletes the flux array if it has been allocated.
 	if (this->itsArrayAllocated) delete [] this->itsArray;
-
-	if (this->itsTTmaps != 0) delete [] this->itsTTmaps;
 
 	int nwcs = 1;
 
@@ -135,6 +132,8 @@ namespace askap {
 	this->itsFlagWriteByChannel = f.itsFlagWriteByChannel;
 	this->itsCreateTaylorTerms = f.itsCreateTaylorTerms;
 	this->itsMaxTaylorTerm = f.itsMaxTaylorTerm;
+	this->itsTTmaps = f.itsTTmaps;
+	this->itsTTlogevery = f.itsTTlogevery;
 	this->itsSourceList = f.itsSourceList;
 	this->itsSourceListType = f.itsSourceListType;
 	this->itsDatabaseOrigin = f.itsDatabaseOrigin;
@@ -156,14 +155,6 @@ namespace askap {
 	  this->itsArray = new float[this->itsNumPix];
 
 	  for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = f.itsArray[i];
-	}
-
-	if (this->itsTTmaps != 0) {
-
-	  delete [] this->itsTTmaps;
-	  this->itsTTmaps = new casa::Array<Float>[this->itsMaxTaylorTerm+1];
-	  for(int i=0;i<=this->itsMaxTaylorTerm;i++) this->itsTTmaps[i] = f.itsTTmaps[i];
-
 	}
 
 	this->itsNoiseRMS = f.itsNoiseRMS;
@@ -240,7 +231,10 @@ namespace askap {
 	this->itsCasaOutput = parset.getBool("casaOutput", false);
 	this->itsFlagWriteByChannel = parset.getBool("flagWriteByChannel",false);
 	this->itsCreateTaylorTerms = parset.getBool("createTaylorTerms",false);
-	this->itsMaxTaylorTerm = parset.getInt16("maxTaylorTerm", 2);
+	this->itsMaxTaylorTerm = parset.getInt16("maxTaylorTerm", 2);	
+	this->itsTTmaps = std::vector<casa::Array<Float> >(this->itsMaxTaylorTerm+1);
+	this->itsTTlogevery = parset.getFloat("TTlogevery",10.);
+	ASKAPLOG_DEBUG_STR(logger, "createTaylorTerms="<<this->itsCreateTaylorTerms<<", maxTaylorTerm="<<this->itsMaxTaylorTerm);
 
 	this->itsBunit = casa::Unit(parset.getString("bunit", "Jy/beam"));
 	this->itsSourceList = parset.getString("sourcelist", "");
@@ -1197,6 +1191,7 @@ namespace askap {
 	      tileshape(this->itsWCS->spec) = 1;
 	      ttshape = shape;
 	      ttshape(this->itsWCS->spec)=1;
+	      ASKAPLOG_INFO_STR(logger, "Creating Taylor term images with form " << newName << ".taylor.0-"<<this->itsMaxTaylorTerm<<" with the shape " << ttshape << " and tileshape " << tileshape);
 	      createTaylorTermImages(newName,csys,ttshape,tileshape,this->itsBunit,ii);
 
 	    }
@@ -1241,6 +1236,7 @@ namespace askap {
 	      if(this->itsCreateTaylorTerms){
 		
 		location(this->itsWCS->spec) = this->itsSourceSection.getStart(this->itsWCS->spec);
+		ASKAPLOG_INFO_STR(logger, "Writing to Taylor term images");
 		writeTaylorTermImages(newName,location);
 		  
 	      }
@@ -1271,12 +1267,12 @@ namespace askap {
       {
 
 
-	for(int t=0;t<=this->itsMaxTaylorTerm;t++){
+	for(size_t t=0;t<=this->itsMaxTaylorTerm;t++){
 
 	  std::stringstream outname;
 	  outname << nameBase << ".taylor."<<t;
 	  
-	  ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << outname.str() << " with the shape " << shape << " and tileshape " << tileshape);
+// 	  ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << outname.str() << " with the shape " << shape << " and tileshape " << tileshape);
 	  casa::PagedImage<float> outimg(casa::TiledShape(shape,tileshape), csys, outname.str());
 	
 	  outimg.setUnits(bunit);
@@ -1289,72 +1285,71 @@ namespace askap {
 
       void FITSfile::defineTaylorTerms()
       {
-	const size_t spec=this->itsWCS->spec;
-	const int maxterm = 2;
-	if(this->itsMaxTaylorTerm > maxterm){
-	  ASKAPLOG_WARN_STR(logger, "A maximum taylor term of " << this->itsMaxTaylorTerm << " was requested. We will only fill terms up to .taylor."<<maxterm);
-	}
 
-	casa::IPosition shape(this->itsDim);
-	for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
+	if(this->itsArrayAllocated){
 
-	this->itsTTmaps = new casa::Array<Float>[this->itsMaxTaylorTerm+1];
-	for(int i=0;i<=this->itsMaxTaylorTerm;i++){
-	  this->itsTTmaps[i] = casa::Array<Float>(shape,0.);
-	}
-	const int ndata=this->itsAxes[this->itsWCS->spec];
-	const int degree=this->itsMaxTaylorTerm+3;
-	double chisq;
-	gsl_matrix *xdat, *cov;
-	gsl_vector *ydat, *w, *c;
-	xdat = gsl_matrix_alloc(ndata,degree);
-	ydat = gsl_vector_alloc(ndata);
-	w = gsl_vector_alloc(ndata);
-	c = gsl_vector_alloc(degree);
-	cov = gsl_matrix_alloc(degree,degree);
+	  ASKAPLOG_INFO_STR(logger, "Calculating taylor term arrays, for terms up to and including .taylor." << this->itsMaxTaylorTerm);
 
-      
-	//	double reffreq = csys.spectralCoordinate(specCoord).referenceValue()[0];
-	double reffreq = this->itsWCS->crval[spec];
-	for(int i=0;i<ndata;i++){
-	  double freq;
-	  //	  if(!csys.spectralCoordinate(specCoord).toWorld(freq,double(i)))
-	  freq = this->itsWCS->crval[spec] + (i-this->itsWCS->crpix[spec])*this->itsWCS->cdelt[spec];
-	  //	    ASKAPLOG_ERROR_STR(logger, "Error converting spectral coordinate at channel " << i);
-	  float logfreq = log10(freq/reffreq);
-	  gsl_matrix_set(xdat,i,0,1.);
-	  gsl_matrix_set(xdat,i,1,logfreq);
-	  gsl_matrix_set(xdat,i,2,logfreq*logfreq);
-	  gsl_matrix_set(xdat,i,3,logfreq*logfreq*logfreq);
-	  gsl_matrix_set(xdat,i,4,logfreq*logfreq*logfreq*logfreq);
-	  gsl_vector_set(w,i,1.);
-	}
+	  const size_t spec=this->itsWCS->spec;
+	  const unsigned int maxterm = 2;
+	  if(this->itsMaxTaylorTerm > maxterm){
+	    ASKAPLOG_WARN_STR(logger, "A maximum taylor term of " << this->itsMaxTaylorTerm << " was requested. We will only fill terms up to .taylor."<<maxterm);
+	  }
 
-	const size_t xlen=this->itsAxes[this->itsWCS->lng];
-	const size_t ylen=this->itsAxes[this->itsWCS->lat];
-	casa::IPosition outpos(2,0);
-	for(size_t y=0; y<ylen; y++){
-	  outpos[1]=y;
+	  casa::IPosition shape(this->itsDim);
+	  for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
+	  shape(spec)=1;
+	  for(size_t i=0;i<=this->itsMaxTaylorTerm;i++){
+	    this->itsTTmaps[i] = casa::Array<float>(shape,0.);
+	  }
+	  const size_t ndata=this->itsAxes[this->itsWCS->spec];
+	  const size_t degree=this->itsMaxTaylorTerm+3;
+	  double chisq;
+	  gsl_matrix *xdat, *cov;
+	  gsl_vector *ydat, *w, *c;
+	  xdat = gsl_matrix_alloc(ndata,degree);
+	  ydat = gsl_vector_alloc(ndata);
+	  w = gsl_vector_alloc(ndata);
+	  c = gsl_vector_alloc(degree);
+	  cov = gsl_matrix_alloc(degree,degree);
 
-	  for(size_t x=0; x<x; x++){
-	    outpos[0]=x;
+      	  for(size_t i=0;i<ndata;i++){
+	    double freq = this->itsWCS->crval[spec] + (i-this->itsWCS->crpix[spec])*this->itsWCS->cdelt[spec];
+	    float logfreq = log10(freq/this->itsBaseFreq);
+	    float xval=1.;
+	    for(size_t d=0;d<degree;d++){
+	      gsl_matrix_set(xdat,i,d,xval);
+	      xval *= logfreq;
+	    }
+	    gsl_vector_set(w,i,1.);
+	  }
 
-	    size_t pos=x+y*xlen;
+	  const size_t xlen=this->itsAxes[this->itsWCS->lng];
+	  const size_t ylen=this->itsAxes[this->itsWCS->lat];
+	  casa::IPosition outpos(shape.size(),0);
+	  for(size_t y=0; y<ylen; y++){
+	    outpos[1]=y;
 
-	    // if( pos % int(xlen*ylen*logevery/100.) == 0 )
-	    //   ASKAPLOG_INFO_STR(logger, "Done " << pos << " spectra out of " << xlen*ylen <<" with x="<<x<<" and y="<<y);
+	    for(size_t x=0; x<xlen; x++){
+	      outpos[0]=x;
 
-	    if(this->itsArray[pos]>1.e-20){
-	      for (int i=0;i<ndata;i++){
-		gsl_vector_set(ydat,i,log10(this->itsArray[pos+i*xlen*ylen]));
-	      }
-	      gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (ndata,degree);
-	      gsl_multifit_wlinear (xdat, w, ydat, c, cov, &chisq, work);
-	      gsl_multifit_linear_free (work);
+	      size_t pos=x+y*xlen;
+
+	      if( pos % int(xlen*ylen*this->itsTTlogevery/100.) == 0 )
+		ASKAPLOG_INFO_STR(logger, "Found Taylor terms for " << pos << " spectra out of " << xlen*ylen <<" with x="<<x<<" and y="<<y);
+
+	      if(this->itsArray[pos]>1.e-20){
+		for (size_t i=0;i<ndata;i++){
+		  gsl_vector_set(ydat,i,log10(this->itsArray[pos+i*xlen*ylen]));
+		}
+		gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc (ndata,degree);
+		gsl_multifit_wlinear (xdat, w, ydat, c, cov, &chisq, work);
+		gsl_multifit_linear_free (work);
 	      
-	      if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = pow(10.,gsl_vector_get(c,0));
-	      if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = gsl_vector_get(c,1);
-	      if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = gsl_vector_get(c,2);
+		if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = pow(10.,gsl_vector_get(c,0));
+		if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = gsl_vector_get(c,1);
+		if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = gsl_vector_get(c,2);
+	      }
 	    }
 	  }
 	}
@@ -1363,11 +1358,11 @@ namespace askap {
       void FITSfile::writeTaylorTermImages(std::string nameBase, casa::IPosition location)
       {
 
-	for(int t=0;t<=this->itsMaxTaylorTerm; t++){
+	for(size_t t=0;t<=this->itsMaxTaylorTerm; t++){
 	  std::stringstream outname;
 	  outname << nameBase <<".taylor." << t;
 	  casa::PagedImage<float> outimg(outname.str());
-	  ASKAPLOG_INFO_STR(logger, "Writing to CASA image " << outname.str() << " at location " << location);
+// 	  ASKAPLOG_INFO_STR(logger, "Writing to CASA image " << outname.str() << " at location " << location);
 	  outimg.putSlice(this->itsTTmaps[t], location);
 	}
 						

@@ -164,7 +164,9 @@ namespace askap {
 		    /// @brief Whether to write Taylor term images matching the spectral cube
 		    bool itsCreateTaylorTerms;
 		    /// @brief The maximum Taylor term to be created
-		    bool itsMaxTaylorTerm;
+		    unsigned int itsMaxTaylorTerm;
+		    /// @brief What percentage of the spectral fitting to log when doing Taylor terms?
+		    float itsTTlogevery;
                     /// @brief The file containing the list of sources
                     std::string itsSourceList;
                     /// @brief The type of input list: either "continuum" or "spectralline"
@@ -187,7 +189,7 @@ namespace askap {
                     /// @brief Has the memory for itsArray been allocated?
                     bool itsArrayAllocated;
 		    /// @brief The arrays holding the Taylor term maps
-		    casa::Array<float> *itsTTmaps;
+		    std::vector<casa::Array<float> > itsTTmaps;
                     /// @brief The RMS of the noise distribution
                     float itsNoiseRMS;
 
