@@ -154,7 +154,7 @@ void Simple3BaselineCorrelator<AccType, IndexType>::reset()
   itsSamples23 = IndexType(0);
 }
 
-#define CYCLIC_CORR
+//#define CYCLIC_CORR
 
 /// @brief accumulate buffers
 /// @details 

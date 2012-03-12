@@ -79,12 +79,18 @@ int main(int argc, const char** argv)
        if (logStep == 0) {   
            logStep = 1;
        }
+       int nDone  = 0;
+#pragma omp parallel for shared(nDone)
        for (int lag = 0; lag<nLags; ++lag) {
-            if (lag % logStep == 0) {
-                std::cout<<"Done "<<lag/logStep<<"%"<<std::endl;
+            #pragma omp critical
+            { 
+              ++nDone;
+              if (nDone % logStep == 0) {
+                std::cout<<"Done "<<nDone/logStep<<"%"<<std::endl;
+              }
             }
             typedef std::complex<float> accType;
-            Simple3BaselineCorrelator<accType> s3bc(0,lag,0);
+            Simple3BaselineCorrelator<accType> s3bc(0,-lag,0);
             s3bc.accumulate(buf1.begin(), buf2.begin(), buf1.begin(), int(buf1.size()));
             const accType vis12 = s3bc.getVis12() / float(s3bc.nSamples12()!=0 ? s3bc.nSamples12() : 1.);
             const accType vis23 = s3bc.getVis23() / float(s3bc.nSamples23()!=0 ? s3bc.nSamples23() : 1.);
@@ -100,7 +106,7 @@ int main(int argc, const char** argv)
                                       << " real:   " << timer.real()<<std::endl;
        timer.mark();
 
-       fft(outBuf, false);
+       //fft(outBuf, false);
        storeArray("result.dat",outBuf);
        std::cout<<"fft/storing: "<<"user:   " << timer.user() << " system: " << timer.system()
                                       << " real:   " << timer.real()<<std::endl;
