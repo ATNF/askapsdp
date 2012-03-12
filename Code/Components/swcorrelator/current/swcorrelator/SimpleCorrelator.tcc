@@ -154,6 +154,7 @@ void Simple3BaselineCorrelator<AccType, IndexType>::reset()
   itsSamples23 = IndexType(0);
 }
 
+#define CYCLIC_CORR
 
 /// @brief accumulate buffers
 /// @details 
@@ -179,12 +180,33 @@ void Simple3BaselineCorrelator<AccType, IndexType>::accumulate(const Iter stream
        itsVis23 += AccType(*(stream2 + offset2)) * conj(AccType(*(stream3+offset3)));
   }
   const IndexType largestDelay = std::max(itsDelay1, std::max(itsDelay2, itsDelay3));
+
+#ifdef CYCLIC_CORR
+  for (IndexType counter = 0; counter<largestDelay; ++counter,++offset1,++offset2,++offset3) {
+       if (offset1 >= size) {
+           offset1 = 0;
+       }
+       if (offset2 >= size) {
+           offset2 = 0;
+       }
+       if (offset3 >= size) {
+           offset3 = 0;
+       }
+       itsVis12 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream2+offset2)));
+       itsVis13 += AccType(*(stream1 + offset1)) * conj(AccType(*(stream3+offset3)));
+       itsVis23 += AccType(*(stream2 + offset2)) * conj(AccType(*(stream3+offset3)));
+  }
+  itsSamples12 += size;
+  itsSamples13 += size;
+  itsSamples23 += size;      
+#else
   if (largestDelay < size) {
       const IndexType addSamples = size - largestDelay;
       itsSamples12 += addSamples;
       itsSamples13 += addSamples;
       itsSamples23 += addSamples;      
   }
+#endif
 }            
 
 } // namespace swcorrelator
