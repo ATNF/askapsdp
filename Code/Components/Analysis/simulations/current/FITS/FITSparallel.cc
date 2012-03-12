@@ -282,6 +282,8 @@ namespace askap {
 
             void FITSparallel::output()
             {
+	      if(this->itsFITSfile->createTaylorTerms()) this->itsFITSfile->defineTaylorTerms();
+
                 if (this->itsFlagStagedWriting) {
                     this->stagedWriting();
                 } else {

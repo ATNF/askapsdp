@@ -32,6 +32,7 @@
 #include <wcslib/wcs.h>
 
 #include <Common/ParameterSet.h>
+#include <casa/aipstype.h>
 #include <casa/Quanta/Unit.h>
 #include <casa/Arrays/Slice.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
@@ -144,8 +145,10 @@ namespace askap {
 		    double maxFreq();
 		    double minFreq();
 
+		    bool createTaylorTerms(){return itsCreateTaylorTerms;};
 		    void createTaylorTermImages(std::string nameBase, casa::CoordinateSystem csys, casa::IPosition shape, casa::IPosition tileshape, casa::Unit bunit, casa::ImageInfo iinfo);
-		    void writeTaylorTermImages(std::string nameBase, casa::IPosition shape, casa::IPosition location);
+		    void defineTaylorTerms();
+		    void writeTaylorTermImages(std::string nameBase, casa::IPosition location);
 
 
                 protected:
@@ -183,6 +186,8 @@ namespace askap {
                     float *itsArray;
                     /// @brief Has the memory for itsArray been allocated?
                     bool itsArrayAllocated;
+		    /// @brief The arrays holding the Taylor term maps
+		    casa::Array<float> *itsTTmaps;
                     /// @brief The RMS of the noise distribution
                     float itsNoiseRMS;
 

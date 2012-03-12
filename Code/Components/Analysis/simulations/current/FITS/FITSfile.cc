@@ -99,6 +99,7 @@ namespace askap {
 	this->itsWCSAllocated = false;
 	this->itsWCSsourcesAllocated = false;
 	this->itsCreateTaylorTerms = false;
+	this->itsTTmaps = 0;
       }
 
       //--------------------------------------------------------
@@ -107,6 +108,8 @@ namespace askap {
       {
 	/// @details Destructor deletes the flux array if it has been allocated.
 	if (this->itsArrayAllocated) delete [] this->itsArray;
+
+	if (this->itsTTmaps != 0) delete [] this->itsTTmaps;
 
 	int nwcs = 1;
 
@@ -153,6 +156,14 @@ namespace askap {
 	  this->itsArray = new float[this->itsNumPix];
 
 	  for (size_t i = 0; i < this->itsNumPix; i++) this->itsArray[i] = f.itsArray[i];
+	}
+
+	if (this->itsTTmaps != 0) {
+
+	  delete [] this->itsTTmaps;
+	  this->itsTTmaps = new casa::Array<Float>[this->itsMaxTaylorTerm+1];
+	  for(int i=0;i<=this->itsMaxTaylorTerm;i++) this->itsTTmaps[i] = f.itsTTmaps[i];
+
 	}
 
 	this->itsNoiseRMS = f.itsNoiseRMS;
@@ -1152,8 +1163,7 @@ namespace askap {
 
 	  std::string newName = casafy(this->itsFileName);
 	  casa::IPosition shape(this->itsDim);
-	  casa::IPosition ttshape(shape);
-	  ttshape(this->itsWCS->spec)=1;
+	  casa::IPosition ttshape;
 
 	  for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
 
@@ -1185,6 +1195,8 @@ namespace askap {
 	    if (this->itsCreateTaylorTerms){
 
 	      tileshape(this->itsWCS->spec) = 1;
+	      ttshape = shape;
+	      ttshape(this->itsWCS->spec)=1;
 	      createTaylorTermImages(newName,csys,ttshape,tileshape,this->itsBunit,ii);
 
 	    }
@@ -1229,7 +1241,7 @@ namespace askap {
 	      if(this->itsCreateTaylorTerms){
 		
 		location(this->itsWCS->spec) = this->itsSourceSection.getStart(this->itsWCS->spec);
-		writeTaylorTermImages(newName,ttshape,location);
+		writeTaylorTermImages(newName,location);
 		  
 	      }
 	    }
@@ -1275,7 +1287,7 @@ namespace askap {
       }
 
 
-      void FITSfile::writeTaylorTermImages(std::string nameBase, casa::IPosition shape, casa::IPosition location)
+      void FITSfile::defineTaylorTerms()
       {
 	const size_t spec=this->itsWCS->spec;
 	const int maxterm = 2;
@@ -1283,9 +1295,12 @@ namespace askap {
 	  ASKAPLOG_WARN_STR(logger, "A maximum taylor term of " << this->itsMaxTaylorTerm << " was requested. We will only fill terms up to .taylor."<<maxterm);
 	}
 
-	casa::Array<Float> outputs[this->itsMaxTaylorTerm+1];
+	casa::IPosition shape(this->itsDim);
+	for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
+
+	this->itsTTmaps = new casa::Array<Float>[this->itsMaxTaylorTerm+1];
 	for(int i=0;i<=this->itsMaxTaylorTerm;i++){
-	  outputs[i] = casa::Array<Float>(shape,0.);
+	  this->itsTTmaps[i] = casa::Array<Float>(shape,0.);
 	}
 	const int ndata=this->itsAxes[this->itsWCS->spec];
 	const int degree=this->itsMaxTaylorTerm+3;
@@ -1305,7 +1320,7 @@ namespace askap {
 	  double freq;
 	  //	  if(!csys.spectralCoordinate(specCoord).toWorld(freq,double(i)))
 	  freq = this->itsWCS->crval[spec] + (i-this->itsWCS->crpix[spec])*this->itsWCS->cdelt[spec];
-	    ASKAPLOG_ERROR_STR(logger, "Error converting spectral coordinate at channel " << i);
+	  //	    ASKAPLOG_ERROR_STR(logger, "Error converting spectral coordinate at channel " << i);
 	  float logfreq = log10(freq/reffreq);
 	  gsl_matrix_set(xdat,i,0,1.);
 	  gsl_matrix_set(xdat,i,1,logfreq);
@@ -1337,19 +1352,23 @@ namespace askap {
 	      gsl_multifit_wlinear (xdat, w, ydat, c, cov, &chisq, work);
 	      gsl_multifit_linear_free (work);
 	      
-	      outputs[0](outpos) = pow(10.,gsl_vector_get(c,0));
-	      outputs[1](outpos) = gsl_vector_get(c,1);
-	      outputs[2](outpos) = gsl_vector_get(c,2);
+	      if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = pow(10.,gsl_vector_get(c,0));
+	      if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = gsl_vector_get(c,1);
+	      if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = gsl_vector_get(c,2);
 	    }
 	  }
 	}
+      }
+
+      void FITSfile::writeTaylorTermImages(std::string nameBase, casa::IPosition location)
+      {
 
 	for(int t=0;t<=this->itsMaxTaylorTerm; t++){
 	  std::stringstream outname;
 	  outname << nameBase <<".taylor." << t;
 	  casa::PagedImage<float> outimg(outname.str());
 	  ASKAPLOG_INFO_STR(logger, "Writing to CASA image " << outname.str() << " at location " << location);
-	  outimg.putSlice(outputs[t], location);
+	  outimg.putSlice(this->itsTTmaps[t], location);
 	}
 						
       }
