@@ -54,7 +54,7 @@
 #include "casa/Arrays/Slicer.h"
 #include "casa/Arrays/Array.h"
 #include "casa/Arrays/Vector.h"
-#include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/Cube.h"
 #include "tables/Tables/TableDesc.h"
 #include "tables/Tables/SetupNewTab.h"
 #include "tables/Tables/IncrementalStMan.h"
@@ -68,10 +68,9 @@ ASKAP_LOGGER(logger, ".msplit");
 using namespace askap;
 using namespace casa;
 
-boost::shared_ptr<casa::MeasurementSet> create(const std::string& filename,
-                                               casa::uInt bucketSize,
-                                               casa::uInt tileNcorr,
-                                               casa::uInt tileNchan)
+boost::shared_ptr<casa::MeasurementSet> create(
+        const std::string& filename, casa::uInt bucketSize,
+        casa::uInt tileNcorr, casa::uInt tileNchan)
 {
     if (bucketSize < 8192) {
         bucketSize = 8192;
@@ -268,9 +267,9 @@ void copyPointing(const casa::MeasurementSet& source, casa::MeasurementSet& dest
     // Add new rows to the destination and copy the data
     dest.pointing().addRow(sc.nrow());
 
-    // TODO: The first two left out because adding "target" hangs the split (or at least
-    // gets it stuch in some long/infinite loop). Maybe need to handle these
-    // MeasCol differently
+    // TODO: The first two left out because adding "target" hangs the split (or
+    // at least gets it stuch in some long/infinite loop). Maybe need to handle
+    // these MeasCol differently
     //dc.direction().putColumn(sc.direction());
     //dc.target().putColumn(sc.target());
     dc.antennaId().putColumn(sc.antennaId());
@@ -348,6 +347,7 @@ void splitSpectralWindow(const casa::MeasurementSet& source,
 
             // The offset for the first input channel for this destination channel
             const uInt chanOffset = startChan - 1 + (destChan * width);
+
             for (uInt i = chanOffset; i < chanOffset + width; ++i) {
                 chanFreq[destChan] += sc.chanFreq()(row)(casa::IPosition(1, i));
                 chanWidth[destChan] += sc.chanWidth()(row)(casa::IPosition(1, i));
@@ -384,121 +384,108 @@ void splitMainTable(const casa::MeasurementSet& source,
     const casa::uInt nRows = sc.nrow();
     dest.addRow(nRows);
 
-    // Optimized path for where no averageing is needed
-    if (width == 1) {
-        // Copy over the simple cells (i.e. those not split)
-        dc.scanNumber().putColumn(sc.scanNumber().getColumn());
-        dc.fieldId().putColumn(sc.fieldId().getColumn());
-        dc.dataDescId().putColumn(sc.dataDescId().getColumn());
-        dc.time().putColumn(sc.time().getColumn());
-        dc.timeCentroid().putColumn(sc.timeCentroid().getColumn());
-        dc.arrayId().putColumn(sc.arrayId().getColumn());
-        dc.processorId().putColumn(sc.processorId().getColumn());
-        dc.exposure().putColumn(sc.exposure().getColumn());
-        dc.interval().putColumn(sc.interval().getColumn());
-        dc.observationId().putColumn(sc.observationId().getColumn());
-        dc.antenna1().putColumn(sc.antenna1().getColumn());
-        dc.antenna2().putColumn(sc.antenna2().getColumn());
-        dc.feed1().putColumn(sc.feed1().getColumn());
-        dc.feed2().putColumn(sc.feed2().getColumn());
-        dc.uvw().putColumn(sc.uvw().getColumn());
-        dc.flagRow().putColumn(sc.flagRow().getColumn());
-        dc.weight().putColumn(sc.weight().getColumn());
-        dc.sigma().putColumn(sc.sigma().getColumn());
+    // Work out how many channels are to be actual input and which output
+    // and how many polarisations are involved.
+    const uInt nChanIn = endChan - startChan + 1;
+    const uInt nChanOut = nChanIn / width;
+    const uInt nPol = sc.data()(0).shape()(0);
 
-        // Copy over the split columns, first setting the shape of the arrays
-        const uInt nPol = sc.data()(0).shape()(0);
-        for (uInt row = 0; row < nRows; ++row) {
-            const int nChansToCopy = endChan - startChan + 1; // + 1 because range is inclusive
-            dc.data().setShape(row, IPosition(2, nPol, nChansToCopy));
-            dc.flag().setShape(row, IPosition(2, nPol, nChansToCopy));
+    // Decide how many rows to process simultaneously. This needs to fit within
+    // a reasonable amount of memory, because all visibilities will be read
+    // in for possible averaging. Assumes 256MB working space.
+    const uInt maxSimultaneousRows = (256 * 1024 * 1024) / (nChanIn + nChanOut) / nPol
+                                     / (sizeof(casa::Complex) + sizeof(casa::Bool));
+
+    for (uInt row = 0; row < nRows;) {
+        // Number of rows to process for this iteration of the loop; either
+        // maxSimultaneousRows or the remaining rows.
+        const uInt nRowsThisIteration = min(maxSimultaneousRows, nRows - row);
+        const Slicer rowslicer(IPosition(1, row), IPosition(1, nRowsThisIteration),
+                               Slicer::endIsLength);
+
+        ASKAPLOG_INFO_STR(logger,  "Splitting and/or averaging rows " << row
+                              << " to " << row + nRowsThisIteration << " of " << nRows);
+
+        // Copy over the simple cells (i.e. those not needing averaging/merging)
+        dc.scanNumber().putColumnRange(rowslicer, sc.scanNumber().getColumnRange(rowslicer));
+        dc.fieldId().putColumnRange(rowslicer, sc.fieldId().getColumnRange(rowslicer));
+        dc.dataDescId().putColumnRange(rowslicer, sc.dataDescId().getColumnRange(rowslicer));
+        dc.time().putColumnRange(rowslicer, sc.time().getColumnRange(rowslicer));
+        dc.timeCentroid().putColumnRange(rowslicer, sc.timeCentroid().getColumnRange(rowslicer));
+        dc.arrayId().putColumnRange(rowslicer, sc.arrayId().getColumnRange(rowslicer));
+        dc.processorId().putColumnRange(rowslicer, sc.processorId().getColumnRange(rowslicer));
+        dc.exposure().putColumnRange(rowslicer, sc.exposure().getColumnRange(rowslicer));
+        dc.interval().putColumnRange(rowslicer, sc.interval().getColumnRange(rowslicer));
+        dc.observationId().putColumnRange(rowslicer, sc.observationId().getColumnRange(rowslicer));
+        dc.antenna1().putColumnRange(rowslicer, sc.antenna1().getColumnRange(rowslicer));
+        dc.antenna2().putColumnRange(rowslicer, sc.antenna2().getColumnRange(rowslicer));
+        dc.feed1().putColumnRange(rowslicer, sc.feed1().getColumnRange(rowslicer));
+        dc.feed2().putColumnRange(rowslicer, sc.feed2().getColumnRange(rowslicer));
+        dc.uvw().putColumnRange(rowslicer, sc.uvw().getColumnRange(rowslicer));
+        dc.flagRow().putColumnRange(rowslicer, sc.flagRow().getColumnRange(rowslicer));
+        dc.weight().putColumnRange(rowslicer, sc.weight().getColumnRange(rowslicer));
+        dc.sigma().putColumnRange(rowslicer, sc.sigma().getColumnRange(rowslicer));
+
+        // Set the shape of the destination arrays
+        for (uInt i = row; i < row + nRowsThisIteration; ++i) {
+            dc.data().setShape(i, IPosition(2, nPol, nChanOut));
+            dc.flag().setShape(i, IPosition(2, nPol, nChanOut));
         }
-        // For each channel (which are one-based in the input, but zero-based in
-        // the actual data arrays).
-        for (unsigned int chan = startChan - 1; chan <= endChan - 1; ++chan) {
-            // Row slicer is common for both source and destination, since they both
-            // have the same number of rows
-            const Slicer rowslicer(IPosition(1, 0), IPosition(1, nRows), Slicer::endIsLength);
 
-            // The flag and data column array slicer is different depending on if we are
-            // taking a slice from the src or dest.
-            const Slicer srcarrslicer(IPosition(2, 0, chan), IPosition(2, nPol, 1), Slicer::endIsLength);
-            const Slicer destarrslicer(IPosition(2, 0, chan - (startChan - 1)), IPosition(2, nPol, 1), Slicer::endIsLength);
+        //  Average (if applicable) then write data into the output MS
+        const Slicer srcarrslicer(IPosition(2, 0, startChan - 1),
+                                  IPosition(2, nPol, nChanIn), Slicer::endIsLength);
+        const Slicer destarrslicer(IPosition(2, 0, 0),
+                                   IPosition(2, nPol, nChanOut), Slicer::endIsLength);
 
+        if (width == 1) {
             dc.data().putColumnRange(rowslicer, destarrslicer,
-                    sc.data().getColumnRange(rowslicer, srcarrslicer));
+                                     sc.data().getColumnRange(rowslicer, srcarrslicer));
             dc.flag().putColumnRange(rowslicer, destarrslicer,
-                    sc.flag().getColumnRange(rowslicer, srcarrslicer));
-        }
-        return;
-    } // End no-averaging optimisation
+                                     sc.flag().getColumnRange(rowslicer, srcarrslicer));
+        } else {
+            // Get (read) the input data/flag
+            const casa::Cube<casa::Complex> indata = sc.data().getColumnRange(rowslicer, srcarrslicer);
+            const casa::Cube<casa::Bool> inflag = sc.flag().getColumnRange(rowslicer, srcarrslicer);
 
-    // For each row
-    for (uInt row = 0; row < nRows; ++row) {
-        if (row % 10000 == 0) {
-            ASKAPLOG_INFO_STR(logger,  "Splitting and/or averaging row " << row << " of " << nRows);
-        }
+            // Create the output data/flag
+            casa::Cube<casa::Complex> outdata(nPol, nChanOut, nRowsThisIteration);
+            casa::Cube<casa::Bool> outflag(nPol, nChanOut, nRowsThisIteration);
 
-        // 1: Copy over the simple cells (i.e. those not needing averaging/merging)
-        dc.scanNumber().put(row, sc.scanNumber()(row));
-        dc.fieldId().put(row, sc.fieldId()(row));
-        dc.dataDescId().put(row, sc.dataDescId()(row));
-        dc.time().put(row, sc.time()(row));
-        dc.timeCentroid().put(row, sc.timeCentroid()(row));
-        dc.arrayId().put(row, sc.arrayId()(row));
-        dc.processorId().put(row, sc.processorId()(row));
-        dc.exposure().put(row, sc.exposure()(row));
-        dc.interval().put(row, sc.interval()(row));
-        dc.observationId().put(row, sc.observationId()(row));
-        dc.antenna1().put(row, sc.antenna1()(row));
-        dc.antenna2().put(row, sc.antenna2()(row));
-        dc.feed1().put(row, sc.feed1()(row));
-        dc.feed2().put(row, sc.feed2()(row));
-        dc.uvw().put(row, sc.uvw()(row));
-        dc.flagRow().put(row, sc.flagRow()(row));
-        dc.weight().put(row, sc.weight()(row));
-        dc.sigma().put(row, sc.sigma()(row));
+            // Average data and combine flag information
+            for (uInt pol = 0; pol < nPol; ++pol) {
+                for (uInt destChan = 0; destChan < nChanOut; ++destChan) {
+                    for (uInt r = 0; r < nRowsThisIteration; ++r) {
+                        casa::Complex sum(0.0, 0.0);
+                        casa::Bool outputFlag = false;
 
-        // 2: Size the matrix for data and flag
-        const uInt nPol = sc.data()(row).shape()(0);
-        const uInt nChanIn = endChan - startChan + 1;
-        const uInt nChanOut = nChanIn / width;
+                        // The offset for the first channel (in the source data) for
+                        // this destination channel
+                        const uInt chanOffset = startChan - 1 + (destChan * width);
 
-        casa::Matrix<casa::Complex> data(nPol, nChanOut);
-        casa::Matrix<casa::Bool> flag(nPol, nChanOut);
+                        for (uInt i = chanOffset; i < chanOffset + width; ++i) {
+                            sum += indata(pol, i, r);
 
-        // 3: Copy the data from each input into the output matrix
-        for (uInt pol = 0; pol < nPol; ++pol) {
-            for (uInt destChan = 0; destChan < nChanOut; ++destChan) {
-                casa::Complex sum(0.0, 0.0);
-                casa::Bool outputFlag = false;
+                            if (outputFlag == false && inflag(pol, i, r)) {
+                                outputFlag = true;
+                            }
+                        }
 
-                // The offset for the first input channel for this destination channel
-                const uInt chanOffset = startChan - 1 + (destChan * width);
-
-                // Get a slice of the data and flag matrices for the whole width
-                // (i.e. all channels to be averaged)
-                const Slicer arrslicer(IPosition(2, 0, chanOffset), IPosition(2, nPol, width));
-                const casa::Matrix<casa::Complex> srcData = sc.data().getSlice(row, arrslicer);
-                const casa::Matrix<casa::Bool> srcFlag = sc.flag().getSlice(row, arrslicer);
-
-                for (uInt i = 0; i < width; ++i) {
-                    sum += srcData(pol, i);
-                    if (outputFlag == false && srcFlag(pol, i)) {
-                        outputFlag = true;
+                        // Now the input channels have been averaged, write the data to
+                        // the output cubes
+                        outdata(pol, destChan, r) = casa::Complex(sum.real() / width,
+                                                    sum.imag() / width);
+                        outflag(pol, destChan, r) = outputFlag;
                     }
                 }
-
-                // Now the input channels have been averaged
-                data(pol, destChan) = casa::Complex(sum.real() / width,
-                                                    sum.imag() / width);
-                flag(pol, destChan) = outputFlag;
             }
+
+            // Put (write) the output data/flag
+            dc.data().putColumnRange(rowslicer, destarrslicer, outdata);
+            dc.flag().putColumnRange(rowslicer, destarrslicer, outflag);
         }
 
-        // 4: Add those split/averaged cells
-        dc.data().put(row, data);
-        dc.flag().put(row, flag);
+        row += nRowsThisIteration;
     }
 }
 
@@ -509,7 +496,8 @@ int split(const std::string& invis, const std::string& outvis,
           const LOFAR::ParameterSet& parset)
 {
     ASKAPLOG_INFO_STR(logger,  "Splitting out channel range " << startChan << " to "
-            << endChan << " (inclusive)");
+                          << endChan << " (inclusive)");
+
     if (width > 1) {
         ASKAPLOG_INFO_STR(logger,  "Averaging " << width << " channels to form 1");
     } else {
@@ -518,6 +506,7 @@ int split(const std::string& invis, const std::string& outvis,
 
     // Verify split parameters
     const uInt nChanIn = endChan - startChan + 1;
+
     if ((width < 1) || (nChanIn % width != 0)) {
         ASKAPLOG_ERROR_STR(logger, "Width must equally divide the channel range");
         return 1;
@@ -528,9 +517,10 @@ int split(const std::string& invis, const std::string& outvis,
 
     // Create the output measurement set
     if (casa::File(outvis).exists()) {
-            ASKAPLOG_ERROR_STR(logger, "File or table " << outvis << " already exists!");
-            return 1;
+        ASKAPLOG_ERROR_STR(logger, "File or table " << outvis << " already exists!");
+        return 1;
     }
+
     const casa::uInt bucketSize = parset.getUint32("stman.bucketsize", 128 * 1024);
     const casa::uInt tileNcorr = parset.getUint32("stman.tilencorr", 4);
     const casa::uInt tileNchan = parset.getUint32("stman.tilenchan", 1);
@@ -586,6 +576,7 @@ std::pair<unsigned int, unsigned int> parseRange(const LOFAR::ParameterSet& pars
     const boost::regex e2("([\\d]+)\\s*-\\s*([\\d]+)");
 
     boost::smatch what;
+
     if (regex_match(raw, what, e1)) {
         result.first = utility::fromString<unsigned int>(raw);
         result.second = result.first;
@@ -612,6 +603,7 @@ int main(int argc, const char** argv)
     // If a log configuration exists in the current directory then
     // use it, otherwise try to use the programs default one
     std::ifstream config("askap.log_cfg", std::ifstream::in);
+
     if (config) {
         ASKAPLOG_INIT("askap.log_cfg");
     } else {
@@ -625,6 +617,7 @@ int main(int argc, const char** argv)
     casa::LogSink::globalSink(globalSink);
 
     int error = 0;
+
     try {
         casa::Timer timer;
         timer.mark();
@@ -651,7 +644,7 @@ int main(int argc, const char** argv)
         error = split(invis, outvis, range.first, range.second, width, parset);
 
         ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: "
-                << timer.system() << " real:   " << timer.real());
+                              << timer.system() << " real:   " << timer.real());
     } catch (const cmdlineparser::XParser &ex) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         ASKAPLOG_FATAL_STR(logger, "Usage: " << argv[0] << " -o output.ms inMS1 ... inMSn");
