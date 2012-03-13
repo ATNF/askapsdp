@@ -1,10 +1,23 @@
 #!/bin/bash -l
 
-export ASKAP_ROOT=/home/whi550/askapsoft
+# If ASKAP_ROOT is not set in your environment, add the path here and uncomment
+#ASKAP_ROOT=<path to ASKAPsoft>
 
-#BASEDIR=/scratch/astronomy116/whi550/DataChallenge/Simulation
+scriptdir=${ASKAP_ROOT}/Tests/data_challange_1a/Simulation/Scripts
+
 BASEDIR=`pwd`
-scriptdir=${BASEDIR}/Scripts
+
+
+if [ $# -ge 1 ]; then
+
+    BASEDIR=$1
+
+fi
+
+CWD=`pwd`
+cd ${BASEDIR}
+
+
 config=${scriptdir}/config.sh
 
 doSubmit=true
@@ -22,8 +35,8 @@ EOF
 echo This will be run${RUN_NUM} of the simulation pipeline
 
 doModelCreation=false
-doVisibilities=false
-doSkyModel=true
+doVisibilities=true
+doSkyModel=false
 
 . ${config}
 
@@ -31,25 +44,27 @@ mkdir -p ${crdir}
 mkdir -p ${visdir}
 mkdir -p ${smdir}
 
-if [ $doModelCreation == true ]; then
+echo ${smdir}
 
+if [ $doModelCreation == true ]; then
+    
     echo "Running the create model script"
     . ${scriptdir}/Simulation-CreateModel.sh
-
+    
 fi
 
 if [ $doVisibilities == true ]; then
-
+    
     echo "Running the make visibilities script"
     . ${scriptdir}/Simulation-MakeVisibilities.sh
-
+    
 fi
 
 if [ $doSkyModel == true ]; then
-
+    
     echo "Running the make skymodel script"
     . ${scriptdir}/Simulation-MakeSkyModel.sh
-
+    
 fi
 
 if [ $doSubmit == true ] && [ $QSUB_JOBLIST ]; then
@@ -57,4 +72,8 @@ if [ $doSubmit == true ] && [ $QSUB_JOBLIST ]; then
     qrls $QSUB_JOBLIST
     
 fi
+
+cd $CWD
+
+
 

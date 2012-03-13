@@ -13,7 +13,7 @@ WORKDIR=run${RUN_NUM}
 mkdir -p ${WORKDIR}
 cd ${WORKDIR}
 
-dependSM=""
+dependSM=${depend}
 
 if [ $doTaylorSM == true ]; then
 
@@ -80,32 +80,24 @@ faxis=[csys.referencepixel()['numeric'][spec],csys.referencevalue()['numeric'][s
 freq=array(faxis[1] + (range(spsize)-faxis[0])*faxis[2])
 xdat=log(freq/faxis[1])
 
+if(haveStokes):
+    fullBLC=[xmin,ymin,0,0]
+    fullTRC=[xmin+outshape[0]-1,ymin+outshape[1]-1,0,spsize-1]
+else:
+    fullBLC=[xmin,ymin,0]
+    fullTRC=[xmin+outshape[0]-1,ymin+outshape[1]-1,spsize-1]
+
+fullInput = ia.getchunk(blc=fullBLC,trc=fullTRC,dropdeg=True)
+casalog.post('Acquired chunk from model of size %d or %fGB'%(fullInput.size,fullInput.size*4./1024**3))
+
 for y in range(outshape[1]):
     for x in range(outshape[0]):
 
         if( (x+y*outshape[0]) % (outshape[1]*outshape[0]/20) == 0):
             casalog.post('Done %d out of %d spectra, with x=%d and y=%d'%(x+y*outshape[0],outshape[0]*outshape[1],x,y))
 
-        inY=y+ymin
-        inX=x+xmin
-        
-        if(haveStokes):
-            refloc=inX,inY,0,faxis[0]
-            imloc=x,y,0,0
-        else:
-            refloc=inX,inY,faxis[0]
-            imloc=x,y,0
-
-        Iref=ia.pixelvalue(array([refloc],dtype=int16))['value']['value']
-
-        if(haveStokes):
-            blc=[inX,inY,0,0]
-            trc=[inX,inY,0,spsize-1]
-        else:
-            blc=[inX,inY,0]
-            trc=[inX,inY,spsize-1]
-
-        spectrum=ia.getchunk(blc=blc,trc=trc).reshape(spsize)
+        Iref = ia.pixelvalue([x,y,faxis[0]])['value']['value']
+        spectrum = fullInput[x,y,:]
         ydat = log(spectrum)
 
         fit = polyfit(xdat,ydat,2)
@@ -202,11 +194,11 @@ EOF
 	if [ $doSubmit == true ] && [ $runOK == true ]; then
 
 	    if [ $doFixupSM == true ]; then
-		taylorID=`qsub $depend -J 1-$numFixUp $makeTaylorFixQsub`
+		taylorID=`qsub $dependSM -J 1-$numFixUp $makeTaylorFixQsub`
 		echo Submitted fix-up Taylor-term-creation job with ID $taylorID with dependency $depend
 	    else
 		batchString=`echo $nsubxTT $nsubyTT | awk '{printf "0-%d",$1*$2-1}'`
-		taylorID=`qsub $depend -J $batchString $makeTaylorQsub`
+		taylorID=`qsub $dependSM -J $batchString $makeTaylorQsub`
 		echo Submitted Taylor-term-creation job with ID $taylorID with dependency $depend
 	    fi
 
@@ -374,7 +366,7 @@ import os
 
 for t in range(3):
 
-    modelIm='${baseimage}.taylor.%d'%t
+    modelIm='${modelimage}.taylor.%d'%t
     smoothIm='${baseimage}-smooth.taylor.%d'%t
 
     ia.open(modelIm)

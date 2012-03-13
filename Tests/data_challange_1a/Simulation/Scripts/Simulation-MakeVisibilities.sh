@@ -79,8 +79,8 @@ Csimulator.sources.DCmodel.model                =       \${skymodel}
 #
 # Define the antenna locations, feed locations, and spectral window definitions
 #
-Csimulator.antennas.definition                   =       ${askapconfig}/${array}
-Csimulator.feeds.definition                      =       ${askapconfig}/${feeds}
+Csimulator.antennas.definition                   =       \${askapconfig}/${array}
+Csimulator.feeds.definition                      =       \${askapconfig}/${feeds}
 Csimulator.spws.names                            =       [thisSPWS]
 Csimulator.spws.thisSPWS                         =       \${spw}
 #						 

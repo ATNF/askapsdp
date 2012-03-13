@@ -32,6 +32,7 @@ createFITS.fitsOutput       = false
 createFITS.nsubx            = ${nsubxCR}
 createFITS.nsuby            = ${nsubyCR}
 createFITS.flagWriteByChannel = true
+createFITS.createTaylorTerms = ${createTT_CR}
 createFITS.writeByNode      = false
 createFITS.sourcelist       = ${catdir}/${sourcelist}
 createFITS.database         = POSSUM

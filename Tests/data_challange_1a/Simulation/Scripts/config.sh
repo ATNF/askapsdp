@@ -4,14 +4,12 @@
 # TOP LEVEL
 ##############################
 
-export ASKAP_ROOT=/home/whi550/askapsoft
 export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 
-basedir=/scratch/astronomy116/whi550/DataChallenge/Simulation
-crdir=${basedir}/ModelCreation
-visdir=${basedir}/Visibilities
-smdir=${basedir}/SkyModel
-catdir=${basedir}/InputCatalogue
+crdir=${BASEDIR}/ModelCreation
+visdir=${BASEDIR}/Visibilities
+smdir=${BASEDIR}/SkyModel
+catdir=${BASEDIR}/InputCatalogue
 
 depend=""
 now=`date +%F-%H%M`
@@ -59,6 +57,8 @@ nsubxCR=10
 nsubyCR=8
 workersPerNodeCR=1
 
+createTT_CR=true
+
 
 ##############################
 # Sky Model creation
@@ -69,7 +69,7 @@ logdirSM=${smdir}/Logs
 subimagedirSM=${smdir}/Subimages
 parsetdirSM=${smdir}/Parsets
 
-doTaylorSM=true
+doTaylorSM=false
 doSubSM=true
 doFixupSM=false
 failureListSM="EmptyFile"
@@ -77,9 +77,9 @@ doSmoothSM=true
 doSF_SM=true
 doComparisonSM=true
 
-memoryTT=5
-nsubxTT=40
-nsubyTT=20
+memoryTT=23
+nsubxTT=10
+nsubyTT=10
 
 smoothBmaj=47
 smoothBmin=33
@@ -97,7 +97,7 @@ SFnNodes=`echo $SFnsubx $SFnsuby | awk '{print int(($1*$2-0.001)/12.)+1}'`
 # Visibilities
 ##############################
 
-doCsim=false
+doCsim=true
 doVisCleanup=false
 failureListVis="EmptyFile"
 doMergeVis=true
