@@ -377,6 +377,10 @@ void splitMainTable(const casa::MeasurementSet& source,
                     const unsigned int endChan,
                     const unsigned int width)
 {
+    // Pre-conditions
+    ASKAPDEBUGASSERT(endChan >= startChan);
+    ASKAPDEBUGASSERT((endChan - startChan + 1) % width == 0);
+
     const ROMSColumns sc(source);
     MSColumns dc(dest);
 
@@ -389,6 +393,7 @@ void splitMainTable(const casa::MeasurementSet& source,
     const uInt nChanIn = endChan - startChan + 1;
     const uInt nChanOut = nChanIn / width;
     const uInt nPol = sc.data()(0).shape()(0);
+    ASKAPDEBUGASSERT(nPol > 0);
 
     // Decide how many rows to process simultaneously. This needs to fit within
     // a reasonable amount of memory, because all visibilities will be read
@@ -459,11 +464,10 @@ void splitMainTable(const casa::MeasurementSet& source,
                         casa::Complex sum(0.0, 0.0);
                         casa::Bool outputFlag = false;
 
-                        // The offset for the first channel (in the source data) for
-                        // this destination channel
-                        const uInt chanOffset = startChan - 1 + (destChan * width);
-
-                        for (uInt i = chanOffset; i < chanOffset + width; ++i) {
+                        // Starting at the appropriate offset into the source data, average "width"
+                        // channels together
+                        for (uInt i = (destChan * width); i < (destChan * width) + width; ++i) {
+                            ASKAPDEBUGASSERT(i < nChanIn);
                             sum += indata(pol, i, r);
 
                             if (outputFlag == false && inflag(pol, i, r)) {
