@@ -6,7 +6,7 @@ cat > cimager-cont-dirty.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+50:ncpus=6:mem=23GB:mpiprocs=6
-#PBS -l walltime=01:00:00
+#PBS -l walltime=02:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N cont-dirty
 #PBS -m a
@@ -18,7 +18,7 @@ cat > ${CONFIGDIR}/cimager-cont-dirty.in << EOF_INNER
 Cimager.dataset                                 = MS/coarse_chan_%w.ms
 
 Cimager.Images.Names                            = [image.i.dirty]
-Cimager.Images.shape                            = [3584,3584]
+Cimager.Images.shape                            = [3328,3328]
 Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
 Cimager.Images.image.i.dirty.frequency          = [1.420e9,1.420e9]
 Cimager.Images.image.i.dirty.nchan              = 1

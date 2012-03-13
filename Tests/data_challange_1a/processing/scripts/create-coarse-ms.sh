@@ -17,7 +17,7 @@ cat > split_coarse.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
-#PBS -l walltime=06:00:00
+#PBS -l walltime=00:10:00
 ##PBS -M first.last@csiro.au
 #PBS -N split
 #PBS -m a

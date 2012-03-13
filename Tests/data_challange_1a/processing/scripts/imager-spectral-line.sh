@@ -58,7 +58,7 @@ cat > ${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in << EOF_INNER
 Cimager.dataset                                 = ${MSDIR}/fine_chan_\${PBS_ARRAY_INDEX}.ms
 
 Cimager.Images.Names                            = [image.i.spectral.\${PBS_ARRAY_INDEX}]
-Cimager.Images.shape                            = [3584,3584]
+Cimager.Images.shape                            = [3328,3328]
 Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
 Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.frequency  = [1.420e9,1.420e9]
 Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.nchan      = 1
