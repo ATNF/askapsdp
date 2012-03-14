@@ -144,7 +144,8 @@ def test_decode():
             '1e10': 1e10,
             '.1': 0.1,
             '-1.0e-10': -1.0e-10,
-            '[1, 2, "x y"]': [1,2, "x y" ]
+            '[1, 2, "x y"]': [1,2, "x y" ],
+            '0x10': 16,
             }
 
     for k,v in expr.items():
@@ -165,8 +166,7 @@ def test_encode():
             'true': True,
             'false': False,
             '-1e-10': -1.0e-10,
-            '[1, 2, "x y"]': [1,2, "x y" ]
-          
+            '[1, 2, "x y"]': [1,2, "x y" ],
             }
     for k,v in expr.items():
         yield encoder, v, k

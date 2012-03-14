@@ -435,7 +435,7 @@ def decode(value):
     rxbool = re.compile(r"([tT]rue|[fF]alse)")
     rxisrange = re.compile(r"(\d+)\.{2}(\d+)")
     rxisnum = re.compile(r"^([+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)$")
-    rxhex = re.compile("^0x\d+$")
+    rxishex = re.compile("^0x\d+$")
     rxstr = re.compile('^[\'"](.*)[\'"]$')
     # lists/arrays
     match = rxislist.match(value)
@@ -455,6 +455,8 @@ def decode(value):
                 val = mtch.groups()[1].strip()
                 if rxbool.match(val):
                     val = eval(val.title())
+                elif rxishex.match(val):
+                    val = eval(val)
                 elif rxisnum.match(val):
                     val = eval(val)
                 return fact*[val]
@@ -482,6 +484,9 @@ def decode(value):
     match = rxisrange.search(value)        
     if match:
         return _fromdotdot(match, value)
+    # hex
+    if rxishex.match(value):
+        return eval(value)    
     # int/float
     if rxisnum.match(value):
         return eval(value)
