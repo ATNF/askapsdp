@@ -435,7 +435,7 @@ def decode(value):
     rxbool = re.compile(r"([tT]rue|[fF]alse)")
     rxisrange = re.compile(r"(\d+)\.{2}(\d+)")
     rxisnum = re.compile(r"^([+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?)$")
-    rxishex = re.compile("^0x\d+$")
+    rxishex = re.compile("^0x[0-9a-fA-F]+$")
     rxstr = re.compile('^[\'"](.*)[\'"]$')
     # lists/arrays
     match = rxislist.match(value)
