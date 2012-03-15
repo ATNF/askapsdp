@@ -88,7 +88,7 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw
           casa::Vector<double> uvwBuffer(3);
           /// @todo Decide what to do about pointingDir1!=pointingDir2
           for (int i=0; i<3; ++i) {
-               uvwBuffer(i) = uvwRow(i);
+               uvwBuffer(i) = (i<2 ? -1. : 1.) * uvwRow(i);
           }
   
           /// @note we actually pass MVDirection as MDirection. The code had just been 
@@ -96,11 +96,14 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw
           /// hard coded in the next line (quite implicitly).
           const UVWMachineCache::machineType& uvwm = machine(pointingDir1Vector(row),itsTangentPoint);
           uvwm.convertUVW(itsDelays(row), uvwBuffer);
-          // the following line has been commented out to account for swapped arguments in the uvw machine call
+
+          // the following line is to be commented out if we swap arguments in the uvw machine call
+          // (swapping the sign of uvw's above is another way to achieve a similar outcome
           //itsDelays(row) *= -1;
+          //
           
           for (int i=0; i<3; ++i) {
-               itsRotatedUVWs(row)(i) = uvwBuffer(i);
+               itsRotatedUVWs(row)(i) = (i<2 ? -1. : 1.) * uvwBuffer(i);
           } 
                    
      }
@@ -148,6 +151,7 @@ const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAcc
               cos(oldCentre.getLat())*sin(tangentCentre.getLat())
                    *cos(oldCentre.getLong()-tangentCentre.getLong());
       
+      //ASKAPCHECK((abs(dl)<1e-6) && (abs(dm)<1e-6), "dl, dm are non-zero: "<<dl<<" "<<dm);
       /*
       const double dl = sin(newCentre.getLong()-oldCentre.getLong())*cos(newCentre.getLat());
       const double dm = sin(newCentre.getLat())*cos(oldCentre.getLat()) - 
@@ -159,7 +163,7 @@ const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAcc
       for (casa::uInt row=0; row<nSamples; ++row) {
            itsDelays(row) += uvwBuffer(row)(0)*dl + uvwBuffer(row)(1)*dm;
       }
-      // now delays are recalculated to correspond to a new image centre
+      // now delays are recalculated to correspond to the new image centre
       itsImageCentre = imageCentre;
   } 
   return itsDelays;

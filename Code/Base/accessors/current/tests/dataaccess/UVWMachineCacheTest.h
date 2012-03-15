@@ -208,7 +208,7 @@ protected:
       ASKAPASSERT(itsMachineCache);
       const accessors::UVWMachineCache::machineType &cachedMachine = itsMachineCache->machine(dir1,dir2);
       // create a proper machine by hand
-      accessors::UVWMachineCache::machineType machine2(dir1,dir2,false, true);
+      accessors::UVWMachineCache::machineType machine2(dir2,dir1,false, true);
       compareMachines(cachedMachine, machine2);         
    }
    

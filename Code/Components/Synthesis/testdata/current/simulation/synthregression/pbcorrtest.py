@@ -18,17 +18,17 @@ def analyseResult(spr, expected_flux = 1.):
    stats = spr.imageStats('image.field1.restored')
    print "Statistics for restored image: ",stats
    disterr = getDistance(stats,true_peak[0],true_peak[1])*3600.
-   if disterr > 8:
-      raise RuntimeError, "Offset between true and expected position exceeds 1 cell size (8 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
+   if disterr > 16:
+      raise RuntimeError, "Offset between true and expected position exceeds 2 cell sizes (16 arcsec), d=%f, true_peak=%s" % (disterr,true_peak)
    if abs(stats['peak']-expected_flux)>0.02:
       raise RuntimeError, "Peak flux in the image is notably different from %f Jy (pb-corrected value), F=%f" % (expected_flux,stats['peak'])
 
    stats = spr.imageStats('weights.field1')
    print "Statistics for weights image: ",stats
-   weights_peak=sinProjection(psf_peak,-feed_offset[0],feed_offset[1])
+   weights_peak=offsetDirection(psf_peak,-feed_offset[0],feed_offset[1])
    disterr = getDistance(stats,weights_peak[0],weights_peak[1])*60.
-   if disterr > 2.5:
-      raise RuntimeError, "Offset between true and expected peak weights position exceeds 2.5 arcmin, d=%f, weights_peak=%s" % (disterr,weights_peak)
+   if disterr > 1:
+      raise RuntimeError, "Offset between true and expected peak weights position exceeds 1 arcmin, d=%f, weights_peak=%s" % (disterr,weights_peak)
 
    stats = spr.imageStats('psf.field1')
    print "Statistics for psf image: ",stats
