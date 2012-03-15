@@ -18,7 +18,7 @@ fi
 cat > cimager-spectral-line.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=3GB:mpiprocs=1
+#PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
 #PBS -l walltime=03:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N sl-img
@@ -120,15 +120,23 @@ cat > cubemerge-spectral-line.qsub << EOF
 #PBS -N sl-mkcube
 #PBS -m a
 #PBS -j oe
+#PBS -v INPUTPREFIX,OUTPUTCUBE
 
 cd \${PBS_O_WORKDIR}
 
-OUTPUTCUBE=imagecube.i.spectral
-INPUTSLICES=\`find . -maxdepth 1 -name 'residual.i.spectral.*' | sort\`
-if [ ! \${INPUTSLICES} ]; then
-    echo "Error: Could not find input image slices"
-    exit 1
-fi
+START=0
+END=16415
+
+IDX=\${START}
+while [ \${IDX} -le \${END} ]; do
+    FILENAME="\${INPUTPREFIX}\${IDX}"
+    if [ ! -e \${FILENAME} ]; then
+        echo "Error: File \${FILENAME} does not exist"
+        exit 1
+    fi
+    INPUTSLICES="\${INPUTSLICES} \${FILENAME}"
+    IDX=\$((\${IDX} + 1))
+done
 
 rm -rf \${OUTPUTCUBE}
 \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cubemerge.sh \${INPUTSLICES} \${OUTPUTCUBE}
@@ -138,7 +146,23 @@ if [ ! $DRYRUN ]; then
         echo "Spectral Line Imaging: Submitting tasks"
         QSUB_SPECTRAL1=`${QSUB_CMD} -N sl-img1 -h -J 0-8099 cimager-spectral-line.qsub`
         QSUB_SPECTRAL2=`${QSUB_CMD} -N sl-img2 -h -J 8100-16199 cimager-spectral-line.qsub`
-        QSUB_CUBEMERGE=`${QSUB_CMD} -W depend=afterok:${QSUB_SPECTRAL1},afterok:${QSUB_SPECTRAL2} cubemerge-spectral-line.qsub`
+
+        QSUB_MERGE_CMD="${QSUB_CMD} -W depend=afterok:${QSUB_SPECTRAL1},afterok:${QSUB_SPECTRAL2}"
+        export INPUTPREFIX=residual.i.spectral.
+        export OUTPUTCUBE=residual.cube.i.spectral
+        ${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub
+
+        export INPUTPREFIX=psf.i.spectral.
+        export OUTPUTCUBE=psf.cube.i.spectral
+        ${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub
+
+        export INPUTPREFIX=sensitivity.i.spectral.
+        export OUTPUTCUBE=sensitivity.cube.i.spectral
+        ${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub
+
+        export INPUTPREFIX=weights.i.spectral.
+        export OUTPUTCUBE=weights.cube.i.spectral
+        ${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
 else
     echo "Spectral Line Imaging: Dry Run Only"
