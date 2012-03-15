@@ -140,10 +140,37 @@ def getDistance(stats, ra, dec):
    cosd = math.sin(math.pi/180.*dec1)*math.sin(math.pi/180.*dec)+math.cos(math.pi/180.*dec1)*math.cos(math.pi/180.*dec)* math.cos(math.pi/180.*(ra1-ra));
    return math.acos(cosd)*180./math.pi;
 
+# formulae for offset direction via true angles to test that position is at the right spot
+def offsetDirection(ref,l,m):
+   '''
+      ref - a list or a tuple with 2 elements being ra and dec in degrees of the reference direction
+      l,m - true angle offsets in longitude and latitude respectively (also in degrees)
+   '''
+   if len(ref)!=2:
+      raise RuntimeError, "Expected two-element list or tuple, you have: %s" % (ref,)
+   # sin and cos of the longitude offset 
+   sL = math.sin(l/180.*math.pi)
+   cL = math.cos(l/180.*math.pi)
+   # sin and cos of the reference longitude
+   cLong = math.cos(ref[0]/180.*math.pi)
+   sLong = math.sin(ref[0]/180.*math.pi)
+   # sin and cos of the sum of the latitude offset and reference latitude
+   sLatSum = math.sin((ref[1]+m)/180.*math.pi)
+   cLatSum = math.cos((ref[1]+m)/180.*math.pi)
+   # coordinates of the resulting direction vector
+   r1 = cLatSum * cL * cLong - sL * sLong
+   r2 = cLatSum * cL * sLong + sL * cLong
+   r3 = sLatSum * cL
+   # result
+   resLat = math.asin(r3)/math.pi*180.
+   resLong = math.atan2(r2,r1)/math.pi*180.
+   return (resLong, resLat)
+  
+
 # formulae for SIN-projection to test that position is at the right spot
 def sinProjection(ref,l,m):
    '''
-      ref - a list or tuple with 2 elements being ra and dec in degrees of the tangent point
+      ref - a list or a tuple with 2 elements being ra and dec in degrees of the tangent point
       l,m - offsets in the tangent plane in degrees
 
       Return: two element tuple with ra and dec of the offset position (degrees)
