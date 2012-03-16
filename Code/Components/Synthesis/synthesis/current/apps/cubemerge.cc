@@ -40,6 +40,7 @@
 #include <coordinates/Coordinates/LinearCoordinate.h>
 #include <casa/Quanta/MVDirection.h>
 #include <imageaccess/CasaImageAccess.h>
+#include <images/Images/PagedImage.h>
 
 // Using
 using namespace askap;
@@ -84,7 +85,7 @@ int main(int argc, const char** argv) {
         casa::CoordinateSystem csys = ia.coordSys(inputFiles[0]);     
         csys.addCoordinate(casa::LinearCoordinate(1));
 
-        ia.create(outfile.getValue(), newShape, csys);
+        casa::PagedImage<float> outimg(casa::TiledShape(newShape), csys, outfile.getValue());
         for (size_t i=0; i<inputFiles.size(); ++i) {
             const casa::Array<float> buf = ia.read(inputFiles[i]);
             ASKAPCHECK(buf.shape().nonDegenerate() == shape.nonDegenerate(), "Image "<<inputFiles[i]<<
@@ -107,7 +108,7 @@ int main(int argc, const char** argv) {
                 { 
                     casa::IPosition where(newShape.nelements(),0);
                     where[shape.nelements()] = int(i);
-                    ia.write(outfile.getValue(),buf,where);
+                    outimg.putSlice(buf, where);
                 }
 #ifdef _OPENMP
             }
