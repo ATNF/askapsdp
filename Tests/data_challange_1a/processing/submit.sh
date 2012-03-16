@@ -78,9 +78,9 @@ EOF
 ##############################################################################
 
 # These jobs are executed if their outputs do not exist
+. ${SCRIPTDIR}/generate-sky-model.sh
 . ${SCRIPTDIR}/create-coarse-ms.sh
 . ${SCRIPTDIR}/gains-calibration.sh
-. ${SCRIPTDIR}/generate-sky-model.sh
 
 # These jobs are executed per the preference in config.sh
 if [ $DO_CONTINUUM_DIRTY == "true" ]; then
