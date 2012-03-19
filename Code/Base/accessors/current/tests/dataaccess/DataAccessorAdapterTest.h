@@ -32,6 +32,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 // own includes
 #include <dataaccess/OnDemandBufferDataAccessor.h>
+#include <dataaccess/OnDemandNoiseAndFlagDA.h>
 #include <dataaccess/DataAccessorStub.h>
 #include <dataaccess/DataAccessorAdapter.h>
 #include <dataaccess/TableDataSource.h>
@@ -53,6 +54,8 @@ class DataAccessorAdapterTest : public CppUnit::TestFixture {
   CPPUNIT_TEST_EXCEPTION(daAdapterNonConstTest, AskapError);
   CPPUNIT_TEST(bestWPlaneAdapterTest);
   CPPUNIT_TEST_EXCEPTION(nonCoplanarTest, AskapError);
+  CPPUNIT_TEST(noiseAdapterTest);
+  CPPUNIT_TEST(flagAdapterTest);
   CPPUNIT_TEST_SUITE_END();
 public:
   void onDemandBufferDATest() {
@@ -76,6 +79,29 @@ public:
       acc.rwVisibility().set(-1.);
       checkAllCube(acc.visibility(),-1.);
       checkAllCube(acc2.visibility(),-1.);      
+  }
+  
+  void noiseAdapterTest() {
+      DataAccessorStub acc(true);
+      checkAllCube(acc.noise(),1.);
+      OnDemandNoiseAndFlagDA acc2(acc);
+      checkAllCube(acc2.noise(),1.);
+      acc2.rwNoise().set(2.);
+      checkAllCube(acc2.noise(),2.);      
+  }
+  
+  void flagAdapterTest() {
+      DataAccessorStub acc(true);
+      checkAllCube(acc.noise(),1.);
+      checkAllBoolCube(acc.flag(), false);
+      OnDemandNoiseAndFlagDA acc2(acc);
+      checkAllCube(acc2.noise(),1.);
+      checkAllBoolCube(acc2.flag(), false);
+      acc2.rwFlag().set(casa::True);
+      checkAllCube(acc2.noise(),1.);
+      checkAllBoolCube(acc2.flag(), true);
+      acc2.rwNoise().set(2.);
+      checkAllCube(acc2.noise(),2.);                  
   }
   
   void daAdapterTest() {
@@ -289,6 +315,18 @@ public:
       }
   }
   
+  /// @param[in] cube a cube to test
+  /// @param[in] value all cube should have the same value
+  static void checkAllBoolCube(const casa::Cube<casa::Bool> &cube, const casa::Bool &value) {
+      for (casa::uInt row = 0; row<cube.nrow(); ++row) {
+           for (casa::uInt col = 0; col<cube.ncolumn(); ++col) {
+                for (casa::uInt plane = 0; plane<cube.nplane(); ++plane) {
+                      CPPUNIT_ASSERT_EQUAL(value, cube(row,col,plane));
+                }
+           }
+      }
+  }
+    
 };
 
 } // namespace accessors
