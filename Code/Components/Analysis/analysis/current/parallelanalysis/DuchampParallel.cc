@@ -587,71 +587,31 @@ namespace askap {
       }
 
       
-      void findSNR(float *input, float *output, float *outmed, float *outmadfm, float *outdiff, float *outin, casa::IPosition shape, casa::IPosition box, size_t loc, bool isSpatial, size_t spatSize, size_t specSize)
+      void findSNR(float *input, float *output, casa::IPosition shape, casa::IPosition box, size_t loc, size_t spatSize, size_t specSize, bool isSpatial, bool useRobust)
       {
 	casa::Array<Float> base(shape, input, casa::COPY);
- 	casa::Array<Float> median = slidingArrayMath(base, box, MedianFunc<Float>(False,True,True));
- 	casa::Array<Float> madfm = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
-	//	ASKAPLOG_DEBUG_STR(logger, loc<<":   " << base(IPosition(1,100)) << " " << median(IPosition(1,100)) << " " << madfm(IPosition(1,100)) << "    " << base(IPosition(1,101)) << " " << median(IPosition(1,101)) << " " << madfm(IPosition(1,101)));
-	casa::Array<Float> mean = slidingArrayMath(base, box, MeanFunc<Float>());
-	casa::Array<Float> stddev = slidingArrayMath(base, box, StddevFunc<Float>());
-	casa::Array<Float> sum = slidingArrayMath(base, box, SumFunc<Float>());
-	casa::Array<Float> snr = (base - median);
- 	//casa::Array<Float> snr = (base - mean);
-	if((isSpatial && loc==100)|| (!isSpatial && loc==(100*150+100))){
-	  ASKAPLOG_DEBUG_STR(logger, "shape="<<shape<<", box="<<box);
-	  //	  for(size_t i=0;i<base.size();i++) ASKAPLOG_DEBUG_STR(logger, base.data()+i << "  " << base.data()[i]);
-	  ASKAPLOG_DEBUG_STR(logger, "Base: " << base);
- 	  ASKAPLOG_DEBUG_STR(logger, "Median: " << median);
- 	  ASKAPLOG_DEBUG_STR(logger, "MADFM: " << madfm);
-	  ASKAPLOG_DEBUG_STR(logger, "Mean: " << mean);
-	  ASKAPLOG_DEBUG_STR(logger, "Stddev: " << stddev);
-	  ASKAPLOG_DEBUG_STR(logger, "Sum: " << sum);
+	casa::Array<Float> middle, spread;
+	if(useRobust){
+	  middle = slidingArrayMath(base, box, MedianFunc<Float>());
+	  spread = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
 	}
+	else{
+	  middle = slidingArrayMath(base, box, MeanFunc<Float>());
+	  spread = slidingArrayMath(base, box, StddevFunc<Float>());
+	}
+	casa::Array<Float> snr = (base - middle);
 	
 	// Make sure we don't divide by the zeros around the edge of madfm. Need to set those values to S/N=0.
-	/*
-	Float* baseData=base.data();
- 	Float* madfmData=madfm.data();
-	Float* medianData=median.data();
-//	Float* stddevData=stddev.data();
-	Float *snrData=snr.data();
-	int imax = isSpatial ? spatSize : specSize;
-	for(int i=0;i<imax;i++){
-	  int pos;
-	  if(isSpatial) pos = i+loc*spatSize;
-	  else pos = loc+i*spatSize;
-	  if(madfmData[i]>0) output[pos] = snrData[i]/madfmData[i];
-	  //if(stddevData[i]>0) output[pos] = snrData[i]/stddevData[i];
-	  else output[pos] = 0.;
-	  outmed[pos] = medianData[i];
-	  outmadfm[pos] = madfmData[i];
-	  outdiff[pos] = snrData[i];
-	  outin[pos] = baseData[i];
-	}
-	*/
 	Array<Float>::iterator baseEnd(base.end());
-	Array<Float>::iterator iterBase(base.begin()),iterMedian(median.begin()),iterMadfm(madfm.begin()),iterSnr(snr.begin()),iterMean(mean.begin()),iterStddev(stddev.begin());
+	Array<Float>::iterator iterBase(base.begin()),iterMiddle(middle.begin()),iterSpread(spread.begin()),iterSnr(snr.begin());
 	int i=0,pos=0;
-	//	for(;iterBase!=baseEnd;iterBase++,iterMedian++,iterMadfm++,iterSnr++){
 	while(iterBase != baseEnd){
-	  if(isSpatial) pos = i+loc*spatSize;
-	  else pos = loc+i*spatSize;
-	  output[pos] = (*iterMadfm > 0) ? (*iterSnr)/(*iterMadfm) : 0.;
-	  //	  output[pos] = (*iterStddev > 0) ? output[pos] = (*iterSnr)/(*iterStddev) : 0.;
- 	  outmed[pos] = *iterMedian;
- 	  outmadfm[pos] = *iterMadfm;
-// 	  outmed[pos] = *iterMean;
-// 	  outmadfm[pos] = *iterStddev;
-	  outdiff[pos] = *iterSnr;
-	  outin[pos] = *iterBase;
-	  //outin[pos] = input[i];
+	  pos = isSpatial ?  i+loc*spatSize :  loc+i*spatSize;
+	  output[pos] = (*iterSpread > 0) ? (*iterSnr)/(*iterSpread) : 0.;
 	  i++;
 	  iterBase++;
-	  iterMedian++;
-	  iterMadfm++;
-	  iterMean++;
-	  iterStddev++;
+	  iterMiddle++;
+	  iterSpread++;
 	  iterSnr++;
 	}
 	
@@ -661,42 +621,40 @@ namespace askap {
 
       void DuchampParallel::writeImage(std::string imageName, Float* data)
       {
-	      const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
-	      if (lattPtr == 0)
-		ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
-	      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-	      Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
-	      fixSlicer(slice, this->itsCube.header().getWCS());
-	      ASKAPLOG_DEBUG_STR(logger, "Writing into subimage defined by slicer " << slice << " which comes from "<< this->itsCube.pars().section().getSection());
-	      const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
-	      accessors::CasaImageAccess ia;
+	const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
+	if (lattPtr == 0)
+	  ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
+	const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
+	fixSlicer(slice, this->itsCube.header().getWCS());
+	ASKAPLOG_DEBUG_STR(logger, "Writing into subimage defined by slicer " << slice << " which comes from "<< this->itsCube.pars().section().getSection());
+	const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
+	accessors::CasaImageAccess ia;
+	
+	ia.create(imageName, sub->shape(), sub->coordinates());
+	ia.write(imageName, casa::Array<float>(sub->shape(), data) );
 
-	      ia.create(imageName, sub->shape(), sub->coordinates());
-
-// 	      ia.write(imageName, casa::Array<float>(sub->shape(), this->itsCube.getRecon()), slice.start());
-	      ia.write(imageName, casa::Array<float>(sub->shape(), data) );
-	      delete imagePtr;
-
+	delete imagePtr;
+	
       }
 
       void DuchampParallel::writeImage(std::string imageName, casa::Array<Float> data)
       {
-	      const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
-	      if (lattPtr == 0)
-		ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
-	      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-	      Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
-	      fixSlicer(slice, this->itsCube.header().getWCS());
-	      ASKAPLOG_DEBUG_STR(logger, "Writing into subimage defined by slicer " << slice << " which comes from "<< this->itsCube.pars().section().getSection());
-	      const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
-	      accessors::CasaImageAccess ia;
-
-	      ia.create(imageName, sub->shape(), sub->coordinates());
-
-// 	      ia.write(imageName, casa::Array<float>(sub->shape(), this->itsCube.getRecon()), slice.start());
-	      ia.write(imageName, data );
-	      delete imagePtr;
-
+	const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
+	if (lattPtr == 0)
+	  ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
+	const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
+	fixSlicer(slice, this->itsCube.header().getWCS());
+	ASKAPLOG_DEBUG_STR(logger, "Writing into subimage defined by slicer " << slice << " which comes from "<< this->itsCube.pars().section().getSection());
+	const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
+	accessors::CasaImageAccess ia;
+	
+	ia.create(imageName, sub->shape(), sub->coordinates());
+	ia.write(imageName, data );
+	
+	delete imagePtr;
+	
       }
 
 
@@ -716,65 +674,12 @@ namespace askap {
 	  }
 	}
 
-	if(itsComms.isMaster()){
-// 	  if(this->itsFlagWriteSNRimage){
-// 	    ASKAPLOG_DEBUG_STR(logger, "Creating SNR image \"" << this->itsSNRimageName <<"\"");
-// 	    const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
-// 	    if (lattPtr == 0)
-// 	      ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
-// 	    const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-// 	    Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
-// 	    fixSlicer(slice, this->itsCube.header().getWCS());
-// 	    ASKAPLOG_DEBUG_STR(logger, "Writing into subimage defined by slicer " << slice << " which comes from "<< this->itsCube.pars().section().getSection());
-// 	    const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
-// 	    accessors::CasaImageAccess ia;
-// 	    ia.create(this->itsSNRimageName, sub->shape(), sub->coordinates());
-// 	    delete imagePtr;
-// 	    // ia.setUnits(this->itsSNRimageName, "signal/noise");
-	  
-// 	    if(itsComms.isParallel()){
-// 	      // send OK message to all workers
-// 	      LOFAR::BlobString bs;
-// 	      bool writingOK;
-// 	      for (int i = 1; i < itsComms.nProcs(); i++) {
-// 		// First send the node number
-// 		ASKAPLOG_DEBUG_STR(logger, "MASTER: Sending 'go' to worker#" << i);
-// 		bs.resize(0);
-// 		LOFAR::BlobOBufString bob(bs);
-// 		LOFAR::BlobOStream out(bob);
-// 		out.putStart("SNRimageGood", 1);
-// 		out << i ;
-// 		out.putEnd();
-// 		itsComms.sendBlob(bs, i);
-// 		ASKAPLOG_DEBUG_STR(logger, "MASTER: Sent. Now waiting for reply from worker#"<<i);
-// 		// Then wait for the OK from that node
-// 		bs.resize(0);
-// 		ASKAPLOG_DEBUG_STR(logger, "MASTER: Reading from connection "<< i-1);
-// 		this->itsComms.receiveBlob(bs, i);
-// 		LOFAR::BlobIBufString bib(bs);
-// 		LOFAR::BlobIStream in(bib);
-// 		int version = in.getStart("SNRimageDone");
-// 		ASKAPASSERT(version == 1);
-// 		in >> writingOK;
-// 		in.getEnd();
-		
-// 		ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#"<<i<<" done.");
-// 		if (!writingOK) ASKAPTHROW(AskapError, "Staged writing of image failed.");
-// 		ASKAPLOG_DEBUG_STR(logger, "MASTER: Received. Worker#"<<i<<" done.");
-// 	      }
-// 	    }
-// 	  }	  
-	}
 	if(itsComms.isWorker()){
 
 	  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "About to find median & MADFM arrays, and use these to search");
 	  size_t spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
 	  size_t specSize = this->itsCube.getDimZ();
  	  float *snrAll = new float[this->itsCube.getSize()];
- 	  float *medAll = new float[this->itsCube.getSize()];
- 	  float *madfmAll = new float[this->itsCube.getSize()];
- 	  float *diffAll = new float[this->itsCube.getSize()];
- 	  float *inputAll = new float[this->itsCube.getSize()];
 	  long *imdim = new long[2];
 	
 	  if(this->itsCube.pars().getSearchType()=="spatial"){
@@ -784,13 +689,11 @@ namespace askap {
 	    duchamp::Image *chanIm = new duchamp::Image(imdim);
 	    for (size_t z = 0; z < specSize; z++) {
 	      chanIm->extractImage(this->itsCube, z);
-	      findSNR(chanIm->getArray(),snrAll,medAll,madfmAll,diffAll,inputAll,shape,box,z,true,spatSize,specSize);
+	      findSNR(chanIm->getArray(),snrAll,shape,box,z,spatSize,specSize,true,this->itsCube.pars().getFlagRobustStats());
 	    }
 	    delete chanIm;
 	  }
 	  else if(this->itsCube.pars().getSearchType()=="spectral"){
-// 	    casa::IPosition box(2, 0,this->itsMedianBoxWidth);
-// 	    casa::IPosition shape(2, 1,this->itsCube.getDimZ());
 	    casa::IPosition box(1,this->itsMedianBoxWidth);
 	    casa::IPosition shape(1,this->itsCube.getDimZ());
 	    imdim[0] = this->itsCube.getDimZ(); imdim[1] = 1;
@@ -798,7 +701,7 @@ namespace askap {
 	    ASKAPLOG_DEBUG_STR(logger, "Finding SNR map in spectral mode, with shape="<<shape<<" and box="<<box);
 	    for (size_t i = 0; i < spatSize; i++) {
 	      chanIm->extractSpectrum(this->itsCube, i);
- 	      findSNR(chanIm->getArray(),snrAll,medAll,madfmAll,diffAll,inputAll,shape,box,i,false,spatSize,specSize);
+ 	      findSNR(chanIm->getArray(),snrAll,shape,box,i,spatSize,specSize,true,this->itsCube.pars().getFlagRobustStats());
 	    }
 	    delete chanIm;
 	  }
@@ -827,70 +730,15 @@ namespace askap {
 	  if(this->itsFlagWriteSNRimage){
 
 	    ASKAPLOG_DEBUG_STR(logger, "Saving SNR map to image \"" << this->itsSNRimageName <<"\"");
-	    bool writeOK=false;
-//	    int rank;
-// 	    if(itsComms.isParallel()){
-// 	      do {
-// 		LOFAR::BlobString bs;
-// 		this->itsComms.receiveBlob(bs, 0);
-// 		LOFAR::BlobIBufString bib(bs);
-// 		LOFAR::BlobIStream in(bib);
-// 		int version = in.getStart("SNRimageGood");
-// 		ASKAPASSERT(version == 1);
-// 		in >> rank;
-// 		in.getEnd();
-// 		writeOK = (rank == itsComms.rank());
-// 	      } while (!writeOK);
-// 	    }
-// 	    else
-	      writeOK=true;
-	    if(writeOK){
-	      std::stringstream addition;
-	      addition << "-" << itsComms.rank();
-	      this->itsSNRimageName += addition.str();
-	      ASKAPLOG_DEBUG_STR(logger, "SNR image name is now " << this->itsSNRimageName);
-
-	      this->writeImage(this->itsSNRimageName,this->itsCube.getRecon());
-	      this->writeImage(this->itsSNRimageName+"-med",medAll);
-	      this->writeImage(this->itsSNRimageName+"-madfm",madfmAll);
-	      this->writeImage(this->itsSNRimageName+"-diff",diffAll);
-	      this->writeImage(this->itsSNRimageName+"-orig",inputAll);
-
-	      /*
-	      const LatticeBase* lattPtr = ImageOpener::openImage(this->itsCube.pars().getImageFile());
-	      if (lattPtr == 0)
-		ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
-	      const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-	      Slicer slice = subsectionToSlicer(this->itsCube.pars().section());
-	      fixSlicer(slice, this->itsCube.header().getWCS());
-	      ASKAPLOG_DEBUG_STR(logger, "Writing into subimage defined by slicer " << slice << " which comes from "<< this->itsCube.pars().section().getSection());
-	      const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
-	      accessors::CasaImageAccess ia;
-
-	    ia.create(this->itsSNRimageName, sub->shape(), sub->coordinates());
-
-// 	      ia.write(this->itsSNRimageName, casa::Array<float>(sub->shape(), this->itsCube.getRecon()), slice.start());
-	      ia.write(this->itsSNRimageName, casa::Array<float>(sub->shape(), this->itsCube.getRecon()));
-	      delete imagePtr;
-	      */
-	    }
-// 	    // Return the OK to the master to say that we've read the image
-// 	    if (itsComms.isParallel()) {
-// 	      LOFAR::BlobString bs;
-// 	      LOFAR::BlobOBufString bob(bs);
-// 	      LOFAR::BlobOStream out(bob);
-// 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << ": Sending done message to Master.");
-// 	      out.putStart("SNRimageDone", 1);
-// 	      out << true;
-// 	      out.putEnd();
-// 	      itsComms.sendBlob(bs, 0);
-// 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << ": All done.");
-// 	    }
+	    std::stringstream addition;
+	    addition << "-" << itsComms.rank();
+	    this->itsSNRimageName += addition.str();
+	    ASKAPLOG_DEBUG_STR(logger, "SNR image name is now " << this->itsSNRimageName);
+	    
+	    this->writeImage(this->itsSNRimageName,this->itsCube.getRecon());
 	  }
 	
 	  delete [] snrAll;
-	  delete [] medAll;
-	  delete [] madfmAll;
 	  delete [] imdim;
 	}
       }
@@ -1933,7 +1781,22 @@ namespace askap {
 	/// functions. Net effect is to find the mean/median and
 	/// stddev/MADFM for the entire dataset and store these values in
 	/// the master's itsCube statsContainer.
-	if(!this->itsComms.isParallel() || this->itsFlagThresholdPerWorker){
+	if (this->itsFlagDoMedianSearch){
+	  if(this->itsCube.pars().getFlagUserThreshold())
+	    ASKAPLOG_WARN_STR(logger, "Since median searching has been requested, the threshold given ("
+			      <<this->itsCube.pars().getThreshold()<<") is changed to a S/N-based one of "<<this->itsCube.pars().getCut()<<" sigma");
+	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
+	  this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
+	  this->itsCube.pars().setFlagUserThreshold(true);
+	  if(this->itsCube.pars().getFlagGrowth()){
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user growth threshold to " << this->itsCube.pars().getGrowthCut());
+	    this->itsCube.pars().setGrowthThreshold(this->itsCube.pars().getGrowthCut());
+	    this->itsCube.pars().setFlagUserGrowthThreshold(true);
+	  }
+	  this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
+	  
+	}
+	else if(!this->itsComms.isParallel() || this->itsFlagThresholdPerWorker){
 	  if(this->itsComms.isWorker()){
 	    if(this->itsComms.isParallel())
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating stats for each worker individually");
@@ -1959,23 +1822,8 @@ namespace askap {
 	  broadcastMean();
 	  findStddevs();
 	  combineStddevs();
-	} else {
-	  if (this->itsFlagDoMedianSearch){
-	    if(this->itsCube.pars().getFlagUserThreshold())
-	      ASKAPLOG_WARN_STR(logger, "Since median searching has been requested, the threshold given ("
-				<<this->itsCube.stats().getThreshold()<<") is changed to a S/N-based one of "<<this->itsCube.pars().getCut()<<" sigma");
-	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user threshold to " << this->itsCube.pars().getCut());
-	    this->itsCube.pars().setThreshold(this->itsCube.pars().getCut());
-	    this->itsCube.pars().setFlagUserThreshold(true);
-	    if(this->itsCube.pars().getFlagGrowth()){
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting user growth threshold to " << this->itsCube.pars().getGrowthCut());
-	      this->itsCube.pars().setGrowthThreshold(this->itsCube.pars().getGrowthCut());
-	      this->itsCube.pars().setFlagUserGrowthThreshold(true);
-	    }
-	    this->itsCube.stats().setThreshold(this->itsCube.pars().getCut());
-		
-	  }
-	  else this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
+	} else{
+	  this->itsCube.stats().setThreshold(this->itsCube.pars().getThreshold());
 	}
       }
 
