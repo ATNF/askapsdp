@@ -160,6 +160,7 @@ IDataAccessor& CalibrationIterator::buffer(const std::string &bufferID) const
 void CalibrationIterator::init()
 {
   ASKAPDEBUGASSERT(itsWrappedIterator)
+  itsDataAccessor.reset(); // invalidate cache of calibrated visibilities
   itsWrappedIterator.init();
 }
 	
