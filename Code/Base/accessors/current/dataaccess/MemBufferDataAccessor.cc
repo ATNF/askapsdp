@@ -47,7 +47,7 @@ using namespace askap::accessors;
 /// construct an object linked with the given const accessor
 /// @param[in] acc a reference to the associated accessor
 MemBufferDataAccessor::MemBufferDataAccessor(const IConstDataAccessor &acc) :
-      MetaDataAccessor(acc), itsFlagSubstituted(false), itsNoiseSubstituted(false) {}
+      MetaDataAccessor(acc) {}
   
 /// Read-only visibilities (a cube is nRow x nChannel x nPol; 
 /// each element is a complex visibility)
@@ -83,50 +83,4 @@ void MemBufferDataAccessor::resizeBufferIfNeeded() const
   }
 }
 
-/// @brief Noise level required for a proper weighting
-/// @return a reference to nRow x nChannel x nPol cube with
-///         complex noise estimates. Elements correspond to the
-///         visibilities in the data cube.
-const casa::Cube<casa::Complex>& MemBufferDataAccessor::noise() const
-{
-  if (itsNoiseSubstituted) {
-      return itsNoiseBuffer;
-  } 
-  return getROAccessor().noise();
-}
 
-/// @brief write access to Noise level 
-/// @return a reference to nRow x nChannel x nPol cube with
-///         complex noise estimates. Elements correspond to the
-///         visibilities in the data cube.
-casa::Cube<casa::Complex>& MemBufferDataAccessor::rwNoise()
-{
-  if (!itsNoiseSubstituted) {
-      itsNoiseSubstituted = true;
-      itsNoiseBuffer.assign(getROAccessor().noise().copy());
-  } 
-  return itsNoiseBuffer;  
-}
-  
-/// @brief Cube of flags corresponding to the output of visibility()
-/// @return a reference to nRow x nChannel x nPol cube with the flag
-///         information. If True, the corresponding element is flagged.
-const casa::Cube<casa::Bool>& MemBufferDataAccessor::flag() const
-{
-  if (itsFlagSubstituted) {
-      return itsFlagBuffer;
-  }
-  return getROAccessor().flag();
-}
-
-/// @brief Non-const access to the cube of flags.
-/// @return a reference to nRow x nChannel x nPol cube with the flag
-///         information. If True, the corresponding element is flagged.
-casa::Cube<casa::Bool>& MemBufferDataAccessor::rwFlag()
-{
-  if (!itsFlagSubstituted) {
-      itsFlagSubstituted = true;
-      itsFlagBuffer.assign(getROAccessor().flag().copy());
-  } 
-  return itsFlagBuffer;  
-}
