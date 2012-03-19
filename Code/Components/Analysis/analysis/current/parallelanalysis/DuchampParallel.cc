@@ -337,10 +337,10 @@ namespace askap {
             /// from the file, with the same choice based on the FITS status
             /// of the data file.
             if (itsComms.isParallel() && itsComms.isMaster()) {
-                int result;
+                
                 ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "About to read metadata from image " << this->itsCube.pars().getImageFile());
 
-		this->getMetadata();
+		int result=this->getMetadata();
 
                 ASKAPLOG_INFO_STR(logger, "Annotation file for subimages is \"" << this->itsSubimageAnnotationFile << "\".");
 
