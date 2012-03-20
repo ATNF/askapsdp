@@ -196,8 +196,8 @@ namespace askap
             boost::shared_ptr<ICalibrationApplicator> calME(new CalibrationApplicatorME(itsSolutionSource));
             // fine tune parameters
             ASKAPDEBUGASSERT(calME);
-            calME->scaleNoise(parset().getBool("calibrate.scalenoise","false"));
-            calME->allowFlag(parset().getBool("calibrate.allowflag","false"));
+            calME->scaleNoise(parset().getBool("calibrate.scalenoise",false));
+            calME->allowFlag(parset().getBool("calibrate.allowflag",false));
             //
             IDataSharedIter calIter(new CalibrationIterator(it,calME));
             itsEquation = askap::scimath::Equation::ShPtr(
