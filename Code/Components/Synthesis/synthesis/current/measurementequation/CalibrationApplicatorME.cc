@@ -39,12 +39,14 @@
 #include <scimath/Mathematics/RigidVector.h>
 #include <askap/AskapError.h>
 #include <utils/PolConverter.h>
+#include <dataaccess/OnDemandNoiseandFlagDA.h>
 
 #include <askap/AskapUtil.h>
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".measurementequation");
 
+#include <boost/shared_ptr.hpp>
 
 namespace askap {
 
@@ -83,6 +85,14 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
        indices(pol) = scimath::PolConverter::getIndex(stokes[pol]);
   }
   
+  boost::shared_ptr<accessors::OnDemandNoiseAndFlagDA> noiseAndFlagDA;
+  // attempt to cast interface only if we need it
+  if (itsScaleNoise || itsFlagAllowed) {
+      boost::shared_ptr<accessors::IDataAccessor> chunkPtr(&chunk, utility::NullDeleter());
+      ASKAPDEBUGASSERT(chunkPtr);
+      noiseAndFlagDA = boost::dynamic_pointer_cast<accessors::OnDemandNoiseAndFlagDA>(chunkPtr);
+  }
+  
   // full 4x4 Mueller matrix
   casa::SquareMatrix<casa::Complex, 2> fullMueller(casa::SquareMatrix<casa::Complex, 2>::General);
   
@@ -101,11 +111,22 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
             
             casa::Complex det = 0.;
             invert(reciprocal, det, mueller);
-            
-            ASKAPCHECK(casa::abs(det)>1e-5, "Unable to apply calibration for (antenna1,beam1)=("<<antenna1[row]<<","<<beam1[row]<<") and (antenna2,beam2)=("<<antenna2[row]<<
+
+            casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
+
+            const float detThreshold = 1e-5;
+            if (itsFlagAllowed) {
+                if (casa::abs(det)<detThreshold) {
+                    ASKAPCHECK(noiseAndFlagDA, "Accessor type passed to CalibrationApplicatorME does not support change of flags");
+                    noiseAndFlagDA->rwFlag().yzPlane(row).row(chan).set(true);
+                    thisChan.set(0.);
+                    continue;
+                }
+            } else {
+              ASKAPCHECK(casa::abs(det)>detThreshold, "Unable to apply calibration for (antenna1,beam1)=("<<antenna1[row]<<","<<beam1[row]<<") and (antenna2,beam2)=("<<antenna2[row]<<
                                ","<<beam2[row]<<"), time="<<chunk.time()/86400.-55000<<" determinate is too close to 0. D="<<casa::abs(det)<<" matrix="<<mueller
                        <<" jones1="<<jones1.matrix()<<" jones2="<<jones2.matrix()<<" dir="<<askap::printDirection(chunk.pointingDir1()[row]));           
-            casa::Vector<casa::Complex> thisChan = thisRow.row(chan);
+            }           
             const casa::Vector<casa::Complex> origVis = thisChan.copy();
             ASKAPDEBUGASSERT(thisChan.nelements() == nPol);
             // matrix multiplication
@@ -115,6 +136,23 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
                      temp += reciprocal(pol,k) * origVis[k];
                  }
                  thisChan[pol] = temp;
+            }
+            if (itsScaleNoise) {
+                ASKAPCHECK(noiseAndFlagDA, "Accessor type passed to CalibrationApplicatorME does not support change of the noise estimate");
+                casa::Vector<casa::Complex> thisChanNoise = noiseAndFlagDA->rwNoise().yzPlane(row).row(chan);
+                const casa::Vector<casa::Complex> origNoise = thisChanNoise.copy();
+                ASKAPDEBUGASSERT(thisChanNoise.nelements() == nPol);
+                // propagating noise estimate through the matrix multiplication
+                for (casa::uInt pol = 0; pol < nPol; ++pol) {
+                     float tempRe = 0., tempIm = 0.;
+                     for (casa::uInt k = 0; k < nPol; ++k) {
+                         tempRe += casa::square(casa::real(reciprocal(pol,k)) * casa::real(origNoise[k])) + 
+                                   casa::square(casa::imag(reciprocal(pol,k)) * casa::imag(origNoise[k]));
+                         tempIm += casa::square(casa::real(reciprocal(pol,k)) * casa::imag(origNoise[k])) + 
+                                   casa::square(casa::imag(reciprocal(pol,k)) * casa::real(origNoise[k]));                                   
+                     }
+                     thisChanNoise[pol] = casa::Complex(sqrt(tempRe), sqrt(tempIm));
+                }
             }
        }       
   }
