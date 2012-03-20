@@ -41,6 +41,10 @@
 #include <utils/PolConverter.h>
 
 #include <askap/AskapUtil.h>
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".measurementequation");
+
 
 namespace askap {
 
@@ -50,7 +54,7 @@ namespace synthesis {
 /// @details It initialises ME for a given solution source.
 /// @param[in] src calibration solution source to work with
 CalibrationApplicatorME::CalibrationApplicatorME(const boost::shared_ptr<accessors::ICalSolutionConstSource> &src) :
-     CalibrationSolutionHandler(src) {}
+     CalibrationSolutionHandler(src), itsScaleNoise(false), itsFlagAllowed(false) {}
 
 /// @brief correct model visibilities for one accessor (chunk).
 /// @details This method corrects the data in the given accessor
@@ -58,10 +62,6 @@ CalibrationApplicatorME::CalibrationApplicatorME(const boost::shared_ptr<accesso
 /// represented by this measurement equation (i.e. an inversion of
 /// the matrix has been performed). 
 /// @param[in] chunk a read-write accessor to work with
-/// @note Need to think what to do in the inversion is unsuccessful
-/// e.g. amend flagging information? This is not yet implemented as
-/// existing accessors would throw an exception if flagging info is 
-/// changed.
 void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
 {
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
@@ -117,6 +117,37 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
                  thisChan[pol] = temp;
             }
        }       
+  }
+}
+
+/// @brief determines whether to scale the noise estimate
+/// @details This is one of the configuration methods, it controlls
+/// whether the noise estimate is scaled aggording to applied calibration
+/// factors or not.
+/// @param[in] scale if true, the noise will be scaled
+void CalibrationApplicatorME::scaleNoise(bool scale)
+{
+  itsScaleNoise = scale;
+  if (itsScaleNoise) {
+     ASKAPLOG_INFO_STR(logger, "CalibrationApplicatorME will scale noise estimate when applying calibration solution");
+  } else {
+     ASKAPLOG_INFO_STR(logger, "CalibrationApplicatorME will not change the noise estimate");
+  }
+}
+  
+/// @brief determines whether to allow data flagging
+/// @details This is one of the configuration methods, it controlls
+/// the behavior of the correct method in the case when the matrix inversion
+/// fails. If data flagging is allowed, corresponding visibilities are flagged
+/// otherwise an exception is thrown.
+/// @param[in] flag if true, the flagging is allowed
+void CalibrationApplicatorME::allowFlag(bool flag)
+{
+  itsFlagAllowed = flag;
+  if (itsFlagAllowed) {
+     ASKAPLOG_INFO_STR(logger, "CalibrationApplicatorME will flag visibilites if inversion of the calibration solution fails");
+  } else {
+     ASKAPLOG_INFO_STR(logger, "CalibrationApplicatorME will throw an exception if inversion of the calibration solution fails");
   }
 }
 

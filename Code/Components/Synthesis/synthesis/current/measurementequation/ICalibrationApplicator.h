@@ -61,11 +61,23 @@ struct ICalibrationApplicator {
   /// represented by this measurement equation (i.e. an inversion of
   /// the matrix has been performed). 
   /// @param[in] chunk a read-write accessor to work with
-  /// @note Need to think what to do in the inversion is unsuccessful
-  /// e.g. amend flagging information? This is not yet implemented as
-  /// existing accessors would throw an exception if flagging info is 
-  /// changed.
   virtual void correct(accessors::IDataAccessor &chunk) const = 0;  
+  
+  /// @brief determines whether to scale the noise estimate
+  /// @details This is one of the configuration methods, it controlls
+  /// whether the noise estimate is scaled aggording to applied calibration
+  /// factors or not.
+  /// @param[in] scale if true, the noise will be scaled
+  virtual void scaleNoise(bool scale) = 0;
+  
+  /// @brief determines whether to allow data flagging
+  /// @details This is one of the configuration methods, it controlls
+  /// the behavior of the correct method in the case when the matrix inversion
+  /// fails. If data flagging is allowed, corresponding visibilities are flagged
+  /// otherwise an exception is thrown.
+  /// @param[in] flag if true, the flagging is allowed
+  virtual void allowFlag(bool flag) = 0;
+  
 };
 
 } // namespace synthesis

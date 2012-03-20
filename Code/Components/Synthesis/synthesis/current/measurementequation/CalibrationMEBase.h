@@ -118,6 +118,21 @@ public:
   using GenericMultiChunkEquation::predict;
   using GenericMultiChunkEquation::calcEquations;
   using GenericMultiChunkEquation::calcGenericEquations;
+ 
+  /// @brief determines whether to scale the noise estimate
+  /// @details This is one of the configuration methods, it controlls
+  /// whether the noise estimate is scaled aggording to applied calibration
+  /// factors or not.
+  /// @param[in] scale if true, the noise will be scaled
+  virtual void scaleNoise(bool scale);
+  
+  /// @brief determines whether to allow data flagging
+  /// @details This is one of the configuration methods, it controlls
+  /// the behavior of the correct method in the case when the matrix inversion
+  /// fails. If data flagging is allowed, corresponding visibilities are flagged
+  /// otherwise an exception is thrown.
+  /// @param[in] flag if true, the flagging is allowed
+  virtual void allowFlag(bool flag);
        
  
 protected:  

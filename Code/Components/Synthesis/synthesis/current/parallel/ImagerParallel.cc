@@ -37,7 +37,7 @@
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".measurementequation");
+ASKAP_LOGGER(logger, ".parallel");
 
 #include <askap/AskapError.h>
 // need it just for null deleter
@@ -194,7 +194,11 @@ namespace askap
         } else {
             ASKAPLOG_INFO_STR(logger, "Calibration will be performed using solution source");
             boost::shared_ptr<ICalibrationApplicator> calME(new CalibrationApplicatorME(itsSolutionSource));
-            
+            // fine tune parameters
+            ASKAPDEBUGASSERT(calME);
+            calME->scaleNoise(parset().getBool("calibrate.scalenoise","false"));
+            calME->allowFlag(parset().getBool("calibrate.allowflag","false"));
+            //
             IDataSharedIter calIter(new CalibrationIterator(it,calME));
             itsEquation = askap::scimath::Equation::ShPtr(
                           new ImageFFTEquation (*itsModel, calIter, gridder()));

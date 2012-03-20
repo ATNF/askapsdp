@@ -191,4 +191,25 @@ void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
   }
 }                                   
 
+/// @brief determines whether to scale the noise estimate
+/// @details This is one of the configuration methods, it controlls
+/// whether the noise estimate is scaled aggording to applied calibration
+/// factors or not.
+/// @param[in] scale if true, the noise will be scaled
+void CalibrationMEBase::scaleNoise(bool scale)
+{
+  ASKAPTHROW(AskapError, "CalibrationMEBase::scaleNoise is not implemented, scale="<<scale);
+}
+  
+/// @brief determines whether to allow data flagging
+/// @details This is one of the configuration methods, it controlls
+/// the behavior of the correct method in the case when the matrix inversion
+/// fails. If data flagging is allowed, corresponding visibilities are flagged
+/// otherwise an exception is thrown.
+/// @param[in] flag if true, the flagging is allowed
+void CalibrationMEBase::allowFlag(bool flag)
+{
+  ASKAPTHROW(AskapError, "CalibrationMEBase::allowFlag is not implemented, flag="<<flag);
+}
+
 
