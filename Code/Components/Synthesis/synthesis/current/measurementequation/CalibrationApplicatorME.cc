@@ -39,7 +39,7 @@
 #include <scimath/Mathematics/RigidVector.h>
 #include <askap/AskapError.h>
 #include <utils/PolConverter.h>
-#include <dataaccess/OnDemandNoiseandFlagDA.h>
+#include <dataaccess/OnDemandNoiseAndFlagDA.h>
 
 #include <askap/AskapUtil.h>
 #include <askap_synthesis.h>
