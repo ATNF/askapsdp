@@ -62,6 +62,8 @@ Cimager.nUVWMachines                            = 1
 Cimager.uvwMachineDirTolerance                  = 1arcsec
 Cimager.imagetype                               = casa
 Cimager.memorybuffers                           = true
+Cimager.calibrate.scalenoise                    = true
+Cimager.calibrate.allowflag                     = false
 
 Cimager.Images.Names                            = [image.field1]
 Cimager.Images.writeAtMajorCycle                = false

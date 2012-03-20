@@ -94,6 +94,9 @@ Cimager.solver.Clean.tolerance                  = 0.1
 Cimager.solver.Clean.verbose                   	= True
 Cimager.threshold.minorcycle                    = [15%]
 #Cimager.threshold.majorcycle                    = 10mJy
+Cimager.calibrate.scalenoise                    = true
+Cimager.calibrate.allowflag                     = false
+
 
 #
 #Cimager.preconditioner.Names                    = [GaussianTaper]
