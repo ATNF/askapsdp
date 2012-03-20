@@ -39,7 +39,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <measurementequation/CalibrationIterator.h>
-#include <dataaccess/MemBufferDataAccessor.h>
+#include <dataaccess/OnDemandNoiseAndFlagDA.h>
 #include <askap/AskapError.h>
 
 #include <measurementequation/ICalibrationApplicator.h>
@@ -87,10 +87,10 @@ IDataAccessor& CalibrationIterator::operator*() const
   if (!itsDataAccessor) {
       // need to fill the local buffer with the calibrated visibilities
       
-      // note, accessor is remembered by reference in MemBufferDataAccessor!
+      // note, accessor is remembered by reference in OnDemandNoiseAndFlagDA!
       // But it's OK because we invalidate the cache each time before the iterator
       // changes.
-      itsDataAccessor.reset(new MemBufferDataAccessor(*itsWrappedIterator));
+      itsDataAccessor.reset(new OnDemandNoiseAndFlagDA(*itsWrappedIterator));
 
       ASKAPDEBUGASSERT(itsDataAccessor);
       // copy perfect data
