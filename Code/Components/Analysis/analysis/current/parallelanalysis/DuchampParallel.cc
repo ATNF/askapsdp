@@ -701,7 +701,7 @@ namespace askap {
 	    ASKAPLOG_DEBUG_STR(logger, "Finding SNR map in spectral mode, with shape="<<shape<<" and box="<<box);
 	    for (size_t i = 0; i < spatSize; i++) {
 	      chanIm->extractSpectrum(this->itsCube, i);
- 	      findSNR(chanIm->getArray(),snrAll,shape,box,i,spatSize,specSize,true,this->itsCube.pars().getFlagRobustStats());
+ 	      findSNR(chanIm->getArray(),snrAll,shape,box,i,spatSize,specSize,false,this->itsCube.pars().getFlagRobustStats());
 	    }
 	    delete chanIm;
 	  }
