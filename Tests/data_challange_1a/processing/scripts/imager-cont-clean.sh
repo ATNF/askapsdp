@@ -5,7 +5,7 @@
 cat > cimager-cont-clean.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+50:ncpus=6:mem=23GB:mpiprocs=6
+#PBS -l select=1:ncpus=5:mem=23GB:mpiprocs=5+50:ncpus=6:mem=23GB:mpiprocs=6
 #PBS -l walltime=12:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N cont-clean
@@ -41,7 +41,7 @@ Cimager.gridder.AWProject.frequencydependent    = true
 #
 Cimager.solver                                  = Clean
 Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
-Cimager.solver.Clean.niter                      = 1000
+Cimager.solver.Clean.niter                      = 2000
 Cimager.solver.Clean.gain                       = 0.5
 Cimager.solver.Clean.scales                     = [0, 3, 10, 30]
 Cimager.solver.Clean.verbose                    = False
@@ -49,7 +49,7 @@ Cimager.solver.Clean.psfwidth                   = 512
 Cimager.solver.Clean.logevery                   = 100
 Cimager.threshold.minorcycle                    = [1%, 1.0mJy]
 Cimager.threshold.majorcycle                    = 10mJy
-Cimager.ncycles                                 = 3
+Cimager.ncycles                                 = 5
 #
 Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
 Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
@@ -61,10 +61,11 @@ Cimager.restore.beam                            = fit
 Cimager.restore.equalise                        = True
 #
 # Apply calibration
-#Cimager.calibrate                               = true
-Cimager.calibrate                               = false
+Cimager.calibrate                               = true
 Cimager.calibaccess                             = table
 Cimager.calibaccess.table                       = ${CALOUTPUT}
+Cimager.calibrate.scalenoise                    = true
+Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ${CONFIGDIR}/cimager-cont-clean.in > ${LOGDIR}/cimager-cont-clean.log

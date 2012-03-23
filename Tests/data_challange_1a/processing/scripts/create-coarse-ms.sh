@@ -17,22 +17,22 @@ cat > split_coarse.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
-#PBS -l walltime=00:10:00
+#PBS -l walltime=00:30:00
 ##PBS -M first.last@csiro.au
 #PBS -N split
 #PBS -m a
 #PBS -j oe
 
 #######
-# TO RUN (300 jobs):
-#  qsub -J 0-299 split_coarse.qsub
+# TO RUN (304 jobs):
+#  qsub -J 0-303 split_coarse.qsub
 #######
 
 cd \${PBS_O_WORKDIR}
 
 WIDTH=54
 STARTCHAN=1
-ENDCHAN=16200
+ENDCHAN=16416
 
 RANGE1=\`expr \${PBS_ARRAY_INDEX} \* \${WIDTH} + \${STARTCHAN}\`
 RANGE2=\`expr \${RANGE1} + \${WIDTH} - 1\`
@@ -63,7 +63,7 @@ EOF
 if [ ! $DRYRUN ]; then
     if [ ! -e MS/coarse_chan_0.ms ]; then
         echo "MS Split and Average: Submitting task"
-        QSUB_MSSPLIT=`${QSUB_CMD} -h -J 0-299 split_coarse.qsub`
+        QSUB_MSSPLIT=`${QSUB_CMD} -h -J 0-303 split_coarse.qsub`
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
     else
         echo "MS Split and Average: Skipping task - Output already exists"

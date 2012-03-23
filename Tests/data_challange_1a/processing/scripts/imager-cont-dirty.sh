@@ -5,7 +5,7 @@
 cat > cimager-cont-dirty.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+50:ncpus=6:mem=23GB:mpiprocs=6
+#PBS -l select=1:ncpus=5:mem=23GB:mpiprocs=5+50:ncpus=6:mem=23GB:mpiprocs=6
 #PBS -l walltime=02:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N cont-dirty
@@ -46,10 +46,11 @@ Cimager.ncycles                                 = 0
 Cimager.preconditioner.Names                    = None
 
 # Apply calibration
-#Cimager.calibrate                               = true
-Cimager.calibrate                               = false
+Cimager.calibrate                               = true
 Cimager.calibaccess                             = table
 Cimager.calibaccess.table                       = ${CALOUTPUT}
+Cimager.calibrate.scalenoise                    = true
+Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ${CONFIGDIR}/cimager-cont-dirty.in > ${LOGDIR}/cimager-cont-dirty.log

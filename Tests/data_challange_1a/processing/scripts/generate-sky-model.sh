@@ -7,7 +7,7 @@ SKYMODEL_OUTPUT=skymodel.image.taylor
 cat > cmodel.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=2:ncpus=12:mem=23GB:mpiprocs=12
+#PBS -l select=1:ncpus=12:mem=23GB:mpiprocs=12
 #PBS -l walltime=00:15:00
 ##PBS -M first.last@csiro.au
 #PBS -N cmodel

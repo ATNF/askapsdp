@@ -84,11 +84,11 @@ EOF
 
 # These jobs are executed per the preference in config.sh
 if [ $DO_CONTINUUM_DIRTY == "true" ]; then
-. ${SCRIPTDIR}/imager-cont-clean.sh
+. ${SCRIPTDIR}/imager-cont-dirty.sh
 fi
 
 if [ $DO_CONTINUUM_CLEAN == "true" ]; then
-. ${SCRIPTDIR}/imager-cont-dirty.sh
+. ${SCRIPTDIR}/imager-cont-clean.sh
 fi
 
 if [ $DO_SPECTRAL_LINE == "true" ]; then

@@ -7,7 +7,7 @@ CALOUTPUT=calparameters.tab
 cat > ccalibrator.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+50:ncpus=6:mem=23GB:mpiprocs=6
+#PBS -l select=1:ncpus=5:mem=23GB:mpiprocs=5+50:ncpus=6:mem=23GB:mpiprocs=6
 #PBS -l walltime=12:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N ccalibrator

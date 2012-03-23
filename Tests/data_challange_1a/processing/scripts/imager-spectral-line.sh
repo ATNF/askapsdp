@@ -18,7 +18,7 @@ fi
 cat > cimager-spectral-line.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
+#PBS -l select=1:ncpus=1:mem=3GB:mpiprocs=1
 #PBS -l walltime=03:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N sl-img
@@ -26,8 +26,8 @@ cat > cimager-spectral-line.qsub << EOF
 #PBS -j oe
 
 #######
-# TO RUN (16200 jobs):
-#  qsub -J 0-16199 cimager-spectral-line.qsub
+# TO RUN (16416 jobs):
+#  qsub -J 0-16415 cimager-spectral-line.qsub
 #######
 
 cd \${PBS_O_WORKDIR}
@@ -86,23 +86,30 @@ Cimager.ncycles                                 = 0
 Cimager.preconditioner.Names                    = None
 
 # Apply calibration
-#Cimager.calibrate                               = true
-Cimager.calibrate                               = false
+Cimager.calibrate                               = true
 Cimager.calibaccess                             = table
 Cimager.calibaccess.table                       = ${CALOUTPUT}
+Cimager.calibrate.scalenoise                    = true
+Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
 LOGFILE=${LOGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.log
 
 # First split the big measurement set
 \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -inputs ${CONFIGDIR}/mssplit_fine_\${PBS_ARRAY_INDEX}.in > \${LOGFILE}
-if [ \$? -ne 0 ]; then
-    echo "Error: mssplit returned non-zero error code"
+ERR=\$?
+if [ \${ERR} -ne 0 ]; then
+    echo "Error: mssplit returned error code \${ERR}"
     exit 1
 fi
 
 # Now run the cimager
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in >> \${LOGFILE}
+ERR=\$?
+if [ \${ERR} -ne 0 ]; then
+    echo "Error: cimager returned error code \${ERR}"
+    exit 1
+fi
 
 # Finally delete the temporary split-off measurement set
 rm -rf ${MSDIR}/fine_chan_\${PBS_ARRAY_INDEX}.ms
@@ -114,7 +121,7 @@ EOF
 cat > cubemerge-spectral-line.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=4GB:mpiprocs=1
+#PBS -l select=1:ncpus=2:mem=4GB:mpiprocs=1:ompthreads=2
 #PBS -l walltime=12:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N sl-mkcube
@@ -144,25 +151,25 @@ EOF
 
 if [ ! $DRYRUN ]; then
         echo "Spectral Line Imaging: Submitting tasks"
-        QSUB_SPECTRAL1=`${QSUB_CMD} -N sl-img1 -h -J 0-8099 cimager-spectral-line.qsub`
-        QSUB_SPECTRAL2=`${QSUB_CMD} -N sl-img2 -h -J 8100-16199 cimager-spectral-line.qsub`
+        QSUB_SPECTRAL1=`${QSUB_CMD} -N sl-img1 -h -J 0-8257 cimager-spectral-line.qsub`
+        QSUB_SPECTRAL2=`${QSUB_CMD} -N sl-img2 -h -J 8258-16415 cimager-spectral-line.qsub`
 
         QSUB_MERGE_CMD="${QSUB_CMD} -W depend=afterok:${QSUB_SPECTRAL1},afterok:${QSUB_SPECTRAL2}"
         export INPUTPREFIX=residual.i.spectral.
         export OUTPUTCUBE=residual.cube.i.spectral
-        ${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub
+        OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
 
         export INPUTPREFIX=psf.i.spectral.
         export OUTPUTCUBE=psf.cube.i.spectral
-        ${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub
+        OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
 
         export INPUTPREFIX=sensitivity.i.spectral.
         export OUTPUTCUBE=sensitivity.cube.i.spectral
-        ${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub
+        OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
 
         export INPUTPREFIX=weights.i.spectral.
         export OUTPUTCUBE=weights.cube.i.spectral
-        ${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub
+        OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
 else
     echo "Spectral Line Imaging: Dry Run Only"
