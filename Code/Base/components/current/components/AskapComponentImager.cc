@@ -287,7 +287,6 @@ void AskapComponentImager::projectGaussianShape(casa::ImageInterface<T>& image,
         for (int lon = startLon; lon <= endLon; ++lon) {
             pos(latAxis) = lat;
             pos(longAxis) = lon;
-            //ASKAPLOG_DEBUG_STR(logger, "Putting pixel at lat: " << lat << ", lon: " << lon);
             image.putAt(image(pos) + gauss(lat, lon), pos);
         }
     }
@@ -372,15 +371,15 @@ template <class T>
 int AskapComponentImager::findCutoff(const Gaussian2D<T>& gauss, const int spatialLimit,
         const double fluxLimit)
 {
+    // Make a copy of the gaussian and set the PA to zero so this function can
+    // walk the major axis easily, to determine the cutoff. The major axis is
+    // parallel with the y axis when the position angle is zero.
+    Gaussian2D<T> g = gauss;
+    g.setPA(0.0);
+
     int cutoff = 0;
-    // Check occurs in the horizontal (first), vertical (second), and diagonal
-    // (third) directions. A check of the image bounds is also done.
-    // TODO: This is not really perfect, really needs to just check along the
-    // major axis.
     while ((cutoff <= spatialLimit) &&
-           (abs(gauss(gauss.xCenter() + cutoff, gauss.yCenter())) >= fluxLimit ||
-           abs(gauss(gauss.xCenter(), gauss.yCenter() + cutoff)) >= fluxLimit ||
-           abs(gauss(gauss.xCenter() + cutoff, gauss.yCenter() + cutoff)))) {
+            abs(g(g.xCenter(), g.yCenter() + cutoff) >= fluxLimit)) {
         ++cutoff;
     }
     return cutoff;
