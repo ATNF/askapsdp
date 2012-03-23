@@ -373,9 +373,14 @@ int AskapComponentImager::findCutoff(const Gaussian2D<T>& gauss, const int spati
         const double fluxLimit)
 {
     int cutoff = 0;
-    while (abs(gauss(gauss.xCenter() + cutoff, gauss.yCenter())) >= fluxLimit &&
-           abs(gauss(gauss.xCenter(), gauss.yCenter() + cutoff)) >= fluxLimit &&
-           cutoff <= spatialLimit) {
+    // Check occurs in the horizontal (first), vertical (second), and diagonal
+    // (third) directions. A check of the image bounds is also done.
+    // TODO: This is not really perfect, really needs to just check along the
+    // major axis.
+    while ((cutoff <= spatialLimit) &&
+           (abs(gauss(gauss.xCenter() + cutoff, gauss.yCenter())) >= fluxLimit ||
+           abs(gauss(gauss.xCenter(), gauss.yCenter() + cutoff)) >= fluxLimit ||
+           abs(gauss(gauss.xCenter() + cutoff, gauss.yCenter() + cutoff)))) {
         ++cutoff;
     }
     return cutoff;
