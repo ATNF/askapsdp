@@ -1006,7 +1006,7 @@ namespace askap {
 	    // list of fit types, for use in correcting positions of fitted components
 	    std::vector<std::string>::iterator fittype;
 	    std::vector<std::string> fittypelist = sourcefitting::availableFitTypes;
-	    typelist.push_back("best");
+	    fittypelist.push_back("best");
 
 	    for (int i = 1; i < itsComms.nProcs(); i++) {
 	      itsComms.receiveBlob(bs, i);
@@ -1032,11 +1032,11 @@ namespace askap {
 		src.calcParams();
 
 		// Correct the offsets for the fitted components
-		for (type = typelist.begin(); type < typelist.end(); type++) {
-		  if(this->itsFitParams.hasType(*type)){
-		    for (unsigned int f = 0; f < src.fitset(*type).size(); f++) {
-		      src.fitset(*type)[f].setXcenter(src.fitset(*type)[f].xCenter() + src.getXOffset());
-		      src.fitset(*type)[f].setYcenter(src.fitset(*type)[f].yCenter() + src.getYOffset());
+		for (fittype = fittypelist.begin(); fittype < fittypelist.end(); fittype++) {
+		  if(this->itsFitParams.hasType(*fittype)){
+		    for (unsigned int f = 0; f < src.fitset(*fittype).size(); f++) {
+		      src.fitset(*fittype)[f].setXcenter(src.fitset(*fittype)[f].xCenter() + src.getXOffset());
+		      src.fitset(*fittype)[f].setYcenter(src.fitset(*fittype)[f].yCenter() + src.getYOffset());
 		    }
 		  }
 		}
