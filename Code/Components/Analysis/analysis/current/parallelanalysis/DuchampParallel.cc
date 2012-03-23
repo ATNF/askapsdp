@@ -1003,6 +1003,11 @@ namespace askap {
 	    bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
 	    this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
 
+	    // list of fit types, for use in correcting positions of fitted components
+	    std::vector<std::string>::iterator fittype;
+	    std::vector<std::string> fittypelist = sourcefitting::availableFitTypes;
+	    typelist.push_back("best");
+
 	    for (int i = 1; i < itsComms.nProcs(); i++) {
 	      itsComms.receiveBlob(bs, i);
 	      LOFAR::BlobIBufString bib(bs);
@@ -1026,9 +1031,14 @@ namespace askap {
 		src.addOffsets();
 		src.calcParams();
 
-		for (unsigned int f = 0; f < src.fitset("best").size(); f++) {
-		  src.fitset("best")[f].setXcenter(src.fitset("best")[f].xCenter() + src.getXOffset());
-		  src.fitset("best")[f].setYcenter(src.fitset("best")[f].yCenter() + src.getYOffset());
+		// Correct the offsets for the fitted components
+		for (type = typelist.begin(); type < typelist.end(); type++) {
+		  if(this->itsFitParams.hasType(*type)){
+		    for (unsigned int f = 0; f < src.fitset(*type).size(); f++) {
+		      src.fitset(*type)[f].setXcenter(src.fitset(*type)[f].xCenter() + src.getXOffset());
+		      src.fitset(*type)[f].setYcenter(src.fitset(*type)[f].yCenter() + src.getYOffset());
+		    }
+		  }
 		}
 
 		// And now set offsets to those of the full image as we are in the master cube
