@@ -43,7 +43,7 @@ EOF_INNER
 mpirun \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -inputs ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel.log
 EOF
 
-if [ ! $DRYRUN ]; then
+if [ "${DRYRUN}" == "false" ]; then
     if [ ! -e ${SKYMODEL_OUTPUT}.0 ]; then
         echo "Sky Model Image: Submitting task"
         QSUB_CMODEL=`${QSUB_CMD} -h cmodel.qsub`

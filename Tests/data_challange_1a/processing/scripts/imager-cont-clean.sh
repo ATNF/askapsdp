@@ -61,7 +61,7 @@ Cimager.restore.beam                            = fit
 Cimager.restore.equalise                        = True
 #
 # Apply calibration
-Cimager.calibrate                               = true
+Cimager.calibrate                               = ${DO_CALIBRATION}
 Cimager.calibaccess                             = table
 Cimager.calibaccess.table                       = ${CALOUTPUT}
 Cimager.calibrate.scalenoise                    = true
@@ -71,14 +71,27 @@ EOF_INNER
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ${CONFIGDIR}/cimager-cont-clean.in > ${LOGDIR}/cimager-cont-clean.log
 EOF
 
-if [ ! $DRYRUN ]; then
-echo "Continuum Imager (Clean): Submitting task"
-if [ ${QSUB_CCAL} ]; then
-    QSUB_CONTCLEAN=`${QSUB_CMD} -W depend=afterok:${QSUB_CCAL} cimager-cont-clean.qsub`
+if [ "${DRYRUN}" == "false" ]; then
+    echo "Continuum Imager (Clean): Submitting task"
+
+    # Add dependencies
+    unset DEPENDS
+    if [ "${QSUB_CAL}" ] || [ "${QSUB_MSSPLIT}" ]; then
+        if [ "${QSUB_CAL}" ]; then
+            DEPENDS="-W depend=afterok:${QSUB_CCAL}"
+        else
+            DEPENDS="-W depend=afterok:${QSUB_MSSPLIT}"
+        fi
+    fi
+
+    # Submit the jobs
+    if [ "${DEPENDS}" ]; then
+        QSUB_CONTCLEAN=`${QSUB_CMD} ${DEPENDS} cimager-cont-clean.qsub`
+    else
+        QSUB_CONTCLEAN=`${QSUB_CMD} cimager-cont-clean.qsub`
+        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCLEAN}"
+    fi
+
 else
-    QSUB_CONTCLEAN=`${QSUB_CMD} cimager-cont-clean.qsub`
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCLEAN}"
-fi
-else
-echo "Continuum Imager (Clean): Dry Run Only"
+    echo "Continuum Imager (Clean): Dry Run Only"
 fi

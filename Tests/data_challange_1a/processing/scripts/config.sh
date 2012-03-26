@@ -29,15 +29,21 @@ INPUT_SKYMODEL=../input/skymodel-duchamp.txt
 # Default: If this is not set, the system default queue will be used.
 #BATCH_QUEUE=routequeue
 
-# If this is set to anything, the jobs will not be enqueued, only configuration
+# Dryrun (true or false)
+# If this is set true, the jobs will not be enqueued, only configuration
 # files, etc. will be created.
-#DRYRUN=1
+DRYRUN=false
 
-# Do Continuum Imaging (Dirty)
+# Do calibration (true or false)
+# If true, calibration parameters will be determined and applied
+# during imaging
+DO_CALIBRATION=false
+
+# Do Continuum Imaging - Dirty (true or false)
 DO_CONTINUUM_DIRTY=true
 
-# Do Continuum Imaging (Clean)
+# Do Continuum Imaging - Clean (true or false)
 DO_CONTINUUM_CLEAN=true
 
-# Do Spectral Line Imaging
+# Do Spectral Line Imaging (true or false)
 DO_SPECTRAL_LINE=true

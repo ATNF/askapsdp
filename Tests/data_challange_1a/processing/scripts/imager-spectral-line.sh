@@ -86,7 +86,7 @@ Cimager.ncycles                                 = 0
 Cimager.preconditioner.Names                    = None
 
 # Apply calibration
-Cimager.calibrate                               = true
+Cimager.calibrate                               = ${DO_CALIBRATION}
 Cimager.calibaccess                             = table
 Cimager.calibaccess.table                       = ${CALOUTPUT}
 Cimager.calibrate.scalenoise                    = true
@@ -149,28 +149,35 @@ rm -rf \${OUTPUTCUBE}
 \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cubemerge.sh \${INPUTSLICES} \${OUTPUTCUBE}
 EOF
 
-if [ ! $DRYRUN ]; then
-        echo "Spectral Line Imaging: Submitting tasks"
-        QSUB_SPECTRAL1=`${QSUB_CMD} -N sl-img1 -h -J 0-8257 cimager-spectral-line.qsub`
-        QSUB_SPECTRAL2=`${QSUB_CMD} -N sl-img2 -h -J 8258-16415 cimager-spectral-line.qsub`
+if [ "${DRYRUN}" == "false" ]; then
+    # Add dependencies
+    unset DEPENDS
+    if [ "${QSUB_CAL}" ]; then
+        DEPENDS="-W depend=afterok:${QSUB_CCAL}"
+    fi
 
-        QSUB_MERGE_CMD="${QSUB_CMD} -W depend=afterok:${QSUB_SPECTRAL1},afterok:${QSUB_SPECTRAL2}"
-        export INPUTPREFIX=residual.i.spectral.
-        export OUTPUTCUBE=residual.cube.i.spectral
-        OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
+    # Submit the jobs
+    echo "Spectral Line Imaging: Submitting tasks"
+    QSUB_SPECTRAL1=`${QSUB_CMD} ${DEPENDS} -N sl-img1 -h -J 0-8257 cimager-spectral-line.qsub`
+    QSUB_SPECTRAL2=`${QSUB_CMD} ${DEPENDS} -N sl-img2 -h -J 8258-16415 cimager-spectral-line.qsub`
 
-        export INPUTPREFIX=psf.i.spectral.
-        export OUTPUTCUBE=psf.cube.i.spectral
-        OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
+    QSUB_MERGE_CMD="${QSUB_CMD} -W depend=afterok:${QSUB_SPECTRAL1},afterok:${QSUB_SPECTRAL2}"
+    export INPUTPREFIX=residual.i.spectral.
+    export OUTPUTCUBE=residual.cube.i.spectral
+    OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
 
-        export INPUTPREFIX=sensitivity.i.spectral.
-        export OUTPUTCUBE=sensitivity.cube.i.spectral
-        OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
+    export INPUTPREFIX=psf.i.spectral.
+    export OUTPUTCUBE=psf.cube.i.spectral
+    OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
 
-        export INPUTPREFIX=weights.i.spectral.
-        export OUTPUTCUBE=weights.cube.i.spectral
-        OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
+    export INPUTPREFIX=sensitivity.i.spectral.
+    export OUTPUTCUBE=sensitivity.cube.i.spectral
+    OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
+
+    export INPUTPREFIX=weights.i.spectral.
+    export OUTPUTCUBE=weights.cube.i.spectral
+    OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
 else
     echo "Spectral Line Imaging: Dry Run Only"
 fi

@@ -53,10 +53,10 @@ EOF_INNER
 mpirun --mca btl ^openib --mca mtl ^psm \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -inputs ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator.log
 EOF
 
-if [ ! $DRYRUN ]; then
+if [ "${DRYRUN}" == "false" ]; then
     if [ ! -e ${CALOUTPUT} ]; then
         echo "Calibration: Submitting Task"
-        if [ ! ${QSUB_CMODEL} ] && [ ! ${QSUB_MSSPLIT} ]; then
+        if [ ! "${QSUB_CMODEL}" ] && [ ! "${QSUB_MSSPLIT}" ]; then
             QSUB_CCAL=`${QSUB_CMD} ccalibrator.qsub`
             QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CCAL}"
         else
@@ -66,5 +66,5 @@ if [ ! $DRYRUN ]; then
         echo "Calibration: Skipping task - Output already exists"
     fi
 else
-        echo "Calibration: Dry Run Only"
+    echo "Calibration: Dry Run Only"
 fi

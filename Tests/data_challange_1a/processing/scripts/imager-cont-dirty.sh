@@ -46,7 +46,7 @@ Cimager.ncycles                                 = 0
 Cimager.preconditioner.Names                    = None
 
 # Apply calibration
-Cimager.calibrate                               = true
+Cimager.calibrate                               = ${DO_CALIBRATION}
 Cimager.calibaccess                             = table
 Cimager.calibaccess.table                       = ${CALOUTPUT}
 Cimager.calibrate.scalenoise                    = true
@@ -56,10 +56,22 @@ EOF_INNER
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ${CONFIGDIR}/cimager-cont-dirty.in > ${LOGDIR}/cimager-cont-dirty.log
 EOF
 
-if [ ! $DRYRUN ]; then
+if [ "${DRYRUN}" == "false" ]; then
     echo "Continuum Imager (Dirty): Submitting task"
-    if [ ${QSUB_CCAL} ]; then
-        QSUB_CONTDIRTY=`${QSUB_CMD} -W depend=afterok:${QSUB_CCAL} cimager-cont-dirty.qsub`
+
+    # Add dependencies
+    unset DEPENDS
+    if [ "${QSUB_CAL}" ] || [ " ${QSUB_MSSPLIT}" ]; then
+        if [ "${QSUB_CAL}" ]; then
+            DEPENDS="-W depend=afterok:${QSUB_CCAL}"
+        else
+            DEPENDS="-W depend=afterok:${QSUB_MSSPLIT}"
+        fi
+    fi
+
+    # Submit the jobs
+    if [ "${DEPENDS}" ]; then
+        QSUB_CONTDIRTY=`${QSUB_CMD} ${DEPENDS} cimager-cont-dirty.qsub`
     else
         QSUB_CONTDIRTY=`${QSUB_CMD} cimager-cont-dirty.qsub`
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTDIRTY}"

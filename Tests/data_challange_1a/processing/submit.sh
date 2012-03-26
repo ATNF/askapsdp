@@ -77,12 +77,16 @@ EOF
 # Enqueue the processing tasks
 ##############################################################################
 
-# These jobs are executed if their outputs do not exist
+if [ $DO_CALIBRATION == "true" ]; then
 . ${SCRIPTDIR}/generate-sky-model.sh
-. ${SCRIPTDIR}/create-coarse-ms.sh
-. ${SCRIPTDIR}/gains-calibration.sh
+fi
 
-# These jobs are executed per the preference in config.sh
+. ${SCRIPTDIR}/create-coarse-ms.sh
+
+if [ $DO_CALIBRATION == "true" ]; then
+. ${SCRIPTDIR}/gains-calibration.sh
+fi
+
 if [ $DO_CONTINUUM_DIRTY == "true" ]; then
 . ${SCRIPTDIR}/imager-cont-dirty.sh
 fi
@@ -103,6 +107,6 @@ fi
 # created with a "hold" so as dependencies could be established without fear
 # of a dependency running and finishing before the dependency could be
 # established
-if [ ! ${DRYRUN} ] && [ "${QSUB_NODEPS}" ]; then
+if [ "${DRYRUN}" == "false" ] && [ "${QSUB_NODEPS}" ]; then
     qrls ${QSUB_NODEPS}
 fi
