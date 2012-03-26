@@ -177,7 +177,10 @@ if [ "${DRYRUN}" == "false" ]; then
     export INPUTPREFIX=weights.i.spectral.
     export OUTPUTCUBE=weights.cube.i.spectral
     OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
-    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
+
+    if [ ! "${DEPENDS}" ]; then
+        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
+    fi
 else
     echo "Spectral Line Imaging: Dry Run Only"
 fi
