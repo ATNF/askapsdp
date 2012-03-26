@@ -5,7 +5,7 @@
 cat > cimager-cont-clean.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=5:mem=23GB:mpiprocs=5+50:ncpus=6:mem=23GB:mpiprocs=6
+#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=4:mem=23GB:mpiprocs=4
 #PBS -l walltime=12:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N cont-clean
@@ -23,6 +23,7 @@ Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
 Cimager.Images.image.i.clean.frequency          = [1.420e9,1.420e9]
 Cimager.Images.image.i.clean.nchan              = 1
 Cimager.Images.image.i.clean.direction          = [12h30m00.00, -45.00.00.00, J2000]
+Cimager.Images.image.i.clean.nterms             = 3
 Cimager.Images.image.i.clean.writeAtMajorCycle  = true
 #
 Cimager.gridder.snapshotimaging                 = true
@@ -41,13 +42,13 @@ Cimager.gridder.AWProject.frequencydependent    = true
 #
 Cimager.solver                                  = Clean
 Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
-Cimager.solver.Clean.niter                      = 2000
+Cimager.solver.Clean.niter                      = 1000
 Cimager.solver.Clean.gain                       = 0.5
 Cimager.solver.Clean.scales                     = [0, 3, 10, 30]
 Cimager.solver.Clean.verbose                    = False
-Cimager.solver.Clean.psfwidth                   = 512
+Cimager.solver.Clean.psfwidth                   = 1024
 Cimager.solver.Clean.logevery                   = 100
-Cimager.threshold.minorcycle                    = [1%, 1.0mJy]
+Cimager.threshold.minorcycle                    = [10%, 1.0mJy]
 Cimager.threshold.majorcycle                    = 10mJy
 Cimager.ncycles                                 = 5
 #
