@@ -1,4 +1,5 @@
-///
+/// @file GridKernel.h
+//
 /// GridKernel: kernels for gridding and degridding
 ///
 /// @copyright (c) 2007 CSIRO
@@ -25,41 +26,41 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef GRIDKERNEL_H_
-#define GRIDKERNEL_H_
+#ifndef ASKAP_SYNTHESIS_GRIDKERNEL_H_
+#define ASKAP_SYNTHESIS_GRIDKERNEL_H_
 
+// System includes
+#include <string>
+
+// ASKAPsoft includes
 #include <casa/aips.h>
 #include <casa/Arrays/Matrix.h>
 #include <casa/BasicSL/Complex.h>
 
-#include <string>
+namespace askap {
+    namespace synthesis {
+        /// @brief Holder for gridding kernels
+        ///
+        /// @ingroup gridding
+        class GridKernel {
+            public:
+                /// Information about gridding options
+                static std::string info();
 
-namespace askap
-{
-  namespace synthesis
-  {
-    /// @brief Holder for gridding kernels
-    ///
-    /// @ingroup gridding
-    class GridKernel
-    {
-  public:
-      /// Information about gridding options
-      static std::string info();
+                /// Gridding kernel
+                static void grid(casa::Matrix<casa::Complex>& grid,
+                        casa::Matrix<casa::Complex>& convFunc,
+                        const casa::Complex& cVis, const int iu,
+                        const int iv, const int support);
 
-      /// Gridding kernel
-      static void grid(casa::Matrix<casa::Complex>& grid,
-          casa::Matrix<casa::Complex>& convFunc,
-          const casa::Complex& cVis, const int iu,
-          const int iv, const int support);
+                /// Degridding kernel
+                static void degrid(casa::Complex& cVis,
+                        const casa::Matrix<casa::Complex>& convFunc,
+                        const casa::Matrix<casa::Complex>& grid,
+                        const int iu, const int iv,
+                        const int support);
 
-      /// Degridding kernel
-      static void degrid(casa::Complex& cVis,
-          const casa::Matrix<casa::Complex>& convFunc,
-          const casa::Matrix<casa::Complex>& grid, const int iu, const int iv,
-          const int support);
-
-    };
-  }
+        };
+    }
 }
 #endif

@@ -21,12 +21,11 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
+// Include own header file first
 #include "GridKernel.h"
 
 /// Use pointers instead of casa::Matrix operators to grid
 //#define ASKAP_GRID_WITH_POINTERS 1
-
-//#include <askap/AskapError.h>
 
 /// Use BLAS 
 //#define ASKAP_GRID_WITH_BLAS 1
@@ -61,8 +60,8 @@ void GridKernel::grid(casa::Matrix<casa::Complex>& grid,
 
 #if defined ( ASKAP_GRID_WITH_POINTERS ) || defined ( ASKAP_GRID_WITH_BLAS )
 	for (int suppv = -support; suppv < +support; suppv++) {
-		int voff = suppv + support;
-		int uoff = -support + support;
+		const int voff = suppv + support;
+		const int uoff = -support + support;
 		casa::Complex *wtPtr = &convFunc(uoff, voff);
 		casa::Complex *gridPtr = &(grid(iu - support, iv + suppv));
 #ifdef ASKAP_GRID_WITH_BLAS
@@ -78,10 +77,10 @@ void GridKernel::grid(casa::Matrix<casa::Complex>& grid,
 #else
 	for (int suppv=-support; suppv<+support; suppv++)
 	{
-		int voff=suppv+support;
+		const int voff=suppv+support;
 		for (int suppu=-support; suppu<+support; suppu++)
 		{
-			int uoff=suppu+support;
+			const int uoff=suppu+support;
 			casa::Complex wt=convFunc(uoff, voff);
 			grid(iu+suppu, iv+suppv)+=cVis*wt;
 		}
@@ -92,15 +91,15 @@ void GridKernel::grid(casa::Matrix<casa::Complex>& grid,
 /// Totally selfcontained degridding
 void GridKernel::degrid(casa::Complex& cVis,
 		const casa::Matrix<casa::Complex>& convFunc,
-		const casa::Matrix<casa::Complex>& grid, const int iu, const int iv,
-		const int support) {
+		const casa::Matrix<casa::Complex>& grid,
+        const int iu, const int iv, const int support) {
 	/// Degridding from grid to visibility. Here we just take a weighted sum of the visibility
 	/// data using the convolution function as the weighting function. 
 	cVis = 0.0;
 #if defined ( ASKAP_GRID_WITH_POINTERS ) || defined ( ASKAP_GRID_WITH_BLAS )
 	for (int suppv = -support; suppv < +support; suppv++) {
-		int voff = suppv + support;
-		int uoff = -support + support;
+		const int voff = suppv + support;
+		const int uoff = -support + support;
 		const casa::Complex *wtPtr = &convFunc(uoff, voff);
 		const casa::Complex *gridPtr = &(grid(iu - support, iv + suppv));
 #ifdef ASKAP_GRID_WITH_BLAS
@@ -118,10 +117,10 @@ void GridKernel::degrid(casa::Complex& cVis,
 #else
 	for (int suppv=-support; suppv<+support; suppv++)
 	{
-		int voff=suppv+support;
+		const int voff=suppv+support;
 		for (int suppu=-support; suppu<+support; suppu++)
 		{
-			int uoff=suppu+support;
+			const int uoff=suppu+support;
 			casa::Complex wt=convFunc(uoff, voff);
 			cVis+=wt*conj(grid(iu+suppu, iv+suppv));
 		}
