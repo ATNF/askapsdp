@@ -88,7 +88,7 @@ namespace askap {
                     /// @brief Set and return the number of Gaussian components to be fitted.
                     /// @{
                     void setNumGauss(int i) {itsNumGauss = i;};
-                    int  numGauss() {return itsNumGauss;};
+                    unsigned int  numGauss() {return itsNumGauss;};
                     /// @}
 
                     /// @brief Return the chi-squared value from the fit.

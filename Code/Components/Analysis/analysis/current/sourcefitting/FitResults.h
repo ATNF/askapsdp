@@ -92,9 +92,9 @@ namespace askap {
                     /// @brief The number of free parameters for the fit
                     int   numFreeParam() {return itsNumFreeParam;};
 		    /// @brief The number of pixels used in the fit
-		    int   numPix() {return itsNumPix;};
+		    unsigned int   numPix() {return itsNumPix;};
                     /// @brief The number of Gaussian components used in the fit
-                    int   numGauss() {return itsNumGauss;};
+                    unsigned int   numGauss() {return itsNumGauss;};
 		    /// @brief Is the fit a guess or not (if not, this means it is the result of a fit).
 		    bool fitIsGuess(){return itsFlagFitIsGuess;};
 		    void setFlagFitIsGuess(bool flag){itsFlagFitIsGuess = flag;};
@@ -108,7 +108,7 @@ namespace askap {
                     std::vector<SubComponent> getCmpntList();
 
                     /// @brief Return a given Gaussian from the FitSet
-                    casa::Gaussian2D<Double> gaussian(int num) {return itsGaussFitSet[num];};
+                    casa::Gaussian2D<Double> gaussian(unsigned int num) {return itsGaussFitSet[num];};
 
                     /// @brief The number of fitted components
                     int numFits() {return itsGaussFitSet.size();};
@@ -141,9 +141,9 @@ namespace askap {
                     /// @brief The number of free parameters in the fit
                     int   itsNumFreeParam;
 		    /// @brief The number of pixels included in the fit
-		    int   itsNumPix;
+		    unsigned int   itsNumPix;
                     /// @brief the number of Gaussians used in the fit
-                    int   itsNumGauss;
+                    unsigned int   itsNumGauss;
 		    /// @brief A flag indicating whether the fit is a guess or not
 		    bool itsFlagFitIsGuess;
                     /// @brief A two-dimensional Gaussian fit to the object.

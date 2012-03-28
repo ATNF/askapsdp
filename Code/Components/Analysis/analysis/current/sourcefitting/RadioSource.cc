@@ -1058,7 +1058,7 @@ namespace askap {
 			      ASKAPLOG_DEBUG_STR(logger, "Values for "<<termtype[term]<<" follow (" 
 						 << this->itsBestFitMap[*type].numGauss() << " of them):");
 
-                                for (int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
+			      for (unsigned int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
 				    float Iref=this->itsBestFitMap[*type].gaussian(i).flux();
                                     if(term==1){
 				      termValues[i] = fit.gaussian(i).flux() / Iref;
