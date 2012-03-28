@@ -93,7 +93,7 @@ namespace askap {
                 this->itsMaxIter = parset.getUint32("maxIter", 1024);
                 this->itsUseNoise = parset.getBool("useNoise", true);
 		this->itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", false);
-		this->itsUseGuessIfBad = parset.getBool("useGuessIfBad",false);
+		this->itsUseGuessIfBad = parset.getBool("useGuessIfBad",true);
                 this->itsFlagFitThisParam = std::vector<bool>(6, true);
 		this->itsUseBoxFlux = true;
 
