@@ -1168,25 +1168,27 @@ namespace askap {
 		    flagGuess.printTitle(stream);
                     stream << "\n";
                     int width = columns[duchamp::Column::NUM].getWidth() +
-                                columns[duchamp::Column::RAJD].getWidth() +
-                                columns[duchamp::Column::DECJD].getWidth() +
-                                columns[duchamp::Column::FINT].getWidth() +
-                                columns[duchamp::Column::FPEAK].getWidth() +
-                                fIntfit.getWidth() +
-                                fPkfit.getWidth() +
-                                majFit.getWidth() +
-                                minFit.getWidth() +
-                                paFit.getWidth() +
-                                majDeconv.getWidth() +
-                                minDeconv.getWidth() +
-                                paDeconv.getWidth() +
-                                chisqFit.getWidth() +
-                                rmsIm.getWidth() +
-                                rmsFit.getWidth() +
-                                nfree.getWidth() +
-                                ndofFit.getWidth() +
-                                npixFit.getWidth() +
-                                npixObj.getWidth();
+		                columns[duchamp::Column::NAME].getWidth() +
+		                columns[duchamp::Column::RAJD].getWidth() +
+		                columns[duchamp::Column::DECJD].getWidth() +
+		                columns[duchamp::Column::FINT].getWidth() +
+		                columns[duchamp::Column::FPEAK].getWidth() +
+		                fIntfit.getWidth() +
+		                fPkfit.getWidth() +
+		                majFit.getWidth() +
+		                minFit.getWidth() +
+		                paFit.getWidth() +
+		                majDeconv.getWidth() +
+		                minDeconv.getWidth() +
+		                paDeconv.getWidth() +
+		                chisqFit.getWidth() +
+		                rmsIm.getWidth() +
+		                rmsFit.getWidth() +
+		                nfree.getWidth() +
+		                ndofFit.getWidth() +
+		                npixFit.getWidth() +
+		                npixObj.getWidth() +
+		                flagGuess.getWidth();
 		    if(doSpectralIndex) width +=  alpha.getWidth() + beta.getWidth();
 
                     stream << "#" << std::setfill('-') << std::setw(width) << '-' << "\n";
