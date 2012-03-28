@@ -1223,7 +1223,7 @@ namespace askap {
                     ndofFit.printEntry(stream, zero);
                     npixFit.printEntry(stream, zero);
                     npixObj.printEntry(stream, this->getSize());
-		    flagGuess.printEntry(stream, results.fitIsGuess()?1:0);
+		    flagGuess.printEntry(stream, zero);
                     stream << "\n";
                 } else {
                     std::vector<casa::Gaussian2D<Double> > fitSet = results.fitSet();
@@ -1282,7 +1282,9 @@ namespace askap {
                         ndofFit.printEntry(stream, results.ndof());
                         npixFit.printEntry(stream, results.numPix());
                         npixObj.printEntry(stream, this->getSize());
-			flagGuess.printEntry(stream, results.fitIsGuess()?1:0);
+			float flag=0.;
+			if(results.fitIsGuess()) flag=1.;
+			flagGuess.printEntry(stream, flag);
                         stream << "\n";
                     }
                 }
