@@ -65,7 +65,7 @@ namespace askap {
             class FitResults {
                 public:
                     /// @brief Default constructor: bad fit, 0 components
-                    FitResults() {itsFitIsGood = false; itsNumGauss = 0;}
+	      FitResults() {itsFitIsGood = false; itsNumGauss = 0; itsFlagFitIsGuess=false;}
                     /// @brief Destructor
                     virtual ~FitResults() {};
                     /// @brief Copy constructor
