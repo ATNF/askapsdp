@@ -82,6 +82,7 @@ namespace askap {
 		this->itsNumPix = f.itsNumPix;
                 this->itsNumGauss = f.itsNumGauss;
                 this->itsGaussFitSet = f.itsGaussFitSet;
+		this->itsFlagFitIsGuess = f.itsFlagFitIsGuess;
                 return *this;
             }
 
@@ -96,6 +97,7 @@ namespace askap {
                 /// Gaussian fit to data.
 
                 this->itsFitIsGood = true;
+		this->itsFlagFitIsGuess = false;
                 this->itsChisq = fit.chisq();
                 this->itsRedChisq = fit.redChisq();
                 this->itsRMS = fit.RMS();
@@ -110,6 +112,34 @@ namespace askap {
 
                 for (; rfit != fitMap.rend(); rfit++)
                     this->itsGaussFitSet.push_back(fit.gaussian(rfit->second));
+            }
+            //**************************************************************//
+
+            void FitResults::saveGuess(std::vector<SubComponent> cmpntList)
+            {
+                /// @details This stores the results of a Gaussian fit,
+                /// extracting all relevant parameters and Gaussian
+                /// components.
+                /// @param fit A Fitter object that has performed a
+                /// Gaussian fit to data.
+
+                this->itsFitIsGood = false;
+		this->itsFlagFitIsGuess = true;
+                this->itsChisq = 999.;
+                this->itsRedChisq = 999.;
+                this->itsRMS = 0.;
+                this->itsNumDegOfFreedom = 0.;
+                this->itsNumFreeParam = 0.;
+                this->itsNumGauss = cmpntList.size();
+		//		this->itsNumPix = this->itsNumDegOfFreedom + this->itsNumGauss*this->itsNumFreeParam + 1;
+                // Make a map so that we can output the fitted components in order of peak flux
+                std::multimap<double, int> fitMap;
+		for (uint i = 0; i < this->itsNumGauss; i++) fitMap.insert(std::pair<double, int>(cmpntList[i].peak(), i));
+                // Need to use reverse_iterator so that brightest component's listed first
+                std::multimap<double, int>::reverse_iterator rfit = fitMap.rbegin();
+
+                for (; rfit != fitMap.rend(); rfit++)
+		  this->itsGaussFitSet.push_back(cmpntList[rfit->second].asGauss());
             }
 
             //**************************************************************//

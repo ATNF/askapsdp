@@ -31,8 +31,14 @@
 #ifndef ASKAP_ANALYSIS_COMPONENT_H_
 #define ASKAP_ANALYSIS_COMPONENT_H_
 
+#include <askap_analysis.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <iostream>
 #include <iomanip>
+#include <scimath/Functionals/Gaussian2D.h>
 
 namespace askap {
 
@@ -70,6 +76,9 @@ namespace askap {
                     double min() {return itsMinorAxis;};
                     /// @brief Returns the position angle
                     double pa() {return itsPositionAngle;};
+
+		    /// @brief Returns the component as a Gaussian2D object
+		    casa::Gaussian2D<casa::Double> asGauss();
 
                     /// @brief Set the x-pixel centre location
                     void setX(double d) {itsXpos = d;};

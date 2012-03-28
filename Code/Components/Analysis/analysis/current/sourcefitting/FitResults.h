@@ -76,6 +76,9 @@ namespace askap {
                     /// @brief Store the results from a fit attempt
                     void saveResults(Fitter &fit);
 
+		    /// @brief Store a guess as a result
+		    void saveGuess(std::vector<SubComponent> cmpntList);
+
                     /// @brief Whether the fit is good or not
                     bool  isGood() {return itsFitIsGood;};
                     /// @brief The chi-squared value of the fit;
@@ -92,6 +95,9 @@ namespace askap {
 		    int   numPix() {return itsNumPix;};
                     /// @brief The number of Gaussian components used in the fit
                     int   numGauss() {return itsNumGauss;};
+		    /// @brief Is the fit a guess or not (if not, this means it is the result of a fit).
+		    bool fitIsGuess(){return itsFlagFitIsGuess;};
+		    void setFlagFitIsGuess(bool flag){itsFlagFitIsGuess = flag;};
                     /// @brief Return the set of Gaussian fits
                     std::vector<casa::Gaussian2D<double> > fitSet() {return itsGaussFitSet;};
                     /// @brief Return a reference to the set of Gaussian fits.
@@ -138,6 +144,8 @@ namespace askap {
 		    int   itsNumPix;
                     /// @brief the number of Gaussians used in the fit
                     int   itsNumGauss;
+		    /// @brief A flag indicating whether the fit is a guess or not
+		    bool itsFlagFitIsGuess;
                     /// @brief A two-dimensional Gaussian fit to the object.
                     std::vector<casa::Gaussian2D<Double> > itsGaussFitSet;
 

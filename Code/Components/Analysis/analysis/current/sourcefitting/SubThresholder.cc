@@ -64,7 +64,6 @@ namespace askap {
 	if(this == &s) return *this;
 	this->itsFirstGuess = s.itsFirstGuess;
 	this->itsSourceBox = s.itsSourceBox;
-	this->itsNumThresholds = s.itsNumThresholds;
 	this->itsBaseThreshold = s.itsBaseThreshold;
 	this->itsThreshIncrement = s.itsThreshIncrement;
 	this->itsPeakFlux = s.itsPeakFlux;
@@ -72,6 +71,7 @@ namespace askap {
 	this->itsDim = s.itsDim;
 	this->itsFluxArray = s.itsFluxArray;
 	this->itsCurrentThreshold = s.itsCurrentThreshold;
+	this->itsFitParams = s.itsFitParams;
 	return *this;
 		
       }
@@ -88,14 +88,10 @@ namespace askap {
 	int ymin = src->boxYmin();
 	int xsize= src->boxXsize();
 	int ysize= src->boxYsize();
-	int size=xsize*ysize;
-// 	ASKAPLOG_DEBUG_STR(logger, "Primary array saving, with size = " << xsize*ysize); 
-	this->itsFluxArray = casa::Vector<float>(size);
-// 	ASKAPLOG_DEBUG_STR(logger, "Getting spatial map");
+	size_t size=xsize*ysize;
+	this->itsFluxArray = std::vector<float>(size);
 	PixelInfo::Object2D spatMap = src->getSpatialMap();
-// 	ASKAPLOG_DEBUG_STR(logger, "Initialising flux array");
-	for (int i = 0; i < size; i++) this->itsFluxArray[i] = 0.;
-// 	ASKAPLOG_DEBUG_STR(logger, "Defining flux array");
+	for (size_t i = 0; i < size; i++) this->itsFluxArray[i] = 0.;
 	for (size_t i = 0; i < f.size(); i++) {
 	  int x = int(pos(i, 0));
 	  int y = int(pos(i, 1));
@@ -105,7 +101,6 @@ namespace askap {
 	    this->itsFluxArray[loc] = float(f(i));
 	  }
 	}
-// 	ASKAPLOG_DEBUG_STR(logger, "Array defined");
 
       }
 		  
@@ -115,24 +110,37 @@ namespace askap {
 	this->itsPeakFlux = src->getPeakFlux();
 	this->itsSourceSize = src->getSize();
 				
-	this->itsDim = casa::Vector<long>(2);
+	this->itsDim = std::vector<long>(2);
 	this->itsDim[0] = src->boxXsize(); 
 	this->itsDim[1] = src->boxYsize();
 
 	this->setFirstGuess(src);
-		
-	this->itsNumThresholds = src->fitparams().numSubThresholds();
-	this->itsBaseThreshold = src->detectionThreshold() > 0 ? log10(src->detectionThreshold()) : -6.;
-	this->itsThreshIncrement = (log10(this->itsPeakFlux) - this->itsBaseThreshold) / float(this->itsNumThresholds + 1);
-	this->itsCurrentThreshold = pow(10.,this->itsBaseThreshold + this->itsThreshIncrement);
+	this->itsFitParams = src->fitparams();
+	this->itsSourceBox = src->box();
+
+	if(this->itsFitParams.flagLogarithmicIncrements()) {
+	  this->itsBaseThreshold = src->detectionThreshold() > 0 ? log10(src->detectionThreshold()) : -6.;
+	  this->itsThreshIncrement = (log10(this->itsPeakFlux) - this->itsBaseThreshold) / float(this->itsFitParams.numSubThresholds() + 1);
+	  this->itsCurrentThreshold = pow(10.,this->itsBaseThreshold + this->itsThreshIncrement);
+	}
+	else{
+	  this->itsBaseThreshold = src->detectionThreshold();
+	  this->itsThreshIncrement = (this->itsPeakFlux - this->itsBaseThreshold) / float(this->itsFitParams.numSubThresholds() + 1);
+	  this->itsCurrentThreshold = this->itsBaseThreshold + this->itsThreshIncrement;
+	}
+	// ASKAPLOG_DEBUG_STR(logger, "numSubThresholds = " << this->itsFitParams.numSubThresholds()
+	// 		   << " flagLogIncr = " << this->itsFitParams.flagLogarithmicIncrements()
+	// 		   << " baseThresh = " << this->itsBaseThreshold
+	// 		   << " threshIncr = " << this->itsThreshIncrement
+	// 		   << " currentThresh = " << this->itsCurrentThreshold);
+	  
 
 // 	std::stringstream ss;
 // 	for(int i=0;i<=this->itsNumThresholds;i++)
 // 	  ss << pow(10.,this->itsBaseThreshold+i*this->itsThreshIncrement) << " ";
 // 	ASKAPLOG_DEBUG_STR(logger, "Thresholds: " << ss.str());
 		
-	this->itsSourceBox = src->box();
-		
+	
       }
 		  
       void SubThresholder::setFirstGuess(RadioSource *src) {
@@ -148,7 +156,7 @@ namespace askap {
 	  this->itsFirstGuess.setMinor(1.);
 	}
 	else {
-	  src->getFWHMestimate(this->itsFluxArray.data(), a, b, c);
+	  src->getFWHMestimate(&(this->itsFluxArray[0]), a, b, c);
 	  this->itsFirstGuess.setPA(a);
 	  this->itsFirstGuess.setMajor(b);
 	  this->itsFirstGuess.setMinor(c);
@@ -162,13 +170,23 @@ namespace askap {
 			  
 	for (int i = 0; i < this->itsDim[0]*this->itsDim[1]; i++) {
 	  int xbox = i % this->itsDim[0];
-	  int ybox = i / this->itsDim[1];
+	  int ybox = i / this->itsDim[0];
 				  
-	  if (!obj.isInObject(xbox + this->itsSourceBox.start()[0], ybox + this->itsSourceBox.start()[1])) 
-	    this->itsFluxArray[i] = 0.;
+	  if (!obj.isInObject(xbox, ybox)) this->itsFluxArray[i] = 0.;
 	}
 			  
       }
+
+      void SubThresholder::incrementThreshold()
+      {
+	
+	if(this->itsFitParams.flagLogarithmicIncrements())
+	  this->itsCurrentThreshold *= pow(10.,this->itsThreshIncrement);
+	else
+	  this->itsCurrentThreshold += this->itsThreshIncrement;
+
+      }
+
 
       std::vector<SubComponent> SubThresholder::find() {
 		
@@ -179,26 +197,30 @@ namespace askap {
 	  return fullList;
 	}
 
-	//	int threshCtr = 0;
 	std::vector<PixelInfo::Object2D> objlist;
 	std::vector<PixelInfo::Object2D>::iterator obj;
 	bool keepGoing = true;
 
-	duchamp::Image *theImage = new duchamp::Image(this->itsDim.data());
+	duchamp::Image *theImage = new duchamp::Image(&(this->itsDim[0]));
 
 	if(this->itsFluxArray.size()>0){
-	  ASKAPCHECK(int(this->itsFluxArray.size()) == (this->itsDim[0]*this->itsDim[1]), "Size of flux array ("<<this->itsFluxArray.size()<<") doesn't match dimensions ("<<this->itsDim[0]<<"x"<<this->itsDim[1]<<"="<<this->itsDim[0]*this->itsDim[1]<<")!");
-	  theImage->saveArray(this->itsFluxArray.data(), this->itsFluxArray.size());	
+	  ASKAPCHECK(int(this->itsFluxArray.size()) == (this->itsDim[0]*this->itsDim[1]), 
+		     "Size of flux array ("<<this->itsFluxArray.size()<<") doesn't match dimension ("
+		     <<this->itsDim[0]<<"x"<<this->itsDim[1]<<"="<<this->itsDim[0]*this->itsDim[1]<<")!");
+	  theImage->saveArray(&(this->itsFluxArray[0]), this->itsFluxArray.size());	
 	}
 	theImage->setMinSize(1);
 		
 	while(this->itsCurrentThreshold <= this->itsPeakFlux && keepGoing) {
 	  theImage->stats().setThreshold(this->itsCurrentThreshold);
 	  objlist = theImage->findSources2D();
-// 	  ASKAPLOG_DEBUG_STR(logger, this->itsCurrentThreshold << " " << this->itsBaseThreshold << " " 
-// 			     << this->itsThreshIncrement<< " " << objlist.size() << " " << this->itsPeakFlux );
+ 	  // ASKAPLOG_DEBUG_STR(logger, this->itsCurrentThreshold << " " << this->itsBaseThreshold << " " 
+ 	  // 		     << this->itsThreshIncrement<< " " << objlist.size() << " " << this->itsPeakFlux << " " 
+	  // 		     << this->itsFitParams.numSubThresholds() << " " 
+	  // 		     //			     << *std::max_element(this->itsFluxArray,this->itsFluxArray+this->itsArraySize));
+	  // 		     << *std::max_element(this->itsFluxArray.begin(),this->itsFluxArray.end()));
 	  keepGoing = (objlist.size() == 1);
-	  this->itsCurrentThreshold *= pow(10.,this->itsThreshIncrement);
+	  this->incrementThreshold();
 	}
 
 	delete theImage;
@@ -209,17 +231,15 @@ namespace askap {
 	    fullList.push_back(this->itsFirstGuess);
 	  }
 	  else {
-	    FittingParameters baseParams;
-	    baseParams.setNumSubThresholds(this->itsNumThresholds);
-	    
+
 	    for (obj = objlist.begin(); obj < objlist.end(); obj++) {
 	      
 	      RadioSource *src = new RadioSource;
 	      src->addChannel(0, *obj);
-	      src->setFitParams(baseParams);
+	      src->setFitParams(this->itsFitParams);
 	      src->setDetectionThreshold(this->itsCurrentThreshold);
 	      src->setBox(this->itsSourceBox);
-	      src->calcFluxes(this->itsFluxArray.data(),this->itsDim.data());
+	      src->calcFluxes(&(this->itsFluxArray[0]),&(this->itsDim[0]));
 	      duchamp::Param par;
 	      par.setXOffset(this->itsSourceBox.start()[0]);
 	      par.setYOffset(this->itsSourceBox.start()[1]);
@@ -228,7 +248,10 @@ namespace askap {
 	      SubThresholder *newthresher = new SubThresholder(*this);
 	      newthresher->setFirstGuess(src);
 	      newthresher->keepObject(*obj);
+	      // ASKAPLOG_DEBUG_STR(logger, "Finding new subcmpnt list for object at "<<src->getXPeak() << " " << src->getYPeak() <<" with peak " << src->getPeakFlux());
+	      //	      ASKAPLOG_DEBUG_STR(logger, *obj);
 	      std::vector<SubComponent> newlist = newthresher->find();
+	      // ASKAPLOG_DEBUG_STR(logger, "Object at  "<<src->getXPeak() << " " << src->getYPeak() << " had " << newlist.size() << "sub cmpnts");
 	      delete newthresher;
 	      delete src;
 	      for (uInt i = 0; i < newlist.size(); i++) fullList.push_back(newlist[i]);

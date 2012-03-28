@@ -48,7 +48,7 @@ namespace askap {
 		
 			class SubThresholder {
 			public:
-				SubThresholder(){};
+			  SubThresholder(){};
 				virtual ~SubThresholder();
 				SubThresholder(const SubThresholder &s);
 				SubThresholder& operator=(const SubThresholder &s);
@@ -57,24 +57,24 @@ namespace askap {
 				void define(RadioSource *r);
 				void setFirstGuess(RadioSource *src);
 				std::vector<SubComponent> find();
-				
+				void incrementThreshold();
+
 				void saveArray(RadioSource *src, casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
 				void keepObject(PixelInfo::Object2D &obj);
 
 				
 			protected:
 				SubComponent itsFirstGuess;
-				casa::Vector<float> itsFluxArray;
-				casa::Vector<long> itsDim;
+				std::vector<float> itsFluxArray;
+				std::vector<long> itsDim;
 				casa::Slicer itsSourceBox;
-				int itsNumThresholds;
 				float itsBaseThreshold;
 				float itsThreshIncrement;
 				float itsPeakFlux;
 				float itsCurrentThreshold;
 				int itsSourceSize;
-				
-				};
+				FittingParameters itsFitParams;
+			};
 		
 		}
 		

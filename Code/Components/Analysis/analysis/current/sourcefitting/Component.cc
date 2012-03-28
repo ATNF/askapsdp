@@ -28,9 +28,18 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
 
+#include <askap_analysis.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <sourcefitting/Component.h>
 #include <iostream>
 #include <iomanip>
+#include <scimath/Functionals/Gaussian2D.h>
+
+///@brief Where the log messages go.
+ASKAP_LOGGER(logger, ".component");
 
 namespace askap {
 
@@ -62,13 +71,30 @@ namespace askap {
                 return lhs.itsPeakFlux < rhs.itsPeakFlux;
             }
 
+	  casa::Gaussian2D<casa::Double> SubComponent::asGauss()
+	  {
+	    float axialRatio,axis;
+	    if(this->itsMajorAxis>0) axialRatio = this->itsMinorAxis / this->itsMajorAxis;
+	    else axialRatio = 1.;
+	    axis=this->itsMajorAxis;
+	    if(axialRatio > 1){
+	      axialRatio = 1./axialRatio;
+	      axis=this->itsMinorAxis;
+	    }
+	    axis = std::max(1.e-10f,axis);
+	    // ASKAPLOG_DEBUG_STR(logger, "component " << *this << " has axial ratio " << axialRatio);
+	    casa::Gaussian2D<casa::Double> gauss(this->itsPeakFlux,this->itsXpos,this->itsYpos, axis, axialRatio, this->itsPositionAngle);
+	    return gauss;
+
+	  }
+
             std::ostream& operator<< (std::ostream& theStream, SubComponent& c)
             {
                 /// @details Output the key parameter values to the stream. The flux has a precision of 8 and the rest a precision of 3.
                 theStream.setf(std::ios::fixed);
                 theStream << std::setprecision(8);
                 theStream << c.itsPeakFlux << " ";
-                theStream << std::setprecision(3);
+                theStream << std::setprecision(6);
                 theStream << c.itsXpos << " " << c.itsYpos << " "
                     << c.itsMajorAxis << " " << c.itsMinorAxis << " " << c.itsPositionAngle;
                 return theStream;

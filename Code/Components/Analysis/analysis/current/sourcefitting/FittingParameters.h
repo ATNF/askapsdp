@@ -89,8 +89,8 @@ namespace askap {
             /// @brief Default value for the maxRetries parameters used by casa::fitGaussian
             const int defaultMaxRetries = 0;
 
-            const std::string availableFitTypesArray[4] = {"full", "psf", "shape", "height"};
-            const std::vector<std::string> availableFitTypes(availableFitTypesArray, availableFitTypesArray + 4);
+            const std::string availableFitTypesArray[5] = {"full", "psf", "shape", "height","guess"};
+            const std::vector<std::string> availableFitTypes(availableFitTypesArray, availableFitTypesArray + 5);
             const std::string defaultFitTypesArray[2] = {"full", "psf"};
             const std::vector<std::string> defaultFitTypes(defaultFitTypesArray, defaultFitTypesArray + 2);
 
@@ -152,6 +152,7 @@ namespace askap {
                     void setPeakFlux(float f) {itsSrcPeak = f;};
                     void setDetectThresh(float f) {itsDetectThresh = f;};
                     void setNumSubThresholds(int i) {itsNumSubThresholds = i;};
+		    void setFlagLogarithmicIncrements(bool b){itsFlagLogarithmicIncrements = b;};
                     void setMinFitSize(unsigned int i) {itsMinFitSize = i;};
                     void setBeamSize(float f) {itsBeamSize = f;};
                     void setMaxRetries(int i) {itsMaxRetries = i;};
@@ -161,6 +162,7 @@ namespace askap {
                     void setFlagFitThisParam(int i, bool b) {itsFlagFitThisParam[i] = b;};
                     void setFlagFitThisParam(std::string type);
 		    void setStopAfterFirstGoodFit(bool b){itsStopAfterFirstGoodFit = b;};
+		    void setUseGuessIfBad(bool b){itsUseGuessIfBad = b;};
                     void setNegativeFluxPossible(bool b) {itsNegativeFluxPossible = b;};
 		    void setFitTypes(std::vector<std::string> types){itsFitTypes = types;};
 
@@ -175,12 +177,14 @@ namespace askap {
 		    float  peakFlux(){return itsSrcPeak;};
                     unsigned int   minFitSize() {return itsMinFitSize;};
                     int    numSubThresholds() {return itsNumSubThresholds;};
+		    bool   flagLogarithmicIncrements(){return itsFlagLogarithmicIncrements;}
                     float  beamSize() {return itsBeamSize;};
                     int    maxRetries() {return itsMaxRetries;};
                     Double criterium() {return itsCriterium;};
                     uInt   maxIter() {return itsMaxIter;};
                     bool   useNoise() {return itsUseNoise;};
 		    bool   stopAfterFirstGoodFit(){return itsStopAfterFirstGoodFit;};
+		    bool   useGuessIfBad(){return itsUseGuessIfBad;};
                     bool   flagFitThisParam(int i) {return itsFlagFitThisParam[i];};
                     bool   negativeFluxPossible() {return itsNegativeFluxPossible;};
 
@@ -244,6 +248,8 @@ namespace askap {
 
                     /// @brief The number of subthresholds used for finding subcomponents
                     int itsNumSubThresholds;
+		    /// @brief Whether the subtresholds should be a constant separation in log space
+		    bool itsFlagLogarithmicIncrements;
 
                     /// @brief The beam size in the image, using BMIN
                     float itsBeamSize;
@@ -265,6 +271,9 @@ namespace askap {
 
 		    /// @brief Do we stop after first good fit, or do all fits up to maxNumGauss?
 		    bool itsStopAfterFirstGoodFit;
+
+		    /// @brief If there is no good fit, should we use the guesses instead?
+		    bool itsUseGuessIfBad;
 
                     /// @brief The extent of the box surrounding the object used for the fitting
                     /// @{

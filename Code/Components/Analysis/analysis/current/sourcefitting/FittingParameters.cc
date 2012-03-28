@@ -73,9 +73,12 @@ namespace askap {
 
                 return false;
             }
+	  
+	  
 
             FittingParameters::FittingParameters(const LOFAR::ParameterSet& parset)
             {
+	      ASKAPLOG_DEBUG_STR(logger, "Parset used by FittingParameters = \n"<<parset);
                 this->itsMaxRMS = parset.getDouble("maxRMS", defaultMaxRMS);
                 this->itsMaxNumGauss = parset.getInt32("maxNumGauss", defaultMaxNumFittedGauss);
                 this->itsBoxPadSize = parset.getInt32("boxPadSize", defaultBoxPadSize);
@@ -84,11 +87,13 @@ namespace askap {
                 this->itsNoiseBoxSize = parset.getInt32("noiseBoxSize", defaultNoiseBoxSize);
                 this->itsMinFitSize = parset.getInt32("minFitSize", defaultMinFitSize);
                 this->itsNumSubThresholds = parset.getInt32("numSubThresholds", defaultNumSubThresholds);
+		this->itsFlagLogarithmicIncrements = parset.getBool("logarithmicThresholds",true);
                 this->itsMaxRetries = parset.getInt32("maxRetries", defaultMaxRetries);
                 this->itsCriterium = parset.getDouble("criterium", 0.0001);
                 this->itsMaxIter = parset.getUint32("maxIter", 1024);
                 this->itsUseNoise = parset.getBool("useNoise", true);
 		this->itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", false);
+		this->itsUseGuessIfBad = parset.getBool("useGuessIfBad",false);
                 this->itsFlagFitThisParam = std::vector<bool>(6, true);
 		this->itsUseBoxFlux = true;
 
@@ -141,12 +146,14 @@ namespace askap {
                 this->itsSrcPeak = f.itsSrcPeak;
                 this->itsDetectThresh = f.itsDetectThresh;
                 this->itsNumSubThresholds = f.itsNumSubThresholds;
+		this->itsFlagLogarithmicIncrements = f.itsFlagLogarithmicIncrements;
                 this->itsBeamSize = f.itsBeamSize;
                 this->itsMaxRetries = f.itsMaxRetries;
                 this->itsCriterium = f.itsCriterium;
                 this->itsMaxIter = f.itsMaxIter;
                 this->itsUseNoise = f.itsUseNoise;
 		this->itsStopAfterFirstGoodFit = f.itsStopAfterFirstGoodFit;
+		this->itsUseGuessIfBad = f.itsUseGuessIfBad;
                 this->itsFlagFitThisParam = f.itsFlagFitThisParam;
                 this->itsFitTypes = f.itsFitTypes;
                 return *this;

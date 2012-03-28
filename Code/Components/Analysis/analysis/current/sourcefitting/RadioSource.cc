@@ -432,35 +432,35 @@ namespace askap {
 		subThresh.define(this, pos,f);
 		std::vector<SubComponent> cmpntlist = subThresh.find();
  
-		// get distance between average centre and peak location
-		float dx = this->getXaverage() - this->getXPeak();
-                float dy = this->getYaverage() - this->getYPeak();
-
-                if (hypot(dx, dy) > 2.) {
-// 		  ASKAPLOG_DEBUG_STR(logger, "Using antipus with " << cmpntlist.size() << " subcomponents");
-// 		  ASKAPLOG_DEBUG_STR(logger, "Component 0 = " << cmpntlist[0]);
-		  // if this distance is suitably small, add two more
-		  // subcomponents: the "antipus", being the
-		  // rotational reflection of the peak about the
-		  // average centre; and the peak itself.
-                    SubComponent antipus;
-                    antipus.setPA(cmpntlist[0].pa());
-                    antipus.setMajor(cmpntlist[0].maj());
-                    antipus.setMinor(cmpntlist[0].min());
-                    antipus.setX(this->getXPeak() + dx);
-                    antipus.setY(this->getYPeak() + dy);
-		    antipus.setPeak(this->getPeakFlux());
-		    cmpntlist.push_back(antipus);
+//		// get distance between average centre and peak location
+//		float dx = this->getXaverage() - this->getXPeak();
+//                float dy = this->getYaverage() - this->getYPeak();
+//
+//                 if (hypot(dx, dy) > 2.) {
+// // 		  ASKAPLOG_DEBUG_STR(logger, "Using antipus with " << cmpntlist.size() << " subcomponents");
+// // 		  ASKAPLOG_DEBUG_STR(logger, "Component 0 = " << cmpntlist[0]);
+// 		  // if this distance is suitably small, add two more
+// 		  // subcomponents: the "antipus", being the
+// 		  // rotational reflection of the peak about the
+// 		  // average centre; and the peak itself.
+//                     SubComponent antipus;
+//                     antipus.setPA(cmpntlist[0].pa());
+//                     antipus.setMajor(cmpntlist[0].maj());
+//                     antipus.setMinor(cmpntlist[0].min());
+//                     antipus.setX(this->getXPeak() + dx);
+//                     antipus.setY(this->getYPeak() + dy);
+// 		    antipus.setPeak(this->getPeakFlux());
+// 		    cmpntlist.push_back(antipus);
 		    
-                    SubComponent centre;
-                    centre.setPA(antipus.pa());
-                    centre.setMajor(antipus.maj());
-                    centre.setMinor(antipus.min());
-                    centre.setX(this->getXPeak());
-                    centre.setY(this->getYPeak());
-		    centre.setPeak(this->getPeakFlux());
-		    cmpntlist.push_back(centre);
-		}
+//                     SubComponent centre;
+//                     centre.setPA(antipus.pa());
+//                     centre.setMajor(antipus.maj());
+//                     centre.setMinor(antipus.min());
+//                     centre.setX(this->getXPeak());
+//                     centre.setY(this->getYPeak());
+// 		    centre.setPeak(this->getPeakFlux());
+// 		    cmpntlist.push_back(centre);
+// 		}
 
                 return cmpntlist;
             }
@@ -846,6 +846,7 @@ namespace askap {
                 this->itsFitParams.saveBox(this->itsBox);
                 this->itsFitParams.setPeakFlux(this->peakFlux);
                 this->itsFitParams.setDetectThresh(this->itsDetectionThreshold);
+		ASKAPLOG_DEBUG_STR(logger, "numSubThresh="<<this->itsFitParams.numSubThresholds());
 
                 ASKAPLOG_INFO_STR(logger, "detect threshold = " << this->itsDetectionThreshold
                                        << ",  peak flux = " << this->peakFlux
@@ -868,14 +869,15 @@ namespace askap {
                         ASKAPLOG_INFO_STR(logger, "Commencing fits of type \"" << *type << "\"");
                         this->itsFitParams.setFlagFitThisParam(*type);
 
+			std::vector<SubComponent> cmpntListCopy(cmpntList);
                         if (*type == "psf") {
                             for (size_t i = 0; i < cmpntList.size(); i++) {
 			      //cmpntList[i].setMajor(this->itsHeader.beam().area());
 			      //cmpntList[i].setMinor(this->itsHeader.beam().area());			      
 			      //cmpntList[i].setPA(0.);
-                                cmpntList[i].setMajor(this->itsHeader.beam().maj());
-                                cmpntList[i].setMinor(this->itsHeader.beam().min());			      
-                                cmpntList[i].setPA(this->itsHeader.beam().pa()*M_PI/180.);
+                                cmpntListCopy[i].setMajor(this->itsHeader.beam().maj());
+                                cmpntListCopy[i].setMinor(this->itsHeader.beam().min());			      
+                                cmpntListCopy[i].setPA(this->itsHeader.beam().pa()*M_PI/180.);
                             }
                         }
 
@@ -894,19 +896,20 @@ namespace askap {
 
                             fit[ctr].setParams(this->itsFitParams);
                             fit[ctr].setNumGauss(g);
-                            fit[ctr].setEstimates(cmpntList, this->itsHeader);
+                            fit[ctr].setEstimates(cmpntListCopy, this->itsHeader);
                             fit[ctr].setRetries();
                             fit[ctr].setMasks();
 			    fitPossible = fit[ctr].fit(pos, f, sigma);
+			    bool acceptable = fit[ctr].acceptable();
 
-                            if (fitPossible && fit[ctr].acceptable()) {
+                            if (fitPossible && acceptable) {
                                 if ((ctr == 0) || (fit[ctr].redChisq() < bestRChisq)) {
                                     fitIsGood = true;
                                     bestFit = ctr;
                                     bestRChisq = fit[ctr].redChisq();
                                 }
                             }
-			    stopNow = this->itsFitParams.stopAfterFirstGoodFit() && fit[ctr].acceptable();
+			    stopNow = this->itsFitParams.stopAfterFirstGoodFit() && acceptable;
                             ctr++;
                         } // end of 'g' for-loop
 
@@ -933,7 +936,16 @@ namespace askap {
 		    this->itsBestFitMap["best"].logIt("INFO");
                 } else {
                     this->hasFit = false;
-                    ASKAPLOG_INFO_STR(logger, "No good fit found.");
+		    if(this->itsFitParams.useGuessIfBad()){
+		      this->itsBestFitType = "guess";
+		      FitResults guess;
+		      guess.saveGuess(cmpntList);
+		      this->itsBestFitMap["guess"] = guess;
+		      this->itsBestFitMap["best"] = guess;
+		      ASKAPLOG_INFO_STR(logger, "No good fit found, so saving initial guess as the fit result");
+		      this->itsBestFitMap["best"].logIt("INFO");
+		    }
+                    else ASKAPLOG_INFO_STR(logger, "No good fit found.");
                 }
 
                 ASKAPLOG_INFO_STR(logger, "-----------------------");
@@ -975,19 +987,13 @@ namespace askap {
 
                     std::vector<std::string>::iterator type;
                     std::vector<std::string> typelist = availableFitTypes;
+		    typelist.push_back("best");
 
                     for (type = typelist.begin(); type < typelist.end(); type++) {
-		      if(term==1)
-                        this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
-		      else if(term==2)
-                        this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
+		      if(term==1)     this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
+		      else if(term==2) this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
+		      
                     }
-
-		    if(term==1)
-		      this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
-		    else if(term==2)
-		      this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
-
 
                 } else {
 
@@ -1130,6 +1136,7 @@ namespace askap {
                 duchamp::Column::Col ndofFit("NDoF(fit)", "", 10, 0);
                 duchamp::Column::Col npixFit("NPix(fit)", "", 10, 0);
                 duchamp::Column::Col npixObj("NPix(obj)", "", 10, 0);
+		duchamp::Column::Col flagGuess("Guess?","",7,0);
 
                 if (doHeader) {
                     stream << "#";
@@ -1158,6 +1165,7 @@ namespace askap {
                     ndofFit.printTitle(stream);
                     npixFit.printTitle(stream);
                     npixObj.printTitle(stream);
+		    flagGuess.printTitle(stream);
                     stream << "\n";
                     int width = columns[duchamp::Column::NUM].getWidth() +
                                 columns[duchamp::Column::RAJD].getWidth() +
@@ -1186,7 +1194,7 @@ namespace askap {
 
                 columns[duchamp::Column::NUM].widen(); // to account for the # characters at the start of the title lines
 
-                if (!results.isGood()) { //if no fits were made...
+                if (!results.isGood() && !results.fitIsGuess()) { //if no fits were made, and we haven't got a guess stored
                     float zero = 0.;
                     columns[duchamp::Column::NUM].printEntry(stream, this->getID());
 		    columns[duchamp::Column::NAME].printEntry(stream, this->getName());
@@ -1213,6 +1221,7 @@ namespace askap {
                     ndofFit.printEntry(stream, zero);
                     npixFit.printEntry(stream, zero);
                     npixObj.printEntry(stream, this->getSize());
+		    flagGuess.printEntry(stream, results.fitIsGuess()?1:0);
                     stream << "\n";
                 } else {
                     std::vector<casa::Gaussian2D<Double> > fitSet = results.fitSet();
@@ -1220,9 +1229,9 @@ namespace askap {
                     std::vector<float>::iterator alphaIter = this->itsAlphaMap[fittype].begin();
                     std::vector<float>::iterator betaIter = this->itsBetaMap[fittype].begin();
                     ASKAPCHECK(fitSet.size() == this->itsAlphaMap[fittype].size(),
-                               "Sizes of fitSet (" << fitSet.size() << ") and alpha Set (" << this->itsAlphaMap[fittype].size() << ") don't match!");
+                               "Sizes of fitSet (" << fitSet.size() << ") and alpha Set (" << this->itsAlphaMap[fittype].size() << ") for fittype '" << fittype << "' don't match!");
                     ASKAPCHECK(fitSet.size() == this->itsBetaMap[fittype].size(),
-                               "Sizes of fitSet (" << fitSet.size() << ") and beta Set (" << this->itsBetaMap[fittype].size() << ") don't match!");
+                               "Sizes of fitSet (" << fitSet.size() << ") and beta Set (" << this->itsBetaMap[fittype].size() << ") for fittype '" << fittype << "' don't match!");
 
                     for (; fit < fitSet.end(); fit++, alphaIter++, betaIter++) {
 
@@ -1271,6 +1280,7 @@ namespace askap {
                         ndofFit.printEntry(stream, results.ndof());
                         npixFit.printEntry(stream, results.numPix());
                         npixObj.printEntry(stream, this->getSize());
+			flagGuess.printEntry(stream, results.fitIsGuess()?1:0);
                         stream << "\n";
                     }
                 }
