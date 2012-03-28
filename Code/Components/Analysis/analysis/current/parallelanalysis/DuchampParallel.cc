@@ -1007,6 +1007,7 @@ namespace askap {
 	    std::vector<std::string>::iterator fittype;
 	    std::vector<std::string> fittypelist = sourcefitting::availableFitTypes;
 	    fittypelist.push_back("best");
+	    fittypelist.push_back("guess");
 
 	    for (int i = 1; i < itsComms.nProcs(); i++) {
 	      itsComms.receiveBlob(bs, i);
@@ -1033,7 +1034,7 @@ namespace askap {
 
 		// Correct the offsets for the fitted components
 		for (fittype = fittypelist.begin(); fittype < fittypelist.end(); fittype++) {
-		  if(this->itsFitParams.hasType(*fittype)){
+		  if(this->itsFitParams.hasType(*fittype) || *fittype=="best" || *fittype=="guess"){
 		    for (unsigned int f = 0; f < src.fitset(*fittype).size(); f++) {
 		      src.fitset(*fittype)[f].setXcenter(src.fitset(*fittype)[f].xCenter() + src.getXOffset());
 		      src.fitset(*fittype)[f].setYcenter(src.fitset(*fittype)[f].yCenter() + src.getYOffset());
