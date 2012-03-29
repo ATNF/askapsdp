@@ -744,11 +744,20 @@ namespace askap {
                 wcs->equinox = double(equinox);
             }
 
-            if (hdr.isDefined("restfreq")) {
-                RecordFieldId restfreqID("restfreq");
-                Double restfreq = hdr.asDouble(restfreqID);
-                wcs->restfrq = double(restfreq);
-            }
+	    // if (hdr.isDefined("restfreq")) {
+            //     RecordFieldId restfreqID("restfreq");
+            //     Double restfreq = hdr.asDouble(restfreqID);
+            //     wcs->restfrq = double(restfreq);
+            // }
+	    // // ***IMPORTANT***
+	    // // casacore-1.4.0 changes "restfreq" to "restfrq", in line
+	    // // with FITS standard v3.0
+	    // // perhaps better to use the abstract access via the SpectralCoordinate
+ 	    int specCoord = coords.findCoordinate(Coordinate::SPECTRAL);
+	    if(coords.spectralCoordinate(specCoord).restFrequency()>0.01){
+	      wcs->restfrq = coords.spectralCoordinate(specCoord).restFrequency();
+	    }
+
 
             if (hdr.isDefined("restwave")) {
                 RecordFieldId restwaveID("restwave");
