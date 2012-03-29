@@ -73,6 +73,7 @@ Cimager.Images.image.field1.direction	        = [12h30m00.00, -45.00.00.00, J200
 #
 #Cimager.gridder                          	= WProject
 #Cimager.gridder                          	= WStack
+Cimager.sphfuncforpsf                           = true
 Cimager.gridder.WProject.wmax                   = 30000
 Cimager.gridder.WProject.nwplanes               = 33
 Cimager.gridder.WProject.oversample             = 8

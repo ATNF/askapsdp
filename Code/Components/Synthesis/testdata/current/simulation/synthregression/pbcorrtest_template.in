@@ -73,6 +73,7 @@ Cimager.Images.image.field1.polarisation       = ["I"]
 Cimager.Images.image.field1.direction          = [12h30m00.00, -45.00.00.00, J2000]
 
 #
+Cimager.sphfuncforpsf                           = true
 Cimager.gridder                                 = AWProject
 Cimager.gridder.AProjectWStack.freqtolerance   = infinite
 Cimager.gridder.AProjectWStack.wmax             = 30000
