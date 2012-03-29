@@ -190,7 +190,10 @@ namespace askap
         ASKAPCHECK(gridder(), "Gridder not defined");
         if (!itsSolutionSource) {
             ASKAPLOG_INFO_STR(logger, "No calibration is applied" );
-            itsEquation = askap::scimath::Equation::ShPtr(new ImageFFTEquation (*itsModel, it, gridder()));
+            boost::shared_ptr<ImageFFTEquation> fftEquation(new ImageFFTEquation (*itsModel, it, gridder()));
+            ASKAPDEBUGASSERT(fftEquation);
+            fftEquation->useSphFuncForPSF(parset().getBool("sphfuncforpsf", false));
+            itsEquation = fftEquation;
         } else {
             ASKAPLOG_INFO_STR(logger, "Calibration will be performed using solution source");
             boost::shared_ptr<ICalibrationApplicator> calME(new CalibrationApplicatorME(itsSolutionSource));
@@ -200,8 +203,11 @@ namespace askap
             calME->allowFlag(parset().getBool("calibrate.allowflag",false));
             //
             IDataSharedIter calIter(new CalibrationIterator(it,calME));
-            itsEquation = askap::scimath::Equation::ShPtr(
+            boost::shared_ptr<ImageFFTEquation> fftEquation(
                           new ImageFFTEquation (*itsModel, calIter, gridder()));
+            ASKAPDEBUGASSERT(fftEquation);
+            fftEquation->useSphFuncForPSF(parset().getBool("sphfuncforpsf", false));
+            itsEquation = fftEquation;
         }
       }
       else {

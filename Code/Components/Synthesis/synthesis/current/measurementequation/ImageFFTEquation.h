@@ -112,6 +112,16 @@ namespace askap
         /// measurement equations are converted to work with accessors.
         /// @param idi shared pointer to a new iterator
         void setIterator(accessors::IDataSharedIter& idi);
+
+
+        /// @brief define whether the default spheroidal function gridder is used for PSF
+        /// @details We have an option to build PSF using the default spheriodal function
+        /// gridder, i.e. no w-term and no primary beam is simulated, as an alternative 
+        /// to the same user-defined gridder as used for the model. Apart from the speed, 
+        /// it probably makes the overall approximation better (i.e. removes some factors 
+        /// of spatial dependence).
+        /// @param[in] useSphFunc true, if spheroidal function gridder is to be used for PSF
+        void useSphFuncForPSF(bool useSphFunc);
         
       private:
       
@@ -146,7 +156,13 @@ namespace askap
         bool notYetDegridded(const std::string &name) const;
         
         void init();
-
+        
+        /// @brief true, if the PSF is built using the default spheroidal function gridder
+        /// @details We have an option to build PSF using the default spheriodal function
+        /// gridder, i.e. no w-term and no primary beam is simulated. Apart from speed, 
+        /// it probably makes the approximation better (i.e. removes some factors of spatial 
+        /// dependence).
+        bool itsSphFuncPSFGridder;
 
     };
 

@@ -63,7 +63,7 @@ namespace askap
 
     ImageFFTEquation::ImageFFTEquation(const askap::scimath::Params& ip,
         IDataSharedIter& idi) : scimath::Equation(ip),
-      askap::scimath::ImagingEquation(ip), itsIdi(idi)
+      askap::scimath::ImagingEquation(ip), itsIdi(idi), itsSphFuncPSFGridder(false)
     {
       itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
       init();
@@ -71,7 +71,7 @@ namespace askap
     
 
     ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi) :
-      itsIdi(idi)
+      itsIdi(idi), itsSphFuncPSFGridder(false)
     {
       itsGridder = IVisGridder::ShPtr(new SphFuncVisGridder());
       reference(defaultParameters().clone());
@@ -80,7 +80,7 @@ namespace askap
 
     ImageFFTEquation::ImageFFTEquation(const askap::scimath::Params& ip,
         IDataSharedIter& idi, IVisGridder::ShPtr gridder) : scimath::Equation(ip),
-      askap::scimath::ImagingEquation(ip), itsGridder(gridder), itsIdi(idi)
+      askap::scimath::ImagingEquation(ip), itsGridder(gridder), itsIdi(idi), itsSphFuncPSFGridder(false)
     {
       init();
     }
@@ -88,7 +88,7 @@ namespace askap
 
     ImageFFTEquation::ImageFFTEquation(IDataSharedIter& idi,
         IVisGridder::ShPtr gridder) :
-      itsGridder(gridder), itsIdi(idi)
+      itsGridder(gridder), itsIdi(idi), itsSphFuncPSFGridder(false)
     {
       reference(defaultParameters().clone());
       init();
@@ -97,6 +97,19 @@ namespace askap
     ImageFFTEquation::~ImageFFTEquation()
     {
     }
+    
+    /// @brief define whether the default spheroidal function gridder is used for PSF
+    /// @details We have an option to build PSF using the default spheriodal function
+    /// gridder, i.e. no w-term and no primary beam is simulated, as an alternative 
+    /// to the same user-defined gridder as used for the model. Apart from the speed, 
+    /// it probably makes the overall approximation better (i.e. removes some factors 
+    /// of spatial dependence).
+    /// @param[in] useSphFunc true, if spheroidal function gridder is to be used for PSF
+    void ImageFFTEquation::useSphFuncForPSF(bool useSphFunc)
+    {
+      itsSphFuncPSFGridder = useSphFunc;
+    }
+    
 
     askap::scimath::Params ImageFFTEquation::defaultParameters()
     {
@@ -118,6 +131,7 @@ namespace askap
         static_cast<askap::scimath::Equation*>(this)->operator=(other);
         itsIdi=other.itsIdi;
         itsGridder = other.itsGridder;
+        itsSphFuncPSFGridder = other.itsSphFuncPSFGridder;
       }
       return *this;
     }
@@ -254,7 +268,12 @@ namespace askap
           itsResidualGridders[imageName]=itsGridder->clone();
         }
         if(itsPSFGridders.count(imageName)==0) {
-          itsPSFGridders[imageName]=itsGridder->clone();
+          if (itsSphFuncPSFGridder) {
+             boost::shared_ptr<SphFuncVisGridder> psfGridder(new SphFuncVisGridder);
+             itsPSFGridders[imageName] = psfGridder;
+          } else {
+             itsPSFGridders[imageName] = itsGridder->clone();
+          }
         }
       }
       // Now we initialise appropriately
