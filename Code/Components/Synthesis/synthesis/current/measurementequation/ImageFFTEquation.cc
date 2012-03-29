@@ -108,6 +108,11 @@ namespace askap
     void ImageFFTEquation::useSphFuncForPSF(bool useSphFunc)
     {
       itsSphFuncPSFGridder = useSphFunc;
+      if (itsSphFuncPSFGridder) {
+         ASKAPLOG_INFO_STR(logger, "The default spheroidal function gridder will be used to calculate PSF");
+      } else {
+         ASKAPLOG_INFO_STR(logger, "The PSF will be calculated by the same gridder type as used for the model and residuals");
+      }
     }
     
 
