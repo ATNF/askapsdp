@@ -179,6 +179,7 @@ namespace askap {
                 blob << result.itsNumFreeParam;
                 blob << result.itsNumPix;
                 blob << result.itsNumGauss;
+		blob << result.itsFlagFitIsGuess;
                 uint32 i = result.itsGaussFitSet.size(); blob << i;
                 std::vector<casa::Gaussian2D<Double> >::iterator fit = result.itsGaussFitSet.begin();
 
@@ -208,7 +209,8 @@ namespace askap {
                 blob >> result.itsNumFreeParam;
                 blob >> result.itsNumPix;
                 blob >> result.itsNumGauss;
-                uint32 i, size;
+ 		blob >> result.itsFlagFitIsGuess;
+               uint32 i, size;
                 blob >> size;
                 result.itsGaussFitSet.clear();
 
