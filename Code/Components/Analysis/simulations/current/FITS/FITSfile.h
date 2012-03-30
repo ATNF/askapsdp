@@ -183,6 +183,8 @@ namespace askap {
                     casa::Unit itsSourceFluxUnits;
                     /// @brief The units of the major & minor axes for the sources in the catalogue
                     casa::Unit itsAxisUnits;
+		    /// @brief Whether to integrate gaussians over pixels to find the flux in a pixel
+		    bool itsFlagIntegrateGaussians;
 
                     /// @brief The array of pixel fluxes
                     float *itsArray;

@@ -142,6 +142,7 @@ namespace askap {
 	this->itsPAunits = f.itsPAunits;
 	this->itsSourceFluxUnits = f.itsSourceFluxUnits;
 	this->itsAxisUnits = f.itsAxisUnits;
+	this->itsFlagIntegrateGaussians = f.itsFlagIntegrateGaussians;
 	this->itsNumPix = f.itsNumPix;
 
 	if (this->itsArrayAllocated) {
@@ -267,6 +268,11 @@ namespace askap {
 	this->itsPosType = parset.getString("posType", "dms");
 	this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
 	this->itsPAunits = casa::Unit(parset.getString("PAunits", "rad"));
+
+	this->itsFlagIntegrateGaussians = parset.getBool("integrateGaussians",true);
+	// For the Selavy case, we want to default to false, unless specified in the parset.
+	if(this->itsDatabaseOrigin == "Selavy" && !parset.isDefined("integrateGaussians")) 
+	  this->itsFlagIntegrateGaussians = false;
 
 	if (this->itsPAunits != "rad" && this->itsPAunits != "deg") {
 	  ASKAPLOG_WARN_STR(logger, "Input parameter PAunits needs to be *either* 'rad' *or* 'deg'. Setting to rad.");
@@ -805,7 +811,7 @@ namespace askap {
 // 		  ASKAPLOG_DEBUG_STR(logger, "Gaussian source: " << gauss);
 
 		  if (!this->itsDryRun){
-		    addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen);
+		    addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen, this->itsFlagIntegrateGaussians);
 		  }
 		  else{
 		    addedSource=doAddGaussian(this->itsAxes, gauss);

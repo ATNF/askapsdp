@@ -268,7 +268,7 @@ namespace askap {
       }
 
 
-        bool addGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen)
+      bool addGaussian(float *array, std::vector<unsigned int> axes, casa::Gaussian2D<casa::Double> gauss, FluxGenerator &fluxGen, bool integrate)
         {
             /// @details Adds the flux of a given 2D Gaussian to the pixel
             /// array.  Only look at pixels within a box defined by the
@@ -286,6 +286,7 @@ namespace askap {
             /// @param axes The dimensions of the array: axes[0] is the x-dimension and axes[1] is the y-dimension
             /// @param gauss The 2-dimensional Gaussian component.
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
+  	    /// @param integrate A bool flag that, if true, does the integral over the pixel to find the flux within the pixel. A false value means we just evaluate the Gaussian at the pixel location.
 
 	  float majorSigma = FWHMtoSIGMA(gauss.majorAxis()) ;
             float zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
@@ -315,7 +316,7 @@ namespace askap {
 //        float delta = pow(10.,floor(log10(minSigma))-1.);
                 float delta = std::min(1. / 32., pow(10., floor(log10(minSigma / 5.) / log10(2.)) * log10(2.)));
 
-                if (delta < 1.e-4) { // if it is really thin, use the 1D approximation
+                if (delta < 1.e-4 && integrate) { // if it is really thin and we're integrating, use the 1D approximation
                     ASKAPLOG_DEBUG_STR(logger, "Since delta = " << delta << "( 1./" << 1. / delta
                                            << ")  (minSigma=" << minSigma << ")  we use the 1D Gaussian function");
                     add1DGaussian(array, axes, gauss, fluxGen);
@@ -324,6 +325,7 @@ namespace askap {
 
                     // Loop over all affected pixels and find the overall normalisation for each pixel
 
+		  if(integrate)
                     ASKAPLOG_DEBUG_STR(logger, "Integrating over " << (xmax - xmin + 1)*(ymax - ymin + 1) << " pixels with delta="
                                            << delta << " (1./" << 1. / delta << ")  (minSigma=" << minSigma << ")");
                     int nstep = int(1. / delta);
@@ -373,7 +375,10 @@ namespace askap {
                             if (separation <= 1. ||
 				((dx[0]<=xlim1 && dx[1]>=xlim2) && (dy[0]<=ylim1 && dy[1]>=ylim2))){
 //                                     ((du[0]*du[1] < 0 || du[0]*du[2] < 0 || du[0]*du[3] < 0) && mindv < zeroPointMax) ||
-//                                     ((dv[0]*dv[1] < 0 || dv[0]*dv[2] < 0 || dv[0]*dv[3] < 0) && mindu < zeroPointMin)) { //only do the integrations if it lies within the maximal ellipse
+//                                     ((dv[0]*dv[1] < 0 || dv[0]*dv[2] < 0 || dv[0]*dv[3] < 0) && mindu < zeroPointMin)) { 
+                                // only consider pixels within the maximal ellipse
+
+			      if(integrate){
 
                                 xpos = x - 0.5 - delta;
 
@@ -402,7 +407,11 @@ namespace askap {
                                 }
 
                                 pixelVal *= (delta * delta / 9.);
-                            }
+			      }
+			      else {
+				pixelVal = gauss(x,y);
+			      }
+			    }
 
 // 			    ASKAPLOG_DEBUG_STR(logger, du[0] << " " << du[1] << " " << du[2] << " " << du[3] << "     " << dv[0] << " " << dv[1] <<" " << dv[2] << " " << dv[3]);
 // 			    ASKAPLOG_DEBUG_STR(logger, separation << " " << mindu << " " << mindv << " " << nstep << " " << delta << " " << delta*delta/9. << " " << pixelVal);
