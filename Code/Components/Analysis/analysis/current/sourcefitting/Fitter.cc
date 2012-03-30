@@ -247,10 +247,10 @@ namespace askap {
 
                     for (int fitloop = 0; fitloop < numLoops; fitloop++) {
                         try {
-                            if (this->itsParams.useNoise())
+                            // if (this->itsParams.useNoise())
                                 this->itsSolution = this->itsFitter.fit(pos, f, sigma, this->itsParams.itsMaxRMS, this->itsParams.itsMaxIter, this->itsParams.itsCriterium);
-                            else
-                                this->itsSolution = this->itsFitter.fit(pos, f, this->itsParams.itsMaxRMS, this->itsParams.itsMaxIter, this->itsParams.itsCriterium);
+                            // else
+                            //     this->itsSolution = this->itsFitter.fit(pos, f, this->itsParams.itsMaxRMS, this->itsParams.itsMaxIter, this->itsParams.itsCriterium);
                         } catch (AipsError err) {
                             std::string message = err.getMesg().chars();
                             message = "FIT ERROR: " + message;

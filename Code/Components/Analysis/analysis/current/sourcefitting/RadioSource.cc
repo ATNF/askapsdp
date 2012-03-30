@@ -84,7 +84,8 @@ namespace askap {
             {
                 this->hasFit = false;
                 this->atEdge = false;
-                this->itsNoiseLevel = 1.;
+		this->itsFitParams = FittingParameters();
+                this->itsNoiseLevel = this->itsFitParams.noiseLevel();
                 std::vector<std::string>::iterator type;
                 std::vector<std::string> typelist = availableFitTypes;
 
@@ -102,7 +103,8 @@ namespace askap {
             {
                 this->hasFit = false;
                 this->atEdge = false;
-                this->itsNoiseLevel = 1.;
+		this->itsFitParams = FittingParameters();
+                this->itsNoiseLevel = this->itsFitParams.noiseLevel();
                 std::vector<std::string>::iterator type;
                 std::vector<std::string> typelist = availableFitTypes;
 
@@ -254,8 +256,10 @@ namespace askap {
                 /// Calls setNoiseLevel(float *, long *, int).
                 /// @param cube The duchamp::Cube object containing the pixel array
                 /// @param fitparams The set of parameters governing the fit
-                if (fitparams.useNoise())
-                    this->setNoiseLevel(cube.getArray(), cube.getDimArray(), fitparams.noiseBoxSize());
+	      if (fitparams.useNoise())
+		this->setNoiseLevel(cube.getArray(), cube.getDimArray(), fitparams.noiseBoxSize());
+	      else
+		this->itsNoiseLevel = fitparams.noiseLevel();
             }
 
             void RadioSource::setNoiseLevel(float *array, long *dim, int boxSize)

@@ -159,6 +159,7 @@ namespace askap {
                     void setCriterium(Double d) {itsCriterium = d;};
                     void setMaxIter(uInt i) {itsMaxIter = i;};
                     void setUseNoise(bool b) {itsUseNoise = b;};
+		    void setNoiseLevel(float f) {itsNoiseLevel = f;};
                     void setFlagFitThisParam(int i, bool b) {itsFlagFitThisParam[i] = b;};
                     void setFlagFitThisParam(std::string type);
 		    void setStopAfterFirstGoodFit(bool b){itsStopAfterFirstGoodFit = b;};
@@ -183,6 +184,7 @@ namespace askap {
                     Double criterium() {return itsCriterium;};
                     uInt   maxIter() {return itsMaxIter;};
                     bool   useNoise() {return itsUseNoise;};
+		    float  noiseLevel() {return itsNoiseLevel;};
 		    bool   stopAfterFirstGoodFit(){return itsStopAfterFirstGoodFit;};
 		    bool   useGuessIfBad(){return itsUseGuessIfBad;};
                     bool   flagFitThisParam(int i) {return itsFlagFitThisParam[i];};
@@ -265,6 +267,8 @@ namespace askap {
 
                     /// @brief Whether to calculate the noise surrounding the object and use it as the sigma in casa::FitGaussian::fit()
                     bool itsUseNoise;
+		    /// @brief The noise level to use when not calculating it
+		    float itsNoiseLevel;
 
                     /// @brief Whether the flux of a fitted component can be negative
                     bool itsNegativeFluxPossible;
