@@ -66,6 +66,7 @@ class BlobOBufMW : public LOFAR::BlobOBuffer
                 size_t maxBufSize = 1048576);
 
         /// Destructor
+        /// The destructor also calls flush()
         virtual ~BlobOBufMW();
 
         /// Put the requested nr of bytes.
@@ -80,19 +81,14 @@ class BlobOBufMW : public LOFAR::BlobOBuffer
         /// It returns the new position which is -1 if the stream is not seekable.
         virtual LOFAR::int64 setPos(LOFAR::int64 pos);
 
+        // When called the contents of itsBuffer will be sent the the
+        // intended destination and itsBuffer is emptied.
+        void flush(void);
+
     private:
         // Utility function to send the buffer to the destination indicated
         // by itsSeqNr
         void send(const void* buffer, size_t nbytes);
-
-        // When called the contents of itsBuffer will be sent the the
-        // intended destination and itsBuffer is emptied.
-        void flushBuffer(void);
-
-        // Utility function which checks the tail of the buffer for the
-        // end-of-blob value
-        // @return true if end-of-blob value is found, otherwise false
-        bool isEndOfBlob(const void* buffer, size_t nbytes);
 
         // Class which provides the acutal communication functionality
         AskapParallel& itsComms;

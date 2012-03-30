@@ -44,11 +44,10 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askapparallel/AskapParallel.h>
+#include <askapparallel/BlobIBufMW.h>
+#include <askapparallel/BlobOBufMW.h>
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
-#include <Blob/BlobString.h>
-#include <Blob/BlobIBufString.h>
-#include <Blob/BlobOBufString.h>
 #include <Common/ParameterSet.h>
 #include <fitting/Equation.h>
 #include <fitting/Solver.h>
@@ -195,13 +194,12 @@ void MEParallel::sendNormalEquations(const askap::scimath::INormalEquations::ShP
     timer.mark();
     ASKAPLOG_DEBUG_STR(logger, "Sending normal equations to rank " << dest);
 
-    LOFAR::BlobString bs;
-    LOFAR::BlobOBufString bob(bs);
-    LOFAR::BlobOStream out(bob);
+    BlobOBufMW bobmw(itsComms, dest);
+    LOFAR::BlobOStream out(bobmw);
     out.putStart("ne", 1);
     out << itsComms.rank() << *ne;
     out.putEnd();
-    itsComms.sendBlob(bs, dest);
+    bobmw.flush();
     ASKAPLOG_DEBUG_STR(logger, "Sent normal equations to rank " << dest << " in "
             << timer.real() << " seconds ");
 }
@@ -229,10 +227,8 @@ askap::scimath::INormalEquations::ShPtr MEParallel::receiveNormalEquations(int s
     casa::Timer timer;
     timer.mark();
 
-    LOFAR::BlobString bs;
-    itsComms.receiveBlob(bs, source);
-    LOFAR::BlobIBufString bib(bs);
-    LOFAR::BlobIStream in(bib);
+    BlobIBufMW bibmw(itsComms, source);
+    LOFAR::BlobIStream in(bibmw);
     const int version = in.getStart("ne");
     ASKAPASSERT(version == 1);
     int rank;

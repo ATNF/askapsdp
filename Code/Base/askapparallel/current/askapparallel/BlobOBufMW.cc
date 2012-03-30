@@ -50,7 +50,7 @@ BlobOBufMW::BlobOBufMW(AskapParallel& comms, int seqnr, size_t maxBufSize)
 
 BlobOBufMW::~BlobOBufMW()
 {
-    flushBuffer();
+    flush();
 }
 
 // Put the requested nbytes of bytes.
@@ -64,7 +64,7 @@ LOFAR::uint64 BlobOBufMW::put(const void* buffer, LOFAR::uint64 nbytes)
     // 2: If the current itsBuffer plus the current "put" exceeds itsMaxBufSize
     // flush the buffer.
     if (itsBuffer.size() + nbytes > itsMaxBufSize) {
-        flushBuffer();
+        flush();
     }
 
     // 3: If the current "put" is larger than itsMaxBufSize then just send
@@ -76,12 +76,6 @@ LOFAR::uint64 BlobOBufMW::put(const void* buffer, LOFAR::uint64 nbytes)
         itsBuffer.insert(itsBuffer.end(),
                 reinterpret_cast<const char*>(buffer),
                 reinterpret_cast<const char*>(buffer) + nbytes);
-    }
-
-    // 4: Finally, if the buffer concludes with the end-of-blob value
-    // flush the buffer
-    if (isEndOfBlob(buffer, nbytes)) {
-        flushBuffer();
     }
 
     return nbytes;
@@ -114,18 +108,11 @@ void BlobOBufMW::send(const void* buffer, size_t nbytes)
     }
 }
 
-void BlobOBufMW::flushBuffer(void)
+void BlobOBufMW::flush(void)
 {
     if (!itsBuffer.empty()) {
         send(&itsBuffer[0], itsBuffer.size());
         itsBuffer.clear();
     }
     ASKAPCHECK(itsBuffer.empty(), "Buffer flushed but not empty");
-}
-
-bool BlobOBufMW::isEndOfBlob(const void* buffer, size_t nbytes)
-{
-    const LOFAR::uint32* lastInt = reinterpret_cast<const LOFAR::uint32*>(
-            reinterpret_cast<const char*>(buffer) + nbytes - sizeof(LOFAR::uint32));
-    return (*lastInt == LOFAR::BlobHeader::eobMagicValue());
 }
