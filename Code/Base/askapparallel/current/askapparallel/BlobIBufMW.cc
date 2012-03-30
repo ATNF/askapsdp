@@ -42,7 +42,7 @@ using namespace askap::askapparallel;
 
 // Constructor.
 BlobIBufMW::BlobIBufMW(AskapParallel& comms, int rank)
-    : itsComms(comms) , itsSrcRank(rank)
+    : itsComms(comms) , itsSrcRank(rank), itsDataBegin(itsBuffer.begin())
 {
     ASKAPCHECK(itsComms.isParallel(), 
             "This class cannot be used in non parallel applications");
@@ -59,20 +59,30 @@ LOFAR::uint64 BlobIBufMW::get(void* buffer, LOFAR::uint64 nbytes)
     // 1: If itsBuff doesn't have sufficient data to fulfill the request
     // then get enough data first
     LOFAR::uint64 size;
-    while (itsBuffer.size() < nbytes) {
+    while ((itsBuffer.end() - itsDataBegin) < long(nbytes)) {
+        // If there is space at the front of the buffer, move the data
+        // to use the free space.
+        if (itsDataBegin != itsBuffer.begin()) {
+            itsBuffer.erase(itsBuffer.begin(), itsDataBegin);
+            // itsDataBegin is reset later, after resize is called.
+            // It must be done then because the iterator can be
+            // invalidated by a call to resize.
+        }
+
         receive(&size, sizeof(LOFAR::uint64));
         ASKAPCHECK(size > 0, "Message of size zero is invalid");
         const size_t oldSize = itsBuffer.size();
         itsBuffer.resize(itsBuffer.size() + size);
+        itsDataBegin = itsBuffer.begin();
         receive(&itsBuffer[oldSize], size);
     }
 
     // 2: Now enough data exists to fulfill the request action it.
-    ASKAPCHECK(itsBuffer.size() >= nbytes,
+    ASKAPCHECK((itsBuffer.end() - itsDataBegin) >= long(nbytes),
             "Buffer doesn't have sufficient data to fulfill request");
-    std::copy(itsBuffer.begin(), itsBuffer.begin() + nbytes,
+    std::copy(itsDataBegin, itsDataBegin + nbytes,
             reinterpret_cast<char*>(buffer));
-    itsBuffer.erase(itsBuffer.begin(), itsBuffer.begin() + nbytes);
+    itsDataBegin += nbytes;
 
     return nbytes;
 }

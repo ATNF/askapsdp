@@ -83,6 +83,8 @@ private:
 
     // Internal buffer used to buffer data read from the connection
     std::vector<char> itsBuffer;
+
+    std::vector<char>::iterator itsDataBegin;
 };
 
 } // end namespace askapparallel
