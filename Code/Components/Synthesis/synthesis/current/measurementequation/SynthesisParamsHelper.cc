@@ -90,7 +90,6 @@ namespace askap
               int nchan=parset.getInt32(*it+".nchan");
               std::vector<double> freq=parset.getDoubleVector(*it+".frequency");
               ASKAPCHECK(freq.size()>=2, "Parameter "<<*it<<".frequency should have at least 2-elements, you have "<<freq.size());
-              std::vector<std::string> direction=parset.getStringVector(*it+".direction");
               if (parset.isDefined(*it+".shape")) {
                   if (shape.size()!=0) {
                       ASKAPLOG_INFO_STR(logger, "Global image shape "<<shape<<
@@ -116,6 +115,12 @@ namespace askap
               ASKAPCHECK(nfacets>0, "Number of facets is supposed to be a positive number, you gave "<<nfacets);
               ASKAPCHECK(shape.size()>=2, "Image is supposed to be at least two dimensional. "<<
                           "check shape parameter, you gave "<<shape);
+              
+              const std::vector<std::string> direction=parset.getStringVector(*it+".direction");
+              const std::vector<std::string> tangent = parset.getStringVector(*it+".tangent",std::vector<std::string>());
+              if (tangent.size() != 0) {
+                  ASKAPCHECK(nfacets == 1, "Faceting with user-defined tangent point is not supported");
+              }
               
               // required polarisation
               if (!parset.isDefined(*it+".polarisation")) {
@@ -152,8 +157,12 @@ namespace askap
                        ASKAPLOG_INFO_STR(logger,"Setting up Taylor term "<<order);
                    }
                    if (nfacets == 1) {
-                       ASKAPLOG_INFO_STR(logger, "Setting up new empty image "<< iph.paramName());        
-		               add(*params, iph.paramName(), direction, cellsize, shape, ewProj, freq[0], freq[1], nchan,stokes);
+                       ASKAPLOG_INFO_STR(logger, "Setting up new empty image "<< iph.paramName());                       
+                       if (tangent.size()) {
+                           add(*params, iph.paramName(), tangent, cellsize, shape, ewProj, freq[0], freq[1], nchan,stokes, direction);
+                       } else {        
+		                   add(*params, iph.paramName(), direction, cellsize, shape, ewProj, freq[0], freq[1], nchan,stokes);
+		               }
 		           } else {
 		               // this is a multi-facet case
 		               ASKAPLOG_INFO_STR(logger, "Setting up "<<nfacets<<" x "<<nfacets<<
@@ -247,13 +256,16 @@ namespace askap
 				    const vector<string>& cellsize, const vector<int>& shape,
 				    const bool ewprojection,				    
 				    const double freqmin, const double freqmax, const int nchan,
-				    const casa::Vector<casa::Stokes::StokesTypes> &stokes)
+				    const casa::Vector<casa::Stokes::StokesTypes> &stokes,
+				    const vector<string>& centreDir)
     {
       int nx=shape[0];
       int ny=shape[1];
       ASKAPCHECK(cellsize.size() == 2, "Cell size should have exactly 2 parameters, you have "<<cellsize.size());
       ASKAPCHECK(direction.size() == 3, "Direction should have exactly 3 parameters, you have "<<direction.size());
       ASKAPCHECK(direction[2] == "J2000", "Only J2000 is implemented at the moment, you have requested "<<direction[2]);
+      ASKAPCHECK((centreDir.size() == 0) || (centreDir.size() == 3), 
+                 "centreDir should have exactly 3 parameters or be empty, you have "<<centreDir.size());
       ASKAPCHECK(stokes.nelements()>=1, "At least one polarisation plane should be defined, you have defined none");      
             
       const double ra = convertQuantity(direction[0],"rad");
@@ -264,15 +276,26 @@ namespace askap
       
       /// @todo Do something with the frame info in direction[2]
       Axes axes;
-      /*
-      axes.add("RA", ra-nx*xcellsize/2.0, ra+nx*xcellsize/2.0);
-      axes.add("DEC", dec-ny*ycellsize/2.0, dec+ny*ycellsize/2.0);
-      */
       casa::Matrix<double> xform(2,2,0.);
       xform.diagonal() = 1.;
-      axes.addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
-                  getProjection(ewprojection, dec), ra,dec,xcellsize,ycellsize,xform,nx/2,ny/2));
-          
+      // direction coordinate corresponding to the case with tangent point in the image centre
+      const casa::DirectionCoordinate dcTangent(casa::MDirection::J2000, 
+                  getProjection(ewprojection, dec), ra,dec,xcellsize,ycellsize,xform,nx/2,ny/2);
+      if (centreDir.size()) {
+          ASKAPCHECK(centreDir[2] == "J2000", "Only J2000 is implemented at the moment, you have requested "<<centreDir[2]);
+          ASKAPLOG_INFO_STR(logger, "Image parameter "<<name<<" have tangent point "<<direction<<" and image centre "<<centreDir);
+          const double raCentre = convertQuantity(centreDir[0],"rad");
+          const double decCentre = convertQuantity(centreDir[1],"rad");
+          const casa::MVDirection centre(raCentre, decCentre);
+          casa::Vector<casa::Double> pix;
+          dcTangent.toPixel(pix,centre);
+          ASKAPDEBUGASSERT(pix.nelements() == 2);
+          axes.addDirectionAxis(casa::DirectionCoordinate(casa::MDirection::J2000, 
+                  getProjection(ewprojection, dec), ra,dec,xcellsize,ycellsize,xform,double(nx)-pix[0],double(ny)-pix[1]));          
+      } else {            
+        ASKAPLOG_INFO_STR(logger, "Image parameter "<<name<<" have tangent point "<<direction<<" at the image centre");
+        axes.addDirectionAxis(dcTangent);
+      }    
       axes.addStokesAxis(stokes);
       
       casa::Array<double> pixels(casa::IPosition(4, nx, ny, stokes.nelements(), nchan));

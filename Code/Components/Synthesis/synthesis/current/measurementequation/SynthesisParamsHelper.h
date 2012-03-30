@@ -139,7 +139,7 @@ namespace askap
         /// @brief Add a parameter as an image
         /// @param[in] ip Parameters
         /// @param[in] name Name of parameter
-        /// @param[in] direction Strings containing [ra, dec, frame]
+        /// @param[in] direction Strings containing [ra, dec, frame] defining tangent point
         /// @param[in] cellsize Cellsize as a string e.g. [12arcsec, 12arcsec]
         /// @param[in] shape Number of pixels in RA and DEC e.g. [256, 256]
         /// @param[in] ewprojection If true, SCP or NCP variant of SIN projection will be used
@@ -147,13 +147,16 @@ namespace askap
         /// @param[in] freqmax Maximum frequency (Hz)
         /// @param[in] nchan Number of spectral channels
         /// @param[in] stokes Polarisation frame (vector of stokes enums)
+        /// @param[in] centreDir strings containing [ra,dec,frame] defining direction of the image centre
+        ///            empty vector defaults to the tangent point
         static void add(askap::scimath::Params& ip, const string& name, 
           const vector<string>& direction, 
           const vector<string>& cellsize, 
           const vector<int>& shape,
           const bool ewprojection,
           const double freqmin, const double freqmax, const int nchan, 
-          const casa::Vector<casa::Stokes::StokesTypes> &stokes);
+          const casa::Vector<casa::Stokes::StokesTypes> &stokes,
+          const vector<string>& centreDir = vector<string>());
 
         /// @brief Add a parameter as a faceted image
         /// @param[in] ip Parameters
