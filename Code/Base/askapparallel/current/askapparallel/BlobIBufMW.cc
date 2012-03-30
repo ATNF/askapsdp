@@ -41,8 +41,8 @@
 using namespace askap::askapparallel;
 
 // Constructor.
-BlobIBufMW::BlobIBufMW(AskapParallel& comms, int seqnr)
-    : itsComms(comms) , itsSeqNr(seqnr)
+BlobIBufMW::BlobIBufMW(AskapParallel& comms, int rank)
+    : itsComms(comms) , itsSrcRank(rank)
 {
     ASKAPCHECK(itsComms.isParallel(), 
             "This class cannot be used in non parallel applications");
@@ -93,5 +93,5 @@ LOFAR::int64 BlobIBufMW::setPos(LOFAR::int64 pos)
 
 void BlobIBufMW::receive(void* buffer, size_t nbytes)
 {
-    itsComms.receive(buffer, nbytes, itsSeqNr);
+    itsComms.receive(buffer, nbytes, itsSrcRank);
 }

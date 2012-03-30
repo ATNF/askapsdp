@@ -52,10 +52,9 @@ public:
     /// Constructor.
     /// @param[in] comms    class which provides communication
     ///                     functionality.
-    /// @param[in] seqnr    the sequence number indicating the destination
-    ///                     for the data stream. This relates to the
-    ///                     sequence number in the MPIConnectionSet.
-    BlobIBufMW(AskapParallel& comms, int seqnr);
+    /// @param[in] rank     the rank indicating the source of the
+    ///                     data stream.
+    BlobIBufMW(AskapParallel& comms, int rank);
 
     /// Destructor.
     virtual ~BlobIBufMW();
@@ -73,15 +72,14 @@ public:
 
 private:
     // Utility function to read data from the destination indicated by
-    // by itsSeqNr, and write it into the passed buffer
+    // by itsSrcRank, and write it into the passed buffer
     void receive(void* buffer, size_t nbytes);
 
     // Class which provides the acutal communication functionality
     AskapParallel& itsComms;
 
-    // The sequence number of the connection. This relates to the
-    // MPIConnectionSet sequence number.
-    const int itsSeqNr;
+    // The rank (id) of the source of the data stream.
+    const int itsSrcRank;
 
     // Internal buffer used to buffer data read from the connection
     std::vector<char> itsBuffer;

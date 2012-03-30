@@ -41,8 +41,8 @@
 
 using namespace askap::askapparallel;
 
-BlobOBufMW::BlobOBufMW(AskapParallel& comms, int seqnr, size_t maxBufSize)
-    : itsComms(comms), itsSeqNr(seqnr), itsMaxBufSize(maxBufSize)
+BlobOBufMW::BlobOBufMW(AskapParallel& comms, int rank, size_t maxBufSize)
+    : itsComms(comms), itsDestRank(rank), itsMaxBufSize(maxBufSize)
 {
     ASKAPCHECK(itsComms.isParallel(),
             "This class cannot be used in non parallel applications");
@@ -102,9 +102,9 @@ void BlobOBufMW::send(const void* buffer, size_t nbytes)
     // it origninally was before returning. Thus this function call has
     // the appearance of treating "buffer" as a const.
 
-    itsComms.send(&nbytes, sizeof(LOFAR::uint64), itsSeqNr);
+    itsComms.send(&nbytes, sizeof(LOFAR::uint64), itsDestRank);
     if (nbytes > 0) {
-        itsComms.send(buffer, nbytes, itsSeqNr);
+        itsComms.send(buffer, nbytes, itsDestRank);
     }
 }
 

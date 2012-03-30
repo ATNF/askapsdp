@@ -52,9 +52,8 @@ class BlobOBufMW : public LOFAR::BlobOBuffer
         /// Constructor
         /// @param[in] comms    class which provides communication
         ///                     functionality.
-        /// @param[in] seqnr    the sequence number indicating the destination
-        ///                     for the data stream. This relates to the
-        ///                     sequence number in the MPIConnectionSet.
+        /// @param[in] seqnr    the rank indicating the destination
+        ///                     for the data stream.
         /// @param[in] maxBufSize   the maximum size of the internal buffer used
         ///                         to group data which has been submitted by
         ///                         put() such that it can be sent in batches.
@@ -62,7 +61,7 @@ class BlobOBufMW : public LOFAR::BlobOBuffer
         ///                         passed to put(), that data is sent directly
         ///                         right out of the buffer rather than being
         ///                         copied into the internal buffer.
-        BlobOBufMW(AskapParallel& comms, int seqnr,
+        BlobOBufMW(AskapParallel& comms, int rank,
                 size_t maxBufSize = 1048576);
 
         /// Destructor
@@ -87,15 +86,14 @@ class BlobOBufMW : public LOFAR::BlobOBuffer
 
     private:
         // Utility function to send the buffer to the destination indicated
-        // by itsSeqNr
+        // by itsDestRank
         void send(const void* buffer, size_t nbytes);
 
         // Class which provides the acutal communication functionality
         AskapParallel& itsComms;
 
-        // The sequence number of the connection. This relates to the
-        // MPIConnectionSet sequence number.
-        const int itsSeqNr;
+        // The rank (id) for the destination of the data stream.
+        const int itsDestRank;
 
         // The maximum size of the buffer
         const size_t itsMaxBufSize;
