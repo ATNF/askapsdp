@@ -46,4 +46,4 @@ DO_CONTINUUM_DIRTY=true
 DO_CONTINUUM_CLEAN=true
 
 # Do Spectral Line Imaging (true or false)
-DO_SPECTRAL_LINE=true
+DO_SPECTRAL_LINE=false

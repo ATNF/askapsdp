@@ -26,11 +26,14 @@ Cimager.Images.image.i.clean.direction          = [12h30m00.00, -45.00.00.00, J2
 Cimager.Images.image.i.clean.nterms             = 3
 Cimager.Images.image.i.clean.writeAtMajorCycle  = true
 #
+Cimager.visweights                              = MFS
+Cimager.visweights.MFS.reffreq                  = 1.420e9
+#
 Cimager.gridder.snapshotimaging                 = true
 Cimager.gridder.snapshotimaging.wtolerance      = 2000
 Cimager.gridder                                 = AWProject
 Cimager.gridder.AWProject.wmax                  = 2000
-Cimager.gridder.AWProject.nwplanes              = 7
+Cimager.gridder.AWProject.nwplanes              = 5
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m
 Cimager.gridder.AWProject.blockage              = 2m
