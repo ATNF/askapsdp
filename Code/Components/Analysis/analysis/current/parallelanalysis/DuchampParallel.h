@@ -224,9 +224,6 @@ namespace askap {
 		/// The weighting of each pixel
 		Weighter *itsWeighter;
 
-                /// The weights values
-                casa::Vector<casa::Double> itsWeights;
-
                 /// The Cube of data, which contains the list of Detections.
                 duchamp::Cube itsCube;
 
