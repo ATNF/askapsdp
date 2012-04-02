@@ -33,6 +33,7 @@
 #define SYNSYNTHESISPARAMSHELPER_H_
 
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/Slicer.h>
 
 #include <fitting/Params.h>
 #include <fitting/Axes.h>
@@ -41,6 +42,7 @@
 #include <images/Images/TempImage.h>
 #include <images/Images/ImageInterface.h>
 #include <coordinates/Coordinates/Projection.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
 
 
 #include <imageaccess/IImageAccess.h>
@@ -380,6 +382,19 @@ namespace askap
         static void listTaylor(const std::vector<std::string> &names,
                                std::map<std::string, int> &taylormap);
 
+        /// @brief find a slicer matching another direction coordinate
+        /// @details This method builds BLC and TRC of an image corresponding
+        /// to the provided direction coordinate which cover the same area as
+        /// the given image parameter (the functionality is similar to that of
+        /// getFacet, although this interface allows more flexibility).
+        /// @param[in] ip parameters        
+        /// @param[in] name image parameter to map
+        /// @param[in] dc direction coordinate
+        /// @return slicer encapsulating BLC and TRC
+        /// @note The dimensionality of the output corresponds to the input image
+        static casa::Slicer facetSlicer(const askap::scimath::Params& ip, const std::string &name,
+                              const casa::DirectionCoordinate &dc);
+        
     protected:
         /// @brief helper method to get projection
         /// @details We support both standard SIN projection and SCP/NCP variants (for East-West arrays).

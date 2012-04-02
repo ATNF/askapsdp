@@ -977,6 +977,54 @@ namespace askap
        return params->completions("image").size()!=0;
     }
     
+    /// @brief find a slicer matching another direction coordinate
+    /// @details This method builds BLC and TRC of an image corresponding
+    /// to the provided direction coordinate which cover the same area as
+    /// the given image parameter (the functionality is similar to that of
+    /// getFacet, although this interface allows more flexibility).
+    /// @param[in] ip parameters
+    /// @param[in] name image parameter to map
+    /// @param[in] dc direction coordinate
+    /// @return slicer encapsulating BLC and TRC
+    /// @note The dimensionality of the output corresponds to the input image
+    casa::Slicer SynthesisParamsHelper::facetSlicer(const askap::scimath::Params& ip,
+           const std::string &name, const casa::DirectionCoordinate &dc)
+    {
+       ASKAPDEBUGASSERT(ip.has(name));
+       const casa::DirectionCoordinate inDC = directionCoordinate(ip,name);
+       const casa::IPosition inShape = ip.value(name).shape();
+       ASKAPDEBUGASSERT(inShape.nelements() >= 2);
+       casa::IPosition blc(inShape.nelements(),0);
+       casa::IPosition trc(inShape);
+       for (casa::uInt dim=0; dim<inShape.nelements(); ++dim) {
+            --trc(dim);            
+       }
+       // currently blc,trc describe the whole input image; convert coordinates
+       casa::Vector<casa::Double> pix(2);
+       
+       // first process BLC
+       pix[0] = casa::Double(blc[0]);
+       pix[1] = casa::Double(blc[1]);
+       casa::MDirection tempDir;
+       casa::Bool success = inDC.toWorld(tempDir, pix);
+       ASKAPCHECK(success, "Pixel to world coordinate conversion failed for input BLC: "<<inDC.errorMessage());
+       success = dc.toPixel(pix,tempDir);
+       ASKAPCHECK(success, "World to pixel coordinate conversion failed for output BLC: "<<dc.errorMessage());
+       blc[0] = casa::Int(pix[0]);
+       blc[1] = casa::Int(pix[1]);
+       
+       // now process TRC
+       pix[0] = casa::Double(trc[0]);
+       pix[1] = casa::Double(trc[1]);
+       success = inDC.toWorld(tempDir, pix);
+       ASKAPCHECK(success, "Pixel to world coordinate conversion failed for input TRC: "<<inDC.errorMessage());
+       success = dc.toPixel(pix,tempDir);
+       ASKAPCHECK(success, "World to pixel coordinate conversion failed for output TRC: "<<dc.errorMessage());
+       trc[0] = casa::Int(pix[0]);
+       trc[1] = casa::Int(pix[1]);
+       return casa::Slicer(blc,trc,casa::Slicer::endIsLast);
+    }
+    
     /// @brief A helper method to build a list of faceted images
     /// @details All multi-facet images are split between a number of 
     /// parameters named like "image.i.fieldname.facet.0.0". Single
