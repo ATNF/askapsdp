@@ -164,6 +164,7 @@ namespace askap {
 	this->itsSourceSection = f.itsSourceSection;
 	this->itsHaveBeam = f.itsHaveBeam;
 	this->itsBeamInfo = f.itsBeamInfo;
+	this->itsSelavyImage = f.itsSelavyImage;
 	this->itsBaseFreq = f.itsBaseFreq;
 	this->itsRestFreq = f.itsRestFreq;
 	this->itsAddSources = f.itsAddSources;
@@ -332,8 +333,18 @@ namespace askap {
 
 
 	this->itsHaveBeam = parset.isDefined("beam");
-
 	if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
+
+	this->itsSelavyImage = SelavyImage(parset);
+	if (!this->itsHaveBeam) {
+	  this->itsBeamInfo = this->itsSelavyImage.beam();
+	  this->itsHaveBeam=true;
+	}
+
+	if(this->itsHaveBeam)
+	  ASKAPLOG_DEBUG_STR(logger, "Using beam " << this->itsBeamInfo[0] << " " << this->itsBeamInfo[1] << " " << this->itsBeamInfo[2]);
+	else
+	  ASKAPLOG_DEBUG_STR(logger, "No beam used");
 
 	this->itsEquinox = parset.getFloat("equinox", 2000.);
 	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
@@ -538,6 +549,7 @@ namespace askap {
 	    ContinuumSelavy *sel = new ContinuumSelavy;
 	    sel->setNuZero(this->itsBaseFreq);
 	    sel->define(line);
+	    this->itsSelavyImage.convertSource(*sel);
 	    src = &(*sel);
 	  }
 	  else if(this->itsDatabaseOrigin == "POSSUM"){
@@ -644,6 +656,7 @@ namespace askap {
 	      else if(this->itsDatabaseOrigin == "Selavy"){
 		sel.setNuZero(this->itsBaseFreq);
 		sel.define(line);
+		this->itsSelavyImage.convertSource(sel);
 		src = &sel;
 	      }
 	      else if(this->itsDatabaseOrigin == "POSSUM"){
