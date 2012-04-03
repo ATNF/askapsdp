@@ -54,5 +54,6 @@ spr.initParset()
 spr.addToParset("Cimager.restore.equalise = True")
 spr.runImager()
 #analyseResult(spr,3.725)
-analyseResult(spr,3.19)
+#analyseResult(spr,3.19)
+analyseResult(spr,3.21)
 
