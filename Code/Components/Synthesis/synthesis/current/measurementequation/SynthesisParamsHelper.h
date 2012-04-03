@@ -394,6 +394,18 @@ namespace askap
         /// @note The dimensionality of the output corresponds to the input image
         static casa::Slicer facetSlicer(const askap::scimath::Params& ip, const std::string &name,
                               const casa::DirectionCoordinate &dc);
+
+        /// @brief make a merged image parameter covering all given facets
+        /// @details This method is very similar to another version of the add method which creates
+        /// an image paramters covering all facets named in the appropriate fashion. Although doing 
+        /// essentially the same job, this method works with any images, i.e. they are not necessarily
+        /// regularly spaced and appropriately named facets. With time we can probably change how we
+        /// do faceting and retire the old methods.
+        /// @param[in] ip parameters
+        /// @param[in] names names of all images to merge
+        /// @param[in] mergedName name of the image to create
+        static void add(askap::scimath::Params& ip, const std::vector<std::string> &names,
+              const std::string &mergedName); 
         
     protected:
         /// @brief helper method to get projection

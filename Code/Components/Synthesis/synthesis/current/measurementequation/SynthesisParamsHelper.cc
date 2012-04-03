@@ -1025,6 +1025,61 @@ namespace askap
        return casa::Slicer(blc,trc,casa::Slicer::endIsLast);
     }
     
+    /// @brief make a merged image parameter covering all given facets
+    /// @details This method is very similar to another version of the add method which creates
+    /// an image paramters covering all facets named in the appropriate fashion. Although doing 
+    /// essentially the same job, this method works with any images, i.e. they are not necessarily
+    /// regularly spaced and appropriately named facets. With time we can probably change how we
+    /// do faceting and retire the old methods.
+    /// @param[in] ip parameters
+    /// @param[in] names names of all images to merge
+    /// @param[in] mergedName name of the image to create
+    void SynthesisParamsHelper::add(askap::scimath::Params& ip, const std::vector<std::string> &names,
+              const std::string &mergedName) 
+    {
+       ASKAPCHECK(names.size()>0, "At least one input image is expected by SynthesisParamsHelper::add");
+       const casa::DirectionCoordinate templateDC = directionCoordinate(ip,names[0]);
+       // we could've generated initial slicer from the shape and avoid one unnecessary call to facetSlicer
+       const casa::Slicer tempSlicer = facetSlicer(ip,names[0],templateDC);
+       casa::IPosition tempBLC = tempSlicer.start();
+       casa::IPosition tempTRC = tempSlicer.end();       
+       ASKAPDEBUGASSERT(tempBLC.nelements() >= 2);
+       ASKAPDEBUGASSERT(tempTRC.nelements() >= 2);
+       for (size_t i = 1; i<names.size(); ++i) {
+            const casa::Slicer newSlicer = facetSlicer(ip,names[i],templateDC);
+            const casa::IPosition newBLC = newSlicer.start();
+            const casa::IPosition newTRC = newSlicer.end();
+            ASKAPDEBUGASSERT(newBLC.nelements() >= 2);
+            ASKAPDEBUGASSERT(newTRC.nelements() >= 2);
+            for (casa::uInt dim=0; dim<2; ++dim) {
+                 if (newBLC(dim) < tempBLC(dim)) {
+                     tempBLC(dim) = newBLC(dim);
+                 }
+                 if (newTRC(dim) > tempTRC(dim)) {
+                     tempTRC(dim) = newTRC(dim);
+                 }
+            }            
+       }
+       casa::IPosition newShape = ip.value(names[0]).shape();
+       ASKAPDEBUGASSERT(newShape.nelements() >= 2);
+       newShape(0) = tempTRC(0) - tempBLC(0) + 1;
+       newShape(1) = tempTRC(1) - tempBLC(1) + 1;
+       ASKAPDEBUGASSERT(newShape(0) > 0);
+       ASKAPDEBUGASSERT(newShape(1) > 0);       
+       casa::Vector<casa::Double> refPix = templateDC.referenceValue();
+       refPix[0] -= casa::Double(tempBLC(0) - tempSlicer.start()(0));
+       refPix[1] -= casa::Double(tempBLC(1) - tempSlicer.start()(1));
+       casa::DirectionCoordinate newDC(templateDC);
+       newDC.setReferencePixel(refPix);
+    
+       askap::scimath::Axes newAxes(ip.axes(names[0]));
+       newAxes.addDirectionAxis(newDC);
+
+       casa::Array<double> pixels(newShape);
+       pixels.set(0.0);
+       ip.add(mergedName, pixels, newAxes);       
+    }
+    
     /// @brief A helper method to build a list of faceted images
     /// @details All multi-facet images are split between a number of 
     /// parameters named like "image.i.fieldname.facet.0.0". Single
