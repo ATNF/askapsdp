@@ -35,20 +35,78 @@
 
 // System includes
 #include <sstream>
+#include <boost/shared_ptr.hpp>
 
 // casa includes
 #include "casa/OS/Timer.h"
+#include <casa/Arrays/Array.h>
 
 // ASKAPsoft includes
-#include "askap/AskapError.h"
-#include "askap/AskapLogging.h"
-#include "askap/Log4cxxLogSink.h"
-#include "CommandLineParser.h"
+#include <askap/AskapError.h>
+#include <askap/AskapLogging.h>
+#include <askap/Log4cxxLogSink.h>
+#include <CommandLineParser.h>
+#include <measurementequation/SynthesisParamsHelper.h>
+#include <Common/ParameterSet.h>
+#include <fitting/Params.h>
+#include <askap/AskapUtil.h>
 
-ASKAP_LOGGER(logger, ".msmerge2");
+
+ASKAP_LOGGER(logger, ".linmos");
 
 using namespace askap;
+using namespace askap::synthesis;
 
+/// @brief do the merge
+/// @param[in] parset subset with parameters
+void merge(const LOFAR::ParameterSet &parset) {
+   // for now just do quick and dirty job by loading all facets into memory,
+   // later on it can be changed to a more memory-wise behavior
+   
+   const std::vector<std::string> inNames = parset.getStringVector("Names");
+   const std::string outName = parset.getString("out");
+   
+   // check for conflicts and load components
+   for (std::vector<std::string>::const_iterator ci = inNames.begin(); ci!=inNames.end();++ci) {
+        ASKAPCHECK(*ci != outName, "Output image name, "<<outName<<", is present among the inputs");
+   }
+   scimath::Params params;
+   boost::shared_ptr<scimath::Params> pParams(&params, utility::NullDeleter());
+   ASKAPLOG_INFO_STR(logger,  "Loading individual facets");
+   SynthesisParamsHelper::loadImages(pParams, parset);
+      
+   ASKAPLOG_INFO_STR(logger,  "Creating a merged image");
+   SynthesisParamsHelper::add(params, inNames, outName);
+   const casa::DirectionCoordinate dc = SynthesisParamsHelper::directionCoordinate(params,outName);
+   
+   for (std::vector<std::string>::const_iterator ci = inNames.begin(); ci!=inNames.end();++ci) {
+       ASKAPLOG_INFO_STR(logger,  "Adding "<<*ci);
+       const casa::Slicer slicer = SynthesisParamsHelper::facetSlicer(params,*ci, dc);
+       // conformance cross-check
+       const casa::IPosition blc = slicer.start();
+       const casa::IPosition trc = slicer.end();
+       ASKAPDEBUGASSERT(blc.nelements() >= 2);
+       ASKAPDEBUGASSERT(trc.nelements() >= 2);
+       ASKAPDEBUGASSERT(blc.nelements() == trc.nelements());
+       casa::IPosition newShape(trc);
+       for (casa::uInt dim=0; dim<newShape.nelements(); ++dim) {
+            newShape(dim) -= blc(dim);
+            ++newShape(dim);
+       }
+       casa::Array<double> inPix = params.value(*ci);
+       if (inPix.shape() != newShape) {
+           ASKAPLOG_WARN_STR(logger,  "There appears to be a projection mismatch, input facet with shape="<<inPix.shape()<<
+                    " is mapped onto a region of the merged image with blc="<<blc<<" and trc="<<trc<< 
+                    " shape="<<newShape);
+           // we can do regrid here later on
+           continue;         
+       }
+       // insert pixels
+       // proper linmos math comes here after we're sure that projection stuff works fine
+       params.value(outName)(slicer) = inPix; 
+   }   
+   SynthesisParamsHelper::saveImageParameter(params,outName,outName);
+};
 
 // Main function
 int main(int argc, const char** argv)
@@ -80,9 +138,18 @@ int main(int argc, const char** argv)
                  "linmos.in");
         // this parameter is optional
         parser.add(inputsPar, cmdlineparser::Parser::return_default);
-        
+                
         // Process command line options
         parser.process(argc, argv);
+        
+        const std::string parsetFile = inputsPar;
+
+        LOFAR::ParameterSet parset(parsetFile);
+        LOFAR::ParameterSet subset(parset.makeSubset("linmos."));
+        SynthesisParamsHelper::setUpImageHandler(subset);
+               
+        merge(subset);
+        
         ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
                 << " real:   " << timer.real());
         ///==============================================================================
