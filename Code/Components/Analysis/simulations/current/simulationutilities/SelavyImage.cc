@@ -90,7 +90,7 @@ namespace askap {
 	//   // Do not have SelavyImage defined, so read beam and pixel info separately
 	//   if(parset.isDefined("beam"))
 
-	this->findBeam();
+	if(this->itsFilename != "") this->findBeam();
       }
 
       void SelavyImage::findBeam()

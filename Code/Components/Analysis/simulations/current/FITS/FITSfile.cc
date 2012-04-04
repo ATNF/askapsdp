@@ -336,7 +336,7 @@ namespace askap {
 	if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
 
 	this->itsSelavyImage = SelavyImage(parset);
-	if (!this->itsHaveBeam) {
+	if (!this->itsHaveBeam && this->itsDatabaseOrigin == "Selavy") {
 	  this->itsBeamInfo = this->itsSelavyImage.beam();
 	  this->itsHaveBeam=true;
 	}
