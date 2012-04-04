@@ -942,6 +942,17 @@ namespace askap {
                     this->hasFit = false;
 		    if(this->itsFitParams.useGuessIfBad()){
 		      this->itsBestFitType = "guess";
+		      // set the components to be at least as big as the beam
+		      for (size_t i = 0; i < cmpntList.size(); i++) {
+			casa::Gaussian2D<casa::Double> gauss=cmpntList[i].asGauss();
+			if(cmpntList[i].maj()<this->itsHeader.beam().maj()){
+			  cmpntList[i].setMajor(this->itsHeader.beam().maj());
+			  cmpntList[i].setMinor(this->itsHeader.beam().min());			      
+			  cmpntList[i].setPA(this->itsHeader.beam().pa()*M_PI/180.);
+			}
+			else cmpntList[i].setMinor(std::max(cmpntList[i].min(),double(this->itsHeader.beam().min())));
+			// cmpntList[i].setFlux(gauss.flux());
+		      }
 		      FitResults guess;
 		      guess.saveGuess(cmpntList);
 		      this->itsBestFitMap["guess"] = guess;
