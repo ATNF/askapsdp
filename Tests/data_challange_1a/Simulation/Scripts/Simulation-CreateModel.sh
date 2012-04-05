@@ -66,7 +66,7 @@ EOF
     numworkers=`echo $nsubxCR $nsubyCR | awk '{print $1*$2}'`
     numnodes=`echo $numworkers $workersPerNodeCR | awk '{print ($1+1.)*1./$2}'`
     numworkernodes=`echo $numworkers $workersPerNodeCR | awk '{print $1*1./$2}'`
-    crQsub=${crdir}/createModel.qsub
+    crQsub=${crdir}/${WORKDIR}/createModel.qsub
     cat > $crQsub <<EOF
 #!/bin/bash -l
 #PBS -W group_list=astronomy116
@@ -76,6 +76,7 @@ EOF
 #PBS -N DCmodelCF
 #PBS -m bea
 #PBS -j oe
+#PBS -r n
 
 ####################
 # AUTOMATICALLY GENERATED - DO NOT EDIT
@@ -192,7 +193,7 @@ for im in range(minWorker,nworkers+1):
     ia.close()
 EOF
 
-    comQsub=combineSubimages-continuum.qsub
+    comQsub=${crdir}/${WORKDIR}/combineSubimages-continuum.qsub
     cat > $comQsub <<EOF
 #!/bin/bash -l
 #PBS -W group_list=astronomy116
@@ -238,7 +239,7 @@ fi
 
 if [ $doSliceCR == true ]; then
 
-    slQsub=${crdir}/cubeslice-continuum.qsub
+    slQsub=${crdir}/${WORKDIR}/cubeslice-continuum.qsub
     cat > $slQsub <<EOF
 #!/bin/bash -l
 #PBS -W group_list=astronomy116
@@ -265,13 +266,11 @@ slLog=${logdirCR}/cubeslice-continuum-\${PBS_JOBID}.log
 # make the models for each of the workers that hold the right number of channels
 echo Extracting chunks from cube \`date\` >> \$slLog
 CHUNK=0
-NCHUNKS=820
-chanPerMS=20
+chanPerMS=${chanPerMSchunk}
+NCHUNKS=${numMSchunks}
 startChan=0
 while [ \$CHUNK -lt \$NCHUNKS ]; do
-    if [ \$CHUNK == 819 ]; then
-        chanPerMS=4
-    fi
+    chanPerMS=\`echo \$CHUNK ${nchan} \$chanPerMS | awk '{if(\$3>\$2-\$1*\$3) print \$2-\$1*\$3; else print \$3}'\`
     chunkcube=${slicebase}\${CHUNK}
     SECTION=\`echo \$startChan \$chanPerMS  | awk '{printf "[*,*,*,%d:%d]",\$1,\$1+\$2-1}'\`
     echo "\$CHUNK: Saving model image \$chunkcube with \$chanPerMS channels, using section \$SECTION" >> \$slLog

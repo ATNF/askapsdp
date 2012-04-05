@@ -22,7 +22,7 @@ if [ $doCsim == true ]; then
 	
 	if [ -e ${failureListVis} ]; then
 	    INDEX="\`head -\${PBS_ARRAY_INDEX} ${failureListVis} | tail -1\`"
-	    qsubCmd="qsub -J 1-\`wc -l ${failureListVis} | awk '{print $1}'\` "
+	    qsubCmd="qsub -J 1-`wc -l ${failureListVis} | awk '{print $1}'` "
 	else
 	    echo "Visibility failure list ${failureListVis} does not exist. Not running"
 	    runOK=false
@@ -31,7 +31,7 @@ if [ $doCsim == true ]; then
     else
 
 	INDEX="\${PBS_ARRAY_INDEX}"
-	qsubCmd="qsub -J 0-$maxChunkMS "
+	qsubCmd="qsub -J 0-`expr $numMSchunks - 1` "
 	
     fi 
 
@@ -62,8 +62,8 @@ IND=${INDEX}
 
 ms=${msbase}_\${IND}.ms
 skymodel=${slicebase}\${IND}
-nuref=`echo \${IND} ${numPerChunk} ${chanWidth_kHz} | awk '{printf "%13.8f",1421.-($1*$2-1)*$3/1000.}'`
-spw="[${numPerChunk}, \${nuref} MHz, -${chanWidth_kHz} kHz, \"XX YY\"]"
+nuref=`echo \${IND} ${chanPerMSchunk} ${chanWidth_kHz} | awk '{printf "%13.8f",1421.-($1*$2-1)*$3/1000.}'`
+spw="[${chanPerMSchunk}, \${nuref} MHz, -${chanWidth_kHz} kHz, \"XX YY\"]"
 
 mkVisParset=${parsetdirVis}/csim-\${PBS_JOBID}.in
 mkVisLog=${logdirVis}/csim-\${PBS_JOBID}.log
@@ -136,6 +136,13 @@ fi
 
 if [ $doMergeVis == true ]; then
 
+    if [ $doClobberMergedVis == true ]; then
+
+	rm -rf ${msStage1base}_*
+	rm -rf ${finalMS}
+
+    fi
+
     if [ $doMergeStage1 == true ]; then
 
 	merge1qsub=${visdir}/${WORKDIR}/mergeVisStage1-${now}.qsub
@@ -151,15 +158,15 @@ if [ $doMergeVis == true ]; then
 #PBS -j oe
 
 #######
-# TO RUN (20 jobs):
-#  qsub -J 0-19 stage1.qsub
+# TO RUN (${numStage1jobs} jobs):
+#  qsub -J 1-${numStage1jobs} stage1.qsub
 #######
 
 cd \$PBS_O_WORKDIR
 
-MSPERJOB=41
+MSPERJOB=${msPerStage1job}
 
-START=\`expr \${PBS_ARRAY_INDEX} \* \$MSPERJOB\`
+START=\`echo \${PBS_ARRAY_INDEX}\$MSPERJOB | awk '{print (\$1-1)*\$2}'\`
 END=\`expr \${START} + \${MSPERJOB}\`
 
 IDX=\$START
@@ -169,15 +176,16 @@ while [ \$IDX -lt \$END ]; do
     IDX=\`expr \$IDX + 1\`
 done
 
-logfile=${logdirVis}/merge_s1_output_\${PBS_ARRAY_INDEX}.log
-echo "Processing files: $FILES" > \${logfile}
+logfile=${logdirVis}/merge_s1_output_\${PBS_JOBID}.log
+echo "Start = \$START, End = \$END" > \${logfile}
+echo "Processing files: $FILES" >> \${logfile}
 $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1base}_\${PBS_ARRAY_INDEX}.ms \$FILES >> \${logfile}
 
 EOF
 
 	if [ $doSubmit == true ] && [ $runOK == true ]; then
 	    
-	    merge1ID=`qsub ${dependVis} -J 0-19 $merge1qsub`
+	    merge1ID=`qsub ${dependVis} -J 1-${numStage1jobs} $merge1qsub`
 	    
 	    if [ "$dependVis" == "" ]; then
 		dependVis="-W depend=afterok:${merge1ID}"
@@ -207,9 +215,9 @@ EOF
 
 cd \$PBS_O_WORKDIR
 
-IDX=0
+IDX=1
 unset FILES
-while [ \$IDX -lt 20 ]; do
+while [ \$IDX -le ${numStage1jobs} ]; do
     FILES="\$FILES ${msStage1base}_\${IDX}.ms" 
     IDX=\`expr \$IDX + 1\`
 done

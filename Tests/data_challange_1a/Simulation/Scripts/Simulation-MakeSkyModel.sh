@@ -518,6 +518,7 @@ createFITS.nsuby            = ${nsuby}
 createFITS.writeByNode      = true
 createFITS.sourcelist       = duchamp-fitResults.txt
 createFITS.database         = Selavy
+createFITS.Selavyimage      = ${baseimage}-smooth.taylor.0
 createFITS.doContinuum      = true
 createFITS.posType          = deg
 createFITS.bunit            = Jy/pixel
