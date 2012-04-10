@@ -75,6 +75,14 @@ public:
    /// @param[in] nBeam number of beams, indices are expected to run from 0 to nBeam-1
    PreAvgCalBuffer(casa::uInt nAnt, casa::uInt nBeam);
    
+   /// @brief constructor with explicit averaging parameters
+   /// @details This version of the constructor explicitly defines the number of 
+   /// antennas to initialise the buffer appropriately. Unlike the version with 
+   /// explicitly given number of beams with nBeam set to 1, this constructor configures
+   /// the buffer to ignore the beam index (i.e. assuming the measurement equation is beam-independent)
+   /// @param[in] nAnt number of antennas, indices are expected to run from 0 to nAnt-1
+   PreAvgCalBuffer(casa::uInt nAnt);   
+   
    /// @brief initialise accumulation via an accessor
    /// @details This method resets the buffers and sets the shape using the given accessor
    /// as a template.
@@ -226,6 +234,9 @@ private:
    /// @details This number also accounts for the ignored samples due to 
    /// polarisation index being too large (beyond the range of the buffer)
    casa::uInt itsFlagIgnored;
+   
+   /// @brief if true, beam index is ignored
+   bool itsBeamIndependent;
 };
 
 } // namespace synthesis

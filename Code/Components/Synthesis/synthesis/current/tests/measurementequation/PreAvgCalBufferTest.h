@@ -56,6 +56,7 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
   CPPUNIT_TEST_SUITE(PreAvgCalBufferTest);
   CPPUNIT_TEST(testInitByAccessor);
   CPPUNIT_TEST(testInitExplicit);
+  CPPUNIT_TEST(testBeamIndependent);
   CPPUNIT_TEST(testPolIndex);
   CPPUNIT_TEST(testAccumulate);
   CPPUNIT_TEST(testAccumulateXPol);
@@ -110,6 +111,18 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          }
      }
      
+     /// @brief helper method to change the beam index for all accessor stub
+     /// @param[in] beam new beam index
+     void setBeamIndex(const casa::uInt beam) {
+         boost::shared_ptr<accessors::IDataAccessor> origDA(itsIter.operator->(),utility::NullDeleter());
+         CPPUNIT_ASSERT(origDA);
+         const boost::shared_ptr<accessors::DataAccessorStub> da = 
+               boost::dynamic_pointer_cast<accessors::DataAccessorStub>(origDA);
+         CPPUNIT_ASSERT(da);
+         da->itsFeed1.set(beam);
+         da->itsFeed2.set(beam);
+     }
+     
      void testInitExplicit() {
          // 20 antennas instead of 30 available, 2 beams instead of 1 available in the stubbed
          // accessor
@@ -144,6 +157,16 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
          CPPUNIT_ASSERT_EQUAL(1960u,pacBuf.ignoredNoMatch());
          CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
 
+         // change the beam index and accumulate again
+         setBeamIndex(2);
+         pacBuf.accumulate(*itsIter, itsME);
+
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         // (2*435 - 190) * 8 = 5440 samples unaccounted for 
+         // (the second beam is not mapped)
+         CPPUNIT_ASSERT_EQUAL(5440u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+
          const PolXProducts& pxp = pacBuf.polXProducts();
          for (casa::uInt row=0; row<pacBuf.nRow(); ++row) {
               CPPUNIT_ASSERT_EQUAL(pacBuf.feed1()[row], pacBuf.feed2()[row]);
@@ -156,6 +179,71 @@ class PreAvgCalBufferTest : public CppUnit::TestFixture
                        CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelProduct(row,0,pol,pol))),1e-5);
                        // 8 channels and 100 Jy source give sums of 80000 per accessor summed in
                        CPPUNIT_ASSERT_DOUBLES_EQUAL(80000., double(real(pxp.getModelProduct(row,0,pol,pol))),1e-2);
+                   } else {
+                       // nothing should be found in the accessor, so the appropriate samples should be flagged
+                       CPPUNIT_ASSERT_EQUAL(true, pacBuf.flag()(row,0,pol));
+                   }
+              }
+         }
+         
+     }
+
+     void testBeamIndependent() {
+         // 20 antennas instead of 30 available, 2 beams instead of 1 available in the stubbed
+         // accessor
+         PreAvgCalBuffer pacBuf(20);
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+         // 20 antennas and 1 aggregate beam give 190 rows; 4 polarisation by default
+         CPPUNIT_ASSERT_EQUAL(190u,pacBuf.nRow());
+         CPPUNIT_ASSERT_EQUAL(1u,pacBuf.nChannel());
+         CPPUNIT_ASSERT_EQUAL(4u,pacBuf.nPol());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nRow(),pacBuf.flag().nrow());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nPol(),pacBuf.flag().nplane());
+         CPPUNIT_ASSERT_EQUAL(pacBuf.nChannel(),pacBuf.flag().ncolumn());
+         CPPUNIT_ASSERT_EQUAL(4u,casa::uInt(pacBuf.stokes().nelements()));
+         CPPUNIT_ASSERT(scimath::PolConverter::isLinear(pacBuf.stokes()));
+         for (casa::uInt pol = 0; pol<4; ++pol) {
+              CPPUNIT_ASSERT_EQUAL(pol,scimath::PolConverter::getIndex(pacBuf.stokes()[pol]));
+         }
+         
+         CPPUNIT_ASSERT(itsME);
+         CPPUNIT_ASSERT(itsIter);
+         
+         // simulate visibilities
+         itsME->predict(*itsIter);
+                  
+         pacBuf.accumulate(*itsIter, itsME);
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         // (435 - 190) * 8 = 1960 samples unaccounted for 
+         // (accessor has 1 polarisation)
+         CPPUNIT_ASSERT_EQUAL(1960u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+
+
+         // change the beam index and accumulate again
+         setBeamIndex(2);
+         pacBuf.accumulate(*itsIter, itsME);
+         
+         
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToType());
+         // (435 - 190) * 8 * 2 = 3920 samples are now unaccounted for 
+         CPPUNIT_ASSERT_EQUAL(3920u,pacBuf.ignoredNoMatch());
+         CPPUNIT_ASSERT_EQUAL(0u,pacBuf.ignoredDueToFlags());         
+
+         const PolXProducts& pxp = pacBuf.polXProducts();
+         for (casa::uInt row=0; row<pacBuf.nRow(); ++row) {
+              CPPUNIT_ASSERT_EQUAL(pacBuf.feed1()[row], pacBuf.feed2()[row]);
+              for (casa::uInt pol=0; pol<pacBuf.nPol(); ++pol) {
+                   if ((pol == 0) && (pacBuf.feed1()[row] == 0)) {
+                       CPPUNIT_ASSERT_EQUAL(false, pacBuf.flag()(row,0,pol));                       
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(double(real(pxp.getModelProduct(row,0,pol,pol))),
+                                              double(real(pxp.getModelMeasProduct(row,0,pol,pol))),1e-2);
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelMeasProduct(row,0,pol,pol))),1e-5);
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(0,double(imag(pxp.getModelProduct(row,0,pol,pol))),1e-5);
+                       // 8 channels, 2 beams and 100 Jy source give sums of 160000 per accessor summed in
+                       CPPUNIT_ASSERT_DOUBLES_EQUAL(160000., double(real(pxp.getModelProduct(row,0,pol,pol))),1e-2);
                    } else {
                        // nothing should be found in the accessor, so the appropriate samples should be flagged
                        CPPUNIT_ASSERT_EQUAL(true, pacBuf.flag()(row,0,pol));

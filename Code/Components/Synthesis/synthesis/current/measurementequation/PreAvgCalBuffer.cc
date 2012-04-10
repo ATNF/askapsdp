@@ -47,7 +47,7 @@ using namespace askap::synthesis;
 /// @brief default constructor
 /// @details preaveraging is initialised based on the first encountered accessor
 PreAvgCalBuffer::PreAvgCalBuffer() : itsPolXProducts(0), // set nPol = 0 for now as a proper initialisation is pending
-    itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0) {}
+    itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0), itsBeamIndependent(false) {}
    
 /// @brief constructor with explicit averaging parameters
 /// @details This version of the constructor explicitly defines the number of 
@@ -58,10 +58,26 @@ PreAvgCalBuffer::PreAvgCalBuffer(casa::uInt nAnt, casa::uInt nBeam) : itsAntenna
       itsAntenna2(nBeam*nAnt*(nAnt-1)/2), itsBeam(nBeam*nAnt*(nAnt-1)/2), itsFlag(nBeam*nAnt*(nAnt-1)/2,1,4),
       // npol=4
       itsStokes(4), itsPolXProducts(4,casa::IPosition(2,int(nBeam*nAnt*(nAnt-1)/2),1)),
-      itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0)
+      itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0), itsBeamIndependent(false)
 {
   initialise(nAnt,nBeam);
-}      
+}  
+
+/// @brief constructor with explicit averaging parameters
+/// @details This version of the constructor explicitly defines the number of 
+/// antennas to initialise the buffer appropriately. Unlike the version with 
+/// explicitly given number of beams with nBeam set to 1, this constructor configures
+/// the buffer to ignore the beam index (i.e. assuming the measurement equation is beam-independent)
+/// @param[in] nAnt number of antennas, indices are expected to run from 0 to nAnt-1
+PreAvgCalBuffer::PreAvgCalBuffer(casa::uInt nAnt) : itsAntenna1(nAnt*(nAnt-1)/2), 
+      itsAntenna2(nAnt*(nAnt-1)/2), itsBeam(nAnt*(nAnt-1)/2), itsFlag(nAnt*(nAnt-1)/2,1,4),
+      // npol=4
+      itsStokes(4), itsPolXProducts(4,casa::IPosition(2,int(nAnt*(nAnt-1)/2),1)),
+      itsVisTypeIgnored(0), itsNoMatchIgnored(0), itsFlagIgnored(0), itsBeamIndependent(true)
+{
+  initialise(nAnt, 1);
+}
+    
    
 /// @brief initialise accumulation via an accessor
 /// @details This method resets the buffers and sets the shape using the given accessor
@@ -238,7 +254,7 @@ int PreAvgCalBuffer::findMatch(casa::uInt ant1, casa::uInt ant2, casa::uInt beam
   // we can probably implement a more clever search algorithm here because the 
   // metadata are almost always ordered
   for (casa::uInt row=0; row<itsAntenna1.nelements(); ++row) {
-       if ((itsAntenna1[row] == ant1) && (itsAntenna2[row] == ant2) && (itsBeam[row] == beam)) {
+       if ((itsAntenna1[row] == ant1) && (itsAntenna2[row] == ant2) && (itsBeamIndependent || (itsBeam[row] == beam))) {
            return int(row);
        }
   } 
