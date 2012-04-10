@@ -1523,7 +1523,7 @@ namespace askap {
 	if(itsComms.isParallel()){
 	  if(itsComms.isMaster()) {
 	    LOFAR::BlobString bs;
-	    
+
 	    // first send the voxel list to all workers
 	    /// @todo This could be made more efficient, so that we don't send unnecessary voxels to some workers.
 	    bs.resize(0);
@@ -1579,7 +1579,6 @@ namespace askap {
 	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Distributing edge sources to be fit by workers");
 
 	    // now send the individual sources to each worker in turn
-	    // 	    for(size_t i=0;i<this->itsSourceList.size();i++){
 	    for(size_t i=0;i<this->itsEdgeSourceList.size();i++){
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Preparing source #"<<i+1);
 	      this->prepareSourceForFit(this->itsEdgeSourceList[i],false);
@@ -1609,7 +1608,6 @@ namespace askap {
 	    }
 
 	    // now read back the sources from the workers
-	    // 	    this->itsSourceList.clear();
 	    this->itsEdgeSourceList.clear();
 	    for (int n=0;n<itsComms.nProcs()-1;n++){
 	      int numSrc;
@@ -1624,7 +1622,6 @@ namespace askap {
 		sourcefitting::RadioSource src;
 		in >> src;
 		src.setHeader(this->itsCube.getHead());  // make sure we have the right WCS etc information
-		// 		this->itsSourceList.push_back(src);
 		this->itsEdgeSourceList.push_back(src);
 	      }
 	      in.getEnd();
