@@ -113,6 +113,13 @@ namespace askap {
 	      this->itsOverlapZ = std::max(this->itsOverlapZ, theFitParams.boxPadSize());
 	    }
 
+	    if(parset.getBool("doMedianSearch",true)){
+	      int medianBoxWidth = parset.getInt16("medianBoxWidth", 50);
+	      this->itsOverlapX = std::max(this->itsOverlapX, medianBoxWidth);
+	      this->itsOverlapY = std::max(this->itsOverlapY, medianBoxWidth);
+	      this->itsOverlapZ = std::max(this->itsOverlapZ, medianBoxWidth);
+	    }
+
 	    ASKAPLOG_DEBUG_STR(logger, "Defined subimageDef, subdivided "<<itsNSubX<<"x"<<itsNSubY<<"x"<<itsNSubZ
 			       <<" with overlaps "<<itsOverlapX<<","<<itsOverlapY<<","<<itsOverlapZ);
 
