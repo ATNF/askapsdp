@@ -275,6 +275,9 @@ namespace askap {
                 /// The list of fits to the detected sources.
                 std::vector<sourcefitting::RadioSource> itsSourceList;
 
+		/// The list of edge sources
+		std::vector<sourcefitting::RadioSource> itsEdgeSourceList;
+
                 /// The definition of the subimage being used (only relevant for the workers)
                 SubimageDef itsSubimageDef;
 

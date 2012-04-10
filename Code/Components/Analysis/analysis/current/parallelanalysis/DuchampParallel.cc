@@ -864,7 +864,7 @@ namespace askap {
 	  } else src.setNoiseLevel(1);
 	}
 
-	if(useArray || !this->itsFlagDoMedianSearch) src.setDetectionThreshold(this->itsCube, this->itsFlagDoMedianSearch);
+	if(useArray) src.setDetectionThreshold(this->itsCube, this->itsFlagDoMedianSearch);
 	else src.setDetectionThreshold(this->itsVoxelList, this->itsSNRVoxelList, this->itsFlagDoMedianSearch);
 
 	src.setHeader(this->itsCube.getHead());
@@ -1046,7 +1046,8 @@ namespace askap {
 		src.setOffsets(this->itsCube.pars());
 		src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 		src.fitparams() = this->itsFitParams;
-		this->itsSourceList.push_back(src);
+		if(src.isAtEdge()) this->itsEdgeSourceList.push_back(src);
+		else this->itsSourceList.push_back(src);
 
 		if (src.isAtEdge()) {
 		  int numVox;
@@ -1083,7 +1084,7 @@ namespace askap {
 	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Received list of size "
 				<< numObj << " from worker #" << rank);
 	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have "
-				<< this->itsSourceList.size() << " objects");
+				<< this->itsSourceList.size() << " good objects and " << this->itsEdgeSourceList.size() << " edge objects");
 	      in.getEnd();
 	    }
 	  }
@@ -1123,25 +1124,33 @@ namespace askap {
 
             if (!itsComms.isParallel() || itsComms.isMaster()) {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Beginning the cleanup");
-                std::vector<sourcefitting::RadioSource> edgeSources, goodSources;
+
+                duchamp::FitsHeader head = this->itsCube.getHead();
                 std::vector<sourcefitting::RadioSource>::iterator src;
 
+		ASKAPLOG_DEBUG_STR(logger, "Refining non-edge source list of size " << this->itsSourceList.size());
                 for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-                    if (src->isAtEdge()) edgeSources.push_back(*src);
-                    else goodSources.push_back(*src);
-                }
+                    src->setHeader(head);
 
-                this->itsSourceList.clear();
+                    // Need to check that there are no small sources present that violate the minimum size criteria
+                    if (!(src->hasEnoughChannels(this->itsCube.pars().getMinChannels()))
+			|| (src->getSpatialSize() < this->itsCube.pars().getMinPix()))
+                        this->itsSourceList.erase(src);
+                }
+		ASKAPLOG_DEBUG_STR(logger, "Now have " << this->itsSourceList.size() << " non-edge sources");
+
+		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube = " << this->itsEdgeSourceList.size());
+
 		this->itsCube.clearDetectionList();
-                duchamp::FitsHeader head = this->itsCube.getHead();
 
                 float threshold;
 
                 if (this->itsCube.pars().getFlagUserThreshold()) threshold = this->itsCube.pars().getThreshold();
                 else threshold = this->itsCube.stats().getThreshold();
 
-                if (edgeSources.size() > 0) { // if there are edge sources
-                    for (src = edgeSources.begin(); src < edgeSources.end(); src++) this->itsCube.addObject(*src);
+                if (this->itsEdgeSourceList.size() > 0) { // if there are edge sources
+                    for (src = this->itsEdgeSourceList.begin(); src < this->itsEdgeSourceList.end(); src++) this->itsCube.addObject(*src);
+		    this->itsEdgeSourceList.clear();
 
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube = " << this->itsCube.getNumObj());
                     bool growthflag = this->itsCube.pars().getFlagGrowth();
@@ -1231,7 +1240,7 @@ namespace askap {
 			      src.findSpectralTerm(this->itsCube.pars().getImageFile(), t, this->itsFlagFindSpectralIndex);
 			  }
 			}
-                        this->itsSourceList.push_back(src);
+                        this->itsEdgeSourceList.push_back(src);
                     }
                 }
 		else this->calcObjectParams(); // if no edge sources, call this anyway so the workers know what to do...
@@ -1240,18 +1249,13 @@ namespace askap {
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up edge sources");
 
-                for (src = goodSources.begin(); src < goodSources.end(); src++) {
-                    src->setHeader(head);
-
-                    // Need to check that there are no small sources present that violate the minimum size criteria
-                    if ((src->hasEnoughChannels(this->itsCube.pars().getMinChannels()))
-                            && (src->getSpatialSize() >= this->itsCube.pars().getMinPix()))
-                        this->itsSourceList.push_back(*src);
-                }
+		for(src=this->itsEdgeSourceList.begin(); src<this->itsEdgeSourceList.end();src++){
+		  this->itsSourceList.push_back(*src);
+		}
+		this->itsEdgeSourceList.clear();
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Now have a total of " << this->itsSourceList.size() << " sources.");
 
-		//                ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Starting sort of source list");
                 std::multimap<float, int> detlist;
 
                 for (size_t i = 0; i < this->itsSourceList.size(); i++) {
@@ -1297,7 +1301,7 @@ namespace askap {
 
 	    int objsize=0;
 	    duchamp::Section fullSec=this->itsCube.pars().section();
-	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Using subsection for box calcs: " << fullSec.getSection());
+	    //	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Using subsection for box calcs: " << fullSec.getSection());
 	    // now send the individual sources to each worker in turn
 	    for(int i=0;i<this->itsCube.getNumObj();i++){
 	      rank = i % (itsComms.nProcs() - 1);
@@ -1322,27 +1326,32 @@ namespace askap {
 	    out.putStart("paramsrc", 1);
 	    out << objsize;
 	    out.putEnd();
-        for (int i = 1; i < itsComms.nProcs(); ++i) {
-	        itsComms.sendBlob(bs, i);
-        }
+	    for (int i = 1; i < itsComms.nProcs(); ++i) {
+	      itsComms.sendBlob(bs, i);
+	    }
 	    // now read back the sources from the workers
-	    this->itsSourceList.clear();
-	    this->itsCube.clearDetectionList();
-	    for (int n=0;n<itsComms.nProcs()-1;n++){
-	      int numSrc;
-	      ASKAPLOG_DEBUG_STR(logger, "Master about to read from worker #"<< n+1);
-	      itsComms.receiveBlob(bs, n + 1);
-	      LOFAR::BlobIBufString bib(bs);
-	      LOFAR::BlobIStream in(bib);
-	      int version = in.getStart("final");
-	      ASKAPASSERT(version == 1);
-	      in >> numSrc;
-	      for(int i=0;i<numSrc;i++){
-		sourcefitting::RadioSource src;
-		in >> src;
-		this->itsCube.addObject(src);
+	    // Only need to do this if we actually sent something in the first place.
+	    if(this->itsCube.getNumObj()>0){
+	      this->itsEdgeSourceList.clear();
+	      int numObj=this->itsCube.getNumObj();
+	      this->itsCube.clearDetectionList();
+	      for (int n=0;n<itsComms.nProcs()-1 && this->itsCube.getNumObj()<numObj;n++){
+		int numSrc;
+		ASKAPLOG_DEBUG_STR(logger, "Master about to read from worker #"<< n+1);
+		itsComms.receiveBlob(bs, n + 1);
+		LOFAR::BlobIBufString bib(bs);
+		LOFAR::BlobIStream in(bib);
+		int version = in.getStart("final");
+		ASKAPASSERT(version == 1);
+		in >> numSrc;
+		for(int i=0;i<numSrc;i++){
+		  sourcefitting::RadioSource src;
+		  in >> src;
+		  this->itsEdgeSourceList.push_back(src);
+		  this->itsCube.addObject(src);
+		}
+		in.getEnd();
 	      }
-	      in.getEnd();
 	    }
 	  }
 	  else if(itsComms.isWorker()){
@@ -1361,9 +1370,9 @@ namespace askap {
 	      int version = in.getStart("paramsrc");
 	      ASKAPASSERT(version == 1);
 	      in >> objsize;
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Reading object size=" << objsize << " from Master");
+	      //	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Reading object size=" << objsize << " from Master");
 	      if(objsize>0){
-		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Got OK to read object");
+		//		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Got OK to read object");
 		sourcefitting::RadioSource src;
 		in >> src;
 		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Object calcs: Read object of size " << src.getSize() << " from Master");
@@ -1372,13 +1381,14 @@ namespace askap {
 	      in.getEnd();
 	    }
 
-            int numVox = this->itsVoxelList.size();
-            int numObj = this->itsCube.getNumObj();
+	    if(this->itsCube.getNumObj() > 0){
+	      int numVox = this->itsVoxelList.size();
+	      int numObj = this->itsCube.getNumObj();
 
-	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Read all " << numObj << " objects. Now have to get voxels from list of " << numVox);
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Read all " << numObj << " objects. Now have to get voxels from list of " << numVox);
 
-	    if (numObj > 0) {
-// 	      std::vector<PixelInfo::Voxel> templist[numObj];
+	      if (numObj > 0) {
+		// 	      std::vector<PixelInfo::Voxel> templist[numObj];
                 for (int i = 0; i < numObj; i++) {
 
 		  // for each object, make a vector list of voxels that appear in it.
@@ -1386,21 +1396,21 @@ namespace askap {
 		  std::vector<PixelInfo::Voxel>::iterator vox;
 		  
 		  // get the fluxes of each voxel
-// 		  for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
-// 		    int ct = 0;
+		  // 		  for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
+		  // 		    int ct = 0;
 		    
-// 		    while (ct < numVox && !vox->match(this->itsVoxelList[ct])) {
-// 		      ct++;
-// 		    }
+		  // 		    while (ct < numVox && !vox->match(this->itsVoxelList[ct])) {
+		  // 		      ct++;
+		  // 		    }
 		    
-// 		    if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
-// 		      ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("<< vox->getX() << "," << vox->getY()<< ") in the object lists that doesn't appear in the base list.");
-// 		    } else vox->setF(this->itsVoxelList[ct].getF());
-// 		  }
+		  // 		    if (numVox != 0 && ct == numVox) { // there has been no match -- problem!
+		  // 		      ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "Found a voxel ("<< vox->getX() << "," << vox->getY()<< ") in the object lists that doesn't appear in the base list.");
+		  // 		    } else vox->setF(this->itsVoxelList[ct].getF());
+		  // 		  }
 		  
-// 		  for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
+		  // 		  for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
 		  for(size_t v=0;v<objVoxList.size();v++){
-// 		    if(v%1000 == 0 ) ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "finding flux for point #"<<v);
+		    // 		    if(v%1000 == 0 ) ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "finding flux for point #"<<v);
 		    if(this->itsVoxelMap.find(objVoxList[v])==this->itsVoxelMap.end()){
 		      ASKAPLOG_ERROR_STR(logger, this->workerPrefix() << "found a voxel ("
 					 << objVoxList[v].getX() << "," << objVoxList[v].getY()
@@ -1409,32 +1419,33 @@ namespace askap {
 		    else objVoxList[v].setF(this->itsVoxelMap[objVoxList[v]]);
 		  }
 
-// 		  templist[i] = objVoxList;
+		  // 		  templist[i] = objVoxList;
                 }
 		
 		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Allocated fluxes to voxel lists. Now calculating parameters");
 		
-//                 std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
-//                 this->itsCube.calcObjectWCSparams(bigVoxSet);
+		//                 std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
+		//                 this->itsCube.calcObjectWCSparams(bigVoxSet);
 		this->itsCube.calcObjectWCSparams(this->itsVoxelMap);
-	   }
+	      }
 
-	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Done the WCS parameter calculation. About to send back to master");
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Done the WCS parameter calculation. About to send back to master");
 
-	    // send sources back to master
-	    bs.resize(0);
-	    LOFAR::BlobOBufString bob(bs);
-	    LOFAR::BlobOStream out(bob);
-	    out.putStart("final", 1);
-	    out << int(numObj);
-	    for(int i=0;i<numObj;i++){
-	      sourcefitting::RadioSource src=this->itsCube.getObject(i);
-	      src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
-	      out << src;
+	      // send sources back to master
+	      bs.resize(0);
+	      LOFAR::BlobOBufString bob(bs);
+	      LOFAR::BlobOStream out(bob);
+	      out.putStart("final", 1);
+	      out << int(numObj);
+	      for(int i=0;i<numObj;i++){
+		sourcefitting::RadioSource src=this->itsCube.getObject(i);
+		src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
+		out << src;
+	      }
+	      out.putEnd();
+	      itsComms.sendBlob(bs, 0);
+
 	    }
-	    out.putEnd();
-	    itsComms.sendBlob(bs, 0);
-
 	  }
 	}
 
@@ -1512,13 +1523,13 @@ namespace askap {
 	if(itsComms.isParallel()){
 	  if(itsComms.isMaster()) {
 	    LOFAR::BlobString bs;
-
+	    
 	    // first send the voxel list to all workers
 	    /// @todo This could be made more efficient, so that we don't send unnecessary voxels to some workers.
 	    bs.resize(0);
 	    LOFAR::BlobOBufString bob(bs);
 	    LOFAR::BlobOStream out(bob);
-	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcasting voxel list to all workers");
+	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Broadcasting voxel list of size " << this->itsVoxelList.size() << " to all workers");
 	    out.putStart("voxels", 1);
 	    out << int(this->itsVoxelList.size());
 	    for(size_t p=0;p<this->itsVoxelList.size();p++) 
@@ -1529,8 +1540,8 @@ namespace askap {
 	  else if(itsComms.isWorker()){
 	    // first read the voxel list
 	    this->itsVoxelList.clear();
-// 	    bool(*fn_pt)(PixelInfo::Voxel,PixelInfo::Voxel)=voxComp;
-// 	    this->itsVoxelMap = std::map<PixelInfo::Voxel,float>(fn_pt);
+	    // 	    bool(*fn_pt)(PixelInfo::Voxel,PixelInfo::Voxel)=voxComp;
+	    // 	    this->itsVoxelMap = std::map<PixelInfo::Voxel,float>(fn_pt);
 	    LOFAR::BlobString bs;
 	    itsComms.broadcastBlob(bs, 0);
 	    LOFAR::BlobIBufString bib(bs);
@@ -1548,15 +1559,15 @@ namespace askap {
 	      this->itsVoxelList.push_back(vox);
 	      vox.setF(0.);
 	      this->itsVoxelMap[vox] = f;
-// 	      this->itsVoxelMap.insert(std::pair(PixelInfo::Voxel(x,y,z,0),f));
-//	      this->itsVoxelMap[PixelInfo::Voxel(x,y,z,0)] = f;
+	      // 	      this->itsVoxelMap.insert(std::pair(PixelInfo::Voxel(x,y,z,0),f));
+	      //	      this->itsVoxelMap[PixelInfo::Voxel(x,y,z,0)] = f;
 	    }
 	    in.getEnd();
 	  }
 	}
       }
-
-	//**************************************************************//
+      
+      //**************************************************************//
 
       void DuchampParallel::fitRemaining()
       {
@@ -1564,20 +1575,21 @@ namespace askap {
 	  if(itsComms.isMaster()) {
 	    int16 rank;
 	    LOFAR::BlobString bs;
-	    
+	      
 	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Distributing edge sources to be fit by workers");
 
 	    // now send the individual sources to each worker in turn
-	    for(size_t i=0;i<this->itsSourceList.size();i++){
+	    // 	    for(size_t i=0;i<this->itsSourceList.size();i++){
+	    for(size_t i=0;i<this->itsEdgeSourceList.size();i++){
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Preparing source #"<<i+1);
-	      this->prepareSourceForFit(this->itsSourceList[i],false);
+	      this->prepareSourceForFit(this->itsEdgeSourceList[i],false);
 	      rank = i % (itsComms.nProcs() - 1);
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << this->itsSourceList[i].getSize() << " to worker "<<rank+1);
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << this->itsEdgeSourceList[i].getSize() << " to worker "<<rank+1);
 	      bs.resize(0);
 	      LOFAR::BlobOBufString bob(bs);
 	      LOFAR::BlobOStream out(bob);
 	      out.putStart("fitsrc", 1);
-	      out << true << this->itsSourceList[i];
+	      out << true << this->itsEdgeSourceList[i];
 	      out.putEnd();
 	      itsComms.sendBlob(bs, rank + 1);
 	    }
@@ -1592,12 +1604,13 @@ namespace askap {
 	    out.putStart("fitsrc", 1);
 	    out << false;
 	    out.putEnd();
-        for (int i = 1; i < itsComms.nProcs(); ++i) {
-	        itsComms.sendBlob(bs, i);
-        }
+	    for (int i = 1; i < itsComms.nProcs(); ++i) {
+	      itsComms.sendBlob(bs, i);
+	    }
 
 	    // now read back the sources from the workers
-	    this->itsSourceList.clear();
+	    // 	    this->itsSourceList.clear();
+	    this->itsEdgeSourceList.clear();
 	    for (int n=0;n<itsComms.nProcs()-1;n++){
 	      int numSrc;
 	      ASKAPLOG_INFO_STR(logger, "Master about to read from worker #"<< n+1);
@@ -1611,23 +1624,24 @@ namespace askap {
 		sourcefitting::RadioSource src;
 		in >> src;
 		src.setHeader(this->itsCube.getHead());  // make sure we have the right WCS etc information
-		this->itsSourceList.push_back(src);
+		// 		this->itsSourceList.push_back(src);
+		this->itsEdgeSourceList.push_back(src);
 	      }
 	      in.getEnd();
 	    }
-
+	      
 	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished fitting of edge sources");
 
 	  }
 	  else if(itsComms.isWorker()){
 	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting edge sources passed from master.");
-
+	      
 	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting up cube in preparation for source fitting");
 	    this->itsCube.pars().setSubsection("");
 	    //	    casaImageToMetadata(this->itsCube, this->itsSubimageDef, -1);
 	    this->getCASA(METADATA,false);
 	    LOFAR::BlobString bs;
-
+	      
 	    // now read individual sources
 	    bool isOK=true;
 	    this->itsSourceList.clear();
@@ -1658,7 +1672,7 @@ namespace askap {
 	    for(size_t i=0;i<this->itsSourceList.size();i++) out << this->itsSourceList[i];
 	    out.putEnd();
 	    itsComms.sendBlob(bs, 0);
-
+	      
 	  }
 	}
 
