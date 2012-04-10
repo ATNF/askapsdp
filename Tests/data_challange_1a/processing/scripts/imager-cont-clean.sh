@@ -23,7 +23,7 @@ Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
 Cimager.Images.image.i.clean.frequency          = [1.420e9,1.420e9]
 Cimager.Images.image.i.clean.nchan              = 1
 Cimager.Images.image.i.clean.direction          = [12h30m00.00, -45.00.00.00, J2000]
-Cimager.Images.image.i.clean.nterms             = 3
+Cimager.Images.image.i.clean.nterms             = 2
 Cimager.Images.image.i.clean.writeAtMajorCycle  = true
 #
 Cimager.visweights                              = MFS
