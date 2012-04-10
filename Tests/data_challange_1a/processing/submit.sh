@@ -7,6 +7,12 @@ SCRIPTDIR=`pwd`/scripts
 # Source the configuration data
 . ${SCRIPTDIR}/config.sh
 
+# Ensure ASKAP_ROOT is set and present
+if [ ! ${ASKAP_ROOT} ] || [ ! -d ${ASKAP_ROOT} ]; then
+    echo "Error: ASKAP_ROOT not set or set to invalid path"
+    exit 1
+fi
+
 # Make and cd to the workdir
 if [ ! -d ${WORKDIR} ]; then
     mkdir ${WORKDIR}
