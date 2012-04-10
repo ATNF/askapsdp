@@ -113,7 +113,7 @@ namespace askap {
 	      this->itsOverlapZ = std::max(this->itsOverlapZ, theFitParams.boxPadSize());
 	    }
 
-	    if(parset.getBool("doMedianSearch",true)){
+	    if(parset.getBool("doMedianSearch",false)){
 	      int medianBoxWidth = parset.getInt16("medianBoxWidth", 50);
 	      this->itsOverlapX = std::max(this->itsOverlapX, medianBoxWidth);
 	      this->itsOverlapY = std::max(this->itsOverlapY, medianBoxWidth);
