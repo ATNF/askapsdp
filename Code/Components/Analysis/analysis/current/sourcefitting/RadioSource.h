@@ -156,7 +156,7 @@ namespace askap {
 
                     /// @brief Print summary of detection & fit
                     void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
-                                      std::string fittype, bool doHeader = false, bool doSpectralIndex = true);
+                                      std::string fittype, bool doHeader = false);
 
                     /// @brief Write the description of the fits to an annotation file.
                     void writeFitToAnnotationFile(std::ostream &stream, bool doEllipse, bool doBox);

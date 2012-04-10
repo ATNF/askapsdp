@@ -1105,7 +1105,7 @@ namespace askap {
             //**************************************************************//
 
             void RadioSource::printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
-                                           std::string fittype, bool doHeader, bool doSpectralIndex)
+                                           std::string fittype, bool doHeader)
             {
                 /// @details
                 ///
@@ -1169,10 +1169,8 @@ namespace askap {
                     majDeconv.printTitle(stream);
                     minDeconv.printTitle(stream);
                     paDeconv.printTitle(stream);
-		    if(doSpectralIndex){
-		      alpha.printTitle(stream);
-		      beta.printTitle(stream);
-		    }
+		    alpha.printTitle(stream);
+		    beta.printTitle(stream);
                     chisqFit.printTitle(stream);
                     rmsIm.printTitle(stream);
                     rmsFit.printTitle(stream);
@@ -1196,6 +1194,8 @@ namespace askap {
 		                majDeconv.getWidth() +
 		                minDeconv.getWidth() +
 		                paDeconv.getWidth() +
+		                alpha.getWidth() +
+		                beta.getWidth() +
 		                chisqFit.getWidth() +
 		                rmsIm.getWidth() +
 		                rmsFit.getWidth() +
@@ -1204,7 +1204,6 @@ namespace askap {
 		                npixFit.getWidth() +
 		                npixObj.getWidth() +
 		                flagGuess.getWidth();
-		    if(doSpectralIndex) width +=  alpha.getWidth() + beta.getWidth();
 
                     stream << "#" << std::setfill('-') << std::setw(width) << '-' << "\n";
                 }
@@ -1227,10 +1226,8 @@ namespace askap {
                     majDeconv.printEntry(stream, zero);
                     minDeconv.printEntry(stream, zero);
                     paDeconv.printEntry(stream, zero);
-		    if(doSpectralIndex){
-		      alpha.printEntry(stream, zero);
-		      beta.printEntry(stream, zero);
-		    }
+		    alpha.printEntry(stream, zero);
+		    beta.printEntry(stream, zero);
                     chisqFit.printEntry(stream, zero);
                     rmsIm.printEntry(stream, this->itsNoiseLevel);
                     rmsFit.printEntry(stream, zero);
@@ -1286,10 +1283,8 @@ namespace askap {
                         majDeconv.printEntry(stream, deconv[0]*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
                         minDeconv.printEntry(stream, deconv[1]*this->itsHeader.getAvPixScale()*3600.);
                         paDeconv.printEntry(stream, deconv[2]*180. / M_PI);
-			if(doSpectralIndex){
-			  alpha.printEntry(stream, *alphaIter);
-			  beta.printEntry(stream, *betaIter);
-			}
+			alpha.printEntry(stream, *alphaIter);
+			beta.printEntry(stream, *betaIter);
                         chisqFit.printEntry(stream, results.chisq());
                         rmsIm.printEntry(stream, this->itsNoiseLevel);
                         rmsFit.printEntry(stream, results.RMS());
