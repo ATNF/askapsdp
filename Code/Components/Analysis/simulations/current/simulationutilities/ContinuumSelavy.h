@@ -92,8 +92,6 @@ namespace askap {
 		float itsMajDECONV; 
 		float itsMinDECONV; 
 		float itsPADECONV; 
-		float itsAlpha; 
-		float itsBeta; 
 		float itsChisq;
 		float itsRMSimage;
 		float itsRMSfit;
@@ -101,7 +99,7 @@ namespace askap {
 		int itsNdof;
 		int itsNpixFIT;
 		int itsNpixObj;
-		
+		bool itsFlagGuess;
         };
 
     }

@@ -79,19 +79,20 @@ namespace askap {
 	  //
 
             std::stringstream ss(line);
+	    int flag;
 	    ss >> this->itsID >> this->itsName >> this->itsRA >> this->itsDec 
 	       >> this->itsFint >> this->itsFpeak >> this->itsFintFIT >> this->itsFpeakFIT
 	       >> this->itsMajFIT >> this->itsMinFIT >> this->itsPAFIT
 	       >> this->itsMajDECONV >> this->itsMinDECONV >> this->itsPADECONV
 	       >> this->itsAlpha >> this->itsBeta
 	       >> this->itsChisq >> this->itsRMSimage >> this->itsRMSfit 
-	       >> this->itsNfree >> this->itsNdof >> this->itsNpixFIT >> this->itsNpixObj;
+	       >> this->itsNfree >> this->itsNdof >> this->itsNpixFIT >> this->itsNpixObj >> flag;
 
 	    this->setMaj(std::max(this->itsMajFIT,this->itsMinFIT));
 	    this->setMin(std::min(this->itsMajFIT,this->itsMinFIT));
             this->setPA(this->itsPAFIT);
 	    this->setFluxZero(this->itsFintFIT);
-
+	    this->itsFlagGuess = (flag==1);
         }
 
         ContinuumSelavy::ContinuumSelavy(const ContinuumSelavy& c):
@@ -105,9 +106,26 @@ namespace askap {
             if (this == &c) return *this;
 
             ((Continuum &) *this) = c;
-            this->itsAlpha      = c.itsAlpha;
-            this->itsBeta       = c.itsBeta;
-            this->itsNuZero     = c.itsNuZero;
+	    this->itsID = c.itsID;	    
+	    this->itsName = c.itsName;	    
+	    this->itsFint = c.itsFint;	    
+	    this->itsFpeak = c.itsFpeak;	    
+	    this->itsFintFIT = c.itsFintFIT;   
+	    this->itsFpeakFIT = c.itsFpeakFIT;  
+	    this->itsMajFIT = c.itsMajFIT;    
+	    this->itsMinFIT = c.itsMinFIT;    
+	    this->itsPAFIT = c.itsPAFIT;     
+	    this->itsMajDECONV = c.itsMajDECONV; 
+	    this->itsMinDECONV = c.itsMinDECONV; 
+	    this->itsPADECONV = c.itsPADECONV;  
+	    this->itsChisq = c.itsChisq;	    
+	    this->itsRMSimage = c.itsRMSimage;  
+	    this->itsRMSfit = c.itsRMSfit;    
+	    this->itsNfree = c.itsNfree;	    
+	    this->itsNdof = c.itsNdof;	    
+	    this->itsNpixFIT = c.itsNpixFIT;   
+	    this->itsNpixObj = c.itsNpixObj;   
+	    this->itsFlagGuess = c.itsFlagGuess;
             return *this;
         }
 
@@ -146,7 +164,8 @@ namespace askap {
 		  << std::setw(11) << this->itsNfree << " "
 		  << std::setw(10) << this->itsNdof << " "
 		  << std::setw(10) << this->itsNpixFIT << " "
-		  << std::setw(10) << this->itsNpixObj << "\n";
+		  << std::setw(10) << this->itsNpixObj << " "
+		  << std::setw(7)  << this->itsFlagGuess << "\n";
       }
         std::ostream& operator<< (std::ostream& theStream, ContinuumSelavy &cont)
         {
