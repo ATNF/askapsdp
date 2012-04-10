@@ -206,6 +206,9 @@ namespace askap
       /// @brief flag swtiching the leakage calibration on
       bool itsSolveLeakage;
       
+      /// @brief flag to treat gains as beam-independent
+      bool itsBeamIndependentGains;
+      
       /// @brief solution source to store the result
       /// @details This object is initialised by the master. It stores the solution
       /// in parset file, casa table or a database.

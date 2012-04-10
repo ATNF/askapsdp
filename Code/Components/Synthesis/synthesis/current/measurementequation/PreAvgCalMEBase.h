@@ -116,6 +116,14 @@ public:
   /// visibilities not accumulated due to various reasons
   ~PreAvgCalMEBase();
   
+  /// @brief configure beam-independent case
+  /// @details This method configures the underlying buffer to apply 
+  /// optimisations if the measurement equation is known to be beam-independent.
+  /// By default, the general case is assumed (but it should work for the 
+  /// beam-independent case as well)
+  /// @param[in] flag if true, the ME is assumed to be beam-independent
+  void beamIndependent(const bool flag);
+  
 protected:  
   /// @brief a helper method to form a ComplexDiffMatrix for a given row
   /// @details This is the only method which depends on the template type.

@@ -77,7 +77,13 @@ PreAvgCalBuffer::PreAvgCalBuffer(casa::uInt nAnt) : itsAntenna1(nAnt*(nAnt-1)/2)
 {
   initialise(nAnt, 1);
 }
-    
+
+/// @brief configure beam-independent accumulation
+/// @param[in] flag if true, accumulation is beam-independent
+void PreAvgCalBuffer::beamIndependent(bool flag)
+{
+  itsBeamIndependent = flag;
+}  
    
 /// @brief initialise accumulation via an accessor
 /// @details This method resets the buffers and sets the shape using the given accessor
@@ -104,9 +110,9 @@ void PreAvgCalBuffer::initialise(const IConstDataAccessor &acc)
   casa::uInt unusedBeamId = casa::max(itsBeam)*10;
   const casa::Vector<casa::uInt>& feed2 = acc.feed2();
   for (casa::uInt row=0; row<numberOfRows; ++row) {
-       if (itsBeam[row] != feed2[row]) {
+       if ((itsBeam[row] != feed2[row]) || (itsBeamIndependent && (itsBeam[row] != 0))) {
            // so it is kept flagged (not very tidy way of doing the check,
-           // we can introduce a separate vector to track this unlikely condition)
+           // we can introduce a separate vector to track this condition)
            itsBeam[row] = unusedBeamId;
        }
   }
@@ -254,7 +260,7 @@ int PreAvgCalBuffer::findMatch(casa::uInt ant1, casa::uInt ant2, casa::uInt beam
   // we can probably implement a more clever search algorithm here because the 
   // metadata are almost always ordered
   for (casa::uInt row=0; row<itsAntenna1.nelements(); ++row) {
-       if ((itsAntenna1[row] == ant1) && (itsAntenna2[row] == ant2) && (itsBeamIndependent || (itsBeam[row] == beam))) {
+       if ((itsAntenna1[row] == ant1) && (itsAntenna2[row] == ant2) && (itsBeam[row] == (itsBeamIndependent ? 0 : beam))) {
            return int(row);
        }
   } 

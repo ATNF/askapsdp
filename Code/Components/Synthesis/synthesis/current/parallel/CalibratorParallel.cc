@@ -72,6 +72,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/PreAvgCalMEBase.h>
 #include <measurementequation/ComponentEquation.h>
 #include <measurementequation/NoXPolGain.h>
+#include <measurementequation/NoXPolBeamIndependentGain.h>
 #include <measurementequation/LeakageTerm.h>
 #include <measurementequation/Product.h>
 #include <measurementequation/ImagingEquationAdapter.h>
@@ -102,12 +103,16 @@ CalibratorParallel::CalibratorParallel(askap::askapparallel::AskapParallel& comm
         const LOFAR::ParameterSet& parset) :
       MEParallelApp(comms,parset), 
       itsPerfectModel(new scimath::Params()), itsSolveGains(false), itsSolveLeakage(false),
-      itsSolutionInterval(-1.)
+      itsBeamIndependentGains(false), itsSolutionInterval(-1.)
 {  
   const std::string what2solve = parset.getString("solve","gains");
   if (what2solve.find("gains") != std::string::npos) {
       ASKAPLOG_INFO_STR(logger, "Gains will be solved for (solve='"<<what2solve<<"')");
       itsSolveGains = true;
+      if (what2solve.find("antennagains")) {
+          ASKAPLOG_INFO_STR(logger, "Same gain values are assumed for all beams (i.e. antenna-based)");
+          itsBeamIndependentGains = true;
+      }
   }
   if (what2solve.find("leakages") != std::string::npos) {
       ASKAPLOG_INFO_STR(logger, "Leakages will be solved for (solve='"<<what2solve<<"')");
@@ -158,6 +163,9 @@ void CalibratorParallel::init(const LOFAR::ParameterSet& parset)
       const casa::uInt nBeam = parset.getInt32("nBeam",1); 
       if (itsSolveGains) {
           ASKAPLOG_INFO_STR(logger, "Initialise gains (unknowns) for "<<nAnt<<" antennas and "<<nBeam<<" beam(s).");
+          if (itsBeamIndependentGains) {
+              ASKAPCHECK(nBeam == 1, "Number of beams should be set to 1 for beam-independent case");
+          }
           for (casa::uInt ant = 0; ant<nAnt; ++ant) {
                for (casa::uInt beam = 0; beam<nBeam; ++beam) {
                     itsModel->add(accessors::CalParamNameHelper::paramName(ant, beam, casa::Stokes::XX), casa::Complex(1.,0.));
@@ -278,11 +286,19 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
               
    // the old code without pre-averaging
    if (itsSolveGains && !itsSolveLeakage) {
-       itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,dsi,perfectME));           
+       if (itsBeamIndependentGains) {
+          itsEquation.reset(new CalibrationME<NoXPolBeamIndependentGain>(*itsModel,dsi,perfectME));           
+       } else {
+          itsEquation.reset(new CalibrationME<NoXPolGain>(*itsModel,dsi,perfectME));           
+       }
    } else if (itsSolveLeakage && !itsSolveGains) {
        itsEquation.reset(new CalibrationME<LeakageTerm>(*itsModel,dsi,perfectME));           
    } else if (itsSolveLeakage && itsSolveGains) {
-       itsEquation.reset(new CalibrationME<Product<NoXPolGain,LeakageTerm> >(*itsModel,dsi,perfectME));           
+       if (itsBeamIndependentGains) {
+           itsEquation.reset(new CalibrationME<Product<NoXPolBeamIndependentGain,LeakageTerm> >(*itsModel,dsi,perfectME));           
+       } else {   
+           itsEquation.reset(new CalibrationME<Product<NoXPolGain,LeakageTerm> >(*itsModel,dsi,perfectME));           
+       }
    } else {
        ASKAPTHROW(AskapError, "Unsupported combination of itsSolveGains and itsSolveLeakage. This shouldn't happen. Verify solve parameter");       
    }
@@ -294,15 +310,25 @@ void CalibratorParallel::createCalibrationME(const IDataSharedIter &dsi,
    // not templated
    boost::shared_ptr<PreAvgCalMEBase> preAvgME;
    if (itsSolveGains && !itsSolveLeakage) {
-       preAvgME.reset(new CalibrationME<NoXPolGain, PreAvgCalMEBase>());           
+       if (itsBeamIndependentGains) {
+          preAvgME.reset(new CalibrationME<NoXPolBeamIndependentGain, PreAvgCalMEBase>());           
+       } else {
+          preAvgME.reset(new CalibrationME<NoXPolGain, PreAvgCalMEBase>());           
+       }
    } else if (itsSolveLeakage && !itsSolveGains) {
        preAvgME.reset(new CalibrationME<LeakageTerm, PreAvgCalMEBase>());           
    } else if (itsSolveLeakage && itsSolveGains) {
-       preAvgME.reset(new CalibrationME<Product<NoXPolGain,LeakageTerm>, PreAvgCalMEBase>());       
+       if (itsBeamIndependentGains) {
+          preAvgME.reset(new CalibrationME<Product<NoXPolBeamIndependentGain,LeakageTerm>, PreAvgCalMEBase>());       
+       } else {
+          preAvgME.reset(new CalibrationME<Product<NoXPolGain,LeakageTerm>, PreAvgCalMEBase>());       
+       }
    } else {
        ASKAPTHROW(AskapError, "Unsupported combination of itsSolveGains and itsSolveLeakage. This shouldn't happen. Verify solve parameter");       
    }
    ASKAPDEBUGASSERT(preAvgME);
+   // this is just an optimisation, should work without this line
+   preAvgME->beamIndependent(itsBeamIndependentGains);
    preAvgME->accumulate(dsi,perfectME);
    itsEquation = preAvgME;
    // this is just because we bypass setting the model for the first major cycle

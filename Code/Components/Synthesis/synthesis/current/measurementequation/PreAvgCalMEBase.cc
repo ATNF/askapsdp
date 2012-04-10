@@ -70,6 +70,18 @@ PreAvgCalMEBase::PreAvgCalMEBase(const askap::scimath::Params& ip,
 {
   accumulate(idi,ime);
 }
+
+/// @brief configure beam-independent case
+/// @details This method configures the underlying buffer to apply 
+/// optimisations if the measurement equation is known to be beam-independent.
+/// By default, the general case is assumed (but it should work for the 
+/// beam-independent case as well)
+/// @param[in] flag if true, the ME is assumed to be beam-independent
+void PreAvgCalMEBase::beamIndependent(const bool flag)
+{
+  itsBuffer.beamIndependent(flag);
+}
+
           
 /// @brief accumulate one accessor
 /// @details This method processes one accessor and accumulates the data.

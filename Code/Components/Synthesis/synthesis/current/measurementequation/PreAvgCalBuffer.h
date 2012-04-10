@@ -81,7 +81,11 @@ public:
    /// explicitly given number of beams with nBeam set to 1, this constructor configures
    /// the buffer to ignore the beam index (i.e. assuming the measurement equation is beam-independent)
    /// @param[in] nAnt number of antennas, indices are expected to run from 0 to nAnt-1
-   PreAvgCalBuffer(casa::uInt nAnt);   
+   PreAvgCalBuffer(casa::uInt nAnt); 
+   
+   /// @brief configure beam-independent accumulation
+   /// @param[in] flag if true, accumulation is beam-independent
+   void beamIndependent(bool flag);
    
    /// @brief initialise accumulation via an accessor
    /// @details This method resets the buffers and sets the shape using the given accessor
