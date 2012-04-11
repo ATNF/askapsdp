@@ -1365,9 +1365,16 @@ namespace askap {
 		gsl_multifit_wlinear (xdat, w, ydat, c, cov, &chisq, work);
 		gsl_multifit_linear_free (work);
 	      
-		if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = pow(10.,gsl_vector_get(c,0));
-		if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = gsl_vector_get(c,1);
-		if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = gsl_vector_get(c,2);
+		float Izero = pow(10.,gsl_vector_get(c,0));
+		float alpha = gsl_vector_get(c,1);
+		float beta = gsl_vector_get(c,2);
+		// if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = pow(10.,gsl_vector_get(c,0));
+		// if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = gsl_vector_get(c,1);
+		// if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = gsl_vector_get(c,2);
+		if(this->itsMaxTaylorTerm>=0) this->itsTTmaps[0](outpos) = Izero;
+		if(this->itsMaxTaylorTerm>=1) this->itsTTmaps[1](outpos) = Izero * alpha;
+		if(this->itsMaxTaylorTerm>=2) this->itsTTmaps[2](outpos) = Izero * (0.5*alpha*(alpha-1) + beta);
+
 	      }
 	    }
 	  }
