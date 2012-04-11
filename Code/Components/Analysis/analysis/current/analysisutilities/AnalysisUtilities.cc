@@ -626,7 +626,7 @@ namespace askap {
 	/// @param measured Gaussian shape to be deconvolved
 	/// @param beam Beam shape of image
 	/// @return A vector containing (in order), the major & minor
-	/// axes, and the position angle.
+	/// axes, and the position angle (in radians).
 	double a2=beam.maj(),b2=beam.min(),pa2=beam.pa()*M_PI/180.;
 	double a0=measured.majorAxis(),b0=measured.minorAxis(),pa0=measured.PA();
 	// ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b0<<"_"<<pa0*180./M_PI <<" from beam "<<a2 << "x"<<b2<<"_"<<pa2*180./M_PI);
@@ -663,7 +663,7 @@ namespace askap {
 	// ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min);
 	deconv[0] = maj;
 	deconv[1] = min;
-	deconv[2] = pa1*180./M_PI;
+	deconv[2] = pa1;
 
 	return deconv;
 
