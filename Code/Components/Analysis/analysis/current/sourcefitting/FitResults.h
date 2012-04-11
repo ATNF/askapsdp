@@ -93,6 +93,7 @@ namespace askap {
                     int   numFreeParam() {return itsNumFreeParam;};
 		    /// @brief The number of pixels used in the fit
 		    unsigned int   numPix() {return itsNumPix;};
+		    void setNumPix(unsigned int n){itsNumPix=n;};
                     /// @brief The number of Gaussian components used in the fit
                     unsigned int   numGauss() {return itsNumGauss;};
 		    /// @brief Is the fit a guess or not (if not, this means it is the result of a fit).

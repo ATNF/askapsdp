@@ -131,7 +131,7 @@ namespace askap {
                 this->itsNumDegOfFreedom = 0.;
                 this->itsNumFreeParam = 0.;
                 this->itsNumGauss = cmpntList.size();
-		//		this->itsNumPix = this->itsNumDegOfFreedom + this->itsNumGauss*this->itsNumFreeParam + 1;
+		this->itsNumPix = 0;
                 // Make a map so that we can output the fitted components in order of peak flux
                 std::multimap<double, int> fitMap;
 		for (unsigned int i = 0; i < this->itsNumGauss; i++) fitMap.insert(std::pair<double, int>(cmpntList[i].peak(), i));
