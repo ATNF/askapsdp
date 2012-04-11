@@ -56,7 +56,7 @@ namespace synthesis {
 /// @details It initialises ME for a given solution source.
 /// @param[in] src calibration solution source to work with
 CalibrationApplicatorME::CalibrationApplicatorME(const boost::shared_ptr<accessors::ICalSolutionConstSource> &src) :
-     CalibrationSolutionHandler(src), itsScaleNoise(false), itsFlagAllowed(false) {}
+     CalibrationSolutionHandler(src), itsScaleNoise(false), itsFlagAllowed(false), itsBeamIndependent(false) {}
 
 /// @brief correct model visibilities for one accessor (chunk).
 /// @details This method corrects the data in the given accessor
@@ -99,8 +99,10 @@ void CalibrationApplicatorME::correct(accessors::IDataAccessor &chunk) const
   for (casa::uInt row = 0; row < chunk.nRow(); ++row) {
        casa::Matrix<casa::Complex> thisRow = rwVis.yzPlane(row);
        for (casa::uInt chan = 0; chan < chunk.nChannel(); ++chan) {
-            casa::SquareMatrix<casa::Complex, 2> jones1 = calSolution().jones(antenna1[row],beam1[row], chan);
-            casa::SquareMatrix<casa::Complex, 2> jones2 = calSolution().jones(antenna2[row],beam2[row], chan);
+            casa::SquareMatrix<casa::Complex, 2> jones1 = calSolution().jones(antenna1[row], 
+                             itsBeamIndependent ? 0 : beam1[row], chan);
+            casa::SquareMatrix<casa::Complex, 2> jones2 = calSolution().jones(antenna2[row],
+                             itsBeamIndependent ? 0 : beam2[row], chan);
             for (casa::uInt i = 0; i < nPol; ++i) {
                  for (casa::uInt j = 0; j < nPol; ++j) {
                       const casa::uInt index1 = indices(i);
@@ -186,6 +188,20 @@ void CalibrationApplicatorME::allowFlag(bool flag)
      ASKAPLOG_INFO_STR(logger, "CalibrationApplicatorME will flag visibilites if inversion of the calibration solution fails");
   } else {
      ASKAPLOG_INFO_STR(logger, "CalibrationApplicatorME will throw an exception if inversion of the calibration solution fails");
+  }
+}
+
+/// @brief determines whether beam=0 calibration is used for all beams or not
+/// @details It is handy to be able to apply the same solution for all beams. With 
+/// this flag set, beam=0 solution will be used for all beams.
+/// @param[in] flag if true, beam=0 calibration is applied to all beams
+void CalibrationApplicatorME::beamIndependent(bool flag)
+{
+  itsBeamIndependent = flag;
+  if (itsBeamIndependent) {
+      ASKAPLOG_INFO_STR(logger, "CalibrationApplicatorME will apply beam=0 calibration solutions to all beams encountered");
+  } else {
+      ASKAPLOG_INFO_STR(logger, "CalibrationApplicatorME will apply beam-dependent calibration solutions");
   }
 }
 

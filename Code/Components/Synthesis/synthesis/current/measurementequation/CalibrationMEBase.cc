@@ -212,4 +212,13 @@ void CalibrationMEBase::allowFlag(bool flag)
   ASKAPTHROW(AskapError, "CalibrationMEBase::allowFlag is not implemented, flag="<<flag);
 }
 
+/// @brief determines whether beam=0 calibration is used for all beams or not
+/// @details It is handy to be able to apply the same solution for all beams. With 
+/// this flag set, beam=0 solution will be used for all beams.
+/// @param[in] flag if true, beam=0 calibration is applied to all beams
+void CalibrationMEBase::beamIndependent(bool flag)
+{
+  ASKAPTHROW(AskapError, "CalibrationMEBase::beamIndependent is not implemented, flag="<<flag);
+}
+
 

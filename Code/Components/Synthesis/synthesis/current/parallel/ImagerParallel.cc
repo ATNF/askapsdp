@@ -201,6 +201,7 @@ namespace askap
             ASKAPDEBUGASSERT(calME);
             calME->scaleNoise(parset().getBool("calibrate.scalenoise",false));
             calME->allowFlag(parset().getBool("calibrate.allowflag",false));
+            calME->beamIndependent(parset().getBool("calibrate.ignorebeam", false));
             //
             IDataSharedIter calIter(new CalibrationIterator(it,calME));
             boost::shared_ptr<ImageFFTEquation> fftEquation(
