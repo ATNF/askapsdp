@@ -619,10 +619,17 @@ namespace askap {
 
       std::vector<Double> deconvolveGaussian(casa::Gaussian2D<Double> measured, duchamp::Beam beam)
       {
-	
-	double a2=beam.maj(),b2=beam.min(),pa2=beam.pa();
+	/// @details Deconvolution of a Gaussian shape, assuming it
+	/// was convolved with the given beam. This procedure
+	/// replicates the approach described in Wild (1970), AuJPh
+	/// 23, 113.
+	/// @param measured Gaussian shape to be deconvolved
+	/// @param beam Beam shape of image
+	/// @return A vector containing (in order), the major & minor
+	/// axes, and the position angle.
+	double a2=beam.maj(),b2=beam.min(),pa2=beam.pa()*M_PI/180.;
 	double a0=measured.majorAxis(),b0=measured.minorAxis(),pa0=measured.PA();
-	//	ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b2 <<" from beam "<<a2 << "x"<<b2);
+	// ASKAPLOG_DEBUG_STR(logger, "About to deconvolve Gaussian of size " << a0 << "x"<<b0<<"_"<<pa0*180./M_PI <<" from beam "<<a2 << "x"<<b2<<"_"<<pa2*180./M_PI);
 	double d0=a0*a0-b0*b0,d2=a2*a2-b2*b2;
 
 	double d1 = sqrt( d0*d0 + d2*d2 - 2*d0*d2*cos(2.*(pa0-pa2)) );
@@ -630,7 +637,7 @@ namespace askap {
 	double a1=0.,b1=0.;
 	if(a1sq>0.) a1=sqrt(a1sq);
 	if(b1sq>0.) b1=sqrt(b1sq);
-
+	// ASKAPLOG_DEBUG_STR(logger, "Deconvolving: d0="<<d0<<", d2="<<d2<<", d1="<<d1<<", a1sq="<<a1sq<<", b1sq="<<b1sq<<", a1="<<a1<<", b1="<<b1);
 	double pa1;
 	if((d0*cos(2.*pa0)-d2*cos(2.*pa2))==0.) pa1=0.;
 	else{
@@ -653,10 +660,10 @@ namespace askap {
 	std::vector<Double> deconv(3);
 	double maj=std::max(std::max(a1,b1),0.);
 	double min=std::max(std::min(a1,b1),0.);
-	//	ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min);
+	// ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min);
 	deconv[0] = maj;
 	deconv[1] = min;
-	deconv[2] = pa1;
+	deconv[2] = pa1*180./M_PI;
 
 	return deconv;
 
