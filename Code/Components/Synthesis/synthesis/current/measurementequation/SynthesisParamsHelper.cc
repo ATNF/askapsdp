@@ -1241,6 +1241,7 @@ namespace askap
                 }
            }
        }
+       ASKAPCHECK(psfName != "", "Unable to find psf paramter to fit, params="<<ip);
        ASKAPLOG_INFO_STR(logger, "Fitting 2D Gaussian into PSF parameter "<<psfName);
        casa::Array<double> psfArray = ip.value(psfName);
        const casa::IPosition shape = psfArray.shape();
