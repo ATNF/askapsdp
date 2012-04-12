@@ -24,7 +24,7 @@ Cimager.Images.image.i.clean.frequency          = [1.420e9,1.420e9]
 Cimager.Images.image.i.clean.nchan              = 1
 Cimager.Images.image.i.clean.direction          = [12h30m00.00, -45.00.00.00, J2000]
 Cimager.Images.image.i.clean.nterms             = 2
-Cimager.Images.image.i.clean.writeAtMajorCycle  = true
+Cimager.Images.clean.writeAtMajorCycle          = true
 #
 Cimager.visweights                              = MFS
 Cimager.visweights.MFS.reffreq                  = 1.420e9
@@ -51,8 +51,8 @@ Cimager.solver.Clean.scales                     = [0, 3, 10, 30]
 Cimager.solver.Clean.verbose                    = False
 Cimager.solver.Clean.psfwidth                   = 1024
 Cimager.solver.Clean.logevery                   = 100
-Cimager.threshold.minorcycle                    = [10%, 1.0mJy]
-Cimager.threshold.majorcycle                    = 10mJy
+Cimager.threshold.minorcycle                    = [10%, 10.0mJy]
+Cimager.threshold.majorcycle                    = 20mJy
 Cimager.ncycles                                 = 5
 #
 Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
