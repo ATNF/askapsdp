@@ -109,7 +109,7 @@ CalibratorParallel::CalibratorParallel(askap::askapparallel::AskapParallel& comm
   if (what2solve.find("gains") != std::string::npos) {
       ASKAPLOG_INFO_STR(logger, "Gains will be solved for (solve='"<<what2solve<<"')");
       itsSolveGains = true;
-      if (what2solve.find("antennagains")) {
+      if (what2solve.find("antennagains") != std::string::npos) {
           ASKAPLOG_INFO_STR(logger, "Same gain values are assumed for all beams (i.e. antenna-based)");
           itsBeamIndependentGains = true;
       }
