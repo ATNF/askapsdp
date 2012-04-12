@@ -75,8 +75,8 @@ namespace askap {
             /// @return A list of sources from the file
             std::vector<matching::Point> pixlist;
             std::string raS, decS, sdud, id;
-            double flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, chisq, rms, noise, alpha, beta;
-            int nfree, ndof, npixfit, npixobj;
+            double flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, majD, minD, paD, chisq, rmsIm, rmsfit, noise, alpha, beta;
+            int nfree, ndof, npixfit, npixobj, guess;
 
             double *wld = new double[3];
             double *pix = new double[3];
@@ -96,7 +96,7 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
 
             // now at start of object list
-            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> alpha >> beta >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
+            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsIm >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess,
                     !fin.eof()) {
                 if (fluxUseFit == "no") {
                     flux = iflux1;
@@ -127,13 +127,16 @@ namespace askap {
                 } else
                     ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
 
+		//		wcsprt(header.getWCS());
                 if (header.wcsToPix(wld, pix)) {
-                    ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id << ": " << std::setprecision(6) << wld[0] << " --> " << pix[0] << " and " << std::setprecision(6) <<  wld[1] << " --> " << pix[1]);
+                    ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id << ": " 
+				       << std::setprecision(6) << wld[0] << " --> " << pix[0] << " and " 
+				       << std::setprecision(6) << wld[1] << " --> " << pix[1]);
                 }
 
                 if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
                     matching::Point pt(pix[0], pix[1], peakflux, id, maj, min, pa);
-                    pt.setStuff(chisq, noise, rms, nfree, ndof, npixfit, npixobj, flux);
+                    pt.setStuff(chisq, noise, rmsfit, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pt);
                 }
             }
@@ -176,9 +179,11 @@ namespace askap {
             // Convert the base position
             wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
             wld[1] = analysis::dmsToDec(decBaseStr);
+	    ASKAPLOG_DEBUG_STR(logger, "Converting position ("<<raBaseStr<<","<<decBaseStr<<") or world coords ("<<wld[0]<<","<<wld[1]<<")");
             header.wcsToPix(wld, pix);
             double xBase = pix[0];
             double yBase = pix[1];
+	    ASKAPLOG_DEBUG_STR(logger, "Got position ("<<pix[0]<<","<<pix[1]<<")");
 
             while (getline(fin, line),
                     !fin.eof()) {
@@ -198,6 +203,8 @@ namespace askap {
                     std::stringstream idString;
                     idString << ct++ << "_" << analysis::decToDMS(wld[0], "RA") << "_" << analysis::decToDMS(wld[1], "DEC");
 
+		    //		    wcsprt(header.getWCS());
+		    ASKAPLOG_DEBUG_STR(logger, "Converting world coords ("<<wld[0]<<","<<wld[1]<<")");
                     if (header.wcsToPix(wld, pix)) {
                         ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << idString.str()
                                                << ", wld=(" << std::setprecision(6) << wld[0] << "," << std::setprecision(6) << wld[1] << "), line = " << line);
@@ -238,8 +245,8 @@ namespace askap {
             std::string raS, decS, sdud, id;
             double raBase = analysis::dmsToDec(raBaseStr) * 15.;
             double decBase = analysis::dmsToDec(decBaseStr);
-            double xpt, ypt, ra, dec, flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, chisq, rms, noise, alpha, beta;
-            int nfree, ndof, npixfit, npixobj;
+            double xpt, ypt, ra, dec, flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, majD, minD, paD, chisq, rmsIm, rmsfit, noise, alpha, beta;
+            int nfree, ndof, npixfit, npixobj,guess;
             char line[501];
             fin.getline(line, 500);
             fin.getline(line, 500);
@@ -247,7 +254,8 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
 
             // now at start of object list
-            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> alpha >> beta >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
+            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsIm >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess,
+		   //            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> alpha >> beta >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
                     !fin.eof()) {
                 if (fluxUseFit == "no") {
                     flux = iflux1;
@@ -288,7 +296,7 @@ namespace askap {
 
                 if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
                     matching::Point pix(xpt, ypt, peakflux, id, maj, min, pa);
-                    pix.setStuff(chisq, noise, rms, nfree, ndof, npixfit, npixobj, flux);
+                    pix.setStuff(chisq, noise, rmsfit, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pix);
                 }
             }
