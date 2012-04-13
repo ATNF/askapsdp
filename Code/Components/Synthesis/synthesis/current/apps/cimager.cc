@@ -113,9 +113,9 @@ int main(int argc, const char** argv)
                 imager.broadcastModel();
                 imager.receiveModel();
                 imager.calcNE();
-                imager.solveNE();
-                //imager.receiveNE();
-                imager.zeroAllModelImages();
+                imager.receiveNE();
+                //imager.solveNE();
+                //imager.zeroAllModelImages();
             } else {
                 // Set up a new signal handler for SIGUSR1.
                 // This allows graceful exit from the major cycle loop
