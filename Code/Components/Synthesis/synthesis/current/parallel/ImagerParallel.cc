@@ -421,8 +421,7 @@ namespace askap
         {
           ASKAPLOG_INFO_STR(logger, "Restore images and writing them to disk");
           ASKAPDEBUGASSERT(itsModel);
-          boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(parset().makeSubset("restore."), 
-                                                                *itsModel);
+          boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(parset().makeSubset("restore."));
           ASKAPDEBUGASSERT(ir);
           ASKAPDEBUGASSERT(itsSolver);
           // configure restore solver the same way as normal imaging solver

@@ -1201,6 +1201,35 @@ namespace askap
             }
        }     
     }                       
+    /// @brief find a parameter representing a PSF
+    /// @details If multiple PSF parameters are present, the first encountered is returned
+    /// @param[in] ip parameters
+    /// @return full name of some PSF parameter or an empty string if it is not found
+    std::string SynthesisParamsHelper::findPSF(const askap::scimath::Params &ip)
+    {
+        std::string psfName;
+        // Find all the free parameters beginning with image
+        vector<string> names(ip.completions("image"));
+        for (vector<string>::const_iterator it = names.begin(); it!=names.end(); ++it) {
+             std::string curName = "psf.image";
+             if (ip.has(curName + *it)) {
+                 if (psfName != "") {
+                     ASKAPLOG_WARN_STR(logger, "Multiple PSF parameters are present, using "<<
+                              psfName<<" which was first encountered");
+                     break;          
+                 }
+                 psfName = curName + *it;
+             } else if (ip.has(string("psf") + *it)) {
+                 if (psfName != "") {
+                     ASKAPLOG_WARN_STR(logger, "Multiple PSF parameters are present, using "<<
+                             psfName<<" which was first encountered");
+                     break;          
+                 }
+                 psfName = string("psf") + *it;
+             }
+        }
+        return psfName;
+    }
    
     /// @brief fit gaussian beam into PSF
     /// @details This method fits a 2D Gaussian into the given PSF image. If no parameter
@@ -1220,26 +1249,7 @@ namespace askap
        std::string psfName = name;
        if (name == "") {
            // we have to figure out the name
-           // Find all the free parameters beginning with image
-           vector<string> names(ip.completions("image"));
-           for (vector<string>::const_iterator it = names.begin(); it!=names.end(); ++it) {
-                std::string curName = "psf.image";
-                if (ip.has(curName + *it)) {
-                    if (psfName != "") {
-                        ASKAPLOG_WARN_STR(logger, "Multiple PSF parameters are present, using "<<
-                                 psfName<<" which was first encountered");
-                        break;          
-                    }
-                    psfName = curName + *it;
-                } else if (ip.has(string("psf") + *it)) {
-                    if (psfName != "") {
-                        ASKAPLOG_WARN_STR(logger, "Multiple PSF parameters are present, using "<<
-                                 psfName<<" which was first encountered");
-                        break;          
-                    }
-                    psfName = string("psf") + *it;
-                }
-           }
+           psfName = findPSF(ip);
        }
        ASKAPCHECK(psfName != "", "Unable to find psf paramter to fit, params="<<ip);
        ASKAPLOG_INFO_STR(logger, "Fitting 2D Gaussian into PSF parameter "<<psfName);

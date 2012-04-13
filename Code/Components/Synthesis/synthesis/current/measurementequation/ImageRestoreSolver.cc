@@ -70,8 +70,8 @@ namespace askap
 {
   namespace synthesis
   {
-    ImageRestoreSolver::ImageRestoreSolver(const casa::Vector<casa::Quantum<double> >& beam) :
-	    itsBeam(beam), itsEqualiseNoise(false)
+    ImageRestoreSolver::ImageRestoreSolver(const RestoringBeamHelper &beamHelper) :
+	    itsBeamHelper(beamHelper), itsEqualiseNoise(false)
     {
     }
     
@@ -102,6 +102,27 @@ namespace askap
 	}
 
 	ASKAPCHECK(nParameters>0, "No free parameters in ImageRestoreSolver");
+	// get restoring beam
+	ASKAPCHECK(itsBeamHelper.valid(), "Unable to obtain beam estimate as itsBeamHelper is not initialised");
+	if (itsBeamHelper.fitRequired()) {
+	    std::string psfName = SynthesisParamsHelper::findPSF(ip);
+	    if (psfName == "") {
+	        // it doesn't matter that we don't have access to preconditioned PSF at this stage - only zero model will be
+	        // convolved with this PSF
+    	    ASKAPLOG_INFO_STR(logger, "ImageRestoreSolver::solveNormalEquations: Extracting a PSF from normal equations");
+    	    savePSF(ip);
+    	    psfName = SynthesisParamsHelper::findPSF(ip);
+    	    ASKAPCHECK(psfName != "", "Failed to find a PSF parameter");
+    	}
+    	itsBeamHelper.fitBeam(ip);
+	}
+	
+	casa::Vector<casa::Quantum<double> > restoringBeam = itsBeamHelper.value();
+	
+	ASKAPDEBUGASSERT(restoringBeam.size() == 3);
+    ASKAPLOG_INFO_STR(logger, "Restore solver will convolve with the 2D gaussian: "<<restoringBeam[0].getValue("arcsec")<<
+          " x "<<restoringBeam[1].getValue("arcsec")<<" arcsec at position angle "<<restoringBeam[2].getValue("deg")<<" deg");
+	
 	
 	// determine which images are faceted and setup parameters representing the 
 	// result of a merge.
@@ -134,13 +155,13 @@ namespace askap
 	      const casa::IPosition pixelAxes(2, 0, 1);	
 	      casa::LogIO logio;
 	      convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
-			     pixelAxes, itsBeam, true, 1.0, false);
+			     pixelAxes, restoringBeam, true, 1.0, false);
           SynthesisParamsHelper::update(ip, *ci, *image);
 	      // for some reason update makes the parameter free as well
 	      ip.fix(*ci);
 	  
 	      addResiduals(*ci,ip.value(*ci).shape(),ip.value(*ci));
-	      SynthesisParamsHelper::setBeam(ip, *ci, itsBeam);
+	      SynthesisParamsHelper::setBeam(ip, *ci, restoringBeam);
       } else {
           // this is a single facet of a larger image, just fill in the bigger image with the model
           ASKAPLOG_INFO_STR(logger, "Inserting facet " << iph.paramName()<<" into merged image "<<name);
@@ -162,7 +183,7 @@ namespace askap
 	         const casa::IPosition pixelAxes(2, 0, 1);	
 	         casa::LogIO logio;
 	         convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
-			       pixelAxes, itsBeam, true, 1.0, false);
+			       pixelAxes, restoringBeam, true, 1.0, false);
 	         SynthesisParamsHelper::update(ip, ci->first, *image);
 	         // for some reason update makes the parameter free as well
 	         ip.fix(ci->first);
@@ -181,7 +202,7 @@ namespace askap
 	              }
 	         }
 	         
-	         SynthesisParamsHelper::setBeam(ip, ci->first, itsBeam);
+	         SynthesisParamsHelper::setBeam(ip, ci->first, restoringBeam);
 	         
 	     }
 	}
@@ -258,8 +279,8 @@ namespace askap
                 ASKAPLOG_INFO_STR(logger, "Restored image will have primary beam corrected noise (no equalisation)");
             }
        
-	    // Do the preconditioning
-	    doPreconditioning(psfArray,dirtyArray);
+            // Do the preconditioning
+            doPreconditioning(psfArray,dirtyArray);
 	   
             // Normalize by the diagonal
             doNormalization(planeIter.getPlaneVector(diag),tol(),psfArray,dirtyArray,mask);
@@ -310,7 +331,7 @@ namespace askap
     /// @param[in] name name of the parameter to work with
     casa::Vector<casa::Quantum<double> > ImageRestoreSolver::getBeam(const std::string &) const
     {
-        return itsBeam;
+        return itsBeamHelper.value();
     }
 	
     Solver::ShPtr ImageRestoreSolver::clone() const
@@ -325,32 +346,25 @@ namespace askap
     /// receives a subset of parameters where the solver name, if it was present in
     /// the parset, is already taken out
     /// @param[in] parset input parset file
-    /// @param[in] ip model parameters
     /// @return a shared pointer to the solver instance
-    boost::shared_ptr<ImageRestoreSolver> ImageRestoreSolver::createSolver(const LOFAR::ParameterSet &parset,
-                  const askap::scimath::Params &ip)
+    boost::shared_ptr<ImageRestoreSolver> ImageRestoreSolver::createSolver(const LOFAR::ParameterSet &parset)
     {
-       casa::Vector<casa::Quantum<double> > qBeam(3);
+       RestoringBeamHelper rbh;
        const vector<string> beam = parset.getStringVector("beam");
        if (beam.size() == 1) {
            ASKAPCHECK(beam[0] == "fit", 
                "beam parameter should be either equal to 'fit' or contain 3 elements defining the beam size. You have "<<beam[0]);
-           // we use the feature here that the restoring solver is created when the imaging is completed, so
-           // there is a PSF image in the parameters. Fitting of the beam has to be moved to restore solver to
-           // be more flexible
-           const double cutoff = parset.getDouble("beam.cutoff",0.05);
-           qBeam = SynthesisParamsHelper::fitBeam(ip,cutoff);           
+           rbh.configureFit(parset.getDouble("beam.cutoff",0.05));
        } else {
           ASKAPCHECK(beam.size() == 3, "Need three elements for beam or a single word 'fit'. You have "<<beam);
+          casa::Vector<casa::Quantum<double> > qBeam(3);          
           for (int i=0; i<3; ++i) {
                casa::Quantity::read(qBeam(i), beam[i]);
           }
+          rbh.assign(qBeam);
        }
-       ASKAPDEBUGASSERT(qBeam.size() == 3);
-       ASKAPLOG_INFO_STR(logger, "Restore solver will convolve with the 2D gaussian: "<<qBeam[0].getValue("arcsec")<<
-                 " x "<<qBeam[1].getValue("arcsec")<<" arcsec at position angle "<<qBeam[2].getValue("deg")<<" deg");
        //
-       boost::shared_ptr<ImageRestoreSolver> result(new ImageRestoreSolver(qBeam));
+       boost::shared_ptr<ImageRestoreSolver> result(new ImageRestoreSolver(rbh));
        const bool equalise = parset.getBool("equalise",false);
        result->equaliseNoise(equalise);
        return result;

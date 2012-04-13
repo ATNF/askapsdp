@@ -219,6 +219,12 @@ namespace askap
         static void setBeam(askap::scimath::Params &ip, const string &name,
                             const casa::Vector<casa::Quantum<double> > &beam);
         
+        /// @brief find a parameter representing a PSF
+        /// @details If multiple PSF parameters are present, the first encountered is returned
+        /// @param[in] ip parameters
+        /// @return full name of some PSF parameter or an empty string if it is not found
+        static std::string findPSF(const askap::scimath::Params &ip);
+        
         /// @brief fit gaussian beam into PSF
         /// @details This method fits a 2D Gaussian into the given PSF image. If no parameter
         /// name is given (i.e. an empty string is passed to this method), the most appropriate

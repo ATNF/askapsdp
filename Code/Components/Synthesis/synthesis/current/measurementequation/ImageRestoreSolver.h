@@ -36,6 +36,7 @@
 #include <casa/Quanta.h>
 #include <lattices/Lattices/ArrayLattice.h>
 #include <Common/ParameterSet.h>
+#include <measurementequation/RestoringBeamHelper.h>
 
 
 namespace askap
@@ -53,8 +54,8 @@ namespace askap
       public:
 
         /// @brief default constructor
-        /// @param beam Major, minor, pa of beam as Quanta
-        explicit ImageRestoreSolver(const casa::Vector<casa::Quantum<double> >& beam);
+        /// @param beamHelper beam proxy for restoring beam parameters
+        explicit ImageRestoreSolver(const RestoringBeamHelper &beamHelper);
 
         /// @brief Initialize this solver
         virtual void init();
@@ -77,10 +78,8 @@ namespace askap
         /// receives a subset of parameters where the solver name, if it was present in
         /// the parset, is already taken out
         /// @param[in] parset input parset file
-        /// @param[in] ip model parameters
         /// @return a shared pointer to the solver instance
-        static boost::shared_ptr<ImageRestoreSolver> createSolver(const LOFAR::ParameterSet &parset,
-                   const askap::scimath::Params &ip);
+        static boost::shared_ptr<ImageRestoreSolver> createSolver(const LOFAR::ParameterSet &parset);
                    
         /// @brief configure basic parameters of the restore solver
         /// @details This method configures basic parameters of this restore solver the same way as
@@ -123,8 +122,8 @@ namespace askap
         casa::Vector<casa::Quantum<double> > getBeam(const std::string &name) const;
         
       private:
-        /// @brief Major, minor axes, and position angle of beam
-        casa::Vector<casa::Quantum<double> > itsBeam;
+        /// @brief proxy for beam parameters
+        RestoringBeamHelper itsBeamHelper;
         
         /// @brief true if the mosaicing weight is to be equalised
         /// @details We optionally can multiply the residual to the weight before

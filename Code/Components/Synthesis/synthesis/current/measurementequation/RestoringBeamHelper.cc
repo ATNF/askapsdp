@@ -49,6 +49,22 @@ RestoringBeamHelper::RestoringBeamHelper(const casa::Vector<casa::Quantum<double
 {
   ASKAPCHECK(beam.nelements() == 3, "Bean parameters should be given in a vector with 3 elements, you have "<<beam.nelements());
 }
+
+/// @brief copy constructor
+/// @param[in] other other instance
+RestoringBeamHelper::RestoringBeamHelper(const RestoringBeamHelper &other) : itsBeam(other.itsBeam.copy()),
+       itsCutoff(other.itsCutoff) {}
+
+/// @brief assignment operator
+/// @param[in] other other instance
+RestoringBeamHelper& RestoringBeamHelper::operator=(const RestoringBeamHelper &other)
+{
+  if (&other != this) {
+      itsBeam.assign(other.itsBeam.copy());
+      itsCutoff = other.itsCutoff;
+  }
+  return *this;
+}
    
 /// @brief construct for a delayed fit
 /// @param[in] cutoff relative cutoff to determine which pixels are included in the fit

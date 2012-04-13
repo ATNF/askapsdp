@@ -70,6 +70,15 @@ public:
    /// @param[in] cutoff relative cutoff to determine which pixels are included in the fit
    explicit RestoringBeamHelper(const double cutoff);
    
+   /// @brief copy constructor
+   /// @param[in] other other instance
+   explicit RestoringBeamHelper(const RestoringBeamHelper &other);
+
+   /// @brief assignment operator
+   /// @param[in] other other instance
+   RestoringBeamHelper& operator=(const RestoringBeamHelper &other);
+   
+   
    /// @brief initialise with explicitly defined beam parameters
    /// @param[in] beam beam parameters (should be 3 elements)
    void assign(const casa::Vector<casa::Quantum<double> > &beam);
