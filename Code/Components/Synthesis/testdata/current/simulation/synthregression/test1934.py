@@ -16,7 +16,7 @@ def analyseResult(spr, checkFlux = True, checkPos = True):
    '''
    expected_flux = 27.336 # XX+YY for 1934-63 at 1806.5 MHz
    expected_pos=[-65.145725,-63.712675]
-   stats = spr.imageStats('residual.1934.taylor.0')
+   stats = spr.imageStats('image.1934.taylor.0.restored')
    print "Statistics for restored image: ",stats
    flux_diff = abs(expected_flux - stats['peak'])
    if checkFlux:
