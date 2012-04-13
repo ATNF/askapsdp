@@ -36,11 +36,12 @@
 #include <GaussianNoiseMETest.h>
 #include <PolLeakageTest.h>
 #include <PreAvgCalBufferTest.h>
+#include <RestoringBeamHelperTest.h>
 
 int main( int argc, char **argv)
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-
+    
     
     runner.addTest(askap::synthesis::VectorOperationsTest::suite());
     runner.addTest(askap::synthesis::ComponentEquationTest::suite()); 
@@ -53,8 +54,10 @@ int main( int argc, char **argv)
     runner.addTest(askap::synthesis::GaussianNoiseMETest::suite());
     runner.addTest(askap::synthesis::PolLeakageTest::suite()); 
     runner.addTest(askap::synthesis::PreAvgCalBufferTest::suite()); 
+    runner.addTest(askap::synthesis::RestoringBeamHelperTest::suite());
 
     const bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;
 }
+
