@@ -199,8 +199,7 @@ void SolverCore::writeModel(const std::string &postfix)
         ASKAPLOG_INFO_STR(logger, "Writing out restored images as CASA images");
 
         ASKAPDEBUGASSERT(itsModel);
-        boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(itsParset.makeSubset("restore."),
-                *itsModel);
+        boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(itsParset.makeSubset("restore."));
         ASKAPDEBUGASSERT(ir);
         ASKAPDEBUGASSERT(itsSolver);
         // configure restore solver the same way as normal imaging solver
