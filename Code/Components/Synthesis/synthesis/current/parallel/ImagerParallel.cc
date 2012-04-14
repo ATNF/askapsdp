@@ -402,25 +402,11 @@ namespace askap
     {
       if (itsComms.isMaster())
       {
-        ASKAPLOG_INFO_STR(logger, "Writing out results as images");
-        vector<string> resultimages=itsModel->names();
-        for (vector<string>::const_iterator it=resultimages.begin(); it
-            !=resultimages.end(); it++) {
-            if ((it->find("image") == 0) || (it->find("psf") == 0) ||
-                (it->find("weights") == 0) || (it->find("mask") == 0) ||
-                (it->find("residual")==0)) {
-                ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
-                SynthesisParamsHelper::saveImageParameter(*itsModel, *it, *it+postfix);
-                if (itsExportSensitivityImage && (it->find("weights") == 0) && (postfix == "")) {
-                    makeSensitivityImage(*it); 
-                }
-            }
-        }
-
         if (itsRestore && postfix == "")
         {
           ASKAPLOG_INFO_STR(logger, "Restore images and writing them to disk");
           ASKAPDEBUGASSERT(itsModel);
+          vector<string> resultimages=itsModel->names();
           boost::shared_ptr<ImageRestoreSolver> ir = ImageRestoreSolver::createSolver(parset().makeSubset("restore."));
           ASKAPDEBUGASSERT(ir);
           ASKAPDEBUGASSERT(itsSolver);
@@ -442,6 +428,20 @@ namespace askap
                    SynthesisParamsHelper::saveImageParameter(*itsModel, *ci,*ci+string(".restored"));
                }
           }
+        }
+        ASKAPLOG_INFO_STR(logger, "Writing out results as images");
+        vector<string> resultimages=itsModel->names();
+        for (vector<string>::const_iterator it=resultimages.begin(); it
+            !=resultimages.end(); it++) {
+            if ((it->find("image") == 0) || (it->find("psf") == 0) ||
+                (it->find("weights") == 0) || (it->find("mask") == 0) ||
+                (it->find("residual")==0)) {
+                ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );
+                SynthesisParamsHelper::saveImageParameter(*itsModel, *it, *it+postfix);
+                if (itsExportSensitivityImage && (it->find("weights") == 0) && (postfix == "")) {
+                    makeSensitivityImage(*it); 
+                }
+            }
         }
       }
     }
