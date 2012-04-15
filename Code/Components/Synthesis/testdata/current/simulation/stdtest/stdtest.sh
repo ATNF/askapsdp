@@ -93,7 +93,7 @@ Cimager.gridder.AProjectWStack.tablename = AProjectWStack.tab
 Cimager.solver                           	= Dirty
 Cimager.solver.Dirty.tolerance                  = 0.1
 Cimager.solver.Dirty.verbose                   	= True
-Cimager.ncycles                                 = 0
+Cimager.ncycles                                 = 1
 
 Cimager.preconditioner.Names			= None
 
