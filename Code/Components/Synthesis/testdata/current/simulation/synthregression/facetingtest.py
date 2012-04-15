@@ -21,7 +21,7 @@ def analyseResult(spr):
    if abs(stats['peak']-1.)>0.3:
       raise RuntimeError, "Peak flux in the image is notably different from 1 Jy, F=%f" % stats['peak']
 
-   stats = spr.imageStats('image.field1.facet.0.1')
+   stats = spr.imageStats('image.field1')
    print "Statistics for modelimage: ",stats
    disterr = getDistance(stats,true_peak[0],true_peak[1])*3600.
    if disterr > 8:
