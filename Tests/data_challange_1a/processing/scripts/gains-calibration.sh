@@ -57,10 +57,10 @@ if [ "${DRYRUN}" == "false" ]; then
     if [ ! -e ${CALOUTPUT} ]; then
         echo "Calibration: Submitting Task"
         if [ ! "${QSUB_CMODEL}" ] && [ ! "${QSUB_MSSPLIT}" ]; then
-            QSUB_CCAL=`${QSUB_CMD} ccalibrator.qsub`
-            QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CCAL}"
+            QSUB_CAL=`${QSUB_CMD} ccalibrator.qsub`
+            QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CAL}"
         else
-            QSUB_CCAL=`${QSUB_CMD} -W depend=afterok:${QSUB_CMODEL},afterok:${QSUB_MSSPLIT} ccalibrator.qsub`
+            QSUB_CAL=`${QSUB_CMD} -W depend=afterok:${QSUB_CMODEL},afterok:${QSUB_MSSPLIT} ccalibrator.qsub`
         fi
     else
         echo "Calibration: Skipping task - Output already exists"

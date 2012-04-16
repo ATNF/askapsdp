@@ -153,7 +153,7 @@ if [ "${DRYRUN}" == "false" ]; then
     # Add dependencies
     unset DEPENDS
     if [ "${QSUB_CAL}" ]; then
-        DEPENDS="-W depend=afterok:${QSUB_CCAL}"
+        DEPENDS="-W depend=afterok:${QSUB_CAL}"
     fi
 
     # Submit the jobs

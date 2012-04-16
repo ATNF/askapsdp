@@ -63,7 +63,7 @@ if [ "${DRYRUN}" == "false" ]; then
     unset DEPENDS
     if [ "${QSUB_CAL}" ] || [ " ${QSUB_MSSPLIT}" ]; then
         if [ "${QSUB_CAL}" ]; then
-            DEPENDS="-W depend=afterok:${QSUB_CCAL}"
+            DEPENDS="-W depend=afterok:${QSUB_CAL}"
         else
             DEPENDS="-W depend=afterok:${QSUB_MSSPLIT}"
         fi
