@@ -138,6 +138,9 @@ namespace askap {
                     /// @brief The list of triangles from the reference list
                     std::vector<Triangle> itsRefTriList;
 
+		    /// @brief The size of the lists used to generate triangles
+		    int itsTrimSize;
+
                     /// @brief The list of matching triangles
                     std::vector<std::pair<Triangle, Triangle> > itsMatchingTriList;
                     /// @brief The list of matching points

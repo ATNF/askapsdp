@@ -96,6 +96,7 @@ namespace askap {
                 this->itsMatchingTriList = m.itsMatchingTriList;
                 this->itsMatchingPixList = m.itsMatchingPixList;
                 this->itsEpsilon = m.itsEpsilon;
+		this->itsTrimSize = m.itsTrimSize;
                 this->itsMeanDx = m.itsMeanDx;
                 this->itsMeanDy = m.itsMeanDy;
                 this->itsRmsDx = m.itsRmsDx;
@@ -125,6 +126,7 @@ namespace askap {
                 this->itsRefPosType = parset.getString("refPosType", "deg");
                 this->itsRadius = parset.getDouble("radius", -1.);
                 this->itsEpsilon = parset.getDouble("epsilon", defaultEpsilon);
+		this->itsTrimSize = parset.getInt16("trimsize",matching::maxSizePointList);
                 this->itsMeanDx = 0.;
                 this->itsMeanDy = 0.;
                 this->itsRmsDx = 0.;
@@ -252,9 +254,9 @@ namespace askap {
                 /// appropriate size by trimList(). The shortened lists are then
                 /// converted into triangle lists, which are matched and
                 /// trimmed.
-                std::vector<Point> srclist = trimList(this->itsSrcPixList);
+	      std::vector<Point> srclist = trimList(this->itsSrcPixList, this->itsTrimSize);
                 ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
-                std::vector<Point> reflist = trimList(this->itsRefPixList);
+                std::vector<Point> reflist = trimList(this->itsRefPixList, this->itsTrimSize);
                 ASKAPLOG_INFO_STR(logger, "Trimmed ref list to " << reflist.size() << " points");
                 this->itsSrcTriList = getTriList(srclist);
                 this->itsRefTriList = getTriList(reflist);

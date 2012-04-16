@@ -56,8 +56,7 @@ namespace askap {
         std::vector<matching::Point> getPixList(std::ifstream &fin, std::string raBaseStr, std::string decBaseStr, std::string posType, double radius);
 
         /// @brief Shorten the list of points to a given length
-        std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList,
-                                              const unsigned int maxSize = matching::maxSizePointList);
+        std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, const unsigned int maxSize);
 
 
 
