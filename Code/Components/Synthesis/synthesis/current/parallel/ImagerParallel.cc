@@ -442,10 +442,11 @@ namespace askap
                }
           }
         }
-        ASKAPLOG_INFO_STR(logger, "Writing out results as images");
+        ASKAPLOG_INFO_STR(logger, "Writing out additional parameters made by restore solver as images");
         vector<string> resultimages2=itsModel->names();
         for (vector<string>::const_iterator it=resultimages2.begin(); it
             !=resultimages2.end(); it++) {
+            // ASKAPLOG_INFO_STR(logger, "Checking "<<*it);
             if ((it->find("psf") == 0) && (std::find(resultimages.begin(), 
                  resultimages.end(),*it) == resultimages.end())) {
                 ASKAPLOG_INFO_STR(logger, "Saving " << *it << " with name " << *it+postfix );

@@ -104,18 +104,18 @@ namespace askap
 	ASKAPCHECK(nParameters>0, "No free parameters in ImageRestoreSolver");
 	// get restoring beam
 	ASKAPCHECK(itsBeamHelper.valid(), "Unable to obtain beam estimate as itsBeamHelper is not initialised");
+	std::string psfName = SynthesisParamsHelper::findPSF(ip);
+	if (psfName == "") {
+	    // it doesn't matter that we don't have access to preconditioned PSF at this stage - only zero model will be
+	    // convolved with this PSF
+            ASKAPLOG_INFO_STR(logger, "ImageRestoreSolver::solveNormalEquations: Extracting PSF from normal equations");
+            savePSF(ip);
+            psfName = SynthesisParamsHelper::findPSF(ip);
+            ASKAPCHECK(psfName != "", "Failed to find a PSF parameter");
+        }
 	if (itsBeamHelper.fitRequired()) {
-	    std::string psfName = SynthesisParamsHelper::findPSF(ip);
-	    if (psfName == "") {
-	        // it doesn't matter that we don't have access to preconditioned PSF at this stage - only zero model will be
-	        // convolved with this PSF
-    	    ASKAPLOG_INFO_STR(logger, "ImageRestoreSolver::solveNormalEquations: Extracting a PSF from normal equations");
-    	    savePSF(ip);
-    	    psfName = SynthesisParamsHelper::findPSF(ip);
-    	    ASKAPCHECK(psfName != "", "Failed to find a PSF parameter");
-    	}
-    	itsBeamHelper.fitBeam(ip);
-	}
+            itsBeamHelper.fitBeam(ip);
+        }
 	
 	casa::Vector<casa::Quantum<double> > restoringBeam = itsBeamHelper.value();
 	
