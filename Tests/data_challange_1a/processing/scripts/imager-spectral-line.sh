@@ -2,15 +2,22 @@
 # Spectral Line Imaging
 ##############################################################################
 
-# Create a directory to hold the output measurement sets
-MSDIR=MSFINE
-if [ ! -d ${MSDIR} ]; then
-    mkdir ${MSDIR}
+# Create a work dir directory and one to hold the output measurement sets
+SL_WORK_DIR=sl-work-dir
+if [ ! -d ${SL_WORK_DIR} ]; then
+    mkdir ${SL_WORK_DIR}
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to create directory ${MSDIR}"
+        echo "Error: Failed to create directory ${SL_WORK_DIR}"
+        exit 1
+    fi
+    mkdir ${SL_WORK_DIR}/MS
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to create directory ${SL_WORK_DIR}/MS"
         exit 1
     fi
 fi
+
+mv askap.log_cfg ${SL_WORK_DIR}
 
 #
 # Create the qsub file to image each channel individually
@@ -30,18 +37,18 @@ cat > cimager-spectral-line.qsub << EOF
 #  qsub -J 0-16415 cimager-spectral-line.qsub
 #######
 
-cd \${PBS_O_WORKDIR}
+cd \${PBS_O_WORKDIR}/${SL_WORK_DIR}
 
 CHAN=\$((\${PBS_ARRAY_INDEX} + 1))
 
-cat > ${CONFIGDIR}/mssplit_fine_\${PBS_ARRAY_INDEX}.in << EOF_INNER
+cat > ../${CONFIGDIR}/mssplit_fine_\${PBS_ARRAY_INDEX}.in << EOF_INNER
 # Input measurement set
 # Default: <no default>
-vis         = ${INPUT_MS}
+vis         = ../${INPUT_MS}
 
 # Output measurement set
 # Default: <no default>
-outputvis   = ${MSDIR}/fine_chan_\${PBS_ARRAY_INDEX}.ms
+outputvis   = MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
 
 # The channel range to split out into its own measurement set
 # Can be either a single integer (e.g. 1) or a range (e.g. 1-300). The range
@@ -54,8 +61,8 @@ channel     = \${CHAN}
 width       = 1
 EOF_INNER
 
-cat > ${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in << EOF_INNER
-Cimager.dataset                                 = ${MSDIR}/fine_chan_\${PBS_ARRAY_INDEX}.ms
+cat > ../${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in << EOF_INNER
+Cimager.dataset                                 = MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
 
 Cimager.Images.Names                            = [image.i.spectral.\${PBS_ARRAY_INDEX}]
 Cimager.Images.shape                            = [3328,3328]
@@ -93,10 +100,10 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-LOGFILE=${LOGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.log
+LOGFILE=../${LOGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.log
 
 # First split the big measurement set
-\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -inputs ${CONFIGDIR}/mssplit_fine_\${PBS_ARRAY_INDEX}.in > \${LOGFILE}
+\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -inputs ../${CONFIGDIR}/mssplit_fine_\${PBS_ARRAY_INDEX}.in > \${LOGFILE}
 ERR=\$?
 if [ \${ERR} -ne 0 ]; then
     echo "Error: mssplit returned error code \${ERR}"
@@ -104,7 +111,7 @@ if [ \${ERR} -ne 0 ]; then
 fi
 
 # Now run the cimager
-mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in >> \${LOGFILE}
+mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ../${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in >> \${LOGFILE}
 ERR=\$?
 if [ \${ERR} -ne 0 ]; then
     echo "Error: cimager returned error code \${ERR}"
@@ -112,7 +119,7 @@ if [ \${ERR} -ne 0 ]; then
 fi
 
 # Finally delete the temporary split-off measurement set
-rm -rf ${MSDIR}/fine_chan_\${PBS_ARRAY_INDEX}.ms
+rm -rf MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
 EOF
 
 #
@@ -129,7 +136,7 @@ cat > cubemerge-spectral-line.qsub << EOF
 #PBS -j oe
 #PBS -v INPUTPREFIX,OUTPUTCUBE
 
-cd \${PBS_O_WORKDIR}
+cd \${PBS_O_WORKDIR}/${SL_WORK_DIR}
 
 START=0
 END=16415
@@ -147,6 +154,12 @@ done
 
 rm -rf \${OUTPUTCUBE}
 \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cubemerge.sh \${INPUTSLICES} \${OUTPUTCUBE}
+ERR=\$?
+if [ \$ERR -ne 0 ]; then
+    echo "Error: cubemerge returned error code \$ERR"
+    exit \$ERR
+fi
+mv \${OUTPUTCUBE} ..
 EOF
 
 if [ "${DRYRUN}" == "false" ]; then
