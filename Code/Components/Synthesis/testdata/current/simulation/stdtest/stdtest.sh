@@ -93,9 +93,12 @@ Cimager.gridder.AProjectWStack.tablename = AProjectWStack.tab
 Cimager.solver                           	= Dirty
 Cimager.solver.Dirty.tolerance                  = 0.1
 Cimager.solver.Dirty.verbose                   	= True
-Cimager.ncycles                                 = 1
+Cimager.ncycles                                 = 0
 
 Cimager.preconditioner.Names			= None
+
+Cimager.restore                          	= True
+Cimager.restore.beam                     	= [30arcsec, 30arcsec, 0deg]
 
 EOF
 echo "Running cimager to form Dirty image of single pointing" | tee -a  stdtest.$HOSTNAME.out
