@@ -1151,7 +1151,7 @@ namespace askap {
                 if (this->itsEdgeSourceList.size() > 0) { // if there are edge sources
                     for (src = this->itsEdgeSourceList.begin(); src < this->itsEdgeSourceList.end(); src++) this->itsCube.addObject(*src);
 		    this->itsEdgeSourceList.clear();
-
+		    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Edge list now has size " << this->itsEdgeSourceList.size());
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube = " << this->itsCube.getNumObj());
                     bool growthflag = this->itsCube.pars().getFlagGrowth();
                     this->itsCube.pars().setFlagGrowth(false);  // can't grow as don't have flux array in itsCube
@@ -1247,7 +1247,7 @@ namespace askap {
 
 		if(this->itsFlagDistribFit && this->itsFlagDoFit) this->fitRemaining();
 
-                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up edge sources");
+                ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up " << this->itsEdgeSourceList.size() <<" edge sources");
 
 		for(src=this->itsEdgeSourceList.begin(); src<this->itsEdgeSourceList.end();src++){
 		  this->itsSourceList.push_back(*src);
@@ -1576,7 +1576,7 @@ namespace askap {
 	    int16 rank;
 	    LOFAR::BlobString bs;
 	      
-	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Distributing edge sources to be fit by workers");
+	    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Distributing " << this->itsEdgeSourceList.size()<<" edge sources to be fit by workers");
 
 	    // now send the individual sources to each worker in turn
 	    for(size_t i=0;i<this->itsEdgeSourceList.size();i++){
