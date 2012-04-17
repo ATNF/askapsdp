@@ -276,7 +276,22 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
         /// @param[in] par Parameters to be processed
         friend LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream& is, 
                                               Params& par); 
-      protected:
+         
+        /// @brief make a slice of another params class
+        /// @details This method extracts one or more parameters 
+        /// from the given Params object and stores them in the 
+        /// current object. The current content of this object is lost.
+        /// @note This method assumes reference semantics for data values
+        /// as the use case is to split parameters and act as an adapter
+        /// supporting the general interface. In the case of image parameters
+        /// the size is considerable to do an unnecessary copy. Use the clone() 
+        /// method explicitly or a copy constructor if a proper copy is required.
+        /// We do not currently expect to access the resulting class for writing.
+        /// @param[in] other other Params class to take the data from
+        /// @param[in] names2copy list of parameters to include into the slice
+        void makeSlice(const Params &other, const std::vector<std::string> &names2copy);
+             
+     protected:
         /// @brief notify change monitors about parameter update
         /// @details Change monitors are used to track updates of some
         /// parameters. This method first searches whether a particular
