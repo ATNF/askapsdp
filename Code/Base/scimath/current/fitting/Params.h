@@ -255,12 +255,6 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
     /// @return true, if the given parameter has been changed
     bool isChanged(const std::string &name, const ChangeMonitor &cm) const;
 
-/// Count -  gives the number of accesses - use
-/// this as a aid in caching. Is incremented on every non-const
-/// access. A cache is no longer valid if the count has increased.
-/// @param name Name of param
-        int count(const std::string& name) const;
-
 /// Shared pointer definition
         typedef boost::shared_ptr<Params> ShPtr;
 
@@ -305,8 +299,6 @@ void update(const std::string &name, const casa::Array<double> &value, const cas
         /// The free/fixed status, ordered as a map
         std::map<std::string, bool> itsFree;
         /// The update count, ordered as a map. This is logically a cache 
-        /// and must be mutable
-        mutable std::map<std::string, int> itsCounts;
 
         /// @brief change monitors for all tracked parameters
         /// @details This map contains change monitors for

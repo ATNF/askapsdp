@@ -60,7 +60,7 @@ namespace askap
 		}
 
 		Params::Params(const Params& other) :  itsAxes(other.itsAxes),
-		      itsFree(other.itsFree), itsCounts(other.itsCounts)
+		      itsFree(other.itsFree)
 		{
             deepCopyOfSTDMap(other.itsArrays, itsArrays);
  
@@ -75,7 +75,6 @@ namespace askap
                 deepCopyOfSTDMap(other.itsArrays, itsArrays);
 				itsAxes=other.itsAxes;
 				itsFree=other.itsFree;
-				itsCounts=other.itsCounts;
 				// change monitor map is reset deliberately
 				itsChangeMonitors.clear();
 			}
@@ -93,19 +92,20 @@ namespace askap
 
 		bool Params::isFree(const std::string& name) const
 		{
+            ASKAPCHECK(has(name), "Parameter " + name + " does not exist");
 			return itsFree.find(name)->second;
 		}
 
 		void Params::free(const std::string& name)
 		{
-                     ASKAPCHECK(has(name), "Parameter " + name + " does not exist");
-                     itsFree[name]=true;
+            ASKAPCHECK(has(name), "Parameter " + name + " does not exist");
+            itsFree[name]=true;
 		}
 
 		void Params::fix(const std::string& name)
 		{
-                     ASKAPCHECK(has(name), "Parameter " + name + " does not exist");
-                     itsFree[name]=false;
+            ASKAPCHECK(has(name), "Parameter " + name + " does not exist");
+            itsFree[name]=false;
 		}
 
 		void Params::add(const std::string& name, const double ip)
@@ -116,7 +116,6 @@ namespace askap
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsAxes[name]=Axes();
-			itsCounts[name]=0;
             notifyAboutChange(name);
 		}
 
@@ -126,7 +125,6 @@ namespace askap
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsAxes[name]=Axes();
-			itsCounts[name]=0;
             notifyAboutChange(name);
 		}
 
@@ -137,7 +135,6 @@ namespace askap
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
 			itsAxes[name]=axes;
-			itsCounts[name]=0;
             notifyAboutChange(name);
 		}
 		
@@ -164,7 +161,6 @@ namespace askap
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
 			itsAxes[name]=axes;
-			itsCounts[name]=0;
 			notifyAboutChange(name);
 		}
 
@@ -173,7 +169,6 @@ namespace askap
 			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
 			itsArrays[name]=ip.copy();
 			itsFree[name]=true;
-			itsCounts[name]++;
             notifyAboutChange(name);	
 		}
 		
@@ -203,7 +198,6 @@ namespace askap
            }
            arr(blc,trc) = value.copy();
            itsFree[name]=true;
-           itsCounts[name]++;
            notifyAboutChange(name);
         }		
 		
@@ -220,7 +214,6 @@ namespace askap
 			itsArrays[name].resize(shape);
 			itsFree[name]=true;
 			itsAxes[name]=axes;
-			itsCounts[name]=0;
 			notifyAboutChange(name);
 		}
 		
@@ -247,7 +240,6 @@ namespace askap
 			ipArray(casa::IPosition(1,0))=ip;
 			itsArrays[name]=ipArray.copy();
 			itsFree[name]=true;
-			itsCounts[name]++;
 			notifyAboutChange(name);
 		}
 
@@ -258,7 +250,7 @@ namespace askap
 
 		bool Params::has(const std::string& name) const
 		{
-			return itsArrays.count(name)>0;
+			return itsArrays.find(name) != itsArrays.end();
 		}
 
 		bool Params::isScalar(const std::string& name) const
@@ -276,7 +268,6 @@ namespace askap
 		casa::Array<double>& Params::value(const std::string& name)
 		{
 			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
-			itsCounts[name]++;
 			notifyAboutChange(name);
 			return itsArrays.find(name)->second;
 		}
@@ -325,17 +316,16 @@ namespace askap
 			return itsAxes.find(name)->second;
 		}
 
-		bool Params::isCongruent(const Params& other) const
-		{
-			for(std::map<string,bool>::const_iterator iter = itsFree.begin(); iter != itsFree.end(); iter++)
-			{
-				if(other.itsFree.count(iter->first)==0)
-				{
+        bool Params::isCongruent(const Params& other) const
+        {
+            for(std::map<string,bool>::const_iterator iter = itsFree.begin(); iter != itsFree.end(); iter++)
+            {
+                if (other.itsFree.find(iter->first) == other.itsFree.end()) {
 					return false;
-				}
-			}
-			return true;
-		}
+                }
+            }
+            return true;
+        }
 
 		void Params::merge(const Params& other)
 		{
@@ -348,7 +338,6 @@ namespace askap
 					itsArrays[*iter]=other.itsArrays.find(*iter)->second;
 					itsFree[*iter]=other.itsFree.find(*iter)->second;
 					itsAxes[*iter]=other.itsAxes.find(*iter)->second;
-					itsCounts[*iter]++;
 					// we deliberately don't copy itsChangeMonitors map here as 
 					// otherwise we would need some kind of global counter and a more
 					// complicated logic. The working model is that change monitor should always
@@ -419,7 +408,6 @@ namespace askap
           itsArrays.erase(name);
           itsAxes.erase(name);
           itsFree.erase(name);
-          itsCounts.erase(name);
           // change monitor map doesn't need to contain all parameters
           std::map<std::string, ChangeMonitor>::iterator it = itsChangeMonitors.find(name);
           if (it != itsChangeMonitors.end()) {          
@@ -433,7 +421,6 @@ namespace askap
 			itsArrays.clear();
 			itsAxes.clear();
 			itsFree.clear();
-			itsCounts.clear();
 			itsChangeMonitors.clear();
 		}
 
@@ -525,26 +512,19 @@ bool Params::isChanged(const std::string &name, const ChangeMonitor &cm) const
   return cm != cit->second;
 }
 
-		int Params::count(const std::string& name) const
-		{
-			ASKAPCHECK(has(name), "Parameter " + name + " does not already exist");
-			return itsCounts[name];
-		}
-
 /// @brief increment this if there is any change to the stuff written into blob
-#define BLOBVERSION 1
+#define BLOBVERSION 2
 
 		// These are the items that we need to write to and read from a blob stream
 		// note itsChangeMonitors is not written to blob deliberately
 		// std::map<std::string, casa::Array<double> > itsArrays;
 		// std::map<std::string, Axes> itsAxes;
 		// std::map<std::string, bool> itsFree;
-		// std::map<std::string, int> itsCounts;
 
 		LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream& os, const Params& par)
 		{
 		    os.putStart("Params",BLOBVERSION);		
-			os << par.itsArrays << par.itsAxes << par.itsFree << par.itsCounts;
+			os << par.itsArrays << par.itsAxes << par.itsFree;
 			os.putEnd();			
             return os;
 		}
@@ -555,7 +535,7 @@ bool Params::isChanged(const std::string &name, const ChangeMonitor &cm) const
 		    ASKAPCHECK(version == BLOBVERSION, 
 		        "Attempting to read from a blob stream a Params object of the wrong version, expect "<<
 		        BLOBVERSION<<" got "<<version);		
-			is >> par.itsArrays >> par.itsAxes >> par.itsFree >> par.itsCounts;
+			is >> par.itsArrays >> par.itsAxes >> par.itsFree;
             is.getEnd();
             // as the object has been updated one needs to obtain new change monitor
             par.itsChangeMonitors.clear();			
