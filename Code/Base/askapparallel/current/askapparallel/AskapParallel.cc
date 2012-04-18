@@ -174,7 +174,10 @@ bool AskapParallel::inGroup(size_t group)
       return true; 
   }
   if (group < itsNGroups) {
-      return group == (rank() - 1) / itsNGroups;
+      const int nWorkers = nProcs() - 1;
+      ASKAPDEBUGASSERT(nWorkers > 0);
+      const size_t nWorkersPerGroup = size_t(nWorkers) / itsNGroups;
+      return group == (rank() - 1) / nWorkersPerGroup;
   }
   return false;
 }
@@ -259,7 +262,10 @@ std::string AskapParallel::substitute(const std::string& s) const
 
         if (itsNProcs > 1) {
             ASKAPDEBUGASSERT(itsNGroups >= 1);
-            oos << (itsRank - 1) / itsNGroups;
+            const int nWorkers = nProcs() - 1;
+            ASKAPDEBUGASSERT(nWorkers > 0);
+            const size_t nWorkersPerGroup = size_t(nWorkers) / itsNGroups;
+            oos << (itsRank - 1) / nWorkersPerGroup;
         } else {
             oos << 0;
         }
