@@ -3,7 +3,7 @@ from askapdev.rbuild.dependencies import Dependency
 
 # Check the service interface is available
 def checkService():
-    servicebase = ic.stringToProxy("CentralProcessorService")
+    servicebase = ic.stringToProxy("CentralProcessorService@CentralProcessorAdminAdapter")
     if not servicebase:
         raise RuntimeError("CentralProcessorService proxy not found")
 
@@ -54,7 +54,7 @@ status = 0
 ic = None
 try:
     ic = Ice.initialize(sys.argv)
-    base = ic.stringToProxy("CentralProcessorAdmin")
+    base = ic.stringToProxy("CentralProcessorAdmin@CentralProcessorAdminAdapter")
     cpadmin = askap.interfaces.component.IComponentPrx.checkedCast(base)
     if not cpadmin:
         raise RuntimeError("Invalid proxy")

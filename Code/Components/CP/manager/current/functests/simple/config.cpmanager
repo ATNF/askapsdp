@@ -1,0 +1,6 @@
+# Registry location
+Ice.Default.Locator=IceGrid/Locator:tcp -p 4061
+
+# Object adapter AdminAdapter
+AdminAdapter.Endpoints=tcp
+AdminAdapter.AdapterId=CentralProcessorAdminAdapter
