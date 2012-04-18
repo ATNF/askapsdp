@@ -1,21 +1,9 @@
-#
-# The IceGrid instance name.
-#
-IceGrid.InstanceName=IceGrid
-
-# Node Properties
-IceGrid.Node.Endpoints=tcp
-IceGrid.Node.Name=Node1
-IceGrid.Node.Data=data/node
-IceGrid.Node.CollocateRegistry=1
-Ice.Default.Locator=IceGrid/Locator:tcp -p 4061
-
 # Registry Properties
 IceGrid.Registry.Client.Endpoints=tcp -p 4061
 IceGrid.Registry.Server.Endpoints=tcp
 IceGrid.Registry.Internal.Endpoints=tcp
 IceGrid.Registry.AdminPermissionsVerifier=IceGrid/NullPermissionsVerifier
-IceGrid.Registry.Data=data/registry
+IceGrid.Registry.Data=registry-db
 IceGrid.Registry.DynamicRegistration=1
 
 #
@@ -40,7 +28,4 @@ Ice.Trace.Network=0
 # 0 = no protocol tracing
 # 1 = trace protocol messages
 #
-Ice.Trace.Protocol=0
-
-Ice.StdOut=icegrid.stdout
-Ice.StdErr=icegrid.stderr
+Ice.Trace.Protocol=1

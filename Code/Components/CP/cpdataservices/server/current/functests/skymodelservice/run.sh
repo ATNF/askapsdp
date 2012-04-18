@@ -4,30 +4,44 @@ cd `dirname $0`
 
 # Setup the environment
 source ../../init_package_env.sh
+source ../common.sh
 
-# Remove the IceGrid log files
-rm -f icegrid.stdout
-rm -f icegrid.stderr
+# Remove the log files
+APP_LOG=skymodelsvc.log
+REG_LOG=icegridregistry.log
+rm -f ${APP_LOG} ${REG_LOG}
 
-# Start the Ice Services
-../start_services.sh config.icegrid
+# Start the Ice Registry
+echo "Starting the Ice Registry..."
+REG_DB=registry-db
+rm -rf ${REG_DB}
+mkdir -p ${REG_DB}
+nohup icegridregistry --Ice.Config=config.icegridregistry > ${REG_LOG} &
+REG_PID=$!
+waitIceRegistry config.icegridadmin
 
-# Start the sky model service
-icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application add skymodelservice.xml"
-sleep 2
+# Start the service under test
+echo "Starting the Sky Model Service..."
+nohup java -Xmx1024m askap/cp/skymodelsvc/Server --Ice.Config=config.skymodelsvc > ${APP_LOG} &
+PID=$!
+waitIceAdapter config.icegridadmin SkyModelServiceAdminAdapter
 
 # Run the test
+echo "Executing the testcase..."
 python test_transitions.py --Ice.Config=config.icegridadmin
 STATUS=$?
 
-# Remove the sky model service
-icegridadmin --Ice.Config=config.icegrid -u foo -p bar -e "application remove skymodelservice"
+# Stop the service under test
+kill -SIGTERM $PID
+sleep 2
+kill -SIGKILL $PID > /dev/null 2>&1
 
-# Stop the Ice Services
-../stop_services.sh config.icegrid
+# Stop the Ice Registry
+kill -SIGTERM $REG_PID
+sleep 2
+kill -SIGKILL $REG_PID > /dev/null 2>&1
 
 # Cleanup
-rm -f CommonTypes_ice.py Component_ice.py CommonTypes_ice.pyc Component_ice.pyc
-rm -rf askap
+rm -rf ${REG_DB}
 
 exit $STATUS

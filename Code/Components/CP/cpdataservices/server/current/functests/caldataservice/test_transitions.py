@@ -3,7 +3,7 @@ from askapdev.rbuild.dependencies import Dependency
 
 # Check the service interface is available
 def checkService():
-    servicebase = ic.stringToProxy("CalibrationDataService")
+    servicebase = ic.stringToProxy("CalibrationDataService@CalibrationDataServiceAdminAdapter")
     if not servicebase:
         raise RuntimeError("CalibrationDataService proxy not found")
 
@@ -54,7 +54,7 @@ status = 0
 ic = None
 try:
     ic = Ice.initialize(sys.argv)
-    base = ic.stringToProxy("CalibrationDataServiceAdmin")
+    base = ic.stringToProxy("CalibrationDataServiceAdmin@CalibrationDataServiceAdminAdapter")
     smsadmin = askap.interfaces.component.IComponentPrx.checkedCast(base)
     if not smsadmin:
         raise RuntimeError("Invalid proxy")

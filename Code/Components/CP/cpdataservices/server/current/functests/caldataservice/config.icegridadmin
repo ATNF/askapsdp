@@ -1,7 +1,2 @@
-#
-# The IceGrid instance name.
-#
-#IceGrid.InstanceName=IceGrid
-
-# Node Properties
+# Locator Properties
 Ice.Default.Locator=IceGrid/Locator:tcp -p 4061

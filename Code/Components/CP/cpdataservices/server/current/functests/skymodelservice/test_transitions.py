@@ -3,7 +3,7 @@ from askapdev.rbuild.dependencies import Dependency
 
 # Check the service interface is available
 def checkService():
-    servicebase = ic.stringToProxy("SkyModelService")
+    servicebase = ic.stringToProxy("SkyModelService@SkyModelServiceAdminAdapter")
     if not servicebase:
         raise RuntimeError("SkyModelService proxy not found")
 
@@ -54,7 +54,7 @@ status = 0
 ic = None
 try:
     ic = Ice.initialize(sys.argv)
-    base = ic.stringToProxy("SkyModelServiceAdmin")
+    base = ic.stringToProxy("SkyModelServiceAdmin@SkyModelServiceAdminAdapter")
     smsadmin = askap.interfaces.component.IComponentPrx.checkedCast(base)
     if not smsadmin:
         raise RuntimeError("Invalid proxy")
