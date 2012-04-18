@@ -128,15 +128,17 @@ namespace askap
             broadcastModelImpl(*itsModel);
         } else {
             ASKAPLOG_INFO_STR(logger, "Distribute model between "<<itsComms.nGroups()<<
-                  "of workers");
-            const std::vector<std::string> names = itsModel->names();
+                  " groups of workers");
+            const std::vector<std::string> names = itsModel->freeNames();
             ASKAPDEBUGASSERT(itsComms.nGroups() > 1);
             // number of parameters per group (note the last group can have more)
             const size_t nPerGroup = names.size() / itsComms.nGroups();
             ASKAPCHECK(nPerGroup > 0, "The model has too few parameters ("<<
                   names.size()<<") to distribute between "<< itsComms.nGroups()<<" groups");
+            // fixed parameters, if present, are sent to all groups
+            std::vector<std::string> fixedNames = itsModel->fixedNames();
             std::vector<std::string> currentNames;
-            currentNames.reserve(itsComms.nGroups() + nPerGroup - 1);
+            currentNames.reserve(itsComms.nGroups() + nPerGroup - 1 + fixedNames.size());
             scimath::Params buffer;
             for (size_t group = 0, index = 0; group<itsComms.nGroups(); ++group, index+=nPerGroup) {
                  const size_t nPerCurrentGroup = (group + 1 < itsComms.nGroups()) ? 
@@ -146,12 +148,15 @@ namespace askap
                                        " the last group ("<<group<<") will have "<<nPerCurrentGroup<<
                                        " parameters vs. "<<nPerGroup<<" for other groups");
                  }
-                 currentNames.resize(nPerCurrentGroup);
+                 currentNames.resize(nPerCurrentGroup + fixedNames.size());
                  for (size_t i = 0; i<nPerCurrentGroup; ++i) {
                       currentNames[i] = names[index + i];
                  }
+                 for (size_t i = 0; i<fixedNames.size(); ++i) {
+                      currentNames[nPerCurrentGroup + i] = fixedNames[i];
+                 }
                  ASKAPLOG_INFO_STR(logger, "Group "<<group<<
-                        " will work with the following parameters: "<<currentNames);
+                        " will get the following parameters: "<<currentNames);
                  buffer.makeSlice(*itsModel, currentNames);
                  ASKAPLOG_INFO_STR(logger, "Sending the model to appropriate workers (group "<<
                                  group<<") ");
