@@ -1,5 +1,30 @@
 #!/bin/bash
 
+# Arg1: Process ID
+function process_exists {
+    ps -p $1 > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        PROC_EXISTS=true
+    else
+        PROC_EXIST=false
+    fi
+}
+
+# Arg1: Process ID
+function terminate_process {
+    PID=$1
+    process_exists ${PID}
+    if ${PROC_EXISTS}; then
+        kill -SIGTERM ${PID}
+        # Wait
+        sleep 5
+        process_exists ${PID}
+        if ${PROC_EXISTS} ; then
+            kill -SIGKILL ${PID} > /dev/null 2>&1
+        fi
+    fi
+}
+
 cd `dirname $0`
 
 # Setup the environment
@@ -31,15 +56,11 @@ echo "Executing the testcase..."
 python test_transitions.py --Ice.Config=config.icegridadmin
 STATUS=$?
 
-# Stop the cpmanager
-kill -SIGTERM $PID
-sleep 2
-kill -SIGKILL $PID > /dev/null 2>&1
+# Stop the service under test
+terminate_process ${PID}
 
 # Stop the Ice Registry
-kill -SIGTERM $REG_PID
-sleep 2
-kill -SIGKILL $REG_PID > /dev/null 2>&1
+terminate_process ${REG_PID}
 
 # Cleanup
 rm -rf ${REG_DB}

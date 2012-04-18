@@ -39,4 +39,30 @@ waitIceAdapter()
     else
         echo STARTED
     fi
-} 
+}
+
+# Arg1: Process ID
+function process_exists {
+    ps -p $1 > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        PROC_EXISTS=true
+    else
+        PROC_EXIST=false
+    fi
+}
+
+# Arg1: Process ID
+function terminate_process  {
+    PID=$1
+    process_exists ${PID}
+    if ${PROC_EXISTS}; then
+        kill -SIGTERM ${PID}
+        # Wait
+        sleep 5
+        process_exists ${PID}
+        if ${PROC_EXISTS} ; then
+            kill -SIGKILL ${PID} > /dev/null 2>&1
+        fi
+    fi
+}
+

@@ -32,14 +32,10 @@ python test_transitions.py --Ice.Config=config.icegridadmin
 STATUS=$?
 
 # Stop the service under test
-kill -SIGTERM $PID
-sleep 2
-kill -SIGKILL $PID > /dev/null 2>&1
+terminate_process ${PID}
 
 # Stop the Ice Registry
-kill -SIGTERM $REG_PID
-sleep 2
-kill -SIGKILL $REG_PID > /dev/null 2>&1
+terminate_process ${REG_PID}
 
 # Cleanup
 rm -rf ${REG_DB}
