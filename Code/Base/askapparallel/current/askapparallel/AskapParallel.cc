@@ -209,6 +209,7 @@ void AskapParallel::defineGroups(size_t nGroups)
        ASKAPCHECK(commIndex == group + 1, "Unexpected commIndex value of "<<commIndex<<
                   " for group="<<group);
   }
+  itsNGroups = nGroups;
 }
         
 /// @return number of groups of workers
