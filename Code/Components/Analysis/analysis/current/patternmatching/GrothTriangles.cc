@@ -292,20 +292,20 @@ namespace askap {
                 /// @param list2 The other list of triangles
                 /// @param epsilon The error parameter used to define the tolerances. Defaults to posTolerance.
                 /// @return A list of matching pairs of triangles.
-                int size1 = list1.size(), size2 = list2.size();
+                size_t size1 = list1.size(), size2 = list2.size();
                 // sort in order of increasing ratio
                 std::stable_sort(list1.begin(), list1.end());
                 std::stable_sort(list2.begin(), list2.end());
                 // find maximum ratio tolerances for each list
                 double maxTol1 = list1[0].ratioTol(), maxTol2 = list2[0].ratioTol();
 
-                for (int i = 1; i < size1; i++) {
+                for (size_t i = 1; i < size1; i++) {
                     list1[i].defineTolerances(epsilon);
 
                     if (list1[i].ratioTol() > maxTol1) maxTol1 = list1[i].ratioTol();
                 }
 
-                for (int i = 1; i < size2; i++) {
+                for (size_t i = 1; i < size2; i++) {
                     list2[i].defineTolerances(epsilon);
 
                     if (list2[i].ratioTol() > maxTol2) maxTol2 = list2[i].ratioTol();
@@ -315,11 +315,11 @@ namespace askap {
                 int nmatch = 0;
 
                 // loop over the lists, finding matches
-                for (int i = 0; i < size1; i++) {
+                for (size_t i = 0; i < size1; i++) {
                     double maxRatioB = list1[i].ratio() + sqrt(maxTol1 + maxTol2);
                     double minRatioB = list1[i].ratio() - sqrt(maxTol1 + maxTol2);
 
-                    for (int j = 0; j < size2 && list2[j].ratio() < maxRatioB; j++) {
+                    for (size_t j = 0; j < size2 && list2[j].ratio() < maxRatioB; j++) {
                         if (list2[j].ratio() > minRatioB)
                             matches[i+j*size1] = list1[i].isMatch(list2[j], epsilon);
 
@@ -330,8 +330,8 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, "Number of matching triangles = " << nmatch);
                 std::vector<std::pair<Triangle, Triangle> > matchList;
 
-                for (int i = 0; i < size1; i++) {
-                    for (int j = 0; j < size2; j++) {
+                for (size_t i = 0; i < size1; i++) {
+                    for (size_t j = 0; j < size2; j++) {
                         if (matches[i+j*size1]) {
                             std::pair<Triangle, Triangle> match(list1[i], list2[j]);
                             matchList.push_back(match);

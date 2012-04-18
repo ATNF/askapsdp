@@ -85,11 +85,11 @@ namespace askap {
             // Convert the base position
             wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
             wld[1] = analysis::dmsToDec(decBaseStr);
-	    ASKAPLOG_DEBUG_STR(logger, "Converting position ("<<raBaseStr<<","<<decBaseStr<<") or world coords ("<<wld[0]<<","<<wld[1]<<")");
+	    //	    ASKAPLOG_DEBUG_STR(logger, "Converting position ("<<raBaseStr<<","<<decBaseStr<<") or world coords ("<<wld[0]<<","<<wld[1]<<")");
             header.wcsToPix(wld, pix);
             double xBase = pix[0];
             double yBase = pix[1];
-	    ASKAPLOG_DEBUG_STR(logger, "Got position ("<<pix[0]<<","<<pix[1]<<")");
+	    //	    ASKAPLOG_DEBUG_STR(logger, "Got position ("<<pix[0]<<","<<pix[1]<<")");
 
             char line[501];
             fin.getline(line, 500);
@@ -131,13 +131,13 @@ namespace askap {
                     ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
 
 		//		wcsprt(header.getWCS());
-		ASKAPLOG_DEBUG_STR(logger, "Converting world coords ("<<wld[0]<<","<<wld[1]<<")");
+		//		ASKAPLOG_DEBUG_STR(logger, "Converting world coords ("<<wld[0]<<","<<wld[1]<<")");
                 if (header.wcsToPix(wld, pix)) {
                     ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id << ": " 
 				       << std::setprecision(6) << wld[0] << " --> " << pix[0] << " and " 
 				       << std::setprecision(6) << wld[1] << " --> " << pix[1]);
                 }
-		ASKAPLOG_DEBUG_STR(logger, "... to pixel coords ("<<pix[0]<<","<<pix[1]<<")");
+		//		ASKAPLOG_DEBUG_STR(logger, "... to pixel coords ("<<pix[0]<<","<<pix[1]<<")");
 		    
 
                 if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
@@ -185,11 +185,11 @@ namespace askap {
             // Convert the base position
             wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
             wld[1] = analysis::dmsToDec(decBaseStr);
-	    ASKAPLOG_DEBUG_STR(logger, "Converting position ("<<raBaseStr<<","<<decBaseStr<<") or world coords ("<<wld[0]<<","<<wld[1]<<")");
+	    //	    ASKAPLOG_DEBUG_STR(logger, "Converting position ("<<raBaseStr<<","<<decBaseStr<<") or world coords ("<<wld[0]<<","<<wld[1]<<")");
             header.wcsToPix(wld, pix);
             double xBase = pix[0];
             double yBase = pix[1];
-	    ASKAPLOG_DEBUG_STR(logger, "Got position ("<<pix[0]<<","<<pix[1]<<")");
+	    //	    ASKAPLOG_DEBUG_STR(logger, "Got position ("<<pix[0]<<","<<pix[1]<<")");
 
             while (getline(fin, line),
                     !fin.eof()) {
@@ -210,12 +210,12 @@ namespace askap {
                     idString << ct++ << "_" << analysis::decToDMS(wld[0], "RA") << "_" << analysis::decToDMS(wld[1], "DEC");
 
 		    //		    wcsprt(header.getWCS());
-		    ASKAPLOG_DEBUG_STR(logger, "Converting world coords ("<<wld[0]<<","<<wld[1]<<")");
+		    //		    ASKAPLOG_DEBUG_STR(logger, "Converting world coords ("<<wld[0]<<","<<wld[1]<<")");
                     if (header.wcsToPix(wld, pix)) {
                         ASKAPLOG_ERROR_STR(logger, "getPixList: Conversion error... source ID=" << idString.str()
                                                << ", wld=(" << std::setprecision(6) << wld[0] << "," << std::setprecision(6) << wld[1] << "), line = " << line);
                     }
-		    ASKAPLOG_DEBUG_STR(logger, "... to pixel coords ("<<pix[0]<<","<<pix[1]<<")");
+		    //		    ASKAPLOG_DEBUG_STR(logger, "... to pixel coords ("<<pix[0]<<","<<pix[1]<<")");
 
                     if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
                         matching::Point pt(pix[0], pix[1], flux, idString.str(), maj, min, pa);
