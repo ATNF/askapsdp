@@ -1150,8 +1150,6 @@ namespace askap {
 
                 if (this->itsEdgeSourceList.size() > 0) { // if there are edge sources
                     for (src = this->itsEdgeSourceList.begin(); src < this->itsEdgeSourceList.end(); src++) this->itsCube.addObject(*src);
-		    this->itsEdgeSourceList.clear();
-		    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Edge list now has size " << this->itsEdgeSourceList.size());
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube = " << this->itsCube.getNumObj());
                     bool growthflag = this->itsCube.pars().getFlagGrowth();
                     this->itsCube.pars().setFlagGrowth(false);  // can't grow as don't have flux array in itsCube
@@ -1162,6 +1160,7 @@ namespace askap {
 		    this->calcObjectParams();
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after param calcs = " << this->itsCube.getNumObj());
 
+		    this->itsEdgeSourceList.clear();
                     for (long i = 0; i < this->itsCube.getNumObj(); i++) {
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
@@ -1580,7 +1579,7 @@ namespace askap {
 
 	    // now send the individual sources to each worker in turn
 	    for(size_t i=0;i<this->itsEdgeSourceList.size();i++){
-	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Preparing source #"<<i+1);
+	      //	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Preparing source #"<<i+1);
 	      this->prepareSourceForFit(this->itsEdgeSourceList[i],false);
 	      rank = i % (itsComms.nProcs() - 1);
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << this->itsEdgeSourceList[i].getSize() << " to worker "<<rank+1);
