@@ -113,6 +113,16 @@ class MPIComms {
         /// world communicator)
         virtual void broadcast(void* buf, size_t size, int root, size_t comm = 0); 
 
+        /// @brief create a new communicator
+        /// @details This method creates a new communicator and returns the index.
+        /// This index can later be used as a parameter for communication methods
+        /// instead of the default one.
+        /// @param[in] group ranks to include in the new communicator
+        /// @param[in] comm communicator index where a new subgroup is created, 
+        ///            defaults to 0 (copy of the default world communicator)
+        /// @return new communicator index
+        virtual size_t createComm(const std::vector<int> &group, size_t comm = 0);
+
     private:
         // Check for error status and handle accordingly
         void checkError(const int error, const std::string location) const;

@@ -37,6 +37,10 @@
 #include <stdexcept>
 #include <stdint.h>
 #include <limits>
+#include <algorithm>
+
+// boost
+#include <boost/shared_array.hpp>
 
 // MPI includes
 #ifdef HAVE_MPI
@@ -118,6 +122,41 @@ void MPIComms::abort(size_t comm)
     int result = MPI_Abort(itsCommunicators[comm], 0);
     checkError(result, "MPI_Abort");
 }
+
+/// @brief create a new communicator
+/// @details This method creates a new communicator and returns the index.
+/// This index can later be used as a parameter for communication methods
+/// instead of the default one.
+/// @param[in] group ranks to include in the new communicator
+/// @param[in] comm communicator index where a new subgroup is created, 
+///            defaults to 0 (copy of the default world communicator)
+/// @return new communicator index
+size_t MPIComms::createComm(const std::vector<int> &group, size_t comm)
+{
+  ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+  ASKAPDEBUGASSERT(group.size() > 0);
+  MPI_Group origGroup = MPI_GROUP_NULL, newGroup = MPI_GROUP_NULL;
+  int result = MPI_Comm_group(itsCommunicators[comm], &origGroup);
+  checkError(result, "MPI_Comm_Group");
+  boost::shared_array<int> ranksBuf(new int[group.size()]);
+  std::copy(group.begin(),group.end(),ranksBuf.get());
+
+  result = MPI_Group_incl(origGroup, int(group.size()), ranksBuf.get(), &newGroup);
+  checkError(result, "MPI_Group_incl");
+  
+  MPI_Comm newComm = MPI_COMM_NULL;
+  result = MPI_Comm_create(itsCommunicators[comm], newGroup, &newComm);
+  checkError(result, "MPI_Comm_create");
+  const size_t newIndex = itsCommunicators.size();
+  itsCommunicators.push_back(newComm);
+
+  result = MPI_Group_free(&newGroup);
+  checkError(result, "MPI_Group_free");
+  result = MPI_Group_free(&origGroup);
+  checkError(result, "MPI_Group_free");
+  return newIndex;
+}
+
 
 void MPIComms::send(const void* buf, size_t size, int dest, int tag, size_t comm)
 {
@@ -295,6 +334,19 @@ int MPIComms::nProcs(size_t) const
 void MPIComms::abort(size_t)
 {
     exit(1);
+}
+
+/// @brief create a new communicator
+/// @details This method creates a new communicator and returns the index.
+/// This index can later be used as a parameter for communication methods
+/// instead of the default one.
+/// @param[in] group ranks to include in the new communicator
+/// @param[in] comm communicator index where a new subgroup is created, 
+///            defaults to 0 (copy of the default world communicator)
+/// @return new communicator index
+size_t MPIComms::createComm(const std::vector<int> &, size_t) 
+{
+    ASKAPTHROW(AskapError, "MPIComms::createComm() cannot be used - configured without MPI");
 }
 
 void MPIComms::send(const void* buf, size_t size, int dest, int tag, size_t)
