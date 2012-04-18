@@ -90,6 +90,17 @@ namespace askap
       MEParallelApp(comms,parset),
       itsExportSensitivityImage(false), itsExpSensitivityCutoff(0.)
     {
+      const int nWorkerGroups = parset.getInt32("nworkergroups", 1);
+      ASKAPCHECK(nWorkerGroups > 0, "nworkergroups is supposed to be greater than 0");
+      if (nWorkerGroups > 1) {
+          ASKAPLOG_INFO_STR(logger, "Model parameters will be distributed between "<<nWorkerGroups<<
+                            " groups of workers");
+          ASKAPCHECK(itsComms.isParallel(), "This option is only allowed in the parallel mode");
+          itsComms.defineGroups(nWorkerGroups);
+      } else {
+          ASKAPLOG_INFO_STR(logger, "All workers are treated as identical");
+      }   
+          
       if (itsComms.isMaster())
       {      
         itsRestore=parset.getBool("restore", false);

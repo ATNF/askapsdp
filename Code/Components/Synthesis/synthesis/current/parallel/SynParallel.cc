@@ -123,14 +123,50 @@ namespace askap
         casa::Timer timer;
         timer.mark();
 
-        LOFAR::BlobString bs;
-        bs.resize(0);
-        LOFAR::BlobOBufString bob(bs);
-        LOFAR::BlobOStream out(bob);
-        out.putStart("model", 1);
-        out << *itsModel;
-        out.putEnd();
-        itsComms.broadcastBlob(bs ,0);
+        if (itsComms.nGroups() == 1) {
+            ASKAPLOG_INFO_STR(logger, "Sending the whole model to all workers");
+            broadcastModelImpl(*itsModel);
+        } else {
+            ASKAPLOG_INFO_STR(logger, "Distribute model between "<<itsComms.nGroups()<<
+                  "of workers");
+            const std::vector<std::string> names = itsModel->names();
+            ASKAPDEBUGASSERT(itsComms.nGroups() > 1);
+            // number of parameters per group (note the last group can have more)
+            const size_t nPerGroup = names.size() / itsComms.nGroups();
+            ASKAPCHECK(nPerGroup > 0, "The model has too few parameters ("<<
+                  names.size()<<") to distribute between "<< itsComms.nGroups()<<" groups");
+            std::vector<std::string> currentNames;
+            currentNames.reserve(itsComms.nGroups() + nPerGroup - 1);
+            scimath::Params buffer;
+            for (size_t group = 0, index = 0; group<itsComms.nGroups(); ++group, index+=nPerGroup) {
+                 const size_t nPerCurrentGroup = (group + 1 < itsComms.nGroups()) ? 
+                          nPerGroup : names.size() - index; 
+                 if (nPerCurrentGroup != nPerGroup) {
+                     ASKAPLOG_WARN_STR(logger, "An unbalanced distribution of the model has been detected. "
+                                       " the last group ("<<group<<") will have "<<nPerCurrentGroup<<
+                                       " parameters vs. "<<nPerGroup<<" for other groups");
+                 }
+                 currentNames.resize(nPerCurrentGroup);
+                 for (size_t i = 0; i<nPerCurrentGroup; ++i) {
+                      currentNames[i] = names[index + i];
+                 }
+                 ASKAPLOG_INFO_STR(logger, "Group "<<group<<
+                        " will work with the following parameters: "<<currentNames);
+                 buffer.makeSlice(*itsModel, currentNames);
+                 ASKAPLOG_INFO_STR(logger, "Sending the model to appropriate workers (group "<<
+                                 group<<") ");
+                 itsComms.useGroupOfWorkers(group);
+                 try {
+                    broadcastModelImpl(buffer);
+                 }
+                 catch (const std::exception &) {
+                    itsComms.useAllWorkers();
+                    throw;
+                 }
+                 itsComms.useAllWorkers();
+            }
+        }
+
         ASKAPLOG_INFO_STR(logger, "Broadcast model to the workers in "<< timer.real()
                            << " seconds ");
       }
@@ -144,7 +180,66 @@ namespace askap
         ASKAPCHECK(itsModel, "Model not defined prior to receiving")
         casa::Timer timer;
         timer.mark();
-        ASKAPLOG_INFO_STR(logger, "Wait to receive the model from the master");
+
+        if (itsComms.nGroups() == 1) {
+            ASKAPLOG_INFO_STR(logger, "Wait to receive the whole model from the master");
+            receiveModelImpl(*itsModel);
+        } else {
+            size_t currentGroup = itsComms.nGroups(); // just a flag that group index is not found
+            for (size_t group = 0; group< itsComms.nGroups(); ++group) {
+                 if (itsComms.inGroup(group)) {
+                     ASKAPCHECK(currentGroup == itsComms.nGroups(), 
+                           "Each worker can belong to one and only one group! "
+                           "For some reason it belongs to groups "<<currentGroup<<" and "<<group);
+                     currentGroup = group;
+                 }
+            }
+            ASKAPCHECK(currentGroup < itsComms.nGroups(), "The worker at rank="<<itsComms.rank()<<
+                       "does not seem to belong to any group!");
+            ASKAPLOG_INFO_STR(logger, 
+                 "Wait to receive from the master a part of the model appropriate for the group "<<
+                 currentGroup);
+            itsComms.useGroupOfWorkers(currentGroup);
+            try {
+               receiveModelImpl(*itsModel);
+            }
+            catch (const std::exception &) {
+               itsComms.useAllWorkers();
+               throw;
+            }
+            itsComms.useAllWorkers();
+        }
+
+        ASKAPLOG_INFO_STR(logger, "Received model from the master in "<< timer.real()
+                           << " seconds ");
+        ASKAPLOG_DEBUG_STR(logger, "Current model held by the worker: "<<*itsModel);
+      }
+    }
+      
+    /// @brief actual implementation of the model broadcast
+    /// @details This method is only supposed to be called from the master.
+    /// @param[in] model the model to send
+    void SynParallel::broadcastModelImpl(const scimath::Params &model)
+    {
+        ASKAPDEBUGASSERT(itsComms.isParallel() && itsComms.isMaster());
+        LOFAR::BlobString bs;
+        bs.resize(0);
+        LOFAR::BlobOBufString bob(bs);
+        LOFAR::BlobOStream out(bob);
+        out.putStart("model", 1);
+        out << model;
+        out.putEnd();
+        itsComms.broadcastBlob(bs ,0);
+    }
+
+    /// @brief actual implementation of the model receive
+    /// @details This method is only supposed to be called from workers. 
+    /// There should be one to one match between the number of calls to 
+    /// broadcastModelImpl and receiveModelImpl.
+    /// @param[in] model the model to fill
+    void SynParallel::receiveModelImpl(scimath::Params &model)
+    {
+        ASKAPDEBUGASSERT(itsComms.isParallel() && itsComms.isWorker());
         LOFAR::BlobString bs;
         bs.resize(0);
         itsComms.broadcastBlob(bs, 0);
@@ -152,12 +247,8 @@ namespace askap
         LOFAR::BlobIStream in(bib);
         int version=in.getStart("model");
         ASKAPASSERT(version==1);
-        in >> *itsModel;
+        in >> model;
         in.getEnd();
-        ASKAPLOG_INFO_STR(logger, "Received model from the master in "<< timer.real()
-                           << " seconds ");
-        ASKAPLOG_DEBUG_STR(logger, "Current model held by the worker: "<<*itsModel);
-      }
     }
 
     std::string SynParallel::substitute(const std::string& s) const

@@ -72,7 +72,7 @@ namespace askap
       /// Return the model
       askap::scimath::Params::ShPtr& params();
 
-      /// @brief Broadcast the model to all workers
+      /// @brief Broadcast the model to all workers or a group of workers
       void broadcastModel();
 
       /// @brief Receive the model from the master
@@ -84,6 +84,19 @@ namespace askap
       std::string substitute(const std::string& s) const;
 
   protected:
+      /// @brief actual implementation of the model broadcast
+      /// @details This method is only supposed to be called from the master.
+      /// @param[in] model the model to send
+      void broadcastModelImpl(const scimath::Params &model);
+
+      /// @brief actual implementation of the model receive
+      /// @details This method is only supposed to be called from workers. 
+      /// There should be one to one match between the number of calls to 
+      /// broadcastModelImpl and receiveModelImpl.
+      /// @param[in] model the model to fill
+      void receiveModelImpl(scimath::Params &model);
+      
+      
       /// @brief obtain parameter set
       /// @details to be used in derived classes
       /// @return reference to the parameter set object
