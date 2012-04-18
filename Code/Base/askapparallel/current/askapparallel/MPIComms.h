@@ -29,6 +29,9 @@
 
 // System includes
 #include <string>
+#include <vector>
+
+// MPI-specific includes
 #ifdef HAVE_MPI
 #include <mpi.h>
 #endif
@@ -54,14 +57,20 @@ class MPIComms {
         virtual std::string nodeName(void) const;
 
         /// @brief Returns the MPI rank of the calling process
-        virtual int rank(void) const;
+        /// @param[in] comm communicator index, defaults to 0 (copy of the default 
+        /// world communicator)
+        virtual int rank(size_t comm = 0) const;
 
         /// @brief Returns the size of the communicator group (i.e. the number
         /// of processes)
-        virtual int nProcs(void) const;
+        /// @param[in] comm communicator index, defaults to 0 (copy of the default 
+        /// world communicator)
+        virtual int nProcs(size_t comm = 0) const;
 
         /// @brief Request all nodes in the communictor group abort.
-        virtual void abort(void);
+        /// @param[in] comm communicator index, defaults to 0 (copy of the default 
+        /// world communicator)
+        virtual void abort(size_t comm = 0);
 
         /// @brief MPI_Send a raw buffer to the specified destination
         /// process.
@@ -70,7 +79,9 @@ class MPIComms {
         /// @param[in] size    the number of bytes to send.
         /// @param[in] dest    the id of the process to send to.
         /// @param[in] tag the MPI tag to be used in the communication.
-        virtual void send(const void* buf, size_t size, int dest, int tag = 0);
+        /// @param[in] comm communicator index, defaults to 0 (copy of the default 
+        /// world communicator)
+        virtual void send(const void* buf, size_t size, int dest, int tag = 0, size_t comm = 0);
 
         /// @brief MPI_Recv a raw buffer from the specified source process.
         ///
@@ -78,7 +89,9 @@ class MPIComms {
         /// @param[in] size    the number of bytes to receive.
         /// @param[in] source  the id of the process to receive from.
         /// @param[in] tag the MPI tag to be used in the communication.
-        virtual void receive(void* buf, size_t size, int source, int tag = 0);
+        /// @param[in] comm communicator index, defaults to 0 (copy of the default 
+        /// world communicator)
+        virtual void receive(void* buf, size_t size, int source, int tag = 0, size_t comm = 0);
 
         /// @brief MPI_Recv a raw buffer from any source process.
         ///
@@ -87,14 +100,18 @@ class MPIComms {
         /// @param[in] tag the MPI tag to be used in the communication.
         /// @return the MPI rank of the process from which the message
         ///         was received.
-        virtual int receiveAnySrc(void* buf, size_t size, int tag = 0);
+        /// @param[in] comm communicator index, defaults to 0 (copy of the default 
+        /// world communicator)
+        virtual int receiveAnySrc(void* buf, size_t size, int tag = 0, size_t comm = 0);
 
         /// @brief MPI_Bcast a raw buffer.
         ///
         /// @param[in,out] buf    data buffer.
         /// @param[in] size       number of bytes to broadcast.
         /// @param[in] root       id of the root process.
-        virtual void broadcast(void* buf, size_t size, int root);
+        /// @param[in] comm communicator index, defaults to 0 (copy of the default 
+        /// world communicator)
+        virtual void broadcast(void* buf, size_t size, int root, size_t comm = 0); 
 
     private:
         // Check for error status and handle accordingly
@@ -107,10 +124,12 @@ class MPIComms {
 #ifdef HAVE_MPI
         // Actual implementation of receive method, used by the two
         // public methods.
-        int receiveImpl(void* buf, size_t size, int source, int tag);
+        // @param[in] comm communicator index, defaults to 0 (copy of the default 
+        // world communicator)
+        int receiveImpl(void* buf, size_t size, int source, int tag, size_t comm = 0);
 
         // Specific MPI Communicator for this class
-        MPI_Comm itsCommunicator;
+        std::vector<MPI_Comm> itsCommunicators;
 #endif
 
         // No support for assignment

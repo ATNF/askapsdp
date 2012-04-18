@@ -52,7 +52,7 @@ using namespace askap::askapparallel;
 ASKAP_LOGGER(logger, ".MPIComms");
 
 #ifdef HAVE_MPI
-MPIComms::MPIComms(int argc, char *argv[])
+MPIComms::MPIComms(int argc, char *argv[]) : itsCommunicators(1, MPI_COMM_NULL)
 {
     int rc = MPI_Init(&argc, &argv);
 
@@ -63,12 +63,16 @@ MPIComms::MPIComms(int argc, char *argv[])
 
     // Duplicate the communicator so this class
     // doesn't conflict with other uses of MPI
-    MPI_Comm_dup(MPI_COMM_WORLD, &itsCommunicator);
+    // this is the default communicator with index 0,
+    // the only one available up front
+    MPI_Comm_dup(MPI_COMM_WORLD, &itsCommunicators[0]);
 }
 
 MPIComms::~MPIComms()
 {
-    MPI_Comm_free(&itsCommunicator);
+    for (size_t comm = 0; comm<itsCommunicators.size(); ++comm) {
+         MPI_Comm_free(&itsCommunicators[comm]);
+    }
     MPI_Finalize();
 }
 
@@ -88,37 +92,41 @@ std::string MPIComms::nodeName(void) const
     return pname;
 }
 
-int MPIComms::rank(void) const
+int MPIComms::rank(size_t comm) const
 {
+    ASKAPDEBUGASSERT(comm < itsCommunicators.size());
     int rank = -1;
-    int result = MPI_Comm_rank(itsCommunicator, &rank);
+    int result = MPI_Comm_rank(itsCommunicators[comm], &rank);
     checkError(result, "MPI_Comm_rank");
 
     return rank;
 }
 
-int MPIComms::nProcs(void) const
+int MPIComms::nProcs(size_t comm) const
 {
+    ASKAPDEBUGASSERT(comm < itsCommunicators.size());
     int numtasks = -1;
-    int result = MPI_Comm_size(itsCommunicator, &numtasks);
+    int result = MPI_Comm_size(itsCommunicators[comm], &numtasks);
     checkError(result, "MPI_Comm_size");
 
     return numtasks;
 }
 
-void MPIComms::abort(void)
+void MPIComms::abort(size_t comm)
 {
-    int result = MPI_Abort(itsCommunicator, 0);
+    ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+    int result = MPI_Abort(itsCommunicators[comm], 0);
     checkError(result, "MPI_Abort");
 }
 
-void MPIComms::send(const void* buf, size_t size, int dest, int tag)
+void MPIComms::send(const void* buf, size_t size, int dest, int tag, size_t comm)
 {
+    ASKAPDEBUGASSERT(comm < itsCommunicators.size());
     const unsigned int c_maxint = std::numeric_limits<int>::max();
 
     // First send the size of the buffer.
     unsigned long lsize = size;  // Promote for simplicity
-    int result = MPI_Send(&lsize, 1, MPI_UNSIGNED_LONG, dest, tag, itsCommunicator);
+    int result = MPI_Send(&lsize, 1, MPI_UNSIGNED_LONG, dest, tag, itsCommunicators[comm]);
     checkError(result, "MPI_Send");
 
     // Send in chunks of size MAXINT until complete
@@ -131,11 +139,11 @@ void MPIComms::send(const void* buf, size_t size, int dest, int tag)
 
         if (remaining >= c_maxint) {
             result = MPI_Send(addr, c_maxint, MPI_BYTE,
-                              dest, tag, itsCommunicator);
+                              dest, tag, itsCommunicators[comm]);
             remaining -= c_maxint;
         } else {
             result = MPI_Send(addr, remaining, MPI_BYTE,
-                              dest, tag, itsCommunicator);
+                              dest, tag, itsCommunicators[comm]);
             remaining = 0;
         }
 
@@ -145,18 +153,19 @@ void MPIComms::send(const void* buf, size_t size, int dest, int tag)
     ASKAPCHECK(remaining == 0, "MPIComms::send() Didn't send all data");
 }
 
-void MPIComms::receive(void* buf, size_t size, int source, int tag)
+void MPIComms::receive(void* buf, size_t size, int source, int tag, size_t comm)
 {
-    receiveImpl(buf, size, source, tag);
+    receiveImpl(buf, size, source, tag, comm);
 }
 
-int MPIComms::receiveAnySrc(void* buf, size_t size, int tag)
+int MPIComms::receiveAnySrc(void* buf, size_t size, int tag, size_t comm)
 {
-    return receiveImpl(buf, size, MPI_ANY_SOURCE, tag);
+    return receiveImpl(buf, size, MPI_ANY_SOURCE, tag, comm);
 }
 
-int MPIComms::receiveImpl(void* buf, size_t size, int source, int tag)
+int MPIComms::receiveImpl(void* buf, size_t size, int source, int tag, size_t comm)
 {
+    ASKAPDEBUGASSERT(comm < itsCommunicators.size());
     const unsigned int c_maxint = std::numeric_limits<int>::max();
 
     // First receive the size of the payload to be received,
@@ -166,7 +175,7 @@ int MPIComms::receiveImpl(void* buf, size_t size, int source, int tag)
     unsigned long payloadSize;
     MPI_Status status;
     int result = MPI_Recv(&payloadSize, 1, MPI_UNSIGNED_LONG,
-                          source, tag, itsCommunicator, &status);
+                          source, tag, itsCommunicators[comm], &status);
     checkError(result, "MPI_Recv");
 
     // The source parameter may be MPI_ANY_SOURCE, so the actual
@@ -186,11 +195,11 @@ int MPIComms::receiveImpl(void* buf, size_t size, int source, int tag)
 
         if (remaining >= c_maxint) {
             result = MPI_Recv(addr, c_maxint, MPI_BYTE,
-                              actualSource, tag, itsCommunicator, MPI_STATUS_IGNORE);
+                              actualSource, tag, itsCommunicators[comm], MPI_STATUS_IGNORE);
             remaining -= c_maxint;
         } else {
             result = MPI_Recv(addr, remaining, MPI_BYTE,
-                              actualSource, tag, itsCommunicator, MPI_STATUS_IGNORE);
+                              actualSource, tag, itsCommunicators[comm], MPI_STATUS_IGNORE);
             remaining = 0;
         }
 
@@ -201,8 +210,9 @@ int MPIComms::receiveImpl(void* buf, size_t size, int source, int tag)
     return actualSource;
 }
 
-void MPIComms::broadcast(void* buf, size_t size, int root)
+void MPIComms::broadcast(void* buf, size_t size, int root, size_t comm)
 {
+    ASKAPDEBUGASSERT(comm < itsCommunicators.size());
     const unsigned int c_maxint = std::numeric_limits<int>::max();
 
     // Broadcast in chunks of size MAXINT until complete
@@ -215,10 +225,10 @@ void MPIComms::broadcast(void* buf, size_t size, int root)
         void* addr = addOffset(buf, offset);
 
         if (remaining >= c_maxint) {
-            result = MPI_Bcast(addr, c_maxint, MPI_BYTE, root, itsCommunicator);
+            result = MPI_Bcast(addr, c_maxint, MPI_BYTE, root, itsCommunicators[comm]);
             remaining -= c_maxint;
         } else {
-            result = MPI_Bcast(addr, remaining, MPI_BYTE, root, itsCommunicator);
+            result = MPI_Bcast(addr, remaining, MPI_BYTE, root, itsCommunicators[comm]);
             remaining = 0;
         }
 
@@ -272,37 +282,37 @@ std::string MPIComms::nodeName(void) const
     return pname;
 }
 
-int MPIComms::rank(void) const
+int MPIComms::rank(size_t) const
 {
     return 0;
 }
 
-int MPIComms::nProcs(void) const
+int MPIComms::nProcs(size_t) const
 {
     return 1;
 }
 
-void MPIComms::abort(void)
+void MPIComms::abort(size_t)
 {
     exit(1);
 }
 
-void MPIComms::send(const void* buf, size_t size, int dest, int tag)
+void MPIComms::send(const void* buf, size_t size, int dest, int tag, size_t)
 {
     ASKAPTHROW(AskapError, "MPIComms::send() cannot be used - configured without MPI");
 }
 
-void MPIComms::receive(void* buf, size_t size, int source, int tag)
+void MPIComms::receive(void* buf, size_t size, int source, int tag, size_t)
 {
     ASKAPTHROW(AskapError, "MPIComms::receive() cannot be used - configured without MPI");
 }
 
-int MPIComms::receiveAnySrc(void* buf, size_t size, int tag)
+int MPIComms::receiveAnySrc(void* buf, size_t size, int tag, size_t)
 {
     ASKAPTHROW(AskapError, "MPIComms::receiveAnySrc() cannot be used - configured without MPI");
 }
 
-void MPIComms::broadcast(void* buf, size_t size, int root)
+void MPIComms::broadcast(void* buf, size_t size, int root, size_t)
 {
     ASKAPTHROW(AskapError, "MPIComms::broadcast() cannot be used - configured without MPI");
 }
