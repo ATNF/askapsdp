@@ -128,8 +128,8 @@ namespace askap {
                 this->itsChisq = 999.;
                 this->itsRedChisq = 999.;
                 this->itsRMS = 0.;
-                this->itsNumDegOfFreedom = 0.;
-                this->itsNumFreeParam = 0.;
+                this->itsNumDegOfFreedom = 0;
+                this->itsNumFreeParam = 0;
                 this->itsNumGauss = cmpntList.size();
 		this->itsNumPix = 0;
                 // Make a map so that we can output the fitted components in order of peak flux
