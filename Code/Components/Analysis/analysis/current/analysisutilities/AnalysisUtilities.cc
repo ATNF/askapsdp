@@ -652,7 +652,7 @@ namespace askap {
 	    if (cos2pa1 > 0) pa1 = pa1;
 	    else             pa1 = M_PI - pa1;
 	  } else {
-	    if (cos2pa1 > 1) pa1 = 2.*M_PI - pa1;
+	    if (cos2pa1 > 0) pa1 = 2.*M_PI - pa1;
 	    else             pa1 = M_PI + pa1;
 	  }
 	}
@@ -660,7 +660,7 @@ namespace askap {
 	std::vector<Double> deconv(3);
 	double maj=std::max(std::max(a1,b1),0.);
 	double min=std::max(std::min(a1,b1),0.);
-	// ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min);
+	// ASKAPLOG_DEBUG_STR(logger, "Deconvolved sizes: a1="<<a1<<", b1="<<b1<<",  maj="<<maj<<", min="<<min<<", pa1="<<pa1);
 	deconv[0] = maj;
 	deconv[1] = min;
 	deconv[2] = pa1;
