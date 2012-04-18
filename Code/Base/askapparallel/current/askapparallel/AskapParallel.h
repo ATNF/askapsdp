@@ -100,11 +100,41 @@ class AskapParallel : public MPIComms {
         /// @param[in] root       id of the root process.
         virtual void broadcastBlob(LOFAR::BlobString& buf, int root);
 
-        /// Substitute %w by worker number, and %n by number of workers
-        // (one less than the number of nodes) This allows workers to
-        // do different work.
+        /// Substitute %w by the worker number, and %n by the number of workers
+        /// (one less than the number of nodes). Note, if there is more than one
+        /// group of workers set up, %w is substituted by the group number.
+        /// This allows workers to do different work and share the same setup within
+        /// each group of workers.
+        /// @param[in] s input string
+        /// @return the string with the substitution done
         std::string substitute(const std::string& s) const;
 
+        /// @brief configure to communicate with all workers
+        /// @details This method selects the default communicator allowing
+        /// to broadcast across all workers (default state).
+        void useAllWorkers();
+
+        /// @brief configure to communicate with a group of workers
+        /// @param[in] group group number (0..itsNGroups-1)
+        /// @note This method should only be used in the parallel mode
+        void useGroupOfWorkers(size_t group);
+
+        /// @brief check if this process belong to the given group
+        /// @param[in] group group number (0..itsNGroups-1)
+        /// @return true, if this process belongs to the given group
+        bool inGroup(size_t group);
+
+        /// @brief define groups of workers
+        /// @details Master belongs to all groups (the communication pattern
+        /// is between master and all workers of the same group). Note, 
+        /// currently this method can only be called once per lifetime of the 
+        /// object.
+        /// @param[in] nGroups number of groups required
+        void defineGroups(size_t nGroups);
+
+        /// @return number of groups of workers
+        size_t nGroups() const;
+ 
     protected:
         /// Rank of this process : 0 for the master, >0 for workers
         int itsRank;
@@ -120,6 +150,16 @@ class AskapParallel : public MPIComms {
 
         /// Is this a worker?
         bool itsIsWorker;
+    private:
+        /// @brief communicator index to use with all operations
+        /// @note zero defaults to the world communicator created at the start
+        size_t itsCommIndex;
+
+        /// @brief number of worker groups (default is 1, i.e. no partitioning)
+        /// @details We can partition workers into a number of groups. Communication
+        /// like broadcasts can then happen within the group. In particular, we can
+        /// partition the model between workers.
+        size_t itsNGroups;
 };
 
 }

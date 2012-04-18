@@ -61,7 +61,8 @@ namespace askapparallel {
 ASKAP_LOGGER(logger, ".askapparallel");
 
 AskapParallel::AskapParallel(int argc, const char** argv)
-        : MPIComms(argc, const_cast<char**>(argv))
+        : MPIComms(argc, const_cast<char**>(argv)), itsCommIndex(0),
+          itsNGroups(1)
 {
     // Now we have to initialize the logger before we use it
     // If a log configuration exists in the current directory then
@@ -144,22 +145,94 @@ int AskapParallel::nProcs() const
     return itsNProcs;
 }
 
+/// @brief configure to communicate with all workers
+/// @details This method selects the default communicator allowing
+/// to broadcast across all workers (default state).
+void AskapParallel::useAllWorkers()
+{
+  itsCommIndex = 0;
+}
+
+/// @brief configure to communicate with a group of workers
+/// @param[in] group group number (0..itsNGroups-1)
+/// @note This method should only be used in the parallel mode
+void AskapParallel::useGroupOfWorkers(size_t group) 
+{
+  ASKAPCHECK(isParallel(), 
+         "AskapParallel::useGroupOfWorkers should only be used in the parallel mode");
+  ASKAPCHECK(group < itsNGroups, "AskapParallel::useGroupOfWorkers: group="<<group<<
+             " total number of groups is "<<itsNGroups);
+  itsCommIndex = group + 1;
+}
+        
+/// @brief check if this process belong to the given group
+/// @param[in] group group number (0..itsNGroups-1)
+/// @return true, if this process belongs to the given group
+bool AskapParallel::inGroup(size_t group)
+{
+  if (isMaster()) {
+      return true; 
+  }
+  if (group < itsNGroups) {
+      return group == (rank() - 1) / itsNGroups;
+  }
+  return false;
+}
+        
+/// @brief define groups of workers
+/// @details Master belongs to all groups (the communication pattern
+/// is between master and all workers of the same group). Note, 
+/// currently this method can only be called once per lifetime of the 
+/// object.
+/// @param[in] nGroups number of groups required
+void AskapParallel::defineGroups(size_t nGroups)
+{
+  ASKAPDEBUGASSERT(nGroups > 0);
+  ASKAPCHECK(itsNGroups == 1, "Currently, AskapParallel::defineGroups can only be called once");
+  if (nGroups == 1) {
+      return;
+  }
+  ASKAPCHECK(isParallel(), "AskapParallel::defineGroups is only supposed to be used in the parallel mode");
+  const int nWorkers = nProcs() - 1;
+  ASKAPCHECK(nWorkers % nGroups == 0, "Number of workers ("<<nWorkers<<
+             ") cannot be evenly devided into "<<nGroups<<" groups");
+  ASKAPDEBUGASSERT(nWorkers > 0);
+  const size_t workersPerGroup = size_t(nWorkers) / nGroups;
+  std::vector<int> ranks(workersPerGroup + 1, -1);
+  ranks[0] = 0; // we always include master into all groups
+  for (size_t group = 0; group<nGroups; ++group) {
+       for (size_t worker = 0; worker < workersPerGroup; ++worker) {
+            ranks[worker + 1] = 1 + worker + group * workersPerGroup;
+       }
+       ASKAPLOG_INFO_STR(logger, "Group "<<group<<" of workers will include ranks "<<ranks);
+       const size_t commIndex = createComm(ranks);
+       ASKAPCHECK(commIndex == group + 1, "Unexpected commIndex value of "<<commIndex<<
+                  " for group="<<group);
+  }
+}
+        
+/// @return number of groups of workers
+size_t AskapParallel::nGroups() const
+{
+   return itsNGroups;
+}
+
 void AskapParallel::receiveBlob(LOFAR::BlobString& buf, int source)
 {
     // First receive the size of the buffer so it can be resized first
     // before receiving the actual payload
     unsigned long size = 0;
-    receive(&size, sizeof(unsigned long), source);
+    receive(&size, sizeof(unsigned long), source,0,itsCommIndex);
     buf.resize(size);
-    receive(buf.data(), size, source);
+    receive(buf.data(), size, source,0,itsCommIndex);
 }
 
 void AskapParallel::sendBlob(const LOFAR::BlobString& buf, int dest)
 {
     // First send the size of the buffer
     const unsigned long size = buf.size();
-    send(&size, sizeof(unsigned long), dest);
-    send(buf.data(), size, dest);
+    send(&size, sizeof(unsigned long), dest,0,itsCommIndex);
+    send(buf.data(), size, dest, 0, itsCommIndex);
 }
 
 void AskapParallel::broadcastBlob(LOFAR::BlobString& buf, int root)
@@ -168,12 +241,12 @@ void AskapParallel::broadcastBlob(LOFAR::BlobString& buf, int root)
 
     // First broadcast the length of the message
     unsigned long size = isRoot ? buf.size() : 0;
-    broadcast(&size, sizeof(unsigned long), root);
+    broadcast(&size, sizeof(unsigned long), root, itsCommIndex);
 
     if (!isRoot) {
         buf.resize(size);
     }
-    broadcast(buf.data(), size, root);
+    broadcast(buf.data(), size, root, itsCommIndex);
 }
 
 std::string AskapParallel::substitute(const std::string& s) const
@@ -184,7 +257,8 @@ std::string AskapParallel::substitute(const std::string& s) const
         ostringstream oos;
 
         if (itsNProcs > 1) {
-            oos << itsRank - 1;
+            ASKAPDEBUGASSERT(itsNGroups >= 1);
+            oos << (itsRank - 1) / itsNGroups;
         } else {
             oos << 0;
         }
