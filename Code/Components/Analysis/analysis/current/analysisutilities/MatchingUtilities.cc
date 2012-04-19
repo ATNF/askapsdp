@@ -117,7 +117,7 @@ namespace askap {
 
 		//                id += "_" + raS + "_" + decS;
 		id += "_" + name;
-                ASKAPLOG_DEBUG_STR(logger, id << " " << peakflux);
+                // ASKAPLOG_DEBUG_STR(logger, id << " " << peakflux);
 
                 std::stringstream ss;
 
@@ -394,6 +394,23 @@ namespace askap {
 
             return outList;
         }
+
+
+      std::vector<matching::Point> crudeMatchList(std::vector<matching::Point> &reflist, std::vector<matching::Point> &srclist, float maxOffset)
+      {
+	std::vector<matching::Point>::iterator ref,src;
+	std::vector<matching::Point> newreflist;
+	for(src=srclist.begin();src<srclist.end();src++){
+	  
+	  for(ref=reflist.begin();ref<reflist.end();ref++){
+	    if(src->sep(*ref)<maxOffset) newreflist.push_back(*ref);
+	  }
+
+	}
+
+	return newreflist;
+
+      }
 
 
     }

@@ -58,6 +58,7 @@ namespace askap {
         /// @brief Shorten the list of points to a given length
         std::vector<matching::Point> trimList(std::vector<matching::Point> &inputList, const unsigned int maxSize);
 
+	std::vector<matching::Point> crudeMatchList(std::vector<matching::Point> &reflist, std::vector<matching::Point> &srclist, float maxOffset);
 
 
     }
