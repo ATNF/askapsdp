@@ -74,8 +74,10 @@ MPIComms::MPIComms(int argc, char *argv[]) : itsCommunicators(1, MPI_COMM_NULL)
 
 MPIComms::~MPIComms()
 {
-    for (size_t comm = 0; comm<itsCommunicators.size(); ++comm) {
-         MPI_Comm_free(&itsCommunicators[comm]);
+    for (size_t comm = itsCommunicators.size(); comm>0; --comm) {
+         if (itsCommunicators[comm-1] != MPI_COMM_NULL) {
+             MPI_Comm_free(&itsCommunicators[comm-1]);
+         }
     }
     MPI_Finalize();
 }
@@ -99,6 +101,7 @@ std::string MPIComms::nodeName(void) const
 int MPIComms::rank(size_t comm) const
 {
     ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+    ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
     int rank = -1;
     int result = MPI_Comm_rank(itsCommunicators[comm], &rank);
     checkError(result, "MPI_Comm_rank");
@@ -109,6 +112,7 @@ int MPIComms::rank(size_t comm) const
 int MPIComms::nProcs(size_t comm) const
 {
     ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+    ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
     int numtasks = -1;
     int result = MPI_Comm_size(itsCommunicators[comm], &numtasks);
     checkError(result, "MPI_Comm_size");
@@ -119,6 +123,7 @@ int MPIComms::nProcs(size_t comm) const
 void MPIComms::abort(size_t comm)
 {
     ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+    ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
     int result = MPI_Abort(itsCommunicators[comm], 0);
     checkError(result, "MPI_Abort");
 }
@@ -135,25 +140,29 @@ size_t MPIComms::createComm(const std::vector<int> &group, size_t comm)
 {
   ASKAPDEBUGASSERT(comm < itsCommunicators.size());
   ASKAPDEBUGASSERT(group.size() > 0);
+  ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
+  MPI_Comm newComm = MPI_COMM_NULL;
+
   MPI_Group origGroup = MPI_GROUP_NULL, newGroup = MPI_GROUP_NULL;
   int result = MPI_Comm_group(itsCommunicators[comm], &origGroup);
   checkError(result, "MPI_Comm_Group");
+
   boost::shared_array<int> ranksBuf(new int[group.size()]);
   std::copy(group.begin(),group.end(),ranksBuf.get());
 
   result = MPI_Group_incl(origGroup, int(group.size()), ranksBuf.get(), &newGroup);
   checkError(result, "MPI_Group_incl");
   
-  MPI_Comm newComm = MPI_COMM_NULL;
   result = MPI_Comm_create(itsCommunicators[comm], newGroup, &newComm);
   checkError(result, "MPI_Comm_create");
-  const size_t newIndex = itsCommunicators.size();
-  itsCommunicators.push_back(newComm);
-
+  ASKAPDEBUGASSERT(newGroup != MPI_GROUP_NULL);
   result = MPI_Group_free(&newGroup);
   checkError(result, "MPI_Group_free");
+  ASKAPDEBUGASSERT(origGroup != MPI_GROUP_NULL);
   result = MPI_Group_free(&origGroup);
   checkError(result, "MPI_Group_free");
+  const size_t newIndex = itsCommunicators.size();
+  itsCommunicators.push_back(newComm);
   return newIndex;
 }
 
@@ -161,6 +170,7 @@ size_t MPIComms::createComm(const std::vector<int> &group, size_t comm)
 void MPIComms::send(const void* buf, size_t size, int dest, int tag, size_t comm)
 {
     ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+    ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
     const unsigned int c_maxint = std::numeric_limits<int>::max();
 
     // First send the size of the buffer.
@@ -205,6 +215,7 @@ int MPIComms::receiveAnySrc(void* buf, size_t size, int tag, size_t comm)
 int MPIComms::receiveImpl(void* buf, size_t size, int source, int tag, size_t comm)
 {
     ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+    ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
     const unsigned int c_maxint = std::numeric_limits<int>::max();
 
     // First receive the size of the payload to be received,
@@ -252,6 +263,7 @@ int MPIComms::receiveImpl(void* buf, size_t size, int source, int tag, size_t co
 void MPIComms::broadcast(void* buf, size_t size, int root, size_t comm)
 {
     ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+    ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
     const unsigned int c_maxint = std::numeric_limits<int>::max();
 
     // Broadcast in chunks of size MAXINT until complete

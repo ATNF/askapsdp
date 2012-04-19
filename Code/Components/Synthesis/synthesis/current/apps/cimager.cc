@@ -96,7 +96,18 @@ int main(int argc, const char** argv)
                                             subset.getString("threshold.majorcycle", "-1Jy"), "Jy");
             const bool writeAtMajorCycle = subset.getBool("Images.writeAtMajorCycle", false);
 
-            // We cannot issue log messages until MPI is initialized!
+            // imager-specific configuration of the master/worker to allow groups of workers
+            const int nWorkerGroups = subset.getInt32("nworkergroups", 1);
+            ASKAPCHECK(nWorkerGroups > 0, "nworkergroups is supposed to be greater than 0");
+            if (nWorkerGroups > 1) {
+                ASKAPLOG_INFO_STR(logger, "Model parameters will be distributed between "<<nWorkerGroups<<
+                            " groups of workers");
+                ASKAPCHECK(comms.isParallel(), "This option is only allowed in the parallel mode");
+                comms.defineGroups(nWorkerGroups);
+            } else {
+                ASKAPLOG_INFO_STR(logger, "All workers are treated as identical");
+            }   
+            //
             ImagerParallel imager(comms, subset);
 
             ASKAPLOG_INFO_STR(logger, "ASKAP synthesis imager " << ASKAP_PACKAGE_VERSION);
