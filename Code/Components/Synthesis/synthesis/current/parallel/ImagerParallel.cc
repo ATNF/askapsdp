@@ -405,6 +405,20 @@ namespace askap
         ASKAPLOG_INFO_STR(logger, "Writing out results as images");
         ASKAPDEBUGASSERT(itsModel);
         vector<string> resultimages=itsModel->names();
+        bool hasWeights = false;
+        for (vector<string>::const_iterator it=resultimages.begin(); it
+            !=resultimages.end(); it++) {
+            if (it->find("weights") == 0) {
+                hasWeights = true;
+            }
+        }
+        if (!hasWeights) {
+            ASKAPDEBUGASSERT(itsSolver);            
+            boost::shared_ptr<ImageSolver> image_solver = boost::dynamic_pointer_cast<ImageSolver>(itsSolver);
+            ASKAPDEBUGASSERT(image_solver);
+            image_solver->saveWeights(*itsModel);
+            resultimages=itsModel->names();
+        }
         for (vector<string>::const_iterator it=resultimages.begin(); it
             !=resultimages.end(); it++) {
             if ((it->find("image") == 0) || (it->find("psf") == 0) ||

@@ -182,6 +182,16 @@ namespace askap
       /// uses memory and thus probably will be used mostly in debugging
       inline bool saveIntermediate() { return itsSaveIntermediate;}
 
+    /// @brief Save the weights as a parameter
+    /// @param[in] ip current model (to be updated)        
+    inline void saveWeights(askap::scimath::Params& ip) const 
+        { saveNEPartIntoParameter(ip,"weights",normalEquations().normalMatrixDiagonal());}
+
+    /// @brief Save the PSFs as a parameter
+    /// @param[in] ip current model (to be updated)        
+    inline void savePSF(askap::scimath::Params& ip) const
+        { saveNEPartIntoParameter(ip,"psf",normalEquations().normalMatrixSlice());}
+
   protected:
      
     /// @brief estimate sensitivity loss due to preconditioning
@@ -200,18 +210,7 @@ namespace askap
     /// @param[in] in const reference to the input array
     /// @return the array with the first plane
     static casa::Array<float> getFirstPlane(const casa::Array<float> &in);
-        
-    /// @brief Save the weights as a parameter
-    /// @param[in] ip current model (to be updated)        
-    inline void saveWeights(askap::scimath::Params& ip) const 
-        { saveNEPartIntoParameter(ip,"weights",normalEquations().normalMatrixDiagonal());}
-
-    /// @brief Save the PSFs as a parameter
-    /// @param[in] ip current model (to be updated)        
-    inline void savePSF(askap::scimath::Params& ip) const
-        { saveNEPartIntoParameter(ip,"psf",normalEquations().normalMatrixSlice());}
-    
-    
+                
     /// @brief helper method to save part of the NE
     /// @details We need to save slice and diagonal of the normal equations as 
     /// PSF and weights image (savePSF and saveWeights methods) with very similar
