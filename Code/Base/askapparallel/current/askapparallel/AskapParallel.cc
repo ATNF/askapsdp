@@ -265,7 +265,7 @@ std::string AskapParallel::substitute(const std::string& s) const
             const int nWorkers = nProcs() - 1;
             ASKAPDEBUGASSERT(nWorkers > 0);
             const size_t nWorkersPerGroup = size_t(nWorkers) / itsNGroups;
-            oos << (itsRank - 1) / nWorkersPerGroup;
+            oos << (itsRank - 1) % nWorkersPerGroup;
         } else {
             oos << 0;
         }
