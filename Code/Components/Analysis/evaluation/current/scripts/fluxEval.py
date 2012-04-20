@@ -58,7 +58,8 @@ if __name__ == '__main__':
     matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,nfree,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
     missType,id,x,y,f,chisq2,imagerms2,rms2,nfree2,ndof2,npf2,npo2 = read_miss_data(missfile)
 
-    fluxScaling = 1.e6
+    #    fluxScaling = 1.e6
+    fluxScaling = 1.
     fS = fS * fluxScaling
     fR = fR * fluxScaling
     imagerms = imagerms * fluxScaling
@@ -71,14 +72,16 @@ if __name__ == '__main__':
     dF = fS - fR
     rdF = 100.*dF/fR
     snr = fS / imagerms
-    radius = sqrt(xS*xS+yS*yS)
-    azimuth = arctan(abs(yS)/abs(xS)) * 180. / math.pi
+    xSav=mean(xS)
+    ySav=mean(yS)
+    radius = sqrt((xS-xSav)*(xS-xSav)+(yS-ySav)*(yS-ySav))
+    azimuth = arctan(abs(yS-ySav)/abs(xS-xSav)) * 180. / math.pi
     for i in range(len(azimuth)):
-        if(yS[i]>0.):
-            if(xS[i]<0.):
+        if(yS[i]>ySav):
+            if(xS[i]<xSav):
                 azimuth[i] = 180. - azimuth[i]
         else:
-            if(xS[i]<0.):
+            if(xS[i]<xSav):
                 azimuth[i] = 180. + azimuth[i]
             else:
                 azimuth[i] = 360. - azimuth[i]
