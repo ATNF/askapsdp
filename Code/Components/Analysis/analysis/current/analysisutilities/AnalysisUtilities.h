@@ -74,26 +74,6 @@ namespace askap {
         /// @ingroup analysisutilities
         double findSpread(bool robust, double middle, int size, float *array, bool *mask);
 
-        /// @brief Read in image sections and return a vector of duchamp::Section objects;
-        /// @ingroup analysisutilities
-        std::vector<duchamp::Section> readSectionInfo(std::string filename);
-
-        /// @brief Return a filename for a subimage
-        /// @ingroup analysisutilities
-        std::string getSubImageName(std::string image, int rank, int numWorkers);
-
-        /// @brief Return a vector list of subsections, one for each worker.
-        /// @ingroup analysisutilities
-        std::vector<duchamp::Section> getSectionList(int numWorkers, const LOFAR::ParameterSet& parset);
-
-        /// @brief Return a subsection for a given worker.
-        /// @ingroup analysisutilities
-        duchamp::Section getSection(int workerNum, const LOFAR::ParameterSet& parset);
-
-        /// @brief Make subimages and return a vector list of subsections.
-        /// @ingroup analysisutilities
-        std::vector<duchamp::Section> makeSubImages(int numWorkers, const LOFAR::ParameterSet& parset);
-
         /// @brief Remove blank spaces from the beginning of a string
         std::string removeLeadingBlanks(std::string s);
 
