@@ -228,18 +228,27 @@ namespace askap {
 	    }
 
             if (itsComms.isParallel()) {
-                if (itsComms.isMaster()) {
-//                     this->itsCube.pars().setLogFile(itsComms.substitute(parset.getString("logFile", "duchamp-Logfile-Master.txt")));
-                    this->itsCube.pars().setLogFile("duchamp-Logfile-Master.txt");
-                    this->itsSubimageDef = SubimageDef(parset);
-                } else if (itsComms.isWorker()) {
-                    this->itsSubimageDef = SubimageDef(parset);
-                }
-            }
+	      this->itsSubimageDef = SubimageDef(parset);
+	      // Need the overlap to be at least the boxPadSize used by the Fitting
+	      if(this->itsFlagDoFit){
+		this->itsSubimageDef.setOverlapX(std::max(this->itsSubimageDef.overlapx(), this->itsFitParams.boxPadSize()));
+		this->itsSubimageDef.setOverlapY(std::max(this->itsSubimageDef.overlapy(), this->itsFitParams.boxPadSize()));
+		this->itsSubimageDef.setOverlapZ(std::max(this->itsSubimageDef.overlapz(), this->itsFitParams.boxPadSize()));
+	      }
+	      
+	      if(this->itsFlagDoMedianSearch){
+		this->itsSubimageDef.setOverlapX(std::max(this->itsSubimageDef.overlapx(), 2*this->itsMedianBoxWidth));
+		this->itsSubimageDef.setOverlapY(std::max(this->itsSubimageDef.overlapy(), 2*this->itsMedianBoxWidth));
+		this->itsSubimageDef.setOverlapZ(std::max(this->itsSubimageDef.overlapz(), 2*this->itsMedianBoxWidth));
+	      }
 
+	      if (itsComms.isMaster()) {
+		this->itsCube.pars().setLogFile("duchamp-Logfile-Master.txt");
+	      }
+            }
+	    
             if (itsComms.isWorker())
-                this->itsCube.pars().setLogFile(itsComms.substitute("duchamp-Logfile-%w.txt"));
-//                 this->itsCube.pars().setLogFile(itsComms.substitute(parset.getString("logFile", "duchamp-Logfile-%w.txt")));
+	      this->itsCube.pars().setLogFile(itsComms.substitute("duchamp-Logfile-%w.txt"));
 
         }
 
