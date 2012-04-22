@@ -229,7 +229,7 @@ namespace askap {
 
             if (itsComms.isParallel()) {
 	      this->itsSubimageDef = SubimageDef(parset);
-	      bool overlapsChanged=false
+	      bool overlapsChanged=false;
 	      // Need the overlap to be at least the boxPadSize used by the Fitting
 	      if(this->itsFlagDoFit){
 		overlapsChanged=true;
