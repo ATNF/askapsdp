@@ -229,18 +229,24 @@ namespace askap {
 
             if (itsComms.isParallel()) {
 	      this->itsSubimageDef = SubimageDef(parset);
+	      bool overlapsChanged=false
 	      // Need the overlap to be at least the boxPadSize used by the Fitting
 	      if(this->itsFlagDoFit){
+		overlapsChanged=true;
 		this->itsSubimageDef.setOverlapX(std::max(this->itsSubimageDef.overlapx(), this->itsFitParams.boxPadSize()));
 		this->itsSubimageDef.setOverlapY(std::max(this->itsSubimageDef.overlapy(), this->itsFitParams.boxPadSize()));
 		this->itsSubimageDef.setOverlapZ(std::max(this->itsSubimageDef.overlapz(), this->itsFitParams.boxPadSize()));
 	      }
 	      
 	      if(this->itsFlagDoMedianSearch){
+		overlapsChanged=true;
 		this->itsSubimageDef.setOverlapX(std::max(this->itsSubimageDef.overlapx(), 2*this->itsMedianBoxWidth));
 		this->itsSubimageDef.setOverlapY(std::max(this->itsSubimageDef.overlapy(), 2*this->itsMedianBoxWidth));
 		this->itsSubimageDef.setOverlapZ(std::max(this->itsSubimageDef.overlapz(), 2*this->itsMedianBoxWidth));
 	      }
+	      if(overlapsChanged)
+		ASKAPLOG_DEBUG_STR(logger, "Changed Subimage overlaps to " << this->itsSubimageDef.overlapx() << ","
+				   << this->itsSubimageDef.overlapy() << ","<< this->itsSubimageDef.overlapz());
 
 	      if (itsComms.isMaster()) {
 		this->itsCube.pars().setLogFile("duchamp-Logfile-Master.txt");

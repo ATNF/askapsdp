@@ -104,22 +104,6 @@ namespace askap {
 	    if(flagSub)
 	      this->itsInputSection = parset.getString("subsection","");
 
-	    // // Need the overlap to be at least the boxPadSize used by the Fitting
-	    // if(parset.getBool("doFit",false)){
-	    //   LOFAR::ParameterSet fitParset = parset.makeSubset("Fitter.");
-	    //   sourcefitting::FittingParameters theFitParams = sourcefitting::FittingParameters(fitParset);
-	    //   this->itsOverlapX = std::max(this->itsOverlapX, theFitParams.boxPadSize());
-	    //   this->itsOverlapY = std::max(this->itsOverlapY, theFitParams.boxPadSize());
-	    //   this->itsOverlapZ = std::max(this->itsOverlapZ, theFitParams.boxPadSize());
-	    // }
-
-	    // if(parset.getBool("doMedianSearch",false)){
-	    //   int medianBoxWidth = parset.getInt16("medianBoxWidth", 50);
-	    //   this->itsOverlapX = std::max(this->itsOverlapX, 2*medianBoxWidth);
-	    //   this->itsOverlapY = std::max(this->itsOverlapY, 2*medianBoxWidth);
-	    //   this->itsOverlapZ = std::max(this->itsOverlapZ, 2*medianBoxWidth);
-	    // }
-
 	    ASKAPLOG_DEBUG_STR(logger, "Defined subimageDef, subdivided "<<itsNSubX<<"x"<<itsNSubY<<"x"<<itsNSubZ
 			       <<" with overlaps "<<itsOverlapX<<","<<itsOverlapY<<","<<itsOverlapZ);
 
