@@ -67,7 +67,7 @@ namespace askap
       /// @param[in] parset parameter set      
       SynParallel(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset);
 
-      ~SynParallel();
+      virtual ~SynParallel();
 
       /// Return the model
       askap::scimath::Params::ShPtr& params();
@@ -84,6 +84,17 @@ namespace askap
       std::string substitute(const std::string& s) const;
 
   protected:
+      /// @brief helper method to indentify model parameters to broadcast
+      /// @details We use itsModel to buffer some derived images like psf, weights, etc
+      /// which are not required for prediffers. It just wastes memory and CPU time if
+      /// we broadcast them. At the same time, some auxilliary parameters like peak
+      /// residual value need to be broadcast (so the major cycle can terminate in workers).
+      /// This method returns the vector with all parameters to be broadcast. By default
+      /// it returns all parameter names. This method is supposed to be overridden in
+      /// derived classes (e.g. ImagerParallel) where a different behavior is needed.
+      /// @return a vector with parameters to broadcast
+      virtual std::vector<std::string> parametersToBroadcast() const;
+  
       /// @brief actual implementation of the model broadcast
       /// @details This method is only supposed to be called from the master.
       /// @param[in] model the model to send

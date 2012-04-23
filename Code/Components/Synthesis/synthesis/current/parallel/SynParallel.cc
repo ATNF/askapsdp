@@ -123,22 +123,43 @@ namespace askap
         casa::Timer timer;
         timer.mark();
 
+        const std::vector<std::string> names = parametersToBroadcast();
         if (itsComms.nGroups() == 1) {
             ASKAPLOG_INFO_STR(logger, "Sending the whole model to all workers");
-            broadcastModelImpl(*itsModel);
+            if (names.size() == itsModel->names().size()) {
+                ASKAPLOG_INFO_STR(logger, "About to broadcast all model parameters: "<<names);
+                broadcastModelImpl(*itsModel);
+            } else {
+                ASKAPLOG_INFO_STR(logger, "About to broadcast the following model parameters: "<<names);
+                scimath::Params buffer;
+                buffer.makeSlice(*itsModel, names);
+                broadcastModelImpl(buffer);
+            }
         } else {
             ASKAPLOG_INFO_STR(logger, "Distribute model between "<<itsComms.nGroups()<<
                   " groups of workers");
-            const std::vector<std::string> names = itsModel->freeNames();
+            // build two lists of parameters: parameters to distribute and parameters to send with all groups
+            std::vector<std::string> names2distribute;
+            std::vector<std::string> names2keep;
+            names2distribute.reserve(names.size());
+            names2keep.reserve(names.size());            
+            for (std::vector<std::string>::const_iterator ci = names.begin(); ci!=names.end(); ++ci) {
+                 // distribute only parameters starting with "image" for now
+                 if (ci->find("image") == 0) {
+                     names2distribute.push_back(*ci);
+                 } else {
+                     names2keep.push_back(*ci);
+                 }
+            }
+            //
             ASKAPDEBUGASSERT(itsComms.nGroups() > 1);
             // number of parameters per group (note the last group can have more)
-            const size_t nPerGroup = names.size() / itsComms.nGroups();
+            const size_t nPerGroup = names2distribute.size() / itsComms.nGroups();
             ASKAPCHECK(nPerGroup > 0, "The model has too few parameters ("<<
-                  names.size()<<") to distribute between "<< itsComms.nGroups()<<" groups");
-            // fixed parameters, if present, are sent to all groups
-            std::vector<std::string> fixedNames = itsModel->fixedNames();
+                  names2distribute.size()<<") to distribute between "<< itsComms.nGroups()<<" groups");
+            
             std::vector<std::string> currentNames;
-            currentNames.reserve(itsComms.nGroups() + nPerGroup - 1 + fixedNames.size());
+            currentNames.reserve(itsComms.nGroups() + nPerGroup - 1 + names2keep.size());
             scimath::Params buffer;
             for (size_t group = 0, index = 0; group<itsComms.nGroups(); ++group, index+=nPerGroup) {
                  const size_t nPerCurrentGroup = (group + 1 < itsComms.nGroups()) ? 
@@ -148,12 +169,12 @@ namespace askap
                                        " the last group ("<<group<<") will have "<<nPerCurrentGroup<<
                                        " parameters vs. "<<nPerGroup<<" for other groups");
                  }
-                 currentNames.resize(nPerCurrentGroup + fixedNames.size());
+                 currentNames.resize(nPerCurrentGroup + names2keep.size());
                  for (size_t i = 0; i<nPerCurrentGroup; ++i) {
-                      currentNames[i] = names[index + i];
+                      currentNames[i] = names2distribute[index + i];
                  }
-                 for (size_t i = 0; i<fixedNames.size(); ++i) {
-                      currentNames[nPerCurrentGroup + i] = fixedNames[i];
+                 for (size_t i = 0; i<names2keep.size(); ++i) {
+                      currentNames[nPerCurrentGroup + i] = names2keep[i];
                  }
                  ASKAPLOG_INFO_STR(logger, "Group "<<group<<
                         " will get the following parameters: "<<currentNames);
@@ -255,6 +276,22 @@ namespace askap
         in >> model;
         in.getEnd();
     }
+    
+    /// @brief helper method to indentify model parameters to broadcast
+    /// @details We use itsModel to buffer some derived images like psf, weights, etc
+    /// which are not required for prediffers. It just wastes memory and CPU time if
+    /// we broadcast them. At the same time, some auxilliary parameters like peak
+    /// residual value need to be broadcast (so the major cycle can terminate in workers).
+    /// This method returns the vector with all parameters to be broadcast. By default
+    /// it returns all parameter names. This method is supposed to be overridden in
+    /// derived classes (e.g. ImagerParallel) where a different behavior is needed.
+    /// @return a vector with parameters to broadcast
+    std::vector<std::string> SynParallel::parametersToBroadcast() const
+    {
+       ASKAPDEBUGASSERT(itsModel);
+       return itsModel->names();
+    }
+    
 
     std::string SynParallel::substitute(const std::string& s) const
     {

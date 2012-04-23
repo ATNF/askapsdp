@@ -253,6 +253,30 @@ namespace askap
         }
       }
     }
+    
+    /// @brief helper method to indentify model parameters to broadcast
+    /// @details We use itsModel to buffer some derived images like psf, weights, etc
+    /// which are not required for prediffers. It just wastes memory and CPU time if
+    /// we broadcast them. At the same time, some auxilliary parameters like peak
+    /// residual value need to be broadcast (so the major cycle can terminate in workers).
+    /// This method returns the vector with all parameters to be broadcast. By default
+    /// it returns all parameter names, so it is overridden here to broadcast only
+    /// model images and the peak_residual metadata.
+    /// @return a vector with parameters to broadcast
+    std::vector<std::string> ImagerParallel::parametersToBroadcast() const
+    {
+       ASKAPDEBUGASSERT(itsModel);
+       const std::vector<std::string> names = itsModel->names();
+       std::vector<std::string> result;
+       result.reserve(names.size());
+       for (std::vector<std::string>::const_iterator ci=names.begin(); ci!=names.end(); ++ci) {
+            if ((ci->find("image") == 0) || (ci->find("peak_residual") == 0)) {
+                result.push_back(*ci);
+            }
+       }
+       return result;
+    }
+    
 
     void ImagerParallel::solveNE()
     {
