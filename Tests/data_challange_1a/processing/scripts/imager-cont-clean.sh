@@ -24,10 +24,11 @@ Cimager.Images.image.i.clean.frequency          = [1.420e9,1.420e9]
 Cimager.Images.image.i.clean.nchan              = 1
 Cimager.Images.image.i.clean.direction          = [12h30m00.00, -45.00.00.00, J2000]
 Cimager.Images.image.i.clean.nterms             = 2
-Cimager.Images.clean.writeAtMajorCycle          = true
+Cimager.Images.writeAtMajorCycle                = true
 #
 Cimager.visweights                              = MFS
-Cimager.visweights.MFS.reffreq                  = 1.420e9
+#Cimager.visweights.MFS.reffreq                  = 1.420e9
+Cimager.visweights.MFS.reffreq                  = 1.270e9
 #
 Cimager.gridder.snapshotimaging                 = true
 Cimager.gridder.snapshotimaging.wtolerance      = 2000
@@ -62,7 +63,7 @@ Cimager.preconditioner.Wiener.taper             = 100
 #
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit
-Cimager.restore.equalise                        = True
+#Cimager.restore.equalise                        = True
 #
 # Apply calibration
 Cimager.calibrate                               = ${DO_CALIBRATION}
