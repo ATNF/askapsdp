@@ -25,7 +25,7 @@ queueName=routequeue
 doCreateCR=false
 doCombineCR=false
 #doSliceCR=${doCreateCR}
-doSliceCR=true
+doSliceCR=false
 createFullModelCR=false
 minWorkerCR=1
 
@@ -103,18 +103,28 @@ SFnNodes=`echo $SFnsubx $SFnsuby | awk '{print int(($1*$2-0.001)/12.)+1}'`
 ##############################
 
 doCsim=false
-doVisCleanup=true
-#failureListVis="EmptyFile"
-failureListVis="/scratch/astronomy116/whi550/DataChallenge/Simulation/failure-vis-at200120318-2nd.txt"
+doVisCleanup=false
+failureListVis="EmptyFile"
+#failureListVis="/scratch/astronomy116/whi550/DataChallenge/Simulation/failure-vis-at200120318-2nd.txt"
 doMergeVis=true
 doClobberMergedVis=true
 doMergeStage1=true
 doMergeStage2=true
 
-msdir=${visdir}/MS
-msbase=${msdir}/DCvis_chunk
-msStage1base=${msdir}/DCvis_stage1
-finalMS=${msdir}/DC1a.ms
+doNoise=false
+tsys=50.
+
+msdir=${visdir}/MS_new
+if [ $doNoise == true ]; then
+    msbase=${msdir}/DCvis_chunk
+    msStage1base=${msdir}/DCvis_stage1
+    finalMS=${msdir}/DC1a.ms
+else
+    msbase=${msdir}/DCvis_noNoise_chunk
+    msStage1base=${msdir}/DCvis_noNoise_stage1
+    finalMS=${msdir}/DC1a_noNoise.ms
+fi
+
 parsetdirVis=${visdir}/Parsets
 logdirVis=${visdir}/Logs
 
@@ -130,9 +140,6 @@ array=BETA15.in
 feeds=ASKAP36feeds.in
 inttime=30s
 dur=6
-chanWidth_kHz=18.31055
-doNoise=true
-tsys=50.
 
 doSnapshot=true
 wtol=3000

@@ -380,8 +380,9 @@ EOF
     smoothQsub=${smdir}/${WORKDIR}/smoothModels-${now}.qsub
     cat > $smoothQsub <<EOF
 #!/bin/bash -l
+#PBS -q debugq
 #PBS -W group_list=astronomy116
-#PBS -l walltime=12:00:00
+#PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=10GB:mpiprocs=1
 #PBS -M matthew.whiting@csiro.au
 #PBS -N smoothTaylor
@@ -436,12 +437,15 @@ Cduchamp.nsuby = ${SFnsuby}
 Cduchamp.doFit = true
 Cduchamp.fitJustDetection = true
 Cduchamp.Fitter.useNoise = false
+Cduchamp.Fitter.noiseLevel = 1.e-3
+Cduchamp.Fitter.numSubThresholds = 1000
 Cduchamp.findSpectralIndex = true
 EOF
 
     cduchampQsub=${smdir}/${WORKDIR}/cduchamp-smooth-${now}.qsub
     cat > $cduchampQsub <<EOF
 #!/bin/bash -l
+#PBS -q debugq
 #PBS -W group_list=astronomy116
 #PBS -l walltime=1:00:00
 #PBS -l select=${SFnNodes}:ncpus=12:mem=23GB:mpiprocs=12
@@ -543,6 +547,7 @@ EOF
     modelcompQsub=${smdir}/${WORKDIR}/modelComparison-${now}.qsub
     cat > $modelcompQsub <<EOF
 #!/bin/bash -l
+#PBS -q debugq
 #PBS -W group_list=astronomy116
 #PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1

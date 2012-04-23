@@ -62,8 +62,8 @@ IND=${INDEX}
 
 ms=${msbase}_\${IND}.ms
 skymodel=${slicebase}\${IND}
-nuref=`echo \${IND} ${chanPerMSchunk} ${chanWidth_kHz} | awk '{printf "%13.8f",1421.-($1*$2-1)*$3/1000.}'`
-spw="[${chanPerMSchunk}, \${nuref} MHz, -${chanWidth_kHz} kHz, \"XX YY\"]"
+nuref=\`echo \${IND} ${chanPerMSchunk} ${chanw} | awk '{printf "%13.8f",1421.-(\$1*\$2-1)*\$3/1.e6}'\`
+spw="[${chanPerMSchunk}, \${nuref} MHz, -${chanw} Hz, \"XX YY\"]"
 
 mkVisParset=${parsetdirVis}/csim-\${PBS_JOBID}.in
 mkVisLog=${logdirVis}/csim-\${PBS_JOBID}.log
@@ -166,7 +166,7 @@ cd \$PBS_O_WORKDIR
 
 MSPERJOB=${msPerStage1job}
 
-START=\`echo \${PBS_ARRAY_INDEX}\$MSPERJOB | awk '{print (\$1-1)*\$2}'\`
+START=\`echo \${PBS_ARRAY_INDEX} \$MSPERJOB | awk '{print (\$1-1)*\$2}'\`
 END=\`expr \${START} + \${MSPERJOB}\`
 
 IDX=\$START
@@ -178,7 +178,7 @@ done
 
 logfile=${logdirVis}/merge_s1_output_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
-echo "Processing files: $FILES" >> \${logfile}
+echo "Processing files: \$FILES" >> \${logfile}
 $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1base}_\${PBS_ARRAY_INDEX}.ms \$FILES >> \${logfile}
 
 EOF

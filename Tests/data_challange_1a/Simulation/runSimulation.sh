@@ -35,16 +35,14 @@ EOF
 echo This will be run${RUN_NUM} of the simulation pipeline
 
 doModelCreation=false
-doVisibilities=true
-doSkyModel=false
+doVisibilities=false
+doSkyModel=true
 
 . ${config}
 
 mkdir -p ${crdir}
 mkdir -p ${visdir}
 mkdir -p ${smdir}
-
-echo ${smdir}
 
 if [ $doModelCreation == true ]; then
     
