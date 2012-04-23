@@ -211,22 +211,22 @@ namespace askap {
                 std::vector<Point>::iterator pix = this->itsRefPixList.begin();
 
                 for (; pix < this->itsRefPixList.end(); pix++) {
-                    float a2 = std::max(pix->majorAxis(), pix->minorAxis());
-                    float b2 = std::min(pix->majorAxis(), pix->minorAxis());
-                    float pa2 = pix->PA();
-                    float d2 = a2 * a2 - b2 * b2;
-                    float d0sq = d1 * d1 + d2 * d2 + 2. * d1 * d2 * cos(2.*(pa1 - pa2));
-                    float d0 = sqrt(d0sq);
-                    float a0sq = 0.5 * (a1 * a1 + b1 * b1 + a2 * a2 + b2 * b2 + d0);
-                    float b0sq = 0.5 * (a1 * a1 + b1 * b1 + a2 * a2 + b2 * b2 - d0);
+                    double a2 = std::max(pix->majorAxis(), pix->minorAxis());
+                    double b2 = std::min(pix->majorAxis(), pix->minorAxis());
+                    double pa2 = pix->PA();
+                    double d2 = a2 * a2 - b2 * b2;
+                    double d0sq = d1 * d1 + d2 * d2 + 2. * d1 * d2 * cos(2.*(pa1 - pa2));
+                    double d0 = sqrt(d0sq);
+                    double a0sq = 0.5 * (a1 * a1 + b1 * b1 + a2 * a2 + b2 * b2 + d0);
+                    double b0sq = 0.5 * (a1 * a1 + b1 * b1 + a2 * a2 + b2 * b2 - d0);
                     pix->setMajorAxis(sqrt(a0sq));
                     pix->setMinorAxis(sqrt(b0sq));
 
                     if (d0sq > 0) {
                         // leave out normalisation by d0, since we will take ratios to get tan2pa0
-                        float sin2pa0 = (d1 * sin(2.*pa1) + d2 * sin(2.*pa2));
-                        float cos2pa0 = (d1 * cos(2.*pa1) + d2 * cos(2.*pa2));
-                        float pa0 = atan(fabs(sin2pa0 / cos2pa0));
+                        double sin2pa0 = (d1 * sin(2.*pa1) + d2 * sin(2.*pa2));
+                        double cos2pa0 = (d1 * cos(2.*pa1) + d2 * cos(2.*pa2));
+                        double pa0 = atan(fabs(sin2pa0 / cos2pa0));
 
                         // atan of the absolute value of the ratio returns a value between 0 and 90 degrees.
                         // Need to correct the value of l according to the correct quandrant it is in.
