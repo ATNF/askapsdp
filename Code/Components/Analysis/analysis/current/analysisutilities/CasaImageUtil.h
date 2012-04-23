@@ -57,24 +57,10 @@ namespace askap {
         /// @brief Save a wcsprm struct to a duchamp::FitsHeader
         void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs);
 
-        /// @ingroup analysisutilities
-        /// @brief Save a casa image to a duchamp::Cube object
-        /// @name
-        /// @{
-        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, askap::askapparallel::AskapParallel& comms);
-        int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
-        /// @}
-
+	/// @brief Return a whole-image subsection string for an image
+	std::string getFullSection(std::string filename);
         /// @brief Return the dimensions of the image
         std::vector<long> getCASAdimensions(std::string filename);
-
-        /// @brief Save the metadata from a casa image to a duchamp::Cube object
-        /// @name
-        /// @ingroup analysisutilities
-        /// @{
-        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, askap::askapparallel::AskapParallel& comms);
-        int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
-        /// @}
 
         /// @ingroup analysisutilities
         /// @brief Read the beam information from a casa image

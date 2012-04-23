@@ -1,0 +1,16 @@
+       /// @ingroup analysisutilities
+        /// @brief Save a casa image to a duchamp::Cube object
+        /// @name
+        /// @{
+        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, askap::askapparallel::AskapParallel& comms);
+        int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
+        /// @}
+
+        /// @brief Save the metadata from a casa image to a duchamp::Cube object
+        /// @name
+        /// @ingroup analysisutilities
+        /// @{
+        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, askap::askapparallel::AskapParallel& comms);
+        int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube);
+        /// @}
+

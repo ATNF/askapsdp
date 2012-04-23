@@ -169,185 +169,29 @@ namespace askap {
 
         //**************************************************************//
 
-        int casaImageToMetadata(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
-        {
-            /// @details Read all relevant metadata from a casa image, and
-            /// store in a duchamp::Cube. The metadata read includes: WCS
-            /// info, beam info, flux units, number of axes (in
-            /// cube.header()). The duchamp::FitsHeader::fixUnits() function
-            /// is also called to make sure the spectral units are OK.
-            /// @param imagePtr The (already opened) image
-            /// @param The Cube
-            IPosition shape = imagePtr->shape();
-            long *dim = new long[shape.size()];
 
-            for (uint i = 0; i < shape.size(); i++) {
-                dim[i] = shape(i);
-                ASKAPCHECK(dim[i] > 0, "Negative dimension: dim[" << i << "]=" << dim[i]);
-            }
+      std::string getFullSection(std::string filename)
+      {
+	/// @details Returns a full subsection string with the correct
+	/// number of dimensions for the image in filename. For
+	/// instance, a four-dimensional image will give the full
+	/// subsection string "[*,*,*,*]"
+	/// @param filename The image file to be examined
+	/// @return A subsection string with an asterisk for each dimension
 
-            // Set the number of good axes for the fitsHeader class.
-            uint naxis = 0;
+	ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
+	const LatticeBase* lattPtr = ImageOpener::openImage(filename);
+	
+	if (lattPtr == 0)
+	  ASKAPTHROW(AskapError, "Requested image \"" << filename << "\" does not exist or could not be opened.");
+	
+	const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
+	return duchamp::nullSection(imagePtr->shape().size());
 
-            for (uint i = 0; i < imagePtr->ndim(); i++)
-                if (dim[i] > 1) naxis++;
+      }
 
-            cube.header().setNumAxes(naxis);
-
-//             std::stringstream logmsg;
-// 	    logmsg << "Dimensions of image: ";
-//             uint ndim = 0;
-//             logmsg << dim[ndim++];
-
-//             while (ndim < imagePtr->ndim()) logmsg << "x" << dim[ndim++];
-
-//             ASKAPLOG_INFO_STR(logger, logmsg.str());
-
-            wcsprm *wcs = casaImageToWCS(imagePtr);
-            storeWCStoHeader(cube.header(), cube.pars(), wcs);
-            cube.pars().setOffsets(wcs);
-            readBeamInfo(imagePtr, cube.header(), cube.pars());
-            cube.header().setFluxUnits(imagePtr->units().getName());
-
-            // check the true dimensionality and set the 2D flag in the cube header.
-            int numDim = 0;
-
-            for (uint i = 0; i < shape.size(); i++) if (dim[i] > 1) numDim++;
-
-            cube.header().set2D(numDim <= 2);
-
-            // set up the various flux units
-            if (wcs->spec >= 0) cube.header().fixUnits(cube.pars());
-
-//             if (cube.header().is2D()) ASKAPLOG_DEBUG_STR(logger, "Image is two-dimensional: int.flux.units = " << cube.header().getIntFluxUnits());
-//             else ASKAPLOG_DEBUG_STR(logger, "Image has more than two dimensions: int.flux.units = " << cube.header().getIntFluxUnits());
-
-            cube.initialiseCube(dim, false);
-            delete [] dim;
-            return duchamp::SUCCESS;
-        }
-
-        //**************************************************************//
-
-        int casaImageToCubeData(const ImageInterface<Float> *imagePtr, duchamp::Cube &cube)
-        {
-            /// @details Read the pixel data from a casa image, and store in
-            /// the array of a duchamp:Cube. The flux units are converted if
-            /// required. The cube is initialised using the dimensions
-            /// (imagePtr->shape()) and the flux array is accessed via the
-            /// Array::tovector() function.
-            /// @param imagePtr The (already opened) image
-            /// @param The Cube
-            IPosition shape = imagePtr->shape();
-            long *dim = new long[shape.size()];
-
-            for (uint i = 0; i < shape.size(); i++) {
-                dim[i] = shape(i);
-                ASKAPCHECK(dim[i] > 0, "Negative dimension: dim[" << i << "]=" << dim[i]);
-            }
-
-            cube.initialiseCube(dim);
-
-            std::vector<float> array;
-            imagePtr->get().tovector(array);
-            cube.saveArray(array);
-
-//             std::stringstream logmsg;
-//             logmsg << "Image has dimensions: " << cube.getDimX();
-
-//             if (cube.getDimY() > 1) logmsg  << "x" << cube.getDimY();
-
-//             if (cube.getDimZ() > 1) logmsg  << "x" << cube.getDimZ();
-
-//             ASKAPLOG_INFO_STR(logger, logmsg.str());
-
-            if (cube.getDimZ() == 1) {
-                cube.pars().setMinChannels(0);
-            }
-
-            delete [] dim;
-            return duchamp::SUCCESS;
-        }
-
-        //**************************************************************//
-
-        int casaImageToCube(duchamp::Cube &cube, SubimageDef &subDef, askap::askapparallel::AskapParallel& comms)
-        {
-            /// @details Equivalent of duchamp::Cube::getImage(), but for
-            /// accessing casa images. Reads the pixel data and metadata
-            /// (ie. header information). Should also be able to read FITS,
-            /// so could be a more general way of accessing image
-            /// data. Opens the image using the casa::ImageOpener class, and
-            /// calls casaImageToMetadata(ImageInterface<Float> *,
-            /// duchamp::Cube &) and
-            /// casaImageToCubeData(ImageInterface<Float> *, duchamp::Cube
-            /// &) functions.
-            /// @param cube The duchamp::Cube object in which info is stored
-            /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
-            ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
-            const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
-
-            if (lattPtr == 0)
-                ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() << "\" does not exist or could not be opened.");
-
-            const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-            IPosition shape = imagePtr->shape();
-            std::vector<long> dim(shape.size());
-
-            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
-
-            wcsprm *tempwcs = casaImageToWCS(imagePtr);
-            subDef.define(tempwcs);
-            subDef.setImage(cube.pars().getImageFile());
-	    subDef.setInputSubsection(cube.pars().getSubsection());
-            subDef.setImageDim(dim);
-
-            if (!cube.pars().getFlagSubsection() || cube.pars().getSubsection() == "") {
-                cube.pars().setFlagSubsection(true);
-                cube.pars().setSubsection(nullSection(subDef.getImageDim().size()));
-            }
-
-	    //            duchamp::Section subsection = subDef.section(comms.rank()-1, cube.pars().getSubsection());
-            duchamp::Section subsection = subDef.section(comms.rank()-1);
-
-            if (subsection.parse(dim) == duchamp::FAILURE)
-                ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
-
-            cube.pars().setSubsection(subsection.getSection());
-
-	    // Now parse the sections to get them properly set up
-	    if(cube.pars().parseSubsections(dim) == duchamp::FAILURE){
-	      // if here, something went wrong
-	      if (cube.pars().section().parse(dim) == duchamp::FAILURE)
-                ASKAPTHROW(AskapError, "Cannot parse the subsection string " << cube.pars().section().getSection());
-	      if (cube.pars().statsec().parse(dim) == duchamp::FAILURE)
-                ASKAPTHROW(AskapError, "Cannot parse the statistics subsection string " << cube.pars().statsec().getSection());
-	    }
-	    
-            ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << " is using subsection " << cube.pars().section().getSection());
-	    if(cube.pars().getFlagStatSec()){
-	      if(cube.pars().statsec().isValid())
-		ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << " is using statistics section " << cube.pars().statsec().getSection());
-	      else
-		ASKAPLOG_INFO_STR(logger, printWorkerPrefix(comms) << " does not contribute to the statistics section");
-	    }
-
-            Slicer slice = subsectionToSlicer(subsection);
-            fixSlicer(slice, tempwcs);
-
-            const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
-            //      sub->unlock();
-
-            if (casaImageToMetadata(sub, cube) == duchamp::FAILURE) return duchamp::FAILURE;
-
-            if (casaImageToCubeData(sub, cube) == duchamp::FAILURE) return duchamp::FAILURE;
-
-            delete imagePtr;
-            return duchamp::SUCCESS;
-        }
-
-        //**************************************************************//
+       //**************************************************************//
 
         std::vector<long> getCASAdimensions(std::string filename)
         {
@@ -478,66 +322,7 @@ namespace askap {
 
         //**************************************************************//
 
-        int casaImageToMetadata(duchamp::Cube &cube, SubimageDef &subDef, askap::askapparallel::AskapParallel& comms)
-        {
-            /// @details Equivalent of duchamp::Cube::getMetadata(), but for
-            /// accessing casa images, to read the metadata (ie. header
-            /// information). Should also be able to read FITS, so could be
-            /// a more general way of accessing image data. Opens the image
-            /// using the casa::ImageOpener class, and calls the
-            /// casaImageToMetadata(ImageInterface<Float> *, duchamp::Cube
-            /// &) function.
-            /// @param cube The duchamp::Cube object in which info is stored
-            /// @return duchamp::SUCCESS if opened & read successfully, duchamp::FAILURE otherwise.
-            ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-	    ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
-            const LatticeBase* lattPtr = ImageOpener::openImage(cube.pars().getImageFile());
-
-            if (lattPtr == 0)
-                ASKAPTHROW(AskapError, "Requested image \"" << cube.pars().getImageFile() << "\" does not exist or could not be opened.");
-
-            const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
-            IPosition shape = imagePtr->shape();
-            std::vector<long> dim(shape.size());
-
-            for (uint i = 0; i < shape.size(); i++) dim[i] = shape(i);
-
-            wcsprm *tempwcs = casaImageToWCS(imagePtr);
-            subDef.define(tempwcs);
-            subDef.setImage(cube.pars().getImageFile());
-	    subDef.setInputSubsection(cube.pars().getSubsection());
-            subDef.setImageDim(dim);
-
-            if (!cube.pars().getFlagSubsection() || cube.pars().getSubsection() == "") {
-                cube.pars().setFlagSubsection(true);
-                cube.pars().setSubsection(nullSection(dim.size()));
-            }
-
-	    //            duchamp::Section subsection = subDef.section(comms.rank()-1, cube.pars().getSubsection());
-            duchamp::Section subsection = subDef.section(comms.rank()-1);
-
-            if (subsection.parse(dim) == duchamp::FAILURE)
-                ASKAPTHROW(AskapError, "Cannot parse the subsection string " << subsection.getSection());
-
-            cube.pars().setSubsection(subsection.getSection());
-
-            if (cube.pars().section().parse(dim) == duchamp::FAILURE)
-                ASKAPTHROW(AskapError, "Cannot parse the subsection string " << cube.pars().section().getSection());
-
-            Slicer slice = subsectionToSlicer(cube.pars().section());
-            fixSlicer(slice, tempwcs);
-
-            const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
-
-            if (casaImageToMetadata(sub, cube) == duchamp::FAILURE) return duchamp::FAILURE;
-
-            delete lattPtr;
-            return duchamp::SUCCESS;
-        }
-
-        //**************************************************************//
-
-        void readBeamInfo(const ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par)
+         void readBeamInfo(const ImageInterface<Float>* imagePtr, duchamp::FitsHeader &head, duchamp::Param &par)
         {
             /// @details Reads the beam information (major axis, minor axis,
             /// position angle) from an already opened casa image and stores
