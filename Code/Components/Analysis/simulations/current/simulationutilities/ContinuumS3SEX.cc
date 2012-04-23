@@ -31,7 +31,6 @@
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
 #include <simulationutilities/ContinuumS3SEX.h>
-#include <simulationutilities/SimulationUtilities.h>
 
 #include <gsl/gsl_multifit.h>
 

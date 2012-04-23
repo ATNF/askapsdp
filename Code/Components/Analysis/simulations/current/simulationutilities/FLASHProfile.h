@@ -46,6 +46,8 @@ namespace askap {
             public:
                 /// @brief Default constructor
                 FLASHProfile();
+                /// @brief Default constructor with rest freq
+                FLASHProfile(float restFreq);
 		/// @brief Specific constructor
 		FLASHProfile(double &height, double &centre, double &width, AXISTYPE &type);
                 /// @brief Destructor

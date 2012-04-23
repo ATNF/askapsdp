@@ -55,6 +55,13 @@ namespace askap {
 	  this->itsAxisType = FREQUENCY;
         }
 
+       FLASHProfile::FLASHProfile(float restfreq):
+                GaussianProfile(restfreq)
+        {
+	  this->itsRestFreq = restfreq;
+	  this->itsAxisType = FREQUENCY;
+        }
+
         FLASHProfile::FLASHProfile(double &height, double &centre, double &width, AXISTYPE &type):
 	  GaussianProfile(height,centre,width,type)
 	{
