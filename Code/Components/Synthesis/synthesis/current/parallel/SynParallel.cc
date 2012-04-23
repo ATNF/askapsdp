@@ -163,7 +163,8 @@ namespace askap
             scimath::Params buffer;
             for (size_t group = 0, index = 0; group<itsComms.nGroups(); ++group, index+=nPerGroup) {
                  const size_t nPerCurrentGroup = (group + 1 < itsComms.nGroups()) ? 
-                          nPerGroup : names.size() - index; 
+                          nPerGroup : names2distribute.size() - index; 
+                 ASKAPDEBUGASSERT(names2distribute.size() > index);
                  if (nPerCurrentGroup != nPerGroup) {
                      ASKAPLOG_WARN_STR(logger, "An unbalanced distribution of the model has been detected. "
                                        " the last group ("<<group<<") will have "<<nPerCurrentGroup<<
