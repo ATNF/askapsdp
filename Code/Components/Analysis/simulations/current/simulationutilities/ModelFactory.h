@@ -43,7 +43,7 @@ namespace askap {
     class ModelFactory {
     public:
       ModelFactory();
-      ModelFactory(LOFAR::ParameterSet& parset);
+      ModelFactory(const LOFAR::ParameterSet& parset);
       ~ModelFactory();
 
       Spectrum* read(std::string line);

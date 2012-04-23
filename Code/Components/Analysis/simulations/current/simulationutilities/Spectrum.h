@@ -87,9 +87,9 @@ namespace askap {
 		virtual void prepareForUse(){};
 
                 /// @brief Return the flux at a given frequency - not used for the base class
-                virtual double flux(double freq)  {return -77.;};
+                virtual double flux(double freq, int istokes=0)  {return -77.;};
                 /// @brief Return the flux integrated between two frequencies - not used for the base class
-                virtual double flux(double freq1, double freq2)  {return -79.;};
+                virtual double flux(double freq1, double freq2, int istokes=0)  {return -79.;};
 		
 		virtual void print(std::ostream& theStream, double ra, double dec, int prec=5);
 		virtual void print(std::ostream& theStream, std::string ra, std::string dec);

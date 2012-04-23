@@ -180,30 +180,35 @@ namespace askap {
 
         }
 
-        double HIprofileS3SAX::flux(double nu)
+      double HIprofileS3SAX::flux(double nu, int istokes)
         {
             /// @details This function returns the flux value at a
             /// particular frequency, using the expressions shown in the
             /// comments for define(). This is a monochromatic flux, not
             /// integrated.
             /// @param nu The frequency, in Hz.
+	    /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
             /// @return The flux, in Jy.
 
+	  if(istokes>0) return 0.;
+	  else{
             double flux;
             double dvel = freqToHIVel(nu) - redshiftToVel(this->itsRedshift);
-
+	    
             if (fabs(dvel) < 0.5*this->itsWidthPeak)
-                flux = this->itsKpar[4] / sqrt(this->itsKpar[3] - dvel * dvel);
+	      flux = this->itsKpar[4] / sqrt(this->itsKpar[3] - dvel * dvel);
             else {
-                double temp = fabs(dvel) - this->itsKpar[0];
-                flux = this->itsKpar[2] * exp(-temp * temp / this->itsKpar[1]);
+	      double temp = fabs(dvel) - this->itsKpar[0];
+	      flux = this->itsKpar[2] * exp(-temp * temp / this->itsKpar[1]);
             }
-
+	    
             return flux * this->itsIntFlux;
-        }
+	  }
+
+	}
 
 
-        double HIprofileS3SAX::flux(double nu1, double nu2)
+        double HIprofileS3SAX::flux(double nu1, double nu2, int istokes)
         {
             /// @details This function returns the flux integrated between
             /// two frequencies. This can be used to calculate the flux in
@@ -211,40 +216,43 @@ namespace askap {
             /// frequency range, so that units of Jy are returned.
             /// @param nu1 One frequency, in Hz.
             /// @param nu2 The second frequency, in Hz.
+	    /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
             /// @return The flux, in Jy.
 
+	  if(istokes>0) return 0.;
+	  else{
             double f[2], dv[2];
             double a = this->itsFlux0, b = this->itsFluxPeak, c = this->itsWidthPeak;
             int loc[2];
             dv[0] = freqToHIVel(std::max(nu1, nu2)) - redshiftToVel(this->itsRedshift); // lowest relative velocty
             dv[1] = freqToHIVel(std::min(nu1, nu2)) - redshiftToVel(this->itsRedshift); // highest relative velocity
             f[0] = f[1] = 0.;
-//  ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << dv[0] << " and " << dv[1] << "  (with peaks at +-"<<0.5*this->itsWidthPeak<<")");
+	    //  ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << dv[0] << " and " << dv[1] << "  (with peaks at +-"<<0.5*this->itsWidthPeak<<")");
 
             for (int i = 0; i < 2; i++) {
-                if (dv[i] < -0.5*c) {
-                    f[i] += (this->itsKpar[2] * sqrt(this->itsKpar[1]) / M_2_SQRTPI) * erfc((0. - dv[i] - this->itsKpar[0]) / sqrt(this->itsKpar[1]));
-                    loc[i] = 1;
-                } else {
-                    f[i] += this->itsSideFlux;
+	      if (dv[i] < -0.5*c) {
+		f[i] += (this->itsKpar[2] * sqrt(this->itsKpar[1]) / M_2_SQRTPI) * erfc((0. - dv[i] - this->itsKpar[0]) / sqrt(this->itsKpar[1]));
+		loc[i] = 1;
+	      } else {
+		f[i] += this->itsSideFlux;
 
-                    if (dv[i] < 0.5*c) {
-                        if (fabs(a - b) / a < 1.e-8) f[i] += a * (dv[i] + 0.5 * c);
-                        else     f[i] += this->itsKpar[4] * (atan(dv[i] / sqrt(this->itsKpar[3] - dv[i] * dv[i])) + atan(c / sqrt(4.*this->itsKpar[3] - c * c)));
+		if (dv[i] < 0.5*c) {
+		  if (fabs(a - b) / a < 1.e-8) f[i] += a * (dv[i] + 0.5 * c);
+		  else     f[i] += this->itsKpar[4] * (atan(dv[i] / sqrt(this->itsKpar[3] - dv[i] * dv[i])) + atan(c / sqrt(4.*this->itsKpar[3] - c * c)));
 
-                        loc[i] = 2;
-                    } else {
-                        f[i] += this->itsMiddleFlux;
-                        f[i] += this->itsSideFlux - (this->itsKpar[2] * sqrt(this->itsKpar[1]) / M_2_SQRTPI) * erfc((dv[i] - this->itsKpar[0]) / sqrt(this->itsKpar[1]));
-                        loc[i] = 3;
-                    }
-                }
+		  loc[i] = 2;
+		} else {
+		  f[i] += this->itsMiddleFlux;
+		  f[i] += this->itsSideFlux - (this->itsKpar[2] * sqrt(this->itsKpar[1]) / M_2_SQRTPI) * erfc((dv[i] - this->itsKpar[0]) / sqrt(this->itsKpar[1]));
+		  loc[i] = 3;
+		}
+	      }
 
             }
 
             double flux = (f[1] - f[0]) / (dv[1] - dv[0]);
             return flux * this->itsIntFlux;
-
+	  }
         }
 
       

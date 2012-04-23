@@ -68,7 +68,7 @@ namespace askap {
       {
       }
 
-      ModelFactory::ModelFactory(LOFAR::ParameterSet& parset) 
+      ModelFactory::ModelFactory(const LOFAR::ParameterSet& parset) 
       {
 	this->itsDatabaseOrigin = parset.getString("database", "Continuum");
 	this->itsSourceListType = parset.getString("sourcelisttype", "continuum");

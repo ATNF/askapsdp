@@ -195,35 +195,38 @@ namespace askap {
 
         }
 
-        double HIprofileS3SEX::flux(double nu)
+      double HIprofileS3SEX::flux(double nu, int istokes)
         {
             /// @details This function returns the flux value at a
             /// particular frequency, using the expressions shown in the
             /// comments for define(). This is a monochromatic flux, not
             /// integrated.
             /// @param nu The frequency, in Hz.
+	    /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
             /// @return The flux, in Jy.
 
+	  if(istokes>0) return 0.;
+	  else{
             double flux;
             double vdiff = freqToHIVel(nu) - this->itsVelZero;
-
+	    
             if (vdiff < (-this->itsDeltaVel)) {
-                double v = vdiff + this->itsDeltaVel;
-                flux = this->itsMaxVal * exp(-(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge));
+	      double v = vdiff + this->itsDeltaVel;
+	      flux = this->itsMaxVal * exp(-(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge));
             } else if (vdiff > this->itsDeltaVel) {
-                double v = vdiff - this->itsDeltaVel;
-                flux = this->itsMaxVal * exp(-(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge));
+	      double v = vdiff - this->itsDeltaVel;
+	      flux = this->itsMaxVal * exp(-(v * v) / (2.*this->itsSigmaEdge * this->itsSigmaEdge));
             } else {
-                flux = this->itsMaxVal - this->itsDipAmp * exp(-vdiff * vdiff / (2.*this->itsSigmaDip * this->itsSigmaDip)) +
-                       this->itsDipAmp * exp(-this->itsDeltaVel * this->itsDeltaVel / (2.*this->itsSigmaDip * this->itsSigmaDip));
+	      flux = this->itsMaxVal - this->itsDipAmp * exp(-vdiff * vdiff / (2.*this->itsSigmaDip * this->itsSigmaDip)) +
+		this->itsDipAmp * exp(-this->itsDeltaVel * this->itsDeltaVel / (2.*this->itsSigmaDip * this->itsSigmaDip));
             }
-
+	    
             return flux * this->itsIntFlux / this->itsProfileFlux;
-
+	  }
         }
 
 
-        double HIprofileS3SEX::flux(double nu1, double nu2)
+        double HIprofileS3SEX::flux(double nu1, double nu2, int istokes)
         {
             /// @details This function returns the flux integrated between
             /// two frequencies. This can be used to calculate the flux in
@@ -231,8 +234,11 @@ namespace askap {
             /// frequency range, so that units of Jy are returned.
             /// @param nu1 One frequency, in Hz.
             /// @param nu2 The second frequency, in Hz.
+	    /// @param istokes The stokes parameter. Anything other than 0 returns zero flux.
             /// @return The flux, in Jy.
 
+	  if(istokes>0) return 0.;
+	  else{
             const double rootPiOnTwo = 2.* M_SQRT1_2 / M_2_SQRTPI; // sqrt(pi/2), using, from math.h: M_SQRT1_2=1/sqrt(2) and M_2_SQRTPI=2/sqrt(pi),
 
             double v[2], f[2];
@@ -244,33 +250,33 @@ namespace askap {
             double minPeak = this->itsVelZero - this->itsDeltaVel;
             double maxPeak = this->itsVelZero + this->itsDeltaVel;
 
-//  ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << v[0] << " and " << v[1] << "  (with minpeak="<<minPeak<<" and maxpeak="<<maxPeak<<")");
+	    //  ASKAPLOG_DEBUG_STR(logger, "Finding flux b/w " << nu1 << " & " << nu2 << " --> or " << v[0] << " and " << v[1] << "  (with minpeak="<<minPeak<<" and maxpeak="<<maxPeak<<")");
             for (int i = 0; i < 2; i++) {
-                if (v[i] < minPeak) {
-                    f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge * erfc((minPeak - v[i]) / (M_SQRT2 * this->itsSigmaEdge));
-                    loc[i] = 1;
-                } else {
-                    f[i] += this->itsEdgeFlux;
+	      if (v[i] < minPeak) {
+		f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge * erfc((minPeak - v[i]) / (M_SQRT2 * this->itsSigmaEdge));
+		loc[i] = 1;
+	      } else {
+		f[i] += this->itsEdgeFlux;
 
-                    if (v[i] < maxPeak) {
-                        double norm = (v[i] - minPeak) * (this->itsMaxVal + this->itsDipAmp / exp(this->itsDeltaVel * this->itsDeltaVel / (2.*this->itsSigmaDip * this->itsSigmaDip)));
-                        double dip = rootPiOnTwo * this->itsDipAmp * this->itsSigmaDip * (erfc(-1.*this->itsDeltaVel / (M_SQRT2 * this->itsSigmaDip)) -
-                                     erfc((v[i] - this->itsVelZero) / (M_SQRT2 * this->itsSigmaDip)));
-                        f[i] += (norm - dip);
-//        ASKAPLOG_DEBUG_STR(logger, "In loc 2, norm="<<norm<<", dip="<<dip);
-                        loc[i] = 2;
-                    } else {
-                        f[i] += this->itsMiddleFlux;
-                        f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge * erf((v[i] - maxPeak) / (M_SQRT2 * this->itsSigmaEdge));
-                        loc[i] = 3;
-                    }
-                }
+		if (v[i] < maxPeak) {
+		  double norm = (v[i] - minPeak) * (this->itsMaxVal + this->itsDipAmp / exp(this->itsDeltaVel * this->itsDeltaVel / (2.*this->itsSigmaDip * this->itsSigmaDip)));
+		  double dip = rootPiOnTwo * this->itsDipAmp * this->itsSigmaDip * (erfc(-1.*this->itsDeltaVel / (M_SQRT2 * this->itsSigmaDip)) -
+										    erfc((v[i] - this->itsVelZero) / (M_SQRT2 * this->itsSigmaDip)));
+		  f[i] += (norm - dip);
+		  //        ASKAPLOG_DEBUG_STR(logger, "In loc 2, norm="<<norm<<", dip="<<dip);
+		  loc[i] = 2;
+		} else {
+		  f[i] += this->itsMiddleFlux;
+		  f[i] += rootPiOnTwo * this->itsMaxVal * this->itsSigmaEdge * erf((v[i] - maxPeak) / (M_SQRT2 * this->itsSigmaEdge));
+		  loc[i] = 3;
+		}
+	      }
             }
 
             double flux = (f[1] - f[0]) / (v[1] - v[0]);
-//  ASKAPLOG_DEBUG_STR(logger, "Fluxes: " << f[1] << "  " << f[0] << "  ---> " << flux << "    locations="<<loc[1]<<","<<loc[0]);
+	    //  ASKAPLOG_DEBUG_STR(logger, "Fluxes: " << f[1] << "  " << f[0] << "  ---> " << flux << "    locations="<<loc[1]<<","<<loc[0]);
             return flux * this->itsIntFlux / this->itsProfileFlux;
-
+	  }
         }
 
 

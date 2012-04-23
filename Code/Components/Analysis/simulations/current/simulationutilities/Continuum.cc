@@ -142,26 +142,31 @@ namespace askap {
         }
 
 
-        double Continuum::flux(double freq)
+      double Continuum::flux(double freq, int istokes)
         {
             /// @details Returns the flux at a given frequency.
             /// @param freq The frequency, in Hz
             /// @return The flux, in Jy
+	  if(istokes>0) return 0.;
+	  else{
             double powerTerm = this->itsAlpha + this->itsBeta * log(freq / this->itsNuZero);
             return this->fluxZero() * pow(freq / this->itsNuZero, powerTerm);
-        }
+	  }
+	}
 
-      double Continuum::flux(double freq1, double freq2)
+      double Continuum::flux(double freq1, double freq2, int istokes)
       {
-	
-	if(fabs(this->itsBeta)>0) ASKAPLOG_ERROR_STR(logger,"Cannot yet integrate with non-zero curvature.");
-
-	double powerTerm = this->itsAlpha;
-
-	double flux = this->fluxZero() * (pow(std::max(freq1,freq2),powerTerm+1) - pow(std::min(freq1,freq2),powerTerm+1)) /
-	  ((powerTerm+1) * pow(this->itsNuZero,powerTerm));
-	
-	return flux;
+	if(istokes>0) return 0.;
+	else{
+	  if(fabs(this->itsBeta)>0) ASKAPLOG_ERROR_STR(logger,"Cannot yet integrate with non-zero curvature.");
+	  
+	  double powerTerm = this->itsAlpha;
+	  
+	  double flux = this->fluxZero() * (pow(std::max(freq1,freq2),powerTerm+1) - pow(std::min(freq1,freq2),powerTerm+1)) /
+	    ((powerTerm+1) * pow(this->itsNuZero,powerTerm));
+	  
+	  return flux;
+	}
       }
 
     }

@@ -62,9 +62,9 @@ namespace askap {
                 double mHI() {return itsMHI;};
 
                 /// @brief Return the flux at a given frequency - not used for the base class
-                virtual double flux(double nu)  {return -177.;};
+                virtual double flux(double nu, int istokes=0)  {return -177.;};
                 /// @brief Return the flux integrated between two frequencies - not used for the base class
-                virtual double flux(double nu1, double nu2)  {return -179.;};
+                virtual double flux(double nu1, double nu2, int istokes=0)  {return -179.;};
 
                 /// @brief Output the parameters for the source
                 friend std::ostream& operator<< (std::ostream& theStream, HIprofile &prof);

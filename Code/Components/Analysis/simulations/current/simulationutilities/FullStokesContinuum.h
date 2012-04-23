@@ -77,8 +77,8 @@ namespace askap {
       /// @brief Define using a line of input from an ascii file
       void define(std::string &line);
 
-      double flux(int istokes, double freq);
-      double flux(int istokes, double freq1, double freq2);
+      double flux(double freq, int istokes);
+      //      double flux(double freq1, double freq2, int istokes);
 
       double polAngle(){return itsPolAngleRef;};
 

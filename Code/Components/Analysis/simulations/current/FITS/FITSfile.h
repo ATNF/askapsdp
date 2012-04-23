@@ -46,6 +46,7 @@
 
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/SelavyImage.h>
+#include <simulationutilities/ModelFactory.h>
 
 #include <vector>
 #include <utility>
@@ -132,7 +133,6 @@ namespace askap {
                     void processSources();
 		    void processSource(std::string line){};
 		    casa::Slicer getFootprint(std::string line){return casa::Slicer();};
-		    Spectrum *getSource(std::string line);
 
                     /// @brief Convolve the flux array with a beam
                     void convolveWithBeam();
@@ -174,6 +174,8 @@ namespace askap {
                     std::string itsSourceListType;
                     /// @brief The origin of the database: either "S3SEX" or "S3SAX" - used for spectralline case
                     std::string itsDatabaseOrigin;
+		    /// @brief The factory class used to generate model components.
+		    ModelFactory itsModelFactory;
                     /// @brief The format of the source positions: "deg"=decimal degrees; "dms"= dd:mm:ss
                     std::string itsPosType;
                     /// @brief The minimum value for the minor axis for the sources in the catalogue. Only used when major axis > 0, to prevent infinite axial ratios

@@ -107,60 +107,66 @@ namespace askap {
 
         }
 
-        double GaussianProfile::flux(double nu)
+      double GaussianProfile::flux(double nu, int istokes)
         {
-	  double flux=0.;
-	  switch(this->itsAxisType){
-	  case PIXEL:
-	    ASKAPLOG_ERROR_STR(logger, "Cannot use axis type PIXEL");
-	    break;
-	  case FREQUENCY:
-	    flux = this->itsGaussian(nu);
-	    break;
-	  case VELOCITY:
-	    flux = this->itsGaussian(freqToVel(nu,this->itsRestFreq));
-	    break;
-	  case REDSHIFT:
-	    flux = this->itsGaussian(freqToRedshift(nu,this->itsRestFreq));
-	    break;
+	  if(istokes>0) return 0.;
+	  else{
+	    double flux=0.;
+	    switch(this->itsAxisType){
+	    case PIXEL:
+	      ASKAPLOG_ERROR_STR(logger, "Cannot use axis type PIXEL");
+	      break;
+	    case FREQUENCY:
+	      flux = this->itsGaussian(nu);
+	      break;
+	    case VELOCITY:
+	      flux = this->itsGaussian(freqToVel(nu,this->itsRestFreq));
+	      break;
+	    case REDSHIFT:
+	      flux = this->itsGaussian(freqToRedshift(nu,this->itsRestFreq));
+	      break;
+	    }
+	    return flux;
 	  }
-	  return flux;
 	}
 
-        double GaussianProfile::flux(double nu1, double nu2)
+        double GaussianProfile::flux(double nu1, double nu2, int istokes)
 	{
-	  double scale,first,last,v1,v2,z1,z2;
-	  double flux=0.;
-	  switch(this->itsAxisType){
-	  case PIXEL:
-	    ASKAPLOG_ERROR_STR(logger, "Cannot use axis type PIXEL");
-	    break;
-	  case FREQUENCY:
-	    scale = this->itsGaussian.width() * this->itsGaussian.height()  / (2.*sqrt(M_LN2)) / M_2_SQRTPI;
-	    first = (std::min(nu1,nu2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
-	    last = (std::max(nu1,nu2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
-	    flux = scale * (erf(last) - erf(first));
-	    break;
-	  case VELOCITY:
-	    v1 = freqToVel(nu1,this->itsRestFreq);
-	    v2 = freqToVel(nu2,this->itsRestFreq);
-	    scale =  this->itsGaussian.width() * this->itsGaussian.height()  / (2.*sqrt(M_LN2)) / M_2_SQRTPI;
-	    first = (std::min(v1,v2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
-	    last = (std::max(v1,v2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
-	    flux = scale * (erf(last) - erf(first));
-	    break;
-	  case REDSHIFT:
-	    z1 = freqToRedshift(nu1,this->itsRestFreq);
-	    z2 = freqToRedshift(nu2,this->itsRestFreq);
-	    scale =  this->itsGaussian.width() * this->itsGaussian.height()  / (2.*sqrt(M_LN2)) / M_2_SQRTPI;
-	    first = (std::min(z1,z2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
-	    last = (std::max(z1,z2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
-	    flux = scale * (erf(last) - erf(first));
-	    break;
+	  if(istokes>0) return 0.;
+	  else {
+	    double scale,first,last,v1,v2,z1,z2;
+	    double flux=0.;
+	    switch(this->itsAxisType){
+	    case PIXEL:
+	      ASKAPLOG_ERROR_STR(logger, "Cannot use axis type PIXEL");
+	      break;
+	    case FREQUENCY:
+	      scale = this->itsGaussian.width() * this->itsGaussian.height()  / (2.*sqrt(M_LN2)) / M_2_SQRTPI;
+	      first = (std::min(nu1,nu2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
+	      last = (std::max(nu1,nu2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
+	      flux = scale * (erf(last) - erf(first));
+	      break;
+	    case VELOCITY:
+	      v1 = freqToVel(nu1,this->itsRestFreq);
+	      v2 = freqToVel(nu2,this->itsRestFreq);
+	      scale =  this->itsGaussian.width() * this->itsGaussian.height()  / (2.*sqrt(M_LN2)) / M_2_SQRTPI;
+	      first = (std::min(v1,v2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
+	      last = (std::max(v1,v2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
+	      flux = scale * (erf(last) - erf(first));
+	      break;
+	    case REDSHIFT:
+	      z1 = freqToRedshift(nu1,this->itsRestFreq);
+	      z2 = freqToRedshift(nu2,this->itsRestFreq);
+	      scale =  this->itsGaussian.width() * this->itsGaussian.height()  / (2.*sqrt(M_LN2)) / M_2_SQRTPI;
+	      first = (std::min(z1,z2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
+	      last = (std::max(z1,z2)-this->itsGaussian.center()) * 2 * sqrt(M_LN2) / this->itsGaussian.width();
+	      flux = scale * (erf(last) - erf(first));
+	      break;
+	    }
+	    flux = flux / fabs(nu2-nu1);
+	    // ASKAPLOG_DEBUG_STR(logger, "Flux between " << nu1 << " and " << nu2 << " is " << flux << " with scale=" << scale << " and basic integral b/w " << first << "and " << last << " = " << erf(last)-erf(first) );
+	    return flux ;
 	  }
-	  flux = flux / fabs(nu2-nu1);
-	   // ASKAPLOG_DEBUG_STR(logger, "Flux between " << nu1 << " and " << nu2 << " is " << flux << " with scale=" << scale << " and basic integral b/w " << first << "and " << last << " = " << erf(last)-erf(first) );
-	  return flux ;
 	}
 
         std::ostream& operator<< (std::ostream& theStream, GaussianProfile &prof)

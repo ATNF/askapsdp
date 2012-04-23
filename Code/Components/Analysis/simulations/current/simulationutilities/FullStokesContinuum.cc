@@ -196,7 +196,7 @@ namespace askap {
             return *this;
         }
 
-      double FullStokesContinuum::flux(int istokes, double freq)
+      double FullStokesContinuum::flux(double freq, int istokes)
       {
 
 	double lambda2,lambdaRef2,angle=0.,flux;

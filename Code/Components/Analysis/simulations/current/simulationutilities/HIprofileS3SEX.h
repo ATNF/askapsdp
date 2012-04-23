@@ -81,9 +81,9 @@ namespace askap {
                 GALTYPE type() {return itsSourceType;};
 
                 /// @brief Return the flux at a given frequency
-                double flux(double nu);
+                double flux(double nu, int istokes=0);
                 /// @brief Return the flux integrated between two frequencies - not used for the base class
-                double flux(double nu1, double nu2);
+                double flux(double nu1, double nu2, int istokes=0);
 
                 /// @brief Output the parameters for the source
 		void diagnostic(std::ostream& theStream);

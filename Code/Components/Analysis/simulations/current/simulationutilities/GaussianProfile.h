@@ -67,9 +67,9 @@ namespace askap {
 		void setRestFreq(double freq){itsRestFreq=freq;};
 
                 /// @brief Return the flux at a given frequency
-                virtual double flux(double nu);
+                virtual double flux(double nu, int istokes=0);
                 /// @brief Return the flux integrated between two frequencies
-                virtual double flux(double nu1, double nu2);
+                virtual double flux(double nu1, double nu2, int istokes=0);
 
                 /// @brief Output the parameters for the source
                 friend std::ostream& operator<< (std::ostream& theStream, GaussianProfile &prof);

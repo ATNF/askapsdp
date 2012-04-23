@@ -86,7 +86,7 @@ int main(int argc, const char** argv)
     ASKAPLOG_DEBUG_STR(logger, "number of channels = " << nz);
     Continuum cont(-1., -1., 1.4e9, 1.);
     double x = 512., y = 512.;
-    fluxes.addSpectrum(cont, x, y, wcs);
+    fluxes.addSpectrum(&cont, x, y, wcs);
 
     for (int i = 0; i < fluxes.nChan(); i++)
         std::cout << i << " " << fluxes.getFlux(i) << "\n";
@@ -95,7 +95,7 @@ int main(int argc, const char** argv)
 
     FluxGenerator singleFlux(1);
     cont = Continuum(0., 0., 1.4e9, 1.);
-    singleFlux.addSpectrum(cont, x, y, wcs);
+    singleFlux.addSpectrum(&cont, x, y, wcs);
 
     for (int i = 0; i < singleFlux.nChan(); i++)
         std::cout << i << " " << singleFlux.getFlux(i) << "\n";

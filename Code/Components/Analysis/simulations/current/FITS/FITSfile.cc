@@ -45,6 +45,7 @@
 #include <simulationutilities/HIprofileS3SAX.h>
 #include <simulationutilities/GaussianProfile.h>
 #include <simulationutilities/FLASHProfile.h>
+#include <simulationutilities/ModelFactory.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <analysisutilities/CasaImageUtil.h>
 
@@ -137,6 +138,7 @@ namespace askap {
 	this->itsSourceList = f.itsSourceList;
 	this->itsSourceListType = f.itsSourceListType;
 	this->itsDatabaseOrigin = f.itsDatabaseOrigin;
+	this->itsModelFactory = f.itsModelFactory;
 	this->itsPosType = f.itsPosType;
 	this->itsMinMinorAxis = f.itsMinMinorAxis;
 	this->itsPAunits = f.itsPAunits;
@@ -265,6 +267,7 @@ namespace askap {
 	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
 	if(this->databaseSpectral()) this->itsSourceListType="spectralline";
 	ASKAPLOG_DEBUG_STR(logger, "source list type = " << this->itsSourceListType);
+	this->itsModelFactory = ModelFactory(parset);
 
 	this->itsPosType = parset.getString("posType", "dms");
 	this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
@@ -533,71 +536,6 @@ namespace askap {
 
       //--------------------------------------------------------
 
-      Spectrum *FITSfile::getSource(std::string line) 
-      {
-	Spectrum *src=0;
-
-	if (line[0] != '#') {  // ignore commented lines
-
-	  if(this->itsDatabaseOrigin == "Continuum") {
-	    Continuum *cont = new Continuum;
-	    cont->setNuZero(this->itsBaseFreq);
-	    cont->define(line);
-	    src = &(*cont);
-	  }
-	  else if(this->itsDatabaseOrigin == "Selavy"){
-	    ContinuumSelavy *sel = new ContinuumSelavy;
-	    sel->setNuZero(this->itsBaseFreq);
-	    sel->define(line);
-	    this->itsSelavyImage.convertSource(*sel);
-	    src = &(*sel);
-	  }
-	  else if(this->itsDatabaseOrigin == "POSSUM"){
-	    FullStokesContinuum *stokes = new FullStokesContinuum;
-	    stokes->setNuZero(this->itsBaseFreq);
-	    stokes->define(line);
-	    src = &(*stokes);
-	  }
-	  else if(this->itsDatabaseOrigin == "NVSS"){
-	    ContinuumNVSS *nvss = new ContinuumNVSS;
-	    nvss->define(line);
-	    nvss->setNuZero(this->itsBaseFreq);
-	    src = &(*nvss);
-	  }
-	  else if (this->itsDatabaseOrigin == "S3SEX") {
-	    if(this->itsSourceListType == "continuum"){
-	      ContinuumS3SEX *contS3SEX = new ContinuumS3SEX;
-	      contS3SEX->setNuZero(this->itsBaseFreq);
-	      contS3SEX->define(line);
-	      src = &(*contS3SEX);
-	    }else if(this->itsSourceListType == "spectralline") {
-	      HIprofileS3SEX *profSEX = new HIprofileS3SEX;
-	      profSEX->define(line);
-	      src = &(*profSEX);
-	    }
-	  }else if (this->itsDatabaseOrigin == "S3SAX") {
-	    HIprofileS3SAX *profSAX = new HIprofileS3SAX;
-	    profSAX->define(line);
-	    src = &(*profSAX);
-	  } else if (this->itsDatabaseOrigin == "Gaussian") {
-	    GaussianProfile *profGauss = new GaussianProfile(this->itsRestFreq);
-	    profGauss->define(line);
-	    src = &(*profGauss);
-	  } else if (this->itsDatabaseOrigin == "FLASH") {
-	    FLASHProfile *profFLASH = new FLASHProfile;
-	    profFLASH->define(line);
-	    src = &(*profFLASH);
-	  } else {
-	    ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
-		       << this->itsDatabaseOrigin << "' - needs to be one of: 'Continuum', 'Selavy', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
-	  }
-	}
-	
-	return src;
-
-      }
-      
-
       void FITSfile::processSources()
       {
 	/// @details Adds sources to the array. If the source list
@@ -775,27 +713,32 @@ namespace askap {
 	      
 		gauss.setFlux(src->fluxZero());
 
-		if(this->itsDatabaseOrigin == "Continuum") 
-		  fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
-		else if (this->itsDatabaseOrigin=="Selavy")
-		  fluxGen.addSpectrum(sel, pix[0], pix[1], this->itsWCS);
-		else if (this->itsDatabaseOrigin=="POSSUM")
-		  fluxGen.addSpectrumStokes(stokes, pix[0], pix[1], this->itsWCS);
-		else if (this->itsDatabaseOrigin=="NVSS")
-		  fluxGen.addSpectrum(nvss, pix[0], pix[1], this->itsWCS);
-		else if (this->itsDatabaseOrigin == "S3SEX"){
-		  if(this->itsSourceListType == "continuum")
-		    fluxGen.addSpectrum(contS3SEX, pix[0], pix[1], this->itsWCS);
-		  else
-		    fluxGen.addSpectrumInt(profSEX, pix[0], pix[1], this->itsWCS);
-		}
-		else if (this->itsDatabaseOrigin == "S3SAX")
-		  fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
-		else if (this->itsDatabaseOrigin == "Gaussian")
-		  //		  fluxGen.addSpectrumInt(profGauss, pix[0], pix[1], this->itsWCS);
-		  fluxGen.addSpectrum(profGauss, pix[0], pix[1], this->itsWCS);
-		else if (this->itsDatabaseOrigin == "FLASH")
-		  fluxGen.addSpectrumInt(profFLASH, pix[0], pix[1], this->itsWCS);
+		if(this->databaseSpectral() && this->itsDatabaseOrigin!="Gaussian")
+		  fluxGen.addSpectrumInt(src,pix[0],pix[1],this->itsWCS);
+		else 
+		  fluxGen.addSpectrum(src,pix[0],pix[1],this->itsWCS);
+
+		// if(this->itsDatabaseOrigin == "Continuum") 
+		//   fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
+		// else if (this->itsDatabaseOrigin=="Selavy")
+		//   fluxGen.addSpectrum(sel, pix[0], pix[1], this->itsWCS);
+		// else if (this->itsDatabaseOrigin=="POSSUM")
+		//   fluxGen.addSpectrumStokes(stokes, pix[0], pix[1], this->itsWCS);
+		// else if (this->itsDatabaseOrigin=="NVSS")
+		//   fluxGen.addSpectrum(nvss, pix[0], pix[1], this->itsWCS);
+		// else if (this->itsDatabaseOrigin == "S3SEX"){
+		//   if(this->itsSourceListType == "continuum")
+		//     fluxGen.addSpectrum(contS3SEX, pix[0], pix[1], this->itsWCS);
+		//   else
+		//     fluxGen.addSpectrumInt(profSEX, pix[0], pix[1], this->itsWCS);
+		// }
+		// else if (this->itsDatabaseOrigin == "S3SAX")
+		//   fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
+		// else if (this->itsDatabaseOrigin == "Gaussian")
+		//   //		  fluxGen.addSpectrumInt(profGauss, pix[0], pix[1], this->itsWCS);
+		//   fluxGen.addSpectrum(profGauss, pix[0], pix[1], this->itsWCS);
+		// else if (this->itsDatabaseOrigin == "FLASH")
+		//   fluxGen.addSpectrumInt(profFLASH, pix[0], pix[1], this->itsWCS);
 		
 
 		bool addedSource=false;
