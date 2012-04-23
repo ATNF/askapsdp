@@ -558,17 +558,7 @@ namespace askap {
 
 	  int countGauss = 0, countPoint = 0, countMiss=0, countDud=0;
 
-	  Continuum cont;
-	  ContinuumS3SEX contS3SEX;
-	  ContinuumSelavy sel;
-	  ContinuumNVSS nvss;
-	  FullStokesContinuum stokes;
-	  HIprofileS3SEX profSEX;
-	  HIprofileS3SAX profSAX;
-	  GaussianProfile profGauss(this->itsRestFreq);
-	  FLASHProfile profFLASH;
-	  Spectrum *src = &cont;
-
+	  Spectrum *src = 0;
 	  
 	  FluxGenerator fluxGen(this->getNumChan(), this->getNumStokes());
 	  ASKAPLOG_DEBUG_STR(logger, "Defining flux generator with " << fluxGen.nChan() << " channels and " << fluxGen.nStokes() << " Stokes parameters");
@@ -586,53 +576,7 @@ namespace askap {
 	    
 	    if (line[0] != '#') {  // ignore commented lines
 
-	      if(this->itsDatabaseOrigin == "Continuum") {
-		cont.setNuZero(this->itsBaseFreq);
-		cont.define(line);
-		src = &cont;
-	      }
-	      else if(this->itsDatabaseOrigin == "Selavy"){
-		sel.setNuZero(this->itsBaseFreq);
-		sel.define(line);
-		this->itsSelavyImage.convertSource(sel);
-		src = &sel;
-	      }
-	      else if(this->itsDatabaseOrigin == "POSSUM"){
-		stokes.setNuZero(this->itsBaseFreq);
-		stokes.define(line);
-		stokes.setFluxZero(2.*pow(10.,stokes.I1400()));
-		src = &stokes;
-	      }
-	      else if(this->itsDatabaseOrigin == "NVSS"){
-		nvss.setNuZero(this->itsBaseFreq);
-		nvss.define(line);
-		//		ASKAPLOG_DEBUG_STR(logger, "NVSS: " << nvss);
-		src = &nvss;
-	      }
-	      else if (this->itsDatabaseOrigin == "S3SEX") {
-		if(this->itsSourceListType == "continuum"){
-		  contS3SEX.setNuZero(this->itsBaseFreq);
-		  contS3SEX.define(line);
-		  contS3SEX.setFluxZero(2.*pow(10.,contS3SEX.I1400()));
-// 		  ASKAPLOG_DEBUG_STR(logger, "RA="<<contS3SEX.ra() << ", DEC= " << contS3SEX.dec());
-		  src = &contS3SEX;
-		}else if(this->itsSourceListType == "spectralline") {
-		  profSEX.define(line);
-		  src = &profSEX;
-		}
-	      }else if (this->itsDatabaseOrigin == "S3SAX") {
-		profSAX.define(line);
-		src = &profSAX;
-	      } else if (this->itsDatabaseOrigin == "Gaussian") {
-		profGauss.define(line);
-		src = &profGauss;
-	      } else if (this->itsDatabaseOrigin == "FLASH") {
-		profFLASH.define(line);
-		src = &profFLASH;
-	      } else {
-		ASKAPTHROW(AskapError, "'database' parameter has incompatible value '"
-			   << this->itsDatabaseOrigin << "' - needs to be 'Continuum', 'POSSUM', 'NVSS', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
-	      }
+	      src = this->itsModelFactory.read(line);
 
 // 	      src->prepareForUse();
 
@@ -701,7 +645,8 @@ namespace askap {
 	      if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
 		// check the frequency limits for this source to see whether we need to look at it.
 		ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
-		std::pair<double,double> freqLims = profSAX.freqLimits();
+		//		std::pair<double,double> freqLims = profSAX.freqLimits();
+		std::pair<double,double> freqLims = ((HIprofileS3SAX *)src)->freqLimits();
 		bool isGood = (freqLims.first < this->maxFreq()) && (freqLims.second > this->minFreq());
 		lookAtSource = lookAtSource && isGood;
 	      }
@@ -718,53 +663,9 @@ namespace askap {
 		else 
 		  fluxGen.addSpectrum(src,pix[0],pix[1],this->itsWCS);
 
-		// if(this->itsDatabaseOrigin == "Continuum") 
-		//   fluxGen.addSpectrum(cont, pix[0], pix[1], this->itsWCS);
-		// else if (this->itsDatabaseOrigin=="Selavy")
-		//   fluxGen.addSpectrum(sel, pix[0], pix[1], this->itsWCS);
-		// else if (this->itsDatabaseOrigin=="POSSUM")
-		//   fluxGen.addSpectrumStokes(stokes, pix[0], pix[1], this->itsWCS);
-		// else if (this->itsDatabaseOrigin=="NVSS")
-		//   fluxGen.addSpectrum(nvss, pix[0], pix[1], this->itsWCS);
-		// else if (this->itsDatabaseOrigin == "S3SEX"){
-		//   if(this->itsSourceListType == "continuum")
-		//     fluxGen.addSpectrum(contS3SEX, pix[0], pix[1], this->itsWCS);
-		//   else
-		//     fluxGen.addSpectrumInt(profSEX, pix[0], pix[1], this->itsWCS);
-		// }
-		// else if (this->itsDatabaseOrigin == "S3SAX")
-		//   fluxGen.addSpectrumInt(profSAX, pix[0], pix[1], this->itsWCS);
-		// else if (this->itsDatabaseOrigin == "Gaussian")
-		//   //		  fluxGen.addSpectrumInt(profGauss, pix[0], pix[1], this->itsWCS);
-		//   fluxGen.addSpectrum(profGauss, pix[0], pix[1], this->itsWCS);
-		// else if (this->itsDatabaseOrigin == "FLASH")
-		//   fluxGen.addSpectrumInt(profFLASH, pix[0], pix[1], this->itsWCS);
-		
-
 		bool addedSource=false;
 		ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
 		if (src->maj() > 0) {
-// 		  // convert widths from arcsec to pixels
-// 		  src->setMaj(casa::Quantity(src->maj(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-
-// 		  if (src->maj() > 0 && !(src->min() > this->itsMinMinorAxis)) {
-// // 		    ASKAPLOG_DEBUG_STR(logger, "Changing minor axis: " << src->min() << " --> " << this->itsMinMinorAxis);
-// 		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-// 		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
-
-// 		  if (src->fluxZero() == 0.) src->setFluxZero(1.e-99);
-
-// 		  ASKAPLOG_DEBUG_STR(logger, "Defining Gaussian with axes " << src->maj() << " x " << src->min() << " pixels and PA of " << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
-
-// 		  gauss.setXcenter(pix[0]);
-// 		  gauss.setYcenter(pix[1]);
-// 		  gauss.setMinorAxis(std::min(gauss.majorAxis(),src->maj()));  // need this so that we never have the minor axis > major axis
-// 		  //		  gauss.setMinorAxis(src->maj());
-// 		  gauss.setMajorAxis(src->maj());
-// 		  gauss.setMinorAxis(src->min());
-// 		  gauss.setPA(casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
-// 		  gauss.setFlux(src->fluxZero());
-// 		  ASKAPLOG_DEBUG_STR(logger, "Gaussian source: " << gauss);
 
 		  if (!this->itsDryRun){
 		    addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen, this->itsFlagIntegrateGaussians);
@@ -774,7 +675,7 @@ namespace askap {
 		    if ( addedSource ){
 		      countGauss++;
 		      if( this->itsDatabaseOrigin == "POSSUM") 
-			ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<stokes.ra()<<", Dec="<<stokes.dec()<<", angle="<<stokes.polAngle());
+			ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
 		    }
 		    else countMiss++;
 		  }
@@ -787,7 +688,7 @@ namespace askap {
 		    if ( addedSource ){
 		      countPoint++;
 		      if( this->itsDatabaseOrigin == "POSSUM") 
-			ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<stokes.ra()<<", Dec="<<stokes.dec()<<", angle="<<stokes.polAngle());
+			ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
 		    }
 		    else countMiss++;
 		  }
