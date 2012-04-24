@@ -577,6 +577,7 @@ namespace askap {
 	    if (line[0] != '#') {  // ignore commented lines
 
 	      src = this->itsModelFactory.read(line);
+	      //	      ASKAPLOG_DEBUG_STR(logger, "Read source " << src->ra() << " " << src->dec() << " " << src->fluxZero() << " " << src->maj() << " " << src->min() << " " << src->pa());
 
 // 	      src->prepareForUse();
 
@@ -625,13 +626,15 @@ namespace askap {
 		    src->setMin(casa::Quantity(this->itsMinMinorAxis, this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 		  } else src->setMin(casa::Quantity(src->min(), this->itsAxisUnits).getValue("arcsec") / arcsecToPixel);
 		  if (src->fluxZero() == 0.) src->setFluxZero(1.e-99);
- 		  // ASKAPLOG_DEBUG_STR(logger, "Defining Gaussian with axes " << src->maj() << " x " << src->min() << " pixels and PA of " << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
+		  //		  ASKAPLOG_DEBUG_STR(logger, "Defining Gaussian with axes " << src->maj() << " x " << src->min() << " pixels and PA of " << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
 		  gauss.setXcenter(pix[0]);
 		  gauss.setYcenter(pix[1]);
 		  gauss.setMinorAxis(std::min(gauss.majorAxis(),src->maj()));  // need this so that we never have the minor axis > major axis
 		  //		  gauss.setMinorAxis(src->maj());
 		  gauss.setMajorAxis(src->maj());
 		  gauss.setMinorAxis(src->min());
+		  //		  ASKAPLOG_DEBUG_STR(logger, "PA = " << src->pa() << " " << this->itsPAunits.getName() << " or " 
+		  //				     << casa::Quantity(src->pa(), this->itsPAunits).getValue("rad") << " rad");
 		  gauss.setPA(casa::Quantity(src->pa(), this->itsPAunits).getValue("rad"));
 		  gauss.setFlux(src->fluxZero());
 		  // ASKAPLOG_DEBUG_STR(logger, "Gaussian source: " << gauss);

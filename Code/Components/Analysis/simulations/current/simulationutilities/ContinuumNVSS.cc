@@ -98,7 +98,7 @@ namespace askap {
 	  this->itsMajorAxis      = atof(line.substr(135,5).c_str());
 	  this->itsMinorAxisLimit = line[141];
 	  this->itsMinorAxis      = atof(line.substr(143,5).c_str());
-	  this->itsPA             = atof(line.substr(149,5).c_str());
+	  this->itsPA_input       = atof(line.substr(149,5).c_str());
 	  this->itsMajorAxis_err  = atof(line.substr(155,4).c_str());
 	  this->itsMinorAxis_err  = atof(line.substr(160,4).c_str());
 	  this->itsPA_err         = atof(line.substr(165,4).c_str());
@@ -117,7 +117,10 @@ namespace askap {
 	  this->itsFlux = this->itsS1400/1.e3; // put into Jy
 	  this->itsMaj = this->itsMajorAxisLimit=='<' ? 0. : this->itsMajorAxis;
 	  this->itsMin = this->itsMinorAxisLimit=='<' ? 0. : this->itsMinorAxis;
+	  this->itsPA = this->itsPA_input;
 	  this->checkShape();
+
+	  //	  ASKAPLOG_DEBUG_STR(logger, "NVSS source #" << this->itsRecno<<": " << this->itsRA << " " << this->itsDec << " " << this->itsFlux << " " << this->itsMaj << " " << this->itsMin << " " << this->itsPA);
 
         }
 

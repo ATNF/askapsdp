@@ -97,7 +97,7 @@ namespace askap {
 		float itsMajorAxis;
 		char itsMinorAxisLimit;
 		float itsMinorAxis;
-		float itsPA;
+		float itsPA_input;
 		float itsMajorAxis_err;
 		float itsMinorAxis_err;
 		float itsPA_err;
