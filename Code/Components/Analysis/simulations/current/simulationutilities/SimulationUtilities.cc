@@ -221,11 +221,11 @@ namespace askap {
             /// @param axes The shape of the flux array
             /// @param pix The location of the point source: an array of at least two values, with pix[0] being the x-coordinate and pix[1] the y-coordinate.
             /// @return True if the component would be added to a pixel in the array. False if not.
+	  
+            int xpix = int(pix[0] + 0.5);
+            int ypix = int(pix[1] + 0.5);
 
-            unsigned int xpix = int(pix[0] + 0.5);
-            unsigned int ypix = int(pix[1] + 0.5);
-
-            return (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]);
+            return (xpix >= 0 && xpix < int(axes[0]) && ypix >= 0 && ypix < int(axes[1]));
         }
 
 
@@ -478,9 +478,9 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax
 			       << ", (xcentre,ycentre)=("<<gauss.xCenter() <<","<<gauss.yCenter()<<")"
 			       << ", (xstart,ystart)=(" << x << "," << y << ") and axes=[" << axes[0] << "," << axes[1] << "]");
-            unsigned int xref = int(x + 0.5);
-            unsigned int yref = int(y + 0.5);
-            unsigned int spatialPixel = xref + axes[0] * yref;
+            int xref = int(floor(x + 0.5));
+            int yref = int(floor(y + 0.5));
+            int spatialPixel = xref + axes[0] * yref;
 
             size_t pix = 0;
             double pixelVal = 0.;
@@ -488,7 +488,7 @@ namespace askap {
 
             while (length < 2.*zeroPointMax) {
 
-                addPixel = (xref >= 0 && xref < axes[0]) && (yref >= 0 && yref < axes[1]); // is the current pixel in the bounds of the flux array?
+	        addPixel = (xref >= 0 && xref < int(axes[0])) && (yref >= 0 && yref < int(axes[1])); // is the current pixel in the bounds of the flux array?
 
                 if (!specialCase) {
                     direction = (fabs((yref + 0.5 * sign - y) / cospa) < fabs((xref + 0.5 - x) / sinpa)) ? VERTICAL : HORIZONTAL;
@@ -534,10 +534,10 @@ namespace askap {
             /// @param pix The coordinates of the point source
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
 
-            unsigned int xpix = int(pix[0] + 0.5);
-            unsigned int ypix = int(pix[1] + 0.5);
+            int xpix = int(pix[0] + 0.5);
+            int ypix = int(pix[1] + 0.5);
 
-	    bool addSource = (xpix >= 0 && xpix < axes[0] && ypix >= 0 && ypix < axes[1]);
+	    bool addSource = (xpix >= 0 && xpix < int(axes[0]) && ypix >= 0 && ypix < int(axes[1]));
 
             if(addSource)  {
 
