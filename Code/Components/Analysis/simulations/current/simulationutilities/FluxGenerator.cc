@@ -131,7 +131,7 @@ namespace askap {
 
 	    for(int istokes=0; istokes < this->itsNStokes; istokes++){
 	      for (int z = 0; z < this->itsNChan; z++) {
-                this->itsFluxValues[istokes][z] += spec->flux(wld[3*z+2],stokes);
+                this->itsFluxValues[istokes][z] += spec->flux(wld[3*z+2],istokes);
 	      }
 	    }
 
