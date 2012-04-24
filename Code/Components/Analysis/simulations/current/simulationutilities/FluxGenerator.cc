@@ -102,42 +102,8 @@ namespace askap {
 	      this->itsFluxValues[s][c]=0.;
 	}
 
+
         void FluxGenerator::addSpectrum(Spectrum *spec, double &x, double &y, struct wcsprm *wcs)
-        {
-            /// @details This version of the add spectrum function simply
-            /// uses the Spectrum object to find the flux at the centre of
-            /// each channel. The x & y position are used along with the
-            /// WCS specification to find the frequency value of each
-            /// channel.
-            /// @param spec The spectral profile being used.
-            /// @param x The x-pixel location in the flux array
-            /// @param y The y-pixel location in the flux array
-            /// @param wcs The world coordinate system specfication
-
-            if (this->itsNChan <= 0)
-                ASKAPTHROW(AskapError, "FluxGenerator: Have not set the number of channels in the flux array.");
-
-            double *pix = new double[3*this->itsNChan];
-            double *wld = new double[3*this->itsNChan];
-            for (int z = 0; z < this->itsNChan; z++) {
-                pix[3*z+0] = x;
-                pix[3*z+1] = y;
-                pix[3*z+2] = double(z);
-            }
-
-            pixToWCSMulti(wcs, pix, wld, this->itsNChan);
-
-            for (int z = 0; z < this->itsNChan; z++) {
-// 	      ASKAPLOG_DEBUG_STR(logger, "Adding flux of " << spec->flux(wld[3*z+2]) << " to freq " << wld[3*z+2]);
-                this->itsFluxValues[0][z] += spec->flux(wld[3*z+2]);
-            }
-
-            delete [] pix;
-            delete [] wld;
-
-        }
-
-        void FluxGenerator::addSpectrumStokes(FullStokesContinuum *stokes, double &x, double &y, struct wcsprm *wcs)
         {
             /// @details This version of the add spectrum function simply
             /// uses the Spectrum object to find the flux at the centre of
@@ -165,7 +131,7 @@ namespace askap {
 
 	    for(int istokes=0; istokes < this->itsNStokes; istokes++){
 	      for (int z = 0; z < this->itsNChan; z++) {
-                this->itsFluxValues[istokes][z] += stokes->flux(istokes,wld[3*z+2]);
+                this->itsFluxValues[istokes][z] += spec->flux(wld[3*z+2],stokes);
 	      }
 	    }
 
