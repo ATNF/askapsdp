@@ -296,7 +296,7 @@ namespace askap {
             int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPointMax), int(axes[0] - 1));
             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPointMax), 0);
             int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPointMax), int(axes[1] - 1));
-	    // ASKAPLOG_DEBUG_STR(logger, majorSigma << " " << minorSigma << " " << zeroPointMax << " " << zeroPointMin<< "   " << xmin << " " << xmax << " " << ymin << " " << ymax);
+	    ASKAPLOG_DEBUG_STR(logger, "FWHMmaj="<<gauss.majorAxis()<<", FWHMmin="<<gauss.minorAxis()<<", gauss.height()="<<gauss.height() <<", sig_maj="<<majorSigma << ", sig_min=" << minorSigma << ", ZPmax=" << zeroPointMax << ", ZPmin=" << zeroPointMin<< "   xmin=" << xmin << " xmax=" << xmax << " ymin=" << ymin << " ymax=" << ymax);
 
 	    bool addSource = (xmax >= xmin) && (ymax >= ymin);
             if (addSource) {  // if there are object pixels falling within the image boundaries
@@ -476,7 +476,8 @@ namespace askap {
             double x = gauss.xCenter() - zeroPointMax * sinpa;;
             double y = gauss.yCenter() + zeroPointMax * cospa;;
             ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax
-                                   << ", (xstart,ystart)=(" << x << "," << y << ") and axes=[" << axes[0] << "," << axes[1] << "]");
+			       << ", (xcentre,ycentre)=("<<gauss.xCenter() <<","<<gauss.yCenter()<<")"
+			       << ", (xstart,ystart)=(" << x << "," << y << ") and axes=[" << axes[0] << "," << axes[1] << "]");
             unsigned int xref = int(x + 0.5);
             unsigned int yref = int(y + 0.5);
             unsigned int spatialPixel = xref + axes[0] * yref;
