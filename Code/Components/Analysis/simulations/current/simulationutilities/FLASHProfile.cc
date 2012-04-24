@@ -30,7 +30,6 @@
 
 #include <simulationutilities/FLASHProfile.h>
 #include <simulationutilities/GaussianProfile.h>
-#include <simulationutilities/SimulationUtilities.h>
 #include <simulationutilities/SpectralUtilities.h>
 #include <iostream>
 #include <math.h>
