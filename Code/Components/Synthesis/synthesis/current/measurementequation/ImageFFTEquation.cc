@@ -320,16 +320,24 @@ namespace askap
         accBuffer.rwVisibility() *= float(-1.);
 
         /// Now we can calculate the residual visibility and image
-        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
+        size_t tempCounter = 0; 
+#ifdef _OPENMP
+        #pragma omp parallel default(shared)
         {
-          const string imageName("image"+(*it));
-          if(parameters().isFree(imageName))
-          {
-            itsResidualGridders[imageName]->grid(accBuffer);
-            itsPSFGridders[imageName]->grid(accBuffer);
-            counterGrid+=accBuffer.nRow();
-          }
+           #pragma omp for reduction(+:tempCounter)
+#endif
+           for (size_t i = 0; i<completions.size(); ++i) {
+                const string imageName("image"+completions[i]);
+                if (parameters().isFree(imageName)) {
+                    itsResidualGridders[imageName]->grid(accBuffer);
+                    itsPSFGridders[imageName]->grid(accBuffer);
+                    tempCounter += accBuffer.nRow();
+                }
+           }
+#ifdef _OPENMP
         }
+#endif
+        counterGrid += tempCounter;
       }
       ASKAPLOG_DEBUG_STR(logger, "Finished degridding model and gridding residuals" );
       ASKAPLOG_DEBUG_STR(logger, "Number of accessor rows iterated through is "<<counterGrid<<" (gridding) and "<<
