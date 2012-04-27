@@ -1,6 +1,6 @@
-/// @file cmodel.cc
+/// @file tMemStatReporter.cc
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -25,35 +25,19 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include package level header file
-#include "askap_pipelinetasks.h"
+#include "askap_askap.h"
 
 // System include
-#include <string>
-#include <fstream>
-#include <sstream>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/MemStatReporter.h"
-#include "askap/Log4cxxLogSink.h"
-#include "Common/ParameterSet.h"
-#include "CommandLineParser.h"
-
-// Casacore
-#include "casa/Logging/LogIO.h"
-#include "casa/Logging/LogSinkInterface.h"
-
-// Local packages includes
-#include "cmodel/MPIBasicComms.h"
-#include "cmodel/CModelMaster.h"
-#include "cmodel/CModelWorker.h"
 
 // Using
 using namespace askap;
-using namespace askap::cp::pipelinetasks;
 
-ASKAP_LOGGER(logger, ".cmodel");
+ASKAP_LOGGER(logger, ".tMemStatReporter");
 
 // main()
 int main(int argc, char *argv[])
@@ -69,36 +53,6 @@ int main(int argc, char *argv[])
         std::ostringstream ss;
         ss << argv[0] << ".log_cfg";
         ASKAPLOG_INIT(ss.str().c_str());
-    }
-
-    // Ensure that CASA log messages are captured
-    casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-    casa::LogSink::globalSink(globalSink);
-
-    // Command line parser
-    cmdlineparser::Parser parser;
-
-    // Command line parameter
-    cmdlineparser::FlaggedParameter<string> inputsPar("-inputs", "cmodel.in");
-
-    // Throw an exception if the parameter is not present
-    parser.add(inputsPar, cmdlineparser::Parser::return_default);
-    parser.process(argc, const_cast<char**>(argv));
-
-    // Create a parset and subset
-    LOFAR::ParameterSet parset(inputsPar);
-    LOFAR::ParameterSet subset = parset.makeSubset("Cmodel.");
-
-    // Create the comms instance
-    MPIBasicComms comms(argc, argv);
-
-    // Instantiate and run the model creator
-    if (comms.getId() == 0) {
-        CModelMaster master(subset, comms);
-        master.run();
-    } else {
-        CModelWorker worker(comms);
-        worker.run();
     }
 
     MemStatReporter::logSummary();

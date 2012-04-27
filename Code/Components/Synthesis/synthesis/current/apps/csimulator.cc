@@ -27,8 +27,11 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
+// Package level header file
+#include "askap_synthesis.h"
+
 // ASKAPsoft includes
-#include <askap_synthesis.h>
+#include <askap/MemStatReporter.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/Log4cxxLogSink.h>
@@ -91,6 +94,7 @@ int main(int argc, const char** argv)
             sim.init();
             sim.simulate();
         }
+        MemStatReporter::logSummary();
         ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user()
                 << " system: " << timer.system() << " real:   " << timer.real());
         ///==============================================================================

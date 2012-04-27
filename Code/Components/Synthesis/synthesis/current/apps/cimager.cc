@@ -34,15 +34,20 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 
+// Package level header file
+#include "askap_synthesis.h"
+
 // System includes
 #include <stdexcept>
 #include <iostream>
 #include <csignal>
 
 // ASKAPsoft includes
-#include <askap_synthesis.h>
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "askap/SignalManagerSingleton.h"
+#include "askap/SignalCounter.h"
+#include "askap/MemStatReporter.h"
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
 #include <CommandLineParser.h>
@@ -51,8 +56,6 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <fitting/Params.h>
 #include <casa/OS/Timer.h>
-#include "askap/SignalManagerSingleton.h"
-#include "askap/SignalCounter.h"
 
 ASKAP_LOGGER(logger, ".cimager");
 
@@ -190,9 +193,9 @@ int main(int argc, const char** argv)
             /// This is the final step - restore the image and write it out
             imager.writeModel();
         }
+        MemStatReporter::logSummary();
         ASKAPLOG_INFO_STR(logger, "Total times - user:   " << timer.user() << " system: " << timer.system()
                               << " real:   " << timer.real());
-
         ///==============================================================================
     } catch (const cmdlineparser::XParser &ex) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);

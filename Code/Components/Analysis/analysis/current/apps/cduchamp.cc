@@ -32,6 +32,7 @@
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <askap/MemStatReporter.h>
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
 
@@ -101,6 +102,7 @@ int main(int argc, const char** argv)
         duchamp.receiveObjects();
         duchamp.cleanup();
         duchamp.printResults();
+        MemStatReporter::logSummary();
         ASKAPLOG_INFO_STR(logger, "Time for execution of cduchamp = " << timer.real() << " sec");
         ///==============================================================================
     } catch (const askap::AskapError& x) {
