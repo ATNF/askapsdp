@@ -14,7 +14,10 @@ cat > cimager-cont-clean.qsub << EOF
 
 cd \${PBS_O_WORKDIR}
 
-cat > ${CONFIGDIR}/cimager-cont-clean.in << EOF_INNER
+parset=${CONFIGDIR}/cimager-cont-clean-\${PBS_JOBID}.in
+logfile=${LOGDIR}/cimager-cont-clean-\${PBS_JOBID}.log
+
+cat > $parset << EOF_INNER
 Cimager.dataset                                 = MS/coarse_chan_%w.ms
 
 Cimager.Images.Names                            = [image.i.clean]
@@ -73,7 +76,7 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ${CONFIGDIR}/cimager-cont-clean.in > ${LOGDIR}/cimager-cont-clean.log
+mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \${parset} > \${logfile}
 EOF
 
 if [ "${DRYRUN}" == "false" ]; then
