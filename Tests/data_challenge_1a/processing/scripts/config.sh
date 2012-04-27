@@ -45,6 +45,9 @@ DO_CONTINUUM_DIRTY=true
 # Do Continuum Imaging - Clean (true or false)
 DO_CONTINUUM_CLEAN=true
 
+# Do analysis on continuum image
+DO_ANALYSIS=true
+
 # Do Continuum-cube Imaging - Dirty (true or false)
 DO_CONTINUUM_CUBE_DIRTY=true
 
