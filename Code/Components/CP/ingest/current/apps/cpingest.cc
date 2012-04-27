@@ -39,6 +39,7 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
+#include "askap/StatReporter.h"
 #include "askap/Log4cxxLogSink.h"
 #include "Common/ParameterSet.h"
 #include "CommandLineParser.h"
@@ -107,6 +108,8 @@ int main(int argc, char *argv[])
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
         casa::LogSink::globalSink(globalSink);
 
+        StatReporter stats;
+
         // Command line parser
         cmdlineparser::Parser parser;
 
@@ -127,6 +130,7 @@ int main(int argc, char *argv[])
         IngestPipeline pipeline(parset);
         pipeline.start();
 
+        stats.logSummary();
     } catch (const cmdlineparser::XParser& e) {
         ASKAPLOG_ERROR_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;

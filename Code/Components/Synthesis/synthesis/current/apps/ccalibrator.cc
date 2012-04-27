@@ -31,8 +31,8 @@
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <askap/StatReporter.h>
 #include <askapparallel/AskapParallel.h>
-#include <casa/OS/Timer.h>
 #include <CommandLineParser.h>
 #include <Common/ParameterSet.h>
 #include <parallel/CalibratorParallel.h>
@@ -51,8 +51,7 @@ int main(int argc, const char** argv)
     askap::askapparallel::AskapParallel comms(argc, argv);
 
     try {
-        casa::Timer timer;
-        timer.mark();
+        StatReporter stats;
 
         {
             cmdlineparser::Parser parser; // a command line parser
@@ -89,8 +88,7 @@ int main(int argc, const char** argv)
                     calib.receiveModel();
                     calib.calcNE();
                     calib.solveNE();
-                    ASKAPLOG_INFO_STR(logger,  "user:   " << timer.user() << " system: " << timer.system()
-                                      << " real:   " << timer.real());
+                    stats.logSummary();
                }
 
                ASKAPLOG_INFO_STR(logger,  "*** Finished calibration cycles ***");
@@ -112,8 +110,7 @@ int main(int argc, const char** argv)
                calib.removeNextChunkFlag();
             }
         }
-        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
-                              << " real:   " << timer.real());
+        stats.logSummary();
         ///==============================================================================
     } catch (const cmdlineparser::XParser &ex) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);

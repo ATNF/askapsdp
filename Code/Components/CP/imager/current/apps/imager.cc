@@ -38,12 +38,12 @@
 // ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <askap/StatReporter.h>
 #include <askap/Log4cxxLogSink.h>
 #include <Common/ParameterSet.h>
 #include <CommandLineParser.h>
 #include <casa/Logging/LogIO.h>
 #include <casa/Logging/LogSinkInterface.h>
-#include <casa/OS/Timer.h>
 
 // Local Package includes
 #include "distributedimager/continuum/ContinuumImager.h"
@@ -62,8 +62,7 @@ int main(int argc, char *argv[])
     // thrown by either the master or worker(s) but not both.
     boost::scoped_ptr<MPIBasicComms> comms_p;
 
-    casa::Timer timer;
-    timer.mark();
+    StatReporter stats;
 
     try {
         // Initialize the logger before we use it. If a log configuraton
@@ -138,8 +137,7 @@ int main(int argc, char *argv[])
 
     comms_p.reset();
 
-    ASKAPLOG_INFO_STR(logger, "Total times - user:   " << timer.user() << " system: "
-            << timer.system() <<" real:   " << timer.real());
+    stats.logSummary();
 
     return 0;
 }

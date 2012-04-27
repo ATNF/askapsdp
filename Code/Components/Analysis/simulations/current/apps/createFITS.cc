@@ -26,19 +26,11 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
+
+// Package level header file
 #include <askap_simulations.h>
 
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
-#include <casa/Logging/LogIO.h>
-#include <askap/Log4cxxLogSink.h>
-
-#include <FITS/FITSparallel.h>
-#include <FITS/FITSfile.h>
-
-#include <Common/ParameterSet.h>
-#include <casa/OS/Timer.h>
-
+// System includes
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -46,6 +38,16 @@
 #include <map>
 #include <stdlib.h>
 #include <time.h>
+
+// ASKAPsoft includes
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+#include <askap/StatReporter.h>
+#include <casa/Logging/LogIO.h>
+#include <askap/Log4cxxLogSink.h>
+#include <FITS/FITSparallel.h>
+#include <FITS/FITSfile.h>
+#include <Common/ParameterSet.h>
 
 using namespace askap;
 using namespace askap::simulations;
@@ -79,8 +81,9 @@ int main(int argc, const char** argv)
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
         casa::LogSink::globalSink(globalSink);
-        casa::Timer timer;
-        timer.mark();
+
+        StatReporter stats;
+
         srandom(time(0));
         std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
@@ -110,7 +113,7 @@ int main(int argc, const char** argv)
 
         file.output();
 
-        ASKAPLOG_INFO_STR(logger, "Time for execution of createFITS = " << timer.real() << " sec");
+        stats.logSummary();
 
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

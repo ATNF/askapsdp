@@ -47,7 +47,7 @@
 #include "askap/AskapError.h"
 #include "askap/SignalManagerSingleton.h"
 #include "askap/SignalCounter.h"
-#include "askap/MemStatReporter.h"
+#include "askap/StatReporter.h"
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
 #include <CommandLineParser.h>
@@ -55,7 +55,6 @@
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <fitting/Params.h>
-#include <casa/OS/Timer.h>
 
 ASKAP_LOGGER(logger, ".cimager");
 
@@ -74,9 +73,7 @@ int main(int argc, const char** argv)
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
         casa::LogSink::globalSink(globalSink);
 
-        casa::Timer timer;
-
-        timer.mark();
+        StatReporter stats;
 
         // Put everything in scope to ensure that all destructors are called
         // before the final message
@@ -145,8 +142,7 @@ int main(int argc, const char** argv)
                     imager.calcNE();
                     imager.solveNE();
 
-                    ASKAPLOG_INFO_STR(logger, "user:   " << timer.user() << " system: " << timer.system()
-                                          << " real:   " << timer.real());
+                    stats.logSummary();
 
                     if (comms.isMaster()) {
                         if (sigcount.getCount() > 0) {
@@ -193,9 +189,7 @@ int main(int argc, const char** argv)
             /// This is the final step - restore the image and write it out
             imager.writeModel();
         }
-        MemStatReporter::logSummary();
-        ASKAPLOG_INFO_STR(logger, "Total times - user:   " << timer.user() << " system: " << timer.system()
-                              << " real:   " << timer.real());
+        stats.logSummary();
         ///==============================================================================
     } catch (const cmdlineparser::XParser &ex) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);

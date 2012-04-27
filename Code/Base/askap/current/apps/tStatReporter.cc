@@ -1,4 +1,4 @@
-/// @file tMemStatReporter.cc
+/// @file tStatReporter.cc
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -32,12 +32,12 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "askap/MemStatReporter.h"
+#include "askap/StatReporter.h"
 
 // Using
 using namespace askap;
 
-ASKAP_LOGGER(logger, ".tMemStatReporter");
+ASKAP_LOGGER(logger, ".tStatReporter");
 
 // main()
 int main(int argc, char *argv[])
@@ -55,7 +55,8 @@ int main(int argc, char *argv[])
         ASKAPLOG_INIT(ss.str().c_str());
     }
 
-    MemStatReporter::logSummary();
+    StatReporter stats;
+    stats.logSummary();
 
     return 0;
 }

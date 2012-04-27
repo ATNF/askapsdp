@@ -28,29 +28,26 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 
+// Package level header file
 #include <askap_analysis.h>
 
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
-#include <askap/MemStatReporter.h>
-#include <casa/Logging/LogIO.h>
-#include <askap/Log4cxxLogSink.h>
-
-#include <askapparallel/AskapParallel.h>
-#include <parallelanalysis/DuchampParallel.h>
-
-#include <duchamp/duchamp.hh>
-
-#include <Common/ParameterSet.h>
-
+// System includes
 #include <stdexcept>
 #include <iostream>
 
-#include <casa/OS/Timer.h>
+// ASKAPsoft includes
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+#include <askap/StatReporter.h>
+#include <casa/Logging/LogIO.h>
+#include <askap/Log4cxxLogSink.h>
+#include <askapparallel/AskapParallel.h>
+#include <parallelanalysis/DuchampParallel.h>
+#include <duchamp/duchamp.hh>
+#include <Common/ParameterSet.h>
 
 using std::cout;
 using std::endl;
-
 using namespace askap;
 using namespace askap::analysis;
 
@@ -58,7 +55,7 @@ ASKAP_LOGGER(logger, "cduchamp.log");
 
 // Move to Askap Util
 std::string getInputs(const std::string& key, const std::string& def, int argc,
-                      const char** argv)
+        const char** argv)
 {
     if (argc > 2) {
         for (int arg = 0; arg < (argc - 1); arg++) {
@@ -83,14 +80,14 @@ int main(int argc, const char** argv)
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
         casa::LogSink::globalSink(globalSink);
 
-        casa::Timer timer;
-        timer.mark();
+        StatReporter stats;
+
         std::string parsetFile(getInputs("-inputs", "cduchamp.in", argc, argv));
         LOFAR::ParameterSet parset(parsetFile,LOFAR::StringUtil::Compare::NOCASE);
         LOFAR::ParameterSet subset(parset.makeSubset("Cduchamp."));
         DuchampParallel duchamp(comms, subset);
         if(!comms.isParallel() || comms.isMaster())
-	  ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
+            ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         duchamp.readData();
         duchamp.setupLogfile(argc, argv);
         duchamp.gatherStats();
@@ -102,8 +99,8 @@ int main(int argc, const char** argv)
         duchamp.receiveObjects();
         duchamp.cleanup();
         duchamp.printResults();
-        MemStatReporter::logSummary();
-        ASKAPLOG_INFO_STR(logger, "Time for execution of cduchamp = " << timer.real() << " sec");
+
+        stats.logSummary();
         ///==============================================================================
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

@@ -1,4 +1,4 @@
-/// @file MemStatReporter.cc
+/// @file StatReporter.cc
 /// @brief
 ///
 /// @copyright (c) 2012 CSIRO
@@ -24,7 +24,7 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
-#include "askap/MemStatReporter.h"
+#include "askap/StatReporter.h"
 
 // System includes
 #include <sys/types.h>
@@ -36,20 +36,39 @@
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
 #include "askap/AskapUtil.h"
+#include "casa/OS/Timer.h"
 
 // Using
 using namespace askap;
 
-ASKAP_LOGGER(logger, ".MemStatReporter");
+ASKAP_LOGGER(logger, ".StatReporter");
 
-void MemStatReporter::logSummary(void)
+StatReporter::StatReporter()
+{
+    itsTimer.mark();
+}
+
+void StatReporter::logSummary(void)
+{
+    logMemorySummary();
+    logTimeSummary();
+}
+
+void StatReporter::logTimeSummary(void)
+{
+    ASKAPLOG_INFO_STR(logger, "Total times  - user: " << itsTimer.user()
+            << "  system: " << itsTimer.system()
+            << "  real: " << itsTimer.real());
+}
+
+void StatReporter::logMemorySummary(void)
 {
     // Open /proc/<pid>/status
     std::stringstream ss;
     ss << "/proc/" << int(getpid()) << "/status";
     std::ifstream file(ss.str().c_str());
     if (!file) {
-        ASKAPLOG_INFO_STR(logger, "Could not open procfs to obtain status");
+        ASKAPLOG_INFO_STR(logger, "Memory stats - Could not open procfs to obtain status");
         return;
     }
 
@@ -60,34 +79,41 @@ void MemStatReporter::logSummary(void)
         std::string token;
         file >> token;
         if (token.compare("VmPeak:") == 0) {
-            file >> token;
-            vmpeak = utility::fromString<int>(token);
-            file >> token;
-            if (token.compare("kB") != 0) {
-                ASKAPLOG_WARN_STR(logger, "Unexpected token: " << token);
-                vmpeak = -1;
-            }
+            vmpeak = parseValue(file);
             continue;
         }
         if (token.compare("VmHWM:") == 0) {
-            file >> token;
-            rsspeak = utility::fromString<int>(token);
-            file >> token;
-            if (token.compare("kB") != 0) {
-                ASKAPLOG_WARN_STR(logger, "Unexpected token: " << token);
-                rsspeak = -1;
-            }
+            rsspeak = parseValue(file);
+            continue;
         }
     }
     file.close();
 
     // Report
-    ASKAPLOG_INFO_STR(logger, "Memory stats -   PeakVM: "
-            << MemStatReporter::kbToMb(vmpeak) << "   PeakRSS: "
-            << MemStatReporter::kbToMb(rsspeak) << "");
+    ASKAPLOG_INFO_STR(logger, "Memory stats - PeakVM: "
+            << StatReporter::kbToMb(vmpeak) << "  PeakRSS: "
+            << StatReporter::kbToMb(rsspeak));
 }
 
-std::string MemStatReporter::kbToMb(int val)
+int StatReporter::parseValue(std::ifstream& file)
+{
+    int val = -1;
+    std::string token;
+    file >> token;
+    try {
+        val = utility::fromString<int>(token);
+        file >> token;
+        if (token.compare("kB") != 0) {
+            ASKAPLOG_WARN_STR(logger, "Unexpected token: " << token);
+            val = -1;
+        }
+    } catch (AskapError&) {
+        val = -1;
+    }
+    return val;
+}
+
+std::string StatReporter::kbToMb(int val)
 {
     if (val < 0) {
         return "<unknown>";

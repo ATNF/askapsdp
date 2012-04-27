@@ -42,12 +42,12 @@
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "askap/AskapUtil.h"
+#include "askap/StatReporter.h"
 #include "askap/Log4cxxLogSink.h"
 #include "boost/shared_ptr.hpp"
 #include "boost/regex.hpp"
 #include "Common/ParameterSet.h"
 #include "CommandLineParser.h"
-#include "casa/OS/Timer.h"
 #include "casa/OS/File.h"
 #include "casa/aips.h"
 #include "casa/Arrays/IPosition.h"
@@ -623,8 +623,7 @@ int main(int argc, const char** argv)
     int error = 0;
 
     try {
-        casa::Timer timer;
-        timer.mark();
+        StatReporter stats;
 
         // Command line parser
         cmdlineparser::Parser parser;
@@ -647,8 +646,7 @@ int main(int argc, const char** argv)
 
         error = split(invis, outvis, range.first, range.second, width, parset);
 
-        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: "
-                              << timer.system() << " real:   " << timer.real());
+        stats.logSummary();
     } catch (const cmdlineparser::XParser &ex) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
         ASKAPLOG_FATAL_STR(logger, "Usage: " << argv[0] << " -o output.ms inMS1 ... inMSn");

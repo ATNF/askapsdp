@@ -28,24 +28,23 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 
+// Package level header file
 #include <askap_analysis.h>
 
-#include <askap/AskapLogging.h>
-#include <askap/AskapError.h>
-#include <casa/Logging/LogIO.h>
-#include <askap/Log4cxxLogSink.h>
-
-#include <askapparallel/AskapParallel.h>
-#include <parallelanalysis/DuchampParallel.h>
-
-#include <duchamp/duchamp.hh>
-
-#include <Common/ParameterSet.h>
-
+// System includes
 #include <stdexcept>
 #include <iostream>
 
-#include <casa/OS/Timer.h>
+// ASKAPsoft includes
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+#include <askap/StatReporter.h>
+#include <casa/Logging/LogIO.h>
+#include <askap/Log4cxxLogSink.h>
+#include <askapparallel/AskapParallel.h>
+#include <parallelanalysis/DuchampParallel.h>
+#include <duchamp/duchamp.hh>
+#include <Common/ParameterSet.h>
 
 using std::cout;
 using std::endl;
@@ -101,8 +100,8 @@ int main(int argc, const char** argv)
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
         casa::LogSink::globalSink(globalSink);
 
-        casa::Timer timer;
-        timer.mark();
+        StatReporter stats;
+
         std::string parsetFile(getInputs("-inputs", "selavy.in", argc, argv));
         LOFAR::ParameterSet parset(parsetFile,LOFAR::StringUtil::Compare::NOCASE);
         LOFAR::ParameterSet subset(parset.makeSubset("Selavy."));
@@ -124,7 +123,8 @@ int main(int argc, const char** argv)
         finder.receiveObjects();
         finder.cleanup();
         finder.printResults();
-        ASKAPLOG_INFO_STR(logger, "Time for execution of selavy = " << timer.real() << " sec");
+
+        stats.logSummary();
         ///==============================================================================
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

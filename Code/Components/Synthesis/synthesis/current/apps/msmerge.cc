@@ -1,4 +1,4 @@
-/// @file msmerge2.cc
+/// @file msmerge.cc
 ///
 /// @brief
 ///
@@ -40,10 +40,10 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "askap/StatReporter.h"
 #include "askap/Log4cxxLogSink.h"
 #include "boost/shared_ptr.hpp"
 #include "CommandLineParser.h"
-#include "casa/OS/Timer.h"
 #include "casa/OS/File.h"
 #include "casa/aips.h"
 #include "casa/Quanta.h"
@@ -483,8 +483,7 @@ int main(int argc, const char** argv)
     casa::LogSink::globalSink(globalSink);
 
     try {
-        casa::Timer timer;
-        timer.mark();
+        StatReporter stats;
 
         cmdlineparser::Parser parser; // a command line parser
         // command line parameter
@@ -520,8 +519,7 @@ int main(int argc, const char** argv)
 
         merge(inNamesVec, outName.getValue()); 
 
-        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
-                << " real:   " << timer.real());
+        stats.logSummary();
         ///==============================================================================
     } catch (const cmdlineparser::XParser &ex) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);

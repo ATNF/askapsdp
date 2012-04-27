@@ -35,7 +35,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "askap/MemStatReporter.h"
+#include "askap/StatReporter.h"
 #include "askap/Log4cxxLogSink.h"
 #include "Common/ParameterSet.h"
 #include "CommandLineParser.h"
@@ -75,6 +75,8 @@ int main(int argc, char *argv[])
     casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
     casa::LogSink::globalSink(globalSink);
 
+    StatReporter stats;
+
     // Command line parser
     cmdlineparser::Parser parser;
 
@@ -101,7 +103,7 @@ int main(int argc, char *argv[])
         worker.run();
     }
 
-    MemStatReporter::logSummary();
+    stats.logSummary();
 
     return 0;
 }

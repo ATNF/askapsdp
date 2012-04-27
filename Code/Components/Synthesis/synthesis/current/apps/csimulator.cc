@@ -31,13 +31,12 @@
 #include "askap_synthesis.h"
 
 // ASKAPsoft includes
-#include <askap/MemStatReporter.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
+#include <askap/StatReporter.h>
 #include <askap/Log4cxxLogSink.h>
 #include <askapparallel/AskapParallel.h>
 #include <casa/Logging/LogIO.h>
-#include <casa/OS/Timer.h>
 #include <Common/ParameterSet.h>
 #include <CommandLineParser.h>
 
@@ -57,8 +56,7 @@ int main(int argc, const char** argv)
     askap::askapparallel::AskapParallel comms(argc, argv);
 
     try {
-        casa::Timer timer;
-        timer.mark();
+        StatReporter stats;
 
         // Ensure that CASA log messages are captured
         casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
@@ -94,9 +92,7 @@ int main(int argc, const char** argv)
             sim.init();
             sim.simulate();
         }
-        MemStatReporter::logSummary();
-        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user()
-                << " system: " << timer.system() << " real:   " << timer.real());
+        stats.logSummary();
         ///==============================================================================
     } catch (const cmdlineparser::XParser &ex) {
         ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
