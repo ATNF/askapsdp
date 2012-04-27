@@ -45,5 +45,11 @@ DO_CONTINUUM_DIRTY=true
 # Do Continuum Imaging - Clean (true or false)
 DO_CONTINUUM_CLEAN=true
 
+# Do Continuum-cube Imaging - Dirty (true or false)
+DO_CONTINUUM_CUBE_DIRTY=true
+
+# Do Continuum-cube Imaging - Clean (true or false)
+DO_CONTINUUM_CUBE_CLEAN=true
+
 # Do Spectral Line Imaging (true or false)
 DO_SPECTRAL_LINE=false

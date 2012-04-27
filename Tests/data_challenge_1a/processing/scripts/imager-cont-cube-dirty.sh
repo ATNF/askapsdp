@@ -1,22 +1,22 @@
 ##############################################################################
-# Continuum Cube Imaging (Clean)
+# Continuum Cube Imaging (Dirty)
 ##############################################################################
 
-imagebase=i.cube.clean
+imagebase=i.cube.dirty
 
-cat > cimager-cont-cube-clean.qsub << EOF
+cat > cimager-cont-cube-dirty.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l select=1:ncpus=1:mem=6GB:mpiprocs=1
 #PBS -l walltime=12:00:00
 ##PBS -M first.last@csiro.au
-#PBS -N contcube-clean
+#PBS -N contcube-dirty
 #PBS -m a
 #PBS -j oe
 
 ###########
 # To run:
-# qsub -J 1-304 cimager-cont-cube-clean.qsub
+# qsub -J 1-304 cimager-cont-cube-dirty.qsub
 #
 ###########
 
@@ -25,7 +25,7 @@ cd \${PBS_O_WORKDIR}
 imageName="image.${imagebase}_ch\${PBS_ARRAY_INDEX}"
 ms=MS/coarse_chan_\`expr \${PBS_ARRAY_INDEX} - 1\`.ms
 
-parset=config/cimager-cont-cube-clean-\${PBS_JOBID}.in
+parset=config/cimager-cont-cube-dirty-\${PBS_JOBID}.in
 cat > $parset << EOF_INNER
 Cimager.dataset                                 = \$ms
 
@@ -55,22 +55,12 @@ Cimager.gridder.AWProject.variablesupport       = true
 Cimager.gridder.AWProject.offsetsupport         = true
 Cimager.gridder.AWProject.frequencydependent    = true
 #
-Cimager.solver                                  = Clean
-Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
-Cimager.solver.Clean.niter                      = 1000
-Cimager.solver.Clean.gain                       = 0.5
-Cimager.solver.Clean.scales                     = [0, 3, 10, 30]
-Cimager.solver.Clean.verbose                    = False
-Cimager.solver.Clean.psfwidth                   = 1024
-Cimager.solver.Clean.logevery                   = 100
-Cimager.threshold.minorcycle                    = [10%, 10mJy]
-Cimager.threshold.majorcycle                    = 20mJy
-Cimager.ncycles                                 = 3
+Cimager.solver                                  = Dirty
+Cimager.solver.Dirty.tolerance                  = 0.1
+Cimager.solver.Dirty.verbose                    = True
+Cimager.ncycles                                 = 0
 #
-Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
-Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
-Cimager.preconditioner.Wiener.robustness        = 0.0
-Cimager.preconditioner.Wiener.taper             = 100
+Cimager.preconditioner.Names                    = None
 #
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit
@@ -84,14 +74,14 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-log=log/cimager-cont-cube-clean-\${PBS_JOBID}.log
+log=log/cimager-cont-cube-dirty-\${PBS_JOBID}.log
 
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \$parset > \$log
 
 EOF
 
 if [ "${DRYRUN}" == "false" ]; then
-    echo "Continuum Cube Imager (Clean): Submitting task"
+    echo "Continuum Cube Imager (Dirty): Submitting task"
 
     # Add dependencies
     unset DEPENDS
@@ -105,16 +95,15 @@ if [ "${DRYRUN}" == "false" ]; then
 
     # Submit the jobs
     if [ "${DEPENDS}" ]; then
-        QSUB_CONTCUBECLEAN=`${QSUB_CMD} ${DEPENDS} -J1-304 cimager-cont-cube-clean.qsub`
+        QSUB_CONTCUBEDIRTY=`${QSUB_CMD} ${DEPENDS} -J1-304 cimager-cont-cube-dirty.qsub`
     else
-        QSUB_CONTCUBECLEAN=`${QSUB_CMD} -J1-304 cimager-cont-cube-clean.qsub`
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCUBECLEAN}"
+        QSUB_CONTCUBEDIRTY=`${QSUB_CMD} -J1-304 cimager-cont-cube-dirty.qsub`
+        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCUBEDIRTY}"
     fi
     unset DEPENDS
-    DEPENDS="-W depend=afterok:${QSUB_CONTCUBECLEAN}"
+    DEPENDS="-W depend=afterok:${QSUB_CONTCUBEDIRTY}"
 
-### Run makecube using the make-spectral-cube.qsub script
-
+    # Run makecube using the make-spectral-cube.qsub script
     DODELETE=true
     NUMCH=304
 
@@ -131,30 +120,10 @@ if [ "${DRYRUN}" == "false" ]; then
     IMAGEBASE=psf.${imagebase}
     OUTPUT=psf.${imagebase}
     QSUB_MCPSF=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=psf.image.${imagebase}
-    OUTPUT=psf.image.${imagebase}
-    QSUB_MCPSFIM=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=mask.${imagebase}
-    OUTPUT=mask.${imagebase}
-    QSUB_MCMASK=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=residual.${imagebase}
-    OUTPUT=residual.${imagebase}
-    QSUB_MCRESID=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=sensitivity.${imagebase}
-    OUTPUT=sensitivity.${imagebase}
-    QSUB_MCSENS=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=weights.${imagebase}
-    OUTPUT=weights.${imagebase}
-    QSUB_MCWGTS=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
+        
 
 else
-    echo "Continuum Cube Imager (Clean): Dry Run Only"
+    echo "Continuum Cube Imager (Dirty): Dry Run Only"
 fi
 
 

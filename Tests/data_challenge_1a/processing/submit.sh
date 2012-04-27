@@ -101,6 +101,14 @@ if [ $DO_CONTINUUM_CLEAN == "true" ]; then
 . ${SCRIPTDIR}/imager-cont-clean.sh
 fi
 
+if [ $DO_CONTINUUM_CUBE_DIRTY == "true" ]; then
+. ${SCRIPTDIR}/imager-cont-cube-dirty.sh
+fi
+
+if [ $DO_CONTINUUM_CUBE_CLEAN == "true" ]; then
+. ${SCRIPTDIR}/imager-cont-cube-clean.sh
+fi
+
 if [ $DO_SPECTRAL_LINE == "true" ]; then
 . ${SCRIPTDIR}/imager-spectral-line.sh
 fi

@@ -14,7 +14,10 @@ cat > cimager-cont-dirty.qsub << EOF
 
 cd \${PBS_O_WORKDIR}
 
-cat > ${CONFIGDIR}/cimager-cont-dirty.in << EOF_INNER
+parset=${CONFIGDIR}/cimager-cont-dirty-\${PBS_JOBID}.in
+logfile=${LOGDIR}/cimager-cont-dirty-\${PBS_JOBID}.log
+
+cat > \${parset} << EOF_INNER
 Cimager.dataset                                 = MS/coarse_chan_%w.ms
 
 Cimager.Images.Names                            = [image.i.dirty]
@@ -44,7 +47,11 @@ Cimager.solver.Dirty.verbose                    = True
 Cimager.ncycles                                 = 0
 
 Cimager.preconditioner.Names                    = None
-
+#
+Cimager.restore                                 = true
+Cimager.restore.beam                            = fit
+#Cimager.restore.equalise                        = True
+#
 # Apply calibration
 Cimager.calibrate                               = ${DO_CALIBRATION}
 Cimager.calibaccess                             = table
@@ -53,7 +60,7 @@ Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
 
-mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ${CONFIGDIR}/cimager-cont-dirty.in > ${LOGDIR}/cimager-cont-dirty.log
+mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \${parset} > \${logfile}
 EOF
 
 if [ "${DRYRUN}" == "false" ]; then
