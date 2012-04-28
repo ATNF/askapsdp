@@ -17,7 +17,7 @@ cd \${PBS_O_WORKDIR}
 parset=${CONFIGDIR}/cimager-cont-clean-\${PBS_JOBID}.in
 logfile=${LOGDIR}/cimager-cont-clean-\${PBS_JOBID}.log
 
-cat > $parset << EOF_INNER
+cat > \$parset << EOF_INNER
 Cimager.dataset                                 = MS/coarse_chan_%w.ms
 
 Cimager.Images.Names                            = [image.i.clean]

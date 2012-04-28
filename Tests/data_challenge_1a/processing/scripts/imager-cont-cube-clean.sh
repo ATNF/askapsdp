@@ -26,16 +26,16 @@ imageName="image.${imagebase}_ch\${PBS_ARRAY_INDEX}"
 ms=MS/coarse_chan_\`expr \${PBS_ARRAY_INDEX} - 1\`.ms
 
 parset=config/cimager-cont-cube-clean-\${PBS_JOBID}.in
-cat > $parset << EOF_INNER
+cat > \$parset << EOF_INNER
 Cimager.dataset                                 = \$ms
 
 Cimager.Images.Names                            = [\${imageName}]
 Cimager.Images.shape                            = [3328,3328]
 Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
-Cimager.Images.${imageName}.frequency           = [1.420e9,1.420e9]
-Cimager.Images.${imageName}.nchan               = 1
-Cimager.Images.${imageName}.direction           = [12h30m00.00, -45.00.00.00, J2000]
-Cimager.Images.${imageName}.nterms              = 1
+Cimager.Images.\${imageName}.frequency           = [1.420e9,1.420e9]
+Cimager.Images.\${imageName}.nchan               = 1
+Cimager.Images.\${imageName}.direction           = [12h30m00.00, -45.00.00.00, J2000]
+Cimager.Images.\${imageName}.nterms              = 1
 #Cimager.Images.writeAtMajorCycle                = true
 #
 #Cimager.visweights                              = MFS
