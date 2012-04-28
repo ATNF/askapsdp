@@ -98,7 +98,14 @@ if [ $DO_CONTINUUM_DIRTY == "true" ]; then
 fi
 
 if [ $DO_CONTINUUM_CLEAN == "true" ]; then
-. ${SCRIPTDIR}/imager-cont-clean.sh
+    if [ $DO_ANALYSIS == "true" ]; then
+	cp ${SCRIPTDIR}/analysis.qsub .
+    fi
+    . ${SCRIPTDIR}/imager-cont-clean.sh
+fi
+
+if [ $DO_CONTINUUM_CUBE_DIRTY == "true" -o $DO_CONTINUUM_CUBE_CLEAN == "true" ]; then
+    cp ${SCRIPTDIR}/make-spectral-cube.qsub .
 fi
 
 if [ $DO_CONTINUUM_CUBE_DIRTY == "true" ]; then
