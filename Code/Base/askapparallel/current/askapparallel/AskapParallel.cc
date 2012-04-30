@@ -108,6 +108,12 @@ AskapParallel::AskapParallel(int argc, const char** argv)
     }
 
     ASKAPLOG_INFO_STR(logger, ASKAP_PACKAGE_VERSION);
+#ifdef _OPENMP
+    ASKAPLOG_INFO_STR(logger, "Compiled with OpenMP support");
+#else    
+    ASKAPLOG_INFO_STR(logger, "Compiled without OpenMP support");
+#endif
+
 }
 
 AskapParallel::~AskapParallel()

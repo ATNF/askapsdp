@@ -11,6 +11,13 @@
 #ifndef CACHED_ACCESSOR_FIELD_H
 #define CACHED_ACCESSOR_FIELD_H
 
+#include <askap/AskapError.h>
+
+// boost includes
+#ifdef _OPENMP
+#include <boost/thread/shared_mutex.hpp>
+#endif
+
 namespace askap {
 
 namespace accessors {
@@ -23,9 +30,24 @@ namespace accessors {
 /// @li T is a type of the field
 /// @ingroup dataaccess_hlp
 template<typename T>
-struct CachedAccessorField {
+struct CachedAccessorField  {
   /// @brief initialize the class, set the flag that reading is required
   CachedAccessorField() : itsChangedFlag(true), itsFlushFlag(false) {}
+  
+  /// @brief copy constructor
+  /// @param[in] other an object to copy from
+  /// @note reference semantics for casa arrays, but we're not copying this class where T is a casa array type. 
+#ifdef _OPENMP
+  CachedAccessorField(const CachedAccessorField<T> &other);
+#else
+  CachedAccessorField(const CachedAccessorField<T> &other) : itsChangedFlag(other.itsChangedFlag),
+        itsFlushFlag(other.itsFlushFlag), itsValue(other.itsValue) {}
+#endif
+        
+  /// @brief assignment operator
+  /// @param[in] other an object to copy from
+  /// @note reference semantics for casa arrays, but we're not using this method where T is a casa array type. 
+  CachedAccessorField<T>& operator=(const CachedAccessorField<T> &other);
   
   /// @brief access the data, read on-demand
   /// @details On the first request and whenever is necessary, this method reads the data using 
@@ -103,7 +125,12 @@ struct CachedAccessorField {
   
   /// @brief notify that this field had been synchronised
   void inline flushed() const throw() { itsFlushFlag = false; }
-  
+protected:
+  /// @brief helper method to check if the cache needs an update
+  /// @details This method has been introduced to provide better encapsulation of
+  /// the synchronisation code if thread safety is required
+  /// @return true, if the cache needs update
+  bool isChanged() const;
 private:
   /// @brief true, if the field needs reading
   mutable bool itsChangedFlag;
@@ -111,8 +138,13 @@ private:
   /// @brief true, if there was a write operation
   mutable bool itsFlushFlag;
 
-  /// cached buffer
+  /// @brief cached buffer
   mutable T itsValue;
+  
+#ifdef _OPENMP
+  /// @brief mutex for synchronisation
+  mutable boost::shared_mutex itsMutex;
+#endif
 };
 
 } // namespace accessors
