@@ -103,27 +103,29 @@ if [ "${DRYRUN}" == "false" ]; then
     unset DEPENDS
     DEPENDS="-W depend=afterok:${QSUB_CONTCUBEDIRTY}"
 
-    # Run makecube using the make-spectral-cube.qsub script
-    DODELETE=true
-    NUMCH=304
-
-    ISRESTORED=true
-    IMAGEBASE=image.${imagebase}
-    OUTPUT=image.${imagebase}.restored
-    QSUB_MCREST=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-
-    ISRESTORED=false
-    IMAGEBASE=image.${imagebase}
-    OUTPUT=image.${imagebase}
-    QSUB_MCIM=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=psf.${imagebase}
-    OUTPUT=psf.${imagebase}
-    QSUB_MCPSF=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-        
-
 else
     echo "Continuum Cube Imager (Dirty): Dry Run Only"
 fi
 
+
+# Run makecube using the make-spectral-cube.qsub script
+DODELETE=true
+NUMCH=304
+
+ISRESTORED=true
+IMAGEBASE=image.${imagebase}
+OUTPUTCUBE=image.${imagebase}.restored
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCREST=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
+
+ISRESTORED=false
+IMAGEBASE=image.${imagebase}
+OUTPUTCUBE=image.${imagebase}
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCIM=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
+
+IMAGEBASE=psf.${imagebase}
+OUTPUTCUBE=psf.${imagebase}
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCPSF=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 

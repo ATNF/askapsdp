@@ -100,14 +100,17 @@ if [ "${DRYRUN}" == "false" ]; then
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCLEAN}"
     fi
 
-    # Run the analysis script
-    if [ $DO_ANALYSIS == true ]; then
-	unset DEPENDS
-	DEPENDS="-W depend=afterok:$QSUB_CONTCLEAN"
-	CONTINUUMIMAGE=image.i.clean.restored
-	QSUB_ANALYSIS=`${QSUB_CMD} ${DEPENDS} analysis.qsub`
-    fi
-
 else
     echo "Continuum Imager (Clean): Dry Run Only"
 fi
+
+
+# Run the analysis script
+if [ $DO_ANALYSIS == true ]; then
+    unset DEPENDS
+    DEPENDS="-W depend=afterok:$QSUB_CONTCLEAN"
+    CONTINUUMIMAGE=image.i.clean.restored
+    . ${SCRIPTDIR}/analysis.sh
+#    QSUB_ANALYSIS=`${QSUB_CMD} ${DEPENDS} analysis.qsub`
+fi
+

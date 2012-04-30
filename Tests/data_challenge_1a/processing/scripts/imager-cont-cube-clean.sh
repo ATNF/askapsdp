@@ -111,50 +111,56 @@ if [ "${DRYRUN}" == "false" ]; then
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCUBECLEAN}"
     fi
     unset DEPENDS
-    DEPENDS="-W depend=afterok:${QSUB_CONTCUBECLEAN}"
-
-### Run makecube using the make-spectral-cube.qsub script
-
-    DODELETE=true
-    NUMCH=304
-
-    ISRESTORED=true
-    IMAGEBASE=image.${imagebase}
-    OUTPUT=image.${imagebase}.restored
-    QSUB_MCREST=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-
-    ISRESTORED=false
-    IMAGEBASE=image.${imagebase}
-    OUTPUT=image.${imagebase}
-    QSUB_MCIM=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=psf.${imagebase}
-    OUTPUT=psf.${imagebase}
-    QSUB_MCPSF=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=psf.image.${imagebase}
-    OUTPUT=psf.image.${imagebase}
-    QSUB_MCPSFIM=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=mask.${imagebase}
-    OUTPUT=mask.${imagebase}
-    QSUB_MCMASK=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=residual.${imagebase}
-    OUTPUT=residual.${imagebase}
-    QSUB_MCRESID=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=sensitivity.${imagebase}
-    OUTPUT=sensitivity.${imagebase}
-    QSUB_MCSENS=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
-    IMAGEBASE=weights.${imagebase}
-    OUTPUT=weights.${imagebase}
-    QSUB_MCWGTS=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
-    
+    DEPENDS="-W depend=afterok:${QSUB_CONTCUBECLEAN}"    
 
 else
     echo "Continuum Cube Imager (Clean): Dry Run Only"
 fi
 
+### Run makecube using the make-spectral-cube.qsub script
+
+DODELETE=true
+NUMCH=304
+
+ISRESTORED=true
+IMAGEBASE=image.${imagebase}
+OUTPUTCUBE=image.${imagebase}.restored
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCREST=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
+
+ISRESTORED=false
+IMAGEBASE=image.${imagebase}
+OUTPUTCUBE=image.${imagebase}
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCIM=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
+
+IMAGEBASE=psf.${imagebase}
+OUTPUTCUBE=psf.${imagebase}
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCPSF=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
+
+IMAGEBASE=psf.image.${imagebase}
+OUTPUTCUBE=psf.image.${imagebase}
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCPSFIM=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
+
+IMAGEBASE=mask.${imagebase}
+OUTPUTCUBE=mask.${imagebase}
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCMASK=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
+
+IMAGEBASE=residual.${imagebase}
+OUTPUTCUBE=residual.${imagebase}
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCRESID=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
+
+IMAGEBASE=sensitivity.${imagebase}
+OUTPUTCUBE=sensitivity.${imagebase}
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCSENS=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
+
+IMAGEBASE=weights.${imagebase}
+OUTPUTCUBE=weights.${imagebase}
+. ${SCRIPTDIR}/make-spectral-cube.sh
+#    QSUB_MCWGTS=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 
