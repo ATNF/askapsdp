@@ -31,12 +31,14 @@
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
+#include <libgen.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "askap/Log4cxxLogSink.h"
 #include "askap/StatReporter.h"
+#include "boost/regex.hpp"
 #include "casa/Logging/LogIO.h"
 #include "casa/Logging/LogSinkInterface.h"
 #include "casa/Arrays/Array.h"
@@ -46,27 +48,88 @@
 #include "images/Images/PagedImage.h"
 
 using namespace askap;
+using namespace askap::utility;
 
 ASKAP_LOGGER(logger, ".makecube");
 
-// Creates the filename given the prefix and channel number
-std::string getName(const std::string& base, int chan)
+// Prints usage information to stderr
+void usage(const std::string& basename)
 {
-    std::stringstream name;
-    name << base << chan;
-    return name.str();
+    std::cerr << "usage:   " << basename
+        << " <input filename pattern> <output cube name>" << std::endl;
+    std::cerr << "example: " << basename
+        << " \"image.i.[0..7].spectral\" spectral.i.cube" << std::endl;
+}
+
+/// Expands the string such as: "image.i.[0..15].spectral" into a vector of
+/// strings from: "image.i.0.spectral" to "image.i.15.spectral"
+///
+/// @param[in] pattern  a string containing the pattern of the image filesnames.
+///                     See the description for an example of this pattern.
+/// @return A vector of filenames, that is, the expansion of the input pattern.
+/// @throw AskapError   If the input pattern is inavlid.
+std::vector<std::string> expandPattern(const std::string& pattern)
+{
+    // Find the prefix (i.e. "image.i.") in the above example
+    const size_t openBracketPos = pattern.find_first_of("[");
+    if (openBracketPos == string::npos) {
+        ASKAPTHROW(AskapError, "Could not find [ in valid range expression");
+    }
+    const std::string prefix = pattern.substr(0, openBracketPos);
+
+    // Find the suffix (i.e. ".spectral") in the above example
+    const size_t closeBracketPos = pattern.find_first_of("]");
+    if (closeBracketPos == string::npos) {
+        ASKAPTHROW(AskapError, "Could not find ] in valid range expression");
+    }
+    const std::string suffix = pattern.substr(closeBracketPos + 1, pattern.length());
+
+    // Find the [n..n] pattern
+    const boost::regex expr(".*\\[([\\d]+)\\.\\.([\\d]+)\\].*");
+
+    boost::smatch what;
+    int begin = -1;
+    int end = -1;
+
+    if (regex_match(pattern, what, expr)) {
+        begin = fromString<int>(what[1]);
+        end = fromString<int>(what[2]);
+    } else {
+        ASKAPTHROW(AskapError, "Could not find range expression");
+    }
+
+    std::vector<std::string> filenames;
+    for (int i = begin; i <= end; ++i) {
+        std::stringstream ss;
+        ss << prefix << i << suffix;
+        filenames.push_back(ss.str());
+    }
+
+    return filenames;
+}
+
+bool compatibleCoordinates(const casa::CoordinateSystem& c1,
+                           const casa::CoordinateSystem& c2)
+{
+    return ((c1.nCoordinates() == c2.nCoordinates())
+             && c1.type() == c2.type()
+             && c1.nPixelAxes() == c2.nPixelAxes()
+             && c1.nWorldAxes() == c2.nWorldAxes()
+             && c1.findCoordinate(casa::Coordinate::SPECTRAL) == c2.findCoordinate(casa::Coordinate::SPECTRAL)
+             && c1.findCoordinate(casa::Coordinate::STOKES) == c2.findCoordinate(casa::Coordinate::STOKES)
+             && c1.findCoordinate(casa::Coordinate::DIRECTION) == c2.findCoordinate(casa::Coordinate::DIRECTION));
 }
 
 void assertValidCoordinates(const casa::CoordinateSystem& csys)
 {
     const int whichSpectral = csys.findCoordinate(casa::Coordinate::SPECTRAL);
     ASKAPCHECK(whichSpectral > -1,
-            "No spectral coordinate present in the coordinate system of the first image.");
+               "No spectral coordinate present in the coordinate system of the first image.");
 
     const casa::Vector<casa::Int> axesSpectral = csys.pixelAxes(whichSpectral);
-    ASKAPCHECK(axesSpectral.nelements() == 1, "Spectral axis "<< whichSpectral
-            << " is expected to correspond to just one pixel axes, you have "
-            << axesSpectral);
+    ASKAPCHECK(axesSpectral.nelements() == 1, "Spectral axis " << whichSpectral
+                   << " is expected to correspond to just one pixel axes, you have "
+                   << axesSpectral);
 }
 
 double getChanFreq(const casa::CoordinateSystem& csys)
@@ -82,14 +145,14 @@ double getChanFreq(const casa::CoordinateSystem& csys)
 }
 
 double getFreqIncrement(const casa::CoordinateSystem& c1,
-        const casa::CoordinateSystem& c2)
+                        const casa::CoordinateSystem& c2)
 {
     return getChanFreq(c2) - getChanFreq(c1);
 }
 
 casa::CoordinateSystem makeCoordinates(const casa::CoordinateSystem& c1,
-        const casa::CoordinateSystem& c2,
-        const casa::IPosition& refShape)
+                                       const casa::CoordinateSystem& c2,
+                                       const casa::IPosition& refShape)
 {
     assertValidCoordinates(c1);
     assertValidCoordinates(c2);
@@ -106,6 +169,7 @@ casa::CoordinateSystem makeCoordinates(const casa::CoordinateSystem& c1,
 
     // Build the coordinate system
     casa::CoordinateSystem csys;
+
     for (casa::uInt axis = 0; axis < c1.nCoordinates(); ++axis) {
         if (c1.type(axis) != casa::Coordinate::SPECTRAL) {
             csys.addCoordinate(c1.coordinate(axis));
@@ -113,15 +177,29 @@ casa::CoordinateSystem makeCoordinates(const casa::CoordinateSystem& c1,
             csys.addCoordinate(freq);
         }
     }
+
     return csys;
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc != 5) {
-        std::cerr << "usage: " << argv[0]
-            << " <image base name> <range begin> <range end> <output cube name>"
-            << std::endl;
+    // Ensure correct number of args passed
+    if (argc != 3) {
+        usage(basename(argv[0]));
+        return 1;
+    }
+
+    // Convert the input filename pattern into a vector of filenames
+    std::vector<std::string> inputnames;
+    try {
+        inputnames = expandPattern(std::string(argv[1]));
+    } catch (AskapError& e) {
+        usage(basename(argv[0]));
+        return 1;
+    }
+
+    if (inputnames.size() < 2) {
+        std::cerr << "Error: Insufficient input files" << std::endl;
         return 1;
     }
 
@@ -143,53 +221,47 @@ int main(int argc, char *argv[])
 
     StatReporter stats;
 
-    // Parameters
-    const std::string imageBase(argv[1]);
-    const int rangeBegin = atoi(argv[2]);
-    const int rangeEnd = atoi(argv[3]);
-    const int nChan = rangeEnd - rangeBegin + 1;
-    const std::string name(argv[4]);
-
-    // Name of first image. This image is used to get the coordinate system
-    // and the dimensions of the input images. We assume that all these images
-    // have the same coordinate systems and dimensions, although that may not
-    // be correct
-    const casa::PagedImage<float> refImage(getName(imageBase, rangeBegin));
+    // Get reference data. This will be used to construct the cube, and later
+    // verified to be consistant in the rest of the images
+    const casa::PagedImage<float> refImage(inputnames[0]);
     const casa::IPosition refShape = refImage.shape();
-    if (refShape(0) != refShape(1)) {
-        ASKAPLOG_INFO_STR(logger, "Error: Input images must be square in i & j dimensions");
-        return 1;
-    }
-    const int xyDims = refShape(0);
-    const int nStokes = refShape(2);
+    const int nChan = inputnames.size();
+    const std::string cubename(argv[2]);
     const casa::CoordinateSystem refCoordinates = refImage.coordinates();
-
-    const casa::PagedImage<float> secondImage(getName(imageBase, rangeBegin + 1));
-    const casa::CoordinateSystem secondCoordinates = secondImage.coordinates();
-
-
     const casa::Unit refUnits = refImage.units();
-    const casa::ImageInfo refImageInfo = refImage.imageInfo();
-    const casa::CoordinateSystem newCsys = makeCoordinates(refImage.coordinates(),
-            secondImage.coordinates(), refShape);
+
+    // Coordinates from the second image are needed to work out the
+    // frequency increment
+    casa::CoordinateSystem secondCoordinates;
+    {
+        const casa::PagedImage<float> secondImage(inputnames[1]);
+        secondCoordinates = secondImage.coordinates();
+    }
 
     // Create new image cube
-    const casa::IPosition cubeShape(4, xyDims, xyDims, nStokes, nChan);
+    const casa::CoordinateSystem newCsys = makeCoordinates(refCoordinates,
+                                           secondCoordinates, refShape);
+    const casa::IPosition cubeShape(4, refShape(0), refShape(1), refShape(2), nChan);
+    const double size = static_cast<double>(cubeShape.product()) * sizeof(float);
+    ASKAPLOG_INFO_STR(logger, "Creating image cube of size approximatly " << std::setprecision(2)
+                          << (size / 1024.0 / 1024.0 / 1024.0) << "GB. This may take a few minutes.");
 
-    const double size = static_cast<double>(xyDims) * xyDims * nStokes * nChan * sizeof(float);
-    ASKAPLOG_INFO_STR(logger, "Creating image cube of size ~" << std::setprecision(2)
-            << (size / 1024.0 / 1024.0 / 1024.0) << "GB. This may take a few minutes.");
-
-    casa::PagedImage<float> cube(casa::TiledShape(cubeShape), newCsys, name);
-    cube.set(0.0);
+    casa::PagedImage<float> cube(casa::TiledShape(cubeShape), newCsys, cubename);
     cube.setUnits(refUnits);
-    cube.setImageInfo(refImageInfo);
+
+    // Get and set the image info (specifically restoring beam) from the image
+    // at the midpoint. The restoring beam is frequency dependent however the
+    // ImageInfo only supports a single value. To minimise error, we thus
+    // select the midpoint.
+    {
+        casa::PagedImage<float> midImage(inputnames[inputnames.size() / 2]);
+        cube.setImageInfo(midImage.imageInfo());
+    }
 
     // Open source images and write the slices into the cube
-    for (int i = 0; i <= (rangeEnd - rangeBegin); ++i) {
-        std::string name = getName(imageBase, i + rangeBegin);
-        ASKAPLOG_INFO_STR(logger, "Adding slice from image " << name);
-        casa::PagedImage<float> img(name);
+    for (size_t i = 0; i < inputnames.size(); ++i) {
+        ASKAPLOG_INFO_STR(logger, "Adding slice from image " << inputnames[i]);
+        casa::PagedImage<float> img(inputnames[i]);
 
         // Ensure shape is the same
         if (img.shape() != refShape) {
@@ -198,12 +270,11 @@ int main(int argc, char *argv[])
         }
 
         // Ensure coordinate system is the same
-        /*
-           if (img.coordinates() != refCoordinates) {
-           ASKAPLOG_ERROR_STR(logger, "Error: Input images must all have the same coordinate system");
-           return 1;
-           }
-           */
+        if (!compatibleCoordinates(img.coordinates(), refCoordinates)) {
+            ASKAPLOG_ERROR_STR(logger,
+                               "Error: Input images must all have compatible same coordinate systems");
+            return 1;
+        }
 
         // Ensure units are the same
         if (img.units() != refUnits) {
