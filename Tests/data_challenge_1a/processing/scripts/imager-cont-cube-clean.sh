@@ -16,14 +16,18 @@ cat > cimager-cont-cube-clean.qsub << EOF
 
 ###########
 # To run:
-# qsub -J 1-304 cimager-cont-cube-clean.qsub
+# qsub -J 0-303 cimager-cont-cube-clean.qsub
 #
 ###########
 
 cd \${PBS_O_WORKDIR}
 
 imageName="image.${imagebase}_ch\${PBS_ARRAY_INDEX}"
-ms=MS/coarse_chan_\`expr \${PBS_ARRAY_INDEX} - 1\`.ms
+ms=MS/coarse_chan_\${PBS_ARRAY_INDEX}.ms
+
+basefreq=1.420e9
+dfreq=1.e6
+freq=\`echo \$basefreq \$dfreq \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",$1-$2*$3}'\`
 
 parset=config/cimager-cont-cube-clean-\${PBS_JOBID}.in
 cat > \$parset << EOF_INNER
@@ -32,7 +36,7 @@ Cimager.dataset                                 = \$ms
 Cimager.Images.Names                            = [\${imageName}]
 Cimager.Images.shape                            = [3328,3328]
 Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
-Cimager.Images.\${imageName}.frequency           = [1.420e9,1.420e9]
+Cimager.Images.\${imageName}.frequency           = [\${freq},\${freq}]
 Cimager.Images.\${imageName}.nchan               = 1
 Cimager.Images.\${imageName}.direction           = [12h30m00.00, -45.00.00.00, J2000]
 Cimager.Images.\${imageName}.nterms              = 1
@@ -105,9 +109,9 @@ if [ "${DRYRUN}" == "false" ]; then
 
     # Submit the jobs
     if [ "${DEPENDS}" ]; then
-        QSUB_CONTCUBECLEAN=`${QSUB_CMD} ${DEPENDS} -J1-304 cimager-cont-cube-clean.qsub`
+        QSUB_CONTCUBECLEAN=`${QSUB_CMD} ${DEPENDS} -J0-303 cimager-cont-cube-clean.qsub`
     else
-        QSUB_CONTCUBECLEAN=`${QSUB_CMD} -J1-304 cimager-cont-cube-clean.qsub`
+        QSUB_CONTCUBECLEAN=`${QSUB_CMD} -J0-303 cimager-cont-cube-clean.qsub`
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCUBECLEAN}"
     fi
     unset DEPENDS
@@ -120,47 +124,40 @@ fi
 ### Run makecube using the make-spectral-cube.qsub script
 
 DODELETE=true
-NUMCH=304
+FIRSTCH=0
+FINALCH=303
 
-ISRESTORED=true
-IMAGEBASE=image.${imagebase}
+IMAGEPREFIX="image.${imagebase}_ch"
+IMAGESUFFIX=".restored"
 OUTPUTCUBE=image.${imagebase}.restored
 . ${SCRIPTDIR}/make-spectral-cube.sh
-#    QSUB_MCREST=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 
-ISRESTORED=false
-IMAGEBASE=image.${imagebase}
+IMAGESUFFIX=""
+IMAGEPREFIX="image.${imagebase}_ch"
 OUTPUTCUBE=image.${imagebase}
 . ${SCRIPTDIR}/make-spectral-cube.sh
-#    QSUB_MCIM=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 
-IMAGEBASE=psf.${imagebase}
+IMAGEPREFIX="psf.${imagebase}_ch"
 OUTPUTCUBE=psf.${imagebase}
 . ${SCRIPTDIR}/make-spectral-cube.sh
-#    QSUB_MCPSF=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 
-IMAGEBASE=psf.image.${imagebase}
+IMAGEPREFIX="psf.image.${imagebase}_ch"
 OUTPUTCUBE=psf.image.${imagebase}
 . ${SCRIPTDIR}/make-spectral-cube.sh
-#    QSUB_MCPSFIM=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 
-IMAGEBASE=mask.${imagebase}
+IMAGEPREFIX="mask.${imagebase}_ch"
 OUTPUTCUBE=mask.${imagebase}
 . ${SCRIPTDIR}/make-spectral-cube.sh
-#    QSUB_MCMASK=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 
-IMAGEBASE=residual.${imagebase}
+IMAGEPREFIX="residual.${imagebase}_ch"
 OUTPUTCUBE=residual.${imagebase}
 . ${SCRIPTDIR}/make-spectral-cube.sh
-#    QSUB_MCRESID=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 
-IMAGEBASE=sensitivity.${imagebase}
+IMAGEPREFIX="sensitivity.${imagebase}_ch"
 OUTPUTCUBE=sensitivity.${imagebase}
 . ${SCRIPTDIR}/make-spectral-cube.sh
-#    QSUB_MCSENS=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 
-IMAGEBASE=weights.${imagebase}
+IMAGEPREFIX="weights.${imagebase}_ch"
 OUTPUTCUBE=weights.${imagebase}
 . ${SCRIPTDIR}/make-spectral-cube.sh
-#    QSUB_MCWGTS=`${QSUB_CMD} ${DEPENDS} make-spectral-cube.qsub`
 

@@ -41,7 +41,10 @@ cd \${PBS_O_WORKDIR}/${SL_WORK_DIR}
 
 CHAN=\$((\${PBS_ARRAY_INDEX} + 1))
 
-cat > ../${CONFIGDIR}/mssplit_fine_\${PBS_ARRAY_INDEX}.in << EOF_INNER
+MSSPLITPARSET=../${CONFIGDIR}/mssplit_fine_\${PBS_ARRAY_INDEX}.in
+CIMAGERPARSET=../${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in
+
+cat > \${MSSPLITPARSET} << EOF_INNER
 # Input measurement set
 # Default: <no default>
 vis         = ../${INPUT_MS}
@@ -61,13 +64,17 @@ channel     = \${CHAN}
 width       = 1
 EOF_INNER
 
-cat > ../${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in << EOF_INNER
+basefreq=1.421e9
+dfreq=-18.5185185e3
+freq=\`echo \${basefreq} \${dfreq} \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",$1+$2*$3}'\`
+
+cat > \${CIMAGERPARSET} << EOF_INNER
 Cimager.dataset                                 = MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
 
 Cimager.Images.Names                            = [image.i.spectral.\${PBS_ARRAY_INDEX}]
 Cimager.Images.shape                            = [3328,3328]
 Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
-Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.frequency  = [1.420e9,1.420e9]
+Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.frequency  = [\${freq}, \${freq}]
 Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.nchan      = 1
 Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.direction  = [12h30m00.00, -45.00.00.00, J2000]
 #
@@ -91,7 +98,11 @@ Cimager.solver.Dirty.verbose                    = True
 Cimager.ncycles                                 = 0
 
 Cimager.preconditioner.Names                    = None
-
+#
+Cimager.restore                                 = true
+Cimager.restore.beam                            = fit
+#Cimager.restore.equalise                        = True
+#
 # Apply calibration
 Cimager.calibrate                               = ${DO_CALIBRATION}
 Cimager.calibaccess                             = table
@@ -103,7 +114,7 @@ EOF_INNER
 LOGFILE=../${LOGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.log
 
 # First split the big measurement set
-\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -inputs ../${CONFIGDIR}/mssplit_fine_\${PBS_ARRAY_INDEX}.in > \${LOGFILE}
+\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -inputs \${MSSPLITPARSET} > \${LOGFILE}
 ERR=\$?
 if [ \${ERR} -ne 0 ]; then
     echo "Error: mssplit returned error code \${ERR}"
@@ -111,7 +122,7 @@ if [ \${ERR} -ne 0 ]; then
 fi
 
 # Now run the cimager
-mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs ../${CONFIGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.in >> \${LOGFILE}
+mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \${CIMAGERPARSET} >> \${LOGFILE}
 ERR=\$?
 if [ \${ERR} -ne 0 ]; then
     echo "Error: cimager returned error code \${ERR}"
@@ -120,46 +131,6 @@ fi
 
 # Finally delete the temporary split-off measurement set
 rm -rf MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
-EOF
-
-#
-# Merge imaged slices into a cube
-#
-cat > cubemerge-spectral-line.qsub << EOF
-#!/bin/bash
-#PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=2:mem=4GB:mpiprocs=1:ompthreads=2
-#PBS -l walltime=12:00:00
-##PBS -M first.last@csiro.au
-#PBS -N sl-mkcube
-#PBS -m a
-#PBS -j oe
-#PBS -v INPUTPREFIX,OUTPUTCUBE
-
-cd \${PBS_O_WORKDIR}/${SL_WORK_DIR}
-
-START=0
-END=16415
-
-IDX=\${START}
-while [ \${IDX} -le \${END} ]; do
-    FILENAME="\${INPUTPREFIX}\${IDX}"
-    if [ ! -e \${FILENAME} ]; then
-        echo "Error: File \${FILENAME} does not exist"
-        exit 1
-    fi
-    INPUTSLICES="\${INPUTSLICES} \${FILENAME}"
-    IDX=\$((\${IDX} + 1))
-done
-
-rm -rf \${OUTPUTCUBE}
-\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cubemerge.sh \${INPUTSLICES} \${OUTPUTCUBE}
-ERR=\$?
-if [ \$ERR -ne 0 ]; then
-    echo "Error: cubemerge returned error code \$ERR"
-    exit \$ERR
-fi
-mv \${OUTPUTCUBE} ..
 EOF
 
 if [ "${DRYRUN}" == "false" ]; then
@@ -174,26 +145,32 @@ if [ "${DRYRUN}" == "false" ]; then
     QSUB_SPECTRAL1=`${QSUB_CMD} ${DEPENDS} -N sl-img1 -h -J 0-8257 cimager-spectral-line.qsub`
     QSUB_SPECTRAL2=`${QSUB_CMD} ${DEPENDS} -N sl-img2 -h -J 8258-16415 cimager-spectral-line.qsub`
 
-    QSUB_MERGE_CMD="${QSUB_CMD} -W depend=afterok:${QSUB_SPECTRAL1},afterok:${QSUB_SPECTRAL2}"
-    export INPUTPREFIX=residual.i.spectral.
-    export OUTPUTCUBE=residual.cube.i.spectral
-    OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
-
-    export INPUTPREFIX=psf.i.spectral.
-    export OUTPUTCUBE=psf.cube.i.spectral
-    OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
-
-    export INPUTPREFIX=sensitivity.i.spectral.
-    export OUTPUTCUBE=sensitivity.cube.i.spectral
-    OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
-
-    export INPUTPREFIX=weights.i.spectral.
-    export OUTPUTCUBE=weights.cube.i.spectral
-    OUT=`${QSUB_MERGE_CMD} cubemerge-spectral-line.qsub`
-
     if [ ! "${DEPENDS}" ]; then
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
     fi
 else
     echo "Spectral Line Imaging: Dry Run Only"
 fi
+
+# Run makecube using the make-spectral-cube.qsub script
+DODELETE=true
+FIRSTCH=0
+FINALCH=16415
+
+IMAGESUFFIX=".restored"
+IMAGEBASE="image.i.spectral."
+OUTPUTCUBE=image.cube.i.spectral.restored
+. ${SCRIPTDIR}/make-spectral-cube.sh
+
+IMAGESUFFIX=""
+IMAGEBASE="psf.i.spectral."
+OUTPUTCUBE=psf.cube.i.spectral
+. ${SCRIPTDIR}/make-spectral-cube.sh
+
+IMAGEBASE="sensitivity.i.spectral."
+OUTPUTCUBE=sensitivity.cube.i.spectral
+. ${SCRIPTDIR}/make-spectral-cube.sh
+
+IMAGEBASE="weights.i.spectral."
+OUTPUTCUBE=weights.cube.i.spectral
+. ${SCRIPTDIR}/make-spectral-cube.sh

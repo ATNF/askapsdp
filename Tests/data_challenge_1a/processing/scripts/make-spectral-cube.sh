@@ -8,18 +8,23 @@
 #   - makes use of the CP/imager/current/apps/makecube utility
 #   - requires the following environment variables to be set:
 #     * DODELETE - whether to delete all but the first channel images
-#     * IMAGEBASE - the constant (base) part of the image name. If doing the restored image, don't worry about the .restored flag, just use ISRESTORED=true
-#     * NUMCH - the number of channel images
+#     * IMAGEPREFIX - the part of the image name before the channel number
+#     * IMAGESUFFIX - the part of the image name after the channel number
+#     * FIRSTCH - the first channel number
+#     * FINALCH - the last channel number
 #     * OUTPUTCUBE - the name of the final cube
-#     * ISRESTORED - if true, we are combining \${IMAGEBASE}_chN.restored images (and so need to rename them prior to running makecube)
-#   - input images must be of the form \${IMAGEBASE}_chN, where N=1...\$NUMCH
+#   - input images must be of the form prefix[FIRSTCH..FINALCH]suffix (prefix & suffix can be anything.
 #   - the final cube will have its spectral coordinates corrected by a CASA script
 #####################
 
 
-if [ ${IMAGEBASE} == "" ]; then
-    echo "Have not set \$IMAGEBASE, so not running make-spectral-cube."
+if [ ${IMAGEPREFIX} == "" ] && [ ${IMAGESUFFIX} == "" ]; then
+    echo "Have not set \$IMAGEPREFIX or \$IMAGESUFFIX, so not running make-spectral-cube."
+elif [ "${OUTPUTCUBE}" == "" ]; then
+    echo "Have not set \$OUTPUTCUBE, so not running make-spectral-cube"
 else
+
+    IMAGERANGE="${IMAGEPREFIX}[${FIRSTCH}..${FINALCH}]${IMAGESUFFIX}"
 
     qsubfile=make-spectral-cube--${OUTPUTCUBE}.qsub
     cat > ${qsubfile} <<EOF
@@ -38,108 +43,35 @@ makecube=${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/install/bin/make
 
 outfile=${LOGDIR}/makecube-\${PBS_JOBID}.log
 
-echo Begin makecube \`date\` > \$outfile
-echo Using image base name ${IMAGEBASE}, with ${NUMCH} channels, to create ${OUTPUTCUBE} >> \$outfile
-
 doDelete=$DODELETE
-isRestored=$ISRESTORED
+echo "Begin makecube \`date\`" > \$outfile
+echo "Using images ${IMAGERANGE}, to create ${OUTPUTCUBE}" >> \$outfile
 
-if [ "$IMAGEBASE" == "" ]; then
-    echo "Have not set \\\$IMAGEBASE. Exiting."
-    exit 1
-fi
-
-if [ "$OUTPUTCUBE" == "" ]; then
-    echo "Have not set \\\$OUTPUTCUBE. Exiting."
-    exit 1
-fi
-
-if [ \$isRestored == true ]; then
-    base=temp
-else
-    base=${IMAGEBASE}
-fi
-
-# Test for existence of the images, and rename if doing restored images
-C=1
-while [ \$C -le ${NUMCH} ]; do
-    if [ ! -e ${IMAGEBASE}_ch\${C} ]; then
-	echo "Could not find image ${IMAGEBASE}_ch\${C}. Exiting."
-    fi
-    if [ \$isRestored == true ]; then
-	mv ${IMAGEBASE}_ch\${C}.restored \${base}_ch\${C}
+# Test for existence of the images
+C=${FIRSTCH}
+while [ \$C -le ${FINALCH} ]; do
+    if [ ! -e ${IMAGEPREFIX}\${C}${IMAGESUFFIX} ]; then
+	echo "Could not find image ${IMAGEPREFIX}\${C}${IMAGESUFFIX}. Exiting."
     fi
     C=\`expr \$C + 1\`
 done
 
 # Run makecube
-\$makecube \${base}_ch 1 ${NUMCH} ${OUTPUTCUBE} | tee -a \$outfile
+#\$makecube \${base} ${FIRSTCH} ${FINALCH} ${OUTPUTCUBE} > \$outfile
+\$makecube "${IMAGERANGE}" ${OUTPUTCUBE} > \$outfile
 err=\$?
 if [ \$err != 0 ]; then
     echo "Makecube failed with error \$err"
     exit \$err
 fi
 
-# Delete images if required, and rename back if doing restored image
+# Delete images if required
 if [ \$doDelete == true ]; then
-    if [ \$isRestored == true ]; then
-	mv \${base}_ch1 ${IMAGEBASE}_ch1.restored
-    fi
-    C=2
-    while [ \$C -le \$NUMCH ]; do
-        /bin/rm -rf \${base}_ch\${C}
+    C=`expr ${FIRSTCH} + 1`
+    while [ \$C -le ${FINALCH} ]; do
+        /bin/rm -rf ${IMAGEPREFIX}\${C}${IMAGESUFFIX} 
         C=\`expr \$C + 1\`
     done
-else
-    C=1
-    if [ \$isRestored == true ]; then
-	while [ \$C -le $NUMCH ]; do
-	    mv \${base}_ch\${C} ${IMAGEBASE}_ch\${C}
-	    C=\`expr \$C + 1\`
-	done
-    fi
-fi
-
-
-pyfile=fixCube-\${PBS_JOBID}.py
-cat > \${pyfile} <<EOF_INNER
-#!/bin/env python
-
-######
-# This is a script to be run in casapy.
-# It fixes the spectral coordinates of a cube created by makecube,
-#  and sets the restoring beam to be the same as the first channel.
-#  (this is interesting - it will be different for different channels...)
-
-ia.open('${IMAGEBASE}_ch1.restored')
-beam=ia.restoringbeam()
-ia.close()
-
-if(ia.open('${OUTPUTCUBE}')):
-    
-    csys=ia.coordsys()
-    #    csys.setrestfrequency(1420405751.786)
-    crec=csys.torecord()
-    crec['spectral2']['wcs']['cdelt']=-1.e6
-    crec['spectral2']['wcs']['crpix']=0.
-    crec['spectral2']['wcs']['crval']=1421.e6
-
-    ia.setcoordsys(crec)
-
-    if(name[-9:] == '.restored'):
-        ia.setrestoringbeam(beam=beam)
-    
-    ia.close()
-
-EOF_INNER
-
-if [ -e ${OUTPUTCUBE} ]; then
-    casapy --nologger --log2term -c \${pyfile}
-    err=\$?
-    exit \$err
-else
-    echo "ERROR creating output cube ${OUTPUTCUBE}
-    exit 1
 fi
 
 EOF
