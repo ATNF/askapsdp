@@ -34,7 +34,7 @@ else
 
 cd \$PBS_O_WORKDIR
 
-makecube=${ASKAP_ROOT}/Code/Components/CP/imager/current/install/bin/makecube
+makecube=${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/install/bin/makecube
 
 outfile=${LOGDIR}/makecube-\${PBS_JOBID}.log
 
