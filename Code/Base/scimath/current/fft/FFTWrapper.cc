@@ -41,6 +41,11 @@
 #include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/ArrayIter.h>
 
+#ifdef _OPENMP
+// boost include
+#include <boost/thread/mutex.hpp>
+#endif
+
 using namespace casa;
 
 namespace askap
@@ -48,8 +53,19 @@ namespace askap
     namespace scimath
       {
 
+
+#ifdef _OPENMP
+      /// @brief mutex to ensure thread safety in the calls to fft
+      boost::mutex fftWrapperMutex;
+#endif
+
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward)
           {
+
+#ifdef _OPENMP
+            boost::unique_lock<boost::mutex>(fftWrapperMutex);
+#endif
+            
 #ifdef ASKAP_USE_FFTW
             const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
@@ -88,6 +104,10 @@ namespace askap
 
         void fft(casa::Vector<casa::Complex>& vec, const bool forward)
           {
+#ifdef _OPENMP
+            boost::unique_lock<boost::mutex>(fftWrapperMutex);
+#endif
+
 #ifdef ASKAP_USE_FFTW
             const IPosition shape = vec.shape();
             const uInt nElements = shape[0];
@@ -141,6 +161,9 @@ namespace askap
 #ifdef ASKAP_USE_FFTW
                     fft(vec, forward);
 #else
+#ifdef _OPENMP
+                    boost::unique_lock<boost::mutex>(fftWrapperMutex);                    
+#endif
                     ffts.fft(vec, forward);
 #endif
                   }
@@ -151,6 +174,9 @@ namespace askap
 #ifdef ASKAP_USE_FFTW
                     fft(vec, forward);
 #else
+#ifdef _OPENMP
+                    boost::unique_lock<boost::mutex>(fftWrapperMutex);                    
+#endif
                     ffts.fft(vec, forward);
 #endif
                   }
@@ -174,6 +200,9 @@ namespace askap
 #ifdef ASKAP_USE_FFTW
                     fft(vec, forward);
 #else
+#ifdef _OPENMP
+                    boost::unique_lock<boost::mutex>(fftWrapperMutex);                    
+#endif
                     ffts.fft(vec, forward);
 #endif
                   }
@@ -184,6 +213,9 @@ namespace askap
 #ifdef ASKAP_USE_FFTW
                     fft(vec, forward);
 #else
+#ifdef _OPENMP
+                    boost::unique_lock<boost::mutex>(fftWrapperMutex);                    
+#endif
                     ffts.fft(vec, forward);
 #endif
                   }
