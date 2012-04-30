@@ -51,6 +51,10 @@ UVWRotationHandler::UVWRotationHandler(size_t cacheSize, double tolerance) :
 /// uvws and delays. Nothing is done for uvw machines as UVWMachineCache takes care of this.
 void UVWRotationHandler::invalidate() const
 {
+#ifdef _OPENMP
+   boost::unique_lock<boost::shared_mutex> lock(itsMutex);
+#endif
+   
    itsValid = false;
 }
 
@@ -71,7 +75,15 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw
       "tangent point and image centre. UVWRotationHandler works for any frame in theory, but one needs to deliver "
       "frame information to UVWMachines as well as to invalidate cache when say the time changes if it is required for conversion. "
       "This work has not been done and is beyond the scope for ASKAP.");
+  
+#ifdef _OPENMP
+  boost::upgrade_lock<boost::shared_mutex> lock(itsMutex);
+#endif
+      
   if (!itsValid || !compare(tangent, itsTangentPoint)) {
+#ifdef _OPENMP
+     boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+#endif
      // have to fill itsRotatedUVW
      const casa::uInt nSamples = acc.nRow();
      itsRotatedUVWs.resize(nSamples);
@@ -125,6 +137,13 @@ const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAcc
                const casa::MDirection &tangent, const casa::MDirection &imageCentre) const
 {
   const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvwBuffer = uvw(acc, tangent);
+
+#ifdef _OPENMP
+  boost::upgrade_lock<boost::shared_mutex> lock(itsMutex);
+  ASKAPCHECK(compare(tangent, itsTangentPoint) && itsValid, 
+             "This should not happen, suspect race condition with number of threads exceeding number of cache elements");
+#endif
+
   ASKAPDEBUGASSERT(itsDelays.nelements() == acc.nRow());
 
   ASKAPCHECK(imageCentre.getRef().getType() == casa::MDirection::J2000,
@@ -134,6 +153,11 @@ const casa::Vector<casa::Double>& UVWRotationHandler::delays(const IConstDataAcc
       "This work has not been done and is beyond the scope for ASKAP.");
   
   if (!compare(itsImageCentre, imageCentre)) {
+      
+#ifdef _OPENMP
+      boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+#endif
+      
       // we have to apply extra shift
       ASKAPCHECK(itsImageCentre.getRef().getType() == imageCentre.getRef().getType(),
                  "image centres in UVWRotationHandler::delays are not supposed to be in different frames");

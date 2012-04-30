@@ -152,6 +152,16 @@ CachedAccessorField<T>& CachedAccessorField<T>::operator=(const CachedAccessorFi
   return *this;
 }
 
+/// @brief invalidate the field
+template<class T>
+inline void CachedAccessorField<T>::invalidate() const throw()
+{ 
+#ifdef _OPENMP
+  boost::unique_lock<boost::shared_mutex> lock(itsMutex);
+#endif
+  itsChangedFlag=true; 
+}
+
 
 } // namespace accessors
 

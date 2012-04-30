@@ -60,6 +60,10 @@ UVWMachineCache::UVWMachineCache(size_t cacheSize, double tolerance) : itsCache(
 /// @details This method writes in the log cache utilisation statistics
 UVWMachineCache::~UVWMachineCache()
 {
+#ifdef _OPENMP
+   boost::shared_lock<boost::shared_mutex> lock(itsMutex);
+#endif
+   
    if (itsCache.size()) {
        size_t cntUsed = 0;
        for (size_t elem=0; elem < itsCache.size(); ++elem) {
@@ -68,7 +72,7 @@ UVWMachineCache::~UVWMachineCache()
             }
        }
        ASKAPLOG_INFO_STR(logger, "UVW-Machine cache utilisation: used "<<cntUsed<<" cache(s) out of "<<itsCache.size()<<" available");
-    }
+   }
 }
 
 
@@ -79,10 +83,18 @@ UVWMachineCache::~UVWMachineCache()
 /// @return a const reference to uvw machine 
 const UVWMachineCache::machineType& UVWMachineCache::machine(const casa::MDirection &phaseCentre,
                                                  const casa::MDirection &tangent) const
-{   
+{  
+#ifdef _OPENMP
+   boost::upgrade_lock<boost::shared_mutex> lock(itsMutex);
+#endif
+    
    const size_t index = getIndex(phaseCentre,tangent);
    boost::shared_ptr<machineType> &machinePtr = itsCache[index];
    if (!machinePtr) {
+#ifdef _OPENMP
+       boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+       ASKAPDEBUGASSERT(!machinePtr);
+#endif
        // need to set up a new machine here
        machinePtr.reset(new machineType(tangent, phaseCentre, false, true));
        // swap the arguments in the uvw machine call. It gives the correct result on real data
@@ -135,6 +147,9 @@ bool UVWMachineCache::compare(const casa::MDirection &dir1, const casa::MDirecti
 size_t UVWMachineCache::getIndex(const casa::MDirection &phaseCentre, 
                                  const casa::MDirection &tangent) const
 {
+   // this method is protected and is only called after the upgrade_lock has been acquired.
+   // Therefore, we don't need any more locks here.
+   
    // search from the newest element backwards (i.e. most likely the match is the most
    // recently used tangent point)
    for (int pos=0; pos<int(itsTangentPoints.size()); ++pos) {
@@ -148,7 +163,7 @@ size_t UVWMachineCache::getIndex(const casa::MDirection &phaseCentre,
             return size_t(index);
         }
    }
-   // there has been no match, need to replace itsOldestElement
+   // there has been no match, need to replace itsOldestElement   
    ASKAPDEBUGASSERT(itsOldestElement<itsCache.size());
    const size_t result = itsOldestElement++;
    // machine needs updating

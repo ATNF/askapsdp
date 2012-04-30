@@ -107,14 +107,14 @@ struct CachedAccessorField  {
   inline T& rwValue() const;
      
   /// @brief invalidate the field
-  void inline invalidate() const throw() { itsChangedFlag=true; }
+  void inline invalidate() const throw();
 
   /// @brief test validity
   /// @details To avoid unnecessary checks/duplicated invalidation of the field
   /// it is convenient to be able to test whether the field is still valid.
   /// Otherwise, any additional checks are pointless.
   /// @return true if the cache is valid
-  bool inline isValid() const throw() { return !itsChangedFlag;}
+  bool inline isValid() const throw() { return !isChanged();}
   
   /// @brief test whether any write operation took place
   /// @details The interface supports write operation (i.e. non-const

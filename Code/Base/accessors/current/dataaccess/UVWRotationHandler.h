@@ -38,6 +38,11 @@
 #include <dataaccess/IConstDataAccessor.h>
 #include <measures/Measures/MDirection.h>
 
+#ifdef _OPENMP
+// boost includes
+#include <boost/thread/shared_mutex.hpp>
+#endif
+
 namespace askap {
 
 namespace accessors {
@@ -115,6 +120,11 @@ private:
    /// cache following every change to this field.
    mutable casa::MDirection itsImageCentre;
    
+#ifdef _OPENMP
+   /// @brief mutex to synchronise cache access for all threads 
+   mutable boost::shared_mutex itsMutex;
+#endif
+
 };
 
 

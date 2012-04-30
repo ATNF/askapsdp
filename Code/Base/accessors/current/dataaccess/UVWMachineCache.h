@@ -37,13 +37,17 @@
 
 // boost includes
 #include <boost/shared_ptr.hpp>
+#include <boost/noncopyable.hpp>
+
+#ifdef _OPENMP
+#include <boost/thread/shared_mutex.hpp>
+#endif
 
 // casa includes
 #include <measures/Measures/MDirection.h>
 #include <measures/Measures/UVWMachine.h>
 
 #include <dataaccess/TempUVWMachine.h>
-
 
 namespace askap {
 
@@ -54,7 +58,7 @@ namespace accessors {
 /// This class maintains the cache of UVW Machines (a pair of tangent point and phase centre directions 
 /// is  the key). The number of machines cached and the direction tolerance are specified as parameters.
 /// @ingroup dataaccess
-struct UVWMachineCache {
+struct UVWMachineCache : public boost::noncopyable {
    
    /// @brief UVWMachine class type
    /// @details For debugging, it is handy to substitute UVWMachine class by another type
@@ -135,6 +139,11 @@ private:
    /// @brief direction tolerance
    /// @details It determines whether we a new machine has to be created
    double itsTolerance; 
+ 
+#ifdef _OPENMP  
+   /// @brief mutex to synchronise cache access
+   mutable boost::shared_mutex itsMutex;
+#endif
 };
 
 } // namespace accessors
