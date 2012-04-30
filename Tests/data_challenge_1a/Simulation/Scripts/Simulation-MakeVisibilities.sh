@@ -8,6 +8,7 @@ cd ${visdir}
 WORKDIR=run${RUN_NUM}
 mkdir -p ${WORKDIR}
 cd ${WORKDIR}
+touch ${now}
 
 ##############################
 # Parameters & Definitions
@@ -40,7 +41,7 @@ if [ $doCsim == true ]; then
 # Qsub & Parset definition
 ##############################
 
-    qsubfile=${visdir}/${WORKDIR}/makeVis-${now}.qsub
+    qsubfile=${visdir}/${WORKDIR}/makeVis.qsub
 
     cat > $qsubfile <<EOF
 #!/bin/bash -l
@@ -65,10 +66,12 @@ skymodel=${slicebase}\${IND}
 nuref=\`echo \${IND} ${chanPerMSchunk} ${chanw} | awk '{printf "%13.8f",1421.-(\$1*\$2-1)*\$3/1.e6}'\`
 spw="[${chanPerMSchunk}, \${nuref} MHz, -${chanw} Hz, \"XX YY\"]"
 
-mkVisParset=${parsetdirVis}/csim-\${PBS_JOBID}.in
-mkVisLog=${logdirVis}/csim-\${PBS_JOBID}.log
+mkdir -p ${parsetdirVis}/\${PBS_JOBID}
+mkdir -p ${logdirVis}/\${PBS_JOBID}
+mkVisParset=${parsetdirVis}/\${PBS_JOBID}/csim-\${PBS_JOBID}.in
+mkVisLog=${logdirVis}/\${PBS_JOBID}/csim-\${PBS_JOBID}.log
 
-cat > \${mkVisParset} $begin
+cat > \${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       \$ms
 #
 Csimulator.stman.bucketsize                     =       2097152
@@ -113,7 +116,7 @@ Csimulator.gridder.${gridder}.offsetsupport      =       true
 Csimulator.noise                                 =       ${doNoise}
 Csimulator.noise.Tsys                            =       ${tsys}
 Csimulator.noise.efficiency                      =       0.8   
-$end
+EOF_INNER
 
 mpirun \${csim} -inputs \${mkVisParset} > \${mkVisLog}
 err=\$?
@@ -145,7 +148,7 @@ if [ $doMergeVis == true ]; then
 
     if [ $doMergeStage1 == true ]; then
 
-	merge1qsub=${visdir}/${WORKDIR}/mergeVisStage1-${now}.qsub
+	merge1qsub=${visdir}/${WORKDIR}/mergeVisStage1.qsub
     
 	cat > $merge1qsub <<EOF
 #!/bin/bash
@@ -201,7 +204,7 @@ EOF
 
     if [ $doMergeStage2 == true ]; then
 
-	merge2qsub=${visdir}/${WORKDIR}/mergeVisStage2-${now}.qsub
+	merge2qsub=${visdir}/${WORKDIR}/mergeVisStage2.qsub
 
 	cat > $merge2qsub <<EOF
 #!/bin/bash

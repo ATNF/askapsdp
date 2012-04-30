@@ -4,6 +4,11 @@
 # TOP LEVEL
 ##############################
 
+if [ ${ASKAP_ROOT} == "" ]; then
+    echo "Your \$ASKAP_ROOT variable is not set. Not running script!"
+    exit 1
+fi
+
 export AIPSPATH=${ASKAP_ROOT}/Code/Base/accessors/current
 
 crdir=${BASEDIR}/InputModels
@@ -13,8 +18,6 @@ catdir=${BASEDIR}/InputCatalogue
 
 depend=""
 now=`date +%F-%H%M`
-begin="<""<""EOF"
-end="EOF"
 
 queueName=routequeue
 
@@ -22,16 +25,11 @@ queueName=routequeue
 # MODEL CREATION
 ##############################
 
-doCreateCR=false
-doCombineCR=false
-#doSliceCR=${doCreateCR}
-doSliceCR=false
-createFullModelCR=false
-minWorkerCR=1
+doCreateCR=true
+doSliceCR=true
 
 logdirCR=${crdir}/Logs
 parsetdirCR=${crdir}/Parsets
-scriptdirCR=${crdir}/Scripts
 imagedir=${crdir}/Images
 slicedir=${imagedir}/Slices
 
@@ -43,7 +41,19 @@ sourcelist=master_possum_catalogue_trim10x10deg.dat
 
 npix=3560
 rpix=1780
+cellsize=9.1234
+delt=`echo $cellsize | awk '{print $1/3600.}'`
+ra=187.5
+dec=-45.0
+raCat=0.
+decCat=0.
+
 nchan=16416
+rchan=0
+chanw=-18.5185185e3
+rfreq=1.421e9
+basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1/2)}'`
+
 chanPerMSchunk=19
 numMSchunks=864
 if [ `echo $chanPerMSchunk  $numMSchunks | awk '{print $1*$2}'` != $nchan ]; then
@@ -51,12 +61,11 @@ if [ `echo $chanPerMSchunk  $numMSchunks | awk '{print $1*$2}'` != $nchan ]; the
     echo Not running script.
     doSubmit=false
 fi
-rchan=1
-cellsize=9.1234
-delt=`echo $cellsize | awk '{print $1/3600.}'`
-chanw=18.5185185e3
-rfreq=1.421e9
+
 nstokes=1
+rstokes=0
+stokesZero=0
+dstokes=0
 
 nsubxCR=10
 nsubyCR=8
@@ -74,17 +83,9 @@ logdirSM=${smdir}/Logs
 subimagedirSM=${smdir}/Subimages
 parsetdirSM=${smdir}/Parsets
 
-doTaylorSM=false
-doSubSM=true
-doFixupSM=false
-failureListSM="EmptyFile"
 doSmoothSM=true
 doSF_SM=true
 doComparisonSM=true
-
-memoryTT=23
-nsubxTT=10
-nsubyTT=10
 
 smoothBmaj=47
 smoothBmin=33
@@ -102,7 +103,7 @@ SFnNodes=`echo $SFnsubx $SFnsuby | awk '{print int(($1*$2-0.001)/12.)+1}'`
 # Visibilities
 ##############################
 
-doCsim=false
+doCsim=true
 doVisCleanup=false
 failureListVis="EmptyFile"
 #failureListVis="/scratch/astronomy116/whi550/DataChallenge/Simulation/failure-vis-at200120318-2nd.txt"

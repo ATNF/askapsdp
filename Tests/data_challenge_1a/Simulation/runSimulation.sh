@@ -1,26 +1,23 @@
-#!/bin/bash -l
+#!/bin/bash
 
 # If ASKAP_ROOT is not set in your environment, add the path here and uncomment
 #ASKAP_ROOT=<path to ASKAPsoft>
 
-scriptdir=${ASKAP_ROOT}/Tests/data_challange_1a/Simulation/Scripts
+scriptdir=${ASKAP_ROOT}/Tests/data_challenge_1a/Simulation/Scripts
 
 BASEDIR=`pwd`
 
-
 if [ $# -ge 1 ]; then
-
     BASEDIR=$1
-
 fi
 
 CWD=`pwd`
 cd ${BASEDIR}
 
-
 config=${scriptdir}/config.sh
 
-doSubmit=true
+#doSubmit=true
+doSubmit=false
 
 unset QSUB_JOBLIST
 unset depend
@@ -34,8 +31,8 @@ $RUN_NUM
 EOF
 echo This will be run${RUN_NUM} of the simulation pipeline
 
-doModelCreation=false
-doVisibilities=false
+doModelCreation=true
+doVisibilities=true
 doSkyModel=true
 
 . ${config}
