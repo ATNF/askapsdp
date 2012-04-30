@@ -57,6 +57,7 @@ namespace askap
 #ifdef _OPENMP
       /// @brief mutex to ensure thread safety in the calls to fft
       boost::mutex fftWrapperMutex;
+      boost::mutex fftWrapperMutex2;
 #endif
 
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward)
@@ -146,6 +147,9 @@ namespace askap
 
         void fft2d(casa::Array<casa::Complex>& arr, const bool forward)
           {
+#ifdef _OPENMP
+            boost::unique_lock<boost::mutex>(fftWrapperMutex2);
+#endif
 #ifndef ASKAP_USE_FFTW
             casa::FFTServer<float, casa::Complex> ffts;
 #endif
@@ -185,6 +189,9 @@ namespace askap
           }
         void fft2d(casa::Array<casa::DComplex>& arr, const bool forward)
           {
+#ifdef _OPENMP
+            boost::unique_lock<boost::mutex>(fftWrapperMutex2);
+#endif
 #ifndef ASKAP_USE_FFTW
             casa::FFTServer<double, casa::DComplex> ffts;
 #endif
