@@ -73,7 +73,7 @@ while [ \$C -le ${NUMCH} ]; do
 done
 
 # Run makecube
-\$makecube \${base}_ch ${NUMCH} ${OUTPUTCUBE} | tee -a \$outfile
+\$makecube \${base}_ch 1 ${NUMCH} ${OUTPUTCUBE} | tee -a \$outfile
 err=\$?
 if [ \$err != 0 ]; then
     echo "Makecube failed with error \$err"
