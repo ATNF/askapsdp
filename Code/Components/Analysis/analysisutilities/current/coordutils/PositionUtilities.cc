@@ -29,7 +29,7 @@
 
 #include <askap_analysisutilities.h>
 
-#include <coordconversions/PositionUtilities.h>
+#include <coordutils/PositionUtilities.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>

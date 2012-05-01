@@ -13,7 +13,7 @@ env.Append(CCFLAGS=['-Wall', '-O2', '-g', '-DHAVE_LONG_LONG', '-DASKAP_DEBUG'])
 pkg = env.AskapPackage("analysisutilities")
 # add sub packages 
 pkg.AddSubPackage("modelcomponents")
-pkg.AddSubPackage("coordconversions")
+pkg.AddSubPackage("coordutils")
 pkg.AddSubPackage("maths")
 pkg.AddSubPackage("analysisparallel")
 

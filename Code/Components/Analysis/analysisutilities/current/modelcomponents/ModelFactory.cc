@@ -41,7 +41,7 @@
 #include <modelcomponents/HIprofileS3SAX.h>
 #include <modelcomponents/FullStokesContinuum.h>
 #include <modelcomponents/SelavyImage.h>
-#include <coordconversions/SpectralUtilities.h>
+#include <coordutils/SpectralUtilities.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>

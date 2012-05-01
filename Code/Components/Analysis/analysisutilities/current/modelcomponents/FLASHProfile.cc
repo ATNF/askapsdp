@@ -30,7 +30,7 @@
 
 #include <modelcomponents/FLASHProfile.h>
 #include <modelcomponents/GaussianProfile.h>
-#include <coordconversions/SpectralUtilities.h>
+#include <coordutils/SpectralUtilities.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>

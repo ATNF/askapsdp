@@ -28,7 +28,7 @@
 ///
 #include <askap_analysisutilities.h>
 
-#include <coordconversions/SpectralUtilities.h>
+#include <coordutils/SpectralUtilities.h>
 #include <modelcomponents/HIprofile.h>
 #include <modelcomponents/HIprofileS3SAX.h>
 #include <modelcomponents/HIprofileS3SAX.h>

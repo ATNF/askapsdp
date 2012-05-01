@@ -29,7 +29,7 @@
 #include <askap_analysisutilities.h>
 
 #include <modelcomponents/HIprofile.h>
-#include <coordconversions/SpectralUtilities.h>
+#include <coordutils/SpectralUtilities.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>
