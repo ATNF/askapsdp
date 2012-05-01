@@ -66,10 +66,11 @@ skymodel=${slicebase}\${IND}
 nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",(\$1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
 spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, \"XX YY\"]"
 
-mkdir -p ${parsetdirVis}/\${PBS_JOBID}
-mkdir -p ${logdirVis}/\${PBS_JOBID}
-mkVisParset=${parsetdirVis}/\${PBS_JOBID}/csim-\${PBS_JOBID}.in
-mkVisLog=${logdirVis}/\${PBS_JOBID}/csim-\${PBS_JOBID}.log
+dir=\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`
+mkdir -p ${parsetdirVis}/\${dir}
+mkdir -p ${logdirVis}/\${dir}
+mkVisParset=${parsetdirVis}/\${dir}/csim-\${PBS_JOBID}.in
+mkVisLog=${logdirVis}/\${dir}/csim-\${PBS_JOBID}.log
 
 cat > \${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       \$ms
