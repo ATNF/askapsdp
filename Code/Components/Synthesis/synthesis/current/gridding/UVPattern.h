@@ -89,6 +89,13 @@ struct UVPattern {
    /// the whole class can be stored in the stl containers.
    UVPattern() {}
    
+   /// @brief copy constructor
+   /// @details It is necessary as we have non-tivial type of one data member
+   /// (casa matrix)
+   /// @param[in] other an object to copy from
+   UVPattern(const UVPattern &other) : itsArray(other.itsArray.copy()), itsUCellSize(other.itsUCellSize),
+             itsVCellSize(other.itsVCellSize), itsOverSample(other.itsOverSample), itsMaxSupport(other.itsMaxSupport) {}
+
    /// @brief read-only access to a pattern
    /// @details This method allows a direct access to the pattern array
    /// @return const reference to the pattern
