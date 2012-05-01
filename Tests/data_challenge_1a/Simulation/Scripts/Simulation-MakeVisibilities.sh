@@ -66,7 +66,7 @@ skymodel=${slicebase}\${IND}
 nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",(\$1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
 spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, \"XX YY\"]"
 
-dir=\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`
+dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
 mkdir -p ${parsetdirVis}/\${dir}
 mkdir -p ${logdirVis}/\${dir}
 mkVisParset=${parsetdirVis}/\${dir}/csim-\${PBS_JOBID}.in
@@ -180,7 +180,8 @@ while [ \$IDX -lt \$END ]; do
     IDX=\`expr \$IDX + 1\`
 done
 
-logfile=${logdirVis}/merge_s1_output_\${PBS_JOBID}.log
+dir="merge1-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
+logfile=${logdirVis}/${dir}/merge_s1_output_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
 $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1base}_\${PBS_ARRAY_INDEX}.ms \$FILES >> \${logfile}
