@@ -63,7 +63,7 @@ IND=${INDEX}
 
 ms=${msbase}_\${IND}.ms
 skymodel=${slicebase}\${IND}
-nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",($1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
+nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",(\$1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
 spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, \"XX YY\"]"
 
 mkdir -p ${parsetdirVis}/\${PBS_JOBID}
