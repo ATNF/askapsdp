@@ -50,6 +50,9 @@
 #include <measures/Measures/MDirection.h>
 #include <images/Images/TempImage.h>
 
+#ifdef _OPENMP
+#include <boost/thread/mutex.hpp>
+#endif
 
 namespace askap {
 
@@ -323,6 +326,11 @@ private:
    /// This parameter represents the fraction of the image size (on each directional axis) which is
    /// zeroed (equally from both sides). It should be a non-negative number less than 1.
    float itsClippingFactor;
+
+   #ifdef _OPENMP
+   /// @brief mutex to deal with lack of thread safety in casa's regrid
+   static boost::mutex theirMutex;
+   #endif
 };
    
 } // namespace synthesis

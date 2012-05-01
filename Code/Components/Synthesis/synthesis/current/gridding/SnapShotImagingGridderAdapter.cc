@@ -60,6 +60,12 @@ using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::accessors;
 
+#ifdef _OPENMP
+/// @brief mutex to deal with lack of thread safety in casa's regrid
+boost::mutex SnapShotImagingGridderAdapter::theirMutex;
+#endif
+
+
 /// @brief initialise the adapter
 /// @details
 /// @param[in] gridder a shared pointer to the gridder to be wrapped by this adapter
@@ -495,7 +501,14 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
                   
    for (; planeIter.hasMore(); planeIter.next()) {
         itsTempInImg.put(planeIter.getPlane(inRef));
-        regridder.regrid(itsTempOutImg, casa::Interpolate2D::CUBIC, casa::IPosition(2,0,1), itsTempInImg);
+        #ifdef _OPENMP
+        { 
+          boost::unique_lock<boost::mutex> lock(theirMutex);
+        #endif
+          regridder.regrid(itsTempOutImg, casa::Interpolate2D::CUBIC, casa::IPosition(2,0,1), itsTempInImg);
+        #ifdef _OPENMP
+        }
+        #endif
         // the next line does not do any copying (reference semantics)
         casa::Array<double> outRef(planeIter.getPlane(output).nonDegenerate());
         // create a lattice to benefit from lattice math operators
