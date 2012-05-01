@@ -65,11 +65,11 @@ namespace askap {
             // @return The integer (i.e. the first token) or -1 in the case the
             //          first token was not an integer or the second token was
             //          not the string "kB".
-            int parseValue(std::ifstream& file);
+            long parseValue(std::ifstream& file);
 
             // Convert "val" to a string
             // @return The value as a string with " MB" appended to the end.
-            static std::string kbToMb(int val);
+            static std::string kbToMb(long val);
 
             // Casa timer to measure process execution times
             casa::Timer itsTimer;

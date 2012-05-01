@@ -24,6 +24,8 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
+
+// Include own header file first
 #include "askap/StatReporter.h"
 
 // System includes
@@ -31,6 +33,11 @@
 #include <unistd.h>
 #include <fstream>
 #include <sstream>
+
+// OSX specific
+#ifdef __MACH__
+#include <sys/resource.h>
+#endif
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -63,18 +70,33 @@ void StatReporter::logTimeSummary(void)
 
 void StatReporter::logMemorySummary(void)
 {
+    long vmpeak = -1;
+    long rsspeak = -1;
+
+#ifdef __MACH__
+    struct rusage ru;
+    int err = getrusage(RUSAGE_SELF, &ru);
+    if (err != 0) {
+        ASKAPLOG_INFO_STR(logger,
+                "Memory stats - Error: getrusage() failed (" << err << ")");
+        return;
+    }
+
+    rsspeak = ru.ru_maxrss / 1024L; // ru_maxrss is in bytes
+
+#else // __MACH__
+
     // Open /proc/<pid>/status
     std::stringstream ss;
     ss << "/proc/" << int(getpid()) << "/status";
     std::ifstream file(ss.str().c_str());
     if (!file) {
-        ASKAPLOG_INFO_STR(logger, "Memory stats - Could not open procfs to obtain status");
+        ASKAPLOG_INFO_STR(logger,
+                "Memory stats - Error: Could not open procfs to obtain status");
         return;
     }
 
     // Find the VmPeak and RSSPeak
-    int vmpeak = -1;
-    int rsspeak = -1;
     while (file.good() && (vmpeak < 0 || rsspeak < 0)) {
         std::string token;
         file >> token;
@@ -89,19 +111,21 @@ void StatReporter::logMemorySummary(void)
     }
     file.close();
 
+#endif //__MACH__
+
     // Report
     ASKAPLOG_INFO_STR(logger, "Memory stats - PeakVM: "
             << StatReporter::kbToMb(vmpeak) << "  PeakRSS: "
             << StatReporter::kbToMb(rsspeak));
 }
 
-int StatReporter::parseValue(std::ifstream& file)
+long StatReporter::parseValue(std::ifstream& file)
 {
-    int val = -1;
+    long val = -1;
     std::string token;
     file >> token;
     try {
-        val = utility::fromString<int>(token);
+        val = utility::fromString<long>(token);
         file >> token;
         if (token.compare("kB") != 0) {
             ASKAPLOG_WARN_STR(logger, "Unexpected token: " << token);
@@ -113,7 +137,7 @@ int StatReporter::parseValue(std::ifstream& file)
     return val;
 }
 
-std::string StatReporter::kbToMb(int val)
+std::string StatReporter::kbToMb(long val)
 {
     if (val < 0) {
         return "<unknown>";
