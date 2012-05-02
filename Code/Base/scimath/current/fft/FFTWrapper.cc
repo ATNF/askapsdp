@@ -59,12 +59,12 @@ namespace askap
       boost::mutex fftWrapperMutex;
       boost::mutex fftWrapperMutex2;
 #endif
-
+      
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward)
           {
 
 #ifdef _OPENMP
-            boost::unique_lock<boost::mutex>(fftWrapperMutex);
+            boost::unique_lock<boost::mutex> lock(fftWrapperMutex);
 #endif
             
 #ifdef ASKAP_USE_FFTW
@@ -106,7 +106,7 @@ namespace askap
         void fft(casa::Vector<casa::Complex>& vec, const bool forward)
           {
 #ifdef _OPENMP
-            boost::unique_lock<boost::mutex>(fftWrapperMutex);
+            boost::unique_lock<boost::mutex> lock(fftWrapperMutex);
 #endif
 
 #ifdef ASKAP_USE_FFTW
@@ -148,7 +148,7 @@ namespace askap
         void fft2d(casa::Array<casa::Complex>& arr, const bool forward)
           {
 #ifdef _OPENMP
-            boost::unique_lock<boost::mutex>(fftWrapperMutex2);
+            boost::unique_lock<boost::mutex> lock2(fftWrapperMutex2);
 #endif
 #ifndef ASKAP_USE_FFTW
             casa::FFTServer<float, casa::Complex> ffts;
@@ -166,7 +166,7 @@ namespace askap
                     fft(vec, forward);
 #else
 #ifdef _OPENMP
-                    boost::unique_lock<boost::mutex>(fftWrapperMutex);                    
+                    boost::unique_lock<boost::mutex> lock(fftWrapperMutex);                    
 #endif
                     ffts.fft(vec, forward);
 #endif
@@ -179,7 +179,7 @@ namespace askap
                     fft(vec, forward);
 #else
 #ifdef _OPENMP
-                    boost::unique_lock<boost::mutex>(fftWrapperMutex);                    
+                    boost::unique_lock<boost::mutex> lock(fftWrapperMutex);                    
 #endif
                     ffts.fft(vec, forward);
 #endif
@@ -190,7 +190,7 @@ namespace askap
         void fft2d(casa::Array<casa::DComplex>& arr, const bool forward)
           {
 #ifdef _OPENMP
-            boost::unique_lock<boost::mutex>(fftWrapperMutex2);
+            boost::unique_lock<boost::mutex> lock2(fftWrapperMutex2);
 #endif
 #ifndef ASKAP_USE_FFTW
             casa::FFTServer<double, casa::DComplex> ffts;
@@ -208,7 +208,7 @@ namespace askap
                     fft(vec, forward);
 #else
 #ifdef _OPENMP
-                    boost::unique_lock<boost::mutex>(fftWrapperMutex);                    
+                    boost::unique_lock<boost::mutex> lock(fftWrapperMutex);                    
 #endif
                     ffts.fft(vec, forward);
 #endif
@@ -221,7 +221,7 @@ namespace askap
                     fft(vec, forward);
 #else
 #ifdef _OPENMP
-                    boost::unique_lock<boost::mutex>(fftWrapperMutex);                    
+                    boost::unique_lock<boost::mutex> lock(fftWrapperMutex);                    
 #endif
                     ffts.fft(vec, forward);
 #endif
