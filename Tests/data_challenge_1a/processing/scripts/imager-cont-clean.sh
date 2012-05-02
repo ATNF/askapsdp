@@ -109,7 +109,7 @@ fi
 if [ $DO_ANALYSIS == true ]; then
     unset DEPENDS
     DEPENDS="-W depend=afterok:$QSUB_CONTCLEAN"
-    CONTINUUMIMAGE=image.i.clean.restored
+    CONTINUUMIMAGE=image.i.clean.taylor.0.restored
     . ${SCRIPTDIR}/analysis.sh
 #    QSUB_ANALYSIS=`${QSUB_CMD} ${DEPENDS} analysis.qsub`
 fi
