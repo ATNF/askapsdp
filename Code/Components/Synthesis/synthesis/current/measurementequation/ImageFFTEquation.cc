@@ -329,7 +329,13 @@ namespace askap
            for (size_t i = 0; i<completions.size(); ++i) {
                 const string imageName("image"+completions[i]);
                 if (parameters().isFree(imageName)) {
+                    #ifdef _OPENMP
+                    #pragma omp task
+                    #endif
                     itsResidualGridders[imageName]->grid(accBuffer);
+                    #ifdef _OPENMP
+                    #pragma omp task
+                    #endif
                     itsPSFGridders[imageName]->grid(accBuffer);
                     tempCounter += accBuffer.nRow();
                 }

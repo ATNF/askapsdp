@@ -57,7 +57,6 @@ namespace askap
 #ifdef _OPENMP
       /// @brief mutex to ensure thread safety in the calls to fft
       boost::mutex fftWrapperMutex;
-      boost::mutex fftWrapperMutex2;
 #endif
       
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward)
@@ -147,11 +146,14 @@ namespace askap
 
         void fft2d(casa::Array<casa::Complex>& arr, const bool forward)
           {
-#ifdef _OPENMP
-            boost::unique_lock<boost::mutex> lock2(fftWrapperMutex2);
-#endif
 #ifndef ASKAP_USE_FFTW
+#ifdef _OPENMP
+            boost::unique_lock<boost::mutex> lock(fftWrapperMutex);
             casa::FFTServer<float, casa::Complex> ffts;
+            lock.unlock();
+#else
+            casa::FFTServer<float, casa::Complex> ffts;
+#endif
 #endif
             /// Make an iterator that returns plane by plane
             casa::ArrayIterator<casa::Complex> it(arr, 2);
@@ -166,9 +168,12 @@ namespace askap
                     fft(vec, forward);
 #else
 #ifdef _OPENMP
-                    boost::unique_lock<boost::mutex> lock(fftWrapperMutex);                    
-#endif
+                    lock.lock();                    
                     ffts.fft(vec, forward);
+                    lock.unlock();                    
+#else
+                    ffts.fft(vec, forward);
+#endif
 #endif
                   }
                 ASKAPDEBUGASSERT(arr.shape()(0)>=0);  
@@ -179,21 +184,33 @@ namespace askap
                     fft(vec, forward);
 #else
 #ifdef _OPENMP
-                    boost::unique_lock<boost::mutex> lock(fftWrapperMutex);                    
-#endif
+                    lock.lock();
                     ffts.fft(vec, forward);
+                    lock.unlock();
+#else
+                    ffts.fft(vec, forward);
+#endif
 #endif
                   }
                 it.next();
               }
+#ifndef ASKAP_USE_FFTW
+#ifdef _OPENMP
+              // to protect the destructor of FFTServer
+              lock.lock();
+#endif
+#endif
           }
         void fft2d(casa::Array<casa::DComplex>& arr, const bool forward)
           {
-#ifdef _OPENMP
-            boost::unique_lock<boost::mutex> lock2(fftWrapperMutex2);
-#endif
 #ifndef ASKAP_USE_FFTW
+#ifdef _OPENMP
+            boost::unique_lock<boost::mutex> lock(fftWrapperMutex);
             casa::FFTServer<double, casa::DComplex> ffts;
+            lock.unlock();
+#else
+            casa::FFTServer<double, casa::DComplex> ffts;
+#endif
 #endif
             /// Make an iterator that returns plane by plane
             casa::ArrayIterator<casa::DComplex> it(arr, 2);
@@ -208,9 +225,12 @@ namespace askap
                     fft(vec, forward);
 #else
 #ifdef _OPENMP
-                    boost::unique_lock<boost::mutex> lock(fftWrapperMutex);                    
-#endif
+                    lock.lock();                    
                     ffts.fft(vec, forward);
+                    lock.unlock();
+#else
+                    ffts.fft(vec, forward);
+#endif
 #endif
                   }
                 ASKAPDEBUGASSERT(arr.shape()(0));
@@ -221,13 +241,22 @@ namespace askap
                     fft(vec, forward);
 #else
 #ifdef _OPENMP
-                    boost::unique_lock<boost::mutex> lock(fftWrapperMutex);                    
-#endif
+                    lock.lock();                    
                     ffts.fft(vec, forward);
+                    lock.unlock();
+#else
+                    ffts.fft(vec, forward);
+#endif
 #endif
                   }
                 it.next();
               }
+#ifndef ASKAP_USE_FFTW
+#ifdef _OPENMP
+              // to protect the destructor of FFTServer
+              lock.lock();
+#endif
+#endif
           }
       }
   }
