@@ -50,6 +50,8 @@ ASKAP_LOGGER(logger, ".gridding.tablevisgridder");
 #include <measurementequation/ImageParamsHelper.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
+#include <askap/CasaSyncHelper.h>
+
 using namespace askap::scimath;
 using namespace askap;
 
@@ -80,6 +82,9 @@ void deepCopyOfSTDVector(const std::vector<T> &in,
         *outIt = inIt->copy();
    }
 }
+
+/// @brief required to mediate thread safety issues of the casa cube
+utility::CasaSyncHelper syncHelper;
 
 TableVisGridder::TableVisGridder() : itsSumWeights(),
         itsSupport(-1), itsOverSample(-1),
@@ -553,12 +558,12 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
              casa::Vector<casa::Complex> imagePolFrameNoise(nImagePols);
              if (!isPSFGridder()) {
                  // both forward and reverse are covered, isPSFGridder returns false for the forward gridder
-                 imagePolFrameVis = gridPolConv(acc.visibility().yzPlane(i).row(chan));			     
+                 imagePolFrameVis = gridPolConv(syncHelper.zVector(acc.visibility(),i,chan));			     
              }
              if (!forward) {
                  // we just don't need this quantity for the forward gridder, although there would be no
                  // harm to always compute it
-                 imagePolFrameNoise = gridPolConv.noise(acc.noise().yzPlane(i).row(chan));			     
+                 imagePolFrameNoise = gridPolConv.noise(syncHelper.zVector(acc.noise(),i,chan));			     
              }		 
 		     
             // Now loop over all image polarizations
