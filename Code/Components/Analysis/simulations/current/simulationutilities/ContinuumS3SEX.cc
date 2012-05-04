@@ -83,7 +83,7 @@ namespace askap {
 	  this->defaultSEDtype();
 	}
 
-        void ContinuumS3SEX::define(std::string &line)
+        void ContinuumS3SEX::define(const std::string &line)
         {
             /// @details Defines a Continuum object from a line of
             /// text from an ascii file. This line should be formatted in

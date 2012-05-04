@@ -85,7 +85,7 @@ namespace askap {
             return *this;
         }
 
-        void FLASHProfile::define(std::string &line)
+        void FLASHProfile::define(const std::string &line)
         {
             /// @details Defines a FLASHProfile object from a line of
             /// text from an ascii file. This line should be formatted in

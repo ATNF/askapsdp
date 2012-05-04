@@ -71,7 +71,7 @@ namespace askap {
 	  this->define(line);
 	}
 
-        void ContinuumNVSS::define(std::string &line)
+        void ContinuumNVSS::define(const std::string &line)
         {
             /// @details Defines a Continuum object from a line of
             /// text from an ascii file. This line should be taken

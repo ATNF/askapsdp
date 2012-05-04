@@ -84,7 +84,7 @@ namespace askap {
             return *this;
         }
 
-        void GaussianProfile::define(std::string &line)
+        void GaussianProfile::define(const std::string &line)
         {
             /// @details Defines a GaussianProfile object from a line of
             /// text from an ascii file. This line should be formatted in

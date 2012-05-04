@@ -84,7 +84,7 @@ namespace askap {
 	  this->define(line);
 	}
 
-        void FullStokesContinuum::define(std::string &line)
+        void FullStokesContinuum::define(const std::string &line)
         {
             /// @details Defines a FullStokesContinuum object from a line of
             /// text from an ascii file. The format of the line is currently taken from the POSSUM catalogue supplied by Jeroen Stil.

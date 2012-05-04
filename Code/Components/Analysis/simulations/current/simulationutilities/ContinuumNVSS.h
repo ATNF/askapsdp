@@ -69,7 +69,7 @@ namespace askap {
                 ContinuumNVSS& operator= (const Spectrum& c);
 
 		/// @brief Define using a line of input from an ascii file
-		void define(std::string &line);
+		void define(const std::string &line);
 
 		void print(std::ostream& theStream);
                 /// @brief Output the parameters for the source

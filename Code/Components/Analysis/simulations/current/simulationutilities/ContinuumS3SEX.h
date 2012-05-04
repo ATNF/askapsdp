@@ -74,7 +74,7 @@ namespace askap {
                 ContinuumS3SEX& operator= (const Spectrum& c);
 
 		/// @brief Define using a line of input from an ascii file
-		void define(std::string &line);
+		void define(const std::string &line);
 
 		/// @brief Set the type of SED to apply
 		void setSEDtype(SEDTYPE type){itsSEDtype=type;};
