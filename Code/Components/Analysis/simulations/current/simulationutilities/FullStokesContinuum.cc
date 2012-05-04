@@ -55,25 +55,25 @@ namespace askap {
         FullStokesContinuum::FullStokesContinuum():
 	  ContinuumS3SEX()
         {
-            this->defineSource(0., 0., 1400.e6);
+            this->defineSource(0., 0., POLREFFREQ);
         }
 
         FullStokesContinuum::FullStokesContinuum(ContinuumS3SEX &c):
 	  ContinuumS3SEX(c)
         {
-            this->defineSource(0., 0., 1400.e6);
+            this->defineSource(0., 0., POLREFFREQ);
         }
 
         FullStokesContinuum::FullStokesContinuum(Continuum &c):
 	  ContinuumS3SEX(c)
         {
-            this->defineSource(0., 0., 1400.e6);
+            this->defineSource(0., 0., POLREFFREQ);
         }
 
         FullStokesContinuum::FullStokesContinuum(Spectrum &s):
 	  ContinuumS3SEX(s)
         {
-            this->defineSource(0., 0., 1400.e6);
+            this->defineSource(0., 0., POLREFFREQ);
         }
 
         FullStokesContinuum::FullStokesContinuum(std::string &line)
@@ -90,24 +90,28 @@ namespace askap {
             /// text from an ascii file. The format of the line is currently taken from the POSSUM catalogue supplied by Jeroen Stil.
             /// @param line A line from the ascii input file
 
-	  float flux1400;
+	  float flux1420;
             std::stringstream ss(line);
             ss >> this->itsComponentNum >> this->itsClusterID >> this->itsGalaxyNum 
 	       >> this->itsSFtype >> this->itsAGNtype >> this->itsStructure 
 	       >> this->itsRA >> this->itsDec >> this->itsDistance >> this->itsRedshift 
 	       >> this->itsPA >> this->itsMaj >> this->itsMin 
-	       >> this->itsI151 >> this->itsI610 >> flux1400 
+	       >> this->itsI151 >> this->itsI610 >> flux1420 
 	       >> this->itsStokesQref >> this->itsStokesUref >> this->itsPolFluxRef >> this->itsPolFracRef 
 	       >> this->itsI4860 >> this->itsI18000 >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
 	    
-	    this->itsI1400 = log10(flux1400);
+	    this->itsFreqValues=std::vector<float>(5);
+	    for(int i=0;i<5;i++) this->itsFreqValues[i]=freqValuesS3SEX[i];
+	    this->itsFreqValues[2] = POLREFFREQ;
+
+	    this->itsI1400 = log10(flux1420);
 	    // ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1400<<" and itsI1400="<<this->itsI1400);
 	    this->checkShape();
 
 	    this->itsStokesRefFreq = POLREFFREQ;
 	    this->itsStokesVref = 0.;     // Setting Stokes V to be zero for now!
 	    if(this->itsPolFluxRef>0.)
-	      this->itsPolAngleRef = acos(this->itsStokesQref/this->itsPolFluxRef);
+	      this->itsPolAngleRef = 0.5*acos(this->itsStokesQref/this->itsPolFluxRef);
 	    else 
 	      this->itsPolAngleRef = 0.;
 // 	    this->itsAlpha = (log10(this->itsFlux)-this->itsI610)/log10(1400./610.);
@@ -174,7 +178,7 @@ namespace askap {
             if (this == &c) return *this;
 
             ((Continuum &) *this) = c;
-            this->defineSource(0., 0., 1400.e6);
+            this->defineSource(0., 0., POLREFFREQ);
             return *this;
         }
 
@@ -183,7 +187,7 @@ namespace askap {
             if (this == &c) return *this;
 
             ((ContinuumS3SEX &) *this) = c;
-            this->defineSource(0., 0., 1400.e6);
+            this->defineSource(0., 0., POLREFFREQ);
             return *this;
         }
 
@@ -192,7 +196,7 @@ namespace askap {
             if (this == &c) return *this;
 
             ((Spectrum &) *this) = c;
-            this->defineSource(0., 0., 1400.e6);
+            this->defineSource(0., 0., POLREFFREQ);
             return *this;
         }
 

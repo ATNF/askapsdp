@@ -75,6 +75,9 @@ namespace askap {
 		/// @brief Define using a line of input from an ascii file
 		void define(const std::string &line);
 
+		/// @brief Was the "fit" actually from the pre-fit estimate (ie. a guess)?
+		bool isGuess(){return itsFlagGuess;};
+
 		void print(std::ostream& theStream);
                 /// @brief Output the parameters for the source
                 friend std::ostream& operator<< (std::ostream& theStream, ContinuumSelavy &cont);

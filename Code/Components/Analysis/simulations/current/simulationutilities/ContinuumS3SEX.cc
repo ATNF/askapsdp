@@ -98,6 +98,9 @@ namespace askap {
 	       >> this->itsRA >> this->itsDec >> this->itsPA >> this->itsMaj >> this->itsMin 
 	       >> this->itsI151 >> this->itsI610 >> this->itsI1400 >> this->itsI4860 >> this->itsI18000;
 	    
+	    this->itsFreqValues=std::vector<float>(5);
+	    for(int i=0;i<5;i++) this->itsFreqValues[i]=freqValuesS3SEX[i];
+
 	    this->checkShape();
 
 	}
@@ -136,16 +139,17 @@ namespace askap {
 	  }
 	  else if(this->itsSEDtype == FIT) {
 	    std::vector<float> xdat(5),ydat(5),fit;
-	    xdat[0]=log10(151.e6/this->itsNuZero);
-	    xdat[1]=log10(610.e6/this->itsNuZero);
-	    xdat[2]=log10(1400.e6/this->itsNuZero);
-	    xdat[3]=log10(4860.e6/this->itsNuZero);
-	    xdat[4]=log10(18000.e6/this->itsNuZero);
-	    ydat[0]=this->itsI151;
-	    ydat[1]=this->itsI610;
-	    ydat[2]=this->itsI1400;
-	    ydat[3]=this->itsI4860;
-	    ydat[4]=this->itsI18000;
+	    // Set the frequency values, normalised by the reference frequency nuZero.
+	    // Note that the fitting is done in log-space (and **NOT** log10-space!!)
+	    for(int i=0;i<5;i++){
+	      xdat[i]=log(this->itsFreqValues[i]/this->itsNuZero);
+	    }
+	    // Convert the flux values to log-space for fitting.
+	    ydat[0]=log(pow(10,this->itsI151));
+	    ydat[1]=log(pow(10,this->itsI610));
+	    ydat[2]=log(pow(10,this->itsI1400));
+	    ydat[3]=log(pow(10,this->itsI4860));
+	    ydat[4]=log(pow(10,this->itsI18000));
 	    
 	    int ndata=5, nterms=5;
 	    double chisq;
@@ -177,7 +181,7 @@ namespace askap {
 	    // 		       <<" [4]="<<gsl_vector_get(c,4));
 
 	    flux=gsl_vector_get(c,0);
-	    this->itsFlux = pow(10.,flux);
+	    this->itsFlux = exp(flux);
 	    this->itsAlpha=gsl_vector_get(c,1);
 	    this->itsBeta=gsl_vector_get(c,2);
 	    
@@ -214,6 +218,7 @@ namespace askap {
 	this->itsAlpha      = c.itsAlpha;
 	this->itsBeta       = c.itsBeta;
 	this->itsNuZero     = c.itsNuZero;
+	this->itsFreqValues = c.itsFreqValues;
 	return *this;
       }
 

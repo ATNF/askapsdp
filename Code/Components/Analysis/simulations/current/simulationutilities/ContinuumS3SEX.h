@@ -32,11 +32,14 @@
 #include <simulationutilities/Spectrum.h>
 #include <simulationutilities/Continuum.h>
 
+#include <vector>
+
 namespace askap {
 
     namespace simulations {
 
       enum SEDTYPE { SIMPLE_POWERLAW, POWERLAW, FIT };
+      const float freqValuesS3SEX[5]={151.e6,610.e6,1400.e6,4860.e6,18000.e6};
 
         /// @brief A class to hold spectral information for a continuum spectrum.
         /// @details This class holds information on the continuum
@@ -105,7 +108,7 @@ namespace askap {
 
 		SEDTYPE itsSEDtype;
 
-		
+		std::vector<float> itsFreqValues;
         };
 
     }
