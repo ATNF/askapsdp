@@ -52,6 +52,7 @@
 #include <askap/AskapUtil.h>
 #include <dataaccess/TableDataSource.h>
 #include <dataaccess/ParsetInterface.h>
+#include <dataaccess/MemBufferDataAccessor.h>
 
 
 ASKAP_LOGGER(logger, ".cimager");
@@ -103,7 +104,16 @@ int main(int argc, const char** argv)
             ASKAPCHECK(nCycles > 0, "Number of iterations over the dataset is supposed to be positive, you have "<<nCycles);
             const std::string dataset = subset.getString("dataset");
             ASKAPLOG_INFO_STR(logger, "Dataset "<<dataset<<" will be used");
+            const int cacheSize = subset.getInt32("nUVWMachines",1);
+            ASKAPCHECK(cacheSize > 0, "uvw-machine cache size should be positive");
+            const double cacheTolerance = SynthesisParamsHelper::convertQuantity(subset.getString("uvwMachineDirTolerance", 
+                                                   "1e-6rad"),"rad");
+            const int nCopies = subset.getInt32("ncopies",1);
+            ASKAPCHECK(nCopies > 0, "number of copies should be positive");            
+            ASKAPLOG_INFO_STR(logger, "Will run "<<nCopies<<" copies of gridding jobs");
+            
             accessors::TableDataSource ds(dataset, accessors::TableDataSource::MEMORY_BUFFERS, "DATA");
+            ds.configureUVWMachineCache(size_t(cacheSize),cacheTolerance);                          
             accessors::IDataSelectorPtr sel=ds.createSelector();
             sel << subset;
             accessors::IDataConverterPtr conv=ds.createConverter();
@@ -111,11 +121,41 @@ int main(int argc, const char** argv)
             conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));
             // ensure that time is counted in seconds since 0 MJD
             conv->setEpochFrame();
-                    
+            
+            ASKAPLOG_INFO_STR(logger, "Instantiating and initialising gridders");
+            const size_t nImages = model.names().size();
+            std::vector<IVisGridder::ShPtr> gridderList(nImages * nCopies);
+            for (size_t i=0; i<gridderList.size(); ++i) {
+                 gridderList[i] = gridder->clone();
+                 ASKAPDEBUGASSERT(gridderList[i]);
+                 const size_t modelIndex = i % nImages;
+                 const std::string imageName = model.names()[modelIndex];
+                 const Axes axes(model.axes(imageName));
+                 gridderList[i]->initialiseGrid(axes,model.value(imageName).shape(), false);
+                 gridderList[i]->customiseForContext(imageName);
+            }
             for (int cycle = 0; cycle < nCycles; ++cycle) {
                  ASKAPLOG_INFO_STR(logger, "-------------- 'Major cycle' number "<<(cycle + 1)<< " -----------------");
                  accessors::IDataSharedIter it=ds.createIterator(sel, conv);
-                 
+                 size_t counterGrid = 0;
+                 for (it.init();it.hasMore();it.next()) {
+                      accessors::MemBufferDataAccessor accBuffer(*it);
+                      size_t tempCounter = 0; 
+                      #ifdef _OPENMP
+                      #pragma omp parallel default(shared)
+                      {
+                         #pragma omp for reduction(+:tempCounter)
+                      #endif
+                         for (size_t i = 0; i<gridderList.size(); ++i) {
+                              gridderList[i]->grid(accBuffer);
+                              tempCounter += accBuffer.nRow();
+                         }
+                      #ifdef _OPENMP
+                      }
+                      #endif
+                      counterGrid += tempCounter;
+                 }
+                 ASKAPLOG_INFO_STR(logger, "Finished gridding pass, number of rows gridded is "<<counterGrid);                 
             }
             
         }
