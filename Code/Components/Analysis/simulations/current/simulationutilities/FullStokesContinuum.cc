@@ -105,8 +105,11 @@ namespace askap {
 	    this->itsFreqValues[2] = POLREFFREQ;
 
 	    this->itsI1400 = log10(flux1420);
-	    // ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1400<<" and itsI1400="<<this->itsI1400);
+	    this->itsFlux = flux1420; // Set the reference flux here, but should properly call prepareForUse() to get it right.
+	    // ASKAPLOG_DEBUG_STR(logger, "Full Stokes S3SEX object, with flux1400="<<flux1420<<" and itsI1400="<<this->itsI1400);
 	    this->checkShape();
+
+	    //	  ASKAPLOG_DEBUG_STR(logger, "POSSUM source #" << this->itsComponentNum<<": " << this->itsRA << " " << this->itsDec << " " << this->itsI1400 << " " << this->itsMaj << " " << this->itsMin << " " << this->itsPA);
 
 	    this->itsStokesRefFreq = POLREFFREQ;
 	    this->itsStokesVref = 0.;     // Setting Stokes V to be zero for now!

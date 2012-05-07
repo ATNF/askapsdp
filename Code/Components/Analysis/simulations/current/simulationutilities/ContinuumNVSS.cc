@@ -118,6 +118,10 @@ namespace askap {
 	  this->itsMaj = this->itsMajorAxisLimit=='<' ? 0. : this->itsMajorAxis;
 	  this->itsMin = this->itsMinorAxisLimit=='<' ? 0. : this->itsMinorAxis;
 	  this->itsPA = this->itsPA_input;
+
+	  this->itsAlpha = 0.;
+	  this->itsBeta = 0.;
+
 	  this->checkShape();
 
 	  //	  ASKAPLOG_DEBUG_STR(logger, "NVSS source #" << this->itsRecno<<": " << this->itsRA << " " << this->itsDec << " " << this->itsFlux << " " << this->itsMaj << " " << this->itsMin << " " << this->itsPA);

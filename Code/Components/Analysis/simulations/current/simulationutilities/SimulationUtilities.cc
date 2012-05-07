@@ -211,6 +211,7 @@ namespace askap {
             int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), int(axes[0] - 1));
             int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
             int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), int(axes[1] - 1));
+	    // ASKAPLOG_DEBUG_STR(logger, axes[0] << " " << axes[1] << " " << gauss << " " << gauss.height() << " " << majorSigma << " " << zeroPoint << " " << xmin << " " << xmax << " " << ymin << " " << ymax);
             return ((xmax >= xmin) && (ymax >= ymin));
 
         }
@@ -307,14 +308,16 @@ namespace askap {
 
                 for (size_t i = 1; i < axes.size(); i++) ss << "x" << axes[i];
 
-                ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with flux="<<gauss.flux() << " and bounds [" << xmin << ":" << xmax << "," << ymin << ":" << ymax
-                                       << "] (zeropoints = " << zeroPointMax << "," << zeroPointMin << ") (dimensions of array=" << ss.str() << ")");
-
                 // Test to see whether this should be treated as a point source
                 float minSigma = FWHMtoSIGMA(std::min(gauss.majorAxis(), gauss.minorAxis()));
 //        float delta = std::min(0.01,pow(10., floor(log10(minSigma/5.))));
 //        float delta = pow(10.,floor(log10(minSigma))-1.);
                 float delta = std::min(1. / 32., pow(10., floor(log10(minSigma / 5.) / log10(2.)) * log10(2.)));
+
+                ASKAPLOG_DEBUG_STR(logger, "Adding Gaussian " << gauss << " with flux="<<gauss.flux() << 
+				   " and bounds [" << xmin << ":" << xmax << "," << ymin << ":" << ymax
+				   << "] (zeropoints = " << zeroPointMax << "," << zeroPointMin << 
+				   ") (dimensions of array=" << ss.str() << ")  delta=" << delta << ", minSigma = " << minSigma);
 
                 if (delta < 1.e-4 && integrate) { // if it is really thin and we're integrating, use the 1D approximation
                     ASKAPLOG_DEBUG_STR(logger, "Since delta = " << delta << "( 1./" << 1. / delta

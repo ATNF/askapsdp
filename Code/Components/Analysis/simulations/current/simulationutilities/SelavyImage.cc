@@ -85,14 +85,22 @@ namespace askap {
 	this->itsFilename="";
 	if(parset.isDefined("Selavyimage")){
 	  this->itsFilename = parset.getString("Selavyimage");
+	  if(this->itsFilename != "") this->findBeam();
 	}
-	// else{
-	//   // Do not have SelavyImage defined, so read beam and pixel info separately
-	//   if(parset.isDefined("beam"))
-
-	if(this->itsFilename != "") this->findBeam();
+	else{
+	  // Do not have SelavyImage defined, so read beam and pixel info separately
+	  LOFAR::ParameterSet subset(parset.makeSubset("Selavyimage."));
+	  // ASKAPLOG_DEBUG_STR(logger, "Input parset = \n" << parset <<" and Selavyimage subset = \n" << subset);
+	  std::vector<float> beam;
+	  if(subset.isDefined("beam")) beam=subset.getFloatVector("beam");
+	  else ASKAPLOG_ERROR_STR(logger, "You have not defined Selavyimage or Selavyimage.beam in the parset");
+	  ASKAPASSERT(beam.size()==3);
+	  this->itsPixelScale=subset.getFloat("pixscale");
+	  this->itsDirUnits=subset.getString("dirunits");
+	  this->itsBeam.define(beam[0],beam[1],beam[2]);
+	}
       }
-
+	
       void SelavyImage::findBeam()
       {
 	/// @details Find the beam information from the image
