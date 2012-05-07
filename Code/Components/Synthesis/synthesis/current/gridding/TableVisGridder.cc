@@ -439,8 +439,13 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
    // of the matrices for every accessor. More intelligent caching is possible with a bit
    // more effort (i.e. one has to detect whether polarisation frames change from the
    // previous call). Need to think about parallactic angle dependence.
+   #ifdef _OPENMP
+   scimath::PolConverter gridPolConv(syncHelper.copy(acc.stokes()), getStokes());
+   scimath::PolConverter degridPolConv(getStokes(),syncHelper.copy(acc.stokes()), false);
+   #else
    scimath::PolConverter gridPolConv(acc.stokes(), getStokes());
    scimath::PolConverter degridPolConv(getStokes(),acc.stokes(), false);
+   #endif   
 			      
    ASKAPDEBUGASSERT(itsShape.nelements()>=2);
    const casa::IPosition onePlane4D(4, itsShape(0), itsShape(1), 1, 1);

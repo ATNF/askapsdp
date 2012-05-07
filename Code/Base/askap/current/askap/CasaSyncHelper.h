@@ -34,25 +34,61 @@ namespace  utility {
 /// integrated into casacore. For now we use this class to avoid overloading the
 /// code by the synchronisation primitives.
 struct CasaSyncHelper {
+   
+   #ifdef _OPENMP
+
    /// @brief extract zVector from an x,y,z cube for reading
    /// @details it is equivalent to yzPlane(x).row(y)
    /// @param[in] cube input cube
    /// @param[in] x first coordinate
    /// @param[in] y second coordinate
    template<typename T>
-   #ifdef _OPENMP
    inline casa::Vector<T> zVector(const casa::Cube<T> &cube, const casa::uInt x, const casa::uInt y) const {
        boost::lock_guard<boost::mutex> lock(itsZVectorMutex);
        casa::Vector<T> result = cube.yzPlane(x).row(y).copy();
        return result;
+   }   
+
+   /// @brief generalised copy for array clases
+   /// @param[in] in reference to input object
+   /// @return a copy
+   /// @note the method is templated so it can be used with Array, Vector or Matrix
+   template<typename T>
+   inline T copy(const T &in) const {
+      boost::lock_guard<boost::mutex> lock(itsCopyMutex);
+      T result = in.copy();
+      return result;
    }
+
 private:
    /// @brief synchronisation mutex for zVector
    mutable boost::mutex itsZVectorMutex;   
+   
+   /// @brief synchronisation mutex for array copy
+   mutable boost::mutex itsCopyMutex;
+   
    #else
+
+   /// @brief extract zVector from an x,y,z cube for reading
+   /// @details it is equivalent to yzPlane(x).row(y)
+   /// @param[in] cube input cube
+   /// @param[in] x first coordinate
+   /// @param[in] y second coordinate
+   template<typename T>
    static inline casa::Vector<T> zVector(const casa::Cube<T> &cube, const casa::uInt x, const casa::uInt y) {
        return cube.yzPlane(x).row(y).copy();
    }
+
+
+   /// @brief generalised copy for array clases
+   /// @param[in] in reference to input object
+   /// @return a copy
+   /// @note the method is templated so it can be used with Array, Vector or Matrix
+   template<typename T>
+   static inline T copy(const T &in) {
+      return in.copy();
+   }
+
    #endif
 };
 
