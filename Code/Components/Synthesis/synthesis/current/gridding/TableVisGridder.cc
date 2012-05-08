@@ -561,11 +561,11 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
 			 // a buffer for the visibility vector in the polarisation frame used for the grid
 			 casa::Vector<casa::Complex> imagePolFrameVis(nImagePols,casa::Complex(0.,0.));
              casa::Vector<casa::Complex> imagePolFrameNoise(nImagePols);
-             if (!isPSFGridder()) {
-                 // both forward and reverse are covered, isPSFGridder returns false for the forward gridder
-                 imagePolFrameVis = gridPolConv(syncHelper.zVector(acc.visibility(),i,chan));			     
-             }
+             
              if (!forward) {
+                 if (!isPSFGridder()) {
+                     imagePolFrameVis = gridPolConv(syncHelper.zVector(acc.visibility(),i,chan));			     
+                 }
                  // we just don't need this quantity for the forward gridder, although there would be no
                  // harm to always compute it
                  imagePolFrameNoise = gridPolConv.noise(syncHelper.zVector(acc.noise(),i,chan));			     
@@ -694,7 +694,8 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
             }//end of pol loop
 	    // need to write back the result for degridding
             if (forward) {
-	        acc.rwVisibility().yzPlane(i).row(chan) = degridPolConv(imagePolFrameVis);
+                casa::Vector<casa::Complex> thisPolVector = acc.rwVisibility().yzPlane(i).row(chan);
+	            thisPolVector += degridPolConv(imagePolFrameVis);
             }		     
          } else { 
             if (!forward) {
