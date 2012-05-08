@@ -140,6 +140,9 @@ int main(int argc, const char** argv)
                  size_t counterGrid = 0;
                  for (it.init();it.hasMore();it.next()) {
                       accessors::MemBufferDataAccessor accBuffer(*it);
+                      accBuffer.rwVisibility().set(0.);
+                      accBuffer.rwVisibility() -= it->visibility();
+                      accBuffer.rwVisibility() *= float(-1.);
                       size_t tempCounter = 0; 
                       #ifdef _OPENMP
                       #pragma omp parallel default(shared)

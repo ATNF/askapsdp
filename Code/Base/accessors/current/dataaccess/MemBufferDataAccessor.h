@@ -44,6 +44,10 @@
 #include <dataaccess/MetaDataAccessor.h>
 #include <dataaccess/IFlagAndNoiseDataAccessor.h>
 
+#ifdef _OPENMP
+//boost include
+#include <boost/thread/mutex.hpp>
+#endif
 
 namespace askap {
 	
@@ -99,6 +103,10 @@ private:
   /// @brief actual buffer
   mutable casa::Cube<casa::Complex> itsBuffer;
   
+  #ifdef _OPENMP
+  /// @brief synchronisation lock for resizing of the buffer
+  mutable boost::mutex itsMutex;
+  #endif
 };
 
 } // namespace accessors
