@@ -771,7 +771,7 @@ namespace askap {
 
 	  delete [] image;
 
-	  ASKAPLOG_DEBUG_STR(logger, "Copying done.");
+	  ASKAPLOG_DEBUG_STR(logger, "Convolving done.");
 
 	}
       }
