@@ -91,6 +91,12 @@ SpheroidalFunction::SpheroidalFunction(const double c, const double alpha, const
   itsSum0 = sumLegendreSeries(0., int(alpha));
 }
 
+/// @brief copy constructor to deal with casa vector
+/// @param[in] other an instance to copy from
+SpheroidalFunction::SpheroidalFunction(const SpheroidalFunction &other) : itsCoeffs(other.itsCoeffs.copy()),
+          itsREven(other.itsREven), itsAlpha(other.itsAlpha), itsSum0(other.itsSum0) {}
+
+
 /// @brief sum of the Legendre series
 /// @details This helper method sums Legendre series for the given coefficients and the origin
 /// @param[in] x abcissa 

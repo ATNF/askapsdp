@@ -80,6 +80,9 @@ struct SpheroidalFunction {
    /// @param[in] nterms number of terms in the decomposition
    SpheroidalFunction(const double c, const double alpha, const casa::uInt nterms = 16);
    
+   /// @brief copy constructor to deal with casa vector
+   /// @param[in] other an instance to copy from
+   SpheroidalFunction(const SpheroidalFunction &other);
 
    /// @brief value of the function for argument nu
    /// @details
