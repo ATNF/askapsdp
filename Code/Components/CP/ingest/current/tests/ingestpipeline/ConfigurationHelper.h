@@ -29,13 +29,9 @@
 
 // System includes
 #include <string>
-#include <vector>
-#include <map>
 
 // ASKAPsoft includes
-#include "casa/Quanta/Quantum.h"
-#include "measures/Measures/MDirection.h"
-#include "measures/Measures/Stokes.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
 #include "configuration/Configuration.h"
@@ -52,35 +48,82 @@ class ConfigurationHelper {
     public:
         static Configuration createDummyConfig(void)
         {
-            const std::string arrayName;
-            std::vector<TaskDesc> tasks;
-            std::vector<Antenna> antennas;
+            LOFAR::ParameterSet parset;
 
-            // Create Stokes vector for the scan configuration
-            std::vector<casa::Stokes::StokesTypes> stokes;
-            stokes.push_back(casa::Stokes::XX);
-            stokes.push_back(casa::Stokes::XY);
-            stokes.push_back(casa::Stokes::YX);
-            stokes.push_back(casa::Stokes::YY);
+            // Array name
+            parset.add("arrayname", "ASKAP");
 
-            // An observation must have at least one scan, so add one
-            Scan scan0("test-field",
-                    casa::MDirection(casa::Quantity(187.5, "deg"),
-                        casa::Quantity(-45.0, "deg"),
-                        MDirection::J2000),
-                    casa::Quantity(1400, "GHz"),
-                    16416,
-                    casa::Quantity(18.5, "kHz"),
-                    stokes);
-            std::vector<Scan> scans;
-            scans.push_back(scan0);
+            // Observation specific
+            parset.add("observation.sbid", "0");
 
-            Observation observation(0, scans);
-            TopicConfig metadataTopic("", "", "", "");
-            ServiceConfig calibrationDataService("", "", "");
+            // Scan0
+            parset.add("observation.scan0.field_name", "test-field0");
+            parset.add("observation.scan0.field_direction", "[12h30m00.000, -45.00.00.000, J2000]");
+            parset.add("observation.scan0.start_freq", "1.400GHz");
+            parset.add("observation.scan0.n_chan", "16416");
+            parset.add("observation.scan0.chan_width", "18.51851851kHz");
+            parset.add("observation.scan0.stokes", "[XX, XY, YX, YY]");
 
-            return Configuration(arrayName, tasks, antennas, observation,
-                    metadataTopic, calibrationDataService);
+            // Scan1
+            parset.add("observation.scan1.field_name", "test-field2");
+            parset.add("observation.scan1.field_direction", "[12h30m00.000, -45.00.00.000, J2000]");
+            parset.add("observation.scan1.start_freq", "1.400GHz");
+            parset.add("observation.scan1.n_chan", "16416");
+            parset.add("observation.scan1.chan_width", "18.51851851kHz");
+            parset.add("observation.scan1.stokes", "[XX, XY, YX, YY]");
+
+            // Scan2
+            parset.add("observation.scan2.field_name", "test-field2");
+            parset.add("observation.scan2.field_direction", "[12h30m00.000, -45.00.00.000, J2000]");
+            parset.add("observation.scan2.start_freq", "1.400GHz");
+            parset.add("observation.scan2.n_chan", "16416");
+            parset.add("observation.scan2.chan_width", "18.51851851kHz");
+            parset.add("observation.scan2.stokes", "[XX, XY, YX, YY]");
+
+            // Feed configurations
+            parset.add("feeds.names", "[PAF]");
+
+            parset.add("feeds.PAF.n_feeds", "4");
+            parset.add("feeds.PAF.spacing", "1deg");
+            parset.add("feeds.PAF.feed0", "[-2.5, -1.5]");
+            parset.add("feeds.PAF.feed1", "[-2.5, -0.5]");
+            parset.add("feeds.PAF.feed2", "[-2.5, 0.5]");
+            parset.add("feeds.PAF.feed3", "[-2.5, 1.5]");
+
+            // Antennas
+            parset.add("antennas.names", "[A0, A1, A2, A3, A4, A5]");
+
+            parset.add("antennas.A0.location" , "[-2652616.854602326, 5102312.637997697, -2749946.411592145]");
+            parset.add("antennas.A0.diameter" , "12m");
+            parset.add("antennas.A0.mount" , "equatorial");
+            parset.add("antennas.A0.feed_config" , "PAF");
+
+            parset.add("antennas.A1.location" , "[-2653178.349042055, 5102446.673161191, -2749155.53718417]");
+            parset.add("antennas.A1.diameter" , "12m");
+            parset.add("antennas.A1.mount" , "equatorial");
+            parset.add("antennas.A1.feed_config" , "PAF");
+
+            parset.add("antennas.A2.location" , "[-2652931.204894244, 5102600.67778301, -2749108.177002157]");
+            parset.add("antennas.A2.diameter" , "12m");
+            parset.add("antennas.A2.mount" , "equatorial");
+            parset.add("antennas.A2.feed_config" , "PAF");
+
+            parset.add("antennas.A3.location" , "[-2652731.709913884, 5102780.937978324, -2748966.073105379]");
+            parset.add("antennas.A3.diameter" , "12m");
+            parset.add("antennas.A3.mount" , "equatorial");
+            parset.add("antennas.A3.feed_config" , "PAF");
+
+            parset.add("antennas.A4.location" , "[-2652803.638192114, 5102632.431992128, -2749172.362663322]");
+            parset.add("antennas.A4.diameter" , "12m");
+            parset.add("antennas.A4.mount" , "equatorial");
+            parset.add("antennas.A4.feed_config" , "PAF");
+
+            parset.add("antennas.A5.location" , "[-2652492.544738157, 5102823.769989723, -2749117.418823366]");
+            parset.add("antennas.A5.diameter" , "12m");
+            parset.add("antennas.A5.mount" , "equatorial");
+            parset.add("antennas.A5.feed_config" , "PAF");
+
+            return Configuration(parset);
         }
 };
 

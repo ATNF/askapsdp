@@ -17,7 +17,7 @@ env["LINK"] = "mpicxx"
 env["SHLINK"] = "mpicxx"
 
 env.AppendUnique(CCFLAGS=['-g'])
-env.AppendUnique(CCFLAGS=['-O3'])
+env.AppendUnique(CCFLAGS=['-O0'])
 env.AppendUnique(CCFLAGS=['-DASKAP_DEBUG'])
 
 # run the build process

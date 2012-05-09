@@ -122,7 +122,7 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
 
             // Instantiate the class under test and call process() to
             // add UVW coordinates to the VisChunk
-            CalcUVWTask task(itsParset, createTestConfig());
+            CalcUVWTask task(itsParset, ConfigurationHelper::createDummyConfig());
             task.process(chunk);
 
             CPPUNIT_ASSERT_EQUAL(1u, chunk->nRow());
@@ -134,66 +134,7 @@ class CalcUVWTaskTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_DOUBLES_EQUAL(u, uvw(0), tol); //u
             CPPUNIT_ASSERT_DOUBLES_EQUAL(v, uvw(1), tol); //v
             CPPUNIT_ASSERT_DOUBLES_EQUAL(w, uvw(2), tol); //w
-        };
-
-        Antenna createAntenna(const std::string& name, const casa::Double& x,
-                const casa::Double& y, const casa::Double& z)
-        {
-            // Setup feed config
-            const casa::uInt nFeeds = 4;
-            const casa::uInt nReceptors = 2;
-            const casa::Quantity spacing(1, "deg");
-            casa::Matrix<casa::Quantity> offsets(nFeeds, nReceptors);
-            casa::Vector<casa::String> pols(nFeeds, "X Y");
-            offsets(0, 0) = spacing * -2.5;
-            offsets(0, 1) = spacing * -1.5;
-
-            offsets(1, 0) = spacing * -2.5;
-            offsets(1, 1) = spacing * -0.5;
-
-            offsets(2, 0) = spacing * -2.5;
-            offsets(2, 1) = spacing * 0.5;
-
-            offsets(3, 0) = spacing * -2.5;
-            offsets(3, 1) = spacing * 1.5;
-
-            FeedConfig paf4(offsets, pols);
-           
-            // Setup antenna
-            const std::string mount = "equatorial";
-            const casa::Quantity diameter(12.0, "m");
-
-            casa::Vector<casa::Double> pos(3);
-            pos(0) = x;
-            pos(1) = y;
-            pos(2) = z;
-            return Antenna(name,
-                    mount,
-                    pos,
-                    diameter,
-                    paf4);
-        };
-
-        Configuration createTestConfig(void)
-        {
-            Configuration empty = ConfigurationHelper::createDummyConfig();
-
-            // Setup antennas
-            std::vector<Antenna> antennas;
-            antennas.push_back(createAntenna("A0", -2652616.854602326, 5102312.637997697, -2749946.411592145));
-            antennas.push_back(createAntenna("A1", -2653178.349042055, 5102446.673161191, -2749155.53718417));
-            antennas.push_back(createAntenna("A2", -2652931.204894244, 5102600.67778301, -2749108.177002157));
-            antennas.push_back(createAntenna("A3", -2652731.709913884, 5102780.937978324, -2748966.073105379));
-            antennas.push_back(createAntenna("A4", -2652803.638192114, 5102632.431992128, -2749172.362663322));
-            antennas.push_back(createAntenna("A5", -2652492.544738157, 5102823.769989723, -2749117.418823366));
-
-            return Configuration(empty.arrayName(),
-                    empty.tasks(),
-                    antennas,
-                    empty.observation(),
-                    empty.metadataTopic(),
-                    empty.calibrationDataService());
-        };
+        }
 
     private:
 

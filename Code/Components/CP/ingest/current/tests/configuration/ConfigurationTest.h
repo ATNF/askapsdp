@@ -1,4 +1,4 @@
-/// @file ConfigurationFactoryTest.cc
+/// @file ConfigurationTest.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -29,19 +29,23 @@
 
 // Support classes
 #include "Common/ParameterSet.h"
-#include "configuration/Configuration.h"
 #include "casa/BasicSL.h"
 
 // Classes to test
-#include "configuration/ConfigurationFactory.h"
+#include "configuration/Configuration.h"
 
 namespace askap {
 namespace cp {
 namespace ingest {
 
-class ConfigurationFactoryTest : public CppUnit::TestFixture {
-        CPPUNIT_TEST_SUITE(ConfigurationFactoryTest);
-        CPPUNIT_TEST(testCreateConfiguration);
+class ConfigurationTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(ConfigurationTest);
+        CPPUNIT_TEST(testArrayName);
+        CPPUNIT_TEST(testTasks);
+        CPPUNIT_TEST(testAntennas);
+        CPPUNIT_TEST(testObservation);
+        CPPUNIT_TEST(testTopicConfig);
+        CPPUNIT_TEST(testServiceConfig);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -128,26 +132,43 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
             itsParset.clear();
         }
 
-        void testCreateConfiguration() {
-            Configuration conf = ConfigurationFactory::createConfiguraton(itsParset);
-
-            // Check array name
+        void testArrayName() {
+            Configuration conf(itsParset);
             CPPUNIT_ASSERT_EQUAL(casa::String("ASKAP"), conf.arrayName());
+        }
 
-            // Check observation
-            const Observation obs = conf.observation();
-            CPPUNIT_ASSERT_EQUAL(0u, obs.schedulingBlockID());
+        void testTasks() {
+            Configuration conf(itsParset);
 
-            // Check Scans
-            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), obs.scans().size());
-            Scan s = obs.scans().at(0);
-            CPPUNIT_ASSERT_EQUAL(casa::String("test-field"), s.name());
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(1.420, "GHz"), s.startFreq());
-            CPPUNIT_ASSERT_EQUAL(16416u, s.nChan());
-            CPPUNIT_ASSERT_EQUAL(casa::Quantity(18.51851851, "kHz"), s.chanWidth());
-            CPPUNIT_ASSERT_EQUAL(4ul, s.stokes().size());
+            CPPUNIT_ASSERT_EQUAL(4ul, conf.tasks().size());
 
-            // Check antennas
+            unsigned int idx = 0;
+            CPPUNIT_ASSERT_EQUAL(std::string("MergedSource"), conf.tasks().at(idx).name());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::MergedSource);
+            CPPUNIT_ASSERT_EQUAL(2, conf.tasks().at(idx).params().size());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).params().isDefined("vis_source.port"));
+            CPPUNIT_ASSERT(conf.tasks().at(idx).params().isDefined("vis_source.buffer_size"));
+
+            idx = 1;
+            CPPUNIT_ASSERT_EQUAL(std::string("CalcUVWTask"), conf.tasks().at(idx).name());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::CalcUVWTask);
+            CPPUNIT_ASSERT_EQUAL(0, conf.tasks().at(idx).params().size());
+
+            idx = 2;
+            CPPUNIT_ASSERT_EQUAL(std::string("ChannelAvgTask"), conf.tasks().at(idx).name());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::ChannelAvgTask);
+            CPPUNIT_ASSERT_EQUAL(1, conf.tasks().at(idx).params().size());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).params().isDefined("averaging"));
+
+            idx = 3;
+            CPPUNIT_ASSERT_EQUAL(std::string("MSSink"), conf.tasks().at(idx).name());
+            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::MSSink);
+            CPPUNIT_ASSERT_EQUAL(4, conf.tasks().at(idx).params().size());
+        }
+
+        void testAntennas() {
+            Configuration conf(itsParset);
+
             CPPUNIT_ASSERT_EQUAL(2ul, conf.antennas().size());
 
             // A0
@@ -173,33 +194,30 @@ class ConfigurationFactoryTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT_EQUAL(casa::Quantity(0.0, "deg"),
                     conf.antennas().at(idx).feeds().offsetY(0));
             CPPUNIT_ASSERT_EQUAL(casa::String("X Y"), conf.antennas().at(0).feeds().pol(0));
+        }
 
-            // Check tasks
-            CPPUNIT_ASSERT_EQUAL(4ul, conf.tasks().size());
+        void testObservation() {
+            Configuration conf(itsParset);
+            const Observation obs = conf.observation();
+            CPPUNIT_ASSERT_EQUAL(0u, obs.schedulingBlockID());
 
-            idx = 0;
-            CPPUNIT_ASSERT_EQUAL(std::string("MergedSource"), conf.tasks().at(idx).name());
-            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::MergedSource);
-            CPPUNIT_ASSERT_EQUAL(2, conf.tasks().at(idx).params().size());
-            CPPUNIT_ASSERT(conf.tasks().at(idx).params().isDefined("vis_source.port"));
-            CPPUNIT_ASSERT(conf.tasks().at(idx).params().isDefined("vis_source.buffer_size"));
+            // Check Scans
+            CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), obs.scans().size());
+            Scan s = obs.scans().at(0);
+            CPPUNIT_ASSERT_EQUAL(casa::String("test-field"), s.name());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(1.420, "GHz"), s.startFreq());
+            CPPUNIT_ASSERT_EQUAL(16416u, s.nChan());
+            CPPUNIT_ASSERT_EQUAL(casa::Quantity(18.51851851, "kHz"), s.chanWidth());
+            CPPUNIT_ASSERT_EQUAL(4ul, s.stokes().size());
+        }
 
-            idx = 1;
-            CPPUNIT_ASSERT_EQUAL(std::string("CalcUVWTask"), conf.tasks().at(idx).name());
-            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::CalcUVWTask);
-            CPPUNIT_ASSERT_EQUAL(0, conf.tasks().at(idx).params().size());
+        void testTopicConfig() {
+            Configuration conf(itsParset);
+        }
 
-            idx = 2;
-            CPPUNIT_ASSERT_EQUAL(std::string("ChannelAvgTask"), conf.tasks().at(idx).name());
-            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::ChannelAvgTask);
-            CPPUNIT_ASSERT_EQUAL(1, conf.tasks().at(idx).params().size());
-            CPPUNIT_ASSERT(conf.tasks().at(idx).params().isDefined("averaging"));
-
-            idx = 3;
-            CPPUNIT_ASSERT_EQUAL(std::string("MSSink"), conf.tasks().at(idx).name());
-            CPPUNIT_ASSERT(conf.tasks().at(idx).type() == TaskDesc::MSSink);
-            CPPUNIT_ASSERT_EQUAL(4, conf.tasks().at(idx).params().size());
-        };
+        void testServiceConfig() {
+            Configuration conf(itsParset);
+        }
 
     private:
         LOFAR::ParameterSet itsParset;

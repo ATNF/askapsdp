@@ -32,6 +32,7 @@
 
 // ASKAPsoft includes
 #include "casa/BasicSL.h"
+#include "Common/ParameterSet.h"
 
 // Local package includes
 #include "configuration/TaskDesc.h"
@@ -49,12 +50,7 @@ class Configuration {
     public:
 
         /// @brief Constructor
-        Configuration(const casa::String& arrayName,
-                      const std::vector<TaskDesc>& tasks,
-                      const std::vector<Antenna>& antennas,
-                      const Observation& observation,
-                      const TopicConfig& metadataTopic,
-                      const ServiceConfig& calibrationDataService);
+        Configuration(const LOFAR::ParameterSet& parset);
 
         casa::String arrayName(void) const;
         std::vector<TaskDesc> tasks(void) const;
@@ -64,13 +60,11 @@ class Configuration {
         ServiceConfig calibrationDataService(void) const;
 
     private:
-        casa::String itsArrayName;
-        std::vector<TaskDesc> itsTasks;
-        std::vector<Antenna> itsAntennas;
-        Observation itsObservation;
-        TopicConfig itsMetadataTopicConfig;
-        ServiceConfig itsCalibrationDataServiceConfig;
+        static std::string makeKey(const std::string& prefix,
+                const std::string& suffix);
 
+        static std::map<std::string, FeedConfig> createFeeds(const LOFAR::ParameterSet& parset);
+        const LOFAR::ParameterSet itsParset;
 };
 
 }

@@ -45,7 +45,6 @@
 #include "ingestpipeline/ITask.h"
 #include "ingestpipeline/TaskFactory.h"
 #include "ingestpipeline/sourcetask/MergedSource.h"
-#include "configuration/ConfigurationFactory.h"
 #include "configuration/Configuration.h" // Includes all configuration attributes too
 
 ASKAP_LOGGER(logger, ".IngestPipeline");
@@ -55,8 +54,7 @@ using namespace askap::cp::common;
 using namespace askap::cp::ingest;
 
 IngestPipeline::IngestPipeline(const LOFAR::ParameterSet& parset)
-    : itsConfig(ConfigurationFactory::createConfiguraton(parset)),
-    itsRunning(false)
+    : itsConfig(parset), itsRunning(false)
 {
 }
 

@@ -67,7 +67,7 @@ class ScanManagerTest : public CppUnit::TestFixture {
         /// @param[in] insertInactiveMetadata   if true then between each update
         ///     indicating scan is active, an inactive update will be sent.
         void testDriver(bool insertInactiveMetadata) {
-            ScanManager sm(getConfiguration());
+            ScanManager sm(ConfigurationHelper::createDummyConfig());
             CPPUNIT_ASSERT(!sm.observationComplete());
             CPPUNIT_ASSERT_EQUAL(-1L, sm.scanIndex());
 
@@ -99,58 +99,6 @@ class ScanManagerTest : public CppUnit::TestFixture {
             CPPUNIT_ASSERT(sm.observationComplete());
         }
 
-
-        Configuration getConfiguration(void)
-        {
-            // Start with a basic configuration then use it to build
-            // one with three scans
-            const Configuration base = ConfigurationHelper::createDummyConfig();
-            const Scan baseScan = base.observation().scans().at(0);
-
-            std::vector<Scan> scans;
-
-            // Scan 0
-            Scan scan0("test-field0",
-                    casa::MDirection(casa::Quantity(187.5, "deg"),
-                        casa::Quantity(-45.0, "deg"),
-                        MDirection::J2000),
-                    casa::Quantity(1400, "GHz"),
-                    baseScan.nChan(),
-                    baseScan.chanWidth(),
-                    baseScan.stokes());
-            scans.push_back(scan0);
-
-            // Scan 1
-            Scan scan1("test-field1",
-                    casa::MDirection(casa::Quantity(187.5, "deg"),
-                        casa::Quantity(-45.0, "deg"),
-                        MDirection::J2000),
-                    casa::Quantity(1400, "GHz"),
-                    baseScan.nChan(),
-                    baseScan.chanWidth(),
-                    baseScan.stokes());
-            scans.push_back(scan1);
-
-            // Scan 2
-            Scan scan2("test-field2",
-                    casa::MDirection(casa::Quantity(187.5, "deg"),
-                        casa::Quantity(-45.0, "deg"),
-                        MDirection::J2000),
-                    casa::Quantity(1400, "GHz"),
-                    baseScan.nChan(),
-                    baseScan.chanWidth(),
-                    baseScan.stokes());
-            scans.push_back(scan2);
-
-            Observation obs(0, scans);
-
-            return Configuration(base.arrayName(),
-                    base.tasks(),
-                    base.antennas(),
-                    obs,
-                    base.metadataTopic(),
-                    base.calibrationDataService());
-        }; 
 };
 
 }   // End namespace ingest
