@@ -54,9 +54,19 @@ OnDemandBufferDataAccessor::OnDemandBufferDataAccessor(const IConstDataAccessor 
 ///
 const casa::Cube<casa::Complex>& OnDemandBufferDataAccessor::visibility() const
 {
-  checkBufferSize();
+  #ifdef _OPENMP
+  boost::shared_lock<boost::shared_mutex> lock(itsMutex);
   if (itsUseBuffer) {
-      return itsBuffer;
+      lock.unlock();
+      checkBufferSize();
+      lock.lock();
+  #else    
+  if (itsUseBuffer) {
+      checkBufferSize();
+  #endif
+      if (itsUseBuffer) {
+          return itsBuffer;
+      }
   }
   return getROAccessor().visibility();
 }
@@ -69,8 +79,22 @@ const casa::Cube<casa::Complex>& OnDemandBufferDataAccessor::visibility() const
 ///
 casa::Cube<casa::Complex>& OnDemandBufferDataAccessor::rwVisibility()
 {
-  checkBufferSize();
+  #ifdef _OPENMP
+  boost::upgrade_lock<boost::shared_mutex> lock(itsMutex);
+  if (itsUseBuffer) {
+      lock.unlock();
+      checkBufferSize();
+      lock.lock();
+  #else
+  if (itsUseBuffer) {
+      checkBufferSize();
+  #endif
+  }
+  // itsUseBuffer may be changed by the call to checkBufferSize
   if (!itsUseBuffer) {
+      #ifdef _OPENMP
+      boost::upgrade_to_unique_lock<boost::shared_mutex> uniqueLock(lock);
+      #endif
       itsBuffer = getROAccessor().visibility().copy();
       itsUseBuffer = true;
   }
@@ -83,6 +107,9 @@ casa::Cube<casa::Complex>& OnDemandBufferDataAccessor::rwVisibility()
 /// construction. If a wrong size is detected, itsUseBuffer flag is reset.
 void OnDemandBufferDataAccessor::checkBufferSize() const
 {
+  #ifdef _OPENMP
+  boost::shared_lock<boost::shared_mutex> lock(itsMutex);
+  #endif
   const IConstDataAccessor &acc = getROAccessor();
   if (itsBuffer.nrow() != acc.nRow() || itsBuffer.ncolumn() != acc.nChannel() ||
                                         itsBuffer.nplane() != acc.nPol()) {
@@ -90,6 +117,9 @@ void OnDemandBufferDataAccessor::checkBufferSize() const
       // discardCache operates with just mutable data members. Although technically discardCache
       // can be made a const method, it is probably conceptually wrong. Therefore, we take the
       // constness out, instead.
+      #ifdef _OPENMP
+      lock.unlock();
+      #endif
       const_cast<OnDemandBufferDataAccessor*>(this)->discardCache(); 
   }
 }
@@ -100,6 +130,9 @@ void OnDemandBufferDataAccessor::checkBufferSize() const
 /// to decouple from the read-only accessor 
 void OnDemandBufferDataAccessor::discardCache()
 {
+  #ifdef _OPENMP
+  boost::unique_lock<boost::shared_mutex> lock(itsMutex);
+  #endif
   itsUseBuffer = false;
   itsBuffer.resize(0,0,0);
 }

@@ -41,6 +41,11 @@
 #include <dataaccess/MetaDataAccessor.h>
 #include <dataaccess/IDataAccessor.h>
 
+// boost includes
+#include <boost/noncopyable.hpp>
+#ifdef _OPENMP
+#include <boost/thread/shared_mutex.hpp>
+#endif
 
 namespace askap {
 	
@@ -57,7 +62,8 @@ namespace accessors {
 /// called. The intention is to provide a similar functionality for the flagging methos
 /// @ingroup dataaccess_hlp
 class OnDemandBufferDataAccessor : virtual public MetaDataAccessor,
-                              virtual public IDataAccessor
+                              virtual public IDataAccessor,
+                              public boost::noncopyable
 {
 public:
   /// construct an object linked with the given const accessor
@@ -111,6 +117,11 @@ private:
   /// @details A zero shape means that this class is coupled to read-only accessor, rather than
   /// this buffer.
   mutable casa::Cube<casa::Complex> itsBuffer;
+
+  #ifdef _OPENMP
+  /// @brief synchronisation object
+  mutable boost::shared_mutex itsMutex;
+  #endif
 };
 
 } // namespace accessors
