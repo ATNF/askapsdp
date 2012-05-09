@@ -336,8 +336,8 @@ namespace askap {
                 this->itsRmsDy = sqrt(this->itsRmsDy / (double(this->itsNumMatch1 - 1)));
                 std::stringstream ss;
                 ss.setf(std::ios::fixed);
-                ss << "Offsets between the two is dx=" << this->itsMeanDx << "+-" << this->itsRmsDx
-                    << ", dy=" << this->itsMeanDy << "+-" << this->itsRmsDy;
+                ss << "Offsets between the two are dx = " << this->itsMeanDx << " +- " << this->itsRmsDx
+                    << " dy = " << this->itsMeanDy << " +- " << this->itsRmsDy;
                 ASKAPLOG_INFO_STR(logger, ss.str());
             }
 
@@ -562,6 +562,56 @@ namespace askap {
                 }
 
             }
+
+
+	  void Matcher::outputSummary()
+	  {
+	    std::ofstream fout;
+                Stuff nullstuff(0., 0., 0., 0, 0, 0, 0, 0.);
+
+	    std::vector<Point>::iterator pt;
+	    std::vector<std::pair<Point, Point> >::iterator mpair;
+	    Point match;
+
+	    fout.open("match-summary-sources.txt");
+	    for(pt=this->itsSrcPixList.begin(); pt<this->itsSrcPixList.end(); pt++){
+	      bool isMatch=false;
+	      for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
+		isMatch = (pt->ID() == mpair->first.ID());
+		if(isMatch) match = mpair->second;
+	      }
+	      std::string matchID = isMatch ? match.ID() : "---";
+	      fout << pt->ID() << " " << matchID << "\t"
+                            << std::setw(10) << std::setprecision(3) << pt->x()  << " "
+                            << std::setw(10) << std::setprecision(3) << pt->y()  << " "
+                            << std::setw(10) << std::setprecision(8) << pt->flux() << " "
+                            << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
+                            << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
+                            << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
+                            << std::setw(10) << pt->stuff() << "\n";
+	    }
+	    fout.close();
+
+	    fout.open("match-summary-reference.txt");
+	    for(pt=this->itsRefPixList.begin(); pt<this->itsRefPixList.end(); pt++){
+	      bool isMatch=false;
+	      for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
+		isMatch = (pt->ID() == mpair->second.ID());
+		if(isMatch) match = mpair->first;
+	      }
+	      std::string matchID = isMatch ? match.ID() : "---";
+	      fout << pt->ID() << " " << matchID << "\t"
+                            << std::setw(10) << std::setprecision(3) << pt->x()  << " "
+                            << std::setw(10) << std::setprecision(3) << pt->y() << " "
+                            << std::setw(10) << std::setprecision(8) << pt->flux()  << " "
+                            << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
+                            << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
+                            << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
+                            << std::setw(10) << nullstuff << "\n";
+	    }
+	    fout.close();
+
+	  }
 
 
 

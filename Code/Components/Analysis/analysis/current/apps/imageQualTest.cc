@@ -100,6 +100,7 @@ int main(int argc, const char** argv)
         matcher.findOffsets();
         matcher.addNewMatches();
         matcher.outputLists();
+	matcher.outputSummary();
         ASKAPLOG_INFO_STR(logger, "Time for execution of imageQualTest = " << timer.real() << " sec");
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

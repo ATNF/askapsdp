@@ -104,6 +104,8 @@ namespace askap {
                     void outputMatches();
                     /// @brief Output the list of points that were not matched.
                     void outputMisses();
+		    /// @brief Output the list of sources with any matches from the other list
+		    void outputSummary();
 
                 protected:
                     /// @brief The file with the list of points to be matched

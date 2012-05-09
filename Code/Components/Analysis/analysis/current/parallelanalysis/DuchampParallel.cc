@@ -2256,6 +2256,7 @@ namespace askap {
 	  ASKAPTHROW(AskapError, "Requested image \"" << this->itsCube.pars().getImageFile() << "\" does not exist or could not be opened.");
 	const ImageInterface<Float>* imagePtr = dynamic_cast<const ImageInterface<Float>*>(lattPtr);
 
+
 	// Define the subimage - need to be done before metadata, as the latter needs the subsection & offsets
 	const SubImage<Float> *sub = this->getSubimage(imagePtr, useSubimageInfo);
 
@@ -2265,6 +2266,8 @@ namespace askap {
 
 	if(typeOfData == IMAGE){
 	  
+	  ASKAPLOG_INFO_STR(logger, "Reading data from image " << this->itsCube.pars().getImageFile());
+
 	  long *dim = getDim(sub);
 	  this->itsCube.initialiseCube(dim);
 	  if(this->itsCube.getDimZ()==1){
