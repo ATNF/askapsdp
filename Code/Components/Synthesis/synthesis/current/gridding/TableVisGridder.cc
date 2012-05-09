@@ -752,7 +752,7 @@ casa::MVDirection TableVisGridder::getImageCentre() const
    for (size_t dim=0; dim<2; ++dim) {
         centrePixel[dim] = double(itsShape[dim])/2./double(paddingFactor());
    }
-   ASKAPCHECK(itsAxes.directionAxis().toWorld(out, centrePixel), 
+   ASKAPCHECK(syncHelper.toWorld(itsAxes.directionAxis(),out, centrePixel), 
         "Unable to obtain world coordinates for the centre of the image. Something is wrong with the coordinate system");
    return out.getValue();
 }
