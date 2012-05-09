@@ -207,10 +207,10 @@ namespace askap {
             /// @return True if the component would be added to any pixels in the array. False if not.
 	    float majorSigma = FWHMtoSIGMA(gauss.majorAxis());
             float zeroPoint = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPoint), 0);
-            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPoint), int(axes[0] - 1));
-            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPoint), 0);
-            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPoint), int(axes[1] - 1));
+            int xmin = std::max(lround(gauss.xCenter() - zeroPoint), 0L);
+            int xmax = std::min(lround(gauss.xCenter() + zeroPoint), long(axes[0] - 1));
+            int ymin = std::max(lround(gauss.yCenter() - zeroPoint), 0L);
+            int ymax = std::min(lround(gauss.yCenter() + zeroPoint), long(axes[1] - 1));
 	    // ASKAPLOG_DEBUG_STR(logger, axes[0] << " " << axes[1] << " " << gauss << " " << gauss.height() << " " << majorSigma << " " << zeroPoint << " " << xmin << " " << xmax << " " << ymin << " " << ymax);
             return ((xmax >= xmin) && (ymax >= ymin));
 
@@ -223,8 +223,8 @@ namespace askap {
             /// @param pix The location of the point source: an array of at least two values, with pix[0] being the x-coordinate and pix[1] the y-coordinate.
             /// @return True if the component would be added to a pixel in the array. False if not.
 	  
-            int xpix = int(pix[0] + 0.5);
-            int ypix = int(pix[1] + 0.5);
+            int xpix = lround(pix[0]);
+            int ypix = lround(pix[1]);
 
             return (xpix >= 0 && xpix < int(axes[0]) && ypix >= 0 && ypix < int(axes[1]));
         }
@@ -293,11 +293,12 @@ namespace askap {
             float zeroPointMax = majorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
             float minorSigma = FWHMtoSIGMA(gauss.minorAxis());
             float zeroPointMin = minorSigma * sqrt(-2.*log(1. / (MAXFLOAT * gauss.height())));
-            int xmin = std::max(int(gauss.xCenter() - 0.5 - zeroPointMax), 0);
-            int xmax = std::min(int(gauss.xCenter() + 0.5 + zeroPointMax), int(axes[0] - 1));
-            int ymin = std::max(int(gauss.yCenter() - 0.5 - zeroPointMax), 0);
-            int ymax = std::min(int(gauss.yCenter() + 0.5 + zeroPointMax), int(axes[1] - 1));
-	    ASKAPLOG_DEBUG_STR(logger, "FWHMmaj="<<gauss.majorAxis()<<", FWHMmin="<<gauss.minorAxis()<<", gauss.height()="<<gauss.height() <<", sig_maj="<<majorSigma << ", sig_min=" << minorSigma << ", ZPmax=" << zeroPointMax << ", ZPmin=" << zeroPointMin<< "   xmin=" << xmin << " xmax=" << xmax << " ymin=" << ymin << " ymax=" << ymax);
+	    // Assume a round-number in pixel location is the *centre* of the pixel, so we round the floating-point pixel location to get the pixel it falls in
+            int xmin = std::max(lround(gauss.xCenter() - zeroPointMax), 0L);
+            int xmax = std::min(lround(gauss.xCenter() + zeroPointMax), long(axes[0] - 1));
+            int ymin = std::max(lround(gauss.yCenter() - zeroPointMax), 0L);
+            int ymax = std::min(lround(gauss.yCenter() + zeroPointMax), long(axes[1] - 1));
+	    ASKAPLOG_DEBUG_STR(logger, "(x,y)=("<<gauss.xCenter() << ","<<gauss.yCenter()<<"), FWHMmaj="<<gauss.majorAxis()<<", FWHMmin="<<gauss.minorAxis()<<", gauss.height()="<<gauss.height() <<", sig_maj="<<majorSigma << ", sig_min=" << minorSigma << ", ZPmax=" << zeroPointMax << ", ZPmin=" << zeroPointMin<< "   xmin=" << xmin << " xmax=" << xmax << " ymin=" << ymin << " ymax=" << ymax);
 
 	    bool addSource = (xmax >= xmin) && (ymax >= ymin);
             if (addSource) {  // if there are object pixels falling within the image boundaries
@@ -318,8 +319,15 @@ namespace askap {
 				   " and bounds [" << xmin << ":" << xmax << "," << ymin << ":" << ymax
 				   << "] (zeropoints = " << zeroPointMax << "," << zeroPointMin << 
 				   ") (dimensions of array=" << ss.str() << ")  delta=" << delta << ", minSigma = " << minSigma);
-
-                if (delta < 1.e-4 && integrate) { // if it is really thin and we're integrating, use the 1D approximation
+		
+		if (xmax==xmin && ymax==ymin) { // single pixel only - add as point source
+		  double pix[2];
+		  pix[0] = gauss.xCenter();
+		  pix[1] = gauss.yCenter();
+		  ASKAPLOG_DEBUG_STR(logger, "Single pixel only, so adding as point source.");
+		  return addPointSource(array,axes,pix,fluxGen);
+		}
+                else if (delta < 1.e-4 && integrate) { // if it is really thin and we're integrating, use the 1D approximation
                     ASKAPLOG_DEBUG_STR(logger, "Since delta = " << delta << "( 1./" << 1. / delta
                                            << ")  (minSigma=" << minSigma << ")  we use the 1D Gaussian function");
                     add1DGaussian(array, axes, gauss, fluxGen);
@@ -481,8 +489,8 @@ namespace askap {
             ASKAPLOG_DEBUG_STR(logger, "Adding a 1D Gaussian: majorSigma = " << majorSigma << ", zpmax = " << zeroPointMax
 			       << ", (xcentre,ycentre)=("<<gauss.xCenter() <<","<<gauss.yCenter()<<")"
 			       << ", (xstart,ystart)=(" << x << "," << y << ") and axes=[" << axes[0] << "," << axes[1] << "]");
-            int xref = int(floor(x + 0.5));
-            int yref = int(floor(y + 0.5));
+            int xref = lround(x);
+            int yref = lround(y);
             int spatialPixel = xref + axes[0] * yref;
 
             size_t pix = 0;
@@ -537,8 +545,8 @@ namespace askap {
             /// @param pix The coordinates of the point source
             /// @param fluxGen The FluxGenerator object that defines the flux at each channel
 
-            int xpix = int(pix[0] + 0.5);
-            int ypix = int(pix[1] + 0.5);
+	  int xpix=lround(pix[0]);
+	  int ypix=lround(pix[1]);
 
 	    bool addSource = (xpix >= 0 && xpix < int(axes[0]) && ypix >= 0 && ypix < int(axes[1]));
 
