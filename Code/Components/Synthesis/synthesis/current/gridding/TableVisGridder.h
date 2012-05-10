@@ -43,6 +43,11 @@
 // casa includes
 #include <casa/BasicSL/Complex.h>
 
+#ifdef _OPENMP
+// boost includes
+#include <boost/thread/mutex.hpp>
+#endif
+
 namespace askap
 {
   namespace synthesis
@@ -526,6 +531,11 @@ protected:
       
       /// @brief true, if itsSumWeights tracks weights per oversampling plane
       bool itsTrackWeightPerOversamplePlane;
+
+      #ifdef _OPENMP
+      /// @brief synchronisation mutex
+      mutable boost::mutex itsMutex;
+      #endif
     };
   }
 }

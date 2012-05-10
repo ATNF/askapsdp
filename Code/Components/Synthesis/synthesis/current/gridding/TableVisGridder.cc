@@ -64,7 +64,6 @@ using namespace askap;
 namespace askap {
 namespace synthesis {
 
-
 /// @brief a helper method for a deep copy of casa arrays held in
 /// stl vectors
 /// @param[in] in input array
@@ -417,9 +416,21 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
    // Now time the coordinate conversions, etc.
    // some conversion may have already happened during CF calculation
    timer.mark();
+   const casa::MVDirection imageCentre = getImageCentre();
+   const casa::MVDirection tangentPoint = getTangentPoint();
    
-   const casa::Vector<casa::RigidVector<double, 3> > &outUVW = acc.rotatedUVW(getTangentPoint());
-   const casa::Vector<double> &delay = acc.uvwRotationDelay(getTangentPoint(), getImageCentre());
+   // its fine to work with the reference in the openmp case because all our current use cases
+   // have the same tangent point for all gridders, otherwise we have to move this call 
+   // inside the section protected by the lock and make a copy of the returned vector
+   const casa::Vector<casa::RigidVector<double, 3> > &outUVW = acc.rotatedUVW(tangentPoint);
+
+   #ifdef _OPENMP
+   boost::unique_lock<boost::mutex> lock(itsMutex);
+   const casa::Vector<double> delay = acc.uvwRotationDelay(tangentPoint, imageCentre).copy();
+   lock.unlock();
+   #else
+   const casa::Vector<double> &delay = acc.uvwRotationDelay(tangentPoint, imageCentre);
+   #endif
 
    itsTimeCoordinates += timer.real();
 
@@ -460,8 +471,6 @@ void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
    
    ASKAPDEBUGASSERT(casa::uInt(nChan) <= frequencyList.nelements());
    ASKAPDEBUGASSERT(casa::uInt(nSamples) == acc.uvw().nelements());
-   
-   const casa::MVDirection imageCentre = getImageCentre();
    
    for (uint i=0; i<nSamples; ++i) {
        if (itsMaxPointingSeparation > 0.) {
