@@ -82,6 +82,8 @@ int main(int argc, const char** argv)
 
         StatReporter stats;
 
+	ASKAPLOG_INFO_STR(logger, "ASKAP source finder " << ASKAP_PACKAGE_VERSION);
+
         std::string parsetFile(getInputs("-inputs", "cduchamp.in", argc, argv));
         LOFAR::ParameterSet parset(parsetFile,LOFAR::StringUtil::Compare::NOCASE);
         LOFAR::ParameterSet subset(parset.makeSubset("Cduchamp."));
