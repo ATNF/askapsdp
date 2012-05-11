@@ -86,13 +86,32 @@ imageQual.trimsize = 30
 imageQual.convolveReference = false
 EOF_INNER
 
+pystat=getStats-\${PBS_JOBID}.py
+cat > \${pystat} <<EOF_INNER
+#!/bin/env python
+## AUTOMATICALLY GENERATED!
+# CASA script to obtain statistics for the image
+ia.open('${CONTINUUMIMAGE}')
+st=ia.statistics(region=rg.box(blc=[600,600,0,0],trc=[2699,2699,0,0]),robust=True)
+madfmAsSigma=st['medabsdevmed'][0] / 0.6744888
+print "Max = %5.3e = %3.1f sigma"%(st['max'][0],(st['max'][0]-st['median'][0])/madfmAsSigma)
+print "Min = %5.3e = %3.1f sigma"%(st['min'][0],(st['min'][0]-st['median'][0])/madfmAsSigma)
+print "Mean = %5.3e"%st['mean'][0]
+print "Std.Dev = %5.3e"%st['sigma'][0]
+print "Median = %5.3e"%st['median'][0]
+print "MADFM = %5.3e"%st['medabsdevmed'][0]
+print "MADFMasStdDev = %5.3e"%madfmAsSigma
+ia.close()
+EOF_INNER
+
 statlog=log/cimstat-\${PBS_JOBID}.log
 sflog=log/cduchamp-\${PBS_JOBID}.log
 iqlog=log/imagequal-\${PBS_JOBID}.log
 pelog=log/ploteval-\${PBS_JOBID}.log
 felog=log/fluxeval-\${PBS_JOBID}.log
 
-mpirun -np 1 \$cimstat -inputs \$parset > \$statlog
+#mpirun -np 1 \$cimstat -inputs \$parset > \$statlog
+casapy --nologger --log2term -c \$pystat > \$statlog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
@@ -131,8 +150,13 @@ cat > \$summaryscript <<EOF_INNER
 
 cwd=\\\`pwd\\\`
 name=\\\`grep "Reading data" \$sflog | grep "(1, " | awk '{print \\\$12}'\\\`
-madfm=\\\`grep MADFM \$statlog | awk '{print \\\$6}'\\\`
-stddev=\\\`grep Std. \$statlog | awk '{print \\\$6}'\\\`
+max=\\\`grep Max \$statlog | awk '{print \\\$3}'\\\`
+min=\\\`grep Min \$statlog | awk '{print \\\$3}'\\\`
+median=\\\`grep Median \$statlog | awk '{print \\\$3}'\\\`
+mean=\\\`grep Mean \$statlog | awk '{print \\\$3}'\\\`
+madfm=\\\`grep "MADFM =" \$statlog | awk '{print \\\$3}'\\\`
+madfmAsStddev=\\\`grep MADFMas \$statlog | awk '{print \\\$3}'\\\`
+stddev=\\\`grep Std. \$statlog | awk '{print \\\$3}'\\\`
 numsrc=\\\`grep Found \$sflog | grep sources | awk '{print \\\$10}'\\\`
 numcmpnt=\\\`wc -l duchamp-fitResults.txt | awk '{print \\\$1-2}'\\\`
 nummiss=\\\`awk '\\\$1=="S"' misses.txt | wc -l\\\`
@@ -146,7 +170,7 @@ analysisVersion=\\\`grep analysis==current \$sflog | grep "(0, " | awk '{print \
 summary="analysis_summary.txt"
 cat > \\\${summary} <<EOF_INNER2
 #cwd,name,imagerVersion,analysisVersion,madfm,stddev,numsrc,numcmpnt,nummiss,xoffset,xoffseterr,yoffset,yoffseterr
-\\\$cwd,\\\$name,\\\$imagerVersion,\\\$analysisVersion,\\\$madfm,\\\$stddev,\\\$numsrc,\\\$numcmpnt,\\\$nummiss,\\\$xoffset,\\\$xoffseterr,\\\$yoffset,\\\$yoffseterr
+\\\$cwd,\\\$name,\\\$imagerVersion,\\\$analysisVersion,\\\$max,\\\$min,\\\$median,\\\$mean\\\$madfm,\\\$stddev,\\\$madfmAsStddev,\\\$numsrc,\\\$numcmpnt,\\\$nummiss,\\\$xoffset,\\\$xoffseterr,\\\$yoffset,\\\$yoffseterr
 EOF_INNER2
 EOF_INNER
 
