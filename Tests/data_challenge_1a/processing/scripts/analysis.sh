@@ -36,7 +36,7 @@ else
 #!/bin/bash -l
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l walltime=01:00:00
-#PBS -l select=4:ncpus=4:mem=2GB:mpiprocs=4
+#PBS -l select=2:ncpus=8:mem=4GB:mpiprocs=8
 ##PBS -M first.last@csiro.au
 #PBS -N analysis
 ##PBS -q debugq
@@ -169,8 +169,8 @@ analysisVersion=\\\`grep analysis==current \$sflog | grep "(0, " | awk '{print \
 
 summary="analysis_summary.txt"
 cat > \\\${summary} <<EOF_INNER2
-#cwd,name,imagerVersion,analysisVersion,madfm,stddev,numsrc,numcmpnt,nummiss,xoffset,xoffseterr,yoffset,yoffseterr
-\\\$cwd,\\\$name,\\\$imagerVersion,\\\$analysisVersion,\\\$max,\\\$min,\\\$median,\\\$mean\\\$madfm,\\\$stddev,\\\$madfmAsStddev,\\\$numsrc,\\\$numcmpnt,\\\$nummiss,\\\$xoffset,\\\$xoffseterr,\\\$yoffset,\\\$yoffseterr
+#cwd,name,imagerVersion,analysisVersion,max,min,median,mean,madfm,stddev,madfmASstddev,numsrc,numcmpnt,nummiss,xoffset,xoffseterr,yoffset,yoffseterr
+\\\$cwd,\\\$name,\\\$imagerVersion,\\\$analysisVersion,\\\$max,\\\$min,\\\$median,\\\$mean,\\\$madfm,\\\$stddev,\\\$madfmAsStddev,\\\$numsrc,\\\$numcmpnt,\\\$nummiss,\\\$xoffset,\\\$xoffseterr,\\\$yoffset,\\\$yoffseterr
 EOF_INNER2
 EOF_INNER
 
