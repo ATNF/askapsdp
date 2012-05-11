@@ -23,11 +23,11 @@ cat > cimager-cont-cube-dirty.qsub << EOF
 cd \${PBS_O_WORKDIR}
 
 imageName="image.${imagebase}_ch\${PBS_ARRAY_INDEX}"
-ms=MS/coarse_chan_\`expr \${PBS_ARRAY_INDEX} - 1\`.ms
+ms=MS/coarse_chan_\${PBS_ARRAY_INDEX}.ms
 
 basefreq=1.420e9
 dfreq=1.e6
-freq=\`echo \$basefreq \$dfreq \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",$1-$2*$3}'\`
+freq=\`echo \$basefreq \$dfreq \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",\$1-\$2*\$3}'\`
 
 parset=config/cimager-cont-cube-dirty-\${PBS_JOBID}.in
 cat > \$parset << EOF_INNER
