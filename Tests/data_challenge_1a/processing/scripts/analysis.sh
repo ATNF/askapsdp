@@ -117,7 +117,40 @@ if [ \$err -ne 0 ]; then
 fi
 
 mpirun -np 1 \$fluxEval > \$felog
-exit \$?
+err=$?
+if [ $err -ne 0 ]; then
+    exit $?
+fi
+
+###
+# Analysis summary
+
+summaryscript=analysis-summary-\${PBS_JOBID}.sh
+cat > \$summaryscript <<EOF_INNER
+#!/bin/bash -l
+
+cwd=\\\`pwd\\\`
+name=\\\`grep "Reading data" \$sflog | grep "(1, " | awk '{print \\\$12}'\\\`
+madfm=\\\`grep MADFM \$statlog | awk '{print \\\$6}'\\\`
+stddev=\\\`grep Std. \$statlog | awk '{print \\\$6}'\\\`
+numsrc=\\\`grep Found \$sflog | grep sources | awk '{print \\\$10}'\\\`
+numcmpnt=\\\`wc -l duchamp-fitResults.txt | awk '{print \\\$1-2}'\\\`
+nummiss=\\\`awk '\\\$1=="S"' misses.txt | wc -l\\\`
+xoffset=\\\`grep Offsets \$iqlog | awk '{print \\\$15}'\\\`
+xoffseterr=\\\`grep Offsets \$iqlog | awk '{print \\\$17}'\\\`
+yoffset=\\\`grep Offsets \$iqlog | awk '{print \\\$20}'\\\`
+yoffseterr=\\\`grep Offsets \$iqlog | awk '{print \\\$22}'\\\`
+imagerVersion=\\\`grep synthesis==current log/cimager-cont-clean.log | grep "(0, " | awk '{print \\\$12}'\\\`
+analysisVersion=\\\`grep analysis==current \$sflog | grep "(0, " | awk '{print \\\$12}'\\\`
+
+summary="analysis_summary.txt"
+cat > \\\${summary} <<EOF_INNER2
+#cwd,name,imagerVersion,analysisVersion,madfm,stddev,numsrc,numcmpnt,nummiss,xoffset,xoffseterr,yoffset,yoffseterr
+\\\$cwd,\\\$name,\\\$imagerVersion,\\\$analysisVersion,\\\$madfm,\\\$stddev,\\\$numsrc,\\\$numcmpnt,\\\$nummiss,\\\$xoffset,\\\$xoffseterr,\\\$yoffset,\\\$yoffseterr
+EOF_INNER2
+EOF_INNER
+
+. \$summaryscript
 
 
 EOF
