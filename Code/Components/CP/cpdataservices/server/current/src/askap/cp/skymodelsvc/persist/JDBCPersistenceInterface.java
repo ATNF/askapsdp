@@ -28,64 +28,51 @@ package askap.cp.skymodelsvc.persist;
 // Java imports
 import java.util.ArrayList;
 import java.util.List;
+import java.sql.*;
+
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
-import org.hibernate.CacheMode;
-import org.hibernate.ScrollMode;
-import org.hibernate.ScrollableResults;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 import askap.interfaces.skymodelservice.Component;
 
-/**
- * Persistence interface class for the Sky Model Service.
- */
-public class PersistenceInterface {
+public class JDBCPersistenceInterface {
 	/**
 	 * Logger
 	 */
-	private static Logger logger = Logger.getLogger(PersistenceInterface.class
+	private static Logger logger = Logger.getLogger(JDBCPersistenceInterface.class
 			.getName());
 
 	/**
-	 * Size of batches for SQL inserts and updates
+	 * SQL Connection
 	 */
-	private int itsBatchSize = 20;
-
-	/**
-	 * Hibernate session
-	 */
-	private Session itsSession = null;
+	Connection itsConn = null;
 
 	/**
 	 * Constructor
 	 */
-	public PersistenceInterface() {
-		logger.debug("Creating " + PersistenceInterface.class.getName() );
+	public JDBCPersistenceInterface() {
+		logger.debug("Creating " + JDBCPersistenceInterface.class.getName());
 
-		// A SessionFactory is set up for the persistence interface
-		Configuration config = new Configuration();
-		config.configure("skymodel-hibernate.cfg.xml");
-		SessionFactory sessionFactory = config.buildSessionFactory();
-		itsSession = sessionFactory.openSession();
-		itsSession.setCacheMode(CacheMode.IGNORE);
-	}
-
-	/**
-	 * Constructor.
-	 * Used for testing.
-	 * 
-	 * @param session
-	 */
-	public PersistenceInterface(org.hibernate.Session session) {
-		itsSession = session;
+		try {
+			String userName = "skymodeluser";
+			String password = "askap";
+			String url = "jdbc:mysql://gijane/skymodel";
+			Class.forName ("com.mysql.jdbc.Driver").newInstance ();
+			itsConn = DriverManager.getConnection (url, userName, password);
+			logger.debug("Database connection established");
+		} catch (Exception e) {
+			logger.error("Cannot create SQL connection: " + e.getMessage());
+		}
 	}
 
 	protected void finalize() {
-		itsSession.close();
+		if (itsConn != null) {
+			try {
+				itsConn.close();
+			} catch (SQLException e) {
+				logger.warn("SQLException while closing SQL connection: " + e.getMessage());
+			}
+		}
 	}
 
 	/**
@@ -106,35 +93,37 @@ public class PersistenceInterface {
 			double searchRadius, double fluxLimit) {
 		ArrayList<Long> ids = new ArrayList<Long>();
 
-		// TODO: Need to do the cone search in the query, instead of returning
-		// components with respect to declination only.
-		// Also, the flux limit will return results based on 1.4GHz flux, without
-		// taking into account the observing frequency, spectral index or 
-		// spectral curvature. Need to move this into a stored procedure I would
-		// think.
-
-		final String query = "FROM Component WHERE (i1400 >=" + fluxLimit 
+		final String query = "SELECT id,right_ascension,declination FROM components WHERE (i1400 >=" + fluxLimit 
 				+ ") AND (declination >= " + (dec - searchRadius)
 				+ ") AND (declination <= " + (dec + searchRadius) + ")";
-						
-        long count = 0;
-		ScrollableResults components = itsSession.createQuery(query).scroll(ScrollMode.FORWARD_ONLY);
-		while (components.next()) {
-			final Component comp = (Component) components.get(0);
-			assert(comp.i1400 >= fluxLimit);
-			if (angularSeparation(ra, dec, comp) <= searchRadius) {
-				ids.add(comp.id);
-            }
 
-            // Need to clear the cache occasionally so as not to run out of memory
-            count++;
-            if (count % 1000 == 0) {
-                itsSession.flush();
-                itsSession.clear();
-            }
-        }
+		try {
+			Statement s = itsConn.createStatement(java.sql.ResultSet.TYPE_FORWARD_ONLY,
+					java.sql.ResultSet.CONCUR_READ_ONLY);
+			s.setFetchSize(Integer.MIN_VALUE);
+			s.executeQuery(query);
+			ResultSet rs = s.getResultSet();
+			long count = 0;
+			while (rs.next())
+			{		
+				Component comp = new Component();
+				comp.rightAscension = rs.getDouble("right_ascension");
+				comp.declination = rs.getDouble("declination");
 
-        components.close();
+				if (angularSeparation(ra, dec, comp) <= searchRadius) {
+					ids.add(rs.getLong("id"));
+				}
+				count++;
+				if (count % 10000 == 0) {
+					logger.debug("Processed record set: " + count);
+				}
+			}
+			rs.close ();
+			s.close ();
+		} catch (SQLException e) {
+			logger.error("Error executing query: " + e.getMessage());
+		}
+
 		return ids;
 	}
 
@@ -147,11 +136,34 @@ public class PersistenceInterface {
 	public List<Component> getComponents(final List<Long> componentIds) {
 		ArrayList<Component> components = new ArrayList<Component>(componentIds.size());
 
-		for (Long id : componentIds) {
-			final Component c = (Component) itsSession.get(Component.class, id);
-			if (c != null) {
-				components.add(c);
+		final String query = "SELECT * FROM components WHERE (id=?)";
+		try {
+			PreparedStatement s = itsConn.prepareStatement(query,
+					ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			
+			// Process each element of the input
+			for (Long id : componentIds) {
+				s.setLong(1, id);
+				ResultSet rs = s.executeQuery();
+				while (rs.next()) {		
+					Component c = new Component();
+					c.id = rs.getLong("id");
+					c.rightAscension = rs.getDouble("right_ascension");
+					c.declination = rs.getDouble("declination");
+					c.positionAngle = rs.getDouble("position_angle");
+					c.majorAxis = rs.getDouble("major_axis");
+					c.minorAxis = rs.getDouble("minor_axis");
+					c.i1400 = rs.getDouble("i1400");
+					c.spectralIndex = rs.getDouble("spectral_index");
+					c.spectralCurvature = rs.getDouble("spectral_curvature");
+					components.add(c);
+				}
+				rs.close();
 			}
+
+			s.close();
+		} catch (SQLException e) {
+			logger.error("Error executing query: " + e.getMessage());
 		}
 
 		return components;
@@ -163,23 +175,8 @@ public class PersistenceInterface {
 	 * @return a list of component IDs, with index matching that of the
 	 * "components" parameter passed as input.
 	 */
-	public List<Long> addComponents(List<Component> components) {
+	public List<Long> addComponents(final List<Component> components) {
 		ArrayList<Long> idList = new ArrayList<Long>();
-
-		Transaction tx = itsSession.beginTransaction();
-		int count = 0;
-		for (Component c : components) {
-			itsSession.save(c);
-			idList.add(c.id);
-			if (count == itsBatchSize) {
-				itsSession.flush();
-				itsSession.clear();
-				count = 0;
-			} else {
-				count++;
-			}
-		}
-		tx.commit();
 
 		return idList;
 	}
@@ -190,14 +187,6 @@ public class PersistenceInterface {
 	 * 						components are to be removed from the sky model.
 	 */
 	public void removeComponents(List<Long> componentIds) {	
-		Transaction tx = itsSession.beginTransaction();
-		for (Long id : (List<Long>) componentIds) {
-			Component c = (Component) itsSession.get(Component.class, id);
-			if (c != null) {
-				itsSession.delete(c);
-			}
-		}
-		tx.commit();
 	}
 
 	/**
@@ -210,10 +199,10 @@ public class PersistenceInterface {
 	 * @return	the angular separation between the position specified by the
 	 * 			parameters ra and dec, and the specified component.
 	 */
-	static double angularSeparation(double ra, double dec, Component comp) {
+	static double angularSeparation(double ra, final double dec, final Component comp) {
 		final double[] refXYZ = createXYZ(Math.toRadians(ra), Math.toRadians(dec));
 		final double[] compXYZ = createXYZ(Math.toRadians(comp.rightAscension),
-				                           Math.toRadians(comp.declination));
+				Math.toRadians(comp.declination));
 
 		final double d1 = Math.sqrt(square(refXYZ[0] - compXYZ[0]) +
 				square(refXYZ[1] - compXYZ[1]) +
@@ -226,7 +215,7 @@ public class PersistenceInterface {
 	 * @param val	the value to square.
 	 * @return	the square of the "val" parameter.
 	 */
-	static double square(double val) {
+	static double square(final double val) {
 		return Math.pow(val, 2);
 	}
 
@@ -239,8 +228,8 @@ public class PersistenceInterface {
 	 * 			to the prime meridian equator, z points to the north pole,  
 	 * 			and y is normal to x and z.
 	 */
-	static double[] createXYZ(double ra, double dec) {
-		final double[] xyz = new double[3];
+	static double[] createXYZ(final double ra, final double dec) {
+		double[] xyz = new double[3];
 		final double loc = Math.cos(dec);
 		xyz[0] = Math.cos(ra) * loc;
 		xyz[1] = Math.sin(ra) * loc;
