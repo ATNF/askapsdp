@@ -83,6 +83,8 @@ EOF
 # Enqueue the processing tasks
 ##############################################################################
 
+unset GLOBAL_DEPEND
+
 if [ $DO_CALIBRATION == "true" ]; then
 . ${SCRIPTDIR}/generate-sky-model.sh
 fi
@@ -111,6 +113,10 @@ fi
 
 if [ $DO_SPECTRAL_LINE == "true" ]; then
 . ${SCRIPTDIR}/imager-spectral-line.sh
+fi
+
+if [ ${DRYRUN} == "false" ]; then
+    . ${SCRIPTDIR}/reporting.sh
 fi
 
 ##############################################################################

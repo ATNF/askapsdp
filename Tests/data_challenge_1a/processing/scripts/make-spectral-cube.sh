@@ -85,6 +85,7 @@ EOF
             QSUB_MAKECUBE=`${QSUB_CMD} ${qsubfile}`
             QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MAKECUBE}"
 	fi
+	${GLOBAL_DEPEND}="${GLOBAL_DEPEND}:${QSUB_MAKECUBE}"
 
     else
 

@@ -117,6 +117,8 @@ if [ "${DRYRUN}" == "false" ]; then
     unset DEPENDS
     DEPENDS="-W depend=afterok:${QSUB_CONTCUBECLEAN}"    
 
+    ${GLOBAL_DEPEND}="${GLOBAL_DEPEND}:${QSUB_CONTCUBECLEAN}"
+
 else
     echo "Continuum Cube Imager (Clean): Dry Run Only"
 fi

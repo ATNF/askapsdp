@@ -83,6 +83,8 @@ if [ "${DRYRUN}" == "false" ]; then
         QSUB_CONTDIRTY=`${QSUB_CMD} cimager-cont-dirty.qsub`
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTDIRTY}"
     fi
+    ${GLOBAL_DEPEND}="${GLOBAL_DEPEND}:${QSUB_CONTDIRTY}"
+	
 else
     echo "Continuum Imager (Dirty): Dry Run Only"
 fi

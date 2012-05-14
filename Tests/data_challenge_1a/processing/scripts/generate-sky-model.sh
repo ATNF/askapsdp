@@ -51,6 +51,8 @@ if [ "${DRYRUN}" == "false" ]; then
     else
         echo "Sky Model Image: Skipping task - Output already exists"
     fi
+    ${GLOBAL_DEPEND}="${QSUB_CMODEL}"
+
 else
     echo "Sky Model Image: Dry Run Only"
 fi
