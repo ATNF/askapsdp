@@ -367,6 +367,7 @@ namespace askap {
                 for (unsigned int i = 0; i < this->itsNumGauss; i++) {
                     passSize = passSize && (this->itsSolution(i, 3) > 0.6 * this->itsParams.beamSize());
                     passSize = passSize && ((this->itsSolution(i, 4) * this->itsSolution(i, 3)) > 0.6 * this->itsParams.beamSize());
+		    passSize = passSize && (this->itsSolution(i,3) < 1.e30);
                 }
 
                 return passSize;
