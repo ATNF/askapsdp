@@ -20,39 +20,36 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- * 
- * @author Ben Humphreys <ben.humphreys@csiro.au>
  */
 package askap.cp.manager.svcclients;
 
-// System imports
-import java.util.HashMap;
-import java.util.Map;
+import askap.util.ParameterSet;
 
-// ASKAPsoft imports
-import org.apache.log4j.Logger;
-import askap.interfaces.fcm.IFCMServicePrx;
-import askap.interfaces.fcm.IFCMServicePrxHelper;
-import askap.interfaces.fcm.NoSuchKeyException;
+/**
+ * This class provides a mock implementation of IFCMClient. It is instantiated
+ * with a parameter set that will be returned when get() is called.
+ */
+public class MockFCMClient implements IFCMClient {
 
-public class FCMClient {
-	/** Logger. */
-	private static Logger logger = Logger.getLogger(FCMClient.class.getName());
+	/**
+	 * The config that will be returned from get();
+	 */
+	private ParameterSet itsConfig;
 	
-	IFCMServicePrx itsProxy;
-	
-	public FCMClient(Ice.Communicator ic) {
-		logger.info("Creating FCMClient");
-		Ice.ObjectPrx obj = ic.stringToProxy("FCMService");
-		itsProxy = IFCMServicePrxHelper.checkedCast(obj);
+	/**
+	 * Constructor.
+	 * @param config
+	 */
+	public MockFCMClient(ParameterSet config) {
+		itsConfig = config;
 	}
 	
-	public Map<String, String> get() {
-		try {
-			return itsProxy.get(-1, "");
-		} catch (NoSuchKeyException e) {
-			// Shouldn't get this because we are not specifing a key.
-			return new HashMap<String, String>();
-		}
+	/**
+	 * @see askap.cp.manager.svcclients.IFCMClient#get()
+	 */
+	@Override
+	public ParameterSet get() {
+		return itsConfig;
 	}
+
 }

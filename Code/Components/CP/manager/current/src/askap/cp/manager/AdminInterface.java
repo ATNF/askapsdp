@@ -30,6 +30,7 @@ import java.util.Map;
 import Ice.Current;
 import org.apache.log4j.Logger;
 import askap.interfaces.component.*;
+import askap.util.ParameterSet;
 
 /**
  * This class implements the askap.interfaces.component.IComponent
@@ -37,6 +38,11 @@ import askap.interfaces.component.*;
  * (i.e. started, shutdown) programmatically.
  */
 public class AdminInterface extends askap.interfaces.component._IComponentDisp {
+	
+	/**
+	 * Logger.
+	 */
+	private static Logger logger = Logger.getLogger(AdminInterface.class.getName());
 	
 	/**
 	 * Id for ISeralizable
@@ -69,18 +75,21 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 	 */
 	private String itsObsServiceName = "CentralProcessorService";
 
-	/** Logger. */
-	private static Logger logger = Logger.getLogger(AdminInterface.class.getName());
-
+	/**
+	 * Parameter set
+	 */
+	private ParameterSet itsParset;
+	
 	/**
 	 * Constructor
 	 * @param ic	An already initialised Ice communicator for the object
 	 * 				to use.
 	 */
-	public AdminInterface(Ice.Communicator ic) {
+	public AdminInterface(Ice.Communicator ic, ParameterSet parset) {
 		super();
 		logger.debug("Creating AdminInterface");
 		itsComm = ic;
+		itsParset = parset;
 		itsAdapter = null;
 		itsObsService = null;
 		itsState = ComponentState.LOADED;
@@ -245,7 +254,7 @@ public class AdminInterface extends askap.interfaces.component._IComponentDisp {
 			throw new TransitionException("Not in UNLOADED state");
 		}
 
-		itsObsService = new ObsService(itsComm);
+		itsObsService = new ObsService(itsComm, itsParset);
 
 		// Must transition to standby only once all objects are created
 		itsState = ComponentState.STANDBY;

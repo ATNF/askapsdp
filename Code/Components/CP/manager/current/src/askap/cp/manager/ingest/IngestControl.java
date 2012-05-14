@@ -23,12 +23,13 @@
  */
 package askap.cp.manager.ingest;
 
-// System imports
-import java.util.Map;
+// Core Java imports
+import java.io.File;
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
 import askap.interfaces.cp.AlreadyRunningException;
+import askap.util.ParameterSet;
 
 // Local package includes
 import askap.cp.manager.rman.IJob;
@@ -36,60 +37,143 @@ import askap.cp.manager.rman.IJob.JobStatus;
 import askap.cp.manager.rman.IResourceManager;
 
 public class IngestControl {
-	
-	/** Logger. */
-	private static Logger logger = Logger.getLogger(IngestControl.class.getName());
-	
-	IResourceManager itsResourceManager;
-	
+
+	/**
+	 * Logger
+	 * */
+	private static Logger logger = Logger.getLogger(IngestControl.class
+			.getName());
+
+	/**
+	 * The resource managaer; provides an interface to PBS, Torque, etc.
+	 */
+	private IResourceManager itsResourceManager;
+
+	/**
+	 * Parameter set (i.e. configuration from file)
+	 */
+	private ParameterSet itsParset;
+
 	/**
 	 * An identifier for the ingest pipeline job in the batch scheduler. This
 	 * Will be an empty string when no ingest pipeline is running.
 	 */
 	IJob itsJob = null;
-    
-    public IngestControl(IResourceManager rman) {
-    	// Pre-conditions
-    	assert(rman != null);
-    	
-    	logger.info("Creating IngestControl");
-    	itsResourceManager = rman;
-    }
-	
-	public void start(Map<String, String> facilityConfig, Map<String, String> obsParams)
-		throws askap.interfaces.cp.AlreadyRunningException {
+
+	/**
+	 * Constructor
+	 * 
+	 * @param rman
+	 *            an instance of a resource manager.
+	 */
+	public IngestControl(IResourceManager rman, ParameterSet parset) {
+		// Pre-conditions
+		assert (rman != null);
+
+		logger.info("Creating IngestControl");
+		itsResourceManager = rman;
+		itsParset = parset;
+	}
+
+	/**
+	 * Calling this method instructs the central processor to carry out the
+	 * observation described in the parameter set associated with the scheduling
+	 * block.
+	 * 
+	 * This method, when called will block until such times as the central
+	 * processor is ready to begin receiving data from the correlator and
+	 * telescope operating system. The central processor takes some time to
+	 * prepare for an observation (on the order of a few seconds), hence the
+	 * need to indicate when it is ready by blocking.
+	 * 
+	 * @param facilityConfig
+	 * @param obsParams
+	 * @throws askap.interfaces.cp.AlreadyRunningException
+	 */
+	public void startIngest(ParameterSet facilityConfig,
+			ParameterSet obsParams, long sbid)
+			throws askap.interfaces.cp.AlreadyRunningException {
+		// Pre-conditions
+		assert (itsResourceManager != null);
+
 		logger.info("Starting Ingest Pipeline");
-		
+
 		// 1: Check the pipeline is not already running
 		if ((itsJob != null) && (itsJob.status() != JobStatus.COMPLETED)) {
-				String msg = "Ingest Pipeline already running. JobId: " + itsJob.toString();
-				throw new AlreadyRunningException(msg);
+			String msg = "Ingest Pipeline already running. JobId: "
+					+ itsJob.toString();
+			throw new AlreadyRunningException(msg);
+		} else {
+			// This means the last running ingest job is completed and hence
+			// the reference to it can be discarded
+			itsJob = null;
 		}
-		
+
 		// 2: Build the configuration for cpingest
-		
-		// 3: Execute the job
-		
-		// 4: Wait until the job is running or completed
+		ParameterSet parset = ConfigBuilder.build(facilityConfig, obsParams);
+
+		// 3: Create the directory for the scheduling block and create
+		// the config parset and qsub file
+		File workdir = new File(itsParset.getString("ingest.workdir") + "/" + sbid);
+		File jobtemplate = new File(itsParset.getString("ingest.job_template"));
+		File qsubFile = new File(workdir, "ingest.qsub");
+		File configFile = new File(workdir, "ingest.in");
+
+		FSUtils.mkdir(workdir);
+		FSUtils.copyfile(jobtemplate, qsubFile);
+		FSUtils.create(configFile, parset);
+
+		// 4: Execute the job
+		itsResourceManager.submitJob(qsubFile, workdir);
+
+		// 5: Wait until the job is running or completed
 		while (itsJob.status() == JobStatus.QUEUED) {
 			try {
 				Thread.sleep(500);
-			} catch (InterruptedException e) { }
+			} catch (InterruptedException e) {
+			}
 		}
-		
+
 		// Post-conditions
-		assert(itsJob != null);
+		assert (itsJob != null);
 	}
-	
-	public void abort() {
-		logger.info("Aborting Ingest Pipeline");
-		itsJob.abort();
-		while (itsJob.status() != JobStatus.COMPLETED) {
+
+	/**
+	 * Blocks until the observation in progress is completed. Specifically,
+	 * until the ingest pipeline finishes, either successfully or with error.
+	 * When this method returns, the central processor is ready to start a new
+	 * observation.
+	 */
+	public void waitIngest() {
+		while (itsJob != null && itsJob.status() != JobStatus.COMPLETED) {
 			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) { }
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
 		}
 		itsJob = null;
 	}
-	
+
+	/**
+	 * Calling this method instructs the central processor to abort the current
+	 * observation. This stops the data acquisition process.
+	 * 
+	 * This method will block until the observation has been aborted and the
+	 * central processor is ready to start a new observation.
+	 */
+	public void abortIngest() {
+		logger.info("Aborting Ingest Pipeline");
+		if (itsJob == null) {
+			return;
+		}
+		itsJob.abort();
+		while (itsJob.status() != JobStatus.COMPLETED) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+			}
+		}
+		itsJob = null;
+	}
+
 }

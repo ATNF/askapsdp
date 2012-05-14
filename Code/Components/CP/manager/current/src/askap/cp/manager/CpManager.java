@@ -27,22 +27,52 @@ package askap.cp.manager;
 
 // System imports
 import java.io.File;
+import java.io.IOException;
+import java.util.Enumeration;
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
-
+import askap.util.ParameterSet;
 
 public class CpManager {
 
-	/** Logger. */
-	private static Logger logger = Logger.getLogger(CpManager.class.getName());
-	
 	/**
+	 * Logger
+	 */
+	private static Logger logger = Logger.getLogger(CpManager.class.getName());
+
+	/**
+	 * Builds Ice.Properties from a parset file.
+	 * 
+	 * @param filename 	the filename of the file containing the parset.
+	 * @return 	an Ice.Properties instance with the Ice properties from the
+	 * 			parset.
+	 * @throws IOException 	if the file at the specified location cannot be 
+	 * 						accessed.
+	 */
+	@SuppressWarnings("rawtypes")
+	private static Ice.Properties getIceProperties(ParameterSet parset) throws IOException {
+		Ice.Properties props = Ice.Util.createProperties();
+		ParameterSet subset = parset.subset("ice_properties.");
+		for (Enumeration e = subset.keys(); e.hasMoreElements(); /**/) {
+			String key = (String) e.nextElement();
+			String value = subset.getProperty(key);
+			props.setProperty(key, value);
+		}
+		return props;
+	}
+
+	/**
+	 * Main
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		if (args.length != 1) {
+			System.err.println("Error: Invalid command line arguments");
+			System.exit(1);
+		}
 
 		// Init logging
 		String logcfg = System.getenv("LOGCFG");
@@ -63,12 +93,16 @@ public class CpManager {
 		int status = 0;
 		Ice.Communicator ic = null;
 		try {
-			ic = Ice.Util.initialize(args);
+			ParameterSet parset = new ParameterSet(args[0]);
+			Ice.InitializationData id = new Ice.InitializationData();
+			id.properties = getIceProperties(parset);
+			ic = Ice.Util.initialize(id);
+
 			if (ic == null) {
-				throw new RuntimeException("ICE Communicator initialisation failed");
+				throw new RuntimeException("Error: ICE Communicator initialisation failed");
 			}
 
-			AdminInterface admin = new AdminInterface(ic);
+			AdminInterface admin = new AdminInterface(ic, parset);
 			admin.run(); // Blocks until shutdown
 		} catch (Ice.LocalException e) {
 			e.printStackTrace();

@@ -30,7 +30,7 @@ import java.util.List;
 
 // ASKAPsoft imports
 import Ice.Current;
-import askap.cp.skymodelsvc.persist.PersistenceInterface;
+import askap.cp.skymodelsvc.persist.JDBCPersistenceInterface;
 import askap.interfaces.skymodelservice.Component;
 import askap.interfaces.skymodelservice._ISkyModelServiceDisp;
 import org.apache.log4j.Logger;
@@ -49,7 +49,7 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	/**
 	 * Class which provides access to the persistence layer
 	 */
-	private PersistenceInterface itsPersistance;
+	private JDBCPersistenceInterface itsPersistance;
 	
 	private static final long serialVersionUID = 1L;
 
@@ -58,7 +58,7 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	 */
 	public SkyModelServiceImpl(Ice.Communicator ic) {
 		logger.info("Creating SkyModelService");
-		itsPersistance = new PersistenceInterface();
+		itsPersistance = new JDBCPersistenceInterface();
 	}
 
 	/**

@@ -72,12 +72,20 @@ module cp
          *              in progress. This observation must either be aborted or
          *              left to conclude normally.
          */
-        ["ami"] void startObs(long sbid) throws NoSuchSchedulingBlockException,
+        void startObs(long sbid) throws NoSuchSchedulingBlockException,
             AlreadyRunningException;
 
         /**
+         * Blocks until the observation in progress is completed. Specifically,
+         * until the ingest pipeline finishes, either successfully or with
+         * error. When this method returns, the central processor is ready to
+         * start a new observation.
+         */
+        void waitObs();
+
+        /**
          * Calling this method instructs the central processor to abort the
-         * current observation. This stops the data acquisition  process,
+         * current observation. This stops the data acquisition process,
          * however does not necessarily prevent the observation from moving to
          * the post-processing stage. The configuration parameters in the 
          * scheduling block indicate if data processing should be attempted
@@ -86,7 +94,7 @@ module cp
          * This method will block until the observation has been aborted and
          * the central processor is ready to start a new observation.
          */
-        ["ami"] void abortObs();
+        void abortObs();
     };
 
 };

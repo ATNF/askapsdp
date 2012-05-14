@@ -23,7 +23,7 @@
  */
 package askap.cp.manager.rman;
 
-// System imports
+// Java core imports
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;

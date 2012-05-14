@@ -47,7 +47,7 @@ waitIceRegistry config.icegridadmin
 
 # Start the cpmanager
 echo "Starting the CP Manager..."
-nohup java askap/cp/manager/CpManager --Ice.Config=config.cpmanager > ${CPMAN_LOG} &
+nohup java askap/cp/manager/CpManager config.cpmanager > ${CPMAN_LOG} &
 PID=$!
 waitIceAdapter config.icegridadmin CentralProcessorAdminAdapter
 

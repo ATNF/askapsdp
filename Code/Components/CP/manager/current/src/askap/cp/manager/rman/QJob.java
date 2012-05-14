@@ -62,7 +62,7 @@ public class QJob implements IJob {
 		int status = executeCommand(cmd, stdout);
 		
 		if (status != 0) {
-			logger.info("Job query failed: " + stdout);
+			logger.warn("Job query failed: " + stdout);
 			return JobStatus.UNKNOWN;
 		} else if (status == 153) {
 			// Indicates the job was not found, so either it

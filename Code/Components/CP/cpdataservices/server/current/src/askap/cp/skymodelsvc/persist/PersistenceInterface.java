@@ -27,11 +27,11 @@ package askap.cp.skymodelsvc.persist;
 
 // Java imports
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
+import org.hibernate.CacheMode;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
@@ -71,6 +71,7 @@ public class PersistenceInterface {
 		config.configure("skymodel-hibernate.cfg.xml");
 		SessionFactory sessionFactory = config.buildSessionFactory();
 		itsSession = sessionFactory.openSession();
+		itsSession.setCacheMode(CacheMode.IGNORE);
 	}
 
 	/**
@@ -119,10 +120,10 @@ public class PersistenceInterface {
         long count = 0;
 		ScrollableResults components = itsSession.createQuery(query).scroll(ScrollMode.FORWARD_ONLY);
 		while (components.next()) {
-			Component comp = (Component) components.get(0);
+			final Component comp = (Component) components.get(0);
 			assert(comp.i1400 >= fluxLimit);
 			if (angularSeparation(ra, dec, comp) <= searchRadius) {
-				ids.add(new Long(comp.id));
+				ids.add(comp.id);
             }
 
             // Need to clear the cache occasionally so as not to run out of memory
@@ -143,12 +144,11 @@ public class PersistenceInterface {
 	 * 						objects they identify are to be returned.
 	 * @return a list of components.
 	 */
-	public List<Component> getComponents(List<Long> componentIds) {
-		ArrayList<Component> components = new ArrayList<Component>();
+	public List<Component> getComponents(final List<Long> componentIds) {
+		ArrayList<Component> components = new ArrayList<Component>(componentIds.size());
 
-		Iterator<Long> it = componentIds.iterator();
-		while(it.hasNext()) {
-			Component c = (Component) itsSession.get(Component.class, it.next());
+		for (Long id : componentIds) {
+			final Component c = (Component) itsSession.get(Component.class, id);
 			if (c != null) {
 				components.add(c);
 			}
@@ -163,16 +163,14 @@ public class PersistenceInterface {
 	 * @return a list of component IDs, with index matching that of the
 	 * "components" parameter passed as input.
 	 */
-	public List<Long> addComponents(List<Component> components) {
+	public List<Long> addComponents(final List<Component> components) {
 		ArrayList<Long> idList = new ArrayList<Long>();
 
-		Iterator<Component> it = components.iterator();
 		Transaction tx = itsSession.beginTransaction();
 		int count = 0;
-		while(it.hasNext()) {
-			Component c = it.next();
+		for (Component c : components) {
 			itsSession.save(c);
-			idList.add(new Long(c.id));
+			idList.add(c.id);
 			if (count == itsBatchSize) {
 				itsSession.flush();
 				itsSession.clear();
@@ -212,9 +210,10 @@ public class PersistenceInterface {
 	 * @return	the angular separation between the position specified by the
 	 * 			parameters ra and dec, and the specified component.
 	 */
-	double angularSeparation(double ra, final double dec, final Component comp) {
+	static double angularSeparation(double ra, final double dec, final Component comp) {
 		final double[] refXYZ = createXYZ(Math.toRadians(ra), Math.toRadians(dec));
-		final double[] compXYZ = createXYZ(Math.toRadians(comp.rightAscension), Math.toRadians(comp.declination));
+		final double[] compXYZ = createXYZ(Math.toRadians(comp.rightAscension),
+				                           Math.toRadians(comp.declination));
 
 		final double d1 = Math.sqrt(square(refXYZ[0] - compXYZ[0]) +
 				square(refXYZ[1] - compXYZ[1]) +
@@ -227,7 +226,7 @@ public class PersistenceInterface {
 	 * @param val	the value to square.
 	 * @return	the square of the "val" parameter.
 	 */
-	double square(final double val) {
+	static double square(final double val) {
 		return Math.pow(val, 2);
 	}
 
@@ -240,7 +239,7 @@ public class PersistenceInterface {
 	 * 			to the prime meridian equator, z points to the north pole,  
 	 * 			and y is normal to x and z.
 	 */
-	double[] createXYZ(final double ra, final double dec) {
+	static double[] createXYZ(final double ra, final double dec) {
 		double[] xyz = new double[3];
 		final double loc = Math.cos(dec);
 		xyz[0] = Math.cos(ra) * loc;

@@ -25,20 +25,21 @@
  */
 package askap.cp.manager;
 
-// Core Java imports
-import java.util.Map;
-
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
 import Ice.Current;
 import askap.interfaces.cp._ICPObsServiceDisp;
+import askap.util.ParameterSet;
 
 // Local package includes
 import askap.cp.manager.ingest.IngestControl;
 import askap.cp.manager.rman.QResourceManager;
-import askap.cp.manager.svcclients.DataServiceClient;
-import askap.cp.manager.svcclients.FCMClient;
-
+import askap.cp.manager.svcclients.IDataServiceClient;
+import askap.cp.manager.svcclients.IFCMClient;
+import askap.cp.manager.svcclients.IceDataServiceClient;
+import askap.cp.manager.svcclients.IceFCMClient;
+import askap.cp.manager.svcclients.MockDataServiceClient;
+import askap.cp.manager.svcclients.MockFCMClient;
 
 public class ObsService extends _ICPObsServiceDisp {
 	
@@ -52,23 +53,39 @@ public class ObsService extends _ICPObsServiceDisp {
 	/**
 	 * Facility Configuration Manager client wrapper instance
 	 */
-	FCMClient itsFCM;
+	IFCMClient itsFCM;
 	
 	/**
 	 * TOS Data Service client wrapper instance
 	 */
-	DataServiceClient itsDataService;
+	IDataServiceClient itsDataService;
 	
 	/**
 	 * Ingest Pipeline Controller
 	 */
 	IngestControl itsIngestControl;
     
-	public ObsService(Ice.Communicator ic) {
+	public ObsService(Ice.Communicator ic, ParameterSet parset) {
 		logger.info("Creating ObsService");
-		//itsFCM = new FCMClient(ic);
-		//itsDataService = new DataServiceClient(ic);
-		itsIngestControl = new IngestControl(new QResourceManager());
+		
+		// Instantiate real of mock FCM
+		boolean mockfcm = parset.getBoolean("fcm.mock", false);
+		if (mockfcm) {
+			itsFCM = new MockFCMClient(parset.subset("fcm.mock."));
+		} else {
+			itsFCM = new IceFCMClient(ic);
+		}
+				
+		// Instantiate real or mock data service interface
+		boolean mockdatasvc = parset.getBoolean("dataservice.mock", false);
+		if (mockdatasvc) {
+			itsDataService = new MockDataServiceClient(parset.subset("dataservice.mock."));
+		} else {
+			itsDataService = new IceDataServiceClient(ic);
+		}
+				
+		// Ingest Controller
+		itsIngestControl = new IngestControl(new QResourceManager(), parset);
 	}
 	
 	public void finalize() {
@@ -81,10 +98,10 @@ public class ObsService extends _ICPObsServiceDisp {
 			askap.interfaces.cp.AlreadyRunningException
 	{
 		logger.debug("Querying FCM");
-		Map<String, String> fc = itsFCM.get();
+		ParameterSet fc = itsFCM.get();
 		
 		logger.debug("Getting observation parameters");
-		Map<String, String> obsParams;
+		ParameterSet obsParams;
 		
 		try {
 			obsParams = itsDataService.getObsParameters(sbid);
@@ -94,12 +111,18 @@ public class ObsService extends _ICPObsServiceDisp {
 		}
 		
 		// Blocking (until started)
-		itsIngestControl.start(fc, obsParams);
+		itsIngestControl.startIngest(fc, obsParams, sbid);
+	}
+	
+	@Override
+	public void waitObs(Current curr) {
+		// Blocking (until exited)
+		itsIngestControl.waitIngest();
 	}
 	
 	@Override
 	public void abortObs(Current curr) {
 		// Blocking (until aborted)
-		itsIngestControl.abort();
+		itsIngestControl.abortIngest();
 	}
 }

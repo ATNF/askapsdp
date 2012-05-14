@@ -25,29 +25,37 @@
  */
 package askap.cp.manager.svcclients;
 
-// System imports
-import java.util.Map;
-
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
-import askap.interfaces.schedblock.ISchedulingBlockServicePrx;
-import askap.interfaces.schedblock.ISchedulingBlockServicePrxHelper;
-import askap.interfaces.schedblock.NoSuchSchedulingBlockException;
+import askap.interfaces.fcm.IFCMServicePrx;
+import askap.interfaces.fcm.IFCMServicePrxHelper;
+import askap.interfaces.fcm.NoSuchKeyException;
+import askap.util.ParameterSet;
 
-public class DataServiceClient {
+public class IceFCMClient implements IFCMClient {
 	
-	/** Logger. */
-	private static Logger logger = Logger.getLogger(DataServiceClient.class.getName());
+	/**
+	 * Logger
+	 */
+	private static Logger logger = Logger.getLogger(IceFCMClient.class.getName());
 	
-	ISchedulingBlockServicePrx itsProxy;
+	IFCMServicePrx itsProxy;
 	
-	public DataServiceClient(Ice.Communicator ic) {
-		logger.info("Creating DataServiceClient");
-		Ice.ObjectPrx obj = ic.stringToProxy("SchedulingBlockService");
-		itsProxy = ISchedulingBlockServicePrxHelper.checkedCast(obj);
+	public IceFCMClient(Ice.Communicator ic) {
+		logger.info("Creating FCMClient");
+		Ice.ObjectPrx obj = ic.stringToProxy("FCMService");
+		itsProxy = IFCMServicePrxHelper.checkedCast(obj);
 	}
-	public Map<String, String> getObsParameters(long sbid)
-			throws NoSuchSchedulingBlockException {
-		return itsProxy.getObsParameters(sbid);
+	
+	/**
+	 * @see askap.cp.manager.svcclients.IFCMClient#get()
+	 */
+	public ParameterSet get() {
+		try {
+			return new ParameterSet(itsProxy.get(-1, ""));
+		} catch (NoSuchKeyException e) {
+			// Shouldn't get this because we are not specifing a key.
+			return new ParameterSet();
+		}
 	}
 }

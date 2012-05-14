@@ -258,32 +258,32 @@ public class PersistenceInterfaceTest {
 		// Ref and component at same location
 		c.rightAscension = 1.0;
 		c.declination = -45.0;
-		assertEquals(0.0, itsInstance.angularSeparation(c.rightAscension,
+		assertEquals(0.0, PersistenceInterface.angularSeparation(c.rightAscension,
 				c.declination, c), tolerance);
 		
 		// Test RA wraparound
 		c.rightAscension = 1.0;
 		c.declination = -45.0;
-		assertEquals(0.777811, itsInstance.angularSeparation(359.9, -45.0, c), tolerance);
+		assertEquals(0.777811, PersistenceInterface.angularSeparation(359.9, -45.0, c), tolerance);
 		
 		// Test Dec (Pole) wraparound
 		c.rightAscension = 187.5;
 		c.declination = -89.9;
-		assertEquals(0.2, itsInstance.angularSeparation(7.5, -89.9, c), tolerance);
+		assertEquals(0.2, PersistenceInterface.angularSeparation(7.5, -89.9, c), tolerance);
 		
 		// Test far apart in RA (Range 0-180 degrees)
 		c.rightAscension = 1.0;
 		c.declination = 0.0;
-		assertEquals(180.0, itsInstance.angularSeparation(181.0, 0.0, c), tolerance);
+		assertEquals(180.0, PersistenceInterface.angularSeparation(181.0, 0.0, c), tolerance);
 		
 		// Test far apart in RA (Range 181-360 degrees)
 		c.rightAscension = 190.0;
 		c.declination = 0.0;
-		assertEquals(160.0, itsInstance.angularSeparation(350.0, 0.0, c), tolerance);
+		assertEquals(160.0, PersistenceInterface.angularSeparation(350.0, 0.0, c), tolerance);
 		
 		// Test far apart in Dec 
 		c.rightAscension = 150.0;
 		c.declination = 80.0;
-		assertEquals(160, itsInstance.angularSeparation(150.0, -80.0, c), tolerance);
+		assertEquals(160, PersistenceInterface.angularSeparation(150.0, -80.0, c), tolerance);
 	}
 }
