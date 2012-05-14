@@ -25,6 +25,7 @@ package askap.cp.manager.ingest;
 
 // Core Java imports
 import java.io.File;
+import java.io.IOException;
 
 // ASKAPsoft imports
 import org.apache.log4j.Logger;
@@ -120,11 +121,21 @@ public class IngestControl {
 		File configFile = new File(workdir, "ingest.in");
 
 		FSUtils.mkdir(workdir);
-		FSUtils.copyfile(jobtemplate, qsubFile);
-		FSUtils.create(configFile, parset);
+		try {
+			FSUtils.copyfile(jobtemplate, qsubFile);
+		} catch (IOException e) {
+			logger.error("Could not copy job template to workdir");
+			return;
+		}
+		try {
+			FSUtils.create(configFile, parset);
+		} catch (IOException e) {
+			logger.error("Could not create parset in wordir");
+			return;
+		}
 
 		// 4: Execute the job
-		itsResourceManager.submitJob(qsubFile, workdir);
+		itsJob = itsResourceManager.submitJob(qsubFile, workdir);
 
 		// 5: Wait until the job is running or completed
 		while (itsJob.status() == JobStatus.QUEUED) {

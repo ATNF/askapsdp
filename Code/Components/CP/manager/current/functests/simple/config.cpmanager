@@ -15,11 +15,11 @@ ice_properties.Ice.ThreadPool.Server.SizeMax=16
 
 # Use a mock FCM
 fcm.mock = true
-fcm.mock.myparameter = 123
+fcm.mock.fcm_parameter = 123
 
 # Use a mock data service
 dataservice.mock = true
-dataservice.mock.myparameter = 123
+dataservice.mock.ds_parameter = 456
 
 # Ingest working directory
 ingest.workdir = /tmp

@@ -30,6 +30,11 @@ public class ConfigBuilder {
 	public static ParameterSet build(ParameterSet facilityConfig, ParameterSet obsParams) {
 		ParameterSet config = new ParameterSet();
 		
+		// TODO: For now just concatenate the two parsets, but need to fix
+		// this when the schema for the FCM and obs params is known.
+		config.putAll(facilityConfig);
+		config.putAll(obsParams);
+		
 		return config;
 	}
 }

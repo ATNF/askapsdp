@@ -6,6 +6,9 @@ def checkService():
     servicebase = ic.stringToProxy("CentralProcessorService@CentralProcessorAdminAdapter")
     if not servicebase:
         raise RuntimeError("CentralProcessorService proxy not found")
+    svc = askap.interfaces.cp.ICPObsServicePrx.checkedCast(servicebase)
+    if not svc:
+        raise RuntimeError("Invalid CPObsService proxy")
 
 # Ensure the state returned from getState() is as expected
 def assertState(state):
@@ -49,6 +52,7 @@ import askap
 # Import interfaces
 from askap.slice import CommonTypes
 from askap.slice import Component
+from askap.slice import CP
 
 status = 0
 ic = None
