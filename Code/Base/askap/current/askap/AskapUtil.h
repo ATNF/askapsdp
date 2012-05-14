@@ -1,4 +1,4 @@
-/// @file AskapUtils.h
+/// @file AskapUtil.h
 /// @brief Common ASKAP utility functions and classes
 ///
 /// @copyright (c) 2007 CSIRO
@@ -134,7 +134,7 @@ casa::MDirection asMDirection(const std::vector<std::string>& direction);
 /// @endverbatim
 /// Supported types are WGS84 and ITRF.
 ///
-/// @param position[in] String to be interpreted
+/// @param[in] position String to be interpreted
 /// @return an MPosition
 casa::MPosition asMPosition(const std::vector<std::string>& position);
 

@@ -13,6 +13,7 @@ pkg = env.AskapPackage("askap")
 
 # add sub packages 
 pkg.AddSubPackage("askap")
+pkg.AddSubPackage("profile")
 
 # run the build process
 pkg()

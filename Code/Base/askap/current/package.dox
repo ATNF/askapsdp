@@ -4,6 +4,9 @@
 ///
 namespace askap {};
 
+/// @defgroup askap Base includes and utilities
+/// @defgroup profile Utilities to profile the executable
+
 /// @mainpage The standard ASKAP package
 ///
 /// @section Introduction
@@ -56,6 +59,7 @@ namespace askap {};
 /// @endcode
 ///
 /// @section Utilities
+/// @section Profile
 ///
 /// @todo Needs to be implemented on top of std::cout for platforms where log4cxx
 /// doesn't build 
