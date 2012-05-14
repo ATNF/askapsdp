@@ -115,7 +115,7 @@ if [ $DO_SPECTRAL_LINE == "true" ]; then
 . ${SCRIPTDIR}/imager-spectral-line.sh
 fi
 
-if [ ${DRYRUN} == "false" ]; then
+if [ "${DRYRUN}" == "false" ]; then
     . ${SCRIPTDIR}/reporting.sh
 fi
 
