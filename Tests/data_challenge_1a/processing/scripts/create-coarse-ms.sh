@@ -69,9 +69,9 @@ if [ "${DRYRUN}" == "false" ]; then
         echo "MS Split and Average: Skipping task - Output already exists"
     fi
     if [ "${GLOBAL_DEPEND}" == "" ]; then
-	${GLOBAL_DEPEND}="${QSUB_MSSPLIT}"
+	GLOBAL_DEPEND="${QSUB_MSSPLIT}"
     else
-	${GLOBAL_DEPEND}="${GLOBAL_DEPEND}:${QSUB_MSSPLIT}"
+	GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_MSSPLIT}"
     fi
 
 else

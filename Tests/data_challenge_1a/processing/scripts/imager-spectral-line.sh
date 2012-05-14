@@ -148,7 +148,7 @@ if [ "${DRYRUN}" == "false" ]; then
     if [ ! "${DEPENDS}" ]; then
         QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
     fi
-    ${GLOBAL_DEPEND}="${GLOBAL_DEPEND}:${QSUB_SPECTRAL1}:${QSUB_SPECTRAL2}"
+    GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_SPECTRAL1}:${QSUB_SPECTRAL2}"
 
 else
     echo "Spectral Line Imaging: Dry Run Only"

@@ -62,7 +62,7 @@ if [ "${DRYRUN}" == "false" ]; then
         else
             QSUB_CAL=`${QSUB_CMD} -W depend=afterok:${QSUB_CMODEL},afterok:${QSUB_MSSPLIT} ccalibrator.qsub`
         fi
-	${GLOBAL_DEPEND}="${GLOBAL_DEPEND}:${QSUB_CAL}"
+	GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_CAL}"
     else
         echo "Calibration: Skipping task - Output already exists"
     fi
