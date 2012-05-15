@@ -61,6 +61,8 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <measurementequation/ImageSolverFactory.h>
 #include <calibaccess/CalibAccessFactory.h>
 #include <measurementequation/CalibrationApplicatorME.h>
+#include <profile/AskapProfiler.h>
+
 
 
 #include <casa/aips.h>
@@ -225,6 +227,7 @@ namespace askap
     /// Calculate the normal equations for a given measurement set
     void ImagerParallel::calcNE()
     {
+      ASKAPTRACE("ImagerParallel::calcNE");
       /// Now we need to recreate the normal equations
       itsNe=ImagingNormalEquations::ShPtr(new ImagingNormalEquations(*itsModel));
 
@@ -280,6 +283,7 @@ namespace askap
 
     void ImagerParallel::solveNE()
     {
+      ASKAPTRACE("ImagerParallel::solveNE");
       if (itsComms.isMaster())
       {
         // Receive the normal equations
@@ -424,6 +428,7 @@ namespace askap
     /// (used to separate images at different iterations)
     void ImagerParallel::writeModel(const std::string &postfix)
     {
+      ASKAPTRACE("ImagerParallel::writeModel");
       if (itsComms.isMaster())
       {
         ASKAPLOG_INFO_STR(logger, "Writing out results as images");

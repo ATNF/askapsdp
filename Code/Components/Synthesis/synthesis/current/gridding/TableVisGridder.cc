@@ -51,6 +51,7 @@ ASKAP_LOGGER(logger, ".gridding.tablevisgridder");
 #include <measurementequation/SynthesisParamsHelper.h>
 
 #include <askap/CasaSyncHelper.h>
+#include <profile/AskapProfiler.h>
 
 using namespace askap::scimath;
 using namespace askap;
@@ -733,6 +734,7 @@ void TableVisGridder::correctVisibilities(accessors::IDataAccessor &, bool) {}
 /// @brief Degrid the visibility data.
 /// @param[in] acc non-const data accessor to work with  
 void TableVisGridder::degrid(accessors::IDataAccessor& acc) {
+    ASKAPTRACE("TableVisGridder::degrid");
 	generic(acc, true);
 	correctVisibilities(acc, true);
 }
@@ -742,6 +744,7 @@ void TableVisGridder::degrid(accessors::IDataAccessor& acc) {
 /// @note a non-const adapter is created behind the scene. If no on-the-fly visibility 
 /// correction is performed, this adapter is equivalent to the original const data accessor
 void TableVisGridder::grid(accessors::IConstDataAccessor& acc) {
+    ASKAPTRACE("TableVisGridder::grid");
     accessors::OnDemandBufferDataAccessor bufAcc(acc);
 	correctVisibilities(bufAcc, false);
 	generic(bufAcc, false);

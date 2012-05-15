@@ -60,9 +60,6 @@ namespace askap {
 /// @ingroup profile
 class ProfileSingleton {
 public:
-   /// @brief default constructor
-   /// @details Only the main thread is supposed to create an instance of this object.
-   ProfileSingleton();
 
    /// @brief destructor which dumps all statistics
    /// @details For now we just write stats into log, later on we could change it to write
@@ -81,7 +78,26 @@ public:
    /// @param[in] name name of the method
    /// @param[in] time execution time interval
    void notifyExit(const std::string &name, const double time);
+   
+   /// @brief initialise singleton 
+   /// @details This step is essential before capture of profile information
+   static void start();
+   
+   /// @brief finalise singleton
+   /// @details We need an explicit step to be able to run destructors before logger is terminated.
+   static void stop();
+   
+   /// @return shared pointer to the singleton
+   inline static const boost::shared_ptr<ProfileSingleton>& get() { return theirSingleton;}
       
+   struct Initialiser {
+      /// @brief default constructor
+      inline Initialiser() { ProfileSingleton::start(); }
+      
+      /// @brief destructor
+      inline ~Initialiser() { ProfileSingleton::stop(); }      
+   };   
+   
 protected:
    
    /// @brief helper method to log profiling statistics
@@ -97,8 +113,15 @@ protected:
    ProfileTree& getTree();
    
 private:
+   /// @brief default constructor
+   /// @details Only the main thread is supposed to create an instance of this object.
+   ProfileSingleton();
+
    /// @brief profile tree for the main thread
    ProfileTree itsMainTree;
+   
+   /// @brief thread id for the main thread
+   const boost::thread::id itsMainThreadID;
    
    /// @brief main thread global timer
    /// @detail We can add timers per thread later on, although the usefulness of it is not clear because we cannot
@@ -110,6 +133,9 @@ private:
    
    /// @brief synchronisation object to protect thread trees
    boost::shared_mutex itsMutex;
+   
+   /// @brief shared pointer to the only copy
+   static boost::shared_ptr<ProfileSingleton> theirSingleton;   
 };
 
 } // namespace askap

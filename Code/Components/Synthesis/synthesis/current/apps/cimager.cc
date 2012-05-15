@@ -55,6 +55,8 @@
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <fitting/Params.h>
+#include <profile/AskapProfiler.h>
+
 
 ASKAP_LOGGER(logger, ".cimager");
 
@@ -74,6 +76,7 @@ int main(int argc, const char** argv)
         casa::LogSink::globalSink(globalSink);
 
         StatReporter stats;
+        ASKAPINITPROFILING;
 
         // Put everything in scope to ensure that all destructors are called
         // before the final message

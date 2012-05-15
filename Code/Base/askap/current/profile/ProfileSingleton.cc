@@ -44,8 +44,26 @@ using namespace askap;
 
 ASKAP_LOGGER(logger, ".ProfileSingleton");
 
+/// @brief static singleton
+boost::shared_ptr<ProfileSingleton> ProfileSingleton::theirSingleton;
+
+/// @brief initialise singleton 
+/// @details This step is essential before capture of profile information
+void ProfileSingleton::start() {
+  ASKAPCHECK(!theirSingleton, "ProfileSingleton::start is supposed to be called only once!");
+  theirSingleton.reset(new ProfileSingleton);
+}
+   
+/// @brief finalise singleton
+/// @details We need an explicit step to be able to run destructors before logger is terminated.
+void ProfileSingleton::stop() {
+  ASKAPCHECK(theirSingleton, "ProfileSingleton::stop is supposed to be called after start!");
+  theirSingleton.reset();
+}
+
+
 /// @brief default constructor
-ProfileSingleton::ProfileSingleton()
+ProfileSingleton::ProfileSingleton() : itsMainThreadID(boost::this_thread::get_id())
 {
    ASKAPLOG_INFO_STR(logger, "Profiling statistics will be gathered");
    itsMainTimer.mark();
@@ -98,7 +116,7 @@ void ProfileSingleton::logProfileStats(const ProfileTree &tree, bool keepHierarc
 /// @param[in] name name of the method
 void ProfileSingleton::notifyEntry(const std::string &name)
 {
-  if (boost::this_thread::get_id() == boost::thread::id()) {
+  if (boost::this_thread::get_id() == itsMainThreadID) {
       // main thread, no locking
       itsMainTree.notifyEntry(name);
   } else {
@@ -113,7 +131,7 @@ void ProfileSingleton::notifyEntry(const std::string &name)
 /// @param[in] time execution time interval
 void ProfileSingleton::notifyExit(const std::string &name, const double time)
 {
-  if (boost::this_thread::get_id() == boost::thread::id()) {
+  if (boost::this_thread::get_id() == itsMainThreadID) {
       // main thread, no locking
       itsMainTree.notifyExit(name,time);
   } else {
@@ -130,6 +148,7 @@ ProfileTree& ProfileSingleton::getTree()
    // all locking happens inside this method, once the element is created it is safe
    // to use its reference in a single thread.
    const boost::thread::id id = boost::this_thread::get_id();
+   ASKAPDEBUGASSERT(id != itsMainThreadID);
    {
      // multiple reads are allowed
      boost::shared_lock<boost::shared_mutex> lock(itsMutex);

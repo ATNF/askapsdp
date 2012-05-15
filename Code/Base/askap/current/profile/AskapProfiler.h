@@ -53,6 +53,8 @@ namespace askap {
 #define ASKAPDEBUGTRACE(name)
 #endif
 
+#define ASKAPINITPROFILING askap::ProfileSingleton::Initialiser askapInitProfilingGuard;
+
 /// @brief profiler class used as a guard for entry/exit events
 /// @details Instantiate this class to trace a given method or a block of code.
 /// @note The subsystem needs initialisation before profiling can be done.
@@ -64,22 +66,13 @@ struct Profiler {
    
    /// @brief destructor, logs exit event
    ~Profiler();
-
-   // static methods working with the singleton
-   
-   /// @brief configure profiling
-   /// @details This method is supposed to be called before any event calls
-   static void configureProfiling();
-   
+      
 private:
    /// @brief timer to time a particular execution
    casa::Timer itsTimer;
    
    /// @brief unique name of the current method or block
-   const std::string itsName;
-   
-   /// @brief singleton doing all dirty job
-   static boost::shared_ptr<ProfileSingleton> theirSingleton;
+   const std::string itsName;   
 };
 } // namespace askap
 

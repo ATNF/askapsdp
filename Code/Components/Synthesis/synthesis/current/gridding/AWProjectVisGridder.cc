@@ -50,6 +50,8 @@ ASKAP_LOGGER(logger, ".gridding.awprojectvisgridder");
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <gridding/SupportSearcher.h>
 #include <gridding/AProjectGridderBase.tcc>
+#include <profile/AskapProfiler.h>
+
 
 namespace askap {
 namespace synthesis {
@@ -95,6 +97,7 @@ IVisGridder::ShPtr AWProjectVisGridder::clone()
 /// Initialize the indices into the cube.
 void AWProjectVisGridder::initIndices(const accessors::IConstDataAccessor& acc)
 {
+    ASKAPTRACE("AWProjectVisGridder::initIndices");    
     // calculate currentField
     indexField(acc);
 
@@ -224,6 +227,7 @@ void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
 /// @todo Make initConvolutionFunction more robust
 void AWProjectVisGridder::initConvolutionFunction(const accessors::IConstDataAccessor& acc)
 {
+    ASKAPTRACE("AWProjectVisGridder::initConvolutionFunction");    
     casa::MVDirection out = getImageCentre();
     const int nSamples = acc.nRow();
 

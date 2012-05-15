@@ -56,6 +56,8 @@ ASKAP_LOGGER(logger, ".gridding.snapshotimaginggridderadapter");
 
 //#include <measurementequation/SynthesisParamsHelper.h>
 
+#include <profile/AskapProfiler.h>
+
 using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::accessors;
@@ -440,6 +442,8 @@ casa::DirectionCoordinate SnapShotImagingGridderAdapter::currentPlaneDirectionCo
 void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input, 
            casa::Array<double> &output, bool toTarget) const
 {
+   ASKAPTRACE("SnapShotImagingGridderAdapter::imageRegrid");    
+  
    // for stats
    casa::Timer timer;
    timer.mark();
