@@ -32,8 +32,8 @@ exitcodeSL="-"
 exitcodeSLM="-"
 exitcodeAN="-"
 
-logfileSPL="`echo split.o${QSUB_MSSPLIT}.* | sed -e 's/\[\].epic//g'`"
-if [ ! -e `echo split.o${QSUB_MSSPLIT}.0 | sed -e 's/\[\].epic//g'` ]; then
+logfileSPL="\`echo split.o${QSUB_MSSPLIT}.* | sed -e 's/\[\].epic//g'\`"
+if [ ! -e \`echo split.o${QSUB_MSSPLIT}.0 | sed -e 's/\[\].epic//g'\` ]; then
     overall=1
 else
     exitcodeSPL=\`grep -h Exit \${logfileSPL} | sort | uniq | awk '{print \$3}'\`
@@ -43,7 +43,7 @@ else
 fi
 
 if [ ${DO_CALIBRATION} == true ]; then
-    logfileCMODEL="`echo cmodel.o${QSUB_CMODEL} | sed -e 's/.epic//g'`"
+    logfileCMODEL="\`echo cmodel.o${QSUB_CMODEL} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileCMODEL} ]; then
         overall=1
     else
@@ -52,7 +52,7 @@ if [ ${DO_CALIBRATION} == true ]; then
     	overall=1
         fi
     fi
-    logfileCAL="echo ccalibrator.o${QSUB_CAL} | sed -e 's/.epic//g'`"
+    logfileCAL="\`echo ccalibrator.o${QSUB_CAL} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileCAL} ]; then
         overall=1
     else
@@ -64,7 +64,7 @@ if [ ${DO_CALIBRATION} == true ]; then
 fi
 
 if [ ${DO_CONTINUUM_DIRTY} == true ]; then
-    logfileCD="`echo cont-dirty.o${QSUB_CONTDIRTY} | sed -e 's/.epic//g'`"
+    logfileCD="\`echo cont-dirty.o${QSUB_CONTDIRTY} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileCD} ]; then
         overall=1
     else
@@ -76,7 +76,7 @@ if [ ${DO_CONTINUUM_DIRTY} == true ]; then
 fi
 
 if [ ${DO_CONTINUUM_CLEAN} == true ]; then
-    logfileCC="`echo cont-clean.o${QSUB_CONTCLEAN} | sed -e 's/.epic//g'`"
+    logfileCC="\`echo cont-clean.o${QSUB_CONTCLEAN} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileCC} ]; then
         overall=1
     else
@@ -88,7 +88,7 @@ if [ ${DO_CONTINUUM_CLEAN} == true ]; then
 fi
 
 if [ ${DO_ANALYSIS} == true ]; then
-    logfileAN="`echo analysis.o${QSUB_ANALYSIS} | sed -e 's/.epic//g'`"
+    logfileAN="\`echo analysis.o${QSUB_ANALYSIS} | sed -e 's/.epic//g'\`"
     if [ ! -e ${logfileAN} ]; then
         overall=1
     else
@@ -100,8 +100,8 @@ if [ ${DO_ANALYSIS} == true ]; then
 fi
 
 if [ ${DO_CONTINUUM_CUBE_DIRTY} == true ]; then
-    logfileCCD="`echo contcube-dirty.o${QSUB_CONTCUBEDIRTY}.* | sed -e 's/\[\].epic//g'`"
-    if [ ! -e `echo contcube-dirty.o${QSUB_CONTCUBEDIRTY}.0 | sed -e 's/\[\].epic//g'` ]; then
+    logfileCCD="\`echo contcube-dirty.o${QSUB_CONTCUBEDIRTY}.* | sed -e 's/\[\].epic//g'\`"
+    if [ ! -e \`echo contcube-dirty.o${QSUB_CONTCUBEDIRTY}.0 | sed -e 's/\[\].epic//g'\` ]; then
         overall=1
     else
         exitcodeCCD=\`grep -h Exit \${logfileCCD} | sort | uniq | awk '{print \$3}'\`
@@ -117,8 +117,8 @@ if [ ${DO_CONTINUUM_CUBE_DIRTY} == true ]; then
 fi
 
 if [ ${DO_CONTINUUM_CUBE_CLEAN} == true ]; then
-    logfileCCC="`echo contcube-clean.o${QSUB_CONTCUBECLEAN}.* | sed -e 's/\[\].epic//g'`"
-    if [ ! -e `echo contcube-clean.o${QSUB_CONTCUBECLEAN}.0 | sed -e 's/\[\].epic//g'` ]; then
+    logfileCCC="\`echo contcube-clean.o${QSUB_CONTCUBECLEAN}.* | sed -e 's/\[\].epic//g'\`"
+    if [ ! -e \`echo contcube-clean.o${QSUB_CONTCUBECLEAN}.0 | sed -e 's/\[\].epic//g'\` ]; then
         overall=1
     else
         exitcodeCCC=\`grep -h Exit \${logfileCCC} | sort | uniq | awk '{print \$3}'\`
@@ -134,8 +134,8 @@ if [ ${DO_CONTINUUM_CUBE_CLEAN} == true ]; then
 fi
 
 if [ ${DO_SPECTRAL_LINE} == true ]; then
-    logfileSL1="`echo sl-img.o${QSUB_SPECTRAL1}.* | sed -e 's/\[\].epic//g'`"
-    if [ ! -e `echo sl-img.o${QSUB_SPECTRAL1}.0 | sed -e 's/\[\].epic//g'` ]; then
+    logfileSL1="\`echo sl-img.o${QSUB_SPECTRAL1}.* | sed -e 's/\[\].epic//g'\`"
+    if [ ! -e \`echo sl-img.o${QSUB_SPECTRAL1}.0 | sed -e 's/\[\].epic//g'\` ]; then
         overall=1
     else
         exitcodeSL1=\`grep -h Exit \${logfileSL1} | sort | uniq | awk '{print \$3}'\`
@@ -144,8 +144,8 @@ if [ ${DO_SPECTRAL_LINE} == true ]; then
         fi
     fi
 
-    logfileSL2="`echo sl-img.o${QSUB_SPECTRAL2}.* | sed -e 's/\[\].epic//g'`"
-    if [ ! -e `echo sl-img.o${QSUB_SPECTRAL2}.0 | sed -e 's/\[\].epic//g'` ]; then
+    logfileSL2="\`echo sl-img.o${QSUB_SPECTRAL2}.* | sed -e 's/\[\].epic//g'\`"
+    if [ ! -e \`echo sl-img.o${QSUB_SPECTRAL2}.0 | sed -e 's/\[\].epic//g'\` ]; then
         overall=1
     else
         exitcodeSL2=\`grep -h Exit \${logfileSL2} | sort | uniq | awk '{print \$3}'\`
