@@ -78,6 +78,10 @@ public:
    /// @brief access to data 
    /// @return reference to the data
    inline ProfileData& data() { return itsData;}
+
+   /// @brief access to data 
+   /// @return reference to the data
+   inline const ProfileData& data() const { return itsData;}
    
    /// @return name of this node
    inline const std::string& name() const { return itsName;}
@@ -93,6 +97,14 @@ public:
    /// @return shared pointer to the child node
    boost::shared_ptr<ProfileNode> child(const std::string &name);
    
+   /// type of the iterator over all children
+   typedef std::list<ProfileNode>::iterator iterator;
+   
+   /// @brief start iterator over all children
+   inline iterator begin() { return itsChildren.begin();}
+   
+   /// @brief end iterator over all children
+   inline iterator end() { return itsChildren.end();}
    
 private:   
    /// @brief profiling statistics

@@ -54,6 +54,18 @@ class ProfileTreeTest : public CppUnit::TestFixture {
            CPPUNIT_ASSERT(!pt.isRootCurrent());
            pt.notifyExit("test",3.3);
            CPPUNIT_ASSERT(pt.isRootCurrent());
+           pt.notifyExit(5.0);
+           std::map<std::string, ProfileData> stats;
+           pt.extractStats(stats);
+           CPPUNIT_ASSERT_EQUAL(size_t(2),stats.size());
+           CPPUNIT_ASSERT(stats.find("root") != stats.end());
+           CPPUNIT_ASSERT(stats.find("root.test") != stats.end());
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(3.3, stats["root.test"].totalTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(3.3, stats["root.test"].maxTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(3.3, stats["root.test"].minTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, stats["root"].totalTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, stats["root"].maxTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(5.0, stats["root"].minTime(),1e-6);
         }
         
         void testExitFromRoot() {
@@ -93,6 +105,32 @@ class ProfileTreeTest : public CppUnit::TestFixture {
            CPPUNIT_ASSERT(!pt.isRootCurrent());
            pt.notifyExit("test",5.5);
            CPPUNIT_ASSERT(pt.isRootCurrent());            
+
+           std::map<std::string, ProfileData> stats;
+           pt.extractStats(stats);
+           CPPUNIT_ASSERT_EQUAL(size_t(6),stats.size());
+           CPPUNIT_ASSERT(stats.find("root") != stats.end());
+           CPPUNIT_ASSERT(stats.find("root.test") != stats.end());
+           CPPUNIT_ASSERT(stats.find("root.test.low_level_test") != stats.end());
+           CPPUNIT_ASSERT(stats.find("root.test.low_level_test.another_test") != stats.end());
+           CPPUNIT_ASSERT(stats.find("root.test.low_level_test.another_test.test") != stats.end());
+           CPPUNIT_ASSERT(stats.find("root.test.low_level_test.another_test.fft") != stats.end());
+           CPPUNIT_ASSERT_EQUAL(0l, stats["root"].count());
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(5.5, stats["root.test"].totalTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(5.5, stats["root.test"].maxTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(5.5, stats["root.test"].minTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(4.4, stats["root.test.low_level_test"].totalTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(4.4, stats["root.test.low_level_test"].maxTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(4.4, stats["root.test.low_level_test"].minTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(3.3, stats["root.test.low_level_test.another_test"].totalTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(3.3, stats["root.test.low_level_test.another_test"].maxTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(3.3, stats["root.test.low_level_test.another_test"].minTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(1e-3, stats["root.test.low_level_test.another_test.test"].totalTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(1e-3, stats["root.test.low_level_test.another_test.test"].maxTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(1e-3, stats["root.test.low_level_test.another_test.test"].minTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, stats["root.test.low_level_test.another_test.fft"].totalTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, stats["root.test.low_level_test.another_test.fft"].maxTime(),1e-6);
+           CPPUNIT_ASSERT_DOUBLES_EQUAL(1.0, stats["root.test.low_level_test.another_test.fft"].minTime(),1e-6);           
         }
  };
     
