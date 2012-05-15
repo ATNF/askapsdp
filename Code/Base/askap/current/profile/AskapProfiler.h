@@ -60,10 +60,10 @@ namespace askap {
 struct Profiler {
    /// @brief constructor, logs entry event
    /// @param[in] name name of the current method or block
-   inline Profiler(const std::string &name) : itsName(name) { profiler().notifyEntry(name); itsTimer.mark();}
+   Profiler(const std::string &name);
    
    /// @brief destructor, logs exit event
-   inline ~Profiler() { profiler().notifyExit(itsName, itsTimer.real()); }
+   ~Profiler();
 
    // static methods working with the singleton
    
@@ -71,9 +71,6 @@ struct Profiler {
    /// @details This method is supposed to be called before any event calls
    static void configureProfiling();
    
-   /// @return reference to the singleton
-   static ProfileSingleton& profiler();
-
 private:
    /// @brief timer to time a particular execution
    casa::Timer itsTimer;

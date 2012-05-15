@@ -38,6 +38,24 @@ using namespace askap;
 /// @brief static singleton
 boost::shared_ptr<ProfileSingleton> Profiler::theirSingleton;
 
+/// @brief constructor, logs entry event
+/// @param[in] name name of the current method or block
+Profiler::Profiler(const std::string &name) : itsName(name) 
+{ 
+  if (theirSingleton) {
+      theirSingleton->notifyEntry(name); 
+      itsTimer.mark();
+  }
+}
+   
+/// @brief destructor, logs exit event
+Profiler::~Profiler() 
+{ 
+  if (theirSingleton) {
+      theirSingleton->notifyExit(itsName, itsTimer.real());
+  } 
+}
+
   
 /// @brief configure profiling
 /// @details This method is supposed to be called before any event calls
@@ -47,10 +65,3 @@ void Profiler::configureProfiling()
   theirSingleton.reset(new ProfileSingleton);
 }
    
-/// @return reference to the singleton
-ProfileSingleton& Profiler::profiler()
-{
-   ASKAPDEBUGASSERT(theirSingleton);
-   return *theirSingleton;
-}
-
