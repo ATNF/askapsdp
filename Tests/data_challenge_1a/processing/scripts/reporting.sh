@@ -32,54 +32,82 @@ exitcodeSL="-"
 exitcodeSLM="-"
 exitcodeAN="-"
 
-logfileSPL="split.o${QSUB_MSSPLIT}.*"
-exitcodeSPL=\`grep -h Exit \${logfileSPL} | sort | uniq | awk '{print \$3}'\`
-if [ \$exitcodeSPL != 0 ]; then
+logfileSPL="`echo split.o${QSUB_MSSPLIT}.* | sed -e 's/\[\].epic//g'`"
+if [ ! -e `echo split.o${QSUB_MSSPLIT}.0 | sed -e 's/\[\].epic//g'` ]; then
     overall=1
+else
+    exitcodeSPL=\`grep -h Exit \${logfileSPL} | sort | uniq | awk '{print \$3}'\`
+    if [ \$exitcodeSPL != 0 ]; then
+        overall=1
+    fi
 fi
 
 if [ ${DO_CALIBRATION} == true ]; then
-    logfileCMODEL="cmodel.o${QSUB_CMODEL}"
-    exitcodeCMODEL=\`grep Exit \${logfileCMODEL} | awk '{print \$3}'\`
-    if [ \$exitcodeCMODEL != 0 ]; then
-	overall=1
+    logfileCMODEL="`echo cmodel.o${QSUB_CMODEL} | sed -e 's/.epic//g'`"
+    if [ ! -e ${logfileCMODEL} ]; then
+        overall=1
+    else
+        exitcodeCMODEL=\`grep Exit \${logfileCMODEL} | awk '{print \$3}'\`
+        if [ \$exitcodeCMODEL != 0 ]; then
+    	overall=1
+        fi
     fi
-    logfileCAL="ccalibrator.o${QSUB_CAL}"
-    exitcodeCAL=\`grep Exit \${logfileCAL} | awk '{print \$3}'\`
-    if [ \$exitcodeCAL != 0 ]; then
-	overall=1
+    logfileCAL="echo ccalibrator.o${QSUB_CAL} | sed -e 's/.epic//g'`"
+    if [ ! -e ${logfileCAL} ]; then
+        overall=1
+    else
+        exitcodeCAL=\`grep Exit \${logfileCAL} | awk '{print \$3}'\`
+        if [ \$exitcodeCAL != 0 ]; then
+    	overall=1
+        fi
     fi
 fi
 
 if [ ${DO_CONTINUUM_DIRTY} == true ]; then
-    logfileCD="cont-dirty.o${QSUB_CONTDIRTY}"
-    exitcodeCD=\`grep Exit \${logfileCD} | awk '{print \$3}'\`
-    if [ \$exitcodeCD != 0 ]; then
-	overall=1
+    logfileCD="`echo cont-dirty.o${QSUB_CONTDIRTY} | sed -e 's/.epic//g'`"
+    if [ ! -e ${logfileCD} ]; then
+        overall=1
+    else
+        exitcodeCD=\`grep Exit \${logfileCD} | awk '{print \$3}'\`
+        if [ \$exitcodeCD != 0 ]; then
+    	overall=1
+        fi
     fi
 fi
 
 if [ ${DO_CONTINUUM_CLEAN} == true ]; then
-    logfileCC="cont-clean.o${QSUB_CONTCLEAN}"
-    exitcodeCC=\`grep Exit \${logfileCC} | awk '{print \$3}'\`
-    if [ \$exitcodeCC != 0 ]; then
-	overall=1
+    logfileCC="`echo cont-clean.o${QSUB_CONTCLEAN} | sed -e 's/.epic//g'`"
+    if [ ! -e ${logfileCC} ]; then
+        overall=1
+    else
+        exitcodeCC=\`grep Exit \${logfileCC} | awk '{print \$3}'\`
+        if [ \$exitcodeCC != 0 ]; then
+    	overall=1
+        fi
     fi
 fi
 
 if [ ${DO_ANALYSIS} == true ]; then
-    logfileAN="analysis.o${QSUB_ANALYSIS}"
-    exitcodeAN=\`grep Exit \${logfileAN} | awk '{print \$3}'\`
-    if [ \$exitcodeAN != 0 ]; then
-	overall=1
+    logfileAN="`echo analysis.o${QSUB_ANALYSIS} | sed -e 's/.epic//g'`"
+    if [ ! -e ${logfileAN} ]; then
+        overall=1
+    else
+        exitcodeAN=\`grep Exit \${logfileAN} | awk '{print \$3}'\`
+        if [ \$exitcodeAN != 0 ]; then
+    	overall=1
+        fi
     fi
 fi
 
 if [ ${DO_CONTINUUM_CUBE_DIRTY} == true ]; then
-    logfileCCD="contcube-dirty.o${QSUB_CONTCUBEDIRTY}.*"
-    exitcodeCCD=\`grep -h Exit \${logfileCCD} | sort | uniq | awk '{print \$3}'\`
-    if [ \$exitcodeCCD != 0 ]; then
-	overall=1
+    logfileCCD="`echo contcube-dirty.o${QSUB_CONTCUBEDIRTY}.* | sed -e 's/\[\].epic//g'`"
+    if [ ! -e `echo contcube-dirty.o${QSUB_CONTCUBEDIRTY}.0 | sed -e 's/\[\].epic//g'` ]; then
+        overall=1
+    else
+        exitcodeCCD=\`grep -h Exit \${logfileCCD} | sort | uniq | awk '{print \$3}'\`
+        if [ \$exitcodeCCD != 0 ]; then
+    	overall=1
+        fi
     fi
     logfileCCDM="makecube.o*"
     exitcodeCCDM=\`grep -h Exit \${logfileCCDM} | sort | uniq | awk '{print \$3}'\`
@@ -89,10 +117,14 @@ if [ ${DO_CONTINUUM_CUBE_DIRTY} == true ]; then
 fi
 
 if [ ${DO_CONTINUUM_CUBE_CLEAN} == true ]; then
-    logfileCCC="contcube-clean.o${QSUB_CONTCUBECLEAN}.*"
-    exitcodeCCC=\`grep -h Exit \${logfileCCC} | sort | uniq | awk '{print \$3}'\`
-    if [ \$exitcodeCCC != 0 ]; then
-	overall=1
+    logfileCCC="`echo contcube-clean.o${QSUB_CONTCUBECLEAN}.* | sed -e 's/\[\].epic//g'`"
+    if [ ! -e `echo contcube-clean.o${QSUB_CONTCUBECLEAN}.0 | sed -e 's/\[\].epic//g'` ]; then
+        overall=1
+    else
+        exitcodeCCC=\`grep -h Exit \${logfileCCC} | sort | uniq | awk '{print \$3}'\`
+        if [ \$exitcodeCCC != 0 ]; then
+    	overall=1
+        fi
     fi
     logfileCCCM="makecube.o*"
     exitcodeCCCM=\`grep -h Exit \${logfileCCCM} | sort | uniq | awk '{print \$3}'\`
@@ -102,16 +134,26 @@ if [ ${DO_CONTINUUM_CUBE_CLEAN} == true ]; then
 fi
 
 if [ ${DO_SPECTRAL_LINE} == true ]; then
-    logfileSL1="sl-img.o${QSUB_SPECTRAL1}.*"
-    exitcodeSL1=\`grep -h Exit \${logfileSL1} | sort | uniq | awk '{print \$3}'\`
-    if [ \$exitcodeSL1 != 0 ]; then
-	overall=1
+    logfileSL1="`echo sl-img.o${QSUB_SPECTRAL1}.* | sed -e 's/\[\].epic//g'`"
+    if [ ! -e `echo sl-img.o${QSUB_SPECTRAL1}.0 | sed -e 's/\[\].epic//g'` ]; then
+        overall=1
+    else
+        exitcodeSL1=\`grep -h Exit \${logfileSL1} | sort | uniq | awk '{print \$3}'\`
+        if [ \$exitcodeSL1 != 0 ]; then
+    	overall=1
+        fi
     fi
-    logfileSL2="sl-img.o${QSUB_SPECTRAL2}.*"
-    exitcodeSL2=\`grep -h Exit \${logfileSL2} | sort | uniq | awk '{print \$3}'\`
-    if [ \$exitcodeSL2 != 0 ]; then
-	overall=1
+
+    logfileSL2="`echo sl-img.o${QSUB_SPECTRAL2}.* | sed -e 's/\[\].epic//g'`"
+    if [ ! -e `echo sl-img.o${QSUB_SPECTRAL2}.0 | sed -e 's/\[\].epic//g'` ]; then
+        overall=1
+    else
+        exitcodeSL2=\`grep -h Exit \${logfileSL2} | sort | uniq | awk '{print \$3}'\`
+        if [ \$exitcodeSL2 != 0 ]; then
+    	overall=1
+        fi
     fi
+
     logfileSLM="makecube.o*"
     exitcodeSLM=\`grep -h Exit \${logfileSLM} | sort | uniq | awk '{print \$3}'\`
     if [ \$exitcodeSLM != 0 ]; then
@@ -139,14 +181,14 @@ EOF_INNER
 
 EOF
 
-    if [ "${DRYRUN}" == "false" ]; then
-
-        # Submit the jobs
-        QSUB_REPORTING=`${QSUB_CMD} -W depend=afterok:${GLOBAL_DEPEND} ${qsubfile}`
-
-    else
-
-	echo "Reporting script: Dry Run Only"
-
-    fi
+if [ "${DRYRUN}" == "false" ]; then
+    
+    # Submit the job
+    QSUB_REPORTING=`${QSUB_CMD} -W depend=afterany:${GLOBAL_DEPEND} ${qsubfile}`
+    
+else
+    
+    echo "Reporting script: Dry Run Only"
+    
+fi
 

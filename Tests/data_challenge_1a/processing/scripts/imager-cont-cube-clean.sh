@@ -7,7 +7,7 @@ imagebase=i.cube.clean
 cat > cimager-cont-cube-clean.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=6GB:mpiprocs=1
+#PBS -l select=1:ncpus=1:mem=8GB:mpiprocs=1
 #PBS -l walltime=12:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N contcube-clean
