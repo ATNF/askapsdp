@@ -141,4 +141,21 @@ void ProfileTree::extractStats(std::map<std::string, ProfileData> &stats, const 
   }
 }
 
+/// @brief copy constructor
+/// @details We do not allow to copy profile tree which has accumulated some data.
+/// This is done to avoid referencing issues when shared pointers are copied.
+/// However, we need a copy constructor to be able to keep thread trees in the map.
+/// @param[in] other another instance of the tree
+ProfileTree::ProfileTree(const ProfileTree &other) : itsRootNode(other.itsRootNode),
+    itsCurrentNode(&itsRootNode, utility::NullDeleter()) {}
+
+/// @brief assignment operator
+/// @details throws an exception if called
+/// @param[in] other another instance of the tree
+ProfileTree& ProfileTree::operator=(const ProfileTree &other) 
+{
+  ASKAPTHROW(AskapError, "ProfileTree::operator= is not implemented");
+  return *this;
+}
+
 

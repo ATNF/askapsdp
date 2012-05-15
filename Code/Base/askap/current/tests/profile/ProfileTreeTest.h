@@ -152,6 +152,7 @@ class ProfileTreeTest : public CppUnit::TestFixture {
            CPPUNIT_ASSERT(globalStats.find("low_level_test") != globalStats.end());
            CPPUNIT_ASSERT(globalStats.find("another_test") != globalStats.end());
            CPPUNIT_ASSERT(globalStats.find("fft") != globalStats.end());
+           CPPUNIT_ASSERT_EQUAL(0l, globalStats["::root"].count());
            CPPUNIT_ASSERT_DOUBLES_EQUAL(5.501, globalStats["test"].totalTime(),1e-6);
            CPPUNIT_ASSERT_DOUBLES_EQUAL(5.5, globalStats["test"].maxTime(),1e-6);
            CPPUNIT_ASSERT_DOUBLES_EQUAL(1e-3, globalStats["test"].minTime(),1e-6);

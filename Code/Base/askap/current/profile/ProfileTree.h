@@ -67,6 +67,18 @@ public:
    /// @brief default constructor, creates a root node
    ProfileTree();
    
+   /// @brief copy constructor
+   /// @details We do not allow to copy profile tree which has accumulated some data.
+   /// This is done to avoid referencing issues when shared pointers are copied.
+   /// However, we need a copy constructor to be able to keep thread trees in the map.
+   /// @param[in] other another instance of the tree
+   ProfileTree(const ProfileTree &other);
+   
+   /// @brief assignment operator
+   /// @details throws an exception if called
+   /// @param[in] other another instance of the tree
+   ProfileTree& operator=(const ProfileTree &other);
+   
    /// @brief checks that the root node is current
    /// @return true if the root node is current
    bool isRootCurrent() const;
