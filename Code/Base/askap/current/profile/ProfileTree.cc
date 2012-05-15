@@ -98,32 +98,46 @@ void ProfileTree::notifyExit(const double time)
 
 /// @brief extract statistics
 /// @details This method builds a map with statistics for the whole tree. The hierarchy of nodes is
-/// represented by dot-separated names used as the map key.
+/// represented by dot-separated names used as the map key. This is the default behavior, but alternatively
+/// the hierarchy can be ignored and all statistics can be added up to get a global pie-chart.
 /// @param[in] stats map to add statistics to
+/// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
+/// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.
 /// @note The old content of the map is not removed, extracted statistics are just added to the given map.
-void ProfileTree::extractStats(std::map<std::string, ProfileData> &stats) const
+void ProfileTree::extractStats(std::map<std::string, ProfileData> &stats, bool doHierarchy) const
 { 
   boost::shared_ptr<const ProfileNode> root(&itsRootNode, utility::NullDeleter());
-  extractStats(stats, "", boost::const_pointer_cast<ProfileNode>(root));
+  // use "::" prefix to avoid accidental merge of the final execution statistics if there is another method called root
+  extractStats(stats, doHierarchy ? "" : "::", boost::const_pointer_cast<ProfileNode>(root), doHierarchy);
 }
 
 /// @brief helper method to extract statistics for a given node
 /// @details This method adds statistics to the map for a given node and all its children.
 /// The name is prefixed by dot-separated parent name (multiple levels of hierarchy are allowed).
+/// Alternatively the hierarchy can be ignored and all statistics can be added up to get a global pie-chart.
 /// This method calls itself recursively to process child nodes.
 /// @param[in] stats map to update
 /// @param[in] prefix name prefix to be added to all node names
 /// @param[in] node shared pointer to node to work with
+/// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
+/// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.
 void ProfileTree::extractStats(std::map<std::string, ProfileData> &stats, const std::string &prefix, 
-                  const boost::shared_ptr<ProfileNode> &node)
+                  const boost::shared_ptr<ProfileNode> &node, bool doHierarchy)
 {
   ASKAPDEBUGASSERT(node);
   const std::string name = prefix + node->name();
-  ASKAPCHECK(stats.find(name) == stats.end(), "Duplicated key in the statistics map, this shouldn't happen!");
-  stats[name] = node->data();
+  std::map<std::string, ProfileData>::iterator it = stats.find(name);
+  if (it == stats.end()) {
+      // new element in the map
+      stats[name] = node->data();      
+  } else {
+      ASKAPCHECK(!doHierarchy, "Duplicated key in the statistics map, this shouldn't happen in the hierarchy mode!");
+      // merge in the current node
+      it->second.add(node->data());
+  }
   for (ProfileNode::iterator it = node->begin(); it != node->end(); ++it) {
        boost::shared_ptr<ProfileNode> thisNode(&(*it), utility::NullDeleter());
-       extractStats(stats, name + ".", thisNode); 
+       extractStats(stats, doHierarchy ? name + "." : "", thisNode, doHierarchy); 
   }
 }
 

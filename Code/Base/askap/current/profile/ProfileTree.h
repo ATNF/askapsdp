@@ -98,21 +98,27 @@ public:
    
    /// @brief extract statistics
    /// @details This method builds a map with statistics for the whole tree. The hierarchy of nodes is
-   /// represented by dot-separated names used as the map key.
+   /// represented by dot-separated names used as the map key. This is the default behavior, but alternatively
+   /// the hierarchy can be ignored and all statistics can be added up to get a global pie-chart.
    /// @param[in] stats map to add statistics to
+   /// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
+   /// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.
    /// @note The old content of the map is not removed, extracted statistics are just added to the given map.
-   void extractStats(std::map<std::string, ProfileData> &stats) const;
+   void extractStats(std::map<std::string, ProfileData> &stats, bool doHierarchy = true) const;
    
 protected:
    /// @brief helper method to extract statistics for a given node
    /// @details This method adds statistics to the map for a given node and all its children.
    /// The name is prefixed by dot-separated parent name (multiple levels of hierarchy are allowed).
-   /// This method calls itself recursively to process child nodes.
+   /// Alternatively the hierarchy can be ignored and all statistics can be added up to get a global pie-chart.
+   /// This method calls itself recursively to process child nodes. 
    /// @param[in] stats map to update
    /// @param[in] prefix name prefix to be added to all node names
    /// @param[in] node shared pointer to node to work with
+   /// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
+   /// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.
    static void extractStats(std::map<std::string, ProfileData> &stats, const std::string &prefix, 
-                     const boost::shared_ptr<ProfileNode> &node);
+                     const boost::shared_ptr<ProfileNode> &node, bool doHierarchy);
    
 private:
    /// @brief root node of the tree

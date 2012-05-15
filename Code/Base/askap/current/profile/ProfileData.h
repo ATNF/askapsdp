@@ -73,6 +73,11 @@ struct ProfileData {
    /// traced method.
    /// @param[in] time execution time for this call
    void add(const double time);
+
+   /// @brief process another execution
+   /// @details This method merges in an additional object of the same type
+   /// @param[in] other another ProfileData object
+   void add(const ProfileData &other);
    
 private:
    /// @brief number of calls

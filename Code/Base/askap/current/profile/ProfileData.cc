@@ -71,4 +71,26 @@ void ProfileData::add(const double time)
    itsTotalTime += time;
    ++itsCount;
 }
+
+/// @brief process another execution
+/// @details This method merges in an additional object of the same type
+/// @param[in] other another ProfileData object
+void ProfileData::add(const ProfileData &other) {
+   if (other.itsCount > 0) {
+       if (itsCount > 0) {
+           if (itsMaxTime < other.itsMaxTime) {
+               itsMaxTime = other.itsMaxTime;
+           }
+           if (itsMinTime > other.itsMinTime) {
+               itsMinTime = other.itsMinTime;
+           }
+       } else {
+           itsMaxTime = other.itsMaxTime;
+           itsMinTime = other.itsMinTime;
+       }
+       itsTotalTime += other.itsTotalTime;
+       itsCount += other.itsCount;
+   }
+}
+
                 
