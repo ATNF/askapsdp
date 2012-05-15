@@ -1,0 +1,28 @@
+########################## Ice Properties ##############################
+
+# Registry location
+ice_properties.Ice.Default.Locator=IceGrid/Locator:tcp -p 4061
+
+# Object adapter AdminAdapter
+ice_properties.AdminAdapter.Endpoints=tcp
+ice_properties.AdminAdapter.AdapterId=CentralProcessorAdminAdapter
+
+ice_properties.Ice.MessageSizeMax=131072
+ice_properties.Ice.ThreadPool.Server.Size=4
+ice_properties.Ice.ThreadPool.Server.SizeMax=16
+
+################## CP Manager Specific Properties ######################
+
+# Use a mock FCM
+fcm.mock = true
+fcm.mock.fcm_parameter = 123
+
+# Use a mock data service
+dataservice.mock = true
+dataservice.mock.ds_parameter = 456
+
+# Ingest working directory
+ingest.workdir = /exported/hum092/cpmanager-test
+
+# Template qsub file for starting ingest pipeline
+ingest.job_template = /exported/hum092/cpmanager-test/template.qsub

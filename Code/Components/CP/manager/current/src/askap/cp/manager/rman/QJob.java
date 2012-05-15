@@ -57,17 +57,17 @@ public class QJob implements IJob {
 	 * @see askap.cp.manager.rman.IJob#status()
 	 */
 	public JobStatus status() {
-		String cmd = "qstat -f " + itsId + "| grep job_state";
+		String cmd = "qstat -f " + itsId;
 		StringBuffer stdout = new StringBuffer();
 		int status = executeCommand(cmd, stdout);
-		
-		if (status != 0) {
-			logger.warn("Job query failed: " + stdout);
-			return JobStatus.UNKNOWN;
-		} else if (status == 153) {
+	
+        if (status == 153) {
 			// Indicates the job was not found, so either it
 			// never existed or has completed
 			return JobStatus.COMPLETED;
+        } else if (status != 0) {
+			logger.warn("Job query failed: " + status);
+			return JobStatus.UNKNOWN;
 		}
 		
 		// Find the character representing the state
@@ -98,7 +98,7 @@ public class QJob implements IJob {
 		StringBuffer stdout = new StringBuffer();
 		int status = executeCommand(cmd, stdout);
 		if (status != 0) {
-			logger.info("Job abort failed: " + stdout);
+			logger.warn("Job abort failed: " + stdout);
 		}
 	}
 	
@@ -165,7 +165,7 @@ public class QJob implements IJob {
                 }
             }
         } catch (Exception e) {
-        	logger.info("executeCommand failed: " + e.getMessage());
+        	logger.warn("executeCommand failed: " + e.getMessage());
             e.printStackTrace();
             return status;
         }

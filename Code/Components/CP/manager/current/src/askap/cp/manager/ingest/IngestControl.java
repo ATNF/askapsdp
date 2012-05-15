@@ -37,35 +37,37 @@ import askap.cp.manager.rman.IJob;
 import askap.cp.manager.rman.IJob.JobStatus;
 import askap.cp.manager.rman.IResourceManager;
 
+/**
+ * Encapsulates control of the central processor ingest pipeline.
+ */
 public class IngestControl {
 
 	/**
 	 * Logger
-	 * */
+	 */
 	private static Logger logger = Logger.getLogger(IngestControl.class
 			.getName());
 
 	/**
-	 * The resource managaer; provides an interface to PBS, Torque, etc.
+	 * @brief The resource managaer; provides an interface to PBS, Torque, etc.
 	 */
 	private IResourceManager itsResourceManager;
 
 	/**
-	 * Parameter set (i.e. configuration from file)
+	 * @brief Parameter set (i.e. configuration from file)
 	 */
 	private ParameterSet itsParset;
 
 	/**
 	 * An identifier for the ingest pipeline job in the batch scheduler. This
-	 * Will be an empty string when no ingest pipeline is running.
+	 * will be null when no ingest pipeline is running.
 	 */
 	IJob itsJob = null;
 
 	/**
 	 * Constructor
 	 * 
-	 * @param rman
-	 *            an instance of a resource manager.
+	 * @param rman  an instance of a resource manager.
 	 */
 	public IngestControl(IResourceManager rman, ParameterSet parset) {
 		// Pre-conditions
