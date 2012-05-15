@@ -60,8 +60,10 @@ public class QJob implements IJob {
 		String cmd = "qstat -f " + itsId;
 		StringBuffer stdout = new StringBuffer();
 		int status = executeCommand(cmd, stdout);
-	
-        if (status == 153) {
+
+        // minicp (Torque) returns 153 and epic (PBS Pro) returns 35 in
+        // the case the job was not found to be in the queue.
+        if (status == 153 || status == 35) {
 			// Indicates the job was not found, so either it
 			// never existed or has completed
 			return JobStatus.COMPLETED;
