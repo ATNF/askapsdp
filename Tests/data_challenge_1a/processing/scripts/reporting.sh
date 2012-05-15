@@ -21,6 +21,7 @@ overall=0
 # Initialise the individual exit codes to '-', indicating they are not
 # done.
 exitcodeSPL="-"
+exitcodeCMODEL="-"
 exitcodeCAL="-"
 exitcodeCD="-"
 exitcodeCC="-"
@@ -28,7 +29,8 @@ exitcodeCCD="-"
 exitcodeCCC="-"
 exitcodeCCDM="-"
 exitcodeCCCM="-"
-exitcodeSL="-"
+exitcodeSL1="-"
+exitcodeSL2="-"
 exitcodeSLM="-"
 exitcodeAN="-"
 
