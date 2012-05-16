@@ -36,6 +36,7 @@
 #include <fitting/DesignMatrix.h>
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/Params.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -135,6 +136,7 @@ namespace askap
   /// @param[in] src an object to get the normal equations from
   void ImagingNormalEquations::merge(const INormalEquations& src)
   {
+    ASKAPTRACE("ImagingNormalEquations::merge");
     try {
       const ImagingNormalEquations &other = 
                          dynamic_cast<const ImagingNormalEquations&>(src); 
@@ -301,6 +303,7 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
       const casa::IPosition& shape,
       const casa::IPosition& reference)
     {
+      ASKAPTRACE("ImagingNormalEquations::addSlice");
 
       if(datavector.size()!=itsDataVector[name].size())
       {
@@ -358,6 +361,7 @@ const std::map<std::string, casa::Vector<double> >& ImagingNormalEquations::data
     void ImagingNormalEquations::addDiagonal(const string& name, const casa::Vector<double>& normalmatrixdiagonal,
       const casa::Vector<double>& datavector, const casa::IPosition& shape)
     {
+      ASKAPTRACE("ImagingNormalEquations::addDiagonal");
 
       if(datavector.size()!=itsDataVector[name].size())
       {

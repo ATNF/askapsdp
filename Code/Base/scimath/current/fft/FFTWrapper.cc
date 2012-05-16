@@ -30,6 +30,8 @@
 
 #include <askap/AskapTypes.h>
 #include <askap/AskapError.h>
+#include <profile/AskapProfiler.h>
+
 #include <complex>
 #ifdef ASKAP_USE_FFTW
 #include <fftw3.h>
@@ -61,6 +63,7 @@ namespace askap
       
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward)
           {
+            ASKAPTRACE("fft<casa::DComplex>");
 
 #ifdef _OPENMP
             boost::unique_lock<boost::mutex> lock(fftWrapperMutex);
@@ -104,6 +107,7 @@ namespace askap
 
         void fft(casa::Vector<casa::Complex>& vec, const bool forward)
           {
+            ASKAPTRACE("fft<casa::Complex>");
 #ifdef _OPENMP
             boost::unique_lock<boost::mutex> lock(fftWrapperMutex);
 #endif
@@ -146,6 +150,7 @@ namespace askap
 
         void fft2d(casa::Array<casa::Complex>& arr, const bool forward)
           {
+            ASKAPTRACE("fft2d<casa::Complex>");
 #ifndef ASKAP_USE_FFTW
 #ifdef _OPENMP
             boost::unique_lock<boost::mutex> lock(fftWrapperMutex);
@@ -203,6 +208,7 @@ namespace askap
           }
         void fft2d(casa::Array<casa::DComplex>& arr, const bool forward)
           {
+            ASKAPTRACE("fft2d<casa::DComplex>");
 #ifndef ASKAP_USE_FFTW
 #ifdef _OPENMP
             boost::unique_lock<boost::mutex> lock(fftWrapperMutex);

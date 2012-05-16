@@ -30,6 +30,7 @@
 #include <fitting/GSLSVDReplacement.h>
 
 #include <askap/AskapError.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -90,6 +91,7 @@ namespace askap
     /// parameters.        
     bool LinearSolver::solveNormalEquations(Params &params, Quality& quality)
     {
+      ASKAPTRACE("LinearSolver::solveNormalEquations");
       
 // Solving A^T Q^-1 V = (A^T Q^-1 A) P
       int nParameters=0;
