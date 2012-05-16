@@ -23,6 +23,7 @@
 
 #include <measurementequation/ImageSolver.h>
 #include <utils/PaddingUtils.h>
+#include <profile/AskapProfiler.h>
 
 #include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
@@ -104,6 +105,8 @@ namespace askap
                       casa::Array<float>& psf, float psfRefPeak, casa::Array<float>& dirty, 
 				      const boost::shared_ptr<casa::Array<float> > &mask) const
     {
+        ASKAPTRACE("ImageSolver::doNormalization");
+
         const double maxDiag(casa::max(diag));
         const double sumDiag(casa::sum(diag));
 
@@ -186,6 +189,8 @@ namespace askap
     // Apply all the preconditioners in the order in which they were created.
     bool ImageSolver::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
     {
+        ASKAPTRACE("ImageSolver::doPreconditioning");
+
         casa::Array<float> oldPSF(psf.copy());
 	    bool status=false;
 	    for(std::map<int, IImagePreconditioner::ShPtr>::const_iterator pciter=itsPreconditioners.begin(); pciter!=itsPreconditioners.end(); pciter++)
@@ -211,6 +216,7 @@ namespace askap
     /// normal equations i.e. the residual image
     bool ImageSolver::solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality)
     {
+      ASKAPTRACE("ImageSolver::solveNormalEquations");
 
       ASKAPLOG_INFO_STR(logger, "Calculating principal solution");
 
@@ -316,6 +322,8 @@ namespace askap
     void ImageSolver::saveNEPartIntoParameter(askap::scimath::Params& ip, const std::string &prefix,
                       const std::map<std::string, casa::Vector<double> > &nePart) const 
     {
+      ASKAPTRACE("ImageSolver::saveNEPartIntoParameter");
+
       // get list of all image parameters and iterate over it
       const vector<string> names(ip.completions("image"));
       for (vector<string>::const_iterator it=names.begin(); it!=names.end(); ++it) {
@@ -352,6 +360,8 @@ namespace askap
               const casa::IPosition &shape, const std::string &prefix, const casa::Array<double> &arr, 
               const casa::IPosition &pos)
     {
+      ASKAPDEBUGTRACE("ImageSolver::saveArrayIntoParameter");
+
       ASKAPDEBUGASSERT(imgName.find("image")==0);
       ASKAPCHECK(imgName.size()>5, 
                  "Image parameter name should have something appended to word image")           
@@ -429,6 +439,7 @@ namespace askap
     /// @return sensitivity loss factor (should be grater than or equal to 1)
     double ImageSolver::sensitivityLoss(const casa::Array<float>& psfOld, const casa::Array<float>& psfNew)
     {
+       ASKAPTRACE("ImageSolver::sensitivityLoss");
        ASKAPLOG_INFO_STR(logger, "Estimating sensitivity loss due to preconditioning");
        // current code can't handle cases where the noise is not uniform
        // we need to think about a better approach

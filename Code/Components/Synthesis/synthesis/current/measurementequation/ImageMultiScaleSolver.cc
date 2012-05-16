@@ -35,6 +35,7 @@ ASKAP_LOGGER(logger, ".measurementequation.imagemultiscalesolver");
 #include <askap/AskapUtil.h>
 
 #include <utils/MultiDimArrayPlaneIter.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -108,7 +109,7 @@ namespace askap
     /// @param[in] quality Solution quality information
     bool ImageMultiScaleSolver::solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality)
     {
-      
+      ASKAPTRACE("ImageMultiScaleSolver::solveNormalEquations");
       // Solving A^T Q^-1 V = (A^T Q^-1 A) P
       uint nParameters=0;
       

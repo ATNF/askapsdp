@@ -37,6 +37,7 @@ ASKAP_LOGGER(logger, ".measurementequation.imagefftequation");
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/DesignMatrix.h>
 #include <fitting/Axes.h>
+#include <profile/AskapProfiler.h>
 
 #include <gridding/SphFuncVisGridder.h>
 
@@ -175,6 +176,7 @@ namespace askap
 
     void ImageFFTEquation::predict() const
     {
+      ASKAPTRACE("ImageFFTEquation::predict");
       const vector<string> completions(parameters().completions("image"));
 
       // To minimize the number of data passes, we keep copies of the gridders in memory, and
@@ -253,7 +255,8 @@ namespace askap
     // but cuts down on IO
     void ImageFFTEquation::calcImagingEquations(askap::scimath::ImagingNormalEquations& ne) const
     {
-
+      ASKAPTRACE("ImageFFTEquation::calcImagingEquations");
+      
       // We will need to loop over all completions i.e. all sources
       const vector<string> completions(parameters().completions("image"));
 

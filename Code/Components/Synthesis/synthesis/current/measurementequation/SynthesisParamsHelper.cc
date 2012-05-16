@@ -36,6 +36,7 @@
 ASKAP_LOGGER(logger, ".measurementequation.synthesisparamshelper");
 
 #include <askap/AskapError.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/aips.h>
 #include <casa/BasicSL/Constants.h>
@@ -79,6 +80,7 @@ namespace askap
     void SynthesisParamsHelper::setUpImages(const askap::scimath::Params::ShPtr& params,
 				const LOFAR::ParameterSet &parset)
     {
+      ASKAPDEBUGTRACE("SynthesisParamsHelper::setUpImages");
       try {
 	     vector<string> images=parset.getStringVector("Names");
          std::vector<int> shape=parset.getInt32Vector("shape",std::vector<int>());
@@ -192,6 +194,7 @@ namespace askap
 	/// @param[in] parset a parset object to read the parameters from		
 	void SynthesisParamsHelper::loadImages(const askap::scimath::Params::ShPtr& params, const LOFAR::ParameterSet &parset)
     {
+      ASKAPDEBUGTRACE("SynthesisParamsHelper::loadImages");
       ASKAPDEBUGASSERT(params);
       try {
          const vector<string> images=parset.getStringVector("Names");
@@ -661,6 +664,7 @@ namespace askap
     /// @param[in] arr input array
     void SynthesisParamsHelper::saveAsCasaImage(const std::string &imagename, const casa::Array<casa::Float> &arr)
     {
+      ASKAPDEBUGTRACE("SynthesisParamsHelper::saveAsCasaImage");
       size_t nDim = arr.shape().nonDegenerate().nelements();
       casa::Vector<casa::String> names(2);
       ASKAPASSERT(nDim>=2);
@@ -692,6 +696,7 @@ namespace askap
     void SynthesisParamsHelper::saveImageParameter(const askap::scimath::Params& ip, const string& name,
 						const string& imagename)
     {     
+      ASKAPTRACE("SynthesisParamsHelper::saveImageParameter");
       const casa::Array<double> imagePixels(ip.value(name));
       ASKAPDEBUGASSERT(imagePixels.ndim()!=0);
       const casa::CoordinateSystem imageCoords(coordinateSystem(ip,name));
@@ -757,6 +762,7 @@ namespace askap
     void SynthesisParamsHelper::loadImageParameter(askap::scimath::Params& ip, const string& name,
 						 const string& imagename)
     {
+      ASKAPTRACE("SynthesisParamsHelper::loadImageParameter");
       casa::Array<float> pixels = imageHandler().read(imagename);
       casa::Array<double> imagePixels(pixels.shape());
       casa::convertArray<double, float>(imagePixels, pixels);
@@ -943,6 +949,7 @@ namespace askap
     void SynthesisParamsHelper::update(askap::scimath::Params& ip, const string& name,
 				       const casa::ImageInterface<float>& im)
     {
+      ASKAPDEBUGTRACE("SynthesisParamsHelper::update");
       /// This next copy should be a reference unless it is too big
       casa::Array<float> floatImagePixels(im.shape());
       casa::ArrayLattice<float> latImagePixels(floatImagePixels);
@@ -1246,6 +1253,8 @@ namespace askap
     casa::Vector<casa::Quantum<double> > SynthesisParamsHelper::fitBeam(const askap::scimath::Params &ip, 
                                      const double cutoff, const std::string &name)
     {
+       ASKAPTRACE("SynthesisParamsHelper::fitBeam");
+
        std::string psfName = name;
        if (name == "") {
            // we have to figure out the name

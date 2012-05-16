@@ -37,6 +37,7 @@
 
 // own includes
 #include <measurementequation/CalibrationMEBase.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/Arrays/MatrixMath.h>
 #include <askap/AskapError.h>
@@ -88,6 +89,7 @@ CalibrationMEBase::CalibrationMEBase(const askap::scimath::Params& ip,
 /// @param[in] chunk a read-write accessor to work with
 void CalibrationMEBase::predict(IDataAccessor &chunk) const
 { 
+  ASKAPTRACE("CalibrationMEBase::predict");
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
   ASKAPDEBUGASSERT(rwVis.nelements());
   ASKAPCHECK(itsPerfectVisME, "Perfect ME should be defined before calling CalibrationMEBase::predict");
@@ -119,6 +121,7 @@ void CalibrationMEBase::predict(IDataAccessor &chunk) const
 /// changed.
 void CalibrationMEBase::correct(IDataAccessor &chunk) const
 {
+  ASKAPTRACE("CalibrationMEBase::correct");
   casa::Cube<casa::Complex> &rwVis = chunk.rwVisibility();
   ASKAPDEBUGASSERT(rwVis.nelements());
 
@@ -169,6 +172,7 @@ void CalibrationMEBase::correct(IDataAccessor &chunk) const
 void CalibrationMEBase::calcGenericEquations(const IConstDataAccessor &chunk,
                               askap::scimath::GenericNormalEquations& ne) const
 {  
+  ASKAPTRACE("CalibrationMEBase::calcGenericEquations");
   MemBufferDataAccessor  buffChunk(chunk);
   ASKAPDEBUGASSERT(buffChunk.visibility().nelements());
   ASKAPCHECK(itsPerfectVisME, "Perfect ME should be defined before calling CalibrationMEBase::predict");

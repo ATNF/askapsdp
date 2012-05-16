@@ -30,6 +30,7 @@ ASKAP_LOGGER(logger, ".measurementequation.normwienerpreconditioner");
 #include <askap/AskapError.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <utils/PaddingUtils.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -70,6 +71,8 @@ namespace askap
     bool NormWienerPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
     {
       {
+        ASKAPTRACE("NormWienerPreconditioner::doPreconditioning");
+
 	ASKAPLOG_INFO_STR(logger, "Applying Normalised Wiener filter with robustness parameter " << itsRobust);
 
        float maxPSFBefore=casa::max(psf);

@@ -30,6 +30,7 @@ ASKAP_LOGGER(logger, ".measurementequation.wienerpreconditioner");
 #include <askap/AskapError.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <utils/PaddingUtils.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -91,6 +92,7 @@ namespace askap
     
     bool WienerPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
     {
+      ASKAPTRACE("WienerPreconditioner::doPreconditioning");
       if (!itsUseRobustness && (itsParameter < 1e-6)) {
           return false;
       }

@@ -30,6 +30,7 @@ ASKAP_LOGGER(logger, ".measurementequation.wienerpreconditioner");
 #include <askap/AskapError.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <utils/PaddingUtils.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -69,6 +70,7 @@ namespace askap
     
     bool RobustPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
     {
+      ASKAPTRACE("RobustPreconditioner::doPreconditioning");
       ASKAPLOG_INFO_STR(logger, "Applying Robust filter with robustness parameter " << itsRobust);
       
       const float maxPSFBefore=casa::max(psf);

@@ -37,6 +37,7 @@
 ASKAP_LOGGER(logger, ".measurementequation.imagerestoresolver");
 
 #include <askap/AskapError.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -87,6 +88,7 @@ namespace askap
     /// @param[in] quality Solution quality information
     bool ImageRestoreSolver::solveNormalEquations(askap::scimath::Params& ip, askap::scimath::Quality& quality)
     {
+        ASKAPTRACE("ImageRestoreSolver::solveNormalEquations");
 	// Solving A^T Q^-1 V = (A^T Q^-1 A) P
 	
 	// Find all the free parameters beginning with image
@@ -241,6 +243,7 @@ namespace askap
     void ImageRestoreSolver::addResiduals(const std::string &name, const casa::IPosition &shape,
                          casa::Array<double> out) const
     {
+           ASKAPTRACE("ImageRestoreSolver::addResiduals");
 	   // Axes are dof, dof for each parameter
 	   //casa::IPosition vecShape(1, out.shape().product());
 	   for (scimath::MultiDimArrayPlaneIter planeIter(shape); planeIter.hasMore(); planeIter.next()) {

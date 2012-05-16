@@ -28,6 +28,7 @@
 ASKAP_LOGGER(logger, ".measurementequation.imagemsmfsolver");
 
 #include <askap/AskapError.h>
+#include <profile/AskapProfiler.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -107,6 +108,7 @@ namespace askap
     /// @param[in] quality Solution quality information
     bool ImageMSMFSolver::solveNormalEquations(askap::scimath::Params& ip,askap::scimath::Quality& quality)
     {
+      ASKAPTRACE("ImageMSMFSolver::solveNormalEquations");
 
       // Solving A^T Q^-1 V = (A^T Q^-1 A) P
      

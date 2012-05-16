@@ -35,6 +35,7 @@
 ASKAP_LOGGER(logger, ".measurementequation.gaussiantaperpreconditioner");
 
 #include <askap/AskapError.h>
+#include <profile/AskapProfiler.h>
 
 #include <lattices/Lattices/ArrayLattice.h>
 #include <lattices/Lattices/LatticeFFT.h>
@@ -91,6 +92,7 @@ IImagePreconditioner::ShPtr GaussianTaperPreconditioner::clone()
 /// @return true if psf and dirty have been altered
 bool GaussianTaperPreconditioner::doPreconditioning(casa::Array<float>& psf, casa::Array<float>& dirty) const
 {
+  ASKAPTRACE("GaussianTaperPreconditioner::doPreconditioning");
 
   const float maxPSFBefore=casa::max(psf);
   ASKAPLOG_INFO_STR(logger, "Peak of PSF before Gaussian taper = " << maxPSFBefore);
