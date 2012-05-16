@@ -39,6 +39,7 @@
 #include <gridding/VisGridderFactory.h>
 #include <gridding/TableVisGridder.h>
 #include <gridding/IVisGridder.h>
+#include <profile/AskapProfiler.h>
 
 
 #include <sstream>
@@ -116,6 +117,8 @@ namespace askap
     // Send the model to all workers
     void SynParallel::broadcastModel()
     {
+      ASKAPTRACE("SynParallel::broadcastModel");
+
       if (itsComms.isParallel() && itsComms.isMaster())
       {
         ASKAPCHECK(itsModel, "Model not defined prior to broadcast")
@@ -202,6 +205,8 @@ namespace askap
     // Receive the model from the master
     void SynParallel::receiveModel()
     {
+      ASKAPTRACE("SynParallel::receiveModel");
+
       if (itsComms.isParallel() && itsComms.isWorker())
       {
         ASKAPCHECK(itsModel, "Model not defined prior to receiving")
@@ -248,6 +253,8 @@ namespace askap
     /// @param[in] model the model to send
     void SynParallel::broadcastModelImpl(const scimath::Params &model)
     {
+        ASKAPDEBUGTRACE("SynParallel::broadcastModelImpl");
+
         ASKAPDEBUGASSERT(itsComms.isParallel() && itsComms.isMaster());
         LOFAR::BlobString bs;
         bs.resize(0);
@@ -266,6 +273,8 @@ namespace askap
     /// @param[in] model the model to fill
     void SynParallel::receiveModelImpl(scimath::Params &model)
     {
+        ASKAPDEBUGTRACE("SynParallel::receiveModelImpl");
+
         ASKAPDEBUGASSERT(itsComms.isParallel() && itsComms.isWorker());
         LOFAR::BlobString bs;
         bs.resize(0);
@@ -338,6 +347,8 @@ namespace askap
     /// @param[in] pModel shared pointer to the params object (must exist)
     void SynParallel::readModels(const scimath::Params::ShPtr &pModel) const
     {
+      ASKAPTRACE("SynParallel::readModels");
+
       ASKAPCHECK(pModel, "model is not initialised prior to call to SynParallel::readModels");
       
       LOFAR::ParameterSet parset(itsParset);

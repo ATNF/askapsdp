@@ -27,6 +27,7 @@ ASKAP_LOGGER(logger, ".gridding.sphfuncvisgridder");
 
 #include <gridding/SphFuncVisGridder.h>
 #include <casa/Arrays/ArrayIter.h>
+#include <profile/AskapProfiler.h>
 
 
 namespace askap
@@ -79,6 +80,7 @@ namespace askap
     /// could be optimized by using symmetries.
     void SphFuncVisGridder::initConvolutionFunction(const accessors::IConstDataAccessor&)
     {
+      ASKAPDEBUGTRACE("SphFuncVisGridder::initConvolutionFunction");
       if(itsConvFunc.size() != 0) {
          // a rather poor way of checking that convolution function has already been initialised 
          return;
@@ -122,6 +124,7 @@ namespace askap
 
     void SphFuncVisGridder::correctConvolution(casa::Array<double>& grid)
     { 
+      ASKAPTRACE("SphFuncVisGridder::correctConvolution");
       ASKAPDEBUGASSERT(itsShape.nelements()>=2);      
       const casa::Int xHalfSize = itsShape(0)/2;
       const casa::Int yHalfSize = itsShape(1)/2;

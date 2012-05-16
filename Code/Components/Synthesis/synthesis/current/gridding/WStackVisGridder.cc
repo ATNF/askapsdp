@@ -36,6 +36,7 @@ ASKAP_LOGGER(logger, ".gridding.wstackgridder");
 #include <casa/BasicSL/Constants.h>
 #include <fft/FFTWrapper.h>
 #include <utils/PaddingUtils.h>
+#include <profile/AskapProfiler.h>
 
 using namespace askap;
 
@@ -69,6 +70,7 @@ namespace askap
     /// could be optimized by using symmetries.
     void WStackVisGridder::initIndices(const accessors::IConstDataAccessor& acc)
     {
+      ASKAPTRACE("WStackVisGridder::initIndices");
       /// We have to calculate the lookup function converting from
       /// row and channel to plane of the w-dependent convolution
       /// function
@@ -96,6 +98,7 @@ namespace askap
     void WStackVisGridder::initialiseGrid(const scimath::Axes& axes,
         const casa::IPosition& shape, const bool dopsf)
     {
+      ASKAPTRACE("WStackVisGridder::initialiseGrid");
       ASKAPDEBUGASSERT(shape.nelements()>=2);
       itsShape=scimath::PaddingUtils::paddedShape(shape,paddingFactor());
 
@@ -129,6 +132,7 @@ namespace askap
 
     void WStackVisGridder::multiply(casa::Array<casa::DComplex>& scratch, int i)
     {
+      ASKAPDEBUGTRACE("WStackVisGridder::multiply");
       /// These are the actual cell sizes used
       const float cellx=1.0/(float(itsShape(0))*itsUVCellSize(0));
       const float celly=1.0/(float(itsShape(1))*itsUVCellSize(1));
@@ -168,6 +172,7 @@ namespace askap
     /// This is the default implementation
     void WStackVisGridder::finaliseGrid(casa::Array<double>& out)
     {
+      ASKAPTRACE("WStackVisGridder::finaliseGrid");
       if (!isPSFGridder()) {
           ASKAPLOG_INFO_STR(logger, "Stacking " << nWPlanes()
                           << " planes of W stack to get final image");
@@ -208,6 +213,7 @@ namespace askap
     void WStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
         const casa::Array<double>& in)
     {
+      ASKAPTRACE("WStackVisGridder::initialiseDegrid");
       itsShape = scimath::PaddingUtils::paddedShape(in.shape(),paddingFactor());
       configureForPSF(false);
 

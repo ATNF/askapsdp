@@ -161,6 +161,7 @@ namespace askap
 
     void ImagerParallel::calcOne(const string& ms, bool discard)
     {
+      ASKAPDEBUGTRACE("ImagerParallel::calcOne");
       casa::Timer timer;
       timer.mark();
       ASKAPLOG_INFO_STR(logger, "Calculating normal equations for " << ms );
@@ -390,6 +391,7 @@ namespace askap
     /// @param[in] wtImage weight image parameter name
     void ImagerParallel::makeSensitivityImage(const std::string &wtImage) const
     {
+      ASKAPTRACE("ImagerParallel::makeSensitivityImage");
       ASKAPLOG_INFO_STR(logger, "Making sensitivity image from weights image "<<wtImage);
       scimath::Params tempPar;
       ASKAPDEBUGASSERT(itsModel);

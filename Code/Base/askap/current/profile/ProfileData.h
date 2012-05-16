@@ -58,6 +58,9 @@ struct ProfileData {
    /// @return number of calls
    inline long count() const { return itsCount; }
 
+   /// @param[in] cnt counter to set
+   inline void setCount(const long cnt) { itsCount = cnt;}
+
    /// @return total execution time
    inline double totalTime() const { return itsTotalTime; }
 

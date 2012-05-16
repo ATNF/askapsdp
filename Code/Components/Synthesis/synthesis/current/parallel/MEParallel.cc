@@ -54,6 +54,7 @@
 #include <fitting/INormalEquations.h>
 #include <fitting/ImagingNormalEquations.h>
 #include <fitting/GenericNormalEquations.h>
+#include <profile/AskapProfiler.h>
 #include <casa/OS/Timer.h>
 
 ASKAP_LOGGER(logger, ".parallel");
@@ -79,6 +80,8 @@ MEParallel::~MEParallel()
 // Send the normal equations from this worker to the master as a blob
 void MEParallel::sendNE()
 {
+    ASKAPTRACE("MEParallel::sendNE");
+
     if (itsComms.isParallel() && itsComms.isWorker()) {
         casa::Timer timer;
         timer.mark();
@@ -92,6 +95,8 @@ void MEParallel::sendNE()
 // Receive the normal equations as a blob
 void MEParallel::receiveNE()
 {
+    ASKAPTRACE("MEParallel::receiveNE");
+
     ASKAPCHECK(itsSolver, "Solver not yet defined");
 
     if (itsComms.isParallel() && itsComms.isMaster()) {
@@ -190,6 +195,8 @@ void MEParallel::reduceNE(askap::scimath::INormalEquations::ShPtr ne)
 
 void MEParallel::sendNormalEquations(const askap::scimath::INormalEquations::ShPtr ne, int dest)
 {
+    ASKAPDEBUGTRACE("MEParallel::sendNormalEquations");
+
     casa::Timer timer;
     timer.mark();
     ASKAPLOG_DEBUG_STR(logger, "Sending normal equations to rank " << dest);
@@ -206,6 +213,8 @@ void MEParallel::sendNormalEquations(const askap::scimath::INormalEquations::ShP
 
 askap::scimath::INormalEquations::ShPtr MEParallel::receiveNormalEquations(int source)
 {
+    ASKAPDEBUGTRACE("MEParallel::receiveNormalEquations");
+
     askap::scimath::INormalEquations::ShPtr ne;
 
     // This code needs to create an empty/pristine normal equations

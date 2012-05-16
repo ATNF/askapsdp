@@ -168,6 +168,7 @@ void AWProjectVisGridder::initialiseSumOfWeights()
 void AWProjectVisGridder::initialiseGrid(const scimath::Axes& axes,  const casa::IPosition& shape,
         const bool dopsf)
 {
+    ASKAPTRACE("AWProjectVisGridder::initialiseGrid");
     WProjectVisGridder::initialiseGrid(axes, shape, dopsf);
 
     /// Limit the size of the convolution function since
@@ -198,6 +199,7 @@ void AWProjectVisGridder::initialiseGrid(const scimath::Axes& axes,  const casa:
 void AWProjectVisGridder::initialiseDegrid(const scimath::Axes& axes,
         const casa::Array<double>& image)
 {
+    ASKAPTRACE("AWProjectVisGridder::initialiseDegrid");
     WProjectVisGridder::initialiseDegrid(axes, image);
     /// Limit the size of the convolution function since
     /// we don't need it finely sampled in image space. This
@@ -485,6 +487,7 @@ void AWProjectVisGridder::initConvolutionFunction(const accessors::IConstDataAcc
 /// 2. Sum all planes weighted by the weight for that convolution function.
 void AWProjectVisGridder::finaliseWeights(casa::Array<double>& out)
 {
+    ASKAPTRACE("AWProjectVisGridder::finaliseWeights");
     ASKAPLOG_DEBUG_STR(logger, "Calculating sum of weights image");
     ASKAPDEBUGASSERT(itsShape.nelements() >= 3);
 

@@ -33,6 +33,7 @@
 #define SUPPORT_SEARCHER_TCC
 
 #include <askap/AskapError.h>
+#include <profile/AskapProfiler.h>
 
 namespace askap {
 
@@ -47,6 +48,8 @@ namespace synthesis {
 template<typename T>
 void SupportSearcher::findPeak(const casa::Matrix<T> &in)
 { 
+  ASKAPDEBUGTRACE("SupportSearcher::findPeak");
+
   itsPeakPos.resize(in.shape().nelements(),casa::False);
   itsPeakPos = 0;
   itsPeakVal = -1;
@@ -115,6 +118,8 @@ void SupportSearcher::search(const casa::Matrix<T> &in, const double value)
 template<typename T>
 void SupportSearcher::doSupportSearch(const casa::Matrix<T> &in)
 {
+  ASKAPDEBUGTRACE("SupportSearcher::doSupportSearch");
+
   ASKAPDEBUGASSERT(in.shape().nelements() == 2);
   ASKAPDEBUGASSERT(itsPeakPos.nelements() == 2);
   itsBLC.resize(2,casa::False);

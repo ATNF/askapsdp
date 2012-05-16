@@ -40,6 +40,8 @@
 ASKAP_LOGGER(logger, ".gridding.diskillumination");
 //
 
+#include <profile/AskapProfiler.h>
+
 using namespace askap;
 using namespace askap::synthesis;
 
@@ -69,6 +71,7 @@ DiskIllumination::DiskIllumination(double diam, double blockage) :
 void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l, 
                           double m, double) const
 {
+    ASKAPTRACE("DiskIllumination::getPattern");
     const casa::uInt oversample = pattern.overSample();
     const double cellU = pattern.uCellSize()/oversample;
     const double cellV = pattern.vCellSize()/oversample;

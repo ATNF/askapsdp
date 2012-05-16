@@ -182,6 +182,8 @@ boost::shared_ptr<IVisGridder> SnapShotImagingGridderAdapter::clone()
 void SnapShotImagingGridderAdapter::initialiseGrid(const scimath::Axes& axes,
                 const casa::IPosition& shape, const bool dopsf)
 {
+  ASKAPTRACE("SnapShotImagingGridderAdapter::initialiseGrid");
+
   itsDoPSF = dopsf; // other fields are unused for the PSF gridder
   if (dopsf) {
       // do the standard initialisation for the PSF gridder
@@ -209,6 +211,8 @@ void SnapShotImagingGridderAdapter::initialiseGrid(const scimath::Axes& axes,
 /// @param[in] acc const data accessor to work with
 void SnapShotImagingGridderAdapter::grid(IConstDataAccessor& acc)
 {
+  ASKAPTRACE("SnapShotImagingGridderAdapter::grid");
+
   ASKAPDEBUGASSERT(itsGridder);
   if (isPSFGridder()) {
       itsAccessorAdapter.associate(acc);
@@ -254,6 +258,8 @@ void SnapShotImagingGridderAdapter::grid(IConstDataAccessor& acc)
 /// @param[in] out output double precision image or PSF
 void SnapShotImagingGridderAdapter::finaliseGrid(casa::Array<double>& out)
 {
+  ASKAPTRACE("SnapShotImagingGridderAdapter::finaliseGrid");
+
   ASKAPDEBUGASSERT(itsGridder);
   if (isPSFGridder()) {
       itsGridder->finaliseGrid(out);
@@ -271,6 +277,8 @@ void SnapShotImagingGridderAdapter::finaliseGrid(casa::Array<double>& out)
 /// @param[in] out output double precision sum of weights images
 void SnapShotImagingGridderAdapter::finaliseWeights(casa::Array<double>& out)
 {
+  ASKAPTRACE("SnapShotImagingGridderAdapter::finaliseWeights");
+
   ASKAPDEBUGASSERT(itsGridder);
   if (isPSFGridder()) {
       itsGridder->finaliseWeights(out);
@@ -288,6 +296,8 @@ void SnapShotImagingGridderAdapter::finaliseWeights(casa::Array<double>& out)
 void SnapShotImagingGridderAdapter::initialiseDegrid(const scimath::Axes& axes,
 					const casa::Array<double>& image)
 {
+  ASKAPTRACE("SnapShotImagingGridderAdapter::initialiseDegrid");
+
   itsModelIsEmpty = (casa::max(casa::abs(image)) <= 0.);
   if (itsModelIsEmpty) {
       ASKAPLOG_INFO_STR(logger, "No need to degrid: model is empty");
@@ -325,6 +335,8 @@ void SnapShotImagingGridderAdapter::initVisWeights(const IVisWeights::ShPtr &vis
 /// @param[in] acc non-const data accessor to work with  
 void SnapShotImagingGridderAdapter::degrid(IDataAccessor& acc)
 {
+  ASKAPTRACE("SnapShotImagingGridderAdapter::degrid");
+
   if (itsModelIsEmpty) {
       return;
   }
@@ -365,6 +377,8 @@ void SnapShotImagingGridderAdapter::degrid(IDataAccessor& acc)
 /// @brief finalise degridding
 void SnapShotImagingGridderAdapter::finaliseDegrid()
 {
+  ASKAPTRACE("SnapShotImagingGridderAdapter::finaliseDegrid");
+
   if (itsModelIsEmpty) {
       return;
   }
@@ -383,6 +397,7 @@ void SnapShotImagingGridderAdapter::finaliseDegrid()
 /// method encapsulates all these operations.
 void SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane()
 {
+  ASKAPDEBUGTRACE("SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane");
   ASKAPDEBUGASSERT(itsGridder);
   ASKAPCHECK(!itsFirstAccessor, 
        "finaliseGriddingOfCurrentPlane is called while itsFirstAccessor flag is true. This is not supposed to happen");
@@ -564,6 +579,8 @@ void SnapShotImagingGridderAdapter::setClippingFactor(const float factor)
 /// @param[in] img array to modify
 void SnapShotImagingGridderAdapter::imageClip(casa::Array<double> &img) const
 {
+  ASKAPDEBUGTRACE("SnapShotImagingGridderAdapter::imageClip");
+
   ASKAPDEBUGASSERT(itsClippingFactor < 1.);
   const float unpaddingFactor = 1. - itsClippingFactor;
   ASKAPDEBUGASSERT(unpaddingFactor <= 1.);

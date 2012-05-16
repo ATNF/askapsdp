@@ -35,6 +35,7 @@
 #include <gridding/DiskIllumination.h>
 #include <gridding/ATCAIllumination.h>
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <profile/AskapProfiler.h>
 
 
 #include <askap_synthesis.h>
@@ -161,6 +162,7 @@ void AProjectGridderBase::initUVPattern(casa::uInt uSize, casa::uInt vSize, doub
 /// @param[in] acc input const accessor to analyse
 void AProjectGridderBase::indexField(const IConstDataAccessor &acc)
 {
+  ASKAPDEBUGTRACE("AProjectGridderBase::indexField");
   // Validate cache using first row only
   bool newField = true;
   ASKAPDEBUGASSERT(acc.nRow()>0);
@@ -196,6 +198,7 @@ void AProjectGridderBase::indexField(const IConstDataAccessor &acc)
 /// @param[in] symmetric true, if illumination pattern is symmetric, false otherwise
 void AProjectGridderBase::validateCFCache(const IConstDataAccessor &acc, bool symmetric)
 {
+  ASKAPDEBUGTRACE("AProjectGridderBase::validateCFCache");
   const int nSamples = acc.nRow();
  
   // flags are used to accumulate CF rebuild statistics

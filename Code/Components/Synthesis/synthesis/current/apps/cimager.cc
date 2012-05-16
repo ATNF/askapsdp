@@ -76,7 +76,12 @@ int main(int argc, const char** argv)
         casa::LogSink::globalSink(globalSink);
 
         StatReporter stats;
-        ASKAP_INIT_PROFILING("profile.cimager");
+        
+        std::string profileFileName("profile.cimager");
+        if (comms.isParallel()) {
+            profileFileName += ".rank"+utility::toString(comms.rank());
+        }
+        ASKAP_INIT_PROFILING(profileFileName);
 
         // Put everything in scope to ensure that all destructors are called
         // before the final message

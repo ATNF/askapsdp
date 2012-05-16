@@ -394,6 +394,7 @@ void TableVisGridder::logCFCacheStats() const
 
 /// This is a generic grid/degrid
 void TableVisGridder::generic(accessors::IDataAccessor& acc, bool forward) {
+   ASKAPDEBUGTRACE("TableVisGridder::generic");
    if (forward&&itsModelIsEmpty)
 		return;
    
@@ -793,8 +794,10 @@ casa::MVDirection TableVisGridder::getTangentPoint() const
 /// @param[in] padding padding factor
 void TableVisGridder::toComplex(casa::Array<casa::DComplex>& out,
 		const casa::Array<double>& in, const float padding) {	
-	out.resize(scimath::PaddingUtils::paddedShape(in.shape(),padding));
-	out.set(0.);
+    ASKAPDEBUGTRACE("TableVisGridder::toComplex");
+
+    out.resize(scimath::PaddingUtils::paddedShape(in.shape(),padding));
+    out.set(0.);
     casa::Array<casa::DComplex> subImage = scimath::PaddingUtils::extract(out,padding);
     casa::convertArray<casa::DComplex, double>(subImage, in);				
 }
@@ -807,6 +810,7 @@ void TableVisGridder::toComplex(casa::Array<casa::DComplex>& out,
 /// @param[in] padding padding factor      
 void TableVisGridder::toDouble(casa::Array<double>& out,
 		const casa::Array<casa::DComplex>& in, const float padding) {
+  ASKAPDEBUGTRACE("TableVisGridder::toDouble");
   casa::Array<casa::DComplex> wrapper(in);
   const casa::Array<casa::DComplex> subImage = scimath::PaddingUtils::extract(wrapper,padding);
   out.resize(subImage.shape());
@@ -831,28 +835,30 @@ void TableVisGridder::initStokes()
 
 void TableVisGridder::initialiseGrid(const scimath::Axes& axes,
 		const casa::IPosition& shape, const bool dopsf) {
-	ASKAPDEBUGASSERT(shape.nelements()>=2);
-	itsShape=scimath::PaddingUtils::paddedShape(shape,paddingFactor());
+     ASKAPTRACE("TableVisGridder::initialiseGrid");
 
-	initialiseCellSize(axes);
+     ASKAPDEBUGASSERT(shape.nelements()>=2);
+     itsShape=scimath::PaddingUtils::paddedShape(shape,paddingFactor());
+
+     initialiseCellSize(axes);
 	
-	initStokes();
+     initStokes();
 		
-	configureForPSF(dopsf);
+     configureForPSF(dopsf);
 
-	/// We only need one grid
-	itsGrid.resize(1);
-	itsGrid[0].resize(itsShape);
-	itsGrid[0].set(0.0);
-	if (isPSFGridder()) {
-		// for a proper PSF calculation
-		initRepresentativeFieldAndFeed();
-	}
+     /// We only need one grid
+     itsGrid.resize(1);
+     itsGrid[0].resize(itsShape);
+     itsGrid[0].set(0.0);
+     if (isPSFGridder()) {
+         // for a proper PSF calculation
+         initRepresentativeFieldAndFeed();
+     }
 	
-	initialiseSumOfWeights();
-    ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
-    initialiseFreqMapping();
-    ASKAPLOG_DEBUG_STR(logger, "Gridding is set up with tangent centre "<<
+     initialiseSumOfWeights();
+     ASKAPCHECK(itsSumWeights.nelements()>0, "Sum of weights not yet initialised");
+     initialiseFreqMapping();
+     ASKAPLOG_DEBUG_STR(logger, "Gridding is set up with tangent centre "<<
              printDirection(getTangentPoint())<<" and image centre "<<
              printDirection(getImageCentre())); 
 }
@@ -935,7 +941,8 @@ void TableVisGridder::initRepresentativeFieldAndFeed()
 
 /// This is the default implementation
 void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
-	ASKAPDEBUGASSERT(itsGrid.size() > 0);
+    ASKAPTRACE("TableVisGridder::finaliseGrid");
+    ASKAPDEBUGASSERT(itsGrid.size() > 0);
 	// buffer for result as doubles
 	casa::Array<double> dBuffer(itsGrid[0].shape());
 	ASKAPDEBUGASSERT(dBuffer.shape().nelements()>=2);
@@ -1025,7 +1032,8 @@ void TableVisGridder::storeGrid(const std::string &name, casa::uInt numGrid) con
 
 /// This is the default implementation
 void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
-	ASKAPDEBUGASSERT(itsShape.nelements() >= 4);
+   ASKAPTRACE("TableVisGridder::finaliseWeights"); 
+   ASKAPDEBUGASSERT(itsShape.nelements() >= 4);
 	ASKAPDEBUGASSERT(itsShape == scimath::PaddingUtils::paddedShape(out.shape(),paddingFactor()));
 
 	int nPol=itsShape(2);
@@ -1053,6 +1061,7 @@ void TableVisGridder::finaliseWeights(casa::Array<double>& out) {
 
 void TableVisGridder::initialiseDegrid(const scimath::Axes& axes,
 		const casa::Array<double>& in) {
+   ASKAPTRACE("TableVisGridder::initialiseDegrid");
     configureForPSF(false);
 	itsShape = scimath::PaddingUtils::paddedShape(in.shape(),paddingFactor());
 	

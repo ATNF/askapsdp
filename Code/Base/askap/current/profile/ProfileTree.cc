@@ -37,6 +37,8 @@
 ///
 
 #include <profile/ProfileTree.h>
+#include <profile/ProfileData.h>
+
 #include <askap/AskapError.h>
 
 using namespace askap;
@@ -128,15 +130,35 @@ void ProfileTree::extractStats(std::map<std::string, ProfileData> &stats, const 
 {
   ASKAPDEBUGASSERT(node);
   const std::string name = prefix + node->name();
-  if ((node->begin() == node->end()) || !leafsOnly) {
-      std::map<std::string, ProfileData>::iterator it = stats.find(name);
+  bool includeParent = (node->begin() == node->end()) || !leafsOnly;
+  ProfileData data(node->data());
+  std::string name2add = name;
+  if (!includeParent && leafsOnly && (node->name() != "root")) {
+      // check whether leaf nodes represent more than 99% of parent's execution time
+      // add the remainder explicitly if it is not the case. root is always added as
+      // it is handy to have the overall timing stats
+      // min/max stats for the remainder will not be very useful
+      double totalTimeLeafNodes = 0.;
+      for (ProfileNode::iterator it = node->begin(); it != node->end(); ++it) {
+           totalTimeLeafNodes += it->data().totalTime();
+      }
+      if (totalTimeLeafNodes < node->data().totalTime()*0.99) {
+          includeParent = true;
+          name2add += ".remainder";
+          ProfileData remainder(data.totalTime() - totalTimeLeafNodes);
+          remainder.setCount(data.count());
+          data = remainder;
+      } 
+  }
+  if (includeParent || (node->name() == "root")) {
+      std::map<std::string, ProfileData>::iterator it = stats.find(name2add);
       if (it == stats.end()) {
           // new element in the map
-          stats[name] = node->data();      
+          stats[name2add] = data;      
       } else {
           ASKAPCHECK(!doHierarchy, "Duplicated key in the statistics map, this shouldn't happen in the hierarchy mode!");
           // merge in the current node
-          it->second.add(node->data());
+          it->second.add(data);
       }
   }
   for (ProfileNode::iterator it = node->begin(); it != node->end(); ++it) {

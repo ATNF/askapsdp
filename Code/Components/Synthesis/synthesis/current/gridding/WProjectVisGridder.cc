@@ -35,6 +35,7 @@
 #include <casa/Arrays/ArrayMath.h>
 #include <casa/BasicSL/Constants.h>
 #include <fft/FFTWrapper.h>
+#include <profile/AskapProfiler.h>
 
 // Local package includes
 #include <gridding/WProjectVisGridder.h>
@@ -104,6 +105,7 @@ void WProjectVisGridder::initialiseSumOfWeights()
 /// could be optimized by using symmetries.
 void WProjectVisGridder::initIndices(const accessors::IConstDataAccessor& acc)
 {
+    ASKAPTRACE("WProjectVisGridder::initIndices");
     /// We have to calculate the lookup function converting from
     /// row and channel to plane of the w-dependent convolution
     /// function
@@ -138,6 +140,7 @@ void WProjectVisGridder::initIndices(const accessors::IConstDataAccessor& acc)
 /// could be optimized by using symmetries.
 void WProjectVisGridder::initConvolutionFunction(const accessors::IConstDataAccessor&)
 {
+    ASKAPTRACE("WProjectVisGridder::initConvolutionFunction");
     /// We have to calculate the lookup function converting from
     /// row and channel to plane of the w-dependent convolution
     /// function
@@ -359,6 +362,7 @@ void WProjectVisGridder::initConvolutionFunction(const accessors::IConstDataAcce
 /// @return an instance of CFSupport with support parameters
 WProjectVisGridder::CFSupport WProjectVisGridder::extractSupport(const casa::Matrix<casa::DComplex> &cfPlane) const
 {
+    ASKAPDEBUGTRACE("WProjectVisGridder::extractSupport");
     CFSupport result(-1);
     SupportSearcher ss(itsCutoff);
 

@@ -41,6 +41,7 @@ ASKAP_LOGGER(logger, ".gridding.aprojectwstackgridder");
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
+#include <profile/AskapProfiler.h>
 
 #include <fft/FFTWrapper.h>
 #include <gridding/IBasicIllumination.h>
@@ -125,6 +126,7 @@ void AProjectWStackVisGridder::initialiseSumOfWeights()
 
 /// Initialize the indices into the cube.
 void AProjectWStackVisGridder::initIndices(const accessors::IConstDataAccessor& acc) {
+    ASKAPTRACE("AProjectWStackVisGridder::initIndices");
     
     // this calculates current field id
     indexField(acc);
@@ -177,6 +179,7 @@ void AProjectWStackVisGridder::initIndices(const accessors::IConstDataAccessor& 
 /// @param dopsf Make the psf?
 void AProjectWStackVisGridder::initialiseGrid(const scimath::Axes& axes,  const casa::IPosition& shape, const bool dopsf)
 {
+    ASKAPTRACE("AProjectWStackVisGridder::initialiseGrid");
     WStackVisGridder::initialiseGrid(axes,shape,dopsf);
 
     /// Limit the size of the convolution function since
@@ -198,6 +201,7 @@ void AProjectWStackVisGridder::initialiseGrid(const scimath::Axes& axes,  const 
 void AProjectWStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
         const casa::Array<double>& image)
 {
+    ASKAPTRACE("AProjectWStackVisGridder::initialiseDegrid");
     WStackVisGridder::initialiseDegrid(axes,image);      
     /// Limit the size of the convolution function since
     /// we don't need it finely sampled in image space. This
@@ -217,6 +221,7 @@ void AProjectWStackVisGridder::initialiseDegrid(const scimath::Axes& axes,
 /// @todo Make initConvolutionFunction more robust
 void AProjectWStackVisGridder::initConvolutionFunction(const accessors::IConstDataAccessor& acc) {
 
+    ASKAPTRACE("AProjectWStackVisGridder::initConvolutionFunction");
     ASKAPDEBUGASSERT(itsIllumination);
     // just to avoid a repeated call to a virtual function from inside the loop
     const bool hasSymmetricIllumination = itsIllumination->isSymmetric();
@@ -360,6 +365,7 @@ void AProjectWStackVisGridder::initConvolutionFunction(const accessors::IConstDa
 // 2. Sum all planes weighted by the weight for that convolution function.
 void AProjectWStackVisGridder::finaliseWeights(casa::Array<double>& out) {
 
+    ASKAPTRACE("AProjectWStackVisGridder::finaliseWeights");
     ASKAPLOG_DEBUG_STR(logger, "Calculating sum of weights image");
     ASKAPDEBUGASSERT(itsShape.nelements()>=3);
 

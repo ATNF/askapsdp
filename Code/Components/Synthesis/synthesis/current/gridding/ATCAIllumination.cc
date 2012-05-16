@@ -36,6 +36,7 @@
 #include <gridding/ATCAIllumination.h>
 #include <askap/AskapError.h>
 
+#include <profile/AskapProfiler.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -169,6 +170,8 @@ double ATCAIllumination::jamesian(double fractionalRadius)
 void ATCAIllumination::getPattern(double freq, UVPattern &pattern, double l, 
 				  double m, double pa) const
 {
+  ASKAPTRACE("ATCAIllumination::getPattern");
+
   //std::cout<<"ATCAIllumination::getPattern is called for pa = "<<pa/M_PI*180.<<std::endl;
   const casa::uInt oversample = pattern.overSample();
   const double cellU = pattern.uCellSize()/oversample;
