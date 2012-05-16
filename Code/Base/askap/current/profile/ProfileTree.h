@@ -115,8 +115,9 @@ public:
    /// @param[in] stats map to add statistics to
    /// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
    /// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.
+   /// @param[in] leafsOnly if true, only leaf nodes are included in the map (i.e. the lowest level in every branch)
    /// @note The old content of the map is not removed, extracted statistics are just added to the given map.
-   void extractStats(std::map<std::string, ProfileData> &stats, bool doHierarchy = true) const;
+   void extractStats(std::map<std::string, ProfileData> &stats, bool doHierarchy = true, bool leafsOnly = false) const;
    
 protected:
    /// @brief helper method to extract statistics for a given node
@@ -129,8 +130,9 @@ protected:
    /// @param[in] node shared pointer to node to work with
    /// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
    /// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.
+   /// @param[in] leafsOnly if true, only leaf nodes are included in the map (i.e. the lowest level in every branch)
    static void extractStats(std::map<std::string, ProfileData> &stats, const std::string &prefix, 
-                     const boost::shared_ptr<ProfileNode> &node, bool doHierarchy);
+                     const boost::shared_ptr<ProfileNode> &node, bool doHierarchy, bool leafsOnly);
    
 private:
    /// @brief root node of the tree

@@ -41,6 +41,7 @@
 
 // std includes
 #include <map>
+#include <string>
 
 // boost includes
 #include <boost/thread.hpp>
@@ -81,7 +82,8 @@ public:
    
    /// @brief initialise singleton 
    /// @details This step is essential before capture of profile information
-   static void start();
+   /// @param[in] baseName optional file name to store stats to
+   static void start(const std::string &baseName = std::string());
    
    /// @brief finalise singleton
    /// @details We need an explicit step to be able to run destructors before logger is terminated.
@@ -92,7 +94,8 @@ public:
       
    struct Initialiser {
       /// @brief default constructor
-      inline Initialiser() { ProfileSingleton::start(); }
+   /// @param[in] baseName optional file name to store stats to
+      inline Initialiser(const std::string &baseName = std::string()) { ProfileSingleton::start(baseName); }
       
       /// @brief destructor
       inline ~Initialiser() { ProfileSingleton::stop(); }      
@@ -102,9 +105,19 @@ protected:
    
    /// @brief helper method to log profiling statistics
    /// @param[in] tree const reference to the profile tree to use
+   /// @param[in] fname file name, if not an empty string the data are dumped into a file
    /// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
    /// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.   
-   void logProfileStats(const ProfileTree &tree, bool keepHierarchy) const;
+   /// @param[in] leafsOnly if true, only leaf nodes are included in the map (i.e. the lowest level in every branch)   
+   static void logProfileStats(const ProfileTree &tree, const std::string &fname, bool keepHierarchy, bool leafsOnly);
+   
+   /// @brief helper method to compose the file name
+   /// @details If the base name is an empty string, this method will always return empty string. Otherwise, suffix and
+   /// thread id are added as required.
+   /// @param[in] id thread id corresponding to this file
+   /// @param[in] leafsOnly true, if only leaf nodes will be stored in this file
+   /// @return file name
+   std::string fileName(const boost::thread::id id, const bool leafsOnly) const;
    
    /// @brief helper method to extract the tree for the given thread
    /// @details This method searches for a given thread in the map and inserts
@@ -113,15 +126,20 @@ protected:
    ProfileTree& getTree();
    
 private:
-   /// @brief default constructor
+   /// @brief constructor
    /// @details Only the main thread is supposed to create an instance of this object.
-   ProfileSingleton();
+   /// @param[in] baseName an optional base name for the file. If specified, the statistics will also be stored into files
+   /// (the file name will be composed out of the base name and thread id, and a suffix for leaf-only stats)
+   ProfileSingleton(const std::string &baseName = std::string());
 
    /// @brief profile tree for the main thread
    ProfileTree itsMainTree;
    
    /// @brief thread id for the main thread
    const boost::thread::id itsMainThreadID;
+   
+   /// @brief base file name to write statistics to
+   const std::string itsBaseName;
    
    /// @brief main thread global timer
    /// @detail We can add timers per thread later on, although the usefulness of it is not clear because we cannot

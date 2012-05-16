@@ -53,7 +53,7 @@ namespace askap {
 #define ASKAPDEBUGTRACE(name)
 #endif
 
-#define ASKAPINITPROFILING askap::ProfileSingleton::Initialiser askapInitProfilingGuard;
+#define ASKAP_INIT_PROFILING(fname) askap::ProfileSingleton::Initialiser askapInitProfilingGuard(fname);
 
 /// @brief profiler class used as a guard for entry/exit events
 /// @details Instantiate this class to trace a given method or a block of code.

@@ -76,7 +76,7 @@ int main(int argc, const char** argv)
         casa::LogSink::globalSink(globalSink);
 
         StatReporter stats;
-        ASKAPINITPROFILING;
+        ASKAP_INIT_PROFILING("profile.cimager");
 
         // Put everything in scope to ensure that all destructors are called
         // before the final message

@@ -37,8 +37,10 @@
 #include <profile/ProfileData.h>
 #include <askap/AskapError.h>
 #include <askap/AskapLogging.h>
+#include <askap/AskapUtil.h>
 
 #include <string>
+#include <fstream>
 
 using namespace askap;
 
@@ -49,9 +51,10 @@ boost::shared_ptr<ProfileSingleton> ProfileSingleton::theirSingleton;
 
 /// @brief initialise singleton 
 /// @details This step is essential before capture of profile information
-void ProfileSingleton::start() {
+/// @param[in] baseName optional file name to store stats to
+void ProfileSingleton::start(const std::string &baseName) {
   ASKAPCHECK(!theirSingleton, "ProfileSingleton::start is supposed to be called only once!");
-  theirSingleton.reset(new ProfileSingleton);
+  theirSingleton.reset(new ProfileSingleton(baseName));
 }
    
 /// @brief finalise singleton
@@ -62,10 +65,12 @@ void ProfileSingleton::stop() {
 }
 
 
-/// @brief default constructor
-ProfileSingleton::ProfileSingleton() : itsMainThreadID(boost::this_thread::get_id())
+/// @brief constructor
+/// @param[in] baseName an optional base name for the file. If specified, the statistics will also be stored into files
+/// (the file name will be composed out of the base name and thread id, and a suffix for leaf-only stats)
+ProfileSingleton::ProfileSingleton(const std::string &baseName) : itsMainThreadID(boost::this_thread::get_id()), itsBaseName(baseName)
 {
-   ASKAPLOG_INFO_STR(logger, "Profiling statistics will be gathered");
+   ASKAPLOG_DEBUG_STR(logger, "Profiling statistics will be gathered");
    itsMainTimer.mark();
 }
 
@@ -75,39 +80,65 @@ ProfileSingleton::ProfileSingleton() : itsMainThreadID(boost::this_thread::get_i
 ProfileSingleton::~ProfileSingleton() {
   ASKAPCHECK(itsMainTree.isRootCurrent(), "Detected a mismatch between entry/exit events!");  
   itsMainTree.notifyExit(itsMainTimer.real());  
-  ASKAPLOG_INFO_STR(logger, "Profiling statistics with hierarchy (main thread):");
-  logProfileStats(itsMainTree, true);
-  ASKAPLOG_INFO_STR(logger, "Profiling statistics without hierarchy (main thread):");
-  logProfileStats(itsMainTree, false);
+  ASKAPLOG_DEBUG_STR(logger, "Profiling statistics with hierarchy (main thread):");
+  logProfileStats(itsMainTree, fileName(itsMainThreadID, false), true,false);
+  ASKAPLOG_DEBUG_STR(logger, "Profiling statistics for leafs ignoring hierarchy (main thread):");
+  logProfileStats(itsMainTree, fileName(itsMainThreadID, true), false, true);
   
   // the following lock is not really necessary as there should be no threads doing active work at this point
   boost::lock_guard<boost::shared_mutex> lock(itsMutex);
   for (std::map<boost::thread::id, ProfileTree>::const_iterator ci = itsThreadTrees.begin(); 
        ci != itsThreadTrees.end(); ++ci) {
-       ASKAPLOG_INFO_STR(logger, "Profiling statistics with hierarchy (thread "<<ci->first<<"):");
-       logProfileStats(ci->second, true);
-       ASKAPLOG_INFO_STR(logger, "Profiling statistics without hierarchy (thread "<<ci->first<<"):");
-       logProfileStats(ci->second, false);
+       ASKAPLOG_DEBUG_STR(logger, "Profiling statistics with hierarchy (thread "<<ci->first<<"):");
+       logProfileStats(ci->second, fileName(ci->first, false), true, false);
+       ASKAPLOG_DEBUG_STR(logger, "Profiling statistics for leafs ignoring hierarchy (thread "<<ci->first<<"):");
+       logProfileStats(ci->second, fileName(ci->first, true), false, true);
   }
 }
 
 /// @brief helper method to log profiling statistics
 /// @param[in] tree const reference to the profile tree to use
+/// @param[in] fname file name, if not an empty string the data are dumped into a file
 /// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
-/// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.   
-void ProfileSingleton::logProfileStats(const ProfileTree &tree, bool keepHierarchy) const
+/// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up. 
+/// @param[in] leafsOnly if true, only leaf nodes are included in the map (i.e. the lowest level in every branch)     
+void ProfileSingleton::logProfileStats(const ProfileTree &tree, const std::string &fname, bool keepHierarchy, bool leafsOnly)
 {
   std::map<std::string, ProfileData> stats;
-  tree.extractStats(stats, keepHierarchy);
+  tree.extractStats(stats, keepHierarchy, leafsOnly);
   if (stats.size() == 0) {
       ASKAPLOG_INFO_STR(logger, "  no statistics captured");
   } else {
+      std::ofstream os;
+      if (fname != "") {
+          os.open(fname.c_str());
+      }
       for (std::map<std::string, ProfileData>::const_iterator ci = stats.begin(); ci != stats.end(); ++ci) {
           const ProfileData &pd = ci->second;
           ASKAPLOG_INFO_STR(logger, "  "<<ci->first<<" count: "<<pd.count()<<" total: "<<pd.totalTime()<<" max: "<<
                                     pd.maxTime()<<" min: "<<pd.minTime());
+          if (fname != "") {
+              // storing into a file in a comma-separated format
+              os << ci->first<<", "<<pd.count()<<", "<<pd.totalTime()<<", "<<pd.maxTime()<<", "<<pd.minTime()<<std::endl;
+          }                          
       }
   }
+}
+
+/// @brief helper method to compose the file name
+/// @details If the base name is an empty string, this method will always return empty string. Otherwise, suffix and
+/// thread id are added as required.
+/// @param[in] id thread id corresponding to this file
+/// @param[in] leafsOnly true, if only leaf nodes will be stored in this file
+/// @return file name
+std::string ProfileSingleton::fileName(const boost::thread::id id, const bool leafsOnly) const
+{
+  if (itsBaseName == "") {
+      return itsBaseName;
+  }
+  const std::string threadSuffix = (id == itsMainThreadID) ? "" : "."+utility::toString(id);
+  const std::string leafsOnlySuffix = leafsOnly ? ".leafs" : "";
+  return itsBaseName+threadSuffix+leafsOnlySuffix;
 }
 
 /// @brief entry event

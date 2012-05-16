@@ -103,12 +103,13 @@ void ProfileTree::notifyExit(const double time)
 /// @param[in] stats map to add statistics to
 /// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
 /// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.
+/// @param[in] leafsOnly if true, only leaf nodes are included in the map (i.e. the lowest level in every branch)
 /// @note The old content of the map is not removed, extracted statistics are just added to the given map.
-void ProfileTree::extractStats(std::map<std::string, ProfileData> &stats, bool doHierarchy) const
+void ProfileTree::extractStats(std::map<std::string, ProfileData> &stats, bool doHierarchy, bool leafsOnly) const
 { 
   boost::shared_ptr<const ProfileNode> root(&itsRootNode, utility::NullDeleter());
   // use "::" prefix to avoid accidental merge of the final execution statistics if there is another method called root
-  extractStats(stats, doHierarchy ? "" : "::", boost::const_pointer_cast<ProfileNode>(root), doHierarchy);
+  extractStats(stats, doHierarchy || leafsOnly ? "" : "::", boost::const_pointer_cast<ProfileNode>(root), doHierarchy, leafsOnly);
 }
 
 /// @brief helper method to extract statistics for a given node
@@ -121,23 +122,26 @@ void ProfileTree::extractStats(std::map<std::string, ProfileData> &stats, bool d
 /// @param[in] node shared pointer to node to work with
 /// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
 /// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.
+/// @param[in] leafsOnly if true, only leaf nodes are included in the map (i.e. the lowest level in every branch)
 void ProfileTree::extractStats(std::map<std::string, ProfileData> &stats, const std::string &prefix, 
-                  const boost::shared_ptr<ProfileNode> &node, bool doHierarchy)
+                  const boost::shared_ptr<ProfileNode> &node, bool doHierarchy, bool leafsOnly)
 {
   ASKAPDEBUGASSERT(node);
   const std::string name = prefix + node->name();
-  std::map<std::string, ProfileData>::iterator it = stats.find(name);
-  if (it == stats.end()) {
-      // new element in the map
-      stats[name] = node->data();      
-  } else {
-      ASKAPCHECK(!doHierarchy, "Duplicated key in the statistics map, this shouldn't happen in the hierarchy mode!");
-      // merge in the current node
-      it->second.add(node->data());
+  if ((node->begin() == node->end()) || !leafsOnly) {
+      std::map<std::string, ProfileData>::iterator it = stats.find(name);
+      if (it == stats.end()) {
+          // new element in the map
+          stats[name] = node->data();      
+      } else {
+          ASKAPCHECK(!doHierarchy, "Duplicated key in the statistics map, this shouldn't happen in the hierarchy mode!");
+          // merge in the current node
+          it->second.add(node->data());
+      }
   }
   for (ProfileNode::iterator it = node->begin(); it != node->end(); ++it) {
        boost::shared_ptr<ProfileNode> thisNode(&(*it), utility::NullDeleter());
-       extractStats(stats, doHierarchy ? name + "." : "", thisNode, doHierarchy); 
+       extractStats(stats, doHierarchy ? name + "." : "", thisNode, doHierarchy, leafsOnly); 
   }
 }
 
