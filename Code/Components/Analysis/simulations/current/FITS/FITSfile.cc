@@ -338,10 +338,12 @@ namespace askap {
 	this->itsHaveBeam = parset.isDefined("beam");
 	if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
 
-	this->itsSelavyImage = SelavyImage(parset);
-	if (!this->itsHaveBeam && this->itsDatabaseOrigin == "Selavy") {
-	  this->itsBeamInfo = this->itsSelavyImage.beam();
-	  this->itsHaveBeam=true;
+	if(this->itsDatabaseOrigin == "Selavy"){
+	  this->itsSelavyImage = SelavyImage(parset);
+	  if (!this->itsHaveBeam) {
+	    this->itsBeamInfo = this->itsSelavyImage.beam();
+	    this->itsHaveBeam=true;
+	  }
 	}
 
 	if(this->itsHaveBeam)
@@ -645,66 +647,71 @@ namespace askap {
 		lookAtSource = lookAtSource && doAddPointSource(this->itsAxes, pix);
 	      }
 
-	      if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
-		// check the frequency limits for this source to see whether we need to look at it.
-		ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
-		//		std::pair<double,double> freqLims = profSAX.freqLimits();
-		std::pair<double,double> freqLims = ((HIprofileS3SAX *)src)->freqLimits();
-		bool isGood = (freqLims.first < this->maxFreq()) && (freqLims.second > this->minFreq());
-		lookAtSource = lookAtSource && isGood;
-	      }
 
 	      if (lookAtSource) {
 
 		src->prepareForUse();
-		src->setFluxZero(casa::Quantity(src->fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
+		  
+		bool isGood = true;
+		if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
+		  // check the frequency limits for this source to see whether we need to look at it.
+		  ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
+		  //		std::pair<double,double> freqLims = profSAX.freqLimits();
+		  std::pair<double,double> freqLims = ((HIprofileS3SAX *)src)->freqLimits();
+		  isGood = (freqLims.first < this->maxFreq()) && (freqLims.second > this->minFreq());
+		}
+
+		if(isGood){
+
+		  src->setFluxZero(casa::Quantity(src->fluxZero(), this->itsSourceFluxUnits).getValue(this->itsBunit));
 	      
-		gauss.setFlux(src->fluxZero());
+		  gauss.setFlux(src->fluxZero());
 
-		if(this->databaseSpectral() && this->itsDatabaseOrigin!="Gaussian")
-		  fluxGen.addSpectrumInt(src,pix[0],pix[1],this->itsWCS);
-		else 
-		  fluxGen.addSpectrum(src,pix[0],pix[1],this->itsWCS);
+		  if(this->databaseSpectral() && this->itsDatabaseOrigin!="Gaussian")
+		    fluxGen.addSpectrumInt(src,pix[0],pix[1],this->itsWCS);
+		  else 
+		    fluxGen.addSpectrum(src,pix[0],pix[1],this->itsWCS);
 
-		bool addedSource=false;
-		ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
-		if (src->maj() > 0) {
+		  bool addedSource=false;
+		  ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
+		  if (src->maj() > 0) {
 
-		  if (!this->itsDryRun){
-		    addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen, this->itsFlagIntegrateGaussians);
-		  }
-		  else{
-		    addedSource=doAddGaussian(this->itsAxes, gauss);
-		    if ( addedSource ){
-		      countGauss++;
-		      if( this->itsDatabaseOrigin == "POSSUM") 
-			ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+		    if (!this->itsDryRun){
+		      addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen, this->itsFlagIntegrateGaussians);
 		    }
-		    else countMiss++;
-		  }
-		} else {
-		  if (!this->itsDryRun){
-		    addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
-		  }
-		  else{
-		    addedSource=doAddPointSource(this->itsAxes, pix);
-		    if ( addedSource ){
-		      countPoint++;
-		      if( this->itsDatabaseOrigin == "POSSUM") 
-			ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+		    else{
+		      addedSource=doAddGaussian(this->itsAxes, gauss);
+		      if ( addedSource ){
+			countGauss++;
+			if( this->itsDatabaseOrigin == "POSSUM") 
+			  ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+		      }
+		      else countMiss++;
 		    }
-		    else countMiss++;
+		  } else {
+		    if (!this->itsDryRun){
+		      addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
+		    }
+		    else{
+		      addedSource=doAddPointSource(this->itsAxes, pix);
+		      if ( addedSource ){
+			countPoint++;
+			if( this->itsDatabaseOrigin == "POSSUM") 
+			  ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+		      }
+		      else countMiss++;
+		    }
 		  }
-		}
-		if(addedSource){
-		  if(this->itsFlagOutputList && this->itsFlagOutputListGoodOnly && doAddPointSource(this->itsAxes,pix)){
-		    if (this->itsPosType == "dms") 
-		      src->print(outfile,analysis::decToDMS(newwld[0],"RA"),analysis::decToDMS(newwld[1],"DEC"));
-		    else 
-		      src->print(outfile,newwld[0],newwld[1]);
+		  if(addedSource){
+		    if(this->itsFlagOutputList && this->itsFlagOutputListGoodOnly && doAddPointSource(this->itsAxes,pix)){
+		      if (this->itsPosType == "dms") 
+			src->print(outfile,analysis::decToDMS(newwld[0],"RA"),analysis::decToDMS(newwld[1],"DEC"));
+		      else 
+			src->print(outfile,newwld[0],newwld[1]);
+		    }
 		  }
-		}
 
+		}
 	      }
 	      else{
 		if(this->itsDryRun) countDud++;

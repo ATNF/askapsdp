@@ -74,7 +74,8 @@ namespace askap {
 	this->itsSourceListType = parset.getString("sourcelisttype", "continuum");
 	this->itsBaseFreq = parset.getFloat("baseFreq",1400.);
 	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
-	this->itsSelavyImage=SelavyImage(parset);
+	if(this->itsDatabaseOrigin == "Selavy")
+	  this->itsSelavyImage=SelavyImage(parset);
       }
 
       ModelFactory::~ModelFactory()
