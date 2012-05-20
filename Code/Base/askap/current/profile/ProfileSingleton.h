@@ -108,16 +108,16 @@ protected:
    /// @param[in] fname file name, if not an empty string the data are dumped into a file
    /// @param[in] keepHierarchy if true, the hierarchy of nodes is kept and reflected by dot-separated names. If
    /// false, the hierarchy is ignored completely and all stats gathered at all levels are simply added up.   
-   /// @param[in] leafsOnly if true, only leaf nodes are included in the map (i.e. the lowest level in every branch)   
-   static void logProfileStats(const ProfileTree &tree, const std::string &fname, bool keepHierarchy, bool leafsOnly);
+   /// @param[in] leavesOnly if true, only leaf nodes are included in the map (i.e. the lowest level in every branch)   
+   static void logProfileStats(const ProfileTree &tree, const std::string &fname, bool keepHierarchy, bool leavesOnly);
    
    /// @brief helper method to compose the file name
    /// @details If the base name is an empty string, this method will always return empty string. Otherwise, suffix and
    /// thread id are added as required.
    /// @param[in] id thread id corresponding to this file
-   /// @param[in] leafsOnly true, if only leaf nodes will be stored in this file
+   /// @param[in] leavesOnly true, if only leaf nodes will be stored in this file
    /// @return file name
-   std::string fileName(const boost::thread::id id, const bool leafsOnly) const;
+   std::string fileName(const boost::thread::id id, const bool leavesOnly) const;
    
    /// @brief helper method to extract the tree for the given thread
    /// @details This method searches for a given thread in the map and inserts
