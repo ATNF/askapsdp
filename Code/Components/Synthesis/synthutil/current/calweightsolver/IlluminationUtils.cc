@@ -51,15 +51,14 @@
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
 
-ASKAP_LOGGER(logger, ".calweightsolver");
-
-// after logger has been initialised
-#include <gridding/AProjectGridderBase.h>
-
 using namespace askap;
 using namespace askap::synthutils;
 using namespace askap::synthesis;
 
+ASKAP_LOGGER(logger, ".calweightsolver");
+
+// after logger has been initialised
+#include <gridding/AProjectGridderBase.h>
 
 /// @brief constructor
 /// @details 
