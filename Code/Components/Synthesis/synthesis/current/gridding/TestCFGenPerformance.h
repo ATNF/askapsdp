@@ -96,7 +96,7 @@ public:
   /// @details This method mimics createGridder interface for a-projection gridders
   /// @param[in] parset input parset file
   /// @return a shared pointer to the instance
-  static boost::shared_ptr<TestCFGenPerformance> TestCFGenPerformance::createGridder(const LOFAR::ParameterSet& parset);
+  static boost::shared_ptr<TestCFGenPerformance> createGridder(const LOFAR::ParameterSet& parset);
 
   /// @brief main method which initialises CFs
   /// @details 
