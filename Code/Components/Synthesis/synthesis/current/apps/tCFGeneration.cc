@@ -56,6 +56,9 @@ ASKAP_LOGGER(logger, ".tCFGeneration");
 
 using namespace askap;
 using namespace askap::synthesis;
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // Main function
 int main(int argc, const char** argv)
@@ -95,6 +98,14 @@ int main(int argc, const char** argv)
             ASKAPLOG_INFO_STR(logger, "Setting up the gridder to test and the model");
             boost::shared_ptr<TestCFGenPerformance> tester = TestCFGenPerformance::createGridder(subset.makeSubset("gridder.AWProject."));
             ASKAPCHECK(tester, "Gridder is not defined");
+            #ifdef _OPENMP
+            const int nthreads = omp_get_max_threads();
+            std::vector<boost::shared_ptr<TestCFGenPerformance> > testers(nthreads);
+            ASKAPLOG_INFO_STR(logger, "Will attempt to run "<<nthreads<<" instances in parallel");
+            for (int i=0; i<nthreads; ++i) {
+                 testers[i] = tester->clone(); 
+            }
+            #endif
             { 
                scimath::Params model;
                boost::shared_ptr<scimath::Params> modelPtr(&model, utility::NullDeleter());
@@ -103,10 +114,26 @@ int main(int argc, const char** argv)
                std::vector<std::string> names = model.freeNames();
                ASKAPCHECK(names.size() > 0, "At least one image should be defined!");
                ASKAPLOG_INFO_STR(logger, "Using "<<names[0]<<" to setup gridder");
+               #ifdef _OPENMP
+               for (int i=0; i<nthreads; ++i) {
+                    testers[i]->initialiseGrid(model.axes(names[0]),model.value(names[0]).shape(),false);
+               }
+               #else
                tester->initialiseGrid(model.axes(names[0]),model.value(names[0]).shape(),false);            
+               #endif
                // all additional memory used to hold the model is now released 
             }
+            #ifdef _OPENMP
+            #pragma omp parallel default(shared)
+            { 
+               #pragma omp for 
+               for (int i=0; i<nthreads; ++i) {
+                 testers[i]->run();
+               }
+            }
+            #else
             tester->run();
+            #endif
         }
         stats.logSummary();
         ///==============================================================================
