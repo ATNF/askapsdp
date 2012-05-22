@@ -29,6 +29,10 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 ///
 
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(logger, ".gridding.aprojectgridderbase");
+
 #include <gridding/AProjectGridderBase.h>
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
@@ -36,11 +40,6 @@
 #include <gridding/ATCAIllumination.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <profile/AskapProfiler.h>
-
-
-#include <askap_synthesis.h>
-#include <askap/AskapLogging.h>
-ASKAP_LOGGER(logger, ".gridding.aprojectgridderbase");
 
 
 using namespace askap;

@@ -44,7 +44,6 @@
 #include <Common/ParameterSet.h>
 #include <askap/Log4cxxLogSink.h>
 #include <gridding/UVPattern.h>
-#include <gridding/AProjectGridderBase.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 // just for logging
 #include <askapparallel/AskapParallel.h>
@@ -56,6 +55,9 @@
 #include <stdexcept>
 
 ASKAP_LOGGER(logger, ".illumextractor");
+
+// this should be after logging
+#include <gridding/AProjectGridderBase.h>
 
 using namespace askap;
 using namespace askap::synthesis;

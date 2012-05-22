@@ -55,7 +55,7 @@
 #include <dataaccess/MemBufferDataAccessor.h>
 
 
-ASKAP_LOGGER(logger, ".cimager");
+ASKAP_LOGGER(logger, ".tGridding");
 
 using namespace askap;
 using namespace askap::synthesis;

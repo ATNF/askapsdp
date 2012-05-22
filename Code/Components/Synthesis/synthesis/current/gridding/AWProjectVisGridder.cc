@@ -21,9 +21,6 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
-// Include own header file first
-#include <gridding/AWProjectVisGridder.h>
-
 // Package level header file
 #include <askap_synthesis.h>
 
@@ -32,6 +29,7 @@
 #include <askap/AskapUtil.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".gridding.awprojectvisgridder");
+#include <gridding/AWProjectVisGridder.h>
 #include <fft/FFTWrapper.h>
 #include <utils/PaddingUtils.h>
 #include <casa/Arrays/ArrayIter.h>
@@ -49,7 +47,6 @@ ASKAP_LOGGER(logger, ".gridding.awprojectvisgridder");
 // Local package includes
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <gridding/SupportSearcher.h>
-#include <gridding/AProjectGridderBase.tcc>
 #include <profile/AskapProfiler.h>
 
 

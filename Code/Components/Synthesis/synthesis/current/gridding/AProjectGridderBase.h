@@ -254,4 +254,7 @@ private:
 
 } // namespace askap
 
+#include <gridding/AProjectGridderBase.tcc>
+
 #endif // #ifndef A_PROJECT_GRIDDER_BASE_H
+

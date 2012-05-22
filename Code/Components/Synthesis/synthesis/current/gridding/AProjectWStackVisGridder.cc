@@ -21,8 +21,6 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
-#include <gridding/AProjectWStackVisGridder.h>
-
 #include <casa/BasicSL/Complex.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Vector.h>
@@ -43,14 +41,11 @@ ASKAP_LOGGER(logger, ".gridding.aprojectwstackgridder");
 #include <askap/AskapUtil.h>
 #include <profile/AskapProfiler.h>
 
+#include <gridding/AProjectWStackVisGridder.h>
 #include <fft/FFTWrapper.h>
 #include <gridding/IBasicIllumination.h>
 
 #include <utils/PaddingUtils.h>
-
-// we may need to move this include into AProjectGridderBase.h file. However, this would induce the dependency on logging
-// for everything which includes it. 
-#include <gridding/AProjectGridderBase.tcc>
 
 namespace askap {
 namespace synthesis {

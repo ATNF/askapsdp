@@ -24,6 +24,9 @@
 // ASKAPsoft includes
 #include <AskapTestRunner.h>
 
+// just to avoid template compilation which will not work without logging
+#define A_PROJECT_GRIDDER_BASE_TCC
+
 // Test includes
 #include <TableVisGridderTest.h>
 #include <SupportSearcherTest.h>
