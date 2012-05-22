@@ -43,6 +43,7 @@
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <askap/AskapUtil.h>
 #include <dataaccess/ParsetInterface.h>
+#include <profile/AskapProfiler.h>
 
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
@@ -68,6 +69,11 @@ int main(int argc, const char** argv)
         casa::LogSink::globalSink(globalSink);
 
         StatReporter stats;
+        std::string profileFileName("profile.tCFGeneration");
+        if (comms.isParallel()) {
+            profileFileName += ".rank"+utility::toString(comms.rank());
+        }
+        ASKAP_INIT_PROFILING(profileFileName);
 
         // Put everything in scope to ensure that all destructors are called
         // before the final message
@@ -87,12 +93,19 @@ int main(int argc, const char** argv)
             LOFAR::ParameterSet subset(parset.isDefined("Cimager.gridder") ? parset.makeSubset("Cimager.") : parset);
             
             ASKAPLOG_INFO_STR(logger, "Setting up the gridder to test and the model");
-            boost::shared_ptr<TestCFGenPerformance> tester = TestCFGenPerformance::createGridder(subset.makeSubset("gridder.AWProject"));
+            boost::shared_ptr<TestCFGenPerformance> tester = TestCFGenPerformance::createGridder(subset.makeSubset("gridder.AWProject."));
             ASKAPCHECK(tester, "Gridder is not defined");
-            scimath::Params model;
-            boost::shared_ptr<scimath::Params> modelPtr(&model, utility::NullDeleter());
-            SynthesisParamsHelper::setUpImages(modelPtr,subset.makeSubset("Images."));
-            ASKAPLOG_INFO_STR(logger, "Model contains the following elements: "<<model);
+            { 
+               scimath::Params model;
+               boost::shared_ptr<scimath::Params> modelPtr(&model, utility::NullDeleter());
+               SynthesisParamsHelper::setUpImages(modelPtr,subset.makeSubset("Images."));
+               ASKAPLOG_INFO_STR(logger, "Model contains the following elements: "<<model);
+               std::vector<std::string> names = model.freeNames();
+               ASKAPCHECK(names.size() > 0, "At least one image should be defined!");
+               ASKAPLOG_INFO_STR(logger, "Using "<<names[0]<<" to setup gridder");
+               tester->initialiseGrid(model.axes(names[0]),model.value(names[0]).shape(),false);            
+               // all additional memory used to hold the model is now released 
+            }
             tester->run();
         }
         stats.logSummary();

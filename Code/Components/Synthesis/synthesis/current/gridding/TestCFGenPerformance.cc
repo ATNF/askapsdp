@@ -75,7 +75,9 @@ void TestCFGenPerformance::init()
   // some hard-coded beam arrangement and pointing. We could've provided more flexibility if it is found useful.  
   const double maxSeparationInRad = 0.087;
   const casa::uInt nAnt = 36;
-  const casa::MVDirection dishPointing(casa::Quantity(180.5, "deg"), casa::Quantity(-45.0, "deg"));
+  //const double maxSeparationInRad = 0.0087;
+  //const casa::uInt nAnt = 6;
+  const casa::MVDirection dishPointing = getTangentPoint();
   casa::Vector<casa::MVDirection> beamPointings(itsNBeams, dishPointing);
   int nBeamsOnEachSide = int(sqrt(double(itsNBeams)));
   if (nBeamsOnEachSide == 0) {
@@ -115,7 +117,7 @@ void TestCFGenPerformance::init()
   itsAccessor.itsStokes.resize(1);
   itsAccessor.itsStokes.set(casa::Stokes::XX);
   for (casa::uInt ant1 = 0, index = 0; ant1<nAnt; ++ant1) {
-       for (casa::uInt ant2 = 0; ant2<nAnt; ++ant2) {
+       for (casa::uInt ant2 = 0; ant2<ant1; ++ant2) {
             for (casa::uInt beam=0; beam < beamPointings.nelements(); ++beam,++index) {
                  ASKAPDEBUGASSERT(index < nSamples);
                  itsAccessor.itsAntenna1[index] = ant1;
@@ -127,7 +129,18 @@ void TestCFGenPerformance::init()
             }
        }
   }
-  ASKAPLOG_INFO_STR(logger, "The accessor stub has been initialised for "<<nAnt<<" antennas and "<<beamPointings<<" beams");  
+  ASKAPLOG_INFO_STR(logger, "The accessor stub has been initialised for "<<nAnt<<" antennas and "<<beamPointings.nelements()<<" beams");  
+}
+
+/// @brief Initialise the parameters and accessor
+/// @param axes axes specifications
+/// @param shape Shape of output image: u,v,pol,chan
+/// @param dopsf Make the psf?
+void TestCFGenPerformance::initialiseGrid(const scimath::Axes& axes,
+               const casa::IPosition& shape, const bool dopsf)
+{
+  AWProjectVisGridder::initialiseGrid(axes,shape,dopsf);
+  init();
 }
 
 /// @brief main method which initialises CFs
@@ -140,6 +153,7 @@ void TestCFGenPerformance::run(const int nRuns)
        initIndices(itsAccessor);
        initConvolutionFunction(itsAccessor);
        // force recalculation
+       resetCFCache();
   }
 }
 

@@ -149,6 +149,9 @@ struct AProjectGridderBase : virtual public IVisGridder
   static boost::shared_ptr<IBasicIllumination> 
       makeIllumination(const LOFAR::ParameterSet &parset);
 protected:
+  /// @brief helper method to reset CF cache
+  inline void resetCFCache() { itsDone.set(false); }
+
   /// @brief actual factory of derived gridders
   /// @details Gridders derived from this class use exactly the same parameters, but doing
   /// the job using slightly different algorithms. This templated method allows to create both

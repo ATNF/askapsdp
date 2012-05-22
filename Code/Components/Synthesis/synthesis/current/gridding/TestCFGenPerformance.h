@@ -81,13 +81,13 @@ public:
                       const std::string& name=std::string("")) : 
                        AWProjectVisGridder(illum, wmax,nwplanes,cutoff,overSample, maxSupport, limitSupport,
                             maxFeeds, maxFields, pointingTol, paTol, freqTol, frequencyDependent, name),
-                       itsNBeams(maxFeeds) {init();}
+                       itsNBeams(maxFeeds) {}
                        
   
   /// @brief copy constructor
   /// @details
   /// @param[in] other another instance to copy from
-  TestCFGenPerformance(const TestCFGenPerformance &other) : AWProjectVisGridder(other), itsNBeams(other.itsNBeams) { init(); }
+  TestCFGenPerformance(const TestCFGenPerformance &other) : AWProjectVisGridder(other), itsNBeams(other.itsNBeams) {}
   
   /// @brief clone object, e.g. to test performance with a number of copies
   boost::shared_ptr<TestCFGenPerformance> clone() const;
@@ -102,6 +102,13 @@ public:
   /// @details 
   /// @param[in] nRuns number of initialisations
   void run(const int nRuns = 1);
+  
+  /// @brief Initialise the parameters and accessor
+  /// @param axes axes specifications
+  /// @param shape Shape of output image: u,v,pol,chan
+  /// @param dopsf Make the psf?
+  virtual void initialiseGrid(const scimath::Axes& axes,
+               const casa::IPosition& shape, const bool dopsf=true);
   
 protected:
   /// @brief initialise the accessor
