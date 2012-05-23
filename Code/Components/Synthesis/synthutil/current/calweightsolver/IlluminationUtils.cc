@@ -48,17 +48,19 @@
 #include <gridding/UVPattern.h>
 
 #include <askap/AskapError.h>
+#include <askap/AskapLogging.h>
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
-
-using namespace askap;
-using namespace askap::synthutils;
-using namespace askap::synthesis;
 
 ASKAP_LOGGER(logger, ".calweightsolver");
 
 // after logger has been initialised
 #include <gridding/AProjectGridderBase.h>
+
+using namespace askap;
+using namespace askap::synthutils;
+using namespace askap::synthesis;
+//using namespace askap::accessors;
 
 /// @brief constructor
 /// @details 

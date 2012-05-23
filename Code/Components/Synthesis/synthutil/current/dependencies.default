@@ -6,3 +6,4 @@ askap=Code/Base/askap/current
 cmdlineparser=3rdParty/cmdlineparser/cmdlineparser-0.1.1
 gsl=3rdParty/gsl/gsl-1.10
 synthesis=Code/Components/Synthesis/synthesis/current
+accessors=Code/Base/accessors/current
