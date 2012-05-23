@@ -38,6 +38,7 @@
 
 #include <boost/shared_ptr.hpp>
 #include <dataaccess/IDataAccessor.h>
+#include <dataaccess/IConstDataAccessor.h>
 #include <dataaccess/SharedIter.h>
 
 #include <boost/shared_ptr.hpp>
@@ -81,7 +82,7 @@ namespace askap
 
                         /// @brief Grid the visibility data.
                         /// @param acc const data accessor to work with
-                        virtual void grid(accessors::IConstDataAccessor& acc) = 0;
+                        virtual void grid(askap::accessors::IConstDataAccessor& acc) = 0;
 
 			/// Form the final output image
 			/// @param out Output double precision image or PSF
@@ -108,7 +109,7 @@ namespace askap
 
                         /// @brief Degrid the visibility data.
                         /// @param[in] acc non-const data accessor to work with  
-                        virtual void degrid(accessors::IDataAccessor& acc) = 0;
+                        virtual void degrid(askap::accessors::IDataAccessor& acc) = 0;
 
 			/// @brief Finalise
 			virtual void finaliseDegrid() = 0;

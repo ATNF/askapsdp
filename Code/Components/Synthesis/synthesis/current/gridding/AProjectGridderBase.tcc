@@ -35,6 +35,8 @@
 #ifndef A_PROJECT_GRIDDER_BASE_TCC
 #define A_PROJECT_GRIDDER_BASE_TCC
 
+#include <askap/AskapLogging.h>
+
 namespace askap {
 
 namespace synthesis {
