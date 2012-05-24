@@ -8,7 +8,11 @@ swcorrelator.duplicate2nd = true
 swcorrelator.makeBeamAnt = false
 swcorrelator.antmap = "9:0,15:1"
 swcorrelator.beammap = "1:0"
+# frequency mapping used in Boolardy
 swcorrelator.freqmap = "15:0,13:1,11:2,9:3,7:4,5:5,1:6,2:7,3:8,4:9,6:10,8:11,10:12,12:13,14:14,16:15"
+# experimental mapping figured out using synthesiser
+swcorrelator.freqmap = "15:2,13:6,11:10,9:13,7:15,5:9,1:1,2:3,3:5,4:7,6:11,8:14,10:12,12:8,14:4,16:0"
+
 #swcorrelator.freqmap = "15:0"
 
 # MS-writer parameters
