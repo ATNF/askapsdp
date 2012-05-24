@@ -53,6 +53,9 @@ namespace synthesis {
 template<typename GridderType>
 boost::shared_ptr<GridderType> AProjectGridderBase::createAProjectGridder(const LOFAR::ParameterSet &parset)
 {
+  // just for logging, declare private handle to avoid issues with template
+  log4cxx::LoggerPtr logger = log4cxx::Logger::getLogger(askap::generateLoggerName(std::string("createAProjectGridder")));
+  //
   const double pointingTol = SynthesisParamsHelper::convertQuantity(
                parset.getString("pointingtolerance", "0.0001rad"),"rad");
   const double paTol = SynthesisParamsHelper::convertQuantity(parset.getString("patolerance", "0.1rad"),"rad");

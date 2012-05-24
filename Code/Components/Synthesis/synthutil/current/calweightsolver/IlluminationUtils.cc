@@ -52,15 +52,14 @@
 #include <casa/Logging/LogIO.h>
 #include <askap/Log4cxxLogSink.h>
 
-ASKAP_LOGGER(logger, ".calweightsolver");
+namespace askap {
+namespace accessors{}}
 
 // after logger has been initialised
 #include <gridding/AProjectGridderBase.h>
 
-using namespace askap;
-using namespace askap::synthutils;
-using namespace askap::synthesis;
-//using namespace askap::accessors;
+namespace askap {
+namespace synthutils {
 
 /// @brief constructor
 /// @details 
@@ -68,7 +67,7 @@ using namespace askap::synthesis;
 /// @param[in] size desired image size
 /// @param[in] cellsize uv-cell size 
 /// @param[in] oversample oversampling factor (default 1) 
-IlluminationUtils::IlluminationUtils(const boost::shared_ptr<IBasicIllumination> &illum,
+IlluminationUtils::IlluminationUtils(const boost::shared_ptr<synthesis::IBasicIllumination> &illum,
         size_t size, double cellsize, size_t oversample) :
         itsElementIllumination(illum), itsIllumination(illum), itsSize(size), 
         itsCellSize(cellsize), itsOverSample(oversample)
@@ -83,7 +82,7 @@ IlluminationUtils::IlluminationUtils(const boost::shared_ptr<IBasicIllumination>
 IlluminationUtils::IlluminationUtils(const std::string &parset)
 {
   LOFAR::ParameterSet params(parset);
-  itsElementIllumination = itsIllumination = AProjectGridderBase::makeIllumination(params);
+  itsElementIllumination = itsIllumination = synthesis::AProjectGridderBase::makeIllumination(params);
   itsCellSize = params.getDouble("cellsize");
 
 
@@ -118,7 +117,7 @@ void IlluminationUtils::useSyntheticPattern(const casa::Matrix<double> &offsets,
        elementOffsets[elem](0) = offsets(elem,0);
        elementOffsets[elem](1) = offsets(elem,1);
   }
-  itsIllumination.reset(new BasicCompositeIllumination(itsElementIllumination,
+  itsIllumination.reset(new synthesis::BasicCompositeIllumination(itsElementIllumination,
                    elementOffsets, weights));
 }
    
@@ -131,7 +130,7 @@ void IlluminationUtils::save(const std::string &name, const std::string &what)
 {
    ASKAPDEBUGASSERT(itsIllumination);
    const double freq=1.4e9;
-   UVPattern pattern(itsSize, itsSize, itsCellSize, itsCellSize, itsOverSample);
+   synthesis::UVPattern pattern(itsSize, itsSize, itsCellSize, itsCellSize, itsOverSample);
    itsIllumination->getPattern(freq, pattern);
    
    casa::Matrix<double> xform(2,2);
@@ -166,7 +165,7 @@ void IlluminationUtils::saveVP(const std::string &name, const std::string &what)
    ASKAPASSERT(itsOverSample>=1);
    ASKAPASSERT(itsSize%2 == 0);
    const double freq=1.4e9;
-   UVPattern pattern(itsSize, itsSize, itsCellSize, itsCellSize, itsOverSample);
+   synthesis::UVPattern pattern(itsSize, itsSize, itsCellSize, itsCellSize, itsOverSample);
    itsIllumination->getPattern(freq, pattern);
    casa::Array<casa::DComplex> scratch(pattern.pattern().copy());
    scimath::fft2d(scratch,false);
@@ -227,3 +226,8 @@ void IlluminationUtils::saveComplexImage(const std::string &name,
        result.setUnits("Jy/pixel");             
    }
 }
+
+}
+
+}
+
