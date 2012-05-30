@@ -41,19 +41,19 @@ echo "Starting the Ice Registry..."
 REG_DB=registry-db
 rm -rf ${REG_DB}
 mkdir -p ${REG_DB}
-nohup icegridregistry --Ice.Config=config.icegridregistry > ${REG_LOG} &
+nohup icegridregistry --Ice.Config=icegridregistry.cfg > ${REG_LOG} &
 REG_PID=$!
-waitIceRegistry config.icegridadmin
+waitIceRegistry icegridadmin.cfg
 
 # Start the cpmanager
 echo "Starting the CP Manager..."
-nohup java askap/cp/manager/CpManager config.cpmanager > ${CPMAN_LOG} &
+nohup java askap/cp/manager/CpManager cpmanager.cfg > ${CPMAN_LOG} &
 PID=$!
-waitIceAdapter config.icegridadmin CentralProcessorAdminAdapter
+waitIceAdapter icegridadmin.cfg CentralProcessorAdminAdapter
 
 # Run the test
 echo "Executing the testcase..."
-python test_transitions.py --Ice.Config=config.icegridadmin
+python test_transitions.py --Ice.Config=icegridadmin.cfg
 STATUS=$?
 
 # Stop the service under test
