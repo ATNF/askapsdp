@@ -16,19 +16,19 @@ echo "Starting the Ice Registry..."
 REG_DB=registry-db
 rm -rf ${REG_DB}
 mkdir -p ${REG_DB}
-nohup icegridregistry --Ice.Config=config.icegridregistry > ${REG_LOG} &
+nohup icegridregistry --Ice.Config=icegridregistry.cfg > ${REG_LOG} &
 REG_PID=$!
-waitIceRegistry config.icegridadmin
+waitIceRegistry icegridadmin.cfg
 
 # Start the service under test
 echo "Starting the Sky Model Service..."
-nohup java -Xmx1024m askap/cp/skymodelsvc/Server --Ice.Config=config.skymodelsvc > ${APP_LOG} &
+nohup java -Xmx1024m askap/cp/skymodelsvc/Server --Ice.Config=skymodelsvc.cfg > ${APP_LOG} &
 PID=$!
-waitIceAdapter config.icegridadmin SkyModelServiceAdminAdapter
+waitIceAdapter icegridadmin.cfg SkyModelServiceAdminAdapter
 
 # Run the test
 echo "Executing the testcase..."
-python test_transitions.py --Ice.Config=config.icegridadmin
+python test_transitions.py --Ice.Config=icegridadmin.cfg
 STATUS=$?
 
 # Stop the service under test
