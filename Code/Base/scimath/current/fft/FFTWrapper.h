@@ -1,7 +1,6 @@
 /// @file FFTWrapper.h
 ///
-/// FFTWrapper: This class provides limited wrapper (adapter) functionality
-/// for the FFTW library
+/// FFTWrapper: This class provides limited wrapper (adapter) functionality for the FFTW library
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -28,23 +27,20 @@
 /// @author Rudolph van der Merwe <rudolph@ska.ac.za>
 ///
 
-#ifndef ASKAP_SCIMATH_FFTWRAPPER_H
-#define ASKAP_SCIMATH_FFTWRAPPER_H
+#ifndef FFTWRAPPER_H_
+#define FFTWRAPPER_H_
 
-// ASKAPsoft includes
 #include <casa/Arrays/Vector.h>
-#include <casa/Arrays/Array.h>
 
 namespace askap
 {
     namespace scimath
     {
-        /// @brief 1-D inplace transform
-        /// @param vec Complex vector
-        /// @param forward Forward transform?
-        /// @ingroup fft
+      /// @brief 1-D inplace transform
+      /// @param vec Complex vector
+      /// @param forward Forward transform?
+      /// @ingroup fft
         void fft(casa::Vector<casa::DComplex>& vec, const bool forward);
-
         /// @brief 1-D inplace transform
         /// @param vec Complex vector
         /// @param forward Forward transform?
@@ -55,13 +51,14 @@ namespace askap
         /// @param arr Complex array
         /// @param forward Forward transform?
         /// @ingroup fft
-        void fft2d(casa::Array<casa::Complex>& arr, const bool forward);
+	void fft2d(casa::Array<casa::Complex>& arr, const bool forward);
 
-        /// @brief FFT first two axes only
+	/// @brief FFT first two axes only
         /// @param arr Complex array
         /// @param forward Forward transform?
         /// @ingroup fft
-        void fft2d(casa::Array<casa::DComplex>& arr, const bool forward);
+	void fft2d(casa::Array<casa::DComplex>& arr, const bool forward);
+
     }
 }
 #endif
