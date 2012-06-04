@@ -7,7 +7,8 @@ ARGS=''
 PROCESSES='j=2'
 
 LINUX_PYTHON='/usr/bin/python2.6'
-MACOSX_PYTHON='/opt/local/bin/python2.6'
+#MACOSX_PYTHON='/opt/local/bin/python2.6'
+MACOSX_PYTHON='/usr/bin/python2.6'
 
 PNAME=`basename $0`
 SDATE=`date`
