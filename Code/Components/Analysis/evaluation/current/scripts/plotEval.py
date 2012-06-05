@@ -28,6 +28,14 @@ if __name__ == '__main__':
     matchfile = inputPars.get_value('matchfile',"matches.txt")
     missfile = inputPars.get_value('missfile',"misses.txt")
 
+    if(not os.access(matchfile,os.F_OK)):
+        print "Match file %s does not exist. Doing no evaluation"%matchfile
+        exit(0)
+
+    if(not os.access(missfile,os.F_OK)):
+        print "Miss file %s does not exist. Doing no evaluation"%missfile
+        exit(0)
+
     plotRefMisses = inputPars.get_value('plotRefMisses',False)
 
     matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,nfree,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
