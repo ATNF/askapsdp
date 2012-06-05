@@ -91,16 +91,24 @@ int main(int argc, const char** argv)
         Matcher matcher(subset);
         matcher.setHeader(image.cube().header());
         matcher.readLists();
-        bool doFixRef = subset.getBool("convolveReference", true);
+	if(matcher.srcListSize()>0 && matcher.refListSize()>0){
+	  bool doFixRef = subset.getBool("convolveReference", true);
 
-        if (doFixRef) matcher.fixRefList(image.getBeamInfo());
-
-        matcher.setTriangleLists();
-        matcher.findMatches();
-        matcher.findOffsets();
-        matcher.addNewMatches();
-        matcher.outputLists();
-	matcher.outputSummary();
+	  if (doFixRef) matcher.fixRefList(image.getBeamInfo());
+	  
+	  matcher.setTriangleLists();
+	  matcher.findMatches();
+	  matcher.findOffsets();
+	  matcher.addNewMatches();
+	  matcher.outputLists();
+	  matcher.outputSummary();
+	}
+	else{
+	  if(matcher.srcListSize()==0) 
+	    ASKAPLOG_WARN_STR(logger, "Source list has zero length - no matching done.");
+	  if(matcher.refListSize()==0) 
+	    ASKAPLOG_WARN_STR(logger, "Reference list has zero length - no matching done.");
+	}
         ASKAPLOG_INFO_STR(logger, "Time for execution of imageQualTest = " << timer.real() << " sec");
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());

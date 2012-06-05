@@ -74,6 +74,9 @@ namespace askap {
                     /// @brief Read in the lists of source and reference objects.
                     void readLists();
 
+		    int srcListSize(){return itsSrcPixList.size();};
+		    int refListSize(){return itsRefPixList.size();};
+
                     /// @brief Manually set the list of source points
                     void setSrcList(std::vector<Point> srclist) {itsSrcPixList = srclist;};
 
