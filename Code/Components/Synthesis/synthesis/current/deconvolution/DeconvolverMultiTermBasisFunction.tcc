@@ -49,6 +49,7 @@ ASKAP_LOGGER(decmtbflogger, ".deconvolution.multitermbasisfunction");
 #include <deconvolution/MultiScaleBasisFunction.h>
 
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <profile/AskapProfiler.h>
 
 namespace askap {
   
@@ -131,6 +132,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::configure(const LOFAR::ParameterSet& parset)
     {        
+        ASKAPTRACE("DeconvolverMultiTermBasisFunction::configure");
       DeconvolverBase<T,FT>::configure(parset);
       
       // Make the basis function
@@ -167,6 +169,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::finalise()
     {
+        ASKAPTRACE("DeconvolverMultiTermBasisFunction::finalise");
       this->updateResiduals(this->itsModel);
       
       for (uInt base=0;base<itsTermBaseFlux.nelements();base++) {
@@ -181,6 +184,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::initialiseForBasisFunction(bool force)
     {
+        ASKAPTRACE("DeconvolverMultiTermBasisFunction::initialiseForBasisFunction");
       if(!force&&!this->itsBasisFunctionChanged) return;
       
       ASKAPLOG_DEBUG_STR(decmtbflogger,
@@ -200,6 +204,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::initialise()
     {
+        ASKAPTRACE("DeconvolverMultiTermBasisFunction::initialise");
       DeconvolverBase<T, FT>::initialise();
       
       // Initialise residuals
@@ -214,6 +219,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::initialiseResidual()
     {
+        ASKAPTRACE("DeconvolverMultiTermBasisFunction::initialiseResidual");
       
       if(!this->itsDirtyChanged) return;
       
@@ -280,6 +286,7 @@ namespace askap {
     template<class T, class FT>
     void DeconvolverMultiTermBasisFunction<T,FT>::initialisePSF()
     {
+        ASKAPTRACE("DeconvolverMultiTermBasisFunction::initialisePSF");
       
       if(!this->itsBasisFunctionChanged) return;
       
@@ -423,6 +430,7 @@ namespace askap {
     template<class T, class FT>
     bool DeconvolverMultiTermBasisFunction<T,FT>::deconvolve()
     {
+        ASKAPTRACE("DeconvolverMultiTermBasisFunction::deconvolve");
       this->initialise();
       
       if (this->control()->targetIter() != 0) {
@@ -450,6 +458,7 @@ namespace askap {
     void DeconvolverMultiTermBasisFunction<T,FT>::chooseComponent(uInt& optimumBase, casa::IPosition& absPeakPos,
 								  T& absPeakVal, Vector<T>& peakValues)
     {
+        ASKAPTRACE("DeconvolverMultiTermBasisFunction:::chooseComponent");
       uInt nBases(this->itsResidualBasis.nelements());
       
       absPeakVal=0.0;
@@ -584,6 +593,7 @@ namespace askap {
     template<class T, class FT>
     bool DeconvolverMultiTermBasisFunction<T,FT>::oneIteration()
     {
+        ASKAPTRACE("DeconvolverMultiTermBasisFunction::oneIteration");
       
       // For the psf convolutions, we only need a small part of the
       // basis functions so we recalculate for that size
