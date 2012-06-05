@@ -137,7 +137,7 @@ fi
 
 mpirun -np 1 \$fluxEval > \$felog
 err=$?
-if [ $err -ne 0 ]; then
+if [ \$err -ne 0 ]; then
     exit $?
 fi
 
@@ -158,12 +158,27 @@ madfm=\\\`grep "MADFM =" \$statlog | awk '{print \\\$3}'\\\`
 madfmAsStddev=\\\`grep MADFMas \$statlog | awk '{print \\\$3}'\\\`
 stddev=\\\`grep Std.Dev \$statlog | awk '{print \\\$3}'\\\`
 numsrc=\\\`grep Found \$sflog | grep sources | awk '{print \\\$10}'\\\`
-numcmpnt=\\\`wc -l duchamp-fitResults.txt | awk '{print \\\$1-2}'\\\`
-nummiss=\\\`awk '\\\$1=="S"' misses.txt | wc -l\\\`
-xoffset=\\\`grep Offsets \$iqlog | awk '{print \\\$15}'\\\`
-xoffseterr=\\\`grep Offsets \$iqlog | awk '{print \\\$17}'\\\`
-yoffset=\\\`grep Offsets \$iqlog | awk '{print \\\$20}'\\\`
-yoffseterr=\\\`grep Offsets \$iqlog | awk '{print \\\$22}'\\\`
+if [ ! -e duchamp-fitResults.txt ] || [ \\\`wc -l duchamp-fitResults.txt\\\` == 0 ]; then
+    numcmpnt=0
+else
+    numcmpnt=\\\`wc -l duchamp-fitResults.txt | awk '{print \\\$1-2}'\\\`
+fi
+if [ ! -e misses.txt ]; then
+    nummiss=0
+else
+    nummiss=\\\`awk '\\\$1=="S"' misses.txt | wc -l\\\`
+fi
+if [ ! -e matches.txt ] || [ ! -e misses.txt ]; then
+    xoffset=0
+    xoffseterr=0
+    yoffset=0
+    yoffseterr=0
+else
+    xoffset=\\\`grep Offsets \$iqlog | awk '{print \\\$15}'\\\`
+    xoffseterr=\\\`grep Offsets \$iqlog | awk '{print \\\$17}'\\\`
+    yoffset=\\\`grep Offsets \$iqlog | awk '{print \\\$20}'\\\`
+    yoffseterr=\\\`grep Offsets \$iqlog | awk '{print \\\$22}'\\\`
+fi
 imagerVersion=\\\`grep synthesis==current log/cimager-cont-clean-${QSUB_CONTCLEAN}.log | grep "(0, " | awk '{print \\\$12}'\\\`
 analysisVersion=\\\`grep analysis==current \$sflog | grep "(0, " | awk '{print \\\$12}'\\\`
 
