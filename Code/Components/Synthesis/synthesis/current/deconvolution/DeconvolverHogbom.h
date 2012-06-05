@@ -1,9 +1,9 @@
-/// @file
+/// @file DeconvolverHogbom.h
 /// @brief Class for a Hogbom-Clean-based deconvolver
 /// @details This interface class defines a deconvolver used to estimate an
 /// image from a dirty image, psf optionally using a mask and a weights image.
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -30,14 +30,14 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_DECONVOLVERHOGBOM_H
-#define I_DECONVOLVERHOGBOM_H
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
+#ifndef ASKAP_SYNTHESIS_DECONVOLVERHOGBOM_H
+#define ASKAP_SYNTHESIS_DECONVOLVERHOGBOM_H
 
 #include <string>
+
+#include <boost/shared_ptr.hpp>
+#include <casa/aips.h>
+#include <casa/Arrays/Array.h>
 
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
@@ -45,67 +45,65 @@
 
 namespace askap {
 
-  namespace synthesis {
+    namespace synthesis {
 
-    /// @brief Class for a deconvolver using the Hogbom Clean algorithm
-    /// @details This base class defines a deconvolver used to estimate an
-    /// image from a dirty image, psf optionally using a mask and a weights image.
-    /// The template argument T is the type, and FT is the transform
-    /// e.g. DeconvolverHogbom<Double, DComplex>
-    /// @ingroup Deconvolver
-    template<class T, class FT> class DeconvolverHogbom : public DeconvolverBase<T, FT> {
+        /// @brief Class for a deconvolver using the Hogbom Clean algorithm
+        /// @details This base class defines a deconvolver used to estimate an
+        /// image from a dirty image, psf optionally using a mask and a weights image.
+        /// The template argument T is the type, and FT is the transform
+        /// e.g. DeconvolverHogbom<Double, DComplex>
+        /// @ingroup Deconvolver
+        template<class T, class FT> class DeconvolverHogbom : public DeconvolverBase<T, FT> {
 
-    public:
-      typedef boost::shared_ptr<DeconvolverHogbom<T, FT> > ShPtr;
-  
-      virtual ~DeconvolverHogbom();
-  
-      /// @brief Construct from dirty image and psf
-      /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF. Note that both dirty image
-      /// and psf can have more than 2 dimensions. We use a vector
-      /// here to allow multiple dirty images and PSFs for the
-      /// same model (e.g. as in MFS)
-      /// @param[in] dirty Dirty image (array)
-      /// @param[in] psf Point Spread Function (array)
-      DeconvolverHogbom(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+            public:
+                typedef boost::shared_ptr<DeconvolverHogbom<T, FT> > ShPtr;
 
-      /// @brief Construct from dirty image and psf
-      /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF. Note that both dirty image
-      /// and psf can have more than 2 dimensions. We keep this
-      /// version for compatibility
-      /// @param[in] dirty Dirty image (array)
-      /// @param[in] psf Point Spread Function (array)
-      DeconvolverHogbom(Array<T>& dirty, Array<T>& psf);
+                virtual ~DeconvolverHogbom();
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
-      virtual bool deconvolve();
+                /// @brief Construct from dirty image and psf
+                /// @detail Construct a deconvolver from a dirty image and
+                /// the corresponding PSF. Note that both dirty image
+                /// and psf can have more than 2 dimensions. We use a vector
+                /// here to allow multiple dirty images and PSFs for the
+                /// same model (e.g. as in MFS)
+                /// @param[in] dirty Dirty image (array)
+                /// @param[in] psf Point Spread Function (array)
+                DeconvolverHogbom(casa::Vector<casa::Array<T> >& dirty,
+                                  casa::Vector<casa::Array<T> >& psf);
 
-      /// @brief Initialize the deconvolution
-      /// @detail Initialise e.g. set weighted mask
-      virtual void initialise();
+                /// @brief Construct from dirty image and psf
+                /// @detail Construct a deconvolver from a dirty image and
+                /// the corresponding PSF. Note that both dirty image
+                /// and psf can have more than 2 dimensions. We keep this
+                /// version for compatibility
+                /// @param[in] dirty Dirty image (array)
+                /// @param[in] psf Point Spread Function (array)
+                DeconvolverHogbom(casa::Array<T>& dirty, casa::Array<T>& psf);
 
-      /// @brief configure basic parameters of the solver
-      /// @details This method encapsulates extraction of basic solver parameters from the parset.
-      /// @param[in] parset parset
-      virtual void configure(const LOFAR::ParameterSet &parset); 
+                /// @brief Perform the deconvolution
+                /// @detail This is the main deconvolution method.
+                virtual bool deconvolve();
 
-    private:
+                /// @brief Initialize the deconvolution
+                /// @detail Initialise e.g. set weighted mask
+                virtual void initialise();
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
-      bool oneIteration();
+                /// @brief configure basic parameters of the solver
+                /// @details This method encapsulates extraction of basic solver parameters from the parset.
+                /// @param[in] parset parset
+                virtual void configure(const LOFAR::ParameterSet &parset);
 
-    };
+            private:
 
-  } // namespace synthesis
+                /// @brief Perform the deconvolution
+                /// @detail This is the main deconvolution method.
+                bool oneIteration();
+        };
+
+    } // namespace synthesis
 
 } // namespace askap
 
 #include <deconvolution/DeconvolverHogbom.tcc>
 
-#endif  // #ifndef I_DECONVOLVERHOGBOM_H
-
-
+#endif

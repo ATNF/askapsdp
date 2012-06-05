@@ -1,9 +1,9 @@
-/// @file
+/// @file EntropyI.h
 /// @brief Base class for a deconvolver
 /// @details This interface class defines a deconvolver used to estimate an
 /// image from a dirty image, psf optionally using a mask and a weights image.
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -30,45 +30,44 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_SYNTHESIS_ENTROPYI_H
-#define I_SYNTHESIS_ENTROPYI_H
+#ifndef ASKAP_SYNTHESIS_ENTROPYI_H
+#define ASKAP_SYNTHESIS_ENTROPYI_H
 
 #include <deconvolution/EntropyBase.h>
 
-using namespace casa;
-
 namespace askap {
-  
-  namespace synthesis {
-    
-    // Base class
-    template<class T>
-    class EntropyI : public EntropyBase<T> {
-    public:
-      
-      typedef boost::shared_ptr<EntropyI<T> > ShPtr;
-      
-      enum GRADTYPE {H=0, C, F, J };
-      
-      // calculate the entropy for the whole image
-      virtual T entropy(const Array<T>& model);
-      
-      // calculate the entropy for the whole image
-      virtual T entropy(const Array<T>& model, const Array<T>& mask);
-      
-      // calculate the gradient entropy for the whole image
-      virtual void gradEntropy(Array<T>& gradH, Array<T>& rHess, const Array<T>& model);
-      
-      // calculate the gradient entropy for the whole image
-      virtual void gradEntropy(Array<T>& gradH, Array<T>& rHess, const Array<T>& model,
-                               const Array<T>& mask);
-      
-    protected:
-      
-    };
-    
-  } // namespace synthesis
-  
+
+    namespace synthesis {
+
+        // Base class
+        template<class T>
+        class EntropyI : public EntropyBase<T> {
+            public:
+
+                typedef boost::shared_ptr<EntropyI<T> > ShPtr;
+
+                enum GRADTYPE {H = 0, C, F, J };
+
+                // calculate the entropy for the whole image
+                virtual T entropy(const casa::Array<T>& model);
+
+                // calculate the entropy for the whole image
+                virtual T entropy(const casa::Array<T>& model, const casa::Array<T>& mask);
+
+                // calculate the gradient entropy for the whole image
+                virtual void gradEntropy(casa::Array<T>& gradH, casa::Array<T>& rHess,
+                                         const casa::Array<T>& model);
+
+                // calculate the gradient entropy for the whole image
+                virtual void gradEntropy(casa::Array<T>& gradH, casa::Array<T>& rHess,
+                                         const casa::Array<T>& model, const casa::Array<T>& mask);
+
+            protected:
+
+        };
+
+    } // namespace synthesis
+
 } // namespace askap
 
 #include <deconvolution/EntropyI.tcc>

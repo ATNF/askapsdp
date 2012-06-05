@@ -1,9 +1,9 @@
-/// @file
+/// @file DeconvolverState.h
 /// @brief Defines the state for a deconvolve
 /// @details This interface class defines a deconvolver used to estimate an
 /// image from a dirty image, psf optionally using a mask and a weights image.
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -30,124 +30,111 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_DECONVOLVERSTATE_H
-#define I_DECONVOLVERSTATE_H
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
+#ifndef ASKAP_SYNTHESIS_DECONVOLVERSTATE_H
+#define ASKAP_SYNTHESIS_DECONVOLVERSTATE_H
 
 #include <string>
 
-using namespace casa;
+#include <casa/aips.h>
+#include <boost/shared_ptr.hpp>
+#include <casa/Arrays/Array.h>
 
 namespace askap {
 
-namespace synthesis {
+    namespace synthesis {
 
-/// @brief Class to hold the state of deconvolution
-/// @details This class attempts to encapsulate the state of 
-/// a deconvolver in a standard way so that termination
-/// and monitoring can be generic.
-/// @ingroup Deconvolver
-template<class T> class DeconvolverState {
+        /// @brief Class to hold the state of deconvolution
+        /// @details This class attempts to encapsulate the state of
+        /// a deconvolver in a standard way so that termination
+        /// and monitoring can be generic.
+        /// @ingroup Deconvolver
+        template<class T> class DeconvolverState {
 
-public:
+            public:
 
-  typedef boost::shared_ptr<DeconvolverState<T> > ShPtr;
+                typedef boost::shared_ptr<DeconvolverState<T> > ShPtr;
 
-  DeconvolverState();
+                DeconvolverState();
 
-  virtual ~DeconvolverState() {};
+                virtual ~DeconvolverState() {};
 
-    void incIter()
-    {
-      itsCurrentIter++;
-    }
+                void incIter() {
+                    itsCurrentIter++;
+                }
 
-    Int currentIter() const
-    {
-        return itsCurrentIter;
-    }
+                casa::Int currentIter() const {
+                    return itsCurrentIter;
+                }
 
-    T peakResidual() const
-    {
-        return itsPeakResidual;
-    }
+                T peakResidual() const {
+                    return itsPeakResidual;
+                }
 
-    T totalFlux() const
-    {
-        return itsTotalFlux;
-    }
+                T totalFlux() const {
+                    return itsTotalFlux;
+                }
 
-    Int startIter() const
-    {
-        return itsStartIter;
-    }
+                casa::Int startIter() const {
+                    return itsStartIter;
+                }
 
-    void setObjectiveFunction(T objectiveFunction) {
-    	itsObjectiveFunction = objectiveFunction;
-	if(itsInitialObjectiveFunction<=T(0.0)) {
-	  itsInitialObjectiveFunction = objectiveFunction;
-	}
-    }
+                void setObjectiveFunction(T objectiveFunction) {
+                    itsObjectiveFunction = objectiveFunction;
+                    if (itsInitialObjectiveFunction <= T(0.0)) {
+                        itsInitialObjectiveFunction = objectiveFunction;
+                    }
+                }
 
-    T objectiveFunction() const {
-    	return itsObjectiveFunction;
-    }
+                T objectiveFunction() const {
+                    return itsObjectiveFunction;
+                }
 
-  void setInitialObjectiveFunction(T objectiveFunction) {
-    	itsInitialObjectiveFunction = objectiveFunction;
-    }
+                void setInitialObjectiveFunction(T objectiveFunction) {
+                    itsInitialObjectiveFunction = objectiveFunction;
+                }
 
-  void resetInitialObjectiveFunction() {
-    itsInitialObjectiveFunction = T(0.0);
-  }
+                void resetInitialObjectiveFunction() {
+                    itsInitialObjectiveFunction = T(0.0);
+                }
 
-    T initialObjectiveFunction() const {
-    	return itsInitialObjectiveFunction;
-    }
+                T initialObjectiveFunction() const {
+                    return itsInitialObjectiveFunction;
+                }
 
-    void setCurrentIter(Int currentIter)
-    {
-        itsCurrentIter = currentIter;
-    }
+                void setCurrentIter(casa::Int currentIter) {
+                    itsCurrentIter = currentIter;
+                }
 
-    void setPeakResidual(T peakResidual)
-    {
-        itsPeakResidual = peakResidual;
-    }
+                void setPeakResidual(T peakResidual) {
+                    itsPeakResidual = peakResidual;
+                }
 
-    void setTotalFlux(T totalFlux)
-    {
-        itsTotalFlux = totalFlux;
-    }
+                void setTotalFlux(T totalFlux) {
+                    itsTotalFlux = totalFlux;
+                }
 
-    void setStartIter(Int startIter)
-    {
-        itsStartIter = startIter;
-    }
+                void setStartIter(casa::Int startIter) {
+                    itsStartIter = startIter;
+                }
 
-  /// Reset the state
-  void reset();
+                /// Reset the state
+                void reset();
 
-private:
+            private:
 
-    Int itsCurrentIter;
-    Int itsStartIter;
-    Int itsEndIter;
-    T itsPeakResidual;
-    T itsTotalFlux;
-    T itsObjectiveFunction;
-    T itsInitialObjectiveFunction;
-};
+                casa::Int itsCurrentIter;
+                casa::Int itsStartIter;
+                casa::Int itsEndIter;
+                T itsPeakResidual;
+                T itsTotalFlux;
+                T itsObjectiveFunction;
+                T itsInitialObjectiveFunction;
+        };
 
-} // namespace synthesis
+    } // namespace synthesis
 
 } // namespace askap
 
 #include <deconvolution/DeconvolverState.tcc>
 
-#endif  // #ifndef I_DECONVOLVER_H
-
-
+#endif

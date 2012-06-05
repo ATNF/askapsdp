@@ -1,3 +1,5 @@
+/// @file DeconvolverFactory.cc
+///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
@@ -22,9 +24,11 @@
 ///
 
 #include <askap_synthesis.h>
+
+#include <askap/AskapError.h>
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".deconvolver.factory");
-
+#include <casa/BasicSL/String.h>   // for downcase
 #include <images/Images/PagedImage.h>
 
 #include <deconvolution/DeconvolverHelpers.h>
@@ -35,76 +39,66 @@ ASKAP_LOGGER(logger, ".deconvolver.factory");
 #include <deconvolution/DeconvolverEntropy.h>
 #include <deconvolution/DeconvolverFista.h>
 #include <deconvolution/DeconvolverHogbom.h>
-
 #include <deconvolution/MultiScaleBasisFunction.h>
 
-#include <askap/AskapError.h>
-
-#include <casa/BasicSL/String.h>   // for downcase
-
-
 namespace askap {
-  namespace synthesis {
-    
-    DeconvolverFactory::DeconvolverFactory() {
+    namespace synthesis {
+
+        DeconvolverFactory::DeconvolverFactory()
+        {
+        }
+
+        DeconvolverBase<Float, Complex>::ShPtr DeconvolverFactory::make(const LOFAR::ParameterSet &parset)
+        {
+
+            DeconvolverBase<Float, Complex>::ShPtr deconvolver;
+
+            if (parset.getString("solver") == "Fista") {
+                ASKAPLOG_INFO_STR(logger, "Constructing Fista deconvolver");
+                Array<Float> dirty(DeconvolverHelpers::getArrayFromImage("dirty", parset));
+                Array<Float> psf(DeconvolverHelpers::getArrayFromImage("psf", parset));
+                deconvolver.reset(new DeconvolverFista<Float, Complex>(dirty, psf));
+                ASKAPASSERT(deconvolver);
+
+                // Now get the control parameters
+                LOFAR::ParameterSet subset(parset.makeSubset("solver.Fista."));
+                deconvolver->configure(subset);
+            } else if (parset.getString("solver") == "Entropy") {
+                ASKAPLOG_INFO_STR(logger, "Constructing Entropy deconvolver");
+                Array<Float> dirty(DeconvolverHelpers::getArrayFromImage("dirty", parset));
+                Array<Float> psf(DeconvolverHelpers::getArrayFromImage("psf", parset));
+                deconvolver.reset(new DeconvolverEntropy<Float, Complex>(dirty, psf));
+                ASKAPASSERT(deconvolver);
+
+                deconvolver->configure(parset.makeSubset("solver.Entropy."));
+            } else {
+                Array<Float> dirty(DeconvolverHelpers::getArrayFromImage("dirty", parset));
+                Array<Float> psf(DeconvolverHelpers::getArrayFromImage("psf", parset));
+
+                string algorithm = parset.getString("solver.Clean.algorithm", "Basisfunction");
+
+                if (algorithm == "Basisfunction") {
+                    ASKAPLOG_INFO_STR(logger, "Constructing Basisfunction Clean solver");
+                    deconvolver.reset(new DeconvolverBasisFunction<Float, Complex>(dirty, psf));
+                    ASKAPASSERT(deconvolver);
+                } else if (algorithm == "MultiTermBasisfunction") {
+                    ASKAPLOG_INFO_STR(logger, "Constructing MultiTermBasisfunction Clean solver");
+                    deconvolver.reset(new DeconvolverMultiTermBasisFunction<Float, Complex>(dirty, psf));
+                    ASKAPASSERT(deconvolver);
+                } else if (algorithm == "Hogbom") {
+                    ASKAPLOG_INFO_STR(logger, "Constructing Hogbom Clean deconvolver");
+                    deconvolver.reset(new DeconvolverHogbom<Float, Complex>(dirty, psf));
+                    ASKAPASSERT(deconvolver);
+                } else {
+                    ASKAPTHROW(AskapError, "Unknown Clean algorithm " << algorithm);
+                }
+                deconvolver->configure(parset.makeSubset("solver.Clean."));
+            }
+            if (parset.getString("weight", "") != "") {
+                deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
+            }
+            return deconvolver;
+
+        }
     }
-    
-    DeconvolverBase<Float, Complex>::ShPtr DeconvolverFactory::make(const LOFAR::ParameterSet &parset) {
-
-      DeconvolverBase<Float, Complex>::ShPtr deconvolver;
-
-      if(parset.getString("solver")=="Fista") {        
-        ASKAPLOG_INFO_STR(logger, "Constructing Fista deconvolver"); 
-	Array<Float> dirty(DeconvolverHelpers::getArrayFromImage("dirty", parset));
-	Array<Float> psf(DeconvolverHelpers::getArrayFromImage("psf", parset));
-	deconvolver.reset(new DeconvolverFista<Float, Complex>(dirty, psf));
-        ASKAPASSERT(deconvolver);
-
-        // Now get the control parameters
-	LOFAR::ParameterSet subset(parset.makeSubset("solver.Fista."));
-        deconvolver->configure(subset);
-      }
-      else if(parset.getString("solver")=="Entropy") {        
-        ASKAPLOG_INFO_STR(logger, "Constructing Entropy deconvolver");
-	Array<Float> dirty(DeconvolverHelpers::getArrayFromImage("dirty", parset));
-	Array<Float> psf(DeconvolverHelpers::getArrayFromImage("psf", parset));
-        deconvolver.reset(new DeconvolverEntropy<Float, Complex>(dirty, psf));
-        ASKAPASSERT(deconvolver);
-
-	deconvolver->configure(parset.makeSubset("solver.Entropy."));
-      }
-      else {
-	Array<Float> dirty(DeconvolverHelpers::getArrayFromImage("dirty", parset));
-	Array<Float> psf(DeconvolverHelpers::getArrayFromImage("psf", parset));
-
-	string algorithm=parset.getString("solver.Clean.algorithm","Basisfunction");
-	
-	if (algorithm=="Basisfunction") {
-	  ASKAPLOG_INFO_STR(logger, "Constructing Basisfunction Clean solver" );
-	  deconvolver.reset(new DeconvolverBasisFunction<Float, Complex>(dirty, psf));
-	  ASKAPASSERT(deconvolver);
-	}
-	else if(algorithm=="MultiTermBasisfunction") {
-	  ASKAPLOG_INFO_STR(logger, "Constructing MultiTermBasisfunction Clean solver" );
-	  deconvolver.reset(new DeconvolverMultiTermBasisFunction<Float, Complex>(dirty, psf));
-	  ASKAPASSERT(deconvolver);
-	}
-	else if(algorithm=="Hogbom") {
-          ASKAPLOG_INFO_STR(logger, "Constructing Hogbom Clean deconvolver");
-          deconvolver.reset(new DeconvolverHogbom<Float, Complex>(dirty, psf));
-	  ASKAPASSERT(deconvolver);
-	}
-	else {
-	  ASKAPTHROW(AskapError, "Unknown Clean algorithm " << algorithm);
-	}
-	deconvolver->configure(parset.makeSubset("solver.Clean."));
-      }
-      if(parset.getString("weight", "")!="") {
-	deconvolver->setWeight(DeconvolverHelpers::getArrayFromImage("weight", parset));
-      }
-      return deconvolver;
-      
-    }
-  }
-
 }

@@ -1,9 +1,9 @@
-/// @file
+/// @file DeconvolverMonitor.h
 /// @brief Base class for monitor of Deconvolver
 /// @details All the monitoring is delegated to this class so that
 /// more control is possible.
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -30,56 +30,53 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_DECONVOLVERMONITOR_H
-#define I_DECONVOLVERMONITOR_H
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
+#ifndef ASKAP_SYNTHESIS_DECONVOLVERMONITOR_H
+#define ASKAP_SYNTHESIS_DECONVOLVERMONITOR_H
 
 #include <string>
 
-#include <deconvolution/DeconvolverState.h>
-
+#include <casa/aips.h>
+#include <boost/shared_ptr.hpp>
+#include <casa/Arrays/Array.h>
 #include <Common/ParameterSet.h>
+
+#include <deconvolution/DeconvolverState.h>
 
 namespace askap {
 
-namespace synthesis {
+    namespace synthesis {
 
-/// @brief Base class for monitor of Deconvolver
-/// @details All the monitoring is delegated to this class so that
-/// more control is possible.
-/// @ingroup Deconvolver
+        /// @brief Base class for monitor of Deconvolver
+        /// @details All the monitoring is delegated to this class so that
+        /// more control is possible.
+        /// @ingroup Deconvolver
+        template<class T> class DeconvolverMonitor {
 
-template<class T> class DeconvolverMonitor {
+            public:
+                typedef boost::shared_ptr<DeconvolverMonitor<T> > ShPtr;
 
-public:
-  typedef boost::shared_ptr<DeconvolverMonitor<T> > ShPtr;
-  
-  DeconvolverMonitor();
-  
-  virtual ~DeconvolverMonitor() {};
-  
-  /// Monitor the current state
-  virtual void monitor(const DeconvolverState<T>& ds);
+                DeconvolverMonitor();
 
-  /// @brief configure basic parameters
-  /// @details This method encapsulates extraction of basic parameters from the parset.
-  /// @param[in] parset parset
-  virtual void configure(const LOFAR::ParameterSet &parset); 
+                virtual ~DeconvolverMonitor() {};
 
-private:
+                /// Monitor the current state
+                virtual void monitor(const DeconvolverState<T>& ds);
 
-  Bool itsVerbose;
-  uInt itsLogEvery;
-};
+                /// @brief configure basic parameters
+                /// @details This method encapsulates extraction of basic parameters from the parset.
+                /// @param[in] parset parset
+                virtual void configure(const LOFAR::ParameterSet &parset);
 
-} // namespace synthesis
+            private:
+
+                casa::Bool itsVerbose;
+                casa::uInt itsLogEvery;
+        };
+
+    } // namespace synthesis
 
 } // namespace askap
 
 #include <deconvolution/DeconvolverMonitor.tcc>
 
 #endif
-

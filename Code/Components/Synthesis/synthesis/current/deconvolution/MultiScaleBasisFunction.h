@@ -1,8 +1,8 @@
-/// @file
+/// @file 
 /// @brief Holder fo multiscale functions
 /// @details Holder for multiscale functions used in deconvolution
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -29,71 +29,70 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_MULTISCALEBASISFUNCTION_H
-#define I_MULTISCALEBASISFUNCTION_H
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
-#include <deconvolution/BasisFunction.h>
+#ifndef ASKAP_SYNTHESIS_MULTISCALEBASISFUNCTION_H
+#define ASKAP_SYNTHESIS_MULTISCALEBASISFUNCTION_H
 
 #include <string>
 
-using namespace casa;
+#include <casa/aips.h>
+#include <boost/shared_ptr.hpp>
+#include <casa/Arrays/Array.h>
+
+#include <deconvolution/BasisFunction.h>
 
 namespace askap {
-  
-  namespace synthesis {
-    
-    /// @brief Holder for multiscale basis functions used in MSClean
-    /// @details The basis functions used here are those used in 
-    /// MSClean - invert parabolas in radius with a prolate
-    /// spheroidal wave function multipled in. This looks
-    /// Gaussian-ish but has the virtue of limited support.
-    /// If you want to change the shape of the blobs, make
-    /// another class to hold it.
-    /// @ingroup Deconvolver
-    
-    template<typename T>
-    class MultiScaleBasisFunction : public BasisFunction<T> {
-      
-    public:
-      typedef boost::shared_ptr<MultiScaleBasisFunction<T> > ShPtr;
-      
-      /// @brief Construct
-      /// @details Set up internals - shape not set yet
-      /// @param[in] scales Scale (in pixels) of each blob
-      /// @param[in] orthogonal Orthogonalise using Gram-Schmidt
-      MultiScaleBasisFunction(const Vector<Float>& scales, const Bool orthogonal=false);
-      
-      /// @brief Construct with specified shape
-      /// @details Set up internals for specified shape
-      /// @param[in] shape Shape of first two axes
-      /// @param[in] scales Scale (in pixels) of each blob
-      /// @param[in] orthogonal Orthogonalise using Gram-Schmidt
-      MultiScaleBasisFunction(const IPosition shape, const Vector<Float>& scales,
-                              const Bool orthogonal=false);
-      
-      /// @brief Specify shape and fill in array
-      /// @details The first two axes are set from shape, and the
-      /// array is then filled in with the calculated values.
-      /// @param[in] shape Shape of first two axes
-      virtual void initialise(const IPosition shape);
-      
-    private:
-      /// Vector of scales (in pixels)
-      Vector<Float> itsScales;
 
-      /// Ancient routine (originally from F. Schwab) to calculate the PSWF.
-      T spheroidal(T nu);
-    };
-    
-  } // namespace synthesis
-  
+    namespace synthesis {
+
+        /// @brief Holder for multiscale basis functions used in MSClean
+        /// @details The basis functions used here are those used in
+        /// MSClean - invert parabolas in radius with a prolate
+        /// spheroidal wave function multipled in. This looks
+        /// Gaussian-ish but has the virtue of limited support.
+        /// If you want to change the shape of the blobs, make
+        /// another class to hold it.
+        /// @ingroup Deconvolver
+
+        template<typename T>
+        class MultiScaleBasisFunction : public BasisFunction<T> {
+
+            public:
+                typedef boost::shared_ptr<MultiScaleBasisFunction<T> > ShPtr;
+
+                /// @brief Construct
+                /// @details Set up internals - shape not set yet
+                /// @param[in] scales Scale (in pixels) of each blob
+                /// @param[in] orthogonal Orthogonalise using Gram-Schmidt
+                MultiScaleBasisFunction(const casa::Vector<casa::Float>& scales,
+                                        const casa::Bool orthogonal = false);
+
+                /// @brief Construct with specified shape
+                /// @details Set up internals for specified shape
+                /// @param[in] shape Shape of first two axes
+                /// @param[in] scales Scale (in pixels) of each blob
+                /// @param[in] orthogonal Orthogonalise using Gram-Schmidt
+                MultiScaleBasisFunction(const casa::IPosition shape,
+                                        const casa::Vector<casa::Float>& scales,
+                                        const casa::Bool orthogonal = false);
+
+                /// @brief Specify shape and fill in array
+                /// @details The first two axes are set from shape, and the
+                /// array is then filled in with the calculated values.
+                /// @param[in] shape Shape of first two axes
+                virtual void initialise(const casa::IPosition shape);
+
+            private:
+                /// Vector of scales (in pixels)
+                casa::Vector<casa::Float> itsScales;
+
+                /// Ancient routine (originally from F. Schwab) to calculate the PSWF.
+                T spheroidal(T nu);
+        };
+
+    } // namespace synthesis
+
 } // namespace askap
 
 #include <deconvolution/MultiScaleBasisFunction.tcc>
 
 #endif
-
-

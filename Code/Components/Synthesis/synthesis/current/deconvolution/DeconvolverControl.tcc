@@ -1,9 +1,9 @@
-/// @file
+/// @file DeconvolverControl.tcc
 /// @brief Base class for Control of Deconvolver
 /// @details All the Controling is delegated to this class so that
 /// more control is possible.
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -31,116 +31,118 @@
 ///
 
 #include <askap_synthesis.h>
-#include <askap/AskapLogging.h>
-ASKAP_LOGGER(decctllogger, ".deconvolution.control");
 
 #include <casa/aips.h>
 #include <askap/SignalManagerSingleton.h>
+#include <askap/AskapLogging.h>
+ASKAP_LOGGER(decctllogger, ".deconvolution.control");
+
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
 
 using namespace casa;
 
 namespace askap {
-  
-  namespace synthesis {
-    
-    
-    template<class T>
-    DeconvolverControl<T>::DeconvolverControl() :
-      itsAlgorithm(""), itsTerminationCause(NOTTERMINATED), itsTargetIter(1),
-      itsTargetObjectiveFunction(T(0)), itsTargetFlux(T(0.0)),
-      itsGain(1.0), itsTolerance(1e-4),
-      itsPSFWidth(0), itsLambda(T(100.0))
-    {
-        // Install a signal handler to count signals so receipt of a signal
-        // can be used to terminate the minor-cycle loop
-        itsOldHandler = SignalManagerSingleton::instance()->registerHandler(SIGUSR2, &itsSignalCounter);
-    };
-    
-    template<class T>
-    DeconvolverControl<T>::~DeconvolverControl()
-    {
-        itsOldHandler = SignalManagerSingleton::instance()->registerHandler(SIGUSR2, itsOldHandler);
-    }
 
-    /// Control the current state
-    template<class T>
-    Bool DeconvolverControl<T>::terminate(const DeconvolverState<T>& state) {
+    namespace synthesis {
 
-      // Check for convergence
-      if(abs(state.objectiveFunction())<this->itsTargetObjectiveFunction) {
-        ASKAPLOG_INFO_STR(decctllogger, "Objective function " << state.objectiveFunction()
-                          << " less than target " << itsTargetObjectiveFunction);
-        itsTerminationCause = CONVERGED;
-        return True;
-      }
-      //
-      if(abs(state.objectiveFunction())<this->itsFractionalThreshold*state.initialObjectiveFunction()) {
-        ASKAPLOG_INFO_STR(decctllogger, "Objective function " << state.objectiveFunction()
-                          << " less than fractional threshold " << itsFractionalThreshold
-                          << " * initialObjectiveFunction : " << state.initialObjectiveFunction());
-        itsTerminationCause = CONVERGED;
-        return True;
-      }
+        template<class T>
+        DeconvolverControl<T>::DeconvolverControl() :
+                itsAlgorithm(""), itsTerminationCause(NOTTERMINATED), itsTargetIter(1),
+                itsTargetObjectiveFunction(T(0)), itsTargetFlux(T(0.0)),
+                itsGain(1.0), itsTolerance(1e-4),
+                itsPSFWidth(0), itsLambda(T(100.0))
+        {
+            // Install a signal handler to count signals so receipt of a signal
+            // can be used to terminate the minor-cycle loop
+            itsOldHandler = SignalManagerSingleton::instance()->registerHandler(SIGUSR2, &itsSignalCounter);
+        };
 
-      // Terminate if the target number of iterations is not set
-      ASKAPCHECK(this->targetIter()>0, "Target number of iterations not set");
+        template<class T>
+        DeconvolverControl<T>::~DeconvolverControl()
+        {
+            itsOldHandler = SignalManagerSingleton::instance()->registerHandler(SIGUSR2, itsOldHandler);
+        }
 
-      // Check for too many iterations
-      if((state.currentIter()>-1)&&(this->targetIter()>0)&&(state.currentIter()>=this->targetIter())) {
-        itsTerminationCause = EXCEEDEDITERATIONS;
-        return True;
-      }
-      // Check for external signal
-      if (itsSignalCounter.getCount() > 0) {
-          itsTerminationCause = SIGNALED;
-          itsSignalCounter.resetCount(); // This signal has been actioned, so reset
-          return True;
-      }
-      return False;
-    }
+        /// Control the current state
+        template<class T>
+        Bool DeconvolverControl<T>::terminate(const DeconvolverState<T>& state)
+        {
+            // Check for convergence
+            if (abs(state.objectiveFunction()) < this->itsTargetObjectiveFunction) {
+                ASKAPLOG_INFO_STR(decctllogger, "Objective function " << state.objectiveFunction()
+                                      << " less than target " << itsTargetObjectiveFunction);
+                itsTerminationCause = CONVERGED;
+                return True;
+            }
+            //
+            if (abs(state.objectiveFunction()) < this->itsFractionalThreshold*state.initialObjectiveFunction()) {
+                ASKAPLOG_INFO_STR(decctllogger, "Objective function " << state.objectiveFunction()
+                                      << " less than fractional threshold " << itsFractionalThreshold
+                                      << " * initialObjectiveFunction : " << state.initialObjectiveFunction());
+                itsTerminationCause = CONVERGED;
+                return True;
+            }
 
-    template<class T>
-    String DeconvolverControl<T>::terminationString() const {
-      switch (itsTerminationCause) {
-      case CONVERGED:
-        return String("Converged");
-        break;
-      case DIVERGED:
-        return String("Diverged");
-        break;
-      case EXCEEDEDITERATIONS:
-        return String("Exceeded maximum number of iterations");
-        break;
-      case SIGNALED:
-        return String("Signaled to terminate");
-        break;
-      case NOTTERMINATED:
-        return String("Not yet terminated");
-        break;
-      case UNKNOWN:
-        return String("Termination for unknown reason");
-        break;
-      default:
-        return String("Logic error in termination");
-        break;
-      }
-    }
-    
-    template<class T>
-    void DeconvolverControl<T>::configure(const LOFAR::ParameterSet& parset)
-    {        
-      this->setGain(parset.getFloat("gain", 0.1));
-      this->setTolerance(parset.getFloat("tolerance", 1e-3));
-      this->setTargetIter(parset.getInt32("niter", 100));
-      this->setTargetFlux(parset.getFloat("targetflux", 0));
-      this->setTargetObjectiveFunction(parset.getFloat("targetobjective", 0.0));
-      this->setFractionalThreshold(parset.getFloat("fractionalthreshold", 0.0));
-      this->setLambda(parset.getFloat("lambda", 0.0001));
-      this->setPSFWidth(parset.getInt32("psfwidth", 0));
-    }
+            // Terminate if the target number of iterations is not set
+            ASKAPCHECK(this->targetIter() > 0, "Target number of iterations not set");
 
-  } // namespace synthesis
-  
+            // Check for too many iterations
+            if ((state.currentIter() > -1) && (this->targetIter() > 0) && (state.currentIter() >= this->targetIter())) {
+                itsTerminationCause = EXCEEDEDITERATIONS;
+                return True;
+            }
+
+            // Check for external signal
+            if (itsSignalCounter.getCount() > 0) {
+                itsTerminationCause = SIGNALED;
+                itsSignalCounter.resetCount(); // This signal has been actioned, so reset
+                return True;
+            }
+            return False;
+        }
+
+        template<class T>
+        String DeconvolverControl<T>::terminationString() const
+        {
+            switch (itsTerminationCause) {
+                case CONVERGED:
+                    return String("Converged");
+                    break;
+                case DIVERGED:
+                    return String("Diverged");
+                    break;
+                case EXCEEDEDITERATIONS:
+                    return String("Exceeded maximum number of iterations");
+                    break;
+                case SIGNALED:
+                    return String("Signaled to terminate");
+                    break;
+                case NOTTERMINATED:
+                    return String("Not yet terminated");
+                    break;
+                case UNKNOWN:
+                    return String("Termination for unknown reason");
+                    break;
+                default:
+                    return String("Logic error in termination");
+                    break;
+            }
+        }
+
+        template<class T>
+        void DeconvolverControl<T>::configure(const LOFAR::ParameterSet& parset)
+        {
+            this->setGain(parset.getFloat("gain", 0.1));
+            this->setTolerance(parset.getFloat("tolerance", 1e-3));
+            this->setTargetIter(parset.getInt32("niter", 100));
+            this->setTargetFlux(parset.getFloat("targetflux", 0));
+            this->setTargetObjectiveFunction(parset.getFloat("targetobjective", 0.0));
+            this->setFractionalThreshold(parset.getFloat("fractionalthreshold", 0.0));
+            this->setLambda(parset.getFloat("lambda", 0.0001));
+            this->setPSFWidth(parset.getInt32("psfwidth", 0));
+        }
+
+    } // namespace synthesis
+
 } // namespace askap

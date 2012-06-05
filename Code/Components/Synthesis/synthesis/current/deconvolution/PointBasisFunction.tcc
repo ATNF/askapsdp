@@ -2,7 +2,7 @@
 /// @brief Basis Function for a point source
 /// @details Holds basis function for a point source
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -30,39 +30,40 @@
 ///
 
 #include <askap_synthesis.h>
+
 #include <askap/AskapLogging.h>
+#include <casa/aips.h>
 ASKAP_LOGGER(decpointbaselogger, ".deconvolution.pointbasis");
 
-#include <casa/aips.h>
 #include <deconvolution/PointBasisFunction.h>
 
 using namespace casa;
 
 namespace askap {
-  
-  namespace synthesis {
-    
-    template<class T>
-    PointBasisFunction<T>::PointBasisFunction() :
-      BasisFunction<T>::BasisFunction()
-    {
-    };
-    
-    template<class T>
-    PointBasisFunction<T>::PointBasisFunction(const IPosition shape) :
-      BasisFunction<T>::BasisFunction()
-    {
-      initialise(shape);
-    };
-    
-    template<class T>
-    void PointBasisFunction<T>::initialise(const IPosition shape)
-    {
-      IPosition centre(3, shape[0]/2, shape[1]/2, 0);
-      BasisFunction<T>::itsBasisFunction.resize(IPosition(3, shape[0], shape[1], 1));
-      BasisFunction<T>::itsBasisFunction(centre)=T(1.0);
-    };
-    
-  } // namespace synthesis
-  
+
+    namespace synthesis {
+
+        template<class T>
+        PointBasisFunction<T>::PointBasisFunction() :
+                BasisFunction<T>::BasisFunction()
+        {
+        };
+
+        template<class T>
+        PointBasisFunction<T>::PointBasisFunction(const IPosition shape) :
+                BasisFunction<T>::BasisFunction()
+        {
+            initialise(shape);
+        };
+
+        template<class T>
+        void PointBasisFunction<T>::initialise(const IPosition shape)
+        {
+            const IPosition centre(3, shape[0] / 2, shape[1] / 2, 0);
+            BasisFunction<T>::itsBasisFunction.resize(IPosition(3, shape[0], shape[1], 1));
+            BasisFunction<T>::itsBasisFunction(centre) = T(1.0);
+        };
+
+    } // namespace synthesis
+
 } // namespace askap

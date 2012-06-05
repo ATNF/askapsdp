@@ -1,9 +1,9 @@
-/// @file
+/// @file DeconvolverBase.h
 /// @brief Base class for a deconvolver
 /// @details This interface class defines a deconvolver used to estimate an
 /// image from a dirty image, psf optionally using a mask and a weights image.
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -30,211 +30,211 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_DECONVOLVERBASE_H
-#define I_DECONVOLVERBASE_H
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
+#ifndef ASKAP_SYNTHESIS_DECONVOLVERBASE_H
+#define ASKAP_SYNTHESIS_DECONVOLVERBASE_H
 
 #include <string>
+
+#include <boost/shared_ptr.hpp>
+#include <Common/ParameterSet.h>
+#include <casa/aips.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/Vector.h>
 
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
 #include <deconvolution/DeconvolverMonitor.h>
 
-#include <Common/ParameterSet.h>
-
 namespace askap {
 
-  namespace synthesis {
+    namespace synthesis {
 
-    /// @brief Base class for a deconvolver
-    /// @details This base class defines a deconvolver used to estimate an
-    /// image from a dirty image, psf optionally using a mask and a weights image.
-    /// The template argument T is the type, and FT is the transform
-    /// e.g. Deconvolver<Double, DComplex>
-    /// The interface is by Array<T>'s holding the various arrays
-    /// Usually the arrays are 2-D. However, in the case of e.g. MSMFS the
-    /// third axis will be the taylor terms.
-    /// @ingroup Deconvolver
-    template<class T, class FT> class DeconvolverBase {
+        /// @brief Base class for a deconvolver
+        /// @details This base class defines a deconvolver used to estimate an
+        /// image from a dirty image, psf optionally using a mask and a weights image.
+        /// The template argument T is the type, and FT is the transform
+        /// e.g. Deconvolver<Double, DComplex>
+        /// The interface is by casa::Array<T>'s holding the various arrays
+        /// Usually the arrays are 2-D. However, in the case of e.g. MSMFS the
+        /// third axis will be the taylor terms.
+        /// @ingroup Deconvolver
+        template<class T, class FT> class DeconvolverBase {
 
-    public:
-      typedef boost::shared_ptr<DeconvolverBase<T, FT> > ShPtr;
-  
-      virtual ~DeconvolverBase();
-  
-      /// @brief Construct from dirty image and psf
-      /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF. Note that both dirty image
-      /// and psf can have more than 2 dimensions. We use a vector
-      /// here to allow multiple dirty images and PSFs for the
-      /// same model (e.g. as in MFS)
-      /// @param[in] dirty Dirty image (array)
-      /// @param[in] psf Point Spread Function (array)
-      DeconvolverBase(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+            public:
+                typedef boost::shared_ptr<DeconvolverBase<T, FT> > ShPtr;
 
-      /// @brief Construct from dirty image and psf
-      /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF. Note that both dirty image
-      /// and psf can have more than 2 dimensions. We keep this
-      /// version for compatibility
-      /// @param[in] dirty Dirty image (array)
-      /// @param[in] psf Point Spread Function (array)
-      DeconvolverBase(Array<T>& dirty, Array<T>& psf);
+                virtual ~DeconvolverBase();
 
-      /// @brief Get the current dirty image
-      /// @detail Get the current dirty image
-      Array<T>& dirty(const uInt term=0);
+                /// @brief Construct from dirty image and psf
+                /// @detail Construct a deconvolver from a dirty image and
+                /// the corresponding PSF. Note that both dirty image
+                /// and psf can have more than 2 dimensions. We use a vector
+                /// here to allow multiple dirty images and PSFs for the
+                /// same model (e.g. as in MFS)
+                /// @param[in] dirty Dirty image (array)
+                /// @param[in] psf Point Spread Function (array)
+                DeconvolverBase(casa::Vector<casa::Array<T> >& dirty, casa::Vector<casa::Array<T> >& psf);
 
-      /// @brief Get the current PSF
-      /// @detail Get the current PSF
-      Array<T>& psf(const uInt term=0);
+                /// @brief Construct from dirty image and psf
+                /// @detail Construct a deconvolver from a dirty image and
+                /// the corresponding PSF. Note that both dirty image
+                /// and psf can have more than 2 dimensions. We keep this
+                /// version for compatibility
+                /// @param[in] dirty Dirty image (array)
+                /// @param[in] psf Point Spread Function (array)
+                DeconvolverBase(casa::Array<T>& dirty, casa::Array<T>& psf);
 
-      /// @brief Set the initial model
-      /// @detail Set the model from which iteration will start
-      void setModel(const Array<T> model, const uInt term=0);
+                /// @brief Get the current dirty image
+                /// @detail Get the current dirty image
+                casa::Array<T>& dirty(const casa::uInt term = 0);
 
-      /// @brief Get the current model
-      /// @detail Get the current model
-      /// @param[out] model Model image (array)
-      Array<T>& model(const uInt term=0);
+                /// @brief Get the current PSF
+                /// @detail Get the current PSF
+                casa::Array<T>& psf(const casa::uInt term = 0);
 
-      /// @brief Update only the dirty image
-      /// @detail Update an existing deconvolver for a changed dirty image
-      /// @param[in] dirty Dirty image (array)
-      /// @param[in] term term to update
-      virtual void updateDirty(Array<T>& dirty, const uInt term=0);
+                /// @brief Set the initial model
+                /// @detail Set the model from which iteration will start
+                void setModel(const casa::Array<T> model, const casa::uInt term = 0);
 
-      /// @brief Update only the dirty images
-      /// @detail Update an existing deconvolver for a changed dirty images.
-      /// @param[in] dirty Dirty image (vector of arrays)
-      virtual void updateDirty(Vector<Array<T> >& dirty);
+                /// @brief Get the current model
+                /// @detail Get the current model
+                /// @param[out] model Model image (array)
+                casa::Array<T>& model(const casa::uInt term = 0);
 
-      /// @brief Set the weight image
-      /// @detail The weights image (actually the sqrt) is used to 
-      /// aid the deconvolution. The weights image is proportional
-      /// to 1/sigma**2
-      /// @param[in] weights Weights (array)
-      void setWeight(Array<T> weight, const uInt term=0);
+                /// @brief Update only the dirty image
+                /// @detail Update an existing deconvolver for a changed dirty image
+                /// @param[in] dirty Dirty image (array)
+                /// @param[in] term term to update
+                virtual void updateDirty(casa::Array<T>& dirty, const casa::uInt term = 0);
 
-      /// @brief Get the weight image
-      /// @detail Get the weight
-      /// @param[out] weight (array)
-      Array<T> & weight(const uInt term=0);
+                /// @brief Update only the dirty images
+                /// @detail Update an existing deconvolver for a changed dirty images.
+                /// @param[in] dirty Dirty image (vector of arrays)
+                virtual void updateDirty(casa::Vector<casa::Array<T> >& dirty);
 
-      /// @brief Set the control
-      /// @detail The control is used to hold all the information
-      /// required to control the algorithm. All decisions
-      /// regarding e.g. stopping are delegated to this class.
-      /// @param[in] state Shared pointer to the control
-      bool setControl(boost::shared_ptr<DeconvolverControl<T> > control);
-      boost::shared_ptr<DeconvolverControl<T> > control() const;
+                /// @brief Set the weight image
+                /// @detail The weights image (actually the sqrt) is used to
+                /// aid the deconvolution. The weights image is proportional
+                /// to 1/sigma**2
+                /// @param[in] weights Weights (array)
+                void setWeight(casa::Array<T> weight, const casa::uInt term = 0);
 
-      /// @brief Set the monitor
-      /// @detail The monitor is used to monitor the algorithm. 
-      /// All standard monitoring is performed by this class.
-      /// @param[in] state Shared pointer to the monitor
-      bool setMonitor(boost::shared_ptr<DeconvolverMonitor<T> > monitor);
-      boost::shared_ptr<DeconvolverMonitor<T> > monitor() const;
+                /// @brief Get the weight image
+                /// @detail Get the weight
+                /// @param[out] weight (array)
+                casa::Array<T> & weight(const casa::uInt term = 0);
+
+                /// @brief Set the control
+                /// @detail The control is used to hold all the information
+                /// required to control the algorithm. All decisions
+                /// regarding e.g. stopping are delegated to this class.
+                /// @param[in] state Shared pointer to the control
+                bool setControl(boost::shared_ptr<DeconvolverControl<T> > control);
+                boost::shared_ptr<DeconvolverControl<T> > control() const;
+
+                /// @brief Set the monitor
+                /// @detail The monitor is used to monitor the algorithm.
+                /// All standard monitoring is performed by this class.
+                /// @param[in] state Shared pointer to the monitor
+                bool setMonitor(boost::shared_ptr<DeconvolverMonitor<T> > monitor);
+                boost::shared_ptr<DeconvolverMonitor<T> > monitor() const;
 
 
-      /// @brief Set the state
-      /// @detail The state class is used to communicate to the
-      /// monitor class or to other classes.
-      /// @param[in] state Shared pointer to the state
-      bool setState(boost::shared_ptr<DeconvolverState<T> > state);
-      boost::shared_ptr<DeconvolverState<T> > state() const;
+                /// @brief Set the state
+                /// @detail The state class is used to communicate to the
+                /// monitor class or to other classes.
+                /// @param[in] state Shared pointer to the state
+                bool setState(boost::shared_ptr<DeconvolverState<T> > state);
+                boost::shared_ptr<DeconvolverState<T> > state() const;
 
-      // @brief Perform the deconvolution
-      // @detail This is the main deconvolution method.
-      virtual bool deconvolve();
+                // @brief Perform the deconvolution
+                // @detail This is the main deconvolution method.
+                virtual bool deconvolve();
 
-      /// @brief Update the residuals
-      /// @detail Update the residuals for this model.
-      /// This usually requires convolution of the model with
-      /// the specified PSF and subtraction from the dirty image.
-      virtual void updateResiduals(Vector<Array<T> >& model);
+                /// @brief Update the residuals
+                /// @detail Update the residuals for this model.
+                /// This usually requires convolution of the model with
+                /// the specified PSF and subtraction from the dirty image.
+                virtual void updateResiduals(casa::Vector<casa::Array<T> >& model);
 
-      /// @brief Update the residuals: keep for compatibility
-      /// @detail Update the residuals for this model.
-      /// This usually requires convolution of the model with
-      /// the specified PSF and subtraction from the dirty image.
-      virtual void updateResiduals(Array<T>& model);
+                /// @brief Update the residuals: keep for compatibility
+                /// @detail Update the residuals for this model.
+                /// This usually requires convolution of the model with
+                /// the specified PSF and subtraction from the dirty image.
+                virtual void updateResiduals(casa::Array<T>& model);
 
-      /// @brief Restore with specified beam
-      /// @detail Restore the model by smoothing
-      /// and adding residuals
-      virtual bool restore(Vector<Array<T> >& restored, Vector<Array<T> >& model);
+                /// @brief Restore with specified beam
+                /// @detail Restore the model by smoothing
+                /// and adding residuals
+                virtual bool restore(casa::Vector<casa::Array<T> >& restored, casa::Vector<casa::Array<T> >& model);
 
-      /// @brief Restore with specified beam
-      /// @detail Restore the model by smoothing
-      /// and adding residuals
-      virtual bool restore(Vector<Array<T> >& restored);
+                /// @brief Restore with specified beam
+                /// @detail Restore the model by smoothing
+                /// and adding residuals
+                virtual bool restore(casa::Vector<casa::Array<T> >& restored);
 
-      /// @brief Initialize the deconvolution
-      /// @detail Initialise e.g. set weights
-      virtual void initialise();
+                /// @brief Initialize the deconvolution
+                /// @detail Initialise e.g. set weights
+                virtual void initialise();
 
-      /// @brief Finalise the deconvolution
-      /// @detail Finalise any calculations needed at the end
-      /// of iteration
-      virtual void finalise();
+                /// @brief Finalise the deconvolution
+                /// @detail Finalise any calculations needed at the end
+                /// of iteration
+                virtual void finalise();
 
-      /// @brief configure basic parameters of the solver
-      /// @details This method encapsulates extraction of basic solver parameters from the parset.
-      /// @param[in] parset parset
-      virtual void configure(const LOFAR::ParameterSet &parset); 
-      
-      protected:
+                /// @brief configure basic parameters of the solver
+                /// @details This method encapsulates extraction of basic solver parameters from the parset.
+                /// @param[in] parset parset
+                virtual void configure(const LOFAR::ParameterSet &parset);
 
-      // Number of terms in the expansion > 0
-      uInt itsNumberTerms;
+            protected:
 
-      // Initialise for both constructors
-      void init(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+                // Number of terms in the expansion > 0
+                casa::uInt itsNumberTerms;
 
-      // Validate the various shapes to ensure consistency
-      void validateShapes();
+                // Initialise for both constructors
+                void init(casa::Vector<casa::Array<T> >& dirty, casa::Vector<casa::Array<T> >& psf);
 
-      Vector<Array<T> > itsDirty;
+                // Validate the various shapes to ensure consistency
+                void validateShapes();
 
-      Vector<Array<T> > itsPsf;
+                casa::Vector<casa::Array<T> > itsDirty;
 
-      Vector<Array<T> > itsModel;
+                casa::Vector<casa::Array<T> > itsPsf;
 
-      Vector<Array<T> > itsWeight;
+                casa::Vector<casa::Array<T> > itsModel;
 
-      /// The state of the deconvolver
-      boost::shared_ptr<DeconvolverState<T> > itsDS;
+                casa::Vector<casa::Array<T> > itsWeight;
 
-      /// The control used for the deconvolver
-      boost::shared_ptr<DeconvolverControl<T> > itsDC;
+                /// The state of the deconvolver
+                boost::shared_ptr<DeconvolverState<T> > itsDS;
 
-      // Find the shape of the PSF to be used, this includes
-      // the effects of psfwidth
-      IPosition findSubPsfShape();
+                /// The control used for the deconvolver
+                boost::shared_ptr<DeconvolverControl<T> > itsDC;
 
-      /// The monitor used for the deconvolver
-      boost::shared_ptr<DeconvolverMonitor<T> > itsDM;
+                // Find the shape of the PSF to be used, this includes
+                // the effects of psfwidth
+                IPosition findSubPsfShape();
 
-      // Peak and location of peak of PSF(0)
-      casa::IPosition itsPeakPSFPos;
-      T itsPeakPSFVal;
+                /// The monitor used for the deconvolver
+                boost::shared_ptr<DeconvolverMonitor<T> > itsDM;
 
-      // Beam information, in pixels
-      float itsBMaj;
-      float itsBMin;
-      float itsBPa;
+                // Peak and location of peak of PSF(0)
+                casa::IPosition itsPeakPSFPos;
+                T itsPeakPSFVal;
 
-      // Audit the memory in use right now
-      void auditAllMemory();
-      uInt auditMemory(Vector<casa::Array<T> >& vecArray);
-      uInt auditMemory(Vector<casa::Array<FT> >& vecArray);
-    };
+                // Beam information, in pixels
+                float itsBMaj;
+                float itsBMin;
+                float itsBPa;
 
-  } // namespace synthesis
+                // Audit the memory in use right now
+                void auditAllMemory();
+                casa::uInt auditMemory(casa::Vector<casa::Array<T> >& vecArray);
+                casa::uInt auditMemory(casa::Vector<casa::Array<FT> >& vecArray);
+        };
+
+    } // namespace synthesis
 
 } // namespace askap
 

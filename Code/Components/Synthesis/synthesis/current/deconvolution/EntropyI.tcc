@@ -1,7 +1,7 @@
-/// @file
+/// @file EntropyI.tcc
 /// @brief Entropy operations as needed for Cornwell-Evans algorithm
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -28,79 +28,76 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
+#include <string>
+
+#include <casa/aips.h>
+#include <boost/shared_ptr.hpp>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayMath.h>
+#include <casa/BasicMath/Math.h>
 #include <askap/AskapLogging.h>
 
 ASKAP_LOGGER(decentropyilogger, ".deconvolution.entropyi");
 
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
-#include <casa/Arrays/ArrayMath.h>
-
-#include <string>
-
-#include <casa/BasicMath/Math.h>
-
 using namespace casa;
 
 namespace askap {
-  
-  namespace synthesis {
-    
-    template<class T>
-    T EntropyI<T>::entropy(const Array<T>& model) {
-      T flux=sum(model);
-      if(this->itsPrior.conform(model)) {
-        return - sum(model*log(model))/flux+log(model.shape().product());
-      }
-      else {
-        return - sum(model*log(model))/flux+log(model.shape().product());
-      }
-      
-    }
 
-    template<class T>
-    T EntropyI<T>::entropy(const Array<T>& model, const Array<T>& mask) {
-      T flux=sum(mask*model);
-      if(this->itsPrior.conform(model)) {
-        return - sum(mask*model*log(model))/flux+log(model.shape().product());
-      }
-      else {
-        return - sum(mask*model*log(model))/flux+log(model.shape().product());
-      }
-      
-    }
+    namespace synthesis {
 
-    template<class T>
-    void EntropyI<T>::gradEntropy(Array<T>& gradH, Array<T>& rHess, const Array<T>& model) {
-      T ggc = 2 * this->itsAlpha * this->itsQ;
-      gradH.resize(model.shape());
-      rHess.resize(model.shape());
-      if(this->itsPrior.conform(model)) {
-        gradH=-log(model/this->itsPrior);
-      }
-      else {
-        gradH=-log(model);
-      }
-      rHess=model/(T(1.0)+ggc*model);
-    }
+        template<class T>
+        T EntropyI<T>::entropy(const Array<T>& model)
+        {
+            const T flux = sum(model);
+            if (this->itsPrior.conform(model)) {
+                return - sum(model*log(model)) / flux + log(model.shape().product());
+            } else {
+                return - sum(model*log(model)) / flux + log(model.shape().product());
+            }
 
-    template<class T>
-    void EntropyI<T>::gradEntropy(Array<T>& gradH, Array<T>& rHess, const Array<T>& model,
-                                  const Array<T>& mask) {
-      T ggc = 2 * this->itsAlpha * this->itsQ;
-      gradH.resize(model.shape());
-      rHess.resize(model.shape());
-      if(this->itsPrior.conform(model)) {
-        gradH=-mask*log(model/this->itsPrior);
-      }
-      else {
-        gradH=-mask*log(model);
-      }
-      rHess=mask*model/(T(1.0)+ggc*model);
-    }
+        }
 
-  } // namespace synthesis
-  
+        template<class T>
+        T EntropyI<T>::entropy(const Array<T>& model, const Array<T>& mask)
+        {
+            const T flux = sum(mask * model);
+            if (this->itsPrior.conform(model)) {
+                return - sum(mask*model*log(model)) / flux + log(model.shape().product());
+            } else {
+                return - sum(mask*model*log(model)) / flux + log(model.shape().product());
+            }
+
+        }
+
+        template<class T>
+        void EntropyI<T>::gradEntropy(Array<T>& gradH, Array<T>& rHess, const Array<T>& model)
+        {
+            const T ggc = 2 * this->itsAlpha * this->itsQ;
+            gradH.resize(model.shape());
+            rHess.resize(model.shape());
+            if (this->itsPrior.conform(model)) {
+                gradH = -log(model / this->itsPrior);
+            } else {
+                gradH = -log(model);
+            }
+            rHess = model / (T(1.0) + ggc * model);
+        }
+
+        template<class T>
+        void EntropyI<T>::gradEntropy(Array<T>& gradH, Array<T>& rHess, const Array<T>& model,
+                                      const Array<T>& mask)
+        {
+            const T ggc = 2 * this->itsAlpha * this->itsQ;
+            gradH.resize(model.shape());
+            rHess.resize(model.shape());
+            if (this->itsPrior.conform(model)) {
+                gradH = -mask * log(model / this->itsPrior);
+            } else {
+                gradH = -mask * log(model);
+            }
+            rHess = mask * model / (T(1.0) + ggc * model);
+        }
+
+    } // namespace synthesis
+
 } // namespace askap

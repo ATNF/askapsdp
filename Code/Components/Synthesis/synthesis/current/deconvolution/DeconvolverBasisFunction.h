@@ -1,9 +1,9 @@
-/// @file
+/// @file DeconvolverBasisFunction.h
 /// @brief Class for a BasisFunction-Clean-based deconvolver
 /// @details This interface class defines a deconvolver used to estimate an
 /// image from a dirty image, psf optionally using a mask and a weights image.
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -30,17 +30,16 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_DECONVOLVERBASISFUNCTION_H
-#define I_DECONVOLVERBASISFUNCTION_H
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
+#ifndef ASKAP_SYNTHESIS_DECONVOLVERBASISFUNCTION_H
+#define ASKAP_SYNTHESIS_DECONVOLVERBASISFUNCTION_H
 
 #include <string>
 
-#include <deconvolution/DeconvolverBase.h>
+#include <boost/shared_ptr.hpp>
+#include <casa/aips.h>
+#include <casa/Arrays/Array.h>
 
+#include <deconvolution/DeconvolverBase.h>
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
 #include <deconvolution/DeconvolverMonitor.h>
@@ -48,147 +47,146 @@
 
 namespace askap {
 
-  namespace synthesis {
+    namespace synthesis {
 
-    /// @brief Class for a deconvolver using the BasisFunction Clean algorithm
-    /// @details This base class defines a deconvolver used to estimate an
-    /// image from a dirty image, psf optionally using a mask and a weights image.
-    /// This algorithm is similar to the MultiScale Clean (Cornwell 2009) with changes
-    /// to improve performance and flexibility.
-    ///
-    /// The template argument T is the type, and FT is the transform
-    /// e.g. DeconvolverBasisFunction<Double, DComplex>
-    /// @ingroup Deconvolver
-    template<class T, class FT>
-    class DeconvolverBasisFunction : public DeconvolverBase<T, FT> {
+        /// @brief Class for a deconvolver using the BasisFunction Clean algorithm
+        /// @details This base class defines a deconvolver used to estimate an
+        /// image from a dirty image, psf optionally using a mask and a weights image.
+        /// This algorithm is similar to the MultiScale Clean (Cornwell 2009) with changes
+        /// to improve performance and flexibility.
+        ///
+        /// The template argument T is the type, and FT is the transform
+        /// e.g. DeconvolverBasisFunction<Double, DComplex>
+        /// @ingroup Deconvolver
+        template<class T, class FT>
+        class DeconvolverBasisFunction : public DeconvolverBase<T, FT> {
 
-    public:
-      typedef boost::shared_ptr<DeconvolverBasisFunction<T, FT> > ShPtr;
-  
-  
-      /// @brief Construct from dirty image and psf
-      /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF. Note that both dirty image
-      /// and psf can have more than 2 dimensions. We use a vector
-      /// here to allow multiple dirty images and PSFs for the
-      /// same model (e.g. as in MFS)
-      /// @param[in] dirty Dirty image (array)
-      /// @param[in] psf Point Spread Function (array)
-      DeconvolverBasisFunction(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+            public:
+                typedef boost::shared_ptr<DeconvolverBasisFunction<T, FT> > ShPtr;
 
-      /// @brief Construct from dirty image and psf
-      /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF. Note that both dirty image
-      /// and psf can have more than 2 dimensions. We keep this
-      /// version for compatibility
-      /// @param[in] dirty Dirty image (array)
-      /// @param[in] psf Point Spread Function (array)
-      DeconvolverBasisFunction(Array<T>& dirty, Array<T>& psf);
+                /// @brief Construct from dirty image and psf
+                /// @detail Construct a deconvolver from a dirty image and
+                /// the corresponding PSF. Note that both dirty image
+                /// and psf can have more than 2 dimensions. We use a vector
+                /// here to allow multiple dirty images and PSFs for the
+                /// same model (e.g. as in MFS)
+                /// @param[in] dirty Dirty image (array)
+                /// @param[in] psf Point Spread Function (array)
+                DeconvolverBasisFunction(casa::Vector<casa::Array<T> >& dirty,
+                                         casa::Vector<casa::Array<T> >& psf);
 
-      virtual ~DeconvolverBasisFunction();
-  
-      /// @brief Set the basis function to be used
-      /// @details The algorithm can work with different basis functions
-      /// PointBasisFunction, MultiScaleBasisFunction. 
-      /// @param[in] bf Shared pointer to basisfunction instance
-      void setBasisFunction(boost::shared_ptr<BasisFunction<T> > bf);
+                /// @brief Construct from dirty image and psf
+                /// @detail Construct a deconvolver from a dirty image and
+                /// the corresponding PSF. Note that both dirty image
+                /// and psf can have more than 2 dimensions. We keep this
+                /// version for compatibility
+                /// @param[in] dirty Dirty image (array)
+                /// @param[in] psf Point Spread Function (array)
+                DeconvolverBasisFunction(casa::Array<T>& dirty, casa::Array<T>& psf);
 
-      /// @brief Return the basis function to be used
-      /// @details The algorithm can work with different basis functions
-      /// PointBasisFunction, MultiScaleBasisFunction 
-      boost::shared_ptr<BasisFunction<T> > basisFunction();
+                virtual ~DeconvolverBasisFunction();
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
-      virtual bool deconvolve();
+                /// @brief Set the basis function to be used
+                /// @details The algorithm can work with different basis functions
+                /// PointBasisFunction, MultiScaleBasisFunction.
+                /// @param[in] bf Shared pointer to basisfunction instance
+                void setBasisFunction(boost::shared_ptr<BasisFunction<T> > bf);
 
-      /// @brief Initialize the deconvolution
-      /// @detail Initialise e.g. set weighted mask
-      virtual void initialise();
+                /// @brief Return the basis function to be used
+                /// @details The algorithm can work with different basis functions
+                /// PointBasisFunction, MultiScaleBasisFunction
+                boost::shared_ptr<BasisFunction<T> > basisFunction();
 
-      /// @brief Finalise the deconvolution
-      /// @detail Finalise the deconvolution
-      virtual void finalise();
+                /// @brief Perform the deconvolution
+                /// @detail This is the main deconvolution method.
+                virtual bool deconvolve();
 
-      /// @brief configure basic parameters of the solver
-      /// @details This method encapsulates extraction of basic solver parameters from the parset.
-      /// @param[in] parset parset
-      virtual void configure(const LOFAR::ParameterSet &parset); 
-      
-    private:
+                /// @brief Initialize the deconvolution
+                /// @detail Initialise e.g. set weighted mask
+                virtual void initialise();
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
-      bool oneIteration();
+                /// @brief Finalise the deconvolution
+                /// @detail Finalise the deconvolution
+                virtual void finalise();
 
-      void initialisePSF();
+                /// @brief configure basic parameters of the solver
+                /// @details This method encapsulates extraction of basic solver parameters from the parset.
+                /// @param[in] parset parset
+                virtual void configure(const LOFAR::ParameterSet &parset);
 
-      void initialiseResidual();
+            private:
 
-      void minMaxMaskedScales(T& minVal, T& maxVal,
-			      IPosition& minPos, IPosition& maxPos,
-			      const Array<T>& dataArray, 
-			      const Array<T>& maskArray);
+                /// @brief Perform the deconvolution
+                /// @detail This is the main deconvolution method.
+                bool oneIteration();
 
-      // Find the coefficients for each scale by applying the
-      // inverse of the coupling matrix
-      Vector<T> findCoefficients(const Matrix<Double>& invCoupling,
-				 const Vector<T>& peakValues);
+                void initialisePSF();
 
-      Array<T> applyInverse(const Matrix<Double>& invCoupling, const Array<T> dataArray);
+                void initialiseResidual();
 
-      Array<T> apply(const Matrix<Double>& invCoupling, const Vector<T> dataVector);
+                void minMaxMaskedScales(T& minVal, T& maxVal,
+                                        casa::IPosition& minPos, casa::IPosition& maxPos,
+                                        const casa::Array<T>& dataArray,
+                                        const casa::Array<T>& maskArray);
 
-      void gramSchmidt(Array<T>& bf);
-      
-      /// Residual images convolved with basis functions
-      Array<T> itsResidualBasisFunction;
+                // Find the coefficients for each scale by applying the
+                // inverse of the coupling matrix
+                casa::Vector<T> findCoefficients(const casa::Matrix<casa::Double>& invCoupling,
+                                                 const casa::Vector<T>& peakValues);
 
-      /// Point spread functions convolved with basis functions
-      Array<T> itsPSFBasisFunction;
+                casa::Array<T> applyInverse(const casa::Matrix<casa::Double>& invCoupling,
+                                            const casa::Array<T> dataArray);
 
-      /// Use cross terms in the source removal step?
-      Bool itsUseCrossTerms;
+                casa::Array<T> apply(const casa::Matrix<casa::Double>& invCoupling,
+                                     const casa::Vector<T> dataVector);
 
-      /// The coupling between different scales.
-      Matrix<Double> itsCouplingMatrix;
+                void gramSchmidt(casa::Array<T>& bf);
 
-      /// Inverse of the coupling matrix
-      Matrix<Double> itsInverseCouplingMatrix;
+                /// Residual images convolved with basis functions
+                casa::Array<T> itsResidualBasisFunction;
 
-      /// Determinant of the coupling Matrix
-      Double itsDetCouplingMatrix;
+                /// Point spread functions convolved with basis functions
+                casa::Array<T> itsPSFBasisFunction;
 
-      /// Point spread functions convolved with cross terms of basis functions
-      Array<T> itsPSFCrossTerms;
+                /// Use cross terms in the source removal step?
+                casa::Bool itsUseCrossTerms;
 
-      Bool itsDecouple;
+                /// The coupling between different scales.
+                casa::Matrix<casa::Double> itsCouplingMatrix;
 
-      String itsDecouplingAlgorithm;
+                /// Inverse of the coupling matrix
+                casa::Matrix<casa::Double> itsInverseCouplingMatrix;
 
-      /// Basis function used in the deconvolution
-      boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
+                /// Determinant of the coupling Matrix
+                casa::Double itsDetCouplingMatrix;
 
-      /// We keep track of the strength and location of each component
-      /// identified. This allows calculation of the L1 norm of the 
-      /// model. We use clean to minimise the L1 so this is a good
-      /// check to make. Ideally for stokes I, this should be equal to the flux.
-      Vector<Array<T> > itsL1image;
-      
-      /// The flux subtracted on each scale
-      Vector<T> itsScaleFlux;
+                /// Point spread functions convolved with cross terms of basis functions
+                casa::Array<T> itsPSFCrossTerms;
 
-      /// The peak of the convolved PSF as a function of scale
-      Vector<T> itsPSFScales;
+                casa::Bool itsDecouple;
 
-    };
+                casa::String itsDecouplingAlgorithm;
 
-  } // namespace synthesis
+                /// Basis function used in the deconvolution
+                boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
+
+                /// We keep track of the strength and location of each component
+                /// identified. This allows calculation of the L1 norm of the
+                /// model. We use clean to minimise the L1 so this is a good
+                /// check to make. Ideally for stokes I, this should be equal to the flux.
+                casa::Vector<casa::Array<T> > itsL1image;
+
+                /// The flux subtracted on each scale
+                casa::Vector<T> itsScaleFlux;
+
+                /// The peak of the convolved PSF as a function of scale
+                casa::Vector<T> itsPSFScales;
+        };
+
+    } // namespace synthesis
 
 } // namespace askap
 
 #include <deconvolution/DeconvolverBasisFunction.tcc>
 
 #endif  // #ifndef I_DECONVOLVERBASISFUNCTION_H
-
-

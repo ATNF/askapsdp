@@ -2,7 +2,7 @@
 /// @brief Point source basis function
 /// @details Holder for point source function
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -29,60 +29,55 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_POINTBASISFUNCTION_H
-#define I_POINTBASISFUNCTION_H
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
-#include <deconvolution/BasisFunction.h>
+#ifndef ASKAP_SYNTHESIS_POINTBASISFUNCTION_H
+#define ASKAP_SYNTHESIS_POINTBASISFUNCTION_H
 
 #include <string>
 
-using namespace casa;
+#include <boost/shared_ptr.hpp>
+#include <casa/aips.h>
+#include <casa/Arrays/Array.h>
+
+#include <deconvolution/BasisFunction.h>
 
 namespace askap {
-  
-  namespace synthesis {
-    
-    /// @brief Point source basis function
-    /// @details This is the simplest Basis Function, holding a 
-    /// single point at the centre of the image. We don't use this for
-    /// anything other than testing since the overhead is too large.
-    /// @ingroup Deconvolver
-    
-    template<typename T>
-    class PointBasisFunction : public BasisFunction<T> {
-      
-    public:
-      typedef boost::shared_ptr<PointBasisFunction<T> > ShPtr;
-      
-      /// @brief Construct empty
-      /// @details Construct a point source basis function. This has only 
-      /// one plane.
-      PointBasisFunction();
-      
-      /// @brief Construct from a specified shape
-      /// @details Construct a point source basis function. This has only 
-      /// one plane.
-      /// param[in] shape Shape of desired basis function on the first two axes.
-      PointBasisFunction(const IPosition shape);
-      
-      /// @brief Construct from a specified shape
-      /// @details Construct a point source basis function. This has only 
-      /// one plane.
-      /// param[in] shape Shape of desired basis function on the first two axes.
-      void initialise(const IPosition shape);
-      
-    private:
-    };
-    
-  } // namespace synthesis
-  
+
+    namespace synthesis {
+
+        /// @brief Point source basis function
+        /// @details This is the simplest Basis Function, holding a
+        /// single point at the centre of the image. We don't use this for
+        /// anything other than testing since the overhead is too large.
+        /// @ingroup Deconvolver
+
+        template<typename T>
+        class PointBasisFunction : public BasisFunction<T> {
+
+            public:
+                typedef boost::shared_ptr<PointBasisFunction<T> > ShPtr;
+
+                /// @brief Construct empty
+                /// @details Construct a point source basis function. This has only
+                /// one plane.
+                PointBasisFunction();
+
+                /// @brief Construct from a specified shape
+                /// @details Construct a point source basis function. This has only
+                /// one plane.
+                /// param[in] shape Shape of desired basis function on the first two axes.
+                PointBasisFunction(const casa::IPosition shape);
+
+                /// @brief Construct from a specified shape
+                /// @details Construct a point source basis function. This has only
+                /// one plane.
+                /// param[in] shape Shape of desired basis function on the first two axes.
+                void initialise(const casa::IPosition shape);
+        };
+
+    } // namespace synthesis
+
 } // namespace askap
 
 #include <deconvolution/PointBasisFunction.tcc>
 
 #endif
-
-

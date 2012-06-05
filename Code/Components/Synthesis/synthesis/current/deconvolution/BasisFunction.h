@@ -1,8 +1,8 @@
-/// @file
+/// @file BasisFunction.h
 /// @brief Base class for Basis functions
 /// @details Holder for basis functions used in deconvolution
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -29,75 +29,71 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_BASISFUNCTION_H
-#define I_BASISFUNCTION_H
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
+#ifndef ASKAP_SYNTHESIS_BASISFUNCTION_H
+#define ASKAP_SYNTHESIS_BASISFUNCTION_H
 
 #include <string>
 
-using namespace casa;
+#include <casa/aips.h>
+#include <boost/shared_ptr.hpp>
+#include <casa/Arrays/Array.h>
 
 namespace askap {
-  
-  namespace synthesis {
-    
-    /// @brief Base class for basis functions used in deconvolution
-    /// @details Basis functions can be used during deconvolution
-    /// to represent the emission. Typical examples are Points (for Hogbom)
-    /// and MultiScale (for BasisFunctionClean).
-    /// @ingroup Deconvolver
-    
-    template<typename T> class BasisFunction {
-      
-    public:
-      typedef boost::shared_ptr<BasisFunction<T> > ShPtr;
-      
-      virtual ~BasisFunction() {};
 
-      /// @brief Construct empty basis function
-      BasisFunction();
-      
-      /// @brief Construct from a specified shape
-      /// param[in] shape Shape of desired basis function
-      BasisFunction(const IPosition shape);
+    namespace synthesis {
 
-      /// @brief Initialise from a specified shape (actually only first two axes)
-      /// @detail Set the shape of the basis function and fill in the actual
-      /// function.
-      /// param[in] shape Shape of desired basis function on the first two axes.
-      virtual void initialise(const IPosition shape);
-      
-      /// @brief Return the number of bases in the basis function
-      uInt numberBases() const {return itsNumberBases;};
-      
-      /// @brief Return the basis function as an array
-      /// @details The basis function is returned as an array
-      /// of shape (nx, ny, nbases) where nx, ny are the
-      /// lengths of the first two axes.
-      virtual Array<T>& basisFunction() {return itsBasisFunction;};
+        /// @brief Base class for basis functions used in deconvolution
+        /// @details Basis functions can be used during deconvolution
+        /// to represent the emission. Typical examples are Points (for Hogbom)
+        /// and MultiScale (for BasisFunctionClean).
+        /// @ingroup Deconvolver
 
-      /// @brief Multiply by a matrix on the third dimension
-      virtual void multiplyArray(const Matrix<Double>& arr);
+        template<typename T> class BasisFunction {
 
-      /// @brief Orthogonalise using Gram Schmidt algorithm
-      void gramSchmidt(Array<T>& bf);
-      
-    protected:
-      IPosition itsShape;
-      Array<T> itsBasisFunction;
-      uInt itsNumberBases;
-      Bool itsOrthogonal;
-    };
-    
-  } // namespace synthesis
-  
+            public:
+                typedef boost::shared_ptr<BasisFunction<T> > ShPtr;
+
+                virtual ~BasisFunction() {};
+
+                /// @brief Construct empty basis function
+                BasisFunction();
+
+                /// @brief Construct from a specified shape
+                /// param[in] shape Shape of desired basis function
+                BasisFunction(const casa::IPosition shape);
+
+                /// @brief Initialise from a specified shape (actually only first two axes)
+                /// @detail Set the shape of the basis function and fill in the actual
+                /// function.
+                /// param[in] shape Shape of desired basis function on the first two axes.
+                virtual void initialise(const casa::IPosition shape);
+
+                /// @brief Return the number of bases in the basis function
+                casa::uInt numberBases() const {return itsNumberBases;};
+
+                /// @brief Return the basis function as an array
+                /// @details The basis function is returned as an array
+                /// of shape (nx, ny, nbases) where nx, ny are the
+                /// lengths of the first two axes.
+                virtual casa::Array<T>& basisFunction() {return itsBasisFunction;};
+
+                /// @brief Multiply by a matrix on the third dimension
+                virtual void multiplyArray(const casa::Matrix<casa::Double>& arr);
+
+                /// @brief Orthogonalise using Gram Schmidt algorithm
+                void gramSchmidt(casa::Array<T>& bf);
+
+            protected:
+                casa::IPosition itsShape;
+                casa::Array<T> itsBasisFunction;
+                casa::uInt itsNumberBases;
+                casa::Bool itsOrthogonal;
+        };
+
+    } // namespace synthesis
+
 } // namespace askap
 
 #include <deconvolution/BasisFunction.tcc>
 
 #endif
-
-

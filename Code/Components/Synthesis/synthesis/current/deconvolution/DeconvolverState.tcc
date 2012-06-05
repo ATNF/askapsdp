@@ -1,9 +1,9 @@
-/// @file
+/// @file DeconvolverState.tcc
 /// @brief Base class for State of Deconvolver
 /// @details All the Stateing is delegated to this class so that
 /// more control is possible.
 /// @ingroup Deconvolver
-///  
+///
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -31,9 +31,10 @@
 ///
 
 #include <askap_synthesis.h>
-#include <askap/AskapLogging.h>
 
+#include <askap/AskapLogging.h>
 #include <casa/aips.h>
+
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverState.h>
 
@@ -41,29 +42,28 @@ using namespace casa;
 
 namespace askap {
 
-namespace synthesis {
+    namespace synthesis {
 
-    /// The current state
-    template<class T>
-    DeconvolverState<T>::DeconvolverState() : itsCurrentIter(0), itsStartIter(0),
-					      itsEndIter(0), itsPeakResidual(T(0)),
-					      itsTotalFlux(T(0)), itsObjectiveFunction(T(0)),
-					      itsInitialObjectiveFunction(T(0))
-    {};
+        /// The current state
+        template<class T>
+        DeconvolverState<T>::DeconvolverState() : itsCurrentIter(0), itsStartIter(0),
+                itsEndIter(0), itsPeakResidual(T(0)),
+                itsTotalFlux(T(0)), itsObjectiveFunction(T(0)),
+                itsInitialObjectiveFunction(T(0))
+        {};
 
-    template<class T>
-    void DeconvolverState<T>::reset() {
-      itsCurrentIter = 0;
-      itsStartIter = 0;
-      itsEndIter = 0;
-      itsPeakResidual = T(0);
-      itsTotalFlux = T(0);
-      itsObjectiveFunction = T(0);
-      itsInitialObjectiveFunction = T(0);
-    }
-  
-} // namespace synthesis
+        template<class T>
+        void DeconvolverState<T>::reset()
+        {
+            itsCurrentIter = 0;
+            itsStartIter = 0;
+            itsEndIter = 0;
+            itsPeakResidual = T(0);
+            itsTotalFlux = T(0);
+            itsObjectiveFunction = T(0);
+            itsInitialObjectiveFunction = T(0);
+        }
+
+    } // namespace synthesis
 
 } // namespace askap
-
-

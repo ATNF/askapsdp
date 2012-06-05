@@ -1,4 +1,4 @@
-/// @file
+/// @file DeconvolverHelpers.h
 ///
 /// DeconvolverHelpers: Helpers class for deconvolver
 ///
@@ -26,49 +26,46 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef DECONVOLVERHELPERS_H_
-#define DECONVOLVERHELPERS_H_
+#ifndef ASKAP_SYNTHESIS_DECONVOLVERHELPERS_H
+#define ASKAP_SYNTHESIS_DECONVOLVERHELPERS_H
+
+#include <Common/ParameterSet.h>
+#include <boost/shared_ptr.hpp>
 
 #include <deconvolution/DeconvolverBase.h>
 
-#include <Common/ParameterSet.h>
+namespace askap {
+    namespace synthesis {
+        /// @brief Helpers class for deconvolvers
+        /// @detail This is a collection of static functions that are of use for
+        /// cdeconvolver.
+        /// @ingroup deconvolution
+        class DeconvolverHelpers {
+            public:
 
-#include <boost/shared_ptr.hpp>
+                /// @brief Get image as an array
+                /// @detail An image will be converted into an array. So for e.g. dirty = gaskap.residual
+                /// an array will be created from from the image file gaskap.residual
+                /// @param name Name of image in the parset file
+                /// @param parset ParameterSet containing description of images
+                static casa::Array<casa::Float> getArrayFromImage(const casa::String name,
+                                                                  const LOFAR::ParameterSet &parset);
 
-namespace askap
-{
-  namespace synthesis
-  {
-    /// @brief Helpers class for deconvolvers
-    /// @detail This is a collection of static functions that are of use for
-    /// cdeconvolver.
-    /// @ingroup deconvolution
-    class DeconvolverHelpers
-    {
-    public:
-      
-      /// @brief Get image as an array
-      /// @detail An image will be converted into an array. So for e.g. dirty = gaskap.residual
-      /// an array will be created from from the image file gaskap.residual
-      /// @param name Name of image in the parset file
-      /// @param parset ParameterSet containing description of images
-      static Array<Float> getArrayFromImage(const String name, const LOFAR::ParameterSet &parset);
+                /// @brief Put an array as an image
+                /// @detail An array will be written as an image, cloned from the
+                /// file named templateName in the parset file
+                /// an array will be created from from the image file gaskap.residual
+                /// @param name Name of image in the parset file
+                /// @param templateName Name of template image
+                /// @param parset ParameterSet containing description of images
+                static void putArrayToImage(const casa::Array<casa::Float> imageArray,
+                                            const casa::String name, const casa::String templateName,
+                                            const LOFAR::ParameterSet &parset);
 
-      /// @brief Put an array as an image
-      /// @detail An array will be written as an image, cloned from the
-      /// file named templateName in the parset file
-      /// an array will be created from from the image file gaskap.residual
-      /// @param name Name of image in the parset file
-      /// @param templateName Name of template image
-      /// @param parset ParameterSet containing description of images
-      static void putArrayToImage(const casa::Array<Float> imageArray, const String name,
-                                  const String templateName, const LOFAR::ParameterSet &parset);
+            private:
+                DeconvolverHelpers();
+        };
 
-    private:
-      DeconvolverHelpers();
-      
-    };
-    
-  }
+    }
 }
-#endif 
+#endif

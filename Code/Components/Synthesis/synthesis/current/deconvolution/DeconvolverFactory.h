@@ -1,4 +1,4 @@
-/// @file
+/// @file DeconvolverFactory.h
 ///
 /// DeconvolverFactory: Factory class for deconvolver
 ///
@@ -26,66 +26,61 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef DECONVOLVERFACTORY_H_
-#define DECONVOLVERFACTORY_H_
+#ifndef ASKAP_SYNTHESIS_DECONVOLVERFACTORY_H_
+#define ASKAP_SYNTHESIS_DECONVOLVERFACTORY_H_
+
+#include <Common/ParameterSet.h>
+#include <boost/shared_ptr.hpp>
 
 #include <deconvolution/DeconvolverBase.h>
 
-#include <Common/ParameterSet.h>
+namespace askap {
+    namespace synthesis {
+        /// @brief Factory class for deconvolvers
+        /// @ingroup deconvolution
+        class DeconvolverFactory {
+            public:
+                /// @brief Factory class for all gridders.
+                /// @todo Python version of factory
+                DeconvolverFactory();
 
-#include <boost/shared_ptr.hpp>
+                /// @brief Make a shared pointer for a deconvolver
+                /// @param parset ParameterSet containing description of
+                /// deconvolver to be constructed.
+                /// Cdeconvolver.dirty = gaskap.dirty
+                /// Cdeconvolver.psf = gaskap.psf
+                /// Cdeconvolver.mask = gaskap.mask
+                /// Cdeconvolver.weight = gaskap.weight
+                ///
+                /// Cdeconvolver.solver = Clean
+                /// Cdeconvolver.Clean.algorithm = Hogbom
+                /// Cdeconvolver.Clean.gain = 0.1
+                /// Cdeconvolver.Clean.tolerance = 1e-4
+                /// Cdeconvolver.Clean.threshold = 0.001
+                static DeconvolverBase<casa::Float, casa::Complex>::ShPtr make(const LOFAR::ParameterSet& parset);
 
-namespace askap
-{
-  namespace synthesis
-  {
-    /// @brief Factory class for deconvolvers
-    /// @ingroup deconvolution
-    class DeconvolverFactory
-    {
-    public:
-      /// @brief Factory class for all gridders.
-      /// @todo Python version of factory 
-      DeconvolverFactory();
-      
-      /// @brief Make a shared pointer for a deconvolver
-      /// @param parset ParameterSet containing description of
-      /// deconvolver to be constructed.
-      /// Cdeconvolver.dirty = gaskap.dirty
-      /// Cdeconvolver.psf = gaskap.psf
-      /// Cdeconvolver.mask = gaskap.mask
-      /// Cdeconvolver.weight = gaskap.weight
-      /// 
-      /// Cdeconvolver.solver = Clean
-      /// Cdeconvolver.Clean.algorithm = Hogbom
-      /// Cdeconvolver.Clean.gain = 0.1
-      /// Cdeconvolver.Clean.tolerance = 1e-4
-      /// Cdeconvolver.Clean.threshold = 0.001
-      static DeconvolverBase<Float, Complex>::ShPtr make(const LOFAR::ParameterSet& parset);
-      
-    protected:
-      
-      /// @brief Get image as an array
-      /// @detail An image will be converted into an array. So for e.g. dirty = gaskap.residual
-      /// an array will be created from from the image file gaskap.residual
-      /// @param name Name of image in the parset file
-      /// @param parset ParameterSet containing description of images
-      static Array<Float> getArrayFromImage(const String name, const LOFAR::ParameterSet &parset);
+            protected:
 
-      /// @brief Put an array as an image
-      /// @detail An array will be written as an image, cloned from the
-      /// file named templateName in the parset file
-      /// an array will be created from from the image file gaskap.residual
-      /// @param templateName Name of template image
-      /// @param name Name of image in the parset file
-      /// @param parset ParameterSet containing description of images
-      static Array<Float> putArrayToImage(const String name, const String templateName,
-                                          const LOFAR::ParameterSet &parset);
+                /// @brief Get image as an array
+                /// @detail An image will be converted into an array. So for e.g. dirty = gaskap.residual
+                /// an array will be created from from the image file gaskap.residual
+                /// @param name Name of image in the parset file
+                /// @param parset ParameterSet containing description of images
+                static casa::Array<casa::Float> getArrayFromImage(const casa::String name,
+                                                                  const LOFAR::ParameterSet &parset);
 
-    private:
-      
-    };
-    
-  }
+                /// @brief Put an array as an image
+                /// @detail An array will be written as an image, cloned from the
+                /// file named templateName in the parset file
+                /// an array will be created from from the image file gaskap.residual
+                /// @param templateName Name of template image
+                /// @param name Name of image in the parset file
+                /// @param parset ParameterSet containing description of images
+                static casa::Array<casa::Float> putArrayToImage(const casa::String name,
+                                                                const casa::String templateName,
+                                                                const LOFAR::ParameterSet &parset);
+        };
+
+    }
 }
-#endif 
+#endif

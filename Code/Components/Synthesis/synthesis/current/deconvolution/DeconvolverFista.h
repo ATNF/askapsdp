@@ -1,4 +1,4 @@
-/// @file
+/// @file DeconvolverFiesta.h
 /// @brief Class for a Fista-based deconvolver
 /// @details This interface class defines a deconvolver used to estimate an
 /// image from a dirty image, psf optionally using a mask and a weights image.
@@ -32,17 +32,16 @@
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
 
-#ifndef I_DECONVOLVERFISTA_H
-#define I_DECONVOLVERFISTA_H
-#include <casa/aips.h>
-#include <boost/shared_ptr.hpp>
-
-#include <casa/Arrays/Array.h>
+#ifndef ASKAP_SYNTHESIS_DECONVOLVERFISTA_H
+#define ASKAP_SYNTHESIS_DECONVOLVERFISTA_H
 
 #include <string>
 
-#include <deconvolution/DeconvolverBase.h>
+#include <casa/aips.h>
+#include <boost/shared_ptr.hpp>
+#include <casa/Arrays/Array.h>
 
+#include <deconvolution/DeconvolverBase.h>
 #include <deconvolution/DeconvolverState.h>
 #include <deconvolution/DeconvolverControl.h>
 #include <deconvolution/DeconvolverMonitor.h>
@@ -50,85 +49,83 @@
 
 namespace askap {
 
-  namespace synthesis {
+    namespace synthesis {
 
-    /// @brief Class for a deconvolver using the Fista Clean algorithm
-    /// @details This base class defines a deconvolver used to estimate an
-    /// image from a dirty image, psf optionally using a mask and a weights image.
-    /// The template argument T is the type, and FT is the transform
-    /// e.g. DeconvolverFista<Double, DComplex>
-    /// @ingroup Deconvolver
-    template<class T, class FT> class DeconvolverFista : public DeconvolverBase<T, FT> {
+        /// @brief Class for a deconvolver using the Fista Clean algorithm
+        /// @details This base class defines a deconvolver used to estimate an
+        /// image from a dirty image, psf optionally using a mask and a weights image.
+        /// The template argument T is the type, and FT is the transform
+        /// e.g. DeconvolverFista<Double, DComplex>
+        /// @ingroup Deconvolver
+        template<class T, class FT> class DeconvolverFista : public DeconvolverBase<T, FT> {
 
-    public:
-      typedef boost::shared_ptr<DeconvolverFista<T, FT> > ShPtr;
-  
-      virtual ~DeconvolverFista();
-  
-      /// @brief Construct from dirty image and psf
-      /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF. Note that both dirty image
-      /// and psf can have more than 2 dimensions. We use a vector
-      /// here to allow multiple dirty images and PSFs for the
-      /// same model (e.g. as in MFS)
-      /// @param[in] dirty Dirty image (array)
-      /// @param[in] psf Point Spread Function (array)
-      DeconvolverFista(Vector<Array<T> >& dirty, Vector<Array<T> >& psf);
+            public:
+                typedef boost::shared_ptr<DeconvolverFista<T, FT> > ShPtr;
 
-      /// @brief Construct from dirty image and psf
-      /// @detail Construct a deconvolver from a dirty image and
-      /// the corresponding PSF. Note that both dirty image
-      /// and psf can have more than 2 dimensions. We keep this
-      /// version for compatibility
-      /// @param[in] dirty Dirty image (array)
-      /// @param[in] psf Point Spread Function (array)
-      DeconvolverFista(Array<T>& dirty, Array<T>& psf);
+                virtual ~DeconvolverFista();
 
-      /// @brief Set the basis function to be used
-      /// @details The algorithm can work with different basis functions
-      /// PointBasisFunction, MultiScaleBasisFunction. 
-      /// @param[in] bf Shared pointer to basisfunction instance
-      void setBasisFunction(boost::shared_ptr<BasisFunction<T> > bf);
+                /// @brief Construct from dirty image and psf
+                /// @detail Construct a deconvolver from a dirty image and
+                /// the corresponding PSF. Note that both dirty image
+                /// and psf can have more than 2 dimensions. We use a vector
+                /// here to allow multiple dirty images and PSFs for the
+                /// same model (e.g. as in MFS)
+                /// @param[in] dirty Dirty image (array)
+                /// @param[in] psf Point Spread Function (array)
+                DeconvolverFista(casa::Vector<casa::Array<T> >& dirty,
+                                              casa::Vector<casa::Array<T> >& psf);
 
-      /// @brief Return the basis function to be used
-      /// @details The algorithm can work with different basis functions
-      /// PointBasisFunction, MultiScaleBasisFunction 
-      boost::shared_ptr<BasisFunction<T> > basisFunction();
+                /// @brief Construct from dirty image and psf
+                /// @detail Construct a deconvolver from a dirty image and
+                /// the corresponding PSF. Note that both dirty image
+                /// and psf can have more than 2 dimensions. We keep this
+                /// version for compatibility
+                /// @param[in] dirty Dirty image (array)
+                /// @param[in] psf Point Spread Function (array)
+                DeconvolverFista(casa::Array<T>& dirty, casa::Array<T>& psf);
 
-      /// @brief Perform the deconvolution
-      /// @detail This is the main deconvolution method.
-      virtual bool deconvolve();
+                /// @brief Set the basis function to be used
+                /// @details The algorithm can work with different basis functions
+                /// PointBasisFunction, MultiScaleBasisFunction.
+                /// @param[in] bf Shared pointer to basisfunction instance
+                void setBasisFunction(boost::shared_ptr<BasisFunction<T> > bf);
 
-      /// @brief Initialize the deconvolution
-      /// @detail Initialise e.g. set weighted mask
-      virtual void initialise();
+                /// @brief Return the basis function to be used
+                /// @details The algorithm can work with different basis functions
+                /// PointBasisFunction, MultiScaleBasisFunction
+                boost::shared_ptr<BasisFunction<T> > basisFunction();
 
-      /// @brief configure basic parameters of the solver
-      /// @details This method encapsulates extraction of basic solver parameters from the parset.
-      /// @param[in] parset parset
-      virtual void configure(const LOFAR::ParameterSet &parset); 
+                /// @brief Perform the deconvolution
+                /// @detail This is the main deconvolution method.
+                virtual bool deconvolve();
 
-    private:
+                /// @brief Initialize the deconvolution
+                /// @detail Initialise e.g. set weighted mask
+                virtual void initialise();
 
-      void W(Array<T>& out, const Array<T>& in);
-      void WT(Array<T>& out, const Array<T>& in);
+                /// @brief configure basic parameters of the solver
+                /// @details This method encapsulates extraction of basic solver parameters from the parset.
+                /// @param[in] parset parset
+                virtual void configure(const LOFAR::ParameterSet &parset);
 
-      Array<FT> itsBasisFunctionTransform;
+            private:
 
-      /// Basis function used in the deconvolution
-      boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
+                void W(casa::Array<T>& out, const casa::Array<T>& in);
+                void WT(casa::Array<T>& out, const casa::Array<T>& in);
 
-      // Scaling for various planes
-      Vector<T> itsPlaneScaling;
+                casa::Array<FT> itsBasisFunctionTransform;
 
-    };
+                /// Basis function used in the deconvolution
+                boost::shared_ptr<BasisFunction<T> > itsBasisFunction;
 
-  } // namespace synthesis
+                // Scaling for various planes
+                casa::Vector<T> itsPlaneScaling;
+        };
+
+    } // namespace synthesis
 
 } // namespace askap
 
 #include <deconvolution/DeconvolverFista.tcc>
 
 #endif  // #ifndef I_DECONVOLVERFISTA_H
-
-
