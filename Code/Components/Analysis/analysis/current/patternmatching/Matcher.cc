@@ -256,11 +256,13 @@ namespace askap {
                 /// trimmed.
 	      std::vector<Point> srclist = trimList(this->itsSrcPixList, this->itsTrimSize);
                 ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
-                std::vector<Point> reflist = trimList(this->itsRefPixList, this->itsTrimSize);
-                ASKAPLOG_INFO_STR(logger, "Trimmed ref list to " << reflist.size() << " points");
+                // std::vector<Point> reflist = trimList(this->itsRefPixList, this->itsTrimSize);
+                // ASKAPLOG_INFO_STR(logger, "Trimmed ref list to " << reflist.size() << " points");
                 this->itsSrcTriList = getTriList(srclist);
 		ASKAPLOG_INFO_STR(logger, "Performing crude match on reference list");
 		std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, this->itsSrcPixList,5);
+		// ASKAPLOG_INFO_STR(logger, "Performing crude match on trimmed reference list");
+		// std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, srclist,5);
 		ASKAPLOG_INFO_STR(logger, "Now have reference list of size " << newreflist.size() << " points");
 		newreflist = trimList(newreflist,this->itsTrimSize);
 		ASKAPLOG_INFO_STR(logger, "Reference list trimmed to " << newreflist.size() << " points");
