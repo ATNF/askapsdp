@@ -158,7 +158,7 @@ madfm=\\\`grep "MADFM =" \$statlog | awk '{print \\\$3}'\\\`
 madfmAsStddev=\\\`grep MADFMas \$statlog | awk '{print \\\$3}'\\\`
 stddev=\\\`grep Std.Dev \$statlog | awk '{print \\\$3}'\\\`
 numsrc=\\\`grep Found \$sflog | grep sources | awk '{print \\\$10}'\\\`
-if [ ! -e duchamp-fitResults.txt ] || [ \\\`wc -l duchamp-fitResults.txt\\\` == 0 ]; then
+if [ ! -e duchamp-fitResults.txt ] || [ \\\`wc -l duchamp-fitResults.txt | awk '{print \\\$1}'\\\` == 0 ]; then
     numcmpnt=0
 else
     numcmpnt=\\\`wc -l duchamp-fitResults.txt | awk '{print \\\$1-2}'\\\`
