@@ -243,10 +243,12 @@ public class GenericAdminInterface extends _IComponentDisp {
 			} catch (Ice.NotRegisteredException e) {
 				logger.warn("Not registered exception" + baseWarn);
 			}
-			try {
-				Thread.sleep(interval * 1000);
-			} catch (InterruptedException e) {
-				// In this rare case this might happen, faster polling is ok
+			if (!activated) {
+				try {
+					Thread.sleep(interval * 1000);
+				} catch (InterruptedException e) {
+					// In this rare case this might happen, faster polling is ok
+				}
 			}
 		}
 
