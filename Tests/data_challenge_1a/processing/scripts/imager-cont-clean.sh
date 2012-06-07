@@ -33,10 +33,8 @@ Cimager.visweights                              = MFS
 #Cimager.visweights.MFS.reffreq                  = 1.420e9
 Cimager.visweights.MFS.reffreq                  = 1.270e9
 #
-Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = 2000
 Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = 2000
+Cimager.gridder.AWProject.wmax                  = 3500
 Cimager.gridder.AWProject.nwplanes              = 5
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m

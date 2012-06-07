@@ -27,10 +27,8 @@ Cimager.Images.image.i.dirty.frequency          = [1.420e9,1.420e9]
 Cimager.Images.image.i.dirty.nchan              = 1
 Cimager.Images.image.i.dirty.direction          = [12h30m00.00, -45.00.00.00, J2000]
 #
-Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = 2000
 Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = 2000
+Cimager.gridder.AWProject.wmax                  = 3500
 Cimager.gridder.AWProject.nwplanes              = 7
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m
