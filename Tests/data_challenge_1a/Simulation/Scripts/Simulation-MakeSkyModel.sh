@@ -196,7 +196,7 @@ if [ $doComparisonSM == true ]; then
 cd \$PBS_O_WORKDIR
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=${AIPSPATH}
-export CASACOREDIR=\${ASKAP_ROOT}/3rdParty/casacore/casacore-1.3.0
+export CASACOREDIR=\${ASKAP_ROOT}/3rdParty/casacore/casacore-1.4.0
 createFITS=\${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/install/bin/createFITS.sh
 imagecalc=\${CASACOREDIR}/install/bin/imagecalc
 
