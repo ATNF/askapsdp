@@ -1,38 +1,37 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Running the image analysis
 ##############################################################################
 
 if [ $CONTINUUMIMAGE == "" ]; then
-
-        echo "Have not set \$CONTINUUMIMAGE, so not running analysis.sh"
-
-else
+    echo "Have not set \$CONTINUUMIMAGE, so not running analysis.sh"
+    return 1
+fi
 
 #########################
 # Making the sky model files for the comparison
 
-    #skymodeldir=/scratch/astronomy116/whi550/DataChallenge/Simulation/SkyModel/current
-    #cp ${skymodeldir}/duchamp-Results.txt skyModel-catalogue-results.txt
-    #cp ${skymodeldir}/duchamp-Results.ann skyModel-catalogue-results.ann
-    #perl -pi -e 's/RED/GREEN/g' skyModel-catalogue-results.ann
-    
-    #cp ${skymodeldir}/duchamp-fitResults.txt skyModel-catalogue.txt
-    cp ${INPUT_SKYMODEL} skyModel-catalogue.txt
-    awk '{if(NF==24) print $3,$4,$7,$15,$16,$9,$10,$11}' skyModel-catalogue.txt  > skyModel-catalogue-basic.txt
-    awk '$2>-48. && $2<-42. && $1<191.875 && $1>183.25' skyModel-catalogue-basic.txt > skyModel-catalogue-basic-trim.txt
-    awk '$3>0.05' skyModel-catalogue-basic-trim.txt > skyModel-catalogue-basic-trim-bright.txt
-    sort -k3nr skyModel-catalogue-basic-trim.txt | head -20 > skyModel-catalogue-basic-trim-brightest.txt
-    #cp ${skymodeldir}/duchamp-fitResults.ann skyModel-catalogue.ann
-    #perl -pi -e 's/BLUE/YELLOW/g' skyModel-catalogue.ann
-        
-    #cp ${skymodeldir}/duchamp-SubimageLocations.ann skyModel-SubimageLocations.ann
-    #perl -pi -e 's/YELLOW/WHITE/g' skyModel-SubimageLocations.ann
+#skymodeldir=/scratch/astronomy116/whi550/DataChallenge/Simulation/SkyModel/current
+#cp ${skymodeldir}/duchamp-Results.txt skyModel-catalogue-results.txt
+#cp ${skymodeldir}/duchamp-Results.ann skyModel-catalogue-results.ann
+#perl -pi -e 's/RED/GREEN/g' skyModel-catalogue-results.ann
+
+#cp ${skymodeldir}/duchamp-fitResults.txt skyModel-catalogue.txt
+cp ${INPUT_SKYMODEL} skyModel-catalogue.txt
+awk '{if(NF==24) print $3,$4,$7,$15,$16,$9,$10,$11}' skyModel-catalogue.txt  > skyModel-catalogue-basic.txt
+awk '$2>-48. && $2<-42. && $1<191.875 && $1>183.25' skyModel-catalogue-basic.txt > skyModel-catalogue-basic-trim.txt
+awk '$3>0.05' skyModel-catalogue-basic-trim.txt > skyModel-catalogue-basic-trim-bright.txt
+sort -k3nr skyModel-catalogue-basic-trim.txt | head -20 > skyModel-catalogue-basic-trim-brightest.txt
+#cp ${skymodeldir}/duchamp-fitResults.ann skyModel-catalogue.ann
+#perl -pi -e 's/BLUE/YELLOW/g' skyModel-catalogue.ann
+
+#cp ${skymodeldir}/duchamp-SubimageLocations.ann skyModel-SubimageLocations.ann
+#perl -pi -e 's/YELLOW/WHITE/g' skyModel-SubimageLocations.ann
 
 #########################
 
-
-    qsubfile=analysis.qsub
-    cat > ${qsubfile} <<EOF
+qsubfile=analysis.qsub
+cat > ${qsubfile} <<EOF
 #!/bin/bash -l
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l walltime=01:00:00
@@ -141,8 +140,9 @@ if [ \$err -ne 0 ]; then
     exit $?
 fi
 
-###
+##################
 # Analysis summary
+##################
 
 summaryscript=analysis-summary-\${PBS_JOBID}.sh
 cat > \$summaryscript <<EOF_INNER
@@ -190,27 +190,14 @@ EOF_INNER2
 EOF_INNER
 
 . \$summaryscript
-
-
 EOF
 
-    if [ "${DRYRUN}" == "false" ]; then
+# NOTE: Dependencies are passed in via the DEPENDS environment variable
+echo "Analysis script (${CONTINUUMIMAGE}): Submitting"
 
-        # Submit the jobs
-	if [ "${DEPENDS}" ]; then
-            QSUB_ANALYSIS=`${QSUB_CMD} ${DEPENDS} ${qsubfile}`
-	else
-            QSUB_ANALYSIS=`${QSUB_CMD} ${qsubfile}`
-            QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_ANALYSIS}"
-	fi
-	GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_ANALYSIS}"
-
-    else
-
-	echo "Analysis script (${CONTINUUMIMAGE}): Dry Run Only"
-
-    fi
-
-
-
+# Submit the jobs
+QSUB_ANALYSIS=`qsubmit ${qsubfile}`
+if [ ! "${DEPENDS}" ]; then
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_ANALYSIS}"
 fi
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_ANALYSIS}"

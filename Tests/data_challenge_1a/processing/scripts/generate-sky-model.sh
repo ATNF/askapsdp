@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Sky Model Image Generation
 ##############################################################################
@@ -43,16 +44,12 @@ EOF_INNER
 mpirun \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -inputs ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel.log
 EOF
 
-if [ "${DRYRUN}" == "false" ]; then
-    if [ ! -e ${SKYMODEL_OUTPUT}.0 ]; then
-        echo "Sky Model Image: Submitting task"
-        QSUB_CMODEL=`${QSUB_CMD} -h cmodel.qsub`
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CMODEL}"
-    else
-        echo "Sky Model Image: Skipping task - Output already exists"
-    fi
-    GLOBAL_DEPEND="${QSUB_CMODEL}"
-
+# Submit job
+if [ ! -e ${SKYMODEL_OUTPUT}.0 ]; then
+    echo "Sky Model Image: Submitting task"
+    QSUB_CMODEL=`qsubmit cmodel.qsub`
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CMODEL}"
+    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CMODEL}"
 else
-    echo "Sky Model Image: Dry Run Only"
+    echo "Sky Model Image: Skipping task - Output already exists"
 fi

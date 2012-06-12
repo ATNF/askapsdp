@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Continuum Imaging (Clean)
 ##############################################################################
@@ -77,38 +78,27 @@ EOF_INNER
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \${parset} > \${logfile}
 EOF
 
-if [ "${DRYRUN}" == "false" ]; then
-    echo "Continuum Imager (Clean): Submitting task"
+# Submit the job
+echo "Continuum Imager (Clean): Submitting"
 
-    # Add dependencies
-    unset DEPENDS
-    if [ "${QSUB_CAL}" ] || [ "${QSUB_MSSPLIT}" ]; then
-        if [ "${QSUB_CAL}" ]; then
-            DEPENDS="-W depend=afterok:${QSUB_CAL}"
-        else
-            DEPENDS="-W depend=afterok:${QSUB_MSSPLIT}"
-        fi
-    fi
-
-    # Submit the jobs
-    if [ "${DEPENDS}" ]; then
-        QSUB_CONTCLEAN=`${QSUB_CMD} ${DEPENDS} cimager-cont-clean.qsub`
-    else
-        QSUB_CONTCLEAN=`${QSUB_CMD} cimager-cont-clean.qsub`
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCLEAN}"
-    fi
-    GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_CONTCLEAN}"
-
+unset DEPENDS
+if [ "${QSUB_CAL}" ]; then
+    DEPENDS="afterok:${QSUB_CAL}"
+    QSUB_CONTCLEAN=`qsubmit cimager-cont-clean.qsub`
+elif [ "${QSUB_MSSPLIT}" ]; then
+    DEPENDS="afterok:${QSUB_MSSPLIT}"
+    QSUB_CONTCLEAN=`qsubmit cimager-cont-clean.qsub`
 else
-    echo "Continuum Imager (Clean): Dry Run Only"
+    QSUB_CONTCLEAN=`qsubmit cimager-cont-clean.qsub`
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCLEAN}"
 fi
 
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CONTCLEAN}"
 
 # Run the analysis script
 if [ $DO_ANALYSIS == true ]; then
     unset DEPENDS
-    DEPENDS="-W depend=afterok:$QSUB_CONTCLEAN"
+    DEPENDS="afterok:${QSUB_CONTCLEAN}"
     CONTINUUMIMAGE=image.i.clean.taylor.0.restored
     . ${SCRIPTDIR}/analysis.sh
 fi
-

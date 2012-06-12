@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Calibrate gains in the averaged measurement set
 ##############################################################################
@@ -53,19 +54,24 @@ EOF_INNER
 mpirun --mca btl ^openib --mca mtl ^psm \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -inputs ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator.log
 EOF
 
-if [ "${DRYRUN}" == "false" ]; then
-    if [ ! -e ${CALOUTPUT} ]; then
-        echo "Calibration: Submitting Task"
-        if [ ! "${QSUB_CMODEL}" ] && [ ! "${QSUB_MSSPLIT}" ]; then
-            QSUB_CAL=`${QSUB_CMD} ccalibrator.qsub`
-            QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CAL}"
-        else
-            QSUB_CAL=`${QSUB_CMD} -W depend=afterok:${QSUB_CMODEL},afterok:${QSUB_MSSPLIT} ccalibrator.qsub`
-        fi
-	GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_CAL}"
+if [ ! -e ${CALOUTPUT} ]; then
+    echo "Calibration: Submitting"
+
+    unset DEPENDS
+    if [ "${QSUB_CMODEL}" ] && [ "${QSUB_MSSPLIT}" ]; then
+        DEPENDS="afterok:${QSUB_CMODEL},afterok:${QSUB_MSSPLIT}"
+        QSUB_CAL=`qsubmit ccalibrator.qsub`
+    elif [ "${QSUB_CMODEL}" ]; then
+        DEPENDS="afterok:${QSUB_CMODEL}"
+        QSUB_CAL=`qsubmit ccalibrator.qsub`
+    elif [ "${QSUB_MSSPLIT}" ]; then
+        DEPENDS="afterok:${QSUB_MSSPLIT}"
+        QSUB_CAL=`qsubmit ccalibrator.qsub`
     else
-        echo "Calibration: Skipping task - Output already exists"
+        QSUB_CAL=`qsubmit ccalibrator.qsub`
+        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CAL}"
     fi
+    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CAL}"
 else
-    echo "Calibration: Dry Run Only"
+    echo "Calibration: Skipping - Output already exists"
 fi

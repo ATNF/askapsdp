@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Spectral Line Imaging
 ##############################################################################
@@ -131,26 +132,24 @@ fi
 rm -rf MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
 EOF
 
-if [ "${DRYRUN}" == "false" ]; then
-    # Add dependencies
-    unset DEPENDS
-    if [ "${QSUB_CAL}" ]; then
-        DEPENDS="-W depend=afterok:${QSUB_CAL}"
-    fi
-
-    # Submit the jobs
-    echo "Spectral Line Imaging: Submitting tasks"
-    QSUB_SPECTRAL1=`${QSUB_CMD} ${DEPENDS} -N sl-img1 -h -J 0-8257 cimager-spectral-line.qsub`
-    QSUB_SPECTRAL2=`${QSUB_CMD} ${DEPENDS} -N sl-img2 -h -J 8258-16415 cimager-spectral-line.qsub`
-
-    if [ ! "${DEPENDS}" ]; then
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
-    fi
-    GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_SPECTRAL1}:${QSUB_SPECTRAL2}"
-
-else
-    echo "Spectral Line Imaging: Dry Run Only"
+# Build dependencies
+unset DEPENDS
+if [ "${QSUB_CAL}" ]; then
+    DEPENDS="afterok:${QSUB_CAL}"
 fi
+
+# Submit the jobs
+echo "Spectral Line Imaging: Submitting"
+QSUB_SPECTRAL1=`qsubmit -N sl-img1 -J 0-8257 cimager-spectral-line.qsub`
+QSUB_SPECTRAL2=`qsubmit -N sl-img2 -J 8258-16415 cimager-spectral-line.qsub`
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
+
+if [ ! "${DEPENDS}" ]; then
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
+fi
+
+# This becomes a dependency for the makecube jobs
+DEPENDS="afterok:${QSUB_SPECTRAL1},afterok:${QSUB_SPECTRAL2}"
 
 # Run makecube using the make-spectral-cube.qsub script
 DODELETE=true
@@ -158,19 +157,19 @@ FIRSTCH=0
 FINALCH=16415
 
 IMAGESUFFIX=".restored"
-IMAGEBASE="image.i.spectral."
+IMAGEPREFIX="image.i.spectral."
 OUTPUTCUBE=image.cube.i.spectral.restored
 . ${SCRIPTDIR}/make-spectral-cube.sh
 
 IMAGESUFFIX=""
-IMAGEBASE="psf.i.spectral."
+IMAGEPREFIX="psf.i.spectral."
 OUTPUTCUBE=psf.cube.i.spectral
 . ${SCRIPTDIR}/make-spectral-cube.sh
 
-IMAGEBASE="sensitivity.i.spectral."
+IMAGEPREFIX="sensitivity.i.spectral."
 OUTPUTCUBE=sensitivity.cube.i.spectral
 . ${SCRIPTDIR}/make-spectral-cube.sh
 
-IMAGEBASE="weights.i.spectral."
+IMAGEPREFIX="weights.i.spectral."
 OUTPUTCUBE=weights.cube.i.spectral
 . ${SCRIPTDIR}/make-spectral-cube.sh

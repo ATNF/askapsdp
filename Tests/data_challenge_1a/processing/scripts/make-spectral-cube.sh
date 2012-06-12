@@ -1,7 +1,7 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Making a spectral cube
 ##############################################################################
-
 
 #####################
 #  Script to combine individual channel images into a single cube
@@ -17,18 +17,20 @@
 #   - the final cube will have its spectral coordinates corrected by a CASA script
 #####################
 
-
-if [ ${IMAGEPREFIX} == "" ] && [ ${IMAGESUFFIX} == "" ]; then
+if [ ! "${IMAGEPREFIX}" ] && [ ! "${IMAGESUFFIX}" ]; then
     echo "Have not set \$IMAGEPREFIX or \$IMAGESUFFIX, so not running make-spectral-cube."
-elif [ "${OUTPUTCUBE}" == "" ]; then
+    return 1
+fi
+if [ "${OUTPUTCUBE}" == "" ]; then
     echo "Have not set \$OUTPUTCUBE, so not running make-spectral-cube"
-else
+    return 1
+fi
 
-    IMAGERANGE="${IMAGEPREFIX}[${FIRSTCH}..${FINALCH}]${IMAGESUFFIX}"
+IMAGERANGE="${IMAGEPREFIX}[${FIRSTCH}..${FINALCH}]${IMAGESUFFIX}"
 
-    qsubfile=make-spectral-cube--${OUTPUTCUBE}.qsub
-    cat > ${qsubfile} <<EOF
-#!/bin/bash -l
+qsubfile=make-spectral-cube--${OUTPUTCUBE}.qsub
+cat > ${qsubfile} <<EOF
+#!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l walltime=06:00:00
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
@@ -73,26 +75,14 @@ if [ \$doDelete == true ]; then
         C=\`expr \$C + 1\`
     done
 fi
-
 EOF
 
-    if [ "${DRYRUN}" == "false" ]; then
+# Submit job
+# NOTE: Dependencies are passed in via the DEPENDS environment variable
+echo "Make cube (${OUTPUTCUBE}): Submitting"
+QSUB_MAKECUBE=`qsubmit ${qsubfile}`
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_MAKECUBE}"
 
-        # Submit the jobs
-	if [ "${DEPENDS}" ]; then
-            QSUB_MAKECUBE=`${QSUB_CMD} ${DEPENDS} ${qsubfile}`
-	else
-            QSUB_MAKECUBE=`${QSUB_CMD} ${qsubfile}`
-            QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MAKECUBE}"
-	fi
-	GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_MAKECUBE}"
-
-    else
-
-	echo "Makecube utility (${OUTPUTCUBE}): Dry Run Only"
-
-    fi
-
-
+if [ ! "${DEPENDS}" ]; then
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MAKECUBE}"
 fi
-

@@ -9,8 +9,8 @@
 # A directory will be created to run the pipeline in. This directory can be reused,
 # or a new one can be created for each run. Uncomment either of the below WORKDIR
 # options to suit.
-#WORKDIR=run1
-WORKDIR="run_`date +%Y%m%d_%H%M%S`"
+WORKDIR=run1
+#WORKDIR="run_`date +%Y%m%d_%H%M%S`"
 
 # The PBS Group ID to which the job will be billed (eg. astronomy116 on epic)
 QUEUEGROUP=astronomy116
@@ -49,10 +49,10 @@ DO_CONTINUUM_CLEAN=true
 DO_ANALYSIS=true
 
 # Do Continuum-cube Imaging - Dirty (true or false)
-DO_CONTINUUM_CUBE_DIRTY=true
+DO_CONTINUUM_CUBE_DIRTY=false
 
 # Do Continuum-cube Imaging - Clean (true or false)
-DO_CONTINUUM_CUBE_CLEAN=true
+DO_CONTINUUM_CUBE_CLEAN=false
 
 # Do Spectral Line Imaging (true or false)
 DO_SPECTRAL_LINE=false

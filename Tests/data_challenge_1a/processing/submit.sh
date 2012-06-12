@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##############################################################################
 # General initial steps
 ##############################################################################
@@ -6,6 +7,9 @@ SCRIPTDIR=`pwd`/scripts
 
 # Source the configuration data
 . ${SCRIPTDIR}/config.sh
+
+# Source the utilities
+. ${SCRIPTDIR}/utils.sh
 
 # Ensure ASKAP_ROOT is set and present
 if [ ! ${ASKAP_ROOT} ] || [ ! -d ${ASKAP_ROOT} ]; then
@@ -27,7 +31,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Set the qsub alias based
+# Set the qsub alias based on the presense of the BATCH_QUEUE environment variable
 if [ ${BATCH_QUEUE} ]; then
     QSUB_CMD="qsub -q ${BATCH_QUEUE}"
 else
@@ -82,8 +86,7 @@ EOF
 ##############################################################################
 # Enqueue the processing tasks
 ##############################################################################
-
-unset GLOBAL_DEPEND
+unset GLOBAL_ALL_JOBS
 
 if [ $DO_CALIBRATION == "true" ]; then
 . ${SCRIPTDIR}/generate-sky-model.sh
@@ -115,9 +118,7 @@ if [ $DO_SPECTRAL_LINE == "true" ]; then
 . ${SCRIPTDIR}/imager-spectral-line.sh
 fi
 
-if [ "${DRYRUN}" == "false" ]; then
-    . ${SCRIPTDIR}/reporting.sh
-fi
+. ${SCRIPTDIR}/reporting.sh
 
 ##############################################################################
 # Execute!!
@@ -128,5 +129,6 @@ fi
 # of a dependency running and finishing before the dependency could be
 # established
 if [ "${DRYRUN}" == "false" ] && [ "${QSUB_NODEPS}" ]; then
+    echo "Releasing the following jobs (which have no dependencies): ${QSUB_NODEPS}"
     qrls ${QSUB_NODEPS}
 fi

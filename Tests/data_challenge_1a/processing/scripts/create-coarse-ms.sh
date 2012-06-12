@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Measurement Set Averaging (For Gains calibration and Continuum imaging)
 ##############################################################################
@@ -60,20 +61,11 @@ EOF_INNER
 \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -inputs ${CONFIGDIR}/mssplit_coarse_\${PBS_ARRAY_INDEX}.in > ${LOGDIR}/mssplit_coarse_\${PBS_ARRAY_INDEX}.log
 EOF
 
-if [ "${DRYRUN}" == "false" ]; then
-    if [ ! -e MS/coarse_chan_0.ms ]; then
-        echo "MS Split and Average: Submitting task"
-        QSUB_MSSPLIT=`${QSUB_CMD} -h -J 0-303 split_coarse.qsub`
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
-    else
-        echo "MS Split and Average: Skipping task - Output already exists"
-    fi
-    if [ "${GLOBAL_DEPEND}" == "" ]; then
-	GLOBAL_DEPEND="${QSUB_MSSPLIT}"
-    else
-	GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_MSSPLIT}"
-    fi
-
+if [ ! -e MS/coarse_chan_0.ms ]; then
+    echo "MS Split and Average: Submitting"
+    QSUB_MSSPLIT=`qsubmit -J 0-303 split_coarse.qsub`
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
+    GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_MSSPLIT}"
 else
-    echo "MS Split and Average: Dry Run Only"
+    echo "MS Split and Average: Skipping - Output already exists"
 fi

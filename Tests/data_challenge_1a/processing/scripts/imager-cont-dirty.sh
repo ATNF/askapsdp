@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Continuum Imaging (Dirty)
 ##############################################################################
@@ -61,28 +62,19 @@ EOF_INNER
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \${parset} > \${logfile}
 EOF
 
-if [ "${DRYRUN}" == "false" ]; then
-    echo "Continuum Imager (Dirty): Submitting task"
+# Submit the job
+echo "Continuum Imager (Dirty): Submitting"
 
-    # Add dependencies
-    unset DEPENDS
-    if [ "${QSUB_CAL}" ] || [ " ${QSUB_MSSPLIT}" ]; then
-        if [ "${QSUB_CAL}" ]; then
-            DEPENDS="-W depend=afterok:${QSUB_CAL}"
-        else
-            DEPENDS="-W depend=afterok:${QSUB_MSSPLIT}"
-        fi
-    fi
-
-    # Submit the jobs
-    if [ "${DEPENDS}" ]; then
-        QSUB_CONTDIRTY=`${QSUB_CMD} ${DEPENDS} cimager-cont-dirty.qsub`
-    else
-        QSUB_CONTDIRTY=`${QSUB_CMD} cimager-cont-dirty.qsub`
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTDIRTY}"
-    fi
-    GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_CONTDIRTY}"
-	
+unset DEPENDS
+if [ "${QSUB_CAL}" ]; then
+    DEPENDS="afterok:${QSUB_CAL}"
+    QSUB_CONTDIRTY=`qsubmit cimager-cont-dirty.qsub`
+elif [ "${QSUB_MSSPLIT}" ]; then
+    DEPENDS="afterok:${QSUB_MSSPLIT}"
+    QSUB_CONTDIRTY=`qsubmit cimager-cont-dirty.qsub`
 else
-    echo "Continuum Imager (Dirty): Dry Run Only"
+    QSUB_CONTDIRTY=`qsubmit cimager-cont-dirty.qsub`
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTDIRTY}"
 fi
+
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CONTDIRTY}"

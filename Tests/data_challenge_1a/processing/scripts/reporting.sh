@@ -1,10 +1,11 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Reporting the results of the data challenge run
 ##############################################################################
 
 qsubfile=reporting.qsub
 cat > $qsubfile <<EOF
-#!/bin/bash -l
+#!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
 #PBS -l walltime=00:30:00
 #PBS -l select=1:ncpus=1:mem=1GB:mpiprocs=8
@@ -179,18 +180,23 @@ spectral-line            \$exitcodeSL2    \$logfileSL2
 spectral-line-makecube   \$exitcodeSLM    \$logfileSLM
 analysis                 \$exitcodeAN     \$logfileAN
 EOF_INNER
-
-
 EOF
 
-if [ "${DRYRUN}" == "false" ]; then
-    
-    # Submit the job
-    QSUB_REPORTING=`${QSUB_CMD} -W depend=afterany:${GLOBAL_DEPEND} ${qsubfile}`
-    
-else
-    
-    echo "Reporting script: Dry Run Only"
-    
-fi
+# Submit job
+echo "Reporting script: Submitting"
+unset DEPENDS
+for JOB in ${GLOBAL_ALL_JOBS}; do
+    if [ ! "${DEPENDS}" ]; then
+        DEPENDS="afterok:${JOB}"
+    else
+        DEPENDS="${DEPENDS},afterok:${JOB}"
+    fi
+done
 
+QEXEC_CMD="${QSUB_CMD} -W depend=${DEPENDS} ${qsubfile}"
+
+if [ "${DRYRUN}" == "false" ]; then
+    ${QEXEC_CMD}
+else
+    echo "    DryRun - Would have executed: ${QEXEC_CMD}" >&2
+fi

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Continuum Cube Imaging (Dirty)
 ##############################################################################
@@ -79,38 +80,27 @@ EOF_INNER
 log=log/cimager-cont-cube-dirty-\${PBS_JOBID}.log
 
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \$parset > \$log
-
 EOF
 
-if [ "${DRYRUN}" == "false" ]; then
-    echo "Continuum Cube Imager (Dirty): Submitting task"
+# Submit job
+echo "Continuum Cube Imager (Dirty): Submitting"
 
-    # Add dependencies
-    unset DEPENDS
-    if [ "${QSUB_CAL}" ] || [ "${QSUB_MSSPLIT}" ]; then
-        if [ "${QSUB_CAL}" ]; then
-            DEPENDS="-W depend=afterok:${QSUB_CAL}"
-        else
-            DEPENDS="-W depend=afterok:${QSUB_MSSPLIT}"
-        fi
-    fi
-
-    # Submit the jobs
-    if [ "${DEPENDS}" ]; then
-        QSUB_CONTCUBEDIRTY=`${QSUB_CMD} ${DEPENDS} -J0-303 cimager-cont-cube-dirty.qsub`
-    else
-        QSUB_CONTCUBEDIRTY=`${QSUB_CMD} -J0-303 cimager-cont-cube-dirty.qsub`
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCUBEDIRTY}"
-    fi
-    unset DEPENDS
-    DEPENDS="-W depend=afterok:${QSUB_CONTCUBEDIRTY}"
-
-    GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_CONTCUBEDIRTY}"
-
-else
-    echo "Continuum Cube Imager (Dirty): Dry Run Only"
+unset DEPENDS
+if [ "${QSUB_CAL}" ]; then
+    DEPENDS="afterok:${QSUB_CAL}"
+elif [ "${QSUB_MSSPLIT}" ]; then
+    DEPENDS="afterok:${QSUB_MSSPLIT}"
 fi
 
+QSUB_CONTCUBEDIRTY=`qsubmit -J 0-303 cimager-cont-cube-dirty.qsub`
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CONTCUBEDIRTY}"
+
+if [ ! "${DEPENDS}" ]; then
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCUBEDIRTY}"
+fi
+
+# This becomes a dependency for the makecube jobs
+DEPENDS="afterok:${QSUB_CONTCUBEDIRTY}"
 
 # Run makecube using the make-spectral-cube.qsub script
 DODELETE=true
@@ -134,4 +124,3 @@ OUTPUTCUBE=sensitivity.${imagebase}
 IMAGEPREFIX="weights.${imagebase}_ch"
 OUTPUTCUBE=weights.${imagebase}
 . ${SCRIPTDIR}/make-spectral-cube.sh
-

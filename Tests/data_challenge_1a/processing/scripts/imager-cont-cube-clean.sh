@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ##############################################################################
 # Continuum Cube Imaging (Clean)
 ##############################################################################
@@ -89,40 +90,30 @@ EOF_INNER
 log=log/cimager-cont-cube-clean-\${PBS_JOBID}.log
 
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \$parset > \$log
-
 EOF
 
-if [ "${DRYRUN}" == "false" ]; then
-    echo "Continuum Cube Imager (Clean): Submitting task"
+# Submit job
+echo "Continuum Cube Imager (Clean): Submitting"
 
-    # Add dependencies
-    unset DEPENDS
-    if [ "${QSUB_CAL}" ] || [ "${QSUB_MSSPLIT}" ]; then
-        if [ "${QSUB_CAL}" ]; then
-            DEPENDS="-W depend=afterok:${QSUB_CAL}"
-        else
-            DEPENDS="-W depend=afterok:${QSUB_MSSPLIT}"
-        fi
-    fi
-
-    # Submit the jobs
-    if [ "${DEPENDS}" ]; then
-        QSUB_CONTCUBECLEAN=`${QSUB_CMD} ${DEPENDS} -J0-303 cimager-cont-cube-clean.qsub`
-    else
-        QSUB_CONTCUBECLEAN=`${QSUB_CMD} -J0-303 cimager-cont-cube-clean.qsub`
-        QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCUBECLEAN}"
-    fi
-    unset DEPENDS
-    DEPENDS="-W depend=afterok:${QSUB_CONTCUBECLEAN}"    
-
-    GLOBAL_DEPEND="${GLOBAL_DEPEND}:${QSUB_CONTCUBECLEAN}"
-
-else
-    echo "Continuum Cube Imager (Clean): Dry Run Only"
+unset DEPENDS
+if [ "${QSUB_CAL}" ]; then
+    DEPENDS="afterok:${QSUB_CAL}"
+elif [ "${QSUB_MSSPLIT}" ]; then
+    DEPENDS="afterok:${QSUB_MSSPLIT}"
 fi
 
-### Run makecube using the make-spectral-cube.qsub script
+QSUB_CONTCUBECLEAN=`qsubmit -J 0-303 cimager-cont-cube-clean.qsub`
+GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CONTCUBECLEAN}"
 
+if [ ! "${DEPENDS}" ]; then
+    QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_CONTCUBECLEAN}"
+fi
+
+# This becomes a dependency for the makecube jobs
+DEPENDS="afterok:${QSUB_CONTCUBECLEAN}"
+
+
+### Run makecube using the make-spectral-cube.qsub script
 DODELETE=true
 FIRSTCH=0
 FINALCH=303
@@ -160,4 +151,3 @@ OUTPUTCUBE=sensitivity.${imagebase}
 IMAGEPREFIX="weights.${imagebase}_ch"
 OUTPUTCUBE=weights.${imagebase}
 . ${SCRIPTDIR}/make-spectral-cube.sh
-
