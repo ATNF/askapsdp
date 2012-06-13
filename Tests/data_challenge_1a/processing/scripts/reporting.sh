@@ -196,7 +196,7 @@ done
 QEXEC_CMD="${QSUB_CMD} -W depend=${DEPENDS} ${qsubfile}"
 
 if [ "${DRYRUN}" == "false" ]; then
-    ${QEXEC_CMD}
+    JOBID=`${QEXEC_CMD}`
 else
     echo "    DryRun - Would have executed: ${QEXEC_CMD}" >&2
 fi
