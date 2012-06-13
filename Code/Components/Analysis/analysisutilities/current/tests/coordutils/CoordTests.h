@@ -26,7 +26,7 @@
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
-#include <coordUtils/PositionUtilities.h>
+#include <coordutils/PositionUtilities.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <string>
 #include <math.h>
