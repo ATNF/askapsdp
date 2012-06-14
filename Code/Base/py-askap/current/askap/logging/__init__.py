@@ -115,9 +115,9 @@ def init_logging(args):
             config.fileConfig(fname)
             return
         
-    fnames = ["askap.log_cfg", "askap.pylog_cfg",
-              "/askap/default/config/askap.log_cfg",
-              "/askap/default/config/askap.pylog_cfg"]
+    fnames = ["askap.pylog_cfg", "askap.log_cfg",
+              "/askap/default/config/askap.pylog_cfg",
+              "/askap/default/config/askap.log_cfg"]
     for fname in fnames:
         if os.path.exists(fname):
             config.fileConfig(fname)
