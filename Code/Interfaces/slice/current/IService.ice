@@ -1,0 +1,88 @@
+// @file IService.ice
+//
+// @copyright (c) 2012 CSIRO
+// Australia Telescope National Facility (ATNF)
+// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+// PO Box 76, Epping NSW 1710, Australia
+// atnf-enquiries@csiro.au
+//
+// This file is part of the ASKAP software distribution.
+//
+// The ASKAP software distribution is free software: you can redistribute it
+// and/or modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of the License,
+// or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+
+#ifndef ASKAP_ISERVICE_ICE
+#define ASKAP_ISERVICE_ICE
+
+module askap
+{
+
+module interfaces
+{
+
+module services
+{
+    /**
+     * Valid states for the service.
+     **/
+    enum ServiceStateEnum
+    {
+        /**
+         * The service is available for use
+         **/
+        AVAILABLE,
+
+        /**
+         * Service is in a non-available state. It is strongly recommended
+         * that services in this state ensure the details string is populated
+         * in the ServiceState struct.
+         **/
+        UNAVAILABLE
+    };
+
+    /**
+     * This type represents a single test which is run as part of the
+     * selfTest() call.
+     **/
+    struct ServiceState
+    {
+        ServiceStateEnum state;
+        string details;
+    };
+
+    /**
+     * Common interface which each Ice service in the ASKAP system needs
+     * to implement.
+     **/
+    interface IService
+    {
+        /**
+         * Returns the state of the component.
+         *
+         * @return  the state of the component.
+         **/
+        idempotent ServiceState getState();
+
+        /**
+         * Returns a string containing the version of the component.
+         *
+         * @return  the version of the component.
+         **/
+        idempotent string getVersion();
+    };
+};
+};
+};
+
+#endif
