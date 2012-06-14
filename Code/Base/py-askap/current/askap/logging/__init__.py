@@ -103,15 +103,17 @@ def init_logging(args):
 
     """
     key = "--log-config"
-    fname = "askap.log_cfg"
     for arg in args:
         if arg.startswith(key):
             k, v = arg.split("=")
             if os.path.exists(v):
-                fname = v
-            break
+                config.fileConfig(v)
+                return
 
-    if os.path.exists(fname):
-        config.fileConfig(fname)
-    else:
-        raise IOError("No log configuration file found")
+    fnames = ["/askap/default/config/askap.log_cfg",
+              "/askap/default/config/askap.pylog_cfg"]
+    for fname in fnames:
+        if os.path.exists(fname):
+            config.fileConfig(fname)
+            return
+    raise IOError("No log configuration file found")
