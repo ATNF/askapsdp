@@ -39,7 +39,7 @@ cat > ${qsubfile} <<EOF
 ##PBS -M first.last@csiro.au
 #PBS -N analysis
 ##PBS -q debugq
-#PBS -m bea
+#PBS -m a
 #PBS -j oe
 
 cd \$PBS_O_WORKDIR

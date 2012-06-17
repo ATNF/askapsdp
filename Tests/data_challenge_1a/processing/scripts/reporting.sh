@@ -11,7 +11,7 @@ cat > $qsubfile <<EOF
 #PBS -l select=1:ncpus=1:mem=1GB:mpiprocs=8
 ##PBS -M first.last@csiro.au
 #PBS -N report
-#PBS -m bea
+#PBS -m a
 #PBS -j oe
 
 cd \$PBS_O_WORKDIR

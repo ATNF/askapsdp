@@ -36,7 +36,7 @@ cat > ${qsubfile} <<EOF
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
 ##PBS -M first.last@csiro.au
 #PBS -N makecube
-#PBS -m bea
+#PBS -m a
 #PBS -j oe
 
 cd \$PBS_O_WORKDIR
