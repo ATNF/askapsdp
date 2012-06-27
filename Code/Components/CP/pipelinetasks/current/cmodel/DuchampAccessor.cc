@@ -146,11 +146,11 @@ void DuchampAccessor::processLine(const std::string& line,
     // Need to get rid of this hack to support the SKADS type. The plan is to drop
     // support for this filetype and just use the Duchamp format.
     casa::Quantity flux;
-    if (pos.fluxPos == 10) {
+    if (tokens.size() == 13) {
         // SKADS format - Flux is log of flux in Jy
         flux = casa::Quantity(pow(10.0, boost::lexical_cast<casa::Double>(tokens[pos.fluxPos])), Jy);
     } else {
-        // Duchamp format - Flux is in Jy
+        // Duchamp and cmodel standard format - Flux is in Jy
         flux = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[pos.fluxPos]), Jy);
     }
 
@@ -161,11 +161,11 @@ void DuchampAccessor::processLine(const std::string& line,
     // Need to get rid of this hack to support the SKADS type. The plan is to drop
     // support for this filetype and just use the Duchamp format.
     casa::Quantity positionAngle;
-    if (pos.positionAnglePos == 5) {
+    if (tokens.size() == 13) {
         // SKADS format uses radians
         positionAngle = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[pos.positionAnglePos]), rad);
     } else {
-        // Duchamp format uses degrees
+        // Duchamp and cmodel standard format uses degrees
         positionAngle = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[pos.positionAnglePos]), deg);
     }
 
@@ -239,6 +239,16 @@ DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort
         pos.positionAnglePos = 5;
         pos.spectralIndexPos = -1; // Not present
         pos.spectralCurvaturePos = -1; // Not present
+    } else if (nTokens == 8) {
+        // cmodel standard formal
+        pos.raPos = 0;
+        pos.decPos = 1;
+        pos.fluxPos = 2;
+        pos.majorAxisPos = 3;
+        pos.minorAxisPos = 4;
+        pos.positionAnglePos = 5;
+        pos.spectralIndexPos = 6;
+        pos.spectralCurvaturePos = 7;
     } else {
         ASKAPTHROW(AskapError, "Malformed entry - Expected 13 or 23 tokens");
     }
