@@ -1,4 +1,4 @@
-boost=3rdParty/boost/boost-1.41.0
+boost=3rdParty/boost/boost-1.49.0
 common=3rdParty/LOFAR/Common/Common-3.3
 blob=3rdParty/LOFAR/Blob/Blob-1.2
 askap=Code/Base/askap/current
