@@ -34,46 +34,11 @@ module interfaces
 module services
 {
     /**
-     * Valid states for the service.
-     **/
-    enum ServiceStateEnum
-    {
-        /**
-         * The service is available for use
-         **/
-        AVAILABLE,
-
-        /**
-         * Service is in a non-available state. It is strongly recommended
-         * that services in this state ensure the details string is populated
-         * in the ServiceState struct.
-         **/
-        UNAVAILABLE
-    };
-
-    /**
-     * This type represents a single test which is run as part of the
-     * selfTest() call.
-     **/
-    struct ServiceState
-    {
-        ServiceStateEnum state;
-        string details;
-    };
-
-    /**
      * Common interface which each Ice service in the ASKAP system needs
      * to implement.
      **/
     interface IService
     {
-        /**
-         * Returns the state of the component.
-         *
-         * @return  the state of the component.
-         **/
-        idempotent ServiceState getState();
-
         /**
          * Returns a string containing the version of the component.
          *
