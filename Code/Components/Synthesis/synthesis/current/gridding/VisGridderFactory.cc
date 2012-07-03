@@ -196,13 +196,15 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
 	}
 	
 	if (parset.getBool("gridder.snapshotimaging",false)) {
-	    ASKAPLOG_INFO_STR(logger, "A gridder adapter will be set up to do snap-shot imaging");
-            const double wtolerance = parset.getDouble("gridder.snapshotimaging.wtolerance"); 
+        ASKAPLOG_INFO_STR(logger, "A gridder adapter will be set up to do snap-shot imaging");
+        const double wtolerance = parset.getDouble("gridder.snapshotimaging.wtolerance"); 
 	    ASKAPLOG_INFO_STR(logger, "w-coordinate tolerance is "<<wtolerance<<" wavelengths");
 	    boost::shared_ptr<SnapShotImagingGridderAdapter> adapter(new SnapShotImagingGridderAdapter(gridder,wtolerance));
 	    const double clippingFactor = parset.getDouble("gridder.snapshotimaging.clipping", 0.);
 	    ASKAPLOG_INFO_STR(logger, "Clipping factor is "<<clippingFactor);
 	    adapter->setClippingFactor(float(clippingFactor));
+	    const bool doPSFReprojection = parset.getBool("gridder.snapshotimaging.reprojectpsf", false);
+	    adapter->setPSFReprojection(doPSFReprojection);
 	    // possible additional configuration comes here
 	    gridder = adapter;
 	}

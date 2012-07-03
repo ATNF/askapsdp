@@ -143,6 +143,12 @@ public:
    /// any clipping (this is the default behavior)
    /// @param[in] factor clipping factor
    void setClippingFactor(const float factor);
+
+   /// @brief control whether to do image reprojection for PSF
+   /// @details By default we bypass image reprojection for the PSF. It can be changed with this configuration method.
+   /// @param[in] doIt if true, image reprojection will be done for PSF the same way dirty image and weight are processed,
+   ///                 otherwise (the default), the wrapped gridder is used directly without any reprojection
+   void setPSFReprojection(const bool doIt);
    
 protected:
    /// @brief check whether this is a psf gridder
@@ -326,6 +332,11 @@ private:
    /// This parameter represents the fraction of the image size (on each directional axis) which is
    /// zeroed (equally from both sides). It should be a non-negative number less than 1.
    float itsClippingFactor;
+   
+   /// @brief if true, skip image reprojection for PSF
+   /// @details By default we bypass image reprojection for the PSF. Although it is an approximation, the
+   /// PSF is approximate anyway. However, this field can be set to false to test the effects on deconvolution.
+   bool itsNoPSFReprojection;
 
    #ifdef _OPENMP
    /// @brief mutex to deal with lack of thread safety in casa's regrid

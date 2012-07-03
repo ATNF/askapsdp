@@ -78,7 +78,7 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared
      itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.),
      itsFirstAccessor(true), itsBuffersFinalised(false), itsNumOfImageRegrids(0), itsTimeImageRegrid(0.),
      itsNumOfInitialisations(0), itsLastFitTimeStamp(0.), itsShortestIntervalBetweenFits(3e7),
-     itsLongestIntervalBetweenFits(-1.), itsModelIsEmpty(false), itsClippingFactor(0.)
+     itsLongestIntervalBetweenFits(-1.), itsModelIsEmpty(false), itsClippingFactor(0.), itsNoPSFReprojection(true)
 {
   ASKAPCHECK(gridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
   itsGridder = gridder->clone();
@@ -97,7 +97,8 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagi
     itsNumOfInitialisations(other.itsNumOfInitialisations), itsLastFitTimeStamp(other.itsLastFitTimeStamp),
     itsShortestIntervalBetweenFits(other.itsShortestIntervalBetweenFits), 
     itsLongestIntervalBetweenFits(other.itsLongestIntervalBetweenFits), 
-    itsTempInImg(), itsTempOutImg(), itsModelIsEmpty(other.itsModelIsEmpty), itsClippingFactor(other.itsClippingFactor)
+    itsTempInImg(), itsTempOutImg(), itsModelIsEmpty(other.itsModelIsEmpty), itsClippingFactor(other.itsClippingFactor),
+    itsNoPSFReprojection(other.itsNoPSFReprojection)
 {
   ASKAPCHECK(other.itsGridder, 
        "copy constructor of SnapShotImagingGridderAdapter got an object somehow set up with an empty gridder");
@@ -111,8 +112,9 @@ SnapShotImagingGridderAdapter::~SnapShotImagingGridderAdapter()
 {
   if (itsNumOfInitialisations>0) {
       ASKAPLOG_INFO_STR(logger, "SnapShotImagingGridderAdapter usage statistics");
-      ASKAPLOG_INFO_STR(logger, "   The adapter was initialised for non-PSF gridding and degridding "<<
-                        itsNumOfInitialisations<<" times");
+      const std::string msg = itsNoPSFReprojection ? "non-PSF " : "";
+      ASKAPLOG_INFO_STR(logger, "   The adapter was initialised for "<<msg<<"gridding and degridding "<<
+                        itsNumOfInitialisations<<" times");     
       ASKAPLOG_INFO_STR(logger, "   Total time spent doing image plane regridding is "<<
                         itsTimeImageRegrid<<" (s)");
       ASKAPLOG_INFO_STR(logger, "   Number of regridding events is "<<itsNumOfImageRegrids);
@@ -185,7 +187,7 @@ void SnapShotImagingGridderAdapter::initialiseGrid(const scimath::Axes& axes,
   ASKAPTRACE("SnapShotImagingGridderAdapter::initialiseGrid");
 
   itsDoPSF = dopsf; // other fields are unused for the PSF gridder
-  if (dopsf) {
+  if (dopsf && itsNoPSFReprojection) {
       // do the standard initialisation for the PSF gridder
       ASKAPDEBUGASSERT(itsGridder);
       itsGridder->initialiseGrid(axes,shape,dopsf);
@@ -214,9 +216,9 @@ void SnapShotImagingGridderAdapter::grid(IConstDataAccessor& acc)
   ASKAPTRACE("SnapShotImagingGridderAdapter::grid");
 
   ASKAPDEBUGASSERT(itsGridder);
-  if (isPSFGridder()) {
+  if (isPSFGridder() && itsNoPSFReprojection) {
       itsAccessorAdapter.associate(acc);
-      // for PSF gridder we don't do any image-plane regridding, because we simulate PSF at the tangent point
+      // for PSF gridder we don't do any image-plane regridding in this mode
       itsGridder->grid(itsAccessorAdapter);
       // we don't really need this line
       itsAccessorAdapter.detach();      
@@ -261,7 +263,7 @@ void SnapShotImagingGridderAdapter::finaliseGrid(casa::Array<double>& out)
   ASKAPTRACE("SnapShotImagingGridderAdapter::finaliseGrid");
 
   ASKAPDEBUGASSERT(itsGridder);
-  if (isPSFGridder()) {
+  if (isPSFGridder() && itsNoPSFReprojection) {
       itsGridder->finaliseGrid(out);
   } else {
       if (!itsBuffersFinalised) {
@@ -280,7 +282,7 @@ void SnapShotImagingGridderAdapter::finaliseWeights(casa::Array<double>& out)
   ASKAPTRACE("SnapShotImagingGridderAdapter::finaliseWeights");
 
   ASKAPDEBUGASSERT(itsGridder);
-  if (isPSFGridder()) {
+  if (isPSFGridder() && itsNoPSFReprojection) {
       itsGridder->finaliseWeights(out);
   } else {
       if (!itsBuffersFinalised) {
@@ -588,6 +590,20 @@ void SnapShotImagingGridderAdapter::imageClip(casa::Array<double> &img) const
   if (shapeToPreserve != img.shape()) {
       ASKAPASSERT(img.shape().nelements() == 2);
       scimath::PaddingUtils::clip(img, shapeToPreserve);
+  }
+}
+
+/// @brief control whether to do image reprojection for PSF
+/// @details By default we bypass image reprojection for the PSF. It can be changed with this configuration method.
+/// @param[in] doIt if true, image reprojection will be done for PSF the same way dirty image and weight are processed,
+///                 otherwise (the default), the wrapped gridder is used directly without any reprojection
+void SnapShotImagingGridderAdapter::setPSFReprojection(const bool doIt)
+{
+  itsNoPSFReprojection = !doIt;
+  if (doIt) {
+        ASKAPLOG_INFO_STR(logger, "PSF image will be reprojected the same way as the residual image");      
+  } else {
+        ASKAPLOG_INFO_STR(logger, "No PSF reprojection will be done");      
   }
 }
 
