@@ -403,7 +403,8 @@ void SnapShotImagingGridderAdapter::finaliseGriddingOfCurrentPlane()
   ASKAPDEBUGASSERT(itsGridder);
   ASKAPCHECK(!itsFirstAccessor, 
        "finaliseGriddingOfCurrentPlane is called while itsFirstAccessor flag is true. This is not supposed to happen");
-  ASKAPLOG_DEBUG_STR(logger, "Finalising current dirty image");
+  const std::string msg = isPSFGridder() ? "PSF" : "dirty image";     
+  ASKAPLOG_DEBUG_STR(logger, "Finalising current "<<msg);
   casa::Array<double> scratch(itsImageBuffer.shape());
   itsGridder->finaliseGrid(scratch);
   imageRegrid(scratch, itsImageBuffer, true);
