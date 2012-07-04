@@ -36,7 +36,7 @@ Cimager.visweights.MFS.reffreq                  = 1.270e9
 #
 Cimager.gridder                                 = AWProject
 Cimager.gridder.AWProject.wmax                  = 3500
-Cimager.gridder.AWProject.nwplanes              = 5
+Cimager.gridder.AWProject.nwplanes              = 7
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m
 Cimager.gridder.AWProject.blockage              = 2m
@@ -48,24 +48,27 @@ Cimager.gridder.AWProject.frequencydependent    = true
 #
 Cimager.solver                                  = Clean
 Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
-Cimager.solver.Clean.niter                      = 1000
+Cimager.solver.Clean.niter                      = 10000
 Cimager.solver.Clean.gain                       = 0.5
 Cimager.solver.Clean.scales                     = [0, 3, 10, 30]
 Cimager.solver.Clean.verbose                    = False
-Cimager.solver.Clean.psfwidth                   = 1024
+Cimager.solver.Clean.tolerance                  = 0.01
+Cimager.solver.Clean.weightcutoff               = zero
+Cimager.solver.Clean.weightcutoff.clean         = false
+Cimager.solver.Clean.psfwidth                   = 512
 Cimager.solver.Clean.logevery                   = 100
-Cimager.threshold.minorcycle                    = [10%, 10.0mJy]
-Cimager.threshold.majorcycle                    = 20mJy
+Cimager.threshold.minorcycle                    = [30%, 0.9mJy]
+Cimager.threshold.majorcycle                    = 1mJy
 Cimager.ncycles                                 = 5
 #
 Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
 Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
 Cimager.preconditioner.Wiener.robustness        = 0.0
-Cimager.preconditioner.Wiener.taper             = 100
+Cimager.preconditioner.Wiener.taper             = 128
 #
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit
-#Cimager.restore.equalise                        = True
+Cimager.restore.equalise                        = True
 #
 # Apply calibration
 Cimager.calibrate                               = ${DO_CALIBRATION}
