@@ -95,4 +95,10 @@ public class RFISourceServiceImpl extends _IRFISourceServiceDisp {
 			throws EntryDoesNotExistException {
 		itsPersistance.modifyEntry(entry);
 	}
+
+	@Override
+	public String getVersion(Current curr) {
+		Package p = this.getClass().getPackage();
+        return p.getImplementationVersion();
+	}
 }

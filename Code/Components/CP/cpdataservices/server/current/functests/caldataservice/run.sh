@@ -24,11 +24,11 @@ waitIceRegistry icegridadmin.cfg
 echo "Starting the Calibration Data Service..."
 nohup java -Xmx1024m askap/cp/caldatasvc/Server --Ice.Config=caldatasvc.cfg > ${APP_LOG} &
 PID=$!
-waitIceAdapter icegridadmin.cfg CalibrationDataServiceAdminAdapter
+waitIceAdapter icegridadmin.cfg CalibrationDataServiceAdapter
 
 # Run the test
 echo "Executing the testcase..."
-python test_transitions.py --Ice.Config=icegridadmin.cfg
+python test_service.py --Ice.Config=icegridadmin.cfg
 STATUS=$?
 
 # Stop the service under test

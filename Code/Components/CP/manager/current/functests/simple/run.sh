@@ -49,11 +49,11 @@ waitIceRegistry icegridadmin.cfg
 echo "Starting the CP Manager..."
 nohup java askap/cp/manager/CpManager cpmanager.cfg > ${CPMAN_LOG} &
 PID=$!
-waitIceAdapter icegridadmin.cfg CentralProcessorAdminAdapter
+waitIceAdapter icegridadmin.cfg CentralProcessorAdapter
 
 # Run the test
 echo "Executing the testcase..."
-python test_transitions.py --Ice.Config=icegridadmin.cfg
+python test_service.py --Ice.Config=icegridadmin.cfg
 STATUS=$?
 
 # Stop the service under test

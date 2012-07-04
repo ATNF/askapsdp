@@ -24,11 +24,11 @@ waitIceRegistry icegridadmin.cfg
 echo "Starting the Sky Model Service..."
 nohup java -Xmx1024m askap/cp/skymodelsvc/Server --Ice.Config=skymodelsvc.cfg > ${APP_LOG} &
 PID=$!
-waitIceAdapter icegridadmin.cfg SkyModelServiceAdminAdapter
+waitIceAdapter icegridadmin.cfg SkyModelServiceAdapter
 
 # Run the test
 echo "Executing the testcase..."
-python test_transitions.py --Ice.Config=icegridadmin.cfg
+python test_service.py --Ice.Config=icegridadmin.cfg
 STATUS=$?
 
 # Stop the service under test

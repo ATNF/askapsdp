@@ -125,4 +125,10 @@ public class ObsService extends _ICPObsServiceDisp {
 		// Blocking (until aborted)
 		itsIngestControl.abortIngest();
 	}
+
+	@Override
+	public String getVersion(Current curr) {
+		Package p = this.getClass().getPackage();
+        return p.getImplementationVersion();
+	}
 }

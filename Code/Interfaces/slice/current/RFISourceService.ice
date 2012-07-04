@@ -26,6 +26,7 @@
 #define ASKAP_RFI_SOURCE_SERVICE_ICE
 
 #include <CommonTypes.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -158,7 +159,7 @@ module rfisourcesvc
     /**
      * Interface to the RFI Source Service.
      **/
-    interface IRFISourceService
+    interface IRFISourceService extends askap::interfaces::services::IService
     {
         /**
          * Add an entry to the RFI source database.

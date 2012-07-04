@@ -26,6 +26,7 @@
 #define ASKAP_SKY_MODEL_SERVICE_ICE
 
 #include <CommonTypes.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -115,7 +116,7 @@ module skymodelservice
     /**
      * Interface to the Sky Model Service.
      **/
-    interface ISkyModelService
+    interface ISkyModelService extends askap::interfaces::services::IService
     {
         /**
          * Cone search method.

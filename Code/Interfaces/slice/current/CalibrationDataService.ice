@@ -27,6 +27,7 @@
 
 #include <CommonTypes.ice>
 #include <CalibrationParameters.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -45,7 +46,7 @@ module caldataservice
     /**
      * Interface to the Calibration Data Service.
      **/
-    interface ICalibrationDataService
+    interface ICalibrationDataService extends askap::interfaces::services::IService
     {
         /**
          * Add a new time tagged gains solution to the calibration

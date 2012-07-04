@@ -26,6 +26,7 @@
 #define ASKAP_CP_ICE
 
 #include <CommonTypes.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -53,7 +54,7 @@ module cp
      * This service is used in association with the Telescope Operating System
      * to carry out an observation.
      */
-    interface ICPObsService
+    interface ICPObsService extends askap::interfaces::services::IService
     {
         /**
          * Calling this method instructs the central processor to carry out the

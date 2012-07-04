@@ -94,16 +94,57 @@ public class CpManager {
 		Ice.Communicator ic = null;
 		try {
 			ParameterSet parset = new ParameterSet(args[0]);
+			
+			// Create an Ice Communicator
 			Ice.InitializationData id = new Ice.InitializationData();
 			id.properties = getIceProperties(parset);
 			ic = Ice.Util.initialize(id);
-
 			if (ic == null) {
 				throw new RuntimeException("Error: ICE Communicator initialisation failed");
 			}
 
-			AdminInterface admin = new AdminInterface(ic, parset);
-			admin.run(); // Blocks until shutdown
+			// Setup an adapter
+			Ice.ObjectAdapter adapter = ic.createObjectAdapter("CentralProcessorAdapter");
+			if (adapter == null) {
+				throw new RuntimeException("ICE adapter initialisation failed");
+			}
+			
+			// Create and register the ObsService object
+			ObsService svc = new ObsService(ic, parset);
+			adapter.add(svc, ic.stringToIdentity("CentralProcessorService"));
+			
+			// Activate the adapter
+			boolean activated = false;
+			while(!activated) {
+				final int interval = 5; // seconds
+				final String baseWarn = "  - will retry in " + interval + " seconds";
+				try {
+					adapter.activate();
+					activated = true;
+				} catch (Ice.ConnectionRefusedException e) {
+					logger.warn("Connection refused" + baseWarn); 
+				} catch (Ice.NoEndpointException e) {
+					logger.warn("No endpoint exception" + baseWarn);
+				} catch (Ice.NotRegisteredException e) {
+					logger.warn("Not registered exception" + baseWarn);
+				}
+				if (!activated) {
+					try {
+						Thread.sleep(interval * 1000);
+					} catch (InterruptedException e) {
+						// In this rare case this might happen, faster polling is ok
+					}
+				}
+			}
+			
+			// Blocks here
+			ic.waitForShutdown();
+			
+			logger.info("Stopping ObsService");
+	        adapter.deactivate();
+	        adapter.destroy();
+	        logger.info("ObsService stopped");
+			
 		} catch (Ice.LocalException e) {
 			e.printStackTrace();
 			status = 1;

@@ -100,4 +100,10 @@ public class SkyModelServiceImpl extends _ISkyModelServiceDisp {
 	public void removeComponents(List<Long> componentIds, Current cur) {
 		itsPersistance.removeComponents(componentIds);
 	}
+
+	@Override
+	public String getVersion(Current curr) {
+		Package p = this.getClass().getPackage();
+        return p.getImplementationVersion();
+	}
 }

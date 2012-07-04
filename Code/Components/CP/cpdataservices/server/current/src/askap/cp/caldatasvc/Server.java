@@ -32,11 +32,13 @@ import java.io.File;
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
-import askap.cp.utils.GenericAdminInterface;
+import askap.cp.utils.ServiceManager;
 
 public class Server {
 
-	/** Logger. */
+	/**
+	 * Logger
+	 */
 	private static Logger logger = Logger.getLogger(Server.class.getName());
 
 	/**
@@ -63,11 +65,12 @@ public class Server {
 			if (ic == null) {
 				throw new RuntimeException("ICE Communicator initialisation failed");
 			}
-
-			GenericAdminInterface admin = new GenericAdminInterface(ic,
-					new CalibrationDataServiceFactory(),
-					"CalibrationDataService", "CalibrationDataServiceAdmin");
-			admin.run(); // Blocks until shutdown
+			
+			CalibrationDataServiceImpl svc = new CalibrationDataServiceImpl(ic);
+			
+			// Blocks until shutdown
+			ServiceManager.runService(ic, svc, "CalibrationDataService",
+					"CalibrationDataServiceAdapter");
 		} catch (Ice.LocalException e) {
 			e.printStackTrace();
 			status = 1;

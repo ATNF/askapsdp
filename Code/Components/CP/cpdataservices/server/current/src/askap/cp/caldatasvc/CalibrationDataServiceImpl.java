@@ -151,4 +151,10 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	public TimeTaggedBandpassSolution getBandpassSolution(long id, Current cur) {
 		return itsManager.getBandpassSolution(id);
 	}
+
+	@Override
+	public String getVersion(Current curr) {
+		Package p = this.getClass().getPackage();
+        return p.getImplementationVersion();
+	}
 }
