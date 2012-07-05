@@ -113,6 +113,14 @@ class MPIComms {
         /// world communicator)
         virtual void broadcast(void* buf, size_t size, int root, size_t comm = 0); 
 
+        /// @brief sum raw float buffers across all ranks of the communicator via MPI_Allreduce 
+        /// @details This method does an in place operation, so all buffers will have the
+        /// same content equal to the sum of initial values (element-wise) sent to individual ranks
+        /// @param[in,out] buf data buffer (float type is assumed)
+        /// @param[in] size number of elements in the buffer (float type is assumed)
+        /// @param[in] comm communicator index
+        virtual void sumAndBroadcast(float *buf, size_t size, size_t comm);
+
         /// @brief create a new communicator
         /// @details This method creates a new communicator and returns the index.
         /// This index can later be used as a parameter for communication methods

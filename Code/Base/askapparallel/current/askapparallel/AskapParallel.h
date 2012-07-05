@@ -119,15 +119,25 @@ class AskapParallel : public MPIComms {
         /// @note This method should only be used in the parallel mode
         void useGroupOfWorkers(size_t group);
 
-        /// @brief configure to communicate within a group of workers excluding the master
+        /// @brief get intergroup communicator index 
+        /// @details This method returns communicator index for operations within
+        /// the group workers (i.e. excluding the master)
         /// @param[in] group group number (0..itsNGroups-1)
+        /// @return communicator index
         /// @note This method should only be used in the parallel mode
-        void useGroupOfWorkersWithoutMaster(size_t group);
+        size_t groupCommIndex(size_t group) const;
 
         /// @brief check if this process belongs to the given group
         /// @param[in] group group number (0..itsNGroups-1)
         /// @return true, if this process belongs to the given group
-        bool inGroup(size_t group);
+        bool inGroup(size_t group) const;
+
+        /// @brief obtain the current group number
+        /// @details This information can be changed at run time (although only once currently).
+        /// Therefore, it finds the current group using multiple calls to inGroup. It is 
+        /// supposed to be used in workers only as the master belongs to all groups.
+        /// @return the group containing the current worker process
+        size_t group() const;
 
         /// @brief define groups of workers
         /// @details Master belongs to all groups (the communication pattern

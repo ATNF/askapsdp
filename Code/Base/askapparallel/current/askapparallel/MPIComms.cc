@@ -287,6 +287,22 @@ void MPIComms::broadcast(void* buf, size_t size, int root, size_t comm)
     }
 }
 
+/// @brief sum raw float buffers across all ranks of the communicator via MPI_Allreduce 
+/// @details This method does an in place operation, so all buffers will have the
+/// same content equal to the sum of initial values (element-wise) sent to individual ranks
+/// @param[in,out] buf data buffer (float type is assumed)
+/// @param[in] size number of elements in the buffer (float type is assumed)
+/// @param[in] comm communicator index
+void MPIComms::sumAndBroadcast(float *buf, size_t size, size_t comm)
+{
+   ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+   ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
+   const int result = MPI_Allreduce(MPI_IN_PLACE,(void*)buf, 
+         int(size), MPI_FLOAT, MPI_SUM, itsCommunicators[comm]);
+   checkError(result,"MPI_Allreduce");
+}
+
+
 void MPIComms::checkError(const int error, const std::string location) const
 {
     if (error == MPI_SUCCESS) {
@@ -346,6 +362,17 @@ int MPIComms::nProcs(size_t) const
 void MPIComms::abort(size_t)
 {
     exit(1);
+}
+
+/// @brief sum raw float buffers across all ranks of the communicator via MPI_Allreduce 
+/// @details This method does an in place operation, so all buffers will have the
+/// same content equal to the sum of initial values (element-wise) sent to individual ranks
+/// @param[in,out] buf data buffer (float type is assumed)
+/// @param[in] size number of elements in the buffer (float type is assumed)
+/// @param[in] comm communicator index
+void MPIComms::sumAndBroadcast(float *, size_t, size_t)
+{
+    ASKAPTHROW(AskapError, "MPIComms::sumAndBroadcast() cannot be used - configured without MPI");
 }
 
 /// @brief create a new communicator

@@ -171,22 +171,25 @@ void AskapParallel::useGroupOfWorkers(size_t group)
   itsCommIndex = group + 1;
 }
         
-/// @brief configure to communicate within a group of workers excluding the master
+/// @brief get intergroup communicator index 
+/// @details This method returns communicator index for operations within
+/// the group workers (i.e. excluding the master)
 /// @param[in] group group number (0..itsNGroups-1)
+/// @return communicator index
 /// @note This method should only be used in the parallel mode
-void AskapParallel::useGroupOfWorkersWithoutMaster(size_t group)
+size_t AskapParallel::groupCommIndex(size_t group) const
 {
   ASKAPCHECK(isParallel(), 
          "AskapParallel::useGroupOfWorkersWithoutMaster should only be used in the parallel mode");
   ASKAPCHECK(group < itsNGroups, "AskapParallel::useGroupOfWorkersWithoutMaster: group="<<group<<
              " total number of groups is "<<itsNGroups);
-  itsCommIndex = itsNGroups + group + 1;
+  return itsNGroups + group + 1;
 }
         
 /// @brief check if this process belongs to the given group
 /// @param[in] group group number (0..itsNGroups-1)
 /// @return true, if this process belongs to the given group
-bool AskapParallel::inGroup(size_t group)
+bool AskapParallel::inGroup(size_t group) const
 {
   if (isMaster()) {
       return true; 
@@ -198,6 +201,28 @@ bool AskapParallel::inGroup(size_t group)
       return group == (rank() - 1) / nWorkersPerGroup;
   }
   return false;
+}
+        
+/// @brief obtain the current group number
+/// @details This information can be changed at run time (although only once currently).
+/// Therefore, it finds the current group using multiple calls to inGroup. It is 
+/// supposed to be used in workers only as the master belongs to all groups.
+/// @return the group containing the current worker process
+size_t AskapParallel::group() const
+{
+  ASKAPCHECK(!isMaster() && isWorker(), "group() method is supposed to be used only in workers and only in the parallel mode");
+  size_t currentGroup = nGroups(); // just a flag that group index is not found
+  for (size_t grp = 0; grp< nGroups(); ++grp) {
+       if (inGroup(grp)) {
+           ASKAPCHECK(currentGroup == nGroups(), 
+                      "Each worker can belong to one and only one group! "
+                      "For some reason it belongs to groups "<<currentGroup<<" and "<<grp);
+           currentGroup = grp;
+       }
+  }
+  ASKAPCHECK(currentGroup < nGroups(), "The worker at rank="<<rank()<<
+             "does not seem to belong to any group!");
+  return currentGroup;
 }
         
 /// @brief define groups of workers
