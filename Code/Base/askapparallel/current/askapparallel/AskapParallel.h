@@ -119,7 +119,12 @@ class AskapParallel : public MPIComms {
         /// @note This method should only be used in the parallel mode
         void useGroupOfWorkers(size_t group);
 
-        /// @brief check if this process belong to the given group
+        /// @brief configure to communicate within a group of workers excluding the master
+        /// @param[in] group group number (0..itsNGroups-1)
+        /// @note This method should only be used in the parallel mode
+        void useGroupOfWorkersWithoutMaster(size_t group);
+
+        /// @brief check if this process belongs to the given group
         /// @param[in] group group number (0..itsNGroups-1)
         /// @return true, if this process belongs to the given group
         bool inGroup(size_t group);

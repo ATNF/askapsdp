@@ -171,7 +171,19 @@ void AskapParallel::useGroupOfWorkers(size_t group)
   itsCommIndex = group + 1;
 }
         
-/// @brief check if this process belong to the given group
+/// @brief configure to communicate within a group of workers excluding the master
+/// @param[in] group group number (0..itsNGroups-1)
+/// @note This method should only be used in the parallel mode
+void AskapParallel::useGroupOfWorkersWithoutMaster(size_t group)
+{
+  ASKAPCHECK(isParallel(), 
+         "AskapParallel::useGroupOfWorkersWithoutMaster should only be used in the parallel mode");
+  ASKAPCHECK(group < itsNGroups, "AskapParallel::useGroupOfWorkersWithoutMaster: group="<<group<<
+             " total number of groups is "<<itsNGroups);
+  itsCommIndex = itsNGroups + group + 1;
+}
+        
+/// @brief check if this process belongs to the given group
 /// @param[in] group group number (0..itsNGroups-1)
 /// @return true, if this process belongs to the given group
 bool AskapParallel::inGroup(size_t group)
@@ -219,6 +231,17 @@ void AskapParallel::defineGroups(size_t nGroups)
                   " for group="<<group);
   }
   itsNGroups = nGroups;
+  // define group communicators excluding the master. There could be a better way of doing this.
+  ranks.resize(workersPerGroup,-1);
+  for (size_t group = 0; group<nGroups; ++group) {
+       for (size_t worker = 0; worker < workersPerGroup; ++worker) {
+            ranks[worker] = 1 + worker + group * workersPerGroup;
+       }
+       ASKAPLOG_INFO_STR(logger, "Group "<<group<<" of workers without the master will include ranks "<<ranks);
+       const size_t commIndex = createComm(ranks);
+       ASKAPCHECK(commIndex == itsNGroups + group + 1, "Unexpected commIndex value of "<<commIndex<<
+                  " for group="<<group);
+  }
 }
         
 /// @return number of groups of workers
