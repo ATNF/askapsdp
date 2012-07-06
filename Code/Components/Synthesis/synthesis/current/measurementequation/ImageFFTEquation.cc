@@ -138,6 +138,7 @@ namespace askap
         itsIdi=other.itsIdi;
         itsGridder = other.itsGridder;
         itsSphFuncPSFGridder = other.itsSphFuncPSFGridder;
+        itsVisUpdateObject = other.itsVisUpdateObject;
       }
       return *this;
     }
@@ -151,6 +152,18 @@ namespace askap
     ImageFFTEquation::ShPtr ImageFFTEquation::clone() const
     {
       return ImageFFTEquation::ShPtr(new ImageFFTEquation(*this));
+    }
+
+    /// @brief setup object function to update degridded visibilities
+    /// @details For the parallel implementation of the measurement equation we need
+    /// inter-rank communication. To avoid introducing cross-dependency of the measurement
+    /// equation and the MPI one can use polymorphic object function to sum degridded visibilities 
+    /// across all required ranks in the distributed case and do nothing otherwise.
+    /// By default, this class doesn't alter degridded visibilities.
+    /// @param[in] obj new object function (or an empty shared pointer to turn this option off)
+    void ImageFFTEquation::setVisUpdateObject(const boost::shared_ptr<IVisCubeUpdate> &obj)
+    {
+      itsVisUpdateObject = obj;
     }
     
     /// @brief helper method to verify whether a parameter had been changed 
@@ -319,6 +332,11 @@ namespace askap
           itsModelGridders[imageName]->degrid(accBuffer);
           counterDegrid+=accBuffer.nRow();
         }
+        // optional aggregation of visibilities in the case of distributed model
+        if (itsVisUpdateObject) {
+            itsVisUpdateObject->update(accBuffer.rwVisibility());
+        }
+        //
         accBuffer.rwVisibility() -= itsIdi->visibility();
         accBuffer.rwVisibility() *= float(-1.);
 

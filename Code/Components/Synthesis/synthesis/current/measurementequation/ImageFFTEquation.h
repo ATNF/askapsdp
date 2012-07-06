@@ -37,6 +37,7 @@
 #include <gridding/IVisGridder.h>
 #include <dataaccess/SharedIter.h>
 #include <dataaccess/IDataIterator.h>
+#include <measurementequation/IVisCubeUpdate.h>
 
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
@@ -45,6 +46,8 @@
 #include <casa/Arrays/Cube.h>
 
 #include <map>
+
+#include <boost/shared_ptr.hpp>
 
 namespace askap
 {
@@ -123,6 +126,15 @@ namespace askap
         /// @param[in] useSphFunc true, if spheroidal function gridder is to be used for PSF
         void useSphFuncForPSF(bool useSphFunc);
         
+        /// @brief setup object function to update degridded visibilities
+        /// @details For the parallel implementation of the measurement equation we need
+        /// inter-rank communication. To avoid introducing cross-dependency of the measurement
+        /// equation and the MPI one can use polymorphic object function to sum degridded visibilities 
+        /// across all required ranks in the distributed case and do nothing otherwise.
+        /// By default, this class doesn't alter degridded visibilities.
+        /// @param[in] obj new object function (or an empty shared pointer to turn this option off)
+        void setVisUpdateObject(const boost::shared_ptr<IVisCubeUpdate> &obj);
+        
       private:
       
       /// Pointer to prototype gridder
@@ -164,6 +176,12 @@ namespace askap
         /// dependence).
         bool itsSphFuncPSFGridder;
 
+        /// @brief if set, visibility cube will be passed through this object function
+        /// @details For the parallel implementation of the measurement equation we need
+        /// inter-rank communication. To avoid introducing cross-dependency of the measurement
+        /// equation and the MPI one can use polymorphic object function to sum degridded visibilities 
+        /// across all required ranks in the distributed case and do nothing otherwise.
+        boost::shared_ptr<IVisCubeUpdate> itsVisUpdateObject;
     };
 
   }

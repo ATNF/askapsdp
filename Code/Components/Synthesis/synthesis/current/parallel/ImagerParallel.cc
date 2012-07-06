@@ -62,7 +62,7 @@ ASKAP_LOGGER(logger, ".parallel");
 #include <calibaccess/CalibAccessFactory.h>
 #include <measurementequation/CalibrationApplicatorME.h>
 #include <profile/AskapProfiler.h>
-
+#include <parallel/GroupVisAggregator.h>
 
 
 #include <casa/aips.h>
@@ -196,6 +196,7 @@ namespace askap
             boost::shared_ptr<ImageFFTEquation> fftEquation(new ImageFFTEquation (*itsModel, it, gridder()));
             ASKAPDEBUGASSERT(fftEquation);
             fftEquation->useSphFuncForPSF(parset().getBool("sphfuncforpsf", false));
+            fftEquation->setVisUpdateObject(GroupVisAggregator::create(itsComms));
             itsEquation = fftEquation;
         } else {
             ASKAPLOG_INFO_STR(logger, "Calibration will be performed using solution source");
@@ -211,6 +212,7 @@ namespace askap
                           new ImageFFTEquation (*itsModel, calIter, gridder()));
             ASKAPDEBUGASSERT(fftEquation);
             fftEquation->useSphFuncForPSF(parset().getBool("sphfuncforpsf", false));
+            fftEquation->setVisUpdateObject(GroupVisAggregator::create(itsComms));
             itsEquation = fftEquation;
         }
       }
