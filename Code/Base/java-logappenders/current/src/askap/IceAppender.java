@@ -68,6 +68,14 @@ public class IceAppender extends AppenderSkeleton {
             itsLocatorHost = host;
             itsLocatorPort = port;
             itsTopicName = topic;
+
+            // Initialize a communicator with these properties.
+            Ice.Properties props = Ice.Util.createProperties();
+            props.setProperty("Ice.Default.Locator", "IceGrid/Locator:tcp -h " + itsLocatorHost + " -p " + itsLocatorPort);
+
+            Ice.InitializationData id = new Ice.InitializationData();
+            id.properties = props;
+            itsCommunicator = Ice.Util.initialize(id);
         }
 
         /** Make the main thread exit. */
@@ -164,14 +172,6 @@ public class IceAppender extends AppenderSkeleton {
         protected boolean connect() {
             boolean res = false;
             try {
-                Ice.Properties props = Ice.Util.createProperties();
-                props.setProperty("Ice.Default.Locator", "IceGrid/Locator:tcp -h " + itsLocatorHost + " -p " + itsLocatorPort);
-
-                // Initialize a communicator with these properties.
-                Ice.InitializationData id = new Ice.InitializationData();
-                id.properties = props;
-                itsCommunicator = Ice.Util.initialize(id);
-
                 // Obtain the topic or create
                 TopicManagerPrx topicManager;
                 Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
@@ -191,14 +191,10 @@ public class IceAppender extends AppenderSkeleton {
                 Ice.ObjectPrx pub = topic.getPublisher().ice_twoway();
                 itsLoggingService = ILoggerPrxHelper.uncheckedCast(pub);
 
-                if (itsLoggingService == null) {
-                    itsCommunicator.shutdown();
-                    itsCommunicator = null;
-                } else {
+                if (itsLoggingService != null) {
                     res = true;
                 }
             } catch (Exception e) {
-                itsCommunicator = null;
                 itsLoggingService = null;
                 res = false;
             }
