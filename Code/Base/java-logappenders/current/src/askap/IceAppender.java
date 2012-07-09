@@ -139,6 +139,8 @@ public class IceAppender extends AppenderSkeleton {
                 itsCommunicator.shutdown();
                 itsCommunicator.waitForShutdown();
             }
+            itsCommunicator.destroy();
+            itsCommunicator = null;
         }
 
         /** Submit a new message to be logged. */
