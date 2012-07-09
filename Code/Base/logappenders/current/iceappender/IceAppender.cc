@@ -72,6 +72,8 @@ IceAppender::~IceAppender()
         itsIceComm->shutdown();
         itsIceComm->waitForShutdown();
     }
+    itsIceComm->destroy();
+    itsIceComm = 0;
 }
 
 void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*pool*/)
