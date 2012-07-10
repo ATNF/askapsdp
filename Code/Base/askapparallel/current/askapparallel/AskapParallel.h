@@ -120,12 +120,11 @@ class AskapParallel : public MPIComms {
         void useGroupOfWorkers(size_t group);
 
         /// @brief get intergroup communicator index 
-        /// @details This method returns communicator index for operations within
-        /// the group workers (i.e. excluding the master)
-        /// @param[in] group group number (0..itsNGroups-1)
+        /// @details This method returns communicator index for operations across
+        /// all groups workers (excluding the master and only for the current rank)
         /// @return communicator index
         /// @note This method should only be used in the parallel mode
-        size_t groupCommIndex(size_t group) const;
+        size_t interGroupCommIndex() const;
 
         /// @brief check if this process belongs to the given group
         /// @param[in] group group number (0..itsNGroups-1)

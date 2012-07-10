@@ -170,21 +170,27 @@ void AskapParallel::useGroupOfWorkers(size_t group)
              " total number of groups is "<<itsNGroups);
   itsCommIndex = group + 1;
 }
-        
+
 /// @brief get intergroup communicator index 
-/// @details This method returns communicator index for operations within
-/// the group workers (i.e. excluding the master)
-/// @param[in] group group number (0..itsNGroups-1)
+/// @details This method returns communicator index for operations across
+/// all groups workers (excluding the master and only for the current rank)
 /// @return communicator index
 /// @note This method should only be used in the parallel mode
-size_t AskapParallel::groupCommIndex(size_t group) const
+size_t AskapParallel::interGroupCommIndex() const
 {
   ASKAPCHECK(isParallel(), 
-         "AskapParallel::useGroupOfWorkersWithoutMaster should only be used in the parallel mode");
-  ASKAPCHECK(group < itsNGroups, "AskapParallel::useGroupOfWorkersWithoutMaster: group="<<group<<
-             " total number of groups is "<<itsNGroups);
-  return itsNGroups + group + 1;
+         "AskapParallel::interGroupCommIndex should only be used in the parallel mode");
+  if (itsNGroups <= 1) {
+      return 0;
+  }
+
+  const int nWorkers = nProcs() - 1;
+  ASKAPDEBUGASSERT(nWorkers > 0);
+  const size_t nWorkersPerGroup = size_t(nWorkers) / itsNGroups;
+    
+  return (rank() - 1) % nWorkersPerGroup + itsNGroups + 1;
 }
+        
         
 /// @brief check if this process belongs to the given group
 /// @param[in] group group number (0..itsNGroups-1)
@@ -256,16 +262,17 @@ void AskapParallel::defineGroups(size_t nGroups)
                   " for group="<<group);
   }
   itsNGroups = nGroups;
-  // define group communicators excluding the master. There could be a better way of doing this.
-  ranks.resize(workersPerGroup,-1);
-  for (size_t group = 0; group<nGroups; ++group) {
-       for (size_t worker = 0; worker < workersPerGroup; ++worker) {
-            ranks[worker] = 1 + worker + group * workersPerGroup;
+  ASKAPDEBUGASSERT(nGroups > 1);
+  // define intergroup communicators. There could be a better way of doing this.
+  ranks.resize(nGroups,-1);
+  for (size_t wrk = 0; wrk<workersPerGroup; ++wrk) {
+       for (size_t grp = 0; grp < nGroups; ++grp) {
+            ranks[grp] = 1 + wrk + grp * workersPerGroup;
        }
-       ASKAPLOG_INFO_STR(logger, "Group "<<group<<" of workers without the master will include ranks "<<ranks);
+       ASKAPLOG_INFO_STR(logger, "Intergroup communicator for worker "<<wrk<<" within each group will include ranks "<<ranks);
        const size_t commIndex = createComm(ranks);
-       ASKAPCHECK(commIndex == itsNGroups + group + 1, "Unexpected commIndex value of "<<commIndex<<
-                  " for group="<<group);
+       ASKAPCHECK(commIndex == itsNGroups + wrk + 1, "Unexpected commIndex value of "<<commIndex<<
+                  " for worker="<<wrk);
   }
 }
         

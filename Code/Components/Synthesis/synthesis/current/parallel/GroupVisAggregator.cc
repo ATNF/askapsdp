@@ -51,9 +51,10 @@ GroupVisAggregator::GroupVisAggregator(askap::askapparallel::AskapParallel& comm
   
   ASKAPLOG_INFO_STR(logger, "Set up visibility aggregator to sum degridded visibilities within each group of workers");
   const size_t group = itsComms.group();
-  ASKAPLOG_INFO_STR(logger, "  Worker group number "<<group<<" out of "<<itsComms.nGroups()<<" groups");
+  itsCommIndex = itsComms.interGroupCommIndex();
+  ASKAPLOG_INFO_STR(logger, "  Worker group number "<<group<<" out of "<<itsComms.nGroups()<<
+  " groups, intergroup communication index: "<<itsCommIndex);
 
-  itsCommIndex = itsComms.groupCommIndex(group);
 }  
   
 /// @brief update visibility cube
