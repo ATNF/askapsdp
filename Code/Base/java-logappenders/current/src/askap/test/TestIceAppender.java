@@ -45,13 +45,13 @@
 package askap.test;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
 
 public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
-    private static final Logger log = Logger.getLogger(TestIceAppender.class);
-    static public int total = 100;
-    static public int count = 0;
+	private static final long serialVersionUID = 1L;
+	private static final Logger log = Logger.getLogger(TestIceAppender.class);
+    private static int total = 100;
+    private static int count = 0;
 
     public void send(askap.interfaces.logging.ILogEvent event, Ice.Current current) {
         System.out.println("Test: Got a message: " + event.message);
@@ -105,7 +105,7 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
             logger = new TestIceAppender();
             proxy = adapter.addWithUUID(logger).ice_oneway();
 
-            java.util.Map qos = null;
+            java.util.Map<String, String> qos = null;
             topic.subscribeAndGetPublisher(qos, proxy);
             adapter.activate();
 
