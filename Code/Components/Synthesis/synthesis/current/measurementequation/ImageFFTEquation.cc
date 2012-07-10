@@ -299,6 +299,9 @@ namespace askap
       }
       // Now we initialise appropriately
       ASKAPLOG_DEBUG_STR(logger, "Initialising for model degridding and residual gridding" );
+      if (completions.size() == 0) {
+          ASKAPLOG_WARN_STR(logger, "Found no free image parameters, this rank will not contribute usefully to normal equations");
+      }
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image"+(*it));

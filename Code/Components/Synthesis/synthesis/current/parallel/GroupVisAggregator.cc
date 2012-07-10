@@ -49,7 +49,7 @@ GroupVisAggregator::GroupVisAggregator(askap::askapparallel::AskapParallel& comm
   // we implicitly assume that casa::Complex just has two float data members and nothing else
   ASKAPDEBUGASSERT(sizeof(casa::Complex) == 2*sizeof(float));
   
-  ASKAPLOG_INFO_STR(logger, "Set up visibility aggregator to sum degrided visibilities within each group of workers");
+  ASKAPLOG_INFO_STR(logger, "Set up visibility aggregator to sum degridded visibilities within each group of workers");
   const size_t group = itsComms.group();
   ASKAPLOG_INFO_STR(logger, "  Worker group number "<<group<<" out of "<<itsComms.nGroups()<<" groups");
 
@@ -63,7 +63,9 @@ void GroupVisAggregator::update(casa::Cube<casa::Complex> &cube) const
   ASKAPASSERT(cube.nelements() != 0); 
   ASKAPASSERT(cube.contiguousStorage());
   // not a very safe way of doing it, but this way we could benefit from MPI reduce/broadcast 
+  ASKAPLOG_DEBUG_STR(logger, "about to sum over the data using comm index: "<<itsCommIndex<<" shape: "<<cube.shape()<<" (0,0,0): "<<cube(0,0,0));
   itsComms.sumAndBroadcast((float *)cube.data(), 2 * cube.nelements(), itsCommIndex);
+  ASKAPLOG_DEBUG_STR(logger, "after mpi call, shape: "<<cube.shape()<<" (0,0,0): "<<cube(0,0,0));
 }
 
 /// @brief helper method to create an instance of this class
