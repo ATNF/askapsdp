@@ -53,7 +53,7 @@ GroupVisAggregator::GroupVisAggregator(askap::askapparallel::AskapParallel& comm
   const size_t group = itsComms.group();
   itsCommIndex = itsComms.interGroupCommIndex();
   ASKAPLOG_INFO_STR(logger, "  Worker group number "<<group<<" out of "<<itsComms.nGroups()<<
-  " groups, intergroup communication index: "<<itsCommIndex);
+  " groups, intergroup communicator index: "<<itsCommIndex);
 
 }  
   

@@ -183,12 +183,7 @@ size_t AskapParallel::interGroupCommIndex() const
   if (itsNGroups <= 1) {
       return 0;
   }
-
-  const int nWorkers = nProcs() - 1;
-  ASKAPDEBUGASSERT(nWorkers > 0);
-  const size_t nWorkersPerGroup = size_t(nWorkers) / itsNGroups;
-    
-  return (rank() - 1) % nWorkersPerGroup + itsNGroups + 1;
+  return itsNGroups + 1;
 }
         
         
@@ -262,17 +257,18 @@ void AskapParallel::defineGroups(size_t nGroups)
                   " for group="<<group);
   }
   itsNGroups = nGroups;
-  ASKAPDEBUGASSERT(nGroups > 1);
-  // define intergroup communicators. There could be a better way of doing this.
-  ranks.resize(nGroups,-1);
-  for (size_t wrk = 0; wrk<workersPerGroup; ++wrk) {
-       for (size_t grp = 0; grp < nGroups; ++grp) {
-            ranks[grp] = 1 + wrk + grp * workersPerGroup;
-       }
-       ASKAPLOG_INFO_STR(logger, "Intergroup communicator for worker "<<wrk<<" within each group will include ranks "<<ranks);
-       const size_t commIndex = createComm(ranks);
-       ASKAPCHECK(commIndex == itsNGroups + wrk + 1, "Unexpected commIndex value of "<<commIndex<<
-                  " for worker="<<wrk);
+  if (isWorker()) {
+      ASKAPDEBUGASSERT(nGroups > 1);
+      const size_t firstWorker = (rank() - 1) % workersPerGroup;
+      // define intergroup communicator. There could be a better way of doing this.
+      ranks.resize(nGroups,-1);      
+      for (size_t grp = 0; grp < nGroups; ++grp) {
+           ranks[grp] = 1 + firstWorker + grp * workersPerGroup;
+      }
+      ASKAPLOG_INFO_STR(logger, "Intergroup communicator for worker "<<(rank() - 1)<<" will include ranks "<<ranks);
+      const size_t commIndex = createComm(ranks);
+      ASKAPCHECK(commIndex == itsNGroups + 1, "Unexpected commIndex value of "<<commIndex<<
+                 " for worker="<<(rank() - 1)<<", first worker in the group is "<<firstWorker);
   }
 }
         
