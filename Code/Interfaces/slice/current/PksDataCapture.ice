@@ -26,6 +26,7 @@
 #define ASKAP_PKSDATACAPTURE_ICE
 
 #include <CommonTypes.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -50,7 +51,7 @@ module pksdatacapture
     /**
      * Parkes Data Capture Service
      */
-    interface IPksDataCaptureService
+    interface IPksDataCaptureService extends askap::interfaces::services::IService
     {
         /**
          * Calling this method instructs the data capture service to begin
