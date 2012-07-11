@@ -156,6 +156,7 @@ int AskapParallel::nProcs() const
 /// to broadcast across all workers (default state).
 void AskapParallel::useAllWorkers()
 {
+  ASKAPLOG_DEBUG_STR(logger, "MPI broadcast of the model will cover all workers");
   itsCommIndex = 0;
 }
 
@@ -168,6 +169,7 @@ void AskapParallel::useGroupOfWorkers(size_t group)
          "AskapParallel::useGroupOfWorkers should only be used in the parallel mode");
   ASKAPCHECK(group < itsNGroups, "AskapParallel::useGroupOfWorkers: group="<<group<<
              " total number of groups is "<<itsNGroups);
+  ASKAPLOG_DEBUG_STR(logger, "MPI broadcast of the model will cover group "<<group<<" of workers");             
   itsCommIndex = group + 1;
 }
 
@@ -265,10 +267,10 @@ void AskapParallel::defineGroups(size_t nGroups)
       for (size_t grp = 0; grp < nGroups; ++grp) {
            ranks[grp] = 1 + firstWorker + grp * workersPerGroup;
       }
-      ASKAPLOG_INFO_STR(logger, "Intergroup communicator for worker "<<(rank() - 1)<<" will include ranks "<<ranks);
+      ASKAPLOG_INFO_STR(logger, "Intergroup communicator for rank "<<rank()<<" will include ranks "<<ranks);
       const size_t commIndex = createComm(ranks);
       ASKAPCHECK(commIndex == itsNGroups + 1, "Unexpected commIndex value of "<<commIndex<<
-                 " for worker="<<(rank() - 1)<<", first worker in the group is "<<firstWorker);
+                 " for worker at rank"<<rank()<<", first worker in the group is "<<firstWorker);
   }
 }
         
