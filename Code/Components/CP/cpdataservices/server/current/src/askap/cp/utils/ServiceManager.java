@@ -42,7 +42,7 @@ public class ServiceManager {
 			throw new RuntimeException("ICE adapter initialisation failed");
 		}
 
-		// Create and register the ObsService object
+		// Create and register the service object
 		adapter.add(svc, ic.stringToIdentity(serviceName));
 
 		// Activate the adapter
@@ -73,10 +73,10 @@ public class ServiceManager {
 		// Blocks here
 		ic.waitForShutdown();
 
-		logger.info("Stopping ObsService");
+		logger.info("Stopping " + serviceName);
 		adapter.deactivate();
 		adapter.destroy();
-		logger.info("ObsService stopped");
+		logger.info(serviceName + " stopped");
 
 	}
 }
