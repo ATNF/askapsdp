@@ -314,7 +314,7 @@ void MPIComms::aggregateFlag(bool &flag, size_t comm)
    ASKAPDEBUGASSERT(comm < itsCommunicators.size());
    ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
    int buf = int(flag);
-   const int result = MPI_Allreduce(MPI_IN_PLACE,(void*)buf, 
+   const int result = MPI_Allreduce(MPI_IN_PLACE,(void*)&buf, 
          1, MPI_INT, MPI_LOR, itsCommunicators[comm]);
    checkError(result,"MPI_Allreduce");
    flag = bool(buf);
