@@ -107,7 +107,7 @@ void ProfileSingleton::logProfileStats(const ProfileTree &tree, const std::strin
   std::map<std::string, ProfileData> stats;
   tree.extractStats(stats, keepHierarchy, leavesOnly);
   if (stats.size() == 0) {
-      ASKAPLOG_INFO_STR(logger, "  no statistics captured");
+      ASKAPLOG_DEBUG_STR(logger, "  no statistics captured");
   } else {
       std::ofstream os;
       if (fname != "") {
@@ -115,7 +115,7 @@ void ProfileSingleton::logProfileStats(const ProfileTree &tree, const std::strin
       }
       for (std::map<std::string, ProfileData>::const_iterator ci = stats.begin(); ci != stats.end(); ++ci) {
           const ProfileData &pd = ci->second;
-          ASKAPLOG_INFO_STR(logger, "  "<<ci->first<<" count: "<<pd.count()<<" total: "<<pd.totalTime()<<" max: "<<
+          ASKAPLOG_DEBUG_STR(logger, "  "<<ci->first<<" count: "<<pd.count()<<" total: "<<pd.totalTime()<<" max: "<<
                                     pd.maxTime()<<" min: "<<pd.minTime());
           if (fname != "") {
               // storing into a file in a comma-separated format
