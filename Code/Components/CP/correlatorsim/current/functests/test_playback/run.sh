@@ -6,7 +6,7 @@ cd `dirname $0`
 source ../../init_package_env.sh
 
 # Start the Ice Services
-../start_services.sh config.icegrid
+../start_services.sh icegrid.cfg
 sleep 2
 
 # Start the metadata subscriber (don't use the script so this script can kill it)
@@ -32,6 +32,6 @@ sleep 1
 kill -9 $MDPID $VISPID $VISPID2 > /dev/null 2>&1
 
 # Stop the Ice Services
-../stop_services.sh config.icegrid
+../stop_services.sh icegrid.cfg
 
 exit $STATUS

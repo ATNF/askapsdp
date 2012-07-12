@@ -7,7 +7,7 @@ source ../../init_package_env.sh
 export AIPSPATH=$ASKAP_ROOT/Code/Base/accessors/current
 
 # Start the Ice Services
-../start_services.sh config.icegrid
+../start_services.sh icegrid.cfg
 sleep 2
 
 # Run the ingest pipeline
@@ -17,6 +17,6 @@ STATUS=$?
 echo "Testcase finished"
 
 # Stop the Ice Services
-../stop_services.sh config.icegrid
+../stop_services.sh icegrid.cfg
 
 exit $STATUS

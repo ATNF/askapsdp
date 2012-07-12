@@ -6,7 +6,7 @@ cd `dirname $0`
 source ../../init_package_env.sh
 
 # Start the Ice Services
-../start_services.sh config.icegrid
+../start_services.sh icegrid.cfg
 sleep 2
 
 # Run the test harness
@@ -16,6 +16,6 @@ STATUS=$?
 echo "Testcase finished"
 
 # Stop the Ice Services
-../stop_services.sh config.icegrid
+../stop_services.sh icegrid.cfg
 
 exit $STATUS
