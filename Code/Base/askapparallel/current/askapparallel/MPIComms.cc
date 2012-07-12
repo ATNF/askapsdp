@@ -392,6 +392,18 @@ void MPIComms::sumAndBroadcast(float *, size_t, size_t)
     ASKAPTHROW(AskapError, "MPIComms::sumAndBroadcast() cannot be used - configured without MPI");
 }
 
+/// @brief reduce a boolean flag across the number of ranks
+/// @details This method aggregates a flag (i.e. single boolean variable) across
+/// a number of ranks with the logical or operation. All ranks will have the same
+/// value of the flag at the end. The main use case is checking before a collective
+/// call that at least one rank has some data.
+/// @param[in,out] flag flag to reduce
+/// @param[in] comm communicator index
+void MPIComms::aggregateFlag(bool &, size_t)
+{
+    ASKAPTHROW(AskapError, "MPIComms::aggregateFlag() cannot be used - configured without MPI");
+}
+
 /// @brief create a new communicator
 /// @details This method creates a new communicator and returns the index.
 /// This index can later be used as a parameter for communication methods
