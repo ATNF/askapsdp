@@ -54,7 +54,7 @@ class TopicConfigTest : public CppUnit::TestFixture {
         void testAll() {
             const string host = "localhost";
             const string port = "4061";
-            const string topicManager = "IceStorm/TopicManager";
+            const string topicManager = "IceStorm/TopicManager@IceStorm.TopicManager";
             const string topic = "mytopic";
 
             TopicConfig instance(host, port, topicManager, topic);

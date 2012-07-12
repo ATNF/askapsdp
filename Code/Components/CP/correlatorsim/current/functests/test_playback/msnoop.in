@@ -3,6 +3,6 @@
 #
 ice.locator_host        = localhost
 ice.locator_port        = 4061
-icestorm.topicmanager   = IceStorm/TopicManager
+icestorm.topicmanager   = IceStorm/TopicManager@@IceStorm.TopicManager
 icestorm.topic          = tosmetadata
 ice.adapter_name        = MetadataSnoopAdapter

@@ -8,7 +8,7 @@ playback.period = 10
 #
 playback.tossim.ice.locator_host            = localhost
 playback.tossim.ice.locator_port            = 4061
-playback.tossim.icestorm.topicmanager       = IceStorm/TopicManager
+playback.tossim.icestorm.topicmanager       = IceStorm/TopicManager@IceStorm.TopicManager
 playback.tossim.icestorm.topic              = tosmetadata
 
 #

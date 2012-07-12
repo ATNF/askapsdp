@@ -120,7 +120,7 @@ observation.scan0.stokes            = [XX, XY, YX, YY]
 #
 metadata_source.ice.locator_host        = localhost
 metadata_source.ice.locator_port        = 4061
-metadata_source.icestorm.topicmanager   = IceStorm/TopicManager
+metadata_source.icestorm.topicmanager   = IceStorm/TopicManager@IceStorm.TopicManager
 metadata_source.icestorm.topic          = tosmetadata
 
 #
