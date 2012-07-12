@@ -269,7 +269,7 @@ void AskapParallel::defineGroups(size_t nGroups)
       for (size_t grp = 0; grp < nGroups; ++grp) {
            ranks[grp] = 1 + wrk + grp * workersPerGroup;
       }
-      if (rank() == (wrk + 1)) {
+      if (rank() == int(wrk + 1)) {
          ASKAPLOG_INFO_STR(logger, "Intergroup communicator for worker at rank "<<(wrk + 1)<<" will include ranks "<<ranks);
       }
       const size_t commIndex = createComm(ranks);

@@ -180,6 +180,12 @@ namespace askap
       /// @param[in] name table name to store the CFs to (or an empty string if CFs are not to be stored)
       void setTableName(const std::string &name) { itsName = name; }
       
+      /// @brief check whether the model is empty
+      /// @details A simple check allows us to bypass heavy calculations if the input model
+      /// is empty (all pixels are zero). This makes sense for degridding only.
+      /// @brief true, if the model is empty
+      virtual bool isModelEmpty() const; 
+      
   protected:
       /// @brief helper method to print CF cache stats in the log
       /// @details This method is largely intended for debugging. It writes down

@@ -1226,6 +1226,15 @@ void TableVisGridder::setConvFuncOffset(int cfPlane, int x, int y)
   itsConvFuncOffsets[cfPlane] = std::pair<int,int>(x,y);
 }
 
+/// @brief check whether the model is empty
+/// @details A simple check allows us to bypass heavy calculations if the input model
+/// is empty (all pixels are zero). This makes sense for degridding only.
+/// @brief true, if the model is empty
+bool TableVisGridder::isModelEmpty() const
+{
+  return itsModelIsEmpty;
+}
+
 
 }
 

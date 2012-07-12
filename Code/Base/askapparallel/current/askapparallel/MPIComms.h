@@ -120,6 +120,15 @@ class MPIComms {
         /// @param[in] size number of elements in the buffer (float type is assumed)
         /// @param[in] comm communicator index
         virtual void sumAndBroadcast(float *buf, size_t size, size_t comm);
+        
+        /// @brief reduce a boolean flag across the number of ranks
+        /// @details This method aggregates a flag (i.e. single boolean variable) across
+        /// a number of ranks with the logical or operation. All ranks will have the same
+        /// value of the flag at the end. The main use case is checking before a collective
+        /// call that at least one rank has some data.
+        /// @param[in,out] flag flag to reduce
+        /// @param[in] comm communicator index
+        virtual void aggregateFlag(bool &flag, size_t comm);
 
         /// @brief create a new communicator
         /// @details This method creates a new communicator and returns the index.

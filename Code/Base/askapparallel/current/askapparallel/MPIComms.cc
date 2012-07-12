@@ -302,6 +302,23 @@ void MPIComms::sumAndBroadcast(float *buf, size_t size, size_t comm)
    checkError(result,"MPI_Allreduce");
 }
 
+/// @brief reduce a boolean flag across the number of ranks
+/// @details This method aggregates a flag (i.e. single boolean variable) across
+/// a number of ranks with the logical or operation. All ranks will have the same
+/// value of the flag at the end. The main use case is checking before a collective
+/// call that at least one rank has some data.
+/// @param[in,out] flag flag to reduce
+/// @param[in] comm communicator index
+void MPIComms::aggregateFlag(bool &flag, size_t comm)
+{
+   ASKAPDEBUGASSERT(comm < itsCommunicators.size());
+   ASKAPDEBUGASSERT(itsCommunicators[comm] != MPI_COMM_NULL);
+   int buf = int(flag);
+   const int result = MPI_Allreduce(MPI_IN_PLACE,(void*)buf, 
+         1, MPI_INT, MPI_LOR, itsCommunicators[comm]);
+   checkError(result,"MPI_Allreduce");
+   flag = bool(buf);
+}
 
 void MPIComms::checkError(const int error, const std::string location) const
 {

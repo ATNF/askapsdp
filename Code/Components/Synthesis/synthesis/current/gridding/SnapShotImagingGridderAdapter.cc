@@ -608,4 +608,13 @@ void SnapShotImagingGridderAdapter::setPSFReprojection(const bool doIt)
   }
 }
 
+/// @brief check whether the model is empty
+/// @details A simple check allows us to bypass heavy calculations if the input model
+/// is empty (all pixels are zero). This makes sense for degridding only.
+/// @brief true, if the model is empty
+bool SnapShotImagingGridderAdapter::isModelEmpty() const 
+{
+  return itsModelIsEmpty;
+}
+
 

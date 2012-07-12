@@ -128,6 +128,12 @@ namespace askap
 			/// to create a brand new instance of the gridder (and hence no object would
 			/// exist at that stage)	
 			static ShPtr createGridder(const LOFAR::ParameterSet& parset);
+			
+			/// @brief check whether the model is empty
+			/// @details A simple check allows us to bypass heavy calculations if the input model
+			/// is empty (all pixels are zero). This makes sense for degridding only.
+			/// @brief true, if the model is empty
+			virtual bool isModelEmpty() const = 0; 
 		};
 	}
 }

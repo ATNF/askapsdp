@@ -69,6 +69,15 @@ void GroupVisAggregator::update(casa::Cube<casa::Complex> &cube) const
   ASKAPLOG_DEBUG_STR(logger, "after mpi call, shape: "<<cube.shape()<<" (0,0,0): "<<cube(0,0,0));
 }
 
+/// @brief aggregate flag with the logical or operation
+/// @param[in,out] flag flag to reduce
+void GroupVisAggregator::aggregateFlag(bool &flag) const
+{
+  ASKAPLOG_DEBUG_STR(logger, "about to aggregate flag ("<<flag<<")");
+  itsComms.aggregateFlag(flag, itsCommIndex);
+  ASKAPLOG_DEBUG_STR(logger, "flag after aggregation is "<<flag);
+}
+
 /// @brief helper method to create an instance of this class
 /// @details It checks whether the current setup has multiple groups of workers
 /// and if yes, creates an instance of this class. Otherwise, an empty shared pointer

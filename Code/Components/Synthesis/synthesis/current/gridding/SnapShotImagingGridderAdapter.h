@@ -150,6 +150,12 @@ public:
    ///                 otherwise (the default), the wrapped gridder is used directly without any reprojection
    void setPSFReprojection(const bool doIt);
    
+   /// @brief check whether the model is empty
+   /// @details A simple check allows us to bypass heavy calculations if the input model
+   /// is empty (all pixels are zero). This makes sense for degridding only.
+   /// @brief true, if the model is empty
+   virtual bool isModelEmpty() const; 
+   
 protected:
    /// @brief check whether this is a psf gridder
    /// @details We pass all calls directly to the wrapped gridder for PSF calculation,

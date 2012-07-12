@@ -302,6 +302,7 @@ namespace askap
       if (completions.size() == 0) {
           ASKAPLOG_WARN_STR(logger, "Found no free image parameters, this rank will not contribute usefully to normal equations");
       }
+      bool somethingHasToBeDegridded = false;
       for (vector<string>::const_iterator it=completions.begin();it!=completions.end();it++)
       {
         string imageName("image"+(*it));
@@ -311,6 +312,9 @@ namespace askap
         /// First the model
         itsModelGridders[imageName]->customiseForContext(*it);
         itsModelGridders[imageName]->initialiseDegrid(axes, imagePixels);
+        if (!itsModelGridders[imageName]->isModelEmpty()) {
+            somethingHasToBeDegridded = true;
+        }
         /// Now the residual images, dopsf=false
         itsResidualGridders[imageName]->customiseForContext(*it);
         itsResidualGridders[imageName]->initialiseGrid(axes, imageShape, false);
@@ -318,6 +322,10 @@ namespace askap
         itsPSFGridders[imageName]->customiseForContext(*it);
         itsPSFGridders[imageName]->initialiseGrid(axes, imageShape, true);        
       }
+      // synchronise emtpy flag across multiple ranks if necessary
+      if (itsVisUpdateObject) {
+          itsVisUpdateObject->aggregateFlag(somethingHasToBeDegridded);
+      }      
       // Now we loop through all the data
       ASKAPLOG_DEBUG_STR(logger, "Starting degridding model and gridding residuals" );
       size_t counterGrid = 0, counterDegrid = 0;
@@ -329,17 +337,25 @@ namespace askap
          
         // Accumulate model visibility for all models
         accBuffer.rwVisibility().set(0.0);
-        for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it)
-        {
-          string imageName("image"+(*it));
-          itsModelGridders[imageName]->degrid(accBuffer);
-          counterDegrid+=accBuffer.nRow();
+        if (somethingHasToBeDegridded) {
+            for (vector<string>::const_iterator it=completions.begin();it!=completions.end();++it) {
+                 const std::string imageName("image"+(*it));
+                 const std::map<std::string, IVisGridder::ShPtr>::iterator grdIt = itsModelGridders.find(imageName);
+                 ASKAPDEBUGASSERT(grdIt != itsModelGridders.end());
+                 const IVisGridder::ShPtr degridder = grdIt->second;
+                 ASKAPDEBUGASSERT(degridder);
+                 if (!degridder->isModelEmpty()) {
+                     degridder->degrid(accBuffer);
+                     counterDegrid+=accBuffer.nRow();
+                 }
+            }
+            // optional aggregation of visibilities in the case of distributed model        
+            // somethingHasToBeDegridded is supposed to have consistent value across all participating ranks
+            if (itsVisUpdateObject) {
+                itsVisUpdateObject->update(accBuffer.rwVisibility());
+            }
+            //            
         }
-        // optional aggregation of visibilities in the case of distributed model
-        if (itsVisUpdateObject) {
-            itsVisUpdateObject->update(accBuffer.rwVisibility());
-        }
-        //
         accBuffer.rwVisibility() -= itsIdi->visibility();
         accBuffer.rwVisibility() *= float(-1.);
 

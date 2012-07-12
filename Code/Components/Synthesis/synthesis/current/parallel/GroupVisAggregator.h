@@ -57,6 +57,10 @@ public:
   /// @param[in,out] cube reference to visiblity cube to update 
   virtual void update(casa::Cube<casa::Complex> &cube) const;
   
+  /// @brief aggregate flag with the logical or operation
+  /// @param[in,out] flag flag to reduce
+  virtual void aggregateFlag(bool &flag) const;
+    
   /// @brief helper method to create an instance of this class
   /// @details It checks whether the current setup has multiple groups of workers
   /// and if yes, creates an instance of this class. Otherwise, an empty shared pointer
