@@ -26,6 +26,7 @@
 #define ASKAP_FCMSERVICE_ICE
 
 #include <CommonTypes.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -35,11 +36,11 @@ module interfaces
 
 module fcm
 {
-    
+
     exception NoSuchKeyException extends askap::interfaces::AskapIceException
     {
     };
-    
+
     exception KeyExistsException extends askap::interfaces::AskapIceException
     {
     };
@@ -56,19 +57,19 @@ module fcm
         string log;
         string date;
     };
-    
+
     sequence<RevisionInfo> RevisionInfoSeq;
-    
+
     struct UpdatedKeys {
         ParameterMap parameters;
         RevisionInfo info;
-        UpdateStatus state;        
+        UpdateStatus state;
     };
-    
+
     /**
-     * 
+     *
      **/
-    interface IFCMService
+    interface IFCMService extends askap::interfaces::services::IService
     {
         /**
          * Retrieve the facility configuration parameters at the specified
@@ -112,7 +113,7 @@ module fcm
         long getLatestRevision();
 
     };
-    
+
     /**
      * Publisher of FCM change events.
      **/
@@ -121,7 +122,7 @@ module fcm
          * Notify when a configuration has changed
          **/
         idempotent void updated(UpdatedKeys changes);
-        
+
     };
 };
 };
