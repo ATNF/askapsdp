@@ -22,9 +22,9 @@ try:
     ic = Ice.initialize(sys.argv)
 
     # Make a getServiceVersion() call on the service
-    base = ic.stringToProxy("CentralProcessorService@CentralProcessorAdapter")
+    base = ic.stringToProxy("SkyModelService@SkyModelServiceAdapter")
     if not base:
-        raise RuntimeError("CentralProcessorService proxy not found")
+        raise RuntimeError("SkyModelService proxy not found")
     svc = askap.interfaces.services.IServicePrx.checkedCast(base)
     if not svc:
         raise RuntimeError("Invalid IService proxy")

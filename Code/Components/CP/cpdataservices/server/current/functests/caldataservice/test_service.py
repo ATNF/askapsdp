@@ -21,14 +21,14 @@ ic = None
 try:
     ic = Ice.initialize(sys.argv)
 
-    # Make a getVersion() call on the service
+    # Make a getServiceVersion() call on the service
     base = ic.stringToProxy("CalibrationDataService@CalibrationDataServiceAdapter")
     if not base:
         raise RuntimeError("CalibrationDataService proxy not found")
     svc = askap.interfaces.services.IServicePrx.checkedCast(base)
     if not svc:
         raise RuntimeError("Invalid IService proxy")
-    print "getVersion() returned: " + svc.getVersion()
+    print "getServiceVersion() returned: " + svc.getServiceVersion()
 
 except:
     traceback.print_exc()
