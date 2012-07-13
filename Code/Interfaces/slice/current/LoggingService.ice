@@ -26,6 +26,7 @@
 #define ASKAP_LOGGINGSERVICE_ICE
 
 #include <CommonTypes.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -123,7 +124,7 @@ module logging
     /**
      * The interface which defines a query of to the log archive.
      **/
-    interface ILogQuery
+    interface ILogQuery extends askap::interfaces::services::IService
     {
         // Query the logarchive database returning the list of matches
 	// ordered by ascending date
