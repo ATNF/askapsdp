@@ -26,6 +26,7 @@
 #define ASKAP_EPHEMERIDESSERVICE_ICE
 
 #include <CommonTypes.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -35,7 +36,7 @@ module interfaces
 
 module ephem
 {
- 
+
     /**
      * This exceptions is thrown when a malformed query is passed into the
      * method.
@@ -61,30 +62,30 @@ module ephem
          * An empty sequence indicate no restictions.
          **/
         FloatSeq centre;
-        
+
         /**
          * The "cone search" radius in degrees to search around the centre.
          * This is only useful if a centre is given.
          **/
         float radius;
-        
+
         /**
          * The observing frame e.g. J2000
          **/
         string frame;
-        
+
         /**
          * The flux/intensity of the source. This can be an arbitrary unit
          **/
         float flux;
-        
+
         /**
          *  Match on a given source catalogue name.
          *  An empty string means no restriction.
          **/
         string catalogue;
     };
-    
+
     /**
      * A source catalogue entry representation
      **/
@@ -107,37 +108,38 @@ module ephem
          * The flux/intensity of the source. This can be an arbitrary unit
          **/
         float flux;
-        
+
         /**
          * The cataloge the source entry originated from
          **/
         string catalogue;
-        
+
         /**
          * Any extra columns which are found in the data. These are not
          * queriable.
          **/
         ParameterMap auxiliary;
     };
-    
+
     // A sequence of sources
     sequence<Source> SourceSeq;
-    
+
     /**
      * This interface allows querying the ATCA and Parkes (calibrator) source
      * catalogues.
      **/
-    interface ISourceSearch {
-        
+    interface ISourceSearch extends askap::interfaces::services::IService
+    {
+
         /**
          * Return a list of source catalogue entries matching the given query.
          * For long lists 'limit' and offset can be applied to sequentially
-         * return batches. 1 <= limit <= 1000 and  offset > 0 apply. 
-         *  
+         * return batches. 1 <= limit <= 1000 and  offset > 0 apply.
+         *
          **/
         idempotent SourceSeq query(SourceQuery q, int limit, int offset)
             throws InvalidQueryException;
-        
+
         /**
          * Return a list names of the catalogues provided by this service.
          **/
