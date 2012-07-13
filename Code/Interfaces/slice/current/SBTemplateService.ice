@@ -27,6 +27,7 @@
 
 #include <CommonTypes.ice>
 #include <DataServiceExceptions.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -84,7 +85,7 @@ module schedblock
      * which part of the version (major or minor) they want to increment.
      *
      **/
-    interface ISBTemplateService
+    interface ISBTemplateService extends askap::interfaces::services::IService
     {
 
         /**

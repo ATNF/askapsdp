@@ -25,6 +25,8 @@
 #ifndef ASKAP_QUEUESERVICE_ICE
 #define ASKAP_QUEUESERVICE_ICE
 
+#include <IService.ice>
+
 module askap
 {
 
@@ -38,7 +40,7 @@ module schedblock
      * An interface to present a view of all SchedulingBlocks in the SCHEDULED
      * state sorted by scheduled date/time
      **/
-    interface IQueueService
+    interface IQueueService extends askap::interfaces::services::IService
     {
         /**
          * Return the id of the first Scheduling Block in the queue. The item

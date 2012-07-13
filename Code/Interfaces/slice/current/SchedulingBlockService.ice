@@ -28,6 +28,7 @@
 #include <CommonTypes.ice>
 #include <DataServiceExceptions.ice>
 #include <SBTemplateService.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -82,7 +83,7 @@ module schedblock
      * actual version it was using to ensures tracability. This is done
      * via the key 'executive.sbtemplate.version'.
      **/
-    interface ISchedulingBlockService
+    interface ISchedulingBlockService extends askap::interfaces::services::IService
     {
         /**
          * Transition the Scheduling Block to the given state.

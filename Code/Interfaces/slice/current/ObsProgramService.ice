@@ -27,6 +27,7 @@
 
 #include <CommonTypes.ice>
 #include <DataServiceExceptions.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -36,7 +37,7 @@ module interfaces
 
 module schedblock
 {
-    interface IObsProgramService
+    interface IObsProgramService extends askap::interfaces::services::IService
     {
         long create(string name, string investigator, string opalid)
             throws VersionException;

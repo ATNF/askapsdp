@@ -26,6 +26,7 @@
 #define ASKAP_EXECUTIVE_ICE
 
 #include <CommonTypes.ice>
+#include <IService.ice>
 
 module askap
 {
@@ -40,7 +41,7 @@ module executive
    * to run the Executive through e.g. an Operator Display or a
    * script.
    **/
-  interface IExecutiveService
+  interface IExecutiveService extends askap::interfaces::services::IService
   {
     /**
      * Start the executive - enable access to a queue of SchedulingBlocks
