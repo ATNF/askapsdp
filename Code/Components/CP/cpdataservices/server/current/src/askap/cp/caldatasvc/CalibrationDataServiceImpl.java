@@ -153,7 +153,7 @@ public class CalibrationDataServiceImpl extends _ICalibrationDataServiceDisp {
 	}
 
 	@Override
-	public String getVersion(Current curr) {
+	public String getServiceVersion(Current curr) {
 		Package p = this.getClass().getPackage();
         return p.getImplementationVersion();
 	}

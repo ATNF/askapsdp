@@ -127,7 +127,7 @@ public class ObsService extends _ICPObsServiceDisp {
 	}
 
 	@Override
-	public String getVersion(Current curr) {
+	public String getServiceVersion(Current curr) {
 		Package p = this.getClass().getPackage();
         return p.getImplementationVersion();
 	}
