@@ -44,7 +44,7 @@ module services
          *
          * @return  the version of the component.
          **/
-        idempotent string getVersion();
+        idempotent string getServiceVersion();
     };
 };
 };
