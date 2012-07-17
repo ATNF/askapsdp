@@ -527,7 +527,8 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
         { 
           boost::unique_lock<boost::mutex> lock(theirMutex);
         #endif
-          regridder.regrid(itsTempOutImg, casa::Interpolate2D::CUBIC, casa::IPosition(2,0,1), itsTempInImg);
+          regridder.regrid(itsTempOutImg, casa::Interpolate2D::CUBIC,
+                  casa::IPosition(2,0,1), itsTempInImg, false, 3);
         #ifdef _OPENMP
         }
         #endif
