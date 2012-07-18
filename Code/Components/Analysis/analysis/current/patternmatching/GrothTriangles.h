@@ -102,7 +102,7 @@ namespace askap {
                     /// @brief Constructor from position, flux, ID
                     Point(double x, double y, double f, std::string id) {itsX = x; itsY = y; itsFlux = f; itsID = id;};
                     /// @brief Constructor from position, flux, ID and elliptical shape
-                    Point(double x, double y, double f, std::string id, double maj, double min, double pa) {itsX = x; itsY = y; itsFlux = f; itsID = id; itsMajAxis = maj; itsMinAxis = min; itsPA = pa;};
+                    Point(double x, double y, double f, std::string id, double maj, double min, double pa, double alpha, double beta) {itsX = x; itsY = y; itsFlux = f; itsID = id; itsMajAxis = maj; itsMinAxis = min; itsPA = pa; itsAlpha=alpha; itsBeta=beta;};
                     /// @brief Copy Constructor
                     Point(const Point& p) {operator=(p);};
                     /// @brief Copy function
@@ -134,6 +134,10 @@ namespace askap {
                     void setPA(double a) {itsPA = a;};
                     /// @brief Return the position angle
                     double PA() {return itsPA;};
+		    void setAlpha(double a){itsAlpha = a;};
+		    double alpha(){return itsAlpha;};
+		    void setBeta(double a){itsBeta = a;};
+		    double beta(){return itsBeta;};
                     /// @brief Set the ID string
                     void setID(std::string id) {itsID = id;};
                     /// @brief Return the ID string
@@ -163,6 +167,9 @@ namespace askap {
                     double itsMinAxis;
                     ///@brief The position angle of a Gaussian fit
                     double itsPA;
+
+		    double itsAlpha;
+		    double itsBeta;
                     ///@brief Any additional information on the point
                     Stuff itsStuff;
             };

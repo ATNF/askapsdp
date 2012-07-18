@@ -99,6 +99,8 @@ namespace askap {
                 this->itsMajAxis = p.itsMajAxis;
                 this->itsMinAxis = p.itsMinAxis;
                 this->itsPA = p.itsPA;
+		this->itsAlpha = p.itsAlpha;
+		this->itsBeta = p.itsBeta;
                 this->itsStuff = p.itsStuff;
                 return *this;
             }

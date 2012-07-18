@@ -141,7 +141,7 @@ namespace askap {
 		    
 
                 if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
-                    matching::Point pt(pix[0], pix[1], peakflux, id, maj, min, pa);
+                    matching::Point pt(pix[0], pix[1], peakflux, id, maj, min, pa,alpha,beta);
                     pt.setStuff(chisq, noise, rmsfit, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pt);
                 }
@@ -218,7 +218,7 @@ namespace askap {
 		    //		    ASKAPLOG_DEBUG_STR(logger, "... to pixel coords ("<<pix[0]<<","<<pix[1]<<")");
 
                     if (radius < 0 || (radius > 0 && hypot(pix[0] - xBase, pix[1] - yBase) < radius*60.)) {
-                        matching::Point pt(pix[0], pix[1], flux, idString.str(), maj, min, pa);
+                        matching::Point pt(pix[0], pix[1], flux, idString.str(), maj, min, pa,alpha,beta);
                         pixlist.push_back(pt);
                     }
                 }
@@ -303,7 +303,7 @@ namespace askap {
                 ypt = (dec - decBase) * 3600.;
 
                 if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
-                    matching::Point pix(xpt, ypt, peakflux, id, maj, min, pa);
+                    matching::Point pix(xpt, ypt, peakflux, id, maj, min, pa,alpha,beta);
                     pix.setStuff(chisq, noise, rmsfit, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pix);
                 }
@@ -363,7 +363,7 @@ namespace askap {
                     ypt = (dec - decBase) * 3600.;
 
                     if (radius < 0 || (radius > 0 && hypot(xpt, ypt) < radius*60.)) {
-                        matching::Point pix(xpt, ypt, flux, idString.str(), maj, min, pa);
+                        matching::Point pix(xpt, ypt, flux, idString.str(), maj, min, pa,alpha,beta);
                         pixlist.push_back(pix);
                     }
                 }

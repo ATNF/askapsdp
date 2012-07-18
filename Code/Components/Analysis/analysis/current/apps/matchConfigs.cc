@@ -61,7 +61,7 @@ int main(int argc, const char** argv)
         while (fg >> x >> y, !fg.eof()) {
             std::stringstream ss;
             ss << id++;
-            Point p(x, y, 1., ss.str(), 0, 0, 0);
+            Point p(x, y, 1., ss.str(), 0, 0, 0,0,0);
             gupta.push_back(p);
         }
 
@@ -70,7 +70,7 @@ int main(int argc, const char** argv)
         while (fd >> x >> y, !fd.eof()) {
             std::stringstream ss;
             ss << id++;
-            Point p(x, y, 1., ss.str(), 0, 0, 0);
+            Point p(x, y, 1., ss.str(), 0, 0, 0,0,0);
             deboer.push_back(p);
         }
 

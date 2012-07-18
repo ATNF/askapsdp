@@ -492,6 +492,8 @@ namespace askap {
                         << std::setw(10) << std::setprecision(3) << match->first.majorAxis() << " "
                         << std::setw(10) << std::setprecision(3) << match->first.minorAxis() << " "
                         << std::setw(10) << std::setprecision(3) << match->first.PA()  << " "
+			 << std::setw(10) << std::setprecision(3) << match->first.alpha() << " "
+			 << std::setw(10) << std::setprecision(3) << match->first.beta() << " "
                         << std::setw(10) << match->first.stuff() << "\t"
                         << "[" << match->second.ID() << "]\t"
                         << std::setw(10) << std::setprecision(3) << match->second.x()  << " "
@@ -500,6 +502,8 @@ namespace askap {
                         << std::setw(10) << std::setprecision(3) << match->second.majorAxis() << " "
                         << std::setw(10) << std::setprecision(3) << match->second.minorAxis() << " "
                         << std::setw(10) << std::setprecision(3) << match->second.PA() << "\t"
+			 << std::setw(10) << std::setprecision(3) << match->second.alpha() << " "
+			 << std::setw(10) << std::setprecision(3) << match->second.beta() << " "
                         << std::setw(8)  << std::setprecision(3) << match->first.sep(match->second) << " "
                         << std::setw(8)  << std::setprecision(8) << match->first.flux() - match->second.flux() << " "
                         << std::setw(8)  << std::setprecision(6) << (match->first.flux() - match->second.flux()) / match->second.flux() << "\n";
