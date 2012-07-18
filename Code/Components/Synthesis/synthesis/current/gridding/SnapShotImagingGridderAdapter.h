@@ -77,7 +77,12 @@ public:
    /// @param[in] gridder a shared pointer to the gridder to be wrapped by this adapter
    /// @param[in] tolerance w-term tolerance in wavelengths (a new fit is performed if the old
    /// plane gives w-deviation exceeding this value)
-   SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder, const double tolerance);
+   /// @param[in] decimate the decimation factor used for coordinate system interpolation
+   /// during regridding. A decimation factor of 0 (or 1) implies no decimation, which is the
+   /// slowest and most accurate.
+   SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder,
+           const double tolerance,
+           const casa::uInt decimate = 0);
 
 
    /// @brief copy constructor
@@ -238,7 +243,7 @@ protected:
    casa::DirectionCoordinate currentPlaneDirectionCoordinate() const;   
    
 private:
-   
+
    /// @brief gridder doing actual job
    boost::shared_ptr<IVisGridder> itsGridder;
    
@@ -343,6 +348,11 @@ private:
    /// @details By default we bypass image reprojection for the PSF. Although it is an approximation, the
    /// PSF is approximate anyway. However, this field can be set to false to test the effects on deconvolution.
    bool itsNoPSFReprojection;
+
+   /// The decimation factor used for coordinate system interpolation during
+   /// regridding. A decimation factor of 0 (or 1) implies no decimation,
+   /// which is the slowest and most accurate. 
+   casa::uInt itsDecimationFactor; 
 
    #ifdef _OPENMP
    /// @brief mutex to deal with lack of thread safety in casa's regrid

@@ -199,7 +199,8 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
         ASKAPLOG_INFO_STR(logger, "A gridder adapter will be set up to do snap-shot imaging");
         const double wtolerance = parset.getDouble("gridder.snapshotimaging.wtolerance"); 
 	    ASKAPLOG_INFO_STR(logger, "w-coordinate tolerance is "<<wtolerance<<" wavelengths");
-	    boost::shared_ptr<SnapShotImagingGridderAdapter> adapter(new SnapShotImagingGridderAdapter(gridder,wtolerance));
+        const casa::uInt decimate = parset.getUint("gridder.snapshotimaging.coorddecimation", 3);
+	    boost::shared_ptr<SnapShotImagingGridderAdapter> adapter(new SnapShotImagingGridderAdapter(gridder,wtolerance, decimate));
 	    const double clippingFactor = parset.getDouble("gridder.snapshotimaging.clipping", 0.);
 	    ASKAPLOG_INFO_STR(logger, "Clipping factor is "<<clippingFactor);
 	    adapter->setClippingFactor(float(clippingFactor));
