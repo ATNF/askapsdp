@@ -27,16 +27,20 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 ///
-#ifndef VISGRIDDERFACTORY_H_
-#define VISGRIDDERFACTORY_H_
+#ifndef ASKAP_SYNTHESIS_VISGRIDDERFACTORY_H_
+#define ASKAP_SYNTHESIS_VISGRIDDERFACTORY_H_
 
+// System includes
+#include <map>
+
+// ASKAPsoft includes
+#include <Common/ParameterSet.h>
+#include <scimath/Mathematics/Interpolate2D.h>
+#include <boost/shared_ptr.hpp>
+
+// Loacl package includes
 #include <gridding/IVisGridder.h>
 #include <gridding/IBasicIllumination.h>
-
-#include <Common/ParameterSet.h>
-
-#include <boost/shared_ptr.hpp>
-#include <map>
 
 namespace askap
 {
@@ -91,6 +95,8 @@ namespace askap
       
       
     private:
+      static casa::Interpolate2D::Method interpMethod(casa::String str);
+
       static std::map<std::string, GridderCreator*> theirRegistry;
     };
 

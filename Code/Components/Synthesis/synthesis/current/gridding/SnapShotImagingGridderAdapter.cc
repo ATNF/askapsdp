@@ -53,6 +53,7 @@ ASKAP_LOGGER(logger, ".gridding.snapshotimaginggridderadapter");
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <lattices/Lattices/ArrayLattice.h>
 #include <casa/Arrays/Array.h>
+#include <scimath/Mathematics/Interpolate2D.h>
 
 //#include <measurementequation/SynthesisParamsHelper.h>
 
@@ -74,12 +75,13 @@ boost::mutex SnapShotImagingGridderAdapter::theirMutex;
 /// @param[in] tolerance w-term tolerance in wavelengths (a new fit is performed if the old
 /// plane gives w-deviation exceeding this value)
 SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder,
-                               const double tolerance, const casa::uInt decimate) :
+                               const double tolerance, const casa::uInt decimate,
+                               const casa::Interpolate2D::Method method) :
      itsAccessorAdapter(tolerance), itsDoPSF(false), itsCoeffA(0.), itsCoeffB(0.),
      itsFirstAccessor(true), itsBuffersFinalised(false), itsNumOfImageRegrids(0), itsTimeImageRegrid(0.),
      itsNumOfInitialisations(0), itsLastFitTimeStamp(0.), itsShortestIntervalBetweenFits(3e7),
      itsLongestIntervalBetweenFits(-1.), itsModelIsEmpty(false), itsClippingFactor(0.), itsNoPSFReprojection(true),
-     itsDecimationFactor(decimate)
+     itsDecimationFactor(decimate), itsInterpolationMethod(method)
 {
   ASKAPCHECK(gridder, "SnapShotImagingGridderAdapter should only be initialised with a valid gridder");
   itsGridder = gridder->clone();
@@ -99,7 +101,8 @@ SnapShotImagingGridderAdapter::SnapShotImagingGridderAdapter(const SnapShotImagi
     itsShortestIntervalBetweenFits(other.itsShortestIntervalBetweenFits), 
     itsLongestIntervalBetweenFits(other.itsLongestIntervalBetweenFits), 
     itsTempInImg(), itsTempOutImg(), itsModelIsEmpty(other.itsModelIsEmpty), itsClippingFactor(other.itsClippingFactor),
-    itsNoPSFReprojection(other.itsNoPSFReprojection), itsDecimationFactor(other.itsDecimationFactor)
+    itsNoPSFReprojection(other.itsNoPSFReprojection), itsDecimationFactor(other.itsDecimationFactor),
+    itsInterpolationMethod(other.itsInterpolationMethod)
 {
   ASKAPCHECK(other.itsGridder, 
        "copy constructor of SnapShotImagingGridderAdapter got an object somehow set up with an empty gridder");
@@ -528,7 +531,7 @@ void SnapShotImagingGridderAdapter::imageRegrid(const casa::Array<double> &input
         { 
           boost::unique_lock<boost::mutex> lock(theirMutex);
         #endif
-          regridder.regrid(itsTempOutImg, casa::Interpolate2D::CUBIC,
+          regridder.regrid(itsTempOutImg, itsInterpolationMethod,
                   casa::IPosition(2,0,1), itsTempInImg, false, 3);
         #ifdef _OPENMP
         }

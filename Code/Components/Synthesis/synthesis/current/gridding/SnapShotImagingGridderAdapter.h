@@ -46,7 +46,7 @@
 #include <dataaccess/BestWPlaneDataAccessor.h>
 #include <fitting/Axes.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
-
+#include <scimath/Mathematics/Interpolate2D.h>
 #include <measures/Measures/MDirection.h>
 #include <images/Images/TempImage.h>
 
@@ -80,9 +80,11 @@ public:
    /// @param[in] decimate the decimation factor used for coordinate system interpolation
    /// during regridding. A decimation factor of 0 (or 1) implies no decimation, which is the
    /// slowest and most accurate.
+   /// @param[in] method the interpolation method to use for regridding.
    SnapShotImagingGridderAdapter(const boost::shared_ptr<IVisGridder> &gridder,
            const double tolerance,
-           const casa::uInt decimate = 0);
+           const casa::uInt decimate = 0,
+           const casa::Interpolate2D::Method method = casa::Interpolate2D::CUBIC);
 
 
    /// @brief copy constructor
@@ -353,6 +355,9 @@ private:
    /// regridding. A decimation factor of 0 (or 1) implies no decimation,
    /// which is the slowest and most accurate. 
    casa::uInt itsDecimationFactor; 
+
+   // Interpolation method used for regridding
+   casa::Interpolate2D::Method itsInterpolationMethod;
 
    #ifdef _OPENMP
    /// @brief mutex to deal with lack of thread safety in casa's regrid

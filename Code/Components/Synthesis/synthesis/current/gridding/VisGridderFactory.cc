@@ -21,11 +21,18 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
+// Package level header file
 #include <askap_synthesis.h>
+
+// ASKAPsoft includes
 #include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".gridding.visgridderfactory");
-
 #include <askap/AskapError.h>
+#include <casa/OS/DynLib.h>        // for dynamic library loading
+#include <casa/BasicSL/String.h>   // for downcase
+#include <scimath/Mathematics/Interpolate2D.h>
+
+// Local package includes
 #include <gridding/VisGridderFactory.h>
 #include <gridding/VisGridderWithPadding.h>
 #include <gridding/BoxVisGridder.h>
@@ -35,15 +42,8 @@ ASKAP_LOGGER(logger, ".gridding.visgridderfactory");
 #include <gridding/WStackVisGridder.h>
 #include <gridding/AProjectWStackVisGridder.h>
 #include <gridding/SnapShotImagingGridderAdapter.h>
-
-#include <measurementequation/SynthesisParamsHelper.h>
-
-// RVU
 #include <gridding/VisWeightsMultiFrequency.h>
-
-#include <casa/OS/DynLib.h>        // for dynamic library loading
-#include <casa/BasicSL/String.h>   // for downcase
-
+#include <measurementequation/SynthesisParamsHelper.h>
 
 namespace askap {
 namespace synthesis {
@@ -200,18 +200,39 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
         const double wtolerance = parset.getDouble("gridder.snapshotimaging.wtolerance"); 
 	    ASKAPLOG_INFO_STR(logger, "w-coordinate tolerance is "<<wtolerance<<" wavelengths");
         const casa::uInt decimate = parset.getUint("gridder.snapshotimaging.coorddecimation", 3);
-	    boost::shared_ptr<SnapShotImagingGridderAdapter> adapter(new SnapShotImagingGridderAdapter(gridder,wtolerance, decimate));
-	    const double clippingFactor = parset.getDouble("gridder.snapshotimaging.clipping", 0.);
-	    ASKAPLOG_INFO_STR(logger, "Clipping factor is "<<clippingFactor);
-	    adapter->setClippingFactor(float(clippingFactor));
-	    const bool doPSFReprojection = parset.getBool("gridder.snapshotimaging.reprojectpsf", false);
-	    adapter->setPSFReprojection(doPSFReprojection);
-	    // possible additional configuration comes here
-	    gridder = adapter;
-	}
-	
-	return gridder;
+        const casa::Interpolate2D::Method method = interpMethod(
+                parset.getString("gridder.snapshotimaging.interpmethod", "cubic"));
+	    boost::shared_ptr<SnapShotImagingGridderAdapter> adapter(
+                new SnapShotImagingGridderAdapter(gridder, wtolerance, decimate, method));
+        const double clippingFactor = parset.getDouble("gridder.snapshotimaging.clipping", 0.);
+        ASKAPLOG_INFO_STR(logger, "Clipping factor is "<<clippingFactor);
+        adapter->setClippingFactor(float(clippingFactor));
+        const bool doPSFReprojection = parset.getBool("gridder.snapshotimaging.reprojectpsf", false);
+        adapter->setPSFReprojection(doPSFReprojection);
+        // possible additional configuration comes here
+        gridder = adapter;
+    }
+
+    return gridder;
 }
 
+casa::Interpolate2D::Method VisGridderFactory::interpMethod(casa::String str) {
+    str.downcase();
+    if (str.compare("nearest") == 0) {
+        ASKAPLOG_INFO_STR(logger, "Regridding interpolation method: NEAREST");
+        return casa::Interpolate2D::NEAREST;
+    } else if (str.compare("linear") == 0) {
+        ASKAPLOG_INFO_STR(logger, "Regridding interpolation method: LINEAR");
+        return casa::Interpolate2D::LINEAR;
+    } else if (str.compare("cubic") == 0) {
+        ASKAPLOG_INFO_STR(logger, "Regridding interpolation method: CUBIC");
+        return casa::Interpolate2D::CUBIC;
+    } else if (str.compare("lanczos") == 0) {
+        ASKAPLOG_INFO_STR(logger, "Regridding interpolation method: LANCZOS");
+        return casa::Interpolate2D::LANCZOS;
+    } else {
+        ASKAPTHROW(AskapError, "Unknown interpolation method: " << str);
+    }
+}
 }
 }
