@@ -264,6 +264,8 @@ namespace askap
 	  // keep a copy of the zeroth PSF to avoid having it overwritten each time.
 	  Array<float> psfWorkArray;
 	  for( uInt order=0; order < limit; ++order) {
+	       ASKAPTRACE("ImageAMSMFSolver::solveNormalEquations._initcopy");
+	    
 	    // make helper to represent the given order
 	    if(this->itsNumberTaylor>1) {
 	      ASKAPLOG_INFO_STR(logger, "Solving for Taylor term " << order);
@@ -309,7 +311,9 @@ namespace askap
 	  IPosition centre(2, nx/2, ny/2);
 
 	  itsPSFZeroArray=psfLongVec(0).copy();
-	  if(firstcycle) {
+	  if (firstcycle) {
+          ASKAPTRACE("ImageAMSMFSolver::solveNormalEquations._fc_norm+precnd");
+	    
 	    ASKAPLOG_DEBUG_STR(logger, "Deriving scale from PSF(0) centre value " << psfLongVec(0).nonDegenerate()(centre));
 	    // For the first cycle we need to precondition and normalise all PSFs and all dirty images
 	    itsPSFZeroCentre=-1;
@@ -346,6 +350,7 @@ namespace askap
 	    }// Loop over order
 	  }
 	  else {
+        ASKAPTRACE("ImageAMSMFSolver::solveNormalEquations._norm+precnd");
 	    // For the subsequent cycles cycle we need to precondition and normalise the updated dirty images
             // Precondition the dirty (residual) array
 	    for(uInt order=0; order < itsNumberTaylor; ++order) {
@@ -365,6 +370,8 @@ namespace askap
 	  
 	  // Now that we have all the required images, we can initialise the deconvolver
 	  if (firstcycle)  {// Initialize everything only once.
+          ASKAPTRACE("ImageAMSMFSolver::solveNormalEquations._fc_initdeconvolver");
+	      
 	      ASKAPLOG_INFO_STR(logger, "Creating solver for plane " << plane <<" tag "<<imageTag);
 	      itsCleaners[imageTag].reset(new DeconvolverMultiTermBasisFunction<Float, Complex>(dirtyVec, psfVec, psfLongVec));
 	      ASKAPDEBUGASSERT(itsCleaners[imageTag]);
@@ -386,6 +393,7 @@ namespace askap
 		  itsCleaners[imageTag]->setWeight(maskArray);
 	      }
 	  } else {
+          ASKAPTRACE("ImageAMSMFSolver::solveNormalEquations._updatedeconvolver");
 	      ASKAPCHECK(itsCleaners[imageTag], "Deconvolver not yet defined");
 	      // Update the dirty images
 	      ASKAPLOG_INFO_STR(logger, "Multi-Term Basis Function deconvolver already exists - update dirty images");
@@ -430,9 +438,12 @@ namespace askap
             itsCleaners[imageTag]->setModel(cleanArray, order);
 	  } // end of 'order' loop
 	  
-	  ASKAPLOG_INFO_STR(logger, "Starting Minor Cycles ("<<imageTag<<").");
-	  itsCleaners[imageTag]->deconvolve();
-	  ASKAPLOG_INFO_STR(logger, "Finished Minor Cycles ("<<imageTag<<").");
+	  {
+         ASKAPTRACE("ImageAMSMFSolver::solveNormalEquations._calldeconvolver");	  
+         ASKAPLOG_INFO_STR(logger, "Starting Minor Cycles ("<<imageTag<<").");
+         itsCleaners[imageTag]->deconvolve();
+         ASKAPLOG_INFO_STR(logger, "Finished Minor Cycles ("<<imageTag<<").");
+      }
 	  
           // Now update the stored peak residual
           const std::string peakResParam = std::string("peak_residual.") + imageTag;
