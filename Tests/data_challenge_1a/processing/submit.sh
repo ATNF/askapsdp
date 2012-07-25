@@ -120,6 +120,10 @@ fi
 
 . ${SCRIPTDIR}/reporting.sh
 
+# Write all the job ids to a file so a script can block until the
+# jobs have all completed if necessary
+echo ${GLOBAL_ALL_JOBS} > jobsids.txt
+
 ##############################################################################
 # Execute!!
 ##############################################################################
