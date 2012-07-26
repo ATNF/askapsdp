@@ -311,9 +311,15 @@ void WProjectVisGridder::initConvolutionFunction(const accessors::IConstDataAcce
                         ASKAPDEBUGASSERT((iy + cfSupport.itsOffsetV)*itsOverSample + fracv + ny / 2 >= 0);
                         ASKAPDEBUGASSERT((ix + cfSupport.itsOffsetU)*itsOverSample + fracu + nx / 2 < int(thisPlane.nrow()));
                         ASKAPDEBUGASSERT((iy + cfSupport.itsOffsetV)*itsOverSample + fracv + ny / 2 < int(thisPlane.ncolumn()));
-                        itsConvFunc[plane](ix + support, iy + support) =
-                            thisPlane((ix + cfSupport.itsOffsetU) * itsOverSample + fracu + nx / 2,
+                        if (w < 0) {
+                            itsConvFunc[plane](ix + support, iy + support) =
+                                conj(thisPlane((ix + cfSupport.itsOffsetU) * itsOverSample + fracu + nx / 2,
+                                      (iy + cfSupport.itsOffsetV) * itsOverSample + fracv + ny / 2));
+                        } else {
+                            itsConvFunc[plane](ix + support, iy + support) =
+                               thisPlane((ix + cfSupport.itsOffsetU) * itsOverSample + fracu + nx / 2,
                                       (iy + cfSupport.itsOffsetV) * itsOverSample + fracv + ny / 2);
+                        }
                     } // for ix
                 } // for iy
             } // for fracv
