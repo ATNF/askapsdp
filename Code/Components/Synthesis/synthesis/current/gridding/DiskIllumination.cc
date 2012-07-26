@@ -92,50 +92,59 @@ void DiskIllumination::getPattern(double freq, UVPattern &pattern, double l,
     const double dishRadiusInCells = itsDiameter/(2.0*cell);  
     
     // squares of the disk and blockage area radii
-	const double rMaxSquared = casa::square(dishRadiusInCells);
-	double rMinSquared = casa::square(itsBlockage/(2.0*cell));     
+    const double rMaxSquared = casa::square(dishRadiusInCells);
+    double rMinSquared = casa::square(itsBlockage/(2.0*cell));     
 	
-	// sizes of the grid to fill with pattern values
-	const casa::uInt nU = pattern.uSize();
-	const casa::uInt nV = pattern.vSize();
+    // sizes of the grid to fill with pattern values
+    const casa::uInt nU = pattern.uSize();
+    const casa::uInt nV = pattern.vSize();
 	
-	ASKAPCHECK(rMaxSquared>rMinSquared, "Disk hole is supposed to be less than the disk size, you have diameter="<<
-	           itsDiameter<<" (rMaxSquared="<<rMaxSquared<<") blockage="<<itsBlockage<<" (rMinSquared="<<
-	           rMinSquared<<")");
+    ASKAPCHECK(rMaxSquared>rMinSquared, "Disk hole is supposed to be less than the disk size, you have diameter="<<
+               itsDiameter<<" (rMaxSquared="<<rMaxSquared<<") blockage="<<itsBlockage<<" (rMinSquared="<<
+               rMinSquared<<")");
 	
-	ASKAPCHECK((casa::square(double(nU)) > rMaxSquared) &&
-	           (casa::square(double(nV)) > rMaxSquared),
-	           "The pattern buffer passed to DiskIllumination::getPattern is too small for the given model. "
-	           "Sizes should be greater than "<<sqrt(rMaxSquared)<<" on each axis, you have "
-	            <<nU<<" x "<<nV);
+    ASKAPCHECK((casa::square(double(nU)) > rMaxSquared) &&
+               (casa::square(double(nV)) > rMaxSquared),
+               "The pattern buffer passed to DiskIllumination::getPattern is too small for the given model. "
+               "Sizes should be greater than "<<sqrt(rMaxSquared)<<" on each axis, you have "
+                <<nU<<" x "<<nV);
 	
-	// maximum possible support for this class corresponds to the dish size
-	pattern.setMaxSupport(1+2*casa::uInt(dishRadiusInCells)/oversample);
+    // maximum possible support for this class corresponds to the dish size
+    pattern.setMaxSupport(1+2*casa::uInt(dishRadiusInCells)/oversample);
 	           
-	double sum=0.; // normalisation factor
-	if (rMinSquared + 1 >= rMaxSquared) {
-	    // we don't have enough resolution in the uv-plane to represent the blockage
-	    // (image selected is probably too small to get the sidelobes affected by the blockage)
-	    // we need at least 1 pixel wide annulus. 
-	    --rMinSquared;
+    if (rMinSquared + 1 >= rMaxSquared) {
+        // we don't have enough resolution in the uv-plane to represent the blockage
+        // (image selected is probably too small to get the sidelobes affected by the blockage)
+        // we need at least 1 pixel wide annulus. 
+        --rMinSquared;
+    }
+
+    double sum=0.; // normalisation factor
+    #ifdef _OPENMP
+    #pragma omp parallel default(shared)
+    {
+        #pragma omp for reduction(+:sum)
+    #endif
+        for (casa::uInt iU=0; iU<nU; ++iU) {
+             const double offsetU = double(iU)-double(nU)/2.;
+             const double offsetUSquared = casa::square(offsetU);
+             for (casa::uInt iV=0; iV<nV; ++iV) {
+                  const double offsetV = double(iV)-double(nV)/2.;
+                  const double offsetVSquared = casa::square(offsetV);
+                  const double radiusSquared = offsetUSquared + offsetVSquared;
+                  if ( (radiusSquared >= rMinSquared) && (radiusSquared <= rMaxSquared)) {
+                       // don't need to multiply by wavelength here because we
+                       // divided the radius (i.e. the illumination pattern is given
+                       // in a relative coordinates in frequency
+                       const double phase = lScaled*offsetU + mScaled*offsetV;
+                       pattern(iU, iV) = casa::DComplex(cos(phase), -sin(phase));
+                       sum += 1.;
+                  }
+             }
 	}
-	for (casa::uInt iU=0; iU<nU; ++iU) {
-	     const double offsetU = double(iU)-double(nU)/2.;
-		 const double offsetUSquared = casa::square(offsetU);
-		 for (casa::uInt iV=0; iV<nV; ++iV) {
-		      const double offsetV = double(iV)-double(nV)/2.;
-		      const double offsetVSquared = casa::square(offsetV);
-		   	  const double radiusSquared = offsetUSquared + offsetVSquared;
-			  if ( (radiusSquared >= rMinSquared) && (radiusSquared <= rMaxSquared)) {
-			      // don't need to multiply by wavelength here because we
-			      // divided the radius (i.e. the illumination pattern is given
-			      // in a relative coordinates in frequency
-				  const double phase = lScaled*offsetU + mScaled*offsetV;
-				  pattern(iU, iV) = casa::DComplex(cos(phase), -sin(phase));
-				  sum += 1.;
-			   }
-		 }
-	}
+    #ifdef _OPENMP
+    }
+    #endif
 
     ASKAPCHECK(sum > 0., "Integral of the disk should be non-zero");
     pattern.pattern() *= casa::DComplex(float(nU)*float(nV)/float(sum),0.);

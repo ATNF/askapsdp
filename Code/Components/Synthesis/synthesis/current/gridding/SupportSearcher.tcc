@@ -53,19 +53,41 @@ void SupportSearcher::findPeak(const casa::Matrix<T> &in)
   itsPeakPos.resize(in.shape().nelements(),casa::False);
   itsPeakPos = 0;
   itsPeakVal = -1;
+  #ifdef _OPENMP
+  #pragma omp parallel default(shared)
+  {
+  #pragma omp for
+  #endif
   for (int iy=0;iy<int(in.ncolumn());++iy) {
+       double tempPeakVal = -1;      
+       int tempPeakX = 0, tempPeakY = 0;
        for (int ix=0;ix<int(in.nrow());++ix) {
 	    // the following line has been commented out until we find a better work around on the delphinus/minicp bug
 	    // See ticket:2307
             //const double curVal = std::abs(in(ix,iy));
 	    const double curVal = std::abs(casa::DComplex(in(ix,iy)));
-            if(itsPeakVal< curVal) {
-               itsPeakPos(0)=ix;
-               itsPeakPos(1)=iy;
-               itsPeakVal = curVal;
+            if(tempPeakVal< curVal) {
+               tempPeakX = ix;
+               tempPeakY = iy;
+               tempPeakVal = curVal;
             }
        }
+       #ifdef _OPENMP
+       #pragma omp critical
+       {
+       #endif
+       if (itsPeakVal < tempPeakVal) {
+           itsPeakPos(0) = tempPeakX;
+           itsPeakPos(1) = tempPeakY;
+           itsPeakVal = tempPeakVal;
+       }
+       #ifdef _OPENMP
+       }
+       #endif
   }
+  #ifdef _OPENMP
+  }
+  #endif
 #ifdef ASKAP_DEBUG  
   if (itsPeakVal<0) {
       ASKAPTHROW(CheckError, "An empty matrix has been passed to SupportSearcher::findPeak, please investigate. Shape="<<
@@ -78,7 +100,7 @@ void SupportSearcher::findPeak(const casa::Matrix<T> &in)
   ASKAPCHECK(!std::isinf(itsPeakVal), "Peak value is infinite, please investigate. itsPeakPos="<<itsPeakPos);
 #endif // #ifdef ASKAP_DEBUG
 
-  ASKAPCHECK(itsPeakVal>0.0, "Unable to find peak of the convolution function, all values appear to be zero. itsPeakVal=" 
+  ASKAPCHECK(itsPeakVal>0.0, "Unable to find peak in the support searcher (in either making a convolution function or fitting the PSF), all values appear to be zero. itsPeakVal=" 
              << itsPeakVal);
 }
 
@@ -135,12 +157,24 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<T> &in)
              "Peak position of the convolution function "<<itsPeakPos<<" is too close to the edge, increase maxsupport");
   
   const double absCutoff = itsCutoff*itsPeakVal;
+  #ifdef _OPENMP
+  #pragma omp parallel sections
+  {
+  #pragma omp section
+  {
+  #endif 
   for (int ix = 0; ix<=itsPeakPos(0); ++ix) {
        if (casa::abs(in(ix, itsPeakPos(1))) > absCutoff) {
            itsBLC(0) = ix;
            break;
        }
   }
+
+  #ifdef _OPENMP
+  }
+  #pragma omp section
+  {
+  #endif
   
   for (int iy = 0; iy<=itsPeakPos(1); ++iy) {
        if (casa::abs(in(itsPeakPos(0),iy)) > absCutoff) {
@@ -149,6 +183,12 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<T> &in)
        }
   }
 
+  #ifdef _OPENMP
+  }
+  #pragma omp section
+  {
+  #endif
+
   for (int ix = int(in.nrow())-1; ix>=itsPeakPos(0); --ix) {
        if (casa::abs(in(ix, itsPeakPos(1))) > absCutoff) {
            itsTRC(0) = ix;
@@ -156,12 +196,23 @@ void SupportSearcher::doSupportSearch(const casa::Matrix<T> &in)
        }
   }
   
+  #ifdef _OPENMP
+  }
+  #pragma omp section
+  {
+  #endif
+
   for (int iy = int(in.ncolumn())-1; iy>=itsPeakPos(1); --iy) {
        if (casa::abs(in(itsPeakPos(0),iy)) > absCutoff) {
            itsTRC(1) = iy;
            break;
        }
   }
+
+  #ifdef _OPENMP
+  }
+  }
+  #endif
   
   ASKAPCHECK((itsBLC(0)>=0) && (itsBLC(1)>=0) && (itsTRC(0)>=0) && 
              (itsTRC(1)>=0), "Unable to find the support on one of the coordinates (try decreasing the value of .gridder.cutoff) Effective support is 0. itsBLC="<<itsBLC<<" itsTRC="<<itsTRC<<" itsPeakPos="<<itsPeakPos<<" in.shape()="<<in.shape()<<" absCutoff="<<absCutoff<<" itsPeakVal="<<itsPeakVal);
