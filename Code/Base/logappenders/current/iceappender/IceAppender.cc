@@ -164,7 +164,7 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& /*pool*/)
     // Obtain a proxy to the topic manager
     IceStorm::TopicManagerPrx topicManager;
     try {
-        Ice::ObjectPrx obj = itsIceComm->stringToProxy("IceStorm/TopicManager");
+        Ice::ObjectPrx obj = itsIceComm->stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
         topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
     } catch (Ice::Exception) {
         std::cerr << "Could not connect to logger topic, messages will not be sent to the log server" << std::endl;

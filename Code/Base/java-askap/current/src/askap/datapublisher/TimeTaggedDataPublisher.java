@@ -117,7 +117,7 @@ public class TimeTaggedDataPublisher extends DataPublisherBase
             }
             // Obtain the topic or create
             TopicManagerPrx topicManager;
-            Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager");
+            Ice.ObjectPrx obj = itsCommunicator.stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
             topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
 
             try {

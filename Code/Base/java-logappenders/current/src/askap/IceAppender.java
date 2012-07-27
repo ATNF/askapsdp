@@ -188,7 +188,7 @@ public class IceAppender extends AppenderSkeleton {
 			try {
 				// Obtain the topic or create
 				Ice.ObjectPrx obj = itsCommunicator
-						.stringToProxy("IceStorm/TopicManager");
+						.stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
 				TopicManagerPrx topicManager = IceStorm.TopicManagerPrxHelper
 						.checkedCast(obj);
 				

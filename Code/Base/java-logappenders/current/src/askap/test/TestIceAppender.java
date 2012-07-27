@@ -81,7 +81,7 @@ public class TestIceAppender extends askap.interfaces.logging._ILoggerDisp {
             IceStorm.TopicManagerPrx topicManager;
 
             System.out.println("Test: Obtaining TopicManager");
-            Ice.ObjectPrx obj = ic.stringToProxy("IceStorm/TopicManager");
+            Ice.ObjectPrx obj = ic.stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
             topicManager = IceStorm.TopicManagerPrxHelper.checkedCast(obj);
 
             System.out.println("Test: Obtaining Logger Topic");

@@ -35,7 +35,7 @@ class TestTimeTaggedDataPublisher(object):
             # Get the Topic and subscribe to updates
             self.manager = IceStorm.TopicManagerPrx.\
                 checkedCast(self.igsession.communicator.\
-                    stringToProxy('IceStorm/TopicManager'))
+                    stringToProxy('IceStorm/TopicManager@IceStorm.TopicManager'))
             try:
                 self.topic = self.manager.retrieve(self.topicname)
             except IceStorm.NoSuchTopic:

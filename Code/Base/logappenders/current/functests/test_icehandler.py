@@ -33,7 +33,7 @@ class LogSubscriber(object):
     def __init__(self, comm):
         self.ice = comm
         self.manager = IceStorm.TopicManagerPrx.\
-            checkedCast(self.ice.stringToProxy('IceStorm/TopicManager'))
+            checkedCast(self.ice.stringToProxy('IceStorm/TopicManager@IceStorm.TopicManager'))
 
         topicname = "logger"
         try:
