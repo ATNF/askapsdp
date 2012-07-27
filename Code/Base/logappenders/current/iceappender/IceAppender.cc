@@ -47,23 +47,26 @@
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 using namespace askap;
-//using namespace askap::interfaces::logging;
 
-std::map<LevelPtr, askap::interfaces::logging::LogLevel> IceAppender::levelMap;
+std::map<LevelPtr, askap::interfaces::logging::LogLevel> IceAppender::theirLevelMap;
 
 IMPLEMENT_LOG4CXX_OBJECT(IceAppender)
 
 IceAppender::IceAppender()
 {
-    if (levelMap.size() == 0) {
-        levelMap[Level::getTrace()] = askap::interfaces::logging::TRACE;
-        levelMap[Level::getDebug()] = askap::interfaces::logging::DEBUG;
-        levelMap[Level::getInfo()] = askap::interfaces::logging::INFO;
-        levelMap[Level::getWarn()] = askap::interfaces::logging::WARN;
-        levelMap[Level::getError()] = askap::interfaces::logging::ERROR;
-        levelMap[Level::getFatal()] = askap::interfaces::logging::FATAL;
+    if (theirLevelMap.size() == 0) {
+        theirLevelMap[Level::getTrace()] = askap::interfaces::logging::TRACE;
+        theirLevelMap[Level::getDebug()] = askap::interfaces::logging::DEBUG;
+        theirLevelMap[Level::getInfo()] = askap::interfaces::logging::INFO;
+        theirLevelMap[Level::getWarn()] = askap::interfaces::logging::WARN;
+        theirLevelMap[Level::getError()] = askap::interfaces::logging::ERROR;
+        theirLevelMap[Level::getFatal()] = askap::interfaces::logging::FATAL;
     }
     itsLogHost = getHostName(true);
+
+    // Set a default TopicManager ideitity (it can optionally be passed as
+    // a parameter in the log config which will override this)
+    itsTopicManager = "IceStorm/TopicManager@IceStorm.TopicManager";
 }
 
 IceAppender::~IceAppender()
@@ -92,7 +95,7 @@ void IceAppender::append(const spi::LoggingEventPtr& event, Pool& /*pool*/)
         // seconds (the parameter is a double precision float) where log4cxx
         // returns microseconds.
         iceevent.created = event->getTimeStamp() / 1000.0 / 1000.0;
-        iceevent.level = levelMap[event->getLevel()];
+        iceevent.level = theirLevelMap[event->getLevel()];
         iceevent.message = event->getMessage();
         iceevent.hostname = itsLogHost;
 
@@ -134,6 +137,8 @@ void IceAppender::setOption(const LogString& option, const LogString& value)
         itsLocatorPort = value;
     } else if (StringHelper::equalsIgnoreCase(option, LOG4CXX_STR("TOPIC"), LOG4CXX_STR("topic"))) {
         itsLoggingTopic = value;
+    } else if (StringHelper::equalsIgnoreCase(option, LOG4CXX_STR("TOPIC_MANAGER"), LOG4CXX_STR("topic_manager"))) {
+        itsTopicManager = value;
     } else {
         AppenderSkeleton::setOption(option, value);
     }
@@ -164,7 +169,7 @@ void IceAppender::activateOptions(log4cxx::helpers::Pool& /*pool*/)
     // Obtain a proxy to the topic manager
     IceStorm::TopicManagerPrx topicManager;
     try {
-        Ice::ObjectPrx obj = itsIceComm->stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
+        Ice::ObjectPrx obj = itsIceComm->stringToProxy(itsTopicManager);
         topicManager = IceStorm::TopicManagerPrx::checkedCast(obj);
     } catch (Ice::Exception) {
         std::cerr << "Could not connect to logger topic, messages will not be sent to the log server" << std::endl;

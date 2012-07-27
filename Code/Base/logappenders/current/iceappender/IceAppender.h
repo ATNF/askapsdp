@@ -70,6 +70,14 @@ namespace askap {
     /// This configuration will result in the IceAppender looking for the locator
     /// service (aka registry) on the localhost at port 4061. Log events will
     /// be published to the topic "logger".
+    ///
+    /// Optionally, the identity of the topic manager may be passed like so:
+    /// @code
+    /// log4j.appender.REMOTE.topic_manager=IceStorm/TopicManager@IceStorm.TopicManager
+    /// @endcode
+    /// 
+    /// The default is "IceStorm/TopicManager@IceStorm.TopicManager"
+    ///
     class IceAppender : public log4cxx::AppenderSkeleton {
         public:
             DECLARE_LOG4CXX_OBJECT(IceAppender)
@@ -150,12 +158,14 @@ namespace askap {
             // Paramater - The topic to which log messages will be sent
             std::string itsLoggingTopic;
 
+            // Optional Paramater - The topic to which log messages will be sent
+            std::string itsTopicManager;
+
             static std::map<log4cxx::LevelPtr,
-	      ::askap::interfaces::logging::LogLevel> levelMap;
+	            askap::interfaces::logging::LogLevel> theirLevelMap;
 
             // the name of the host where this logger instance lives
             std::string itsLogHost;
-
     };
 
     // Typedef pointer to this class

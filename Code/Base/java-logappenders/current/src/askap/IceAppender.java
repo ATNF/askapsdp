@@ -56,17 +56,20 @@ public class IceAppender extends AppenderSkeleton {
 		/** Name of the IceStorm topic. */
 		private String itsTopicName;
 
+        /** Identity of the TopicManager */
+        private String itsTopicManager;
+
 		/** The Ice Communicator. */
-		protected Ice.Communicator itsCommunicator;
+		private Ice.Communicator itsCommunicator;
 
 		/** The Ice object for sending log messages. */
-		protected ILoggerPrx itsLoggingService;
+		private ILoggerPrx itsLoggingService;
 
 		/** The maximum number of messages to enqueue if the connection is down. */
-		protected int itsMaxBuffer = 500;
+		private int itsMaxBuffer = 500;
 
 		/** The queue of unsent messages. */
-		protected static LinkedList<ILogEvent> itsBuffer = new LinkedList<ILogEvent>();
+		private static LinkedList<ILogEvent> itsBuffer = new LinkedList<ILogEvent>();
 
 		/**
 		 * Flag to indicate an error has been reported. This ensures an error is
@@ -74,10 +77,11 @@ public class IceAppender extends AppenderSkeleton {
 		 */
 		private boolean itsErrorReported = false;
 
-		public IceLoggerThread(String host, String port, String topic) {
+		public IceLoggerThread(String host, String port, String topic, String topicManager) {
 			itsLocatorHost = host;
 			itsLocatorPort = port;
 			itsTopicName = topic;
+            itsTopicManager = topicManager;
 
 			// Initialize a communicator with these properties.
 			Ice.Properties props = Ice.Util.createProperties();
@@ -188,7 +192,7 @@ public class IceAppender extends AppenderSkeleton {
 			try {
 				// Obtain the topic or create
 				Ice.ObjectPrx obj = itsCommunicator
-						.stringToProxy("IceStorm/TopicManager@IceStorm.TopicManager");
+						.stringToProxy(itsTopicManager);
 				TopicManagerPrx topicManager = IceStorm.TopicManagerPrxHelper
 						.checkedCast(obj);
 				
@@ -230,6 +234,7 @@ public class IceAppender extends AppenderSkeleton {
 	private String itsLocatorPort;
 	private String itsLocatorHost;
 	private String itsTopic;
+    private String itsTopicManager = "IceStorm/TopicManager@IceStorm.TopicManager";
 	private String itsHostName;
 	private String itsTag;
 
@@ -284,6 +289,17 @@ public class IceAppender extends AppenderSkeleton {
 
 	public String gettopic() {
 		return itsTopic;
+	}
+
+	/**
+	 * Called automatically by Log4j to set the "topic_manager" option.
+	 */
+	public void settopic_manager(String topicmanager) {
+		itsTopicManager= topicmanager;
+	}
+
+	public String gettopic_manager() {
+		return itsTopicManager;
 	}
 
 	public boolean requiresLayout() {
@@ -345,7 +361,7 @@ public class IceAppender extends AppenderSkeleton {
 		}
 
 		itsIceLoggerThread = new IceLoggerThread(itsLocatorHost,
-				itsLocatorPort, itsTopic);
+				itsLocatorPort, itsTopic, itsTopicManager);
 		itsIceLoggerThread.start();
 	}
 
