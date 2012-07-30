@@ -256,7 +256,7 @@ void AskapParallel::defineGroups(size_t nGroups)
        for (size_t worker = 0; worker < workersPerGroup; ++worker) {
             ranks[worker + 1] = 1 + worker + group * workersPerGroup;
        }
-       ASKAPLOG_INFO_STR(logger, "Group "<<group<<" of workers will include ranks "<<ranks);
+       ASKAPLOG_DEBUG_STR(logger, "Group "<<group<<" of workers will include ranks "<<ranks);
        const size_t commIndex = createComm(ranks);
        ASKAPCHECK(commIndex == (group + 1), "Unexpected commIndex value of "<<commIndex<<
                   " for group="<<group);
@@ -270,7 +270,7 @@ void AskapParallel::defineGroups(size_t nGroups)
            ranks[grp] = 1 + wrk + grp * workersPerGroup;
       }
       if (rank() == int(wrk + 1)) {
-         ASKAPLOG_INFO_STR(logger, "Intergroup communicator for worker at rank "<<(wrk + 1)<<" will include ranks "<<ranks);
+         ASKAPLOG_DEBUG_STR(logger, "Intergroup communicator for worker at rank "<<(wrk + 1)<<" will include ranks "<<ranks);
       }
       const size_t commIndex = createComm(ranks);
       ASKAPLOG_DEBUG_STR(logger, "Intergroup communicator index is "<<commIndex);

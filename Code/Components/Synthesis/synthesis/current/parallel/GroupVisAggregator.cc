@@ -49,10 +49,10 @@ GroupVisAggregator::GroupVisAggregator(askap::askapparallel::AskapParallel& comm
   // we implicitly assume that casa::Complex just has two float data members and nothing else
   ASKAPDEBUGASSERT(sizeof(casa::Complex) == 2*sizeof(float));
   
-  ASKAPLOG_INFO_STR(logger, "Set up visibility aggregator to sum degridded visibilities within each group of workers");
+  ASKAPLOG_DEBUG_STR(logger, "Set up visibility aggregator to sum degridded visibilities within each group of workers");
   const size_t group = itsComms.group();
   itsCommIndex = itsComms.interGroupCommIndex();
-  ASKAPLOG_INFO_STR(logger, "  Worker group number "<<group<<" out of "<<itsComms.nGroups()<<
+  ASKAPLOG_DEBUG_STR(logger, "  Worker group number "<<group<<" out of "<<itsComms.nGroups()<<
   " groups, intergroup communicator index: "<<itsCommIndex);
 
 }  
@@ -90,7 +90,7 @@ boost::shared_ptr<GroupVisAggregator> GroupVisAggregator::create(askap::askappar
       boost::shared_ptr<GroupVisAggregator> result(new GroupVisAggregator(comms));
       return result;
   }
-  ASKAPLOG_INFO_STR(logger, "There are no groupping of workers, inter-rank summation of degridded visibilities is not necessary");
+  ASKAPLOG_DEBUG_STR(logger, "There are no groupping of workers, inter-rank summation of degridded visibilities is not necessary");
   return boost::shared_ptr<GroupVisAggregator>();
 }
 
