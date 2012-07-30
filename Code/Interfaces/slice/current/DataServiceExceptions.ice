@@ -77,6 +77,13 @@ module schedblock
     {
     };
 
+    /**
+     * This exceptions is thrown when a given name already exists
+     **/
+    exception NameAlreadyExistsException extends askap::interfaces::AskapIceException
+    {
+    };
+
 };
 };
 };
