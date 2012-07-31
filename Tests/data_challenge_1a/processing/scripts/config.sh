@@ -9,8 +9,8 @@
 # A directory will be created to run the pipeline in. This directory can be reused,
 # or a new one can be created for each run. Uncomment either of the below WORKDIR
 # options to suit.
-WORKDIR=run1
-#WORKDIR="run_`date +%Y%m%d_%H%M%S`"
+#WORKDIR=run1
+WORKDIR="run_`date +%Y%m%d_%H%M%S`"
 
 # The PBS Group ID to which the job will be billed (eg. astronomy116 on epic)
 QUEUEGROUP=astronomy116
