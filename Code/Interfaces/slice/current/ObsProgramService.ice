@@ -59,7 +59,7 @@ module schedblock
 	string projectRef;
     };
     
-    interface IObsProgramService
+    interface IObsProgramService extends askap::interfaces::services::IService
     {       
 	/**
 	 * Create an observing program.
