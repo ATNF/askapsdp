@@ -15,6 +15,7 @@ cat > cmodel.qsub << EOF
 #PBS -m a
 #PBS -j oe
 #PBS -r n
+#PBS -v ASKAP_ROOT
 
 cd \${PBS_O_WORKDIR}
 

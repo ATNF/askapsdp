@@ -41,6 +41,7 @@ cat > ${qsubfile} <<EOF
 ##PBS -q debugq
 #PBS -m a
 #PBS -j oe
+#PBS -v ASKAP_ROOT
 
 cd \$PBS_O_WORKDIR
 

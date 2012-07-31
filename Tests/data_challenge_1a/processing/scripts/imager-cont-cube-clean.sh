@@ -14,6 +14,7 @@ cat > cimager-cont-cube-clean.qsub << EOF
 #PBS -N contcube-clean
 #PBS -m a
 #PBS -j oe
+#PBS -v ASKAP_ROOT
 
 ###########
 # To run:

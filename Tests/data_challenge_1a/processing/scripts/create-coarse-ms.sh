@@ -23,6 +23,7 @@ cat > split_coarse.qsub << EOF
 #PBS -N split
 #PBS -m a
 #PBS -j oe
+#PBS -v ASKAP_ROOT
 
 #######
 # TO RUN (304 jobs):
