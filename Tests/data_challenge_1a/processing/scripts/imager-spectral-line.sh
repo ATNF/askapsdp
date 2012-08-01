@@ -32,7 +32,7 @@ cat > cimager-spectral-line.qsub << EOF
 #PBS -N sl-img
 #PBS -m a
 #PBS -j oe
-#PBS -v ASKAP_ROOT
+#PBS -v ASKAP_ROOT,AIPSPATH
 
 #######
 # TO RUN (16416 jobs):

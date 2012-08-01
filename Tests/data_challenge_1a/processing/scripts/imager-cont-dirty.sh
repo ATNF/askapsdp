@@ -12,7 +12,7 @@ cat > cimager-cont-dirty.qsub << EOF
 #PBS -N cont-dirty
 #PBS -m a
 #PBS -j oe
-#PBS -v ASKAP_ROOT
+#PBS -v ASKAP_ROOT,AIPSPATH
 
 cd \${PBS_O_WORKDIR}
 
