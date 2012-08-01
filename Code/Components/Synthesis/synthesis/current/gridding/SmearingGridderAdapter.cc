@@ -37,7 +37,7 @@ ASKAP_LOGGER(logger, ".gridding.snapshotimaginggridderadapter");
 
 #include <gridding/SmearingGridderAdapter.h>
 #include <askap/AskapError.h>
-#include <dataaccess/MemBufferDataAccessor.h>
+#include <dataaccess/SmearingAccessorAdapter.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -158,19 +158,33 @@ void SmearingGridderAdapter::degrid(accessors::IDataAccessor& acc)
    } else {
        // we need a new adapter here allowing to change frequency information
        // this part is to be written
-       MemBufferDataAccessor accBuffer(acc);
+       SmearingAccessorAdapter accBuffer(acc);
+       accBuffer.useFrequencyBuffer();
+       const casa::uInt centralStep = itsNFreqSteps / 2; 
+       ASKAPDEBUGASSERT(centralStep > 0);
+       const double freqInc = itsBandwidth / double(itsNFreqSteps - 1);
+       // for an odd number of integration steps we get one point exactly at the centre of the channel,
+       // for an even number - equidistant on both sides, hence the offset
+       const double freqOff = itsNFreqSteps % 2 == 0 ? freqInc / 2. : 0.;
+       const casa::uInt nChan = acc.nChannel();
+       ASKAPDEBUGASSERT(accBuffer.rwFrequency().nelements() == nChan);
        accBuffer.rwVisibility().set(0.0);
        for (casa::uInt it = 0; it < itsNFreqSteps; ++it) {
-            // integration via Trapezium method
-            // first deal with the first and the last point
+            // do the integration via Trapezium method
+            // first deal with the first and the last point because we scale down the result later
             const casa::uInt step = (it == 0 ? 0 : (it == 1 ? itsNFreqSteps - 1 : it - 1));
             ASKAPDEBUGASSERT(step < itsNFreqSteps); 
-            if (it == 2) {
+            // fill the new frequency vector
+            for (casa::uInt chan = 0; chan<nChan; ++chan) {
+                 accBuffer.rwFrequency()[chan] = acc.frequency()[chan] + freqOff + 
+                          double(casa::Int(step) - casa::Int(centralStep)) * freqInc;
+            }
+            itsGridder->degrid(accBuffer);
+            if (it == 1) {
                 // first and last have a weight of 0.5, other elements have a weight of 1.
+                // this would automatically revert to the rectangle method if only two points are available
                 accBuffer.rwVisibility() *= float(0.5);
             }
-            // patch the frequency according to the step
-            itsGridder->degrid(accBuffer);
        }
        acc.rwVisibility() = accBuffer.visibility() / float(itsNFreqSteps - 1);       
    }

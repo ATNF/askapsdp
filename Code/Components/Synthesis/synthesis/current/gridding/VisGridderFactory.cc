@@ -42,6 +42,7 @@ ASKAP_LOGGER(logger, ".gridding.visgridderfactory");
 #include <gridding/WStackVisGridder.h>
 #include <gridding/AProjectWStackVisGridder.h>
 #include <gridding/SnapShotImagingGridderAdapter.h>
+#include <gridding/SmearingGridderAdapter.h>
 #include <gridding/VisWeightsMultiFrequency.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 
@@ -212,6 +213,17 @@ IVisGridder::ShPtr VisGridderFactory::make(const LOFAR::ParameterSet &parset) {
         // possible additional configuration comes here
         gridder = adapter;
     }
+    
+    if (parset.getBool("gridder.bwsmearing",false)) {
+        ASKAPLOG_INFO_STR(logger, "A gridder adapter will be set up to simulate bandwidth smearing");
+        const double chanBW = parset.getDouble("gridder.bwsmearing.chanbw",1e6);
+        const casa::Int nSteps = parset.getInt32("gridder.bwsmearing.nsteps", 10);
+        ASKAPCHECK(nSteps > 0, "Number of steps is supposed to be positive");
+        ASKAPLOG_INFO_STR(logger, "  assumed channel bandwidth = "<<chanBW/1e6<<" MHz, number of integration steps = "<<nSteps); 
+        boost::shared_ptr<SmearingGridderAdapter> adapter(new SmearingGridderAdapter(gridder, chanBW, casa::uInt(nSteps)));
+        ASKAPDEBUGASSERT(adapter);
+        gridder = adapter;        
+    } 
 
     return gridder;
 }
@@ -234,5 +246,8 @@ casa::Interpolate2D::Method VisGridderFactory::interpMethod(casa::String str) {
         ASKAPTHROW(AskapError, "Unknown interpolation method: " << str);
     }
 }
-}
-}
+
+} // namespace synthesis
+
+} // namespace askap
+
