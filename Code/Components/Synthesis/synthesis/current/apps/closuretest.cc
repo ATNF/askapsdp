@@ -47,6 +47,7 @@ ASKAP_LOGGER(logger, "");
 #include <stdexcept>
 #include <iostream>
 #include <vector>
+#include <iomanip>
 
 using std::cout;
 using std::cerr;
@@ -78,6 +79,12 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        ASKAPCHECK(it->nRow() == 3, "Expect 3 baselines, the accessor has "<<it->nRow()<<" rows");
        ASKAPASSERT(it->nPol() >= 1);
        ASKAPASSERT(it->nChannel() >= 1);
+       // we require that 3 baselines come in certain order, so we can hard code conjugation for calculation
+       // of the closure phase
+       ASKAPCHECK(it->antenna2()[0] == it->antenna1()[1], "Expect baselines in the order 1-2,2-3 and 1-3");
+       ASKAPCHECK(it->antenna1()[0] == it->antenna1()[2], "Expect baselines in the order 1-2,2-3 and 1-3");
+       ASKAPCHECK(it->antenna2()[1] == it->antenna2()[2], "Expect baselines in the order 1-2,2-3 and 1-3");
+       //
        casa::Vector<casa::Complex> freqAvBuf(3, casa::Complex(0.,0.));
        for (casa::uInt ch=0; ch<it->nChannel(); ++ch) {
             freqAvBuf += it->visibility().xyPlane(0).column(0);
@@ -91,7 +98,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        if (++counter == nAvg) {
            buf /= float(nAvg);
            const float phClosure = arg(buf[0]*buf[1]*conj(buf[2]))/casa::C::pi*180.; 
-           os<<startTime<<" "<<phClosure<<std::endl;
+           os<<std::scientific<<startTime<<" "<<std::fixed<<phClosure<<std::endl;
            buf.set(casa::Complex(0.,0.));
            counter = 0;
        }
@@ -100,7 +107,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   if (counter!=0) {
       buf /= float(counter);
       const float phClosure = arg(buf[0]*buf[1]*conj(buf[2]))/casa::C::pi*180.; 
-      os<<startTime<<" "<<phClosure<<std::endl;
+      os<<std::scientific<<startTime<<" "<<std::fixed<<phClosure<<std::endl;
   }
 }
 
