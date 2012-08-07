@@ -98,7 +98,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        if (++counter == nAvg) {
            buf /= float(nAvg);
            const float phClosure = arg(buf[0]*buf[1]*conj(buf[2]))/casa::C::pi*180.; 
-           os<<std::scientific<<startTime<<" "<<std::fixed<<phClosure<<std::endl;
+           os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<std::fixed<<std::setprecision(6)<<phClosure<<std::endl;
            buf.set(casa::Complex(0.,0.));
            counter = 0;
        }
@@ -107,7 +107,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   if (counter!=0) {
       buf /= float(counter);
       const float phClosure = arg(buf[0]*buf[1]*conj(buf[2]))/casa::C::pi*180.; 
-      os<<std::scientific<<startTime<<" "<<std::fixed<<phClosure<<std::endl;
+      os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<std::fixed<<std::setprecision(6)<<phClosure<<std::endl;
   }
 }
 

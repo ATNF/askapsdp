@@ -61,7 +61,7 @@ using namespace askap::accessors;
 
 void process(const IConstDataSource &ds, size_t nAvg) {
   IDataSelectorPtr sel=ds.createSelector();
-  sel->chooseBaseline(0,1);
+  sel->chooseBaseline(0,2);
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
