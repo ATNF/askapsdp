@@ -82,13 +82,14 @@ void CorrWorker::operator()()
        const int frameOff_12 = int(itsBufferManager->header(ids.itsAnt2).frame) - int(itsBufferManager->header(ids.itsAnt3).frame);
        const int frameOff_02 = int(itsBufferManager->header(ids.itsAnt1).frame) - int(itsBufferManager->header(ids.itsAnt3).frame);
        // for debugging
-       if (chan == 0) {
-          ASKAPLOG_INFO_STR(logger, "Frame difference (ant0 - ant1) is "<<frameOff_01);
-          ASKAPLOG_INFO_STR(logger, "                 (ant1 - ant2) is "<<frameOff_12);
-          ASKAPLOG_INFO_STR(logger, "                 (ant0 - ant2) is "<<frameOff_02);
+       if ((chan == 0) || (chan == 8)) {
+          ASKAPLOG_INFO_STR(logger, "Frame difference (ant0 - ant1) is "<<frameOff_01<<" for chan="<<chan);
+          ASKAPLOG_INFO_STR(logger, "                 (ant1 - ant2) is "<<frameOff_12<<" for chan="<<chan);
+          ASKAPLOG_INFO_STR(logger, "                 (ant0 - ant2) is "<<frameOff_02<<" for chan="<<chan);
        }
        // run correlation
-       s3bc.reset(0,0,0); // zero delays for now
+       //s3bc.reset(0,0,0); // zero delays for now
+       s3bc.reset(0,frameOff_01,frameOff_02-4); // derive offsets from frame differences
        s3bc.accumulate(itsBufferManager->data(ids.itsAnt1), itsBufferManager->data(ids.itsAnt2), 
                        itsBufferManager->data(ids.itsAnt3), size);
        itsBufferManager->releaseBuffers(ids);

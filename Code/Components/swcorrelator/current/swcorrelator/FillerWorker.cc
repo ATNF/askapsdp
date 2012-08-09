@@ -92,12 +92,18 @@ void FillerWorker::operator()()
                 }
             }
             for (casa::uInt baseline = 0; baseline < cp.itsVisibility.nrow(); ++baseline) {
+                 /*
                  casa::Complex temp(0.,0.);
                  // average in frequency
                  for (casa::uInt chan=0; chan < cp.itsVisibility.ncolumn(); ++chan) {
                       temp += cp.itsVisibility(baseline,chan);
                  }
                  history(lastHistPos,beam,baseline) = temp / float(cp.itsVisibility.ncolumn());
+                 */
+                 // middle of the band
+                 const casa::uInt chan = cp.itsVisibility.ncolumn() / 2;
+                 ASKAPDEBUGASSERT(chan < cp.itsVisibility.ncolumn());
+                 history(lastHistPos,beam,baseline) = cp.itsVisibility(baseline,chan);
             }
        }
        itsFiller->notifyWritingDone(buffer);

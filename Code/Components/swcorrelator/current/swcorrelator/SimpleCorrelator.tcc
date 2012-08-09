@@ -134,6 +134,9 @@ Simple3BaselineCorrelator<AccType, IndexType>::Simple3BaselineCorrelator(const I
 template<typename AccType, typename IndexType>         
 void Simple3BaselineCorrelator<AccType, IndexType>::reset(const IndexType delay1, const IndexType delay2, const IndexType delay3)
 {
+  itsDelay1 = delay1;
+  itsDelay2 = delay2;
+  itsDelay3 = delay3;
   const IndexType minDelay = std::min(itsDelay1, std::min(itsDelay2, itsDelay3));
   itsDelay1 -= minDelay;
   itsDelay2 -= minDelay;

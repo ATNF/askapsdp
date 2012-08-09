@@ -9,9 +9,9 @@ swcorrelator.makeBeamAnt = false
 swcorrelator.antmap = "8:0,9:1,15:2"
 swcorrelator.beammap = "1:0"
 # experimental mapping figured out using synthesiser
-swcorrelator.freqmap = "15:2,13:6,11:10,9:13,7:15,5:9,1:1,2:3,3:5,4:7,6:11,8:14,10:12,12:8,14:4,16:0"
+#swcorrelator.freqmap = "15:2,13:6,11:10,9:13,7:15,5:9,1:1,2:3,3:5,4:7,6:11,8:14,10:12,12:8,14:4,16:0"
 # mapping for contiguous 16 MHz
-#swcorrelator.freqmap = "16:0,1:1,15:2,2:3,14:4,3:5,13:6,4:7,12:8,5:9,11:10,6:11,10:12,9:13,8:14,7:15"
+swcorrelator.freqmap = "16:0,1:1,15:2,2:3,14:4,3:5,13:6,4:7,12:8,5:9,11:10,6:11,10:12,9:13,8:14,7:15"
 
 
 # MS-writer parameters
