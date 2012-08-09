@@ -78,8 +78,9 @@ void StreamConnection::operator()()
            break;
        }
        //ASKAPLOG_DEBUG_STR(logger, "Got bufId="<<bufId<<" from the manager");
+       size_t replyLength = 0;
        try {
-          boost::asio::read(*itsSocket,boost::asio::buffer((void*)tmpbuf.get(), msgSize*sizeof(int16_t)));
+          replyLength = boost::asio::read(*itsSocket,boost::asio::buffer((void*)tmpbuf.get(), msgSize*sizeof(int16_t)));
           //boost::asio::read(*itsSocket,boost::asio::buffer(itsBufferManager->buffer(bufId), 
           //                itsBufferManager->bufferSize()));
        } catch (const std::exception &ex) {
@@ -88,6 +89,7 @@ void StreamConnection::operator()()
           BufferManager::BufferSet bs;
           bs.itsAnt1 = bufId; // others are initialised with -1, no action expected
           itsBufferManager->releaseBuffers(bs);
+          ASKAPLOG_DEBUG_STR(logger, "Data stream thread (id="<<boost::this_thread::get_id()<<") got reading error: "<<ex.what()<<" read "<<replyLength/sizeof(int16_t)<<" words out of "<<msgSize);
        }
        if (haveData) {
            int16_t *outbuf = (int16_t*)(itsBufferManager->buffer(bufId));

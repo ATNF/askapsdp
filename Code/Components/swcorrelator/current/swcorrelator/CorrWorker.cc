@@ -78,11 +78,14 @@ void CorrWorker::operator()()
        ASKAPDEBUGASSERT(chan == int(itsBufferManager->header(ids.itsAnt3).freqId));
        ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt2).bat);
        ASKAPDEBUGASSERT(bat == itsBufferManager->header(ids.itsAnt3).bat);
+       const int frameOff_01 = int(itsBufferManager->header(ids.itsAnt1).frame) - int(itsBufferManager->header(ids.itsAnt2).frame);
+       const int frameOff_12 = int(itsBufferManager->header(ids.itsAnt2).frame) - int(itsBufferManager->header(ids.itsAnt3).frame);
+       const int frameOff_02 = int(itsBufferManager->header(ids.itsAnt1).frame) - int(itsBufferManager->header(ids.itsAnt3).frame);
        // for debugging
        if (chan == 0) {
-          ASKAPLOG_INFO_STR(logger, "Frame difference (ant0 - ant1) is "<<int(itsBufferManager->header(ids.itsAnt1).frame) - int(itsBufferManager->header(ids.itsAnt2).frame));
-          ASKAPLOG_INFO_STR(logger, "                 (ant1 - ant2) is "<<int(itsBufferManager->header(ids.itsAnt2).frame) - int(itsBufferManager->header(ids.itsAnt3).frame));
-          ASKAPLOG_INFO_STR(logger, "                 (ant0 - ant2) is "<<int(itsBufferManager->header(ids.itsAnt1).frame) - int(itsBufferManager->header(ids.itsAnt3).frame));
+          ASKAPLOG_INFO_STR(logger, "Frame difference (ant0 - ant1) is "<<frameOff_01);
+          ASKAPLOG_INFO_STR(logger, "                 (ant1 - ant2) is "<<frameOff_12);
+          ASKAPLOG_INFO_STR(logger, "                 (ant0 - ant2) is "<<frameOff_02);
        }
        // run correlation
        s3bc.reset(0,0,0); // zero delays for now
