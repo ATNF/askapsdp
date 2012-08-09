@@ -109,7 +109,8 @@ namespace askap {
                     ///@{
                     bool fitGaussNew(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter);
                     bool fitGauss(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter);
-                    bool fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter);
+/*D1.1.13           bool fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter); */
+                    bool fitGauss(float *fluxArray, size_t *dimArray, FittingParameters &baseFitter);
                     bool fitGauss(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> f,
                                   casa::Vector<casa::Double> sigma, FittingParameters &baseFitter);
                     ///@}
@@ -125,7 +126,8 @@ namespace askap {
                     /// @{
 
                     /// @brief Set the noise level to the local value, using an array.
-                    void setNoiseLevel(float *array, long *dim, int boxSize = defaultNoiseBoxSize);
+/*D1.1.13           void setNoiseLevel(float *array, long *dim, int boxSize = defaultNoiseBoxSize); */
+                    void setNoiseLevel(float *array, size_t *dim, int boxSize = defaultNoiseBoxSize);
 
                     /// @brief Set the noise level to the local value, using a Duchamp::Cube object
                     void setNoiseLevel(duchamp::Cube &cube, FittingParameters &fitparams);

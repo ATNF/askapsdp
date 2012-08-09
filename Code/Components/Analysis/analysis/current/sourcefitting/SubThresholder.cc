@@ -110,7 +110,8 @@ namespace askap {
 	this->itsPeakFlux = src->getPeakFlux();
 	this->itsSourceSize = src->getSize();
 				
-	this->itsDim = std::vector<long>(2);
+//D1.1.13 this->itsDim = std::vector<long>(2);
+	this->itsDim = std::vector<size_t>(2);
 	this->itsDim[0] = src->boxXsize(); 
 	this->itsDim[1] = src->boxYsize();
 
@@ -168,7 +169,8 @@ namespace askap {
 
       void SubThresholder::keepObject(PixelInfo::Object2D &obj){
 			  
-	for (int i = 0; i < this->itsDim[0]*this->itsDim[1]; i++) {
+//D1.1.13 for (int i = 0; i < this->itsDim[0]*this->itsDim[1]; i++) {
+	for (size_t i = 0; i < this->itsDim[0]*this->itsDim[1]; i++) {
 	  int xbox = i % this->itsDim[0];
 	  int ybox = i / this->itsDim[0];
 				  
@@ -204,7 +206,8 @@ namespace askap {
 	duchamp::Image *theImage = new duchamp::Image(&(this->itsDim[0]));
 
 	if(this->itsFluxArray.size()>0){
-	  ASKAPCHECK(int(this->itsFluxArray.size()) == (this->itsDim[0]*this->itsDim[1]), 
+//D1.1.13 ASKAPCHECK(int(this->itsFluxArray.size()) == (this->itsDim[0]*this->itsDim[1]), 
+	  ASKAPCHECK(this->itsFluxArray.size() == (this->itsDim[0]*this->itsDim[1]), 
 		     "Size of flux array ("<<this->itsFluxArray.size()<<") doesn't match dimension ("
 		     <<this->itsDim[0]<<"x"<<this->itsDim[1]<<"="<<this->itsDim[0]*this->itsDim[1]<<")!");
 	  theImage->saveArray(&(this->itsFluxArray[0]), this->itsFluxArray.size());	

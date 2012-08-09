@@ -87,7 +87,8 @@ namespace askap {
       private:
 
 	casa::Vector<float>              itsArray;
-	casa::Vector<long>               itsDim;
+/*D1.1.13 casa::Vector<long>               itsDim; */
+	casa::Vector<size_t>             itsDim;
 	std::vector<PixelInfo::Object2D> itsObjlist;
 	std::vector<SubComponent>        itsSublist;
 	RadioSource                      itsSource;
@@ -125,7 +126,8 @@ namespace askap {
 	    }
 	  }
 
-	  itsDim = casa::Vector<long>(2);
+/*D1.1.13 itsDim = casa::Vector<long>(2); */
+	  itsDim = casa::Vector<size_t>(2);
 	  itsDim[0] = itsDim[1] = arrayDim;
 
 	  std::string secstring=duchamp::nullSection(2); 

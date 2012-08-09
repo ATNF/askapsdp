@@ -66,7 +66,8 @@ namespace askap {
 			protected:
 				SubComponent itsFirstGuess;
 				std::vector<float> itsFluxArray;
-				std::vector<long> itsDim;
+/*D1.1.13 			std::vector<long> itsDim; */
+				std::vector<size_t> itsDim;
 				casa::Slicer itsSourceBox;
 				float itsBaseThreshold;
 				float itsThreshIncrement;

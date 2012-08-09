@@ -107,14 +107,14 @@ namespace askap {
                     } else {
                         // No rest frequency defined, so put spectral dimension in frequency.
                         // Set the spectral axis to a standard specification: FREQ
-                        duchampWarning("Cube Reader",
-                                       "No rest frequency defined. Using frequency units in spectral axis.\n");
+//D1.1.13               duchampWarning("Cube Reader", "No rest frequency defined. Using frequency units in spectral axis.\n");
+                        DUCHAMPWARN("Cube Reader", "No rest frequency defined. Using frequency units in spectral axis.");
                         desiredType = duchampFrequencyType;
                         par.setSpectralUnits("MHz");
 
                         if (strcmp(wcs->cunit[index], "") == 0) {
-                            duchampWarning("Cube Reader",
-                                           "No frequency unit given. Assuming frequency axis is in Hz.\n");
+//D1.1.13                   duchampWarning("Cube Reader","No frequency unit given. Assuming frequency axis is in Hz.\n");
+                            DUCHAMPWARN("Cube Reader","No frequency unit given. Assuming frequency axis is in Hz.");
                             strcpy(wcs->cunit[index], "Hz");
                         }
 
@@ -125,8 +125,8 @@ namespace askap {
                     par.setSpectralUnits("MHz");
 
                     if (strcmp(wcs->cunit[index], "") == 0) {
-                        duchampWarning("Cube Reader",
-                                       "No frequency unit given. Assuming frequency axis is in Hz.\n");
+//D1.1.13               duchampWarning("Cube Reader","No frequency unit given. Assuming frequency axis is in Hz.\n");
+                        DUCHAMPWARN("Cube Reader","No frequency unit given. Assuming frequency axis is in Hz.");
                         strcpy(wcs->cunit[index], "Hz");
                     }
 
@@ -156,8 +156,9 @@ namespace askap {
                         errmsg << "WCSSPTR failed! Code=" << status << ": "
                             << wcs_errmsg[status] << std::endl
                             << "(wanted to convert from type \"" << specType
-                            << "\" to type \"" << desiredType << "\")\n";
-                        duchampWarning("Cube Reader", errmsg.str());
+                            << "\" to type \"" << desiredType << "\")";
+//D1.1.13               duchampWarning("Cube Reader", errmsg.str());
+                        DUCHAMPWARN("Cube Reader", errmsg.str());
                     }
                 }
             } // end of if(wcs->spec>=0)

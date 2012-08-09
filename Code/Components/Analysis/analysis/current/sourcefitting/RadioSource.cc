@@ -262,7 +262,8 @@ namespace askap {
 		this->itsNoiseLevel = fitparams.noiseLevel();
             }
 
-            void RadioSource::setNoiseLevel(float *array, long *dim, int boxSize)
+//D1.1.13   void RadioSource::setNoiseLevel(float *array, long *dim, int boxSize)
+            void RadioSource::setNoiseLevel(float *array, size_t *dim, int boxSize)
             {
                 /// @details Sets the value of the local noise level by taking
                 /// the MADFM of the surrounding pixels from the Cube's array.
@@ -278,8 +279,8 @@ namespace askap {
                 float *localArray = new float[boxSize*boxSize];
                 long xmin = max(0, this->xpeak - hw);
                 long ymin = max(0, this->ypeak - hw);
-                long xmax = min(dim[0] - 1, this->xpeak + hw);
-                long ymax = min(dim[1] - 1, this->ypeak + hw);
+                long xmax = min(int(dim[0]) - 1, this->xpeak + hw);
+                long ymax = min(int(dim[1]) - 1, this->ypeak + hw);
 		//		ASKAPLOG_DEBUG_STR(logger, "boxSize="<<boxSize<<" xmin="<<xmin<<" ymin="<<ymin <<" xmax="<<xmax <<" ymax="<<ymax<<" xpeak="<<xpeak << " ypeak="<<ypeak << " dim[0]="<<dim[0]<<" dim[1]="<<dim[1]);
 		ASKAPASSERT((xmax-xmin+1)*(ymax-ymin+1) <= boxSize*boxSize);
                 size_t size = 0;
@@ -399,7 +400,8 @@ namespace askap {
                 /// object. In this case, we only look at the one with the
                 /// same peak location as the base object.
 
-                long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
+//D1.1.13       long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
+                size_t dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image *smlIm = new duchamp::Image(dim);
                 smlIm->saveArray(fluxarray, this->boxSize());
                 smlIm->setMinSize(1);
@@ -491,7 +493,8 @@ namespace askap {
                 /// lowest peak flux.
 
                 std::vector<SubComponent> fullList;
-                long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
+//D1.1.13       long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
+                size_t dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image *smlIm = new duchamp::Image(dim);
                 smlIm->saveArray(fluxarray, this->boxSize());
                 smlIm->setMinSize(1);
@@ -592,7 +595,8 @@ namespace askap {
                 const int numThresh = this->itsFitParams.numSubThresholds();
                 std::multimap<int, PixelInfo::Voxel> peakMap;
                 std::multimap<int, PixelInfo::Voxel>::iterator pk;
-                long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
+//D1.1.13       long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
+                size_t dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image smlIm(dim);
                 float *fluxarray = new float[this->boxSize()];
 
@@ -774,7 +778,8 @@ namespace askap {
 
             //**************************************************************//
 
-            bool RadioSource::fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter)
+//D1.1.13   bool RadioSource::fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter)
+            bool RadioSource::fitGauss(float *fluxArray, size_t *dimArray, FittingParameters &baseFitter)
             {
                 /// @details First defines the pixel array with the flux
                 /// values by extracting the voxels from fluxArray that are
@@ -802,7 +807,8 @@ namespace askap {
                 for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
                     for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
                         int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
-                        int j = x + y * dimArray[0];
+ //D1.1.13              int j = x + y * dimArray[0];
+                        size_t j = x + y * dimArray[0];
 
                         if ((j >= 0) && (j < dimArray[0]*dimArray[1])) f(i) = fluxArray[j];
                         else f(i) = 0.;
