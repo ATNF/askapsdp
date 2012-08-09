@@ -2,5 +2,5 @@ askapparallel=Code/Base/askapparallel/current
 casacore=3rdParty/casacore/casacore-1.4.0;casa_ms casa_images casa_components casa_mirlib casa_coordinates casa_fits casa_lattices casa_measures casa_scimath casa_scimath_f casa_tables casa_casa
 common=3rdParty/LOFAR/Common/Common-3.3
 askap=Code/Base/askap/current
-duchamp=3rdParty/Duchamp/Duchamp-1.1.13
+duchamp=3rdParty/Duchamp/Duchamp-1.2
 gsl=3rdParty/gsl/gsl-1.10
