@@ -55,7 +55,7 @@ void FillerWorker::operator()()
   ASKAPLOG_INFO_STR(logger, "Writing thread started, id="<<boost::this_thread::get_id());
   try {
     ASKAPDEBUGASSERT(itsFiller);
-    const int nHistory = 120;
+    const int nHistory = 620;
     int lastHistPos = -1;
     bool wasWrapped = false;
     casa::Cube<casa::Complex> history(nHistory,itsFiller->nBeam(),3,casa::Complex(0.,0.));
@@ -92,6 +92,7 @@ void FillerWorker::operator()()
                 }
             }
             for (casa::uInt baseline = 0; baseline < cp.itsVisibility.nrow(); ++baseline) {
+                 
                  /*
                  casa::Complex temp(0.,0.);
                  // average in frequency
@@ -100,10 +101,12 @@ void FillerWorker::operator()()
                  }
                  history(lastHistPos,beam,baseline) = temp / float(cp.itsVisibility.ncolumn());
                  */
+                 
                  // middle of the band
                  const casa::uInt chan = cp.itsVisibility.ncolumn() / 2;
                  ASKAPDEBUGASSERT(chan < cp.itsVisibility.ncolumn());
                  history(lastHistPos,beam,baseline) = cp.itsVisibility(baseline,chan);
+                 
             }
        }
        itsFiller->notifyWritingDone(buffer);
