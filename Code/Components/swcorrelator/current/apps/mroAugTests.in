@@ -1,5 +1,5 @@
 swcorrelator.port = 3000
-swcorrelator.nbeam = 1
+swcorrelator.nbeam = 4
 swcorrelator.nchan = 16
 swcorrelator.capturemode = false
 swcorrelator.duplicate2nd = false
@@ -7,7 +7,7 @@ swcorrelator.duplicate2nd = false
 # optional index substitution
 swcorrelator.makeBeamAnt = false
 swcorrelator.antmap = "1:0,3:1,6:2"
-swcorrelator.beammap = "1:0"
+swcorrelator.beammap = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8"
 # experimental mapping figured out using synthesiser
 #swcorrelator.freqmap = "15:2,13:6,11:10,9:13,7:15,5:9,1:1,2:3,3:5,4:7,6:11,8:14,10:12,12:8,14:4,16:0"
 # mapping for contiguous 16 MHz
@@ -53,6 +53,15 @@ swcorrelator.antennas.BETA3.AK07 = [-2556282.740493, 5097252.346251, -2848527.13
 swcorrelator.feeds.spacing        =       1deg
 swcorrelator.feeds.mode = "perfect X Y"
 
-swcorrelator.feeds.names     = [beam0]
+swcorrelator.feeds.names     = [beam0,beam1,beam2,beam3]
 
 swcorrelator.feeds.beam0          =       [0, 0]
+swcorrelator.feeds.beam1          =       [0, 0]
+swcorrelator.feeds.beam2          =       [0, 0]
+swcorrelator.feeds.beam3          =       [0, 0]
+swcorrelator.feeds.beam4          =       [0, 0]
+swcorrelator.feeds.beam5          =       [0, 0]
+swcorrelator.feeds.beam6          =       [0, 0]
+swcorrelator.feeds.beam7          =       [0, 0]
+swcorrelator.feeds.beam8          =       [0, 0]
+swcorrelator.feeds.beam9          =       [0, 0]
