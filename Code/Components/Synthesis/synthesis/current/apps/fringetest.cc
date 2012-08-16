@@ -72,7 +72,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   casa::Matrix<casa::Complex> buf;
   size_t counter = 0;
   casa::Cube<casa::Complex> imgBuf;
-  const casa::uInt maxSteps = 360;
+  const casa::uInt maxSteps = 1360;
   casa::uInt currentStep = 0;
   casa::Vector<casa::uInt> ant1IDs;
   casa::Vector<casa::uInt> ant2IDs;
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
      // number of cycles to average
-     const size_t nAvg = 1;
+     const size_t nAvg = 20;
      process(ds, nAvg);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
