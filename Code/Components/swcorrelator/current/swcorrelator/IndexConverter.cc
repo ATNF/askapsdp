@@ -116,6 +116,15 @@ int IndexConverter::operator()(const int in)  const
   return -1;
 }
 
+/// @brief size of the map
+/// @details returns the number of conversions set up, i.e. zero if there are none
+/// @return number of conversion rules
+size_t IndexConverter::nRules() const
+{
+   return itsMap.size();
+}
+
+
 } // namespace swcorrelator
 
 } // namespace askap

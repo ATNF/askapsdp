@@ -64,8 +64,17 @@ namespace swcorrelator {
 /// @param[in] parset parset file with configuration info
 FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset), itsDataDescID(0),
    itsFieldID(0), itsBeamOffsetUVW(parset.getBool("beamoffsetuvw",true)), itsNumberOfDataDesc(-1),
-   itsNumberOfBeams(-1)
+   itsNumberOfBeams(-1), itsExtraAntennas(parset.getString("beams2ants","")), itsAntHandlingExtras(-1)
 {
+  if (itsExtraAntennas.nRules()) {
+      ASKAPLOG_INFO_STR(logger, "Some beams will be written as antennas (all indices after substitution) according to the following rule:");
+      ASKAPLOG_INFO_STR(logger, "     (beamId:antId) "<<parset.getString("beams2ants"));
+      itsAntHandlingExtras = parset.getInt32("hostantenna");
+      ASKAPCHECK((itsAntHandlingExtras >= 0) && (itsAntHandlingExtras <= 2), "Host antenna index should be 0, 1 or 2, you have "<<itsAntHandlingExtras);
+      ASKAPLOG_INFO_STR(logger, "     Host antenna Id is "<<itsAntHandlingExtras);
+  } else {
+      ASKAPCHECK(!parset.isDefined("hostantenna"), "hostantenna parameter is defined without beam to antenna substituting rule! Define beam2ants as well.");
+  }
   create();
   initAntennasAndBeams(); 
   addObs("ASKAP", "team", 0, 0);
@@ -100,7 +109,7 @@ casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
   buf.itsUVWValid = true;
   // only 3 antennas are supported
   buf.itsUVW.resize(3,3);
-  ASKAPDEBUGASSERT(itsAntXYZ.nrow() == 3);
+  ASKAPDEBUGASSERT(itsAntXYZ.nrow() >= 3);
   ASKAPDEBUGASSERT(buf.itsBeam < int(itsBeamOffsets.nrow()));
   ASKAPDEBUGASSERT(itsBeamOffsets.ncolumn() == 2);
   casa::MDirection phaseCntr(itsDishPointing);
@@ -123,7 +132,7 @@ casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
   const casa::Matrix<double> antUVW = casa::product(trans,casa::transpose(itsAntXYZ));
   for (casa::uInt baseline = 0; baseline < buf.itsUVW.nrow(); ++baseline) {
        for (casa::uInt dim = 0; dim < buf.itsUVW.ncolumn(); ++dim) {
-            buf.itsUVW(baseline,dim) = antUVW(dim,theirAntIDs[baseline][1]) - antUVW(dim,theirAntIDs[baseline][0]);
+            buf.itsUVW(baseline,dim) = antUVW(dim,substituteAntId(theirAntIDs[baseline][1], buf.itsBeam)) - antUVW(dim,substituteAntId(theirAntIDs[baseline][0], buf.itsBeam));
        }
   }
   return epoch;
@@ -167,8 +176,8 @@ void FillerMSSink::write(CorrProducts &buf) const
   msc.stateId().put(baseRow, -1);
   for (casa::uInt i = 0; i < newRows; ++i) {
        const casa::uInt row = i + baseRow;
-       msc.antenna1().put(row, theirAntIDs[i][0]);
-       msc.antenna2().put(row, theirAntIDs[i][1]);
+       msc.antenna1().put(row, substituteAntId(theirAntIDs[i][0], buf.itsBeam));
+       msc.antenna2().put(row, substituteAntId(theirAntIDs[i][1], buf.itsBeam));
        msc.feed1().put(row, buf.itsBeam);
        msc.feed2().put(row, buf.itsBeam);
        msc.uvw().put(row, buf.itsUVW.row(i));
@@ -811,6 +820,36 @@ int FillerMSSink::baselineIndex(const casa::uInt ant1, const casa::uInt ant2)
         }
    }
    return -1;
+}
+
+/// @brief helper method to substitute antenna index
+/// @details This is required to be able to use 4th (or potentially even more) antennas 
+/// connected through beamformer of another antenna. The correlator is still running in 3-antenna mode,
+/// but records the given beam data as correlations with extra antennas (so a useful measurement set is
+/// produced). The method substitutes an index in the range of 0-2 to an index > 2 if the appropriate
+/// beam and antenna are selected
+/// @param[in] antenna input antenna index
+/// @param[in] beam beam index (controls whether and how the substitution is done)
+/// @return output antenna index into itsAntXYZ
+int FillerMSSink::substituteAntId(const int antenna, const int beam) const
+{
+  if (itsExtraAntennas.nRules() == 0) {
+      // no extra antennas defined, just return the original index
+      return antenna;
+  }
+  const int result = itsExtraAntennas(beam);
+  if (result < 0) {
+      // this particular beam is not mapped, return the original index
+      return antenna;
+  }
+  ASKAPDEBUGASSERT(itsAntHandlingExtras >= 0);
+  if (antenna != itsAntHandlingExtras) {
+      // index is unchanged, as this is not the host antenna
+      return antenna;
+  }
+  // result is the new antenna index, we substitute host antenna with an extra one
+  ASKAPDEBUGASSERT(result < int(itsAntXYZ.nrow()));
+  return result;
 }
 
 

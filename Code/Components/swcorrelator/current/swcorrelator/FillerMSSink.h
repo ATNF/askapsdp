@@ -37,6 +37,7 @@
 // own includes
 #include <swcorrelator/CorrProducts.h>
 #include <swcorrelator/ISink.h>
+#include <swcorrelator/IndexConverter.h>
 
 // casa includes
 #include "ms/MeasurementSets/MeasurementSet.h"
@@ -120,13 +121,24 @@ public:
   /// of baselines. In the software correlator itself, the data are produced directly in the standard
   /// order, but this method is handy for other uses of this class (i.e. format converter). It
   /// returns an index for a given baseline
-  /// @param[in] ant1 zero-based indicex of the first antenna  
-  /// @param[in] ant2 zero-based indicex of the second antenna
+  /// @param[in] ant1 zero-based index of the first antenna  
+  /// @param[in] ant2 zero-based index of the second antenna
   /// @return index into visibility of flag matrix (row of the matrix)
-  /// @note a negative value is returned if the given baseline is not found
+  /// @note a negative value is returned if the given baseline is not found, no substitution is beformed
   static int baselineIndex(const casa::uInt ant1, const casa::uInt ant2);
   
 protected:
+  /// @brief helper method to substitute antenna index
+  /// @details This is required to be able to use 4th (or potentially even more) antennas 
+  /// connected through beamformer of another antenna. The correlator is still running in 3-antenna mode,
+  /// but records the given beam data as correlations with extra antennas (so a useful measurement set is
+  /// produced). The method substitutes an index in the range of 0-2 to an index > 2 if the appropriate
+  /// beam and antenna are selected
+  /// @param[in] antenna input antenna index
+  /// @param[in] beam beam index (controls whether and how the substitution is done)
+  /// @return output antenna index into itsAntXYZ
+  int substituteAntId(const int antenna, const int beam) const;
+
   /// @brief helper method to make a string out of an integer
   /// @param[in] in unsigned integer number
   /// @return a string padded with zero on the left size, if necessary
@@ -232,6 +244,13 @@ private:
   /// @details It is equivalent to the number of rows of the FEED table.
   /// (indices go from 0 to itsNumberOfBeams)
   int itsNumberOfBeams;    
+
+  /// @brief index converter to translate beams into extra antennas
+  IndexConverter itsExtraAntennas;
+
+  /// @brief id of the antenna, the beamformer of which gets the extra signals
+  /// @note, it should be a non-negative number
+  int itsAntHandlingExtras;
 };
 
 } // namespace swcorrelator

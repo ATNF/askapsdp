@@ -75,6 +75,11 @@ public:
    /// @return output index
    /// @note a negative index is returned if the input index is out of range
    int operator()(const int in)  const;
+ 
+   /// @brief size of the map
+   /// @details returns the number of conversions set up, i.e. zero if there are none
+   /// @return number of conversion rules
+   size_t nRules() const;
    
 private:
    std::vector<int> itsMap; 
