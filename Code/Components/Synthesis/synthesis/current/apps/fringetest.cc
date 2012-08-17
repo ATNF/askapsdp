@@ -61,6 +61,19 @@ using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::accessors;
 
+casa::Matrix<casa::Complex> padSecond(const casa::Matrix<casa::Complex> &in, const casa::uInt factor) {
+   if (factor == 1) {
+       return in;
+   }
+   ASKAPDEBUGASSERT(factor>0);
+   ASKAPDEBUGASSERT(in.ncolumn()>0);
+   ASKAPDEBUGASSERT(in.nrow()>0);
+   casa::Matrix<casa::Complex> result(in.nrow(), in.ncolumn()*factor,casa::Complex(0.,0.));
+   const casa::uInt start = in.ncolumn()*(factor-1)/2;
+   result(casa::IPosition(2,0,start), casa::IPosition(2, in.nrow() - 1, start + in.ncolumn() - 1)) = in;
+   return result;
+}
+
 void process(const IConstDataSource &ds, size_t nAvg) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseBaseline(0,1);
@@ -79,7 +92,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
     
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        if (buf.nelements() == 0) {
-           buf.resize(it->nRow(),it->frequency().nelements());
+           buf.resize(it->nRow(),it->frequency().nelements()*2);
            buf.set(casa::Complex(0.,0.));
            ant1IDs = it->antenna1().copy();
            ant2IDs = it->antenna2().copy();
@@ -89,7 +102,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
            imgBuf.resize(buf.ncolumn(),maxSteps,it->nRow());
            imgBuf.set(casa::Complex(0.,0.));
        } else { 
-           ASKAPCHECK(buf.ncolumn() == it->frequency().nelements(), 
+           ASKAPCHECK(buf.ncolumn() == 2*it->frequency().nelements(), 
                   "Number of channels seem to have been changed, previously "<<buf.ncolumn()<<" now "<<it->frequency().nelements());
            ASKAPCHECK(imgBuf.nplane() == it->nRow(), "The number of rows in the accessor "<<it->nRow()<<
                       " is different to the maximum number of baselines");
@@ -103,9 +116,9 @@ void process(const IConstDataSource &ds, size_t nAvg) {
            }
        }
        ASKAPASSERT(it->nRow() == buf.nrow());
-       ASKAPASSERT(it->nChannel() == buf.ncolumn());
+       ASKAPASSERT(it->nChannel()*2 == buf.ncolumn());
        ASKAPASSERT(it->nPol() >= 1);
-       buf += it->visibility().xyPlane(0);
+       buf += padSecond(it->visibility().xyPlane(0),2);
        if (++counter == nAvg) {
            buf /= float(nAvg);
            for (casa::uInt row = 0; row<buf.nrow(); ++row) {
@@ -150,7 +163,7 @@ int main(int argc, char **argv) {
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
      // number of cycles to average
-     const size_t nAvg = 20;
+     const size_t nAvg = 1;
      process(ds, nAvg);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
