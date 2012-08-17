@@ -74,7 +74,7 @@ casa::Matrix<casa::Complex> padSecond(const casa::Matrix<casa::Complex> &in, con
    return result;
 }
 
-void process(const IConstDataSource &ds, size_t nAvg) {
+void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseBaseline(0,1);
   IDataConverterPtr conv=ds.createConverter();  
@@ -92,7 +92,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
     
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        if (buf.nelements() == 0) {
-           buf.resize(it->nRow(),it->frequency().nelements()*2);
+           buf.resize(it->nRow(),it->frequency().nelements()*padding);
            buf.set(casa::Complex(0.,0.));
            ant1IDs = it->antenna1().copy();
            ant2IDs = it->antenna2().copy();
@@ -102,7 +102,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
            imgBuf.resize(buf.ncolumn(),maxSteps,it->nRow());
            imgBuf.set(casa::Complex(0.,0.));
        } else { 
-           ASKAPCHECK(buf.ncolumn() == 2*it->frequency().nelements(), 
+           ASKAPCHECK(buf.ncolumn() == padding*it->frequency().nelements(), 
                   "Number of channels seem to have been changed, previously "<<buf.ncolumn()<<" now "<<it->frequency().nelements());
            ASKAPCHECK(imgBuf.nplane() == it->nRow(), "The number of rows in the accessor "<<it->nRow()<<
                       " is different to the maximum number of baselines");
@@ -116,9 +116,9 @@ void process(const IConstDataSource &ds, size_t nAvg) {
            }
        }
        ASKAPASSERT(it->nRow() == buf.nrow());
-       ASKAPASSERT(it->nChannel()*2 == buf.ncolumn());
+       ASKAPASSERT(it->nChannel()*padding == buf.ncolumn());
        ASKAPASSERT(it->nPol() >= 1);
-       buf += padSecond(it->visibility().xyPlane(0),2);
+       buf += padSecond(it->visibility().xyPlane(0),padding);
        if (++counter == nAvg) {
            buf /= float(nAvg);
            for (casa::uInt row = 0; row<buf.nrow(); ++row) {
@@ -164,7 +164,9 @@ int main(int argc, char **argv) {
      timer.mark();
      // number of cycles to average
      const size_t nAvg = 1;
-     process(ds, nAvg);
+     // padding factor
+     const size_t padding = 1;
+     process(ds, nAvg, padding);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
