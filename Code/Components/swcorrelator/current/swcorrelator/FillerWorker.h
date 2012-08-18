@@ -49,7 +49,7 @@ struct FillerWorker {
 
   /// @brief entry point for the parallel thread
   void operator()();
-  
+
 private:
   boost::shared_ptr<CorrFiller> itsFiller;     
 };

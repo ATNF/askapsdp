@@ -30,6 +30,8 @@
 
 #include <swcorrelator/FillerWorker.h>
 #include <casa/Arrays/Cube.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/Matrix.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
 
@@ -37,11 +39,70 @@ ASKAP_LOGGER(logger, ".corrfiller");
 
 #include <string>
 #include <fstream>
+#include <vector>
 #include <boost/thread.hpp>
 
 namespace askap {
 
 namespace swcorrelator {
+
+
+/// @brief helper method to get delays (could be made a protected member of the class)
+/// @details
+/// @param[in] vis visibility matrix (rows are baselines, columns are channels)
+/// @return delays in seconds for each baseline
+/// @note the routine assumes 1 MHz channel spacing and will not work for a very quick wrap
+casa::Vector<casa::Float> estimateDelays(const casa::Matrix<casa::Complex> &vis) 
+{
+  casa::Vector<casa::Float> result(vis.nrow(),0.);
+  if (vis.ncolumn() >= 2) {
+      std::vector<float> phases(vis.ncolumn());
+      const float threshold = 3 * casa::C::pi / 2;
+      for (casa::uInt row = 0; row < vis.nrow(); ++row) {
+           // unambiguate phases
+           float wrapCompensation = 0.;
+           for (size_t chan=0; chan<phases.size(); ++chan) {
+                const casa::Float curPhase = arg(vis(row,casa::uInt(chan)));
+                if (chan > 0) {
+                    const float prevOrigPhase = phases[chan - 1] - wrapCompensation;
+                    const float diff = curPhase - prevOrigPhase;
+                    if (diff >= threshold) {
+                        wrapCompensation -= 2. * casa::C::pi;
+                    } else if (diff <= -threshold) {
+                        wrapCompensation += 2. * casa::C::pi;
+                    }
+                }
+                phases[chan] = curPhase + wrapCompensation;
+           }
+           /*
+           // for debugging
+           if (row == 0) {
+               std::ofstream os("phtest.dat");
+               for (size_t chan=0; chan<phases.size(); ++chan) {
+                   os<<chan<<" "<<phases[chan] / casa::C::pi * 180. <<" "<<arg(vis(row,casa::uInt(chan))) / casa::C::pi * 180.<< std::endl;
+               }
+           }
+           //
+           */
+           // do LSF into phase vs. channel
+           double sx = 0., sy = 0., sx2 = 0., sxy = 0.;
+           // could've combined two loops, but keep it easy for now
+           for (size_t chan=0; chan < phases.size(); ++chan) {
+                sx += double(chan);
+                sx2 += double(chan)*double(chan);
+                sy += double(phases[chan]);
+                sxy += double(chan)*double(phases[chan]);
+           }
+           sx /= double(phases.size());
+           sy /= double(phases.size());
+           sx2 /= double(phases.size());
+           sxy /= double(phases.size());
+           const double coeff = (sxy - sx * sy) / (sx2 - sx * sx);
+           result[row] = float(coeff / 2. / casa::C::pi / 1e6);
+      }
+  }    
+  return result;
+}
 
 /// @brief constructor, pass the shared pointer to the filler
 FillerWorker::FillerWorker(const boost::shared_ptr<CorrFiller> &filler) : itsFiller(filler) 
@@ -59,6 +120,7 @@ void FillerWorker::operator()()
     int lastHistPos = -1;
     bool wasWrapped = false;
     casa::Cube<casa::Complex> history(nHistory,itsFiller->nBeam(),3,casa::Complex(0.,0.));
+    casa::Cube<casa::Float> delayHistory(nHistory, itsFiller->nBeam(),3, 0.);
     std::vector<uint64_t> bats(nHistory,0);
     
     while (true) {       
@@ -82,7 +144,10 @@ void FillerWorker::operator()()
             // for real-time monitoring
             if (beam == 0) {
                 bats[lastHistPos] = cp.itsBAT;                
-                std::ofstream os("spectra.dat");
+            }
+            {
+                const std::string fname = "spc_beam" + utility::toString<int>(beam) + ".dat";
+                std::ofstream os(fname.c_str());
                 for (casa::uInt chan=0; chan < cp.itsVisibility.ncolumn(); ++chan) {
                     os<<chan<<" ";
                     for (casa::uInt baseline = 0; baseline < cp.itsVisibility.nrow(); ++baseline) {
@@ -91,8 +156,13 @@ void FillerWorker::operator()()
                     os<<std::endl;
                 }
             }
+            const casa::Vector<casa::Float> delays = estimateDelays(cp.itsVisibility);
+            ASKAPLOG_DEBUG_STR(logger, "Beam "<<beam<<": delays (s) = "<<delays);
+            ASKAPDEBUGASSERT(delays.nelements() == cp.itsVisibility.nrow());
+            
             for (casa::uInt baseline = 0; baseline < cp.itsVisibility.nrow(); ++baseline) {
                  
+                 delayHistory(lastHistPos, beam, baseline) = delays[baseline];
                  
                  casa::Complex temp(0.,0.);
                  // average in frequency
@@ -123,7 +193,8 @@ void FillerWorker::operator()()
             os<<bats[curPos]<<" ";
             for (int beam=0; beam < int(history.ncolumn()); ++beam) {
                 for (casa::uInt baseline = 0; baseline < history.nplane(); ++baseline) {
-                     os<<abs(history(curPos,beam,baseline))<<" "<<arg(history(curPos,beam,baseline))/casa::C::pi*180.<<" ";
+                     os<<abs(history(curPos,beam,baseline))<<" "<<arg(history(curPos,beam,baseline))/casa::C::pi*180.<<" "
+                       <<delayHistory(curPos,beam,baseline)*1e9<<" ";
                 }
             }
             os<<std::endl;
