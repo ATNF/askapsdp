@@ -1,5 +1,5 @@
 swcorrelator.port = 3000
-swcorrelator.nbeam = 4
+swcorrelator.nbeam = 2
 swcorrelator.nchan = 16
 swcorrelator.capturemode = false
 swcorrelator.duplicate2nd = false

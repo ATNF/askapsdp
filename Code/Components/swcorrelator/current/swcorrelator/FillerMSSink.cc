@@ -106,6 +106,7 @@ casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
   if (buf.itsUVWValid) {
       return epoch;
   }
+  ASKAPLOG_DEBUG_STR(logger, "calculateUVW: BAT="<<buf.itsBAT<<" corresponds to UT epoch: "<<epoch.getValue());
   buf.itsUVWValid = true;
   // only 3 antennas are supported
   buf.itsUVW.resize(3,3);
