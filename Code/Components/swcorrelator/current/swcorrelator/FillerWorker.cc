@@ -164,13 +164,13 @@ void FillerWorker::operator()()
                  
                  delayHistory(lastHistPos, beam, baseline) = delays[baseline];
                  
-                 casa::Complex temp(0.,0.);
+                 
                  // average in frequency
+                 casa::Complex temp(0.,0.);
                  for (casa::uInt chan=0; chan < cp.itsVisibility.ncolumn(); ++chan) {
                       temp += cp.itsVisibility(baseline,chan);
                  }
                  history(lastHistPos,beam,baseline) = temp / float(cp.itsVisibility.ncolumn());
-                 
                  
                  /*
                  // middle of the band
