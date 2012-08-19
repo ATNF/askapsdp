@@ -48,6 +48,7 @@
 #include "tables/Tables/StandardStMan.h"
 #include "tables/Tables/TiledShapeStMan.h"
 #include <casa/Arrays/MatrixMath.h>
+#include <measures/Measures/MeasFrame.h>
 
 // std includes
 #include <sstream>
@@ -114,9 +115,14 @@ casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
   ASKAPDEBUGASSERT(buf.itsBeam < int(itsBeamOffsets.nrow()));
   ASKAPDEBUGASSERT(itsBeamOffsets.ncolumn() == 2);
   casa::MDirection phaseCntr(itsDishPointing);
+  casa::MeasFrame frame(epoch);
+  phaseCntr = casa::MDirection::Convert(phaseCntr, casa::MDirection::Ref(casa::MDirection::JTRUE,frame))();
+  ASKAPLOG_DEBUG_STR(logger, "calculateUVW for direction "<<printDirection(itsDishPointing.getValue())<<" (J2000) -> "<<printDirection(phaseCntr.getValue())<<" (JTRUE)");
+  
   // need to rotate beam offsets here if we dish rotation does not compensate parallactic angle rotation perfectly
   if (itsBeamOffsetUVW) {
       phaseCntr.shift(-itsBeamOffsets(buf.itsBeam,0), itsBeamOffsets(buf.itsBeam,1), casa::True);
+      ASKAPLOG_DEBUG_STR(logger, " after offset for beam "<<buf.itsBeam<<" is applied -> "<<printDirection(phaseCntr.getValue())<<" (JTRUE)");
   }
   const double ra = phaseCntr.getAngle().getValue()(0);
   const double dec = phaseCntr.getAngle().getValue()(1);
