@@ -48,6 +48,7 @@
 #include "tables/Tables/StandardStMan.h"
 #include "tables/Tables/TiledShapeStMan.h"
 #include <casa/Arrays/MatrixMath.h>
+#include <casa/Arrays/ArrayMath.h>
 #include <measures/Measures/MeasFrame.h>
 
 // std includes
@@ -159,6 +160,18 @@ const int FillerMSSink::theirAntIDs[3][2] = {{0, 1}, {1,2}, {0, 2}};
 void FillerMSSink::write(CorrProducts &buf) const
 {
   const casa::MEpoch epoch = calculateUVW(buf);
+  // hack - to experiment with phase tracking, ideally it should be done at a higher level
+  ASKAPDEBUGASSERT(buf.itsUVWValid);
+  ASKAPDEBUGASSERT(buf.itsUVW.nrow() == buf.itsVisibility.nrow());
+  ASKAPDEBUGASSERT(buf.itsUVW.ncolumn() == 3);
+  for (casa::uInt baseline = 0; baseline < buf.itsUVW.nrow(); ++baseline) {
+     // currently single value for all channels, LOeff = 1648 MHz
+     const float phase = -2 * casa::C::pi * (1648e6 - 728e6) * buf.itsUVW(baseline,2) / casa::C::c;
+     const casa::Complex phasor(cos(phase),sin(phase));
+     casa::Vector<casa::Complex> allChan = buf.itsVisibility.row(baseline);
+     allChan *= phasor;
+  }
+  //
   ASKAPDEBUGASSERT(itsMs);
   casa::MSColumns msc(*itsMs);
   const casa::uInt baseRow = msc.nrow();
