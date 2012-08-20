@@ -26,11 +26,13 @@ swcorrelator.sources.names                 =       [field1]
 # 0407-658
 #swcorrelator.sources.field1.direction      =       [04h08m20.38, -65.45.09.1, J2000]
 # 1934-638
-swcorrelator.sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J2000]
+#swcorrelator.sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J2000]
 # 1742-289 (Galactic centre)
 #swcorrelator.sources.field1.direction      =       [17h45m40.04, -29.00.28.07, J2000]
 # Virgo
 #swcorrelator.sources.field1.direction      =       [12h30m49.43, 12.23.28.01, J2000]
+# 3C273
+swcorrelator.sources.field1.direction      =       [12h29m06.699, 02.03.08.60, J2000]
 
 swcorrelator.sources.field1.calcode        =       ""
 swcorrelator.defaultfield      = "field1"

@@ -165,8 +165,11 @@ void FillerMSSink::write(CorrProducts &buf) const
   ASKAPDEBUGASSERT(buf.itsUVW.nrow() == buf.itsVisibility.nrow());
   ASKAPDEBUGASSERT(buf.itsUVW.ncolumn() == 3);
   for (casa::uInt baseline = 0; baseline < buf.itsUVW.nrow(); ++baseline) {
-     // currently single value for all channels, LOeff = 1648 MHz
-     const float phase = -2 * casa::C::pi * (1648e6 - 728e6) * buf.itsUVW(baseline,2) / casa::C::c;
+     // currently single value for all channels, LOeff = 874.5 MHz
+     //const float effLOFreq = 874.5e6;
+     const float effLOFreq = 880.5e6;
+     //const float effLOFreq = 920e6;
+     const float phase = -2 * casa::C::pi * effLOFreq * buf.itsUVW(baseline,2) / casa::C::c;
      const casa::Complex phasor(cos(phase),sin(phase));
      casa::Vector<casa::Complex> allChan = buf.itsVisibility.row(baseline);
      allChan *= phasor;
