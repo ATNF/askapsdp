@@ -253,7 +253,7 @@ namespace askap
           itsSolver->init();
           for (size_t iMs=0; iMs<measurementSets().size(); ++iMs)
           {
-            calcOne(measurementSets()[iMs]);
+            calcOne(measurementSets()[iMs],true);
             itsSolver->addNormalEquations(*itsNe);
           }
         }
