@@ -59,8 +59,9 @@ using std::endl;
 using namespace askap;
 using namespace askap::accessors;
 
-void publish(std::ostream &os, const casa::Vector<casa::Complex> &vis, double startTime, double avgTime, const casa::MVDirection &dir)
+void publish(std::ostream &os, const casa::Vector<casa::Complex> &vis, double startTime, double avgTime, const casa::MVDirection &dir, const casa::Vector<double> &wBuf)
 {
+   ASKAPDEBUGASSERT(wBuf.nelements() == 3);
    const casa::MEpoch epoch(casa::Quantity(56100.0+avgTime/86400.,"d"), casa::MEpoch::Ref(casa::MEpoch::UTC));
    const double ra = dir.getValue()(0);
    const double dec = dir.getValue()(1);
@@ -72,9 +73,9 @@ void publish(std::ostream &os, const casa::Vector<casa::Complex> &vis, double st
 
    os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<avgTime<<" "<<std::fixed<<std::setprecision(6);
    for (casa::uInt baseline = 0; baseline<vis.nelements(); ++baseline) {
-        os<<" "<<arg(vis[baseline])/casa::C::pi*180.;
+        os<<" "<<std::fixed<<arg(vis[baseline])/casa::C::pi*180.<<" "<<std::setprecision(15)<<std::scientific<<wBuf[baseline];
    }
-   os<<" "<<-cH0*cd<<" "<<sH0*cd<<" "<<-sd<<" "<<H0/casa::C::pi*180.<<std::endl;
+   os<<" "<<std::fixed<<-cH0*cd<<" "<<sH0*cd<<" "<<-sd<<" "<<H0/casa::C::pi*180.<<std::endl;
 }
 
 void process(const IConstDataSource &ds, size_t nAvg) {
@@ -91,6 +92,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   casa::uInt nChan = 0;
   double startTime = 0;
   double avgTime = 0;
+  casa::Vector<double> wBuf(3,0.);
   casa::MVDirection dir;
     
   std::ofstream os("result.dat");
@@ -113,13 +115,16 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        //
        casa::Vector<casa::Complex> freqAvBuf(3, casa::Complex(0.,0.));
        for (casa::uInt ch=0; ch<it->nChannel(); ++ch) {
-            freqAvBuf += it->visibility().xyPlane(0).column(0);
+            freqAvBuf += it->visibility().xyPlane(0).column(ch);
        }
        freqAvBuf /= float(it->nChannel());
        buf += freqAvBuf;
        if (counter == 0) {
            startTime = it->time();
            dir = it->pointingDir1()[0];
+           for (casa::uInt row = 0; row<it->nRow(); ++row) {
+               wBuf[row] = it->uvw()[row](2) / casa::C::c * 2 * casa::C::pi;
+           }
        }
        for (casa::uInt row=0; row<it->nRow(); ++row) {
             ASKAPCHECK(dir.separation(it->pointingDir1()[row])<1e-6, "Pointing/phase centre differs for row="<<row<<" time="<<it->time());
@@ -130,7 +135,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        if (++counter == nAvg) {
            buf /= float(nAvg);
            avgTime /= double(nAvg);
-           publish(os, buf, startTime, avgTime,dir);
+           publish(os, buf, startTime, avgTime,dir,wBuf);
            buf.set(casa::Complex(0.,0.));
            counter = 0;
            avgTime = 0.;
@@ -140,7 +145,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   if (counter!=0) {
       buf /= float(counter);
       avgTime /= double(counter);
-      publish(os, buf, startTime, avgTime,dir);
+      publish(os, buf, startTime, avgTime,dir,wBuf);
   }
 }
 
