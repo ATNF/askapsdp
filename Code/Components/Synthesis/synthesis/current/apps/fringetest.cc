@@ -61,6 +61,16 @@ using namespace askap;
 using namespace askap::synthesis;
 using namespace askap::accessors;
 
+void analyseDelay(const casa::Matrix<casa::Complex> &fringes, const casa::uInt padding, double avgTime, 
+                  const accessors::IConstDataAccessor &acc)
+{
+  ASKAPDEBUGASSERT(acc.nRow() == fringes.ncolumn());
+  ASKAPDEBUGASSERT(acc.nChannel() * padding == fringes.nrow());
+  for (casa::uInt row = 0; row < acc.nRow(); ++row) {
+       
+  }
+}
+
 casa::Matrix<casa::Complex> padSecond(const casa::Matrix<casa::Complex> &in, const casa::uInt factor) {
    if (factor == 1) {
        return in;
@@ -79,10 +89,11 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
   //sel->chooseBaseline(0,1);
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
-  conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
+  conv->setEpochFrame(casa::MEpoch(casa::Quantity(56150.0,"d"),
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));                    
   casa::Matrix<casa::Complex> buf;
+  double avgTime = 0.;
   size_t counter = 0;
   casa::Cube<casa::Complex> imgBuf;
   const casa::uInt maxSteps = 1360;
@@ -119,8 +130,10 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
        ASKAPASSERT(it->nChannel()*padding == buf.ncolumn());
        ASKAPASSERT(it->nPol() >= 1);
        buf += padSecond(it->visibility().xyPlane(0),padding);
+       avgTime += it->time();
        if (++counter == nAvg) {
            buf /= float(nAvg);
+           avgTime /= float(nAvg);
            for (casa::uInt row = 0; row<buf.nrow(); ++row) {
                 casa::Vector<casa::Complex> curRow = buf.row(row);
                 scimath::fft(curRow, true);
@@ -128,12 +141,14 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
            ASKAPCHECK(currentStep < imgBuf.ncolumn(), "Image buffer is too small (in time axis)");
            imgBuf.xzPlane(currentStep++) = casa::transpose(buf);
            buf.set(casa::Complex(0.,0.));
+           avgTime = 0.;
            counter = 0;
        }
        //cout<<"time: "<<it->time()<<endl;
   }
   if (counter!=0) {
       buf /= float(counter);
+      avgTime /= double(counter);
       for (casa::uInt row = 0; row<buf.nrow(); ++row) {
            casa::Vector<casa::Complex> curRow = buf.row(row);
            scimath::fft(curRow, true);

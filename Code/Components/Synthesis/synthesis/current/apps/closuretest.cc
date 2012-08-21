@@ -57,6 +57,8 @@ using namespace askap;
 using namespace askap::accessors;
 
 void process(const IConstDataSource &ds, size_t nAvg) {
+  IDataSelectorPtr sel=ds.createSelector();
+  sel->chooseFeed(1);
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
@@ -68,7 +70,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   double startTime = 0;
     
   std::ofstream os("phclosure.dat");
-  for (IConstDataSharedIter it=ds.createConstIterator(conv);it!=it.end();++it) {  
+  for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        if (nChan == 0) {
            nChan = it->nChannel();
            startTime = it->time();
@@ -87,7 +89,7 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        //
        casa::Vector<casa::Complex> freqAvBuf(3, casa::Complex(0.,0.));
        for (casa::uInt ch=0; ch<it->nChannel(); ++ch) {
-            freqAvBuf += it->visibility().xyPlane(0).column(0);
+            freqAvBuf += it->visibility().xyPlane(0).column(ch);
        }
        freqAvBuf /= float(it->nChannel());
        buf += freqAvBuf;
@@ -98,7 +100,11 @@ void process(const IConstDataSource &ds, size_t nAvg) {
        if (++counter == nAvg) {
            buf /= float(nAvg);
            const float phClosure = arg(buf[0]*buf[1]*conj(buf[2]))/casa::C::pi*180.; 
-           os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<std::fixed<<std::setprecision(6)<<phClosure<<std::endl;
+           os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<std::fixed<<std::setprecision(6)<<phClosure;
+           for (casa::uInt baseline = 0; baseline<3; ++baseline) {
+                os<<" "<<arg(buf[baseline])/casa::C::pi*180.;
+           }
+           os<<std::endl;
            buf.set(casa::Complex(0.,0.));
            counter = 0;
        }
@@ -107,7 +113,11 @@ void process(const IConstDataSource &ds, size_t nAvg) {
   if (counter!=0) {
       buf /= float(counter);
       const float phClosure = arg(buf[0]*buf[1]*conj(buf[2]))/casa::C::pi*180.; 
-      os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<std::fixed<<std::setprecision(6)<<phClosure<<std::endl;
+      os<<std::scientific<<std::setprecision(15)<<startTime<<" "<<std::fixed<<std::setprecision(6)<<phClosure;
+      for (casa::uInt baseline = 0; baseline<3; ++baseline) {
+           os<<" "<<arg(buf[baseline])/casa::C::pi*180.;
+      }
+      os<<std::endl;
   }
 }
 
