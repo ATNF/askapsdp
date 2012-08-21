@@ -276,6 +276,7 @@ namespace askap {
             par.setMinScale(parset.getInt16("scaleMin", par.getMinScale()));
             par.setMaxScale(parset.getInt16("scaleMax", par.getMaxScale()));
             par.setAtrousCut(parset.getFloat("snrRecon", par.getAtrousCut()));
+	    par.setReconConvergence(parset.getFloat("reconConvergence", par.getReconConvergence()));
             par.setFilterCode(parset.getInt16("filterCode", par.getFilterCode()));
             par.filter().define(par.getFilterCode());
 
@@ -303,13 +304,15 @@ namespace askap {
 	    par.setFlagTwoStageMerging(parset.getBool("flagTwoStageMerging",par.getFlagTwoStageMerging()));
 
 	    //
+	    par.setSpectralUnits(parset.getString("spectralUnits",par.getSpectralUnits()));
+	    par.setSpectralType(parset.getString("spectralType",par.getSpectralType()));
+	    par.setRestFrequency(parset.getFloat("restFrequency",par.getRestFrequency()));
 
             par.setVerbosity(parset.getBool("verbose", false));
 	    par.setDrawBorders(parset.getBool("drawBorders", par.drawBorders()));
 	    checkUnusedParameter(parset,"drawBlankEdges");// No graphics
             par.setPixelCentre(parset.getString("pixelCentre", "centroid"));
 	    checkUnusedParameter(parset,"spectralMethod"); // only used for graphical output.
-	    par.setSpectralUnits(parset.getString("spectralUnits",par.getSpectralUnits()));
 	    par.setSortingParam(parset.getString("sortingParam",par.getSortingParam()));
 
 
