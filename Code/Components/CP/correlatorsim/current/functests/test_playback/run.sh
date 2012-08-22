@@ -6,8 +6,12 @@ cd `dirname $0`
 source ../../init_package_env.sh
 
 # Start the Ice Services
-../start_services.sh icegrid.cfg
-sleep 2
+../start_ice.sh ../iceregistry.cfg ../icegridadmin.cfg ../icestorm.cfg
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to start Ice Services"
+    exit 1
+fi
+sleep 1
 
 # Start the metadata subscriber (don't use the script so this script can kill it)
 ../../apps/msnoop -inputs msnoop.in > msnoop.log 2>&1 &
@@ -32,6 +36,6 @@ sleep 1
 kill -9 $MDPID $VISPID $VISPID2 > /dev/null 2>&1
 
 # Stop the Ice Services
-../stop_services.sh icegrid.cfg
+../stop_ice.sh ../icegridadmin.cfg
 
 exit $STATUS
