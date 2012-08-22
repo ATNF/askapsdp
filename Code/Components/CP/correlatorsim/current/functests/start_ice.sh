@@ -70,7 +70,7 @@ mkdir -p ice_data/registry
 mkdir -p ice_data/db
 
 # Start the Ice Registry
-icegridregistry --Ice.Config=$1 > /dev/null 2>&1 &
+icegridregistry --Ice.Config=$1 > iceregistry.log 2>&1 &
 ERR=$?
 if [ ${ERR} -ne 0 ]; then
     echo "Error: Failed to start ice registry (code ${ERR})"
@@ -80,7 +80,7 @@ fi
 waitIceRegistry $2
 
 # Start IceStorm
-nohup icebox --Ice.Config=$3 > /dev/null 2>&1 &
+nohup icebox --Ice.Config=$3 > icestorm.log 2>&1 &
 PID=$!
 echo "${PID}" > icestorm.pid
 
