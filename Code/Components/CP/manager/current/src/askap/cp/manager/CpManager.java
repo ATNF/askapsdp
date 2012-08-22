@@ -36,12 +36,16 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import askap.util.ParameterSet;
 
-public class CpManager {
-
+public class CpManager extends Ice.Application {
 	/**
 	 * Logger
 	 */
 	private static Logger logger = Logger.getLogger(CpManager.class.getName());
+	
+	/**
+	 * Configuration parameters from config file
+	 */
+	private ParameterSet itsParset;
 
 	/**
 	 * Builds Ice.Properties from a parset file.
@@ -53,7 +57,7 @@ public class CpManager {
 	 * 						accessed.
 	 */
 	@SuppressWarnings("rawtypes")
-	private static Ice.Properties getIceProperties(ParameterSet parset) throws IOException {
+	private static Ice.Properties getIceProperties(ParameterSet parset) {
 		Ice.Properties props = Ice.Util.createProperties();
 		ParameterSet subset = parset.subset("ice_properties.");
 		for (Enumeration e = subset.keys(); e.hasMoreElements(); /**/) {
@@ -63,12 +67,14 @@ public class CpManager {
 		}
 		return props;
 	}
+	
+	public CpManager(ParameterSet parset) {
+		super();
+		itsParset = parset;
+	}
 
-	/**
-	 * Main
-	 * @param args
-	 */
-	public static void main(String[] args) {
+	@Override
+	public int run(String[] args) {
 		if (args.length != 1) {
 			System.err.println("Error: Invalid command line arguments");
 			System.exit(1);
@@ -89,30 +95,18 @@ public class CpManager {
 
 		logger.info("ASKAP Central Processor Manager");
 
-		// Init Ice and run the admin interface
-		int status = 0;
-		Ice.Communicator ic = null;
 		try {
-			ParameterSet parset = new ParameterSet(args[0]);
-			
-			// Create an Ice Communicator
-			Ice.InitializationData id = new Ice.InitializationData();
-			id.properties = getIceProperties(parset);
-			ic = Ice.Util.initialize(id);
-			if (ic == null) {
-				throw new RuntimeException("Error: ICE Communicator initialisation failed");
-			}
 
 			// Setup an adapter
-			Ice.ObjectAdapter adapter = ic.createObjectAdapter("CentralProcessorAdapter");
+			Ice.ObjectAdapter adapter = communicator().createObjectAdapter("CentralProcessorAdapter");
 			if (adapter == null) {
 				throw new RuntimeException("ICE adapter initialisation failed");
 			}
-			
+
 			// Create and register the ObsService object
-			ObsService svc = new ObsService(ic, parset);
-			adapter.add(svc, ic.stringToIdentity("CentralProcessorService"));
-			
+			ObsService svc = new ObsService(communicator(), itsParset);
+			adapter.add(svc, communicator().stringToIdentity("CentralProcessorService"));
+
 			// Activate the adapter
 			boolean activated = false;
 			while(!activated) {
@@ -136,32 +130,41 @@ public class CpManager {
 					}
 				}
 			}
-			
+
 			// Blocks here
-			ic.waitForShutdown();
-			
+			communicator().waitForShutdown();
+
 			logger.info("Stopping ObsService");
-	        adapter.deactivate();
-	        adapter.destroy();
-	        logger.info("ObsService stopped");
-			
-		} catch (Ice.LocalException e) {
-			e.printStackTrace();
-			status = 1;
+			adapter.deactivate();
+			adapter.destroy();
+			logger.info("ObsService stopped");
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
-			status = 1;
+			e.printStackTrace();
+			return 1;
 		}
 
-		if (ic != null) {
-			// Cleanup
-			try {
-				ic.destroy();
-			} catch (Exception e) {
-				System.err.println(e.getMessage());
-				status = 1;
-			}
+		return 0;
+	}
+
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// Create initialisation data
+		ParameterSet parset = null;
+		try {
+			parset = new ParameterSet(args[0]);
+		} catch (IOException e) {
+			System.err.println("Error: Could not open file: " + args[0]);
+			System.exit(1);
 		}
+		Ice.InitializationData id = new Ice.InitializationData();
+		id.properties = getIceProperties(parset);
+
+		CpManager svr = new CpManager(parset);
+		int status = svr.main("CentralProcessorService", args, id);
 		System.exit(status);
 	}
 }
