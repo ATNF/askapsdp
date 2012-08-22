@@ -8,7 +8,7 @@ source ../common.sh
 
 # Remove the log files
 APP_LOG=caldatasvc.log
-REG_LOG=icegridregistry.log
+REG_LOG=iceregistry.log
 rm -f ${APP_LOG} ${REG_LOG}
 
 # Start the Ice Registry
@@ -16,13 +16,13 @@ echo "Starting the Ice Registry..."
 REG_DB=registry-db
 rm -rf ${REG_DB}
 mkdir -p ${REG_DB}
-nohup icegridregistry --Ice.Config=icegridregistry.cfg > ${REG_LOG} &
+nohup icegridregistry --Ice.Config=iceregistry.cfg > ${REG_LOG} 2>&1 &
 REG_PID=$!
 waitIceRegistry icegridadmin.cfg
 
 # Start the service under test
 echo "Starting the Calibration Data Service..."
-nohup java -Xmx1024m askap/cp/caldatasvc/Server --Ice.Config=caldatasvc.cfg > ${APP_LOG} &
+nohup java -Xmx1024m askap/cp/caldatasvc/Server --Ice.Config=caldatasvc.cfg > ${APP_LOG} 2>&1 &
 PID=$!
 waitIceAdapter icegridadmin.cfg CalibrationDataServiceAdapter
 
