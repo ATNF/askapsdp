@@ -33,7 +33,7 @@ source ../common.sh
 
 # Remove the log files
 CPMAN_LOG=cpmanager.log
-REG_LOG=icegridregistry.log
+REG_LOG=iceregistry.log
 rm -f ${CPMAN_LOG} ${REG_LOG}
 
 # Start the Ice Registry
@@ -41,13 +41,13 @@ echo "Starting the Ice Registry..."
 REG_DB=registry-db
 rm -rf ${REG_DB}
 mkdir -p ${REG_DB}
-nohup icegridregistry --Ice.Config=icegridregistry.cfg > ${REG_LOG} &
+nohup icegridregistry --Ice.Config=iceregistry.cfg > ${REG_LOG} 2>&1 &
 REG_PID=$!
 waitIceRegistry icegridadmin.cfg
 
 # Start the cpmanager
 echo "Starting the CP Manager..."
-nohup java askap/cp/manager/CpManager cpmanager.cfg > ${CPMAN_LOG} &
+nohup java askap/cp/manager/CpManager cpmanager.cfg > ${CPMAN_LOG} 2>&1 &
 PID=$!
 waitIceAdapter icegridadmin.cfg CentralProcessorAdapter
 
