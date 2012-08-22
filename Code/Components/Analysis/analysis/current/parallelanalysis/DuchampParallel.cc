@@ -282,7 +282,7 @@ namespace askap {
                     if (this->itsCube.pars().verifySubsection() == duchamp::FAILURE)
                         ASKAPTHROW(AskapError, this->workerPrefix() << "Cannot parse the subsection string " << this->itsCube.pars().getSubsection());
 
-                    returnCode = this->itsCube.getMetadata( this->itsCube.pars().getImageFile());
+                    returnCode = this->itsCube.getMetadata();
 		    if(returnCode == duchamp::FAILURE) {
 		      ASKAPTHROW(AskapError, this->workerPrefix() << "Something went wrong with itsCube.getMetadata()");
 		    }
