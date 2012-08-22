@@ -34,18 +34,15 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import askap.cp.utils.ServiceManager;
 
-public class Server {
+public class Server extends Ice.Application {
 
 	/**
 	 * Logger
 	 */
 	private static Logger logger = Logger.getLogger(Server.class.getName());
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) {
-
+	@Override
+	public int run(String[] args) {
 		// Init logging
 		final String logcfg = "askap.log_cfg";
 		File f = new File(logcfg);
@@ -57,37 +54,27 @@ public class Server {
 
 		logger.info("ASKAP Sky Model Service (Server)");
 
-		// Init Ice and run the admin interface
 		int status = 0;
-		Ice.Communicator ic = null;
 		try {
-			ic = Ice.Util.initialize(args);
-			if (ic == null) {
-				throw new RuntimeException("ICE Communicator initialisation failed");
-			}
-			
-			SkyModelServiceImpl svc = new SkyModelServiceImpl(ic);
-			
+			SkyModelServiceImpl svc = new SkyModelServiceImpl(communicator());
+
 			// Blocks until shutdown
-			ServiceManager.runService(ic, svc, "SkyModelService",
+			ServiceManager.runService(communicator(), svc, "SkyModelService",
 					"SkyModelServiceAdapter");
-		} catch (Ice.LocalException e) {
-			e.printStackTrace();
-			status = 1;
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
+			e.printStackTrace();
 			status = 1;
 		}
+		return status;
+	}
 
-		if (ic != null) {
-			// Cleanup
-			try {
-				ic.destroy();
-			} catch (Exception e) {
-				System.err.println(e.getMessage());
-				status = 1;
-			}
-		}
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		Server svr = new Server();
+		int status = svr.main("SkyModelService", args);
 		System.exit(status);
 	}
 }
