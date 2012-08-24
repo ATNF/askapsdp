@@ -31,10 +31,9 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <unistd.h>
 
 // ASKAPsoft includes
-#include <askap/AskapError.h>
-#include <askap/AskapUtil.h>
 #include <Ice/Ice.h>
 #include <IceUtil/IceUtil.h>
 #include <IceStorm/IceStorm.h>
@@ -216,4 +215,27 @@ bool IceAppender::verifyOptions() const
     } else {
         return true;
     }
+}
+
+std::string IceAppender::getHostName(bool full)
+{
+    const int MAX_HOSTNAME_LEN = 256;
+    char hname[MAX_HOSTNAME_LEN];
+    hname[MAX_HOSTNAME_LEN - 1] = '\0';
+
+    if (gethostname(hname, MAX_HOSTNAME_LEN - 1) != 0) {
+        return std::string("localhost");
+    }
+
+    std::string hostname(hname);
+
+    if (!full) {
+        std::string::size_type dotloc = hostname.find_first_of(".");
+
+        if (dotloc != hostname.npos) {
+            return hostname.substr(0, dotloc);
+        }
+    }
+
+    return hostname;
 }

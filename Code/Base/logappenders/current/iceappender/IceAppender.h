@@ -143,6 +143,12 @@ namespace askap {
             virtual bool verifyOptions() const;
 
         private:
+
+            /// Get the hostname of the machine (as per unistd.h gethostname)
+            /// @param full get the full name with domain or base name
+            /// @return a string representing the hostname
+            static std::string getHostName(bool full = false);
+
             // The ICE communicator
             Ice::CommunicatorPtr itsIceComm;
 
