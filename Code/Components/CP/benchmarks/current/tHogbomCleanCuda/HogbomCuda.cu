@@ -129,7 +129,7 @@ static Peak findPeak(const float* d_image, size_t size)
     // Get the peaks array back from the device
     err = cudaMemcpy(&peaks, d_peak, nBlocks * sizeof(Peak), cudaMemcpyDeviceToHost);
     checkerror(err);
-    err = cudaThreadSynchronize();
+    err = cudaDeviceSynchronize();
     checkerror(err);
     cudaFree(d_peak);
 
@@ -279,14 +279,14 @@ void HogbomCuda::deconvolve(const vector<float>& dirty,
         model[peak.pos] += peak.val * g_gain;
 
         // Wait for the PSF subtraction to finish
-        err = cudaThreadSynchronize();
+        err = cudaDeviceSynchronize();
         checkerror(err);
     }
 
     // Copy device arrays back into the host vector
     err = cudaMemcpy(&residual[0], d_residual, residual.size() * sizeof(float), cudaMemcpyDeviceToHost);
     checkerror(err);
-    err = cudaThreadSynchronize();
+    err = cudaDeviceSynchronize();
     checkerror(err);
 
     // Free device memory

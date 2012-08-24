@@ -111,7 +111,7 @@ void gridKernelCuda(const std::vector< std::complex<float> >& data, const int su
             (const Complex *)d_C, d_cOffset, d_iu, d_iv,
             (Complex *)d_grid, gSize,
             &iu[0], &iv[0]);
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
     time = sw.stop();
 
     // Copy device arrays back into the host vector
@@ -190,7 +190,7 @@ void degridKernelCuda(const std::vector< std::complex<float> >& grid,
     cuda_degridKernel((const Complex *)d_grid, gSize, support,
             (const Complex *)d_C, d_cOffset, d_iu, d_iv,
             (Complex *)d_data, data.size());
-    cudaThreadSynchronize();
+    cudaDeviceSynchronize();
     time = sw.stop();
 
     // Copy device arrays back into the host vector
