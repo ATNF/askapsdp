@@ -27,6 +27,7 @@
 
 // System includes
 #include <vector>
+#include <cstddef>
 
 class HogbomOMP {
     public:

@@ -30,6 +30,7 @@
 #include <iostream>
 #include <cmath>
 #include <cassert>
+#include <cstddef>
 #include <stdio.h>
 
 // Local includes

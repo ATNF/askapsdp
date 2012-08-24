@@ -30,6 +30,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
+#include <cstddef>
 #include <cmath>
 #include <sys/stat.h>
 

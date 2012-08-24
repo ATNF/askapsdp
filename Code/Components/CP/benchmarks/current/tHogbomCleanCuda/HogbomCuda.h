@@ -27,6 +27,7 @@
 
 // System includes
 #include <vector>
+#include <cstddef>
 
 // Cuda includes
 #include <cuda_runtime_api.h>

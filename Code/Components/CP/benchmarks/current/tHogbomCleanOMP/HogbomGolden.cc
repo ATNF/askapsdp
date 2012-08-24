@@ -28,6 +28,7 @@
 // System includes
 #include <vector>
 #include <iostream>
+#include <cstddef>
 #include <cmath>
 
 // Local includes
