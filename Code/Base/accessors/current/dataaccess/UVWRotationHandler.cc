@@ -34,6 +34,11 @@
 #include <dataaccess/UVWRotationHandler.h>
 #include <askap/AskapError.h>
 
+#include <measures/Measures/MeasFrame.h>
+#include <measures/Measures/MEpoch.h>
+#include <askap/AskapUtil.h>
+
+
 using namespace askap;
 using namespace askap::accessors;
 
@@ -93,8 +98,26 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >& UVWRotationHandler::uvw
      itsValid = true;
      // just copy rotation code from TableVisGridder for a moment
      const casa::Vector<casa::RigidVector<double, 3> >& uvwVector = acc.uvw();
+     //casa::Vector<casa::MVDirection> pointingDir1Vector =
      const casa::Vector<casa::MVDirection>& pointingDir1Vector =
                         acc.pointingDir1();
+     /*
+     // temp hack
+     const casa::MDirection tmpdir(acc.pointingDir1()[0], casa::MDirection::JTRUE);
+     const casa::MEpoch tmpEpoch(casa::MVEpoch(acc.time()/86400.),casa::MEpoch::Ref(casa::MEpoch::UTC));
+     casa::MeasFrame tmpFrame(tmpEpoch);
+     const casa::MVDirection tmpj2000dir = casa::MDirection::Convert(tmpdir,casa::MDirection::Ref(casa::MDirection::J2000,
+                 tmpFrame))().getValue();
+     //std::cout<<printDirection(tmpj2000dir)<<std::endl; throw 1;
+     pointingDir1Vector.set(tmpj2000dir);            
+     */
+     /*
+     casa::Quantity tmpra,tmpdec;
+     casa::Quantity::read(tmpra,"19:40:00");
+     casa::Quantity::read(tmpdec,"-63.54.30");
+     pointingDir1Vector.set(casa::MVDirection(tmpra,tmpdec));
+     */
+     //
      for (casa::uInt row=0; row<nSamples; ++row) {
           const casa::RigidVector<double, 3> &uvwRow = uvwVector(row);
           casa::Vector<double> uvwBuffer(3);
