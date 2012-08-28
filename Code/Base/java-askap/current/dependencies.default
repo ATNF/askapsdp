@@ -2,6 +2,6 @@ java-logappenders=Code/Base/java-logappenders/current
 ice=3rdParty/Ice/Ice-3.4.1
 javaiceinterfaces=Code/Interfaces/java/current
 iceutils=Code/Base/py-iceutils/current
-atoms-java=3rdParty/atoms-java/atoms-java-r3886
+atoms-java=3rdParty/atoms-java/atoms-java-r5209
 # for functest
 pyiceinterfaces=Code/Interfaces/python/current
