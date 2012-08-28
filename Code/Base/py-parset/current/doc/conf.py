@@ -12,8 +12,6 @@
 # serve to show the default.
 
 import sys, os
-import pkg_resources
-pkg_resources.require("askap.parset")
 
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
