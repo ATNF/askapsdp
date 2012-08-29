@@ -338,7 +338,8 @@ namespace askap {
 	this->itsHaveBeam = parset.isDefined("beam");
 	if (this->itsHaveBeam) this->itsBeamInfo = parset.getFloatVector("beam");
 
-	if(this->itsDatabaseOrigin == "Selavy"){
+	if(this->itsDatabaseOrigin == "Selavy" && !parset.getBool("useDeconvolvedSizes",false)){
+	  // Only need this if we are using the convolved sizes, as we need to correct for the beam
 	  this->itsSelavyImage = SelavyImage(parset);
 	  if (!this->itsHaveBeam) {
 	    this->itsBeamInfo = this->itsSelavyImage.beam();

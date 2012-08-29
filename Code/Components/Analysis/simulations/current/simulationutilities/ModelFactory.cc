@@ -74,8 +74,10 @@ namespace askap {
 	this->itsSourceListType = parset.getString("sourcelisttype", "continuum");
 	this->itsBaseFreq = parset.getFloat("baseFreq",1400.);
 	this->itsRestFreq = parset.getFloat("restFreq", nu0_HI);
-	if(this->itsDatabaseOrigin == "Selavy")
+	if(this->itsDatabaseOrigin == "Selavy"){
 	  this->itsSelavyImage=SelavyImage(parset);
+	}
+	this->itsFlagUseDeconvolvedSizes = parset.getBool("useDeconvolvedSizes",false);
       }
 
       ModelFactory::~ModelFactory()
@@ -95,7 +97,7 @@ namespace askap {
 	    src = &(*cont);
 	  }
 	  else if(this->itsDatabaseOrigin == "Selavy"){
-	    ContinuumSelavy *sel = new ContinuumSelavy;
+	    ContinuumSelavy *sel = new ContinuumSelavy(this->itsFlagUseDeconvolvedSizes);
 	    sel->setNuZero(this->itsBaseFreq);
 	    sel->define(line);
 	    this->itsSelavyImage.convertSource(*sel);

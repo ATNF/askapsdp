@@ -49,13 +49,13 @@ namespace askap {
         class ContinuumSelavy : public Continuum {
             public:
                 /// @brief Default constructor
-                ContinuumSelavy();
+                ContinuumSelavy(bool flagUseDeconvolvedSizes=false);
                 /// @brief Constructor from Spectrum object
-                ContinuumSelavy(Spectrum &s);
+                ContinuumSelavy(Spectrum &s, bool flagUseDeconvolvedSizes=false);
                 /// @brief Constructor from Continuum object
                 ContinuumSelavy(Continuum &c);
                 /// @brief Set up parameters using a line of input from an ascii file
-                ContinuumSelavy(std::string &line);
+                ContinuumSelavy(std::string &line, bool flagUseDeconvolvedSizes=false);
                 /// @brief Define parameters directly
                 ContinuumSelavy(float alpha, float beta, float nuZero) {defineSource(alpha, beta, nuZero);};
                 /// @brief Define parameters directly
@@ -71,6 +71,11 @@ namespace askap {
                 ContinuumSelavy& operator= (const Continuum& c);
                 /// @brief Assignment operator for Continuum, using a Spectrum object
                 ContinuumSelavy& operator= (const Spectrum& c);
+
+		/// @brief Are we using the deconvolved sizes?
+		bool getFlagUseDeconvolvedSizes(){return itsFlagUseDeconvolvedSizes;};
+		/// @brief Set the deconvolved size flag
+		void setFlagUseDeconvolvedSizes(bool b){itsFlagUseDeconvolvedSizes=b;};
 
 		/// @brief Define using a line of input from an ascii file
 		void define(const std::string &line);
@@ -103,6 +108,8 @@ namespace askap {
 		int itsNpixFIT;
 		int itsNpixObj;
 		bool itsFlagGuess;
+
+		bool itsFlagUseDeconvolvedSizes;
         };
 
     }

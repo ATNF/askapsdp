@@ -51,19 +51,20 @@ namespace askap {
 
     namespace simulations {
 
-        ContinuumSelavy::ContinuumSelavy():
-                Continuum()
+        ContinuumSelavy::ContinuumSelavy(bool flagUseDeconvolvedSizes):
+	  Continuum(), itsFlagUseDeconvolvedSizes(flagUseDeconvolvedSizes)
+        {
+	  this->defineSource(0., 0., 1400.);
+        }
+
+        ContinuumSelavy::ContinuumSelavy(Spectrum &s, bool flagUseDeconvolvedSizes):
+	  Continuum(s), itsFlagUseDeconvolvedSizes(flagUseDeconvolvedSizes)
         {
             this->defineSource(0., 0., 1400.);
         }
 
-        ContinuumSelavy::ContinuumSelavy(Spectrum &s):
-                Continuum(s)
-        {
-            this->defineSource(0., 0., 1400.);
-        }
-
-        ContinuumSelavy::ContinuumSelavy(std::string &line)
+        ContinuumSelavy::ContinuumSelavy(std::string &line, bool flagUseDeconvolvedSizes):
+	  itsFlagUseDeconvolvedSizes(flagUseDeconvolvedSizes)
         {
             /// @details Constructs a Continuum object from a line of
             /// text from an ascii file. Uses the ContinuumSelavy::define()
@@ -88,9 +89,16 @@ namespace askap {
 	       >> this->itsChisq >> this->itsRMSimage >> this->itsRMSfit 
 	       >> this->itsNfree >> this->itsNdof >> this->itsNpixFIT >> this->itsNpixObj >> flag;
 
-	    this->setMaj(std::max(this->itsMajFIT,this->itsMinFIT));
-	    this->setMin(std::min(this->itsMajFIT,this->itsMinFIT));
-            this->setPA(this->itsPAFIT);
+	    if(this->itsFlagUseDeconvolvedSizes){
+	      this->setMaj(std::max(this->itsMajDECONV,this->itsMinDECONV));
+	      this->setMin(std::min(this->itsMajDECONV,this->itsMinDECONV));
+	      this->setPA(this->itsPADECONV);
+	    }
+	    else{
+	      this->setMaj(std::max(this->itsMajFIT,this->itsMinFIT));
+	      this->setMin(std::min(this->itsMajFIT,this->itsMinFIT));
+	      this->setPA(this->itsPAFIT);
+	    }
 	    this->setFluxZero(this->itsFintFIT);
 	    this->itsFlagGuess = (flag==1);
 
@@ -129,6 +137,7 @@ namespace askap {
 	    this->itsNpixFIT = c.itsNpixFIT;   
 	    this->itsNpixObj = c.itsNpixObj;   
 	    this->itsFlagGuess = c.itsFlagGuess;
+	    this->itsFlagUseDeconvolvedSizes = c.itsFlagUseDeconvolvedSizes;
             return *this;
         }
 
@@ -137,6 +146,7 @@ namespace askap {
             if (this == &c) return *this;
 
             ((Continuum &) *this) = c;
+	    this->itsFlagUseDeconvolvedSizes = false;
             this->defineSource(0., 0., 1400.);
             return *this;
         }
