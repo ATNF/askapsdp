@@ -1,7 +1,7 @@
 # DO THIS FIRST to set project name !!!                                                                 
-from askapdev.sphinx import project
+import askapdev.sphinx
 # CAN NOT contain spaces!                                                                               
-project = u'askap.parset'
+askapdev.sphinx.project = u'askap.parset'
 
 from askapdev.sphinx.conf import *
 
