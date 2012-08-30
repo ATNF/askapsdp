@@ -89,6 +89,7 @@ int main(int argc, const char** argv)
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         LOFAR::ParameterSet parset(parsetFile);
         LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
+	if(comms.isMaster()) ASKAPLOG_INFO_STR(logger, "Parset follows: " << subset);
         bool doNoise = subset.getBool("addNoise", true);
         bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
         bool doConvolution = subset.getBool("doConvolution", true);
