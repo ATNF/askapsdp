@@ -162,6 +162,8 @@ namespace askap {
                     bool itsCasaOutput;
 		    /// @brief Whether to write the CASA image channel-by-channel
 		    bool itsFlagWriteByChannel;
+		    /// @brief Whether to write the full cube (in addition to Taylor terms)
+		    bool itsWriteFullImage;
 		    /// @brief Whether to write Taylor term images matching the spectral cube
 		    bool itsCreateTaylorTerms;
 		    /// @brief The maximum Taylor term to be created

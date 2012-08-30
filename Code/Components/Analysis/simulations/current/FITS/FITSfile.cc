@@ -100,6 +100,7 @@ namespace askap {
 	this->itsWCSAllocated = false;
 	this->itsWCSsourcesAllocated = false;
 	this->itsCreateTaylorTerms = false;
+	this->itsWriteFullImage = true;
       }
 
       //--------------------------------------------------------
@@ -131,6 +132,7 @@ namespace askap {
 	this->itsFITSOutput = f.itsFITSOutput;
 	this->itsCasaOutput = f.itsCasaOutput;
 	this->itsFlagWriteByChannel = f.itsFlagWriteByChannel;
+	this->itsWriteFullImage = f.itsWriteFullImage;
 	this->itsCreateTaylorTerms = f.itsCreateTaylorTerms;
 	this->itsMaxTaylorTerm = f.itsMaxTaylorTerm;
 	this->itsTTmaps = f.itsTTmaps;
@@ -234,6 +236,7 @@ namespace askap {
 	this->itsFITSOutput = parset.getBool("fitsOutput", true);
 	this->itsCasaOutput = parset.getBool("casaOutput", false);
 	this->itsFlagWriteByChannel = parset.getBool("flagWriteByChannel",false);
+	this->itsWriteFullImage = parset.getBool("writeFullImage",true);
 	this->itsCreateTaylorTerms = parset.getBool("createTaylorTerms",false);
 	this->itsMaxTaylorTerm = parset.getInt16("maxTaylorTerm", 2);	
 	this->itsTTmaps = std::vector<casa::Array<Float> >(this->itsMaxTaylorTerm+1);
@@ -1039,28 +1042,31 @@ namespace askap {
 	  for (uint i = 0; i < this->itsDim; i++) shape(i) = this->itsAxes[i];
 
 	  if (createFile) {
-	    // int nstokes = (this->itsDatabaseOrigin == "POSSUM")?4:1;
+
 	    int nstokes = this->getNumStokes();
 	    ASKAPLOG_DEBUG_STR(logger, "Dimension of stokes axis = " << nstokes << ", databaseOrigin = " << this->itsDatabaseOrigin);
-	    casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
-
 	    casa::IPosition tileshape(shape.size(),1);
 	    tileshape(this->itsWCS->lng) = std::min(128L,shape(this->itsWCS->lng));
 	    tileshape(this->itsWCS->lat) = std::min(128L,shape(this->itsWCS->lat));
 	    if(this->itsWCS->spec>=0)
 	      tileshape(this->itsWCS->spec) = std::min(16L,shape(this->itsWCS->spec));
-
-	    ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape << " and tileshape " << tileshape);
-	    casa::PagedImage<float> img(casa::TiledShape(shape,tileshape), csys, newName);
-
-	    img.setUnits(this->itsBunit);
-	    casa::ImageInfo ii = img.imageInfo();
-
-	    if (this->itsHaveBeam) {
-	      ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0], "deg"),
-				  casa::Quantity(this->itsBeamInfo[1], "deg"),
-				  casa::Quantity(this->itsBeamInfo[2], "deg"));
-	      img.setImageInfo(ii);
+	    
+	    if( this->itsWriteFullImage) {
+	      // int nstokes = (this->itsDatabaseOrigin == "POSSUM")?4:1;
+	      casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
+	      
+	      ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape << " and tileshape " << tileshape);
+	      casa::PagedImage<float> img(casa::TiledShape(shape,tileshape), csys, newName);
+	      
+	      img.setUnits(this->itsBunit);
+	      casa::ImageInfo ii = img.imageInfo();
+	      
+	      if (this->itsHaveBeam) {
+		ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0], "deg"),
+				    casa::Quantity(this->itsBeamInfo[1], "deg"),
+				    casa::Quantity(this->itsBeamInfo[2], "deg"));
+		img.setImageInfo(ii);
+	      }
 	    }
 
 	    if (this->itsCreateTaylorTerms){
@@ -1079,35 +1085,38 @@ namespace askap {
 
 	    if(this->itsArrayAllocated){
 	      
-	      casa::PagedImage<float> img(newName);
-	      casa::IPosition location(this->itsDim,0);
-	      
-	      if (this->itsFlagWriteByChannel) {
-		shape(this->itsWCS->spec) = 1;
-		if(useOffset)
-		  for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
-		for(size_t z=0;z<this->itsAxes[this->itsWCS->spec];z++){
-		  size_t spatsize=this->itsAxes[this->itsWCS->lat] * this->itsAxes[this->itsWCS->lng];
-		  Array<Float> arr(shape,this->itsArray+z*spatsize,casa::SHARE);
-		  img.putSlice(arr, location);
-// 		  ASKAPLOG_DEBUG_STR(logger, "Writing an array into channel " << z << " with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
-// 		  img.doPutSlice(arr,location,casa::IPosition(this->itsDim,1));
-		  location(this->itsWCS->spec)++;
-		  
-		}
-	      }
-	      else{
-	      // make the casa::Array, sharing the memory storage so there is minimal additional impact
-		Array<Float> arr(shape, this->itsArray, casa::SHARE);
-		
+	      if(this->itsWriteFullImage){
+
+		casa::PagedImage<float> img(newName);
 		casa::IPosition location(this->itsDim,0);
 	      
-		if(useOffset)
-		  for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
-		
-		ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location);
-		ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
-		img.putSlice(arr, location);
+		if (this->itsFlagWriteByChannel) {
+		  shape(this->itsWCS->spec) = 1;
+		  if(useOffset)
+		    for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
+		  for(size_t z=0;z<this->itsAxes[this->itsWCS->spec];z++){
+		    size_t spatsize=this->itsAxes[this->itsWCS->lat] * this->itsAxes[this->itsWCS->lng];
+		    Array<Float> arr(shape,this->itsArray+z*spatsize,casa::SHARE);
+		    img.putSlice(arr, location);
+		    // 		  ASKAPLOG_DEBUG_STR(logger, "Writing an array into channel " << z << " with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
+		    // 		  img.doPutSlice(arr,location,casa::IPosition(this->itsDim,1));
+		    location(this->itsWCS->spec)++;
+		    
+		  }
+		}
+		else{
+		  // make the casa::Array, sharing the memory storage so there is minimal additional impact
+		  Array<Float> arr(shape, this->itsArray, casa::SHARE);
+		  
+		  casa::IPosition location(this->itsDim,0);
+		  
+		  if(useOffset)
+		    for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
+		  
+		  ASKAPLOG_DEBUG_STR(logger, "shape = " << shape << ", location = " << location);
+		  ASKAPLOG_INFO_STR(logger, "Writing an array with the shape " << arr.shape() << " into a CASA image " << newName << " at location " << location);
+		  img.putSlice(arr, location);
+		}
 	      }
 
 	      if(this->itsCreateTaylorTerms){
