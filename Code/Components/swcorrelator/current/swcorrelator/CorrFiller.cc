@@ -64,6 +64,9 @@ CorrFiller::CorrFiller(const LOFAR::ParameterSet &parset) :
   itsFillStatus.resize(nBeam(),false);  
   // initialisation of MS
   itsResultSink.reset(new FillerMSSink(parset));
+  const FillerMSSink &fms = dynamic_cast<const FillerMSSink&>(resultSink());
+  ASKAPCHECK(fms.nBeam() >= nBeam(), "Number of beams setup in the MS ("<<fms.nBeam()<<
+             ") is less than the maximum number of beams allowed ("<<nBeam()<<")!");
   // initialisation of monitors
   itsResultMonitor.reset(new DataMonitors(parset));
   resultMonitor().initialise(nAnt(),nBeam(),nChan());  
@@ -146,6 +149,12 @@ void CorrFiller::notifyOfNewData(const uint64_t bat)
         // this is the first use, assign the first buffer
         itsActiveBAT = bat;
         itsFirstActive = true;
+        // initialise buffers with bat, set flags, etc
+        for (int beam = 0; beam < nBeam(); ++beam) {
+             boost::shared_ptr<CorrProducts> cp = itsCorrProducts[beam];
+             ASKAPDEBUGASSERT(cp);
+             cp->init(bat);
+        }
         return;
     }
     if (bat == itsActiveBAT) {
