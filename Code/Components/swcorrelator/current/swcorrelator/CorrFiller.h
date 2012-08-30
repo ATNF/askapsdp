@@ -35,6 +35,7 @@
 // own includes
 #include <swcorrelator/CorrProducts.h>
 #include <swcorrelator/ISink.h>
+#include <swcorrelator/IMonitor.h>
 
 // other 3rd party
 #include <Common/ParameterSet.h>
@@ -47,6 +48,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/scoped_ptr.hpp>
+#include <boost/utility.hpp>
 
 namespace askap {
 
@@ -57,7 +59,7 @@ namespace swcorrelator {
 /// flags. When the BAT timestamp changes, it stores the previous buffer.
 /// It is intended to be run in a parallel thread.
 /// @ingroup swcorrelator
-class CorrFiller {
+class CorrFiller : private boost::noncopyable {
 public:
   /// @brief constructor, sets up the filler
   /// @details Configuration is done via the parset
@@ -122,6 +124,10 @@ public:
   /// @brief obtain a reference to result sink doing low-level writing of the result
   /// @return const reference to the sink class
   const ISink& resultSink() const;
+  
+  /// @brief obtain a reference to on-the-fly data monitor
+  /// @return reference to the monitor interface
+  IMonitor& resultMonitor() const;
   
 protected:
   
@@ -193,6 +199,9 @@ private:
   
   /// @brief actual MS filler doing all low-level job
   boost::scoped_ptr<ISink> itsResultSink;
+  
+  /// @brief on-the-fly data monitor (or several monitors)
+  boost::scoped_ptr<IMonitor> itsResultMonitor;
 };
 
 } // namespace swcorrelator

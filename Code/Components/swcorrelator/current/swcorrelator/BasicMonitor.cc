@@ -52,7 +52,7 @@ BasicMonitor::BasicMonitor() : itsLastHistPosition(-1), itsWrapped(false) {}
 /// @brief create and configure the monitor   
 /// @details
 /// @return shared pointer to the monitor
-boost::shared_ptr<BasicMonitor> BasicMonitor::setup(const LOFAR::ParameterSet &) 
+boost::shared_ptr<IMonitor> BasicMonitor::setup(const LOFAR::ParameterSet &) 
 {
    ASKAPLOG_INFO_STR(logger, "Setting up Basic Data Monitor");  
    boost::shared_ptr<BasicMonitor> result(new BasicMonitor);
@@ -82,7 +82,7 @@ void BasicMonitor::initialise(const int nAnt, const int nBeam, const int nChan)
       itsWrapped = false;
       itsHistory.resize(nHistory,nBeam,nBaselines);
       itsHistory.set(casa::Complex(0.,0.));
-      itsDelayHistory(nHistory, nBeam, nBaselines);
+      itsDelayHistory.resize(nHistory, nBeam, nBaselines);
       itsDelayHistory.set(0.);
       itsBATs.resize(nHistory);
       itsBATs.set(0);
@@ -138,6 +138,11 @@ void BasicMonitor::publish(const CorrProducts &buf)
   const casa::Vector<casa::Float> delays = estimateDelays(buf.itsVisibility);
   ASKAPLOG_DEBUG_STR(logger, "Beam "<<buf.itsBeam<<": delays (s) = "<<delays);
   ASKAPDEBUGASSERT(delays.nelements() == buf.itsVisibility.nrow());
+  if (buf.itsBeam >= int(itsHistory.ncolumn())) {
+      ASKAPLOG_DEBUG_STR(logger, "Receive buffer corresponding to beam "<<buf.itsBeam<<
+           " which exceeds the maximum number of beams "<<itsHistory.ncolumn());
+      return;     
+  }
             
   for (casa::uInt baseline = 0; baseline < buf.itsVisibility.nrow(); ++baseline) {
                  

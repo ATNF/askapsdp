@@ -31,6 +31,7 @@
 
 #include <swcorrelator/CorrFiller.h>
 #include <swcorrelator/FillerMSSink.h>
+#include <swcorrelator/DataMonitors.h>
 #include <askap/AskapError.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
@@ -63,6 +64,9 @@ CorrFiller::CorrFiller(const LOFAR::ParameterSet &parset) :
   itsFillStatus.resize(nBeam(),false);  
   // initialisation of MS
   itsResultSink.reset(new FillerMSSink(parset));
+  // initialisation of monitors
+  itsResultMonitor.reset(new DataMonitors(parset));
+  resultMonitor().initialise(nAnt(),nBeam(),nChan());  
 }
 
 /// @brief shutdown the filler
@@ -265,6 +269,14 @@ const ISink& CorrFiller::resultSink() const
 {
   ASKAPDEBUGASSERT(itsResultSink);
   return *itsResultSink;
+}
+
+/// @brief obtain a reference to on-the-fly data monitor
+/// @return reference to the monitor interface
+IMonitor& CorrFiller::resultMonitor() const
+{
+   ASKAPDEBUGASSERT(itsResultMonitor);
+   return *itsResultMonitor;
 }
 
 } // namespace swcorrelator
