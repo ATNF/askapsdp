@@ -94,8 +94,8 @@ struct Worker {
    /// @details This method suspends the current data receiving thread until the next sampling trigger (with a different
    /// BAT from the one given as the parameter)
    /// @param[in] lastBAT BAT at the start of the last sampling trigger
-   /// @return BAT time of the new sample or a negative number if the termination of the thread had been requested
-   static long waitForSamplingTrigger(const long lastBAT) {
+   /// @return BAT time of the new sample or uint64_t(-1) if the termination of the thread had been requested
+   static uint64_t waitForSamplingTrigger(const uint64_t lastBAT) {
         try {
            // using shared_lock - multiple readers, single writer design
            boost::shared_lock<boost::shared_mutex> lock(theirSampleTriggerMutex);
@@ -104,12 +104,12 @@ struct Worker {
            }
            //boost::this_thread::sleep(boost::posix_time::seconds(1));
            if (boost::this_thread::interruption_requested()) {
-               return -1;
+               return uint64_t(-1);
            }           
            return theirSampleBAT;      
         }
         catch (const boost::thread_interrupted&) {}
-        return -1;
+        return uint64_t(-1);
    }
    
    void operator()() const {      
@@ -132,8 +132,8 @@ struct Worker {
         boost::asio::io_service ioService;
         boost::asio::ip::tcp::resolver resolver(ioService);
         //const std::string host = "localhost";
-        //const std::string host = "delphinus";
-        const std::string host = "aktos01.atnf.csiro.au";
+        const std::string host = "delphinus";
+        //const std::string host = "aktos01.atnf.csiro.au";
         boost::asio::ip::tcp::resolver::query query(host,"3000");
         boost::asio::ip::tcp::endpoint endpoint;
         // for now just used the last endpoint (at least it seems to work)
@@ -156,9 +156,9 @@ struct Worker {
            }
            */
            
-           // buffer ready, wait for sampling trigger
-           for (long newBAT = waitForSamplingTrigger(long(hdr->bat)); newBAT > 0; newBAT = waitForSamplingTrigger(long(hdr->bat))) {
-                hdr->bat = uint64_t(newBAT);
+           // buffer ready, wait for the sampling trigger
+           for (uint64_t newBAT = waitForSamplingTrigger(hdr->bat); newBAT != uint64_t(-1); newBAT = waitForSamplingTrigger(hdr->bat)) {
+                hdr->bat = newBAT;
                 ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<hdr->bat);
                 // here we will send the buffer over the socket
                 for (int beam=0; beam<itsNBeam; ++beam) {
@@ -176,11 +176,10 @@ struct Worker {
    /// @brief set BAT corresponding to the new sample, notify all threads
    /// @details This method is supposed to be called from the main thread when the
    /// sampling takes place (and therefore it is static and common to all threads)
-   /// @param[in] newBAT BAT of the new sample
-   static void triggerSample(const long newBAT) {
+   static void triggerSample() {
       {
         boost::lock_guard<boost::shared_mutex> lock(theirSampleTriggerMutex);
-        theirSampleBAT = long(time(0));
+        theirSampleBAT = uint64_t(time(0))*1000000;
       }
       theirSampleTrigger.notify_all();
    }
@@ -189,7 +188,7 @@ private:
    // static parameters to emulate simultaneous sampling on all antennas with potentially asynchronous arrival
    static boost::condition_variable_any theirSampleTrigger;
    static boost::shared_mutex theirSampleTriggerMutex;
-   static long theirSampleBAT;
+   static uint64_t theirSampleBAT;
    // data
    casa::Vector<casa::Complex> itsData;   
    int itsAnt;
@@ -197,7 +196,7 @@ private:
    int itsNBeam;
 };
 
-long Worker::theirSampleBAT = 0;
+uint64_t Worker::theirSampleBAT = uint64_t(-1);
 boost::condition_variable_any Worker::theirSampleTrigger;
 boost::shared_mutex Worker::theirSampleTriggerMutex;
 
@@ -221,20 +220,20 @@ int main(int argc, const char** argv)
                                       << " real:   " << timer.real());
        timer.mark();
        // connection to the correlator server comes here along with the threading stuff
-       const int nBeam = 1;
+       const int nBeam = 2;
        const int nChan = 2;
        
        boost::thread_group threads;
        for (int cnt = 0; cnt<nChan; ++cnt) {
             threads.create_thread(Worker(buf1, 0, cnt, nBeam));
             threads.create_thread(Worker(buf2, 1, cnt, nBeam));
-            threads.create_thread(Worker(buf1, 2, cnt, nBeam));
+            //threads.create_thread(Worker(buf1, 2, cnt, nBeam));
        }
        
-       for (size_t cycle = 0; cycle < 10; ++cycle) {
+       for (size_t cycle = 0; cycle < 100; ++cycle) {
             ASKAPLOG_INFO_STR(logger, "cycle "<<cycle);
-            Worker::triggerSample(long(time(0)));
-            sleep(4);
+            Worker::triggerSample();
+            sleep(10);
        }
        threads.interrupt_all();
        ASKAPLOG_INFO_STR(logger, "Waiting to finish");
