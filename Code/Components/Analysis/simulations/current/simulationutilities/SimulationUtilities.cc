@@ -106,7 +106,8 @@ namespace askap {
 
 	struct wcsprm *wcs = (struct wcsprm *)calloc(1, sizeof(struct wcsprm));
 	wcs->flag = -1;
-	wcsini(true , theDim, wcs);
+	int status = wcsini(true , theDim, wcs);
+	ASKAPCHECK(status==0, "WCSINI returned non-zero result - " << status << " = " << wcs_errmsg[status]);
 	wcs->flag = 0;
 	std::vector<std::string> ctype, cunit;
 	std::vector<float> crval, crpix, cdelt, crota;

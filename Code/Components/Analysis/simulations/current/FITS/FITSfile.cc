@@ -579,7 +579,7 @@ namespace askap {
 
 	  while (getline(srclist, line),
 		 !srclist.eof()) {
-// 	    ASKAPLOG_DEBUG_STR(logger, "input = " << line);
+//  	    ASKAPLOG_DEBUG_STR(logger, "input = " << line);
 	    
 	    fluxGen.zero();
 	    
@@ -604,9 +604,14 @@ namespace askap {
 
 	      wld[2] = this->itsBaseFreq;
 
-// 	      ASKAPLOG_DEBUG_STR(logger, "Source positions (with posType="<<this->itsPosType
-// 				 <<"): RA="<<src->ra()<<"->"<<wld[0]<<", DEC="<<src->dec()<<"->"<<wld[1]
-// 				 <<", and Freq="<<this->itsBaseFreq);
+//  	      ASKAPLOG_DEBUG_STR(logger, "Source positions (with posType="<<this->itsPosType
+//  				 <<"): RA="<<src->ra()<<"->"<<wld[0]<<", DEC="<<src->dec()<<"->"<<wld[1]
+//  				 <<", and Freq="<<this->itsBaseFreq);
+
+// 	      ASKAPLOG_DEBUG_STR(logger, "wcs->flag = " << this->itsWCS->flag
+// 				 << " wcs->lat = " << this->itsWCS->lat
+// 				 << " wcs->lng = " << this->itsWCS->lng
+// 				 << " wcs->spec = " << this->itsWCS->spec);
 
 	      if (this->itsFlagPrecess) wcsToPixSingle(this->itsWCSsources, wld, pix);
 	      else                      wcsToPixSingle(this->itsWCS, wld, pix);
@@ -1051,14 +1056,14 @@ namespace askap {
 	    if(this->itsWCS->spec>=0)
 	      tileshape(this->itsWCS->spec) = std::min(16L,shape(this->itsWCS->spec));
 	    
-	      casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
-	      casa::ImageInfo ii;
-	      
-	      if (this->itsHaveBeam)
-		ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0], "deg"),
-				    casa::Quantity(this->itsBeamInfo[1], "deg"),
-				    casa::Quantity(this->itsBeamInfo[2], "deg"));
-
+	    casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
+	    casa::ImageInfo ii;
+	    
+	    if (this->itsHaveBeam)
+	      ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0], "deg"),
+				  casa::Quantity(this->itsBeamInfo[1], "deg"),
+				  casa::Quantity(this->itsBeamInfo[2], "deg"));
+	    
 	    if( this->itsWriteFullImage) {
 	      
 	      ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape << " and tileshape " << tileshape);
