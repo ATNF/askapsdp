@@ -1051,22 +1051,22 @@ namespace askap {
 	    if(this->itsWCS->spec>=0)
 	      tileshape(this->itsWCS->spec) = std::min(16L,shape(this->itsWCS->spec));
 	    
-	    if( this->itsWriteFullImage) {
-	      // int nstokes = (this->itsDatabaseOrigin == "POSSUM")?4:1;
 	      casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
+	      casa::ImageInfo ii;
+	      
+	      if (this->itsHaveBeam)
+		ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0], "deg"),
+				    casa::Quantity(this->itsBeamInfo[1], "deg"),
+				    casa::Quantity(this->itsBeamInfo[2], "deg"));
+
+	    if( this->itsWriteFullImage) {
 	      
 	      ASKAPLOG_INFO_STR(logger, "Creating a new CASA image " << newName << " with the shape " << shape << " and tileshape " << tileshape);
 	      casa::PagedImage<float> img(casa::TiledShape(shape,tileshape), csys, newName);
 	      
 	      img.setUnits(this->itsBunit);
-	      casa::ImageInfo ii = img.imageInfo();
+	      if (this->itsHaveBeam) img.setImageInfo(ii);
 	      
-	      if (this->itsHaveBeam) {
-		ii.setRestoringBeam(casa::Quantity(this->itsBeamInfo[0], "deg"),
-				    casa::Quantity(this->itsBeamInfo[1], "deg"),
-				    casa::Quantity(this->itsBeamInfo[2], "deg"));
-		img.setImageInfo(ii);
-	      }
 	    }
 
 	    if (this->itsCreateTaylorTerms){
@@ -1085,10 +1085,11 @@ namespace askap {
 
 	    if(this->itsArrayAllocated){
 	      
+	      casa::IPosition location(this->itsDim,0);
+
 	      if(this->itsWriteFullImage){
 
 		casa::PagedImage<float> img(newName);
-		casa::IPosition location(this->itsDim,0);
 	      
 		if (this->itsFlagWriteByChannel) {
 		  shape(this->itsWCS->spec) = 1;

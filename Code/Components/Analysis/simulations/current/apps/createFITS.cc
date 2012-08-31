@@ -90,7 +90,7 @@ int main(int argc, const char** argv)
         LOFAR::ParameterSet parset(parsetFile);
         LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
 	if(comms.isMaster()) ASKAPLOG_INFO_STR(logger, "Parset follows: " << subset);
-        bool doNoise = subset.getBool("addNoise", true);
+        bool doNoise = subset.getBool("addNoise", false);
         bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
         bool doConvolution = subset.getBool("doConvolution", true);
         FITSparallel file(comms, subset);
