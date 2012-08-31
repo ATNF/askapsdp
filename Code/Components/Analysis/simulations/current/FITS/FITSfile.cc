@@ -1091,6 +1091,8 @@ namespace askap {
 	    if(this->itsArrayAllocated){
 	      
 	      casa::IPosition location(this->itsDim,0);
+	      if(useOffset)
+		for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
 
 	      if(this->itsWriteFullImage){
 
@@ -1098,8 +1100,6 @@ namespace askap {
 	      
 		if (this->itsFlagWriteByChannel) {
 		  shape(this->itsWCS->spec) = 1;
-		  if(useOffset)
-		    for (uint i = 0; i < this->itsDim; i++) location(i) = this->itsSourceSection.getStart(i);
 		  for(size_t z=0;z<this->itsAxes[this->itsWCS->spec];z++){
 		    size_t spatsize=this->itsAxes[this->itsWCS->lat] * this->itsAxes[this->itsWCS->lng];
 		    Array<Float> arr(shape,this->itsArray+z*spatsize,casa::SHARE);
