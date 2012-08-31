@@ -19,7 +19,7 @@ cat > cmodel.qsub << EOF
 
 cd \${PBS_O_WORKDIR}
 
-cat > ${CONFIGDIR}/cmodel.in << EOF_INNER
+cat > ${CONFIGDIR}/cmodel-\${PBS_JOBID}.in << EOF_INNER
 # The below specifies the GSM source is a duchamp output file
 Cmodel.gsm.database       = duchamp
 Cmodel.gsm.file           = ${INPUT_SKYMODEL}
@@ -42,7 +42,7 @@ Cmodel.output             = casa
 Cmodel.filename           = ${SKYMODEL_OUTPUT}
 EOF_INNER
 
-mpirun \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -inputs ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel.log
+mpirun \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -inputs ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel-\${PBS_JOBID}.log
 EOF
 
 # Submit job

@@ -18,7 +18,7 @@ cat > ccalibrator.qsub << EOF
 
 cd \${PBS_O_WORKDIR}
 
-cat > ${CONFIGDIR}/ccalibrator.in << EOF_INNER
+cat > ${CONFIGDIR}/ccalibrator-\${PBS_JOBID}.in << EOF_INNER
 Ccalibrator.dataset                              = MS/coarse_chan_%w.ms
 Ccalibrator.refgain                              = gain.g11.0.0
 Ccalibrator.nAnt                                 = 6
@@ -52,7 +52,7 @@ Ccalibrator.ncycles                              = 5
 Ccalibrator.interval                             = 10800s
 EOF_INNER
 
-mpirun --mca btl ^openib --mca mtl ^psm \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -inputs ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator.log
+mpirun --mca btl ^openib --mca mtl ^psm \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -inputs ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${PBS_JOBID}.log
 EOF
 
 if [ ! -e ${CALOUTPUT} ]; then
