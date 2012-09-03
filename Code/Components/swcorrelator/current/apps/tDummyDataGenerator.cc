@@ -162,9 +162,11 @@ struct Worker {
                 ASKAPLOG_INFO_STR(logger, "New sampling trigger, BAT="<<hdr->bat);
                 // here we will send the buffer over the socket
                 for (int beam=0; beam<itsNBeam; ++beam) {
+                     hdr->beam=beam;
                      boost::asio::write(socket, boost::asio::buffer((void*)buffer.get(),msgSize*sizeof(int16_t)));    
                 }
            }
+           ASKAPLOG_INFO_STR(logger, "Data generation thread (id="<<boost::this_thread::get_id()<<") finished its job");
         }
         catch (const boost::thread_interrupted&) {}
       } catch (const std::exception &ex) {
@@ -219,9 +221,10 @@ int main(int argc, const char** argv)
        ASKAPLOG_INFO_STR(logger, "initialisation of dummy data "<<"user:   " << timer.user() << " system: " << timer.system()
                                       << " real:   " << timer.real());
        timer.mark();
+       Worker::triggerSample();
        // connection to the correlator server comes here along with the threading stuff
        const int nBeam = 2;
-       const int nChan = 16;
+       const int nChan = 2;
        
        boost::thread_group threads;
        for (int cnt = 0; cnt<nChan; ++cnt) {
