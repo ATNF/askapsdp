@@ -41,7 +41,7 @@ namespace swcorrelator {
   /// @param[in] beam beam number corresponding to this buffer
 CorrProducts::CorrProducts(const int nchan, const int beam) : itsVisibility(3, nchan, casa::Complex(0.,0.)), 
       itsFlag(3, nchan, true), itsBeam(beam),
-      itsBAT(0), itsUVW(3, 3, 0.), itsUVWValid(false) 
+      itsBAT(0), itsUVW(3, 3, 0.), itsDelays(3,0.), itsUVWValid(false) 
 {
   ASKAPDEBUGASSERT(beam >= 0);
 }
@@ -53,6 +53,7 @@ void CorrProducts::init(const uint64_t bat)
 {
   itsBAT = bat;
   itsUVW.set(0.);
+  itsDelays.set(0.);
   itsUVWValid = false;
   itsFlag.set(true);
   itsVisibility.set(casa::Complex(0.,0.));

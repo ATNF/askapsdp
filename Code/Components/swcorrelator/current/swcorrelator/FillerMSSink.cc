@@ -66,7 +66,8 @@ namespace swcorrelator {
 /// @param[in] parset parset file with configuration info
 FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset), itsDataDescID(0),
    itsFieldID(0), itsBeamOffsetUVW(parset.getBool("beamoffsetuvw",true)), itsNumberOfDataDesc(-1),
-   itsNumberOfBeams(-1), itsExtraAntennas(parset.getString("beams2ants","")), itsAntHandlingExtras(-1)
+   itsNumberOfBeams(-1), itsExtraAntennas(parset.getString("beams2ants","")), itsAntHandlingExtras(-1),
+   itsEffectiveLOFreq(0.), itsTrackPhase(parset.getBool("trackphase",true))
 {
   if (itsExtraAntennas.nRules()) {
       ASKAPLOG_INFO_STR(logger, "Some beams will be written as antennas (all indices after substitution) according to the following rule:");
@@ -76,6 +77,12 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
       ASKAPLOG_INFO_STR(logger, "     Host antenna Id is "<<itsAntHandlingExtras);
   } else {
       ASKAPCHECK(!parset.isDefined("hostantenna"), "hostantenna parameter is defined without beam to antenna substituting rule! Define beam2ants as well.");
+  }
+  if (itsTrackPhase) {
+      itsEffectiveLOFreq = parset.getDouble("lofreq",880e6);
+      ASKAPLOG_INFO_STR(logger, "Phase tracking is enabled, effective LO frequency is "<<itsEffectiveLOFreq/1e6<<" MHz");
+  } else {
+     ASKAPLOG_WARN_STR(logger, "Phase tracking is disabled");
   }
   create();
   initAntennasAndBeams(); 
@@ -112,36 +119,51 @@ casa::MEpoch FillerMSSink::calculateUVW(CorrProducts &buf) const
   buf.itsUVWValid = true;
   // only 3 antennas are supported
   buf.itsUVW.resize(3,3);
+  buf.itsDelays.resize(3);
   ASKAPDEBUGASSERT(itsAntXYZ.nrow() >= 3);
   ASKAPDEBUGASSERT(buf.itsBeam < int(itsBeamOffsets.nrow()));
   ASKAPDEBUGASSERT(itsBeamOffsets.ncolumn() == 2);
   casa::MDirection phaseCntr(itsDishPointing);
-  casa::MeasFrame frame(epoch);
-  phaseCntr = casa::MDirection::Convert(phaseCntr, casa::MDirection::Ref(casa::MDirection::JTRUE,frame))();
-  ASKAPLOG_DEBUG_STR(logger, "calculateUVW for direction "<<printDirection(itsDishPointing.getValue())<<" (J2000) -> "<<printDirection(phaseCntr.getValue())<<" (JTRUE)");
-  
-  // need to rotate beam offsets here if we dish rotation does not compensate parallactic angle rotation perfectly
+
+  // need to rotate beam offsets here if the dish rotation does not compensate parallactic angle rotation perfectly
+  // moreover, the following operation implicitly assumes that parallactic angle is tracked in J2000
+  // (in fact it is probably JTRUE, need to think about this).
   if (itsBeamOffsetUVW) {
       phaseCntr.shift(-itsBeamOffsets(buf.itsBeam,0), itsBeamOffsets(buf.itsBeam,1), casa::True);
-      ASKAPLOG_DEBUG_STR(logger, " after offset for beam "<<buf.itsBeam<<" is applied -> "<<printDirection(phaseCntr.getValue())<<" (JTRUE)");
+      ASKAPLOG_DEBUG_STR(logger, " after offset for beam "<<buf.itsBeam<<" is applied -> "<<printDirection(phaseCntr.getValue())<<" (J2000)");
   }
+
+  casa::MeasFrame frame(epoch);
+  const casa::MDirection phaseCntrJTrue = casa::MDirection::Convert(phaseCntr, casa::MDirection::Ref(casa::MDirection::JTRUE,frame))();
+  ASKAPLOG_DEBUG_STR(logger, "calculateUVW for direction "<<printDirection(phaseCntr.getValue())<<" (J2000) -> "<<printDirection(phaseCntrJTrue.getValue())<<" (JTRUE)");
+  
   const double ra = phaseCntr.getAngle().getValue()(0);
   const double dec = phaseCntr.getAngle().getValue()(1);
+  const double raJTrue = phaseCntrJTrue.getAngle().getValue()(0);
+  const double decJTrue = phaseCntrJTrue.getAngle().getValue()(1);
   const double gmstInDays = casa::MEpoch::Convert(epoch,casa::MEpoch::Ref(casa::MEpoch::GMST1))().get("d").getValue("d");
   const double gmst = (gmstInDays - casa::Int(gmstInDays)) * casa::C::_2pi; // in radians
   
-  const double H0 = gmst - ra, sH0 = sin(H0), cH0 = cos(H0), sd = sin(dec), cd = cos(dec);
+  const double H0 = gmst - ra, H0JTrue = gmst - raJTrue;
+  const double sH0 = sin(H0), cH0 = cos(H0), sd = sin(dec), cd = cos(dec);
+  const double sH0JTrue = sin(H0JTrue), cH0JTrue = cos(H0JTrue), sdJTrue = sin(decJTrue), cdJTrue = cos(decJTrue);
+  
   // quick and dirty calculation without taking aberration and other fine effects into account
   // it should be fine for the sort of baselines we have with BETA3
-  casa::Matrix<double> trans(3, 3, 0.);
+  casa::Matrix<double> trans(4, 3, 0.);
   trans(0, 0) = -sH0; trans(0, 1) = -cH0;
   trans(1, 0) = sd * cH0; trans(1, 1) = -sd * sH0; trans(1, 2) = -cd;
   trans(2, 0) = -cd * cH0; trans(2, 1) = cd * sH0; trans(2, 2) = -sd;
+  // the 4th row is for the delay in JTrue
+  trans(3, 0) = -cdJTrue * cH0JTrue; trans(3, 1) = cdJTrue * sH0JTrue; trans(3, 2) = -sdJTrue;
   const casa::Matrix<double> antUVW = casa::product(trans,casa::transpose(itsAntXYZ));
+  ASKAPDEBUGASSERT(antUVW.nrow() == buf.itsUVW.ncolumn() + 1);
   for (casa::uInt baseline = 0; baseline < buf.itsUVW.nrow(); ++baseline) {
        for (casa::uInt dim = 0; dim < buf.itsUVW.ncolumn(); ++dim) {
             buf.itsUVW(baseline,dim) = antUVW(dim,substituteAntId(theirAntIDs[baseline][1], buf.itsBeam)) - antUVW(dim,substituteAntId(theirAntIDs[baseline][0], buf.itsBeam));
        }
+       buf.itsDelays[baseline] = antUVW(buf.itsUVW.ncolumn(),substituteAntId(theirAntIDs[baseline][1], buf.itsBeam)) - 
+                                 antUVW(buf.itsUVW.ncolumn(),substituteAntId(theirAntIDs[baseline][0], buf.itsBeam));
   }
   return epoch;
 }
@@ -160,19 +182,17 @@ const int FillerMSSink::theirAntIDs[3][2] = {{0, 1}, {1,2}, {0, 2}};
 void FillerMSSink::write(CorrProducts &buf) const
 {
   const casa::MEpoch epoch = calculateUVW(buf);
-  // hack - to experiment with phase tracking, ideally it should be done at a higher level
-  ASKAPDEBUGASSERT(buf.itsUVWValid);
-  ASKAPDEBUGASSERT(buf.itsUVW.nrow() == buf.itsVisibility.nrow());
-  ASKAPDEBUGASSERT(buf.itsUVW.ncolumn() == 3);
-  for (casa::uInt baseline = 0; baseline < buf.itsUVW.nrow(); ++baseline) {
-     // currently single value for all channels, LOeff = 874.5 MHz
-     //const float effLOFreq = 874.5e6;
-     const float effLOFreq = 880.5e6;
-     //const float effLOFreq = 920e6;
-     const float phase = -2 * casa::C::pi * effLOFreq * buf.itsUVW(baseline,2) / casa::C::c;
-     const casa::Complex phasor(cos(phase),sin(phase));
-     casa::Vector<casa::Complex> allChan = buf.itsVisibility.row(baseline);
-     allChan *= phasor;
+  // the following code does phase tracking, ideally we want to move it to a higher level, but it 
+  // would imply doing some unnecessary calculations. So we avoid it for now.
+  if (itsTrackPhase) {
+      ASKAPDEBUGASSERT(buf.itsUVWValid);
+      ASKAPDEBUGASSERT(buf.itsDelays.nelements() == buf.itsVisibility.nrow());
+      for (casa::uInt baseline = 0; baseline < buf.itsDelays.nelements(); ++baseline) {
+          const float phase = -2 * float(casa::C::pi * itsEffectiveLOFreq * buf.itsDelays(baseline) / casa::C::c);
+          const casa::Complex phasor(cos(phase),sin(phase));
+          casa::Vector<casa::Complex> allChan = buf.itsVisibility.row(baseline);
+          allChan *= phasor;
+      }
   }
   //
   ASKAPDEBUGASSERT(itsMs);

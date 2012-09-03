@@ -73,7 +73,11 @@ struct CorrProducts : private boost::noncopyable {
   /// @brief baseline spacings for all 3 baselines (rows are baselines)
   casa::Matrix<double> itsUVW;
   
-  /// @brief flag that uvw matrix is filled with valid info
+  /// @brief delay vector for all 3 baselines
+  /// @details We can't use W from itsUVW because it is in J2000 rather than JTRUE
+  casa::Vector<double> itsDelays;
+  
+  /// @brief flag that uvw matrix and delay vector are filled with valid info
   bool itsUVWValid;
 };
 

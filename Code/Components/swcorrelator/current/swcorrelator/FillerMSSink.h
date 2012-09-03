@@ -251,6 +251,14 @@ private:
   /// @brief id of the antenna, the beamformer of which gets the extra signals
   /// @note, it should be a non-negative number
   int itsAntHandlingExtras;
+  
+  /// @brief effective LO frequency in Hz for phase tracking
+  /// @note it can be both positive and negative depending on the sidebands used
+  double itsEffectiveLOFreq;
+  
+  /// @brief true, if phase tracking is done
+  bool itsTrackPhase;
+  
 };
 
 } // namespace swcorrelator
