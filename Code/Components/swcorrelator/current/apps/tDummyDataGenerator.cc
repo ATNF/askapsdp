@@ -221,7 +221,7 @@ int main(int argc, const char** argv)
        timer.mark();
        // connection to the correlator server comes here along with the threading stuff
        const int nBeam = 2;
-       const int nChan = 2;
+       const int nChan = 16;
        
        boost::thread_group threads;
        for (int cnt = 0; cnt<nChan; ++cnt) {

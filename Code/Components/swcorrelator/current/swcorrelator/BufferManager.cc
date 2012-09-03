@@ -317,10 +317,17 @@ void BufferManager::bufferFilled(const int id) const
                    throw BufferManager::HelperException();
                }
                if (newBAT > header(thisID).bat) {
-                   ASKAPLOG_WARN_STR(logger, "Incomplete old data detected in buffer "<<thisID<<" corresponding to antenna "<<
-                           ant<<", beam "<<hdr.beam<<", channel "<<hdr.freqId<<" - cleaning up");
-                   itsReadyBuffers(ant, hdr.freqId, hdr.beam) = -1;
-                   itsStatus[thisID] = BUF_FREE;
+                   if (itsStatus[thisID] == BUF_READY) {
+                       ASKAPLOG_WARN_STR(logger, "Incomplete old data detected in buffer "<<thisID<<" corresponding to antenna "<<
+                              ant<<", beam "<<hdr.beam<<", channel "<<hdr.freqId<<" - cleaning up");
+                       itsReadyBuffers(ant, hdr.freqId, hdr.beam) = -1;
+                       itsStatus[thisID] = BUF_FREE;
+                   } else {
+                      ASKAPDEBUGASSERT(itsStatus[thisID] == BUF_BEING_PROCESSED);
+                      ASKAPLOG_WARN_STR(logger, "Not keeping up - the data in buffer "<<thisID<<" corresponding to antenna "<<
+                              ant<<", beam "<<hdr.beam<<", channel "<<hdr.freqId<<" are still being processed, ingore new data in buffer "<<id);
+                      throw BufferManager::HelperException();
+                   }
                }
            }
       }
