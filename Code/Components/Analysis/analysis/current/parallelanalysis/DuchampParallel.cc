@@ -172,6 +172,8 @@ namespace askap {
             this->itsMedianBoxWidth = parset.getInt16("medianBoxWidth", 50);
 	    this->itsFlagWriteSNRimage = parset.getBool("flagWriteSNRimage", false);
 	    this->itsSNRimageName = parset.getString("SNRimageName", "");
+	    this->itsFlagWriteThresholdImage = parset.getBool("flagWriteThresholdImage",false);
+	    this->itsThresholdImageName = parset.getString("ThresholdImageName","");
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
@@ -611,6 +613,38 @@ namespace askap {
       }
 
       
+      void findVariableThreshold(float *input, float *output, float SNRthreshold, casa::IPosition shape, casa::IPosition box, size_t loc, size_t spatSize, size_t specSize, bool isSpatial, bool useRobust)
+      {
+	casa::Array<Float> base(shape, input, casa::COPY);
+	casa::Array<Float> middle, spread;
+	if(useRobust){
+	  ASKAPLOG_DEBUG_STR(logger, "findVariableThreshold: Finding 'middle' array'");
+	  middle = slidingArrayMath(base, box, MedianFunc<Float>());
+	  ASKAPLOG_DEBUG_STR(logger, "findVariableThreshold: Finding 'spread' array'");
+	  spread = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
+	}
+	else{
+	  middle = slidingArrayMath(base, box, MeanFunc<Float>());
+	  spread = slidingArrayMath(base, box, StddevFunc<Float>());
+	}
+	ASKAPLOG_DEBUG_STR(logger, "findVariableThreshold: Calculating threshold array using SNRthreshold="<<SNRthreshold);
+	casa::Array<Float> threshold = middle + SNRthreshold * spread;
+	casa::Array<Float>::iterator threshEnd(threshold.end()),iterThresh(threshold.begin());
+	int pos=0,i=0;
+	ASKAPLOG_DEBUG_STR(logger, "findVariableThreshold: Preparing to return");
+	ASKAPLOG_DEBUG_STR(logger, "spatSize="<<spatSize <<", loc="<<loc);
+	while (iterThresh != threshEnd){
+	  pos = isSpatial ?  i+loc*spatSize :  loc+i*spatSize;
+	  output[pos] = *iterThresh;
+	  if(i%100==0) ASKAPLOG_DEBUG_STR(logger, i<< " " << pos << " " << output[pos]);
+	  i++;
+	  iterThresh++;
+	}
+	ASKAPLOG_DEBUG_STR(logger, "findVariableThreshold: All done");
+	
+	
+      }
+
       void findSNR(float *input, float *output, casa::IPosition shape, casa::IPosition box, size_t loc, size_t spatSize, size_t specSize, bool isSpatial, bool useRobust)
       {
 	casa::Array<Float> base(shape, input, casa::COPY);
@@ -655,7 +689,9 @@ namespace askap {
 	const SubImage<Float> *sub = new SubImage<Float>(*imagePtr, slice);
 	accessors::CasaImageAccess ia;
 	
+	ASKAPLOG_DEBUG_STR(logger, "Creating image " << imageName);
 	ia.create(imageName, sub->shape(), sub->coordinates());
+	ASKAPLOG_DEBUG_STR(logger, "Writing data to image");
 	ia.write(imageName, casa::Array<float>(sub->shape(), data) );
 
 	delete imagePtr;
@@ -684,10 +720,10 @@ namespace askap {
 
       void DuchampParallel::medianSearch()
       {
-	if(this->itsFlagWriteSNRimage){
+	if(this->itsFlagWriteSNRimage || this->itsFlagWriteThresholdImage){
 	  ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
 	  ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
-	  if(this->itsSNRimageName==""){
+	  if(this->itsFlagWriteSNRimage && this->itsSNRimageName==""){
 	    // if it has not been specified, construct name from input image
 	    this->itsSNRimageName=this->itsCube.pars().getImageFile();
 	    // trim .fits off name if present
@@ -695,6 +731,15 @@ namespace askap {
 	      this->itsSNRimageName=this->itsSNRimageName.substr(0,this->itsSNRimageName.size()-5);
 	    this->itsSNRimageName += "-SNR";
 	    ASKAPLOG_DEBUG_STR(logger, "Actually saving SNR map to image \"" << this->itsSNRimageName <<"\"");
+	  }
+	  if(this->itsFlagWriteThresholdImage && this->itsThresholdImageName==""){
+	    // if it has not been specified, construct name from input image
+	    this->itsThresholdImageName=this->itsCube.pars().getImageFile();
+	    // trim .fits off name if present
+	    if(this->itsThresholdImageName.substr(this->itsThresholdImageName.size()-5,5)==".fits") 
+	      this->itsThresholdImageName=this->itsThresholdImageName.substr(0,this->itsThresholdImageName.size()-5);
+	    this->itsThresholdImageName += "-Threshold";
+	    ASKAPLOG_DEBUG_STR(logger, "Actually saving Threshold map to image \"" << this->itsThresholdImageName <<"\"");
 	  }
 	}
 
@@ -761,6 +806,45 @@ namespace askap {
 	    ASKAPLOG_DEBUG_STR(logger, "SNR image name is now " << this->itsSNRimageName);
 	    
 	    this->writeImage(this->itsSNRimageName,this->itsCube.getRecon());
+	  }
+	
+	  if(this->itsFlagWriteThresholdImage){
+
+	    ASKAPLOG_DEBUG_STR(logger, "Saving Threshold map to image \"" << this->itsThresholdImageName <<"\"");
+	    std::stringstream addition;
+	    addition << "-" << itsComms.rank();
+	    this->itsSNRimageName += addition.str();
+	    ASKAPLOG_DEBUG_STR(logger, "Threshold image name is now " << this->itsSNRimageName);
+	    
+	    // Find the flux threshold map, purely for the purposes of writing it out to an image.
+	    // Re-use the temporary storage we used for the SNR map prior to saving to the Cube's recon array
+	    if(this->itsCube.pars().getSearchType()=="spatial"){
+	      casa::IPosition box(2, this->itsMedianBoxWidth, this->itsMedianBoxWidth);
+	      casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
+	      imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
+	      duchamp::Image *chanIm = new duchamp::Image(imdim);
+	      for (size_t z = 0; z < specSize; z++) {
+		chanIm->extractImage(this->itsCube, z);
+		ASKAPLOG_DEBUG_STR(logger, "Finding threshold map for z="<<z);
+		findVariableThreshold(chanIm->getArray(),snrAll,this->itsCube.stats().getThreshold(),shape,box,z,spatSize,specSize,true,this->itsCube.pars().getFlagRobustStats());
+	      }
+	      delete chanIm;
+	    }
+	    else if(this->itsCube.pars().getSearchType()=="spectral"){
+	      casa::IPosition box(1,this->itsMedianBoxWidth);
+	      casa::IPosition shape(1,this->itsCube.getDimZ());
+	      imdim[0] = this->itsCube.getDimZ(); imdim[1] = 1;
+	      duchamp::Image *chanIm = new duchamp::Image(imdim);
+	      ASKAPLOG_DEBUG_STR(logger, "Finding SNR map in spectral mode, with shape="<<shape<<" and box="<<box);
+	      for (size_t i = 0; i < spatSize; i++) {
+		chanIm->extractSpectrum(this->itsCube, i);
+		findVariableThreshold(chanIm->getArray(),snrAll,this->itsCube.stats().getThreshold(),shape,box,i,spatSize,specSize,false,this->itsCube.pars().getFlagRobustStats());
+	      }
+	      delete chanIm;
+	    }
+	    ASKAPLOG_DEBUG_STR(logger, "About to write the threshold map to image " << this->itsThresholdImageName);
+	    this->writeImage(this->itsThresholdImageName,snrAll);
+	    ASKAPLOG_DEBUG_STR(logger, "Done");
 	  }
 	
 	  delete [] snrAll;

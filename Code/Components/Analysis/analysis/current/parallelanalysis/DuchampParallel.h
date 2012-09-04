@@ -239,6 +239,12 @@ namespace askap {
 		/// Name of S/N image to be written
 		std::string itsSNRimageName;
 		
+		/// Whether to write a casa image containing the Detection threshold
+		bool itsFlagWriteThresholdImage;
+
+		/// Name of S/N image to be written
+		std::string itsThresholdImageName;
+		
                 /// The list of voxels encompassing detected sources (only for those on the edges of subimages), with fluxes.
                 std::vector<PixelInfo::Voxel> itsVoxelList;
 /*                 std::map<PixelInfo::Voxel,float,voxComp> itsVoxelMap; */
