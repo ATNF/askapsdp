@@ -36,11 +36,10 @@
 #include <iostream>
 
 // ASKAPsoft includes
+#include <askap/Application.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/StatReporter.h>
-#include <casa/Logging/LogIO.h>
-#include <askap/Log4cxxLogSink.h>
 #include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
 #include <duchamp/duchamp.hh>
@@ -54,93 +53,82 @@ using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "selavy.log");
 
-// Move to Askap Util
-std::string getInputs(const std::string& key, const std::string& def, int argc,
-                      const char** argv)
-{
-    if (argc > 2) {
-        for (int arg = 0; arg < (argc - 1); arg++) {
-            std::string argument = std::string(argv[arg]);
-
-            if (argument == key) {
-                return std::string(argv[arg+1]);
-            }
-        }
-    }
-
-    return def;
-}
-
 void setSelavyNames(DuchampParallel &finder, askap::askapparallel::AskapParallel &comms)
 {
-  finder.cube().pars().setOutFile("selavy-results.txt");
-  finder.cube().pars().setHeaderFile("selavy-results.hdr");
-  finder.cube().pars().setVOTFile("selavy-results.xml");
-  finder.cube().pars().setKarmaFile("selavy-results.ann");
-  if(comms.isParallel() && comms.isMaster())
-    finder.cube().pars().setLogFile("selavy-Logfile-Master.txt");
-  else
-    finder.cube().pars().setLogFile(comms.substitute("selavy-Logfile-%w.txt"));
+    finder.cube().pars().setOutFile("selavy-results.txt");
+    finder.cube().pars().setHeaderFile("selavy-results.hdr");
+    finder.cube().pars().setVOTFile("selavy-results.xml");
+    finder.cube().pars().setKarmaFile("selavy-results.ann");
+    if(comms.isParallel() && comms.isMaster())
+        finder.cube().pars().setLogFile("selavy-Logfile-Master.txt");
+    else
+        finder.cube().pars().setLogFile(comms.substitute("selavy-Logfile-%w.txt"));
 
-  finder.setSubimageAnnotationFile("selavy-SubimageLocations.ann");
-  finder.setFitSummaryFile("selavy-fitResults.txt");
-  finder.setFitAnnotationFile("selavy-fitResults.ann");
-  finder.setFitBoxAnnotationFile("selavy-fitResults.boxes.ann");
-  
+    finder.setSubimageAnnotationFile("selavy-SubimageLocations.ann");
+    finder.setFitSummaryFile("selavy-fitResults.txt");
+    finder.setFitAnnotationFile("selavy-fitResults.ann");
+    finder.setFitBoxAnnotationFile("selavy-fitResults.boxes.ann");
 }
 
-
-// Main function
-int main(int argc, const char** argv)
+class SelavyApp : public askap::Application
 {
-    // This class must have scope outside the main try/catch block
-    askap::askapparallel::AskapParallel comms(argc, argv);
-    try {
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            // This class must have scope outside the main try/catch block
+            askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
+            try {
+                StatReporter stats;
 
-        StatReporter stats;
+                ASKAPLOG_INFO_STR(logger, "ASKAP source finder " << ASKAP_PACKAGE_VERSION);
 
-	ASKAPLOG_INFO_STR(logger, "ASKAP source finder " << ASKAP_PACKAGE_VERSION);
+                // Create a new parset with a nocase key compare policy, then
+                // adopt the contents of the real parset
+                LOFAR::ParameterSet parset(LOFAR::StringUtil::Compare::NOCASE);
+                parset.adoptCollection(config());
+                LOFAR::ParameterSet subset(parset.makeSubset("Selavy."));
 
-        std::string parsetFile(getInputs("-inputs", "selavy.in", argc, argv));
-        LOFAR::ParameterSet parset(parsetFile,LOFAR::StringUtil::Compare::NOCASE);
-        LOFAR::ParameterSet subset(parset.makeSubset("Selavy."));
-        if(!comms.isParallel() || comms.isMaster())
-	  ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
-        DuchampParallel finder(comms, subset);
+                if(!comms.isParallel() || comms.isMaster())
+                    ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                DuchampParallel finder(comms, subset);
 
-	// change the default output names from duchamp-* to selavy-*
-	setSelavyNames(finder,comms);
+                // change the default output names from duchamp-* to selavy-*
+                setSelavyNames(finder,comms);
 
-        finder.readData();
-        finder.setupLogfile(argc, argv);
-        finder.gatherStats();
-        finder.broadcastThreshold();
-        finder.receiveThreshold();
-        finder.findSources();
-        finder.fitSources();
-        finder.sendObjects();
-        finder.receiveObjects();
-        finder.cleanup();
-        finder.printResults();
+                finder.readData();
+                finder.setupLogfile(argc, const_cast<const char**>(argv));
+                finder.gatherStats();
+                finder.broadcastThreshold();
+                finder.receiveThreshold();
+                finder.findSources();
+                finder.fitSources();
+                finder.sendObjects();
+                finder.receiveObjects();
+                finder.cleanup();
+                finder.printResults();
 
-        stats.logSummary();
-        ///==============================================================================
-    } catch (const askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const duchamp::DuchampError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
-        std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    }
+                stats.logSummary();
+                ///==============================================================================
+            } catch (const askap::AskapError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const duchamp::DuchampError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
+                std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const std::exception& x) {
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            }
 
-    return 0;
+            return 0;
+        }
+};
+
+int main(int argc, char *argv[])
+{
+    SelavyApp app;
+    return app.main(argc, argv);
 }

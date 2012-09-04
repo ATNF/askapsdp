@@ -31,14 +31,12 @@
 #include "askap_synthesis.h"
 
 // ASKAPsoft includes
+#include <askap/Application.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/StatReporter.h>
-#include <askap/Log4cxxLogSink.h>
 #include <askapparallel/AskapParallel.h>
-#include <casa/Logging/LogIO.h>
 #include <Common/ParameterSet.h>
-#include <CommandLineParser.h>
 
 // Local package includes
 #include <parallel/SimParallel.h>
@@ -49,64 +47,47 @@ using namespace std;
 using namespace askap;
 using namespace askap::synthesis;
 
-// Main function
-int main(int argc, const char** argv)
+class CsimulatorApp : public askap::Application
 {
-    // This class must have scope outside the main try/catch block
-    askap::askapparallel::AskapParallel comms(argc, argv);
-
-    try {
-        StatReporter stats;
-
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
-
+    public:
+        virtual int run(int argc, char* argv[])
         {
-            cmdlineparser::Parser parser; // a command line parser
-            // command line parameter
-            cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs",
-                    "csimulator.in");
-            // this parameter is optional
-            parser.add(inputsPar, cmdlineparser::Parser::return_default);
+            // This class must have scope outside the main try/catch block
+            askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
 
-            // I hope const_cast is temporary here
-            parser.process(argc, argv);
+            try {
+                StatReporter stats;
 
-            // we could have used inputsPar directly in the code below
-            const std::string parsetFile = inputsPar;
+                LOFAR::ParameterSet subset(config().makeSubset("Csimulator."));
 
-            LOFAR::ParameterSet parset(parsetFile);
-            LOFAR::ParameterSet subset(parset.makeSubset("Csimulator."));
+                // We cannot issue log messages until MPI is initialized!
+                SimParallel sim(comms, subset);
 
-            // We cannot issue log messages until MPI is initialized!
-            SimParallel sim(comms, subset);
+                ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
 
-            ASKAPLOG_INFO_STR(logger, "ASKAP synthesis simulator " << ASKAP_PACKAGE_VERSION);
+                if (comms.isMaster()) {
+                    ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                }
 
-            if (comms.isMaster()) {
-                ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
-                ASKAPLOG_INFO_STR(logger,  parset);
+                sim.init();
+                sim.simulate();
+                stats.logSummary();
+            } catch (const askap::AskapError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const std::exception& x) {
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
             }
 
-            sim.init();
-            sim.simulate();
+            return 0;
         }
-        stats.logSummary();
-        ///==============================================================================
-    } catch (const cmdlineparser::XParser &ex) {
-        ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
-        std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;
-        exit(1);
-    } catch (const askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    }
+};
 
-    return 0;
+int main(int argc, char *argv[])
+{
+    CsimulatorApp app;
+    return app.main(argc, argv);
 }

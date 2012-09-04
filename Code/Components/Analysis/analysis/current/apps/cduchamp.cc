@@ -36,11 +36,10 @@
 #include <iostream>
 
 // ASKAPsoft includes
+#include <askap/Application.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/StatReporter.h>
-#include <casa/Logging/LogIO.h>
-#include <askap/Log4cxxLogSink.h>
 #include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
 #include <duchamp/duchamp.hh>
@@ -53,70 +52,61 @@ using namespace askap::analysis;
 
 ASKAP_LOGGER(logger, "cduchamp.log");
 
-// Move to Askap Util
-std::string getInputs(const std::string& key, const std::string& def, int argc,
-        const char** argv)
+class DuchampApp : public askap::Application
 {
-    if (argc > 2) {
-        for (int arg = 0; arg < (argc - 1); arg++) {
-            std::string argument = std::string(argv[arg]);
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            // This class must have scope outside the main try/catch block
+            askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
+            try {
+                StatReporter stats;
 
-            if (argument == key) {
-                return std::string(argv[arg+1]);
+                ASKAPLOG_INFO_STR(logger, "ASKAP source finder " << ASKAP_PACKAGE_VERSION);
+
+                // Create a new parset with a nocase key compare policy, then
+                // adopt the contents of the real parset
+                LOFAR::ParameterSet parset(LOFAR::StringUtil::Compare::NOCASE);
+                parset.adoptCollection(config());
+                LOFAR::ParameterSet subset(parset.makeSubset("Cduchamp."));
+
+                DuchampParallel duchamp(comms, subset);
+                if(!comms.isParallel() || comms.isMaster())
+                    ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                duchamp.readData();
+                duchamp.setupLogfile(argc, const_cast<const char**>(argv));
+                duchamp.gatherStats();
+                duchamp.broadcastThreshold();
+                duchamp.receiveThreshold();
+                duchamp.findSources();
+                duchamp.fitSources();
+                duchamp.sendObjects();
+                duchamp.receiveObjects();
+                duchamp.cleanup();
+                duchamp.printResults();
+
+                stats.logSummary();
+                ///==============================================================================
+            } catch (const askap::AskapError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const duchamp::DuchampError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
+                std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const std::exception& x) {
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
             }
+
+            return 0;
         }
-    }
+};
 
-    return def;
-}
-
-// Main function
-int main(int argc, const char** argv)
+int main(int argc, char *argv[])
 {
-    // This class must have scope outside the main try/catch block
-    askap::askapparallel::AskapParallel comms(argc, argv);
-    try {
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
-
-        StatReporter stats;
-
-	ASKAPLOG_INFO_STR(logger, "ASKAP source finder " << ASKAP_PACKAGE_VERSION);
-
-        std::string parsetFile(getInputs("-inputs", "cduchamp.in", argc, argv));
-        LOFAR::ParameterSet parset(parsetFile,LOFAR::StringUtil::Compare::NOCASE);
-        LOFAR::ParameterSet subset(parset.makeSubset("Cduchamp."));
-        DuchampParallel duchamp(comms, subset);
-        if(!comms.isParallel() || comms.isMaster())
-            ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
-        duchamp.readData();
-        duchamp.setupLogfile(argc, argv);
-        duchamp.gatherStats();
-        duchamp.broadcastThreshold();
-        duchamp.receiveThreshold();
-        duchamp.findSources();
-        duchamp.fitSources();
-        duchamp.sendObjects();
-        duchamp.receiveObjects();
-        duchamp.cleanup();
-        duchamp.printResults();
-
-        stats.logSummary();
-        ///==============================================================================
-    } catch (const askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const duchamp::DuchampError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
-        std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    }
-
-    return 0;
+    DuchampApp app;
+    return app.main(argc, argv);
 }

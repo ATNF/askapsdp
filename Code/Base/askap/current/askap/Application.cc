@@ -56,7 +56,7 @@ Application::Application() : itsOptionsDesc("Program Options")
     ("help,h", "produce help message")
     ("config,c", po::value<string>(), "configuration parameter set file")
     ("logcfg,l", po::value<string>(), "logger configuration file")
-    ("inputs", po::value<string>(), "synonym for 'config' which can also be used with a single hyphen (deprecated)")
+    ("inputs", po::value<string>(), "(deprecated) synonym for 'config'. Can also be used with a single hyphen")
     ;
 }
 
@@ -74,7 +74,11 @@ int Application::main(int argc, char *argv[])
         initConfig();
         status = run(argc, argv);
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        if (ASKAPLOG_ISCONFIGURED) {
+            ASKAPLOG_FATAL_STR(logger, "Error: " << e.what());
+        } else {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
         return EXIT_FAILURE;
     }
 

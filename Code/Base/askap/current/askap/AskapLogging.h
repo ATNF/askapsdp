@@ -95,6 +95,12 @@ namespace askap {
 /// Remove the key/value from the MDC.
 #define ASKAPLOG_REMOVECONTEXT(key) log4cxx::MDC::remove(key)
 
+/// Check if ASKAPLOG_INIT has been called to initialise the logger.
+/// Evaluates to true if it has been initialised, otherwise false.
+/// This uses the fact that the root logger initially has no appenders
+/// configured, and the configuration we do adds appenders.
+#define ASKAPLOG_ISCONFIGURED \
+      (log4cxx::Logger::getRootLogger()->getAllAppenders().size() ? true : false)
 
 /// Initialise a logger from a file. If none is specified or found, it uses the default settings
 #define ASKAPLOG_INIT(filename)                                        \

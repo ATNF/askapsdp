@@ -64,17 +64,21 @@ AskapParallel::AskapParallel(int argc, const char** argv)
         : MPIComms(argc, const_cast<char**>(argv)), itsCommIndex(0),
           itsNGroups(1)
 {
-    // Now we have to initialize the logger before we use it
-    // If a log configuration exists in the current directory then
-    // use it, otherwise try to use the programs default one
-    const std::ifstream config("askap.log_cfg", std::ifstream::in);
+    // Logging may have already been configured, for example by
+    // askap::Application so first check
+    if (!ASKAPLOG_ISCONFIGURED) {
+        // Now we have to initialize the logger before we use it
+        // If a log configuration exists in the current directory then
+        // use it, otherwise try to use the programs default one
+        const std::ifstream config("askap.log_cfg", std::ifstream::in);
 
-    if (config) {
-        ASKAPLOG_INIT("askap.log_cfg");
-    } else {
-        std::ostringstream ss;
-        ss << argv[0] << ".log_cfg";
-        ASKAPLOG_INIT(ss.str().c_str());
+        if (config) {
+            ASKAPLOG_INIT("askap.log_cfg");
+        } else {
+            std::ostringstream ss;
+            ss << argv[0] << ".log_cfg";
+            ASKAPLOG_INIT(ss.str().c_str());
+        }
     }
 
     itsNProcs = MPIComms::nProcs();
