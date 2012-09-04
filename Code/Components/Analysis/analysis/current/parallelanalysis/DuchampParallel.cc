@@ -562,11 +562,13 @@ namespace askap {
 		  else goodlist.push_back(this->itsCube.getObject(i));
 		}
 		duchamp::finaliseList(goodlist,this->itsCube.pars());
+		size_t ngood=goodlist.size(),nedge=edgelist.size();
 		this->itsCube.clearDetectionList();
 		for(size_t i=0;i<edgelist.size();i++) goodlist.push_back(edgelist[i]);
 		this->itsCube.ObjectList() = goodlist;
 		//-------
 
+		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating WCS params");
                 this->itsCube.calcObjectWCSparams();
 		if(this->itsFlagDoMedianSearch){
 //D1.1.13 	  for(int i=0; i<this->itsCube.getNumObj();i++){
@@ -578,7 +580,8 @@ namespace askap {
 		    }
 		  }
 		}
-                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " objects.");
+                ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " objects, of which "
+				  << nedge << " are on the boundary and " << ngood << " are good.");
 
             }
 	}
@@ -1038,6 +1041,7 @@ namespace askap {
 	    fittypelist.push_back("guess");
 
 	    for (int i = 1; i < itsComms.nProcs(); i++) {
+	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "In loop #"<<i<<" of reading from workers");
 	      itsComms.receiveBlob(bs, i);
 	      LOFAR::BlobIBufString bib(bs);
 	      LOFAR::BlobIStream in(bib);
@@ -1298,7 +1302,8 @@ namespace askap {
 
                 this->itsSourceList.clear();
                 this->itsSourceList = newlist;
-                newlist.clear();
+		SortDetections(this->itsSourceList, this->itsCube.pars().getSortingParam());
+		newlist.clear();
                 ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished sort of source list");
                 this->itsCube.clearDetectionList();
 
@@ -2398,6 +2403,7 @@ namespace askap {
 	long *dim = getDim(imagePtr);
 	wcsprm *wcs = casaImageToWCS(imagePtr);
 //D1.1.13 storeWCStoHeader(this->itsCube.header(), this->itsCube.pars(), wcs);
+	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining WCS and putting into type \""<<this->itsCube.pars().getSpectralType()<<"\"");
 	this->itsCube.header().defineWCS(wcs,1,dim,this->itsCube.pars());
 	this->itsCube.pars().setOffsets(wcs);
 	//	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix()<<"Pixelsec = " << this->itsCube.pars().section().getSection() <<" offsets = " << this->itsCube.pars().getXOffset() <<" " << this->itsCube.pars().getYOffset() <<" " << this->itsCube.pars().getZOffset() << " flagSubsection = " << this->itsCube.pars().getFlagSubsection());

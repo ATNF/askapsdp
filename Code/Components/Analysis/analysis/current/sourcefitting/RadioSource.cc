@@ -1370,6 +1370,51 @@ namespace askap {
             }
 
 
+
+
+
+	  void SortDetections(std::vector<RadioSource> &sourcelist, std::string parameter)
+	    {
+	      /// @details This function sorts a vector list of
+	      /// RadioSource objects, using the same functionality as
+	      /// the duchamp library's SortDetections function. The
+	      /// objects are sorted as duchamp::Detection objects,
+	      /// keeping track of their individual identities by
+	      /// using the ID field. The original ID field is
+	      /// replaced at the end.
+
+	      std::vector<duchamp::Detection> detlist(sourcelist.size());
+	      int ID=0;
+	      std::map<string,int> posMap;
+	      for(std::vector<RadioSource>::iterator src=sourcelist.begin();src<sourcelist.end();src++){
+
+		std::stringstream ss;
+		ss << src->getXPeak() << "_"<<src->getYPeak()<< "_"<<src->getZPeak();
+		posMap.insert(std::pair<string,int>(ss.str(),ID));
+		detlist[ID] = duchamp::Detection(*src);
+		ID++;
+
+	      }
+
+	      duchamp::SortDetections(detlist,parameter);
+	      
+	      std::vector<RadioSource> newSourcelist(sourcelist.size());
+
+	      for(size_t i=0;i<detlist.size();i++){
+		std::stringstream ss;
+		ss << detlist[i].getXPeak() << "_"<<detlist[i].getYPeak()<< "_"<<detlist[i].getZPeak();
+		ID=posMap[ss.str()];
+		newSourcelist[i] = sourcelist[ID];
+	      }
+
+	      sourcelist = newSourcelist;
+	      
+
+	    }
+
+
+
+
         }
 
     }

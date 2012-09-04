@@ -56,6 +56,7 @@
 #include <map>
 #include <vector>
 #include <utility>
+#include <string>
 
 //using namespace duchamp;
 
@@ -265,6 +266,12 @@ namespace askap {
                     std::map<std::string, std::vector<float> > itsBetaMap;
 
             };
+
+
+	    /// @brief An analogue of the duchamp::SortDetections function
+	    void SortDetections(std::vector<RadioSource> &sourcelist, std::string parameter);
+
+
         }
 
     }
