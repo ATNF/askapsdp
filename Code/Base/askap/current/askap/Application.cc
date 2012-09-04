@@ -43,6 +43,8 @@
 #include "casa/Logging/LogIO.h"
 #include "casa/Logging/LogSinkInterface.h"
 
+ASKAP_LOGGER(logger, ".Application");
+
 // Using/namespace
 using namespace askap;
 namespace po = boost::program_options;
@@ -54,6 +56,7 @@ Application::Application() : itsOptionsDesc("Program Options")
     ("help,h", "produce help message")
     ("config,c", po::value<string>(), "configuration parameter set file")
     ("logcfg,l", po::value<string>(), "logger configuration file")
+    ("inputs", po::value<string>(), "synonym for 'config' which can also be used with a single hyphen (deprecated)")
     ;
 }
 
@@ -123,7 +126,14 @@ void Application::addParameter(const std::string& keyLong,
 
 void Application::processCmdLineArgs(int argc, char *argv[])
 {
-    po::store(po::parse_command_line(argc, argv, itsOptionsDesc), itsVarMap);
+    //po::store(po::parse_command_line(argc, argv, itsOptionsDesc), itsVarMap);
+
+    // The below allows a single hyphen to be used for the long names. This is
+    // to support the historical use of "-inputs"
+    po::store(po::command_line_parser(argc, argv).options(itsOptionsDesc).
+            style(po::command_line_style::default_style
+                | po::command_line_style::allow_long_disguise).run(), itsVarMap);
+
     po::notify(itsVarMap);
 
     if (parameterExists("help")) {
@@ -165,6 +175,9 @@ void Application::initConfig()
 {
     if (itsVarMap.count("config")) {
         LOFAR::ParameterSet parset(itsVarMap["config"].as<std::string>());
+        itsParset = parset;
+    } else if (itsVarMap.count("inputs")) {
+        LOFAR::ParameterSet parset(itsVarMap["inputs"].as<std::string>());
         itsParset = parset;
     } else {
         std::cerr << "Error: Configuration file not specified" << std::endl;
