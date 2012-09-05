@@ -29,6 +29,7 @@
 #include <analysisutilities/SubimageDef.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <wcslib/wcs.h>
+#include <wcslib/wcshdr.h>
 #include <Common/ParameterSet.h>
 
 #include <string>

@@ -15,6 +15,7 @@ pkg = env.AskapPackage("analysis")
 pkg.AddSubPackage("parallelanalysis")
 pkg.AddSubPackage("analysisutilities")
 pkg.AddSubPackage("sourcefitting")
+pkg.AddSubPackage("extraction")
 pkg.AddSubPackage("patternmatching")
 
 # run the build process
