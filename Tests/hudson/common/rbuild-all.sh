@@ -103,6 +103,7 @@ for target in ${TARGETS};
 do
     DATE=`date`
     printf "\n==> Starting ${target} target at ${DATE}\n\n"
+    build "Tools" "" ${target}
     build "Code" "" ${target}
 done
 
