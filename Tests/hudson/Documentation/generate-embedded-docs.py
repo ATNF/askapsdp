@@ -27,7 +27,11 @@ import sys
 
 DEBUG = 0
 
-CODE     = '${WORKSPACE}/trunk/Code'
+WORKSPACE= os.getenv('WORKSPACE')
+TOPDIR   = os.path.join(WORKSPACE, 'trunk')
+C_DIRS   = [os.path.join('Code', d) for d in ['Base', 'Interfaces',
+                                              'Components', 'Systems']]
+T_DIRS   = [os.path.join('Tools', d) for d in ['Dev']]
 TARGET   = '/var/www/vhosts/pm.atnf.csiro.au/embedded/askap/cmpt/html'
 RHOST    = 'phoenix'
 TAB      = ' '*4
@@ -109,6 +113,7 @@ def CopyDocs(doc_type, doc_loc, find_term):
        from the end of the path.
     '''
 
+    indent = 0
     orig_indent = 2
     old_indent = orig_indent
     partial_paths = []
@@ -123,8 +128,9 @@ def CopyDocs(doc_type, doc_loc, find_term):
 
     PKGS = []
     sed_term = "/%s/%s" % (doc_loc, find_term)
-    for subdir in ['Base', 'Interfaces', 'Components', 'Systems']:
-        cmd = 'find %s/%s -name %s | sed "s#%s##"' % (CODE, subdir, find_term, sed_term)
+    for subdir in T_DIRS + C_DIRS:
+        fdir = os.path.join(TOPDIR, subdir)
+        cmd = 'find %s -name %s | sed "s#%s##"' % (fdir, find_term, sed_term)
         if DEBUG:
             print '     ', cmd
         PKGS += os.popen(cmd).readlines()
@@ -132,7 +138,7 @@ def CopyDocs(doc_type, doc_loc, find_term):
     for pkgpath in PKGS:
         pkgpath = pkgpath.strip() # Needed for next line to work correctly.
         pkg = pkgpath.split('/')[-1] # Last bit is package name.
-        subtree = pkgpath.split('/Code/')[-1] # Only stuff to right of Code.
+        subtree = pkgpath.split(TOPDIR + os.sep)[-1] # i.e. relative path
         source = "%s/%s/" % (pkgpath, doc_loc) # Recreate the full path.
         target = "%s/%s/%s" % (TARGET, doc_type, subtree)
         print "info: %s" % pkg
@@ -190,13 +196,10 @@ def CopyDocs(doc_type, doc_loc, find_term):
 today = datetime.date.today()
 
 print "info: Doxygen"
-#CopyDocs("doxygen", "current/html", "doxygen.css")
 CopyDocs("doxygen", "html", "doxygen.css")
 print "info: Javadocs"
-#CopyDocs("javadocs", "current/doc", "stylesheet.css")
 CopyDocs("javadocs", "doc", "stylesheet.css")
 print "info: Sphinx"
-#CopyDocs("sphinx", "current/doc/_build/html", "objects.inv")
 CopyDocs("sphinx", "doc/_build/html", "objects.inv")
 print "info: Ice"
 CopyDocs("ice", "slice/current/doc", "_sindex.html")
