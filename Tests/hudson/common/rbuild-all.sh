@@ -49,6 +49,14 @@ function build
     fi
 }
 
+function builddev
+{
+    target=$1
+    ${ECHO} cd ${ASKAP_ROOT}/Tools/Dev/rbuild
+    ${ECHO} python setup.py ${target}
+    ${ECHO} cd ${ASKAP_ROOT}/Tools/Dev/templates
+    ${ECHO} python setup.py ${target}
+}
 
 #
 # Get options
@@ -103,8 +111,9 @@ for target in ${TARGETS};
 do
     DATE=`date`
     printf "\n==> Starting ${target} target at ${DATE}\n\n"
+    builddev         ${target}
     build "Tools" "" ${target}
-    build "Code" "" ${target}
+    build "Code"  "" ${target}
 done
 
 DATE=`date`
