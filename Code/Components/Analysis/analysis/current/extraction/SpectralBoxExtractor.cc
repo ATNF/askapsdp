@@ -37,7 +37,7 @@
 #include <casa/Arrays/Slicer.h>
 #include <images/Images/ImageInterface.h>
 #include <images/Images/SubImage.h>
-#include <coordinates/coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
 
 #include <Common/ParameterSet.h>
 
