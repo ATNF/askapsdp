@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+import os
 import subprocess
 import time
 import IceStorm
 import askap
-from askap.iceutils.icegrid import IceGridSession
+from askap.iceutils import IceSession
 from askap.slice import TypedValues
 from askap.interfaces.datapublisher import ITimeTaggedTypedValueMapPublisher
 
@@ -19,37 +20,36 @@ class ITimeTaggedTypedValueMapPublisherImpl(ITimeTaggedTypedValueMapPublisher):
 # Class that sets up and runs the test
 class TestTimeTaggedDataPublisher(object):
     def __init__(self):
-        self.icecfg = 'config.icegrid'
         self.subscriber = None
-        self.igsession = None        
+        self.isession = None        
         self.topicname = "TimeTaggedDataPublisher.test"
     
     # Called at the start of each test
     def setUp(self):
-        self.igsession = IceGridSession(self.icecfg)
-        self.igsession.startup()
+        os.environ["ICE_CONFIG"] = 'ice.cfg'
+        self.isession = IceSession(cleanup=True)
         try:
-            # Add the IceStorm application to IceGrid
-            self.igsession.add_icestorm()
-            
+            # Add the IceStorm application
+            self.isession.add_app("icebox")
+            self.isession.start()
             # Get the Topic and subscribe to updates
             self.manager = IceStorm.TopicManagerPrx.\
-                checkedCast(self.igsession.communicator.\
-                    stringToProxy('IceStorm/TopicManager@IceStorm.TopicManager'))
+                checkedCast(self.isession.communicator.\
+                   stringToProxy('IceStorm/TopicManager@IceStorm.TopicManager'))
             try:
                 self.topic = self.manager.retrieve(self.topicname)
             except IceStorm.NoSuchTopic:
                 self.topic = self.manager.create(self.topicname)
             # defined in config.icegrid
-            self.adapter = self.igsession.communicator.\
-                createObjectAdapter("TestAdapter")
+            self.adapter = self.isession.communicator.\
+                createObjectAdapterWithEndpoints("TestAdapter", "tcp")
             subscriber = self.adapter.\
-                addWithUUID(ITimeTaggedTypedValueMapPublisherImpl()).ice_oneway()
+               addWithUUID(ITimeTaggedTypedValueMapPublisherImpl()).ice_oneway()
             qos = {}
             self.topic.subscribeAndGetPublisher(qos, subscriber)
             self.adapter.activate()
         except:
-            self.igsession.shutdown()
+            self.isession.terminate()
             raise        
         
     # Test that metadata is received
@@ -69,6 +69,4 @@ class TestTimeTaggedDataPublisher(object):
     
     # Called at the end of each test
     def tearDown(self):
-        if self.igsession:
-            self.igsession.shutdown()
-        self.igsession = None
+        self.isession.terminate()
