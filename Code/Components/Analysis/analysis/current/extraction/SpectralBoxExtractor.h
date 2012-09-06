@@ -55,6 +55,7 @@ namespace askap {
       SpectralBoxExtractor& operator=(const SpectralBoxExtractor& other);
       
       int boxWidth(){return itsBoxWidth;};
+      void setBoxWidth(int w){itsBoxWidth=w;};
       bool doScale(){return itsFlagDoScale;};
 
       void setSource(RadioSource &src);

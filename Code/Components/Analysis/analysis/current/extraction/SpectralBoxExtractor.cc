@@ -30,6 +30,9 @@
 #include <askap_analysis.h>
 #include <extraction/SourceDataExtractor.h>
 
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <sourcefitting/RadioSource.h>
 
 #include <casa/Arrays/IPosition.h>
@@ -42,6 +45,8 @@
 #include <Common/ParameterSet.h>
 
 using namespace askap::analysis::sourcefitting;
+
+ASKAP_LOGGER(logger, ".spectralboxextractor");
 
 namespace askap {
 
@@ -100,7 +105,7 @@ namespace askap {
 
       // define the slicer based on the source's peak pixel location and the box width.
       // Make sure we don't go over the edges of the image.
-      int hw = (this->itsBoxWidth -1)/2;
+      int hw = (this->itsBoxWidth - 1)/2;
       int xpeak = this->itsSource.getXPeak();
       int ypeak = this->itsSource.getYPeak();
       int zero=0;
@@ -118,10 +123,12 @@ namespace askap {
       this->itsArray = casa::Array<Float>(arrayshape,0.);
       
       casa::IPosition chan(shape.size(),0);
+      trc=trc-blc;
+      blc=0;
       for(int z=0; z<shape(specAxis);z++){
 	chan(specAxis)=z;
 	blc(specAxis) = trc(specAxis) = z;
-	this->itsArray(chan) = sum(subarray(casa::Slicer(blc,trc,casa::Slicer::endIsLast))) / beamScale;
+	this->itsArray(chan) =  sum(subarray(blc,trc))/ beamScale;
       }
 
       delete sub;

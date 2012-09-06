@@ -6,6 +6,11 @@
 
 # Always import this
 from askapenv import env
+import os
+
+if 'AIPSPATH' not in os.environ:
+   os.environ['AIPSPATH']=os.environ['ASKAP_ROOT']+'/Code/Base/accessors/current'
+env["ENV"]["AIPSPATH"] = os.environ['AIPSPATH']
 
 env.Append(CCFLAGS=['-Wall', '-O2', '-g', '-DHAVE_LONG_LONG', '-DASKAP_DEBUG'])
 

@@ -69,6 +69,7 @@ namespace askap {
 	casa::Array<Float> array(){return itsArray;};
 	std::string inputCube(){return itsInputCube;};
 	std::string outputFile(){return itsOutputFilename;};
+	RadioSource source(){return itsSource;};
 
 	//	virtual void writeImage()=0;
 

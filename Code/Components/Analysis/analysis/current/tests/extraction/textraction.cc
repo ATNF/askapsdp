@@ -35,6 +35,7 @@
 
 int main(int argc, char *argv[])
 {
+  try{
     std::ifstream config("askap.log_cfg", std::ifstream::in);
 
     if (config) {
@@ -49,4 +50,20 @@ int main(int argc, char *argv[])
     bool wasSuccessful = runner.run();
 
     return wasSuccessful ? 0 : 1;
+
+  } catch (const askap::AskapError& x) {
+    ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+    std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+    exit(1);
+  } catch (const duchamp::DuchampError& x) {
+    ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
+    std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
+    exit(1);
+  } catch (const std::exception& x) {
+    ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+    std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+    exit(1);
+  }
+
 }
+
