@@ -41,9 +41,16 @@ namespace askap {
 
     /// @brief Class to handle the extraction of a summed spectrum for a given RadioSource. 
 
-    /// @details This class is aimed primarily at solving the problem of extracting a spectrum from a cube for a previously-detected object, usually a continuum source. One example would be extracting the spectra in all Stokes parameters of a continuum source detected in Stokes I (for instance, in an MFS image). 
+    /// @details This class is aimed primarily at solving the problem
+    /// of extracting a spectrum from a cube for a previously-detected
+    /// object, usually a continuum source. One example would be
+    /// extracting the spectra in all Stokes parameters of a continuum
+    /// source detected in Stokes I (for instance, in an MFS image).
     ///
-    /// The spectrum is extracted by summing over an NxN box, centred on the peak pixel of the RadioSource. The summed flux can be optionally scaled by the beam size
+    /// The spectrum is extracted by summing over an NxN box, centred
+    /// on the peak pixel of the RadioSource. The summed flux can be
+    /// optionally scaled by the beam size to give the flux of an
+    /// unresolved object.
 
     class SpectralBoxExtractor : public SourceDataExtractor
     {

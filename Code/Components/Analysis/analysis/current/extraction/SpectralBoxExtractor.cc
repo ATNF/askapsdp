@@ -54,6 +54,10 @@ namespace askap {
 
     SpectralBoxExtractor::SpectralBoxExtractor(const LOFAR::ParameterSet& parset)
     {
+      /// @details Initialise the extractor from a LOFAR parset. This
+      /// sets the input cube, the box width, the scaling flag, and
+      /// the base name for the output spectra files (these will have
+      /// _X appended, where X is the ID of the object in question).
       this->itsInputCube = parset.getString("spectralCube","");
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
       this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
@@ -76,6 +80,13 @@ namespace askap {
 
     void SpectralBoxExtractor::setSource(RadioSource &src)
     {
+      /// @details Sets the source to be used. Also sets the output
+      /// filename correctly with the suffix indicating the object's
+      /// ID.  
+      /// @param src The RadioSource detection used to centre the
+      /// spectrum. The central pixel will be chosen to be the peak
+      /// pixel, so this needs to be defined.
+
       this->itsSource = src;
       // Append the source's ID string to the output filename
       int ID=this->itsSource.getID();
@@ -86,6 +97,17 @@ namespace askap {
 
     void SpectralBoxExtractor::extract()
     {
+      /// @details The main function that extracts the spectrum from
+      /// the desired input. The input cube is opened for reading by
+      /// the SourceDataExtractor::openInput() function. A box of
+      /// required width is centred on the peak pixel of the
+      /// RadioSource, extending over the full spectral range of the
+      /// input cube. The box will be truncated at the spatial edges
+      /// if necessary. The output spectrum is determined one channel
+      /// at a time, summing all pixels within the box and scaling by
+      /// the beam if so required. The output spectrum is stored in
+      /// itsArray, ready for later access or export.
+
       this->openInput();
       
       // get cube shape and identify spectral/spatial axes
