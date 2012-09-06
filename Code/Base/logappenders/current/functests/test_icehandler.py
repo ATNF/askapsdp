@@ -4,13 +4,11 @@ import os
 import subprocess
 import time
 import socket
+# pylint: disable-msg=E0611
 from nose.tools import assert_equals
-
-
 import IceStorm
-
-from askap.iceutils.icegrid import IceGridSession
-
+import askap.logging
+from askap.iceutils import IceSession
 # pylint: disable-msg=W0611
 from askap.slice import LoggingService
 # ice doesn't agree with pylint
@@ -27,13 +25,16 @@ class LoggerImpl(ILogger):
     def send(self, event, current=None):
         global last_event
         last_event = [event.origin, event.level, event.created,
-                      event.message, event.hostname]
+                      event.message, event.tag, event.hostname]
 
 class LogSubscriber(object):
     def __init__(self, comm):
         self.ice = comm
-        self.manager = IceStorm.TopicManagerPrx.\
-            checkedCast(self.ice.stringToProxy('IceStorm/TopicManager@IceStorm.TopicManager'))
+        self.manager = IceStorm.TopicManagerPrx.checkedCast(
+            self.ice.stringToProxy(
+                'IceStorm/TopicManager@IceStorm.TopicManager'
+                )
+            )
 
         topicname = "logger"
         try:
@@ -42,43 +43,48 @@ class LogSubscriber(object):
             try:
                 self.topic = self.manager.create(topicname)
             except IceStorm.TopicExists:
-                print "temporary error. try again"
-                raise
+                self.topic = self.manager.retrieve(topicname)
         # defined in config.icegrid
         self.adapter = \
-            self.ice.createObjectAdapter("TestLogArchiverAdapter")
+            self.ice.createObjectAdapterWithEndpoints("LoggingServiceAdapter",
+                                                      "tcp")
 
         subscriber = self.adapter.addWithUUID(LoggerImpl()).ice_twoway()
+
         qos = {'reliability': 'ordered'}
         try:
             self.topic.subscribeAndGetPublisher(qos, subscriber)
         except IceStorm.AlreadySubscribed:
-            raise
+            self.topic.unsubscribe(self.subscriber)
+            self.topic.subscribeAndGetPublisher(qos, self.subscriber)
         self.adapter.activate()
 
-class TestIceAppender(object):
+
+class TestIceLogger(object):
     def __init__(self):
-        self.icecfg = 'config.icegrid'
         self.subscriber = None
-        self.igsession = None
+        self.isession = None
 
     def setup(self):
-        self.igsession = IceGridSession(self.icecfg)
-        self.igsession.startup()
+        os.environ["ICE_CONFIG"] = 'ice.cfg'
+        self.isession = IceSession()#cleanup=True)
         try:
-            self.igsession.add_icestorm()
-            self.subscriber = LogSubscriber(self.igsession.communicator)
-        except:
-            self.igsession.shutdown()
+            self.isession.add_app("icebox")
+            self.isession.start()
+            self.subscriber = LogSubscriber(self.isession.communicator)
+            time.sleep(1)
+        except Exception as ex:
+            self.isession.terminate()
             raise
+
+    def teardown(self):
+        self.isession.terminate()
 
     def test_info(self):
         # this sends a log message over icestorm to the logger topic
         subprocess.call(['./tIceAppender'], shell=True)
         time.sleep(1)
+        print last_event
         assert_equals(last_event[0], log_origin)
-        assert_equals(last_event[-2], log_msg)
+        assert_equals(last_event[-3], log_msg)
         assert_equals(last_event[-1], socket.gethostname())
-
-    def teardown(self):
-        self.igsession.shutdown()
