@@ -72,7 +72,6 @@ class TestIceLogger(object):
             self.isession.add_app("icebox")
             self.isession.start()
             self.subscriber = LogSubscriber(self.isession.communicator)
-            time.sleep(1)
         except Exception as ex:
             self.isession.terminate()
             raise
@@ -84,7 +83,6 @@ class TestIceLogger(object):
         # this sends a log message over icestorm to the logger topic
         subprocess.call(['./tIceAppender'], shell=True)
         time.sleep(1)
-        print last_event
         assert_equals(last_event[0], log_origin)
         assert_equals(last_event[-3], log_msg)
         assert_equals(last_event[-1], socket.gethostname())
