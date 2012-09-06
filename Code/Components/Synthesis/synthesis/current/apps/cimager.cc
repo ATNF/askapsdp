@@ -49,6 +49,7 @@
 #include "askap/SignalManagerSingleton.h"
 #include "askap/SignalCounter.h"
 #include "askap/StatReporter.h"
+#include "boost/scoped_ptr.hpp"
 #include <parallel/ImagerParallel.h>
 #include <measurementequation/MEParsetInterface.h>
 #include <measurementequation/SynthesisParamsHelper.h>
@@ -73,11 +74,14 @@ class CimagerApp : public askap::Application
             askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
 
             try {
-                std::string profileFileName("profile.cimager");
-                if (comms.isParallel()) {
-                    profileFileName += ".rank"+utility::toString(comms.rank());
+                boost::scoped_ptr<askap::ProfileSingleton::Initialiser> profiler;
+                if (parameterExists("profile")) {
+                    std::string profileFileName("profile.cimager");
+                    if (comms.isParallel()) {
+                        profileFileName += ".rank"+utility::toString(comms.rank());
+                    }
+                    profiler.reset(new askap::ProfileSingleton::Initialiser(profileFileName));
                 }
-                ASKAP_INIT_PROFILING(profileFileName);
 
                 // Put everything in scope to ensure that all destructors are called
                 // before the final message
@@ -197,6 +201,7 @@ class CimagerApp : public askap::Application
 int main(int argc, char *argv[])
 {
     CimagerApp app;
+    app.addParameter("profile", "p", "Write profiling output files", false);
     return app.main(argc, argv);
 }
 
