@@ -133,7 +133,8 @@ namespace askap {
 	      this->itsBeamScaleFactor += exp(-0.5 * (u*u/majSDsq + v*v/minSDsq));
 	    }
 	  }
-	  this->itsBeamScaleFactor = 1./this->itsBeamScaleFactor;
+	  ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
+// 	  this->itsBeamScaleFactor = 1./this->itsBeamScaleFactor;
 	}
       }
 

@@ -37,8 +37,12 @@
 #include <Common/KVpair.h>
 #include <casa/Arrays/IPosition.h>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/Matrix.h>
 #include <casa/Arrays/Slicer.h>
 #include <coordinates/Coordinates/CoordinateUtil.h>
+#include <coordinates/Coordinates/CoordinateSystem.h>
+#include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <coordinates/Coordinates/SpectralCoordinate.h>
 #include <imageaccess/CasaImageAccess.h>
 #include <duchamp/Detection/finders.hh>
 #include <duchamp/PixelMap/Object2D.hh>
@@ -50,22 +54,24 @@ namespace askap {
 
   namespace analysis {
 
-    const bool doScale=true;
+    const bool doScale=false;
 
     class ExtractionTest : public CppUnit::TestFixture {
       CPPUNIT_TEST_SUITE(ExtractionTest);
       CPPUNIT_TEST(readParset);
       CPPUNIT_TEST(loadSource);
       CPPUNIT_TEST(extractSpectrum);
+      CPPUNIT_TEST(extractSpectrumPowerlaw);
+      CPPUNIT_TEST(extractSpectrumBeam);
       CPPUNIT_TEST_SUITE_END();
 
     private:
       SpectralBoxExtractor extractor;
       LOFAR::ParameterSet parset; // used for defining the subdef
-      std::string tempImage;
+      std::string tempImage,tempImageGauss,tempImagePL;
       std::string outfile;
-      RadioSource object;
-	      
+      RadioSource object,gaussobject;
+      float alpha;
       // std::vector<double> beam;
 
     public:
@@ -73,10 +79,26 @@ namespace askap {
       void setUp() {
 		  
 	tempImage="tempImageForExtractionTest";
+	tempImagePL="tempImagePowerlawForExtractionTest";
+	tempImageGauss="tempImageGaussianForExtractionTest";
 	outfile="tempOutputFromExtractionTest";
-	// beam[0] = 
-		  
-	// make a synthetic array
+	alpha=0.5;
+
+	//-----------------------------------
+	// Make the coordinate system for the images
+	
+	Matrix<Double> xform(2,2); xform=0.; xform.diagonal()=1.;
+	casa::DirectionCoordinate dircoo(MDirection::J2000,Projection(Projection::SIN),
+					 casa::Quantum<Double>(187.5,"deg"),casa::Quantum<Double>(-45.,"deg"),
+					 casa::Quantum<Double>(10./3600.,"deg"),casa::Quantum<Double>(10./3600.,"deg"),
+					 xform,5,5);
+	casa::SpectralCoordinate spcoo(MFrequency::TOPO, 1.4e9, 1.e6, 0, 1420405751.786);
+	casa::CoordinateSystem coo=casa::CoordinateUtil::defaultCoords3D();
+	coo.replaceCoordinate(dircoo,coo.findCoordinate(casa::Coordinate::DIRECTION));
+	coo.replaceCoordinate(spcoo,coo.findCoordinate(casa::Coordinate::SPECTRAL));
+
+	//-----------------------------------
+	// make a synthetic array where the box sum of a given width will be equal to the width
 	double pixels[81]={16.,16.,16.,16.,16.,16.,16.,16.,16.,
 			   16.,12.,12.,12.,12.,12.,12.,12.,16.,
 			   16.,12., 8., 8., 8., 8., 8.,12.,16.,
@@ -88,20 +110,25 @@ namespace askap {
 			   16.,16.,16.,16.,16.,16.,16.,16.,16.};
 
 	casa::IPosition shape(3,9,9,10),shapeSml(3,9,9,1);
-	casa::Array<Float> array(shape),arrSml(shapeSml);
+	casa::Array<Float> array(shape),arrSml(shapeSml),arrayPL(shape);
 	for(int y=0;y<9;y++){
 	  for(int x=0;x<9;x++){
-	    for(int z=0;z<10;z++){
-	      casa::IPosition loc(3,x,y,z);
-	      array(loc)=float(1./pixels[y*9+x]);
-	    }
 	    casa::IPosition locSml(3,x,y,0);
 	    arrSml(locSml)=float(1./pixels[y*9+x]);
+	    for(int z=0;z<10;z++){
+	      casa::IPosition loc(3,x,y,z);
+	      array(loc)=arrSml(locSml);
+	      arrayPL(loc)=arrSml(locSml) * pow(double(z+1),alpha);
+	    }
 	  }
 	}
 	accessors::CasaImageAccess ia;
-	ia.create(tempImage,shape,casa::CoordinateUtil::defaultCoords3D());
+	ia.create(tempImage,shape,coo);
 	ia.write(tempImage,array);
+	ia.setUnits(tempImage,"Jy/beam");
+	ia.create(tempImagePL,shape,coo);
+	ia.write(tempImagePL,arrayPL);
+	ia.setUnits(tempImagePL,"Jy/beam");
 
 	std::vector<bool> mask(81,false); //just the first channel
 	for(size_t i=0;i<81;i++) mask[i]=(arrSml.data()[i]>0.5);
@@ -111,6 +138,42 @@ namespace askap {
 	size_t dim[2]; dim[0] = dim[1] = 9;
 	object.calcFluxes(arrSml.data(),dim); // should now have the peak position.
 	object.setID(1);
+
+	//------------------------------------
+
+	//------------------------------------
+	// another synthetic array with a gaussian source at the centre
+	float bmaj = 4.;
+	float bmin = 2.;
+	float sigMajsq = bmaj*bmaj/8./M_LN2;
+	float sigMinsq = bmin*bmin/8./M_LN2;
+	float bpa = M_PI/4.;
+	casa::Array<Float> gaussarray(shape),gaussarrSml(shapeSml);
+	for(int y=0;y<9;y++){
+	  for(int x=0;x<9;x++){
+	    double u = (x-4)*cos(bpa) + (y-4)*sin(bpa);
+	    double v = (x-4)*sin(bpa) - (y-4)*cos(bpa);
+	    casa::IPosition locSml(3,x,y,0);
+	    gaussarrSml(locSml) = exp(-0.5*(u*u/sigMajsq + v*v/sigMinsq));
+	    for(int z=0;z<10;z++){
+	      casa::IPosition loc(3,x,y,z);
+	      gaussarray(loc)=gaussarrSml(locSml);
+	    }
+	  }
+	}
+	ia.create(tempImageGauss,shape,coo);
+	ia.write(tempImageGauss,gaussarray);
+	ia.setBeamInfo(tempImageGauss,bmaj*10./3600.*M_PI/180.,bmin*10./3600.*M_PI/180.,bpa);
+	ia.setUnits(tempImageGauss,"Jy/beam");
+	    
+	mask = std::vector<bool>(81,false); //just the first channel
+	for(size_t i=0;i<81;i++) mask[i]=(gaussarrSml.data()[i]>0.9);
+	objlist=duchamp::lutz_detect(mask,9,9,1);
+	CPPUNIT_ASSERT(objlist.size()==1);
+	gaussobject.addChannel(0,objlist[0]);
+	gaussobject.calcFluxes(gaussarrSml.data(),dim); // should now have the peak position.
+	gaussobject.setID(1);
+
 
 	parset.add("spectralCube",tempImage);
 	parset.add(LOFAR::KVpair("spectralBoxWidth", 5));
@@ -143,15 +206,47 @@ namespace askap {
 	  extractor.extract();
 	  std::vector<float> asVec;
 	  extractor.array().tovector(asVec);
-	  for(size_t i=0;i<asVec.size();i++){
-/* 	    ASKAPLOG_DEBUG_STR(logger, "Width = "<<width<<", chan="<<i<<", spectrum="<<asVec[i] << ", diff="<<asVec[i]-width); */
-	    CPPUNIT_ASSERT(fabs(asVec[i]-width)<1.e-5);
-	  }
-	  
+	  for(size_t i=0;i<asVec.size();i++) CPPUNIT_ASSERT(fabs(asVec[i]-width)<1.e-5);
+	}
+      }
+
+      void extractSpectrumPowerlaw() {
+	parset.replace("spectralCube",tempImagePL);
+	extractor = SpectralBoxExtractor(parset);
+	extractor.setSource(object);
+	for(int width=1;width<=9;width += 2){
+	  extractor.setBoxWidth(width);
+	  extractor.extract();
+	  std::vector<float> asVec;
+	  extractor.array().tovector(asVec);
+	  for(size_t i=0;i<asVec.size();i++) CPPUNIT_ASSERT(fabs(asVec[i]-width*pow(double(i+1),alpha))<1.e-4);
+	}
+      }
+
+      void extractSpectrumBeam() {
+	parset.replace("spectralCube",tempImageGauss);
+	extractor = SpectralBoxExtractor(parset);
+	extractor.setSource(gaussobject);
+	extractor.setFlagDoScale(true);
+	for(int width=1;width<=9;width += 2){
+	  extractor.setBoxWidth(width);
+	  extractor.extract();
+	  std::vector<float> asVec;
+	  extractor.array().tovector(asVec);
+	  for(size_t i=0;i<asVec.size();i++) CPPUNIT_ASSERT(fabs(asVec[i]-1.)<1.e-5);
 	}
       }
 
       void tearDown() {
+	std::stringstream ss;
+	ss << "rm -rf " << tempImage;
+	system(ss.str().c_str());
+	ss.str();
+	ss << "rm -rf " << tempImage;
+	system(ss.str().c_str());
+	ss.str();
+	ss << "rm -rf " << tempImage;
+	system(ss.str().c_str());
       }
 
     };
