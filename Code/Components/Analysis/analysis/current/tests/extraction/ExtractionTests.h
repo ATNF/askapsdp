@@ -50,6 +50,8 @@ namespace askap {
 
   namespace analysis {
 
+    const bool doScale=true;
+
     class ExtractionTest : public CppUnit::TestFixture {
       CPPUNIT_TEST_SUITE(ExtractionTest);
       CPPUNIT_TEST(readParset);
@@ -112,17 +114,18 @@ namespace askap {
 
 	parset.add("spectralCube",tempImage);
 	parset.add(LOFAR::KVpair("spectralBoxWidth", 5));
-	parset.add(LOFAR::KVpair("scaleSpectraByBeam",false));
+	parset.add(LOFAR::KVpair("scaleSpectraByBeam",doScale));
 	parset.add("spectralOutputBase",outfile);
 
       }
 
       void readParset() {
 	extractor = SpectralBoxExtractor(parset);
+	extractor.setBeamScale();
 	CPPUNIT_ASSERT(extractor.inputCube() == tempImage);
 	CPPUNIT_ASSERT(extractor.outputFile() == outfile);
 	CPPUNIT_ASSERT(extractor.boxWidth() == 5);
-	CPPUNIT_ASSERT(!extractor.doScale());
+	CPPUNIT_ASSERT(extractor.doScale() == doScale);
       }
 
       void loadSource() {

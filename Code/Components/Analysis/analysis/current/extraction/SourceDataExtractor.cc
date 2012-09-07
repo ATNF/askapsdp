@@ -45,7 +45,14 @@ namespace askap {
 
     SourceDataExtractor::SourceDataExtractor(const LOFAR::ParameterSet& parset)
     {
+      this->itsInputCubePtr=0;
       this->itsInputCube = parset.getString("spectralCube","");
+    }
+
+    SourceDataExtractor::~SourceDataExtractor()
+    {
+      this->itsInputCubePtr=0;
+      //      if(this->itsInputCubePtr) delete this->itsInputCubePtr;
     }
 
     SourceDataExtractor::SourceDataExtractor(const SourceDataExtractor& other)
@@ -67,12 +74,14 @@ namespace askap {
     
     void SourceDataExtractor::openInput()
     {
-      ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-      ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
-      const LatticeBase* lattPtr = ImageOpener::openImage(this->itsInputCube);
-      if (lattPtr == 0)
-	ASKAPTHROW(AskapError, "Requested input cube \"" << this->itsInputCube << "\" does not exist or could not be opened.");
-      this->itsInputCubePtr = dynamic_cast< const ImageInterface<Float>* >(lattPtr);
+      if(this->itsInputCubePtr==0){ // if non-zero, we have already opened the cube
+	ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
+	ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
+	const LatticeBase* lattPtr = ImageOpener::openImage(this->itsInputCube);
+	if (lattPtr == 0)
+	  ASKAPTHROW(AskapError, "Requested input cube \"" << this->itsInputCube << "\" does not exist or could not be opened.");
+	this->itsInputCubePtr = dynamic_cast< const ImageInterface<Float>* >(lattPtr);
+      }
     }
 
   }

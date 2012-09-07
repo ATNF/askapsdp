@@ -56,9 +56,9 @@ namespace askap {
       class SourceDataExtractor
       {
       public:
-	SourceDataExtractor(){};
+	SourceDataExtractor(){itsInputCubePtr=0;};
 	SourceDataExtractor(const LOFAR::ParameterSet& parset);
-	virtual ~SourceDataExtractor(){};
+	virtual ~SourceDataExtractor();
 	SourceDataExtractor(const SourceDataExtractor& other);
 	SourceDataExtractor& operator=(const SourceDataExtractor& other);
 
