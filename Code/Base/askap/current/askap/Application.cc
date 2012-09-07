@@ -55,7 +55,7 @@ Application::Application() : itsOptionsDesc("Program Options")
     itsOptionsDesc.add_options()
     ("help,h", "produce help message")
     ("config,c", po::value<string>(), "configuration parameter set file")
-    ("logcfg,l", po::value<string>(), "logger configuration file")
+    ("log-config,l", po::value<string>(), "logger configuration file")
     ("inputs", po::value<string>(), "(deprecated) synonym for 'config'. Can also be used with a single hyphen")
     ;
 }
