@@ -151,6 +151,9 @@ namespace askap {
 		void fitRemaining();
 		void distributeVoxelList();
 
+		/// @brief Extract spectra from a cube for each detected object
+		void extractSpectra();
+
                 /// @brief Calculate the object parameters on the master.
                 void calcObjectParams();
                 void calcObjectParamsOLD();
@@ -206,6 +209,9 @@ namespace askap {
                 // Class for communications
                 askap::askapparallel::AskapParallel& itsComms;
 
+		/// The parset
+		LOFAR::ParameterSet itsParset;
+
                 /// Is the image a FITS file or not (if not, probably a casa image...)
                 bool itsIsFITSFile;
 
@@ -244,6 +250,9 @@ namespace askap {
 
 		/// Name of S/N image to be written
 		std::string itsThresholdImageName;
+
+		/// Whether to extract spectra of detected sources, POSSUM-style
+		bool itsFlagExtractSpectra;
 		
                 /// The list of voxels encompassing detected sources (only for those on the edges of subimages), with fluxes.
                 std::vector<PixelInfo::Voxel> itsVoxelList;
