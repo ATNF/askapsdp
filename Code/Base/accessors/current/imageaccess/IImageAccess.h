@@ -36,6 +36,7 @@
 
 #include <casa/Arrays/Array.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
+#include <casa/Quanta/Quantum.h>
 
 #include <string>
 
@@ -78,7 +79,12 @@ struct IImageAccess {
   /// @return coordinate system object
   virtual casa::CoordinateSystem coordSys(const std::string &name) const = 0;
   
-  // writing methods
+   /// @brief obtain beam info
+  /// @param[in] name image name
+  /// @return beam info vector
+  virtual casa::Vector<casa::Quantum<double> > beamInfo(const std::string &name) const = 0;
+
+ // writing methods
   
   /// @brief create a new image
   /// @details A call to this method should preceed any write calls. The actual

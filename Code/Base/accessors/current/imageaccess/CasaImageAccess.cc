@@ -82,6 +82,16 @@ casa::CoordinateSystem CasaImageAccess::coordSys(const std::string &name) const
   return img.coordinates();
 }
   
+/// @brief obtain beam info
+/// @param[in] name image name
+/// @return beam info vector
+casa::Vector<casa::Quantum<double> > CasaImageAccess::beamInfo(const std::string &name) const
+{
+  casa::PagedImage<float> img(name);
+  casa::ImageInfo ii = img.imageInfo();
+  return ii.restoringBeam();
+}
+  
 // writing methods
   
 /// @brief create a new image

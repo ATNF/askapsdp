@@ -67,7 +67,12 @@ struct CasaImageAccess : public IImageAccess {
   /// @return coordinate system object
   virtual casa::CoordinateSystem coordSys(const std::string &name) const;
   
-  // writing methods
+  /// @brief obtain beam info
+  /// @param[in] name image name
+  /// @return beam info vector
+  virtual casa::Vector<casa::Quantum<double> > beamInfo(const std::string &name) const;
+
+ // writing methods
   
   /// @brief create a new image
   /// @details A call to this method should preceed any write calls. The actual
