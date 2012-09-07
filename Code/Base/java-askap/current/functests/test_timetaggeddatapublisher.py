@@ -4,7 +4,7 @@ import subprocess
 import time
 import IceStorm
 import askap
-from askap.iceutils import IceSession
+from askap.iceutils import IceSession, get_service_object
 from askap.slice import TypedValues
 from askap.interfaces.datapublisher import ITimeTaggedTypedValueMapPublisher
 
