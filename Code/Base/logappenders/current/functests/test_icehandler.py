@@ -8,7 +8,7 @@ import socket
 from nose.tools import assert_equals
 import IceStorm
 import askap.logging
-from askap.iceutils import IceSession
+from askap.iceutils import IceSession, get_service_object
 # pylint: disable-msg=W0611
 from askap.slice import LoggingService
 # ice doesn't agree with pylint
@@ -30,12 +30,10 @@ class LoggerImpl(ILogger):
 class LogSubscriber(object):
     def __init__(self, comm):
         self.ice = comm
-        self.manager = IceStorm.TopicManagerPrx.checkedCast(
-            self.ice.stringToProxy(
-                'IceStorm/TopicManager@IceStorm.TopicManager'
-                )
-            )
-
+        self.manager = get_service_object(
+            self.ice,
+            'IceStorm/TopicManager@IceStorm.TopicManager',
+            IceStorm.TopicManagerPrx)
         topicname = "logger"
         try:
             self.topic = self.manager.retrieve(topicname)
