@@ -71,7 +71,7 @@ namespace askap {
 	std::string outputFile(){return itsOutputFilename;};
 	RadioSource source(){return itsSource;};
 
-	//	virtual void writeImage()=0;
+	virtual void writeImage()=0;
 
       protected:
 	void openInput();

@@ -136,7 +136,7 @@ namespace askap {
 
         DuchampParallel::DuchampParallel(askap::askapparallel::AskapParallel& comms,
                                          const LOFAR::ParameterSet& parset)
-                : itsComms(comms)
+	  : itsComms(comms), itsParset(parset)
         {
             /// @details The constructor reads parameters from the parameter
             /// set parset. This set can include Duchamp parameters, as well
@@ -1884,7 +1884,7 @@ namespace askap {
 	  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
 	    extractor.setSource(*src);
 	    extractor.extract();
-// 	    extractor.writeSpectrum();
+ 	    extractor.writeImage();
 	  }
 
 	}

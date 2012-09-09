@@ -72,6 +72,8 @@ namespace askap {
 
       void extract();
 
+      void writeImage();
+
     protected:
       int itsBoxWidth;
       bool itsFlagDoScale;

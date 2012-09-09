@@ -201,6 +201,35 @@ namespace askap {
 
     }
 
+    void SpectralBoxExtractor::writeImage()
+    {
+      // get the coordinate system from the input cube
+      accessors::CasaImageAccess ia;
+      IPosition shape = ia.shape(this->itsInputCube);
+      casa::CoordinateSystem coords = ia.coordSys(this->itsInputCube);
+      ASKAPCHECK(coords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
+      ASKAPCHECK(coords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
+      int specAxis=coords.spectralAxisNumber();
+      int lngAxis=coords.directionAxesNumbers()[0];
+      int latAxis=coords.directionAxesNumbers()[1];
+
+      // shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral axis untouched.
+      casa::Vector<Float> shift(shape.size(),0), incrFrac(shape.size(),0);
+      casa::Vector<Int> newshape(shape);
+      shift(lngAxis)=this->itsSource.getXPeak();
+      shift(latAxis)=this->itsSource.getYPeak();
+      coords.subImage(shift,incrFrac,newshape);
+
+      // create the new image
+      ia.create(this->itsOutputFilename,this->itsArray.shape(),coords);
+
+      /// @todo save the new units - if units were per beam, remove this factor
+      
+      // write the array
+      ia.write(this->itsOutputFilename,this->itsArray);
+
+    }
+
 
   }
 
