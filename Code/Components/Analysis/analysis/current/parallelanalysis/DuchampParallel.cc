@@ -181,6 +181,8 @@ namespace askap {
             this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", false);
             this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
 
+	    this->itsFlagExtractSpectra = parset.getBool("extractSpectra",true);
+
 // 	    if(parset.isDefined("summaryFile")){
 // 	      this->itsFitSummaryFile = parset.getString("summaryFile", "duchamp-fitResults.txt");
 // 	      ASKAPLOG_WARN_STR(logger, "We've changed the name of the 'summaryFile' parameter to 'fitResultsFile'. Using your parameter " << this->itsFitSummaryFile << " for now, but please change your parset!");
