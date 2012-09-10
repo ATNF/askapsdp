@@ -182,7 +182,9 @@ namespace askap {
             this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
 
 	    this->itsFlagExtractSpectra = parset.getBool("extractSpectra",true);
-
+	    if(this->itsFlagExtractSpectra){
+	      ASKAPLOG_INFO_STR(logger, "Extracting spectra for detected sources from " << parset.getString("spectralCube",""));
+	    }
 // 	    if(parset.isDefined("summaryFile")){
 // 	      this->itsFitSummaryFile = parset.getString("summaryFile", "duchamp-fitResults.txt");
 // 	      ASKAPLOG_WARN_STR(logger, "We've changed the name of the 'summaryFile' parameter to 'fitResultsFile'. Using your parameter " << this->itsFitSummaryFile << " for now, but please change your parset!");
@@ -1879,11 +1881,11 @@ namespace askap {
 
       void DuchampParallel::extractSpectra()
       {
-	if(this->itsFlagExtractSpectra){
+	if(this->itsFlagExtractSpectra && this->itsComms.isMaster()){
 
-	  SpectralBoxExtractor extractor(this->itsParset);
 	  std::vector<sourcefitting::RadioSource>::iterator src;
 	  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
+	    SpectralBoxExtractor extractor(this->itsParset);
 	    extractor.setSource(*src);
 	    extractor.extract();
  	    extractor.writeImage();

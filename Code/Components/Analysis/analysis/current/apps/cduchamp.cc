@@ -84,6 +84,7 @@ class DuchampApp : public askap::Application
                 duchamp.receiveObjects();
                 duchamp.cleanup();
                 duchamp.printResults();
+		duchamp.extractSpectra();
 
                 stats.logSummary();
                 ///==============================================================================
