@@ -1,4 +1,6 @@
 /// @defgroup swcorelator Software correlator for BETA3 experiments
+/// @defgroup corrinterfaces Interfaces and code to run the software correlator as a library
+/// @defgroup dataformats Class to convert DiFX output into a measurement set
 
 /// The software correlator namespace
 namespace askap::swcorrelator {};
