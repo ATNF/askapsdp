@@ -37,11 +37,8 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "askap/Log4cxxLogSink.h"
+#include "askap/Application.h"
 #include "Common/ParameterSet.h"
-#include "CommandLineParser.h"
-#include "casa/Logging/LogIO.h"
-#include "casa/Logging/LogSinkInterface.h"
 
 // Local package includes
 #include "simplayback/SimPlayback.h"
@@ -73,74 +70,48 @@ static std::string getRank(void)
     return ss.str();
 }
 
+class PlaybackApp : public askap::Application
+{
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            MPI_Init(&argc, &argv);
+
+            // To aid in debugging, the logger needs to know the
+            // MPI rank and nodename
+            ASKAPLOG_REMOVECONTEXT("mpirank");
+            ASKAPLOG_PUTCONTEXT("mpirank", getRank().c_str());
+            ASKAPLOG_REMOVECONTEXT("hostname");
+            ASKAPLOG_PUTCONTEXT("hostname", getNodeName().c_str());
+
+            ASKAPLOG_INFO_STR(logger, "ASKAP Correlator Simulator (Playback) - " << ASKAP_PACKAGE_VERSION);
+
+            int error = 0;
+            try {
+                askap::cp::SimPlayback pb(config());
+                pb.run();
+            } catch (const askap::AskapError& e) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;
+                error = 1;
+            } catch (const std::exception& e) {
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << e.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " << e.what() << std::endl;
+                error = 1;
+            }
+
+            if (error) {
+                MPI_Abort(MPI_COMM_WORLD, error);
+            } else {
+                MPI_Finalize();
+            }
+
+            return error;
+        }
+};
+
 int main(int argc, char* argv[])
 {
-    MPI_Init(&argc, &argv);
-
-    int error = 0;
-    try {
-        // Now we have to initialize the logger before we use it
-        // If a log configuration exists in the current directory then
-        // use it, otherwise try to use the programs default one
-        std::ifstream config("askap.log_cfg", std::ifstream::in);
-        if (config) {
-            ASKAPLOG_INIT("askap.log_cfg");
-        } else {
-            std::ostringstream ss;
-            ss << argv[0] << ".log_cfg";
-            ASKAPLOG_INIT(ss.str().c_str());
-        }
-
-        // To aid in debugging, the logger needs to know the
-        // MPI rank and nodename
-        ASKAPLOG_REMOVECONTEXT("mpirank");
-        ASKAPLOG_PUTCONTEXT("mpirank", getRank().c_str());
-        ASKAPLOG_REMOVECONTEXT("hostname");
-        ASKAPLOG_PUTCONTEXT("hostname", getNodeName().c_str());
-
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
-
-        ASKAPLOG_INFO_STR(logger, "ASKAP Correlator Simulator (Playback) - " << ASKAP_PACKAGE_VERSION);
-
-        // Command line parser
-        cmdlineparser::Parser parser;
-
-        // Command line parameter
-        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "playback.in");
-
-        // Throw an exception if the parameter is not present
-        parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
-
-        parser.process(argc, const_cast<char**> (argv));
-
-        const std::string parsetFile = inputsPar;
-
-        // Create a parset from the config file
-        LOFAR::ParameterSet parset(parsetFile);
-
-        askap::cp::SimPlayback pb(parset);
-        pb.run();
-    } catch (const cmdlineparser::XParser& e) {
-        ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
-        std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;
-        error = 1;
-    } catch (const askap::AskapError& e) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;
-        error = 1;
-    } catch (const std::exception& e) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << e.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << e.what() << std::endl;
-        error = 1;
-    }
-
-    if (error) {
-        MPI_Abort(MPI_COMM_WORLD, error);
-    } else {
-        MPI_Finalize();
-    }
-
-    return error;
+    PlaybackApp app;
+    return app.main(argc, argv);
 }

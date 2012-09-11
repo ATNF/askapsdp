@@ -2,9 +2,6 @@
 ///
 /// @brief Image deconvolution program
 ///
-/// Performs synthesis imaging from a set of input images.
-/// Can run in serial or parallel (MPI) mode.
-///
 /// Control parameters are passed in from a LOFAR ParameterSet file.
 ///
 /// @copyright (c) 2007 CSIRO
@@ -31,25 +28,23 @@
 ///
 /// @author Tim Cornwell <tim.cornwell@csiro.au>
 
+// Package level header file
+#include <askap_synthesis.h>
+
 // System includes
 #include <stdexcept>
 #include <iostream>
+#include <string>
 
 // ASKAPsoft includes
-#include <askap_synthesis.h>
 #include <askap/AskapLogging.h>
-
 ASKAP_LOGGER(logger, ".cdeconvolver");
-
 #include <askap/AskapError.h>
-#include <casa/Logging/LogIO.h>
-#include <askap/Log4cxxLogSink.h>
-#include <CommandLineParser.h>
+#include <askap/Application.h>
+#include <askap/StatReporter.h>
 #include <deconvolution/DeconvolverBase.h>
 #include <deconvolution/DeconvolverFactory.h>
 #include <deconvolution/DeconvolverHelpers.h>
-
-#include <casa/OS/Timer.h>
 
 using namespace askap;
 using namespace askap::synthesis;
@@ -70,40 +65,16 @@ static std::string getNodeName(void)
     return nodename;
 }
 
-// Main function
-int main(int argc, const char** argv)
+class CdeconvolverApp : public askap::Application
 {
-    try {
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
-
-        casa::Timer timer;
-        timer.mark();
-
-        // Put everything in scope to ensure that all destructors are called
-        // before the final message
+    public:
+        virtual int run(int argc, char* argv[])
         {
-            cmdlineparser::Parser parser; // a command line parser
-            // command line parameter
-            cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs",
-                    "cdeconvolver.in");
-            // this parameter is optional
-            parser.add(inputsPar, cmdlineparser::Parser::return_default);
+            StatReporter stats;
 
-            // I hope const_cast is temporary here
-            parser.process(argc, argv);
+            const LOFAR::ParameterSet subset(config().makeSubset("Cdeconvolver."));
 
-            const std::string parsetFile = inputsPar;
-
-            LOFAR::ParameterSet parset(parsetFile);
-            LOFAR::ParameterSet subset(parset.makeSubset("Cdeconvolver."));
- 
-            std::ostringstream ss;
-            ss << argv[0] << ".log_cfg";
-            ASKAPLOG_INIT(ss.str().c_str());
-            
-            std::string hostname = getNodeName();
+            const std::string hostname = getNodeName();
             ASKAPLOG_REMOVECONTEXT("hostname");
             ASKAPLOG_PUTCONTEXT("hostname", hostname.c_str());
 
@@ -118,32 +89,19 @@ int main(int argc, const char** argv)
             DeconvolverHelpers::putArrayToImage(deconvolver->model(), "model", "dirty", subset);
             DeconvolverHelpers::putArrayToImage(deconvolver->dirty(), "residual", "dirty", subset);
 
-	    Vector<Array<float> > restored(1);
-	    if(deconvolver->restore(restored)) {
-	      DeconvolverHelpers::putArrayToImage(restored(0), "restored", "dirty", subset);
-	    }
+            Vector<Array<float> > restored(1);
+            if(deconvolver->restore(restored)) {
+                DeconvolverHelpers::putArrayToImage(restored(0), "restored", "dirty", subset);
+            }
 
-       }
-        ASKAPLOG_INFO_STR(logger, "Total times - user:   " << timer.user() << " system: " << timer.system()
-                              << " real:   " << timer.real());
+            stats.logSummary();
+            return 0;
+        }
+};
 
-        ///==============================================================================
-    } catch (const cmdlineparser::XParser &ex) {
-        ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
-        std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]"
-                      << std::endl;
-    } catch (const askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << x.what()
-                      << std::endl;
-        exit(1);
-    } catch (const std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what()
-                      << std::endl;
-        exit(1);
-    }
-
-    return 0;
+// Main function
+int main(int argc, char* argv[])
+{
+    CdeconvolverApp app;
+    return app.main(argc, argv);
 }
-

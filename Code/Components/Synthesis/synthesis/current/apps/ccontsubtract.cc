@@ -27,16 +27,16 @@
 ///
 /// @author Max Voronkov <Maxim.Voronkov@csiro.au>
 
-// ASKAPsoft includes
+// Package level header file
 #include <askap_synthesis.h>
+
+// ASKAPsoft includes
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-#include <askap/Log4cxxLogSink.h>
+#include <askap/Application.h>
+#include <askap/StatReporter.h>
 #include <askapparallel/AskapParallel.h>
-#include <casa/Logging/LogIO.h>
-#include <casa/OS/Timer.h>
 #include <Common/ParameterSet.h>
-#include <CommandLineParser.h>
 
 // Local package includes
 #include <parallel/ContSubtractParallel.h>
@@ -47,66 +47,47 @@ using namespace std;
 using namespace askap;
 using namespace askap::synthesis;
 
-// Main function
-int main(int argc, const char** argv)
+class CcontsubtractApp : public askap::Application
 {
-    // This class must have scope outside the main try/catch block
-    askap::askapparallel::AskapParallel comms(argc, argv);
-
-    try {
-        casa::Timer timer;
-        timer.mark();
-
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
-
+    public:
+        virtual int run(int argc, char* argv[])
         {
-            cmdlineparser::Parser parser; // a command line parser
-            // command line parameter
-            cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs",
-                    "ccontsubtract.in");
-            // this parameter is optional
-            parser.add(inputsPar, cmdlineparser::Parser::return_default);
+            StatReporter stats;
 
-            // I hope const_cast is temporary here
-            parser.process(argc, argv);
+            // This class must have scope outside the main try/catch block
+            askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
 
-            // we could have used inputsPar directly in the code below
-            const std::string parsetFile = inputsPar;
+            try {
+                LOFAR::ParameterSet subset(config().makeSubset("CContSubtract."));
 
-            LOFAR::ParameterSet parset(parsetFile);
-            LOFAR::ParameterSet subset(parset.makeSubset("CContSubtract."));
+                // We cannot issue log messages until MPI is initialized!
+                ContSubtractParallel csub(comms, subset);
 
-            // We cannot issue log messages until MPI is initialized!
-            ContSubtractParallel csub(comms, subset);
+                ASKAPLOG_INFO_STR(logger, "ASKAP synthesis continuum subtraction application " << ASKAP_PACKAGE_VERSION);
 
-            ASKAPLOG_INFO_STR(logger, "ASKAP synthesis continuum subtraction application " << ASKAP_PACKAGE_VERSION);
+                if (comms.isMaster()) {
+                    ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                }
 
-            if (comms.isMaster()) {
-                ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
-                ASKAPLOG_INFO_STR(logger,  parset);
+                csub.init();
+                csub.doSubtraction();
+            } catch (const askap::AskapError& e) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << e.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << e.what() << std::endl;
+                exit(1);
+            } catch (const std::exception& e) {
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << e.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " << e.what() << std::endl;
+                exit(1);
             }
-
-            csub.init();
-            csub.doSubtraction();
+            stats.logSummary();
+            return 0;
         }
-        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user()
-                << " system: " << timer.system() << " real:   " << timer.real());
-        ///==============================================================================
-    } catch (const cmdlineparser::XParser &ex) {
-        ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
-        std::cerr << "Usage: " << argv[0] << " [-inputs parsetFile]" << std::endl;
-        exit(1);
-    } catch (const askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    }
+};
 
-    return 0;
+// Main function
+int main(int argc, char* argv[])
+{
+    CcontsubtractApp app;
+    return app.main(argc, argv);
 }
