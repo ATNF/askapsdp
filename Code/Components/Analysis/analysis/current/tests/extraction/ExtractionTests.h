@@ -26,8 +26,7 @@
 ///
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
-#include <extraction/SourceDataExtractor.h>
-#include <extraction/SpectralBoxExtractor.h>
+#include <extraction/SourceSpectrumExtractor.h>
 #include <sourcefitting/RadioSource.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <askap/AskapLogging.h>
@@ -66,7 +65,7 @@ namespace askap {
       CPPUNIT_TEST_SUITE_END();
 
     private:
-      SpectralBoxExtractor extractor;
+      SourceSpectrumExtractor extractor;
       LOFAR::ParameterSet parset; // used for defining the subdef
       std::string tempImage,tempImageGauss,tempImagePL;
       std::string outfile;
@@ -183,7 +182,7 @@ namespace askap {
       }
 
       void readParset() {
-	extractor = SpectralBoxExtractor(parset);
+	extractor = SourceSpectrumExtractor(parset);
 	extractor.setBeamScale();
 	CPPUNIT_ASSERT(extractor.inputCube() == tempImage);
 	CPPUNIT_ASSERT(extractor.outputFile() == outfile);
@@ -192,14 +191,14 @@ namespace askap {
       }
 
       void loadSource() {
-	extractor = SpectralBoxExtractor(parset);
+	extractor = SourceSpectrumExtractor(parset);
 	extractor.setSource(object);
 	std::string shouldget=outfile + "_1";
 	CPPUNIT_ASSERT(extractor.outputFile() == shouldget);
       }
 
       void extractSpectrum() {
-	extractor = SpectralBoxExtractor(parset);
+	extractor = SourceSpectrumExtractor(parset);
 	extractor.setSource(object);
 	for(int width=1;width<=9;width += 2){
 	  extractor.setBoxWidth(width);
@@ -212,7 +211,7 @@ namespace askap {
 
       void extractSpectrumPowerlaw() {
 	parset.replace("spectralCube",tempImagePL);
-	extractor = SpectralBoxExtractor(parset);
+	extractor = SourceSpectrumExtractor(parset);
 	extractor.setSource(object);
 	for(int width=1;width<=9;width += 2){
 	  extractor.setBoxWidth(width);
@@ -225,7 +224,7 @@ namespace askap {
 
       void extractSpectrumBeam() {
 	parset.replace("spectralCube",tempImageGauss);
-	extractor = SpectralBoxExtractor(parset);
+	extractor = SourceSpectrumExtractor(parset);
 	extractor.setSource(gaussobject);
 	extractor.setFlagDoScale(true);
 	for(int width=1;width<=9;width += 2){

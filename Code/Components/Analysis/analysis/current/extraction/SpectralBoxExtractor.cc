@@ -66,8 +66,7 @@ namespace askap {
       /// _X appended, where X is the ID of the object in question).
       this->itsInputCube = parset.getString("spectralCube","");
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
-      this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
-      this->itsOutputFilename = parset.getString("spectralOutputBase","");
+      this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
       this->itsInputCubePtr = 0;
     }
 
@@ -81,8 +80,6 @@ namespace askap {
       if(this == &other) return *this;
       ((SourceDataExtractor &) *this) = other;
       this->itsBoxWidth = other.itsBoxWidth;
-      this->itsFlagDoScale = other.itsFlagDoScale;
-      this->itsBeamScaleFactor = other.itsBeamScaleFactor;
       return *this;
     }
 
@@ -99,85 +96,17 @@ namespace askap {
       // Append the source's ID string to the output filename
       int ID=this->itsSource.getID();
       std::stringstream ss;
-      ss << this->itsOutputFilename << "_" << ID;
+      ss << this->itsOutputFilenameBase << "_" << ID;
       this->itsOutputFilename = ss.str();
-    }
 
-    void SpectralBoxExtractor::setBeamScale()
-    {
-      if(!this->itsFlagDoScale) this->itsBeamScaleFactor = 1.;
-      else{
-
-	accessors::CasaImageAccess ia;
- 	this->openInput();
- 	Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
-	// 	Vector<Quantum<Double> > inputBeam = ia.beamInfo(this->itsInputCube);;
-	ASKAPLOG_DEBUG_STR(logger, "Beam for input cube = " << inputBeam);
-	if(inputBeam.size()==0) {
-	  ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Not scaling spectra by beam");
-	  this->itsBeamScaleFactor = 1.;
-	}
-	else{
-	  double costheta = cos(inputBeam[2].getValue("rad"));
-	  double sintheta = sin(inputBeam[2].getValue("rad"));
-	  
-	  //	  casa::CoordinateSystem coo=ia.coordSys(this->itsInputCube);
-	  //	  casa::DirectionCoordinate dirCoo = this->itsInputCubePtr->coordinates().directionCoordinate(this->itsInputCubePtr->coordinates().findCoordinate(casa::Coordinate::DIRECTION));
-	  casa::CoordinateSystem coo = this->itsInputCubePtr->coordinates();
-	  casa::DirectionCoordinate dirCoo = coo.directionCoordinate(coo.findCoordinate(casa::Coordinate::DIRECTION));
-	  double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / dirCoo.increment()[0];
-	  double majSDsq = fwhmMajPix * fwhmMajPix / 8. / M_LN2;
-	  double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / dirCoo.increment()[1];
-	  double minSDsq = fwhmMinPix * fwhmMinPix / 8. / M_LN2;
-	  
-	  int hw = (this->itsBoxWidth - 1)/2;
-	  this->itsBeamScaleFactor = 0.;
-	  for(int y=-hw; y<=hw; y++){
-	    for(int x=-hw; x<=hw; x++){
-	      double u=x*costheta + y*sintheta;
-	      double v=x*sintheta - y*costheta;
-	      this->itsBeamScaleFactor += exp(-0.5 * (u*u/majSDsq + v*v/minSDsq));
-	    }
-	  }
-	  ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
-// 	  this->itsBeamScaleFactor = 1./this->itsBeamScaleFactor;
-	}
-      }
-
-    }
-
-    void SpectralBoxExtractor::extract()
-    {
-      /// @details The main function that extracts the spectrum from
-      /// the desired input. The input cube is opened for reading by
-      /// the SourceDataExtractor::openInput() function. A box of
-      /// required width is centred on the peak pixel of the
-      /// RadioSource, extending over the full spectral range of the
-      /// input cube. The box will be truncated at the spatial edges
-      /// if necessary. The output spectrum is determined one channel
-      /// at a time, summing all pixels within the box and scaling by
-      /// the beam if so required. The output spectrum is stored in
-      /// itsArray, ready for later access or export.
-
-      this->openInput();
-      this->setBeamScale();
-      ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " for source ID " << this->itsSource.getID());
-      //	ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
-      //	ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
-
-      // get cube shape and identify spectral/spatial axes
-       IPosition shape = this->itsInputCubePtr->shape();
-       CoordinateSystem coords = this->itsInputCubePtr->coordinates();
-       //      accessors::CasaImageAccess ia;
-       //      IPosition shape = ia.shape(this->itsInputCube);
-       //      casa::CoordinateSystem coords = ia.coordSys(this->itsInputCube);
+      IPosition shape = this->itsInputCubePtr->shape();
+      CoordinateSystem coords = this->itsInputCubePtr->coordinates();
       ASKAPCHECK(coords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
       ASKAPCHECK(coords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
       int specAxis=coords.spectralAxisNumber();
       int lngAxis=coords.directionAxesNumbers()[0];
       int latAxis=coords.directionAxesNumbers()[1];
 	
-
       // define the slicer based on the source's peak pixel location and the box width.
       // Make sure we don't go over the edges of the image.
       int hw = (this->itsBoxWidth - 1)/2;
@@ -191,40 +120,19 @@ namespace askap {
       trc(lngAxis)=xmax; trc(latAxis)=ymax; trc(specAxis)=shape(specAxis)-1;
       this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
 
-       const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
-       casa::Array<Float> subarray=sub->get();
-       //      casa::Array<Float> subarray = ia.read(this->itsInputCube, blc, trc);
-      // initialise array
-      casa::IPosition arrayshape(shape.size(),1); arrayshape(specAxis)=shape(specAxis);
-      this->itsArray = casa::Array<Float>(arrayshape,0.);
-      
-      casa::IPosition chan(shape.size(),0);
-      trc=trc-blc;
-      blc=0;
-      for(int z=0; z<shape(specAxis);z++){
-	chan(specAxis)=z;
-	blc(specAxis) = trc(specAxis) = z;
-	this->itsArray(chan) =  sum(subarray(blc,trc))/ this->itsBeamScaleFactor;
-// 	ASKAPLOG_DEBUG_STR(logger, "z="<<z<<", chan="<<chan <<", blc="<<blc<<", trc="<<trc<<", subarray(blc,trc)="<<subarray(blc,trc)<<", sum(thereof)="<<sum(subarray(blc,trc))<<", beam="<<this->itsBeamScaleFactor<<", this->itsArray(chan)="<<this->itsArray(chan));
-     }
-
-//       ASKAPLOG_DEBUG_STR(logger,"Finished calculating array, here it is: " << this->itsArray);
-
-      delete sub;
-
     }
 
+ 
+ 
     void SpectralBoxExtractor::writeImage()
     {
       ASKAPLOG_INFO_STR(logger, "Writing spectrum to " << this->itsOutputFilename);
-       accessors::CasaImageAccess ia;
+      accessors::CasaImageAccess ia;
 
       // get the coordinate system from the input cube
-//       IPosition shape = ia.shape(this->itsInputCube);
-//       casa::CoordinateSystem coords = ia.coordSys(this->itsInputCube);
-       IPosition shape = this->itsInputCubePtr->shape();
-       CoordinateSystem coords = this->itsInputCubePtr->coordinates();
-       casa::Unit units=this->itsInputCubePtr->units();
+      IPosition shape = this->itsInputCubePtr->shape();
+      CoordinateSystem coords = this->itsInputCubePtr->coordinates();
+      casa::Unit units=this->itsInputCubePtr->units();
       ASKAPCHECK(coords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
       ASKAPCHECK(coords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
       int specAxis=coords.spectralAxisNumber();

@@ -39,7 +39,7 @@ namespace askap {
     /// @brief The default box width for spectral extraction
     const int defaultSpectralExtractionBoxWidth = 5;
 
-    /// @brief Class to handle the extraction of a summed spectrum for a given RadioSource. 
+    /// @brief Class to handle the extraction of a spectrum for a given RadioSource. 
 
     /// @details This class is aimed primarily at solving the problem
     /// of extracting a spectrum from a cube for a previously-detected
@@ -62,22 +62,16 @@ namespace askap {
       SpectralBoxExtractor& operator=(const SpectralBoxExtractor& other);
       
       int boxWidth(){return itsBoxWidth;};
-      void setBoxWidth(int w){itsBoxWidth=w; setBeamScale();};
-      bool doScale(){return itsFlagDoScale;};
-      void setFlagDoScale(bool b){itsFlagDoScale=b; setBeamScale();};
+      virtual void setBoxWidth(int w){itsBoxWidth=w;};
 
       void setSource(RadioSource &src);
 
-      void setBeamScale();
-
-      void extract();
+      virtual void extract() = 0;
 
       void writeImage();
 
     protected:
       int itsBoxWidth;
-      bool itsFlagDoScale;
-      float itsBeamScaleFactor;
 
     };
 

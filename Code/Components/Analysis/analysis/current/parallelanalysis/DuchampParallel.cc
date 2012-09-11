@@ -67,7 +67,7 @@ using namespace LOFAR::TYPES;
 #include <imageaccess/CasaImageAccess.h>
 
 #include <parallelanalysis/DuchampParallel.h>
-#include <extraction/SpectralBoxExtractor.h>
+#include <extraction/SourceSpectrumExtractor.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <analysisutilities/CasaImageUtil.h>
 #include <analysisutilities/SubimageDef.h>
@@ -1885,7 +1885,7 @@ namespace askap {
 
 	  std::vector<sourcefitting::RadioSource>::iterator src;
 	  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-	    SpectralBoxExtractor extractor(this->itsParset);
+	    SourceSpectrumExtractor extractor(this->itsParset);
 	    extractor.setSource(*src);
 	    extractor.extract();
  	    extractor.writeImage();

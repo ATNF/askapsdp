@@ -80,6 +80,7 @@ namespace askap {
 	casa::Slicer itsSlicer;
 	std::string itsInputCube;
 	const casa::ImageInterface<Float>* itsInputCubePtr;
+	std::string itsOutputFilenameBase;
 	std::string itsOutputFilename;
 	casa::Array<Float> itsArray;
       };
