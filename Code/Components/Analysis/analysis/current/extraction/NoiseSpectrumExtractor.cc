@@ -26,7 +26,7 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#include <extraction/SourceSpectrumExtractor.h>
+#include <extraction/NoiseSpectrumExtractor.h>
 #include <askap_analysis.h>
 #include <extraction/SourceDataExtractor.h>
 #include <extraction/SpectralBoxExtractor.h>
@@ -35,6 +35,7 @@
 #include <askap/AskapError.h>
 
 #include <sourcefitting/RadioSource.h>
+#include <analysisutilities/NewArrayPartMath.h>
 
 #include <imageaccess/CasaImageAccess.h>
 
@@ -51,82 +52,67 @@
 
 #include <Common/ParameterSet.h>
 
+#include <duchamp/Utils/Statistics.hh>
+
 using namespace askap::analysis::sourcefitting;
 
-ASKAP_LOGGER(logger, ".sourcespectrumextractor");
+ASKAP_LOGGER(logger, ".spectralboxextractor");
 
 namespace askap {
 
   namespace analysis {
 
-    SourceSpectrumExtractor::SourceSpectrumExtractor(const LOFAR::ParameterSet& parset)
+    NoiseSpectrumExtractor::NoiseSpectrumExtractor(const LOFAR::ParameterSet& parset)
     {
       /// @details Initialise the extractor from a LOFAR parset. This
       /// sets the input cube, the box width, the scaling flag, and
       /// the base name for the output spectra files (these will have
       /// _X appended, where X is the ID of the object in question).
       this->itsInputCube = parset.getString("spectralCube","");
+      this->itsAreaInBeams = parset.getFloat("noiseArea",50);
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
-      this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
-      this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
+      this->itsOutputFilename = parset.getString("spectralOutputBase","");
       this->itsInputCubePtr = 0;
+      this->setBoxWidth();
     }
 
-    SourceSpectrumExtractor::SourceSpectrumExtractor(const SourceSpectrumExtractor& other)
+    NoiseSpectrumExtractor::NoiseSpectrumExtractor(const NoiseSpectrumExtractor& other)
     {
       this->operator=(other);
     }
 
-    SourceSpectrumExtractor& SourceSpectrumExtractor::operator=(const SourceSpectrumExtractor& other)
+    NoiseSpectrumExtractor& NoiseSpectrumExtractor::operator=(const NoiseSpectrumExtractor& other)
     {
       if(this == &other) return *this;
       ((SpectralBoxExtractor &) *this) = other;
-      this->itsFlagDoScale = other.itsFlagDoScale;
-      this->itsBeamScaleFactor = other.itsBeamScaleFactor;
+      this->itsAreaInBeams = other.itsAreaInBeams;
       return *this;
     }
 
- 
-    void SourceSpectrumExtractor::setBeamScale()
+    void NoiseSpectrumExtractor::setBoxWidth()
     {
-      if(!this->itsFlagDoScale) this->itsBeamScaleFactor = 1.;
-      else{
-
- 	this->openInput();
- 	Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
-	ASKAPLOG_DEBUG_STR(logger, "Beam for input cube = " << inputBeam);
-	if(inputBeam.size()==0) {
-	  ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Not scaling spectra by beam");
-	  this->itsBeamScaleFactor = 1.;
-	}
-	else{
-	  double costheta = cos(inputBeam[2].getValue("rad"));
-	  double sintheta = sin(inputBeam[2].getValue("rad"));
-	  
-	  casa::CoordinateSystem coo = this->itsInputCubePtr->coordinates();
-	  casa::DirectionCoordinate dirCoo = coo.directionCoordinate(coo.findCoordinate(casa::Coordinate::DIRECTION));
-	  double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / dirCoo.increment()[0];
-	  double majSDsq = fwhmMajPix * fwhmMajPix / 8. / M_LN2;
-	  double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / dirCoo.increment()[1];
-	  double minSDsq = fwhmMinPix * fwhmMinPix / 8. / M_LN2;
-	  
-	  int hw = (this->itsBoxWidth - 1)/2;
-	  this->itsBeamScaleFactor = 0.;
-	  for(int y=-hw; y<=hw; y++){
-	    for(int x=-hw; x<=hw; x++){
-	      double u=x*costheta + y*sintheta;
-	      double v=x*sintheta - y*costheta;
-	      this->itsBeamScaleFactor += exp(-0.5 * (u*u/majSDsq + v*v/minSDsq));
-	    }
-	  }
-	  ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
-
-	}
+      
+      this->openInput();
+      Vector<Quantum<Double> > inputBeam = this->itsInputCubePtr->imageInfo().restoringBeam();
+      ASKAPLOG_DEBUG_STR(logger, "Beam for input cube = " << inputBeam);
+      if(inputBeam.size()==0) {
+	ASKAPLOG_WARN_STR(logger, "Input image \""<<this->itsInputCube<<"\" has no beam information. Using box width value from parset of " << this->itsBoxWidth << "pix");
       }
+      else{
+	casa::CoordinateSystem coo = this->itsInputCubePtr->coordinates();
+	casa::DirectionCoordinate dirCoo = coo.directionCoordinate(coo.findCoordinate(casa::Coordinate::DIRECTION));
+	double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / dirCoo.increment()[0];
+	double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / dirCoo.increment()[1];
+	double beamAreaInPix = M_PI * fwhmMajPix * fwhmMinPix;
+	
+	this->itsBoxWidth = int(ceil(sqrt(this->itsAreaInBeams*beamAreaInPix)));
 
+      }
+      
     }
 
-    void SourceSpectrumExtractor::extract()
+
+    void NoiseSpectrumExtractor::extract()
     {
       /// @details The main function that extracts the spectrum from
       /// the desired input. The input cube is opened for reading by
@@ -140,15 +126,16 @@ namespace askap {
       /// itsArray, ready for later access or export.
 
       this->openInput();
-      this->setBeamScale();
-      ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " for source ID " << this->itsSource.getID());
+
+      ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource.getID());
 
       const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
       casa::Array<Float> subarray=sub->get();
 
-      this->itsArray = partialSums(subarray, IPosition(2,0,1)) / this->itsBeamScaleFactor;
+      this->itsArray = partialMadfms(subarray, IPosition(2,0,1)) / Statistics::correctionFactor;
+      
 
-//       ASKAPLOG_DEBUG_STR(logger,"Finished calculating array, here it is: " << this->itsArray);
+      // ASKAPLOG_DEBUG_STR(logger,"Finished calculating array, here it is: " << this->itsArray);
 
       delete sub;
 

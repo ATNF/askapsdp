@@ -80,6 +80,14 @@ template<typename T> class SihrFunc {
         mutable Block<Float> itsTmp;
 };
 
+/// @brief MADFM version of the partial-func functions from casa/Array/ArrayPartMath
+template<class T> Array<T> partialMadfms (const Array<T>& array,
+					  const IPosition& collapseAxes,
+					  Bool takeEvenMean=False,
+					  Bool inPlace=False);
+
+
+
 #include <analysisutilities/NewArrayPartMath.tcc>
 
 #endif

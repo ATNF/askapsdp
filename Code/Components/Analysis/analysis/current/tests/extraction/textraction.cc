@@ -31,7 +31,8 @@
 #include <AskapTestRunner.h>
 
 // Test includes
-#include <ExtractionTests.h>
+#include <SourceSpectrumExtractionTests.h>
+#include <NoiseSpectrumExtractionTests.h>
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +47,8 @@ int main(int argc, char *argv[])
         ASKAPLOG_INIT(ss.str().c_str());
     }
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::analysis::ExtractionTest::suite());
+    runner.addTest(askap::analysis::SourceSpectrumExtractionTest::suite());
+    runner.addTest(askap::analysis::NoiseSpectrumExtractionTest::suite());
     bool wasSuccessful = runner.run();
 
     return wasSuccessful ? 0 : 1;

@@ -48,15 +48,15 @@
 #include <string>
 #include <math.h>
 
-ASKAP_LOGGER(logger, ".extractionTest");
+ASKAP_LOGGER(logger, ".sourceSpectrumExtractionTest");
 namespace askap {
 
   namespace analysis {
 
     const bool doScale=false;
 
-    class ExtractionTest : public CppUnit::TestFixture {
-      CPPUNIT_TEST_SUITE(ExtractionTest);
+    class SourceSpectrumExtractionTest : public CppUnit::TestFixture {
+      CPPUNIT_TEST_SUITE(SourceSpectrumExtractionTest);
       CPPUNIT_TEST(readParset);
       CPPUNIT_TEST(loadSource);
       CPPUNIT_TEST(extractSpectrum);
