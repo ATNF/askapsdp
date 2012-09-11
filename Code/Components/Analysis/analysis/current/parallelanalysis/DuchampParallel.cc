@@ -181,7 +181,7 @@ namespace askap {
             this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", false);
             this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
 
-	    this->itsFlagExtractSpectra = parset.getBool("extractSpectra",true);
+	    this->itsFlagExtractSpectra = parset.getBool("extractSpectra",false);
 	    if(this->itsFlagExtractSpectra){
 	      ASKAPLOG_INFO_STR(logger, "Extracting spectra for detected sources from " << parset.getString("spectralCube",""));
 	    }
