@@ -34,6 +34,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <corrinterfaces/MonitoringData.h>
+#include <askap/AskapError.h>
 #include <casa/Quanta/MVEpoch.h>
 
 #include <sstream>
@@ -55,6 +56,64 @@ std::string MonitoringData::timeString() const
   std::ostringstream os;
   epoch.print(os);
   return os.str();
+}
+
+/// @brief the beam number related to this structure
+/// @return the beam number
+int MonitoringData::beam() const
+{
+  return itsBeam;
+}
+
+/// @brief obtain amplitude for a given baseline 
+/// @param[in] baseline baseline index
+/// @return amplitude in raw counts
+float MonitoringData::amplitude(const Baseline baseline) const
+{
+  const int bl = int(baseline);
+  ASKAPDEBUGASSERT(bl >= 0);
+  ASKAPDEBUGASSERT(bl < int(itsAmplitudes.size()));
+  return itsAmplitudes[bl];
+}
+
+/// @brief obtain phase for a given baseline 
+/// @param[in] baseline baseline
+/// @return phase in degrees 
+float MonitoringData::phase(const Baseline baseline) const
+{
+  const int bl = int(baseline);
+  ASKAPDEBUGASSERT(bl >= 0);
+  ASKAPDEBUGASSERT(bl < int(itsPhases.size()));
+  return itsPhases[bl];
+}
+
+/// @brief obtain fitted delay for a given baseline 
+/// @param[in] baseline baseline index 
+/// @return delay in nanoseconds
+double MonitoringData::delay(const Baseline baseline) const
+{
+  const int bl = int(baseline);
+  ASKAPDEBUGASSERT(bl >= 0);
+  ASKAPDEBUGASSERT(bl < int(itsDelays.size()));
+  return itsDelays[bl];
+}
+
+/// @brief check whether a particular baseline has valid data
+/// @param[in] baseline baseline index
+/// @return true, if the data corresponding to the given baseline are valid
+bool MonitoringData::isValid(const Baseline baseline) const
+{
+  const int bl = int(baseline);
+  ASKAPDEBUGASSERT(bl >= 0);
+  ASKAPDEBUGASSERT(bl < int(itsFlags.size()));
+  return !itsFlags[bl];
+}
+
+/// @brief obtain time
+/// @return UT epoch in days since 0 MJD
+double MonitoringData::time() const
+{
+  return itsTime;
 }
 
 } // namespace swcorrelator

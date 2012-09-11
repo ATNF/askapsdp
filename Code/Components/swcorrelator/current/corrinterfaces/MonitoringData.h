@@ -57,6 +57,13 @@ namespace swcorrelator {
 /// to the type which is not present in the CorrProducts structure.
 /// @ingroup corrinterfaces
 struct MonitoringData : private boost::noncopyable {
+  /// @brief individual baselines
+  enum Baseline {
+     BASELINE_12 = 0,
+     BASELINE_23,
+     BASELINE_13
+  };
+
   /// @brief constructor, initialises the beam number and resizes the vectors
   /// @param[in] beam beam index [0..nBeam-1]
   explicit MonitoringData(const int beam);
@@ -65,6 +72,34 @@ struct MonitoringData : private boost::noncopyable {
   /// @return the date/time corresponding to itsTime as a string (to simplify reporting)
   std::string timeString() const;
   
+  /// @brief the beam number related to this structure
+  /// @return the beam number
+  int beam() const; 
+  
+  /// @brief obtain amplitude for a given baseline 
+  /// @param[in] baseline baseline index
+  /// @return amplitude in raw counts
+  float amplitude(const Baseline baseline) const;
+
+  /// @brief obtain phase for a given baseline 
+  /// @param[in] baseline baseline index
+  /// @return phase in degrees
+  float phase(const Baseline baseline) const;
+
+  /// @brief obtain fitted delay for a given baseline 
+  /// @param[in] baseline baseline index
+  /// @return delay in nanoseconds
+  double delay(const Baseline baseline) const;
+
+  /// @brief check whether a particular baseline has valid data
+  /// @param[in] baseline baseline index
+  /// @return true, if the data corresponding to the given baseline are valid
+  bool isValid(const Baseline baseline) const;
+
+  /// @brief obtain time
+  /// @return UT epoch in days since 0 MJD
+  double time() const;
+ 
   // monitoring information for the last correlated data
       
   /// @brief the beam this structure corresponds to [0..nBeam-1]
