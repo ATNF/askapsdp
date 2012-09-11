@@ -46,9 +46,9 @@ namespace askap {
       SourceSpectrumExtractor(const SourceSpectrumExtractor& other);
       SourceSpectrumExtractor& operator=(const SourceSpectrumExtractor& other);
       
-      void setBoxWidth(int w){itsBoxWidth=w; setBeamScale();};
+      void setBoxWidth(int w){itsBoxWidth=w; setBeamScale(); define();};
       bool doScale(){return itsFlagDoScale;};
-      void setFlagDoScale(bool b){itsFlagDoScale=b; setBeamScale();};
+      void setFlagDoScale(bool b){itsFlagDoScale=b; setBeamScale(); define();};
 
       void setBeamScale();
 

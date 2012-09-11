@@ -65,6 +65,8 @@ namespace askap {
       virtual void setBoxWidth(int w){itsBoxWidth=w;};
 
       void setSource(RadioSource &src);
+      
+      void define();
 
       virtual void extract() = 0;
 

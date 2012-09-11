@@ -99,6 +99,13 @@ namespace askap {
       ss << this->itsOutputFilenameBase << "_" << ID;
       this->itsOutputFilename = ss.str();
 
+      this->define();
+    }
+
+    void SpectralBoxExtractor::define()
+    {
+
+      this->openInput();
       IPosition shape = this->itsInputCubePtr->shape();
       CoordinateSystem coords = this->itsInputCubePtr->coordinates();
       ASKAPCHECK(coords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
@@ -121,7 +128,6 @@ namespace askap {
       this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
 
     }
-
  
  
     void SpectralBoxExtractor::writeImage()

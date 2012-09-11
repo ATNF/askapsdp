@@ -67,6 +67,7 @@ namespace askap {
       this->itsSlicer = other.itsSlicer;
       this->itsInputCube = other.itsInputCube;
       this->itsInputCubePtr = other.itsInputCubePtr;
+      this->itsOutputFilenameBase = other.itsOutputFilenameBase;
       this->itsOutputFilename = other.itsOutputFilename;
       this->itsArray = other.itsArray;
       return *this;

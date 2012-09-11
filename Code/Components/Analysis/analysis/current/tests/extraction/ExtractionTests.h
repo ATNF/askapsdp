@@ -183,9 +183,8 @@ namespace askap {
 
       void readParset() {
 	extractor = SourceSpectrumExtractor(parset);
-	extractor.setBeamScale();
 	CPPUNIT_ASSERT(extractor.inputCube() == tempImage);
-	CPPUNIT_ASSERT(extractor.outputFile() == outfile);
+	CPPUNIT_ASSERT(extractor.outputFileBase() == outfile);
 	CPPUNIT_ASSERT(extractor.boxWidth() == 5);
 	CPPUNIT_ASSERT(extractor.doScale() == doScale);
       }
@@ -205,7 +204,10 @@ namespace askap {
 	  extractor.extract();
 	  std::vector<float> asVec;
 	  extractor.array().tovector(asVec);
-	  for(size_t i=0;i<asVec.size();i++) CPPUNIT_ASSERT(fabs(asVec[i]-width)<1.e-5);
+	  for(size_t i=0;i<asVec.size();i++){
+/* 	    ASKAPLOG_DEBUG_STR(logger, "A " << extractor.boxWidth() << " " << width << " " << i << " " << asVec[i] << " " << fabs(asVec[i]-width)); */
+	    CPPUNIT_ASSERT(fabs(asVec[i]-width)<1.e-5);
+	  }
 	}
       }
 
@@ -218,7 +220,10 @@ namespace askap {
 	  extractor.extract();
 	  std::vector<float> asVec;
 	  extractor.array().tovector(asVec);
-	  for(size_t i=0;i<asVec.size();i++) CPPUNIT_ASSERT(fabs(asVec[i]-width*pow(double(i+1),alpha))<1.e-4);
+	  for(size_t i=0;i<asVec.size();i++){
+/* 	    ASKAPLOG_DEBUG_STR(logger, "B " << extractor.boxWidth() << " " << width << " " << width*pow(double(i+1),alpha) << " " << i << " " << asVec[i] << " " << fabs(asVec[i]-width*pow(double(i+1),alpha))); */
+	    CPPUNIT_ASSERT(fabs(asVec[i]-width*pow(double(i+1),alpha))<1.e-4);
+	  }
 	}
       }
 
@@ -232,7 +237,10 @@ namespace askap {
 	  extractor.extract();
 	  std::vector<float> asVec;
 	  extractor.array().tovector(asVec);
-	  for(size_t i=0;i<asVec.size();i++) CPPUNIT_ASSERT(fabs(asVec[i]-1.)<1.e-5);
+	  for(size_t i=0;i<asVec.size();i++){
+/* 	    ASKAPLOG_DEBUG_STR(logger, "C " << extractor.boxWidth() << " " << width << " " << i << " " << asVec[i] << " " << fabs(asVec[i]-1)); */
+	    CPPUNIT_ASSERT(fabs(asVec[i]-1.)<1.e-5);
+	  }
 	}
       }
 

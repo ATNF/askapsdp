@@ -53,7 +53,7 @@
 
 using namespace askap::analysis::sourcefitting;
 
-ASKAP_LOGGER(logger, ".spectralboxextractor");
+ASKAP_LOGGER(logger, ".sourcespectrumextractor");
 
 namespace askap {
 
@@ -68,7 +68,7 @@ namespace askap {
       this->itsInputCube = parset.getString("spectralCube","");
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
       this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
-      this->itsOutputFilename = parset.getString("spectralOutputBase","");
+      this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
       this->itsInputCubePtr = 0;
     }
 
@@ -121,7 +121,7 @@ namespace askap {
 	    }
 	  }
 	  ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
-// 	  this->itsBeamScaleFactor = 1./this->itsBeamScaleFactor;
+
 	}
       }
 
@@ -147,23 +147,9 @@ namespace askap {
       const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
       casa::Array<Float> subarray=sub->get();
 
-      // // initialise array
-      // casa::IPosition arrayshape(shape.size(),1); arrayshape(specAxis)=shape(specAxis);
-      // this->itsArray = casa::Array<Float>(arrayshape,0.);
-      
-     //  casa::IPosition chan(shape.size(),0);
-     //  casa::IPosition blc=0;
-     //  casa::IPosition trc=this->itsSlicer.end()-this->itsSlicer.start();
-     //  for(int z=0; z<shape(specAxis);z++){
-     // 	chan(specAxis)=z;
-     // 	blc(specAxis) = trc(specAxis) = z;
-     // 	this->itsArray(chan) =  sum(subarray(blc,trc))/ this->itsBeamScaleFactor;
-     // 	ASKAPLOG_DEBUG_STR(logger, "z="<<z<<", chan="<<chan <<", blc="<<blc<<", trc="<<trc<<", subarray(blc,trc)="<<subarray(blc,trc)<<", sum(thereof)="<<sum(subarray(blc,trc))<<", beam="<<this->itsBeamScaleFactor<<", this->itsArray(chan)="<<this->itsArray(chan));
-     // }
-
       this->itsArray = partialSums(subarray, IPosition(2,0,1)) / this->itsBeamScaleFactor;
 
-      ASKAPLOG_DEBUG_STR(logger,"Finished calculating array, here it is: " << this->itsArray);
+//       ASKAPLOG_DEBUG_STR(logger,"Finished calculating array, here it is: " << this->itsArray);
 
       delete sub;
 
