@@ -242,10 +242,10 @@ namespace askap {
 	ss << "rm -rf " << tempImage;
 	system(ss.str().c_str());
 	ss.str();
-	ss << "rm -rf " << tempImage;
+	ss << "rm -rf " << tempImagePL;
 	system(ss.str().c_str());
 	ss.str();
-	ss << "rm -rf " << tempImage;
+	ss << "rm -rf " << tempImageGauss;
 	system(ss.str().c_str());
       }
 

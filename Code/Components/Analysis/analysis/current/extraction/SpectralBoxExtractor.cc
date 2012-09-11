@@ -205,10 +205,10 @@ namespace askap {
 	chan(specAxis)=z;
 	blc(specAxis) = trc(specAxis) = z;
 	this->itsArray(chan) =  sum(subarray(blc,trc))/ this->itsBeamScaleFactor;
-	ASKAPLOG_DEBUG_STR(logger, "z="<<z<<", chan="<<chan <<", blc="<<blc<<", trc="<<trc<<", subarray(blc,trc)="<<subarray(blc,trc)<<", sum(thereof)="<<sum(subarray(blc,trc))<<", beam="<<this->itsBeamScaleFactor<<", this->itsArray(chan)="<<this->itsArray(chan));
+// 	ASKAPLOG_DEBUG_STR(logger, "z="<<z<<", chan="<<chan <<", blc="<<blc<<", trc="<<trc<<", subarray(blc,trc)="<<subarray(blc,trc)<<", sum(thereof)="<<sum(subarray(blc,trc))<<", beam="<<this->itsBeamScaleFactor<<", this->itsArray(chan)="<<this->itsArray(chan));
      }
 
-      ASKAPLOG_DEBUG_STR(logger,"Finished calculating array, here it is: " << this->itsArray);
+//       ASKAPLOG_DEBUG_STR(logger,"Finished calculating array, here it is: " << this->itsArray);
 
       delete sub;
 
