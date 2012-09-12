@@ -62,7 +62,7 @@ namespace askap {
 	SourceDataExtractor(const SourceDataExtractor& other);
 	SourceDataExtractor& operator=(const SourceDataExtractor& other);
 
-	virtual void setSource(RadioSource &src){itsSource = src;};
+	virtual void setSource(RadioSource *src){itsSource = src;};
 
 	virtual void extract()=0;
 	
@@ -70,14 +70,14 @@ namespace askap {
 	std::string inputCube(){return itsInputCube;};
 	std::string outputFileBase(){return itsOutputFilenameBase;};
 	std::string outputFile(){return itsOutputFilename;};
-	RadioSource source(){return itsSource;};
+	RadioSource* source(){return itsSource;};
 
 	virtual void writeImage()=0;
 
       protected:
 	void openInput();
 
-	RadioSource itsSource;
+	RadioSource* itsSource;
 	casa::Slicer itsSlicer;
 	std::string itsInputCube;
 	const casa::ImageInterface<Float>* itsInputCubePtr;

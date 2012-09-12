@@ -191,14 +191,14 @@ namespace askap {
 
       void loadSource() {
 	extractor = SourceSpectrumExtractor(parset);
-	extractor.setSource(object);
+	extractor.setSource(&object);
 	std::string shouldget=outfile + "_1";
 	CPPUNIT_ASSERT(extractor.outputFile() == shouldget);
       }
 
       void extractSpectrum() {
 	extractor = SourceSpectrumExtractor(parset);
-	extractor.setSource(object);
+	extractor.setSource(&object);
 	for(int width=1;width<=9;width += 2){
 	  extractor.setBoxWidth(width);
 	  extractor.extract();
@@ -214,7 +214,7 @@ namespace askap {
       void extractSpectrumPowerlaw() {
 	parset.replace("spectralCube",tempImagePL);
 	extractor = SourceSpectrumExtractor(parset);
-	extractor.setSource(object);
+	extractor.setSource(&object);
 	for(int width=1;width<=9;width += 2){
 	  extractor.setBoxWidth(width);
 	  extractor.extract();
@@ -230,7 +230,7 @@ namespace askap {
       void extractSpectrumBeam() {
 	parset.replace("spectralCube",tempImageGauss);
 	extractor = SourceSpectrumExtractor(parset);
-	extractor.setSource(gaussobject);
+	extractor.setSource(&gaussobject);
 	extractor.setFlagDoScale(true);
 	for(int width=1;width<=9;width += 2){
 	  extractor.setBoxWidth(width);

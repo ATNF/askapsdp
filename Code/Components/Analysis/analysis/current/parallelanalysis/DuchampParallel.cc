@@ -1886,7 +1886,7 @@ namespace askap {
 	  std::vector<sourcefitting::RadioSource>::iterator src;
 	  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
 	    SourceSpectrumExtractor extractor(this->itsParset);
-	    extractor.setSource(*src);
+	    extractor.setSource(&*src);
 	    extractor.extract();
  	    extractor.writeImage();
 	  }

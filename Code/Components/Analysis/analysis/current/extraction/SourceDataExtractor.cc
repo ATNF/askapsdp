@@ -46,6 +46,7 @@ namespace askap {
     SourceDataExtractor::SourceDataExtractor(const LOFAR::ParameterSet& parset)
     {
       this->itsInputCubePtr=0;
+      this->itsSource=0;
       this->itsInputCube = parset.getString("spectralCube","");
     }
 

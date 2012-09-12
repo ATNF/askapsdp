@@ -141,7 +141,7 @@ namespace askap {
 
       this->openInput();
       this->setBeamScale();
-      ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " for source ID " << this->itsSource.getID());
+      ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " for source ID " << this->itsSource->getID());
 
       const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
       casa::Array<Float> subarray=sub->get();

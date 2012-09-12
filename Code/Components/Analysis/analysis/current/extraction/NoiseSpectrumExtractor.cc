@@ -56,7 +56,7 @@
 
 using namespace askap::analysis::sourcefitting;
 
-ASKAP_LOGGER(logger, ".spectralboxextractor");
+ASKAP_LOGGER(logger, ".noiseSpectrumExtractor");
 
 namespace askap {
 
@@ -108,6 +108,8 @@ namespace askap {
 	this->itsBoxWidth = int(ceil(sqrt(this->itsAreaInBeams*beamAreaInPix)));
 
       }
+
+      if(this->itsSource) this->define();
       
     }
 
@@ -127,7 +129,7 @@ namespace askap {
 
       this->openInput();
 
-      ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource.getID());
+      ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
 
       const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
       casa::Array<Float> subarray=sub->get();

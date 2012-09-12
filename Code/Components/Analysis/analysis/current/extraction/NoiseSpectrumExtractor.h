@@ -18,7 +18,7 @@ namespace askap {
       NoiseSpectrumExtractor(const NoiseSpectrumExtractor& other);
       NoiseSpectrumExtractor& operator=(const NoiseSpectrumExtractor& other);
       
-      void setBoxWidth(int w){itsBoxWidth=w; define();};
+      void setBoxWidth(int w){itsBoxWidth=w; if(this->itsSource) define();};
       void setBoxWidth();
       void setBoxAreaInBeams(float a){itsAreaInBeams=a; setBoxWidth();};
 

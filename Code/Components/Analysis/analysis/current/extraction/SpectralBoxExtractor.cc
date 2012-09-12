@@ -68,6 +68,7 @@ namespace askap {
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
       this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
       this->itsInputCubePtr = 0;
+      this->itsSource = 0;
     }
 
     SpectralBoxExtractor::SpectralBoxExtractor(const SpectralBoxExtractor& other)
@@ -83,7 +84,7 @@ namespace askap {
       return *this;
     }
 
-    void SpectralBoxExtractor::setSource(RadioSource &src)
+    void SpectralBoxExtractor::setSource(RadioSource* src)
     {
       /// @details Sets the source to be used. Also sets the output
       /// filename correctly with the suffix indicating the object's
@@ -93,13 +94,16 @@ namespace askap {
       /// pixel, so this needs to be defined.
 
       this->itsSource = src;
-      // Append the source's ID string to the output filename
-      int ID=this->itsSource.getID();
-      std::stringstream ss;
-      ss << this->itsOutputFilenameBase << "_" << ID;
-      this->itsOutputFilename = ss.str();
 
-      this->define();
+      if(this->itsSource){
+	// Append the source's ID string to the output filename
+	int ID=this->itsSource->getID();
+	std::stringstream ss;
+	ss << this->itsOutputFilenameBase << "_" << ID;
+	this->itsOutputFilename = ss.str();
+	
+	this->define();
+      }
     }
 
     void SpectralBoxExtractor::define()
@@ -117,8 +121,8 @@ namespace askap {
       // define the slicer based on the source's peak pixel location and the box width.
       // Make sure we don't go over the edges of the image.
       int hw = (this->itsBoxWidth - 1)/2;
-      int xpeak = this->itsSource.getXPeak();
-      int ypeak = this->itsSource.getYPeak();
+      int xpeak = this->itsSource->getXPeak();
+      int ypeak = this->itsSource->getYPeak();
       int zero=0;
       int xmin = std::max(zero, xpeak-hw), xmax=std::min(int(shape(lngAxis)-1),xpeak+hw);
       int ymin = std::max(zero, ypeak-hw), ymax=std::min(int(shape(latAxis)-1),ypeak+hw);
@@ -141,15 +145,15 @@ namespace askap {
       casa::Unit units=this->itsInputCubePtr->units();
       ASKAPCHECK(coords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
       ASKAPCHECK(coords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
-      int specAxis=coords.spectralAxisNumber();
+      //      int specAxis=coords.spectralAxisNumber();
       int lngAxis=coords.directionAxesNumbers()[0];
       int latAxis=coords.directionAxesNumbers()[1];
 
       // shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral axis untouched.
       casa::Vector<Float> shift(shape.size(),0), incrFrac(shape.size(),1);
       casa::Vector<Int> newshape=shape.asVector();
-      shift(lngAxis)=this->itsSource.getXPeak();
-      shift(latAxis)=this->itsSource.getYPeak();
+      shift(lngAxis)=this->itsSource->getXPeak();
+      shift(latAxis)=this->itsSource->getYPeak();
       coords.subImage(shift,incrFrac,newshape);
 
       // create the new image
