@@ -156,13 +156,18 @@ namespace askap {
       shift(latAxis)=this->itsSource->getYPeak();
       coords.subImage(shift,incrFrac,newshape);
 
-      // create the new image
-      ia.create(this->itsOutputFilename,this->itsArray.shape(),coords);
+      // create the new image - make it have the same dimensionality as the input, just with degenerate spatial dimensions
+      ASKAPLOG_DEBUG_STR(logger, "Array="<<this->itsArray);
+      IPosition reshape(shape);
+      reshape(lngAxis)=reshape(latAxis)=1;
+      Array<Float> newarray(this->itsArray.reform(reshape));
+
+      ia.create(this->itsOutputFilename,newarray.shape(),coords);
 
       /// @todo save the new units - if units were per beam, remove this factor
       
       // write the array
-      ia.write(this->itsOutputFilename,this->itsArray);
+      ia.write(this->itsOutputFilename,newarray);
       ia.setUnits(this->itsOutputFilename, units.getName());
 
       

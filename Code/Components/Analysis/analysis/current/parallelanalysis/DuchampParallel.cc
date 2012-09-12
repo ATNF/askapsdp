@@ -68,6 +68,8 @@ using namespace LOFAR::TYPES;
 
 #include <parallelanalysis/DuchampParallel.h>
 #include <extraction/SourceSpectrumExtractor.h>
+#include <extraction/SpectralBoxExtractor.h>
+#include <extraction/NoiseSpectrumExtractor.h>
 #include <analysisutilities/AnalysisUtilities.h>
 #include <analysisutilities/CasaImageUtil.h>
 #include <analysisutilities/SubimageDef.h>
@@ -183,6 +185,7 @@ namespace askap {
 
 	    this->itsFlagExtractSpectra = parset.getBool("extractSpectra",false);
 	    if(this->itsFlagExtractSpectra){
+	      ASKAPCHECK(parset.isDefined("spectralCube"), "Source cube not defined for extracting spectra. Please use the \"spectralCube\" parameter.");
 	      ASKAPLOG_INFO_STR(logger, "Extracting spectra for detected sources from " << parset.getString("spectralCube",""));
 	    }
 // 	    if(parset.isDefined("summaryFile")){
