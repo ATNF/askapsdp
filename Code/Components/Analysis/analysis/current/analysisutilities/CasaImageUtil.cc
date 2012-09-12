@@ -52,6 +52,7 @@
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/IPosition.h>
 #include <casa/Arrays/Slicer.h>
+#include <casa/Containers/Record.h>
 #include <casa/Containers/RecordInterface.h>
 #include <casa/Containers/RecordField.h>
 #include <casa/Containers/RecordFieldId.h>
@@ -402,7 +403,11 @@ namespace askap {
             CoordinateSystem coords = imagePtr->coordinates();
             Record hdr;
 
-            if (!coords.toFITSHeader(hdr, shape, true, 'c', true,true,false)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
+// 	    ASKAPLOG_DEBUG_STR(logger, "imagePtr->coordinates().SpectralCoordinate().frequencySystem(): " << casa::MFrequency::showType(coords.spectralCoordinate(coords.findCoordinate(casa::Coordinate::SPECTRAL)).frequencySystem()));
+// 	    ASKAPLOG_DEBUG_STR(logger, "imagePtr->coordinates().SpectralCoordinate().velocityDoppler(): " << casa::MDoppler::showType(coords.spectralCoordinate(coords.findCoordinate(casa::Coordinate::SPECTRAL)).velocityDoppler()));
+// 	    ASKAPLOG_DEBUG_STR(logger, "imagePtr->coordinates().SpectralCoordinate().worldAxisNames(): " << coords.spectralCoordinate(coords.findCoordinate(casa::Coordinate::SPECTRAL)).worldAxisNames());
+            if (!coords.toFITSHeader(hdr, shape, true, 'c', true,true,true,false)) throw AskapError("casaImageToWCS: could not read FITS header parameters");
+// 	    ASKAPLOG_DEBUG_STR(logger, "coords.toFITSHeader: " << hdr);
 
             std::vector<Double> vals;
             struct wcsprm *wcs;
@@ -442,7 +447,7 @@ namespace askap {
 // 				       << " " << units << " " << ptype << " " << xtype << " " << restflag);
 
                 }
-// 		ASKAPLOG_DEBUG_STR(logger, "1 wcs->ctype[spec] = " << wcs->ctype[wcs->spec] << " spec="<<wcs->spec);
+//  		ASKAPLOG_DEBUG_STR(logger, "1 wcs->ctype[spec] = " << wcs->ctype[wcs->spec] << " spec="<<wcs->spec << " wcs->ctype[2] = " << wcs->ctype[2]);
             }
 
             if (hdr.isDefined("cunit")) {
