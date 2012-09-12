@@ -73,6 +73,7 @@ namespace askap {
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
       this->itsOutputFilename = parset.getString("spectralOutputBase","");
       this->itsInputCubePtr = 0;
+      this->itsSource = 0;
       this->setBoxWidth();
     }
 
