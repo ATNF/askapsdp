@@ -32,6 +32,9 @@
 #include <extraction/SourceDataExtractor.h>
 #include <extraction/SpectralBoxExtractor.h>
 #include <Common/ParameterSet.h>
+#include <utils/PolConverter.h>
+#include <measures/Measures/Stokes.h>
+#include <casa/Arrays/Vector.h>
 
 namespace askap {
 
@@ -49,6 +52,7 @@ namespace askap {
       void setBoxWidth(int w){itsBoxWidth=w; setBeamScale(); if(this->itsSource) define();};
       bool doScale(){return itsFlagDoScale;};
       void setFlagDoScale(bool b){itsFlagDoScale=b; setBeamScale(); if(this->itsSource) define();};
+      std::vector<std::string> polarisations(){return scimath::PolConverter::toString(itsStokesList);};
 
       void setBeamScale();
 
@@ -57,6 +61,7 @@ namespace askap {
     protected:
       bool itsFlagDoScale;
       float itsBeamScaleFactor;
+      casa::Vector<casa::Stokes::StokesTypes> itsStokesList;
 
     };
 

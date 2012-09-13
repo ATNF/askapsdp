@@ -178,7 +178,7 @@ namespace askap {
 	parset.add(LOFAR::KVpair("spectralBoxWidth", 5));
 	parset.add(LOFAR::KVpair("scaleSpectraByBeam",doScale));
 	parset.add("spectralOutputBase",outfile);
-
+	parset.add("polarisation","IQUV");
       }
 
       void readParset() {
@@ -187,6 +187,10 @@ namespace askap {
 	CPPUNIT_ASSERT(extractor.outputFileBase() == outfile);
 	CPPUNIT_ASSERT(extractor.boxWidth() == 5);
 	CPPUNIT_ASSERT(extractor.doScale() == doScale);
+	std::vector<std::string> pols=extractor.polarisations();
+	std::string pollist;
+	for(size_t i=0;i<pols.size();i++) pollist+=pols[i];
+	CPPUNIT_ASSERT(pollist=="IQUV");
       }
 
       void loadSource() {

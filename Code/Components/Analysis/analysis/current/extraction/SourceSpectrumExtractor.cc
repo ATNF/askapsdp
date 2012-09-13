@@ -37,10 +37,12 @@
 #include <sourcefitting/RadioSource.h>
 
 #include <imageaccess/CasaImageAccess.h>
+#include <utils/PolConverter.h>
 
 #include <casa/Arrays/IPosition.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Slicer.h>
+#include <casa/Arrays/Vector.h>
 #include <images/Images/ImageInterface.h>
 #include <images/Images/ImageOpener.h>
 #include <images/Images/FITSImage.h>
@@ -48,6 +50,7 @@
 #include <images/Images/SubImage.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <measures/Measures/Stokes.h>
 
 #include <Common/ParameterSet.h>
 
@@ -69,6 +72,19 @@ namespace askap {
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
       this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
       this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
+
+      // Take the following from SynthesisParamsHelper.cc in Synthesis
+      // there could be many ways to define stokes, e.g. ["XX YY"] or ["XX","YY"] or "XX,YY"
+      // to allow some flexibility we have to concatenate all elements first and then 
+      // allow the parser from PolConverter to take care of extracting the products.                                            
+      const std::vector<std::string> stokesVec = parset.getStringVector("polarisation", std::vector<std::string>(1,"IQUV"));
+      std::string stokesStr;
+      for (size_t i=0; i<stokesVec.size(); ++i) {
+	stokesStr += stokesVec[i];
+      }
+      this->itsStokesList = scimath::PolConverter::fromString(stokesStr);
+      
+      this->itsSource = 0;
       this->itsInputCubePtr = 0;
     }
 
@@ -83,6 +99,7 @@ namespace askap {
       ((SpectralBoxExtractor &) *this) = other;
       this->itsFlagDoScale = other.itsFlagDoScale;
       this->itsBeamScaleFactor = other.itsBeamScaleFactor;
+      this->itsStokesList = other.itsStokesList;
       return *this;
     }
 
