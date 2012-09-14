@@ -26,7 +26,7 @@
 /// mpicxx -O3 -fstrict-aliasing -fcx-limited-range -Wall -c tConvolveBurnIn.cc
 /// mpicxx -O3 -fstrict-aliasing -fcx-limited-range -Wall -c Stopwatch.cc
 /// mpicxx -O3 -fstrict-aliasing -fcx-limited-range -Wall -c Benchmark.cc
-/// mpicxx -o tConvolveBurnIn tConvolveBurnIn.o Stopwatch.o Benchmark.o 
+/// mpicxx -o tConvolveBurnIn tConvolveBurnIn.o Stopwatch.o Benchmark.o
 ///
 /// -fstrict-aliasing - tells the compiler that there are no memory locations
 ///                     accessed through aliases.
@@ -42,6 +42,7 @@
 
 // System & MPI includes
 #include <iostream>
+#include <algorithm>
 #include <cstdlib>
 #include <mpi.h>
 
@@ -57,7 +58,71 @@
 
 // Local includes
 #include "Benchmark.h"
-#include "Stopwatch.h"
+
+struct TimeStats {
+    double min;
+    double avg;
+    double max;
+};
+
+void checkError(const int error, const std::string& location)
+{
+    if (error == MPI_SUCCESS) {
+        return;
+    }
+
+    char estring[MPI_MAX_ERROR_STRING];
+    int eclass;
+    int len;
+
+    MPI_Error_class(error, &eclass);
+    MPI_Error_string(error, estring, &len);
+    std::cout << "Error: " << location << " failed with " << eclass << ": "
+                  << estring << std::endl;
+}
+
+template <typename T>
+static T average(std::vector<T>& v)
+{
+    T sum = 0;
+    for (size_t i = 0; i < v.size(); ++i) {
+        sum += v[i];
+    }
+    return sum / T(v.size());
+}
+
+int accumulateErrors(bool success, int rank)
+{
+    int ecount = success ? 0 : 1;
+    if (rank == 0) {
+        int etotal = 0;
+        int mpierr = MPI_Reduce(&ecount, &etotal, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        checkError(mpierr, "MPI_Reduce");
+        return etotal;
+    } else {
+        int mpierr = MPI_Reduce(&ecount, 0, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        checkError(mpierr, "MPI_Reduce");
+        return 0;
+    }
+}
+
+TimeStats gatherTimes(double time, int rank, int numtasks)
+{
+    TimeStats ts;
+    std::vector<double> times(numtasks);
+    int mpierr = MPI_Gather(&time, 1, MPI_DOUBLE, &times[0], 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    checkError(mpierr, "MPI_Gather");
+    if (rank == 0) {
+        ts.min = *std::min_element(times.begin(), times.end());
+        ts.avg = average(times);
+        ts.max = *std::max_element(times.begin(), times.end());
+    } else {
+        ts.min = -1;
+        ts.avg = -1;
+        ts.max = -1;
+    }
+    return ts;
+}
 
 // Main testing routine
 int main(int argc, char *argv[])
@@ -86,7 +151,7 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     // Setup the benchmark class
-    Benchmark bmark;
+    Benchmark bmark(rank, numtasks);
     bmark.init();
 
     unsigned long griddingErrors = 0;
@@ -97,41 +162,33 @@ int main(int argc, char *argv[])
         }
 
         // Run the gridding
-        Stopwatch sw;
-        sw.start();
-        bool gridSuccess = bmark.runGrid();
-        double time = sw.stop();
+        double time;
+        const bool gridSuccess = bmark.runGrid(time);
 
         // Propogate the error count to the master
-        int errors = gridSuccess ? 0 : 1;
-        if (rank == 0) {
-            int totalErrors = 0;
-            griddingErrors += totalErrors;
-            MPI_Reduce(&errors, &totalErrors, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        } else {
-            MPI_Reduce(&errors, 0, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        }
+        griddingErrors += accumulateErrors(gridSuccess, rank);
+
+        // Gather time data at the master
+        const TimeStats gridStats = gatherTimes(time, rank, numtasks);
 
         // Run the degridding
-        sw.start();
-        bool degridSuccess = bmark.runDegrid();
-        time = sw.stop();
+        const bool degridSuccess = bmark.runDegrid(time);
 
         // Propogate the error count to the master
-        errors = degridSuccess ? 0 : 1;
-        if (rank == 0) {
-            int totalErrors = 0;
-            MPI_Reduce(&errors, &totalErrors, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-            degriddingErrors += totalErrors;
-        } else {
-            MPI_Reduce(&errors, 0, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        }
+        degriddingErrors += accumulateErrors(degridSuccess, rank);
+
+        // Gather time data at the master
+        const TimeStats degridStats = gatherTimes(time, rank, numtasks);
 
         // Report (master reports only)
         if (rank == 0) {
-            std::cout << "    Number of processes:    " << numtasks << std::endl;
-            std::cout << "    Gridding error count:   " << griddingErrors << std::endl;
-            std::cout << "    Degridding error count: " << degriddingErrors << std::endl;
+            std::cout << "    Number of processes:            " << numtasks << std::endl;
+            std::cout << "    Gridding error count:           " << griddingErrors << std::endl;
+            std::cout << "    Degridding error count:         " << degriddingErrors << std::endl;
+            std::cout << "    Gridding times (min/avg/max):   " << gridStats.min << " / "
+                          << gridStats.avg << " / " << gridStats.max << " seconds" << std::endl;
+            std::cout << "    Degridding times (min/avg/max): " << degridStats.min << " / "
+                          << degridStats.avg << " / " << degridStats.max << " seconds" << std::endl;
         }
 
         MPI_Barrier(MPI_COMM_WORLD);

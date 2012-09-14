@@ -44,8 +44,11 @@
 
 #endif
 
-Benchmark::Benchmark()
-        : next(1)
+// Local includes
+#include "Stopwatch.h"
+
+Benchmark::Benchmark(int rank, int numtasks)
+        : m_rank(rank), m_numtasks(numtasks), m_next(1)
 {
 }
 
@@ -54,8 +57,8 @@ Benchmark::Benchmark()
 int Benchmark::randomInt()
 {
     const unsigned int maxint = std::numeric_limits<int>::max();
-    next = next * 1103515245 + 12345;
-    return ((unsigned int)(next / 65536) % maxint);
+    m_next = m_next * 1103515245 + 12345;
+    return ((unsigned int)(m_next / 65536) % maxint);
 }
 
 void Benchmark::init()
@@ -64,8 +67,8 @@ void Benchmark::init()
     u.resize(nSamples);
     v.resize(nSamples);
     w.resize(nSamples);
-    samples.resize(nSamples*nChan);
-    outdata.resize(nSamples*nChan);
+    m_samples.resize(nSamples*nChan);
+    m_outdata.resize(nSamples*nChan);
 
     const unsigned int maxint = std::numeric_limits<int>::max();
 
@@ -75,8 +78,8 @@ void Benchmark::init()
         w[i] = baseline * Coord(randomInt()) / Coord(maxint) - baseline / 2;
 
         for (int chan = 0; chan < nChan; chan++) {
-            samples[i*nChan+chan].data = 1.0;
-            outdata[i*nChan+chan] = 0.0;
+            m_samples[i*nChan+chan].data = 1.0;
+            m_outdata[i*nChan+chan] = 0.0;
         }
     }
 
@@ -91,21 +94,27 @@ void Benchmark::init()
     }
 
     // Initialize convolution function and offsets
-    initC(freq, cellSize, wSize, m_support, overSample, wCellSize, C);
-    initCOffset(u, v, w, freq, cellSize, wCellSize, wSize, gSize,
-                m_support, overSample);
+    initC(freq, cellSize, wSize, m_support, m_overSample, m_wCellSize, C);
+    initCOffset(u, v, w, freq, cellSize, m_wCellSize, wSize, gSize,
+                m_support, m_overSample);
 }
 
-bool Benchmark::runGrid()
+bool Benchmark::runGrid(double& time)
 {
+    Stopwatch sw;
+    sw.start();
     gridKernel(m_support, C, grid, gSize);
+    time = sw.stop();
     return shareAndCompare(grid);
 }
 
-bool Benchmark::runDegrid()
+bool Benchmark::runDegrid(double& time)
 {
-    degridKernel(grid, gSize, m_support, C, outdata);
-    return shareAndCompare(outdata);
+    Stopwatch sw;
+    sw.start();
+    degridKernel(grid, gSize, m_support, C, m_outdata);
+    time = sw.stop();
+    return shareAndCompare(m_outdata);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -131,20 +140,20 @@ void Benchmark::gridKernel(const int support,
 {
     const int sSize = 2 * support + 1;
 
-    for (int dind = 0; dind < int(samples.size()); ++dind) {
+    for (int dind = 0; dind < int(m_samples.size()); ++dind) {
         // The actual grid point from which we offset
-        int gind = samples[dind].iu + gSize * samples[dind].iv - support;
+        int gind = m_samples[dind].iu + gSize * m_samples[dind].iv - support;
 
         // The Convoluton function point from which we offset
-        int cind = samples[dind].cOffset;
+        int cind = m_samples[dind].cOffset;
 
         for (int suppv = 0; suppv < sSize; suppv++) {
 #ifdef USEBLAS
-            CAXPY(sSize, &(samples[dind].data), &C[cind], 1, &grid[gind], 1);
+            CAXPY(sSize, &(m_samples[dind].data), &C[cind], 1, &grid[gind], 1);
 #else
             Value* gptr = &grid[gind];
             const Value* cptr = &C[cind];
-            const Value d = samples[dind].data;
+            const Value d = m_samples[dind].data;
 
             for (int suppu = 0; suppu < sSize; suppu++) {
                 *(gptr++) += d * (*(cptr++));
@@ -170,10 +179,10 @@ void Benchmark::degridKernel(const std::vector<Value>& grid,
         data[dind] = 0.0;
 
         // The actual grid point from which we offset
-        int gind = samples[dind].iu + gSize * samples[dind].iv - support;
+        int gind = m_samples[dind].iu + gSize * m_samples[dind].iv - support;
 
         // The Convoluton function point from which we offset
-        int cind = samples[dind].cOffset;
+        int cind = m_samples[dind].cOffset;
 
         for (int suppv = 0; suppv < sSize; suppv++) {
 #ifdef USEBLAS
@@ -211,14 +220,13 @@ void Benchmark::initC(const std::vector<Coord>& freq,
                       int& support, int& overSample,
                       Coord& wCellSize, std::vector<Value>& C)
 {
-    std::cout << "Initializing W projection convolution function" << std::endl;
+    if (m_rank == 0) {
+        std::cout << "Initializing W projection convolution function" << std::endl;
+    }
     support = static_cast<int>(1.5 * sqrt(std::abs(baseline) * static_cast<Coord>(cellSize)
                                           * freq[0]) / cellSize);
 
-    overSample = 8;
-    std::cout << "Support = " << support << " pixels" << std::endl;
     wCellSize = 2 * baseline * freq[0] / wSize;
-    std::cout << "W cellsize = " << wCellSize << " wavelengths" << std::endl;
 
     // Convolution function. This should be the convolution of the
     // w projection kernel (the Fresnel term) with the convolution
@@ -230,11 +238,8 @@ void Benchmark::initC(const std::vector<Coord>& freq,
 
     const int cCenter = (sSize - 1) / 2;
 
+    overSample = 8;
     C.resize(sSize*sSize*overSample*overSample*wSize);
-    std::cout << "Size of convolution function = " << sSize*sSize*overSample
-              *overSample*wSize*sizeof(Value) / (1024*1024) << " MB" << std::endl;
-    std::cout << "Shape of convolution function = [" << sSize << ", " << sSize << ", "
-                  << overSample << ", " << overSample << ", " << wSize << "]" << std::endl;
 
     for (int k = 0; k < wSize; k++) {
         double w = double(k - wSize / 2);
@@ -270,6 +275,15 @@ void Benchmark::initC(const std::vector<Coord>& freq,
     for (int i = 0; i < sSize*sSize*overSample*overSample*wSize; i++) {
         C[i] *= Value(wSize * overSample * overSample / sumC);
     }
+
+    if (m_rank == 0) {
+        std::cout << "Support = " << support << " pixels" << std::endl;
+        std::cout << "W cellsize = " << wCellSize << " wavelengths" << std::endl;
+        std::cout << "Size of convolution function = " << sSize*sSize*overSample
+            *overSample*wSize*sizeof(Value) / (1024*1024) << " MB" << std::endl;
+        std::cout << "Shape of convolution function = [" << sSize << ", " << sSize << ", "
+            << overSample << ", " << overSample << ", " << wSize << "]" << std::endl;
+    }
 }
 
 // Initialize Lookup function
@@ -299,43 +313,36 @@ void Benchmark::initCOffset(const std::vector<Coord>& u, const std::vector<Coord
             int dind = i * nChan + chan;
 
             Coord uScaled = freq[chan] * u[i] / cellSize;
-            samples[dind].iu = int(uScaled);
+            m_samples[dind].iu = int(uScaled);
 
-            if (uScaled < Coord(samples[dind].iu)) {
-                samples[dind].iu -= 1;
+            if (uScaled < Coord(m_samples[dind].iu)) {
+                m_samples[dind].iu -= 1;
             }
 
-            int fracu = int(overSample * (uScaled - Coord(samples[dind].iu)));
-            samples[dind].iu += gSize / 2;
+            int fracu = int(overSample * (uScaled - Coord(m_samples[dind].iu)));
+            m_samples[dind].iu += gSize / 2;
 
             Coord vScaled = freq[chan] * v[i] / cellSize;
-            samples[dind].iv = int(vScaled);
+            m_samples[dind].iv = int(vScaled);
 
-            if (vScaled < Coord(samples[dind].iv)) {
-                samples[dind].iv -= 1;
+            if (vScaled < Coord(m_samples[dind].iv)) {
+                m_samples[dind].iv -= 1;
             }
 
-            int fracv = int(overSample * (vScaled - Coord(samples[dind].iv)));
-            samples[dind].iv += gSize / 2;
+            int fracv = int(overSample * (vScaled - Coord(m_samples[dind].iv)));
+            m_samples[dind].iv += gSize / 2;
 
             // The beginning of the convolution function for this point
             Coord wScaled = freq[chan] * w[i] / wCellSize;
             int woff = wSize / 2 + int(wScaled);
-            samples[dind].cOffset = sSize * sSize * (fracu + overSample * (fracv + overSample * woff));
+            m_samples[dind].cOffset = sSize * sSize * (fracu + overSample * (fracv + overSample * woff));
         }
     }
 }
 
 bool Benchmark::shareAndCompare(std::vector<Value>& data)
 {
-    int numtasks;
-    int error = MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-    checkError(error, "MPI_Comm_size");
-    int rank;
-    error = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    checkError(error, "MPI_Comm_rank");
-
-    const int dest = (rank + (numtasks / 2)) % numtasks;
+    const int dest = (m_rank + (m_numtasks / 2)) % m_numtasks;
     std::vector<Value> other(data.size());
 
     // Do async send/recv
@@ -343,7 +350,7 @@ bool Benchmark::shareAndCompare(std::vector<Value>& data)
     MPI_Request reqs[ioCount];
     MPI_Status status[ioCount];
 
-    error = MPI_Isend(&data[0], data.size() * sizeof(Value), MPI_BYTE, dest, 0, MPI_COMM_WORLD, &reqs[0]);
+    int error = MPI_Isend(&data[0], data.size() * sizeof(Value), MPI_BYTE, dest, 0, MPI_COMM_WORLD, &reqs[0]);
     checkError(error, "MPI_ISend");
     error = MPI_Irecv(&other[0], data.size() * sizeof(Value), MPI_BYTE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &reqs[1]);
     checkError(error, "MPI_Irecv");
@@ -353,9 +360,10 @@ bool Benchmark::shareAndCompare(std::vector<Value>& data)
     const int source = status[1].MPI_SOURCE;
 
     // Compare arrays
+    const float fltEpsilon = std::numeric_limits<float>::epsilon();
     for (size_t i = 0; i < data.size(); ++i) {
-        if (fabs(data[i].real() - other[i].real()) > 0.00001) {
-            std::cout << "Error: Ranks " << rank << " and " << source <<
+        if (fabs(data[i].real() - other[i].real()) > fltEpsilon) {
+            std::cout << "Error: Ranks " << m_rank << " and " << source <<
                 " disagree. (Expected " << data[i].real() << " got "
                 << other[i].real() << " at index " << i << ")" << std::endl;
             return false;

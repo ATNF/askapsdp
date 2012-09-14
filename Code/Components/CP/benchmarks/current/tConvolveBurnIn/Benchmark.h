@@ -54,12 +54,12 @@ struct Sample {
 
 class Benchmark {
     public:
-        Benchmark();
+        Benchmark(int rank, int numtasks);
 
         int randomInt();
         void init();
-        bool runGrid();
-        bool runDegrid();
+        bool runGrid(double& time);
+        bool runDegrid(double& time);
 
         void gridKernel(const int support,
                         const std::vector<Value>& C,
@@ -82,20 +82,23 @@ class Benchmark {
         bool shareAndCompare(std::vector<Value>& data);
         void checkError(const int error, const std::string& location);
 
+        int m_rank;
+        int m_numtasks;
+
         std::vector<Value> grid;
         std::vector<Coord> u;
         std::vector<Coord> v;
         std::vector<Coord> w;
-        std::vector<Sample> samples;
-        std::vector<Value> outdata;
+        std::vector<Sample> m_samples;
+        std::vector<Value> m_outdata;
 
         std::vector< Value > C;
         int m_support;
-        int overSample;
+        int m_overSample;
 
-        Coord wCellSize;
+        Coord m_wCellSize;
 
         // For random number generator
-        unsigned long next;
+        unsigned long m_next;
 };
 #endif
