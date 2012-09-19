@@ -65,7 +65,7 @@ ConnectionWrapper::ConnectionWrapper(const std::string& brokerURI)
     try {
         // Create a Connection
         itsConnection.reset(connectionFactory->createConnection());
-        ((activemq::core::ActiveMQConnection*)itsConnection.get())->setUseAsyncSend(true);
+        //((activemq::core::ActiveMQConnection*)itsConnection.get())->setUseAsyncSend(true);
         itsConnection->start();
 
         // Create a Session

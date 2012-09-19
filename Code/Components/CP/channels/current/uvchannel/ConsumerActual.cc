@@ -65,7 +65,7 @@ ConsumerActual::ConsumerActual(const std::string& brokerURI, IUVChannelListener*
     ASKAPLOG_DEBUG_STR(logger, "Connecting with URI: " << brokerURI);
 }
 
-ConsumerActual::~ConsumerActual()
+ConsumerActual::~ConsumerActual() throw()
 {
     try {
         ASKAPLOG_DEBUG_STR(logger, "Disconnecting");
@@ -109,7 +109,7 @@ void ConsumerActual::removeSubscription(const std::string& topic)
     }
 }
 
-void ConsumerActual::onMessage(const cms::Message *message)
+void ConsumerActual::onMessage(const cms::Message *message) throw()
 {
     std::string destName;
     const cms::Destination* dest = message->getCMSDestination();

@@ -55,7 +55,7 @@ class EventConsumer : protected cms::MessageListener {
     public:
 
         /// @brief Destructor
-        ~EventConsumer();
+        ~EventConsumer() throw();
 
         /// @brief Receive one message.
         /// This method will block until a message is received.
@@ -100,7 +100,7 @@ class EventConsumer : protected cms::MessageListener {
         /// via which the client (i.e. this class) is delivered new messages
         /// from the event channel.
         /// @internal
-        virtual void onMessage(const cms::Message *message);
+        virtual void onMessage(const cms::Message *message) throw();
 
     private:
 

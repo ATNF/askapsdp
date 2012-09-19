@@ -63,7 +63,7 @@ namespace channels {
             ConsumerActual(const std::string& brokerURI, IUVChannelListener* listener);
 
             /// Destructor.
-            ~ConsumerActual();
+            ~ConsumerActual() throw();
 
             /// @brief Subscribe this consumer to the specified topic.
             /// @param[in] topic to subscribe to.
@@ -79,7 +79,7 @@ namespace channels {
             /// via which the client (i.e. this class) is delivered new messages
             /// from the event channel.
             /// @internal
-            virtual void onMessage(const cms::Message *message);
+            virtual void onMessage(const cms::Message *message) throw();
 
         private:
 

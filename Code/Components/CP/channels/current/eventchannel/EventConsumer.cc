@@ -56,7 +56,7 @@ EventConsumer::EventConsumer(cms::Session& session, cms::MessageConsumer* consum
     consumer->setMessageListener(this);
 }
 
-EventConsumer::~EventConsumer()
+EventConsumer::~EventConsumer() throw()
 {
     itsMessageConsumer->close();
     itsMessageConsumer.reset();
@@ -126,7 +126,7 @@ IEventListener* EventConsumer::getEventListener(void)
     return itsEventListener;
 }
 
-void EventConsumer::onMessage(const cms::Message *message)
+void EventConsumer::onMessage(const cms::Message *message) throw()
 {
     const cms::MapMessage* mapMessage =
         dynamic_cast<const cms::MapMessage*>(message);
