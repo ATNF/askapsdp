@@ -146,9 +146,9 @@ void SnapShotImagingGridderAdapter::reportAndInitIntervalStats() const
   // in principle, (itsNumOfInitialisations > 0) condition is redundant
   if ((itsLongestIntervalBetweenFits > 0) && (itsNumOfInitialisations > 0) ) {
       // intervals were initialised, report them
-      ASKAPLOG_INFO_STR(logger, "Longest observing time interval between image plane regrids is "<<
+      ASKAPLOG_DEBUG_STR(logger, "Longest observing time interval between image plane regrids is "<<
                          itsLongestIntervalBetweenFits<<" (s)");
-      ASKAPLOG_INFO_STR(logger, "Shortest observing time interval between image plane regrids is "<<
+      ASKAPLOG_DEBUG_STR(logger, "Shortest observing time interval between image plane regrids is "<<
                          itsShortestIntervalBetweenFits<<" (s)");                         
   } 
   itsLongestIntervalBetweenFits = -1.;
