@@ -136,7 +136,7 @@ namespace askap {
 
             ASKAPLOG_INFO_STR(decfistalogger, "Performing Fista for " << this->control()->targetIter() << " iterations");
 
-            updateResiduals(X);
+            this->updateResiduals(X);
 
             X_temp = X.copy();
 
@@ -154,7 +154,7 @@ namespace askap {
                 X_old = X_temp.copy();
                 T t_old = t_new;
 
-                updateResiduals(X);
+                this->updateResiduals(X);
                 SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->dirty());
 
                 X = X + this->dirty() / lipschitz;
@@ -218,7 +218,7 @@ namespace askap {
                 this->state()->incIter();
             } while (!this->control()->terminate(*(this->state())));
             this->model() = X_temp.copy();
-            updateResiduals(this->model());
+            this->updateResiduals(this->model());
 
             ASKAPLOG_INFO_STR(decfistalogger, "Performed Fista for " << this->state()->currentIter() << " iterations");
 

@@ -197,7 +197,7 @@ namespace askap {
                 this->model() = this->model() + scale * eps * step;
 
                 // Recalculate residual for the new image
-                updateResiduals(this->model());
+                this->updateResiduals(this->model());
 
                 chisq = sum(square(this->dirty()));
 
