@@ -31,6 +31,7 @@
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
 #include <corrinterfaces/CorrRunner.h>
+#include <boost/shared_ptr.hpp>
 
 namespace askap {
 
@@ -42,7 +43,9 @@ CorrRunner::CorrRunner() : itsIsRunning(false), itsStatus("UNINITIALISED") {}
 /// @brief setup call back function
 /// @details If not NULL, the given function will be called every time the new data arrive.
 /// @param[in] callBackPtr pointer to the call back function
-void CorrRunner::setCallBack(CorrRunner::CallBackType /*callBackPtr*/)
+/// @param[in[ optionalData optional pointer which is then passed to call back function
+/// @note the meaning of optionalData is user interpreted. It doesn't need to be a valid pointer
+void CorrRunner::setCallBack(CorrRunner::CallBackType callBackPtr, void *optionalData)
 {
 }
 

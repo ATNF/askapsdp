@@ -41,6 +41,7 @@
 
 // boost includes
 #include <boost/utility.hpp>
+#include <boost/thread/thread.hpp>
 
 // other 3rd party
 #include <Common/ParameterSet.h>
@@ -58,7 +59,7 @@ namespace swcorrelator {
 struct CorrRunner : private boost::noncopyable {
    
   /// @brief call back function type
-  typedef void (*CallBackType)(const MonitoringData&); 
+  typedef void (*CallBackType)(const MonitoringData&, void* optionalData); 
    
   /// @brief default constructor
   CorrRunner(); // doesn't throw
@@ -66,7 +67,9 @@ struct CorrRunner : private boost::noncopyable {
   /// @brief setup call back function
   /// @details If not NULL, the given function will be called every time the new data arrive.
   /// @param[in] callBackPtr pointer to the call back function
-  void setCallBack(CallBackType callBackPtr = NULL);
+  /// @param[in[ optionalData optional pointer which is then passed to call back function
+  /// @note the meaning of optionalData is user interpreted. It doesn't need to be a valid pointer
+  void setCallBack(CallBackType callBackPtr = NULL, void* optionalData = NULL);
    
   /// @brief start the correlator
   /// @details This method starts all required threads and intialises the correlator using
@@ -113,7 +116,12 @@ private:
 
   /// @brief error or status message
   std::string itsStatus;
-   
+ 
+  /// @brief main correlator thread  
+  /// @details This class is executed in the main epics thread. The methods like start and stop
+  /// return the control without waiting. The correlator is executed in a separate thread (where
+  /// it spawns its own child threads)
+  boost::thread theirCorrelatorThread;   
 };
 
 } // namespace swcorrelator
