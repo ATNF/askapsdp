@@ -131,7 +131,7 @@ void DuchampAccessor::processLine(const std::string& line,
     // Tokenize the line
     stringstream iss(line);
     vector<string> tokens;
-    tokens.reserve(23); // The current largest expected number is 23 tokens
+    tokens.reserve(24); // The current largest expected number is 24 tokens
     copy(istream_iterator<string>(iss),
          istream_iterator<string>(),
          back_inserter<vector<string> >(tokens));
@@ -219,7 +219,7 @@ void DuchampAccessor::processLine(const std::string& line,
 DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort nTokens)
 {
     TokenPositions pos;
-    if (nTokens == 23) {
+    if (nTokens == 24) {
         // Duchamp format
         pos.raPos = 2;
         pos.decPos = 3;
