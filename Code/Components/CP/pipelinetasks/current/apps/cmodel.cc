@@ -31,10 +31,12 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <exception>
 
 // ASKAPsoft includes
 #include "askap/Application.h"
 #include "askap/AskapError.h"
+#include "askap/AskapLogging.h"
 #include "askap/StatReporter.h"
 #include "Common/ParameterSet.h"
 
@@ -42,6 +44,8 @@
 #include "cmodel/MPIBasicComms.h"
 #include "cmodel/CModelMaster.h"
 #include "cmodel/CModelWorker.h"
+
+ASKAP_LOGGER(logger, ".cmodel");
 
 // Using
 using namespace askap;
@@ -53,21 +57,33 @@ class CmodelApp : public askap::Application
         virtual int run(int argc, char* argv[])
         {
             StatReporter stats;
-            LOFAR::ParameterSet subset = config().makeSubset("Cmodel.");
 
-            // Create the comms instance
+            // Create the comms instance. Must be outside try/catch block.
             MPIBasicComms comms(argc, argv);
 
-            // Instantiate and run the model creator
-            if (comms.getId() == 0) {
-                CModelMaster master(subset, comms);
-                master.run();
-            } else {
-                CModelWorker worker(comms);
-                worker.run();
+            try {
+                LOFAR::ParameterSet subset = config().makeSubset("Cmodel.");
+
+                // Instantiate and run the model creator
+                if (comms.getId() == 0) {
+                    CModelMaster master(subset, comms);
+                    master.run();
+                } else {
+                    CModelWorker worker(comms);
+                    worker.run();
+                }
+
+                stats.logSummary();
+            } catch (const askap::AskapError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const std::exception& x) {
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
             }
 
-            stats.logSummary();
             return 0;
         }
 };

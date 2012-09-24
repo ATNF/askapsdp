@@ -131,7 +131,7 @@ void DuchampAccessor::processLine(const std::string& line,
     // Tokenize the line
     stringstream iss(line);
     vector<string> tokens;
-    tokens.reserve(24); // The current largest expected number is 24 tokens
+    tokens.reserve(24); // For performance only: The current largest number of expected tokens.
     copy(istream_iterator<string>(iss),
          istream_iterator<string>(),
          back_inserter<vector<string> >(tokens));
@@ -219,14 +219,14 @@ void DuchampAccessor::processLine(const std::string& line,
 DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort nTokens)
 {
     TokenPositions pos;
-    if (nTokens == 24) {
+    if (nTokens == 23 || nTokens == 24) {
         // Duchamp format
         pos.raPos = 2;
         pos.decPos = 3;
-	// Use the fitted integrated flux
+        // Use the fitted integrated flux
         pos.fluxPos = 6;
-	// Use the deconvolved size information
-	pos.majorAxisPos = 11;
+        // Use the deconvolved size information
+        pos.majorAxisPos = 11;
         pos.minorAxisPos = 12;
         pos.positionAnglePos = 13;
         pos.spectralIndexPos = 14;
@@ -252,7 +252,7 @@ DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort
         pos.spectralIndexPos = 6;
         pos.spectralCurvaturePos = 7;
     } else {
-        ASKAPTHROW(AskapError, "Malformed entry - Expected 13 or 24 tokens");
+        ASKAPTHROW(AskapError, "Malformed entry - Expected 13, 23 or 24 tokens");
     }
 
     return pos;
