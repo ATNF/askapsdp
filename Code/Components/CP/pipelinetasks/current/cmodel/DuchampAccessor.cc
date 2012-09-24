@@ -223,10 +223,12 @@ DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort
         // Duchamp format
         pos.raPos = 2;
         pos.decPos = 3;
-        pos.fluxPos = 4;
-        pos.majorAxisPos = 8;
-        pos.minorAxisPos = 9;
-        pos.positionAnglePos = 10;
+	// Use the fitted integrated flux
+        pos.fluxPos = 6;
+	// Use the deconvolved size information
+	pos.majorAxisPos = 11;
+        pos.minorAxisPos = 12;
+        pos.positionAnglePos = 13;
         pos.spectralIndexPos = 14;
         pos.spectralCurvaturePos = 15;
     } else if (nTokens == 13) {
@@ -250,7 +252,7 @@ DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort
         pos.spectralIndexPos = 6;
         pos.spectralCurvaturePos = 7;
     } else {
-        ASKAPTHROW(AskapError, "Malformed entry - Expected 13 or 23 tokens");
+        ASKAPTHROW(AskapError, "Malformed entry - Expected 13 or 24 tokens");
     }
 
     return pos;
