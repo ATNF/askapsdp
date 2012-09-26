@@ -18,7 +18,7 @@ cat > ccalibrator.qsub << EOF
 
 cd \${PBS_O_WORKDIR}
 
-cat > ${CONFIGDIR}/ccalibrator-\${PBS_JOBID}.in << EOF_INNER
+cat > ${CONFIGDIR}/ccalibrator.in << EOF_INNER
 Ccalibrator.dataset                              = MS/coarse_chan_%w.ms
 Ccalibrator.refgain                              = gain.g11.0.0
 Ccalibrator.nAnt                                 = 6
