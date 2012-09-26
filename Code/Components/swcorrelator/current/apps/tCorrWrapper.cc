@@ -1,10 +1,6 @@
 /// @file 
 ///
-/// @brief real time software correlator for BETA3 tests
-/// @details This application is intended to evolve to become real time software 
-/// correlator for BETA3 tests. It takes configuration paramters from the parset file, which
-/// allows a flexible control over some parameters which we may need to change during the test 
-/// (e.g. beam details, antenna locations, delay fudge factors). 
+/// @brief test application for the real time software correlator
 ///
 /// @copyright (c) 2007 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -34,7 +30,7 @@
 #include <askap/AskapError.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
-#include <swcorrelator/CorrServer.h>
+#include <corrinterfaces/CorrRunner.h>
 
 // casa includes
 #include <casa/OS/Timer.h>
@@ -42,15 +38,10 @@
 // other 3rd party
 #include <askapparallel/AskapParallel.h>
 #include <Common/ParameterSet.h>
-#include <CommandLineParser.h>
-#include <signal.h>
 
-ASKAP_LOGGER(logger, ".swcorrelator");
+#include <boost/thread/thread.hpp>
 
-void signalHandler(int sig) {
-  signal(sig, SIG_DFL);
-  askap::swcorrelator::CorrServer::stop();
-}
+ASKAP_LOGGER(logger, ".tCorrWrapper");
 
 // Main function
 int main(int argc, const char** argv)
@@ -58,34 +49,27 @@ int main(int argc, const char** argv)
     // This class must have scope outside the main try/catch block
     askap::askapparallel::AskapParallel comms(argc, argv);
     
-    signal(SIGTERM, &signalHandler);
-
     try {
        casa::Timer timer;
        timer.mark();
-       
-       cmdlineparser::Parser parser; // a command line parser
-       // command line parameter
-       cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs",
-                    "swcorrelator.in");
-       // this parameter is optional
-       parser.add(inputsPar, cmdlineparser::Parser::return_default);
-
-       parser.process(argc, argv);
-
-       const LOFAR::ParameterSet parset(inputsPar);
-       const LOFAR::ParameterSet subset(parset.makeSubset("swcorrelator."));
+      
+       //const LOFAR::ParameterSet parset(inputsPar);
+       //const LOFAR::ParameterSet subset(parset.makeSubset("swcorrelator."));
              
-       askap::swcorrelator::CorrServer server(subset);
-       server.run();       
+       askap::swcorrelator::CorrRunner runner;
+       ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
+       runner.start("");      
+       ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
+       boost::this_thread::sleep(boost::posix_time::seconds(10));          
+       ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
+       runner.stop();      
+       ASKAPLOG_INFO_STR(logger,  "stop requested: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
+       boost::this_thread::sleep(boost::posix_time::seconds(2));          
+       ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
        
        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
                           << " real:   " << timer.real());
         ///==============================================================================
-    } catch (const cmdlineparser::XParser &ex) {
-        ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
-        ASKAPLOG_FATAL_STR(logger, "Usage: " << argv[0] << " [-inputs parsetFile]");
-        return 1;
     } catch (const askap::AskapError& x) {
         ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
         return 1;

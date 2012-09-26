@@ -33,6 +33,7 @@
 
 #include <corrinterfaces/CorrRunnerThread.h>
 #include <corrinterfaces/CorrRunner.h>
+#include <swcorrelator/CorrServer.h>
 #include <askap/AskapError.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
@@ -64,7 +65,16 @@ void CorrRunnerThread::operator()()
   if (itsParset) {
       std::string status = "ERROR: ";
       try {
+        itsParent->setStatus(true);
+        while (true) {
+          ASKAPLOG_DEBUG_STR(logger, "CorrRunnerThread - child thread");
+          boost::this_thread::sleep(boost::posix_time::seconds(1));          
+        }
         status = "OK";
+      }
+      catch (const boost::thread_interrupted&) {
+        status = "WARNING: Thread interrupted";
+        ASKAPLOG_INFO_STR(logger, "Software correlator child thread with id="<<boost::this_thread::get_id()<<" has been interrupted");
       }
       catch (const AskapError &ae) {
         status += ae.what();          
@@ -88,6 +98,16 @@ void CorrRunnerThread::operator()()
      ASKAPLOG_FATAL_STR(logger, "The software correlator thread (id="<<boost::this_thread::get_id()<<
                         ") is about to die - parset is not defined");
   }
+}
+
+/// @brief stop the correlator
+/// @details This method can be called at any time to request a stop. The correlator
+/// finishes processing of the current cycle and gracefully shuts down closing the MS.
+/// @note This method must be called at the end to avoid corruption of the MS. 
+void CorrRunnerThread::stop()
+{
+   // this call raises the stop flag in the server. The execution should finish in just over a cycle.
+   CorrServer::stop();
 }
 
 

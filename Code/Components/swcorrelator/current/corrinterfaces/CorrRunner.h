@@ -63,6 +63,9 @@ struct CorrRunner : private boost::noncopyable {
    
   /// @brief default constructor
   CorrRunner(); // doesn't throw
+
+  /// @brief default destructor
+  ~CorrRunner(); // doesn't throw
   
   /// @brief setup call back function
   /// @details If not NULL, the given function will be called every time the new data arrive.
@@ -122,7 +125,7 @@ private:
   /// @details This class is executed in the main epics thread. The methods like start and stop
   /// return the control without waiting. The correlator is executed in a separate thread (where
   /// it spawns its own child threads)
-  boost::thread theirCorrelatorThread; 
+  boost::thread itsCorrelatorThread; 
   
 };
 

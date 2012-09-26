@@ -55,22 +55,28 @@ struct CorrRunner;
 /// the child thread and CorrRunner the main thread.
 /// @ingroup corrinterfaces
 struct CorrRunnerThread  {
-   
-   /// @brief constructor
-   /// @details
-   /// @param[in] parent shared pointer to an instance of the main thread class
-   /// @param[in] parset shared pointer to the parset
-   CorrRunnerThread(const boost::shared_ptr<CorrRunner> &parent, const boost::shared_ptr<LOFAR::ParameterSet> &parset);
-   
-   /// @brief the entry point for the parallel thread
-   void operator()();
+  
+  /// @brief constructor
+  /// @details
+  /// @param[in] parent shared pointer to an instance of the main thread class
+  /// @param[in] parset shared pointer to the parset
+  CorrRunnerThread(const boost::shared_ptr<CorrRunner> &parent, const boost::shared_ptr<LOFAR::ParameterSet> &parset);
+  
+  /// @brief the entry point for the parallel thread
+  void operator()();
+  
+  /// @brief stop the correlator
+  /// @details This method can be called at any time to request a stop. The correlator
+  /// finishes processing of the current cycle and gracefully shuts down closing the MS.
+  /// @note This method must be called at the end to avoid corruption of the MS. 
+  static void stop(); // doesn't throw
    
 private:
-   /// @brief shared pointer to an instance of the main thread class (to allow status update)   
-   boost::shared_ptr<CorrRunner> itsParent;
-   
-   /// @brief shared pointer to the parset with parameters
-   boost::shared_ptr<LOFAR::ParameterSet> itsParset;
+  /// @brief shared pointer to an instance of the main thread class (to allow status update)   
+  boost::shared_ptr<CorrRunner> itsParent;
+  
+  /// @brief shared pointer to the parset with parameters
+  boost::shared_ptr<LOFAR::ParameterSet> itsParset;
 };
 
 } // namespace swcorrelator

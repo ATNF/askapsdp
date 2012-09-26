@@ -30,8 +30,21 @@
 ///
 /// @author Max Voronkov <maxim.voronkov@csiro.au>
 
+// own includes
+
 #include <corrinterfaces/CorrRunner.h>
+#include <corrinterfaces/CorrRunnerThread.h>
+#include <askap/AskapUtil.h>
+#include <askap_swcorrelator.h>
+#include <askap/AskapLogging.h>
+
+// boost includes
 #include <boost/shared_ptr.hpp>
+#include <boost/thread/thread.hpp>
+
+ASKAP_LOGGER(logger, ".corrinterfaces");
+
+
 
 namespace askap {
 
@@ -53,8 +66,19 @@ void CorrRunner::setCallBack(CorrRunner::CallBackType callBackPtr, void *optiona
 /// @details This method starts all required threads and intialises the correlator using
 /// the parset.
 /// @param[in] parset parset with input parameters
-void CorrRunner::start(const LOFAR::ParameterSet & /*parset*/)
+void CorrRunner::start(const LOFAR::ParameterSet &parset)
 {
+  if (isRunning()) {
+     ASKAPLOG_WARN_STR(logger, "start requested while the software correlator is already running");
+  } else {
+     boost::shared_ptr<CorrRunner> thisPtr(this, utility::NullDeleter());
+     ASKAPDEBUGASSERT(thisPtr);
+     boost::shared_ptr<LOFAR::ParameterSet> parsetPtr(new LOFAR::ParameterSet(parset));
+     ASKAPDEBUGASSERT(parsetPtr);
+     // patch the monitor setup in the parset here
+     //
+     itsCorrelatorThread = boost::thread(CorrRunnerThread(thisPtr, parsetPtr));
+  }
 }
   
 /// @brief start the correlator
@@ -62,8 +86,14 @@ void CorrRunner::start(const LOFAR::ParameterSet & /*parset*/)
 /// @param[in] fname parset file name
 void CorrRunner::start(const std::string &fname)
 {
-  const LOFAR::ParameterSet parset(fname);
-  start(parset);
+  try {
+    const LOFAR::ParameterSet parset(fname);
+    start(parset);
+  } catch (const std::exception &ex) {
+    setStatus(false, std::string("ERROR: ") + ex.what()); 
+  } catch (...) {
+    setStatus(false, "ERROR: unexpected exception"); 
+  }
 }
    
 /// @brief stop the correlator
@@ -72,6 +102,7 @@ void CorrRunner::start(const std::string &fname)
 /// @note This method must be called at the end to avoid corruption of the MS. 
 void CorrRunner::stop()
 {
+  CorrRunnerThread::stop();
 }
 
 /// @brief check whether the correlator is running
@@ -101,6 +132,18 @@ void CorrRunner::setStatus(const bool running, const std::string &msg)
   itsIsRunning = running;
   itsStatus = msg;
 }
+
+/// @brief default destructor
+CorrRunner::~CorrRunner()
+{
+  if (isRunning()) {
+     ASKAPLOG_WARN_STR(logger, "The software correlator seems to be still running in the CorrRunner destructor!");
+  }
+  // just to ensure the thread finishes properly
+  CorrRunnerThread::stop();
+  itsCorrelatorThread.join();
+}
+
 
 } // namespace swcorrelator
 
