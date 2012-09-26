@@ -34,6 +34,11 @@
 #include <corrinterfaces/CorrRunnerThread.h>
 #include <corrinterfaces/CorrRunner.h>
 #include <askap/AskapError.h>
+#include <askap_swcorrelator.h>
+#include <askap/AskapLogging.h>
+
+ASKAP_LOGGER(logger, ".corrinterfaces");
+
 
 namespace askap {
 
@@ -54,6 +59,7 @@ CorrRunnerThread::CorrRunnerThread(const boost::shared_ptr<CorrRunner> &parent,
 /// @brief the entry point for the parallel thread
 void CorrRunnerThread::operator()()
 {
+  ASKAPLOG_INFO_STR(logger, "Starting software correlator in a child thread with id="<<boost::this_thread::get_id());
   ASKAPDEBUGASSERT(itsParent);
   if (itsParset) {
       std::string status = "ERROR: ";
@@ -61,7 +67,7 @@ void CorrRunnerThread::operator()()
         status = "OK";
       }
       catch (const AskapError &ae) {
-         status += ae.what();          
+        status += ae.what();          
       }
       catch (const std::exception &ex) {
          status += ex.what();          
@@ -70,8 +76,17 @@ void CorrRunnerThread::operator()()
          status += "unexpected";
       }
       itsParent->setStatus(false,status);          
+      if (status == "OK") {
+          ASKAPLOG_INFO_STR(logger, "Software correlator finished in a child thread with id="<<boost::this_thread::get_id());
+      } else {
+          ASKAPLOG_FATAL_STR(logger, "Software correlator failed with an exception in a child thread with id="<<boost::this_thread::get_id());
+          ASKAPLOG_FATAL_STR(logger, status);
+      }
+      
   } else {
      itsParent->setStatus(false,"ERROR: Parset is not defined");
+     ASKAPLOG_FATAL_STR(logger, "The software correlator thread (id="<<boost::this_thread::get_id()<<
+                        ") is about to die - parset is not defined");
   }
 }
 
