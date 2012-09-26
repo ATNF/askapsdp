@@ -92,16 +92,14 @@ struct CorrRunner : private boost::noncopyable {
   
   /// @brief check whether the correlator is running
   /// @details If it is not, the data in the data fields are not valid and all flags are set
-  /// to true.
+  /// to true. Note, this method is thread safe and can be called asynchronously
   /// @return true if the correlator is running, false otherwise
   bool isRunning() const; // doesn't throw
   
   /// @brief obtain the status of error message
   /// @details When the correlator stops due to exception, the error message is available via
-  /// this method. 
+  /// this method. Note, this method is thread safe and can be called asynchronously
   std::string statusMsg() const; // doesn't throw
-
-protected:
   
   /// @brief set status message
   /// @param[in] running true, if the correlator is running
@@ -116,12 +114,16 @@ private:
 
   /// @brief error or status message
   std::string itsStatus;
+
+  /// @brief mutex to protect status message and the running state
+  mutable boost::mutex itsStatusMutex;
  
   /// @brief main correlator thread  
   /// @details This class is executed in the main epics thread. The methods like start and stop
   /// return the control without waiting. The correlator is executed in a separate thread (where
   /// it spawns its own child threads)
-  boost::thread theirCorrelatorThread;   
+  boost::thread theirCorrelatorThread; 
+  
 };
 
 } // namespace swcorrelator

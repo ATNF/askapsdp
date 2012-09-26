@@ -76,16 +76,17 @@ void CorrRunner::stop()
 
 /// @brief check whether the correlator is running
 /// @details If it is not, the data in the data fields are not valid and all flags are set
-/// to true.
+/// to true. Note, this method is thread safe and can be called asynchronously
 /// @return true if the correlator is running, false otherwise
 bool CorrRunner::isRunning() const 
 {
+  boost::lock_guard<boost::mutex> lock(itsStatusMutex);
   return itsIsRunning;
 }
 
 /// @brief obtain the status of error message
 /// @details When the correlator stops due to exception, the error message is available via
-/// this method. 
+/// this method. Note, this method is thread safe and can be called asynchronously
 std::string CorrRunner::statusMsg() const
 {
   return itsStatus;
@@ -96,6 +97,7 @@ std::string CorrRunner::statusMsg() const
 /// @param[in] msg status/error message
 void CorrRunner::setStatus(const bool running, const std::string &msg)
 {
+  boost::lock_guard<boost::mutex> lock(itsStatusMutex);
   itsIsRunning = running;
   itsStatus = msg;
 }
