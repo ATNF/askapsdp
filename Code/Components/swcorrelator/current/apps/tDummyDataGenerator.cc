@@ -87,7 +87,7 @@ struct Worker {
      ASKAPCHECK(itsNBeam > 0, "Number of beams is supposed to be positive");
      ASKAPCHECK(itsAnt >= 0, "Antenna ID should be non-negative");
      ASKAPCHECK(itsChan >= 0, "Spectral channel (card) ID should be non-negative");     
-     ASKAPCHECK(sizeof(float) == sizeof(long), "float and long has different sizes, packing of the data stream is likely to fail!");
+     //ASKAPCHECK(sizeof(float) == sizeof(long), "float and long has different sizes, packing of the data stream is likely to fail!");
    }
    
    /// @brief wait for the next timestamp

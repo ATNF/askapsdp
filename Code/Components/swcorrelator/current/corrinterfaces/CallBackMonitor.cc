@@ -168,7 +168,7 @@ void CallBackMonitor::publish(const CorrProducts &buf)
   ASKAPDEBUGASSERT(buf.itsVisibility.nrow() == result.itsPhases.size());
   ASKAPDEBUGASSERT(buf.itsVisibility.nrow() == result.itsFlags.size());
   for (casa::uInt baseline = 0; baseline < buf.itsVisibility.nrow(); ++baseline) {
-       result.itsDelays[baseline] = delays[baseline];
+       result.itsDelays[baseline] = delays[baseline]*1e9; // in nsec
        // average in frequency
        casa::Complex temp(0.,0.);
        casa::uInt counter = 0;
@@ -186,7 +186,7 @@ void CallBackMonitor::publish(const CorrProducts &buf)
            result.itsFlags[baseline] = true;
        }
        result.itsAmplitudes[baseline] = abs(temp);
-       result.itsPhases[baseline] = arg(temp)/casa::C::pi*180.;       
+       result.itsPhases[baseline] = arg(temp)/casa::C::pi*180.; // in degrees      
   }
   // publish the result via call-backs
   boost::lock_guard<boost::mutex> lock(itsRegistryMutex);
