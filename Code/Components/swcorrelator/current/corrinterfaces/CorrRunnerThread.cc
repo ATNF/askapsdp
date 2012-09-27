@@ -66,10 +66,8 @@ void CorrRunnerThread::operator()()
       std::string status = "ERROR: ";
       try {
         itsParent->setStatus(true);
-        while (true) {
-          ASKAPLOG_DEBUG_STR(logger, "CorrRunnerThread - child thread");
-          boost::this_thread::sleep(boost::posix_time::seconds(1));          
-        }
+        CorrServer actualCorrelator(*itsParset);
+        actualCorrelator.run();
         status = "OK";
       }
       catch (const boost::thread_interrupted&) {
