@@ -80,13 +80,6 @@ boost::shared_ptr<IMonitor> MonitorFactory::make(const std::string &name, const 
   return ci->second(parset);
 }
 
-/// @brief templated helper method to register a hard-coded monitor
-template<typename T> 
-void MonitorFactory::addPreDefinedMonitor()
-{
-  registerMonitor(T::name(),T::setup);
-}
-
 /// @brief helper method to register a monitor
 /// @param[in] name name of the monitor (key into the map)
 /// @param[in] creatorFunc factory function able to create the monitor

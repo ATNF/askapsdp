@@ -37,10 +37,18 @@
 #include <askap/AskapUtil.h>
 #include <askap_swcorrelator.h>
 #include <askap/AskapLogging.h>
+#include <swcorrelator/MonitorFactory.h>
+#include <corrinterfaces/CallBackMonitor.h>
 
 // boost includes
 #include <boost/shared_ptr.hpp>
 #include <boost/thread/thread.hpp>
+
+// casa includes
+#include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MeasConvert.h>
+#include <measures/Measures/MCEpoch.h>
+#include <measures/Measures/MeasFrame.h>
 
 ASKAP_LOGGER(logger, ".corrinterfaces");
 
@@ -51,7 +59,19 @@ namespace askap {
 namespace swcorrelator {
 
 /// @brief default constructor
-CorrRunner::CorrRunner() : itsIsRunning(false), itsStatus("UNINITIALISED") {}
+CorrRunner::CorrRunner() : itsIsRunning(false), itsStatus("UNINITIALISED") 
+{
+  // create a monitor we don't use just to ensure that factory is initialised prior to
+  // messing around with it
+  MonitorFactory::make("basic", LOFAR::ParameterSet());
+  // register the singleton with the factory, so it can be created by the software correlator
+  MonitorFactory::addPreDefinedMonitor<CallBackMonitor>();
+  // a work-around for casacore's lack of thread-safety
+  // trigger a dummy measures calculation to get measures set up their caches in the main thread and avoid race condition
+  const casa::MVEpoch junk(55e9);
+  casa::MEpoch::Convert(casa::MEpoch(junk, casa::MEpoch::Ref(casa::MEpoch::TAI)), 
+                             casa::MEpoch::Ref(casa::MEpoch::UTC))();
+}
 
 /// @brief setup call back function
 /// @details If not NULL, the given function will be called every time the new data arrive.
@@ -60,6 +80,7 @@ CorrRunner::CorrRunner() : itsIsRunning(false), itsStatus("UNINITIALISED") {}
 /// @note the meaning of optionalData is user interpreted. It doesn't need to be a valid pointer
 void CorrRunner::setCallBack(CorrRunner::CallBackType callBackPtr, void *optionalData)
 {
+  CallBackMonitor::monitor().setCallBack(callBackPtr,optionalData);
 }
 
 /// @brief start the correlator
@@ -73,9 +94,15 @@ void CorrRunner::start(const LOFAR::ParameterSet &parset)
   } else {
      boost::shared_ptr<CorrRunner> thisPtr(this, utility::NullDeleter());
      ASKAPDEBUGASSERT(thisPtr);
-     boost::shared_ptr<LOFAR::ParameterSet> parsetPtr(new LOFAR::ParameterSet(parset));
+     boost::shared_ptr<LOFAR::ParameterSet> parsetPtr(new LOFAR::ParameterSet(parset.makeSubset("swcorrelator.")));
      ASKAPDEBUGASSERT(parsetPtr);
-     // patch the monitor setup in the parset here
+     // patch the monitor setup in the parset here     
+     if (parsetPtr->isDefined("monitors")) {
+         ASKAPLOG_WARN_STR(logger, "Multiple monitors are not yet supported via the wrapper");
+         parsetPtr->replace("monitors","callback");
+     } else {
+        parsetPtr->add("monitors","callback");
+     }
      //
      itsCorrelatorThread = boost::thread(CorrRunnerThread(thisPtr, parsetPtr));
   }

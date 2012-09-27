@@ -84,10 +84,11 @@ public:
   /// @param[in] parset parset with optional parameters for the monitor (without the swcorrelator prefix)
   static boost::shared_ptr<IMonitor> make(const std::string &name, const LOFAR::ParameterSet &parset);
 
-protected:
   /// @brief templated helper method to register a hard-coded monitor
   template<typename T> 
   static void addPreDefinedMonitor();
+
+protected:
   
   /// @brief register a monitor supplied by dynamic library
   /// @details The name of the monitor should be composed in the form library.setupmethod or library<setupmethod>
@@ -103,6 +104,9 @@ private:
 } // namespace swcorrelator
 
 } // namespace askap
+
+// for template
+#include <swcorrelator/MonitorFactory.tcc>
 
 #endif // #ifndef ASKAP_SWCORRELATOR_MONITOR_FACTORY_H
 

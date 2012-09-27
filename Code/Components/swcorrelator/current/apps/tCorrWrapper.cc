@@ -52,15 +52,12 @@ int main(int argc, const char** argv)
     try {
        casa::Timer timer;
        timer.mark();
-      
-       const LOFAR::ParameterSet parset("apps/test.in");
-       const LOFAR::ParameterSet subset(parset.makeSubset("swcorrelator."));
-             
+                   
        askap::swcorrelator::CorrRunner runner;
        ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
-       runner.start(subset);      
+       runner.start("apps/test.in");      
        ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
-       boost::this_thread::sleep(boost::posix_time::seconds(10));          
+       boost::this_thread::sleep(boost::posix_time::seconds(120));          
        ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
        runner.stop();      
        ASKAPLOG_INFO_STR(logger,  "stop requested: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
