@@ -25,6 +25,7 @@ pkg = env.AskapPackage("accessors")
 pkg.AddSubPackage("dataaccess")
 pkg.AddSubPackage("imageaccess")
 pkg.AddSubPackage("calibaccess")
+pkg.AddSubPackage("votable")
 
 # run the build process
 pkg()
