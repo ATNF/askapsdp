@@ -180,6 +180,7 @@ void CallBackMonitor::publish(const CorrProducts &buf)
        }
        if (counter > 0) {
            temp /= float(counter);
+           result.itsFlags[baseline] = false;
        } else {
            // all flagged
            temp = 0.;
