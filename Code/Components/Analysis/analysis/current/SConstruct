@@ -21,6 +21,7 @@ pkg.AddSubPackage("parallelanalysis")
 pkg.AddSubPackage("analysisutilities")
 pkg.AddSubPackage("sourcefitting")
 pkg.AddSubPackage("extraction")
+pkg.AddSubPackage("parametrisation")
 pkg.AddSubPackage("patternmatching")
 
 # run the build process

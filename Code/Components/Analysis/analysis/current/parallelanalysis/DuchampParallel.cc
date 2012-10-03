@@ -77,6 +77,7 @@ using namespace LOFAR::TYPES;
 #include <sourcefitting/FittingParameters.h>
 #include <analysisutilities/NewArrayMath.h>
 #include <analysisutilities/NewArrayPartMath.h>
+#include <parametrisation/OptimisedGrower.h>
 
 #include <iostream>
 #include <fstream>
@@ -177,6 +178,12 @@ namespace askap {
 	    this->itsSNRimageName = parset.getString("SNRimageName", "");
 	    this->itsFlagWriteThresholdImage = parset.getBool("flagWriteThresholdImage",false);
 	    this->itsThresholdImageName = parset.getString("ThresholdImageName","");
+
+	    this->itsFlagOptimiseMask = parset.getBool("optimiseMask",false);
+	    if(this->itsCube.pars().getFlagGrowth() && this->itsFlagOptimiseMask){
+	      ASKAPLOG_WARN_STR(logger, "flagGrowth is set to true, so setting optimiseMask to false");
+	      this->itsFlagOptimiseMask = false;
+	    }
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
@@ -555,6 +562,26 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Intermediate list has " << this->itsCube.getNumObj() << " objects.");
                 // merge the objects, and grow them if necessary.
                 this->itsCube.ObjectMerger();
+
+		if(this->itsFlagOptimiseMask){
+		  // Use the mask optimisation routine provided by WALLABY
+		  OptimisedGrower grower(this->itsParset);
+		  grower.define(&this->itsCube);
+		  double pix[3],wld[3];
+		  for(size_t o=0;o<this->itsCube.getNumObj();o++){
+		    Detection *det=this->itsCube.pObject(o);
+		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getV50Max()); 
+		    this->itsCube.header().wcsToPix(wld,pix);
+		    int zmax=pix[2];
+		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getV50Min()); 
+		    this->itsCube.header().wcsToPix(wld,pix);
+		    int zmin=pix[2];
+		    grower.setMaxMinZ(zmax,zmin);
+		    grower.grow(det);
+		  }
+		  grower.updateDetectMap(this->itsCube.getDetectMap());
+		  this->itsCube.ObjectMerger(); // do a second merging to clean up any objects that have joined together.
+		}
 
                 if (itsComms.isParallel()) {
                     this->itsCube.pars().setMinPix(minpix);

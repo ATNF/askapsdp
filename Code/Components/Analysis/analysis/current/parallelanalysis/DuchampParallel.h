@@ -296,6 +296,9 @@ namespace askap {
                 /// The definition of the subimage being used (only relevant for the workers)
                 SubimageDef itsSubimageDef;
 
+		/// Use the new mask optimisation growing function?
+		bool itsFlagOptimiseMask;
+
         };
 
     }
