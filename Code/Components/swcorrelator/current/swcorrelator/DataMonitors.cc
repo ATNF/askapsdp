@@ -59,6 +59,19 @@ DataMonitors::DataMonitors(const LOFAR::ParameterSet &parset)
      }
   }
 }
+
+// @brief destructor, added to assist synchronisation
+DataMonitors::~DataMonitors()
+{
+  boost::lock_guard<boost::mutex> lock(itsMonitorsMutex);
+  for (std::vector<boost::shared_ptr<IMonitor> >::iterator it = itsMonitors.begin();
+       it != itsMonitors.end(); ++it) {
+       ASKAPDEBUGASSERT(*it);
+       it->reset();
+  }
+  itsMonitors.resize(0);
+}
+
     
 /// @brief initialise publishing
 /// @details Technically, this step is not required. But given the
@@ -73,6 +86,7 @@ DataMonitors::DataMonitors(const LOFAR::ParameterSet &parset)
 /// the parset at a single place only.  
 void DataMonitors::initialise(const int nAnt, const int nBeam, const int nChan)
 {
+  boost::lock_guard<boost::mutex> lock(itsMonitorsMutex);
   for (std::vector<boost::shared_ptr<IMonitor> >::const_iterator ci = itsMonitors.begin();
        ci != itsMonitors.end(); ++ci) {
        ASKAPDEBUGASSERT(*ci);
@@ -87,6 +101,7 @@ void DataMonitors::initialise(const int nAnt, const int nBeam, const int nChan)
 /// beams are published separately
 void DataMonitors::publish(const CorrProducts &buf)
 {
+  boost::lock_guard<boost::mutex> lock(itsMonitorsMutex);
   for (std::vector<boost::shared_ptr<IMonitor> >::const_iterator ci = itsMonitors.begin();
        ci != itsMonitors.end(); ++ci) {
        ASKAPDEBUGASSERT(*ci);
@@ -100,6 +115,7 @@ void DataMonitors::publish(const CorrProducts &buf)
 /// (i.e. dumping the accumulated history to the file, etc).
 void DataMonitors::finalise()
 {
+  boost::lock_guard<boost::mutex> lock(itsMonitorsMutex);
   for (std::vector<boost::shared_ptr<IMonitor> >::const_iterator ci = itsMonitors.begin();
        ci != itsMonitors.end(); ++ci) {
        ASKAPDEBUGASSERT(*ci);

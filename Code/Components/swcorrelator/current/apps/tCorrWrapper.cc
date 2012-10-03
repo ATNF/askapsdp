@@ -57,11 +57,13 @@ int main(int argc, const char** argv)
        ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
        runner.start("apps/test.in");      
        ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
-       boost::this_thread::sleep(boost::posix_time::seconds(120));          
+       boost::this_thread::sleep(boost::posix_time::seconds(220));          
        ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
        runner.stop();      
        ASKAPLOG_INFO_STR(logger,  "stop requested: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
        boost::this_thread::sleep(boost::posix_time::seconds(2));          
+       ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
+       boost::this_thread::sleep(boost::posix_time::seconds(10));          
        ASKAPLOG_INFO_STR(logger,  "swcorrelator wrapper: running="<<runner.isRunning()<<" status="<<runner.statusMsg());
        
        ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user() << " system: " << timer.system()
@@ -75,5 +77,6 @@ int main(int argc, const char** argv)
         return 1;
     }
 
+    ASKAPLOG_INFO_STR(logger,  "tCorrWrapper existing...");
     return 0;
 }

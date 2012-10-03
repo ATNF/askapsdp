@@ -79,6 +79,9 @@ void FillerWorker::operator()()
        itsFiller->resultMonitor().finalise();
        
     }
+  } catch (const boost::thread_interrupted &) {
+    itsFiller.reset();
+    ASKAPLOG_DEBUG_STR(logger, "Writing thread (id="<<boost::this_thread::get_id()<<") has been interrupted and is about to finish");
   } catch (const AskapError &ae) {
      ASKAPLOG_FATAL_STR(logger, "Writing thread (id="<<boost::this_thread::get_id()<<") is about to die: "<<ae.what());
      throw;

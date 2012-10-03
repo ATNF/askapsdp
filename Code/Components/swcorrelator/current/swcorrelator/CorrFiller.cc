@@ -79,6 +79,11 @@ CorrFiller::CorrFiller(const LOFAR::ParameterSet &parset) :
 void CorrFiller::shutdown()
 {
   // MS should be flushed to disk and closed here
+  ASKAPLOG_INFO_STR(logger, "  - shutting down monitors");
+  itsResultMonitor.reset();
+  ASKAPLOG_INFO_STR(logger, "  - shutting MS sink");
+  itsResultSink.reset();
+  ASKAPLOG_INFO_STR(logger, "  - CorrFiller: shutdown completed");
 }
 
 /// @brief get buffer to write it to MS

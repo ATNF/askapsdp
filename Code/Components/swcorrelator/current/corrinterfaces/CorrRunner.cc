@@ -129,6 +129,7 @@ void CorrRunner::start(const std::string &fname)
 /// @note This method must be called at the end to avoid corruption of the MS. 
 void CorrRunner::stop()
 {
+  ASKAPLOG_INFO_STR(logger, "about to request the software correlator to stop");
   CorrRunnerThread::stop();
 }
 
@@ -163,6 +164,7 @@ void CorrRunner::setStatus(const bool running, const std::string &msg)
 /// @brief default destructor
 CorrRunner::~CorrRunner()
 {
+  itsCorrelatorThread.join();
   if (isRunning()) {
      ASKAPLOG_WARN_STR(logger, "The software correlator seems to be still running in the CorrRunner destructor!");
   }

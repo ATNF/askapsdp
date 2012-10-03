@@ -107,6 +107,8 @@ void CorrWorker::operator()()
        cp.itsVisibility(2,chan) = s3bc.getVis13() / float(s3bc.nSamples13()!=0 ? s3bc.nSamples13() : 1.);       
        itsFiller->notifyProductsReady(beam);
     }
+  } catch (const boost::thread_interrupted &) { 
+     ASKAPLOG_INFO_STR(logger, "Correlator thread (id="<<boost::this_thread::get_id()<<") has been interrupted and is about to finish");
   } catch (const AskapError &ae) {
      ASKAPLOG_FATAL_STR(logger, "Correlator thread (id="<<boost::this_thread::get_id()<<") is about to die: "<<ae.what());
      throw;

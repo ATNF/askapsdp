@@ -67,7 +67,7 @@ void StreamConnection::operator()()
     bool haveData = true;
     const int msgSize =sizeof(BufferHeader)/sizeof(int16_t) + 2*BufferManager::NumberOfSamples();
     boost::scoped_array<int16_t> tmpbuf(new int16_t[msgSize]);
-    while (haveData) {
+    while (haveData && !boost::this_thread::interruption_requested()) {
        /* 
        boost::this_thread::sleep(boost::posix_time::seconds(1));       
        const uint64_t bat = uint64_t(time(0));

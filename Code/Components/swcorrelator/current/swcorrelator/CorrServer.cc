@@ -66,6 +66,7 @@ void CorrServer::stop()
 CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOService), 
      itsCaptureMode(parset.getBool("capturemode", false))
 {
+  theirStopRequested = false;
   // setup acceptor
   const int port = parset.getInt32("port");
   ASKAPLOG_INFO_STR(logger, "Software correlator will listen port "<<port);
@@ -118,11 +119,20 @@ void CorrServer::run()
   theirIOService.run();
   ASKAPLOG_INFO_STR(logger, "Waiting for all I/O and correlator threads to finish");
   itsThreads.interrupt_all();
+  ASKAPLOG_DEBUG_STR(logger, "   - interrupt signal has been sent to I/O and correlator threads");
   itsThreads.join_all();
+  ASKAPLOG_DEBUG_STR(logger, "   - I/O and correlator threads have been terminated");
   if (!itsCaptureMode) {
       ASKAPLOG_INFO_STR(logger, "Shutting down the filler");
+      ASKAPDEBUGASSERT(itsFiller);
       itsFiller->shutdown();
   }
+  ASKAPLOG_DEBUG_STR(logger, "Destroying the filler");
+  ASKAPDEBUGASSERT(itsFiller);
+  itsFiller.reset();
+  // just in case we run it from a wrapper
+  ASKAPLOG_DEBUG_STR(logger, "Resetting I/O service");
+  theirIOService.reset();
 }
 
 /// @brief initiate asynchronous accept

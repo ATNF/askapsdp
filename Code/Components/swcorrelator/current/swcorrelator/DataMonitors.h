@@ -40,6 +40,7 @@
 
 // boost includes
 #include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
 // other 3rd party
 #include <Common/ParameterSet.h>
@@ -58,6 +59,9 @@ struct DataMonitors : public IMonitor {
   /// @note The list of monitors to create is specified by the "monitors" keyword.
   explicit DataMonitors(const LOFAR::ParameterSet &parset);
     
+  /// @brief destructor, added to assist synchronisation
+  ~DataMonitors();
+
   /// @brief initialise publishing
   /// @details Technically, this step is not required. But given the
   /// current design of the code it seems better to give a hint on the maximum
@@ -93,6 +97,9 @@ private:
   /// @details We use vector because the most time-critical operation is the iteration over all
   /// elements. In addition, it seems unlikely that we have many monitors co-existing at the same time.
   std::vector<boost::shared_ptr<IMonitor> > itsMonitors;
+
+  /// @brief mutex to synchronise access to data monitors
+  mutable boost::mutex itsMonitorsMutex;
 };
 
 } // namespace swcorrelator
