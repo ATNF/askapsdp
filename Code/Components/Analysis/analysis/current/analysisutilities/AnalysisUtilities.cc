@@ -206,9 +206,12 @@ namespace askap {
 	    checkUnusedParameter(parset,"spectraTextFile");// can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
 	    checkUnusedParameter(parset,"flagOutputMomentMap");// 
 	    checkUnusedParameter(parset,"fileOutputMomentMap");// 
-	    checkUnusedParameter(parset,"flagOutputMask");// 
-	    checkUnusedParameter(parset,"fileOutputMask");// 
-	    checkUnusedParameter(parset,"flagMaskWithObjectNum");// 
+	    // checkUnusedParameter(parset,"flagOutputMask");// 
+	    // checkUnusedParameter(parset,"fileOutputMask");// 
+	    // checkUnusedParameter(parset,"flagMaskWithObjectNum");// 
+	    par.setFlagOutputMask(parset.getBool("flagOutputMask",par.getFlagOutputMask()));
+	    par.setFileOutputMask(parset.getString("fileOutputMask",par.getFileOutputMask()));
+	    par.setFlagMaskWithObjectNum(parset.getBool("flagMaskWithObjectNum",par.getFlagMaskWithObjectNum()));
 	    checkUnusedParameter(parset,"flagOutputSmooth");// 
 	    checkUnusedParameter(parset,"fileOutputSmooth");// 
 	    checkUnusedParameter(parset,"flagOutputRecon");// 
