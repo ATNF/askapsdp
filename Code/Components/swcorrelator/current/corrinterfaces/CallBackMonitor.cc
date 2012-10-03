@@ -183,7 +183,7 @@ void CallBackMonitor::publish(const CorrProducts &buf)
            result.itsFlags[baseline] = false;
        } else {
            // all flagged
-           temp = 0.;
+           temp = -1.;
            result.itsFlags[baseline] = true;
        }
        result.itsAmplitudes[baseline] = abs(temp);
