@@ -18,6 +18,8 @@ swcorrelator.hostantenna = 1
 
 
 # MS-writer parameters
+swcorrelator.trackphase = false
+swcorrelator.lofreq = 880e6
 swcorrelator.beamoffsetuvw = true
 swcorrelator.filename = ""
 swcorrelator.basepath = "apps/"
