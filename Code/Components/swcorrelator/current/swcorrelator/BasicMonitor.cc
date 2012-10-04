@@ -149,18 +149,19 @@ void BasicMonitor::publish(const CorrProducts &buf)
        itsDelayHistory(itsLastHistPosition, buf.itsBeam, baseline) = delays[baseline];
                  
                  
+       
        // average in frequency
        casa::Complex temp(0.,0.);
        for (casa::uInt chan=0; chan < buf.itsVisibility.ncolumn(); ++chan) {
             temp += buf.itsVisibility(baseline,chan);
        }
        itsHistory(itsLastHistPosition,buf.itsBeam,baseline) = temp / float(buf.itsVisibility.ncolumn());
-                 
+              
        /*
        // middle of the band
        const casa::uInt chan = buf.itsVisibility.ncolumn() / 2;
        ASKAPDEBUGASSERT(chan < buf.itsVisibility.ncolumn());
-       itsHistory(itsLastHistPos,buf.itsBeam,baseline) = buf.itsVisibility(baseline,chan);
+       itsHistory(itsLastHistPosition,buf.itsBeam,baseline) = buf.itsVisibility(baseline,chan);
        */
   }
   

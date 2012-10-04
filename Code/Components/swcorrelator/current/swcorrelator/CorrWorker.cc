@@ -93,7 +93,7 @@ void CorrWorker::operator()()
        s3bc.reset(0,frameOff_01,frameOff_02); // derive offsets from frame differences
        //s3bc.reset(0,frameOff_01-4,frameOff_02); // derive offsets from frame differences
        //s3bc.reset(0,frameOff_01-1,frameOff_02-1); // derive offsets from frame differences
-       //s3bc.reset(0,frameOff_01,frameOff_02-4); // derive offsets from frame differences
+       //s3bc.reset(0,frameOff_01 + 1,frameOff_02 - (chan-8)); // derive offsets from frame differences
        s3bc.accumulate(itsBufferManager->data(ids.itsAnt1), itsBufferManager->data(ids.itsAnt2), 
                        itsBufferManager->data(ids.itsAnt3), size);
        itsBufferManager->releaseBuffers(ids);
