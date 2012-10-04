@@ -565,7 +565,7 @@ namespace askap {
 
 		if(this->itsFlagOptimiseMask){
 		  // Use the mask optimisation routine provided by WALLABY
-		  OptimisedGrower grower(this->itsParset);
+		  OptimisedGrower grower(this->itsParset.makeSubset("optimiseMask"));
 		  grower.define(&this->itsCube);
 		  double pix[3],wld[3];
 		  for(size_t o=0;o<this->itsCube.getNumObj();o++){
