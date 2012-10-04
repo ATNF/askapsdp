@@ -65,9 +65,11 @@ namespace askap {
     SourceSpectrumExtractor::SourceSpectrumExtractor(const LOFAR::ParameterSet& parset)
     {
       /// @details Initialise the extractor from a LOFAR parset. This
-      /// sets the input cube, the box width, the scaling flag, and
-      /// the base name for the output spectra files (these will have
-      /// _X appended, where X is the ID of the object in question).
+      /// sets the input cube, the box width, the scaling flag, the
+      /// base name for the output spectra files (these will have _X
+      /// appended, where X is the ID of the object in question), and
+      /// the set of polarisation products to extract.
+
       this->itsInputCube = parset.getString("spectralCube","");
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
       this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
@@ -106,6 +108,15 @@ namespace askap {
  
     void SourceSpectrumExtractor::setBeamScale()
     {
+      /// @details This sets the scale factor used to correct the peak
+      /// flux of an unresolved source to a total flux. The beam
+      /// information is read from the input image, and the beam
+      /// weighting is integrated over the same size box as will be
+      /// used to extract the spectrum.
+      ///
+      /// If the input image has no beam information, or if the flag
+      /// itsFlagDoScale=false, then the scale factor is set to 1.
+
       if(!this->itsFlagDoScale) this->itsBeamScaleFactor = 1.;
       else{
 
