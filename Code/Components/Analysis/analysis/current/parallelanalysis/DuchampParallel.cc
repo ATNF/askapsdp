@@ -572,10 +572,10 @@ namespace askap {
 		    Detection *det=this->itsCube.pObject(o);
 		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getV50Max()); 
 		    this->itsCube.header().wcsToPix(wld,pix);
-		    int zmax=pix[2];
+		    int zmax=int(pix[2]);
 		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getV50Min()); 
 		    this->itsCube.header().wcsToPix(wld,pix);
-		    int zmin=pix[2];
+		    int zmin=int(pix[2]);
 		    grower.setMaxMinZ(zmax,zmin);
 		    grower.grow(det);
 		  }
