@@ -131,8 +131,8 @@ struct Worker {
         // buffer is filled
         boost::asio::io_service ioService;
         boost::asio::ip::tcp::resolver resolver(ioService);
-        const std::string host = "localhost";
-        //const std::string host = "delphinus";
+        //const std::string host = "localhost";
+        const std::string host = "delphinus";
         //const std::string host = "aktos01.atnf.csiro.au";
         boost::asio::ip::tcp::resolver::query query(host,"3000");
         boost::asio::ip::tcp::endpoint endpoint;

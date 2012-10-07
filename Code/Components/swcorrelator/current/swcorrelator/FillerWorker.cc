@@ -65,15 +65,9 @@ void FillerWorker::operator()()
        const std::string bufType = buffer ? "first" : "second";
        for (int beam=0; beam < itsFiller->nBeam(); ++beam) {
             CorrProducts &cp = itsFiller->getProductsToWrite(beam, buffer);
-            for (casa::uInt b=0; b<cp.itsVisibility.nrow(); ++b) {
-                cp.itsVisibility(b,2) = cp.itsVisibility(b,0);
-                cp.itsVisibility(b,3) = cp.itsVisibility(b,0);
-            }
             ASKAPLOG_INFO_STR(logger, "Write for buffer `"<<bufType<<"` beam="<<beam<<" bat="<<cp.itsBAT<<
                " vis="<<cp.itsVisibility<<" flag="<<cp.itsFlag);
             
-
-
             // write data into MS
             itsFiller->resultSink().write(cp);
                
