@@ -42,7 +42,8 @@
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/Detection/detection.hh>
-#include <duchamp/Detection/columns.hh>
+/* #include <duchamp/Detection/columns.hh> */
+#include <duchamp/Outputs/columns.hh>
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Utils/Section.hh>
 
@@ -158,7 +159,9 @@ namespace askap {
                     std::vector<casa::Gaussian2D<Double> >& fitset(std::string type) {return itsBestFitMap[type].fits();};
 
                     /// @brief Print summary of detection & fit
-                    void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
+                    /* void printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns, */
+                    /*                   std::string fittype, bool doHeader = false); */
+		    void printSummary(std::ostream &stream, duchamp::Catalogues::CatalogueSpecification columns,
                                       std::string fittype, bool doHeader = false);
 
                     /// @brief Write the description of the fits to an annotation file.

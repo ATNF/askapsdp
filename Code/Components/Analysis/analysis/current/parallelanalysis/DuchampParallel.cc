@@ -93,7 +93,8 @@ using namespace LOFAR::TYPES;
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/utils.hh>
 #include <duchamp/Detection/detection.hh>
-#include <duchamp/Detection/columns.hh>
+// #include <duchamp/Detection/columns.hh>
+#include <duchamp/Outputs/columns.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/PixelMap/Object3D.hh>
 
@@ -1862,8 +1863,8 @@ namespace askap {
 		}
 		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
 
-                this->itsCube.prepareOutputFile();
-                this->itsCube.outputDetectionList();
+		//                this->itsCube.prepareOutputFile();
+                this->itsCube.outputCatalogue();
 
                 if (this->itsCube.pars().getFlagLog() && (this->itsCube.getNumObj() > 0)) {
                     std::ofstream logfile(this->itsCube.pars().getLogFile().c_str(), std::ios::app);
@@ -1872,22 +1873,25 @@ namespace askap {
                     logfile.close();
                 }
 
-                if (this->itsCube.pars().getFlagKarma()) {
-                    std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());
-                    this->itsCube.outputDetectionsKarma(karmafile);
-                    karmafile.close();
-                }
+                // if (this->itsCube.pars().getFlagKarma()) {
+                //     std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());
+                //     this->itsCube.outputDetectionsKarma(karmafile);
+                //     karmafile.close();
+                // }
+		this->itsCube.outputAnnotations();
 
 		if(this->itsCube.pars().getFlagVOT()){
-		  std::ofstream votfile(this->itsCube.pars().getVOTFile().c_str());
-		  this->itsCube.outputDetectionsVOTable(votfile);
-		  votfile.close();
+		  // std::ofstream votfile(this->itsCube.pars().getVOTFile().c_str());
+		  // this->itsCube.outputDetectionsVOTable(votfile);
+		  // votfile.close();
+		  this->itsCube.outputDetectionsVOTable();
 		}
 
 
 		if(this->itsFlagDoFit){
 
-		  std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
+		  duchamp::Catalogues::CatalogueSpecification columns = this->itsCube.getFullCols();
+		  // std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
 		  
 		  for (size_t t = 0; t < outtypes.size(); t++) {
                     std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]).c_str());

@@ -46,7 +46,7 @@
 #include <duchamp/PixelMap/Object3D.hh>
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Detection/detection.hh>
-#include <duchamp/Detection/columns.hh>
+#include <duchamp/Outputs/columns.hh>
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/Utils/utils.hh>
 
@@ -1110,7 +1110,7 @@ namespace askap {
 
             //**************************************************************//
 
-            void RadioSource::printSummary(std::ostream &stream, std::vector<duchamp::Column::Col> columns,
+            void RadioSource::printSummary(std::ostream &stream, duchamp::Catalogues::CatalogueSpecification columns,
                                            std::string fittype, bool doHeader)
             {
                 /// @details
@@ -1136,112 +1136,75 @@ namespace askap {
                 /// @todo Make this a more obvious parameter to change
                 const int fluxPrec = 8;
                 const int fluxWidth = fluxPrec + 12;
-                columns[duchamp::Column::FINT].changePrec(fluxPrec);
-                columns[duchamp::Column::FPEAK].changePrec(fluxPrec);
-                columns[duchamp::Column::NUM].setName("ID");
+
+		duchamp::Catalogues::CatalogueSpecification newSpec;
+		newSpec.addColumn(columns.column("NUM"));
+		newSpec.addColumn(columns.column("NAME"));
+		newSpec.addColumn(columns.column("RAJD"));
+		newSpec.addColumn(columns.column("DECJD"));
+		newSpec.addColumn(columns.column("FINT"));
+		newSpec.addColumn(columns.column("FPEAK"));
+
+                newSpec.column("FINT").changePrec(fluxPrec);
+                newSpec.column("FPEAK").changePrec(fluxPrec);
+                newSpec.column("NUM").setName("ID");
                 // new columns
-                duchamp::Column::Col fIntfit("F_int(fit)", "", fluxWidth, fluxPrec);
-                duchamp::Column::Col fPkfit("F_pk(fit)", "", fluxWidth, fluxPrec);
-                duchamp::Column::Col majFit("Maj(fit)", "", 10, 3);
-                duchamp::Column::Col minFit("Min(fit)", "", 10, 3);
-                duchamp::Column::Col paFit("P.A.(fit)", "", 10, 2);
-                duchamp::Column::Col majDeconv("Maj(fit_deconv.)", "", 17, 3);
-                duchamp::Column::Col minDeconv("Min(fit_deconv.)", "", 17, 3);
-                duchamp::Column::Col paDeconv("P.A.(fit_deconv.)", "", 18, 2);		
-		duchamp::Column::Col alpha("Alpha", "", 11, 3);
-		duchamp::Column::Col beta("Beta", "", 11, 3);
-                duchamp::Column::Col chisqFit("Chisq(fit)", "", 27, 9);
-                duchamp::Column::Col rmsIm("RMS(image)", "", fluxWidth, fluxPrec);
-                duchamp::Column::Col rmsFit("RMS(fit)", "", fluxWidth, fluxPrec);
-                duchamp::Column::Col nfree("Nfree(fit)", "", 11, 0);
-                duchamp::Column::Col ndofFit("NDoF(fit)", "", 10, 0);
-                duchamp::Column::Col npixFit("NPix(fit)", "", 10, 0);
-                duchamp::Column::Col npixObj("NPix(obj)", "", 10, 0);
-		duchamp::Column::Col flagGuess("Guess?","",7,0);
+                newSpec.addColumn( duchamp::Catalogues::Column("FINTFIT","F_int(fit)", this->itsHeader.getIntFluxUnits(), fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("FPEAKFIT","F_pk(fit)", this->itsHeader.getFluxUnits(), fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("MAJFIT","Maj(fit)", "", 10, 3,"","float","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("MINFIT","Min(fit)", "", 10, 3,"","float","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("PAFIT","P.A.(fit)", "", 10, 2,"","float","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("MAJDECONV","Maj(fit_deconv.)", "", 17, 3,"","float","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("MINDECONV","Min(fit_deconv.)", "", 17, 3,"","float","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("PADECONV","P.A.(fit_deconv.)", "", 18, 2,"","float","col_","") );		
+		newSpec.addColumn( duchamp::Catalogues::Column("ALPHA","Alpha", "", 11, 3,"","float","col_","") );
+		newSpec.addColumn( duchamp::Catalogues::Column("BETA","Beta", "", 11, 3,"","float","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("CHISQFIT","Chisq(fit)", "", 27, 9,"","float","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("RMSIMAGE","RMS(image)", "", fluxWidth, fluxPrec,"","float","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("RMSFIT","RMS(fit)", "", fluxWidth, fluxPrec,"","float","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("NFREEFIT","Nfree(fit)", "", 11, 0,"","int","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("NDOFFIT","NDoF(fit)", "", 10, 0,"","int","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("NPIXFIT","NPix(fit)", "", 10, 0,"","int","col_","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("NPIXOBJ","NPix(obj)", "", 10, 0,"","int","col_","") );
+		newSpec.addColumn( duchamp::Catalogues::Column("GUESS","Guess?","",7,0,"","int","col_","") );
 
                 if (doHeader) {
                     stream << "#";
-                    columns[duchamp::Column::NUM].printTitle(stream);
-		    columns[duchamp::Column::NAME].printTitle(stream);
-                    columns[duchamp::Column::RAJD].printTitle(stream);
-                    columns[duchamp::Column::DECJD].printTitle(stream);
-                    columns[duchamp::Column::FINT].printTitle(stream);
-                    columns[duchamp::Column::FPEAK].printTitle(stream);
-                    fIntfit.printTitle(stream);
-                    fPkfit.printTitle(stream);
-                    majFit.printTitle(stream);
-                    minFit.printTitle(stream);
-                    paFit.printTitle(stream);
-                    majDeconv.printTitle(stream);
-                    minDeconv.printTitle(stream);
-                    paDeconv.printTitle(stream);
-		    alpha.printTitle(stream);
-		    beta.printTitle(stream);
-                    chisqFit.printTitle(stream);
-                    rmsIm.printTitle(stream);
-                    rmsFit.printTitle(stream);
-                    nfree.printTitle(stream);
-                    ndofFit.printTitle(stream);
-                    npixFit.printTitle(stream);
-                    npixObj.printTitle(stream);
-		    flagGuess.printTitle(stream);
+		    for(size_t i=0;i<newSpec.size();i++) newSpec.column(i).printTitle(stream);
                     stream << "\n";
-                    int width = columns[duchamp::Column::NUM].getWidth() +
-		                columns[duchamp::Column::NAME].getWidth() +
-		                columns[duchamp::Column::RAJD].getWidth() +
-		                columns[duchamp::Column::DECJD].getWidth() +
-		                columns[duchamp::Column::FINT].getWidth() +
-		                columns[duchamp::Column::FPEAK].getWidth() +
-		                fIntfit.getWidth() +
-		                fPkfit.getWidth() +
-		                majFit.getWidth() +
-		                minFit.getWidth() +
-		                paFit.getWidth() +
-		                majDeconv.getWidth() +
-		                minDeconv.getWidth() +
-		                paDeconv.getWidth() +
-		                alpha.getWidth() +
-		                beta.getWidth() +
-		                chisqFit.getWidth() +
-		                rmsIm.getWidth() +
-		                rmsFit.getWidth() +
-		                nfree.getWidth() +
-		                ndofFit.getWidth() +
-		                npixFit.getWidth() +
-		                npixObj.getWidth() +
-		                flagGuess.getWidth();
-
+		    int width=0;
+		    for(size_t i=0;i<newSpec.size();i++) width += newSpec.column(i).getWidth();
                     stream << "#" << std::setfill('-') << std::setw(width) << '-' << "\n";
                 }
 
-                columns[duchamp::Column::NUM].widen(); // to account for the # characters at the start of the title lines
+                columns.column("NUM").widen(); // to account for the # characters at the start of the title lines
 
                 if (!results.isGood() && !results.fitIsGuess()) { //if no fits were made, and we haven't got a guess stored
                     float zero = 0.;
-                    columns[duchamp::Column::NUM].printEntry(stream, this->getID());
-		    columns[duchamp::Column::NAME].printEntry(stream, this->getName());
-                    columns[duchamp::Column::RAJD].printEntry(stream, this->getRA());
-                    columns[duchamp::Column::DECJD].printEntry(stream, this->getDec());
-                    columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
-                    columns[duchamp::Column::FPEAK].printEntry(stream, this->getPeakFlux());
-                    fIntfit.printEntry(stream, zero);
-                    fPkfit.printEntry(stream, zero);
-                    majFit.printEntry(stream, zero);
-                    minFit.printEntry(stream, zero);
-                    paFit.printEntry(stream, zero);
-                    majDeconv.printEntry(stream, zero);
-                    minDeconv.printEntry(stream, zero);
-                    paDeconv.printEntry(stream, zero);
-		    alpha.printEntry(stream, zero);
-		    beta.printEntry(stream, zero);
-                    chisqFit.printEntry(stream, zero);
-                    rmsIm.printEntry(stream, this->itsNoiseLevel);
-                    rmsFit.printEntry(stream, zero);
-                    nfree.printEntry(stream, zero);
-                    ndofFit.printEntry(stream, zero);
-                    npixFit.printEntry(stream, zero);
-                    npixObj.printEntry(stream, this->getSize());
-		    flagGuess.printEntry(stream, zero);
+                    newSpec.column("NUM").printEntry(stream, this->getID());
+		    newSpec.column("NAME").printEntry(stream, this->getName());
+                    newSpec.column("RAJD").printEntry(stream, this->getRA());
+                    newSpec.column("DECJD").printEntry(stream, this->getDec());
+                    newSpec.column("FINT").printEntry(stream, this->getIntegFlux());
+                    newSpec.column("FPEAK").printEntry(stream, this->getPeakFlux());
+                    newSpec.column("FINTFIT").printEntry(stream, zero);
+                    newSpec.column("FPEAKFIT").printEntry(stream, zero);
+                    newSpec.column("MAJFIT").printEntry(stream, zero);
+                    newSpec.column("MINFIT").printEntry(stream, zero);
+                    newSpec.column("PAFIT").printEntry(stream, zero);
+                    newSpec.column("MAJDECONV").printEntry(stream, zero);
+                    newSpec.column("MINDECONV").printEntry(stream, zero);
+                    newSpec.column("PADECONV").printEntry(stream, zero);
+		    newSpec.column("ALPHA").printEntry(stream, zero);
+		    newSpec.column("BETA").printEntry(stream, zero);
+                    newSpec.column("CHISQFIT").printEntry(stream, zero);
+                    newSpec.column("RMSIMAGE").printEntry(stream, this->itsNoiseLevel);
+                    newSpec.column("RMSFIT").printEntry(stream, zero);
+                    newSpec.column("NFREE").printEntry(stream, zero);
+                    newSpec.column("NDOFFIT").printEntry(stream, zero);
+                    newSpec.column("NPIXFIT").printEntry(stream, zero);
+                    newSpec.column("NPIXOBJ").printEntry(stream, this->getSize());
+		    newSpec.column("GUESS").printEntry(stream, zero);
                     stream << "\n";
                 } else {
                     std::vector<casa::Gaussian2D<Double> > fitSet = results.fitSet();
@@ -1275,32 +1238,30 @@ namespace askap {
                             intfluxfit /= this->itsHeader.beam().area(); // Convert from Jy/beam to Jy
 //                             intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
 
-                        columns[duchamp::Column::NUM].printEntry(stream, id.str());
-			columns[duchamp::Column::NAME].printEntry(stream, this->getName());
-                        columns[duchamp::Column::RAJD].printEntry(stream, thisRA);
-                        columns[duchamp::Column::DECJD].printEntry(stream, thisDec);
-                        columns[duchamp::Column::FINT].printEntry(stream, this->getIntegFlux());
-                        columns[duchamp::Column::FPEAK].printEntry(stream, this->getPeakFlux());
-                        fIntfit.printEntry(stream, intfluxfit);
-                        fPkfit.printEntry(stream, fit->height());
-                        majFit.printEntry(stream, fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
-                        minFit.printEntry(stream, fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
-                        paFit.printEntry(stream, fit->PA()*180. / M_PI);
-                        majDeconv.printEntry(stream, deconv[0]*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
-                        minDeconv.printEntry(stream, deconv[1]*this->itsHeader.getAvPixScale()*3600.);
-                        paDeconv.printEntry(stream, deconv[2]*180. / M_PI);
-			alpha.printEntry(stream, *alphaIter);
-			beta.printEntry(stream, *betaIter);
-                        chisqFit.printEntry(stream, results.chisq());
-                        rmsIm.printEntry(stream, this->itsNoiseLevel);
-                        rmsFit.printEntry(stream, results.RMS());
-                        nfree.printEntry(stream, results.numFreeParam());
-                        ndofFit.printEntry(stream, results.ndof());
-                        npixFit.printEntry(stream, results.numPix());
-                        npixObj.printEntry(stream, this->getSize());
-			float flag=0.;
-			if(results.fitIsGuess()) flag=1.;
-			flagGuess.printEntry(stream, flag);
+                        newSpec.column("NUM").printEntry(stream, id.str());
+			newSpec.column("NAME").printEntry(stream, this->getName());
+                        newSpec.column("RAJD").printEntry(stream, thisRA);
+                        newSpec.column("DECJD").printEntry(stream, thisDec);
+                        newSpec.column("FINT").printEntry(stream, this->getIntegFlux());
+                        newSpec.column("FPEAK").printEntry(stream, this->getPeakFlux());
+                        newSpec.column("FINTFIT").printEntry(stream, intfluxfit);
+                        newSpec.column("FPEAKFIT").printEntry(stream, fit->height());
+                        newSpec.column("MAJFIT").printEntry(stream, fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
+                        newSpec.column("MINFIT").printEntry(stream, fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
+                        newSpec.column("PAFIT").printEntry(stream, fit->PA()*180. / M_PI);
+                        newSpec.column("MAJDECONV").printEntry(stream, deconv[0]*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
+                        newSpec.column("MINDECONV").printEntry(stream, deconv[1]*this->itsHeader.getAvPixScale()*3600.);
+                        newSpec.column("PADECONV").printEntry(stream, deconv[2]*180. / M_PI);
+			newSpec.column("ALPHA").printEntry(stream, *alphaIter);
+			newSpec.column("BETA").printEntry(stream, *betaIter);
+                        newSpec.column("CHISQFIT").printEntry(stream, results.chisq());
+                        newSpec.column("RMSIMAGE").printEntry(stream, this->itsNoiseLevel);
+                        newSpec.column("RMSFIT").printEntry(stream, results.RMS());
+                        newSpec.column("NFREE").printEntry(stream, results.numFreeParam());
+                        newSpec.column("NDOFFIT").printEntry(stream, results.ndof());
+                        newSpec.column("NPIXFIT").printEntry(stream, results.numPix());
+                        newSpec.column("NPIXOBJ").printEntry(stream, this->getSize());
+			newSpec.column("GUESS").printEntry(stream, results.fitIsGuess() ? 1 : 0);
                         stream << "\n";
                     }
                 }
