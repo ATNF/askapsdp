@@ -181,10 +181,10 @@ namespace askap {
 	    this->itsThresholdImageName = parset.getString("ThresholdImageName","");
 
 	    this->itsFlagOptimiseMask = parset.getBool("optimiseMask",false);
-	    if(this->itsCube.pars().getFlagGrowth() && this->itsFlagOptimiseMask){
-	      ASKAPLOG_WARN_STR(logger, "flagGrowth is set to true, so setting optimiseMask to false");
-	      this->itsFlagOptimiseMask = false;
-	    }
+//	    if(this->itsCube.pars().getFlagGrowth() && this->itsFlagOptimiseMask){
+//	      ASKAPLOG_WARN_STR(logger, "flagGrowth is set to true, so setting optimiseMask to false");
+//	      this->itsFlagOptimiseMask = false;
+//	    }
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
@@ -561,16 +561,23 @@ namespace askap {
                 }
 
                 ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Intermediate list has " << this->itsCube.getNumObj() << " objects.");
+
                 // merge the objects, and grow them if necessary.
-                this->itsCube.ObjectMerger();
+		this->itsCube.ObjectMerger();
 
 		if(this->itsFlagOptimiseMask){
 		  // Use the mask optimisation routine provided by WALLABY
+		  this->itsCube.calcObjectWCSparams();
 		  OptimisedGrower grower(this->itsParset.makeSubset("optimiseMask"));
+		  ASKAPLOG_DEBUG_STR(logger, "Defining the optimised grower");
 		  grower.define(&this->itsCube);
+		  ASKAPLOG_DEBUG_STR(logger, "Optimising the mask for all " << this->itsCube.getNumObj()<<" objects");
 		  double pix[3],wld[3];
 		  for(size_t o=0;o<this->itsCube.getNumObj();o++){
 		    Detection *det=this->itsCube.pObject(o);
+		    ASKAPLOG_DEBUG_STR(logger, "Object #"<<o<<", at (RA,DEC)=("<<wld[0]<<","<<wld[1]
+				       <<") and spectral range from "<<this->itsCube.header().velToSpec(det->getV50Min())
+				       <<" to " << this->itsCube.header().velToSpec(det->getV50Max())); 
 		    wld[0]=det->getRA(); wld[1]=det->getDec(); wld[2]=this->itsCube.header().velToSpec(det->getV50Max()); 
 		    this->itsCube.header().wcsToPix(wld,pix);
 		    int zmax=int(pix[2]);
@@ -578,11 +585,19 @@ namespace askap {
 		    this->itsCube.header().wcsToPix(wld,pix);
 		    int zmin=int(pix[2]);
 		    grower.setMaxMinZ(zmax,zmin);
+		    ASKAPLOG_DEBUG_STR(logger, "Central pixel ("<<det->getXcentre() <<","<<det->getYcentre()<<","<<det->getZcentre()
+				       <<") with " << det->getSize() <<" pixels, filling z range " << zmin << " to " << zmax);
 		    grower.grow(det);
+		    ASKAPLOG_DEBUG_STR(logger, "Now has central pixel ("<<det->getXcentre() <<","<<det->getYcentre()<<","<<det->getZcentre()
+				       <<") with " << det->getSize() <<" pixels");
 		  }
+		  ASKAPLOG_DEBUG_STR(logger, "Updating the detection map");
 		  grower.updateDetectMap(this->itsCube.getDetectMap());
+		  ASKAPLOG_DEBUG_STR(logger,"Merging objects" );
 		  this->itsCube.ObjectMerger(); // do a second merging to clean up any objects that have joined together.
+		  ASKAPLOG_DEBUG_STR(logger, "Finished mask optimisation");
 		}
+
 
                 if (itsComms.isParallel()) {
                     this->itsCube.pars().setMinPix(minpix);

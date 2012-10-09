@@ -30,6 +30,9 @@
 #include <parametrisation/OptimisedGrower.h>
 #include <askap_analysis.h>
 
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <duchamp/Detection/ObjectGrower.hh>
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/PixelMap/Object3D.hh>
@@ -39,6 +42,7 @@
 
 #include <Common/ParameterSet.h>
 
+ASKAP_LOGGER(logger, ".optimisedgrower");
 
 using namespace duchamp;
 
@@ -85,12 +89,12 @@ namespace askap {
 	// the central pixel and then grow out to the ellipse
 	this->itsObj = new duchamp::Detection;
 	this->itsObj->addPixel(this->xObj,this->yObj,zObj);
-	// std::cout << "Starting with single pixel at ("<<xObj<<","<<yObj<<","<<zObj<<") and ellipse of size " << ell_a<<"x"<<ell_b<<"x"<<ell_theta<<"\n";
+	ASKAPLOG_DEBUG_STR(logger, "Starting with single pixel at ("<<xObj<<","<<yObj<<","<<zObj<<") and ellipse of size " << ell_a<<"x"<<ell_b<<"x"<<ell_theta);
 	// reset the current objects STATE array pixels to AVAILABLE
 	std::vector<Voxel> oldvoxlist=object->getPixelSet();
 	for(std::vector<Voxel>::iterator vox=oldvoxlist.begin();vox<oldvoxlist.end();vox++) this->setFlag(*vox,duchamp::AVAILABLE);
       }
-      else std::cout << "Initial object size = " << this->itsObj->getSize() << "\n";
+      else ASKAPLOG_DEBUG_STR(logger, "Initial object size = " << this->itsObj->getSize());
 
       for(int iter=0; iter<this->maxIterations && keepGoing; iter++){
 
@@ -104,12 +108,12 @@ namespace askap {
     
 	duchamp::Detection newObj = this->growMask();
 	newObj.calcFluxes(this->itsFluxArray, &(this->itsArrayDim[0]));
-	// std::cout << newObj.getTotalFlux() << "\n";
+	ASKAPLOG_DEBUG_STR(logger,"Iter#"<<iter<<", flux of new object = "<< newObj.getTotalFlux());
+	//	  std::cout << "Adding object:\n"<<newObj;
 	keepGoing = (newObj.getTotalFlux() > 0.);
 	if(keepGoing){
-	  // std::cout << "Adding object:\n"<<newObj;
 	  this->itsObj->addDetection(newObj);
-	  // std::cout << "Object size now " << this->itsObj->getSize() <<"\n";
+	  ASKAPLOG_DEBUG_STR(logger,  "Object size now " << this->itsObj->getSize() );
 
 	  std::vector<Voxel> newlist=newObj.getPixelSet();
 	  for(size_t i=0;i<newlist.size();i++) this->setFlag(newlist[i],duchamp::DETECTED);
@@ -121,8 +125,12 @@ namespace askap {
 
       for(size_t i=0;i<fullsize;i++) 
 	if(this->itsFlagArray[i]==NEW) this->itsFlagArray[i]=duchamp::AVAILABLE;  // the pixels in newObj were rejected, so set them back to AVAILABLE.
+
+      this->itsObj->calcFluxes(this->itsFluxArray, &(this->itsArrayDim[0]));
+     
   
       if(this->clobberPrevious) *object = *this->itsObj;
+
 
     }
 
@@ -161,14 +169,16 @@ namespace askap {
       mom_y /= sum;
       mom_xy /= sum;
 
-      // std::cout <<"Moments: " << mom_x << " " << mom_y << " " << mom_xy << " and sum = " << sum <<"\n";
+      ASKAPLOG_DEBUG_STR(logger, "Moments: " << mom_x << " " << mom_y << " " << mom_xy << " and sum = " << sum);
 
       // find ellipse parameters
       this->ell_theta = 0.5 * atan2(2.0 * mom_xy, mom_x - mom_y);
       this->ell_a = sqrt(2.0 * (mom_x + mom_y + sqrt(((mom_x - mom_y) * (mom_x - mom_y)) + (4.0 * mom_xy * mom_xy))));
       this->ell_b = sqrt(2.0 * (mom_x + mom_y - sqrt(((mom_x - mom_y) * (mom_x - mom_y)) + (4.0 * mom_xy * mom_xy))));
 
-      // std::cout << "Ellipse : " << this->ell_a << " x " << this->ell_b << " , " << this->ell_theta <<" (" << this->ell_theta*180./M_PI << ")\n";
+      this->ell_b = std::max(this->ell_b,0.1);
+
+      ASKAPLOG_DEBUG_STR(logger, "Ellipse : " << this->ell_a << " x " << this->ell_b << " , " << this->ell_theta <<" (" << this->ell_theta*180./M_PI << ")");
 
     }
 
