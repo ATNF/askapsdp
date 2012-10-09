@@ -1882,23 +1882,12 @@ namespace askap {
                 this->itsCube.outputCatalogue();
 
                 if (this->itsCube.pars().getFlagLog() && (this->itsCube.getNumObj() > 0)) {
-                    std::ofstream logfile(this->itsCube.pars().getLogFile().c_str(), std::ios::app);
-                    logfile << "=-=-=-=-=-=-=-\nCube summary\n=-=-=-=-=-=-=-\n";
-                    logfile << this->itsCube;
-                    logfile.close();
+		  this->itsCube.logSummary();
                 }
 
-                // if (this->itsCube.pars().getFlagKarma()) {
-                //     std::ofstream karmafile(this->itsCube.pars().getKarmaFile().c_str());
-                //     this->itsCube.outputDetectionsKarma(karmafile);
-                //     karmafile.close();
-                // }
 		this->itsCube.outputAnnotations();
 
 		if(this->itsCube.pars().getFlagVOT()){
-		  // std::ofstream votfile(this->itsCube.pars().getVOTFile().c_str());
-		  // this->itsCube.outputDetectionsVOTable(votfile);
-		  // votfile.close();
 		  this->itsCube.outputDetectionsVOTable();
 		}
 
