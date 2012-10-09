@@ -47,6 +47,8 @@
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/Outputs/columns.hh>
+#include <duchamp/Outputs/AnnotationWriter.hh>
+#include <duchamp/Outputs/KarmaAnnotationWriter.hh>
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/Utils/utils.hh>
 
@@ -1268,6 +1270,50 @@ namespace askap {
             }
 
             //**************************************************************//
+
+	  void RadioSource::writeFitToAnnotationFile(duchamp::AnnotationWriter *writer, bool doEllipse, bool doBox)
+	  {
+	                   double *pix = new double[12];
+                double *world = new double[12];
+
+                for (int i = 0; i < 4; i++) pix[i*3+2] = 0;
+
+                std::vector<casa::Gaussian2D<Double> > fitSet = this->itsBestFitMap["best"].fitSet();
+                std::vector<casa::Gaussian2D<Double> >::iterator fit;
+
+                for (fit = fitSet.begin(); fit < fitSet.end(); fit++) {
+                    pix[0] = fit->xCenter();
+                    pix[1] = fit->yCenter();
+                    this->itsHeader.pixToWCS(pix, world);
+
+                    if (doEllipse) {
+		      writer->ellipse(world[0],
+				     world[1],
+				     fit->majorAxis() * this->itsHeader.getAvPixScale() / 2.,
+				     fit->minorAxis() * this->itsHeader.getAvPixScale() / 2.,
+				     fit->PA() * 180. / M_PI);
+                    }
+                }
+		
+		pix[0] = pix[9] = this->getXmin() - this->itsFitParams.boxPadSize() - 0.5;
+                pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
+                pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
+                pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
+                this->itsHeader.pixToWCS(pix, world, 4);
+
+                if (doBox) {
+		  std::vector<double> x,y;
+		  for(int i=0;i<=4;i++){
+		    x.push_back(world[(i%4)*3]);
+		    y.push_back(world[(i%4)*3+1]);
+		  }
+		  writer->joinTheDots(x,y);
+                }
+
+                delete [] pix;
+                delete [] world;
+
+	  }
 
             void RadioSource::writeFitToAnnotationFile(std::ostream &stream, bool doEllipse, bool doBox)
             {

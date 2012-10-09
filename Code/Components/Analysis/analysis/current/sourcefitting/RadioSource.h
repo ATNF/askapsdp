@@ -42,8 +42,8 @@
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/Detection/detection.hh>
-/* #include <duchamp/Detection/columns.hh> */
 #include <duchamp/Outputs/columns.hh>
+#include <duchamp/Outputs/AnnotationWriter.hh>
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Utils/Section.hh>
 
@@ -165,6 +165,7 @@ namespace askap {
                                       std::string fittype, bool doHeader = false);
 
                     /// @brief Write the description of the fits to an annotation file.
+		    void writeFitToAnnotationFile(duchamp::AnnotationWriter *writer, bool doEllipse, bool doBox);
                     void writeFitToAnnotationFile(std::ostream &stream, bool doEllipse, bool doBox);
 
                     /// @brief Functions allowing RadioSource objects to be passed over LOFAR Blobs
