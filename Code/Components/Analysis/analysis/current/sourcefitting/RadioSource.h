@@ -46,6 +46,7 @@
 #include <duchamp/Outputs/AnnotationWriter.hh>
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Utils/Section.hh>
+#include <duchamp/Outputs/CatalogueSpecification.hh>
 
 #include <scimath/Fitting/FitGaussian.h>
 #include <scimath/Functionals/Gaussian2D.h>
@@ -136,6 +137,7 @@ namespace askap {
 
                     /// @brief Set the noise level
                     void setNoiseLevel(float noise) {itsNoiseLevel = noise;};
+		    float noiseLevel(){return itsNoiseLevel;};
                     /// @}
 
 		    /// @brief Set the detection threshold for a particular Cube
@@ -147,6 +149,7 @@ namespace askap {
                     float detectionThreshold() {return itsDetectionThreshold;};
 
                     /// @brief Return the set of fits
+		    FitResults fitResults(std::string type){return itsBestFitMap[type];};
                     std::vector<casa::Gaussian2D<Double> > gaussFitSet(std::string type) {return itsBestFitMap[type].fitSet();};
                     std::vector<casa::Gaussian2D<Double> > gaussFitSet() {return itsBestFitMap["best"].fitSet();};
 		    
@@ -154,6 +157,9 @@ namespace askap {
 		    int numFits(std::string type) {return itsBestFitMap[type].numFits();};
 		    /// @brief Return the number of fits for the best set
 		    int numFits() {return itsBestFitMap["best"].numFits();};
+
+		    std::vector<float> alphaValues(std::string type){return itsAlphaMap[type];};
+		    std::vector<float> betaValues(std::string type){return itsBetaMap[type];};
 		    
                     /// @brief Return a reference to the set of Gaussian fits.
                     std::vector<casa::Gaussian2D<Double> >& fitset(std::string type) {return itsBestFitMap[type].fits();};
@@ -274,6 +280,8 @@ namespace askap {
 
 	    /// @brief An analogue of the duchamp::SortDetections function
 	    void SortDetections(std::vector<RadioSource> &sourcelist, std::string parameter);
+
+	    duchamp::Catalogues::CatalogueSpecification fullCatalogue(duchamp::Catalogues::CatalogueSpecification inputSpec, duchamp::FitsHeader &header);
 
 
         }

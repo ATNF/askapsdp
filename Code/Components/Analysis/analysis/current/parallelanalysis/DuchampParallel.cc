@@ -78,6 +78,7 @@ using namespace LOFAR::TYPES;
 #include <analysisutilities/NewArrayMath.h>
 #include <analysisutilities/NewArrayPartMath.h>
 #include <parametrisation/OptimisedGrower.h>
+#include <outputs/AskapAsciiCatalogueWriter.h>
 
 #include <iostream>
 #include <fstream>
@@ -95,6 +96,7 @@ using namespace LOFAR::TYPES;
 #include <duchamp/Detection/detection.hh>
 // #include <duchamp/Detection/columns.hh>
 #include <duchamp/Outputs/columns.hh>
+#include <duchamp/Outputs/CatalogueSpecification.hh>
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/PixelMap/Object3D.hh>
 
@@ -1894,17 +1896,29 @@ namespace askap {
 
 		if(this->itsFlagDoFit){
 
-		  duchamp::Catalogues::CatalogueSpecification columns = this->itsCube.getFullCols();
+		  //		  duchamp::Catalogues::CatalogueSpecification columns = this->itsCube.getFullCols();
+		  duchamp::Catalogues::CatalogueSpecification columns = fullCatalogue(this->itsCube.getFullCols(), this->itsCube.header());
 		  // std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
 		  
 		  for (size_t t = 0; t < outtypes.size(); t++) {
-                    std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]).c_str());
-                    std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
+                    // std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]).c_str());
+                    // std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
 		    
-                    for (; src < this->itsSourceList.end(); src++)
-		      src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin());
+                    // for (; src < this->itsSourceList.end(); src++)
+		    //   src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin());
 		    
-                    summaryFile.close();
+                    // summaryFile.close();
+		    
+		    AskapAsciiCatalogueWriter writer(sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]));
+		    writer.setup(this);
+		    writer.setFitType(outtypes[t]);
+		    writer.setColumnSpec(&columns);
+		    writer.setSourceList(&this->itsSourceList);
+		    writer.openCatalogue();
+		    writer.writeTableHeader();
+		    writer.writeEntries();
+		    writer.closeCatalogue();
+
 		  }
 		  
 		  if (this->itsFlagDoFit) this->writeFitAnnotation();

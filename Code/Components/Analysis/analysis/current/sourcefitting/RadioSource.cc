@@ -47,6 +47,7 @@
 #include <duchamp/Cubes/cubes.hh>
 #include <duchamp/Detection/detection.hh>
 #include <duchamp/Outputs/columns.hh>
+#include <duchamp/Outputs/CatalogueSpecification.hh>
 #include <duchamp/Outputs/AnnotationWriter.hh>
 #include <duchamp/Outputs/KarmaAnnotationWriter.hh>
 #include <duchamp/Utils/Section.hh>
@@ -1111,6 +1112,48 @@ namespace askap {
 
 
             //**************************************************************//
+
+	  duchamp::Catalogues::CatalogueSpecification fullCatalogue(duchamp::Catalogues::CatalogueSpecification inputSpec, duchamp::FitsHeader &header)
+	  {
+
+	    /// @todo Make this a more obvious parameter to change
+	    const int fluxPrec = 8;
+	    const int fluxWidth = fluxPrec + 12;
+
+	    duchamp::Catalogues::CatalogueSpecification newSpec;
+	    newSpec.addColumn(inputSpec.column("NUM"));
+	    newSpec.addColumn(inputSpec.column("NAME"));
+	    newSpec.addColumn(inputSpec.column("RAJD"));
+	    newSpec.addColumn(inputSpec.column("DECJD"));
+	    newSpec.addColumn(inputSpec.column("FINT"));
+	    newSpec.addColumn(inputSpec.column("FPEAK"));
+	    
+	    newSpec.column("FINT").changePrec(fluxPrec);
+	    newSpec.column("FPEAK").changePrec(fluxPrec);
+	    newSpec.column("NUM").setName("ID");
+	    // new columns
+	    newSpec.addColumn( duchamp::Catalogues::Column("FINTFIT","F_int(fit)", header.getIntFluxUnits(), fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("FPEAKFIT","F_pk(fit)", header.getFluxUnits(), fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("MAJFIT","Maj(fit)", "", 10, 3,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("MINFIT","Min(fit)", "", 10, 3,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("PAFIT","P.A.(fit)", "", 10, 2,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("MAJDECONV","Maj(fit_deconv.)", "", 17, 3,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("MINDECONV","Min(fit_deconv.)", "", 17, 3,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("PADECONV","P.A.(fit_deconv.)", "", 18, 2,"","float","col_","") );		
+	    newSpec.addColumn( duchamp::Catalogues::Column("ALPHA","Alpha", "", 11, 3,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("BETA","Beta", "", 11, 3,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("CHISQFIT","Chisq(fit)", "", 27, 9,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("RMSIMAGE","RMS(image)", "", fluxWidth, fluxPrec,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("RMSFIT","RMS(fit)", "", fluxWidth, fluxPrec,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("NFREEFIT","Nfree(fit)", "", 11, 0,"","int","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("NDOFFIT","NDoF(fit)", "", 10, 0,"","int","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("NPIXFIT","NPix(fit)", "", 10, 0,"","int","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("NPIXOBJ","NPix(obj)", "", 10, 0,"","int","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("GUESS","Guess?","",7,0,"","int","col_","") );
+    
+	    return newSpec;
+	  }
+
 
             void RadioSource::printSummary(std::ostream &stream, duchamp::Catalogues::CatalogueSpecification columns,
                                            std::string fittype, bool doHeader)

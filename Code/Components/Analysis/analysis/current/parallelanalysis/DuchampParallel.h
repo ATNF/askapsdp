@@ -94,7 +94,8 @@ namespace askap {
 
                 /// @brief Return a reference to the duchamp::Cube object
                 duchamp::Cube &cube() {duchamp::Cube &rcube = itsCube; return rcube;};
-
+		duchamp::Cube *pCube(){return &itsCube;};
+		
                 /// @brief Get/set the flag saying whether to do median filtering prior to searching
                 /// @{
                 bool getFlagDoMedianSearch() {return itsFlagDoMedianSearch;};
@@ -196,6 +197,9 @@ namespace askap {
 
                 /// @brief Get a particular RadioSource
                 sourcefitting::RadioSource getSource(int i) {return itsSourceList[i];};
+		
+		std::vector<sourcefitting::RadioSource> *pSourceList(){return &itsSourceList;};
+		std::vector<sourcefitting::RadioSource> sourceList(){return itsSourceList;};
 
 		std::string getSubimageAnnotationFile()      {return itsSubimageAnnotationFile;};
 		void        setSubimageAnnotationFile(std::string s){itsSubimageAnnotationFile=s;};

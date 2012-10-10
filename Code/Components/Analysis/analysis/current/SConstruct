@@ -23,6 +23,7 @@ pkg.AddSubPackage("sourcefitting")
 pkg.AddSubPackage("extraction")
 pkg.AddSubPackage("parametrisation")
 pkg.AddSubPackage("patternmatching")
+pkg.AddSubPackage("outputs")
 
 # run the build process
 pkg()
