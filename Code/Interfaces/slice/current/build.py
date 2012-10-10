@@ -20,20 +20,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
 #
-import os
 
-from askapdev.rbuild.builders import SliceDoc
-
-# When building a release it expects that the 'install' directory exists.
-# In this package we do not actually install anything but since it is a
-# dependency of other packages, the release target will try to process tjis
-# package, so create an empty install directory so it does not fail.
-# XXX Maybe this should just be moved into SliceDoc itself?
-
-class Builder(SliceDoc):
-    def _install(self):
-        if not os.path.exists(self._installdir):
-            os.makedirs(self._installdir)
+from askapdev.rbuild.builders import SliceDoc as Builder
 
 builder = Builder(".")
 builder.build()
