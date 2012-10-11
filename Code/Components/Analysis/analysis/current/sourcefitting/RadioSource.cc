@@ -1140,8 +1140,8 @@ namespace askap {
 	    newSpec.addColumn( duchamp::Catalogues::Column("MAJDECONV","Maj(fit_deconv.)", "", 17, 3,"","float","col_","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("MINDECONV","Min(fit_deconv.)", "", 17, 3,"","float","col_","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("PADECONV","P.A.(fit_deconv.)", "", 18, 2,"","float","col_","") );		
-	    newSpec.addColumn( duchamp::Catalogues::Column("ALPHA","Alpha", "", 11, 3,"","float","col_","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("BETA","Beta", "", 11, 3,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("ALPHA","Alpha", "", 11, 5,"","float","col_","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("BETA","Beta", "", 11, 5,"","float","col_","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("CHISQFIT","Chisq(fit)", "", 27, 9,"","float","col_","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("RMSIMAGE","RMS(image)", "", fluxWidth, fluxPrec,"","float","col_","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("RMSFIT","RMS(fit)", "", fluxWidth, fluxPrec,"","float","col_","") );
@@ -1194,8 +1194,8 @@ namespace askap {
                 newSpec.column("FPEAK").changePrec(fluxPrec);
                 newSpec.column("NUM").setName("ID");
                 // new columns
-                newSpec.addColumn( duchamp::Catalogues::Column("FINTFIT","F_int(fit)", this->itsHeader.getIntFluxUnits(), fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
-                newSpec.addColumn( duchamp::Catalogues::Column("FPEAKFIT","F_pk(fit)", this->itsHeader.getFluxUnits(), fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("FINTFIT","F_int(fit)", "["+this->itsHeader.getIntFluxUnits()+"]", fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("FPEAKFIT","F_pk(fit)", "["+this->itsHeader.getFluxUnits()+"]", fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
                 newSpec.addColumn( duchamp::Catalogues::Column("MAJFIT","Maj(fit)", "", 10, 3,"","float","col_","") );
                 newSpec.addColumn( duchamp::Catalogues::Column("MINFIT","Min(fit)", "", 10, 3,"","float","col_","") );
                 newSpec.addColumn( duchamp::Catalogues::Column("PAFIT","P.A.(fit)", "", 10, 2,"","float","col_","") );
@@ -1245,7 +1245,7 @@ namespace askap {
                     newSpec.column("CHISQFIT").printEntry(stream, zero);
                     newSpec.column("RMSIMAGE").printEntry(stream, this->itsNoiseLevel);
                     newSpec.column("RMSFIT").printEntry(stream, zero);
-                    newSpec.column("NFREE").printEntry(stream, zero);
+                    newSpec.column("NFREEFIT").printEntry(stream, zero);
                     newSpec.column("NDOFFIT").printEntry(stream, zero);
                     newSpec.column("NPIXFIT").printEntry(stream, zero);
                     newSpec.column("NPIXOBJ").printEntry(stream, this->getSize());
@@ -1302,7 +1302,7 @@ namespace askap {
                         newSpec.column("CHISQFIT").printEntry(stream, results.chisq());
                         newSpec.column("RMSIMAGE").printEntry(stream, this->itsNoiseLevel);
                         newSpec.column("RMSFIT").printEntry(stream, results.RMS());
-                        newSpec.column("NFREE").printEntry(stream, results.numFreeParam());
+                        newSpec.column("NFREEFIT").printEntry(stream, results.numFreeParam());
                         newSpec.column("NDOFFIT").printEntry(stream, results.ndof());
                         newSpec.column("NPIXFIT").printEntry(stream, results.numPix());
                         newSpec.column("NPIXOBJ").printEntry(stream, this->getSize());
