@@ -75,7 +75,7 @@ namespace askap {
       // this->yObj = this->itsObj->getYPeak();
       this->xObj = int(object->getXCentroid());
       this->yObj = int(object->getYCentroid());
-      float zObj = int(object->getZCentroid());
+      int   zObj = int(object->getZCentroid());
       //   std::cout << "Central position = ("<<this->xObj << ","<<this->yObj <<")\n";
 
       this->findEllipse();

@@ -28,6 +28,7 @@ namespace askap {
       void setFitType(std::string s){itsFitType = s;};
 
       void setup(DuchampParallel *finder);
+      void writeTableHeader();
       void writeEntries();
       void writeEntry(sourcefitting::RadioSource *source);
       

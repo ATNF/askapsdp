@@ -1909,7 +1909,9 @@ namespace askap {
 		    
                     // summaryFile.close();
 		    
-		    AskapAsciiCatalogueWriter writer(sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]));
+		    std::string filename=sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]);
+		    ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to " << filename);
+		    AskapAsciiCatalogueWriter writer(filename);
 		    writer.setup(this);
 		    writer.setFitType(outtypes[t]);
 		    writer.setColumnSpec(&columns);
