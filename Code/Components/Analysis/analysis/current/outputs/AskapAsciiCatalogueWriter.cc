@@ -103,6 +103,7 @@ namespace askap {
       sourcefitting::FitResults results = source->fitResults(this->itsFitType);
       int suffixCtr = 0;
       char firstSuffix = 'a';
+	this->itsStream->setf(std::ios::fixed);
 
       if (!results.isGood() && !results.fitIsGuess()) { //if no fits were made, and we haven't got a guess stored
 	float zero = 0.;
