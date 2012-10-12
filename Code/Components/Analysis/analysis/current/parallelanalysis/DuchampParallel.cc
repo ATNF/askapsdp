@@ -79,6 +79,7 @@ using namespace LOFAR::TYPES;
 #include <analysisutilities/NewArrayPartMath.h>
 #include <parametrisation/OptimisedGrower.h>
 #include <outputs/AskapAsciiCatalogueWriter.h>
+#include <outputs/AskapVOTableCatalogueWriter.h>
 
 #include <iostream>
 #include <fstream>
@@ -1870,7 +1871,7 @@ namespace askap {
 		  std::vector<sourcefitting::RadioSource>::iterator src;
 		  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
 		    for (size_t t = 0; t < outtypes.size(); t++) {
-		      for(int i=0;i<src->numFits(outtypes[t]);i++){
+		      for(size_t i=0;i<src->numFits(outtypes[t]);i++){
 			Double f = src->fitset(outtypes[t])[i].flux();
 			src->fitset(outtypes[t])[i].setFlux(f * -1);
 		      }
@@ -1913,17 +1914,17 @@ namespace askap {
 		      writer.writeEntries();
 		      writer.closeCatalogue();
 
-		      // filename = filename.replace(filename.rfind(".txt"), 4, ".xml");
-		      // AskapVOTableCatalogueWriter vowriter(filename);
-		      // ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to the VOTable " << filename);
-		      // vowriter.setup(this);
-		      // vowriter.setFitType(outtypes[t]);
-		      // vowriter.setColumnSpec(&columns);
-		      // vowriter.setSourceList(&this->itsSourceList);
-		      // vowriter.openCatalogue();
-		      // vowriter.writeTableHeader();
-		      // vowriter.writeEntries();
-		      // vowriter.closeCatalogue();
+		      filename = filename.replace(filename.rfind(".txt"), 4, ".xml");
+		      AskapVOTableCatalogueWriter vowriter(filename);
+		      ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to the VOTable " << filename);
+		      vowriter.setup(this);
+		      vowriter.setFitType(outtypes[t]);
+		      vowriter.setColumnSpec(&columns);
+		      vowriter.setSourceList(&this->itsSourceList);
+		      vowriter.openCatalogue();
+		      vowriter.writeTableHeader();
+		      vowriter.writeEntries();
+		      vowriter.closeCatalogue();
 
 		    }
 

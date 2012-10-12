@@ -1314,7 +1314,7 @@ namespace askap {
 
             //**************************************************************//
 
-	  void RadioSource::printTableRow(std::ostream &stream, Catalogues::CatalogueSpecification columns, size_t fitNum, std::string fitType)
+	  void RadioSource::printTableRow(std::ostream &stream, duchamp::Catalogues::CatalogueSpecification columns, size_t fitNum, std::string fitType)
 	  {
 	    /// @details
 	    ///  Print a row of values for the current Detection into an output
@@ -1330,7 +1330,7 @@ namespace askap {
 	    for(size_t i=0;i<columns.size();i++) this->printTableEntry(stream, columns.column(i), fitNum, fitType);
 	    stream << "\n";
 	    
-  }
+	  }
 
 	  void RadioSource::printTableEntry(std::ostream &stream, duchamp::Catalogues::Column column, size_t fitNum, std::string fitType)
 	  {
