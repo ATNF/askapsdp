@@ -1901,33 +1901,35 @@ namespace askap {
 		  
 		  for (size_t t = 0; t < outtypes.size(); t++) {
  		    
-		    for(int i=0;i<2;i++){
-		      std::string filename=sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]);
-		      AskapAsciiCatalogueWriter writer(filename);
-		      ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to " << filename);
-		      writer.setup(this);
-		      writer.setFitType(outtypes[t]);
-		      writer.setColumnSpec(&columns);
-		      writer.setSourceList(&this->itsSourceList);
-		      writer.openCatalogue();
-		      writer.writeTableHeader();
-		      writer.writeEntries();
-		      writer.closeCatalogue();
-
-		      filename = filename.replace(filename.rfind(".txt"), 4, ".xml");
-		      AskapVOTableCatalogueWriter vowriter(filename);
-		      ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to the VOTable " << filename);
-		      vowriter.setup(this);
-		      vowriter.setFitType(outtypes[t]);
-		      vowriter.setColumnSpec(&columns);
-		      vowriter.setSourceList(&this->itsSourceList);
-		      vowriter.openCatalogue();
-		      vowriter.writeTableHeader();
-		      vowriter.writeEntries();
-		      vowriter.closeCatalogue();
-
-		    }
-
+		    std::string filename=sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]);
+		    AskapAsciiCatalogueWriter writer(filename);
+		    ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to " << filename);
+		    writer.setup(this);
+		    writer.setFitType(outtypes[t]);
+		    writer.setColumnSpec(&columns);
+		    writer.setSourceList(&this->itsSourceList);
+		    writer.openCatalogue();
+		    writer.writeTableHeader();
+		    writer.writeEntries();
+		    writer.writeFooter();
+		    writer.closeCatalogue();
+		    
+		    filename = filename.replace(filename.rfind(".txt"), 4, ".xml");
+		    AskapVOTableCatalogueWriter vowriter(filename);
+		    ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to the VOTable " << filename);
+		    vowriter.setup(this);
+		    vowriter.setFitType(outtypes[t]);
+		    vowriter.setColumnSpec(&columns);
+		    vowriter.setSourceList(&this->itsSourceList);
+		    vowriter.openCatalogue();
+		    vowriter.writeHeader();
+		    vowriter.writeParameters();
+		    vowriter.writeStats();
+		    vowriter.writeTableHeader();
+		    vowriter.writeEntries();
+		    vowriter.writeFooter();
+		    vowriter.closeCatalogue();
+		    
 		  }
 		  
 
