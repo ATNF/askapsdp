@@ -1,4 +1,4 @@
-/// @file VOTableField.cc
+/// @file VOTableGroup.cc
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "VOTableField.h"
+#include "VOTableGroup.h"
 
 // Include package level header file
 #include "askap_accessors.h"
@@ -41,110 +41,111 @@
 
 // Local package includes
 #include "votable/XercescString.h"
+#include "votable/VOTableParam.h"
 
-ASKAP_LOGGER(logger, ".VOTableField");
+ASKAP_LOGGER(logger, ".VOTableGroup");
 
 using namespace askap;
 using namespace askap::accessors;
 using namespace xercesc;
 
-VOTableField::VOTableField()
+VOTableGroup::VOTableGroup()
 {
 }
 
-void VOTableField::setDescription(const std::string& description)
+void VOTableGroup::setDescription(const std::string& description)
 {
     itsDescription = description;
 }
 
-std::string VOTableField::getDescription() const
+std::string VOTableGroup::getDescription() const
 {
     return itsDescription;
 }
 
-void VOTableField::setName(const std::string& name)
+void VOTableGroup::setName(const std::string& name)
 {
     itsName = name;
 }
 
-std::string VOTableField::getName() const
+std::string VOTableGroup::getName() const
 {
     return itsName;
 }
 
-void VOTableField::setID(const std::string& id)
+void VOTableGroup::setID(const std::string& id)
 {
     itsID = id;
 }
 
-std::string VOTableField::getID() const
+std::string VOTableGroup::getID() const
 {
     return itsID;
 }
 
-void VOTableField::setDatatype(const std::string& datatype)
-{
-    itsDatatype = datatype;
-}
-
-std::string VOTableField::getDatatype() const
-{
-    return itsDatatype;
-}
-
-void VOTableField::setArraysize(const std::string& arraysize)
-{
-    itsArraysize = arraysize;
-}
-
-std::string VOTableField::getArraysize() const
-{
-    return itsArraysize;
-}
-
-void VOTableField::setUnit(const std::string& unit)
-{
-    itsUnit = unit;
-}
-
-std::string VOTableField::getUnit() const
-{
-    return itsUnit;
-}
-
-void VOTableField::setUCD(const std::string& ucd)
+void VOTableGroup::setUCD(const std::string& ucd)
 {
     itsUCD = ucd;
 }
 
-std::string VOTableField::getUCD() const
+std::string VOTableGroup::getUCD() const
 {
     return itsUCD;
 }
 
-void VOTableField::setUType(const std::string& utype)
+void VOTableGroup::setUType(const std::string& utype)
 {
     itsUType = utype;
 }
 
-std::string VOTableField::getUType() const
+std::string VOTableGroup::getUType() const
 {
     return itsUType;
 }
 
-void VOTableField::setRef(const std::string& ref)
+void VOTableGroup::setRef(const std::string& ref)
 {
     itsRef = ref;
 }
 
-std::string VOTableField::getRef() const
+std::string VOTableGroup::getRef() const
 {
     return itsRef;
 }
 
-xercesc::DOMElement* VOTableField::toXmlElement(xercesc::DOMDocument& doc) const
+void VOTableGroup::addParam(const VOTableParam& param)
 {
-    DOMElement* e = doc.createElement(XercescString("FIELD"));
+    itsParams.push_back(param);
+}
+
+std::vector<VOTableParam> VOTableGroup::getParams() const
+{
+    return itsParams;
+}
+
+void VOTableGroup::addFieldRef(const std::string& fieldRef)
+{
+    itsFieldRefs.push_back(fieldRef);
+}
+
+std::vector<std::string> VOTableGroup::getFieldRefs() const
+{
+    return itsFieldRefs;
+}
+
+void VOTableGroup::addParamRef(const std::string& paramRef)
+{
+    itsParamRefs.push_back(paramRef);
+}
+
+std::vector<std::string> VOTableGroup::getParamRefs() const
+{
+    return itsParamRefs;
+}
+
+xercesc::DOMElement* VOTableGroup::toXmlElement(xercesc::DOMDocument& doc) const
+{
+    DOMElement* e = doc.createElement(XercescString("GROUP"));
 
     // Add attributes
     if (itsName.length() > 0) {
@@ -152,15 +153,6 @@ xercesc::DOMElement* VOTableField::toXmlElement(xercesc::DOMDocument& doc) const
     }
     if (itsID.length() > 0) {
         e->setAttribute(XercescString("ID"), XercescString(itsID));
-    }
-    if (itsDatatype.length() > 0) {
-        e->setAttribute(XercescString("datatype"), XercescString(itsDatatype));
-    }
-    if (itsArraysize.length() > 0) {
-        e->setAttribute(XercescString("arraysize"), XercescString(itsArraysize));
-    }
-    if (itsUnit.length() > 0) {
-        e->setAttribute(XercescString("unit"), XercescString(itsUnit));
     }
     if (itsUCD.length() > 0) {
         e->setAttribute(XercescString("ucd"), XercescString(itsUCD));
@@ -178,6 +170,28 @@ xercesc::DOMElement* VOTableField::toXmlElement(xercesc::DOMDocument& doc) const
         DOMText* text = doc.createTextNode(XercescString(itsDescription));
         descElement->appendChild(text);
         e->appendChild(descElement);
+    }
+
+    // Create PARAM elements
+    for (std::vector<VOTableParam>::const_iterator it = itsParams.begin();
+            it != itsParams.end(); ++it) {
+        e->appendChild(it->toXmlElement(doc));
+    }
+
+    // Create FIELDref elements
+    for (std::vector<std::string>::const_iterator it = itsFieldRefs.begin();
+            it != itsFieldRefs.end(); ++it) {
+        DOMElement* fr = doc.createElement(XercescString("FIELDref"));
+        fr->setAttribute(XercescString("ref"), XercescString(*it));
+        e->appendChild(fr);
+    }
+
+    // Create PARAMref elements
+    for (std::vector<std::string>::const_iterator it = itsParamRefs.begin();
+            it != itsParamRefs.end(); ++it) {
+        DOMElement* fr = doc.createElement(XercescString("PARAMref"));
+        fr->setAttribute(XercescString("ref"), XercescString(*it));
+        e->appendChild(fr);
     }
     return e;
 }

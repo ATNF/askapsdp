@@ -1,6 +1,6 @@
 /// @file VOTableConversionException.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -32,21 +32,21 @@
 // Local package includes
 
 namespace askap {
-namespace accessors {
+    namespace accessors {
 
 /// @brief TODO: Write documentation...
-class VOTableConversionException {
-    public:
+        class VOTableConversionException {
+            public:
 
-        /// @brief Constructor
-        VOTableConversionException();
+                /// @brief Constructor
+                VOTableConversionException();
 
-    private:
+            private:
 
 
-};
+        };
 
-}
+    }
 }
 
 #endif

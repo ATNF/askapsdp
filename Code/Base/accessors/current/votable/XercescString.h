@@ -34,34 +34,32 @@
 #include "xercesc/util/XMLString.hpp"
 
 namespace askap {
-namespace accessors {
+    namespace accessors {
 
-class XercescString {
-    public:
-        XercescString(const char* str);
+        class XercescString {
+            public:
+                XercescString(const char* str);
 
-        XercescString(const std::string& str);
+                XercescString(const std::string& str);
 
-        ~XercescString();
+                ~XercescString();
 
-        operator const XMLCh* () const
-        {
-            return itsXMLCh;
-        }
+                operator const XMLCh*() const {
+                    return itsXMLCh;
+                }
 
-        operator const std::string () const
-        {
-            char* c = xercesc::XMLString::transcode(itsXMLCh);
-            std::string s(c);
-            xercesc::XMLString::release(&c);
-            return s;
-        }
+                operator const std::string() const {
+                    char* c = xercesc::XMLString::transcode(itsXMLCh);
+                    std::string s(c);
+                    xercesc::XMLString::release(&c);
+                    return s;
+                }
 
-    private:
-        XMLCh* itsXMLCh;
-};
+            private:
+                XMLCh* itsXMLCh;
+        };
 
-}
+    }
 }
 
 #endif

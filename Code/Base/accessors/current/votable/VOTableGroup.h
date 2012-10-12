@@ -1,6 +1,6 @@
-/// @file VOTableTable.h
+/// @file VOTableGroup.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,8 +24,8 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ACCESSORS_VOTABLE_VOTABLETABLE_H
-#define ASKAP_CP_ACCESSORS_VOTABLE_VOTABLETABLE_H
+#ifndef ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEGROUP_H
+#define ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEGROUP_H
 
 // System includes
 #include <string>
@@ -35,32 +35,53 @@
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
-#include "votable/VOTableField.h"
-#include "votable/VOTableRow.h"
-#include "votable/VOTableGroup.h"
+#include "votable/VOTableParam.h"
 
 namespace askap {
     namespace accessors {
 
         /// @brief TODO: Write documentation...
-        class VOTableTable {
+        class VOTableGroup {
             public:
 
                 /// @brief Constructor
-                VOTableTable();
-
-                void setID(const std::string& id);
-                std::string getID() const;
-
-                void setName(const std::string& name);
-                std::string getName() const;
+                VOTableGroup();
 
                 void setDescription(const std::string& description);
+
                 std::string getDescription() const;
 
-                void addGroup(const VOTableGroup& group);
-                void addField(const VOTableField& field);
-                void addRow(const VOTableRow& row);
+                void setName(const std::string& name);
+
+                std::string getName() const;
+
+                void setID(const std::string& id);
+
+                std::string getID() const;
+
+                void setUCD(const std::string& ucd);
+
+                std::string getUCD() const;
+
+                void setUType(const std::string& utype);
+
+                std::string getUType() const;
+
+                void setRef(const std::string& ref);
+
+                std::string getRef() const;
+
+                void addParam(const VOTableParam& param);
+
+                std::vector<VOTableParam> getParams() const;
+
+                void addFieldRef(const std::string& fieldRef);
+
+                std::vector<std::string> getFieldRefs() const;
+
+                void addParamRef(const std::string& paramRef);
+
+                std::vector<std::string> getParamRefs() const;
 
                 xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
 
@@ -69,9 +90,12 @@ namespace askap {
                 std::string itsDescription;
                 std::string itsName;
                 std::string itsID;
-                std::vector<VOTableGroup> itsGroups;
-                std::vector<VOTableField> itsFields;
-                std::vector<VOTableRow> itsRows;
+                std::string itsUCD;
+                std::string itsUType;
+                std::string itsRef;
+                std::vector<VOTableParam> itsParams;
+                std::vector<std::string> itsFieldRefs;
+                std::vector<std::string> itsParamRefs;
         };
 
     }

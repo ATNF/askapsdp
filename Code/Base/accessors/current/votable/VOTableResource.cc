@@ -31,6 +31,8 @@
 #include "askap_accessors.h"
 
 // System includes
+#include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -39,6 +41,8 @@
 
 // Local package includes
 #include "votable/XercescString.h"
+#include "votable/VOTableInfo.h"
+#include "votable/VOTableTable.h"
 
 ASKAP_LOGGER(logger, ".VOTableResource");
 
@@ -50,8 +54,100 @@ VOTableResource::VOTableResource()
 {
 }
 
+void VOTableResource::setDescription(const std::string& description)
+{
+    itsDescription = description;
+}
+
+std::string VOTableResource::getDescription() const
+{
+    return itsDescription;
+}
+
+void VOTableResource::setName(const std::string& name)
+{
+    itsName = name;
+}
+
+std::string VOTableResource::getName() const
+{
+    return itsName;
+}
+
+void VOTableResource::setID(const std::string& ID)
+{
+    itsID = ID;
+}
+
+std::string VOTableResource::getID() const
+{
+    return itsID;
+}
+
+void VOTableResource::setType(const std::string& type)
+{
+    itsType = type;
+}
+
+std::string VOTableResource::getType() const
+{
+    return itsType;
+}
+
+void VOTableResource::addInfo(const VOTableInfo& info)
+{
+    itsInfo.push_back(info);
+}
+
+std::vector<VOTableInfo> VOTableResource::getInfo() const
+{
+    return itsInfo;
+}
+
+void VOTableResource::addTable(const VOTableTable& table)
+{
+    itsTables.push_back(table);
+}
+
+std::vector<VOTableTable> VOTableResource::getTables() const
+{
+    return itsTables;
+}
+
 xercesc::DOMElement* VOTableResource::toXmlElement(xercesc::DOMDocument& doc) const
 {
-    DOMElement* elem = doc.createElement(XercescString("RESOURCE"));
-    return elem;
+    DOMElement* e = doc.createElement(XercescString("RESOURCE"));
+
+    // Add attributes
+    if (itsID.length() > 0) {
+        e->setAttribute(XercescString("ID"), XercescString(itsID));
+    }
+    if (itsName.length() > 0) {
+        e->setAttribute(XercescString("name"), XercescString(itsName));
+    }
+    if (itsType.length() > 0) {
+        e->setAttribute(XercescString("type"), XercescString(itsType));
+    }
+
+    // Create DESCRIPTION element
+    if (itsDescription.length() > 0) {
+        DOMElement* descElement = doc.createElement(XercescString("DESCRIPTION"));
+        DOMText* text = doc.createTextNode(XercescString(itsDescription));
+        descElement->appendChild(text);
+        e->appendChild(descElement);
+    }
+
+    // Create INFO elements
+    for (std::vector<VOTableInfo>::const_iterator it = itsInfo.begin();
+            it != itsInfo.end(); ++it) {
+        e->appendChild(it->toXmlElement(doc));
+    }
+
+    // Create TABLE elements
+    for (std::vector<VOTableTable>::const_iterator it = itsTables.begin();
+            it != itsTables.end(); ++it) {
+        e->appendChild(it->toXmlElement(doc));
+    }
+
+    return e;
 }

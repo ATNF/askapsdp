@@ -31,6 +31,7 @@
 #include "askap_accessors.h"
 
 // System includes
+#include <string>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -50,8 +51,66 @@ VOTableInfo::VOTableInfo()
 {
 }
 
+void VOTableInfo::setID(std::string& id)
+{
+    itsID = id;
+}
+
+std::string VOTableInfo::getID() const
+{
+    return itsID;
+}
+
+void VOTableInfo::setName(std::string& name)
+{
+    itsName = name;
+}
+
+std::string VOTableInfo::getName() const
+{
+    return itsName;
+}
+
+void VOTableInfo::setValue(std::string& value)
+{
+    itsValue = value;
+}
+
+std::string VOTableInfo::getValue() const
+{
+    return itsValue;
+}
+
+void VOTableInfo::setText(std::string& text)
+{
+    itsText = text;
+}
+
+std::string VOTableInfo::getText() const
+{
+    return itsText;
+}
+
 DOMElement* VOTableInfo::toXmlElement(DOMDocument& doc) const
 {
-    DOMElement* elem = doc.createElement(XercescString("INFO"));
-    return elem;
+    DOMElement* e = doc.createElement(XercescString("INFO"));
+
+    // Add attributes
+    if (itsID.length() > 0) {
+        e->setAttribute(XercescString("ID"), XercescString(itsID));
+    }
+    if (itsName.length() > 0) {
+        e->setAttribute(XercescString("name"), XercescString(itsName));
+    }
+    if (itsValue.length()) {
+        e->setAttribute(XercescString("value"), XercescString(itsValue));
+    }
+
+    // Add text
+    if (itsText.length()) {
+        DOMText* text = doc.createTextNode(XercescString(itsText));
+        e->appendChild(text);
+    }
+
+    return e;
 }

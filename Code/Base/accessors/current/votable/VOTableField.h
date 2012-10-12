@@ -27,29 +27,76 @@
 #ifndef ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEFIELD_H
 #define ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEFIELD_H
 
+// System includes
+#include <string>
+
 // ASKAPsoft includes
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
 
 namespace askap {
-namespace accessors {
+    namespace accessors {
 
-/// @brief TODO: Write documentation...
-class VOTableField {
-    public:
+        /// @brief TODO: Write documentation...
+        class VOTableField {
+            public:
 
-        /// @brief Constructor
-        VOTableField();
+                /// @brief Constructor
+                VOTableField();
 
-        xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
+                void setDescription(const std::string& description);
 
-    private:
+                std::string getDescription() const;
 
+                void setName(const std::string& name);
 
-};
+                std::string getName() const;
 
-}
+                void setID(const std::string& id);
+
+                std::string getID() const;
+
+                void setDatatype(const std::string& datatype);
+
+                std::string getDatatype() const;
+
+                void setArraysize(const std::string& arraysize);
+
+                std::string getArraysize() const;
+
+                void setUnit(const std::string& unit);
+
+                std::string getUnit() const;
+
+                void setUCD(const std::string& ucd);
+
+                std::string getUCD() const;
+
+                void setUType(const std::string& utype);
+
+                std::string getUType() const;
+
+                void setRef(const std::string& ref);
+
+                std::string getRef() const;
+
+                xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
+
+            private:
+
+                std::string itsDescription;
+                std::string itsName;
+                std::string itsID;
+                std::string itsDatatype;
+                std::string itsArraysize;
+                std::string itsUnit;
+                std::string itsUCD;
+                std::string itsUType;
+                std::string itsRef;
+        };
+
+    }
 }
 
 #endif

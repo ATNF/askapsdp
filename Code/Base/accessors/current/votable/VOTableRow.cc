@@ -31,6 +31,8 @@
 #include "askap_accessors.h"
 
 // System includes
+# include <vector>
+# include <string>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -50,8 +52,22 @@ VOTableRow::VOTableRow()
 {
 }
 
+void VOTableRow::addCell(const std::string& cell)
+{
+    itsCells.push_back(cell);
+}
+
 xercesc::DOMElement* VOTableRow::toXmlElement(xercesc::DOMDocument& doc) const
 {
-    DOMElement* elem = doc.createElement(XercescString("TR"));
-    return elem;
+    DOMElement* tr = doc.createElement(XercescString("TR"));
+
+    for (std::vector<std::string>::const_iterator it = itsCells.begin();
+            it != itsCells.end(); ++it) {
+        DOMElement* td = doc.createElement(XercescString("TD"));
+        DOMText* text = doc.createTextNode(XercescString(*it));
+        td->appendChild(text);
+        tr->appendChild(td);
+    }
+
+    return tr;
 }

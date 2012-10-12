@@ -31,6 +31,8 @@
 #include "askap_accessors.h"
 
 // System includes
+#include <string>
+#include <iostream>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -53,7 +55,7 @@ using namespace askap;
 using namespace askap::accessors;
 using namespace xercesc;
 
-VOTable::VOTable(const std::string& version)
+VOTable::VOTable(void)
 {
 }
 
@@ -101,11 +103,11 @@ void VOTable::toXml(const std::string& filename)
     DOMElement* root = doc->createElement(XercescString("VOTABLE"));
     root->setAttribute(XercescString("version"), XercescString("1.2"));
     root->setAttribute(XercescString("xmlns:xsi"),
-            XercescString("http://www.w3.org/2001/XMLSchema-instance"));
+                       XercescString("http://www.w3.org/2001/XMLSchema-instance"));
     root->setAttribute(XercescString("xmlns"),
-            XercescString("http://www.ivoa.net/xml/VOTable/v1.2"));
+                       XercescString("http://www.ivoa.net/xml/VOTable/v1.2"));
     root->setAttribute(XercescString("xmlns:stc"),
-            XercescString("http://www.ivoa.net/xml/STC/v1.30"));
+                       XercescString("http://www.ivoa.net/xml/STC/v1.30"));
     doc->appendChild(root);
 
 
@@ -131,6 +133,11 @@ void VOTable::toXml(const std::string& filename)
 
     // Write
     DOMLSSerializer* writer = ((DOMImplementationLS*)impl)->createLSSerializer();
+
+    if (writer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true)) {
+        writer->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
+    }
+
     LocalFileFormatTarget* target = new LocalFileFormatTarget(XercescString(filename));
 
     DOMLSOutput* output = ((DOMImplementationLS*)impl)->createLSOutput();
@@ -170,7 +177,7 @@ askap::accessors::VOTable VOTable::fromXML(const std::string& filename)
     }
 
     // Build the VOTable
-    VOTable vot("1.2");
+    VOTable vot;
 
     // Cleanup
     delete parser;

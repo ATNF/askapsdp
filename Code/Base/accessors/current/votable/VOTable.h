@@ -36,36 +36,42 @@
 // Local package includes
 #include "votable/VOTableInfo.h"
 #include "votable/VOTableResource.h"
+#include "votable/VOTableField.h"
+#include "votable/VOTableParam.h"
+#include "votable/VOTableRow.h"
+#include "votable/VOTableTable.h"
+#include "votable/VOTableGroup.h"
+// NOTE: Some are unnecessarily included so the user can just include VOTable.h
 
 namespace askap {
-namespace accessors {
+    namespace accessors {
 
 /// @brief TODO: Write documentation...
-class VOTable {
-    public:
+        class VOTable {
+            public:
 
-        /// @brief Constructor
-        VOTable(const std::string& version);
+                /// @brief Constructor
+                VOTable(void);
 
-        std::string getDescription() const;
-        std::vector<askap::accessors::VOTableInfo> getInfo() const;
-        std::vector<askap::accessors::VOTableResource> getResource() const;
+                std::string getDescription() const;
+                std::vector<askap::accessors::VOTableInfo> getInfo() const;
+                std::vector<askap::accessors::VOTableResource> getResource() const;
 
-        void setDescription(const std::string& desc);
+                void setDescription(const std::string& desc);
 
-        void addResource(const askap::accessors::VOTableResource& resource);
-        void addInfo(const askap::accessors::VOTableInfo& info);
+                void addResource(const askap::accessors::VOTableResource& resource);
+                void addInfo(const askap::accessors::VOTableInfo& info);
 
-        void toXml(const std::string& filename);
-        static VOTable fromXML(const std::string& filename);
+                void toXml(const std::string& filename);
+                static VOTable fromXML(const std::string& filename);
 
-    private:
-        std::string itsDescription;
-        std::vector<askap::accessors::VOTableInfo> itsInfo;
-        std::vector<askap::accessors::VOTableResource> itsResource;
-};
+            private:
+                std::string itsDescription;
+                std::vector<askap::accessors::VOTableInfo> itsInfo;
+                std::vector<askap::accessors::VOTableResource> itsResource;
+        };
 
-}
+    }
 }
 
 #endif

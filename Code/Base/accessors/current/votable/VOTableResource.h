@@ -27,29 +27,59 @@
 #ifndef ASKAP_CP_ACCESSORS_VOTABLE_VOTABLERESOURCE_H
 #define ASKAP_CP_ACCESSORS_VOTABLE_VOTABLERESOURCE_H
 
+// System includes
+#include <string>
+#include <vector>
+
 // ASKAPsoft includes
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
+#include "votable/VOTableInfo.h"
+#include "votable/VOTableTable.h"
 
 namespace askap {
-namespace accessors {
+    namespace accessors {
 
-/// @brief TODO: Write documentation...
-class VOTableResource {
-    public:
+        /// @brief TODO: Write documentation...
+        class VOTableResource {
+            public:
 
-        /// @brief Constructor
-        VOTableResource();
+                /// @brief Constructor
+                VOTableResource();
+
+                void setDescription(const std::string& description);
+                std::string getDescription() const;
+
+                void setName(const std::string& name);
+                std::string getName() const;
+
+                void setID(const std::string& ID);
+                std::string getID() const;
+
+                void setType(const std::string& type);
+                std::string getType() const;
+
+                void addInfo(const VOTableInfo& info);
+                std::vector<VOTableInfo> getInfo() const;
+
+                void addTable(const VOTableTable& table);
+                std::vector<VOTableTable> getTables() const;
+
+                xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
+
+            private:
+                std::string itsDescription;
+                std::string itsName;
+                std::string itsID;
+                std::string itsType;
+                std::vector<VOTableInfo> itsInfo;
+                std::vector<VOTableTable> itsTables;
 
 
-        xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
-    private:
+        };
 
-
-};
-
-}
+    }
 }
 
 #endif

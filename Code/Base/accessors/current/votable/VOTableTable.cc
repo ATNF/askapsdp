@@ -31,6 +31,8 @@
 #include "askap_accessors.h"
 
 // System includes
+#include <string>
+#include <vector>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -39,6 +41,8 @@
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
+#include "votable/VOTableField.h"
+#include "votable/VOTableRow.h"
 
 ASKAP_LOGGER(logger, ".VOTableTable");
 
@@ -50,8 +54,96 @@ VOTableTable::VOTableTable()
 {
 }
 
+void VOTableTable::setID(const std::string& id)
+{
+    itsID = id;
+}
+
+std::string VOTableTable::getID() const
+{
+    return itsID;
+}
+
+void VOTableTable::setName(const std::string& name)
+{
+    itsName = name;
+}
+
+std::string VOTableTable::getName() const
+{
+    return itsName;
+}
+
+void VOTableTable::setDescription(const std::string& description)
+{
+    itsDescription = description;
+}
+
+std::string VOTableTable::getDescription() const
+{
+    return itsDescription;
+}
+
+void VOTableTable::addGroup(const VOTableGroup& group)
+{
+    itsGroups.push_back(group);
+}
+
+void VOTableTable::addField(const VOTableField& field)
+{
+    itsFields.push_back(field);
+}
+
+void VOTableTable::addRow(const VOTableRow& row)
+{
+    itsRows.push_back(row);
+}
+
 xercesc::DOMElement* VOTableTable::toXmlElement(xercesc::DOMDocument& doc) const
 {
-    DOMElement* elem = doc.createElement(XercescString("TABLE"));
-    return elem;
+    DOMElement* e = doc.createElement(XercescString("TABLE"));
+
+    // Add attributes
+    if (itsID.length()) {
+        e->setAttribute(XercescString("ID"), XercescString(itsID));
+    }
+    if (itsName.length() > 0) {
+        e->setAttribute(XercescString("name"), XercescString(itsName));
+    }
+
+    // Create DESCRIPTION element
+    if (itsDescription.length() > 0) {
+        DOMElement* descElement = doc.createElement(XercescString("DESCRIPTION"));
+        DOMText* text = doc.createTextNode(XercescString(itsDescription));
+        descElement->appendChild(text);
+        e->appendChild(descElement);
+    }
+
+    // Create GROUP elements
+    for (std::vector<VOTableGroup>::const_iterator it = itsGroups.begin();
+            it != itsGroups.end(); ++it) {
+        e->appendChild(it->toXmlElement(doc));
+    }
+
+    // Create FIELD elements
+    for (std::vector<VOTableField>::const_iterator it = itsFields.begin();
+            it != itsFields.end(); ++it) {
+        e->appendChild(it->toXmlElement(doc));
+    }
+
+    // Create DATA element
+    DOMElement* dataElement = doc.createElement(XercescString("DATA"));
+    e->appendChild(dataElement);
+
+    // Create TABLEDATA element
+    DOMElement* tableDataElement = doc.createElement(XercescString("TABLEDATA"));
+    dataElement->appendChild(tableDataElement);
+
+    // Add rows
+    for (std::vector<VOTableRow>::const_iterator it = itsRows.begin();
+            it != itsRows.end(); ++it) {
+        tableDataElement->appendChild(it->toXmlElement(doc));
+    }
+
+    return e;
 }

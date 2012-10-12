@@ -1,4 +1,4 @@
-/// @file VOTableTable.h
+/// @file VOTableParam.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,43 +24,66 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ACCESSORS_VOTABLE_VOTABLETABLE_H
-#define ASKAP_CP_ACCESSORS_VOTABLE_VOTABLETABLE_H
+#ifndef ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEPARAM_H
+#define ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEPARAM_H
 
 // System includes
 #include <string>
-#include <vector>
 
 // ASKAPsoft includes
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
-#include "votable/VOTableField.h"
-#include "votable/VOTableRow.h"
-#include "votable/VOTableGroup.h"
 
 namespace askap {
     namespace accessors {
 
         /// @brief TODO: Write documentation...
-        class VOTableTable {
+        class VOTableParam {
             public:
 
                 /// @brief Constructor
-                VOTableTable();
-
-                void setID(const std::string& id);
-                std::string getID() const;
-
-                void setName(const std::string& name);
-                std::string getName() const;
+                VOTableParam();
 
                 void setDescription(const std::string& description);
+
                 std::string getDescription() const;
 
-                void addGroup(const VOTableGroup& group);
-                void addField(const VOTableField& field);
-                void addRow(const VOTableRow& row);
+                void setName(const std::string& name);
+
+                std::string getName() const;
+
+                void setID(const std::string& id);
+
+                std::string getID() const;
+
+                void setDatatype(const std::string& datatype);
+
+                std::string getDatatype() const;
+
+                void setArraysize(const std::string& arraysize);
+
+                std::string getArraysize() const;
+
+                void setUnit(const std::string& unit);
+
+                std::string getUnit() const;
+
+                void setUCD(const std::string& ucd);
+
+                std::string getUCD() const;
+
+                void setUType(const std::string& utype);
+
+                std::string getUType() const;
+
+                void setRef(const std::string& ref);
+
+                std::string getRef() const;
+
+                void setValue(const std::string& value);
+
+                std::string getValue() const;
 
                 xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
 
@@ -69,9 +92,13 @@ namespace askap {
                 std::string itsDescription;
                 std::string itsName;
                 std::string itsID;
-                std::vector<VOTableGroup> itsGroups;
-                std::vector<VOTableField> itsFields;
-                std::vector<VOTableRow> itsRows;
+                std::string itsDatatype;
+                std::string itsArraysize;
+                std::string itsUnit;
+                std::string itsUCD;
+                std::string itsUType;
+                std::string itsRef;
+                std::string itsValue;
         };
 
     }

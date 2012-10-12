@@ -27,29 +27,35 @@
 #ifndef ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEROW_H
 #define ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEROW_H
 
+// System includes
+# include <vector>
+# include <string>
+
 // ASKAPsoft includes
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
 
 namespace askap {
-namespace accessors {
+    namespace accessors {
 
 /// @brief TODO: Write documentation...
-class VOTableRow {
-    public:
+        class VOTableRow {
+            public:
 
-        /// @brief Constructor
-        VOTableRow();
+                /// @brief Constructor
+                VOTableRow();
 
-        xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
+                void addCell(const std::string& cell);
 
-    private:
+                xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
 
+            private:
+                std::vector<std::string> itsCells;
 
-};
+        };
 
-}
+    }
 }
 
 #endif
