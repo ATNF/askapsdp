@@ -1359,8 +1359,9 @@ namespace askap {
 	    delete [] pix;
 	    delete [] wld;
 	    float intfluxfit = gauss.flux();
+	    if (this->itsHeader.needBeamSize())
+	      intfluxfit /= this->itsHeader.beam().area(); // Convert from Jy/beam to Jy
 
-	    this->duchamp::Detection::printTableEntry(stream,column); // handles anything covered by duchamp code. If different column, use the following.
 	    std::string type=column.type();	    
 	    if(type=="NUM")  column.printEntry(stream, id.str());
 	    else if(type=="NAME")  column.printEntry(stream, this->getName());
@@ -1381,11 +1382,12 @@ namespace askap {
 	    else if(type=="CHISQFIT")  column.printEntry(stream, results.chisq());
 	    else if(type=="RMSIMAGE")  column.printEntry(stream, this->itsNoiseLevel);
 	    else if(type=="RMSFIT")  column.printEntry(stream, results.RMS());
-	    else if(type=="NFREE")  column.printEntry(stream, results.numFreeParam());
+	    else if(type=="NFREEFIT")  column.printEntry(stream, results.numFreeParam());
 	    else if(type=="NDOFFIT")  column.printEntry(stream, results.ndof());
 	    else if(type=="NPIXFIT")  column.printEntry(stream, results.numPix());
 	    else if(type=="NPIXOBJ")  column.printEntry(stream, this->getSize());
 	    else if(type=="GUESS")  column.printEntry(stream, results.fitIsGuess() ? 1 : 0);
+	    else this->duchamp::Detection::printTableEntry(stream,column); // handles anything covered by duchamp code. If different column, use the following.
 	  }
 
 	  void RadioSource::writeFitToAnnotationFile(duchamp::AnnotationWriter *writer, bool doEllipse, bool doBox)

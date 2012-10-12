@@ -80,7 +80,6 @@ namespace askap {
     void AskapAsciiCatalogueWriter::writeTableHeader()
     {
       if(this->itsOpenFlag){
-	std::cout << "HERE!\n\n";
 	*this->itsStream << "#";
 	for(size_t i=0;i<this->itsColumnSpecification->size();i++)
 	  this->itsColumnSpecification->column(i).printDash(*this->itsStream);
@@ -94,15 +93,16 @@ namespace askap {
 	for(size_t i=0;i<this->itsColumnSpecification->size();i++)
 	  this->itsColumnSpecification->column(i).printDash(*this->itsStream);
 	*this->itsStream << "\n";
-	this->itsColumnSpecification->column(0).widen();
       }
     }
 
     void AskapAsciiCatalogueWriter::writeEntry(sourcefitting::RadioSource *source)
     {
       if(this->itsOpenFlag){
-	for(size_t i=0;i<source->numFits(this->itsFitType);i++) 
+	for(size_t i=0;i<source->numFits(this->itsFitType);i++) {
+	  *this->itsStream << " "; // to match the '#' at the start of the header rows
 	  source->printTableRow(*this->itsStream,*this->itsColumnSpecification,i,this->itsFitType);
+	}
       }
     }
 
