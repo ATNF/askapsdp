@@ -154,9 +154,9 @@ namespace askap {
                     std::vector<casa::Gaussian2D<Double> > gaussFitSet() {return itsBestFitMap["best"].fitSet();};
 		    
 		    /// @brief Return the number of fits for a fit type
-		    int numFits(std::string type) {return itsBestFitMap[type].numFits();};
+		    unsigned int numFits(std::string type) {return itsBestFitMap[type].numFits();};
 		    /// @brief Return the number of fits for the best set
-		    int numFits() {return itsBestFitMap["best"].numFits();};
+		    unsigned int numFits() {return itsBestFitMap["best"].numFits();};
 
 		    std::vector<float> alphaValues(std::string type){return itsAlphaMap[type];};
 		    std::vector<float> betaValues(std::string type){return itsBetaMap[type];};
@@ -169,7 +169,9 @@ namespace askap {
                     /*                   std::string fittype, bool doHeader = false); */
 		    void printSummary(std::ostream &stream, duchamp::Catalogues::CatalogueSpecification columns,
                                       std::string fittype, bool doHeader = false);
-
+		    void printTableRow(std::ostream &stream, duchamp::Catalogues::CatalogueSpecification columns, size_t fitNum=0, std::string fitType="best");
+		    void printTableEntry(std::ostream &stream, duchamp::Catalogues::Column column, size_t fitNum=0, std::string fitType="best");
+	    
                     /// @brief Write the description of the fits to an annotation file.
 		    void writeFitToAnnotationFile(duchamp::AnnotationWriter *writer, bool doEllipse, bool doBox);
                     void writeFitToAnnotationFile(std::ostream &stream, bool doEllipse, bool doBox);

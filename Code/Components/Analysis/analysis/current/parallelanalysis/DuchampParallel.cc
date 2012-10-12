@@ -1896,33 +1896,40 @@ namespace askap {
 
 		if(this->itsFlagDoFit){
 
-		  //		  duchamp::Catalogues::CatalogueSpecification columns = this->itsCube.getFullCols();
 		  duchamp::Catalogues::CatalogueSpecification columns = fullCatalogue(this->itsCube.getFullCols(), this->itsCube.header());
-		  // std::vector<duchamp::Column::Col> columns = this->itsCube.getFullCols();
 		  
 		  for (size_t t = 0; t < outtypes.size(); t++) {
-                    // std::ofstream summaryFile(sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]).c_str());
-                    // std::vector<sourcefitting::RadioSource>::iterator src = this->itsSourceList.begin();
-		    
-                    // for (; src < this->itsSourceList.end(); src++)
-		    //   src->printSummary(summaryFile, columns, outtypes[t], src == this->itsSourceList.begin());
-		    
-                    // summaryFile.close();
-		    
-		    std::string filename=sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]);
-		    ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to " << filename);
-		    AskapAsciiCatalogueWriter writer(filename);
-		    writer.setup(this);
-		    writer.setFitType(outtypes[t]);
-		    writer.setColumnSpec(&columns);
-		    writer.setSourceList(&this->itsSourceList);
-		    writer.openCatalogue();
-		    writer.writeTableHeader();
-		    writer.writeEntries();
-		    writer.closeCatalogue();
+ 		    
+		    for(int i=0;i<2;i++){
+		      std::string filename=sourcefitting::convertSummaryFile(this->itsFitSummaryFile.c_str(), outtypes[t]);
+		      AskapAsciiCatalogueWriter writer(filename);
+		      ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to " << filename);
+		      writer.setup(this);
+		      writer.setFitType(outtypes[t]);
+		      writer.setColumnSpec(&columns);
+		      writer.setSourceList(&this->itsSourceList);
+		      writer.openCatalogue();
+		      writer.writeTableHeader();
+		      writer.writeEntries();
+		      writer.closeCatalogue();
+
+		      // filename = filename.replace(filename.rfind(".txt"), 4, ".xml");
+		      // AskapVOTableCatalogueWriter vowriter(filename);
+		      // ASKAPLOG_DEBUG_STR(logger, "Writing Fit results to the VOTable " << filename);
+		      // vowriter.setup(this);
+		      // vowriter.setFitType(outtypes[t]);
+		      // vowriter.setColumnSpec(&columns);
+		      // vowriter.setSourceList(&this->itsSourceList);
+		      // vowriter.openCatalogue();
+		      // vowriter.writeTableHeader();
+		      // vowriter.writeEntries();
+		      // vowriter.closeCatalogue();
+
+		    }
 
 		  }
 		  
+
 		  if (this->itsFlagDoFit) this->writeFitAnnotation();
 
 		}

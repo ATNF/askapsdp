@@ -112,7 +112,7 @@ namespace askap {
                     casa::Gaussian2D<Double> gaussian(unsigned int num) {return itsGaussFitSet[num];};
 
                     /// @brief The number of fitted components
-                    int numFits() {return itsGaussFitSet.size();};
+                    unsigned int numFits() {return itsGaussFitSet.size();};
 
                     /// @brief Functions allowing fitting parameters to be passed over LOFAR Blobs
                     /// @name

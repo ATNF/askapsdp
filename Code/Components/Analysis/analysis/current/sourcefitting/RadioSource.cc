@@ -1314,6 +1314,80 @@ namespace askap {
 
             //**************************************************************//
 
+	  void RadioSource::printTableRow(std::ostream &stream, Catalogues::CatalogueSpecification columns, size_t fitNum, std::string fitType)
+	  {
+	    /// @details
+	    ///  Print a row of values for the current Detection into an output
+	    ///  table. Columns are printed according to the tableType string,
+	    ///  using the Column::doCol() function as a determinant.
+	    /// \param stream Where the output is written
+	    /// \param columns The vector list of Column objects
+	    /// \param tableType A Catalogues::DESTINATION label saying what format to use: one of
+	    /// FILE, LOG, SCREEN or VOTABLE (although the latter
+	    /// shouldn't be used with this function).
+	    
+	    stream.setf(std::ios::fixed);  
+	    for(size_t i=0;i<columns.size();i++) this->printTableEntry(stream, columns.column(i), fitNum, fitType);
+	    stream << "\n";
+	    
+  }
+
+	  void RadioSource::printTableEntry(std::ostream &stream, duchamp::Catalogues::Column column, size_t fitNum, std::string fitType)
+	  {
+	    /// @details
+	    ///  Print a single value into an output table. The Detection's
+	    ///  correct value is extracted according to the Catalogues::COLNAME
+	    ///  key in the column given.
+	    /// \param stream Where the output is written
+	    /// \param column The Column object defining the formatting.
+	    
+	    ASKAPCHECK(fitNum<this->itsBestFitMap[fitType].numFits(),"fitNum="<<fitNum<<", but source only has "<<this->itsBestFitMap[fitType].numFits()<<" fits");
+	    FitResults results = this->itsBestFitMap[fitType];
+	    casa::Gaussian2D<Double> gauss = this->itsBestFitMap[fitType].gaussian(fitNum);
+	    char firstSuffix = 'a';
+	    std::stringstream id;
+	    id << this->getID() << char(firstSuffix + fitNum);
+	    std::vector<Double> deconv = deconvolveGaussian(gauss,this->itsHeader.getBeam());
+	    double *pix = new double[3];
+	    pix[0] = gauss.xCenter();
+	    pix[1] = gauss.yCenter();
+	    pix[2] = this->getZcentre();
+	    double *wld = new double[3];
+	    this->itsHeader.pixToWCS(pix, wld);
+	    double thisRA = wld[0];
+	    double thisDec = wld[1];
+	    delete [] pix;
+	    delete [] wld;
+	    float intfluxfit = gauss.flux();
+
+	    this->duchamp::Detection::printTableEntry(stream,column); // handles anything covered by duchamp code. If different column, use the following.
+	    std::string type=column.type();	    
+	    if(type=="NUM")  column.printEntry(stream, id.str());
+	    else if(type=="NAME")  column.printEntry(stream, this->getName());
+	    else if(type=="RAJD")  column.printEntry(stream, thisRA);
+	    else if(type=="DECJD")  column.printEntry(stream, thisDec);
+	    else if(type=="FINT")  column.printEntry(stream, this->getIntegFlux());
+	    else if(type=="FPEAK")  column.printEntry(stream, this->getPeakFlux());
+	    else if(type=="FINTFIT")  column.printEntry(stream, intfluxfit);
+	    else if(type=="FPEAKFIT")  column.printEntry(stream, results.gaussian(fitNum).height());
+	    else if(type=="MAJFIT")  column.printEntry(stream, gauss.majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
+	    else if(type=="MINFIT")  column.printEntry(stream, gauss.minorAxis()*this->itsHeader.getAvPixScale()*3600.);
+	    else if(type=="PAFIT")  column.printEntry(stream, gauss.PA()*180. / M_PI);
+	    else if(type=="MAJDECONV")  column.printEntry(stream, deconv[0]*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
+	    else if(type=="MINDECONV")  column.printEntry(stream, deconv[1]*this->itsHeader.getAvPixScale()*3600.);
+	    else if(type=="PADECONV")  column.printEntry(stream, deconv[2]*180. / M_PI);
+	    else if(type=="ALPHA")  column.printEntry(stream, this->itsAlphaMap[fitType][fitNum]);
+	    else if(type=="BETA")  column.printEntry(stream, this->itsBetaMap[fitType][fitNum]);
+	    else if(type=="CHISQFIT")  column.printEntry(stream, results.chisq());
+	    else if(type=="RMSIMAGE")  column.printEntry(stream, this->itsNoiseLevel);
+	    else if(type=="RMSFIT")  column.printEntry(stream, results.RMS());
+	    else if(type=="NFREE")  column.printEntry(stream, results.numFreeParam());
+	    else if(type=="NDOFFIT")  column.printEntry(stream, results.ndof());
+	    else if(type=="NPIXFIT")  column.printEntry(stream, results.numPix());
+	    else if(type=="NPIXOBJ")  column.printEntry(stream, this->getSize());
+	    else if(type=="GUESS")  column.printEntry(stream, results.fitIsGuess() ? 1 : 0);
+	  }
+
 	  void RadioSource::writeFitToAnnotationFile(duchamp::AnnotationWriter *writer, bool doEllipse, bool doBox)
 	  {
 	                   double *pix = new double[12];
