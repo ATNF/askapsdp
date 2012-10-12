@@ -1,4 +1,4 @@
-/// @file sums2cmodel.cc
+/// @file sums2votable.cc
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -43,82 +43,115 @@
 #include "askap/AskapError.h"
 #include "boost/lexical_cast.hpp"
 #include "casa/Quanta/Quantum.h"
+#include "votable/VOTable.h" // includes VOTable*.h
 
 using namespace std;
 using namespace askap;
+using namespace askap::accessors;
 
-static void writeHeader(std::ofstream& fs)
+template <typename T>
+static std::string toString(const T& val, int precision)
 {
-    fs << "<?xml version=\"1.0\"?>" << endl;
-    fs << "<VOTABLE version=\"1.2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"" << endl;
-    fs << " xmlns=\"http://www.ivoa.net/xml/VOTable/v1.2\"" << endl;
-    fs << " xmlns:stc=\"http://www.ivoa.net/xml/STC/v1.30\" >" << endl;
-    fs << "  <RESOURCE name=\"SUMSS Catalog or catalog extract\">" << endl;
-    fs << "    <TABLE name=\"catalog\">" << endl;
-    fs << "      <GROUP ID=\"J2000\" utype=\"stc:AstroCoords\">" << endl;
-    fs << "        <PARAM datatype=\"char\" arraysize=\"*\" ucd=\"pos.frame\" name=\"cooframe\"" << endl;
-    fs << "               utype=\"stc:AstroCoords.coord_system_id\" value=\"UTC-ICRS-TOPO\" />" << endl;
-    fs << "        <FIELDref ref=\"col1\"/>" << endl;
-    fs << "        <FIELDref ref=\"col2\"/> " << endl;
-    fs << "      </GROUP>" << endl;
-    fs << "      <DESCRIPTION>Sydney University Molonglo Sky Survey</DESCRIPTION>" << endl;
-
-    // RA
-    fs << "      <FIELD name=\"RA\"   ID=\"col1\" ucd=\"pos.eq.ra;meta.main\" ref=\"J2000\"" << endl;
-    fs << "             utype=\"stc:AstroCoords.Position2D.Value2.C1\"" << endl;
-    fs << "             datatype=\"float\" width=\"11\" precision=\"8\" unit=\"deg\"/>" << endl;
-
-    // Dec
-    fs << "      <FIELD name=\"Dec\"   ID=\"col2\" ucd=\"pos.eq.dec;meta.main\" ref=\"J2000\"" << endl;
-    fs << "             utype=\"stc:AstroCoords.Position2D.Value2.C2\"" << endl;
-    fs << "             datatype=\"float\" width=\"11\" precision=\"8\" unit=\"deg\"/>" << endl;
-
-    // Integrated Flux
-    fs << "      <FIELD name=\"Flux\" ucd=\"phot.flux.density\"" << endl;
-    fs << "             datatype=\"float\" width=\"7\" precision=\"2\" unit=\"mJy\"/>" << endl;
-
-    // Major Axis
-    fs << "      <FIELD name=\"Major axis\" ucd=\"phys.angSize.smajAxis\"" << endl;
-    fs << "             datatype=\"float\" width=\"3\" precision=\"2\" unit=\"arcsec\"/>" << endl;
-
-    // Minor Axis
-    fs << "      <FIELD name=\"Minor axis\" ucd=\"phys.angSize.sminAxis\"" << endl;
-    fs << "             datatype=\"float\" width=\"3\" precision=\"2\" unit=\"arcsec\"/>" << endl;
-    
-    // Position angle
-    fs << "      <FIELD name=\"Position angle\" ucd=\"pos.posAng\"" << endl;
-    fs << "             datatype=\"float\" width=\"3\" precision=\"2\" unit=\"deg\"/>" << endl;
-
-    // Spectral index
-    fs << "      <FIELD name=\"Spectral index\"" << endl;
-    fs << "             datatype=\"float\" width=\"2\" precision=\"1\" unit=\"\"/>" << endl;
-
-    // Spectral curvature
-    fs << "      <FIELD name=\"Spectral curvature\"" << endl;
-    fs << "             datatype=\"float\" width=\"2\" precision=\"1\" unit=\"\"/>" << endl;
-
-    fs << "      <DATA>" << endl;
-    fs << "        <TABLEDATA>" << endl;    
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(8);
+    ss << val;
+    return ss.str();
 }
 
-static void writeFooter(std::ofstream& fs)
+static void addFields(VOTableTable& tab)
 {
-    fs << "        </TABLEDATA>" << endl;
-    fs << "      </DATA>" << endl;
-    fs << "    </TABLE>" << endl;
-    fs << "  </RESOURCE>" << endl;
-    fs << "</VOTABLE>" << endl;
+    {
+        // RA
+        VOTableField f;
+        f.setName("RA");
+        f.setID("col1");
+        f.setUCD("pos.eq.ra;meta.main");
+        f.setRef("J2000");
+        f.setUType("stc:AstroCoords.Position2D.Value2.C1");
+        f.setDatatype("float"); 
+        f.setUnit("deg");
+        tab.addField(f);
+    }
+
+    {
+        // Dec
+        VOTableField f;
+        f.setName("Dec");
+        f.setID("col2");
+        f.setUCD("pos.eq.dec;meta.main");
+        f.setRef("J2000");
+        f.setUType("stc:AstroCoords.Position2D.Value2.C2");
+        f.setDatatype("float"); 
+        f.setUnit("deg");
+        tab.addField(f);
+    }
+
+    {
+        // Integrated Flux
+        VOTableField f;
+        f.setName("Flux");
+        f.setUCD("phot.flux.density");
+        f.setDatatype("float"); 
+        f.setUnit("mJy");
+        tab.addField(f);
+    }
+
+    {
+        // Major Axis
+        VOTableField f;
+        f.setName("Major axis");
+        f.setUCD("phys.angSize.smajAxis");
+        f.setDatatype("float"); 
+        f.setUnit("arcsec");
+        tab.addField(f);
+    }
+
+    {
+        // Major Axis
+        VOTableField f;
+        f.setName("Minor axis");
+        f.setUCD("phys.angSize.sminAxis");
+        f.setDatatype("float"); 
+        f.setUnit("arcsec");
+        tab.addField(f);
+    }
+
+    {
+        // Major Axis
+        VOTableField f;
+        f.setName("Position angle");
+        f.setUCD("pos.posAng");
+        f.setDatatype("float"); 
+        f.setUnit("deg");
+        tab.addField(f);
+    }
+
+    {
+        // Spectral index
+        VOTableField f;
+        f.setName("Spectral index");
+        f.setDatatype("float"); 
+        tab.addField(f);
+    }
+
+    {
+        // Spectral curvature
+        VOTableField f;
+        f.setName("Spectral curvature");
+        f.setDatatype("float"); 
+        tab.addField(f);
+    }
 }
 
-static void processLine(const std::string& line, std::ofstream& out)
+static VOTableRow processLine(const std::string& line)
 {
     // Tokenize the line
     stringstream iss(line);
     vector<string> tokens;
     tokens.reserve(22); // Expect 22 tokens
     copy(istream_iterator<string>(iss),
-         istream_iterator<string>(),
-         back_inserter<vector<string> >(tokens));
+            istream_iterator<string>(),
+            back_inserter<vector<string> >(tokens));
 
     ASKAPCHECK(tokens.size() == 22, "Expected 22 tokens, got " << tokens.size());
 
@@ -155,18 +188,17 @@ static void processLine(const std::string& line, std::ofstream& out)
     // Process position angle (degrees)
     const casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(tokens[14]), deg);
 
-    out << std::fixed << std::setprecision(8);
-    out << "        <TR>" << endl;
-    out << "          <TD>" << ra.getValue(deg) << "</TD>" << endl;
-    out << "          <TD>" << dec.getValue(deg) << "</TD>" << endl;
-    out << "          <TD>" << flux.getValue(mJy) << "</TD>" << endl;
-    out << setprecision(2);
-    out << "          <TD>" << majorAxis.getValue(arcsec) << "</TD>" << endl;
-    out << "          <TD>" << minorAxis.getValue(arcsec) << "</TD>" << endl;
-    out << "          <TD>" << positionAngle.getValue(deg) << "</TD>" << endl;
-    out << "          <TD>0.0</TD>" << endl;
-    out << "          <TD>0.0</TD>" << endl;
-    out << "        </TR>" << endl; 
+    VOTableRow row;
+    row.addCell(toString(ra.getValue(deg), 8));
+    row.addCell(toString(dec.getValue(deg), 8));
+    row.addCell(toString(flux.getValue(mJy), 8));
+    row.addCell(toString(minorAxis.getValue(arcsec), 2));
+    row.addCell(toString(majorAxis.getValue(arcsec), 2));
+    row.addCell(toString(positionAngle.getValue(deg), 2));
+    row.addCell(toString(0.0, 2)); // Spectral index
+    row.addCell(toString(0.0, 2)); // Spectral curvature
+
+    return row;
 }
 
 int main(int argc, char *argv[])
@@ -183,23 +215,50 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::ofstream out(argv[2], ios_base::trunc);
-    if (!out) {
-        std::cerr << "Error: Failed to open output file " << argv[2] << std::endl;
-        return 1;
+    // Begin building the VOTable
+    VOTable vot;
+    VOTableResource vores;
+    vores.setName("SUMSS Catalog or catalog extract");
+
+    VOTableTable vottab;
+    vottab.setName("catalog");
+    vottab.setDescription("Sydney University Molonglo Sky Survey");
+
+    // Add group
+    VOTableGroup grp;
+    grp.setID("J2000");
+    grp.setUType("stc:AstroCoords");
+    {
+        VOTableParam p;
+        p.setDatatype("char");
+        p.setArraysize("*");
+        p.setUCD("pos.frame");
+        p.setName("cooframe");
+        p.setUType("stc:AstroCoords.coord_system_id");
+        p.setValue("UTC-ICRS-TOPO");
+        grp.addParam(p);
     }
+    grp.addFieldRef("col1");
+    grp.addFieldRef("col2");
+    vottab.addGroup(grp);
 
-    writeHeader(out);
+    // Add fields
+    addFields(vottab);
 
-    // Process each line
+    // Add rows
     std::string line;
     while (getline(in, line)) {
         if (line.find_first_of("#") == std::string::npos) {
-            processLine(line, out);
+            const VOTableRow row = processLine(line);
+            vottab.addRow(row);
         }
     }
 
-    writeFooter(out);
+    vores.addTable(vottab);
+    vot.addResource(vores);
+
+    // Write the VOTable out
+    vot.toXml(argv[2]);
 
     return 0;
 }
