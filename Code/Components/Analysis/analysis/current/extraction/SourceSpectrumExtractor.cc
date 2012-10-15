@@ -41,6 +41,7 @@
 
 #include <casa/Arrays/IPosition.h>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/MaskedArray.h>
 #include <casa/Arrays/Slicer.h>
 #include <casa/Arrays/Vector.h>
 #include <images/Images/ImageInterface.h>
@@ -169,10 +170,12 @@ namespace askap {
 
       this->openInput();
       this->setBeamScale();
-      ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " for source ID " << this->itsSource->getID());
+      ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " for source ID " << this->itsSource->getID() << " using slicer " << this->itsSlicer);
 
       const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
-      casa::Array<Float> subarray=sub->get();
+      const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
+      casa::Array<Float> subarray(sub->shape());
+      subarray = msub;
 
       this->itsArray = partialSums(subarray, IPosition(2,0,1)) / this->itsBeamScaleFactor;
 

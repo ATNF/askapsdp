@@ -121,8 +121,8 @@ namespace askap {
       // define the slicer based on the source's peak pixel location and the box width.
       // Make sure we don't go over the edges of the image.
       int hw = (this->itsBoxWidth - 1)/2;
-      int xpeak = this->itsSource->getXPeak();
-      int ypeak = this->itsSource->getYPeak();
+      int xpeak = this->itsSource->getXPeak() + this->itsSource->getXOffset();
+      int ypeak = this->itsSource->getYPeak() + this->itsSource->getYOffset();
       int zero=0;
       int xmin = std::max(zero, xpeak-hw), xmax=std::min(int(shape(lngAxis)-1),xpeak+hw);
       int ymin = std::max(zero, ypeak-hw), ymax=std::min(int(shape(latAxis)-1),ypeak+hw);
