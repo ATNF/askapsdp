@@ -51,6 +51,7 @@
 #include "images/Images/PagedImage.h"
 
 // Local package includes
+#include "cmodel/VOTableAccessor.h"
 #include "cmodel/DuchampAccessor.h"
 #include "cmodel/DataserviceAccessor.h"
 #include "cmodel/MPIBasicComms.h"
@@ -81,7 +82,10 @@ void CModelMaster::run(void)
     // Setup the GSM accessor
     const std::string database = itsParset.getString("gsm.database");
 
-    if (database == "duchamp") {
+    if (database == "votable") {
+        const std::string filename = itsParset.getString("gsm.file");
+        gsm.reset(new VOTableAccessor(filename));
+    } else if (database == "duchamp") {
         const std::string filename = itsParset.getString("gsm.file");
         gsm.reset(new DuchampAccessor(filename));
     } else if (database == "dataservice") {

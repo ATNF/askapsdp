@@ -1,0 +1,101 @@
+/// @file VOTableAccessor.h
+///
+/// @copyright (c) 2012 CSIRO
+/// Australia Telescope National Facility (ATNF)
+/// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
+/// PO Box 76, Epping NSW 1710, Australia
+/// atnf-enquiries@csiro.au
+///
+/// This file is part of the ASKAP software distribution.
+///
+/// The ASKAP software distribution is free software: you can redistribute it
+/// and/or modify it under the terms of the GNU General Public License as
+/// published by the Free Software Foundation; either version 2 of the License,
+/// or (at your option) any later version.
+///
+/// This program is distributed in the hope that it will be useful,
+/// but WITHOUT ANY WARRANTY; without even the implied warranty of
+/// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+/// GNU General Public License for more details.
+///
+/// You should have received a copy of the GNU General Public License
+/// along with this program; if not, write to the Free Software
+/// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+///
+/// @author Ben Humphreys <ben.humphreys@csiro.au>
+
+#ifndef ASKAP_CP_PIPELINETASKS_VOTABLEACCESSOR_H
+#define ASKAP_CP_PIPELINETASKS_VOTABLEACCESSOR_H
+
+// System includes
+#include <string>
+#include <istream>
+#include <sstream>
+#include <vector>
+#include <list>
+#include <map>
+
+// ASKAPsoft includes
+#include "boost/scoped_ptr.hpp"
+#include "casa/aipstype.h"
+#include "casa/Quanta/Quantum.h"
+#include "casa/Quanta/Unit.h"
+#include "skymodelclient/Component.h"
+#include "votable/VOTableField.h"
+#include "votable/VOTableRow.h"
+
+// Local package includes
+#include "cmodel/IGlobalSkyModel.h"
+
+namespace askap {
+namespace cp {
+namespace pipelinetasks {
+
+/// @brief An object providing access to a sky model contained in a duchamp
+/// output ASCII text file.
+class VOTableAccessor : public IGlobalSkyModel {
+    public:
+        /// Constructor
+        /// @param[in] filename name of the VOTable containing the source catalog
+        VOTableAccessor(const std::string& filename);
+
+        /// Constructor
+        /// Used for testing only, so a stringstream can be
+        /// passed in.
+        /// @param[in] stream   istream from which data will be read.
+        VOTableAccessor(const std::stringstream& sstream);
+
+        /// Destructor
+        virtual ~VOTableAccessor();
+
+        /// @see askap::cp::pipelinetasks::IGlobalSkyModel::coneSearch
+        virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
+                const casa::Quantity& dec,
+                const casa::Quantity& searchRadius,
+                const casa::Quantity& fluxLimit);
+
+    private:
+        void processRow(const std::vector<std::string>& cells,
+                const casa::Quantity& searchRA,
+                const casa::Quantity& searchDec,
+                const casa::Quantity& searchRadius,
+                const casa::Quantity& fluxLimit,
+                std::map<std::string, size_t>& posMap,
+                std::map<std::string, casa::Unit>& unitMap,
+                std::list<askap::cp::skymodelservice::Component>& list);
+
+        //  Filename
+        const std::string itsFilename;
+
+        // Count of components below the flux limit
+        casa::uLong itsBelowFluxLimit;
+
+        // Count of components outside of the search radius
+        casa::uLong itsOutsideSearchCone;
+};
+
+}
+}
+}
+
+#endif
