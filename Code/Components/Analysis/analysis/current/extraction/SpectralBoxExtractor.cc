@@ -120,15 +120,27 @@ namespace askap {
 	
       // define the slicer based on the source's peak pixel location and the box width.
       // Make sure we don't go over the edges of the image.
-      int hw = (this->itsBoxWidth - 1)/2;
-      int xpeak = this->itsSource->getXPeak() + this->itsSource->getXOffset();
-      int ypeak = this->itsSource->getYPeak() + this->itsSource->getYOffset();
-      int zero=0;
-      int xmin = std::max(zero, xpeak-hw), xmax=std::min(int(shape(lngAxis)-1),xpeak+hw);
-      int ymin = std::max(zero, ypeak-hw), ymax=std::min(int(shape(latAxis)-1),ypeak+hw);
+      int xmin,ymin,xmax,ymax;
+      if( this->itsBoxWidth>0){
+	int hw = (this->itsBoxWidth - 1)/2;
+	int xpeak = this->itsSource->getXPeak() + this->itsSource->getXOffset();
+	int ypeak = this->itsSource->getYPeak() + this->itsSource->getYOffset();
+	int zero=0;
+	xmin = std::max(zero, xpeak-hw);
+	xmax=std::min(int(shape(lngAxis)-1),xpeak+hw);
+	ymin = std::max(zero, ypeak-hw);
+	ymax=std::min(int(shape(latAxis)-1),ypeak+hw);
+      }
+      else { // use the detected pixels of the source for the spectral extraction, and the x/y ranges for slicer
+	xmin = this->itsSource->getXmin() + this->itsSource->getXOffset();
+	xmax = this->itsSource->getXmax() + this->itsSource->getXOffset();
+	ymin = this->itsSource->getYmin() + this->itsSource->getYOffset();
+	ymax = this->itsSource->getYmax() + this->itsSource->getYOffset();
+      }
       casa::IPosition blc(shape.size(),0),trc(shape.size(),0);
       blc(lngAxis)=xmin; blc(latAxis)=ymin; blc(specAxis)=0;
       trc(lngAxis)=xmax; trc(latAxis)=ymax; trc(specAxis)=shape(specAxis)-1;
+      ASKAPLOG_DEBUG_STR(logger, "Defining slicer based on blc="<<blc <<", trc="<<trc);
       this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
 
     }
@@ -157,7 +169,7 @@ namespace askap {
       coords.subImage(shift,incrFrac,newshape);
 
       // create the new image - make it have the same dimensionality as the input, just with degenerate spatial dimensions
-      ASKAPLOG_DEBUG_STR(logger, "Array="<<this->itsArray);
+//       ASKAPLOG_DEBUG_STR(logger, "Array="<<this->itsArray);
       IPosition reshape(shape);
       reshape(lngAxis)=reshape(latAxis)=1;
       Array<Float> newarray(this->itsArray.reform(reshape));

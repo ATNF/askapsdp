@@ -39,6 +39,8 @@
 #include <imageaccess/CasaImageAccess.h>
 #include <utils/PolConverter.h>
 
+#include <duchamp/PixelMap/Object2D.hh>
+
 #include <casa/Arrays/IPosition.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/MaskedArray.h>
@@ -73,6 +75,7 @@ namespace askap {
 
       this->itsInputCube = parset.getString("spectralCube","");
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
+      this->itsFlagUseDetection = parset.getBool("useDetectedPixels",false);
       this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
       this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
 
@@ -101,6 +104,7 @@ namespace askap {
       if(this == &other) return *this;
       ((SpectralBoxExtractor &) *this) = other;
       this->itsFlagDoScale = other.itsFlagDoScale;
+      this->itsFlagUseDetection = other.itsFlagUseDetection;
       this->itsBeamScaleFactor = other.itsBeamScaleFactor;
       this->itsStokesList = other.itsStokesList;
       return *this;
@@ -129,26 +133,39 @@ namespace askap {
 	  this->itsBeamScaleFactor = 1.;
 	}
 	else{
-	  double costheta = cos(inputBeam[2].getValue("rad"));
-	  double sintheta = sin(inputBeam[2].getValue("rad"));
-	  
+
 	  casa::CoordinateSystem coo = this->itsInputCubePtr->coordinates();
 	  casa::DirectionCoordinate dirCoo = coo.directionCoordinate(coo.findCoordinate(casa::Coordinate::DIRECTION));
-	  double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / dirCoo.increment()[0];
-	  double majSDsq = fwhmMajPix * fwhmMajPix / 8. / M_LN2;
-	  double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / dirCoo.increment()[1];
-	  double minSDsq = fwhmMinPix * fwhmMinPix / 8. / M_LN2;
-	  
-	  int hw = (this->itsBoxWidth - 1)/2;
-	  this->itsBeamScaleFactor = 0.;
-	  for(int y=-hw; y<=hw; y++){
-	    for(int x=-hw; x<=hw; x++){
-	      double u=x*costheta + y*sintheta;
-	      double v=x*sintheta - y*costheta;
-	      this->itsBeamScaleFactor += exp(-0.5 * (u*u/majSDsq + v*v/minSDsq));
-	    }
+	  double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
+	  double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
+
+	  if(this->itsFlagUseDetection){
+	    double bpaDeg = inputBeam[2].getValue("deg");
+	    duchamp::DuchampBeam beam(fwhmMajPix,fwhmMinPix,bpaDeg);
+	    this->itsBeamScaleFactor = beam.area();
+	    ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor << " using beam of " << fwhmMajPix <<"x"<<fwhmMinPix);
 	  }
-	  ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
+	  else{
+	    
+	    double costheta = cos(inputBeam[2].getValue("rad"));
+	    double sintheta = sin(inputBeam[2].getValue("rad"));
+	    
+	    double majSDsq = fwhmMajPix * fwhmMajPix / 8. / M_LN2;
+	    double minSDsq = fwhmMinPix * fwhmMinPix / 8. / M_LN2;
+	    
+	    int hw = (this->itsBoxWidth - 1)/2;
+	    this->itsBeamScaleFactor = 0.;
+	    for(int y=-hw; y<=hw; y++){
+	      for(int x=-hw; x<=hw; x++){
+		double u=x*costheta + y*sintheta;
+		double v=x*sintheta - y*costheta;
+		this->itsBeamScaleFactor += exp(-0.5 * (u*u/majSDsq + v*v/minSDsq));
+	      }
+	    }
+
+	    ASKAPLOG_DEBUG_STR(logger, "Beam scale factor = " << this->itsBeamScaleFactor);
+
+	  }
 
 	}
       }
@@ -177,10 +194,37 @@ namespace askap {
       casa::Array<Float> subarray(sub->shape());
       subarray = msub;
 
-      this->itsArray = partialSums(subarray, IPosition(2,0,1)) / this->itsBeamScaleFactor;
-
-//       ASKAPLOG_DEBUG_STR(logger,"Finished calculating array, here it is: " << this->itsArray);
-
+      //      if(this->itsBoxWidth > 0)
+      if(!this->itsFlagUseDetection)
+	this->itsArray = partialSums(subarray, IPosition(2,0,1)) / this->itsBeamScaleFactor;
+      else {
+	ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");
+	IPosition shape = this->itsInputCubePtr->shape();
+	CoordinateSystem coords = this->itsInputCubePtr->coordinates();
+	int lngAxis=coords.directionAxesNumbers()[0];
+	int latAxis=coords.directionAxesNumbers()[1];
+	int specAxis=coords.spectralAxisNumber();
+	PixelInfo::Object2D spatmap=this->itsSource->getSpatialMap();
+	casa::IPosition blc(shape.size(),0),trc(shape.size(),0),inc(shape.size(),1);	
+	trc(specAxis)=shape[specAxis]-1;
+	IPosition newshape(shape);
+	newshape(lngAxis) = newshape(latAxis) = 1;
+	ASKAPLOG_DEBUG_STR(logger, "Initialising array to zero with shape " << newshape);
+	this->itsArray = casa::Array<Float>(newshape,0.);
+	for(int x=this->itsSource->getXmin(); x<=this->itsSource->getXmax();x++) {
+	  for(int y=this->itsSource->getYmin(); y<=this->itsSource->getYmax();y++){
+	    if(spatmap.isInObject(x,y)){
+	      blc(lngAxis)=trc(lngAxis)=x-this->itsSource->getXmin(); 
+	      blc(latAxis)=trc(latAxis)=y-this->itsSource->getYmin();
+	      casa::Array<Float> spec=subarray(blc,trc,inc);
+	      ASKAPCHECK(spec.shape() == this->itsArray.shape(),"Extracted pixel spectrum not of correct shape: "<<spec.shape()<< " vs " <<this->itsArray.shape());
+	      this->itsArray += spec;
+	    }
+	  }
+	}
+	this->itsArray /= this->itsBeamScaleFactor;
+      }
+      
       delete sub;
 
     }

@@ -75,6 +75,7 @@ namespace askap {
     protected:
       bool itsFlagDoScale;
       float itsBeamScaleFactor;
+      bool itsFlagUseDetection;
       casa::Vector<casa::Stokes::StokesTypes> itsStokesList;
 
     };

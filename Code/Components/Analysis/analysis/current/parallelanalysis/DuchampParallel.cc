@@ -196,8 +196,8 @@ namespace askap {
 
 	    this->itsFlagExtractSpectra = parset.getBool("extractSpectra",false);
 	    if(this->itsFlagExtractSpectra){
-	      ASKAPCHECK(parset.isDefined("spectralCube"), "Source cube not defined for extracting spectra. Please use the \"spectralCube\" parameter.");
-	      ASKAPLOG_INFO_STR(logger, "Extracting spectra for detected sources from " << parset.getString("spectralCube",""));
+	      ASKAPCHECK(parset.isDefined("extractSpectra.spectralCube"), "Source cube not defined for extracting spectra. Please use the \"spectralCube\" parameter.");
+	      ASKAPLOG_INFO_STR(logger, "Extracting spectra for detected sources from " << parset.getString("extractSpectra.spectralCube",""));
 	    }
 // 	    if(parset.isDefined("summaryFile")){
 // 	      this->itsFitSummaryFile = parset.getString("summaryFile", "duchamp-fitResults.txt");
@@ -1948,8 +1948,9 @@ namespace askap {
 	if(this->itsFlagExtractSpectra && this->itsComms.isMaster()){
 
 	  std::vector<sourcefitting::RadioSource>::iterator src;
+	  LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractSpectra.");
 	  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-	    SourceSpectrumExtractor extractor(this->itsParset);
+	    SourceSpectrumExtractor extractor(extractSubset);
 	    extractor.setSource(&*src);
 	    extractor.extract();
  	    extractor.writeImage();
