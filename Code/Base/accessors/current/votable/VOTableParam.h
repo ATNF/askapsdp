@@ -87,6 +87,8 @@ namespace askap {
 
                 xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
 
+                static VOTableParam fromXmlElement(const xercesc::DOMElement& e);
+
             private:
 
                 std::string itsDescription;

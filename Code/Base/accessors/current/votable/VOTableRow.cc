@@ -37,10 +37,12 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "votable/XercescString.h"
+#include "boost/algorithm/string/trim.hpp"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
+#include "votable/XercescUtils.h"
+#include "votable/XercescString.h"
 
 ASKAP_LOGGER(logger, ".VOTableRow");
 
@@ -57,6 +59,11 @@ void VOTableRow::addCell(const std::string& cell)
     itsCells.push_back(cell);
 }
 
+std::vector<std::string> VOTableRow::getCells() const
+{
+    return itsCells;
+}
+
 xercesc::DOMElement* VOTableRow::toXmlElement(xercesc::DOMDocument& doc) const
 {
     DOMElement* tr = doc.createElement(XercescString("TR"));
@@ -70,4 +77,22 @@ xercesc::DOMElement* VOTableRow::toXmlElement(xercesc::DOMDocument& doc) const
     }
 
     return tr;
+}
+
+VOTableRow VOTableRow::fromXmlElement(const xercesc::DOMElement& e)
+{
+    VOTableRow r;
+
+    // Process TD
+    DOMNodeList* children = e.getElementsByTagName(XercescString("TD"));
+    const XMLSize_t nCells = children->getLength();
+    for (XMLSize_t i = 0; i < nCells; ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        const DOMText* text = dynamic_cast<xercesc::DOMText*>(node->getChildNodes()->item(0));
+        std::string str = XercescString(text->getWholeText());
+        boost::trim(str);
+        r.addCell(str);
+    }
+
+    return r;
 }

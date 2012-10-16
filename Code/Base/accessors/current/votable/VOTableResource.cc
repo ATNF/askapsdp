@@ -41,6 +41,7 @@
 
 // Local package includes
 #include "votable/XercescString.h"
+#include "votable/XercescUtils.h"
 #include "votable/VOTableInfo.h"
 #include "votable/VOTableTable.h"
 
@@ -150,4 +151,35 @@ xercesc::DOMElement* VOTableResource::toXmlElement(xercesc::DOMDocument& doc) co
     }
 
     return e;
+}
+
+VOTableResource VOTableResource::fromXmlElement(const xercesc::DOMElement& e)
+{
+    VOTableResource res;
+
+    // Get attributes
+    res.setID(XercescUtils::getAttribute(e, "ID"));
+    res.setName(XercescUtils::getAttribute(e, "name"));
+    res.setType(XercescUtils::getAttribute(e, "type"));
+
+    // Get description
+    res.setDescription(XercescUtils::getDescription(e));
+
+    // Process INFO
+    DOMNodeList* children = e.getElementsByTagName(XercescString("INFO"));
+    for (XMLSize_t i = 0; i < children->getLength(); ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        const VOTableInfo info = VOTableInfo::fromXmlElement(*node);
+        res.addInfo(info);
+    }
+
+    // Process TABLE
+    children = e.getElementsByTagName(XercescString("TABLE"));
+    for (XMLSize_t i = 0; i < children->getLength(); ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        const VOTableTable tab = VOTableTable::fromXmlElement(*node);
+        res.addTable(tab);
+    }
+
+    return res;
 }

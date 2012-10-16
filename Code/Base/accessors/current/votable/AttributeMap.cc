@@ -1,4 +1,4 @@
-/// @file XercescString.cc
+/// @file AttributeMap.cc
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,34 +25,29 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "XercescString.h"
+#include "AttributeMap.h"
 
 // Include package level header file
 #include "askap_accessors.h"
 
-// ASKAPsoft includes
-#include "xercesc/util/XMLString.hpp"
+// System includes
+#include <string>
+#include <map>
 
+using namespace askap;
 using namespace askap::accessors;
 
-XercescString::XercescString(const char* str) : itsXMLCh(0)
+AttributeMap::AttributeMap(void)
 {
-    itsXMLCh = xercesc::XMLString::transcode(str);
 }
 
-XercescString::XercescString(const XMLCh* xmlstr)
+bool AttributeMap::exists(const std::string& key) const
 {
-    itsXMLCh = xercesc::XMLString::replicate(xmlstr);
+    std::map<std::string,std::string>::const_iterator it;
+    return itsMap.find(key) != itsMap.end();
 }
 
-XercescString::XercescString(const std::string& str) : itsXMLCh(0)
+std::string& AttributeMap::operator[] (const std::string& key)
 {
-    itsXMLCh = xercesc::XMLString::transcode(str.c_str());
-}
-
-XercescString::~XercescString()
-{
-    if (itsXMLCh) {
-        xercesc::XMLString::release(&itsXMLCh);
-    }
+    return itsMap[key];
 }

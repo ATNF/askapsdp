@@ -40,6 +40,7 @@
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
+#include "votable/XercescUtils.h"
 
 ASKAP_LOGGER(logger, ".VOTableInfo");
 
@@ -51,7 +52,7 @@ VOTableInfo::VOTableInfo()
 {
 }
 
-void VOTableInfo::setID(std::string& id)
+void VOTableInfo::setID(const std::string& id)
 {
     itsID = id;
 }
@@ -61,7 +62,7 @@ std::string VOTableInfo::getID() const
     return itsID;
 }
 
-void VOTableInfo::setName(std::string& name)
+void VOTableInfo::setName(const std::string& name)
 {
     itsName = name;
 }
@@ -71,7 +72,7 @@ std::string VOTableInfo::getName() const
     return itsName;
 }
 
-void VOTableInfo::setValue(std::string& value)
+void VOTableInfo::setValue(const std::string& value)
 {
     itsValue = value;
 }
@@ -81,7 +82,7 @@ std::string VOTableInfo::getValue() const
     return itsValue;
 }
 
-void VOTableInfo::setText(std::string& text)
+void VOTableInfo::setText(const std::string& text)
 {
     itsText = text;
 }
@@ -113,4 +114,19 @@ DOMElement* VOTableInfo::toXmlElement(DOMDocument& doc) const
     }
 
     return e;
+}
+
+VOTableInfo VOTableInfo::fromXmlElement(const xercesc::DOMElement& e)
+{
+    VOTableInfo info;
+
+    info.setID(XercescUtils::getAttribute(e, "ID"));
+    info.setName(XercescUtils::getAttribute(e, "name"));
+    info.setValue(XercescUtils::getAttribute(e, "value"));
+
+     const DOMText* text = dynamic_cast<xercesc::DOMText*>(e.getChildNodes()->item(0));
+     info.setText(XercescString(text->getWholeText()));
+
+
+    return info;
 }

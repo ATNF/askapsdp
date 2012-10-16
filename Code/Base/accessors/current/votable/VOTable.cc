@@ -40,6 +40,7 @@
 
 // For XML
 #include "votable/XercescString.h"
+#include "votable/XercescUtils.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 #include "xercesc/framework/LocalFileFormatTarget.hpp"
 #include "xercesc/parsers/XercesDOMParser.hpp"
@@ -178,6 +179,25 @@ askap::accessors::VOTable VOTable::fromXML(const std::string& filename)
 
     // Build the VOTable
     VOTable vot;
+
+    // Process DESCRIPTION
+    vot.setDescription(XercescUtils::getDescription(*root));
+
+    // Process INFO
+    DOMNodeList* children = root->getElementsByTagName(XercescString("INFO"));
+    for (XMLSize_t i = 0; i < children->getLength(); ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        const VOTableInfo info = VOTableInfo::fromXmlElement(*node);
+        vot.addInfo(info);
+    }
+
+    // Process RESOURCE
+    children = root->getElementsByTagName(XercescString("RESOURCE"));
+    for (XMLSize_t i = 0; i < children->getLength(); ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        const VOTableResource res = VOTableResource::fromXmlElement(*node);
+        vot.addResource(res);
+    }
 
     // Cleanup
     delete parser;

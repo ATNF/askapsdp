@@ -1,6 +1,6 @@
-/// @file VOTableInfo.h
+/// @file AttributeMap.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,47 +24,32 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEINFO_H
-#define ASKAP_CP_ACCESSORS_VOTABLE_VOTABLEINFO_H
+#ifndef ASKAP_CP_ACCESSORS_VOTABLE_ATTRIBUTEMAP_H
+#define ASKAP_CP_ACCESSORS_VOTABLE_ATTRIBUTEMAP_H
 
 // System includes
 #include <string>
+#include <map>
 
 // ASKAPsoft includes
-#include "xercesc/dom/DOM.hpp" // Includes all DOM
+
+// Local package includes
 
 namespace askap {
     namespace accessors {
 
-        /// @brief TODO: Write documentation...
-        class VOTableInfo {
+/// @brief TODO: Write documentation...
+        class AttributeMap {
             public:
 
                 /// @brief Constructor
-                VOTableInfo();
+                AttributeMap(void);
 
-                void setID(const std::string& id);
-                std::string getID() const;
-
-                void setName(const std::string& name);
-                std::string getName() const;
-
-                void setValue(const std::string& value);
-                std::string getValue() const;
-
-                void setText(const std::string& text);
-                std::string getText() const;
-
-                xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
-
-                static VOTableInfo fromXmlElement(const xercesc::DOMElement& e);
+                bool exists(const std::string& key) const;
+                std::string& operator[] (const std::string& key);
 
             private:
-
-                std::string itsID;
-                std::string itsName;
-                std::string itsValue;
-                std::string itsText;
+                std::map<std::string, std::string> itsMap;
         };
 
     }

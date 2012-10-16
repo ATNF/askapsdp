@@ -41,6 +41,7 @@
 
 // Local package includes
 #include "votable/XercescString.h"
+#include "votable/XercescUtils.h"
 #include "votable/VOTableParam.h"
 
 ASKAP_LOGGER(logger, ".VOTableGroup");
@@ -194,4 +195,43 @@ xercesc::DOMElement* VOTableGroup::toXmlElement(xercesc::DOMDocument& doc) const
         e->appendChild(fr);
     }
     return e;
+}
+
+VOTableGroup VOTableGroup::fromXmlElement(const xercesc::DOMElement& e)
+{
+    VOTableGroup g;
+
+    // Get attributes
+    g.setName(XercescUtils::getAttribute(e, "name"));
+    g.setID(XercescUtils::getAttribute(e, "ID"));
+    g.setUCD(XercescUtils::getAttribute(e, "ucd"));
+    g.setUType(XercescUtils::getAttribute(e, "utype"));
+    g.setRef(XercescUtils::getAttribute(e, "ref"));
+
+    // Get description
+    g.setDescription(XercescUtils::getDescription(e));
+
+    // Process PARAM
+    DOMNodeList* children = e.getElementsByTagName(XercescString("PARAM"));
+    for (XMLSize_t i = 0; i < children->getLength(); ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        const VOTableParam param = VOTableParam::fromXmlElement(*node);
+        g.addParam(param);
+    }
+
+    // Process FIELDref elements
+    children = e.getElementsByTagName(XercescString("FIELDref"));
+    for (XMLSize_t i = 0; i < children->getLength(); ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        g.addFieldRef(XercescUtils::getAttribute(*node, "ref"));
+    }
+
+    // Process PARAMref elements
+    children = e.getElementsByTagName(XercescString("PARAMref"));
+    for (XMLSize_t i = 0; i < children->getLength(); ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        g.addParamRef(XercescUtils::getAttribute(*node, "ref"));
+    }
+
+    return g;
 }

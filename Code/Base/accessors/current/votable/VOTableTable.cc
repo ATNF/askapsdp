@@ -37,10 +37,11 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "votable/XercescString.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
+#include "votable/XercescString.h"
+#include "votable/XercescUtils.h"
 #include "votable/VOTableField.h"
 #include "votable/VOTableRow.h"
 
@@ -99,6 +100,21 @@ void VOTableTable::addRow(const VOTableRow& row)
     itsRows.push_back(row);
 }
 
+std::vector<VOTableGroup> VOTableTable::getGroups() const
+{
+    return itsGroups;
+}
+
+std::vector<VOTableField> VOTableTable::getFields() const
+{
+    return itsFields;
+}
+
+std::vector<VOTableRow> VOTableTable::getRows() const
+{
+    return itsRows;
+}
+
 xercesc::DOMElement* VOTableTable::toXmlElement(xercesc::DOMDocument& doc) const
 {
     DOMElement* e = doc.createElement(XercescString("TABLE"));
@@ -146,4 +162,56 @@ xercesc::DOMElement* VOTableTable::toXmlElement(xercesc::DOMDocument& doc) const
     }
 
     return e;
+}
+
+VOTableTable VOTableTable::fromXmlElement(const xercesc::DOMElement& e)
+{
+    VOTableTable tab;
+
+    // Get attributes
+    tab.setID(XercescUtils::getAttribute(e, "ID"));
+    tab.setName(XercescUtils::getAttribute(e, "name"));
+
+    // Get description
+    tab.setDescription(XercescUtils::getDescription(e));
+
+    // Process GROUP
+    DOMNodeList* children = e.getElementsByTagName(XercescString("GROUP"));
+    for (XMLSize_t i = 0; i < children->getLength(); ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        const VOTableGroup group = VOTableGroup::fromXmlElement(*node);
+        tab.addGroup(group);
+    }
+
+    // Process FIELD
+    children = e.getElementsByTagName(XercescString("FIELD"));
+    for (XMLSize_t i = 0; i < children->getLength(); ++i) {
+        const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        const VOTableField field = VOTableField::fromXmlElement(*node);
+        tab.addField(field);
+    }
+
+    // Process DATA
+    const DOMNodeList* dataNodes = e.getElementsByTagName(XercescString("DATA"));
+    for (XMLSize_t i = 0; i < dataNodes->getLength(); ++i) {
+        const DOMElement* dataNode = dynamic_cast<xercesc::DOMElement*>(dataNodes->item(i));
+        
+        // Process TABLEDATA
+        const DOMNodeList* tableDataNodes = dataNode->getElementsByTagName(XercescString("TABLEDATA"));
+        for (XMLSize_t j = 0; j < tableDataNodes->getLength(); ++j) {
+            const DOMElement* tableDataNode = dynamic_cast<xercesc::DOMElement*>(tableDataNodes->item(j));
+
+            // Process TR
+            const DOMNodeList* rowNodes = tableDataNode->getElementsByTagName(XercescString("TR"));
+            const XMLSize_t nRows = rowNodes->getLength();
+            for (XMLSize_t k = 0; k < nRows; ++k) {
+                const DOMElement* rowNode = dynamic_cast<xercesc::DOMElement*>(rowNodes->item(k));
+                const VOTableRow row = VOTableRow::fromXmlElement(*rowNode);
+                tab.addRow(row);
+            }
+
+        }
+    }
+
+    return tab;
 }

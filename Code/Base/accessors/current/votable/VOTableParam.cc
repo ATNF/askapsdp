@@ -40,6 +40,7 @@
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
+#include "votable/XercescUtils.h"
 #include "votable/XercescString.h"
 
 ASKAP_LOGGER(logger, ".VOTableParam");
@@ -193,4 +194,25 @@ xercesc::DOMElement* VOTableParam::toXmlElement(xercesc::DOMDocument& doc) const
         e->appendChild(descElement);
     }
     return e;
+}
+
+VOTableParam VOTableParam::fromXmlElement(const xercesc::DOMElement& e)
+{
+    VOTableParam p;
+
+    // Get attributes
+    p.setName(XercescUtils::getAttribute(e, "name"));
+    p.setID(XercescUtils::getAttribute(e, "ID"));
+    p.setDatatype(XercescUtils::getAttribute(e, "datatype"));
+    p.setArraysize(XercescUtils::getAttribute(e, "arraysize"));
+    p.setUnit(XercescUtils::getAttribute(e, "unit"));
+    p.setUCD(XercescUtils::getAttribute(e, "ucd"));
+    p.setUType(XercescUtils::getAttribute(e, "utype"));
+    p.setRef(XercescUtils::getAttribute(e, "ref"));
+    p.setValue(XercescUtils::getAttribute(e, "value"));
+
+    // Get description
+    p.setDescription(XercescUtils::getDescription(e));
+
+    return p;
 }

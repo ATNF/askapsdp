@@ -1,4 +1,4 @@
-/// @file XMLUtils.h
+/// @file XercescString.h
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -38,9 +38,11 @@ namespace askap {
 
         class XercescString {
             public:
-                XercescString(const char* str);
+                explicit XercescString(const char* str);
 
-                XercescString(const std::string& str);
+                explicit XercescString(const XMLCh* xmlstr);
+
+                explicit XercescString(const std::string& str);
 
                 ~XercescString();
 

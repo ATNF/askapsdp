@@ -41,6 +41,7 @@
 
 // Local package includes
 #include "votable/XercescString.h"
+#include "votable/XercescUtils.h"
 
 ASKAP_LOGGER(logger, ".VOTableField");
 
@@ -180,4 +181,24 @@ xercesc::DOMElement* VOTableField::toXmlElement(xercesc::DOMDocument& doc) const
         e->appendChild(descElement);
     }
     return e;
+}
+
+VOTableField VOTableField::fromXmlElement(const xercesc::DOMElement& e)
+{
+    VOTableField f;
+
+    // Get attributes
+    f.setName(XercescUtils::getAttribute(e, "name"));
+    f.setID(XercescUtils::getAttribute(e, "ID"));
+    f.setDatatype(XercescUtils::getAttribute(e, "datatype"));
+    f.setArraysize(XercescUtils::getAttribute(e, "arraysize"));
+    f.setUnit(XercescUtils::getAttribute(e, "unit"));
+    f.setUCD(XercescUtils::getAttribute(e, "ucd"));
+    f.setUType(XercescUtils::getAttribute(e, "utype"));
+    f.setRef(XercescUtils::getAttribute(e, "ref"));
+
+    // Get description
+    f.setDescription(XercescUtils::getDescription(e));
+
+    return f;
 }

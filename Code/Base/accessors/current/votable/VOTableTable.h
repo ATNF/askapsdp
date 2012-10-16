@@ -62,7 +62,13 @@ namespace askap {
                 void addField(const VOTableField& field);
                 void addRow(const VOTableRow& row);
 
+                std::vector<VOTableGroup> getGroups() const;
+                std::vector<VOTableField> getFields() const;
+                std::vector<VOTableRow> getRows() const;
+
                 xercesc::DOMElement* toXmlElement(xercesc::DOMDocument& doc) const;
+
+                static VOTableTable fromXmlElement(const xercesc::DOMElement& e);
 
             private:
 

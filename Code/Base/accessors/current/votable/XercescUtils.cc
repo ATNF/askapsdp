@@ -1,4 +1,4 @@
-/// @file XercescString.cc
+/// @file XercescUtils.cc
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,34 +25,40 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "XercescString.h"
+#include "XercescUtils.h"
 
 // Include package level header file
 #include "askap_accessors.h"
 
 // ASKAPsoft includes
+#include "askap/AskapLogging.h"
+#include "askap/AskapError.h"
+#include "xercesc/dom/DOM.hpp" // Includes all DOM
 #include "xercesc/util/XMLString.hpp"
 
+// Local package includes
+#include "votable/XercescString.h"
+
+using namespace xercesc;
 using namespace askap::accessors;
 
-XercescString::XercescString(const char* str) : itsXMLCh(0)
+std::string XercescUtils::getAttribute(const xercesc::DOMElement& element, const std::string& key)
 {
-    itsXMLCh = xercesc::XMLString::transcode(str);
+    const XMLCh* val = element.getAttribute(XercescString(key));
+    return XercescString(val);
 }
 
-XercescString::XercescString(const XMLCh* xmlstr)
-{
-    itsXMLCh = xercesc::XMLString::replicate(xmlstr);
-}
 
-XercescString::XercescString(const std::string& str) : itsXMLCh(0)
+std::string XercescUtils::getDescription(const xercesc::DOMElement& element)
 {
-    itsXMLCh = xercesc::XMLString::transcode(str.c_str());
-}
-
-XercescString::~XercescString()
-{
-    if (itsXMLCh) {
-        xercesc::XMLString::release(&itsXMLCh);
+    const DOMNodeList* children = element.getElementsByTagName(XercescString("DESCRIPTION"));
+    ASKAPCHECK(children->getLength() < 2, "Expected at most one description element");
+    if (children->getLength() == 1) {
+        const DOMElement* descNode = dynamic_cast<xercesc::DOMElement*>(children->item(0));
+        const DOMText* text = dynamic_cast<xercesc::DOMText*>(descNode->getChildNodes()->item(0));
+        return XercescString(text->getWholeText());
+    } else {
+        return "";
     }
 }
+
