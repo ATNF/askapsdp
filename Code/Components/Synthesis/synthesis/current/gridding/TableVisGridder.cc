@@ -48,7 +48,7 @@ ASKAP_LOGGER(logger, ".gridding.tablevisgridder");
 
 #include <utils/PaddingUtils.h>
 #include <measurementequation/ImageParamsHelper.h>
-#include <measurementequation/SynthesisParamsHelper.h>
+#include <utils/ImageUtils.h>
 
 #include <askap/CasaSyncHelper.h>
 #include <profile/AskapProfiler.h>
@@ -341,7 +341,7 @@ void TableVisGridder::save(const std::string& name) {
 	            }
 	            //ASKAPLOG_DEBUG_STR(logger, "CF plane "<<plane<<" peak of "<<peakVal<<" at "<<peakX<<" , "<<peakY);
 	        }
-	        SynthesisParamsHelper::saveAsCasaImage(imgName,imgBuffer);
+	        scimath::saveAsCasaImage(imgName,imgBuffer);
 	    }       
 	}                   
 }
@@ -958,9 +958,9 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
             if (isPSFGridder()) {
                 casa::Array<float> buf(scratch.shape());
                 casa::convertArray<float,double>(buf,imag(scratch));
-                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.imag",buf);
+                scimath::saveAsCasaImage("uvcoverage.imag",buf);
                 casa::convertArray<float,double>(buf,real(scratch));
-                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.real",buf);
+                scimath::saveAsCasaImage("uvcoverage.real",buf);
                 // adjust values to extract part which gives a real symmetric FT and the remainder
                 casa::Matrix<float> bufM(buf.nonDegenerate());
                 for (int x=0; x<int(bufM.nrow()); ++x) {
@@ -970,7 +970,7 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
                           bufM(bufM.nrow() - x -1, bufM.ncolumn() - y -1) = val;
                      }
                 }
-                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.sympart",buf);
+                scimath::saveAsCasaImage("uvcoverage.sympart",buf);
                 casa::Matrix<casa::DComplex> scratchM(scratch.nonDegenerate());
                 for (int x=0; x<int(scratchM.nrow()); ++x) {
                      for (int y=0; y<int(scratchM.ncolumn()); ++y) {
@@ -987,12 +987,12 @@ void TableVisGridder::finaliseGrid(casa::Array<double>& out) {
                      }
                 }
                 casa::convertArray<float,double>(buf,imag(scratch));
-                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.asympart.imag",buf);
+                scimath::saveAsCasaImage("uvcoverage.asympart.imag",buf);
                 casa::convertArray<float,double>(buf,real(scratch));
-                SynthesisParamsHelper::saveAsCasaImage("uvcoverage.asympart.real",buf);
+                scimath::saveAsCasaImage("uvcoverage.asympart.real",buf);
 		fft2d(scratch, false);
                 casa::convertArray<float,double>(buf,real(scratch));
-                SynthesisParamsHelper::saveAsCasaImage("psf.asympart.real",buf);
+                scimath::saveAsCasaImage("psf.asympart.real",buf);
                 
                 ASKAPCHECK(false, "Debug termination");
             }
@@ -1025,7 +1025,7 @@ void TableVisGridder::storeGrid(const std::string &name, casa::uInt numGrid) con
               " exceeds or equal to "<<itsGrid.size()<<", the number of grids available");
    casa::Array<float> buffer(itsGrid[numGrid].shape());
    buffer = amplitude(itsGrid[numGrid]);
-   SynthesisParamsHelper::saveAsCasaImage(name, buffer);       
+   scimath::saveAsCasaImage(name, buffer);       
 }
 
 

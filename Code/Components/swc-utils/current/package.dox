@@ -1,0 +1,12 @@
+/// @defgroup swcutils Utilities to analyse the output of the software correlator
+
+/// The software correlator namespace
+namespace askap::swcorrelator {};
+
+/// @mainpage ASKAP Central Processor Data Services C++ Client Package
+///
+
+/// @section channels_subpackages Subpackages
+// /// @li @ref swcorrelator
+
+/// @copyright 2011 CSIRO, All Rights Reserved.

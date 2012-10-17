@@ -41,7 +41,7 @@
 #include <measurementequation/WienerPreconditioner.h>
 #include <measurementequation/RobustPreconditioner.h>
 #include <measurementequation/GaussianNoiseME.h>
-#include <measurementequation/SynthesisParamsHelper.h>
+#include <utils/ImageUtils.h>
 
 #include <askapparallel/AskapParallel.h>
 
@@ -137,8 +137,8 @@ int main(int argc, char **argv) {
      std::cerr<<"Preconditioning <"<<numberOfRuns<<" run(s)>: "<<timer.real()<<std::endl;
      
      timer.mark();     
-     SynthesisParamsHelper::saveAsCasaImage("outpsf.casa",psf);
-     SynthesisParamsHelper::saveAsCasaImage("outimg.casa",img);     
+     scimath::saveAsCasaImage("outpsf.casa",psf);
+     scimath::saveAsCasaImage("outimg.casa",img);     
      std::cerr<<"Storing results: "<<timer.real()<<std::endl;     
      // just to keep it active
      ap.isParallel();

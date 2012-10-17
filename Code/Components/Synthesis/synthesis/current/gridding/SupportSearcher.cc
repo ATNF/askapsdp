@@ -31,7 +31,7 @@
 
 #include <gridding/SupportSearcher.h>
 
-#include <measurementequation/SynthesisParamsHelper.h>
+#include <utils/ImageUtils.h>
 
 #include <askap/AskapError.h>
 #include <askap/AskapUtil.h>
@@ -124,7 +124,7 @@ casa::uInt SupportSearcher::symmetricalSupport(const casa::IPosition &shape) con
 template<>
 void SupportSearcher::debugStoreImage(const casa::Matrix<casa::Complex> &in)
 {
-  SynthesisParamsHelper::saveAsCasaImage("dbg.img",amplitude(in));
+  scimath::saveAsCasaImage("dbg.img",amplitude(in));
 }
 
 

@@ -44,7 +44,7 @@
 #include <Common/ParameterSet.h>
 #include <askap/Log4cxxLogSink.h>
 #include <gridding/UVPattern.h>
-#include <measurementequation/SynthesisParamsHelper.h>
+#include <utils/ImageUtils.h>
 // just for logging
 #include <askapparallel/AskapParallel.h>
 
@@ -114,7 +114,7 @@ int main(int argc, const char** argv) {
         
         casa::Array<casa::Float> buffer(pattern.pattern().shape());
         casa::convertArray<float,double>(buffer,casa::amplitude(pattern.pattern()));
-        SynthesisParamsHelper::saveAsCasaImage("illum.img",buffer);
+        scimath::saveAsCasaImage("illum.img",buffer);
       }  
       ASKAPLOG_INFO_STR(logger,  "Total times - user:   " << timer.user()
                << " system: " << timer.system() << " real:   " << timer.real());

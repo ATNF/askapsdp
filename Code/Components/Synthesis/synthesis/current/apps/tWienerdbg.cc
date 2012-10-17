@@ -38,10 +38,12 @@
 #include <boost/shared_ptr.hpp>
 
 #include <measurementequation/IImagePreconditioner.h>
-#include <measurementequation/WienerPreconditioner.h>
 #include <measurementequation/RobustPreconditioner.h>
+#include <measurementequation/WienerPreconditioner.h>
+#include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/GaussianNoiseME.h>
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <utils/ImageUtils.h>
 
 #include <askapparallel/AskapParallel.h>
 
@@ -85,8 +87,8 @@ int main(int argc, char **argv) {
      std::cerr<<"Preconditioning: time="<<timer.real()<<std::endl;
      
      timer.mark();     
-     SynthesisParamsHelper::saveAsCasaImage("outpsf.casa",psf);
-     SynthesisParamsHelper::saveAsCasaImage("outimg.casa",img);     
+     scimath::saveAsCasaImage("outpsf.casa",psf);
+     scimath::saveAsCasaImage("outimg.casa",img);     
      std::cerr<<"Storing results: "<<timer.real()<<std::endl; 
      // just to keep it active
      ap.isParallel();

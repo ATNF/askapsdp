@@ -42,6 +42,7 @@ ASKAP_LOGGER(decfistalogger, ".deconvolution.fista");
 #include <deconvolution/DeconvolverFista.h>
 #include <deconvolution/MultiScaleBasisFunction.h>
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <utils/ImageUtils.h>
 
 namespace askap {
 
@@ -155,15 +156,15 @@ namespace askap {
                 T t_old = t_new;
 
                 this->updateResiduals(X);
-                SynthesisParamsHelper::saveAsCasaImage("residuals.tab", this->dirty());
+                scimath::saveAsCasaImage("residuals.tab", this->dirty());
 
                 X = X + this->dirty() / lipschitz;
 
                 // Transform to other (e.g. multiscale) space
                 Array<T> WX;
-                SynthesisParamsHelper::saveAsCasaImage("X.tab", X);
+                scimath::saveAsCasaImage("X.tab", X);
                 this->W(WX, X);
-                SynthesisParamsHelper::saveAsCasaImage("W.tab", WX);
+                scimath::saveAsCasaImage("W.tab", WX);
 
                 // Now shrink the coefficients towards zero and clip those below
                 // lambda/lipschitz.
@@ -174,11 +175,11 @@ namespace askap {
                 shrink = sign(WX) * shrink;
                 shrink(truncated < T(0.0)) = T(0.0);
 
-                SynthesisParamsHelper::saveAsCasaImage("shrink.tab", WX);
+                scimath::saveAsCasaImage("shrink.tab", WX);
                 // Transform back from other (e.g. wavelet) space here
 
                 this->WT(X_temp, shrink);
-                SynthesisParamsHelper::saveAsCasaImage("WT.tab", X_temp);
+                scimath::saveAsCasaImage("WT.tab", X_temp);
 
                 t_new = (T(1.0) + sqrt(T(1.0) + T(4.0) * square(t_old))) / T(2.0);
                 X = X_temp + ((t_old - T(1.0)) / t_new) * (X_temp - X_old);

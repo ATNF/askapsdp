@@ -34,6 +34,8 @@
 #define SYNTHESIS_PARAMS_HELPER_TEST_H
 
 #include <measurementequation/SynthesisParamsHelper.h>
+#include <measurementequation/SynthesisParamsHelper.h>
+#include <utils/ImageUtils.h>
 #include <measurementequation/ImageParamsHelper.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
@@ -81,7 +83,7 @@ namespace askap
                      arr(x,y)=buf;
                 }
            }
-           SynthesisParamsHelper::saveAsCasaImage("temp.img",arr);
+           scimath::saveAsCasaImage("temp.img",arr);
         }
 
         void testListFacet()
