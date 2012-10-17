@@ -42,7 +42,7 @@ ASKAP_LOGGER(logger, "");
 #include <casa/OS/Timer.h>
 #include <casa/Arrays/ArrayMath.h>
 #include <casa/Arrays/MatrixMath.h>
-#include <measurementequation/SynthesisParamsHelper.h>
+#include <utils/ImageUtils.h>
 #include <casa/Arrays/Cube.h>
 
 
@@ -58,7 +58,6 @@ using std::cerr;
 using std::endl;
 
 using namespace askap;
-using namespace askap::synthesis;
 using namespace askap::accessors;
 
 void analyseDelay(const casa::Matrix<casa::Complex> &fringes, const casa::uInt padding, double avgTime, 
@@ -159,7 +158,7 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
       --currentStep;
   }
   std::cout<<imgBuf.shape()<<std::endl;
-  SynthesisParamsHelper::saveAsCasaImage("fringe.img", casa::amplitude(imgBuf(casa::IPosition(3,0,0,0),
+  scimath::saveAsCasaImage("fringe.img", casa::amplitude(imgBuf(casa::IPosition(3,0,0,0),
                  casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
 }
 
