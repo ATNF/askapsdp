@@ -1,6 +1,6 @@
 # The below specifies the GSM source is a duchamp output file
-Cmodel.gsm.database       = duchamp
-Cmodel.gsm.file           = small-duchamp.txt
+Cmodel.gsm.database       = votable
+Cmodel.gsm.file           = duchamp-fitResults.xml
 Cmodel.gsm.ref_freq       = 1.421GHz
 #Cmodel.gsm.file           = SKADS_S3SEX_1uJy_input_catalogue.dat
 
