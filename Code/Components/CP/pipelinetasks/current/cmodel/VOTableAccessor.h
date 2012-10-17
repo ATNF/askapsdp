@@ -48,54 +48,70 @@
 #include "cmodel/IGlobalSkyModel.h"
 
 namespace askap {
-namespace cp {
-namespace pipelinetasks {
+    namespace cp {
+        namespace pipelinetasks {
 
-/// @brief An object providing access to a sky model contained in a duchamp
-/// output ASCII text file.
-class VOTableAccessor : public IGlobalSkyModel {
-    public:
-        /// Constructor
-        /// @param[in] filename name of the VOTable containing the source catalog
-        VOTableAccessor(const std::string& filename);
+            /// @brief 
+            class VOTableAccessor : public IGlobalSkyModel {
+                public:
+                    /// Constructor
+                    /// @param[in] filename name of the VOTable containing the source catalog
+                    VOTableAccessor(const std::string& filename);
 
-        /// Constructor
-        /// Used for testing only, so a stringstream can be
-        /// passed in.
-        /// @param[in] stream   istream from which data will be read.
-        VOTableAccessor(const std::stringstream& sstream);
+                    /// Constructor
+                    /// Used for testing only, so a stringstream can be
+                    /// passed in.
+                    /// @param[in] stream   istream from which data will be read.
+                    VOTableAccessor(const std::stringstream& sstream);
 
-        /// Destructor
-        virtual ~VOTableAccessor();
+                    /// Destructor
+                    virtual ~VOTableAccessor();
 
-        /// @see askap::cp::pipelinetasks::IGlobalSkyModel::coneSearch
-        virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
-                const casa::Quantity& dec,
-                const casa::Quantity& searchRadius,
-                const casa::Quantity& fluxLimit);
+                    /// @see askap::cp::pipelinetasks::IGlobalSkyModel::coneSearch
+                    virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
+                            const casa::Quantity& dec,
+                            const casa::Quantity& searchRadius,
+                            const casa::Quantity& fluxLimit);
 
-    private:
-        void processRow(const std::vector<std::string>& cells,
-                const casa::Quantity& searchRA,
-                const casa::Quantity& searchDec,
-                const casa::Quantity& searchRadius,
-                const casa::Quantity& fluxLimit,
-                std::map<std::string, size_t>& posMap,
-                std::map<std::string, casa::Unit>& unitMap,
-                std::list<askap::cp::skymodelservice::Component>& list);
+                private:
+                    enum FieldEnum {
+                        RA,
+                        DEC,
+                        FLUX,
+                        MAJOR_AXIS,
+                        MINOR_AXIS,
+                        POSITION_ANGLE,
+                        SPECTRAL_INDEX,
+                        SPECTRAL_CURVATURE
+                    };
 
-        //  Filename
-        const std::string itsFilename;
+                    static void initFieldInfo(const std::vector<askap::accessors::VOTableField>& fields,
+                                       std::map<VOTableAccessor::FieldEnum, size_t>& posMap,
+                                       std::map<VOTableAccessor::FieldEnum, casa::Unit>& unitMap);
 
-        // Count of components below the flux limit
-        casa::uLong itsBelowFluxLimit;
+                    static bool hasUCD(const askap::accessors::VOTableField& field, const std::string& ucd);
 
-        // Count of components outside of the search radius
-        casa::uLong itsOutsideSearchCone;
-};
+                    void processRow(const std::vector<std::string>& cells,
+                                    const casa::Quantity& searchRA,
+                                    const casa::Quantity& searchDec,
+                                    const casa::Quantity& searchRadius,
+                                    const casa::Quantity& fluxLimit,
+                                    std::map<VOTableAccessor::FieldEnum, size_t>& posMap,
+                                    std::map<VOTableAccessor::FieldEnum, casa::Unit>& unitMap,
+                                    std::list<askap::cp::skymodelservice::Component>& list);
 
-}
-}
+                    //  Filename
+                    const std::string itsFilename;
+
+                    // Count of components below the flux limit
+                    casa::uLong itsBelowFluxLimit;
+
+                    // Count of components outside of the search radius
+                    casa::uLong itsOutsideSearchCone;
+            };
+
+        }
+    }
 }
 
 #endif
