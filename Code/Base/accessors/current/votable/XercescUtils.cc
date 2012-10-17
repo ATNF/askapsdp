@@ -56,9 +56,10 @@ std::string XercescUtils::getDescription(const xercesc::DOMElement& element)
     if (children->getLength() == 1) {
         const DOMElement* descNode = dynamic_cast<xercesc::DOMElement*>(children->item(0));
         const DOMText* text = dynamic_cast<xercesc::DOMText*>(descNode->getChildNodes()->item(0));
-        return XercescString(text->getWholeText());
-    } else {
-        return "";
+        if (text) {
+            return XercescString(text->getWholeText());
+        }
     }
+    return "";
 }
 
