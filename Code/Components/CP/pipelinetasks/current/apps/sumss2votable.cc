@@ -90,7 +90,7 @@ static void addFields(VOTableTable& tab)
         // Integrated Flux
         VOTableField f;
         f.setName("Flux");
-        f.setUCD("phot.flux.density");
+        f.setUCD("phot.flux.density.integrated");
         f.setDatatype("float"); 
         f.setUnit("mJy");
         tab.addField(f);
@@ -107,7 +107,7 @@ static void addFields(VOTableTable& tab)
     }
 
     {
-        // Major Axis
+        // Minor Axis
         VOTableField f;
         f.setName("Minor axis");
         f.setUCD("phys.angSize.sminAxis");
@@ -117,10 +117,10 @@ static void addFields(VOTableTable& tab)
     }
 
     {
-        // Major Axis
+        // Position angle
         VOTableField f;
         f.setName("Position angle");
-        f.setUCD("pos.posAng");
+        f.setUCD("phys.angSize;pos.posAng");
         f.setDatatype("float"); 
         f.setUnit("deg");
         tab.addField(f);
