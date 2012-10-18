@@ -131,6 +131,7 @@ void DataLogger::reset()
 }
 
 void DataLogger::publish() {
+  ASKAPDEBUGASSERT(itsMonitors);
   for (int beam=0; beam<int(itsCorrProducts.size()); ++beam) {
        const boost::shared_ptr<swcorrelator::CorrProducts> &cp = itsCorrProducts[beam];
        ASKAPDEBUGASSERT(cp);
@@ -156,7 +157,9 @@ void DataLogger::publish() {
             cp->itsVisibility.row(baseline) = itsBuffer.xyPlane(0).row(row);
             cp->itsFlag.row(baseline).set(false);
        } 
+       itsMonitors->publish(*cp);
   }
+  itsMonitors->finalise();
 }
 
 void DataLogger::process(const IConstDataSource &ds) {
@@ -170,6 +173,9 @@ void DataLogger::process(const IConstDataSource &ds) {
   size_t counter = 0;
       
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
+       if (!itsMonitors) {
+          setupMonitor(*it);
+       }
        if (itsBuffer.nelements() == 0) {
            itsBuffer.resize(it->nRow(),it->nChannel(),it->nPol());
            itsBuffer.set(casa::Complex(0.,0.));
