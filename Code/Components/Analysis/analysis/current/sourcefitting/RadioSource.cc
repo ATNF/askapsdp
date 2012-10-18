@@ -1128,13 +1128,15 @@ namespace askap {
 	    newSpec.addColumn(inputSpec.column("FINT"));
 	    newSpec.addColumn(inputSpec.column("FPEAK"));
 	    
+	    newSpec.column("FINT").setUCD("phot.flux.density.integrated");
 	    newSpec.column("FINT").changePrec(fluxPrec);
+	    newSpec.column("FPEAK").setUCD("phot.flux.density.peak");
 	    newSpec.column("FPEAK").changePrec(fluxPrec);
 	    newSpec.column("NUM").setName("ID");
 	    newSpec.column("NUM").setDatatype("char");
 	    // new columns
-	    newSpec.addColumn( duchamp::Catalogues::Column("FINTFIT","F_int(fit)", header.getIntFluxUnits(), fluxWidth, fluxPrec,"phot.flux.density.integrated","float","col_fint_fit","") );
-	    newSpec.addColumn( duchamp::Catalogues::Column("FPEAKFIT","F_pk(fit)", header.getFluxUnits(), fluxWidth, fluxPrec,"phot.flux.density.peak","float","col_fint_fit","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("FINTFIT","F_int(fit)", header.getIntFluxUnits(), fluxWidth, fluxPrec,"phot.flux.density.integrated;stat.fit","float","col_fint_fit","") );
+	    newSpec.addColumn( duchamp::Catalogues::Column("FPEAKFIT","F_pk(fit)", header.getFluxUnits(), fluxWidth, fluxPrec,"phot.flux.density.peak;stat.fit","float","col_fint_fit","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("MAJFIT","Maj(fit)", "[arcsec]", 10, 3,"phys.angSize.smajAxis","float","col_maj_fit","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("MINFIT","Min(fit)", "[arcsec]", 10, 3,"phys.angSize.sminAxis","float","col_min_fit","") );
 	    newSpec.addColumn( duchamp::Catalogues::Column("PAFIT","P.A.(fit)", "[deg]", 10, 2,"phys.angSize;pos.posAng","float","col_pa_fit","") );
