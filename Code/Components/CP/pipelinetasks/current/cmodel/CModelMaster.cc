@@ -52,7 +52,7 @@
 
 // Local package includes
 #include "cmodel/VOTableAccessor.h"
-#include "cmodel/DuchampAccessor.h"
+#include "cmodel/AsciiTableAccessor.h"
 #include "cmodel/DataserviceAccessor.h"
 #include "cmodel/MPIBasicComms.h"
 #include "cmodel/ImageFactory.h"
@@ -85,9 +85,9 @@ void CModelMaster::run(void)
     if (database == "votable") {
         const std::string filename = itsParset.getString("gsm.file");
         gsm.reset(new VOTableAccessor(filename));
-    } else if (database == "duchamp") {
+    } else if (database == "asciitable") {
         const std::string filename = itsParset.getString("gsm.file");
-        gsm.reset(new DuchampAccessor(filename));
+        gsm.reset(new AsciiTableAccessor(filename, itsParset));
     } else if (database == "dataservice") {
         const std::string host = itsParset.getString("gsm.locator_host");
         const std::string port = itsParset.getString("gsm.locator_port");

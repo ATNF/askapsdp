@@ -28,12 +28,12 @@
 #include "AskapTestRunner.h"
 
 // Test includes
-#include "DuchampAccessorTest.h"
+#include "AsciiTableAccessorTest.h"
 
 int main(int argc, char *argv[])
 {
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::cp::pipelinetasks::DuchampAccessorTest::suite());
+    runner.addTest(askap::cp::pipelinetasks::AsciiTableAccessorTest::suite());
     bool wasSucessful = runner.run();
 
     return wasSucessful ? 0 : 1;

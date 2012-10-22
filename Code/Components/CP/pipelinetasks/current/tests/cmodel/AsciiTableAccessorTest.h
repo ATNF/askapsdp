@@ -1,4 +1,4 @@
-/// @file DuchampAccessorTest.cc
+/// @file AsciiTableAccessorTest.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -33,9 +33,10 @@
 #include <vector>
 #include "casa/Quanta/Quantum.h"
 #include "skymodelclient/Component.h"
+#include "Common/ParameterSet.h"
 
 // Classes to test
-#include "cmodel/DuchampAccessor.h"
+#include "cmodel/AsciiTableAccessor.h"
 
 using namespace casa;
 
@@ -43,8 +44,8 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-class DuchampAccessorTest : public CppUnit::TestFixture {
-        CPPUNIT_TEST_SUITE(DuchampAccessorTest);
+class AsciiTableAccessorTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(AsciiTableAccessorTest);
         CPPUNIT_TEST(testConeSearchFluxCutoff);
         CPPUNIT_TEST(testConeSearchRadiusCutoff);
         CPPUNIT_TEST(testConeSearchWraparoundRA);
@@ -53,6 +54,23 @@ class DuchampAccessorTest : public CppUnit::TestFixture {
 
     public:
         void setUp() {
+            itsParset.add("tablespec.ra.col","3"); 
+            itsParset.add("tablespec.ra.units","deg"); 
+
+            itsParset.add("tablespec.dec.col","4"); 
+            itsParset.add("tablespec.dec.units","deg"); 
+
+            itsParset.add("tablespec.flux.col","10"); 
+            itsParset.add("tablespec.flux.units","Jy"); 
+
+            itsParset.add("tablespec.majoraxis.col","6"); 
+            itsParset.add("tablespec.majoraxis.units","arcsec"); 
+
+            itsParset.add("tablespec.minoraxis.col","7"); 
+            itsParset.add("tablespec.minoraxis.units","arcsec"); 
+
+            itsParset.add("tablespec.posangle.col","5"); 
+            itsParset.add("tablespec.posangle.units","rad"); 
         };
 
         void tearDown() {
@@ -61,14 +79,14 @@ class DuchampAccessorTest : public CppUnit::TestFixture {
         void testConeSearchFluxCutoff() {
             std::stringstream ss;
             ss << "# component    galaxy structure right_ascension declination position_angle major_axis minor_axis   i_151   i_610  i_1400  i_4860 i_18000" << std::endl;
-            ss << "   12205907  12205907         1      187.500000  -45.000000            0.0        0.0        0.0 -5.0000 -5.0000 -6.0000 -5.0000 -5.0000" << std::endl;
-            ss << "    8262173   8262173         1      187.500000  -45.000000            0.0        0.0        0.0 -5.0000 -5.0000 -8.0000 -5.0000 -5.0000" << std::endl;
+            ss << "   12205907  12205907         1      187.500000  -45.000000            0.0        0.0        0.0  1.0e-5  1.0e-5  1.0e-6  1.0e-5  1.0e-5" << std::endl;
+            ss << "    8262173   8262173         1      187.500000  -45.000000            0.0        0.0        0.0  1.0e-5  1.0e-5 -8.0000  1.0e-5  1.0e-5" << std::endl;
 
             casa::Quantity fluxLimit(1, "uJy");
             casa::Quantity radius(5.0, "deg");
             casa::Quantity ra(187.5, "deg");
             casa::Quantity dec(-45.0, "deg");
-            DuchampAccessor acc(ss);
+            AsciiTableAccessor acc(ss, itsParset);
             std::vector<askap::cp::skymodelservice::Component> list = acc.coneSearch(ra, dec, radius, fluxLimit);
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), list.size());
         }
@@ -76,14 +94,14 @@ class DuchampAccessorTest : public CppUnit::TestFixture {
         void testConeSearchRadiusCutoff() {
             std::stringstream ss;
             ss << "# component    galaxy structure right_ascension declination position_angle major_axis minor_axis   i_151   i_610  i_1400  i_4860 i_18000" << std::endl;
-            ss << "   12205907  12205907         1      187.500000  -45.000000            0.0        0.0        0.0 -5.0000 -5.0000 -6.0000 -5.0000 -5.0000" << std::endl;
-            ss << "    8262173   8262173         1      150.500000  -45.000000            0.0        0.0        0.0 -5.0000 -5.0000 -6.0000 -5.0000 -5.0000" << std::endl;
+            ss << "   12205907  12205907         1      187.500000  -45.000000            0.0        0.0        0.0  1.0e-5  1.0e-5  1.0e-6  1.0e-5  1.0e-5" << std::endl;
+            ss << "    8262173   8262173         1      150.500000  -45.000000            0.0        0.0        0.0  1.0e-5  1.0e-5  1.0e-6  1.0e-5  1.0e-5" << std::endl;
 
             casa::Quantity fluxLimit(1, "uJy");
             casa::Quantity radius(5.0, "deg");
             casa::Quantity ra(187.5, "deg");
             casa::Quantity dec(-45.0, "deg");
-            DuchampAccessor acc(ss);
+            AsciiTableAccessor acc(ss, itsParset);
             std::vector<askap::cp::skymodelservice::Component> list = acc.coneSearch(ra, dec, radius, fluxLimit);
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), list.size());
         }
@@ -91,13 +109,13 @@ class DuchampAccessorTest : public CppUnit::TestFixture {
         void testConeSearchWraparoundRA() {
             std::stringstream ss;
             ss << "# component    galaxy structure right_ascension declination position_angle major_axis minor_axis   i_151   i_610  i_1400  i_4860 i_18000" << std::endl;
-            ss << "   12205907  12205907         1      001.000000  -45.000000            0.0        0.0        0.0 -5.0000 -5.0000 -6.0000 -5.0000 -5.0000" << std::endl;
+            ss << "   12205907  12205907         1      001.000000  -45.000000            0.0        0.0        0.0  1.0e-5  1.0e-5  1.0e-6  1.0e-5  1.0e-5" << std::endl;
 
             casa::Quantity fluxLimit(1, "uJy");
             casa::Quantity radius(2.0, "deg");
             casa::Quantity ra(359.5, "deg");
             casa::Quantity dec(-45.0, "deg");
-            DuchampAccessor acc(ss);
+            AsciiTableAccessor acc(ss, itsParset);
             std::vector<askap::cp::skymodelservice::Component> list = acc.coneSearch(ra, dec, radius, fluxLimit);
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), list.size());
         }
@@ -105,16 +123,19 @@ class DuchampAccessorTest : public CppUnit::TestFixture {
         void testConeSearchWraparoundPole() {
             std::stringstream ss;
             ss << "# component    galaxy structure right_ascension declination position_angle major_axis minor_axis   i_151   i_610  i_1400  i_4860 i_18000" << std::endl;
-            ss << "   12205907  12205907         1      187.500000  -89.900000            0.0        0.0        0.0 -5.0000 -5.0000 -6.0000 -5.0000 -5.0000" << std::endl;
+            ss << "   12205907  12205907         1      187.500000  -89.900000            0.0        0.0        0.0  1.0e-5  1.0e-5  1.0e-6  1.0e-5  1.0e-5" << std::endl;
 
             casa::Quantity fluxLimit(1, "uJy");
             casa::Quantity radius(2.0, "deg");
             casa::Quantity ra(7.5, "deg");
             casa::Quantity dec(-89.5, "deg");
-            DuchampAccessor acc(ss);
+            AsciiTableAccessor acc(ss, itsParset);
             std::vector<askap::cp::skymodelservice::Component> list = acc.coneSearch(ra, dec, radius, fluxLimit);
             CPPUNIT_ASSERT_EQUAL(static_cast<size_t>(1), list.size());
         }
+
+    private:
+        LOFAR::ParameterSet itsParset;
 };
 
 }   // End namespace pipelinetasks

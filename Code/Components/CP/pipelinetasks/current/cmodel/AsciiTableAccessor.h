@@ -1,4 +1,4 @@
-/// @file DuchampAccessor.h
+/// @file AsciiTableAccessor.h
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,20 +24,24 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_DUCHAMPACCESSOR_H
-#define ASKAP_CP_PIPELINETASKS_DUCHAMPACCESSOR_H
+#ifndef ASKAP_CP_PIPELINETASKS_ASCIITABLEACCESSOR_H
+#define ASKAP_CP_PIPELINETASKS_ASCIITABLEACCESSOR_H
 
 // System includes
 #include <string>
 #include <istream>
 #include <sstream>
 #include <vector>
+#include <map>
+#include <utility>
 #include <list>
 
 // ASKAPsoft includes
 #include "boost/scoped_ptr.hpp"
+#include "Common/ParameterSet.h"
 #include "casa/aipstype.h"
 #include "casa/Quanta/Quantum.h"
+#include "casa/Quanta/Unit.h"
 #include "skymodelclient/Component.h"
 
 // Local package includes
@@ -47,59 +51,65 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief An object providing access to a sky model contained in a duchamp
-/// output ASCII text file.
-class DuchampAccessor : public IGlobalSkyModel {
+/// @brief An object providing access to a sky model contained in a
+/// row/column (space delimited) ASCII test file
+class AsciiTableAccessor : public IGlobalSkyModel {
     public:
         /// Constructor
         /// @param[in] filename name of the file containing the source catalog
-        DuchampAccessor(const std::string& filename);
+        AsciiTableAccessor(const std::string& filename,
+                           const LOFAR::ParameterSet& parset);
 
         /// Constructor
         /// Used for testing only, so a stringstream can be
         /// passed in.
         /// @param[in] stream   istream from which data will be read.
-        DuchampAccessor(const std::stringstream& sstream);
+        AsciiTableAccessor(const std::stringstream& sstream,
+                           const LOFAR::ParameterSet& parset);
 
         /// Destructor
-        virtual ~DuchampAccessor();
+        virtual ~AsciiTableAccessor();
 
         /// @see askap::cp::pipelinetasks::IGlobalSkyModel::coneSearch
-        virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(const casa::Quantity& ra,
+        virtual std::vector<askap::cp::skymodelservice::Component> coneSearch(
+                const casa::Quantity& ra,
                 const casa::Quantity& dec,
                 const casa::Quantity& searchRadius,
                 const casa::Quantity& fluxLimit);
 
     private:
 
-        // Supports the getPositions() method.
-        struct TokenPositions {
-            casa::Short raPos;
-            casa::Short decPos;
-            casa::Short fluxPos;
-            casa::Short majorAxisPos;
-            casa::Short minorAxisPos;
-            casa::Short positionAnglePos;
-            casa::Short spectralIndexPos;
-            casa::Short spectralCurvaturePos;
+        // Enumerates the required and optional fields
+        enum FieldEnum {
+            RA,
+            DEC,
+            FLUX,
+            MAJOR_AXIS,
+            MINOR_AXIS,
+            POSITION_ANGLE,
+            SPECTRAL_INDEX,     // Optional
+            SPECTRAL_CURVATURE  // Optional
         };
+
+        typedef std::map< FieldEnum, std::pair< short, casa::Unit > > FieldDesc;
 
         // Process a single (non comment) line of the input file.
         // This method processes a line, building a component instance
         // for each component which meets the search radius and flux limit
         // criteria. The component is then added to the list.
         void processLine(const std::string& line,
-                         const casa::Quantity& searchRA,
-                         const casa::Quantity& searchDec,
-                         const casa::Quantity& searchRadius,
-                         const casa::Quantity& fluxLimit,
-                         std::list<askap::cp::skymodelservice::Component>& list);
+                const casa::Quantity& searchRA,
+                const casa::Quantity& searchDec,
+                const casa::Quantity& searchRadius,
+                const casa::Quantity& fluxLimit,
+                std::list<askap::cp::skymodelservice::Component>& list);
 
-        // This should be a temporary function. It is used to get the column
-        // index for the data of interest. Currently this exists so both the
-        // Duchamp file format and SKADS database extract can be read by
-        // this class. 
-        TokenPositions getPositions(const casa::uShort nTokens);
+        static std::pair< short, casa::Unit > makeFieldDescEntry(
+                const LOFAR::ParameterSet& parset,
+                const std::string& colkey,
+                const std::string& unitskey);
+
+        void initFieldDesc(const LOFAR::ParameterSet& parset);
 
         // File stream from which components will be read
         boost::scoped_ptr<std::istream> itsFile;
@@ -109,6 +119,9 @@ class DuchampAccessor : public IGlobalSkyModel {
 
         // Count of components outside of the search radius
         casa::uLong itsOutsideSearchCone;
+
+        // Field description
+        FieldDesc itsFields;
 };
 
 }

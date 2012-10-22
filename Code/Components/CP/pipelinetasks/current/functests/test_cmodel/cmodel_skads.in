@@ -1,0 +1,51 @@
+# The below specifies the GSM source is a duchamp output file
+Cmodel.gsm.database       = asciitable
+Cmodel.gsm.file           = SKADS_S3SEX_1uJy_input_catalogue.dat
+Cmodel.gsm.ref_freq       = 1.421GHz
+
+# AsciiTableAccessor parameters
+Cmodel.tablespec.ra.col                 = 3
+Cmodel.tablespec.ra.units               = deg
+
+Cmodel.tablespec.dec.col                = 4
+Cmodel.tablespec.dec.units              = deg
+
+Cmodel.tablespec.flux.col               = 10
+Cmodel.tablespec.flux.units             = Jy
+
+Cmodel.tablespec.majoraxis.col          = 6
+Cmodel.tablespec.majoraxis.units        = arcsec
+
+Cmodel.tablespec.minoraxis.col          = 7
+Cmodel.tablespec.minoraxis.units        = arcsec
+
+Cmodel.tablespec.posangle.col           = 5
+Cmodel.tablespec.posangle.units         = rad
+
+#Cmodel.tablespec.spectralindex.col      =
+#Cmodel.tablespec.spectralindex.units    =
+
+#Cmodel.tablespec.spctralcurvature.col    =
+#Cmodel.tablespec.spectralcurvature.units =
+
+# The below specifies the GSM source is the Sky Model Service
+#Cmodel.gsm.database       = dataservice
+#Cmodel.gsm.locator_host   = localhost
+#Cmodel.gsm.locator_port   = 4061
+#Cmodel.gsm.service_name   = SkyModelService
+#Cmodel.gsm.ref_freq       = 1.4GHz
+
+# General parameters
+Cmodel.bunit              = Jy/pixel
+Cmodel.frequency          = 1.420GHz
+Cmodel.increment          = 304MHz
+Cmodel.flux_limit         = 10mJy
+Cmodel.shape              = [4096, 4096]
+Cmodel.cellsize           = [5arcsec, 5arcsec]
+Cmodel.direction          = [12h30m00.00, -45.00.00.00, J2000]
+Cmodel.stokes             = [I]
+Cmodel.nterms             = 3
+
+# Output specific parameters
+Cmodel.output             = casa
+Cmodel.filename           = image_10mJy.skymodel

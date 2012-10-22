@@ -1,4 +1,4 @@
-/// @file DuchampAccessor.cc
+/// @file AsciiTableAccessor.cc
 ///
 /// @copyright (c) 2011 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -25,7 +25,7 @@
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
 // Include own header file first
-#include "cmodel/DuchampAccessor.h"
+#include "cmodel/AsciiTableAccessor.h"
 
 // Include package level header file
 #include "askap_pipelinetasks.h"
@@ -50,6 +50,7 @@
 // Casacore includes
 #include "casa/aipstype.h"
 #include "casa/Quanta/Quantum.h"
+#include "casa/Quanta/Unit.h"
 #include "casa/Quanta/MVDirection.h"
 
 // Using
@@ -57,27 +58,31 @@ using namespace casa;
 using namespace std;
 using namespace askap::cp::pipelinetasks;
 
-ASKAP_LOGGER(logger, ".DuchampAccessor");
+ASKAP_LOGGER(logger, ".AsciiTableAccessor");
 
-DuchampAccessor::DuchampAccessor(const std::string& filename)
+AsciiTableAccessor::AsciiTableAccessor(const std::string& filename,
+                                       const LOFAR::ParameterSet& parset)
         : itsFile(new std::ifstream(filename.c_str()))
 {
     if (!itsFile->good()) {
         ASKAPTHROW(AskapError, "Error opening file: " << filename);
     }
+    initFieldDesc(parset);
 }
 
-DuchampAccessor::DuchampAccessor(const std::stringstream& sstream)
+AsciiTableAccessor::AsciiTableAccessor(const std::stringstream& sstream,
+                                       const LOFAR::ParameterSet& parset)
         : itsFile(new std::stringstream)
 {
     *(dynamic_cast<std::stringstream*>(itsFile.get())) << sstream.str();
+    initFieldDesc(parset);
 }
 
-DuchampAccessor::~DuchampAccessor()
+AsciiTableAccessor::~AsciiTableAccessor()
 {
 }
 
-std::vector<askap::cp::skymodelservice::Component> DuchampAccessor::coneSearch(const casa::Quantity& ra,
+std::vector<askap::cp::skymodelservice::Component> AsciiTableAccessor::coneSearch(const casa::Quantity& ra,
         const casa::Quantity& dec,
         const casa::Quantity& searchRadius,
         const casa::Quantity& fluxLimit)
@@ -115,7 +120,7 @@ std::vector<askap::cp::skymodelservice::Component> DuchampAccessor::coneSearch(c
     return std::vector<askap::cp::skymodelservice::Component>(list.begin(), list.end());
 }
 
-void DuchampAccessor::processLine(const std::string& line,
+void AsciiTableAccessor::processLine(const std::string& line,
                                   const casa::Quantity& searchRA,
                                   const casa::Quantity& searchDec,
                                   const casa::Quantity& searchRadius,
@@ -131,50 +136,13 @@ void DuchampAccessor::processLine(const std::string& line,
     // Tokenize the line
     stringstream iss(line);
     vector<string> tokens;
-    tokens.reserve(24); // For performance only: The current largest number of expected tokens.
+    tokens.reserve(8); // For performance only: Typical number of tokens
     copy(istream_iterator<string>(iss),
          istream_iterator<string>(),
          back_inserter<vector<string> >(tokens));
 
-    // Positions of the tokens of interest
-    const TokenPositions pos = getPositions(tokens.size());
-
-    // Extract the values from the tokens
-    const casa::Quantity ra(boost::lexical_cast<casa::Double>(tokens[pos.raPos]), deg);
-    const casa::Quantity dec(boost::lexical_cast<casa::Double>(tokens[pos.decPos]), deg);
-
-    // Need to get rid of this hack to support the SKADS type. The plan is to drop
-    // support for this filetype and just use the Duchamp format.
-    casa::Quantity flux;
-    if (tokens.size() == 13) {
-        // SKADS format - Flux is log of flux in Jy
-        flux = casa::Quantity(pow(10.0, boost::lexical_cast<casa::Double>(tokens[pos.fluxPos])), Jy);
-    } else {
-        // Duchamp and cmodel standard format - Flux is in Jy
-        flux = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[pos.fluxPos]), Jy);
-    }
-
-    casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(tokens[pos.majorAxisPos]), arcsec);
-    casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(tokens[pos.minorAxisPos]), arcsec);
-
-
-    // Need to get rid of this hack to support the SKADS type. The plan is to drop
-    // support for this filetype and just use the Duchamp format.
-    casa::Quantity positionAngle;
-    if (tokens.size() == 13) {
-        // SKADS format uses radians
-        positionAngle = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[pos.positionAnglePos]), rad);
-    } else {
-        // Duchamp and cmodel standard format uses degrees
-        positionAngle = casa::Quantity(boost::lexical_cast<casa::Double>(tokens[pos.positionAnglePos]), deg);
-    }
-
-    // Discard if below flux limit
-    if (flux.getValue(Jy) < fluxLimit.getValue(Jy)) {
-        itsBelowFluxLimit++;
-        return;
-    }
-
+    const casa::Quantity ra(boost::lexical_cast<casa::Double>(tokens[itsFields[RA].first]), itsFields[RA].second);
+    const casa::Quantity dec(boost::lexical_cast<casa::Double>(tokens[itsFields[DEC].first]), itsFields[DEC].second);
     // Discard if outside cone
     const MVDirection searchRefDir(searchRA, searchDec);
     const MVDirection componentDir(ra, dec);
@@ -183,6 +151,17 @@ void DuchampAccessor::processLine(const std::string& line,
         itsOutsideSearchCone++;
         return;
     }
+
+    const casa::Quantity flux(boost::lexical_cast<casa::Double>(tokens[itsFields[FLUX].first]), itsFields[FLUX].second);
+    // Discard if below flux limit
+    if (flux.getValue(Jy) < fluxLimit.getValue(Jy)) {
+        itsBelowFluxLimit++;
+        return;
+    }
+
+    casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(tokens[itsFields[MAJOR_AXIS].first]), itsFields[MAJOR_AXIS].second);
+    casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(tokens[itsFields[MINOR_AXIS].first]), itsFields[MINOR_AXIS].second);
+    casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(tokens[itsFields[POSITION_ANGLE].first]), itsFields[POSITION_ANGLE].second);
 
     // Ensure major axis is larger than minor axis
     if (majorAxis.getValue() < minorAxis.getValue()) {
@@ -198,14 +177,14 @@ void DuchampAccessor::processLine(const std::string& line,
 
     // Spectral Index if present
     double spectralIndex = 0.0;
-    if (pos.spectralIndexPos >= 0) {
-        spectralIndex = boost::lexical_cast<casa::Double>(tokens[pos.spectralIndexPos]);
+    if (itsFields.find(SPECTRAL_INDEX) != itsFields.end()) {
+        spectralIndex = boost::lexical_cast<casa::Double>(tokens[itsFields[SPECTRAL_INDEX].first]);
     }
 
     // Spectral Curvature if present
     double spectralCurvature = 0.0;
-    if (pos.spectralCurvaturePos >= 0) {
-        spectralCurvature = boost::lexical_cast<casa::Double>(tokens[pos.spectralCurvaturePos]);
+    if (itsFields.find(SPECTRAL_CURVATURE) != itsFields.end()) {
+        spectralCurvature = boost::lexical_cast<casa::Double>(tokens[itsFields[SPECTRAL_CURVATURE].first]);
     }
 
     // Build the Component object and add to the list. This component
@@ -216,44 +195,30 @@ void DuchampAccessor::processLine(const std::string& line,
     list.push_back(c);
 }
 
-DuchampAccessor::TokenPositions DuchampAccessor::getPositions(const casa::uShort nTokens)
+std::pair< short, casa::Unit > AsciiTableAccessor::makeFieldDescEntry(
+        const LOFAR::ParameterSet& parset,
+        const std::string& colkey,
+        const std::string& unitskey)
 {
-    TokenPositions pos;
-    if (nTokens == 23 || nTokens == 24) {
-        // Duchamp format
-        pos.raPos = 2;
-        pos.decPos = 3;
-        // Use the fitted integrated flux
-        pos.fluxPos = 6;
-        // Use the deconvolved size information
-        pos.majorAxisPos = 11;
-        pos.minorAxisPos = 12;
-        pos.positionAnglePos = 13;
-        pos.spectralIndexPos = 14;
-        pos.spectralCurvaturePos = 15;
-    } else if (nTokens == 13) {
-        // SKADS Sky Simulations extract format
-        pos.raPos = 3;
-        pos.decPos = 4;
-        pos.fluxPos = 10;
-        pos.majorAxisPos = 6;
-        pos.minorAxisPos = 7;
-        pos.positionAnglePos = 5;
-        pos.spectralIndexPos = -1; // Not present
-        pos.spectralCurvaturePos = -1; // Not present
-    } else if (nTokens == 8) {
-        // cmodel standard formal
-        pos.raPos = 0;
-        pos.decPos = 1;
-        pos.fluxPos = 2;
-        pos.majorAxisPos = 3;
-        pos.minorAxisPos = 4;
-        pos.positionAnglePos = 5;
-        pos.spectralIndexPos = 6;
-        pos.spectralCurvaturePos = 7;
-    } else {
-        ASKAPTHROW(AskapError, "Malformed entry - Expected 13, 23 or 24 tokens");
-    }
+    const short pos = parset.getUint(colkey);
+    const casa::Unit units(parset.getString(unitskey));
+    return make_pair(pos, units);
+}
+        
 
-    return pos;
+void AsciiTableAccessor::initFieldDesc(const LOFAR::ParameterSet& parset)
+{
+    itsFields[RA] = makeFieldDescEntry(parset, "tablespec.ra.col", "tablespec.ra.units");
+    itsFields[DEC] = makeFieldDescEntry(parset, "tablespec.dec.col", "tablespec.dec.units");
+    itsFields[FLUX] = makeFieldDescEntry(parset, "tablespec.flux.col", "tablespec.flux.units");
+    itsFields[MAJOR_AXIS] = makeFieldDescEntry(parset, "tablespec.majoraxis.col", "tablespec.majoraxis.units");
+    itsFields[MINOR_AXIS] = makeFieldDescEntry(parset, "tablespec.minoraxis.col", "tablespec.minoraxis.units");
+    itsFields[POSITION_ANGLE] = makeFieldDescEntry(parset, "tablespec.posangle.col", "tablespec.posangle.units");
+
+    if (parset.isDefined("tablespec.spectralindex.col")) {
+        itsFields[SPECTRAL_INDEX] = makeFieldDescEntry(parset, "tablespec.spectralindex.col", "tablespec.spectralindex.units");
+    }
+    if (parset.isDefined("tablespec.spectralcurvature.col")) {
+        itsFields[SPECTRAL_CURVATURE] = makeFieldDescEntry(parset, "tablespec.spectralcurvature.col", "tablespec.spectralcurvature.units");
+    }
 }
