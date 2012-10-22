@@ -81,9 +81,9 @@ std::vector<askap::cp::skymodelservice::Component> VOTableAccessor::coneSearch(c
         const casa::Quantity& fluxLimit)
 {
     ASKAPLOG_INFO_STR(logger, "Cone search - ra: " << ra.getValue("deg")
-            << " deg, dec: " << dec.getValue("deg")
-            << " deg, radius: " << searchRadius.getValue("deg")
-            << " deg, Fluxlimit: " << fluxLimit.getValue("Jy") << " Jy");
+                          << " deg, dec: " << dec.getValue("deg")
+                          << " deg, radius: " << searchRadius.getValue("deg")
+                          << " deg, Fluxlimit: " << fluxLimit.getValue("Jy") << " Jy");
 
     itsBelowFluxLimit = 0;
     itsOutsideSearchCone = 0;
@@ -140,40 +140,96 @@ bool VOTableAccessor::hasUCD(const askap::accessors::VOTableField& field, const 
 }
 
 void VOTableAccessor::initFieldInfo(const std::vector<askap::accessors::VOTableField>& fields,
-        std::map<VOTableAccessor::FieldEnum, size_t>& posMap,
-        std::map<VOTableAccessor::FieldEnum, casa::Unit>& unitMap)
+                                    std::map<VOTableAccessor::FieldEnum, size_t>& posMap,
+                                    std::map<VOTableAccessor::FieldEnum, casa::Unit>& unitMap)
 {
     // Preconditions
     ASKAPCHECK(fields.size() != 0, "No field descriptions present");
 
-    // Create a mapping between UCD and the FieldEnum
-    std::map<std::string, VOTableAccessor::FieldEnum> fmap;
-    fmap["pos.eq.ra"] = RA;
-    fmap["pos.eq.dec"] = DEC;
-    fmap["phot.flux.density"] = FLUX;
-    fmap["phys.angSize.smajAxis"] = MAJOR_AXIS;
-    fmap["phys.angSize.sminAxis"] = MINOR_AXIS;
-    fmap["pos.posAng"] = POSITION_ANGLE;
-    fmap["spectral.index"] = SPECTRAL_INDEX;
-    fmap["spectral.curvature"] = SPECTRAL_CURVATURE;
-
+    // Process each field entry looking for the ones necessary
     for (size_t i = 0; i < fields.size(); ++i) {
         const VOTableField field = fields[i];
 
-        // Check the field map to see if we care about this field
-        std::map<std::string, VOTableAccessor::FieldEnum>::const_iterator fiter;
-        for (fiter = fmap.begin(); fiter != fmap.end(); ++fiter) {
-            if (hasUCD(field, fiter->first)) {
-                if (posMap.find(fiter->second) != posMap.end()) {
-                    ASKAPTHROW(AskapError, "The UCD " << fiter->first
-                            << " appears in the field list multiple times");
-                }
-                posMap[fiter->second] = i;
-                if (field.getUnit().size() > 0) {
-                    unitMap[fiter->second] = Unit(field.getUnit());
-                }
+        // RA
+        VOTableAccessor::FieldEnum key = RA;
+        if (hasUCD(field, "pos.eq.ra")) {
+            if (posMap.find(key) == posMap.end() || hasUCD(field, "meta.main")) {
+                posMap[key] = i;
+                unitMap[key] = Unit(field.getUnit());
+                continue;
             }
         }
+
+        // Dec
+        key = DEC;
+        if (hasUCD(field, "pos.eq.dec")) {
+            if (posMap.find(key) == posMap.end() || hasUCD(field, "meta.main")) {
+                posMap[key] = i;
+                unitMap[key] = Unit(field.getUnit());
+                continue;
+            }
+        }
+
+        // Flux
+        key = FLUX;
+        if (hasUCD(field, "phot.flux.density") || hasUCD(field, "phot.flux.density.integrated")) {
+            if (posMap.find(key) == posMap.end() || hasUCD(field, "phot.flux.density.integrated")) {
+                posMap[key] = i;
+                unitMap[key] = Unit(field.getUnit());
+                continue;
+            }
+        }
+
+        // Major Axis
+        key = MAJOR_AXIS;
+        if (hasUCD(field, "phys.angSize.smajAxis")) {
+            if (posMap.find(key) == posMap.end() || hasUCD(field, "meta.deconvolved")) {
+                posMap[key] = i;
+                unitMap[key] = Unit(field.getUnit());
+                continue;
+            }
+        }
+
+        // Minor Axis
+        key = MINOR_AXIS;
+        if (hasUCD(field, "phys.angSize.sminAxis")) {
+            if (posMap.find(key) == posMap.end() || hasUCD(field, "meta.deconvolved")) {
+                posMap[key] = i;
+                unitMap[key] = Unit(field.getUnit());
+                continue;
+            }
+        }
+
+        // Position angle
+        key = POSITION_ANGLE;
+        if (hasUCD(field, "phys.angSize") && hasUCD(field, "pos.posAng")) {
+            if (posMap.find(key) == posMap.end() || hasUCD(field, "meta.deconvolved")) {
+                posMap[key] = i;
+                unitMap[key] = Unit(field.getUnit());
+                continue;
+            }
+        }
+
+        // Spectral index
+        key = SPECTRAL_INDEX;
+        if (hasUCD(field, "spectral.index")) {
+            if (posMap.find(key) == posMap.end() || hasUCD(field, "meta.main")) {
+                posMap[key] = i;
+                // No units
+                continue;
+            }
+        }
+
+        // Spectral curvature
+        key = SPECTRAL_CURVATURE;
+        if (hasUCD(field, "spectral.curvature")) {
+            if (posMap.find(key) == posMap.end() || hasUCD(field, "meta.main")) {
+                posMap[key] = i;
+                // No units
+                continue;
+            }
+        }
+
     }
 
     // Post-conditions:
@@ -189,13 +245,13 @@ void VOTableAccessor::initFieldInfo(const std::vector<askap::accessors::VOTableF
 }
 
 void VOTableAccessor::processRow(const std::vector<std::string>& cells,
-        const casa::Quantity& searchRA,
-        const casa::Quantity& searchDec,
-        const casa::Quantity& searchRadius,
-        const casa::Quantity& fluxLimit,
-        std::map<VOTableAccessor::FieldEnum, size_t>& posMap,
-        std::map<VOTableAccessor::FieldEnum, casa::Unit>& unitMap,
-        std::list<askap::cp::skymodelservice::Component>& list)
+                                 const casa::Quantity& searchRA,
+                                 const casa::Quantity& searchDec,
+                                 const casa::Quantity& searchRadius,
+                                 const casa::Quantity& fluxLimit,
+                                 std::map<VOTableAccessor::FieldEnum, size_t>& posMap,
+                                 std::map<VOTableAccessor::FieldEnum, casa::Unit>& unitMap,
+                                 std::list<askap::cp::skymodelservice::Component>& list)
 {
     // Create these once to avoid the performance impact of creating them over and over.
     static casa::Unit deg("deg");
@@ -204,10 +260,10 @@ void VOTableAccessor::processRow(const std::vector<std::string>& cells,
     static casa::Unit Jy("Jy");
 
     const casa::Quantity ra(boost::lexical_cast<casa::Double>(cells[posMap[RA]]),
-            unitMap[RA]);
+                            unitMap[RA]);
 
     const casa::Quantity dec(boost::lexical_cast<casa::Double>(cells[posMap[DEC]]),
-            unitMap[DEC]);
+                             unitMap[DEC]);
 
     // Discard if outside cone
     const MVDirection searchRefDir(searchRA, searchDec);
@@ -219,7 +275,7 @@ void VOTableAccessor::processRow(const std::vector<std::string>& cells,
     }
 
     const casa::Quantity flux(boost::lexical_cast<casa::Double>(cells[posMap[FLUX]]),
-            unitMap[FLUX]);
+                              unitMap[FLUX]);
 
     // Discard if below flux limit
     if (flux.getValue(Jy) < fluxLimit.getValue(Jy)) {
@@ -228,13 +284,13 @@ void VOTableAccessor::processRow(const std::vector<std::string>& cells,
     }
 
     casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(cells[posMap[MAJOR_AXIS]]),
-            unitMap[MAJOR_AXIS]);
+                             unitMap[MAJOR_AXIS]);
 
     casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(cells[posMap[MINOR_AXIS]]),
-            unitMap[MINOR_AXIS]);
+                             unitMap[MINOR_AXIS]);
 
     casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(cells[posMap[POSITION_ANGLE]]),
-            unitMap[POSITION_ANGLE]);
+                                 unitMap[POSITION_ANGLE]);
 
     double spectralIndex = boost::lexical_cast<casa::Double>(cells[posMap[SPECTRAL_INDEX]]);
     double spectralCurvature = boost::lexical_cast<casa::Double>(cells[posMap[SPECTRAL_CURVATURE]]);
@@ -254,6 +310,7 @@ void VOTableAccessor::processRow(const std::vector<std::string>& cells,
     // Build the Component object and add to the list.
     // NOTE: The Component ID has no meaning for this accessor
     askap::cp::skymodelservice::Component c(-1, ra, dec, positionAngle,
-            majorAxis, minorAxis, flux, spectralIndex, spectralCurvature);
+                                            majorAxis, minorAxis, flux,
+                                            spectralIndex, spectralCurvature);
     list.push_back(c);
 }
