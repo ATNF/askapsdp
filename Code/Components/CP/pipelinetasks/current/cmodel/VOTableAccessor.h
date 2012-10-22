@@ -74,6 +74,8 @@ namespace askap {
                             const casa::Quantity& fluxLimit);
 
                 private:
+
+                    /// Enumerates the required and optional fields
                     enum FieldEnum {
                         RA,
                         DEC,
@@ -85,12 +87,27 @@ namespace askap {
                         SPECTRAL_CURVATURE
                     };
 
+                    /// Reads the field information out of the VOTable and populates the two maps.
+                    /// Only those fields found in FieldEnum will be actioned. All other fields
+                    /// found in the "fields" input will be ignored.
+                    ///
+                    /// @param[in] field    vector of fields.
+                    /// @param[out] posMap  maps FieldEnum to a zero-based index in the row
+                    /// @param[out] unitMap maps FieldEnum to units
                     static void initFieldInfo(const std::vector<askap::accessors::VOTableField>& fields,
                                        std::map<VOTableAccessor::FieldEnum, size_t>& posMap,
                                        std::map<VOTableAccessor::FieldEnum, casa::Unit>& unitMap);
 
+                    /// Check if the given UCD is found in the UCD attribute of the field.
+                    ///
+                    /// @param[in] field    the field to be searched.
+                    /// @param[in] ucd      the ucd to be searched for.
+                    /// @return true if the ucd is present in the ucd attribute of
+                    ///  the VOTable field, otherwise false.
                     static bool hasUCD(const askap::accessors::VOTableField& field, const std::string& ucd);
 
+                    /// Process a row from the VOTable, creating a Component object and
+                    /// adding to the the "list".
                     void processRow(const std::vector<std::string>& cells,
                                     const casa::Quantity& searchRA,
                                     const casa::Quantity& searchDec,
@@ -100,13 +117,13 @@ namespace askap {
                                     std::map<VOTableAccessor::FieldEnum, casa::Unit>& unitMap,
                                     std::list<askap::cp::skymodelservice::Component>& list);
 
-                    //  Filename
+                    /// Filename of the VOTable
                     const std::string itsFilename;
 
-                    // Count of components below the flux limit
+                    /// Count of components below the flux limit
                     casa::uLong itsBelowFluxLimit;
 
-                    // Count of components outside of the search radius
+                    /// Count of components outside of the search radius
                     casa::uLong itsOutsideSearchCone;
             };
 

@@ -289,17 +289,15 @@ void VOTableAccessor::processRow(const std::vector<std::string>& cells,
     casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(cells[posMap[MINOR_AXIS]]),
                              unitMap[MINOR_AXIS]);
 
-    casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(cells[posMap[POSITION_ANGLE]]),
-                                 unitMap[POSITION_ANGLE]);
+    const casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(cells[posMap[POSITION_ANGLE]]),
+                                       unitMap[POSITION_ANGLE]);
 
     double spectralIndex = boost::lexical_cast<casa::Double>(cells[posMap[SPECTRAL_INDEX]]);
     double spectralCurvature = boost::lexical_cast<casa::Double>(cells[posMap[SPECTRAL_CURVATURE]]);
 
     // Ensure major axis is larger than minor axis
     if (majorAxis.getValue() < minorAxis.getValue()) {
-        casa::Quantity tmp = minorAxis;
-        minorAxis = majorAxis;
-        majorAxis = tmp;
+        swap(majorAxis, minorAxis);
     }
 
     // Ensure if major axis is non-zero, so is the minor axis

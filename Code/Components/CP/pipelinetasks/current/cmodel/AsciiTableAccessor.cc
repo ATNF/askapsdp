@@ -62,20 +62,20 @@ ASKAP_LOGGER(logger, ".AsciiTableAccessor");
 
 AsciiTableAccessor::AsciiTableAccessor(const std::string& filename,
                                        const LOFAR::ParameterSet& parset)
-        : itsFile(new std::ifstream(filename.c_str()))
+        : itsFile(new std::ifstream(filename.c_str())),
+          itsFields(makeFieldDesc(parset))
 {
     if (!itsFile->good()) {
         ASKAPTHROW(AskapError, "Error opening file: " << filename);
     }
-    initFieldDesc(parset);
 }
 
 AsciiTableAccessor::AsciiTableAccessor(const std::stringstream& sstream,
                                        const LOFAR::ParameterSet& parset)
-        : itsFile(new std::stringstream)
+        : itsFile(new std::stringstream),
+          itsFields(makeFieldDesc(parset))
 {
     *(dynamic_cast<std::stringstream*>(itsFile.get())) << sstream.str();
-    initFieldDesc(parset);
 }
 
 AsciiTableAccessor::~AsciiTableAccessor()
@@ -136,7 +136,7 @@ void AsciiTableAccessor::processLine(const std::string& line,
     // Tokenize the line
     stringstream iss(line);
     vector<string> tokens;
-    tokens.reserve(8); // For performance only: Typical number of tokens
+    tokens.reserve(8); // For performance only, will be grown if needed
     copy(istream_iterator<string>(iss),
          istream_iterator<string>(),
          back_inserter<vector<string> >(tokens));
@@ -161,13 +161,11 @@ void AsciiTableAccessor::processLine(const std::string& line,
 
     casa::Quantity majorAxis(boost::lexical_cast<casa::Double>(tokens[itsFields[MAJOR_AXIS].first]), itsFields[MAJOR_AXIS].second);
     casa::Quantity minorAxis(boost::lexical_cast<casa::Double>(tokens[itsFields[MINOR_AXIS].first]), itsFields[MINOR_AXIS].second);
-    casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(tokens[itsFields[POSITION_ANGLE].first]), itsFields[POSITION_ANGLE].second);
+    const casa::Quantity positionAngle(boost::lexical_cast<casa::Double>(tokens[itsFields[POSITION_ANGLE].first]), itsFields[POSITION_ANGLE].second);
 
     // Ensure major axis is larger than minor axis
     if (majorAxis.getValue() < minorAxis.getValue()) {
-        casa::Quantity tmp = minorAxis;
-        minorAxis = majorAxis;
-        majorAxis = tmp;
+        swap(majorAxis, minorAxis);
     }
 
     // Ensure if major axis is non-zero, so is the minor axis
@@ -206,19 +204,23 @@ std::pair< short, casa::Unit > AsciiTableAccessor::makeFieldDescEntry(
 }
         
 
-void AsciiTableAccessor::initFieldDesc(const LOFAR::ParameterSet& parset)
+AsciiTableAccessor::FieldDesc AsciiTableAccessor::makeFieldDesc(const LOFAR::ParameterSet& parset)
 {
-    itsFields[RA] = makeFieldDescEntry(parset, "tablespec.ra.col", "tablespec.ra.units");
-    itsFields[DEC] = makeFieldDescEntry(parset, "tablespec.dec.col", "tablespec.dec.units");
-    itsFields[FLUX] = makeFieldDescEntry(parset, "tablespec.flux.col", "tablespec.flux.units");
-    itsFields[MAJOR_AXIS] = makeFieldDescEntry(parset, "tablespec.majoraxis.col", "tablespec.majoraxis.units");
-    itsFields[MINOR_AXIS] = makeFieldDescEntry(parset, "tablespec.minoraxis.col", "tablespec.minoraxis.units");
-    itsFields[POSITION_ANGLE] = makeFieldDescEntry(parset, "tablespec.posangle.col", "tablespec.posangle.units");
+    FieldDesc f;
+
+    f[RA] = makeFieldDescEntry(parset, "tablespec.ra.col", "tablespec.ra.units");
+    f[DEC] = makeFieldDescEntry(parset, "tablespec.dec.col", "tablespec.dec.units");
+    f[FLUX] = makeFieldDescEntry(parset, "tablespec.flux.col", "tablespec.flux.units");
+    f[MAJOR_AXIS] = makeFieldDescEntry(parset, "tablespec.majoraxis.col", "tablespec.majoraxis.units");
+    f[MINOR_AXIS] = makeFieldDescEntry(parset, "tablespec.minoraxis.col", "tablespec.minoraxis.units");
+    f[POSITION_ANGLE] = makeFieldDescEntry(parset, "tablespec.posangle.col", "tablespec.posangle.units");
 
     if (parset.isDefined("tablespec.spectralindex.col")) {
-        itsFields[SPECTRAL_INDEX] = makeFieldDescEntry(parset, "tablespec.spectralindex.col", "tablespec.spectralindex.units");
+        f[SPECTRAL_INDEX] = makeFieldDescEntry(parset, "tablespec.spectralindex.col", "tablespec.spectralindex.units");
     }
     if (parset.isDefined("tablespec.spectralcurvature.col")) {
-        itsFields[SPECTRAL_CURVATURE] = makeFieldDescEntry(parset, "tablespec.spectralcurvature.col", "tablespec.spectralcurvature.units");
+        f[SPECTRAL_CURVATURE] = makeFieldDescEntry(parset, "tablespec.spectralcurvature.col", "tablespec.spectralcurvature.units");
     }
+
+    return f;
 }

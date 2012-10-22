@@ -57,6 +57,7 @@ class AsciiTableAccessor : public IGlobalSkyModel {
     public:
         /// Constructor
         /// @param[in] filename name of the file containing the source catalog
+        /// @param[in] parset parameter set containing field description info
         AsciiTableAccessor(const std::string& filename,
                            const LOFAR::ParameterSet& parset);
 
@@ -64,6 +65,7 @@ class AsciiTableAccessor : public IGlobalSkyModel {
         /// Used for testing only, so a stringstream can be
         /// passed in.
         /// @param[in] stream   istream from which data will be read.
+        /// @param[in] parset parameter set containing field description info
         AsciiTableAccessor(const std::stringstream& sstream,
                            const LOFAR::ParameterSet& parset);
 
@@ -79,7 +81,7 @@ class AsciiTableAccessor : public IGlobalSkyModel {
 
     private:
 
-        // Enumerates the required and optional fields
+        /// Enumerates the required and optional fields
         enum FieldEnum {
             RA,
             DEC,
@@ -91,12 +93,26 @@ class AsciiTableAccessor : public IGlobalSkyModel {
             SPECTRAL_CURVATURE  // Optional
         };
 
+        /// Describes the fields in the dataset. Each element in the map is a field
+        /// (eg. RA, or Dec) with the first item in the pair being the (zero-based)
+        /// column number of this field and the second item in the pair being
+        /// the units the data for this field is represented in
         typedef std::map< FieldEnum, std::pair< short, casa::Unit > > FieldDesc;
 
-        // Process a single (non comment) line of the input file.
-        // This method processes a line, building a component instance
-        // for each component which meets the search radius and flux limit
-        // criteria. The component is then added to the list.
+        /// Looks up the column and units keys in the parset and create a pair
+        /// of column index (zero-based) and unit.
+        static std::pair< short, casa::Unit > makeFieldDescEntry(
+                const LOFAR::ParameterSet& parset,
+                const std::string& colkey,
+                const std::string& unitskey);
+
+        /// Given a parset, extract the mappings between fields and columns/units
+        static FieldDesc makeFieldDesc(const LOFAR::ParameterSet& parset);
+
+        /// Process a single (non comment) line of the input file.
+        /// This method processes a line, building a component instance
+        /// for each component which meets the search radius and flux limit
+        /// criteria. The component is then added to the list.
         void processLine(const std::string& line,
                 const casa::Quantity& searchRA,
                 const casa::Quantity& searchDec,
@@ -104,23 +120,16 @@ class AsciiTableAccessor : public IGlobalSkyModel {
                 const casa::Quantity& fluxLimit,
                 std::list<askap::cp::skymodelservice::Component>& list);
 
-        static std::pair< short, casa::Unit > makeFieldDescEntry(
-                const LOFAR::ParameterSet& parset,
-                const std::string& colkey,
-                const std::string& unitskey);
-
-        void initFieldDesc(const LOFAR::ParameterSet& parset);
-
-        // File stream from which components will be read
+        /// File stream from which components will be read
         boost::scoped_ptr<std::istream> itsFile;
 
-        // Count of components below the flux limit
+        /// Count of components below the flux limit
         casa::uLong itsBelowFluxLimit;
 
-        // Count of components outside of the search radius
+        /// Count of components outside of the search radius
         casa::uLong itsOutsideSearchCone;
 
-        // Field description
+        /// Field descriptions from the parset
         FieldDesc itsFields;
 };
 
