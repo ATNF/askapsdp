@@ -55,15 +55,19 @@ public class FSUtils {
 			dest.createNewFile();
 		}
 
-		FileChannel srcchan = new FileInputStream(src).getChannel();
-		FileChannel destchan = new FileOutputStream(dest).getChannel();
+		FileInputStream fis = new FileInputStream(src);
+		FileChannel srcchan = fis.getChannel();
+		FileOutputStream fos = new FileOutputStream(dest);
+		FileChannel destchan = fos.getChannel();
 
 		long count = 0;
 		long size = srcchan.size();              
 		while ((count += destchan.transferFrom(srcchan, count, size-count)) < size);
 
 		srcchan.close();
+		fis.close();
 		destchan.close();
+		fos.close();
 	}
 
 	/**
