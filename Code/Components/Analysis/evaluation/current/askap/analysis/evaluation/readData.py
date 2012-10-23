@@ -45,6 +45,8 @@ def read_match_data(filename=None):
     aS=[]
     bS=[]
     pS=[]
+    alphaS=[]
+    betaS=[]
     chisq=[]
     imagerms=[]
     rms=[]
@@ -60,6 +62,11 @@ def read_match_data(filename=None):
     aR=[]
     bR=[]
     pR=[]
+    alphaR=[]
+    betaR=[]
+    sep=[]
+    absFdiff=[]
+    relFdiff=[]
     for line in open(filename):
         fields = line.split()
         type.append(fields[0])
@@ -70,21 +77,29 @@ def read_match_data(filename=None):
         aS.append(fields[5])
         bS.append(fields[6])
         pS.append(fields[7])
-        chisq.append(fields[8])
-        imagerms.append(fields[9])
-        rms.append(fields[10])
-        nfree.append(fields[11])
-        ndof.append(fields[12])
-        npixfit.append(fields[13])
-        npixobj.append(fields[14])
-        dudflux.append(fields[15])
-        idR.append(fields[16])
-        xR.append(fields[17])
-        yR.append(fields[18])
-        fR.append(fields[19])
-        aR.append(fields[20])
-        bR.append(fields[21])
-        pR.append(fields[22])
+	alphaS.append(fields[8])
+	betaS.append(fields[9])
+        chisq.append(fields[10])
+        imagerms.append(fields[11])
+        rms.append(fields[12])
+        nfree.append(fields[13])
+        ndof.append(fields[14])
+        npixfit.append(fields[15])
+        npixobj.append(fields[16])
+        dudflux.append(fields[17])
+        idR.append(fields[18])
+        xR.append(fields[19])
+        yR.append(fields[20])
+        fR.append(fields[21])
+        aR.append(fields[22])
+        bR.append(fields[23])
+        pR.append(fields[24])
+	alphaR.append(fields[25])
+	betaR.append(fields[26])
+	sep.append(fields[27])
+	absFdiff.append(fields[28])
+	relFdiff.append(fields[29])
+
     
     return cast[int](array(type)),idS,cast[float](array(xS)),cast[float](array(yS)),cast[float](array(fS)),cast[float](array(aS)),cast[float](array(bS)),cast[float](array(pS)),cast[float](array(chisq)),cast[float](array(imagerms)),cast[float](array(rms)),cast[int](array(nfree)),cast[int](array(ndof)),cast[int](array(npixfit)),cast[int](array(npixobj)),idR,cast[float](array(xR)),cast[float](array(yR)),cast[float](array(fR)),cast[float](array(aR)),cast[float](array(bR)),cast[float](array(pR))
 
