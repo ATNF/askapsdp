@@ -275,7 +275,7 @@ namespace askap {
 		
 		std::stringstream inputline(line);
 
-		inputline >> id >> name >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess,
+		inputline >> id >> name >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess;
 		  
 		  if (fluxUseFit == "no") {
                     flux = iflux1;
