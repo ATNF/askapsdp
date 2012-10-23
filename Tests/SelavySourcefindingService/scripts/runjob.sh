@@ -88,6 +88,24 @@ if [ "$WEIGHTS_IMG" != "" ]; then
     echo "Selavy.weightsimage = ${IMAGE_DIR}/${WEIGHTS_IMG}" >> ${PARSET}
 fi
 
+# Changing the mask image, to make it easy to include in the tarball
+MASK_IMG=`grep "Selavy.fileOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+if [ "$MASK_IMG" != "" ]; then
+    echo "Selavy.fileOutputMask = selavy-MASK-${MASK_IMG}" >> ${PARSET}
+else
+    FLAG_MASK=`grep "Selavy.flagOutputMask" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+    if [ ${FLAG_MASK} == "true" ] || [ ${FLAG_MASK} == "1" ]; then
+	echo "Selavy.fileOutputMask = selavy-MASK-${IMG_FILE}" >> ${PARSET}
+    fi
+fi
+
+#Changing the prefix of the output spectra, to make it easy to include in the tarball
+FLAG_OUTPUT_SPECTRA=`grep "Selavy.extractSpectra" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+if [ ${FLAG_OUTPUT_SPECTRA} == "true" ] || [ ${FLAG_OUTPUT_SPECTRA} == "1" ]; then
+    SPECTRA_BASE=`grep "Selavy.extractSpectra.spectralOutputBase" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+    echo "Selavy.extractSpectra.spectralOutputBase = selavy-SPECTRA-${SPECTRA_BASE}" >> ${PARSET}
+fi
+
 #
 # Determine how many nodes and processors per node need to be allocated
 #
@@ -186,6 +204,11 @@ gzip ${UUID}.log
 
 # Copy results to the outgoing FTP directory
 if [ \$ERR -eq 0 ]; then
+    for file in \`\ls selavy-*\`; do
+        if [ \`du -sk \$file | cut -f 1\` -gt ${MAX_IMG_SIZE} ]; then
+            mv \$file "TOO_BIG_\$file"
+        fi
+    done
     tar zcvf ${FTP_OUTGOING_DIR}/${UUID}.tgz selavy-* ${PARSETBASE}
     chmod 644 ${FTP_OUTGOING_DIR}/${UUID}.tgz
 fi

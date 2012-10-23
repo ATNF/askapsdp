@@ -63,6 +63,10 @@ CORES_PER_NODE=4
 # Limit the size of the job which can be submitted (note: minicp has 32 cores)
 MAX_CORES=16
 
+# Limit the size of images (mask, spectra) to be included in the tarball (in K)
+#MAX_IMG_SIZE=102400
+MAX_IMG_SIZE=51200
+
 # ASKAP Software location
 # The various scripts use this instead of the more typical ASKAP_ROOT
 #ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft
