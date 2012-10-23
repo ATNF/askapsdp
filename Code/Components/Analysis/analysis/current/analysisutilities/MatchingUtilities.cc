@@ -91,16 +91,21 @@ namespace askap {
             double yBase = pix[1];
 	    //	    ASKAPLOG_DEBUG_STR(logger, "Got position ("<<pix[0]<<","<<pix[1]<<")");
 
-            char line[501];
-            fin.getline(line, 500);
-            fin.getline(line, 500);
+	    std::string line;
 
             ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
 
             // now at start of object list
-            while (fin >> id >> name >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess,
-                    !fin.eof()) {
-                if (fluxUseFit == "no") {
+            while (getline(fin, line),
+		   !fin.eof()) {
+
+	      if(line[0] != '#'){
+
+	      std::stringstream inputline(line);
+
+	      inputline >> id >> name >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess;
+	      
+	      if (fluxUseFit == "no") {
                     flux = iflux1;
                     peakflux = pflux1;
                 } else if (fluxUseFit == "yes") {
@@ -121,6 +126,7 @@ namespace askap {
 
                 std::stringstream ss;
 
+		//		ASKAPLOG_DEBUG_STR(logger, "Read RA, Dec = " << raS << " " << decS);
                 if (posType == "dms") {
                     wld[0] = analysis::dmsToDec(raS) * 15.;
                     wld[1] = analysis::dmsToDec(decS);
@@ -145,6 +151,9 @@ namespace askap {
                     pt.setStuff(chisq, noise, rmsfit, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pt);
                 }
+
+	      }
+
             }
 
             delete [] wld;
@@ -254,45 +263,49 @@ namespace askap {
             double decBase = analysis::dmsToDec(decBaseStr);
             double xpt, ypt, ra, dec, flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, majD, minD, paD, chisq, rmsfit, noise, alpha, beta;
             int nfree, ndof, npixfit, npixobj,guess;
-            char line[501];
-            fin.getline(line, 500);
-            fin.getline(line, 500);
+	    std::string line;
 
             ASKAPLOG_DEBUG_STR(logger, "About to read source pixel list");
 
             // now at start of object list
-            while (fin >> id >> name >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess,
-		   //            while (fin >> id >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> alpha >> beta >> chisq >> noise >> rms >> nfree >> ndof >> npixfit >> npixobj,
-                    !fin.eof()) {
-                if (fluxUseFit == "no") {
+            while (getline(fin, line),
+		   !fin.eof()) {
+
+	      if(line[0] != '#'){
+		
+		std::stringstream inputline(line);
+
+		inputline >> id >> name >> raS >> decS >> iflux1 >> pflux1 >> iflux2 >> pflux2 >> maj >> min >> pa >> majD >> minD >> paD >> alpha >> beta >> chisq >> noise >> rmsfit >> nfree >> ndof >> npixfit >> npixobj >> guess,
+		  
+		  if (fluxUseFit == "no") {
                     flux = iflux1;
                     peakflux = pflux1;
-                } else if (fluxUseFit == "yes") {
+		  } else if (fluxUseFit == "yes") {
                     flux = iflux2;
                     peakflux = pflux2;
-                } else {
+		  } else {
                     //NOTE: was if(fluxUseFit=="best") but taking "best" to be the default
                     if (iflux2 > 0) flux = iflux2;
                     else flux = iflux1;
-
+		    
                     if (pflux2 > 0) peakflux = pflux2;
                     else peakflux = pflux1;
-                }
+		  }
 
 		//                id += "_" + raS + "_" + decS;
                 id += "_" + name;
                 ASKAPLOG_DEBUG_STR(logger, id << " " << peakflux);
 
                 std::stringstream ss;
-
+		
                 if (posType == "dms") {
-                    ra = analysis::dmsToDec(raS) * 15.;
-                    dec = analysis::dmsToDec(decS);
+		  ra = analysis::dmsToDec(raS) * 15.;
+		  dec = analysis::dmsToDec(decS);
                 } else if (posType == "deg") {
-                    ra = atof(raS.c_str());
-                    dec = atof(decS.c_str());
+		  ra = atof(raS.c_str());
+		  dec = atof(decS.c_str());
                 } else
-                    ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
+		  ASKAPTHROW(AskapError, "Unknown position type in getSrcPixList: " << posType);
 
 
 
@@ -307,7 +320,9 @@ namespace askap {
                     pix.setStuff(chisq, noise, rmsfit, nfree, ndof, npixfit, npixobj, flux);
                     pixlist.push_back(pix);
                 }
-            }
+	      }
+
+	    }
 
             stable_sort(pixlist.begin(), pixlist.end());
             reverse(pixlist.begin(), pixlist.end());
