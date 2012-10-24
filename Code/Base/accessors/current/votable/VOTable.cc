@@ -32,17 +32,27 @@
 
 // System includes
 #include <string>
+#include <sstream>
+#include <istream>
+#include <ostream>
 #include <iostream>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "boost/scoped_ptr.hpp"
+#include "boost/algorithm/string/trim.hpp"
 
 // For XML
 #include "votable/XercescString.h"
 #include "votable/XercescUtils.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
+#include "xercesc/framework/XMLFormatter.hpp"
+#include "xercesc/sax/InputSource.hpp"
 #include "xercesc/framework/LocalFileFormatTarget.hpp"
+#include "xercesc/framework/LocalFileInputSource.hpp"
+#include "xercesc/framework/MemBufFormatTarget.hpp"
+#include "xercesc/framework/MemBufInputSource.hpp"
 #include "xercesc/parsers/XercesDOMParser.hpp"
 
 // Local package includes
@@ -90,11 +100,8 @@ void VOTable::addInfo(const askap::accessors::VOTableInfo& info)
     itsInfo.push_back(info);
 }
 
-void VOTable::toXml(const std::string& filename)
+void VOTable::toXMLImpl(xercesc::XMLFormatTarget& target) const
 {
-    // Init Xercesc
-    xercesc::XMLPlatformUtils::Initialize();
-
     // Create document
     DOMImplementation *impl = DOMImplementationRegistry::getDOMImplementation(XercescString("LS"));
     DOMDocument* doc = impl->createDocument();
@@ -139,25 +146,18 @@ void VOTable::toXml(const std::string& filename)
         writer->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
     }
 
-    LocalFileFormatTarget* target = new LocalFileFormatTarget(XercescString(filename));
-
     DOMLSOutput* output = ((DOMImplementationLS*)impl)->createLSOutput();
-    output->setByteStream(target);
+    output->setByteStream(&target);
     writer->write(root, output);
 
     // Cleanup
     output->release();
-    delete target;
     writer->release();
     delete doc;
-    xercesc::XMLPlatformUtils::Terminate();
 }
 
-askap::accessors::VOTable VOTable::fromXML(const std::string& filename)
+VOTable VOTable::fromXMLImpl(const xercesc::InputSource& source)
 {
-    // Init Xercesc
-    xercesc::XMLPlatformUtils::Initialize();
-
     // Setup a parser
     xercesc::XercesDOMParser* parser = new XercesDOMParser;
     parser->setValidationScheme(XercesDOMParser::Val_Never);
@@ -166,7 +166,7 @@ askap::accessors::VOTable VOTable::fromXML(const std::string& filename)
     parser->setLoadExternalDTD(false);
 
     // Parse file
-    parser->parse(filename.c_str());
+    parser->parse(source);
 
     // no need to free the doc pointer - owned by the parent parser object
     DOMDocument* doc = parser->getDocument();
@@ -181,7 +181,9 @@ askap::accessors::VOTable VOTable::fromXML(const std::string& filename)
     VOTable vot;
 
     // Process DESCRIPTION
-    vot.setDescription(XercescUtils::getDescription(*root));
+    std::string desc = XercescUtils::getDescription(*root);
+    boost::trim(desc);
+    vot.setDescription(desc);
 
     // Process INFO
     DOMNodeList* children = root->getElementsByTagName(XercescString("INFO"));
@@ -201,7 +203,75 @@ askap::accessors::VOTable VOTable::fromXML(const std::string& filename)
 
     // Cleanup
     delete parser;
-    xercesc::XMLPlatformUtils::Terminate();
 
+    return vot;
+}
+
+VOTable VOTable::fromXML(const std::string& filename)
+{
+    // Check if the file exists
+    std::ifstream fs(filename.c_str());
+    if (!fs) {
+        ASKAPTHROW(AskapError, "File " << filename << " could not be opened");
+    }
+
+    // Parse and build VOTable
+    xercesc::XMLPlatformUtils::Initialize();
+
+    boost::scoped_ptr<LocalFileInputSource> source(new LocalFileInputSource(XercescString(filename)));
+    VOTable vot;
+    vot = fromXMLImpl(*source);
+
+    source.reset(0);
+    xercesc::XMLPlatformUtils::Terminate();
+    return vot;
+}
+
+void VOTable::toXML(const std::string& filename) const
+{
+    xercesc::XMLPlatformUtils::Initialize();
+
+    boost::scoped_ptr<LocalFileFormatTarget> target(new LocalFileFormatTarget(XercescString(filename)));
+    toXMLImpl(*target);
+
+    target.reset(0);
+    xercesc::XMLPlatformUtils::Terminate();
+}
+
+void VOTable::toXML(std::ostream& os) const
+{
+    xercesc::XMLPlatformUtils::Initialize();
+    boost::scoped_ptr<MemBufFormatTarget> target(new MemBufFormatTarget());
+
+    toXMLImpl(*target);
+
+    std::string str(reinterpret_cast<const char*>(target->getRawBuffer()));
+    target.reset(0);
+    os << str;
+    xercesc::XMLPlatformUtils::Terminate();
+}
+
+VOTable VOTable::fromXML(std::istream& is)
+{
+    xercesc::XMLPlatformUtils::Initialize();
+
+    // Read the stream into a memory buffer
+    std::vector<char> buf;
+    while (is.good()) {
+        const char c = is.get();
+        if (is.good())
+            buf.push_back(c);
+    }
+
+    boost::scoped_ptr<MemBufInputSource> source(new MemBufInputSource(
+                reinterpret_cast<const XMLByte*>(&buf[0]),
+                buf.size(),
+                XercescString("")));
+
+    VOTable vot;
+    vot = fromXMLImpl(*source);
+    source.reset(0);
+
+    xercesc::XMLPlatformUtils::Terminate();
     return vot;
 }

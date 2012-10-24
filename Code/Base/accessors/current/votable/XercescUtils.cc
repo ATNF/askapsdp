@@ -33,6 +33,7 @@
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
+#include "boost/algorithm/string/trim.hpp"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 #include "xercesc/util/XMLString.hpp"
 
@@ -57,7 +58,9 @@ std::string XercescUtils::getDescription(const xercesc::DOMElement& element)
         const DOMElement* descNode = dynamic_cast<xercesc::DOMElement*>(children->item(0));
         const DOMText* text = dynamic_cast<xercesc::DOMText*>(descNode->getChildNodes()->item(0));
         if (text) {
-            return XercescString(text->getWholeText());
+            std::string desc = XercescString(text->getWholeText());
+            boost::trim(desc);
+            return desc;
         }
     }
     return "";

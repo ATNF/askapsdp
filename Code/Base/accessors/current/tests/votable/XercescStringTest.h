@@ -29,11 +29,10 @@
 
 // Support classes
 #include <string>
-#include "xercesc/util/XMLString.hpp"
+#include "xercesc/util/PlatformUtils.hpp"
 
 // Classes to test
 #include "votable/XercescString.h"
-#include "xercesc/util/PlatformUtils.hpp"
 
 using namespace std;
 

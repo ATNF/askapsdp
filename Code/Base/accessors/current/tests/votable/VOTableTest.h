@@ -1,4 +1,4 @@
-/// @file tvotable.cc
+/// @file VOTableTest.cc
 ///
 /// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
@@ -24,19 +24,49 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-// ASKAPsoft includes
-#include <AskapTestRunner.h>
+// CPPUnit includes
+#include <cppunit/extensions/HelperMacros.h>
 
-// Test includes
-#include "XercescStringTest.h"
-#include "VOTableTest.h"
+// Support classes
+#include <string>
+#include <sstream>
+#include <iostream>
 
-int main(int argc, char *argv[])
-{
-    askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::accessors::XercescStringTest::suite());
-    runner.addTest(askap::accessors::VOTableTest::suite());
-    const bool wasSucessful = runner.run();
+// Classes to test
+#include "votable/VOTable.h"
 
-    return wasSucessful ? 0 : 1;
+using namespace std;
+
+namespace askap {
+namespace accessors {
+
+class VOTableTest : public CppUnit::TestFixture {
+        CPPUNIT_TEST_SUITE(VOTableTest);
+        CPPUNIT_TEST(testAll);
+        CPPUNIT_TEST_SUITE_END();
+
+    public:
+        void setUp() {
+        };
+
+        void tearDown() {
+        }
+
+        void testAll() {
+            VOTable vot1;
+            vot1.setDescription("Test Description");
+
+            // Convert to XML
+            std::stringstream ss;
+            vot1.toXML(ss);
+
+            // Convert XML back to VOTable
+            VOTable vot2 = VOTable::fromXML(ss);
+
+            // Verify result
+            CPPUNIT_ASSERT(vot2.getDescription().compare(vot1.getDescription()) == 0);
+        }
+};
+
+}
 }

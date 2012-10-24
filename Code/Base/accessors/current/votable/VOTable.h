@@ -1,6 +1,6 @@
 /// @file VOTable.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -30,8 +30,12 @@
 // System includes
 #include <string>
 #include <vector>
+#include <istream>
+#include <ostream>
 
 // ASKAPsoft includes
+#include "xercesc/framework/XMLFormatter.hpp"
+#include "xercesc/sax/InputSource.hpp"
 
 // Local package includes
 #include "votable/VOTableInfo.h"
@@ -46,28 +50,71 @@
 namespace askap {
     namespace accessors {
 
-/// @brief TODO: Write documentation...
+        /// Encapsulates a VOTable and provides the ability to serialise/de-serialise
+        /// to/from XML.
         class VOTable {
             public:
 
                 /// @brief Constructor
                 VOTable(void);
 
+                /// Get the text of the DESCRIPTION element.
                 std::string getDescription() const;
+
+                /// Get a vector containing all the INFO elements in the VOTable
                 std::vector<askap::accessors::VOTableInfo> getInfo() const;
+
+                /// Get a vector containing all the RESOURCE elements in the VOTable
                 std::vector<askap::accessors::VOTableResource> getResource() const;
 
+                /// Set the text of the DESCRIPTION element.
                 void setDescription(const std::string& desc);
 
+                /// Add a RESOURCE element to the VOTable
                 void addResource(const askap::accessors::VOTableResource& resource);
+
+                /// Add an INFO element to the VOTable
                 void addInfo(const askap::accessors::VOTableInfo& info);
 
-                void toXml(const std::string& filename);
+                /// Transform the VOTable object into an XML VOTable
+                ///
+                /// @param[out] os  an ostream to which the XML output string
+                ///                 will be written.
+                void toXML(std::ostream& os) const;
+
+                /// Transform an XML VOTable to a VOTable object instance
+                /// @return a VOTable.
+                ///
+                /// @param[in] is   an istream from which the XML input string
+                ///                 will be read from.
+                static VOTable fromXML(std::istream& is);
+
+                /// Transform the VOTable object into an XML VOTable
+                ///
+                /// @param[in] filename the file/path to write the XML output to.
+                void toXML(const std::string& filename) const;
+
+                /// Transform an XML VOTable to a VOTable object instance
+                ///
+                /// @param[in] filename the file/path to read the XML input from.
+                /// @return a VOTable.
                 static VOTable fromXML(const std::string& filename);
 
             private:
+
+                /// Transform the VOTable object into an XML VOTable
+                void toXMLImpl(xercesc::XMLFormatTarget& target) const;
+
+                /// Transform an XML VOTable to a VOTable object instance
+                static VOTable fromXMLImpl(const xercesc::InputSource& source);
+
+                /// The text for the DESCRIPTION element
                 std::string itsDescription;
+
+                /// A list of of the INFO elements present in the VOTable
                 std::vector<askap::accessors::VOTableInfo> itsInfo;
+
+                /// A list of of the RESOURCE elements present in the VOTable
                 std::vector<askap::accessors::VOTableResource> itsResource;
         };
 
