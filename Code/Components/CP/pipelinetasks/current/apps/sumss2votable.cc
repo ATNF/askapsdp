@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
     vot.addResource(vores);
 
     // Write the VOTable out
-    vot.toXml(argv[2]);
+    vot.toXML(argv[2]);
 
     return 0;
 }
