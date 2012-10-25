@@ -100,6 +100,12 @@ void CorrWorker::operator()()
        // store the result
        CorrProducts& cp = itsFiller->productsBuffer(beam, bat);
        cp.itsBAT = bat;
+       if (chan==0) {
+          ASKAPDEBUGASSERT(cp.itsControl.nelements()>=3);
+          cp.itsControl[0] = itsBufferManager->header(ids.itsAnt1).control;
+          cp.itsControl[1] = itsBufferManager->header(ids.itsAnt2).control;
+          cp.itsControl[2] = itsBufferManager->header(ids.itsAnt3).control;
+       }
        // unflag this channel
        cp.itsFlag.column(chan).set(false);
        cp.itsVisibility(0,chan) = s3bc.getVis12() / float(s3bc.nSamples12()!=0 ? s3bc.nSamples12() : 1.);

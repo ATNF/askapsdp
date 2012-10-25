@@ -84,6 +84,8 @@ void BasicMonitor::initialise(const int nAnt, const int nBeam, const int nChan)
       itsHistory.set(casa::Complex(0.,0.));
       itsDelayHistory.resize(nHistory, nBeam, nBaselines);
       itsDelayHistory.set(0.);
+      itsControlHistory.resize(nHistory, nBeam, nBaselines);
+      itsControlHistory.set(0u);
       itsBATs.resize(nHistory);
       itsBATs.set(0);
   }
@@ -148,7 +150,8 @@ void BasicMonitor::publish(const CorrProducts &buf)
                  
        itsDelayHistory(itsLastHistPosition, buf.itsBeam, baseline) = delays[baseline];
                  
-                 
+       // control is actually per antenna, but number of antennas is equal to the number of baselines
+       itsControlHistory(itsLastHistPosition, buf.itsBeam, baseline) = buf.itsControl[baseline];         
        
        // average in frequency
        casa::Complex temp(0.,0.);
@@ -190,6 +193,11 @@ void BasicMonitor::finalise()
                   <<itsDelayHistory(curPos,beam,baseline)*1e9<<" ";
            }
       }
+      // only show control field for the first beam (it should be the same)
+      for (casa::uInt baseline = 0; baseline < itsHistory.nplane(); ++baseline) {
+           os<<itsControlHistory(curPos,0,baseline)<<" ";
+      }
+      //
       os<<std::endl;
       if (curPos == itsLastHistPosition) {
           break;

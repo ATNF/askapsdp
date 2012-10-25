@@ -42,6 +42,7 @@
 
 // other 3rd party
 #include <Common/ParameterSet.h>
+#include <inttypes.h>
 
 namespace askap {
 
@@ -112,6 +113,9 @@ private:
   
   /// @brief history of delays
   casa::Cube<casa::Float> itsDelayHistory;
+
+  /// @brief history of user defined control keywords
+  casa::Cube<uint32_t> itsControlHistory;
   
   /// @brief BATs for the history items
   casa::Vector<uint64_t> itsBATs;

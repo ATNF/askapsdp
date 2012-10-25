@@ -79,6 +79,9 @@ struct CorrProducts : private boost::noncopyable {
   
   /// @brief flag that uvw matrix and delay vector are filled with valid info
   bool itsUVWValid;
+
+  /// @brief user defined control words for antennas 1,2 and 3
+  casa::Vector<uint32_t> itsControl;
 };
 
 } // namespace swcorrelator
