@@ -32,12 +32,15 @@
 
 // ASKAPsoft includes
 #include "xercesc/dom/DOMElement.hpp"
+#include "xercesc/dom/DOMText.hpp"
 
 namespace askap {
     namespace accessors {
 
         class XercescUtils {
             public:
+
+                static std::string getStringFromDOMText(const xercesc::DOMText& text);
 
                 static std::string getAttribute(const xercesc::DOMElement& element,
                         const std::string& key);

@@ -38,6 +38,7 @@
 #include "askap/AskapError.h"
 #include "boost/algorithm/string/trim.hpp"
 #include "votable/XercescString.h"
+#include "votable/XercescUtils.h"
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
 // Local package includes
@@ -126,7 +127,7 @@ VOTableInfo VOTableInfo::fromXmlElement(const xercesc::DOMElement& e)
     info.setValue(XercescUtils::getAttribute(e, "value"));
 
     const DOMText* text = dynamic_cast<xercesc::DOMText*>(e.getChildNodes()->item(0));
-    std::string str = XercescString(text->getWholeText());
+    std::string str = XercescUtils::getStringFromDOMText(*text);
     boost::trim(str);
     info.setText(str);
 

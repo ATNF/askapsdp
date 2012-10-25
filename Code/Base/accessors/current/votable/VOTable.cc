@@ -153,13 +153,13 @@ void VOTable::toXMLImpl(xercesc::XMLFormatTarget& target) const
     // Cleanup
     output->release();
     writer->release();
-    delete doc;
+    doc->release();
 }
 
 VOTable VOTable::fromXMLImpl(const xercesc::InputSource& source)
 {
     // Setup a parser
-    xercesc::XercesDOMParser* parser = new XercesDOMParser;
+    boost::scoped_ptr<xercesc::XercesDOMParser> parser(new XercesDOMParser);
     parser->setValidationScheme(XercesDOMParser::Val_Never);
     parser->setDoNamespaces(false);
     parser->setDoSchema(false);
@@ -172,7 +172,7 @@ VOTable VOTable::fromXMLImpl(const xercesc::InputSource& source)
     DOMDocument* doc = parser->getDocument();
     DOMElement* root = doc->getDocumentElement();
     if (!root) {
-        delete parser;
+        parser.reset(0);;
         xercesc::XMLPlatformUtils::Terminate();
         ASKAPTHROW(AskapError, "empty XML document");
     }
@@ -202,7 +202,7 @@ VOTable VOTable::fromXMLImpl(const xercesc::InputSource& source)
     }
 
     // Cleanup
-    delete parser;
+    parser.reset(0);;
 
     return vot;
 }

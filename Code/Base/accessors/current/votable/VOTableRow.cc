@@ -89,7 +89,7 @@ VOTableRow VOTableRow::fromXmlElement(const xercesc::DOMElement& e)
     for (XMLSize_t i = 0; i < nCells; ++i) {
         const DOMElement* node = dynamic_cast<xercesc::DOMElement*>(children->item(i));
         const DOMText* text = dynamic_cast<xercesc::DOMText*>(node->getChildNodes()->item(0));
-        std::string str = XercescString(text->getWholeText());
+        std::string str = XercescUtils::getStringFromDOMText(*text);
         boost::trim(str);
         r.addCell(str);
     }
