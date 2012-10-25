@@ -49,20 +49,47 @@ std::string XercescUtils::getAttribute(const xercesc::DOMElement& element, const
     return XercescString(val);
 }
 
+xercesc::DOMElement* XercescUtils::getFirstElementByTagName(const xercesc::DOMElement& element,
+        const std::string& name)
+{
+    const DOMNodeList* children = element.getChildNodes();
+    ASKAPDEBUGASSERT(children != 0);
+    const XMLSize_t len = children->getLength();
+
+    for (XMLSize_t i = 0; i < len; ++i) {
+        const DOMNode* node = children->item(i);
+        ASKAPDEBUGASSERT(node != 0);
+        if (node->getNodeType() != DOMNode::ELEMENT_NODE) {
+            continue;
+        }
+        DOMElement* e1 = dynamic_cast<xercesc::DOMElement*>(children->item(i));
+        ASKAPDEBUGASSERT(e1 != 0);
+
+        const string nodeName = XercescString(e1->getNodeName());
+        if (nodeName.compare(name) == 0) {
+            return e1;
+        }
+    }
+
+    return 0;
+}
 
 std::string XercescUtils::getDescription(const xercesc::DOMElement& element)
 {
-    const DOMNodeList* children = element.getElementsByTagName(XercescString("DESCRIPTION"));
-    ASKAPCHECK(children->getLength() < 2, "Expected at most one description element");
-    if (children->getLength() == 1) {
-        const DOMElement* descNode = dynamic_cast<xercesc::DOMElement*>(children->item(0));
-        const DOMText* text = dynamic_cast<xercesc::DOMText*>(descNode->getChildNodes()->item(0));
-        if (text) {
-            std::string desc = XercescString(text->getWholeText());
-            boost::trim(desc);
-            return desc;
-        }
+    // Find the DESCRIPTION node
+    DOMElement* descNode = getFirstElementByTagName(element, "DESCRIPTION");
+
+    if (!descNode || descNode->getChildNodes()->getLength() < 1) {
+        return "";
     }
+
+    const DOMText* text = dynamic_cast<xercesc::DOMText*>(descNode->getChildNodes()->item(0));
+    if (text) {
+        std::string desc = XercescString(text->getWholeText());
+        boost::trim(desc);
+        return desc;
+    }
+
     return "";
 }
 

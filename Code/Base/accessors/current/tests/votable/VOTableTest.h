@@ -31,6 +31,8 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <fstream>
+#include <vector>
 
 // Classes to test
 #include "votable/VOTable.h"
@@ -42,7 +44,8 @@ namespace accessors {
 
 class VOTableTest : public CppUnit::TestFixture {
         CPPUNIT_TEST_SUITE(VOTableTest);
-        CPPUNIT_TEST(testAll);
+        CPPUNIT_TEST(testDescription);
+        CPPUNIT_TEST(testXML);
         CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -52,19 +55,167 @@ class VOTableTest : public CppUnit::TestFixture {
         void tearDown() {
         }
 
-        void testAll() {
-            VOTable vot1;
-            vot1.setDescription("Test Description");
+        void testDescription() {
+            const string desc = "Test Description";
+            VOTable vot;
+            vot.setDescription(desc);
+            CPPUNIT_ASSERT(vot.getDescription() == desc);
+        }
+
+        void testXML() {
+            // Create a test VOTable
+            const VOTable vot1 = makeTable();
 
             // Convert to XML
             std::stringstream ss;
             vot1.toXML(ss);
+            //writeStringstream(ss);
 
             // Convert XML back to VOTable
-            VOTable vot2 = VOTable::fromXML(ss);
+            ss.seekg(0, ios::beg);
+            const VOTable vot2 = VOTable::fromXML(ss);
 
-            // Verify result
-            CPPUNIT_ASSERT(vot2.getDescription().compare(vot1.getDescription()) == 0);
+            // Verify VOTable
+            CPPUNIT_ASSERT(vot2.getDescription() == vot1.getDescription());
+            CPPUNIT_ASSERT_EQUAL(1ul, vot2.getResource().size());
+
+            // Verify Info
+            CPPUNIT_ASSERT_EQUAL(0ul, vot2.getInfo().size());
+
+            // Verify Resource
+            const VOTableResource res1 = vot1.getResource()[0];
+            const VOTableResource res2 = vot2.getResource()[0];
+            CPPUNIT_ASSERT_EQUAL(1ul, res2.getTables().size());
+
+            const VOTableTable vottab1 = res1.getTables()[0];
+            const VOTableTable vottab2 = res2.getTables()[0];
+            CPPUNIT_ASSERT(vottab1.getName() == vottab2.getName());
+            CPPUNIT_ASSERT(vottab1.getDescription() == vottab2.getDescription());
+
+            // Verify groups
+            const std::vector<VOTableGroup> groups = vottab2.getGroups();
+            CPPUNIT_ASSERT_EQUAL(1ul, groups.size());
+            CPPUNIT_ASSERT_EQUAL(2ul, groups[0].getFieldRefs().size());
+            const std::vector<VOTableParam> params = groups[0].getParams();
+            CPPUNIT_ASSERT_EQUAL(1ul, params.size());
+            CPPUNIT_ASSERT(params[0].getDatatype() == "char");
+            CPPUNIT_ASSERT(params[0].getArraysize() == "*");
+            CPPUNIT_ASSERT(params[0].getUCD() == "pos.frame");
+            CPPUNIT_ASSERT(params[0].getName() == "cooframe");
+            CPPUNIT_ASSERT(params[0].getUType() == "stc:AstroCoords.coord_system_id");
+            CPPUNIT_ASSERT(params[0].getValue() == "UTC-ICRS-TOPO");
+
+            // Verify fields
+            const std::vector<VOTableField> fields = vottab2.getFields();
+            CPPUNIT_ASSERT_EQUAL(2ul, fields.size());
+            CPPUNIT_ASSERT(fields[0].getName() == "RA");
+            CPPUNIT_ASSERT(fields[0].getID() == "col1");
+            CPPUNIT_ASSERT(fields[0].getUCD() == "pos.eq.ra;meta.main");
+            CPPUNIT_ASSERT(fields[0].getRef() == "J2000");
+            CPPUNIT_ASSERT(fields[0].getUType() == "stc:AstroCoords.Position2D.Value2.C1");
+            CPPUNIT_ASSERT(fields[0].getDatatype() == "float");
+            CPPUNIT_ASSERT(fields[0].getUnit() == "deg");
+            CPPUNIT_ASSERT(fields[1].getName() == "Dec");
+            CPPUNIT_ASSERT(fields[1].getID() == "col2");
+            CPPUNIT_ASSERT(fields[1].getUCD() == "pos.eq.dec;meta.main");
+            CPPUNIT_ASSERT(fields[1].getRef() == "J2000");
+            CPPUNIT_ASSERT(fields[1].getUType() == "stc:AstroCoords.Position2D.Value2.C2");
+            CPPUNIT_ASSERT(fields[1].getDatatype() == "float");
+            CPPUNIT_ASSERT(fields[1].getUnit() == "deg");
+
+            // Verify rows
+            const std::vector<VOTableRow> rows = vottab2.getRows();
+            CPPUNIT_ASSERT_EQUAL(2ul, fields.size());
+            CPPUNIT_ASSERT(rows[0].getCells()[0] == "1.0");
+            CPPUNIT_ASSERT(rows[0].getCells()[1] == "2.0");
+            CPPUNIT_ASSERT(rows[1].getCells()[0] == "3.0");
+            CPPUNIT_ASSERT(rows[1].getCells()[1] == "4.0");
+        }
+
+    private:
+        static void writeStringstream(const std::stringstream& ss) {
+            std::ofstream fs("unittest_votable.xml", fstream::out | fstream::trunc);
+            CPPUNIT_ASSERT(fs);
+            fs << ss.str();
+            fs.close();
+        }
+
+        static VOTable makeTable() {
+            VOTableTable vottab;
+            vottab.setName("tabletablename");
+            vottab.setDescription("tabletabledesc");
+
+            // Add group
+            {
+                VOTableGroup grp;
+                grp.setID("J2000");
+                grp.setUType("stc:AstroCoords");
+                {
+                    VOTableParam p;
+                    p.setDatatype("char");
+                    p.setArraysize("*");
+                    p.setUCD("pos.frame");
+                    p.setName("cooframe");
+                    p.setUType("stc:AstroCoords.coord_system_id");
+                    p.setValue("UTC-ICRS-TOPO");
+                    grp.addParam(p);
+                }
+                grp.addFieldRef("col1");
+                grp.addFieldRef("col2");
+                vottab.addGroup(grp);
+            }
+
+            // Add fields
+            {
+                // RA
+                VOTableField f;
+                f.setName("RA");
+                f.setID("col1");
+                f.setUCD("pos.eq.ra;meta.main");
+                f.setRef("J2000");
+                f.setUType("stc:AstroCoords.Position2D.Value2.C1");
+                f.setDatatype("float");
+                f.setUnit("deg");
+                vottab.addField(f);
+            }
+
+            {
+                // Dec
+                VOTableField f;
+                f.setName("Dec");
+                f.setID("col2");
+                f.setUCD("pos.eq.dec;meta.main");
+                f.setRef("J2000");
+                f.setUType("stc:AstroCoords.Position2D.Value2.C2");
+                f.setDatatype("float");
+                f.setUnit("deg");
+                vottab.addField(f);
+            }
+
+            // Add rows
+            {
+                VOTableRow row;
+                row.addCell("1.0");
+                row.addCell("2.0");
+                vottab.addRow(row);
+            }
+
+            {
+                VOTableRow row;
+                row.addCell("3.0");
+                row.addCell("4.0");
+                vottab.addRow(row);
+            }
+
+            VOTableResource res;
+            res.setName("Test Resource");
+            res.addTable(vottab);
+
+            VOTable vot;
+            vot.setDescription("Test Description");
+            vot.addResource(res);
+
+            return vot;
         }
 };
 

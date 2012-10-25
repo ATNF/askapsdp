@@ -42,6 +42,10 @@ namespace askap {
                 static std::string getAttribute(const xercesc::DOMElement& element,
                         const std::string& key);
 
+                static xercesc::DOMElement* getFirstElementByTagName(
+                        const xercesc::DOMElement& element,
+                        const std::string& name);
+
                 static std::string getDescription(const xercesc::DOMElement& element);
         };
 
