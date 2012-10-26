@@ -7,7 +7,7 @@ source ../../init_package_env.sh
 
 # Run the uvchannel test 
 echo "Running the testcase..."
-../../apps/tUVChannel.sh -inputs tUVChannel.in
+../../apps/tUVChannel.sh -c tUVChannel.in
 STATUS=$?
 echo "Testcase finished"
 

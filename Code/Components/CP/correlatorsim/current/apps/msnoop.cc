@@ -38,10 +38,9 @@
 #include <unistd.h>
 
 // ASKAPsoft includes
+#include "askap/Application.h"
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
-#include "CommandLineParser.h"
-#include "Common/ParameterSet.h"
 #include "tosmetadata/RawMetadataReceiver.h"
 
 // ICE interface includes
@@ -254,50 +253,34 @@ class MetadataSubscriber : virtual public RawMetadataReceiver {
             }
 };
 
+class MSnoopApp : public askap::Application
+{
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            verbose = parameterExists("verbose");
+            const std::string locatorHost = config().getString("ice.locator_host");
+            const std::string locatorPort = config().getString("ice.locator_port");
+            const std::string topicManager = config().getString("icestorm.topicmanager");
+            const std::string topic = config().getString("icestorm.topic");
+            const std::string adapterName = config().getString("ice.adapter_name");
+
+            MetadataSubscriber subscriber(locatorHost, locatorPort , topicManager,
+                    topic, adapterName);
+
+            std::cout << "Waiting for messages (press CTRL-C to exit)..." << std::endl;
+            while (true) {
+                sleep(1);
+            }
+
+            return 0;
+        }
+};
+
 // main()
 int main(int argc, char *argv[])
 {
-    // Initialise the logger
-    std::ostringstream ss;
-    ss << argv[0] << ".log_cfg";
-    ASKAPLOG_INIT(ss.str().c_str());
-
-    // Command line parser
-    cmdlineparser::Parser parser;
-
-    // Command line parameters
-    cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "msnoop.in");
-    cmdlineparser::FlagParameter verbosePar("-v");
-
-    // Set handler for case where parameter is not set
-    parser.add(verbosePar, cmdlineparser::Parser::return_default);
-    parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
-
-    try {
-        parser.process(argc, const_cast<char**> (argv));
-        verbose = verbosePar.defined();
-    } catch (const cmdlineparser::XParser&) {
-        std::cout << "usage: " << argv[0] << " [-v] -inputs <filename>" << std::endl;
-        std::cerr << "  -v      \tEnable more verbose output" << std::endl;
-        std::cerr << "  -inputs <filename>\tFilename for the config file" << std::endl;
-
-        return 1;
-    }
-
-    LOFAR::ParameterSet parset(inputsPar);
-    const std::string locatorHost = parset.getString("ice.locator_host");
-    const std::string locatorPort = parset.getString("ice.locator_port");
-    const std::string topicManager = parset.getString("icestorm.topicmanager");
-    const std::string topic = parset.getString("icestorm.topic");
-    const std::string adapterName = parset.getString("ice.adapter_name");
-
-    MetadataSubscriber subscriber(locatorHost, locatorPort , topicManager,
-            topic, adapterName);
-
-    std::cout << "Waiting for messages (press CTRL-C to exit)..." << std::endl;
-    while (true) {
-        sleep(1);
-    }
-
-    return 0;
+    MSnoopApp app;
+    app.addParameter("verbose", "v", "Enables more verbose output", false);
+    return app.main(argc, argv);
 }

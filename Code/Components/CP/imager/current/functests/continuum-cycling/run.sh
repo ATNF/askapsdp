@@ -23,7 +23,7 @@ mv -f 10uJy_stdtest.ms 10uJy_stdtest_1.ms
 echo Done
 
 # Run the imager with the test configuration
-mpirun -np 2 ../../apps/imager.sh -inputs clean.in | tee $OUTPUT
+mpirun -np 2 ../../apps/imager.sh -c clean.in | tee $OUTPUT
 if [ $? -ne 0 ]; then
     echo Error: mpirun returned an error
     exit 1

@@ -61,5 +61,5 @@ Cimager.preconditioner.Names			= [None]
 
 EOF
 echo "Running cimager to form MSMFS images" | tee -a  mfstest.$HOSTNAME.out
-${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -inputs mfstest.clean.in | tee -a mfstest.$HOSTNAME.out
+${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/cimager.sh -c mfstest.clean.in | tee -a mfstest.$HOSTNAME.out
 echo "Ended " `date` " on " $HOSTNAME  | tee -a mfstest.$HOSTNAME.out

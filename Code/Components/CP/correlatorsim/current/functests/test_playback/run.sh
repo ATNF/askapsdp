@@ -14,7 +14,7 @@ fi
 sleep 1
 
 # Start the metadata subscriber (don't use the script so this script can kill it)
-../../apps/msnoop -inputs msnoop.in > msnoop.log 2>&1 &
+../../apps/msnoop -c msnoop.in > msnoop.log 2>&1 &
 MDPID=$!
 
 # Start the visibilities receiver (don't use the script so this script can kill it)
@@ -26,7 +26,7 @@ VISPID1=$!
 VISPID2=$!
 
 # Run the test
-mpirun -np 3 ../../apps/playback.sh -inputs playback.in
+mpirun -np 3 ../../apps/playback.sh -c playback.in
 STATUS=$?
 
 # Give the subscriber a moment to get the last messages then exit

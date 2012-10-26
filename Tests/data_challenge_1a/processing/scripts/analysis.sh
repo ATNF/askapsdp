@@ -110,20 +110,20 @@ iqlog=log/imagequal-\${PBS_JOBID}.log
 pelog=log/ploteval-\${PBS_JOBID}.log
 felog=log/fluxeval-\${PBS_JOBID}.log
 
-#mpirun -np 1 \$cimstat -inputs \$parset > \$statlog
+#mpirun -np 1 \$cimstat -c \$parset > \$statlog
 casapy --nologger --log2term -c \$pystat > \$statlog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun \$cduchamp -inputs \$parset > \$sflog
+mpirun \$cduchamp -c \$parset > \$sflog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$imagequal -inputs \$parset > \$iqlog
+mpirun -np 1 \$imagequal -c \$parset > \$iqlog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err

@@ -82,7 +82,7 @@ EOF_INNER
 
 log=log/cimager-cont-cube-dirty-\${PBS_JOBID}.log
 
-mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \$parset > \$log
+mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \$parset > \$log
 EOF
 
 # Submit job

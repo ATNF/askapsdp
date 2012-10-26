@@ -29,10 +29,9 @@
 #include <string>
 
 // ASKAPsoft includes
+#include "askap/Application.h"
 #include "askap/AskapLogging.h"
 #include "askap/AskapError.h"
-#include "CommandLineParser.h"
-#include "Common/ParameterSet.h"
 #include "boost/shared_ptr.hpp"
 #include "tosmetadata/MetadataOutputPort.h"
 #include "cpcommon/TosMetadata.h"
@@ -47,77 +46,66 @@ using namespace askap::cp::icewrapper;
 
 ASKAP_LOGGER(logger, ".tMetadataSource");
 
+class TestMetaDataSourceApp : public askap::Application
+{
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            const std::string locatorHost = config().getString("ice.locator_host");
+            const std::string locatorPort = config().getString("ice.locator_port");
+            const std::string topicManager = config().getString("icestorm.topicmanager");
+            const std::string topic = config().getString("icestorm.topic");
+            const std::string adapterName = config().getString("ice.adapter_name");
+            const int bufSize = 24;
+
+            MetadataOutputPort out(locatorHost, locatorPort, topicManager, topic);
+            MetadataSource source(locatorHost, locatorPort, topicManager, topic,
+                    adapterName, bufSize);
+
+            // Test simple send, recv, send, recv case
+            unsigned long time = 1234;
+            const int count = 10;
+            for (int i = 0; i < count; ++i) {
+                TosMetadata metadata(304, 32, 4);
+                metadata.time(time);
+                std::cout << "Publishing a metadata message...";
+                out.send(metadata);
+                std::cout << "Done" << std::endl;
+
+                std::cout << "Waiting for class under test to receive it...";
+                boost::shared_ptr<TosMetadata> recvd = source.next();
+                std::cout << "Received" << std::endl;
+                if (recvd->time() != time) {
+                    std::cout << "Messages do not match" << std::endl;
+                    return 1;
+                }
+            }
+
+            // Test the buffering abilities of MetadataSource
+            time = 9876;
+            for (int i = 0; i < bufSize; ++i) {
+                TosMetadata metadata(304, 32, 4);
+                metadata.time(time);
+                std::cout << "Publishing a metadata message...";
+                out.send(metadata);
+                std::cout << "Done" << std::endl;
+            }
+            for (int i = 0; i < bufSize; ++i) {
+                std::cout << "Waiting for class under test to receive message...";
+                boost::shared_ptr<TosMetadata> recvd = source.next();
+                std::cout << "Received" << std::endl;
+                if (recvd->time() != time) {
+                    std::cout << "Messages do not match" << std::endl;
+                    return 1;
+                }
+            }
+
+            return 0;
+        }
+};
+
 int main(int argc, char *argv[])
 {
-    ASKAPLOG_INIT("tMetadataSource.log_cfg");
-
-    // Command line parser
-    cmdlineparser::Parser parser;
-
-    // Command line parameters
-    cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "tMetadataSource.in");
-
-    // Set handler for case where parameter is not set
-    parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
-
-    try {
-        parser.process(argc, const_cast<char**> (argv));
-    } catch (const cmdlineparser::XParser&) {
-        std::cout << "usage: " << argv[0] << " [-v] -inputs <filename>" << std::endl;
-        std::cerr << "  -inputs <filename>\tFilename for the config file" << std::endl;
-
-        return 1;
-    }
-
-    LOFAR::ParameterSet parset(inputsPar);
-    const std::string locatorHost = parset.getString("ice.locator_host");
-    const std::string locatorPort = parset.getString("ice.locator_port");
-    const std::string topicManager = parset.getString("icestorm.topicmanager");
-    const std::string topic = parset.getString("icestorm.topic");
-    const std::string adapterName = parset.getString("ice.adapter_name");
-    const int bufSize = 24;
-
-    MetadataOutputPort out(locatorHost, locatorPort, topicManager, topic);
-    MetadataSource source(locatorHost, locatorPort, topicManager, topic,
-            adapterName, bufSize);
-
-    // Test simple send, recv, send, recv case
-    unsigned long time = 1234;
-    const int count = 10;
-    for (int i = 0; i < count; ++i) {
-        TosMetadata metadata(304, 32, 4);
-        metadata.time(time);
-        std::cout << "Publishing a metadata message...";
-        out.send(metadata);
-        std::cout << "Done" << std::endl;
-
-        std::cout << "Waiting for class under test to receive it...";
-        boost::shared_ptr<TosMetadata> recvd = source.next();
-        std::cout << "Received" << std::endl;
-        if (recvd->time() != time) {
-            std::cout << "Messages do not match" << std::endl;
-            return 1;
-        }
-    }
-
-    // Test the buffering abilities of MetadataSource
-    time = 9876;
-    for (int i = 0; i < bufSize; ++i) {
-        TosMetadata metadata(304, 32, 4);
-        metadata.time(time);
-        std::cout << "Publishing a metadata message...";
-        out.send(metadata);
-        std::cout << "Done" << std::endl;
-    }
-    for (int i = 0; i < bufSize; ++i) {
-        std::cout << "Waiting for class under test to receive message...";
-        boost::shared_ptr<TosMetadata> recvd = source.next();
-        std::cout << "Received" << std::endl;
-        if (recvd->time() != time) {
-            std::cout << "Messages do not match" << std::endl;
-            return 1;
-        }
-    }
-
-    return 0;
+    TestMetaDataSourceApp app;
+    return app.main(argc, argv);
 }

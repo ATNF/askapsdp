@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
     cmdlineparser::Parser parser;
 
     // Command line parameter
-    cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "tUVChannel.in");
+    cmdlineparser::FlaggedParameter<std::string> inputsPar("-c", "tUVChannel.in");
 
     // Throw an exception if the parameter is not present
     parser.add(inputsPar, cmdlineparser::Parser::throw_exception);

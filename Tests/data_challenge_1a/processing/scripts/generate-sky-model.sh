@@ -42,7 +42,7 @@ Cmodel.output             = casa
 Cmodel.filename           = ${SKYMODEL_OUTPUT}
 EOF_INNER
 
-mpirun \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -inputs ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel-\${PBS_JOBID}.log
+mpirun \${ASKAP_ROOT}/Code/Components/CP/pipelinetasks/current/apps/cmodel.sh -c ${CONFIGDIR}/cmodel.in > ${LOGDIR}/cmodel-\${PBS_JOBID}.log
 EOF
 
 # Submit job

@@ -21,7 +21,7 @@ tar zxf ../10uJy_stdtest.ms.tgz
 mv -f 10uJy_stdtest.ms 10uJy_stdtest_1.ms
 echo Done
 
-mpirun -np 2 ../../apps/imager.sh -inputs dirty.in | tee $OUTPUT
+mpirun -np 2 ../../apps/imager.sh -c dirty.in | tee $OUTPUT
 if [ $? -ne 0 ]; then
     echo Error: mpirun returned an error
     exit 1

@@ -114,7 +114,7 @@ EOF_INNER
 LOGFILE=../${LOGDIR}/cimager_spectral_\${PBS_ARRAY_INDEX}.log
 
 # First split the big measurement set
-\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -inputs \${MSSPLITPARSET} > \${LOGFILE}
+\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/mssplit.sh -c \${MSSPLITPARSET} > \${LOGFILE}
 ERR=\$?
 if [ \${ERR} -ne 0 ]; then
     echo "Error: mssplit returned error code \${ERR}"
@@ -122,7 +122,7 @@ if [ \${ERR} -ne 0 ]; then
 fi
 
 # Now run the cimager
-mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -inputs \${CIMAGERPARSET} >> \${LOGFILE}
+mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \${CIMAGERPARSET} >> \${LOGFILE}
 ERR=\$?
 if [ \${ERR} -ne 0 ]; then
     echo "Error: cimager returned error code \${ERR}"

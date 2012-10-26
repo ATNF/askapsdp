@@ -49,7 +49,7 @@ static ParameterSet getParameterSet(int argc, char *argv[])
     cmdlineparser::Parser parser;
 
     // Command line parameter
-    cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "config.in");
+    cmdlineparser::FlaggedParameter<std::string> inputsPar("-c", "config.in");
 
     // This parameter is optional, default will be returned if not present
     parser.add(inputsPar, cmdlineparser::Parser::return_default);

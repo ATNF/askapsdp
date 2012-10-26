@@ -51,7 +51,7 @@ createFITS.PAunits = deg
 createFITS.minMinorAxis = 0.0001
 EOF_INNER
 
-mpirun \${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/install/bin/createFITS.sh -inputs ${CONFIGDIR}/createFITS-\${PBS_JOBID}.in > ${LOGDIR}/createFITS-\${PBS_JOBID}.log
+mpirun \${ASKAP_ROOT}/Code/Components/Analysis/simulations/current/install/bin/createFITS.sh -c ${CONFIGDIR}/createFITS-\${PBS_JOBID}.in > ${LOGDIR}/createFITS-\${PBS_JOBID}.log
 EOF
 
 # Submit job

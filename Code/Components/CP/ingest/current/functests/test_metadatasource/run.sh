@@ -11,7 +11,7 @@ sleep 1
 
 # Run the test harness
 echo "Running the testcase..."
-../../apps/tMetadataSource.sh -inputs tMetadataSource.in
+../../apps/tMetadataSource.sh -c tMetadataSource.in
 STATUS=$?
 echo "Testcase finished"
 

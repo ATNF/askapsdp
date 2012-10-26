@@ -16,7 +16,7 @@ sleep 1
 
 # Run the ingest pipeline
 echo "Running the testcase..."
-mpirun -np 2 ../../apps/cpingest.sh -inputs cpingest.in
+mpirun -np 2 ../../apps/cpingest.sh -c cpingest.in
 STATUS=$?
 echo "Testcase finished"
 

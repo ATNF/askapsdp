@@ -52,7 +52,7 @@ Ccalibrator.ncycles                              = 5
 Ccalibrator.interval                             = 10800s
 EOF_INNER
 
-mpirun --mca btl ^openib --mca mtl ^psm \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -inputs ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${PBS_JOBID}.log
+mpirun --mca btl ^openib --mca mtl ^psm \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -c ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${PBS_JOBID}.log
 EOF
 
 if [ ! -e ${CALOUTPUT} ]; then
