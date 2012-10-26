@@ -32,19 +32,14 @@
 
 // System includes
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <map>
-#include <stdlib.h>
-#include <time.h>
+#include <cstdlib>
+#include <ctime>
 
 // ASKAPsoft includes
+#include <askap/Application.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/StatReporter.h>
-#include <casa/Logging/LogIO.h>
-#include <askap/Log4cxxLogSink.h>
 #include <FITS/FITSparallel.h>
 #include <FITS/FITSfile.h>
 #include <Common/ParameterSet.h>
@@ -55,77 +50,66 @@ using namespace askap::simulations::FITS;
 
 ASKAP_LOGGER(logger, "createFITS.log");
 
-// Move to Askap Util?
-std::string getInputs(const std::string& key, const std::string& def, int argc,
-                      const char** argv)
+class CreateFitsApp : public askap::Application
 {
-    if (argc > 2) {
-        for (int arg = 0; arg < (argc - 1); arg++) {
-            std::string argument = std::string(argv[arg]);
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            // This class must have scope outside the main try/catch block
+            askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
 
-            if (argument == key) {
-                return std::string(argv[arg+1]);
+            try {
+                StatReporter stats;
+
+                srandom(time(0));
+                LOFAR::ParameterSet subset(config().makeSubset("createFITS."));
+                if (comms.isMaster()) {
+                    ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                }
+
+                bool doNoise = subset.getBool("addNoise", false);
+                bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
+                bool doConvolution = subset.getBool("doConvolution", true);
+                FITSparallel file(comms, subset);
+
+                if (comms.isMaster()) ASKAPLOG_INFO_STR(logger, "In MASTER node!");
+
+                if (comms.isWorker()) ASKAPLOG_INFO_STR(logger, "In WORKER node #" << comms.rank());
+
+                file.processSources();
+
+                if (doNoise && (noiseBeforeConvolve || !doConvolution))
+                    file.addNoise(true);
+
+                file.toMaster();
+
+                if (doConvolution)
+                    file.convolveWithBeam();
+
+                if (doNoise && (!noiseBeforeConvolve && doConvolution))
+                    file.addNoise(false);
+
+                file.output();
+
+                stats.logSummary();
+
+            } catch (const askap::AskapError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const std::exception& x) {
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
             }
-        }
-    }
 
-    return def;
-}
+            return 0;
+        }
+};
 
 // Main function
-int main(int argc, const char** argv)
+int main(int argc, char *argv[])
 {
-    askap::askapparallel::AskapParallel comms(argc, argv);
-
-    try {
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
-
-        StatReporter stats;
-
-        srandom(time(0));
-        std::string parsetFile(getInputs("-inputs", "createFITS.in", argc, argv));
-        ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
-        LOFAR::ParameterSet parset(parsetFile);
-        LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
-	if(comms.isMaster()) ASKAPLOG_INFO_STR(logger, "Parset follows: " << subset);
-        bool doNoise = subset.getBool("addNoise", false);
-        bool noiseBeforeConvolve = subset.getBool("noiseBeforeConvolve", true);
-        bool doConvolution = subset.getBool("doConvolution", true);
-        FITSparallel file(comms, subset);
-
-        if (comms.isMaster()) ASKAPLOG_INFO_STR(logger, "In MASTER node!");
-
-        if (comms.isWorker()) ASKAPLOG_INFO_STR(logger, "In WORKER node #" << comms.rank());
-
-        file.processSources();
-
-        if (doNoise && (noiseBeforeConvolve || !doConvolution))
-            file.addNoise(true);
-
-        file.toMaster();
-
-        if (doConvolution)
-            file.convolveWithBeam();
-
-        if (doNoise && (!noiseBeforeConvolve && doConvolution))
-            file.addNoise(false);
-
-        file.output();
-
-        stats.logSummary();
-
-    } catch (const askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    }
-
-    return 0;
+    CreateFitsApp app;
+    return app.main(argc, argv);
 }
-

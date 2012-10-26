@@ -1,5 +1,4 @@
-///
-/// @file : Match output list eg. from cduchamp with known input list
+/// @file Match output list eg. from cduchamp with known input list
 ///
 /// Control parameters are passed in from a LOFAR ParameterSet file.
 ///
@@ -26,21 +25,18 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
+
+// Package level header file
 #include <askap_analysis.h>
 
+// System includes
+#include <iostream>
+
+// ASKAPsoft includes
+#include <askap/Application.h>
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-#include <casa/Logging/LogIO.h>
-#include <askap/Log4cxxLogSink.h>
-
-#include <Common/ParameterSet.h>
-
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <map>
-
+#include <askap/StatReporter.h>
 #include <patternmatching/Matcher.h>
 #include <patternmatching/GrothTriangles.h>
 #include <askapparallel/AskapParallel.h>
@@ -52,78 +48,62 @@ using namespace askap::analysis::matching;
 
 ASKAP_LOGGER(logger, "imageQualTest.log");
 
-// Move to Askap Util?
-std::string getInputs(const std::string& key, const std::string& def, int argc,
-                      const char** argv)
+class ImageQualApp : public askap::Application
 {
-    if (argc > 2) {
-        for (int arg = 0; arg < (argc - 1); arg++) {
-            std::string argument = std::string(argv[arg]);
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            StatReporter stats;
 
-            if (argument == key) {
-                return std::string(argv[arg+1]);
+            // This class must have scope outside the main try/catch block
+            askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
+            try {
+                LOFAR::ParameterSet subset(config().makeSubset("imageQual."));
+                DuchampParallel image(comms, subset);
+                image.getMetadata();
+                ASKAPLOG_INFO_STR(logger, "Read image metadata");
+                Matcher matcher(subset);
+                matcher.setHeader(image.cube().header());
+                matcher.readLists();
+                if (matcher.srcListSize()>0 && matcher.refListSize()>0){
+                    bool doFixRef = subset.getBool("convolveReference", true);
+
+                    if (doFixRef) matcher.fixRefList(image.getBeamInfo());
+
+                    matcher.setTriangleLists();
+                    matcher.findMatches();
+                    matcher.findOffsets();
+                    matcher.addNewMatches();
+                    matcher.outputLists();
+                    matcher.outputSummary();
+                } else{
+                    if (matcher.srcListSize()==0) 
+                        ASKAPLOG_WARN_STR(logger, "Source list has zero length - no matching done.");
+                    if (matcher.refListSize()==0) 
+                        ASKAPLOG_WARN_STR(logger, "Reference list has zero length - no matching done.");
+                }
+            } catch (const askap::AskapError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const duchamp::DuchampError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
+                std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const std::exception& x) {
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
             }
-        }
-    }
 
-    return def;
-}
+            stats.logSummary();
+            return 0;
+        }
+};
 
 // Main function
-int main(int argc, const char** argv)
+int main(int argc, char *argv[])
 {
-    // This class must have scope outside the main try/catch block
-    askap::askapparallel::AskapParallel comms(argc, argv);
-    try {
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
-
-        casa::Timer timer;
-        timer.mark();
-        std::string parsetFile(getInputs("-inputs", "imageQualTest.in", argc, argv));
-        LOFAR::ParameterSet parset(parsetFile);
-        LOFAR::ParameterSet subset(parset.makeSubset("imageQual."));
-        DuchampParallel image(comms, subset);
-        ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
-        image.getMetadata();
-        ASKAPLOG_INFO_STR(logger, "Read image metadata");
-        Matcher matcher(subset);
-        matcher.setHeader(image.cube().header());
-        matcher.readLists();
-	if(matcher.srcListSize()>0 && matcher.refListSize()>0){
-	  bool doFixRef = subset.getBool("convolveReference", true);
-
-	  if (doFixRef) matcher.fixRefList(image.getBeamInfo());
-	  
-	  matcher.setTriangleLists();
-	  matcher.findMatches();
-	  matcher.findOffsets();
-	  matcher.addNewMatches();
-	  matcher.outputLists();
-	  matcher.outputSummary();
-	}
-	else{
-	  if(matcher.srcListSize()==0) 
-	    ASKAPLOG_WARN_STR(logger, "Source list has zero length - no matching done.");
-	  if(matcher.refListSize()==0) 
-	    ASKAPLOG_WARN_STR(logger, "Reference list has zero length - no matching done.");
-	}
-        ASKAPLOG_INFO_STR(logger, "Time for execution of imageQualTest = " << timer.real() << " sec");
-    } catch (const askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const duchamp::DuchampError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Duchamp error in " << argv[0] << ": " << x.what());
-        std::cerr << "Duchamp error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    }
-
-    return 0;
+    ImageQualApp app;
+    return app.main(argc, argv);
 }
-
