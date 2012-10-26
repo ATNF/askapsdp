@@ -289,8 +289,8 @@ void FillerMSSink::readBeamInfo()
         os << "feeds." << feedNames[feed];
         std::vector<double> xy(parset.getDoubleVector(os.str()));
         ASKAPCHECK(xy.size() == 2, "Expect two elements in the beam offset vector, you have: "<<xy);
-        itsBeamOffsets(feed,0) = xy[0];
-        itsBeamOffsets(feed,1) = xy[1];
+        itsBeamOffsets(feed,0) = xy[0] * spacing;
+        itsBeamOffsets(feed,1) = xy[1] * spacing;
     }
     ASKAPLOG_INFO_STR(logger, "Successfully defined " << nFeeds << " beams");
 }

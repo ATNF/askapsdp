@@ -189,7 +189,11 @@ void doTest() {
   const casa::MVDirection dir(convertQuantity("16h17m49.278","rad"),
                                   convertQuantity("-77.17.18.46","rad"));
 
-  casa::MVDirection testDir = tangent;
+  //casa::MVDirection testDir = tangent;
+  // Virgo
+  //casa::MVDirection testDir(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
+  // 1934-638
+  casa::MVDirection testDir(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
 
   std::cout<<"tangent point: "<<printDirection(tangent)<<std::endl;
   std::cout<<"dir: "<<printDirection(dir)<<std::endl;
