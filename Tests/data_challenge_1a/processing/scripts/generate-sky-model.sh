@@ -20,9 +20,9 @@ cat > cmodel.qsub << EOF
 cd \${PBS_O_WORKDIR}
 
 cat > ${CONFIGDIR}/cmodel-\${PBS_JOBID}.in << EOF_INNER
-# The below specifies the GSM source is a duchamp output file
-Cmodel.gsm.database       = duchamp
-Cmodel.gsm.file           = ${INPUT_SKYMODEL}
+# The below specifies the GSM source is a votable
+Cmodel.gsm.database       = votable
+Cmodel.gsm.file           = ${INPUT_SKYMODEL_XML}
 Cmodel.gsm.ref_freq       = 1.421GHz
 
 # General parameters

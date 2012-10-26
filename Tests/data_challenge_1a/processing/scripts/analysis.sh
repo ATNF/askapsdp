@@ -17,7 +17,7 @@ fi
 #perl -pi -e 's/RED/GREEN/g' skyModel-catalogue-results.ann
 
 #cp ${skymodeldir}/duchamp-fitResults.txt skyModel-catalogue.txt
-cp ${INPUT_SKYMODEL} skyModel-catalogue.txt
+cp ${INPUT_SKYMODEL_TXT} skyModel-catalogue.txt
 awk '{if(NF==24) print $3,$4,$7,$15,$16,$9,$10,$11}' skyModel-catalogue.txt  > skyModel-catalogue-basic.txt
 awk '$2>-48. && $2<-42. && $1<191.875 && $1>183.25' skyModel-catalogue-basic.txt > skyModel-catalogue-basic-trim.txt
 awk '$3>0.05' skyModel-catalogue-basic-trim.txt > skyModel-catalogue-basic-trim-bright.txt

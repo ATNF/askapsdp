@@ -19,7 +19,8 @@ QUEUEGROUP=astronomy116
 INPUT_MS=../input/dc1a.ms
 
 # Location (relative to workdir or absolute) of the input sky model (component list)
-INPUT_SKYMODEL=../input/skymodel-duchamp.txt
+INPUT_SKYMODEL_XML=../input/skymodel-duchamp.xml
+INPUT_SKYMODEL_TXT=../input/skymodel-duchamp.txt
 
 # If ASKAP_ROOT is not set in your environment, add the path here and uncomment
 #ASKAP_ROOT=<path to ASKAPsoft>
