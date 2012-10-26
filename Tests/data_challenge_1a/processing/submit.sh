@@ -45,7 +45,7 @@ if [ ! -e ${INPUT_MS} ]; then
 fi
 
 # Verify the input sky model exists
-if [ ! -e ${INPUT_SKYMODEL} ]; then
+if [ ! -e ${INPUT_SKYMODEL_XML} ]; then
     echo "Error: Input sky model does not exist"
     exit 1
 fi
