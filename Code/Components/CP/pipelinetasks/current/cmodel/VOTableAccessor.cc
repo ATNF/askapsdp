@@ -212,7 +212,7 @@ void VOTableAccessor::initFieldInfo(const std::vector<askap::accessors::VOTableF
 
         // Spectral index
         key = SPECTRAL_INDEX;
-        if (hasUCD(field, "spectral.index")) {
+        if (hasUCD(field, "spect.index")) {
             if (posMap.find(key) == posMap.end() || hasUCD(field, "meta.main")) {
                 posMap[key] = i;
                 // No units
@@ -222,7 +222,7 @@ void VOTableAccessor::initFieldInfo(const std::vector<askap::accessors::VOTableF
 
         // Spectral curvature
         key = SPECTRAL_CURVATURE;
-        if (hasUCD(field, "spectral.curvature")) {
+        if (hasUCD(field, "spect.curvature")) {
             if (posMap.find(key) == posMap.end() || hasUCD(field, "meta.main")) {
                 posMap[key] = i;
                 // No units

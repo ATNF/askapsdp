@@ -130,7 +130,7 @@ static void addFields(VOTableTable& tab)
         // Spectral index
         VOTableField f;
         f.setName("Spectral index");
-        f.setUCD("spectral.index");
+        f.setUCD("spect.index");
         f.setDatatype("float"); 
         tab.addField(f);
     }
@@ -139,7 +139,7 @@ static void addFields(VOTableTable& tab)
         // Spectral curvature
         VOTableField f;
         f.setName("Spectral curvature");
-        f.setUCD("spectral.curvature");
+        f.setUCD("spect.curvature");
         f.setDatatype("float"); 
         tab.addField(f);
     }
