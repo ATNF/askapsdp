@@ -178,10 +178,12 @@ void Application::initLogging(const std::string& argv0)
 void Application::initConfig()
 {
     if (itsVarMap.count("config")) {
-        LOFAR::ParameterSet parset(itsVarMap["config"].as<std::string>());
+        LOFAR::ParameterSet parset(itsVarMap["config"].as<std::string>(),
+                LOFAR::StringUtil::Compare::NOCASE);
         itsParset = parset;
     } else if (itsVarMap.count("inputs")) {
-        LOFAR::ParameterSet parset(itsVarMap["inputs"].as<std::string>());
+        LOFAR::ParameterSet parset(itsVarMap["inputs"].as<std::string>(),
+                LOFAR::StringUtil::Compare::NOCASE);
         itsParset = parset;
     } else {
         std::cerr << "Error: Configuration file not specified" << std::endl;
