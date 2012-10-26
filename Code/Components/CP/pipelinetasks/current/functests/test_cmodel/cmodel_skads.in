@@ -25,7 +25,7 @@ Cmodel.tablespec.posangle.units         = rad
 #Cmodel.tablespec.spectralindex.col      =
 #Cmodel.tablespec.spectralindex.units    =
 
-#Cmodel.tablespec.spctralcurvature.col    =
+#Cmodel.tablespec.spectralcurvature.col    =
 #Cmodel.tablespec.spectralcurvature.units =
 
 # The below specifies the GSM source is the Sky Model Service
