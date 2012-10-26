@@ -41,6 +41,7 @@
 // ASKAPsoft includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
+#include "askap/Application.h"
 #include "askap/AskapUtil.h"
 #include "askap/StatReporter.h"
 #include "askap/Log4cxxLogSink.h"
@@ -121,20 +122,20 @@ boost::shared_ptr<casa::MeasurementSet> create(
         // Get nr of rows in a tile.
         const int nrowTile = std::max(1u, bucketSize / (8 * tileNcorr * tileNchan));
         TiledShapeStMan dataMan("TiledData",
-                                IPosition(3, tileNcorr, tileNchan, nrowTile));
+                IPosition(3, tileNcorr, tileNchan, nrowTile));
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::DATA),
-                         dataMan);
+                dataMan);
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::FLAG),
-                         dataMan);
+                dataMan);
     }
     {
         const int nrowTile = std::max(1u, bucketSize / (4 * 8));
         TiledShapeStMan dataMan("TiledWeight",
-                                IPosition(2, 4, nrowTile));
+                IPosition(2, 4, nrowTile));
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::SIGMA),
-                         dataMan);
+                dataMan);
         newMS.bindColumn(MeasurementSet::columnName(MeasurementSet::WEIGHT),
-                         dataMan);
+                dataMan);
     }
 
     // Now we can create the MeasurementSet and add the (empty) subtables
@@ -299,10 +300,10 @@ void copyPolarization(const casa::MeasurementSet& source, casa::MeasurementSet& 
 }
 
 void splitSpectralWindow(const casa::MeasurementSet& source,
-                         casa::MeasurementSet& dest,
-                         const unsigned int startChan,
-                         const unsigned int endChan,
-                         const unsigned int width)
+        casa::MeasurementSet& dest,
+        const unsigned int startChan,
+        const unsigned int endChan,
+        const unsigned int width)
 {
     MSColumns destCols(dest);
     const ROMSColumns srcCols(source);
@@ -372,10 +373,10 @@ void splitSpectralWindow(const casa::MeasurementSet& source,
 }
 
 void splitMainTable(const casa::MeasurementSet& source,
-                    casa::MeasurementSet& dest,
-                    const unsigned int startChan,
-                    const unsigned int endChan,
-                    const unsigned int width)
+        casa::MeasurementSet& dest,
+        const unsigned int startChan,
+        const unsigned int endChan,
+        const unsigned int width)
 {
     // Pre-conditions
     ASKAPDEBUGASSERT(endChan >= startChan);
@@ -399,17 +400,17 @@ void splitMainTable(const casa::MeasurementSet& source,
     // a reasonable amount of memory, because all visibilities will be read
     // in for possible averaging. Assumes 256MB working space.
     const uInt maxSimultaneousRows = (256 * 1024 * 1024) / (nChanIn + nChanOut) / nPol
-                                     / (sizeof(casa::Complex) + sizeof(casa::Bool));
+        / (sizeof(casa::Complex) + sizeof(casa::Bool));
 
     for (uInt row = 0; row < nRows;) {
         // Number of rows to process for this iteration of the loop; either
         // maxSimultaneousRows or the remaining rows.
         const uInt nRowsThisIteration = min(maxSimultaneousRows, nRows - row);
         const Slicer rowslicer(IPosition(1, row), IPosition(1, nRowsThisIteration),
-                               Slicer::endIsLength);
+                Slicer::endIsLength);
 
         ASKAPLOG_INFO_STR(logger,  "Splitting and/or averaging rows " << row
-                              << " to " << row + nRowsThisIteration << " of " << nRows);
+                << " to " << row + nRowsThisIteration << " of " << nRows);
 
         // Copy over the simple cells (i.e. those not needing averaging/merging)
         dc.scanNumber().putColumnRange(rowslicer, sc.scanNumber().getColumnRange(rowslicer));
@@ -439,15 +440,15 @@ void splitMainTable(const casa::MeasurementSet& source,
 
         //  Average (if applicable) then write data into the output MS
         const Slicer srcarrslicer(IPosition(2, 0, startChan - 1),
-                                  IPosition(2, nPol, nChanIn), Slicer::endIsLength);
+                IPosition(2, nPol, nChanIn), Slicer::endIsLength);
         const Slicer destarrslicer(IPosition(2, 0, 0),
-                                   IPosition(2, nPol, nChanOut), Slicer::endIsLength);
+                IPosition(2, nPol, nChanOut), Slicer::endIsLength);
 
         if (width == 1) {
             dc.data().putColumnRange(rowslicer, destarrslicer,
-                                     sc.data().getColumnRange(rowslicer, srcarrslicer));
+                    sc.data().getColumnRange(rowslicer, srcarrslicer));
             dc.flag().putColumnRange(rowslicer, destarrslicer,
-                                     sc.flag().getColumnRange(rowslicer, srcarrslicer));
+                    sc.flag().getColumnRange(rowslicer, srcarrslicer));
         } else {
             // Get (read) the input data/flag
             const casa::Cube<casa::Complex> indata = sc.data().getColumnRange(rowslicer, srcarrslicer);
@@ -478,7 +479,7 @@ void splitMainTable(const casa::MeasurementSet& source,
                         // Now the input channels have been averaged, write the data to
                         // the output cubes
                         outdata(pol, destChan, r) = casa::Complex(sum.real() / width,
-                                                    sum.imag() / width);
+                                sum.imag() / width);
                         outflag(pol, destChan, r) = outputFlag;
                     }
                 }
@@ -494,13 +495,13 @@ void splitMainTable(const casa::MeasurementSet& source,
 }
 
 int split(const std::string& invis, const std::string& outvis,
-          const unsigned int startChan,
-          const unsigned int endChan,
-          const unsigned int width,
-          const LOFAR::ParameterSet& parset)
+        const unsigned int startChan,
+        const unsigned int endChan,
+        const unsigned int width,
+        const LOFAR::ParameterSet& parset)
 {
     ASKAPLOG_INFO_STR(logger,  "Splitting out channel range " << startChan << " to "
-                          << endChan << " (inclusive)");
+            << endChan << " (inclusive)");
 
     if (width > 1) {
         ASKAPLOG_INFO_STR(logger,  "Averaging " << width << " channels to form 1");
@@ -600,64 +601,30 @@ std::pair<unsigned int, unsigned int> parseRange(const LOFAR::ParameterSet& pars
     return result;
 }
 
-// Main function
-int main(int argc, const char** argv)
+class MsSplitApp : public askap::Application
 {
-    // Now we have to initialize the logger before we use it
-    // If a log configuration exists in the current directory then
-    // use it, otherwise try to use the programs default one
-    std::ifstream config("askap.log_cfg", std::ifstream::in);
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            StatReporter stats;
 
-    if (config) {
-        ASKAPLOG_INIT("askap.log_cfg");
-    } else {
-        std::ostringstream ss;
-        ss << argv[0] << ".log_cfg";
-        ASKAPLOG_INIT(ss.str().c_str());
-    }
+            // Get the parameters to split
+            const std::string invis = config().getString("vis");
+            const std::string outvis = config().getString("outputvis");
+            const std::pair<unsigned int, unsigned int> range = parseRange(config());
+            const unsigned int width = config().getUint32("width", 1);
 
-    // Ensure that CASA log messages are captured
-    casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-    casa::LogSink::globalSink(globalSink);
+            const int error = split(invis, outvis, range.first, range.second, width, config());
 
-    int error = 0;
+            stats.logSummary();
 
-    try {
-        StatReporter stats;
+            return error;
+        }
+};
 
-        // Command line parser
-        cmdlineparser::Parser parser;
-
-        // Command line parameter
-        cmdlineparser::FlaggedParameter<std::string> inputsPar("-inputs", "mssplit.in");
-
-        // Throw an exception if the parameter is not present
-        parser.add(inputsPar, cmdlineparser::Parser::throw_exception);
-        parser.process(argc, const_cast<char**>(argv));
-
-        // Create a parset
-        LOFAR::ParameterSet parset(inputsPar);
-
-        // Get the parameters to split
-        const std::string invis = parset.getString("vis");
-        const std::string outvis = parset.getString("outputvis");
-        const std::pair<unsigned int, unsigned int> range = parseRange(parset);
-        const unsigned int width = parset.getUint32("width", 1);
-
-        error = split(invis, outvis, range.first, range.second, width, parset);
-
-        stats.logSummary();
-    } catch (const cmdlineparser::XParser &ex) {
-        ASKAPLOG_FATAL_STR(logger, "Command line parser error, wrong arguments " << argv[0]);
-        ASKAPLOG_FATAL_STR(logger, "Usage: " << argv[0] << " -o output.ms inMS1 ... inMSn");
-        error = 1;
-    } catch (const askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        error = 1;
-    } catch (const std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        error = 1;
-    }
-
-    return error;
+// Main function
+int main(int argc, char *argv[])
+{
+    MsSplitApp app;
+    return app.main(argc, argv);
 }
