@@ -19,7 +19,7 @@ cat > cmodel.qsub << EOF
 
 cd \${PBS_O_WORKDIR}
 
-cat > ${CONFIGDIR}/cmodel-\${PBS_JOBID}.in << EOF_INNER
+cat > ${CONFIGDIR}/cmodel.in << EOF_INNER
 # The below specifies the GSM source is a votable
 Cmodel.gsm.database       = votable
 Cmodel.gsm.file           = ${INPUT_SKYMODEL_XML}
