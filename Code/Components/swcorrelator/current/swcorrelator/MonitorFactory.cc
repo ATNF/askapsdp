@@ -38,6 +38,7 @@
 
 #include <swcorrelator/MonitorFactory.h>
 #include <swcorrelator/BasicMonitor.h>
+#include <swcorrelator/SimpleVisMonitor.h>
 
 #include <casa/OS/DynLib.h>        // for dynamic library loading
 
@@ -68,6 +69,7 @@ boost::shared_ptr<IMonitor> MonitorFactory::make(const std::string &name, const 
       // first call, add hard-coded monitors
       ASKAPLOG_INFO_STR(logger, "Filling the registry with pre-defined data monitors");
       addPreDefinedMonitor<BasicMonitor>();
+      addPreDefinedMonitor<SimpleVisMonitor>();
   }
   
   std::map<std::string, MonitorFactory::MonitorCreator*>::const_iterator ci = theirRegistry.find(name);

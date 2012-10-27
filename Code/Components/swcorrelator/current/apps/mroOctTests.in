@@ -3,6 +3,7 @@ swcorrelator.nbeam = 2
 swcorrelator.nchan = 16
 swcorrelator.capturemode = false
 swcorrelator.duplicate2nd = false
+swcorrelator.monitors = "simple"
 
 # optional index substitution
 swcorrelator.makeBeamAnt = false
@@ -71,9 +72,8 @@ swcorrelator.feeds.names     = [beam0,beam1,beam2,beam3]
 
 swcorrelator.feeds.beam0          =       [0, 0]
 swcorrelator.feeds.beam1          =       [-1.14485, 1.89452]
-#swcorrelator.feeds.beam1          =       [0, 0]
-swcorrelator.feeds.beam2          =       [0, 0]
-swcorrelator.feeds.beam3          =       [0, 0]
+swcorrelator.feeds.beam2          =       [-0.572425, 0.947258]
+swcorrelator.feeds.beam3          =       [0.0725917,-0.442475]
 swcorrelator.feeds.beam4          =       [0, 0]
 swcorrelator.feeds.beam5          =       [0, 0]
 swcorrelator.feeds.beam6          =       [0, 0]
