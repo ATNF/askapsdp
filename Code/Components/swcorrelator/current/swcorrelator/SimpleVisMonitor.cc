@@ -49,7 +49,7 @@ namespace askap {
 namespace swcorrelator {
 
 /// @brief constructor
-SimpleVisMonitor::SimpleVisMonitor() : itsStartBAT(0ul), itsBAT(0ul), itsOStream("visplot.dat") {}
+SimpleVisMonitor::SimpleVisMonitor() : itsStartBAT(0ul), itsBAT(0ul) {}
 
 
 /// @brief create and configure the monitor   
@@ -151,6 +151,14 @@ void SimpleVisMonitor::publish(const CorrProducts &buf)
 /// (i.e. dumping the accumulated history to the file, etc).
 void SimpleVisMonitor::finalise()
 {
+  if (!itsOStream.is_open()) {
+      try {
+         itsOStream.open("visplot.dat");
+      }
+      catch (const std::exception &ex) {
+         ASKAPLOG_FATAL_STR(logger, "Error opening output ascii file for monitoring information: "<<ex.what());
+      }
+  }
   itsOStream<<double(itsBAT-itsStartBAT)/1e6/60.<<" ";
   for (int beam=0; beam < int(itsVisBuffer.nrow()); ++beam) {
        for (casa::uInt baseline = 0; baseline < itsVisBuffer.ncolumn(); ++baseline) {
