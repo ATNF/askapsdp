@@ -34,12 +34,12 @@
 // ASKAPsoft includes
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
-// Local package includes
-
 namespace askap {
     namespace accessors {
 
-/// @brief TODO: Write documentation...
+        /// @brief Encapsulates the TR (table row) element
+        ///
+        /// @ingroup votableaccess
         class VOTableRow {
             public:
 
@@ -55,7 +55,6 @@ namespace askap {
 
             private:
                 std::vector<std::string> itsCells;
-
         };
 
     }

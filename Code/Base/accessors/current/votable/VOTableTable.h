@@ -42,7 +42,9 @@
 namespace askap {
     namespace accessors {
 
-        /// @brief TODO: Write documentation...
+        /// @brief Encapsulates the TABLE element
+        ///
+        /// @ingroup votableaccess
         class VOTableTable {
             public:
 

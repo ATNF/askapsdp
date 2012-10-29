@@ -52,6 +52,8 @@ namespace askap {
 
         /// Encapsulates a VOTable and provides the ability to serialise/de-serialise
         /// to/from XML.
+        ///
+        /// @ingroup votableaccess
         class VOTable {
             public:
 

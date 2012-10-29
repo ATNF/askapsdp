@@ -40,7 +40,9 @@
 namespace askap {
     namespace accessors {
 
-        /// @brief TODO: Write documentation...
+        /// @brief Encapsulates the GROUP element
+        ///
+        /// @ingroup votableaccess
         class VOTableGroup {
             public:
 

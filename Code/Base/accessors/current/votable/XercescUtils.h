@@ -37,18 +37,27 @@
 namespace askap {
     namespace accessors {
 
+        /// @brief A collection of general XML access utilities
+        /// @ingroup votableaccess
         class XercescUtils {
             public:
 
+                /// @brief Returns the string from a DOM Text element.
                 static std::string getStringFromDOMText(const xercesc::DOMText& text);
 
+                /// @brief Returns the value of an attibute associated with a
+                /// given DOM element.
                 static std::string getAttribute(const xercesc::DOMElement& element,
                         const std::string& key);
 
+                /// @brief Returns a pointer to the first element contained by
+                /// the "element" parameter, that has the tag matching name.
                 static xercesc::DOMElement* getFirstElementByTagName(
                         const xercesc::DOMElement& element,
                         const std::string& name);
 
+                /// @brief Returns the string from an element with the
+                ///  tag DESCRIPTION.
                 static std::string getDescription(const xercesc::DOMElement& element);
         };
 

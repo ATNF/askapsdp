@@ -36,7 +36,9 @@
 namespace askap {
     namespace accessors {
 
-        /// @brief TODO: Write documentation...
+        /// @brief Encapsulates the INFO element
+        ///
+        /// @ingroup votableaccess
         class VOTableInfo {
             public:
 

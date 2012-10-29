@@ -38,7 +38,9 @@
 namespace askap {
     namespace accessors {
 
-        /// @brief TODO: Write documentation...
+        /// @brief Encapsulates the PARAM element
+        ///
+        /// @ingroup votableaccess
         class VOTableParam {
             public:
 

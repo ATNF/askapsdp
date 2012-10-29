@@ -5,6 +5,7 @@
 /// @defgroup dataaccess_hlp Data access subpackage - helper and debug classes
 /// @defgroup imageaccess Image access subpackage
 /// @defgroup calibaccess Calibration data access subpackage
+/// @defgroup votableaccess VOTable data access subpackage
 
 /// The package namespace
 namespace askap::accessors {};
@@ -12,7 +13,8 @@ namespace askap::accessors {};
 /// @mainpage ASKAP data access layer
 ///
 /// @section synth_intro Introduction
-/// This package contains classes handling access to the measurement sets and images
+/// This package contains classes handling access to the measurement sets,
+///  images, calibration tables and VOTables.
 ///
 /// Data access is via a set of classes that make use of the casa measures
 /// package. Numerical data are held in casa Arrays (including Vector,
@@ -37,5 +39,6 @@ namespace askap::accessors {};
 /// @li @ref dataaccess_hlp
 /// @li @ref imageaccess
 /// @li @ref calibaccess
+/// @li @ref votableaccess
 ///
 /// @copyright 2007 CSIRO, All Rights Reserved.

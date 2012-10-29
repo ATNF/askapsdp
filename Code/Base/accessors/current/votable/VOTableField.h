@@ -33,12 +33,13 @@
 // ASKAPsoft includes
 #include "xercesc/dom/DOM.hpp" // Includes all DOM
 
-// Local package includes
-
 namespace askap {
     namespace accessors {
 
         /// @brief TODO: Write documentation...
+        /// Encapsulates a FIELD element
+        ///
+        /// @ingroup votableaccess
         class VOTableField {
             public:
 

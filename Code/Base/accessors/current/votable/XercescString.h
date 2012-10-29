@@ -36,6 +36,10 @@
 namespace askap {
     namespace accessors {
 
+        /// @brief Helper class to  manage XMLCh arrays, and convert to and
+        /// from std::string.
+        ///
+        /// @ingroup votableaccess
         class XercescString {
             public:
                 explicit XercescString(const char* str);
