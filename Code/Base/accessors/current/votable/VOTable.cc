@@ -202,7 +202,7 @@ VOTable VOTable::fromXMLImpl(const xercesc::InputSource& source)
     }
 
     // Cleanup
-    parser.reset(0);;
+    parser.reset(0);
 
     return vot;
 }

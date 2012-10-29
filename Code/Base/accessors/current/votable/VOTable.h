@@ -83,10 +83,11 @@ namespace askap {
                 void toXML(std::ostream& os) const;
 
                 /// Transform an XML VOTable to a VOTable object instance
-                /// @return a VOTable.
                 ///
                 /// @param[in] is   an istream from which the XML input string
                 ///                 will be read from.
+                /// @return a VOTable.
+                /// @throw AskapError   if the XML document is empty (i.e. no root).
                 static VOTable fromXML(std::istream& is);
 
                 /// Transform the VOTable object into an XML VOTable
@@ -98,6 +99,8 @@ namespace askap {
                 ///
                 /// @param[in] filename the file/path to read the XML input from.
                 /// @return a VOTable.
+                /// @throw AskapError   if the XML document is empty (i.e. no root)
+                ///                     or if the specified file cannot be opened.
                 static VOTable fromXML(const std::string& filename);
 
             private:
@@ -106,6 +109,8 @@ namespace askap {
                 void toXMLImpl(xercesc::XMLFormatTarget& target) const;
 
                 /// Transform an XML VOTable to a VOTable object instance
+                ///
+                /// @throw AskapError   if the XML document is empty (i.e. no root).
                 static VOTable fromXMLImpl(const xercesc::InputSource& source);
 
                 /// The text for the DESCRIPTION element
