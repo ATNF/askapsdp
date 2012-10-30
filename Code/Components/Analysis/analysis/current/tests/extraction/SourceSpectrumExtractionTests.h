@@ -68,6 +68,7 @@ namespace askap {
       SourceSpectrumExtractor extractor;
       LOFAR::ParameterSet parset; // used for defining the subdef
       std::string tempImage,tempImageGauss,tempImagePL;
+      std::string basePolList;
       std::string outfile;
       RadioSource object,gaussobject;
       float alpha;
@@ -81,6 +82,7 @@ namespace askap {
 	tempImagePL="tempImagePowerlawForExtractionTest";
 	tempImageGauss="tempImageGaussianForExtractionTest";
 	outfile="tempOutputFromExtractionTest";
+	basePolList="I";
 	alpha=0.5;
 
 	//-----------------------------------
@@ -180,7 +182,7 @@ namespace askap {
 	parset.add(LOFAR::KVpair("spectralBoxWidth", 5));
 	parset.add(LOFAR::KVpair("scaleSpectraByBeam",doScale));
 	parset.add("spectralOutputBase",outfile);
-	parset.add("polarisation","IQUV");
+	parset.add("polarisation",basePolList);
 	std::cout << parset << "\n";
       }
 
@@ -195,7 +197,7 @@ namespace askap {
 	std::vector<std::string> pols=extractor.polarisations();
 	std::string pollist;
 	for(size_t i=0;i<pols.size();i++) pollist+=pols[i];
-	CPPUNIT_ASSERT(pollist=="IQUV");
+	CPPUNIT_ASSERT(pollist==basePolList);
       }
 
       void loadSource() {
