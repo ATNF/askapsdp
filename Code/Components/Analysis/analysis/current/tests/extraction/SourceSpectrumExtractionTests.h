@@ -173,17 +173,22 @@ namespace askap {
 	gaussobject.calcFluxes(gaussarrSml.data(),dim); // should now have the peak position.
 	gaussobject.setID(1);
 
-
-	parset.add("spectralCube",tempImage);
+	//	std::vector<std::string> inputvec(1,tempImage)
+	  //parset.add("spectralCube",tempImage);
+	  parset.add("spectralCube","["+tempImage+"]");
+	  //	parset.add("spectralCube",inputvec);
 	parset.add(LOFAR::KVpair("spectralBoxWidth", 5));
 	parset.add(LOFAR::KVpair("scaleSpectraByBeam",doScale));
 	parset.add("spectralOutputBase",outfile);
 	parset.add("polarisation","IQUV");
+	std::cout << parset << "\n";
       }
 
       void readParset() {
 	extractor = SourceSpectrumExtractor(parset);
-	CPPUNIT_ASSERT(extractor.inputCube() == tempImage);
+	//	CPPUNIT_ASSERT(extractor.inputCube() == tempImage);
+	CPPUNIT_ASSERT(extractor.inputCubeList().size() == 1);
+	CPPUNIT_ASSERT(extractor.inputCubeList()[0] == tempImage);
 	CPPUNIT_ASSERT(extractor.outputFileBase() == outfile);
 	CPPUNIT_ASSERT(extractor.boxWidth() == 5);
 	CPPUNIT_ASSERT(extractor.doScale() == doScale);

@@ -50,7 +50,8 @@ namespace askap {
     {
       this->itsInputCubePtr=0;
       this->itsSource=0;
-      this->itsInputCube = parset.getString("spectralCube","");
+      this->itsInputCube = ""; // start off with this blank. Needs to be set before calling openInput()
+      this->itsInputCubeList = parset.getStringVector("spectralCube",std::vector<std::string>(0));
       this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
 
       // Take the following from SynthesisParamsHelper.cc in Synthesis
@@ -64,6 +65,8 @@ namespace askap {
       }
       this->itsStokesList = scimath::PolConverter::fromString(stokesStr);
       
+      this->verifyInputs();
+
     }
 
     SourceDataExtractor::~SourceDataExtractor()
@@ -83,6 +86,7 @@ namespace askap {
       this->itsSource = other.itsSource;
       this->itsSlicer = other.itsSlicer;
       this->itsInputCube = other.itsInputCube;
+      this->itsInputCubeList = other.itsInputCubeList;
       this->itsInputCubePtr = other.itsInputCubePtr;
       this->itsStokesList = other.itsStokesList;
       this->itsOutputFilenameBase = other.itsOutputFilenameBase;
@@ -90,7 +94,79 @@ namespace askap {
       this->itsArray = other.itsArray;
       return *this;
     }
+
+    void SourceDataExtractor::checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest)
+    {
+
+      this->itsInputCube = image;
+      std::vector<casa::Stokes::StokesTypes> stokesvec(1,stokes);
+      std::string polstring=scimath::PolConverter::toString(stokesvec)[0];
+      this->openInput();
+      int stokeCoo = this->itsInputCubePtr->coordinates().polarizationCoordinateNumber();
+      int stokeAxis = this->itsInputCubePtr->coordinates().polarizationAxisNumber();
+      if(stokeCoo==-1 || stokeAxis==-1) {
+	ASKAPCHECK(polstring=="I","Extraction: Input cube "<<image<<" has no polarisation axis, but you requested " << polstring);
+      }
+      else{
+	int nstoke=this->itsInputCubePtr->shape()[stokeAxis];
+	//	ASKAPCHECK(nstoke==1,"Extraction: when multiple input cubes are provided, they must have only one polarisation per cube");
+	ASKAPCHECK(nstoke=nStokesRequest, "Extraction: input cube " << image << " has " << nstoke << " polarisations, whereas you requested " << nStokesRequest);
+	bool haveMatch=false;
+	for(int i=0;i<nstoke;i++){
+	  haveMatch = haveMatch || (this->itsInputCubePtr->coordinates().stokesCoordinate(stokeCoo).stokes()[i] == stokes);
+	}
+	ASKAPCHECK(haveMatch, "Extraction: input cube "<<image<<" does not have requested polarisation " << polstring);
+	//	ASKAPCHECK(this->itsInputCubePtr->coordinates().stokesCoordinate(stokeCoo).stokes()[0] == stokes, "Extraction: input cube "<<image<<" has wrong polarisation ");
+      }
+
+    }
     
+    void SourceDataExtractor::verifyInputs()
+    {
+      std::vector<std::string>::iterator im;
+      std::vector<std::string> pollist=scimath::PolConverter::toString(this->itsStokesList);
+      ASKAPCHECK(this->itsInputCubeList.size()>0,"Extraction: You have not provided a spectralCube input");
+      ASKAPCHECK(this->itsStokesList.size()>0,"Extraction: You have not provided a list of Stokes parameters (input parameter \"polarisation\")");
+    
+      if(this->itsInputCubeList.size() > 1 ){ // multiple input cubes provided
+	ASKAPCHECK(this->itsInputCubeList.size() == this->itsStokesList.size(), "Extraction: Sizes of spectral cube and polarisation lists do not match");
+	int ct=0;
+	for(im=this->itsInputCubeList.begin();im<this->itsInputCubeList.end();im++,ct++)
+	  this->checkPol(*im, this->itsStokesList[ct],1);
+      }
+      else{ // only have a single input cube
+	if(this->itsStokesList.size() == 1 ){ // only single Stokes parameter requested -- check if it matches the image
+	  this->checkPol(this->itsInputCubeList[0], this->itsStokesList[0],1);
+	}
+	else { // multiple Stokes parameters requested
+	  if(this->itsInputCubeList[0].find("%p") != std::string::npos) { // the filename as a "%p" string, meaning polarisation substitution is possible
+	    std::string input = this->itsInputCubeList[0];
+	    this->itsInputCubeList=std::vector<std::string>(this->itsStokesList.size());
+	    casa::Stokes stokes;
+	    for(size_t i=0;i<this->itsStokesList.size();i++){
+	      std::string stokesname=stokes.name(this->itsStokesList[i]);
+	      this->itsInputCubeList[i] = input.replace(input.find("%p"),2,stokesname);
+	      this->checkPol(this->itsInputCubeList[i], this->itsStokesList[i],1);
+	    }
+	  }
+	  else{
+	    // get list of polarisations in that one image - are all the requested ones there?
+	    ASKAPCHECK(this->itsInputCubeList.size()==1, "Extraction: For multiple polarisations, either use %p substitution or provide a single image cube.");
+	    for(size_t i=0;i<this->itsStokesList.size();i++){
+	      this->checkPol(this->itsInputCubeList[0], this->itsStokesList[i],this->itsStokesList.size());
+	    }
+	    // else{
+	    //   std::string polset="[";
+	    //   std::vector<std::string> pols=this->polarisations();
+	    //   for(size_t i=0;i<pols.size();i++) polset+=pols[i]+(i!=pols.size()-1?",":"");
+	    //   polset+="]";
+	    //   ASKAPTHROW(AskapError, "Extraction: You have provided more than one stokes parameter ("<<polset<<"\") but only one input cube that doesn't contain all of these");
+	    // }
+	  }
+	}
+      }
+    }
+
     void SourceDataExtractor::openInput()
     {
       if(this->itsInputCubePtr==0){ // if non-zero, we have already opened the cube

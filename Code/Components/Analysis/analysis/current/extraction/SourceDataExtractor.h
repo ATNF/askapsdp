@@ -66,10 +66,13 @@ namespace askap {
 
 	virtual void setSource(RadioSource *src){itsSource = src;};
 
+	virtual void verifyInputs();
+
 	virtual void extract()=0;
 	
 	casa::Array<Float> array(){return itsArray;};
 	std::string inputCube(){return itsInputCube;};
+	std::vector<std::string> inputCubeList(){return itsInputCubeList;};
 	std::string outputFileBase(){return itsOutputFilenameBase;};
 	std::string outputFile(){return itsOutputFilename;};
 	RadioSource* source(){return itsSource;};
@@ -79,10 +82,12 @@ namespace askap {
 
       protected:
 	void openInput();
+	void checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest);
 
 	RadioSource* itsSource;
 	casa::Slicer itsSlicer;
 	std::string itsInputCube;
+	std::vector<std::string> itsInputCubeList;
 	const casa::ImageInterface<Float>* itsInputCubePtr;
 	casa::Vector<casa::Stokes::StokesTypes> itsStokesList;
 	std::string itsOutputFilenameBase;
