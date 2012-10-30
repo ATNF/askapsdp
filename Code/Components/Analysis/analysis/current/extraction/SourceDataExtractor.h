@@ -35,6 +35,8 @@
 #include <casa/Arrays/Slicer.h>
 #include <images/Images/ImageInterface.h>
 #include <Common/ParameterSet.h>
+#include <measures/Measures/Stokes.h>
+#include <utils/PolConverter.h>
 
 using namespace askap::analysis::sourcefitting;
 
@@ -71,6 +73,7 @@ namespace askap {
 	std::string outputFileBase(){return itsOutputFilenameBase;};
 	std::string outputFile(){return itsOutputFilename;};
 	RadioSource* source(){return itsSource;};
+	std::vector<std::string> polarisations(){return scimath::PolConverter::toString(itsStokesList);};
 
 	virtual void writeImage()=0;
 
@@ -81,6 +84,7 @@ namespace askap {
 	casa::Slicer itsSlicer;
 	std::string itsInputCube;
 	const casa::ImageInterface<Float>* itsInputCubePtr;
+	casa::Vector<casa::Stokes::StokesTypes> itsStokesList;
 	std::string itsOutputFilenameBase;
 	std::string itsOutputFilename;
 	casa::Array<Float> itsArray;

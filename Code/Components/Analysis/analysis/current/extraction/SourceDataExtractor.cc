@@ -38,6 +38,9 @@
 #include <images/Images/MIRIADImage.h>
 #include <lattices/Lattices/LatticeBase.h>
 #include <Common/ParameterSet.h>
+#include <measures/Measures/Stokes.h>
+
+#include <utils/PolConverter.h>
 
 namespace askap {
 
@@ -48,6 +51,19 @@ namespace askap {
       this->itsInputCubePtr=0;
       this->itsSource=0;
       this->itsInputCube = parset.getString("spectralCube","");
+      this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
+
+      // Take the following from SynthesisParamsHelper.cc in Synthesis
+      // there could be many ways to define stokes, e.g. ["XX YY"] or ["XX","YY"] or "XX,YY"
+      // to allow some flexibility we have to concatenate all elements first and then 
+      // allow the parser from PolConverter to take care of extracting the products.                                            
+      const std::vector<std::string> stokesVec = parset.getStringVector("polarisation", std::vector<std::string>(1,"I"));
+      std::string stokesStr;
+      for (size_t i=0; i<stokesVec.size(); ++i) {
+	stokesStr += stokesVec[i];
+      }
+      this->itsStokesList = scimath::PolConverter::fromString(stokesStr);
+      
     }
 
     SourceDataExtractor::~SourceDataExtractor()
@@ -68,6 +84,7 @@ namespace askap {
       this->itsSlicer = other.itsSlicer;
       this->itsInputCube = other.itsInputCube;
       this->itsInputCubePtr = other.itsInputCubePtr;
+      this->itsStokesList = other.itsStokesList;
       this->itsOutputFilenameBase = other.itsOutputFilenameBase;
       this->itsOutputFilename = other.itsOutputFilename;
       this->itsArray = other.itsArray;

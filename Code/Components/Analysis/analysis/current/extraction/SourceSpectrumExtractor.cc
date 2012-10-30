@@ -37,7 +37,6 @@
 #include <sourcefitting/RadioSource.h>
 
 #include <imageaccess/CasaImageAccess.h>
-#include <utils/PolConverter.h>
 
 #include <duchamp/PixelMap/Object2D.hh>
 
@@ -53,7 +52,6 @@
 #include <images/Images/SubImage.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
-#include <measures/Measures/Stokes.h>
 
 #include <Common/ParameterSet.h>
 
@@ -65,7 +63,8 @@ namespace askap {
 
   namespace analysis {
 
-    SourceSpectrumExtractor::SourceSpectrumExtractor(const LOFAR::ParameterSet& parset)
+    SourceSpectrumExtractor::SourceSpectrumExtractor(const LOFAR::ParameterSet& parset):
+      SpectralBoxExtractor(parset)
     {
       /// @details Initialise the extractor from a LOFAR parset. This
       /// sets the input cube, the box width, the scaling flag, the
@@ -73,25 +72,9 @@ namespace askap {
       /// appended, where X is the ID of the object in question), and
       /// the set of polarisation products to extract.
 
-      this->itsInputCube = parset.getString("spectralCube","");
-      this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
       this->itsFlagUseDetection = parset.getBool("useDetectedPixels",false);
       this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
-      this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
 
-      // Take the following from SynthesisParamsHelper.cc in Synthesis
-      // there could be many ways to define stokes, e.g. ["XX YY"] or ["XX","YY"] or "XX,YY"
-      // to allow some flexibility we have to concatenate all elements first and then 
-      // allow the parser from PolConverter to take care of extracting the products.                                            
-      const std::vector<std::string> stokesVec = parset.getStringVector("polarisation", std::vector<std::string>(1,"IQUV"));
-      std::string stokesStr;
-      for (size_t i=0; i<stokesVec.size(); ++i) {
-	stokesStr += stokesVec[i];
-      }
-      this->itsStokesList = scimath::PolConverter::fromString(stokesStr);
-      
-      this->itsSource = 0;
-      this->itsInputCubePtr = 0;
     }
 
     SourceSpectrumExtractor::SourceSpectrumExtractor(const SourceSpectrumExtractor& other)
@@ -106,7 +89,6 @@ namespace askap {
       this->itsFlagDoScale = other.itsFlagDoScale;
       this->itsFlagUseDetection = other.itsFlagUseDetection;
       this->itsBeamScaleFactor = other.itsBeamScaleFactor;
-      this->itsStokesList = other.itsStokesList;
       return *this;
     }
 

@@ -58,17 +58,16 @@ namespace askap {
 
   namespace analysis {
 
-    SpectralBoxExtractor::SpectralBoxExtractor(const LOFAR::ParameterSet& parset)
+    SpectralBoxExtractor::SpectralBoxExtractor(const LOFAR::ParameterSet& parset):
+      SourceDataExtractor(parset)
     {
       /// @details Initialise the extractor from a LOFAR parset. This
       /// sets the input cube, the box width, the scaling flag, and
       /// the base name for the output spectra files (these will have
       /// _X appended, where X is the ID of the object in question).
-      this->itsInputCube = parset.getString("spectralCube","");
+
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
-      this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
-      this->itsInputCubePtr = 0;
-      this->itsSource = 0;
+
     }
 
     SpectralBoxExtractor::SpectralBoxExtractor(const SpectralBoxExtractor& other)

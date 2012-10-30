@@ -260,9 +260,11 @@ namespace askap {
 		/// Whether to extract spectra of detected sources, POSSUM-style
 		bool itsFlagExtractSpectra;
 		
+		/// Whether to extract noise spectra for detected sources, POSSUM-style
+		bool itsFlagExtractNoiseSpectra;
+		
                 /// The list of voxels encompassing detected sources (only for those on the edges of subimages), with fluxes.
                 std::vector<PixelInfo::Voxel> itsVoxelList;
-/*                 std::map<PixelInfo::Voxel,float,voxComp> itsVoxelMap; */
 		std::map<PixelInfo::Voxel,float> itsVoxelMap;
 
                 /// The list of voxels for edge sources that encodes the S/N ratio (only used when itsFlagDoMedianSearch is true)

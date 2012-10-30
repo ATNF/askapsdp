@@ -209,7 +209,6 @@ namespace askap {
 	  std::vector<float> asVec;
 	  extractor.array().tovector(asVec);
 	  for(size_t i=0;i<asVec.size();i++){
-/* 	    ASKAPLOG_DEBUG_STR(logger, "A " << extractor.boxWidth() << " " << width << " " << i << " " << asVec[i] << " " << fabs(asVec[i]-width)); */
 	    CPPUNIT_ASSERT(fabs(asVec[i]-width)<1.e-5);
 	  }
 	}
@@ -225,7 +224,6 @@ namespace askap {
 	  std::vector<float> asVec;
 	  extractor.array().tovector(asVec);
 	  for(size_t i=0;i<asVec.size();i++){
-/* 	    ASKAPLOG_DEBUG_STR(logger, "B " << extractor.boxWidth() << " " << width << " " << width*pow(double(i+1),alpha) << " " << i << " " << asVec[i] << " " << fabs(asVec[i]-width*pow(double(i+1),alpha))); */
 	    CPPUNIT_ASSERT(fabs(asVec[i]-width*pow(double(i+1),alpha))<1.e-4);
 	  }
 	}

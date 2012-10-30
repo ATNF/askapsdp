@@ -199,6 +199,11 @@ namespace askap {
 	      ASKAPCHECK(parset.isDefined("extractSpectra.spectralCube"), "Source cube not defined for extracting spectra. Please use the \"spectralCube\" parameter.");
 	      ASKAPLOG_INFO_STR(logger, "Extracting spectra for detected sources from " << parset.getString("extractSpectra.spectralCube",""));
 	    }
+	    this->itsFlagExtractNoiseSpectra = parset.getBool("extractNoiseSpectra",false);
+	    if(this->itsFlagExtractNoiseSpectra){
+	      ASKAPCHECK(parset.isDefined("extractSpectra.spectralCube"), "Source cube not defined for extracting noise spectra. Please use the \"spectralCube\" parameter.");
+	      ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for detected sources from " << parset.getString("extractNoiseSpectra.spectralCube",""));
+	    }
 // 	    if(parset.isDefined("summaryFile")){
 // 	      this->itsFitSummaryFile = parset.getString("summaryFile", "duchamp-fitResults.txt");
 // 	      ASKAPLOG_WARN_STR(logger, "We've changed the name of the 'summaryFile' parameter to 'fitResultsFile'. Using your parameter " << this->itsFitSummaryFile << " for now, but please change your parset!");
@@ -1949,7 +1954,6 @@ namespace askap {
       void DuchampParallel::extractSpectra()
       {
 	if(this->itsFlagExtractSpectra && this->itsComms.isMaster()){
-
 	  std::vector<sourcefitting::RadioSource>::iterator src;
 	  LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractSpectra.");
 	  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
@@ -1958,7 +1962,16 @@ namespace askap {
 	    extractor.extract();
  	    extractor.writeImage();
 	  }
-
+	}
+	if(this->itsFlagExtractNoiseSpectra && this->itsComms.isMaster()){
+	  std::vector<sourcefitting::RadioSource>::iterator src;
+	  LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractNoiseSpectra.");
+	  for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
+	    NoiseSpectrumExtractor extractor(extractSubset);
+	    extractor.setSource(&*src);
+	    extractor.extract();
+ 	    extractor.writeImage();
+	  }
 	}
 	
       }
