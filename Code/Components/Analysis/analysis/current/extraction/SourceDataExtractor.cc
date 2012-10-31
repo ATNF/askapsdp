@@ -168,7 +168,8 @@ namespace askap {
 	    this->itsInputCubeList=std::vector<std::string>(this->itsStokesList.size());
 	    casa::Stokes stokes;
 	    for(size_t i=0;i<this->itsStokesList.size();i++){
-	      std::string stokesname=stokes.name(this->itsStokesList[i]);
+	      casa::String stokesname(stokes.name(this->itsStokesList[i]));
+	      stokesname.downcase();
 	      this->itsInputCubeList[i] = input.replace(input.find("%p"),2,stokesname);
 	      this->checkPol(this->itsInputCubeList[i], this->itsStokesList[i],1);
 	    }
