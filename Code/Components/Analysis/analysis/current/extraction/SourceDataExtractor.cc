@@ -28,10 +28,15 @@
 ///
 #include <extraction/SourceDataExtractor.h>
 #include <askap_analysis.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <string>
 #include <sourcefitting/RadioSource.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Slicer.h>
+#include <casa/BasicSL/String.h>
 #include <images/Images/ImageInterface.h>
 #include <images/Images/ImageOpener.h>
 #include <images/Images/FITSImage.h>
@@ -41,6 +46,8 @@
 #include <measures/Measures/Stokes.h>
 
 #include <utils/PolConverter.h>
+
+ASKAP_LOGGER(logger, ".sourcedataextractor");
 
 namespace askap {
 
@@ -105,6 +112,7 @@ namespace askap {
       int specsize = this->itsInputCubePtr->shape()(this->itsInputCubePtr->coordinates().spectralAxisNumber());
       casa::IPosition shape(4,1,1,this->itsStokesList.size(),specsize);
       this->itsArray = casa::Array<Float>(shape,0.0);
+      this->itsInputCubePtr = 0;
     }
 
     casa::IPosition SourceDataExtractor::getShape(std::string image)
@@ -112,6 +120,7 @@ namespace askap {
       this->itsInputCube = image;
       this->openInput();
       casa::IPosition shape=this->itsInputCubePtr->shape();
+      this->itsInputCubePtr = 0;
       return shape;
     }
 
@@ -136,6 +145,8 @@ namespace askap {
 	}
 	ASKAPCHECK(haveMatch, "Extraction: input cube "<<image<<" does not have requested polarisation " << polstring);
       }
+      
+      this->itsInputCubePtr = 0;
 
     }
     
@@ -170,7 +181,9 @@ namespace askap {
 	    for(size_t i=0;i<this->itsStokesList.size();i++){
 	      casa::String stokesname(stokes.name(this->itsStokesList[i]));
 	      stokesname.downcase();
-	      this->itsInputCubeList[i] = input.replace(input.find("%p"),2,stokesname);
+	      ASKAPLOG_DEBUG_STR(logger,"Input cube name: replacing \"%p\" with " << stokesname.c_str() << " in " << input);
+	      this->itsInputCubeList[i] = input;
+	      this->itsInputCubeList[i].replace(input.find("%p"),2,stokesname.c_str());
 	      this->checkPol(this->itsInputCubeList[i], this->itsStokesList[i],1);
 	    }
 	  }

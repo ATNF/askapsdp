@@ -74,6 +74,9 @@ namespace askap {
       /// the set of polarisation products to extract.
 
       this->itsFlagUseDetection = parset.getBool("useDetectedPixels",false);
+      if(this->itsFlagUseDetection) this->itsBoxWidth = -1;
+      if(parset.isDefined("spectralBoxWidth")) ASKAPLOG_WARN_STR(logger, "useDetectedPixels option selected, so setting spectralBoxWidth=-1");
+
       this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
 
     }
@@ -151,6 +154,8 @@ namespace askap {
 	  }
 
 	}
+
+	this->itsInputCubePtr = 0;
       }
 
     }
@@ -172,11 +177,12 @@ namespace askap {
 
 	this->itsInputCube = this->itsInputCubeList[stokes%this->itsInputCubeList.size()]; // get either the matching image for the current stokes value, or the first&only in the input list
 	this->itsCurrentStokes = this->itsStokesList[stokes];
-	this->openInput();
-	this->defineSlicer();
 	this->setBeamScale();
+	this->defineSlicer();
+	this->openInput();
 	casa::Stokes stk;
-	ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " for source ID " << this->itsSource->getID() 
+	ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " with shape " << this->itsInputCubePtr->shape() 
+			  << " for source ID " << this->itsSource->getID() 
 			  << " using slicer " << this->itsSlicer << " and Stokes " << stk.name(this->itsCurrentStokes));
 
 	const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
@@ -187,12 +193,9 @@ namespace askap {
 	casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
 	outBLC(2) = outTRC(2) = stokes;
 
-	ASKAPLOG_DEBUG_STR(logger, "output BLC="<<outBLC<<", and TRC="<<outTRC);
-
 	if(!this->itsFlagUseDetection){
 	  casa::Array<Float> sumarray = partialSums(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape());
-	  ASKAPLOG_DEBUG_STR(logger, "sumarry shape = " << sumarray.shape() << ", output subarray shape = " << this->itsArray(outBLC,outTRC).shape());
-	  this->itsArray(outBLC,outTRC) = sumarray / this->itsBeamScaleFactor;
+	  this->itsArray(outBLC,outTRC) = sumarray;
 	}
 	else {
 	  ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");
@@ -217,20 +220,22 @@ namespace askap {
 		blc(lngAxis)=trc(lngAxis)=x-this->itsSource->getXmin(); 
 		blc(latAxis)=trc(latAxis)=y-this->itsSource->getYmin();
 		casa::Array<Float> spec=subarray(blc,trc,inc).reform(this->itsArray(outBLC,outTRC).shape());
-		ASKAPLOG_DEBUG_STR(logger, "subshape = " << this->itsArray(outBLC,outTRC) << "   shape = " << this->itsArray.shape());
 		this->itsArray(outBLC,outTRC) = this->itsArray(outBLC,outTRC) + spec;
 	      }
 	    }
 	  }
-	  this->itsArray /= this->itsBeamScaleFactor;
 	}
       
 	delete sub;
 
+	this->itsInputCubePtr = 0;
+
       }
 
+      this->itsArray /= this->itsBeamScaleFactor;
 
     }
+    
 
   }
 }

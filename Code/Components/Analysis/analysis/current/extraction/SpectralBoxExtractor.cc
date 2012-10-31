@@ -146,7 +146,7 @@ namespace askap {
 	casa::Stokes stk;
 	blc(stkAxis) = trc(stkAxis) = coords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
       }
-      ASKAPLOG_DEBUG_STR(logger, "Defining slicer based on blc="<<blc <<", trc="<<trc);
+      ASKAPLOG_DEBUG_STR(logger, "Defining slicer for " << this->itsInputCubePtr->name() << " based on blc="<<blc <<", trc="<<trc);
       this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
 
     }
@@ -157,6 +157,8 @@ namespace askap {
       ASKAPLOG_INFO_STR(logger, "Writing spectrum to " << this->itsOutputFilename);
       accessors::CasaImageAccess ia;
 
+      this->itsInputCube = this->itsInputCubeList[0];
+      this->openInput();
       IPosition inshape = this->itsInputCubePtr->shape();
       CoordinateSystem incoords = this->itsInputCubePtr->coordinates();
       casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
@@ -193,6 +195,8 @@ namespace askap {
       ia.write(this->itsOutputFilename,newarray);
       ia.setUnits(this->itsOutputFilename, this->itsInputCubePtr->units().getName());
 
+      this->itsInputCubePtr = 0;
+      
     }
 
 
