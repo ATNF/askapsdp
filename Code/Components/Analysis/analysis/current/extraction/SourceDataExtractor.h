@@ -68,6 +68,8 @@ namespace askap {
 
 	virtual void verifyInputs();
 
+	virtual void defineSlicer()=0;
+
 	virtual void extract()=0;
 	
 	casa::Array<Float> array(){return itsArray;};
@@ -83,6 +85,8 @@ namespace askap {
       protected:
 	void openInput();
 	void checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest);
+	casa::IPosition getShape(std::string image);
+	void initialiseArray();
 
 	RadioSource* itsSource;
 	casa::Slicer itsSlicer;
@@ -90,6 +94,7 @@ namespace askap {
 	std::vector<std::string> itsInputCubeList;
 	const casa::ImageInterface<Float>* itsInputCubePtr;
 	casa::Vector<casa::Stokes::StokesTypes> itsStokesList;
+	casa::Stokes::StokesTypes itsCurrentStokes;
 	std::string itsOutputFilenameBase;
 	std::string itsOutputFilename;
 	casa::Array<Float> itsArray;

@@ -66,6 +66,8 @@ namespace askap {
       this->itsStokesList = scimath::PolConverter::fromString(stokesStr);
       
       this->verifyInputs();
+      
+      this->initialiseArray();
 
     }
 
@@ -89,10 +91,28 @@ namespace askap {
       this->itsInputCubeList = other.itsInputCubeList;
       this->itsInputCubePtr = other.itsInputCubePtr;
       this->itsStokesList = other.itsStokesList;
+      this->itsCurrentStokes = other.itsCurrentStokes;
       this->itsOutputFilenameBase = other.itsOutputFilenameBase;
       this->itsOutputFilename = other.itsOutputFilename;
       this->itsArray = other.itsArray;
       return *this;
+    }
+
+    void SourceDataExtractor::initialiseArray()
+    {
+      // Form itsArray and initialise to zero
+      this->openInput();
+      int specsize = this->itsInputCubePtr->shape()(this->itsInputCubePtr->coordinates().spectralAxisNumber());
+      casa::IPosition shape(4,1,1,this->itsStokesList.size(),specsize);
+      this->itsArray = casa::Array<Float>(shape,0.0);
+    }
+
+    casa::IPosition SourceDataExtractor::getShape(std::string image)
+    {
+      this->itsInputCube = image;
+      this->openInput();
+      casa::IPosition shape=this->itsInputCubePtr->shape();
+      return shape;
     }
 
     void SourceDataExtractor::checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest)
@@ -109,14 +129,12 @@ namespace askap {
       }
       else{
 	int nstoke=this->itsInputCubePtr->shape()[stokeAxis];
-	//	ASKAPCHECK(nstoke==1,"Extraction: when multiple input cubes are provided, they must have only one polarisation per cube");
 	ASKAPCHECK(nstoke=nStokesRequest, "Extraction: input cube " << image << " has " << nstoke << " polarisations, whereas you requested " << nStokesRequest);
 	bool haveMatch=false;
 	for(int i=0;i<nstoke;i++){
 	  haveMatch = haveMatch || (this->itsInputCubePtr->coordinates().stokesCoordinate(stokeCoo).stokes()[i] == stokes);
 	}
 	ASKAPCHECK(haveMatch, "Extraction: input cube "<<image<<" does not have requested polarisation " << polstring);
-	//	ASKAPCHECK(this->itsInputCubePtr->coordinates().stokesCoordinate(stokeCoo).stokes()[0] == stokes, "Extraction: input cube "<<image<<" has wrong polarisation ");
       }
 
     }
@@ -131,8 +149,14 @@ namespace askap {
       if(this->itsInputCubeList.size() > 1 ){ // multiple input cubes provided
 	ASKAPCHECK(this->itsInputCubeList.size() == this->itsStokesList.size(), "Extraction: Sizes of spectral cube and polarisation lists do not match");
 	int ct=0;
-	for(im=this->itsInputCubeList.begin();im<this->itsInputCubeList.end();im++,ct++)
+	for(im=this->itsInputCubeList.begin();im<this->itsInputCubeList.end();im++,ct++){
 	  this->checkPol(*im, this->itsStokesList[ct],1);
+	}
+	// check they are all the same shape
+	casa::IPosition refShape=this->getShape(this->itsInputCubeList[0]);
+	for(size_t i=1;i<this->itsInputCubeList.size();i++){
+	  ASKAPCHECK(refShape == this->getShape(this->itsInputCubeList[i]), "Extraction: shapes of " << this->itsInputCubeList[0] << " and " << this->itsInputCubeList[i] << " do not match");
+	}
       }
       else{ // only have a single input cube
 	if(this->itsStokesList.size() == 1 ){ // only single Stokes parameter requested -- check if it matches the image

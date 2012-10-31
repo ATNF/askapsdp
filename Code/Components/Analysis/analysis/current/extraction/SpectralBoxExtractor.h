@@ -65,8 +65,8 @@ namespace askap {
 
       /// @brief Set the pointer to the source, and define the output filename based on its ID
       void setSource(RadioSource* src);
-      
-      void define();
+
+      virtual void defineSlicer();
 
       virtual void extract() = 0;
 

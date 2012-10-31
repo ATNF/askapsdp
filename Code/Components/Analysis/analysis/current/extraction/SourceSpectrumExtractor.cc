@@ -52,6 +52,7 @@
 #include <images/Images/SubImage.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <measures/Measures/Stokes.h>
 
 #include <Common/ParameterSet.h>
 
@@ -167,51 +168,69 @@ namespace askap {
       /// the beam if so required. The output spectrum is stored in
       /// itsArray, ready for later access or export.
 
-      this->openInput();
-      this->setBeamScale();
-      ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " for source ID " << this->itsSource->getID() << " using slicer " << this->itsSlicer);
+      for(size_t stokes=0; stokes<this->itsStokesList.size(); stokes++){
 
-      const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
-      const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
-      casa::Array<Float> subarray(sub->shape());
-      subarray = msub;
+	this->itsInputCube = this->itsInputCubeList[stokes%this->itsInputCubeList.size()]; // get either the matching image for the current stokes value, or the first&only in the input list
+	this->itsCurrentStokes = this->itsStokesList[stokes];
+	this->openInput();
+	this->defineSlicer();
+	this->setBeamScale();
+	casa::Stokes stk;
+	ASKAPLOG_INFO_STR(logger, "Extracting spectrum from " << this->itsInputCube << " for source ID " << this->itsSource->getID() 
+			  << " using slicer " << this->itsSlicer << " and Stokes " << stk.name(this->itsCurrentStokes));
 
-      //      if(this->itsBoxWidth > 0)
-      if(!this->itsFlagUseDetection)
-	this->itsArray = partialSums(subarray, IPosition(2,0,1)) / this->itsBeamScaleFactor;
-      else {
-	ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");
-	IPosition shape = this->itsInputCubePtr->shape();
-	CoordinateSystem coords = this->itsInputCubePtr->coordinates();
-	int lngAxis=coords.directionAxesNumbers()[0];
-	int latAxis=coords.directionAxesNumbers()[1];
-	int specAxis=coords.spectralAxisNumber();
-	PixelInfo::Object2D spatmap=this->itsSource->getSpatialMap();
-	casa::IPosition blc(shape.size(),0),trc(shape.size(),0),inc(shape.size(),1);	
-	trc(specAxis)=shape[specAxis]-1;
-	IPosition newshape(shape);
-	newshape(lngAxis) = newshape(latAxis) = 1;
-	ASKAPLOG_DEBUG_STR(logger, "Initialising array to zero with shape " << newshape);
-	this->itsArray = casa::Array<Float>(newshape,0.);
-	for(int x=this->itsSource->getXmin(); x<=this->itsSource->getXmax();x++) {
-	  for(int y=this->itsSource->getYmin(); y<=this->itsSource->getYmax();y++){
-	    if(spatmap.isInObject(x,y)){
-	      blc(lngAxis)=trc(lngAxis)=x-this->itsSource->getXmin(); 
-	      blc(latAxis)=trc(latAxis)=y-this->itsSource->getYmin();
-	      casa::Array<Float> spec=subarray(blc,trc,inc);
-	      ASKAPCHECK(spec.shape() == this->itsArray.shape(),"Extracted pixel spectrum not of correct shape: "<<spec.shape()<< " vs " <<this->itsArray.shape());
-	      this->itsArray += spec;
+	const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
+	const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
+	casa::Array<Float> subarray(sub->shape());
+	subarray = msub;
+
+	casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
+	outBLC(2) = outTRC(2) = stokes;
+
+	ASKAPLOG_DEBUG_STR(logger, "output BLC="<<outBLC<<", and TRC="<<outTRC);
+
+	if(!this->itsFlagUseDetection){
+	  casa::Array<Float> sumarray = partialSums(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape());
+	  ASKAPLOG_DEBUG_STR(logger, "sumarry shape = " << sumarray.shape() << ", output subarray shape = " << this->itsArray(outBLC,outTRC).shape());
+	  this->itsArray(outBLC,outTRC) = sumarray / this->itsBeamScaleFactor;
+	}
+	else {
+	  ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");
+	  IPosition shape = this->itsInputCubePtr->shape();
+	  CoordinateSystem coords = this->itsInputCubePtr->coordinates();
+	  int lngAxis=coords.directionAxesNumbers()[0];
+	  int latAxis=coords.directionAxesNumbers()[1];
+	  int specAxis=coords.spectralAxisNumber();
+	  int stkAxis=coords.polarizationAxisNumber();
+
+	  PixelInfo::Object2D spatmap=this->itsSource->getSpatialMap();
+	  casa::IPosition blc(shape.size(),0),trc(shape.size(),0),inc(shape.size(),1);	
+	  trc(specAxis)=shape[specAxis]-1;
+	  if(stkAxis>-1){
+	    casa::Stokes stk;
+	    blc(stkAxis) = trc(stkAxis) = coords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
+	  }
+
+	  for(int x=this->itsSource->getXmin(); x<=this->itsSource->getXmax();x++) {
+	    for(int y=this->itsSource->getYmin(); y<=this->itsSource->getYmax();y++){
+	      if(spatmap.isInObject(x,y)){
+		blc(lngAxis)=trc(lngAxis)=x-this->itsSource->getXmin(); 
+		blc(latAxis)=trc(latAxis)=y-this->itsSource->getYmin();
+		casa::Array<Float> spec=subarray(blc,trc,inc).reform(this->itsArray(outBLC,outTRC).shape());
+		ASKAPLOG_DEBUG_STR(logger, "subshape = " << this->itsArray(outBLC,outTRC) << "   shape = " << this->itsArray.shape());
+		this->itsArray(outBLC,outTRC) = this->itsArray(outBLC,outTRC) + spec;
+	      }
 	    }
 	  }
+	  this->itsArray /= this->itsBeamScaleFactor;
 	}
-	this->itsArray /= this->itsBeamScaleFactor;
-      }
       
-      delete sub;
+	delete sub;
+
+      }
+
 
     }
 
-
   }
-
 }

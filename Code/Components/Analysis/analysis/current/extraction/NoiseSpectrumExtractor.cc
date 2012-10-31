@@ -49,6 +49,7 @@
 #include <images/Images/SubImage.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <measures/Measures/Stokes.h>
 
 #include <Common/ParameterSet.h>
 
@@ -62,19 +63,32 @@ namespace askap {
 
   namespace analysis {
 
-    NoiseSpectrumExtractor::NoiseSpectrumExtractor(const LOFAR::ParameterSet& parset)
+    NoiseSpectrumExtractor::NoiseSpectrumExtractor(const LOFAR::ParameterSet& parset):
+      SpectralBoxExtractor(parset)
     {
       /// @details Initialise the extractor from a LOFAR parset. This
       /// sets the input cube, the box width, the scaling flag, and
       /// the base name for the output spectra files (these will have
       /// _X appended, where X is the ID of the object in question).
-      this->itsInputCube = parset.getString("spectralCube","");
+
       this->itsAreaInBeams = parset.getFloat("noiseArea",50);
-      this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
-      this->itsOutputFilename = parset.getString("spectralOutputBase","");
-      this->itsInputCubePtr = 0;
-      this->itsSource = 0;
+
+      casa::Stokes stk;
+      this->itsCurrentStokes = this->itsStokesList[0];
+      if(this->itsStokesList.size()>1){
+	ASKAPLOG_WARN_STR(logger, "Noise Extractor: Will only use the first provided Stokes parameter: " << stk.name(this->itsCurrentStokes));
+	this->itsStokesList = casa::Vector<casa::Stokes::StokesTypes>(1,this->itsCurrentStokes);
+      }
+      this->itsInputCube = this->itsInputCubeList[0];
+      if(this->itsInputCubeList.size()>1){
+	ASKAPLOG_WARN_STR(logger, "Noise Extractor: Will only use the first provided input cube: " << this->itsInputCubeList[0]);
+	this->itsInputCubeList = std::vector<std::string>(1,this->itsInputCube);
+      }
+
+      this->initialiseArray();
+
       this->setBoxWidth();
+      
     }
 
     NoiseSpectrumExtractor::NoiseSpectrumExtractor(const NoiseSpectrumExtractor& other)
@@ -110,7 +124,7 @@ namespace askap {
 
       }
 
-      if(this->itsSource) this->define();
+      if(this->itsSource) this->defineSlicer();
       
     }
 
@@ -129,16 +143,16 @@ namespace askap {
       /// itsArray, ready for later access or export.
 
       this->openInput();
+      this->defineSlicer();
 
       ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
 
       const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
       casa::Array<Float> subarray=sub->get();
 
-      this->itsArray = partialMadfms(subarray, IPosition(2,0,1)) / Statistics::correctionFactor;
-      
-
-      // ASKAPLOG_DEBUG_STR(logger,"Finished calculating array, here it is: " << this->itsArray);
+      casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
+      casa::Array<Float> madfmarray = partialMadfms(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape());
+      this->itsArray(outBLC,outTRC) = madfmarray / Statistics::correctionFactor;
 
       delete sub;
 

@@ -54,6 +54,7 @@ namespace askap {
   namespace analysis {
 
     const bool doScale=false;
+    const size_t xdim=9;
 
     class SourceSpectrumExtractionTest : public CppUnit::TestFixture {
       CPPUNIT_TEST_SUITE(SourceSpectrumExtractionTest);
@@ -72,6 +73,7 @@ namespace askap {
       std::string outfile;
       RadioSource object,gaussobject;
       float alpha;
+      casa::IPosition cubeShape,outShape;
       // std::vector<double> beam;
 
     public:
@@ -82,8 +84,10 @@ namespace askap {
 	tempImagePL="tempImagePowerlawForExtractionTest";
 	tempImageGauss="tempImageGaussianForExtractionTest";
 	outfile="tempOutputFromExtractionTest";
-	basePolList="I";
+	basePolList="IQUV";
 	alpha=0.5;
+	cubeShape=casa::IPosition(4,xdim,xdim,basePolList.size(),10);
+	outShape=casa::IPosition(4,1,1,basePolList.size(),10);
 
 	//-----------------------------------
 	// Make the coordinate system for the images
@@ -94,32 +98,36 @@ namespace askap {
 					 casa::Quantum<Double>(10./3600.,"deg"),casa::Quantum<Double>(10./3600.,"deg"),
 					 xform,5,5);
 	casa::SpectralCoordinate spcoo(MFrequency::TOPO, 1.4e9, 1.e6, 0, 1420405751.786);
-	casa::CoordinateSystem coo=casa::CoordinateUtil::defaultCoords3D();
+	casa::CoordinateSystem coo=casa::CoordinateUtil::defaultCoords4D();
 	coo.replaceCoordinate(dircoo,coo.findCoordinate(casa::Coordinate::DIRECTION));
 	coo.replaceCoordinate(spcoo,coo.findCoordinate(casa::Coordinate::SPECTRAL));
 
 	//-----------------------------------
 	// make a synthetic array where the box sum of a given width will be equal to the width
-	double pixels[81]={16.,16.,16.,16.,16.,16.,16.,16.,16.,
-			   16.,12.,12.,12.,12.,12.,12.,12.,16.,
-			   16.,12., 8., 8., 8., 8., 8.,12.,16.,
-			   16.,12., 8., 4., 4., 4., 8.,12.,16.,
-			   16.,12., 8., 4., 1., 4., 8.,12.,16.,
-			   16.,12., 8., 4., 4., 4., 8.,12.,16.,
-			   16.,12., 8., 8., 8., 8., 8.,12.,16.,
-			   16.,12.,12.,12.,12.,12.,12.,12.,16.,
-			   16.,16.,16.,16.,16.,16.,16.,16.,16.};
+	const size_t sqSize=xdim*xdim;
+	double pixels[sqSize]={16.,16.,16.,16.,16.,16.,16.,16.,16.,
+			       16.,12.,12.,12.,12.,12.,12.,12.,16.,
+			       16.,12., 8., 8., 8., 8., 8.,12.,16.,
+			       16.,12., 8., 4., 4., 4., 8.,12.,16.,
+			       16.,12., 8., 4., 1., 4., 8.,12.,16.,
+			       16.,12., 8., 4., 4., 4., 8.,12.,16.,
+			       16.,12., 8., 8., 8., 8., 8.,12.,16.,
+			       16.,12.,12.,12.,12.,12.,12.,12.,16.,
+			       16.,16.,16.,16.,16.,16.,16.,16.,16.};
 
-	casa::IPosition shape(3,9,9,10),shapeSml(3,9,9,1);
+	casa::IPosition shape(cubeShape),shapeSml(cubeShape);
+	shapeSml(2)=shapeSml(3)=1;
 	casa::Array<Float> array(shape),arrSml(shapeSml),arrayPL(shape);
-	for(int y=0;y<9;y++){
-	  for(int x=0;x<9;x++){
-	    casa::IPosition locSml(3,x,y,0);
-	    arrSml(locSml)=float(1./pixels[y*9+x]);
-	    for(int z=0;z<10;z++){
-	      casa::IPosition loc(3,x,y,z);
-	      array(loc)=arrSml(locSml);
-	      arrayPL(loc)=arrSml(locSml) * pow(double(z+1),alpha);
+	for(int s=0;s<4;s++){
+	  for(int y=0;y<9;y++){
+	    for(int x=0;x<9;x++){
+	      casa::IPosition locSml(4,x,y,0,0);
+	      arrSml(locSml)=float(1./pixels[y*9+x]);
+	      for(int z=0;z<10;z++){
+		casa::IPosition loc(4,x,y,s,z);
+		array(loc)=arrSml(locSml);
+		arrayPL(loc)=arrSml(locSml) * pow(double(z+1),alpha);
+	      }
 	    }
 	  }
 	}
@@ -150,15 +158,17 @@ namespace askap {
 	float sigMinsq = bmin*bmin/8./M_LN2;
 	float bpa = M_PI/4.;
 	casa::Array<Float> gaussarray(shape),gaussarrSml(shapeSml);
-	for(int y=0;y<9;y++){
-	  for(int x=0;x<9;x++){
-	    double u = (x-4)*cos(bpa) + (y-4)*sin(bpa);
-	    double v = (x-4)*sin(bpa) - (y-4)*cos(bpa);
-	    casa::IPosition locSml(3,x,y,0);
-	    gaussarrSml(locSml) = exp(-0.5*(u*u/sigMajsq + v*v/sigMinsq));
-	    for(int z=0;z<10;z++){
-	      casa::IPosition loc(3,x,y,z);
-	      gaussarray(loc)=gaussarrSml(locSml);
+	for(int s=0;s<4;s++){
+	  for(int y=0;y<9;y++){
+	    for(int x=0;x<9;x++){
+	      double u = (x-4)*cos(bpa) + (y-4)*sin(bpa);
+	      double v = (x-4)*sin(bpa) - (y-4)*cos(bpa);
+	      casa::IPosition locSml(4,x,y,0,0);
+	      gaussarrSml(locSml) = exp(-0.5*(u*u/sigMajsq + v*v/sigMinsq));
+	      for(int z=0;z<10;z++){
+		casa::IPosition loc(4,x,y,s,z);
+		gaussarray(loc)=gaussarrSml(locSml);
+	      }
 	    }
 	  }
 	}
@@ -188,7 +198,6 @@ namespace askap {
 
       void readParset() {
 	extractor = SourceSpectrumExtractor(parset);
-	//	CPPUNIT_ASSERT(extractor.inputCube() == tempImage);
 	CPPUNIT_ASSERT(extractor.inputCubeList().size() == 1);
 	CPPUNIT_ASSERT(extractor.inputCubeList()[0] == tempImage);
 	CPPUNIT_ASSERT(extractor.outputFileBase() == outfile);
@@ -213,10 +222,11 @@ namespace askap {
 	for(int width=1;width<=9;width += 2){
 	  extractor.setBoxWidth(width);
 	  extractor.extract();
-	  std::vector<float> asVec;
-	  extractor.array().tovector(asVec);
-	  for(size_t i=0;i<asVec.size();i++){
-	    CPPUNIT_ASSERT(fabs(asVec[i]-width)<1.e-5);
+	  CPPUNIT_ASSERT(extractor.array().shape()==outShape);
+	  for(int s=0;s<outShape(2);s++){
+	    for(int z=0;z<outShape(3);z++){
+	      CPPUNIT_ASSERT(fabs(extractor.array()(IPosition(4,0,0,s,z))-width)<1.e-5);
+	    }
 	  }
 	}
       }
@@ -228,10 +238,11 @@ namespace askap {
 	for(int width=1;width<=9;width += 2){
 	  extractor.setBoxWidth(width);
 	  extractor.extract();
-	  std::vector<float> asVec;
-	  extractor.array().tovector(asVec);
-	  for(size_t i=0;i<asVec.size();i++){
-	    CPPUNIT_ASSERT(fabs(asVec[i]-width*pow(double(i+1),alpha))<1.e-4);
+	  CPPUNIT_ASSERT(extractor.array().shape()==outShape);
+	  for(int s=0;s<outShape(2);s++){
+	    for(int z=0;z<outShape(3);z++){
+	      CPPUNIT_ASSERT(fabs(extractor.array()(IPosition(4,0,0,s,z))-width*pow(double(z+1),alpha))<1.e-4);
+	    }
 	  }
 	}
       }
@@ -244,11 +255,11 @@ namespace askap {
 	for(int width=1;width<=9;width += 2){
 	  extractor.setBoxWidth(width);
 	  extractor.extract();
-	  std::vector<float> asVec;
-	  extractor.array().tovector(asVec);
-	  for(size_t i=0;i<asVec.size();i++){
-/* 	    ASKAPLOG_DEBUG_STR(logger, "C " << extractor.boxWidth() << " " << width << " " << i << " " << asVec[i] << " " << fabs(asVec[i]-1)); */
-	    CPPUNIT_ASSERT(fabs(asVec[i]-1.)<1.e-5);
+	  CPPUNIT_ASSERT(extractor.array().shape()==outShape);
+	  for(int s=0;s<outShape(2);s++){
+	    for(int z=0;z<outShape(3);z++){
+	      CPPUNIT_ASSERT(fabs(extractor.array()(IPosition(4,0,0,s,z))-1.)<1.e-5);
+	    }
 	  }
 	}
       }

@@ -45,8 +45,12 @@
 #include <images/Images/FITSImage.h>
 #include <images/Images/MIRIADImage.h>
 #include <images/Images/SubImage.h>
+#include <coordinates/Coordinates/CoordinateUtil.h>
 #include <coordinates/Coordinates/CoordinateSystem.h>
 #include <coordinates/Coordinates/DirectionCoordinate.h>
+#include <coordinates/Coordinates/SpectralCoordinate.h>
+#include <coordinates/Coordinates/StokesCoordinate.h>
+#include <measures/Measures/Stokes.h>
 
 #include <Common/ParameterSet.h>
 
@@ -100,12 +104,10 @@ namespace askap {
 	std::stringstream ss;
 	ss << this->itsOutputFilenameBase << "_" << ID;
 	this->itsOutputFilename = ss.str();
-	
-	this->define();
       }
     }
 
-    void SpectralBoxExtractor::define()
+    void SpectralBoxExtractor::defineSlicer()
     {
 
       this->openInput();
@@ -114,6 +116,7 @@ namespace askap {
       ASKAPCHECK(coords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
       ASKAPCHECK(coords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
       int specAxis=coords.spectralAxisNumber();
+      int stkAxis=coords.polarizationAxisNumber();
       int lngAxis=coords.directionAxesNumbers()[0];
       int latAxis=coords.directionAxesNumbers()[1];
 	
@@ -139,6 +142,10 @@ namespace askap {
       casa::IPosition blc(shape.size(),0),trc(shape.size(),0);
       blc(lngAxis)=xmin; blc(latAxis)=ymin; blc(specAxis)=0;
       trc(lngAxis)=xmax; trc(latAxis)=ymax; trc(specAxis)=shape(specAxis)-1;
+      if(stkAxis>-1){
+	casa::Stokes stk;
+	blc(stkAxis) = trc(stkAxis) = coords.stokesPixelNumber(stk.name(this->itsCurrentStokes));
+      }
       ASKAPLOG_DEBUG_STR(logger, "Defining slicer based on blc="<<blc <<", trc="<<trc);
       this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
 
@@ -150,38 +157,41 @@ namespace askap {
       ASKAPLOG_INFO_STR(logger, "Writing spectrum to " << this->itsOutputFilename);
       accessors::CasaImageAccess ia;
 
-      // get the coordinate system from the input cube
-      IPosition shape = this->itsInputCubePtr->shape();
-      CoordinateSystem coords = this->itsInputCubePtr->coordinates();
-      casa::Unit units=this->itsInputCubePtr->units();
-      ASKAPCHECK(coords.hasSpectralAxis(),"Input cube \""<<this->itsInputCube<<"\" has no spectral axis");
-      ASKAPCHECK(coords.hasDirectionCoordinate(),"Input cube \""<<this->itsInputCube<<"\" has no spatial axes");
-      //      int specAxis=coords.spectralAxisNumber();
-      int lngAxis=coords.directionAxesNumbers()[0];
-      int latAxis=coords.directionAxesNumbers()[1];
+      IPosition inshape = this->itsInputCubePtr->shape();
+      CoordinateSystem incoords = this->itsInputCubePtr->coordinates();
+      casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
+      casa::DirectionCoordinate dircoo(incoords.directionCoordinate(newcoo.findCoordinate(casa::Coordinate::DIRECTION)));
+      casa::SpectralCoordinate spcoo(incoords.spectralCoordinate(newcoo.findCoordinate(casa::Coordinate::SPECTRAL)));
+      casa::Vector<Int> svec(this->itsStokesList.size());
+      for(size_t i=0;i<svec.size();i++) svec[i]=this->itsStokesList[i];
+      casa::StokesCoordinate stkcoo(svec);
+      newcoo.replaceCoordinate(dircoo,newcoo.findCoordinate(casa::Coordinate::DIRECTION));
+      newcoo.replaceCoordinate(spcoo,newcoo.findCoordinate(casa::Coordinate::SPECTRAL));
+      newcoo.replaceCoordinate(stkcoo,newcoo.findCoordinate(casa::Coordinate::STOKES));
 
-      // shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral axis untouched.
-      casa::Vector<Float> shift(shape.size(),0), incrFrac(shape.size(),1);
-      casa::Vector<Int> newshape=shape.asVector();
+      // shift the reference pixel for the spatial coords, so that the RA/DEC (or whatever) are correct. Leave the spectral/stokes axes untouched.
+      int lngAxis=newcoo.directionAxesNumbers()[0];
+      int latAxis=newcoo.directionAxesNumbers()[1];
+      int spcAxis=newcoo.spectralAxisNumber();
+      int stkAxis=newcoo.polarizationAxisNumber();
+      casa::IPosition outshape(4,1);
+      outshape(spcAxis)=inshape(incoords.spectralAxisNumber());
+      outshape(stkAxis)=svec.size();
+      casa::Vector<Float> shift(outshape.size(),0), incrFrac(outshape.size(),1);
       shift(lngAxis)=this->itsSource->getXPeak();
       shift(latAxis)=this->itsSource->getYPeak();
-      coords.subImage(shift,incrFrac,newshape);
+      casa::Vector<Int> newshape=outshape.asVector();
+      newcoo.subImage(shift,incrFrac,newshape);
 
-      // create the new image - make it have the same dimensionality as the input, just with degenerate spatial dimensions
-//       ASKAPLOG_DEBUG_STR(logger, "Array="<<this->itsArray);
-      IPosition reshape(shape);
-      reshape(lngAxis)=reshape(latAxis)=1;
-      Array<Float> newarray(this->itsArray.reform(reshape));
+      Array<Float> newarray(this->itsArray.reform(outshape));
 
-      ia.create(this->itsOutputFilename,newarray.shape(),coords);
+      ia.create(this->itsOutputFilename,newarray.shape(),newcoo);
 
       /// @todo save the new units - if units were per beam, remove this factor
       
       // write the array
       ia.write(this->itsOutputFilename,newarray);
-      ia.setUnits(this->itsOutputFilename, units.getName());
-
-      
+      ia.setUnits(this->itsOutputFilename, this->itsInputCubePtr->units().getName());
 
     }
 
