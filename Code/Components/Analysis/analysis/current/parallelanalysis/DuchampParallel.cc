@@ -1960,28 +1960,23 @@ namespace askap {
 	    LOFAR::BlobString bs;
 	    
 	    // now send the individual sources to each worker in turn
-	    for(size_t i=0;i<this->itsSourceList.size();i++){
+	    for(size_t i=0;i<=this->itsSourceList.size();i++){
 	      rank = i % (itsComms.nProcs() - 1);
 	      bs.resize(0);
 	      LOFAR::BlobOBufString bob(bs);
 	      LOFAR::BlobOStream out(bob);
 	      out.putStart("extsrc", 1);
-	      out << true << this->itsSourceList[i];
+	      out << i<this->itsSourceList.size();
+	      if(i<this->itsSourceList.size()) out << this->itsSourceList[i];
 	      out.putEnd();
-	      itsComms.sendBlob(bs, rank + 1);
-	    }
-
-	    // now notify all workers that we're finished.
-	    LOFAR::BlobOBufString bob(bs);
-	    LOFAR::BlobOStream out(bob);
-	    bs.resize(0);
-	    bob = LOFAR::BlobOBufString(bs);
-	    out = LOFAR::BlobOStream(bob);
-	    out.putStart("extsrc", 1);
-	    out << false;
-	    out.putEnd();
-	    for (int i = 1; i < itsComms.nProcs(); ++i) {
-	      itsComms.sendBlob(bs, i);
+	      if(i<this->itsSourceList.size()) itsComms.sendBlob(bs, rank + 1);
+	      else {
+		// notify all workers that we're finished
+		for (int i = 1; i < itsComms.nProcs(); ++i) {
+		  itsComms.sendBlob(bs, i);
+		}
+	      }
+		
 	    }
 
 	  }
