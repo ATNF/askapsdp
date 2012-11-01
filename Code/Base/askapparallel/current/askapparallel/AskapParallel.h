@@ -148,7 +148,16 @@ class AskapParallel : public MPIComms {
 
         /// @return number of groups of workers
         size_t nGroups() const;
- 
+
+        /// Return the program name, i.e basename(argv[0])
+        ///
+        /// @param[in] argc argument count, from main()
+        /// @param[in] argv argument vector, from main()
+        ///
+        /// @return The program name or "unknown" in the case it
+        ///         cannot be obtained
+        static std::string getProgramName(int argc, const char** argv);
+
     protected:
         /// Rank of this process : 0 for the master, >0 for workers
         int itsRank;

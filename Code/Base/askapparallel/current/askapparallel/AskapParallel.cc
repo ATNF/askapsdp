@@ -41,6 +41,7 @@
 #include <sstream>
 #include <fstream>
 #include <string>
+#include <libgen.h>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -99,16 +100,19 @@ AskapParallel::AskapParallel(int argc, const char** argv)
     itsIsMaster = (itsRank == 0);
     itsIsWorker = (!itsIsParallel) || (itsRank > 0);
 
+    // Get program name
+    const std::string progName = AskapParallel::getProgramName(argc, argv);
+
     if (isParallel()) {
         if (isMaster()) {
-            ASKAPLOG_INFO_STR(logger, "ASKAP program (parallel) running on " << itsNProcs
+            ASKAPLOG_INFO_STR(logger, "ASKAP " << progName << " (parallel) running on " << itsNProcs
                                   << " nodes (master/master)");
         } else {
-            ASKAPLOG_INFO_STR(logger, "ASKAP program (parallel) running on " << itsNProcs
+            ASKAPLOG_INFO_STR(logger, "ASKAP " << progName << " (parallel) running on " << itsNProcs
                                   << " nodes (worker " << itsRank << ")");
         }
     } else {
-        ASKAPLOG_INFO_STR(logger, "ASKAP program (serial)");
+        ASKAPLOG_INFO_STR(logger, "ASKAP " << progName << " (serial)");
     }
 
     ASKAPLOG_INFO_STR(logger, ASKAP_PACKAGE_VERSION);
@@ -353,6 +357,21 @@ std::string AskapParallel::substitute(const std::string& s) const
         cs.gsub(regNode, oos.str());
     }
     return string(cs);
+}
+
+std::string AskapParallel::getProgramName(int argc, const char** argv)
+{
+    if (argc > 0) {
+        char* path = strdup(argv[0]);
+        char* bname = basename(path);
+        if (bname) {
+            return std::string(bname);
+        }
+        free(path);
+        // No need to free bname, it is a pointer to somewhere in path
+    }
+
+    return "unknown";
 }
 
 } // End namespace askapparallel
