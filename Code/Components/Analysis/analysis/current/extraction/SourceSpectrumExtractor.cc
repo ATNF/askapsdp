@@ -155,7 +155,7 @@ namespace askap {
 
 	}
 
-	this->itsInputCubePtr = 0;
+	this->closeInput();
       }
 
     }
@@ -228,7 +228,7 @@ namespace askap {
       
 	delete sub;
 
-	this->itsInputCubePtr = 0;
+	this->closeInput();
 
       }
 

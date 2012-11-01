@@ -124,8 +124,8 @@ namespace askap {
 
       }
 
-      if(this->itsSource) this->defineSlicer();
-      
+      this->closeInput();
+
     }
 
 
@@ -142,8 +142,8 @@ namespace askap {
       /// the beam if so required. The output spectrum is stored in
       /// itsArray, ready for later access or export.
 
-      this->openInput();
       this->defineSlicer();
+      this->openInput();
 
       ASKAPLOG_INFO_STR(logger, "Extracting noise spectrum from " << this->itsInputCube << " surrounding source ID " << this->itsSource->getID());
 
@@ -155,6 +155,8 @@ namespace askap {
       this->itsArray(outBLC,outTRC) = madfmarray / Statistics::correctionFactor;
 
       delete sub;
+
+      this->closeInput();
 
     }
 

@@ -108,11 +108,12 @@ namespace askap {
     void SourceDataExtractor::initialiseArray()
     {
       // Form itsArray and initialise to zero
+      this->itsInputCube = this->itsInputCubeList.at(0);
       this->openInput();
       int specsize = this->itsInputCubePtr->shape()(this->itsInputCubePtr->coordinates().spectralAxisNumber());
       casa::IPosition shape(4,1,1,this->itsStokesList.size(),specsize);
       this->itsArray = casa::Array<Float>(shape,0.0);
-      this->itsInputCubePtr = 0;
+      this->closeInput();
     }
 
     casa::IPosition SourceDataExtractor::getShape(std::string image)
@@ -120,7 +121,7 @@ namespace askap {
       this->itsInputCube = image;
       this->openInput();
       casa::IPosition shape=this->itsInputCubePtr->shape();
-      this->itsInputCubePtr = 0;
+      this->closeInput();
       return shape;
     }
 
@@ -146,7 +147,7 @@ namespace askap {
 	ASKAPCHECK(haveMatch, "Extraction: input cube "<<image<<" does not have requested polarisation " << polstring);
       }
       
-      this->itsInputCubePtr = 0;
+      this->closeInput();
 
     }
     
@@ -210,11 +211,18 @@ namespace askap {
       if(this->itsInputCubePtr==0){ // if non-zero, we have already opened the cube
 	ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
 	ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
-	const LatticeBase* lattPtr = ImageOpener::openImage(this->itsInputCube);
-	if (lattPtr == 0)
+	this->itsLatticePtr = ImageOpener::openImage(this->itsInputCube);
+	if (this->itsLatticePtr == 0)
 	  ASKAPTHROW(AskapError, "Requested input cube \"" << this->itsInputCube << "\" does not exist or could not be opened.");
-	this->itsInputCubePtr = dynamic_cast< const ImageInterface<Float>* >(lattPtr);
+	this->itsInputCubePtr = dynamic_cast< const ImageInterface<Float>* >(this->itsLatticePtr);
       }
+    }
+
+    void SourceDataExtractor::closeInput()
+    {
+      delete this->itsLatticePtr;
+      this->itsInputCubePtr = 0;
+      
     }
 
   }

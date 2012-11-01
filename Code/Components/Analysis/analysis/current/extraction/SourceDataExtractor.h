@@ -34,6 +34,7 @@
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/Slicer.h>
 #include <images/Images/ImageInterface.h>
+#include <lattices/Lattices/LatticeBase.h>
 #include <Common/ParameterSet.h>
 #include <measures/Measures/Stokes.h>
 #include <utils/PolConverter.h>
@@ -50,10 +51,11 @@ namespace askap {
       /// extraction of an integrated spectrum of a source (either
       /// summed over a box or integrated over the entirety of an
       /// extended object), extraction of a subcube ("cubelet"),
-      /// extraction of a moment-0 map. This base class details the
-      /// basic functionality, where a source is used to obtain a
-      /// location (in fact, a region from which the extraction is
-      /// done), and a disk image is accessed.
+      /// extraction of a moment-0 map. Access to multiple input
+      /// images for different Stokes parameters is possible. This
+      /// base class details the basic functionality, and implements
+      /// constructors, input image verification, and opening of the
+      /// image. 
 
       class SourceDataExtractor
       {
@@ -84,6 +86,7 @@ namespace askap {
 
       protected:
 	void openInput();
+	void closeInput();
 	void checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest);
 	casa::IPosition getShape(std::string image);
 	void initialiseArray();
@@ -93,6 +96,7 @@ namespace askap {
 	std::string itsInputCube;
 	std::vector<std::string> itsInputCubeList;
 	const casa::ImageInterface<Float>* itsInputCubePtr;
+	const casa::LatticeBase* itsLatticePtr;
 	casa::Vector<casa::Stokes::StokesTypes> itsStokesList;
 	casa::Stokes::StokesTypes itsCurrentStokes;
 	std::string itsOutputFilenameBase;

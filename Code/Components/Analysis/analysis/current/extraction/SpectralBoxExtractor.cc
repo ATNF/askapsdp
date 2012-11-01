@@ -149,6 +149,8 @@ namespace askap {
       ASKAPLOG_DEBUG_STR(logger, "Defining slicer for " << this->itsInputCubePtr->name() << " based on blc="<<blc <<", trc="<<trc);
       this->itsSlicer = casa::Slicer(blc,trc,casa::Slicer::endIsLast);
 
+      this->closeInput();
+
     }
  
  
@@ -195,7 +197,7 @@ namespace askap {
       ia.write(this->itsOutputFilename,newarray);
       ia.setUnits(this->itsOutputFilename, this->itsInputCubePtr->units().getName());
 
-      this->itsInputCubePtr = 0;
+      this->closeInput();
       
     }
 
