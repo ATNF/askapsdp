@@ -1966,7 +1966,7 @@ namespace askap {
 	      LOFAR::BlobOBufString bob(bs);
 	      LOFAR::BlobOStream out(bob);
 	      out.putStart("extsrc", 1);
-	      out << i<this->itsSourceList.size();
+	      out << (i<this->itsSourceList.size());
 	      if(i<this->itsSourceList.size()) out << this->itsSourceList[i];
 	      out.putEnd();
 	      if(i<this->itsSourceList.size()) itsComms.sendBlob(bs, rank + 1);
