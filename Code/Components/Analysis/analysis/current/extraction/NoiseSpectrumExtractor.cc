@@ -116,11 +116,14 @@ namespace askap {
       else{
 	casa::CoordinateSystem coo = this->itsInputCubePtr->coordinates();
 	casa::DirectionCoordinate dirCoo = coo.directionCoordinate(coo.findCoordinate(casa::Coordinate::DIRECTION));
-	double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / dirCoo.increment()[0];
-	double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / dirCoo.increment()[1];
+	double fwhmMajPix = inputBeam[0].getValue(dirCoo.worldAxisUnits()[0]) / fabs(dirCoo.increment()[0]);
+	double fwhmMinPix = inputBeam[1].getValue(dirCoo.worldAxisUnits()[1]) / fabs(dirCoo.increment()[1]);
 	double beamAreaInPix = M_PI * fwhmMajPix * fwhmMinPix;
 	
 	this->itsBoxWidth = int(ceil(sqrt(this->itsAreaInBeams*beamAreaInPix)));
+
+	ASKAPLOG_INFO_STR(logger, "Noise Extractor: Using box of area " << this->itsAreaInBeams << " beams (of area " << beamAreaInPix 
+			  << " pix), or a square of " << this->itsBoxWidth << " pix on the side");
 
       }
 
