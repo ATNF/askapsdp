@@ -177,7 +177,7 @@ int main(int argc, char **argv) {
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
      // number of cycles to average
-     const size_t nAvg = 1;
+     const size_t nAvg = 4;
      // padding factor
      const size_t padding = 1;
      process(ds, nAvg, padding);
