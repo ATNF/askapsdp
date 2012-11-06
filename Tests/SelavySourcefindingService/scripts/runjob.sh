@@ -115,6 +115,13 @@ if [ ${FLAG_OUTPUT_SPECTRA} == "true" ] || [ ${FLAG_OUTPUT_SPECTRA} == "1" ]; th
     echo "Selavy.extractSpectra.spectralOutputBase = selavy-SPECTRA-${SPECTRA_BASE}" >> ${PARSET}
 fi
 
+#Changing the prefix of the output noise spectra, to make it easy to include in the tarball
+FLAG_OUTPUT_NOISESPECTRA=`grep "Selavy.extractNoiseSpectra" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+if [ ${FLAG_OUTPUT_NOISESPECTRA} == "true" ] || [ ${FLAG_OUTPUT_NOISESPECTRA} == "1" ]; then
+    SPECTRA_BASE=`grep "Selavy.extractNoiseSpectra.spectralOutputBase" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
+    echo "Selavy.extractNoiseSpectra.spectralOutputBase = selavy-NOISE-SPECTRA-${SPECTRA_BASE}" >> ${PARSET}
+fi
+
 #
 # Determine how many nodes and processors per node need to be allocated
 #
