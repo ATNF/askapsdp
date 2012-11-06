@@ -50,6 +50,7 @@ using namespace LOFAR::TYPES;
 #include <images/Images/SubImage.h>
 #include <casa/aipstype.h>
 #include <casa/Arrays/Array.h>
+#include <casa/Arrays/ArrayLogical.h>
 #include <casa/Arrays/ArrayPartMath.h>
 #include <casa/Arrays/Vector.h>
 #include <casa/Arrays/IPosition.h>
@@ -122,7 +123,6 @@ namespace askap {
             /// the number of dimensions that are greater than 1
             /// @todo Make use of the new Cube::is2D() function.
             int numDim = 0;
-//D1.1.13   long *dim = this->itsCube.getDimArray();
             size_t *dim = this->itsCube.getDimArray();
 
             for (int i = 0; i < this->itsCube.getNumDim(); i++) if (dim[i] > 1) numDim++;
@@ -314,7 +314,6 @@ namespace askap {
 		    }
 		    else{
 
-//D1.1.13	      long *dimarr=this->itsCube.getDimArray();
 		      size_t *dimarr=this->itsCube.getDimArray();
 		      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Dimensions ("<<this->itsCube.getNumDim()<<" of them) before correction are "
 					<< dimarr[0] << "x"<<dimarr[1] << "x" << dimarr[2]);
@@ -335,7 +334,6 @@ namespace askap {
 		    
                     // check the true dimensionality and set the 2D flag in the cube header.
                     int numDim = 0;
-//D1.1.13           long *dim = this->itsCube.getDimArray();
                     size_t *dim = this->itsCube.getDimArray();
 
                     for (int i = 0; i < this->itsCube.getNumDim(); i++) if (dim[i] > 1) numDim++;
@@ -343,7 +341,6 @@ namespace askap {
                     this->itsCube.header().set2D(numDim <= 2);
 
                     // set up the various flux units
-//D1.1.13           if (this->itsCube.header().getWCS()->spec >= 0) this->itsCube.header().fixUnits(this->itsCube.pars());
                     if (this->itsCube.header().getWCS()->spec >= 0) this->itsCube.header().fixSpectralUnits(this->itsCube.pars().getSpectralUnits());
 
 	    }
@@ -486,8 +483,6 @@ namespace askap {
                 }
 
 
-
-
             }
         }
 
@@ -618,7 +613,6 @@ namespace askap {
 
 		// Remove non-edge sources that are smaller than originally requested, as these won't be grown any further.
 		std::vector<duchamp::Detection> edgelist,goodlist;
-//D1.1.13 	for(int i=0; i<this->itsCube.getNumObj();i++){
 		for(size_t i=0; i<this->itsCube.getNumObj();i++){
 		  sourcefitting::RadioSource src(this->itsCube.getObject(i));
 		  src.setAtEdge(this->itsCube, this->itsSubimageDef, itsComms.rank() - 1);
@@ -635,7 +629,6 @@ namespace askap {
 		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Calculating WCS params");
                 this->itsCube.calcObjectWCSparams();
 		if(this->itsFlagDoMedianSearch){
-//D1.1.13 	  for(int i=0; i<this->itsCube.getNumObj();i++){
 		  for(size_t i=0; i<this->itsCube.getNumObj();i++){
 		    std::vector<Voxel> voxlist = this->itsCube.getObject(i).getPixelSet();
 		    for(size_t v=0;v<voxlist.size();v++){
@@ -811,7 +804,6 @@ namespace askap {
 	  size_t spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
 	  size_t specSize = this->itsCube.getDimZ();
  	  float *snrAll = new float[this->itsCube.getSize()];
-//D1.1.13 long *imdim = new long[2];
 	  size_t *imdim = new size_t[2];
 
 	  if(this->itsCube.pars().getSearchType()=="spatial"){
@@ -926,12 +918,10 @@ namespace askap {
 
             int spatSize = this->itsCube.getDimX() * this->itsCube.getDimY();
             float *snrAll = new float[this->itsCube.getSize()];
-//D1.1.13   long *imdim = new long[2];
             size_t *imdim = new size_t[2];
             imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
             duchamp::Image *chanIm = new duchamp::Image(imdim);
 
-//D1.1.13   for (int z = 0; z < this->itsCube.getDimZ(); z++) {
             for (size_t z = 0; z < this->itsCube.getDimZ(); z++) {
 
                 chanIm->extractImage(this->itsCube, z);
@@ -998,7 +988,6 @@ namespace askap {
                 if (this->itsFlagDoFit)
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source profiles.");
 
- //D1.1.13      for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                 for (size_t i = 0; i < this->itsCube.getNumObj(); i++) {
                     if (this->itsFlagDoFit)
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << this->itsCube.getNumObj() 
@@ -1120,17 +1109,14 @@ namespace askap {
                         if (src->isAtEdge()) {
                             int xmin, xmax, ymin, ymax, zmin, zmax;
                             xmin = std::max(0 , int(src->boxXmin()));
-//D1.1.13                   xmax = std::min(this->itsCube.getDimX() - 1, src->boxXmax());
                             xmax = std::min(int(this->itsCube.getDimX()) - 1, int(src->boxXmax()));
                             ymin = std::max(0 , int(src->boxYmin()));
-//D1.1.13                   ymax = std::min(this->itsCube.getDimY() - 1, src->boxYmax());
                             ymax = std::min(int(this->itsCube.getDimY()) - 1, int(src->boxYmax()));
 
                             if (this->is2D()) {
                                 zmin = zmax = 0;
                             } else {
                                 zmin = std::max(0 , int(src->boxZmin()));
-//D1.1.13                       zmax = std::min(this->itsCube.getDimZ() - 1, src->boxZmax());
                                 zmax = std::min(int(this->itsCube.getDimZ()) - 1, int(src->boxZmax()));
                             }
 
@@ -1339,7 +1325,6 @@ namespace askap {
                     ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "num edge sources in cube after param calcs = " << this->itsCube.getNumObj());
 
 		    this->itsEdgeSourceList.clear();
-//D1.1.13           for (long i = 0; i < this->itsCube.getNumObj(); i++) {
                     for (size_t i = 0; i < this->itsCube.getNumObj(); i++) {
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
@@ -1482,7 +1467,6 @@ namespace askap {
 	    duchamp::Section fullSec=this->itsCube.pars().section();
 	    //	    ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Using subsection for box calcs: " << fullSec.getSection());
 	    // now send the individual sources to each worker in turn
-//D1.1.13   for(int i=0;i<this->itsCube.getNumObj();i++){
 	    for(size_t i=0;i<this->itsCube.getNumObj();i++){
 	      rank = i % (itsComms.nProcs() - 1);
 	      objsize = this->itsCube.getObject(i).getSize();
@@ -1513,7 +1497,6 @@ namespace askap {
 	    // Only need to do this if we actually sent something in the first place.
 	    if(this->itsCube.getNumObj()>0){
 	      this->itsEdgeSourceList.clear();
-//D1.1.13     int numObj=this->itsCube.getNumObj();
 	      size_t numObj=this->itsCube.getNumObj();
 	      this->itsCube.clearDetectionList();
 	      for (int n=0;n<itsComms.nProcs()-1 && this->itsCube.getNumObj()<numObj;n++){
@@ -1641,8 +1624,6 @@ namespace askap {
             /// each object in itsCube, making a vector of vectors of
             /// voxels, then passes this vector to
             /// duchamp::Cube::calcObjectWCSparams().
-//D1.1.13   int numVox = this->itsVoxelList.size();
-//D1.1.13   int numObj = this->itsCube.getNumObj();
             size_t numVox = this->itsVoxelList.size();
             size_t numObj = this->itsCube.getNumObj();
 
@@ -1650,7 +1631,6 @@ namespace askap {
             if (numObj > 0) {
                 std::vector<PixelInfo::Voxel> templist[numObj];
 
-//D1.1.13       for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                 for (size_t i = 0; i < this->itsCube.getNumObj(); i++) {
 
 // ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Setting voxel list for param calc for object at (ra,dec)=("
@@ -1666,7 +1646,6 @@ namespace askap {
 
                     // get the fluxes of each voxel
                     for (vox = objVoxList.begin(); vox < objVoxList.end(); vox++) {
-//D1.1.13             int ct = 0;
 		      size_t ct = 0;
 
                         while (ct < numVox && !vox->match(this->itsVoxelList[ct])) {
@@ -1688,7 +1667,6 @@ namespace askap {
                 std::vector< std::vector<PixelInfo::Voxel> > bigVoxSet(templist, templist + numObj);
                 this->itsCube.calcObjectWCSparams(bigVoxSet);
 
-//D1.1.13       for (int i = 0; i < this->itsCube.getNumObj(); i++) {
                 for (size_t i = 0; i < this->itsCube.getNumObj(); i++) {
 
 // ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Finished setting voxel list for param calc for object at (ra,dec)=("
@@ -1981,7 +1959,8 @@ namespace askap {
 
 	  }
 	}
-	else if(this->itsComms.isWorker()){
+	
+	if(this->itsComms.isWorker()){
 
 	  if(this->itsComms.isParallel()){
 	    
@@ -2038,7 +2017,7 @@ namespace askap {
       {
 	
 	if(!this->itsComms.isParallel()){
-	  
+	  this->itsCube.pars().setFlagBlankPix(false);
 	  if(this->itsCube.pars().getFlagOutputMask()){
 	    ASKAPLOG_INFO_STR(logger, "Saving mask cube to "<< this->itsCube.pars().outputMaskFile());
 	    if(this->itsCube.saveMaskCube() == FAILURE)
@@ -2174,7 +2153,6 @@ namespace askap {
 		      float *array;
 		      // make a mask in case there are blank pixels.
 		      bool *mask = this->itsCube.pars().makeStatMask(this->itsCube.getArray(), this->itsCube.getDimArray());
-//D1.1.13 	      for(int i=0;i<this->itsCube.getSize();i++) if(mask[i]) size++;		      
 		      for(size_t i=0;i<this->itsCube.getSize();i++) if(mask[i]) size++;		      
 
 		      if (size > 0) {
@@ -2259,13 +2237,11 @@ namespace askap {
 		  if (this->itsCube.pars().getFlagATrous()) {
 		    array = new float[this->itsCube.getSize()];
 		    
-//D1.1.13 	    for (int i = 0; i < this->itsCube.getSize(); i++) array[i] = this->itsCube.getPixValue(i) - this->itsCube.getReconValue(i);
 		    for (size_t i = 0; i < this->itsCube.getSize(); i++) array[i] = this->itsCube.getPixValue(i) - this->itsCube.getReconValue(i);
 		  } else if (this->itsCube.pars().getFlagSmooth()) array = this->itsCube.getRecon();
 		  else array = this->itsCube.getArray();
 		  
 		  bool *mask = this->itsCube.pars().makeStatMask(array, this->itsCube.getDimArray());
-//D1.1.13 	  for(int i=0;i<this->itsCube.getSize();i++) if(mask[i]) size++;		      
 		  for(size_t i=0;i<this->itsCube.getSize();i++) if(mask[i]) size++;		      
 
 		  if(size>0)
@@ -2561,8 +2537,26 @@ namespace askap {
 	  if(this->itsCube.getDimZ()==1){
 	    this->itsCube.pars().setMinChannels(0);
 	  }
-	  casa::Array<Float> array = sub->get();
-	  this->itsCube.saveArray(array.data(), array.size());
+
+	  const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
+	  casa::MaskedArray<Float> negMsub(sub->get(),!sub->getMask());
+	  casa::Array<Float> subarray(sub->shape());
+	  float minval = min(msub)-1.;
+	  negMsub = minval;
+	  
+	  subarray = msub;
+
+	  if(sub->hasPixelMask()){
+	    subarray = negMsub;
+	    this->itsCube.pars().setBlankPixVal(minval);
+	    this->itsCube.pars().setBlankKeyword(0);
+	    this->itsCube.pars().setBscaleKeyword(1.);
+	    this->itsCube.pars().setBzeroKeyword(minval);
+	    this->itsCube.pars().setFlagBlankPix(true);
+	  }
+
+	  this->itsCube.saveArray(subarray.data(), subarray.size());
+	  
 	  
 	}
 
@@ -2661,7 +2655,6 @@ namespace askap {
 
 	long *dim = getDim(imagePtr);
 	wcsprm *wcs = casaImageToWCS(imagePtr);
-//D1.1.13 storeWCStoHeader(this->itsCube.header(), this->itsCube.pars(), wcs);
 	ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Defining WCS and putting into type \""<<this->itsCube.pars().getSpectralType()<<"\"");
 	this->itsCube.header().defineWCS(wcs,1,dim,this->itsCube.pars());
 	this->itsCube.pars().setOffsets(wcs);
@@ -2673,7 +2666,6 @@ namespace askap {
 	this->itsCube.header().set2D(imagePtr->shape().nonDegenerate().size() <= 2);
 	
 	// set up the various flux units
-//D1.1.13 if (wcs->spec >= 0) this->itsCube.header().fixUnits(this->itsCube.pars());
 	if (wcs->spec >= 0) this->itsCube.header().fixSpectralUnits(this->itsCube.pars().getSpectralUnits());
 
 	if(typeOfData == METADATA) this->itsCube.initialiseCube(dim, false);
