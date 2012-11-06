@@ -74,8 +74,10 @@ namespace askap {
       /// the set of polarisation products to extract.
 
       this->itsFlagUseDetection = parset.getBool("useDetectedPixels",false);
-      if(this->itsFlagUseDetection) this->itsBoxWidth = -1;
-      if(parset.isDefined("spectralBoxWidth")) ASKAPLOG_WARN_STR(logger, "useDetectedPixels option selected, so setting spectralBoxWidth=-1");
+      if(this->itsFlagUseDetection){
+	this->itsBoxWidth = -1;
+	if(parset.isDefined("spectralBoxWidth")) ASKAPLOG_WARN_STR(logger, "useDetectedPixels option selected, so setting spectralBoxWidth=-1");
+      }
 
       this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
 
@@ -186,6 +188,7 @@ namespace askap {
 			  << " using slicer " << this->itsSlicer << " and Stokes " << stk.name(this->itsCurrentStokes));
 
 	const SubImage<Float> *sub = new SubImage<Float>(*this->itsInputCubePtr, this->itsSlicer);
+	ASKAPASSERT(sub->size()>0);
 	const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
 	casa::Array<Float> subarray(sub->shape());
 	subarray = msub;
@@ -194,8 +197,9 @@ namespace askap {
 	outBLC(2) = outTRC(2) = stokes;
 
 	if(!this->itsFlagUseDetection){
-	  casa::Array<Float> sumarray = partialSums(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape());
-	  this->itsArray(outBLC,outTRC) = sumarray;
+	  casa::Array<Float> sumarray = partialSums(subarray, IPosition(2,0,1));
+	  this->itsArray(outBLC,outTRC) = sumarray.reform(this->itsArray(outBLC,outTRC).shape());
+
 	}
 	else {
 	  ASKAPLOG_INFO_STR(logger, "Extracting integrated spectrum using all detected spatial pixels");

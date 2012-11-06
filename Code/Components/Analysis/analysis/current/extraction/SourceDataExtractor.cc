@@ -112,6 +112,7 @@ namespace askap {
       this->openInput();
       int specsize = this->itsInputCubePtr->shape()(this->itsInputCubePtr->coordinates().spectralAxisNumber());
       casa::IPosition shape(4,1,1,this->itsStokesList.size(),specsize);
+      ASKAPLOG_DEBUG_STR(logger, "Extraction: Initialising array to zero with shape " << shape);
       this->itsArray = casa::Array<Float>(shape,0.0);
       this->closeInput();
     }

@@ -66,6 +66,8 @@ namespace askap {
       /// @brief Set the pointer to the source, and define the output filename based on its ID
       void setSource(RadioSource* src);
 
+      void getLocation();
+
       virtual void defineSlicer();
 
       virtual void extract() = 0;
@@ -74,6 +76,9 @@ namespace askap {
 
     protected:
       int itsBoxWidth;
+      std::string itsCentreType;
+      float itsXloc;
+      float itsYloc;
 
     };
 

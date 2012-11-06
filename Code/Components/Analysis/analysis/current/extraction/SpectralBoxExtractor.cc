@@ -71,6 +71,7 @@ namespace askap {
       /// _X appended, where X is the ID of the object in question).
 
       this->itsBoxWidth = parset.getInt16("spectralBoxWidth",defaultSpectralExtractionBoxWidth);
+      this->itsCentreType = parset.getString("pixelCentre","peak");
 
     }
 
@@ -84,6 +85,9 @@ namespace askap {
       if(this == &other) return *this;
       ((SourceDataExtractor &) *this) = other;
       this->itsBoxWidth = other.itsBoxWidth;
+      this->itsCentreType = other.itsCentreType;
+      this->itsXloc = other.itsXloc;
+      this->itsYloc = other.itsYloc;
       return *this;
     }
 
@@ -104,8 +108,25 @@ namespace askap {
 	std::stringstream ss;
 	ss << this->itsOutputFilenameBase << "_" << ID;
 	this->itsOutputFilename = ss.str();
+	this->getLocation();
       }
     }
+
+    void SpectralBoxExtractor::getLocation()
+    {
+
+      if(this->itsSource){
+
+	std::string srcCentreType = this->itsSource->getCentreType();
+	this->itsSource->setCentreType(this->itsCentreType);
+	this->itsXloc = this->itsSource->getXcentre();
+	this->itsYloc = this->itsSource->getYcentre();
+	this->itsSource->setCentreType(srcCentreType);
+
+      }
+
+    }
+    
 
     void SpectralBoxExtractor::defineSlicer()
     {
@@ -125,13 +146,13 @@ namespace askap {
       int xmin,ymin,xmax,ymax;
       if( this->itsBoxWidth>0){
 	int hw = (this->itsBoxWidth - 1)/2;
-	int xpeak = this->itsSource->getXPeak() + this->itsSource->getXOffset();
-	int ypeak = this->itsSource->getYPeak() + this->itsSource->getYOffset();
+	int xloc = this->itsXloc + this->itsSource->getXOffset();
+	int yloc = this->itsYloc + this->itsSource->getYOffset();
 	int zero=0;
-	xmin = std::max(zero, xpeak-hw);
-	xmax=std::min(int(shape(lngAxis)-1),xpeak+hw);
-	ymin = std::max(zero, ypeak-hw);
-	ymax=std::min(int(shape(latAxis)-1),ypeak+hw);
+	xmin = std::max(zero, xloc-hw);
+	xmax=std::min(int(shape(lngAxis)-1),xloc+hw);
+	ymin = std::max(zero, yloc-hw);
+	ymax=std::min(int(shape(latAxis)-1),yloc+hw);
       }
       else { // use the detected pixels of the source for the spectral extraction, and the x/y ranges for slicer
 	xmin = this->itsSource->getXmin() + this->itsSource->getXOffset();
@@ -164,8 +185,8 @@ namespace askap {
       IPosition inshape = this->itsInputCubePtr->shape();
       CoordinateSystem incoords = this->itsInputCubePtr->coordinates();
       casa::CoordinateSystem newcoo=casa::CoordinateUtil::defaultCoords4D();
-      casa::DirectionCoordinate dircoo(incoords.directionCoordinate(newcoo.findCoordinate(casa::Coordinate::DIRECTION)));
-      casa::SpectralCoordinate spcoo(incoords.spectralCoordinate(newcoo.findCoordinate(casa::Coordinate::SPECTRAL)));
+      casa::DirectionCoordinate dircoo(incoords.directionCoordinate(incoords.findCoordinate(casa::Coordinate::DIRECTION)));
+      casa::SpectralCoordinate spcoo(incoords.spectralCoordinate(incoords.findCoordinate(casa::Coordinate::SPECTRAL)));
       casa::Vector<Int> svec(this->itsStokesList.size());
       for(size_t i=0;i<svec.size();i++) svec[i]=this->itsStokesList[i];
       casa::StokesCoordinate stkcoo(svec);
@@ -182,8 +203,8 @@ namespace askap {
       outshape(spcAxis)=inshape(incoords.spectralAxisNumber());
       outshape(stkAxis)=svec.size();
       casa::Vector<Float> shift(outshape.size(),0), incrFrac(outshape.size(),1);
-      shift(lngAxis)=this->itsSource->getXPeak();
-      shift(latAxis)=this->itsSource->getYPeak();
+      shift(lngAxis)=this->itsXloc;
+      shift(latAxis)=this->itsYloc;
       casa::Vector<Int> newshape=outshape.asVector();
       newcoo.subImage(shift,incrFrac,newshape);
 
