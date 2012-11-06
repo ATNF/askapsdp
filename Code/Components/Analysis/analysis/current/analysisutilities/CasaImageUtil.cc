@@ -334,15 +334,13 @@ namespace askap {
             /// @param par Used for default beam size in case there is no
             /// beam info in the image, or to store the beam size (in
             /// pixels) if there is.
-	  ASKAPLOG_DEBUG_STR(logger, "What follows is the imageInfo:\n"<<imagePtr->imageInfo());
+
             casa::Vector<casa::Quantum<Double> > beam = imagePtr->imageInfo().restoringBeam();
 	    ASKAPLOG_DEBUG_STR(logger, "Read beam from casa image: " << beam );
 
             if (beam.size() == 0) {
                 std::stringstream errmsg;
                 ASKAPLOG_WARN_STR(logger, "Beam information not present. Using parameter set to determine size of beam.");
-//                 head.setBeamSize(par.getBeamSize());
-//                 par.setFlagUsingBeam(true);
 		if(par.getBeamFWHM()>0.) head.beam().setFWHM(par.getBeamFWHM(),PARAM);
 		else if(par.getBeamSize()>0.) head.beam().setArea(par.getBeamSize(),PARAM);
 		else head.beam().empty();
@@ -351,11 +349,6 @@ namespace askap {
                 double bmin = beam[1].getValue("deg");
                 double bpa = beam[2].getValue("deg");
                 float pixScale = head.getAvPixScale();
-//                 head.setBeamSize(M_PI *(bmaj / 2.) *(bmin / 2.) / (M_LN2*pixScale*pixScale));
-//                 head.setBmajKeyword(bmaj);
-//                 head.setBminKeyword(bmin);
-//                 head.setBpaKeyword(bpa);
-//                 par.setBeamSize(head.getBeamSize());
 		head.beam().define(bmaj/pixScale,bmin/pixScale,bpa,HEADER);
             }
 	    par.setBeamAsUsed(head.beam());

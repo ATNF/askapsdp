@@ -78,7 +78,7 @@ namespace askap {
 
             FittingParameters::FittingParameters(const LOFAR::ParameterSet& parset)
             {
-	      ASKAPLOG_DEBUG_STR(logger, "Parset used by FittingParameters = \n"<<parset);
+	      //	      ASKAPLOG_DEBUG_STR(logger, "Parset used by FittingParameters = \n"<<parset);
                 this->itsMaxRMS = parset.getDouble("maxRMS", defaultMaxRMS);
                 this->itsMaxNumGauss = parset.getInt32("maxNumGauss", defaultMaxNumFittedGauss);
                 this->itsBoxPadSize = parset.getInt32("boxPadSize", defaultBoxPadSize);
