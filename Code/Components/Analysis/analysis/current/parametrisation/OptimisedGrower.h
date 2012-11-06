@@ -62,7 +62,7 @@ namespace askap {
       void setFlag(size_t pos, duchamp::STATE newstate){itsFlagArray[pos] = newstate;};
       void setFlag(Voxel vox, duchamp::STATE newstate){setFlag(vox.getX(),vox.getY(),vox.getZ(),newstate);};
       void setMaxIter(int i){maxIterations=i;};
-      void setMaxMinZ(int max, int min){zmin=min;zmax=max;};
+      void setMaxMinZ(int max, int min){zmin=std::min(min,max);zmax=std::max(min,max);};
       void setClobber(bool b){clobberPrevious=b;};
       void findEllipse();
       duchamp::Detection growMask();
