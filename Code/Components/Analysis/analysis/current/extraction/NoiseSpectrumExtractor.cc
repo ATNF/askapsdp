@@ -72,6 +72,7 @@ namespace askap {
       /// _X appended, where X is the ID of the object in question).
 
       this->itsAreaInBeams = parset.getFloat("noiseArea",50);
+      this->itsRobustFlag = parset.getBool("robust",true);
 
       casa::Stokes stk;
       this->itsCurrentStokes = this->itsStokesList[0];
@@ -101,6 +102,7 @@ namespace askap {
       if(this == &other) return *this;
       ((SpectralBoxExtractor &) *this) = other;
       this->itsAreaInBeams = other.itsAreaInBeams;
+      this->itsRobustFlag = other.itsRobustFlag;
       return *this;
     }
 
@@ -154,8 +156,13 @@ namespace askap {
       casa::Array<Float> subarray=sub->get();
 
       casa::IPosition outBLC(4,0),outTRC(this->itsArray.shape()-1);
-      casa::Array<Float> madfmarray = partialMadfms(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape());
-      this->itsArray(outBLC,outTRC) = madfmarray / Statistics::correctionFactor;
+      casa::Array<Float> noisearray;
+      if(this->itsRobustFlag)
+	noisearray = partialMadfms(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape()) / Statistics::correctionFactor;
+      else
+	noisearray = partialRmss(subarray, IPosition(2,0,1)).reform(this->itsArray(outBLC,outTRC).shape());
+
+      this->itsArray(outBLC,outTRC) = noisearray;
 
       delete sub;
 

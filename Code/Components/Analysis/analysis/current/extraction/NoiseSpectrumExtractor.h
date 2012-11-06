@@ -22,11 +22,13 @@ namespace askap {
       void setBoxWidth();
       void setBoxAreaInBeams(float a){itsAreaInBeams=a; setBoxWidth();};
       float boxArea(){return itsAreaInBeams;};
+      bool robustFlag(){return itsRobustFlag;};
 
       void extract();
 
     protected:
       float itsAreaInBeams;
+      bool itsRobustFlag;
 
     };
 
