@@ -76,7 +76,7 @@ PARSET=${WORK_DIR}/${PARSETBASE}
 
 
 # Copy the user params over, except the image name. Ignore commented-out params.
-grep Selavy $JOB_FILE | grep -e '^\#' -v | grep -v "Selavy.image" | grep -v "Selavy.weightsimage" | grep -v "fileoutputmask" | grep -v "spectralcube" | grep -v "spectraloutputbase" > ${PARSET}
+grep Selavy $JOB_FILE | grep -e '^\#' -v | grep -v "Selavy.image" | grep -v "Selavy.weightsimage" | grep -v -i "fileoutputmask" | grep -v -i "spectralcube" | grep -v -i "spectraloutputbase" > ${PARSET}
 
 # Add the image separatly, so the images directory prefix can be added
 IMG_FILE=`grep "Selavy.image" ${JOB_FILE} | grep -e '^\#' -v | cut -f 2 -d"=" | sed -e 's/^[ \t]*//'`
