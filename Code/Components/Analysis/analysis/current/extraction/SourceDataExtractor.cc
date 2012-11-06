@@ -60,6 +60,7 @@ namespace askap {
       this->itsInputCube = ""; // start off with this blank. Needs to be set before calling openInput()
       this->itsInputCubeList = parset.getStringVector("spectralCube",std::vector<std::string>(0));
       this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
+      ASKAPCHECK(this->itsOutputFilenameBase != "", "Extraction: No output base name has been provided for the spectral output. Use spectralOutputBase.");
 
       // Take the following from SynthesisParamsHelper.cc in Synthesis
       // there could be many ways to define stokes, e.g. ["XX YY"] or ["XX","YY"] or "XX,YY"
