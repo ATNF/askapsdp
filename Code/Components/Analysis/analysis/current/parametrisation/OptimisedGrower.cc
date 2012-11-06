@@ -192,10 +192,14 @@ namespace askap {
       // When finished, return object
       // Potential optimisation - copy growing functionality from ObjectGrower - just looking at neighbours of current object's pixels and adding if within ellipse.
 
+      // Want the pixel set for the spatial map, but Object2D doesn't
+      // have that functionality, so create a single-channel Object3D
+      // and get the pixel set from that.
       Object2D spatmap = this->itsObj->getSpatialMap();
       Object3D temp3d;
       temp3d.addChannel(0,spatmap);
       std::vector<Voxel> pixlist = temp3d.getPixelSet();
+
       long zero = 0;
       long xpt,ypt;
       long xmin,xmax,ymin,ymax,x,y,z;
