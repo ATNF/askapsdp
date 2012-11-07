@@ -74,6 +74,7 @@ namespace askap {
       void setUp() {
 
 	tempImage="tempImageForNoiseExtractionTest";
+	outfile="tempOutputFromNoiseExtractionTest";
 	basePolList="Q";
 	area=50.;
 	cubeShape=casa::IPosition(4,dim,dim,basePolList.size(),10);
