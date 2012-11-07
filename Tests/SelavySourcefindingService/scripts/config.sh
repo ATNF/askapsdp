@@ -64,21 +64,15 @@ CORES_PER_NODE=4
 MAX_CORES=16
 
 # Limit the size of images (mask, spectra) to be included in the tarball (in K)
+MAX_IMG_SIZE=256000
 #MAX_IMG_SIZE=102400
-MAX_IMG_SIZE=51200
+#MAX_IMG_SIZE=51200
 
 # ASKAP Software location
 # The various scripts use this instead of the more typical ASKAP_ROOT
-#ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft
-#ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-1.1
-#ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-1.2
-#ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-1.3
-#ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-1.4
-#ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-1.5
-#ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-1.6
-#ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-1.7
+ASKAP_SOFTWARE=${DUCHAMP_SVC_BASE}/askapsoft-SFS-2.0
 #
-ASKAP_SOFTWARE=/exported/whi550/ASKAP/askapsoft
+#ASKAP_SOFTWARE=/exported/whi550/ASKAP/askapsoft
 
 # Where the web page showing the status should go
 WEBDIR=/u/whi550/www
