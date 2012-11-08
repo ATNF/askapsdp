@@ -9,6 +9,7 @@ from askapenv import env
 pkg = env.AskapPackage("pipelinetasks")
 
 pkg.AddSubPackage("cmodel")
+pkg.AddSubPackage("cflag")
 
 env.Append(CCFLAGS=['-Wall'])
 env.Append(CCFLAGS=['-g'])
