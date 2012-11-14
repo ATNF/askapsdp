@@ -179,8 +179,11 @@ namespace askap {
 
             /// Builds a key to be passed to the boost program options from a
             /// long form and a short form parameter.
-            std::string buildKey(const std::string& keyLong,
+            static std::string buildKey(const std::string& keyLong,
                                  const std::string& keyShort);
+
+            /// Returns the nodename/hostname.
+            static std::string nodeName(void);
 
             /// Boost program options
             boost::program_options::options_description itsOptionsDesc;

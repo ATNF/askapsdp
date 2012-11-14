@@ -34,6 +34,7 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>
+#include <unistd.h>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -170,6 +171,10 @@ void Application::initLogging(const std::string& argv0)
         }
     }
 
+    // Set the nodename
+    ASKAPLOG_REMOVECONTEXT("hostname");
+    ASKAPLOG_PUTCONTEXT("hostname", nodeName().c_str());
+
     // Ensure that CASA log messages are captured
     casa::LogSinkInterface* globalSink = new askap::Log4cxxLogSink();
     casa::LogSink::globalSink(globalSink);
@@ -210,4 +215,24 @@ std::string Application::buildKey(const std::string& keyLong,
     std::ostringstream ss;
     ss << keyLong << "," << keyShort;
     return ss.str();
+}
+
+std::string Application::nodeName(void)
+{
+    const int MAX_HOSTNAME_LEN = 1024;
+    char name[MAX_HOSTNAME_LEN];
+    name[MAX_HOSTNAME_LEN - 1] = '\0';
+    const int error = gethostname(name, MAX_HOSTNAME_LEN - 1);
+    if (error) {
+        ASKAPTHROW(AskapError, "gethostname() returned error: " << error);
+    }
+
+    std::string pname(name);
+    std::string::size_type idx = pname.find_first_of('.');
+    if (idx != std::string::npos) {
+        // Extract just the hostname part
+        pname = pname.substr(0, idx);
+    }
+
+    return pname;
 }
