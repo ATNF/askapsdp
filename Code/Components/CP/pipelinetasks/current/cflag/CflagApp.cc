@@ -46,6 +46,7 @@
 // Local package includes
 #include "cflag/StrategyFactory.h"
 #include "cflag/IFlagStrategy.h"
+#include "cflag/FlaggingStats.h"
 
 // Using
 using namespace askap;
@@ -79,6 +80,15 @@ int CflagApp::run(int argc, char* argv[])
             }
             (*it)->processRow(msc, i);
         }
+    }
+
+    // Write out flagging statistics
+    ASKAPLOG_INFO_STR(logger, "Summary:");
+    for (it = flaggers.begin(); it != flaggers.end(); ++it) {
+        const FlaggingStats stats = (*it)->stats();
+        ASKAPLOG_INFO_STR(logger, "    " << stats.name
+                << " - Rows flagged: " << stats.rowsflagged
+                << ", Visibilities flagged: " << stats.visflagged);
     }
 
     stats.logSummary();

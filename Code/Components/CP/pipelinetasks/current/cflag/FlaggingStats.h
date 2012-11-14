@@ -1,6 +1,6 @@
-/// @file IFlagStrategy.h
+/// @file FlaggingStats.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,32 +24,26 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_IFLAGGER_H
-#define ASKAP_CP_PIPELINETASKS_IFLAGGER_H
+#ifndef ASKAP_CP_PIPELINETASKS_FLAGGINGSTATS_H
+#define ASKAP_CP_PIPELINETASKS_FLAGGINGSTATS_H
 
-// ASKAPsoft includes
-#include "ms/MeasurementSets/MSColumns.h"
-#include "casa/aipstype.h"
-
-// Local package includes
-#include "cflag/FlaggingStats.h"
+// System includes
+#include <string>
 
 namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief TODO: Write documentation...
-class IFlagStrategy {
-    public:
+    /// @brief TODO: Write documentation...
+    class FlaggingStats {
+        public:
+            FlaggingStats(const std::string& n)
+                : name(n), rowsflagged(0), visflagged(0) {}
 
-        // Destructor
-        virtual ~IFlagStrategy();
-
-        virtual void processRow(casa::MSColumns& msc, const casa::uInt row) = 0;
-
-        virtual FlaggingStats stats(void) const = 0;
-
-};
+            std::string name;
+            unsigned long rowsflagged;
+            unsigned long visflagged;
+    };
 
 }
 }

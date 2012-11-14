@@ -45,6 +45,7 @@
 // Local package includes
 #include "cflag/IFlagStrategy.h"
 #include "cflag/SelectionStrategy.h"
+#include "cflag/StokesVStrategy.h"
 
 ASKAP_LOGGER(logger, ".StrategyFactory");
 
@@ -53,19 +54,29 @@ using namespace askap;
 using namespace askap::cp::pipelinetasks;
 
 std::vector< boost::shared_ptr<IFlagStrategy> > StrategyFactory::build(
-    const LOFAR::ParameterSet& parset, const casa::MeasurementSet& ms)
+        const LOFAR::ParameterSet& parset, const casa::MeasurementSet& ms)
 {
     vector< boost::shared_ptr<IFlagStrategy> > flaggers;
 
     // Create Selection flaggers
-    const vector<string> rules = parset.getStringVector("selection_flagger.rules");
-    vector<string>::const_iterator it;
-    for (it = rules.begin(); it != rules.end(); ++it) {
-        ASKAPLOG_DEBUG_STR(logger, "Processing rule: " << *it);
-        stringstream ss;
-        ss << "selection_flagger." << *it << ".";
-        const LOFAR::ParameterSet subset = parset.makeSubset(ss.str());
-        flaggers.push_back(boost::shared_ptr<IFlagStrategy>(new SelectionStrategy(subset, ms)));
+    string key = "selection_flagger.rules";
+    if (parset.isDefined(key)) {
+        const vector<string> rules = parset.getStringVector(key);
+        vector<string>::const_iterator it;
+        for (it = rules.begin(); it != rules.end(); ++it) {
+            ASKAPLOG_DEBUG_STR(logger, "Processing rule: " << *it);
+            stringstream ss;
+            ss << "selection_flagger." << *it << ".";
+            const LOFAR::ParameterSet subset = parset.makeSubset(ss.str());
+            flaggers.push_back(boost::shared_ptr<IFlagStrategy>(new SelectionStrategy(subset, ms)));
+        }
+    }
+
+    // Create Stokes V strategy
+    key = "stokesv_strategy.enable";
+    if (parset.isDefined(key) && parset.getBool(key)) {
+        const LOFAR::ParameterSet subset = parset.makeSubset("stokesv_strategy.");
+        flaggers.push_back(boost::shared_ptr<IFlagStrategy>(new StokesVStrategy(subset, ms)));
     }
 
     return flaggers;

@@ -1,6 +1,6 @@
-/// @file SelectionStrategy.h
+/// @file StokesVStrategy.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,18 +24,20 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_PIPELINETASKS_SELECTIONFLAGGER_H
-#define ASKAP_CP_PIPELINETASKS_SELECTIONFLAGGER_H
+#ifndef ASKAP_CP_PIPELINETASKS_STOKESVSTRATEGY_H
+#define ASKAP_CP_PIPELINETASKS_STOKESVSTRATEGY_H
 
 // System includes
 #include <vector>
+#include <map>
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
 #include "casa/aipstype.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
-#include "ms/MeasurementSets/MSSelection.h"
+#include "ms/MeasurementSets/MSPolColumns.h"
+#include "ms/MeasurementSets/StokesConverter.h"
 
 // Local package includes
 #include "cflag/IFlagStrategy.h"
@@ -46,11 +48,11 @@ namespace cp {
 namespace pipelinetasks {
 
 /// @brief TODO: Write documentation...
-class SelectionStrategy : public IFlagStrategy {
+class StokesVStrategy : public IFlagStrategy {
     public:
 
         /// @brief Constructor
-        SelectionStrategy(const LOFAR::ParameterSet& parset,
+        StokesVStrategy(const LOFAR::ParameterSet& parset,
                           const casa::MeasurementSet& ms);
 
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row);
@@ -58,42 +60,17 @@ class SelectionStrategy : public IFlagStrategy {
         virtual FlaggingStats stats(void) const;
 
     private:
-        enum SelectionCriteria {
-            BASELINE,
-            FIELD,
-            TIMERANGE,
-            SCAN,
-            FEED,
-            UVRANGE,
-            AUTOCORR
-        };
-
-        bool checkBaseline(casa::MSColumns& msc, const casa::uInt row);
-        bool checkField(casa::MSColumns& msc, const casa::uInt row);
-        bool checkTimerange(casa::MSColumns& msc, const casa::uInt row);
-        bool checkScan(casa::MSColumns& msc, const casa::uInt row);
-        bool checkFeed(casa::MSColumns& msc, const casa::uInt row);
-        bool checkUVRange(casa::MSColumns& msc, const casa::uInt row);
-        bool checkAutocorr(casa::MSColumns& msc, const casa::uInt row);
-
-        bool dispatch(const std::vector<SelectionCriteria>& v,
-                      casa::MSColumns& msc, const casa::uInt row);
-
-        unsigned long checkDetailed(casa::MSColumns& msc, const casa::uInt row,
-                                    const bool doFlag);
-
-        void flagRow(casa::MSColumns& msc, const casa::uInt row);
+        casa::StokesConverter& getStokesConverter(const casa::ROMSPolarizationColumns& polc,
+                                                  const casa::Int polId);
 
         // Flagging statistics
         FlaggingStats itsStats;
 
-        casa::MSSelection itsSelection;
+        // Flagging threshold (in standard deviations)
+        float itsThreshold;
 
-        // True of auto-correlations should be flagged.
-        bool itsFlagAutoCorr;
-        
-        bool itsDetailedCriteriaExists;
-        std::vector<SelectionCriteria> itsRowCriteria;
+        // StokesConverter cache
+        std::map<casa::Int, casa::StokesConverter> itsConverterCache;
 };
 
 }
