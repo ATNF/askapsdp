@@ -50,8 +50,43 @@ namespace synthesis {
 /// @note This class is in the measurement equation directory for now, although it doesn't 
 /// quite fit with the rest of the stuff up there
 /// @ingroup measurementequation
-class VisMetadataStats {
-
+class VisMetaDataStats {
+public:
+   /// @brief constructor, initialise class 
+   VisMetaDataStats();
+   
+   /// @brief aggregate statistics with that accumulated by another instance
+   /// @details This class will be run in parallel if the measurement set is distributed. 
+   /// This method is intended to combine statistics as part of reduction.
+   /// @param[in] other an instance of the estimator to take data from
+   void merge(const VisMetaDataStats &other);
+   
+   /// @brief process one accessor of data updating statistics
+   /// @details 
+   /// @param[in] acc read-only accessor with data
+   void process(const accessors::IConstDataAccessor &acc);
+   
+   // access to the data
+   
+   /// @brief total number of visibility points processed
+   /// @details This method counts all visibility points. One spectral channel is one
+   /// visibility point (but polarisations are not counted separately).
+   /// @return number of visibility points processed so far
+   unsigned long nVis() const;
+      
+   
+   /// @brief longest baseline spacing in wavelengths
+   /// @return largest absolute value of u in wavelengths
+   double maxU() const;
+   
+   /// @brief longest baseline spacing in wavelengths
+   /// @return largest absolute value of v in wavelengths
+   double maxV() const;
+      
+   /// @brief largest w-term without snap-shotting 
+   /// @return largest absolute value of w in wavelengths
+   double maxW() const;
+   
 };
 
 } // namespace synthesis
