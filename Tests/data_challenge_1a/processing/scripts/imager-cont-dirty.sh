@@ -48,7 +48,10 @@ Cimager.solver.Dirty.tolerance                  = 0.1
 Cimager.solver.Dirty.verbose                    = True
 Cimager.ncycles                                 = 0
 
-Cimager.preconditioner.Names                    = None
+Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
+Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
+Cimager.preconditioner.Wiener.robustness        = 0.0
+Cimager.preconditioner.Wiener.taper             = 64
 #
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit

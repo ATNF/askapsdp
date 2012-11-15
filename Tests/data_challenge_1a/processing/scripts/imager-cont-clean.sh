@@ -6,7 +6,7 @@
 cat > cimager-cont-clean.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=4:mem=23GB:mpiprocs=4
+#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=6:mem=23GB:mpiprocs=6
 #PBS -l walltime=12:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N cont-clean
@@ -21,6 +21,7 @@ logfile=${LOGDIR}/cimager-cont-clean-\${PBS_JOBID}.log
 
 cat > \$parset << EOF_INNER
 Cimager.dataset                                 = MS/coarse_chan_%w.ms
+Cimager.nworkergroups                           = 3
 
 Cimager.Images.Names                            = [image.i.clean]
 Cimager.Images.shape                            = [3328,3328]
@@ -32,24 +33,25 @@ Cimager.Images.image.i.clean.nterms             = 2
 Cimager.Images.writeAtMajorCycle                = true
 #
 Cimager.visweights                              = MFS
-#Cimager.visweights.MFS.reffreq                  = 1.420e9
 Cimager.visweights.MFS.reffreq                  = 1.270e9
 #
+Cimager.gridder.snapshotimaging                 = true
+Cimager.gridder.snapshotimaging.wtolerance      = 800
 Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = 3500
-Cimager.gridder.AWProject.nwplanes              = 7
+Cimager.gridder.AWProject.wmax                  = 800
+Cimager.gridder.AWProject.nwplanes              = 99
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m
 Cimager.gridder.AWProject.blockage              = 2m
 Cimager.gridder.AWProject.maxfeeds              = 36
-Cimager.gridder.AWProject.maxsupport            = 2048
+Cimager.gridder.AWProject.maxsupport            = 512
 Cimager.gridder.AWProject.variablesupport       = true
 Cimager.gridder.AWProject.offsetsupport         = true
 Cimager.gridder.AWProject.frequencydependent    = true
 #
 Cimager.solver                                  = Clean
 Cimager.solver.Clean.algorithm                  = BasisfunctionMFS
-Cimager.solver.Clean.niter                      = 10000
+Cimager.solver.Clean.niter                      = 5000
 Cimager.solver.Clean.gain                       = 0.5
 Cimager.solver.Clean.scales                     = [0, 3, 10, 30]
 Cimager.solver.Clean.verbose                    = False
@@ -65,7 +67,7 @@ Cimager.ncycles                                 = 5
 Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
 Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
 Cimager.preconditioner.Wiener.robustness        = 0.0
-Cimager.preconditioner.Wiener.taper             = 128
+Cimager.preconditioner.Wiener.taper             = 64
 #
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit

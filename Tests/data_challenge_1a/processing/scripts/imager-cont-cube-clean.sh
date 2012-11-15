@@ -45,7 +45,6 @@ Cimager.Images.\${imageName}.nterms              = 1
 #Cimager.Images.writeAtMajorCycle                = true
 #
 #Cimager.visweights                              = MFS
-#Cimager.visweights.MFS.reffreq                  = 1.420e9
 #
 Cimager.gridder                                 = AWProject
 Cimager.gridder.AWProject.wmax                  = 3500
