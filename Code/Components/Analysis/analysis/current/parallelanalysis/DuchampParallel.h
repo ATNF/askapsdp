@@ -310,6 +310,9 @@ namespace askap {
 		/// Use the new mask optimisation growing function?
 		bool itsFlagOptimiseMask;
 
+		/// Use the 2D1D wavelet reconstruction algorithm?
+		bool itsFlagWavelet2D1D;
+
         };
 
     }

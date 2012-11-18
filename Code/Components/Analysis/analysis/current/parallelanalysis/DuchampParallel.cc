@@ -79,6 +79,7 @@ using namespace LOFAR::TYPES;
 #include <analysisutilities/NewArrayMath.h>
 #include <analysisutilities/NewArrayPartMath.h>
 #include <parametrisation/OptimisedGrower.h>
+#include <preprocessing/Wavelet2D1D.h>
 #include <outputs/AskapAsciiCatalogueWriter.h>
 #include <outputs/AskapVOTableCatalogueWriter.h>
 
@@ -188,6 +189,8 @@ namespace askap {
 //	      ASKAPLOG_WARN_STR(logger, "flagGrowth is set to true, so setting optimiseMask to false");
 //	      this->itsFlagOptimiseMask = false;
 //	    }
+
+	    this->itsFlagWavelet2D1D = parset.getBool("flagWavelet2D1D",false);
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
@@ -505,20 +508,23 @@ namespace askap {
 
 	  if(itsComms.isWorker()){
 
-		if(this->itsCube.pars().getFlagNegative()){
-		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Inverting cube");
-		  this->itsCube.invert();
-		}
-
-                if (this->itsCube.pars().getFlagATrous()) {
-		  ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing with dimension " << this->itsCube.pars().getReconDim());
-		    
-                    this->itsCube.ReconCube();
-                } else if (this->itsCube.pars().getFlagSmooth()) {
-                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Smoothing");
-                    this->itsCube.SmoothCube();
-                }
-
+	    if(this->itsCube.pars().getFlagNegative()){
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Inverting cube");
+	      this->itsCube.invert();
+	    }
+	    
+	    if( this->itsFlagWavelet2D1D ){
+	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reconstructing with the 2D1D wavelet algorithm");
+	      atrous2D1DReconstruct(this->itsCube.getDimX(), this->itsCube.getDimY(), this->itsCube.getDimZ(), this->itsCube.getArray(), this->itsCube.getRecon(), this->itsCube.pars());
+	    }
+	    else if (this->itsCube.pars().getFlagATrous()) {
+	      ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing with dimension " << this->itsCube.pars().getReconDim());
+	      this->itsCube.ReconCube();
+	    } else if (this->itsCube.pars().getFlagSmooth()) {
+	      ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Smoothing");
+	      this->itsCube.SmoothCube();
+	    }
+	    
 	  }
 
 	}

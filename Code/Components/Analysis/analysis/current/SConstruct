@@ -22,6 +22,7 @@ pkg.AddSubPackage("analysisutilities")
 pkg.AddSubPackage("sourcefitting")
 pkg.AddSubPackage("extraction")
 pkg.AddSubPackage("parametrisation")
+pkg.AddSubPackage("preprocessing")
 pkg.AddSubPackage("patternmatching")
 pkg.AddSubPackage("outputs")
 
