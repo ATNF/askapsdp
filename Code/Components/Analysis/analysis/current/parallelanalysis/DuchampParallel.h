@@ -138,6 +138,9 @@ namespace askap {
 		void prepareSourceForFit(sourcefitting::RadioSource &src, bool useArray);
 		void fitSource(sourcefitting::RadioSource &src, bool useArray);
 
+		/// @brief Run any preprocessing on the workers
+		void preprocess();
+
                 /// @brief Find the sources on each worker
                 void findSources();
 

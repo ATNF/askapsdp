@@ -468,21 +468,6 @@ namespace askap {
                     if (this->itsCube.getDimZ() == 1) this->itsCube.pars().setMinChannels(0);
                 }
 
-		if(this->itsCube.pars().getFlagNegative()){
-		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Inverting cube");
-		  this->itsCube.invert();
-		}
-
-                if (this->itsCube.pars().getFlagATrous()) {
-		  ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing with dimension " << this->itsCube.pars().getReconDim());
-		    
-                    this->itsCube.ReconCube();
-                } else if (this->itsCube.pars().getFlagSmooth()) {
-                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Smoothing");
-                    this->itsCube.SmoothCube();
-                }
-
-
             }
         }
 
@@ -508,6 +493,35 @@ namespace askap {
                 logfile.close();
             }
         }
+
+        //**************************************************************//
+
+        void DuchampParallel::preprocess()
+        {
+	  /// @details Runs any requested pre-processing. This
+	  /// includes inverting the cube, smoothing or
+	  /// multi-resolution wavelet reconstruction.
+	  /// This is only done on the worker nodes.
+
+	  if(itsComms.isWorker()){
+
+		if(this->itsCube.pars().getFlagNegative()){
+		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Inverting cube");
+		  this->itsCube.invert();
+		}
+
+                if (this->itsCube.pars().getFlagATrous()) {
+		  ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing with dimension " << this->itsCube.pars().getReconDim());
+		    
+                    this->itsCube.ReconCube();
+                } else if (this->itsCube.pars().getFlagSmooth()) {
+                    ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Smoothing");
+                    this->itsCube.SmoothCube();
+                }
+
+	  }
+
+	}
 
         //**************************************************************//
 
