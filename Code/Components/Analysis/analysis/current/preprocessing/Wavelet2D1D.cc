@@ -37,6 +37,8 @@
 #include <algorithm>
 
 #include <duchamp/param.hh>
+#include <duchamp/Utils/utils.hh>
+#include <duchamp/Utils/Statistics.hh>
 
 using namespace std;
 
@@ -213,16 +215,25 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
                     for(size_t i = 0; i < size; i++)
                         work[writeToZ][i] -= work[readFromZ][i];
 
-                    // Calculate statistics for the given wavelet coefficients
-                    // Could be replaced with robust or position dependent statistics
-                    double std = 0;
-                    for(size_t i = 0; i < size; i++)
-                        std += work[writeToZ][i] * work[writeToZ][i];
-                    std = sqrt(std / (size + 1));
+                    // // Calculate statistics for the given wavelet coefficients
+                    // // Could be replaced with robust or position dependent statistics
+                    // double std = 0;
+                    // for(size_t i = 0; i < size; i++)
+                    //     std += work[writeToZ][i] * work[writeToZ][i];
+                    // std = sqrt(std / (size + 1));
+
+		    float middle,spread,threshold;
+		    if(par.getFlagRobustStats()){
+		      findMedianStats<float>(&(work[writeToZ][0]),size,middle,spread);
+		      spread=Statistics::madfmToSigma(spread);
+		    }
+		    else findNormalStats<float>(&(work[writeToZ][0]),size,middle,spread);
+		    threshold = middle + reconstructionThreshold * spread;
 
                     // Threshold coefficients
                     for(size_t i = 0; i < size; i++)
-                        if(fabs(work[writeToZ][i]) > reconstructionThreshold * std)
+		      //                        if(fabs(work[writeToZ][i]) > reconstructionThreshold * std)
+                        if(fabs(work[writeToZ][i]) > threshold)
                             output[i] += work[writeToZ][i];
                 }
 
