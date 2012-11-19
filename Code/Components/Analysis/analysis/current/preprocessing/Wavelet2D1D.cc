@@ -101,15 +101,18 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
     size_t size = xydim * zdim;
 
     // Allocate the three work arrays
-    float work[3][size];
-    bool isGood[size];
+    float *work[3];
+    for(int i=0;i<3;i++) work[i] = new float[size];
+    bool *isGood = new bool[size];
 
 
     // Check for bad values and initialize the output to 0.
     for(ulong i = 0; i < size; i++)
     {
-        isGood[i] = (input[i] == input[i]);
-        output[i] = 0.;
+      //        isGood[i] = (input[i] == input[i]);
+            isGood[i] = isfinite(input[i]);
+      //isGood[i] = !par.isBlank(input[i]);
+      output[i] = 0.;
     }
 
     // Start the iteration loop
@@ -257,4 +260,9 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
         if(iteration > 0)
             break;
     }
+
+    delete [] isGood;
+    for(int i=0;i<3;i++) delete [] work[i];
+
+
 }
