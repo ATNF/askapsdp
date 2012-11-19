@@ -101,8 +101,9 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
     size_t size = xydim * zdim;
 
     // Allocate the three work arrays
-    vector < vector < float > > work(3, vector < float > (size));
-    vector < bool > isGood(size);
+    float work[3][size];
+    bool isGood[size];
+
 
     // Check for bad values and initialize the output to 0.
     for(ulong i = 0; i < size; i++)
@@ -224,10 +225,10 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
 
 		    float middle,spread,threshold;
 		    if(par.getFlagRobustStats()){
-		      findMedianStats<float>(&(work[writeToZ][0]),size,middle,spread);
+		      findMedianStats<float>(work[writeToZ],size,isGood,middle,spread);
 		      spread=Statistics::madfmToSigma(spread);
 		    }
-		    else findNormalStats<float>(&(work[writeToZ][0]),size,middle,spread);
+		    else findNormalStats<float>(work[writeToZ],size,isGood,middle,spread);
 		    threshold = middle + reconstructionThreshold * spread;
 
                     // Threshold coefficients
