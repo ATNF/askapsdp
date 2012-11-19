@@ -53,7 +53,8 @@ class SelectionStrategy : public IFlagStrategy {
         SelectionStrategy(const LOFAR::ParameterSet& parset,
                           const casa::MeasurementSet& ms);
 
-        virtual void processRow(casa::MSColumns& msc, const casa::uInt row);
+        virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
+                                const bool dryRun);
 
         virtual FlaggingStats stats(void) const;
 
@@ -79,20 +80,28 @@ class SelectionStrategy : public IFlagStrategy {
         bool dispatch(const std::vector<SelectionCriteria>& v,
                       casa::MSColumns& msc, const casa::uInt row);
 
-        unsigned long checkDetailed(casa::MSColumns& msc, const casa::uInt row,
-                                    const bool doFlag);
+        void checkDetailed(casa::MSColumns& msc, const casa::uInt row,
+                           const bool dryRun);
 
-        void flagRow(casa::MSColumns& msc, const casa::uInt row);
+        // Sets the row flag to true, and also sets the flag true for each visibility
+        void flagRow(casa::MSColumns& msc, const casa::uInt row, const bool dryRun);
 
         // Flagging statistics
         FlaggingStats itsStats;
 
+        // The bulk of the parsing of selection criteria is delegated to this class
         casa::MSSelection itsSelection;
 
         // True of auto-correlations should be flagged.
         bool itsFlagAutoCorr;
-        
+
+        // Set to true if per channel or per polarisation product flagging
+        // criteria is specified
         bool itsDetailedCriteriaExists;
+
+        // A list indicating which of the row based selection criteria has
+        // been specified. The criteria which are more granular than whole row
+        // are indicated via the itsDetailedCriteriaExists attribute.
         std::vector<SelectionCriteria> itsRowCriteria;
 };
 

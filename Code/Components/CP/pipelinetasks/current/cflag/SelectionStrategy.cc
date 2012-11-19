@@ -54,8 +54,8 @@ using namespace askap::cp::pipelinetasks;
 
 SelectionStrategy:: SelectionStrategy(const LOFAR::ParameterSet& parset,
                                       const casa::MeasurementSet& ms)
-    : itsStats("SelectionStrategy"), itsFlagAutoCorr(false),
-            itsDetailedCriteriaExists(false)
+        : itsStats("SelectionStrategy"), itsFlagAutoCorr(false),
+        itsDetailedCriteriaExists(false)
 {
     itsSelection.resetMS(ms);
 
@@ -76,7 +76,6 @@ SelectionStrategy:: SelectionStrategy(const LOFAR::ParameterSet& parset,
 
     if (parset.isDefined("timerange")) {
         itsSelection.setTimeExpr(parset.getString("timerange"));
-        ASKAPTHROW(AskapError, "Timerange selection not yet implemented");
         itsRowCriteria.push_back(TIMERANGE);
     }
 
@@ -114,22 +113,22 @@ FlaggingStats SelectionStrategy::stats(void) const
     return itsStats;
 }
 
-void SelectionStrategy::processRow(casa::MSColumns& msc, const casa::uInt row)
+void SelectionStrategy::processRow(casa::MSColumns& msc, const casa::uInt row,
+                                   const bool dryRun)
 {
     const bool rowCriteriaMatches = dispatch(itsRowCriteria, msc, row);
 
     // 1: Handle the case where all row criteria match and no detailed criteria
     // exists
     if (rowCriteriaMatches && !itsDetailedCriteriaExists) {
-        flagRow(msc, row);
+        flagRow(msc, row, dryRun);
     }
 
     // 2: Handle the case where there is no row criteria, but there is detailed
     // criteria. Or, where the row criteria exists and match.
     if ((itsRowCriteria.empty() && itsDetailedCriteriaExists)
             || (rowCriteriaMatches && itsDetailedCriteriaExists)) {
-        ASKAPLOG_DEBUG_STR(logger, "########### checkDetailed()");
-        itsStats.visflagged += checkDetailed(msc, row, true);
+        checkDetailed(msc, row, dryRun);
     }
 }
 
@@ -167,7 +166,20 @@ bool SelectionStrategy::checkField(casa::MSColumns& msc, const casa::uInt row)
 
 bool SelectionStrategy::checkTimerange(casa::MSColumns& msc, const casa::uInt row)
 {
-    return false;
+    const Matrix<casa::Double> timeList = itsSelection.getTimeList();
+    if (timeList.empty()) {
+        ASKAPLOG_DEBUG_STR(logger, "Time list is EMPTY");
+        return false;
+    }
+    ASKAPCHECK(timeList.nrow() == 2, "Expected two rows");
+    ASKAPCHECK(timeList.ncolumn() == 1,
+               "Only a single time range specification is supported");
+    const casa::Double t = msc.time()(row);
+    if (t > timeList(0, 0) && t < timeList(1, 0)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool SelectionStrategy::checkScan(casa::MSColumns& msc, const casa::uInt row)
@@ -202,7 +214,7 @@ bool SelectionStrategy::checkAutocorr(casa::MSColumns& msc, const casa::uInt row
 }
 
 bool SelectionStrategy::dispatch(const std::vector<SelectionCriteria>& v,
-        casa::MSColumns& msc, const casa::uInt row)
+                                 casa::MSColumns& msc, const casa::uInt row)
 {
     std::vector<SelectionCriteria>::const_iterator it;
     for (it = v.begin(); it != v.end(); ++it) {
@@ -235,32 +247,28 @@ bool SelectionStrategy::dispatch(const std::vector<SelectionCriteria>& v,
     return true;
 }
 
-unsigned long SelectionStrategy::checkDetailed(casa::MSColumns& msc, const casa::uInt row, const bool doFlag)
+void SelectionStrategy::checkDetailed(casa::MSColumns& msc, const casa::uInt row, const bool dryRun)
 {
-    // Count the number of visibilities flagged (or that would have been
-    // flagged)
-    unsigned long flagCount = 0;
-
     const Matrix<casa::Int> chanList = itsSelection.getChanList();
     if (chanList.empty()) {
         ASKAPLOG_DEBUG_STR(logger, "Channel flagging list is EMPTY");
-        return false;
+        return;
     }
     ASKAPCHECK(chanList.ncolumn() == 4, "Expected four columns");
     Matrix<casa::Bool> flags = msc.flag()(row);
 
     const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
 
-    ASKAPLOG_DEBUG_STR(logger, "Channel flagging list size: " << chanList.size());
-    for (size_t i = 0; i < chanList.size(); ++i) {
-        const casa::Int spwID = flags(i, 0);
-        const casa::Int startCh = flags(i, 1);
-        const casa::Int stopCh = flags(i, 2);
-        const casa::Int step = flags(i, 3);
+    ASKAPLOG_DEBUG_STR(logger, "Channel flagging list size: " << chanList.nrow());
+    for (size_t i = 0; i < chanList.nrow(); ++i) {
+        const casa::Int spwID = chanList(i, 0);
+        const casa::Int startCh = chanList(i, 1);
+        const casa::Int stopCh = chanList(i, 2);
+        const casa::Int step = chanList(i, 3);
         ASKAPLOG_DEBUG_STR(logger, "spwID: " << spwID
-                << ", startCh: " << startCh
-                << ", stopCh: " << stopCh
-                << ", step: " << step);
+                               << ", startCh: " << startCh
+                               << ", stopCh: " << stopCh
+                               << ", step: " << step);
         ASKAPCHECK(step > 0, "Step must be greater than zero to avoid infinite loop");
         const casa::Int dataDescId = msc.dataDescId()(row);
         const casa::Int descSpwId = ddc.spectralWindowId()(dataDescId);
@@ -271,19 +279,26 @@ unsigned long SelectionStrategy::checkDetailed(casa::MSColumns& msc, const casa:
         for (casa::Int chan = startCh; chan <= stopCh; chan += step) {
             for (casa::uInt pol = 0; pol < flags.nrow(); ++pol) {
                 flags(pol, chan) = true;
-                flagCount++;
+                itsStats.visflagged++;
             }
         }
     }
 
-    if (doFlag) {
+    if (!dryRun) {
         msc.flag().put(row, flags);
     }
-    return flagCount;
 }
 
-void SelectionStrategy::flagRow(casa::MSColumns& msc, const casa::uInt row)
+void SelectionStrategy::flagRow(casa::MSColumns& msc, const casa::uInt row, const bool dryRun)
 {
+    Matrix<casa::Bool> flags = msc.flag()(row);
+    flags = true;
+
+    itsStats.visflagged += flags.size();
     itsStats.rowsflagged++;
-    msc.flagRow().put(row, true);
+
+    if (!dryRun) {
+        msc.flagRow().put(row, true);
+        msc.flag().put(row, flags);
+    }
 }

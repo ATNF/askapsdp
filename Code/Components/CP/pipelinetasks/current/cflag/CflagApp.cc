@@ -67,28 +67,37 @@ int CflagApp::run(int argc, char* argv[])
     // Create a vector of all the flagging strategies specified in the parset
     std::vector< boost::shared_ptr<IFlagStrategy> > flaggers = StrategyFactory::build(subset, ms);
 
+    // Is this a dry run?
+    const bool dryRun = subset.getBool("dryrun", false);
+    ASKAPLOG_INFO_STR(logger, "!!!!! DRY RUN ONLY - MeasurementSet will not be updated !!!!!");
+
     // Iterate over each row in the main table
     MSColumns msc(ms);
     const casa::uInt nRows = msc.nrow();
     std::vector< boost::shared_ptr<IFlagStrategy> >::iterator it;
+    unsigned long rowsAlreadyFlagged = 0;
     for (casa::uInt i = 0; i < nRows; ++i) {
-
-        // Invoke each strategy for this row, but only while the row isn't flagged
-        for (it = flaggers.begin(); it != flaggers.end(); ++it) {
-            if (msc.flagRow()(i)) {
-                break;
+        if (!msc.flagRow()(i)) {
+            // Invoke each strategy for this row, but only while the row isn't flagged
+            for (it = flaggers.begin(); it != flaggers.end(); ++it) {
+                if (msc.flagRow()(i)) {
+                    break;
+                }
+                (*it)->processRow(msc, i, dryRun);
             }
-            (*it)->processRow(msc, i);
+        } else {
+            rowsAlreadyFlagged++;
         }
     }
 
     // Write out flagging statistics
     ASKAPLOG_INFO_STR(logger, "Summary:");
+    ASKAPLOG_INFO_STR(logger, "  Rows already flagged: " << rowsAlreadyFlagged);
     for (it = flaggers.begin(); it != flaggers.end(); ++it) {
         const FlaggingStats stats = (*it)->stats();
-        ASKAPLOG_INFO_STR(logger, "    " << stats.name
-                << " - Rows flagged: " << stats.rowsflagged
-                << ", Visibilities flagged: " << stats.visflagged);
+        ASKAPLOG_INFO_STR(logger, "  " << stats.name
+                              << " - Entire rows flagged: " << stats.rowsflagged
+                              << ", Visibilities flagged: " << stats.visflagged);
     }
 
     stats.logSummary();

@@ -54,7 +54,7 @@ using namespace askap;
 using namespace askap::cp::pipelinetasks;
 
 std::vector< boost::shared_ptr<IFlagStrategy> > StrategyFactory::build(
-        const LOFAR::ParameterSet& parset, const casa::MeasurementSet& ms)
+    const LOFAR::ParameterSet& parset, const casa::MeasurementSet& ms)
 {
     vector< boost::shared_ptr<IFlagStrategy> > flaggers;
 

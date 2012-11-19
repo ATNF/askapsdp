@@ -31,7 +31,6 @@
 #include "askap_pipelinetasks.h"
 
 // System includes
-#include <iomanip>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -58,8 +57,8 @@ using namespace casa;
 using namespace askap::cp::pipelinetasks;
 
 StokesVStrategy:: StokesVStrategy(const LOFAR::ParameterSet& parset,
-                                      const casa::MeasurementSet& ms)
-    : itsStats("StokesVStrategy")
+                                  const casa::MeasurementSet& ms)
+        : itsStats("StokesVStrategy")
 {
     itsThreshold = parset.getFloat("threshold", 5.0);
 }
@@ -70,21 +69,22 @@ FlaggingStats StokesVStrategy::stats(void) const
 }
 
 casa::StokesConverter& StokesVStrategy::getStokesConverter(
-        const casa::ROMSPolarizationColumns& polc, const casa::Int polId)
+    const casa::ROMSPolarizationColumns& polc, const casa::Int polId)
 {
     const casa::Vector<Int> corrType = polc.corrType()(polId);
     std::map<casa::Int, casa::StokesConverter>::iterator it = itsConverterCache.find(polId);
     if (it == itsConverterCache.end()) {
-        ASKAPLOG_DEBUG_STR(logger, "Creating StokesConverter for pol table entry " << polId);
+        //ASKAPLOG_DEBUG_STR(logger, "Creating StokesConverter for pol table entry " << polId);
         const casa::Vector<Int> target(1, Stokes::V);
         itsConverterCache.insert(pair<casa::Int, casa::StokesConverter>(polId,
-                    casa::StokesConverter(target, corrType)));
+                                 casa::StokesConverter(target, corrType)));
     }
 
     return itsConverterCache[polId];
 }
 
-void StokesVStrategy::processRow(casa::MSColumns& msc, const casa::uInt row)
+void StokesVStrategy::processRow(casa::MSColumns& msc, const casa::uInt row,
+                                 const bool dryRun)
 {
     // Get a description of what correlation products are in the data table.
     const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
@@ -122,7 +122,7 @@ void StokesVStrategy::processRow(casa::MSColumns& msc, const casa::uInt row)
         }
     }
 
-    if (wasUpdated) {
+    if (wasUpdated && !dryRun) {
         msc.flag().put(row, flags);
     }
 }

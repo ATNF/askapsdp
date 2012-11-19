@@ -53,15 +53,16 @@ class StokesVStrategy : public IFlagStrategy {
 
         /// @brief Constructor
         StokesVStrategy(const LOFAR::ParameterSet& parset,
-                          const casa::MeasurementSet& ms);
+                        const casa::MeasurementSet& ms);
 
-        virtual void processRow(casa::MSColumns& msc, const casa::uInt row);
+        virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
+                                const bool dryRun);
 
         virtual FlaggingStats stats(void) const;
 
     private:
         casa::StokesConverter& getStokesConverter(const casa::ROMSPolarizationColumns& polc,
-                                                  const casa::Int polId);
+                const casa::Int polId);
 
         // Flagging statistics
         FlaggingStats itsStats;

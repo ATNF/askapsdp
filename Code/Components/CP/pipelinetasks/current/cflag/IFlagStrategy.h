@@ -45,7 +45,8 @@ class IFlagStrategy {
         // Destructor
         virtual ~IFlagStrategy();
 
-        virtual void processRow(casa::MSColumns& msc, const casa::uInt row) = 0;
+        virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
+                                const bool dryRun) = 0;
 
         virtual FlaggingStats stats(void) const = 0;
 

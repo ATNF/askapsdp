@@ -34,16 +34,16 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-    /// @brief TODO: Write documentation...
-    class FlaggingStats {
-        public:
-            FlaggingStats(const std::string& n)
+/// @brief TODO: Write documentation...
+class FlaggingStats {
+    public:
+        FlaggingStats(const std::string& n)
                 : name(n), rowsflagged(0), visflagged(0) {}
 
-            std::string name;
-            unsigned long rowsflagged;
-            unsigned long visflagged;
-    };
+        std::string name;
+        unsigned long rowsflagged;
+        unsigned long visflagged;
+};
 
 }
 }
