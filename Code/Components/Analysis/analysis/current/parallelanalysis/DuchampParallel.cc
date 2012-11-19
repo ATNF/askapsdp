@@ -191,6 +191,7 @@ namespace askap {
 //	    }
 
 	    this->itsFlagWavelet2D1D = parset.getBool("flagWavelet2D1D",false);
+	    this->itsCube.pars().setFlagATrous(this->itsCube.pars().getFlagATrous() || this->itsFlagWavelet2D1D);
 
             this->itsFlagDoFit = parset.getBool("doFit", false);
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
@@ -515,7 +516,9 @@ namespace askap {
 	    
 	    if( this->itsFlagWavelet2D1D ){
 	      ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Reconstructing with the 2D1D wavelet algorithm");
-	      atrous2D1DReconstruct(this->itsCube.getDimX(), this->itsCube.getDimY(), this->itsCube.getDimZ(), this->itsCube.getArray(), this->itsCube.getRecon(), this->itsCube.pars());
+	      float *output=new float[this->itsCube.getSize()];
+	      atrous2D1DReconstruct(this->itsCube.getDimX(), this->itsCube.getDimY(), this->itsCube.getDimZ(), this->itsCube.getArray(), output, this->itsCube.pars());
+	      this->itsCube.saveRecon(output,this->itsCube.getSize());
 	    }
 	    else if (this->itsCube.pars().getFlagATrous()) {
 	      ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Reconstructing with dimension " << this->itsCube.pars().getReconDim());

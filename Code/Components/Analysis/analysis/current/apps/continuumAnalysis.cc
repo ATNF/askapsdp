@@ -92,6 +92,7 @@ int main(int argc, const char** argv)
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         image.readData();
         image.setupLogfile(argc, argv);
+	image.preprocess();
         image.gatherStats();
         image.broadcastThreshold();
         image.receiveThreshold();

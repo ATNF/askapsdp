@@ -75,6 +75,7 @@ class DuchampApp : public askap::Application
                     ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
                 duchamp.readData();
                 duchamp.setupLogfile(argc, const_cast<const char**>(argv));
+		duchamp.preprocess();
                 duchamp.gatherStats();
                 duchamp.broadcastThreshold();
                 duchamp.receiveThreshold();
