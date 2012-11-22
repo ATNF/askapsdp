@@ -103,7 +103,7 @@ private:
 void DataLogger::setupMonitor(const IConstDataAccessor &acc)
 {
   LOFAR::ParameterSet parset;
-  parset.add("monitors","basic");
+  parset.add("monitors","simple");
   itsMonitors.reset(new swcorrelator::DataMonitors(parset));
   
   const casa::uInt maxAntID = casa::max(casa::max(acc.antenna1()),casa::max(acc.antenna2()));

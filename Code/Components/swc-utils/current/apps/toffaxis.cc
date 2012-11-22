@@ -183,13 +183,13 @@ void doReadOnlyTest(const IConstDataSource &ds) {
 }
 
 void doTest() {
-  //const casa::MVDirection tangent(convertQuantity("15h56m58.871","rad"), convertQuantity("-79.14.04.28","rad"));
+  const casa::MVDirection tangent(convertQuantity("15h56m58.871","rad"), convertQuantity("-79.14.04.28","rad"));
   // 1934-638
-  const casa::MVDirection tangent(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
+  //const casa::MVDirection tangent(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
   //const casa::MDirection tangentDir(tangent, casa::MDirection::J2000);
   
-  //const casa::MVDirection dir(convertQuantity("16h17m49.278","rad"), convertQuantity("-77.17.18.46","rad"));
-  const casa::MVDirection dir(convertQuantity("19h41m21.77","rad"),convertQuantity("-62.11.21.06","rad"));
+  const casa::MVDirection dir(convertQuantity("16h17m49.278","rad"), convertQuantity("-77.17.18.46","rad"));
+  //const casa::MVDirection dir(convertQuantity("19h41m21.77","rad"),convertQuantity("-62.11.21.06","rad"));
   /*
   // 1547-795
   const casa::MVDirection dir(convertQuantity("15h55m21.65","rad"),
