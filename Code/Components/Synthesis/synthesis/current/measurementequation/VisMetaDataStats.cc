@@ -33,13 +33,33 @@
 ///
 
 #include <measurementequation/VisMetaDataStats.h>
+#include <askap/AskapError.h>
 
 namespace askap {
 
 namespace synthesis {
 
 /// @brief constructor, initialise class 
-VisMetaDataStats::VisMetaDataStats() {}
+VisMetaDataStats::VisMetaDataStats() : itsAccessorAdapter(-1.), itsNVis(0ul), itsMaxU(0.), 
+     itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.),
+     itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsRefDirValid(false), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.) {}
+   
+/// @brief constructor specific to snap-shot imaging
+/// @details For the snap-shot imaging we need to do two passes unless the desired tangent point
+/// can be specified up front. The first pass can be used to find out the centre of the field
+/// which can be used as a tangent point during imaging. The second pass, where the class is setup
+/// with this version of the constructor, can determine the largest residual w-term for the 
+/// given tangent point and w-tolerance.
+/// @note For a coplanar array the largest residual w-term will always be less than the w-tolerance
+/// which is a threshold for the fitting of a new plane. For non-coplanar array it is not always the
+/// case. This is why a complex two-pass estimation procedure is required.
+/// @param[in] tangent tangent point to be used with snap-shot imaging (for uvw-rotation)
+/// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
+VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent, double wtolerance) : itsTangent(tangent), itsAccessorAdapter(wtolerance), 
+     itsNVis(0ul), itsMaxU(0.), itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.),
+     itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsReferenceDir(tangent), itsRefDirValid(true), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.)
+     {}
+      
    
 /// @brief aggregate statistics with that accumulated by another instance
 /// @details This class will be run in parallel if the measurement set is distributed. 
@@ -56,30 +76,38 @@ void VisMetaDataStats::merge(const VisMetaDataStats &other)
 /// @param[in] acc read-only accessor with data
 void VisMetaDataStats::process(const accessors::IConstDataAccessor &acc)
 {
-  acc.nRow();
+  itsNVis += acc.nRow() * acc.nChannel();
 }
 
-/// @brief total number of visibility points processed
-/// @details This method counts all visibility points. One spectral channel is one
-/// visibility point (but polarisations are not counted separately).
-/// @return number of visibility points processed so far
-unsigned long VisMetaDataStats::nVis() const
+         
+/// @brief largest residual w-term (for snap-shotting)
+/// @return largest value of residual w in wavelengths
+double VisMetaDataStats::maxResidualW() const 
 {
-  return 0ul;
+  ASKAPCHECK(itsAccessorAdapter.tolerance()>=0., "maxResidualW() called for an object not configured for snap-shot imaging");
+  return itsMaxResidualW;
 }
 
+/// @brief most central direction of the observed field
+/// @return direction of the centre in the frame used by the accessor
+casa::MVDirection VisMetaDataStats::centre() const {
+  ASKAPCHECK(itsRefDirValid, "centre() called before any visibility has been processed, nvis="<<nVis());
+  const std::pair<double,double>  cnt((itsFieldTRC.first + itsFieldBLC.first) / 2, (itsFieldTRC.second + itsFieldBLC.second) / 2);
+  casa::MVDirection result(itsReferenceDir);
+  result.shift(cnt.first,cnt.second,casa::True);
+  return result;
+}
    
-/// @brief longest baseline spacing in wavelengths
-/// @return largest absolute value of u in wavelengths
-double VisMetaDataStats::maxU() const { return 0.;}
-   
-/// @brief longest baseline spacing in wavelengths
-/// @return largest absolute value of v in wavelengths
-double VisMetaDataStats::maxV() const { return 0.;}
-      
-/// @brief largest w-term without snap-shotting 
-/// @return largest absolute value of w in wavelengths
-double VisMetaDataStats::maxW() const {return 0.;}
+/// @brief largest separation of individual pointing from the centre
+/// @return largest offsets from the centre() in radians (measure of the field size)
+std::pair<double,double> VisMetaDataStats::maxOffsets() const 
+{
+  ASKAPCHECK(itsRefDirValid, "maxOffset() called before any visibility has been processed, nvis="<<nVis());
+  const std::pair<double,double>  result((itsFieldTRC.first - itsFieldBLC.first) / 2, (itsFieldTRC.second - itsFieldBLC.second) / 2);
+  ASKAPDEBUGASSERT(result.first >= 0.);
+  ASKAPDEBUGASSERT(result.second >= 0.);
+  return result;
+}  
 
 
 } // namespace synthesis

@@ -36,6 +36,10 @@
 #define SYNTHESIS_VIS_METADATA_STATS_H
 
 #include <dataaccess/IConstDataAccessor.h>
+#include <dataaccess/BestWPlaneDataAccessor.h>
+#include <measures/Measures/MDirection.h>
+
+#include <utility>
 
 namespace askap {
 
@@ -54,6 +58,19 @@ class VisMetaDataStats {
 public:
    /// @brief constructor, initialise class 
    VisMetaDataStats();
+
+   /// @brief constructor specific to snap-shot imaging
+   /// @details For the snap-shot imaging we need to do two passes unless the desired tangent point
+   /// can be specified up front. The first pass can be used to find out the centre of the field
+   /// which can be used as a tangent point during imaging. The second pass, where the class is setup
+   /// with this version of the constructor, can determine the largest residual w-term for the 
+   /// given tangent point and w-tolerance.
+   /// @note For a coplanar array the largest residual w-term will always be less than the w-tolerance
+   /// which is a threshold for the fitting of a new plane. For non-coplanar array it is not always the
+   /// case. This is why a complex two-pass estimation procedure is required.
+   /// @param[in] tangent tangent point to be used with snap-shot imaging (for uvw-rotation)
+   /// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
+   VisMetaDataStats(const casa::MVDirection &tangent, double wtolerance);
    
    /// @brief aggregate statistics with that accumulated by another instance
    /// @details This class will be run in parallel if the measurement set is distributed. 
@@ -72,20 +89,93 @@ public:
    /// @details This method counts all visibility points. One spectral channel is one
    /// visibility point (but polarisations are not counted separately).
    /// @return number of visibility points processed so far
-   unsigned long nVis() const;
-      
-   
+   inline unsigned long nVis() const { return itsNVis;}
+         
    /// @brief longest baseline spacing in wavelengths
    /// @return largest absolute value of u in wavelengths
-   double maxU() const;
+   inline double maxU() const { return itsMaxU; }
    
    /// @brief longest baseline spacing in wavelengths
    /// @return largest absolute value of v in wavelengths
-   double maxV() const;
+   inline double maxV() const { return itsMaxV; }
       
    /// @brief largest w-term without snap-shotting 
    /// @return largest absolute value of w in wavelengths
-   double maxW() const;
+   inline double maxW() const { return itsMaxW; }
+   
+   /// @brief largest residual w-term (for snap-shotting)
+   /// @return largest value of residual w in wavelengths
+   double maxResidualW() const;
+      
+   /// @brief number of antennas
+   /// @return largest encountered antenna index + 1
+   inline casa::uInt nAntennas() const { return itsMaxAntennaIndex + 1; } 
+   
+   /// @brief number of beams
+   /// @return largest encountered beam index + 1
+   inline casa::uInt nBeams() const { return itsMaxBeamIndex + 1; }
+   
+   /// @brief most central direction of the observed field
+   /// @return direction of the centre in the frame used by the accessor
+   casa::MVDirection centre() const;
+   
+   /// @brief largest separation of individual pointing from the centre
+   /// @return largest offsets from the centre() in radians (measure of the field size)
+   std::pair<double,double> maxOffsets() const;  
+
+private:
+   /// @brief tangent point for imaging
+   /// @details Is not initialised, if itsWTolerance is negative
+   casa::MVDirection itsTangent;      
+   
+   /// @brief adapter dealing with plane fitting
+   /// @note This adapter is only used when w-tolerance and tangent points are set. Otherwise,
+   /// we set tolerance to a negative value used as a flag to work with the original accessor.
+   accessors::BestWPlaneDataAccessor itsAccessorAdapter;
+   
+   /// @brief number of visibilities processed
+   unsigned long itsNVis;
+   
+   /// @brief largest absolute value of u
+   double itsMaxU;
+   
+   /// @brief largest absolute value of v
+   double itsMaxV;
+   
+   /// @brief largest absolute value of w
+   double itsMaxW;
+   
+   /// @brief largest value of residual w
+   double itsMaxResidualW;
+   
+   /// @brief largest antenna index
+   casa::uInt itsMaxAntennaIndex;
+   
+   /// @brief largest beam index
+   casa::uInt itsMaxBeamIndex;
+   
+   // data members related to direction and field size estimates
+   
+   /// @brief reference direction serving as the origin for the offsets
+   /// @details This is initialised to either the tangent point or to the first encountered 
+   /// phase centre. For all other phase centres, the offsets w.r.t. this reference
+   /// position are calculated and the largest (in both directions) are found. These are
+   /// used to estimate the centre and the field size. 
+   casa::MVDirection itsReferenceDir;
+   
+   /// @brief true, if the reference direction has been initialised
+   bool itsRefDirValid; 
+   
+   /// @brief offsets of the "bottom left" corner w.r.t. reference direction (in radians)
+   /// @details True angle extreme offsets are calculated during the iteration. These offsets
+   /// are used to estimate the centre and the field size.
+   std::pair<double,double> itsFieldBLC;
+   
+   /// @brief offsets of the "top right" corner w.r.t. reference direction (in radians)
+   /// @details True angle extreme offsets are calculated during the iteration. These offsets
+   /// are used to estimate the centre and the field size.
+   std::pair<double,double> itsFieldTRC;
+   
    
 };
 
