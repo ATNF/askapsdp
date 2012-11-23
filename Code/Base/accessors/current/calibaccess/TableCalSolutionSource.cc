@@ -161,7 +161,7 @@ void TableCalSolutionSource::removeOldTable(const std::string &fname, const bool
          // we need to remove the file with the given name
          if (tmpFile.isDirectory()) {
              casa::Directory dir(fname);
-             dir.remove();
+             dir.removeRecursive();
          } else {
              ASKAPASSERT(tmpFile.isRegular());
              casa::RegularFile rf(fname);

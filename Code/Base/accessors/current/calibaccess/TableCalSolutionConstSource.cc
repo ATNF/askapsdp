@@ -115,8 +115,7 @@ bool TableCalSolutionConstSource::tableExists(const std::string &fname)
   try {
      casa::Table testTab(fname,casa::Table::Old);
      testTab.throwIfNull();
-  } 
-  catch (const casa::TableError &) {
+  } catch (const casa::AipsError &) {
      return false;
   }
   return true; 
