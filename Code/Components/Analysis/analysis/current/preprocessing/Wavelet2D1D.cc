@@ -109,9 +109,9 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
     // Check for bad values and initialize the output to 0.
     for(ulong i = 0; i < size; i++)
     {
-      //        isGood[i] = (input[i] == input[i]);
-            isGood[i] = isfinite(input[i]);
-      //isGood[i] = !par.isBlank(input[i]);
+      //isGood[i] = (input[i] == input[i]);
+      //isGood[i] = isfinite(input[i]);
+      isGood[i] = !par.isBlank(input[i]);
       output[i] = 0.;
     }
 
@@ -140,12 +140,16 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
                 long filterPos = xPos - XYScaleFactor * motherFunctionHalfSize;
                 work[2][i] = 0.;
 
-                for(size_t j = 0; j < motherFunctionSize; j++)
-                {
-                    work[2][i] += work[readFromXY][offset + reflectIndex(filterPos,xdim) * 1] * waveletMotherFunction[j];
-                    filterPos += XYScaleFactor;
-                }
-            }
+		if(isGood[i]){
+		  for(size_t j = 0; j < motherFunctionSize; j++)
+		    {
+		      size_t loc=offset + reflectIndex(filterPos,xdim) * 1;
+		      if(isGood[loc])
+			work[2][i] += work[readFromXY][loc] * waveletMotherFunction[j];
+		      filterpos += XYScaleFactor;
+		    }
+		}
+	    }
 
             // Convolve the y dimension with the wavelet mother function
             // and appropriate step size
@@ -158,11 +162,15 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
                 long filterPos = yPos - XYScaleFactor * motherFunctionHalfSize;
                 work[writeToXY][i] = 0.;
 
-                for(size_t j = 0; j < motherFunctionSize; j++)
-                {
-                    work[writeToXY][i] += work[2][offset + reflectIndex(filterPos,ydim) * xdim] * waveletMotherFunction[j];
-                    filterPos += XYScaleFactor;
-                }
+		if(isGood[i]){
+		  for(size_t j = 0; j < motherFunctionSize; j++)
+		    {
+		      size_t loc=offset + reflectIndex(filterPos,ydim) * xdim;
+		      if(isGood[loc])
+			work[writeToXY][i] += work[2][loc] * waveletMotherFunction[j];
+		      filterPos += XYScaleFactor;
+		    }
+		}
             }
 
             // Calculate the spatial wavelet coefficients
@@ -193,11 +201,15 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
                     long filterPos = zPos - ZScaleFactor * motherFunctionHalfSize;
                     work[writeToZ][i] = 0.;
 
-                    for(size_t j = 0; j < motherFunctionSize; j++)
-                    {
-                        work[writeToZ][i] += work[readFromZ][offset + reflectIndex(filterPos,zdim) * xydim] * waveletMotherFunction[j];
-                        filterPos += ZScaleFactor;
-                    }
+		    if(isGood[i]){
+		      for(size_t j = 0; j < motherFunctionSize; j++)
+			{
+			  size_t loc=offset + reflectIndex(filterPos,zdim) * xydim;
+			  if(isGood[loc])
+			    work[writeToZ][i] += work[readFromZ][loc] * waveletMotherFunction[j];
+			  filterPos += ZScaleFactor;
+			}
+		    }
                 }
 
                 // Exchange to work array access indices
@@ -221,10 +233,16 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
 
                     // // Calculate statistics for the given wavelet coefficients
                     // // Could be replaced with robust or position dependent statistics
-                    // double std = 0;
-                    // for(size_t i = 0; i < size; i++)
-                    //     std += work[writeToZ][i] * work[writeToZ][i];
-                    // std = sqrt(std / (size + 1));
+                    double std = 0;
+		    size_t goodSize=0;
+                    for(size_t i = 0; i < size; i++){
+		      if(isGood[i]){
+                        std += work[writeToZ][i] * work[writeToZ][i];
+			goodSize++;
+		      }
+		    }
+		    //                    std = sqrt(std / (size + 1));
+                    std = sqrt(std / (goodSize + 1));
 
 		    float middle,spread,threshold;
 		    if(par.getFlagRobustStats()){
@@ -236,8 +254,9 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
 
                     // Threshold coefficients
                     for(size_t i = 0; i < size; i++)
-		      //                        if(fabs(work[writeToZ][i]) > reconstructionThreshold * std)
-                        if(fabs(work[writeToZ][i]) > threshold)
+		      if(fabs(work[writeToZ][i]) > reconstructionThreshold * std
+			 && isGood[i])
+			//  if(fabs(work[writeToZ][i]-middle) > spread*reconstructionThreshold)
                             output[i] += work[writeToZ][i];
                 }
 
