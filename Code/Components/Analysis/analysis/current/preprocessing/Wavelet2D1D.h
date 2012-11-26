@@ -35,6 +35,6 @@
 #include <duchamp/param.hh>
 
 /// @brief Reconstruct the array with the a trous algorithm, with different treatment of the spatial & spectral directions.
-void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, float* output, duchamp::Param &par);
+void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, float* output, duchamp::Param &par, bool useDuchampStats=true);
 
 #endif

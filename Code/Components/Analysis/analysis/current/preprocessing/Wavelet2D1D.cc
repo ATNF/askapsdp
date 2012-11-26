@@ -60,7 +60,7 @@ long inline reflectIndex(long index, size_t &dim)
     return index;
 }
 
-void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, float* output, duchamp::Param &par)
+void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, float* output, duchamp::Param &par, bool useDuchampStats)
 {
 
   /// @details This is Lars Floer's <lfloeer@astro.uni-bonn.de>
@@ -146,7 +146,7 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
 		      size_t loc=offset + reflectIndex(filterPos,xdim) * 1;
 		      if(isGood[loc])
 			work[2][i] += work[readFromXY][loc] * waveletMotherFunction[j];
-		      filterpos += XYScaleFactor;
+		      filterPos += XYScaleFactor;
 		    }
 		}
 	    }
@@ -253,11 +253,14 @@ void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, 
 		    threshold = middle + reconstructionThreshold * spread;
 
                     // Threshold coefficients
-                    for(size_t i = 0; i < size; i++)
-		      if(fabs(work[writeToZ][i]) > reconstructionThreshold * std
-			 && isGood[i])
-			//  if(fabs(work[writeToZ][i]-middle) > spread*reconstructionThreshold)
-                            output[i] += work[writeToZ][i];
+                    for(size_t i = 0; i < size; i++){
+		      bool checkFlux;
+		      if(useDuchampStats)
+			checkFlux = (fabs(work[writeToZ][i]-middle)>reconstructionThreshold*spread);
+		      else
+			checkFlux = (fabs(work[writeToZ][i])>reconstructionThreshold * std);
+		      if(checkFlux && isGood[i]) output[i] += work[writeToZ][i];
+		    }
                 }
 
                 // Increase spectral scale factor
