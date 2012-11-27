@@ -82,7 +82,7 @@ Recon2D1D::Recon2D1D(const LOFAR::ParameterSet &parset)
 {
   this->itsFlagPositivity = parset.getBool("enforcePositivity",true);
   this->itsFlagDuchampStats = parset.getBool("useDuchampStats",false);
-  this->itsReconThreshold = parset.getFloat("reconThreshold",3.0);
+  this->itsReconThreshold = parset.getFloat("snrRecon",3.0);
   this->itsMinXYScale = parset.getUint16("minXYscale",1);
   this->itsMaxXYScale = parset.getUint16("maxXYscale",-1);
   this->itsMinZScale = parset.getUint16("minZscale",1);
