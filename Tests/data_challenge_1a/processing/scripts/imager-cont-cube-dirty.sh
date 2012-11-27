@@ -8,8 +8,8 @@ imagebase=i.cube.dirty
 cat > cimager-cont-cube-dirty.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=1:mem=5GB:mpiprocs=1
-#PBS -l walltime=06:00:00
+#PBS -l select=1:ncpus=1:mem=6GB:mpiprocs=1
+#PBS -l walltime=04:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N contcube-dirty
 #PBS -m a
@@ -47,9 +47,9 @@ Cimager.Images.\${imageName}.nterms              = 1
 #Cimager.visweights                              = MFS
 #
 Cimager.gridder.snapshotimaging                 = true
-Cimager.gridder.snapshotimaging.wtolerance      = 1000
+Cimager.gridder.snapshotimaging.wtolerance      = 800
 Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = 1000
+Cimager.gridder.AWProject.wmax                  = 800
 Cimager.gridder.AWProject.nwplanes              = 129
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m

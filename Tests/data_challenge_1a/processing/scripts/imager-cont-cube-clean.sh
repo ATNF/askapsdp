@@ -46,14 +46,16 @@ Cimager.Images.\${imageName}.nterms              = 1
 #
 #Cimager.visweights                              = MFS
 #
+Cimager.gridder.snapshotimaging                 = true
+Cimager.gridder.snapshotimaging.wtolerance      = 800
 Cimager.gridder                                 = AWProject
-Cimager.gridder.AWProject.wmax                  = 3500
-Cimager.gridder.AWProject.nwplanes              = 5
+Cimager.gridder.AWProject.wmax                  = 800
+Cimager.gridder.AWProject.nwplanes              = 129
 Cimager.gridder.AWProject.oversample            = 4
 Cimager.gridder.AWProject.diameter              = 12m
 Cimager.gridder.AWProject.blockage              = 2m
 Cimager.gridder.AWProject.maxfeeds              = 36
-Cimager.gridder.AWProject.maxsupport            = 2048
+Cimager.gridder.AWProject.maxsupport            = 512
 Cimager.gridder.AWProject.variablesupport       = true
 Cimager.gridder.AWProject.offsetsupport         = true
 Cimager.gridder.AWProject.frequencydependent    = true
@@ -64,7 +66,7 @@ Cimager.solver.Clean.niter                      = 1000
 Cimager.solver.Clean.gain                       = 0.5
 Cimager.solver.Clean.scales                     = [0, 3, 10, 30]
 Cimager.solver.Clean.verbose                    = False
-Cimager.solver.Clean.psfwidth                   = 1024
+Cimager.solver.Clean.psfwidth                   = 512
 Cimager.solver.Clean.logevery                   = 100
 Cimager.threshold.minorcycle                    = [10%, 10mJy]
 Cimager.threshold.majorcycle                    = 20mJy
@@ -73,7 +75,7 @@ Cimager.ncycles                                 = 3
 Cimager.preconditioner.Names                    = [Wiener, GaussianTaper]
 Cimager.preconditioner.GaussianTaper            = [30arcsec, 30arcsec, 0deg]
 Cimager.preconditioner.Wiener.robustness        = 0.0
-Cimager.preconditioner.Wiener.taper             = 100
+Cimager.preconditioner.Wiener.taper             = 64
 #
 Cimager.restore                                 = true
 Cimager.restore.beam                            = fit
