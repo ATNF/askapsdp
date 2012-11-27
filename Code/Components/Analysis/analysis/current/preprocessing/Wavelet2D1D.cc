@@ -121,8 +121,8 @@ void Recon2D1D::setCube(duchamp::Cube *cube)
   this->itsZdim = cube->getDimZ();
   
   // NB: add +1 here since we have moved to assuming minimum scale = 1, not 0 as in Lars' original code.
-  uint xyScaleLimit = log(std::min(this->itsXdim,this->itsYdim))/M_LN2 + 1;
-  uint zScaleLimit = log(this->itsZdim)/M_LN2 + 1;
+  uint xyScaleLimit = log(std::min(this->itsXdim,this->itsYdim))/M_LN2;
+  uint zScaleLimit = log(this->itsZdim)/M_LN2;
 
   if(this->itsMaxXYScale > 0) //parset provided a value
     this->itsMaxXYScale = std::min(xyScaleLimit, this->itsMaxXYScale);
