@@ -8,8 +8,8 @@ CALOUTPUT=calparameters.tab
 cat > ccalibrator.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=5:mem=23GB:mpiprocs=5+50:ncpus=6:mem=23GB:mpiprocs=6
-#PBS -l walltime=12:00:00
+#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=2:mem=23GB:mpiprocs=2
+#PBS -l walltime=06:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N ccalibrator
 #PBS -m a
@@ -38,18 +38,20 @@ Ccalibrator.sources.skymodel.model               = skymodel.image
 Ccalibrator.sources.skymodel.nterms              = 3
 
 # Gridder config
+Ccalibrator.gridder.snapshotimaging              = true
+Ccalibrator.gridder.snapshotimaging.wtolerance   = 1000
 Ccalibrator.gridder                              = AWProject
-Ccalibrator.gridder.AWProject.wmax               = 3500
-Ccalibrator.gridder.AWProject.nwplanes           = 5
+Ccalibrator.gridder.AWProject.wmax               = 1000
+Ccalibrator.gridder.AWProject.nwplanes           = 99
 Ccalibrator.gridder.AWProject.oversample         = 4
 Ccalibrator.gridder.AWProject.diameter           = 12m
 Ccalibrator.gridder.AWProject.blockage           = 2m
 Ccalibrator.gridder.AWProject.maxfeeds           = 36
-Ccalibrator.gridder.AWProject.maxsupport         = 2048
+Ccalibrator.gridder.AWProject.maxsupport         = 512
 Ccalibrator.gridder.AWProject.frequencydependent = true
 
 Ccalibrator.ncycles                              = 5
-Ccalibrator.interval                             = 10800s
+Ccalibrator.interval                             = 1800
 EOF_INNER
 
 mpirun --mca btl ^openib --mca mtl ^psm \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/ccalibrator.sh -c ${CONFIGDIR}/ccalibrator.in > ${LOGDIR}/ccalibrator-\${PBS_JOBID}.log
