@@ -519,6 +519,7 @@ namespace askap {
 	      //	      float *output=new float[this->itsCube.getSize()];
 	      //	      atrous2D1DReconstruct(this->itsCube.getDimX(), this->itsCube.getDimY(), this->itsCube.getDimZ(), this->itsCube.getArray(), output, this->itsCube.pars());
 	      atrous2D1DReconstruct(this->itsCube.getDimX(), this->itsCube.getDimY(), this->itsCube.getDimZ(), this->itsCube.getArray(), this->itsCube.getRecon(), this->itsCube.pars());
+	      this->itsCube->setReconFlag(true);
 	      //	      this->itsCube.saveRecon(output,this->itsCube.getSize());
 	    }
 	    else if (this->itsCube.pars().getFlagATrous()) {
