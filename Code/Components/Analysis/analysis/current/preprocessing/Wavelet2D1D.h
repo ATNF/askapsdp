@@ -33,8 +33,44 @@
 #include <askap_analysis.h>
 
 #include <duchamp/param.hh>
+#include <duchamp/Cubes/cubes.hh>
+#include <Common/ParameterSet.h>
 
 /// @brief Reconstruct the array with the a trous algorithm, with different treatment of the spatial & spectral directions.
-void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, float* output, duchamp::Param &par, bool useDuchampStats=true);
+//void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, float* output, duchamp::Param &par, bool useDuchampStats=true);
+
+class Recon2D1D
+{
+ public:
+  Recon2D1D();
+  Recon2D1D(const LOFAR::ParameterSet &parset);
+  Recon2D1D(const Recon2D1D& other);
+  Recon2D1D& operator= (const Recon2D1D& other);
+  virtual ~Recon2D1D(){};
+
+  void setCube(duchamp::Cube *cube);
+  void setFlagPositivity(bool f){itsFlagPositivity = f;};
+  void setFlagDuchampStats(bool f){itsFlagDuchampStats = f;};
+
+  void reconstruct();
+
+ protected:
+
+  duchamp::Cube *itsCube;
+  bool itsFlagPositivity;
+  bool itsFlagDuchampStats;
+  float itsReconThreshold;
+  unsigned int itsMinXYScale;
+  unsigned int itsMaxXYScale;
+  unsigned int itsMinZScale;
+  unsigned int itsMaxZScale;
+  unsigned int itsNumIterations;
+  size_t itsXdim;
+  size_t itsYdim;
+  size_t itsZdim;
+};
+
+
+
 
 #endif
