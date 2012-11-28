@@ -31,6 +31,7 @@
 #include "askap_pipelinetasks.h"
 
 // System includes
+#include <map>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -61,6 +62,7 @@ StokesVStrategy:: StokesVStrategy(const LOFAR::ParameterSet& parset,
         : itsStats("StokesVStrategy")
 {
     itsThreshold = parset.getFloat("threshold", 5.0);
+    ASKAPCHECK(itsThreshold > 0.0, "Threshold must be greater than zero");
 }
 
 FlaggingStats StokesVStrategy::stats(void) const
@@ -74,7 +76,7 @@ casa::StokesConverter& StokesVStrategy::getStokesConverter(
     const casa::Vector<Int> corrType = polc.corrType()(polId);
     std::map<casa::Int, casa::StokesConverter>::iterator it = itsConverterCache.find(polId);
     if (it == itsConverterCache.end()) {
-        //ASKAPLOG_DEBUG_STR(logger, "Creating StokesConverter for pol table entry " << polId);
+        ASKAPLOG_DEBUG_STR(logger, "Creating StokesConverter for pol table entry " << polId);
         const casa::Vector<Int> target(1, Stokes::V);
         itsConverterCache.insert(pair<casa::Int, casa::StokesConverter>(polId,
                                  casa::StokesConverter(target, corrType)));
@@ -101,19 +103,26 @@ void StokesVStrategy::processRow(casa::MSColumns& msc, const casa::uInt row,
     casa::Vector<casa::Complex> vdata = vmatrix.row(0);
 
     // Build a vector with the amplitudes
-    casa::Vector<casa::Float> amps(vdata.size());
+    Matrix<casa::Bool> flags = msc.flag()(row);
+    std::vector<casa::Float> tmpamps;
     for (size_t i = 0; i < vdata.size(); ++i) {
-        amps(i) = abs(vdata(i));
+        bool anyFlagged = anyEQ(flags.column(i), true);
+        if (!anyFlagged) {
+            tmpamps.push_back(abs(vdata(i)));
+        }
     }
 
+    // Convert to a casa::Vector so we can use ArrayMath functions
+    // to determine the mean and stddev
+    casa::Vector<casa::Float> amps(tmpamps);
+
     // Flag all correlations where the Stokes V product
-    // is greater than 5 sigma
-    Matrix<casa::Bool> flags = msc.flag()(row);
+    // is greater than the threshold
     const casa::Float sigma = stddev(amps);
     const casa::Float avg = mean(amps);
     bool wasUpdated = false;
     for (size_t i = 0; i < amps.size(); ++i) {
-        if (amps(i) > (avg + (sigma * itsThreshold))) {
+        if (abs(vdata(i)) > (avg + (sigma * itsThreshold))) {
             for (casa::uInt pol = 0; pol < flags.nrow(); ++pol) {
                 flags(pol, i) = true;
                 wasUpdated = true;

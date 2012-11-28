@@ -31,6 +31,11 @@
 #include "askap_pipelinetasks.h"
 
 // System includes
+#include <string>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <stdint.h>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -91,8 +96,8 @@ SelectionStrategy:: SelectionStrategy(const LOFAR::ParameterSet& parset,
     }
 
     if (parset.isDefined("feed")) {
-        //itsSelection.setFeedExpr(parset.getString("feed"));
-        ASKAPTHROW(AskapError, "Feed selection not yet implemented");
+        const std::vector<uint32_t> v = parset.getUint32Vector("feed");
+        itsFeedsFlagged.insert(v.begin(), v.end());
         itsRowCriteria.push_back(FEED);
     }
 
@@ -173,7 +178,7 @@ bool SelectionStrategy::checkTimerange(casa::MSColumns& msc, const casa::uInt ro
     }
     ASKAPCHECK(timeList.nrow() == 2, "Expected two rows");
     ASKAPCHECK(timeList.ncolumn() == 1,
-               "Only a single time range specification is supported");
+            "Only a single time range specification is supported");
     const casa::Double t = msc.time()(row);
     if (t > timeList(0, 0) && t < timeList(1, 0)) {
         return true;
@@ -196,7 +201,15 @@ bool SelectionStrategy::checkScan(casa::MSColumns& msc, const casa::uInt row)
 
 bool SelectionStrategy::checkFeed(casa::MSColumns& msc, const casa::uInt row)
 {
-    return false;
+    const casa::Int feed1 = msc.feed1()(row);
+    const casa::Int feed2 = msc.feed2()(row);
+
+    if ((itsFeedsFlagged.find(feed1) != itsFeedsFlagged.end())
+            || (itsFeedsFlagged.find(feed2) != itsFeedsFlagged.end())) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 bool SelectionStrategy::checkUVRange(casa::MSColumns& msc, const casa::uInt row)

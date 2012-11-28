@@ -1,6 +1,6 @@
 /// @file SelectionStrategy.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -29,6 +29,8 @@
 
 // System includes
 #include <vector>
+#include <set>
+#include <stdint.h>
 
 // ASKAPsoft includes
 #include "Common/ParameterSet.h"
@@ -53,9 +55,11 @@ class SelectionStrategy : public IFlagStrategy {
         SelectionStrategy(const LOFAR::ParameterSet& parset,
                           const casa::MeasurementSet& ms);
 
+        /// @see IFlagStrategy::processRow
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
                                 const bool dryRun);
 
+        /// @see IFlagStrategy::stats
         virtual FlaggingStats stats(void) const;
 
     private:
@@ -103,6 +107,9 @@ class SelectionStrategy : public IFlagStrategy {
         // been specified. The criteria which are more granular than whole row
         // are indicated via the itsDetailedCriteriaExists attribute.
         std::vector<SelectionCriteria> itsRowCriteria;
+
+        // A set containing the feeds that should be flagged.
+        std::set<uint32_t> itsFeedsFlagged;
 };
 
 }

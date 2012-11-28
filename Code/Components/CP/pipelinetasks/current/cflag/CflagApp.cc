@@ -69,7 +69,9 @@ int CflagApp::run(int argc, char* argv[])
 
     // Is this a dry run?
     const bool dryRun = subset.getBool("dryrun", false);
-    ASKAPLOG_INFO_STR(logger, "!!!!! DRY RUN ONLY - MeasurementSet will not be updated !!!!!");
+    if (dryRun) {
+        ASKAPLOG_INFO_STR(logger, "!!!!! DRY RUN ONLY - MeasurementSet will not be updated !!!!!");
+    }
 
     // Iterate over each row in the main table
     MSColumns msc(ms);

@@ -47,7 +47,14 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief TODO: Write documentation...
+/// @brief Performs flagging based on Stokes-V thresholding. For each row
+/// the mean and standard deviation for all Stokes-V correlations (i.e. all
+/// channels within a given row). Then, where the stokes-V correlation exceeds
+/// the average plus (stddev * threshold) all correlations for that channel in
+/// that row will be flagged.
+/// 
+/// The one parameter that is read from the parset passed to the constructor is
+/// "threshold". To flag at the five-sigma point specify a valud of "5.0".
 class StokesVStrategy : public IFlagStrategy {
     public:
 
@@ -55,9 +62,11 @@ class StokesVStrategy : public IFlagStrategy {
         StokesVStrategy(const LOFAR::ParameterSet& parset,
                         const casa::MeasurementSet& ms);
 
+        /// @see IFlagStrategy::processRow
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
                                 const bool dryRun);
 
+        /// @see IFlagStrategy::stats
         virtual FlaggingStats stats(void) const;
 
     private:

@@ -1,6 +1,6 @@
 /// @file IFlagStrategy.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -38,16 +38,26 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief TODO: Write documentation...
+/// @brief An interface for classes that perform flagging on a per row basis.
 class IFlagStrategy {
     public:
 
-        // Destructor
+        /// Destructor
         virtual ~IFlagStrategy();
 
+        /// Perform flagging (if necessary) for the row with index "row".
+        ///
+        /// @param[in,out] msc   the masurement set columns that contain the data
+        ///                     and flagging arrays
+        /// @param[in] row      the (zero-based) index number for the row in
+        ///                     msc to be processed.
+        /// @param[in] dryRun   if true the measurement set will not be modified,
+        ///                     however statistics will be calculated indicating
+        ///                     what flagging would have been done.
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
                                 const bool dryRun) = 0;
 
+        /// Returns flagging statistics
         virtual FlaggingStats stats(void) const = 0;
 
 };
