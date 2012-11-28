@@ -34,7 +34,8 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief TODO: Write documentation...
+/// @brief Simple structure containing flagging statistics.
+/// Each flagging strategy is expected to return an instance of this structure.
 class FlaggingStats {
     public:
         FlaggingStats(const std::string& n)

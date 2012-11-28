@@ -47,7 +47,15 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief TODO: Write documentation...
+/// @brief A selection based flagging strategy. This allows flagging based on:
+/// - Baseline (i.e. an antenna or a pair of antennas)
+/// - Field index number
+/// - Time range
+/// - Scan index number
+/// - Feed/beam index number
+/// - UVRange (not yet impelemented)
+/// - Autocorrelations only
+/// - Spectral (e.g. channel index number or frequency)
 class SelectionStrategy : public IFlagStrategy {
     public:
 
@@ -55,11 +63,11 @@ class SelectionStrategy : public IFlagStrategy {
         SelectionStrategy(const LOFAR::ParameterSet& parset,
                           const casa::MeasurementSet& ms);
 
-        /// @see IFlagStrategy::processRow
+        /// @see IFlagStrategy::processRow()
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
                                 const bool dryRun);
 
-        /// @see IFlagStrategy::stats
+        /// @see IFlagStrategy::stats()
         virtual FlaggingStats stats(void) const;
 
     private:

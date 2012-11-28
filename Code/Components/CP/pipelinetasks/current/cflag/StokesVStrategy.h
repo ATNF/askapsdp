@@ -62,14 +62,27 @@ class StokesVStrategy : public IFlagStrategy {
         StokesVStrategy(const LOFAR::ParameterSet& parset,
                         const casa::MeasurementSet& ms);
 
-        /// @see IFlagStrategy::processRow
+        /// @see IFlagStrategy::processRow()
         virtual void processRow(casa::MSColumns& msc, const casa::uInt row,
                                 const bool dryRun);
 
-        /// @see IFlagStrategy::stats
+        /// @see IFlagStrategy::stats()
         virtual FlaggingStats stats(void) const;
 
     private:
+        /// Returns an instance of a stokes converter that will convert to Stokes-V.
+        /// The converter is cached, and as such a reference to the
+        /// appropriate converter in the cache is returned. The reference is valid
+        /// as long as the instance of this StokesVStrategy class exists.
+        ///
+        /// @param[in] polc a reference to the polarisation table data. This data
+        ///                 describes which polarisation products exist in a
+        ///                 given measurement set row.
+        /// @param[in] polId    the index number for the polarisation description
+        ///                     of interest.
+        /// @return a reference to n instance of a stokes converter that will
+        ///         convert to Stokes-V given the input products described by
+        ///         the polc and polId parameters.
         casa::StokesConverter& getStokesConverter(const casa::ROMSPolarizationColumns& polc,
                 const casa::Int polId);
 

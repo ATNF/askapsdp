@@ -42,10 +42,19 @@ namespace askap {
 namespace cp {
 namespace pipelinetasks {
 
-/// @brief TODO: Write documentation...
+/// @brief A factory that, given a Parameter Set, will create a flagging
+/// strategy instance for each strategy enabled in the parset.
 class StrategyFactory {
     public:
 
+        /// Builds flagging strategy objects based on the configuration in
+        /// the parameter set.
+        ///
+        /// @param[in] parset   the parameter set which contains an ASCII description
+        ///                     of the flagging strategies to use.
+        /// @param[in] ms       a reference to the measurement set that will
+        ///                     be the subject of flagging.
+        /// @return a vector containing pointers to the flagging strategies.
         static std::vector< boost::shared_ptr<IFlagStrategy> > build(
             const LOFAR::ParameterSet& parset, const casa::MeasurementSet& ms);
 };

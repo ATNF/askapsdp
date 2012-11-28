@@ -32,6 +32,7 @@
 
 // System includes
 #include <map>
+#include <limits>
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -58,7 +59,7 @@ using namespace casa;
 using namespace askap::cp::pipelinetasks;
 
 StokesVStrategy:: StokesVStrategy(const LOFAR::ParameterSet& parset,
-                                  const casa::MeasurementSet& ms)
+                                  const casa::MeasurementSet& /*ms*/)
         : itsStats("StokesVStrategy")
 {
     itsThreshold = parset.getFloat("threshold", 5.0);
@@ -120,6 +121,15 @@ void StokesVStrategy::processRow(casa::MSColumns& msc, const casa::uInt row,
     // is greater than the threshold
     const casa::Float sigma = stddev(amps);
     const casa::Float avg = mean(amps);
+
+    // If stokes-v can't be formed due to lack of the necessary input products
+    // then vdata will contain all zeros. In this case, no flagging can be done.
+    const casa::Float epsilon = std::numeric_limits<casa::Float>::epsilon();
+    if (near(sigma, 0.0, epsilon) && near(avg, 0.0, epsilon)) {
+        return;
+    }
+
+    // Apply threshold based flagging
     bool wasUpdated = false;
     for (size_t i = 0; i < amps.size(); ++i) {
         if (abs(vdata(i)) > (avg + (sigma * itsThreshold))) {
