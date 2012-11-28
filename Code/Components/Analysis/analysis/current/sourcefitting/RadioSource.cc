@@ -1062,7 +1062,7 @@ namespace askap {
                     for (type = typelist.begin(); type < typelist.end(); type++) {
                         std::vector<float> termValues(this->itsBestFitMap[*type].numGauss(), 0.);
 
-                        if (this->itsBestFitMap[*type].isGood()){
+			if (this->itsBestFitMap[*type].isGood() || this->itsBestFitMap[*type].fitIsGuess()){
 			    ASKAPLOG_DEBUG_STR(logger, "Finding "<<termtype[term]<<" values for fit type \"" << *type << "\", with " << this->itsBestFitMap[*type].numGauss() << " components ");
                             Fitter fit;
                             fit.setParams(this->itsFitParams);
@@ -1095,7 +1095,7 @@ namespace askap {
                                 }
                             }
 
-                        }
+			}
 
 			if(term==1) this->itsAlphaMap[*type] = termValues;
 			else if(term==2) this->itsBetaMap[*type] = termValues;
