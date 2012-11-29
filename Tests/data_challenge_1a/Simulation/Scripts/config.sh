@@ -118,6 +118,10 @@ feeds=ASKAP${nfeeds}feeds.in
 inttime=30s
 dur=6
 
+pol="\"XX YY\""
+npol=2
+polName="${npol}pol"
+
 doNoise=true
 varNoise=false
 tsys=50.
@@ -148,7 +152,7 @@ else
 fi
 
 msdir=${visdir}/MS
-msbase="DCvis_${noiseName}_${corruptName}"
+msbase="DCvis_${polName}_${noiseName}_${corruptName}"
 
 msChunk=${msdir}/${msbase}_chunk
 msStage1=${msdir}/${msbase}_stage1
