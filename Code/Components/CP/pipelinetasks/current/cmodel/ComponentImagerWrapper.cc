@@ -54,7 +54,6 @@
 #include "components/ComponentModels/ConstantSpectrum.h"
 #include "components/ComponentModels/SpectralIndex.h"
 #include "components/ComponentModels/Flux.h"
-#include "images/Images/ComponentImager.h"
 #include "images/Images/ImageInterface.h"
 
 // Using
@@ -72,21 +71,9 @@ void ComponentImagerWrapper::projectComponents(const std::vector<askap::cp::skym
         casa::ImageInterface<casa::Float>& image,
         const unsigned int term)
 {
-    // Build the image using the specified imager (or askap component imager
-    // if none was specified)
-    const std::string imager = itsParset.getString("imager", "askap");
-    if (imager.compare("casa") == 0) {
-        if (term > 0) {
-            ASKAPTHROW(AskapError, "Casa component imager doesn't support taylor terms");
-        }
-        casa::ComponentImager::project(image, translateComponentList(components));
-    } else if (imager.compare("askap") == 0) {
-        askap::components::AskapComponentImager::project(image,
-                translateComponentList(components),
-                term);
-    } else {
-        ASKAPTHROW(AskapError, "Unknown component imager: " << imager);
-    } 
+    askap::components::AskapComponentImager::project(image,
+            translateComponentList(components),
+            term);
 }
 
 casa::ComponentList ComponentImagerWrapper::translateComponentList(const std::vector<askap::cp::skymodelservice::Component>& components)
