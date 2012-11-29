@@ -21,6 +21,30 @@
 /// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ///
 
+// System includes
+#include <iostream>
+#include <cmath>
+#include <map>
+#include <vector>
+#include <string>
+
+// ASKAPsoft includes
+#include <utils/PaddingUtils.h>
+#include <utils/MultiDimArrayPlaneIter.h>
+#include <askap_synthesis.h>
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+#include <profile/AskapProfiler.h>
+#include <casa/aips.h>
+#include <casa/Arrays/Array.h>
+#include <casa/Arrays/Matrix.h>
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/ArrayMath.h>
+#include <casa/Arrays/MatrixMath.h>
+#include <scimath/Mathematics/VectorKernel.h>
+#include <images/Images/TempImage.h>
+
+// Local package includes
 #include <measurementequation/ImageRestoreSolver.h>
 #include <measurementequation/SynthesisParamsHelper.h>
 #include <measurementequation/ImageParamsHelper.h>
@@ -28,41 +52,15 @@
 #include <measurementequation/IImagePreconditioner.h>
 #include <measurementequation/WienerPreconditioner.h>
 #include <measurementequation/GaussianTaperPreconditioner.h>
+#include <measurementequation/Image2DConvolver.h>
 
-#include <utils/PaddingUtils.h>
-#include <utils/MultiDimArrayPlaneIter.h>
-
-#include <askap_synthesis.h>
-#include <askap/AskapLogging.h>
 ASKAP_LOGGER(logger, ".measurementequation.imagerestoresolver");
 
-#include <askap/AskapError.h>
-#include <profile/AskapProfiler.h>
-
-#include <casa/aips.h>
-#include <casa/Arrays/Array.h>
-#include <casa/Arrays/Matrix.h>
-#include <casa/Arrays/Vector.h>
-#include <casa/Arrays/ArrayMath.h>
-#include <casa/Arrays/MatrixMath.h>
-#include <casa/Logging/LogIO.h>
-#include <scimath/Mathematics/VectorKernel.h>
-#include <images/Images/TempImage.h>
-#include <images/Images/Image2DConvolver.h>
-
+// Using
 using namespace casa;
 using namespace askap;
 using namespace askap::scimath;
-
-#include <iostream>
-
-#include <cmath>
 using std::abs;
-
-#include <map>
-#include <vector>
-#include <string>
-
 using std::map;
 using std::vector;
 using std::string;
@@ -153,10 +151,9 @@ namespace askap
 
 	      // Create a temporary image
 	      boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(ip, *ci));	      
-	      casa::Image2DConvolver<float> convolver;	
+          askap::synthesis::Image2DConvolver<float> convolver;	
 	      const casa::IPosition pixelAxes(2, 0, 1);	
-	      casa::LogIO logio;
-	      convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
+	      convolver.convolve(*image, *image, casa::VectorKernel::GAUSSIAN,
 			     pixelAxes, restoringBeam, true, 1.0, false);
           SynthesisParamsHelper::update(ip, *ci, *image);
 	      // for some reason update makes the parameter free as well
@@ -181,10 +178,9 @@ namespace askap
 	         ASKAPLOG_INFO_STR(logger, "Restoring faceted image " << ci->first );
             
              boost::shared_ptr<casa::TempImage<float> > image(SynthesisParamsHelper::tempImage(ip, ci->first));
-	         casa::Image2DConvolver<float> convolver;	
+             askap::synthesis::Image2DConvolver<float> convolver;	
 	         const casa::IPosition pixelAxes(2, 0, 1);	
-	         casa::LogIO logio;
-	         convolver.convolve(logio, *image, *image, casa::VectorKernel::GAUSSIAN,
+	         convolver.convolve(*image, *image, casa::VectorKernel::GAUSSIAN,
 			       pixelAxes, restoringBeam, true, 1.0, false);
 	         SynthesisParamsHelper::update(ip, ci->first, *image);
 	         // for some reason update makes the parameter free as well
