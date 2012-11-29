@@ -100,7 +100,7 @@ if [ $doSF_SM == true ]; then
 #PBS -q debugq
 #PBS -W group_list=astronomy116
 #PBS -l walltime=1:00:00
-#PBS -l select=${SFnNodes}:ncpus=12:mem=23GB:mpiprocs=12
+#PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1
 #PBS -M matthew.whiting@csiro.au
 #PBS -N cduchampTaylor
 #PBS -m bea
@@ -123,8 +123,8 @@ Cduchamp.imageFile = ${baseimage}-smooth.taylor.0
 Cduchamp.threshold = ${SFthresh}
 Cduchamp.flagGrowth = ${SFflagGrowth}
 Cduchamp.growthThreshold = ${SFgrowthThresh}
-Cduchamp.nsubx = ${SFnsubx}
-Cduchamp.nsuby = ${SFnsuby}
+#Cduchamp.nsubx = ${SFnsubx}
+#Cduchamp.nsuby = ${SFnsuby}
 Cduchamp.doFit = true
 Cduchamp.fitJustDetection = true
 Cduchamp.Fitter.useNoise = false

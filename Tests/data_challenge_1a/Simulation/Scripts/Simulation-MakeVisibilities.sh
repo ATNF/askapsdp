@@ -46,7 +46,7 @@ if [ $doCsim == true ]; then
     cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -W group_list=astronomy116
-#PBS -l walltime=2:00:00
+#PBS -l walltime=6:00:00
 #PBS -l select=1:ncpus=1:mem=20GB:mpiprocs=1
 #PBS -M matthew.whiting@csiro.au
 #PBS -N mkVis
@@ -57,20 +57,24 @@ cd \$PBS_O_WORKDIR
 export ASKAP_ROOT=${ASKAP_ROOT}
 export AIPSPATH=\${ASKAP_ROOT}/Code/Base/accessors/current
 csim=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/csimulator.sh
+rndgains=\${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/randomgains.sh
 askapconfig=\${ASKAP_ROOT}/Code/Components/Synthesis/testdata/current/simulation/stdtest/definitions
 
 IND=${INDEX}
 
-ms=${msbase}_\${IND}.ms
+ms=${msChunk}_\${IND}.ms
 skymodel=${slicebase}\${IND}
 nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",(\$1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
-spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, \"XX YY\"]"
+spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, ${pol}]"
 
 dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
 mkdir -p ${parsetdirVis}/\${dir}
 mkdir -p ${logdirVis}/\${dir}
 mkVisParset=${parsetdirVis}/\${dir}/csim-\${PBS_JOBID}.in
 mkVisLog=${logdirVis}/\${dir}/csim-\${PBS_JOBID}.log
+
+# Create the random gains parset
+\$rndgains ${randomgainsArgs} ${calibparset}
 
 cat > \${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       \$ms
@@ -117,6 +121,10 @@ Csimulator.gridder.${gridder}.offsetsupport      =       true
 Csimulator.noise                                 =       ${doNoise}
 Csimulator.noise.Tsys                            =       ${tsys}
 Csimulator.noise.efficiency                      =       0.8   
+#
+Csimulator.corrupt                               =       ${doCorrupt}
+Csimulator.calibaccess                           =       parset
+Csimulator.calibaccess.parset                    =       ${calibparset}
 EOF_INNER
 
 mpirun \${csim} -inputs \${mkVisParset} > \${mkVisLog}
@@ -176,7 +184,7 @@ END=\`expr \${START} + \${MSPERJOB}\`
 IDX=\$START
 unset FILES
 while [ \$IDX -lt \$END ]; do
-    FILES="\$FILES ${msbase}_\${IDX}.ms" 
+    FILES="\$FILES ${msChunk}_\${IDX}.ms" 
     IDX=\`expr \$IDX + 1\`
 done
 
@@ -184,7 +192,7 @@ dir="merge1-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
 logfile=${logdirVis}/${dir}/merge_s1_output_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
-$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1base}_\${PBS_ARRAY_INDEX}.ms \$FILES >> \${logfile}
+$ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1}_\${PBS_ARRAY_INDEX}.ms \$FILES >> \${logfile}
 
 EOF
 
@@ -223,7 +231,7 @@ cd \$PBS_O_WORKDIR
 IDX=1
 unset FILES
 while [ \$IDX -le ${numStage1jobs} ]; do
-    FILES="\$FILES ${msStage1base}_\${IDX}.ms" 
+    FILES="\$FILES ${msStage1}_\${IDX}.ms" 
     IDX=\`expr \$IDX + 1\`
 done
 

@@ -112,19 +112,47 @@ doClobberMergedVis=true
 doMergeStage1=true
 doMergeStage2=true
 
-doNoise=false
-tsys=50.
+array=BETA15.in
+nfeeds=36
+feeds=ASKAP${nfeeds}feeds.in
+inttime=30s
+dur=6
 
-msdir=${visdir}/MS_new
+doNoise=true
+varNoise=false
+tsys=50.
 if [ $doNoise == true ]; then
-    msbase=${msdir}/DCvis_chunk
-    msStage1base=${msdir}/DCvis_stage1
-    finalMS=${msdir}/DC1a.ms
+    if [ $varNoise == true ]; then
+	noiseName="noiseVariable"
+    else
+	noiseName="noise${tsys}K"
+    fi
 else
-    msbase=${msdir}/DCvis_noNoise_chunk
-    msStage1base=${msdir}/DCvis_noNoise_stage1
-    finalMS=${msdir}/DC1a_noNoise.ms
+    noiseName="noNoise"
 fi
+
+doCorrupt=false
+doAntennaBased=false
+calibparset=rndgains.in
+if [ $doCorrupt == true ]; then
+    if [ $doAntennaBased == true ]; then
+	antbasedname="antbased"
+	randomgainsArgs="-a 6 -p ${npol}"
+    else
+	antbasedname="feedbased"
+	randomgainsArgs="-f ${nfeeds} -a 6 -p ${npol}"
+    fi
+    corruptName="corrupt_${antbasedname}"
+else
+    corruptName="noCorrupt"
+fi
+
+msdir=${visdir}/MS
+msbase="DCvis_${noiseName}_${corruptName}"
+
+msChunk=${msdir}/${msbase}_chunk
+msStage1=${msdir}/${msbase}_stage1
+finalMS=${msdir}/${msbase}.ms
 
 parsetdirVis=${visdir}/Parsets
 logdirVis=${visdir}/Logs
@@ -137,21 +165,17 @@ if [ `echo $msPerStage1job $numStage1jobs | awk '{print $1*$2}'` != $numMSchunks
     doSubmit=false
 fi
 
-array=BETA15.in
-feeds=ASKAP36feeds.in
-inttime=30s
-dur=6
-
 doSnapshot=true
-wtol=3000
+wtol=1000
 gridder=AWProject
 if [ $doSnapshot == true ]; then
-    wmax=3000
+    wmax=1000
+    maxsup=512
 else
-    wmax=30000
+    wmax=15000
+    maxsup=8192
 fi
-nw=17
-os=8
-maxsup=8192
+nw=129
+os=4
 pad=1.
 
