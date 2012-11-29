@@ -124,6 +124,9 @@ polName="${npol}pol"
 
 doNoise=true
 varNoise=false
+noiseSlope=0.2258
+noiseIntercept=-188.71
+freqTsys50=`echo $noiseSlope $noiseIntercept | awk '{print (50.-$2)/$1}'`
 tsys=50.
 if [ $doNoise == true ]; then
     if [ $varNoise == true ]; then

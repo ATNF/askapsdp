@@ -72,6 +72,12 @@ skymodel=${slicebase}\${IND}
 nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",(\$1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
 spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 
+VarNoise=${varNoise}
+Tsys=${tsys}
+if [ \${VarNoise} == true ]; then
+    Tsys=\`echo \$nurefMHz $noiseSlope $noiseIntercept $freqTsys50 | awk '{if (\$1>\$4) printf "%4.1f",(\$1 * \$2) + \$3; else printf "50.0"}'\`
+fi
+
 dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
 mkdir -p ${parsetdirVis}/\${dir}
 mkdir -p ${logdirVis}/\${dir}
@@ -121,7 +127,7 @@ Csimulator.gridder.${gridder}.variablesupport    =       true
 Csimulator.gridder.${gridder}.offsetsupport      =       true 
 #
 Csimulator.noise                                 =       ${doNoise}
-Csimulator.noise.Tsys                            =       ${tsys}
+Csimulator.noise.Tsys                            =       \${Tsys}
 Csimulator.noise.efficiency                      =       0.8   
 #
 Csimulator.corrupt                               =       ${doCorrupt}
