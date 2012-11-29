@@ -194,8 +194,7 @@ void Recon2D1D::reconstruct()
     }
 
     // Start the iteration loop
-    for(;;)
-    {
+    do{
         // (Re)set the spatial scale factor that determines the step sizes
         // in between the wavelet mother function coefficients
         XYScaleFactor = 1;
@@ -351,16 +350,17 @@ void Recon2D1D::reconstruct()
 
         // Enforce positivity on the (intermediate) solution
         // Greatly improves the reconstruction quality
-        for(size_t i = 0; i < size; i++)
+	if(this->itsFlagPositivity){
+	  for(size_t i = 0; i < size; i++)
             if(output[i] < 0)
-                output[i] = 0;
+	      output[i] = 0;
+	}
 
         // Increase the iteration counter and check for iteration break
         iteration++;
-        if(iteration > 0)
-            break;
-    }
-
+	
+    } while(iteration < this->itsNumIterations);
+    
     delete [] isGood;
     for(int i=0;i<3;i++) delete [] work[i];
 
