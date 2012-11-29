@@ -43,6 +43,11 @@ if [ $doCsim == true ]; then
 
     qsubfile=${visdir}/${WORKDIR}/makeVis.qsub
 
+    if [ $doCorrupt == true ]; then
+	# Create the random gains parset
+	${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/install/bin/randomgains.sh ${randomgainsArgs} ${calibparset}
+    fi
+
     cat > $qsubfile <<EOF
 #!/bin/bash -l
 #PBS -W group_list=astronomy116
@@ -72,9 +77,6 @@ mkdir -p ${parsetdirVis}/\${dir}
 mkdir -p ${logdirVis}/\${dir}
 mkVisParset=${parsetdirVis}/\${dir}/csim-\${PBS_JOBID}.in
 mkVisLog=${logdirVis}/\${dir}/csim-\${PBS_JOBID}.log
-
-# Create the random gains parset
-\$rndgains ${randomgainsArgs} ${calibparset}
 
 cat > \${mkVisParset} << EOF_INNER
 Csimulator.dataset                              =       \$ms
