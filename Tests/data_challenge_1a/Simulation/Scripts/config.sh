@@ -118,7 +118,7 @@ feeds=ASKAP${nfeeds}feeds.in
 inttime=30s
 dur=6
 
-pol="\"XX YY\""
+pol="XX YY"
 npol=2
 polName="${npol}pol"
 

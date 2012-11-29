@@ -65,7 +65,7 @@ IND=${INDEX}
 ms=${msChunk}_\${IND}.ms
 skymodel=${slicebase}\${IND}
 nurefMHz=\`echo ${rfreq} \${IND} ${chanPerMSchunk} ${rchan} ${chanw} | awk '{printf "%13.8f",(\$1+(\$2*\$3-\$4)*\$5)/1.e6}'\`
-spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, ${pol}]"
+spw="[${chanPerMSchunk}, \${nurefMHz} MHz, ${chanw} Hz, \"${pol}\"]"
 
 dir="csim-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
 mkdir -p ${parsetdirVis}/\${dir}
