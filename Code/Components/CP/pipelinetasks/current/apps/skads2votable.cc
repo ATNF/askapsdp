@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
     vottab.addGroup(grp);
 
     // Add fields
-
+    addFields(vottab);
 
     // Add rows
     string line;
@@ -249,11 +249,13 @@ int main(int argc, char *argv[])
             }
         }
     }
+    cout << "Processed " << count << " rows" << endl;
 
     vores.addTable(vottab);
     vot.addResource(vores);
 
     // Write the VOTable out
+    cout << "Writing XML output" << endl;
     vot.toXML(argv[2]);
 
     return 0;
