@@ -672,7 +672,31 @@ namespace askap {
                 }
             }
 
-            //**************************************************************//
+ 
+        //**************************************************************//
+
+	  void RadioSource::prepareForFit(duchamp::Cube &cube, bool useArray)
+	  {
+	    
+	    // Set up parameters for fitting.
+	    if(useArray) this->setNoiseLevel(cube, this->itsFitParams);
+	    else {
+	      // if need to use the surrounding noise, we have to go extract it from the image
+	      if (this->itsFitParams.useNoise() // && !cube->itsCube.pars().getFlagUserThreshold()
+		  ) {
+		float noise = findSurroundingNoise(cube.pars().getImageFile(), this->getXPeak(), this->getYPeak(), this->itsFitParams.noiseBoxSize());
+		this->setNoiseLevel(noise);
+	      } else this->setNoiseLevel(1);
+	    }
+	    
+	    this->setHeader(cube.getHead());
+	    this->setOffsets(cube.pars());
+	    if(!this->itsFitParams.doFit()) this->itsFitParams.setBoxPadSize(1);
+	    this->defineBox(cube.pars().section(), this->itsFitParams, cube.header().getWCS()->spec);
+	    
+	  }
+
+           //**************************************************************//
 
             bool RadioSource::fitGaussNew(std::vector<PixelInfo::Voxel> *voxelList, FittingParameters &baseFitter)
             {
@@ -998,115 +1022,116 @@ namespace askap {
 
 	      std::string termtype[3]={"","spectral index","spectral curvature"};
 
-	        ASKAPCHECK(term==1 || term==2, 
-			   "Term number ("<<term<<") must be either 1 (for spectral index) or 2 (for spectral curvature)");
+	      ASKAPCHECK(term==1 || term==2, 
+			 "Term number ("<<term<<") must be either 1 (for spectral index) or 2 (for spectral curvature)");
 
-                size_t pos = imageName.rfind(".taylor.0");
+	      size_t pos = imageName.rfind(".taylor.0");
 
-                if (!doCalc || pos == std::string::npos) {
-                    // image provided is not a Taylor series term - notify and do nothing
-                    if (doCalc)
-                        ASKAPLOG_WARN_STR(logger, "radioSource::findSpectralTerm : Image name provided ("
-                                              << imageName << ") is not a Taylor term. Cannot find spectral information.");
+	      if (!doCalc || pos == std::string::npos) {
+		// image provided is not a Taylor series term - notify and do nothing
+		if (doCalc)
+		  ASKAPLOG_WARN_STR(logger, "radioSource::findSpectralTerm : Image name provided ("
+				    << imageName << ") is not a Taylor term. Cannot find spectral information.");
 
-                    std::vector<std::string>::iterator type;
-                    std::vector<std::string> typelist = availableFitTypes;
-		    typelist.push_back("best");
+		std::vector<std::string>::iterator type;
+		std::vector<std::string> typelist = availableFitTypes;
+		typelist.push_back("best");
 
-                    for (type = typelist.begin(); type < typelist.end(); type++) {
-		      if(term==1)     this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
-		      else if(term==2) this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
+		for (type = typelist.begin(); type < typelist.end(); type++) {
+		  if(term==1)     this->itsAlphaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
+		  else if(term==2) this->itsBetaMap[*type] = std::vector<float>(this->itsBestFitMap[*type].numFits(), 0.);
 		      
-                    }
+		}
 
-                } else {
+	      } 
+	      else {
 
-		  ASKAPLOG_DEBUG_STR(logger, "About to find the "<<termtype[term]<<", for image " << imageName);
+		ASKAPLOG_DEBUG_STR(logger, "About to find the "<<termtype[term]<<", for image " << imageName);
 
-                    // Get Taylor-term image name
-		  std::stringstream ss;
-		  ss << ".taylor."<<term;
-		  std::string taylorName = imageName.replace(pos, 9, ss.str());
+		// Get Taylor-term image name
+		std::stringstream ss;
+		ss << ".taylor."<<term;
+		std::string taylorName = imageName.replace(pos, 9, ss.str());
 
-		  ASKAPLOG_DEBUG_STR(logger, "Using Taylor "<<term<<" image " << taylorName);
+		ASKAPLOG_DEBUG_STR(logger, "Using Taylor "<<term<<" image " << taylorName);
 
-                    // Get taylor1 values for box, and define positions
-                    casa::Matrix<casa::Double> pos;
-                    casa::Vector<casa::Double> sigma;
-                    pos.resize(this->boxSize(), 2);
-                    sigma.resize(this->boxSize());
-                    casa::Vector<casa::Double> curpos(2);
-                    curpos = 0;
+		// Get taylor1 values for box, and define positions
+		casa::Matrix<casa::Double> pos;
+		casa::Vector<casa::Double> sigma;
+		pos.resize(this->boxSize(), 2);
+		sigma.resize(this->boxSize());
+		casa::Vector<casa::Double> curpos(2);
+		curpos = 0;
 
-                    for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
-                        for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
-                            int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
-                            sigma(i) = 1.;
-                            curpos(0) = x;
-                            curpos(1) = y;
-                            pos.row(i) = curpos;
-                        }
-                    }
+		for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
+		  for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
+		    int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
+		    sigma(i) = 1.;
+		    curpos(0) = x;
+		    curpos(1) = y;
+		    pos.row(i) = curpos;
+		  }
+		}
 		    
-		    Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
-		    Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
-		    Slicer theBox=casa::Slicer(xrange, yrange);
-                    casa::Vector<casa::Double> f = getPixelsInBox(taylorName, theBox);
+		Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
+		Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
+		Slicer theBox=casa::Slicer(xrange, yrange);
+		casa::Vector<casa::Double> f = getPixelsInBox(taylorName, theBox);
 
-                    ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor "<<term<<" term");
+		ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor "<<term<<" term");
 
-                    // Set up fit with same parameters and do the fit
-                    std::vector<std::string>::iterator type;
-                    std::vector<std::string> typelist = availableFitTypes;
+		// Set up fit with same parameters and do the fit
+		std::vector<std::string>::iterator type;
+		std::vector<std::string> typelist = availableFitTypes;
 
-                    for (type = typelist.begin(); type < typelist.end(); type++) {
-                        std::vector<float> termValues(this->itsBestFitMap[*type].numGauss(), 0.);
+		for (type = typelist.begin(); type < typelist.end(); type++) {
+		  std::vector<float> termValues(this->itsBestFitMap[*type].numGauss(), 0.);
 
-			if (this->itsBestFitMap[*type].isGood() || this->itsBestFitMap[*type].fitIsGuess()){
-			    ASKAPLOG_DEBUG_STR(logger, "Finding "<<termtype[term]<<" values for fit type \"" << *type << "\", with " << this->itsBestFitMap[*type].numGauss() << " components ");
-                            Fitter fit;
-                            fit.setParams(this->itsFitParams);
-                            fit.rparams().setFlagFitThisParam("height");
-                            fit.rparams().setNegativeFluxPossible(true);
-                            fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
-// 			    ASKAPLOG_DEBUG_STR(logger, "Setting estimate with the following:");
-// 			    this->itsBestFitMap[*type].logIt("DEBUG");
-                            fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
-                            fit.setRetries();
-                            fit.setMasks();
-                            bool fitPossible = fit.fit(pos, f, sigma);
+		  if (this->itsBestFitMap[*type].isGood() || this->itsBestFitMap[*type].fitIsGuess()){
+		    ASKAPLOG_DEBUG_STR(logger, "Finding "<<termtype[term]<<" values for fit type \"" << *type << "\", with " << this->itsBestFitMap[*type].numGauss() << " components ");
+		    Fitter fit;
+		    fit.setParams(this->itsFitParams);
+		    fit.rparams().setFlagFitThisParam("height");
+		    fit.rparams().setNegativeFluxPossible(true);
+		    fit.setNumGauss(this->itsBestFitMap[*type].numGauss());
+		    // 			    ASKAPLOG_DEBUG_STR(logger, "Setting estimate with the following:");
+		    // 			    this->itsBestFitMap[*type].logIt("DEBUG");
+		    fit.setEstimates(this->itsBestFitMap[*type].getCmpntList(), this->itsHeader);
+		    fit.setRetries();
+		    fit.setMasks();
+		    bool fitPossible = fit.fit(pos, f, sigma);
 
-                            // Calculate taylor term value
+		    // Calculate taylor term value
 
-                            if (fitPossible && fit.passConverged() && fit.passChisq()) { // the fit is OK
-			      ASKAPLOG_DEBUG_STR(logger, "Values for "<<termtype[term]<<" follow (" 
-						 << this->itsBestFitMap[*type].numGauss() << " of them):");
+		    if (fitPossible && fit.passConverged() && fit.passChisq()) { // the fit is OK
+		      ASKAPLOG_DEBUG_STR(logger, "Values for "<<termtype[term]<<" follow (" 
+					 << this->itsBestFitMap[*type].numGauss() << " of them):");
 
-			      for (unsigned int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
-				    float Iref=this->itsBestFitMap[*type].gaussian(i).flux();
-                                    if(term==1){
-				      termValues[i] = fit.gaussian(i).flux() / Iref;
-				    }
-				    else if(term==2){
-				      float alpha = this->itsAlphaMap[*type][i];
-				      termValues[i] = fit.gaussian(i).flux() / Iref - 0.5 * alpha * (alpha - 1.);
-				    }
-				      ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << termValues[i] << ", calculated with fitted flux of " << fit.gaussian(i).flux()<<", peaking at "<<fit.gaussian(i).height()<<", best fit taylor0 flux of " << Iref);
-                                }
-                            }
-
+		      for (unsigned int i = 0; i < this->itsBestFitMap[*type].numGauss(); i++) {
+			float Iref=this->itsBestFitMap[*type].gaussian(i).flux();
+			if(term==1){
+			  termValues[i] = fit.gaussian(i).flux() / Iref;
 			}
+			else if(term==2){
+			  float alpha = this->itsAlphaMap[*type][i];
+			  termValues[i] = fit.gaussian(i).flux() / Iref - 0.5 * alpha * (alpha - 1.);
+			}
+			ASKAPLOG_DEBUG_STR(logger, "   Component " << i << ": " << termValues[i] << ", calculated with fitted flux of " << fit.gaussian(i).flux()<<", peaking at "<<fit.gaussian(i).height()<<", best fit taylor0 flux of " << Iref);
+		      }
+		    }
 
-			if(term==1) this->itsAlphaMap[*type] = termValues;
-			else if(term==2) this->itsBetaMap[*type] = termValues;
-                    }
+		  }
 
-                    ASKAPLOG_DEBUG_STR(logger, "Finished finding the "<<termtype[term]<<" values");
+		  if(term==1) this->itsAlphaMap[*type] = termValues;
+		  else if(term==2) this->itsBetaMap[*type] = termValues;
+		}
 
-                }
+		ASKAPLOG_DEBUG_STR(logger, "Finished finding the "<<termtype[term]<<" values");
+
+	      }
 		
-		if(term==1)       this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
-		else if(term==2)  this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
+	      if(term==1)       this->itsAlphaMap["best"] = this->itsAlphaMap[this->itsBestFitType];
+	      else if(term==2)  this->itsBetaMap["best"] = this->itsBetaMap[this->itsBestFitType];
 
             }
 
@@ -1125,9 +1150,13 @@ namespace askap {
 	    newSpec.addColumn(inputSpec.column("NAME"));
 	    newSpec.addColumn(inputSpec.column("RAJD"));
 	    newSpec.addColumn(inputSpec.column("DECJD"));
+	    // newSpec.addColumn(inputSpec.column("VEL"));
+	    // newSpec.addColumn(inputSpec.column("X"));
+	    // newSpec.addColumn(inputSpec.column("Y"));
+	    // newSpec.addColumn(inputSpec.column("Z"));
 	    newSpec.addColumn(inputSpec.column("FINT"));
 	    newSpec.addColumn(inputSpec.column("FPEAK"));
-	    
+ 
 	    newSpec.column("FINT").setUCD("phot.flux.density.integrated");
 	    newSpec.column("FINT").changePrec(fluxPrec);
 	    newSpec.column("FPEAK").setUCD("phot.flux.density.peak");

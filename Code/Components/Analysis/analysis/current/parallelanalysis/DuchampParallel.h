@@ -135,7 +135,6 @@ namespace askap {
                 /// @brief Fit the detected sources (on the workers)
                 void fitSources();
 		/// @brief Fit a single source
-		void prepareSourceForFit(sourcefitting::RadioSource &src, bool useArray);
 		void fitSource(sourcefitting::RadioSource &src, bool useArray);
 
 		/// @brief Run any preprocessing on the workers
@@ -194,9 +193,6 @@ namespace askap {
 
                 /// @brief Print out the worker number in form useful for logging.
                 std::string workerPrefix(){return printWorkerPrefix(itsComms);};
-
-                /// @brief Set the doFit flag
-                void setDoFitFlag(bool f) {itsFlagDoFit = f;};
 
                 /// @brief Get a particular RadioSource
                 sourcefitting::RadioSource getSource(int i) {return itsSourceList[i];};
@@ -276,12 +272,7 @@ namespace askap {
                 /// The Gaussian Fitting parameter class
                 sourcefitting::FittingParameters itsFitParams;
 
-                /// Shall we fit to the sources?
-                bool itsFlagDoFit;
-
-                /// Shall we fit to just the detected voxels?
-                bool itsFlagFitJustDetection;
-
+		/// Shall the fitting be delegated to the workers?
 		bool itsFlagDistribFit;
 
                 /// Shall we find spectral index information?

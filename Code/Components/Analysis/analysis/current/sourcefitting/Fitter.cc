@@ -417,9 +417,9 @@ namespace askap {
                     intFlux += component.flux();
                 }
 
-		// If useBoxFlux=false, return true (ie. we don't care about the integrated flux
-		// If it is true, only return true if the integrated flux is less than 2x the box flux
-                return (!this->itsParams.useBoxFlux() || (intFlux < 2.*this->itsParams.itsBoxFlux));
+		// If fitJustDetection=true, return true (ie. we don't care about the integrated flux
+		// If it is false, only return true if the integrated flux is less than 2x the box flux
+                return (this->itsParams.fitJustDetection() || (intFlux < 2.*this->itsParams.itsBoxFlux));
             }
 
             //**************************************************************//

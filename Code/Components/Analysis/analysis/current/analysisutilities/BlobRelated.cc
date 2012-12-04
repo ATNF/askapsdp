@@ -73,7 +73,8 @@ namespace askap {
                 /// @brief This function provides a mechanism for passing the
                 /// entire contents of a FittingParameters object into a
                 /// LOFAR::BlobOStream stream
-                blob << par.itsBoxPadSize;
+	        blob << par.itsFlagDoFit;
+		blob << par.itsBoxPadSize;
                 blob << par.itsMaxRMS;
                 blob << par.itsMaxNumGauss;
                 blob << par.itsChisqConfidence;
@@ -81,7 +82,7 @@ namespace askap {
                 blob << par.itsNoiseBoxSize;
                 blob << par.itsMinFitSize;
                 blob << par.itsBoxFlux;
-		blob << par.itsUseBoxFlux;
+		blob << par.itsFlagFitJustDetection;
                 blob << par.itsSrcPeak;
                 blob << par.itsDetectThresh;
                 blob << par.itsNumSubThresholds;
@@ -118,6 +119,7 @@ namespace askap {
                 /// @brief This function provides a mechanism for receiving the
                 /// entire contents of a FittingParameters object from a
                 /// LOFAR::BlobIStream stream
+	        blob >> par.itsFlagDoFit;
                 blob >> par.itsBoxPadSize;
                 blob >> par.itsMaxRMS;
                 blob >> par.itsMaxNumGauss;
@@ -126,7 +128,7 @@ namespace askap {
                 blob >> par.itsNoiseBoxSize;
                 blob >> par.itsMinFitSize;
                 blob >> par.itsBoxFlux;
-		blob >> par.itsUseBoxFlux;
+		blob >> par.itsFlagFitJustDetection;
                 blob >> par.itsSrcPeak;
                 blob >> par.itsDetectThresh;
                 blob >> par.itsNumSubThresholds;

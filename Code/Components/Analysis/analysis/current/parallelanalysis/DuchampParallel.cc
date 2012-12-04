@@ -173,8 +173,7 @@ namespace askap {
 	    
             if (this->itsWeightImage != "" ){
 	      this->itsWeighter = new Weighter(itsComms);
-	      if(!itsComms.isParallel() || itsComms.isMaster()) // only log for the master process.
-		ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
+	      if(itsComms.isMaster()) ASKAPLOG_INFO_STR(logger, "Using weights image: " << this->itsWeightImage);
 	    }
 
             this->itsFlagDoMedianSearch = parset.getBool("doMedianSearch", false);
@@ -185,18 +184,22 @@ namespace askap {
 	    this->itsThresholdImageName = parset.getString("ThresholdImageName","");
 
 	    this->itsFlagOptimiseMask = parset.getBool("optimiseMask",false);
-//	    if(this->itsCube.pars().getFlagGrowth() && this->itsFlagOptimiseMask){
-//	      ASKAPLOG_WARN_STR(logger, "flagGrowth is set to true, so setting optimiseMask to false");
-//	      this->itsFlagOptimiseMask = false;
-//	    }
 
 	    this->itsFlagWavelet2D1D = parset.getBool("recon2D1D",false);
 	    this->itsCube.pars().setFlagATrous(this->itsCube.pars().getFlagATrous() || this->itsFlagWavelet2D1D);
 
-            this->itsFlagDoFit = parset.getBool("doFit", false);
+            LOFAR::ParameterSet fitParset = parset.makeSubset("Fitter.");
+            this->itsFitParams = sourcefitting::FittingParameters(fitParset);
+	    if(parset.getBool("doFit",false)){
+	      ASKAPLOG_WARN_STR(logger, "The parameter \"doFit\" should now be given as \"Fitter.doFit\". Setting this to true, but you should change your parset!");
+	      this->itsFitParams.setFlagDoFit(true);
+	    }
+	    if(parset.getBool("fitJustDetection",false)){
+	      ASKAPLOG_WARN_STR(logger, "The parameter \"fitJustDetection\" should now be given as \"Fitter.fitJustDetection\". Setting this to true, but you should change your parset!");
+	      this->itsFitParams.setFlagFitJustDetection(true);
+	    }
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
-            this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", false);
-            this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", false);
+            this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", true);
 
 	    this->itsFlagExtractSpectra = parset.getBool("extractSpectra",false);
 	    if(this->itsFlagExtractSpectra){
@@ -236,15 +239,6 @@ namespace askap {
 	      if(parset.isDefined("fitBoxAnnotationFile")) ASKAPLOG_WARN_STR(logger, "fitBoxAnnotationFile = 'duchamp-fitResults.boxes.ann'");
 	    }
 
-            LOFAR::ParameterSet fitParset = parset.makeSubset("Fitter.");
-            this->itsFitParams = sourcefitting::FittingParameters(fitParset);
-	    this->itsFitParams.useBoxFlux(!this->itsFlagFitJustDetection);
-
-            if (this->itsFitParams.numFitTypes() == 0 && this->itsFlagDoFit){
-                ASKAPLOG_WARN_STR(logger, "No valid fit types given, so setting doFit flag to false.");
-		this->itsFlagDoFit = false;
-	    }
-
 //             this->itsSubimageAnnotationFile = parset.getString("subimageAnnotationFile", "");
 	    this->itsSubimageAnnotationFile = "duchamp-SubimageLocations.ann";	       
 	    if((!itsComms.isParallel() || itsComms.isMaster()) && parset.isDefined("subimageAnnotationFile")) 
@@ -262,7 +256,7 @@ namespace askap {
 	      this->itsSubimageDef = SubimageDef(parset);
 	      bool overlapsChanged=false;
 	      // Need the overlap to be at least the boxPadSize used by the Fitting
-	      if(this->itsFlagDoFit){
+	      if(this->itsFitParams.doFit()){
 		overlapsChanged=true;
 		this->itsSubimageDef.setOverlapX(std::max(this->itsSubimageDef.overlapx(), this->itsFitParams.boxPadSize()));
 		this->itsSubimageDef.setOverlapY(std::max(this->itsSubimageDef.overlapy(), this->itsFitParams.boxPadSize()));
@@ -1011,27 +1005,29 @@ namespace askap {
             if (itsComms.isWorker()) {
                 // don't do fit if we have a spectral axis.
                 bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
-                this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
+		this->itsFitParams.setFlagDoFit(this->itsFitParams.doFit() && flagIs2D);
 
-                if (this->itsFlagDoFit)
-                    ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source profiles.");
+                if (this->itsFitParams.doFit())
+		  ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source profiles.");
 
                 for (size_t i = 0; i < this->itsCube.getNumObj(); i++) {
-                    if (this->itsFlagDoFit)
+		  if (this->itsFitParams.doFit())
                         ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Setting up source #" << i + 1 << " / " << this->itsCube.getNumObj() 
 					  << ", size " << this->itsCube.getObject(i).getSize() 
 					  << ", peaking at (x,y)=("<<this->itsCube.getObject(i).getXPeak()+this->itsCube.getObject(i).getXOffset()
 					  << "," << this->itsCube.getObject(i).getYPeak()+this->itsCube.getObject(i).getYOffset() << ")");
 
                     sourcefitting::RadioSource src(this->itsCube.getObject(i));
-
-		    this->prepareSourceForFit(src,true);
+		    src.setFitParams(this->itsFitParams);
+		    //		    this->prepareSourceForFit(src,true);
+		    src.setDetectionThreshold(this->itsCube, this->itsFlagDoMedianSearch);
+		    src.prepareForFit(this->itsCube,true);
 		    // Only do fit if object is not next to boundary
 		    src.setAtEdge(this->itsCube, this->itsSubimageDef, itsComms.rank() - 1);
 		    
 		    if (itsComms.nProcs() == 1) src.setAtEdge(false);
 
-		    if (!src.isAtEdge() && this->itsFlagDoFit) 
+		    if (!src.isAtEdge() && this->itsFitParams.doFit())
 		      this->fitSource(src, true);
 
                     this->itsSourceList.push_back(src);
@@ -1039,38 +1035,12 @@ namespace askap {
             }
         }
 
-        //**************************************************************//
-
-      void DuchampParallel::prepareSourceForFit(sourcefitting::RadioSource &src, bool useArray)
-      {
-
-	// Set up parameters for fitting.
-	if(useArray) src.setNoiseLevel(this->itsCube, this->itsFitParams);
-	else {
-	  // if need to use the surrounding noise, we have to go extract it from the image
-	  if (this->itsFitParams.useNoise() // && !this->itsCube.pars().getFlagUserThreshold()
-	      ) {
-	    float noise = findSurroundingNoise(this->itsCube.pars().getImageFile(), src.getXPeak(), src.getYPeak(), this->itsFitParams.noiseBoxSize());
-	    src.setNoiseLevel(noise);
-	  } else src.setNoiseLevel(1);
-	}
-
-	if(useArray) src.setDetectionThreshold(this->itsCube, this->itsFlagDoMedianSearch);
-	else src.setDetectionThreshold(this->itsVoxelList, this->itsSNRVoxelList, this->itsFlagDoMedianSearch);
-
-	src.setHeader(this->itsCube.getHead());
-	src.setOffsets(this->itsCube.pars());
-	if(!this->itsFlagDoFit) this->itsFitParams.setBoxPadSize(1);
-	src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
-
-      }
-
        //**************************************************************//
 
       void DuchampParallel::fitSource(sourcefitting::RadioSource &src, bool useArray)
       {
 
-	if (this->itsFlagFitJustDetection) {
+	if (this->itsFitParams.fitJustDetection()) {
 	  ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Fitting to detected pixels");
 	  std::vector<PixelInfo::Voxel> voxlist;
 	  if(useArray) voxlist = src.getPixelSet(this->itsCube.getArray(), this->itsCube.getDimArray());
@@ -1192,8 +1162,8 @@ namespace askap {
 
 	    // don't do fit if we have a spectral axis.
 	    bool flagIs2D = !this->itsCube.header().canUseThirdAxis() || this->is2D();
-	    this->itsFlagDoFit = this->itsFlagDoFit && flagIs2D;
-
+	    this->itsFitParams.setFlagDoFit(this->itsFitParams.doFit() && flagIs2D);
+		
 	    // list of fit types, for use in correcting positions of fitted components
 	    std::vector<std::string>::iterator fittype;
 	    std::vector<std::string> fittypelist = sourcefitting::availableFitTypes;
@@ -1357,7 +1327,7 @@ namespace askap {
                         sourcefitting::RadioSource src(this->itsCube.getObject(i));
 
 			if(!this->itsFlagDistribFit){
-			  if (this->itsFlagDoFit)
+			  if (this->itsFitParams.doFit())
                             ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Fitting source #" << i + 1 << "/" << this->itsCube.getNumObj() << ".");
 
 			  // Fix S/Nmax for the case where we've used the medianSearch algorithm: the edge sources will be incorrect at this point.
@@ -1404,9 +1374,9 @@ namespace askap {
 			  src.setHeader(head);
 			  src.defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
 
-			  if (this->itsFlagDoFit) {
+			  if (this->itsFitParams.doFit()) {
 
-                            if (this->itsFlagFitJustDetection) {
+                            if (this->itsFitParams.fitJustDetection()) {
 			      // get a list of just the detected voxels, with correct fluxes
 			      std::vector<PixelInfo::Voxel> voxlist = src.getPixelSet();
 			      std::vector<PixelInfo::Voxel>::iterator vox = voxlist.begin();
@@ -1436,7 +1406,7 @@ namespace askap {
                 }
 		else this->calcObjectParams(); // if no edge sources, call this anyway so the workers know what to do...
 
-		if(this->itsFlagDistribFit && this->itsFlagDoFit) this->fitRemaining();
+		if(this->itsFlagDistribFit && this->itsFitParams.doFit()) this->fitRemaining();
 
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished cleaning up " << this->itsEdgeSourceList.size() <<" edge sources");
 
@@ -1479,7 +1449,7 @@ namespace askap {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Finished adding sources to cube. Now have " << this->itsCube.getNumObj() << " objects.");
 
             }
-	    else if(itsComms.isWorker() && this->itsFlagDistribFit && this->itsFlagDoFit) this->fitRemaining();
+	    else if(itsComms.isWorker() && this->itsFlagDistribFit && this->itsFitParams.doFit()) this->fitRemaining();
         }
 
         //**************************************************************//
@@ -1773,7 +1743,10 @@ namespace askap {
 	    // now send the individual sources to each worker in turn
 	    for(size_t i=0;i<this->itsEdgeSourceList.size();i++){
 	      //	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Preparing source #"<<i+1);
-	      this->prepareSourceForFit(this->itsEdgeSourceList[i],false);
+	      //	      this->prepareSourceForFit(this->itsEdgeSourceList[i],false);
+	      this->itsEdgeSourceList[i].setFitParams(this->itsFitParams);
+	      this->itsEdgeSourceList[i].setDetectionThreshold(this->itsVoxelList, this->itsSNRVoxelList, this->itsFlagDoMedianSearch);
+	      this->itsEdgeSourceList[i].prepareForFit(this->itsCube,false);
 	      rank = i % (itsComms.nProcs() - 1);
 	      ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "Sending source #"<<i+1<<" of size " << this->itsEdgeSourceList[i].getSize() << " to worker "<<rank+1);
 	      bs.resize(0);
@@ -1909,7 +1882,7 @@ namespace askap {
 		}
 
 
-		if(this->itsFlagDoFit){
+		if(this->itsFitParams.doFit()){
 
 		  duchamp::Catalogues::CatalogueSpecification columns = fullCatalogue(this->itsCube.getFullCols(), this->itsCube.header());
 		  
@@ -1947,7 +1920,7 @@ namespace askap {
 		  }
 		  
 
-		  if (this->itsFlagDoFit) this->writeFitAnnotation();
+		  if (this->itsFitParams.doFit()) this->writeFitAnnotation();
 
 		}
 

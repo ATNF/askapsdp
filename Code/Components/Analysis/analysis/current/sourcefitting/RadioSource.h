@@ -66,6 +66,8 @@ namespace askap {
 
     namespace analysis {
 
+      class DuchampParallel;
+
         namespace sourcefitting {
 
             /// @brief Class to store all information on a detected source.
@@ -106,6 +108,9 @@ namespace askap {
                     std::vector<SubComponent> getSubComponentList(casa::Matrix<casa::Double> pos, casa::Vector<casa::Double> &f);
                     /// @brief Return a list of subcomponents that lie above a flux threshold
                     std::vector<SubComponent> getThresholdedSubComponentList(float *fluxarray);
+
+		    /// @brief Set necessary parameters for fit
+		    void prepareForFit(duchamp::Cube &cube, bool useArray);
 
                     /// @brief Fit Gaussian components to the Detection.
                     /// @name

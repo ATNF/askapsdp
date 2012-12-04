@@ -79,6 +79,7 @@ namespace askap {
             FittingParameters::FittingParameters(const LOFAR::ParameterSet& parset)
             {
 	      //	      ASKAPLOG_DEBUG_STR(logger, "Parset used by FittingParameters = \n"<<parset);
+	      this->itsFlagDoFit = parset.getBool("doFit", false);
                 this->itsMaxRMS = parset.getDouble("maxRMS", defaultMaxRMS);
                 this->itsMaxNumGauss = parset.getInt32("maxNumGauss", defaultMaxNumFittedGauss);
                 this->itsBoxPadSize = parset.getInt32("boxPadSize", defaultBoxPadSize);
@@ -96,7 +97,7 @@ namespace askap {
 		this->itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", false);
 		this->itsUseGuessIfBad = parset.getBool("useGuessIfBad",true);
                 this->itsFlagFitThisParam = std::vector<bool>(6, true);
-		this->itsUseBoxFlux = true;
+		this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", false);
 
                 if (parset.isDefined("flagFitParam"))
                     ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. Please use fitTypes to specify a list of types of fits.");
@@ -116,6 +117,8 @@ namespace askap {
                     }
                 }
 
+		if(this->itsFlagDoFit && this->itsFitTypes.size()==0) this->itsFlagDoFit=false;
+
             }
 
             //**************************************************************//
@@ -131,6 +134,7 @@ namespace askap {
             {
                 if (this == &f) return *this;
 
+		this->itsFlagDoFit = f.itsFlagDoFit;
                 this->itsBoxPadSize = f.itsBoxPadSize;
                 this->itsMaxRMS = f.itsMaxRMS;
                 this->itsMaxNumGauss = f.itsMaxNumGauss;
@@ -139,7 +143,7 @@ namespace askap {
                 this->itsNoiseBoxSize = f.itsNoiseBoxSize;
                 this->itsMinFitSize = f.itsMinFitSize;
                 this->itsBoxFlux = f.itsBoxFlux;
-		this->itsUseBoxFlux = f.itsUseBoxFlux;
+		this->itsFlagFitJustDetection = f.itsFlagFitJustDetection;
                 this->itsXmin = f.itsXmin;
                 this->itsYmin = f.itsYmin;
                 this->itsXmax = f.itsXmax;

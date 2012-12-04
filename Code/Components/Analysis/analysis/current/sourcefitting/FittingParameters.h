@@ -140,6 +140,7 @@ namespace askap {
                     /// @name
                     // @{
 
+		    void setFlagDoFit(bool b) {itsFlagDoFit = b;};
                     void setMaxNumGauss(int i) {itsMaxNumGauss = i;};
                     void setBoxPadSize(int i) {itsBoxPadSize = i;};
                     void setNoiseBoxSize(int i) {itsNoiseBoxSize = i;};
@@ -148,7 +149,7 @@ namespace askap {
                     void setMaxReducedChisq(float f) {itsMaxReducedChisq = f;};
 		    void setBoxFlux(float f) {itsBoxFlux = f;};
 		    void setBoxFlux(casa::Vector<casa::Double> f);
-		    void useBoxFlux(bool b) {itsUseBoxFlux = b;};
+		    void setFlagFitJustDetection(bool b) {itsFlagFitJustDetection = b;};
                     void setPeakFlux(float f) {itsSrcPeak = f;};
                     void setDetectThresh(float f) {itsDetectThresh = f;};
                     void setNumSubThresholds(int i) {itsNumSubThresholds = i;};
@@ -158,7 +159,6 @@ namespace askap {
                     void setMaxRetries(int i) {itsMaxRetries = i;};
                     void setCriterium(Double d) {itsCriterium = d;};
                     void setMaxIter(uInt i) {itsMaxIter = i;};
-                    void setUseNoise(bool b) {itsUseNoise = b;};
 		    void setNoiseLevel(float f) {itsNoiseLevel = f;};
                     void setFlagFitThisParam(int i, bool b) {itsFlagFitThisParam[i] = b;};
                     void setFlagFitThisParam(std::string type);
@@ -167,6 +167,7 @@ namespace askap {
                     void setNegativeFluxPossible(bool b) {itsNegativeFluxPossible = b;};
 		    void setFitTypes(std::vector<std::string> types){itsFitTypes = types;};
 
+		    bool   doFit() {return itsFlagDoFit;};
                     int    maxNumGauss() {return itsMaxNumGauss;};
                     int    boxPadSize() {return itsBoxPadSize;};
                     int    noiseBoxSize() {return itsNoiseBoxSize;};
@@ -174,7 +175,7 @@ namespace askap {
                     float  chisqConfidence() {return itsChisqConfidence;};
                     float  maxReducedChisq() {return itsMaxReducedChisq;};
 		    float  boxFlux(){ return itsBoxFlux;};
-		    bool   useBoxFlux() {return itsUseBoxFlux;};
+		    bool   fitJustDetection() {return itsFlagFitJustDetection;};
 		    float  peakFlux(){return itsSrcPeak;};
                     unsigned int   minFitSize() {return itsMinFitSize;};
                     int    numSubThresholds() {return itsNumSubThresholds;};
@@ -214,6 +215,10 @@ namespace askap {
                     friend class Fitter;
 
                 protected:
+
+		    /// @brief Whether to do a fit
+		    bool itsFlagDoFit;
+
                     /// @brief The amount of pixels added to the extent of the object to form the box.
                     unsigned int itsBoxPadSize;
 
@@ -239,8 +244,8 @@ namespace askap {
                     /// @brief The flux within the box used for fitting.
                     float itsBoxFlux;
 
-		    /// @brief Whether to use the box flux 
-		    bool  itsUseBoxFlux;
+		    /// @brief Whether to fit to just the detected pixels (true), or to use the entire box (false)
+		    bool  itsFlagFitJustDetection;
 
                     /// @brief The peak flux of the object being fit.
                     float itsSrcPeak;
