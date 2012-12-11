@@ -265,7 +265,6 @@ namespace askap {
 		this->itsNoiseLevel = fitparams.noiseLevel();
             }
 
-//D1.1.13   void RadioSource::setNoiseLevel(float *array, long *dim, int boxSize)
             void RadioSource::setNoiseLevel(float *array, size_t *dim, int boxSize)
             {
                 /// @details Sets the value of the local noise level by taking
@@ -403,7 +402,6 @@ namespace askap {
                 /// object. In this case, we only look at the one with the
                 /// same peak location as the base object.
 
-//D1.1.13       long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 size_t dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image *smlIm = new duchamp::Image(dim);
                 smlIm->saveArray(fluxarray, this->boxSize());
@@ -496,7 +494,6 @@ namespace askap {
                 /// lowest peak flux.
 
                 std::vector<SubComponent> fullList;
-//D1.1.13       long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 size_t dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image *smlIm = new duchamp::Image(dim);
                 smlIm->saveArray(fluxarray, this->boxSize());
@@ -598,7 +595,6 @@ namespace askap {
                 const int numThresh = this->itsFitParams.numSubThresholds();
                 std::multimap<int, PixelInfo::Voxel> peakMap;
                 std::multimap<int, PixelInfo::Voxel>::iterator pk;
-//D1.1.13       long dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 size_t dim[2]; dim[0] = this->boxXsize(); dim[1] = this->boxYsize();
                 duchamp::Image smlIm(dim);
                 float *fluxarray = new float[this->boxSize()];
@@ -805,7 +801,6 @@ namespace askap {
 
             //**************************************************************//
 
-//D1.1.13   bool RadioSource::fitGauss(float *fluxArray, long *dimArray, FittingParameters &baseFitter)
             bool RadioSource::fitGauss(float *fluxArray, size_t *dimArray, FittingParameters &baseFitter)
             {
                 /// @details First defines the pixel array with the flux
@@ -834,7 +829,6 @@ namespace askap {
                 for (int x = this->boxXmin(); x <= this->boxXmax(); x++) {
                     for (int y = this->boxYmin(); y <= this->boxYmax(); y++) {
                         int i = (x - this->boxXmin()) + (y - this->boxYmin()) * this->boxXsize();
- //D1.1.13              int j = x + y * dimArray[0];
                         size_t j = x + y * dimArray[0];
 
                         if ((j >= 0) && (j < dimArray[0]*dimArray[1])) f(i) = fluxArray[j];
