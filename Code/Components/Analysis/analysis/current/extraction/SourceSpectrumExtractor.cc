@@ -81,6 +81,8 @@ namespace askap {
 
       this->itsFlagDoScale = parset.getBool("scaleSpectraByBeam",true);
 
+      this->initialiseArray();
+
     }
 
     SourceSpectrumExtractor::SourceSpectrumExtractor(const SourceSpectrumExtractor& other)

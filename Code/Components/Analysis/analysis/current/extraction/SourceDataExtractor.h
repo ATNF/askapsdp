@@ -89,9 +89,10 @@ namespace askap {
 	void closeInput();
 	void checkPol(std::string image, casa::Stokes::StokesTypes stokes, int nStokesRequest);
 	casa::IPosition getShape(std::string image);
-	void initialiseArray();
+	virtual void initialiseArray() = 0;
 
 	RadioSource* itsSource;
+	std::string itsCentreType;
 	casa::Slicer itsSlicer;
 	std::string itsInputCube;
 	std::vector<std::string> itsInputCubeList;

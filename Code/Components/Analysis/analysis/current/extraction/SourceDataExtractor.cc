@@ -60,6 +60,7 @@ namespace askap {
       this->itsInputCube = ""; // start off with this blank. Needs to be set before calling openInput()
       this->itsInputCubeList = parset.getStringVector("spectralCube",std::vector<std::string>(0));
       this->itsOutputFilenameBase = parset.getString("spectralOutputBase","");
+      this->itsCentreType = parset.getString("pixelCentre","peak");
       ASKAPCHECK(this->itsOutputFilenameBase != "", "Extraction: No output base name has been provided for the spectral output. Use spectralOutputBase.");
 
       // Take the following from SynthesisParamsHelper.cc in Synthesis
@@ -75,8 +76,6 @@ namespace askap {
       
       this->verifyInputs();
       
-      this->initialiseArray();
-
     }
 
     SourceDataExtractor::~SourceDataExtractor()
@@ -94,6 +93,7 @@ namespace askap {
     {
       if(this == &other) return *this;
       this->itsSource = other.itsSource;
+      this->itsCentreType = other.itsCentreType;
       this->itsSlicer = other.itsSlicer;
       this->itsInputCube = other.itsInputCube;
       this->itsInputCubeList = other.itsInputCubeList;
@@ -104,18 +104,6 @@ namespace askap {
       this->itsOutputFilename = other.itsOutputFilename;
       this->itsArray = other.itsArray;
       return *this;
-    }
-
-    void SourceDataExtractor::initialiseArray()
-    {
-      // Form itsArray and initialise to zero
-      this->itsInputCube = this->itsInputCubeList.at(0);
-      this->openInput();
-      int specsize = this->itsInputCubePtr->shape()(this->itsInputCubePtr->coordinates().spectralAxisNumber());
-      casa::IPosition shape(4,1,1,this->itsStokesList.size(),specsize);
-      ASKAPLOG_DEBUG_STR(logger, "Extraction: Initialising array to zero with shape " << shape);
-      this->itsArray = casa::Array<Float>(shape,0.0);
-      this->closeInput();
     }
 
     casa::IPosition SourceDataExtractor::getShape(std::string image)

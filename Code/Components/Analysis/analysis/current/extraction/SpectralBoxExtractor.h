@@ -75,8 +75,9 @@ namespace askap {
       void writeImage();
 
     protected:
+      void initialiseArray();
+
       int itsBoxWidth;
-      std::string itsCentreType;
       float itsXloc;
       float itsYloc;
 
