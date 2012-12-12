@@ -156,8 +156,8 @@ namespace askap {
       int xmin,ymin,xmax,ymax;
       if( this->itsBoxWidth>0){
 	int hw = (this->itsBoxWidth - 1)/2;
-	int xloc = this->itsXloc + this->itsSource->getXOffset();
-	int yloc = this->itsYloc + this->itsSource->getYOffset();
+	int xloc = int(this->itsXloc) + this->itsSource->getXOffset();
+	int yloc = int(this->itsYloc) + this->itsSource->getYOffset();
 	int zero=0;
 	xmin = std::max(zero, xloc-hw);
 	xmax=std::min(int(shape(lngAxis)-1),xloc+hw);
