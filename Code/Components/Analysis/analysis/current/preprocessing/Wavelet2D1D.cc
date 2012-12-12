@@ -143,7 +143,6 @@ void Recon2D1D::setCube(duchamp::Cube *cube)
 
 
 void Recon2D1D::reconstruct()
-//void atrous2D1DReconstruct(size_t xdim, size_t ydim, size_t zdim, float* input, float* output, duchamp::Param &par, bool useDuchampStats)
 {
 
   /// @details This is Lars Floer's <lfloeer@astro.uni-bonn.de>
@@ -318,7 +317,6 @@ void Recon2D1D::reconstruct()
 			goodSize++;
 		      }
 		    }
-		    //                    std = sqrt(std / (size + 1));
                     std = sqrt(std / (goodSize + 1));
 
 		    float middle,spread,threshold;

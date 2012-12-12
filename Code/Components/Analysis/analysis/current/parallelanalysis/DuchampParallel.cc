@@ -1868,7 +1868,6 @@ namespace askap {
 		}
 		ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " sources.");
 
-		//                this->itsCube.prepareOutputFile();
                 this->itsCube.outputCatalogue();
 
                 if (this->itsCube.pars().getFlagLog() && (this->itsCube.getNumObj() > 0)) {
