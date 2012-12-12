@@ -62,8 +62,8 @@ source /exported/duchampsvc/scripts/config.sh
 echo "INFO: `date`"
 
 # Retention period in seconds
-#RETENTION_PERIOD=604800
-RETENTION_PERIOD=60480000
+RETENTION_PERIOD=1209600
+#RETENTION_PERIOD=60480000
 
 # First arg is the directory to check, second arg the retention time in seconds,
 # third arg indicates if the retention is based on access time (atime) or creation
