@@ -206,6 +206,8 @@ namespace askap {
 	    checkUnusedParameter(parset,"spectraTextFile");// can't do as this code is in outputSpectra.cc which is disabled due to no pgplot
 	    checkUnusedParameter(parset,"flagOutputMomentMap");// 
 	    checkUnusedParameter(parset,"fileOutputMomentMap");// 
+	    checkUnusedParameter(parset,"flagOutputBaseline");// 
+	    checkUnusedParameter(parset,"fileOutputBaseline");// 
 	    // checkUnusedParameter(parset,"flagOutputMask");// 
 	    // checkUnusedParameter(parset,"fileOutputMask");// 
 	    // checkUnusedParameter(parset,"flagMaskWithObjectNum");// 
@@ -226,6 +228,11 @@ namespace askap {
 	    par.setKarmaFile(parset.getString("karmaFile",par.getKarmaFile()));
 	    if(par.getFlagKarma() && parset.isDefined("karmaFile"))
 	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getKarmaFile()<<"' for the Karma annotation file");
+	    par.setFlagDS9(parset.getBool("flagDS9",true)); // different from Duchamp default
+	    par.setDS9File(parset.getString("ds9File",par.getDS9File()));
+	    if(par.getFlagKarma() && parset.isDefined("ds9File"))
+	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getDS9File()<<"' for the DS9 region file");
+	    //
 	    par.setFlagMaps(false); // flagMaps
 	    checkUnusedParameter(parset,"flagMaps");//  - not using X
 	    checkUnusedParameter(parset,"detectMap");//  - not using X
