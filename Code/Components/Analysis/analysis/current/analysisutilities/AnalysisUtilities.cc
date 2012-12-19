@@ -184,8 +184,10 @@ namespace askap {
 	    checkUnusedParameter(parset,"reconFile");// 
 	    checkUnusedParameter(parset,"flagSmoothExists");// 
 	    checkUnusedParameter(parset,"smoothFile");// 
-	    checkUnusedParameter(parset,"usePrevious");// 
-	    checkUnusedParameter(parset,"objectList");// 
+	    // checkUnusedParameter(parset,"usePrevious");// 
+	    // checkUnusedParameter(parset,"objectList");// 
+	    par.setFlagUsePrevious(parset.getBool("usePrevious",par.getFlagUsePrevious()));
+	    par.setObjectList(parset.getString("objectList",par.getObjectList()));
 
             par.setFlagLog(parset.getBool("flagLog",true)); // different from Duchamp default
 	    // logfile - this is defined in DuchampParallel, as it depends on the worker/master number.

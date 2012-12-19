@@ -1985,27 +1985,35 @@ namespace askap {
 
 	  }
 
+	  std::vector<bool> objectChoice = this->itsCube.pars().getObjectChoices(this->itsSourceList.size());
+
 	  if(this->itsFlagExtractSpectra){
 	    std::vector<sourcefitting::RadioSource>::iterator src;
+	    std::vector<bool>::iterator choice=objectChoice.begin();
 	    LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractSpectra.");
 	    ASKAPLOG_INFO_STR(logger, "Extracting spectra for " << this->itsSourceList.size() << " sources");
-	    for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-	      SourceSpectrumExtractor extractor(extractSubset);
-	      extractor.setSource(&*src);
-	      extractor.extract();
-	      extractor.writeImage();
+	    for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++,choice++) {
+	      if(*choice){
+		SourceSpectrumExtractor extractor(extractSubset);
+		extractor.setSource(&*src);
+		extractor.extract();
+		extractor.writeImage();
+	      }
 	    }
 	  }
 
 	  if(this->itsFlagExtractNoiseSpectra){
 	    std::vector<sourcefitting::RadioSource>::iterator src;
+	    std::vector<bool>::iterator choice=objectChoice.begin();
 	    LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractNoiseSpectra.");
 	    ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for " << this->itsSourceList.size() << " sources");
-	    for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
-	      NoiseSpectrumExtractor extractor(extractSubset);
-	      extractor.setSource(&*src);
-	      extractor.extract();
-	      extractor.writeImage();
+	    for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++,choice++) {
+	      if(*choice){
+		NoiseSpectrumExtractor extractor(extractSubset);
+		extractor.setSource(&*src);
+		extractor.extract();
+		extractor.writeImage();
+	      }
 	    }
 	  }
 
