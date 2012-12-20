@@ -78,7 +78,7 @@ public:
 		
       duchamp.readData();
       duchamp.cube().pars().setLogFile(previousLog);
-      ASKAPLOG_INFO_STR(logger, "Reading detections from previous log file " << previousLog);
+      ASKAPLOG_INFO_STR(logger, "Reading detections from previous log file " << previousLog << " using list " << duchamp.cube().pars().getObjectList());
       duchamp.cube().getExistingDetections();
       ASKAPLOG_INFO_STR(logger, "Cleaning up and parameterising detections");
       //      duchamp.cube().calcObjectParams();
