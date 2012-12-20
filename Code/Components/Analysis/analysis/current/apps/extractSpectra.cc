@@ -41,6 +41,7 @@
 #include <askap/StatReporter.h>
 #include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
+#include <sourcefitting/RadioSource.h>
 #include <duchamp/duchamp.hh>
 #include <Common/ParameterSet.h>
 
@@ -81,9 +82,14 @@ public:
       ASKAPLOG_INFO_STR(logger, "Reading detections from previous log file " << previousLog << " using list " << duchamp.cube().pars().getObjectList());
       duchamp.cube().getExistingDetections();
       ASKAPLOG_INFO_STR(logger, "Cleaning up and parameterising detections");
-      //      duchamp.cube().calcObjectParams();
-      //      duchamp.cleanup();
       duchamp.finaliseDetection();
+      // Put the list of objects into the RadioSource list
+      for(size_t i=0;i<duchamp.cube().getNumObj();i++){
+	duchamp.pSourceList()->push_back(sourcefitting::RadioSource(duchamp.cube().getObject(i)));
+      }
+      duchamp.sendObjects();
+      duchamp.receiveObjects();
+      duchamp.cleanup();      
       ASKAPLOG_INFO_STR(logger, "Extracting requested spectra");
       duchamp.extractSpectra();
 	    
