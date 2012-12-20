@@ -69,6 +69,7 @@ public:
       parset.adoptCollection(config());
       LOFAR::ParameterSet subset(parset.makeSubset("Spectra."));
       std::string previousLog = subset.getString("previousLogfile","duchamp-Logfile-Master.txt");
+      if(!parset.isDefined("previousLogfile")) ASKAPLOG_WARN_STR(logger,"The parameter 'previousLogfile' is not defined - using default of " << previousLog);
 
       DuchampParallel duchamp(comms, subset);
       duchamp.cube().pars().setFlagUsePrevious(true);
@@ -80,7 +81,9 @@ public:
       ASKAPLOG_INFO_STR(logger, "Reading detections from previous log file " << previousLog);
       duchamp.cube().getExistingDetections();
       ASKAPLOG_INFO_STR(logger, "Cleaning up and parameterising detections");
-      duchamp.cleanup();
+      //      duchamp.cube().calcObjectParams();
+      //      duchamp.cleanup();
+      duchamp.finaliseDetection();
       ASKAPLOG_INFO_STR(logger, "Extracting requested spectra");
       duchamp.extractSpectra();
 	    

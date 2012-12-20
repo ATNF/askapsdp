@@ -633,6 +633,13 @@ namespace askap {
 		    this->itsCube.pars().setMinVoxels(minvox);
                 }
 
+		this->finaliseDetection();
+            }
+	}
+
+      void DuchampParallel::finaliseDetection()
+      {
+
 		// Remove non-edge sources that are smaller than originally requested, as these won't be grown any further.
 		std::vector<duchamp::Detection> edgelist,goodlist;
 		for(size_t i=0; i<this->itsCube.getNumObj();i++){
@@ -661,9 +668,11 @@ namespace askap {
 		}
                 ASKAPLOG_INFO_STR(logger,  this->workerPrefix() << "Found " << this->itsCube.getNumObj() << " objects, of which "
 				  << nedge << " are on the boundary and " << ngood << " are good.");
+	
 
-            }
-	}
+      }
+
+
 
         //**************************************************************//
        void DuchampParallel::weightSearch()

@@ -142,6 +142,7 @@ namespace askap {
 
                 /// @brief Find the sources on each worker
                 void findSources();
+		void finaliseDetection();
 
                 /// @brief Send the detected sources from the workers to the master
                 void sendObjects();
