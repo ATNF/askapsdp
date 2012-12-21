@@ -74,7 +74,7 @@ public:
    
    /// @brief aggregate statistics with that accumulated by another instance
    /// @details This class will be run in parallel if the measurement set is distributed. 
-   /// This method is intended to combine statistics as part of reduction.
+   /// This method is intended to combine statistics as part of the reduction.
    /// @param[in] other an instance of the estimator to take data from
    void merge(const VisMetaDataStats &other);
    
@@ -106,6 +106,15 @@ public:
    /// @brief largest residual w-term (for snap-shotting)
    /// @return largest value of residual w in wavelengths
    double maxResidualW() const;
+   
+   /// @brief smallest frequency (same units as in the accessor, usually Hz)
+   /// @return frequency
+   inline double minFreq() const { return itsMinFreq; }
+   
+   /// @brief largest frequency (same units as in the accessor, usually Hz)
+   /// @return frequency
+   inline double maxFreq() const { return itsMaxFreq; }
+    
       
    /// @brief number of antennas
    /// @return largest encountered antenna index + 1
@@ -147,6 +156,12 @@ private:
    
    /// @brief largest value of residual w
    double itsMaxResidualW;
+   
+   /// @brief smallest frequency (same units as in the accessor)
+   double itsMinFreq;
+   
+   /// @brief largest frequency (same units as in the accessor)
+   double itsMaxFreq;
    
    /// @brief largest antenna index
    casa::uInt itsMaxAntennaIndex;

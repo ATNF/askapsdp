@@ -41,7 +41,7 @@ namespace synthesis {
 
 /// @brief constructor, initialise class 
 VisMetaDataStats::VisMetaDataStats() : itsAccessorAdapter(-1.), itsNVis(0ul), itsMaxU(0.), 
-     itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.),
+     itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.), itsMinFreq(0.), itsMaxFreq(0.),
      itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsRefDirValid(false), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.) {}
    
 /// @brief constructor specific to snap-shot imaging
@@ -76,6 +76,71 @@ void VisMetaDataStats::merge(const VisMetaDataStats &other)
 /// @param[in] acc read-only accessor with data
 void VisMetaDataStats::process(const accessors::IConstDataAccessor &acc)
 {
+  const double currentMaxFreq = casa::max(acc.frequency());
+  const double currentMinFreq = casa::min(acc.frequency());
+  const casa::uInt currentMaxAntennaIndex = casa::max(casa::max(acc.antenna1()), casa::max(acc.antenna2()));
+  const casa::uInt currentMaxBeamIndex = casa::max(casa::max(acc.feed1()), casa::max(acc.feed2()));
+  
+  if (itsNVis == 0ul) {
+      itsMinFreq = currentMinFreq;
+      itsMaxFreq = currentMaxFreq;
+      itsMaxAntennaIndex = currentMaxAntennaIndex;
+      itsMaxBeamIndex = currentMaxBeamIndex;
+  } else {
+      if (itsMinFreq > currentMinFreq) {
+          itsMinFreq = currentMinFreq;
+      }
+      if (itsMaxFreq < currentMaxFreq) {
+          itsMaxFreq = currentMaxFreq;
+      }
+      if (itsMaxAntennaIndex < currentMaxAntennaIndex) {
+          itsMaxAntennaIndex = currentMaxAntennaIndex;
+      }
+      if (itsMaxBeamIndex < currentMaxBeamIndex) {
+          itsMaxBeamIndex = currentMaxBeamIndex;
+      }
+  }
+
+  const double reciprocalToShortestWavelength = currentMaxFreq / casa::C::c; 
+  
+  if (itsAccessorAdapter.tolerance() >= 0.) {
+      itsAccessorAdapter.associate(acc);
+      const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsAccessorAdapter.rotatedUVW(itsTangent);
+      for (casa::uInt row=0; row < itsAccessorAdapter.nRow(); ++row) {
+           const double currentU = uvw[row](0) * reciprocalToShortestWavelength;
+           const double currentV = uvw[row](1) * reciprocalToShortestWavelength;
+           const double currentW = uvw[row](2) * reciprocalToShortestWavelength;
+           if ((itsNVis == 0ul) && (row == 0)) {
+               itsMaxU = currentU;
+               itsMaxV = currentV;
+               itsMaxResidualW = currentW;
+           } else {
+               if (itsMaxU < currentU) {
+                   itsMaxU = currentU;
+               }
+               if (itsMaxV < currentV) {
+                   itsMaxV = currentV;
+               }
+               if (itsMaxResidualW < currentW) {
+                   itsMaxResidualW = currentW;
+               }               
+           }
+      } 
+      itsAccessorAdapter.detach();
+  } else {
+      const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = acc.uvw();
+      for (casa::uInt row=0; row < acc.nRow(); ++row) {
+           const double currentW = uvw[row](2) * reciprocalToShortestWavelength;
+           if ((itsNVis == 0ul) && (row == 0)) {
+               itsMaxW = currentW;
+           } else {
+               if (itsMaxW < currentW) {
+                   itsMaxW = currentW;
+               }
+           }
+      }
+  }
+
   itsNVis += acc.nRow() * acc.nChannel();
 }
 
