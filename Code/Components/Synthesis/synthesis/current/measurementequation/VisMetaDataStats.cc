@@ -40,9 +40,24 @@ namespace askap {
 namespace synthesis {
 
 /// @brief constructor, initialise class 
-VisMetaDataStats::VisMetaDataStats() : itsAccessorAdapter(-1.), itsNVis(0ul), itsMaxU(0.), 
+VisMetaDataStats::VisMetaDataStats() : itsTangentSet(false), itsAccessorAdapter(-1.), itsNVis(0ul), itsMaxU(0.), 
      itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.), itsMinFreq(0.), itsMaxFreq(0.),
      itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsRefDirValid(false), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.) {}
+
+/// @brief constructor with explicitly given tangent point
+/// @details We need to know tangent point to estimate the w-term correctly
+/// (tangent point is required for uvw-rotation). Unless the tangent point
+/// is chosen in advance, a two-pass iteration over the data is required. 
+/// The first iteration is used to find out the centre of the field which
+/// can be used as a tangent point during imaging. The second pass determines
+/// actual stats on the w-term. In the second pass, this class is initialised 
+/// with either this version of the constructor or the version specific for 
+/// the snap-shot imaging.
+/// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
+VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent) : itsTangent(tangent), itsTangentSet(true), itsAccessorAdapter(-1.),
+     itsNVis(0ul), itsMaxU(0.), itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.), itsMinFreq(0.), itsMaxFreq(0.), 
+     itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsRefDirValid(false), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.) {} 
+
    
 /// @brief constructor specific to snap-shot imaging
 /// @details For the snap-shot imaging we need to do two passes unless the desired tangent point
@@ -55,7 +70,8 @@ VisMetaDataStats::VisMetaDataStats() : itsAccessorAdapter(-1.), itsNVis(0ul), it
 /// case. This is why a complex two-pass estimation procedure is required.
 /// @param[in] tangent tangent point to be used with snap-shot imaging (for uvw-rotation)
 /// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
-VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent, double wtolerance) : itsTangent(tangent), itsAccessorAdapter(wtolerance), 
+VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent, double wtolerance) : itsTangent(tangent), itsTangentSet(true), 
+     itsAccessorAdapter(wtolerance), 
      itsNVis(0ul), itsMaxU(0.), itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.),
      itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsReferenceDir(tangent), itsRefDirValid(true), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.)
      {}
@@ -76,6 +92,8 @@ void VisMetaDataStats::merge(const VisMetaDataStats &other)
 /// @param[in] acc read-only accessor with data
 void VisMetaDataStats::process(const accessors::IConstDataAccessor &acc)
 {
+  // for now ignore flagging. Technically, some metadata may be ignored if all corresponding data are flagged, but
+  // it seems to be too much of the complication now. 
   const double currentMaxFreq = casa::max(acc.frequency());
   const double currentMinFreq = casa::min(acc.frequency());
   const casa::uInt currentMaxAntennaIndex = casa::max(casa::max(acc.antenna1()), casa::max(acc.antenna2()));
@@ -101,19 +119,29 @@ void VisMetaDataStats::process(const accessors::IConstDataAccessor &acc)
       }
   }
 
-  const double reciprocalToShortestWavelength = currentMaxFreq / casa::C::c; 
+  const double reciprocalToShortestWavelength = currentMaxFreq / casa::C::c;
   
-  if (itsAccessorAdapter.tolerance() >= 0.) {
-      itsAccessorAdapter.associate(acc);
-      const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsAccessorAdapter.rotatedUVW(itsTangent);
-      for (casa::uInt row=0; row < itsAccessorAdapter.nRow(); ++row) {
-           const double currentU = uvw[row](0) * reciprocalToShortestWavelength;
-           const double currentV = uvw[row](1) * reciprocalToShortestWavelength;
-           const double currentW = uvw[row](2) * reciprocalToShortestWavelength;
+  if (itsAccessorAdapter.tolerance() >=0.) {
+      ASKAPCHECK(itsTangentSet, "wtolerance has to be set together with the tangent point!")
+  } 
+  
+  if (itsTangentSet) {
+      const casa::Vector<casa::RigidVector<casa::Double, 3> > &origUVW = acc.rotatedUVW(itsTangent);
+      
+      if (itsAccessorAdapter.tolerance() >= 0.) {
+          itsAccessorAdapter.associate(acc);
+          ASKAPDEBUGASSERT(acc.nRow() == itsAccessorAdapter.nRow());
+      }
+                     
+      for (casa::uInt row=0; row < acc.nRow(); ++row) {
+           const double currentU = origUVW[row](0) * reciprocalToShortestWavelength;
+           const double currentV = origUVW[row](1) * reciprocalToShortestWavelength;
+           const double currentW = origUVW[row](2) * reciprocalToShortestWavelength;
+           
            if ((itsNVis == 0ul) && (row == 0)) {
                itsMaxU = currentU;
                itsMaxV = currentV;
-               itsMaxResidualW = currentW;
+               itsMaxW = currentW;
            } else {
                if (itsMaxU < currentU) {
                    itsMaxU = currentU;
@@ -121,19 +149,43 @@ void VisMetaDataStats::process(const accessors::IConstDataAccessor &acc)
                if (itsMaxV < currentV) {
                    itsMaxV = currentV;
                }
-               if (itsMaxResidualW < currentW) {
-                   itsMaxResidualW = currentW;
+               if (itsMaxW < currentW) {
+                   itsMaxW = currentW;
                }               
            }
       } 
-      itsAccessorAdapter.detach();
+      if (itsAccessorAdapter.tolerance() >= 0.) {
+          const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsAccessorAdapter.rotatedUVW(itsTangent);
+          for (casa::uInt row=0; row < itsAccessorAdapter.nRow(); ++row) {
+               const double currentResidualW = uvw[row](2) * reciprocalToShortestWavelength;
+               if ((itsNVis == 0ul) && (row == 0)) {
+                   itsMaxResidualW = currentResidualW;
+               } else {
+                   if (itsMaxResidualW < currentResidualW) {
+                       itsMaxResidualW = currentResidualW;
+                   }               
+               }               
+          }      
+          itsAccessorAdapter.detach();
+      }
   } else {
+      // this is the first pass, do the best effort job as exact tangent point is unknown
       const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = acc.uvw();
       for (casa::uInt row=0; row < acc.nRow(); ++row) {
+           const double currentU = uvw[row](0) * reciprocalToShortestWavelength;
+           const double currentV = uvw[row](1) * reciprocalToShortestWavelength;
            const double currentW = uvw[row](2) * reciprocalToShortestWavelength;
            if ((itsNVis == 0ul) && (row == 0)) {
+               itsMaxU = currentU;
+               itsMaxV = currentV;
                itsMaxW = currentW;
            } else {
+               if (itsMaxU < currentU) {
+                   itsMaxU = currentU;
+               }
+               if (itsMaxV < currentV) {
+                   itsMaxV = currentV;
+               }
                if (itsMaxW < currentW) {
                    itsMaxW = currentW;
                }

@@ -58,6 +58,18 @@ class VisMetaDataStats {
 public:
    /// @brief constructor, initialise class 
    VisMetaDataStats();
+   
+   /// @brief constructor with explicitly given tangent point
+   /// @details We need to know tangent point to estimate the w-term correctly
+   /// (tangent point is required for uvw-rotation). Unless the tangent point
+   /// is chosen in advance, a two-pass iteration over the data is required. 
+   /// The first iteration is used to find out the centre of the field which
+   /// can be used as a tangent point during imaging. The second pass determines
+   /// actual stats on the w-term. In the second pass, this class is initialised 
+   /// with either this version of the constructor or the version specific for 
+   /// the snap-shot imaging.
+   /// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
+   explicit VisMetaDataStats(const casa::MVDirection &tangent); 
 
    /// @brief constructor specific to snap-shot imaging
    /// @details For the snap-shot imaging we need to do two passes unless the desired tangent point
@@ -101,6 +113,9 @@ public:
       
    /// @brief largest w-term without snap-shotting 
    /// @return largest absolute value of w in wavelengths
+   /// @note If the class has been initialised with the default constructor and 
+   /// no tangent point is set, then this field returns the largest w-term before
+   /// the uvw-rotation.
    inline double maxW() const { return itsMaxW; }
    
    /// @brief largest residual w-term (for snap-shotting)
@@ -134,8 +149,11 @@ public:
 
 private:
    /// @brief tangent point for imaging
-   /// @details Is not initialised, if itsWTolerance is negative
-   casa::MVDirection itsTangent;      
+   /// @details Is not initialised, if itsTangentSet is false
+   casa::MVDirection itsTangent;
+   
+   /// @brief flag that itsTangent is initialised
+   bool itsTangentSet;      
    
    /// @brief adapter dealing with plane fitting
    /// @note This adapter is only used when w-tolerance and tangent points are set. Otherwise,
@@ -152,6 +170,7 @@ private:
    double itsMaxV;
    
    /// @brief largest absolute value of w
+   /// @note It can be both before and after uvw-rotation depending on the value of itsTangentSet
    double itsMaxW;
    
    /// @brief largest value of residual w
