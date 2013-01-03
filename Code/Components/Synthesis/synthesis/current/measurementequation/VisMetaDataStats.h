@@ -146,7 +146,20 @@ public:
    /// @brief largest separation of individual pointing from the centre
    /// @return largest offsets from the centre() in radians (measure of the field size)
    std::pair<double,double> maxOffsets() const;  
+protected:
 
+   /// @brief helper method to apply an offset to the current reference direction
+   /// @details
+   /// @param[in] offsets pair of offsets to apply
+   /// @return direction measure
+   casa::MVDirection getOffsetDir(const std::pair<double,double> &offsets) const;
+   
+   /// @brief helper method to compute offsets of the given direction w.r.t. the reference direction
+   /// @details
+   /// @param[in] dir direction measure
+   /// @return pair with offsets w.r.t. the reference direction
+   std::pair<double,double> getOffsets(const casa::MVDirection &dir) const;
+   
 private:
    /// @brief tangent point for imaging
    /// @details Is not initialised, if itsTangentSet is false
@@ -173,7 +186,7 @@ private:
    /// @note It can be both before and after uvw-rotation depending on the value of itsTangentSet
    double itsMaxW;
    
-   /// @brief largest value of residual w
+   /// @brief largest value of residual w for snap-shot imaging
    double itsMaxResidualW;
    
    /// @brief smallest frequency (same units as in the accessor)

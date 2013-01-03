@@ -56,7 +56,7 @@ VisMetaDataStats::VisMetaDataStats() : itsTangentSet(false), itsAccessorAdapter(
 /// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
 VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent) : itsTangent(tangent), itsTangentSet(true), itsAccessorAdapter(-1.),
      itsNVis(0ul), itsMaxU(0.), itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.), itsMinFreq(0.), itsMaxFreq(0.), 
-     itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsRefDirValid(false), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.) {} 
+     itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsReferenceDir(tangent), itsRefDirValid(true), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.) {} 
 
    
 /// @brief constructor specific to snap-shot imaging
@@ -84,16 +84,147 @@ VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent, double wtol
 void VisMetaDataStats::merge(const VisMetaDataStats &other)
 {
    if (other.nVis() != 0ul) {
+       ASKAPDEBUGASSERT(other.itsRefDirValid);
+       ASKAPCHECK(itsTangentSet == other.itsTangentSet, "Different tangent settings detected during VisMetaDataStats merge");
+       if (itsTangentSet) {
+           ASKAPCHECK(itsTangent.separation(other.itsTangent)<1e-6, "Different tangent directions are used by merged VisMetaDataStats instances");
+       }
+       ASKAPCHECK(fabs(itsAccessorAdapter.tolerance() - other.itsAccessorAdapter.tolerance()) < 1e-6, 
+               "Different configuration of w-tolerance detected during VisMetaDataStats merge");
+       ASKAPDEBUGASSERT(other.itsRefDirValid);        
+       if (nVis() == 0ul) {
+           // just copy all data fields from other
+           itsNVis = other.itsNVis;
+           itsMaxU = other.itsMaxU;
+           itsMaxV = other.itsMaxV;
+           itsMaxW = other.itsMaxW;
+           itsMaxResidualW = other.itsMaxResidualW;
+           itsMinFreq = other.itsMinFreq;
+           itsMaxFreq = other.itsMaxFreq;
+           itsMaxAntennaIndex = other.itsMaxAntennaIndex;
+           itsMaxBeamIndex = other.itsMaxBeamIndex;
+           itsRefDirValid = true;
+           itsReferenceDir = other.itsReferenceDir;
+           itsFieldBLC = other.itsFieldBLC;
+           itsFieldTRC = other.itsFieldTRC;
+       } else {
+           // need to merge properly
+           itsNVis += other.itsNVis;
+           if (other.itsMaxU > itsMaxU) {
+               itsMaxU = other.itsMaxU;
+           }
+           if (other.itsMaxV > itsMaxV) {
+               itsMaxV = other.itsMaxV;
+           }
+           if (other.itsMaxW > itsMaxW) {
+               itsMaxW = other.itsMaxW;
+           }
+           if (other.itsMaxResidualW > itsMaxResidualW) {
+               itsMaxResidualW = other.itsMaxResidualW;
+           }
+           if (other.itsMaxFreq > itsMaxFreq) {
+               itsMaxFreq = other.itsMaxFreq;
+           }
+           if (other.itsMinFreq < itsMinFreq) {
+               itsMinFreq = other.itsMinFreq;
+           }
+           if (other.itsMaxAntennaIndex > itsMaxAntennaIndex) {
+               itsMaxAntennaIndex = other.itsMaxAntennaIndex;
+           }
+           if (other.itsMaxBeamIndex > itsMaxBeamIndex) {
+               itsMaxBeamIndex = other.itsMaxBeamIndex;
+           }
+           // adjust direction stats taking into account that the reference direction
+           // may be different in these two classes
+           ASKAPDEBUGASSERT(itsRefDirValid);
+           const casa::MVDirection otherBLCDir = other.getOffsetDir(other.itsFieldBLC);
+           const casa::MVDirection otherTRCDir = other.getOffsetDir(other.itsFieldTRC);
+           const std::pair<double,double> otherBLC = getOffsets(otherBLCDir);
+           const std::pair<double,double> otherTRC = getOffsets(otherTRCDir);
+           // cross checks just in case
+           ASKAPDEBUGASSERT(otherBLC.first <= otherTRC.first);
+           ASKAPDEBUGASSERT(otherBLC.second <= otherTRC.second);
+           // 
+           if (itsFieldBLC.first > otherBLC.first) {
+               itsFieldBLC.first = otherBLC.first;
+           }
+           if (itsFieldTRC.first < otherTRC.first) {
+               itsFieldTRC.first = otherTRC.first;
+           }
+           if (itsFieldBLC.second > otherBLC.second) {
+               itsFieldBLC.second = otherBLC.second;
+           }
+           if (itsFieldTRC.second < otherTRC.second) {
+               itsFieldTRC.second = otherTRC.second;
+           }                        
+       }
    }
 }
+
+/// @brief helper method to apply an offset to the current reference direction
+/// @details
+/// @param[in] offsets pair of offsets to apply
+/// @return direction measure
+casa::MVDirection VisMetaDataStats::getOffsetDir(const std::pair<double,double> &offsets) const
+{
+  ASKAPCHECK(itsRefDirValid, "getOffsetDir() called before any visibility has been processed, nvis="<<nVis());
+  casa::MVDirection result(itsReferenceDir);
+  result.shift(offsets.first,offsets.second,casa::True);
+  return result;
+}
+   
+/// @brief helper method to compute offsets of the given direction w.r.t. the reference direction
+/// @details
+/// @param[in] dir direction measure
+/// @return pair with offsets w.r.t. the reference direction
+std::pair<double,double> VisMetaDataStats::getOffsets(const casa::MVDirection &dir) const
+{
+  ASKAPCHECK(itsRefDirValid, "getOffsets() called before any visibility has been processed, nvis="<<nVis());
+  const double offset1 = sin(dir.getLong() - itsReferenceDir.getLong()) * cos(dir.getLat());
+  const double offset2 = sin(dir.getLat()) * cos(itsReferenceDir.getLat()) - cos(dir.getLat()) * sin(itsReferenceDir.getLat())
+                                           * cos(dir.getLong() - itsReferenceDir.getLong());
+  return std::pair<double,double>(offset1,offset2);  
+}
+
    
 /// @brief process one accessor of data updating statistics
 /// @details 
 /// @param[in] acc read-only accessor with data
 void VisMetaDataStats::process(const accessors::IConstDataAccessor &acc)
 {
+  if (acc.nRow() == 0) {
+      return; // no data - nothing to do
+  }
   // for now ignore flagging. Technically, some metadata may be ignored if all corresponding data are flagged, but
   // it seems to be too much of the complication now. 
+  
+  if (!itsRefDirValid) {
+      // estimate reference direction as the first encountered dish pointing
+      itsReferenceDir = acc.dishPointing1()[0];
+      itsRefDirValid = true;
+  }
+  
+  const casa::Vector<casa::MVDirection> &pointingDir = acc.pointingDir1();
+  for (casa::uInt row=0; row < acc.nRow(); ++row) {
+       const std::pair<double,double> offsets = getOffsets(pointingDir[row]);
+       if ( (itsNVis == 0ul) && (row == 0) ) {
+            itsFieldBLC = itsFieldTRC = offsets;
+       } else {
+            if (itsFieldBLC.first > offsets.first) {
+                itsFieldBLC.first = offsets.first;
+            }
+            if (itsFieldTRC.first < offsets.first) {
+                itsFieldTRC.first = offsets.first;
+            }
+            if (itsFieldBLC.second > offsets.second) {
+                itsFieldBLC.second = offsets.second;
+            }
+            if (itsFieldTRC.second < offsets.second) {
+                itsFieldTRC.second = offsets.second;
+            }            
+       }
+  }
+  
   const double currentMaxFreq = casa::max(acc.frequency());
   const double currentMinFreq = casa::min(acc.frequency());
   const casa::uInt currentMaxAntennaIndex = casa::max(casa::max(acc.antenna1()), casa::max(acc.antenna2()));
@@ -210,9 +341,7 @@ double VisMetaDataStats::maxResidualW() const
 casa::MVDirection VisMetaDataStats::centre() const {
   ASKAPCHECK(itsRefDirValid, "centre() called before any visibility has been processed, nvis="<<nVis());
   const std::pair<double,double>  cnt((itsFieldTRC.first + itsFieldBLC.first) / 2, (itsFieldTRC.second + itsFieldBLC.second) / 2);
-  casa::MVDirection result(itsReferenceDir);
-  result.shift(cnt.first,cnt.second,casa::True);
-  return result;
+  return getOffsetDir(cnt);
 }
    
 /// @brief largest separation of individual pointing from the centre
