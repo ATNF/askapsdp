@@ -38,6 +38,9 @@
 #include <dataaccess/IConstDataAccessor.h>
 #include <dataaccess/BestWPlaneDataAccessor.h>
 #include <measures/Measures/MDirection.h>
+#include <fitting/ISerializable.h>
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
 
 #include <utility>
 
@@ -54,7 +57,7 @@ namespace synthesis {
 /// @note This class is in the measurement equation directory for now, although it doesn't 
 /// quite fit with the rest of the stuff up there
 /// @ingroup measurementequation
-class VisMetaDataStats {
+class VisMetaDataStats : public ISerializable {
 public:
    /// @brief constructor, initialise class 
    VisMetaDataStats();
@@ -145,6 +148,17 @@ public:
    /// @brief largest separation of individual pointing from the centre
    /// @return largest offsets from the centre() in radians (measure of the field size)
    std::pair<double,double> maxOffsets() const;  
+   
+   // serialization 
+   
+   /// @brief write the object to a blob stream
+   /// @param[in] os the output stream
+   virtual void writeToBlob(LOFAR::BlobOStream& os) const;
+
+   /// @brief read the object from a blob stream
+   /// @param[in] is the input stream
+   virtual void readFromBlob(LOFAR::BlobIStream& is); 
+   
 protected:
 
    /// @brief helper method to apply an offset to the current reference direction

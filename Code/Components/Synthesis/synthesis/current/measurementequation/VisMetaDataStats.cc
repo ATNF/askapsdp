@@ -34,6 +34,7 @@
 
 #include <measurementequation/VisMetaDataStats.h>
 #include <askap/AskapError.h>
+#include <Blob/BlobArray.h>
 
 namespace askap {
 
@@ -83,14 +84,13 @@ VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent, double wtol
 /// @param[in] other an instance of the estimator to take data from
 void VisMetaDataStats::merge(const VisMetaDataStats &other)
 {
+   ASKAPCHECK(itsTangentSet == other.itsTangentSet, "Different tangent settings detected during VisMetaDataStats merge");
+   if (itsTangentSet) {
+       ASKAPCHECK(itsTangent.separation(other.itsTangent)<1e-6, "Different tangent directions are used by merged VisMetaDataStats instances");
+   }
+   ASKAPCHECK(fabs(itsAccessorAdapter.tolerance() - other.itsAccessorAdapter.tolerance()) < 1e-6, 
+           "Different configuration of w-tolerance detected during VisMetaDataStats merge");
    if (other.nVis() != 0ul) {
-       ASKAPDEBUGASSERT(other.itsRefDirValid);
-       ASKAPCHECK(itsTangentSet == other.itsTangentSet, "Different tangent settings detected during VisMetaDataStats merge");
-       if (itsTangentSet) {
-           ASKAPCHECK(itsTangent.separation(other.itsTangent)<1e-6, "Different tangent directions are used by merged VisMetaDataStats instances");
-       }
-       ASKAPCHECK(fabs(itsAccessorAdapter.tolerance() - other.itsAccessorAdapter.tolerance()) < 1e-6, 
-               "Different configuration of w-tolerance detected during VisMetaDataStats merge");
        ASKAPDEBUGASSERT(other.itsRefDirValid);        
        if (nVis() == 0ul) {
            // just copy all data fields from other
@@ -354,6 +354,54 @@ std::pair<double,double> VisMetaDataStats::maxOffsets() const
   ASKAPDEBUGASSERT(result.second >= 0.);
   return result;
 }  
+
+// helper operators, we can move them to Base if they're found useful somewhere else
+LOFAR::BlobOStream& operator<<(LOFAR::BlobOStream &os, const casa::MVDirection &dir) {
+  os<<dir.get();
+  return os;
+} 
+
+LOFAR::BlobIStream& operator>>(LOFAR::BlobIStream &is, casa::MVDirection &dir) {
+  casa::Vector<casa::Double> angles;
+  is>>angles;
+  ASKAPCHECK(angles.nelements() == 2, "Expect two-element array with angles for a direction measure");
+  dir.setAngle(angles[0],angles[1]);
+  return is;
+}
+
+// increment the number when format changes
+#define VIS_META_DATA_STATS_STREAM_VERSION 1
+
+/// @brief write the object to a blob stream
+/// @param[in] os the output stream
+void VisMetaDataStats::writeToBlob(LOFAR::BlobOStream& os) const
+{
+  ASKAPCHECK(!itsAccessorAdapter.isAssociated(), "An attempt to serialise VisMetaDataStats with accessor adapter in the attached state");
+  os.putStart("VisMetaDataStats",VIS_META_DATA_STATS_STREAM_VERSION);
+  os<<itsTangent<<itsTangentSet<<itsAccessorAdapter.tolerance()<<(uint64_t)itsNVis<<itsMaxU<<itsMaxV<<itsMaxW<<itsMaxResidualW<<
+    itsMinFreq<<itsMaxFreq<<itsMaxAntennaIndex<<itsMaxBeamIndex<<itsReferenceDir<<itsRefDirValid<<
+    itsFieldBLC.first<<itsFieldBLC.second<<itsFieldTRC.first<<itsFieldTRC.second;
+  os.putEnd();
+}
+
+/// @brief read the object from a blob stream
+/// @param[in] is the input stream
+void VisMetaDataStats::readFromBlob(LOFAR::BlobIStream& is)
+{
+  ASKAPCHECK(!itsAccessorAdapter.isAssociated(), "An attempt to de-serialise VisMetaDataStats with accessor adapter in the attached state");
+  const int version = is.getStart("VisMetaDataStats");
+  ASKAPCHECK(version == VIS_META_DATA_STATS_STREAM_VERSION, 
+       "Attempting to read from a blob stream an object of the wrong version, expected "<<VIS_META_DATA_STATS_STREAM_VERSION<<
+       "got "<<version);
+  double wtolerance = -1;
+  uint64_t nVisBuf = 0;
+  is >> itsTangent >> itsTangentSet >> wtolerance >> nVisBuf;
+  itsAccessorAdapter = accessors::BestWPlaneDataAccessor(wtolerance);
+  itsNVis = (unsigned long)nVisBuf;
+  is >> itsMaxU >> itsMaxV >> itsMaxW >> itsMaxResidualW >> itsMinFreq >> itsMaxFreq >> itsMaxAntennaIndex >> itsMaxBeamIndex >>
+        itsReferenceDir >> itsRefDirValid >> itsFieldBLC.first >> itsFieldBLC.second >> itsFieldTRC.first >> itsFieldTRC.second;     
+  is.getEnd();       
+}
 
 
 } // namespace synthesis

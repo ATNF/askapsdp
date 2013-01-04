@@ -40,6 +40,12 @@
 #include <casa/Quanta/Quantum.h>
 #include <casa/Quanta/MVDirection.h>
 
+#include <Blob/BlobString.h>
+#include <Blob/BlobOBufString.h>
+#include <Blob/BlobIBufString.h>
+#include <Blob/BlobOStream.h>
+#include <Blob/BlobIStream.h>
+
 
 namespace askap
 {
@@ -48,9 +54,75 @@ namespace askap
     class VisMetaDataStatsTest : public CppUnit::TestFixture
     {
       CPPUNIT_TEST_SUITE(VisMetaDataStatsTest);
+      CPPUNIT_TEST(testProcessModified);
       CPPUNIT_TEST(testProcess);
+      CPPUNIT_TEST(testMerge);
+      CPPUNIT_TEST(testBlobStream);
+      CPPUNIT_TEST(testSnapShot);  
+      CPPUNIT_TEST_EXCEPTION(testTangentCheck,AskapError);    
+      CPPUNIT_TEST_EXCEPTION(testToleranceCheck,AskapError);    
       CPPUNIT_TEST_SUITE_END();
+    protected:
+      static void modifyStubbedData(accessors::DataAccessorStub &acc) {
+         for (casa::uInt row=0; row<acc.nRow(); ++row) {
+            ++acc.itsFeed1[row];
+            ++acc.itsFeed2[row];
+            ++acc.itsAntenna1[row];
+            ++acc.itsAntenna2[row];
+            for (casa::uInt dim=0; dim<3; ++dim) {
+                 acc.itsUVW[row](dim) *= 10.;
+            }
+            acc.itsPointingDir1[row].shift(-0.001,0.001,casa::True);
+            acc.itsPointingDir2[row].shift(-0.001,0.001,casa::True);            
+         }
+         for (casa::uInt chan=0; chan<acc.nChannel(); ++chan) {
+              acc.itsFrequency[chan] += 10e6;
+         }
+      }  
     public:
+      void testProcessModified() {
+         accessors::DataAccessorStub acc(true);
+         modifyStubbedData(acc);
+         VisMetaDataStats stats;
+         CPPUNIT_ASSERT_EQUAL(0ul, stats.nVis());
+         stats.process(acc);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.41e9,stats.maxFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.27e9,stats.minFreq(),1.);
+         
+         const double freqFactor = 1.41/1.4; // we have different maximum frequency now
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(41156.2*freqFactor,stats.maxU(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(32962.3*freqFactor,stats.maxV(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(63874.1*freqFactor,stats.maxW(),1.);
+         CPPUNIT_ASSERT_EQUAL(31u, stats.nAntennas());
+         CPPUNIT_ASSERT_EQUAL(2u, stats.nBeams());
+         CPPUNIT_ASSERT_EQUAL(3480ul, stats.nVis());
+         // test directions for "offset" beam
+         casa::MVDirection expectedDir(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+         expectedDir.shift(-0.001,0.001,casa::True);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., expectedDir.separation(stats.centre()), 1e-6);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,stats.maxOffsets().first,1e-6);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,stats.maxOffsets().second,1e-6);         
+      }
+
+      void checkCombined(const VisMetaDataStats &stats) {
+         // verify results after merge (we have the same end result in various tests)
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.41e9,stats.maxFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.260e9,stats.minFreq(),1.);
+         
+         const double freqFactor = 1.41/1.4; // we have different maximum frequency now
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(41156.2 * freqFactor,stats.maxU(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(32962.3 * freqFactor,stats.maxV(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(63874.1 * freqFactor,stats.maxW(),1.);
+         CPPUNIT_ASSERT_EQUAL(31u, stats.nAntennas());
+         CPPUNIT_ASSERT_EQUAL(2u, stats.nBeams());
+         CPPUNIT_ASSERT_EQUAL(6960ul, stats.nVis());
+         casa::MVDirection shiftedDir(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+         shiftedDir.shift(-0.0005,0.0005,casa::True);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., shiftedDir.separation(stats.centre()), 1e-6);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0005,stats.maxOffsets().first,1e-6);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0005,stats.maxOffsets().second,1e-6);         
+      }
+      
       void testProcess() {
          accessors::DataAccessorStub acc(true);
          VisMetaDataStats stats;
@@ -80,8 +152,108 @@ namespace askap
          CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,stats.maxOffsets().second,1e-6);
          const casa::MVDirection expectedDir(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
          CPPUNIT_ASSERT_DOUBLES_EQUAL(0., expectedDir.separation(stats.centre()), 1e-6);
+         // now change the data and accumulate again
+         modifyStubbedData(acc);
+         stats.process(acc);
+         checkCombined(stats);
       } 
       
+      void testMerge() {
+         accessors::DataAccessorStub acc(true);
+         const casa::MVDirection tangent(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+         VisMetaDataStats stats1(tangent);
+         stats1.process(acc);         
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.4e9,stats1.maxFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.260e9,stats1.minFreq(),1.);
+         modifyStubbedData(acc);
+         VisMetaDataStats stats2(tangent);
+         stats2.process(acc);         
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.41e9,stats2.maxFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.27e9,stats2.minFreq(),1.);
+         // now merge
+         stats1.merge(stats2);
+         checkCombined(stats1);
+         VisMetaDataStats stats3(tangent);
+         stats1.merge(stats3);
+         checkCombined(stats1);
+         stats3.merge(stats1);
+         checkCombined(stats3);         
+      }
+      
+      void testBlobStream() {
+         const casa::MVDirection tangent(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+         accessors::DataAccessorStub acc(true);
+         VisMetaDataStats stats1(tangent);
+         stats1.process(acc);
+         modifyStubbedData(acc);
+         VisMetaDataStats stats2(tangent);
+         stats2.process(acc);
+         // serialise
+         LOFAR::BlobString b1(false);
+         LOFAR::BlobOBufString bob(b1);
+         LOFAR::BlobOStream bos(bob);
+         bos << stats2;
+         // de-serialise
+         LOFAR::BlobIBufString bib(b1);
+         LOFAR::BlobIStream bis(bib);
+         VisMetaDataStats stats3;
+         bis >> stats3;
+         // compare two versions         
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.41e9,stats3.maxFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.27e9,stats3.minFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(stats2.maxU(),stats3.maxU(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(stats2.maxV(),stats3.maxV(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(stats2.maxW(),stats3.maxW(),1.);
+         CPPUNIT_ASSERT_EQUAL(stats2.nAntennas(),stats3.nAntennas());
+         CPPUNIT_ASSERT_EQUAL(stats2.nBeams(),stats3.nBeams());
+         CPPUNIT_ASSERT_EQUAL(stats2.nVis(),stats3.nVis());
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,stats2.centre().separation(stats3.centre()),1e-6);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(stats2.maxOffsets().first,stats3.maxOffsets().first,1e-6);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(stats2.maxOffsets().second,stats3.maxOffsets().second,1e-6);
+         // merge in a different way than before
+         stats3.merge(stats1);
+         checkCombined(stats3);
+      }
+      
+      void testSnapShot() {
+         accessors::DataAccessorStub acc(true);
+         const casa::MVDirection tangent(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+         VisMetaDataStats stats(tangent,1);
+         stats.process(acc);         
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.4e9,stats.maxFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.260e9,stats.minFreq(),1.);
+         // the accessor stub doesn't do uvw-rotation, so the values are the same
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(4115.62,stats.maxU(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(3296.23,stats.maxV(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(6387.41,stats.maxW(),1.);
+         // now can check residual w-term
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.6,stats.maxResidualW(),1e-4);         
+         CPPUNIT_ASSERT_EQUAL(30u, stats.nAntennas());
+         CPPUNIT_ASSERT_EQUAL(1u, stats.nBeams());
+         CPPUNIT_ASSERT_EQUAL(3480ul, stats.nVis());
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,stats.maxOffsets().first,1e-6);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.,stats.maxOffsets().second,1e-6);
+         const casa::MVDirection expectedDir(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0., expectedDir.separation(stats.centre()), 1e-6);         
+      }
+      
+      void testTangentCheck() {
+         accessors::DataAccessorStub acc(true);
+         const casa::MVDirection tangent(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+         VisMetaDataStats stats(tangent);
+         stats.process(acc);   
+         VisMetaDataStats stats1;
+         stats1.merge(stats);      
+      }
+      
+      void testToleranceCheck() {
+         accessors::DataAccessorStub acc(true);
+         const casa::MVDirection tangent(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+         VisMetaDataStats stats(tangent,1.);
+         stats.process(acc);   
+         VisMetaDataStats stats1(tangent,700.);
+         stats1.merge(stats);
+      }
     };
   
   } // namespace synthesis
