@@ -40,6 +40,7 @@
 #include <PolLeakageTest.h>
 #include <PreAvgCalBufferTest.h>
 #include <RestoringBeamHelperTest.h>
+#include <VisMetaDataStatsTest.h>
 
 int main( int argc, char **argv)
 {
@@ -58,6 +59,7 @@ int main( int argc, char **argv)
     runner.addTest(askap::synthesis::PolLeakageTest::suite()); 
     runner.addTest(askap::synthesis::PreAvgCalBufferTest::suite()); 
     runner.addTest(askap::synthesis::RestoringBeamHelperTest::suite());
+    runner.addTest(askap::synthesis::VisMetaDataStatsTest::suite());
 
     const bool wasSucessful = runner.run();
 

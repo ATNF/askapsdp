@@ -129,8 +129,7 @@ public:
    /// @brief largest frequency (same units as in the accessor, usually Hz)
    /// @return frequency
    inline double maxFreq() const { return itsMaxFreq; }
-    
-      
+          
    /// @brief number of antennas
    /// @return largest encountered antenna index + 1
    inline casa::uInt nAntennas() const { return itsMaxAntennaIndex + 1; } 
