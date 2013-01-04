@@ -378,7 +378,7 @@ void VisMetaDataStats::writeToBlob(LOFAR::BlobOStream& os) const
 {
   ASKAPCHECK(!itsAccessorAdapter.isAssociated(), "An attempt to serialise VisMetaDataStats with accessor adapter in the attached state");
   os.putStart("VisMetaDataStats",VIS_META_DATA_STATS_STREAM_VERSION);
-  os<<itsTangent<<itsTangentSet<<itsAccessorAdapter.tolerance()<<(uint64_t)itsNVis<<itsMaxU<<itsMaxV<<itsMaxW<<itsMaxResidualW<<
+  os<<itsTangent<<itsTangentSet<<itsAccessorAdapter.tolerance()<<(LOFAR::TYPES::uint64)itsNVis<<itsMaxU<<itsMaxV<<itsMaxW<<itsMaxResidualW<<
     itsMinFreq<<itsMaxFreq<<itsMaxAntennaIndex<<itsMaxBeamIndex<<itsReferenceDir<<itsRefDirValid<<
     itsFieldBLC.first<<itsFieldBLC.second<<itsFieldTRC.first<<itsFieldTRC.second;
   os.putEnd();
@@ -394,7 +394,7 @@ void VisMetaDataStats::readFromBlob(LOFAR::BlobIStream& is)
        "Attempting to read from a blob stream an object of the wrong version, expected "<<VIS_META_DATA_STATS_STREAM_VERSION<<
        "got "<<version);
   double wtolerance = -1;
-  uint64_t nVisBuf = 0;
+  LOFAR::TYPES::uint64 nVisBuf = 0;
   is >> itsTangent >> itsTangentSet >> wtolerance >> nVisBuf;
   itsAccessorAdapter = accessors::BestWPlaneDataAccessor(wtolerance);
   itsNVis = (unsigned long)nVisBuf;
