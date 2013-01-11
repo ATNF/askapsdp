@@ -76,7 +76,29 @@ VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent, double wtol
      itsNVis(0ul), itsMaxU(0.), itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.),
      itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsReferenceDir(tangent), itsRefDirValid(true), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.)
      {}
-      
+
+/// @brief reset all accumulated statistics
+/// @details After this method, the object will be reset to a pristine state preserving only
+/// parameters passed in the constructor, i.e. tangent and wtolerance (if they're defined).
+/// All accumulated statistics are reset.
+void VisMetaDataStats::reset()
+{
+   itsNVis = 0ul;
+   itsMaxU = 0.;
+   itsMaxV = 0.;
+   itsMaxW = 0.;
+   itsMaxResidualW = 0.;
+   itsMaxAntennaIndex = 0u;
+   itsMaxBeamIndex = 0u;
+   itsFieldBLC = std::pair<double,double>(0.,0.);
+   itsFieldTRC = std::pair<double,double>(0.,0.);
+   if (itsTangentSet) {
+       itsReferenceDir = itsTangent;
+       itsRefDirValid  = true;
+   } else {
+       itsRefDirValid = false;
+   }
+}  
    
 /// @brief aggregate statistics with that accumulated by another instance
 /// @details This class will be run in parallel if the measurement set is distributed. 

@@ -87,6 +87,12 @@ public:
    /// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
    VisMetaDataStats(const casa::MVDirection &tangent, double wtolerance);
    
+   /// @brief reset all accumulated statistics
+   /// @details After this method, the object will be reset to a pristine state preserving only
+   /// parameters passed in the constructor, i.e. tangent and wtolerance (if they're defined).
+   /// All accumulated statistics are reset.
+   void reset();
+   
    /// @brief aggregate statistics with that accumulated by another instance
    /// @details This class will be run in parallel if the measurement set is distributed. 
    /// This method is intended to combine statistics as part of the reduction.

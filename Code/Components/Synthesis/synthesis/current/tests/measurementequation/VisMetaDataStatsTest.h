@@ -61,6 +61,7 @@ namespace askap
       CPPUNIT_TEST(testSnapShot);  
       CPPUNIT_TEST_EXCEPTION(testTangentCheck,AskapError);    
       CPPUNIT_TEST_EXCEPTION(testToleranceCheck,AskapError);    
+      CPPUNIT_TEST(testReset);  
       CPPUNIT_TEST_SUITE_END();
     protected:
       static void modifyStubbedData(accessors::DataAccessorStub &acc) {
@@ -254,6 +255,31 @@ namespace askap
          VisMetaDataStats stats1(tangent,700.);
          stats1.merge(stats);
       }
+      
+      void testReset() {
+         accessors::DataAccessorStub acc(true);
+         const casa::MVDirection tangent(casa::Quantity(0, "deg"), casa::Quantity(0, "deg"));
+         VisMetaDataStats stats1(tangent);
+         stats1.process(acc);         
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.4e9,stats1.maxFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.260e9,stats1.minFreq(),1.);
+         VisMetaDataStats stats2(tangent);
+         stats2.process(acc);         
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.4e9,stats2.maxFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.260e9,stats2.minFreq(),1.);
+         CPPUNIT_ASSERT_EQUAL(3480ul, stats2.nVis());
+         stats2.reset();
+         CPPUNIT_ASSERT_EQUAL(0ul, stats2.nVis());         
+         modifyStubbedData(acc);
+         stats2.process(acc);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.41e9,stats2.maxFreq(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(1.27e9,stats2.minFreq(),1.);
+         CPPUNIT_ASSERT_EQUAL(3480ul, stats2.nVis());
+         // now merge
+         stats1.merge(stats2);
+         checkCombined(stats1);
+      }
+      
     };
   
   } // namespace synthesis
