@@ -145,7 +145,7 @@ private:
 /// @param comms communication object 
 /// @param parset ParameterSet for inputs
 AdviseParallel::AdviseParallel(askap::askapparallel::AskapParallel& comms, const LOFAR::ParameterSet& parset) :
-    MEParallelApp(comms, parset), itsTangentDefined(false)
+    MEParallelApp(comms, addMissingFields(parset)), itsTangentDefined(false)
 {
    itsWTolerance = parset.getDouble("wtolerance",-1.);
    if (parset.isDefined("tangent")) {
@@ -168,6 +168,7 @@ AdviseParallel::AdviseParallel(askap::askapparallel::AskapParallel& comms, const
 void AdviseParallel::estimate()
 {
    if (itsTangentDefined) {
+       ASKAPLOG_INFO_STR(logger, "Using explicitly defined tangent point "<<printDirection(itsTangent)<<" (J2000)");
        itsEstimator.reset(new VisMetaDataStats(itsTangent, itsWTolerance));
        // we only need one iteration here
    } else {
@@ -252,6 +253,68 @@ void AdviseParallel::calcNE()
    boost::shared_ptr<EstimatorAdapter> ea = boost::dynamic_pointer_cast<EstimatorAdapter>(itsNe);
    ASKAPASSERT(ea);
    itsEstimator = ea->get();
+}
+
+/// @brief helper method to get statistics estimator
+/// @return const reference to the statistics estimator
+/// @note An exception is thrown if the estimator is not defined or the method is called from
+/// worker process.
+const VisMetaDataStats& AdviseParallel::estimator() const
+{
+   ASKAPCHECK(itsComms.isMaster(), "AdviseParallel::estimator() is supposed to be called from the master process only");
+   ASKAPCHECK(itsEstimator, "estimator is not defined!");
+   return *itsEstimator;
+}
+
+/// @brief summarise stats into log
+/// @details This method just summarises all stats accumulated in the call to estimate() method
+/// into log. Nothing is done for worker process.
+void AdviseParallel::summary() const
+{
+   if (itsComms.isMaster()) {
+       const VisMetaDataStats &stats = estimator();
+       ASKAPLOG_INFO_STR(logger, "AdviseParallel::summary - statistics for the visibility dataset:");
+       ASKAPLOG_INFO_STR(logger, "  Total number of visibilities (ignoring polarisation): "<<stats.nVis());
+       ASKAPLOG_INFO_STR(logger, "  Largest U: "<<stats.maxU()<<" wavelengths");
+       ASKAPLOG_INFO_STR(logger, "  Largest V: "<<stats.maxV()<<" wavelengths");
+       ASKAPLOG_INFO_STR(logger, "  Largest W: "<<stats.maxW()<<" wavelengths");
+       if (itsWTolerance >= 0.) {
+           ASKAPLOG_INFO_STR(logger, "  Largest residual W: "<<stats.maxResidualW()<<" wavelengths");
+       } else {
+           ASKAPLOG_INFO_STR(logger, "  Largest residual W - not determined");
+       }
+       // the following assumes the standard accessor units selection
+       ASKAPLOG_INFO_STR(logger, "  Frequency from "<<stats.minFreq()/1e6<<" to "<<stats.maxFreq()/1e6<<" MHz");
+       ASKAPLOG_INFO_STR(logger, "  Number of antennas: "<<stats.nAntennas());
+       ASKAPLOG_INFO_STR(logger, "  Number of beams: "<<stats.nBeams());
+       if (itsTangentDefined) {
+           ASKAPLOG_INFO_STR(logger, "  Assumed tangent point: "<<printDirection(itsTangent)<<" (J2000)");
+       }
+       ASKAPLOG_INFO_STR(logger, "  Most central direction of the field: "<<printDirection(stats.centre())<<" (J2000)");
+       const std::pair<double,double> offsets = stats.maxOffsets();
+       ASKAPLOG_INFO_STR(logger, "  Largest beam offsets from the centre: "<<offsets.first/casa::C::pi*180.<<" , "<<offsets.second/casa::C::pi*180.<<" deg");
+       const double fieldSize = stats.squareFieldSize(); // in deg
+       ASKAPLOG_INFO_STR(logger, "  Estimated square field size: "<<fieldSize<<" deg");
+       const double cellSize = stats.squareCellSize(); // in arcsec
+       ASKAPLOG_INFO_STR(logger, "  Estimated square cell size: "<<cellSize<<" arcsec");
+       const long imgSize = long(fieldSize * 3600 / cellSize) + 1;
+       ASKAPLOG_INFO_STR(logger, "  Suggested minimum image size: "<<imgSize<<" x "<<imgSize<<" pixels");
+   }
+} 
+
+/// @brief a hopefully temporary method to define missing fields in parset
+/// @details We reuse some code for general synthesis application, but it requires some
+/// parameters (like gridder) to be defined. This method fills the parset with stubbed fields.
+/// Hopefully, it is a temporary approach.
+/// @param parset ParameterSet for inputs
+/// @return new parset 
+LOFAR::ParameterSet AdviseParallel::addMissingFields(const LOFAR::ParameterSet& parset)
+{
+  LOFAR::ParameterSet result(parset);
+  if (!result.isDefined("gridder")) {
+      result.add("gridder","SphFunc");
+  }
+  return result;
 }
 
 

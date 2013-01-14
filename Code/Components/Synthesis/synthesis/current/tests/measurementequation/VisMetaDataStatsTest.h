@@ -91,9 +91,9 @@ namespace askap
          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.27e9,stats.minFreq(),1.);
          
          const double freqFactor = 1.41/1.4; // we have different maximum frequency now
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(41156.2*freqFactor,stats.maxU(),1.);
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(32962.3*freqFactor,stats.maxV(),1.);
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(63874.1*freqFactor,stats.maxW(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(73120.88*freqFactor,stats.maxU(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(47906.8*freqFactor,stats.maxV(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(72008.7*freqFactor,stats.maxW(),1.);
          CPPUNIT_ASSERT_EQUAL(31u, stats.nAntennas());
          CPPUNIT_ASSERT_EQUAL(2u, stats.nBeams());
          CPPUNIT_ASSERT_EQUAL(3480ul, stats.nVis());
@@ -111,9 +111,9 @@ namespace askap
          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.260e9,stats.minFreq(),1.);
          
          const double freqFactor = 1.41/1.4; // we have different maximum frequency now
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(41156.2 * freqFactor,stats.maxU(),1.);
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(32962.3 * freqFactor,stats.maxV(),1.);
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(63874.1 * freqFactor,stats.maxW(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(73120.88 * freqFactor,stats.maxU(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(47906.8 * freqFactor,stats.maxV(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(72008.7 * freqFactor,stats.maxW(),1.);
          CPPUNIT_ASSERT_EQUAL(31u, stats.nAntennas());
          CPPUNIT_ASSERT_EQUAL(2u, stats.nBeams());
          CPPUNIT_ASSERT_EQUAL(6960ul, stats.nVis());
@@ -133,10 +133,10 @@ namespace askap
          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.260e9,stats.minFreq(),1.);
 
          // note, we didn't independently verify the following uvw 
-         // values, but the magnitude make sense for the stubbed layout         
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(4115.62,stats.maxU(),1.);
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(3296.23,stats.maxV(),1.);
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(6387.41,stats.maxW(),1.);
+         // values, but the magnitude make sense for the stubbed layout
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(7312.088,stats.maxU(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(4790.68,stats.maxV(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(7200.87,stats.maxW(),1.);
          bool noResidualW = false;
          try {
              stats.maxResidualW(); // this should fail!
@@ -224,11 +224,11 @@ namespace askap
          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.4e9,stats.maxFreq(),1.);
          CPPUNIT_ASSERT_DOUBLES_EQUAL(1.260e9,stats.minFreq(),1.);
          // the accessor stub doesn't do uvw-rotation, so the values are the same
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(4115.62,stats.maxU(),1.);
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(3296.23,stats.maxV(),1.);
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(6387.41,stats.maxW(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(7312.088,stats.maxU(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(4790.68,stats.maxV(),1.);
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(7200.87,stats.maxW(),1.);
          // now can check residual w-term
-         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.6,stats.maxResidualW(),1e-4);         
+         CPPUNIT_ASSERT_DOUBLES_EQUAL(0.7953,stats.maxResidualW(),1e-4);         
          CPPUNIT_ASSERT_EQUAL(30u, stats.nAntennas());
          CPPUNIT_ASSERT_EQUAL(1u, stats.nBeams());
          CPPUNIT_ASSERT_EQUAL(3480ul, stats.nVis());

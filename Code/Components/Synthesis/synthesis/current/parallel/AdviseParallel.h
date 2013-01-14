@@ -77,11 +77,37 @@ public:
       
    /// @brief calculate "normal equations", i.e. statistics for this dataset
    virtual void calcNE();
-   
+     
+   /// @brief summarise stats into log
+   /// @details This method just summarises all stats accumulated in the call to estimate() method
+   /// into log. Nothing is done for worker process.
+   void summary() const; 
+
    // stubs for pure virtual methods which we don't use
+
    /// @brief solve normal equations
    virtual void solveNE() {}
 
+   /// Write the model (runs only in the master)
+   /// @param[in] postfix a string to be added to the file name
+   virtual void writeModel(const std::string &postfix = std::string()) {}
+   
+protected:
+
+   /// @brief helper method to get statistics estimator
+   /// @return const reference to the statistics estimator
+   /// @note An exception is thrown if the estimator is not defined or the method is called from
+   /// worker process.
+   const VisMetaDataStats& estimator() const;
+   
+   /// @brief a hopefully temporary method to define missing fields in parset
+   /// @details We reuse some code for general synthesis application, but it requires some
+   /// parameters (like gridder) to be defined. This method fills the parset with stubbed fields.
+   /// Hopefully, it is a temporary approach.
+   /// @param parset ParameterSet for inputs
+   /// @return new parset 
+   static LOFAR::ParameterSet addMissingFields(const LOFAR::ParameterSet& parset);
+   
 private:
    
    /// @brief optional tangent point

@@ -287,9 +287,9 @@ void VisMetaDataStats::process(const accessors::IConstDataAccessor &acc)
       }
                      
       for (casa::uInt row=0; row < acc.nRow(); ++row) {
-           const double currentU = origUVW[row](0) * reciprocalToShortestWavelength;
-           const double currentV = origUVW[row](1) * reciprocalToShortestWavelength;
-           const double currentW = origUVW[row](2) * reciprocalToShortestWavelength;
+           const double currentU = casa::abs(origUVW[row](0)) * reciprocalToShortestWavelength;
+           const double currentV = casa::abs(origUVW[row](1)) * reciprocalToShortestWavelength;
+           const double currentW = casa::abs(origUVW[row](2)) * reciprocalToShortestWavelength;
            
            if ((itsNVis == 0ul) && (row == 0)) {
                itsMaxU = currentU;
@@ -310,7 +310,7 @@ void VisMetaDataStats::process(const accessors::IConstDataAccessor &acc)
       if (itsAccessorAdapter.tolerance() >= 0.) {
           const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = itsAccessorAdapter.rotatedUVW(itsTangent);
           for (casa::uInt row=0; row < itsAccessorAdapter.nRow(); ++row) {
-               const double currentResidualW = uvw[row](2) * reciprocalToShortestWavelength;
+               const double currentResidualW = casa::abs(uvw[row](2)) * reciprocalToShortestWavelength;
                if ((itsNVis == 0ul) && (row == 0)) {
                    itsMaxResidualW = currentResidualW;
                } else {
@@ -325,9 +325,9 @@ void VisMetaDataStats::process(const accessors::IConstDataAccessor &acc)
       // this is the first pass, do the best effort job as exact tangent point is unknown
       const casa::Vector<casa::RigidVector<casa::Double, 3> > &uvw = acc.uvw();
       for (casa::uInt row=0; row < acc.nRow(); ++row) {
-           const double currentU = uvw[row](0) * reciprocalToShortestWavelength;
-           const double currentV = uvw[row](1) * reciprocalToShortestWavelength;
-           const double currentW = uvw[row](2) * reciprocalToShortestWavelength;
+           const double currentU = casa::abs(uvw[row](0)) * reciprocalToShortestWavelength;
+           const double currentV = casa::abs(uvw[row](1)) * reciprocalToShortestWavelength;
+           const double currentW = casa::abs(uvw[row](2)) * reciprocalToShortestWavelength;
            if ((itsNVis == 0ul) && (row == 0)) {
                itsMaxU = currentU;
                itsMaxV = currentV;
@@ -423,6 +423,39 @@ void VisMetaDataStats::readFromBlob(LOFAR::BlobIStream& is)
   is >> itsMaxU >> itsMaxV >> itsMaxW >> itsMaxResidualW >> itsMinFreq >> itsMaxFreq >> itsMaxAntennaIndex >> itsMaxBeamIndex >>
         itsReferenceDir >> itsRefDirValid >> itsFieldBLC.first >> itsFieldBLC.second >> itsFieldTRC.first >> itsFieldTRC.second;     
   is.getEnd();       
+}
+
+/// @brief estimate of the field size
+/// @details This method uses maxOffsets, centre and itsTangent to estimate the field size applying
+/// current knowledge on the guard band around the edge pointing (hard coded for ASKAP).
+/// @return square field size in degrees
+double VisMetaDataStats::squareFieldSize() const
+{
+  if (itsTangentSet) {
+      // do extra checks to ensure maxOffsets give offsets w.r.t. the tangent point
+      ASKAPCHECK(itsRefDirValid, "Reference direction is not valid! There likely to be a logic error.");
+      ASKAPCHECK(itsTangent.separation(itsReferenceDir)<1e-6, "Tangent point looks sufficiently different from the reference direction! There likely to be a logic error.");
+  }
+  
+  const double longestWavelength = casa::C::c / minFreq(); // in metres
+  
+  // primary beam fwhm for a 12m antenna
+  const double pbFWHM = 1.2 * longestWavelength / 12; // in radians
+  const std::pair<double,double> offsets = maxOffsets();
+  // the guard band (both sides together) is 1.7*FWHM (roughly to the first null)  
+  const double sizeInRad =  2. * casa::max(offsets.first, offsets.second) + 1.7 * pbFWHM;
+  return sizeInRad / casa::C::pi * 180.;
+}
+
+/// @brief estimate cell size
+/// @details This method uses maxU and maxV to estimate the largest (square) image cell size in arcsec
+/// @return square cell size in arcsec
+double VisMetaDataStats::squareCellSize() const
+{
+  const double largestSpacing = casa::max(maxU(), maxV());
+  // Nyquist sampling corresponds to 1/2, 1/6 is the minumum used in practice to achieve a reasonable image quality 
+  const double cellSizeInRad = 1./largestSpacing/6.;
+  return cellSizeInRad / casa::C::pi * 6.48e5; 
 }
 
 

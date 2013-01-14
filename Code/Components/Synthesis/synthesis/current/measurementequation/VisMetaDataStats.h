@@ -153,7 +153,20 @@ public:
    
    /// @brief largest separation of individual pointing from the centre
    /// @return largest offsets from the centre() in radians (measure of the field size)
-   std::pair<double,double> maxOffsets() const;  
+   std::pair<double,double> maxOffsets() const;
+
+   // derived statistics
+   
+   /// @brief estimate of the field size
+   /// @details This method uses maxOffsets, centre and itsTangent to estimate the field size applying
+   /// current knowledge on the guard band around the edge pointing (hard coded for ASKAP).
+   /// @return square field size in degrees
+   double squareFieldSize() const;
+   
+   /// @brief estimate cell size
+   /// @details This method uses maxU and maxV to estimate the largest (square) image cell size in arcsec
+   /// @return square cell size in arcsec
+   double squareCellSize() const;
    
    // serialization 
    
