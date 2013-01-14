@@ -154,13 +154,15 @@ namespace askap {
                 /// taken into account, using the axes array, so that the box
                 /// does not go outside the allowed pixel area.
 
-                casa::IPosition start(3, 0), end(3, 0), stride(3, 1);
+	        casa::IPosition start(3, 0), end(3, 0), stride(3, 1);
                 start(0) = std::max(long(sec.getStart(0) - this->xSubOffset), this->getXmin() - fitParams.boxPadSize());
                 end(0)   = std::min(long(sec.getEnd(0) - this->xSubOffset), this->getXmax() + fitParams.boxPadSize());
                 start(1) = std::max(long(sec.getStart(1) - this->ySubOffset), this->getYmin() - fitParams.boxPadSize());
                 end(1)   = std::min(long(sec.getEnd(1) - this->ySubOffset), this->getYmax() + fitParams.boxPadSize());
-                start(2) = std::max(long(sec.getStart(spectralAxis) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
-                end(2)   = std::min(long(sec.getEnd(spectralAxis) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
+		if(spectralAxis>=0){
+		  start(2) = std::max(long(sec.getStart(spectralAxis) - this->zSubOffset), this->getZmin() - fitParams.boxPadSize());
+		  end(2)   = std::min(long(sec.getEnd(spectralAxis) - this->zSubOffset), this->getZmax() + fitParams.boxPadSize());
+		}
 		if(start>=end){
 		  ASKAPLOG_DEBUG_STR(logger, "RadioSource::defineBox failing : sec="<<sec.getSection()
 				     <<", offsets: "<<this->xSubOffset << " " << this->ySubOffset << " " << this->zSubOffset

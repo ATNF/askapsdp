@@ -282,7 +282,8 @@ namespace askap {
 
                 sub[this->itsLng] = workerNum % this->itsNSub[0];
                 sub[this->itsLat] = (workerNum % (this->itsNSub[0] * this->itsNSub[1])) / this->itsNSub[0];
-                sub[this->itsSpec] = workerNum / (this->itsNSub[0] * this->itsNSub[1]);
+                if(this->itsSpec>=0) 
+		  sub[this->itsSpec] = workerNum / (this->itsNSub[0] * this->itsNSub[1]);
                 std::stringstream section;
 
                 for (int i = 0; i < this->itsNAxis; i++) {
@@ -394,7 +395,8 @@ namespace askap {
 	    bool isIn=true;
 	    for(int i=0;i<3;i++)
 	      {
-		isIn = isIn && (ref[i] >= this->itsSectionList[n].getStart(axID[i])) && (ref[i]<=this->itsSectionList[n].getEnd(axID[i]));
+		if(axID[i]>=0)
+		  isIn = isIn && (ref[i] >= this->itsSectionList[n].getStart(axID[i])) && (ref[i]<=this->itsSectionList[n].getEnd(axID[i]));
 	      }
 	    if(isIn) goodNodes.insert(n);
 	  }

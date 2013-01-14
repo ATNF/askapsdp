@@ -538,7 +538,7 @@ namespace askap {
 	    // // with FITS standard v3.0
 	    // // perhaps better to use the abstract access via the SpectralCoordinate
  	    int specCoord = coords.findCoordinate(Coordinate::SPECTRAL);
-	    if(coords.spectralCoordinate(specCoord).restFrequency()>0.01){
+	    if(specCoord>=0 && coords.spectralCoordinate(specCoord).restFrequency()>0.01){
 	      wcs->restfrq = coords.spectralCoordinate(specCoord).restFrequency();
 	    }
 
