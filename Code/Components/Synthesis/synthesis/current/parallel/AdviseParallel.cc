@@ -290,15 +290,22 @@ void AdviseParallel::summary() const
        if (itsTangentDefined) {
            ASKAPLOG_INFO_STR(logger, "  Assumed tangent point: "<<printDirection(itsTangent)<<" (J2000)");
        }
-       ASKAPLOG_INFO_STR(logger, "  Most central direction of the field: "<<printDirection(stats.centre())<<" (J2000)");
+       ASKAPLOG_INFO_STR(logger, "  Most central pointing direction of the field: "<<printDirection(stats.centre())<<" (J2000)");
        const std::pair<double,double> offsets = stats.maxOffsets();
-       ASKAPLOG_INFO_STR(logger, "  Largest beam offsets from the centre: "<<offsets.first/casa::C::pi*180.<<" , "<<offsets.second/casa::C::pi*180.<<" deg");
-       const double fieldSize = stats.squareFieldSize(); // in deg
-       ASKAPLOG_INFO_STR(logger, "  Estimated square field size: "<<fieldSize<<" deg");
+       ASKAPLOG_INFO_STR(logger, "  Largest beam offsets from the central direction: "<<offsets.first/casa::C::pi*180.<<" , "<<offsets.second/casa::C::pi*180.<<" deg");
        const double cellSize = stats.squareCellSize(); // in arcsec
        ASKAPLOG_INFO_STR(logger, "  Estimated square cell size: "<<cellSize<<" arcsec");
-       const long imgSize = long(fieldSize * 3600 / cellSize) + 1;
-       ASKAPLOG_INFO_STR(logger, "  Suggested minimum image size: "<<imgSize<<" x "<<imgSize<<" pixels");
+
+       if (itsTangentDefined) {
+           ASKAPLOG_INFO_STR(logger, "  Distance of the 'average' pointing direction from the tangent point: "<<itsTangent.separation(stats.centre())*180./casa::C::pi<<" deg");
+       }
+       for (int stage = 0; stage<2; ++stage) {
+            const std::string what = stage == 0 ? "'average' pointing" : "tangent point";
+            const double fieldSize = stats.squareFieldSize(stage == 1); // in deg
+            ASKAPLOG_INFO_STR(logger, "  Estimated square field size (about the "<<what<<"): "<<fieldSize<<" deg");
+            const long imgSize = long(fieldSize * 3600 / cellSize) + 1;
+            ASKAPLOG_INFO_STR(logger, "  --- or the minimum image size: "<<imgSize<<" x "<<imgSize<<" pixels");
+       }
    }
 } 
 

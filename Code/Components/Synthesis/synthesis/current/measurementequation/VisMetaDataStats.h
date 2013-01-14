@@ -160,8 +160,9 @@ public:
    /// @brief estimate of the field size
    /// @details This method uses maxOffsets, centre and itsTangent to estimate the field size applying
    /// current knowledge on the guard band around the edge pointing (hard coded for ASKAP).
+   /// @param[in] forceCentreAtTangent if true, the tangent point is assumed to be in the image centre
    /// @return square field size in degrees
-   double squareFieldSize() const;
+   double squareFieldSize(bool forceCentreAtTangent = false) const;
    
    /// @brief estimate cell size
    /// @details This method uses maxU and maxV to estimate the largest (square) image cell size in arcsec

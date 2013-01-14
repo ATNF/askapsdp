@@ -428,20 +428,26 @@ void VisMetaDataStats::readFromBlob(LOFAR::BlobIStream& is)
 /// @brief estimate of the field size
 /// @details This method uses maxOffsets, centre and itsTangent to estimate the field size applying
 /// current knowledge on the guard band around the edge pointing (hard coded for ASKAP).
+/// @param[in] forceCentreAtTangent if true, the tangent point is assumed to be in the image centre
 /// @return square field size in degrees
-double VisMetaDataStats::squareFieldSize() const
+double VisMetaDataStats::squareFieldSize(bool forceCentreAtTangent) const
 {
+  
+  std::pair<double,double> offsets = maxOffsets();
+  
   if (itsTangentSet) {
       // do extra checks to ensure maxOffsets give offsets w.r.t. the tangent point
       ASKAPCHECK(itsRefDirValid, "Reference direction is not valid! There likely to be a logic error.");
       ASKAPCHECK(itsTangent.separation(itsReferenceDir)<1e-6, "Tangent point looks sufficiently different from the reference direction! There likely to be a logic error.");
+      if (forceCentreAtTangent) {
+          offsets.first = casa::max(itsFieldBLC.first, itsFieldTRC.first);
+          offsets.second = casa::max(itsFieldBLC.second, itsFieldTRC.second);
+      }
   }
-  
-  const double longestWavelength = casa::C::c / minFreq(); // in metres
-  
+    
   // primary beam fwhm for a 12m antenna
+  const double longestWavelength = casa::C::c / minFreq(); // in metres
   const double pbFWHM = 1.2 * longestWavelength / 12; // in radians
-  const std::pair<double,double> offsets = maxOffsets();
   // the guard band (both sides together) is 1.7*FWHM (roughly to the first null)  
   const double sizeInRad =  2. * casa::max(offsets.first, offsets.second) + 1.7 * pbFWHM;
   return sizeInRad / casa::C::pi * 180.;
