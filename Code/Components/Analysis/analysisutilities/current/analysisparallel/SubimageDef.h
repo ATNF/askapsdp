@@ -111,9 +111,9 @@ namespace askap {
                 int overlapx() {return itsOverlapX;};
 		void setOverlapX(int o){itsOverlapX=o;};
                 int overlapy() {return itsOverlapY;};
-		void setOverlapY(int o){itsOverlapX=o;};
+		void setOverlapY(int o){itsOverlapY=o;};
                 int overlapz() {return itsOverlapZ;};
-		void setOverlapZ(int o){itsOverlapX=o;};
+		void setOverlapZ(int o){itsOverlapZ=o;};
                 int *overlap() {return itsOverlap;};
                 /// @}
 

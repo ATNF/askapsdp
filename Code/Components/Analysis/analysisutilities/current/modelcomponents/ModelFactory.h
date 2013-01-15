@@ -54,7 +54,7 @@ namespace askap {
       float itsBaseFreq;
       float itsRestFreq;
       SelavyImage itsSelavyImage;
-
+      bool itsFlagUseDeconvolvedSizes;
 
     };
 

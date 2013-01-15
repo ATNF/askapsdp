@@ -67,7 +67,7 @@ namespace askap {
                 Continuum& operator= (const Spectrum& c);
 
 		/// @brief Define using a line of input from an ascii file
-		void define(std::string &line);
+		void define(const std::string &line);
 
                 /// @brief Set up the profile's parameters
                 void defineSource(float alpha, float beta, float nuZero);

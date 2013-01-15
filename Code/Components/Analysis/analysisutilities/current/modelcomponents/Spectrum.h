@@ -53,7 +53,7 @@ namespace askap {
                 Spectrum(const Spectrum& s);
 
 		/// @brief Define using a line of input from an ascii file
-		virtual void define(std::string &line);
+		virtual void define(const std::string &line);
 
                 /// @brief Return the right ascension
                 std::string ra() {return itsRA;};

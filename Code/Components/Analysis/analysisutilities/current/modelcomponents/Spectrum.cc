@@ -51,7 +51,7 @@ namespace askap {
 	  this->define(line);
 	}
 
-        void Spectrum::define(std::string &line)
+        void Spectrum::define(const std::string &line)
         {
             /// @details Defines the Spectrum object from a line of
             /// text from an ascii file. This line should be formatted in

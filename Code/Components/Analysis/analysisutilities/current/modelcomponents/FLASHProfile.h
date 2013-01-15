@@ -57,7 +57,7 @@ namespace askap {
                 /// @brief Assignment operator
                 FLASHProfile& operator= (const FLASHProfile& h);
 
-		void define(std::string &line);
+		void define(const std::string &line);
 
 		void prepareForUse();
 

@@ -70,7 +70,7 @@ namespace askap {
 	  this->define(line);
 	}
 
-        void Continuum::define(std::string &line)
+        void Continuum::define(const std::string &line)
         {
             /// @details Defines a Continuum object from a line of
             /// text from an ascii file. This line should be formatted in

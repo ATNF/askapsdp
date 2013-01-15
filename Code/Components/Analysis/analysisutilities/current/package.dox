@@ -1,7 +1,7 @@
-/// @defgroup parallelanalysis Parallel processing routines
-/// @defgroup analysisutilities Utility functions to support analysis package
-/// @defgroup sourcefitting Source fitting routines and classes
-/// @defgroup patternmatching Routines to match source lists
+/// @defgroup analysisparallel Parallel processing routines
+/// @defgroup coordutils Utility functions to support coordinate analysis
+/// @defgroup maths Additional maths routines beyond those in casacore
+/// @defgroup modelcomponents Classes to handle different specifications of model components
 
 /// The package namespace
 namespace askap::analysisutilities {};
@@ -31,7 +31,7 @@ namespace askap::analysis::sourcefitting {};
 /// We envisage that OpenMP-type multi-threading may be supported by
 /// some classes in this package, to take account of the distributed
 /// data. Message passing parallel execution is supported in the 
-/// @ref parallelanalysis classes.
+/// @ref analysisparallel classes.
 ///
 /// The package includes code to do pattern matching, so that it can
 /// match a source list to a previously-known list.
@@ -46,9 +46,9 @@ namespace askap::analysis::sourcefitting {};
 ///
 /// @section Subpackages
 ///
-/// @li @ref parallelanalysis
-/// @li @ref analysisutilities
-/// @li @ref sourcefitting
-/// @li @ref patternmatching
+/// @li @ref analysisparallel
+/// @li @ref coordutils
+/// @li @ref maths
+/// @li @ref modelcomponents
 ///
 /// @copyright 2007 CSIRO, All Rights Reserved.

@@ -53,7 +53,7 @@ namespace askap {
 	  this->define(line);
 	}
 
-        void HIprofileS3SEX::define(std::string &line)
+        void HIprofileS3SEX::define(const std::string &line)
         {
             /// @details Defines a HIprofileS3SEX object from a line of
             /// text from an ascii file. This line should be formatted in

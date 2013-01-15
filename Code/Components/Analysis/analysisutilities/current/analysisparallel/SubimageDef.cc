@@ -35,10 +35,6 @@
 
 #include <askapparallel/AskapParallel.h>
 
-//#include <analysisutilities/AnalysisUtilities.h>
-//#include <analysisutilities/CasaImageUtil.h>
-//#include <sourcefitting/FittingParameters.h>
-
 #include <gsl/gsl_sf_gamma.h>
 
 #include <iostream>
@@ -56,10 +52,7 @@
 #include <duchamp/Utils/Statistics.hh>
 #include <duchamp/Utils/Section.hh>
 #include <duchamp/param.hh>
-
-// #define WCSLIB_GETWCSTAB // define this so that we don't try and redefine 
-// //  wtbarr (this is a problem when using gcc v.4+)
-// #include <fitsio.h>
+#include <duchamp/Outputs/KarmaAnnotationWriter.hh>
 
 using namespace casa;
 
@@ -282,7 +275,8 @@ namespace askap {
 
                 sub[this->itsLng] = workerNum % this->itsNSub[0];
                 sub[this->itsLat] = (workerNum % (this->itsNSub[0] * this->itsNSub[1])) / this->itsNSub[0];
-                sub[this->itsSpec] = workerNum / (this->itsNSub[0] * this->itsNSub[1]);
+                if(this->itsSpec>=0) 
+		  sub[this->itsSpec] = workerNum / (this->itsNSub[0] * this->itsNSub[1]);
                 std::stringstream section;
 
                 for (int i = 0; i < this->itsNAxis; i++) {
@@ -316,16 +310,12 @@ namespace askap {
 		this->itsInputSection = duchamp::nullSection(this->itsFullImageDim.size());
 	      }
 	    ASKAPLOG_INFO_STR(logger, "Input subsection to be used is " << this->itsInputSection);
-	    //                duchamp::Section inputSec(inputSubsection);
 	    duchamp::Section fullImageSubsection(this->itsInputSection);
 	    fullImageSubsection.parse(this->itsFullImageDim);
 
-            std::ofstream fAnnot(filename.c_str());
-            fAnnot << "# Borders of subimaages for image " << imageName << "\n#\n";
-            fAnnot << "COLOR YELLOW\n";
-            fAnnot << "COORD W\n";
-            fAnnot << "#FONT lucidasans-24\n";
-	    fAnnot.close();
+	    duchamp::KarmaAnnotationWriter writer(filename);
+	    writer.setColourString("YELLOW");
+	    writer.writeTableHeader();
 
             double *pix = new double[12];
             double *wld = new double[12];
@@ -335,7 +325,6 @@ namespace askap {
 
             for (int w = 0; w < comms.nProcs()-1; w++) {
 
-	      //                duchamp::Section workerSection = this->section(w, fullImageSubsection.getSection());
 	      duchamp::Section workerSection = this->section(w);
                 pix[0] = pix[9] =  workerSection.getStart(0) - 0.5 - fullImageSubsection.getStart(0);  // x-start, in pixels relative to the image that has been read
                 pix[1] = pix[4] =  workerSection.getStart(1) - 0.5 - fullImageSubsection.getStart(1);  // y-start
@@ -344,20 +333,20 @@ namespace askap {
                 head.pixToWCS(pix, wld, 4);
                 xcentre = (wld[0] + wld[3] + wld[6] + wld[9]) / 4.;
                 ycentre = (wld[1] + wld[4] + wld[7] + wld[10]) / 4.;
-		fAnnot.open(filename.c_str(),std::ios::app);
-                fAnnot << "CLINES ";
 
-                for (int i = 0; i < 4; i++) fAnnot << wld[i*3] << " " << wld[i*3+1] << " ";
-
-                fAnnot << wld[0] << " " << wld[1] << "\n";
-                fAnnot << "TEXT " << xcentre << " " << ycentre << " " << w + 1 << "\n";
-		fAnnot.close();
+		std::vector<double> x,y;
+		for (int i = 0; i <= 4; i++){
+		  x.push_back(wld[(i%4)*3]);
+		  y.push_back(wld[(i%4)*3+1]);
+		}
+		writer.joinTheDots(x,y);
+		std::stringstream ss;
+		ss << w+1;
+		writer.text(xcentre,ycentre,ss.str());
             }
 
             delete [] pix;
             delete [] wld;
-
-	    //           fAnnot.close();
 
         }
 
@@ -381,7 +370,8 @@ namespace askap {
 	    bool isIn=true;
 	    for(int i=0;i<3;i++)
 	      {
-		isIn = isIn && (ref[i] >= this->itsSectionList[n].getStart(axID[i])) && (ref[i]<=this->itsSectionList[n].getEnd(axID[i]));
+		if(axID[i]>=0)
+		  isIn = isIn && (ref[i] >= this->itsSectionList[n].getStart(axID[i])) && (ref[i]<=this->itsSectionList[n].getEnd(axID[i]));
 	      }
 	    if(isIn) goodNodes.insert(n);
 	  }
