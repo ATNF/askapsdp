@@ -67,9 +67,10 @@ public:
    /// fit will be performed. If it doesn't help, an exception will be thrown.
    ///
    /// @param[in] tolerance w-term tolerance in wavelengths
+   /// @param[in] checkResidual if true, the magnitude of the residual w-term is checked to be below tolerance 
    /// @note An exception could be thrown during the actual processing, not
    /// in the constructor call itself.
-   explicit BestWPlaneDataAccessor(const double tolerance);
+   explicit BestWPlaneDataAccessor(const double tolerance, const bool checkResidual = true);
    
    /// @brief uvw after rotation
    /// @details This method subtracts the best plane out of the w coordinates
@@ -130,6 +131,9 @@ protected:
    double maxWDeviation(const casa::Vector<casa::RigidVector<casa::Double, 3> >& uvw) const;
             
 private:
+   /// @brief if true, the residual w-term is checked against w-tolerance
+   bool itsCheckResidual;
+
    /// @brief w-term tolerance in wavelengths
    /// @details If the deviation from the fitted plane exceeds the tolerance, a new
    /// fit will be performed. If it doesn't help, an exception will be thrown.

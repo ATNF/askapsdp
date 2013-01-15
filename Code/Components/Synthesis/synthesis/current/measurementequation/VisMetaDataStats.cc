@@ -72,7 +72,7 @@ VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent) : itsTangen
 /// @param[in] tangent tangent point to be used with snap-shot imaging (for uvw-rotation)
 /// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
 VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent, double wtolerance) : itsTangent(tangent), itsTangentSet(true), 
-     itsAccessorAdapter(wtolerance), 
+     itsAccessorAdapter(wtolerance,false), 
      itsNVis(0ul), itsMaxU(0.), itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.),
      itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsReferenceDir(tangent), itsRefDirValid(true), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.)
      {}

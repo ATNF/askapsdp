@@ -50,9 +50,11 @@ using namespace askap::accessors;
 /// fit will be performed. If it doesn't help, an exception will be thrown.
 ///
 /// @param[in] tolerance w-term tolerance in wavelengths
+/// @param[in] checkResidual if true, the magnitude of the residual w-term is checked to be below tolerance 
 /// @note An exception could be thrown during the actual processing, not
 /// in the constructor call itself.
-BestWPlaneDataAccessor::BestWPlaneDataAccessor(const double tolerance) : itsWTolerance(tolerance),
+BestWPlaneDataAccessor::BestWPlaneDataAccessor(const double tolerance, const bool checkResidual) : itsCheckResidual(checkResidual), 
+       itsWTolerance(tolerance),
        itsCoeffA(0.), itsCoeffB(0.), itsUVWChangeMonitor(changeMonitor())
 {
 }
@@ -98,9 +100,11 @@ const casa::Vector<casa::RigidVector<casa::Double, 3> >&
    
    const double maxDeviation = updatePlaneIfNecessary(originalUVW, tolInMetres);
    
-   ASKAPCHECK(maxDeviation < tolInMetres, "The antenna layout is significantly non-coplanar. "
+   if (itsCheckResidual) {
+       ASKAPCHECK(maxDeviation < tolInMetres, "The antenna layout is significantly non-coplanar. "
              "The largest w-term deviation after the fit of "<<maxDeviation<<" metres exceedes the w-term tolerance of "<<
               itsWTolerance<<" wavelengths equivalent to "<<tolInMetres<<" metres.");
+   }
    for (casa::uInt row=0; row<originalUVW.nelements(); ++row) {
         const casa::RigidVector<casa::Double, 3> currentUVW = originalUVW[row];
         itsRotatedUVW[row] = currentUVW;
