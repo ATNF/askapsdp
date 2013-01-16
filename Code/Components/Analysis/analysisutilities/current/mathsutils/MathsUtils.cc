@@ -27,7 +27,7 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 ///
 #include <askap_analysisutilities.h>
-#include <mathsutils/mathsUtils.h>
+#include <mathsutils/MathsUtils.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
