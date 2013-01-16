@@ -56,7 +56,9 @@ namespace askap {
 
     namespace analysisutilities {
 
-        /// @ingroup analysisutilities
+      long *getDim(const ImageInterface<Float>* imagePtr);
+	
+       /// @ingroup analysisutilities
         /// @brief Save a wcsprm struct to a duchamp::FitsHeader
         void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs);
 

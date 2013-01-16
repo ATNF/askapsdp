@@ -78,11 +78,27 @@ using namespace casa;
 using namespace duchamp;
 
 ///@brief Where the log messages go.
-ASKAP_LOGGER(logger, ".analysisutilities");
+ASKAP_LOGGER(logger, ".casainterface");
 
 namespace askap {
 
   namespace analysisutilities {
+
+     long *getDim(const ImageInterface<Float>* imagePtr)
+      {
+	IPosition shape = imagePtr->shape();
+	long *dim = new long[shape.size()];
+
+	for (size_t i = 0; i < shape.size(); i++) {
+	  dim[i] = shape(i);
+	  ASKAPCHECK(dim[i] > 0, "Negative dimension: dim[" << i << "]=" << dim[i]);
+	}
+	
+	return dim;
+      }
+
+
+      //**************************************************************//
 
         void storeWCStoHeader(duchamp::FitsHeader &head, duchamp::Param &par, wcsprm *wcs)
         {
