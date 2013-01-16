@@ -72,16 +72,16 @@ using namespace LOFAR::TYPES;
 #include <extraction/SpectralBoxExtractor.h>
 #include <extraction/NoiseSpectrumExtractor.h>
 #include <analysisutilities/AnalysisUtilities.h>
-#include <analysisutilities/CasaImageUtil.h>
-#include <analysisutilities/SubimageDef.h>
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/FittingParameters.h>
-#include <analysisutilities/NewArrayMath.h>
-#include <analysisutilities/NewArrayPartMath.h>
 #include <parametrisation/OptimisedGrower.h>
 #include <preprocessing/Wavelet2D1D.h>
 #include <outputs/AskapAsciiCatalogueWriter.h>
 #include <outputs/AskapVOTableCatalogueWriter.h>
+
+#include <casainterface/CasaInterface.h>
+#include <analysisparallel/SubimageDef.h>
+#include <mathsutils/NewArrayPartMath.h>
 
 #include <iostream>
 #include <fstream>
@@ -109,6 +109,7 @@ ASKAP_LOGGER(logger, ".parallelanalysis");
 using namespace std;
 using namespace askap;
 using namespace askap::askapparallel;
+using namespace askap::analysisutilities;
 
 using namespace duchamp;
 
@@ -371,7 +372,7 @@ namespace askap {
             /// @details Reads in the data to the duchamp::Cube class. For
             /// the workers, this either uses the duchamp functionality, in
             /// the case of FITS data, or calls the routines in
-            /// CasaImageUtil.cc in the case of casa (or other) formats. If
+            /// CasaInterface.cc in the case of casa (or other) formats. If
             /// reconstruction or smoothing are required, they are done in
             /// this function. For the master, the metadata only is read
             /// from the file, with the same choice based on the FITS status
@@ -2481,20 +2482,7 @@ namespace askap {
 
       //**************************************************************//
 
-      long *getDim(const ImageInterface<Float>* imagePtr)
-      {
-	IPosition shape = imagePtr->shape();
-	long *dim = new long[shape.size()];
-
-	for (size_t i = 0; i < shape.size(); i++) {
-	  dim[i] = shape(i);
-	  ASKAPCHECK(dim[i] > 0, "Negative dimension: dim[" << i << "]=" << dim[i]);
-	}
-	
-	return dim;
-      }
-
-	
+ 	
       void reportDim(long *dim, size_t size)
       {
 
@@ -2507,8 +2495,6 @@ namespace askap {
 	ASKAPLOG_INFO_STR(logger, "Dimensions of input image = " << ss.str());
 	
       }
-
-      //**************************************************************//
 
       duchamp::OUTCOME DuchampParallel::getCASA(DATATYPE typeOfData, bool useSubimageInfo)
       {

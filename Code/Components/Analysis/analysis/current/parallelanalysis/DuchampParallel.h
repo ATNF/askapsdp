@@ -32,8 +32,9 @@
 #include <sourcefitting/RadioSource.h>
 #include <sourcefitting/Fitter.h>
 #include <analysisutilities/AnalysisUtilities.h>
-#include <analysisutilities/SubimageDef.h>
 #include <parallelanalysis/Weighter.h>
+
+#include <analysisparallel/SubimageDef.h>
 
 #include <askapparallel/AskapParallel.h>
 
@@ -297,7 +298,7 @@ namespace askap {
 		std::vector<sourcefitting::RadioSource> itsEdgeSourceList;
 
                 /// The definition of the subimage being used (only relevant for the workers)
-                SubimageDef itsSubimageDef;
+		analysisutilities::SubimageDef itsSubimageDef;
 
 		/// Use the new mask optimisation growing function?
 		bool itsFlagOptimiseMask;

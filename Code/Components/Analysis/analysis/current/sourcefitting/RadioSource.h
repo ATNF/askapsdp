@@ -34,7 +34,7 @@
 #include <sourcefitting/FittingParameters.h>
 #include <sourcefitting/FitResults.h>
 #include <sourcefitting/Component.h>
-#include <analysisutilities/SubimageDef.h>
+#include <analysisparallel/SubimageDef.h>
 
 #include <Blob/BlobIStream.h>
 #include <Blob/BlobOStream.h>
@@ -197,7 +197,7 @@ namespace askap {
                     /// @brief Set the atEdge flag.
                     void setAtEdge(bool b) {atEdge = b;};
                     /// @brief Set the atEdge flag using information from a Cube
-                    void setAtEdge(duchamp::Cube &cube, SubimageDef &subimage, int workerNum);
+                    void setAtEdge(duchamp::Cube &cube, analysisutilities::SubimageDef &subimage, int workerNum);
 
                     /// @brief Define the boundaries of the box
                     void defineBox(duchamp::Section &sec, FittingParameters &fitParams, int spectralAxis = 2);

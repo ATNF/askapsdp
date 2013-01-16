@@ -29,7 +29,7 @@
 #ifndef ASKAP_ANALYSIS_ANALYSISUTILS_H_
 #define ASKAP_ANALYSIS_ANALYSISUTILS_H_
 
-#include <analysisutilities/SubimageDef.h>
+#include <analysisparallel/SubimageDef.h>
 #include <askapparallel/AskapParallel.h>
 
 #include <string>

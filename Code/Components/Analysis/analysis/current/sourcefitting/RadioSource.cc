@@ -37,8 +37,8 @@
 #include <sourcefitting/Component.h>
 #include <sourcefitting/SubThresholder.h>
 #include <analysisutilities/AnalysisUtilities.h>
-#include <analysisutilities/SubimageDef.h>
-#include <analysisutilities/CasaImageUtil.h>
+#include <analysisparallel/SubimageDef.h>
+#include <casainterface/CasaInterface.h>
 
 #include <duchamp/fitsHeader.hh>
 #include <duchamp/PixelMap/Voxel.hh>
@@ -75,6 +75,7 @@
 ASKAP_LOGGER(logger, ".radioSource");
 
 using namespace duchamp;
+using namespace askap::analysisutilities;
 
 namespace askap {
 
@@ -177,7 +178,7 @@ namespace askap {
 
             //**************************************************************//
 
-            void RadioSource::setAtEdge(duchamp::Cube &cube, SubimageDef &subimage, int workerNum)
+            void RadioSource::setAtEdge(duchamp::Cube &cube, analysisutilities::SubimageDef &subimage, int workerNum)
             {
                 /// @details Sets the atEdge flag based on the dimensions of
                 /// the cube and the duchamp parameters flagAdjacent, threshS

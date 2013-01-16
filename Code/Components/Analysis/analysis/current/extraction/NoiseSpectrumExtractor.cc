@@ -35,7 +35,7 @@
 #include <askap/AskapError.h>
 
 #include <sourcefitting/RadioSource.h>
-#include <analysisutilities/NewArrayPartMath.h>
+#include <mathsutils/NewArrayPartMath.h>
 
 #include <imageaccess/CasaImageAccess.h>
 

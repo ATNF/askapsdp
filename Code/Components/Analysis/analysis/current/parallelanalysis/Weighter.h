@@ -30,7 +30,7 @@
 #define ASKAP_ANALYSIS_WEIGHTER_H_
 
 #include <askapparallel/AskapParallel.h>
-#include <analysisutilities/CasaImageUtil.h>
+#include <casainterface/CasaInterface.h>
 #include <duchamp/Utils/Section.hh>
 #include <casa/aipstype.h>
 #include <casa/Arrays/Vector.h>

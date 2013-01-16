@@ -2,7 +2,7 @@
 /// @file : testing ways to access Measurement Sets and related
 /// information. The specific test is whether we are able to access a
 /// given casa image using MPI without the scheduling used in the
-/// cduchamp code (i.e. in analysisutilities/CasaImageUtil.cc)
+/// cduchamp code (i.e. in casainterface/CasaInterface.cc)
 /// The key routines are in the function getSubImage.
 //==============================================================
 ///
