@@ -31,7 +31,11 @@
 #include <AskapTestRunner.h>
 
 // Test includes
-#include <SubimageTests.h>
+#include <ContinuumTests.h>
+#include <ContinuumSelavyTests.h>
+#include <ContinuumNVSSTests.h>
+#include <ContinuumS3SEXTests.h>
+#include <FullStokesContinuumTests.h>
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +50,11 @@ int main(int argc, char *argv[])
     }
 
     askapdev::testutils::AskapTestRunner runner(argv[0]);
-    runner.addTest(askap::analysisutilities::SubimageTest::suite());
+    runner.addTest(askap::analysisutilities::ContinuumTest::suite());
+    runner.addTest(askap::analysisutilities::ContinuumSelavyTest::suite());
+    runner.addTest(askap::analysisutilities::ContinuumNVSSTest::suite());
+    runner.addTest(askap::analysisutilities::ContinuumS3SEXTest::suite());
+    runner.addTest(askap::analysisutilities::FullStokesContinuumTest::suite());
     bool wasSuccessful = runner.run();
 
     return wasSuccessful ? 0 : 1;

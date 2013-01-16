@@ -28,6 +28,10 @@
 ///
 #include <analysisparallel/SubimageDef.h>
 #include <cppunit/extensions/HelperMacros.h>
+
+#include <askap/AskapLogging.h>
+#include <askap/AskapError.h>
+
 #include <wcslib/wcs.h>
 #include <Common/ParameterSet.h>
 
