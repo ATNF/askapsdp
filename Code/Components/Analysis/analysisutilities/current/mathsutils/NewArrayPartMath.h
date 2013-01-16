@@ -34,7 +34,7 @@
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
 #include <casa/namespace.h>
-#include <maths/NewArrayMath.h>
+#include <mathsutils/NewArrayMath.h>
 
 /// @brief A class to find the median absolute deviation from the median of some data
 /// @details This object takes an array of data and finds the median
@@ -86,6 +86,6 @@ template<class T> Array<T> partialMadfms (const Array<T>& array,
 					  Bool takeEvenMean=False,
 					  Bool inPlace=False);
 
-#include <maths/NewArrayPartMath.tcc>
+#include <mathsutils/NewArrayPartMath.tcc>
 
 #endif

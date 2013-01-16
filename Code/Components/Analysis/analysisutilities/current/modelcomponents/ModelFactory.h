@@ -26,10 +26,8 @@
 ///
 /// @author Matthew Whiting <Matthew.Whiting@csiro.au>
 ///
-#ifndef ASKAP_SIMUTILS_MODELFACTORY_H_
-#define ASKAP_SIMUTILS_MODELFACTORY_H_
-
-#include <askap_analysisutilities.h>
+#ifndef ASKAP_ANALYSISUTILS_MODELFACTORY_H_
+#define ASKAP_ANALYSISUTILS_MODELFACTORY_H_
 
 #include <modelcomponents/Spectrum.h>
 #include <modelcomponents/SelavyImage.h>

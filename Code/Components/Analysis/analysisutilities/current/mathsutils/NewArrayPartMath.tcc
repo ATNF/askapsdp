@@ -31,8 +31,8 @@
 #include <casa/aips.h>
 #include <casa/Arrays/Array.h>
 #include <casa/namespace.h>
-#include <maths/NewArrayMath.h>
-#include <maths/NewArrayPartMath.h>
+#include <mathsutils/NewArrayMath.h>
+#include <mathsutils/NewArrayPartMath.h>
 
 template<class T> Array<T> partialMadfms (const Array<T>& array,
 					  const IPosition& collapseAxes,

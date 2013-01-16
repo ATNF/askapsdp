@@ -30,7 +30,7 @@
 
 #include <modelcomponents/HIprofileS3SEX.h>
 #include <coordutils/SpectralUtilities.h>
-#include <maths/mathsUtils.h>
+#include <mathsutils/mathsUtils.h>
 #include <iostream>
 #include <math.h>
 #include <stdlib.h>

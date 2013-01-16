@@ -108,6 +108,6 @@ template<class T> T sihr(const Array<T> &a, Bool sorted, Bool inPlace = False)
 template<class T> T sihr(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool inPlace = False);
 /// @}
 
-#include <maths/NewArrayMath.tcc>
+#include <mathsutils/NewArrayMath.tcc>
 
 #endif

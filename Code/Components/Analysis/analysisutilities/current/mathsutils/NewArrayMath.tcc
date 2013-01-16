@@ -32,7 +32,7 @@
 #include <casa/namespace.h>
 #include <casa/Arrays/Array.h>
 #include <casa/Arrays/ArrayMath.h>
-#include <maths/NewArrayMath.h>
+#include <mathsutils/NewArrayMath.h>
 
 template<class T> T madfm(const Array<T> &a, Block<T> &tmp, Bool sorted, Bool takeEvenMean, Bool inPlace)
 {

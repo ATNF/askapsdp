@@ -28,7 +28,7 @@
 ///
 #include <askap_analysisutilities.h>
 
-#include <maths/mathsUtils.h>
+#include <mathsutils/mathsUtils.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
