@@ -28,7 +28,7 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 #include <askap_simulations.h>
 
-#include <simulationutilities/ContinuumNVSS.h>
+#include <modelcomponents/ContinuumNVSS.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -44,7 +44,7 @@
 #include <time.h>
 
 using namespace askap;
-using namespace askap::simulations;
+using namespace askap::analysisutilities;
 
 ASKAP_LOGGER(logger, "testNVSS.log");
 

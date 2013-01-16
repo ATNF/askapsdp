@@ -34,7 +34,7 @@
 #include <askap/Log4cxxLogSink.h>
 #include <askapparallel/AskapParallel.h>
 
-#include <analysisutilities/CasaImageUtil.h>
+#include <casainterface/CasaInterface.h>
 
 #include <Common/LofarTypedefs.h>
 using namespace LOFAR::TYPES;

@@ -38,7 +38,7 @@
 
 #include <FITS/FITSparallel.h>
 #include <FITS/FITSfile.h>
-#include <analysisutilities/SubimageDef.h>
+#include <analysisparallel/SubimageDef.h>
 
 #include <iostream>
 #include <fstream>
@@ -99,7 +99,7 @@ int main(int argc, const char** argv)
 	}
 	size_t dim = subset.getInt32("dim", 2);
 	std::vector<int> axes = subset.getInt32Vector("axes");
-	analysis::SubimageDef subdef = analysis::SubimageDef(subset);
+	analysisutilities::SubimageDef subdef = analysisutilities::SubimageDef(subset);
 	subdef.define(dim);
 	subdef.setImageDim(axes);
 	subdef.setInputSubsection(duchamp::nullSection(dim));

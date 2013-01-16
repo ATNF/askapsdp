@@ -33,7 +33,7 @@
 
 #include <Common/ParameterSet.h>
 #include <duchamp/Utils/Section.hh>
-#include <analysisutilities/SubimageDef.h>
+#include <analysisparallel/SubimageDef.h>
 
 #include <FITS/FITSfile.h>
 
@@ -101,7 +101,7 @@ namespace askap {
                     FITSfile *itsFITSfile;
 
                     /// @brief The subimage definition
-                    analysis::SubimageDef itsSubimageDef;
+                    analysisutilities::SubimageDef itsSubimageDef;
 
                     /// @brief The subsection being used
                     duchamp::Section itsSubsection;

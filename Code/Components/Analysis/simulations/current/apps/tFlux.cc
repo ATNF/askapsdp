@@ -30,7 +30,7 @@
 
 #include <FITS/FITSfile.h>
 #include <simulationutilities/FluxGenerator.h>
-#include <simulationutilities/Continuum.h>
+#include <modelcomponents/Continuum.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>

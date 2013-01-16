@@ -29,6 +29,8 @@
 #ifndef ASKAP_SIMS_FITS_H_
 #define ASKAP_SIMS_FITS_H_
 
+#include <askap_simulations.h>
+
 #include <wcslib/wcs.h>
 
 #include <Common/ParameterSet.h>
@@ -44,14 +46,16 @@
 
 #include <duchamp/Utils/Section.hh>
 
-#include <simulationutilities/Spectrum.h>
-#include <simulationutilities/SelavyImage.h>
-#include <simulationutilities/ModelFactory.h>
+#include <modelcomponents/Spectrum.h>
+#include <modelcomponents/SelavyImage.h>
+#include <modelcomponents/ModelFactory.h>
 
 #include <vector>
 #include <utility>
 #include <string>
 #include <math.h>
+
+using namespace askap::analysisutilities;
 
 namespace askap {
 

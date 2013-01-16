@@ -64,27 +64,27 @@ namespace askap {
     namespace simulations {
 
 
-        float normalRandomVariable(float mean, float sigma)
-        {
-            /// @details Simulate a normal random variable from a
-            /// distribution with mean given by mean and standard deviation
-            /// given by sigma. The variable is simulated via the polar
-            /// method.
-            /// @param mean The mean of the normal distribution
-            /// @param sigma The standard deviation of the normal distribution
-            /// @return A random variable.
-            float v1, v2, s;
+        // float normalRandomVariable(float mean, float sigma)
+        // {
+        //     /// @details Simulate a normal random variable from a
+        //     /// distribution with mean given by mean and standard deviation
+        //     /// given by sigma. The variable is simulated via the polar
+        //     /// method.
+        //     /// @param mean The mean of the normal distribution
+        //     /// @param sigma The standard deviation of the normal distribution
+        //     /// @return A random variable.
+        //     float v1, v2, s;
 
-            // simulate a standard normal RV via polar method
-            do {
-                v1 = 2.*(1.*random()) / (RAND_MAX + 1.0) - 1.;
-                v2 = 2.*(1.*random()) / (RAND_MAX + 1.0) - 1.;
-                s = v1 * v1 + v2 * v2;
-            } while (s > 1);
+        //     // simulate a standard normal RV via polar method
+        //     do {
+        //         v1 = 2.*(1.*random()) / (RAND_MAX + 1.0) - 1.;
+        //         v2 = 2.*(1.*random()) / (RAND_MAX + 1.0) - 1.;
+        //         s = v1 * v1 + v2 * v2;
+        //     } while (s > 1);
 
-            float z = sqrt(-2.*log(s) / s) * v1;
-            return z*sigma + mean;
-        }
+        //     float z = sqrt(-2.*log(s) / s) * v1;
+        //     return z*sigma + mean;
+        // }
 
       struct wcsprm *parsetToWCS(const LOFAR::ParameterSet& theParset, const std::vector<unsigned int> &theAxes, const float &theEquinox, const float &theRestFreq, duchamp::Section &theSection)
       {

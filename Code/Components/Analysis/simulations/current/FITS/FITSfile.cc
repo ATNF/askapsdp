@@ -33,21 +33,23 @@
 
 #include <FITS/FITSfile.h>
 #include <simulationutilities/SimulationUtilities.h>
-#include <simulationutilities/SpectralUtilities.h>
 #include <simulationutilities/FluxGenerator.h>
-#include <simulationutilities/Continuum.h>
-#include <simulationutilities/ContinuumNVSS.h>
-#include <simulationutilities/ContinuumS3SEX.h>
-#include <simulationutilities/ContinuumSelavy.h>
-#include <simulationutilities/FullStokesContinuum.h>
-#include <simulationutilities/HIprofile.h>
-#include <simulationutilities/HIprofileS3SEX.h>
-#include <simulationutilities/HIprofileS3SAX.h>
-#include <simulationutilities/GaussianProfile.h>
-#include <simulationutilities/FLASHProfile.h>
-#include <simulationutilities/ModelFactory.h>
-#include <analysisutilities/AnalysisUtilities.h>
-#include <analysisutilities/CasaImageUtil.h>
+
+#include <modelcomponents/Continuum.h>
+#include <modelcomponents/ContinuumNVSS.h>
+#include <modelcomponents/ContinuumS3SEX.h>
+#include <modelcomponents/ContinuumSelavy.h>
+#include <modelcomponents/FullStokesContinuum.h>
+#include <modelcomponents/HIprofile.h>
+#include <modelcomponents/HIprofileS3SEX.h>
+#include <modelcomponents/HIprofileS3SAX.h>
+#include <modelcomponents/GaussianProfile.h>
+#include <modelcomponents/FLASHProfile.h>
+#include <modelcomponents/ModelFactory.h>
+#include <coordutils/PositionUtilities.h>
+#include <coordutils/SpectralUtilities.h>
+#include <casainterface/CasaInterface.h>
+#include <mathsutils/MathsUtils.h>
 
 #include <Common/ParameterSet.h>
 
@@ -67,6 +69,7 @@
 #include <gsl/gsl_multifit.h>
 
 #include <wcslib/wcs.h>
+#include <wcslib/wcshdr.h>
 #include <wcslib/wcsunits.h>
 #include <wcslib/wcsfix.h>
 #define WCSLIB_GETWCSTAB // define this so that we don't try to redefine wtbarr
@@ -86,6 +89,7 @@
 #include <math.h>
 
 ASKAP_LOGGER(logger, ".fitsfile");
+using namespace askap::analysisutilities;
 
 namespace askap {
 
@@ -523,7 +527,7 @@ namespace askap {
 	  ASKAPLOG_DEBUG_STR(logger, "Making the noise array");
 
 	  for (size_t i = 0; i < this->itsNumPix; i++) {
-	    this->itsArray[i] = normalRandomVariable(0., this->itsNoiseRMS);
+	    this->itsArray[i] = analysisutilities::normalRandomVariable(0., this->itsNoiseRMS);
 	  }
 	}
       }
@@ -595,8 +599,8 @@ namespace askap {
 
 	      // convert sky position to pixels
 	      if (this->itsPosType == "dms") {
-		wld[0] = analysis::dmsToDec(src->ra()) * 15.;
-		wld[1] = analysis::dmsToDec(src->dec());
+		wld[0] = analysisutilities::dmsToDec(src->ra()) * 15.;
+		wld[1] = analysisutilities::dmsToDec(src->dec());
 	      } else if (this->itsPosType == "deg") {
 		wld[0] = atof(src->ra().c_str());
 		wld[1] = atof(src->dec().c_str());
@@ -623,7 +627,7 @@ namespace askap {
 		// if(!this->itsFlagOutputListGoodOnly && doAddPointSource(this->itsAxes,pix)){  // use doAddPointSource since this just checks central position
 		if(!this->itsFlagOutputListGoodOnly){
 		  if (this->itsPosType == "dms") 
-		    src->print(outfile,analysis::decToDMS(newwld[0],"RA"),analysis::decToDMS(newwld[1],"DEC"));
+		    src->print(outfile,analysisutilities::decToDMS(newwld[0],"RA"),analysisutilities::decToDMS(newwld[1],"DEC"));
 		  else 
 		    src->print(outfile,newwld[0],newwld[1]);
 		}
@@ -717,7 +721,7 @@ namespace askap {
 		  if(addedSource){
 		    if(this->itsFlagOutputList && this->itsFlagOutputListGoodOnly && doAddPointSource(this->itsAxes,pix)){
 		      if (this->itsPosType == "dms") 
-			src->print(outfile,analysis::decToDMS(newwld[0],"RA"),analysis::decToDMS(newwld[1],"DEC"));
+			src->print(outfile,analysisutilities::decToDMS(newwld[0],"RA"),analysisutilities::decToDMS(newwld[1],"DEC"));
 		      else 
 			src->print(outfile,newwld[0],newwld[1]);
 		    }
@@ -1056,7 +1060,7 @@ namespace askap {
 	    if(this->itsWCS->spec>=0)
 	      tileshape(this->itsWCS->spec) = std::min(16L,shape(this->itsWCS->spec));
 	    
-	    casa::CoordinateSystem csys = analysis::wcsToCASAcoord(this->itsWCS, nstokes);
+	    casa::CoordinateSystem csys = analysisutilities::wcsToCASAcoord(this->itsWCS, nstokes);
 	    casa::ImageInfo ii;
 	    
 	    if (this->itsHaveBeam)

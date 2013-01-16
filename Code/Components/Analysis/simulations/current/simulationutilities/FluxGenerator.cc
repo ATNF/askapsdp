@@ -29,8 +29,7 @@
 #include <askap_simulations.h>
 
 #include <simulationutilities/FluxGenerator.h>
-#include <simulationutilities/Spectrum.h>
-#include <simulationutilities/FullStokesContinuum.h>
+#include <modelcomponents/Spectrum.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>

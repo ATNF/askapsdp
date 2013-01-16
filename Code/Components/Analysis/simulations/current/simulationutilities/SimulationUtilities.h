@@ -56,8 +56,8 @@ namespace askap {
       inline double FWHMtoSIGMA(double f){return f / (2. * M_SQRT2 * sqrt(M_LN2));};
       inline double SIGMAtoFWHM(double s){return s * (2. * M_SQRT2 * sqrt(M_LN2));};
 
-        /// @brief Return a normal random variable
-        float normalRandomVariable(float mean, float rms);
+        /* /// @brief Return a normal random variable */
+        /* float normalRandomVariable(float mean, float rms); */
 
 	/// @brief Create a wcsprm struct from a parset
 	struct wcsprm *parsetToWCS(const LOFAR::ParameterSet& theParset, const std::vector<unsigned int> &theAxes, const float &theEquinox, const float &theRestFreq, duchamp::Section &theSection);

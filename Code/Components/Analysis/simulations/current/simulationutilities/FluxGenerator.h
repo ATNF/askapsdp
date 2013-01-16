@@ -29,8 +29,8 @@
 #ifndef ASKAP_SIMS_FLUXGEN_H_
 #define ASKAP_SIMS_FLUXGEN_H_
 
-#include <simulationutilities/Spectrum.h>
-#include <simulationutilities/FullStokesContinuum.h>
+#include <modelcomponents/Spectrum.h>
+using namespace askap::analysisutilities;
 
 #include <wcslib/wcs.h>
 

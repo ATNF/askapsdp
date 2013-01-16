@@ -36,7 +36,7 @@
 
 #include <askapparallel/AskapParallel.h>
 #include <duchamp/Utils/Section.hh>
-#include <analysisutilities/SubimageDef.h>
+#include <analysisparallel/SubimageDef.h>
 
 #include <Common/LofarTypedefs.h>
 using namespace LOFAR::TYPES;
@@ -78,7 +78,7 @@ namespace askap {
 
                 LOFAR::ParameterSet newparset = parset;
 
-                this->itsSubimageDef = analysis::SubimageDef(parset);
+                this->itsSubimageDef = analysisutilities::SubimageDef(parset);
                 int numSub = this->itsSubimageDef.nsubx() * this->itsSubimageDef.nsuby();
 
                 if (itsComms.isParallel() && (numSub != itsComms.nProcs() - 1))

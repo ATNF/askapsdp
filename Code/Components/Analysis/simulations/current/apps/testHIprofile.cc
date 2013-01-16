@@ -28,10 +28,10 @@
 /// @author Matthew Whiting <matthew.whiting@csiro.au>
 #include <askap_simulations.h>
 
-#include <simulationutilities/SpectralUtilities.h>
-#include <simulationutilities/HIprofile.h>
-#include <simulationutilities/HIprofileS3SEX.h>
-#include <simulationutilities/HIprofileS3SAX.h>
+#include <coordutils/SpectralUtilities.h>
+#include <modelcomponents/HIprofile.h>
+#include <modelcomponents/HIprofileS3SEX.h>
+#include <modelcomponents/HIprofileS3SAX.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
