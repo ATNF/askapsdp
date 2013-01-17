@@ -54,6 +54,7 @@ namespace askap {
                     Side();
                     /// @brief Constructor using rise over run
                     Side(double run, double rise);
+                    Side(Point &a, Point &b);
 		    Side(const Side& s);
 		    Side& operator=(const Side& s);
                    /// @brief Destructor
@@ -62,7 +63,7 @@ namespace askap {
                     /// @brief Definition function, using slope (defined by rise and run)
                     void define(double run, double rise);
                     /// @brief Definition function, using two points
-                    void define(Point a, Point b);
+                    void define(Point &a, Point &b);
 
                     /// @brief Return the rise (delta-y)
                     double rise() {return itsDY;};

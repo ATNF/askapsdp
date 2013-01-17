@@ -62,7 +62,7 @@ namespace askap {
                     /// @brief Default constructor
                     Triangle();
                     /// @brief Constructor from three Points
-                    Triangle(Point pt1, Point pt2, Point pt3);
+                    Triangle(Point &pt1, Point &pt2, Point &pt3);
                     /// @brief Constructor from three positions
                     Triangle(double x1, double y1, double x2, double y2, double x3, double y3);
                     /// @brief Copy constructor
@@ -72,7 +72,7 @@ namespace askap {
                     /// @brief Destructor
                     ~Triangle() {};
                     /// @brief Definition function using three Points
-                    void define(Point pt1, Point pt2, Point pt3);
+                    void define(Point &pt1, Point &pt2, Point &pt3);
 
                     /// @brief Calculate tolerances for triangle parameters.
                     void defineTolerances(double epsilon = posTolerance);
@@ -126,17 +126,17 @@ namespace askap {
             };
 
             /// @brief Create a list of triangles from a list of points
-            std::vector<Triangle> getTriList(std::vector<Point> pixlist);
+            std::vector<Triangle> getTriList(std::vector<Point> &pixlist);
 
             /// @brief Match two lists of triangles
             std::vector<std::pair<Triangle, Triangle> >
-            matchLists(std::vector<Triangle> list1, std::vector<Triangle> list2, double epsilon);
+            matchLists(std::vector<Triangle> &list1, std::vector<Triangle> &list2, double epsilon);
 
             /// @brief Eliminate likely false matches from a triangle list
             void trimTriList(std::vector<std::pair<Triangle, Triangle> > &trilist);
 
             /// @brief Make the final assignment of matching points
-            std::vector<std::pair<Point, Point> > vote(std::vector<std::pair<Triangle, Triangle> > trilist);
+            std::vector<std::pair<Point, Point> > vote(std::vector<std::pair<Triangle, Triangle> > &trilist);
 
 
         }

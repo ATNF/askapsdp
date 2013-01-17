@@ -67,7 +67,7 @@ namespace askap {
       }
       
       Point::Point(double x, double y, double f, std::string id):
-	itsX(x), itsY(y),itsFlux(0.),itsID(id)
+	itsX(x), itsY(y),itsFlux(f),itsID(id)
       {
       }
 

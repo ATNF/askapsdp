@@ -60,6 +60,12 @@ namespace askap {
       {
       }
       
+      Side::Side(Point &a, Point &b)
+      {
+	this->itsDX = a.x() - b.x(); 
+	this->itsDY = a.y() - b.y();
+      }
+
       Side::Side(const Side& s)
       {
 	this->operator=(s);
@@ -80,7 +86,7 @@ namespace askap {
 	this->itsDY = rise;
       }
 
-      void Side::define(Point a, Point b)
+      void Side::define(Point &a, Point &b)
       {
 	this->itsDX = a.x() - b.x(); 
 	this->itsDY = a.y() - b.y();

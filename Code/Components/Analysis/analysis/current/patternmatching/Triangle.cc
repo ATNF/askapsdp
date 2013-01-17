@@ -53,18 +53,18 @@ namespace askap {
 
       Triangle::Triangle()
       {
-	std::vector<Point> pts(3); this->itsPts = pts;
+	this->itsPts = std::vector<Point>(3); 
       }
 
-      Triangle::Triangle(Point a, Point b, Point c)
+      Triangle::Triangle(Point &a, Point &b, Point &c)
       {
-	std::vector<Point> pts(3); this->itsPts = pts;
+	this->itsPts = std::vector<Point>(3);
 	this->define(a, b, c);
       }
 
       Triangle::Triangle(double x1, double y1, double x2, double y2, double x3, double y3)
       {
-	std::vector<Point> pts(3); this->itsPts = pts;
+	this->itsPts = std::vector<Point>(3); 
 	Point pt1(x1, y1);
 	Point pt2(x2, y2);
 	Point pt3(x3, y3);
@@ -94,7 +94,7 @@ namespace askap {
 
       //**************************************************************//
 
-      void Triangle::define(Point a, Point b, Point c)
+      void Triangle::define(Point &a, Point &b, Point &c)
       {
 	/// @details Define a triangle from three points. The key part
 	///  of this function is to order the sides by their
@@ -204,7 +204,7 @@ namespace askap {
       //**************************************************************//
       //**************************************************************//
 
-      std::vector<Triangle> getTriList(std::vector<Point> pixlist)
+      std::vector<Triangle> getTriList(std::vector<Point> &pixlist)
       {
 	/// @details Create a list of triangles from a list of Points.
 	std::vector<Triangle> triList;
@@ -227,7 +227,7 @@ namespace askap {
       //**************************************************************//
 
       std::vector<std::pair<Triangle, Triangle> >
-      matchLists(std::vector<Triangle> list1, std::vector<Triangle> list2, double epsilon)
+      matchLists(std::vector<Triangle> &list1, std::vector<Triangle> &list2, double epsilon)
       {
 	/// @details Finds a list of matching triangles from two
 	/// lists. The lists are both sorted in order of increasing
@@ -389,7 +389,7 @@ namespace askap {
 
       //**************************************************************//
 
-      std::vector<std::pair<Point, Point> > vote(std::vector<std::pair<Triangle, Triangle> > trilist)
+      std::vector<std::pair<Point, Point> > vote(std::vector<std::pair<Triangle, Triangle> > &trilist)
       {
 	/// @details The final step in removing false matches is the
 	/// voting. Each matched triangle votes for matched

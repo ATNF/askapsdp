@@ -79,15 +79,16 @@ namespace askap {
             double flux, peakflux, iflux1, iflux2, pflux1, pflux2, maj, min, pa, majD, minD, paD, chisq, rmsfit, noise, alpha, beta;
             int nfree, ndof, npixfit, npixobj, guess;
 
-            double *wld = new double[3];
-            double *pix = new double[3];
+            // double *wld = new double[3];
+            // double *pix = new double[3];
+	    std::vector<double> wld(3,0.),pix(3,0.);
             wld[2] = header.specToVel(0.);
 
             // Convert the base position
             wld[0] = analysis::dmsToDec(raBaseStr) * 15.;
             wld[1] = analysis::dmsToDec(decBaseStr);
 	    //	    ASKAPLOG_DEBUG_STR(logger, "Converting position ("<<raBaseStr<<","<<decBaseStr<<") or world coords ("<<wld[0]<<","<<wld[1]<<")");
-            header.wcsToPix(wld, pix);
+            header.wcsToPix(&wld[0], &pix[0]);
             double xBase = pix[0];
             double yBase = pix[1];
 	    //	    ASKAPLOG_DEBUG_STR(logger, "Got position ("<<pix[0]<<","<<pix[1]<<")");
@@ -139,7 +140,7 @@ namespace askap {
 
 		//		wcsprt(header.getWCS());
 		//		ASKAPLOG_DEBUG_STR(logger, "Converting world coords ("<<wld[0]<<","<<wld[1]<<")");
-                if (header.wcsToPix(wld, pix)) {
+                if (header.wcsToPix(&wld[0], &pix[0])) {
                     ASKAPLOG_ERROR_STR(logger, "getSrcPixList: Conversion error... source ID=" << id << ": " 
 				       << std::setprecision(6) << wld[0] << " --> " << pix[0] << " and " 
 				       << std::setprecision(6) << wld[1] << " --> " << pix[1]);
@@ -158,8 +159,8 @@ namespace askap {
 
             }
 
-            delete [] wld;
-            delete [] pix;
+            // delete [] wld;
+            // delete [] pix;
 
             stable_sort(pixlist.begin(), pixlist.end());
             reverse(pixlist.begin(), pixlist.end());

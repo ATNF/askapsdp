@@ -304,8 +304,7 @@ namespace askap {
             {
                 /// @details The mean and rms offsets in the x- and
                 /// y-directions are measured for the matching points.
-                double *dx = new double[this->itsNumMatch1];
-                double *dy = new double[this->itsNumMatch1];
+	      std::vector<double> dx(this->itsNumMatch1,0.),dy(this->itsNumMatch1,0.);
 
                 for (int i = 0; i < this->itsNumMatch1; i++) {
                     if (this->itsSenseMatch) {
