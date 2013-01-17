@@ -26,7 +26,7 @@
 ///
 /// @author XXX XXX <XXX.XXX@csiro.au>
 ///
-#include <patternmatching/GrothTriangles.h>
+#include <patternmatching/Triangle.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 namespace askap {
