@@ -38,7 +38,6 @@
 #include <askap/AskapError.h>
 #include <askap/StatReporter.h>
 #include <patternmatching/Matcher.h>
-#include <patternmatching/GrothTriangles.h>
 #include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
 

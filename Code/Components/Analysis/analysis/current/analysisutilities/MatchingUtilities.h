@@ -29,7 +29,8 @@
 #ifndef ASKAP_ANALYSIS_MATCHUTIL_H_
 #define ASKAP_ANALYSIS_MATCHUTIL_H_
 
-#include <patternmatching/GrothTriangles.h>
+#include <patternmatching/Triangle.h>
+#include <patternmatching/Point.h>
 #include <patternmatching/Matcher.h>
 
 #include <duchamp/fitsHeader.hh>

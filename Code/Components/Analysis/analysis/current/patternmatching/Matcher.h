@@ -32,7 +32,8 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 
-#include <patternmatching/GrothTriangles.h>
+#include <patternmatching/Triangle.h>
+#include <patternmatching/Point.h>
 
 #include <Common/ParameterSet.h>
 

@@ -32,7 +32,8 @@
 #include <askap/AskapError.h>
 
 #include <patternmatching/Matcher.h>
-#include <patternmatching/GrothTriangles.h>
+#include <patternmatching/Triangle.h>
+#include <patternmatching/Point.h>
 #include <analysisutilities/MatchingUtilities.h>
 
 #include <Common/ParameterSet.h>
@@ -202,47 +203,47 @@ namespace askap {
                 ///
                 /// @todo This treatment only deals with Gaussian
                 /// sources. What if we have discs as well?
-                ASKAPLOG_INFO_STR(logger, "Beam info being used: maj=" << beam[0]*3600.
-                                      << ", min=" << beam[1]*3600. << ", pa=" << beam[2]);
-                float a1 = std::max(beam[0] * 3600., beam[1] * 3600.);
-                float b1 = std::min(beam[0] * 3600., beam[1] * 3600.);
-                float pa1 = beam[2];
-                float d1 = a1 * a1 - b1 * b1;
-                std::vector<Point>::iterator pix = this->itsRefPixList.begin();
+                // ASKAPLOG_INFO_STR(logger, "Beam info being used: maj=" << beam[0]*3600.
+                //                       << ", min=" << beam[1]*3600. << ", pa=" << beam[2]);
+                // float a1 = std::max(beam[0] * 3600., beam[1] * 3600.);
+                // float b1 = std::min(beam[0] * 3600., beam[1] * 3600.);
+                // float pa1 = beam[2];
+                // float d1 = a1 * a1 - b1 * b1;
+                // std::vector<Point>::iterator pix = this->itsRefPixList.begin();
 
-                for (; pix < this->itsRefPixList.end(); pix++) {
-                    double a2 = std::max(pix->majorAxis(), pix->minorAxis());
-                    double b2 = std::min(pix->majorAxis(), pix->minorAxis());
-                    double pa2 = pix->PA();
-                    double d2 = a2 * a2 - b2 * b2;
-                    double d0sq = d1 * d1 + d2 * d2 + 2. * d1 * d2 * cos(2.*(pa1 - pa2));
-                    double d0 = sqrt(d0sq);
-                    double a0sq = 0.5 * (a1 * a1 + b1 * b1 + a2 * a2 + b2 * b2 + d0);
-                    double b0sq = 0.5 * (a1 * a1 + b1 * b1 + a2 * a2 + b2 * b2 - d0);
-                    pix->setMajorAxis(sqrt(a0sq));
-                    pix->setMinorAxis(sqrt(b0sq));
+                // for (; pix < this->itsRefPixList.end(); pix++) {
+                //     double a2 = std::max(pix->majorAxis(), pix->minorAxis());
+                //     double b2 = std::min(pix->majorAxis(), pix->minorAxis());
+                //     double pa2 = pix->PA();
+                //     double d2 = a2 * a2 - b2 * b2;
+                //     double d0sq = d1 * d1 + d2 * d2 + 2. * d1 * d2 * cos(2.*(pa1 - pa2));
+                //     double d0 = sqrt(d0sq);
+                //     double a0sq = 0.5 * (a1 * a1 + b1 * b1 + a2 * a2 + b2 * b2 + d0);
+                //     double b0sq = 0.5 * (a1 * a1 + b1 * b1 + a2 * a2 + b2 * b2 - d0);
+                //     pix->setMajorAxis(sqrt(a0sq));
+                //     pix->setMinorAxis(sqrt(b0sq));
 
-                    if (d0sq > 0) {
-                        // leave out normalisation by d0, since we will take ratios to get tan2pa0
-                        double sin2pa0 = (d1 * sin(2.*pa1) + d2 * sin(2.*pa2));
-                        double cos2pa0 = (d1 * cos(2.*pa1) + d2 * cos(2.*pa2));
-                        double pa0 = atan(fabs(sin2pa0 / cos2pa0));
+                //     if (d0sq > 0) {
+                //         // leave out normalisation by d0, since we will take ratios to get tan2pa0
+                //         double sin2pa0 = (d1 * sin(2.*pa1) + d2 * sin(2.*pa2));
+                //         double cos2pa0 = (d1 * cos(2.*pa1) + d2 * cos(2.*pa2));
+                //         double pa0 = atan(fabs(sin2pa0 / cos2pa0));
 
-                        // atan of the absolute value of the ratio returns a value between 0 and 90 degrees.
-                        // Need to correct the value of l according to the correct quandrant it is in.
-                        // This is worked out using the signs of sinl and cosl
-                        if (sin2pa0 > 0) {
-                            if (cos2pa0 > 0) pa0 = pa0;
-                            else          pa0 = M_PI - pa0;
-                        } else {
-                            if (cos2pa0 > 0) pa0 = 2.*M_PI - pa0;
-                            else          pa0 = M_PI + pa0;
-                        }
+                //         // atan of the absolute value of the ratio returns a value between 0 and 90 degrees.
+                //         // Need to correct the value of l according to the correct quandrant it is in.
+                //         // This is worked out using the signs of sinl and cosl
+                //         if (sin2pa0 > 0) {
+                //             if (cos2pa0 > 0) pa0 = pa0;
+                //             else          pa0 = M_PI - pa0;
+                //         } else {
+                //             if (cos2pa0 > 0) pa0 = 2.*M_PI - pa0;
+                //             else          pa0 = M_PI + pa0;
+                //         }
 
-                        pix->setPA(pa0 / 2.);
-                    } else  pix->setPA(0.);
+                //         pix->setPA(pa0 / 2.);
+                //     } else  pix->setPA(0.);
 
-                }
+                // }
             }
 
 
@@ -419,13 +420,13 @@ namespace askap {
                         if (alice->second.ID() == bob->second.ID()) { // alice & bob have the same reference source
                             float df_alice, df_bob;
 
-                            if (this->itsFluxMethod == "integrated") {
-                                df_alice = alice->first.stuff().flux() - alice->second.flux();
-                                df_bob   = bob->first.stuff().flux() - bob->second.flux();
-                            } else {
+                            // if (this->itsFluxMethod == "integrated") {
+                            //     df_alice = alice->first.stuff().flux() - alice->second.flux();
+                            //     df_bob   = bob->first.stuff().flux() - bob->second.flux();
+                            // } else {
                                 df_alice = alice->first.flux() - alice->second.flux();
                                 df_bob   = bob->first.flux() - bob->second.flux();
-                            }
+                            // }
 
                             if (fabs(df_alice) < fabs(df_bob)) {
                                 // delete bob
@@ -463,12 +464,12 @@ namespace askap {
                 int prec = 3;
 
                 for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end(); match++) {
-                    if (this->itsFluxMethod == "integrated") { // need to swap around since we have initially stored peak flux in object.
-                        float tmpflux;
-                        tmpflux = match->first.stuff().flux();
-                        match->first.stuff().setFlux(match->first.flux());
-                        match->first.setFlux(tmpflux);
-                    }
+                    // if (this->itsFluxMethod == "integrated") { // need to swap around since we have initially stored peak flux in object.
+                    //     float tmpflux;
+                    //     tmpflux = match->first.stuff().flux();
+                    //     match->first.stuff().setFlux(match->first.flux());
+                    //     match->first.setFlux(tmpflux);
+                    // }
 
                     int newprec = int(ceil(log10(1. / match->first.flux()))) + 1;
                     prec = std::max(prec, newprec);
@@ -484,29 +485,32 @@ namespace askap {
                     if (ct++ < this->itsNumMatch1) matchType = '1';
                     else matchType = '2';
 
-                    fout << matchType << "\t"
-                        << "[" << match->first.ID() << "]\t"
-                        << std::setw(10) << std::setprecision(3) << match->first.x()  << " "
-                        << std::setw(10) << std::setprecision(3) << match->first.y()  << " "
-                        << std::setw(10) << std::setprecision(8) << match->first.flux() << " "
-                        << std::setw(10) << std::setprecision(3) << match->first.majorAxis() << " "
-                        << std::setw(10) << std::setprecision(3) << match->first.minorAxis() << " "
-                        << std::setw(10) << std::setprecision(3) << match->first.PA()  << " "
-			 << std::setw(10) << std::setprecision(3) << match->first.alpha() << " "
-			 << std::setw(10) << std::setprecision(3) << match->first.beta() << " "
-                        << std::setw(10) << match->first.stuff() << "\t"
-                        << "[" << match->second.ID() << "]\t"
-                        << std::setw(10) << std::setprecision(3) << match->second.x()  << " "
-                        << std::setw(10) << std::setprecision(3) << match->second.y()  << " "
-                        << std::setw(10) << std::setprecision(8) << match->second.flux() << " "
-                        << std::setw(10) << std::setprecision(3) << match->second.majorAxis() << " "
-                        << std::setw(10) << std::setprecision(3) << match->second.minorAxis() << " "
-                        << std::setw(10) << std::setprecision(3) << match->second.PA() << "\t"
-			 << std::setw(10) << std::setprecision(3) << match->second.alpha() << " "
-			 << std::setw(10) << std::setprecision(3) << match->second.beta() << " "
-                        << std::setw(8)  << std::setprecision(3) << match->first.sep(match->second) << " "
-                        << std::setw(8)  << std::setprecision(8) << match->first.flux() - match->second.flux() << " "
-                        << std::setw(8)  << std::setprecision(6) << (match->first.flux() - match->second.flux()) / match->second.flux() << "\n";
+		    fout << matchType << "\t" << match->first.ID() << " " << match->second.ID() << " " << 
+		      std::setw(8)  << std::setprecision(3) << match->first.sep(match->second) << "\n";
+
+                    // fout << matchType << "\t"
+                    //     << "[" << match->first.ID() << "]\t"
+                    //     << std::setw(10) << std::setprecision(3) << match->first.x()  << " "
+                    //     << std::setw(10) << std::setprecision(3) << match->first.y()  << " "
+                    //     << std::setw(10) << std::setprecision(8) << match->first.flux() << " "
+                    //     << std::setw(10) << std::setprecision(3) << match->first.majorAxis() << " "
+                    //     << std::setw(10) << std::setprecision(3) << match->first.minorAxis() << " "
+                    //     << std::setw(10) << std::setprecision(3) << match->first.PA()  << " "
+		    // 	 << std::setw(10) << std::setprecision(3) << match->first.alpha() << " "
+		    // 	 << std::setw(10) << std::setprecision(3) << match->first.beta() << " "
+                    //     << std::setw(10) << match->first.stuff() << "\t"
+                    //     << "[" << match->second.ID() << "]\t"
+                    //     << std::setw(10) << std::setprecision(3) << match->second.x()  << " "
+                    //     << std::setw(10) << std::setprecision(3) << match->second.y()  << " "
+                    //     << std::setw(10) << std::setprecision(8) << match->second.flux() << " "
+                    //     << std::setw(10) << std::setprecision(3) << match->second.majorAxis() << " "
+                    //     << std::setw(10) << std::setprecision(3) << match->second.minorAxis() << " "
+                    //     << std::setw(10) << std::setprecision(3) << match->second.PA() << "\t"
+		    // 	 << std::setw(10) << std::setprecision(3) << match->second.alpha() << " "
+		    // 	 << std::setw(10) << std::setprecision(3) << match->second.beta() << " "
+                    //     << std::setw(8)  << std::setprecision(3) << match->first.sep(match->second) << " "
+                    //     << std::setw(8)  << std::setprecision(8) << match->first.flux() - match->second.flux() << " "
+                    //     << std::setw(8)  << std::setprecision(6) << (match->first.flux() - match->second.flux()) / match->second.flux() << "\n";
                 }
 
                 fout.close();
@@ -525,7 +529,7 @@ namespace askap {
                 fout.setf(std::ios::fixed);
                 std::vector<Point>::iterator pt;
                 std::vector<std::pair<Point, Point> >::iterator match;
-                Stuff nullstuff(0., 0., 0., 0, 0, 0, 0, 0.);
+		//                Stuff nullstuff(0., 0., 0., 0, 0, 0, 0, 0.);
 
                 for (pt = this->itsRefPixList.begin(); pt < this->itsRefPixList.end(); pt++) {
                     bool isMatch = false;
@@ -540,10 +544,11 @@ namespace askap {
                             << std::setw(10) << std::setprecision(3) << pt->x()  << " "
                             << std::setw(10) << std::setprecision(3) << pt->y() << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux()  << " "
-                            << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
-                            << std::setw(10) << nullstuff << "\n";
+                            // << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
+                            // << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
+                            // << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
+                            // << std::setw(10) << nullstuff 
+			     << "\n";
                     }
                 }
 
@@ -560,10 +565,11 @@ namespace askap {
                             << std::setw(10) << std::setprecision(3) << pt->x()  << " "
                             << std::setw(10) << std::setprecision(3) << pt->y()  << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
-                            << std::setw(10) << pt->stuff() << "\n";
+                            // << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
+                            // << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
+                            // << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
+                            // << std::setw(10) << pt->stuff() 
+			     << "\n";
                     }
                 }
 
@@ -573,7 +579,7 @@ namespace askap {
 	  void Matcher::outputSummary()
 	  {
 	    std::ofstream fout;
-                Stuff nullstuff(0., 0., 0., 0, 0, 0, 0, 0.);
+	    //                Stuff nullstuff(0., 0., 0., 0, 0, 0, 0, 0.);
 
 	    std::vector<Point>::iterator pt;
 	    std::vector<std::pair<Point, Point> >::iterator mpair;
@@ -591,10 +597,11 @@ namespace askap {
                             << std::setw(10) << std::setprecision(3) << pt->x()  << " "
                             << std::setw(10) << std::setprecision(3) << pt->y()  << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
-                            << std::setw(10) << pt->stuff() << "\n";
+                            // << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
+                            // << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
+                            // << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
+                            // << std::setw(10) << pt->stuff() 
+		   << "\n";
 	    }
 	    fout.close();
 
@@ -610,10 +617,11 @@ namespace askap {
                             << std::setw(10) << std::setprecision(3) << pt->x()  << " "
                             << std::setw(10) << std::setprecision(3) << pt->y() << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux()  << " "
-                            << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
-                            << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
-                            << std::setw(10) << nullstuff << "\n";
+                            // << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
+                            // << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
+                            // << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
+                            // << std::setw(10) << nullstuff
+		   << "\n";
 	    }
 	    fout.close();
 

@@ -36,7 +36,6 @@
 #include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
 #include <patternmatching/Matcher.h>
-#include <patternmatching/GrothTriangles.h>
 
 #include <duchamp/duchamp.hh>
 
