@@ -53,17 +53,24 @@ namespace askap {
 
         void Spectrum::define(const std::string &line)
         {
-            /// @details Defines the Spectrum object from a line of
-            /// text from an ascii file. This line should be formatted in
-            /// the correct way to match the output from the appropriate
-            /// python script. The columns should accepted by this function are:
-            /// RA - DEC - Flux - Major axis - Minor axis - Pos.Angle
-            /// @param line A line from the ascii input file
+	  /// @details Defines the Spectrum object from a line of
+	  /// text from an ascii file. The columns should accepted
+	  /// by this function are: RA - DEC - Flux - Major axis -
+	  /// Minor axis - Pos.Angle 
+	  /// itsID is constructed from the RA & Dec
+	  /// @param line A line from the ascii input file
 
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsMaj >> this->itsMin >> this->itsPA;
+	    this->PosToID();
 	    this->checkShape();
         }
+
+      void Spectrum::PosToID()
+      {
+	///@details This creates an ID string by combining the RA & Dec strings, separated by an underscore.
+	this->itsID = this->itsRA+"_"+this->itsDec;
+      }
 
       void Spectrum::checkShape()
       {
@@ -77,12 +84,13 @@ namespace askap {
 
         Spectrum::Spectrum(const Spectrum& s)
         {
-            this->itsRA = s.itsRA;
-            this->itsDec = s.itsDec;
-            this->itsFlux = s.itsFlux;
-	    this->itsMaj = s.itsMaj;
-	    this->itsMin = s.itsMin;
-	    this->itsPA = s.itsPA;
+	  this->itsID = s.itsID;
+	  this->itsRA = s.itsRA;
+	  this->itsDec = s.itsDec;
+	  this->itsFlux = s.itsFlux;
+	  this->itsMaj = s.itsMaj;
+	  this->itsMin = s.itsMin;
+	  this->itsPA = s.itsPA;
         }
 
       void Spectrum::setRA(double r, int prec)

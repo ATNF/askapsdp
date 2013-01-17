@@ -71,6 +71,7 @@ namespace askap {
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsAlpha >> this->itsBeta >> this->itsMaj >> this->itsMin >> this->itsPA >> this->itsRedshift >> this->itsMHI >> type;
             this->itsSourceType = GALTYPE(type);
+	    this->PosToID();
 	    this->checkShape();
         }
 

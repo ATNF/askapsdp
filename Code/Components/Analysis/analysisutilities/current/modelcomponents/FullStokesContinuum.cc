@@ -100,6 +100,10 @@ namespace askap {
 	       >> this->itsStokesQref >> this->itsStokesUref >> this->itsPolFluxRef >> this->itsPolFracRef 
 	       >> this->itsI4860 >> this->itsI18000 >> this->itsCosVA >> this->itsRM >> this->itsRMflag;
 	    
+	    std::stringstream idstring;
+	    idstring << this->itsComponentNum;
+	    this->itsID = idstring.str();
+
 	    this->itsFreqValues=std::vector<float>(5);
 	    for(int i=0;i<5;i++) this->itsFreqValues[i]=freqValuesS3SEX[i];
 	    this->itsFreqValues[2] = POLREFFREQ;

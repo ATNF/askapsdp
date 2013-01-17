@@ -104,6 +104,9 @@ namespace askap {
             ss >> this->itsComponentNum >> this->itsRA >> this->itsDec >> this->itsContinuumFlux >> this->itsMaj >> this->itsMin >> this->itsPA >> this->itsPeakOpticalDepth >> this->itsCentreRedshift >> this->itsVelocityWidth;
             this->itsFlux = this->itsContinuumFlux;
 	    this->checkShape();
+	    std::stringstream idstring;
+	    idstring << this->itsComponentNum;
+	    this->itsID = idstring.str();
 
 	    // ASKAPLOG_DEBUG_STR(logger, "FLASH input: " << line);
 	    // ASKAPLOG_DEBUG_STR(logger, "Defined source " << this->itsComponentNum << " with continuum flux="<<this->itsContinuumFlux<<", Component: " << this->itsComponent << " and Gaussian " << this->itsGaussian);

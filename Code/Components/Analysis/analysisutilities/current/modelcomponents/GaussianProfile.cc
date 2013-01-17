@@ -97,6 +97,7 @@ namespace askap {
             std::stringstream ss(line);
             ss >> this->itsRA >> this->itsDec >> this->itsFlux >> this->itsMaj >> this->itsMin >> this->itsPA >> peak >> centre >> width;
 
+	    this->PosToID();
 	    this->checkShape();
 	    if(this->itsMaj<this->itsMin) std::swap(this->itsMaj,this->itsMin);
 

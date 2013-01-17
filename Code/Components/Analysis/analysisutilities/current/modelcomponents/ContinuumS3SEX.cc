@@ -98,6 +98,10 @@ namespace askap {
 	       >> this->itsRA >> this->itsDec >> this->itsPA >> this->itsMaj >> this->itsMin 
 	       >> this->itsI151 >> this->itsI610 >> this->itsI1400 >> this->itsI4860 >> this->itsI18000;
 	    
+	    std::stringstream idstring;
+	    idstring << this->itsComponentNum;
+	    this->itsID = idstring.str();
+
 	    this->itsFreqValues=std::vector<float>(5);
 	    for(int i=0;i<5;i++) this->itsFreqValues[i]=freqValuesS3SEX[i];
 	    this->itsFlux = pow(10,this->itsI1400); // set the flux for now to be the reference one. Need to set properly using prepareForUse()

@@ -88,7 +88,6 @@ namespace askap {
                 friend std::ostream& operator<< (std::ostream& theStream, ContinuumSelavy &cont);
 
             protected:
-		std::string itsID;
 		std::string itsName;
 		float itsFint;
 		float itsFpeak;

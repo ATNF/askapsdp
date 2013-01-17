@@ -114,6 +114,8 @@ namespace askap {
 	  this->itsDec = this->itsDecstring;
 	  for(size_t i=0;i<this->itsDec.size();i++) if(this->itsDec[i]==' ') this->itsDec[i]=':';
 
+	  this->itsID = this->itsName;
+
 	  this->itsFlux = this->itsS1400/1.e3; // put into Jy
 	  this->itsMaj = this->itsMajorAxisLimit=='<' ? 0. : this->itsMajorAxis;
 	  this->itsMin = this->itsMinorAxisLimit=='<' ? 0. : this->itsMinorAxis;

@@ -143,6 +143,7 @@ namespace askap {
 	       >> this->itsFlux0 >> this->itsFluxPeak >> this->itsWidthPeak >> this->itsWidth50 >> this->itsWidth20;
             this->itsFlux = this->itsFluxPeak * this->itsIntFlux;
 	    this->checkShape();
+	    this->PosToID();
         }
 
         void HIprofileS3SAX::prepareForUse()

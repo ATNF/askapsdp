@@ -55,6 +55,8 @@ namespace askap {
 		/// @brief Define using a line of input from an ascii file
 		virtual void define(const std::string &line);
 
+		/// @brief Return the ID
+		std::string id() {return itsID;};
                 /// @brief Return the right ascension
                 std::string ra() {return itsRA;};
                 /// @brief Return the decliination
@@ -68,6 +70,8 @@ namespace askap {
                 /// @brief Return the position angle
                 double pa() {return itsPA;};
 
+		void setID(std::string s) {itsID = s;};
+		void PosToID();
 		virtual void setRA(double r, int prec=5);
 		virtual void setRA(std::string r){itsRA=r;};
 		virtual void setDec(double d, int prec=5);
@@ -97,7 +101,9 @@ namespace askap {
 		friend std::ostream& operator<< (std::ostream& theStream, Spectrum &spec);
 
             protected:
-                /// @brief The right ascension of the object
+		/// @brief A uniqe ID number or name
+ 		std::string itsID;
+		/// @brief The right ascension of the object
                 std::string itsRA;
                 /// @brief The declination of the object
                 std::string itsDec;

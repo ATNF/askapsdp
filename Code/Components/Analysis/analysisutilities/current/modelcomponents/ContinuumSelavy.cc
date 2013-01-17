@@ -117,7 +117,6 @@ namespace askap {
             if (this == &c) return *this;
 
             ((Continuum &) *this) = c;
-	    this->itsID = c.itsID;	    
 	    this->itsName = c.itsName;	    
 	    this->itsFint = c.itsFint;	    
 	    this->itsFpeak = c.itsFpeak;	    
