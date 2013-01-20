@@ -34,6 +34,7 @@
 #include <patternmatching/Matcher.h>
 #include <patternmatching/Triangle.h>
 #include <patternmatching/Point.h>
+#include <patternmatching/PointCatalogue.h>
 #include <analysisutilities/MatchingUtilities.h>
 
 #include <Common/ParameterSet.h>
@@ -107,6 +108,8 @@ namespace askap {
                 this->itsSenseMatch = m.itsSenseMatch;
                 this->itsOutputBestFile = m.itsOutputBestFile;
                 this->itsOutputMissFile = m.itsOutputMissFile;
+		this->itsSrcCatalogue = m.itsSrcCatalogue;
+		this->itsRefCatalogue = m.itsRefCatalogue;
                 return *this;
             }
 
@@ -134,6 +137,11 @@ namespace askap {
                 this->itsRmsDy = 0.;
                 this->itsOutputBestFile = parset.getString("matchFile", "matches.txt");
                 this->itsOutputMissFile = parset.getString("missFile", "misses.txt");
+
+		LOFAR::ParameterSet subset=parset.makeSubset(".source");
+		this->itsSrcCatalogue = PointCatalogue(subset);
+		subset=parset.makeSubset(".reference");
+		this->itsRefCatalogue = PointCatalogue(subset);
             }
 
             //**************************************************************//
@@ -148,7 +156,7 @@ namespace askap {
 
             //**************************************************************//
 
-            void Matcher::readLists()
+            bool Matcher::readLists()
             {
                 /// @details This function reads the source and reference
                 /// pixel lists from the files provided. Checks are made
@@ -156,37 +164,48 @@ namespace askap {
 
                 bool filesOK = true;
 
-                if (this->itsSrcFile == "") {
-                    ASKAPTHROW(AskapError, "srcFile not defined. Cannot get pixel list!");
-                    filesOK = false;
-                }
+                // if (this->itsSrcFile == "") {
+                //     ASKAPTHROW(AskapError, "srcFile not defined. Cannot get pixel list!");
+                //     filesOK = false;
+                // }
 
-                if (this->itsRefFile == "") {
-                    ASKAPTHROW(AskapError, "refFile not defined. Cannot get pixel list!");
-                    filesOK = false;
-                }
+                // if (this->itsRefFile == "") {
+                //     ASKAPTHROW(AskapError, "refFile not defined. Cannot get pixel list!");
+                //     filesOK = false;
+                // }
 
-                if (filesOK) {
-                    std::ifstream fsrc(this->itsSrcFile.c_str());
+                // if (filesOK) {
+                //     std::ifstream fsrc(this->itsSrcFile.c_str());
 
-                    if (!fsrc.is_open())
-                        ASKAPTHROW(AskapError, "srcFile (" << this->itsSrcFile << ") not valid. Error opening file.");
+                //     if (!fsrc.is_open())
+                //         ASKAPTHROW(AskapError, "srcFile (" << this->itsSrcFile << ") not valid. Error opening file.");
 
-                    std::ifstream fref(this->itsRefFile.c_str());
+                //     std::ifstream fref(this->itsRefFile.c_str());
 
-                    if (!fref.is_open())
-                        ASKAPTHROW(AskapError, "refFile (" << this->itsRefFile << ") not valid. Error opening file.");
+                //     if (!fref.is_open())
+                //         ASKAPTHROW(AskapError, "refFile (" << this->itsRefFile << ") not valid. Error opening file.");
 
-                    this->itsSrcPixList = getSrcPixList(fsrc, this->itsFITShead, this->itsRA, this->itsDec, this->itsSrcPosType, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
-                    ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
+                //     this->itsSrcPixList = getSrcPixList(fsrc, this->itsFITShead, this->itsRA, this->itsDec, this->itsSrcPosType, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
+                //     ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
 
-                    this->itsRefPixList = getPixList(fref, this->itsFITShead, this->itsRA, this->itsDec, this->itsRefPosType, this->itsRadius);
-                    ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
-                } else {
-                    ASKAPLOG_WARN_STR(logger, "Not reading any pixel lists!");
-                }
+                //     this->itsRefPixList = getPixList(fref, this->itsFITShead, this->itsRA, this->itsDec, this->itsRefPosType, this->itsRadius);
+                //     ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
+                // } else {
+                //     ASKAPLOG_WARN_STR(logger, "Not reading any pixel lists!");
+                // }
 
-
+		this->itsSrcCatalogue.read();
+		this->itsRefCatalogue.read();
+		filesOK = this->itsSrcCatalogue.pointList().size()>0 && this->itsRefCatalogue.pointList().size()>0;
+		if(this->itsSrcCatalogue.pointList().size()==0)
+		   ASKAPLOG_ERROR_STR(logger, "Could not read source catalogue from " << this->itsSrcCatalogue.filename());
+		if(this->itsRefCatalogue.pointList().size()==0)
+		   ASKAPLOG_ERROR_STR(logger, "Could not read source catalogue from " << this->itsRefCatalogue.filename());
+		if(filesOK){
+		  ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcCatalogue.pointList().size());
+		  ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefCatalogue.pointList().size());
+		}
+		return filesOK;
             }
 
             //**************************************************************//
@@ -255,20 +274,27 @@ namespace askap {
                 /// appropriate size by trimList(). The shortened lists are then
                 /// converted into triangle lists, which are matched and
                 /// trimmed.
-	      std::vector<Point> srclist = trimList(this->itsSrcPixList, this->itsTrimSize);
-                ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
-                // std::vector<Point> reflist = trimList(this->itsRefPixList, this->itsTrimSize);
-                // ASKAPLOG_INFO_STR(logger, "Trimmed ref list to " << reflist.size() << " points");
-                this->itsSrcTriList = getTriList(srclist);
-		ASKAPLOG_INFO_STR(logger, "Performing crude match on reference list");
-		std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, this->itsSrcPixList,5);
-		// ASKAPLOG_INFO_STR(logger, "Performing crude match on trimmed reference list");
-		// std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, srclist,5);
-		ASKAPLOG_INFO_STR(logger, "Now have reference list of size " << newreflist.size() << " points");
-		newreflist = trimList(newreflist,this->itsTrimSize);
-		ASKAPLOG_INFO_STR(logger, "Reference list trimmed to " << newreflist.size() << " points");
-		//                this->itsRefTriList = getTriList(reflist);
-                this->itsRefTriList = getTriList(newreflist);
+
+	      this->itsSrcTriList = this->itsSrcCatalogue.triangleList();
+	      if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.pointList(),5.))
+		ASKAPLOG_WARN_STR(logger, "Crude matching failed! Using full reference point list");
+	      this->itsRefTriList = this->itsSrcCatalogue.triangleList();
+	      
+	      // std::vector<Point> srclist = trimList(this->itsSrcPixList, this->itsTrimSize);
+              //   ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
+              //   // std::vector<Point> reflist = trimList(this->itsRefPixList, this->itsTrimSize);
+              //   // ASKAPLOG_INFO_STR(logger, "Trimmed ref list to " << reflist.size() << " points");
+              //   this->itsSrcTriList = getTriList(srclist);
+	      // 	ASKAPLOG_INFO_STR(logger, "Performing crude match on reference list");
+	      // 	std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, this->itsSrcPixList,5);
+	      // 	// ASKAPLOG_INFO_STR(logger, "Performing crude match on trimmed reference list");
+	      // 	// std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, srclist,5);
+	      // 	ASKAPLOG_INFO_STR(logger, "Now have reference list of size " << newreflist.size() << " points");
+	      // 	newreflist = trimList(newreflist,this->itsTrimSize);
+	      // 	ASKAPLOG_INFO_STR(logger, "Reference list trimmed to " << newreflist.size() << " points");
+	      // 	//                this->itsRefTriList = getTriList(reflist);
+              //   this->itsRefTriList = getTriList(newreflist);
+
                 this->itsMatchingTriList = matchLists(this->itsSrcTriList, this->itsRefTriList, this->itsEpsilon);
                 trimTriList(this->itsMatchingTriList);
                 ASKAPLOG_INFO_STR(logger, "Found " << this->itsMatchingTriList.size() << " matches\n");

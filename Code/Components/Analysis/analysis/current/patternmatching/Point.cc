@@ -72,20 +72,8 @@ namespace askap {
       }
 
       Point::Point(analysisutilities::Spectrum *spec):
-	itsFlux(spec->fluxZero()),itsID(spec->id())
+	itsX(spec->raD()),itsY(spec->decD()),itsFlux(spec->fluxZero()),itsID(spec->id())
       {
-	std::string ra=spec->ra();
-	size_t pos = ra.find(':');
-	if(pos==std::string::npos) // RA doesn't have : in it => it is a position in decimal degrees.
-	  this->itsX = atof(ra.c_str());
-	else // need to convert from dms to dec
-	  this->itsX = analysisutilities::dmsToDec(ra) * 15.;
-	std::string dec=spec->dec();
-	pos = dec.find(':');
-	if(pos==std::string::npos) // DEC doesn't have : in it => it is a position in decimal degrees.
-	  this->itsX = atof(dec.c_str());
-	else // need to convert from dms to dec
-	  this->itsX = analysisutilities::dmsToDec(dec);
       }
 
       Point::Point(const Point& p)

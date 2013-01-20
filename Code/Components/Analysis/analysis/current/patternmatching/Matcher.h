@@ -34,6 +34,7 @@
 
 #include <patternmatching/Triangle.h>
 #include <patternmatching/Point.h>
+#include <patternmatching/PointCatalogue.h>
 
 #include <Common/ParameterSet.h>
 
@@ -73,7 +74,7 @@ namespace askap {
                     void setHeader(duchamp::FitsHeader &head);
 
                     /// @brief Read in the lists of source and reference objects.
-                    void readLists();
+                    bool readLists();
 
 		    int srcListSize(){return itsSrcPixList.size();};
 		    int refListSize(){return itsRefPixList.size();};
@@ -134,6 +135,11 @@ namespace askap {
                     ///  measured values ("no"), or the fitted values where available, else the
                     ///  measured ("best");
                     std::string itsFluxUseFit;
+
+		    /// @brief Hold lists for the source catalogue
+		    PointCatalogue itsSrcCatalogue;
+		    /// @brief Hold lists for the reference catalogue
+		    PointCatalogue itsRefCatalogue;
 
                     /// @brief The list of source points (those to be matched)
                     std::vector<Point> itsSrcPixList;

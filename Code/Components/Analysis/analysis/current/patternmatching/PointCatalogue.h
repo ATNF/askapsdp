@@ -43,6 +43,8 @@ namespace askap {
 
     namespace matching {
 
+      const double defaultRatioLimit = 10.;
+
       class PointCatalogue
       {
       public:
@@ -50,10 +52,13 @@ namespace askap {
 	PointCatalogue(LOFAR::ParameterSet &parset);
 	PointCatalogue(const PointCatalogue& other);
 	PointCatalogue& operator= (const PointCatalogue& other);
-	virtual ~PointCatalogue();
+	virtual ~PointCatalogue(){};
 
 	void read();
 	void makeTriangleList();
+	bool crudeMatch(std::vector<Point> &other, double maxSep);
+
+	std::string filename(){return itsFilename;};
 	std::vector<Point> &pointList(){return itsPointList;};
 	std::vector<Triangle> &triangleList(){return itsTriangleList;};
 
@@ -62,8 +67,8 @@ namespace askap {
 	std::vector<Triangle> itsTriangleList;
 	std::string itsFilename;
 	analysisutilities::ModelFactory itsFactory;
-	size_t itsTrimSize;
-	float itsRatioLimit;
+	size_t itsTrimSize; // only use the first itsTrimSize points to make the triangle list
+	double itsRatioLimit;
       };
 
     }

@@ -32,6 +32,7 @@
 #include <iomanip>
 
 #include <modelcomponents/Spectrum.h>
+#include <coordutils/PositionUtilities.h>
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
@@ -105,6 +106,24 @@ namespace askap {
 	std::stringstream ss;
 	ss << std::fixed << std::setprecision(prec) << d;
 	this->itsDec = ss.str();
+      }
+
+      double Spectrum::raD()
+      {
+	size_t pos = this->itsRA.find(':');
+	if(pos==std::string::npos) // RA doesn't have : in it => it is a position in decimal degrees.
+	  return atof(this->itsRA.c_str());
+	else // need to convert from dms to dec
+	  return dmsToDec(this->itsRA) * 15.;
+      }
+
+      double Spectrum::decD()
+      {
+	size_t pos = this->itsDec.find(':');
+	if(pos==std::string::npos) // RA doesn't have : in it => it is a position in decimal degrees.
+	  return atof(this->itsDec.c_str());
+	else // need to convert from dms to dec
+	  return dmsToDec(this->itsDec);
       }
 
 

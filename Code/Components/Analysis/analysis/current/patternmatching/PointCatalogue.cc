@@ -45,8 +45,9 @@ namespace askap {
     namespace matching {
 
       PointCatalogue::PointCatalogue():
-	itsFilename(""),itsTrimSize(0),itsRatioLimit(10.)
+	itsFilename(""),itsTrimSize(0),itsRatioLimit(defaultRatioLimit)
       {
+	if(this->itsTrimSize <= 2) ASKAPLOG_WARN_STR(logger, "Since trimsize<=2, the entire point list will be used to generate triangles.");
 	this->itsPointList = std::vector<Point>(0); 
 	this->itsTriangleList = std::vector<Triangle>(0);
      }
@@ -57,7 +58,7 @@ namespace askap {
 	this->itsFactory = analysisutilities::ModelFactory(parset);
 	this->itsTrimSize = parset.getUint32("trimsize",0);
 	if(this->itsTrimSize <= 2) ASKAPLOG_WARN_STR(logger, "Since trimsize<=2, the entire point list will be used to generate triangles.");
-	this->itsRatioLimit = parset.getFloat("ratioLimit",10.);
+	this->itsRatioLimit = parset.getFloat("ratioLimit",defaultRatioLimit);
 	this->itsPointList = std::vector<Point>(0); 
 	this->itsTriangleList = std::vector<Triangle>(0);
       }
@@ -82,23 +83,28 @@ namespace askap {
       void PointCatalogue::read()
       {
 	std::ifstream fin(this->itsFilename.c_str());
-	ASKAPCHECK(fin.is_open(),"Could not open filename " << this->itsFilename << ".");
-	std::string line;
-	while (getline(fin, line),
-	       !fin.eof()) {
-	  if (line[0] != '#') {  // ignore commented lines
-	    analysisutilities::Spectrum *spec=this->itsFactory.read(line);
-	    this->itsPointList.push_back(spec);
-	    delete spec;
+	this->itsPointList = std::vector<Point>(0);
+	if(!fin.is_open())
+	  ASKAPLOG_WARN_STR(logger,"Could not open filename " << this->itsFilename << ".");
+	else {
+	  std::string line;
+	  while (getline(fin, line),
+		 !fin.eof()) {
+	    if (line[0] != '#') {  // ignore commented lines
+	      analysisutilities::Spectrum *spec=this->itsFactory.read(line);
+	      this->itsPointList.push_back(spec);
+	      delete spec;
+	    }
 	  }
 	}
-
 	this->makeTriangleList();
 
       }
 
       void PointCatalogue::makeTriangleList()
       {
+	std::sort(this->itsPointList.begin(),this->itsPointList.end());
+	std::reverse(this->itsPointList.begin(), this->itsPointList.end());
 	size_t maxPoint=this->itsPointList.size();
 	if(this->itsTrimSize>2) maxPoint = std::min(this->itsTrimSize, this->itsPointList.size());
 
@@ -117,7 +123,30 @@ namespace askap {
 
       }
 
+      bool PointCatalogue::crudeMatch(std::vector<Point> &other, double maxSep)
+      {
+	std::vector<Point>::iterator mine,theirs;
+	std::vector<Point> newlist(0);
+	for(theirs=other.begin();theirs<other.end();theirs++){
+	  
+	  for(mine=this->itsPointList.begin();mine<this->itsPointList.end();mine++){
+	    if(theirs->sep(*mine) < maxSep) newlist.push_back(*mine);
+	  }
 
+	}
+
+	bool matchWorked = (newlist.size()>0);
+	if(matchWorked){
+	  this->itsPointList = newlist;
+	  this->makeTriangleList();
+	}
+	else{
+	  ASKAPLOG_WARN_STR(logger, "Crude matching of point lists did not return any matches");
+	}
+
+	return matchWorked;
+
+      }
 
     }
 

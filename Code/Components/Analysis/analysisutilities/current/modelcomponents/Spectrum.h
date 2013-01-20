@@ -59,8 +59,12 @@ namespace askap {
 		std::string id() {return itsID;};
                 /// @brief Return the right ascension
                 std::string ra() {return itsRA;};
-                /// @brief Return the decliination
+                /// @brief Return the declination
                 std::string dec() {return itsDec;};
+		/// @brief Return the right ascension in degrees
+		double raD();
+		/// @brief Return the declination in degrees
+		double decD();
                 /// @brief Return the flux normalisation
                 double fluxZero() {return itsFlux;};
                 /// @brief Return the major axis
