@@ -55,6 +55,9 @@ namespace askap {
       PointCatalogue::PointCatalogue(LOFAR::ParameterSet &parset)
       {
 	this->itsFilename = parset.getString("filename","");
+	if(parset.getString("database", "Continuum")=="Selavy"){
+	  parset.replace("useDeconvolvedSizes","true");  // set this to true, just so we don't have to worry about the SelavyImage
+	}
 	this->itsFactory = analysisutilities::ModelFactory(parset);
 	this->itsTrimSize = parset.getUint32("trimsize",0);
 	if(this->itsTrimSize <= 2) ASKAPLOG_WARN_STR(logger, "Since trimsize<=2, the entire point list will be used to generate triangles.");
@@ -125,18 +128,24 @@ namespace askap {
 
       bool PointCatalogue::crudeMatch(std::vector<Point> &other, double maxSep)
       {
+	ASKAPLOG_DEBUG_STR(logger, "Performing crude match with maximum separation = " << maxSep);
 	std::vector<Point>::iterator mine,theirs;
 	std::vector<Point> newlist(0);
-	for(theirs=other.begin();theirs<other.end();theirs++){
-	  
-	  for(mine=this->itsPointList.begin();mine<this->itsPointList.end();mine++){
-	    if(theirs->sep(*mine) < maxSep) newlist.push_back(*mine);
+	for(mine=this->itsPointList.begin();mine<this->itsPointList.end();mine++){
+	  bool stop=false;
+	  for(theirs=other.begin();theirs<other.end()&&!stop;theirs++){
+	    
+	    if(theirs->sep(*mine) < maxSep){
+	      newlist.push_back(*mine);
+	      stop=true;
+	    }
 	  }
 
 	}
 
 	bool matchWorked = (newlist.size()>0);
 	if(matchWorked){
+	  ASKAPLOG_DEBUG_STR(logger, "Reduced list from " << this->itsPointList.size() << " points to " << newlist.size() << " points");
 	  this->itsPointList = newlist;
 	  this->makeTriangleList();
 	}

@@ -63,8 +63,9 @@ class ImageQualApp : public askap::Application
                 ASKAPLOG_INFO_STR(logger, "Read image metadata");
                 Matcher matcher(subset);
                 matcher.setHeader(image.cube().header());
-                matcher.readLists();
-                if (matcher.srcListSize()>0 && matcher.refListSize()>0){
+//                 matcher.readLists();
+//                 if (matcher.srcListSize()>0 && matcher.refListSize()>0){
+                if(matcher.readLists()){
                     bool doFixRef = subset.getBool("convolveReference", true);
 
                     if (doFixRef) matcher.fixRefList(image.getBeamInfo());

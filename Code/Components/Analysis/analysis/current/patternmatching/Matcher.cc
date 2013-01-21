@@ -138,9 +138,9 @@ namespace askap {
                 this->itsOutputBestFile = parset.getString("matchFile", "matches.txt");
                 this->itsOutputMissFile = parset.getString("missFile", "misses.txt");
 
-		LOFAR::ParameterSet subset=parset.makeSubset(".source");
+		LOFAR::ParameterSet subset=parset.makeSubset("source.");
 		this->itsSrcCatalogue = PointCatalogue(subset);
-		subset=parset.makeSubset(".reference");
+		subset=parset.makeSubset("reference.");
 		this->itsRefCatalogue = PointCatalogue(subset);
             }
 
@@ -278,7 +278,7 @@ namespace askap {
 	      this->itsSrcTriList = this->itsSrcCatalogue.triangleList();
 	      if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.pointList(),5.))
 		ASKAPLOG_WARN_STR(logger, "Crude matching failed! Using full reference point list");
-	      this->itsRefTriList = this->itsSrcCatalogue.triangleList();
+	      this->itsRefTriList = this->itsRefCatalogue.triangleList();
 	      
 	      // std::vector<Point> srclist = trimList(this->itsSrcPixList, this->itsTrimSize);
               //   ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
