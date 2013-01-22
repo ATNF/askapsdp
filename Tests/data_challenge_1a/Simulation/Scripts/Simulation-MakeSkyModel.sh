@@ -26,7 +26,7 @@ if [ $doSmoothSM == true ]; then
     cat > $smoothQsub <<EOF
 #!/bin/bash -l
 #PBS -q debugq
-#PBS -W group_list=astronomy116
+#PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=10GB:mpiprocs=1
 #PBS -M matthew.whiting@csiro.au
@@ -98,7 +98,7 @@ if [ $doSF_SM == true ]; then
     cat > $cduchampQsub <<EOF
 #!/bin/bash -l
 #PBS -q debugq
-#PBS -W group_list=astronomy116
+#PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1
 #PBS -M matthew.whiting@csiro.au
@@ -180,7 +180,7 @@ if [ $doComparisonSM == true ]; then
     cat > $modelcompQsub <<EOF
 #!/bin/bash -l
 #PBS -q debugq
-#PBS -W group_list=astronomy116
+#PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
 #PBS -M matthew.whiting@csiro.au

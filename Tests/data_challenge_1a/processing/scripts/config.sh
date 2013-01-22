@@ -12,8 +12,8 @@
 #WORKDIR=run1
 WORKDIR="run_`date +%Y%m%d_%H%M%S`"
 
-# The PBS Group ID to which the job will be billed (eg. astronomy116 on epic)
-QUEUEGROUP=astronomy116
+# The PBS Group ID to which the job will be billed (eg. astronomy554 on epic)
+QUEUEGROUP=astronomy554
 
 # Location (relative to the workdir or absolute) of the input measurement set
 INPUT_MS=../input/dc1a.ms

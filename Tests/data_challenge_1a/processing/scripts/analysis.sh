@@ -11,7 +11,7 @@ fi
 #########################
 # Making the sky model files for the comparison
 
-#skymodeldir=/scratch/astronomy116/whi550/DataChallenge/Simulation/SkyModel/current
+#skymodeldir=/scratch/astronomy554/whi550/DataChallenge/Simulation/SkyModel/current
 #cp ${skymodeldir}/duchamp-Results.txt skyModel-catalogue-results.txt
 #cp ${skymodeldir}/duchamp-Results.ann skyModel-catalogue-results.ann
 #perl -pi -e 's/RED/GREEN/g' skyModel-catalogue-results.ann

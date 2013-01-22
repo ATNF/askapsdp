@@ -68,7 +68,7 @@ if [ $doCreateCR == true ]; then
     crQsub=${crdir}/${WORKDIR}/createModel.qsub
     cat > $crQsub <<EOF
 #!/bin/bash -l
-#PBS -W group_list=astronomy116
+#PBS -W group_list=astronomy554
 #PBS -l walltime=9:00:00
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1+${numworkernodes}:ncpus=12:mem=23GB:mpiprocs=${workersPerNodeCR}
 #PBS -M matthew.whiting@csiro.au
@@ -153,7 +153,7 @@ if [ $doSliceCR == true ]; then
     slQsub=${crdir}/${WORKDIR}/cubeslice-continuum.qsub
     cat > $slQsub <<EOF
 #!/bin/bash -l
-#PBS -W group_list=astronomy116
+#PBS -W group_list=astronomy554
 #PBS -l walltime=4:00:00
 #PBS -l select=1:ncpus=1:mem=8GB:mpiprocs=1
 #PBS -M matthew.whiting@csiro.au
