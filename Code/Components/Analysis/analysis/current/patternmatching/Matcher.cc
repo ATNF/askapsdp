@@ -566,7 +566,7 @@ namespace askap {
                     }
 
                     if (!isMatch) {
-                        fout << "R\t[" << pt->ID() << "]\t"
+                        fout << "R\t" << pt->ID() << "\t"
                             << std::setw(10) << std::setprecision(3) << pt->x()  << " "
                             << std::setw(10) << std::setprecision(3) << pt->y() << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux()  << " "
@@ -587,7 +587,7 @@ namespace askap {
                     }
 
                     if (!isMatch) {
-                        fout << "S\t[" << pt->ID() << "]\t"
+                        fout << "S\t" << pt->ID() << "\t"
                             << std::setw(10) << std::setprecision(3) << pt->x()  << " "
                             << std::setw(10) << std::setprecision(3) << pt->y()  << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux() << " "
