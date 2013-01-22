@@ -110,20 +110,12 @@ namespace askap {
 
       double Spectrum::raD()
       {
-	size_t pos = this->itsRA.find(':');
-	if(pos==std::string::npos) // RA doesn't have : in it => it is a position in decimal degrees.
-	  return atof(this->itsRA.c_str());
-	else // need to convert from dms to dec
-	  return dmsToDec(this->itsRA) * 15.;
+	return raToDouble(this->itsRA);
       }
 
       double Spectrum::decD()
       {
-	size_t pos = this->itsDec.find(':');
-	if(pos==std::string::npos) // RA doesn't have : in it => it is a position in decimal degrees.
-	  return atof(this->itsDec.c_str());
-	else // need to convert from dms to dec
-	  return dmsToDec(this->itsDec);
+	return decToDouble(this->itsDec);
       }
 
 

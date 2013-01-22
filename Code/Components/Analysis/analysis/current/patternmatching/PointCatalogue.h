@@ -59,16 +59,24 @@ namespace askap {
 	bool crudeMatch(std::vector<Point> &other, double maxSep);
 
 	std::string filename(){return itsFilename;};
-	std::vector<Point> &pointList(){return itsPointList;};
+	std::vector<Point> &fullPointList(){return itsFullPointList;};
+	std::vector<Point> &pointList(){return itsWorkingPointList;};
 	std::vector<Triangle> &triangleList(){return itsTriangleList;};
+	double ratioLimit(){return itsRatioLimit;};
+	double raRef(){return itsRAref;};
+	double decRef(){return itsDECref;};
 
       protected:
-	std::vector<Point> itsPointList;
+	std::vector<Point> itsFullPointList;
+	std::vector<Point> itsWorkingPointList;
 	std::vector<Triangle> itsTriangleList;
 	std::string itsFilename;
 	analysisutilities::ModelFactory itsFactory;
 	size_t itsTrimSize; // only use the first itsTrimSize points to make the triangle list
 	double itsRatioLimit;
+	bool   itsFlagOffsetPositions;
+	double itsRAref;
+	double itsDECref;
       };
 
     }

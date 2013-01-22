@@ -32,6 +32,7 @@
 #include <patternmatching/Triangle.h>
 #include <modelcomponents/ModelFactory.h>
 #include <modelcomponents/Spectrum.h>
+#include <coordutils/PositionUtilities.h>
 
 #include <Common/ParameterSet.h>
 
@@ -45,10 +46,11 @@ namespace askap {
     namespace matching {
 
       PointCatalogue::PointCatalogue():
-	itsFilename(""),itsTrimSize(0),itsRatioLimit(defaultRatioLimit)
+	itsFilename(""),itsTrimSize(0),itsRatioLimit(defaultRatioLimit),itsFlagOffsetPositions(false),itsRAref(0.),itsDECref(0.)
       {
-	if(this->itsTrimSize <= 2) ASKAPLOG_WARN_STR(logger, "Since trimsize<=2, the entire point list will be used to generate triangles.");
-	this->itsPointList = std::vector<Point>(0); 
+	// if(this->itsTrimSize <= 2) ASKAPLOG_WARN_STR(logger, "Since trimsize<=2, the entire point list will be used to generate triangles.");
+	this->itsFullPointList = std::vector<Point>(0); 
+	this->itsWorkingPointList = std::vector<Point>(0); 
 	this->itsTriangleList = std::vector<Triangle>(0);
      }
 
@@ -62,8 +64,21 @@ namespace askap {
 	this->itsTrimSize = parset.getUint32("trimsize",0);
 	if(this->itsTrimSize <= 2) ASKAPLOG_WARN_STR(logger, "Since trimsize<=2, the entire point list will be used to generate triangles.");
 	this->itsRatioLimit = parset.getFloat("ratioLimit",defaultRatioLimit);
-	this->itsPointList = std::vector<Point>(0); 
+	this->itsFullPointList = std::vector<Point>(0); 
+	this->itsWorkingPointList = std::vector<Point>(0); 
 	this->itsTriangleList = std::vector<Triangle>(0);
+	std::string raRef=parset.getString("raRef","");
+	std::string decRef=parset.getString("decRef","");
+	this->itsFlagOffsetPositions = (raRef!="" && decRef!="");
+	if(this->itsFlagOffsetPositions){
+	  this->itsRAref = analysisutilities::raToDouble(raRef);
+	  this->itsDECref = analysisutilities::decToDouble(decRef);
+	  ASKAPLOG_DEBUG_STR(logger, "Using reference position (RA,DEC)=("<<this->itsRAref<<","<<this->itsDECref<<")");
+	}
+	else{
+	  if(raRef=="" || decRef=="")
+	    ASKAPLOG_WARN_STR(logger, "To offset positions, you need to provide both raRef and decRef parameters");
+	}
       }
 
       PointCatalogue::PointCatalogue(const PointCatalogue& other)
@@ -78,15 +93,19 @@ namespace askap {
 	this->itsFactory = other.itsFactory;
 	this->itsTrimSize = other.itsTrimSize;
 	this->itsRatioLimit = other.itsRatioLimit;
-	this->itsPointList = other.itsPointList;
+	this->itsFullPointList = other.itsFullPointList;
+	this->itsWorkingPointList = other.itsWorkingPointList;
 	this->itsTriangleList = other.itsTriangleList;
+	this->itsFlagOffsetPositions = other.itsFlagOffsetPositions;
+	this->itsRAref = other.itsRAref;
+	this->itsDECref = other.itsDECref;
 	return *this;
       }
 
       void PointCatalogue::read()
       {
 	std::ifstream fin(this->itsFilename.c_str());
-	this->itsPointList = std::vector<Point>(0);
+	this->itsFullPointList = std::vector<Point>(0);
 	if(!fin.is_open())
 	  ASKAPLOG_WARN_STR(logger,"Could not open filename " << this->itsFilename << ".");
 	else {
@@ -95,27 +114,34 @@ namespace askap {
 		 !fin.eof()) {
 	    if (line[0] != '#') {  // ignore commented lines
 	      analysisutilities::Spectrum *spec=this->itsFactory.read(line);
-	      this->itsPointList.push_back(spec);
+	      this->itsFullPointList.push_back(spec);
+	      if(this->itsFlagOffsetPositions){
+		this->itsFullPointList.back().setX(analysisutilities::angularSeparation(this->itsRAref,0,spec->raD(),0.));
+		this->itsFullPointList.back().setY(analysisutilities::angularSeparation(0,this->itsDECref,0,spec->decD()));
+		ASKAPLOG_DEBUG_STR(logger, "Read source at position ("<<spec->raD()<<","<<spec->decD()
+				   <<"), and storing point with (x,y)=("<<itsFullPointList.back().x()<<","<<itsFullPointList.back().y()<<")");
+	      }
 	      delete spec;
 	    }
 	  }
 	}
+	this->itsWorkingPointList = this->itsFullPointList;
 	this->makeTriangleList();
 
       }
 
       void PointCatalogue::makeTriangleList()
       {
-	std::sort(this->itsPointList.begin(),this->itsPointList.end());
-	std::reverse(this->itsPointList.begin(), this->itsPointList.end());
-	size_t maxPoint=this->itsPointList.size();
-	if(this->itsTrimSize>2) maxPoint = std::min(this->itsTrimSize, this->itsPointList.size());
+	std::sort(this->itsWorkingPointList.begin(),this->itsWorkingPointList.end());
+	std::reverse(this->itsWorkingPointList.begin(), this->itsWorkingPointList.end());
+	size_t maxPoint=this->itsWorkingPointList.size();
+	if(this->itsTrimSize>2) maxPoint = std::min(this->itsTrimSize, this->itsWorkingPointList.size());
 
 	this->itsTriangleList = std::vector<Triangle>(0);
 	for (size_t i = 0; i < maxPoint - 2; i++) {
 	  for (size_t j = i + 1; j < maxPoint - 1; j++) {
 	    for (size_t k = j + 1; k < maxPoint; k++) {
-	      Triangle tri(this->itsPointList[i], this->itsPointList[j], this->itsPointList[k]);
+	      Triangle tri(this->itsWorkingPointList[i], this->itsWorkingPointList[j], this->itsWorkingPointList[k]);
 
 	      if (tri.ratio() < this->itsRatioLimit ) this->itsTriangleList.push_back(tri);
 	    }
@@ -130,27 +156,27 @@ namespace askap {
       {
 	ASKAPLOG_DEBUG_STR(logger, "Performing crude match with maximum separation = " << maxSep);
 	std::vector<Point>::iterator mine,theirs;
-	std::vector<Point> newlist(0);
-	for(mine=this->itsPointList.begin();mine<this->itsPointList.end();mine++){
+	this->itsWorkingPointList = std::vector<Point>(0);
+	for(mine=this->itsFullPointList.begin();mine<this->itsFullPointList.end();mine++){
 	  bool stop=false;
 	  for(theirs=other.begin();theirs<other.end()&&!stop;theirs++){
 	    
 	    if(theirs->sep(*mine) < maxSep){
-	      newlist.push_back(*mine);
+	      this->itsWorkingPointList.push_back(*mine);
 	      stop=true;
 	    }
 	  }
 
 	}
 
-	bool matchWorked = (newlist.size()>0);
+	bool matchWorked = (this->itsWorkingPointList.size()>0);
 	if(matchWorked){
-	  ASKAPLOG_DEBUG_STR(logger, "Reduced list from " << this->itsPointList.size() << " points to " << newlist.size() << " points");
-	  this->itsPointList = newlist;
+	  ASKAPLOG_DEBUG_STR(logger, "Reduced list from " << this->itsFullPointList.size() << " points to " << this->itsWorkingPointList.size() << " points");
 	  this->makeTriangleList();
 	}
 	else{
 	  ASKAPLOG_WARN_STR(logger, "Crude matching of point lists did not return any matches");
+	  this->itsWorkingPointList = this->itsFullPointList;
 	}
 
 	return matchWorked;

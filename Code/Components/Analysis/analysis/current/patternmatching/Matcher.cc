@@ -276,7 +276,7 @@ namespace askap {
                 /// trimmed.
 
 	      this->itsSrcTriList = this->itsSrcCatalogue.triangleList();
-	      if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.pointList(),5.))
+	      if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.fullPointList(),1.4e-3))
 		ASKAPLOG_WARN_STR(logger, "Crude matching failed! Using full reference point list");
 	      this->itsRefTriList = this->itsRefCatalogue.triangleList();
 	      
@@ -387,7 +387,8 @@ namespace askap {
                     std::vector<Point>::iterator src, ref;
                     std::vector<std::pair<Point, Point> >::iterator match;
 
-                    for (src = this->itsSrcPixList.begin(); src < this->itsSrcPixList.end(); src++) {
+                    // for (src = this->itsSrcPixList.begin(); src < this->itsSrcPixList.end(); src++) {
+                    for (src = this->itsSrcCatalogue.fullPointList().begin(); src < this->itsSrcCatalogue.fullPointList().end(); src++) {
                         bool isMatch = false;
                         match = this->itsMatchingPixList.begin();
 
@@ -399,20 +400,20 @@ namespace askap {
                             float minOffset = 0.;
                             int minRef = -1;
 
-                            for (ref = this->itsRefPixList.begin(); ref < this->itsRefPixList.end(); ref++) {
+                            for (ref = this->itsRefCatalogue.fullPointList().begin(); ref < this->itsRefCatalogue.fullPointList().end(); ref++) {
                                 float offset = hypot(src->x() - ref->x() - this->itsMeanDx,
                                                      src->y() - ref->y() - this->itsMeanDy);
 
                                 if (offset < matchRadius*this->itsEpsilon) {
                                     if ((minRef == -1) || (offset < minOffset)) {
                                         minOffset = offset;
-                                        minRef = int(ref - this->itsRefPixList.begin());
+                                        minRef = int(ref - this->itsRefCatalogue.fullPointList().begin());
                                     }
                                 }
                             }
 
                             if (minRef >= 0) { // there was a match within errors
-                                ref = this->itsRefPixList.begin() + minRef;
+			      ref = this->itsRefCatalogue.fullPointList().begin() + minRef;
                                 std::pair<Point, Point> newMatch(*src, *ref);
                                 this->itsMatchingPixList.push_back(newMatch);
                             }
@@ -511,7 +512,7 @@ namespace askap {
                     else matchType = '2';
 
 		    fout << matchType << "\t" << match->first.ID() << " " << match->second.ID() << " " << 
-		      std::setw(8)  << std::setprecision(3) << match->first.sep(match->second) << "\n";
+		      std::setw(8)  << std::setprecision(6) << match->first.sep(match->second) << "\n";
 
                     // fout << matchType << "\t"
                     //     << "[" << match->first.ID() << "]\t"
@@ -556,7 +557,7 @@ namespace askap {
                 std::vector<std::pair<Point, Point> >::iterator match;
 		//                Stuff nullstuff(0., 0., 0., 0, 0, 0, 0, 0.);
 
-                for (pt = this->itsRefPixList.begin(); pt < this->itsRefPixList.end(); pt++) {
+                for (pt = this->itsRefCatalogue.fullPointList().begin(); pt < this->itsRefCatalogue.fullPointList().end(); pt++) {
                     bool isMatch = false;
                     match = this->itsMatchingPixList.begin();
 
@@ -577,7 +578,7 @@ namespace askap {
                     }
                 }
 
-                for (pt = this->itsSrcPixList.begin(); pt < this->itsSrcPixList.end(); pt++) {
+                for (pt = this->itsSrcCatalogue.fullPointList().begin(); pt < this->itsSrcCatalogue.fullPointList().end(); pt++) {
                     bool isMatch = false;
                     match = this->itsMatchingPixList.begin();
 
@@ -611,7 +612,7 @@ namespace askap {
 	    Point match;
 
 	    fout.open("match-summary-sources.txt");
-	    for(pt=this->itsSrcPixList.begin(); pt<this->itsSrcPixList.end(); pt++){
+	    for(pt=this->itsSrcCatalogue.fullPointList().begin(); pt<this->itsSrcCatalogue.fullPointList().end(); pt++){
 	      bool isMatch=false;
 	      for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
 		isMatch = (pt->ID() == mpair->first.ID());
@@ -619,8 +620,8 @@ namespace askap {
 	      }
 	      std::string matchID = isMatch ? match.ID() : "---";
 	      fout << pt->ID() << " " << matchID << "\t"
-                            << std::setw(10) << std::setprecision(3) << pt->x()  << " "
-                            << std::setw(10) << std::setprecision(3) << pt->y()  << " "
+                            << std::setw(10) << std::setprecision(7) << pt->x()  << " "
+                            << std::setw(10) << std::setprecision(7) << pt->y()  << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux() << " "
                             // << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
                             // << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
@@ -631,7 +632,7 @@ namespace askap {
 	    fout.close();
 
 	    fout.open("match-summary-reference.txt");
-	    for(pt=this->itsRefPixList.begin(); pt<this->itsRefPixList.end(); pt++){
+	    for(pt=this->itsRefCatalogue.fullPointList().begin(); pt<this->itsRefCatalogue.fullPointList().end(); pt++){
 	      bool isMatch=false;
 	      for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
 		isMatch = (pt->ID() == mpair->second.ID());
@@ -639,9 +640,9 @@ namespace askap {
 	      }
 	      std::string matchID = isMatch ? match.ID() : "---";
 	      fout << pt->ID() << " " << matchID << "\t"
-                            << std::setw(10) << std::setprecision(3) << pt->x()  << " "
-                            << std::setw(10) << std::setprecision(3) << pt->y() << " "
-                            << std::setw(10) << std::setprecision(8) << pt->flux()  << " "
+		   << std::setw(10) << std::setprecision(7) << pt->x()  << " "
+		   << std::setw(10) << std::setprecision(7) << pt->y() << " "
+		   << std::setw(10) << std::setprecision(8) << pt->flux()  << " "
                             // << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
                             // << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
                             // << std::setw(10) << std::setprecision(3) << pt->PA()  << " "

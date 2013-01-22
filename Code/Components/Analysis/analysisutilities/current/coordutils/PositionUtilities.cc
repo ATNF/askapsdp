@@ -180,6 +180,14 @@ namespace askap {
             return output.str();
         }
 
+      double positionToDouble(std::string position)
+      {
+	size_t pos = position.find(':');
+	if(pos==std::string::npos) // Position doesn't have : in it => it is a position in decimal degrees.
+	  return atof(position.c_str());
+	else // need to convert from dms to dec
+	  return dmsToDec(position);
+      }
 
         double angularSeparation(const std::string ra1, const std::string dec1,
                                  const std::string ra2, const std::string dec2)

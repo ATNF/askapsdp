@@ -45,6 +45,10 @@ namespace askap {
         std::string decToDMS(const double input, std::string type = "DEC",
                              int secondPrecision = 2, std::string separator = ":");
 
+	double positionToDouble(std::string position);
+	inline double raToDouble(std::string position){return positionToDouble(position)*(position.find(':')==std::string::npos?1.:15.);};
+	inline double decToDouble(std::string position){return positionToDouble(position);};
+
         /// @brief Find the angular separation of two sky positions
         double angularSeparation(const std::string ra1, const std::string dec1,
                                  const std::string ra2, const std::string dec2);
