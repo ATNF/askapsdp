@@ -276,7 +276,7 @@ namespace askap {
                 /// trimmed.
 
 	      this->itsSrcTriList = this->itsSrcCatalogue.triangleList();
-	      if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.fullPointList(),1.4e-3))
+	      if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.fullPointList(),this->itsEpsilon))
 		ASKAPLOG_WARN_STR(logger, "Crude matching failed! Using full reference point list");
 	      this->itsRefTriList = this->itsRefCatalogue.triangleList();
 	      
@@ -297,7 +297,7 @@ namespace askap {
 
                 this->itsMatchingTriList = matchLists(this->itsSrcTriList, this->itsRefTriList, this->itsEpsilon);
                 trimTriList(this->itsMatchingTriList);
-                ASKAPLOG_INFO_STR(logger, "Found " << this->itsMatchingTriList.size() << " matches\n");
+                ASKAPLOG_INFO_STR(logger, "Found " << this->itsMatchingTriList.size() << " matches");
             }
 
             //**************************************************************//
@@ -312,7 +312,7 @@ namespace askap {
                 if (this->itsMatchingTriList.size() > 0) {
                     this->itsMatchingPixList = vote(this->itsMatchingTriList);
                     this->itsNumMatch1 = this->itsMatchingPixList.size();
-                    ASKAPLOG_INFO_STR(logger, "After voting, have found " << this->itsMatchingPixList.size() << " matching points\n");
+                    ASKAPLOG_INFO_STR(logger, "After voting, have found " << this->itsMatchingPixList.size() << " matching points");
                     this->itsSenseMatch = (this->itsMatchingTriList[0].first.isClockwise() ==
                                            this->itsMatchingTriList[0].second.isClockwise());
 
@@ -330,9 +330,11 @@ namespace askap {
             {
                 /// @details The mean and rms offsets in the x- and
                 /// y-directions are measured for the matching points.
-	      std::vector<double> dx(this->itsNumMatch1,0.),dy(this->itsNumMatch1,0.);
+	      // std::vector<double> dx(this->itsNumMatch1,0.),dy(this->itsNumMatch1,0.);
+	      std::vector<double> dx(this->itsMatchingPixList.size(),0.),dy(this->itsMatchingPixList.size(),0.);
 
-                for (int i = 0; i < this->itsNumMatch1; i++) {
+                // for (int i = 0; i < this->itsNumMatch1; i++) {
+	      for (size_t i = 0; i < this->itsMatchingPixList.size(); i++) {
                     if (this->itsSenseMatch) {
                         dx[i] = this->itsMatchingPixList[i].first.x() - this->itsMatchingPixList[i].second.x();
                         dy[i] = this->itsMatchingPixList[i].first.y() - this->itsMatchingPixList[i].second.y();
@@ -345,23 +347,29 @@ namespace askap {
 
                 this->itsMeanDx = this->itsMeanDy = 0.;
 
-                for (int i = 0; i < this->itsNumMatch1; i++) {
+                // for (int i = 0; i < this->itsNumMatch1; i++) {
+                for (size_t i = 0; i < this->itsMatchingPixList.size(); i++) {
                     this->itsMeanDx += dx[i];
                     this->itsMeanDy += dy[i];
                 }
 
-                this->itsMeanDx /= double(this->itsNumMatch1);
-                this->itsMeanDy /= double(this->itsNumMatch1);
+                // this->itsMeanDx /= double(this->itsNumMatch1);
+                // this->itsMeanDy /= double(this->itsNumMatch1);
+                this->itsMeanDx /= double(this->itsMatchingPixList.size());
+                this->itsMeanDy /= double(this->itsMatchingPixList.size());
 
                 this->itsRmsDx = this->itsRmsDy = 0.;
 
-                for (int i = 0; i < this->itsNumMatch1; i++) {
+                // for (int i = 0; i < this->itsNumMatch1; i++) {
+                for (size_t i = 0; i < this->itsMatchingPixList.size(); i++) {
                     this->itsRmsDx += (dx[i] - this->itsMeanDx) * (dx[i] - this->itsMeanDx);
                     this->itsRmsDy += (dy[i] - this->itsMeanDy) * (dy[i] - this->itsMeanDy);
                 }
 
-                this->itsRmsDx = sqrt(this->itsRmsDx / (double(this->itsNumMatch1 - 1)));
-                this->itsRmsDy = sqrt(this->itsRmsDy / (double(this->itsNumMatch1 - 1)));
+                // this->itsRmsDx = sqrt(this->itsRmsDx / (double(this->itsNumMatch1 - 1)));
+                // this->itsRmsDy = sqrt(this->itsRmsDy / (double(this->itsNumMatch1 - 1)));
+                this->itsRmsDx = sqrt(this->itsRmsDx / (double(this->itsMatchingPixList.size() - 1)));
+                this->itsRmsDy = sqrt(this->itsRmsDy / (double(this->itsMatchingPixList.size() - 1)));
                 std::stringstream ss;
                 ss.setf(std::ios::fixed);
                 ss << "Offsets between the two are dx = " << this->itsMeanDx << " +- " << this->itsRmsDx
@@ -422,6 +430,8 @@ namespace askap {
 
                     this->rejectMultipleMatches();
                     this->itsNumMatch2 = this->itsMatchingPixList.size();
+
+		    ASKAPLOG_INFO_STR(logger, "Total number of matches = " << this->itsMatchingPixList.size());
                 }
             }
 

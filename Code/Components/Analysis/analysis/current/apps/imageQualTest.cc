@@ -74,6 +74,7 @@ class ImageQualApp : public askap::Application
                     matcher.findMatches();
                     matcher.findOffsets();
                     matcher.addNewMatches();
+                    matcher.findOffsets();
                     matcher.outputLists();
                     matcher.outputSummary();
                 } else{
