@@ -9,24 +9,9 @@ if [ $CONTINUUMIMAGE == "" ]; then
 fi
 
 #########################
-# Making the sky model files for the comparison
-
-#skymodeldir=/scratch/astronomy554/whi550/DataChallenge/Simulation/SkyModel/current
-#cp ${skymodeldir}/duchamp-Results.txt skyModel-catalogue-results.txt
-#cp ${skymodeldir}/duchamp-Results.ann skyModel-catalogue-results.ann
-#perl -pi -e 's/RED/GREEN/g' skyModel-catalogue-results.ann
-
-#cp ${skymodeldir}/duchamp-fitResults.txt skyModel-catalogue.txt
-cp ${INPUT_SKYMODEL_TXT} skyModel-catalogue.txt
-awk '{if(NF==24) print $3,$4,$7,$15,$16,$9,$10,$11}' skyModel-catalogue.txt  > skyModel-catalogue-basic.txt
-awk '$2>-48. && $2<-42. && $1<191.875 && $1>183.25' skyModel-catalogue-basic.txt > skyModel-catalogue-basic-trim.txt
-awk '$3>0.05' skyModel-catalogue-basic-trim.txt > skyModel-catalogue-basic-trim-bright.txt
-sort -k3nr skyModel-catalogue-basic-trim.txt | head -20 > skyModel-catalogue-basic-trim-brightest.txt
-#cp ${skymodeldir}/duchamp-fitResults.ann skyModel-catalogue.ann
-#perl -pi -e 's/BLUE/YELLOW/g' skyModel-catalogue.ann
-
-#cp ${skymodeldir}/duchamp-SubimageLocations.ann skyModel-SubimageLocations.ann
-#perl -pi -e 's/YELLOW/WHITE/g' skyModel-SubimageLocations.ann
+# Copying the sky model files for the cross-match
+skymodel=skyModel-catalogue.txt
+cp ${INPUT_SKYMODEL_TXT} ${skymodel}
 
 #########################
 
@@ -47,7 +32,7 @@ cd \$PBS_O_WORKDIR
 
 cduchamp=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/cduchamp.sh
 cimstat=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/cimstat.sh
-imagequal=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/imageQualTest.sh
+crossmatch=${ASKAP_ROOT}/Code/Components/Analysis/analysis/current/install/bin/crossmatch.sh
 plotEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/plotEval.py
 fluxEval=${ASKAP_ROOT}/Code/Components/Analysis/evaluation/current/install/bin/fluxEval.py
 
@@ -76,14 +61,15 @@ Cimstat.image = ${CONTINUUMIMAGE}
 Cimstat.flagSubsection = true
 Cimstat.subsection = [601:2700,601:2700,*,*]
 #
-imageQual.srcFile = duchamp-fitResults.txt
-imageQual.refFile = skyModel-catalogue-basic-trim.txt
-imageQual.image = ${CONTINUUMIMAGE}
-imageQual.RA = 12:30:00
-imageQual.Dec = -45:00:00
-imageQual.epsilon = .3
-imageQual.trimsize = 30
-imageQual.convolveReference = false
+Crossmatch.source.filename     = duchamp-fitResults.txt
+Crossmatch.source.database     = Selavy
+Crossmatch.source.trimsize     = 30
+Crossmatch.reference.filename  = ${skymodel}
+Crossmatch.reference.database  = Selavy
+Crossmatch.reference.trimsize  = 30
+Crossmatch.epsilon = 8.e-3
+Crossmatch.matchfile = matches.txt
+Crossmatch.missfile = misses.txt
 EOF_INNER
 
 pystat=getStats-\${PBS_JOBID}.py
@@ -106,7 +92,7 @@ EOF_INNER
 
 statlog=log/cimstat-\${PBS_JOBID}.log
 sflog=log/cduchamp-\${PBS_JOBID}.log
-iqlog=log/imagequal-\${PBS_JOBID}.log
+cmlog=log/crossmatch-\${PBS_JOBID}.log
 pelog=log/ploteval-\${PBS_JOBID}.log
 felog=log/fluxeval-\${PBS_JOBID}.log
 
@@ -123,7 +109,7 @@ if [ \$err -ne 0 ]; then
     exit \$err
 fi
 
-mpirun -np 1 \$imagequal -c \$parset > \$iqlog
+mpirun -np 1 \$crossmatch -c \$parset > \$cmlog
 err=\$?
 if [ \$err -ne 0 ]; then
     exit \$err
@@ -175,10 +161,10 @@ if [ ! -e matches.txt ] || [ ! -e misses.txt ]; then
     yoffset=0
     yoffseterr=0
 else
-    xoffset=\\\`grep Offsets \$iqlog | awk '{print \\\$15}'\\\`
-    xoffseterr=\\\`grep Offsets \$iqlog | awk '{print \\\$17}'\\\`
-    yoffset=\\\`grep Offsets \$iqlog | awk '{print \\\$20}'\\\`
-    yoffseterr=\\\`grep Offsets \$iqlog | awk '{print \\\$22}'\\\`
+    xoffset=\\\`grep Offsets \$cmlog | tail -1 | awk '{print \\\$15}'\\\`
+    xoffseterr=\\\`grep Offsets \$cmlog | tail -1 | awk '{print \\\$17}'\\\`
+    yoffset=\\\`grep Offsets \$cmlog | tail -1 | awk '{print \\\$20}'\\\`
+    yoffseterr=\\\`grep Offsets \$cmlog | tail -1 | awk '{print \\\$22}'\\\`
 fi
 imagerVersion=\\\`grep synthesis==current log/cimager-cont-clean-${QSUB_CONTCLEAN}.log | grep "(0, " | awk '{print \\\$12}'\\\`
 analysisVersion=\\\`grep analysis==current \$sflog | grep "(0, " | awk '{print \\\$12}'\\\`
