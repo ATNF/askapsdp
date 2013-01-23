@@ -15,38 +15,10 @@ require('matplotlib')
 from pylab import *
 from numpy import *
 import gc
+from utils import *
 
 font = {'fontsize' : '10'}
 
-## @ingroup plotting
-# @param array The array of values
-def madfm(array):
-    """
-    Return the median absolute deviation from the median for an array of values
-    """
-    med = median(array)
-    adfm = abs(array-med)
-    return median(adfm)
-
-## @ingroup plotting
-# @param rms The rms value to be converted
-def rmsToMADFM(rms=None):
-    """ 
-    Convert an rms value to a MADFM (median absolute deviation from
-    median), assuming Gaussian statistics
-    """
-    return rms * 0.6744888
-
-## @ingroup plotting
-# @param mad The MADFM value to be converted
-def madfmToRMS(mad=None):
-    """ 
-    Convert a MADFM (median absolute deviation from median) value to
-    an rms, assuming Gaussian statistics
-    """
-    return mad / 0.6744888
-
-#############################################################################
 
 ## @ingroup plotting
 #    @param array The array of values
@@ -453,12 +425,8 @@ def posOffsetPlot(xS=None, yS=None, xR=None, yR=None, flag=None, minPlottedOff=5
     ylabel(r'$\Delta y\ [\prime\prime]$',font)
     title('Positional offsets of matches',font)
     an = linspace(0,2*pi,100)
-    plot( 1*cos(an), 1*sin(an), ':k' )
-    plot( 2*cos(an), 2*sin(an), ':k' )
-    plot( 4*cos(an), 4*sin(an), ':k' )
-    plot( 6*cos(an), 6*sin(an), ':k' )
-    plot( 8*cos(an), 8*sin(an), ':k' )
-    plot(10*cos(an),10*sin(an), ':k' )
+    for size in [1,2,4,6,8,10]:
+        plot( size*cos(an), size*sin(an), ':k' )
 
     #Plot the 1-sigma ellipse for the points.
     plot(  std(dx)*cos(an)+mean(dx),   std(dy)*sin(an)+mean(dy), '-', color='r')

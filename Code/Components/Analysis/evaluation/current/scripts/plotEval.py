@@ -6,9 +6,12 @@ from matplotlib import *
 from numpy import *
 import os
 from askap.analysis.evaluation.readData import *
+from askap.analysis.evaluation.readDataOLD import *
 from askap.analysis.evaluation.distributionPlots import *
 from optparse import OptionParser
 import askap.parset as parset
+
+import logging
 
 if __name__ == '__main__':
 
@@ -20,7 +23,7 @@ if __name__ == '__main__':
     if(options.inputfile==''):
         inputPars = parset.ParameterSet()        
     elif(not os.path.exists(options.inputfile)):
-        print "Input file %s does not exist!\nUsing default parameter values."%options.inputfile
+        logging.warning("Input file %s does not exist!  Using default parameter values."%options.inputfile)
         inputPars = parset.ParameterSet()
     else:
         inputPars = parset.ParameterSet(options.inputfile).plotEval
@@ -29,11 +32,11 @@ if __name__ == '__main__':
     missfile = inputPars.get_value('missfile',"misses.txt")
 
     if(not os.access(matchfile,os.F_OK)):
-        print "Match file %s does not exist. Doing no evaluation"%matchfile
+        logging.error("Match file %s does not exist. Doing no evaluation"%matchfile)
         exit(0)
 
     if(not os.access(missfile,os.F_OK)):
-        print "Miss file %s does not exist. Doing no evaluation"%missfile
+        logging.error("Miss file %s does not exist. Doing no evaluation"%missfile)
         exit(0)
 
     plotRefMisses = inputPars.get_value('plotRefMisses',False)
@@ -42,9 +45,11 @@ if __name__ == '__main__':
     missType,id,x,y,f,chisq2,imagerms2,rms2,nfree2,ndof2,npf2,npo2 = read_miss_data(missfile)
 
     if(size(x)>0):
-        print "Match list size = %d, Miss list size = %d (%d source and %d reference)"%(size(xS),size(x),size(missType[missType=='S']),size(missType[missType=='R']))
+        print("Match list size = %d, Miss list size = %d (%d source and %d reference)"%(size(xS),size(x),size(missType[missType=='S']),size(missType[missType=='R'])))
+        #        logging.info("Match list size = %d, Miss list size = %d (%d source and %d reference)"%(size(xS),size(x),size(missType[missType=='S']),size(missType[missType=='R'])))
     else:
-        print "Match list size = %d, Miss list size = %d"%(size(xS),size(x))
+        print("Match list size = %d, Miss list size = %d"%(size(xS),size(x)))
+        #        logging.info("Match list size = %d, Miss list size = %d"%(size(xS),size(x)))
 
 #    figure(1, figsize=(16.5,11.7), dpi=72)
     figure(1, figsize=(11.7,11.7), dpi=72)
