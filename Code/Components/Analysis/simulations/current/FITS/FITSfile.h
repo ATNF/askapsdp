@@ -121,9 +121,6 @@ namespace askap {
 		    /// @brief Get the size of the spectral axis
 		    int getNumChan();
 
-		    /// @brief Check the value of the itsDatabaseOrigin parameter.
-		    bool databaseGood();
-
 		    /// @brief Is the requested database a spectral-line one?
 		    bool databaseSpectral();
 

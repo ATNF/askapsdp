@@ -266,15 +266,14 @@ namespace askap {
 
 	this->itsAddSources = parset.getBool("addSources", true);
 	this->itsDryRun = parset.getBool("dryRun", false);
+
+	this->itsModelFactory = ModelFactory(parset);
 	this->itsDatabaseOrigin = parset.getString("database", "Continuum"); 
-	if( !this->databaseGood() ){
-	  ASKAPLOG_WARN_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") needs to be one of 'Continuum', 'Selavy', 'POSSUM', 'S3SEX', 'S3SAX', 'NVSS', 'Gaussian' or 'FLASH'. Setting to Continuum.");
-	  this->itsDatabaseOrigin = "Continuum";
-	}
+	if(!this->itsModelFactory.checkType())
+	  ASKAPLOG_ERROR_STR(logger, "Input parameter databaseorigin ("<< this->itsDatabaseOrigin << ") not a valid type.");
 	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
 	if(this->databaseSpectral()) this->itsSourceListType="spectralline";
 	ASKAPLOG_DEBUG_STR(logger, "source list type = " << this->itsSourceListType);
-	this->itsModelFactory = ModelFactory(parset);
 
 	this->itsPosType = parset.getString("posType", "dms");
 	this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
@@ -405,22 +404,6 @@ namespace askap {
 
 	ASKAPLOG_DEBUG_STR(logger, "FITSfile defined.");
       }
-
-      //--------------------------------------------------------
-
-      bool FITSfile::databaseGood()
-      {
-	bool val=(this->itsDatabaseOrigin == "Continuum" ||
-		  this->itsDatabaseOrigin == "Selavy" ||
-		  this->itsDatabaseOrigin == "POSSUM" ||
-		  this->itsDatabaseOrigin == "S3SAX" ||
-		  this->itsDatabaseOrigin == "S3SEX" ||
-		  this->itsDatabaseOrigin == "NVSS" ||
-		  this->itsDatabaseOrigin == "Gaussian" ||
-		  this->itsDatabaseOrigin == "FLASH");
-	return val;
-      }
-
 
       //--------------------------------------------------------
 
