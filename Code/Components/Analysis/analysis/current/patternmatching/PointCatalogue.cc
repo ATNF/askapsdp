@@ -76,7 +76,7 @@ namespace askap {
 	  ASKAPLOG_DEBUG_STR(logger, "Using reference position (RA,DEC)=("<<this->itsRAref<<","<<this->itsDECref<<")");
 	}
 	else{
-	  if(raRef=="" || decRef=="")
+	  if((raRef=="" && decRef!="") || (decRef=="" && raRef!=""))
 	    ASKAPLOG_WARN_STR(logger, "To offset positions, you need to provide both raRef and decRef parameters");
 	}
       }

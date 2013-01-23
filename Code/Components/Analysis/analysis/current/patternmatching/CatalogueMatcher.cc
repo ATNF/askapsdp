@@ -38,6 +38,7 @@
 #include <analysisutilities/MatchingUtilities.h>
 
 #include <Common/ParameterSet.h>
+#include <casa/Quanta.h>
 
 #include <vector>
 
@@ -55,13 +56,22 @@ namespace askap {
       
       CatalogueMatcher::CatalogueMatcher(const LOFAR::ParameterSet& parset)
       {
-	this->itsEpsilon = parset.getDouble("epsilon", defaultEpsilon);
 	LOFAR::ParameterSet subset=parset.makeSubset("source.");
 	this->itsSrcCatalogue = PointCatalogue(subset);
 	subset=parset.makeSubset("reference.");
 	this->itsRefCatalogue = PointCatalogue(subset);
 	this->itsMatchFile = parset.getString("matchFile", "matches.txt");
 	this->itsMissFile = parset.getString("missFile", "misses.txt");
+	this->itsPositionUnits = casa::Unit(parset.getString("positionUnits","deg"));
+	if(!parset.isDefined("epsilon")) ASKAPTHROW(AskapError, "The epsilon parameter must be provided.");
+	std::string epsilonString = parset.getString("epsilon");
+	casa::Quantity q;
+	casa::Quantity::read(q,epsilonString);
+	this->itsEpsilon = q.getValue(this->itsPositionUnits);
+	ASKAPLOG_DEBUG_STR(logger, "Requested epsilon value was " << epsilonString << ", which is " << this->itsEpsilon << " " << this->itsPositionUnits.getName());
+	this->itsEpsilonUnits = q.getUnit();
+	// this->itsEpsilon = parset.getDouble("epsilon");
+	if(this->itsEpsilon<0) ASKAPTHROW(AskapError, "The epsilon parameter must be positive.");
 	this->itsMeanDx = this->itsMeanDy = 0.;
       }
 
@@ -78,6 +88,8 @@ namespace askap {
 	this->itsMatchingTriList = other.itsMatchingTriList;
 	this->itsMatchingPixList = other.itsMatchingPixList;
 	this->itsEpsilon = other.itsEpsilon;
+	this->itsEpsilonUnits = other.itsEpsilonUnits;
+	this->itsPositionUnits = other.itsPositionUnits;
 	this->itsNumInitialMatches = other.itsNumInitialMatches;
 	this->itsSenseMatch = other.itsSenseMatch;
 	this->itsMeanDx = other.itsMeanDx;
@@ -174,8 +186,12 @@ namespace askap {
 	rmsDy = sqrt(rmsDy / (double(this->itsMatchingPixList.size() - 1)));
 
 	std::stringstream ss;
-	ss << "Offsets between the two are dx = " << this->itsMeanDx << " +- " << rmsDx
-	   << " dy = " << this->itsMeanDy << " +- " << rmsDy;
+	ss << "Offsets between the two are dx = " 
+	   << casa::Quantity(this->itsMeanDx,this->itsPositionUnits).getValue(this->itsEpsilonUnits) 
+	   << " +- " << casa::Quantity(rmsDx,this->itsPositionUnits).getValue(this->itsEpsilonUnits) 
+	   << " dy = " 
+	   << casa::Quantity(this->itsMeanDy,this->itsPositionUnits).getValue(this->itsEpsilonUnits)
+	   << " +- " << casa::Quantity(rmsDy,this->itsPositionUnits).getValue(this->itsEpsilonUnits);
 	ASKAPLOG_INFO_STR(logger, ss.str());
       }
  
@@ -303,7 +319,8 @@ namespace askap {
 	  fout << std::setw(3) << matchType << " " 
 	       << std::setw(width) << match->first.ID() << " " 
 	       << std::setw(width) << match->second.ID() << " " 
-	       << std::setw(8)  << std::setprecision(6) << match->first.sep(match->second) << "\n";
+	       << std::setw(8)  << std::setprecision(6) 
+	       << casa::Quantity(match->first.sep(match->second),this->itsPositionUnits).getValue(this->itsEpsilonUnits) << "\n";
 
 	}
 

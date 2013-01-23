@@ -34,6 +34,7 @@
 #include <patternmatching/PointCatalogue.h>
 
 #include <Common/ParameterSet.h>
+#include <casa/Quanta.h>
 
 #include <vector>
 #include <utility>
@@ -96,6 +97,8 @@ namespace askap {
 	std::vector<std::pair<Point, Point> > itsMatchingPixList;
 	/// @brief The epsilon error parameter for matching
 	double itsEpsilon;
+	casa::Unit itsEpsilonUnits;
+	casa::Unit itsPositionUnits;
 	/// @brief The number of matches after the initial attempt
 	unsigned int itsNumInitialMatches;
 	/// @brief Do the two catalogues have the same sense?
