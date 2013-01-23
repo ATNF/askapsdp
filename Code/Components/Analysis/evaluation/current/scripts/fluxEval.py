@@ -25,49 +25,117 @@ def nextplot (plotcount):
 
 def bigBoxPlot (xvals, yvals, isGood, isLog=True):
     """ """
-    minval = log10(min(xvals))
-    maxval = log10(max(xvals))
+    minval = log10(min(xvals[xvals>0]))
+    maxval = log10(max(xvals[xvals>0]))
     delta = (maxval-minval)/10.
     for i in range(10):
         xpt = (minval+delta/2.)+i*delta
-        t = yvals[isGood * (abs(log10(xvals) - xpt)<delta/2.)]
+        t = yvals[isGood[xvals>0] * (abs(log10(xvals[xvals>0]) - xpt)<delta/2.)]
         if len(t)>0:
             boxplot(t,positions=[10**xpt],widths=0.9*(10**(minval+(i+1)*delta)-10**(minval+i*delta)),sym='')
     semilogx(basex=10.)
 #    axis([min(xvals)*0.9,max(xvals)*1.1,axisrange[2],axisrange[3]])
-    xlim(min(xvals)*0.9,max(xvals)*1.1)
+    xlim(min(xvals[xvals>0])*0.9,max(xvals[xvals>0])*1.1)
 
 #############
 
 if __name__ == '__main__':
 
     parser = OptionParser()
-    parser.add_option("-i","--inputs", dest="inputfile", default="", help="Input parameter file [default: %default]")
+    parser.add_option("-c","--config", dest="inputfile", default="", help="Input parameter file [default: %default]")
 
     (options, args) = parser.parse_args()
 
     if(options.inputfile==''):
         inputPars = parset.ParameterSet()        
     elif(not os.path.exists(options.inputfile)):
-        print "Input file %s does not exist!\nUsing default parameter values."%options.inputfile
+        logging.warning("Config file %s does not exist!  Using default parameter values."%options.inputfile)
         inputPars = parset.ParameterSet()
     else:
-        inputPars = parset.ParameterSet(options.inputfile).fluxEval
+        inputPars = parset.ParameterSet(options.inputfile).Eval
+
+    sourceCatFile = inputPars.get_value('sourceCatalogue','')
+    if(sourceCatFile == ''):
+        logging.error('Eval.sourceCatalogue not provided. Doing no evaluation.')
+        exit(0)
+    if(not os.access(sourceCatFile,os.F_OK)):
+        logging.error("Eval.sourceCatalogue %s does not exist. Doing no evaluation."%matchfile)
+        exit(0)
+    sourceCatType = inputPars.get_value('sourceCatalogueType','Selavy')
+    sourceCat = readCat(sourceCatFile,sourceCatType)
+    
+    refCatFile = inputPars.get_value('refCatalogue','')
+    if(refCatFile == ''):
+        logging.error('Eval.refCatalogue not provided. Doing no evaluation.')
+        exit(0)
+    if(not os.access(refCatFile,os.F_OK)):
+        logging.error("Eval.refCatalogue %s does not exist. Doing no evaluation."%matchfile)
+        exit(0)
+    refCatType = inputPars.get_value('refCatalogueType','Selavy')
+    refCat = readCat(refCatFile,refCatType)
 
     matchfile = inputPars.get_value('matchfile',"matches.txt")
-    missfile = inputPars.get_value('missfile',"misses.txt")
-
     if(not os.access(matchfile,os.F_OK)):
-        print "Match file %s does not exist. Doing no evaluation"%matchfile
+        logging.error("Match file %s does not exist. Doing no evaluation."%matchfile)
         exit(0)
-
+    matchlist = readMatches(matchfile,sourceCat,refCat)
+    
+    missfile = inputPars.get_value('missfile',"misses.txt")
     if(not os.access(missfile,os.F_OK)):
-        print "Miss file %s does not exist. Doing no evaluation"%missfile
+        logging.error("Miss file %s does not exist. Doing no evaluation"%missfile)
         exit(0)
+    srcmisslist = readMisses(missfile,sourceCat,'S')
+    refmisslist = readMisses(missfile,refCat,'R')
 
-    matchType,idS,xS,yS,fS,aS,bS,pS,chisq,imagerms,rms,nfree,ndof,npf,npo,idR,xR,yR,fR,aR,bR,pR = read_match_data(matchfile)
-    missType,id,x,y,f,chisq2,imagerms2,rms2,nfree2,ndof2,npf2,npo2 = read_miss_data(missfile)
+    # Put data into individual arrays to match old plotting functions.
+    xS=array([])
+    yS=array([])
+    imagerms=array([])
+    fS=array([])
+    fR=array([])
+    aS=array([])
+    bS=array([])
+    pS=array([])
+    npf=array([])
+    npo=array([])
+    ndof=array([])
+    nfree=array([])
+    rms=array([])
+    chisq=array([])
+    for m in matchlist:
+        xS=append(xS,m.src.ra)
+        yS=append(yS,m.src.dec)
+        imagerms=append(imagerms,m.src.RMSimage)
+        fS=append(fS,m.src.flux())
+        fR=append(fR,m.ref.flux())
+        aS=append(aS,m.src.maj)
+        bS=append(bS,m.src.min)
+        pS=append(pS,m.src.pa)
+        npf=append(npf,m.src.npixFIT)
+        npo=append(npf,m.src.npixObj)
+        ndof=append(ndof,m.src.ndofFIT)
+        nfree=append(nfree,m.src.nfreeFIT)
+        rms=append(rms,m.src.rmsFIT)
+        chisq=append(chisq,m.src.chisqFIT)
 
+    x=array([])
+    y=array([])
+    missType=array([])
+    npo2=array([])
+    imagerms2=array([])
+    for m in srcmisslist:
+        x=append(x,m.ra)
+        y=append(y,m.dec)
+        missType=append(missType,'S')
+        npo2=append(npo2,sourceCat[m.id].npixObj)
+        imagerms2=append(imagerms2,sourceCat[m.id].RMSimage)
+    for m in refmisslist:
+        x=append(x,m.ra)
+        y=append(y,m.dec)
+        missType=append(missType,'R')
+        npo2=append(npo2,refCat[m.id].npixObj)
+        imagerms2=append(imagerms2,refCat[m.id].RMSimage)
+                         
     #    fluxScaling = 1.e6
     fluxScaling = 1.
     fS = fS * fluxScaling
@@ -80,8 +148,10 @@ if __name__ == '__main__':
         print "Match list size = %d, Miss list size = %d"%(size(xS),size(x))
 
     dF = fS - fR
-    rdF = 100.*dF/fR
-    snr = fS / imagerms
+    rdF = zeros(dF.size)
+    rdF[fR!=0] = 100.*dF[fR!=0]/fR[fR!=0]
+    snr = zeros(fS.size)
+    snr[imagerms>0] = fS[imagerms>0] / imagerms[imagerms>0]
     xSav=mean(xS)
     ySav=mean(yS)
     radius = sqrt((xS-xSav)*(xS-xSav)+(yS-ySav)*(yS-ySav))
@@ -97,13 +167,14 @@ if __name__ == '__main__':
                 azimuth[i] = 360. - azimuth[i]
     azimuth = azimuth % 360.
     area = math.pi * aS * bS / 4.
-    numComp = (npf-ndof+1)/nfree
+    numComp=zeros(npf.size)
+    numComp[nfree>0] = (npf[nfree>0]-ndof[nfree>0]-1)/nfree[nfree>0]
     numNeighbours = zeros(len(xS))
     for i in range(len(xS)):
         for j in range(len(x)):
             if(missType[j]=='R'):
                 dist = sqrt((x[j]-xS[i])*(x[j]-xS[i]) + (y[j]-yS[i])*(y[j]-yS[i]))
-                if(dist<30.):
+                if(dist<30./3600.):
                     numNeighbours[i]+=1
 
 #################################################
@@ -179,9 +250,11 @@ if __name__ == '__main__':
 
         plotcount = nextplot(plotcount)
         temparr = arr[goodfit * (nfree==3)]
-        n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='red')
+        if((nfree==3).any()):
+            n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='red')
         temparr = arr[goodfit * (nfree==6)]
-        n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='green')
+        if((nfree==6).any()):
+            n, bins, patches = hist(temparr, bins=20, range=(min(arr[goodfit]),max(arr[goodfit])), fill=False, ec='green')
         xlabel(lab,font)
         ylabel('Number',font)
 
