@@ -37,7 +37,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/StatReporter.h>
-#include <patternmatching/Matcher.h>
+#include <patternmatching/CatalogueMatcher.h>
 #include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
 
@@ -57,22 +57,13 @@ class ImageQualApp : public askap::Application
             // This class must have scope outside the main try/catch block
             askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
             try {
-                LOFAR::ParameterSet subset(config().makeSubset("imageQual."));
-                DuchampParallel image(comms, subset);
-                image.getMetadata();
-                ASKAPLOG_INFO_STR(logger, "Read image metadata");
-                Matcher matcher(subset);
-                matcher.setHeader(image.cube().header());
-                matcher.readLists();
-                if (matcher.srcListSize()>0 && matcher.refListSize()>0){
-                    bool doFixRef = subset.getBool("convolveReference", true);
-
-                    if (doFixRef) matcher.fixRefList(image.getBeamInfo());
-
-                    matcher.setTriangleLists();
+                LOFAR::ParameterSet subset(config().makeSubset("Crossmatch."));
+                CatalogueMatcher matcher(subset);
+                if(matcher.read()){
                     matcher.findMatches();
                     matcher.findOffsets();
                     matcher.addNewMatches();
+                    matcher.findOffsets();
                     matcher.outputLists();
                     matcher.outputSummary();
                 } else{

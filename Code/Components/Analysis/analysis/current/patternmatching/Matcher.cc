@@ -34,7 +34,6 @@
 #include <patternmatching/Matcher.h>
 #include <patternmatching/Triangle.h>
 #include <patternmatching/Point.h>
-#include <patternmatching/PointCatalogue.h>
 #include <analysisutilities/MatchingUtilities.h>
 
 #include <Common/ParameterSet.h>
@@ -108,8 +107,6 @@ namespace askap {
                 this->itsSenseMatch = m.itsSenseMatch;
                 this->itsOutputBestFile = m.itsOutputBestFile;
                 this->itsOutputMissFile = m.itsOutputMissFile;
-		this->itsSrcCatalogue = m.itsSrcCatalogue;
-		this->itsRefCatalogue = m.itsRefCatalogue;
                 return *this;
             }
 
@@ -137,11 +134,6 @@ namespace askap {
                 this->itsRmsDy = 0.;
                 this->itsOutputBestFile = parset.getString("matchFile", "matches.txt");
                 this->itsOutputMissFile = parset.getString("missFile", "misses.txt");
-
-		LOFAR::ParameterSet subset=parset.makeSubset("source.");
-		this->itsSrcCatalogue = PointCatalogue(subset);
-		subset=parset.makeSubset("reference.");
-		this->itsRefCatalogue = PointCatalogue(subset);
             }
 
             //**************************************************************//
@@ -156,7 +148,7 @@ namespace askap {
 
             //**************************************************************//
 
-            bool Matcher::readLists()
+            void Matcher::readLists()
             {
                 /// @details This function reads the source and reference
                 /// pixel lists from the files provided. Checks are made
@@ -164,48 +156,37 @@ namespace askap {
 
                 bool filesOK = true;
 
-                // if (this->itsSrcFile == "") {
-                //     ASKAPTHROW(AskapError, "srcFile not defined. Cannot get pixel list!");
-                //     filesOK = false;
-                // }
+                if (this->itsSrcFile == "") {
+                    ASKAPTHROW(AskapError, "srcFile not defined. Cannot get pixel list!");
+                    filesOK = false;
+                }
 
-                // if (this->itsRefFile == "") {
-                //     ASKAPTHROW(AskapError, "refFile not defined. Cannot get pixel list!");
-                //     filesOK = false;
-                // }
+                if (this->itsRefFile == "") {
+                    ASKAPTHROW(AskapError, "refFile not defined. Cannot get pixel list!");
+                    filesOK = false;
+                }
 
-                // if (filesOK) {
-                //     std::ifstream fsrc(this->itsSrcFile.c_str());
+                if (filesOK) {
+                    std::ifstream fsrc(this->itsSrcFile.c_str());
 
-                //     if (!fsrc.is_open())
-                //         ASKAPTHROW(AskapError, "srcFile (" << this->itsSrcFile << ") not valid. Error opening file.");
+                    if (!fsrc.is_open())
+                        ASKAPTHROW(AskapError, "srcFile (" << this->itsSrcFile << ") not valid. Error opening file.");
 
-                //     std::ifstream fref(this->itsRefFile.c_str());
+                    std::ifstream fref(this->itsRefFile.c_str());
 
-                //     if (!fref.is_open())
-                //         ASKAPTHROW(AskapError, "refFile (" << this->itsRefFile << ") not valid. Error opening file.");
+                    if (!fref.is_open())
+                        ASKAPTHROW(AskapError, "refFile (" << this->itsRefFile << ") not valid. Error opening file.");
 
-                //     this->itsSrcPixList = getSrcPixList(fsrc, this->itsFITShead, this->itsRA, this->itsDec, this->itsSrcPosType, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
-                //     ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
+                    this->itsSrcPixList = getSrcPixList(fsrc, this->itsFITShead, this->itsRA, this->itsDec, this->itsSrcPosType, this->itsRadius, this->itsFluxMethod, this->itsFluxUseFit);
+                    ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcPixList.size());
 
-                //     this->itsRefPixList = getPixList(fref, this->itsFITShead, this->itsRA, this->itsDec, this->itsRefPosType, this->itsRadius);
-                //     ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
-                // } else {
-                //     ASKAPLOG_WARN_STR(logger, "Not reading any pixel lists!");
-                // }
+                    this->itsRefPixList = getPixList(fref, this->itsFITShead, this->itsRA, this->itsDec, this->itsRefPosType, this->itsRadius);
+                    ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefPixList.size());
+                } else {
+                    ASKAPLOG_WARN_STR(logger, "Not reading any pixel lists!");
+                }
 
-		this->itsSrcCatalogue.read();
-		this->itsRefCatalogue.read();
-		filesOK = this->itsSrcCatalogue.pointList().size()>0 && this->itsRefCatalogue.pointList().size()>0;
-		if(this->itsSrcCatalogue.pointList().size()==0)
-		   ASKAPLOG_ERROR_STR(logger, "Could not read source catalogue from " << this->itsSrcCatalogue.filename());
-		if(this->itsRefCatalogue.pointList().size()==0)
-		   ASKAPLOG_ERROR_STR(logger, "Could not read source catalogue from " << this->itsRefCatalogue.filename());
-		if(filesOK){
-		  ASKAPLOG_INFO_STR(logger, "Size of source pixel list = " << this->itsSrcCatalogue.pointList().size());
-		  ASKAPLOG_INFO_STR(logger, "Size of reference pixel list = " << this->itsRefCatalogue.pointList().size());
-		}
-		return filesOK;
+
             }
 
             //**************************************************************//
@@ -274,30 +255,23 @@ namespace askap {
                 /// appropriate size by trimList(). The shortened lists are then
                 /// converted into triangle lists, which are matched and
                 /// trimmed.
-
-	      this->itsSrcTriList = this->itsSrcCatalogue.triangleList();
-	      if(!this->itsRefCatalogue.crudeMatch(this->itsSrcCatalogue.fullPointList(),this->itsEpsilon))
-		ASKAPLOG_WARN_STR(logger, "Crude matching failed! Using full reference point list");
-	      this->itsRefTriList = this->itsRefCatalogue.triangleList();
-	      
-	      // std::vector<Point> srclist = trimList(this->itsSrcPixList, this->itsTrimSize);
-              //   ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
-              //   // std::vector<Point> reflist = trimList(this->itsRefPixList, this->itsTrimSize);
-              //   // ASKAPLOG_INFO_STR(logger, "Trimmed ref list to " << reflist.size() << " points");
-              //   this->itsSrcTriList = getTriList(srclist);
-	      // 	ASKAPLOG_INFO_STR(logger, "Performing crude match on reference list");
-	      // 	std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, this->itsSrcPixList,5);
-	      // 	// ASKAPLOG_INFO_STR(logger, "Performing crude match on trimmed reference list");
-	      // 	// std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, srclist,5);
-	      // 	ASKAPLOG_INFO_STR(logger, "Now have reference list of size " << newreflist.size() << " points");
-	      // 	newreflist = trimList(newreflist,this->itsTrimSize);
-	      // 	ASKAPLOG_INFO_STR(logger, "Reference list trimmed to " << newreflist.size() << " points");
-	      // 	//                this->itsRefTriList = getTriList(reflist);
-              //   this->itsRefTriList = getTriList(newreflist);
-
+	      std::vector<Point> srclist = trimList(this->itsSrcPixList, this->itsTrimSize);
+                ASKAPLOG_INFO_STR(logger, "Trimmed src list to " << srclist.size() << " points");
+                // std::vector<Point> reflist = trimList(this->itsRefPixList, this->itsTrimSize);
+                // ASKAPLOG_INFO_STR(logger, "Trimmed ref list to " << reflist.size() << " points");
+                this->itsSrcTriList = getTriList(srclist);
+		ASKAPLOG_INFO_STR(logger, "Performing crude match on reference list");
+		std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, this->itsSrcPixList,5);
+		// ASKAPLOG_INFO_STR(logger, "Performing crude match on trimmed reference list");
+		// std::vector<Point> newreflist = crudeMatchList(this->itsRefPixList, srclist,5);
+		ASKAPLOG_INFO_STR(logger, "Now have reference list of size " << newreflist.size() << " points");
+		newreflist = trimList(newreflist,this->itsTrimSize);
+		ASKAPLOG_INFO_STR(logger, "Reference list trimmed to " << newreflist.size() << " points");
+		//                this->itsRefTriList = getTriList(reflist);
+                this->itsRefTriList = getTriList(newreflist);
                 this->itsMatchingTriList = matchLists(this->itsSrcTriList, this->itsRefTriList, this->itsEpsilon);
                 trimTriList(this->itsMatchingTriList);
-                ASKAPLOG_INFO_STR(logger, "Found " << this->itsMatchingTriList.size() << " matches");
+                ASKAPLOG_INFO_STR(logger, "Found " << this->itsMatchingTriList.size() << " matches\n");
             }
 
             //**************************************************************//
@@ -312,7 +286,7 @@ namespace askap {
                 if (this->itsMatchingTriList.size() > 0) {
                     this->itsMatchingPixList = vote(this->itsMatchingTriList);
                     this->itsNumMatch1 = this->itsMatchingPixList.size();
-                    ASKAPLOG_INFO_STR(logger, "After voting, have found " << this->itsMatchingPixList.size() << " matching points");
+                    ASKAPLOG_INFO_STR(logger, "After voting, have found " << this->itsMatchingPixList.size() << " matching points\n");
                     this->itsSenseMatch = (this->itsMatchingTriList[0].first.isClockwise() ==
                                            this->itsMatchingTriList[0].second.isClockwise());
 
@@ -330,11 +304,9 @@ namespace askap {
             {
                 /// @details The mean and rms offsets in the x- and
                 /// y-directions are measured for the matching points.
-	      // std::vector<double> dx(this->itsNumMatch1,0.),dy(this->itsNumMatch1,0.);
-	      std::vector<double> dx(this->itsMatchingPixList.size(),0.),dy(this->itsMatchingPixList.size(),0.);
+	      std::vector<double> dx(this->itsNumMatch1,0.),dy(this->itsNumMatch1,0.);
 
-                // for (int i = 0; i < this->itsNumMatch1; i++) {
-	      for (size_t i = 0; i < this->itsMatchingPixList.size(); i++) {
+                for (int i = 0; i < this->itsNumMatch1; i++) {
                     if (this->itsSenseMatch) {
                         dx[i] = this->itsMatchingPixList[i].first.x() - this->itsMatchingPixList[i].second.x();
                         dy[i] = this->itsMatchingPixList[i].first.y() - this->itsMatchingPixList[i].second.y();
@@ -347,29 +319,23 @@ namespace askap {
 
                 this->itsMeanDx = this->itsMeanDy = 0.;
 
-                // for (int i = 0; i < this->itsNumMatch1; i++) {
-                for (size_t i = 0; i < this->itsMatchingPixList.size(); i++) {
+                for (int i = 0; i < this->itsNumMatch1; i++) {
                     this->itsMeanDx += dx[i];
                     this->itsMeanDy += dy[i];
                 }
 
-                // this->itsMeanDx /= double(this->itsNumMatch1);
-                // this->itsMeanDy /= double(this->itsNumMatch1);
-                this->itsMeanDx /= double(this->itsMatchingPixList.size());
-                this->itsMeanDy /= double(this->itsMatchingPixList.size());
+                this->itsMeanDx /= double(this->itsNumMatch1);
+                this->itsMeanDy /= double(this->itsNumMatch1);
 
                 this->itsRmsDx = this->itsRmsDy = 0.;
 
-                // for (int i = 0; i < this->itsNumMatch1; i++) {
-                for (size_t i = 0; i < this->itsMatchingPixList.size(); i++) {
+                for (int i = 0; i < this->itsNumMatch1; i++) {
                     this->itsRmsDx += (dx[i] - this->itsMeanDx) * (dx[i] - this->itsMeanDx);
                     this->itsRmsDy += (dy[i] - this->itsMeanDy) * (dy[i] - this->itsMeanDy);
                 }
 
-                // this->itsRmsDx = sqrt(this->itsRmsDx / (double(this->itsNumMatch1 - 1)));
-                // this->itsRmsDy = sqrt(this->itsRmsDy / (double(this->itsNumMatch1 - 1)));
-                this->itsRmsDx = sqrt(this->itsRmsDx / (double(this->itsMatchingPixList.size() - 1)));
-                this->itsRmsDy = sqrt(this->itsRmsDy / (double(this->itsMatchingPixList.size() - 1)));
+                this->itsRmsDx = sqrt(this->itsRmsDx / (double(this->itsNumMatch1 - 1)));
+                this->itsRmsDy = sqrt(this->itsRmsDy / (double(this->itsNumMatch1 - 1)));
                 std::stringstream ss;
                 ss.setf(std::ios::fixed);
                 ss << "Offsets between the two are dx = " << this->itsMeanDx << " +- " << this->itsRmsDx
@@ -395,8 +361,7 @@ namespace askap {
                     std::vector<Point>::iterator src, ref;
                     std::vector<std::pair<Point, Point> >::iterator match;
 
-                    // for (src = this->itsSrcPixList.begin(); src < this->itsSrcPixList.end(); src++) {
-                    for (src = this->itsSrcCatalogue.fullPointList().begin(); src < this->itsSrcCatalogue.fullPointList().end(); src++) {
+                    for (src = this->itsSrcPixList.begin(); src < this->itsSrcPixList.end(); src++) {
                         bool isMatch = false;
                         match = this->itsMatchingPixList.begin();
 
@@ -408,20 +373,20 @@ namespace askap {
                             float minOffset = 0.;
                             int minRef = -1;
 
-                            for (ref = this->itsRefCatalogue.fullPointList().begin(); ref < this->itsRefCatalogue.fullPointList().end(); ref++) {
+                            for (ref = this->itsRefPixList.begin(); ref < this->itsRefPixList.end(); ref++) {
                                 float offset = hypot(src->x() - ref->x() - this->itsMeanDx,
                                                      src->y() - ref->y() - this->itsMeanDy);
 
                                 if (offset < matchRadius*this->itsEpsilon) {
                                     if ((minRef == -1) || (offset < minOffset)) {
                                         minOffset = offset;
-                                        minRef = int(ref - this->itsRefCatalogue.fullPointList().begin());
+                                        minRef = int(ref - this->itsRefPixList.begin());
                                     }
                                 }
                             }
 
                             if (minRef >= 0) { // there was a match within errors
-			      ref = this->itsRefCatalogue.fullPointList().begin() + minRef;
+                                ref = this->itsRefPixList.begin() + minRef;
                                 std::pair<Point, Point> newMatch(*src, *ref);
                                 this->itsMatchingPixList.push_back(newMatch);
                             }
@@ -430,8 +395,6 @@ namespace askap {
 
                     this->rejectMultipleMatches();
                     this->itsNumMatch2 = this->itsMatchingPixList.size();
-
-		    ASKAPLOG_INFO_STR(logger, "Total number of matches = " << this->itsMatchingPixList.size());
                 }
             }
 
@@ -522,7 +485,7 @@ namespace askap {
                     else matchType = '2';
 
 		    fout << matchType << "\t" << match->first.ID() << " " << match->second.ID() << " " << 
-		      std::setw(8)  << std::setprecision(6) << match->first.sep(match->second) << "\n";
+		      std::setw(8)  << std::setprecision(3) << match->first.sep(match->second) << "\n";
 
                     // fout << matchType << "\t"
                     //     << "[" << match->first.ID() << "]\t"
@@ -567,7 +530,7 @@ namespace askap {
                 std::vector<std::pair<Point, Point> >::iterator match;
 		//                Stuff nullstuff(0., 0., 0., 0, 0, 0, 0, 0.);
 
-                for (pt = this->itsRefCatalogue.fullPointList().begin(); pt < this->itsRefCatalogue.fullPointList().end(); pt++) {
+                for (pt = this->itsRefPixList.begin(); pt < this->itsRefPixList.end(); pt++) {
                     bool isMatch = false;
                     match = this->itsMatchingPixList.begin();
 
@@ -576,7 +539,7 @@ namespace askap {
                     }
 
                     if (!isMatch) {
-                        fout << "R\t" << pt->ID() << "\t"
+                        fout << "R\t[" << pt->ID() << "]\t"
                             << std::setw(10) << std::setprecision(3) << pt->x()  << " "
                             << std::setw(10) << std::setprecision(3) << pt->y() << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux()  << " "
@@ -588,7 +551,7 @@ namespace askap {
                     }
                 }
 
-                for (pt = this->itsSrcCatalogue.fullPointList().begin(); pt < this->itsSrcCatalogue.fullPointList().end(); pt++) {
+                for (pt = this->itsSrcPixList.begin(); pt < this->itsSrcPixList.end(); pt++) {
                     bool isMatch = false;
                     match = this->itsMatchingPixList.begin();
 
@@ -597,7 +560,7 @@ namespace askap {
                     }
 
                     if (!isMatch) {
-                        fout << "S\t" << pt->ID() << "\t"
+                        fout << "S\t[" << pt->ID() << "]\t"
                             << std::setw(10) << std::setprecision(3) << pt->x()  << " "
                             << std::setw(10) << std::setprecision(3) << pt->y()  << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux() << " "
@@ -622,7 +585,7 @@ namespace askap {
 	    Point match;
 
 	    fout.open("match-summary-sources.txt");
-	    for(pt=this->itsSrcCatalogue.fullPointList().begin(); pt<this->itsSrcCatalogue.fullPointList().end(); pt++){
+	    for(pt=this->itsSrcPixList.begin(); pt<this->itsSrcPixList.end(); pt++){
 	      bool isMatch=false;
 	      for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
 		isMatch = (pt->ID() == mpair->first.ID());
@@ -630,8 +593,8 @@ namespace askap {
 	      }
 	      std::string matchID = isMatch ? match.ID() : "---";
 	      fout << pt->ID() << " " << matchID << "\t"
-                            << std::setw(10) << std::setprecision(7) << pt->x()  << " "
-                            << std::setw(10) << std::setprecision(7) << pt->y()  << " "
+                            << std::setw(10) << std::setprecision(3) << pt->x()  << " "
+                            << std::setw(10) << std::setprecision(3) << pt->y()  << " "
                             << std::setw(10) << std::setprecision(8) << pt->flux() << " "
                             // << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
                             // << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
@@ -642,7 +605,7 @@ namespace askap {
 	    fout.close();
 
 	    fout.open("match-summary-reference.txt");
-	    for(pt=this->itsRefCatalogue.fullPointList().begin(); pt<this->itsRefCatalogue.fullPointList().end(); pt++){
+	    for(pt=this->itsRefPixList.begin(); pt<this->itsRefPixList.end(); pt++){
 	      bool isMatch=false;
 	      for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
 		isMatch = (pt->ID() == mpair->second.ID());
@@ -650,9 +613,9 @@ namespace askap {
 	      }
 	      std::string matchID = isMatch ? match.ID() : "---";
 	      fout << pt->ID() << " " << matchID << "\t"
-		   << std::setw(10) << std::setprecision(7) << pt->x()  << " "
-		   << std::setw(10) << std::setprecision(7) << pt->y() << " "
-		   << std::setw(10) << std::setprecision(8) << pt->flux()  << " "
+                            << std::setw(10) << std::setprecision(3) << pt->x()  << " "
+                            << std::setw(10) << std::setprecision(3) << pt->y() << " "
+                            << std::setw(10) << std::setprecision(8) << pt->flux()  << " "
                             // << std::setw(10) << std::setprecision(3) << pt->majorAxis() << " "
                             // << std::setw(10) << std::setprecision(3) << pt->minorAxis() << " "
                             // << std::setw(10) << std::setprecision(3) << pt->PA()  << " "
