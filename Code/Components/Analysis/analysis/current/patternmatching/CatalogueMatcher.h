@@ -114,6 +114,8 @@ namespace askap {
 	/// @{
 	std::string itsMatchFile;
 	std::string itsMissFile;
+	std::string itsSourceSummaryFile;
+	std::string itsReferenceSummaryFile;
 	/// @}
 
       };

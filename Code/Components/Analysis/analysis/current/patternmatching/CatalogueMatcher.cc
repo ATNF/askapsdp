@@ -73,6 +73,8 @@ namespace askap {
 	// this->itsEpsilon = parset.getDouble("epsilon");
 	if(this->itsEpsilon<0) ASKAPTHROW(AskapError, "The epsilon parameter must be positive.");
 	this->itsMeanDx = this->itsMeanDy = 0.;
+	this->itsSourceSummaryFile = parset.getString("srcSummaryFile","match-summary-sources.txt");
+	this->itsReferenceSummaryFile = parset.getString("refSummaryFile","match-summary-reference.txt");
       }
 
       CatalogueMatcher::CatalogueMatcher(const CatalogueMatcher& other)
@@ -96,6 +98,8 @@ namespace askap {
 	this->itsMeanDy = other.itsMeanDy;
 	this->itsMatchFile = other.itsMatchFile;
 	this->itsMissFile = other.itsMissFile;
+	this->itsSourceSummaryFile = other.itsSourceSummaryFile;
+	this->itsReferenceSummaryFile = other.itsReferenceSummaryFile;
 	return *this;
       }
 
@@ -299,32 +303,36 @@ namespace askap {
 	/// either 1 for points matched with the Groth algorithm, or 2
 	/// for those subsequently matched.
 	std::ofstream fout(this->itsMatchFile.c_str());
-	std::vector<std::pair<Point, Point> >::iterator match;
-	int prec = 3;
-	size_t width = 0;
-	for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end(); match++) {
-	  prec = std::max(prec, int(ceil(log10(1. / match->first.flux()))) + 1);
-	  width = std::max(width, match->first.ID().size());
-	  width = std::max(width, match->second.ID().size());
+	if(fout.is_open()){
+	  std::vector<std::pair<Point, Point> >::iterator match;
+	  int prec = 3;
+	  size_t width = 0;
+	  for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end(); match++) {
+	    prec = std::max(prec, int(ceil(log10(1. / match->first.flux()))) + 1);
+	    width = std::max(width, match->first.ID().size());
+	    width = std::max(width, match->second.ID().size());
+	  }
+
+	  fout.setf(std::ios::fixed);
+	  unsigned int ct = 0;
+	  char matchType;
+
+	  for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end(); match++) {
+	    if (ct++ < this->itsNumInitialMatches) matchType = '1';
+	    else matchType = '2';
+
+	    fout << std::setw(3) << matchType << " " 
+		 << std::setw(width) << match->first.ID() << " " 
+		 << std::setw(width) << match->second.ID() << " " 
+		 << std::setw(8)  << std::setprecision(6) 
+		 << casa::Quantity(match->first.sep(match->second),this->itsPositionUnits).getValue(this->itsEpsilonUnits) << "\n";
+
+	  }
+
+	  fout.close();
 	}
+	else ASKAPLOG_ERROR_STR(logger, "Could not open match file " << this->itsMatchFile);
 
-	fout.setf(std::ios::fixed);
-	unsigned int ct = 0;
-	char matchType;
-
-	for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end(); match++) {
-	  if (ct++ < this->itsNumInitialMatches) matchType = '1';
-	  else matchType = '2';
-
-	  fout << std::setw(3) << matchType << " " 
-	       << std::setw(width) << match->first.ID() << " " 
-	       << std::setw(width) << match->second.ID() << " " 
-	       << std::setw(8)  << std::setprecision(6) 
-	       << casa::Quantity(match->first.sep(match->second),this->itsPositionUnits).getValue(this->itsEpsilonUnits) << "\n";
-
-	}
-
-	fout.close();
       }
 
       //**************************************************************//
@@ -337,46 +345,51 @@ namespace askap {
 	/// Flux. The "type of point" is either R for reference point
 	/// or S for source point.
 	std::ofstream fout(this->itsMissFile.c_str());
-	fout.setf(std::ios::fixed);
-	std::vector<Point>::iterator pt;
-	std::vector<std::pair<Point, Point> >::iterator match;
+	if(fout.is_open()){
+	  fout.setf(std::ios::fixed);
+	  std::vector<Point>::iterator pt;
+	  std::vector<std::pair<Point, Point> >::iterator match;
 
-	size_t width = 0;
-	for (pt = this->itsRefCatalogue.fullPointList().begin(); pt < this->itsRefCatalogue.fullPointList().end(); pt++)
-	  width = std::max(width, pt->ID().size());
+	  size_t width = 0;
+	  for (pt = this->itsRefCatalogue.fullPointList().begin(); pt < this->itsRefCatalogue.fullPointList().end(); pt++)
+	    width = std::max(width, pt->ID().size());
 
-	for (pt = this->itsRefCatalogue.fullPointList().begin(); pt < this->itsRefCatalogue.fullPointList().end(); pt++) {
-	  bool isMatch = false;
+	  for (pt = this->itsRefCatalogue.fullPointList().begin(); pt < this->itsRefCatalogue.fullPointList().end(); pt++) {
+	    bool isMatch = false;
 
-	  for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end() && !isMatch; match++)
-	    isMatch = (pt->ID() == match->second.ID());
+	    for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end() && !isMatch; match++)
+	      isMatch = (pt->ID() == match->second.ID());
 
-	  if (!isMatch) {
-	    fout << "R " 
-		 << std::setw(width) << pt->ID() << " "
-		 << std::setw(10) << std::setprecision(3) << pt->x()  << " "
-		 << std::setw(10) << std::setprecision(3) << pt->y() << " "
-		 << std::setw(10) << std::setprecision(8) << pt->flux()  << "\n";
+	    if (!isMatch) {
+	      fout << "R " 
+		   << std::setw(width) << pt->ID() << " "
+		   << std::setw(10) << std::setprecision(3) << pt->x()  << " "
+		   << std::setw(10) << std::setprecision(3) << pt->y() << " "
+		   << std::setw(10) << std::setprecision(8) << pt->flux()  << "\n";
+	    }
+	  }
+
+	  width = 0;
+	  for (pt = this->itsSrcCatalogue.fullPointList().begin(); pt < this->itsSrcCatalogue.fullPointList().end(); pt++)
+	    width = std::max(width, pt->ID().size());
+
+	  for (pt = this->itsSrcCatalogue.fullPointList().begin(); pt < this->itsSrcCatalogue.fullPointList().end(); pt++) {
+	    bool isMatch = false;
+
+	    for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end() && !isMatch; match++) 
+	      isMatch = (pt->ID() == match->first.ID());
+
+	    if (!isMatch) {
+	      fout << "S " 
+		   << std::setw(width) << pt->ID() << " "
+		   << std::setw(10) << std::setprecision(3) << pt->x()  << " "
+		   << std::setw(10) << std::setprecision(3) << pt->y()  << " "
+		   << std::setw(10) << std::setprecision(8) << pt->flux() << "\n";
+	    }
 	  }
 	}
-
-	width = 0;
-	for (pt = this->itsSrcCatalogue.fullPointList().begin(); pt < this->itsSrcCatalogue.fullPointList().end(); pt++)
-	  width = std::max(width, pt->ID().size());
-
-	for (pt = this->itsSrcCatalogue.fullPointList().begin(); pt < this->itsSrcCatalogue.fullPointList().end(); pt++) {
-	  bool isMatch = false;
-
-	  for (match = this->itsMatchingPixList.begin(); match < this->itsMatchingPixList.end() && !isMatch; match++) 
-	    isMatch = (pt->ID() == match->first.ID());
-
-	  if (!isMatch) {
-	    fout << "S " 
-		 << std::setw(width) << pt->ID() << " "
-		 << std::setw(10) << std::setprecision(3) << pt->x()  << " "
-		 << std::setw(10) << std::setprecision(3) << pt->y()  << " "
-		 << std::setw(10) << std::setprecision(8) << pt->flux() << "\n";
-	  }
+	else{
+	  ASKAPLOG_ERROR_STR(logger, "Could not open miss file " << this->itsMissFile);
 	}
 
       }
@@ -397,35 +410,45 @@ namespace askap {
 	  width = std::max(width, match->second.ID().size());
 	}
 
-	fout.open("match-summary-sources.txt");
-	for(pt=this->itsSrcCatalogue.fullPointList().begin(); pt<this->itsSrcCatalogue.fullPointList().end(); pt++){
-	  bool isMatch=false;
-	  for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
-	    isMatch = (pt->ID() == mpair->first.ID());
-	    matchID = isMatch ? mpair->second.ID() : "---";
+	if(this->itsSourceSummaryFile != "") {
+	  fout.open(this->itsSourceSummaryFile.c_str());
+	  if(fout.is_open()){
+	    for(pt=this->itsSrcCatalogue.fullPointList().begin(); pt<this->itsSrcCatalogue.fullPointList().end(); pt++){
+	      bool isMatch=false;
+	      for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
+		isMatch = (pt->ID() == mpair->first.ID());
+		matchID = isMatch ? mpair->second.ID() : "---";
+	      }
+	      fout << std::setw(width) << pt->ID() << " " 
+		   << std::setw(width) << matchID << " "
+		   << std::setw(10) << std::setprecision(7) << pt->x()  << " "
+		   << std::setw(10) << std::setprecision(7) << pt->y()  << " "
+		   << std::setw(10) << std::setprecision(8) << pt->flux() << "\n";
+	    }
+	    fout.close();
 	  }
-	  fout << std::setw(width) << pt->ID() << " " 
-	       << std::setw(width) << matchID << " "
-	       << std::setw(10) << std::setprecision(7) << pt->x()  << " "
-	       << std::setw(10) << std::setprecision(7) << pt->y()  << " "
-	       << std::setw(10) << std::setprecision(8) << pt->flux() << "\n";
+	  else ASKAPLOG_ERROR_STR(logger, "Could not open source summary file " << this->itsSourceSummaryFile);
 	}
-	fout.close();
 
-	fout.open("match-summary-reference.txt");
-	for(pt=this->itsRefCatalogue.fullPointList().begin(); pt<this->itsRefCatalogue.fullPointList().end(); pt++){
-	  bool isMatch=false;
-	  for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
-	    isMatch = (pt->ID() == mpair->second.ID());
-	    matchID = isMatch ? mpair->first.ID() : "---";
+	if(this->itsReferenceSummaryFile!=""){
+	  fout.open(this->itsReferenceSummaryFile.c_str());
+	  if(fout.is_open()){
+	    for(pt=this->itsRefCatalogue.fullPointList().begin(); pt<this->itsRefCatalogue.fullPointList().end(); pt++){
+	      bool isMatch=false;
+	      for (mpair=this->itsMatchingPixList.begin(); mpair < this->itsMatchingPixList.end() && !isMatch; mpair++) {
+		isMatch = (pt->ID() == mpair->second.ID());
+		matchID = isMatch ? mpair->first.ID() : "---";
+	      }
+	      fout << std::setw(width) << pt->ID() << " " 
+		   << std::setw(width) << matchID << " "
+		   << std::setw(10) << std::setprecision(7) << pt->x()  << " "
+		   << std::setw(10) << std::setprecision(7) << pt->y() << " "
+		   << std::setw(10) << std::setprecision(8) << pt->flux()  << "\n";
+	    }
+	    fout.close();
 	  }
-	  fout << std::setw(width) << pt->ID() << " " 
-	       << std::setw(width) << matchID << " "
-	       << std::setw(10) << std::setprecision(7) << pt->x()  << " "
-	       << std::setw(10) << std::setprecision(7) << pt->y() << " "
-	       << std::setw(10) << std::setprecision(8) << pt->flux()  << "\n";
+	  else ASKAPLOG_ERROR_STR(logger, "Could not open reference summary file " << this->itsReferenceSummaryFile);
 	}
-	fout.close();
 
       }
 

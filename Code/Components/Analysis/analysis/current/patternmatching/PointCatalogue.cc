@@ -57,6 +57,7 @@ namespace askap {
       PointCatalogue::PointCatalogue(LOFAR::ParameterSet &parset)
       {
 	this->itsFilename = parset.getString("filename","");
+	ASKAPCHECK(this->itsFilename != "", "No filename provided for the catalogue.");
 	if(parset.getString("database", "Continuum")=="Selavy"){
 	  parset.replace("useDeconvolvedSizes","true");  // set this to true, just so we don't have to worry about the SelavyImage
 	}
@@ -76,7 +77,7 @@ namespace askap {
 	  ASKAPLOG_DEBUG_STR(logger, "Using reference position (RA,DEC)=("<<this->itsRAref<<","<<this->itsDECref<<")");
 	}
 	else{
-	  if((raRef=="" && decRef!="") || (decRef=="" && raRef!=""))
+	  if(raRef!="" || decRef!="")
 	    ASKAPLOG_WARN_STR(logger, "To offset positions, you need to provide both raRef and decRef parameters");
 	}
       }
