@@ -84,14 +84,33 @@ namespace askap {
       {
       }
 
+      bool ModelFactory::checkType()
+      {
+	const size_t numTypes=9;
+	std::string allowedTypes[numTypes]={"Continuum","ContinuumID","Selavy","POSSUM","NVSS","S3SEX","S3SAX","Gaussian","FLASH"};
+	bool isOK=false;
+	for(size_t i=0;i<numTypes;i++) isOK = isOK || (this->itsDatabaseOrigin == allowedTypes[i]);
+	return isOK;
+      }
+
       Spectrum* ModelFactory::read(std::string line)
       {
 	Spectrum *src=0;
 
 	if (line[0] != '#') {  // ignore commented lines
 
-	  if(this->itsDatabaseOrigin == "Continuum") {
+	  if(!this->checkTypes()){
+	    ASKAPTHROW(AskapError, "'this->itsDatabase' parameter has incompatible value '"
+		       << this->itsDatabaseOrigin << "' - needs to be one of: 'Continuum', 'ContinuumID', 'Selavy', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
+	  }
+	  else if(this->itsDatabaseOrigin == "Continuum") {
 	    Continuum *cont = new Continuum;
+	    cont->setNuZero(this->itsBaseFreq);
+	    cont->define(line);
+	    src = &(*cont);
+	  }
+	  else if(this->itsDatabaseOrigin == "ContinuumID") {
+	    ContinuumID *cont = new ContinuumID;
 	    cont->setNuZero(this->itsBaseFreq);
 	    cont->define(line);
 	    src = &(*cont);
@@ -138,9 +157,6 @@ namespace askap {
 	    FLASHProfile *profFLASH = new FLASHProfile(this->itsRestFreq);
 	    profFLASH->define(line);
 	    src = &(*profFLASH);
-	  } else {
-	    ASKAPTHROW(AskapError, "'this->itsDatabase' parameter has incompatible value '"
-		       << this->itsDatabaseOrigin << "' - needs to be one of: 'Continuum', 'Selavy', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
 	  }
 	}
 	

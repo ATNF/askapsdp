@@ -44,6 +44,7 @@ namespace askap {
       ModelFactory(const LOFAR::ParameterSet& parset);
       ~ModelFactory();
 
+      bool checkType();
       Spectrum* read(std::string line);
       
     protected:
