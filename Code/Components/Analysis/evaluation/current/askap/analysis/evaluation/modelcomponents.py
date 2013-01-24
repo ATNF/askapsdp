@@ -4,6 +4,7 @@
 #  A file containing definitions of model components
 
 from math import *
+from utils import *
 
 ## @namespace modelcomponents
 #  Model components used by the analysis & cross-matching code, that
@@ -49,18 +50,36 @@ class ContinuumObject:
         self.line = line
         if(line[0]!='#'):
             cols=line.split()
-            self.ra = cols[0]
-            self.dec = cols[1]
-            self.flux = float(cols[2])
+            self.ra = posToDec(cols[0])
+            self.dec = posToDec(cols[1])
+            self.flux0 = 10**float(cols[2])
             self.alpha = float(cols[3])
             self.beta = float(cols[4])
             self.maj = float(cols[5])
             self.min = float(cols[6])
             self.pa = float(cols[7])
-            self.id='%s_%s'%(self.ra,self.dec)
+            self.id='%s_%s'%(cols[0],cols[1])
             
-    def flux():
-        return self.flux
+    def flux(self):
+        return self.flux0
+
+class ContinuumIDObject:
+    def __init__(self,line):
+        self.line = line
+        if(line[0]!='#'):
+            cols=line.split()
+            self.id = cols[0]
+            self.ra = posToDec(cols[1])
+            self.dec = posToDec(cols[2])
+            self.flux0 = 10**float(cols[3])
+            self.alpha = float(cols[4])
+            self.beta = float(cols[5])
+            self.maj = float(cols[6])
+            self.min = float(cols[7])
+            self.pa = float(cols[8])
+            
+    def flux(self):
+        return self.flux0
 
     
 class Match:

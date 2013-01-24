@@ -89,9 +89,10 @@ if __name__ == '__main__':
         xR=append(xR,m.ref.ra)
         yR=append(yR,m.ref.dec)
         matchType=append(matchType,m.type)
-        imagerms=append(imagerms,m.src.RMSimage)
+        if(sourceCatType=="Selavy"):
+            imagerms=append(imagerms,m.src.RMSimage)
         fS=append(fS,m.src.flux())
-        fR=append(fS,m.ref.flux())
+        fR=append(fR,m.ref.flux())
         aS=append(aS,m.src.maj)
         bS=append(bS,m.src.min)
         pS=append(pS,m.src.pa)
@@ -108,28 +109,31 @@ if __name__ == '__main__':
         x=append(x,m.ra)
         y=append(y,m.dec)
         missType=append(missType,'S')
-        npo2=append(npo2,sourceCat[m.id].npixObj)
-        imagerms2=append(imagerms2,sourceCat[m.id].RMSimage)
+        if(sourceCatType=="Selavy"):
+            npo2=append(npo2,sourceCat[m.id].npixObj)
+            imagerms2=append(imagerms2,sourceCat[m.id].RMSimage)
     for m in refmisslist:
         x=append(x,m.ra)
         y=append(y,m.dec)
         missType=append(missType,'R')
-        npo2=append(npo2,refCat[m.id].npixObj)
-        imagerms2=append(imagerms2,refCat[m.id].RMSimage)
+        if(refCatType=="Selavy"):
+            npo2=append(npo2,refCat[m.id].npixObj)
+            imagerms2=append(imagerms2,refCat[m.id].RMSimage)
                          
     axisrange=spatPosPlot(xS,yS,xR,yR,matchType,x,y,missType,minRelVal=2.,plotRefMisses=plotRefMisses)
 
-    xrms=append(xS,x[npo2>0])
-    yrms=append(yS,y[npo2>0])
-    irms=append(imagerms,imagerms2[npo2>0])
-    type=append(matchType,missType[npo2>0])
-    rmsSpatPlot(xrms,yrms,irms,type,axisrange)
+    if(sourceCatType=="Selavy"):
+        xrms=append(xS,x[npo2>0])
+        yrms=append(yS,y[npo2>0])
+        irms=append(imagerms,imagerms2[npo2>0])
+        type=append(matchType,missType[npo2>0])
+        rmsSpatPlot(xrms,yrms,irms,type,axisrange)
     
     spatHistPlot(fS,fR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=True, sizeStep=100., removeZeros=True, name='S', unit='\mu Jy', locationCode=334, plotTitle='Flux difference')
     spatHistPlot(fS,fR,xS,yS, axisrange, minRelVal=0., scaleByRel=True, absoluteSizes=False, removeZeros=True, name='S', unit='\mu Jy', locationCode=335, plotTitle='Rel. Flux difference')
 
-    spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=True, sizeStep=5., removeZeros=True, name='A', unit='\prime\prime', locationCode=337, plotTitle='Major axis difference')
-    spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=True, sizeStep=5., removeZeros=True, name='B', unit='\prime\prime', locationCode=338, plotTitle='Minor axis difference')
+    spatHistPlot(aS,aR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=True, sizeStep=5., removeZeros=True, name='A', unit='\prime\prime', locationCode=337, plotTitle='Major axis difference', doHistRel=False)
+    spatHistPlot(bS,bR,xS,yS, axisrange, minRelVal=0., scaleByRel=False, absoluteSizes=True, sizeStep=5., removeZeros=True, name='B', unit='\prime\prime', locationCode=338, plotTitle='Minor axis difference', doHistRel=False)
     PAspatHistPlot(aS,pS,pR,xS,yS, axisrange, minRelVal=1., removeZeros=True, locationCode=339)
 
 

@@ -10,6 +10,16 @@ from pylab import *
 from numpy import *
 import gc
 
+def posToDec(pos):
+    if(pos.find(':')>0):
+        return dmsToDec(pos)
+    else:
+        return float(pos)
+
+def dmsToDec(pos):
+    bits=pos.split(':')
+    return (abs(float(bits[0]))+float(bits[1])/60.+float(bits[2])/3600.)*sign(float(bits[0]))
+
 ## @ingroup plotting
 # @param array The array of values
 def madfm(array):

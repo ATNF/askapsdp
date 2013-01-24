@@ -249,7 +249,8 @@ def spatHistPlot(source=None, reference=None, xloc=None, yloc=None, spatialAxis=
         yS = yloc
 
     diff = src - ref
-    reldiff = 100. * diff / ref
+    if(doHistRel):
+        reldiff = 100. * diff / ref
 
     subplot(locationCode)
 
