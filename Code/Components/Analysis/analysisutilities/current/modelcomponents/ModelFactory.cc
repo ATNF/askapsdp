@@ -72,7 +72,7 @@ namespace askap {
       ModelFactory::ModelFactory(const LOFAR::ParameterSet& parset) 
       {
 	this->itsDatabaseOrigin = parset.getString("database", "Continuum");
-	if(this->checkType()) 
+	if(!this->checkType()) 
 	  ASKAPLOG_ERROR_STR(logger, "Database type '"<<this->itsDatabaseOrigin<<"' is not valid.");
 	this->itsSourceListType = parset.getString("sourcelisttype", "continuum");
 	this->itsBaseFreq = parset.getFloat("baseFreq",1400.);
