@@ -32,6 +32,7 @@
 #include <modelcomponents/ModelFactory.h>
 #include <modelcomponents/Spectrum.h>
 #include <modelcomponents/Continuum.h>
+#include <modelcomponents/ContinuumID.h>
 #include <modelcomponents/ContinuumS3SEX.h>
 #include <modelcomponents/ContinuumSelavy.h>
 #include <modelcomponents/ContinuumNVSS.h>
@@ -101,7 +102,7 @@ namespace askap {
 
 	if (line[0] != '#') {  // ignore commented lines
 
-	  if(!this->checkTypes()){
+	  if(!this->checkType()){
 	    ASKAPTHROW(AskapError, "'this->itsDatabase' parameter has incompatible value '"
 		       << this->itsDatabaseOrigin << "' - needs to be one of: 'Continuum', 'ContinuumID', 'Selavy', 'POSSUM', 'S3SEX', 'S3SAX', 'Gaussian', 'FLASH'");
 	  }
