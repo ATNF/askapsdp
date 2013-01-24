@@ -35,7 +35,7 @@
 
 #include <askapparallel/AskapParallel.h>
 #include <parallelanalysis/DuchampParallel.h>
-#include <patternmatching/Matcher.h>
+#include <patternmatching/CatalogueMatcher.h>
 
 #include <duchamp/duchamp.hh>
 
@@ -86,8 +86,8 @@ int main(int argc, const char** argv)
         timer.mark();
         std::string parsetFile(getInputs("-inputs", "continuumAnalysis.in", argc, argv));
         LOFAR::ParameterSet parset(parsetFile);
-        LOFAR::ParameterSet subsetD(parset.makeSubset("Cduchamp."));
-        DuchampParallel image(comms, subsetD);
+        LOFAR::ParameterSet subsetCduchamp(parset.makeSubset("Cduchamp."));
+        DuchampParallel image(comms, subsetCduchamp);
         ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
         image.readData();
         image.setupLogfile(argc, argv);
@@ -103,16 +103,21 @@ int main(int argc, const char** argv)
         image.printResults();
 
         if (comms.isMaster()) { // only do the cross matching on the master node.
-            LOFAR::ParameterSet subsetE(parset.makeSubset("imageQual."));
-            Matcher matcher(subsetE);
-            matcher.setHeader(image.cube().header());
-            matcher.readLists();
-            matcher.fixRefList(image.getBeamInfo());
-            matcher.setTriangleLists();
-            matcher.findMatches();
-            matcher.findOffsets();
-            matcher.addNewMatches();
-            matcher.outputLists();
+            LOFAR::ParameterSet subsetCrossmatch(parset.makeSubset("Crossmatch."));
+            CatalogueMatcher matcher(subsetCrossmatch);
+	    if(matcher.read()){
+	      matcher.findMatches();
+	      matcher.findOffsets();
+	      matcher.addNewMatches();
+	      matcher.findOffsets();
+	      matcher.outputLists();
+	      matcher.outputSummary();
+	    } else{
+	      if (matcher.srcListSize()==0) 
+		ASKAPLOG_WARN_STR(logger, "Source list has zero length - no matching done.");
+	      if (matcher.refListSize()==0) 
+		ASKAPLOG_WARN_STR(logger, "Reference list has zero length - no matching done.");
+	    }
         }
 
         ASKAPLOG_INFO_STR(logger, "Time for execution of contAnalysis = " << timer.real() << " sec");
