@@ -51,6 +51,7 @@ ASKAP_LOGGER(logger, "");
 // std
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 using std::cout;
@@ -157,9 +158,20 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
   } else if (currentStep > 0) {
       --currentStep;
   }
-  std::cout<<imgBuf.shape()<<std::endl;
+  std::cout<<imgBuf.shape()<<" "<<currentStep<<std::endl;
   scimath::saveAsCasaImage("fringe.img", casa::amplitude(imgBuf(casa::IPosition(3,0,0,0),
                  casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
+  // exporting first row into a dat file
+  if (currentStep>0) {
+      std::ofstream os("fringe.dat");
+      for (casa::uInt chan=0; chan<imgBuf.nrow(); ++chan) {
+           os<<chan<<" ";
+           for (casa::uInt baseline_beam = 0; baseline_beam < imgBuf.nplane(); ++baseline_beam) {
+                os<<" "<<casa::abs(imgBuf(casa::IPosition(3,chan,0,baseline_beam)))<<" "<<casa::arg(imgBuf(casa::IPosition(3,chan,0,baseline_beam)))*180./casa::C::pi;
+           }
+           os<<std::endl;
+      }     
+  }
 }
 
 
