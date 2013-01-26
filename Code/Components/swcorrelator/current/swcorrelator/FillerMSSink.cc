@@ -512,7 +512,7 @@ void FillerMSSink::create()
     casa::MS::addColumnToDesc(msDesc, casa::MS::DATA, 2);
    
     // additional non-standard columns
-    msDesc.addColumn(casa::ScalarColumnDesc<casa::Int>("CONTROL","User defined number sent via epics (for channel 0, antenna 0)"));
+    msDesc.addColumn(casa::ScalarColumnDesc<casa::uInt>("CONTROL","User defined number sent via epics (for channel 0, antenna 0)"));
     //
 
     casa::SetupNewTable newMS(filename, msDesc, casa::Table::New);

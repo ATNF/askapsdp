@@ -21,9 +21,9 @@ swcorrelator.hostantenna = 1
 
 
 # MS-writer parameters
-swcorrelator.trackphase = false
+swcorrelator.trackphase = true
 #swcorrelator.lofreq = 880e6
-swcorrelator.lofreq = 1280e6
+swcorrelator.lofreq = 1376e6
 swcorrelator.beamoffsetuvw = false
 swcorrelator.filename = ""
 swcorrelator.basepath = "apps/"
@@ -40,6 +40,8 @@ swcorrelator.sources.names                 =       [field1]
 
 # absorption source PKS 1814-63
 swcorrelator.sources.field1.direction      =       [18h19m35.00, -63.45.48.00, J2000]
+# HI source NGC6822
+swcorrelator.sources.field1.direction      =       [19h44m57.80, -14.48.11.00, J2000]
 
 # Virgo
 #swcorrelator.sources.field1.direction      =       [12h30m49.43, 12.23.28.01, J2000]
