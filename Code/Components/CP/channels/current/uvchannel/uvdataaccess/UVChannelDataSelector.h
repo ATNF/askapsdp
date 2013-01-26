@@ -61,6 +61,11 @@ class UVChannelDataSelector : public askap::accessors::IDataSelector {
         /// Which one is the first and which is the second is not important
         virtual void chooseBaseline(casa::uInt ant1, casa::uInt ant2);
 
+        /// @brief choose user-defined index
+        /// @param[in] column column name in the measurement set for a user-defined index
+        /// @param[in] value index value
+        virtual void chooseUserDefinedIndex(const std::string& column, const casa::uInt value);
+        
         /// @brief Choose autocorrelations only
         virtual void chooseAutoCorrelations();
 

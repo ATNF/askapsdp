@@ -54,6 +54,11 @@ void UVChannelDataSelector::chooseBaseline(casa::uInt ant1, casa::uInt ant2)
     throw DataAccessLogicError("not yet implemented");
 }
 
+void UVChannelDataSelector::chooseUserDefinedIndex(const std::string& column, const casa::uInt value)
+{
+    throw DataAccessLogicError("not yet implemented");
+}
+
 void UVChannelDataSelector::chooseAutoCorrelations()
 {
     throw DataAccessLogicError("not yet implemented");
