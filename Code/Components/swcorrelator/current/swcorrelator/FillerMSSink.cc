@@ -43,6 +43,8 @@
 #include <casa/OS/Path.h>
 #include <ms/MeasurementSets/MSColumns.h>
 #include "tables/Tables/TableDesc.h"
+#include "tables/Tables/ScaColDesc.h"
+#include "tables/Tables/ScalarColumn.h"
 #include "tables/Tables/SetupNewTab.h"
 #include "tables/Tables/IncrementalStMan.h"
 #include "tables/Tables/StandardStMan.h"
@@ -217,6 +219,10 @@ void FillerMSSink::write(CorrProducts &buf) const
   msc.interval().put(baseRow, 1.);
   msc.observationId().put(baseRow, 0);
   msc.stateId().put(baseRow, -1);
+ 
+  // non-standard CONTROL column with user-defined values passed via epics keyword
+  casa::ScalarColumn<casa::uInt> ctrlCol(*itsMs,"CONTROL"); 
+ 
   for (casa::uInt i = 0; i < newRows; ++i) {
        const casa::uInt row = i + baseRow;
        msc.antenna1().put(row, substituteAntId(theirAntIDs[i][0], buf.itsBeam));
@@ -224,6 +230,9 @@ void FillerMSSink::write(CorrProducts &buf) const
        msc.feed1().put(row, buf.itsBeam);
        msc.feed2().put(row, buf.itsBeam);
        msc.uvw().put(row, buf.itsUVW.row(i));
+   
+       // non-standard control column
+       ctrlCol.put(row,casa::uInt(buf.itsControl[0]));
 
        const casa::uInt npol = 2;
        casa::Matrix<casa::Complex> visBuf(npol,buf.itsVisibility.ncolumn());
@@ -501,6 +510,10 @@ void FillerMSSink::create()
 
     // Add the DATA column.
     casa::MS::addColumnToDesc(msDesc, casa::MS::DATA, 2);
+   
+    // additional non-standard columns
+    msDesc.addColumn(casa::ScalarColumnDesc<casa::Int>("CONTROL","User defined number sent via epics (for channel 0, antenna 0)"));
+    //
 
     casa::SetupNewTable newMS(filename, msDesc, casa::Table::New);
 
@@ -822,7 +835,7 @@ int FillerMSSink::numDataDescIDs() const
 {
   return itsNumberOfDataDesc;
 }
-  
+
 /// @brief set new default data descriptor
 /// @details This will be used for all future write operations
 /// @param[in] desc new data descriptor

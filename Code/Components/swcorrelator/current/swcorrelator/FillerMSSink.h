@@ -108,7 +108,7 @@ public:
   /// @details This will be used for all future write operations
   /// @param[in] desc new data descriptor
   void setDataDescID(const int desc);  
-  
+
   /// @brief obtain number of beams in the current setup
   /// @details This method throws an exception if the number of beams has not been
   /// set up  (normally it takes place when MS is initialised)
@@ -207,10 +207,10 @@ private:
   
   /// @brief data descriptor ID used for all added rows
   casa::uInt itsDataDescID;
-  
+
   /// @brief field ID used for all added rows
   casa::uInt itsFieldID;
-  
+
   /// @brief dish pointing centre corresponding to itsFieldID
   casa::MDirection itsDishPointing;
   
