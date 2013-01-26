@@ -47,6 +47,9 @@
 #include <dataaccess/ITableHolder.h>
 #include <dataaccess/ITableInfoAccessor.h>
 
+// std includes
+#include <string>
+
 namespace askap {
 
 namespace accessors {
@@ -84,6 +87,11 @@ public:
   /// Choose a single spectral window (also known as IF).
   /// @param[in] spWinID the ID of the spectral window to choose
   virtual void chooseSpectralWindow(casa::uInt spWinID);
+
+  /// @brief choose user-defined index
+  /// @param[in] column column name in the measurement set for a user-defined index
+  /// @param[in] value index value
+  virtual void chooseUserDefinedIndex(const std::string &column, const casa::uInt value);
   
   /// @brief Choose autocorrelations only
   virtual void chooseAutoCorrelations();

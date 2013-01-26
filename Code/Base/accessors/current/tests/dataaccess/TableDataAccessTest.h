@@ -58,6 +58,7 @@ class TableDataAccessTest : public CppUnit::TestFixture {
 
   CPPUNIT_TEST_SUITE(TableDataAccessTest);
   CPPUNIT_TEST(corrTypeSelectionTest);
+  CPPUNIT_TEST(userDefinedIndexSelectionTest);
   CPPUNIT_TEST(uvDistanceSelectionTest);
   CPPUNIT_TEST_EXCEPTION(bufferManagerExceptionTest,casa::TableError);
   CPPUNIT_TEST(bufferManagerTest);
@@ -79,6 +80,8 @@ public:
   void tearDown();
   /// test of correlation type selection
   void corrTypeSelectionTest();
+  /// test of user-defined index selection
+  void userDefinedIndexSelectionTest();
   /// test of selection based on uv-distance
   void uvDistanceSelectionTest();
   /// test of read only operations of the whole table-based implementation
@@ -163,6 +166,26 @@ void TableDataAccessTest::readOnlyTest()
   }
 }
 
+void TableDataAccessTest::userDefinedIndexSelectionTest()
+{
+  TableConstDataSource ds(TableTestRunner::msName());
+  IDataSelectorPtr sel = ds.createSelector();   
+  sel->chooseUserDefinedIndex("ANTENNA1",1);
+  for (IConstDataSharedIter it=ds.createConstIterator(sel);it!=it.end();++it) {  
+       for (casa::uInt row=0;row<it->nRow();++row) {
+            CPPUNIT_ASSERT(it->antenna1()[row] == 1);
+       }
+  }
+  sel = ds.createSelector();
+  sel->chooseCrossCorrelations();
+  sel->chooseUserDefinedIndex("ANTENNA1",1);
+  for (IConstDataSharedIter it=ds.createConstIterator(sel);it!=it.end();++it) {  
+       for (casa::uInt row=0;row<it->nRow();++row) {
+            CPPUNIT_ASSERT(it->antenna1()[row] == 1);
+            CPPUNIT_ASSERT(it->antenna2()[row] != 1);
+       }
+  }
+}
 
 /// test of correlation type selection
 void TableDataAccessTest::corrTypeSelectionTest() 

@@ -63,6 +63,11 @@ public:
 	/// @param[in] ant2 the sequence number of the second antenna
 	/// Which one is the first and which is the second is not important
 	virtual void chooseBaseline(casa::uInt ant1, casa::uInt ant2) = 0;
+
+        /// @brief choose user-defined index
+        /// @param[in] column column name in the measurement set for a user-defined index
+        /// @param[in] value index value
+        virtual void chooseUserDefinedIndex(const std::string &column, const casa::uInt value) = 0;
 	
 	/// @brief Choose autocorrelations only
     virtual void chooseAutoCorrelations() = 0;

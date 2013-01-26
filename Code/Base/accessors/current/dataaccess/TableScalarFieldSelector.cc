@@ -61,6 +61,18 @@ void TableScalarFieldSelector::chooseFeed(casa::uInt feedID)
    }
 }
 
+/// @brief choose user-defined index
+/// @param[in] column column name in the measurement set for a user-defined index
+/// @param[in] value index value
+void TableScalarFieldSelector::chooseUserDefinedIndex(const std::string &column, const casa::uInt value)
+{
+   if (itsTableSelector.isNull()) {
+       itsTableSelector = (table().col(column) == value);
+   } else {
+       itsTableSelector = itsTableSelector && (table().col(column) == value);
+   }
+}
+
 /// Choose a single baseline
 /// @param ant1 the sequence number of the first antenna
 /// @param ant2 the sequence number of the second antenna
