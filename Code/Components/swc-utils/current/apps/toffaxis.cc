@@ -183,31 +183,33 @@ void doReadOnlyTest(const IConstDataSource &ds) {
 }
 
 void doTest() {
+  // 1549-790
   const casa::MVDirection tangent(convertQuantity("15h56m58.871","rad"), convertQuantity("-79.14.04.28","rad"));
   // 1934-638
   //const casa::MVDirection tangent(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
   //const casa::MDirection tangentDir(tangent, casa::MDirection::J2000);
   
+  // 1610-771
   const casa::MVDirection dir(convertQuantity("16h17m49.278","rad"), convertQuantity("-77.17.18.46","rad"));
+
   //const casa::MVDirection dir(convertQuantity("19h41m21.77","rad"),convertQuantity("-62.11.21.06","rad"));
-  /*
+  
   // 1547-795
-  const casa::MVDirection dir(convertQuantity("15h55m21.65","rad"),
-                                  convertQuantity("-79.40.36.3","rad"));
-  */
+  //const casa::MVDirection dir(convertQuantity("15h55m21.65","rad"), convertQuantity("-79.40.36.3","rad"));
+  
 
   //casa::MVDirection testDir = tangent;
   // Virgo
   //casa::MVDirection testDir(convertQuantity("12h30m49.43","rad"),convertQuantity("12.23.29.1","rad"));
   // 1934-638
-  casa::MVDirection testDir(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
-  //casa::MVDirection testDir(convertQuantity("00h29m29.95","rad"),convertQuantity("07.50.43.5","rad"));
+  //casa::MVDirection testDir(convertQuantity("19h39m25.03","rad"),convertQuantity("-63.42.45.6","rad"));
+  casa::MVDirection testDir(convertQuantity("07h12m43.98","rad"),convertQuantity("18.57.52.4","rad"));
 
   std::cout<<"tangent point: "<<printDirection(tangent)<<std::endl;
   std::cout<<"dir: "<<printDirection(dir)<<std::endl;
   std::cout<<"test direction: "<<printDirection(testDir)<<std::endl;
   double offset1 = 0., offset2 = 0.;
-  const double factor = +1;
+  const double factor = -1;
 
   offset1 = sin(dir.getLong() - tangent.getLong()) * cos(dir.getLat());
   offset2 = sin(dir.getLat()) * cos(tangent.getLat()) - cos(dir.getLat()) * sin(tangent.getLat())

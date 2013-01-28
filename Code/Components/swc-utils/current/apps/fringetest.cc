@@ -162,7 +162,7 @@ void process(const IConstDataSource &ds, size_t nAvg, size_t padding = 1) {
   scimath::saveAsCasaImage("fringe.img", casa::amplitude(imgBuf(casa::IPosition(3,0,0,0),
                  casa::IPosition(3,imgBuf.nrow()-1,currentStep,imgBuf.nplane()-1))));
   // exporting first row into a dat file
-  if (currentStep>0) {
+  if ((currentStep>0) || (counter!=0)) {
       std::ofstream os("fringe.dat");
       for (casa::uInt chan=0; chan<imgBuf.nrow(); ++chan) {
            os<<chan<<" ";
@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
      // number of cycles to average
-     const size_t nAvg = 4;
+     const size_t nAvg = 1;
      // padding factor
      const size_t padding = 1;
      process(ds, nAvg, padding);
