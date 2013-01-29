@@ -17,6 +17,7 @@ pkg.AddSubPackage("casainterface")
 pkg.AddSubPackage("coordutils")
 pkg.AddSubPackage("mathsutils")
 pkg.AddSubPackage("analysisparallel")
+pkg.AddSubPackage("cosmology")
 
 # run the build process
 pkg()

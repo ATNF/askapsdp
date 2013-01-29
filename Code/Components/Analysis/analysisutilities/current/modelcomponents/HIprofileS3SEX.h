@@ -42,7 +42,7 @@ namespace askap {
         /// @brief The default values of the shape parameters
         const double doubleHornShape[7] = {12.0, 6.0, 5., 20., 0.0, 0.3, 0.3};
         /// @brief Enumeration describing types of galaxies in the S3SEX database
-        enum GALTYPE {RQAGN, FRI, FRII, SBG, SFG};
+        enum GALTYPE {RQAGN, FRI, FRII, SBG, SFG,GPS,UNKNOWN};
         /// @brief Minimum rotational velocity for different galaxy types
         const double vrotMin[5] = {0., 0., 0., 20., 40.};
         /// @brief Maximum rotational velocity for different galaxy types

@@ -41,6 +41,7 @@
 #include <modelcomponents/HIprofileS3SEX.h>
 #include <modelcomponents/HIprofileS3SAX.h>
 #include <modelcomponents/FullStokesContinuum.h>
+#include <modelcomponents/FullStokesContinuumHI.h>
 #include <modelcomponents/SelavyImage.h>
 #include <coordutils/SpectralUtilities.h>
 
@@ -89,8 +90,8 @@ namespace askap {
 
       bool ModelFactory::checkType()
       {
-	const size_t numTypes=9;
-	std::string allowedTypes[numTypes]={"Continuum","ContinuumID","Selavy","POSSUM","NVSS","S3SEX","S3SAX","Gaussian","FLASH"};
+	const size_t numTypes=10;
+	std::string allowedTypes[numTypes]={"Continuum","ContinuumID","Selavy","POSSUM","POSSUMHI","NVSS","S3SEX","S3SAX","Gaussian","FLASH"};
 	bool isOK=false;
 	for(size_t i=0;i<numTypes;i++) isOK = isOK || (this->itsDatabaseOrigin == allowedTypes[i]);
 	return isOK;
@@ -130,6 +131,12 @@ namespace askap {
 	    stokes->setNuZero(this->itsBaseFreq);
 	    stokes->define(line);
 	    src = &(*stokes);
+	  }
+	  else if(this->itsDatabaseOrigin == "POSSUMHI"){
+	    FullStokesContinuumHI *stokesHI = new FullStokesContinuumHI;
+	    stokesHI->setNuZero(this->itsBaseFreq);
+	    stokesHI->define(line);
+	    src = &(*stokesHI);
 	  }
 	  else if(this->itsDatabaseOrigin == "NVSS"){
 	    ContinuumNVSS *nvss = new ContinuumNVSS;
