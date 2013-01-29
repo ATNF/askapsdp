@@ -280,11 +280,8 @@ private:
   /// @brief previous value of CONTROL word or -1 if it is not initialised
   mutable int itsPreviousControl;
 
-  /// @brief true, if a change in epics control word passed with data causes advance of the frequency
+  /// @brief true, if a change in epics control word passed with the data causes change in frequency
   bool itsControlFreq;
-
-  /// @brief frequency step used if itsControlFreq is true, it is added every time CONTROL is incremented by 1.
-  double itsFreqStep;
 
 };
 

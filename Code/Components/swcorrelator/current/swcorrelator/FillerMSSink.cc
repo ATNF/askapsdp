@@ -71,7 +71,7 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
    itsNumberOfBeams(-1), itsExtraAntennas(parset.getString("beams2ants","")), itsAntHandlingExtras(-1),
    itsEffectiveLOFreq(0.), itsTrackPhase(parset.getBool("trackphase",true)), itsAutoLOFreq(false),
    itsCurrentStartFreq(0.), itsCurrentFreqInc(0.), itsPreviousControl(-1),
-   itsControlFreq(parset.getBool("control2freq", false)), itsFreqStep(0.)
+   itsControlFreq(parset.getBool("control2freq", false))
 {
   if (itsExtraAntennas.nRules()) {
       ASKAPLOG_INFO_STR(logger, "Some beams will be written as antennas (all indices after substitution) according to the following rule:");
@@ -96,9 +96,7 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
   }
   
   if (itsControlFreq) {
-      itsFreqStep = parset.getDouble("control2freq.step", 16e6);
-      ASKAPLOG_INFO_STR(logger, "Frequency will be adjusted automatically in "<<itsFreqStep/1e6<<
-                " MHz steps for each change of CONTROL word in the data stream");        
+      ASKAPLOG_INFO_STR(logger, "Frequency will be adjusted automatically to the CONTROL word in the data stream when it changes");        
   }
   
   create();
@@ -210,17 +208,20 @@ void FillerMSSink::write(CorrProducts &buf)
        }
   }
   if (itsControlFreq && !forceFlag) {
+      const double centreOff = double(int(itsNumberOfChannels) / 2 - 1)  * itsCurrentFreqInc;
       if (itsPreviousControl == -1) {
           // this is the first write, accept the default spectral window configuration
           itsPreviousControl = int(buf.itsControl[0]);
+          ASKAPLOG_INFO_STR(logger, "First sighted CONTROL is "<<itsPreviousControl<<", use the default central frequency of "<<
+                             (itsCurrentStartFreq + centreOff)/1e6<<" MHz");
       } else {
           const int controlInc = int(buf.itsControl[0]) - itsPreviousControl;
           itsPreviousControl = int(buf.itsControl[0]);
           if (controlInc != 0) {
               // there was a change, create a new spectral window, adjust start frequency, etc
-              itsCurrentStartFreq += itsFreqStep * double(controlInc);
+              itsCurrentStartFreq = double(itsPreviousControl)*1e6 - centreOff;
               ASKAPLOG_INFO_STR(logger, "CONTROL changed to "<<buf.itsControl[0]<<" new centre frequency is "<<
-                                (itsCurrentStartFreq + double(int(itsNumberOfChannels) - 1) * itsCurrentFreqInc)/1e6<<" MHz");
+                                (itsCurrentStartFreq + centreOff)/1e6<<" MHz");
                                 
               const casa::Int newSpWin = addSpectralWindow(std::string("USER_CONTROL_") + utility::toString(buf.itsControl[0]),
                                 itsNumberOfChannels, itsCurrentStartFreq, itsCurrentFreqInc);
@@ -522,7 +523,7 @@ void FillerMSSink::initDataDesc()
 double FillerMSSink::guessEffectiveLOFreq() const
 {
   // 928 MHz central frequency of the 16 MHz band corresponds to 880 MHz of the effective LO
-  return itsCurrentStartFreq + double(int(itsNumberOfChannels) - 1) * itsCurrentFreqInc - 48e6;  
+  return itsCurrentStartFreq + double(int(itsNumberOfChannels) / 2 - 1) * itsCurrentFreqInc - 48e6;  
 }
   
 
