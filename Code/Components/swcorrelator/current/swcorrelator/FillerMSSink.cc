@@ -69,7 +69,9 @@ namespace swcorrelator {
 FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset), itsDataDescID(0),
    itsFieldID(0), itsBeamOffsetUVW(parset.getBool("beamoffsetuvw",true)), itsNumberOfDataDesc(-1),
    itsNumberOfBeams(-1), itsExtraAntennas(parset.getString("beams2ants","")), itsAntHandlingExtras(-1),
-   itsEffectiveLOFreq(0.), itsTrackPhase(parset.getBool("trackphase",true))
+   itsEffectiveLOFreq(0.), itsTrackPhase(parset.getBool("trackphase",true)), itsAutoLOFreq(false),
+   itsCurrentStartFreq(0.), itsCurrentFreqInc(0.), itsPreviousControl(-1),
+   itsControlFreq(parset.getBool("control2freq", false)), itsFreqStep(0.)
 {
   if (itsExtraAntennas.nRules()) {
       ASKAPLOG_INFO_STR(logger, "Some beams will be written as antennas (all indices after substitution) according to the following rule:");
@@ -80,12 +82,25 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
   } else {
       ASKAPCHECK(!parset.isDefined("hostantenna"), "hostantenna parameter is defined without beam to antenna substituting rule! Define beam2ants as well.");
   }
+  
   if (itsTrackPhase) {
-      itsEffectiveLOFreq = parset.getDouble("lofreq",880e6);
-      ASKAPLOG_INFO_STR(logger, "Phase tracking is enabled, effective LO frequency is "<<itsEffectiveLOFreq/1e6<<" MHz");
+      if (parset.getString("lofreq","") == "auto") {
+          itsAutoLOFreq = true;
+          ASKAPLOG_INFO_STR(logger, "Phase tracking is enabled, effective LO frequency will be guessed from the frequency setup");
+      } else {
+          itsEffectiveLOFreq = parset.getDouble("lofreq",880e6);
+          ASKAPLOG_INFO_STR(logger, "Phase tracking is enabled, effective LO frequency is "<<itsEffectiveLOFreq/1e6<<" MHz");
+      }
   } else {
      ASKAPLOG_WARN_STR(logger, "Phase tracking is disabled");
   }
+  
+  if (itsControlFreq) {
+      itsFreqStep = parset.getDouble("control2freq.step", 16e6);
+      ASKAPLOG_INFO_STR(logger, "Frequency will be adjusted automatically in "<<itsFreqStep/1e6<<
+                " MHz steps for each change of CONTROL word in the data stream");        
+  }
+  
   create();
   initAntennasAndBeams(); 
   addObs("ASKAP", "team", 0, 0);
@@ -181,9 +196,46 @@ const int FillerMSSink::theirAntIDs[3][2] = {{0, 1}, {1,2}, {0, 2}};
 /// workarounds would be required with casa arrays, so we don't bother doing this at the moment.
 /// In addition, we could call calculateUVW inside this method (but we still need an option to
 /// calculate uvw's ahead of writing the buffer if we implement some form of delay tracking).
-void FillerMSSink::write(CorrProducts &buf) const
+void FillerMSSink::write(CorrProducts &buf)
 {
   const casa::MEpoch epoch = calculateUVW(buf);
+  // deal with CONTROL word, if necessary
+  bool forceFlag = false; // we change it to true to flag the integration, if CONTROL is different for different antennas
+  ASKAPDEBUGASSERT(buf.itsControl.nelements() >= 1);
+  for (casa::uInt i = 1; i<buf.itsControl.nelements(); ++i) {
+       if (buf.itsControl[i] != buf.itsControl[0]) {
+           forceFlag = true;
+           ASKAPLOG_INFO_STR(logger, "Different CONTROL on different antennas: "<<buf.itsControl<<", flagging the integration");
+           break;
+       }
+  }
+  if (itsControlFreq && !forceFlag) {
+      if (itsPreviousControl == -1) {
+          // this is the first write, accept the default spectral window configuration
+          itsPreviousControl = int(buf.itsControl[0]);
+      } else {
+          const int controlInc = int(buf.itsControl[0]) - itsPreviousControl;
+          itsPreviousControl = int(buf.itsControl[0]);
+          if (controlInc != 0) {
+              // there was a change, create a new spectral window, adjust start frequency, etc
+              itsCurrentStartFreq += itsFreqStep * double(controlInc);
+              ASKAPLOG_INFO_STR(logger, "CONTROL changed to "<<buf.itsControl[0]<<" new centre frequency is "<<
+                                (itsCurrentStartFreq + double(int(itsNumberOfChannels) - 1) * itsCurrentFreqInc)/1e6<<" MHz");
+                                
+              const casa::Int newSpWin = addSpectralWindow(std::string("USER_CONTROL_") + utility::toString(buf.itsControl[0]),
+                                itsNumberOfChannels, itsCurrentStartFreq, itsCurrentFreqInc);
+              const casa::Int dataDescID = addDataDesc(newSpWin, 0); // assume polID=0 for simplicity
+              setDataDescID(dataDescID);
+                                
+              if (itsTrackPhase && itsAutoLOFreq) {
+                  itsEffectiveLOFreq = guessEffectiveLOFreq();
+                  ASKAPLOG_INFO_STR(logger, "Will use "<<itsEffectiveLOFreq/1e6<<" MHz as effective LO frequency");
+              }
+          } 
+      }
+  }
+  //
+  
   // the following code does phase tracking, ideally we want to move it to a higher level, but it 
   // would imply doing some unnecessary calculations. So we avoid it for now.
   if (itsTrackPhase) {
@@ -239,7 +291,7 @@ void FillerMSSink::write(CorrProducts &buf) const
        casa::Matrix<casa::Bool> flagBuf(npol,buf.itsFlag.ncolumn());
        for (casa::uInt pol = 0; pol < npol; ++pol) {
             visBuf.row(pol) = buf.itsVisibility.row(i);
-            flagBuf.row(pol) = buf.itsFlag.row(i);
+            flagBuf.row(pol) = buf.itsFlag.row(i) || forceFlag;
        }
        msc.data().put(row, visBuf);
        msc.flag().put(row, flagBuf);
@@ -451,11 +503,26 @@ void FillerMSSink::initDataDesc()
             defaultWindowSighted = true;
             itsDataDescID = dataDescID;
             itsNumberOfChannels = numChan;
+            itsCurrentStartFreq = startFreq.getValue("Hz");
+            itsCurrentFreqInc = freqInc.getValue("Hz");
+            if (itsTrackPhase && itsAutoLOFreq) {
+                itsEffectiveLOFreq = guessEffectiveLOFreq();
+                ASKAPLOG_INFO_STR(logger, "Will use "<<itsEffectiveLOFreq/1e6<<" MHz as effective LO frequency for "<<defaultWindow);
+            }
         }
     }
 
     ASKAPLOG_INFO_STR(logger, "Successfully defined " << nSpw << " spectral windows");
    
+}
+
+/// @brief guess the effective LO frequency from the current sky frequency, increment and the number of channels
+/// @details This code is BETA3 specific
+/// @return effective LO frequency in Hz
+double FillerMSSink::guessEffectiveLOFreq() const
+{
+  // 928 MHz central frequency of the 16 MHz band corresponds to 880 MHz of the effective LO
+  return itsCurrentStartFreq + double(int(itsNumberOfChannels) - 1) * itsCurrentFreqInc - 48e6;  
 }
   
 

@@ -91,7 +91,7 @@ public:
   /// workarounds would be required with casa arrays, so we don't bother doing this at the moment.
   /// In addition, we could call calculateUVW inside this method (but we still need an option to
   /// calculate uvw's ahead of writing the buffer if we implement some form of delay tracking).
-  virtual void write(CorrProducts &buf) const;
+  virtual void write(CorrProducts &buf);
   
   
   /// @brief obtain the number of channels in the current setup
@@ -201,6 +201,12 @@ protected:
   // Add polarisation table row
   casa::Int addPolarisation(const casa::Vector<casa::Stokes::StokesTypes>& stokesTypes);
   
+
+  /// @brief guess the effective LO frequency from the current sky frequency, increment and the number of channels
+  /// @details This code is BETA3 specific
+  /// @return effective LO frequency in Hz
+  double guessEffectiveLOFreq() const;
+
 private:
   /// @brief parameters
   LOFAR::ParameterSet itsParset;
@@ -258,7 +264,28 @@ private:
   
   /// @brief true, if phase tracking is done
   bool itsTrackPhase;
-  
+
+  /// @brief true, if the LO frequency is derived automatically from the spectral window information (assuming BETA3)
+  bool itsAutoLOFreq;
+
+  /// @brief start frequency of the current frequency configuration
+  mutable double itsCurrentStartFreq;
+
+  /// @brief frequency increment for the current frequency configuration
+  double itsCurrentFreqInc;
+
+  // frequency control via epics - affects spectral window information and phase-tracking
+  // the related code is not very general, some BETA3-related specifics are hard-coded
+
+  /// @brief previous value of CONTROL word or -1 if it is not initialised
+  mutable int itsPreviousControl;
+
+  /// @brief true, if a change in epics control word passed with data causes advance of the frequency
+  bool itsControlFreq;
+
+  /// @brief frequency step used if itsControlFreq is true, it is added every time CONTROL is incremented by 1.
+  double itsFreqStep;
+
 };
 
 } // namespace swcorrelator

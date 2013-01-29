@@ -63,7 +63,7 @@ struct ISink : private boost::noncopyable {
   /// workarounds would be required with casa arrays, so we don't bother doing this at the moment.
   /// In addition, we could call calculateUVW inside this method (but we still need an option to
   /// calculate uvw's ahead of writing the buffer if we implement some form of delay tracking).
-  virtual void write(CorrProducts &buf) const = 0;
+  virtual void write(CorrProducts &buf) = 0;
 };
   
 } // namespace swcorrelator

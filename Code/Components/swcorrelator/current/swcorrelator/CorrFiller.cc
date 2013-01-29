@@ -279,7 +279,7 @@ void CorrFiller::notifyProductsReady(const int beam)
 
 /// @brief obtain a reference to result sink doing low-level writing of the result
 /// @return const reference to the sink class
-const ISink& CorrFiller::resultSink() const
+ISink& CorrFiller::resultSink() const
 {
   ASKAPDEBUGASSERT(itsResultSink);
   return *itsResultSink;

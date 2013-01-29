@@ -123,7 +123,7 @@ public:
 
   /// @brief obtain a reference to result sink doing low-level writing of the result
   /// @return const reference to the sink class
-  const ISink& resultSink() const;
+  ISink& resultSink() const;
   
   /// @brief obtain a reference to on-the-fly data monitor
   /// @return reference to the monitor interface
