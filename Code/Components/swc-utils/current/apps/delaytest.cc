@@ -27,6 +27,7 @@
 #include <dataaccess/TableDataSource.h>
 #include <askap_accessors.h>
 #include <askap/AskapLogging.h>
+#include <askap/AskapUtil.h>
 ASKAP_LOGGER(logger, "");
 
 #include <askap/AskapError.h>
@@ -58,9 +59,12 @@ using std::endl;
 using namespace askap;
 using namespace askap::accessors;
 
-void process(const IConstDataSource &ds) {
+void process(const IConstDataSource &ds, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseFeed(1);
+  if (ctrl >=0 ) {
+      sel->chooseUserDefinedIndex("CONTROL",casa::uInt(ctrl));
+  }
   IDataConverterPtr conv=ds.createConverter();  
   conv->setFrequencyFrame(casa::MFrequency::Ref(casa::MFrequency::TOPO),"MHz");
   conv->setEpochFrame(casa::MEpoch(casa::Quantity(55913.0,"d"),
@@ -69,6 +73,8 @@ void process(const IConstDataSource &ds) {
   casa::Matrix<casa::Complex> buf;
   casa::Vector<double> freq;
   size_t counter = 0;
+  size_t nGoodRows = 0;
+  size_t nBadRows = 0;
   casa::uInt nChan = 0;
   casa::uInt nRow = 0;
   double startTime = 0;
@@ -100,10 +106,25 @@ void process(const IConstDataSource &ds) {
        
        // add new spectrum to the buffer
        for (casa::uInt row=0; row<nRow; ++row) {
-            casa::Vector<casa::Complex> thisRow = buf.row(row);
-            thisRow += it->visibility().xyPlane(0).row(row);
-
+            casa::Vector<casa::Bool> flags = it->flag().xyPlane(0).row(row);
+            bool flagged = false;
+            for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
+                 flagged |= flags[ch];
+            }
+            if (flagged) {
+               ++nBadRows;
+            } else {
+                casa::Vector<casa::Complex> thisRow = buf.row(row);
+                thisRow += it->visibility().xyPlane(0).row(row);
+                ++nGoodRows;
+            }
        }
+       if ((counter == 0) && (nGoodRows == 0)) {
+           // all data are flagged, completely ignoring this iteration and consider the next one to be first
+           nChan = 0;
+           continue;
+       }
+      
        if (++counter == 1) {
            startTime = it->time();
        }
@@ -111,7 +132,7 @@ void process(const IConstDataSource &ds) {
   }
   if (counter!=0) {
       buf /= float(counter);
-      std::cout<<"Averaged "<<counter<<" integration cycles, time span "<<(stopTime-startTime)/60.<<" minutues"<<std::endl;
+      std::cout<<"Averaged "<<counter<<" integration cycles, "<<nGoodRows<<" good and "<<nBadRows<<" bad rows, time span "<<(stopTime-startTime)/60.<<" minutues"<<std::endl;
       { // export averaged spectrum
         ASKAPDEBUGASSERT(freq.nelements() == nChan);
         std::ofstream os("avgspectrum.dat");
@@ -136,18 +157,20 @@ void process(const IConstDataSource &ds) {
 
 int main(int argc, char **argv) {
   try {
-     if (argc!=2) {
-         cerr<<"Usage: "<<argv[0]<<" measurement_set"<<endl;
+     if ((argc!=2) && (argc!=3)) {
+         cerr<<"Usage: "<<argv[0]<<" [ctrl] measurement_set"<<endl;
 	 return -2;
      }
 
      casa::Timer timer;
+     const std::string msName = argv[argc - 1];
+     const int ctrl = argc == 2 ? -1 : utility::fromString<int>(argv[1]);
 
      timer.mark();
-     TableDataSource ds(argv[1],TableDataSource::MEMORY_BUFFERS);     
+     TableDataSource ds(msName,TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
-     process(ds);
+     process(ds,ctrl);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
