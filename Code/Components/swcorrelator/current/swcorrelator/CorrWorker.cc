@@ -106,8 +106,12 @@ void CorrWorker::operator()()
           cp.itsControl[1] = itsBufferManager->header(ids.itsAnt2).control;
           cp.itsControl[2] = itsBufferManager->header(ids.itsAnt3).control;
        }
-       // unflag this channel
-       cp.itsFlag.column(chan).set(false);
+       // unflag this channel if frame offset is less than 100 by absolute value (it should be within a few steps); false is good here
+          //cp.itsFlag.column(chan).set(false);
+          cp.itsFlag(0,chan) = (abs(frameOff_01) >= 100);
+          cp.itsFlag(1,chan) = (abs(frameOff_12) >= 100);
+          cp.itsFlag(2,chan) = (abs(frameOff_02) >= 100);
+       //
        cp.itsVisibility(0,chan) = s3bc.getVis12() / float(s3bc.nSamples12()!=0 ? s3bc.nSamples12() : 1.);
        cp.itsVisibility(1,chan) = s3bc.getVis23() / float(s3bc.nSamples23()!=0 ? s3bc.nSamples23() : 1.);
        cp.itsVisibility(2,chan) = s3bc.getVis13() / float(s3bc.nSamples13()!=0 ? s3bc.nSamples13() : 1.);       
