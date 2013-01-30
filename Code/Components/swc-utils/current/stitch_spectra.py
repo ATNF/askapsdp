@@ -65,6 +65,14 @@ freqs = []
 for central_freq in range(688, 1520, 16):
     if runProg(central_freq, msName):
        chunk = loadAvgSpectrum()
+       freqAxisGood = True
+       for f in chunk:
+           if abs(central_freq - f) > 8:
+              print "WARNING! Detected unmatching frequency axis for central frequency %i MHz - got frequency %i" % (central_freq, f)
+              freqAxisGood = False
+              break
+       if not freqAxisGood:
+          continue
        for f in chunk:
            if f in freqs:
               print "WARNING! Found duplicated frequency %i MHz for central frequency %i MHz, last data will be used" % (f,central_freq)
@@ -72,7 +80,7 @@ for central_freq in range(688, 1520, 16):
               freqs.append(f)
        spectrum.update(chunk)
     else:
-       print "No data for central frequency %i MHz" % (central_freq,)
+       print "WARNING! No data for central frequency %i MHz" % (central_freq,)
 
 # now sort frequencies and write the output in the ordered way
 freqs.sort()
