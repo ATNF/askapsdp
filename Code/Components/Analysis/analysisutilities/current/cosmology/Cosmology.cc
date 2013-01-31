@@ -77,7 +77,7 @@ namespace askap
 	}
 	
 	double dl = rr * (1.+z) * (C_ms / 1000.) / this->itsHubble;  /* dlum in Mpc */
-	dl = dl * MPC_m;                                  /* dlum in metres */
+	dl = dl * MPC_m;                                             /* dlum in metres */
 	
 	return log10(dl);
 	
@@ -85,7 +85,7 @@ namespace askap
 
       double Cosmology::lum(double z, double flux)
       {
-	return log10(4.*M_PI) + this->dlum(z) + flux;
+	return log10(4.*M_PI) + 2.*this->dlum(z) + flux;
       }
 
     }

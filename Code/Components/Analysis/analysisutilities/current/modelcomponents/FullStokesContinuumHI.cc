@@ -122,9 +122,17 @@ namespace askap {
 
         void FullStokesContinuumHI::define(const std::string &line)
         {
-            /// @details Defines a FullStokesContinuumHI object from a line of
-            /// text from an ascii file. The format of the line is currently taken from the POSSUM catalogue supplied by Jeroen Stil.
-            /// @param line A line from the ascii input file
+            /// @details Defines a FullStokesContinuumHI object from a
+            /// line of text from an ascii file. The line is
+            /// interpreted by FullStokesContinuum::define, and then
+            /// the HI mass of the object is calculated. We use the
+            /// expression from Wilman et al (2008): 
+	    /// log M_HI = 0.44 log L_1.4 + 0.48 +- delta
+	    /// where delta is drawn from a normal distribution with
+	    /// sigma=0.3. This means the HI mass is randomly created
+	    /// each time - if you want to record what was used you
+	    /// need to write it out at time of execution. Note that the luminosity is in units of W/Hz, so we need to correct the value from Jy.
+ 	    ///  @param line A line from the ascii input file
 
 	  this->FullStokesContinuum::define(line);
 
@@ -132,9 +140,9 @@ namespace askap {
 	  GALTYPE type = getGaltype(this->itsSFtype, this->itsAGNtype);
 	  if(type == SFG || type == SBG){
 	    cosmology::Cosmology cosmo;
-	    double lum = cosmo.lum(this->itsRedshift, this->itsI1400);
+	    double lum = cosmo.lum(this->itsRedshift, this->itsI1400-26.);
 	    ASKAPLOG_DEBUG_STR(logger, "Lum of object = " << lum);
-	    lum = log( pow(10.,lum) );
+	    lum *= M_LN10; // convert to natural log from log_10
 	    HImass = 0.44 * lum  + 0.48 + normalRandomVariable(0.,0.3);
 	    HImass = exp(HImass);
 	    ASKAPLOG_DEBUG_STR(logger, "Creating HI profile with M_HI = " << HImass<<", using log10(flux)="<<this->itsI1400<<" to get a lum of " << lum);
@@ -161,6 +169,7 @@ namespace askap {
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
 	theStream << std::setw(10)<<this->itsPolFracRef << std::setw(10)<<this->itsI4860 << std::setw(10)<<this->itsI18000 << std::setw(10)<<this->itsCosVA 
 		  << std::setw(11)<<this->itsRM << std::setw(11)<<this->itsRMflag;
+	theStream << std::setw(10) << std::setprecision(6) << log10(this->itsHIprofile.mHI());
 	theStream << "\n";
       }
 
