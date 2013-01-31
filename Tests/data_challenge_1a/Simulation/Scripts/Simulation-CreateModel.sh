@@ -120,8 +120,6 @@ createFITS.WCSsources.crval = [${raCat}, ${decCat}, ${stokesZero}, ${rfreq}]
 createFITS.WCSsources.crpix = [${rpix}, ${rpix}, ${rstokes}, ${rchan}]
 createFITS.WCSsources.crota = [0., 0., 0., 0.]
 createFITS.WCSsources.cdelt = [-${delt}, ${delt}, ${dstokes}, ${chanw}]
-createFITS.outputList       = ${doOutputlistCR}
-$outputlistfileCR
 createFITS.addNoise         = false
 createFITS.doConvolution    = false
 createFITS.baseFreq         = ${basefreq}

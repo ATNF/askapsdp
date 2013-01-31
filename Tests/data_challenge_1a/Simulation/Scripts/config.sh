@@ -35,9 +35,6 @@ slicedir=${imagedir}/Slices
 
 sourcelist=master_possum_catalogue_trim10x10deg.dat
 
-doOutputListCR=false
-outputlistfileCR="#"
-
 #databaseCR=POSSUM
 databaseCR=POSSUMHI
 
@@ -47,8 +44,6 @@ if [ $databaseCR == "POSSUM" ]; then
 else if [$databaseCR == "POSSUMHI" ]; then
     listtypeCR=spectralline
     baseimage=DCmodelfull-HI
-    doOutputlistCR=true
-    outputlistfileCR=master_possum_catalogue_trim10x10deg_asUsed.dat
 fi
 
 npix=3560
