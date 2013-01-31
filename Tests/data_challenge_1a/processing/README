@@ -1,6 +1,6 @@
 Instructions for executing the data challenge 1A processing pipeline:
 
-1) Create a working directory (in /scratch/astronomy116/$USER on epic):
+1) Create a working directory (in /scratch/astronomy554/$USER on epic):
 $ mkdir myworkdir
 $ cd myworkdir
 
