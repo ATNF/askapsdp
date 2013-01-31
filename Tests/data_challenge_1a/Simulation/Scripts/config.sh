@@ -33,11 +33,23 @@ parsetdirCR=${crdir}/Parsets
 imagedir=${crdir}/Images
 slicedir=${imagedir}/Slices
 
-baseimage=DCmodelfull-cont
-modelimage=${imagedir}/${baseimage}
-slicebase=${slicedir}/${baseimage}-chunk
-
 sourcelist=master_possum_catalogue_trim10x10deg.dat
+
+doOutputListCR=false
+outputlistfileCR="#"
+
+#databaseCR=POSSUM
+databaseCR=POSSUMHI
+
+if [ $databaseCR == "POSSUM" ]; then
+    listtypeCR=continuum
+    baseimage=DCmodelfull-cont
+else if [$databaseCR == "POSSUMHI" ]; then
+    listtypeCR=spectralline
+    baseimage=DCmodelfull-HI
+    doOutputlistCR=true
+    outputlistfileCR=master_possum_catalogue_trim10x10deg_asUsed.dat
+fi
 
 npix=3560
 rpix=1780
@@ -67,11 +79,18 @@ rstokes=0
 stokesZero=0
 dstokes=0
 
+if [ $nstokes -gt 1 ]; then
+    baseimage=${baseimage}_fullstokes
+fi
+
 nsubxCR=10
 nsubyCR=8
 workersPerNodeCR=1
 
 createTT_CR=true
+
+modelimage=${imagedir}/${baseimage}
+slicebase=${slicedir}/${baseimage}-chunk
 
 
 ##############################
