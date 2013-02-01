@@ -65,7 +65,11 @@ using std::endl;
 using namespace askap;
 using namespace askap::accessors;
 
-void process(const IConstDataSource &ds, const int ctrl = -1) {
+std::string printComplex(const casa::Complex &val) {
+  return std::string("[")+utility::toString<float>(casa::real(val))+" , "+utility::toString<float>(casa::imag(val))+"]";
+}
+
+void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) {
   IDataSelectorPtr sel=ds.createSelector();
   //sel->chooseFeed(1);
   if (ctrl >=0 ) {
@@ -150,11 +154,14 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
              os<<std::endl;
         }
       }
-      // if flux is positive, adjust amplitudes to get the desired flux
-      //const float target_flux = -1;
 
       ASKAPCHECK(buf.ncolumn()>0, "Need at least 1 spectral channel!");
       std::ofstream os("roughcalib.in");
+      if (flux>0) {
+          os<<"# amplitudes adjusted to match flux = "<<flux<<" Jy of the 'calibrator'"<<std::endl;
+      } else {
+          os<<"# all gain amplitudes are 1."<<std::endl;
+      }
       for (casa::uInt row = 0; row<buf.nrow(); row+=3) {
            ASKAPDEBUGASSERT(row+2<buf.nrow());
            casa::Vector<casa::Complex> spAvg(3,casa::Complex(0.,0.));
@@ -169,12 +176,24 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
            
            const casa::uInt beam = row/3;
            os<<"# Beam "<<beam<<" closure phase: "<<closurePh/casa::C::pi*180.<<" deg"<<std::endl;
-           os<<"gain.g11.0."<<beam<<" = [1.0,0.0]"<<std::endl;
-           os<<"gain.g22.0."<<beam<<" = [1.0,0.0]"<<std::endl;
-           os<<"gain.g11.1."<<beam<<" = ["<<cos(ph1)<<","<<sin(ph1)<<"]"<<std::endl;
-           os<<"gain.g22.1."<<beam<<" = ["<<cos(ph1)<<","<<sin(ph1)<<"]"<<std::endl;
-           os<<"gain.g11.2."<<beam<<" = ["<<cos(ph2)<<","<<sin(ph2)<<"]"<<std::endl;
-           os<<"gain.g22.2."<<beam<<" = ["<<cos(ph2)<<","<<sin(ph2)<<"]"<<std::endl;
+           os<<"# measured phases (0-1,1-2,0-2): "<<arg(spAvg[0])/casa::C::pi*180.<<" "<<arg(spAvg[1])/casa::C::pi*180.<<" "<<arg(spAvg[2])/casa::C::pi*180.<<std::endl;
+           float amp0 = 1.;
+           float amp1 = 1.;
+           float amp2 = 1.;
+           if (flux > 0) {
+               amp0 = sqrt(flux * casa::abs(spAvg[1]) / casa::abs(spAvg[0]) / casa::abs(spAvg[2]));
+               amp1 = sqrt(flux * casa::abs(spAvg[2]) / casa::abs(spAvg[0]) / casa::abs(spAvg[1]));
+               amp2 = sqrt(flux * casa::abs(spAvg[0]) / casa::abs(spAvg[1]) / casa::abs(spAvg[2]));
+           }
+           const casa::Complex g0(amp0,0.);
+           const casa::Complex g1 = casa::Complex(cos(ph1),sin(ph1)) * amp1;
+           const casa::Complex g2 = casa::Complex(cos(ph2),sin(ph2)) * amp2;
+           os<<"gain.g11.0."<<beam<<" = "<<printComplex(g0)<<std::endl;
+           os<<"gain.g22.0."<<beam<<" = "<<printComplex(g0)<<std::endl;
+           os<<"gain.g11.1."<<beam<<" = "<<printComplex(g1)<<std::endl;
+           os<<"gain.g22.1."<<beam<<" = "<<printComplex(g1)<<std::endl;
+           os<<"gain.g11.2."<<beam<<" = "<<printComplex(g2)<<std::endl;
+           os<<"gain.g22.2."<<beam<<" = "<<printComplex(g2)<<std::endl;
       }
   } else {
      std::cout<<"No data found!"<<std::endl;
@@ -185,19 +204,19 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
 int main(int argc, char **argv) {
   try {
      if ((argc!=2) && (argc!=3)) {
-         cerr<<"Usage: "<<argv[0]<<" [ctrl] measurement_set"<<endl;
+         cerr<<"Usage: "<<argv[0]<<" [flux] measurement_set"<<endl;
 	 return -2;
      }
 
      casa::Timer timer;
      const std::string msName = argv[argc - 1];
-     const int ctrl = argc == 2 ? -1 : utility::fromString<int>(argv[1]);
+     const float flux = argc == 2 ? -1 : utility::fromString<float>(argv[1]);
 
      timer.mark();
      TableDataSource ds(msName,TableDataSource::MEMORY_BUFFERS);     
      std::cerr<<"Initialization: "<<timer.real()<<std::endl;
      timer.mark();
-     process(ds,ctrl);
+     process(ds,flux);
      std::cerr<<"Job: "<<timer.real()<<std::endl;
      
   }
