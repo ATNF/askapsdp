@@ -169,12 +169,12 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
            
            const casa::uInt beam = row/3;
            os<<"# Beam "<<beam<<" closure phase: "<<closurePh/casa::C::pi*180.<<" deg"<<std::endl;
-           os<<"gain.g11.0."<<beam<<" [1.0,0.0]"<<std::endl;
-           os<<"gain.g22.0."<<beam<<" [1.0,0.0]"<<std::endl;
-           os<<"gain.g11.1."<<beam<<" ["<<cos(ph1)<<","<<sin(ph1)<<"]"<<std::endl;
-           os<<"gain.g22.1."<<beam<<" ["<<cos(ph1)<<","<<sin(ph1)<<"]"<<std::endl;
-           os<<"gain.g11.2."<<beam<<" ["<<cos(ph2)<<","<<sin(ph2)<<"]"<<std::endl;
-           os<<"gain.g22.2."<<beam<<" ["<<cos(ph2)<<","<<sin(ph2)<<"]"<<std::endl;
+           os<<"gain.g11.0."<<beam<<" = [1.0,0.0]"<<std::endl;
+           os<<"gain.g22.0."<<beam<<" = [1.0,0.0]"<<std::endl;
+           os<<"gain.g11.1."<<beam<<" = ["<<cos(ph1)<<","<<sin(ph1)<<"]"<<std::endl;
+           os<<"gain.g22.1."<<beam<<" = ["<<cos(ph1)<<","<<sin(ph1)<<"]"<<std::endl;
+           os<<"gain.g11.2."<<beam<<" = ["<<cos(ph2)<<","<<sin(ph2)<<"]"<<std::endl;
+           os<<"gain.g22.2."<<beam<<" = ["<<cos(ph2)<<","<<sin(ph2)<<"]"<<std::endl;
       }
   } else {
      std::cout<<"No data found!"<<std::endl;
