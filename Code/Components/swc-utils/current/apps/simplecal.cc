@@ -176,18 +176,24 @@ void process(const IConstDataSource &ds, const float flux, const int ctrl = -1) 
            
            const casa::uInt beam = row/3;
            os<<"# Beam "<<beam<<" closure phase: "<<closurePh/casa::C::pi*180.<<" deg"<<std::endl;
-           os<<"# measured phases (0-1,1-2,0-2): "<<arg(spAvg[0])/casa::C::pi*180.<<" "<<arg(spAvg[1])/casa::C::pi*180.<<" "<<arg(spAvg[2])/casa::C::pi*180.<<std::endl;
+           os<<"# measured phases              (0-1,1-2,0-2): "<<arg(spAvg[0])/casa::C::pi*180.<<" "<<arg(spAvg[1])/casa::C::pi*180.<<" "<<arg(spAvg[2])/casa::C::pi*180.<<std::endl;
+           os<<"# measured amplitudes          (0-1,1-2,0-2): "<<casa::abs(spAvg[0])<<" "<<casa::abs(spAvg[1])<<" "<<casa::abs(spAvg[2])<<std::endl;
            float amp0 = 1.;
            float amp1 = 1.;
            float amp2 = 1.;
            if (flux > 0) {
-               amp0 = sqrt(flux * casa::abs(spAvg[1]) / casa::abs(spAvg[0]) / casa::abs(spAvg[2]));
-               amp1 = sqrt(flux * casa::abs(spAvg[2]) / casa::abs(spAvg[0]) / casa::abs(spAvg[1]));
-               amp2 = sqrt(flux * casa::abs(spAvg[0]) / casa::abs(spAvg[1]) / casa::abs(spAvg[2]));
+               ASKAPCHECK((casa::abs(spAvg[0])> 1e-6) && (casa::abs(spAvg[1])> 1e-6) && (casa::abs(spAvg[2])> 1e-6), "One of the measured amplitudes is too close to 0.: "<<spAvg);
+               amp0 = sqrt(casa::abs(spAvg[2]) * casa::abs(spAvg[0]) / casa::abs(spAvg[1]) / flux);
+               amp1 = sqrt(casa::abs(spAvg[1]) * casa::abs(spAvg[0]) / casa::abs(spAvg[2]) / flux);
+               amp2 = sqrt(casa::abs(spAvg[2]) * casa::abs(spAvg[1]) / casa::abs(spAvg[0]) / flux);
            }
            const casa::Complex g0(amp0,0.);
            const casa::Complex g1 = casa::Complex(cos(ph1),sin(ph1)) * amp1;
            const casa::Complex g2 = casa::Complex(cos(ph2),sin(ph2)) * amp2;
+
+           os<<"# phases after calibration     (0-1,1-2,0-2): "<<arg(spAvg[0]/g0/conj(g1))/casa::C::pi*180.<<" "<<arg(spAvg[1]/g1/conj(g2))/casa::C::pi*180.<<" "<<arg(spAvg[2]/g0/conj(g2))/casa::C::pi*180.<<std::endl;
+           os<<"# amplitudes after calibration (0-1,1-2,0-2): "<<casa::abs(spAvg[0]/g0/conj(g1))<<" "<<casa::abs(spAvg[1]/g1/conj(g2))<<" "<<casa::abs(spAvg[2]/g0/conj(g2))<<std::endl;
+
            os<<"gain.g11.0."<<beam<<" = "<<printComplex(g0)<<std::endl;
            os<<"gain.g22.0."<<beam<<" = "<<printComplex(g0)<<std::endl;
            os<<"gain.g11.1."<<beam<<" = "<<printComplex(g1)<<std::endl;
