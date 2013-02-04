@@ -71,7 +71,7 @@ FillerMSSink::FillerMSSink(const LOFAR::ParameterSet &parset) : itsParset(parset
    itsNumberOfBeams(-1), itsExtraAntennas(parset.getString("beams2ants","")), itsAntHandlingExtras(-1),
    itsEffectiveLOFreq(0.), itsTrackPhase(parset.getBool("trackphase",true)), itsAutoLOFreq(false),
    itsCurrentStartFreq(0.), itsCurrentFreqInc(0.), itsPreviousControl(-1),
-   itsControlFreq(parset.getBool("control2freq", false)), itsAddPhase(3,0.)
+   itsControlFreq(parset.getBool("control2freq", false))
 {
   if (itsExtraAntennas.nRules()) {
       ASKAPLOG_INFO_STR(logger, "Some beams will be written as antennas (all indices after substitution) according to the following rule:");
@@ -229,15 +229,8 @@ void FillerMSSink::write(CorrProducts &buf)
               setDataDescID(dataDescID);
                                 
               if (itsTrackPhase && itsAutoLOFreq) {
-                  double freqDiff = itsEffectiveLOFreq;
                   itsEffectiveLOFreq = guessEffectiveLOFreq();
                   ASKAPLOG_INFO_STR(logger, "Will use "<<itsEffectiveLOFreq/1e6<<" MHz as effective LO frequency");
-                  freqDiff -= itsEffectiveLOFreq;
-                  ASKAPDEBUGASSERT(buf.itsDelays.nelements() <= itsAddPhase.nelements());
-                  for (casa::uInt baseline = 0; baseline < buf.itsDelays.nelements(); ++baseline) {
-                       itsAddPhase[baseline] += -2 * float(casa::C::pi * freqDiff * buf.itsDelays[baseline] / casa::C::c);
-                  }
-                  ASKAPLOG_INFO_STR(logger, "Changing static phase offsets to "<<itsAddPhase/casa::C::pi*180.);
               }
           } 
       }
@@ -249,9 +242,8 @@ void FillerMSSink::write(CorrProducts &buf)
   if (itsTrackPhase) {
       ASKAPDEBUGASSERT(buf.itsUVWValid);
       ASKAPDEBUGASSERT(buf.itsDelays.nelements() == buf.itsVisibility.nrow());
-      ASKAPDEBUGASSERT(buf.itsDelays.nelements() <= itsAddPhase.nelements());
       for (casa::uInt baseline = 0; baseline < buf.itsDelays.nelements(); ++baseline) {
-          const float phase = -2 * float(casa::C::pi * itsEffectiveLOFreq * buf.itsDelays(baseline) / casa::C::c) + itsAddPhase[baseline];
+          const float phase = -2 * float(casa::C::pi * itsEffectiveLOFreq * buf.itsDelays(baseline) / casa::C::c);
           const casa::Complex phasor(cos(phase),sin(phase));
           casa::Vector<casa::Complex> allChan = buf.itsVisibility.row(baseline);
           allChan *= phasor;

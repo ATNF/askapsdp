@@ -2,13 +2,13 @@ swcorrelator.port = 3000
 swcorrelator.nbeam = 2
 swcorrelator.nchan = 16
 swcorrelator.capturemode = false
-swcorrelator.duplicate2nd = false
+swcorrelator.duplicate2nd = true
 swcorrelator.monitors = "simple"
 
 # optional index substitution
 swcorrelator.makeBeamAnt = false
-swcorrelator.antmap = "1:0,3:1,6:2"
-#swcorrelator.antmap = "6:0,3:1"
+#swcorrelator.antmap = "1:0,3:1,6:2"
+swcorrelator.antmap = "6:0,1:1"
 swcorrelator.beammap = "1:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8"
 #swcorrelator.beammap = "2:0,6:1"
 # experimental mapping figured out using synthesiser
@@ -30,17 +30,16 @@ swcorrelator.filename = ""
 swcorrelator.basepath = "apps/"
 
 swcorrelator.control2freq = true
-swcorrelator.control2freq.step = 16e6
 
 swcorrelator.sources.names                 =       [field1]
 # 0407-658
 #swcorrelator.sources.field1.direction      =       [04h08m20.38, -65.45.09.1, J2000]
 # 1934-638
-swcorrelator.sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J2000]
+#swcorrelator.sources.field1.direction      =       [19h39m25.026, -63.42.45.630, J2000]
 # satellite of 1934-638 -> 1936-623
 #swcorrelator.sources.field1.direction      =       [19h41m21.77, -62.11.21.06, J2000]
 # 1742-289 (Galactic centre)
-#swcorrelator.sources.field1.direction      =       [17h45m40.04, -29.00.28.07, J2000]
+swcorrelator.sources.field1.direction      =       [17h45m40.04, -29.00.28.07, J2000]
 
 # absorption source PKS 1814-63
 #swcorrelator.sources.field1.direction      =       [18h19m35.00, -63.45.48.00, J2000]
@@ -48,6 +47,11 @@ swcorrelator.sources.field1.direction      =       [19h39m25.026, -63.42.45.630,
 #swcorrelator.sources.field1.direction      =       [19h44m57.80, -14.48.11.00, J2000]
 # NGC300
 #swcorrelator.sources.field1.direction      =       [00h54m50.56, -37.42.08.66, J2000]
+# NGC253
+#swcorrelator.sources.field1.direction      =       [00h47m47.27, -25.17.56.13, J2000]
+# 0823-50
+#swcorrelator.sources.field1.direction      =       [08h25m26.87, -50.11.38.49, J2000]
+
 
 # Virgo
 #swcorrelator.sources.field1.direction      =       [12h30m49.43, 12.23.28.01, J2000]
@@ -61,14 +65,24 @@ swcorrelator.defaultfield      = "field1"
 
 swcorrelator.spws.names                      =       [IF]
 # for 6080 MHz LO setting (0-based channel 7 is 928 MHz and the spectrum is inverted)
-swcorrelator.spws.IF  =  [ 16, 0.935GHz, -1MHz, "XX YY"]
+#swcorrelator.spws.IF  =  [ 16, 0.935GHz, -1MHz, "XX YY"]
+# for frequency scanning - the lowest allowed setting (centre is 688 MHz)
+swcorrelator.spws.IF  =  [ 16, 0.695GHz, -1MHz, "XX YY"]
+# for HI (centre is 1424 MHz)
+#swcorrelator.spws.IF  =  [ 16, 1.431GHz, -1MHz, "XX YY"]
 swcorrelator.defaultwindow    = "IF"
 
 # antenna layout
 swcorrelator.antennas.telescope            =       BETA3
 swcorrelator.antennas.BETA3.coordinates    =       global
 #swcorrelator.antennas.BETA3.names          =       [AK03, AK08, AK03BF]
-swcorrelator.antennas.BETA3.names          =       [AK01, AK03, AK06, AK07]
+
+# ant 1 + ant 6 only
+swcorrelator.antennas.BETA3.names          =       [AK06, AK01, AK01]
+
+# standard 3-antenna setup
+#swcorrelator.antennas.BETA3.names          =       [AK01, AK03, AK06, AK07]
+
 swcorrelator.antennas.BETA3.diameter       =       12m
 swcorrelator.antennas.BETA3.scale          =        1.0
 swcorrelator.antennas.BETA3.mount          =       equatorial
@@ -87,13 +101,17 @@ swcorrelator.feeds.mode = "perfect X Y"
 swcorrelator.feeds.names     = [beam0,beam1,beam2,beam3]
 
 swcorrelator.feeds.beam1          =       [0, 0]
+swcorrelator.feeds.beam0          =       [0, 0]
+swcorrelator.feeds.beam2          =       [0, 0]
+swcorrelator.feeds.beam3          =       [0, 0]
+
 #swcorrelator.feeds.beam0          =       [0.572425, -0.947258]
-swcorrelator.feeds.beam0          =       [-0.226937, 1.52244]
+#swcorrelator.feeds.beam0          =       [-0.226937, 1.52244]
 #swcorrelator.feeds.beam1          =       [-0.226937, 1.52244]
 #swcorrelator.feeds.beam1          =       [-1.14485, 1.89452]
-swcorrelator.feeds.beam2          =       [-0.1134685, 0.76122]
+#swcorrelator.feeds.beam2          =       [-0.1134685, 0.76122]
 #swcorrelator.feeds.beam2          =       [-0.572425, 0.947258]
-swcorrelator.feeds.beam3          =       [0.0725917,-0.442475]
+#swcorrelator.feeds.beam3          =       [0.0725917,-0.442475]
 swcorrelator.feeds.beam4          =       [0, 0]
 swcorrelator.feeds.beam5          =       [0, 0]
 swcorrelator.feeds.beam6          =       [0, 0]

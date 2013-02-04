@@ -283,11 +283,6 @@ private:
   /// @brief true, if a change in epics control word passed with the data causes change in frequency
   bool itsControlFreq;
 
-  /// @brief additional phase for each baseline
-  /// @details To avoid phase jumps during frequency sweep we have to adjust it every time the frequency changes.
-  /// These numbers are initialised with 0 and incremented according to the actual delays at the time of the frequency change.
-  casa::Vector<float> itsAddPhase;
-
 };
 
 } // namespace swcorrelator
