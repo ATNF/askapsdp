@@ -1942,91 +1942,97 @@ namespace askap {
       void DuchampParallel::extractSpectra()
       {
 
-	if(this->itsComms.isMaster()) {
-	  if(this->itsComms.isParallel()){
-	    int16 rank;
-	    LOFAR::BlobString bs;
+	if(this->itsFlagExtractSpectra || this->itsFlagExtractNoiseSpectra){
+
+	  if(this->itsComms.isMaster()) {
+	    if(this->itsComms.isParallel()){
+	      int16 rank;
+	      LOFAR::BlobString bs;
+	      
+	      // now send the individual sources to each worker in turn
+	      for(size_t i=0;i<=this->itsSourceList.size();i++){
+		rank = i % (itsComms.nProcs() - 1);
+		bs.resize(0);
+		LOFAR::BlobOBufString bob(bs);
+		LOFAR::BlobOStream out(bob);
+		out.putStart("extsrc", 1);
+		out << (i<this->itsSourceList.size());
+		if(i<this->itsSourceList.size()){
+		  this->itsSourceList[i].defineBox(this->itsCube.pars().section(), this->itsFitParams, this->itsCube.header().getWCS()->spec);
+		  out << this->itsSourceList[i];
+		}
+		out.putEnd();
+		if(i<this->itsSourceList.size()) itsComms.sendBlob(bs, rank + 1);
+		else {
+		  // notify all workers that we're finished
+		  for (int i = 1; i < itsComms.nProcs(); ++i) {
+		    itsComms.sendBlob(bs, i);
+		  }
+		}
+		
+	      }
+	      
+	    }
+	  }
+	  
+	  if(this->itsComms.isWorker()){
 	    
-	    // now send the individual sources to each worker in turn
-	    for(size_t i=0;i<=this->itsSourceList.size();i++){
-	      rank = i % (itsComms.nProcs() - 1);
-	      bs.resize(0);
-	      LOFAR::BlobOBufString bob(bs);
-	      LOFAR::BlobOStream out(bob);
-	      out.putStart("extsrc", 1);
-	      out << (i<this->itsSourceList.size());
-	      if(i<this->itsSourceList.size()) out << this->itsSourceList[i];
-	      out.putEnd();
-	      if(i<this->itsSourceList.size()) itsComms.sendBlob(bs, rank + 1);
-	      else {
-		// notify all workers that we're finished
-		for (int i = 1; i < itsComms.nProcs(); ++i) {
-		  itsComms.sendBlob(bs, i);
+	    if(this->itsComms.isParallel()){
+	      
+	      LOFAR::BlobString bs;
+	      // now read individual sources
+	      bool isOK=true;
+	      this->itsSourceList.clear();
+	      while(isOK) {	    
+		sourcefitting::RadioSource src;
+		itsComms.receiveBlob(bs, 0);
+		LOFAR::BlobIBufString bib(bs);
+		LOFAR::BlobIStream in(bib);
+		int version = in.getStart("extsrc");
+		ASKAPASSERT(version == 1);
+		in >> isOK;
+		if(isOK){
+		  in >> src;
+		  this->itsSourceList.push_back(src);
+		}
+		in.getEnd();
+	      }
+	      
+	    }
+	    
+	    std::vector<bool> objectChoice = this->itsCube.pars().getObjectChoices(this->itsSourceList.size());
+	    
+	    if(this->itsFlagExtractSpectra){
+	      std::vector<sourcefitting::RadioSource>::iterator src;
+	      LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractSpectra.");
+	      ASKAPLOG_INFO_STR(logger, "Extracting spectra for " << this->itsSourceList.size() << " sources");
+	      for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
+		if(objectChoice[src->getID()-1]){
+		  SourceSpectrumExtractor extractor(extractSubset);
+		  extractor.setSource(&*src);
+		  extractor.extract();
+		  extractor.writeImage();
 		}
 	      }
-		
 	    }
-
-	  }
-	}
-	
-	if(this->itsComms.isWorker()){
-
-	  if(this->itsComms.isParallel()){
 	    
-	    LOFAR::BlobString bs;
-	    // now read individual sources
-	    bool isOK=true;
-	    this->itsSourceList.clear();
-	    while(isOK) {	    
-	      sourcefitting::RadioSource src;
-	      itsComms.receiveBlob(bs, 0);
-	      LOFAR::BlobIBufString bib(bs);
-	      LOFAR::BlobIStream in(bib);
-	      int version = in.getStart("extsrc");
-	      ASKAPASSERT(version == 1);
-	      in >> isOK;
-	      if(isOK){
-		in >> src;
-		this->itsSourceList.push_back(src);
-	      }
-	      in.getEnd();
-	    }
-
-	  }
-
-	  std::vector<bool> objectChoice = this->itsCube.pars().getObjectChoices(this->itsSourceList.size());
-
-	  if(this->itsFlagExtractSpectra){
-	    std::vector<sourcefitting::RadioSource>::iterator src;
-	    std::vector<bool>::iterator choice=objectChoice.begin();
-	    LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractSpectra.");
-	    ASKAPLOG_INFO_STR(logger, "Extracting spectra for " << this->itsSourceList.size() << " sources");
-	    for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++,choice++) {
-	      if(*choice){
-		SourceSpectrumExtractor extractor(extractSubset);
-		extractor.setSource(&*src);
-		extractor.extract();
-		extractor.writeImage();
+	    if(this->itsFlagExtractNoiseSpectra){
+	      std::vector<sourcefitting::RadioSource>::iterator src;
+	      std::vector<bool>::iterator choice=objectChoice.begin();
+	      LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractNoiseSpectra.");
+	      ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for " << this->itsSourceList.size() << " sources");
+	      for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++) {
+		if(objectChoice[src->getID()-1]){
+		  NoiseSpectrumExtractor extractor(extractSubset);
+		  extractor.setSource(&*src);
+		  extractor.extract();
+		  extractor.writeImage();
+		}
 	      }
 	    }
+	    
 	  }
-
-	  if(this->itsFlagExtractNoiseSpectra){
-	    std::vector<sourcefitting::RadioSource>::iterator src;
-	    std::vector<bool>::iterator choice=objectChoice.begin();
-	    LOFAR::ParameterSet extractSubset=this->itsParset.makeSubset("extractNoiseSpectra.");
-	    ASKAPLOG_INFO_STR(logger, "Extracting noise spectra for " << this->itsSourceList.size() << " sources");
-	    for (src = this->itsSourceList.begin(); src < this->itsSourceList.end(); src++,choice++) {
-	      if(*choice){
-		NoiseSpectrumExtractor extractor(extractSubset);
-		extractor.setSource(&*src);
-		extractor.extract();
-		extractor.writeImage();
-	      }
-	    }
-	  }
-
+	  
 	}
 	
       }

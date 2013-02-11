@@ -473,6 +473,7 @@ namespace askap {
 		casa::IPosition start(3),end(3),stride(3,1);
 		start(0)=x1; start(1)=y1; start(2)=z1;
 		end(0)=x2; end(1)=y2; end(2)=z2;
+		ASKAPCHECK(end>=start, "Slicer in blob transfer of RadioSource - start "<< start << " > end " << end);
 		Slicer box(start, end, stride, Slicer::endIsLast);;
 		src.setBox(box);
 		
