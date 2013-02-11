@@ -86,6 +86,14 @@ public:
    /// @param[in] tangent tangent point to be used with snap-shot imaging (for uvw-rotation)
    /// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
    VisMetaDataStats(const casa::MVDirection &tangent, double wtolerance);
+
+   /// @brief copy constructor
+   /// @details An explicit copy constructor is required because accessor adapter is a non-copyable non-trivial type.
+   /// This causes problems in the parallel mode only when different mpi ranks may need to clone the statistics
+   /// estimator as part of the reduction process. 
+   /// @param[in] other const reference to the object to copy from
+   VisMetaDataStats(const VisMetaDataStats &other);
+   
    
    /// @brief reset all accumulated statistics
    /// @details After this method, the object will be reset to a pristine state preserving only

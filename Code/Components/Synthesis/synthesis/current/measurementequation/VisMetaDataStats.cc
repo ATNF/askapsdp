@@ -73,9 +73,25 @@ VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent) : itsTangen
 /// @param[in] wtolerance threshold triggering fitting of a new plane for snap-shot imaging (wavelengths)      
 VisMetaDataStats::VisMetaDataStats(const casa::MVDirection &tangent, double wtolerance) : itsTangent(tangent), itsTangentSet(true), 
      itsAccessorAdapter(wtolerance,false), 
-     itsNVis(0ul), itsMaxU(0.), itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.),
+     itsNVis(0ul), itsMaxU(0.), itsMaxV(0.), itsMaxW(0.), itsMaxResidualW(0.), itsMinFreq(0.), itsMaxFreq(0.),
      itsMaxAntennaIndex(0u), itsMaxBeamIndex(0u), itsReferenceDir(tangent), itsRefDirValid(true), itsFieldBLC(0.,0.), itsFieldTRC(0.,0.)
      {}
+
+
+/// @brief copy constructor
+/// @details An explicit copy constructor is required because accessor adapter is a non-copyable non-trivial type.
+/// This causes problems in the parallel mode only when different mpi ranks may need to clone the statistics
+/// estimator as part of the reduction process. 
+/// @param[in] other const reference to the object to copy from
+VisMetaDataStats::VisMetaDataStats(const VisMetaDataStats &other) : itsTangent(other.itsTangent), itsTangentSet(other.itsTangentSet),
+   itsAccessorAdapter(other.itsAccessorAdapter.tolerance(), false), itsNVis(other.itsNVis), itsMaxU(other.itsMaxU),
+   itsMaxV(other.itsMaxV), itsMaxW(other.itsMaxW), itsMaxResidualW(other.itsMaxResidualW), itsMinFreq(other.itsMinFreq), 
+   itsMaxFreq(other.itsMaxFreq), itsMaxAntennaIndex(other.itsMaxAntennaIndex),
+   itsMaxBeamIndex(other.itsMaxBeamIndex), itsReferenceDir(other.itsReferenceDir), itsRefDirValid(other.itsRefDirValid), 
+   itsFieldBLC(other.itsFieldBLC), itsFieldTRC(other.itsFieldTRC)
+{
+  ASKAPCHECK(!other.itsAccessorAdapter.isAssociated(), "An attempt to copy VisMetaDataStats which has the accessor adapter in the attached state");
+}
 
 /// @brief reset all accumulated statistics
 /// @details After this method, the object will be reset to a pristine state preserving only
