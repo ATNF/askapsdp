@@ -126,13 +126,18 @@ namespace askap {
             /// line of text from an ascii file. The line is
             /// interpreted by FullStokesContinuum::define, and then
             /// the HI mass of the object is calculated. We use the
-            /// expression from Wilman et al (2008): 
-	    /// log M_HI = 0.44 log L_1.4 + 0.48 +- delta
-	    /// where delta is drawn from a normal distribution with
-	    /// sigma=0.3. This means the HI mass is randomly created
-	    /// each time - if you want to record what was used you
-	    /// need to write it out at time of execution. Note that the luminosity is in units of W/Hz, so we need to correct the value from Jy.
- 	    ///  @param line A line from the ascii input file
+            /// expression from Wilman et al (2008): log M_HI = 0.44
+            /// log L_1.4 + 0.48 +- delta where delta is drawn from a
+            /// normal distribution with sigma=0.3. Instead of
+            /// randomly creating the value of delta, we take the
+            /// component number of the object, modulo 1000, and
+            /// interpret that as a fraction between 0 and 1. This is
+            /// then converted to a Standard Normal z-value, which
+            /// provides delta. In this way, the mass is uniquely
+            /// determined for each source. Note that the luminosity
+            /// is in units of W/Hz, so we need to correct the value
+            /// from Jy.  
+	    /// @param line A line from the ascii input file
 
 	  this->FullStokesContinuum::define(line);
 
@@ -141,9 +146,26 @@ namespace askap {
 	  if(type == SFG || type == SBG){
 	    cosmology::Cosmology cosmo;
 	    double lum = cosmo.lum(this->itsRedshift, this->itsI1400-26.);
-	    ASKAPLOG_DEBUG_STR(logger, "Lum of object = " << lum);
 	    lum *= M_LN10; // convert to natural log from log_10
-	    HImass = 0.44 * lum  + 0.48 + normalRandomVariable(0.,0.3);
+
+	    // Want to add some dispersion to HImass, a la Wilman et al
+	    // Calculate the delta by converting the component number (modulo 1000) to a probability, then interpret that as a normal prob
+	    double prob = (this->itsComponentNum % 1000 + 0.5) / 1000.;
+	    double z=0,deltaz=0.1,tolerance=1.e-6;
+	    if(prob>0.5) deltaz*=-1;
+	    double initial=0.5*erfc(z/M_SQRT2)-prob;
+	    do{
+	      z += deltaz;
+	      double current=0.5*erfc(z/M_SQRT2)-prob;
+	      if((initial*current)<0){
+		z -= deltaz;
+		deltaz /= 10.;
+	      }
+	    }while(fabs(deltaz)>tolerance);
+	    HImass = 0.44 * lum  + 0.48 + z * 0.3;
+
+	    ASKAPLOG_DEBUG_STR(logger, "HI profile for component #"<< this->itsComponentNum << " gives a prob of " << prob << " and a z-value of " << z << " giving a delta-M of " << 0.3*z << " and log10(M_HI)="<<log10(exp(HImass)));
+	    
 	    HImass = exp(HImass);
 	    ASKAPLOG_DEBUG_STR(logger, "Creating HI profile with M_HI = " << HImass<<", using log10(flux)="<<this->itsI1400<<" to get a lum of " << lum);
 	  }
