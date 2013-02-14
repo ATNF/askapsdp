@@ -30,22 +30,15 @@
 
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
-#include <casa/Logging/LogIO.h>
-#include <askap/Log4cxxLogSink.h>
+#include <askap/Application.h>
 
 #include <FITS/FITSparallel.h>
-#include <FITS/FITSfile.h>
 
 #include <Common/ParameterSet.h>
-#include <casa/OS/Timer.h>
 
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <map>
-#include <stdlib.h>
-#include <time.h>
+#include <cstdlib>
+#include <ctime>
 
 using namespace askap;
 using namespace askap::simulations;
@@ -53,54 +46,46 @@ using namespace askap::simulations::FITS;
 
 ASKAP_LOGGER(logger, "convertPositions.log");
 
-// Move to Askap Util?
-std::string getInputs(const std::string& key, const std::string& def, int argc,
-                      const char** argv)
+class ConvertPosApp : public askap::Application
 {
-    if (argc > 2) {
-        for (int arg = 0; arg < (argc - 1); arg++) {
-            std::string argument = std::string(argv[arg]);
+    public:
+        virtual int run(int argc, char* argv[])
+        {
+            // This class must have scope outside the main try/catch block
+	    askap::askapparallel::AskapParallel comms(argc, const_cast<const char**>(argv));
+    
+            try {
+                StatReporter stats;
 
-            if (argument == key) {
-                return std::string(argv[arg+1]);
+                srandom(time(0));
+                LOFAR::ParameterSet subset(config().makeSubset("createFITS."));
+                if (comms.isMaster()) {
+                    ASKAPLOG_INFO_STR(logger, "Parset file contents:\n" << config());
+                }
+
+		subset.replace("addSources", "false");
+		FITSparallel file(comms, subset);
+		file.processSources();
+
+                stats.logSummary();
+
+	    } catch (const askap::AskapError& x) {
+                ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
+                std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
+            } catch (const std::exception& x) {
+                ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
+                std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
+                exit(1);
             }
+	    
+            return 0;
         }
-    }
-
-    return def;
-}
+};
 
 // Main function
-int main(int argc, const char** argv)
+int main(int argc, char *argv[])
 {
-    askap::askapparallel::AskapParallel comms(argc, argv);
-
-    try {
-        // Ensure that CASA log messages are captured
-        casa::LogSinkInterface* globalSink = new Log4cxxLogSink();
-        casa::LogSink::globalSink(globalSink);
-        casa::Timer timer;
-        timer.mark();
-        srandom(time(0));
-        std::string parsetFile(getInputs("-inputs", "convertPositions.in", argc, argv));
-        ASKAPLOG_INFO_STR(logger,  "parset file " << parsetFile);
-        LOFAR::ParameterSet parset(parsetFile);
-        LOFAR::ParameterSet subset(parset.makeSubset("createFITS."));
-        subset.replace("addSources", "false");
-        FITSparallel file(comms, subset);
-        file.processSources();
-
-        ASKAPLOG_INFO_STR(logger, "Time for execution of convertPositions = " << timer.real() << " sec");
-
-    } catch (const askap::AskapError& x) {
-        ASKAPLOG_FATAL_STR(logger, "Askap error in " << argv[0] << ": " << x.what());
-        std::cerr << "Askap error in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    } catch (const std::exception& x) {
-        ASKAPLOG_FATAL_STR(logger, "Unexpected exception in " << argv[0] << ": " << x.what());
-        std::cerr << "Unexpected exception in " << argv[0] << ": " << x.what() << std::endl;
-        exit(1);
-    }
-
-    return 0;
+    ConvertPosApp app;
+    return app.main(argc, argv);
 }
