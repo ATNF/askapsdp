@@ -65,6 +65,8 @@ class ConvertPosApp : public askap::Application
                 }
 
 		subset.replace("addSources", "false");
+		subset.replace("fitsOutput", "false");
+		subset.replace("casaOutput", "false");
 		FITSparallel file(comms, subset);
 		file.processSources();
 
