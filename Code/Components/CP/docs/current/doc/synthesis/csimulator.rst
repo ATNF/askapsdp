@@ -2,19 +2,18 @@ csimulator Documentation
 ========================
 
 Available parameters for simulator are given in the following table (all parameters
-must have *Csimulator* prefix, i.e. *Csimulator.dataset*). For a number of parameters
-certain keywords are substituted, i.e. *%w* is replaced by the rank and *%n* by the
+must have **Csimulator** prefix, i.e. **Csimulator.dataset**). For a number of parameters
+certain keywords are substituted, i.e. **%w** is replaced by the rank and **%n** by the
 number of nodes in the parallel case. In the serial case, these special strings are
 substituted by 0 and 1, respectively.
 
-This substitution allows to reuse the same
-parameter file on all nodes of the cluster if the difference between jobs assigned
-to individual nodes can be coded in using these keywords (i.e. using specially
-crafted file names). If a parameter allows substitution, it is clearly stated in
-the description. 
+This substitution allows to reuse the same parameter file on all nodes of the cluster
+if the difference between jobs assigned to individual nodes can be coded in using
+these keywords (i.e. using specially crafted file names). If a parameter allows
+substitution, it is clearly stated in the description. 
 
 +----------------------+--------------+--------------+------------------------------------------------------------+
-| Parameter            | Type         | Default      | Description                                                |
+|**Parameter**         |**Type**      |**Default**   |**Description**                                             |
 +======================+==============+==============+============================================================+
 |imagetype             |string        |"casa"        |Type of the image handler (determines the format of the     |
 |                      |              |              |images read from the disk). The default is to read casa     |
@@ -24,14 +23,14 @@ the description.
 |                      |              |              |apply.                                                      |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |sources.definition    |string        |None          |Optional parameter. If defined, sky model (i.e. source info |
-|                      |              |              |given as *sources.something*) is read from a separate parset|
-|                      |              |              |file (name is given by this parameter). If this parameter is|
-|                      |              |              |not defined, source description should be given in the main |
-|                      |              |              |parset file. Usual substitution rules apply. The parameters |
-|                      |              |              |used to define sky model are described below.               |
+|                      |              |              |given as **sources.something**) is read from a separate     |
+|                      |              |              |parset file (name is given by this parameter). If this      |
+|                      |              |              |parameter is not defined, source description should be given|
+|                      |              |              |in the main parset file. Usual substitution rules apply. The|
+|                      |              |              |parameters used to define sky model are described below.    |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |antennas.definition   |string        |None          |Optional parameter. If defined, antenna layout              |
-|                      |              |              |(*antennas.something*) is read from a separate parset file  |
+|                      |              |              |(**antennas.something**) is read from a separate parset file|
 |                      |              |              |(name is given by this parameter). Usual substitution rules |
 |                      |              |              |apply. If this parameter is not defined, antenna layout must|
 |                      |              |              |be given in the main parset file. A description of these    |
@@ -91,42 +90,42 @@ the description.
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |gridder               |string        |None          |Name of the gridder, further parameters are given by        |
 |                      |              |              |*gridder.something*. See                                    |
-|                      |              |              |[[AS02_CalibrationAndImagingGridderDocumentation            |
+|                      |              |              |:doc:`gridder`                                              |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |corrupt               |bool          |False         |if True, simulated data are corrupted by simulating         |
 |                      |              |              |calibration effects. See                                    |
-|                      |              |              |[[AS02_CalibrationAndImagingCalSolutionAccessorDocumentation|
+|                      |              |              |:doc:`calibration_solutions`                                |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |corrupt.gainsfile     |string        |None          |This is a deprecated parameter, which will be removed in the|
 |                      |              |              |future. It used to define the name of the file with         |
-|                      |              |              |gains/leakages to apply if *corrupt* is true. The external  |
+|                      |              |              |gains/leakages to apply if **corrupt** is true. The external|
 |                      |              |              |file had a parset format, with keywords given in the form   |
-|                      |              |              |*gain.g11.0 = [0.918308,0.000000]*, where g11 is for the    |
+|                      |              |              |**gain.g11.0 = [0.918308,0.000000]**, where g11 is for the  |
 |                      |              |              |first parallel-hand polarisation and g22 is for the         |
 |                      |              |              |second. The last number is the 0-based antenna number, and  |
 |                      |              |              |the value is a complex value with real and imaginary parts  |
 |                      |              |              |given in a vector. Leakage parameters were given in the form|
-|                      |              |              |*leakage.g12.x.y* and *leakage.g21.x.y* and were used only  |
-|                      |              |              |if *corrupt.leakage* is true. Now the same functionality can|
-|                      |              |              |be done using *calibaccess.parset*, see                     |
-|                      |              |              |[[AS02_CalibrationAndImagingCalSolutionAccessorDocumentation|
+|                      |              |              |**leakage.g12.x.y** and **leakage.g21.x.y** and were used   |
+|                      |              |              |only if **corrupt.leakage** is true. Now the same           |
+|                      |              |              |functionality can be done using *calibaccess.parset*, see   |
+|                      |              |              |:doc:`calibration_solutions`                                |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |corrupt.leakage       |bool          |false         |If true, polarisation leakage is simulated. Values will be  |
 |                      |              |              |taken from file referred to by gainsfile.                   |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |noise                 |bool          |false         |if True, noise is added to the simulated visibilities. There|
 |                      |              |              |are two ways to obtain noise level. It can either be given  |
-|                      |              |              |manually using *noise.variance* or *noise.rms* parameters or|
-|                      |              |              |can be calculated automatically if Tsys and efficiency are  |
-|                      |              |              |given. There should be enough data for this calculation,    |
-|                      |              |              |otherwise an exception is thrown.                           |
+|                      |              |              |manually using **noise.variance** or **noise.rms**          |
+|                      |              |              |parameters or can be calculated automatically if Tsys and   |
+|                      |              |              |efficiency are given. There should be enough data for this  |
+|                      |              |              |calculation, otherwise an exception is thrown.              |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |noise.variance        |double        |None          |variance in Jy^2 of the Gaussian noise added to visibilities|
 |                      |              |              |(to every element of the cube, so the noise level should be |
 |                      |              |              |appropriate for single polarisation, single spectral        |
 |                      |              |              |channel). This parameter is only used if *noise* is true and|
 |                      |              |              |is incompatible with any other noise-defining parameters    |
-|                      |              |              |like *rms*, *Tsys* or *efficiency*                          |
+|                      |              |              |like **rms**, **Tsys** or **efficiency**                    |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |noise.rms             |double        |None          |rms in Jy of the Gaussian noise added to visibilities (to   |
 |                      |              |              |every element of the cube, so the noise level should be     |
@@ -136,13 +135,13 @@ the description.
 |                      |              |              |like *variance*, *Tsys* or *efficiency*                     |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |noise.Tsys            |double        |None          |Tsys in Kelvins. This parameter should only come in pair    |
-|                      |              |              |with *efficiency*. If given, neither *rms*, nor *variance*  |
-|                      |              |              |should be defined. If set, the noise level is estimated     |
-|                      |              |              |automatically using observation parameters.                 |
+|                      |              |              |with **efficiency**. If given, neither **rms**, nor         |
+|                      |              |              |**variance** should be defined. If set, the noise level is  |
+|                      |              |              |estimated automatically using observation parameters.       |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |noise.efficiency      |double        |None          |Beam efficiency. This parameter should only come in pair    |
-|                      |              |              |with *Tsys*. If given, neither *rms*, nor *variance* should |
-|                      |              |              |be defined. If set, the noise level is estimated            |
+|                      |              |              |with **Tsys**. If given, neither **rms**, nor **variance**  |
+|                      |              |              |should be defined. If set, the noise level is estimated     |
 |                      |              |              |automatically using observation parameters.                 |
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |noise.seed1           |string or     |"time"        |First seed of the random generator. Usual substitution rules|
@@ -205,8 +204,8 @@ All following parameters have *Csimulator.sources.nameOfSource* prefix.
 |*Parameter*                |*Type*        |*Default*     |*Description*                                         |
 +===========================+==============+==============+======================================================+
 |direction                  |direction     |None          |Direction to the source or field (given as direction  |
-|                           |              |              |string, e.g. *[12h30m00.000, -15.00.00.000,           |
-|                           |              |              |J2000]*). If the model is defined by an image, this   |
+|                           |              |              |string, e.g. **[12h30m00.000, -15.00.00.000,          |
+|                           |              |              |J2000]**). If the model is defined by an image, this  |
 |                           |              |              |parameter should match the coordinate system in the   |
 |                           |              |              |image. For components, this value is supposed to be a |
 |                           |              |              |reference position, but is not used at the moment     |
@@ -220,24 +219,24 @@ All following parameters have *Csimulator.sources.nameOfSource* prefix.
 |                           |              |              |the file name of the image. Usual substituting rules  |
 |                           |              |              |apply (see the description at the top of the          |
 |                           |              |              |page). However, the substitution only makes sense if  |
-|                           |              |              |workers read the model (see *modelReadByMaster*       |
+|                           |              |              |workers read the model (see **modelReadByMaster**     |
 |                           |              |              |parameter). If more than one model is given, it is    |
 |                           |              |              |assumed that the model is given as Taylor series      |
-|                           |              |              |(*nterms* parameter described below should match the  |
+|                           |              |              |(**nterms** parameter described below should match the|
 |                           |              |              |number of models in this case) and each image         |
 |                           |              |              |corresponds to the appropriate Taylor term starting   |
-|                           |              |              |from 0. If only one model image is given and *nterms* |
-|                           |              |              |is not 1, the name is treated as base name and        |
-|                           |              |              |.taylor.x suffix is appended to each name             |
+|                           |              |              |from 0. If only one model image is given and          |
+|                           |              |              |**nterms** is not 1, the name is treated as base name |
+|                           |              |              |and .taylor.x suffix is appended to each name         |
 +---------------------------+--------------+--------------+------------------------------------------------------+
 |nterms                     |int           |1             |Number of taylor terms in the given image-based       |
-|                           |              |              |model. See the *model* keyword for the supported ways |
-|                           |              |              |to define individual Taylor terms.                    |
+|                           |              |              |model. See the **model** keyword for the supported    |
+|                           |              |              |ways to define individual Taylor terms.               |
 +---------------------------+--------------+--------------+------------------------------------------------------+
 |components                 |vector<string>|None          |list of components (names) to simulate for this source|
 |                           |              |              |(or field). Each component defined by parameters      |
-|                           |              |              |*componentName.xxx* as below (with just               |
-|                           |              |              |*Csimulator.sources.nameOfSource* prefix)             |
+|                           |              |              |**componentName.xxx** as below (with just             |
+|                           |              |              |**Csimulator.sources.nameOfSource** prefix)           |
 +---------------------------+--------------+--------------+------------------------------------------------------+
 |componentName.flux.i       |double        |None          |Flux of the given component                           |
 +---------------------------+--------------+--------------+------------------------------------------------------+
@@ -289,12 +288,12 @@ one pointed by *antennas.definition* (see above). All parameters below have *Csi
 |                                |string        |              |the whole array)                                 |
 +--------------------------------+--------------+--------------+-------------------------------------------------+
 |antennas.nameOfArray.coordinates|string        |local         |Type of the coordinate system used to define     |
-|                                |              |              |antenna position. Allowed values are _global_ and|
-|                                |              |              |_local_. This string is passed directly to the   |
+|                                |              |              |antenna position. Allowed values are *global* and|
+|                                |              |              |*local*. This string is passed directly to the   |
 |                                |              |              |casacore's NewMSSimulator, which is doing the    |
-|                                |              |              |actual job to generate metadata. If _local_      |
+|                                |              |              |actual job to generate metadata. If *local*      |
 |                                |              |              |(default) the antenna coordinates are treated as |
-|                                |              |              |offsets from the reference location. If _global_ |
+|                                |              |              |offsets from the reference location. If *global* |
 |                                |              |              |they are offsets w.r.t. the Earth Centre and the |
 |                                |              |              |coordinate axes are aligned with ITRF. Note, this|
 |                                |              |              |is not the how we normally use the simulator     |
@@ -315,12 +314,12 @@ one pointed by *antennas.definition* (see above). All parameters below have *Csi
 |antennas.nameOfArray.location   |vector<string>|None          |Centre location for the array layout given as a  |
 |                                |              |              |4-element vector with longitude, latitude,       |
 |                                |              |              |altitude (all given as quantities) and reference |
-|                                |              |              |frame, i.e. *[+115deg, -26deg, 192km,            |
-|                                |              |              |WGS84]*. For _local_ coordinates (see above),    |
+|                                |              |              |frame, i.e. **[+115deg, -26deg, 192km,           |
+|                                |              |              |WGS84]**. For *local* coordinates (see above),   |
 |                                |              |              |this is the origin of the coordinate system where|
 |                                |              |              |antenna positions are defined (axes point to the |
 |                                |              |              |East, North and to the local zenith). For        |
-|                                |              |              |_global_ coordinates this position is used to    |
+|                                |              |              |*global* coordinates this position is used to    |
 |                                |              |              |determine whether the source is visible          |
 |                                |              |              |(casacore's NewMSSimulator doesn't properly      |
 |                                |              |              |support VLBI-scale baselines), although          |
@@ -333,7 +332,9 @@ one pointed by *antennas.definition* (see above). All parameters below have *Csi
 Definition of the feed configuration
 ------------------------------------
 
-This section describes how the feed (strictly speaking should call it a synthetic beam) layout is defined. The parameters can be given either in the main parset file or in a separate parset file pointed by *feeds.definition* (see above). All parameters below have *Csimulator* prefix, if given in the main parset file.
+This section describes how the feed (strictly speaking should call it a synthetic beam) layout is defined. The
+ parameters can be given either in the main parset file or in a separate parset file pointed by *feeds.definition*
+ (see above). All parameters below have *Csimulator* prefix, if given in the main parset file.
 
 +--------------+-------------------+------------+-------------------------------------------------------------+
 |*Parameter*   |*Type*             |*Default*   |*Description*                                                |
@@ -372,7 +373,9 @@ This section describes how the feed (strictly speaking should call it a syntheti
 Definition of the spectral windows
 ----------------------------------
 
-This section describes how the spectral windows (i.e. frequency mapping) is defined. The parameters can be given either in the main parset file or in a separate parset file pointed by *spws.definition* (see above). All parameters below have *Csimulator* prefix, if given in the main parset file.
+This section describes how the spectral windows (i.e. frequency mapping) is defined. The parameters can be given
+ either in the main parset file or in a separate parset file pointed by *spws.definition* (see above). All
+ parameters below have *Csimulator* prefix, if given in the main parset file.
 
 +------------------+--------------+------------+--------------------------------------------------------------+
 |*Parameter*       |*Type*        |*Default*   |*Description*                                                 |
@@ -397,7 +400,9 @@ This section describes how the spectral windows (i.e. frequency mapping) is defi
 Additional parameters of simulation
 -----------------------------------
 
-This section describes how simulations can be fine tuned. The parameters listed below can be given either in the main parset file or in a separate parset file pointed by *simulation.definition* (see above). All parameters below have *Csimulator* prefix, if they are defined in the main parset file.
+This section describes how simulations can be fine tuned. The parameters listed below can be given either in the
+ main parset file or in a separate parset file pointed by *simulation.definition* (see above). All parameters
+ below have *Csimulator* prefix, if they are defined in the main parset file.
 
 +----------------------------+-----------------+----------+------------------------------------------------------+
 |*Parameter*                 |*Type*           |*Default* |*Description*                                         |
@@ -449,7 +454,9 @@ This section describes how simulations can be fine tuned. The parameters listed 
 Parameters of simulated observations
 ------------------------------------
 
-This section describes how to setup parameters of the observation to be simulated. The parameters listed below can be given either in the main parset file or in a separate parset file pointed by *observe.definition* (see above). All parameters below have *Csimulator* prefix, if they are defined in the main parset file.
+This section describes how to setup parameters of the observation to be simulated. The parameters listed below can
+ be given either in the main parset file or in a separate parset file pointed by *observe.definition* (see above).
+ All parameters below have *Csimulator* prefix, if they are defined in the main parset file.
 
 +---------------------+----------------+------------+---------------------------------------------------------------------+
 | *Parameter*         | *Type*         | *Default*  | *Description*                                                       |

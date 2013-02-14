@@ -1,4 +1,0 @@
-Science Analysis Documentation
-==============================
-
-

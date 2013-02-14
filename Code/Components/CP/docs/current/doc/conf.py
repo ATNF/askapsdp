@@ -1,7 +1,7 @@
 # DO THIS FIRST to set project name !!!                                                                 
 import askapdev.sphinx
 # CAN NOT contain spaces!                                                                               
-askapdev.sphinx.project = u'GettingStarted'
+askapdev.sphinx.project = u'CentralProcessor'
 
 from askapdev.sphinx.conf import *
 
