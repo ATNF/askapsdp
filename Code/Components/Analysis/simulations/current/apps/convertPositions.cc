@@ -31,6 +31,7 @@
 #include <askap/AskapLogging.h>
 #include <askap/AskapError.h>
 #include <askap/Application.h>
+#include <askap/StatReporter.h>
 
 #include <FITS/FITSparallel.h>
 
