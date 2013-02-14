@@ -176,6 +176,7 @@ namespace askap {
 
       void FullStokesContinuumHI::print(std::ostream &theStream)
       {
+
 	theStream.setf(std::ios::showpoint);
 	theStream << this->itsComponentNum << std::setw(7)<<this->itsClusterID << std::setw(11)<<this->itsGalaxyNum
 		  << std::setw(3)<<this->itsSFtype << std::setw(3)<<this->itsAGNtype << std::setw(3)<<this->itsStructure;
@@ -191,7 +192,8 @@ namespace askap {
 	theStream.setf(std::ios::fixed); theStream.unsetf(std::ios::scientific);
 	theStream << std::setw(10)<<this->itsPolFracRef << std::setw(10)<<this->itsI4860 << std::setw(10)<<this->itsI18000 << std::setw(10)<<this->itsCosVA 
 		  << std::setw(11)<<this->itsRM << std::setw(11)<<this->itsRMflag;
-	theStream << std::setw(10) << std::setprecision(6) << log10(this->itsHIprofile.mHI());
+	theStream.setf(std::ios::scientific); theStream.unsetf(std::ios::fixed); 
+	theStream << std::setw(13) << std::setprecision(6) << this->itsHIprofile.mHI();
 	theStream << "\n";
       }
 
