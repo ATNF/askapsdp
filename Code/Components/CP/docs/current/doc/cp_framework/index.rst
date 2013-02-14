@@ -1,6 +1,8 @@
 Central Processor Framework Documentation
 =========================================
 
+**Contents:**
+
 .. toctree::
    :maxdepth: 1
 

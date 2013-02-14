@@ -1,5 +1,5 @@
-Welcome to the ASKAP Central Processor Documentation
-====================================================
+ASKAP Central Processor User Documentation
+==========================================
 
 .. toctree::
    :titlesonly:

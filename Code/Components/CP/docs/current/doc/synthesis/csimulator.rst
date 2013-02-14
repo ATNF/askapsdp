@@ -183,7 +183,7 @@ This section describes how the sky model. The parameters can be given either in 
 one pointed by *sources.definition* (see above). All parameters below have *Csimulator* prefix, if given in the main parset file.
 
 +------------------------+--------------+--------------+---------------------------------------------------------+
-|      *Parameter*       |    *Type*    |  *Default*   |                      *Description*                      |
+|**Parameter**           |**Type**      |**Default**   |**Description**                                          |
 +========================+==============+==============+=========================================================+
 |sources.names           |vector<string>|None          |List of sources (or fields) to simulate. Each field is   |
 |                        |              |              |definded by an image and/or a number of components. The  |
@@ -201,7 +201,7 @@ one pointed by *sources.definition* (see above). All parameters below have *Csim
 All following parameters have *Csimulator.sources.nameOfSource* prefix.
 
 +---------------------------+--------------+--------------+------------------------------------------------------+
-|*Parameter*                |*Type*        |*Default*     |*Description*                                         |
+|**Parameter**              |**Type**      |**Default**   |**Description**                                       |
 +===========================+==============+==============+======================================================+
 |direction                  |direction     |None          |Direction to the source or field (given as direction  |
 |                           |              |              |string, e.g. **[12h30m00.000, -15.00.00.000,          |
@@ -265,7 +265,7 @@ This section describes how the array layout is defined. The parameters can be gi
 one pointed by *antennas.definition* (see above). All parameters below have *Csimulator* prefix, if given in the main parset file.
 
 +--------------------------------+--------------+--------------+-------------------------------------------------+
-|*Parameter*                     |*Type*        |*Default*     |*Description*                                    |
+|**Parameter**                   |**Type**      |**Default**   |**Description**                                  |
 +================================+==============+==============+=================================================+
 |antennas.telescope              |string        |None          |name of the array, e.g. ASKAP. This name is used |
 |                                |              |              |to compose other parameter names (see below)     |
@@ -333,11 +333,11 @@ Definition of the feed configuration
 ------------------------------------
 
 This section describes how the feed (strictly speaking should call it a synthetic beam) layout is defined. The
- parameters can be given either in the main parset file or in a separate parset file pointed by *feeds.definition*
- (see above). All parameters below have *Csimulator* prefix, if given in the main parset file.
+parameters can be given either in the main parset file or in a separate parset file pointed by *feeds.definition*
+(see above). All parameters below have *Csimulator* prefix, if given in the main parset file.
 
 +--------------+-------------------+------------+-------------------------------------------------------------+
-|*Parameter*   |*Type*             |*Default*   |*Description*                                                |
+|**Parameter** |**Type**           |**Default** |**Description**                                              |
 +==============+===================+============+=============================================================+
 |feeds.names   |vector<string>     |None        |List of beams to define (e.g. [Beam1,Beam2]), at least one   |
 |              |                   |            |should be defined.  The names are used to compose the        |
@@ -374,11 +374,11 @@ Definition of the spectral windows
 ----------------------------------
 
 This section describes how the spectral windows (i.e. frequency mapping) is defined. The parameters can be given
- either in the main parset file or in a separate parset file pointed by *spws.definition* (see above). All
- parameters below have *Csimulator* prefix, if given in the main parset file.
+either in the main parset file or in a separate parset file pointed by *spws.definition* (see above). All
+parameters below have *Csimulator* prefix, if given in the main parset file.
 
 +------------------+--------------+------------+--------------------------------------------------------------+
-|*Parameter*       |*Type*        |*Default*   |*Description*                                                 |
+|**Parameter**     |**Type**      |**Default** |**Description**                                               |
 +==================+==============+============+==============================================================+
 |spws.names        |vector<string>|None        |List of names for all spectral windows. Names are used to     |
 |                  |              |            |define parameters for each spectral window (in the form       |
@@ -401,11 +401,11 @@ Additional parameters of simulation
 -----------------------------------
 
 This section describes how simulations can be fine tuned. The parameters listed below can be given either in the
- main parset file or in a separate parset file pointed by *simulation.definition* (see above). All parameters
- below have *Csimulator* prefix, if they are defined in the main parset file.
+main parset file or in a separate parset file pointed by *simulation.definition* (see above). All parameters
+below have *Csimulator* prefix, if they are defined in the main parset file.
 
 +----------------------------+-----------------+----------+------------------------------------------------------+
-|*Parameter*                 |*Type*           |*Default* |*Description*                                         |
+|**Parameter**               |**Type**         |*Default* |**Description**                                       |
 +============================+=================+==========+======================================================+
 |simulation.blockage         |double           |0.0       |Fractional blocakge limit to determine whether antenna|
 |                            |                 |          |is shadowed. It is passed directly to casacore's      |
@@ -455,11 +455,11 @@ Parameters of simulated observations
 ------------------------------------
 
 This section describes how to setup parameters of the observation to be simulated. The parameters listed below can
- be given either in the main parset file or in a separate parset file pointed by *observe.definition* (see above).
- All parameters below have *Csimulator* prefix, if they are defined in the main parset file.
+be given either in the main parset file or in a separate parset file pointed by *observe.definition* (see above).
+All parameters below have *Csimulator* prefix, if they are defined in the main parset file.
 
 +---------------------+----------------+------------+---------------------------------------------------------------------+
-| *Parameter*         | *Type*         | *Default*  | *Description*                                                       |
+|**Parameter**        |**Type**        |**Default** |**Description**                                                      |
 +=====================+================+============+=====================================================================+
 | observe.number      | int            | 0          | Number of scans to simulate (should be non-zero, default value would|
 |                     |                |            | cause an exception). Parameters describing each scan are given by   |

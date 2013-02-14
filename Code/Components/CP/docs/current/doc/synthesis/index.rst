@@ -5,7 +5,7 @@ The synthesis package supports processing of radio synthesis observations, inclu
 calibration, editing, and imaging. The emphasis is on the processing of ASKAP scale
 data sets i.e. Hundereds of TB per hour.
 
-*Contents:*
+**Contents:**
 
 .. toctree::
    :maxdepth: 1
