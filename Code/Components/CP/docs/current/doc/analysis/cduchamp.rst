@@ -1,2 +1,0 @@
-cduchamp Documentation
-======================

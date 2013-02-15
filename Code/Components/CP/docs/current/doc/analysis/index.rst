@@ -1,4 +1,4 @@
-Science Analysis software Documentation
+Science Analysis Software Documentation
 =======================================
 
 The analysis package supports analysis of processed radio synthesis observations,
@@ -11,4 +11,6 @@ TBs per hour.
 .. toctree::
    :maxdepth: 1
 
-   cduchamp.rst
+   selavy.rst
+   preprocessing.rst
+   extraction.rst
