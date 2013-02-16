@@ -177,6 +177,8 @@ namespace askap {
                     std::string itsSourceListType;
                     /// @brief The origin of the database: either "S3SEX" or "S3SAX" - used for spectralline case
                     std::string itsDatabaseOrigin;
+		    /// @brief Should we be verbose about information about sources?
+		    bool itsFlagVerboseSources;
 		    /// @brief The factory class used to generate model components.
 		    ModelFactory itsModelFactory;
                     /// @brief The format of the source positions: "deg"=decimal degrees; "dms"= dd:mm:ss

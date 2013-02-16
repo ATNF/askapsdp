@@ -144,6 +144,7 @@ namespace askap {
 	this->itsSourceList = f.itsSourceList;
 	this->itsSourceListType = f.itsSourceListType;
 	this->itsDatabaseOrigin = f.itsDatabaseOrigin;
+	this->itsFlagVerboseSources = f.itsFlagVerboseSources;
 	this->itsModelFactory = f.itsModelFactory;
 	this->itsPosType = f.itsPosType;
 	this->itsMinMinorAxis = f.itsMinMinorAxis;
@@ -274,6 +275,7 @@ namespace askap {
 	ASKAPLOG_DEBUG_STR(logger, "database origin = " << this->itsDatabaseOrigin);
 	if(this->databaseSpectral()) this->itsSourceListType="spectralline";
 	ASKAPLOG_DEBUG_STR(logger, "source list type = " << this->itsSourceListType);
+	this->itsFlagVerboseSources = parset.getBool("verboseSources",true);
 
 	this->itsPosType = parset.getString("posType", "dms");
 	this->itsMinMinorAxis = parset.getFloat("minMinorAxis", 0.);
@@ -654,7 +656,8 @@ namespace askap {
 		bool isGood = true;
 		if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
 		  // check the frequency limits for this source to see whether we need to look at it.
-		  ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
+		    if(this->itsFlagVerboseSources)
+			ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
 		  //		std::pair<double,double> freqLims = profSAX.freqLimits();
 		  std::pair<double,double> freqLims = ((HIprofileS3SAX *)src)->freqLimits();
 		  isGood = (freqLims.first < this->maxFreq()) && (freqLims.second > this->minFreq());
@@ -672,31 +675,33 @@ namespace askap {
 		    fluxGen.addSpectrum(src,pix[0],pix[1],this->itsWCS);
 
 		  bool addedSource=false;
-		  ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
+		  if(this->itsFlagVerboseSources) ASKAPLOG_DEBUG_STR(logger, "Source has axes " << src->maj() << " x " << src->min() << ", in units of " << this->itsAxisUnits.getName());
 		  if (src->maj() > 0) {
 
 		    if (!this->itsDryRun){
-		      addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen, this->itsFlagIntegrateGaussians);
+			addedSource=addGaussian(this->itsArray, this->itsAxes, gauss, fluxGen, this->itsFlagIntegrateGaussians, this->itsFlagVerboseSources);
 		    }
 		    else{
 		      addedSource=doAddGaussian(this->itsAxes, gauss);
 		      if ( addedSource ){
 			countGauss++;
 			if( this->itsDatabaseOrigin == "POSSUM") 
-			  ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+			    if(this->itsFlagVerboseSources)
+				ASKAPLOG_DEBUG_STR(logger, "Gaussian Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
 		      }
 		      else countMiss++;
 		    }
 		  } else {
 		    if (!this->itsDryRun){
-		      addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen);
+			addedSource=addPointSource(this->itsArray, this->itsAxes, pix, fluxGen,this->itsFlagVerboseSources);
 		    }
 		    else{
 		      addedSource=doAddPointSource(this->itsAxes, pix);
 		      if ( addedSource ){
 			countPoint++;
 			if( this->itsDatabaseOrigin == "POSSUM") 
-			  ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
+			    if(this->itsFlagVerboseSources)
+				ASKAPLOG_DEBUG_STR(logger, "Point Source at RA="<<src->ra()<<", Dec="<<src->dec()<<", angle="<<((FullStokesContinuum *)src)->polAngle());
 		      }
 		      else countMiss++;
 		    }
