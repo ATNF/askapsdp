@@ -1,11 +1,11 @@
-Data Selection (Accessor) Documentation
+Data Selection Documentation
 =======================================
 
 Data accessor layer provides a capability to pre-select the data based on some criteria. As all synthesis applications see 
-only data returned by the accessor, it can be used to restrict :doc: `Cimager` and :doc: `Ccalibrator` to use a given subset
-of the data. Both :doc: `Cimager` and :doc: `Ccalibrator` understand the keywords given in the following table (must have 
-**Ccalibrator.** or **Cimager.** prefix), i.e. **Cimager.MinUV = 100**). All these parameters are optional. If present, a 
-corresponding data selection is done and only those data will appear in the iteration using accessor layer.
+only data returned by the accessor, it can be used to restrict **Cimager** (see :doc:`cimager`) and **Ccalibrator** 
+(see :doc:`ccalibrator`) to use a given subset of the data. All synthesis applications understand the keywords given in the 
+following table (must have **Ccalibrator.** or **Cimager.** prefix), i.e. **Cimager.MinUV = 100**). All these parameters 
+are optional. If present, a corresponding data selection is done and only those data will appear in the iteration using accessor layer.
 
 +----------------------+--------------+--------------+------------------------------------------------------------+
 |**Parameter**         |**Type**      |**Default**   |**Description**                                             |
