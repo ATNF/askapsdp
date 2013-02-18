@@ -164,10 +164,10 @@ namespace askap {
 	    }while(fabs(deltaz)>tolerance);
 	    HImass = 0.44 * lum  + 0.48 + z * 0.3;
 
-	    ASKAPLOG_DEBUG_STR(logger, "HI profile for component #"<< this->itsComponentNum << " gives a prob of " << prob << " and a z-value of " << z << " giving a delta-M of " << 0.3*z << " and log10(M_HI)="<<log10(exp(HImass)));
+//	    ASKAPLOG_DEBUG_STR(logger, "HI profile for component #"<< this->itsComponentNum << " gives a prob of " << prob << " and a z-value of " << z << " giving a delta-M of " << 0.3*z << " and log10(M_HI)="<<log10(exp(HImass)));
 	    
 	    HImass = exp(HImass);
-	    ASKAPLOG_DEBUG_STR(logger, "Creating HI profile with M_HI = " << HImass<<", using log10(flux)="<<this->itsI1400<<" to get a lum of " << lum);
+//	    ASKAPLOG_DEBUG_STR(logger, "Creating HI profile with M_HI = " << HImass<<", using log10(flux)="<<this->itsI1400<<" to get a lum of " << lum);
 	  }
 	  
 	  this->itsHIprofile = HIprofileS3SEX(type, this->itsRedshift, HImass, this->itsMaj, this->itsMin);

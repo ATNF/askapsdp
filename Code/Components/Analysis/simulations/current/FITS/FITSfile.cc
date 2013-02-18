@@ -721,6 +721,8 @@ namespace askap {
 		if(this->itsDryRun) countDud++;
 	      }
 
+	      delete src;
+	      
 	    } else {
 	      // Write all commented lines directly into the output file
 	      if (this->itsFlagOutputList) outfile << line << "\n";
