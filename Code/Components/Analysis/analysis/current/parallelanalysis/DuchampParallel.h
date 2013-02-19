@@ -255,8 +255,14 @@ namespace askap {
 		/// Whether to write a casa image containing the Detection threshold
 		bool itsFlagWriteThresholdImage;
 
-		/// Name of S/N image to be written
+		/// Name of Threshold image to be written
 		std::string itsThresholdImageName;
+
+		/// Whether to write a casa image containing the image noise
+		bool itsFlagWriteNoiseImage;
+
+		/// Name of Noise image to be written
+		std::string itsNoiseImageName;
 
 		/// Whether to extract spectra of detected sources, POSSUM-style
 		bool itsFlagExtractSpectra;

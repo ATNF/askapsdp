@@ -183,6 +183,8 @@ namespace askap {
 	    this->itsSNRimageName = parset.getString("SNRimageName", "");
 	    this->itsFlagWriteThresholdImage = parset.getBool("flagWriteThresholdImage",false);
 	    this->itsThresholdImageName = parset.getString("ThresholdImageName","");
+	    this->itsFlagWriteNoiseImage = parset.getBool("flagWriteNoiseImage",false);
+	    this->itsNoiseImageName = parset.getString("NoiseImageName","");
 
 	    this->itsFlagOptimiseMask = parset.getBool("optimiseMask",false);
 
@@ -732,6 +734,23 @@ namespace askap {
 	
       }
 
+	void findNoiseMap(float *input, float *output, casa::IPosition shape, casa::IPosition box, size_t loc, size_t spatSize, size_t specSize, bool isSpatial, bool useRobust)
+	{
+	    casa::Array<Float> base(shape, input, casa::COPY);
+	    casa::Array<Float> spread;
+	    if(useRobust) spread = slidingArrayMath(base, box, MadfmFunc<Float>()) / Statistics::correctionFactor;
+	    else spread = slidingArrayMath(base, box, StddevFunc<Float>());
+	    Array<Float>::iterator baseEnd(base.end()),iterBase(base.begin()),iterSpread(spread.begin());
+	    int i=0,pos=0;
+	    while(iterBase != baseEnd){
+		pos = isSpatial ?  i+loc*spatSize :  loc+i*spatSize;
+		output[pos] = *iterSpread;
+		i++;
+		iterBase++;
+		iterSpread++;
+	    }
+	}
+
       void findSNR(float *input, float *output, casa::IPosition shape, casa::IPosition box, size_t loc, size_t spatSize, size_t specSize, bool isSpatial, bool useRobust)
       {
 	casa::Array<Float> base(shape, input, casa::COPY);
@@ -807,7 +826,7 @@ namespace askap {
 
       void DuchampParallel::medianSearch()
       {
-	if(this->itsFlagWriteSNRimage || this->itsFlagWriteThresholdImage){
+	if(this->itsFlagWriteSNRimage || this->itsFlagWriteThresholdImage || this->itsFlagWriteNoiseImage ){
 	  ImageOpener::registerOpenImageFunction(ImageOpener::FITS, FITSImage::openFITSImage);
 	  ImageOpener::registerOpenImageFunction(ImageOpener::MIRIAD, MIRIADImage::openMIRIADImage);
 	  if(this->itsFlagWriteSNRimage && this->itsSNRimageName==""){
@@ -827,6 +846,15 @@ namespace askap {
 	      this->itsThresholdImageName=this->itsThresholdImageName.substr(0,this->itsThresholdImageName.size()-5);
 	    this->itsThresholdImageName += "-Threshold";
 	    ASKAPLOG_DEBUG_STR(logger, "Actually saving Threshold map to image \"" << this->itsThresholdImageName <<"\"");
+	  }
+	  if(this->itsFlagWriteNoiseImage && this->itsNoiseImageName==""){
+	    // if it has not been specified, construct name from input image
+	    this->itsNoiseImageName=this->itsCube.pars().getImageFile();
+	    // trim .fits off name if present
+	    if(this->itsNoiseImageName.substr(this->itsNoiseImageName.size()-5,5)==".fits") 
+	      this->itsNoiseImageName=this->itsNoiseImageName.substr(0,this->itsNoiseImageName.size()-5);
+	    this->itsNoiseImageName += "-Noise";
+	    ASKAPLOG_DEBUG_STR(logger, "Actually saving Noise map to image \"" << this->itsNoiseImageName <<"\"");
 	  }
 	}
 
@@ -931,6 +959,45 @@ namespace askap {
 	    ASKAPLOG_DEBUG_STR(logger, "About to write the threshold map to image " << this->itsThresholdImageName);
 	    this->writeImage(this->itsThresholdImageName,snrAll);
 	    ASKAPLOG_DEBUG_STR(logger, "Done");
+	  }
+
+	  if(this->itsFlagWriteNoiseImage){
+
+	      ASKAPLOG_DEBUG_STR(logger, "Saving Noise map to image \"" << this->itsNoiseImageName <<"\"");
+	      std::stringstream addition;
+	      addition << "-" << itsComms.rank();
+	      this->itsSNRimageName += addition.str();
+	      ASKAPLOG_DEBUG_STR(logger, "Noise image name is now " << this->itsSNRimageName);
+
+	      // Find the flux threshold map, purely for the purposes of writing it out to an image.
+	      // Re-use the temporary storage we used for the SNR map (snrAll) prior to saving to the Cube's recon array
+	      if(this->itsCube.pars().getSearchType()=="spatial"){
+		  casa::IPosition box(2, this->itsMedianBoxWidth, this->itsMedianBoxWidth);
+		  casa::IPosition shape(2, this->itsCube.getDimX(), this->itsCube.getDimY());
+		  imdim[0] = this->itsCube.getDimX(); imdim[1] = this->itsCube.getDimY();
+		  duchamp::Image *chanIm = new duchamp::Image(imdim);
+		  for (size_t z = 0; z < specSize; z++) {
+		      chanIm->extractImage(this->itsCube, z);
+		      ASKAPLOG_DEBUG_STR(logger, "Finding noise map for z="<<z);
+		      findNoiseMap(chanIm->getArray(),snrAll,shape,box,z,spatSize,specSize,true,this->itsCube.pars().getFlagRobustStats());
+		  }
+		  delete chanIm;
+	      }
+	      else if(this->itsCube.pars().getSearchType()=="spectral"){
+		  casa::IPosition box(1,this->itsMedianBoxWidth);
+		  casa::IPosition shape(1,this->itsCube.getDimZ());
+		  imdim[0] = this->itsCube.getDimZ(); imdim[1] = 1;
+		  duchamp::Image *chanIm = new duchamp::Image(imdim);
+		  ASKAPLOG_DEBUG_STR(logger, "Finding Noise map in spectral mode, with shape="<<shape<<" and box="<<box);
+		  for (size_t i = 0; i < spatSize; i++) {
+		      chanIm->extractSpectrum(this->itsCube, i);
+		      findNoiseMap(chanIm->getArray(),snrAll,shape,box,i,spatSize,specSize,false,this->itsCube.pars().getFlagRobustStats());
+		  }
+		  delete chanIm;
+	      }
+	      ASKAPLOG_DEBUG_STR(logger, "About to write the noise map to image " << this->itsThresholdImageName);
+	      this->writeImage(this->itsNoiseImageName,snrAll);
+	      ASKAPLOG_DEBUG_STR(logger, "Done");
 	  }
 	
 	  delete [] snrAll;

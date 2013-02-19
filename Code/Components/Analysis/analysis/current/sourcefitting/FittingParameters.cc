@@ -94,10 +94,10 @@ namespace askap {
                 this->itsMaxIter = parset.getUint32("maxIter", 1024);
                 this->itsUseNoise = parset.getBool("useNoise", true);
 		this->itsNoiseLevel = parset.getFloat("noiseLevel",1.);
-		this->itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", false);
+		this->itsStopAfterFirstGoodFit = parset.getBool("stopAfterFirstGoodFit", true);
 		this->itsUseGuessIfBad = parset.getBool("useGuessIfBad",true);
                 this->itsFlagFitThisParam = std::vector<bool>(6, true);
-		this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", false);
+		this->itsFlagFitJustDetection = parset.getBool("fitJustDetection", true);
 
                 if (parset.isDefined("flagFitParam"))
                     ASKAPLOG_WARN_STR(logger, "The flagFitParam parameter is not used any more. Please use fitTypes to specify a list of types of fits.");
