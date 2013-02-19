@@ -32,6 +32,7 @@
 #include <modelcomponents/Spectrum.h>
 #include <modelcomponents/HIprofile.h>
 #include <iostream>
+#include <math.h>
 
 namespace askap {
 
@@ -48,6 +49,7 @@ namespace askap {
         /// @brief Maximum rotational velocity for different galaxy types
         const double vrotMax[5] = {0., 0., 0., 70., 140.};
 
+	const double rootTwoPi = 4. * M_SQRT1_2 / M_2_SQRTPI;  // sqrt(2pi), using, from math.h: M_SQRT1_2=1/sqrt(2) and M_2_SQRTPI=2/sqrt(pi),
 
         /// @brief The spectral profile of an HI emission line from the S3SEX database
         /// @details This class holds all information required to
@@ -62,7 +64,8 @@ namespace askap {
                 /// @brief Set up parameters using a line of input from an ascii file
                 HIprofileS3SEX(std::string &line);
                 /// @brief Set up parameters using the setup() function
-                HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min) {setup(type, z, mhi, maj, min);};
+                HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min);
+                HIprofileS3SEX(GALTYPE type, double z, double mhi, double maj, double min, long componentNum, long galaxyNum);
                 /// @brief Destructor
                 virtual ~HIprofileS3SEX() {};
                 /// @brief Copy constructor
@@ -74,8 +77,11 @@ namespace askap {
 		void define(const std::string &line);
 
                 /// @brief Set up the profile's parameters
-                void setup(GALTYPE type, double z, double mhi, double maj, double min);
+                /* void setup(GALTYPE type, double z, double mhi, double maj, double min); */
+		void init();
+                void setup();
 		void prepareForUse();
+		void prepareForUse(long num1, long num2);
 
                 /// @brief What source type is this?
                 GALTYPE type() {return itsSourceType;};

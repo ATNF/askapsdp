@@ -151,17 +151,7 @@ namespace askap {
 	    // Want to add some dispersion to HImass, a la Wilman et al
 	    // Calculate the delta by converting the component number (modulo 1000) to a probability, then interpret that as a normal prob
 	    double prob = (this->itsComponentNum % 1000 + 0.5) / 1000.;
-	    double z=0,deltaz=0.1,tolerance=1.e-6;
-	    if(prob>0.5) deltaz*=-1;
-	    double initial=0.5*erfc(z/M_SQRT2)-prob;
-	    do{
-	      z += deltaz;
-	      double current=0.5*erfc(z/M_SQRT2)-prob;
-	      if((initial*current)<0){
-		z -= deltaz;
-		deltaz /= 10.;
-	      }
-	    }while(fabs(deltaz)>tolerance);
+	    double z = probToZvalue(prob);
 	    HImass = 0.44 * lum  + 0.48 + z * 0.3;
 
 //	    ASKAPLOG_DEBUG_STR(logger, "HI profile for component #"<< this->itsComponentNum << " gives a prob of " << prob << " and a z-value of " << z << " giving a delta-M of " << 0.3*z << " and log10(M_HI)="<<log10(exp(HImass)));
@@ -170,7 +160,8 @@ namespace askap {
 //	    ASKAPLOG_DEBUG_STR(logger, "Creating HI profile with M_HI = " << HImass<<", using log10(flux)="<<this->itsI1400<<" to get a lum of " << lum);
 	  }
 	  
-	  this->itsHIprofile = HIprofileS3SEX(type, this->itsRedshift, HImass, this->itsMaj, this->itsMin);
+	  this->itsHIprofile = HIprofileS3SEX(type, this->itsRedshift, HImass, this->itsMaj, this->itsMin, this->itsComponentNum, this->itsGalaxyNum);
+	  this->itsHIprofile.diagnostic(std::cout);
 
       }
 

@@ -98,8 +98,7 @@ int main(int argc, const char** argv)
         float min =  6.275;
         //      float pa = 0.314;
 
-        HIprofileS3SEX prof;
-        prof.setup(SFG, z, mHI, maj, min);
+        HIprofileS3SEX prof(SFG, z, mHI, maj, min);
         std::cout << prof << "\n";
 
         std::ofstream dumpfile("testHIprofileS3SEX_dump1.txt");

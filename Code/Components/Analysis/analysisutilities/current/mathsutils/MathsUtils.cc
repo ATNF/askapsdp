@@ -78,6 +78,24 @@ namespace askap {
       return z*sigma + mean;
     }
 
+      double probToZvalue(double prob)
+      {
+	  
+	  double z=0,deltaz=0.1,tolerance=1.e-6;
+	  if(prob>0.5) deltaz*=-1;
+	  double initial=0.5*erfc(z/M_SQRT2)-prob;
+	  do{
+	      z += deltaz;
+	      double current=0.5*erfc(z/M_SQRT2)-prob;
+	      if((initial*current)<0){
+		  z -= deltaz;
+		  deltaz /= 10.;
+	      }
+	  }while(fabs(deltaz)>tolerance);
+	  return z;
+      }
+
+
     double atanCircular(double sinTerm, double cosTerm)
     {
       double epsilon=1.e-10;

@@ -51,6 +51,9 @@ namespace askap {
       
       /// @brief Return a normal random variable
       float normalRandomVariable(float mean, float rms);
+
+      /// @brief Return the standard normal z-score corresponding to a probability (integrated from -infinity)
+      double probToZvalue(double prob);
       
       double atanCircular(double sinTerm, double cosTerm);
       
