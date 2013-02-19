@@ -19,4 +19,4 @@ source ../../init_package_env.sh
 
 rm -rf *.ms
 
-mpirun -mca mpi_paffinity_alone 1 -np 16 msperf.sh -inputs config.in | tee output.$PBS_JOBID.out
+mpirun -mca mpi_paffinity_alone 1 -np 16 msperf.sh -c config.in | tee output.$PBS_JOBID.out

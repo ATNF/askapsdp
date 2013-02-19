@@ -1,5 +1,5 @@
 #!/bin/bash -l
-#PBS -W group_list=astronomy99
+#PBS -W group_list=astronomy554
 #PBS -q debugq
 #PBS -l select=1:ncpus=2:mem=8GB:mpiprocs=2
 #PBS -l walltime=01:00:00
@@ -15,4 +15,4 @@ source ../../init_package_env.sh
 
 rm -rf *.ms
 
-mpirun -np 2 msperf.sh -inputs config.in | tee output.$PBS_JOBID.out
+mpirun -np 2 msperf.sh -c config.in | tee output.$PBS_JOBID.out
