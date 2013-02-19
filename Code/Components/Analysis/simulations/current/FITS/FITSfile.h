@@ -170,11 +170,13 @@ namespace askap {
 		    /// @brief The maximum Taylor term to be created
 		    unsigned int itsMaxTaylorTerm;
 		    /// @brief What percentage of the spectral fitting to log when doing Taylor terms?
-		    float itsTTlogevery;
+		    int itsTTlogevery;
                     /// @brief The file containing the list of sources
                     std::string itsSourceList;
                     /// @brief The type of input list: either "continuum" or "spectralline"
                     std::string itsSourceListType;
+		    /// @brief How often to record progress when adding sources
+		    int itsSourceLogevery;
                     /// @brief The origin of the database: either "S3SEX" or "S3SAX" - used for spectralline case
                     std::string itsDatabaseOrigin;
 		    /// @brief Should we be verbose about information about sources?

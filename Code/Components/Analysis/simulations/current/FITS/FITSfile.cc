@@ -143,6 +143,7 @@ namespace askap {
 	this->itsTTlogevery = f.itsTTlogevery;
 	this->itsSourceList = f.itsSourceList;
 	this->itsSourceListType = f.itsSourceListType;
+	this->itsSourceLogevery = f.itsSourceLogevery;
 	this->itsDatabaseOrigin = f.itsDatabaseOrigin;
 	this->itsFlagVerboseSources = f.itsFlagVerboseSources;
 	this->itsModelFactory = f.itsModelFactory;
@@ -245,7 +246,7 @@ namespace askap {
 	this->itsCreateTaylorTerms = parset.getBool("createTaylorTerms",false);
 	this->itsMaxTaylorTerm = parset.getInt16("maxTaylorTerm", 2);	
 	this->itsTTmaps = std::vector<casa::Array<Float> >(this->itsMaxTaylorTerm+1);
-	this->itsTTlogevery = parset.getFloat("TTlogevery",10.);
+	this->itsTTlogevery = parset.getInt32("TTlogevery",10);
 	ASKAPLOG_DEBUG_STR(logger, "createTaylorTerms="<<this->itsCreateTaylorTerms<<", maxTaylorTerm="<<this->itsMaxTaylorTerm);
 
 	this->itsBunit = casa::Unit(parset.getString("bunit", "Jy/beam"));
@@ -267,6 +268,7 @@ namespace askap {
 
 	this->itsAddSources = parset.getBool("addSources", true);
 	this->itsDryRun = parset.getBool("dryRun", false);
+	this->itsSourceLogevery = parset.getInt32("sourceLogevery",1000);
 
 	this->itsModelFactory = ModelFactory(parset);
 	this->itsDatabaseOrigin = parset.getString("database", "Continuum"); 
@@ -554,6 +556,7 @@ namespace askap {
 	  double *newwld = new double[3];
 	  std::ofstream outfile;
 
+	  int countLines=0, countAdded=0;
 	  int countGauss = 0, countPoint = 0, countMiss=0, countDud=0;
 
 	  Spectrum *src = 0;
@@ -573,7 +576,9 @@ namespace askap {
 	    fluxGen.zero();
 	    
 	    if (line[0] != '#') {  // ignore commented lines
-
+		
+		countLines++;
+		
 	      src = this->itsModelFactory.read(line);
 	      //	      ASKAPLOG_DEBUG_STR(logger, "Read source " << src->ra() << " " << src->dec() << " " << src->fluxZero() << " " << src->maj() << " " << src->min() << " " << src->pa());
 
@@ -713,6 +718,12 @@ namespace askap {
 		      else 
 			src->print(outfile,newwld[0],newwld[1]);
 		    }
+
+		    countAdded++;
+		    if( countLines % this->itsSourceLogevery == 0 )
+			ASKAPLOG_INFO_STR(logger, "Read " << countLines << " sources and have added " << countAdded << " to the image");
+
+
 		  }
 
 		}
