@@ -720,8 +720,6 @@ namespace askap {
 		    }
 
 		    countAdded++;
-		    if( countLines % this->itsSourceLogevery == 0 )
-			ASKAPLOG_INFO_STR(logger, "Read " << countLines << " sources and have added " << countAdded << " to the image");
 
 
 		  }
@@ -733,7 +731,10 @@ namespace askap {
 	      }
 
 	      delete src;
-	      
+	     
+	      if( countLines % this->itsSourceLogevery == 0 )
+		  ASKAPLOG_INFO_STR(logger, "Read " << countLines << " sources and have added " << countAdded << " to the image");
+ 
 	    } else {
 	      // Write all commented lines directly into the output file
 	      if (this->itsFlagOutputList) outfile << line << "\n";
