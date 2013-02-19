@@ -161,7 +161,7 @@ namespace askap {
 	  }
 	  
 	  this->itsHIprofile = HIprofileS3SEX(type, this->itsRedshift, HImass, this->itsMaj, this->itsMin, this->itsComponentNum, this->itsGalaxyNum);
-	  this->itsHIprofile.diagnostic(std::cout);
+//	  this->itsHIprofile.diagnostic(std::cout);
 
       }
 
