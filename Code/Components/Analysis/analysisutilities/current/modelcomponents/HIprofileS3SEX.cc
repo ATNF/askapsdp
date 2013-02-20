@@ -157,6 +157,8 @@ namespace askap {
             theStream << "Edge int. flux=" << this->itsEdgeFlux << "\n";
             theStream << "Middle int. flux=" << this->itsMiddleFlux << "\n";
             theStream << "Profile int. flux=" << this->itsProfileFlux << "\n";
+	    theStream << "Min Freq="<<this->itsMinFreq <<"\n";
+	    theStream << "Max Freq="<<this->itsMaxFreq <<"\n";
 
       }
 
@@ -252,6 +254,11 @@ namespace askap {
                                   this->itsDipAmp * rootTwoPi * this->itsSigmaDip * erf(this->itsDeltaVel / (M_SQRT2 * this->itsSigmaDip));
 
             this->itsProfileFlux = 2.*this->itsEdgeFlux + this->itsMiddleFlux;
+
+	    this->itsMinFreq =  HIVelToFreq( this->itsVelZero - this->itsDeltaVel - this->itsSigmaEdge * sqrt(2.*log(MAXFLOAT * this->itsMaxVal)) );
+	    this->itsMaxFreq =  HIVelToFreq( this->itsVelZero + this->itsDeltaVel + this->itsSigmaEdge * sqrt(2.*log(MAXFLOAT * this->itsMaxVal)) );
+
+	    if(this->itsMinFreq > this->itsMaxFreq) std::swap(this->itsMinFreq, this->itsMaxFreq);
 
         }
 

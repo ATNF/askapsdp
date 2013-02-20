@@ -94,6 +94,8 @@ namespace askap {
 		/// @brief Calculate any parameters that are needed before making use of the class
 		virtual void prepareForUse(){};
 
+		virtual bool freqRangeOK(double freq1, double freq2){return true;};
+
                 /// @brief Return the flux at a given frequency - not used for the base class
                 virtual double flux(double freq, int istokes=0)  {return -77.;};
                 /// @brief Return the flux integrated between two frequencies - not used for the base class

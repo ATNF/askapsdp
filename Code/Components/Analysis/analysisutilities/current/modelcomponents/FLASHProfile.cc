@@ -126,6 +126,8 @@ namespace askap {
 	double freqmin=velToFreq(redshiftToVel(this->itsCentreRedshift)+this->itsVelocityWidth/2.,this->itsRestFreq);
 	this->itsGaussian.setWidth(fabs(freqmax-freqmin));
 	
+	this->setFreqLimits();
+
       }
 
 

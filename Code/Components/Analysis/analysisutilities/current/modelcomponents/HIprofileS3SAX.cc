@@ -179,6 +179,12 @@ namespace askap {
             else
                 this->itsMiddleFlux = 0.;
 
+	    double maxAbsVel = this->itsKpar[0] + sqrt( this->itsKpar[1] * log(this->itsKpar[2]*MAXFLOAT) );
+	    float vel0 = redshiftToVel(this->itsRedshift);
+	    this->itsMaxFreq = HIVelToFreq( vel0 + maxAbsVel );
+	    this->itsMinFreq = HIVelToFreq( vel0 - maxAbsVel );
+	    if(this->itsMinFreq > this->itsMaxFreq) std::swap(this->itsMinFreq, this->itsMaxFreq);
+
         }
 
       double HIprofileS3SAX::flux(double nu, int istokes)

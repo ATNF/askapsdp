@@ -78,6 +78,8 @@ namespace askap {
       /// @brief Define using a line of input from an ascii file
       void define(const std::string &line);
 
+      bool freqRangeOK(double freq1, double freq2){return itsHIprofile.freqRangeOK(freq1,freq2);}
+      
       double flux(double freq, int istokes){return itsHIprofile.flux(freq,istokes);};
       double flux(double freq1, double freq2, int istokes){return itsHIprofile.flux(freq1,freq2,istokes);};
 

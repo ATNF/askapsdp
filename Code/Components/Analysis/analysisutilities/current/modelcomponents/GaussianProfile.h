@@ -62,6 +62,9 @@ namespace askap {
                 GaussianProfile& operator= (const GaussianProfile& h);
 
 		virtual void define(const std::string &line);
+		
+		void setFreqLimits();
+		virtual bool freqRangeOK(double freq1, double freq2);
 
 		void setAxisType(AXISTYPE type){itsAxisType=type;};
 		void setRestFreq(double freq){itsRestFreq=freq;};
@@ -78,6 +81,10 @@ namespace askap {
 		casa::Gaussian1D<double> itsGaussian;
 		AXISTYPE itsAxisType;
 		double itsRestFreq;
+		/// @brief The minimum frequency affected by the source
+		double itsMinFreq;
+		/// @brief The maximum frequency affected by the source
+		double itsMaxFreq;
         };
 
     }

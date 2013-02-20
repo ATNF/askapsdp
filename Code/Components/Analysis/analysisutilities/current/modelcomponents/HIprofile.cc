@@ -48,6 +48,8 @@ namespace askap {
         {
             this->itsRedshift = 0.;
             this->itsMHI = 0.;
+	    this->itsMinFreq = 0.;
+	    this->itsMaxFreq = 0.;
         }
 
         HIprofile::HIprofile(const HIprofile& h):
@@ -63,8 +65,17 @@ namespace askap {
             ((Spectrum &) *this) = h;
             this->itsRedshift = h.itsRedshift;
             this->itsMHI = h.itsMHI;
+	    this->itsMinFreq = h.itsMinFreq;
+	    this->itsMaxFreq = h.itsMaxFreq;
             return *this;
         }
+
+	bool HIprofile::freqRangeOK(double freq1, double freq2)
+	{
+	    double lowfreq=std::min(freq1,freq2);
+	    double highfreq=std::max(freq1,freq2);
+	    return (lowfreq<this->itsMaxFreq) && (highfreq>this->itsMinFreq);
+	}
 
         double HIprofile::integratedFlux(double z, double mhi)
         {

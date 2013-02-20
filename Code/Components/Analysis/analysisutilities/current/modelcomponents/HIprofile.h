@@ -61,6 +61,8 @@ namespace askap {
                 /// @brief Return the HI mass
                 double mHI() {return itsMHI;};
 
+		bool freqRangeOK(double freq1, double freq2);
+
                 /// @brief Return the flux at a given frequency - not used for the base class
                 virtual double flux(double nu, int istokes=0)  {return -177.;};
                 /// @brief Return the flux integrated between two frequencies - not used for the base class
@@ -74,6 +76,11 @@ namespace askap {
                 double itsRedshift;
                 /// @brief The HI mass of the source
                 double itsMHI;
+		/// @brief The minimum frequency affected by the source
+		double itsMinFreq;
+		/// @brief The maximum frequency affected by the source
+		double itsMaxFreq;
+
 
         };
 

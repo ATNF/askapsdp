@@ -653,20 +653,21 @@ namespace askap {
 		lookAtSource = lookAtSource && doAddPointSource(this->itsAxes, pix);
 	      }
 
+	      lookAtSource = lookAtSource && src->freqRangeOK(this->minFreq(),this->maxFreq());
 
 	      if (lookAtSource) {
 
 		src->prepareForUse();
 		  
 		bool isGood = true;
-		if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
-		  // check the frequency limits for this source to see whether we need to look at it.
-		    if(this->itsFlagVerboseSources)
-			ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
-		  //		std::pair<double,double> freqLims = profSAX.freqLimits();
-		  std::pair<double,double> freqLims = ((HIprofileS3SAX *)src)->freqLimits();
-		  isGood = (freqLims.first < this->maxFreq()) && (freqLims.second > this->minFreq());
-		}
+		// if( this->itsSourceListType == "spectralline" && this->itsDatabaseOrigin == "S3SAX"){
+		//   // check the frequency limits for this source to see whether we need to look at it.
+		//     if(this->itsFlagVerboseSources)
+		// 	ASKAPLOG_DEBUG_STR(logger, "Maximum & minimum frequencies are " << this->maxFreq() << " and " << this->minFreq());
+		//   //		std::pair<double,double> freqLims = profSAX.freqLimits();
+		//   std::pair<double,double> freqLims = ((HIprofileS3SAX *)src)->freqLimits();
+		//   isGood = (freqLims.first < this->maxFreq()) && (freqLims.second > this->minFreq());
+		// }
 
 		if(isGood){
 

@@ -81,6 +81,8 @@ namespace askap {
             this->itsGaussian = h.itsGaussian;
 	    this->itsAxisType = h.itsAxisType;
 	    this->itsRestFreq = h.itsRestFreq;
+	    this->itsMinFreq = h.itsMinFreq;
+	    this->itsMaxFreq = h.itsMaxFreq;
             return *this;
         }
 
@@ -106,6 +108,40 @@ namespace askap {
 	    this->itsGaussian.setWidth(width);
 
         }
+
+	void GaussianProfile::setFreqLimits()
+	{
+	    double sigma = this->itsGaussian.width() / (2. * sqrt(2*M_LN2));
+	    this->itsMinFreq = this->itsGaussian.center() - sigma * sqrt(2.*log(MAXFLOAT*this->itsGaussian.height()));
+	    this->itsMaxFreq = this->itsGaussian.center() + sigma * sqrt(2.*log(MAXFLOAT*this->itsGaussian.height()));
+
+	    switch(this->itsAxisType){
+	    case PIXEL:
+		ASKAPLOG_ERROR_STR(logger, "Cannot use axis type PIXEL");
+		break;
+	    case FREQUENCY:
+		if(this->itsMinFreq>this->itsMaxFreq) std::swap(this->itsMinFreq,this->itsMaxFreq);
+		break;
+	    case VELOCITY:
+		this->itsMinFreq = velToFreq(this->itsMinFreq,this->itsRestFreq);
+		this->itsMaxFreq = velToFreq(this->itsMaxFreq,this->itsRestFreq);
+		if(this->itsMinFreq>this->itsMaxFreq) std::swap(this->itsMinFreq,this->itsMaxFreq);
+		break;
+	    case REDSHIFT:
+		this->itsMinFreq = redshiftToFreq(this->itsMinFreq,this->itsRestFreq);
+		this->itsMaxFreq = redshiftToFreq(this->itsMaxFreq,this->itsRestFreq);
+		if(this->itsMinFreq>this->itsMaxFreq) std::swap(this->itsMinFreq,this->itsMaxFreq);
+	      break;
+	    }
+
+	}
+
+	bool GaussianProfile::freqRangeOK(double freq1, double freq2)
+	{
+	    double lowfreq=std::min(freq1,freq2);
+	    double highfreq=std::max(freq1,freq2);
+	    return (lowfreq<this->itsMaxFreq) && (highfreq>this->itsMinFreq);
+	}
 
       double GaussianProfile::flux(double nu, int istokes)
         {
