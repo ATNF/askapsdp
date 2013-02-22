@@ -71,6 +71,7 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
                       casa::MEpoch::Ref(casa::MEpoch::UTC)),"s");
   conv->setDirectionFrame(casa::MDirection::Ref(casa::MDirection::J2000));                    
   casa::Matrix<casa::Complex> buf;
+  casa::Matrix<casa::Complex> buf2;
   casa::Vector<double> freq;
   size_t counter = 0;
   size_t nGoodRows = 0;
@@ -86,6 +87,8 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
            nRow = it->nRow();
            buf.resize(nRow,nChan);
            buf.set(casa::Complex(0.,0.));
+           buf2.resize(nRow,nChan);
+           buf2.set(casa::Complex(0.,0.));
            freq = it->frequency();
        } else { 
            ASKAPCHECK(nChan == it->nChannel(), 
@@ -115,7 +118,11 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
                ++nBadRows;
             } else {
                 casa::Vector<casa::Complex> thisRow = buf.row(row);
-                thisRow += it->visibility().xyPlane(0).row(row);
+                casa::Vector<casa::Complex> measuredRow = it->visibility().xyPlane(0).row(row);
+                thisRow += measuredRow;
+                for (casa::uInt ch = 0; ch<thisRow.nelements(); ++ch) {
+                     buf2(row,ch) += casa::Complex(casa::square(casa::real(measuredRow[ch])), casa::square(casa::imag(measuredRow[ch])));
+                }
                 ++nGoodRows;
             }
        }
@@ -130,8 +137,9 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
        }
        stopTime = it->time() + 1; // 1s integration time is hardcoded
   }
-  if (counter!=0) {
+  if (counter>1) {
       buf /= float(counter);
+      buf2 /= float(counter);
       std::cout<<"Averaged "<<counter<<" integration cycles, "<<nGoodRows<<" good and "<<nBadRows<<" bad rows, time span "<<(stopTime-startTime)/60.<<" minutues"<<std::endl;
       { // export averaged spectrum
         ASKAPDEBUGASSERT(freq.nelements() == nChan);
@@ -139,7 +147,10 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
         for (casa::uInt chan=0; chan<nChan; ++chan) {
              os<<chan<<" "<<freq[chan];
              for (casa::uInt row=0; row<nRow; ++row) {
-                  os<<" "<<casa::abs(buf(row,chan))<<" "<<casa::arg(buf(row,chan))/casa::C::pi*180.;
+                  const casa::Complex diff = buf2(row,chan) - casa::Complex(casa::square(casa::real(buf(row,chan))),casa::square(casa::imag(buf(row,chan)))); 
+                  const float varReal = casa::real(buf2(row,chan)) - casa::square(casa::real(buf(row,chan))); 
+                  const float varImag = casa::imag(buf2(row,chan)) - casa::square(casa::imag(buf(row,chan))); 
+                  os<<" "<<casa::abs(buf(row,chan))<<" "<<casa::arg(buf(row,chan))/casa::C::pi*180.<<" "<<sqrt(varReal + varImag)<<" ";
              }
              os<<std::endl;
         }
