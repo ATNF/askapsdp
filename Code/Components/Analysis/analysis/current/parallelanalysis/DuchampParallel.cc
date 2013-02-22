@@ -2614,20 +2614,19 @@ namespace askap {
 	    this->itsCube.pars().setMinChannels(0);
 	  }
 
+	  const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
 	  casa::Array<Float> subarray(sub->shape());
+	  float minval = min(msub)-1.;
+	  
+	  subarray = msub;
 	  if(sub->hasPixelMask()){
-	      casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
-	      float minval = min(msub)-1.;
-	      casa::MaskedArray<Float> negMsub(sub->get(),!sub->getMask());
-	      negMsub = minval;
-	      subarray = negMsub;
+	      subarray(!sub->getMask()) = minval;
 	      this->itsCube.pars().setBlankPixVal(minval);
 	      this->itsCube.pars().setBlankKeyword(0);
 	      this->itsCube.pars().setBscaleKeyword(1.);
 	      this->itsCube.pars().setBzeroKeyword(minval);
 	      this->itsCube.pars().setFlagBlankPix(true);
 	  }
-	  else subarray = casa::MaskedArray<Float>(sub->get(),sub->getMask());
 
 	  this->itsCube.saveArray(subarray.data(), subarray.size());
 	  
