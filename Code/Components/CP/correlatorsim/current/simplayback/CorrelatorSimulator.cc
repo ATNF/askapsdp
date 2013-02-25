@@ -44,8 +44,13 @@
 #include "ms/MeasurementSets/MeasurementSet.h"
 #include "ms/MeasurementSets/MSColumns.h"
 #include "casa/Arrays/Matrix.h"
+#include "casa/Arrays/Vector.h"
 #include "measures/Measures/MDirection.h"
+#include "measures/Measures/Stokes.h"
 #include "cpcommon/VisDatagram.h"
+
+// Local package includes
+#include "simplayback/BaselineMap.h"
 
 // Using
 using namespace askap;
@@ -55,9 +60,11 @@ using namespace casa;
 ASKAP_LOGGER(logger, ".CorrelatorSimulator");
 
 CorrelatorSimulator::CorrelatorSimulator(const std::string& dataset,
-        const std::string& hostname, const std::string& port,
+        const std::string& hostname,
+        const std::string& port,
+        const BaselineMap& bmap,
         const unsigned int expansionFactor)
-: itsExpansionFactor(expansionFactor), itsCurrentRow(0)
+: itsBaselineMap(bmap), itsExpansionFactor(expansionFactor), itsCurrentRow(0)
 {
     if (expansionFactor > 1) {
         ASKAPLOG_DEBUG_STR(logger, "Using expansion factor of " << expansionFactor);
@@ -84,20 +91,10 @@ bool CorrelatorSimulator::sendNext(void)
     const casa::ROMSFieldColumns& fieldc = msc.field();
     const casa::ROMSSpWindowColumns& spwc = msc.spectralWindow();
     const casa::ROMSDataDescColumns& ddc = msc.dataDescription();
-    //const casa::ROMSPolarizationColumns& polc = msc.polarization();
+    const casa::ROMSPolarizationColumns& polc = msc.polarization();
     //const casa::ROMSPointingColumns& pointingc = msc.pointing();
-
-    // Define some useful variables
-    const int dataDescId = msc.dataDescId()(itsCurrentRow);
-    //const unsigned int descPolId = ddc.polarizationId()(dataDescId);
-    const unsigned int descSpwId = ddc.spectralWindowId()(dataDescId);
     const unsigned int nRow = msc.nrow(); // In the whole table, not just for this integration
-    //const unsigned int nCorr = polc.numCorr()(descPolId);
-    const unsigned int nChan = spwc.numChan()(descSpwId);
-    //const unsigned int nAntenna = antc.nrow();
-    //const unsigned int nBeam = feedc.nrow() / nAntenna;
-    //const unsigned int nCoarseChan = 1;
-
+ 
     // Record the timestamp for the current integration that is
     // being processed
     casa::Double currentIntegration = msc.time()(itsCurrentRow);
@@ -114,6 +111,16 @@ bool CorrelatorSimulator::sendNext(void)
     // Process rows until none are left or the timestamp
     // changes, indicating the end of this integration
     while (itsCurrentRow != nRow && (currentIntegration == msc.time()(itsCurrentRow))) {
+
+        // Define some useful variables
+        const int dataDescId = msc.dataDescId()(itsCurrentRow);
+        const unsigned int descPolId = ddc.polarizationId()(dataDescId);
+        const unsigned int descSpwId = ddc.spectralWindowId()(dataDescId);
+        const unsigned int nCorr = polc.numCorr()(descPolId);
+        const unsigned int nChan = spwc.numChan()(descSpwId);
+        //const unsigned int nAntenna = antc.nrow();
+        //const unsigned int nBeam = feedc.nrow() / nAntenna;
+
 
         // Some per row constraints
         // This code needs the dataDescId to remain constant for all rows
@@ -132,10 +139,10 @@ bool CorrelatorSimulator::sendNext(void)
         const long Tstart = Tmid - (Tint / 2);
 
         payload.timestamp = Tstart;
-        payload.antenna1 = msc.antenna1()(itsCurrentRow);
-        payload.antenna2 = msc.antenna2()(itsCurrentRow);
-        payload.beam1 = msc.feed1()(itsCurrentRow);
-        payload.beam2 = msc.feed2()(itsCurrentRow);
+        payload.baselineid = 0; // TODO
+        ASKAPCHECK(msc.feed1()(itsCurrentRow) == msc.feed2()(itsCurrentRow),
+                "feed1 and feed2 must be equal");
+        payload.beamid = msc.feed1()(itsCurrentRow);
 
         // Get the expansion factor, producing the actual number of channels
         // to simulate
@@ -152,21 +159,44 @@ bool CorrelatorSimulator::sendNext(void)
 
         // This matrix is: Matrix<Complex> data(nCorr, nChan)
         const casa::Matrix<casa::Complex> data = msc.data()(itsCurrentRow);
-        for (unsigned int slice = 0; slice < nSlices; ++slice) {
-            payload.slice = slice;
-            for (unsigned int chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
-                for (unsigned int pol = 0; pol < N_POL; ++pol) {
-                    const int idx = pol + (N_POL * chan);
+        const int antenna1 = msc.antenna1()(itsCurrentRow);
+        const int antenna2 = msc.antenna2()(itsCurrentRow);
+        const casa::Vector<casa::Int> stokesTypesInt = polc.corrType()(descPolId);
+
+        for (unsigned int corr = 0; corr < nCorr; ++corr) {
+            const Stokes::StokesTypes stokestype = Stokes::type(stokesTypesInt(corr));
+            ASKAPCHECK(stokestype == Stokes::XX ||
+                    stokestype == Stokes::XY ||
+                    stokestype == Stokes::YX ||
+                    stokestype == Stokes::YY,
+                   "Unsupported stokes type");
+
+            // The ASKAP correlator does not send both XY and YX for auto-correlations
+            // so mimic this behaviour here
+            if ((antenna1 == antenna2) && (stokestype == Stokes::YX)) {
+                continue;
+            }
+
+            const int32_t baselineid = itsBaselineMap(antenna1, antenna2, stokestype);
+            if (baselineid < 0) {
+                ASKAPLOG_WARN_STR(logger, "Baseline ID does not exist for - ant1: "
+                        << antenna1 << ", ant2: " << antenna2 << ", Corr: " << Stokes::name(stokestype));
+                continue;
+            }
+            payload.baselineid = baselineid;
+            for (unsigned int slice = 0; slice < nSlices; ++slice) {
+                payload.slice = slice;
+                for (unsigned int chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
                     const unsigned int offset = static_cast<unsigned int>(
                             ceil(((slice * N_CHANNELS_PER_SLICE) + chan) / itsExpansionFactor));
-                    payload.vis[idx].real = data(pol, offset).real();
-                    payload.vis[idx].imag = data(pol, offset).imag();
+                    payload.vis[chan].real = data(corr, offset).real();
+                    payload.vis[chan].imag = data(corr, offset).imag();
                 }
+                // Finished populating, send this payload but then reuse it in the
+                // next iteration of the loop for the next packet
+                itsPort->send(payload);
+                usleep(50);
             }
-            // Finished populating, send this payload but then reuse it in the
-            // next iteration of the loop for the next packet
-            itsPort->send(payload);
-            usleep(100);
         }
 
         itsCurrentRow++;

@@ -38,6 +38,7 @@
 // Local package includes
 #include "simplayback/ISimulator.h"
 #include "simplayback/VisPort.h"
+#include "simplayback/BaselineMap.h"
 
 namespace askap {
 namespace cp {
@@ -62,6 +63,7 @@ class CorrelatorSimulator : public ISimulator {
         CorrelatorSimulator(const std::string& dataset,
                             const std::string& hostname,
                             const std::string& port,
+                            const BaselineMap& bmap,
                             const unsigned int expansionFactor = 1);
 
         /// Destructor
@@ -75,6 +77,10 @@ class CorrelatorSimulator : public ISimulator {
         bool sendNext(void);
 
     private:
+
+        // Baseline ID Map
+        const BaselineMap itsBaselineMap;
+
         // Channel multiplication factor
         const unsigned int itsExpansionFactor;
 

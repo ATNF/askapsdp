@@ -49,6 +49,7 @@
 #include "ingestpipeline/sourcetask/ScanManager.h"
 #include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "configuration/Configuration.h"
+#include "configuration/BaselineMap.h"
 
 ASKAP_LOGGER(logger, ".MergedSource");
 
@@ -64,7 +65,8 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
      itsMetadataSrc(metadataSrc), itsVisSrc(visSrc),
      itsNumTasks(numTasks), itsId(id),
      itsScanManager(config),
-     itsChannelManager(params)
+     itsChannelManager(params),
+     itsBaselineMap(config.bmap())
 {
 }
 
@@ -123,10 +125,9 @@ VisChunk::ShPtr MergedSource::next(void)
     const casa::uInt nAntenna = itsMetadata->nAntenna();
     const casa::uInt nChannels = itsChannelManager.localNChannels(itsId);
     const casa::uInt nBeams = itsMetadata->nBeams();
-    const casa::uInt nBaselines = nAntenna * (nAntenna + 1) / 2;
     ASKAPCHECK(nChannels % N_CHANNELS_PER_SLICE == 0,
             "Number of channels must be divisible by N_CHANNELS_PER_SLICE");
-    const casa::uInt datagramsExpected = nBaselines * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
+    const casa::uInt datagramsExpected =itsBaselineMap.size() * nBeams * (nChannels / N_CHANNELS_PER_SLICE);
     const casa::uInt timeout = itsMetadata->period() * 2;
 
     // Read VisDatagrams and add them to the VisChunk. If itsVisSrc->next()
@@ -252,22 +253,48 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
         const casa::uInt nAntenna, const casa::uInt nBeams)
 {
-    // 1) Check the indexes in the VisDatagram are valid
-    ASKAPCHECK(vis.antenna1 < nAntenna, "Antenna 1 index is invalid");
-    ASKAPCHECK(vis.antenna2 < nAntenna, "Antenna 2 index is invalid");
-    ASKAPCHECK(vis.beam1 < nBeams, "Beam 1 index is invalid");
-    ASKAPCHECK(vis.beam2 < nBeams, "Beam 2 index is invalid");
+    // 0) Map from baseline to antenna pair and stokes type
+    if (itsBaselineMap.idToAntenna1(vis.baselineid) == -1 ||
+            itsBaselineMap.idToAntenna2(vis.baselineid) == -1) {
+            ASKAPLOG_WARN_STR(logger, "Baseline id: " << vis.baselineid
+                    << " has no valid mapping to antenna pair and stokes");
+        return;
+    }
+    const casa::uInt antenna1 = itsBaselineMap.idToAntenna1(vis.baselineid);
+    const casa::uInt antenna2 = itsBaselineMap.idToAntenna2(vis.baselineid);
+    const casa::uInt beamid = vis.beamid;
 
-    // 2) Find the row for the given beam and baseline
+    // 1) Map from baseline to stokes type and find the  position on the stokes
+    // axis of the cube to insert the data into
+    const casa::Stokes::StokesTypes stokestype = itsBaselineMap.idToStokes(vis.baselineid);
+    int polidx = -1;
+    for (size_t i = 0; i < chunk->stokes().size(); ++i) {
+        if (chunk->stokes()(i) == stokestype) {
+            polidx = i;
+        }
+    }
+    if (polidx < 0) {
+            ASKAPLOG_WARN_STR(logger, "Stokes type " << casa::Stokes::name(stokestype)
+                    << " is not configured for storage");
+        return;
+    }
+
+
+    // 2) Check the indexes in the VisDatagram are valid
+    ASKAPCHECK(antenna1 < nAntenna, "Antenna 1 index is invalid");
+    ASKAPCHECK(antenna2 < nAntenna, "Antenna 2 index is invalid");
+    ASKAPCHECK(beamid < nBeams, "Beam index is invalid");
+
+    // 3) Find the row for the given beam and baseline
     // TODO: This is slow, need to develop an indexing method
     casa::uInt row = 0;
     casa::uInt idx = 0;
     for (casa::uInt beam = 0; beam < nBeams; ++beam) {
         for (casa::uInt ant1 = 0; ant1 < nAntenna; ++ant1) {
             for (casa::uInt ant2 = ant1; ant2 < nAntenna; ++ant2) {
-                if (ant1 == vis.antenna1 &&
-                        ant2 == vis.antenna2 &&
-                        beam == vis.beam1) {
+                if (ant1 == antenna1 &&
+                        ant2 == antenna2 &&
+                        beam == beamid) {
                     row = idx;
                 }
                 idx++;
@@ -275,24 +302,21 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
         }
     }
     const std::string errorMsg = "Indexing failed to find row";
-    ASKAPCHECK(chunk->antenna1()(row) == vis.antenna1, errorMsg);
-    ASKAPCHECK(chunk->antenna2()(row) == vis.antenna2, errorMsg);
-    ASKAPCHECK(chunk->beam1()(row) == vis.beam1, errorMsg);
-    ASKAPCHECK(chunk->beam2()(row) == vis.beam2, errorMsg);
+    ASKAPCHECK(chunk->antenna1()(row) == antenna1, errorMsg);
+    ASKAPCHECK(chunk->antenna2()(row) == antenna2, errorMsg);
+    ASKAPCHECK(chunk->beam1()(row) == beamid, errorMsg);
+    ASKAPCHECK(chunk->beam2()(row) == beamid, errorMsg);
 
-    // 3) Determine the channel offset and add the visibilities
-    ASKAPCHECK(vis.slice < 71, "Slice index is invalid");
+    // 4) Determine the channel offset and add the visibilities
+    ASKAPCHECK(vis.slice < 16, "Slice index is invalid");
     const casa::uInt chanOffset = (vis.slice) * N_CHANNELS_PER_SLICE;
     for (casa::uInt chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
-        for (casa::uInt pol = 0; pol < N_POL; ++pol) {
-            const casa::uInt index = pol + ((N_POL) * chan);
-            casa::Complex sample(vis.vis[index].real, vis.vis[index].imag);
-            ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
-            chunk->visibility()(row, chanOffset + chan, pol) = sample;
+        casa::Complex sample(vis.vis[chan].real, vis.vis[chan].imag);
+        ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
+        chunk->visibility()(row, chanOffset + chan, polidx) = sample;
 
-            // Unflag the sample
-            chunk->flag()(row, chanOffset + chan, pol) = false;
-        }
+        // Unflag the sample
+        chunk->flag()(row, chanOffset + chan, polidx) = false;
     }
 }
 

@@ -117,6 +117,11 @@ std::vector<Antenna> Configuration::antennas(void) const
     return antennas;
 }
 
+BaselineMap Configuration::bmap(void) const
+{
+    return BaselineMap(itsParset.makeSubset("baselinemap."));
+}
+
 Observation Configuration::observation(void) const
 {
     const casa::uInt schedulingBlockID = itsParset.getUint32("observation.sbid");

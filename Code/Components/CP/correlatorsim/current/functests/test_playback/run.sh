@@ -3,6 +3,10 @@
 cd `dirname $0`
 
 # Setup the environment
+if [ ! -f ../../init_package_env.sh ]; then
+    echo "Error: init_package_env.sh dos not exist, please run rbuild in package dir"
+    exit 1
+fi
 source ../../init_package_env.sh
 
 # Start the Ice Services

@@ -54,38 +54,27 @@ static unsigned long count = 0;
 
 // When a SIGTERM is sent to the process this signal handler is called
 // in order to report the number of UDP datagrams received
-static void termination_handler (int signum)
+static void termination_handler(int signum)
 {
     std::cout << "Received " << count << " datagrams" << std::endl;
     exit(0);
-}
-
-// Indexing function for indexing into the VisDatagram vis array
-int index(int pol, int chan) {
-    return pol + ((N_POL) * chan);
 }
 
 // Print the visibilities. Only called when verbose == 2
 // The format of the output is:
 //
 // Visibilities:
-//     ch0 [ (0.123, 0.456), (0, 0), (0, 0), (0.123, 0.456) ]
-//     ch1 [ (0.123, 0.456), (0, 0), (0, 0), (0.123, 0.456) ]
+//     ch0: (0.123, 0.456)
+//     ch1: (0.789, 0.012)
 //     ..
 //     ..
 static void printAdditional(const VisDatagram& v)
 {
     std::cout << "\tVisibilities:" << std::endl;
     for (unsigned int i = 0; i < N_CHANNELS_PER_SLICE; ++i) {
-        std::cout << "\t\tch" << i << " [ ";
-        for (unsigned int j = 0; j < N_POL; ++j) {
-            std::cout << "(" << v.vis[index(j, i)].real <<
-                ", " << v.vis[index(j, i)].imag << ")";
-            if (j != (N_POL - 1)) {
-                std::cout << ", ";
-            }
-        }
-        std::cout << " ] "<< std::endl;
+        std::cout << "\t\tch" << i << ": " << "("
+            << v.vis[i].real << ", "
+            << v.vis[i].imag << ")";
     }
 }
 
@@ -95,20 +84,17 @@ static void printAdditional(const VisDatagram& v)
 //
 // Timestamp:  4679919826828364
 //    Slice:      0
-//    Antenna1:   0
-//    Antenna2:   1
-//    Beam1:      0
-//    Beam2:      0
+//    BaselineID: 0
+//    BeamID:     0
 //    ..
 //    ..
 static void printPayload(const VisDatagram& v)
 {
     std::cout << "Timestamp:\t" << v.timestamp << std::endl;
     std::cout << "\tSlice:\t\t" << v.slice << std::endl;
-    std::cout << "\tAntenna1:\t" << v.antenna1 << std::endl;
-    std::cout << "\tAntenna2:\t" << v.antenna2 << std::endl;
-    std::cout << "\tBeam1:\t\t" << v.beam1 << std::endl;
-    std::cout << "\tBeam2:\t\t" << v.beam2 << std::endl;
+    std::cout << "\tBaselineID:\t" << v.baselineid << std::endl;
+    std::cout << "\tBeamID:\t" << v.beamid << std::endl;
+
     if (verbose == 2) {
         printAdditional(v);
     }

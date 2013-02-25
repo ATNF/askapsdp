@@ -1,5 +1,5 @@
 #
-## Correlator cycle time in seconds
+# Correlator cycle time in seconds
 #
 playback.period = 10
 
@@ -31,3 +31,106 @@ playback.corrsim.shelf1.out.port            = 3000
 playback.corrsim.shelf2.dataset             = ../../dataset/beta2.ms
 playback.corrsim.shelf2.out.hostname        = localhost
 playback.corrsim.shelf2.out.port            = 3001
+
+# Mapping from antenna1/antenna2/polarisation product to baselineid
+# Mapping is from baselineid to (ant1, ant2,  product)
+playback.baselinemap.baselineids            = [0..77]
+
+playback.baselinemap.0                      = [0, 0, XX]
+playback.baselinemap.1                      = [0, 0, XY]
+playback.baselinemap.2                      = [0, 0, YY]
+
+playback.baselinemap.3                      = [0, 1, XX]
+playback.baselinemap.4                      = [0, 1, XY]
+playback.baselinemap.5                      = [0, 1, YX]
+playback.baselinemap.6                      = [0, 1, YY]
+
+playback.baselinemap.7                      = [0, 2, XX]
+playback.baselinemap.8                      = [0, 2, XY]
+playback.baselinemap.9                      = [0, 2, YX]
+playback.baselinemap.10                     = [0, 2, YY]
+
+playback.baselinemap.11                     = [0, 3, XX]
+playback.baselinemap.12                     = [0, 3, XY]
+playback.baselinemap.13                     = [0, 3, YX]
+playback.baselinemap.14                     = [0, 3, YY]
+
+playback.baselinemap.15                     = [0, 4, XX]
+playback.baselinemap.16                     = [0, 4, XY]
+playback.baselinemap.17                     = [0, 4, YX]
+playback.baselinemap.18                     = [0, 4, YY]
+
+playback.baselinemap.19                     = [0, 5, XX]
+playback.baselinemap.20                     = [0, 5, XY]
+playback.baselinemap.21                     = [0, 5, YX]
+playback.baselinemap.22                     = [0, 5, YY]
+
+playback.baselinemap.23                     = [1, 1, XX]
+playback.baselinemap.24                     = [1, 1, XY]
+playback.baselinemap.25                     = [1, 1, YY]
+
+playback.baselinemap.26                     = [1, 2, XX]
+playback.baselinemap.27                     = [1, 2, XY]
+playback.baselinemap.28                     = [1, 2, YX]
+playback.baselinemap.29                     = [1, 2, YY]
+
+playback.baselinemap.30                     = [1, 3, XX]
+playback.baselinemap.31                     = [1, 3, XY]
+playback.baselinemap.32                     = [1, 3, YX]
+playback.baselinemap.33                     = [1, 3, YY]
+
+playback.baselinemap.34                     = [1, 4, XX]
+playback.baselinemap.35                     = [1, 4, XY]
+playback.baselinemap.36                     = [1, 4, YX]
+playback.baselinemap.37                     = [1, 4, YY]
+
+playback.baselinemap.38                     = [1, 5, XX]
+playback.baselinemap.39                     = [1, 5, XY]
+playback.baselinemap.40                     = [1, 5, YX]
+playback.baselinemap.41                     = [1, 5, YY]
+
+playback.baselinemap.42                     = [2, 2, XX]
+playback.baselinemap.43                     = [2, 2, XY]
+playback.baselinemap.44                     = [2, 2, YY]
+
+playback.baselinemap.45                     = [2, 3, XX]
+playback.baselinemap.46                     = [2, 3, XY]
+playback.baselinemap.47                     = [2, 3, YX]
+playback.baselinemap.48                     = [2, 3, YY]
+
+playback.baselinemap.49                     = [2, 4, XX]
+playback.baselinemap.50                     = [2, 4, XY]
+playback.baselinemap.51                     = [2, 4, YX]
+playback.baselinemap.52                     = [2, 4, YY]
+
+playback.baselinemap.53                     = [2, 5, XX]
+playback.baselinemap.54                     = [2, 5, XY]
+playback.baselinemap.55                     = [2, 5, YX]
+playback.baselinemap.56                     = [2, 5, YY]
+
+playback.baselinemap.57                     = [3, 3, XX]
+playback.baselinemap.58                     = [3, 3, XY]
+playback.baselinemap.59                     = [3, 3, YY]
+
+playback.baselinemap.60                     = [3, 4, XX]
+playback.baselinemap.61                     = [3, 4, XY]
+playback.baselinemap.62                     = [3, 4, YX]
+playback.baselinemap.63                     = [3, 4, YY]
+
+playback.baselinemap.64                     = [3, 5, XX]
+playback.baselinemap.65                     = [3, 5, XY]
+playback.baselinemap.66                     = [3, 5, YX]
+playback.baselinemap.67                     = [3, 5, YY]
+
+playback.baselinemap.68                     = [4, 4, XX]
+playback.baselinemap.69                     = [4, 4, XY]
+playback.baselinemap.70                     = [4, 4, YY]
+
+playback.baselinemap.71                     = [4, 5, XX]
+playback.baselinemap.72                     = [4, 5, XY]
+playback.baselinemap.73                     = [4, 5, YX]
+playback.baselinemap.74                     = [4, 5, YY]
+
+playback.baselinemap.75                     = [5, 5, XX]
+playback.baselinemap.76                     = [5, 5, XY]
+playback.baselinemap.77                     = [5, 5, YY]

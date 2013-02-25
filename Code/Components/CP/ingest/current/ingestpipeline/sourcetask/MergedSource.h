@@ -43,6 +43,7 @@
 #include "ingestpipeline/sourcetask/ScanManager.h"
 #include "ingestpipeline/sourcetask/ChannelManager.h"
 #include "configuration/Configuration.h"
+#include "configuration/BaselineMap.h"
 
 namespace askap {
 namespace cp {
@@ -119,6 +120,9 @@ class MergedSource {
 
         // Channel Manager
         ChannelManager itsChannelManager;
+
+        // Baseline Map
+        const BaselineMap itsBaselineMap;
 
         // No support for assignment
         MergedSource& operator=(const MergedSource& rhs);

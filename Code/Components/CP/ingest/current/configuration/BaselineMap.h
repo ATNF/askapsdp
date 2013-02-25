@@ -1,6 +1,6 @@
-/// @file Configuration.h
+/// @file BaselineMapper.h
 ///
-/// @copyright (c) 2011 CSIRO
+/// @copyright (c) 2012 CSIRO
 /// Australia Telescope National Facility (ATNF)
 /// Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 /// PO Box 76, Epping NSW 1710, Australia
@@ -24,53 +24,40 @@
 ///
 /// @author Ben Humphreys <ben.humphreys@csiro.au>
 
-#ifndef ASKAP_CP_INGEST_CONFIGURATION_H
-#define ASKAP_CP_INGEST_CONFIGURATION_H
+#ifndef ASKAP_CP_INGEST_BASELINEMAP_H
+#define ASKAP_CP_INGEST_BASELINEMAP_H
 
-// System includes
-#include <vector>
+// System include
+#include <map>
+#include <stdint.h>
 
 // ASKAPsoft includes
-#include "casa/BasicSL.h"
 #include "Common/ParameterSet.h"
-
-// Local package includes
-#include "configuration/TaskDesc.h"
-#include "configuration/Antenna.h"
-#include "configuration/BaselineMap.h"
-#include "configuration/Observation.h"
-#include "configuration/TopicConfig.h"
-#include "configuration/ServiceConfig.h"
+#include "measures/Measures/Stokes.h"
 
 namespace askap {
 namespace cp {
 namespace ingest {
 
-/// @brief TODO: Write documentation...
-class Configuration {
+/// @brief
+class BaselineMap {
     public:
+        BaselineMap(const LOFAR::ParameterSet& parset);
 
-        /// @brief Constructor
-        Configuration(const LOFAR::ParameterSet& parset);
-
-        casa::String arrayName(void) const;
-        std::vector<TaskDesc> tasks(void) const;
-        std::vector<Antenna> antennas(void) const;
-        BaselineMap bmap(void) const;
-        Observation observation(void) const;
-        TopicConfig metadataTopic(void) const;
-        ServiceConfig calibrationDataService(void) const;
+        int32_t idToAntenna1(const uint32_t id) const;
+        int32_t idToAntenna2(const uint32_t id) const;
+        casa::Stokes::StokesTypes idToStokes(const uint32_t id) const;
+        size_t size() const;
 
     private:
-        static std::string makeKey(const std::string& prefix,
-                const std::string& suffix);
 
-        static std::map<std::string, FeedConfig> createFeeds(const LOFAR::ParameterSet& parset);
-        const LOFAR::ParameterSet itsParset;
+        size_t itsSize;
+        std::map<int32_t, int32_t> itsAntenna1Map;
+        std::map<int32_t, int32_t> itsAntenna2Map;
+        std::map<int32_t, casa::Stokes::StokesTypes> itsStokesMap;
 };
 
-}
-}
-}
-
+};
+};
+};
 #endif

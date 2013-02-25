@@ -47,6 +47,7 @@
 #include "simplayback/ISimulator.h"
 #include "simplayback/CorrelatorSimulator.h"
 #include "simplayback/TosSimulator.h"
+#include "simplayback/BaselineMap.h"
 
 // Using
 using namespace askap::cp;
@@ -134,8 +135,9 @@ boost::shared_ptr<CorrelatorSimulator> SimPlayback::makeCorrelatorSim(void)
     const std::string hostname = subset.getString("out.hostname");
     const std::string port = subset.getString("out.port");
     const unsigned int expansion = itsParset.getUint32("corrsim.expansion_factor", 1);
+    const BaselineMap bmap(itsParset.makeSubset("baselinemap."));
     return boost::shared_ptr<CorrelatorSimulator>(
-            new CorrelatorSimulator(dataset, hostname, port, expansion));
+            new CorrelatorSimulator(dataset, hostname, port, bmap, expansion));
 }
 
 void SimPlayback::run(void)

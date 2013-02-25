@@ -27,6 +27,8 @@
 #ifndef ASKAP_CP_VISDATAGRAM_H
 #define ASKAP_CP_VISDATAGRAM_H
 
+#include <stdint.h>
+
 namespace askap {
     namespace cp {
 
@@ -42,18 +44,13 @@ namespace askap {
         } __attribute__((__packed__));
 
         /// @brief Version number for the VisDatagram.
-        static const unsigned int VISPAYLOAD_VERSION = 0x1;
+        static const uint32_t VISPAYLOAD_VERSION = 0x1;
 
         /// @brief Number of channels per slice in the VisDatagram. One
-        /// Visatagram will then contain data for N_CHANNELS_PER_SLICE channels.
+        /// VisDatagram will then contain data for N_CHANNELS_PER_SLICE channels.
         /// This is hardcoded to the standard ASKAP configuration so fixed size
         /// UDP datagrams can be used.
-        static const unsigned int N_CHANNELS_PER_SLICE = 228;
-
-        /// @brief Number of polarisations present in the VisDatagram. This is
-        /// hardcoded to the standard ASKAP configuration so fixed size UDP
-        /// datagrams can be used.
-        static const unsigned int N_POL = 4;
+        static const uint32_t N_CHANNELS_PER_SLICE = 1026;
 
         /// @brief This structure specifies the UDP datagram which is sent from
         /// the correlator to the central processor. It contains all correlations
@@ -63,47 +60,29 @@ namespace askap {
             /// A version number for this structure. Also doubles as a magic
             /// number which can be used to verify if the datagram is of this
             /// type.
-            unsigned int version;
+            uint32_t version;
 
             /// Slice number. Which slice of the channel space this packet
             /// relates to. For example, for a spectral window configuration of
-            /// 16416 channels and N_CHANNELS_PER_SLICE of 228 there will be
-            /// a total of 72 slices.
+            /// 16416 channels and N_CHANNELS_PER_SLICE of 1026 there will be
+            /// a total of 16 slices.
             /// 
             /// This number is zero indexed, so the slices in the above example
-            /// will be numbered 0 to 71.
-            unsigned int slice;
+            /// will be numbered 0 to 15.
+            uint32_t slice;
 
             /// Timestamp - Binary Atomic Time (BAT). The number of microseconds
             /// since Modified Julian Day (MJD) = 0
-            unsigned long timestamp;
+            uint64_t timestamp;
 
-            /// First antenna
-            unsigned int antenna1;
+            /// Baseline ID
+            uint32_t baselineid;
 
-            /// Second antenna
-            unsigned int antenna2;
-
-            /// First beam
-            unsigned int beam1;
-
-            /// Second beam
-            unsigned int beam2;
+            /// Beam ID
+            uint32_t beamid;
 
             /// Visibilities
-            ///
-            /// Both the vis and nSamples arrays are indexed like so: [channel][pol]
-            /// An example of an indexing function:
-            /// @verbatim
-            /// /*
-            ///  * Both pol and channel are zero based and must be between
-            ///  * zero and (n_pol - 1) and (n_channels_per_slice - 1) respectively.
-            ///  */
-            /// unsigned int index(unsigned int pol, unsigned int channel) {
-            ///     return pol + ((n_pol) * channel));
-            ///     }
-            /// @endverbatim
-            FloatComplex vis[N_CHANNELS_PER_SLICE * N_POL];
+            FloatComplex vis[N_CHANNELS_PER_SLICE];
         } __attribute__((__packed__));
 
     };
