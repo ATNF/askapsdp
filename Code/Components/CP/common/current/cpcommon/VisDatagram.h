@@ -48,13 +48,12 @@ namespace askap {
 
         /// @brief Number of channels per slice in the VisDatagram. One
         /// VisDatagram will then contain data for N_CHANNELS_PER_SLICE channels.
-        /// This is hardcoded to the standard ASKAP configuration so fixed size
-        /// UDP datagrams can be used.
+        /// This is hardcoded so fixed size UDP datagrams can be used.
         static const uint32_t N_CHANNELS_PER_SLICE = 1026;
 
         /// @brief This structure specifies the UDP datagram which is sent from
-        /// the correlator to the central processor. It contains all correlations
-        /// for a single baseline, beam and coarse channel.
+        /// the correlator to the central processor. It contains a block of contiguous
+        /// channels for a single baseline and polarisation product.
         struct VisDatagram
         {
             /// A version number for this structure. Also doubles as a magic
@@ -76,9 +75,14 @@ namespace askap {
             uint64_t timestamp;
 
             /// Baseline ID
+            /// This identified which antenna pair and polarisation product this datagram
+            /// corresponds to.
+            /// This need not be contiguous and does not have to begin at zero or one.
             uint32_t baselineid;
 
             /// Beam ID
+            /// This identified which synthesised beam this datagram corresponds to.
+            /// This need not be contiguous and does not have to begin at zero or one.
             uint32_t beamid;
 
             /// Visibilities
