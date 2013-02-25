@@ -2608,17 +2608,11 @@ namespace askap {
 	  
 	  ASKAPLOG_INFO_STR(logger, "Reading data from image " << this->itsCube.pars().getImageFile());
 
-	  long *dim = getDim(sub);
-	  this->itsCube.initialiseCube(dim);
-	  if(this->itsCube.getDimZ()==1){
-	    this->itsCube.pars().setMinChannels(0);
-	  }
-
-	  const casa::MaskedArray<Float> msub(sub->get(),sub->getMask());
-	  casa::Array<Float> subarray(sub->shape());
-	  float minval = min(msub)-1.;
-	  
-	  subarray = msub;
+	  casa::Array<Float> subarray(sub->shape());	  
+	  const casa::MaskedArray<Float> *msub = new casa::MaskedArray<Float>(sub->get(),sub->getMask());
+	  float minval = min(*msub)-1.;
+	  subarray = *msub;
+	  delete msub;
 	  if(sub->hasPixelMask()){
 	      subarray(!sub->getMask()) = minval;
 	      this->itsCube.pars().setBlankPixVal(minval);
@@ -2628,6 +2622,11 @@ namespace askap {
 	      this->itsCube.pars().setFlagBlankPix(true);
 	  }
 
+	  long *dim = getDim(sub);
+	  this->itsCube.initialiseCube(dim);
+	  if(this->itsCube.getDimZ()==1){
+	    this->itsCube.pars().setMinChannels(0);
+	  }
 	  this->itsCube.saveArray(subarray.data(), subarray.size());
 	  
 	  
