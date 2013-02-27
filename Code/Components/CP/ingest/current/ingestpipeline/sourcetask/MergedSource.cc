@@ -32,6 +32,13 @@
 
 // System includes
 #include <string>
+#include <inttypes.h>
+
+
+// casa includes
+#include <measures/Measures/MeasFrame.h>
+#include <measures/Measures/MCEpoch.h>
+
 
 // ASKAPsoft includes
 #include "askap/AskapLogging.h"
@@ -42,6 +49,7 @@
 #include "casa/Quanta/MVEpoch.h"
 #include "cpcommon/TosMetadata.h"
 #include "cpcommon/VisDatagram.h"
+#include "utils/PolConverter.h"
 
 // Local package includes
 #include "ingestpipeline/sourcetask/IVisSource.h"
@@ -68,6 +76,11 @@ MergedSource::MergedSource(const LOFAR::ParameterSet& params,
      itsChannelManager(params),
      itsBaselineMap(config.bmap())
 {
+  // trigger a dummy frame conversion with casa measures to ensure all chaches are setup
+  const casa::MVEpoch dummyEpoch(56000.);
+
+  casa::MEpoch::Convert(casa::MEpoch(dummyEpoch, casa::MEpoch::Ref(casa::MEpoch::TAI)),
+                             casa::MEpoch::Ref(casa::MEpoch::UTC))();
 }
 
 MergedSource::~MergedSource()
@@ -176,9 +189,16 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 
     // Convert the time from integration start in microseconds to an
     // integration mid-point in seconds
-    const casa::uLong midpoint = metadata.time() + (period / 2ul);
-    chunk->time() = casa::MVEpoch(casa::Quantity((static_cast<casa::Double>(midpoint) / 1000000.0), "s"));
-
+    // we have to work with 64-bit integers explicitly and ensure the required accuracy
+    // is achieved when converting to MVEpoch
+    const uint64_t midpointBAT = static_cast<uint64_t>(metadata.time()) + (period / 2ull);
+    const uint64_t microsecondsPerDay = 86400000000ull;
+    const casa::MVEpoch BATEpoch(static_cast<casa::Double>(midpointBAT / microsecondsPerDay), 
+                                 static_cast<casa::Double>(midpointBAT % microsecondsPerDay) / 
+                                 static_cast<casa::Double>(microsecondsPerDay));
+    chunk->time() = casa::MEpoch::Convert(casa::MEpoch(BATEpoch, casa::MEpoch::Ref(casa::MEpoch::TAI)),
+                             casa::MEpoch::Ref(casa::MEpoch::UTC))().getValue();
+  
     // Convert the interval from microseconds (long) to seconds (double)
     const casa::Double interval = metadata.period() / 1000.0 / 1000.0;
     chunk->interval() = interval;
@@ -190,10 +210,12 @@ VisChunk::ShPtr MergedSource::createVisChunk(const TosMetadata& metadata)
 
     // For now polarisation data is hardcoded.
     ASKAPCHECK(nPol == 4, "Only supporting 4 polarisation products");
-    chunk->stokes()(0) = casa::Stokes::XX;
-    chunk->stokes()(1) = casa::Stokes::XY;
-    chunk->stokes()(2) = casa::Stokes::YX;
-    chunk->stokes()(3) = casa::Stokes::YY;
+    for (casa::uInt polIndex = 0; polIndex < nPol; ++polIndex) {
+         // this way of creating the Stokes vectors ensures the canonical order of polarisation products
+         // the last parameter of stokesFromIndex just defines the frame (i.e. linear, circular) and can be
+         // any product from the chosen frame. We may want to specify the frame via the parset eventually.
+         chunk->stokes()(polIndex) = scimath::PolConverter::stokesFromIndex(polIndex, casa::Stokes::XX);
+    }
 
     // Add the scan index
     chunk->scan() = itsScanManager.scanIndex();
@@ -267,6 +289,7 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     // 1) Map from baseline to stokes type and find the  position on the stokes
     // axis of the cube to insert the data into
     const casa::Stokes::StokesTypes stokestype = itsBaselineMap.idToStokes(vis.baselineid);
+    // we could use scimath::PolConverter::getIndex here, but the following code allows more checks
     int polidx = -1;
     for (size_t i = 0; i < chunk->stokes().size(); ++i) {
         if (chunk->stokes()(i) == stokestype) {
@@ -284,6 +307,7 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     ASKAPCHECK(antenna1 < nAntenna, "Antenna 1 index is invalid");
     ASKAPCHECK(antenna2 < nAntenna, "Antenna 2 index is invalid");
     ASKAPCHECK(beamid < nBeams, "Beam index is invalid");
+    ASKAPCHECK(polidx < 4, "Only 4 polarisation products are supported");
 
     // 3) Find the row for the given beam and baseline
     // TODO: This is slow, need to develop an indexing method
@@ -296,6 +320,7 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
                         ant2 == antenna2 &&
                         beam == beamid) {
                     row = idx;
+                    break;
                 }
                 idx++;
             }
@@ -313,10 +338,21 @@ void MergedSource::addVis(VisChunk::ShPtr chunk, const VisDatagram& vis,
     for (casa::uInt chan = 0; chan < N_CHANNELS_PER_SLICE; ++chan) {
         casa::Complex sample(vis.vis[chan].real, vis.vis[chan].imag);
         ASKAPCHECK((chanOffset + chan) <= chunk->nChannel(), "Channel index overflow");
+
         chunk->visibility()(row, chanOffset + chan, polidx) = sample;
 
         // Unflag the sample
         chunk->flag()(row, chanOffset + chan, polidx) = false;
+
+        if (antenna1 == antenna2) {
+            // for auto-correlations we duplicate cross-pols as index 2 should always be missing
+            ASKAPDEBUGASSERT(polidx != 2);
+            if (polidx == 1) {
+                chunk->visibility()(row, chanOffset + chan, 2) = conj(sample);
+                // unflag the sample
+                chunk->flag()(row, chanOffset + chan, 2) = false;
+            }
+        }
     }
 }
 
