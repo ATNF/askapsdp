@@ -266,20 +266,28 @@ class Antenna:
 		return "Pad%02d" %(self.pad)
 
 class AntennaList:
-	def __init__(self, config, fName, zone, hemisphere):
+	def __init__(self, config, configType, fName, zone, hemisphere):
 		self.config = config
 		self.antennas = {}
-		nhead = 4
+		nhead = 2
 		csvreader = csv.reader(open(fName, "rU"), dialect="excel")
 		for row in csvreader:
 			if nhead > 0:
 				nhead -= 1
 				continue
-                        if row[2]=='':
-                            continue
+			if len(row) < 19 or len(row[0]) == 0:
+				continue
 			pad = int(row[0])
 			name = row[2]
-                        self.antennas[pad] = Antenna(pad, name, float(row[6]), float(row[7]), -1.0e9, zone, hemisphere)
+			if configType == "nominal":
+				self.antennas[pad] = Antenna(pad, name, float(row[4]), float(row[5]), -1.0e9, zone, hemisphere)
+			elif configType == "proposed":
+				self.antennas[pad] = Antenna(pad, name, float(row[10]), float(row[11]), -1.0e9, zone, hemisphere)
+			else:
+				if len(row[17]) > 0:
+					self.antennas[pad] = Antenna(pad, name, float(row[17]), float(row[18]), float(row[19]), zone, hemisphere)
+				else:
+					self.antennas[pad] = Antenna(pad, name, float(row[10]), float(row[11]), -1.0e9, zone, hemisphere)
 
 		for ant in self.antennas.values():
 			if ant.hasEl() == False:
@@ -317,34 +325,6 @@ class AntennaList:
 			lat, lon, el = self.antennas[antnum].toWGS84()
 			print "%s,%f,%f,%16.12f,%16.12f" %(self.antennas[antnum].padName(), self.antennas[antnum].easting, self.antennas[antnum].northing, lon * Rad2Deg, lat * Rad2Deg)
 
-
-        def dumpKML(self):
-            print """<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-<Document>
-<Style id="whitecirc">
-<IconStyle>
-<Icon>
-<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
-</Icon>
-</IconStyle>
-</Style>
-"""
-            for antnum in self.config.antennas:
-                lat, lon, el = self.antennas[antnum].toWGS84()
-                print """<Placemark>
-<styleUrl>#whitecirc</styleUrl>
-<name>%d</name>
-<Point>
-<coordinates>%16.12f, %16.12f</coordinates>
-</Point>
-</Placemark>"""%(antnum,lon*Rad2Deg,lat*Rad2Deg)
-
-            print """</Document>
-</kml>
-"""
-                
-
 class AntennaConfig:
 	def __init__(self, name, antennas):
 		self.name = name
@@ -353,10 +333,16 @@ class AntennaConfig:
 def usage(config):
 	k = config.keys()
 	k.sort()
-	print "Usage:\n%s array [format]\n" %(sys.argv[0])
+	print "Usage:\n%s array type [format]\n" %(sys.argv[0])
 	print "  array = %s" %(" | ".join(k))
 	print "         This specifies the array or subset of the array to use.\n"
-	print "  format = parset | calc | csv | kml"
+	print "  type = nominal | proposed | installed"
+	print "         This specifies the type of antenna position to use. Nominal positions"
+	print "         are base on the original ASKAP configuration document. Proposed"
+	print "         positions include changes based on other considerations (geographical"
+	print "         and rare species protection). Installed positions include the proposed"
+	print "         positions updated with installed antenna postions where available.\n"
+	print "  format = parset | calc | csv"
 
 config = {}
 config["A27CR3P6B"] = AntennaConfig("A27CR3P6B", range(1, 37))
@@ -396,21 +382,26 @@ config["BETA34"] = AntennaConfig("BETA34", (1, 3, 6, 8, 9, 34))
 config["BETA35"] = AntennaConfig("BETA35", (1, 3, 6, 8, 9, 35))
 config["BETA36"] = AntennaConfig("BETA36", (1, 3, 6, 8, 9, 36))
 
-outputType = ("parset", "calc", "csv", "kml")
-if len(sys.argv) < 2:
+configType = ("nominal", "proposed", "installed")
+outputType = ("parset", "calc", "csv")
+if len(sys.argv) < 3:
 	usage(config)
 	sys.exit(1)
 
 at = string.upper(sys.argv[1])
+ct = string.lower(sys.argv[2])
+if not at in config or not ct in configType:
+	usage(config)
+	sys.exit(1)
 
 ot = "parset"
-if len(sys.argv) == 3:
-	ot = string.lower(sys.argv[2])
+if len(sys.argv) == 4:
+	ot = string.lower(sys.argv[3])
 	if not ot in outputType:
 		usage(config)
 		sys.exit(1)
 
-antennas = AntennaList(config[string.upper(sys.argv[1])], "ASKAP-SEIC-0005_Antenna_Configuration.csv", 50, "south")
+antennas = AntennaList(config[string.upper(sys.argv[1])], string.lower(sys.argv[2]), "ASKAP Antenna Locations Master File.csv", 50, "south")
 
 offxyz = [-2556743.707 - -2556745.438, 5097440.315 - 5097448.114, -2847749.657 - -2847753.833]
 
@@ -420,5 +411,3 @@ if ot == "calc":
 	antennas.dumpcalc(3, 0.0, offxyz)
 if ot == "csv":
 	antennas.dumplatlong()
-if ot == "kml":
-        antennas.dumpKML()
