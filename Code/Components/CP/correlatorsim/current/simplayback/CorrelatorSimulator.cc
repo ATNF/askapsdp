@@ -37,6 +37,7 @@
 #include <vector>
 #include <cmath>
 #include <unistd.h>
+#include <inttypes.h>
 
 // ASKAPsoft includes
 #include "askap/AskapError.h"
@@ -48,6 +49,12 @@
 #include "measures/Measures/MDirection.h"
 #include "measures/Measures/Stokes.h"
 #include "cpcommon/VisDatagram.h"
+
+// casa
+#include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MeasConvert.h>
+#include <measures/Measures/MCEpoch.h>
+
 
 // Local package includes
 #include "simplayback/BaselineMap.h"
@@ -134,11 +141,24 @@ bool CorrelatorSimulator::sendNext(void)
 
         // Note, the measurement set stores integration midpoint (in seconds), while the TOS
         // (and it is assumed the correlator) deal with integration start (in microseconds)
-        const long Tmid = static_cast<long>(currentIntegration * 1000 * 1000);
+        // In addition, TOS time is BAT and the measurement set normally has UTC time
+        // (the latter is not checked here as we work with the column as a column of doubles
+        // rather than column of measures)
+        
+        // precision of a single double may not be enough in general, but should be fine for 
+        // this emulator (ideally need to represent time as two doubles)
+        const casa::MEpoch epoch(casa::MVEpoch(casa::Quantity(currentIntegration,"s")), 
+                                 casa::MEpoch::Ref(casa::MEpoch::UTC));
+        const casa::MVEpoch epochTAI = casa::MEpoch::Convert(epoch,
+                               casa::MEpoch::Ref(casa::MEpoch::TAI))().getValue();
+        const uint64_t microsecondsPerDay = 86400000000ull;
+        const uint64_t startOfDayBAT = uint64_t(epochTAI.getDay()*microsecondsPerDay);
         const long Tint = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
-        const long Tstart = Tmid - (Tint / 2);
+        const uint64_t startBAT = startOfDayBAT + uint64_t(epochTAI.getDayFraction()*microsecondsPerDay) -
+                                  uint64_t(Tint / 2);
 
-        payload.timestamp = Tstart;
+        // ideally we need to carry 64-bit BAT in the payload explicitly
+        payload.timestamp = static_cast<long>(startBAT);
         payload.baselineid = 0; // TODO
         ASKAPCHECK(msc.feed1()(itsCurrentRow) == msc.feed2()(itsCurrentRow),
                 "feed1 and feed2 must be equal");

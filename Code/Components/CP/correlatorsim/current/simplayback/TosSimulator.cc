@@ -36,8 +36,9 @@
 #include <iomanip>
 #include <vector>
 #include <cmath>
+#include <inttypes.h>
 
-// ASKAPsoft includes
+// ASKAPsoft and casa includes
 #include "askap/AskapError.h"
 #include "askap/AskapLogging.h"
 #include "ms/MeasurementSets/MeasurementSet.h"
@@ -45,6 +46,9 @@
 #include "casa/Arrays/Vector.h"
 #include "measures/Measures/MDirection.h"
 #include "tosmetadata/MetadataOutputPort.h"
+#include <measures/Measures/MEpoch.h>
+#include <measures/Measures/MeasConvert.h>
+#include <measures/Measures/MCEpoch.h>
 
 // ICE interface includes
 #include "CommonTypes.h"
@@ -119,13 +123,27 @@ bool TosSimulator::sendNext(void)
     askap::cp::TosMetadata metadata(nCoarseChan, nBeam, nCorr);
 
     // time and period
-    // Note: The time read from the measurement set is the integration midpoint,
-    // while the TOS metadata specification calls for the integration start time.
-    // Hence the below conversion.
-    const casa::Long Tmid = static_cast<long>(currentIntegration * 1000 * 1000);
-    const casa::Long Tint = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
-    const casa::Long Tstart = Tmid - (Tint / 2);
-    metadata.time(Tstart);
+
+    // Note, the measurement set stores integration midpoint (in seconds), while the TOS
+    // (and it is assumed the correlator) deal with integration start (in microseconds)
+    // In addition, TOS time is BAT and the measurement set normally has UTC time
+    // (the latter is not checked here as we work with the column as a column of doubles
+    // rather than column of measures)
+        
+    // precision of a single double may not be enough in general, but should be fine for 
+    // this emulator (ideally need to represent time as two doubles)
+    const casa::MEpoch epoch(casa::MVEpoch(casa::Quantity(currentIntegration,"s")), 
+                             casa::MEpoch::Ref(casa::MEpoch::UTC));
+    const casa::MVEpoch epochTAI = casa::MEpoch::Convert(epoch,
+                           casa::MEpoch::Ref(casa::MEpoch::TAI))().getValue();
+    const uint64_t microsecondsPerDay = 86400000000ull;
+    const uint64_t startOfDayBAT = uint64_t(epochTAI.getDay()*microsecondsPerDay);
+    const long Tint = static_cast<long>(msc.interval()(itsCurrentRow) * 1000 * 1000);
+    const uint64_t startBAT = startOfDayBAT + uint64_t(epochTAI.getDayFraction()*microsecondsPerDay) -
+                                  uint64_t(Tint / 2);
+
+    // ideally we want to carry BAT explicitly as 64-bit unsigned integer, leave it as it is for now
+    metadata.time(static_cast<long>(startBAT));
     metadata.period(Tint);
 
 
