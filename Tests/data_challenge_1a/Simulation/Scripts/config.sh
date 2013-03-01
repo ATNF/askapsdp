@@ -35,13 +35,13 @@ slicedir=${imagedir}/Slices
 
 sourcelist=master_possum_catalogue_trim10x10deg.dat
 
-#databaseCR=POSSUM
-databaseCR=POSSUMHI
+databaseCR=POSSUM
+#databaseCR=POSSUMHI
 
 if [ $databaseCR == "POSSUM" ]; then
     listtypeCR=continuum
     baseimage=DCmodelfull-cont
-else if [$databaseCR == "POSSUMHI" ]; then
+else if [ $databaseCR == "POSSUMHI" ]; then
     listtypeCR=spectralline
     baseimage=DCmodelfull-HI
 fi
@@ -55,14 +55,24 @@ dec=-45.0
 raCat=0.
 decCat=0.
 
+doHalfBW=true
+
 nchan=16416
 rchan=0
 chanw=-18.5185185e3
 rfreq=1.421e9
+if [ $doHalfBW == true ]; then
+    nchan=`echo $nchan | awk '{print $1/2.}'`
+    rfreq=`echo $nchan $rfreq $chanw | awk '{print $2 - $3 * $1/2.}'`
+    baseimage="$baseimage-halfBW"
+fi
 basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1/2)}'`
 
 chanPerMSchunk=19
 numMSchunks=864
+if [ $doHalfBW == true ]; then
+    numMSchunks=432
+fi
 if [ `echo $chanPerMSchunk  $numMSchunks | awk '{print $1*$2}'` != $nchan ]; then
     echo ERROR - nchan = $nchan, but chanPerMShunk = $chanPerMSchunk and numMSchunks = $numMSchunks
     echo Not running script.
@@ -127,7 +137,8 @@ doMergeStage1=true
 doMergeStage2=true
 
 array=BETA15.in
-nfeeds=36
+#nfeeds=36
+nfeeds=9
 feeds=ASKAP${nfeeds}feeds.in
 inttime=30s
 dur=6
@@ -169,8 +180,10 @@ else
 fi
 
 msdir=${visdir}/MS
-msbase="DCvis_${polName}_${noiseName}_${corruptName}"
-
+msbase="DCvis_${polName}_${nfeeds}feeds_${noiseName}_${corruptName}"
+if [ $doHalfBW == true ]; then
+    msbase="${msbase}_halfBW"
+fi
 msChunk=${msdir}/${msbase}_chunk
 msStage1=${msdir}/${msbase}_stage1
 finalMS=${msdir}/${msbase}.ms
