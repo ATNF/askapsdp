@@ -1,4 +1,4 @@
-# Copyright (c) 2009 CSIRO
+# Copyright (c) 2009-2013 CSIRO
 # Australia Telescope National Facility (ATNF)
 # Commonwealth Scientific and Industrial Research Organisation (CSIRO)
 # PO Box 76, Epping NSW 1710, Australia
@@ -111,10 +111,19 @@ def test_decoded():
     assert_equals(p.x.y.z, 1)
 
 @raises(KeyError)
-def test_get_fail():
+def test_get_value_fail():
     p = ParameterSet()
     v = p.get_value('x.y.x')
-    v = p['x.y.x']
+
+@raises(KeyError)
+def test_get_by_key_fail():
+    p = ParameterSet()
+    v = p.get_value('x.y.x')
+
+@raises(KeyError)
+def test_get_past_leafnode_fail():
+    p = ParameterSet(a=1)
+    v = p['a.b']
 
 def test_in():
     p = ParameterSet('x.y.z', 1)

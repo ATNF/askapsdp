@@ -145,7 +145,7 @@ class ParameterSet(object):
         else:
             raise ValueError("Incorrect arguments to constructor.")
 
-    def get_value(self, k, default=None):
+    def get_value(self, k, default=None, _full=None):
         """Return the value from the ParameterSet using an optional default
         value if the key doesn't exist.
 
@@ -153,20 +153,23 @@ class ParameterSet(object):
         :param default: the default value to return if the key doesn't exist
 
         """
+        fullkey = _full or k
         inkey = k
         k, tail = self._split(inkey)
         if k in self._keys:
             child = self._pdict[k]
             if isinstance(child, self.__class__):
-                if tail is not None:
-                    return child.get_value(tail, default)
+                if tail is not None:                    
+                    return child.get_value(tail, default, fullkey)
                 else:
                     return decode(child)
             else:
+                if tail is not None:
+                    raise KeyError("Key '%s' not found." % fullkey )
                 return decode(child)
         else:
             if default is None:
-                raise KeyError("Key '%s' not found." % inkey )
+                raise KeyError("Key '%s' not found." % fullkey )
             else:
                 return default       
 
