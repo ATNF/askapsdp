@@ -164,7 +164,7 @@ class ParameterSet(object):
                 else:
                     return decode(child)
             else:
-                if tail is not None:
+                if tail is not None and default is None:
                     raise KeyError("Key '%s' not found." % fullkey )
                 return decode(child)
         else:
@@ -304,7 +304,7 @@ class ParameterSet(object):
                 else:
                     return True
             else:
-                return True
+                return tail is None
         else:
             return False
 

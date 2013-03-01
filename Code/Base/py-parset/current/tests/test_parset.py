@@ -131,6 +131,7 @@ def test_in():
     assert 'x.y' in p
     assert 'x.y.z' in p
     assert 'a' not in p
+    assert 'x.y.z.a' not in p
 
 # check decoded value
 def decoder(k, v):
