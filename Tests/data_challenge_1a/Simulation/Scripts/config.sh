@@ -41,7 +41,7 @@ databaseCR=POSSUM
 if [ $databaseCR == "POSSUM" ]; then
     listtypeCR=continuum
     baseimage=DCmodelfull-cont
-else if [ $databaseCR == "POSSUMHI" ]; then
+elif [ $databaseCR == "POSSUMHI" ]; then
     listtypeCR=spectralline
     baseimage=DCmodelfull-HI
 fi
@@ -88,7 +88,7 @@ if [ $nstokes -gt 1 ]; then
     baseimage=${baseimage}_fullstokes
 fi
 
-nsubxCR=10
+nsubxCR=5
 nsubyCR=8
 workersPerNodeCR=1
 
@@ -180,10 +180,17 @@ else
 fi
 
 msdir=${visdir}/MS
-msbase="DCvis_${polName}_${nfeeds}feeds_${noiseName}_${corruptName}"
+if [ $databaseCR == "POSSUM" ]; then
+    msbase="DCvis"
+elif [ $databaseCR == "POSSUMHI" ]; then
+    msbase="DCvis_HI"
+fi
+msbase="${msbase}_${polName}_${noiseName}_${corruptName}"
+
 if [ $doHalfBW == true ]; then
     msbase="${msbase}_halfBW"
 fi
+
 msChunk=${msdir}/${msbase}_chunk
 msStage1=${msdir}/${msbase}_stage1
 finalMS=${msdir}/${msbase}.ms

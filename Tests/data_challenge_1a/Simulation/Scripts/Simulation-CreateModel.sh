@@ -69,7 +69,7 @@ if [ $doCreateCR == true ]; then
     cat > $crQsub <<EOF
 #!/bin/bash -l
 #PBS -W group_list=astronomy554
-#PBS -l walltime=9:00:00
+#PBS -l walltime=12:00:00
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1+${numworkernodes}:ncpus=12:mem=23GB:mpiprocs=${workersPerNodeCR}
 #PBS -M matthew.whiting@csiro.au
 #PBS -N DCmodelCF
@@ -103,6 +103,7 @@ createFITS.writeByNode      = false
 createFITS.sourcelist       = ${catdir}/${sourcelist}
 createFITS.database         = ${databaseCR}
 createFITS.sourcelisttype   = ${listtypeCR}
+createFITS.verboseSources   = false
 createFITS.posType          = deg
 createFITS.bunit            = Jy/pixel
 createFITS.dim              = 4
@@ -153,7 +154,7 @@ if [ $doSliceCR == true ]; then
     cat > $slQsub <<EOF
 #!/bin/bash -l
 #PBS -W group_list=astronomy554
-#PBS -l walltime=4:00:00
+#PBS -l walltime=12:00:00
 #PBS -l select=1:ncpus=1:mem=8GB:mpiprocs=1
 #PBS -M matthew.whiting@csiro.au
 #PBS -N sliceCont

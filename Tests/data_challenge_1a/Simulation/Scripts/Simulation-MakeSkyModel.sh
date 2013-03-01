@@ -25,7 +25,6 @@ if [ $doSmoothSM == true ]; then
     smoothQsub=${smdir}/${WORKDIR}/smoothModels.qsub
     cat > $smoothQsub <<EOF
 #!/bin/bash -l
-#PBS -q debugq
 #PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=10GB:mpiprocs=1
@@ -97,7 +96,6 @@ if [ $doSF_SM == true ]; then
     cduchampQsub=${smdir}/${WORKDIR}/cduchamp-smooth.qsub
     cat > $cduchampQsub <<EOF
 #!/bin/bash -l
-#PBS -q debugq
 #PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=23GB:mpiprocs=1
@@ -179,7 +177,6 @@ if [ $doComparisonSM == true ]; then
     modelcompQsub=${smdir}/${WORKDIR}/modelComparison.qsub
     cat > $modelcompQsub <<EOF
 #!/bin/bash -l
-#PBS -q debugq
 #PBS -W group_list=astronomy554
 #PBS -l walltime=1:00:00
 #PBS -l select=1:ncpus=1:mem=2GB:mpiprocs=1
