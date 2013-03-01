@@ -63,7 +63,7 @@ chanw=-18.5185185e3
 rfreq=1.421e9
 if [ $doHalfBW == true ]; then
     nchan=`echo $nchan | awk '{print $1/2.}'`
-    rfreq=`echo $nchan $rfreq $chanw | awk '{print $2 - $3 * $1/2.}'`
+    rfreq=`echo $nchan $rfreq $chanw | awk '{print $2 + $3*$1/2.}'`
     baseimage="$baseimage-halfBW"
 fi
 basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1/2)}'`
