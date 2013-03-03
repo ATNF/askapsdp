@@ -77,7 +77,7 @@ GAINS_CAL_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=2:mem=23GB:mpiprocs=2"
 CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=6:mem=23GB:mpiprocs=6"
 
 # number of worker nodes needed for imager-cont-dirty.sh - work with 6 worker cpus per node, plus extra on the master's node
-CONT_DIRTY_SELECT="1:ncpus=3:mem=23GB:mpiprocs=3+51:ncpus=6:mem=23GB:mpiprocs=6"
+CONT_DIRTY_SELECT="1:ncpus=5:mem=23GB:mpiprocs=5+50:ncpus=6:mem=23GB:mpiprocs=6"
 
 # base frequency for continuum cubes
 CONT_CUBE_BASEFREQ=1.420e9
