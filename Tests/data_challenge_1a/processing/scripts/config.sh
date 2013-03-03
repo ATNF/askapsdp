@@ -73,8 +73,8 @@ QSUB_RANGE_CREATECOARSE="0-303"
 # number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
 GAINS_CAL_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=2:mem=23GB:mpiprocs=2"
 
-# number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node
-CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=2:mem=23GB:mpiprocs=2"
+# number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
+CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=6:mem=23GB:mpiprocs=6"
 
 # number of worker nodes needed for imager-cont-dirty.sh - work with 6 worker cpus per node, plus extra on the master's node
 CONT_DIRTY_SELECT="1:ncpus=3:mem=23GB:mpiprocs=3+51:ncpus=6:mem=23GB:mpiprocs=6"
