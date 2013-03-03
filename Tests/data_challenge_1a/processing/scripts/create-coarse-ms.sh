@@ -26,15 +26,15 @@ cat > split_coarse.qsub << EOF
 #PBS -v ASKAP_ROOT,AIPSPATH
 
 #######
-# TO RUN (304 jobs):
-#  qsub -J 0-303 split_coarse.qsub
+# TO RUN (${NUM_WORKERS_CREATECOARSE} jobs):
+#  qsub -J ${QSUB_RANGE_CREATECOARSE} split_coarse.qsub
 #######
 
 cd \${PBS_O_WORKDIR}
 
 WIDTH=54
 STARTCHAN=1
-ENDCHAN=16416
+ENDCHAN=${END_CHANNEL_CREATECOARSE}
 
 RANGE1=\`expr \${PBS_ARRAY_INDEX} \* \${WIDTH} + \${STARTCHAN}\`
 RANGE2=\`expr \${RANGE1} + \${WIDTH} - 1\`
@@ -64,7 +64,7 @@ EOF
 
 if [ ! -e MS/coarse_chan_0.ms ]; then
     echo "MS Split and Average: Submitting"
-    QSUB_MSSPLIT=`qsubmit -J 0-303 split_coarse.qsub`
+    QSUB_MSSPLIT=`qsubmit -J ${QSUB_RANGE_CREATECOARSE} split_coarse.qsub`
     QSUB_NODEPS="${QSUB_NODEPS} ${QSUB_MSSPLIT}"
     GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_MSSPLIT}"
 else

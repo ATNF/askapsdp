@@ -23,11 +23,11 @@ cat > ${CONFIGDIR}/cmodel.in << EOF_INNER
 # The below specifies the GSM source is a votable
 Cmodel.gsm.database       = votable
 Cmodel.gsm.file           = ${INPUT_SKYMODEL_XML}
-Cmodel.gsm.ref_freq       = 1.421GHz
+Cmodel.gsm.ref_freq       = ${SKYMODEL_REFFREQ}
 
 # General parameters
 Cmodel.bunit              = Jy/pixel
-Cmodel.frequency          = 1.421GHz
+Cmodel.frequency          = ${SKYMODEL_FREQ}
 Cmodel.increment          = 300MHz
 Cmodel.flux_limit         = 1mJy
 Cmodel.shape              = [3560, 3560]

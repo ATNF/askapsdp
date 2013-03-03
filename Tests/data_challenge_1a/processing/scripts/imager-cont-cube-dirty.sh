@@ -18,7 +18,7 @@ cat > cimager-cont-cube-dirty.qsub << EOF
 
 ###########
 # To run:
-# qsub -J 0-303 cimager-cont-cube-dirty.qsub
+# qsub -J ${QSUB_RANGE_CONT_CUBE} cimager-cont-cube-dirty.qsub
 #
 ###########
 
@@ -27,7 +27,7 @@ cd \${PBS_O_WORKDIR}
 imageName="image.${imagebase}_ch\${PBS_ARRAY_INDEX}"
 ms=MS/coarse_chan_\${PBS_ARRAY_INDEX}.ms
 
-basefreq=1.420e9
+basefreq=${CONT_CUBE_BASEFREQ}
 dfreq=1.e6
 freq=\`echo \$basefreq \$dfreq \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",\$1-\$2*\$3}'\`
 
@@ -97,7 +97,7 @@ elif [ "${QSUB_MSSPLIT}" ]; then
     DEPENDS="afterok:${QSUB_MSSPLIT}"
 fi
 
-QSUB_CONTCUBEDIRTY=`qsubmit -J 0-303 cimager-cont-cube-dirty.qsub`
+QSUB_CONTCUBEDIRTY=`qsubmit -J ${QSUB_RANGE_CONT_CUBE} cimager-cont-cube-dirty.qsub`
 GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_CONTCUBEDIRTY}"
 
 if [ ! "${DEPENDS}" ]; then
@@ -110,7 +110,7 @@ DEPENDS="afterok:${QSUB_CONTCUBEDIRTY}"
 # Run makecube using the make-spectral-cube.qsub script
 DODELETE=true
 FIRSTCH=0
-FINALCH=303
+FINALCH=${CONT_CUBE_FINALCH}
 
 IMAGEPREFIX="image.${imagebase}_ch"
 IMAGESUFFIX=".restored"

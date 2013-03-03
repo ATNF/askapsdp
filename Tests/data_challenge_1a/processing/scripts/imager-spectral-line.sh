@@ -35,8 +35,8 @@ cat > cimager-spectral-line.qsub << EOF
 #PBS -v ASKAP_ROOT,AIPSPATH
 
 #######
-# TO RUN (16416 jobs):
-#  qsub -J 0-16415 cimager-spectral-line.qsub
+# TO RUN (${NUM_WORKERS_SPECTRAL_CUBE} jobs):
+#  qsub -J ${QSUB_RANGE_SPECTRAL_CUBE_FULL} cimager-spectral-line.qsub
 #######
 
 cd \${PBS_O_WORKDIR}/${SL_WORK_DIR}
@@ -66,7 +66,7 @@ channel     = \${CHAN}
 width       = 1
 EOF_INNER
 
-basefreq=1.421e9
+basefreq=${SPECTRAL_CUBE_BASEFREQ}
 dfreq=-18.5185185e3
 freq=\`echo \${basefreq} \${dfreq} \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",$1+$2*$3}'\`
 
@@ -143,8 +143,8 @@ fi
 
 # Submit the jobs
 echo "Spectral Line Imaging: Submitting"
-QSUB_SPECTRAL1=`qsubmit -N sl-img1 -J 0-8257 cimager-spectral-line.qsub`
-QSUB_SPECTRAL2=`qsubmit -N sl-img2 -J 8258-16415 cimager-spectral-line.qsub`
+QSUB_SPECTRAL1=`qsubmit -N sl-img1 -J ${QSUB_RANGE_SPECTRAL_CUBE_1} cimager-spectral-line.qsub`
+QSUB_SPECTRAL2=`qsubmit -N sl-img2 -J ${QSUB_RANGE_SPECTRAL_CUBE_2} cimager-spectral-line.qsub`
 GLOBAL_ALL_JOBS="${GLOBAL_ALL_JOBS} ${QSUB_SPECTRAL1} ${QSUB_SPECTRAL2}"
 
 if [ ! "${DEPENDS}" ]; then
@@ -157,7 +157,7 @@ DEPENDS="afterok:${QSUB_SPECTRAL1},afterok:${QSUB_SPECTRAL2}"
 # Run makecube using the make-spectral-cube.qsub script
 DODELETE=true
 FIRSTCH=0
-FINALCH=16415
+FINALCH=${SPECTRAL_CUBE_FINALCH}
 
 IMAGESUFFIX=".restored"
 IMAGEPREFIX="image.i.spectral."

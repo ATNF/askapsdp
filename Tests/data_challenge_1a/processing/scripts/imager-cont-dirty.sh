@@ -6,7 +6,7 @@
 cat > cimager-cont-dirty.qsub << EOF
 #!/bin/bash
 #PBS -W group_list=${QUEUEGROUP}
-#PBS -l select=1:ncpus=5:mem=23GB:mpiprocs=5+50:ncpus=6:mem=23GB:mpiprocs=6
+#PBS -l select=${CONT_DIRTY_SELECT}
 #PBS -l walltime=04:00:00
 ##PBS -M first.last@csiro.au
 #PBS -N cont-dirty
