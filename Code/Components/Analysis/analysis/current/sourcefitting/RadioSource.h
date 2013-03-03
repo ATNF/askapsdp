@@ -124,10 +124,10 @@ namespace askap {
                     ///@}
 
                     /// @brief Store the FITS header information
-                    void setHeader(duchamp::FitsHeader head) {itsHeader = head;};
+                    void setHeader(duchamp::FitsHeader *head) {itsHeader = head;};
 
                     /// @brief Get the FITS header information
-                    duchamp::FitsHeader getHeader() {return itsHeader;};
+                    duchamp::FitsHeader *header() {return itsHeader;};
 
                     /// @brief Functions to set the object's noise level
                     /// @name
@@ -257,7 +257,7 @@ namespace askap {
                     bool hasFit;
 
                     /// @brief The FITS header information (including WCS and beam info).
-                    duchamp::FitsHeader itsHeader;
+                    duchamp::FitsHeader *itsHeader;
 
                     /// @brief The noise level in the vicinity of the object, used for Gaussian fitting
                     float itsNoiseLevel;

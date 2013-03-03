@@ -202,7 +202,22 @@ namespace askap {
 	      this->itsFitParams.setFlagFitJustDetection(true);
 	    }
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
-            this->itsFlagFindSpectralIndex = parset.getBool("findSpectralIndex", true);
+
+            this->itsFlagFindSpectralTerms = parset.getBoolVector("findSpectralIndex", std::vector<bool>(2,this->itsFitParams.doFit()));
+	    for(size_t i=this->itsFlagFindSpectralTerms.size();i<2;i++) this->itsFlagFindSpectralTerms.push_back(false);
+	    if(this->itsFlagFindSpectralTerms[0]){
+		if(!this->itsFitParams.doFit()){
+		    ASKAPLOG_WARN_STR(logger, "No fitting is to be done, so the spectral indices will not be found. Setting findSpectralIndex=false.");
+		    this->itsFlagFindSpectralTerms = std::vector<bool>(2,false);
+		}
+		else{
+		    this->itsSpectralTermImages = parset.getStringVector("spectralTermImages");
+		    for(size_t i=this->itsSpectralTermImages.size();i<2;i++) this->itsSpectralTermImages.push_back("");
+		    this->checkSpectralTermImages();
+		}
+	    }
+	    else this->itsFlagFindSpectralTerms[1]=false;
+	    
 
 	    this->itsFlagExtractSpectra = parset.getBool("extractSpectra",false);
 	    if(this->itsFlagExtractSpectra){
@@ -285,6 +300,43 @@ namespace askap {
 	      this->itsCube.pars().setLogFile(itsComms.substitute("duchamp-Logfile-%w.txt"));
 
         }
+
+	void DuchampParallel::checkSpectralTermImages()
+	{
+	    /// @details Once the parameters relating to the spectral
+	    /// index & curvature images have been read, we need to
+	    /// check to see if the images need to be specified.
+
+	    std::string termname[3]={".taylor.1",".taylor.2"};
+
+	    for(size_t i=0;i<2;i++){
+
+		if(this->itsFlagFindSpectralTerms[i]){
+
+		    if(this->itsSpectralTermImages[i] == "") {  
+			// if it hasn't been specified, set it to the .taylor.n image, but only if the input is a .taylor.0 image
+			size_t pos = this->itsCube.pars().getImageFile().rfind(".taylor.0");
+			if (pos == std::string::npos) {
+			    // image provided is not a Taylor series term - notify and do nothing
+			    ASKAPLOG_WARN_STR(logger, "Image name provided (" << this->itsCube.pars().getImageFile() 
+					      << ") is not a Taylor term. Cannot find spectral information.");
+
+			    // set flag for this and higher terms to false
+			    for(size_t j=i;j<2;j++) this->itsFlagFindSpectralTerms[i] = false;
+			    
+			}
+			else { // it is a taylor.0 image, so set current term's image appropriately
+			    this->itsSpectralTermImages[i] = this->itsCube.pars().getImageFile();
+			    this->itsSpectralTermImages[i].replace(pos,9,termname[i]);
+			}
+			
+		    }
+
+		}
+		
+	    }
+
+	}
 
 
         //**************************************************************//
@@ -1144,7 +1196,7 @@ namespace askap {
 	}
 
 	for(int t=1;t<=2;t++)
-	  src.findSpectralTerm(this->itsCube.pars().getImageFile(), t, this->itsFlagFindSpectralIndex);
+	  src.findSpectralTerm(this->itsSpectralTermImages[t-1], t, this->itsFlagFindSpectralTerms[t-1]);
 
       }
 
@@ -1364,7 +1416,7 @@ namespace askap {
             if (!itsComms.isParallel() || itsComms.isMaster()) {
                 ASKAPLOG_INFO_STR(logger, this->workerPrefix() << "Beginning the cleanup");
 
-                duchamp::FitsHeader head = this->itsCube.getHead();
+                duchamp::FitsHeader *head = this->itsCube.pHeader();
                 std::vector<sourcefitting::RadioSource>::iterator src;
 
 		ASKAPLOG_DEBUG_STR(logger, "Refining non-edge source list of size " << this->itsSourceList.size());
@@ -1475,7 +1527,7 @@ namespace askap {
                             }
 
 			    for(int t=1;t<=2;t++)
-			      src.findSpectralTerm(this->itsCube.pars().getImageFile(), t, this->itsFlagFindSpectralIndex);
+				src.findSpectralTerm(this->itsSpectralTermImages[t-1], t, this->itsFlagFindSpectralTerms[t-1]);
 			  }
 			}
                         this->itsEdgeSourceList.push_back(src);
@@ -1863,7 +1915,7 @@ namespace askap {
 	      for(int i=0;i<numSrc;i++){
 		sourcefitting::RadioSource src;
 		in >> src;
-		src.setHeader(this->itsCube.getHead());  // make sure we have the right WCS etc information
+		src.setHeader(this->itsCube.pHeader());  // make sure we have the right WCS etc information
 		this->itsEdgeSourceList.push_back(src);
 	      }
 	      in.getEnd();
@@ -1895,7 +1947,7 @@ namespace askap {
 	      if(isOK){
 		in >> src;
 		ASKAPLOG_DEBUG_STR(logger, this->workerPrefix() << "About to fit src at ra="<<src.getRAs()<<", dec="<<src.getDecs());
-		src.setHeader(this->itsCube.getHead());  // this doesn't get copied over the blob, so make sure the beam is correct - that's all we need it for.
+		src.setHeader(this->itsCube.pHeader());  // this doesn't get copied over the blob, so make sure the beam is correct - that's all we need it for.
 		this->fitSource(src,false);
 		this->itsSourceList.push_back(src);
 	      }
@@ -2623,6 +2675,7 @@ namespace askap {
 	  }
 
 	  long *dim = getDim(sub);
+	  std::cout << this->itsCube.pars()<<"\n";
 	  this->itsCube.initialiseCube(dim);
 	  if(this->itsCube.getDimZ()==1){
 	    this->itsCube.pars().setMinChannels(0);

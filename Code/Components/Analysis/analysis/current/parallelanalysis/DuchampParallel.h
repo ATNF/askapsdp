@@ -103,6 +103,9 @@ namespace askap {
                 void setFlagDoMedianSearch(bool f) {itsFlagDoMedianSearch = f;};
                 /// @}
 
+	        /// @brief Make sure the spectral index/curvature images have appropriate names.
+	        void checkSpectralTermImages();
+
                 /// @brief Perform a search based on a median box sliding function
                 void medianSearch2D();
                 void medianSearch();
@@ -283,8 +286,10 @@ namespace askap {
 		/// Shall the fitting be delegated to the workers?
 		bool itsFlagDistribFit;
 
-                /// Shall we find spectral index information?
-                bool itsFlagFindSpectralIndex;
+                /// Shall we find spectral index/curvature information?
+		std::vector<bool> itsFlagFindSpectralTerms;
+                /// Where shall we find spectral index/curvature information?
+		std::vector<string> itsSpectralTermImages;
 
                 /// Name of the summary file
                 std::string itsFitSummaryFile;

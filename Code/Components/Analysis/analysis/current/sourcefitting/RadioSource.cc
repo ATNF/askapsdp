@@ -688,7 +688,7 @@ namespace askap {
 	      } else this->setNoiseLevel(1);
 	    }
 	    
-	    this->setHeader(cube.getHead());
+	    this->setHeader(cube.pHeader());
 	    this->setOffsets(cube.pars());
 	    if(!this->itsFitParams.doFit()) this->itsFitParams.setBoxPadSize(1);
 	    this->defineBox(cube.pars().section(), this->itsFitParams, cube.header().getWCS()->spec);
@@ -909,9 +909,9 @@ namespace askap {
 			      //cmpntList[i].setMajor(this->itsHeader.beam().area());
 			      //cmpntList[i].setMinor(this->itsHeader.beam().area());			      
 			      //cmpntList[i].setPA(0.);
-                                cmpntListCopy[i].setMajor(this->itsHeader.beam().maj());
-                                cmpntListCopy[i].setMinor(this->itsHeader.beam().min());			      
-                                cmpntListCopy[i].setPA(this->itsHeader.beam().pa()*M_PI/180.);
+                                cmpntListCopy[i].setMajor(this->itsHeader->beam().maj());
+                                cmpntListCopy[i].setMinor(this->itsHeader->beam().min());			      
+                                cmpntListCopy[i].setPA(this->itsHeader->beam().pa()*M_PI/180.);
                             }
                         }
 
@@ -975,12 +975,12 @@ namespace askap {
 		      // set the components to be at least as big as the beam
 		      for (size_t i = 0; i < cmpntList.size(); i++) {
 			casa::Gaussian2D<casa::Double> gauss=cmpntList[i].asGauss();
-			if(cmpntList[i].maj()<this->itsHeader.beam().maj()){
-			  cmpntList[i].setMajor(this->itsHeader.beam().maj());
-			  cmpntList[i].setMinor(this->itsHeader.beam().min());			      
-			  cmpntList[i].setPA(this->itsHeader.beam().pa()*M_PI/180.);
+			if(cmpntList[i].maj()<this->itsHeader->beam().maj()){
+			  cmpntList[i].setMajor(this->itsHeader->beam().maj());
+			  cmpntList[i].setMinor(this->itsHeader->beam().min());			      
+			  cmpntList[i].setPA(this->itsHeader->beam().pa()*M_PI/180.);
 			}
-			else cmpntList[i].setMinor(std::max(cmpntList[i].min(),double(this->itsHeader.beam().min())));
+			else cmpntList[i].setMinor(std::max(cmpntList[i].min(),double(this->itsHeader->beam().min())));
 			// cmpntList[i].setFlux(gauss.flux());
 		      }
 		      FitResults guess;
@@ -1013,7 +1013,7 @@ namespace askap {
                 /// @li Calculate the spectral index or curvature using the appropriate formulae
                 /// @li Store the spectral index value in a map indexed by fit type.
                 /// Note that if the imageName provided is not of the correct format, nothing is done.
-                /// @param imageName The name of the image in which sources have been found
+                /// @param imageName The name of the image from which to extract the spectral information
 	        /// @param term Which Taylor term to do - either 1 or 2, other values trigger an exception
                 /// @param doCalc If true, do all the calculations. If false, fill the alpha & beta values to 0. for all fit types.
 
@@ -1022,13 +1022,9 @@ namespace askap {
 	      ASKAPCHECK(term==1 || term==2, 
 			 "Term number ("<<term<<") must be either 1 (for spectral index) or 2 (for spectral curvature)");
 
-	      size_t pos = imageName.rfind(".taylor.0");
 
-	      if (!doCalc || pos == std::string::npos) {
-		// image provided is not a Taylor series term - notify and do nothing
-		if (doCalc)
-		  ASKAPLOG_WARN_STR(logger, "radioSource::findSpectralTerm : Image name provided ("
-				    << imageName << ") is not a Taylor term. Cannot find spectral information.");
+	      if (!doCalc) {
+		// initialise arrays to zero and do nothing else
 
 		std::vector<std::string>::iterator type;
 		std::vector<std::string> typelist = availableFitTypes;
@@ -1044,13 +1040,6 @@ namespace askap {
 	      else {
 
 		ASKAPLOG_DEBUG_STR(logger, "About to find the "<<termtype[term]<<", for image " << imageName);
-
-		// Get Taylor-term image name
-		std::stringstream ss;
-		ss << ".taylor."<<term;
-		std::string taylorName = imageName.replace(pos, 9, ss.str());
-
-		ASKAPLOG_DEBUG_STR(logger, "Using Taylor "<<term<<" image " << taylorName);
 
 		// Get taylor1 values for box, and define positions
 		casa::Matrix<casa::Double> pos;
@@ -1073,7 +1062,7 @@ namespace askap {
 		Slice xrange=casa::Slice(this->boxXmin()+this->getXOffset(),this->boxXmax()-this->boxXmin()+1,1);
 		Slice yrange=casa::Slice(this->boxYmin()+this->getYOffset(),this->boxYmax()-this->boxYmin()+1,1);
 		Slicer theBox=casa::Slicer(xrange, yrange);
-		casa::Vector<casa::Double> f = getPixelsInBox(taylorName, theBox);
+		casa::Vector<casa::Double> f = getPixelsInBox(imageName, theBox);
 
 		ASKAPLOG_DEBUG_STR(logger, "Preparing the fit for the taylor "<<term<<" term");
 
@@ -1223,8 +1212,8 @@ namespace askap {
                 newSpec.column("FPEAK").changePrec(fluxPrec);
                 newSpec.column("NUM").setName("ID");
                 // new columns
-                newSpec.addColumn( duchamp::Catalogues::Column("FINTFIT","F_int(fit)", "["+this->itsHeader.getIntFluxUnits()+"]", fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
-                newSpec.addColumn( duchamp::Catalogues::Column("FPEAKFIT","F_pk(fit)", "["+this->itsHeader.getFluxUnits()+"]", fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("FINTFIT","F_int(fit)", "["+this->itsHeader->getIntFluxUnits()+"]", fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
+                newSpec.addColumn( duchamp::Catalogues::Column("FPEAKFIT","F_pk(fit)", "["+this->itsHeader->getFluxUnits()+"]", fluxWidth, fluxPrec,"phot.flux","float","col_fint_fit","") );
                 newSpec.addColumn( duchamp::Catalogues::Column("MAJFIT","Maj(fit)", "", 10, 3,"","float","col_","") );
                 newSpec.addColumn( duchamp::Catalogues::Column("MINFIT","Min(fit)", "", 10, 3,"","float","col_","") );
                 newSpec.addColumn( duchamp::Catalogues::Column("PAFIT","P.A.(fit)", "", 10, 2,"","float","col_","") );
@@ -1292,7 +1281,7 @@ namespace askap {
 
                     for (; fit < fitSet.end(); fit++, alphaIter++, betaIter++) {
 
-		      std::vector<Double> deconv = deconvolveGaussian(*fit,this->itsHeader.getBeam());
+		      std::vector<Double> deconv = deconvolveGaussian(*fit,this->itsHeader->getBeam());
 
                         std::stringstream id;
                         id << this->getID() << char(firstSuffix + suffixCtr++);
@@ -1301,16 +1290,16 @@ namespace askap {
                         pix[1] = fit->yCenter();
                         pix[2] = this->getZcentre();
                         double *wld = new double[3];
-                        this->itsHeader.pixToWCS(pix, wld);
+                        this->itsHeader->pixToWCS(pix, wld);
                         double thisRA = wld[0];
                         double thisDec = wld[1];
                         delete [] pix;
                         delete [] wld;
                         float intfluxfit = fit->flux();
 
-                        if (this->itsHeader.needBeamSize())
-                            intfluxfit /= this->itsHeader.beam().area(); // Convert from Jy/beam to Jy
-//                             intfluxfit /= this->itsHeader.getBeamSize(); // Convert from Jy/beam to Jy
+                        if (this->itsHeader->needBeamSize())
+                            intfluxfit /= this->itsHeader->beam().area(); // Convert from Jy/beam to Jy
+//                             intfluxfit /= this->itsHeader->getBeamSize(); // Convert from Jy/beam to Jy
 
                         newSpec.column("NUM").printEntry(stream, id.str());
 			newSpec.column("NAME").printEntry(stream, this->getName());
@@ -1320,11 +1309,11 @@ namespace askap {
                         newSpec.column("FPEAK").printEntry(stream, this->getPeakFlux());
                         newSpec.column("FINTFIT").printEntry(stream, intfluxfit);
                         newSpec.column("FPEAKFIT").printEntry(stream, fit->height());
-                        newSpec.column("MAJFIT").printEntry(stream, fit->majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
-                        newSpec.column("MINFIT").printEntry(stream, fit->minorAxis()*this->itsHeader.getAvPixScale()*3600.);
+                        newSpec.column("MAJFIT").printEntry(stream, fit->majorAxis()*this->itsHeader->getAvPixScale()*3600.); // convert from pixels to arcsec
+                        newSpec.column("MINFIT").printEntry(stream, fit->minorAxis()*this->itsHeader->getAvPixScale()*3600.);
                         newSpec.column("PAFIT").printEntry(stream, fit->PA()*180. / M_PI);
-                        newSpec.column("MAJDECONV").printEntry(stream, deconv[0]*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
-                        newSpec.column("MINDECONV").printEntry(stream, deconv[1]*this->itsHeader.getAvPixScale()*3600.);
+                        newSpec.column("MAJDECONV").printEntry(stream, deconv[0]*this->itsHeader->getAvPixScale()*3600.); // convert from pixels to arcsec
+                        newSpec.column("MINDECONV").printEntry(stream, deconv[1]*this->itsHeader->getAvPixScale()*3600.);
                         newSpec.column("PADECONV").printEntry(stream, deconv[2]*180. / M_PI);
 			newSpec.column("ALPHA").printEntry(stream, *alphaIter);
 			newSpec.column("BETA").printEntry(stream, *betaIter);
@@ -1377,20 +1366,20 @@ namespace askap {
 	    char firstSuffix = 'a';
 	    std::stringstream id;
 	    id << this->getID() << char(firstSuffix + fitNum);
-	    std::vector<Double> deconv = deconvolveGaussian(gauss,this->itsHeader.getBeam());
+	    std::vector<Double> deconv = deconvolveGaussian(gauss,this->itsHeader->getBeam());
 	    double *pix = new double[3];
 	    pix[0] = gauss.xCenter();
 	    pix[1] = gauss.yCenter();
 	    pix[2] = this->getZcentre();
 	    double *wld = new double[3];
-	    this->itsHeader.pixToWCS(pix, wld);
+	    this->itsHeader->pixToWCS(pix, wld);
 	    double thisRA = wld[0];
 	    double thisDec = wld[1];
 	    delete [] pix;
 	    delete [] wld;
 	    float intfluxfit = gauss.flux();
-	    if (this->itsHeader.needBeamSize())
-	      intfluxfit /= this->itsHeader.beam().area(); // Convert from Jy/beam to Jy
+	    if (this->itsHeader->needBeamSize())
+	      intfluxfit /= this->itsHeader->beam().area(); // Convert from Jy/beam to Jy
 
 	    std::string type=column.type();	    
 	    if(type=="NUM")  column.printEntry(stream, id.str());
@@ -1401,11 +1390,11 @@ namespace askap {
 	    else if(type=="FPEAK")  column.printEntry(stream, this->getPeakFlux());
 	    else if(type=="FINTFIT")  column.printEntry(stream, intfluxfit);
 	    else if(type=="FPEAKFIT")  column.printEntry(stream, results.gaussian(fitNum).height());
-	    else if(type=="MAJFIT")  column.printEntry(stream, gauss.majorAxis()*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
-	    else if(type=="MINFIT")  column.printEntry(stream, gauss.minorAxis()*this->itsHeader.getAvPixScale()*3600.);
+	    else if(type=="MAJFIT")  column.printEntry(stream, gauss.majorAxis()*this->itsHeader->getAvPixScale()*3600.); // convert from pixels to arcsec
+	    else if(type=="MINFIT")  column.printEntry(stream, gauss.minorAxis()*this->itsHeader->getAvPixScale()*3600.);
 	    else if(type=="PAFIT")  column.printEntry(stream, gauss.PA()*180. / M_PI);
-	    else if(type=="MAJDECONV")  column.printEntry(stream, deconv[0]*this->itsHeader.getAvPixScale()*3600.); // convert from pixels to arcsec
-	    else if(type=="MINDECONV")  column.printEntry(stream, deconv[1]*this->itsHeader.getAvPixScale()*3600.);
+	    else if(type=="MAJDECONV")  column.printEntry(stream, deconv[0]*this->itsHeader->getAvPixScale()*3600.); // convert from pixels to arcsec
+	    else if(type=="MINDECONV")  column.printEntry(stream, deconv[1]*this->itsHeader->getAvPixScale()*3600.);
 	    else if(type=="PADECONV")  column.printEntry(stream, deconv[2]*180. / M_PI);
 	    else if(type=="ALPHA")  column.printEntry(stream, this->itsAlphaMap[fitType][fitNum]);
 	    else if(type=="BETA")  column.printEntry(stream, this->itsBetaMap[fitType][fitNum]);
@@ -1433,13 +1422,13 @@ namespace askap {
                 for (fit = fitSet.begin(); fit < fitSet.end(); fit++) {
                     pix[0] = fit->xCenter();
                     pix[1] = fit->yCenter();
-                    this->itsHeader.pixToWCS(pix, world);
+                    this->itsHeader->pixToWCS(pix, world);
 
                     if (doEllipse) {
 		      writer->ellipse(world[0],
 				     world[1],
-				     fit->majorAxis() * this->itsHeader.getAvPixScale() / 2.,
-				     fit->minorAxis() * this->itsHeader.getAvPixScale() / 2.,
+				     fit->majorAxis() * this->itsHeader->getAvPixScale() / 2.,
+				     fit->minorAxis() * this->itsHeader->getAvPixScale() / 2.,
 				     fit->PA() * 180. / M_PI);
                     }
                 }
@@ -1448,7 +1437,7 @@ namespace askap {
                 pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
                 pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
                 pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
-                this->itsHeader.pixToWCS(pix, world, 4);
+                this->itsHeader->pixToWCS(pix, world, 4);
 
                 if (doBox) {
 		  std::vector<double> x,y;
@@ -1493,7 +1482,7 @@ namespace askap {
                 for (fit = fitSet.begin(); fit < fitSet.end(); fit++) {
                     pix[0] = fit->xCenter();
                     pix[1] = fit->yCenter();
-                    this->itsHeader.pixToWCS(pix, world);
+                    this->itsHeader->pixToWCS(pix, world);
                     stream.setf(std::ios::fixed);
                     stream.precision(6);
 
@@ -1501,8 +1490,8 @@ namespace askap {
                         stream << "ELLIPSE "
                             << world[0] << " "
                             << world[1] << " "
-                            << fit->majorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
-                            << fit->minorAxis() * this->itsHeader.getAvPixScale() / 2. << " "
+                            << fit->majorAxis() * this->itsHeader->getAvPixScale() / 2. << " "
+                            << fit->minorAxis() * this->itsHeader->getAvPixScale() / 2. << " "
                             << fit->PA() * 180. / M_PI << "\n";
                     }
                 }
@@ -1511,7 +1500,7 @@ namespace askap {
                 pix[1] = pix[4] = this->getYmin() - this->itsFitParams.boxPadSize() - 0.5;
                 pix[3] = pix[6] = this->getXmax() + this->itsFitParams.boxPadSize() + 0.5;
                 pix[7] = pix[10] = this->getYmax() + this->itsFitParams.boxPadSize() + 0.5;
-                this->itsHeader.pixToWCS(pix, world, 4);
+                this->itsHeader->pixToWCS(pix, world, 4);
 
                 if (doBox) {
                     stream << "CLINES ";

@@ -83,7 +83,7 @@ namespace askap {
 
             //**************************************************************//
 
-            void Fitter::setEstimates(std::vector<SubComponent> cmpntList, duchamp::FitsHeader &head)
+            void Fitter::setEstimates(std::vector<SubComponent> cmpntList, duchamp::FitsHeader *head)
             {
 //                 ASKAPLOG_DEBUG_STR(logger, "About to set the initial estimates");
 
@@ -105,23 +105,23 @@ namespace askap {
                     estimate(g, 4) = cmpntList[cmpnt].min() / cmpntList[cmpnt].maj();
                     estimate(g, 5) = cmpntList[cmpnt].pa();
 
-//                     if (head.getBmajKeyword() > 0) { // if the beam is known,
-//                         bool size = (head.getBmajKeyword() / head.getAvPixScale() > cmpntList[cmpnt].maj());
+//                     if (head->getBmajKeyword() > 0) { // if the beam is known,
+//                         bool size = (head->getBmajKeyword() / head->getAvPixScale() > cmpntList[cmpnt].maj());
 
 //                         // if the subcomponent is smaller than the beam, or if we
 //                         // don't want to fit the size parameters, change the
 //                         // estimates of the parameters to the beam size
 //                         if (size || !this->itsParams.flagFitThisParam(3))
-//                             estimate(g, 3) = head.getBmajKeyword() / head.getAvPixScale();
+//                             estimate(g, 3) = head->getBmajKeyword() / head->getAvPixScale();
 
 //                         if (size || !this->itsParams.flagFitThisParam(4))
-//                             estimate(g, 4) = head.getBminKeyword() / head.getBmajKeyword();
+//                             estimate(g, 4) = head->getBminKeyword() / head->getBmajKeyword();
 
 //                         if (size || !this->itsParams.flagFitThisParam(5))
-//                             estimate(g, 5) = head.getBpaKeyword() * M_PI / 180.;
+//                             estimate(g, 5) = head->getBpaKeyword() * M_PI / 180.;
 //                     }
-                    if (head.beam().originString()!="EMPTY") { // if the beam is known,
-                        bool size = (head.beam().maj() > cmpntList[cmpnt].maj());
+                    if (head->beam().originString()!="EMPTY") { // if the beam is known,
+                        bool size = (head->beam().maj() > cmpntList[cmpnt].maj());
 
                         // if the subcomponent is smaller than the beam, or if we
                         // don't want to fit the size parameters, change the
@@ -130,15 +130,15 @@ namespace askap {
 			// WTF??? WE MAY WANT TO KEEP THE SHAPE CONSTANT AT SOMETHING OTHER THAN THE BEAM. REMOVING CHECKS ON THE FIT FLAGS
 			//                        if (size || !this->itsParams.flagFitThisParam(3))
                         if (size)
-                            estimate(g, 3) = head.beam().maj();
+                            estimate(g, 3) = head->beam().maj();
 
 			//                        if (size || !this->itsParams.flagFitThisParam(4))
                         if (size)
-                            estimate(g, 4) = head.beam().min()/head.beam().maj();
+                            estimate(g, 4) = head->beam().min()/head->beam().maj();
 
 			//                        if (size || !this->itsParams.flagFitThisParam(5))
                         if (size)
-                            estimate(g, 5) = head.beam().pa() * M_PI / 180.;
+                            estimate(g, 5) = head->beam().pa() * M_PI / 180.;
                     }
 
                 }
@@ -146,9 +146,9 @@ namespace askap {
 
                 this->itsFitter.setFirstEstimate(estimate);
 
-//                 if (head.getBminKeyword() > 0) this->itsParams.setBeamSize(head.getBminKeyword() / head.getAvPixScale());
+//                 if (head->getBminKeyword() > 0) this->itsParams.setBeamSize(head->getBminKeyword() / head->getAvPixScale());
 //                 else this->itsParams.setBeamSize(1.);
-                if (head.beam().min() > 0) this->itsParams.setBeamSize(head.beam().min());
+                if (head->beam().min() > 0) this->itsParams.setBeamSize(head->beam().min());
                 else this->itsParams.setBeamSize(1.);
 
                 ASKAPLOG_DEBUG_STR(logger, "Initial estimates of parameters follow: ");
@@ -159,7 +159,7 @@ namespace askap {
                     gauss(estimate(0, 0),
                           estimate(0, 1), estimate(0, 2),
                           estimate(0, 3), estimate(0, 4), estimate(0, 5));
-//                     ASKAPLOG_INFO_STR(logger, "Flux of single component estimate = " << gauss.flux() / head.getBeamSize(););
+//                     ASKAPLOG_INFO_STR(logger, "Flux of single component estimate = " << gauss.flux() / head->getBeamSize(););
                 }
             }
 
