@@ -203,7 +203,7 @@ namespace askap {
 	    }
 	    this->itsFlagDistribFit = parset.getBool("distribFit",true);
 
-            this->itsFlagFindSpectralTerms = parset.getBoolVector("findSpectralIndex", std::vector<bool>(2,this->itsFitParams.doFit()));
+            this->itsFlagFindSpectralTerms = parset.getBoolVector("findSpectralTerms", std::vector<bool>(2,this->itsFitParams.doFit()));
 	    for(size_t i=this->itsFlagFindSpectralTerms.size();i<2;i++) this->itsFlagFindSpectralTerms.push_back(false);
 	    if(this->itsFlagFindSpectralTerms[0]){
 		if(!this->itsFitParams.doFit()){
