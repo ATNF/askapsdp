@@ -56,9 +56,9 @@ namespace askap {
 
 namespace swcorrelator {
 
-/// @brief manages buffers for broad-band data
-/// @details This class manages buffers for broad-band data 
-/// can keeps track of the current status (i.e. free, filled, 
+/// @brief manages buffers for baseband data
+/// @details This class manages buffers for baseband data 
+/// it keeps track of the current status (i.e. free, filled, 
 /// being reduced) providing the required syncronisation between
 /// parallel threads accessing the buffers. The number of buffers should be
 /// at least twice the number of beams * antennas * cards.
@@ -84,7 +84,7 @@ public:
    /// @details
    /// @param[in] nBeam number of beams
    /// @param[in] nChan number of channels (cards)
-   /// @param[in[ hdrProc optionan shared pointer to the header preprocessor
+   /// @param[in[ hdrProc optional shared pointer to the header preprocessor
    BufferManager(const size_t nBeam, const size_t nChan, 
          const boost::shared_ptr<HeaderPreprocessor> &hdrProc = boost::shared_ptr<HeaderPreprocessor>());
    
@@ -113,7 +113,7 @@ public:
    int bufferSize() const;
    
    /// @brief obtain a buffer to receive data
-   /// @details This method return an ID of a free buffer used to
+   /// @details This method returns an ID of a free buffer used to
    /// receive the data. If no free buffer is available (i.e. an
    /// overflow situation), a negative value is returned.
    /// @return an ID of the buffer

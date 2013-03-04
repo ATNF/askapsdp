@@ -63,7 +63,7 @@ int BufferManager::NumberOfSamples() {
 /// @details
 /// @param[in] nBeam number of beams
 /// @param[in] nChan number of channels (cards)
-/// @param[in[ hdrProc optionan shared pointer to the header preprocessor
+/// @param[in[ hdrProc optional shared pointer to the header preprocessor
 BufferManager::BufferManager(const size_t nBeam, const size_t nChan, 
      const boost::shared_ptr<HeaderPreprocessor> &hdrProc) : itsNBuf(6*nBeam*nChan),
      itsBufferSize(2*nSamples + int(sizeof(BufferHeader)/sizeof(float))),
@@ -151,9 +151,11 @@ BufferManager::BufferSet BufferManager::getFilledBuffers() const
   BufferManager::BufferSet result;
   result.itsAnt1 = itsReadyBuffers(0, index.first, index.second);
   result.itsAnt2 = itsReadyBuffers(1, index.first, index.second);
-  result.itsAnt3 = itsReadyBuffers(itsDuplicate2nd ? 1 : 2, index.first, index.second);    
-  for (casa::uInt ant = 0; ant < itsReadyBuffers.nrow(); ++ant) {
+  result.itsAnt3 = itsReadyBuffers(itsDuplicate2nd ? 1 : 2, index.first, index.second);
+  const casa::uInt nAntToIterate = itsDuplicate2nd ? itsReadyBuffers.nrow() - 1 : itsReadyBuffers.nrow();    
+  for (casa::uInt ant = 0; ant < nAntToIterate; ++ant) {
        const int id = itsReadyBuffers(ant, index.first, index.second);
+       ASKAPDEBUGASSERT(id >= 0);
        ASKAPDEBUGASSERT(id < itsNBuf);
        itsStatus[id] = BUF_BEING_PROCESSED;      
        itsReadyBuffers(ant, index.first, index.second) = -1;
