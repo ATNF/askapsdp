@@ -155,7 +155,8 @@ namespace askap {
 	  itsSource.defineBox(itsSection,itsFitparams,2); 
 	  itsSource.setDetectionThreshold(thresh);
 	  itsSource.setNoiseLevel(1.);
-	  itsSource.setHeader(duchamp::FitsHeader());
+	  duchamp::FitsHeader head;
+	  itsSource.setHeader(&head);
 	  itsSource.setFitParams(itsFitparams);
 	  delete itsImage;
 
@@ -270,7 +271,7 @@ namespace askap {
 	  CPPUNIT_ASSERT(itsGaussObjlist.size() == 1);
 	  duchamp::FitsHeader head;
 	  head.beam().define(1,1,0,duchamp::PARAM);
-	  itsGaussSource.setHeader(head);
+	  itsGaussSource.setHeader(&head);
 	  itsGaussSource.setFitParams(itsFitparams);
 	  
 	  itsGaussSource.fitGauss(itsGaussArray.data(),itsDim.data(),itsFitparams);
