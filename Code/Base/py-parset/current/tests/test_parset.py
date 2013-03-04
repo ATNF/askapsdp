@@ -101,8 +101,13 @@ def test_get_value():
     v = p['x.y']
     v = p.x
     v = p.x.y.z
-    # test default value for non existing key
-    assert p.get_value('x.y.x', 10) == 10
+
+def test_get_value_default():
+    p = ParameterSet('x.y.z', 1)
+    assert_equals(p.get_value('x.y.z', 10), 1)
+    assert_equals(p.get_value('x.z', 10), 10)
+    assert_equals(p.get_value('x.y.z.x', 10), 10)
+
 
 def test_decoded():
     p = ParameterSet('x.y.z', '1')
@@ -124,6 +129,7 @@ def test_get_by_key_fail():
 def test_get_past_leafnode_fail():
     p = ParameterSet(a=1)
     v = p['a.b']
+
 
 def test_in():
     p = ParameterSet('x.y.z', 1)
