@@ -211,7 +211,7 @@ namespace askap {
 		    this->itsFlagFindSpectralTerms = std::vector<bool>(2,false);
 		}
 		else{
-		    this->itsSpectralTermImages = parset.getStringVector("spectralTermImages");
+		    this->itsSpectralTermImages = parset.getStringVector("spectralTermImages", std::vector<std::string>(2, ""));
 		    for(size_t i=this->itsSpectralTermImages.size();i<2;i++) this->itsSpectralTermImages.push_back("");
 		    this->checkSpectralTermImages();
 		}
