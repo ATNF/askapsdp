@@ -81,6 +81,7 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
   double startTime = 0;
   double stopTime = 0;
     
+  std::ofstream os2("avgts.dat");  
   for (IConstDataSharedIter it=ds.createConstIterator(sel,conv);it!=it.end();++it) {  
        if (nChan == 0) {
            nChan = it->nChannel();
@@ -114,16 +115,48 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
             for (casa::uInt ch = 0; ch < flags.nelements(); ++ch) {
                  flagged |= flags[ch];
             }
+            
+            casa::Vector<casa::Complex> measuredRow = it->visibility().xyPlane(0).row(row);
+            
+            /*
+            // flagging based on the amplitude (to remove extreme outliers)
+            casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
+            if ((casa::abs(currentAvgVis) > 13) && (row % 3 == 0)) {
+                flagged = true;
+            } 
+            */
+            /*
+            // uncomment to store the actual amplitude time-series
+            if ((counter>1) && (row % 3 == 0)) {
+                os2<<counter<<" "<<(it->time() - startTime)/60.<<" "<<casa::abs(currentAvgVis)<<std::endl;
+            }
+            */
+            //
+            
             if (flagged) {
                ++nBadRows;
             } else {
                 casa::Vector<casa::Complex> thisRow = buf.row(row);
-                casa::Vector<casa::Complex> measuredRow = it->visibility().xyPlane(0).row(row);
                 thisRow += measuredRow;
                 for (casa::uInt ch = 0; ch<thisRow.nelements(); ++ch) {
                      buf2(row,ch) += casa::Complex(casa::square(casa::real(measuredRow[ch])), casa::square(casa::imag(measuredRow[ch])));
                 }
                 ++nGoodRows;
+                // uncomment to store averaged time-series
+                if ((counter>1) && (row % 3 == 0) && (it->feed1()[row] == 0)) {
+                    const casa::Vector<casa::Complex> currentSpectrum = thisRow.copy() / float(counter);                    
+                    const casa::Complex avgVis = casa::sum(currentSpectrum) / float(currentSpectrum.nelements());
+                    casa::Complex avgSqr(0.,0.);
+                    for (casa::uInt ch = 0; ch<currentSpectrum.nelements(); ++ch) {
+                         avgSqr += casa::Complex(casa::square(casa::real(currentSpectrum[ch])),casa::square(casa::imag(currentSpectrum[ch])));                         
+                    }   
+                    avgSqr /= float(currentSpectrum.nelements());
+                    const float varReal = casa::real(avgSqr) - casa::square(casa::real(avgVis)); 
+                    const float varImag = casa::imag(avgSqr) - casa::square(casa::imag(avgVis)); 
+                     
+                    os2<<counter<<" "<<(it->time() - startTime)/60.<<" "<<casa::real(avgVis)<<" "<<
+                         sqrt(varReal)<<" "<<casa::imag(avgVis)<<" "<<sqrt(varImag)<<std::endl;
+                }               
             }
        }
        if ((counter == 0) && (nGoodRows == 0)) {
@@ -147,7 +180,6 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
         for (casa::uInt chan=0; chan<nChan; ++chan) {
              os<<chan<<" "<<freq[chan];
              for (casa::uInt row=0; row<nRow; ++row) {
-                  const casa::Complex diff = buf2(row,chan) - casa::Complex(casa::square(casa::real(buf(row,chan))),casa::square(casa::imag(buf(row,chan)))); 
                   const float varReal = casa::real(buf2(row,chan)) - casa::square(casa::real(buf(row,chan))); 
                   const float varImag = casa::imag(buf2(row,chan)) - casa::square(casa::imag(buf(row,chan))); 
                   os<<" "<<casa::abs(buf(row,chan))<<" "<<casa::arg(buf(row,chan))/casa::C::pi*180.<<" "<<sqrt(varReal + varImag)<<" ";
