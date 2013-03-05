@@ -22,7 +22,7 @@ cat > ${CONFIGDIR}/ccalibrator.in << EOF_INNER
 Ccalibrator.dataset                              = MS/coarse_chan_%w.ms
 Ccalibrator.refgain                              = gain.g11.0.0
 Ccalibrator.nAnt                                 = 6
-Ccalibrator.nBeam                                = 36
+Ccalibrator.nBeam                                = ${NUM_BEAMS_GAINSCAL}
 Ccalibrator.solve                                = gains
 
 # Output type/filename
@@ -30,6 +30,8 @@ Ccalibrator.calibaccess                          = table
 Ccalibrator.calibaccess.table                    = ${CALOUTPUT}
 Ccalibrator.calibaccess.table.maxant             = 6
 Ccalibrator.calibaccess.table.maxbeam            = 36
+#Ccalibrator.calibaccess                          = parset
+#Ccalibrator.calibaccess.parset                   = result.dat
 
 # Skymodel
 Ccalibrator.sources.names                        = skymodel
@@ -42,7 +44,7 @@ Ccalibrator.gridder.snapshotimaging              = true
 Ccalibrator.gridder.snapshotimaging.wtolerance   = 1000
 Ccalibrator.gridder                              = AWProject
 Ccalibrator.gridder.AWProject.wmax               = 1000
-Ccalibrator.gridder.AWProject.nwplanes           = 99
+Ccalibrator.gridder.AWProject.nwplanes           = 129
 Ccalibrator.gridder.AWProject.oversample         = 4
 Ccalibrator.gridder.AWProject.diameter           = 12m
 Ccalibrator.gridder.AWProject.blockage           = 2m

@@ -27,7 +27,7 @@ cd \${PBS_O_WORKDIR}
 imageName="image.${imagebase}_ch\${PBS_ARRAY_INDEX}"
 ms=MS/coarse_chan_\${PBS_ARRAY_INDEX}.ms
 
-basefreq=${CONT_CUBE_BASEFREQ}
+basefreq=${CONT_CUBE_FREQ_ZERO_CHAN}
 dfreq=1.e6
 freq=\`echo \$basefreq \$dfreq \${PBS_ARRAY_INDEX} | awk '{printf "%8.6e",\$1-\$2*\$3}'\`
 
@@ -84,7 +84,9 @@ Cimager.restore.beam                            = fit
 # Apply calibration
 Cimager.calibrate                               = false
 Cimager.calibaccess                             = table
-Cimager.calibaccess.table                       = 
+Cimager.calibaccess.table                       = ${CALOUTPUT}
+#Cimager.calibaccess                             = parset
+#Cimager.calibaccess.parset                      = result.dat
 Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER

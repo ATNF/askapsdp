@@ -26,7 +26,7 @@ Cimager.nworkergroups                           = 3
 Cimager.Images.Names                            = [image.i.clean]
 Cimager.Images.shape                            = [3328,3328]
 Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
-Cimager.Images.image.i.clean.frequency          = [1.420e9,1.420e9]
+Cimager.Images.image.i.clean.frequency          = [${CONT_CLEAN_FREQ},${CONT_CLEAN_FREQ}]
 Cimager.Images.image.i.clean.nchan              = 1
 Cimager.Images.image.i.clean.direction          = [12h30m00.00, -45.00.00.00, J2000]
 Cimager.Images.image.i.clean.nterms             = 2
@@ -77,6 +77,8 @@ Cimager.restore.equalise                        = True
 Cimager.calibrate                               = ${DO_CALIBRATION}
 Cimager.calibaccess                             = table
 Cimager.calibaccess.table                       = ${CALOUTPUT}
+#Cimager.calibaccess                             = parset
+#Cimager.calibaccess.parset                      = result.dat
 Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER

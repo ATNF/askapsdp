@@ -25,7 +25,7 @@ Cimager.dataset                                 = MS/coarse_chan_%w.ms
 Cimager.Images.Names                            = [image.i.dirty]
 Cimager.Images.shape                            = [3328,3328]
 Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
-Cimager.Images.image.i.dirty.frequency          = [1.420e9,1.420e9]
+Cimager.Images.image.i.dirty.frequency          = [${CONT_DIRTY_FREQ},${CONT_DIRTY_FREQ}]
 Cimager.Images.image.i.dirty.nchan              = 1
 Cimager.Images.image.i.dirty.direction          = [12h30m00.00, -45.00.00.00, J2000]
 #
@@ -61,6 +61,8 @@ Cimager.restore.beam                            = fit
 Cimager.calibrate                               = ${DO_CALIBRATION}
 Cimager.calibaccess                             = table
 Cimager.calibaccess.table                       = ${CALOUTPUT}
+#Cimager.calibaccess                             = parset
+#Cimager.calibaccess.parset                      = result.dat
 Cimager.calibrate.scalenoise                    = true
 Cimager.calibrate.allowflag                     = true
 EOF_INNER
@@ -68,8 +70,8 @@ EOF_INNER
 mpirun \${ASKAP_ROOT}/Code/Components/Synthesis/synthesis/current/apps/cimager.sh -c \${parset} > \${logfile}
 EOF
 
-# Submit the job
-echo "Continuum Imager (Dirty): Submitting"
+## Submit the job
+#echo "Continuum Imager (Dirty): Submitting"
 
 unset DEPENDS
 if [ "${QSUB_CAL}" ]; then

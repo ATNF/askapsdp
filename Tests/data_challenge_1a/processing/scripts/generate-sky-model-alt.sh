@@ -3,7 +3,7 @@
 # Sky Model Image Generation
 ##############################################################################
 
-SKYMODEL_OUTPUT=skymodel.image.taylor
+SKYMODEL_OUTPUT=skymodel.image
 
 cat > createFITS.qsub << EOF
 #!/bin/bash
@@ -20,7 +20,7 @@ cat > createFITS.qsub << EOF
 cd \${PBS_O_WORKDIR}
 
 cat > ${CONFIGDIR}/createFITS-\${PBS_JOBID}.in << EOF_INNER
-createFITS.filename    = !${INPUT_SKYMODEL}.fits
+createFITS.filename    = !${SKYMODEL_OUTPUT}.fits
 createFITS.casaOutput = true
 createFITS.fitsOutput = false
 createFITS.nsubx = 5
@@ -37,7 +37,7 @@ createFITS.dim = 4
 createFITS.axes = [3560, 3560, 1, 300]
 createFITS.WCSimage.ctype = [RA---SIN, DEC--SIN, STOKES, FREQ-OBS]
 createFITS.WCSimage.cunit = [deg, deg, "", Hz]
-createFITS.WCSimage.crval = [187.5, -45.0, 1, 1.271e9]
+createFITS.WCSimage.crval = [187.5, -45.0, 1, ${SKYMODEL_ALT_FREQ}]
 createFITS.WCSimage.crpix = [1780, 1780, 0, 0]
 createFITS.WCSimage.crota = [0, 0, 0, 0]
 createFITS.WCSimage.cdelt = [2.5342778e-3, 2.5324778e-3, 1, -1.e6]
@@ -45,7 +45,7 @@ createFITS.WCSsources = false
 createFITS.outputList = false
 createFITS.addNoise = false
 createFITS.doConvolution = false
-createFITS.baseFreq = 1.271e9
+createFITS.baseFreq = ${SKYMODEL_ALT_FREQ}
 createFITS.flagSpectralInfo = false
 createFITS.PAunits = deg
 createFITS.minMinorAxis = 0.0001
