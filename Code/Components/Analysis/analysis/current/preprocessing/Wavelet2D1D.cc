@@ -67,77 +67,77 @@ long inline reflectIndex(long index, size_t &dim)
 
 Recon2D1D::Recon2D1D()
 {
-  this->itsCube = 0;
-  this->itsFlagPositivity = true;
-  this->itsFlagDuchampStats = false;
-  this->itsReconThreshold = 3.;
-  this->itsMinXYScale = 1;
-  this->itsMaxXYScale = 0;
-  this->itsMinZScale = 1;
-  this->itsMaxZScale = 0;
-  this->itsNumIterations = 1;
+    this->itsCube = 0;
+    this->itsFlagPositivity = true;
+    this->itsFlagDuchampStats = false;
+    this->itsReconThreshold = 3.;
+    this->itsMinXYScale = 1;
+    this->itsMaxXYScale = 0;
+    this->itsMinZScale = 1;
+    this->itsMaxZScale = 0;
+    this->itsNumIterations = 1;
 }
 
 Recon2D1D::Recon2D1D(const LOFAR::ParameterSet &parset)
 {
-  this->itsFlagPositivity = parset.getBool("enforcePositivity",true);
-  this->itsFlagDuchampStats = parset.getBool("useDuchampStats",false);
-  this->itsReconThreshold = parset.getFloat("snrRecon",3.0);
-  this->itsMinXYScale = parset.getUint16("minXYscale",1);
-  this->itsMaxXYScale = parset.getUint16("maxXYscale",-1);
-  this->itsMinZScale = parset.getUint16("minZscale",1);
-  this->itsMaxZScale = parset.getUint16("maxZscale",-1);
-  this->itsNumIterations = parset.getUint16("maxIter",1);
+    this->itsFlagPositivity = parset.getBool("enforcePositivity",true);
+    this->itsFlagDuchampStats = parset.getBool("useDuchampStats",false);
+    this->itsReconThreshold = parset.getFloat("snrRecon",3.0);
+    this->itsMinXYScale = parset.getUint16("minXYscale",1);
+    this->itsMaxXYScale = parset.getUint16("maxXYscale",-1);
+    this->itsMinZScale = parset.getUint16("minZscale",1);
+    this->itsMaxZScale = parset.getUint16("maxZscale",-1);
+    this->itsNumIterations = parset.getUint16("maxIter",1);
 }
 
 Recon2D1D::Recon2D1D(const Recon2D1D& other)
 {
-  this->operator=(other);
+    this->operator=(other);
 }
 
 Recon2D1D& Recon2D1D::operator= (const Recon2D1D& other)
 {
-  if(this == &other) return *this;
-  this->itsCube = other.itsCube;
-  this->itsFlagPositivity = other.itsFlagPositivity;
-  this->itsFlagDuchampStats = other.itsFlagDuchampStats;
-  this->itsReconThreshold = other.itsReconThreshold;
-  this->itsMinXYScale = other.itsMinXYScale;
-  this->itsMaxXYScale = other.itsMaxXYScale;
-  this->itsMinZScale = other.itsMinZScale;
-  this->itsMaxZScale = other.itsMaxZScale;
-  this->itsNumIterations = other.itsNumIterations;
-  this->itsXdim = other.itsXdim;
-  this->itsYdim = other.itsYdim;
-  this->itsZdim = other.itsZdim;
-  return *this;
+    if(this == &other) return *this;
+    this->itsCube = other.itsCube;
+    this->itsFlagPositivity = other.itsFlagPositivity;
+    this->itsFlagDuchampStats = other.itsFlagDuchampStats;
+    this->itsReconThreshold = other.itsReconThreshold;
+    this->itsMinXYScale = other.itsMinXYScale;
+    this->itsMaxXYScale = other.itsMaxXYScale;
+    this->itsMinZScale = other.itsMinZScale;
+    this->itsMaxZScale = other.itsMaxZScale;
+    this->itsNumIterations = other.itsNumIterations;
+    this->itsXdim = other.itsXdim;
+    this->itsYdim = other.itsYdim;
+    this->itsZdim = other.itsZdim;
+    return *this;
 }
 
 void Recon2D1D::setCube(duchamp::Cube *cube)
 {
-  this->itsCube = cube;
-  this->itsXdim = cube->getDimX();
-  this->itsYdim = cube->getDimY();
-  this->itsZdim = cube->getDimZ();
+    this->itsCube = cube;
+    this->itsXdim = cube->getDimX();
+    this->itsYdim = cube->getDimY();
+    this->itsZdim = cube->getDimZ();
   
-  // NB: add +1 here since we have moved to assuming minimum scale = 1, not 0 as in Lars' original code.
-  uint xyScaleLimit = int(floor(log(std::min(this->itsXdim,this->itsYdim))/M_LN2));
-  uint zScaleLimit = int(floor(log(this->itsZdim)/M_LN2));
+    // NB: add +1 here since we have moved to assuming minimum scale = 1, not 0 as in Lars' original code.
+    uint xyScaleLimit = int(floor(log(std::min(this->itsXdim,this->itsYdim))/M_LN2));
+    uint zScaleLimit = int(floor(log(this->itsZdim)/M_LN2));
 
-  if(this->itsMaxXYScale > 0) //parset provided a value
-    this->itsMaxXYScale = std::min(xyScaleLimit, this->itsMaxXYScale);
-  else this->itsMaxXYScale = xyScaleLimit;
-  if(this->itsMinXYScale > xyScaleLimit){
-    ASKAPLOG_WARN_STR(logger, "2D1D Recon: Requested minXYScale="<<this->itsMinXYScale<< " exceeds maximum possible ("<<xyScaleLimit<<"). Setting minXYScale="<<xyScaleLimit);
-    this->itsMinXYScale=xyScaleLimit;
-  }
-  if(this->itsMaxZScale > 0) //parset provided a value
-    this->itsMaxZScale = std::min(zScaleLimit, this->itsMaxZScale);
-  else this->itsMaxZScale = zScaleLimit;
-  if(this->itsMinZScale > zScaleLimit){
-    ASKAPLOG_WARN_STR(logger, "2D1D Recon: Requested minZScale="<<this->itsMinZScale<< " exceeds maximum possible ("<<zScaleLimit<<"). Setting minZScale="<<zScaleLimit);
-    this->itsMinZScale=zScaleLimit;
-  }
+    if(this->itsMaxXYScale > 0) //parset provided a value
+	this->itsMaxXYScale = std::min(xyScaleLimit, this->itsMaxXYScale);
+    else this->itsMaxXYScale = xyScaleLimit;
+    if(this->itsMinXYScale > xyScaleLimit){
+	ASKAPLOG_WARN_STR(logger, "2D1D Recon: Requested minXYScale="<<this->itsMinXYScale<< " exceeds maximum possible ("<<xyScaleLimit<<"). Setting minXYScale="<<xyScaleLimit);
+	this->itsMinXYScale=xyScaleLimit;
+    }
+    if(this->itsMaxZScale > 0) //parset provided a value
+	this->itsMaxZScale = std::min(zScaleLimit, this->itsMaxZScale);
+    else this->itsMaxZScale = zScaleLimit;
+    if(this->itsMinZScale > zScaleLimit){
+	ASKAPLOG_WARN_STR(logger, "2D1D Recon: Requested minZScale="<<this->itsMinZScale<< " exceeds maximum possible ("<<zScaleLimit<<"). Setting minZScale="<<zScaleLimit);
+	this->itsMinZScale=zScaleLimit;
+    }
 
 }
 
@@ -145,18 +145,18 @@ void Recon2D1D::setCube(duchamp::Cube *cube)
 void Recon2D1D::reconstruct()
 {
 
-  /// @details This is Lars Floer's <lfloeer@astro.uni-bonn.de>
-  /// implementation of the "2D1D reconstruction" algorithm. This uses
-  /// the three-dimensional 'a trous' method used in Duchamp to do
-  /// wavelet reconstruction, but treats the spatial directions
-  /// separately to the spectral direction. Thresholding of the
-  /// wavelet coefficients is done, using the same snrrecon parameter
-  /// (in the Duchamp Param set) as for the regular Duchamp
-  /// reconstruction.
+    /// @details This is Lars Floer's <lfloeer@astro.uni-bonn.de>
+    /// implementation of the "2D1D reconstruction" algorithm. This uses
+    /// the three-dimensional 'a trous' method used in Duchamp to do
+    /// wavelet reconstruction, but treats the spatial directions
+    /// separately to the spectral direction. Thresholding of the
+    /// wavelet coefficients is done, using the same snrrecon parameter
+    /// (in the Duchamp Param set) as for the regular Duchamp
+    /// reconstruction.
 
-  // Use pointers for ease of access
-  float *input = this->itsCube->getArray();
-  float *output = this->itsCube->getRecon();
+    // Use pointers for ease of access
+    float *input = this->itsCube->getArray();
+    float *output = this->itsCube->getRecon();
 
     // Wavelet mother function stuff
     float waveletMotherFunction[5] = {1./16.,4./16.,6./16.,4./16.,1./16.};
@@ -180,7 +180,11 @@ void Recon2D1D::reconstruct()
 
     // Allocate the three work arrays
     float *work[3];
-    for(int i=0;i<3;i++) work[i] = new float[size];
+    float *origwork[3];  // this is used to track the original pointers for easy deletion at the end.
+    for(int i=0;i<3;i++){
+	work[i] = new float[size];
+	origwork[i] = work[i];
+    }
     bool *isGood = new bool[size];
 
 
@@ -188,8 +192,8 @@ void Recon2D1D::reconstruct()
     // Use the isBlank function of the duchamp::Param 
     for(ulong i = 0; i < size; i++)
     {
-      isGood[i] = !this->itsCube->pars().isBlank(input[i]);
-      output[i] = 0.;
+	isGood[i] = !this->itsCube->pars().isBlank(input[i]);
+	output[i] = 0.;
     }
 
     // Start the iteration loop
@@ -286,12 +290,12 @@ void Recon2D1D::reconstruct()
                     work[writeToZ][i] = 0.;
 
 		    if(isGood[i]){
-		      for(size_t j = 0; j < motherFunctionSize; j++)
+			for(size_t j = 0; j < motherFunctionSize; j++)
 			{
-			  size_t loc=offset + reflectIndex(filterPos,this->itsZdim) * xydim;
-			  if(isGood[loc])
-			    work[writeToZ][i] += work[readFromZ][loc] * waveletMotherFunction[j];
-			  filterPos += ZScaleFactor;
+			    size_t loc=offset + reflectIndex(filterPos,this->itsZdim) * xydim;
+			    if(isGood[loc])
+				work[writeToZ][i] += work[readFromZ][loc] * waveletMotherFunction[j];
+			    filterPos += ZScaleFactor;
 			}
 		    }
                 }
@@ -320,29 +324,29 @@ void Recon2D1D::reconstruct()
                     double std = 0;
 		    size_t goodSize=0;
                     for(size_t i = 0; i < size; i++){
-		      if(isGood[i]){
-                        std += work[writeToZ][i] * work[writeToZ][i];
-			goodSize++;
-		      }
+			if(isGood[i]){
+			    std += work[writeToZ][i] * work[writeToZ][i];
+			    goodSize++;
+			}
 		    }
                     std = sqrt(std / (goodSize + 1));
 
 		    float middle,spread,threshold;
 		    if(this->itsCube->pars().getFlagRobustStats()){
-		      findMedianStats<float>(work[writeToZ],size,isGood,middle,spread);
-		      spread=Statistics::madfmToSigma(spread);
+			findMedianStats<float>(work[writeToZ],size,isGood,middle,spread);
+			spread=Statistics::madfmToSigma(spread);
 		    }
 		    else findNormalStats<float>(work[writeToZ],size,isGood,middle,spread);
 		    threshold = middle + this->itsReconThreshold * spread;
 
                     // Threshold coefficients
                     for(size_t i = 0; i < size; i++){
-		      bool checkFlux;
-		      if(this->itsFlagDuchampStats)
-			checkFlux = (fabs(work[writeToZ][i]-middle)>this->itsReconThreshold*spread);
-		      else
-			checkFlux = (fabs(work[writeToZ][i])>this->itsReconThreshold * std);
-		      if(checkFlux && isGood[i]) output[i] += work[writeToZ][i];
+			bool checkFlux;
+			if(this->itsFlagDuchampStats)
+			    checkFlux = (fabs(work[writeToZ][i]-middle)>this->itsReconThreshold*spread);
+			else
+			    checkFlux = (fabs(work[writeToZ][i])>this->itsReconThreshold * std);
+			if(checkFlux && isGood[i]) output[i] += work[writeToZ][i];
 		    }
                 }
 
@@ -357,9 +361,9 @@ void Recon2D1D::reconstruct()
         // Enforce positivity on the (intermediate) solution
         // Greatly improves the reconstruction quality
 	if(this->itsFlagPositivity){
-	  for(size_t i = 0; i < size; i++)
-            if(output[i] < 0 || !isGood[i])
-	      output[i] = 0;
+	    for(size_t i = 0; i < size; i++)
+		if(output[i] < 0 || !isGood[i])
+		    output[i] = 0;
 	}
 
         // Increase the iteration counter and check for iteration break
@@ -368,7 +372,7 @@ void Recon2D1D::reconstruct()
     } while(iteration < this->itsNumIterations);
     
     delete [] isGood;
-    for(int i=0;i<3;i++) delete [] work[i];
+    for(int i=2;i>=0;i--) delete [] origwork[i];
 
     this->itsCube->setReconFlag(true);
 
