@@ -205,58 +205,66 @@ void Recon2D1D::reconstruct()
         for(uint XYScale = this->itsMinXYScale; XYScale <= this->itsMaxXYScale; XYScale++)
         {
 
-            // Convolve the x dimension with the wavelet mother function
-            // and approriate step size
-            for(size_t i = 0; i < size; i++)
-            {
-                xPos = i % this->itsXdim;
-                yPos = (i % xydim) / this->itsXdim;
-                zPos = i / xydim;
-                offset = yPos * this->itsXdim + zPos * xydim;
-                long filterPos = xPos - XYScaleFactor * motherFunctionHalfSize;
-                work[2][i] = 0.;
+	    if (XYScale < this->itsMaxXYScale) {
 
-		if(isGood[i]){
-		  for(size_t j = 0; j < motherFunctionSize; j++)
-		    {
-		      size_t loc=offset + reflectIndex(filterPos,this->itsXdim) * 1;
-		      if(isGood[loc])
-			work[2][i] += work[readFromXY][loc] * waveletMotherFunction[j];
-		      filterPos += XYScaleFactor;
+		// Convolve the x dimension with the wavelet mother function
+		// and approriate step size
+		for(size_t i = 0; i < size; i++)
+		{
+		    xPos = i % this->itsXdim;
+		    yPos = (i % xydim) / this->itsXdim;
+		    zPos = i / xydim;
+		    offset = yPos * this->itsXdim + zPos * xydim;
+		    long filterPos = xPos - XYScaleFactor * motherFunctionHalfSize;
+		    work[2][i] = 0.;
+
+		    if(isGood[i]){
+			for(size_t j = 0; j < motherFunctionSize; j++)
+			{
+			    size_t loc=offset + reflectIndex(filterPos,this->itsXdim) * 1;
+			    if(isGood[loc])
+				work[2][i] += work[readFromXY][loc] * waveletMotherFunction[j];
+			    filterPos += XYScaleFactor;
+			}
 		    }
 		}
+
+		// Convolve the y dimension with the wavelet mother function
+		// and appropriate step size
+		for(size_t i = 0; i < size; i++)
+		{
+		    xPos = i % this->itsXdim;
+		    yPos = (i % xydim) / this->itsXdim;
+		    zPos = i / xydim;
+		    offset = xPos + zPos * xydim;
+		    long filterPos = yPos - XYScaleFactor * motherFunctionHalfSize;
+		    work[writeToXY][i] = 0.;
+
+		    if(isGood[i]){
+			for(size_t j = 0; j < motherFunctionSize; j++)
+			{
+			    size_t loc=offset + reflectIndex(filterPos,this->itsYdim) * this->itsXdim;
+			    if(isGood[loc])
+				work[writeToXY][i] += work[2][loc] * waveletMotherFunction[j];
+			    filterPos += XYScaleFactor;
+			}
+		    }
+		}
+
+		// Exchange the work array access indices 
+		readFromXY = (readFromXY + 1) % 2;
+		writeToXY = (writeToXY + 1) % 2;
+
+		// Calculate the spatial wavelet coefficients
+		for(size_t i = 0; i < size; i++)
+		    work[writeToXY][i] -= work[readFromXY][i];
+
 	    }
+	    else 
+		work[writeToXY] = work[readFromXY];
 
-            // Convolve the y dimension with the wavelet mother function
-            // and appropriate step size
-            for(size_t i = 0; i < size; i++)
-            {
-                xPos = i % this->itsXdim;
-                yPos = (i % xydim) / this->itsXdim;
-                zPos = i / xydim;
-                offset = xPos + zPos * xydim;
-                long filterPos = yPos - XYScaleFactor * motherFunctionHalfSize;
-                work[writeToXY][i] = 0.;
 
-		if(isGood[i]){
-		  for(size_t j = 0; j < motherFunctionSize; j++)
-		    {
-		      size_t loc=offset + reflectIndex(filterPos,this->itsYdim) * this->itsXdim;
-		      if(isGood[loc])
-			work[writeToXY][i] += work[2][loc] * waveletMotherFunction[j];
-		      filterPos += XYScaleFactor;
-		    }
-		}
-            }
-
-            // Calculate the spatial wavelet coefficients
-            for(size_t i = 0; i < size; i++)
-                work[writeToXY][i] -= work[readFromXY][i];
-
-            // Exchange the work array access indices and
             // set the access indices for the spectral loop
-            readFromXY = (readFromXY + 1) % 2;
-            writeToXY = (writeToXY + 1) % 2;
             readFromZ = writeToXY;
             writeToZ = 2;
 
@@ -350,7 +358,7 @@ void Recon2D1D::reconstruct()
         // Greatly improves the reconstruction quality
 	if(this->itsFlagPositivity){
 	  for(size_t i = 0; i < size; i++)
-            if(output[i] < 0)
+            if(output[i] < 0 || !isGood[i])
 	      output[i] = 0;
 	}
 
