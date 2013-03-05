@@ -103,6 +103,9 @@ using namespace LOFAR::TYPES;
 #include <duchamp/PixelMap/Voxel.hh>
 #include <duchamp/PixelMap/Object3D.hh>
 
+// FOR DUCHAMP_1.3
+//#include <duchamp/FitsIO/WriteMaskArray.hh>
+
 ///@brief Where the log messages go.
 ASKAP_LOGGER(logger, ".parallelanalysis");
 
@@ -2165,6 +2168,15 @@ namespace askap {
 	    ASKAPLOG_INFO_STR(logger, "Saving mask cube to "<< this->itsCube.pars().outputMaskFile());
 	    if(this->itsCube.saveMaskCube() == FAILURE)
 	      ASKAPLOG_ERROR_STR(logger, "Unable to save the mask cube to " << this->itsCube.pars().outputMaskFile());
+
+
+// // FOR DUCHAMP_1.3
+// 	    WriteMaskArray writer(&this->itsCube);
+// 	    writer.setFilename(this->itsCube.pars().outputMaskFile());
+// 	    if(writer.write() == FAILURE)
+// 	      ASKAPLOG_ERROR_STR(logger, "Unable to save the mask cube to " << this->itsCube.pars().outputMaskFile());
+
+
 	  }
  
 	}
