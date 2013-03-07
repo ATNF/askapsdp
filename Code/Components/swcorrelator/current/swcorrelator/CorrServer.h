@@ -99,6 +99,9 @@ private:
   
   /// @brief true if the correlator is run in the capture mode
   bool itsCaptureMode;
+  
+  /// @brief true if the capture mode produces stats only
+  bool itsStatsOnly;
 };
 
 } // namespace swcorrelator

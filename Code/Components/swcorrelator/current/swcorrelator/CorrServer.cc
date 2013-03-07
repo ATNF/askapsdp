@@ -64,7 +64,8 @@ void CorrServer::stop()
 /// @details Configuration is done via the parset
 /// @param[in] parset parset file with configuration info
 CorrServer::CorrServer(const LOFAR::ParameterSet &parset) : itsAcceptor(theirIOService), 
-     itsCaptureMode(parset.getBool("capturemode", false))
+     itsCaptureMode(parset.getBool("capturemode", false)),
+     itsStatsOnly(parset.getBool("capturemode.statsonly",false))
 {
   theirStopRequested = false;
   // setup acceptor
@@ -112,7 +113,7 @@ void CorrServer::run()
       }
   } else {
       ASKAPLOG_INFO_STR(logger, "About to start data dump thread");
-      itsThreads.create_thread(CaptureWorker(itsBufferManager));
+      itsThreads.create_thread(CaptureWorker(itsBufferManager,itsStatsOnly));
   }
   
   ASKAPLOG_INFO_STR(logger, "About to run I/O service loop");
