@@ -109,9 +109,10 @@ void CaptureWorker::operator()()
           const casa::uInt nbinsRe = histRe.getHistogram(binsRe, valsRe);
           const casa::uInt nbinsIm = histIm.getHistogram(binsIm, valsIm);
           ASKAPASSERT(nbinsRe == nbinsIm);
+          ASKAPDEBUGASSERT(binsRe.nelements() + 2 == nbinsRe);
           std::ofstream os(fname.c_str());
-          for (casa::uInt bin = 0; bin < nbinsRe; ++bin) {
-               os<<bin<<" "<<minVal + binWidth * binsRe[bin]<<" "<<valsRe[bin]<<" "<<valsIm[bin]<<std::endl;
+          for (casa::uInt bin = 0; bin < binsRe.nelements(); ++bin) {
+               os<<bin<<" "<<valsRe[bin]<<" "<<valsIm[bin]<<" "<<binsRe[bin]<<" "<<binsIm[bin]<<std::endl;
           }         
        } else {
           ASKAPLOG_INFO_STR(logger, "About to dump the data to the file "<<fname);

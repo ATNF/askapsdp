@@ -202,6 +202,8 @@ int BufferManager::getFilledBuffer() const
   while (true) {
      for (int id = 0; id < itsNBuf; ++id) {
          if (itsStatus[id] == BUF_READY) {
+             const BufferHeader& hdr = header(id);
+             itsReadyBuffers(hdr.antenna, hdr.freqId, hdr.beam) = -1;
              return id;
          }
      }
