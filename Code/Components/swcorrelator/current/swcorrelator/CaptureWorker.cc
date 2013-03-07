@@ -38,6 +38,9 @@
 #include <boost/thread.hpp>
 #include <askap/AskapUtil.h>
 
+#include <scimath/Mathematics/StatAcc.h>
+#include <scimath/Mathematics/HistAcc.h>
+
 ASKAP_LOGGER(logger, ".captureworker");
 
 namespace askap {
@@ -47,13 +50,20 @@ namespace swcorrelator {
 /// @brief constructor
 /// @details 
 /// @param[in] bm shared pointer to a buffer manager
-CaptureWorker::CaptureWorker(const boost::shared_ptr<BufferManager> &bm) :
-    itsBufferManager(bm) {}
+/// @param[in] statsOnly if true, only statistics will be stored, not the
+///            actual data (and the same output file will be reused for different integrations)
+CaptureWorker::CaptureWorker(const boost::shared_ptr<BufferManager> &bm, const bool statsOnly) :
+    itsBufferManager(bm), itsStatsOnly(statsOnly) {}
 
 /// @brief entry point for the parallel thread
 void CaptureWorker::operator()()
 {
    ASKAPLOG_INFO_STR(logger, "Capture worker thread started, id="<<boost::this_thread::get_id());
+   if (itsStatsOnly) {
+       ASKAPLOG_INFO_STR(logger, "Only histogram will be stored");
+   } else {
+       ASKAPLOG_INFO_STR(logger, "Actual voltage samples will be stored");
+   }
    try {
      ASKAPDEBUGASSERT(itsBufferManager);
      // buffer size in complex floats
@@ -65,19 +75,57 @@ void CaptureWorker::operator()()
        const int beam = itsBufferManager->header(id).beam;
        const int chan = itsBufferManager->header(id).freqId;
        const int antenna = itsBufferManager->header(id).antenna;
+       const std::string batString = ".bat"+utility::toString<uint64_t>(bat);
        const std::string fname = "ant"+utility::toString<int>(antenna)+".beam"+utility::toString<int>(beam)+
-            ".chan"+utility::toString<int>(chan)+".bat"+utility::toString<uint64_t>(bat)+".dat";
-       ASKAPLOG_INFO_STR(logger, "About to dump the data to the file "<<fname);
-       // format is just number of complex words followed by real, imaginary, ...
-       std::ofstream os(fname.c_str());
-       os.write((char*)&size, sizeof(int));
-       std::complex<float>* data = itsBufferManager->data(id);
-       for (int i=0; i<size; ++i,++data) {
-            float buf = real(*data);
-            os.write((char*)&buf, sizeof(float));
-            buf = imag(*data);
-            os.write((char*)&buf, sizeof(float));
-       }              
+            ".chan"+utility::toString<int>(chan)+ (itsStatsOnly ? "" : batString) +".dat";
+
+       if (itsStatsOnly) {
+          ASKAPDEBUGASSERT(size>1);
+          casa::StatAcc<float> accRe, accIm;
+          // first pass - basic stats
+          std::complex<float>* data = itsBufferManager->data(id);
+          for (int i=0; i<size; ++i,++data) {
+               accRe.put(real(*data));
+               accIm.put(imag(*data));
+          }
+          ASKAPLOG_INFO_STR(logger, "Stats for (ant/beam/chan) "<<antenna<<"/"<<beam<<"/"<<chan<<": rms=("<<accRe.getRms()<<","<<
+                accIm.getRms()<<") mean=("<<accRe.getMean()<<","<<accIm.getMean()<<") min=("<<accRe.getMin()<<","<<accIm.getMin()<<
+                ") max=("<<accRe.getMax()<<","<<accIm.getMax()<<")");
+          // second pass is to accumulate histogram
+          const casa::uInt nBins = 30;
+          const float maxVal = max(accRe.getMax(),accIm.getMax());
+          const float minVal = max(accRe.getMin(),accIm.getMin());
+          const float binWidth = (maxVal - minVal) / nBins;
+          casa::HistAcc<float> histRe(minVal, maxVal, binWidth);
+          casa::HistAcc<float> histIm(minVal, maxVal, binWidth);
+          data = itsBufferManager->data(id);
+          for (int i=0; i<size; ++i,++data) {
+               histRe.put(real(*data));
+               histIm.put(imag(*data));
+          }
+          // get and store results
+          casa::Block<casa::uInt> binsRe, binsIm;
+          casa::Block<float> valsRe, valsIm;
+          const casa::uInt nbinsRe = histRe.getHistogram(binsRe, valsRe);
+          const casa::uInt nbinsIm = histIm.getHistogram(binsIm, valsIm);
+          ASKAPASSERT(nbinsRe == nbinsIm);
+          std::ofstream os(fname.c_str());
+          for (casa::uInt bin = 0; bin < nbinsRe; ++bin) {
+               os<<bin<<" "<<minVal + binWidth * binsRe[bin]<<" "<<valsRe[bin]<<" "<<valsIm[bin]<<std::endl;
+          }         
+       } else {
+          ASKAPLOG_INFO_STR(logger, "About to dump the data to the file "<<fname);
+          // format is just number of complex words followed by real, imaginary, ...
+          std::ofstream os(fname.c_str());
+          os.write((char*)&size, sizeof(int));
+          std::complex<float>* data = itsBufferManager->data(id);
+          for (int i=0; i<size; ++i,++data) {
+              float buf = real(*data);
+              os.write((char*)&buf, sizeof(float));
+              buf = imag(*data);
+              os.write((char*)&buf, sizeof(float));
+          } 
+       }             
        itsBufferManager->releaseBuffers(id);
      }
   } catch (const AskapError &ae) {

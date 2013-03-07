@@ -56,7 +56,9 @@ struct CaptureWorker {
   /// @brief constructor
   /// @details 
   /// @param[in] bm shared pointer to a buffer manager
-  CaptureWorker(const boost::shared_ptr<BufferManager> &bm);
+  /// @param[in] statsOnly if true, only statistics will be stored, not the
+  ///            actual data (and the same output file will be reused for different integrations)
+  CaptureWorker(const boost::shared_ptr<BufferManager> &bm, const bool statsOnly = false);
 
   /// @brief entry point for the parallel thread
   void operator()();
@@ -71,6 +73,9 @@ struct CaptureWorker {
 private:
   /// @brief buffer manager
   boost::shared_ptr<BufferManager> itsBufferManager;  
+  
+  /// @brief if true, only distribution function is to be written
+  bool itsStatsOnly;
 };
 
 
