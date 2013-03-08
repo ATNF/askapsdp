@@ -136,7 +136,7 @@ doClobberMergedVis=true
 doMergeStage1=true
 doMergeStage2=true
 
-array=BETA15.in
+array=BETAXYZ.in
 #nfeeds=36
 nfeeds=9
 feeds=ASKAP${nfeeds}feeds.in
