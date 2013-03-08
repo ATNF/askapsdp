@@ -12,6 +12,9 @@ Welcome to askap's documentation!
 .. automodule:: askap.logging
    :members:
 
+.. automodule:: askap.time
+   :members:
+
 .. toctree::
    :maxdepth: 1
 
