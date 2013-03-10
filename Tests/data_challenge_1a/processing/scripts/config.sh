@@ -93,11 +93,11 @@ if [ $BETA_MODE == "half" ]; then
 
 # number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
     CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=6:mem=23GB:mpiprocs=6"
-    CONT_CLEAN_FREQ=1.270GHz
+    CONT_CLEAN_FREQ=1.270e9
 
 # number of worker nodes needed for imager-cont-dirty.sh - work with 6 worker cpus per node, plus extra on the master's node
     CONT_DIRTY_SELECT="1:ncpus=3:mem=23GB:mpiprocs=3+25:ncpus=6:mem=23GB:mpiprocs=6"
-    CONT_DIRTY_FREQ=1.270GHz
+    CONT_DIRTY_FREQ=1.270e9
 
 # base frequency for continuum cubes
     CONT_CUBE_FREQ_ZERO_CHAN=1.345e9
@@ -141,11 +141,11 @@ elif [ ${BETA_MODE} == "full" ]; then
 
 # number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
     CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=6:mem=23GB:mpiprocs=6"
-    CONT_CLEAN_FREQ=1.270GHz
+    CONT_CLEAN_FREQ=1.270e9
 
 # number of worker nodes needed for imager-cont-dirty.sh - work with 6 worker cpus per node, plus extra on the master's node
     CONT_DIRTY_SELECT="1:ncpus=5:mem=23GB:mpiprocs=5+50:ncpus=6:mem=23GB:mpiprocs=6"
-    CONT_DIRTY_FREQ=1.270GHz
+    CONT_DIRTY_FREQ=1.270e9
 
 # base frequency for continuum cubes
     CONT_CUBE_FREQ_ZERO_CHAN=1.421e9
