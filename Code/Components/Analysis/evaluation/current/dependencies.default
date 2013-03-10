@@ -1,5 +1,5 @@
 py-askap=Code/Base/py-askap/current
 py-parset=Code/Base/py-parset/current
 numpy=3rdParty/numpy/numpy-1.6.2
-matplotlib=3rdParty/matplotlib/matplotlib-1.1.1
-#matplotlib=3rdParty/matplotlib/matplotlib-1.2.0
+#matplotlib=3rdParty/matplotlib/matplotlib-1.1.1
+matplotlib=3rdParty/matplotlib/matplotlib-1.2.0
