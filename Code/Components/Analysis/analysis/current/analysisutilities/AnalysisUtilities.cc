@@ -221,10 +221,10 @@ namespace askap {
 	    par.setDS9File(parset.getString("ds9File",par.getDS9File()));
 	    if(par.getFlagDS9() && parset.isDefined("ds9File"))
 	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getDS9File()<<"' for the DS9 region file");
-	    // par.setFlagCasa(parset.getBool("flagCasa",true)); // different from Duchamp default
-	    // par.setCasaFile(parset.getString("casaFile",par.getCasaFile()));
-	    // if(par.getFlagCasa() && parset.isDefined("casaFile"))
-	    //   ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getCasaFile()<<"' for the Casa region file");
+	    par.setFlagCasa(parset.getBool("flagCasa",true)); // different from Duchamp default
+	    par.setCasaFile(parset.getString("casaFile",par.getCasaFile()));
+	    if(par.getFlagCasa() && parset.isDefined("casaFile"))
+		ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getCasaFile()<<"' for the Casa region file");
 	    //
 	    par.setFlagMaps(false); // flagMaps
 	    checkUnusedParameter(parset,"flagMaps");//  - not using X
