@@ -60,6 +60,7 @@ void setSelavyNames(DuchampParallel &finder, askap::askapparallel::AskapParallel
     finder.cube().pars().setVOTFile("selavy-results.xml");
     finder.cube().pars().setKarmaFile("selavy-results.ann");
     finder.cube().pars().setDS9File("selavy-results.reg");
+    finder.cube().pars().setCasaFile("selavy-results.crf");
     if(comms.isParallel() && comms.isMaster())
         finder.cube().pars().setLogFile("selavy-Logfile-Master.txt");
     else
