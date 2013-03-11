@@ -110,7 +110,7 @@ class SelavyApp : public askap::Application
                 finder.cleanup();
                 finder.printResults();
 		finder.extractSpectra();
-		finder.saveMask();
+		finder.writeToFITS();
 
                 stats.logSummary();
                 ///==============================================================================

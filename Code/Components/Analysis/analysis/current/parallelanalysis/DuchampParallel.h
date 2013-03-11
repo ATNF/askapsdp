@@ -169,7 +169,7 @@ namespace askap {
                 /// @brief Write a Karma annotation file showing the fits (on the master).
                 void writeFitAnnotation();
 
-		void saveMask();
+		void writeToFITS();
 		
 		/// @brief Write an array to an image
 		void writeImage(std::string imageName, Float* data);

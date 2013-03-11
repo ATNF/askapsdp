@@ -2156,16 +2156,17 @@ namespace askap {
 	
       }
 
-      void DuchampParallel::saveMask()
+      void DuchampParallel::writeToFITS()
       {
 	
 	if(!this->itsComms.isParallel()){
 	  this->itsCube.pars().setFlagBlankPix(false);
-	  if(this->itsCube.pars().getFlagOutputMask()){
-	    ASKAPLOG_INFO_STR(logger, "Saving mask cube to "<< this->itsCube.pars().outputMaskFile());
-	    if(this->itsCube.saveMaskCube() == FAILURE)
-	      ASKAPLOG_ERROR_STR(logger, "Unable to save the mask cube to " << this->itsCube.pars().outputMaskFile());
-	  }
+	  // if(this->itsCube.pars().getFlagOutputMask()){
+	  //     ASKAPLOG_INFO_STR(logger, "Saving mask cube to "<< this->itsCube.pars().outputMaskFile());
+	  //     if(this->itsCube.saveMaskCube() == FAILURE)
+	  // 	  ASKAPLOG_ERROR_STR(logger, "Unable to save the mask cube to " << this->itsCube.pars().outputMaskFile());
+	  // }
+	  this->itsCube.writeToFITS();
  
 	}
 
