@@ -39,6 +39,7 @@
 #include <vector>
 #include <string>
 #include <complex>
+#include <fstream>
 
 namespace askap {
 
@@ -76,6 +77,13 @@ private:
   
   /// @brief if true, only distribution function is to be written
   bool itsStatsOnly;
+  
+  /// @brief output stream to store time series for statistics
+  /// @details Full flexibility is not supported, antenna/channel/beam selection is hard coded
+  static std::ofstream theirOStream;
+   
+  /// @brief BAT time of the start, used in conjunction with the stream defined above
+  static uint64_t theirStartBAT;
 };
 
 

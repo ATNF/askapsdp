@@ -47,6 +47,13 @@ namespace askap {
 
 namespace swcorrelator {
 
+/// @brief output stream to store time series for statistics
+/// @details Full flexibility is not supported, antenna/channel/beam selection is hard coded
+std::ofstream CaptureWorker::theirOStream;
+   
+/// @brief BAT time of the start, used in conjunction with the stream defined above
+uint64_t CaptureWorker::theirStartBAT;
+
 /// @brief constructor
 /// @details 
 /// @param[in] bm shared pointer to a buffer manager
@@ -113,7 +120,25 @@ void CaptureWorker::operator()()
           std::ofstream os(fname.c_str());
           for (casa::uInt bin = 0; bin < binsRe.nelements(); ++bin) {
                os<<bin<<" "<<valsRe[bin]<<" "<<valsIm[bin]<<" "<<binsRe[bin]<<" "<<binsIm[bin]<<std::endl;
-          }         
+          }
+          // dump time series. It's not a very tidy way to use static data members, but it is the 
+          // simplest way to deal with the fact that the same antenna/beam/channel can be processed with different
+          // instances of this class
+          if ((antenna == 0) && (beam == 0) && (chan == 8)) {
+              if (!theirOStream.is_open()) {
+                 try {
+                    theirOStream.open("samplestats.dat");
+                    theirStartBAT = bat; 
+                 }
+                 catch (const std::exception &ex) {
+                       ASKAPLOG_FATAL_STR(logger, "Error opening output ascii file for sample stats: "<<ex.what());
+                 }
+              }
+              theirOStream<<double(bat - theirStartBAT)/1e6/60.<<" "<<minVal<<" "<<maxVal<<" "<<accRe.getRms()<<" "<<
+                accIm.getRms()<<" "<<accRe.getMean()<<" "<<accIm.getMean()<<" "<<accRe.getMin()<<" "<<accIm.getMin()<<
+                " "<<accRe.getMax()<<" "<<accIm.getMax()<<std::endl;
+              theirOStream.flush();   
+          }                 
        } else {
           ASKAPLOG_INFO_STR(logger, "About to dump the data to the file "<<fname);
           // format is just number of complex words followed by real, imaginary, ...
