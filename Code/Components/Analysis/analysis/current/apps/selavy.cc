@@ -57,6 +57,7 @@ void setSelavyNames(DuchampParallel &finder, askap::askapparallel::AskapParallel
 {
     finder.cube().pars().setOutFile("selavy-results.txt");
     finder.cube().pars().setHeaderFile("selavy-results.hdr");
+    finder.cube().pars().setBinaryCatalogue("selavy-catalogue.dpc");
     finder.cube().pars().setVOTFile("selavy-results.xml");
     finder.cube().pars().setKarmaFile("selavy-results.ann");
     finder.cube().pars().setDS9File("selavy-results.reg");
