@@ -46,7 +46,7 @@ namespace askap {
     namespace matching {
 
       PointCatalogue::PointCatalogue():
-	itsFilename(""),itsTrimSize(0),itsRatioLimit(defaultRatioLimit),itsFlagOffsetPositions(false),itsRAref(0.),itsDECref(0.)
+	  itsFilename(""),itsTrimSize(0),itsRatioLimit(defaultRatioLimit),itsFlagOffsetPositions(false),itsRAref(0.),itsDECref(0.),itsRadius(0.)
       {
 	// if(this->itsTrimSize <= 2) ASKAPLOG_WARN_STR(logger, "Since trimsize<=2, the entire point list will be used to generate triangles.");
 	this->itsFullPointList = std::vector<Point>(0); 
@@ -80,6 +80,7 @@ namespace askap {
 	  if(raRef!="" || decRef!="")
 	    ASKAPLOG_WARN_STR(logger, "To offset positions, you need to provide both raRef and decRef parameters");
 	}
+	this->itsRadius = parset.getDouble("radius",-1.);
       }
 
       PointCatalogue::PointCatalogue(const PointCatalogue& other)
@@ -100,6 +101,7 @@ namespace askap {
 	this->itsFlagOffsetPositions = other.itsFlagOffsetPositions;
 	this->itsRAref = other.itsRAref;
 	this->itsDECref = other.itsDECref;
+	this->itsRadius = other.itsRadius;
 	return *this;
       }
 
@@ -115,13 +117,17 @@ namespace askap {
 		 !fin.eof()) {
 	    if (line[0] != '#') {  // ignore commented lines
 	      analysisutilities::Spectrum *spec=this->itsFactory.read(line);
-	      this->itsFullPointList.push_back(spec);
 	      if(this->itsFlagOffsetPositions){
-		this->itsFullPointList.back().setX(analysisutilities::angularSeparation(this->itsRAref,0,spec->raD(),0.));
-		this->itsFullPointList.back().setY(analysisutilities::angularSeparation(0,this->itsDECref,0,spec->decD()));
-		ASKAPLOG_DEBUG_STR(logger, "Read source at position ("<<spec->raD()<<","<<spec->decD()
-				   <<"), and storing point with (x,y)=("<<itsFullPointList.back().x()<<","<<itsFullPointList.back().y()<<")");
+		  double radius=analysisutilities::angularSeparation(this->itsRAref,this->itsDECref,spec->raD(),spec->decD());
+		  if(this->itsRadius < 0. || radius<this->itsRadius){
+		      this->itsFullPointList.push_back(spec);
+		      this->itsFullPointList.back().setX(analysisutilities::angularSeparation(this->itsRAref,0,spec->raD(),0.));
+		      this->itsFullPointList.back().setY(analysisutilities::angularSeparation(0,this->itsDECref,0,spec->decD()));
+		      ASKAPLOG_DEBUG_STR(logger, "Read source at position ("<<spec->raD()<<","<<spec->decD()
+					 <<"), and storing point with (x,y)=("<<itsFullPointList.back().x()<<","<<itsFullPointList.back().y()<<")");
+		  }
 	      }
+	      else this->itsFullPointList.push_back(spec);
 	      delete spec;
 	    }
 	  }

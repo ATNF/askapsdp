@@ -65,6 +65,7 @@ namespace askap {
 	double ratioLimit(){return itsRatioLimit;};
 	double raRef(){return itsRAref;};
 	double decRef(){return itsDECref;};
+	double radius(){return itsRadius;};
 
       protected:
 	std::vector<Point> itsFullPointList;
@@ -77,6 +78,7 @@ namespace askap {
 	bool   itsFlagOffsetPositions;
 	double itsRAref;
 	double itsDECref;
+	double itsRadius;
       };
 
     }
