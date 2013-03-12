@@ -2009,6 +2009,12 @@ namespace askap {
 		  this->itsCube.outputDetectionsVOTable();
 		}
 
+		
+		if(this->itsCube.pars().getFlagWriteBinaryCatalogue() && (this->itsCube.getNumObj()>0)){
+		    ASKAPLOG_INFO_STR(logger, "Creating binary catalogue of detections, called " << this->itsCube.pars().getBinaryCatalogue());
+		    this->itsCube.writeBinaryCatalogue();
+		}
+
 
 		if(this->itsFitParams.doFit()){
 
