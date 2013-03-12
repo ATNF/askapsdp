@@ -192,17 +192,18 @@ namespace askap {
 	    par.setFlagSeparateHeader(parset.getBool("flagSeparateHeader",par.getFlagSeparateHeader()));
 	    if(par.getFlagSeparateHeader() && parset.isDefined("headerFile")) 
 	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getHeaderFile()<<"' for the results header file");
+	    par.setFlagWriteBinaryCatalogue( parset.getBool("flagWriteBinaryCatalogue",par.getFlagWriteBinaryCatalogue()) );
+	    par.setBinaryCatalogue( parset.getString("binaryCatalogue",par.getBinaryCatalogue()) );
 	    par.setFlagPlotSpectra(false); // no graphics, so not plotting
 	    checkUnusedParameter(parset,"flagPlotSpectra");// no graphics
+	    checkUnusedParameter(parset,"flagPlotIndividualSpectra"); // no graphics
 	    checkUnusedParameter(parset,"spectraFile");// no graphics
 	    par.setFlagTextSpectra(parset.getBool("flagTextSpectra", par.getFlagTextSpectra()));
 	    par.setSpectraTextFile(parset.getString("spectraTextFile",par.getSpectraTextFile()));
-	    par.setFlagOutputMomentMask(parset.getBool("flagOutputMomentMask",par.getFlagOutputMomentMask()));
-	    par.setFileOutputMomentMask(parset.getString("fileOutputMomentMask",par.getFileOutputMomentMask()));
-	    //	    checkUnusedParameter(parset,"flagOutputMomentMap");// 
-	    //	    checkUnusedParameter(parset,"fileOutputMomentMap");// 
 	    checkUnusedParameter(parset,"flagOutputBaseline");// 
 	    checkUnusedParameter(parset,"fileOutputBaseline");// 
+	    par.setFlagOutputMomentMask(parset.getBool("flagOutputMomentMask",par.getFlagOutputMomentMask()));
+	    par.setFileOutputMomentMask(parset.getString("fileOutputMomentMask",par.getFileOutputMomentMask()));
 	    par.setFlagOutputMask(parset.getBool("flagOutputMask",par.getFlagOutputMask()));
 	    par.setFileOutputMask(parset.getString("fileOutputMask",par.getFileOutputMask()));
 	    par.setFlagMaskWithObjectNum(parset.getBool("flagMaskWithObjectNum",par.getFlagMaskWithObjectNum()));
@@ -212,12 +213,6 @@ namespace askap {
 	    par.setFileOutputRecon(parset.getString("fileOutputRecon",par.getFileOutputRecon()));
 	    par.setFlagOutputResid(parset.getBool("flagOutputResid",par.getFlagOutputResid()));
 	    par.setFileOutputResid(parset.getString("fileOutputResid",par.getFileOutputResid()));
-//	    checkUnusedParameter(parset,"flagOutputSmooth");// 
-//	    checkUnusedParameter(parset,"fileOutputSmooth");// 
-//	    checkUnusedParameter(parset,"flagOutputRecon");// 
-//	    checkUnusedParameter(parset,"fileOutputRecon");// 
-//	    checkUnusedParameter(parset,"flagOutputResid");// 
-//	    checkUnusedParameter(parset,"fileOutputResid");// 
 	    par.setFlagVOT(parset.getBool("flagVOT",par.getFlagVOT()));
 	    if(par.getFlagVOT() && parset.isDefined("votFile"))
 	      ASKAPLOG_WARN_STR(logger,"Using default value only of '"<<par.getVOTFile()<<"' for the VOTable file");
