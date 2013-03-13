@@ -22,6 +22,27 @@ now=`date +%F-%H%M`
 queueName=routequeue
 
 ##############################
+# FUNDADMENTAL
+##############################
+
+sourcelist=master_possum_catalogue_trim10x10deg.dat
+
+databaseCR=POSSUM
+#databaseCR=POSSUMHI
+
+doHalfBW=false
+
+#freqChanZeroGHz=1.421
+freqChanZeroGHz=1.050
+
+baseimage=DCmodel
+
+array=BETAXYZ.in
+nfeeds=36
+
+msbase=DCvis
+
+##############################
 # MODEL CREATION
 ##############################
 
@@ -33,17 +54,12 @@ parsetdirCR=${crdir}/Parsets
 imagedir=${crdir}/Images
 slicedir=${imagedir}/Slices
 
-sourcelist=master_possum_catalogue_trim10x10deg.dat
-
-databaseCR=POSSUM
-#databaseCR=POSSUMHI
-
 if [ $databaseCR == "POSSUM" ]; then
     listtypeCR=continuum
-    baseimage=DCmodelfull-cont
+    baseimage="${baseimage}_cont"
 elif [ $databaseCR == "POSSUMHI" ]; then
     listtypeCR=spectralline
-    baseimage=DCmodelfull-HI
+    baseimage="${baseimage}_HI"
 fi
 
 npix=3560
@@ -55,16 +71,16 @@ dec=-45.0
 raCat=0.
 decCat=0.
 
-doHalfBW=true
+baseimage="${baseimage}_${freqChanZero}"
 
 nchan=16416
 rchan=0
 chanw=-18.5185185e3
-rfreq=1.421e9
+rfreq=${freqChanZero}e9
 if [ $doHalfBW == true ]; then
     nchan=`echo $nchan | awk '{print $1/2.}'`
     rfreq=`echo $nchan $rfreq $chanw | awk '{print $2 + $3*$1/2.}'`
-    baseimage="$baseimage-halfBW"
+    baseimage="$baseimage_halfBW"
 fi
 basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1/2)}'`
 
@@ -95,7 +111,7 @@ workersPerNodeCR=1
 createTT_CR=true
 
 modelimage=${imagedir}/${baseimage}
-slicebase=${slicedir}/${baseimage}-chunk
+slicebase=${slicedir}/${baseimage}_chunk
 
 
 ##############################
@@ -136,9 +152,6 @@ doClobberMergedVis=true
 doMergeStage1=true
 doMergeStage2=true
 
-array=BETAXYZ.in
-#nfeeds=36
-nfeeds=9
 feeds=ASKAP${nfeeds}feeds.in
 inttime=30s
 dur=6
@@ -181,11 +194,11 @@ fi
 
 msdir=${visdir}/MS
 if [ $databaseCR == "POSSUM" ]; then
-    msbase="DCvis"
+    msbase="${msbase}_cont"
 elif [ $databaseCR == "POSSUMHI" ]; then
-    msbase="DCvis_HI"
+    msbase="${msbase}_HI"
 fi
-msbase="${msbase}_${polName}_${noiseName}_${corruptName}"
+msbase="${msbase}_${freqChanZeroGHz}_${polName}_${nfeeds}feeds_${noiseName}_${corruptName}"
 
 if [ $doHalfBW == true ]; then
     msbase="${msbase}_halfBW"
