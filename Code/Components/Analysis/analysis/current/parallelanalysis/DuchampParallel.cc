@@ -152,6 +152,8 @@ namespace askap {
             /// as particular cduchamp parameters such as masterImage and
             /// sectionInfo.
 
+	    ASKAPLOG_INFO_STR(logger, "Initialising parallel finder, based on Duchamp v" << duchamp::VERSION);
+
             // First do the setup needed for both workers and master
             this->itsCube.pars() = parseParset(parset);
             ImageOpener::ImageTypes imageType = ImageOpener::imageType(this->itsCube.pars().getImageFile());
