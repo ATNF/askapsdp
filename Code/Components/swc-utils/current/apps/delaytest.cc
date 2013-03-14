@@ -118,13 +118,14 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
             
             casa::Vector<casa::Complex> measuredRow = it->visibility().xyPlane(0).row(row);
             
-            /*
+            
             // flagging based on the amplitude (to remove extreme outliers)
             casa::Complex currentAvgVis = casa::sum(measuredRow) / float(it->nChannel());
-            if ((casa::abs(currentAvgVis) > 13) && (row % 3 == 0)) {
+            if ((casa::abs(currentAvgVis) > 50) && (row % 3 == 0)) {
                 flagged = true;
             } 
-            */
+            
+            
             /*
             // uncomment to store the actual amplitude time-series
             if ((counter>1) && (row % 3 == 0)) {
@@ -154,7 +155,8 @@ void process(const IConstDataSource &ds, const int ctrl = -1) {
                     const float varReal = casa::real(avgSqr) - casa::square(casa::real(avgVis)); 
                     const float varImag = casa::imag(avgSqr) - casa::square(casa::imag(avgVis)); 
                      
-                    os2<<counter<<" "<<(it->time() - startTime)/60.<<" "<<casa::real(avgVis)<<" "<<
+                    const double intervalInMin = (it->time() - startTime)/60.;
+                    os2<<counter<<" "<<intervalInMin<<" "<<1/sqrt(intervalInMin)<<" "<<casa::real(avgVis)<<" "<<
                          sqrt(varReal)<<" "<<casa::imag(avgVis)<<" "<<sqrt(varImag)<<std::endl;
                 }               
             }
