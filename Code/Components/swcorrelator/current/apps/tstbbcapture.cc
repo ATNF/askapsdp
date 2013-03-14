@@ -5,8 +5,33 @@
 #include <vector>
 #include <complex>
 
+#include <casa/Arrays/Vector.h>
+#include <casa/Arrays/ArrayMath.h>
+#include <casa/BasicSL.h>
+#include <scimath/Mathematics/FFTServer.h>
+
 using namespace askap;
 using namespace askap::swcorrelator;
+
+void fftExperiments(const std::vector<std::complex<float> > &data)
+{
+  const casa::uInt fftSize = 1024;
+  casa::Vector<casa::Complex> input(fftSize);
+  casa::Vector<casa::Complex> result(fftSize,casa::Complex(0.,0.));
+  casa::FFTServer<casa::Float,casa::Complex> server;
+  casa::Vector<casa::Complex> output(fftSize);
+  for (casa::uInt start = 0; start+fftSize<data.size(); start+=fftSize) {
+       for (casa::uInt i=0; i<fftSize; ++i) {
+            input[i] = data[start + i];
+       }
+       server.fft(output,input);
+       result += output;
+  }
+  std::ofstream os("samplefft.dat");
+  for (casa::uInt i=0; i<result.nelements(); ++i) {
+       os<<i<<" "<<casa::real(result[i])<<" "<<casa::imag(result[i])<<std::endl;
+  }
+}
 
 int main(int argc, char **argv) {
    const std::string fname = argc >= 2 ? argv[1] : "apps/BB/ant0.beam0.chan0.bat4830973926000000.dat";
@@ -19,6 +44,9 @@ int main(int argc, char **argv) {
             maxAmp = amp;
         }
    }
+   //
+   fftExperiments(data);
+   //
    const int intMaxAmp = int(maxAmp);
    std::vector<size_t> reCounts(nbins,0), imCounts(nbins,0);
    for (size_t i = 0; i<data.size(); ++i) {
