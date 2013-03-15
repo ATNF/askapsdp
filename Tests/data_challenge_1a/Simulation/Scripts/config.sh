@@ -231,7 +231,7 @@ logdirVis=${visdir}/Logs
 
 # How many of the initial MSs to combine into each of the stage1 MSs
 if [ $doSmallBETA == true ]; then
-    msPerStage1job=6
+    msPerStage1job=9
 else
     msPerStage1job=36
 fi
