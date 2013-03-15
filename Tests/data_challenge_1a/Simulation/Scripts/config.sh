@@ -38,7 +38,11 @@ freqChanZeroGHz=1.050
 baseimage=DCmodel
 
 array=BETAXYZ.in
-nfeeds=36
+if [ $doSmallBETA == true ]; then
+    nfeeds=9
+else
+    nfeeds=36
+fi
 
 msbase=DCvis
 
