@@ -30,7 +30,7 @@ sourcelist=master_possum_catalogue_trim10x10deg.dat
 databaseCR=POSSUM
 #databaseCR=POSSUMHI
 
-doHalfBW=false
+doSmallBETA=false
 
 #freqChanZeroGHz=1.421
 freqChanZeroGHz=1.050
@@ -62,8 +62,14 @@ elif [ $databaseCR == "POSSUMHI" ]; then
     baseimage="${baseimage}_HI"
 fi
 
-npix=3560
-rpix=1780
+if [ $doSmallBETA == true ]; then
+    npix=2245
+# 2245 pix @ 9.1234"/pix gives area covered by 2048 @ 10"/pix
+else
+    npix=3560
+fi
+#rpix=1780
+rpix=`echo $npix | awk '{print $1/2}'`
 cellsize=9.1234
 delt=`echo $cellsize | awk '{print $1/3600.}'`
 ra=187.5
@@ -77,18 +83,21 @@ nchan=16416
 rchan=0
 chanw=-18.5185185e3
 rfreq=${freqChanZero}e9
-if [ $doHalfBW == true ]; then
+if [ $doSmallBETA == true ]; then
     nchan=`echo $nchan | awk '{print $1/2.}'`
     rfreq=`echo $nchan $rfreq $chanw | awk '{print $2 + $3*$1/2.}'`
-    baseimage="$baseimage_halfBW"
+    baseimage="$baseimage_smallBETA"
 fi
 basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1/2)}'`
 
-chanPerMSchunk=19
-numMSchunks=864
-if [ $doHalfBW == true ]; then
-    numMSchunks=432
+if [ $doSmallBETA == true ]; then
+    chanPerMSchunk=48
+    numMSchunks=171
+else
+    chanPerMSchunk=19
+    numMSchunks=864
 fi
+
 if [ `echo $chanPerMSchunk  $numMSchunks | awk '{print $1*$2}'` != $nchan ]; then
     echo ERROR - nchan = $nchan, but chanPerMShunk = $chanPerMSchunk and numMSchunks = $numMSchunks
     echo Not running script.
@@ -104,8 +113,13 @@ if [ $nstokes -gt 1 ]; then
     baseimage=${baseimage}_fullstokes
 fi
 
-nsubxCR=5
-nsubyCR=8
+if [ $doSmallBETA == true ]; then
+    nsubxCR=2
+    nsubyCR=4
+else
+    nsubxCR=5
+    nsubyCR=8
+fi
 workersPerNodeCR=1
 
 createTT_CR=true
@@ -200,8 +214,8 @@ elif [ $databaseCR == "POSSUMHI" ]; then
 fi
 msbase="${msbase}_${freqChanZeroGHz}_${polName}_${nfeeds}feeds_${noiseName}_${corruptName}"
 
-if [ $doHalfBW == true ]; then
-    msbase="${msbase}_halfBW"
+if [ $doSmallBETA == true ]; then
+    msbase="${msbase}_smallBETA"
 fi
 
 msChunk=${msdir}/${msbase}_chunk
@@ -211,7 +225,12 @@ finalMS=${msdir}/${msbase}.ms
 parsetdirVis=${visdir}/Parsets
 logdirVis=${visdir}/Logs
 
-msPerStage1job=36
+# How many of the initial MSs to combine into each of the stage1 MSs
+if [ $doSmallBETA == true ]; then
+    msPerStage1job=6
+else
+    msPerStage1job=36
+fi
 numStage1jobs=`echo $numMSchunks $msPerStage1job | awk '{print int($1/$2)}'`
 if [ `echo $msPerStage1job $numStage1jobs | awk '{print $1*$2}'` != $numMSchunks ]; then
     echo ERROR - numMSchunks = $numMSchunks and msPerStage1job = $msPerStage1job but numStage1jobs = $numStage1jobs

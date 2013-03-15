@@ -36,8 +36,8 @@ cat > \$parset << EOF_INNER
 Cimager.dataset                                 = \$ms
 
 Cimager.Images.Names                            = [\${imageName}]
-Cimager.Images.shape                            = [3328,3328]
-Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
+Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
+Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING_CELLSIZE}]
 Cimager.Images.\${imageName}.frequency           = [\${freq},\${freq}]
 Cimager.Images.\${imageName}.nchan               = 1
 Cimager.Images.\${imageName}.direction           = [12h30m00.00, -45.00.00.00, J2000]

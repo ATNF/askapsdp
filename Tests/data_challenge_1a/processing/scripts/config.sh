@@ -24,9 +24,9 @@ INPUT_MS=../input/dc1a.ms
 
 # Which type of BETA setup to use:
 #   full = original BETA specs, 304MHz, 36 beams
-#   half = trimmed-down BETA, 152MHz, 9 beams
+#   small = trimmed-down BETA, 152MHz, 9 beams
 BETA_MODE=full
-#BETA_MODE=half
+#BETA_MODE=small
 
 # Location (relative to workdir or absolute) of the input sky model (component list)
 INPUT_SKYMODEL_XML=../input/skymodel-duchamp.xml
@@ -74,7 +74,7 @@ DO_SPECTRAL_LINE=false
 # Some constants used in the scripts, extracted here so that we can
 # change between different modes - eg. halve the bandwidth
 
-if [ $BETA_MODE == "half" ]; then
+if [ $BETA_MODE == "small" ]; then
 
     echo Running pipeline for half-spec BETA : 152MHz BW, 9 beams
 
@@ -90,6 +90,10 @@ if [ $BETA_MODE == "half" ]; then
 # number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
     GAINS_CAL_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=2:mem=23GB:mpiprocs=2"
     NUM_BEAMS_GAINSCAL=9
+
+# image size -- number of pixels and cellsize
+    IMAGING_NUM_PIXELS=2048
+    IMAGING_CELLSIZE=10arcsec
 
 # number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
     CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+76:ncpus=6:mem=23GB:mpiprocs=6"
@@ -138,6 +142,10 @@ elif [ ${BETA_MODE} == "full" ]; then
 # number of worker nodes needed for gains-calibration.sh - work with 2 worker cpus per node
     GAINS_CAL_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=2:mem=23GB:mpiprocs=2"
     NUM_BEAMS_GAINSCAL=36
+
+# image size -- number of pixels and cellsize
+    IMAGING_NUM_PIXELS=3328
+    IMAGING_CELLSIZE=10arcsec
 
 # number of worker nodes needed for imager-cont-clean.sh - work with 2 worker cpus per node (but with nworkergroups=3)
     CONT_CLEAN_SELECT="1:ncpus=1:mem=23GB:mpiprocs=1+152:ncpus=6:mem=23GB:mpiprocs=6"

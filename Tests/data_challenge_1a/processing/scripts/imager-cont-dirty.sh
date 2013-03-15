@@ -23,8 +23,8 @@ cat > \${parset} << EOF_INNER
 Cimager.dataset                                 = MS/coarse_chan_%w.ms
 
 Cimager.Images.Names                            = [image.i.dirty]
-Cimager.Images.shape                            = [3328,3328]
-Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
+Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
+Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING_CELLSIZE}]
 Cimager.Images.image.i.dirty.frequency          = [${CONT_DIRTY_FREQ},${CONT_DIRTY_FREQ}]
 Cimager.Images.image.i.dirty.nchan              = 1
 Cimager.Images.image.i.dirty.direction          = [12h30m00.00, -45.00.00.00, J2000]

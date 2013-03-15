@@ -74,8 +74,8 @@ cat > \${CIMAGERPARSET} << EOF_INNER
 Cimager.dataset                                 = MS/fine_chan_\${PBS_ARRAY_INDEX}.ms
 
 Cimager.Images.Names                            = [image.i.spectral.\${PBS_ARRAY_INDEX}]
-Cimager.Images.shape                            = [3328,3328]
-Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
+Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
+Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING_CELLSIZE}]
 Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.frequency  = [\${freq}, \${freq}]
 Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.nchan      = 1
 Cimager.Images.image.i.spectral.\${PBS_ARRAY_INDEX}.direction  = [12h30m00.00, -45.00.00.00, J2000]

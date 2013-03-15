@@ -24,8 +24,8 @@ Cimager.dataset                                 = MS/coarse_chan_%w.ms
 Cimager.nworkergroups                           = 3
 
 Cimager.Images.Names                            = [image.i.clean]
-Cimager.Images.shape                            = [3328,3328]
-Cimager.Images.cellsize                         = [10arcsec, 10arcsec]
+Cimager.Images.shape                            = [${IMAGING_NUM_PIXELS},${IMAGING_NUM_PIXELS}]
+Cimager.Images.cellsize                         = [${IMAGING_CELLSIZE},${IMAGING_CELLSIZE}]
 Cimager.Images.image.i.clean.frequency          = [${CONT_CLEAN_FREQ},${CONT_CLEAN_FREQ}]
 Cimager.Images.image.i.clean.nchan              = 1
 Cimager.Images.image.i.clean.direction          = [12h30m00.00, -45.00.00.00, J2000]
