@@ -81,16 +81,16 @@ dec=-45.0
 raCat=0.
 decCat=0.
 
-baseimage="${baseimage}_${freqChanZero}"
+baseimage="${baseimage}_${freqChanZeroGHz}"
 
 nchan=16416
 rchan=0
 chanw=-18.5185185e3
-rfreq=${freqChanZero}e9
+rfreq=${freqChanZeroGHz}e9
 if [ $doSmallBETA == true ]; then
     nchan=`echo $nchan | awk '{print $1/2.}'`
     rfreq=`echo $nchan $rfreq $chanw | awk '{print $2 + $3*$1/2.}'`
-    baseimage="$baseimage_smallBETA"
+    baseimage="${baseimage}_smallBETA"
 fi
 basefreq=`echo $nchan $rchan $rfreq $chanw | awk '{printf "%8.6e",$3 + $4*($2+$1/2)}'`
 
