@@ -32,10 +32,10 @@ databaseCR=POSSUM
 
 doSmallBETA=false
 
-#freqChanZeroGHz=1.421
-freqChanZeroGHz=1.050
+#freqChanZeroMHz=1421
+freqChanZeroMHz=1050
 
-baseimage=DCmodel
+baseimage="DCmodel"
 
 array=BETAXYZ.in
 if [ $doSmallBETA == true ]; then
@@ -81,12 +81,12 @@ dec=-45.0
 raCat=0.
 decCat=0.
 
-baseimage="${baseimage}_${freqChanZeroGHz}"
+baseimage="${baseimage}_${freqChanZeroMHz}"
 
 nchan=16416
 rchan=0
 chanw=-18.5185185e3
-rfreq=${freqChanZeroGHz}e9
+rfreq=`echo ${freqChanZeroMHz} | awk '{printf "%8.6e",$1*1.e6}'`
 if [ $doSmallBETA == true ]; then
     nchan=`echo $nchan | awk '{print $1/2.}'`
     rfreq=`echo $nchan $rfreq $chanw | awk '{print $2 + $3*$1/2.}'`
