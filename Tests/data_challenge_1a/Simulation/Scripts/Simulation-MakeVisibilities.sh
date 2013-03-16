@@ -197,7 +197,7 @@ while [ \$IDX -lt \$END ]; do
 done
 
 dir="merge1-\`echo \${PBS_JOBID} | sed -e 's/\[[0-9]*\]//g'\`"
-logfile=${logdirVis}/${dir}/merge_s1_output_\${PBS_JOBID}.log
+logfile=${logdirVis}/\${dir}/merge_s1_output_\${PBS_JOBID}.log
 echo "Start = \$START, End = \$END" > \${logfile}
 echo "Processing files: \$FILES" >> \${logfile}
 $ASKAP_ROOT/Code/Components/Synthesis/synthesis/current/apps/msmerge.sh -o ${msStage1}_\${PBS_ARRAY_INDEX}.ms \$FILES >> \${logfile}
